@@ -1,5 +1,13 @@
 # Zoning slate — industrial land use & the settlement family
 
+> **Status: PARTIAL** — the closed-six land use shipped →
+> [smallholding.md](../../subsystems/smallholding.md); the type taxonomy
+> is doctrine in [settlement-model.md](../../settlement-model.md)
+> **Left:** the emission/nuisance model over `signalAt` · the cap at the
+> boundary · the LULU host problem · nonconforming use · derived
+> settlement type · industrial premises + the stockyard fight
+> **Size:** a build
+
 **Captured 2026-07-31.** Two live builds (a parcel with a farm on it;
 generic residences — apartments, suburban homes) both want **raw
 acreage**, and a third concern has emerged that the existing use

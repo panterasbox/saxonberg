@@ -1,5 +1,12 @@
 # Message rendering & styling slate (working doc)
 
+> **Status: PARTIAL** — waves 1–3 shipped bar one tag; `<list>`,
+> `<table>` and channel stylesheets are all live
+> → [message-rendering.md](../../subsystems/message-rendering.md)
+> **Left:** the `<box>` tag — and first the decision whether the cockpit
+> layout work already covers what it was for
+> **Size:** a tail
+
 > **Status: Wave 1 shipped (2026-06).** Substrate lives in
 > [docs/subsystems/message-rendering.md](../../subsystems/message-rendering.md):
 > nested-aware client renderer, stylesheet engine + three themes,
@@ -80,19 +87,19 @@ See also:
   MML + the Scene composer. This slate **extends** MML (it's "not fully
   formed") and adds the rendering/flatten model; it doesn't redefine the
   composer.
-- [comms-slate.md](../tails/comms-slate.md) / [chat-slate.md](../tails/chat-slate.md) /
-  [emotes-slate.md](../tails/emotes-slate.md) — the message *types* this renders
+- [comms-slate.md](./comms-slate.md) / [chat-slate.md](./chat-slate.md) /
+  [emotes-slate.md](./emotes-slate.md) — the message *types* this renders
   (say/tell/chat/emote); each is a per-type render template.
-- [access-slate.md](../tails/access-slate.md) — **authorization gates** layout
+- [access-slate.md](./access-slate.md) — **authorization gates** layout
   tags and channel presentational stylesheets (system/authors free;
   players channel-gated). Channel stylesheets are channel config set by
   admins (control-over).
-- [social-graph-slate.md](../tails/social-graph-slate.md) /
-  [recognition-slate.md](../tails/recognition-slate.md) — friend/foe **name
+- [social-graph-slate.md](./social-graph-slate.md) /
+  [recognition-slate.md](./recognition-slate.md) — friend/foe **name
   coloring** = an MML `stuff-id` attribute resolved against the viewer's
   bucket.
-- [client-cockpit-slate.md](../tails/client-cockpit-slate.md) /
-  [console-filtering-slate.md](../tails/console-filtering-slate.md) — the
+- [client-cockpit-slate.md](./client-cockpit-slate.md) /
+  [console-filtering-slate.md](./console-filtering-slate.md) — the
   buffers/tabs this renders *within*; the gutter ids.
 - [docs/design-philosophy.md](../../design-philosophy.md) — Principle 3
   (layered presentation): compose semantics once, serialize per the

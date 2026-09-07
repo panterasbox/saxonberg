@@ -16,7 +16,7 @@
 
 ## 0. Why this doc exists (the corrections that prompted it)
 
-The earlier docs ([study-com-integration.md](./study-com-integration.md)
+The earlier docs ([study-com-integration.md](./integration.md)
 et al.) built the architecture's spine on **ISCED-F codes as the join
 key**, described Study.com items as **static multiple-choice**, and said
 **proctoring was removed**. Verified against the platform, **all three
@@ -164,7 +164,7 @@ Any StudyWorld claim that "the subject taxonomy becomes the progression
 structure" must split: **categorization ✅ (ingestible), prerequisite
 ordering ❌ (build item).** Silver lining: the one place authored sequencing
 *does* exist is **standards-aligned math** — which reinforces the math/science
-beachhead ([study-com-cx-and-the-aspiring-teacher.md](./study-com-cx-and-the-aspiring-teacher.md)
+beachhead ([study-com-cx-and-the-aspiring-teacher.md](./cx-and-the-aspiring-teacher.md)
 §5), the subjects with the best skill structure to build on.
 
 ---
@@ -200,7 +200,7 @@ beachhead ([study-com-cx-and-the-aspiring-teacher.md](./study-com-cx-and-the-asp
   - **This aligns with Saxonberg's estimator.** Study's "master vs
     dimwit" Beta params are conceptually slip/guess; both platforms
     already do *Bayesian mastery per node*. The adaptive-feed synergy
-    ([study-com-adaptive-feed.md](./study-com-adaptive-feed.md)) has a
+    ([study-com-adaptive-feed.md](./adaptive-feed.md)) has a
     real socket, not a hoped-for one.
 - **Containers:** `QuestionBank → Quiz`; `ExamTemplate` / `Section` /
   `Page`; `Exam_Instance` (`AlgorithmType { ORIGINAL, PROPORTIONAL,
@@ -248,7 +248,7 @@ Two products, two engines, two pacing models:
   credit**. **No external date.**
 
 **The design consequence** (developed in
-[study-com-classroom-model.md](./study-com-classroom-model.md)): CX suits
+[study-com-classroom-model.md](./classroom-model.md)): CX suits
 a self-paced **classroom**; test prep suits a **countdown coach** that
 consumes both the `future_exam_date` and the live weakness ranking and
 paces to the *learner*.
@@ -296,7 +296,7 @@ lived-scenario content, and the missing piece is a **world/consequence
 model** — which is precisely what Saxonberg already is. So the answer is
 **not** "extend Study's CMS to author scenarios"; it's "let Saxonberg be
 the expressive layer and *derive* scenarios from Study's flat content."
-Detail in [study-com-classroom-model.md](./study-com-classroom-model.md).
+Detail in [study-com-classroom-model.md](./classroom-model.md).
 
 ---
 
@@ -350,7 +350,7 @@ three are the raw material for "live it, don't solve it."
   The per-member mastery tables exist (`Member_Concept_Mastery`,
   `Study_Priority`), but I did not find an inbound-write API for external
   evidence. This still gates the whole
-  [adaptive-feed](./study-com-adaptive-feed.md) direction.
+  [adaptive-feed](./adaptive-feed.md) direction.
 - **`[confirm]` Event-stream / warehouse access** for the credential
   feed (the strategy-doc interview said instrumentation exists,
   distribution is warehouse-only) — not re-verified here.

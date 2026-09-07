@@ -1,5 +1,11 @@
 # Map / spatial-visualization slate (working doc)
 
+> **Status: UNBUILT** — no renderer exists on either data source
+> **Left:** the 2D per-floor grid + the player minimap · the 2D
+> node-graph · the 3D procedural box render · the draft-template and
+> live-Stuff adapters · `SphericalZone.canPlace` non-overlap
+> **Size:** a build
+
 > **Status: direction set; 2D first, 3D earned.** A shared **map renderer**
 > that visualizes the engine's *honest spatial model* (real-meter
 > coordinates) in multiple modes — **2D** (per-floor grid, node-graph,
@@ -50,7 +56,7 @@ The load-bearing decisions:
 
 See also:
 
-- [docs/slates/cms-slate.md](../builds/cms-slate.md) — the **zone editor** consumes
+- [docs/slates/cms-slate.md](./cms-slate.md) — the **zone editor** consumes
   this as its canvas (2D edit) and view (3D); the room↔zone "two zooms on
   one dataset" framing.
 - [docs/subsystems/spatial.md](../../subsystems/spatial.md) /
@@ -206,7 +212,7 @@ demo-quality (lighting/materials).
 
 ## What this slate does NOT cover
 
-- **Zone/room *editing logic*** → [cms-slate.md](../builds/cms-slate.md). The map is
+- **Zone/room *editing logic*** → [cms-slate.md](./cms-slate.md). The map is
   the render surface + canvas; the editing rules are the editor's.
 - **The spatial model itself** (coordinates, zones, explicit exits,
   `cellSize`, and the **placement-validity invariants** — Cartesian

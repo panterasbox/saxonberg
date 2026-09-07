@@ -1,6 +1,18 @@
 # Mortality slate — dying, the corpse, the shade, the passage
 
-> **Status: BUILT 2026-07-31** — graduated to
+> **Status: PARTIAL** — the substrate shipped 2026-07-31: the unified
+> `ConditionApi.die`, the rescuable `dying` clock, stabilization, the
+> forensic corpse, the shade, `reembody` + the `passage` floor, and the
+> ledger rows → [mortality.md](../../subsystems/mortality.md)
+> **Left:** the re-embodiment service as content (the temple vs clinic
+> vendors, employer coverage, the price of walking out) · what
+> diminishment actually IS — the `recovering` seed is deliberately empty ·
+> the in-circle death arc (minting a real body from inside a circle) ·
+> corpse remains + the coroner economy · where "wake at your residence"
+> plugs in · the passage ladder (trial / bargain / Orpheus)
+> **Size:** a build
+
+> **Built 2026-07-31** — graduated to
 > [../../subsystems/mortality.md](../../subsystems/mortality.md), which is
 > now the source of truth for anything shipped. This slate is kept for its
 > **design rationale** and its still-open surface (the re-embodiment

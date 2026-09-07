@@ -11,7 +11,7 @@
 ---
 
 > **⚠️ SUPERSEDED on the beachhead call (2026-08-05) — read
-> [study-com-cx-and-the-aspiring-teacher.md](./study-com-cx-and-the-aspiring-teacher.md).**
+> [study-com-cx-and-the-aspiring-teacher.md](./cx-and-the-aspiring-teacher.md).**
 > §0 and §5 below call **TOEFL "the beachhead / best fit"** — that is now
 > **wrong.** Two scoring axes were missing: **medium fit** (a text-based
 > *English* world can't serve non-English-speaking TOEFL learners, and the
@@ -33,7 +33,7 @@
    in my scan because **TOEFL isn't in the `Test_Prep_Pillar` type
    breakdown** — a blind spot of ranking by one signal.
 2. **The nursing flagship example was the wrong product.** The NGN
-   postop-knee case ([study-com-integration-examples.md](./study-com-integration-examples.md)
+   postop-knee case ([study-com-integration-examples.md](./integration-examples.md)
    #②) is **NCLEX / NGN clinical content (B2B via Elsevier, "out of
    scope")** — *not* the **TEAS / HESI-A2 entrance** exams that are Study's
    B2C nursing test-prep vertical. Those entrance exams are **pre-clinical

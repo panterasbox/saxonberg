@@ -5,7 +5,7 @@
 > badge), the game emits **its own transcript** — co-produced from the
 > same credential event — and the *comparison between the two* is itself
 > the product. Grounded in the verified Study platform
-> ([study-com-platform-reality.md](./study-com-platform-reality.md)) and
+> ([study-com-platform-reality.md](./platform-reality.md)) and
 > Saxonberg's existing `Transcript` / `chronicle` substrates. Nothing here
 > has run against a live Study.com environment. It **changes nothing**
 > about Study's transcript or Credly pipeline — it runs beside them.
@@ -24,8 +24,8 @@
   passed the instrument.
 - **Saxonberg's transcript** — the `Transcript` (append-only evidence
   ledger) + `chronicle` (deed/claim identity ledger), with derive-on-read
-  **competence bands** ([advancement.md](./subsystems/advancement.md),
-  [chronicle.md](./subsystems/chronicle.md)). It answers **"what have you
+  **competence bands** ([advancement.md](../subsystems/advancement.md),
+  [chronicle.md](../subsystems/chronicle.md)). It answers **"what have you
   demonstrated you can do?"** It is a **`deed` ledger** — witnessed,
   applied, earned in play.
 
@@ -40,7 +40,7 @@ The credential event that produces Study's official transcript
 (`Credit_Progress` → pass the proctored final → `Academic_Transcript_Request`)
 is the **same event** that arrives on the integration's credential feed as
 an inbound `LearningEvent` and mints the game `claim` row
-([study-com-integration-spec.md](./study-com-integration-spec.md) §6.1).
+([study-com-integration-spec.md](./integration-spec.md) §6.1).
 So at the instant Study cuts the accredited transcript, the game can cut
 its **transcript snapshot + a comparison view** off the same trigger. No
 new hook — it rides the feed the integration already needs.
@@ -67,7 +67,7 @@ new *signal into a mechanism they already run*, not a new mechanism.
 - **Corroborated →** the credibility asset for the ACE / academic-partner
   stakeholders, and sharpest **post-proctoring-removal**: Study's strongest
   signal is now an identity-verified open-book final
-  ([platform-reality §6](./study-com-platform-reality.md)), and a deed
+  ([platform-reality §6](./platform-reality.md)), and a deed
   transcript is a second, independent, *applied* signal that **raises the
   credential's value without touching the instrument**. This is the
   strategy doc's "mirror with receipts" made concrete — not "I completed a
@@ -127,7 +127,7 @@ already draws into a customer-facing artifact.
   conversion signals), or both? Likely both, with different framings.
 - **How is a deed "matched" to a Study credential?** via the same
   Discipline↔`Concept`/`ExamTaxonomyNode` crosswalk as the rest of the
-  integration ([platform-reality §3](./study-com-platform-reality.md)); a
+  integration ([platform-reality §3](./platform-reality.md)); a
   credential with no modeled Discipline simply has no deed column (honest
   silence, §5).
 - **Caution threshold** — how large a claim/deed gap warrants a

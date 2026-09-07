@@ -1,5 +1,13 @@
 # Multi-currency slate (working doc)
 
+> **Status: PARTIAL** — Half A (currency threaded through the ledger
+> spine) shipped 2026-08-05; Half B (FX) is refused, not deferred →
+> [banking.md](../../subsystems/banking.md)
+> **Left:** a second issuer and the corpo scrip that motivates one (with
+> its coinage) · the money-changer as a merchant · the pegged issuer's
+> redemption window · per-currency statement views
+> **Size:** a tail
+
 > ✅ **HALF A IS BUILT AND MERGED** (the currency build, 2026-08-05 —
 > `docs/subsystems/banking.md` is now the live reference for everything in
 > it). What survives here is the **record of what was considered** for the

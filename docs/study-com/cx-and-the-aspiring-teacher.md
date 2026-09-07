@@ -7,7 +7,7 @@
 > that the **aspiring teacher** is the real beachhead. Grounded in the
 > stage DB + the CX product docs (Notion). Supersedes the "TOEFL is the
 > beachhead" claim in
-> [study-com-vertical-survey.md](./study-com-vertical-survey.md).
+> [study-com-vertical-survey.md](./vertical-survey.md).
 
 ---
 
@@ -192,7 +192,7 @@ villagers"). Three earlier threads collapse into this one:
 - **Staffing solves itself** (teacher-vertical §4.2): supply isn't
   conscripted NPCs — the economy *wants* player-teachers and pays them.
 - **The producer flip gets a price signal**
-  ([study-com-student-experience.md](./study-com-student-experience.md) §3):
+  ([study-com-student-experience.md](./student-experience.md) §3):
   "being needed" stops being a warm retention feeling and becomes an economic
   fact — the graduated expert teaches because there's a market.
 - **The teaching deed gets a validity mechanism:** in a market where students
@@ -225,19 +225,19 @@ actual content.
 
 ## 6. What this corrects elsewhere
 
-- [study-com-vertical-survey.md](./study-com-vertical-survey.md) — "TOEFL is
+- [study-com-vertical-survey.md](./vertical-survey.md) — "TOEFL is
   the beachhead/standout wedge" is **wrong**: TOEFL → a caveated
   immersion-*complement* (Reading+Writing only, entry barrier, intermediate+),
   and the **aspiring teacher (CX + Praxis)** is the beachhead. Add the two
   axes (§1) **and the world-surface topology (§5)** as first-class scoring.
-- [study-com-teacher-vertical.md](./study-com-teacher-vertical.md) — add the
+- [study-com-teacher-vertical.md](./teacher-vertical.md) — add the
   **CX education-major** dimension (credit-toward-the-degree), and keep the
   practicum framed as experience/mission (§4 guardrail).
-- [study-com-studyai.md](./study-com-studyai.md) — soften the
+- [study-com-studyai.md](./studyai.md) — soften the
   "container-failure" reading of the pills stat (their doc frames pills as
   the *intended* interface; the honest claim is "the free-form assistant
   underperforms," not "nobody engages").
-- [study-com-integration-examples.md](./study-com-integration-examples.md) —
+- [study-com-integration-examples.md](./integration-examples.md) —
   the nursing NGN case is NCLEX/clinical (already noted); the *game's*
   nursing fit is NCLEX, not the TEAS/HESI B2C entrance vertical (§1).
 

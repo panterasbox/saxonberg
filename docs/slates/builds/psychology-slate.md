@@ -1,5 +1,12 @@
 # Psychology slate — the profession that reads you, and why disclosure IS discovery
 
+> **Status: PARTIAL** — the disposition ledger and derive-on-read
+> `TraitPosition` shipped → [trait.md](../../subsystems/trait.md)
+> **Left:** the scoped disclosure grant · the therapist's file object ·
+> the psychology vocation + its Discipline · privilege and the conflict
+> class · whether `traits`/`score` keep self-reporting
+> **Size:** a build
+
 **Captured 2026-08-04.** It started as a *rights* question — the
 manifesto appendix work asked whether you may see your own trait
 position, and who owns that data — and turned into a vocation:

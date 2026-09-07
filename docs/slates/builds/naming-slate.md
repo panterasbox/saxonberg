@@ -1,5 +1,13 @@
 # Naming slate — non-unique names, renaming, and impersonation
 
+> **Status: UNBUILT** — belief, chronicle and renown are shipped
+> substrate, but no rename act and no name-collision gate exist.
+> **Left:** the rename act (notify every recognition holder · decay
+> window · chronicle deed) · Defense A, `learnIdentity` refusing a
+> conflicting name · Defense B, taking a load-bearing name is gated ·
+> Defense C, the name-holder is told · the cooldown dial
+> **Size:** a wave
+
 **Captured 2026-08-12**, from a design conversation about the cost of the
 platform's founding naming choice: **names are not unique.** Any player
 may take any proper name. The recommendation is a surname, for

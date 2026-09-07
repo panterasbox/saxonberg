@@ -4,7 +4,7 @@
 This is the between-us strategy layer: product map from public
 sources, stakeholder analysis, video prioritization, and
 go-to-market alternatives. The videos themselves stay what
-[education-videos.md](./education-videos.md) says they are — a pitch
+[education-videos.md](../education-videos.md) says they are — a pitch
 for the game, not a deal proposal. This doc is where the deal
 thinking lives so the videos don't have to carry it.
 
@@ -15,12 +15,12 @@ interviewing the resident insider.
 > **Engagement / "it's a game" positioning** — how to lead with the
 > fun/gamification story *without* the burned word, why the category failed,
 > the validated novelty claim, and the first-mover / ideal-operator close:
-> [study-com-engagement-and-positioning.md](./study-com-engagement-and-positioning.md).
+> [study-com-engagement-and-positioning.md](./engagement-and-positioning.md).
 > That doc carries the emotional half of the business case this doc makes
 > structurally.
 
 > **⚠️ Business framing corrected (2026-08-05) — read
-> [study-com-platform-business-model.md](./study-com-platform-business-model.md).**
+> [study-com-platform-business-model.md](./platform-business-model.md).**
 > The "go-to-market alternatives / deal models" below were written as
 > **Study-partnership** shapes, implicitly treating the game as a product
 > *we own and Study partners with*. That's wrong at the root: **Saxonberg is
@@ -46,7 +46,7 @@ interviewing the resident insider.
   (typing-pattern) + Veriff (ID + selfie). *(Corrected 2026-08-07: this
   bullet previously said "proctoring was removed" and "finals are
   open-book." `Proctored_Exam` is alive and CX credit rides it —
-  [platform-reality §6](./study-com-platform-reality.md); "open-book" is
+  [platform-reality §6](./platform-reality.md); "open-book" is
   unverified. Say "identity-verified proctored final.")*
 - **Test prep** — SAT/ACT/AP, GED, HESI, ASVAB, real-estate
   licensure, TOEFL (new AI-tutoring experience), and **teacher
@@ -68,7 +68,7 @@ interviewing the resident insider.
 ### The finding that matters most
 
 > **⚠ CORRECTED 2026-08-07 — the premise of this section is too strong.**
-> [platform-reality §6](./study-com-platform-reality.md) verified against
+> [platform-reality §6](./platform-reality.md) verified against
 > the stage DB that **`Proctored_Exam` is alive**, with
 > `Typing_Dna_Result_For_Proctored_Exam` and
 > `Veriff_Result_For_Proctored_Exam` beside it, and that **CX earns credit
@@ -148,14 +148,14 @@ champions ("not everyone gets it" — who does?).
 ## Video priority (by stakeholder value)
 
 Priority is stakeholder-value-ordered, but the videos themselves are
-**experience-first** ([education-videos.md](./education-videos.md)):
+**experience-first** ([education-videos.md](../education-videos.md)):
 each video is a player experience in Schell's sense, shown as fun —
 the exec read (engagement / personalization / marketing /
 completion) is derived from the experience in its closing beat,
 never the subject. Fun is the carrier; if the video isn't fun, no
 business claim in it lands.
 
-Reordering [education-videos.md](./education-videos.md)'s candidates
+Reordering [education-videos.md](../education-videos.md)'s candidates
 by the value the *study.com side* gets from watching:
 
 1. **Real mastery, real capability** (product + leadership) — the
@@ -220,7 +220,7 @@ Study already ships **StudyAI** (the CX + Test Prep "Student AI
 Assistant") — a topic-aware, **function-calling** LLM agent in
 `prediction-services` with real tools (enroll, create study plan, set
 goal, create classroom, recommend next lesson). Full technical + leverage
-capture: [study-com-studyai.md](./study-com-studyai.md). Two things it
+capture: [study-com-studyai.md](./studyai.md). Two things it
 hands the pitch:
 
 1. **The concept is pre-sold internally.** Study built and staffed

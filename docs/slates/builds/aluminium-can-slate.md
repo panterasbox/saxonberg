@@ -1,5 +1,14 @@
 # The aluminium can — a stress test of every system, one object at a time
 
+> **Status: PARTIAL** — the vessel roster, aluminium, the empty↔product
+> `category` and the state-derived census key landed in the libations MR
+> → [bulk.md](../../subsystems/bulk.md)
+> **Left:** the granular bulk phase (`requiredClosureFor`, so a sack is
+> honestly open) · the deposit as law + a contract leg · the `fill`
+> recipe · `remelt` + `Recipe.energyKWh` · carbonation going flat · a
+> `category` home a `Crate` can reach · the pallet, with freight
+> **Size:** a wave
+
 *Design slate, 2026-08-29, on `design/libations`. A conversation, not a
 build list. The can is the object because it is everywhere, it is
 standardised to the millilitre, its material has the tightest closed

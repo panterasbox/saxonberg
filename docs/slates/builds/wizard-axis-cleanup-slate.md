@@ -1,5 +1,14 @@
 # The wizard-axis cleanup — one credential, one meaning (slate)
 
+> **Status: UNBUILT** — the leaks named on 2026-09-03 are all still in
+> the tree (`LeaseController.ts:151`, `ProvisionController.ts:208`,
+> `MagicLogic` execScript); no `lint:wizard-axis` in the lint family.
+> **Left:** W0 `lint:wizard-axis` allowlist · W1 the four lease/provision
+> `isWizard` bypasses + the `execScript` verdict · W2 the code-door folds
+> (reload/git/cms/studio/Template/Document) · W3 `AppSettingKeys` B/C
+> tier tags + Tier C routed to an office · W4 the reads/reveals
+> **Size:** a build
+
 > Written 2026-09-03, out of MR !231 (cooking), where a live drive
 > reached for a wizard session to turn a balance dial and dressed it up
 > as *"an operator act"*. The user's response — *"how many times do I

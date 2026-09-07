@@ -1,5 +1,16 @@
 # Venue & supply slate — sellable businesses, archetypes, and the input graph
 
+> **Status: PARTIAL** — the substrate the slate audits already ships: the
+> `archetype` document kind (nine rows, `describe`/`materialize`), the
+> parameterized `PlatBook`, and the going-concern loop (`wallet use
+> house` + `buy` + `restocks`)
+> → [content-packs.md](../../subsystems/content-packs.md)
+> **Left:** V6 — `needs` past the closed six (ground/water/sun) and
+> producer `yields` · V5 `lint:supply` · V4 the five support archetypes ·
+> V2 the uniform `kind: office` sweep · what a business is worth
+> (`appraisal` has nothing to appraise)
+> **Size:** a build
+
 > **Captured 2026-09-03**, out of the towns design session, in answer to
 > one goal: **NPC-run businesses that can be easily sold to players when
 > the time comes for players to run them.**

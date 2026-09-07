@@ -7,7 +7,7 @@
 >
 > This is **not** the outward-facing pitch. The pitch derives from this
 > later; the deal thinking lives in
-> [study-com-strategy.md](./study-com-strategy.md). Keep this one
+> [study-com-strategy.md](./strategy.md). Keep this one
 > factual and unsold.
 >
 > **Accuracy rail:** everything below is marked **[shipped]**,

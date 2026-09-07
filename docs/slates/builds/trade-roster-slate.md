@@ -1,5 +1,16 @@
 # Trade roster slate — the gallery's generative vocabulary
 
+> **Status: PARTIAL** — ~7 of the 22 gap Disciplines now ship beside
+> their trade packs (stockmanship · mining · smelting · textiles ·
+> brewing · butchery · teamstering)
+> → [advancement.md](../../subsystems/advancement.md)
+> **Left:** the 15 unminted Disciplines (foraging · fuelcraft ·
+> electrical-work · carpentry · masonry · leatherwork · ceramics ·
+> glasswork · baking · bookkeeping · apothecary · midwifery · letters ·
+> wayfinding · mechanisms) · the trade × locality × `Means` grid itself ·
+> the lineage gallery that consumes it
+> **Size:** a wave
+
 > **Status: content design, buildable.** The closed vocabulary the
 > [lineage](./lineage-slate.md) gallery generates households from. Written
 > 2026-08-11 to unblock building the gallery, which needs real data before

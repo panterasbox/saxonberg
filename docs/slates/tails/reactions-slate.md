@@ -1,5 +1,13 @@
 # Reactions & aggregation slate (working doc)
 
+> **Status: PARTIAL** — Waves 1–2 shipped: act-scoped emote, the
+> fixed-cadence aggregate-delta broadcaster, threshold flip, tag-grouped
+> chips, expand, the quick-react palette, the renown event →
+> [reactions.md](../../subsystems/reactions.md)
+> **Left:** the analytics event-stream tap · the emote-flood salvage ·
+> reactability beyond chat-first
+> **Size:** a tail
+
 > **Status: core SHIPPED (see [docs/subsystems/reactions.md](../../subsystems/reactions.md)); this slate keeps the deferred tail.**
 > The Wave-1/2 substrate is built: act-scoped emote, the fixed-cadence
 > aggregate-delta broadcaster, threshold flip, tag-grouped chips, expand,
@@ -49,21 +57,21 @@ The load-bearing decisions:
 
 See also:
 
-- [emotes-slate.md](../tails/emotes-slate.md) — the reaction vocabulary
+- [emotes-slate.md](./emotes-slate.md) — the reaction vocabulary
   (`SoulApi`) + the reserved hooks: aggregation `tags` and the shared
   message-id. A reaction *is* an emote with a message target.
-- [chat-slate.md](../tails/chat-slate.md) — the at-scale consumer; the gutter
+- [chat-slate.md](./chat-slate.md) — the at-scale consumer; the gutter
   message-id (must be **shared/canonical**, see below); the
   ephemeral/ring lifetime reactions share.
-- [docs/slates/mql-subscription-slate.md](../tails/mql-subscription-slate.md) /
+- [docs/slates/mql-subscription-slate.md](./mql-subscription-slate.md) /
   [docs/subsystems/mql-subscription.md](../../subsystems/mql-subscription.md)
   — the **`setImmediate`-batched diff scheduler** reactions reuse:
   reactions are another batched-delta broadcaster.
 - [docs/subsystems/messaging.md](../../subsystems/messaging.md) — the
   message substrate reactions attach to; **`MudlogApi`/topics is the
   event-stream tap** for the future analytics warehouse.
-- [client-cockpit-slate.md](../tails/client-cockpit-slate.md) /
-  [console-filtering-slate.md](../tails/console-filtering-slate.md) — rendering:
+- [client-cockpit-slate.md](./client-cockpit-slate.md) /
+  [console-filtering-slate.md](./console-filtering-slate.md) — rendering:
   the gutter ids, collapse/expand, the train animation.
 - [docs/design-philosophy.md](../../design-philosophy.md) — liberal diegesis
   (reacting-to-a-message is in-fiction); the "what loss is acceptable"

@@ -1,5 +1,13 @@
 # Inquiry slate (working doc) — discovering, verifying, and trusting knowledge
 
+> **Status: PARTIAL** — the instrument seam (`analyze` / `measure`) and
+> the Competence ladder shipped →
+> [advancement.md](../../subsystems/advancement.md)
+> **Left:** the `Law` catalog Idea · the `predict` lab-notebook loop ·
+> knowledge banking of confirmed laws · the publish + replicate library ·
+> the evidential range and the overreach paper
+> **Size:** a build
+
 > **Status: sketch / pre-requirements.** A design pass, not a spec. Spun
 > out of [capability-magic-slate.md](../deferred-rpg/capability-magic-slate.md)
 > Part IV on 2026-07-15, when the "how a student discovers a magical law"

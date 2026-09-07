@@ -1,5 +1,11 @@
 # The mortal vessel — selfhood, death, recovery & moderation (working slate)
 
+> **Status: PARTIAL** — the death arc (Theses 6–8) shipped
+> → [mortality.md](../../subsystems/mortality.md)
+> **Left:** Thesis 4, moderation as diegetic capability-state · Thesis 5,
+> the prison ↔ Hades unification · the law-enforcement half of Thesis 3
+> **Size:** a build
+
 > **Status: design-phase, deferred-rpg.** The *architecture of selfhood* on
 > the platform: the split between the enduring participant and the mortal
 > body, and everything that operates on the body — severe injury, death,

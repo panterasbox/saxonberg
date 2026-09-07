@@ -1,5 +1,13 @@
 # Display manifestation — a screen shows content; the content knows how it renders
 
+> **Status: PARTIAL** — the three-arm `DisplayKind`, prose as a real
+> arm and `shows` shipped 2026-08-30 (MR !206) →
+> [display.md](../../subsystems/display.md)
+> **Left:** driver policy off the closed `pairing` enum and onto
+> `AccessApi.can` · the network / channel / guide addressing layer ·
+> multiple simultaneous sources per screen
+> **Size:** a wave
+
 *Design slate, 2026-08-30, from the libations review (MR !206). The
 founder, on the substrate I shipped in D12: **"DisplayMixin is all over
 the place… it's conflating a lot of things and none of them are super

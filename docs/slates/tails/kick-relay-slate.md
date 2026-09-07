@@ -1,18 +1,12 @@
 # Kick Stream Relay — Scope
 
-> **Status (2026-07-28): SHIPPED** (`feature/kick-relay`, MR !152) →
-> [streaming.md](../../subsystems/streaming.md) § the Kick transport +
-> [connection.md](../../subsystems/connection.md) (the third co-equal
-> auth provider) are the live reference. Everything below landed as
-> designed — the webhook transport, the `watch` embed, Kick as a full
-> login+link provider (`user:read` + `channel:read`), overlay
-> forwarding, graceful dormancy — with one addition beyond the slate:
-> unconfigured providers now guard-and-redirect and the start screen
-> disables their buttons (a latent Twitch hole fixed alongside). This
-> slate is **retained as the tail** for the deferred surface: **phase-2
-> posting** (`kick-reauth` + `chat:write` through the existing
-> throttle/echo-suppress), boot-time webhook-subscription
-> reconciliation, and `kick.com/video/…` URL forms.
+> **Status: PARTIAL** — wave 1 shipped 2026-07-28 (MR !152): webhook
+> transport, `watch` embed, Kick as a full login+link provider, overlay
+> forwarding, dormancy → [streaming.md](../../subsystems/streaming.md)
+> **Left:** phase-2 posting (`kick-reauth` + `chat:write` through the
+> existing throttle/echo-suppress) · boot-time webhook-subscription
+> reconciliation · `kick.com/video/…` URL forms
+> **Size:** a tail
 
 **Lineage:** sibling of
 [youtube-relay-slate.md](./youtube-relay-slate.md) (and Wave N of

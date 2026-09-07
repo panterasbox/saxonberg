@@ -5,7 +5,7 @@
 > (direct enactment · allegory · reference), the out-of-bounds categories,
 > and the routing rule that tells the planning agents *what not to try to
 > model*. Pairs with the fidelity audit
-> ([study-com-vertical-fidelity-audit.md](./study-com-vertical-fidelity-audit.md)):
+> ([study-com-vertical-fidelity-audit.md](./vertical-fidelity-audit.md)):
 > that one says "add the reasoning where the discipline is livable"; this
 > one says "here's what isn't livable, and how to teach it anyway."
 
@@ -34,8 +34,8 @@ subjects:
    real **pattern, dynamic, or normative lesson** *without importing the
    real referent*. This is the game's **primary mode for social /
    conceptual subjects**, and it's what the world is already built on:
-   [arcane-science.md](./arcane-science.md) is an invented science teaching
-   real thermodynamics; [compact-political-science.md](./compact-political-science.md)
+   [arcane-science.md](../arcane-science.md) is an invented science teaching
+   real thermodynamics; [compact-political-science.md](../compact-political-science.md)
    is an invented polity teaching real political science. **Allegory is not
    the uncanny thing — literal import is** (§4).
 3. **Reference** — the **specific real facts / works / referents**
@@ -99,7 +99,7 @@ guardrails are the same the invented science already holds:
 **Assessment note:** allegory's **lived half** is consequence-gradable
 (did you navigate the situation well?); its **transfer half** (did you map
 it back to the real world?) needs the reflection / viva layer
-([classroom-model](./study-com-classroom-model.md) §5, §7) — an essay or
+([classroom-model](./classroom-model.md) §5, §7) — an essay or
 oral defense, not a computed key.
 
 ## 5. The routing rule (for the planning agents)

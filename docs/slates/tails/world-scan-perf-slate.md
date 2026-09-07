@@ -1,5 +1,14 @@
 # World-scan performance slate — the `world:` seed is O(n), and indexing only half-fixes it
 
+> **Status: UNBUILT**
+> **Left:** the money-path owner reads (`flowSplitsFor`,
+> `holdersByPosition` off the Business roster) · the per-tick
+> `maintains.holdingsUnder` extent lookup · `findOccupiedSlots`'s item
+> back-reference · the by-mixin/by-class index at `stuff.ts`'s
+> register chokepoint · `allModes` roster cache · `execMisidentify`
+> early-exit · the companion `world:`-is-for-selective-populations norm
+> **Size:** a wave
+
 **Captured 2026-09-01.** An inventory of every runtime `world:` MQL query
 — each a full O(n) scan of the object registry — plus the triage that
 falls out of one sharp observation: **a by-mixin index only helps when

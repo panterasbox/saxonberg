@@ -1,5 +1,12 @@
 # Git workflow / in-runtime VCS slate (working doc)
 
+> **Status: PARTIAL** — Wave 1 shipped (MR !132): `GitApi`/`GitLogic`,
+> the `git` verb, the CMS panel, snapshot-and-push, the same-gate
+> permission spine → [git-workflow.md](../../subsystems/git-workflow.md)
+> **Left:** the content/document → git bridge (a Mongo→file export) ·
+> finer-than-branch review · per-user `/home` submodules
+> **Size:** a build
+
 > **Status: Wave 1 SHIPPED** (`feature/git-workflow`, MR !132) →
 > [../../subsystems/git-workflow.md](../../subsystems/git-workflow.md) is
 > the live reference. The `GitApi`/`GitLogic` pair + `git` verb + CMS git
@@ -45,7 +52,7 @@ The load-bearing decisions:
    git-native). **Content** (templates, `domain` collection) and
    **documents** (scripts, `documents` collection) are **Mongo rows** —
    git can't see them without a DB→file export. That export is the
-   [content-packs](../builds/content-packs-slate.md) round-trip direction
+   [content-packs](./content-packs-slate.md) round-trip direction
    and is **deferred**; content is *not lost* on redeploy (Atlas persists
    independently of the box) — it's just **unversioned**. Source-only this
    cycle.
@@ -299,7 +306,7 @@ review gate (drives on `AuthoringEvent` path→author + the permission
 slice); auto-open-MR via the GitLab API (deferred credential/logic).
 
 **Wave 3+ — content into git + personal repos.** The **Mongo→file export**
-bridge (shared with [content-packs](../builds/content-packs-slate.md)) so
+bridge (shared with [content-packs](./content-packs-slate.md)) so
 template/document content becomes git-trackable; **per-user `/home/<id>/`
 subrepos** (git submodules / personal remotes) so a player branches/merges
 their sandbox freely — *blocked on home code being file-backed* (today

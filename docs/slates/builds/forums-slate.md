@@ -1,5 +1,12 @@
 # Forums slate (working doc)
 
+> **Status: PARTIAL** — Part-0 substrate, Part-1 popularity, and Part-2
+> (the `argument` organizer) all shipped across two cycles
+> → [forums.md](../../subsystems/forums.md)
+> **Left:** the ephemeral bill lifecycle · the rules-of-order procedure
+> mode · the latent collection-watch abstraction
+> **Size:** a wave
+
 > **Status: SHIPPED. Part-0 substrate + Part-1 (popularity) shipped cycle 1;
 > Part-2 (the argument organizer, renamed `'structure'` → `'argument'`)
 > shipped cycle 2 — both graduated to

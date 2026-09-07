@@ -1,5 +1,12 @@
 # Equip slate — one verb for getting kitted out, and dressing costs time
 
+> **Status: ABSORBED** — built on `design/textiles` (MR !236): the
+> `equip`/`unequip` orchestrators, saved sets, innermost-first ordering,
+> and dressing costs time →
+> [embodiment.md](../../subsystems/embodiment.md)
+> **Left:** nothing
+> **Size:** —
+
 **Captured 2026-09-04**, out of the textiles build's covering work. It
 started as an interface complaint and turned into a question about who
 holds the engine's knowledge:

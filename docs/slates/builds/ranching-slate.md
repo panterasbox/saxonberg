@@ -1,25 +1,15 @@
 # Ranching slate (working doc) — livestock, husbandry, and the animal economy
 
-> **Status: conventions + the core loop DECIDED (2026-07-30/31 design sessions);
-> disease DESIGNED; ⭐ breeding BRIEFED (§ Breeding — everything we know,
-> 2026-09-05, after the farmstead build shipped it and it was cut back to
-> honesty); herd UX still open.** Ranching is the
-> **economic** half of owned animals: raising livestock (managed as herds, not
-> befriended as individuals) for renewable products — milk, eggs, wool, meat,
-> hide, draft labor, breeding stock.
->
-> **Session 1** ran ranching against **both** its neighbors at once —
-> [pets](./pets-slate.md) (the relationship half) and
-> [farming](./farming-slate.md) (the plant half) — and settled the five
-> conventions all three must agree on, plus the deliberate divergences.
->
-> **Session 2** designed the loop. Three decisions carry the most weight:
-> ranching's core model is **energy partitioning under a priority cascade** (not
-> farming's limiting factor); **pasture is a field** and grazing is simply a
-> second harvest method, which makes hay mechanically necessary and makes crop
-> rotation through pasture *emerge* from correct soil accounting; and **paddock
-> granularity is the player's dial, not our constant** — subdivision trades
-> utilization against attention exactly as it does in real grazing management.
+> **Status: PARTIAL** — the farmstead build shipped the keeping: the
+> herdbook, pasture-as-field, boundary acts, handling, the taps, the
+> carcass yield (tallow · hide · bone · meat) and the hazards (hay fire ·
+> slurry pit · fox) → [ranching.md](../../subsystems/ranching.md)
+> **Left:** breeding (gestation · birth · heredity; nothing writes
+> `bornAt`) · bees — the hive, pollination, forage range, swarming (AC 14
+> unmet) · the training/skill axis (working-animal transcripts) · disease
+> · herd UX · the rendering chain this build must leave open (knacker →
+> tanner → chandler — `organic/leather` ships and nothing makes leather)
+> **Size:** a build
 
 > ⚠⚠ **SEAM NOTE for the build (2026-09-03) — leave the carcass open.**
 > The [rendering slate](./rendering-slate.md) (knacker → tanner →

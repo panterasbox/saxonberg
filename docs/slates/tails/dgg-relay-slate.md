@@ -1,5 +1,13 @@
 # destiny.gg Stream Relay — Scope
 
+> **Status: UNBUILT** — the unified `watch`/`tune` surface it would plug
+> into ships ([streaming.md](../../subsystems/streaming.md)); no dgg
+> transport exists.
+> **Left:** the dgg WebSocket transport · the anonymous read path · the
+> developer-key credential (it rides no OAuth spine) · the two-way write
+> path, which is the point of it
+> **Size:** a tail
+
 > **Status (2026-09-01): design conversation, captured. Not
 > requirements.** The fourth transport, and the first that is a
 > **community** rather than a platform. Two-way is the point of it — a

@@ -2,7 +2,7 @@
 
 > **Status: foundational correction (2026-08-05).** The earlier
 > `study-com-*` docs (and the GTM "deal models" in
-> [study-com-strategy.md](./study-com-strategy.md)) implicitly framed the
+> [study-com-strategy.md](./strategy.md)) implicitly framed the
 > game as a **proprietary product we own and Study partners with.** That is
 > wrong at the root. **Saxonberg is AGPL-3 open source; Study licenses and
 > runs its own instance.** This doc records the correct economic
@@ -45,7 +45,7 @@ engine itself:
 ## 3. The proprietary integration layer is the paid surface — the architecture already fits
 
 - The **vertical-agnostic core + per-partner proprietary adapter** split
-  ([study-com-integration-spec.md](./study-com-integration-spec.md) §1, §4)
+  ([study-com-integration-spec.md](./integration-spec.md) §1, §4)
   *is* this layer: the **core is the AGPL commons**; the **adapter** (Study
   content → game) is the **proprietary, per-operator piece** the copyright
   holder builds and supports. The technical design was right; only the
@@ -70,7 +70,7 @@ engine itself:
   **first-class operator/integration decision**, not a footnote, and the
   adapter layer has to address it. (It's also the sibling of the world's
   *danger* being load-bearing — see
-  [study-com-student-experience.md](./study-com-student-experience.md) §2:
+  [study-com-student-experience.md](./student-experience.md) §2:
   the world is opinionated, both civically and in its stakes, not a neutral
   content shell.)
 

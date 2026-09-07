@@ -1,5 +1,15 @@
 # Fire & combustion slate — the Fire channel (combustion as a driver)
 
+> **Status: PARTIAL** — the whole combustion substrate shipped: the six
+> `Material` numbers, the `heat` channel, `Combustible`/`Burning`,
+> phase change, the furnace family
+> → [fire.md](../../subsystems/fire.md)
+> **Left:** the fire service (§ below) — the brigade, prevention, and
+> fire insurance · arson-as-crime · map-scale wildfire · burning-DoT as
+> a combat weapon · vision-obscuring smoke + cross-room drift ·
+> flammability limits (LEL/UEL)
+> **Size:** a build
+
 The next **frontier-physics** build in the "real channels magic actuates"
 arc (sibling of the shipped [electricity](./electricity-slate.md)
 Lightning-frontier and the [storms-and-wetness](../tails/weather-slate.md)

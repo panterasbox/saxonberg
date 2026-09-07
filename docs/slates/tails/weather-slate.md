@@ -1,5 +1,12 @@
 # Weather slate (tail — Waves 1 + 2 shipped; the family coupling deferred)
 
+> **Status: PARTIAL** — waves 1 + 2 shipped (the field, storms, wetness,
+> the forecast) → [weather.md](../../subsystems/weather.md)
+> **Left:** fog → visibility · snow depth · vector wind · moving fronts ·
+> a weather-pin write Api (it blocks the `storm` Discipline) · the
+> economic family coupling (correlated risk, seasonal labour)
+> **Size:** a wave
+
 > **Header corrected 2026-07-31.** This slate said "Wave 2 teeth deferred."
 > **Wave 2 shipped** (MR !141, storms-and-wetness) — weather.md is titled
 > *"Weather substrate (Wave 2)"* and lands the coexistence resolve, the

@@ -1,5 +1,14 @@
 # Materials response & construction (working slate)
 
+> **Status: PARTIAL** — the three axes, the response function, layered
+> armor and trauma generation shipped →
+> [materials-response.md](../../subsystems/materials-response.md)
+> **Left:** the `Recipe` craft-stamp of {material, construction, grade} ·
+> repair / scrap / reforge · the `crush` / `heat` / `corrosion` channels ·
+> weapon reach + guard + gambits and shield-as-armor · tissue as a
+> construction axis
+> **Size:** a wave
+
 > **Status: design-phase, deferred-rpg.** Born from the combat design pass
 > (see [combat-slate.md](./combat-slate.md)) when "how do you model armor?"
 > hit the wall that **chainmail and plate are the same steel** — so threat

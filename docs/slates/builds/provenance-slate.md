@@ -1,5 +1,14 @@
 # Provenance, ownership & git-in-runtime — the authorship substrate
 
+> **Status: PARTIAL** — the authoring ledger, the in-runtime VCS,
+> parcel-title ownership and the producer stock all shipped →
+> [provenance.md](../../subsystems/provenance.md) ·
+> [git-workflow.md](../../subsystems/git-workflow.md)
+> **Left:** the dependency DAG (infrastructure earning from what rides
+> it) · the contributor-set / team split behind `authorOf`'s derivation
+> seam · versioned law (an amendment as branch/edit/merge)
+> **Size:** a build
+
 > **Status: exploratory — the structural gap between Build 5 (authoring)
 > and Build 9 (producer influence).** Build 5 (`cms-slate`,
 > `scoped-authoring-slate`, `authoring-intelligence-slate`) designs how

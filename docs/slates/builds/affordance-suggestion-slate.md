@@ -1,5 +1,15 @@
 # Affordance & suggestion slate — what should this player be offered?
 
+> **Status: PARTIAL** — § 3 and § 6 shipped, better than proposed:
+> `requires:` went on the command def (deleting ~34 validator files) and
+> is CI-gated by `lint:arg-kinds`
+> → [command-spec.md](../../subsystems/command-spec.md)
+> **Left:** the generative `narrow()` direction (no consumer yet) · the
+> relational axis still only says no · a structured reason on a disabled
+> row · server-side command history · reporting menu-honesty and
+> dispatch-hygiene as two tiers
+> **Size:** a wave
+
 **Captured 2026-08-10**, out of the MR review of the client-server
 surface build (waves 5–6, "affordance honesty"). That build validated
 108 command args so the radial menu would stop offering `attack` on a

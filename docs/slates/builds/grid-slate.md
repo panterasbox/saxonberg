@@ -1,5 +1,14 @@
 # Grid slate — service, streets, and how a parcel answers for its power
 
+> **Status: UNBUILT** — the topology this slate selects among (parcels,
+> exits, `PlatBook` subdivision) ships, but no service model, no street
+> object, and no lint exist.
+> **Left:** the service declaration on `ParcelRecord` (default connected,
+> author disconnection) · connection-not-consumption metering · street
+> dedication + municipal title acceptance · the every-declared-consumer-
+> resolves-to-a-source lint · underground as an access point
+> **Size:** a build
+
 **Captured 2026-08-04/05**, out of the mana-economy thread, when *"we've
 been minting new content and just sorta assuming it's powered"* turned into
 a topology question, a land-development question, and a review question.

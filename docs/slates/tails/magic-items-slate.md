@@ -1,6 +1,19 @@
 # Magic items slate (working doc) — NetHack's consumables + the BUC axis
 
-> **Status (2026-08-05): SHIPPED as a tail** →
+> **Status: PARTIAL** — the substrate landed whole (2026-08-05): effect
+> context, the three item classes (`Focus` cut), the charge economy, BUC,
+> identification, the fade/defective-copy memory loop, distribution →
+> [magic-items.md](../../subsystems/magic-items.md)
+> **Left:** the item-by-item catalog walk, shipped as CONTENT packs —
+> and ⚠ the cut is undecided (horizontal "twenty wands" vs a vertical
+> "everything one shop stocks") · Tier-2 substrate gaps still open: the
+> perception gate + transient override · the afflict veto/immunity layer ·
+> capacity reprofiling on polymorph · actor tempo (shared with combat) ·
+> slot eviction on bodyplan change · combat items wait on combat · the
+> blessing economy beyond v1
+> **Size:** a build
+
+> **Shipped as a tail (2026-08-05)** →
 > [magic-items.md](../../subsystems/magic-items.md). The substrate landed
 > whole — effect context, three item classes (`Focus` cut), charge
 > economy, BUC, identification, the memory loop, distribution. What is
@@ -46,7 +59,7 @@ before spec'ing the catalog — **it decides what an item must declare.** ·
 [pharma-slate](../builds/pharma-slate.md) (**potions and scrolls are pharma's
 product line**; the credence-good thesis covers the whole consumable
 category) ·
-[identification-slate](../tails/identification-slate.md) (**the sibling
+[identification-slate](./identification-slate.md) (**the sibling
 axis** — item *identity*, "a blue potion" → "a potion of healing", the
 deductive class-level game; BUC is the orthogonal *instance* axis) ·
 [belief.md](../../subsystems/belief.md) (recognition/identification/regard
@@ -65,7 +78,7 @@ combat) · combat (being designed separately — the deferred half of the catalo
 
 The single most important framing, and the one that's easy to smear:
 
-- **Identity axis** (owned by [identification-slate](../tails/identification-slate.md)):
+- **Identity axis** (owned by [identification-slate](./identification-slate.md)):
   *what is this?* A **blue** potion — healing or poison? The appearance→effect
   mapping is **class-level**, reshuffled per game, and it is the **deductive**
   game (price-ID, use, narrowing). If anything degenerates into

@@ -1,5 +1,13 @@
 # Dorm Warren — the room as authoring on-ramp (slate)
 
+> **Status: PARTIAL** — the dorm shipped (DormWarren/DormRoom, Katie,
+> `provision`, the theme overlay, D1 multi-instance persistence) →
+> [residence.md](../../subsystems/residence.md)
+> **Left:** the bounded mixin-field editor + the dorm tier filter · the
+> CMS-inspectable lesson rung · the roommate NPC half + its trait
+> tracking · hand-authored custom prose · the sealed/frozen room
+> **Size:** a wave
+
 > **Status: slate / pre-requirements.** A future build. Captures a design pass
 > from 2026-06-27 (designing the EU dorm cast + the sealed room surfaced it).
 > The substrate is built or building — the **Warren / MultiLocation** elastic

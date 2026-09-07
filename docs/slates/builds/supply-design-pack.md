@@ -1,5 +1,13 @@
 # Supply design pack — one model for every source, water and power alike
 
+> **Status: PARTIAL** — the failure vocabulary shipped 2026-09-02
+> (`lib/supply/SupplyState.ts`, `Conduit` its first reporter) →
+> [watershed.md](../../subsystems/watershed.md)
+> **Left:** the unified source model over tap/well/standpipe/rain · the
+> rivalry axis (the household commons) · the power half — substation,
+> socket, and one shared `supplyReport` read
+> **Size:** a build
+
 > **Status: design, planner-ready, captured 2026-08-11. Not requirements.**
 > **⭐ PARTLY SHIPPED 2026-09-02** — the water build took the **failure
 > vocabulary** whole (Part 3's six words are now

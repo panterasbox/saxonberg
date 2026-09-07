@@ -1,5 +1,14 @@
 # Locomotion as activity (working slate)
 
+> **Status: PARTIAL** — `sneak` shipped via the concealment build, and
+> freight took the vehicular half →
+> [locomotion.md](../../subsystems/locomotion.md)
+> **Left:** the durative `TraverseActivity` promotion · the sync/async
+> split · the duration model · the `engagedMode` storage migration · the
+> three retirements (and the CLAUDE.md antipattern-table edit they force) ·
+> `crawl`, if still wanted
+> **Size:** a wave
+
 > **⚠ AUDIT 2026-08-08 — partial delivery.** Checked against the tree when
 > GitLab #10 was closed here.
 >
@@ -424,7 +433,7 @@ positions if any content earns it.
   [activity.md](../../subsystems/activity.md).
 - **Host-slot activities** (mount, sit, lie, drive, read) —
   separate concern, separate slate at
-  [host-slot-activities-slate.md](../tails/host-slot-activities-slate.md).
+  [host-slot-activities-slate.md](./host-slot-activities-slate.md).
 - **Combat-specific timing** — combat slate territory.
 - **The sound subsystem** — its own slate; emits no `SoundEvent`
   in this wave.

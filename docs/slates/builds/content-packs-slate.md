@@ -1,5 +1,13 @@
 # Content packs slate — the trade as the unit, and seeding an economy backwards
 
+> **Status: PARTIAL** — the pack substrate + 43 shipped packs
+> → [content-packs.md](../../subsystems/content-packs.md)
+> **Left:** the unbuilt trades (butchery · milling · forestry · fishing ·
+> medicine · sanitation · funerary · repair · papermaking · insurance) ·
+> localities-as-compositions · the scoped-verb selector syntax ·
+> the npm repo split (A10.1)
+> **Size:** a build
+
 **Captured 2026-08-04.** The session opened on version control and
 turned into economics:
 

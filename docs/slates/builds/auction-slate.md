@@ -1,12 +1,24 @@
 # Auction slate — price discovery as a player capability
 
+> **Status: PARTIAL** — the substrate the slate picked shipped: escrow +
+> the custodian rule + clauses over verifiable conditions →
+> [contract.md](../../subsystems/contract.md), consignment →
+> [retail.md](../../subsystems/retail.md). No auction surface exists.
+> **Left:** the `auction` + `bid` verbs · the lot-as-contract mapping ·
+> silent (sealed) mode first, then the live auctioneer
+> `SustainedEngagement` with reset-on-bid · proxy/absentee maxima ·
+> reserve prices · English/Dutch/sealed formats · the catalogue as a
+> publication · commission + buyer's premium · the impound → auction →
+> salvage route · breeding-stock lots (D79–D81)
+> **Size:** a build
+
 **Captured 2026-07-31**, out of the second-hand/salvage chain. Players
 will want to auction things. **Consignment already ships**
 ([retail.md](../../subsystems/retail.md)) — but consignment is a *fixed
 price on someone else's shelf*, and an auction is a different animal:
 it exists where **the price is not known.**
 
-> **Status: direction set, nothing built.** The substrate answer is the
+> Direction set. The substrate answer is the
 > load-bearing part; most of the rest already exists.
 
 Related: [contract.md](../../subsystems/contract.md) (**the substrate

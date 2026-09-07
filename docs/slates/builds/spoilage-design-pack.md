@@ -1,5 +1,13 @@
 # Spoilage / `Freshness` design pack — the archetype-2 keystone
 
+> **Status: PARTIAL** — `FreshnessMixin`, `ContaminableMixin` and
+> `CuredMixin` shipped → [spoilage.md](../../subsystems/spoilage.md)
+> **Left:** the `WetMixin` saturation → `a_w` conversion · alcohol and
+> acidity as real preservatives · staling by oxidation ·
+> dish-as-ingredient · the hazard-band→`ptomaine` dose curve · numeric
+> calibration of every `Ea` and threshold
+> **Size:** a tail
+
 > **Status: design, planner-ready, captured 2026-08-06. Not requirements.**
 > The **keystone** of the stewardship pillar and the direct dependency of the
 > whole cold-storage stack. [preservation-slate](./preservation-slate.md) owns

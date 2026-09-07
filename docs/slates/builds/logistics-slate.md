@@ -1,11 +1,26 @@
 # Logistics slate — the realm as one connected place
 
+> **Status: PARTIAL** — the logistics build shipped (2026-09): real
+> corridors between localities, the induced `Lane` graph, `Route`, the
+> Journey engagement on a game-minute metronome, the bill of lading +
+> rate card, the depot, wagon/team/barge, the haulage labor market, and
+> the teleport-ripple fix → [logistics.md](../../subsystems/logistics.md).
+> Four of § 12's open questions were answered there.
+> **Left:** piracy · live cargo and drovers (the steer walks, the carcass
+> rides) · infrastructure politics — tollgate, turnpike trust, barricade,
+> banditry, congestion, road wear · rail and the ore train (a data
+> addition on the lane substrate) · customs and tariffs (⚠ blocked on a
+> statute engine, not deferred) · warehousing as a business · the
+> wainwright · navigation as a discipline · a passenger market · the
+> entrenchment tier for free movement · the Delight/Kestrel inconsistency
+> **Size:** a build
+
 **Captured 2026-09-03**, out of *"I wanna start designing and building
 our logistics trade… cooking and tailoring and ranching/farming are
 building now and they all need logistics for the supply chain to be
 complete."*
 
-> **Status: design conversation settled. Requirements not written.**
+> Design conversation settled.
 > Every ⭐ decision below was taken in the conversation, not proposed.
 > The open questions in § 12 are the ones deliberately left.
 

@@ -1,5 +1,12 @@
 # The odometer — honest number-go-up (working slate)
 
+> **Status: UNBUILT** — deliberately a capstone, built last over ledgers
+> that already exist.
+> **Left:** the counter roster (editorial, chosen against observed play) ·
+> the subject-scoped derive over chronicle/participation/advancement ·
+> milestones · the party and guild scopes · the readout surface
+> **Size:** a build
+
 > **Status: design-phase, deferred-rpg.** Born from the party-progression
 > discussion: the honest-simulation stack (no HP, no XP, no stored
 > competence — derive-don't-track) *loses* one real thing — the tight,

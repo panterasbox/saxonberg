@@ -1,5 +1,14 @@
 # Mining slate (working doc)
 
+> **Status: PARTIAL** — Stage A shipped 2026-09-01 (the metal chain:
+> the `Deposit` field, `MineWarren`, the five acts, air/support/grade,
+> the survey channels, Rejection) → [mining.md](../../subsystems/mining.md)
+> **Left:** everything below the water table — shaft/hoist/pump · the
+> drainage commons + hoist toll · sulfides and roasting · collapse
+> entrapment + the rescue clock · the deep ecology, apex and Hush cast ·
+> tribute pitches + the setting-day auction · high-grading as an offence
+> **Size:** a build
+
 > **Status: design captured, not built.** Mining is an **integrating
 > vertical** (the [Dave's Bar](./daves-bar-slate.md) / [farming](./farming-slate.md)
 > precedent) — ~90% *composition* of shipped substrate (the activity/

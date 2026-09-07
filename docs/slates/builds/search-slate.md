@@ -1,5 +1,15 @@
 # Search slate — the viewer half of detection
 
+> **Status: PARTIAL** — the detection engine, the five-band scale, the
+> actor face and (textiles) the target side all ship →
+> [concealment.md](../../subsystems/concealment.md) ·
+> [stealth.md](../../subsystems/stealth.md)
+> **Left:** the equipment term on `effectivePerception` (lens, loupe,
+> ocular augment) · terrain-matched camouflage over the `Biome` chain ·
+> concealment stamped at mint so found things were hidden · the standing
+> search posture + hint aggregation
+> **Size:** a wave
+
 > **Captured 2026-09-02**, split out of the textiles design session in
 > `build-1`. **Status: gap audit + design surface, pre-design.**
 >

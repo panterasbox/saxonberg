@@ -1,5 +1,12 @@
 # Trait slate (working doc)
 
+> **Status: PARTIAL** — the trait substrate shipped; none of this slate's
+> changes did → [trait.md](../../subsystems/trait.md)
+> **Left:** the equilibrium / expressed split · the deviation narrator ·
+> the self-view showing acts not positions · the valence-scale
+> denominator · seeded upbringing claims before full-surface wiring
+> **Size:** a wave
+
 > **Status: design proposed, nothing built.** A change to a **shipped**
 > subsystem ([trait.md](../../subsystems/trait.md)): split the derived
 > trait position into **equilibrium** and **expressed**, make the

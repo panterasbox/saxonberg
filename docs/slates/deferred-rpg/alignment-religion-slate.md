@@ -1,5 +1,12 @@
 # Alignment & religion slate
 
+> **Status: UNBUILT** — superseded 2026-07-01; kept only for its early
+> intuitions and the reconciliation history.
+> **Left:** nothing here — design from
+> [builds/alignment-slate.md](../builds/alignment-slate.md) (the two
+> asymmetric axes, pantheon-as-legend, the mirror, `Faction`)
+> **Size:** a build
+
 > **⚠ SUPERSEDED (2026-07-01) by
 > [builds/alignment-slate.md](../builds/alignment-slate.md).** The matured
 > design lives there — two asymmetric axes, pantheon-as-legend, the mirror, and

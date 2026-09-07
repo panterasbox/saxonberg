@@ -1,5 +1,13 @@
 # Preservation slate — spoilage, the counterplay, and the agricultural year
 
+> **Status: PARTIAL** — the spoilage engine (Freshness · Contaminable ·
+> Cured), salt, the salt-cure recipe and drying all shipped
+> → [spoilage.md](../../subsystems/spoilage.md)
+> **Left:** smoking · the victualler / packing house · salt as a mined
+> and taxed staple · the agricultural year (winter stores) · wetness →
+> water-activity coupling · the trade geography spoilage creates
+> **Size:** a wave
+
 > **Status: design captured 2026-07-31, not built.** The **keystone deferral**
 > of the extraction family. Spoilage is the mechanism; **preservation is the
 > endeavor** — and the endeavor is what four other verticals are already waiting

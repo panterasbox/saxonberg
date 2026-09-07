@@ -1,13 +1,15 @@
 # Eternal University (campus) slate (working doc)
 
-> **Status: vision + v1 shape set; build it all together.** The campus —
-> the **first content a player experiences** after the lounge. A
-> **real-feeling college campus that is obviously not a real place**
-> ("except for the real part"). Spiritual successor to EotL's *Eternal
-> City*: **un-genred**, plainly fabricated, "you're in for anything." v1
-> is one walkable, decentralized drop — arrival → the Quad → campus
-> **services** → Duncan Hall — built together, because the
-> defer-your-choices model makes the services load-bearing.
+> **Status: PARTIAL** — Duncan Hall shipped (lobby · corridor · dorm room
+> · steps · cistern · Katie · the elevator + room assignment) over the
+> holding ladder → [residence.md](../../subsystems/residence.md) +
+> [holding.md](../../subsystems/holding.md); the campus farm/field landed
+> with the farmstead build.
+> **Left:** the arrival gate · the Quad + the walkway spine · Student
+> Services (registrar + housing office) · the Health Center clinic · the
+> Campus Store · the academic hall · the first-login journey · the
+> closed-choice campus-services pattern
+> **Size:** a build
 
 Working slate for **Eternal University** — the campus new players walk
 into after char-gen + the lounge. It's where the deferred char-gen
@@ -58,11 +60,11 @@ The load-bearing decisions:
 
 See also:
 
-- [docs/slates/lounge-slate.md](../builds/lounge-slate.md) — the disconnected
+- [docs/slates/lounge-slate.md](./lounge-slate.md) — the disconnected
   social **landing you arrive from**; its TPA terminal drops you at campus
   arrival. (Its own universe — which is why the campus needs no central
   funnel.)
-- [docs/slates/onboarding-slate.md](../builds/onboarding-slate.md) — the
+- [docs/slates/onboarding-slate.md](./onboarding-slate.md) — the
   **first-login journey** (signs + greeter + demo-augment + learn-by-doing)
   *happens on this campus*; the dorm + scoped-authoring payoff is its
   climax. Onboarding owns the journey mechanics; this slate owns the place.
@@ -75,7 +77,7 @@ See also:
 - [docs/slates/augmentation-slate.md](../tails/augmentation-slate.md) — the
   **Health Center** issues the demo augment on the journey and handles
   ongoing implant changes.
-- [docs/slates/scoped-authoring-slate.md](../builds/scoped-authoring-slate.md) —
+- [docs/slates/scoped-authoring-slate.md](./scoped-authoring-slate.md) —
   the **Duncan Hall** room-customization on-ramp (authoring your own
   space) is the journey's climax.
 - [docs/design-philosophy.md](../../design-philosophy.md) — liberal diegesis
@@ -184,7 +186,7 @@ impossibly strange (it seeps up from beneath). Two roster buildings carry
 that history: the **Health Center** dispenses **attunement** because the
 University is where attunement was *mastered* (it installs the TPA
 implant-update on the onboarding journey — see
-[onboarding-slate.md](../builds/onboarding-slate.md)); and the **Chapel** is
+[onboarding-slate.md](./onboarding-slate.md)); and the **Chapel** is
 the **Mission clergy's residue** — keepers of the old worship faded to
 echoes (religion model: the bible + the
 [alignment-religion slate](../deferred-rpg/alignment-religion-slate.md)).
@@ -537,14 +539,14 @@ buildings, more named roads); richer onboarding beats as content grows.
 
 ## What this slate does NOT cover
 
-- **The lounge** → [lounge-slate.md](../builds/lounge-slate.md). The disconnected
+- **The lounge** → [lounge-slate.md](./lounge-slate.md). The disconnected
   landing you arrive *from*; the campus is downstream of its TPA exit.
 - **The fast-travel network internals** → [fast-travel-slate.md](../tails/fast-travel-slate.md).
   The campus just *places* 2–3 terminals on it.
 - **Char-gen intake internals** → [docs/subsystems/char-gen.md](../../subsystems/char-gen.md).
   The campus *hosts the services* its deferred choices point at.
 - **The onboarding journey mechanics** (signs, greeter, demo augment,
-  scoped authoring) → [onboarding-slate.md](../builds/onboarding-slate.md). The
+  scoped authoring) → [onboarding-slate.md](./onboarding-slate.md). The
   campus is the *place* it happens.
 - **Housing tiers / homedir-as-room** — Eternal University housing content;
   v1 uses the **Duncan Hall freshman tier**.

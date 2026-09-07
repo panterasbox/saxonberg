@@ -7,7 +7,7 @@
 > interrogating what keeps anyone paying after the goal (graduation / a
 > passed test / a job) is reached. Design/aspirational; the retention
 > economics tie back to
-> [study-com-platform-business-model.md](./study-com-platform-business-model.md).
+> [study-com-platform-business-model.md](./platform-business-model.md).
 
 ---
 
@@ -30,7 +30,7 @@ It resolves into the design's strongest loop:
   of its own, so an education player **must adopt a second, subject
   vocation** to have anything to teach (topology + the cross-cutting-subject
   argument:
-  [study-com-cx-and-the-aspiring-teacher.md](./study-com-cx-and-the-aspiring-teacher.md)
+  [study-com-cx-and-the-aspiring-teacher.md](./cx-and-the-aspiring-teacher.md)
   §5). A chemistry-ed learner does chemistry in the world; a bio-ed learner
   does field biology — then returns to *teach* it. Without a subject-vocation
   there is literally nothing to teach and no off-campus. The subject is the
@@ -41,7 +41,7 @@ It resolves into the design's strongest loop:
   vertical**, ideally math or science.)
 - **This is exactly how teachers are actually assessed** — **content
   knowledge + pedagogy** (Praxis Content + PLT/PPR; see
-  [study-com-teacher-vertical.md](./study-com-teacher-vertical.md)). So the
+  [study-com-teacher-vertical.md](./teacher-vertical.md)). So the
   education learner uniquely uses **both venues and both roles**: master the
   subject in the world, teach it on the stage.
 - **They are the University model's most complete citizen, not its
@@ -52,7 +52,7 @@ It resolves into the design's strongest loop:
 mastering their subject* — the on-campus-stage + subject-world loop — not
 wilderness questing. That is also the **cleanest fit for a school-safe
 brand** (§2), which is why the aspiring teacher is the beachhead
-([study-com-cx-and-the-aspiring-teacher.md](./study-com-cx-and-the-aspiring-teacher.md)).
+([study-com-cx-and-the-aspiring-teacher.md](./cx-and-the-aspiring-teacher.md)).
 
 ## 2. The world's danger is load-bearing; "safe" is a *register*, not an absence
 
@@ -85,7 +85,7 @@ combat" — **wrong**, per the copyright holder):
 - **Sibling point:** the world is *opinionated* in two ways at once — it's
   **dangerous** (this section) and it's **civically structured** (the
   governance residue,
-  [study-com-platform-business-model.md](./study-com-platform-business-model.md)
+  [study-com-platform-business-model.md](./platform-business-model.md)
   §4). Neither is a neutral content shell an operator can pretend away; both
   are inherited posture.
 
@@ -114,7 +114,7 @@ The honest retention stack, **strongest → weakest**:
    teaching is *endogenous* (new players genuinely need to learn the modeled
    systems, and the economy prices it), so "being needed" is an economic
    fact with a price signal, not just a feeling. Full argument + caveats:
-   [study-com-cx-and-the-aspiring-teacher.md](./study-com-cx-and-the-aspiring-teacher.md)
+   [study-com-cx-and-the-aspiring-teacher.md](./cx-and-the-aspiring-teacher.md)
    §5.
 3. **New goals / lifelong learning.** Interest-driven pursuits + **professional
    development / CEUs** — a *real* Study cross-sell for working teachers
@@ -130,7 +130,7 @@ post-goal user pays (keep-playing subscription, downgrade-to-free-but-can't-
 consume-new-content, bundle-with-another-account-type) is a **model choice
 the operator makes** — the engine is a commons, and we sell platform support
 + managed ops, not the customer relationship
-([study-com-platform-business-model.md](./study-com-platform-business-model.md)
+([study-com-platform-business-model.md](./platform-business-model.md)
 §1–2). So "what's the post-goal hook" is a question we help an operator
 *design*, not one Saxonberg answers globally. The retention *mechanisms*
 above are the toolkit; the *paywall posture* is the operator's to set.

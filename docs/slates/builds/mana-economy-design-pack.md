@@ -1,5 +1,13 @@
 # Mana economy design pack — mana as its own conserved quantity
 
+> **Status: PARTIAL** — the `arcane-science.md` edit landed 2026-08-11 and
+> the TPA buys and resells mana →
+> [fasttravel.md](../../subsystems/fasttravel.md)
+> **Left:** mana deposits + prospecting/refining · magic water as a traded
+> bulk good · the piped-mana utility tier · the Confluence in Terminus
+> canon · the three vocations
+> **Size:** a build
+
 > **Status: design + a DECISION RECORD, captured 2026-08-11. Not
 > requirements.** Changes one line of the arcane science and follows the
 > consequences: **mana stops being energy and becomes a second conserved

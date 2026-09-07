@@ -1,5 +1,12 @@
 # Combat tactics & engagement model (working slate)
 
+> **Status: PARTIAL** — `CombatGraph`, the formation presets and ranged
+> Wave 1's band ladder shipped → [ranged.md](../../subsystems/ranged.md)
+> **Left:** cover-as-status (ranged W2) · the `physical` conduit channel
+> for cross-room shots · the Skirmish / Kite preset · the magic-interplay
+> questions at `MagicLogic.deliverAt`
+> **Size:** a wave
+
 > **Status: both theses SHIPPED; the ranged surface is what remains.**
 > Thesis 1 (combat as an engagement graph, not geometry) shipped as the
 > multi-party combat build's `CombatGraph`; Thesis 2 (party-level

@@ -1,14 +1,13 @@
 # Author typography slate (working doc)
 
-> **Status: shape proposed, unbuilt; downstream of rich surfaces.** The
-> sibling of the shipped terminal typography
-> ([message-rendering.md](../../subsystems/message-rendering.md)):
-> where that work governs the *engine-chosen* functional faces in the
-> transcript stream, this one governs the *author-chosen* distinctive
-> faces on the **richer GUI surfaces** (item/object cards, rendered
-> books & letters, signage, lesson/content surfaces, the inspection
-> card). Rides the shipped message-rendering theme engine but depends on
-> rich surfaces that aren't all built yet, so it's a later cycle.
+> **Status: PARTIAL** — the theme/treatment engine and the transcript's
+> font-by-register faces shipped →
+> [message-rendering.md](../../subsystems/message-rendering.md)
+> **Left:** the ~6–10 author display tokens (typewriter · handwriting ·
+> script · inscription · blackletter · poster) · the token→face map ·
+> the authoring attribute (MML region or content field) · per-use lazy
+> woff2 + a per-scene face ceiling · plain-mode collapse
+> **Size:** a tail
 
 The driver: content authors want to make a specific piece of content
 *distinctive* — a haunted letter that reads as handwriting, a fantasy

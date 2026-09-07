@@ -1,5 +1,13 @@
 # Bathroom slate — presence without function
 
+> **Status: UNBUILT** — the substrates it rides (bulk, Sealable/Lockable,
+> thermal, belief/recognition, furnishing) all shipped; no bathroom
+> content, state or fixture exists.
+> **Left:** the washing/cleanliness state · the mirror self-recognition
+> read · the closed restroom archetype set · the bathhouse venue ·
+> water-as-utility metering · the legacy segregation conventions
+> **Size:** a build
+
 **Captured 2026-08-01** from a design conversation. The governing
 observation is prior art's unanimous lesson, named here **the toilet
 paradox**: in games, the *presence of the room* carries all the

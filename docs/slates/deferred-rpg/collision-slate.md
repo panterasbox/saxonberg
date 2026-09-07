@@ -1,5 +1,12 @@
 # Collision slate (working doc)
 
+> **Status: PARTIAL** — the `'blocked'` rejection gate and
+> source-attributed refusal prose ship →
+> [locomotion.md](../../subsystems/locomotion.md)
+> **Left:** the `guards` brain (agentive third-party blocking) · room
+> capacity as a field + validator · the `push` verb and its activity
+> **Size:** a tail
+
 > **Status: decomposed — not a standalone build (resolved 2026-06-10).**
 > The three concerns disperse rather than ship as a unit:
 > - **Intentional blocking** (the gate guard) is **behavior**, so it lands

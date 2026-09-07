@@ -1,5 +1,12 @@
 # Social graph slate (working doc)
 
+> **Status: PARTIAL** — Wave 3 (notify policy, display lensing, presence
+> relay) shipped → [social-graph.md](../../subsystems/social-graph.md)
+> **Left:** the message-restyle live wiring (needs a sync contacts
+> fast-path) · Wave 4 recognition-state coupling — consent friending and
+> recognition-gated bucketing
+> **Size:** a wave
+
 Working slate for the social-graph layer — notification rules and
 bucket-keyed display verbosity over named lists of other characters.
 Built on top of recognition; consumed by comms.
@@ -58,10 +65,10 @@ See also:
   **shipped** bucket storage + membership-verb layer (`ContactsMixin`,
   `contacts` verb suite, `ContactsGroupProvider`). This slate's
   Wave-1/Wave-2 work landed here.
-- [docs/slates/recognition-slate.md](../tails/recognition-slate.md) — the
+- [docs/slates/recognition-slate.md](./recognition-slate.md) — the
   substrate this slate builds on. Bucket data lives on
   recognition records.
-- [docs/slates/comms-slate.md](../tails/comms-slate.md)
+- [docs/slates/comms-slate.md](./comms-slate.md)
   — consumes bucket assignments for trust-tiered messaging.
 - [docs/vision.md](../../vision.md) — the social/educational
   positioning that motivates this layer.
@@ -153,7 +160,7 @@ Always present, can't be deleted:
 | `strangers` | Unrecognized actors | Aggregate counts in dense rendering |
 
 `foes` doubles as the moderation block-list — see
-[comms-slate.md](../tails/comms-slate.md).
+[comms-slate.md](./comms-slate.md).
 
 ### User-defined buckets
 
@@ -349,7 +356,7 @@ through to `everyone-else` default.
 The bucket assignment is a primary input to comms
 policy. A `foes` bucket member's messages drop; a `friends`
 bucket member's bypass profanity filters. See
-[comms-slate.md](../tails/comms-slate.md).
+[comms-slate.md](./comms-slate.md).
 
 ### Messaging subsystem (api/mml.ts)
 

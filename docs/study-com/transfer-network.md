@@ -1,7 +1,7 @@
 # The transfer network — why open source beats exclusivity, from Study's side
 
 > **Status: internal working doc — talks about study.com directly.**
-> [study-com-platform-business-model.md](./study-com-platform-business-model.md)
+> [study-com-platform-business-model.md](./platform-business-model.md)
 > established *our* economics (the engine is an AGPL commons; Study is an
 > operator). This is the other half: **the argument for why an operator
 > should prefer that**, made in Study's own interest rather than ours.
@@ -24,7 +24,7 @@ vehicle.
 The engine now has a mechanism that is the same shape, one layer down. A
 character's competence is a **derived reading of an evidence ledger**, and
 that ledger is portable between instances — see
-[antecedents-slate](./slates/builds/antecedents-slate.md).
+[antecedents-slate](../slates/builds/antecedents-slate.md).
 
 | College Saver | Saxonberg federation |
 |---|---|
@@ -72,7 +72,7 @@ metric to introduce.
 **b. ⚠ Assessment rigor vs. engagement is where "both" genuinely
 contradicts itself.** As issuer, the credential's worth depends on rigor;
 as destination, you want low friction and fun.
-[study-com-strategy.md](./study-com-strategy.md) already flags downward
+[study-com-strategy.md](./strategy.md) already flags downward
 pressure on assessment rigor as a risk, and wearing both hats sharpens
 it — the engagement loop and the claim-minting assessment now live in one
 product.
@@ -162,7 +162,7 @@ It also gives a clean pilot shape: one issuing instance, one accepting
 instance, a published acceptance policy between them, and a measurement of
 whether "my character is waiting on this chapter" moves completion. That
 is a College Saver product experiment, not a platform bet — the same
-re-homing [study-com-strategy.md](./study-com-strategy.md) §GTM already
+re-homing [study-com-strategy.md](./strategy.md) §GTM already
 argues for.
 
 ## 6. Anticipate the real objection
@@ -178,7 +178,7 @@ The answer is structural, and it is already shipped in the architecture:
 - **Content packs are data** — versioned, `sourcePack`-stamped, installed
   into a running instance by a reconcile installer. They are not
   modifications to the engine and not derivative works of it. See
-  [content-packs.md](./subsystems/content-packs.md).
+  [content-packs.md](../subsystems/content-packs.md).
 - Therefore Study's **curriculum stays proprietary** while the engine and
   the transfer format stay common.
 
@@ -196,7 +196,7 @@ data-not-derivative-work position is standard and the architecture
 supports it cleanly, but AGPL §13 obligations attach to *engine
 modifications* Study makes, and that is a real question their counsel will
 ask. The
-[dual-license lever](./study-com-platform-business-model.md) §3 is the
+[dual-license lever](./platform-business-model.md) §3 is the
 clean answer if the adapter turns out to sit closer to the engine than
 this framing assumes.
 
@@ -238,7 +238,7 @@ State these before they do:
   the subscription is worth more*, not a line item. Anyone looking for the
   federation to be monetized directly will be disappointed, and should be
   redirected to
-  [study-com-platform-business-model.md](./study-com-platform-business-model.md)
+  [study-com-platform-business-model.md](./platform-business-model.md)
   §2.
 
 ## 9. The pleasant version
@@ -249,7 +249,7 @@ If the optimal way to advance a character is to actually learn the
 material — because that is where the evidence comes from and it is the
 evidence that travels — then the incentive structure and the educational
 mission point the same direction. That is the
-[practicum thesis](./slates/builds/eternal-university-slate.md) with a
+[practicum thesis](../slates/builds/eternal-university-slate.md) with a
 distribution mechanism attached, and it is the only version of
 "gamified learning" that does not decay into points for attendance.
 
@@ -267,7 +267,7 @@ distribution mechanism attached, and it is the only version of
 3. **How does the ACE relationship react** to a non-academic acceptance
    network using transcript-shaped language? Possibly a naming problem
    more than a substantive one, but
-   [study-com-strategy.md](./study-com-strategy.md) already flags
+   [study-com-strategy.md](./strategy.md) already flags
    protecting the ACE relationship as a constraint.
 4. **Is there appetite for a second instance at all**, or does any pilot
    have to live inside one deployment? §5's bootstrap needs two.
@@ -279,13 +279,13 @@ distribution mechanism attached, and it is the only version of
 
 ## Cross-references
 
-- [antecedents-slate](./slates/builds/antecedents-slate.md) — the design
+- [antecedents-slate](../slates/builds/antecedents-slate.md) — the design
   this argument depends on; the buckets, the adapter rules, the caps
-- [study-com-platform-business-model.md](./study-com-platform-business-model.md)
+- [study-com-platform-business-model.md](./platform-business-model.md)
   — the commons/operator framing this extends
-- [study-com-dual-transcript.md](./study-com-dual-transcript.md) — the
+- [study-com-dual-transcript.md](./dual-transcript.md) — the
   adjacent idea: two transcripts side by side from one credential event
-- [study-com-strategy.md](./study-com-strategy.md) — College Saver
+- [study-com-strategy.md](./strategy.md) — College Saver
   product framing, GTM models, the ACE constraint
-- [advancement.md](./subsystems/advancement.md) — `iscedf`, the ISCED-F
+- [advancement.md](../subsystems/advancement.md) — `iscedf`, the ISCED-F
   anchor that makes cross-instance vocabulary mapping mechanical

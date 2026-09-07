@@ -1,5 +1,14 @@
 # Health vertical slate — clinical practice, public health, teaching
 
+> **Status: PARTIAL** — `assess`, `treat`/`bind`/`dress`, stabilization
+> and reveal-gated conditions shipped
+> → [harm.md](../../subsystems/harm.md)
+> **Left:** the diagnosis surface (record and be scored on a hypothesis) ·
+> a `resolution.by` dispatcher · medicine materials + the apothecary ·
+> outbreak and contagion content · the public-health department + the
+> College of Physic · the aid post · the veterinary track
+> **Size:** a build
+
 > **Status: design captured 2026-07-31, not built.** The **vertical** that sits
 > on top of [disease](./disease-slate.md) and [harm](../../subsystems/harm.md) —
 > clinical assessment, diagnosis, treatment, prevention, and public health,

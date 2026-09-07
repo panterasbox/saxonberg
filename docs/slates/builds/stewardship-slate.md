@@ -1,5 +1,12 @@
 # Stewardship slate — land use, the allowance cascade, and the residence ladder
 
+> **Status: PARTIAL** — land use, the frontier smallholding, condition +
+> the ascent gate, and the let rung shipped →
+> [holding.md](../../subsystems/holding.md)
+> **Left:** premises + utilities (the lease's money leg) · the allowance
+> meter · the cascade + the zoning authority · the Stewardship Discipline
+> **Size:** a build
+
 > **⭐ PARTLY SHIPPED (2026-08-01).** Hinkley Hills took the **land-use
 > enabler** out of this slate and built it: the closed six-entry
 > vocabulary on `ParcelRecord`, the longest-prefix resolve, and the

@@ -1,5 +1,13 @@
 # Attestation slate — review as a tool, so the process can be anyone's
 
+> **Status: UNBUILT** — no attestation ledger exists; `authoring_events`
+> records who wrote, nothing records who vouched.
+> **Left:** the `attestation_events` collection · the closed assertion
+> vocabulary (`approves`/`objects`/`notes`) · the go-live predicate on the
+> CMS save/publish split · the per-group policy grammar (data, not code) ·
+> the pack-release + Art. VI judiciary consumers
+> **Size:** a build
+
 **Captured 2026-08-05**, out of the grid thread. The question *"who checks
 that a parcel's power declaration is honest?"* turned out to be a general
 governance question wearing a utility costume.
@@ -10,7 +18,7 @@ governance question wearing a utility costume.
 > needs to be generalized so anyone can adopt the process — **or at least
 > the tools do, and the process is marked by tool use.**"**
 
-> **Status: design conversation, captured. Not requirements.** ⭐ The last
+> Design conversation, captured. ⭐ The last
 > clause is the whole design and it is the user's own: **build tools that
 > leave marks; let any group compose a process out of them.**
 

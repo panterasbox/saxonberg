@@ -1,5 +1,14 @@
 # Combat — the experience layer (working slate)
 
+> **Status: PARTIAL** — Theses 3, 4, 9, 10, part of 2, and (since this
+> slate's own header was written) **14 weapon playstyle** all shipped
+> → [combat.md](../../subsystems/combat.md)
+> **Left:** T5 composure/luck (`traits-stress`; `g(composure)` is inert) ·
+> T7/T8 loadout-as-chemistry · T11 aftermath · T12 de-escalation ·
+> T13 morale & surrender · T15 the non-humanoid bestiary ·
+> T16 expressive authoring
+> **Size:** a build
+
 > **Partially realized (`feature/combat-experience`).** The first
 > experience-pass build shipped Theses **3** (poker/feint/fog), **4**
 > (crit = the earned opening + called shot), **9** (the combat gym +

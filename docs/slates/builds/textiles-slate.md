@@ -1,5 +1,12 @@
 # Textiles slate — REDUCED to its unbuilt tail
 
+> **Status: PARTIAL** — the chain shipped 2026-09-03 →
+> [textiles.md](../../subsystems/textiles.md)
+> **Left:** leatherwork + tanning (blocked on a hide faucet) · wool and
+> its left edge — felting, fulling, knitting (blocked on ranching) ·
+> patterned weaving · piece bleaching · magic garments · hair dye
+> **Size:** a build
+
 > ## ✅ BUILT — this slate is now the UNBUILT TAIL only
 >
 > **Status 2026-09-03: the chain is built and in review.** The kernel half (a garment is

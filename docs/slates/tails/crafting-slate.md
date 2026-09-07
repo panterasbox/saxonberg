@@ -1,5 +1,16 @@
 # Crafting slate (working doc)
 
+> **Status: PARTIAL** — the venue model, recipes-as-Documents, tools,
+> grade/quality bands, the knowledge ladder, and the repair/salvage
+> lifecycle all shipped across three branches
+> → [crafting.md](../../subsystems/crafting.md)
+> **Left:** skill-as-control (the declared next crafting wave) · defects
+> & failure as diegetic events · recipe-spread beyond watching
+> (taught / discovered / tradeable recipe-items) · the per-domain
+> quality property bundles · supply-chain depth tuning · the
+> authoring-credits economy
+> **Size:** a build
+
 > **Status: the *venue model* is settled enough to seed a slice; the core
 > mechanics (recipes, skill, quality) are open design space, much of it
 > advancement-adjacent and deferred.** Crafting is the **transformation**

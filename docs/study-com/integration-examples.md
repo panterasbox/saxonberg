@@ -4,8 +4,8 @@
 > below is built on a **real row pulled from the live stage database**
 > (a nightly mirror of prod) on 2026-08-03 — the item/table references are
 > exact so each is re-verifiable. This is the concrete companion to
-> [study-com-integration.md](./study-com-integration.md) and
-> [study-com-platform-reality.md](./study-com-platform-reality.md): "here
+> [study-com-integration.md](./integration.md) and
+> [study-com-platform-reality.md](./platform-reality.md): "here
 > is what an integration moment actually looks like," in both directions.
 > Nothing here has run against a live Study.com environment.
 >
@@ -29,9 +29,9 @@ distractors are named errors: 10 g / 15 g = "only one reactant counts";
 **20 g = the real misconception — "the gas escaped, so mass was lost."**
 
 **Integration.** Saxonberg conserves mass/energy **by construction** — the
-sealed two-tier money ledger ([banking.md](./subsystems/banking.md)) and
+sealed two-tier money ledger ([banking.md](../subsystems/banking.md)) and
 the arcane-science postulate "local conservation fails, **global holds**"
-([arcane-science.md](./arcane-science.md)). So the learner who believes
+([arcane-science.md](../arcane-science.md)). So the learner who believes
 mass vanishes is dropped into a **closed vessel**, runs the reaction, and
 **watches the total not move.** The distractor becomes a demonstration the
 world refuses to let you lose. You don't *read* conservation of mass — you
@@ -44,7 +44,7 @@ fail to violate it.
 > entrance** exams that are Study's B2C nursing test-prep vertical (those
 > are pre-clinical academic recall). It remains a strong "live-it" demo,
 > but it represents the clinical side, not the entrance vertical. See
-> [study-com-vertical-survey.md](./study-com-vertical-survey.md) §0.
+> [study-com-vertical-survey.md](./vertical-survey.md) §0.
 
 **Real case** — `ariel2_0.Question_Passage` #15172 + its six ordered
 `Quiz_Question`s (#1822090-100), from the Next-Gen-NCLEX nursing bank:
@@ -84,7 +84,7 @@ almost entirely cases like this).
 (authored, proprietary-layer — there is no shared code, §see
 platform-reality §3). When Study flips `master=1` on "Ecology," the same
 credential event mints a `claim` `TranscriptEntry`
-([advancement.md](./subsystems/advancement.md)); if it crosses a band, the
+([advancement.md](../subsystems/advancement.md)); if it crosses a band, the
 game **confers a capability** gated on that Discipline (e.g. you can now
 read/steer the husbandry & ecosystem systems). Real coursework → real
 ability, through the conferral seam that already exists.
@@ -108,7 +108,7 @@ BKT Competence estimator produces.**
 
 **Integration.** The game watches you repeatedly mismanage an in-world
 ecosystem — a **deed**, not a quiz — and emits a `CompetencySignal`
-([study-com-adaptive-feed.md](./study-com-adaptive-feed.md)) that adds
+([study-com-adaptive-feed.md](./adaptive-feed.md)) that adds
 evidence against your "Ecology" mastery (nudges β, bumps `number_answered`)
 or flags the named misconception. Study's engine re-weights and surfaces
 the ecology lesson. The game hands Study the one signal items can't
@@ -140,7 +140,7 @@ and `exam_instance_id`: evidence is already tied to an assessment instance.
 
 **Integration.** A witnessed game deed (you ran the calorimetry lab and
 computed 35.2 τ correctly) is banked as a **`claim` with provenance**
-([study-com-integration-spec.md](./study-com-integration-spec.md) §3.4),
+([study-com-integration-spec.md](./integration-spec.md) §3.4),
 adding to the concept's evidence the way an `exam_instance` does — weighted
 below an identity-verified final, above a self-report. The receiving slots
 already exist.

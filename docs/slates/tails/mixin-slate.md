@@ -1,5 +1,13 @@
 # Mixin Slate (working doc)
 
+> **Status: PARTIAL** — most of the register shipped (material, light,
+> locomotion modes, slots, vehicles, glob, surfaces, senses) →
+> [mixins.md](../../subsystems/mixins.md)
+> **Left:** `Invisible` as a perception override · `Sleeping`/`Resting`
+> (sensory cutoff + command gating) · `Writable` · `Mixable` /
+> `Combinable` · smell trails and temporal persistence
+> **Size:** a tail
+
 > **Status: living checklist — ongoing, partially shipped.** Tracks the
 > standing standard-model mixin buildout; many entries are already in the
 > tree (marked `(have)` / "Shipped" with subsystem links). Not a single

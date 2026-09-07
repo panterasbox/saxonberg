@@ -1,5 +1,13 @@
 # Property slate (working doc) — possession, real estate, and the two scarcities
 
+> **Status: PARTIAL** — the title substrate, chattel, and the first land
+> market (`title` / `PlatBook` / `LotHolder`) all ship
+> → [parcel.md](../../subsystems/parcel.md)
+> **Left:** the compute-allowance scarcity (the field is inert) ·
+> dormancy-as-reclamation · un-fusing author from owner · real-estate
+> above one lot (resale, leases, valuation)
+> **Size:** a build
+
 > **⭐ PARTLY SHIPPED.** The title substrate this slate called for is
 > built ([parcel.md](../../subsystems/parcel.md)), and Hinkley Hills gave
 > it the **verb it lacked** plus the first market for it: `title` /

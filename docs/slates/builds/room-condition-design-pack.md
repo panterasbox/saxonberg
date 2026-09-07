@@ -1,5 +1,12 @@
 # Room condition & cleanliness design pack — the "condition model," dissolved
 
+> **Status: UNBUILT** — nothing of the decomposition exists; only `wash`
+> ships, and it came from the libations build
+> **Left:** `SoilableMixin` · the room debris field · `sweep` / `wipe` /
+> `tidy` / `dispose` · the `restQuality` aggregation · the pest threshold
+> · the attributed `(actor, target, extent)` deposit/clear events
+> **Size:** a build
+
 > **Status: design, planner-ready, captured 2026-08-06. Not requirements.**
 > The genuinely **un-designed** archetype-2-adjacent producer — the *"condition
 > model"* `furnishing.md` keeps deferring room state and `restQuality`-from-

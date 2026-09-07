@@ -1,5 +1,14 @@
 # Argument-map slate (working doc)
 
+> **Status: PARTIAL** — v1 shipped 2026-06 (forums cycle 2): the
+> `organizer: 'argument'` claim graph, the lenses, `reply
+> --pro|--con|--rebut`, `mature`, the client argument mode
+> → [forums.md](../../subsystems/forums.md)
+> **Left:** claim dedup / canonicalization · integrity-grade
+> summarization · automated convergence detection · proposal
+> version-control · the vote consumer · the plural-lens explorer
+> **Size:** a wave
+
 > **v1 SHIPPED (2026-06, forums cycle 2)** — the small-scale claim-tree
 > graduated to [../../subsystems/forums.md § The argument organizer](../../subsystems/forums.md#the-argument-organizer-cycle-2):
 > the `organizer: 'argument'` typed claim-graph over the shared Board/Entry

@@ -1,5 +1,13 @@
 # Identification slate (working doc)
 
+> **Status: PARTIAL** — the `IDENTIFICATION` belief realm,
+> `IdentifiableMixin` and the scroll-carried `identify` shipped 2026-06 →
+> [belief.md](../../subsystems/belief.md)
+> **Left:** the instrument seam (`analyze X with Y`) · partial
+> identification (`identificationLevel`) · the experience/social ID verbs
+> (`taste`, `learn from`) · misidentification + cursed items
+> **Size:** a build
+
 > **Status (2026-06):** the **substrate has shipped** — type-keyed belief
 > memory (the `IDENTIFICATION` realm), the `IdentifiableMixin` type axis,
 > the scroll-carried `identify` trigger (binary), and the two-axis compose
@@ -41,12 +49,12 @@ compound by experiment IS science.
 
 See also:
 
-- [docs/slates/tails/magic-items-slate.md](../tails/magic-items-slate.md) —
+- [docs/slates/tails/magic-items-slate.md](./magic-items-slate.md) —
   the **orthogonal axis**. This slate is item *identity* (class-level,
   deductive: "a blue potion" → "healing"); that one is *BUC* (per-instance:
   blessed/uncursed/cursed as potency). Both ride belief; different facts,
   different keys. The magic-items slate also holds the NetHack catalog map.
-- [docs/slates/recognition-slate.md](../tails/recognition-slate.md) — the
+- [docs/slates/recognition-slate.md](./recognition-slate.md) — the
   parallel substrate for actors. Same `PerceptionMemoryRecord`
   shape (recognition-slate calls this `RecognitionRecord` — same
   record; name to be reconciled); different keying.

@@ -1,5 +1,12 @@
 # Deed-tag slate — what the world records that an act happened
 
+> **Status: UNBUILT** — `chronicle.tags` is still "open vocabulary,
+> inert in v1" ([chronicle.md](../../subsystems/chronicle.md)).
+> **Left:** the closed deed-tag vocabulary + its three-tier resolver (the
+> topics pattern) · the petition-not-override path · getting `crime` out
+> of layer 1 · the faith-relevant tags that do not exist yet
+> **Size:** a wave
+
 > **Status: decided 2026-08-12, nothing built.** The vocabulary every
 > readout over the chronicle points at — faith precepts, criminality,
 > alignment, achievements, any future consumer of the *"dumb store, smart

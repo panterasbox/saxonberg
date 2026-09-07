@@ -1,5 +1,14 @@
 # Development slate — land, structure, and what a parcel can carry
 
+> **Status: PARTIAL** — the land draw (only productive things draw)
+> shipped with farming →
+> [smallholding.md](../../subsystems/smallholding.md)
+> **Left:** coverage / FAR / efficiency as derived ratios · the
+> `subdivide` ceiling correction (only productive children draw) · a
+> consequence for over-draw (inert today) · the CMS proposing the
+> numbers · entitlement vs built
+> **Size:** a wave
+
 > **Status: design captured 2026-08-01, not built.** Grew out of a review
 > question on the furnishing build's acreage model (D17): *"land area ×
 > storeys is crude — that's the maximum; buildings don't use the whole lot,

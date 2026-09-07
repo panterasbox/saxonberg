@@ -1,5 +1,12 @@
 # Dossier slate — priors for a character who never lived them
 
+> **Status: PARTIAL** — shipped 2026-09 (MR !248) →
+> [identity.md](../../subsystems/identity.md)
+> **Left:** Q2 the materialized trio (participation + influence still
+> seed-and-fold; make `renownOf` derive) · Q3 a seeded condition's cause ·
+> Q4 dossiers for organizations · Q5 converging char-gen's claim seeding
+> **Size:** a tail
+
 **Captured 2026-09-04**, out of the `/requirements` pass on the clinic
 build, which walked into this problem at its first design decision and
 could not get past it.

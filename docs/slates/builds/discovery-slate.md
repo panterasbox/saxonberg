@@ -1,5 +1,11 @@
 # Discovery slate — what the world gives you for looking
 
+> **Status: UNBUILT** — no forage verb and no distribution table exist.
+> **Left:** the forage verb + the patch Stuff · biome-authored tables with
+> derived, depleting stock · the NetHack consumable distribution · the
+> almanac + the astrological correlation · remoteness/traffic
+> **Size:** a build
+
 **Captured 2026-08-02** as `foraging-slate`; **renamed and widened the
 same day** when the user pointed out there are **two systems here, and
 they overlap**:

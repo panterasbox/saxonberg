@@ -1,7 +1,24 @@
 # College slate (working doc) — courses, assessment, and teaching
 
-> **Status: sketch / pre-requirements.** A design pass, not a spec.
-> Written 2026-08-02.
+> **Status: UNBUILT** — no course, catalogue, item generator, exam or
+> enrollment exists. Duncan Hall (the dorm) shipped with residences, but
+> that is the campus, not the academy. Everything the slate assembles from
+> ships: Transcript + Disciplines →
+> [advancement.md](../../subsystems/advancement.md), escrowed contracts →
+> [contract.md](../../subsystems/contract.md), positions →
+> [employment.md](../../subsystems/employment.md), the path-addressed
+> catalogue pattern → [help.md](../../subsystems/help.md).
+> **Left:** the course catalogue + reader in the study.com taxonomy · the
+> procedural item generator + examination on Magic 101 (the centerpiece;
+> the seed, evaluator contract, misconception-bank distractors and the
+> discrimination invariant) · enrollment as contract + Transcript wiring ·
+> the lecture and exam halls + the watch-embed lesson card · practical
+> assessment on inquiry's `predict` gate · teaching as employment (TA
+> positions, sections, the mixed roster) · deferred: player-authored
+> courses · ⚠ blocked on study.com only for the OUTPUT format
+> **Size:** a build
+
+> A design pass, not a spec. Written 2026-08-02.
 >
 > Scope: the **academic apparatus** — what a course is, how assessment
 > works, how enrollment and teaching are modelled, and what a classroom
@@ -12,7 +29,7 @@
 >
 > The forcing function: the University has to teach something, and the
 > study.com pitch needs a demonstration that a real course catalog can
-> run inside this world. See [study-com-brief.md](../../study-com-brief.md)
+> run inside this world. See [study-com-brief.md](../../study-com/brief.md)
 > for what we're asking the study.com side to tell us, and
 > [arcane-science.md](../../arcane-science.md) for the invented subject
 > the first course teaches.
@@ -25,7 +42,7 @@ See also:
   assessment. Its `predict` gate is our practical exam.
 - [../../arcane-science.md](../../arcane-science.md) — the first
   invented subject, authored to be teachable.
-- [../../study-com-strategy.md](../../study-com-strategy.md) — the deal
+- [../../study-com-strategy.md](../../study-com/strategy.md) — the deal
   thinking; stakeholder map; the assessment-provenance seam.
 - [../../subsystems/advancement.md](../../subsystems/advancement.md) —
   Competence, the Transcript, Disciplines. Assessment writes here.
@@ -181,7 +198,7 @@ What it buys, in their language:
    live supervision to automated identity verification. *(Corrected
    2026-08-07: the strategy doc's "proctoring was removed" premise was too
    strong — `Proctored_Exam` is alive and CX credit rides it,
-   [platform-reality §6](../../study-com-platform-reality.md). The
+   [platform-reality §6](../../study-com/platform-reality.md). The
    generator's argument is unaffected: per-student items beat shared
    answers regardless of how the room is invigilated.)*
 3. **One generator, two modes.** The same spec emits the

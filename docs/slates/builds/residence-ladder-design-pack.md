@@ -1,5 +1,15 @@
 # Residence ladder & property condition design pack — the progression spine
 
+> **Status: PARTIAL** — the residences build (2026-08-31) shipped the three
+> rungs, shell-weathering condition and the ascent gate
+> (`residence.ascent.minCondition`, default 0.5) →
+> [holding.md](../../subsystems/holding.md)
+> **Left:** room condition (dirt · debris · tidiness) as a producer ·
+> folding `Durable` wear and spoilage into `propertyCondition` · the
+> Stewardship Discipline · the neglect consequence ladder · the allowance
+> cascade, still an inert field
+> **Size:** a wave
+
 > **Status: design, planner-ready, captured 2026-08-06. Not requirements.**
 > The spine that makes the whole stewardship pillar *matter*: **you rise by
 > tending, and the gate to a bigger place is the condition of the one you

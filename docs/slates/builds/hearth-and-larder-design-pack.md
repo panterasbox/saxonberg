@@ -1,5 +1,13 @@
 # Hearth & larder design pack — the kitchen as a real place
 
+> **Status: PARTIAL** — the larder half shipped with cooking
+> (salt/dry/smoke/butcher over `Cured` + `Freshness`) →
+> [spoilage.md](../../subsystems/spoilage.md)
+> **Left:** the indoor room-ambient bump (a hearth that warms its room,
+> named a follow-on in [thermal.md](../../subsystems/thermal.md)) · the
+> compost heap + its nitrogen loop into smallholding
+> **Size:** a wave
+
 > **Status: design, planner-ready, captured 2026-08-11. Not requirements.**
 > The domestic integrating vertical — Dave's Bar for the home. Three halves
 > that make each other matter: you **preserve** food, a cold store **buys

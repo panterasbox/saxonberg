@@ -1,5 +1,12 @@
 # Fishing slate (working doc)
 
+> **Status: UNBUILT** — no fishing act, species or water regime exists.
+> **Left:** the catch-distribution field · the landing contest · the fish
+> and aquatic-harvest roster · the method ladder (rod · trap · net ·
+> spear) · the three water regimes · current & tide · the Angling
+> Discipline · the fishery `Business` wrapper
+> **Size:** a build
+
 > **Status: design captured, not built.** Fishing is the **third
 > extraction vertical** and the **lightest** — a lean sibling of
 > [mining](./mining-slate.md) and [farming](./farming-slate.md), not a

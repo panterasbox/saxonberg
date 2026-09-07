@@ -1,5 +1,15 @@
 # Advancement slate (working doc) — learning as a science
 
+> **Status: PARTIAL** — Catalog, Transcript, derive-on-read Competence
+> bands and conferrals shipped →
+> [advancement.md](../../subsystems/advancement.md)
+> **Left:** the loadout (capacity-not-decay + warm-up) · guilds (venue,
+> mentors, credential, membership-as-affordance) · the Reserve-shaped
+> stakes engine · declared focus · graph-propagated evidence over
+> `requires`/`synergizes` · estimator choice + tuning · the
+> learning-platform sensor bridge
+> **Size:** a build
+
 > **Layer: the game.** This is the *game-system* half of "learning as
 > adventure" — how a character grows. The platform's job is to *measure*
 > real engagement (the [standard-model](../../standard-model.md) sensor +

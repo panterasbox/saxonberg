@@ -1,5 +1,12 @@
 # Sanitation slate — litter, impound, and salvage
 
+> **Status: UNBUILT** — the residency sweep and `consign`/`reclaim` it
+> reuses exist; nothing the slate proposes does.
+> **Left:** `collect` + the impound yard · the abandonment rule and the
+> two legal regimes a locality picks · the salvage yard (assay, the three
+> exits, the lossy loop) · the second-hand market + pawn
+> **Size:** a build
+
 **Captured 2026-07-31.** Junk objects accumulate — spawned things nobody
 would ever claim, left standing for immersion. The residency sweep
 already self-evicts the cold tail, but silently; and there is no

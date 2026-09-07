@@ -1,5 +1,13 @@
 # Call security performance — the investigation, and what it found
 
+> **Status: PARTIAL** — the five gate optimizations (50 µs → 2.1 µs) and
+> the boot work shipped →
+> [call-security.md](../../subsystems/call-security.md)
+> **Left:** `findDescriptor` accessor-ness caching · the static-Api apply
+> thunk · hoisting the viewer-invariant checks out of `describeCore` ·
+> `pushDirect`'s second `describeCore` entry
+> **Size:** a tail
+
 *2026-08-30, from the libations live drive (MR !206). The founder's
 framing: "it's probably not just one thing, it's probably a few
 optimizations working together." That turned out to be exactly right —

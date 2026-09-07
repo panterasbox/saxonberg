@@ -1,5 +1,13 @@
 # Persistence architecture rethink slate (working doc)
 
+> **Status: PARTIAL** — Waves 1-2 shipped (`Document` vs `Stuff`, the
+> neutral core, `Persistable` deleted) →
+> [persistence.md](../../subsystems/persistence.md)
+> **Left:** Wave 3 — un-Stuff `PersistentHydrator`, the marshallers and
+> `obj/hooks/` (`DomainHook` + `hooks.yaml`) into path-resolved, lazy,
+> re-resolved modules on the shipped brain pattern
+> **Size:** a build
+
 > **Status: Waves 1-2 shipped, audit-grounded.** Persistence is split into two
 > honest concepts — **`Document`** (persisted JSON: CRUD, no Stuff overhead)
 > and **`Stuff`** (a live world entity, *hydrated from* a Document) — with the
@@ -96,7 +104,7 @@ See also:
   shared dialogue trees are `Document`s in their own collection (not `domain`,
   not inline). The marshaller/hook → path-resolved-module convergence is the
   same model as this slate's brains.
-- [docs/slates/access-slate.md](../tails/access-slate.md) — document access control
+- [docs/slates/access-slate.md](./access-slate.md) — document access control
   binds at the **Api / collection / lease layer** (the access slate's
   "bind at the core, not per-object"), so `Document` losing the per-object
   shadow gate loses nothing — it moves to where it belonged.
@@ -231,7 +239,7 @@ HMR scheme. Scope and justify on its own; not a prerequisite for Waves 1–2.
 - **The path-resolved-module mechanism** (marker/discovery/HMR) →
   [npc-behavior-slate.md](../builds/npc-behavior-slate.md) + the registry-aversion
   principle; Wave 3 reuses it, doesn't redefine it.
-- **Document access control / leases** → [access-slate.md](../tails/access-slate.md);
+- **Document access control / leases** → [access-slate.md](./access-slate.md);
   consumed (bind at the Api/collection layer), not redefined.
 - **MongoDB schema / indexing** — `createIndexes` is orthogonal to Stuff-ness;
   no change needed beyond per-collection indexes for new Document kinds.

@@ -1,5 +1,18 @@
 # Client slate — the rebuild, and the server work hidden inside it
 
+> **Status: PARTIAL** — waves 0–7 merged (figures on the wire, arrival,
+> the play surface, the card surface, the 2.5 server pass) →
+> [client-shell.md](../../subsystems/client-shell.md) +
+> [cockpit.md](../../subsystems/cockpit.md) +
+> [card-surface.md](../../subsystems/card-surface.md) +
+> [record-layer.md](../../subsystems/record-layer.md)
+> **Left:** the wiki + forum search ports (both still unwired) · the
+> notification tray (read `NotifyPolicy`/`NotifyRule` first) · output
+> logging / clips / attestation · the lounge's content half (pizza-as-
+> tally · the waiter · the order console · the departures board) · the
+> `item`/`object` collapse to `thing` · the `mx` digest's width
+> **Size:** a wave
+
 **Captured 2026-08-06**, from the Claude Design handoff committed at
 `c03100dd` (`docs/design_handoff/` — 23 interactive `.dc.html` screens +
 three cross-cutting markdown docs). The handoff was produced by reading
@@ -7,17 +20,6 @@ the real server source, so its designs are grounded rather than
 aspirational; what it does *not* do is sequence itself against this
 repo's own conventions, and it makes one recommendation that the build
 in flight has already answered better.
-
-> **Status: design surface for a multi-wave client cycle.** Nothing here
-> is scoped for one build. The waves in § 7 are the proposed cut; each
-> gets its own requirements + plan.
->
-> **✅ Wave 0 + Track C shipped as S1 "figures on the wire"** (MR !172) —
-> see [messaging.md](../../subsystems/messaging.md) (the `<quantity>`
-> tag), [topics.md](../../subsystems/topics.md) (the five facets) and
-> [mql-subscription.md](../../subsystems/mql-subscription.md) (the live
-> standing figures + the `durableKey` witness). Three corrections it
-> forced are folded into §§ 4.1, 4.2 and 6 below.
 
 > **The decision that frames everything: server *subsystem* work stops
 > after the ranged/affordance build; the server work that remains is all

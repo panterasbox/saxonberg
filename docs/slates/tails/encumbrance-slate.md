@@ -1,5 +1,13 @@
 # Encumbrance slate (working doc)
 
+> **Status: PARTIAL** — the `LoadBearing` gauge, the consequence ladder
+> and the haulage draft term shipped →
+> [encumbrance.md](../../subsystems/encumbrance.md)
+> **Left:** per-item placement refinement (a frame pack beating the worn
+> floor) · augment-conferred capacity · gravity/environmental margins ·
+> tissue-derived mass · numeric tuning
+> **Size:** a tail
+
 > **Status (2026-06):** the **build has shipped** — the `LoadBearing`
 > gauge (borne burden + carry capacity + load ratio), `BodyPlan.baseMass`
 > mass-seeding, `Vessel.transmissionFactor` + the `Adornable`→`ExitableVessel`
@@ -53,7 +61,7 @@ See also (read before building — these are the substrate this leans on):
 - [docs/subsystems/augmentation.md](../../subsystems/augmentation.md) —
   `AugmentMixin.confers()`; the exo-frame / belt-of-giant-strength
   capacity term.
-- [docs/slates/tails/bulkable-slate.md](../tails/bulkable-slate.md) —
+- [docs/slates/tails/bulkable-slate.md](./bulkable-slate.md) —
   a partially-full waterskin's borne weight tracks its bulk; future
   tie-in.
 - [docs/slates/deferred-rpg/capability-magic-slate.md](../deferred-rpg/capability-magic-slate.md)

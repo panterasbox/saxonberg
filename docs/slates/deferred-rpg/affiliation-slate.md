@@ -1,5 +1,13 @@
 # Affiliation slate (social organization)
 
+> **Status: PARTIAL** — the substrate shipped: the `GroupApi` facade over
+> four providers (managed · MQL · contacts · party) →
+> [grouping.md](../../subsystems/grouping.md)
+> **Left:** House as a provider plus its char-gen touch (the near-term
+> axis) · Guild as the class system · Corp as the competition overlay —
+> the last two deferred game design
+> **Size:** a build
+
 > **Status: preliminary.** The *structured affiliation axes* of the world —
 > how people organize beyond ad-hoc grouping. Surfaced from the char-gen /
 > social-fabric discussion. **House** is near-term (it's the only axis that
@@ -24,7 +32,7 @@ clubs are dropped; the real axes are the *structured* ones below.
 | **House** | abstract belonging bucket | vertical-fed (sorted) | belonging | **yes** (greeter suggests; opt-in) |
 | **Guild** | trade/craft/art class | earned | deep (the class system) | no (deferred) |
 | **Corp** | allegiance/competition overlay | world-given / joined | deep (competition) | no (deferred) |
-| **Religion** | faith/deity → [alignment-religion](../deferred-rpg/alignment-religion-slate.md) | chosen | deep (deity drama) | the deity pick |
+| **Religion** | faith/deity → [alignment-religion](./alignment-religion-slate.md) | chosen | deep (deity drama) | the deity pick |
 
 **None are pre-lounge char-gen picks.** House is the only one touching
 onboarding; the rest are earned/taken in-world.
@@ -110,7 +118,7 @@ live. (Houses may persist as alumni networks, but their home is the campus.)
 - **Recruits on campus** — guild halls + recruiter NPCs courting students and
   graduates (the university is a *feeder*; guilds employ/advance). Good
   content; "Authority for everything" energy.
-- Deferred with [capability-magic](../deferred-rpg/capability-magic-slate.md).
+- Deferred with [capability-magic](./capability-magic-slate.md).
 
 ## Corp — the competition overlay (deferred)
 
@@ -136,7 +144,7 @@ live. (Houses may persist as alumni networks, but their home is the campus.)
   [corp]**.
 - **Caveat — take EVE's structure, not its culture.** EVE's toxicity
   (scams/betrayal/predation) is the opposite of the DRG/welcoming/prosocial
-  thesis ([alignment-religion-slate](../deferred-rpg/alignment-religion-slate.md)). Use
+  thesis ([alignment-religion-slate](./alignment-religion-slate.md)). Use
   **sanctioned, structured rivalry** (house-cup / team-sports energy:
   in-group cooperation + out-group consensual rivalry). Done right, corp
   rivalry is a *prosocial engine*; done wrong, a toxicity vector. This is the
@@ -149,9 +157,9 @@ live. (Houses may persist as alumni networks, but their home is the campus.)
 [grouping subsystem](../../subsystems/grouping.md) (the facade; houses/guilds/corps are
 providers) · [social-graph-slate](../tails/social-graph-slate.md) (ties) ·
 [chat-slate](../tails/chat-slate.md) (clubs = channels) ·
-[alignment-religion-slate](../deferred-rpg/alignment-religion-slate.md) (religion;
+[alignment-religion-slate](./alignment-religion-slate.md) (religion;
 corp-competition's prosocial caveat) · [char-gen](../../subsystems/char-gen.md)
 (house is the onboarding touch; aspiration→major→guild) ·
-[capability-magic](../deferred-rpg/capability-magic-slate.md) (guild = the class system) ·
+[capability-magic](./capability-magic-slate.md) (guild = the class system) ·
 [eternal-university-slate](../builds/eternal-university-slate.md) (guild recruiting,
 house chapters on campus).

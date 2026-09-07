@@ -1,6 +1,20 @@
 # Household design pack — the shared holding, and condition as a commons
 
-> **Status: design, planner-ready, captured 2026-08-06. Not requirements.**
+> **Status: PARTIAL** — the single-occupant half shipped with the
+> residences build: live `grants[]` + the coverage walk →
+> [parcel.md](../../subsystems/parcel.md), the ladder, the shell-clock
+> condition axis and the ascent gate over `heldUnitsOf` (multi-residence
+> resolved, blocker 2 closed) → [holding.md](../../subsystems/holding.md),
+> derive-on-read domicile → [civics.md](../../subsystems/civics.md).
+> **Left:** `ParcelApi.householdOf(extent)` — the domicile ∩ extent read ·
+> the gate made COLLECTIVE plus the leave-and-ascend-alone exit ·
+> household contract clauses over the derived condition read ·
+> co-ownership as a managed group `ParcelOwner` · the marriage bundle +
+> registry record · Q2 (does an expired grant drop you from the
+> household?)
+> **Size:** a wave
+
+> Design, planner-ready, captured 2026-08-06.
 > The stewardship pillar's unit of analysis is **the household**, and every
 > household in the family so far has exactly one person in it. This pack
 > designs the multi-occupant case — roommates, spouses, a commune — and finds

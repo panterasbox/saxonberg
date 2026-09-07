@@ -24,7 +24,7 @@ special-casing forever.
 This is the interactive-broadcast half of the
 [broadcast-patronage track](../tracks/broadcast-patronage-track.md)
 (Phases 2 + 6) and the live consumer of the
-[auth-providers](../subsystems/connection.md) Twitch spine. It ships the
+[auth-providers](./connection.md) Twitch spine. It ships the
 chat bridge; the live-stream **video** overlay is a later client piece.
 
 ## Player-initiated, memory-resident, lazy

@@ -1,5 +1,13 @@
 # Concealment & detection — stealth, searching & secrets (working slate)
 
+> **Status: PARTIAL** — Theses 1–3 shipped (MR!142 + MR!145) →
+> [concealment.md](../../subsystems/concealment.md)
+> **Left:** the knowledge economy (sharing / selling / transferring
+> found secrets, maps as currency) · `frisk` and searching a downed
+> body · player-placed concealment beyond pick-up-your-own ·
+> ranged / remote / linked traps · resettable / rearming traps
+> **Size:** a wave
+
 > **Status: MOSTLY SHIPPED (MR!142 + MR!145).** **Thesis 1** (one concealment
 > gate on every perceivable) and **Thesis 3** (searching) shipped as the
 > concealment/detection + traps build — see

@@ -1,9 +1,15 @@
 # Demo slate — builds that ground the videos & the pitch demo
 
+> **Status: UNBUILT** — none of the demo cluster has been built.
+> **Left:** the mock issuer adapter · the aged demo world · the
+> threshold-ceremony beats · aid-post content · the fountain acoustic
+> prop · the mobile-floor check · the rehearsed authoring walk
+> **Size:** a build
+
 **Capture doc (2026-07-28): the build list supporting the
 education-video track and the study.com pitch demo.** Source
 artifacts: [education-videos.md](../../education-videos.md) (§
-Pre-script gap audit), [study-com-strategy.md](../../study-com-strategy.md),
+Pre-script gap audit), [study-com-strategy.md](../../study-com/strategy.md),
 the fresh lens pass (docs/lenses/, entries 1–18), and
 [staging/wishbook.md](../../staging/wishbook.md).
 

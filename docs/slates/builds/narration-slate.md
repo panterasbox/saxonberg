@@ -1,5 +1,16 @@
 # Narration slate — what tells you a trait moved, and why the answer is salience
 
+> **Status: PARTIAL** — the trait ledger + derive-on-read bands shipped
+> → [trait.md](../../subsystems/trait.md), but ⚠ **nothing writes a
+> player's traits**: `recordSignature`/`recordDeed` have zero production
+> call sites and `dispositionValence` appears in zero YAML.
+> **Left:** the authored narration fragment on `ActSignature` · the
+> platform-owned band-blind frame at `self.*` · the acts-never-axes
+> readable record · ⚠ the keep-or-withdraw call on the shipped `traits`
+> verb and `score` self-digest · the first authored `dispositionValence`
+> · the salience budget
+> **Size:** a build
+
 **Captured 2026-08-25.** It started from the psychology vocation — you go
 to a therapist to find out your traits — and turned into the question
 nobody had asked:
@@ -8,8 +19,6 @@ nobody had asked:
 > were being modified, just prohibiting direct read. but we never talked
 > about how that's manifested. if you do something brave or generous or
 > whatever, what tells you your traits are being updated?"**
-
-> **Status: design conversation, captured. Not requirements.**
 
 Related: [trait.md](../../subsystems/trait.md) (**the shipped substrate —
 read it first**), [advancement.md](../../subsystems/advancement.md) (the

@@ -1,5 +1,11 @@
 # Slotted split slate — the substrate is doing three jobs
 
+> **Status: ABSORBED** — built 2026-09-06 on `design/mixin-depth`:
+> `AttiredMixin` on `Creature`, narrowing moved to `MixinApi.isAttired`
+> → [slot.md](../../subsystems/slot.md)
+> **Left:** nothing — it lands with MR !236
+> **Size:** —
+
 **Captured 2026-09-04**, out of the textiles MR (!236) after a run of
 host-placement corrections in that build.
 

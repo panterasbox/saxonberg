@@ -1,5 +1,13 @@
 # Fridge design pack — the cold-storage stack and the real-world mirror
 
+> **Status: PARTIAL** — its one hard dependency shipped: spoilage as two
+> populations plus curing → [spoilage.md](../../subsystems/spoilage.md)
+> **Left:** the cold-container substrate (`CoolboxMixin` + atmosphere on
+> `Container`) · the icebox · `ClimateControl` + `Powered` over the
+> power-utility ref (the appliance/energy build) · the fridge/freezer
+> rows · the mirror inbound channel
+> **Size:** a build
+
 > **Status: design, planner-ready, captured 2026-08-06. Not requirements.**
 > Two jobs: (1) the **fridge** designed outright to a reusable per-object
 > format, with every mixin it needs — **new or updated** — named; (2) the

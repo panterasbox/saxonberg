@@ -1,5 +1,14 @@
 # Help slate (working doc)
 
+> **Status: PARTIAL** — Wave 1 shipped 2026-06 (HelpTopic schema, the
+> catalogue harvester, command/api/collection projectors, HelpApi, the REST
+> API, the `help` verb) → [help.md](../../subsystems/help.md)
+> **Left:** Wave 2 — taxonomy/unit and mechanics projectors, co-located
+> `help:` prose, the standalone `help` Document collection, the Docs search
+> group, `{{help:…}}` transclusion, the inspection↔help bridge · Wave 3's
+> pre-auth public face · L3 source surfacing
+> **Size:** a build
+
 > **Status: Wave 1 shipped (2026-06) — see
 > [docs/subsystems/help.md](../../subsystems/help.md); Waves 2–3 shape
 > proposed.** The **systems** half of the reading

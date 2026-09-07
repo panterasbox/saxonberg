@@ -1,5 +1,13 @@
 # Cooperative slate (working doc)
 
+> **Status: PARTIAL** — the Office seats and the three-stock influence
+> substrate (producer faucet + conviction) shipped →
+> [governance.md](../../subsystems/governance.md)
+> **Left:** the capital faucet / stake ledger · Twitch identity binding ·
+> the three chambers + the ballot · delegation guardrails · the in-world
+> reserve + the budget process · mint-at-launch conversion
+> **Size:** a build
+
 > **Status: model settled, build the stake-ledger slice; the full
 > republic deferred until there's a population to govern.** The
 > *substrate* — what influence is, how it's earned/spent/replenished,

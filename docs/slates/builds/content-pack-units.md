@@ -1,5 +1,15 @@
 # Content-pack units index — the shippable units and their apply strategies
 
+> **Status: PARTIAL** — the installer, the reconcile strategies, the
+> closed `DocumentKinds` vocabulary, `requires` groups/title, the boot
+> manifest, wiki CAS and the seeder retirement all shipped across waves
+> 0–5 → [content-packs.md](../../subsystems/content-packs.md)
+> **Left:** the media-asset unit (byte sync + receipt pairing) · the
+> position-def unit (A19) · the contract-form unit · `requires.kinds:` ·
+> `requires.office` · manifest version + `dependsOn` validation · runtime
+> install/uninstall + marketplace · the repo split
+> **Size:** a wave
+
 **Started 2026-08-21**, out of the pack-installer design session
 ([content-packs-slate](./content-packs-slate.md), addenda A10–A18).
 (Names reflect the A17 renames: the template collection is `content`,

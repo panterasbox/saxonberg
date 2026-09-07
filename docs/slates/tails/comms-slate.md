@@ -1,11 +1,15 @@
 # Comms slate (working doc)
 
-> **Status: architecture set, internals open.** The communication
-> substrate — the verb taxonomy, the two transports it spans, and the
-> routing. It defines *what* the comm types are and *how they're
-> addressed*; it delegates the physics (acoustic reach → sound slate),
-> comprehension (→ language slate), the device (→ implant slate),
-> expression (→ emotes slate), and NPC brains (→ npc-dialogue slate).
+> **Status: PARTIAL** — wave 1 shipped: the two-transport model,
+> `say`/`whisper`/`shout` with `meta.acousticDb`, `say --to`, the
+> whisper-vs-tell split, `dm`/`tell` over Aether →
+> [comms.md](../../subsystems/comms.md); channels graduated to
+> [chat.md](../../subsystems/chat.md)
+> **Left:** dynamic-reach shout (the voice-projection attribute) ·
+> language gating on acoustic + encoded-cognition implant · regional
+> channels · the first-class conversation primitive · implant security
+> (spoofing/interception) · async mail · the moderation control plane
+> **Size:** a wave
 
 Working slate for **communication** — how beings talk to each other,
 near and far. It's the integrating spine: speech, DMs, group chats, and
@@ -53,28 +57,28 @@ The load-bearing decisions:
 
 See also:
 
-- [docs/slates/senses-slate.md](../tails/senses-slate.md) — acoustic propagation/
+- [docs/slates/senses-slate.md](./senses-slate.md) — acoustic propagation/
   reach/masking (the *hearing* channel of the unified `PerceptionChannel`
   substrate, which absorbed the sound slate); `say`/`whisper`/`shout` are
   sound sources it models. Comms *consumes* this for the acoustic family.
-- [docs/slates/language-slate.md](../tails/language-slate.md) — comprehension
+- [docs/slates/language-slate.md](./language-slate.md) — comprehension
   gating; a translation implant dissolves it.
-- [docs/slates/augmentation-slate.md](../tails/augmentation-slate.md) — the cybernetic
+- [docs/slates/augmentation-slate.md](./augmentation-slate.md) — the cybernetic
   cognitive-interface device + augmentation framework that carries the
   implant transport. Comms is its first/baseline consumer; DM is the
   tutorial on-ramp.
-- [docs/slates/chat-slate.md](../tails/chat-slate.md) — the **channel system**
+- [docs/slates/chat-slate.md](./chat-slate.md) — the **channel system**
   (the implant family's big subsystem): the projection-over-social-graph
   model, membership/subscription, roles, config, the `chat <channel>`
   surface. Comms defines the conversation primitive + transport; chat
   owns the channel model on top.
-- [docs/slates/emotes-slate.md](../tails/emotes-slate.md) — expression riding
+- [docs/slates/emotes-slate.md](./emotes-slate.md) — expression riding
   the implant/ESP channel; emotes are perceived near or far over it.
-- [docs/slates/senses-slate.md](../tails/senses-slate.md) — **ESP is a
+- [docs/slates/senses-slate.md](./senses-slate.md) — **ESP is a
   sense-channel family** (verbal = language-gated, emotive = language-
   free); the implant is its organ. Reception *is* sensing; comms delivers
   *on* these channels. (Acoustic speech rides the hearing channel.)
-- [docs/slates/npc-dialogue-slate.md](../tails/npc-dialogue-slate.md) — NPC
+- [docs/slates/npc-dialogue-slate.md](./npc-dialogue-slate.md) — NPC
   responders consume directed speech (and implant DM for remote NPCs).
 - [docs/subsystems/messaging.md](../../subsystems/messaging.md) — the Scene
   composer + delivery chokepoint; comms is a new audience-resolution
@@ -174,7 +178,7 @@ preserves the pedagogy. Acoustic stays language-gated regardless.
 ## The implant dependency
 
 The implant is the baseline form of a broader system, its own slate
-([augmentation-slate.md](../tails/augmentation-slate.md)).
+([augmentation-slate.md](./augmentation-slate.md)).
 Comms commits only to:
 
 - A **universal, always-on baseline implant** (standard-issue;
@@ -199,7 +203,7 @@ it flattens to the failsafe AND the client renders it as a chip/color/
 placement), **never hokey narrative** ("Over the radio, …" calcifies into
 boilerplate) and **never stripped to bare metadata** (the string must
 stay complete). The full model — tagged-complete-string → flatten/reflow
-— is the [message-rendering slate](../tails/message-rendering-slate.md). The two
+— is the [message-rendering slate](./message-rendering-slate.md). The two
 transports have a natural phenomenological distinction the UI can lean on
 (*heard* vs *a thought arriving / known*). Multi-channel chat needs the
 per-conversation buffer/tab model (client-cockpit + console-filtering
@@ -223,7 +227,7 @@ on the conversation/channel identity comms surfaces.
 Deferred game-design layered on the shipped substrates, not a new
 mechanism. The kernel: **recognition is a security primitive.** How
 familiar a sender is to a receiver — read off the recognition substrate
-([recognition-slate.md](../tails/recognition-slate.md)) plus the receiver's
+([recognition-slate.md](./recognition-slate.md)) plus the receiver's
 social buckets ([contacts.md](../../subsystems/contacts.md)) — gates *what
 kinds* of messages that sender may direct at them. A stranger's reach is
 narrow; a friend's is wide. The point is protecting players from
@@ -254,7 +258,7 @@ out-of-band moderation floor under the in-fiction gradient.
 
 **Explicitly dropped:** the old "emotes as a constrained safe-mode
 fallback for low-trust senders" idea. Emotes are a full first-class ESP
-channel (emotes-are-magic; [emotes-slate.md](../tails/emotes-slate.md)), not a
+channel (emotes-are-magic; [emotes-slate.md](./emotes-slate.md)), not a
 moderation safe-mode — a narrowed sender isn't pushed into emote-only as
 a sanitized substitute for speech.
 

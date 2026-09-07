@@ -1,5 +1,16 @@
 # Field substrate slate — negative space, and the world that is there before you look
 
+> **Status: PARTIAL** — three seeded fields ship: weather (the reference)
+> → [weather.md](../../subsystems/weather.md), `Deposit` (metal chain,
+> 2026-09-02) → [mining.md](../../subsystems/mining.md), and
+> `GroundCharacter` (farmstead W2) → [soil.md](../../subsystems/soil.md).
+> **Left:** the water table (adit boundary + oxide/sulfide, one field two
+> systems) · foraging stock as the first DERIVED field · the seeded ×
+> derived composition seam · a home for the pin walk (`stepOutwardForPin`,
+> now copied three times) · the pre-Fallow aether feature seed · the
+> graduate-to-top-level-doctrine call (user's)
+> **Size:** a wave
+
 > ## ⭐ STAGE A SHIPPED (metal chain, 2026-09-02) — the first real field
 >
 > `trade-mining`'s `Deposit` is this pattern's first production instance,
@@ -25,7 +36,7 @@
 > space in between rooms actually has properties, and those properties
 > reveal themselves when you carve new positive space."*
 >
-> **Status: pattern recognition, not a build.** Nothing here is new
+> Pattern recognition, not a build. Nothing here is new
 > mechanism. It names a shape the codebase has already built **twice**,
 > adds the one case that genuinely inverts it, and sets the guidelines so
 > the next four instances stop re-deriving it.

@@ -4,7 +4,7 @@
 > **reverse** direction of the seam: what Saxonberg sends *back* to
 > study.com. It is the half the brief calls "the version where the two
 > products actually improve each other"
-> ([study-com-integration.md](./study-com-integration.md) §6.2, brief
+> ([study-com-integration.md](./integration.md) §6.2, brief
 > §8.5), and it is **entirely contingent on one open question**: does
 > study.com's adaptive engine accept an inbound personalization signal?
 > If no, this doc is unbuildable and the integration is one-way
@@ -14,14 +14,14 @@
 > been touched).
 >
 > Pairs with the wire schema + `OutboundAdapter` in
-> [study-com-integration-spec.md](./study-com-integration-spec.md) §2,
+> [study-com-integration-spec.md](./integration-spec.md) §2,
 > §4.2. Reads bands off the advancement spine
-> ([advancement.md](./subsystems/advancement.md)).
+> ([advancement.md](../subsystems/advancement.md)).
 
 ---
 
 > **⚠️ Verified corrections — read
-> [study-com-platform-reality.md](./study-com-platform-reality.md) first
+> [study-com-platform-reality.md](./platform-reality.md) first
 > (2026-08-03).** Good news for this doc: Study's per-member mastery model
 > is **real and Bayesian** — `Member_Concept_Mastery` (CX) and
 > `Study_Priority` (test prep), plus the `Question_Stats` master/dimwit
@@ -170,7 +170,7 @@ misconceptions** keyed by ISCED-F.
   sides at once (the course is co-designed). For a *real* study.com
   course, the game would need study.com's misconception/objective
   vocabulary — a reason to align the two banks when authoring
-  ([magic-101-course.md](./magic-101-course.md) distractor banks are the
+  ([magic-101-course.md](../magic-101-course.md) distractor banks are the
   starting vocabulary).
 
 ---

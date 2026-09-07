@@ -1,5 +1,17 @@
 # Client cockpit slate (working doc)
 
+> **Status: PARTIAL** — the tracks shipped: MQL subscriptions, MML
+> semantic tags + the click model, the widget shelf, the inspection card,
+> the prompt stack, envelope rendering, char-gen, and the one `cockpit`
+> verb with its mode × arrangement axes →
+> [cockpit.md](../../subsystems/cockpit.md) +
+> [card-surface.md](../../subsystems/card-surface.md)
+> **Left:** the `study` and `classroom` modes · the content surface
+> (video + transcript payloads, diegetic triggers, completion events) ·
+> the live-tutor / classroom shape · the `<mql>` / `mudq:` sleeper, still
+> inert by design
+> **Size:** a wave
+
 Working slate for the **reference web client** — the affordance-first
 cockpit that sits on top of the existing command-bus + MML wire and
 turns the server's structured world model into a UI that's intuitive
@@ -32,7 +44,7 @@ See also:
 - [docs/subsystems/response-envelope.md](../../subsystems/response-envelope.md)
   — the structured per-dispatch wire channel. Cockpit consumes it to
   render `Status` color signals and `Note` chips alongside prose.
-- [docs/slates/mql-subscription-slate.md](../tails/mql-subscription-slate.md)
+- [docs/slates/mql-subscription-slate.md](./mql-subscription-slate.md)
   — the client-driven live-state substrate. Cockpit's right-
   sidebar widgets are MQL-subscription consumers. Each widget
   declares its query + field-set; the substrate ships the
@@ -448,7 +460,7 @@ the queries and copy them).
   is the failsafe/flatten principle.
 - **Color is NOT a tag.** *(Superseded: an earlier version kept
   `<color>`/`<size>` as core presentational tags.)* Per the
-  [message-rendering slate](../tails/message-rendering-slate.md), the core MML
+  [message-rendering slate](./message-rendering-slate.md), the core MML
   is **semantic only** — color/weight come from the client **theme/
   stylesheet** keyed on semantics (topic / channel / element /
   `stuff-id` → social-graph bucket). Manual color exists only as a
@@ -463,7 +475,7 @@ the queries and copy them).
 
 ## MQL-subscription consumer (Track 2)
 
-The [mql-subscription-slate](../tails/mql-subscription-slate.md) is the
+The [mql-subscription-slate](./mql-subscription-slate.md) is the
 source of truth for the wire shape. This slate covers only the
 **client-side consumption** pattern:
 
@@ -624,7 +636,7 @@ prompt is a real command (`set prompt.format "%hp/%mv %location >"`).
 ## Interactive prompt stack (Polish A)
 
 **Superseded** by the dedicated
-[prompt-stack-slate.md](../tails/prompt-stack-slate.md), which promotes
+[prompt-stack-slate.md](./prompt-stack-slate.md), which promotes
 the prompt stack from "polish" to a central cockpit element. The
 prompt component sits sibling-to-input in the CommandBar row,
 manages a typed stack of prompts (base / choice / confirm / text /
@@ -768,7 +780,7 @@ Things that are tempting to add but should be resisted in v1:
 
 ## Dependencies
 
-- **[mql-subscription-slate](../tails/mql-subscription-slate.md)** —
+- **[mql-subscription-slate](./mql-subscription-slate.md)** —
   sister slate; cockpit's right sidebar can't update truthfully
   without it.
 - **[response-envelope subsystem](../../subsystems/response-envelope.md)**

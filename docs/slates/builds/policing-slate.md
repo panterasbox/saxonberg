@@ -1,5 +1,14 @@
 # Policing slate — crime and law enforcement, from both ends
 
+> **Status: PARTIAL** — the harm-consent ledger with derive-on-read
+> crime/blame ships, and civics ships the Watch as a charter seat form →
+> [accountability.md](../../subsystems/accountability.md)
+> **Left:** the three enforcement tiers · the closed policy vocabulary +
+> resolve-on-read enforcement · arrest and custody · the constable kit
+> bundle as a budget line · the Policing Discipline · the gang roster and
+> its four services
+> **Size:** a build
+
 **Captured 2026-07-31**, from a Terminus design conversation. The
 brief: we want law enforcement *and* a criminal element in the
 fiction — for **immersion**, and to understand how enforcement plays

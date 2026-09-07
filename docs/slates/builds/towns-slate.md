@@ -1,5 +1,14 @@
 # Towns slate — the realm outside Terminus
 
+> **Status: PARTIAL** — 13 Locality rows ship; Rejection (39 files) and
+> Hinkley Hills (tenure, lease tier, land use) are authored →
+> [address.md](../../subsystems/address.md)
+> **Left:** Rejection Act I + the inert `stocks:` table · Heart's Delight
+> (gated on winter) · Hinkley facades/neighbours/the Death Man + `knock` ·
+> Rejection's support half · homes off `Offstage` · depots + the valley
+> road · the necropolis · freight
+> **Size:** a build
+
 > **Captured 2026-09-02**, design session in the `master` worktree while
 > textiles (`design/textiles`), TPA reform (`design/tpa-reform`) and
 > cooking (`build/cooking`) were in flight.

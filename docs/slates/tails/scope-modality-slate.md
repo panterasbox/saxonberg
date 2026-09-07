@@ -1,5 +1,12 @@
 # Slate — modality-scoped resolution & feasibility validation
 
+> **Status: PARTIAL** — the scope try-list, the `reachable` seed and the
+> `Modality` singletons ship → [mql.md](../../subsystems/mql.md)
+> **Left:** modality as a per-verb scope axis · per-modality container
+> permeability · transparent containers (sight-through walls) ·
+> feasibility validators that assume nothing about resolution
+> **Size:** a wave
+
 > **Status:** slate (design captured, build deferred-until-pulled).
 > **Surfaced by:** the timepiece + crossing-log work at the EU bus stop
 > (`docs/staging/eternal-university/objects/{pocket-watch,crossing-log}.md`).

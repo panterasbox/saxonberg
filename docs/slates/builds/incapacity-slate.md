@@ -1,5 +1,12 @@
 # Incapacity slate — obligations you cannot discharge, and impound on a claim
 
+> **Status: UNBUILT** — and the slate retracts its own motivating case
+> (escrowed contracts turned out already solved), so no live case stands.
+> **Left:** impound-on-a-claim · the preserving (never improving) receiver
+> · return and reclaim · the docket entry · the one honest shippable
+> remnant, contracts' optional-expiry default dial
+> **Size:** a tail
+
 **Captured 2026-08-04**, from the manifesto gap hunt. What looked like
 *"death and succession"* — flagged as the largest genuine hole in the
 corpus — turned out on inspection to be something narrower and more

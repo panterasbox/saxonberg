@@ -1,5 +1,13 @@
 # Delivery & addressing slate (working doc)
 
+> **Status: PARTIAL** — the addressing foundation shipped →
+> [address.md](../../subsystems/address.md); carriage and the freight
+> market shipped → [logistics.md](../../subsystems/logistics.md)
+> **Left:** providers + coverage + metering (power, aether) · the
+> aether-line ↔ comms unification · post/mail to an address · the
+> broadcast/field carry
+> **Size:** a build
+
 > **Status: systems architecture proposed; internals open.** The substrate
 > for getting *things and services to addressed places* — mail, parcels,
 > utilities (power / water / cable / phone), an "aether line," and the

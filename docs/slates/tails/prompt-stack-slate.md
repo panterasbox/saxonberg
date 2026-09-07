@@ -1,5 +1,11 @@
 # Prompt stack slate (working doc)
 
+> **Status: PARTIAL** — the server substrate, the stack and the client
+> prompt strip shipped → [prompt.md](../../subsystems/prompt.md)
+> **Left:** Tier 2 kinds `numeric` / `multiChoice` / `password` · Tier 3
+> `paginated` + `quiz` · multi-prompt stacking visuals + dismissal UX
+> **Size:** a tail
+
 Working slate for the **interactive prompt stack** — a server- and
 client-side substrate for asking the player a question mid-flow,
 recording their answer, and resuming whatever needed it. Disambiguation,
@@ -18,7 +24,7 @@ The MQL multi-match disambiguation case is wired end-to-end via
 See also:
 
 - [docs/slates/client-cockpit-slate.md § Interactive prompt stack
-  (Polish A)](../tails/client-cockpit-slate.md) — names the rendering
+  (Polish A)](./client-cockpit-slate.md) — names the rendering
   shape choice (inline-in-terminal) and refers the substrate work
   here.
 - [docs/subsystems/response-envelope.md](../../subsystems/response-envelope.md)
@@ -715,10 +721,10 @@ land later.
   multi-match-cardinality check is what triggers `mqlObject`
   disambiguation. Punch-list item "MQL disambiguation prompts"
   lands alongside.
-- **Cockpit slate** ([client-cockpit-slate.md](../tails/client-cockpit-slate.md))
+- **Cockpit slate** ([client-cockpit-slate.md](./client-cockpit-slate.md))
   — the prompt component is part of the cockpit's always-on
   minimum (now upgraded from "polish" to "central element").
-- **MQL subscriptions** ([mql-subscription-slate.md](../tails/mql-subscription-slate.md))
+- **MQL subscriptions** ([mql-subscription-slate.md](./mql-subscription-slate.md))
   — required for the server-rendered base prompt format token
   rendering. Not required for v1 of this slate.
 

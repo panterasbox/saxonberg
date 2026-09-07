@@ -63,11 +63,11 @@ Checked against the field. **Every ingredient has ancestors:**
 (a) *many* real knowledge domains are modeled honestly **as the interacting
 systems** (not quiz-gates), (b) an **honest use-value economy** makes real
 expertise valuable — endogenous demand to learn *and* teach
-([study-com-cx-and-the-aspiring-teacher.md](./study-com-cx-and-the-aspiring-teacher.md)
+([study-com-cx-and-the-aspiring-teacher.md](./cx-and-the-aspiring-teacher.md)
 §5), (c) it's bidirectionally wired to a **real accredited platform** so
 credentials and game competence feed each other, and (d) it's an **open,
 vertical-agnostic engine** any operator can run
-([study-com-platform-business-model.md](./study-com-platform-business-model.md)).
+([study-com-platform-business-model.md](./platform-business-model.md)).
 
 > **The claim, stated honestly:** *"No one's done it this way"* holds **as a
 > claim about the synthesis, not any single mechanic.** Two riders: (1) can't
@@ -94,7 +94,7 @@ vertical-agnostic engine** any operator can run
    retention / completion is ed-tech's **#1 unsolved problem**, and durable
    fun is the only thing that solves it. The pain is in-house: StudyAI at
    ~1.5k users / 94% never free-typing / "not working as expected"
-   ([study-com-studyai.md](./study-com-studyai.md)); nursing-entrance
+   ([study-com-studyai.md](./studyai.md)); nursing-entrance
    retention **2.7 months**; MOOCs <10% completion. Everyone has content;
    **nobody has engagement. Fun is the moat.**
 4. **The financial-self-sustenance proof — the anti-pointsification test.**
@@ -135,7 +135,7 @@ it requires actual game design — the exact thing gamification skipped, and
 the reason it took 15 years and hasn't been done.** Say the tension out loud;
 it's what makes the pitch read as earned rather than utopian. (It's also the
 sibling of the honest-economy caveats in
-[study-com-cx-and-the-aspiring-teacher.md](./study-com-cx-and-the-aspiring-teacher.md)
+[study-com-cx-and-the-aspiring-teacher.md](./cx-and-the-aspiring-teacher.md)
 §5 — reward *transfer*, not gate-passage, or the fun decays into grind.)
 
 ## 5. What this feeds
@@ -143,11 +143,11 @@ sibling of the honest-economy caveats in
 - **The Study-facing deck** — this is the engagement/"why it won't be another
   gamification flop" section, and the reframe that makes "it's fun" the
   *business case* rather than the apology.
-- **The agnostic pitch videos** ([education-videos.md](./education-videos.md))
+- **The agnostic pitch videos** ([education-videos.md](../education-videos.md))
   — moves 2 and 6 (lead with the felt experience; the founder conviction) are
   video-shaped; the word "gamification" stays *out* of the videos, per the
   reclaim-after-demo rule.
-- **The strategy doc** ([study-com-strategy.md](./study-com-strategy.md)) —
+- **The strategy doc** ([study-com-strategy.md](./strategy.md)) —
   the first-mover / ideal-operator close (move 5) is the emotional half of
   the business case the platform-business-model doc makes structurally.
 

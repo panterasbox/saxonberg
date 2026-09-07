@@ -4,7 +4,7 @@
 > stand up a *simulated university classroom* — interchangeable
 > player/NPC roles teaching a **known curriculum fed by Study.com** — and
 > how that differs for CX vs test-prep learners. Grounded in the verified
-> platform facts ([study-com-platform-reality.md](./study-com-platform-reality.md))
+> platform facts ([study-com-platform-reality.md](./platform-reality.md))
 > and the Saxonberg subsystems it composes (employment, behavior,
 > npc-dialogue, advancement, cms, studio, content-packs). Nothing here has
 > touched a live Study.com environment.
@@ -21,7 +21,7 @@
 
 **Yes — and less of it is new than you'd think, because a classroom role
 is not an actor, it's an employment `Position`.** Saxonberg's college is
-"a composition, not a subsystem" ([college-slate.md](./slates/builds/college-slate.md):357):
+"a composition, not a subsystem" ([college-slate.md](../slates/builds/college-slate.md):357):
 professor/TA = an employment Position, student = an enrollment contract,
 cohort = a group, study-group = a party, proctor = the belief substrate's
 identity recognition. **Player/NPC interchangeability falls out for free**
@@ -38,13 +38,13 @@ classroom — it's **deriving lived scenarios from Study's flat content**
 ## 1. The roles, and what backs each (verified against the subsystems)
 
 Every classroom role is a projection of an already-shipped substrate
-([college-slate.md](./slates/builds/college-slate.md):361-374):
+([college-slate.md](../slates/builds/college-slate.md):361-374):
 
 | Role | Backed by | Mechanism |
 |---|---|---|
-| **Professor / instructor** | an employment **`Position`** on the University `Business` | `Position = {key, label, wageRate, confers}`; `confers` = the capability mixins an on-shift holder gets ([employment.md](./subsystems/employment.md):36-40) |
+| **Professor / instructor** | an employment **`Position`** on the University `Business` | `Position = {key, label, wageRate, confers}`; `confers` = the capability mixins an on-shift holder gets ([employment.md](../subsystems/employment.md):36-40) |
 | **TA** | the same — a Position you *qualify for* by mastering the course | "master a course, get hired to TA it" (college-slate.md:387); competence qualifies you, the role is the Position |
-| **Student** | **enrollment = a contract** | clauses over verifiable conditions, escrow, tuition ([contract](./subsystems/contract.md) via college-slate.md:366) |
+| **Student** | **enrollment = a contract** | clauses over verifiable conditions, escrow, tuition ([contract](../subsystems/contract.md) via college-slate.md:366) |
 | **Proctor** | the **belief substrate** doing per-viewer identity recognition | "a proctor who *recognizes* you"; anti-impersonation is itself a thaumological instrument (college-slate.md:337,348-354) |
 | **Cohort / section** | a **group** (`GroupApi`) | scheduled sections vs self-paced content (college-slate.md:372,421-424) |
 | **Study group / lab partner** | a **party** | the social layer's co-presence (college-slate.md:373,414) |
@@ -63,7 +63,7 @@ employment relationship.
 The claim to make real is college-slate.md:393-398: *"a lab section run by
 a player next to one run by an NPC, indistinguishable to a student, with a
 live handoff."* The seam is the employment engine, and it's already
-actor-agnostic ([employment.md](./subsystems/employment.md)):
+actor-agnostic ([employment.md](../subsystems/employment.md)):
 
 1. **The role is a `Position`, not an actor.** Its capability is the
    Position's `confers` mixins (employment.md:36-40).
@@ -100,18 +100,18 @@ player-taught ones are one deferred seam away.**
 ## 3. How much of a course+classroom is authorable as pure data
 
 Most of it. Every piece rides a data substrate; the CMS's rule is
-"authoring is free, only *publish* is gated" ([studio.md](./subsystems/studio.md):14-18):
+"authoring is free, only *publish* is gated" ([studio.md](../subsystems/studio.md):14-18):
 
 - **NPCs, dialogue trees** — pure data in the NPC template's
-  `data.behaviors[]` ([behavior.md](./subsystems/behavior.md):19-36,
-  [npc-dialogue.md](./subsystems/npc-dialogue.md):60-66). An instructor
+  `data.behaviors[]` ([behavior.md](../subsystems/behavior.md):19-36,
+  [npc-dialogue.md](../subsystems/npc-dialogue.md):60-66). An instructor
   NPC that enrolls/grades runs commands *as itself* via the dialogue
   `dispatch` effect (npc-dialogue.md:98-127) — authored data, not code.
 - **Courses / chapters / lessons** — a Course data-`Idea` in a catalogue,
   chapters as children, lessons as `StoredDocument`s (college-slate.md:103-108).
-- **Disciplines** — pure-data leaves ([advancement.md](./subsystems/advancement.md):29-42).
+- **Disciplines** — pure-data leaves ([advancement.md](../subsystems/advancement.md):29-42).
 - **The whole thing shippable as a content-pack** — git-versioned pure
-  data, `replace` = "the file is truth" ([content-packs.md](./subsystems/content-packs.md):1-25,207-215).
+  data, `replace` = "the file is truth" ([content-packs.md](../subsystems/content-packs.md):1-25,207-215).
 
 **What still needs code:** a new backing class (wizard-gated), a brain
 (module category), a genuinely new dialogue effect verb, and the item
@@ -151,7 +151,7 @@ generator are all already-shipped or thin adapters.
 ## 5. "Extend which CMS?" — the decisive answer
 
 Both platforms have a CMS. The verified finding
-([platform-reality §7](./study-com-platform-reality.md)):
+([platform-reality §7](./platform-reality.md)):
 
 - **Study's `tools-cms`** authors flat item content *well* — 18 question
   types, **case-study passages with progressive reveal**
@@ -249,7 +249,7 @@ The real dependency is **people, not model cost**, and it's solvable:
 - **Scheduled + persistent instructor** — the lecture happens at its slot
   whether 2 attend or 0. This makes the college-slate's "sections
   scheduled" load-bearing: scheduling *concentrates* a cohort into one
-  moment ([college-slate.md](./slates/builds/college-slate.md):421-424).
+  moment ([college-slate.md](../slates/builds/college-slate.md):421-424).
 - **NPC students backfill seats and ask seeded questions.** The
   **misconception bank is a bank of illuminating "wait, but…" questions**
   (every misconception is a great student question), so even a solo real
@@ -264,7 +264,7 @@ The real dependency is **people, not model cost**, and it's solvable:
 
 - **Interim (no runtime LLM):** the instructor NPC runs an **authored
   lecture** — a scripted beat sequence + a **dialogue-tree Q&A** over the
-  misconception bank ([npc-dialogue.md](./subsystems/npc-dialogue.md):60-97,
+  misconception bank ([npc-dialogue.md](../subsystems/npc-dialogue.md):60-97,
   pure data), with NPC students asking the seeded questions.
   Deterministic, zero per-play cost, ships on today's substrate.
 - **Premium (live LLM):** swap the instructor's brain to a **live agent**
@@ -275,7 +275,7 @@ Both tiers share the same **room, roster, schedule, roles, and
 question-budget**, so upgrading a lecture is a **config swap, not a
 rebuild**. Mechanically the instructor is still an employment `Position`
 holder (§2); the lecture is its **on-shift behavior**
-([behavior.md](./subsystems/behavior.md)) — the interim tier is a dialogue
+([behavior.md](../subsystems/behavior.md)) — the interim tier is a dialogue
 tree, the premium tier is a new **agent-backed behavior** that calls an
 LLM with the room context + lesson grounding under the question budget.
 
@@ -320,17 +320,17 @@ lab raw material** — the video is demoted to a prop.
 
 Saxonberg exposes the world as **structured, queryable state** (MQL, the
 viewer-aware perception face, the inspection card —
-[mql.md](./subsystems/mql.md),
-[perception.md](./subsystems/perception.md),
-[card-surface.md](./subsystems/card-surface.md)) and a **command
+[mql.md](../subsystems/mql.md),
+[perception.md](../subsystems/perception.md),
+[card-surface.md](../subsystems/card-surface.md)) and a **command
 grammar with structured response envelopes**
-([command-routing.md](./subsystems/command-routing.md),
-[response-envelope.md](./subsystems/response-envelope.md)). That is exactly
+([command-routing.md](../subsystems/command-routing.md),
+[response-envelope.md](../subsystems/response-envelope.md)). That is exactly
 an **agent tool-use loop**: perceive state as text → decide → emit a
 command → read a structured result. A player drives it through the
 cockpit; an agent drives the **same verbs and queries**. This is the deep
 reason the player/NPC interchangeability of §2 extends to **LLM**
-inhabitants: an agent is a **brain** ([behavior.md](./subsystems/behavior.md))
+inhabitants: an agent is a **brain** ([behavior.md](../subsystems/behavior.md))
 that perceives and acts through the standard surface. The world's native
 I/O *is* an agent's native I/O — so the agent model is a new **brain kind**,
 not a new subsystem.
@@ -352,7 +352,7 @@ being gradable and the agent starts hallucinating outcomes; keep it and you
 get open-ended interactivity on an **honest deterministic core**. (This is
 the runtime cousin of the item generator's rule — "the evaluator calls the
 game's own code path, it never reimplements the physics",
-[college-slate.md](./slates/builds/college-slate.md):241-251.)
+[college-slate.md](../slates/builds/college-slate.md):241-251.)
 
 ### 7.5 The three-layer dial (not old-vs-new)
 
@@ -430,9 +430,9 @@ the room before it's built.
 ### 7.8 Acting, not just speaking — leveraging the command bus
 
 An agent that only talks is a chatbot; an agent wired to the **command
-bus** ([command-routing.md](./subsystems/command-routing.md),
-[command-spec.md](./subsystems/command-spec.md),
-[response-envelope.md](./subsystems/response-envelope.md)) *does things* —
+bus** ([command-routing.md](../subsystems/command-routing.md),
+[command-spec.md](../subsystems/command-spec.md),
+[response-envelope.md](../subsystems/response-envelope.md)) *does things* —
 through the same validated verbs a player uses, adjudicated by the sim.
 **Conversation is the interface; the command bus is the substance.** The
 agent's turn is **perceive (MQL) → decide → emit commands *and* speech**,
@@ -473,8 +473,8 @@ with three consequences:
   evidence-centred design.** Not "wrong" but the exact procedure (order,
   omission, recovery) — richer than item responses, harder to game, and it
   *is* the deed evidence feeding the adaptive signal
-  ([study-com-adaptive-feed.md](./study-com-adaptive-feed.md)) and the dual
-  transcript ([study-com-dual-transcript.md](./study-com-dual-transcript.md)).
+  ([study-com-adaptive-feed.md](./adaptive-feed.md)) and the dual
+  transcript ([study-com-dual-transcript.md](./dual-transcript.md)).
 - **Scaffold with actions, then fade — cognitive apprenticeship + ZPD.**
   The agent hands the next tool, narrows the space, does-one-shows-one, and
   fades with competence — scaffolding *actions, not answers*, the direct
@@ -495,7 +495,7 @@ with three consequences:
 - **Agent proposes, sim adjudicates** — §7.4 for everything, not just labs.
 - **The item generator is a command** — the agent decides to `spawn` a
   variant for a struggling student; the *content and key are computed by
-  the generator* ([college-slate.md](./slates/builds/college-slate.md):158-239),
+  the generator* ([college-slate.md](../slates/builds/college-slate.md):158-239),
   not the LLM. Pedagogy and correctness cleanly split.
 - **The deed ledger is the by-product** — the witnessed command trace is
   the raw material of the Transcript/chronicle, and thus of the dual
@@ -517,14 +517,14 @@ but bound to a web page, where 94% of Test Prep / 74% of CX users only
 click canned pills and the intent-router keeps misfiring. Its tools map
 directly onto this command bus, and the world fixes the routing +
 engagement problems the page causes. Capture, leverage, and the pitch
-argument: [study-com-studyai.md](./study-com-studyai.md).
+argument: [study-com-studyai.md](./studyai.md).
 
 ---
 
 ## 8. The two game shapes (the big design output)
 
 CX and test prep are **structurally different products**
-([platform-reality §3,§5](./study-com-platform-reality.md)), so they want
+([platform-reality §3,§5](./platform-reality.md)), so they want
 **different game shapes** — and the classroom fits CX, as you suspected:
 
 ### CX / College Accelerator → **the University**
@@ -598,7 +598,7 @@ Neither asks the learner to keep up with *it*.
   build-time seam (Avatar mixin composition, §2).
 - ✅ **Curriculum as data, fed live** — shipped (catalogue, content-packs,
   watch-embed, cite-not-restate); the join is an **authored crosswalk**
-  (not ISCED-F — [platform-reality §3](./study-com-platform-reality.md)).
+  (not ISCED-F — [platform-reality §3](./platform-reality.md)).
 - ⚠️ **Lived scenarios from flat content** — the real net-new work: a
   **scenario-derivation** authoring path on Saxonberg's side (§5), fed by
   Study's `case_study` passages + `AiMastery` steps.
@@ -609,7 +609,7 @@ Neither asks the learner to keep up with *it*.
   professor" is worth the (bounded, 1:N-amortized) spend.
 - ⚠️ **Inbound personalization** — still gated on the `[confirm]`: does
   Study's adaptive engine accept an inbound signal
-  ([platform-reality §10](./study-com-platform-reality.md)).
+  ([platform-reality §10](./platform-reality.md)).
 
 ---
 

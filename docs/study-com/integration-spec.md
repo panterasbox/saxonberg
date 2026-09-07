@@ -1,17 +1,17 @@
 # Study.com integration — technical spec
 
 > **Status: design/sketch, aspirational.** The concrete interface layer
-> behind [study-com-integration.md](./study-com-integration.md) §§6-7.
+> behind [study-com-integration.md](./integration.md) §§6-7.
 > That doc is the *design and response*; this one is *the actual
 > seams* — wire schemas as types, the core append primitive, the
 > proprietary-adapter interfaces, the trust boundary, and the phasing.
 >
 > **Verify-before-coding rail.** Every signature below is designed
 > against the source-of-truth *docs*
-> ([advancement.md](./subsystems/advancement.md),
-> [credential.md](./subsystems/credential.md),
-> [chronicle.md](./subsystems/chronicle.md),
-> [architecture.md](./architecture.md)), which "describe intent and may
+> ([advancement.md](../subsystems/advancement.md),
+> [credential.md](../subsystems/credential.md),
+> [chronicle.md](../subsystems/chronicle.md),
+> [architecture.md](../architecture.md)), which "describe intent and may
 > lead or lag the code." Confirm names/shapes against the real
 > `lib/advancement/`, `mud/api/`, and `backend/` TypeScript before
 > implementing. Nothing here has touched a live study.com environment.
@@ -19,7 +19,7 @@
 ---
 
 > **⚠️ Verified corrections — read
-> [study-com-platform-reality.md](./study-com-platform-reality.md) first
+> [study-com-platform-reality.md](./platform-reality.md) first
 > (2026-08-03).** The **ISCED-F reverse index (§3.1) does not apply** —
 > Study has no ISCED-F/CIP code. Replace it with an **authored crosswalk
 > resolver** from Saxonberg `Discipline` → Study `Concept` (CX) /
@@ -31,7 +31,7 @@
 
 ## 1. What this spec adds, and where each piece lives
 
-Two rules from [architecture.md](./architecture.md) govern placement, and
+Two rules from [architecture.md](../architecture.md) govern placement, and
 they draw the vertical-agnostic / proprietary line for free:
 
 - **The import boundary** — nothing under `src/mud/` imports outside the
@@ -125,7 +125,7 @@ partner's real payloads — the mudlib only ever sees the decoded call.
 
 The catalogue is keyed by discipline `key` and each descriptor carries an
 `iscedf` code (advancement.md:44-53, 64-69). The join in
-[study-com-integration.md](./study-com-integration.md) §6.1 needs the
+[study-com-integration.md](./integration.md) §6.1 needs the
 **reverse**: code → discipline key(s).
 
 ```typescript
@@ -153,7 +153,7 @@ class DisciplineCatalogue {
 > precede Y" dependency graph** exists to ingest: `Concept_Relation` is
 > statistical DBpedia co-occurrence, and `Skill_Node`'s `sequence` is
 > order-among-siblings, not cross-node prerequisites
-> ([study-com-platform-reality.md](./study-com-platform-reality.md) §3a). So
+> ([study-com-platform-reality.md](./platform-reality.md) §3a). So
 > any in-game **progression / readiness gating** that wants Study-derived
 > ordering is **adapter work** (derive from `Skill_Node` sequence + standards
 > + mastery correlations, or author it) — it is **not** a feed. The crosswalk
@@ -225,7 +225,7 @@ No credential kind carries assessment conditions (`payment|travel|key`
 only, credential.md:34), so provenance rides **`tags` on the claim row**
 (the open-vocabulary extension point, advancement.md:80, chronicle.md:20)
 — recommended over a new credential kind in
-[study-com-integration.md](./study-com-integration.md) §6.4.
+[study-com-integration.md](./integration.md) §6.4.
 
 ```typescript
 type Provenance =
@@ -299,7 +299,7 @@ interface OutboundAdapter {
 Reads `AdvancementApi.bandsFor(owner)` (advancement.md:188) + accumulated
 missed-misconception tags, builds `CompetencySignal[]`, translates to the
 partner's adaptive input. **Full design in
-[study-com-adaptive-feed.md](./study-com-adaptive-feed.md).** Batch grain
+[study-com-adaptive-feed.md](./adaptive-feed.md).** Batch grain
 is fine — personalization is not real-time.
 
 ### 4.3 `CourseDisciplineMap` — where the fiction lives
@@ -319,7 +319,7 @@ interface ClaimTarget { discipline: string; weightHint?: number; }
   `iscedfCandidates` verbatim — a real thermodynamics course credits the
   real-thermodynamics Discipline. Zero fiction knowledge.
 - **Fiction-bound** (proprietary): the Magic 101 table
-  ([magic-101-course.md](./magic-101-course.md) mapping section) overrides
+  ([magic-101-course.md](../magic-101-course.md) mapping section) overrides
   — `courseRef == 'THAUM101'`, `objectiveRef == 'THAUM101.LO.3.*'` →
   the magic-grid delivery-efficiency Discipline, etc. **The real
   magic-grid Discipline keys are owned by the Saxonberg side**
@@ -411,7 +411,7 @@ The outbound adaptive feed (§4.2) stays batch throughout.
   `learnerRef` crosses inbound. The **outbound** feed sends in-game
   behavior to a third party and therefore needs its own consent gate and
   a tight payload (bands + misconception tags, no free-form behavior) —
-  detailed in [study-com-adaptive-feed.md](./study-com-adaptive-feed.md).
+  detailed in [study-com-adaptive-feed.md](./adaptive-feed.md).
 - **Governance residue is an operator decision, not a neutral default.**
   The vertical-agnostic core is *not* a neutral shell: an operator's
   instance must **plug into the governance model or explicitly ignore
@@ -422,7 +422,7 @@ The outbound adaptive feed (§4.2) stays batch throughout.
   residual laws-metadata** — and the adapter (§4) has to state which. Treat
   this as a first-class integration question alongside auth and privacy,
   not a footnote. Rationale and the business framing:
-  [study-com-platform-business-model.md](./study-com-platform-business-model.md)
+  [study-com-platform-business-model.md](./platform-business-model.md)
   §4.
 
 ---

@@ -1,5 +1,12 @@
 # Lounge slate (working doc)
 
+> **Status: PARTIAL** — the MultiLocation Warren, the elastic lounge and
+> Dave's Bar shipped → [location.md](../../subsystems/location.md)
+> **Left:** the pizza-as-consensus toy · the TV/remote standing signal +
+> the derived channel lineup · the jukebox · the social minigames ·
+> emergent-personality Dave
+> **Size:** a build
+
 > **Status: design set; v1 is the social-elastic lounge + Dave's Bar
 > shell.** The universal login landing — a **social-elastic
 > MultiLocation** that buds rooms as people arrive and merges them as

@@ -1,5 +1,13 @@
 # Lineage slate (working doc)
 
+> **Status: UNBUILT** — char-gen still collects five declared fields;
+> char-gen.md states plainly that lineage does not exist.
+> **Left:** person + household records · a `kind: 'gallery'` field + row
+> payload · the gallery UI (grid/detail/reroll/lock) · endowed appearance
+> that actually renders · surname inheritance · the adopt/commit path ·
+> phase 2's real procgen
+> **Size:** a build
+
 > **Status: design proposed, nothing built.** A restructure of char-gen
 > around a single idea: **you choose a family, not a stat sheet.**
 > Everything else — species, aspiration, starting capital, body

@@ -1,5 +1,12 @@
 # Scripting language slate (tail)
 
+> **Status: PARTIAL** — the v1 engine shipped 2026-06 →
+> [scripting.md](../../subsystems/scripting.md)
+> **Left:** the piping model over the built `Pipeline` AST node + the
+> value→field binder · the block forks (`it`-only vs explicit params) ·
+> the `improv` seam · LLM-director authoring
+> **Size:** a tail
+
 > **Status: v1 engine SHIPPED (2026-06)** → graduated to
 > [scripting.md](../../subsystems/scripting.md). A **purpose-built scripting
 > language** — our grammar, our semantics — is the medium for procedural
@@ -89,7 +96,7 @@ See also:
 - [shell-author.md](../../subsystems/shell-author.md) — the existing
   `EvalScript` sandbox: the **general** TS surface. The scripting language is
   the **special** surface; same isolation machinery, narrowed grammar.
-- [access-slate.md](../tails/access-slate.md) — isolation / lease-scoped sandboxes;
+- [access-slate.md](./access-slate.md) — isolation / lease-scoped sandboxes;
   who may write/run a script.
 - [mql.md](../../subsystems/mql.md) — the condition sublanguage *and* the
   existing object pipeline (chain operators over Stuff) the pipe generalizes.

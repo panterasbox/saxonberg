@@ -92,7 +92,7 @@ specialized currency; if you could buy it, it would mean nothing.
   admission/rank mechanics happen to have a door an external issuer
   can knock on, the vertical uses it; the door is never built for
   the knock. Moved to the vertical's side of the ledger
-  ([study-com-strategy.md](../study-com-strategy.md) territory).
+  ([study-com-strategy.md](../study-com/strategy.md) territory).
 - **Charter as data; schism as feature.** Player-foundable via a
   chartering act (governance registry, the Party durable-lifetime
   precedent); the charter is rules-as-data (dues rate, rank gates,

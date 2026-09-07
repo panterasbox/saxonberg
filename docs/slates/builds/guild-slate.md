@@ -1,5 +1,13 @@
 # Guild slate (the vocation institutions)
 
+> **Status: UNBUILT** — no guild exists; the substrate it maps onto
+> (advancement, contract, employment, credential, parcel) ships.
+> **Left:** the `Guild` Idea + charter schema · the `guild:`
+> GroupProvider + ranks · focus-tagged `TranscriptEntry` +
+> charter-weighted `Competence` · contract claim gates · the hall and the
+> job board · the 10 day-one institutions + 8 standing charters
+> **Size:** a build
+
 > **Status: design settled in conversation (2026-07-28), pre-requirements.**
 > This slate is the institution-level guild design. It **supersedes and
 > extends** [advancement-slate § Guilds + § Declared focus](./advancement-slate.md)

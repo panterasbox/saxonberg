@@ -1,5 +1,12 @@
 # Rendering slate — the knacker, the tanner, the chandler
 
+> **Status: UNBUILT** — leather ships as a sink with no source; no
+> tallow, soap or candle exists.
+> **Left:** the knacker · the tanner · the chandler · `tallow` / `soap` /
+> `candle` · the carcass → named-materials seam in ranching · the
+> one-pack-or-three cut
+> **Size:** a build
+
 > **Captured 2026-09-03**, out of the settlement-model pass, in answer to
 > *"are there new trades to be chartered here?"*
 >

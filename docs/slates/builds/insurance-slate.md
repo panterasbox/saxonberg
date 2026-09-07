@@ -1,5 +1,12 @@
 # Insurance slate — risk pooling as an industry
 
+> **Status: UNBUILT** — nothing of the register exists; shipped banking
+> and contract escrow are named as substrate only.
+> **Left:** the policy-as-contract + reserve ratio · cargo underwriting ·
+> the mutual · the credit vocation · the ratings agency · the accountant ·
+> the notary/scrivener · innkeeper · veterinarian · ostler · almanac-maker
+> **Size:** a build
+
 **Captured 2026-07-31**, named as fire's dependency in
 [fire-combustion-slate § The fire service](./fire-combustion-slate.md)
 and flagged there as its own industry. Fire is *why* insurance exists;

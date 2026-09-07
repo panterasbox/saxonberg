@@ -1,5 +1,13 @@
 # Wizard duty slate — law suggested by the technology itself
 
+> **Status: UNBUILT** — no duty, no break-glass, no `su`; `provision`,
+> `unprovision`, `config` and `practice` still carry `requiresWizard`
+> **Left:** re-gating those four off the code-trust axis · break-glass
+> declared-purpose logging for reads and impersonation · `su` as an
+> agency consumer · the duty text + safe harbour in the wizard grant ·
+> subject notification on record access
+> **Size:** a build
+
 **Captured 2026-08-04**, as the last dimension of the law-source hunt:
 
 > **User: "law informed by the technology. These are restraints on

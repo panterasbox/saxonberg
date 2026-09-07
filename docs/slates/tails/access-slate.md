@@ -1,11 +1,16 @@
 # Access & authorization slate (working doc)
 
-> **Status: architecture set, forks leaned.** The in-world permission
-> layer — "can this *actor* do this *action* on this *resource*?" — that
-> `call-security` explicitly reserved a seam for. Capability-based,
-> diegetic-first, one `can()` core, two enforcement surfaces. Consumes
-> the grouping facade (group-role is one capability source) and fills
-> call-security's stubbed/deferred policy slots.
+> **Status: PARTIAL** — the `can()` core shipped as `AccessApi` over
+> parcel title → [access.md](../../subsystems/access.md) +
+> [parcel.md](../../subsystems/parcel.md); the content-write class
+> allowlist shipped in `CmsLogic`. ⚠ The lease model lost both its stated
+> consumers (the CMS and the holodeck each shipped without one).
+> **Left:** the structured audit sink (call-security Pillar 5 —
+> `MudlogApi` is unwired) · the deferred caller policies (`Admin`,
+> `ByCommandGiver`, `ByActingAvatar`, `ByResponsibleAvatar` +
+> `getActingAvatar`/`getResponsibleAvatar`) · the lease-vs-quota design
+> question, which should not ride the audit sink's cycle
+> **Size:** a tail
 
 > **⚠ AUDIT 2026-08-08 — this slate should be SPLIT; half of it is a
 > design question, not a build.** Checked against the tree when GitLab #13
@@ -72,7 +77,7 @@ See also:
 - [grouping subsystem](../../subsystems/grouping.md) — `GroupApi`; **group-role is
   a capability source** (control-via-groups). The facade pattern this
   slate mirrors.
-- [chat-slate.md](../tails/chat-slate.md) / [emotes-slate.md](../tails/emotes-slate.md)
+- [chat-slate.md](./chat-slate.md) / [emotes-slate.md](./emotes-slate.md)
   — consumers: channel post/moderate roles; the **expression-policy /
   emote-only gag** is `can(actor, 'speak', channel)`.
 - [docs/subsystems/properties.md](../../subsystems/properties.md) — field-

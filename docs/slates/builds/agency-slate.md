@@ -1,5 +1,13 @@
 # Agency slate — acting on behalf of another
 
+> **Status: UNBUILT** — `AccessApi.can` and `getActingAuthor` are the two
+> halves it joins; nothing joins them.
+> **Left:** the agency grant (UseGrant-shaped · scoped · revocable) · the
+> principal/agent split in the execution context · the closed
+> capability-kind vocabulary · the fiduciary / self-dealing guard · the
+> code-trust non-flow rule
+> **Size:** a build
+
 **Captured 2026-08-04**, out of the gap hunt across law sources. Several
 separate designs had each been reaching for the same missing primitive
 privately.

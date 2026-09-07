@@ -1,5 +1,12 @@
 # Tradition slate — schools of thought as research programmes
 
+> **Status: UNBUILT** — it rides inquiry, and inquiry has not shipped
+> either; no `Law` or `Tradition` row exists.
+> **Left:** the `Law` catalog · the Law/Tenet split · `Tradition` as an
+> Idea carrying an attention order · null laws · the notebook · what
+> lands in the Transcript · atheism as a first-class Tradition
+> **Size:** a wave
+
 > **Status: sketch / pre-requirements.** A **Tradition** is an inherited
 > account of how some part of the world works: a craft school, a medical
 > tradition, a guild's lore, a naturalist's method, a faith. It supplies

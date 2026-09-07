@@ -1,6 +1,18 @@
 # Flowers slate — the good whose only use is meaning
 
-> **Status: design surface, unbuilt, no phase gate passed.** Spun out of the
+> **Status: UNBUILT** — no phase gate passed; nothing the slate proposes
+> exists. The substrates it names all ship (freshness/wilt, `give`/`place`/
+> `wear`, crafting, wiki, contracts) — none of them is flower-shaped yet.
+> **Left:** the act record (who gave what, to whom, publicly) · the wiki
+> floriography with NO shipped meanings table · the lawn as a land use
+> (D69 — pasture whose yield is discarded, the cheapest entry point) ·
+> ornamental breeding on parentage-seeding · the florist as constructed
+> demand · the tulip preconditions (unique variants, slow bulbs, forward
+> contracts) · ⚠ blocking: how a flower futures leg respects banking's
+> conservation chokepoint
+> **Size:** a build
+
+> Spun out of the
 > [farmstead](../../plans/farmstead-plan.md) design pass
 > (2026-09-03), which put flowers into the *industrial* economy — clover as
 > nitrogen and forage and bee plant (D43), saffron as the labour-intensive

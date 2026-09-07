@@ -1,5 +1,17 @@
 # Credit slate — standing up lending, and the autopilot that runs the mint
 
+> **Status: PARTIAL** — the money substrate shipped (two-tier money, the
+> conservation chokepoint, per-currency ledgers, `reserve` mint/issue,
+> `Currency.compact()`) → [banking.md](../../subsystems/banking.md); no
+> lending exists — no application, rule, rate, term or repayment.
+> **Left:** splitting `reserve mint` into issuance + appropriation ·
+> naming the perpetual · chartering the `treasurer` seat and retiring the
+> Governor · principal-path offices + the NPC-eligibility guard · the
+> standing facility (criteria · taper · cap) · relocatable content /
+> personal packs · local underwriting at the committee · discharge · the
+> Treasury cycle (tax → budget → appropriate → disburse)
+> **Size:** a build
+
 **Captured 2026-08-04.** Opened as *"can we seat an NPC in the Governor's
 chair"* and became the whole fiscal apparatus, because the honest answer
 to *"what would the NPC do"* is **almost nothing — and the interesting
@@ -13,11 +25,6 @@ office is somewhere else.**
 > assigning an NPC to run it. but hopefully the cockpit the NPC sits in can
 > be the same cockpit an actual player would sit in as we're able to staff
 > the office with real humans."**
-
-> **Status: design conversation, captured. Not requirements.** ⭐ It closes
-> the deferral [currency-slate](./currency-slate.md) left open — *"credit:
-> WANTED, deferred, NOT rejected"* — and it is the first slate whose shape
-> was decided by a **constitutional clause** rather than by the code.
 
 ⭐ **Scope, in the user's words:** *"this isn't meant to be a permanent
 model for lending long term… this is really more about getting everything

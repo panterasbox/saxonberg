@@ -1,6 +1,19 @@
 # Faith slate — the seven wants Tradition does not serve
 
-> **Status: sketch / pre-requirements.** [tradition-slate](./tradition-slate.md)
+> **Status: UNBUILT** — no `Tradition` row, no faith kind, no deed-tag
+> registry, no fifth GroupProvider. Every substrate it names ships
+> (chronicle, trait arithmetic, belief/perception, grouping, governance).
+> **Left:** the deed-tag vocabulary + the four tags Part 1 needs
+> (`aid.treat`, `aid.attend-dying`, `harm.nonconsented`, `ritual.attend`,
+> honouring `since`) · `liturgy`/`transgressions` on `Tradition` · the
+> derive-on-read fall with NO readable fidelity · the surprising-write
+> narration · `CongregationGroupProvider` (the fifth) · the witness path
+> over belief · the ritual engagement on `cron` minting chronicle `who` ·
+> the temple as parcel + office + roster · founding/schism · the Chapel
+> content
+> **Size:** a build
+
+> [tradition-slate](./tradition-slate.md)
 > covers the *inherited account* half of religion and explicitly demotes
 > faith to one consumer among craft, medicine and guild. Scored against
 > what players actually reach for from religion, that serves **one want of

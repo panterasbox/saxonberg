@@ -1,5 +1,12 @@
 # Disease design pack — the capstone (transmission over the growth term)
 
+> **Status: PARTIAL** — the growth term this pack inherits shipped as
+> spoilage → [spoilage.md](../../subsystems/spoilage.md)
+> **Left:** `ContagionSpec` itself · the two unifications (one burden
+> engine · one hygiene read) · the room-condition half of immunity, which
+> is also unbuilt · the four un-misery rules · the per-object specs
+> **Size:** a build
+
 > **Status: design, planner-ready, captured 2026-08-06. Not requirements.**
 > The **capstone** of the stewardship pillar — the system where every producer
 > connects. [disease-slate](./disease-slate.md) owns the rationale; this pack is

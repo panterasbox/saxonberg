@@ -1,5 +1,13 @@
 # Economy slate (working doc)
 
+> **Status: PARTIAL** — the v1 currency slice shipped and then some: Coin,
+> the two-tier ledger + conservation chokepoint, vendors, consignment
+> retail, employment, crafting → [banking.md](../../subsystems/banking.md)
+> **Left:** faucet/sink + inflation balance · the bazaar · market
+> aggregation · the currency-reset event · bonds-before-equity capital
+> markets — all deliberately parked for a running game
+> **Size:** a build
+
 > **Status: physics settled, build the currency slice; macro deferred to
 > a real game.** The *micro-physics* of value — how it enters the world,
 > how it's carried, how a transaction clears — is worked out far enough

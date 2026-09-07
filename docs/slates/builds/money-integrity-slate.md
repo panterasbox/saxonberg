@@ -1,5 +1,17 @@
 # Money-integrity slate — follow the money, end to end
 
+> **Status: PARTIAL** — findings 1 and 2 shipped with the currency build
+> (2026-08-05): the `Coin.setQuantity` gate and the complete
+> `fullReconcile` (snapshot coin, non-resident only; vault float reported
+> not counted) → [banking.md](../../subsystems/banking.md). Finding 3 was
+> withdrawn as a non-bug.
+> **Left:** pass 1 the census over surfaces A–E (create · mutate ·
+> persist/restore · sandbox cash crossing · destroy) · pass 2 the gates ·
+> pass 3 the object-layer conservation property test — the actual
+> deliverable · the `/stuff/thing/Coin` uncloneable question · the
+> value-bearing marker question
+> **Size:** a build
+
 **Captured 2026-08-04**, out of the currency build's requirements phase.
 
 > **User: "we really need to be sure that only the CB can create value
@@ -10,7 +22,7 @@
 > here we need to thread through the entire economy and make sure money
 > doesn't leak in or out anywhere."**
 
-> **Status: findings + audit surface. Not requirements.** Two findings
+> Findings + audit surface. Two findings
 > held up; **the third did not** (see below — it was correct behaviour
 > misread as a bug, and driving the currency build caught it). The rest of
 > the surface is enumerated but **unswept**. The gates and the instrument

@@ -1,5 +1,12 @@
 # Corpos slate (working doc) — the marks and the fault line
 
+> **Status: PARTIAL** — phase 1, the mark substrate and the v1 roster,
+> shipped → [corpo.md](../../subsystems/corpo.md)
+> **Left:** the multipolar approval vector · competition + rival-tanking ·
+> sponsorship · approval→access gates · player-founded corpos ·
+> portfolios beyond booze
+> **Size:** a build
+
 > **Status: the model is settled; the roster is authored (v1, booze slice);
 > the player-facing faction gameplay is now DESIGNED (Phase 2, below) but
 > unbuilt.** Corpos are a handful of

@@ -8,7 +8,7 @@
 > Nothing here has run against a live Study.com environment.
 >
 > Builds on the interchangeable-role classroom
-> ([study-com-classroom-model.md](./study-com-classroom-model.md)) and the
+> ([study-com-classroom-model.md](./classroom-model.md)) and the
 > two game shapes; this is the killer application of the University shape.
 >
 > **Precision (2026-08-03, per the market plan):** Study's teacher *test
@@ -17,13 +17,13 @@
 > Teacher TP is a **0%-growth, mature** line. So this vertical's Saxonberg
 > value is the **practicum gap + the CotF pathway/twofer**, not growth in
 > exam prep itself. Prioritization context:
-> [study-com-vertical-survey.md](./study-com-vertical-survey.md).
+> [study-com-vertical-survey.md](./vertical-survey.md).
 >
 > **Update (2026-08-05):** education is also the **#1 declared field in CX**
 > (~2,000 members, top-5 all education variants) — so the aspiring teacher
 > is *both* a CX education-major (credit toward the ed degree) *and* a
 > Praxis test-prep user, making this the **beachhead across both products**.
-> See [study-com-cx-and-the-aspiring-teacher.md](./study-com-cx-and-the-aspiring-teacher.md).
+> See [study-com-cx-and-the-aspiring-teacher.md](./cx-and-the-aspiring-teacher.md).
 
 ---
 
@@ -107,7 +107,7 @@ designed.
    players** becomes the product, not a nice-to-have.
 3. **It produces a teaching deed transcript.** You don't just pass the PLT
    multiple-choice — you accrue a **witnessed record of teaching**
-   ([study-com-dual-transcript.md](./study-com-dual-transcript.md)):
+   ([study-com-dual-transcript.md](./dual-transcript.md)):
    corroboration a college of ed, an alt-cert program, or ETS would value,
    and a confidence-builder for an anxious first-timer.
 
@@ -127,7 +127,7 @@ designed.
   Study's official-provider status rather than competing with it.
 - **Lifecycle upside:** certify in the sim → graduate into Study's **K-12
   teacher tools** (the StudyAI teacher assistant, lesson-plan generator,
-  classrooms — [study-com-studyai.md](./study-com-studyai.md)) → **Teacher
+  classrooms — [study-com-studyai.md](./studyai.md)) → **Teacher
   PD / CEU** cross-sell (in their plan). The aspiring-teacher and the
   practicing-teacher ends of the classroom become one customer lifetime.
 
@@ -163,7 +163,7 @@ designed.
 - **Map the classroom-management scenario bank** — the PLT/PPR pedagogy
   items (the "Mr. Kim" cases) are the seed content for these teaching
   scenarios, same derivation path as the nursing NGN cases
-  ([study-com-integration-examples.md](./study-com-integration-examples.md)).
+  ([study-com-integration-examples.md](./integration-examples.md)).
 
 ---
 

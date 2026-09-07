@@ -1,5 +1,12 @@
 # Forestry slate — the crop you inherit
 
+> **Status: UNBUILT** — design surface only, no phase gate passed; the
+> `trade-fuel` coppice is the accidental head start.
+> **Left:** the forestry trade pack · felling + conversion verbs ·
+> seasoning · the stand-as-record · the silviculture Discipline ·
+> estovers + forest law · deforestation as a reachable consequence
+> **Size:** a build
+
 > **Status: design surface, unbuilt, no phase gate passed.** Written
 > 2026-09-03 out of the [farmstead](../../plans/farmstead-plan.md)
 > land-use pass, which found that **wood has more consumers than any other

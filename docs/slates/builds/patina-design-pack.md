@@ -1,5 +1,13 @@
 # Patina design pack — the thing that gets better because you used it well
 
+> **Status: UNBUILT** — `Durable`, `Keen`, `Graded`, glob and chattel all
+> ship; the positive half does not.
+> **Left:** `SeasonedMixin` (the accrual band + the use-then-care cycle) ·
+> the `takesPatina` material field · maintenance verbs accruing · the
+> failure-mode reads + wear slowed by patina · patina as an assay the
+> appraiser reads
+> **Size:** a wave
+
 > **Status: design, planner-ready, captured 2026-08-11. Not requirements.**
 > The stewardship pillar has **no mechanic for anything improving.** Every axis
 > in it is degradation — `Durable` wears, `Keen` dulls, food spoils, rooms soil

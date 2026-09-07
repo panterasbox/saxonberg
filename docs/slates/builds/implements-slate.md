@@ -1,5 +1,14 @@
 # Implements slate — items that make a caster better
 
+> **Status: UNBUILT** — opened 2026-08-04 when `Focus` was cut from the
+> magic-items build; the seam it folds into (`potencyFactor` in
+> `MagicLogic`) exists and nothing else does.
+> **Left:** the implement class itself · choosing what it modifies
+> (magnitude / cost / band-reach) · BUC on the effect axis · the
+> stacking rule, before content exists · craftability (the lens-maker
+> vocation)
+> **Size:** a build
+
 > **Status (2026-08-04): design opened.** Extracted from the magic-items
 > build, where the `Focus` class was cut. Nothing built.
 

@@ -3,7 +3,7 @@
 > **Status: design/sketch.** Aspirational throughout — nothing here has
 > touched a live study.com environment, and no learner has sat this
 > course. This document **expands §8** of
-> [study-com-integration.md](./study-com-integration.md) into a
+> [study-com-integration.md](./study-com/integration.md) into a
 > standalone course spec that Saxonberg content agents can author actual
 > lessons, items, and labs from. It is the synthesis of the invented
 > science in [arcane-science.md](./arcane-science.md) into study.com's
@@ -33,7 +33,7 @@
 ---
 
 > **⚠️ Verified corrections — read
-> [study-com-platform-reality.md](./study-com-platform-reality.md) first
+> [study-com-platform-reality.md](./study-com/platform-reality.md) first
 > (2026-08-03).** The course design stands, but two mappings changed: the
 > **ISCED-F spine below is Saxonberg-*internal* only** (Study has no
 > ISCED-F/CIP code — a course/item maps to Study via an authored crosswalk
@@ -744,7 +744,7 @@ resident study.com insider / the Saxonberg agents before authoring:
 
 ---
 
-*Expands [study-com-integration.md](./study-com-integration.md) §8;
+*Expands [study-com-integration.md](./study-com/integration.md) §8;
 synthesized from [arcane-science.md](./arcane-science.md) and the item
 generator in [college-slate.md](./slates/builds/college-slate.md).
 Aspirational — no part of this course has touched a live study.com

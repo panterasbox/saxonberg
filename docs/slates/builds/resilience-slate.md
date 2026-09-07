@@ -1,5 +1,13 @@
 # Resilience slate (working doc) — guards against bad code
 
+> **Status: UNBUILT** — doctrine set and backlog inventoried 2026-08-30;
+> no control wired.
+> **Left:** Tier 1 code-trust auditing (eval payloads, source-tree writes)
+> · the Api tier's default-open · per-call time budgets · input reaching
+> dangerous constructs · daylight/`@Audited` · load-boundary static
+> analysis · the process-layer lockdown
+> **Size:** a build
+
 > **Status: doctrine set, backlog assembled, nothing built.** The stance
 > in one line: **TypeScript access is root, so prevent what we can,
 > contain what we can't prevent, and make what we can't contain

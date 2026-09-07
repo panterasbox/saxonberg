@@ -1,5 +1,14 @@
 # Libations slate — the bar's supply chain, and putting things where they go
 
+> **Status: PARTIAL** — built 2026-08-28 (MR !206): the supply chain,
+> the menu, the trade packs and the corpo re-cut →
+> [crafting.md](../../subsystems/crafting.md) ·
+> [retail.md](../../subsystems/retail.md)
+> **Left:** metered water + power on the P&L (the supply design pack) ·
+> the ice machine and the bar's first socket · carbonation going flat ·
+> a glassware supplier
+> **Size:** a tail
+
 > **Built 2026-08-28 on `design/libations`** — review rulings: a corpo pack is capital + the mark only (products in the trade pack); **a verb lives with the pack whose content affords it** (hospitality/hearth-cooking/smithing own their steps; the capability vocabulary is open and a tool row names its own verbs; `menu`/`order` are platform `retail`). The requirements
 > (D1–D14) and plan (six phases, twenty findings) were **retired at the
 > pre-merge sweep**; what the code forced is recorded here and in the

@@ -1,7 +1,7 @@
 # Vertical fidelity audit — do the modeled industries teach the discipline's *reasoning*?
 
 > **Status: audit + fixes, aspirational.** Cross-references Saxonberg's
-> **modeled vocations** ([vocations.md](./vocations.md) + the subsystem
+> **modeled vocations** ([vocations.md](../vocations.md) + the subsystem
 > docs) against **how Study.com's content teams actually teach the
 > matching discipline** — using Study's real content (concepts, case
 > structure) as the check instead of the training-data priors the planning
@@ -60,7 +60,7 @@ the fix is one pattern (§4), applied per vocation.
   model** — recognize cues → analyze → prioritize → take action →
   evaluate. The *reasoning is the graded thing* (the six-question unfolding
   case, e.g. the postop-knee NGN case
-  ([examples](./study-com-integration-examples.md) #②)). Study's content
+  ([examples](./integration-examples.md) #②)). Study's content
   carries the concepts explicitly: **"Nursing process," "Differential
   diagnosis," "Prioritization."**
 - **The gap:** Saxonberg's medic teaches *how to treat a wound*; nursing
@@ -78,10 +78,10 @@ the fix is one pattern (§4), applied per vocation.
   the ethos*: the player's **judgment** — not a roll — drives the outcome,
   and the honest world adjudicates whether it worked (a *better* assessment
   than an MCQ, because the body actually responds). And note: **this is
-  the nursing lab quest from [classroom-model](./study-com-classroom-model.md)
+  the nursing lab quest from [classroom-model](./classroom-model.md)
   §7 — the fidelity fix and the lab design are one build.** **Now spec'd as
   a Saxonberg slate:
-  [slates/builds/medic-judgment-slate.md](./slates/builds/medic-judgment-slate.md)**
+  [slates/builds/medic-judgment-slate.md](../slates/builds/medic-judgment-slate.md)**
   (modeled on the science reference implementation, the inquiry-slate).
 
 ## 3. Worked audit B — `banking`/`insurance` family ↔ Securities/Insurance
@@ -199,7 +199,7 @@ For any modeled vocation whose real discipline grades reasoning:
 | Overlap | Model has the mechanism? | Reasoning loop? (hypothesis) |
 |---|---|---|
 | **science** (thermal/electricity/metabolism/materials/ballistics) ↔ **Academic science** | ✅ | **AUDITED → §3b. NOT the hypothesised match — a GAP (inquiry loop designed *right* but unbuilt), the best-designed of the three and the fix's reference implementation.** |
-| `teacher` ↔ **Teaching** | (pedagogy substrate) | **LIKELY MATCH** — "competence *is* the product"; the teacher-role classroom *is* the reasoning loop, if the teaching-deed grades pedagogical decisions ([teacher-vertical](./study-com-teacher-vertical.md)). |
+| `teacher` ↔ **Teaching** | (pedagogy substrate) | **LIKELY MATCH** — "competence *is* the product"; the teacher-role classroom *is* the reasoning loop, if the teaching-deed grades pedagogical decisions ([teacher-vertical](./teacher-vertical.md)). |
 | `appraiser`/`surveyor` ↔ **Real Estate** | ✅ (information asymmetry) | **PARTIAL** — models appraisal reasoning but misses real-estate law/agency/client-representation reasoning. |
 | `vet` ↔ (veterinary/animal science) | ✅ | **CLOSEST medic-adjacent** — "observation without self-report" is a real diagnostic-under-uncertainty seam; the one place the model leans toward judgment. |
 | `employment`/HR-ish ↔ **HR (SHRM)** | ✅ (positions/wages) | **GAP** — SHRM is situational judgment ("BEST action"); the model has the mechanism, not the decision loop. |

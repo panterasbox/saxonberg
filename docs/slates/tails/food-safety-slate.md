@@ -1,5 +1,10 @@
 # Food safety slate — the second population, and what preservation actually preserves
 
+> **Status: PARTIAL** — shipped 2026-09-04 (MR !244), living-world phase
+> 3 with it → [spoilage.md](../../subsystems/spoilage.md)
+> **Left:** molds (Part 10) — the second population's visible surface
+> **Size:** a build
+
 > **⭐⭐ Status: SHIPPED 2026-09-04 (MR !244), with one tail.** Everything
 > below landed except **molds** (Part 10), which stays a build of its own.
 > The permanent record is [spoilage.md](../../subsystems/spoilage.md) — read

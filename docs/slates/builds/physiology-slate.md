@@ -1,5 +1,22 @@
 # Physiology slate — the body's second half: function, time, intervention
 
+> **Status: PARTIAL** — only wave 1 shipped: the condition catalogue is
+> live (`ConditionCatalogue`, self-warming) and `ConditionApi.inflict` is
+> the single seam → [harm.md](../../subsystems/harm.md). The function
+> half is untouched — `governsVital` has not become `governs`, and there
+> is still no pain, no perfusion or innervation reader.
+> **Left:** the capacity vocabulary + the `governs` rename (waves 2–3
+> block the rest) · the organ roster (brain · spine · liver) · the
+> function axis (trauma × tissue × perfusion × innervation) · the alarm
+> clock off `reconcileConditions` · pain as a derived reader · substances
+> (the topical route, inhalation, the liver multiplier) · chems and meds
+> as content · infection · permanence and prosthetics · sleep and beds ·
+> blood, transfusion and consent · the care economy · animal body plans ·
+> `treat <target> <part> with <item>` and `draw` · medicine/surgery
+> disciplines + malpractice · tolerance and withdrawal · the six-spell
+> `control·body` roster
+> **Size:** a build
+
 **Captured 2026-08-02**, out of a chems/meds conversation that turned into
 an audit. The trigger was practical — *mortality shipped and the world has
 nothing to recover with* — but the finding underneath is structural:
@@ -20,7 +37,7 @@ is killing this body."* Nothing answers *"what can this body still do."*
 > first sketched out vitals and never did."** Correct, and this slate is
 > that conversation.
 
-> **Status: direction set, nothing built. FAST-TRACK.** § Part 3 was
+> **FAST-TRACK.** § Part 3 was
 > driven out against the source on 2026-08-02 and is requirements-ready;
 > the roster is **shape**-urgent, not speed-urgent.
 

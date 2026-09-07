@@ -1,5 +1,14 @@
 # Script interaction slate — what happens when a script meets a prompt
 
+> **Status: UNBUILT** — the inbound-sequencing half is fixed and shipped
+> (`ConnectionApi.sequenceInbound`); this half is untouched, so a
+> script's prompting command still silently takes the fallback branch.
+> **Left:** the fail-closed guard when a controller would prompt with no
+> `interactive` · the sweep of existing fallbacks, one commit per
+> subsystem · scripts declaring their inputs up front (and pre-resolving
+> an MQL disambiguation) · the NPC variant, routed to `DiagnosticApi`
+> **Size:** a wave
+
 **Captured 2026-08-04**, out of the wiki build's inbound-sequencing
 fix. The deadlock that started it is fixed and shipped
 ([wiki.md](../../subsystems/wiki.md), `ConnectionApi.sequenceInbound`);

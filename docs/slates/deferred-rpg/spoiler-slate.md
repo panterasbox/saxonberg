@@ -1,5 +1,14 @@
 # Spoilers & secrets slate (working doc)
 
+> **Status: PARTIAL** — the two-axis reveal model (capability deletes /
+> appetite tags, `SpoilerLevels`, `FieldMetaEntry.spoiler`) ships for
+> the encyclopedia → [wiki.md](../../subsystems/wiki.md)
+> **Left:** progress / integrity reveal conditions on percepts ·
+> server-side fact-gating in the Scene/percept projection ·
+> role-conditioned reveals · the player opt-in choice-guard outside the
+> wiki · assessment integrity (flagged, owned elsewhere)
+> **Size:** a wave
+
 > **Status: deliberately light — best-effort, not a security boundary.**
 > Keeping players from being spoiled (a puzzle solution, a hidden room's
 > contents, a quest twist, an NPC's secret) — by **imposition** (the game

@@ -1,5 +1,13 @@
 # Campus grounds slate — the labs, the archive, the field sites, and enrollment as the door
 
+> **Status: UNBUILT**
+> **Left:** the labs · the archive + literature-substitutes-for-
+> fieldwork · the three teaching field sites · the combat facilities ·
+> the teaching rooms off the Magic 101 chapter list · the eatery and
+> room-and-board · enrollment as the access gate + retention by
+> obligation
+> **Size:** a build
+
 **Captured 2026-09-01.** What goes on the Eternal University grounds —
 labs, an archive, teaching field sites, and the combat facilities — who
 may use them, and why one access decision turns a thin government into a

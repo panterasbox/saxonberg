@@ -1,5 +1,12 @@
 # Hunting slate — the fugitive resource
 
+> **Status: UNBUILT** — no hunting exists; stealth, ranged, `TrapKit`,
+> hazards and butchery ship as its substrate.
+> **Left:** the wild population as a record materialized on encounter ·
+> `track` + the method ladder · *ferae naturae* + game law + close
+> seasons · poaching enforcement · taming as the other outcome
+> **Size:** a build
+
 > **Status: design surface, unbuilt, no phase gate passed.** Spun out of the
 > [farmstead](../../plans/farmstead-plan.md) design pass
 > (2026-09-03), whose D60 put deer, rabbits and boar on a farm as **ongoing

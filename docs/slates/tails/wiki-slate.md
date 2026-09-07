@@ -1,5 +1,12 @@
 # Wiki slate (working doc)
 
+> **Status: PARTIAL** — Wave 1 shipped 2026-08-04 end to end, plus the
+> article dialect, the reader rung, the client card and the per-surface tag
+> policy → [wiki.md](../../subsystems/wiki.md)
+> **Left:** search integration · the level-3 source embed · the rest of the
+> transclusion palette · open questions 5–7
+> **Size:** a tail
+
 > **⭐ SHIPPED 2026-08-04** → [wiki.md](../../subsystems/wiki.md).
 > Wave 1 landed end to end plus the article dialect, the reader rung,
 > the client card and the per-surface tag policy. What remains is the
@@ -41,7 +48,7 @@ external Fandom-style wiki structurally cannot be.
 
 See also:
 
-- [client-shell-slate.md](../tails/client-shell-slate.md) — owns the **shared
+- [client-shell-slate.md](./client-shell-slate.md) — owns the **shared
   reading substrate**: viewer + search + **spoiler gating** + the
   transclusion/embed palette. Wiki (content) and help (systems) are both
   consumers; spoiler is applied per-reader-session across both, not a
@@ -53,7 +60,7 @@ See also:
   leans "start global") — spoiler-slate should adopt the graduated
   scalar.
 - [docs/subsystems/access.md](../../subsystems/access.md) +
-  [access-slate.md](../tails/access-slate.md) — `AccessApi.can` /
+  [access-slate.md](./access-slate.md) — `AccessApi.can` /
   `canMutateZone` / `isWizard`, the zone-anchored slice walk over
   `ownerGroup`/`accessGroups`, and `resolveSourceFolderZone` (the
   namespace-anchoring pattern the wiki mirrors). Reused wholesale.
@@ -83,7 +90,7 @@ See also:
   construction (per-student seeds, computed keys), so no spoiler
   gating is needed for the machine-graded half; (3) if lessons cite
   pages, **slug stability and redirects become load-bearing.**
-- [persistence-architecture-slate.md](../tails/persistence-architecture-slate.md)
+- [persistence-architecture-slate.md](./persistence-architecture-slate.md)
   — `WikiPage` is a plain `Document` (no Stuff overhead).
 - [docs/subsystems/grouping.md](../../subsystems/grouping.md) +
   [zone.md](../../subsystems/zone.md) — Groups + `FolderZone` stamps the
@@ -410,7 +417,7 @@ re-litigated from the slate.
 - **Diegetic expression** (librarian/journal) — deferred; function over
   form; a later consumer of the exposed data.
 - **The shared viewer / search / embed-palette substrate** — owned by
-  [client-shell-slate.md](../tails/client-shell-slate.md).
+  [client-shell-slate.md](./client-shell-slate.md).
 - **The spoiler reveal substrate** — owned by
   [spoiler-slate.md](../deferred-rpg/spoiler-slate.md); reused here, with the
   graduated-dial delta flagged back to it.

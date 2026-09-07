@@ -1,5 +1,14 @@
 # Disease slate — infection, transmission, and the price of density
 
+> **Status: PARTIAL** — the logistic growth term and the two-population
+> split shipped as spoilage (`FreshnessMixin` / `ContaminableMixin`) →
+> [spoilage.md](../../subsystems/spoilage.md)
+> **Left:** `ContagionSpec` (routes · host range · reservoir) —
+> `Condition.contagion` is still `null` with no consumer · the
+> husbandry-is-immunity coupling · quarantine · the outbreak investigation
+> · the crops-first v1 slice
+> **Size:** a build
+
 > **Status: design captured 2026-07-31, not built.** Disease is the one mechanic
 > that touches **every living thing in the game** — crops, herds, companions,
 > fish, NPCs, and the player's own body — so it gets its own doc rather than a

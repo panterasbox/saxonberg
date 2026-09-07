@@ -45,7 +45,7 @@ a sibling.
 The reusable asset isn't the chat — it's a **function-calling tool layer
 with real backend side-effects** over Study's own systems. It is exactly
 the "acts, doesn't just speak" pattern from
-[study-com-classroom-model.md](./study-com-classroom-model.md) §7.8:
+[study-com-classroom-model.md](./classroom-model.md) §7.8:
 
 | Tool (by segment) | Effect |
 |---|---|
@@ -141,7 +141,7 @@ Three things this gives the deck:
 
 ---
 
-*Feeds [study-com-strategy.md](./study-com-strategy.md) (the pitch/deal
-doc) and plugs into [study-com-classroom-model.md](./study-com-classroom-model.md)
+*Feeds [study-com-strategy.md](./strategy.md) (the pitch/deal
+doc) and plugs into [study-com-classroom-model.md](./classroom-model.md)
 §7.8 (the command bus). Verified 2026-08-03; re-verify before it lands in a
 deck.*

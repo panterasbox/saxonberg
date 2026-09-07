@@ -1,5 +1,14 @@
 # Chat slate (working doc)
 
+> **Status: PARTIAL** — the v1 core shipped (Channel Document, the three
+> kinds, ChannelCatalogue, the Subject retrofit) →
+> [chat.md](../../subsystems/chat.md)
+> **Left:** the role overlay · the channel config block · mentions + the
+> offline inbox · group-projected channels (party/guild/zone) ·
+> edit/delete · pinned + announcement mode · directory/search ·
+> channel succession
+> **Size:** a wave
+
 > **Status: architecture set, a few forks leaned.** The channel system —
 > "our own chat app inside the game." Graduates the *channels* half of
 > the comms slate into its own subsystem. Chat is the rich end of the
@@ -52,31 +61,31 @@ The load-bearing decisions:
 
 See also:
 
-- [comms-slate.md](../tails/comms-slate.md) — the **implant transport** chat
+- [comms-slate.md](./comms-slate.md) — the **implant transport** chat
   rides, the conversation primitive (DM/group/channel as one shape), and
   directed speech. Chat is the channel-rich end of comms' implant family.
 - [grouping subsystem](../../subsystems/grouping.md) — **the grouping facade
   channels project over** (the `GroupApi` membership/role source;
   guilds/parties/cohorts/managed groups all behind it). The key
   dependency: groups are primary, chat is a projection over them.
-- [social-graph-slate.md](../tails/social-graph-slate.md) — personal buckets
+- [social-graph-slate.md](./social-graph-slate.md) — personal buckets
   (friends/classmates); *one source* into the grouping facade, not the
   facade itself.
-- [augmentation-slate.md](../tails/augmentation-slate.md) — the device carrying every
+- [augmentation-slate.md](./augmentation-slate.md) — the device carrying every
   channel; history framed as its storage.
-- [emotes-slate.md](../tails/emotes-slate.md) — sibling expression channel; the
+- [emotes-slate.md](./emotes-slate.md) — sibling expression channel; the
   reactions hook (`tags`) and the gutter message-id are shared.
 - [docs/subsystems/messaging.md](../../subsystems/messaging.md) —
   **`MudlogApi` + topics: the game-event feed, explicitly NOT chat.**
   The Scene composer delivers chat messages like any other.
-- [message-rendering-slate.md](../tails/message-rendering-slate.md) — **how a
+- [message-rendering-slate.md](./message-rendering-slate.md) — **how a
   channel line renders**: the tagged-complete-string model (`[Gossip]` is
   a `<chan>` label that flattens whole + reflows to a column), per-channel
   color as a stylesheet rule, channel stylesheets, markdown.
-- [client-cockpit-slate.md](../tails/client-cockpit-slate.md) /
-  [console-filtering-slate.md](../tails/console-filtering-slate.md) — rendering:
+- [client-cockpit-slate.md](./client-cockpit-slate.md) /
+  [console-filtering-slate.md](./console-filtering-slate.md) — rendering:
   per-conversation buffers/tabs, topic filtering, the gutter message-ids.
-- [npc-dialogue-slate.md](../tails/npc-dialogue-slate.md) — remote NPCs reachable
+- [npc-dialogue-slate.md](./npc-dialogue-slate.md) — remote NPCs reachable
   via implant DM; in-channel NPCs are a content matter.
 - [docs/design-philosophy.md](../../design-philosophy.md) — liberal diegesis;
   Principle 3 (layered presentation) for provenance rendering.
@@ -250,7 +259,7 @@ and roles (group defaults + per-channel override):
   messages show an **"(edited)"** marker. Edit-trail-for-moderation
   (catching edit-to-hide-abuse) is heavier → deferred to the moderation
   control plane; v1 keeps just the marker + mod-delete.
-- **Threads / reactions** → the **[reactions slate](../tails/reactions-slate.md)**
+- **Threads / reactions** → the **[reactions slate](./reactions-slate.md)**
   owns these. Chat only
   provides the stable **gutter message-id** they (and mentions, and edit)
   all depend on — the one piece of plumbing chat shares with reactions.

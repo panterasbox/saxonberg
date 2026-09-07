@@ -1,5 +1,15 @@
 # Dave's Bar slate (working doc) — the integrating vertical
 
+> **Status: PARTIAL** — the near-term scope shipped (shift work, wages,
+> `order`, the supply chain, the bar fight) →
+> [employment.md](../../subsystems/employment.md) ·
+> [crafting.md](../../subsystems/crafting.md)
+> **Left:** the succession arc · tabs + customer records (regular / 86'd)
+> · corpo faction-approval standing · the Scene composer's crowd
+> aggregation for a full room · appraisal-as-skill + the congener /
+> hangover tuning · the player distillery that retires the faucet
+> **Size:** a build
+
 > **Status: experience design, pre-requirements.** Dave's Bar is the
 > **minimal complete vertical** — the smallest single place that exercises
 > nearly the whole physics stack at once: matter, place, crafting, skills,

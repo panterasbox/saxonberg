@@ -1,5 +1,19 @@
 # Mana-economy slate — power sources, the grid, and why mana can't eat the economy
 
+> **Status: PARTIAL** — the charge economy shipped (`S* = inflow/d`, the
+> three item classes, `ManaPowered` as the wall socket, `ManaCell` and
+> `ManaMain` in the arcana pack) →
+> [magic-items.md](../../subsystems/magic-items.md), and the TPA now runs
+> on mana with a derived rate and the three supplies →
+> [fasttravel.md](../../subsystems/fasttravel.md).
+> **Left:** the SOURCE — sited mana nodes on the terminus-condition ×
+> access-mode grid (a `ManaMain` just refills today) · the CHARGER as a
+> trade · distribution as a tree and the grid edge as an economic
+> boundary · node title, rent and the first natural monopoly · whether
+> nodes deplete · demurrage on flow vs storage · the magic vehicle (a
+> charged `Drivable` priced against feed)
+> **Size:** a build
+
 **Captured 2026-08-04**, out of the Dave's-Bar supply-chain thread, when
 the question *"what can we actually do with only wood?"* ran into the
 observation that the project **already ships a science of magic with
@@ -16,7 +30,7 @@ conservation of energy.**
 > be economical, or everyone will optimize for mana and you have
 > deflation.**"**
 
-> **Status: design conversation, captured. Not requirements.** ⚠ Contains
+> ⚠ Contains
 > **one proposed change to the arcane science** (Part 6) — the only thing
 > here that is not built on top of what already ships.
 

@@ -1,5 +1,13 @@
 # Spawn-distribution slate (working doc) — the dynamic populate substrate
 
+> **Status: PARTIAL** — the item half shipped (`SpatialZone.stocks` /
+> `favours` / `blessingOdds`, read by the residency spawn sweep) →
+> [residency.md](../../subsystems/residency.md)
+> **Left:** the creature half — a procgen-NPC generator over the NameBank
+> / species dossier / `PersonaMixin` · create-monster · the respawn clock
+> + faucet economics · determinism/seeding · the depth and rarity curves
+> **Size:** a build
+
 > **Status (2026-07): named, not designed — spun out of the magic-items walk.**
 > A **weighted-table populate substrate**: the *dynamic/runtime sibling* of the
 > static `populates: onto` seeding. Generic locations (and effects) draw **what

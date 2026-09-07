@@ -1,5 +1,14 @@
 # Wizard bar slate — the process the duty needs
 
+> **Status: UNBUILT** — `isWizard` / `isArchwizard` exist as the
+> code-trust axis ([access.md](../../subsystems/access.md)); no bar, no
+> roster, no complaint process, no break-glass record.
+> **Left:** ⭐ the conspicuous record of wizard reads/impersonations (the
+> one non-retrofittable piece) · the safe-harbour standard text · admit
+> (exam + archwizard flip) · the public roster · the hearing process ·
+> advisory disbarment
+> **Size:** a build
+
 **Captured 2026-08-12**, out of a conversation that started on code
 hosting and turned into what a wizard *is*:
 
@@ -14,11 +23,6 @@ hosting and turned into what a wizard *is*:
 what was missing: the **duty**, the **process**, and ⚠ the **safe
 harbour**. Enforcement already ships (the PM may revoke any wizard). This
 slate is the **process**, and it argues the safe harbour is the product.
-
-> **Status: design conversation, captured. Not requirements.** Nearly
-> every dial below ships with a default rather than a decision — see
-> *§ Almost all of this is configuration*, which is the point of the
-> slate as much as the institution is.
 
 Related: [wizard-duty-slate](./wizard-duty-slate.md) (**the parent** —
 the premise, break-glass, the recursion, the mechanism ranking),

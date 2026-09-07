@@ -1,5 +1,13 @@
 # Bulkable slate (working doc)
 
+> **Status: PARTIAL** — the thermos slice shipped (slots, `transfer`, the
+> closure scale, the MQL surface, the verb roster) →
+> [bulk.md](../../subsystems/bulk.md)
+> **Left:** mixing/solutions · the `sealed` gas level + the phase→closure
+> map · `Container`+`Bulkable` · universal auto-compose · amount-aware
+> `appearance` · the containment inversion
+> **Size:** a wave
+
 > **Shipped (thermos slice).** The interior + surface substrate, the
 > `transfer` primitive, the closure scale, the full MQL surface
 > (`:b`, material keyword, `:{N unit}` formal + natural language), the

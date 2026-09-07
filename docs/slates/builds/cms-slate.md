@@ -1,5 +1,13 @@
 # CMS / content-authoring-tools slate (working doc)
 
+> **Status: PARTIAL** — Wave 1 (the code editor) shipped, and the Studio,
+> git and diagnostics with it → [cms.md](../../subsystems/cms.md)
+> **Left:** lease-scoped trees + `domain_history` versioning · the
+> draft/changeset overlay + atomic publish · the law==code review gate ·
+> engine-typed IntelliSense/LSP + the VS Code path · anon read-only ·
+> cross-tab sync · the zone map
+> **Size:** a build
+
 > **Status: architecture set; start with the code editor.** The
 > content-authoring application — a **client-heavy** authoring surface over
 > the **same backend the game uses** (the access layer's lease-scoped
@@ -62,12 +70,12 @@ See also:
   lease-scoped content + source trees, the authoring-op gate, the holodeck
   (author→test), and **versioning/audit** (the `domain_history` change-log)
   all live there; the CMS is a client over it.
-- [docs/slates/authoring-intelligence-slate.md](../builds/authoring-intelligence-slate.md)
+- [docs/slates/authoring-intelligence-slate.md](./authoring-intelligence-slate.md)
   — **the brain.** The content-semantics intelligence (completions /
   diagnostics / nav) the code editor surfaces, the LSP that travels to
   external editors, and the model shared with the save-gate. The CMS owns the
   *UI*; that owns the *intelligence*.
-- [docs/slates/scoped-authoring-slate.md](../builds/scoped-authoring-slate.md) — the
+- [docs/slates/scoped-authoring-slate.md](./scoped-authoring-slate.md) — the
   **in-game light-authoring tier** (dorm-theming, kiosks, the
   describe/decorate path), the third authoring surface alongside the CMS and
   external editors.
@@ -78,7 +86,7 @@ See also:
 - [docs/slates/client-cockpit-slate.md](../tails/client-cockpit-slate.md) — the play
   client (the shared SPA) and the **forms-generate-commands** precedent the
   content editors mirror.
-- [docs/slates/map-slate.md](../builds/map-slate.md) — the **zone editor's canvas**:
+- [docs/slates/map-slate.md](./map-slate.md) — the **zone editor's canvas**:
   the shared 2D/3D map renderer (the visual mode, deferrable behind the v1
   list/connectivity fallback).
 - [docs/subsystems/char-gen.md](../../subsystems/char-gen.md) — the
@@ -160,7 +168,7 @@ whole graph*, the burden a lease-centric system feels. Discrete, named
 REST/RPC endpoints map **1:1 to gated core ops** — coarse named operations
 fit a lease model; an open query graph fights it. GraphQL's one real win
 (relational fetch) we get by shaping endpoints to the CMS's actual queries
-(we control both ends) + the [authoring-intelligence](../builds/authoring-intelligence-slate.md)
+(we control both ends) + the [authoring-intelligence](./authoring-intelligence-slate.md)
 doing cross-reference resolution. So: **no GraphQL.**
 
 **The attribution bridge (a required seam).** A REST request arrives
@@ -226,7 +234,7 @@ Beyond "it's an editor over the lease-scoped trees":
 - **The intelligence stack — its own subsystem.** The editor is the
   *surface*; the brains (TS via engine `.d.ts` + YAML via JSON schemas + the
   custom platform-semantic layer) live in the **authoring-intelligence**
-  slate ([authoring-intelligence-slate.md](../builds/authoring-intelligence-slate.md))
+  slate ([authoring-intelligence-slate.md](./authoring-intelligence-slate.md))
   — editor-agnostic, shared with the save-gate, and the reason the editor
   *widget* choice is low-stakes (the brain is separate).
 - **Validation: client-instant + server-authoritative** (mirrors the access
@@ -251,7 +259,7 @@ workflow *is* the git workflow.
 
 What lets the *intelligence* travel to external editors is that it's
 **LSP-shaped** — see
-[authoring-intelligence-slate.md](../builds/authoring-intelligence-slate.md). The
+[authoring-intelligence-slate.md](./authoring-intelligence-slate.md). The
 same language server feeds the webapp editor (via `monaco-languageclient`)
 **and** a coder's real VS Code (a small extension + the LSP + the git sync),
 so they get engine-aware completions in their native editor — and it makes
@@ -306,7 +314,7 @@ changeset unit** (build + publish a zone atomically; holodeck-test the whole
 draft).
 
 **The map is its own component, and not a v1 dependency.** The zone map is
-the shared **map renderer** ([map-slate.md](../builds/map-slate.md)) — **2D** (a
+the shared **map renderer** ([map-slate.md](./map-slate.md)) — **2D** (a
 per-floor grid for Cartesian; a node-graph for Spherical/semantic) *and*
 **3D** (a procedural box-render from `coords × cellSize`, three.js/r3f — no
 3D-modeling; geometry generated from data). **2D for editing, 3D for
@@ -535,7 +543,7 @@ completions, and pushes — the server validates + gates on push.
    are the priority and the intelligence is editor-agnostic. *Lean: Monaco,
    lazy-loaded, as the web fallback.*
 2. **LSP investment + timing** — now owned by
-   [authoring-intelligence-slate.md](../builds/authoring-intelligence-slate.md)
+   [authoring-intelligence-slate.md](./authoring-intelligence-slate.md)
    (*lean: LSP-shaped from the start, given the external-editor priority*).
 3. **External template authoring** — can Mongo-backed templates be edited in
    an external editor (a working-copy export/import), or are templates
@@ -591,7 +599,7 @@ each emitting the same canonical TS/YAML.
 - **The access / lease model, the holodeck, versioning/audit** →
   [access-slate.md](../tails/access-slate.md). The CMS *consumes* all of it.
 - **In-world light authoring** (dorm-theming, kiosks, the shell) →
-  [scoped-authoring-slate.md](../builds/scoped-authoring-slate.md). A sibling
+  [scoped-authoring-slate.md](./scoped-authoring-slate.md). A sibling
   surface, not the CMS.
 - **The play client / cockpit rendering** →
   [client-cockpit-slate.md](../tails/client-cockpit-slate.md). The CMS shares the

@@ -1,5 +1,12 @@
 # Combat system (working slate)
 
+> **Status: PARTIAL** — cycles 1 + 2 shipped (session, poise, terms,
+> blame, the threat graph) → [combat.md](../../subsystems/combat.md)
+> **Left:** pursuit / the chase · rout & rally retreat · the morale +
+> de-escalation suite · the `guards` intervention brain · the client
+> `CombatCard` · NPC-vs-NPC crews · the composure/luck axis
+> **Size:** a build
+
 > **Status: committed launch feature, design-phase.** Combat ships — the
 > game won't launch without it — but the *rules* are still being designed.
 > Nothing here is a build. This slate captures **the combat system itself**

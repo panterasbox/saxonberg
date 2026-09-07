@@ -1,5 +1,13 @@
 # Tenancy design pack — stewardship of what you don't own
 
+> **Status: PARTIAL** — the rented rungs, the `UPKEEP_TERMS` vocabulary
+> and the shell-condition clock shipped
+> → [holding.md](../../subsystems/holding.md)
+> **Left:** room-condition attribution `(actor, target, extent)` · the
+> check-in condition snapshot at `grantedAt` · the deposit as a contract
+> escrow leg · the eviction act · rent as a recurring money leg
+> **Size:** a wave
+
 > **Status: design, planner-ready, captured 2026-08-11. Not requirements.**
 > Closes a hole *inside* work already written. The
 > [residence ladder](./residence-ladder-design-pack.md) ships **two

@@ -1,5 +1,13 @@
 # Cosmetics slate — giving appearance an input, so its scarcity is grown rather than declared
 
+> **Status: PARTIAL** — the dye chain (dyestuff × mordant, fastness,
+> overdyeing as arithmetic) shipped with textiles →
+> [textiles.md](../../subsystems/textiles.md)
+> **Left:** the appearance-mark carrier on a body (the `Looks` cell) ·
+> the personal-services vocation + graded cuts · tattoos · the dye-plant
+> crop rows
+> **Size:** a build
+
 **Captured 2026-08-25**, out of the [lineage](./lineage-slate.md)
 phase-1 card discussion. Char-gen settled that **appearance is inherited
 only** — no editor at creation — which relocates all appearance change

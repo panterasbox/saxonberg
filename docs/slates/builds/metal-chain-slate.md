@@ -1,5 +1,14 @@
 # Metal-chain slate — the three trades that make metal
 
+> **Status: PARTIAL** — Stage A shipped 2026-09-01 (the `Deposit` field,
+> `MineWarren`, the five acts, the survey channels, Rejection) →
+> [mining.md](../../subsystems/mining.md)
+> **Left:** Stage B, below the water table — shaft/hoist/pump · the
+> drainage commons + the hoist toll · sulfides and roasting · collapse,
+> entrapment, rescue · the deep ecology + the Hush cast · tribute pitches
+> and setting-day · high-grading as an offence
+> **Size:** a build
+
 > **Captured 2026-08-31**, design session in `build-1` while farming
 > (`build/farming`) and residences (`build/residences`) were building.
 > **Status: decided design, pre-requirements.**

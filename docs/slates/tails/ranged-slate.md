@@ -1,5 +1,13 @@
 # Ranged slate — one engagement mode, from thrown knife to statute book
 
+> **Status: PARTIAL** — Wave 1 shipped (the band ladder, the arena cap,
+> the delivery contract, the consent gate, the thrown flask) →
+> [ranged.md](../../subsystems/ranged.md)
+> **Left:** W2 cover + armor · W3 bows/crossbows/less-lethal/acoustics ·
+> W4 guns (the field model, reliability, registration) · the range,
+> armory and accessory content
+> **Size:** a build
+
 **Captured 2026-07-31** from a design session. Scope: the "later
 cycles" engagement mode [combat.md](../../subsystems/combat.md)
 reserved — **all** ranged delivery, uniformly: bows, crossbows,

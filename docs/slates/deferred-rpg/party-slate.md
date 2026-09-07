@@ -1,5 +1,13 @@
 # Party system (working slate)
 
+> **Status: PARTIAL** — the party core shipped: the `Party` Idea, the
+> fourth `GroupProvider`, roster/captain, the combat `sideOf` seam →
+> [party.md](../../subsystems/party.md)
+> **Left:** the party purse + payout split · the crew's durable name
+> (renown-as-subject over a party chronicle) · the odometer layer · party
+> morale · the client party card · NPC-only crews
+> **Size:** a wave
+
 > **Status: design-phase, deferred-rpg.** The **party** is the social axis
 > the combat design leaned on throughout (tactics are "party-level,"
 > master-apprentice, coup attribution, crew contracts, payout split) without
@@ -251,7 +259,7 @@ Human + NPC + AI, each reusing substrate:
 
 - **Guilds and corps** — the other two social axes; their own designs
   ([advancement-slate](../builds/advancement-slate.md) /
-  [corpos-slate](./../builds/corpos-slate.md)). The party must not absorb them.
+  [corpos-slate](../builds/corpos-slate.md)). The party must not absorb them.
 - **The combat tactic mechanics** — owned by
   [combat-tactics-slate.md](./combat-tactics-slate.md) /
   [combat-slate.md](./combat-slate.md); the party merely *holds* the active

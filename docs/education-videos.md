@@ -30,9 +30,9 @@ the same settled tone rules and a different audience.
 > the end of the scripts doc.
 >
 > **Revision pass (2026-08-06) — realigned to the session's verified findings**
-> (traceable to [platform reality](./study-com-platform-reality.md),
-> [the aspiring-teacher beachhead](./study-com-cx-and-the-aspiring-teacher.md),
-> and [engagement & positioning](./study-com-engagement-and-positioning.md)).
+> (traceable to [platform reality](./study-com/platform-reality.md),
+> [the aspiring-teacher beachhead](./study-com/cx-and-the-aspiring-teacher.md),
+> and [engagement & positioning](./study-com/engagement-and-positioning.md)).
 > **Strategic re-weighting:** the **aspiring teacher is the beachhead** (top
 > declared field in *both* CX and test-prep, sitting on Study's deepest
 > authored data — K-12 math/science), so **V1's learner is reframed as an
@@ -116,7 +116,7 @@ negotiated-agreement shape. The videos describe experiences the game
 delivers and a seam those experiences expose. What anyone does with
 that seam is a conversation the videos deliberately do not start.
 (The deal thinking lives in
-[study-com-strategy.md](./study-com-strategy.md), internal.)
+[study-com-strategy.md](./study-com/strategy.md), internal.)
 
 Corollary rules:
 
@@ -499,7 +499,7 @@ wishbook vignettes as videos; same world, pitched by wish)
    *feature* for the viewer who reads charts. *Lenses:* fantasy,
    skill-vs-chance (judged, no dice). ~~**Ready**~~ **NOT READY —
    accuracy block (2026-08-07).** The
-   [fidelity audit §2](./study-com-vertical-fidelity-audit.md) found the
+   [fidelity audit §2](./study-com/vertical-fidelity-audit.md) found the
    medic has the honest *mechanism* but **no judgment loop**: `treat`
    dresses "a body's worst bleeding wound" — the **sim auto-selects the
    target** — so the prioritize/differential step every nursing pedagogy
@@ -518,7 +518,7 @@ wishbook vignettes as videos; same world, pitched by wish)
    live here and nowhere else. **Ready** once contracts
    merge (MR !149); shootable today with a posted gig faked as a
    notice.
-7. **The Tuesday seminar** (teacher cert) — **PROMOTED (2026-08-06): the beachhead's payoff, not a minor cut** — the aspiring science teacher from V1 now *teaches* the chemistry she learned (the protégé loop closed), and the **endogenous-economy beat** lands here: new players genuinely need to learn the world's modeled systems, so teaching has *real in-world value* — an expert can be **paid to teach**, and that a learner *could sustain themselves teaching* is the sharpest proof the knowledge is real (anti-pointsification with a face; see [engagement & positioning](./study-com-engagement-and-positioning.md) + [beachhead](./study-com-cx-and-the-aspiring-teacher.md) §5). Teaching pays,
+7. **The Tuesday seminar** (teacher cert) — **PROMOTED (2026-08-06): the beachhead's payoff, not a minor cut** — the aspiring science teacher from V1 now *teaches* the chemistry she learned (the protégé loop closed), and the **endogenous-economy beat** lands here: new players genuinely need to learn the world's modeled systems, so teaching has *real in-world value* — an expert can be **paid to teach**, and that a learner *could sustain themselves teaching* is the sharpest proof the knowledge is real (anti-pointsification with a face; see [engagement & positioning](./study-com/engagement-and-positioning.md) + [beachhead](./study-com/cx-and-the-aspiring-teacher.md) §5). Teaching pays,
    formally: command credit, producer standing, students' deeds on
    their own transcripts. *Lenses:* fantasy, story-machine (her
    chronicle is a portfolio with receipts), endogenous-value. **Ready** — candidate to move up the interest curve given beachhead status.
@@ -532,8 +532,8 @@ wishbook vignettes as videos; same world, pitched by wish)
    a text-only English world can't serve its speaking/listening (2 of 4 skills)
    or its low-proficiency entrants, so keep this cut **modest**: an immersion
    *complement* for **Reading/Writing, intermediate+**, never a strong-fit
-   headline (see [beachhead](./study-com-cx-and-the-aspiring-teacher.md) §1 +
-   the [vertical survey](./study-com-vertical-survey.md) superseded banner). *Lenses:* fantasy, motivation (the shift is a chosen
+   headline (see [beachhead](./study-com/cx-and-the-aspiring-teacher.md) §1 +
+   the [vertical survey](./study-com/vertical-survey.md) superseded banner). *Lenses:* fantasy, motivation (the shift is a chosen
    loop with wages). **Ready.**
 10. **Holding the ford** (ASVAB) — rations math, formation adopted,
     the line that holds; leadership measured, not claimed.

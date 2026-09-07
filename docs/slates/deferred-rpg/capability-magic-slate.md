@@ -1,5 +1,14 @@
 # Capability & magic slate (working doc)
 
+> **Status: PARTIAL** — the effect substrate, the casting grid as
+> Disciplines and the Reserve axis shipped →
+> [magic.md](../../subsystems/magic.md)
+> **Left:** the `Transform` primitive's Api (polymorph is its own
+> build) · multi-cell spell composition · wards as a mitigator layer ·
+> the frontier nouns Storm / Spirit / Time · the elemental taxonomy and
+> the magical-property layer over Materials
+> **Size:** a build
+
 > **Status: deferred — RPG.** This is the RPG capability layer:
 > how a being's abilities are modeled, how they advance, and how
 > magic works. RPG is on hold; physics and biology ship first.

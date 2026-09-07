@@ -1,5 +1,13 @@
 # Metabolism slate (working doc)
 
+> **Status: PARTIAL** — both build waves shipped 2026-06 (digestion
+> buffer, lazy reconcile, toxins, `eat`/`vomit`) →
+> [metabolism.md](../../subsystems/metabolism.md)
+> **Left:** wired nutrient deficiencies (scurvy) · hangover ·
+> chronic-toxin leaching content · magic ingestion (potions) ·
+> fuller-stomach absorption · bulk-source eating · per-individual rates
+> **Size:** a tail
+
 > **Status (2026-06):** the **build has shipped** (both waves) — the
 > digestion buffer + real `ingest`, the lazy reconcile (basal drain,
 > coupled recovery, the cascade-to-conditions), the in-session clock +
@@ -57,9 +65,9 @@ See also (read before building — substrate this leans on):
 - [docs/subsystems/posture.md](../../subsystems/posture.md) — `Posed`
   (actor posture) + `Postured` (furniture posture-bearing slots); the rest
   gate.
-- [bulkable-slate](../tails/bulkable-slate.md) — `sip`/`drink` (and the
+- [bulkable-slate](./bulkable-slate.md) — `sip`/`drink` (and the
   `ingest` seam) ride bulk; intake depends on this.
-- [thermal-slate](../tails/thermal-slate.md) — the heat seam (fuel-burn
+- [thermal-slate](./thermal-slate.md) — the heat seam (fuel-burn
   produces warmth; thermoregulation demands fuel/water). Resolved in the
   thermal design pass, before build.
 - `Material.edibility`/`nutrients`/`toxicity` (the `DietApi`-deferred
@@ -629,9 +637,9 @@ content workstream.
   the `SlotSpec`-field pattern `restQuality` mirrors.
 - [posture.md](../../subsystems/posture.md) — `Posed`/`Postured`; the rest
   gate.
-- [bulkable-slate](../tails/bulkable-slate.md) — `sip`/`drink`/`ingest`,
+- [bulkable-slate](./bulkable-slate.md) — `sip`/`drink`/`ingest`,
   the intake mechanism.
-- [thermal-slate](../tails/thermal-slate.md) — the heat seam, resolved in
+- [thermal-slate](./thermal-slate.md) — the heat seam, resolved in
   the thermal pass.
 - [connection.md](../../subsystems/connection.md) — the linkdead/logout
   lifecycle that drives the two presence flags metabolism receives.

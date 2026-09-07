@@ -1,5 +1,13 @@
 # Presence-vs-hollowing slate (working doc) — is anyone home?
 
+> **Status: UNBUILT** — named, not designed; nothing in the tree carries a
+> presence or hollowing state.
+> **Left:** presence-vs-hollow as a physical state on an agent · who
+> perceives it (ESP · the attuned reader dial · sacred instruments) ·
+> binary or degree · the present→hollow transition · the reified
+> inhabitant↔vessel model
+> **Size:** a build
+
 > **Status (2026-07): named, not designed — spun out of the magic-items walk.**
 > A candidate new substrate: **experiential presence vs. hollowness as a physical
 > state of an agent** — *is there an experience here, or is this animate-but-no-one?*

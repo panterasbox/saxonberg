@@ -1,16 +1,19 @@
 # CMS connectors slate — your own editor, and your own Claude Code, against the live runtime
 
+> **Status: PARTIAL** — the surface it adapts shipped (the unified tree,
+> `CmsApi` read/write/stat/listTree, the REST data API, the gating table,
+> save go-live) → [cms.md](../../subsystems/cms.md); no connector exists,
+> and no non-session auth path exists anywhere in the backend.
+> **Left:** scoped personal access tokens (content-vs-source scope) · the
+> MCP server (`tree`/`read`/`write`/`diagnostics`/`run`) · WebDAV over
+> `source` + `document` · read-only WebDAV over `content` · the
+> content-backend `MKCOL`/`DELETE`/`MOVE` semantics
+> **Size:** a build
+
 **Captured 2026-09-01.** Two asks that look like one feature and are
 not: **(a)** edit source/content/documents from your own editor, and
 **(b)** point your own Claude Code account at the runtime and author
 *inside it*, rather than through git push/pull.
-
-> **Status: design conversation, captured. Not requirements — and
-> explicitly NOT a near-term priority** (user: *"though it's not a big
-> priority yet"*). Written down now because the two pieces with real
-> decisions in them — **token scoping** and **content-backend
-> filesystem semantics** — are worth settling before anyone starts,
-> not because the work is queued.
 
 **Provenance:**
 

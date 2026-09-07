@@ -1,5 +1,13 @@
 # Supply-chain slate — the missing middle, and how goods actually move
 
+> **Status: PARTIAL** — the durative transform, the distilling trade,
+> the crops and the spot market shipped →
+> [maturation.md](../../subsystems/maturation.md)
+> **Left:** fungible consignment (bulk on the store counter) · a
+> business account that can buy (`BuyController`'s payer) · rung 2,
+> direct farmer→distiller purchase · rung 4, the firm
+> **Size:** a wave
+
 **Captured 2026-08-04**, out of *"Dave's Bar is going to be one of the first
 full verticals to ship."*
 

@@ -1,6 +1,21 @@
 # Eternal University — narrative slate / story bible (working doc)
 
-> **Status: story bible, first pass.** The **first authored narrative** for
+> **Status: UNBUILT** — none of the arc is authored. Several substrates
+> it leans on have since shipped: belief/recognition →
+> [belief.md](../../subsystems/belief.md), forums →
+> [forums.md](../../subsystems/forums.md), the forensic corpse →
+> [mortality.md](../../subsystems/mortality.md), and Duncan Hall + Katie
+> shipped as content with the residences build.
+> **Left:** the whole arc — the three-tier serial crime, Dunny and Wren,
+> the killer + the panic · the census mechanic (roll · enumerator ·
+> count → conviction-voting) · the deduction board · the investigative
+> geography (forensics discipline, the morgue, corpse-laundering) · the
+> authorable census form · the procedural dorm roommate · the cast's
+> final names · ⚠ the zero-distance allegory presumes LLM agents, which
+> are not near-term
+> **Size:** a build
+
+> Story bible, first pass. The **first authored narrative** for
 > the game — a murder mystery set on the EU campus that doubles as the
 > tutorial for the world's *civic instrument* (allegory you can vote on).
 > Working arc title: **"An Honest Count."** This slate owns the **story,

@@ -1,5 +1,12 @@
 # Cooking slate — the trade, the method vocabulary, and the clock it answers
 
+> **Status: PARTIAL** — W0-W3 shipped (spoilage core, `/trade/cooking`,
+> the recipe roster, the drive) →
+> [crafting.md](../../subsystems/crafting.md)
+> **Left:** the tending wave (durative cook · doneness · braise) · cold
+> storage/icebox · compost · preservation + the victualler · the baker pack
+> **Size:** a build
+
 > **Status: design, captured 2026-09-02.** The forks below were settled in
 > conversation; this slate records the decisions and their rationale. The
 > spoilage core is **not re-designed here** — the

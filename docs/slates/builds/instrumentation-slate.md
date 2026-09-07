@@ -1,5 +1,14 @@
 # Instrumentation slate — you are as good as your toolkit
 
+> **Status: UNBUILT** — the three-base capability model and the sensory
+> physics it rides both exist, but nothing this slate proposes is built;
+> `analyze` is still ungated and the metal chain had to work around it.
+> **Left:** the `analyze`/`measure` channel → capability + competence
+> table · the instrument-declared dial (so a pack contributes a
+> subcommand) · the readout ladder · honest refusals · the author/test
+> bypass, decided before the gates land · the implant rung (Wave 2+)
+> **Size:** a build
+
 **Captured 2026-07-31**, out of the press session's recording
 instrument. The trigger is a design-drift admission: **`analyze` grew
 because we needed it for testing and for exercising subsystems, and

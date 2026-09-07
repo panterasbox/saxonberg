@@ -1,5 +1,15 @@
 # Farming slate (working doc)
 
+> **Status: PARTIAL** — the growth model + smallholding (2026-08-01),
+> Stage A's perennials/market (2026-09-01) and the farmstead build's
+> field, winter and pasture →
+> [husbandry.md](../../subsystems/husbandry.md) ·
+> [soil.md](../../subsystems/soil.md)
+> **Left:** plant genetics — cultivars and fixed-vs-segregating lines
+> (husbandry.md still says "no genetics") · the controlled-environment
+> tier past the free greenhouse (hydroponics)
+> **Size:** a wave
+
 > **⭐⭐ STAGE A SHIPPED (2026-09-01, the farming build)** — the
 > perennial/orchard tap is real: the **fruit cycle** (polycarpy rides the
 > flowering latch → [husbandry.md § The fruit

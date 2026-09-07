@@ -1,5 +1,13 @@
 # Pack seams slate — how content packs connect
 
+> **Status: PARTIAL** — the dependency direction shipped (`requires`,
+> reconcile-by-stamp, path-as-namespace) →
+> [content-packs.md](../../subsystems/content-packs.md)
+> **Left:** named boundary sockets + graft points · the `fills:` manifest
+> key · one-filler-per-socket refusal at reconcile · the provides/needs
+> capability vocabulary · add-only enforcement
+> **Size:** a wave
+
 **Captured 2026-08-01**, out of the Saxonberg session's shipping
 question: Terminus and Eternal University will be content packs, EU
 sits physically inside (at the base of) Terminus, and the user wants

@@ -1,5 +1,12 @@
 # Lifecycle signals — the centre stops enumerating the periphery
 
+> **Status: UNBUILT** — `AppBootstrap.shutdown()` still enumerates its
+> subscribers by hand.
+> **Left:** the `quiesce`/`persist`/`flush`/`close` phase vocabulary ·
+> the subsystem subscription seam · per-subscriber failure isolation + a
+> per-phase deadline · retiring the hand-written list
+> **Size:** a wave
+
 *Design slate, 2026-08-30, from the libations review (MR !206). The
 founder, looking at `AppBootstrap`: **"If something needs to care about
 shutdowns, then there should be a properly observable hook. We shouldn't

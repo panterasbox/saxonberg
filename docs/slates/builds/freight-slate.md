@@ -1,5 +1,13 @@
 # Freight & transport slate — moving goods as an industry
 
+> **Status: PARTIAL** — the lane / route / journey substrate, vehicles,
+> the haulage labor market and the paper shipped →
+> [logistics.md](../../subsystems/logistics.md)
+> **Left:** the barricade · the tollgate + turnpike trust · warehousing as
+> a business · the wainwright · rail + timetables · navigation as a
+> discipline · customs and tariffs
+> **Size:** a build
+
 **Captured 2026-07-31**, out of the build-2 stewardship/farming thread.
 As husbandry, farming and the other production systems scale, goods
 have to *get somewhere*: a rancher's steer to the slaughterhouse, then

@@ -1,5 +1,11 @@
 # Pharma slate — the game's first credence good
 
+> **Status: UNBUILT** — direction set 2026-08-02; nothing built.
+> **Left:** the actives/pharmacopoeia content · extraction as a process ·
+> glass vessels · the assay instrument · the apothecary + assayer
+> vocations · the illicit branch · disposal · the batch/recall record
+> **Size:** a build
+
 **Captured 2026-08-02**, out of the physiology slate's care economy. The
 prompt was *"pharma is a whole new industry and whenever we mint an
 industry it cross-cuts systems"* — and it turns out to cross-cut in an

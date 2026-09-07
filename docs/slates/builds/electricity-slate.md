@@ -1,5 +1,12 @@
 # Electricity slate (working doc) — the `shock` channel + conduction
 
+> **Status: PARTIAL** — the whole v1 scope (§1–§8) shipped →
+> [electricity.md](../../subsystems/electricity.md)
+> **Left:** AC vs DC · full Kirchhoff current division · hand-chains,
+> damp-not-pooled floors and humidity · Joule→fire · magic
+> `Create·Lightning` · power as a grid
+> **Size:** a tail
+
 > **Status: sketch / pre-requirements.** A design pass, not a spec.
 > Authored 2026-07-15 as the prerequisite subsystem for the **Lightning**
 > frontier noun in

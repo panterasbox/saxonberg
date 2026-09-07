@@ -1,14 +1,18 @@
 # Affordance verbs (working slate)
 
-> **Status:** `put` / `give` / `Surfaced` shipped (see
-> [docs/subsystems/spatial.md](../../subsystems/spatial.md) for the
-> built surface). Source-scoping (`::`), command-provenance/help,
-> and the watch worked-example are the live remaining design — that
-> half of the slate is why it stays open.
+> **Status: PARTIAL** — `put` / `give` / `Surfaced` / `restingOn` /
+> `placeOn` shipped → [spatial.md](../../subsystems/spatial.md), and
+> affordance attribution + `getAffordances()` shipped →
+> [command-routing.md](../../subsystems/command-routing.md)
+> **Left:** source-scoped invocation (`watch::set`, sigil unsettled) and
+> its parse wiring · the verb-provenance help listing (which object and
+> mixin affords each verb) · the pocket-watch worked example · the
+> `Receiving` mixin (NPC consent for `give`) · extra `put` prepositions
+> **Size:** a tail
 
 Working slate for two sandbox-foundational verbs that exercise
 target-side mixin affordances: **`put`** and **`give`**. Each
-verb pulls a mixin out of [mixin-slate.md](../tails/mixin-slate.md)'s
+verb pulls a mixin out of [mixin-slate.md](./mixin-slate.md)'s
 catalog into a real implementation.
 
 The verbs are small. The slate exists because the **mixins**
@@ -19,7 +23,7 @@ discovery layer at scale (source-scoping, command provenance).
 
 See also:
 
-- [docs/slates/mixin-slate.md](../tails/mixin-slate.md) — the parent
+- [docs/slates/mixin-slate.md](./mixin-slate.md) — the parent
   catalog. `Surfaced` (line 82) is listed there; this slate is
   where it gets designed.
 - [docs/subsystems/embodiment.md](../../subsystems/embodiment.md)
@@ -29,7 +33,7 @@ See also:
   [docs/subsystems/collections.md](../../subsystems/collections.md)
   — `Container` is the existing "things inside this thing" shape;
   this slate's `Surfaced` either extends it or sits parallel.
-- [docs/slates/language-slate.md](../tails/language-slate.md) — the
+- [docs/slates/language-slate.md](./language-slate.md) — the
   `read` verb and `Readable` mixin live there because they're
   primarily language-system consumers.
 
@@ -226,7 +230,7 @@ real point is *Stuff vs Detail*, not *mixin vs command*.)
 ## What this slate does NOT cover
 
 - **`read` and `Readable`** — language-system consumer; see
-  [docs/slates/language-slate.md](../tails/language-slate.md).
+  [docs/slates/language-slate.md](./language-slate.md).
 - **Sensory verbs** (`smell`, `taste`, `touch`, `listen`) —
   separate slate proposed at sensory-verb-slate.md (not yet
   drafted). Different design axis: target-side perception

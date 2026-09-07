@@ -1,5 +1,12 @@
 # Water design pack — physics everywhere, weather nowhere
 
+> **Status: PARTIAL** — Parts 0–5 shipped 2026-09-02 →
+> [watershed.md](../../subsystems/watershed.md)
+> **Left:** open question 2, does rain wet uncovered things other than
+> soil · open question 3, the windowsill pot's indoor/sky-exposed
+> ruling · Part 1's metering/billing half stays declined on the record
+> **Size:** a tail
+
 > **Status: ⭐⭐ SHIPPED 2026-09-02** (captured 2026-08-11 as design). The
 > build took Parts 0–5 whole — the rain→soil edge, the watershed, the
 > conveyance ladder, storage, rights, contamination and `boil` — and held

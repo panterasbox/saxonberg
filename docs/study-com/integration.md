@@ -1,7 +1,7 @@
 # Study.com integration & Magic 101 — response and design
 
 > **Status: design pass / sketch.** This is the document
-> [study-com-brief.md](./study-com-brief.md) §9 asks for — written from
+> [study-com-brief.md](./brief.md) §9 asks for — written from
 > the **study.com-side** view (an agent that knows the study.com product
 > and content structure) and handed **back to the Saxonberg agents** to
 > guide how the platform models the education seam and synthesizes
@@ -9,7 +9,7 @@
 >
 > **Two companion docs frame this one:** the brief is the factual,
 > unsold description of Saxonberg handed *to* me; the
-> [strategy doc](./study-com-strategy.md) holds the deal/GTM thinking.
+> [strategy doc](./strategy.md) holds the deal/GTM thinking.
 > This doc is neither pitch nor deal — it is the **product/engineering
 > answer**: the real study.com model, the corrections, the integration
 > architecture, and the course.
@@ -30,53 +30,53 @@
 > generator down a wrong road.
 >
 > **Deepening companions (expand three parts of this doc):** the full
-> course, [magic-101-course.md](./magic-101-course.md) (expands §8); the
+> course, [magic-101-course.md](../magic-101-course.md) (expands §8); the
 > concrete interfaces/types,
-> [study-com-integration-spec.md](./study-com-integration-spec.md)
+> [study-com-integration-spec.md](./integration-spec.md)
 > (expands §§6-7); and the reverse game→study adaptive feed,
-> [study-com-adaptive-feed.md](./study-com-adaptive-feed.md) (expands
+> [study-com-adaptive-feed.md](./adaptive-feed.md) (expands
 > §6.2). Plus the verified-reality grounding
-> ([study-com-platform-reality.md](./study-com-platform-reality.md)), the
-> classroom model ([study-com-classroom-model.md](./study-com-classroom-model.md)),
+> ([study-com-platform-reality.md](./platform-reality.md)), the
+> classroom model ([study-com-classroom-model.md](./classroom-model.md)),
 > worked real-data examples
-> ([study-com-integration-examples.md](./study-com-integration-examples.md)),
+> ([study-com-integration-examples.md](./integration-examples.md)),
 > and the dual-transcript idea
-> ([study-com-dual-transcript.md](./study-com-dual-transcript.md)), and the
+> ([study-com-dual-transcript.md](./dual-transcript.md)), and the
 > StudyAI capture + pitch argument
-> ([study-com-studyai.md](./study-com-studyai.md)), and the teacher
+> ([study-com-studyai.md](./studyai.md)), and the teacher
 > vertical / learner-becomes-teacher opportunity
-> ([study-com-teacher-vertical.md](./study-com-teacher-vertical.md)), and
+> ([study-com-teacher-vertical.md](./teacher-vertical.md)), and
 > the fit-scored, market-grounded vertical survey
-> ([study-com-vertical-survey.md](./study-com-vertical-survey.md)), and the
+> ([study-com-vertical-survey.md](./vertical-survey.md)), and the
 > vertical **fidelity audit** — do our modeled industries teach the
 > discipline's reasoning?
-> ([study-com-vertical-fidelity-audit.md](./study-com-vertical-fidelity-audit.md)),
+> ([study-com-vertical-fidelity-audit.md](./vertical-fidelity-audit.md)),
 > and the **teachability boundary** — what the game can teach and how
 > (direct enactment / allegory / reference)
-> ([study-com-teachability-boundary.md](./study-com-teachability-boundary.md)).
+> ([study-com-teachability-boundary.md](./teachability-boundary.md)).
 > **Latest (2026-08-05):** the CX enrollment model + the corrected
 > **aspiring-teacher beachhead** (with the two missing scoring axes — medium
 > fit + product alignment — that demote TOEFL)
-> ([study-com-cx-and-the-aspiring-teacher.md](./study-com-cx-and-the-aspiring-teacher.md)),
+> ([study-com-cx-and-the-aspiring-teacher.md](./cx-and-the-aspiring-teacher.md)),
 > the corrected **platform business model** — Saxonberg is AGPL-3, Study is
 > an *operator* that licenses/runs its own instance, and revenue is support
 > + managed PaaS, not customer ownership
-> ([study-com-platform-business-model.md](./study-com-platform-business-model.md)),
+> ([study-com-platform-business-model.md](./platform-business-model.md)),
 > and the **student experience** — the off-campus paradox (education is the
 > model's most complete citizen), the world's *danger is load-bearing*
 > ("safe" = register: non-graphic text + cooperative/PvE + moderation, not
 > the absence of combat), and the post-goal retention stack
-> ([study-com-student-experience.md](./study-com-student-experience.md)), and
+> ([study-com-student-experience.md](./student-experience.md)), and
 > the **engagement & positioning** layer — the verified gamification history
 > (why the word is burned), the validated *synthesis*-novelty claim (with the
 > play-to-earn cautionary parallel), the marketing moves that lead with fun
 > without apologizing, and the honest fun-vs-honesty design risk
-> ([study-com-engagement-and-positioning.md](./study-com-engagement-and-positioning.md)).
+> ([study-com-engagement-and-positioning.md](./engagement-and-positioning.md)).
 
 ---
 
 > **⚠️ Verified corrections — read
-> [study-com-platform-reality.md](./study-com-platform-reality.md) first
+> [study-com-platform-reality.md](./platform-reality.md) first
 > (2026-08-03).** This doc predates checking the real platform, and
 > several load-bearing claims below are wrong: the **ISCED-F join does not
 > exist** (Study has no ISCED-F/CIP field — join via an **authored
@@ -96,7 +96,7 @@
    carries an `iscedf` field (UNESCO ISCED-F 2013 code) that is
    authored, stored, and *inert in v1*, explicitly "designed in for the
    academy / LMS bridge, which will map real coursework onto Disciplines
-   by code" ([advancement.md](./subsystems/advancement.md):44-53). The
+   by code" ([advancement.md](../subsystems/advancement.md):44-53). The
    `claim` kind on the Transcript is documented as "**the academy
    faucet** … defined for the deferred learning-platform bridge; no
    consumer mints claims this increment" (advancement.md:86-87). The
@@ -140,7 +140,7 @@
    proctored** (`Proctored_Exam` + TypingDNA + Veriff), and CX credit
    rides it — *corrected 2026-08-07; this line previously read
    "identity-verified open-book … not proctored," which
-   [platform-reality §6](./study-com-platform-reality.md) disproved. The
+   [platform-reality §6](./platform-reality.md) disproved. The
    requirement below is unchanged and is the reason it matters: modes
    differ per issuer and change over time, so provenance must be carried,
    never assumed.* The credential
@@ -158,7 +158,7 @@
 
 The brief's instinct to adopt the taxonomy **verbatim** is correct, and
 the college slate's "same shape, field for field"
-([college-slate.md](./slates/builds/college-slate.md):85-90) is the right
+([college-slate.md](../slates/builds/college-slate.md):85-90) is the right
 call. The real hierarchy is deeper than "course → chapter → lesson":
 
 ```
@@ -293,7 +293,7 @@ match for leak-resistance. Don't weaken it to study.com's shape — instead:
 ### 2.3 Two worked items in the real format
 
 Grounded in the shipped arcane-science numbers
-([arcane-science.md](./arcane-science.md):1157-1250) so they're
+([arcane-science.md](../arcane-science.md):1157-1250) so they're
 honest today.
 
 **Item A — Examination mode (MC), rendered as a study.com item:**
@@ -667,7 +667,7 @@ happens to be backed by an external adapter.
 
 ## 8. Magic 101 — the synthesized course (in study.com's real shape)
 
-Synthesizing [arcane-science.md](./arcane-science.md) against §§1-2 above.
+Synthesizing [arcane-science.md](../arcane-science.md) against §§1-2 above.
 This is the skeleton the brief §9 asks for. Numbers are honest against the
 shipped build; **re-verify every quantity and history claim** — the
 arcane-science audit log flags that its most confident passages have
@@ -739,7 +739,7 @@ thesis at once (provenance is the thing you can't fake).
 ### 8.4 A note on Compact 200
 
 The same skeleton pattern applies to Poli Sci 200
-([compact-political-science.md](./compact-political-science.md)) with the
+([compact-political-science.md](../compact-political-science.md)) with the
 generator running over **rules instead of physics** (college-slate.md:305-319),
 ISCED-F **0312 (political sciences & civics)**. Naming both proves the
 method generalizes across a catalog rather than magic being a special
@@ -824,6 +824,6 @@ could return, so:
 ---
 
 *Written by the study.com-side agent in response to
-[study-com-brief.md](./study-com-brief.md) §9. Aspirational throughout —
+[study-com-brief.md](./brief.md) §9. Aspirational throughout —
 no part of this seam has touched a live study.com environment. Confirm
 every **[confirm]** with the resident insider before any of it is coded.*

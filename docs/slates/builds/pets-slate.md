@@ -1,5 +1,14 @@
 # Pets slate (working doc) — the creature you won over
 
+> **Status: PARTIAL** — the substrate landed under husbandry/ranching:
+> the individual as base case, `Handling` in the kernel *because pets will
+> want it*, chattel ownership, brains, traits, advancement →
+> [ranching.md](../../subsystems/ranching.md)
+> **Left:** the taming encounter · the bond + four-needs care loop · the
+> accept/refuse hook · the off-screen resolution + digest · home range ·
+> `ChattelMixin` onto the Creature stack · pet combat staging · breeding
+> **Size:** a build
+
 > **Reconciled 2026-07-31** against the husbandry sessions (pets · ranching ·
 > farming · stewardship). Contradicted text is struck in place; the full ledger
 > — what changed, what those sessions newly **constrained**, and the one hole

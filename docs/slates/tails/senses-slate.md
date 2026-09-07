@@ -1,5 +1,15 @@
 # Senses slate (working doc)
 
+> **Status: PARTIAL** — Wave 1 shipped 2026-06, both halves (authoring +
+> the physics/`Modality` layer)
+> → [senses.md](../../subsystems/senses.md)
+> **Left:** smell trails / temporal persistence · echolocation (the
+> active-sense pattern) · the full ESP local-field walk · per-species
+> `hearingProfile`/`tactileProfile`/`gustatoryProfile` · scalding
+> burn-damage · RT60 reverberation · NPC scent-tracking ·
+> sensorium-relative stealth · the alien channels
+> **Size:** a wave
+
 > **Status: Wave 1 SHIPPED 2026-06 — authoring half + physics half
 > both landed.** Authoring (2026-06 senses build): per-sense
 > `Detail` slot map, `<sense channel="X">` MML wrapper,
@@ -105,16 +115,16 @@ See also:
   tags + instrument reveal.
 - [docs/slates/vitals-slate.md](./vitals-slate.md) — body temperature
   (thermal), and consumables/eat-drink (the taste tie).
-- [docs/slates/augmentation-slate.md](../tails/augmentation-slate.md) — the
+- [docs/slates/augmentation-slate.md](./augmentation-slate.md) — the
   **implant is an artificial sense-organ**; sensor augments *are*
   `PerceptionChannel`s; the baseline implant provides the ESP channels.
 - [docs/subsystems/perception.md](../../subsystems/perception.md) — the
   viewer-aware-query pattern; per-viewer Shadow overrides.
 - [docs/subsystems/card-surface.md](../../subsystems/card-surface.md) /
-  [message-rendering-slate.md](../tails/message-rendering-slate.md) — the
+  [message-rendering-slate.md](./message-rendering-slate.md) — the
   percept feeds the card; the pedagogical seam (prose vs instrument)
   is the rendering.
-- [docs/slates/access-slate.md](../tails/access-slate.md) /
+- [docs/slates/access-slate.md](./access-slate.md) /
   [command affordances](../../subsystems/command-routing.md) — **skills
   gate revelation *and* afford the verbs** that reveal (two sides of the
   same capability); a skill is just one source object that contributes
