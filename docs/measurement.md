@@ -210,7 +210,7 @@ arrive with a past you did not choose and a future you do.*
 
 # Part 5 — The mirror has arithmetic
 
-[trait-slate](./slates/builds/trait-slate.md) supplies the mechanism, and
+[trait-slate](./slates/tails/trait-slate.md) supplies the mechanism, and
 it generalizes past personality to any declared standard:
 
 ```
@@ -574,7 +574,7 @@ these has made a political decision by accident.
   distinctions freely, nobody may remove or redefine one, and a demand
   for a new distinction becomes a public recorded work item. The
   official-statistics model. See
-  [deed-tags-slate](./slates/builds/deed-tags-slate.md).
+  [deed-tags-slate](./slates/tails/deed-tags-slate.md).
 
 ## What is **not** layer 3
 
@@ -585,7 +585,7 @@ Frequently mistaken for imposition; all of it is layer 2 or content:
 | your patron, aspiration, goals | declared — that is layer 2 by definition |
 | a congregation's or guild's standard | mutual opt-in with cheap exit (Part 8) |
 | a content pack's contents | a pack is a unit of review; installable and removable |
-| trade / faith lean weights | generation bias, explicitly **never a rule** ([trade-roster](./slates/builds/trade-roster-slate.md)) |
+| trade / faith lean weights | generation bias, explicitly **never a rule** ([trade-roster](./slates/tails/trade-roster-slate.md)) |
 | NPC opinion of you | derived from your acts, not imposed on them |
 | competence gates on verbs | earned, and the evidence is inspectable |
 
@@ -621,7 +621,7 @@ Frequently mistaken for imposition; all of it is layer 2 or content:
    recommended lint, not a design question. ~~Tier C's last row.~~
    **Resolved 2026-08-12** — the vocabulary is descriptive, so it stays
    layer 1; the polity gets a **petition, not an override**
-   ([deed-tags-slate](./slates/builds/deed-tags-slate.md)). ⚠ That
+   ([deed-tags-slate](./slates/tails/deed-tags-slate.md)). ⚠ That
    resolution **corrects Part 3**, which filed the vocabulary as
    value-laden-therefore-governable. The sharper form: each tag is
    descriptive, while the *set of distinctions it can draw* is political.

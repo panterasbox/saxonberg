@@ -1,5 +1,19 @@
 # Legal-code slate — the law as content
 
+> **Status: PARTIAL** — the substrate it sits on shipped: the
+> path-addressed document tree, seats + jurisdiction
+> ([civics.md](../../subsystems/civics.md)), the forums Subject layer,
+> press releases, and conviction hold/flip/tally
+> ([influence.md](../../subsystems/influence.md)). ⚠ civics.md states the
+> doctrine plainly — **no legal machinery, no statute engine**.
+> **Left:** the append-only Roll + the derived Code · the instrument
+> taxonomy + the closed clause-`kind` vocabulary · prose⊗clause authoring
+> tooling and its lint · sunsets · the docket · the enactment check
+> (three weight resolvers) + the passage rule (two ratios over
+> `totalStanding`) · delegation · the disenfranchisement roll · the
+> `writers` branch policy · citation format · drafting the founding corpus
+> **Size:** a build
+
 **Captured 2026-07-31.** We have designed a great deal *about* law —
 enforcement modes, courts, prisons, amendments, policy hooks — but
 never the law **itself**: what a statute is, where it lives, how it
@@ -131,7 +145,7 @@ clauses:
 - **The prose is the statement; the clauses are the operative part
   the runtime reads.**
 - **The clause vocabulary must draw from real model fields** — the
-  same rule the [ranged slate](../tails/ranged-slate.md) landed on for
+  same rule the [ranged slate](./ranged-slate.md) landed on for
   firearms: *statutes are written against fields the world can
   actually check.* One vocabulary, two consumers.
 - ⚠ **Open and genuine: which governs when prose and clause

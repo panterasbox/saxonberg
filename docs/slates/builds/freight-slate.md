@@ -1,5 +1,13 @@
 # Freight & transport slate — moving goods as an industry
 
+> **Status: PARTIAL** — the lane / route / journey substrate, vehicles,
+> the haulage labor market and the paper shipped →
+> [logistics.md](../../subsystems/logistics.md)
+> **Left:** the barricade · the tollgate + turnpike trust · warehousing as
+> a business · the wainwright · rail + timetables · navigation as a
+> discipline · customs and tariffs
+> **Size:** a build
+
 **Captured 2026-07-31**, out of the build-2 stewardship/farming thread.
 As husbandry, farming and the other production systems scale, goods
 have to *get somewhere*: a rancher's steer to the slaughterhouse, then
@@ -28,7 +36,7 @@ Related: [conveyance.md](../../subsystems/conveyance.md),
 [contract.md](../../subsystems/contract.md),
 [chattel.md](../../subsystems/chattel.md),
 [ranching-slate](./ranching-slate.md),
-[farming-slate](./farming-slate.md),
+[farming-slate](../tails/farming-slate.md),
 [policing-slate](./policing-slate.md),
 [map-slate](./map-slate.md).
 
@@ -198,7 +206,7 @@ truck routes). **Costs nothing new.**
 
 **Per-location extent override.** A 3 m default cell cannot hold an 8 m
 truck *and* pedestrians. This is the **same dependency the
-[ranged slate](../tails/ranged-slate.md) already named** for its distance
+[ranged slate](./ranged-slate.md) already named** for its distance
 bands — and [zoning-slate](./zoning-slate.md) needs it a third time for
 **outdoor parcel acreage** (one room *is* a field of N acres).
 
@@ -698,7 +706,7 @@ Which forces the good consequence:
 > **Bandits have to physically block the road.**
 
 A barricade is a placeable object in the authored-obstacle family the
-[ranged slate](../tails/ranged-slate.md) already discusses for cover — and it
+[ranged slate](./ranged-slate.md) already discusses for cover — and it
 is exactly how highway robbery worked: **block first, demand second.**
 
 ### Observability

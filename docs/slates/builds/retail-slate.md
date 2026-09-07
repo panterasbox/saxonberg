@@ -1,5 +1,13 @@
 # Retail slate (working doc)
 
+> **Status: PARTIAL** — S1, the general store, shipped (MR !143):
+> `PricedOffer`, the `Stock` counter, consignment over chattel,
+> `buy`/`consign`/`reclaim` → [retail.md](../../subsystems/retail.md)
+> **Left:** S2 the Circulation Reserve (the welfare-floor buy) ·
+> S3 producer + real cost/supply pricing · S4 player-owned storefronts
+> and the market arena
+> **Size:** a build
+
 > **Status: the retailer archetype, staged across four builds of
 > different magnitude.** The near-term slice (a general store: buy from a
 > bounded stock + consign) is buildable now on shipped substrate and is

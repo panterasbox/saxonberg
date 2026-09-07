@@ -1,5 +1,12 @@
 # Api normalization slate — a measured baseline for the layer
 
+> **Status: UNBUILT** — a measured baseline at `053c891a2`; no refactor
+> made (`identity.ts`, `array.ts`, `path-pattern.ts` all still present).
+> **Left:** delete `api/identity.ts` · fold `array`/`path-pattern`/
+> `grammar`/`proxy` · split `command` + `banking` · re-run the
+> measurement script · read the broad-thin quadrant
+> **Size:** a tail
+
 **Captured 2026-09-02**, immediately after the **Api OO sweep** landed
 (waves A–G). A preliminary two-axis pass over every `api/*.ts` to find
 which Apis are not carrying their weight, ahead of an eventual

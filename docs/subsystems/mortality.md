@@ -3,7 +3,7 @@
 The other half of every risk system in the game. Nine subsystems could
 kill a character; nothing could bring one back. This is the driver
 `vitals.md` § Layer 6 deferred and the consequence
-[mortal-vessel-slate](../slates/deferred-rpg/mortal-vessel-slate.md)
+[mortal-vessel-slate](../slates/builds/mortal-vessel-slate.md)
 designed: **dying as a rescuable state, death as one transition, the corpse
 as a forensic object, and the shade as a participant who kept everything
 except a body.**

@@ -1,5 +1,14 @@
 # Wizard bar slate — the process the duty needs
 
+> **Status: UNBUILT** — `isWizard` / `isArchwizard` exist as the
+> code-trust axis ([access.md](../../subsystems/access.md)); no bar, no
+> roster, no complaint process, no break-glass record.
+> **Left:** ⭐ the conspicuous record of wizard reads/impersonations (the
+> one non-retrofittable piece) · the safe-harbour standard text · admit
+> (exam + archwizard flip) · the public roster · the hearing process ·
+> advisory disbarment
+> **Size:** a build
+
 **Captured 2026-08-12**, out of a conversation that started on code
 hosting and turned into what a wizard *is*:
 

@@ -31,7 +31,7 @@ engine surface. The engine has reserves; a magic system names its pools
 over them. This is the affliction-vs-trauma authored-content move applied
 to reserves: the substrate ships the axis + the seam; the thematic pools
 are content. (Magic itself is deferred — see
-[capability-magic-slate.md](../slates/deferred-rpg/capability-magic-slate.md),
+[capability-magic-slate.md](../slates/builds/capability-magic-slate.md),
 where mana is documented as endurance's mirror riding this axis.)
 
 ## The value shape
@@ -138,5 +138,5 @@ and waits for the magic subsystem.
 - [vitals.md](./vitals.md) — the band feed; reserves are body-state
 - [quantities.md](./quantities.md) — `Quantity` capacity/current
 - [collections.md](./collections.md) — the keyed-Map surface
-- [capability-magic-slate.md](../slates/deferred-rpg/capability-magic-slate.md)
+- [capability-magic-slate.md](../slates/builds/capability-magic-slate.md)
   — mana as a magic-side reserve on this axis

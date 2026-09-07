@@ -1,5 +1,13 @@
 # Distance-perception slate (perception tail)
 
+> **Status: UNBUILT** — the modality walks and `ScryableMixin` are
+> shipped substrate; none of the four patterns exist.
+> **Left:** vista references (a `Detail` resolving a remote Stuff) ·
+> the bounded one-hop peek (`look <exit>` / `--peek`) · what buys
+> privileged multi-hop reach, and its tiers · the danger-sense exit
+> annotation
+> **Size:** a wave
+
 **Captured 2026-07-28**, out of the demo-content requirements
 session (Limbo Lane's water/landmark vistas forced the question).
 The problem: rooms have no fixed spatial relation beyond exits —

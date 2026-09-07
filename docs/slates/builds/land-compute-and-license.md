@@ -1,5 +1,14 @@
 # Land, Compute & License (design doc)
 
+> **Status: PARTIAL** — the land half (parcel title, the three
+> path-addressed trees, path-scoped access) ships →
+> [parcel.md](../../subsystems/parcel.md)
+> **Left:** compute metering and the entitlement function (quality vs
+> demand weights) · the per-citizen or per-parcel compute floor · the
+> license regime (author's-choice licensing + the visibility floor) ·
+> the takings / eminent-domain path private→public
+> **Size:** a build
+
 > **Status: design capture, not built.** Records the 2026-07-16 design session on
 > the property/federalism/compute/licensing model. Deepens and connects several prior
 > threads — see [cooperative-slate.md § The money membrane](./cooperative-slate.md)

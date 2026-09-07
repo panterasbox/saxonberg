@@ -1,5 +1,13 @@
 # Economy slate (working doc)
 
+> **Status: PARTIAL** — the v1 currency slice shipped and then some: Coin,
+> the two-tier ledger + conservation chokepoint, vendors, consignment
+> retail, employment, crafting → [banking.md](../../subsystems/banking.md)
+> **Left:** faucet/sink + inflation balance · the bazaar · market
+> aggregation · the currency-reset event · bonds-before-equity capital
+> markets — all deliberately parked for a running game
+> **Size:** a build
+
 > **Status: physics settled, build the currency slice; macro deferred to
 > a real game.** The *micro-physics* of value — how it enters the world,
 > how it's carried, how a transaction clears — is worked out far enough
@@ -40,7 +48,7 @@ See also:
   vendor's stance varies by *who you are*; that's recognition. The
   economy forward-links to it but does not depend on it (v1 stances are
   flat).
-- [docs/slates/scoped-authoring-slate.md](./scoped-authoring-slate.md) —
+- [docs/slates/scoped-authoring-slate.md](../tails/scoped-authoring-slate.md) —
   player-owned shops are an authorship surface (the dorm-room
   endogenous-value move pointed at commerce).
 - [docs/roadmap.md](../../roadmap.md) — the "Economy / currency" and

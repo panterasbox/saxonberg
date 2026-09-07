@@ -417,7 +417,7 @@ answers *"does this reader want to be spoiled"* — an **appetite** axis,
 resolved by a click. It does not answer *"does this character know
 this"*, which is an **epistemic** question and has no substrate.
 
-The deferred [identification-slate](../slates/tails/identification-slate.md)
+The deferred [identification-slate](../slates/builds/identification-slate.md)
 (`analyze X with Y`, real Material chemistry, partial identification,
 misidentification) is the other half — knowledge as something *earned*,
 per-viewer, rather than revealed by preference. The two can coexist, but

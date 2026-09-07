@@ -1,5 +1,17 @@
 # Access & authorization slate (working doc)
 
+> **Status: PARTIAL** — the `can()` core shipped as `AccessApi` over
+> parcel title → [access.md](../../subsystems/access.md) +
+> [parcel.md](../../subsystems/parcel.md); the content-write class
+> allowlist shipped in `CmsLogic`. ⚠ The lease model lost both its stated
+> consumers (the CMS and the holodeck each shipped without one).
+> **Left:** the structured audit sink (call-security Pillar 5 —
+> `MudlogApi` is unwired) · the deferred caller policies (`Admin`,
+> `ByCommandGiver`, `ByActingAvatar`, `ByResponsibleAvatar` +
+> `getActingAvatar`/`getResponsibleAvatar`) · the lease-vs-quota design
+> question, which should not ride the audit sink's cycle
+> **Size:** a tail
+
 > **Status: architecture set, forks leaned.** The in-world permission
 > layer — "can this *actor* do this *action* on this *resource*?" — that
 > `call-security` explicitly reserved a seam for. Capability-based,
@@ -35,7 +47,7 @@
 > - ✅ **The class-allowlist for content writes already shipped** —
 >   `platform/idea/api/CmsLogic.ts` gates `class` / `hydratorClass` /
 >   `behaviors[].brain` on `isWizard`. See
->   [scoped-authoring-slate](../builds/scoped-authoring-slate.md)'s audit.
+>   [scoped-authoring-slate](./scoped-authoring-slate.md)'s audit.
 >
 > **Recommended split when picked up:** the audit sink and the lease
 > question are different work at different confidence levels and should
@@ -45,7 +57,7 @@ Working slate for **authorization** — the scattered access checks
 (chat post/moderation, door locks, guild kick, file write-scope, wizard
 verbs, the `forceX` admin bypass) unified into one model. Distinct from
 `call-security` (the code-trust *mechanism*) and from the RPG sense of
-"capability" in [capability-magic-slate.md](../deferred-rpg/capability-magic-slate.md)
+"capability" in [capability-magic-slate.md](../builds/capability-magic-slate.md)
 (abilities/power) — here **capability = access authority**.
 
 The unlock: **this is not a parallel system to bolt on.** `call-security`
@@ -77,10 +89,10 @@ See also:
   emote-only gag** is `can(actor, 'speak', channel)`.
 - [docs/subsystems/properties.md](../../subsystems/properties.md) — field-
   level access (masks) is a fine-grained consumer.
-- [scoped-authoring-slate.md](../builds/scoped-authoring-slate.md) — access on
+- [scoped-authoring-slate.md](./scoped-authoring-slate.md) — access on
   **WRITE** (the per-field (policy, validator)); the *do/see/write*
   shape below.
-- [spoiler-slate.md](../deferred-rpg/spoiler-slate.md) — access on **SEE/KNOW** (best-
+- [spoiler-slate.md](./spoiler-slate.md) — access on **SEE/KNOW** (best-
   effort fact-gating); the other arm of the shape.
 - [docs/subsystems/command-routing.md](../../subsystems/command-routing.md)
   / command-spec — validators are the action-level enforcement point.
@@ -224,9 +236,9 @@ gated on, and the access "context" spans more than role/scope:
 
 > **What can a subject *do / see / author*, under what *circumstances*?**
 > - **action**: **DO** (verbs — this slate's `can()`) · **SEE/KNOW**
->   (perception/inspection — the [spoiler slate](../deferred-rpg/spoiler-slate.md)) ·
+>   (perception/inspection — the [spoiler slate](./spoiler-slate.md)) ·
 >   **WRITE/AUTHOR** (content authoring — the
->   [scoped-authoring slate](../builds/scoped-authoring-slate.md)'s per-field
+>   [scoped-authoring slate](./scoped-authoring-slate.md)'s per-field
 >   (policy, validator)).
 > - **circumstance**: role/tier · ownership/scope · **choice** (opt-in
 >   self-restriction) · **integrity/progress** (imposed gates).
@@ -361,7 +373,7 @@ any typed-capability-token layer if the audit-critical set grows.
   caller-identity policies) — consumed/extended, not redefined.
 - **Domain role models** (guild ranks, channel roles) — those are
   *capability sources*; their internals live in their own systems.
-- **RPG capability/abilities** — [capability-magic-slate.md](../deferred-rpg/capability-magic-slate.md);
+- **RPG capability/abilities** — [capability-magic-slate.md](../builds/capability-magic-slate.md);
   different sense of the word.
 - **The moderation control plane** — moderator tooling/scope/audit-review
   is the moderation subsystem; this slate provides the gag-as-deny + the

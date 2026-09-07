@@ -3,7 +3,7 @@
 > **Status:** staging design (the building's *fixed geography* — first pass,
 > 2026-06-27). Sibling to [campus-map.md](./campus-map.md). The **rooms** and
 > their customization faculty live in the
-> [dorm-warren-slate](../../slates/builds/dorm-warren-slate.md); this sheet owns
+> [dorm-warren-slate](../../slates/tails/dorm-warren-slate.md); this sheet owns
 > the **building** the rooms hang inside.
 > **Retire when:** cemented as a Warren + location seeds in YAML.
 
@@ -106,7 +106,7 @@ contested door.
 **Editorial access — the document (owner-scoped).** Standing *inside* a room you
 still can't **re-author** it: the customization document is owner-scoped (the
 document-tree's gated save — see the
-[dorm-warren](../../slates/builds/dorm-warren-slate.md) /
+[dorm-warren](../../slates/tails/dorm-warren-slate.md) /
 [document-store](../../subsystems/document-store.md) slates). You write only
 **your** room's doc; others' you can at most inspect. Two occupants share the room
 *physically* (the half-line is a social convention, not a wall — plain containment
@@ -126,7 +126,7 @@ Physical access and editorial access are separate; the manifest feeds both.
 ## Cross-references
 
 - [campus-map.md](./campus-map.md) (the campus Duncan Hall sits on).
-- [dorm-warren-slate](../../slates/builds/dorm-warren-slate.md) (the rooms + the
+- [dorm-warren-slate](../../slates/tails/dorm-warren-slate.md) (the rooms + the
   customization faculty; the pinned+elastic Warren invariant).
 - Carves: [npcs/property-manager.md](./npcs/property-manager.md) (Katie — her
   lobby/apartment/basement domain), [npcs/victim.md](./npcs/victim.md) (Dunny —

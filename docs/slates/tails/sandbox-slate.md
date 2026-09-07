@@ -1,5 +1,13 @@
 # Sandbox slate — the holodeck: anything goes, nothing escapes
 
+> **Status: PARTIAL** — the containment layers, the wire-body crossing
+> and the wardrobe shipped → [sandbox.md](../../subsystems/sandbox.md)
+> **Left:** chronicle presentation of wire deeds · in-circle
+> accountability + consent · disposition symmetry · SHADOW read
+> composition + scope-keyed unique indexes · what counts as "power" at
+> the release gate · draft-overlay compose + the CMS test button
+> **Size:** a tail
+
 **Captured 2026-07-30**, out of the sandboxing design session. This slate
 **consolidates the scattered holodeck design into one authoritative
 artifact**: [property-slate §§D–I](../builds/property-slate.md) (the magic circle,

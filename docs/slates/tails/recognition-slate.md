@@ -1,5 +1,13 @@
 # Recognition slate (working doc)
 
+> **Status: PARTIAL** — the belief store, viewer-aware `describe`,
+> `introduce` and disguise shipped 2026-06 →
+> [belief.md](../../subsystems/belief.md)
+> **Left:** player-set nicknames (`name X as Y`) · memory decay ·
+> voice/scent recognition · MQL compound feature-handles · the aether
+> id-aug ambient trigger
+> **Size:** a wave
+
 > **Status (2026-06):** the **build has shipped** — the per-viewer belief
 > store (`BeliefStoreMixin`), the `RecognitionApi.describe` viewer-aware
 > naming step, the `introduce` + repeat-perception triggers, creature
@@ -24,7 +32,7 @@ This is the substrate. Three sibling slates build on it:
 - [docs/slates/comms-slate.md](../tails/comms-slate.md) — the
   trust-tiered moderation concern now lives in the comms slate's
   moderation section, built on recognition + buckets.
-- [docs/slates/identification-slate.md](../tails/identification-slate.md) —
+- [docs/slates/identification-slate.md](../builds/identification-slate.md) —
   the parallel pattern for items.
 
 See also:

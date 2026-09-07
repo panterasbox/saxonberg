@@ -1,5 +1,13 @@
 # Authored vs procedural slate — what a hand-placed thing IS
 
+> **Status: UNBUILT** — captured 2026-09-02, not yet designed; named by
+> the user as the major dependency.
+> **Left:** the design pass itself · a `forage`/`gather` verb (none
+> exists) · *cultivated* as a category · a census gate tying a species row
+> to a way to occur · declared (not inferred) spawn suppression in
+> furnished rooms · the fungiculture pack + `LightSourceMixin(Plant)`
+> **Size:** a build
+
 > **Status: captured 2026-09-02, not designed.** Forced by the metal
 > chain's glowcap. **Named by the user as the major dependency, and
 > deliberately reframed by them:** the thing we need is *not* foraging.

@@ -7,13 +7,13 @@ pre-script gates from the lens pass).
 
 > **Finalization pass — 2026-08-07.** This file is now the **complete
 > five-script set**, rewritten against the verified study.com findings
-> ([platform reality](./study-com-platform-reality.md),
-> [the aspiring-teacher beachhead](./study-com-cx-and-the-aspiring-teacher.md),
-> [the classroom model](./study-com-classroom-model.md),
-> [the teachability boundary](./study-com-teachability-boundary.md),
-> [the fidelity audit](./study-com-vertical-fidelity-audit.md),
-> [engagement & positioning](./study-com-engagement-and-positioning.md),
-> and the [StudyWorld white paper](./studyworld-whitepaper.md)).
+> ([platform reality](./study-com/platform-reality.md),
+> [the aspiring-teacher beachhead](./study-com/cx-and-the-aspiring-teacher.md),
+> [the classroom model](./study-com/classroom-model.md),
+> [the teachability boundary](./study-com/teachability-boundary.md),
+> [the fidelity audit](./study-com/vertical-fidelity-audit.md),
+> [engagement & positioning](./study-com/engagement-and-positioning.md),
+> and the [StudyWorld white paper](./study-com/whitepaper.md)).
 >
 > **Four decisions taken this pass (user, 2026-08-07):**
 > 1. **The V2 + V3 merge is ON, onto V3's spine** — the three-doors demo
@@ -45,7 +45,7 @@ pre-script gates from the lens pass).
 >   item.
 > - **The medic has no judgment loop.** `treat` auto-selects the worst
 >   wound; the graded deed reads no decision the player made
->   ([fidelity audit §2](./study-com-vertical-fidelity-audit.md)). So a
+>   ([fidelity audit §2](./study-com/vertical-fidelity-audit.md)). So a
 >   "triage by real physiology" beat over-claims. Health may be staged as
 >   *honest mechanism* only, until the medic-judgment slate is built.
 >
@@ -323,7 +323,7 @@ diagnostics.
 
 - **Beat 6 is the pass's addition and it is not a trim candidate.** It is
   sourced verbatim from
-  [the teachability boundary](./study-com-teachability-boundary.md) §1's
+  [the teachability boundary](./study-com/teachability-boundary.md) §1's
   three modes (direct enactment / allegory / reference). Three rails it
   carries and must not lose: allegory carries **patterns, never
   particulars**; no **one-to-one costume** of a specific real event; and
@@ -378,7 +378,7 @@ diagnostics.
 - **Do not say "gamification"** — anywhere in this track. The
   diagnose-the-category move ("everyone shipped the scoreboard and skipped
   the game") is **deck material**, reclaimed only after a demo
-  ([engagement & positioning §3](./study-com-engagement-and-positioning.md)).
+  ([engagement & positioning §3](./study-com/engagement-and-positioning.md)).
 
 ---
 
@@ -400,7 +400,7 @@ diagnostics.
 >    data-backed: education is the **#1 declared CX field** *and* the **#1
 >    test-prep vertical**, and it is the one population living on both
 >    sides of Study's business
->    ([beachhead §3](./study-com-cx-and-the-aspiring-teacher.md)). Crucially
+>    ([beachhead §3](./study-com/cx-and-the-aspiring-teacher.md)). Crucially
 >    this is not a costume change: teaching is a **meta-vocation with no
 >    content of its own**, so she *must* have a subject — and the foundry
 >    *is* her subject. The two-vocation structure the enrollment data
@@ -615,7 +615,7 @@ critique framing; verify the ghost-command preview reads on camera at 4K.
   'proctored' of their product."* **That is verified false.**
   `Proctored_Exam` is alive with `Typing_Dna_Result_For_Proctored_Exam` and
   `Veriff_Result_For_Proctored_Exam` beside it, and **CX earns credit
-  through it** ([platform reality §6](./study-com-platform-reality.md)).
+  through it** ([platform reality §6](./study-com/platform-reality.md)).
   The correct phrasing — used in beat 4 — is **"identity-verified proctored
   final."** The nuance worth keeping: identity-verified is not necessarily
   *live-human-supervised*, so don't describe a human watching a webcam.
@@ -664,7 +664,7 @@ critique framing; verify the ghost-command preview reads on camera at 4K.
   ISCED-F, CIP, or NCES code anywhere in study.com; the only external
   anchor on their `Concept` tree is a **DBpedia** link. The join is an
   **authored crosswalk living in the proprietary adapter**
-  ([platform reality §3](./study-com-platform-reality.md)). The narration
+  ([platform reality §3](./study-com/platform-reality.md)). The narration
   never claims a shared standard — "two events you already record" is the
   honest altitude, and it is why it stays.
 - **What stays OUT of this video (deck-only):** the honest split that
@@ -921,7 +921,7 @@ the room is real, so nothing may be illustrated.
 - **⚠ BUILD-STATE — this is the least shootable of the five, and that must
   not select the content** (the standing rule: build-state is an honesty
   item, never a filter). The honest ledger, per
-  [classroom-model](./study-com-classroom-model.md):
+  [classroom-model](./study-com/classroom-model.md):
   - ✅ **Shipped:** the classroom's whole skeleton. A classroom role is an
     employment **`Position`** on the University `Business`; capability
     routes through `MixinApi.isActive`, not `hasMixin`, so an **NPC
@@ -996,15 +996,15 @@ the room is real, so nothing may be illustrated.
   family) are official, submission-based and **human-scored**. This video
   says "practice scales," never "replaces the regulated practicum," and
   beat 8 says it out loud on purpose
-  ([teacher vertical §6](./study-com-teacher-vertical.md)). Adjacent rail
+  ([teacher vertical §6](./study-com/teacher-vertical.md)). Adjacent rail
   from the beachhead doc: keep the practicum framed as **experience and
   mission**; the *product* hooks are CX credit and the pedagogy-exam prep.
 - **The pedagogy dependency is real and unclosed.** Simulated microteaching
   only works if the assessment of *teaching* reflects real
   teacher-competency frameworks, and none of this has been validated with a
   teacher-educator
-  ([classroom-model §7.7](./study-com-classroom-model.md),
-  [teacher vertical §6](./study-com-teacher-vertical.md)). The video
+  ([classroom-model §7.7](./study-com/classroom-model.md),
+  [teacher vertical §6](./study-com/teacher-vertical.md)). The video
   doesn't claim validation — it shows one decision and grades it by whether
   the student learned. Keep it there.
 - **The desirable-difficulties hazard, as a script rule.** An instructor
@@ -1018,7 +1018,7 @@ the room is real, so nothing may be illustrated.
 - **What stays OUT (deck-only):** every StudyAI figure. The "you already
   built the intelligence and a webpage is the wrong container" argument is
   **the deck's**, and its numbers are **Study's internal data**
-  ([studyai.md](./study-com-studyai.md) confidentiality note). This video
+  ([studyai.md](./study-com/studyai.md) confidentiality note). This video
   carries the same argument as an *experience* and never as a statistic.
 - **Boundary with *A Life*:** this video is one room, one decision, one
   craft. *A Life* is the breadth argument (any seat, any specialty). The
@@ -1327,7 +1327,7 @@ title/end cards. Nothing else.
   **accuracy**: the fidelity audit found the medic has the honest
   *mechanism* but **no judgment loop** — `treat` auto-selects the body's
   worst bleeding wound, so the graded deed reads no decision the player
-  made ([fidelity audit §2](./study-com-vertical-fidelity-audit.md)). Any
+  made ([fidelity audit §2](./study-com/vertical-fidelity-audit.md)). Any
   triage vignette would over-claim. If a health beat is ever staged
   anywhere in this track before the medic-judgment slate is built, it may
   show the **body as honest mechanism** and must not imply clinical
@@ -1364,7 +1364,7 @@ title/end cards. Nothing else.
   strongest leg is **the people**; the second is **the producer flip**
   (the graduate becomes the teacher, with a price signal behind it); "it's
   just fun" is the weakest and the business is never leaned on it
-  ([student experience §3](./study-com-student-experience.md)). Beat 12
+  ([student experience §3](./study-com/student-experience.md)). Beat 12
   uses exactly legs 1 and 2 and no others. Also: whether a post-goal
   learner *pays* is an operator's decision, not ours — the narration says
   "logs in," never "subscribes."

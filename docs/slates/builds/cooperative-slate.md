@@ -1,5 +1,13 @@
 # Cooperative slate (working doc)
 
+> **Status: PARTIAL** — the Office seats and the three-stock influence
+> substrate (producer faucet + conviction) shipped →
+> [governance.md](../../subsystems/governance.md)
+> **Left:** the capital faucet / stake ledger · Twitch identity binding ·
+> the three chambers + the ballot · delegation guardrails · the in-world
+> reserve + the budget process · mint-at-launch conversion
+> **Size:** a build
+
 > **Status: model settled, build the stake-ledger slice; the full
 > republic deferred until there's a population to govern.** The
 > *substrate* — what influence is, how it's earned/spent/replenished,
@@ -69,7 +77,7 @@ See also:
 - [docs/slates/tails/external-chat-relay-slate.md](../tails/external-chat-relay-slate.md)
   — the Twitch binding (inbound reader); the same integration surface
   the dono webhook lands on.
-- [docs/slates/deferred-rpg/affiliation-slate.md](../deferred-rpg/affiliation-slate.md)
+- [docs/slates/deferred-rpg/affiliation-slate.md](./affiliation-slate.md)
   — **distinct from this.** Houses / guilds / corps are *social*
   organization (the class system, in-group cooperation + rivalry). The
   cooperative is *governmental* — the polity over all of them. Don't

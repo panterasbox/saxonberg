@@ -1,5 +1,13 @@
 # Spawn-distribution slate (working doc) — the dynamic populate substrate
 
+> **Status: PARTIAL** — the item half shipped (`SpatialZone.stocks` /
+> `favours` / `blessingOdds`, read by the residency spawn sweep) →
+> [residency.md](../../subsystems/residency.md)
+> **Left:** the creature half — a procgen-NPC generator over the NameBank
+> / species dossier / `PersonaMixin` · create-monster · the respawn clock
+> + faucet economics · determinism/seeding · the depth and rarity curves
+> **Size:** a build
+
 > **Status (2026-07): named, not designed — spun out of the magic-items walk.**
 > A **weighted-table populate substrate**: the *dynamic/runtime sibling* of the
 > static `populates: onto` seeding. Generic locations (and effects) draw **what
@@ -13,7 +21,7 @@ See also:
 above this mechanism**: what the weights are actually based on, who may
 tune what, and how far the substrate extends (foraging · consumables ·
 creature spawn · ore as the zero-inflow case) ·
-[magic-items-slate](../tails/magic-items-slate.md) (the two consumers: BUC blessing
+[magic-items-slate](./magic-items-slate.md) (the two consumers: BUC blessing
 sampled at spawn; create-monster = a player-triggered spawn) ·
 [content-packs.md](../../subsystems/content-packs.md) (content-as-data; the
 `populates: onto` static seeding this is the dynamic sibling of) ·

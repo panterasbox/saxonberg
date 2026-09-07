@@ -1,5 +1,14 @@
 # The call-security pass — re-gating + the audit rail (slate)
 
+> **Status: UNBUILT** — written at the close of the Api OO sweep
+> (MR !228, 2026-09-02), which merged with a knowingly permissive gate
+> posture. Nothing here is built.
+> **Left:** the `@Audited` permit-and-watch rail · re-gating the ~35
+> ungated-and-sealed mutators · a caller-template + caller-function
+> trust primitive · the enumerated pass over every call-security site ·
+> the acceptance shape
+> **Size:** a build
+
 > Written at the close of the Api OO sweep (MR !228, 2026-09-02), which
 > deliberately merged with a known-permissive gate posture. This slate
 > captures everything that build learned about the gate landscape so the

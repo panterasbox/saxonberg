@@ -1,5 +1,14 @@
 # Species slate — making species play differently, without ranking them
 
+> **Status: PARTIAL** — the eight axes the differences would ride are all
+> shipped (Material · Clade · BodyPlan · Species · innateMixins · faculty)
+> → [race.md](../../subsystems/race.md)
+> **Left:** every actual difference — the ectotherm · scent-based
+> recognition · cannot-metabolise-a-staple · equipment incompatibility ·
+> no speech organs (aether only) · illegible emotes · and the retrofit of
+> the seven interchangeable shipped humanoids
+> **Size:** a build
+
 **Captured 2026-08-02**, as a tangent off the physiology slate's blood-type
 question. The prompt was direct:
 

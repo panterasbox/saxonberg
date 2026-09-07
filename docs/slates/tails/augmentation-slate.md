@@ -1,5 +1,13 @@
 # Augmentation slate (working doc)
 
+> **Status: PARTIAL** — Wave 1 shipped 2026-06 (`confers`,
+> `getActiveMixins`, `@RequiresActive`, the cranial slot, `AetherImplant`)
+> → [augmentation.md](../../subsystems/augmentation.md)
+> **Left:** the medical install/remove procedure · the char-gen augment
+> loadout · translation, prosthetic, sensor, motor and cognitive augments
+> · the failure and hacking modes
+> **Size:** a wave
+
 > **Status: Wave 1 shipped 2026-06.** The substrate is real
 > (`AugmentMixin.confers`, `MixinApi.getActiveMixins` / `isActive`,
 > `_augmentGated` + `_grantsModalities` mixin self-declarations,
@@ -69,7 +77,7 @@ See also:
 - [vitals-slate.md](./vitals-slate.md) — **install/remove is
   a medical procedure** (surgery); **replace** augments are prosthetics
   for lost limbs/organs; organ *condition* modulates an augment.
-- [docs/slates/capability-magic-slate.md](../deferred-rpg/capability-magic-slate.md) —
+- [docs/slates/capability-magic-slate.md](../builds/capability-magic-slate.md) —
   **motor/cognitive** augments feed the (deferred RPG) capability layer;
   the effective = innate × augments derivation lives there too. Magic
   augments are the flavor-agnostic future.

@@ -1,5 +1,12 @@
 # Social graph slate (working doc)
 
+> **Status: PARTIAL** — Wave 3 (notify policy, display lensing, presence
+> relay) shipped → [social-graph.md](../../subsystems/social-graph.md)
+> **Left:** the message-restyle live wiring (needs a sync contacts
+> fast-path) · Wave 4 recognition-state coupling — consent friending and
+> recognition-gated bucketing
+> **Size:** a wave
+
 Working slate for the social-graph layer — notification rules and
 bucket-keyed display verbosity over named lists of other characters.
 Built on top of recognition; consumed by comms.

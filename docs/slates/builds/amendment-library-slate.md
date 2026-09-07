@@ -1,5 +1,14 @@
 # Amendment-library slate (working doc) — "political legos"
 
+> **Status: UNBUILT** — `docs/governance/draft-constitution.md` exists as
+> a design document only; civics.md rules the statute engine out by
+> doctrine, so nothing here has a runtime.
+> **Left:** the module registry + an adoption path over Art. X · the
+> presets (distros) · drafting the named gaps — executive veto, the roll,
+> elections, free movement of goods, statutory right-of-way, full faith
+> and credit
+> **Size:** a build
+
 > **Status: the concept is settled; the *catalog* is the open, growing work.**
 > The [draft constitution](../../governance/draft-constitution.md) ships as a **bare-bones
 > kernel** — the firewall, the machine, and the provided tools, identical for

@@ -1,5 +1,15 @@
 # Vitals slate (working doc)
 
+> **Status: PARTIAL** — the substrate (2026-06), then the harm driver,
+> the dying arc and metabolism →
+> [vitals.md](../../subsystems/vitals.md) ·
+> [harm.md](../../subsystems/harm.md) ·
+> [mortality.md](../../subsystems/mortality.md)
+> **Left:** the affliction driver — disease and poison have no `inflict`
+> path at all · medical instruments + consumable-crafting past the
+> bandage · forensic examination verbs over the corpse readability curve
+> **Size:** a wave
+
 > **Status (2026-06):** the **substrate / Wave 1 has shipped** — the
 > `Creature` body/agency split, vital signs + `vitalProfile`, typed
 > anatomy + tissue, the two-kind condition *type system*, the
@@ -645,7 +655,7 @@ stays out — the *axis* is in, the *biochemistry* is a future wave.
 the **magic-side reserve, the mirror of endurance** (the physical
 reserve). It's separate from Vitals because it isn't biology, but it's
 endurance's symmetric sibling in the capability system. See
-[capability-magic-slate.md](../deferred-rpg/capability-magic-slate.md). Different
+[capability-magic-slate.md](../builds/capability-magic-slate.md). Different
 recovery model, no biological grounding, deeply RPG — *not* a vital.
 
 ### Consumables — eat, drink, and the effect-list

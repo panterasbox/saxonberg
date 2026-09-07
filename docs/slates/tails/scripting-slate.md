@@ -1,5 +1,12 @@
 # Scripting language slate (tail)
 
+> **Status: PARTIAL** — the v1 engine shipped 2026-06 →
+> [scripting.md](../../subsystems/scripting.md)
+> **Left:** the piping model over the built `Pipeline` AST node + the
+> value→field binder · the block forks (`it`-only vs explicit params) ·
+> the `improv` seam · LLM-director authoring
+> **Size:** a tail
+
 > **Status: v1 engine SHIPPED (2026-06)** → graduated to
 > [scripting.md](../../subsystems/scripting.md). A **purpose-built scripting
 > language** — our grammar, our semantics — is the medium for procedural
@@ -73,7 +80,7 @@ The load-bearing decisions:
    scripted rung**, with `improv` for the generative beats — exactly the
    slate's "scripting and LLM aren't a separate paradigm." It sits at the
    **wizard/code tier** of the authoring ladder
-   ([scoped-authoring-slate](../builds/scoped-authoring-slate.md)), with authoring
+   ([scoped-authoring-slate](./scoped-authoring-slate.md)), with authoring
    intelligence ([authoring-intelligence-slate](../builds/authoring-intelligence-slate.md))
    over it.
 

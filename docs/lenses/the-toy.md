@@ -171,7 +171,7 @@ playtest.**
    A world built as a medium, proven fun, then given its game — ours
    is the curriculum. When explaining the product to education
    stakeholders, this is the lens to reach for: the toy is why the
-   game part works ([study-com-strategy.md](../study-com-strategy.md):
+   game part works ([study-com-strategy.md](../study-com/strategy.md):
    fun is the carrier).
 4. **Keep the legibility discipline as toy policy.** Analyze-preview
    parity, pips, does-nothing lints — these are what make an honest

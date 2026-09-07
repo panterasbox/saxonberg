@@ -1,5 +1,16 @@
 # Comms slate (working doc)
 
+> **Status: PARTIAL** — wave 1 shipped: the two-transport model,
+> `say`/`whisper`/`shout` with `meta.acousticDb`, `say --to`, the
+> whisper-vs-tell split, `dm`/`tell` over Aether →
+> [comms.md](../../subsystems/comms.md); channels graduated to
+> [chat.md](../../subsystems/chat.md)
+> **Left:** dynamic-reach shout (the voice-projection attribute) ·
+> language gating on acoustic + encoded-cognition implant · regional
+> channels · the first-class conversation primitive · implant security
+> (spoofing/interception) · async mail · the moderation control plane
+> **Size:** a wave
+
 > **Status: architecture set, internals open.** The communication
 > substrate — the verb taxonomy, the two transports it spans, and the
 > routing. It defines *what* the comm types are and *how they're

@@ -1,5 +1,14 @@
 # Reputation slate — charisma, renown, notoriety (working doc)
 
+> **Status: PARTIAL** — the renown leg shipped: per-scope signed
+> standing, the reaction + reception signal generators, the value
+> function, log-saturation → [renown.md](../../subsystems/renown.md)
+> **Left:** susceptibility · the NPC consumers · the governance-influence
+> coupling · the substance economy's brand-trust · the
+> anonymity/disguise counterweight · per-circle consumers · eigenvector
+> trust-weighting
+> **Size:** a build
+
 > **Status: game-design layer, renown leg SHIPPED.** The **renown
 > substrate has shipped** — see
 > [renown.md](../../subsystems/renown.md) (measured per-scope signed

@@ -1,5 +1,13 @@
 # Metabolism slate (working doc)
 
+> **Status: PARTIAL** — both build waves shipped 2026-06 (digestion
+> buffer, lazy reconcile, toxins, `eat`/`vomit`) →
+> [metabolism.md](../../subsystems/metabolism.md)
+> **Left:** wired nutrient deficiencies (scurvy) · hangover ·
+> chronic-toxin leaching content · magic ingestion (potions) ·
+> fuller-stomach absorption · bulk-source eating · per-individual rates
+> **Size:** a tail
+
 > **Status (2026-06):** the **build has shipped** (both waves) — the
 > digestion buffer + real `ingest`, the lazy reconcile (basal drain,
 > coupled recovery, the cascade-to-conditions), the in-session clock +

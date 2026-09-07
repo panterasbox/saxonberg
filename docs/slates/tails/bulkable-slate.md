@@ -1,5 +1,13 @@
 # Bulkable slate (working doc)
 
+> **Status: PARTIAL** — the thermos slice shipped (slots, `transfer`, the
+> closure scale, the MQL surface, the verb roster) →
+> [bulk.md](../../subsystems/bulk.md)
+> **Left:** mixing/solutions · the `sealed` gas level + the phase→closure
+> map · `Container`+`Bulkable` · universal auto-compose · amount-aware
+> `appearance` · the containment inversion
+> **Size:** a wave
+
 > **Shipped (thermos slice).** The interior + surface substrate, the
 > `transfer` primitive, the closure scale, the full MQL surface
 > (`:b`, material keyword, `:{N unit}` formal + natural language), the
@@ -43,7 +51,7 @@ See also:
 - [docs/slates/thermal-slate.md](./thermal-slate.md) — temperature
   composes alongside bulk (hot coffee, iced water); the phase-
   transition hook lives at the bulk↔Thermal seam.
-- [docs/slates/collision-slate.md](../deferred-rpg/collision-slate.md) — capacity in
+- [docs/slates/collision-slate.md](./collision-slate.md) — capacity in
   mass/volume terms; displacement physics (Archimedes) lives here.
 
 ---
@@ -281,7 +289,7 @@ attribute model beats fluid-as-Stuff.
 Capacity is the holder's **geometry**, not the matter's, so it lives on
 the spatial affordance and never on `Bulkable`. The codebase already
 points this way: there's no capacity field on `Container` today, and the
-[collision slate](../deferred-rpg/collision-slate.md) owns capacity as per-kind
+[collision slate](./collision-slate.md) owns capacity as per-kind
 `checkCapacity` functions (volume / mass / count) at the
 containment-scope. Bulk's relevant kind is **volume**.
 
@@ -885,7 +893,7 @@ You pour the glass out into the sink.              (ok — :b facet)
   kinds.
 - [thermal-slate.md](./thermal-slate.md) — temperature + the
   phase-transition seam.
-- [collision-slate.md](../deferred-rpg/collision-slate.md) — mass/volume capacity,
+- [collision-slate.md](./collision-slate.md) — mass/volume capacity,
   displacement.
 - [activity.md](../../subsystems/activity.md) — durative bulk verbs.
 </content>

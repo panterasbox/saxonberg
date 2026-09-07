@@ -1,5 +1,17 @@
 # Social inspection slate (working doc)
 
+> **Status: PARTIAL** — the feature merged: `who` (with `--here`/
+> `--friends`/`--country`), `profile`/`finger`, `score`/`me`,
+> `SocialApi.composeRow`/`composeCard`, `privacy.showStatus`, and the
+> Who's Online rail card → [social-graph.md](../../subsystems/social-graph.md)
+> + [cockpit.md](../../subsystems/cockpit.md)
+> **Left:** the `who --group <g>` filter · the `privacy.showSpecies`
+> threshold (Q2) · the `profile` card rendered into the inspection card
+> with a per-viewer subscribable projection (Q6 — no `opens_card` today) ·
+> account age on the card (Q4) · deferred: invisibility as per-pair
+> fidelity floored to zero
+> **Size:** a tail
+
 The player-facing **inspection surface** over the identity & social
 substrate: a `who` roster of who's online, a `profile`/`finger` card for
 inspecting another player, and a `score`/`me` self-dashboard. Plus the

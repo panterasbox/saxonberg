@@ -1,5 +1,13 @@
 # Acquisition slate — capability onboarding, the credential itinerary, the update economy
 
+> **Status: PARTIAL** — the credential wallet, the travel credential and
+> the physical TravelCard shipped →
+> [credential.md](../../subsystems/credential.md)
+> **Left:** forums leaving the default loadout · the `dorm-key` record +
+> the `presentsKey` wallet read · the payment credential required at hire
+> · the conferral certificate · Dr. Limen · the journey-v2 route
+> **Size:** a build
+
 **Captured 2026-07-28** from a deep-drill session inside the
 demo-content requirements cycle (the Shallows-clinic pause →
 "acquisition is the heart of onboarding"). This slate is the

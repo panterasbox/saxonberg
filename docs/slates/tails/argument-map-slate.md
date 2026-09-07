@@ -1,5 +1,14 @@
 # Argument-map slate (working doc)
 
+> **Status: PARTIAL** — v1 shipped 2026-06 (forums cycle 2): the
+> `organizer: 'argument'` claim graph, the lenses, `reply
+> --pro|--con|--rebut`, `mature`, the client argument mode
+> → [forums.md](../../subsystems/forums.md)
+> **Left:** claim dedup / canonicalization · integrity-grade
+> summarization · automated convergence detection · proposal
+> version-control · the vote consumer · the plural-lens explorer
+> **Size:** a wave
+
 > **v1 SHIPPED (2026-06, forums cycle 2)** — the small-scale claim-tree
 > graduated to [../../subsystems/forums.md § The argument organizer](../../subsystems/forums.md#the-argument-organizer-cycle-2):
 > the `organizer: 'argument'` typed claim-graph over the shared Board/Entry
@@ -22,7 +31,7 @@
 > three-surface taxonomy, the workflow — lives in the cooperative slate's
 > *Deliberation* section; this slate specs the **surface itself.**
 
-> **Factoring superseded by [forums-slate.md](../builds/forums-slate.md) (2026-06):**
+> **Factoring superseded by [forums-slate.md](./forums-slate.md) (2026-06):**
 > the argument-map is no longer "not a forum" — it is the
 > `organizer: 'structure'` mode of the one forum primitive, sharing that
 > slate's Part-0 substrate. The "distinct from forums" framing below is

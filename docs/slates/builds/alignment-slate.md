@@ -1,7 +1,20 @@
 # Alignment slate
 
+> **Status: UNBUILT** — the model is complete, none of it is code. No
+> `DevotionMixin`, no `Faction`, no alignment derivation; chronicle still
+> names alignment a deferred readout (chronicle.md:330). The estimator it
+> reuses ships → [trait.md](../../subsystems/trait.md).
+> **Left:** the vertical derivation off the chronicle (deed → demigod
+> affinity; domain authored, direction measured) · the horizontal off the
+> conviction record · `DevotionMixin` + the char-gen worship pick + the
+> Chapel re-declaration · the resonance/dissonance read · the mirror
+> (self-view · ambient tilt via the register cascade · focal omens),
+> reflection-only · `Corpo` → `Faction` with role-weighted gravity and
+> dot-product reception · per-faction standing over renown
+> **Size:** a build
+
 > **Status: design spine SETTLED, pre-requirements.** Supersedes the
-> preliminary [alignment-religion-slate](../deferred-rpg/alignment-religion-slate.md)
+> preliminary [alignment-religion-slate](./alignment-religion-slate.md)
 > (RPG-layer, deferred) — that doc's D&D-grid + worship-is-chosen intuitions
 > survive here, now fully reconciled with [story-bible.md](../../story-bible.md)
 > §Alignment/§Gods and grounded in the shipped derive-on-read substrates

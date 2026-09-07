@@ -1,5 +1,15 @@
 # Advancement slate (working doc) — learning as a science
 
+> **Status: PARTIAL** — Catalog, Transcript, derive-on-read Competence
+> bands and conferrals shipped →
+> [advancement.md](../../subsystems/advancement.md)
+> **Left:** the loadout (capacity-not-decay + warm-up) · guilds (venue,
+> mentors, credential, membership-as-affordance) · the Reserve-shaped
+> stakes engine · declared focus · graph-propagated evidence over
+> `requires`/`synergizes` · estimator choice + tuning · the
+> learning-platform sensor bridge
+> **Size:** a build
+
 > **Layer: the game.** This is the *game-system* half of "learning as
 > adventure" — how a character grows. The platform's job is to *measure*
 > real engagement (the [standard-model](../../standard-model.md) sensor +
@@ -8,9 +18,9 @@
 > classroom into it yet. Premise: [vision.md](../../vision.md). Motivation
 > science: [lenses/motivation.md](../../lenses/motivation.md) (SDT). The
 > in-world ability channels it leans on are
-> [capability-magic-slate](../deferred-rpg/capability-magic-slate.md)
+> [capability-magic-slate](./capability-magic-slate.md)
 > (conditioning / skill / knowledge); the social-structure side is
-> [affiliation-slate](../deferred-rpg/affiliation-slate.md) (guilds /
+> [affiliation-slate](./affiliation-slate.md) (guilds /
 > houses). This slate synthesizes those into one buildable build and adds
 > the model that ties them to learning science.
 
@@ -185,7 +195,7 @@ The extensibility properties the build *must* have, and how they fall out:
   a learned skill, change a prerequisite under someone) need migration,
   same as every template.
 - **Fork.** Clone a template subtree into your own `/home/` scope (full
-  write access — see [scoped-authoring-slate](./scoped-authoring-slate.md))
+  write access — see [scoped-authoring-slate](../tails/scoped-authoring-slate.md))
   with [provenance](../../subsystems/provenance.md) tracking who forked
   what. CC by default: anyone may make generics/variants.
 - **Canonize.** Promoting a fork into shared play is a **governed merge**
@@ -370,7 +380,7 @@ grants *access* and *unlocks verbs*, never bumps a number.
   institutions own **proprietary/secret** techniques (membership gates
   *what you can learn at all*)? Open is cleaner "physics"; proprietary
   gives guilds + corps real IP to hoard and ties into the
-  [spoiler](../deferred-rpg/spoiler-slate.md) thread, at the cost of
+  [spoiler](../tails/spoiler-slate.md) thread, at the cost of
   fragmenting the shared map. *Open.*
 
 ## Declared focus — deliberate practice, the honest heir to the guild-unlock
@@ -409,7 +419,7 @@ keep it honest:
 - **Never a number** — the modulation happens *inside* the derive, before
   banding. Focus surfaces only as reaching the next band sooner — felt as
   faster band-progress + the
-  [odometer](../deferred-rpg/odometer-slate.md) concentrating in your focus
+  [odometer](./odometer-slate.md) concentrating in your focus
   area, never as "1.7×."
 
 **Why it doesn't break the firewall.** Competence stays a pure function of

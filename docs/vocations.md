@@ -119,7 +119,7 @@ Per entry: **what gates it**, **who pays**, **which subsystem it rides**.
 | crafter (many branches) | **shipped** | Discipline + tools | buyers |
 | bartender / cook | **shipped** | on-shift `MakerMixin` | the house |
 | slaughterer / butcher | designed | premises + skill | trade |
-| **victualler** (preserving) | designed ([preservation](./slates/builds/preservation-slate.md) · [hearth & larder](./slates/builds/hearth-and-larder-design-pack.md)) | premises + competence | trade — ⚠ *the vocation the icebox eventually devalues; that is the point* |
+| **victualler** (preserving) | designed ([preservation](./slates/tails/preservation-slate.md) · [hearth & larder](./slates/tails/hearth-and-larder-design-pack.md)) | premises + competence | trade — ⚠ *the vocation the icebox eventually devalues; that is the point* |
 | **mana refiner** | designed ([mana economy](./slates/builds/mana-economy-design-pack.md)) | premises (industrial zoning) + cheap power | trade — ⭐ *concentration, never creation; needs the energy economy as its input* |
 | **salvager** | designed | **assay** + yard | materials buyers |
 | **smelter** | **shipped** ([mining](./subsystems/mining.md)) | premises (industrial zoning) + charcoal | ingot buyers — ⭐ *buys its ore out of REVENUE, which is what removed the deferred CB-lending dependency* |
@@ -170,7 +170,7 @@ Per entry: **what gates it**, **who pays**, **which subsystem it rides**.
 | **insurer** | **designed** ([insurance](./slates/builds/insurance-slate.md)) | capital + portfolio construction | premiums |
 | **tailor** | ⭐ **SHIPPED 2026-09-03** ([textiles](./subsystems/textiles.md)) | **fit precision** — how nearly `cutTo` matches a measured body | customers — ⭐ *the fitting is a scene, and a changing body is the retention loop* |
 | **barber** | **GAP** | skill | customers — ⚠ waits on lineage's appearance substrate, which is also what hair dye waits on |
-| **steward** (household / land) | **designed** ([household](./slates/builds/household-design-pack.md)) | **Stewardship Discipline** (the causal read) + capacity | householders — **trade** or **wage**; ⭐ *the product is attention while you are elsewhere* |
+| **steward** (household / land) | **designed** ([household](./slates/tails/household-design-pack.md)) | **Stewardship Discipline** (the causal read) + capacity | householders — **trade** or **wage**; ⭐ *the product is attention while you are elsewhere* |
 | *houseworker / cleaner* | — | *wage* | ⚠ **texture, not a vocation** — anyone can, and the mess freezes while you are away |
 | **nanny / carer** | ⛔ **BLOCKED** | — | **no dependents exist**, deliberately — see below |
 | ~~homemaker~~ | ⭐ **REJECTED 2026-08-06** | — | **universal demand meets universal self-service** — the register's second honest NO (below) |
@@ -257,7 +257,7 @@ right per row is most of the civic design.
 | **icehouse keeper / ice cutter** | **GAP** | premises + thermal read | ⭐⭐ **THIS IS THERMAL'S MISSING VOCATION** — and it is what makes the refrigeration arc possible before machines |
 | miller · tanner | **GAP** | premises (industrial zoning) | the classic nuisance trades (⭐ the smelter SHIPPED — see § Secondary) |
 | **charcoal burner / collier** | **shipped** ([mining](./subsystems/mining.md)) | skill | ⭐⭐ *a judgment craft with a real downside — too much air and the charge goes to ash, too little and you draw half-burnt brands, and you can lose a whole burn.* Fuel for everything above, and the mine's timber comes off the same stand |
-| **gunsmith · powder maker** | designed ([ranged](./slates/tails/ranged-slate.md)) | licence | credential-gated |
+| **gunsmith · powder maker** | designed ([ranged](./slates/builds/ranged-slate.md)) | licence | credential-gated |
 | **shipwright · ship-breaker** | **GAP** | premises | the breaker is a LULU |
 | **quarrier** | **GAP** | land + tools | mining's sibling |
 | **almanac-maker / weather-reader** | **designed** ([insurance § the almanac-maker](./slates/builds/insurance-slate.md)) | ⭐ **a TIME SERIES** (years of records — not skill or capital) | farmers — *a tighter planting window*; ⭐⭐ **owns DATA where the ratings agency owns a METHOD** |
@@ -338,7 +338,7 @@ this one sells what it knows.
 
 ## ⭐⭐⭐ The homemaker — the register's second honest NO
 
-**(2026-08-06, from the [household pack](./slates/builds/household-design-pack.md).)**
+**(2026-08-06, from the [household pack](./slates/tails/household-design-pack.md).)**
 The stewardship pillar makes domestic work into real, measured play, which
 invites the obvious entry: *homemaker*. It does not survive the test, and
 watching **why** is more useful than the verdict.

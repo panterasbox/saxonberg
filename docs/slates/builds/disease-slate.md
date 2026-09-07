@@ -1,5 +1,14 @@
 # Disease slate — infection, transmission, and the price of density
 
+> **Status: PARTIAL** — the logistic growth term and the two-population
+> split shipped as spoilage (`FreshnessMixin` / `ContaminableMixin`) →
+> [spoilage.md](../../subsystems/spoilage.md)
+> **Left:** `ContagionSpec` (routes · host range · reservoir) —
+> `Condition.contagion` is still `null` with no consumer · the
+> husbandry-is-immunity coupling · quarantine · the outbreak investigation
+> · the crops-first v1 slice
+> **Size:** a build
+
 > **Status: design captured 2026-07-31, not built.** Disease is the one mechanic
 > that touches **every living thing in the game** — crops, herds, companions,
 > fish, NPCs, and the player's own body — so it gets its own doc rather than a
@@ -21,7 +30,7 @@ See also — **the vertical this engine serves**:
 [health-vertical-slate](./health-vertical-slate.md) (clinical practice, public
 health, the College of Physic, and the teaching seam — the *pedagogical* payoff
 of everything below).
-Consumers: [farming](./farming-slate.md) (blight; rotation's *true* reason) · [ranching](./ranching-slate.md) (**where this question started** —
+Consumers: [farming](../tails/farming-slate.md) (blight; rotation's *true* reason) · [ranching](./ranching-slate.md) (**where this question started** —
 herd disease was its "biggest open call") · [pets](./pets-slate.md) (the
 individual case; the zoonotic bridge) · [fishing](./fishing-slate.md)
 (aquaculture; its *Water composition* section already routes contamination
@@ -343,7 +352,7 @@ disease driver either follows that precedent or adds a gated
 ## Where to prove it — crops first
 
 > **Amended 2026-07-31: the *growth term* should be proven earlier, in
-> [preservation](./preservation-slate.md).** Food spoilage is **this same
+> [preservation](../tails/preservation-slate.md).** Food spoilage is **this same
 > equation minus transmission** — no `ContagionSpec`, no host range, no
 > immunity, no push tick. Build the growth term there, prove it on a fish, and
 > disease inherits it working. Crops remain the right first proof of *disease*;

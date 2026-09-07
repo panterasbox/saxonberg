@@ -1,5 +1,11 @@
 # Client audio slate — a client-side player, and the Spotify jukebox that rides it
 
+> **Status: UNBUILT** — no client audio path and no jukebox exist.
+> **Left:** the client audio player (ambient emission → playback) · the
+> Spotify embed tier · the zorkmid priority queue · the bar jukebox
+> object · re-verifying the Spotify platform facts
+> **Size:** a build
+
 **Captured 2026-09-01.** Two things at once: a **client audio player**
 (atmospheric sound, the near-term win) and a **shared bar jukebox** with
 a zorkmid-priority queue over Spotify — where the design conversation's

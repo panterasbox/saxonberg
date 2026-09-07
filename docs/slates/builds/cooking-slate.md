@@ -1,22 +1,29 @@
 # Cooking slate — the trade, the method vocabulary, and the clock it answers
 
+> **Status: PARTIAL** — W0-W3 shipped (spoilage core, `/trade/cooking`,
+> the recipe roster, the drive) →
+> [crafting.md](../../subsystems/crafting.md)
+> **Left:** the tending wave (durative cook · doneness · braise) · cold
+> storage/icebox · compost · preservation + the victualler · the baker pack
+> **Size:** a build
+
 > **Status: design, captured 2026-09-02.** The forks below were settled in
 > conversation; this slate records the decisions and their rationale. The
 > spoilage core is **not re-designed here** — the
-> [spoilage design pack](./spoilage-design-pack.md) is planner-ready and this
+> [spoilage design pack](../tails/spoilage-design-pack.md) is planner-ready and this
 > build **absorbs it as wave 0** (§ build shape).
 
-See also: [spoilage-design-pack](./spoilage-design-pack.md) (⭐ **wave 0 of
+See also: [spoilage-design-pack](../tails/spoilage-design-pack.md) (⭐ **wave 0 of
 this build** — the mixin, the honest microbiology, the interop, all settled
-there) · [preservation-slate](./preservation-slate.md) (⚠ **the victualler's
+there) · [preservation-slate](../tails/preservation-slate.md) (⚠ **the victualler's
 territory — this build does not annex it**; its § *terms, not methods*
 is the completeness doctrine for the whole family: preservation methods
 DERIVE from the growth law's terms, the same move as Part 2 here) ·
-[hearth-and-larder-design-pack](./hearth-and-larder-design-pack.md) (the
+[hearth-and-larder-design-pack](../tails/hearth-and-larder-design-pack.md) (the
 domestic room; the "one build, not three" principle this slate reuses) ·
 [fridge-design-pack](./fridge-design-pack.md) (the cold-storage follow-on;
 lands *after* this build, against live demand) ·
-[trade-roster-slate](./trade-roster-slate.md) (the Discipline vocabulary —
+[trade-roster-slate](../tails/trade-roster-slate.md) (the Discipline vocabulary —
 `baking` `specializes: cooking` was decided there) ·
 [vocations.md](../../vocations.md) (cook is a shipped vocation; baker a
 designed one) · substrates:
@@ -46,7 +53,7 @@ users, no data, a mechanical rename plus a DB drop.
 
 ### Cooking vs. baking: one Discipline family, trades cut by what they sell
 
-The [trade-roster-slate](./trade-roster-slate.md) already decided the
+The [trade-roster-slate](../tails/trade-roster-slate.md) already decided the
 Discipline shape — `baking` is a skill that `specializes: cooking` (the
 midwifery→medicine pattern), with `brewing` and `butchery` as siblings
 under ISCED-F 0721 — and the roster's economics already encode the real
@@ -102,7 +109,7 @@ pack's designer:
 dependency.** The [fishing slate](./fishing-slate.md) is a thorough
 third extraction vertical (upstream acquisition, like butchery:
 cooking consumes the catch via a category tag), and the
-[preservation slate](./preservation-slate.md)'s v1 scope is literally
+[preservation slate](../tails/preservation-slate.md)'s v1 scope is literally
 "one perishable class (**fish** — fishing is the stated driver)" — so
 this build's W0 *generalizes and unblocks* the fishing slate's own
 perishability driver. The relay race runs fastest here ("fish fast,
@@ -213,7 +220,7 @@ like every other acquisition trade.
   discoverable, not a roll on `search` (the uncertainty doctrine's
   environmental-legal / resolutional-banned line).
 - **The gap is already predicted**: `foraging` is a ⭐gap Discipline
-  in the [trade roster](./trade-roster-slate.md) (`awareness` ships,
+  in the [trade roster](../tails/trade-roster-slate.md) (`awareness` ships,
   `foraging` does not) and **no `forage`/`gather` verb exists** — the
   [authored-vs-procedural slate](./authored-vs-procedural-slate.md)
   names both, and reframes the real question as *authoring*, not
@@ -466,7 +473,7 @@ Five candidate axes, and the interesting decision is the one we *refuse*:
    `control`. The only per-attempt variance in v1.
 3. **Provenance — shipped.** Maker, recipe, `craftedAt`.
 4. **Freshness/condition — wave 0 of this build.** The
-   [spoilage pack](./spoilage-design-pack.md) as designed: microbial load
+   [spoilage pack](../tails/spoilage-design-pack.md) as designed: microbial load
    by real predictive microbiology (Arrhenius temperature term × water
    activity), `ptomaine` past threshold, **cooking above ~60 °C is the
    kill step — the reset**. The clock stamp is `craftedAt`, already
@@ -618,7 +625,7 @@ clock lives:
   whole point); air is `Sealable` — **binary**, per terms-not-methods,
   until a consumer demands a hurdle multiplier. Cooking adds rows.
 - ⭐⭐ **Freshness rides the PAYLOAD, not the vessel** — settling the
-  [spoilage pack](./spoilage-design-pack.md)'s open question ("does
+  [spoilage pack](../tails/spoilage-design-pack.md)'s open question ("does
   `BulkPayload` gain a freshness field?"): **yes** — for bulk
   contents the microbial load lives on the `BulkPayload` and
   **transfers carry it**. Vessel-borne freshness is the
@@ -650,7 +657,7 @@ completed sentence:
   era's territory; bones→stock then lands as clear broth's frugal
   upstream, and compost-or-stock becomes a real household fork.
 - ⭐ **Spoiled-food disposal completes the compost pack's sentence.**
-  [Hearth-and-larder](./hearth-and-larder-design-pack.md) Part 3:
+  [Hearth-and-larder](../tails/hearth-and-larder-design-pack.md) Part 3:
   compost's "*consumer already ships and its producer does not*" —
   **spoilage + cooking IS the missing producer.** Once W0 runs,
   players hold crocks that turned; the bin/midden (a vessel row
@@ -730,7 +737,7 @@ others matter.*
 **Waves, in order:**
 
 - **W0 — the spoilage core**, built exactly as the
-  [spoilage design pack](./spoilage-design-pack.md) specifies (cite it,
+  [spoilage design pack](../tails/spoilage-design-pack.md) specifies (cite it,
   don't re-design it): `FreshnessMixin`, `ThermalMixin` on perishables (a
   sack of grain has no temperature today), the Material spoilage
   constants, the ingest toxicity rung.
@@ -995,7 +1002,7 @@ rather than the glass, because a syrup bottle and a juice bottle are
   that object. Part 3's spoilage story quietly depends on this part.
 - **Dinnerware becomes an economy.** Once dishes stop being minted per
   meal they have to come from somewhere — the ⭐potter and the
-  ⭐ceramics gap in the [trade-roster](./trade-roster-slate.md) are
+  ⭐ceramics gap in the [trade-roster](../tails/trade-roster-slate.md) are
   the vocation this wakes, and par shortfalls at every kitchen and
   tavern are its unmet demand.
 
@@ -1107,7 +1114,7 @@ and an iron pot are `CookPot`/`CraftVessel` rows with different
   that poisons the household through every acidic stew: authored
   content against a shipped toxin, a price-vs-safety decision with
   real stakes. (Cast-iron *seasoning* is a patina — see the
-  [patina design pack](./patina-design-pack.md); a pointer, not a
+  [patina design pack](../tails/patina-design-pack.md); a pointer, not a
   mechanism.)
 
 **Shapes: IN vs ON is `Bulkable`-interior vs `Surfaced`, and the

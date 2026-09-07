@@ -378,7 +378,7 @@ Text earns its place, but the argument owns its costs.
   [design-philosophy.md](./design-philosophy.md)). Ranged combat *looks*
   like it belongs here but doesn't — it's modeled as abstract engaged
   relationships, not coordinates (see
-  [combat-tactics-slate.md](./slates/deferred-rpg/combat-tactics-slate.md)).
+  [combat-tactics-slate.md](./slates/tails/combat-tactics-slate.md)).
 
 None of these unseat text; they mark where it is *rendered alongside*
 something richer. The substrate stays text; the decoration handles the

@@ -1,5 +1,17 @@
 # Mortality slate — dying, the corpse, the shade, the passage
 
+> **Status: PARTIAL** — the substrate shipped 2026-07-31: the unified
+> `ConditionApi.die`, the rescuable `dying` clock, stabilization, the
+> forensic corpse, the shade, `reembody` + the `passage` floor, and the
+> ledger rows → [mortality.md](../../subsystems/mortality.md)
+> **Left:** the re-embodiment service as content (the temple vs clinic
+> vendors, employer coverage, the price of walking out) · what
+> diminishment actually IS — the `recovering` seed is deliberately empty ·
+> the in-circle death arc (minting a real body from inside a circle) ·
+> corpse remains + the coroner economy · where "wake at your residence"
+> plugs in · the passage ladder (trial / bargain / Orpheus)
+> **Size:** a build
+
 > **Status: BUILT 2026-07-31** — graduated to
 > [../../subsystems/mortality.md](../../subsystems/mortality.md), which is
 > now the source of truth for anything shipped. This slate is kept for its
@@ -10,7 +22,7 @@
 > recovery arc.
 >
 > **This slate does not re-litigate the design.** The settled shape lives in
-> [deferred-rpg/mortal-vessel-slate](../deferred-rpg/mortal-vessel-slate.md)
+> [deferred-rpg/mortal-vessel-slate](./mortal-vessel-slate.md)
 > — the three-layer self, function-over-form, the death arc, the opt-in
 > passage, and the prison↔Hades unification. That slate is the **design
 > authority**; this one is the extract that a requirements doc can be

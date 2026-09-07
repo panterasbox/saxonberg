@@ -1,5 +1,13 @@
 # Reference-lifetime slate — declare how long a ref holds
 
+> **Status: PARTIAL** — shipped 2026-08-02 as `static fieldMeta` on the
+> two-axis model → [ref-shapes.md](../../ref-shapes.md)
+> **Left:** four undeclared instance-ref sites
+> (`SandboxCrossingExit.crossing`, the `ExitableVessel` caches,
+> `LoungeWarren._reapTimers`, the `DormWarren` maps) · the six held-side
+> R2.4 unhooks · the identity axis, declared nowhere
+> **Size:** a tail
+
 > **BUILT, WITH A TAIL** (2026-08-02) — hence `tails/`. Shipped as
 > `static fieldMeta` with the two-axis model; see
 > [ref-shapes.md](../../ref-shapes.md) for the doctrine as shipped and

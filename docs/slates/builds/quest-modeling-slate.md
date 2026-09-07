@@ -1,5 +1,11 @@
 # Quest-modeling slate (working doc)
 
+> **Status: UNBUILT** — no quest template, beat or genre exists.
+> **Left:** the template primitive · the beat + condition-detection seam ·
+> the choice function (utility, not a tree) · the genre library · the
+> diegetic director + the multi-party hold
+> **Size:** a build
+
 > **Status:** foundational design (first pass, 2026-06-29). A *model*,
 > not a build. Captures how we model narrative — the abstraction a
 > content author casts, the runtime that drives it, and the library of

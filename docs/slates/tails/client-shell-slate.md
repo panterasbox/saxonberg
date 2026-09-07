@@ -1,5 +1,12 @@
 # Client shell slate (working doc)
 
+> **Status: PARTIAL** — Track A (frame, start screen, guest, reconnect)
+> shipped → [client-shell.md](../../subsystems/client-shell.md)
+> **Left:** search as a frame primitive (Q3) · the public read-only
+> surface (metrics · overlays · public docs) · the declarative mode model
+> · mode determination (Q1) · the device-local pre-auth tier (Q9)
+> **Size:** a wave
+
 > **Status: Track A lead SHIPPED** (frame replacement + plain-UI start
 > screen + anonymous guest + connection-loss + portrait), built per
 > `docs/requirements/client-shell-frame-requirements.md` /
@@ -281,7 +288,7 @@ surface can summon), **search** (the discovery front-end; results open
 the viewer), **spoiler gating**, and the **transclusion/embed palette**.
 
 **Spoiler is shell-level, not a wiki feature.** The reader's appetite
-dial + capability ceiling (see [spoiler-slate.md](../deferred-rpg/spoiler-slate.md))
+dial + capability ceiling (see [spoiler-slate.md](./spoiler-slate.md))
 are a property of the *session*; the shared viewer applies them to
 *whatever it renders* — a help page, a wiki page, or a transcluded embed
 inside either. Same for the **transclusion palette**: `{{help:…}}`,

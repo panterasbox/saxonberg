@@ -1,7 +1,14 @@
 # Forestry slate — the crop you inherit
 
+> **Status: UNBUILT** — design surface only, no phase gate passed; the
+> `trade-fuel` coppice is the accidental head start.
+> **Left:** the forestry trade pack · felling + conversion verbs ·
+> seasoning · the stand-as-record · the silviculture Discipline ·
+> estovers + forest law · deforestation as a reachable consequence
+> **Size:** a build
+
 > **Status: design surface, unbuilt, no phase gate passed.** Written
-> 2026-09-03 out of the [farmstead](../../plans/farmstead-plan.md)
+> 2026-09-03 out of the farmstead *(retired artifact)*
 > land-use pass, which found that **wood has more consumers than any other
 > material in the game and no producer designed for it.**
 >
@@ -16,20 +23,20 @@
 > *charcoal burner / collier*, marked shipped — which is a customer, not a
 > producer.
 
-See also: [farmstead plan](../../plans/farmstead-plan.md)
+See also: farmstead plan *(retired artifact)*
 (**D63** winter fuel · **D70** woodland as a land use · **D74** the commons
 rights) · [mining-slate](./mining-slate.md) + [metal-chain-slate](./metal-chain-slate.md)
 (**the three-pack precedent, and the timber customer**) ·
 [fire-combustion-slate](./fire-combustion-slate.md) ·
 [hunting-slate](./hunting-slate.md) (forest law is one law) ·
-[vocations register](../../vocations.md) · [trade-roster-slate](./trade-roster-slate.md).
+[vocations register](../../vocations.md) · [trade-roster-slate](../tails/trade-roster-slate.md).
 Substrates: [husbandry.md](../../subsystems/husbandry.md) (`GrowingMixin`) ·
 [smallholding.md](../../subsystems/smallholding.md) (`CultivableMixin`) ·
 [fire.md](../../subsystems/fire.md) · [mining.md](../../subsystems/mining.md)
 (`TimberSet`) · [crafting.md](../../subsystems/crafting.md) ·
 [materials-response.md](../../subsystems/materials-response.md) ·
 [watershed.md](../../subsystems/watershed.md) (**water power**) ·
-[field-substrate-slate](./field-substrate-slate.md).
+[field-substrate-slate](../tails/field-substrate-slate.md).
 
 ---
 

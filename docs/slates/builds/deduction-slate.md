@@ -1,5 +1,14 @@
 # Deduction — the forensic-investigation quest type (sketch)
 
+> **Status: UNBUILT** — no quest spine and no deduction surface exist;
+> the substrates it names (advancement, belief, chronicle, MQL
+> subscriptions, card-surface, prose) all shipped.
+> **Left:** the thin generic quest spine (milestones · branches ·
+> completion) · the casebook word-bank · the party-scoped board ·
+> `analyze`-derived findings · `post`/`link`/`theory`/`present` ·
+> cluster locking · `reconstruct` prose playback · the §11 empty node
+> **Size:** a build
+
 > **Status: sketch / pre-requirements.** A design pass, not a spec. Authored
 > 2026-06-27 designing the EU murder arc's resolution (the Quad). Captures a
 > **quest-type mechanic** + a deduction-system synthesis from prior art.

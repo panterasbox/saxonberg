@@ -273,7 +273,7 @@ exactly as it did before the fields existed.
 > one formula serves both — correct today, and ambiguous to read.
 >
 > Both are addressed by
-> [development-slate](../slates/builds/development-slate.md), which makes
+> [development-slate](../slates/tails/development-slate.md), which makes
 > efficiency a **measured** ratio (lettable cells ÷ built cells) rather than
 > a deduction, and splits ground conservation from floor conservation. It
 > also corrects a third thing: `subdivide`'s ceiling currently makes **every**

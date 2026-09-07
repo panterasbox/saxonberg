@@ -1,5 +1,12 @@
 # Host-slot activities (working slate)
 
+> **Status: PARTIAL** — the activity framework and live consumers shipped;
+> `read` landed as `MarkedMixin` →
+> [activity.md](../../subsystems/activity.md)
+> **Left:** sit/lie/mount/drive as interruptible durative engagements ·
+> `SlotApi.claimPending` · the decode half of `read` as a duration
+> **Size:** a tail
+
 > **⚠ AUDIT 2026-08-08 — two corrections.** Checked against the tree when
 > GitLab #9 was closed here.
 >

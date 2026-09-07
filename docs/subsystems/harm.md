@@ -283,7 +283,7 @@ real hazard/trap taxonomy is a separate future build over the same seam.
 - **Avulsion sever / part-promotion** — at `AVULSION_BEHAVIOR.onset`.
 - **Combat resolution** — attack verbs, poise, blame ledger,
   `combat.body.*` events, offensive `ActSignature`
-  ([combat-slate.md](../slates/deferred-rpg/combat-slate.md)); harm
+  ([combat-slate.md](../slates/builds/combat-slate.md)); harm
   provides the substrate combat writes into and the `inflict` door it
   calls.
 - **Instrument + medicine first-aid branches**, fuller consumable-crafting
@@ -314,7 +314,7 @@ real hazard/trap taxonomy is a separate future build over the same seam.
   the `LocomotionApi` seam the limp rides
 - [slot.md](./slot.md) / [embodiment.md](./embodiment.md) — the worn-
   coverage presence check
-- [combat-slate.md](../slates/deferred-rpg/combat-slate.md) — the
+- [combat-slate.md](../slates/builds/combat-slate.md) — the
   downstream consumer
 
 ## History

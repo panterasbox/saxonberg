@@ -1,5 +1,11 @@
 # Prompt stack slate (working doc)
 
+> **Status: PARTIAL** — the server substrate, the stack and the client
+> prompt strip shipped → [prompt.md](../../subsystems/prompt.md)
+> **Left:** Tier 2 kinds `numeric` / `multiChoice` / `password` · Tier 3
+> `paginated` + `quiz` · multi-prompt stacking visuals + dismissal UX
+> **Size:** a tail
+
 Working slate for the **interactive prompt stack** — a server- and
 client-side substrate for asking the player a question mid-flow,
 recording their answer, and resuming whatever needed it. Disambiguation,

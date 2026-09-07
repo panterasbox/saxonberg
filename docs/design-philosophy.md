@@ -262,7 +262,7 @@ The discipline is strict: an invented science must be **rigorously
 self-consistent**, and it never becomes the fudge layer — it obeys
 its own laws as unforgivingly as the real channels obey theirs.
 Designing one means genuinely designing a physics. See
-[capability-magic-slate.md](./slates/deferred-rpg/capability-magic-slate.md) for
+[capability-magic-slate.md](./slates/builds/capability-magic-slate.md) for
 the worked application.
 
 ### Principle 3: Layered presentation
@@ -481,7 +481,7 @@ Ranged actions become a Conduit-channel question with skill-
 check resolution.
 
 > The fuller treatment now lives in
-> [combat-tactics-slate.md](./slates/deferred-rpg/combat-tactics-slate.md): combat as
+> [combat-tactics-slate.md](./slates/tails/combat-tactics-slate.md): combat as
 > abstract **engaged relationships** rather than geometry, with
 > party-level tactics layered on top. This section keeps the
 > Conduit-channel mechanics that slate's Thesis 1 builds on.
@@ -581,7 +581,7 @@ to go around") is **explicitly deferred**. The bag-of-stuff
 default plus block-validators handles the same content cases
 without committing to sub-room geometry.
 
-Full design in [collision-slate.md](./slates/deferred-rpg/collision-slate.md).
+Full design in [collision-slate.md](./slates/tails/collision-slate.md).
 
 ---
 
@@ -646,7 +646,7 @@ re-derive them.
   first content that demands it (an archery range, a tavern
   with named seats).
 - **Combat-tactics slate** —
-  [combat-tactics-slate.md](./slates/deferred-rpg/combat-tactics-slate.md), now
+  [combat-tactics-slate.md](./slates/tails/combat-tactics-slate.md), now
   drafted. Folds ranged actions (the abstract engaged-relationship model
   + one new Conduit `physical` dimension) into the broader combat design
   rather than a standalone ranged slate.

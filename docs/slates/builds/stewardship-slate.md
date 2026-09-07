@@ -1,5 +1,12 @@
 # Stewardship slate — land use, the allowance cascade, and the residence ladder
 
+> **Status: PARTIAL** — land use, the frontier smallholding, condition +
+> the ascent gate, and the let rung shipped →
+> [holding.md](../../subsystems/holding.md)
+> **Left:** premises + utilities (the lease's money leg) · the allowance
+> meter · the cascade + the zoning authority · the Stewardship Discipline
+> **Size:** a build
+
 > **⭐ PARTLY SHIPPED (2026-08-01).** Hinkley Hills took the **land-use
 > enabler** out of this slate and built it: the closed six-entry
 > vocabulary on `ParcelRecord`, the longest-prefix resolve, and the
@@ -12,7 +19,7 @@
 
 > **Status: design captured 2026-07-31, not built.** The layer between the
 > shipped [parcel](../../subsystems/parcel.md) title and the activity systems
-> that sit on land — [farming](./farming-slate.md),
+> that sit on land — [farming](../tails/farming-slate.md),
 > [ranching](./ranching-slate.md), [pets](./pets-slate.md), and the home itself.
 > It answers the question none of those can answer alone: **how much of this may
 > you do, where, and what does holding it oblige you to?**
@@ -30,7 +37,7 @@
 
 See also: [property-slate](./property-slate.md) (**the parent** — title, tenure,
 the compute-allowance thesis, the residence ladder's forward sketch in §L) ·
-[farming](./farming-slate.md) · [ranching](./ranching-slate.md) ·
+[farming](../tails/farming-slate.md) · [ranching](./ranching-slate.md) ·
 [pets](./pets-slate.md) (the three consumers) ·
 [power-utility-slate](./power-utility-slate.md) (utilities as a premises
 obligation; independently arrived at the parcel as the billing unit) ·

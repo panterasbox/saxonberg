@@ -1,5 +1,14 @@
 # Notification slate (working doc)
 
+> **Status: UNBUILT** — nothing ships; `NotifyPolicy`, MQL
+> subscriptions, forum subscriptions and `Bulletin` are each explicitly
+> not this, and [wiki.md](../../subsystems/wiki.md) names the gap and
+> points back here.
+> **Left:** the subject-keyed event · the durable subscription ·
+> derive-on-read delivery · coalescing + digest · the both-ends spoiler
+> gate · the first producers (wiki watchlists, forums)
+> **Size:** a build
+
 > **Status: design proposed, nothing built.** The one substrate that
 > answers *"what happened to the things I care about while I was away."*
 > Surfaced by the [wiki](../tails/wiki-slate.md), which needs watchlists and

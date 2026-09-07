@@ -1,5 +1,13 @@
 # Agency slate — acting on behalf of another
 
+> **Status: UNBUILT** — `AccessApi.can` and `getActingAuthor` are the two
+> halves it joins; nothing joins them.
+> **Left:** the agency grant (UseGrant-shaped · scoped · revocable) · the
+> principal/agent split in the execution context · the closed
+> capability-kind vocabulary · the fiduciary / self-dealing guard · the
+> code-trust non-flow rule
+> **Size:** a build
+
 **Captured 2026-08-04**, out of the gap hunt across law sources. Several
 separate designs had each been reaching for the same missing primitive
 privately.
@@ -15,7 +23,7 @@ constraint that shapes the whole design — read it first**),
 [provenance.md](../../subsystems/provenance.md) (`getActingAuthor`, the
 attribution half), [access.md](../../subsystems/access.md) (`can`, the
 authorization half), [parcel.md](../../subsystems/parcel.md) (`UseGrant`
-— the scoping shape), [incapacity-slate](./incapacity-slate.md) (the
+— the scoping shape), [incapacity-slate](../tails/incapacity-slate.md) (the
 deputy question this answers),
 [employment.md](../../subsystems/employment.md) (a possible existing
 special case), [legal-code-slate](./legal-code-slate.md) (⚠ delegation,
@@ -97,7 +105,7 @@ vocabulary closed rather than open is the design work.
 
 # ⭐ What it unblocks
 
-- **deputies** — [incapacity-slate](./incapacity-slate.md)'s open question
+- **deputies** — [incapacity-slate](../tails/incapacity-slate.md)'s open question
   had nowhere to land
 - **trusts** — property held by one for another's benefit
 - **guardianship** — for the genuinely incapacitated
@@ -192,7 +200,7 @@ transfers; default-not-transfer."**
    but it means an act can change its authorization retroactively, which
    the record will not love.
 5. ⚠ **What happens to live agencies when the principal is absent?**
-   [incapacity-slate](./incapacity-slate.md) says impound-on-claim for
+   [incapacity-slate](../tails/incapacity-slate.md) says impound-on-claim for
    holdings — but an agency is exactly the thing that *prevents* the harm
    a claim would answer. **Agency may be the humane alternative to
    receivership**, which argues for making it easy to grant in advance.

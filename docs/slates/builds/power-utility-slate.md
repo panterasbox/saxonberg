@@ -1,5 +1,16 @@
 # Power-utility slate — electricity as municipal infrastructure
 
+> **Status: PARTIAL** — local Ohm's-law physics shipped →
+> [electricity.md](../../subsystems/electricity.md); the commodity-generic
+> supply ladder shipped for WATER only (`Conduit` + `SupplyState`) →
+> [watershed.md](../../subsystems/watershed.md)
+> **Left:** the supply reference on `Energized` fixtures · outage
+> propagation + directional network failure over exit edges · gas as the
+> second conduit commodity · the kitchen as residential demand case ·
+> use-metered billing (Law 2) · the ownership fork (office vs corpo vs
+> co-op) · hydro generation as content · the lineman rotation
+> **Size:** a build
+
 **Captured 2026-07-28**, out of the demo-content requirements
 session: authoring the crossing's lamppost raised "do we need to
 model electricity as a utility?" — deferred deliberately, captured

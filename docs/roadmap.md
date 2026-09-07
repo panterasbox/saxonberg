@@ -182,7 +182,7 @@ remains in the near-term Track A queue:
    decomposes into per-track requirements docs at build time.
 2. **Scoped-authoring GUI** (the room editor) — blocked on
    access landing in Track B; will pair with the new-player flow.
-   ([scoped-authoring-slate.md](./slates/builds/scoped-authoring-slate.md))
+   ([scoped-authoring-slate.md](./slates/tails/scoped-authoring-slate.md))
 
 > **Retired from Track A** (so future passes don't re-suggest):
 >
@@ -336,7 +336,7 @@ Ordered by leverage + dependency:
      day specific content asks.
    So don't re-surface collision as "what's next": its live half is a
    brain owned by npc-behavior; the rest waits on content.
-   ([collision-slate.md](./slates/deferred-rpg/collision-slate.md))
+   ([collision-slate.md](./slates/tails/collision-slate.md))
 5. **Recognition family** — recognition (full) + identification
    (substrate) + the viewer-aware naming step (the realized
    `DescribeApi v2`) **shipped 2026-06** as the belief subsystem; see
@@ -364,7 +364,7 @@ Ordered by leverage + dependency:
    id-aug** ambient trigger (axes unresolved + aug substrate retooling).
    ([reputation](./slates/builds/reputation-slate.md) /
    [social-graph](./slates/tails/social-graph-slate.md) /
-   [identification](./slates/tails/identification-slate.md))
+   [identification](./slates/builds/identification-slate.md))
 6. **Augmentation Wave 2+ + npc-dialogue** — Wave 1 augmentation
    shipped 2026-06 (substrate + AetherImplant; see
    [augmentation.md](./subsystems/augmentation.md)); the
@@ -470,7 +470,7 @@ requirements.
   verb, comm transport); the baseline comm implant; cybernetic flavor,
   flavor-agnostic substrate. Surfaced by comms (the ESP transport) and
   char-gen (issued at intake).
-- [docs/slates/deferred-rpg/collision-slate.md](./slates/deferred-rpg/collision-slate.md) — capacity
+- [docs/slates/deferred-rpg/collision-slate.md](./slates/tails/collision-slate.md) — capacity
   (typed-list-of-constraints), intentional blocking, pushing (`Pushable`
   + `PushActivity`). **Decomposed (2026-06-10): not a standalone build** —
   intentional blocking is a **`guards` brain** under
@@ -487,7 +487,7 @@ requirements.
   per-viewer buckets (friends/foes/custom); notification policies;
   bucket-keyed display verbosity. **One *source* into the grouping
   facade** (below), not the same layer.
-- [docs/slates/tails/identification-slate.md](./slates/tails/identification-slate.md) —
+- [docs/slates/tails/identification-slate.md](./slates/builds/identification-slate.md) —
   parallel pattern for items; experiment-based identification;
   the pedagogical seam at its richest.
 
@@ -528,7 +528,7 @@ pass; built in waves):
   **permission framework** filling call-security's reserved seam;
   `can(subject, action, resource)` + diegetic-first capability sources;
   the **do / see / write × circumstances** meta-shape.
-- [docs/slates/deferred-rpg/spoiler-slate.md](./slates/deferred-rpg/spoiler-slate.md) — **best-
+- [docs/slates/deferred-rpg/spoiler-slate.md](./slates/tails/spoiler-slate.md) — **best-
   effort** server-side fact-gating (extends the percept revelation-
   conditions); imposed + opt-in; assessment integrity flagged as a
   *separate* (assessment-system) problem.
@@ -563,7 +563,7 @@ onboarding → dorm + authoring), each thin-engine / content-heavy:
   Eternal City Teleport Authority: a directed public-terminal network,
   **scan-to-register** credential (implant/card), on-demand teleport;
   living-infrastructure seam (maintenance/economy deferred).
-- [docs/slates/builds/scoped-authoring-slate.md](./slates/builds/scoped-authoring-slate.md)
+- [docs/slates/builds/scoped-authoring-slate.md](./slates/tails/scoped-authoring-slate.md)
   — democratized, **safe, ownership-scoped** authoring (your dorm);
   GUI-first/thin-command; **(policy, validator) per-field, default-deny**.
 

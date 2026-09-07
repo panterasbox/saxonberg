@@ -1,5 +1,13 @@
 # Console filtering slate (working doc)
 
+> **Status: PARTIAL** — the core shipped in the console-foundations
+> build: `TabStrip`, `FilterDrawer`, `GutterStripe`, and the
+> `Topic`/`TopicCatalogue` substrate
+> → [topics.md](../../subsystems/topics.md)
+> **Left:** transcript search · sender filter · compact mode ·
+> timestamps · brief mode / `prose.verbose` · per-room verbosity memory
+> **Size:** a wave
+
 Working slate for **console filtering** — the suite of client-side
 tools that let players manage what they see in the terminal scroll.
 Sister surface to the inspection card: that slate handles "show me

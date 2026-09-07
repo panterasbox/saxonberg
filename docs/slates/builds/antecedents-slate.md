@@ -1,5 +1,15 @@
 # Antecedents slate (working doc)
 
+> **Status: PARTIAL** — Phase A landed inside the identity build as the
+> dossier, but as a stated BAND (`competence: asserting: expert`), not this
+> slate's decided stated-EFFORT prior →
+> [identity.md](../../subsystems/identity.md)
+> **Left:** the `background:` effort→prior function (kind × years × at) ·
+> the zero-write crowd prior · authored acquaintance (Gap 1) · all of
+> Phase B — the foreign-evidence adapter, the three buckets, the published
+> acceptance policy, revocation
+> **Size:** a build
+
 > **Status: design proposed, nothing built.** Two questions that turn out
 > to be one: *how does an NPC arrive good at something without an authored
 > biography of deeds*, and *how does a player carry competence between
@@ -425,7 +435,7 @@ The obvious use case is the least interesting one.
    discount. This is the education vertical with a wire protocol, and it
    is the variant that should drive the export format. See
    [college-slate](./college-slate.md) and
-   [../../study-com-transfer-network.md](../../study-com-transfer-network.md).
+   [../../study-com-transfer-network.md](../../study-com/transfer-network.md).
 
 ## Identity, consent, revocation
 

@@ -12,8 +12,8 @@ moment-to-moment play (strike/feint/defend/flee) stays personal agency;
 the formation is the standing policy around it.
 
 Built by the combat-formations build; seeded by
-[combat-tactics-slate.md](../slates/deferred-rpg/combat-tactics-slate.md)
-as refined by [combat-slate.md](../slates/deferred-rpg/combat-slate.md)
+[combat-tactics-slate.md](../slates/tails/combat-tactics-slate.md)
+as refined by [combat-slate.md](../slates/builds/combat-slate.md)
 (the emergent Master-Apprentice validation + coup attribution). Rides
 [combat](./combat.md) (the `CombatGraph` melee), [party](./party.md) (the
 captain + roster), [advancement](./advancement.md) (`ActSignature`
@@ -212,8 +212,8 @@ script) — zero new NPC content.
   [advancement](./advancement.md), [accountability](./accountability.md),
   [behavior](./behavior.md) (the `combatant` brain), [reactions](./reactions.md)
   (the shift + interception beats).
-- **Design surface:** [combat-tactics-slate](../slates/deferred-rpg/combat-tactics-slate.md),
-  [combat-slate](../slates/deferred-rpg/combat-slate.md).
+- **Design surface:** [combat-tactics-slate](../slates/tails/combat-tactics-slate.md),
+  [combat-slate](../slates/builds/combat-slate.md).
 
 ## History
 

@@ -1,5 +1,16 @@
 # NPC dialogue slate (tail)
 
+> **Status: PARTIAL** — wave 1 shipped 2026-06: the responder seam
+> (`talk to` → a pluggable brain), the branching-tree responder, the
+> pure-data tree format + CMS save-gate, `InstanceContributor`,
+> auto-introduce → [npc-dialogue.md](../../subsystems/npc-dialogue.md)
+> **Left:** the scripted free-text `intent-dialogue` responder
+> (pattern/synonym tables + the `addressed`/`handleMessage` trigger + the
+> implant `tell` entry) · the LLM front-end · persistent
+> per-relationship state · multiplayer tree participation beyond
+> overhearing
+> **Size:** a wave
+
 > **Status: Wave 1 shipped (2026-06)** → [../../subsystems/npc-dialogue.md](../../subsystems/npc-dialogue.md).
 > The responder seam (`talk to` → a pluggable brain), the **branching-tree
 > responder**, the pure-data tree format + CMS save-gate, the

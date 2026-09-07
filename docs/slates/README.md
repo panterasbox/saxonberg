@@ -1,804 +1,300 @@
-# Slates — the product backlog, divided by build
+# Slates — the design backlog, sorted by what is left
 
-Slates are the open-ended design surface (see
-[../workflow.md](../workflow.md) for the artifact taxonomy). This index
-exists because a flat folder of ~50 slates couldn't answer the two
-questions that actually matter when picking up work:
+222 slates. Every one carries a **status block** under its title:
 
-1. **Is this new substrate, or a deferred tail of something already
-   shipped?**
-2. **Which slates belong to the same build?**
+```
+> **Status: PARTIAL** — what shipped → [subsystem.md](…)
+> **Left:** the named things that remain
+> **Size:** a build · a wave · a tail
+```
 
-So the slates are split into three folders, and within `builds/` they're
-grouped into a handful of large, multi-phase builds (the only kind worth
-opening a cycle for).
+Read the block, not the folder — and if the block is wrong, fix it
+there. This index is generated from those blocks.
 
-| Folder | What lives here |
+**Status** — `UNBUILT` (nothing shipped) · `PARTIAL` (substrate shipped,
+surface remains) · `ABSORBED` (nothing left; retired and deleted).
+
+**Size** — the unit this project actually works in:
+
+| size | means | where it lives |
+|---|---|---|
+| **a build** | its own cycle: requirements → plan → build → MR | `builds/` |
+| **a wave** | rides another build | `tails/` |
+| **a tail** | small, opportunistic | `tails/` |
+
+⚠ The folder is **derived from the size**, not from history. It used to
+encode a judgment nobody re-made at sweep time, so `builds/` filled with
+shipped work and `tails/` with build-sized remainders. A `deferred-rpg/`
+folder is gone entirely — combat, magic, party, concealment and
+materials-response all shipped, which made the name actively misleading.
+
+---
+
+## ⭐ Greenfield — nothing shipped yet (52)
+
+Pick from here for a clean cycle with no existing substrate to respect.
+
+| slate | left to build |
 |---|---|
-| [`builds/`](./builds/) | **New substrate or content** with no shipped subsystem yet. Each is part of a named multi-phase build below. These are what you write a fresh requirements + plan against. |
-| [`tails/`](./tails/) | **Deferred tails of shipped subsystems.** The load-bearing substrate already exists in `docs/subsystems/`; what remains is Wave-N enhancement. Not a build — pulled into a build's branch or a subsystem cycle when a consumer needs it. |
-| [`deferred-rpg/`](./deferred-rpg/) | **Game-design behind the platform line** (RPG rules, progression, combat). Captured, intentionally not near-term — "no" here usually means "not this phase." |
+| [agency](./builds/agency-slate.md) | the agency grant (UseGrant-shaped · scoped · revocable) · the principal/agent split in the execution context · the closed capability-kind vocabulary … |
+| [alignment](./builds/alignment-slate.md) | the vertical derivation off the chronicle (deed → demigod affinity; domain authored, direction measured) · the horizontal off the conviction record … |
+| [alignment-religion](./builds/alignment-religion-slate.md) | nothing here — design from builds/alignment-slate.md (the two asymmetric axes, pantheon-as-legend, the mirror, `Faction`) |
+| [altar](./builds/altar-slate.md) | `AltarMixin` · `swear` / `offer` / `consecrate` / `dedicate` · accreted weight as renown-of-the-object · the patron taxonomy + taint · the prophet's wilderness altar … |
+| [amendment-library](./builds/amendment-library-slate.md) | the module registry + an adoption path over Art. X · the presets (distros) … |
+| [attestation](./builds/attestation-slate.md) | the `attestation_events` collection · the closed assertion vocabulary (`approves`/`objects`/`notes`) · the go-live predicate on the CMS save/publish split … |
+| [authored-vs-procedural](./builds/authored-vs-procedural-slate.md) | the design pass itself · a `forage`/`gather` verb (none exists) · *cultivated* as a category · a census gate tying a species row to a way to occur … |
+| [authoring-intelligence](./builds/authoring-intelligence-slate.md) | the platform-semantic model (template-path completion, reference validation, mixin-composition rules, lease scope) · the LSP server · the VS Code extension … |
+| [bathroom](./builds/bathroom-slate.md) | the washing/cleanliness state · the mirror self-recognition read · the closed restroom archetype set · the bathhouse venue · water-as-utility metering … |
+| [blood](./builds/blood-slate.md) | the genotype/phenotype endowment · the compatibility cost curve · the donation loop + the bag · screening · the trait payoff … |
+| [branch-policy](./builds/branch-policy-slate.md) | the `policy` kind + the `writers` allowlist · the longest-prefix resolve at `DocumentApi.save` · nearest-wins + self-amendment … |
+| [call-security-pass](./builds/call-security-pass-slate.md) | the `@Audited` permit-and-watch rail · re-gating the ~35 ungated-and-sealed mutators · a caller-template + caller-function trust primitive … |
+| [campus-grounds](./builds/campus-grounds-slate.md) | the labs · the archive + literature-substitutes-for- fieldwork · the three teaching field sites · the combat facilities … |
+| [client-audio](./builds/client-audio-slate.md) | the client audio player (ambient emission → playback) · the Spotify embed tier · the zorkmid priority queue · the bar jukebox object … |
+| [college](./builds/college-slate.md) | the course catalogue + reader in the study.com taxonomy … |
+| [deduction](./builds/deduction-slate.md) | the thin generic quest spine (milestones · branches · completion) · the casebook word-bank · the party-scoped board · `analyze`-derived findings … |
+| [demo](./builds/demo-slate.md) | the mock issuer adapter · the aged demo world · the threshold-ceremony beats · aid-post content · the fountain acoustic prop · the mobile-floor check … |
+| [discovery](./builds/discovery-slate.md) | the forage verb + the patch Stuff · biome-authored tables with derived, depleting stock · the NetHack consumable distribution … |
+| [education-integration](./builds/education-integration-slate.md) | earn-by-learning (the vocational lab as a crafting venue) · the student → TA → instructor ladder · the corpo sponsor funding a cohort against outcomes … |
+| [enforcement](./builds/enforcement-slate.md) | the enforcement-mode vocabulary (wall · camera · witness · norm) as a committee-picked field · the evidence firewall … |
+| [eternal-university-narrative](./builds/eternal-university-narrative-slate.md) | the whole arc — the three-tier serial crime, Dunny and Wren, the killer + the panic · the census mechanic (roll · enumerator · count → conviction-voting) … |
+| [faith](./builds/faith-slate.md) | the deed-tag vocabulary + the four tags Part 1 needs (`aid.treat`, `aid.attend-dying`, `harm.nonconsented`, `ritual.attend`, honouring `since`) … |
+| [fishing](./builds/fishing-slate.md) | the catch-distribution field · the landing contest · the fish and aquatic-harvest roster · the method ladder (rod · trap · net · spear) · the three water regimes … |
+| [flowers](./builds/flowers-slate.md) | the act record (who gave what, to whom, publicly) · the wiki floriography with NO shipped meanings table … |
+| [forestry](./builds/forestry-slate.md) | the forestry trade pack · felling + conversion verbs · seasoning · the stand-as-record · the silviculture Discipline · estovers + forest law … |
+| [grid](./builds/grid-slate.md) | the service declaration on `ParcelRecord` (default connected, author disconnection) · connection-not-consumption metering … |
+| [guild](./builds/guild-slate.md) | the `Guild` Idea + charter schema · the `guild:` GroupProvider + ranks · focus-tagged `TranscriptEntry` + charter-weighted `Competence` · contract claim gates … |
+| [hunting](./builds/hunting-slate.md) | the wild population as a record materialized on encounter · `track` + the method ladder · *ferae naturae* + game law + close seasons · poaching enforcement … |
+| [implements](./builds/implements-slate.md) | the implement class itself · choosing what it modifies (magnitude / cost / band-reach) · BUC on the effect axis · the stacking rule, before content exists … |
+| [instrumentation](./builds/instrumentation-slate.md) | the `analyze`/`measure` channel → capability + competence table · the instrument-declared dial (so a pack contributes a subcommand) · the readout ladder … |
+| [insurance](./builds/insurance-slate.md) | the policy-as-contract + reserve ratio · cargo underwriting · the mutual · the credit vocation · the ratings agency · the accountant · the notary/scrivener … |
+| [lineage](./builds/lineage-slate.md) | person + household records · a `kind: 'gallery'` field + row payload · the gallery UI (grid/detail/reroll/lock) · endowed appearance that actually renders … |
+| [llm-content](./builds/llm-content-slate.md) | the director agent + its locality prompt · the forced-cast command-bus seam · the ambient narrator · script emission · sponsorship funding … |
+| [map](./builds/map-slate.md) | the 2D per-floor grid + the player minimap · the 2D node-graph · the 3D procedural box render · the draft-template and live-Stuff adapters … |
+| [mind](./builds/mind-slate.md) | the equanimity Reserve + the stress equilibrium (the deferred `traits-stress` build named in trait.md) · the dials that configure "yourself" · situational conditions … |
+| [mirror](./builds/mirror-slate.md) | the inbound assertion channel · the density threshold · the never-see-the-raw-feed privacy invariant · sensor-silence as neutral · calibration/trust tiers … |
+| [notification](./builds/notification-slate.md) | the subject-keyed event · the durable subscription · derive-on-read delivery · coalescing + digest · the both-ends spoiler gate … |
+| [odometer](./builds/odometer-slate.md) | the counter roster (editorial, chosen against observed play) · the subject-scoped derive over chronicle/participation/advancement · milestones … |
+| [pharma](./builds/pharma-slate.md) | the actives/pharmacopoeia content · extraction as a process · glass vessels · the assay instrument · the apothecary + assayer vocations · the illicit branch … |
+| [presence-hollowing](./builds/presence-hollowing-slate.md) | presence-vs-hollow as a physical state on an agent · who perceives it (ESP · the attuned reader dial · sacred instruments) · binary or degree … |
+| [prison](./builds/prison-slate.md) | `PrisonMixin` (a locality you cannot leave) · the three enforcement tiers in content · the federal facility on its reserved Saxonberg site · terms and the appeal path |
+| [quest-modeling](./builds/quest-modeling-slate.md) | the template primitive · the beat + condition-detection seam · the choice function (utility, not a tree) · the genre library … |
+| [record-integrity](./builds/record-integrity-slate.md) | event-source `positions` → `position_events` · `prevHash` chaining with canonical serialization · the Merkle checkpoint · anchoring via `GitApi` to third-party hosts … |
+| [rendering](./builds/rendering-slate.md) | the knacker · the tanner · the chandler · `tallow` / `soap` / `candle` · the carcass → named-materials seam in ranching · the one-pack-or-three cut |
+| [resilience](./builds/resilience-slate.md) | Tier 1 code-trust auditing (eval payloads, source-tree writes) · the Api tier's default-open · per-call time budgets · input reaching dangerous constructs … |
+| [room-condition (pack)](./builds/room-condition-design-pack.md) | `SoilableMixin` · the room debris field · `sweep` / `wipe` / `tidy` / `dispose` · the `restQuality` aggregation · the pest threshold … |
+| [sanitation](./builds/sanitation-slate.md) | `collect` + the impound yard · the abandonment rule and the two legal regimes a locality picks · the salvage yard (assay, the three exits, the lossy loop) … |
+| [saxonberg-city](./builds/saxonberg-city-slate.md) | the Locality + parcel spine · the residential district and its launch stock · the PM's Residence (office-keyed tenure) · the three chamber halls + the Central Bank … |
+| [warranty](./builds/warranty-slate.md) | the representation/assertion primitive · post-delivery clause verification on contract.md · the remedy ladder (rescission … |
+| [wizard-axis-cleanup](./builds/wizard-axis-cleanup-slate.md) | W0 `lint:wizard-axis` allowlist · W1 the four lease/provision `isWizard` bypasses + the `execScript` verdict … |
+| [wizard-bar](./builds/wizard-bar-slate.md) | ⭐ the conspicuous record of wizard reads/impersonations (the one non-retrofittable piece) · the safe-harbour standard text · admit (exam + archwizard flip) … |
+| [wizard-duty](./builds/wizard-duty-slate.md) | re-gating those four off the code-trust axis · break-glass declared-purpose logging for reads and impersonation · `su` as an agency consumer … |
 
-⭐ **Every slate carries a lens pass.** A design is not ready until it
-has been interrogated against the five —
-[../design-lenses.md](../design-lenses.md): pedagogy · creative
-expression · immersion & roleplay · values · epochs. Lenses 1 and 2
-decide forks; a heading that is hard to fill is the finding.
+## ⭐ Continuations — substrate shipped, a build's worth remains (78)
 
----
+Pick from here to deepen something that already works. Cheaper to start
+(the ground is proven) and the slate says exactly where the edge is.
 
-## Builds (`builds/`)
+| slate | left to build |
+|---|---|
+| [acquisition](./builds/acquisition-slate.md) | forums leaving the default loadout · the `dorm-key` record + the `presentsKey` wallet read · the payment credential required at hire · the conferral certificate … |
+| [advancement](./builds/advancement-slate.md) | the loadout (capacity-not-decay + warm-up) · guilds (venue, mentors, credential, membership-as-affordance) · the Reserve-shaped stakes engine · declared focus … |
+| [affiliation](./builds/affiliation-slate.md) | House as a provider plus its char-gen touch (the near-term axis) · Guild as the class system · Corp as the competition overlay — the last two deferred game design |
+| [antecedents](./builds/antecedents-slate.md) | the `background:` effort→prior function (kind × years × at) · the zero-write crowd prior · authored acquaintance (Gap 1) … |
+| [auction](./builds/auction-slate.md) | the `auction` + `bid` verbs · the lot-as-contract mapping · silent (sealed) mode first, then the live auctioneer `SustainedEngagement` with reset-on-bid … |
+| [balance](./builds/balance-slate.md) | the jurisdiction stamp on the 4 unstamped ledgers (#0a-0c) · the cross-jurisdiction enumeration · the void-at-write validity predicate · the `bound` instrument … |
+| [capability-magic](./builds/capability-magic-slate.md) | the `Transform` primitive's Api (polymorph is its own build) · multi-cell spell composition · wards as a mitigator layer · the frontier nouns Storm / Spirit / Time … |
+| [cast-archetype](./builds/cast-archetype-slate.md) | the archetype rows themselves (closed `role` + `temperament` kinds, open entries) · the lens-vs-seed dual compilation · the `requires` config gate + its lint … |
+| [cms](./builds/cms-slate.md) | lease-scoped trees + `domain_history` versioning · the draft/changeset overlay + atomic publish · the law==code review gate … |
+| [cms-connectors](./builds/cms-connectors-slate.md) | scoped personal access tokens (content-vs-source scope) · the MCP server (`tree`/`read`/`write`/`diagnostics`/`run`) · WebDAV over `source` + `document` … |
+| [combat](./builds/combat-slate.md) | pursuit / the chase · rout & rally retreat · the morale + de-escalation suite · the `guards` intervention brain · the client `CombatCard` · NPC-vs-NPC crews … |
+| [combat-experience](./builds/combat-experience-slate.md) | T5 composure/luck (`traits-stress`; `g(composure)` is inert) · T7/T8 loadout-as-chemistry · T11 aftermath · T12 de-escalation · T13 morale & surrender … |
+| [content-packs](./builds/content-packs-slate.md) | the unbuilt trades (butchery · milling · forestry · fishing · medicine · sanitation · funerary · repair · papermaking · insurance) · localities-as-compositions … |
+| [cooking](./builds/cooking-slate.md) | the tending wave (durative cook · doneness · braise) · cold storage/icebox · compost · preservation + the victualler · the baker pack |
+| [cooperative](./builds/cooperative-slate.md) | the capital faucet / stake ledger · Twitch identity binding · the three chambers + the ballot · delegation guardrails · the in-world reserve + the budget process … |
+| [corpos](./builds/corpos-slate.md) | the multipolar approval vector · competition + rival-tanking · sponsorship · approval→access gates · player-founded corpos · portfolios beyond booze |
+| [cosmetics](./builds/cosmetics-slate.md) | the appearance-mark carrier on a body (the `Looks` cell) · the personal-services vocation + graded cuts · tattoos · the dye-plant crop rows |
+| [crafting](./builds/crafting-slate.md) | skill-as-control (the declared next crafting wave) · defects & failure as diegetic events … |
+| [credit](./builds/credit-slate.md) | splitting `reserve mint` into issuance + appropriation · naming the perpetual · chartering the `treasurer` seat and retiring the Governor … |
+| [currency](./builds/currency-slate.md) | a second issuer + who may authorize a mint · opt-in acceptance lists / corpo scrip · the peg as a redeemable standing offer · wages-in-scrip consent |
+| [daves-bar](./builds/daves-bar-slate.md) | the succession arc · tabs + customer records (regular / 86'd) · corpo faction-approval standing · the Scene composer's crowd aggregation for a full room … |
+| [delivery](./builds/delivery-slate.md) | providers + coverage + metering (power, aether) · the aether-line ↔ comms unification · post/mail to an address · the broadcast/field carry |
+| [disease](./builds/disease-slate.md) | `ContagionSpec` (routes · host range · reservoir) — `Condition.contagion` is still `null` with no consumer · the husbandry-is-immunity coupling · quarantine … |
+| [disease (pack)](./builds/disease-design-pack.md) | `ContagionSpec` itself · the two unifications (one burden engine · one hygiene read) · the room-condition half of immunity, which is also unbuilt … |
+| [economy](./builds/economy-slate.md) | faucet/sink + inflation balance · the bazaar · market aggregation · the currency-reset event … |
+| [eternal-university](./builds/eternal-university-slate.md) | the arrival gate · the Quad + the walkway spine · Student Services (registrar + housing office) · the Health Center clinic · the Campus Store · the academic hall … |
+| [fire-combustion](./builds/fire-combustion-slate.md) | the fire service (§ below) — the brigade, prevention, and fire insurance · arson-as-crime · map-scale wildfire · burning-DoT as a combat weapon … |
+| [food-safety](./builds/food-safety-slate.md) | molds (Part 10) — the second population's visible surface |
+| [freight](./builds/freight-slate.md) | the barricade · the tollgate + turnpike trust · warehousing as a business · the wainwright · rail + timetables · navigation as a discipline · customs and tariffs |
+| [fridge (pack)](./builds/fridge-design-pack.md) | the cold-container substrate (`CoolboxMixin` + atmosphere on `Container`) · the icebox … |
+| [gazette](./builds/gazette-slate.md) | the docket — unedited, chronological, complete · the events-not-significance rule enforced structurally · locality-scoped gazettes as shipped content … |
+| [git-workflow](./builds/git-workflow-slate.md) | the content/document → git bridge (a Mongo→file export) · finer-than-branch review · per-user `/home` submodules |
+| [health-vertical](./builds/health-vertical-slate.md) | the diagnosis surface (record and be scored on a hypothesis) · a `resolution.by` dispatcher · medicine materials + the apothecary · outbreak and contagion content … |
+| [help](./builds/help-slate.md) | Wave 2 — taxonomy/unit and mechanics projectors, co-located `help:` prose, the standalone `help` Document collection, the Docs search group, `{{help:…}}` transclusion, … |
+| [identification](./builds/identification-slate.md) | the instrument seam (`analyze X with Y`) · partial identification (`identificationLevel`) · the experience/social ID verbs (`taste`, `learn from`) … |
+| [inquiry](./builds/inquiry-slate.md) | the `Law` catalog Idea · the `predict` lab-notebook loop · knowledge banking of confirmed laws · the publish + replicate library … |
+| [land-compute-and-license](./builds/land-compute-and-license.md) | compute metering and the entitlement function (quality vs demand weights) · the per-citizen or per-parcel compute floor … |
+| [legal-code](./builds/legal-code-slate.md) | the append-only Roll + the derived Code · the instrument taxonomy + the closed clause-`kind` vocabulary · prose⊗clause authoring tooling and its lint · sunsets … |
+| [livelihood](./builds/livelihood-slate.md) | §4's macro (the author budget-account model + the Circulation Reserve) · §8's public-works floor + match · piece-rate and share-of-flow comp bases · entity forms … |
+| [logistics](./builds/logistics-slate.md) | piracy · live cargo and drovers (the steer walks, the carcass rides) · infrastructure politics — tollgate, turnpike trust, barricade, banditry, congestion, road wear … |
+| [lounge](./builds/lounge-slate.md) | the pizza-as-consensus toy · the TV/remote standing signal + the derived channel lineup · the jukebox · the social minigames · emergent-personality Dave |
+| [magic-items](./builds/magic-items-slate.md) | the item-by-item catalog walk, shipped as CONTENT packs — and ⚠ the cut is undecided (horizontal "twenty wands" vs a vertical "everything one shop stocks") … |
+| [mana-economy](./builds/mana-economy-slate.md) | the SOURCE — sited mana nodes on the terminus-condition × access-mode grid (a `ManaMain` just refills today) · the CHARGER as a trade … |
+| [mana-economy (pack)](./builds/mana-economy-design-pack.md) | mana deposits + prospecting/refining · magic water as a traded bulk good · the piped-mana utility tier · the Confluence in Terminus canon · the three vocations |
+| [medic-judgment](./builds/medic-judgment-slate.md) | stop auto-selecting (player picks target + modality) · cues without names on `assess`/`analyze` · triage under the deterioration clocks … |
+| [metal-chain](./builds/metal-chain-slate.md) | Stage B, below the water table — shaft/hoist/pump · the drainage commons + the hoist toll · sulfides and roasting · collapse, entrapment, rescue … |
+| [mining](./builds/mining-slate.md) | everything below the water table — shaft/hoist/pump · the drainage commons + hoist toll · sulfides and roasting · collapse entrapment + the rescue clock … |
+| [money-integrity](./builds/money-integrity-slate.md) | pass 1 the census over surfaces A–E (create · mutate · persist/restore · sandbox cash crossing · destroy) · pass 2 the gates … |
+| [mortal-vessel](./builds/mortal-vessel-slate.md) | Thesis 4, moderation as diegetic capability-state · Thesis 5, the prison ↔ Hades unification · the law-enforcement half of Thesis 3 |
+| [mortality](./builds/mortality-slate.md) | the re-embodiment service as content (the temple vs clinic vendors, employer coverage, the price of walking out) … |
+| [multilocation](./builds/multilocation-slate.md) | the procedural-spatial consumers (the dungeon, the desert) · the summoned-graph host · the lounge's preference-vector matchmaking math |
+| [narration](./builds/narration-slate.md) | the authored narration fragment on `ActSignature` · the platform-owned band-blind frame at `self.*` · the acts-never-axes readable record … |
+| [npc-behavior](./builds/npc-behavior-slate.md) | the upper rungs of the ladder — intent-match, the code-tier `scripted-behavior` brain, the LLM brain · the `addressed` and `given` triggers … |
+| [onboarding](./builds/onboarding-slate.md) | the `onboarded` flag + lounge-exit routing · Dr. Limen (seat, model-backed brain, the reply contract) · the onboarding-progress flags and their subscription … |
+| [persistence-architecture](./builds/persistence-architecture-slate.md) | Wave 3 — un-Stuff `PersistentHydrator`, the marshallers and `obj/hooks/` (`DomainHook` + `hooks.yaml`) into path-resolved, lazy, re-resolved modules on the shipped bra … |
+| [pets](./builds/pets-slate.md) | the taming encounter · the bond + four-needs care loop · the accept/refuse hook · the off-screen resolution + digest · home range … |
+| [physiology](./builds/physiology-slate.md) | the capacity vocabulary + the `governs` rename (waves 2–3 block the rest) · the organ roster (brain · spine · liver) … |
+| [policing](./builds/policing-slate.md) | the three enforcement tiers · the closed policy vocabulary + resolve-on-read enforcement · arrest and custody · the constable kit bundle as a budget line … |
+| [power-utility](./builds/power-utility-slate.md) | the supply reference on `Energized` fixtures · outage propagation + directional network failure over exit edges · gas as the second conduit commodity … |
+| [press](./builds/press-slate.md) | the newspaper as an organization + its newsroom roster (publisher → editor-in-chief → editor → reporter) · subscription / push distribution · bylines … |
+| [property](./builds/property-slate.md) | the compute-allowance scarcity (the field is inert) · dormancy-as-reclamation · un-fusing author from owner · real-estate above one lot (resale, leases, valuation) |
+| [provenance](./builds/provenance-slate.md) | the dependency DAG (infrastructure earning from what rides it) · the contributor-set / team split behind `authorOf`'s derivation seam … |
+| [psychology](./builds/psychology-slate.md) | the scoped disclosure grant · the therapist's file object · the psychology vocation + its Discipline · privilege and the conflict class … |
+| [ranching](./builds/ranching-slate.md) | breeding (gestation · birth · heredity; nothing writes `bornAt`) · bees — the hive, pollination, forage range, swarming (AC 14 unmet) … |
+| [ranged](./builds/ranged-slate.md) | W2 cover + armor · W3 bows/crossbows/less-lethal/acoustics · W4 guns (the field model, reliability, registration) · the range, armory and accessory content |
+| [rejection](./builds/rejection-slate.md) | everything below the water table — shaft, hoist, pump · the drainage commons + the hoist toll and district · sulfides and roasting … |
+| [reputation](./builds/reputation-slate.md) | susceptibility · the NPC consumers · the governance-influence coupling · the substance economy's brand-trust · the anonymity/disguise counterweight … |
+| [retail](./builds/retail-slate.md) | S2 the Circulation Reserve (the welfare-floor buy) · S3 producer + real cost/supply pricing · S4 player-owned storefronts and the market arena |
+| [sampling-and-labs](./builds/sampling-and-labs-slate.md) | the sample object + its provenance field · bench instruments and the campus lab as a place · the hand-tool middle tier (lens, streak plate, hardness kit) … |
+| [spawn-distribution](./builds/spawn-distribution-slate.md) | the creature half — a procgen-NPC generator over the NameBank / species dossier / `PersonaMixin` · create-monster · the respawn clock + faucet economics … |
+| [species](./builds/species-slate.md) | every actual difference — the ectotherm · scent-based recognition · cannot-metabolise-a-staple · equipment incompatibility · no speech organs (aether only) … |
+| [standing-mint](./builds/standing-mint-slate.md) | published weights as readable content · the distributional impact statement · rater agencies as a player institution · disclosure regulation as passable law … |
+| [stewardship](./builds/stewardship-slate.md) | premises + utilities (the lease's money leg) · the allowance meter · the cascade + the zoning authority · the Stewardship Discipline |
+| [supply (pack)](./builds/supply-design-pack.md) | the unified source model over tap/well/standpipe/rain · the rivalry axis (the household commons) · the power half — substation, socket, and one shared `supplyReport` read |
+| [textiles](./builds/textiles-slate.md) | leatherwork + tanning (blocked on a hide faucet) · wool and its left edge — felting, fulling, knitting (blocked on ranching) · patterned weaving · piece bleaching … |
+| [towns](./builds/towns-slate.md) | Rejection Act I + the inert `stocks:` table · Heart's Delight (gated on winter) · Hinkley facades/neighbours/the Death Man + `knock` · Rejection's support half … |
+| [venue-and-supply](./builds/venue-and-supply-slate.md) | V6 — `needs` past the closed six (ground/water/sun) and producer `yields` · V5 `lint:supply` · V4 the five support archetypes · V2 the uniform `kind: office` sweep … |
+| [zoning](./builds/zoning-slate.md) | the emission/nuisance model over `signalAt` · the cap at the boundary · the LULU host problem · nonconforming use · derived settlement type … |
 
-Eleven builds. Each lists its member slates in rough phase order and the
-shipped substrate it leans on.
+## Waves — rides another build (57)
 
-### 1. Identity & social perception
-*Who you are, who others recognize, how you relate.* The per-viewer
-identity substrate **shipped 2026-06** — recognition (full) +
-identification (substrate) + the viewer-aware naming step, graduated to
-[../subsystems/belief.md](../subsystems/belief.md). The two shipped slates
-moved to `tails/`, holding their deferred surface; the social-graph
-**attention layer** then shipped (Wave 3 →
-[../subsystems/social-graph.md](../subsystems/social-graph.md)), its slate
-moving to `tails/` with only Wave 4 + the message-restyle wiring left.
-- **chronicle** — the append-only identity **ledger** (witnessed deeds +
-  authored prologue claims) every identity readout projects from.
-  **Shipped 2026-06 and slate retired** (fully absorbed — its deferred
-  consumers themselves shipped as renown / trait / advancement); the
-  permanent record is [../subsystems/chronicle.md](../subsystems/chronicle.md).
-- [recognition-slate](./tails/recognition-slate.md) *(tail)* — deferred
-  recognition surface: player-set nicknames, memory decay, voice/scent
-  recognition, the aether id-aug ambient trigger.
-- [identification-slate](./tails/identification-slate.md) *(tail)* — the
-  deferred pedagogical instrument seam (`analyze X with Y`, real Material
-  chemistry), partial identification, misidentification.
-- [social-graph-slate](./tails/social-graph-slate.md) *(tail)* — the
-  bucket storage shipped as `ContactsMixin`
-  ([../subsystems/contacts.md](../subsystems/contacts.md)) and the
-  attention layer (display lensing + the `notify` notification policy)
-  shipped as Wave 3
-  ([../subsystems/social-graph.md](../subsystems/social-graph.md));
-  remaining tail = Wave 4 (account-level federation) + message-restyle
-  live wiring.
-- [social-inspection-slate](./tails/social-inspection-slate.md) *(tail)* —
-  the player-facing inspection surface over the same substrate: a `who`
-  online roster, a `profile`/`finger` identity card, and a `score`/`me`
-  self-dashboard, governed by the **disclosure-dial** privacy model
-  (presence always public, country unconditional, per-observer fidelity
-  raised by recognition — `introduce` as the first consumer; invisibility
-  deferred as conditional perception). Design captured, not built.
-- [connection-origin-slate](./tails/connection-origin-slate.md) *(tail)* —
-  geographic origin of a connection (country broadly visible, IP
-  developer-only, in-memory/never-persisted). **Country v1 shipped** with
-  the social-graph build (capture → `geoip-lite` → `ConnectionApi.originOf`,
-  consumed by the presence line); remaining tail = the developer-gated IP
-  read and city/region (the `whois`/`profile` verb that surfaces country
-  is now homed in
-  [social-inspection-slate](./tails/social-inspection-slate.md)).
-- [distance-perception-slate](./tails/distance-perception-slate.md) *(tail)* —
-  things seen at a distance: vista references (resolve-on-read
-  landmark details, generalizing the crossing's clock-tower
-  live-read), bounded one-hop peek through exits (aperture + light +
-  concealment-gated), privileged reach beyond (scry territory), and
-  the danger-sense-before-traverse baseline (push what the shipped
-  walks already compute). Interim durable-facts-only vista rule
-  adopted by the demo-content build.
-- [acquisition-slate](./builds/acquisition-slate.md) — capability
-  onboarding doctrine + rulings (2026-07-28): floor=reachability
-  (attunement/comms/wallet-capacity only, forums leaves the bundle),
-  seeking=discovery, updates-vs-credentials sorting rule, the
-  need-fired credential itinerary (hiring requires payment cred;
-  dorm-key digitizes), hardware=healthcare (Aevex elective vs care
-  venues), first-login journey v2 over the built campus (Gus=greeter,
-  Health Center off the route, Limen post-Gus). Supersedes the
-  onboarding slate's Health Center/TPA-update beat.
-- [power-utility-slate](./builds/power-utility-slate.md) —
-  electricity as municipal infrastructure: the supply-reference
-  middle tier (source gates dependents; outages mint honest work
-  orders), then the municipal fork (governance office vs corpo
-  concession vs cooperative), conservation-economy billing,
-  utility labor; water as the sibling. Captured from the
-  demo-content lamppost decision; nothing built.
-- [reputation-slate](./builds/reputation-slate.md) — charisma-as-**measured-influence**
-  (regard / renown / susceptibility), notoriety as the signed twin that
-  pierces disguise, per-circle scoping. The platform's "value as physics,
-  not RPG" answer to CHA. **Measurement substrate SHIPPED** — regard
-  ([belief.md](../subsystems/belief.md) regard realm), [renown.md](../subsystems/renown.md),
-  [participation.md](../subsystems/participation.md), [influence.md](../subsystems/influence.md).
-  Kept in `builds/` for the deferred **charisma/notoriety game layer**
-  (susceptibility, the disguise-counterweight, NPC consumers, eigenvector
-  trust-weighting) — game-design, not a tail.
-- [forums-slate](./builds/forums-slate.md) — durable multi-author boards on
-  the aether implant, unifying **popularity forums + structured-argument
-  deliberation as two organizers over one primitive** (`organizer:
-  'popularity' | 'argument'`). Consciously **supersedes the factoring** of
-  [delivery-slate](./builds/delivery-slate.md) (social-forum-as-chat-facet)
-  and [argument-map-slate](./tails/argument-map-slate.md) (which becomes the
-  `'argument'` organizer); preserves the deliberation-ungameability principle
-  (argument boards: no ranking at all). **Part-0 substrate + Part-1
-  popularity SHIPPED** (cycle 1, `feature/forums-build`) and the **argument
-  organizer SHIPPED** (cycle 2, `feature/argument-map-build`), both graduated
-  to [../subsystems/forums.md](../subsystems/forums.md); kept in `builds/` for
-  the ephemeral bill lifecycle, the procedure modes, and the latent
-  collection-watch abstraction (the argument organizer's *scale* tail moved to
-  [tails/argument-map-slate](./tails/argument-map-slate.md)).
+Not a cycle of its own. Pull one in when its host build is in flight.
 
-- [deed-tags-slate](./builds/deed-tags-slate.md) — **decided 2026-08-12**,
-  and the joint two other slates stalled on: the closed, registered
-  vocabulary every readout over the chronicle points at (`tags` is
-  *"open — inert in v1"* today). A deed-tag is **descriptive, not
-  normative** — *this act was of kind X*, never *X was good* — so the
-  vocabulary is layer 1, while **its RESOLUTION is political**: the
-  polity **petitions** for a distinction, engineering may add, nobody may
-  remove or redefine (the official-statistics model). Dotted paths with
-  Topic's family inheritance + its **conservative floor** (an
-  unregistered tag matches no precept, so a new subsystem can never
-  retroactively make anyone a sinner), `since` on every row. ⚠ Turned up
-  a live defect: `CombatLogic`'s stamped `crime` tag is layer 3 in layer
-  1, contradicting accountability.md's *derived-never-stamped*.
-- [tradition-slate](./builds/tradition-slate.md) — **schools of thought
-  as research programmes.** A Tradition (craft school, medical tradition,
-  guild lore, naturalist account, *or* faith) is normative **tenets** plus
-  an **attention order** over inquiry's shared `Law` catalog: everyone's
-  laws are the same and true, what differs is **who reaches them first**,
-  and order is worth money because the first discoverer publishes.
-  **Null laws** give a symmetric error model (naturalist = false negative,
-  devout = false positive) with **no truth table to datamine** — the
-  evaluator is the only oracle. Written as `Doctrine`, renamed and
-  **demoted** when a stress test showed it served one of eight religious
-  wants. ⚠ Worth exactly what being *first* is worth.
-- [faith-slate](./builds/faith-slate.md) — the other seven wants. The
-  centerpiece is **the Paladin's fall, automated** — the genre's best
-  religion mechanic, never systematized because it needed a DM. Deed
-  ledger + declared precepts + derive-on-read gives it without one, and
-  trait's two-value arithmetic makes **redemption the mean reversion**
-  rather than a mercy rule. ⚠ The fidelity value is **never readable, by
-  anyone** (measurement.md's no-gauge rule) — only a surprising write
-  narrates. Congregation is the **fifth GroupProvider** and you are *born
-  into* one via the lineage gallery; it learns of a transgression by
-  **witness, never broadcast** (which makes concealment religiously
-  meaningful and the informer a role).
+| slate | left to build |
+|---|---|
+| [affordance-suggestion](./tails/affordance-suggestion-slate.md) | the generative `narrow()` direction (no consumer yet) · the relational axis still only says no · a structured reason on a disabled row · server-side command history … |
+| [aluminium-can](./tails/aluminium-can-slate.md) | the granular bulk phase (`requiredClosureFor`, so a sack is honestly open) · the deposit as law + a contract leg · the `fill` recipe · `remelt` + `Recipe.energyKWh` … |
+| [argument-map](./tails/argument-map-slate.md) | claim dedup / canonicalization · integrity-grade summarization · automated convergence detection · proposal version-control · the vote consumer · the plural-lens explorer |
+| [augmentation](./tails/augmentation-slate.md) | the medical install/remove procedure · the char-gen augment loadout · translation, prosthetic, sensor, motor and cognitive augments · the failure and hacking modes |
+| [bulkable](./tails/bulkable-slate.md) | mixing/solutions · the `sealed` gas level + the phase→closure map · `Container`+`Bulkable` · universal auto-compose · amount-aware `appearance` … |
+| [chat](./tails/chat-slate.md) | the role overlay · the channel config block · mentions + the offline inbox · group-projected channels (party/guild/zone) · edit/delete · pinned + announcement mode … |
+| [client](./tails/client-slate.md) | the wiki + forum search ports (both still unwired) · the notification tray (read `NotifyPolicy`/`NotifyRule` first) · output logging / clips / attestation … |
+| [client-cockpit](./tails/client-cockpit-slate.md) | the `study` and `classroom` modes · the content surface (video + transcript payloads, diegetic triggers, completion events) · the live-tutor / classroom shape … |
+| [client-shell](./tails/client-shell-slate.md) | search as a frame primitive (Q3) · the public read-only surface (metrics · overlays · public docs) · the declarative mode model · mode determination (Q1) … |
+| [combat-tactics](./tails/combat-tactics-slate.md) | cover-as-status (ranged W2) · the `physical` conduit channel for cross-room shots · the Skirmish / Kite preset · the magic-interplay questions at `MagicLogic.deliverAt` |
+| [comms](./tails/comms-slate.md) | dynamic-reach shout (the voice-projection attribute) · language gating on acoustic + encoded-cognition implant · regional channels … |
+| [concealment-detection](./tails/concealment-detection-slate.md) | the knowledge economy (sharing / selling / transferring found secrets, maps as currency) · `frisk` and searching a downed body … |
+| [console-filtering](./tails/console-filtering-slate.md) | transcript search · sender filter · compact mode · timestamps · brief mode / `prose.verbose` · per-room verbosity memory |
+| [content-pack-units](./tails/content-pack-units.md) | the media-asset unit (byte sync + receipt pairing) · the position-def unit (A19) · the contract-form unit · `requires.kinds:` · `requires.office` … |
+| [deed-tags](./tails/deed-tags-slate.md) | the closed deed-tag vocabulary + its three-tier resolver (the topics pattern) · the petition-not-override path · getting `crime` out of layer 1 … |
+| [development](./tails/development-slate.md) | coverage / FAR / efficiency as derived ratios · the `subdivide` ceiling correction (only productive children draw) · a consequence for over-draw (inert today) … |
+| [display-manifestation](./tails/display-manifestation-slate.md) | driver policy off the closed `pairing` enum and onto `AccessApi.can` · the network / channel / guide addressing layer · multiple simultaneous sources per screen |
+| [distance-perception](./tails/distance-perception-slate.md) | vista references (a `Detail` resolving a remote Stuff) · the bounded one-hop peek (`look <exit>` / `--peek`) · what buys privileged multi-hop reach, and its tiers … |
+| [dorm-warren](./tails/dorm-warren-slate.md) | the bounded mixin-field editor + the dorm tier filter · the CMS-inspectable lesson rung · the roommate NPC half + its trait tracking · hand-authored custom prose … |
+| [emotes](./tails/emotes-slate.md) | the moderation control plane — moderator verbs, per-scope expression levels + duration, the sanitizer implementation and shared denylist, audit logging and appeals, en … |
+| [farming](./tails/farming-slate.md) | plant genetics — cultivars and fixed-vs-segregating lines (husbandry.md still says "no genetics") · the controlled-environment tier past the free greenhouse (hydroponics) |
+| [fast-travel](./tails/fast-travel-slate.md) | scheduled mode + wayfinding (published schedules, route maps, hubs) · terminals that WEAR · the maintenance round the self-governing Authority now owes … |
+| [field-substrate](./tails/field-substrate-slate.md) | the water table (adit boundary + oxide/sulfide, one field two systems) · foraging stock as the first DERIVED field · the seeded × derived composition seam … |
+| [forums](./tails/forums-slate.md) | the ephemeral bill lifecycle · the rules-of-order procedure mode · the latent collection-watch abstraction |
+| [hand-slot](./tails/hand-slot-slate.md) | picking Option A vs B (layered `:worn` / `:held` slots) · wrist slots · single-hand wearables · `SlotSpec.accepts` as an array if A … |
+| [hearth-and-larder (pack)](./tails/hearth-and-larder-design-pack.md) | the indoor room-ambient bump (a hearth that warms its room, named a follow-on in thermal.md) … |
+| [household (pack)](./tails/household-design-pack.md) | `ParcelApi.householdOf(extent)` — the domicile ∩ extent read · the gate made COLLECTIVE plus the leave-and-ascend-alone exit … |
+| [language](./tails/language-slate.md) | the `Language` Idea + catalogue · `Character.languages` proficiency · the `decode` literacy gate · `Vocal.speechLanguage` + the speech garble render-gate … |
+| [lifecycle-signals](./tails/lifecycle-signals-slate.md) | the `quiesce`/`persist`/`flush`/`close` phase vocabulary · the subsystem subscription seam · per-subscriber failure isolation + a per-phase deadline … |
+| [locomotion-as-activity](./tails/locomotion-as-activity-slate.md) | the durative `TraverseActivity` promotion · the sync/async split · the duration model · the `engagedMode` storage migration … |
+| [materials-response](./tails/materials-response-slate.md) | the `Recipe` craft-stamp of {material, construction, grade} · repair / scrap / reforge · the `crush` / `heat` / `corrosion` channels … |
+| [mql-subscription](./tails/mql-subscription-slate.md) | the client-side subscription lifecycle in the cockpit · widget composition + cache coherence · shadow-aware projection · `mql-subscribe-update` … |
+| [naming](./tails/naming-slate.md) | the rename act (notify every recognition holder · decay window · chronicle deed) · Defense A, `learnIdentity` refusing a conflicting name … |
+| [npc-dialogue](./tails/npc-dialogue-slate.md) | the scripted free-text `intent-dialogue` responder (pattern/synonym tables + the `addressed`/`handleMessage` trigger + the implant `tell` entry) · the LLM front-end … |
+| [pack-seams](./tails/pack-seams-slate.md) | named boundary sockets + graft points · the `fills:` manifest key · one-filler-per-socket refusal at reconcile · the provides/needs capability vocabulary … |
+| [party](./tails/party-slate.md) | the party purse + payout split · the crew's durable name (renown-as-subject over a party chronicle) · the odometer layer · party morale · the client party card … |
+| [patina (pack)](./tails/patina-design-pack.md) | `SeasonedMixin` (the accrual band + the use-then-care cycle) · the `takesPatina` material field · maintenance verbs accruing … |
+| [preservation](./tails/preservation-slate.md) | smoking · the victualler / packing house · salt as a mined and taxed staple · the agricultural year (winter stores) · wetness → water-activity coupling … |
+| [recognition](./tails/recognition-slate.md) | player-set nicknames (`name X as Y`) · memory decay · voice/scent recognition · MQL compound feature-handles · the aether id-aug ambient trigger |
+| [residence-ladder (pack)](./tails/residence-ladder-design-pack.md) | room condition (dirt · debris · tidiness) as a producer · folding `Durable` wear and spoilage into `propertyCondition` · the Stewardship Discipline … |
+| [scope-modality](./tails/scope-modality-slate.md) | modality as a per-verb scope axis · per-modality container permeability · transparent containers (sight-through walls) … |
+| [scoped-authoring](./tails/scoped-authoring-slate.md) | ⭐ the `describe` verb (the prose rung — no such verb exists; blocked on a moderation validator) · the vetted-catalog membership validator behind `make` … |
+| [script-interaction](./tails/script-interaction-slate.md) | the fail-closed guard when a controller would prompt with no `interactive` · the sweep of existing fallbacks, one commit per subsystem … |
+| [search](./tails/search-slate.md) | the equipment term on `effectivePerception` (lens, loupe, ocular augment) · terrain-matched camouflage over the `Biome` chain … |
+| [senses](./tails/senses-slate.md) | smell trails / temporal persistence · echolocation (the active-sense pattern) · the full ESP local-field walk … |
+| [social-graph](./tails/social-graph-slate.md) | the message-restyle live wiring (needs a sync contacts fast-path) · Wave 4 recognition-state coupling — consent friending and recognition-gated bucketing |
+| [species-expansion](./tails/species-expansion-slate.md) | the personhood casts (flesh golem · doppelganger · zombie · synth · mind flayer) … |
+| [spoiler](./tails/spoiler-slate.md) | progress / integrity reveal conditions on percepts · server-side fact-gating in the Scene/percept projection · role-conditioned reveals … |
+| [supply-chain](./tails/supply-chain-slate.md) | fungible consignment (bulk on the store counter) · a business account that can buy (`BuyController`'s payer) · rung 2, direct farmer→distiller purchase · rung 4, the firm |
+| [tenancy (pack)](./tails/tenancy-design-pack.md) | room-condition attribution `(actor, target, extent)` · the check-in condition snapshot at `grantedAt` · the deposit as a contract escrow leg · the eviction act … |
+| [trade-roster](./tails/trade-roster-slate.md) | the 15 unminted Disciplines (foraging · fuelcraft · electrical-work · carpentry · masonry · leatherwork · ceramics · glasswork · baking · bookkeeping · apothecary … |
+| [tradition](./tails/tradition-slate.md) | the `Law` catalog · the Law/Tenet split · `Tradition` as an Idea carrying an attention order · null laws · the notebook · what lands in the Transcript … |
+| [trait](./tails/trait-slate.md) | the equilibrium / expressed split · the deviation narrator · the self-view showing acts not positions · the valence-scale denominator … |
+| [vitals](./tails/vitals-slate.md) | the affliction driver — disease and poison have no `inflict` path at all · medical instruments + consumable-crafting past the bandage … |
+| [weather](./tails/weather-slate.md) | fog → visibility · snow depth · vector wind · moving fronts · a weather-pin write Api (it blocks the `storm` Discipline) … |
+| [world-scan-perf](./tails/world-scan-perf-slate.md) | the money-path owner reads (`flowSplitsFor`, `holdersByPosition` off the Business roster) · the per-tick `maintains.holdingsUnder` extent lookup … |
+| [youtube-relay](./tails/youtube-relay-slate.md) | outbound `liveChatMessages.insert` · the quota accountant + coalescing and drop policy · per-player `youtube.force-ssl` OAuth … |
 
-- [lineage-slate](./builds/lineage-slate.md) — char-gen restructured
-  around **you choose a family, not a stat sheet**, on a stated fiction
-  (*your majority day* — you come of age and leave the household, which
-  explains the parent gallery, the antecedents budget, seeded upbringing
-  and starting capital all at once). Names the platform's missing
-  **fourth kind of value — endowed** (neither derived nor declared),
-  under the rule *endow what creates a relationship, **never** a
-  ranking*. The gallery is **a grid, not a bio** (ONI's reason), and is
-  safe to optimize precisely because **its columns are incomparable** —
-  informs the choice without solving it. ⭐ Parents are **records, not
-  NPCs**: an *unrealized person record* is a primitive the world already
-  needed, and it is what finally makes chronicle's inert `who` mean
-  something. Decided: no hybrid species; rerolls priced against starting
-  capital. ⚠⚠ **Healthspan, not lifespan** — aging is real and *never*
-  terminal for a player, because a lifespan clock would be the most
-  rankable stat in the game and no countervailing cost can exist.
-- [trait-slate](./builds/trait-slate.md) — a change to **shipped**
-  `trait.md`: split the derived position into **equilibrium** (slow, who
-  you are) and **expressed** (fast, mean-reverting), which is *free* —
-  one ledger read at two half-lives. Two rules follow: **the write is
-  visible, the value is not** (people have excellent access to their
-  acts and terrible access to their dispositions), and **announce the
-  surprising, not the every** — *"You'd not have done that a year ago."*
-  Anti-farming falls out: **cheap to look different this week, expensive
-  to be different.** ⚠ Settle **the denominator** before wiring forty
-  subsystems, or the most-instrumented one wins everyone's personality.
-  Also settles species personality in three tiers — **emergent from
-  affordances beats authored**, because an authored species trait makes
-  the prejudice *true*, and a true prejudice is an endorsement rather
-  than an allegory.
+## Tails — small and opportunistic (35)
 
-**Status:** recognition + identification substrate shipped → `belief.md`;
-chronicle ledger substrate shipped → `chronicle.md`; social-graph
-attention layer shipped Wave 3 → `social-graph.md` (Wave 4 + connection
-origin remain as tails). The 2026-08 design cluster —
-**deed-tags → tradition → faith** — is unbuilt and sequenced in that
-order: nothing in faith is buildable until the tag vocabulary exists.
-**lineage + trait** are a second unbuilt cluster and share a joint: seeded
-claims set `equilibrium`, so *genotype is inherited, disposition is
-learned from* — and you can grow out of your upbringing, slowly.
-- [search-slate](./builds/search-slate.md) — **pre-design: a gap audit of the detection half.** Concealment shipped the hider's side; this is what the *looker* brings — terrain-matched camouflage (the textiles build routes conspicuity here rather than inventing a camo flag) and the viewer-side equipment term. Unbuilt.
-
-### 2. NPCs
-*Where the personality lives.*
-- [npc-behavior-slate](./builds/npc-behavior-slate.md) — brains / routines / automation substrate. Absorbs collision's "guards" decomposition.
-- [npc-dialogue-slate](./tails/npc-dialogue-slate.md) *(tail)* — **shipped (Wave 1)** → [../subsystems/npc-dialogue.md](../subsystems/npc-dialogue.md): the responder seam (`talk to` → a pluggable brain), the branching-tree responder, and auto-introduce. Tail holds the scripted `intent-dialogue` + LLM free-text front-end + multiplayer waves.
-- [cast-archetype-slate](./builds/cast-archetype-slate.md) — ⭐⭐ **composable character profiles**, the mixin analogy applied to personality: `archetypes: [/stuff/role/hand, /stuff/temperament/steady]` on the row, expanding into `behaviors:` + disposition claim-seeds, with per-instance `roleConfig`. ⭐⭐⭐ **Stress-tested against the whole 41-character cast** (19 Rejection · 6 Hinkley Hills · 8 Heart's Delight · 8 Terminus) *before* closing the taxonomy — the model survived and needed five changes. Its headline finding: **role is what you do, temperament is how you are, and the missing axis is where you stand** (Jory and Bia compile to an identical Publican × Connector profile and are not the same person, because Jory holds the slate) ⇒ **role and temperament are the ARCHETYPE, standing is the INSTANCE.** Also carries the un-retrofittable requirement — **stamp the minting archetype on every seeded row**, because *an authored deviation and an earned drift are the same quantity* and provenance separability cannot be added later. Surfaced a shipped defect on the way (§ the disposition-key defect). ⚠ **Change 2 (standing) and the stamp requirement SHIPPED 2026-09** with the dossier → [../subsystems/identity.md](../subsystems/identity.md); **the archetype MECHANISM itself did not** — `archetypes: [...]` composition, `roleConfig`, Changes 1/3/4/5 and the un-named FUNCTIONARY category are all still design surface, which is why this stays a build rather than a tail. ⭐ The identity build's `archetype:` field is a **stamp**, not the composition — it records which archetype minted a seeded row so `deviation = derived − baseline` stays computable.
-- [dossier-slate](./tails/dossier-slate.md) *(tail)* — ⭐⭐⭐ **SHIPPED 2026-09** (`design/dossier`, MR !248) → [../subsystems/identity.md](../subsystems/identity.md): the `Cast`/`Extra` rungs, the authored dossier as **seeded evidence** with the archetype stamp, who answers for you, and three gates (`lint:dispositions` · `lint:identity` · `lint:dossiers`). ⭐⭐⭐ Its best property held: the dossier is **falsifiable**, so `lint:dossiers` checks the author's `asserting:` against what actually derives. ⭐⭐⭐ And the Compact stays players-only **by arithmetic** — renown is seedable, participation never is, `standing` is their product. **What remains as tail:** Q2 (make the materialized trio *derive* rather than fold — the identity build seeds-and-folds, debounced, and the warning still lives in three docs) · Q3 (a seeded illness is a third shape — an asserted event with an asserted *time* → the clinic) · Q4 (dossiers for businesses / organizations) · Q5 (where char-gen lands). ⚠ Also deferred: the institution chain's **third tier** over parcel title, which is async where the resolve must be sync.
-- [llm-content-slate](./builds/llm-content-slate.md) — the runtime LLM rung npc-behavior left open: a single director agent forces the cast over the command bus and narrates ambient scenes, expressing multi-stage behavior by authoring in the scripting language. **Not near-term.**
-- [pets-slate](./builds/pets-slate.md) — **player pets**, through the NetHack lens: *a tame creature in a consistent world; the beloved moments are emergent.* **Taming is the spine** — a pet is a creature you *won over*, not a unit you bought. Three-layer model: **domesticability** (species data, *is* a dial on the fear axis) / **temperament** (dispositions, the encounter's puzzle) / **bond** (`regard`, the score). Shops sell *domesticated-but-unbonded* creatures — the bonding **back-half** of taming, not a bypass. **Stress-test finding:** the object/actor/place primitives are done, but pets X-ray three structural gaps — **possession/theft** (no owner-stamp on goods; `Charge` has no debtor), a **fear/threat axis** (regard is affinity-only), and **dependent-presence + individual-instance persistence** (presence-freeze + persist-back are Avatar-only) — plus a manner-of-approach legibility gap. Re-sequenced waves: **W1 bonding (shop path, dodges every heavy gap)** → **W2 wild taming (builds the fear + approach substrate, pays off game-wide)** → W3 apex/breadth (magic tame, maturation, mount/haul/guard, spawning, shop-theft). Care is *light* (feed occasionally; neglect → drifts feral; loss is a relationship failure, not billing/starvation — the boarding money-sink is retracted). **Updated 2026-07-31:** two of the three structural gaps are **closed** (chattel shipped → custody is `ChattelMixin` on the Creature stack; the persistence spine grew multi-instance keyed hosts) — only the **fear/threat axis** remains. Pets no longer presence-freeze, which opened and then closed the **off-screen life** (a seeded deterministic reconcile + six-outcome ladder + species `homeRange`); adds the **adoption** on-ramp (the DF cat), the **care loop** (four needs, only *attention* un-delegable; training = the pet's own `Discipline` transcript), **combat** (the guardrail expired — `sideOf` rung 2 was reserved for pets), and **scale/welfare/breeding**.
-
-**Phases:** behavior substrate → dialogue → scripting language → LLM director. (Dialogue Wave 1 shipped → `npc-dialogue.md` and the **scripting language v1 engine shipped** 2026-06 → `scripting.md`; both slates moved to `tails/` — scripting's with the piping tail. `reactions` core shipped; its `tails/` tail rides later.)
-
-### 3. Vitals & survival
-*Substrate shipped; the survival mechanics build on top.* The vitals
-foundation (the `Creature` split, vital signs, anatomy/tissue, the
-condition type system, the `Reserve` substrate, death/consciousness
-seams) graduated to [vitals.md](../subsystems/vitals.md) +
-[reserve.md](../subsystems/reserve.md); its deferred application waves
-now live in [tails/vitals-slate](./tails/vitals-slate.md). The first
-consumer (encumbrance) has now shipped too — graduated to
-[encumbrance.md](../subsystems/encumbrance.md), its surviving design
-surface in [tails/encumbrance-slate](./tails/encumbrance-slate.md).
-Metabolism — the remaining consumer that drives the substrate — has now
-shipped too (both waves), graduated to
-[metabolism.md](../subsystems/metabolism.md), its deferred design surface
-in [tails/metabolism-slate](./tails/metabolism-slate.md):
-- [metabolism-slate](./tails/metabolism-slate.md) — **shipped.** The body's intake-and-chemistry system, two waves. **Wave 1 (energy economy):** basal drain (hunger/thirst), **coupled** endurance recovery (the wallet refills by burning fuel — closes the one-way drain encumbrance shipped), the `ingest` digestion buffer, in-session clock + presence-freeze (sleep = logout), and the floor-effects → vitals-conditions cascade (metabolism is the first thing to *drive* conditions). **Wave 2 (meal chemistry):** macro routing + inspectable nutrient data (the `NutritionLabel` render); the toxin-burden system + per-toxin banded conditions, alcohol/BAC, the `eat`/`vomit` verbs, antidote = accelerated clearance. Tail: deficiencies, hangover, chronic-toxin content, spoilage, magic ingestion, tuning.
-
-The remaining consumers + the environment they run against extend the build:
-- [thermal-slate](./tails/thermal-slate.md) — **shipped** → [thermal.md](../subsystems/thermal.md). The generic `Thermal` cooling capability (lazy Newton, τ=R·C) + the thermos (`Flask`) + corpse algor mortis + the campfire, and body thermoregulation (Option-C thermoneutral dead-band: spend satiation/hydration to defend the setpoint, endo/ecto split, Q10, the hypothermia/hyperthermia/torpor cascade). Resolves metabolism's heat seam. Tail (substantial deferred surface): phase change / ice (the latent-heat reserve-clamp), the sauna / steam room (heat-side worked example), per-region coverage + frostbite + wet-insulation collapse, windproofing distinct from `clo`, smoke / cooking / fire-spread + the air-supply burn coupling, behavioral (basking) ectotherm regulation, intermediate thermal strategies, and the indoor-convection room-bump + standalone radiant helper (the build wired the outdoor warming-slot path only).
-- **respiration** — oxygen / asphyxiation. **Shipped 2026-06 and slate
-  retired** (fully absorbed — its deferred surface, gills / inhaled-toxin /
-  strangulation / CO₂ / airlock / altitude, lives in the subsystem doc's
-  *Deferred* section): [../subsystems/respiration.md](../subsystems/respiration.md).
-- [weather-slate](./tails/weather-slate.md) — **shipped (Waves 1 + 2)** → [weather.md](../subsystems/weather.md). Atmospheric *dynamics* (the procedural driver over biome's static state; thermal's dynamic source): the stateless weather grammar, the SkyExposed biome-deviation seam, the presence-gated thermal coupling, and `analyze weather` (Wave 1); the coexistence resolve (authored pin → procgen(climate-lean) → biome), the cross-cutting **wetness** substrate, and the storm consequences — electricity wet-skin, thermal wet heat-loss, Floor puddles, storm lightning via `conduct`, cloud→light dimming, cloud forms (Wave 2, the storms-and-wetness build → [weather.md](../subsystems/weather.md)). Tail still holds fog→visibility, snow depth, vector wind, wet-firewood/fire, and the far economy (farming / sailing / travel-gating).
-- [fire-combustion-slate](./builds/fire-combustion-slate.md) — **shipped** → [fire.md](../subsystems/fire.md); **the Fire channel** (combustion as a driver), the marquee frontier-physics build in the "real channels magic actuates" arc (sibling of the shipped electricity Lightning-frontier + storms Storm-frontier; the magic Fire school actuates it later, the Create·Lightning precedent). **Maximal scope — build the whole high-heat system in one go, stopping only at the crafting recipes.** The **combustion driver** (the **fire triangle** = the whole counterplay; a `Combustible` capability + a reconcile-on-read `Burning` state driven by a gated `CombustionApi` [`ignite`/burn/`spread`/`douse`]; ignition **routed through the reserved materials-response `thermal` channel**, no parallel damage path; three extinguishers — **water/wet** removes heat, **smother/seal** removes O₂, **fuel-starve** burns out). The **full Andy-Weir chemistry**: ignition as a derivable **energy balance** (thermal inertia + latent heat of water — reuses shipped `Thermal`/`WetMixin` numbers), **stoichiometry → complete vs incomplete combustion → smoke + carbon monoxide** (the real reason enclosed fires kill; ventilation as a reasoned mechanic), and the `analyze`/observe→predict→verify measurement surface. Plus **all the high-heat physics crafting will stand on**: **phase change** (melting/boiling/solidifying, latent-heat reserve-clamp — smelting *is* melting; unlocks the deferred Water ice/steam too), the **forge/kiln/oven furnace family** (generalizing the shipped `Campfire`), and an **inert heat-as-crafting-control seam**. New `Material` props: `autoignitionTemperature`, `heatOfCombustion`, `meltingPoint`/`latentHeat` (real K / MJ·kg⁻¹). **Deferred at the line, since consumed:** the crafting recipes shipped with the crafting-branches build → [crafting.md](../subsystems/crafting.md); still deferred: fire-as-combat-weapon, the far economy. Promotes the combustion + phase-change design already in the [thermal tail](./tails/thermal-slate.md).
-- [disease-slate](./builds/disease-slate.md) — **NEW 2026-07-31.** Infection, transmission, and **the price of density** — the one mechanic touching *every living thing*, hence its own doc. **The seam is already cut:** all 11 shipped `Condition` seeds carry `contagion: null` and `toxinBehavior` is a complete within-host burden engine, so the delta is **two things** — a **growth term** (a toxin burden only decays; a pathogen *replicates*) and a filled-in **`ContagionSpec`**. **Two idioms, not one:** within-host load is reconcile-on-read, but **room-to-room spread must be a push tick** (copying `FireLogic`'s one-hop attenuated exit walk) *because nobody reads an empty room*. **Host range over the `Clade` tree** gives *default containment, deliberate crossing* — until a **zoonosis** turns ranching into public health. **The keystone: good husbandry *is* immunity** (the resist factor reads live off host state, so the care model's condition score becomes the resistance term). Frame: **disease is the shadow of the density dial**. **Crops first**; pets and players last.
-- [mortality-slate](./builds/mortality-slate.md) — **SHIPPED 2026-07-31** → [../subsystems/mortality.md](../subsystems/mortality.md); kept for its design rationale + the deferred service/underworld surface. The **dying arc** — the missing other half of every risk system in the game. **Verified gap:** seven sites write `lifecycleState = 'dead'` (three of them byte-identical copy-pasted `applyDeath` helpers) and **nothing anywhere writes back to `'alive'`**; worse, `Avatar` carries the dead state through the snapshot spine, so **a player who dies today is bricked permanently**. `Vitals.getConditionBand` already documents the seam ("the deferred driver owns transitions"); this is that driver. **The keystone: death is the sandbox crossing run backwards** — the same `ForkableMixin` protocol, but forking the *body* out of the person instead of the person out of the body, with the **material/forensic slices fork-only**, so **the corpse's un-reanimatability is enforced by protocol rather than policy**. Three objects at death: the **corpse** (a separate persistent Stuff carrying the real wound map + cause stamp, decaying on its own clock so forensics works whether or not the player returns), the **shade** (a `WireBody` sibling — `shouldPersist() → false`, identity-threaded, carrying the shell slices, and **holding the `PlayerApi` slot** because it is the player's only body while dead), and the **new body** at re-embodiment. **Death is an experience, not a waiting room:** the shade is *unconfined*, roaming the ordinary map as an **overlay** anywhere the general public may walk — which needs no new access model and never touches parcels, because a baseline vessel holds **no keys, no credentials, no gear**, so the shipped `Lockable` machinery does it for free (**the shade walks; it never phases**). It is perceptible because *being dead doesn't log you off* — network presence, **not** a spirit-fabric reading of the aether — at a fidelity set by **awareness competence**. **The engine owns two transitions and nothing between them** — `die` and `reembody` — with **no route/terms vocabulary** (a schema for content that doesn't exist yet would constrain the authoring space rather than serve it); a resurrection business or a Hades journey is content that charges through banking, gives and takes through containment, and finishes by calling `reembody`, needing **no engine work**. v1 ships those two transitions, and an argument-less `passage` **floor** so no player is ever stranded. A `perceptualPlane` axis was built and **CUT** — it could not tag a *place* (`Location` doesn't compose `ConcealableMixin`) and gated sight rather than passage (traversal is `canTraverse`), so it could not do the job it was justified by; an underworld wants a traversal gate on incorporeality, and the ghost-in-the-tavern beat is already expressible through concealment's own bands. **Doctrinal split:** NPCs keep race.md's same-Stuff corpse; only a PC's body splits, because only a PC has an identity that must leave. Nearly all durable state survives free — **the ledgers all key on `getIdentityPath()`, not the object**. Ships dying-as-a-clocked-rescuable-state, the stabilization seam on the **already-shipped** medic loop, the corpse, the passage **floor** (the Orpheus ladder stays content), and the chronicle + accountability writes death has never made. Design authority stays [deferred-rpg/mortal-vessel-slate](./deferred-rpg/mortal-vessel-slate.md), which keeps its moderation/prison half.
-- [health-vertical-slate](./builds/health-vertical-slate.md) — **NEW 2026-07-31.** The **vertical** over disease + harm: clinical assessment, diagnosis, treatment, prevention and public health, **across people and animals both**. Spans four layers no single slate owns — the engine, the **institutions** (a public-health *department*, staffed via the **College of Physic**, whose demand anchor already reads *polity public-health paper*), the **demo set** (the aid post, the health-cohort cut), and the **teaching seam**. Differentiator: **every prior game's healer asks "how much healing do I apply?"; ours asks "what is wrong with them?"** — nearly free, because honest opacity + `observableSigns` + **11 shipped conditions with overlapping signs** make **differential diagnosis emerge rather than be scripted**. The six-link **chain of infection** maps link-for-link onto `ContagionSpec`; **the vet track is free**; **prevention is the unexplored half**. Largest gap: **there is no diagnosis surface at all**.
-
-- [blood-slate](./builds/blood-slate.md) — the **transfusion economy**:
-  harm ships a bleed and mortality ships death by exsanguination, so
-  *you can stop a bleed but you cannot undo one*, and given how combat
-  resolves that is the most common serious injury in the game. The
-  substrate mostly exists — ⭐ metabolism's `introduceToxin` is *"the
-  bloodstream seam past digestion"*, i.e. **the transfusion door, already
-  built** — so the work is a compatibility check in front of it. Carries
-  the **first *endowed* value**, blood type: pure relationship, no scale,
-  nobody's is better (genotype stored, phenotype derives). Compatibility
-  is a **cost curve, not a gate**. v1 is **gift-only**; ⚠ the **Titmuss
-  lever** (paid donation, and whether payment *reduces* supply) is
-  designed-for and deliberately **not built**.
-
-**Phases:** vitals substrate (built → tails) → encumbrance (built → tails) → metabolism (built → tails) → respiration (built → tails) → **thermal (built → tail)** → **weather Wave 1 (built → tail)** → **storms-and-wetness / weather Wave 2 (built → tail; wetness substrate + Storm frontier)** → **fire / combustion (next; the Fire channel)**.
-- [slotted-split-slate](./builds/slotted-split-slate.md) — **SHIPPED 2026-09-06** → [slot.md](../subsystems/slot.md). `SlottedMixin` was 1330 lines doing two jobs: **a slot is not a garment**, and nine of ten `Slotted` composers are not bodies. The covering half became `AttiredMixin` on `Creature` (barding works; a corpse stays dressed). Kept for four live open questions — whether `Attired` wants its own persistence, whether the stealth reads (`concealmentOffset`/`attentionFactor`) belong there once posture or light feed them, whether `Adornable` is a fourth job, and the impression-line static. ⚠⚠ It also carries the **retracted** "TypeScript inference ceiling" and the bisection that replaced it: the cause was a `static _mixinName` pinned to a literal type, and *a broken file in a lineage and a real compiler limit produce the identical cascade.*
-
-### 4. World places & navigation
-*A long, sequenced content build.* The Warren elastic-graph substrate +
-a rudimentary lounge shipped (→ [location.md](../subsystems/location.md));
-the slate's deferred procedural/spatial consumers now live in
-[tails/multilocation-slate](./tails/multilocation-slate.md). The build
-continues with the content + navigation layers on top:
-- [lounge-slate](./builds/lounge-slate.md) — the full spawn lounge content (locked slate); the rudimentary lounge that shipped with the substrate is the seed.
-- [fast-travel-slate](./tails/fast-travel-slate.md) — **shipped (v1), re-shipped by the TPA reform** → [fasttravel.md](../subsystems/fasttravel.md); the Teleport Authority network (terminals + scan-to-register credential), now a self-governing `/system/tpa` pack running on mana, with the `teleport` VERB kept in the kernel. Tail holds scheduled mode + wayfinding, terminal *wear*, and the disruption loop.
-- [logistics-slate](./builds/logistics-slate.md) — **shipped (v1)** → [logistics.md](../subsystems/logistics.md); the realm as one connected place: induced lanes over the exits that already exist, the Route/Journey, two corridors and a pass where bulk breaks, the haulage trade and its paper, and the gig market that made the supply brains stop teleporting. ⭐ Kept, not retired — piracy, live cargo and drovers, infrastructure politics (tollgate/turnpike/barricade), the railway, and the entrenchment tier for free movement are untouched design surface.
-- [eternal-university-slate](./builds/eternal-university-slate.md) — campus content area; built after char-gen + lounge.
-- [inquiry-slate](./builds/inquiry-slate.md) — the **learn-by-discovery substrate**: how *sim-native* knowledge is discovered (observe→measure→hypothesize→**predict**→verify), banked (Competence), published (teachable goods), and corrupted (the **wrong-paper** mechanic — self-defending, so misinformation is a *social/temporal* exploit gated by verification cost; the insidious case is the evidential-range **overreach** paper). Truth is **demonstrated, not argued** (the deduction-slate spine). Spun out of capability-magic Part IV (2026-07-15); magic is its first consumer, combat/medicine/crafting/farming are peers. The gamification-mirror "teach *how to know*" engine. **Loose now, tight-seam reserved** on real-course credit.
-- [onboarding-slate](./builds/onboarding-slate.md) — new-player onboarding; starts at campus arrival.
-- [map-slate](./builds/map-slate.md) — spatial-visualization client pane; an enhancement built when earned.
-- [towns-slate](./builds/towns-slate.md) — **NEW 2026-09-02.** The realm outside Terminus: **Rejection**, **Hinkley Hills** and **Heart's Delight**. Every town is two halves — a *functional* half (why it exists, mostly shipped) and a *support* half (⭐ **what the work does to the people who do it**, almost entirely unbuilt and **derived**, not invented). ⭐⭐ **The towns do not trade with Terminus, they trade with each other THROUGH it** (already true in shipped rows: `banksAt: goodkin`, the one arrival terminal, the university). ⭐⭐⭐ **The civic triptych** — three *failure modes*, not three instances: Rejection needs public authority and cannot get it, Hinkley has a special district and will not use it, the valley built a co-operative that works **in the wrong domain** — and **each town holds the institution the next one needs, and none of them talk.** Per town: Rejection is Tremors/Deadwood/Matewan as a *sequence* (a mine manufactures soft ground, so the safe place is down the adit; the charter is worth only what Terminus says, and Terminus recognizes it *because a corpo needs clean title to buy*); Hinkley's engine is **idle attention** so its content is other people, the death man is **permanently ambiguous with the ambiguity in the man rather than the ground** (AGPL: a hidden body is found in an afternoon), and every rung of the escalation ladder is a shipped subsystem so **no quest chain is authored**; Heart's Delight does not exist yet and its lesson is **how towns form** (seven walkable steps ending in a postal clerk assigning the name — which is `AddressRegistry`'s own one-Locality-per-prefix rule). 27 decisions. ⚠ **D22 unsolved**: an NPC house as free storage. Content staged under `docs/staging/`.
-
-**Phases:** multilocation substrate (built → tails) + rudimentary lounge → full lounge → **fast-travel (built → tail)** → eternal-university → onboarding → map.
-
-### 5. Authoring & CMS
-*Creator tooling.*
-- [cms-slate](./builds/cms-slate.md) — content-authoring tools; Monaco editor
-  core. **Wave 1 (file/template/document explorer + Monaco) shipped** →
-  [../subsystems/cms.md](../subsystems/cms.md); **Wave 2 (the Studio — the
-  mixin-aware composition surface: `@authorable`-derived schema-driven form,
-  the blueprint catalogue, the class scaffold/commit bridge) shipped** →
-  [../subsystems/studio.md](../subsystems/studio.md). Kept in `builds/` for the
-  deferred remainder (per-type / bespoke content editors + zone/map canvas,
-  drafts/publish + the law==code forums-review gate, versioning).
-- [authoring-intelligence-slate](./builds/authoring-intelligence-slate.md) —
-  compiled `.d.ts` type surface + LSP for authors. **Its first two catalogs
-  (the mixin-particle palette + the named-blueprint catalog) shipped with the
-  Studio** ([../subsystems/studio.md](../subsystems/studio.md)); kept in
-  `builds/` for the engine-typed IntelliSense / LSP / host-isolation remainder.
-- [scoped-authoring-slate](./builds/scoped-authoring-slate.md) — personal / scoped authoring permissions.
-- [provenance-slate](./builds/provenance-slate.md) — the authorship substrate bridging
-  authoring (this build) and **producer influence** (§9): ownership + attribution +
-  dependency-DAG credit + an in-runtime VCS. **First brick SHIPPED** — the append-only
-  `AuthoringEvent` ledger + context-derived author → [provenance.md](../subsystems/provenance.md)
-  (the producer faucet's routing input). Kept in `builds/` for the build-sized remainder
-  (the dependency-DAG credit graph, git-in-runtime VCS, the author≠owner un-fusing that
-  [property](./builds/property-slate.md) consumes).
-- [git-workflow-slate](./builds/git-workflow-slate.md) — the **in-runtime VCS**
-  brick provenance reserved: a gated `GitApi` that turns runtime source edits into
-  commits pushed to GitLab (version history · review · rollback · **durability across
-  redeploy**). Governing insight: **the working tree *is* the live server**, so it's
-  **snapshot-and-push** (box-on-a-long-lived-`authoring`-branch, `publish` = add/commit/push,
-  isolation moves to the MR layer) — never working-tree branch-switching. Security spine:
-  **every git op is gated by the same per-path `can('write')` predicate as a direct source
-  write** (git is not a permission bypass; `publish` stages only writable files → per-owner
-  scoping falls out; revert-only, `reset`/force-push deferred). Identity: **one shared push
-  token + per-avatar `--author`** (mirror of the `AuthoringEvent` ledger). **Wave 1 (source
-  plane) SHIPPED** (MR !132) → [../subsystems/git-workflow.md](../subsystems/git-workflow.md);
-  kept in `builds/` for the remainder: content/document→git (Mongo→file export) + finer-grained
-  review + per-user `/home/` submodules.
-
-**Phases:** type surface + diagnostics (shipped → diagnostics.md) → CMS editor core (shipped → cms.md) →
-the Studio composition surface + first authoring-intelligence catalogs
-(shipped → studio.md) → scoped authoring · provenance (first brick shipped) · **git-workflow
-(in-runtime VCS Wave 1 shipped → git-workflow.md; content-export / finer-review / subrepos deferred)**.
-
-> The former verb-provisioning slate is retired — its one durable idea
-> (a verb may be afforded by many source objects; the source is the
-> discriminator) now lives in
-> [command-routing.md § Affordance attribution](../subsystems/command-routing.md).
-
-### 6. Game config — ✅ shipped
-Shipped as the **app-settings** substrate ([app-settings.md](../subsystems/app-settings.md)): `AppSettings` singleton Document + `AppApi` + the developer-gated `config` verb, values seeded from `app-settings.yaml`. The slate is fully absorbed and retired.
-
-### 7. Economy
-*Value as physics, not RPG.* Filed here, not in `deferred-rpg/`, on
-purpose: how matter and money enter, move, and leave the world is a
-conservation problem with in-world rules — substrate, the same as light
-or containment. Stats/progression/combat balance stay deferred; the
-physics is buildable now.
-- [economy-slate](./builds/economy-slate.md) — currency, value, crafting inputs, trade. Reads the shipped [glob](../subsystems/glob.md) fungible-stack substrate (coins and raw materials are already modeled). **Currency slice buildable now; macro balance — faucet/sink, inflation, population-scale loops — parked until there's a running game to tune against.**
-- [currency-slate](./builds/currency-slate.md) — the **decision layer** over the money substrate: the Compact's currency is the **zorkmid**, denominations are **structural** (`(currency, faceValue)` — no authored coin names; culture supplies "fiver"), reserve status is **functional not decreed** (make Compact obligations payable only in zorkmids), and there is **no exchange, permanently** — currencies are goods, and a **peg is an issuer's redemption promise, not a world rate**. The issuer generalization **shipped** (2026-08-05) with exactly one currency → [banking.md](../subsystems/banking.md). Kept for the design surface the build deliberately did not touch: **company scrip** (the truck system — the use case the generalization exists for), acceptance-on-offers, and who may charter a second issuer.
-- [supply-chain-slate](./builds/supply-chain-slate.md) — the **missing middle**: how goods actually move from farm to table — the four-rung stepping stone (**spot market → direct purchase → contracts → the firm**) over one consignment substrate, and the fungible-consignment correction (Part 2). ⭐ **Rung 1 is real since farming Stage A (2026-09-01)** — the farmers market's consignment stalls; the fungible middle and rungs 2–4 stay design. ⭐ **Parts 1 + 6 SHIPPED (the fermentation build, 2026-09-01)** → [maturation.md](../subsystems/maturation.md) — the durative transform (`MaturingMixin`) and the kernel bill/grade seam; Part 2 (fungible consignment) still stays design.
-- [money-integrity-slate](./builds/money-integrity-slate.md) — ⚠ **follow the money, end to end.** The governing finding: there are **two conservation domains and only one is sealed** — the ledger has `postTransaction`, cash is ordinary `Stuff` and had nothing equivalent. The currency build closed the two holes on paths it already rewrote (the `setQuantity` gate; the audit's blindness to snapshotted coin); **the rest is unswept** — crafting yields, content packs, the CMS coin row, clone-a-coin, `materialize` idempotency, the sandbox cash boundary, destroy-without-drain. ⭐ Its real deliverable is a **property test over the object layer**, because gates decay. ⚠ One of its three original findings was **wrong** and only driving caught it — the correction is recorded in the slate.
-- [crafting-slate](./tails/crafting-slate.md) — **shipped across two builds** → [crafting.md](../subsystems/crafting.md). The bar build shipped the served path (Dave's Bar four-tuple, recipes-as-Documents, `Grade` quality, the maker's mark); the **crafting-branches build** grew it to three branches over one skeleton (bulk drinks / smithing / cooking), the by-hand knowledge ladder (claim vs the can-make deed), the two wear axes (`Durable` condition + `Keen` edge), and the full lifecycle (repair/salvage), with menus commerce-only and working verbs instrument-conferred. Tail: the skill-as-control seam (`deriveAtFixedControl._control` — advancement's side), remaining recipe-spread vectors, assembly recipes, the tailoring branch, and later branch consumers (glassmaking/brewing/alchemy) — the live list rides crafting.md § Deferred seams.
-- [textiles-slate](./builds/textiles-slate.md) — **REDUCED to its unbuilt tail.** The chain (flax → yarn → cloth → dye → a fitted garment) **SHIPPED 2026-09-06** → [textiles.md](../subsystems/textiles.md) + three capability packs (`trade-textiles` · `trade-dyeing` · `trade-tailoring`). The governing idea that survives: **a garment's purpose is which channel it intercepts**, so nobody authors *"this is a lab coat"* — `clo` is derived and never authored. Tail: wool and everything on its left edge (`shear`, scouring, `full` — fulling needs scales linen does not have), leatherwork (waits on a hide faucet), patterned weaving (the loom must hold two yarn colours), cotton/silk, and the player-tailor contract half.
-- [equip-slate](./builds/equip-slate.md) — captured **out of the textiles build's covering work**, from an interface complaint that turned into a question about who holds the engine's knowledge. **SHIPPED 2026-09-06**: `equip`/`unequip` orchestrate while `wear`/`wield`/`remove`/`unwield` stay their own verbs (⭐ the alternation `Wearable|Wieldable` cannot refuse either member, so collapsing them *deletes* a check and makes `wear sword` legal), and saved outfits ride a **stanza** on the dressing view rather than a verb. Kept for the storage-side design it did not build: equipping directly out of a container, and whose knowledge decides a set.
-- [corpos-slate](./builds/corpos-slate.md) — the fictional megacorps that own the private sector: a cross-cutting **affiliation/competition fault line** + a **mark** on the goods of the world. **Phase 1 (marks + booze portfolios) shipped** → [corpo.md](../subsystems/corpo.md) — the five corpos + their brands as authored reference-identities, brand→corpo resolution, the per-product `Branded` mark. Kept in `builds/` for the deferred phase 2: the player-facing **faction gameplay** (the multipolar approval vector, competition, sponsorship, portfolios beyond booze) — a build's worth of design, not a tail.
-- [livelihood-slate](./builds/livelihood-slate.md) — the *livelihood & consequence* spine: **violence has no payday; livelihood comes from work; the world's money is conserved with authors running their own budgets; consequence is recorded, not mechanized.** §5 (the **employment model**) **shipped** → [employment.md](../subsystems/employment.md), and the **work-contracts build shipped the §5 gig kernel + §6 arrangement generalization** → [contract.md](../subsystems/contract.md) (clauses/escrowed gigs/the job board) + compensation bases + the draw. Kept in `builds/` for the unbuilt rest: death-as-cascade-terminus (§1), the adjudication stack (§2), the systemic gig generator + NPC claiming (§3/§5.3 tail), the **conserved-economy** big model (§4), §6.3–§6.5 terms, the constituency walks (§7), and the Circulation-Reserve public-works program (§8).
-- [retail-slate](./builds/retail-slate.md) — the **retailer** business archetype (the shop, after the shipped bar/maker-seller and bank/service) and its **four-build arc**, framed as *one small shop build plus two economy substrates it grows into* — complete-at-tier at every stage. The load-bearing split: a **sell** price is a transfer (can't mint → a feel knob, safe to author freely, calibrated to stipend/wages/coinage as *stance* per Law 1), while a **buy-from-player** price is the vendor-trash faucet (deferred behind the reserve). **S1 — the general store** (retail counter: buy from bounded stock + P2P consignment; heavy reuse of `Business`/Attendant/banking/containment + the bar's `Menu` offer pattern) is **SHIPPED (MR!143)** → [retail.md](../subsystems/retail.md) + [chattel.md](../subsystems/chattel.md) (built property-first over the chattel possession core; `PricedOfferMixin` extracted from the bar's `Menu`; the reset sweep graduated). **S2 references the [city-economy](../staging/terminus-city.md) build** (the Circulation Reserve = the welfare-floor buy; welfare is monetary policy, not a shop feature — not owned here). **S3** = the producer/mine + cost/supply-derived pricing (closes the mine→ore→shop→player loop). **S4** = player-owned shops + franchising + the corpo market arena (the apex; corpo Phase-2 pointed at retail).
-- [property-slate](./builds/property-slate.md) — the **possession / real-estate / compute-scarcity** substrate — the foundation under pets, ranching, farming, and the economy + governance tiers. Governing insight: **two separate conserved scarcities — money (prices *land*: parcel tax, market) and compute-allowance (prices *liveness*: parcel-bound, governance-allocated, non-transferable, total = the box)** — never collapsed, coupled only at the parcel (*land is the container of a compute allowance*). Property = **the right to run a subdivision** ("pay to run, not to visit"); the dorm is `HomeZone` un-grown, real estate is it grown up (starter sandbox home). Net-new: the **parcel** (the join of the already-built boundary trees + a **title**), **un-fusing author from owner** (fused today: owner = immutable earliest author; the deferred provenance "ownership hierarchy" + CMS "lease model" are its two halves), a **two-layer compute model** (predicted heartbeat-budget at CMS-save + runtime degradation-ordered-by-deficit; *tolerant of bad prediction by design*), measured via the **call-security Proxy** (CPU) + a **registry sweep counting shallow-once** (memory), enforced as **dormancy** (freeze → evict). Four-phase spine: possession core → compute economy → governance allocation → tenancy. Consolidates the scattered tenure/ownership deferrals. **Phase 0a (real-property *title*) SHIPPED** — the parcel primitive + gated `parcels` registry + `ownerOf` chain + `subdivide`/`transfer`, ownership un-fused from authorship and moved out of the editable `domain` collection; see [parcel.md](../subsystems/parcel.md). **Phase 0b's serialization-boundary half SHIPPED** as the **self-persistence spine** (§I–K: `PersistableHolder`/the serialization boundary/seed-then-persist — property, inventory, room contents now survive eviction/logout/reload; Avatar migrated on) — see [persistence.md § The self-persistence spine](../subsystems/persistence.md). **Phase 0b is now complete**: chattel/possession shipped (MR!143) and the **furnishing** build added owner-based persistence — an owned good persists with its *owner* carrying a `place`, `ownerOf` gained the parcel rung, and acreage split into ground vs floors (`storeys`); see [furnishing.md](../subsystems/furnishing.md). Hinkley Hills then gave title **the verb it lacked** — `title`/`title list`/`title buy` over a `PlatBook` catalogue + `PlatWarren` provisioner, the sale riding banking's settle chokepoint ([smallholding.md](../subsystems/smallholding.md)). **The tenancy *content* then SHIPPED (2026-09-01)** with the residences build — Seznick House on Mayfield Row is the provisioned multi-room leased unit, and the three rungs turned out to be one substrate: *a holding is a warren one level down* ([holding.md](../subsystems/holding.md)). Compute economy (Phase 1), governance allocation, and dormancy-as-reclamation remain.
-- [ranching-slate](./builds/ranching-slate.md) — the **animal economy**: raising **livestock** (managed as herds, not befriended) for renewable yield — milk/eggs/wool/meat/hide/draft/breeding stock. The **economic sibling of [pets](./builds/pets-slate.md)** (the relationship half) and of the **farming** work (the plant half); all three sit on a shared **husbandry / possession** base. The Creature/Character split *is* the livestock/pet split (thin resource vs rich relationship); **domesticability is one axis spanning wild→pet→livestock**. Divergent layer (net-new): **yield/production cycle**, **breeding** (`SexedMixin` exists; a reproduction driver likely doesn't), butchering→crafting, herd management + predation. Integration seam with farming: the conserved **crops → feed → livestock → products → crafting** loop + land tenure. Heavy customer of the possession + maturation gaps named in the pets slate. **⭐⭐⭐ SHIPPED by the farmstead build (2026-09-06)** — the herdbook as a filed record (*you file; you do not hold the pen*), draft/return with seeded materialisation, `flesh` as a stock read as a band, the three taps with distinct neglect failures, handling + the injury path, draught animals and the dog, the fox, and the roles split (livestock / working animal / pet are not three classes) ([ranching.md](../subsystems/ranching.md)). ⚠ **Kept, and it now carries the breeding brief** (§ Breeding — everything we know): `breed` ships writing *served* only, and gestation + genetics are a follow-on that owns `R = h²·S / L`. Bees are cut. **No longer a stub — deep pass done 2026-07-30/31:** it now owns the family's **five shared conventions** (density dial · custody = `ChattelMixin` on the Creature stack · one family clock · two yield shapes · **one care model, three outputs**), the **energy-partitioning** core model (*not* farming's limiting factor), **pasture-is-a-field** with the crop/graze/hay/orchard land-use table, and **player-set paddock granularity**.
-- [development-slate](./builds/development-slate.md) — **NEW 2026-08-01.** Land, structure, and what a parcel can carry — grew out of a review question on furnishing's acreage model. **Land is declared, everything above it is measured.** Three planes (land / footprint+gross-floor / modelled rooms) and four derived ratios (coverage, FAR, efficiency, draw); **never model the tissue** (corridors and wall thickness are cells-by-role, not objects); and the decisive constraint — **zones overlap**, so the remainder is a BUDGET, not a partition. The core claim: **land's job is to make production scarce, and today it doesn't** (`parcel.area` is decorative — 500 field-cells fit on a tiny parcel). Fix: the draw rides the **bed**, not the zone (expressive) and not a declaration (honest — the player can count it); only PRODUCTIVE uses draw; over-draw is permitted with **no penalty mechanic**, because crowding is competition for light/water/nutrients and the shipped min-of-three does the rest — diminishing returns emerge, never administered. Unused capacity is indefinite, so land-banking becomes the legislature's argument. ⭐ **The hermit test**: a shack and a garden need ZERO numbers — the cap constrains player expansion, not authored content, and the CMS should propose numbers rather than demand them. Adds property-slate's missing leg: **land prices production, compute prices liveness**. Defers per-zone extent (zoning's ⭐ per-location extent).
-- [notification-slate](./builds/notification-slate.md) — **NEW 2026-08-02.** The one substrate answering **"what happened to the things I care about while I was away"** — *absent*-tense, where `Sensor`/`MessageApi` is present-tense and `Bulletin` is everybody-tense. Surfaced by the wiki (watchlists) but with many claimants: a gig accepted, a consignment sold, a crop ready, a lease expiring, a reply, an office reassigned. **Nothing today is this** — `NotifyPolicy` is a *who* axis keyed on group refs, MQL/forum subscriptions die on disconnect, the `*_events` ledgers are records with no delivery. ⭐ **Not a second message bus**: an event is TYPED and its prose composed by the substrate from a template it owns, so a producer can never address a player or phrase anything — harassment and spam become structurally impossible rather than policed. Subjects are **path-shaped**, so routing is the shipped `PathTrie` (exact / subtree / longest-prefix, giving "a mute overrides a subtree watch" for free); the interesting selector is a **template path**, where watching `/lib/material/oak` catches both the article and the material. **Derive-on-read** (one event row however many watchers), coalescing and digest as read-side concerns, and ⚠ spoiler-gated at BOTH ends — subscribe-time (watching a subject reveals it exists) and deliver-time (capability changes). Kept separate from `NotifyPolicy` by axis, sharing its preference vocabulary.
-- [stewardship-slate](./builds/stewardship-slate.md) — **NEW 2026-07-31.** The layer between the shipped parcel **title** and the systems that sit on land. Three things property names but never designs: **land use** (a *closed* vocabulary typing what a parcel admits — genuinely absent; a parcel is structurally typed and categorically untyped), the **residence ladder's actual gating rule** (money is necessary and not sufficient — the binding gate is the **condition of what you already hold**, which makes hoarding negative-sum with no ownership cap), and **stewardship** (visible property *condition* + a `Discipline`). Carries the **allowance cascade**: the Compact grants a locality a bundle, the locality apportions it to parcels on its own terms, while the *sandbox* draws **Compact-direct** — so **the Compact funds authorship, the locality funds living**, and a hostile local government can never squeeze a player's creative channel. Survives property's "never your couch" rule by scope: **zoning governs land use, never self-expression**. **Land use alone needs neither the un-designed allowance meter nor the deferred region parcel** — the small piece that unblocks farming/ranching/pets. **⭐ LAND USE SHIPPED (2026-08-01)** with Hinkley Hills — the closed six on `ParcelRecord`, the longest-prefix resolve, the cultivation gate ([smallholding.md](../subsystems/smallholding.md)). **⭐ THE RESIDENCE LADDER + ASCENT GATE SHIPPED (2026-09-01)** with the residences build — three rungs on one substrate, shell condition on a weathering clock, the tenure term saying who OWES upkeep, and the ascent gate reading the condition of what you already hold ([holding.md](../subsystems/holding.md)). The allowance cascade, **stewardship as a `Discipline`**, the consequence ladder of a neglected home, and zoning-as-governance remain.
-- [mirror-slate](./builds/mirror-slate.md) — **NEW 2026-07-31. Deliberately further out than anything else here.** A player's in-game state held in **parity with their real state**, so acting in the world earns in the game — the [gamification mirror thesis](../vision.md) with the loop closed at both ends. Exemplar: **instrument your real bedroom, and your game bedroom keeps parity**. The platform already models the real units (labor, condition, nutrition, skill, property); what it lacks is an **inbound** channel from the world it models, so a parity feed is *the same event arriving from a different witness* — no parallel currency, no achievement layer. The cheating problem inverts the anti-cheat posture (an assertion the kernel never witnessed), and the answer is **density, not verification**: make the signal broad and mutually constraining until producing a coherent false life costs more than living the real one — *to game it is to live it*. Hence **breadth is a prerequisite, not polish**; a single-sensor mirror is a cheat surface with a payout. Two near-invariants proposed: the platform **never sees the raw feed** (derived assertions only), and **absence is neutral — the mirror only ever adds**, so the game stays whole for a player with no instrumentation. Open: admissibility (does a reading inform *condition* but never *character*?), claim-vs-corroboration, the density threshold, the two-tier/pay-to-win risk, and whether parity is diegetic or a marked meta channel. Its only cost so far is paid: the furnishing build's D7 (rooms carry room-level state). **Flags a real corpus gap** — four designs it leans on (instrumentation, enforcement, practicum, bathroom) exist only in session memory with no file.
-- [preservation-slate](./builds/preservation-slate.md) — **NEW 2026-07-31. ⭐⭐ The endeavour half SHIPPED 2026-09-04** (the food-safety build, MR !244): salting, drying and smoking are three acts over one lever, and the *pressure* for them — butchering an animal that hands you more meat than one sitting — ships with them → [spoilage.md](../subsystems/spoilage.md), tail in [tails/food-safety-slate](./tails/food-safety-slate.md). Its § *terms, not methods* completeness doctrine was inherited unchanged. **Kept** for the rest of the endeavour: the cellar, the icebox, the agricultural year. The **keystone deferral of the extraction family** — spoilage is the mechanism, *preservation is the endeavour*. [mining](./builds/mining-slate.md) ("Salt — the essential staple **[DECIDED]** … preservation is the killer app") and [fishing](./builds/fishing-slate.md) ("the natural driver to finally build **perishability**") both point at it and stop. **Law-2-legal by a carve the economy slate already wrote**, because **the clock starts at an *act*, never at ownership** — an unharvested crop isn't spoiling, a *caught* fish is. Mechanically it is **disease without transmission** ⇒ **the ideal first consumer of the growth term**. A **third wear axis** beside `Durable`/`Keen`. Drivers exist unevenly — wetness is universal on every `Thing`, **thermal is opt-in (~11 classes) and is the real cost**. Best consequence: **the agricultural year falls out unscripted**, which also solves the fridge problem (a cellar is free in winter, dear in summer).
-- [farming-slate](./builds/farming-slate.md) — the **plant half of agriculture**, an **integrating vertical** (the Dave's Bar precedent) that composes shipped substrate + two new primitives (a plant/soil biology engine + a genetics layer) and grounds the deferred magic vision in real biochemistry: *Stardew on the surface, real science underneath.* The **land model** (farm = a Warren budding field-**parcels**; aggregate soil-as-bulk default vs `Slotted` beds for boutique crops — ownership/title/compute-meter handed up to [property](./builds/property-slate.md), the **parent**), the **growth engine** (reconcile-on-read, no tick, **no presence freeze** — the metabolism divergence; Liebig = weakest-link `Grade`; GDD = `∫thermal`; six soil `Reserve`s; stages teach *when*), the **anti-idle** ladder (real-time upkeep against the parcel's compute allowance; automation shifts who-pays — you/farmhand-wages/script-compute — never removes the floor), **numbers-with-error-bars vs the θ-band self-estimate**, **genetics** (genes as *reaction norms* not values → G×E falls out correct; `Genome`→`express`→`GrowthParams`; Mendelian on-ramp + quantitative `R=h²S`; a **husbandry-wide breeding substrate shared with [ranching](./builds/ranching-slate.md)** — build it once), **magic as pharmacology** (no engine word — compounds hook augmentation/vitals/perception/thermal/reserve; composes with [capability-magic](./deferred-rpg/capability-magic-slate.md)), the **synthesis/brewing** transform branch of crafting (extraction/reaction/purification; the engine runs the chemistry off-recipe → discovery), and the **University external-mastery seam** (real proctored mastery → in-game capability via the credential substrate; one issuer behind a seam; raises the ceiling, never gates the floor). **Staple-loop v1 buildable now** (no genetics/magic). **⭐ PARTLY SHIPPED (2026-08-01)** — living-world phases 1+2 took the growth engine ([husbandry.md](../subsystems/husbandry.md)) and the N-slot bed on owned ground, shared soil, the weakest-link harvest grade and soil nitrogen ([smallholding.md](../subsystems/smallholding.md)); two slate claims were overtaken (soil landed as TWO reserves, not six, and water is held by the GROUND). **⭐⭐ Stage A then SHIPPED (2026-09-01, the farming build):** the fruit cycle / perennial-orchard tap, `pick`, matter-not-mark produce, the ten grown families, the farmers market, and the first production brain (`farms`, in the pack). **⭐⭐⭐ And the FARMSTEAD build shipped the field half (2026-09-06):** `SoilMixin`'s four reserves + the sky edge, `GroundCharacter` (the third seeded field — character prices IMPROVEMENT, never yield), the `Field` room + `plot`, reclamation and reversion, the sward with grazing-vs-hay, the nitrogen ledger closed at both ends, winter, and the four-course rotation verified off the ledger ([soil.md](../subsystems/soil.md)). **Kept** — still unbuilt: genetics, magic-as-pharmacology, the synthesis branch, environment control, the University mastery seam, and Stage B (Heart's Delight).
-- [fishing-slate](./builds/fishing-slate.md) — the **third extraction vertical** and the **lightest**, a lean sibling of [mining](./builds/mining-slate.md)/[farming](./builds/farming-slate.md) (not a full integrating vertical): ~90% composition of shipped substrate + **one new primitive (a catch-distribution model)** + **one small bespoke mechanic (the landing contest)**. Owns the niche the others leave empty — the **accessible, opportunistic, contemplative** vertical (*panning grown up*; the socializer's low-attention income floor), deliberately **low-vitals-load** (fishing is the body's *rest* to mining's *gauntlet*). The core act is a durative **engaged activity** (`cast` → wait → bite → land); the play is **reading the water** — a hidden, learnable, per-cast-stochastic catch table that is a **function of the shipped weather/time/biome fog** (fishing is the **first real gameplay consumer of weather-as-a-system** beyond wetness). The **landing contest** is bespoke-and-light (a `reel`/`give` strain-vs-break push-your-luck, **NOT** the combat engine — keeps the calm tone; small fish auto-land). The full design space is **three orthogonal axes over one catch substrate** — **place** (shore-feature → boat → dive), **method** (hand → rod → trap/pot → net → commercial), **noun** (finfish/crustacean/mollusk/cephalopod/eel/plant/apex, all `Creature`s or forageables) — so it's large but the engine is small (v1 pins one cube cell; each wave adds one axis-value). Underneath sits **water composition** as the honest-science layer (salinity/temp/clarity/O2/current/contaminant — each riding a *shipped* system: bulk/thermal/light/respiration/biome — driving the catch table). **Current & tide are the dynamics** — current a flow-field (drift shapes the cast, the seam is the feeding lane, the fish uses the flow in the landing contest, drift-fishing emerges), tide a **stateless procedural clock** (`TideApi.tideAt` — the `WeatherApi.weatherAt` shape, off `CelestialApi`; no tick, deterministic → zero new dice) that gates the bite window *and opens/closes the shore flats as rooms* (low-tide clam-rake vs. high-tide boat + the avoidable cutoff danger); in tidal water the current *is* the tide's derivative, so one celestial clock drives the whole rhythm. **The "grid of rooms" resolves cleanly:** `CartesianLocation` is already `x,y,z`, so a whole water body is **one `CartesianZone`** — shore = the water is a *feature* in a normal land room (v1, zero new spatial cost); boat = a **liquid warren** (the elastic-graph `Warren` substrate — a graph by default for rivers/ponds/marshes, a `CartesianZone` lattice only for the open sea; *don't* subclass per body-type — liquidity is one orthogonal medium layer over a ~2-shape topology grammar + data); dive = the depth-layer beneath each node (the `z`-axis in the lattice / a `dive` exit in the graph — the vitals gauntlet re-admitted). A **liquid warren** in the abstract = a Warren whose members share one connected `Bulkable` fluid, which forces immersion-occupancy + a depth relation + current-weighted directional edges + fluid mixing/tide-level (the `Biome`-medium idea, for liquid instead of air). Fits: crafting source node (clean→cook→**preserve**), the **salt-cod tie-in** with mining's salt (the flagship cross-system click), the driver that finally builds **perishability** (raw/spoiled fish = a toxin dose → *why* cooking/salting matter), and the **overfishing/commons** sustainability hook (a Resource-Governor lever). v1 = the minimum loop at one authored water (Terminus docks / moor pool); noun-breadth/crabbing/nets/boat-grid/diving/aquaculture/commercial deferred to waves.
-- [metal-chain-slate](./builds/metal-chain-slate.md) — **⭐ STAGE A SHIPPED 2026-09-02** (the metal chain: `trade-mining` + `trade-fuel` + `trade-smelting` over the `rejection` venue; see [mining.md](../subsystems/mining.md)). The three trades that make metal, cut at PROCESS: ground → ore → charcoal → copper → tools, with **grade load-bearing end to end** (a lump's figure is the deposit's own, and the smelt's yield is `Σ mass × grade × the mineral's metal fraction` — nobody authors how much copper comes out). Ore grade is a shipped composition FRACTION, smelting is PHYSICS off the metal's own melting point, and strike/dip ARE theta/phi. **Kept**: iron wants the bellows, tin has chemistry but no ore (which is what keeps bronze a later stage), and everything below the water table is untouched — an adit drains by gravity and the oxide cap sits above the table, so no shaft, hoist, pump or drainage commons.
-- [mining-slate](./builds/mining-slate.md) — the extraction vertical's machinery, and the **paired-mine content exemplar** (Ferrow Delving / Delving 9 — the good/evil mirror). **Stage A shipped** the working substrate: the `Deposit` field, `WorkingMixin`'s four reads (faces, stability, air, telegraph), `MineWarren` carve/shore/promote, the damps and the canary. **Kept** — 1,700 lines of which Stage A is a fraction: deep workings, the Delving-9 mirror, salt-as-preservation-staple, the tribute/setting-day auction, and high-grading as an *offence* (the pooling and the honest assay ship; the offence wants an adjudicator).
-- [rejection-slate](./builds/rejection-slate.md) — the mining town on the outskirts of Terminus, and **the exemplar claim**: a second mining town is a locality pack over the same three trades, `requires` them and touches no `src/`. **Shipped** as `packages/content/rejection`, which contains **zero TypeScript** — the claim is checkable by listing the directory. **Kept** for its cast and LLM-NPC design beyond Stage A.
-- [field-substrate-slate](./builds/field-substrate-slate.md) — ⭐⭐⭐ **the field pattern**: a total function under a sparse graph, negative space as content. **Stage A shipped its first production instance** (`Deposit`): SEEDED not drawn (FNV-1a over the covering Locality's address, stored nowhere — the same cell answers the same across boots and across an eviction round-trip), one resolved read folding pin over lean over procedural, and *the price of a sample decides scenery-vs-career*. **Kept** — the pattern is general and weather is another consumer.
-- [libations-slate](./builds/libations-slate.md) — **NEW 2026-08-28. SHIPPED** (the libations build) → [retail.md](../subsystems/retail.md) + [employment.md](../subsystems/employment.md) + [crafting.md](../subsystems/crafting.md) + [display.md](../subsystems/display.md). The bar's **supply chain**: the three-way split it exists to hold — **a trade is a PROCESS, a brand is a MARK, a corpo is CAPITAL** (so corpos private-label generics and only the distiller distils), the **menu as the forcing function** (24 drinks ⇒ five upstream trades), and ⭐⭐ **verbs are physical acts; operations are APPS on a DISPLAY** (a tablet, a wall TV and the terminal's board are one `DisplayMixin`). Kept for the surface the build did not take: the display **network/channel** addressing layer, driver policy off the `pairing` enum, and the glassware supplier. **The three producing trades (winemaking, brewing, distilling) de-stubbed by the fermentation build (2026-09-01)** → [maturation.md](../subsystems/maturation.md); bottling stays the stub, and the cash-and-carry moved to the `distribution` pack.
-- [aluminium-can-slate](./builds/aluminium-can-slate.md) — **NEW.** One object against every system, as a stress test rather than a feature: a can that is packaging, a container, a fungible unit, a deposit, litter and scrap in turn. ⚠ Its sharpest finding is a **census bug the libations build then hit for real** — an *emptied* can still counts as PRODUCT, so the empty has to become an ambient burden rather than stock. The can/blood pair is the slate's argument about where a price works and where a price backfires.
-- [standing-mint-slate](./builds/standing-mint-slate.md) — **NEW.** ⭐⭐⭐ *Every global ledger is a currency, and the denominator is where the design is.* Standing IS a morality score — say so — and the scalar has to come from **the decision**, not the ledger, which forces plurality rather than abstention: the engine may publish a rating, never be the only rater. Separates the **mechanical** layer (what the engine can count) from the **political** (what a polity decides it is worth).
-
-- [venue-and-supply-slate](./builds/venue-and-supply-slate.md) — **NEW 2026-09-03.** The answer to *NPC-run businesses that can be easily sold to players.* ⭐⭐⭐ **The sellable-venue contract**: `appointingAuthority` already takes `kind: office` and shipped content almost never uses it — an `entity`-authored business is **hardcoded to its NPC and cannot be sold** — so **the NPC is the DEFAULT HOLDER of a proprietor's seat, never the owner**. Four parts (seat · premises · fixtures · account) and **three of the four transfers already ship**; the one real gap is a **price** (`appraisal` is a shipped Discipline with nothing to appraise). ⭐⭐ **Bespoke vs archetype is decided by *foundable*, and it is rent vs competition** — basic sector bespoke, support sector archetypal, so **five support archetypes built once** yield every town's second half. ⭐⭐⭐ **Coverage is a LINT, not a list**: recipes already declare the supply graph (`inputSlots[].category` → `outputMaterial`), so add a **`yields`** field to producer archetypes and `lint:supply` reports every uncovered category — a **faucet**, matter from nowhere — *derived*, so it stays correct at 10× content (which is the governing constraint: shipped content is ~a tenth of launch, so **a venue list is worthless and only a generator survives**). Plus the **universal five-rung ladder** whose top rung is scarce for a reason that is not price, six farm shapes (the coppice already ships as Rejection's fuel yard), the **going-concern** model (`wallet use house` + `buy` + the `restocks` brain — it *ships*), mechanism-in-the-trade/instance-in-the-locality with the **second-valley test**, and corpo consolidation as the visible progress bar on Heart's Delight selling. ⚠⚠ **V11: ranching ships first** — nitrogen is a faucet at both ends and *pasture is a field*. **Two substrate asks, and only two**: the `yields` field, and extending the archetype `needs` vocabulary past its closed six to admit ground/water/sun.
-**Phases:** currency slice → crafting venue slice (Dave's Bar) → (skill / quality / recipe-spread deferred with the advancement layer) · (macro balance deferred to a real game). Corpos: marks (shipped) → faction gameplay (deferred). Retail: general store (buildable now) → [reserve/city-economy] → producer + real pricing → player-owned shops + market arena. Property: possession core → compute economy → governance → tenancy. Agriculture: farming staple-loop (buildable now) → genetics/breeding (shared with ranching) → synthesis/magic → University seam; ranching deep pass rides the farming session.
-
-### 8. Reading & reference
-*The two halves of the in-game reading substrate — a systems↔content
-pair, split by center of gravity, not a wall.*
-- [help-slate](./builds/help-slate.md) — the **systems** half: the developer-maintained rulebook (commands, taxonomies, mechanics, formulas + numbers, the engine/API surface), harvested from three sources into one uniform `HelpTopic` index. Outgrew its current `HelpController` + TypeDoc scaffold. Governing pillar: transparent by default, hidden only by an explicit spoiler gate.
-- [wiki-slate](./tails/wiki-slate.md) *(tail)* — **shipped 2026-08-04** → [../subsystems/wiki.md](../subsystems/wiki.md): a community-maintained wiki of plain `WikiPage` Documents, every page authored, none generated from gamestate; the two-axis reveal model (appetite dial × capability ceiling) with a **reader rung** that makes the appetite half fire for ordinary players, the article dialect, and a per-surface tag policy that carried headings to forums and `<spoiler>` to chat. Tail holds Wave 2 richness (search integration, the level-3 source embed, the rest of the transclusion palette) and open questions 5–7 — anonymous web read, progress-gated reveals (⚠ NOT the capability ceiling: earned ≠ preferred), moderation depth.
-- [cooperative-slate](./builds/cooperative-slate.md) — the full governance
-  design (authoritative; this is only a hook): **stake-is-not-stock** (the
-  lawyer-free firewall) + **influence** (three non-fungible kinds = three
-  contributions — creation / capital / participation) → three co-equal
-  chambers → a parliamentary executive of chartered institutions → a
-  judiciary that runs **one async process** from operator-pool-of-one to a
-  **sortition** jury (verification + spirit, structured verdicts) → a
-  tamper-evident **archive** (integrity by construction, not a separate
-  operator) → a hard **firewall** between the real budget and the in-world
-  reserve (the economy itself left to legislation), with **deliberation**
-  (social-forum / polling / argument-map) and **amendment** (tiers + eternity
-  clauses + fork). Held together by recurring
-  throughlines: **graceful degradation** (NPC/automation floor everywhere),
-  the **membranes** (no cash-out, no pay-to-win), **no-number-as-authority**,
-  **conduct→reputation**, **engagement-is-the-substrate** (the game is the
-  engine apathy-prone DAOs lacked), and the **founder self-binding** so the
-  *structure*, not the person, is entrenched. Adoption rides **moderation as
-  the on-ramp**. **Stake-ledger slice buildable now**; the full republic
-  parked until there's a member body to govern.
-- [draft-constitution](../governance/draft-constitution.md) *(governance
-  instrument — homed in [../governance/](../governance/), not a backlog slate)*
-  — the slate consolidated into normative articles (Preamble + 13 Articles + a
-  **Schedule of Parameters**). Reframed as a **bare-bones kernel that ships to every
-  community**: a **three-floor test** (the *firewall* — the no-lawyer floor;
-  the *machine* + its provided tools; everything else *deferred*) decides
-  what's constitutional, so rights move to ratification, the economy +
-  institution roster + trial procedure to legislation. Keystone: **rights are
-  bindings on tools, not new machinery** — *due process = "you must use the
-  judicial machinery."* Treated as **code with a config block**: the articles
-  are logic; every tunable value (quorum, thresholds, lifespans, regen rates,
-  the amendment supermajorities…) lives once in the Schedule, each with a
-  change-tier and a value **set at ratification** (game-balance rows
-  *calibrated at launch*). Status: **draft, not ratified**; five points marked
-  `[OPEN]` (membership · rights · founding/ratification · emergency powers ·
-  interpretation).
-- [amendment-library-slate](./builds/amendment-library-slate.md) — the layer
-  *on top* of the kernel: a shared **library of model amendments** — pre-
-  drafted, vetted, composable **"political legos"** a community adopts (via the
-  kernel's ordinary Art. X path) instead of re-solving due process / monetary
-  policy / term limits from scratch. *Model legislation meets a package
-  registry meets the CC license picker.* Every choice the constitution defers
-  is a **module slot**; most modules are *bindings on tools the kernel already
-  built*. Catalog (rights / economy / roster / executive / judiciary /
-  membership modules) + **presets-as-distros** (Operator's table → Creator
-  collective → Full republic). **A few hand-authored modules buildable now**;
-  the package-manager conflict-resolution + curation tiers deferred to scale.
-- [founding-charter](../governance/founding-charter.md) *(governance
-  instrument — homed in [../governance/](../governance/), not a backlog slate)*
-  — the founder's **self-binding commitment**, in force from the first dollar
-  (the instance-specific instrument the constitution's Art. XI founding-stake
-  bound requires; *not* kernel text). The fiat-phase formula: **sole producer**
-  (~100%, diluting) · **0% consumer** (players' house ceded) · **capital-match
-  + 1** (a working majority that erodes as the community grows) · **the
-  *granted* control sunsets at ratification** — but the founder's *earned*
-  producer influence persists like any member's (only the capital-match + margin
-  end), leaving ordinary contribution + legislated wage. The binding isn't law
-  (there's none
-  yet) but **code + publication + exit** — it ships with the **stake-ledger
-  slice** as the first test of code-first self-binding.
-- [argument-map-slate](./tails/argument-map-slate.md) *(tail)* — the polity's
-  load-bearing **deliberation surface**: a navigable **typed claim-graph**
-  (proposal-as-spine, claims → objections → rebuttals; Kialo / IBIS /
-  Deliberatorium lineage) organized by the argument's *structure*, not by
-  ranking (the only ungameable organizer). Dissent is a node not a downvote;
-  contribute-as-equals, decide-by-weight; it's the legislative history in the
-  archive. **v1 SHIPPED (2026-06, forums cycle 2)** as the `organizer:
-  'argument'` reading over the shared Board/Entry store, graduated to
-  [../subsystems/forums.md § The argument organizer](../subsystems/forums.md#the-argument-organizer-cycle-2);
-  moved to `tails/`. The *scale* problems — claim dedup/canonicalization
-  (assisted curation) + integrity-grade map-summarization + automated
-  convergence + the vote consumer + the plural-lens explorer — are the open
-  work.
-
-**Phases:** stake ledger (buildable now) → (the republic — chambers, executive, treasuries — deferred to a real member body) · **argument-map (v1 shipped → tail; mass-scale dedup/summarization deferred)**.
-
-### 10. Advancement & learning
-*Learning as a science — how a character grows.* The **game-system** half
-of "learning as adventure": advancement modeled so it *feels* like real
-learning even when it's the character doing the studying, not the player.
-**First slice SHIPPED** — the measurement substrate (Catalog / Transcript /
-derived Competence) graduated to [advancement.md](../subsystems/advancement.md),
-and the personality layer to [trait.md](../subsystems/trait.md). Kept in
-`builds/` for the deferred build-sized remainder (guilds-as-institutions,
-the player-extensible content-graph + governed canonization, the
-education-vertical sensor bridge, estimator tuning). The hard constraint:
-**a character must be able to advance without ever entering a classroom**
-— a real RPG first, the academic vertical optional fuel.
-- [advancement-slate](./builds/advancement-slate.md) — the build: gamify
-  the **metacognition** of learning (the player coaches; the character does
-  the rote), the six build-crafting translations of the XP-model's
-  failures, **capacity-not-decay** (the loadout + savings effect; never tax
-  inactivity), skills as an extensible **content-graph** (typed nodes/edges,
-  fork-in-`/home` → governed-canonize, templatePath-durable progress),
-  **guilds as institutions over the taxonomy** (map vs. institution;
-  membership-as-affordance; brands fork the institution not the knowledge;
-  corp-sponsored branches), the **three orthogonal social axes**
-  (guild/party/corp — the wall that keeps guild ≠ party), and the
-  **endgame as lifecycle** (cap on expression not accumulation;
-  competence-not-power as a *constitutional* requirement; the emergent
-  learn → master → make/teach/govern drift, no ascension mechanic). Leans on
-  [capability-magic](./deferred-rpg/capability-magic-slate.md) (the three
-  ability channels) and [affiliation](./deferred-rpg/affiliation-slate.md)
-  (guilds / houses), grounded in [lenses/motivation.md](../lenses/motivation.md)
-  (SDT). **First vertical slice buildable now** (one combat + one craft
-  path, two seed guilds); the learning-platform sensor bridge + merge/balance
-  of player-authored trees deferred.
-- [guild-slate](./builds/guild-slate.md) — the **vocation institutions**
-  (supersedes + extends advancement-slate § Guilds / § Declared focus):
-  guilds as **chartered, authored institutions** over the Catalog whose
-  spine is **mysteries / calls / marks** (wish fulfillment, not a skill
-  channel). The formation rule (**vocation = discipline × livelihood**;
-  career grain; clubs are free chat groups), the four layers
-  (vocations liberal / institutions population-scarce / corpo **wings
-  never forks** / clubs), **no magic guild** (a guild's synergized
-  magic = its mystery tier), the divergence axes (public/private/
-  sponsored/religious charter, loyalty, selectivity incl. **tapped**;
-  the military = a guild at extreme public settings), three membership
-  tiers (associate / member / master; friction inverts; teaching-gated
-  mastery), the **chartered uniform training budget** (coarse
-  primary/secondary tiers; points weight training, never mint;
-  conservation: total advantage bounded by practice-hours × clamp), the
-  guild **job board** as clearinghouse (claim gates — the contract
-  seam's consumer), the balance ledger (one global dial-set + an
-  advancement gym; the rest structural, market, or firewall), wizards
-  (clearance ≠ expertise; the Worldwrights; credential = evidence never
-  clearance), the charter schema + lifecycle (schism, dormancy by
-  rent, merger), and the **audited launch roster** — 10 day-one
-  institutions + 8 **standing charters** (authored-but-dormant halls
-  that open when their vocation's economy activates — a reopening is a
-  world event), each entry passing the three-question audit (*who
-  pays · which law layer · world-native fantasy or genre import*):
-  **no standing military** (one administered realm → the Marshalcy is
-  a credential + writ-contract stream, posse comitatus = the calls
-  mechanism, the army-fantasy homes in an alignment-flavored Warding
-  Order), the Factors/Carriers demoted (**the engine automates the
-  middlemen** — trust-work is engine-work, labor-work is player-work),
-  metabolism + the wear economy as bedrock paymasters, polity paper
-  for DAU-independence, and the **Landwrights** real-estate deep-dive
-  (survey / valuation / conveyancing / development / tenancy over the
-  parcel-title + apartment-ladder substrate, anchored DAU-independent
-  by the polity's assessment contract). The roster doubles as the
-  employment/venue content worklist.
-
-**Phases:** first slice (two paths, two guilds, the loadout) → guild
-institution model ([guild-slate](./builds/guild-slate.md)) →
-player-extensible content-graph + governed canonization
-→ (the education-vertical sensor bridge deferred).
-
-### 13. Stewardship — the third pillar
-*You hold things, and tending them well is how you rise.* Named as a
-**pillar** beside learning-as-adventure and the living community
-([stewardship-doctrine](../stewardship-doctrine.md) — the family's meta-doc:
-the three decay archetypes, the Law-2 resolution, the status map and the
-build order). Its parent slates were already indexed above and in §3; what
-follows are the **planner-ready design packs**, which were written across two
-sessions and indexed here for the first time by the 2026-08-11 reconciliation
-pass.
-
-⚠ **Read the doctrine's build order before picking one** — three of these
-depend on nothing and can be built in any order, while most of the rest queue
-behind spoilage.
-
-- [spoilage-design-pack](./builds/spoilage-design-pack.md) — ⭐ **the keystone. ✅ SHIPPED** across two builds — the growth law with the cooking build (MR !231), the second population and the preserving acts with food-safety (MR !244) → [spoilage.md](../subsystems/spoilage.md). `Freshness` as a third wear axis beside `Durable`/`Keen`, on real predictive microbiology (logistic growth, Arrhenius temperature, water activity). Everything in the family that waits, waits on this. Rationale lives in [preservation-slate](./builds/preservation-slate.md).
-- [fridge-design-pack](./builds/fridge-design-pack.md) — the cold-storage stack, in three power tiers. ⭐ **The icebox ships first** (no power, no dependency) — the family's canonical passive-before-powered move.
-- [room-condition-design-pack](./builds/room-condition-design-pack.md) — the *"condition model"* dissolved: `Soilable` + a room debris field, **act-deposited so it freezes in absence**. ⭐ Carries one hard constraint for any builder — **care acts must attribute to the actor**, both directions, or the household commons is unreachable.
-- [residence-ladder-design-pack](./builds/residence-ladder-design-pack.md) — the progression spine. Money is necessary; **the binding gate is the condition of what you already hold.** Anti-hoarding falls out for free. **⭐ PARTLY SHIPPED (2026-09-01)** — the ladder, the condition read, the tenure term and the ascent gate landed with the residences build ([holding.md](../subsystems/holding.md)). **Retained, and not close to retirement**: Part 4's **Stewardship `Discipline`** (care as capability) and Part 5's **consequence ladder of a neglected home** are both unbuilt, and all five open questions are live — including ⭐ *where a locality's revenue comes from once holding tax is banned*, which lands on the civics/fiscal build.
-- [disease-design-pack](./builds/disease-design-pack.md) — contagion and hygiene, inheriting spoilage's growth term. *Good husbandry is immunity*, pointed at bodies, herds, crops and homes.
-- [household-design-pack](./builds/household-design-pack.md) — the multi-occupant case. ⭐⭐ **With one holder property condition is a mirror; with two it is a commons.** Needs no new primitive: a household is two derived reads (tenure ∪ domicile). Condition collective, competence individual, **exit always cheap**.
-- [water-design-pack](./builds/water-design-pack.md) — ⭐ water has **physics everywhere and weather nowhere**. Drought is fully implemented and cannot happen. **Connect the rain to the soil, leave the tap alone** — the billing half of a water utility is declined on purpose. **⭐⭐ SHIPPED (2026-09-02)** — the rain edge, the watershed, conveyance, storage, rights and contamination all landed with the water build ([watershed.md](../subsystems/watershed.md)); the metering refusal held. **Retained for a short tail**: open questions **2** (does rain wet things other than soil?) and **3** (the windowsill pot — neither indoors nor `SkyExposed`, and the houseplant is the game's most-owned growing thing) are still live rulings.
-- [hearth-and-larder-design-pack](./builds/hearth-and-larder-design-pack.md) — the domestic integrating vertical: a room that answers to its fire, the preserving crafts, and ⭐ **the compost heap, whose consumer already ships and whose producer does not.** Closes the food→soil→food loop and stops spoilage reading as pure loss.
-- [tenancy-design-pack](./builds/tenancy-design-pack.md) — stewardship of what you **don't own**, closing a hole inside the ladder's own rented rungs. ⭐ Nearly free: room-condition's actor attribution *is* the mechanism, and the structure/contents split already exists in the persistence model (the room is the landlord's, the estate slice is the tenant's). Eviction is legitimate and stripping is not — **you can be put out, never stripped.**
-- [patina-design-pack](./builds/patina-design-pack.md) — ⭐⭐ **the only loop where care makes a thing BETTER**, not merely un-worse. Patina accrues from the *cycle* (use → care), never from either alone; it removes failure modes rather than adding power; and `globIdentity` makes a seasoned object un-mergeable with a shop copy. **Unblocked — nothing it needs is unbuilt.**
-
-**Adjacent, filed here because the family drove them:**
-[supply-design-pack](./builds/supply-design-pack.md) — one model for every
-source (water, power, mana): **cache the source's identity, derive its
-state**, plus a closed six-entry failure vocabulary — **⭐ the vocabulary
-SHIPPED 2026-09-02** as `lib/supply/SupplyState.ts` (the water build's
-`Conduit` is its first consumer), and the sync/async seam it was designed
-to unblock is resolved; the unified source model and the power half are
-still unbuilt · and
-[mana-economy-design-pack](./builds/mana-economy-design-pack.md) — mana as
-its own conserved quantity coupled one-way to energy, which
-[arcane-science.md](../arcane-science.md) now reflects.
-
-**Phases:** land `ConditionApi.boot` (⚠ written, **not merged**) → spoilage +
-compost → cold storage → room condition → disease → ladder + household. The
-three unblocked slices (**patina**, the **rain edge**, the **hearth**) sit
-outside that queue entirely.
+| slate | left to build |
+|---|---|
+| [access](./tails/access-slate.md) | the structured audit sink (call-security Pillar 5 — `MudlogApi` is unwired) … |
+| [affordance-verb](./tails/affordance-verb-slate.md) | source-scoped invocation (`watch::set`, sigil unsettled) and its parse wiring · the verb-provenance help listing (which object and mixin affords each verb) … |
+| [api-normalization](./tails/api-normalization-slate.md) | delete `api/identity.ts` · fold `array`/`path-pattern`/ `grammar`/`proxy` · split `command` + `banking` · re-run the measurement script · read the broad-thin quadrant |
+| [async-commands](./tails/async-commands-slate.md) | a line-level `--async`/`--sync` prefix so a bare typed multi-statement script detaches without the `script` verb · a per-actor async concurrency cap … |
+| [auth-providers](./tails/auth-providers-slate.md) | account merge · provider-side token revocation · incremental chat scopes (`user:write:chat`) … |
+| [author-typography](./tails/author-typography-slate.md) | the ~6–10 author display tokens (typewriter · handwriting · script · inscription · blackletter · poster) · the token→face map … |
+| [call-security-performance](./tails/call-security-performance-slate.md) | `findDescriptor` accessor-ness caching · the static-Api apply thunk · hoisting the viewer-invariant checks out of `describeCore` … |
+| [collision](./tails/collision-slate.md) | the `guards` brain (agentive third-party blocking) · room capacity as a field + validator · the `push` verb and its activity |
+| [connection-origin](./tails/connection-origin-slate.md) | the developer-gated IP read · the `whois`/`locate` lookup verb · city / region resolution · a persisted last-seen country |
+| [connection-quality](./tails/connection-quality-slate.md) | the three-band jitter state (fine / laggy / unstable) · the opt-in party publish as an `AFK`-style status rather than a number … |
+| [credential-wallet](./tails/credential-wallet-slate.md) | deputization as a native tenant · the issuer-authorization ledger (validity derived, the record a presentation) … |
+| [dgg-relay](./tails/dgg-relay-slate.md) | the dgg WebSocket transport · the anonymous read path · the developer-key credential (it rides no OAuth spine) · the two-way write path, which is the point of it |
+| [dossier](./tails/dossier-slate.md) | Q2 the materialized trio (participation + influence still seed-and-fold; make `renownOf` derive) · Q3 a seeded condition's cause · Q4 dossiers for organizations … |
+| [electricity](./tails/electricity-slate.md) | AC vs DC · full Kirchhoff current division · hand-chains, damp-not-pooled floors and humidity · Joule→fire · magic `Create·Lightning` · power as a grid |
+| [encumbrance](./tails/encumbrance-slate.md) | per-item placement refinement (a frame pack beating the worn floor) · augment-conferred capacity · gravity/environmental margins · tissue-derived mass · numeric tuning |
+| [external-chat-relay](./tails/external-chat-relay-slate.md) | YouTube outbound |
+| [host-slot-activities](./tails/host-slot-activities-slate.md) | sit/lie/mount/drive as interruptible durative engagements · `SlotApi.claimPending` · the decode half of `read` as a duration |
+| [incapacity](./tails/incapacity-slate.md) | impound-on-a-claim · the preserving (never improving) receiver · return and reclaim · the docket entry … |
+| [kick-relay](./tails/kick-relay-slate.md) | phase-2 posting (`kick-reauth` + `chat:write` through the existing throttle/echo-suppress) · boot-time webhook-subscription reconciliation · `kick.com/video/…` URL forms |
+| [libations](./tails/libations-slate.md) | metered water + power on the P&L (the supply design pack) · the ice machine and the bar's first socket · carbonation going flat · a glassware supplier |
+| [message-rendering](./tails/message-rendering-slate.md) | the `<box>` tag — and first the decision whether the cockpit layout work already covers what it was for |
+| [metabolism](./tails/metabolism-slate.md) | wired nutrient deficiencies (scurvy) · hangover · chronic-toxin leaching content · magic ingestion (potions) · fuller-stomach absorption · bulk-source eating … |
+| [mixin](./tails/mixin-slate.md) | `Invisible` as a perception override · `Sleeping`/`Resting` (sensory cutoff + command gating) · `Writable` · `Mixable` / `Combinable` … |
+| [multi-currency](./tails/multi-currency-slate.md) | a second issuer and the corpo scrip that motivates one (with its coinage) · the money-changer as a merchant · the pegged issuer's redemption window … |
+| [prompt-stack](./tails/prompt-stack-slate.md) | Tier 2 kinds `numeric` / `multiChoice` / `password` · Tier 3 `paginated` + `quiz` · multi-prompt stacking visuals + dismissal UX |
+| [reactions](./tails/reactions-slate.md) | the analytics event-stream tap · the emote-flood salvage · reactability beyond chat-first |
+| [reference-lifetime](./tails/reference-lifetime-slate.md) | four undeclared instance-ref sites (`SandboxCrossingExit.crossing`, the `ExitableVessel` caches, `LoungeWarren._reapTimers`, the `DormWarren` maps) … |
+| [residency](./tails/residency-slate.md) | the game-time reset sibling — `resets:` + `ResettableMixin`, restock vs field-revert, the presence skip |
+| [sandbox](./tails/sandbox-slate.md) | chronicle presentation of wire deeds · in-circle accountability + consent · disposition symmetry · SHADOW read composition + scope-keyed unique indexes … |
+| [scripting](./tails/scripting-slate.md) | the piping model over the built `Pipeline` AST node + the value→field binder · the block forks (`it`-only vs explicit params) · the `improv` seam · LLM-director authoring |
+| [social-inspection](./tails/social-inspection-slate.md) | the `who --group <g>` filter · the `privacy.showSpecies` threshold (Q2) … |
+| [spoilage (pack)](./tails/spoilage-design-pack.md) | the `WetMixin` saturation → `a_w` conversion · alcohol and acidity as real preservatives · staling by oxidation · dish-as-ingredient … |
+| [thermal](./tails/thermal-slate.md) | sauna / steam rooms · per-region frostbite · object-to-object conduction · inter-room ventilation · the indoor room-ambient convection bump · heated vehicle cabins |
+| [water (pack)](./tails/water-design-pack.md) | open question 2, does rain wet uncovered things other than soil · open question 3, the windowsill pot's indoor/sky-exposed ruling … |
+| [wiki](./tails/wiki-slate.md) | search integration · the level-3 source embed · the rest of the transclusion palette · open questions 5–7 |
 
 ---
 
-## Enhancement tails (`tails/`)
+## Keeping this honest
 
-Deferred work riding a **shipped** subsystem. Grouped by what each
-extends; none is a fresh build.
-
-| Slate | Extends (shipped) | What's deferred |
-|---|---|---|
-| [access](./tails/access-slate.md) | access.md / call-security.md | actor-aware policy slots |
-| [argument-map](./tails/argument-map-slate.md) | forums.md | **v1 shipped 2026-06** (the `organizer: 'argument'` claim-graph + neutral lens + open-objection + circle highlight + mature seam + client mode → forums.md); deferred: claim dedup/canonicalization, integrity-grade summarization, automated convergence, proposal version-control, the vote consumer, the plural-lens explorer |
-| [auth-providers](./tails/auth-providers-slate.md) | connection.md | **Waves 1+2 shipped 2026-06** (multi-provider spine + Twitch login + account link/unlink + token encryption → connection.md); deferred: chat scopes, account merge, provider-side revocation, name-refraction, YouTube |
-| [external-chat-relay](./tails/external-chat-relay-slate.md) / [youtube-relay](./tails/youtube-relay-slate.md) | streaming.md | **Twitch (two-way) + YouTube (read-only) SHIPPED** → streaming.md (unified `watch`/`tune` surface over a `StreamerTarget`; superseded the parallel-mirror + full-two-way plan); slates retained for the deferred **YouTube outbound** (insert + quota accountant + per-player `force-ssl` OAuth + `GoogleProfile` token extension) |
-| [kick-relay](./tails/kick-relay-slate.md) | streaming.md / connection.md | **SHIPPED (MR !152)** — the third transport (webhook-inbound Kick chat relay + `watch` embed) and Kick as a **co-equal auth provider** (`KickProfile`, login + link, PKCE) → streaming.md + connection.md; retained for the tail: **phase-2 posting** (`kick-reauth` + `chat:write`), boot-time subscription reconciliation, `kick.com/video/…` URL forms |
-| [augmentation](./tails/augmentation-slate.md) | augmentation.md | Wave 2+ (Wave 1 shipped) |
-| [affordance-verb](./tails/affordance-verb-slate.md) | put/give/Surfaced (shipped) | source-scoping (`::`), command-provenance |
-| [async-commands](./tails/async-commands-slate.md) | command-routing.md | **shipped (MR !122)** → command-routing.md § Async dispatch + command-spec.md: opt-in `async` override (spec field + reserved `--async`/`--sync` flags, accept-time detach in `_executeOne`, sync stays per-giver/never-global) + the `script` verb. Deferred tail: a line-level prefix for bare typed multi-statement scripts, a per-actor async cap, a generic cancel verb |
-| [chat](./tails/chat-slate.md) | chat.md | moderation / edit-trail |
-| [sandbox](./tails/sandbox-slate.md) | sandbox.md | **SHIPPED (MR !156)** — the holodeck: circle-scope taint, the PM policy table, the Layer-4 boundary + read aperture, the wire-body crossing, the `SandboxCrossing` door, the seeding aperture, jurisdiction-targeted eval → sandbox.md. Retained for the tail: **chronicle presentation** of in-circle deeds, **accountability/consent** inside someone else's circle, **disposition symmetry** (revert vs "your personality is always you"), **SHADOW overlay mechanics**, and the carried property-slate questions (what counts as "power" at the release gate, combination exploits, instancing). Promotion/chartering and the publish gate belong to civics and the CMS slate respectively |
-| [comms](./tails/comms-slate.md) | comms.md | trust-tiered policy |
-| [console-filtering](./tails/console-filtering-slate.md) | console (core shipped) | search, sender-filter |
-| [crafting](./tails/crafting-slate.md) | crafting.md | skill-as-control (`_control` scatter), assembly recipes, tailoring branch, batching, workshop lockers, DIY stock-pricing, skill-scaled salvage yield, seasoning/tuning beyond edges, environmental decay, recipe-spread beyond watching; post-capability-table: runtime affordance recompute, powered variants/supply gate, per-capability wear + machine-vs-hand advancement asymmetry |
-| [encumbrance](./tails/encumbrance-slate.md) | encumbrance.md | **cart/conveyance handoff shipped** (the haulage build → conveyance.md/encumbrance.md § Haulage); deferred: per-item placement refinement (a frame pack beating the worn floor), augment-conferred capacity, environmental (gravity) margins, tissue-derived mass, numeric tuning |
-| [food-safety](./tails/food-safety-slate.md) | spoilage.md | **SHIPPED (MR !244)** — the second population: `CuredMixin` (per-instance water activity, hurdles that stack), the preserving acts `cure`/`dry`/`smoke`, `ContaminableMixin` (event-seeded, no sense reports it, its own Arrhenius kill curve + spore floor), `butcher` as the one source, and in-host infection over `ProgressionSpec` → [spoilage.md](../subsystems/spoilage.md). Retained for the tail: **molds** (Part 10) — the third population, neither the flora nor the pathogens, and the first thing that will argue with `channels: []` (it carries the pharma seam this slate cut) — plus the **attach-point register** graduated here from the retired plan: `ContagionSpec`, hands, `f_pH`, irrigation, `trade-butchery`, a durative `cook`, rancidity |
-| [metabolism](./tails/metabolism-slate.md) | metabolism.md | wired nutrient deficiencies (scurvy), hangover, chronic-toxin exposure content, spoilage / perishability, magic ingestion, fuller-stomach-slows-absorption, bulk-food eating, per-individual rates, recovery-on-relogin, numeric tuning |
-| [ranged](./tails/ranged-slate.md) | combat.md → ranged.md | **Wave 1 shipped 2026-08-06** (the `close·reach·near·far` band ladder + the arena cap from real room extent, the aim×answer placement matrix, the pure `DeliveryProfile`, `energySource` readiness, splash-as-relationship and its consent gate, `throw` → ranged.md); deferred: **W2** cover + armor on the response grid + suppression, **W3** bows/crossbows/less-lethal/acoustics (where `energySource` earns its keep — bow vs crossbow share `stored-elastic` and differ only on who holds the draw), **W4** guns (the largest slab, and the one with the most in-world-law surface), plus the venue content |
-| [message-rendering](./tails/message-rendering-slate.md) | message-rendering.md | GFM table input-sugar |
-| [mql-subscription](./tails/mql-subscription-slate.md) | mql-subscription.md | client topology cache, bandwidth ceilings |
-| [prompt-stack](./tails/prompt-stack-slate.md) | prompt.md | client format-strings, slider affordances |
-| [senses](./tails/senses-slate.md) | senses.md | Wave 2+ (Wave 1 shipped) |
-| [scope-modality](./tails/scope-modality-slate.md) | senses / perception | modality-scoped resolution; build-when-pulled |
-| [host-slot-activities](./tails/host-slot-activities-slate.md) | activity.md | deferred activity wave |
-| [locomotion-as-activity](./tails/locomotion-as-activity-slate.md) | activity.md / locomotion.md | deferred activity wave |
-| [hand-slot](./tails/hand-slot-slate.md) | embodiment.md | hand-slot redesign |
-| [bulkable](./tails/bulkable-slate.md) | bulk.md | thermos slice shipped; deferred: mixing/solutions, gas (`sealed`), `Container`+`Bulkable`, amount-aware appearance |
-| [content-packs](./builds/content-packs-slate.md) · [content-pack-units](./builds/content-pack-units.md) | content-packs.md / document-store.md / grouping.md | **installer substrate (waves 0+1) + wave 2 (2026-08-25) + wave 3 pack zero (2026-08-27, MR !202) + wave 4a the path surgery (2026-08-28, MR !203) shipped**: the `content` collection + boot migration, the `pack_installs` record, the three-way reconcile (keep / update / converge / conflict, pins, adoption bridge, per-pack failure isolation, flat-key check), the `pack` verb suite gated on the office-owned `pack-installers` committee; wave 2: the `document` kind over `DocumentKinds`, the collapse of `emotes`/`recipes`/`name_banks` into `documents`, the settings (merge-missing) / subject (archive-never-reap) / wiki (CAS as the pack) / command-view (store-first) kinds, `canAtPath`, `lint:test-content`, seven seeders retired, fourteen packs → content-packs.md; wave 3: `requires` / `boot` / `maintainers`, the boot union, the executive organization holds the platform, `core` deleted (the core-decomposition slate retired into access.md), the seeders and `mud/bootstrap.ts` gone, sixteen packs; deferred: the `/world/`→`/world/` + `/trade/` path renames + hearthworks re-cut (wave 4 — the domain-local command views leave the disk fallback with it), staging, media, the repo split ; wave 4a: `/domain/`→`/world/` with NO migration (drop the DB), the `/trade/` root, `trade-smithing` + `trade-hearth-cooking` (eighteen packs), the junk sweep (every migration/adopt/compat path deleted), the `<root>/<branch>/` path pattern (`/obj` + `/cmd` gone, `command`→`cmd`) → content-packs.md § The path pattern; wave 4b (2026-08-27, MR !204): the lounge ONE pack, the `hearthworks` venue pack, `trade-hospitality` (twenty); **capability packs, arcana first (2026-08-28, MR !205)**: a pack ships `src/` — the class-source table, the server `exports` map as the import profile, the deployment manifest, the rung check; `arcana` + `arcane-library` (`arcane-descriptors` folded in; nineteen) → content-packs.md § The capability rung. **Still open: wave 5, the parked venue code, the repo split.** |
-| [species-expansion](./tails/species-expansion-slate.md) | race.md / content-packs.md | **substrate + first content pass shipped** (troll + ghoul NPC-first casts + the gnome/half-elf/orc playable + ogre/kobold/satyr data batch, on `feature/species-and-names-pack`); deferred: the deeper personhood casts (flesh-golem / doppelganger / zombie / synth — they want mechanics) + per-species playability |
-| [client-cockpit](./tails/client-cockpit-slate.md) | cockpit (several tracks shipped) | remaining client-track umbrella |
-| [language](./tails/language-slate.md) | comms / perception | comprehension; roleplay flavor |
-| [reactions](./tails/reactions-slate.md) | reactions.md / emotes | core shipped (act-scoped emote + aggregate-delta + `react` + chips); deferred: analytics event-tap, emote-flood salvage |
-| [persistence-architecture](./tails/persistence-architecture-slate.md) | persistence.md | Wave 3 un-Stuff marshallers; Wave 4's tail — per-field prose, Mongo-side validators (Waves 1-2 + 4 shipped) |
-| [residency](./tails/residency-slate.md) | lifecycle.md → residency.md | **eviction shipped 2026-07** (self-eviction of the cold tail: `canEvict` default-cull hook + dispatch/presence recency + `ApiLogic` + the R2.x-derived veto roster, observe-first → residency.md); deferred: the game-time **reset** sweep (`resets:`/`ResettableMixin`, restock vs field-revert), memory-pressure-modulated aggressiveness, per-object footprint, incremental/LRU sweeping |
-| [vitals](./tails/vitals-slate.md) | vitals.md / reserve.md | application waves — live condition progression, the death-transition driver, assessment / instruments / treatment, consumables, forensics (substrate / Wave 1 shipped) |
-| [weather](./tails/weather-slate.md) | weather.md | Wave 2 shipped (storms-and-wetness): precipitation→wetness, cloud→light dimming, storm lightning, cloud forms, authored per-Locality climate/pins. Still deferred: fog→visibility, snow depth, hazards, vector wind, moving fronts. *(wet-firewood/fire has since **shipped** as `Combustible.wetPenaltyK`.)* **2026-07-31:** the tail gained the **family coupling** pass (weather as the shared exogenous driver; the **push/pull fault line**; the **time-parameterised resolve** — ~2 lines) |
-| [multilocation](./tails/multilocation-slate.md) | location.md | deferred procedural / spatial Warren consumers beyond the shipped social-elastic lounge case |
-| [fast-travel](./tails/fast-travel-slate.md) | fasttravel.md | scheduled mode + wayfinding; terminal **wear** and the disruption loop (the TPA reform closed the `status` seam and shipped the supply half of maintenance); the Authority's first staffed round; cross-restart credential durability |
-| [credential-wallet](./tails/credential-wallet-slate.md) | banking.md / fasttravel.md → credential.md | **core shipped 2026-06-27** (the `CredentialWalletMixin` holder + credentials-as-data + the payment/travel migration → credential.md); deferred: deputization as a native tenant, the issuer-authorization ledger (validity derived, the record a *presentation*), a single `CredentialCard`, a thin `CredentialApi` |
-| [multi-currency](./tails/multi-currency-slate.md) | banking.md | ✅ **Half A BUILT** (the currency build, 2026-08-05) — `currency` threaded through `bank_ledger`/`bank_accounts`/`bank_supply`, per-currency conservation with a **permanent** no-crossing rule, the money renamed **`credit` → `zorkmid`**, and denominations made **structural** (`(currency, faceValue)`, no authored coin names). `banking.md` is the live reference. **Half B (FX) is REFUSED, not deferred** — currencies are goods; a *pegged issuer* (reserves + a redemption promise at its own window, breakable) survives as design, a *world rate* does not. What remains in the tail is the record of what was considered + its unclosed open questions |
-| [client-shell](./tails/client-shell-slate.md) | client-shell.md | search / command palette, mode switcher + per-mode status, public read-only surface, declarative mode/manifest model, pre-auth device-local client-state tier |
-| [scripting](./tails/scripting-slate.md) | scripting.md / document-store.md | **v1 engine shipped 2026-06** (interpreter + coroutines + two surfaces + demonstration-capture + knowledge-ladder + the generic document store → scripting.md; the block/execution-model/`( )`/scope forks all resolved + built); deferred: the **piping model** (multi-stage pipelines over the built `Pipeline` AST node + the general value→field binder + the two-channel/ByValue compatibility design) and the open block forks (`it`-only vs explicit params) |
-
-**Near-absorbed — retirement candidates** (kept rather than deleted,
-since each still carries live design surface; prune on request once
-salvaged into the subsystem doc):
-
-| Slate | Graduated to | Surviving surface only |
-|---|---|---|
-| [emotes](./tails/emotes-slate.md) | emotes.md | Layers 2-4 (emoji / honorary / reactions) + moderation |
-| [mixin](./tails/mixin-slate.md) | mixins / material / light / slot / posture / glob | residual material threads |
-
-> **Retired 2026-06-29** (fully absorbed, salvaged into their subsystem
-> docs): `chronicle` → chronicle.md · `respiration` → respiration.md ·
-> `world-clock` → time.md · `document-tree` → document-store.md. The two
-> governance instruments (`draft-constitution`, `founding-charter`) moved
-> out of `builds/` to [../governance/](../governance/).
->
-> **Retired 2026-07-31**: `import-boundary` → architecture.md § The
-> import boundary (§12 above; shipped and absorbed in one MR).
-
-- [antecedents-slate](./builds/antecedents-slate.md) — **one** answer to
-  *"what did this character do before now"*, with three provenances —
-  **native** (this instance witnessed it), **authored** (a content
-  author's fiction), **foreign** (attested by another instance) —
-  differing in degree and trust, never in kind. **Phase A** authors the
-  **prior, not the evidence**: a résumé (`kind × years × at`) maps to the
-  BKT's starting `theta`, so an author types **stated effort, never a
-  stated band** — *twenty years pouring beer* and *three years in a
-  cocktail lab* come out differently because the estimator already knows
-  trivial repetition teaches nothing. ⭐ A pure function of the template
-  means **the crowd costs zero database writes**. **Phase B** federates
-  transcripts on two engine facts (competence is *never stored*, and
-  `iscedf` is already on every Discipline), via **three buckets** —
-  portable / attestable-but-inert / never. ⭐⭐ *Skill is in your hands;
-  standing is in other people's heads.* **Not a blockchain**, and
-  structurally so: competence is not scarce, so there is no double-spend
-  — it needs **accreditation, not consensus**. Export the **evidence**,
-  never the estimate.
-- [trade-roster-slate](./builds/trade-roster-slate.md) — **content
-  design, buildable**: the 34-trade closed vocabulary the
-  [lineage](./builds/lineage-slate.md) gallery generates households from,
-  each trade naming its Disciplines, plausible localities, `Means` type
-  and hook shapes. The join rule is the point — *Trade is not free text*,
-  or the generator produces ward nurses who know smithing. ⭐ The
-  actionable half is the **gap report**: the catalogue has 41 Disciplines
-  but **18 are `magic-*`**, so the non-magical world runs on 23 — and the
-  roster demands **21 more**, each with channel and ISCED-F code, none
-  minted for sounding good. ⚠ Codes carry a verify-before-seeding
-  warning.
-
-### 11. Magic items & BUC
-*NetHack's consumables as an immsim stress-test.* Most of the potion / scroll
-/ ring / amulet catalog lands on **already-shipped** substrate (belief,
-augmentation, thermal, metabolism, respiration, senses, teleport, reserve); a
-handful reconceive (healing has no HP to restore), stress a system (identify →
-prompt, detection → MQL, hallucination → rendering, amnesia → belief), or wait
-on combat.
-- [magic-items-slate](./tails/magic-items-slate.md) *(tail)* — **shipped**
-  → [../subsystems/magic-items.md](../subsystems/magic-items.md). The reformed
-  **blessed/uncursed/cursed** model (BUC as a *potency level* on the item's own
-  axis — `scale`/`pick`, monotonic, opt-in `Blessable`, known-BUC a belief
-  realm, cursed-sticks via the release gate) + the `Consumable`/`Effect`
-  substrate (Gap 0) + the full NetHack catalog walk + a **ranked gap-roundup**
-  (the build work-list). Sibling of
-  [identification-slate](./tails/identification-slate.md) (the orthogonal item
-  *identity* axis).
-- [implements-slate](./builds/implements-slate.md) — *(spun out of the
-  magic-items build, where the `Focus` class was cut)* **an implement does
-  not cast; it changes what happens when *you* cast.** Specialisation by
-  **inventory, not membership** — no magic guild, anyone may carry one,
-  only a caster benefits. Rides the shipped grid: an implement lifts your
-  effective band on **one axis** (verb *or* noun), which Tarn's Rule
-  already reads. Records why `Focus` failed — a second thing to top up,
-  no verb to fire it, no NetHack analogue — as the constraint list for
-  whatever replaces it. Nothing built.
-- [presence-hollowing-slate](./builds/presence-hollowing-slate.md) *(spun out of
-  the item walk)* — **presence-vs-hollowing as a physical agent-state** (*is
-  anyone home?*), the physical shadow of the Good=presence / Evil=hollowing
-  cosmology. Two item consumers (sanctity *reacts* to the hollow; ESP *can't
-  perceive* it). **Shared with alignment** (kept distinct: this is the
-  physical/perceivable layer, alignment the derived/moral one).
-- [spawn-distribution-slate](./builds/spawn-distribution-slate.md) *(spun out of
-  the item walk)* — the **dynamic weighted-populate substrate** (the runtime
-  sibling of `populates: onto`): per-entity opt-in weights, per-location
-  bias-and-renormalize, **two output kinds** (loot items + procgen NPCs, the
-  procgen-NPC generator folded in). Consumers: BUC-at-spawn, create-monster,
-  world-population. **Shared world-wide.**
-
-### 12. The client rebuild
-*The whole front end, and the server work hiding inside it.* A Claude
-Design handoff (`docs/design_handoff/`, 23 interactive screens) specifies
-a complete client rebuild — civic dress, `one frame → modes → layouts →
-panes`, and a hard honesty rule: **never render a figure the server did
-not send.** Reading it against the code showed a large part is *server*
-work, so the cycle is server-first.
-- [client-slate](./builds/client-slate.md) — the durable design surface:
-  the six governing decisions, the four server tracks, what in
-  `packages/client` is superseded, an 8-wave cut, and 5 open questions.
-  **Wave 0 + Track C shipped as S1 "figures on the wire"** (MR !172) —
-  the extended `<quantity>` tag (a *registered*, non-inert reading with
-  channel + provenance), five topic facets so a filter is one rule
-  rather than ninety paths, and the live standing figures over a direct
-  `durableKey` witness → [../subsystems/messaging.md](../subsystems/messaging.md),
-  [topics.md](../subsystems/topics.md),
-  [mql-subscription.md](../subsystems/mql-subscription.md).
-  **S2 shipped** (MRs !173/!174) — the topic taxonomy + the affordance
-  resolver. **S3 / Track D shipped** (MRs !177/!178/!179) — the one
-  `cockpit` verb, the mode × arrangement axes, `requires:` on every
-  object slot, and a **server-owned pane catalogue**. ⭐ Its open
-  question — *does a mode switch stay a real command on the wire?* — is
-  **answered yes**, verified by driving a browser, so the axiom holds.
-  **Wave 1 Build A shipped** (MR !182) — the civic ground: a 44-role
-  `--sx-*` custom-property colour layer, Ink + Marble + a re-based
-  `high-contrast`, four self-hosted voices, the `ink`/`marble` rename,
-  and the honest-state primitives. ⭐ **Open question 5 (fonts) is
-  CLOSED** — self-hosted, the handoff's Google Fonts `<link>` declined,
-  and the subsetting procedure recorded in `message-rendering.md` rather
-  than left as tribal knowledge.
-  **Wave 1 Build B shipped** (MR !186) — the desktop chrome. ⭐⭐ **Wave
-  1 Build C shipped and WAVE 1 IS CLOSED** (MR !190, 2026-08-12) — the
-  mobile inversion: a two-row bar whose glance-line is the *head of the
-  one shelf* (so choosing what rides it is reordering, hence
-  `cockpit shelf first`), the shelf as a pull-down + chooser, the
-  command sheet, the dropped-link row, and a measured round trip that
-  retired a hatch reason B had got **wrong**. Its lasting lesson is a
-  testing one, now in [../testing.md](../testing.md): **six bugs that a
-  fully green suite could not see**, because jsdom has no layout and a
-  narrow desktop window is not a phone. Wave 2 (Arrival) is unblocked.
-  ⭐⭐ **Wave 7 — the card surface — shipped and the CLIENT CUT IS
-  CLOSED** (MR !197). The right column is a feed of cards with one birth
-  path (a command pushes; the wire cannot name a card), pinned as the
-  whole lifetime, liveness scoped to **attention** rather than to a card
-  kind, and **one** inspection card laid out by what its subject IS.
-  ⚠ It shipped in two halves: the substrate, then the model **rejected
-  and redone** — the feed is a LOG rather than an index, and a relative
-  query can never back a card about a thing. ⚠ What it leaves for the
-  next client build: no tables, no forms, no interactive cards, and
-  fixed tabs where the design wants **tagging**. ⚠ Carries the ruling that the handoff's pinnable
-  **trait widget must not be built** — it would foreclose the
-  psychology vocation.
-- [display-manifestation-slate](./builds/display-manifestation-slate.md) — **NEW 2026-08-30. SHIPPED** → [display.md](../subsystems/display.md). `DisplayMixin` was fusing four axes; the one it did not model at all was **how the client RENDERS what is showing**. ⭐ A display's contents manifest **three ways** — video (live/recorded), a card (an app: controls + feedback), or **PROSE** (ordinary text) — and the fix is to make the kind explicit, carried and TOTAL, and let the client dispatch on it: a screen stops declaring "I do cards" and the content knows how it manifests. The missing third arm was visible in the shipped world (the TPA terminal's departures board IS prose and was shipping as a card *containing* prose). Kept for the deferred half: **networks/channels as ADDRESSING**, and lifting driver policy off the closed `pairing` enum (an access change, not a rendering one).
-- [affordance-suggestion-slate](./builds/affordance-suggestion-slate.md)
-  — **NEW 2026-08-10.** *"Given everything we know about this player
-  right now, what should be offered to them?"* Surfaced by the S2/S3
-  review: the radial menu is ONE consumer of a much larger question, and
-  the build had solved a fragment while borrowing the whole question's
-  justification. Four stages — candidacy (✅ the recency stack, already
-  good) · binding · admissibility · relevance — of which only
-  admissibility exists, and only rejectively. **§ 3 and § 6 SHIPPED as
-  `requires:`** (MR !178): the kind axis moved onto the command def, ~35
-  near-identical validator files went away, and a mixin name now
-  RESOLVES or the spec does not load — where `targetKind: any` was an
-  unfalsifiable promise whose fifty uses included three wrong ones.
-  ⚠ Still open and deliberately unbuilt: the **generative** direction (a
-  declared kind could FILTER a candidate set, not just judge one — but
-  no consumer asks yet), the relational axis staying rejective, and
-  **server-side command history**, which is blocked on retention +
-  privacy decisions nobody has made. ⚠⚠ Its § 5 warns loudest: a command
-  history is the most sensitive per-player record the server would hold
-  — what you tried and were refused predicts what you want, and is the
-  part players would least expect to be kept.
-
-### 13. Engine hygiene — ✅ shipped
-*Platform refactors with a lint at the end — no product surface.*
-- [reference-lifetime-slate](./tails/reference-lifetime-slate.md) — **NEW 2026-08-01.** Declare how long a reference holds. `ref-shapes.md` R2.1–R2.4 already say exactly that, but three of the four are **convention** — hand-written boilerplate that fails SILENTLY when forgotten (R2.3's self-heal is copy-pasted into every getter). Declare the rule per field, in the idiom the codebase already uses, and let the framework enforce it. **BUILT** — as `static fieldMeta`, one field-keyed structure rather than a seventh parallel static, with two axes (`ref: identity|instance`, and `lifetime: weak|symmetric|owned` for instance refs). **Not an internals nicety:** most cross-object refs are path strings today only because the world is still mostly singletons — a grown world is mostly clones, and every one of those is an instance (live) ref with a cleanup obligation. Rejected: a `StuffRef<T>` wrapper (competes with R2.3 instead of completing it, ceremony at every read), real `WeakRef<>` (StuffApi's registries hold strong refs while registered, and post-unregister it clears NONDETERMINISTICALLY — GC timing into a deterministic residency story), and field decorators (**102 mixins return class expressions**, where legacy decorators are invalid). Implied follow-on, and it was bundled after all: **invert the field-metadata statics** into one field-keyed structure. Two corrections from the build — there were **four** field-keyed statics, not six (`commandContributions` / `settings` / `subscribableFields` / `markupAugmenters` are keyed by audience / setting key / virtual projection / nothing, so they are a different question and stayed); and the real input set was **245 files / 283 class bodies**, not the 231 estimated here. Not bundling it was reconsidered because the alternative — a transitional read-both collector — is worse than one atomic commit backed by a per-class-body syntactic equivalence proof.
-
-- [call-security-performance-slate](./builds/call-security-performance-slate.md) — **NEW 2026-08-30. SHIPPED** → [call-security.md § What a gated call costs](../subsystems/call-security.md). A proxied method call went **50 µs → 2.1 µs** (2000x a raw call → 424x, and **flat in stack depth** where it used to double). Five changes, none of them what the first profile pointed at; the load-bearing one is that **the gate was paying its caller-proof three times per dispatch**, twice of them to call its own collaborators. Kept for what it measured and did NOT fix: ⚠ **boot is 5.7 minutes and its profile is 76% IDLE** — `Template.findByPath` goes to Mongo on every clone at a measured 33 ms round trip (~13 trips per object, 341 objects), so the answer is a **template read cache**, which is a real invalidation conversation (CMS save, pack install, go-live, `restoreFromTemplate`, hot reload) rather than a tweak. ⭐ The general rule it produced: *before optimising a slow phase, ask whether it is BUSY or WAITING.*
-- [lifecycle-signals-slate](./builds/lifecycle-signals-slate.md) — **NEW 2026-08-30. Not built.** `AppBootstrap.shutdown()` is a hand-list of everyone who cares the process is ending — structurally the same *centre enumerating the periphery* disease as the three kernel lists the libations review deleted. Wants a properly observable hook, but with **ORDERED PHASES** (quiesce / persist / flush / close), because a pure observer set loses shutdown's load-bearing ordering. Open: a handler that throws, one that hangs, and whether `Stuff` may subscribe or only subsystems.
-- [api-normalization-slate](./tails/api-normalization-slate.md) — **NEW 2026-09-02. Not built.** Where the Api layer landed after the OO sweep (MR !228) moved logic out onto the objects. Measures every Api on two axes — **public member count** × **complexity per member** — to find the ones no longer carrying their weight: **low surface × low complexity** folds into a sibling, **high surface × high complexity** breaks up (the older Apis especially). Measured post-sweep (10 Apis retired, 103 → 93).
-- [call-security-pass-slate](./builds/call-security-pass-slate.md) — **NEW 2026-09-02. Not built.** Written at the Api OO sweep's close (both its parent slates retired with that build): the future re-gating pass + the `@Audited` permit-and-watch rail. Holds the sweep's three gate postures, the ~35 ungated+sealed mutator inventory, the FromMixin marker-spoof finding, the user's trust-basis position (template + calling function over module), and the future primitives (`FromTemplateMethod`, pack-manifest gate participants).
-
-Shipped as the **import boundary** (2026-07-31, MR !158) →
-[architecture.md § The import boundary](../architecture.md): nothing
-under `src/mud/` imports outside the tree (Node built-ins included)
-except the Api tier (`api/**` + `platform/idea/api/**`), which imports and wraps —
-the import-graph twin of call-security, and what makes the sandbox /
-wizard code-trust story checkable. CI-gating via `pnpm lint:imports`.
-36 violating files → 0, with **zero exceptions**: the capability moves
-to an Api and the mudlib keeps the policy (the recurring mechanism is an
-opaque handle). The slate is fully absorbed and retired; its two
-residual tails — the blanket test exemption, and ambient globals that an
-import rule structurally can't reach — are recorded in the subsystem
-doc's *What this rule does not cover*.
----
-
-## Deferred game-design (`deferred-rpg/`)
-
-Behind the platform-vs-game-design line. Captured, not near-term.
-
-- [capability-magic](./deferred-rpg/capability-magic-slate.md) — RPG capability / magic layer.
-- [combat](./deferred-rpg/combat-slate.md) — **the combat system itself**: the terms/consent/blame frame (combat as a consented, contracted activity subordinate to the social contract), the employment-economy placement (no kill-loot), the loadout/affordance model, the expressive layer (mechanical core = commodity; reactive/expressive = the authored product), and the **poise minigame** (one session-scoped gauge, overextend economy, binary-timed openings, directed-autocombat tick loop, Master-Apprentice validated). The "combat system" [combat-tactics](./deferred-rpg/combat-tactics-slate.md) party-strategy half **shipped** as the combat-formations build.
-- [combat-tactics](./deferred-rpg/combat-tactics-slate.md) — combat's **spatial + party-strategy** halves: engagement-graph-not-geometry + party-level presets. Both theses **shipped** (the engagement graph = combat-slate's threat graph = the built `CombatGraph`; the presets = the combat-formations build, renamed *formations* — see [combat-formations.md](../subsystems/combat-formations.md)). What keeps the slate alive is the **ranged-as-relationship** surface (kite/close/artillery over engaged-status, the `physical` conduit transmissivity channel, cover-as-status) — the design the deferred ranged build consumes.
-- [materials-response](./deferred-rpg/materials-response-slate.md) — the **`mechanism × material × construction` response substrate** combat is the first consumer of (armor mitigation + `Trauma` generation from one function; **construction** as the new value-object primitive — "mail and plate are the same steel"; layered coverage). Now also carries the full **weapon** model (compact derived property bundle: delivery/reach/handedness/balance/guard/gambits; reach-as-engagement-control; shield = wielded armor-construction; the archetype space), the **legibility/authoring** rule (author-concepts-not-numbers + a mandatory preview/inspect/lint surface), and the use-driven **lifecycle** (condition scales the profile; wear→repair→scrap→reforge; solid-state at rest). Completes the channels-not-nouns decomposition; grows to structures/thermal/vessels.
-- [party](./deferred-rpg/party-slate.md) — the **party** social axis as first-class Stuff (membership over `GroupApi`; captain-authority + formation-roles [shipped — combat-formations]; one-active-at-a-time; the **guild≠party≠corp** wall — party = the disposable *operational* axis; party-vs-combat-side two-layer; the anti-loot payout-split payoff). Two-timescale progression: slow **reputation** (name-not-roster, provenance-grounded, halo-as-recognition-not-transfer, multi-valent, contract-access) + fast **odometer**; **no party-XP** (competence individual, synergy emergent). Heterogeneous (NPC/AI members via employment + brains).
-- [odometer](./deferred-rpg/odometer-slate.md) — **honest number-go-up**: the journey-tally half of XP split from the capability-input (discarded). Subject-scoped (personal + party + beyond), monotonic, authored specific counters + aggregate headline, **downstream-inert** (the bright line — never spent, never a capability gate → the balance problem dissolves). Milestones = recognition/titles not power; the monotonic sibling of decay-based participation; nearly free over ledgers already kept. Personal by default.
-- [alignment-religion](./deferred-rpg/alignment-religion-slate.md) — alignment & religion (very preliminary).
-- [affiliation](./deferred-rpg/affiliation-slate.md) — guild / corp social organization (guild = the class system).
-- [spoiler](./deferred-rpg/spoiler-slate.md) — spoilers & secrets; deferred to the assessment system.
-- [collision](./deferred-rpg/collision-slate.md) — **decomposed (resolved 2026-06-10):** intentional blocking → the npc-behavior "guards" brain; capacity + pushing → defer-til-content; diegetic prohibition is already ~80% in-engine. Retained for reference; not a standalone build.
+- **At `/finalize`**, update the status block of every slate the build
+  touched. A slate whose `Left:` is empty is `ABSORBED` — salvage any
+  open question into the subsystem doc, then delete it.
+- **Deferred design never lives in a plan.** Plans are execution
+  artifacts and get deleted at the sweep; anything that outlives the
+  build is extracted back here first. Three sections were rescued this
+  way on 2026-09-06 — farming's Stage B (133 lines), farmstead's Tier 3
+  criteria, and the apartment plan's deferred seams — all of which had
+  been invisible to anyone reading the backlog.
+- **Duplicate ground is the standing hazard.** Known pairs covering one
+  subject from two ends: disease ↔ disease (pack) · recognition ↔
+  identification · authored-vs-procedural ↔ spawn-distribution ↔
+  discovery · argument-map ↔ forums · supply (pack) ↔ power-utility ·
+  college ↔ education-integration ↔ eternal-university-narrative.
+  Merge on contact rather than letting a third appear.

@@ -1,5 +1,15 @@
 # Balance slate — what the legislature actually governs, what a law looks like, and who enforces it
 
+> **Status: PARTIAL** — the substrate ships: parcel title + `ownerOf`,
+> `AccessApi.can`, banking's conservation chokepoint, and the
+> `producer_events` jurisdiction stamp (audited 2026-08-06)
+> → [parcel.md](../../subsystems/parcel.md)
+> **Left:** the jurisdiction stamp on the 4 unstamped ledgers (#0a-0c) ·
+> the cross-jurisdiction enumeration · the void-at-write validity
+> predicate · the `bound` instrument · class-per-matter on
+> `ParcelRecord` · quarantine · the two divergence dockets
+> **Size:** a build
+
 **Captured 2026-08-02.** The question that opened it:
 
 > **User: "what can private parcel holders do on their own authority and

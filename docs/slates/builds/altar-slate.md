@@ -1,5 +1,12 @@
 # Altars & sacrifice (working slate)
 
+> **Status: UNBUILT** — no altar, no rite, no sacrifice; only the
+> substrates it rides (chronicle, belief, renown, contract) are shipped
+> **Left:** `AltarMixin` · `swear` / `offer` / `consecrate` / `dedicate` ·
+> accreted weight as renown-of-the-object · the patron taxonomy + taint ·
+> the prophet's wilderness altar · sacrifice tuning
+> **Size:** a build
+
 > **Status: design captured, not built.** The altar as an **object + a system**,
 > and **sacrifice** as a mechanic — the concrete instrument of the worship/
 > alignment cluster. Grew out of "start from a concrete place with a history"

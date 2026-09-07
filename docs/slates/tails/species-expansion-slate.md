@@ -1,5 +1,16 @@
 # Species expansion — the casting palette (sketch)
 
+> **Status: PARTIAL** — the substrate shipped
+> ([race.md](../../subsystems/race.md)) and the first roster pass landed
+> 2026-06-29: troll + ghoul NPC casts, gnome/half-elf/orc playable,
+> ogre/kobold/satyr NPC, new name banks, the species-and-names pack.
+> **Left:** the personhood casts (flesh golem · doppelganger · zombie ·
+> synth · mind flayer) · the real attuned lineage replacing the
+> `sensitivus` stub (still used by shipped NPCs) · first sapients for the
+> empty `fungi`/`plantae`/non-mammal `animalia` clades · retiring the two
+> hybrid rows (`semieldarinus`/`semiorcus`, DECIDED 2026-08-11)
+> **Size:** a wave
+
 > **Status: sketch / pre-requirements.** A **later, separate build** — this doc
 > captures the *design philosophy* and a *casting palette* to build from, not a
 > spec. Authored 2026-06-27 in a design pass while carving the EU murder arc's

@@ -1,5 +1,19 @@
 # Mana-economy slate — power sources, the grid, and why mana can't eat the economy
 
+> **Status: PARTIAL** — the charge economy shipped (`S* = inflow/d`, the
+> three item classes, `ManaPowered` as the wall socket, `ManaCell` and
+> `ManaMain` in the arcana pack) →
+> [magic-items.md](../../subsystems/magic-items.md), and the TPA now runs
+> on mana with a derived rate and the three supplies →
+> [fasttravel.md](../../subsystems/fasttravel.md).
+> **Left:** the SOURCE — sited mana nodes on the terminus-condition ×
+> access-mode grid (a `ManaMain` just refills today) · the CHARGER as a
+> trade · distribution as a tree and the grid edge as an economic
+> boundary · node title, rent and the first natural monopoly · whether
+> nodes deplete · demurrage on flow vs storage · the magic vehicle (a
+> charged `Drivable` priced against feed)
+> **Size:** a build
+
 **Captured 2026-08-04**, out of the Dave's-Bar supply-chain thread, when
 the question *"what can we actually do with only wood?"* ran into the
 observation that the project **already ships a science of magic with
@@ -22,7 +36,7 @@ conservation of energy.**
 
 Related: [arcane-science.md](../../arcane-science.md) (**the postulate, the
 budget, the price list — read it first**),
-[magic-items-slate](../tails/magic-items-slate.md) (⭐ **the charge economy; most
+[magic-items-slate](./magic-items-slate.md) (⭐ **the charge economy; most
 of this slate's guards are already in it**),
 [magic.md](../../subsystems/magic.md),
 [fasttravel.md](../../subsystems/fasttravel.md) (the TPA — the marquee
@@ -31,7 +45,7 @@ rooted at a source** — the grid model),
 [freight-slate](./freight-slate.md) (the transport competitor;
 refrigeration as the marquee), [discovery-slate](./discovery-slate.md) (the
 inflow/stock model nodes reuse),
-[supply-chain-slate](./supply-chain-slate.md) (the vertical that raised
+[supply-chain-slate](../tails/supply-chain-slate.md) (the vertical that raised
 this), [currency-slate](./currency-slate.md) (why a second store of value
 is dangerous), [zoning-slate](./zoning-slate.md),
 [parcel.md](../../subsystems/parcel.md).
@@ -50,7 +64,7 @@ a mage is a worse prime mover than their own legs — therefore magic could
 never matter economically.
 
 **That is true of a caster and false of magic**, and
-[magic-items-slate](../tails/magic-items-slate.md) already draws the line:
+[magic-items-slate](./magic-items-slate.md) already draws the line:
 
 | | supplies | ceiling |
 |---|---|---|
@@ -117,7 +131,7 @@ worry**, and it costs nothing because it already ships.
 ⭐ It also guarantees the charging trade **recurring revenue**: *"you find
 shells; you buy charge"* — the **shell is the durable (stock), the charge
 is the consumable (flow)**, which is exactly the survival test every trade
-has to pass ([supply-chain-slate](./supply-chain-slate.md) § flow vs stock).
+has to pass ([supply-chain-slate](../tails/supply-chain-slate.md) § flow vs stock).
 
 ## ⭐⭐ Guard 2 — rent: nodes are Ricardian land
 
@@ -177,7 +191,7 @@ documented rules pointing opposite ways:
 ⚠ **One gap inherited from the same survey:** `PricedOffer.prices` is bare
 minor units while `Charge` carries a currency — so a charger's price is
 denominated **by convention** at the settling site. Harmless at one
-currency; see [supply-chain-slate](./supply-chain-slate.md) § *the offer
+currency; see [supply-chain-slate](../tails/supply-chain-slate.md) § *the offer
 layer has no currency*.
 
 # Part 2b — ⚠⚠ REFRESHED 2026-08-05: the magic-items build shipped the charge economy
@@ -204,7 +218,7 @@ it properly:
 doesn't"** — the ruins hold perfect blades and faded rings.
 
 ⚠ Note the build's own warning, which **matches the call
-[supply-chain-slate](./supply-chain-slate.md) made independently for
+[supply-chain-slate](../tails/supply-chain-slate.md) made independently for
 fermentation**: charge decay has **no far-past absence guard** — *"an item
 must decay while nobody is looking, because that is the entire basis of the
 equilibrium. Follow **husbandry**, not metabolism."*
@@ -498,7 +512,7 @@ it* — and the cost is a clock, which is the story. It also mints the
 **dead battery**: a failure that is nobody's fault and is recoverable.
 
 > ⭐⭐ **Cheapest possible implementation: a capacitor is a CHARGED ITEM with
-> no spell attached.** [magic-items-slate](../tails/magic-items-slate.md) already
+> no spell attached.** [magic-items-slate](./magic-items-slate.md) already
 > ships charge, self-discharge and *"you find shells; you buy charge."* A
 > mana cell is that object with its specification set to *hold and release*.
 > **Nothing new is required.**

@@ -111,7 +111,7 @@ a wage simply isn't earned; a shift simply passes.)
   *productive* conflicts — they create choices, which feed autonomy.
 - **The conflict to watch:** the vertical's external hafta (real
   coursework, real urgency) vs. the game's internal wanna. The
-  [high-stakes reconciliation](../study-com-strategy.md) is this
+  [high-stakes reconciliation](../study-com/strategy.md) is this
   lens's matrix applied to the pitch: the game must never build a
   wanna that *competes* with the learner's real obligations — it
   converts the obligation's *reason* instead (Rico, in

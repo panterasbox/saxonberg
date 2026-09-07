@@ -1,5 +1,13 @@
 # Enforcement slate — modes, evidence, testimony, and the two layers
 
+> **Status: UNBUILT** — accountability, belief, concealment and civics
+> are the substrate it names; none of the enforcement layer exists.
+> **Left:** the enforcement-mode vocabulary (wall · camera · witness ·
+> norm) as a committee-picked field · the evidence firewall · testimony
+> as claims never queries, and the lie discriminator · the intrinsic vs
+> social two-layer split
+> **Size:** a build
+
 **Captured 2026-07-31**, out of the ranged/gun design session: the
 gun-policy question ("what happens when he brings it to campus?")
 turned out to be the general question of **how law is detected,

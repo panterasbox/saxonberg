@@ -1,5 +1,17 @@
 # Credit slate — standing up lending, and the autopilot that runs the mint
 
+> **Status: PARTIAL** — the money substrate shipped (two-tier money, the
+> conservation chokepoint, per-currency ledgers, `reserve` mint/issue,
+> `Currency.compact()`) → [banking.md](../../subsystems/banking.md); no
+> lending exists — no application, rule, rate, term or repayment.
+> **Left:** splitting `reserve mint` into issuance + appropriation ·
+> naming the perpetual · chartering the `treasurer` seat and retiring the
+> Governor · principal-path offices + the NPC-eligibility guard · the
+> standing facility (criteria · taper · cap) · relocatable content /
+> personal packs · local underwriting at the committee · discharge · the
+> Treasury cycle (tax → budget → appropriate → disburse)
+> **Size:** a build
+
 **Captured 2026-08-04.** Opened as *"can we seat an NPC in the Governor's
 chair"* and became the whole fiscal apparatus, because the honest answer
 to *"what would the NPC do"* is **almost nothing — and the interesting
@@ -36,7 +48,7 @@ entitlement function — it decides the collateral question**),
 [content-packs-slate](./content-packs-slate.md) (kit ⊗ premises; the
 relocation answer), [parcel.md](../../subsystems/parcel.md),
 [chattel.md](../../subsystems/chattel.md),
-[incapacity-slate](./incapacity-slate.md) (impound on a claim),
+[incapacity-slate](../tails/incapacity-slate.md) (impound on a claim),
 [balance-slate](./balance-slate.md) (the inalienable floor),
 [cooperative-slate](./cooperative-slate.md) (the mutual-credit lineage),
 [behavior.md](../../subsystems/behavior.md) +
@@ -307,7 +319,7 @@ per game-year, with the 12× conversion written beside them.**
 
 ## ⭐⭐⭐⭐ And the reason the rate matters more than lending does
 
-[supply-chain-slate](./supply-chain-slate.md) established that a parcel's
+[supply-chain-slate](../tails/supply-chain-slate.md) established that a parcel's
 worth is **locational** — footfall → demand → entitlement → **rent**. But
 rent is a *flow*. It becomes a *price* only through a discount rate:
 

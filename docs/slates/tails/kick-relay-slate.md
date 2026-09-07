@@ -1,5 +1,13 @@
 # Kick Stream Relay — Scope
 
+> **Status: PARTIAL** — wave 1 shipped 2026-07-28 (MR !152): webhook
+> transport, `watch` embed, Kick as a full login+link provider, overlay
+> forwarding, dormancy → [streaming.md](../../subsystems/streaming.md)
+> **Left:** phase-2 posting (`kick-reauth` + `chat:write` through the
+> existing throttle/echo-suppress) · boot-time webhook-subscription
+> reconciliation · `kick.com/video/…` URL forms
+> **Size:** a tail
+
 > **Status (2026-07-28): SHIPPED** (`feature/kick-relay`, MR !152) →
 > [streaming.md](../../subsystems/streaming.md) § the Kick transport +
 > [connection.md](../../subsystems/connection.md) (the third co-equal

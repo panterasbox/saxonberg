@@ -1,5 +1,14 @@
 # Record-integrity slate — tamper-evidence, for real
 
+> **Status: UNBUILT** — every ledger is still append-only by convention;
+> the guarantee is entrenched in Art. VII and implemented nowhere.
+> **Left:** event-source `positions` → `position_events` · `prevHash`
+> chaining with canonical serialization · the Merkle checkpoint ·
+> anchoring via `GitApi` to third-party hosts · the published export +
+> standalone verifier · the member self-audit view · an external beacon
+> for draws
+> **Size:** a build
+
 **Captured 2026-07-31**, out of the government design run. The
 guarantee is **specified and entrenched** — Art. VII of the
 [draft constitution](../../governance/draft-constitution.md), an

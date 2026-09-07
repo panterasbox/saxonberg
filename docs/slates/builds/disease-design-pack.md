@@ -1,14 +1,21 @@
 # Disease design pack — the capstone (transmission over the growth term)
 
+> **Status: PARTIAL** — the growth term this pack inherits shipped as
+> spoilage → [spoilage.md](../../subsystems/spoilage.md)
+> **Left:** `ContagionSpec` itself · the two unifications (one burden
+> engine · one hygiene read) · the room-condition half of immunity, which
+> is also unbuilt · the four un-misery rules · the per-object specs
+> **Size:** a build
+
 > **Status: design, planner-ready, captured 2026-08-06. Not requirements.**
 > The **capstone** of the stewardship pillar — the system where every producer
 > connects. [disease-slate](./disease-slate.md) owns the rationale; this pack is
-> the planner-ready spec, built on the [spoilage pack](./spoilage-design-pack.md)
+> the planner-ready spec, built on the [spoilage pack](../tails/spoilage-design-pack.md)
 > (which proves the growth term) and the [room-condition pack](./room-condition-design-pack.md)
 > (the hygiene half of immunity). Same per-object format as the rest of the pillar.
 
 See also: [disease-slate](./disease-slate.md) (rationale, the substrate audit) ·
-[spoilage-design-pack](./spoilage-design-pack.md) (**the growth term this
+[spoilage-design-pack](../tails/spoilage-design-pack.md) (**the growth term this
 inherits**) · [room-condition](./room-condition-design-pack.md) + husbandry
 (**"care is immunity"** across hosts) · [metabolism](../../subsystems/metabolism.md)
 (the `toxinBehavior` burden engine) · [vitals](../../subsystems/vitals.md)

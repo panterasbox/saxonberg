@@ -1,5 +1,14 @@
 # Credential wallet — one holder, many credentials-as-data (tail)
 
+> **Status: PARTIAL** — the core shipped 2026-06-27: the wallet holder,
+> credentials-as-data, the born-with update, and both payment and travel
+> migrated onto it → [credential.md](../../subsystems/credential.md)
+> **Left:** deputization as a native tenant · the issuer-authorization
+> ledger (validity derived, the record a presentation) · a single
+> polymorphic `CredentialCard` in place of the two per-kind subclasses ·
+> a thin `CredentialApi`
+> **Size:** a tail
+
 > **Status: core SHIPPED 2026-06-27** (`feature/credential-wallet-build`),
 > graduated to [credential.md](../../subsystems/credential.md). The holder
 > (`CredentialWalletMixin`), the credentials-as-data records, the born-with

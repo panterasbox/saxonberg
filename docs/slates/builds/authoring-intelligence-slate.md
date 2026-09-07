@@ -1,5 +1,13 @@
 # Authoring intelligence slate (working doc)
 
+> **Status: UNBUILT** — Monaco ships with stock language support only,
+> and cms.md lists this as explicitly not covered
+> **Left:** the platform-semantic model (template-path completion,
+> reference validation, mixin-composition rules, lease scope) · the LSP
+> server · the VS Code extension · the engine `.d.ts` pipeline · the
+> shared core with the save-gate
+> **Size:** a build
+
 > **Status: architecture set; it's a brain, not a feature.** The
 > content-semantics intelligence — the layer that *understands the engine's
 > content model* and answers "what's valid / what completes / what's wrong"
