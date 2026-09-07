@@ -11,16 +11,17 @@
  * `e2e/playwright.drive.config.ts`'s header is the write-up. So the
  * default here probes, and on a miss it STOPS with instructions.
  *
- * Owned mode (`WIRE_BOOT=1`, and always in CI) is the other half and
- * arrives in W2. It boots on **2012** — its own port, where the same
- * preflight is safe because the only thing it can ever reap is a stale
- * wire server.
+ * Owned mode (`WIRE_BOOT=1`, and always in CI) is the other half: it
+ * boots on **2012** — its own port, where the same preflight is safe
+ * because the only thing it can ever reap is a stale wire server. See
+ * `boot.ts`, which carries that argument in full.
  */
 
 import { rmSync } from 'fs';
 import { join } from 'path';
 import { tmpdir } from 'os';
 import { readRunReport } from '../harness/registry';
+import { bootOwnedWorld, stopOwnedWorld, WIRE_PORT } from './boot';
 
 const REPORT = join(tmpdir(), `saxonberg-wire-run-${process.pid}.json`);
 
@@ -36,9 +37,28 @@ async function probe(url: string): Promise<boolean> {
   }
 }
 
+/** CI always owns its world; locally it is opt-in. */
+const ownsTheWorld = (): boolean =>
+  process.env.WIRE_BOOT === '1' || process.env.CI === 'true';
+
 export async function setup(): Promise<void> {
   process.env.WIRE_RUN_REPORT = REPORT;
   rmSync(REPORT, { force: true });
+
+  if (ownsTheWorld()) {
+    console.log(
+      `\nwire: booting a world of my own on ${WIRE_PORT}.\n` +
+        `  ⚠ It uses the database packages/server/.env names — one\n` +
+        `    database per worktree, so this is an ALTERNATIVE to your dev\n` +
+        `    server, not a companion. Stop the one on 2010 first.\n`
+    );
+    const started = Date.now();
+    process.env.WIRE_SERVER_URL = await bootOwnedWorld();
+    console.log(
+      `wire: world up in ${((Date.now() - started) / 1000).toFixed(1)}s\n`
+    );
+    return;
+  }
 
   const url = process.env.WIRE_SERVER_URL ?? 'http://localhost:2010';
   process.env.WIRE_SERVER_URL = url;
@@ -59,6 +79,7 @@ export async function setup(): Promise<void> {
 }
 
 export async function teardown(): Promise<void> {
+  await stopOwnedWorld();
   const files = readRunReport(REPORT);
   rmSync(REPORT, { force: true });
   if (files.length === 0) return;

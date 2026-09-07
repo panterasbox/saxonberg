@@ -556,6 +556,30 @@ fails the pipeline when a wire file fails (provable on this build's
 own MR pipeline). **Commit:** `build(wire W2): owned boot + the wire
 CI job`.
 
+> ✅ **Done.** `WIRE_BOOT=1 pnpm wire` boots its own world on 2012 in
+> **89.4s**, runs 22 tests in 7.5s, and tears the server down (2012
+> verified clear, no orphan). The pack check now reads the **boot log** —
+> 42 `PackApi: '<id>' installed` lines — so owned mode gets D10's tier-2
+> true world read rather than the inferred workspace roster.
+>
+> ⚠⚠ **`VITEST` must not reach the spawned server, and it cost a boot to
+> learn.** `packages/server/src/preload.js` registers the call-security
+> loader hook only `if (!process.env.VITEST)` — under Vitest the
+> transform arrives via `callSecPlugin` instead. The runner IS a vitest
+> process, so an inherited environment told the server it was under test,
+> the loader never registered, nothing got a provenance stamp, and the
+> boot died on the first `FromModule` policy with
+> `SecurityError: Policy AnyOf(FromModule(/api/containment#ContainmentApi)
+> | SelfOnly) denied _registerMergeOnArrivalHook()`. That reads exactly
+> like a call-security defect and is a leaked environment variable.
+> `boot.ts` scrubs `VITEST*` and `NODE_OPTIONS`, with the reason at the
+> site.
+>
+> ⚠ Owned boot does NOT get a database of its own — one database per
+> worktree stands — so locally it is an ALTERNATIVE to a dev server, not
+> a companion, and says so when it starts. CI's mongo service is a
+> throwaway container, so the question does not arise there.
+
 ### W3 — the five scripts become five wire files
 
 **Implements:** D6, D7 (script half), the lint gate.
