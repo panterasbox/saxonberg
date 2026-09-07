@@ -540,6 +540,39 @@ Related: a guard that scans source can pass by **matching nothing**.
 Assert what it found (`expect(inspected).toBe(N)`), or a rename
 silently reduces it to `expect([]).toEqual([])`.
 
+## The boot cost — what a wire run pays for a world
+
+Measured 2026-09-06 in `build-1` against Atlas, per the wire-tests
+requirements' specified procedure: `reset:db`, time from process start
+to the port answering, twice cold and twice warm.
+
+| boot | database | total |
+|---|---|---|
+| cold 1 | freshly dropped | **245.2s** |
+| cold 2 | freshly dropped | **250.7s** |
+| warm 1 | already seeded | **98.7s** |
+| warm 2 | already seeded | **96.3s** |
+
+Warm 2 was split further: **58.2s** from process start to
+`AppBootstrap: world open`, then **38.1s** more before the HTTP port
+accepted a connection.
+
+**What it decides.** Seeding is ~150s of a cold boot — about 60% of it —
+so a reset is genuinely expensive and `dirtiesWorld` batching earns its
+keep: a suite that reset per file would pay four minutes per file. A
+Mongo snapshot/restore reset path would attack the right 150s, and is
+recorded as a candidate in the wire-suite growth slate rather than built
+— nothing today needs a reset mid-run.
+
+⚠ **The 38 seconds after the world opens are a dev-only compile
+watcher.** `AppBootstrap.run` starts `CompileWatcher` — a full
+TypeScript watch program — and only then does `Server.start` bind the
+port, so *every* boot pays it, warm ones included, and so does every CI
+wire run. It is gated on `NODE_ENV !== 'production'` and the wire suite
+cannot set that (`AUTH_MODE=test` is refused in production), so the cost
+stands. Recorded here as a finding; nothing in this build changes the
+engine to avoid it.
+
 ## Adding a test
 
 Nothing to do, unless your test touches the wired runtime — the Stuff

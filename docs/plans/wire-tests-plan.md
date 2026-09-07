@@ -344,6 +344,46 @@ start dominates — `dirtiesWorld` batching is the whole answer);
 The runner's reset guidance text is written after the numbers exist,
 not before.
 
+### D10 — pack presence is read from the best evidence, and says which
+
+*(decided during W0.)* D3 asks the harness to check a file's declared
+`packs:` against the booted world, "read off the world, not guessed."
+**There is no pack roster an ordinary player can read**: `pack status`
+is gated by `requiresPackInstaller` (the executive), and no HTTP route
+lists packs. Adding one is the engine change the requirements rule out.
+
+So `world.ts` reads the best evidence available and names it in any
+failure:
+
+1. `WIRE_PACKS` — an explicit list; owned boot sets it from the
+   `SAXONBERG_PACKS` it used.
+2. `WIRE_SERVER_LOG` — the installer's own `PackApi: '<id>' installed`
+   lines. **A true read of the world**, and owned boot always has one.
+3. The workspace roster (`@saxonberg/content-*` in the root
+   `package.json`) — what a default boot installs. INFERRED, and the
+   message says so.
+
+Tier 3 errs in one direction only: it can believe a pack is present
+when an attached server booted narrowed. That misses a check; it never
+invents a failure.
+
+### D11 — `play` is the one send that cannot be awaited
+
+*(decided during W0, found by reading rather than by a timeout.)*
+`PlayController` awaits `Login.playCharacter`, which transfers the
+Interactive to the Avatar and **destructs the Login** — and only then
+does the dispatch emit its response, on a giver that is gone and whose
+reader has moved. The envelope has nowhere to land. This is the sole
+exception to D2's "await the next dispatch-response," and it would have
+read as a harness bug in every future session, so it is stated at the
+call site as well as here.
+
+Arrival is **probed with a real success condition**, not slept through:
+`look` is an unknown verb at character-select and `ok` in the world, so
+a `look` that succeeds IS the handoff. The only clock in the harness is
+the 400ms settle before the first probe, which keeps the handoff's own
+frames from being mistaken for the probe's answer.
+
 ## Host placement
 
 An infra build: **no new Stuff class, no mixin, no field, no template
@@ -441,6 +481,27 @@ green file against an operator-booted world.
 with no server up, it fails fast with instructions and kills nothing.
 **Commit:** `build(wire W0): packages/wire — harness + platform smoke`.
 
+> ✅ **Done** (`85c60531b`). Green on the first live run: **10 tests in
+> 5.9s** against a cold-booted world, and the fail-fast path verified
+> against a dead port with the operator's world still answering
+> afterwards. Prose census: 5 (the pack roster, `help look`, `config`,
+> `chat list`, `wiki` — all genuinely render-only operator reports).
+>
+> ⚠ **`mql-query` had never run live.** The handler ships, is registered
+> in `inbound/index.ts` and is unit-tested — but **no client sends the
+> message**, so this suite is its first end-to-end consumer. It works.
+> That is worth knowing about the channel D1 rests on.
+>
+> Two decisions the plan did not make: **D10** (pack presence) and
+> **D11** (`play` cannot be awaited), both above.
+>
+> ⚠ `drive-wave2` was under-counted by D7: it has **five** tests, not
+> two. Five fold in here (pack roster, `;wave`, `help look`,
+> `config`+`chat`, `wiki`). The two REST-surface assertions — the emote
+> catalogue's shape and a CMS write refusal — are not wire flows and
+> the spec's own comments name the unit tests that already cover them,
+> so they retire rather than migrate.
+
 ### W1 — the warm-vs-cold measurement
 
 **Implements:** D9. **Goal:** the numbers exist before any policy text.
@@ -455,6 +516,21 @@ or not; the CI budget number.
 **Acceptance:** four timings recorded; the decision paragraph cites
 them. **Commit:** `docs(wire W1): warm-vs-cold boot measurement + reset
 policy`.
+
+> ✅ **Done.** cold **245.2s / 250.7s**, warm **98.7s / 96.3s**; warm-2
+> split as 58.2s to `world open` + 38.1s more to the port. Recorded in
+> `docs/testing.md § The boot cost`.
+>
+> **Seeding is ~150s of a cold boot (~60%)**, so `dirtiesWorld` batching
+> earns its keep and a snapshot/restore reset path attacks the right
+> number — recorded as a growth-slate candidate, not built.
+>
+> ⚠ **Finding: 38s of every boot is a dev-only compile watcher.**
+> `AppBootstrap.run` starts `CompileWatcher` (a full TypeScript watch
+> program) *before* `Server.start` binds the port, so warm boots and
+> every CI wire run pay it. Gated on `NODE_ENV !== 'production'`, which
+> the suite cannot set (`AUTH_MODE=test` is refused there). Reported;
+> the engine is not changed for it.
 
 ### W2 — owned boot + the CI job
 

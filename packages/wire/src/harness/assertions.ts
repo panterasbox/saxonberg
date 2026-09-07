@@ -10,6 +10,7 @@
 import { expect } from 'vitest';
 import type { Note } from '@saxonberg/types';
 import type { CommandResult } from './session';
+import { countProseRead } from './registry';
 
 /** A one-line summary of what a command actually answered. */
 export function describe(result: CommandResult): string {
@@ -57,6 +58,22 @@ export function expectNote(
 export function expectNoNote(result: CommandResult, kind: Note['kind']): void {
   const found = result.notes.find((n) => n.kind === kind);
   expect(found, `unexpected ${kind} note — ${describe(result)}`).toBeUndefined();
+}
+
+/**
+ * A note's `detail` — ⚠ **prose, and counted as such.**
+ *
+ * The line inside the envelope: `kind` and `reason` are a controller's
+ * structured answer and are free to assert; `detail` is the sentence it
+ * hands the player, and asserting on it is asserting on wording. It
+ * rides the envelope, so it *looks* structural, which is exactly why it
+ * needs to be named. Reach for it when the fact under test is genuinely
+ * in the sentence — a refusal that must LIST the stops you may name —
+ * and take the census entry.
+ */
+export function detailOf(note: Note): string {
+  countProseRead();
+  return String((note as { detail?: unknown }).detail ?? '');
 }
 
 /**

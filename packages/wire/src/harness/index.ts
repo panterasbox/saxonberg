@@ -16,6 +16,7 @@ export {
   expectNote,
   expectNoNote,
   engagementIdOf,
+  detailOf,
   describe,
 } from './assertions';
 export { declareFile } from './registry';
