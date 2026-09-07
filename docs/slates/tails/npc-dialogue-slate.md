@@ -11,6 +11,18 @@
 > overhearing
 > **Size:** a wave
 
+> **Status: Wave 1 shipped (2026-06)** → [../../subsystems/npc-dialogue.md](../../subsystems/npc-dialogue.md).
+> The responder seam (`talk to` → a pluggable brain), the **branching-tree
+> responder**, the pure-data tree format + CMS save-gate, the
+> `InstanceContributor` discoverability seam, and auto-introduce all
+> shipped. This slate is now a **tail** holding the deferred waves: the
+> scripted free-text **`intent-dialogue`** responder (pattern/synonym
+> tables; the `addressed`/`handleMessage` trigger + the implant `tell`
+> entry land with it), the **LLM** front-end (see also
+> [llm-content-slate](../builds/llm-content-slate.md)), persistent
+> per-relationship state ([social-graph-slate](../tails/social-graph-slate.md)),
+> and **multiplayer** tree participation beyond overhearing.
+
 Working slate for **NPC dialogue** — talking *with* the world's
 inhabitants, from a barkeep's banter to a quest-giver's branching
 setpiece. It sits on top of the communication substrate: players address
@@ -40,26 +52,26 @@ Two anti-goals, both born from the design discussion:
 
 See also:
 
-- [comms-slate.md](./comms-slate.md) — the transport this rides:
+- [comms-slate.md](../tails/comms-slate.md) — the transport this rides:
   directed speech (`say --to <npc> …`), the acoustic-vs-implant split
   (in-person barkeep = acoustic `say`; remote dispatcher = implant DM),
   the `whisper`/`tell` reclassification. Dialogue *consumes* directed
   speech; it doesn't define it.
-- [emotes-slate.md](./emotes-slate.md) — the parallel expression
+- [emotes-slate.md](../tails/emotes-slate.md) — the parallel expression
   channel; NPCs emote through the same `SoulMixin` path. Dialogue +
   emotes compose (an NPC frowns *and* speaks).
 - [docs/subsystems/prompt.md](../../subsystems/prompt.md) /
-  [prompt-stack-slate.md](./prompt-stack-slate.md) — `PromptApi` choice
+  [prompt-stack-slate.md](../tails/prompt-stack-slate.md) — `PromptApi` choice
   prompts. **The branching-tree mode is built on these** (the choices
   are prompts, private to the chooser).
 - [docs/subsystems/activity.md](../../subsystems/activity.md) — the
   engagement framework. **"In conversation" is a `SustainedEngagement`**
   on the `attention`/`voice` slots — an observable world state, which is
   what makes a branching dialogue non-modal.
-- [docs/slates/language-slate.md](./language-slate.md) — comprehension
+- [docs/slates/language-slate.md](../tails/language-slate.md) — comprehension
   gating on acoustic NPC speech (`Vocal.speechLanguage`); a translation
   implant dissolves it.
-- [docs/slates/senses-slate.md](./senses-slate.md) — acoustic reach for
+- [docs/slates/senses-slate.md](../tails/senses-slate.md) — acoustic reach for
   in-person dialogue (who hears the exchange) — the hearing channel of
   the unified perception substrate (absorbed the sound slate).
 - [docs/subsystems/messaging.md](../../subsystems/messaging.md) /
@@ -315,9 +327,9 @@ social-graph links; ambient barks / NPC initiative depth.
 ## What this slate does NOT cover
 
 - **The comms transport** — directed speech, acoustic vs implant, the
-  `whisper`/`tell` split → [comms-slate.md](./comms-slate.md). Dialogue
+  `whisper`/`tell` split → [comms-slate.md](../tails/comms-slate.md). Dialogue
   consumes it.
-- **The emote channel** → [emotes-slate.md](./emotes-slate.md). NPCs
+- **The emote channel** → [emotes-slate.md](../tails/emotes-slate.md). NPCs
   emote through that; dialogue composes with it but doesn't own it.
 - **Prompt + engagement substrate internals** — consumed from prompt.md
   / activity.md, not redefined.

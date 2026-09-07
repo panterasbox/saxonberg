@@ -10,6 +10,22 @@
 > the proof case
 > **Size:** a build
 
+> **Status: design surface, unbuilt, no phase gate passed.** Found 2026-09-03 by
+> the [farmstead](../../plans/farmstead-plan.md) multiplayer pass,
+> which needed producers to sell to each other and discovered they cannot say
+> anything binding about what they are selling.
+>
+> ⚠ **Verified gap.** Checked against the three docs that would own it —
+> [contract.md](../../subsystems/contract.md),
+> [retail.md](../../subsystems/retail.md),
+> [accountability.md](../../subsystems/accountability.md). **None of them has a
+> representation primitive.** The game has *sale*; it has no *claim*.
+>
+> **This is not a farming feature.** It is crafted goods, magic items, livestock,
+> land, second-hand gear, and anything anybody ever sells with a sentence
+> attached. It was found by farming because farming is where producers first had
+> to trade with each other.
+
 See also: [auction-slate](./auction-slate.md) (**the sibling** — it already names
 the lemons problem and the winner's curse, and the appraiser is this slate's
 natural ally) · [farmstead plan](../../plans/farmstead-plan.md)

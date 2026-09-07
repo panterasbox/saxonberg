@@ -67,11 +67,11 @@ The load-bearing decisions:
 
 See also:
 
-- [docs/slates/senses-slate.md](./senses-slate.md) — **sensor augments
+- [docs/slates/senses-slate.md](../tails/senses-slate.md) — **sensor augments
   *are* `PerceptionChannel`s**; the implant is the **ESP sense-organ**
   (verbal + emotive channels). Augments add channels to the sensorium.
-- [docs/slates/comms-slate.md](./comms-slate.md) /
-  [docs/slates/emotes-slate.md](./emotes-slate.md) — the baseline implant
+- [docs/slates/comms-slate.md](../tails/comms-slate.md) /
+  [docs/slates/emotes-slate.md](../tails/emotes-slate.md) — the baseline implant
   carries DM/chat (verbal) + emote perception (emotive). The DM-as-
   tutorial on-ramp.
 - [vitals-slate.md](./vitals-slate.md) — **install/remove is
@@ -86,7 +86,7 @@ See also:
   **"implantable" affordance**; augments occupy anatomical slots.
 - [docs/subsystems/race.md](../../subsystems/race.md) — `BodyPlan` (the
   innate baseline + the anatomical slots augments install into).
-- [docs/slates/language-slate.md](./language-slate.md) — a **translation**
+- [docs/slates/language-slate.md](../tails/language-slate.md) — a **translation**
   augment (the natural first opt-in capability).
 - [docs/design-philosophy.md](../../design-philosophy.md) — derived-not-
   stored; liberal diegesis (cybernetic now, magic-able later).

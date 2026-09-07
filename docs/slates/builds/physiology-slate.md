@@ -37,7 +37,7 @@ is killing this body."* Nothing answers *"what can this body still do."*
 > first sketched out vitals and never did."** Correct, and this slate is
 > that conversation.
 
-> **FAST-TRACK.** § Part 3 was
+> **Status: direction set, nothing built. FAST-TRACK.** § Part 3 was
 > driven out against the source on 2026-08-02 and is requirements-ready;
 > the roster is **shape**-urgent, not speed-urgent.
 

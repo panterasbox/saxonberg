@@ -64,7 +64,7 @@ The load-bearing decisions:
 
 See also:
 
-- [docs/slates/cms-slate.md](./cms-slate.md) — the **authoring app** that
+- [docs/slates/cms-slate.md](../builds/cms-slate.md) — the **authoring app** that
   consumes this in its web code editor; also the **external-editor path**
   (git + the VS Code extension) this intelligence travels over. The CMS owns
   the *UI*; this owns the *brain*.
@@ -157,12 +157,12 @@ with** — two levels, the Standard Model's particles and compounds:
   name-it** prompt (dedup + capture) — and feeds the content editor's
   **archetype picker** (discovery + reuse) and the composition tooling
   (familiarization). Behavior stays in the mixins; combos are thin
-  composition. (Full authoring flow: [cms-slate.md](./cms-slate.md) §
+  composition. (Full authoring flow: [cms-slate.md](../builds/cms-slate.md) §
   *Composition & the combo catalog*.)
 
 **The catalog family is open-ended — and decoupled from the runtime.** Mixins
 and combos are the first two members; **brains** (NPC behavior modules — see
-[npc-behavior-slate.md](./npc-behavior-slate.md)) are a third, and hooks /
+[npc-behavior-slate.md](../builds/npc-behavior-slate.md)) are a third, and hooks /
 validators / other path-resolved module kinds will follow. They all share one
 governing property: **the catalog is a CMS-side artifact the game framework
 never depends on.** The runtime only ever does **path-resolution** — it
@@ -276,7 +276,7 @@ drift).
 
 ## What this slate does NOT cover
 
-- **The editor UI / CMS app** → [cms-slate.md](./cms-slate.md). This is the
+- **The editor UI / CMS app** → [cms-slate.md](../builds/cms-slate.md). This is the
   brain; that's the body.
 - **The access gate / leases / op model** → [access-slate.md](../tails/access-slate.md).
   Consumed as input (lease-awareness) and as the authoritative face (the
@@ -284,7 +284,7 @@ drift).
 - **The engine content model itself** (templates / mixins / the standard
   model) → [standard-model.md](../../standard-model.md). Understood, not
   defined.
-- **The content-editor forms** → [cms-slate.md](./cms-slate.md) (they share
+- **The content-editor forms** → [cms-slate.md](../builds/cms-slate.md) (they share
   the *schema source* with this intelligence, but the form-generation is the
   CMS's).
 - **Host isolation / running untrusted code** → [access-slate.md](../tails/access-slate.md);

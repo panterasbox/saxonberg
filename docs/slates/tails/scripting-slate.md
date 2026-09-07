@@ -96,7 +96,7 @@ See also:
 - [shell-author.md](../../subsystems/shell-author.md) — the existing
   `EvalScript` sandbox: the **general** TS surface. The scripting language is
   the **special** surface; same isolation machinery, narrowed grammar.
-- [access-slate.md](./access-slate.md) — isolation / lease-scoped sandboxes;
+- [access-slate.md](../tails/access-slate.md) — isolation / lease-scoped sandboxes;
   who may write/run a script.
 - [mql.md](../../subsystems/mql.md) — the condition sublanguage *and* the
   existing object pipeline (chain operators over Stuff) the pipe generalizes.

@@ -9,6 +9,16 @@
 > woff2 + a per-scene face ceiling · plain-mode collapse
 > **Size:** a tail
 
+> **Status: shape proposed, unbuilt; downstream of rich surfaces.** The
+> sibling of the shipped terminal typography
+> ([message-rendering.md](../../subsystems/message-rendering.md)):
+> where that work governs the *engine-chosen* functional faces in the
+> transcript stream, this one governs the *author-chosen* distinctive
+> faces on the **richer GUI surfaces** (item/object cards, rendered
+> books & letters, signage, lesson/content surfaces, the inspection
+> card). Rides the shipped message-rendering theme engine but depends on
+> rich surfaces that aren't all built yet, so it's a later cycle.
+
 The driver: content authors want to make a specific piece of content
 *distinctive* — a haunted letter that reads as handwriting, a fantasy
 monument in inscriptional caps, a typewritten dossier. But uncurated

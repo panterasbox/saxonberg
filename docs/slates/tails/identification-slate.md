@@ -49,12 +49,12 @@ compound by experiment IS science.
 
 See also:
 
-- [docs/slates/tails/magic-items-slate.md](./magic-items-slate.md) —
+- [docs/slates/tails/magic-items-slate.md](../tails/magic-items-slate.md) —
   the **orthogonal axis**. This slate is item *identity* (class-level,
   deductive: "a blue potion" → "healing"); that one is *BUC* (per-instance:
   blessed/uncursed/cursed as potency). Both ride belief; different facts,
   different keys. The magic-items slate also holds the NetHack catalog map.
-- [docs/slates/recognition-slate.md](./recognition-slate.md) — the
+- [docs/slates/recognition-slate.md](../tails/recognition-slate.md) — the
   parallel substrate for actors. Same `PerceptionMemoryRecord`
   shape (recognition-slate calls this `RecognitionRecord` — same
   record; name to be reconciled); different keying.

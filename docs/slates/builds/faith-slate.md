@@ -13,7 +13,7 @@
 > content
 > **Size:** a build
 
-> [tradition-slate](./tradition-slate.md)
+> **Status: sketch / pre-requirements.** [tradition-slate](./tradition-slate.md)
 > covers the *inherited account* half of religion and explicitly demotes
 > faith to one consumer among craft, medicine and guild. Scored against
 > what players actually reach for from religion, that serves **one want of

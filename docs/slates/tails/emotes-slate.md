@@ -84,7 +84,7 @@ See also:
   emote catalog is its own MongoDB collection on this lightweight track
   — deliberately *not* the Template→Stuff clone pipeline (templates.md),
   which is overkill for behaviorless data.
-- [comms-slate.md](./comms-slate.md) — the communication substrate
+- [comms-slate.md](../tails/comms-slate.md) — the communication substrate
   (conversations/channels/DMs) that resolves *who* the audience is for a
   remote/channel emote. Emotes are perceived over a universal ESP channel
   with no medium gating; comms only supplies the routing (membership).
@@ -465,8 +465,8 @@ still felt; a wave to a friend a continent away lands. No modality, no
 "can you see it," no device required. They're emotes — they're meant to
 be fun. (Worldbuilding: that "ESP channel" is the baseline **implant**'s
 neural layer — cybernetic in mechanism, ESP in feel — the same substrate
-that carries DM/chat. See [comms-slate.md](./comms-slate.md) /
-[augmentation-slate.md](./augmentation-slate.md). It stays ungated and always-on
+that carries DM/chat. See [comms-slate.md](../tails/comms-slate.md) /
+[augmentation-slate.md](../tails/augmentation-slate.md). It stays ungated and always-on
 for emotes by design; the implant is the *explanation* for the magic,
 never a constraint on it.)
 
@@ -488,7 +488,7 @@ peer* depends on the context:
 `emote()` composes the act once and delivers it to that audience over the
 ESP channel; distance is irrelevant to perception. The membership for
 remote/channel cases comes from the **comms subsystem**
-([comms-slate.md](./comms-slate.md)); emote v1 ships the in-room case.
+([comms-slate.md](../tails/comms-slate.md)); emote v1 ships the in-room case.
 
 ### Echo
 
@@ -546,7 +546,7 @@ The prose stays the clean act with its label: *"[Gossip] Bobalu smiles at
 you."* flattens whole; a rich client renders the channel region as a
 chip, a distinct private/remote treatment, or per-conversation placement.
 The full rendering model — tagged-complete-string → flatten/reflow — is
-the [message-rendering slate](./message-rendering-slate.md); the visual
+the [message-rendering slate](../tails/message-rendering-slate.md); the visual
 treatment is a client/cockpit concern, not the emote engine's prose.
 
 ### Bootstrap & the starter roster
@@ -675,7 +675,7 @@ The essay is itself uncertain here ("any implementation is only as good
 as adoption"), and the design space (what loss is acceptable in
 aggregation) is large and subjective. Carve it out: this slate
 *specifies the hook* (emotes carry aggregation `tags`; the topic is
-filterable), and the **[reactions slate](./reactions-slate.md)** owns the
+filterable), and the **[reactions slate](../tails/reactions-slate.md)** owns the
 rest (the scale-first design: a reaction is an emote-at-a-message +
 batched aggregate-delta broadcast). Including it in "everything" means it
 ships — just not in the same cycle as the trunk.
@@ -1078,7 +1078,7 @@ Indicative waves; final cut decided at requirements. Reactions (Layer
   client aggregation UI, per-user aggregation settings, tag→group maps.
   This slate ships the hook (`tags` + filterable topic); the reactions
   slate ships the machine.
-- **Comms subsystem** (its own slate, [comms-slate.md](./comms-slate.md)):
+- **Comms subsystem** (its own slate, [comms-slate.md](../tails/comms-slate.md)):
   conversations/channels/DMs — the *routing* that says who's in a remote
   emote's audience. Emotes ride the ESP channel and always come through;
   comms just supplies the membership.
@@ -1116,7 +1116,7 @@ Indicative waves; final cut decided at requirements. Reactions (Layer
 - **Dialogue** — `say`/`tell` (`world.speech.*`) are speech, not
   emotes.
 - **The comms substrate** — conversations/channels/DMs and remote
-  audience-routing → [comms-slate.md](./comms-slate.md). Emotes ride the
+  audience-routing → [comms-slate.md](../tails/comms-slate.md). Emotes ride the
   ESP channel (no medium physics); comms only answers "who's in the
   conversation."
 - **Client buffer/threading architecture beyond the gutter id** the

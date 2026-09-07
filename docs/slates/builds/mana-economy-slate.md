@@ -30,7 +30,7 @@ conservation of energy.**
 > be economical, or everyone will optimize for mana and you have
 > deflation.**"**
 
-> ⚠ Contains
+> **Status: design conversation, captured. Not requirements.** ⚠ Contains
 > **one proposed change to the arcane science** (Part 6) — the only thing
 > here that is not built on top of what already ships.
 

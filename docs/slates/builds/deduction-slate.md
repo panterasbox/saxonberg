@@ -9,6 +9,22 @@
 > cluster locking · `reconstruct` prose playback · the §11 empty node
 > **Size:** a build
 
+> **Status: sketch / pre-requirements.** A design pass, not a spec. Authored
+> 2026-06-27 designing the EU murder arc's resolution (the Quad). Captures a
+> **quest-type mechanic** + a deduction-system synthesis from prior art.
+>
+> **Scope discipline:** do **not** build one grand quest engine. Build a **thin
+> generic quest spine** and let quest *types* bring their own mechanics. This
+> slate designs **one type — forensic investigation.** Other types (fetch,
+> social-negotiation, survival) would plug in different beat-meanings and
+> resolutions; designing them is out of scope.
+>
+> **Hard line — not forums.** Investigation resolves by *demonstrated evidence*,
+> not deliberation. Truth is **shown, not argued or voted.** Forums (the
+> argument organizer) is for the *civic aftermath* — what the polity *does* about
+> the crime — never for adjudicating *what happened.* See
+> [forums.md](../../subsystems/forums.md) for that boundary.
+
 ---
 
 ## The generic quest spine (keep it this small)

@@ -15,7 +15,7 @@
 > drafts→publish gate
 > **Size:** a build
 
-> Model set — declarative behavior over path-resolved brains.
+> **Status: model set — declarative behavior over path-resolved brains.**
 > Almost everything an NPC does — what it says, how it moves, how it reacts,
 > how it defends — is **automation**, and it all reduces to one shape:
 > **uniform emission + a swappable "brain," composed as data, riding
@@ -85,8 +85,8 @@ See also:
   lease-scoped sandboxes; a scripted brain is untrusted code (the isolation
   concern); path-resolution (not a central registry) is the access-aligned
   grain.
-- [docs/slates/cms-slate.md](./cms-slate.md) /
-  [authoring-intelligence-slate.md](./authoring-intelligence-slate.md) — the
+- [docs/slates/cms-slate.md](../builds/cms-slate.md) /
+  [authoring-intelligence-slate.md](../builds/authoring-intelligence-slate.md) — the
   behavior editor reuses the content-editor framework (spec-list, the brain
   **reference-picker**, the **dialogue-tree** widget); brains are discovered
   by tree-walk (no registry).
@@ -463,7 +463,7 @@ chosen.) **Prototyped on the bar cast** (Mara/Remy/Sloane/Augie/Dave —
    **save-gate**, never via a global walk. **Enumeration is exclusively a
    CMS/authoring concern** — the brain catalog (its tree-walk / lazy index /
    maintenance) lives in
-   [authoring-intelligence-slate.md](./authoring-intelligence-slate.md) and
+   [authoring-intelligence-slate.md](../builds/authoring-intelligence-slate.md) and
    the runtime has zero dependency on it; a stale catalog is at worst a
    palette omission, never a broken NPC.
 3. **Config-inline vs content-template-reference** — *resolved.* Axis is
@@ -536,7 +536,7 @@ hollow `'blocked'` gate); combat/defend brains (RPG-deferred).
   here it's just the `scripted-behavior` brain-type the model accommodates.
 - **Combat / defend mechanics** — RPG / game-phase; a `defends` brain is a
   placeholder until those mechanics exist.
-- **The CMS framework + composition** → [cms-slate.md](./cms-slate.md); the
+- **The CMS framework + composition** → [cms-slate.md](../builds/cms-slate.md); the
   behavior editor is an instance of it.
 - **NPC species/body/appearance** — the "basic half" (race subsystem +
   the Thing-editor pattern); this slate is the *behavior* half.

@@ -26,6 +26,11 @@ office is somewhere else.**
 > be the same cockpit an actual player would sit in as we're able to staff
 > the office with real humans."**
 
+> **Status: design conversation, captured. Not requirements.** ⭐ It closes
+> the deferral [currency-slate](./currency-slate.md) left open — *"credit:
+> WANTED, deferred, NOT rejected"* — and it is the first slate whose shape
+> was decided by a **constitutional clause** rather than by the code.
+
 ⭐ **Scope, in the user's words:** *"this isn't meant to be a permanent
 model for lending long term… this is really more about getting everything
 online and giving players what they need to actually engage with all the

@@ -15,6 +15,13 @@ not: **(a)** edit source/content/documents from your own editor, and
 **(b)** point your own Claude Code account at the runtime and author
 *inside it*, rather than through git push/pull.
 
+> **Status: design conversation, captured. Not requirements — and
+> explicitly NOT a near-term priority** (user: *"though it's not a big
+> priority yet"*). Written down now because the two pieces with real
+> decisions in them — **token scoping** and **content-backend
+> filesystem semantics** — are worth settling before anyone starts,
+> not because the work is queued.
+
 **Provenance:**
 
 > **User: "how much work would it be to build a connector so people

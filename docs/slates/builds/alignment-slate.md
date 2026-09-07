@@ -13,7 +13,7 @@
 > dot-product reception · per-faction standing over renown
 > **Size:** a build
 
-> Design spine SETTLED. Supersedes the
+> **Status: design spine SETTLED, pre-requirements.** Supersedes the
 > preliminary [alignment-religion-slate](../deferred-rpg/alignment-religion-slate.md)
 > (RPG-layer, deferred) — that doc's D&D-grid + worship-is-chosen intuitions
 > survive here, now fully reconciled with [story-bible.md](../../story-bible.md)

@@ -11,6 +11,14 @@
 > validator behind `make` · authoring quotas · the client authoring GUI
 > **Size:** a wave
 
+> **Status: model set, GUI is the bulk (and a client concern).** The
+> democratized, *safe*, ownership-scoped slice of content authoring —
+> every player authors their own space (their dorm). The server stays
+> thin (`write`/`cat` + a validation gate); the complexity is the client
+> GUI + the permissions/validation model. The validation core is a
+> **(access-policy, value-validator) pair per field, default-deny** — not
+> a boolean flag.
+
 > **⚠ AUDIT 2026-08-08 — most of this slate's goal shipped, by a route it
 > did not predict.** Checked against the tree when GitLab #22 was closed
 > here. Read the body below through this.
@@ -107,7 +115,7 @@ See also:
 - [docs/subsystems/properties.md](../../subsystems/properties.md) — per-
   field access-control + masks; the value-validator echoes the
   Hydrator's per-field validation.
-- [docs/slates/onboarding-slate.md](./onboarding-slate.md) — the dorm-
+- [docs/slates/onboarding-slate.md](../builds/onboarding-slate.md) — the dorm-
   customization step that introduces this; the dorm = homedir-as-room.
 - [docs/slates/client-cockpit-slate.md](../tails/client-cockpit-slate.md) — the
   **rich authoring GUI** (the bulk of the work) is a client concern.

@@ -14,7 +14,7 @@
 > TAUGHT character, never a buff the teacher radiates
 > **Size:** a build
 
-> Design conversation, captured. Written
+> **Status: design conversation, captured. Not requirements.** Written
 > 2026-08-06. Synthesises a conversation on the one gap the education
 > slates leave open: **how the vertical funds itself and plugs into the
 > greater game.** Not the academic apparatus (college-slate), not the

@@ -21,6 +21,17 @@ aspirational; what it does *not* do is sequence itself against this
 repo's own conventions, and it makes one recommendation that the build
 in flight has already answered better.
 
+> **Status: design surface for a multi-wave client cycle.** Nothing here
+> is scoped for one build. The waves in § 7 are the proposed cut; each
+> gets its own requirements + plan.
+>
+> **✅ Wave 0 + Track C shipped as S1 "figures on the wire"** (MR !172) —
+> see [messaging.md](../../subsystems/messaging.md) (the `<quantity>`
+> tag), [topics.md](../../subsystems/topics.md) (the five facets) and
+> [mql-subscription.md](../../subsystems/mql-subscription.md) (the live
+> standing figures + the `durableKey` witness). Three corrections it
+> forced are folded into §§ 4.1, 4.2 and 6 below.
+
 > **The decision that frames everything: server *subsystem* work stops
 > after the ranged/affordance build; the server work that remains is all
 > in service of the client.** "Client freeze on the server" is not

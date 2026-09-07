@@ -45,7 +45,7 @@
 > partly on pedagogical real-language readables (a TOEFL register). TOEFL
 > was cut as a vertical on 2026-08-07 — a text-only English world cannot
 > serve speaking/listening or low-proficiency entrants
-> ([study-com-cx-and-the-aspiring-teacher.md](../../study-com/cx-and-the-aspiring-teacher.md)
+> ([study-com-cx-and-the-aspiring-teacher.md](../../study-com-cx-and-the-aspiring-teacher.md)
 > §1). The substrate stands on its own diegetic merits; that argument does
 > not.
 
@@ -79,11 +79,11 @@ See also:
   lives.
 - [docs/subsystems/prose.md](../../subsystems/prose.md) — the
   prose pipeline through which language rendering composes.
-- [docs/slates/recognition-slate.md](./recognition-slate.md) —
+- [docs/slates/recognition-slate.md](../tails/recognition-slate.md) —
   per-viewer perception state. Language proficiency is a
   parallel per-viewer state; the rendering pattern (shadow /
   scope) is identical.
-- [docs/slates/affordance-verb-slate.md](./affordance-verb-slate.md)
+- [docs/slates/affordance-verb-slate.md](../tails/affordance-verb-slate.md)
   — `put` / `give` verbs. `read` lives in this slate because
   it's primarily a language-system consumer.
 
@@ -312,7 +312,7 @@ read <item>
 
 Instant — no duration in v1. The durative version (page-by-page
 with bookmark on abort) lives in
-[host-slot-activities-slate.md](./host-slot-activities-slate.md).
+[host-slot-activities-slate.md](../tails/host-slot-activities-slate.md).
 
 ### Actor-side
 

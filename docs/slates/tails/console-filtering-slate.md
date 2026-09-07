@@ -34,13 +34,13 @@ See also:
   re-`look` for state queries. The filtering tools here manage
   the *narrative* scroll (events, actions, speech), where the
   card manages *state*.
-- [docs/slates/client-cockpit-slate.md](./client-cockpit-slate.md)
+- [docs/slates/client-cockpit-slate.md](../tails/client-cockpit-slate.md)
   — terminal component, topic taxonomy, MML renderer.
-- [docs/slates/chat-slate.md](./chat-slate.md) — **channels** (a
+- [docs/slates/chat-slate.md](../tails/chat-slate.md) — **channels** (a
   filtering axis this slate predates — see Reconciliation note).
-- [docs/slates/reactions-slate.md](./reactions-slate.md) — reaction
+- [docs/slates/reactions-slate.md](../tails/reactions-slate.md) — reaction
   display controls that coordinate with this surface.
-- [docs/slates/message-rendering-slate.md](./message-rendering-slate.md)
+- [docs/slates/message-rendering-slate.md](../tails/message-rendering-slate.md)
   — the rendering model whose "server sends complete, client decides
   display" matches this slate's founding principle.
 - `packages/server/src/mud/api/message.ts` — server-side topic

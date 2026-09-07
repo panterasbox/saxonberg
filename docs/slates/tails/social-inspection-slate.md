@@ -17,7 +17,7 @@ substrate: a `who` roster of who's online, a `profile`/`finger` card for
 inspecting another player, and a `score`/`me` self-dashboard. Plus the
 **disclosure model** that governs what one player learns about another.
 
-> This is a tail of the shipped
+> **Status: design captured, not built.** This is a tail of the shipped
 > identity & social-perception substrate (recognition + belief +
 > connection-origin + contacts + the social-graph attention layer). It
 > adds **no new subsystem** — every data source already exists; what's

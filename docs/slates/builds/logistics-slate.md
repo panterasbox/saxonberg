@@ -20,7 +20,7 @@ our logistics trade… cooking and tailoring and ranching/farming are
 building now and they all need logistics for the supply chain to be
 complete."*
 
-> Design conversation settled.
+> **Status: design conversation settled. Requirements not written.**
 > Every ⭐ decision below was taken in the conversation, not proposed.
 > The open questions in § 12 are the ones deliberately left.
 

@@ -12,7 +12,7 @@
 > plugs in · the passage ladder (trial / bargain / Orpheus)
 > **Size:** a build
 
-> **Built 2026-07-31** — graduated to
+> **Status: BUILT 2026-07-31** — graduated to
 > [../../subsystems/mortality.md](../../subsystems/mortality.md), which is
 > now the source of truth for anything shipped. This slate is kept for its
 > **design rationale** and its still-open surface (the re-embodiment

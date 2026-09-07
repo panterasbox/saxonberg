@@ -14,9 +14,9 @@
 > claim-feed
 > **Size:** a build
 
-> A design pass, not a spec. Spun
+> **Status: sketch / pre-requirements.** A design pass, not a spec. Spun
 > out of the study.com **vertical fidelity audit**
-> ([../../study-com-vertical-fidelity-audit.md](../../study-com/vertical-fidelity-audit.md)
+> ([../../study-com-vertical-fidelity-audit.md](../../study-com-vertical-fidelity-audit.md)
 > §2), which found the `medic` vocation ships an **honest physiology
 > mechanism + a skill check** but **no clinical-reasoning loop**: `treat`
 > auto-selects "a body's worst bleeding wound" (harm.md:198) — the
@@ -55,9 +55,9 @@ See also:
 - [college-slate.md](./college-slate.md) — the **Practical / Deed**
   assessment modes and the **nursing lab quest**: this slate *is* that
   quest, applied to the world's own medic.
-- [../../study-com-vertical-fidelity-audit.md](../../study-com/vertical-fidelity-audit.md),
-  [../../study-com-platform-reality.md](../../study-com/platform-reality.md),
-  [../../study-com-integration-examples.md](../../study-com/integration-examples.md)
+- [../../study-com-vertical-fidelity-audit.md](../../study-com-vertical-fidelity-audit.md),
+  [../../study-com-platform-reality.md](../../study-com-platform-reality.md),
+  [../../study-com-integration-examples.md](../../study-com-integration-examples.md)
   §② — the **Study/NGN pedagogy scaffold** (below), reused not invented.
 
 ---
@@ -87,7 +87,7 @@ Model**: **recognize cues → analyze → prioritize hypotheses → generate
 solutions → take action → evaluate.** The real postop-knee NGN case
 (a *Nurses' Notes* timeline 0815 pain 4/10 → 0930 8/10, and six sequenced
 questions walking that exact cycle,
-[../../study-com-integration-examples.md](../../study-com/integration-examples.md)
+[../../study-com-integration-examples.md](../../study-com-integration-examples.md)
 §②) is the exemplar. That cycle is the loop below; Study's case structure
 is its content scaffold.
 
@@ -143,7 +143,7 @@ Q-matrix's per-decision sub-checks (advancement.md:96-101, `recordSignature`
   human/agency-scored. This is a **practice and confidence space**, never
   the exam (practice scales; it does not replace the regulated practicum).
 - **Real human anatomy/pharmacology is out of scope by design** (the
-  [teachability boundary](../../study-com/teachability-boundary.md): the
+  [teachability boundary](../../study-com-teachability-boundary.md): the
   game models *a* body, not *the human* body). This teaches clinical
   *reasoning* on the honest fictional body; the real A&P facts stay
   study.com **reference**.
@@ -173,8 +173,8 @@ reference later; it is never a prerequisite.
    scenario as a lab quest; the multi-player handoff.
 6. **The study.com claim-feed** — the witnessed judgment deed corroborates
    / informs Study's nursing mastery
-   ([../../study-com-adaptive-feed.md](../../study-com/adaptive-feed.md),
-   [../../study-com-dual-transcript.md](../../study-com/dual-transcript.md)) —
+   ([../../study-com-adaptive-feed.md](../../study-com-adaptive-feed.md),
+   [../../study-com-dual-transcript.md](../../study-com-dual-transcript.md)) —
    the bidirectional synergy, once the integration exists.
 
 1–4 ship on today's substrate (harm/mortality/advancement); 5 rides the

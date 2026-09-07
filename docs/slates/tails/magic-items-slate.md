@@ -13,7 +13,7 @@
 > blessing economy beyond v1
 > **Size:** a build
 
-> **Shipped as a tail (2026-08-05)** →
+> **Status (2026-08-05): SHIPPED as a tail** →
 > [magic-items.md](../../subsystems/magic-items.md). The substrate landed
 > whole — effect context, three item classes (`Focus` cut), charge
 > economy, BUC, identification, the memory loop, distribution. What is
@@ -59,7 +59,7 @@ before spec'ing the catalog — **it decides what an item must declare.** ·
 [pharma-slate](../builds/pharma-slate.md) (**potions and scrolls are pharma's
 product line**; the credence-good thesis covers the whole consumable
 category) ·
-[identification-slate](./identification-slate.md) (**the sibling
+[identification-slate](../tails/identification-slate.md) (**the sibling
 axis** — item *identity*, "a blue potion" → "a potion of healing", the
 deductive class-level game; BUC is the orthogonal *instance* axis) ·
 [belief.md](../../subsystems/belief.md) (recognition/identification/regard
@@ -78,7 +78,7 @@ combat) · combat (being designed separately — the deferred half of the catalo
 
 The single most important framing, and the one that's easy to smear:
 
-- **Identity axis** (owned by [identification-slate](./identification-slate.md)):
+- **Identity axis** (owned by [identification-slate](../tails/identification-slate.md)):
   *what is this?* A **blue** potion — healing or poison? The appearance→effect
   mapping is **class-level**, reshuffled per game, and it is the **deductive**
   game (price-ID, use, narrowing). If anything degenerates into

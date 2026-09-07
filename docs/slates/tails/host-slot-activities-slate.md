@@ -68,7 +68,7 @@ See also:
   rides the same surface.
 - [docs/subsystems/conveyance.md](../../subsystems/conveyance.md) —
   Mountable / Drivable, the conveyance ripple Drive plugs into.
-- [docs/slates/locomotion-as-activity-slate.md](./locomotion-as-activity-slate.md) —
+- [docs/slates/locomotion-as-activity-slate.md](../tails/locomotion-as-activity-slate.md) —
   parallel deferred wave; Drive depends on it because it
   composes with `TraverseActivity` for the host vehicle.
 
@@ -321,7 +321,7 @@ proof of multi-slot engagement.
   [activity.md](../../subsystems/activity.md).
 - **Locomotion as activity** — parallel deferred wave; separate
   slate at
-  [locomotion-as-activity-slate.md](./locomotion-as-activity-slate.md).
+  [locomotion-as-activity-slate.md](../tails/locomotion-as-activity-slate.md).
   `DriveActivity` depends on it for the host-traversal half but
   ships as a no-op until both are built.
 - **Real book content** — bookmark-on-abort, multi-page,

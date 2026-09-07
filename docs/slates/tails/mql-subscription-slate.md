@@ -45,12 +45,12 @@ See also:
 - [docs/subsystems/response-envelope.md](../../subsystems/response-envelope.md)
   — wire envelope family. Subscription messages extend this
   pattern.
-- [docs/slates/client-cockpit-slate.md](./client-cockpit-slate.md)
+- [docs/slates/client-cockpit-slate.md](../tails/client-cockpit-slate.md)
   — every right-sidebar widget is a subscription consumer.
 - [docs/subsystems/card-surface.md](../../subsystems/card-surface.md)
   — focus-card body is a subscription on the focused thing's
   detail.
-- [docs/slates/prompt-stack-slate.md](./prompt-stack-slate.md)
+- [docs/slates/prompt-stack-slate.md](../tails/prompt-stack-slate.md)
   — token-format base prompts (future Wave 8) become a
   subscription on the relevant me-and-here fields.
 

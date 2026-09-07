@@ -259,7 +259,7 @@ Human + NPC + AI, each reusing substrate:
 
 - **Guilds and corps** — the other two social axes; their own designs
   ([advancement-slate](../builds/advancement-slate.md) /
-  [corpos-slate](../builds/corpos-slate.md)). The party must not absorb them.
+  [corpos-slate](./../builds/corpos-slate.md)). The party must not absorb them.
 - **The combat tactic mechanics** — owned by
   [combat-tactics-slate.md](./combat-tactics-slate.md) /
   [combat-slate.md](./combat-slate.md); the party merely *holds* the active

@@ -14,7 +14,7 @@
 > household?)
 > **Size:** a wave
 
-> Design, planner-ready, captured 2026-08-06.
+> **Status: design, planner-ready, captured 2026-08-06. Not requirements.**
 > The stewardship pillar's unit of analysis is **the household**, and every
 > household in the family so far has exactly one person in it. This pack
 > designs the multi-occupant case — roommates, spouses, a commune — and finds

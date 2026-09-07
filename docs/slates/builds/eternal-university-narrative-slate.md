@@ -15,7 +15,7 @@
 > are not near-term
 > **Size:** a build
 
-> Story bible, first pass. The **first authored narrative** for
+> **Status: story bible, first pass.** The **first authored narrative** for
 > the game — a murder mystery set on the EU campus that doubles as the
 > tutorial for the world's *civic instrument* (allegory you can vote on).
 > Working arc title: **"An Honest Count."** This slate owns the **story,

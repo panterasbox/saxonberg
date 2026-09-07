@@ -57,21 +57,21 @@ The load-bearing decisions:
 
 See also:
 
-- [emotes-slate.md](./emotes-slate.md) — the reaction vocabulary
+- [emotes-slate.md](../tails/emotes-slate.md) — the reaction vocabulary
   (`SoulApi`) + the reserved hooks: aggregation `tags` and the shared
   message-id. A reaction *is* an emote with a message target.
-- [chat-slate.md](./chat-slate.md) — the at-scale consumer; the gutter
+- [chat-slate.md](../tails/chat-slate.md) — the at-scale consumer; the gutter
   message-id (must be **shared/canonical**, see below); the
   ephemeral/ring lifetime reactions share.
-- [docs/slates/mql-subscription-slate.md](./mql-subscription-slate.md) /
+- [docs/slates/mql-subscription-slate.md](../tails/mql-subscription-slate.md) /
   [docs/subsystems/mql-subscription.md](../../subsystems/mql-subscription.md)
   — the **`setImmediate`-batched diff scheduler** reactions reuse:
   reactions are another batched-delta broadcaster.
 - [docs/subsystems/messaging.md](../../subsystems/messaging.md) — the
   message substrate reactions attach to; **`MudlogApi`/topics is the
   event-stream tap** for the future analytics warehouse.
-- [client-cockpit-slate.md](./client-cockpit-slate.md) /
-  [console-filtering-slate.md](./console-filtering-slate.md) — rendering:
+- [client-cockpit-slate.md](../tails/client-cockpit-slate.md) /
+  [console-filtering-slate.md](../tails/console-filtering-slate.md) — rendering:
   the gutter ids, collapse/expand, the train animation.
 - [docs/design-philosophy.md](../../design-philosophy.md) — liberal diegesis
   (reacting-to-a-message is in-fiction); the "what loss is acceptable"

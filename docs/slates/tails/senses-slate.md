@@ -115,16 +115,16 @@ See also:
   tags + instrument reveal.
 - [docs/slates/vitals-slate.md](./vitals-slate.md) — body temperature
   (thermal), and consumables/eat-drink (the taste tie).
-- [docs/slates/augmentation-slate.md](./augmentation-slate.md) — the
+- [docs/slates/augmentation-slate.md](../tails/augmentation-slate.md) — the
   **implant is an artificial sense-organ**; sensor augments *are*
   `PerceptionChannel`s; the baseline implant provides the ESP channels.
 - [docs/subsystems/perception.md](../../subsystems/perception.md) — the
   viewer-aware-query pattern; per-viewer Shadow overrides.
 - [docs/subsystems/card-surface.md](../../subsystems/card-surface.md) /
-  [message-rendering-slate.md](./message-rendering-slate.md) — the
+  [message-rendering-slate.md](../tails/message-rendering-slate.md) — the
   percept feeds the card; the pedagogical seam (prose vs instrument)
   is the rendering.
-- [docs/slates/access-slate.md](./access-slate.md) /
+- [docs/slates/access-slate.md](../tails/access-slate.md) /
   [command affordances](../../subsystems/command-routing.md) — **skills
   gate revelation *and* afford the verbs** that reveal (two sides of the
   same capability); a skill is just one source object that contributes

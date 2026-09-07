@@ -36,7 +36,7 @@
 > space in between rooms actually has properties, and those properties
 > reveal themselves when you carve new positive space."*
 >
-> Pattern recognition, not a build. Nothing here is new
+> **Status: pattern recognition, not a build.** Nothing here is new
 > mechanism. It names a shape the codebase has already built **twice**,
 > adds the one case that genuinely inverts it, and sets the guidelines so
 > the next four instances stop re-deriving it.

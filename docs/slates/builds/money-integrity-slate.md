@@ -22,7 +22,7 @@
 > here we need to thread through the entire economy and make sure money
 > doesn't leak in or out anywhere."**
 
-> Findings + audit surface. Two findings
+> **Status: findings + audit surface. Not requirements.** Two findings
 > held up; **the third did not** (see below — it was correct behaviour
 > misread as a bug, and driving the currency build caught it). The rest of
 > the surface is enumerated but **unswept**. The gates and the instrument

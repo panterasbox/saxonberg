@@ -12,7 +12,7 @@
 > conservation chokepoint
 > **Size:** a build
 
-> Spun out of the
+> **Status: design surface, unbuilt, no phase gate passed.** Spun out of the
 > [farmstead](../../plans/farmstead-plan.md) design pass
 > (2026-09-03), which put flowers into the *industrial* economy — clover as
 > nitrogen and forage and bee plant (D43), saffron as the labour-intensive

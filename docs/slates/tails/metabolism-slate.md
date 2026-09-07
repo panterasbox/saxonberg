@@ -65,9 +65,9 @@ See also (read before building — substrate this leans on):
 - [docs/subsystems/posture.md](../../subsystems/posture.md) — `Posed`
   (actor posture) + `Postured` (furniture posture-bearing slots); the rest
   gate.
-- [bulkable-slate](./bulkable-slate.md) — `sip`/`drink` (and the
+- [bulkable-slate](../tails/bulkable-slate.md) — `sip`/`drink` (and the
   `ingest` seam) ride bulk; intake depends on this.
-- [thermal-slate](./thermal-slate.md) — the heat seam (fuel-burn
+- [thermal-slate](../tails/thermal-slate.md) — the heat seam (fuel-burn
   produces warmth; thermoregulation demands fuel/water). Resolved in the
   thermal design pass, before build.
 - `Material.edibility`/`nutrients`/`toxicity` (the `DietApi`-deferred
@@ -637,9 +637,9 @@ content workstream.
   the `SlotSpec`-field pattern `restQuality` mirrors.
 - [posture.md](../../subsystems/posture.md) — `Posed`/`Postured`; the rest
   gate.
-- [bulkable-slate](./bulkable-slate.md) — `sip`/`drink`/`ingest`,
+- [bulkable-slate](../tails/bulkable-slate.md) — `sip`/`drink`/`ingest`,
   the intake mechanism.
-- [thermal-slate](./thermal-slate.md) — the heat seam, resolved in
+- [thermal-slate](../tails/thermal-slate.md) — the heat seam, resolved in
   the thermal pass.
 - [connection.md](../../subsystems/connection.md) — the linkdead/logout
   lifecycle that drives the two presence flags metabolism receives.

@@ -20,6 +20,8 @@ nobody had asked:
 > about how that's manifested. if you do something brave or generous or
 > whatever, what tells you your traits are being updated?"**
 
+> **Status: design conversation, captured. Not requirements.**
+
 Related: [trait.md](../../subsystems/trait.md) (**the shipped substrate —
 read it first**), [advancement.md](../../subsystems/advancement.md) (the
 sibling ledger with the identical hole),

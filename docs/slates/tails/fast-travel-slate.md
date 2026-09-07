@@ -79,7 +79,7 @@ See also:
   [docs/subsystems/char-gen.md](../../subsystems/char-gen.md) — the **lounge
   terminal** + dorm-lobby home-routing ride this network; the lounge-exit
   is the first/simplest terminal use.
-- [docs/slates/augmentation-slate.md](./augmentation-slate.md) — the
+- [docs/slates/augmentation-slate.md](../tails/augmentation-slate.md) — the
   **credential as an implant module** (a travel augment); cards as the
   alternative.
 - [docs/subsystems/spatial.md](../../subsystems/spatial.md) /
@@ -91,10 +91,10 @@ See also:
 - [time.md](../../subsystems/time.md) — drives
   **scheduled** terminals (later mode).
 - [docs/subsystems/messaging.md](../../subsystems/messaging.md) /
-  [message-rendering-slate.md](./message-rendering-slate.md) /
+  [message-rendering-slate.md](../tails/message-rendering-slate.md) /
   language — published **schedules + route maps** are Readables; a route
   map is a layout/diagram (later).
-- [docs/slates/access-slate.md](./access-slate.md) — the credential
+- [docs/slates/access-slate.md](../tails/access-slate.md) — the credential
   authorizes travel; some terminals/routes may be gated.
 - [docs/design-philosophy.md](../../design-philosophy.md) — liberal diegesis
   (the Authority, scan-to-register, living infrastructure).

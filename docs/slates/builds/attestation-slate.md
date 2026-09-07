@@ -18,7 +18,7 @@ governance question wearing a utility costume.
 > needs to be generalized so anyone can adopt the process — **or at least
 > the tools do, and the process is marked by tool use.**"**
 
-> Design conversation, captured. ⭐ The last
+> **Status: design conversation, captured. Not requirements.** ⭐ The last
 > clause is the whole design and it is the user's own: **build tools that
 > leave marks; let any group compose a process out of them.**
 

@@ -12,6 +12,17 @@
 > (engagement owns cancel today)
 > **Size:** a tail
 
+> **Status:** **shipped** (MR !122) →
+> [command-routing.md § Async dispatch](../../subsystems/command-routing.md)
+> + [command-spec.md](../../subsystems/command-spec.md). The `async:`
+> spec field + reserved `--async`/`--sync` flags + the accept-time
+> detach seam in `_executeOne` + the new `script` verb all landed; sync
+> is the default and is per-giver/never-global. This tail is retained
+> for the **deferred surface**: a line-level `--async`/`--sync` prefix so
+> a *bare* typed multi-statement script (no `script` verb) can be
+> detached; a per-actor async concurrency cap; and a generic
+> cancel-my-running-async-command verb (engagement owns cancel today).
+
 See also:
 
 - [docs/subsystems/command-routing.md](../../subsystems/command-routing.md)

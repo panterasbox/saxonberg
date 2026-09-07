@@ -13,6 +13,39 @@
 > succession
 > **Size:** a build
 
+> **Status:** foundational design, conversational first pass (2026-06-30).
+> A *model*, not a build. Captures one connected chain of reasoning that
+> ran from "how do we model death?" and landed on an economic spine:
+> **violence has no payday; livelihood comes from work; the world's money
+> is conserved with authors running their own budgets; and consequence is
+> recorded, not mechanized.** Spans the platform↔game-design line on
+> purpose — the **death / violence / contract** half is deferred RPG
+> game-design (sibling to
+> [combat-tactics](../deferred-rpg/combat-tactics-slate.md)); the
+> **labor-market / economy / employment** half is economy-build substrate,
+> and its near-term **buildable payload is the employment model** (§5).
+> **Second pass (2026-07-23): employment in the abstract.** The shipped
+> employment engine ([employment.md](../../subsystems/employment.md))
+> built §5's standing slice; this pass generalizes it — the arrangement
+> schema (§6), the four constituency walks (§7), and the macro + the
+> two-tier public-works program (§8).
+> **Built (2026-07-25, the work-contracts build):** the §5 gig kernel +
+> the §6 arrangement generalization SHIPPED →
+> [contract.md](../../subsystems/contract.md) (clause/condition
+> templates, the five-state gig over conserved escrow, the two-beat
+> turn-in, the job board + `work` verbs),
+> [banking.md](../../subsystems/banking.md) (the closed leg-kind
+> vocabulary incl. escrow + `draw`; the custodian rule — custody is a
+> relationship; institution-keyed accounts), and
+> [employment.md](../../subsystems/employment.md) (compensation bases on
+> `Position`, `banksAt`, the draw verb). Remaining design surface: §1
+> (death), §2's adjudication stack, §3's systemic generator + NPC
+> claiming, §4's macro, §6.3–§6.5 (schedule/perks/liability), §7 (the
+> constituency walks), §8 (the Circulation Reserve + public works).
+> **Retire when:** the remaining halves fold into their consuming builds
+> (death → the deferred-rpg combat line; macro/public-works → the
+> cooperative/economy build) or split to their own slates.
+
 Markers used below: **[DECIDED]** locked in the conversation ·
 **[LEAN]** a recommendation the user delegated or tentatively accepted ·
 **[OPEN]** an unresolved fork · **[NOW]** the current built reality.

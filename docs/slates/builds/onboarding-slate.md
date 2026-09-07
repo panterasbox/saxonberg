@@ -63,7 +63,7 @@ See also:
 - [docs/slates/fast-travel-slate.md](../tails/fast-travel-slate.md) — the lounge
   and the dorm **lobby** are terminals; the lounge-exit + home-routing
   ride this network.
-- [docs/slates/scoped-authoring-slate.md](./scoped-authoring-slate.md) —
+- [docs/slates/scoped-authoring-slate.md](../builds/scoped-authoring-slate.md) —
   **the dorm-customization on-ramp**: the safe, ownership-scoped
   authoring the final step teaches (the (policy, validator) model, the
   player GUI).

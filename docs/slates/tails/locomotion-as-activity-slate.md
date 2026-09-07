@@ -433,7 +433,7 @@ positions if any content earns it.
   [activity.md](../../subsystems/activity.md).
 - **Host-slot activities** (mount, sit, lie, drive, read) —
   separate concern, separate slate at
-  [host-slot-activities-slate.md](./host-slot-activities-slate.md).
+  [host-slot-activities-slate.md](../tails/host-slot-activities-slate.md).
 - **Combat-specific timing** — combat slate territory.
 - **The sound subsystem** — its own slate; emits no `SoundEvent`
   in this wave.

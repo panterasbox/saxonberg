@@ -24,6 +24,11 @@ what was missing: the **duty**, the **process**, and ⚠ the **safe
 harbour**. Enforcement already ships (the PM may revoke any wizard). This
 slate is the **process**, and it argues the safe harbour is the product.
 
+> **Status: design conversation, captured. Not requirements.** Nearly
+> every dial below ships with a default rather than a decision — see
+> *§ Almost all of this is configuration*, which is the point of the
+> slate as much as the institution is.
+
 Related: [wizard-duty-slate](./wizard-duty-slate.md) (**the parent** —
 the premise, break-glass, the recursion, the mechanism ranking),
 [guild-slate](./guild-slate.md) (§ *Wizards and the Worldwrights* — the

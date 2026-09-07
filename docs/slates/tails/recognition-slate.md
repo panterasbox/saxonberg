@@ -27,12 +27,12 @@ figure," or as "the tall stranger from yesterday").
 
 This is the substrate. Three sibling slates build on it:
 
-- [docs/slates/social-graph-slate.md](./social-graph-slate.md) —
+- [docs/slates/social-graph-slate.md](../tails/social-graph-slate.md) —
   buckets, notifications, attention-management rendering.
-- [docs/slates/comms-slate.md](./comms-slate.md) — the
+- [docs/slates/comms-slate.md](../tails/comms-slate.md) — the
   trust-tiered moderation concern now lives in the comms slate's
   moderation section, built on recognition + buckets.
-- [docs/slates/identification-slate.md](./identification-slate.md) —
+- [docs/slates/identification-slate.md](../tails/identification-slate.md) —
   the parallel pattern for items.
 
 See also:
@@ -117,7 +117,7 @@ Every perception-rendering call routes through this pipeline:
 ```
 
 Step 4 is where social-graph integration happens; the bucket
-substrate is detailed in [social-graph-slate.md](./social-graph-slate.md).
+substrate is detailed in [social-graph-slate.md](../tails/social-graph-slate.md).
 
 **Globbable contributes to the identity side**, not decoration.
 When the target carries the `Globbable` mixin, the count enters the
@@ -411,7 +411,7 @@ The dwarf with the red beard is at a corner table.
 
 Bucket-keyed verbosity (DescribeApi step 4) collapses unknown
 actors into counts. The 13/47 are MQL-queryable. See
-[social-graph-slate.md](./social-graph-slate.md) for the
+[social-graph-slate.md](../tails/social-graph-slate.md) for the
 bucket mechanism.
 
 ---
