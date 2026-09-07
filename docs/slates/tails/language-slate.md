@@ -45,7 +45,7 @@
 > partly on pedagogical real-language readables (a TOEFL register). TOEFL
 > was cut as a vertical on 2026-08-07 — a text-only English world cannot
 > serve speaking/listening or low-proficiency entrants
-> ([study-com-cx-and-the-aspiring-teacher.md](../../study-com-cx-and-the-aspiring-teacher.md)
+> ([study-com-cx-and-the-aspiring-teacher.md](../../study-com/cx-and-the-aspiring-teacher.md)
 > §1). The substrate stands on its own diegetic merits; that argument does
 > not.
 

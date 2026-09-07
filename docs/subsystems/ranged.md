@@ -6,7 +6,7 @@ gambits, the delivery contract, the commit-time consent gate, and one
 carrier — the thrown flask. Waves 2–4 (cover, armor, archery, guns) are
 rostered at the end of this doc.
 
-Seeded by [ranged-slate.md](../slates/tails/ranged-slate.md). Scope was
+Seeded by [ranged-slate.md](../slates/builds/ranged-slate.md). Scope was
 agreed in a requirements doc of 44 decisions and 56 acceptance criteria,
 retired at the pre-merge sweep — this doc is the live reference, and the
 decisions that still bind are stated here in their own right.

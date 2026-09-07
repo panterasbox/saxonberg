@@ -13,10 +13,10 @@
 > **Status: phases 1–3 are SHIPPED. Phases 4–9 are a direction.** See
 > *The honest part*.
 
-**Member slates:** [farming](./slates/builds/farming-slate.md) ·
+**Member slates:** [farming](./slates/tails/farming-slate.md) ·
 [ranching](./slates/builds/ranching-slate.md) ·
 [pets](./slates/builds/pets-slate.md) ·
-[preservation](./slates/builds/preservation-slate.md) ·
+[preservation](./slates/tails/preservation-slate.md) ·
 [disease](./slates/builds/disease-slate.md) ·
 [health-vertical](./slates/builds/health-vertical-slate.md) ·
 [stewardship](./slates/builds/stewardship-slate.md) ·

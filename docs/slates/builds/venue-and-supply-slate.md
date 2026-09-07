@@ -49,8 +49,8 @@ document kind) · [crafting](../../subsystems/crafting.md) (Recipe docs) ·
 
 Siblings: [towns-slate](./towns-slate.md) ·
 [ranching](./ranching-slate.md) (⚠ **ships first** — § 8) ·
-[farming](./farming-slate.md) · [stewardship](./stewardship-slate.md) ·
-[economy](./economy-slate.md) · [supply-chain](./supply-chain-slate.md) ·
+[farming](../tails/farming-slate.md) · [stewardship](./stewardship-slate.md) ·
+[economy](./economy-slate.md) · [supply-chain](../tails/supply-chain-slate.md) ·
 [corpos](./corpos-slate.md) · [freight](./freight-slate.md) ·
 [vocations](../../vocations.md)
 

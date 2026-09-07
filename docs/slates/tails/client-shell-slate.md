@@ -288,7 +288,7 @@ surface can summon), **search** (the discovery front-end; results open
 the viewer), **spoiler gating**, and the **transclusion/embed palette**.
 
 **Spoiler is shell-level, not a wiki feature.** The reader's appetite
-dial + capability ceiling (see [spoiler-slate.md](../deferred-rpg/spoiler-slate.md))
+dial + capability ceiling (see [spoiler-slate.md](./spoiler-slate.md))
 are a property of the *session*; the shared viewer applies them to
 *whatever it renders* — a help page, a wiki page, or a transcluded embed
 inside either. Same for the **transclusion palette**: `{{help:…}}`,

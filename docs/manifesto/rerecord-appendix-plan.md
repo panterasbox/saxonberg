@@ -300,7 +300,7 @@ law.
 
 ⭐ **Liens** come with it — a claim against property surviving transfer,
 which is also the primitive
-[incapacity-slate](../slates/builds/incapacity-slate.md)'s impound has
+[incapacity-slate](../slates/tails/incapacity-slate.md)'s impound has
 been reaching for.
 
 ### ⭐⭐ Sports leagues — a better balance model than a legislature

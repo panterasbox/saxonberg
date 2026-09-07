@@ -77,7 +77,7 @@ See also:
 - [vitals-slate.md](./vitals-slate.md) — **install/remove is
   a medical procedure** (surgery); **replace** augments are prosthetics
   for lost limbs/organs; organ *condition* modulates an augment.
-- [docs/slates/capability-magic-slate.md](../deferred-rpg/capability-magic-slate.md) —
+- [docs/slates/capability-magic-slate.md](../builds/capability-magic-slate.md) —
   **motor/cognitive** augments feed the (deferred RPG) capability layer;
   the effective = innate × augments derivation lives there too. Magic
   augments are the flavor-agnostic future.

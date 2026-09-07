@@ -21,7 +21,7 @@
 > recorded, not mechanized.** Spans the platform↔game-design line on
 > purpose — the **death / violence / contract** half is deferred RPG
 > game-design (sibling to
-> [combat-tactics](../deferred-rpg/combat-tactics-slate.md)); the
+> [combat-tactics](../tails/combat-tactics-slate.md)); the
 > **labor-market / economy / employment** half is economy-build substrate,
 > and its near-term **buildable payload is the employment model** (§5).
 > **Second pass (2026-07-23): employment in the abstract.** The shipped
@@ -85,7 +85,7 @@ Markers used below: **[DECIDED]** locked in the conversation ·
 
 See also:
 
-- [combat-tactics-slate](../deferred-rpg/combat-tactics-slate.md) — the
+- [combat-tactics-slate](../tails/combat-tactics-slate.md) — the
   death model's combat sibling (engaged-relationship graph + party
   presets). That slate explicitly does **not** cover death/consequence;
   this one does.
@@ -95,7 +95,7 @@ See also:
 - [economy-slate](./economy-slate.md) — currency / value / faucet-sink /
   the employment-venue section this deepens; the author-budget model (§4)
   closes its open "deliberate faucet without inflation" thread.
-- [crafting-slate](../tails/crafting-slate.md) /
+- [crafting-slate](./crafting-slate.md) /
   [banking.md](../../subsystems/banking.md) — Dave's Bar venue + the
   conserved money substrate (`payWage`, the CB mint/drain chokepoint, the
   deficit P&L) the employment model lands on.
@@ -847,7 +847,7 @@ NPC-bootstrap already leans this way.
 has no mechanics behind it yet."* **Winter is that lull, at the scale of the
 whole world** — and seasonality supplies the answer the shift-level version
 lacked: *you do different work.* The mine, the floor, indoor crafts,
-[preservation](./preservation-slate.md), repair, teaching. The lull is not dead
+[preservation](../tails/preservation-slate.md), repair, teaching. The lull is not dead
 air; it is the other half of the year.
 
 ### Two guard rails
@@ -1012,7 +1012,7 @@ the first genuine *economic* consumer of the forecast surface
 ## What this slate does NOT cover
 
 - **The combat system itself** (stats, damage, the engaged-graph, party
-  tactics) — [combat-tactics-slate](../deferred-rpg/combat-tactics-slate.md).
+  tactics) — [combat-tactics-slate](../tails/combat-tactics-slate.md).
 - **The narrative/quest layer** (beats, genres, the goal-set) —
   [quest-modeling-slate](./quest-modeling-slate.md). A contract here is
   economic/legal, not a narrative arc.

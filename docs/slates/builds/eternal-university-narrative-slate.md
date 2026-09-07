@@ -186,7 +186,7 @@ binding policy**. So allegory here is not consumed — it is **legislated
 on**. Players don't read about an injustice; they live beside it, argue
 it on the Quad, pass policy, and live with what they passed. See
 [cooperative-slate](./cooperative-slate.md),
-[forums-slate](./forums-slate.md),
+[forums-slate](../tails/forums-slate.md),
 [../tails/argument-map-slate.md](../tails/argument-map-slate.md).
 
 **The one rule that makes it a laboratory and not a sermon:** the
@@ -340,7 +340,7 @@ from *flavor* — species more attuned than others, a metered "aether-pipe"
 to a home unlocking geography-bound capability — **none of it quantified,
 none of it designed now.** See
 [../tails/augmentation-slate.md](../tails/augmentation-slate.md),
-[../deferred-rpg/capability-magic-slate.md](../deferred-rpg/capability-magic-slate.md),
+[../deferred-rpg/capability-magic-slate.md](./capability-magic-slate.md),
 [../../subsystems/augmentation.md](../../subsystems/augmentation.md).
 
 But **one** property is load-bearing for this arc and must be ironclad:
@@ -878,7 +878,7 @@ Only Fork 5 (names) stays open.
   share-or-hoard / accuse-or-wait / shield-or-expose choices generate
   deeds worth recording, but the *readout* is deferred
   ([chronicle.md](../../subsystems/chronicle.md),
-  [../deferred-rpg/alignment-religion-slate.md](../deferred-rpg/alignment-religion-slate.md)).
+  [../deferred-rpg/alignment-religion-slate.md](./alignment-religion-slate.md)).
   Do **not** model rewards/advancement here — narrative, plot, setting,
   character only. However the player is rewarded, it must be justified by
   story + mechanics, and those mechanics aren't settled.

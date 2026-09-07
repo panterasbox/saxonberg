@@ -29,7 +29,7 @@ And the framing that this slate exists to serve:
 > **Status: design conversation, captured. Not requirements.**
 
 Related: [lineage-slate](./lineage-slate.md) (the char-gen decision this
-serves), [trade-roster-slate](./trade-roster-slate.md) (the `textiles` /
+serves), [trade-roster-slate](../tails/trade-roster-slate.md) (the `textiles` /
 `leatherwork` / `apothecary` gaps below),
 [vocations.md](../../vocations.md) (the `barber / tailor` **GAP** row),
 [content-packs-slate](./content-packs-slate.md) (*a trade pack is
@@ -66,7 +66,7 @@ on a constant.
 It is a **textiles** input, and cosmetics is a *second* customer of the
 same chain.
 
-The [trade roster](./trade-roster-slate.md) already needs `textiles` and
+The [trade roster](../tails/trade-roster-slate.md) already needs `textiles` and
 `leatherwork` (both in its gap report), and `tailor` is a rostered trade
 in Terminus. Cloth is dyed. Leather is dyed. Hair is dyed. **One chain,
 four demands.**

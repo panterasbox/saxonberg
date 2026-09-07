@@ -48,7 +48,7 @@ entitlement function — it decides the collateral question**),
 [content-packs-slate](./content-packs-slate.md) (kit ⊗ premises; the
 relocation answer), [parcel.md](../../subsystems/parcel.md),
 [chattel.md](../../subsystems/chattel.md),
-[incapacity-slate](./incapacity-slate.md) (impound on a claim),
+[incapacity-slate](../tails/incapacity-slate.md) (impound on a claim),
 [balance-slate](./balance-slate.md) (the inalienable floor),
 [cooperative-slate](./cooperative-slate.md) (the mutual-credit lineage),
 [behavior.md](../../subsystems/behavior.md) +
@@ -319,7 +319,7 @@ per game-year, with the 12× conversion written beside them.**
 
 ## ⭐⭐⭐⭐ And the reason the rate matters more than lending does
 
-[supply-chain-slate](./supply-chain-slate.md) established that a parcel's
+[supply-chain-slate](../tails/supply-chain-slate.md) established that a parcel's
 worth is **locational** — footfall → demand → entitlement → **rent**. But
 rent is a *flow*. It becomes a *price* only through a discount rate:
 

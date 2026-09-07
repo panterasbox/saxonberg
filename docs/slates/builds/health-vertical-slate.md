@@ -39,7 +39,7 @@ land-use power). Stage + pedagogy: [demo-slate](./demo-slate.md) (**the aid
 post** — "the wishbook's clinical daily loop made real"; the health-cohort cut)
 · [eternal-university-slate](./eternal-university-slate.md) ("a nursing
 scenario" as a named vertical the un-genre campus hosts) ·
-[farming-slate](./farming-slate.md) (§ *The University & the external-mastery
+[farming-slate](../tails/farming-slate.md) (§ *The University & the external-mastery
 seam* — the credential design this vertical is the best fit for) ·
 [advancement.md](../../subsystems/advancement.md) (the `medicine` Discipline,
 shipped).
@@ -127,7 +127,7 @@ incomplete observation** — the scientific method with a deadline.
 
 The game's loop *is* that loop: observe signs → hypothesise → gather more
 (instrument, history) → intervene → evaluate whether it worked. Which is the
-same shape [farming](./farming-slate.md) teaches with soil and
+same shape [farming](../tails/farming-slate.md) teaches with soil and
 [ranching](./ranching-slate.md) teaches with body condition.
 
 > **The transferable skill is not "nursing." It is structured diagnostic
@@ -227,7 +227,7 @@ and it is the thing a content committee would actually run.
 
 ## Where the education thesis lands best
 
-[farming-slate](./farming-slate.md) designed the **external-mastery seam**:
+[farming-slate](../tails/farming-slate.md) designed the **external-mastery seam**:
 complete real course material → get trained in-game; demonstrate real, proctored
 mastery → capability feeds back, riding the shipped
 [credential](../../subsystems/credential.md) substrate, with the chronicle's

@@ -22,9 +22,9 @@
 > [rejection-slate](./rejection-slate.md) +
 > [metal-chain-slate](./metal-chain-slate.md) +
 > [mining-slate](./mining-slate.md) own the mine.
-> [farming-slate](./farming-slate.md) owns the orchard and the field.
+> [farming-slate](../tails/farming-slate.md) owns the orchard and the field.
 > [property-slate](./property-slate.md) +
-> [residence-ladder-design-pack](./residence-ladder-design-pack.md) own
+> [residence-ladder-design-pack](../tails/residence-ladder-design-pack.md) own
 > title and tenure. This slate owns **what those industries make of the
 > people who work in them**, which is the part nobody has written.
 
@@ -57,9 +57,9 @@ Siblings: [freight](./freight-slate.md) · [delivery](./delivery-slate.md) ·
 [cooperative](./cooperative-slate.md) ·
 [campus-grounds](./campus-grounds-slate.md) ·
 [cast-archetype](./cast-archetype-slate.md) ·
-[household-design-pack](./household-design-pack.md) ·
-[tenancy-design-pack](./tenancy-design-pack.md) ·
-[preservation](./preservation-slate.md) ·
+[household-design-pack](../tails/household-design-pack.md) ·
+[tenancy-design-pack](../tails/tenancy-design-pack.md) ·
+[preservation](../tails/preservation-slate.md) ·
 [zoning](./zoning-slate.md) · [saxonberg-city](./saxonberg-city-slate.md)
 
 ---

@@ -226,7 +226,7 @@ This section is the cash-out, and it is deliberately honest about the
 parts that are load-bearing and unbuilt.
 
 > **The full mechanical design is
-> [tradition-slate.md](./slates/builds/tradition-slate.md)** — objects,
+> [tradition-slate.md](./slates/tails/tradition-slate.md)** — objects,
 > verbs, the worked scene, and the failure analysis. This section holds
 > only the rules that constrain it.
 
@@ -314,7 +314,7 @@ line — *truth is shown, not argued or voted*).
 
 ⚠ **The real dependency:** all of this rides an **inquiry substrate that
 is designed and not built.** Objects, verbs and the failure analysis are
-in [tradition-slate.md](./slates/builds/tradition-slate.md), which adds no
+in [tradition-slate.md](./slates/tails/tradition-slate.md), which adds no
 new collection and no new Api — but is worth nothing without inquiry
 underneath it.
 
@@ -355,7 +355,7 @@ available in a world where the ritual might have been true.
 
 ## ⚠⚠ Where this dies
 
-Full analysis in [tradition-slate.md](./slates/builds/tradition-slate.md).
+Full analysis in [tradition-slate.md](./slates/tails/tradition-slate.md).
 The one that belongs in the codex because it constrains *every* system
 here, not just religion:
 

@@ -173,7 +173,7 @@ pass — the conveyance / path-constraint family).
 - **Precipitation → wetness** — rain wets clothing → the thermal wet-collapse
   loop. ✅ **shipped Wave 2**, along with puddles, lightning and light-dimming.
 - **Spoilage / perishability** → now designed in
-  [preservation-slate](../builds/preservation-slate.md) · **farming**,
+  [preservation-slate](./preservation-slate.md) · **farming**,
   **ranching**, **fishing** → designed, unbuilt. See below.
 
 ---
@@ -218,7 +218,7 @@ a pure function of time; latitude never enters, and `CelestialApi.currentSeason`
 takes a location only to pick a celestial profile. So there is **no geographic
 diversification** — no unaffected region to import from. The hedges are:
 
-- **Temporal — [preservation](../builds/preservation-slate.md).** Store across
+- **Temporal — [preservation](./preservation-slate.md).** Store across
   the season you cannot grow in. *The* hedge, and why preservation is
   load-bearing rather than flavour.
 - **Sectoral — [mining](../builds/mining-slate.md).** That slate already states
@@ -395,7 +395,7 @@ design.**
 
 ### Two smaller calls
 
-- **No far-past limit.** [preservation](../builds/preservation-slate.md)
+- **No far-past limit.** [preservation](./preservation-slate.md)
   explicitly needs the *full* gap (food rots while you are logged out), so this
   read must not inherit the bodies-only `MAX_REASONABLE_GAP_SEC`. Guard with a
   **sample-count cap** instead of a time cap.
@@ -406,9 +406,9 @@ design.**
 ### Why settle it now
 
 Three consumers want the identical read —
-[farming](../builds/farming-slate.md)'s ∫weather,
+[farming](./farming-slate.md)'s ∫weather,
 [ranching](../builds/ranching-slate.md)'s pasture growth, and
-[preservation](../builds/preservation-slate.md)'s spoilage rate. Whichever
+[preservation](./preservation-slate.md)'s spoilage rate. Whichever
 builds first will otherwise invent a workaround, and the two most likely
 workarounds are both bad: calling `weatherAt` directly (violates the one-resolve
 invariant and silently drops authored pins) or accepting present-tense weather
@@ -456,10 +456,10 @@ consume weather:
 > depending on it.
 
 **Status of the designed consumers: all designed, none built.**
-[farming](../builds/farming-slate.md) (∫weather, GDD) ·
+[farming](./farming-slate.md) (∫weather, GDD) ·
 [ranching](../builds/ranching-slate.md) (pasture, thermoregulation, winter feed)
 · [fishing](../builds/fishing-slate.md) (the catch distribution — claims first)
-· [preservation](../builds/preservation-slate.md) (the spoilage rate) · travel /
+· [preservation](./preservation-slate.md) (the spoilage rate) · travel /
 crafting / combat (**genuinely zero coupling today** — confirmed by grep, and
 `LocomotionMode.costMultiplier` has no production reader at all).
 

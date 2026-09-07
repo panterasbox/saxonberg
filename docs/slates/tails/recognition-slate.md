@@ -32,7 +32,7 @@ This is the substrate. Three sibling slates build on it:
 - [docs/slates/comms-slate.md](../tails/comms-slate.md) — the
   trust-tiered moderation concern now lives in the comms slate's
   moderation section, built on recognition + buckets.
-- [docs/slates/identification-slate.md](../tails/identification-slate.md) —
+- [docs/slates/identification-slate.md](../builds/identification-slate.md) —
   the parallel pattern for items.
 
 See also:

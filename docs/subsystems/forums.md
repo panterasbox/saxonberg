@@ -939,7 +939,7 @@ surface was the organizer value rename (no data migration — no board ever
 persisted `'structure'`); everything else is additive. Its requirements +
 plan retired at the cycle-2 sweep.
 
-The forums-slate ([forums-slate.md](../slates/builds/forums-slate.md)) is
+The forums-slate ([forums-slate.md](../slates/tails/forums-slate.md)) is
 retained for the remaining deferred design space (the ephemeral lifecycle,
 the procedure modes, the latent collection-watch abstraction); the
 argument organizer's scale tail lives in the

@@ -31,7 +31,7 @@
 > three-surface taxonomy, the workflow — lives in the cooperative slate's
 > *Deliberation* section; this slate specs the **surface itself.**
 
-> **Factoring superseded by [forums-slate.md](../builds/forums-slate.md) (2026-06):**
+> **Factoring superseded by [forums-slate.md](./forums-slate.md) (2026-06):**
 > the argument-map is no longer "not a forum" — it is the
 > `organizer: 'structure'` mode of the one forum primitive, sharing that
 > slate's Part-0 substrate. The "distinct from forums" framing below is

@@ -75,7 +75,7 @@ See also:
   diagnostics / nav) the code editor surfaces, the LSP that travels to
   external editors, and the model shared with the save-gate. The CMS owns the
   *UI*; that owns the *intelligence*.
-- [docs/slates/scoped-authoring-slate.md](../builds/scoped-authoring-slate.md) — the
+- [docs/slates/scoped-authoring-slate.md](../tails/scoped-authoring-slate.md) — the
   **in-game light-authoring tier** (dorm-theming, kiosks, the
   describe/decorate path), the third authoring surface alongside the CMS and
   external editors.
@@ -599,7 +599,7 @@ each emitting the same canonical TS/YAML.
 - **The access / lease model, the holodeck, versioning/audit** →
   [access-slate.md](../tails/access-slate.md). The CMS *consumes* all of it.
 - **In-world light authoring** (dorm-theming, kiosks, the shell) →
-  [scoped-authoring-slate.md](../builds/scoped-authoring-slate.md). A sibling
+  [scoped-authoring-slate.md](../tails/scoped-authoring-slate.md). A sibling
   surface, not the CMS.
 - **The play client / cockpit rendering** →
   [client-cockpit-slate.md](../tails/client-cockpit-slate.md). The CMS shares the

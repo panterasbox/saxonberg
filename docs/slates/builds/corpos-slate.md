@@ -21,7 +21,7 @@ See also:
 / Corporations," tentative) · [advancement-slate](./advancement-slate.md)
 (**corp = the cross-cutting third social axis**, guild/party/corp) ·
 [daves-bar-slate](./daves-bar-slate.md) (the first consumer — the back-bar's
-booze is corpo-owned) · [affiliation-slate](../deferred-rpg/affiliation-slate.md)
+booze is corpo-owned) · [affiliation-slate](./affiliation-slate.md)
 (related deferred faction/org work). Substrate: provenance/maker's-mark (the
 mark), [belief](../../subsystems/belief.md) / renown (the approval scope).
 

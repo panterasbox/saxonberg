@@ -20,8 +20,8 @@
 
 See also — substrate: [thermal](../../subsystems/thermal.md) (`ThermalMixin`,
 `FurnaceMixin`, `AtmosphericMixin`, phase change) ·
-[preservation-slate](./preservation-slate.md) (**spoilage — the reason a
-fridge exists**) · [spoilage-design-pack](./spoilage-design-pack.md) (the
+[preservation-slate](../tails/preservation-slate.md) (**spoilage — the reason a
+fridge exists**) · [spoilage-design-pack](../tails/spoilage-design-pack.md) (the
 planner-ready spoilage spec) · [furnishing](../../subsystems/furnishing.md) (the
 fridge is owned chattel placed in a room) · [boundary](../../subsystems/boundary.md)
 (`Sealable`/`Switchable` — the door, the dial) ·
@@ -166,7 +166,7 @@ an **active** half (waits on power-utility). See Part 7.
 
 The fridge is the *counterplay* to a decay system; without the decay system it
 does nothing. That system is **archetype 2** from the stewardship doctrine, and
-[preservation-slate](./preservation-slate.md) + the [spoilage pack](./spoilage-design-pack.md)
+[preservation-slate](../tails/preservation-slate.md) + the [spoilage pack](../tails/spoilage-design-pack.md)
 design it: a **~120-line `FreshnessMixin`** (copying `Wet.ts`'s reconcile) on
 perishables, **`ThermalMixin` composed on perishables** so food has a
 temperature, a rate = `temperature × water-activity × a tabulated material
@@ -446,7 +446,7 @@ with their dependency edges:
 
 - **[1] Spoilage core** — the keystone; independent of every object here. Build
   first (it's the archetype-2 producer the whole pillar needs). See the
-  [spoilage pack](./spoilage-design-pack.md).
+  [spoilage pack](../tails/spoilage-design-pack.md).
 - **[2] Cold-container substrate** — update #1 + `CoolboxMixin`. Unblocks jar,
   cellar, **icebox**. No power. The cheapest cold-storage win.
 - **[3] Icebox** — content over [1]+[2]. **The recommended first shippable

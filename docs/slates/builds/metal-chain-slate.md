@@ -1281,7 +1281,7 @@ scope rather than to content.
    is one ledger on the mine's holder, because a *shared* space needs one
    where farming's disjoint fields do not. Title stays in `parcels`, never
    the zone. See [mining-slate § *The `Deposit` Idea*](./mining-slate.md)
-   and [field-substrate-slate](./field-substrate-slate.md).
+   and [field-substrate-slate](../tails/field-substrate-slate.md).
    *(rejection-slate Open 1b — whether the Hinkley/Rejection pairing is a
    deliberate yes — is answered YES by § The commons: the surface was
    granted, the minerals were claimed.)*

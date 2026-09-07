@@ -93,7 +93,7 @@ See also:
 - [docs/standard-model.md](../../standard-model.md) — NPC = `Agent → Character`
   (branch × mixins); an NPC archetype (`Guard`) is a **combo** pre-specced
   with behaviors.
-- [docs/slates/collision-slate.md](../deferred-rpg/collision-slate.md) — **absorbs that
+- [docs/slates/collision-slate.md](../tails/collision-slate.md) — **absorbs that
   slate's intentional-blocking concern.** "The guard refuses to let you
   pass" is a **`guards` brain** here (data-configured decision), *not* the
   collision slate's `BlockerBehavior` composed-mixin. The brain emits its
@@ -157,7 +157,7 @@ See also:
   brain). `domain` is **Template documents that clone into Stuff** —
   independent documents go in their *own* collection, never domain. (A
   `Document` is plain persisted JSON with no Stuff overhead — see the
-  [persistence-architecture rethink](../tails/persistence-architecture-slate.md);
+  [persistence-architecture rethink](./persistence-architecture-slate.md);
   it supersedes `Persistable`. So a `tree:` reference is to a `Document` in
   its own collection.) The graduate-or-inline axis is **artifact identity,
   not size**: a field
@@ -478,7 +478,7 @@ chosen.) **Prototyped on the bar cast** (Mara/Remy/Sloane/Augie/Dave —
    filesystem-if-code**. A shared `tree:` is home #2 (its own collection like
    `User` — *not* `domain`). `Document` = plain persisted JSON, no Stuff
    overhead (see the
-   [persistence-architecture rethink](../tails/persistence-architecture-slate.md),
+   [persistence-architecture rethink](./persistence-architecture-slate.md),
    which supersedes `Persistable`). *Build-time Q:* does the CMS
    authoring/audit/drafts pipeline serve any `Document` collection or only the
    domain/Template track?

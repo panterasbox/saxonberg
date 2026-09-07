@@ -85,7 +85,7 @@ characters hardest.
   worth learning. The player learns *to look* by being given things
   worth looking at.
 - NPCs have **their own agendas** that pull players along
-  ([affiliation](../slates/deferred-rpg/affiliation-slate.md)): guild recruiters
+  ([affiliation](../slates/builds/affiliation-slate.md)): guild recruiters
   "court students and graduates." You're not handed a "join a guild"
   quest marker; an NPC wants you, and being wanted is a pull.
 

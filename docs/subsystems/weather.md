@@ -479,7 +479,7 @@ inbound exit — the treeline / substation content-standup precedent).
   deferred planetary anchor, not weather (season is global).
 - **magic `Create·Lightning`** — the frontier noun; this build ships the
   mundane strike on the reserved seam
-  ([capability-magic](../slates/deferred-rpg/capability-magic-slate.md)).
+  ([capability-magic](../slates/builds/capability-magic-slate.md)).
 
 ## Cross-references
 

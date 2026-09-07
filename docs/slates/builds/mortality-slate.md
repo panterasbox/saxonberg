@@ -22,7 +22,7 @@
 > recovery arc.
 >
 > **This slate does not re-litigate the design.** The settled shape lives in
-> [deferred-rpg/mortal-vessel-slate](../deferred-rpg/mortal-vessel-slate.md)
+> [deferred-rpg/mortal-vessel-slate](./mortal-vessel-slate.md)
 > — the three-layer self, function-over-form, the death arc, the opt-in
 > passage, and the prison↔Hades unification. That slate is the **design
 > authority**; this one is the extract that a requirements doc can be

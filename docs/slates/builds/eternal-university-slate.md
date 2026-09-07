@@ -86,7 +86,7 @@ See also:
 - [docs/slates/augmentation-slate.md](../tails/augmentation-slate.md) — the
   **Health Center** issues the demo augment on the journey and handles
   ongoing implant changes.
-- [docs/slates/scoped-authoring-slate.md](../builds/scoped-authoring-slate.md) —
+- [docs/slates/scoped-authoring-slate.md](../tails/scoped-authoring-slate.md) —
   the **Duncan Hall** room-customization on-ramp (authoring your own
   space) is the journey's climax.
 - [docs/design-philosophy.md](../../design-philosophy.md) — liberal diegesis
@@ -198,7 +198,7 @@ implant-update on the onboarding journey — see
 [onboarding-slate.md](../builds/onboarding-slate.md)); and the **Chapel** is
 the **Mission clergy's residue** — keepers of the old worship faded to
 echoes (religion model: the bible + the
-[alignment-religion slate](../deferred-rpg/alignment-religion-slate.md)).
+[alignment-religion slate](./alignment-religion-slate.md)).
 
 ---
 
@@ -341,14 +341,14 @@ as **campus buildings**, not city-fantastical ones.
 
 ### Duncan Hall — the dorm (a roster-persistent Warren)
 
-The freshman dorm is itself a [MultiLocation](../tails/multilocation-slate.md)
+The freshman dorm is itself a [MultiLocation](./multilocation-slate.md)
 `Warren` — but a **different mode** than the lounge. Where the lounge
 breathes with live presence (ephemeral members), Duncan Hall grows with
 **enrollment** (a persistent roster) and is **~monotonic**: it doesn't
 shrink when residents log off, because the building is there regardless of
 who's awake. It's the substrate's **roster-persistent / procedural-spatial**
 profile (the dorm is its first real consumer — see
-[multilocation-slate.md](../tails/multilocation-slate.md)).
+[multilocation-slate.md](./multilocation-slate.md)).
 
 **What persists vs. regenerates.**
 

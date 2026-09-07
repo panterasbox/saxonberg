@@ -42,7 +42,7 @@ the first and most demanding consumer, not the only one.
   slate **elevates** that GitApi from an external-editor overlay into the
   in-runtime authoring spine, and adds the two things cms-slate doesn't:
   **ownership-as-attribution** and the **dependency graph**.
-- [scoped-authoring-slate.md](./scoped-authoring-slate.md) — establishes
+- [scoped-authoring-slate.md](../tails/scoped-authoring-slate.md) — establishes
   `/home/<playerId>/` homedirs, the dorm-as-homedir, and the
   ownership-scoped permission ladder (player → builder → wizard). The
   **sandbox** end of sandbox→release.

@@ -212,7 +212,7 @@ makes it verifiable rather than asserted.**
 ## What gets auctioned
 
 - ⭐⭐ **breeding stock** — added 2026-09-03 by the
-  [farmstead](../../plans/farmstead-plan.md) multiplayer pass
+  farmstead *(retired artifact)* multiplayer pass
   (**D79–D81**), and it is **the purest lemons case in the game**: one bull
   serves thirty cows, so the trade is low-volume, high-value and almost entirely
   *information*. The seller watched the animal grow and the buyer did not.

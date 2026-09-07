@@ -13,7 +13,7 @@
 > content
 > **Size:** a build
 
-> **Status: sketch / pre-requirements.** [tradition-slate](./tradition-slate.md)
+> **Status: sketch / pre-requirements.** [tradition-slate](../tails/tradition-slate.md)
 > covers the *inherited account* half of religion and explicitly demotes
 > faith to one consumer among craft, medicine and guild. Scored against
 > what players actually reach for from religion, that serves **one want of
@@ -25,10 +25,10 @@
 > people who hold you to it, a practice, a place, and the ability to make
 > a new one.**
 
-See also: [tradition-slate](./tradition-slate.md) · [uncertainty.md](../../uncertainty.md)
+See also: [tradition-slate](../tails/tradition-slate.md) · [uncertainty.md](../../uncertainty.md)
 (why a god may not be the RNG) · [measurement.md](../../measurement.md)
 (**the reading rules — the hardest constraint here**) ·
-[trait-slate](./trait-slate.md) (the two-value arithmetic the fall *is*) ·
+[trait-slate](../tails/trait-slate.md) (the two-value arithmetic the fall *is*) ·
 [lineage-slate](./lineage-slate.md) (you are born into a congregation) ·
 [story-bible.md](../../story-bible.md) (the six patrons, the Chapel,
 *deeds are the liturgy*, the good-floor).
@@ -107,7 +107,7 @@ data:
 
 ## The derivation — and the hardest constraint
 
-Fidelity uses [trait-slate](./trait-slate.md)'s arithmetic unchanged —
+Fidelity uses [trait-slate](../tails/trait-slate.md)'s arithmetic unchanged —
 one ledger read at two half-lives:
 
 ```
@@ -309,7 +309,7 @@ attendance lands in `chronicles`.
 ## Open questions
 
 1. ✅ ~~The deed-tag vocabulary is the joint everything hangs on.~~
-   **Resolved 2026-08-12 — [deed-tags-slate](./deed-tags-slate.md).**
+   **Resolved 2026-08-12 — [deed-tags-slate](../tails/deed-tags-slate.md).**
    Closed, registered, dotted-path with family inheritance (so declaring
    `harm` covers every child), additive-only, producer-declared. Three
    consequences land directly on this slate:

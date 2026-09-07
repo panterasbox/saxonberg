@@ -173,7 +173,7 @@ definition. A surface that drops the level on the wire (as
 bug, not a content one.
 
 The epistemic half is the deferred
-[identification-slate](../slates/tails/identification-slate.md) —
+[identification-slate](../slates/builds/identification-slate.md) —
 `analyze X with Y`, real Material chemistry, partial identification,
 misidentification: knowledge as something **earned per viewer** rather
 than revealed by preference. The two are complements and should both

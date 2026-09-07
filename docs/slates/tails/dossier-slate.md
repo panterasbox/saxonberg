@@ -46,10 +46,10 @@ booby-trapped) · [vitals.md](../../subsystems/vitals.md) ·
 [document-store.md](../../subsystems/document-store.md) (the closed
 `DocumentKinds` vocabulary, if the answer is a document).
 
-**Consumers waiting:** [medic-judgment-slate](./medic-judgment-slate.md) /
+**Consumers waiting:** [medic-judgment-slate](../builds/medic-judgment-slate.md) /
 the clinic build (a patient's history) ·
-[health-vertical-slate](./health-vertical-slate.md) ·
-[npc-behavior-slate](./npc-behavior-slate.md) ·
+[health-vertical-slate](../builds/health-vertical-slate.md) ·
+[npc-behavior-slate](../builds/npc-behavior-slate.md) ·
 [llm-npc-design](./llm-npc-design.md).
 
 ---

@@ -48,7 +48,7 @@ See also:
   vendor's stance varies by *who you are*; that's recognition. The
   economy forward-links to it but does not depend on it (v1 stances are
   flat).
-- [docs/slates/scoped-authoring-slate.md](./scoped-authoring-slate.md) —
+- [docs/slates/scoped-authoring-slate.md](../tails/scoped-authoring-slate.md) —
   player-owned shops are an authorship surface (the dorm-room
   endogenous-value move pointed at commerce).
 - [docs/roadmap.md](../../roadmap.md) — the "Economy / currency" and

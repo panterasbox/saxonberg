@@ -21,7 +21,7 @@ unusual direction.
 Related: [physiology-slate](./physiology-slate.md) (**substances, the
 therapeutic window, the care economy**),
 [discovery-slate](./discovery-slate.md) (**the wild input**),
-[farming-slate](./farming-slate.md) (cultivation),
+[farming-slate](../tails/farming-slate.md) (cultivation),
 [mining-slate](./mining-slate.md) (mineral inputs),
 [insurance-slate](./insurance-slate.md) (actuarial thinking, spoilage
 risk), [freight-slate](./freight-slate.md) (perishable + valuable cargo),

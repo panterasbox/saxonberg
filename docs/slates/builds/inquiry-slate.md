@@ -9,7 +9,7 @@
 > **Size:** a build
 
 > **Status: sketch / pre-requirements.** A design pass, not a spec. Spun
-> out of [capability-magic-slate.md](../deferred-rpg/capability-magic-slate.md)
+> out of [capability-magic-slate.md](./capability-magic-slate.md)
 > Part IV on 2026-07-15, when the "how a student discovers a magical law"
 > thread grew into something that isn't magic-specific at all: a
 > **platform substrate for how *sim-native knowledge* is discovered,
@@ -24,7 +24,7 @@
 
 See also:
 
-- [capability-magic-slate.md](../deferred-rpg/capability-magic-slate.md) —
+- [capability-magic-slate.md](./capability-magic-slate.md) —
   **origin + first consumer.** Part IV § 4 designs magic's use of this
   loop; the apparatus was lifted here so it stops being magic-specific.
 - [deduction-slate.md](./deduction-slate.md) — **sibling, and the shared
@@ -33,7 +33,7 @@ See also:
   too. Deduction investigates a **specific past event** (a murder) by
   demonstrated evidence; inquiry discovers a **general law** by experiment.
   Same epistemics, different object.
-- [identification-slate.md](../tails/identification-slate.md) — the
+- [identification-slate.md](./identification-slate.md) — the
   **instrument seam** (`analyze X with Y`, real-Material readouts) inquiry
   measures with.
 - [../../subsystems/advancement.md](../../subsystems/advancement.md) — the
@@ -45,7 +45,7 @@ See also:
 - [reputation-slate.md](./reputation-slate.md) /
   [../../subsystems/renown.md](../../subsystems/renown.md) — **credibility**
   as a renown consumer.
-- [farming-slate.md](./farming-slate.md), the University content, and the
+- [farming-slate.md](../tails/farming-slate.md), the University content, and the
   gamification-mirror thesis — the pedagogy this is the engine for.
 
 ---

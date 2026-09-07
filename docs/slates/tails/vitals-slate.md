@@ -655,7 +655,7 @@ stays out — the *axis* is in, the *biochemistry* is a future wave.
 the **magic-side reserve, the mirror of endurance** (the physical
 reserve). It's separate from Vitals because it isn't biology, but it's
 endurance's symmetric sibling in the capability system. See
-[capability-magic-slate.md](../deferred-rpg/capability-magic-slate.md). Different
+[capability-magic-slate.md](../builds/capability-magic-slate.md). Different
 recovery model, no biological grounding, deeply RPG — *not* a vital.
 
 ### Consumables — eat, drink, and the effect-list

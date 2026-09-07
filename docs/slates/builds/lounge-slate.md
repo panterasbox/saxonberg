@@ -12,13 +12,13 @@
 > MultiLocation** that buds rooms as people arrive and merges them as
 > people leave, **seating** newcomers by play-style "flavor," with **Dave's
 > Bar** as the fixed anti-lounge counterpoint to the north. The lounge is
-> the v1 consumer of the [MultiLocation substrate](../tails/multilocation-slate.md);
+> the v1 consumer of the [MultiLocation substrate](./multilocation-slate.md);
 > almost everything else it needs it *consumes* from already-slated
 > systems.
 
 Working slate for the **lounge** — where every player materializes on
 login, and the game's social lubricant. It's a `LoungeWarren` (a
-[MultiLocation](../tails/multilocation-slate.md) `Warren`) rooted at a persistent
+[MultiLocation](./multilocation-slate.md) `Warren`) rooted at a persistent
 **commons** host: one room when quiet, an elastic graph of flavored rooms
 when busy, collapsing back as the night winds down. One exit north leads
 to **Dave's Bar** — a singleton, the deliberate *anti-lounge*, home of the
@@ -65,7 +65,7 @@ The load-bearing decisions (settled over the design conversation):
 
 See also:
 
-- [docs/slates/multilocation-slate.md](../tails/multilocation-slate.md) — **the
+- [docs/slates/multilocation-slate.md](./multilocation-slate.md) — **the
   substrate the lounge rides.** `LoungeWarren extends Warren`; the
   host/commons seats it; members are ephemeral satellites; start-location
   recall resolves members → host. The lounge is its v1 driver.
@@ -119,7 +119,7 @@ See also:
 
 ### The lounge as a `LoungeWarren`
 
-The lounge is a [MultiLocation](../tails/multilocation-slate.md): a persistent
+The lounge is a [MultiLocation](./multilocation-slate.md): a persistent
 **commons** (the host) seats a runtime `LoungeWarren` that buds/merges
 ephemeral satellite rooms. Everything mechanical — budding at capacity,
 drain-then-collapse merging, hysteresis, the host's permanence, restart
@@ -343,7 +343,7 @@ command, and (someday) char-gen all wrote the exact same setting.
 ## Build order
 
 **Wave 1 — the lounge + the bar shell.** `LoungeWarren` over the
-[MultiLocation substrate](../tails/multilocation-slate.md) (`route` dual-objective
+[MultiLocation substrate](./multilocation-slate.md) (`route` dual-objective
 matchmaking + `seedMember` order synthesis); the flavor **tag-set setting**
 + the commons **order console** (+ `settings`/`var` already free);
 unflavored graceful default; the **commons** host with the TPA terminal +
@@ -366,7 +366,7 @@ Wave 3). Richer flavor mechanics (weighted toppings; weighted aggregation).
 ## What this slate does NOT cover
 
 - **The MultiLocation substrate** — the `Warren` / host / member /
-  budding / merging / recall machinery → [multilocation-slate.md](../tails/multilocation-slate.md).
+  budding / merging / recall machinery → [multilocation-slate.md](./multilocation-slate.md).
   The lounge is its consumer.
 - **Drink effects** (intoxication, hydration, the consumable delivery) →
   [vitals-slate.md](../tails/vitals-slate.md). The bar authors only the menu.
@@ -393,7 +393,7 @@ Wave 3). Richer flavor mechanics (weighted toppings; weighted aggregation).
 
 This slate boils down to:
 
-- **`LoungeWarren`** (a [MultiLocation](../tails/multilocation-slate.md)
+- **`LoungeWarren`** (a [MultiLocation](./multilocation-slate.md)
   consumer) overriding `route` (dual-objective matchmaking) + `seedMember`
   (order synthesis), rooted at the persistent **commons** host (TPA
   terminal + north exit + capacity cap N).
@@ -552,7 +552,7 @@ exists**: the **chronicle** records deeds, the **transcript** records
 evidence, and **renown** records **reception from others rather than
 claims about yourself.**
 
-**The [LinkedIn flank](../../study-com-strategy.md) arriving in the
+**The [LinkedIn flank](../../study-com/strategy.md) arriving in the
 least likely room in the game.**
 
 ### Three guards — and the third keeps the room pure

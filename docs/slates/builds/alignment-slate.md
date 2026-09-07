@@ -14,7 +14,7 @@
 > **Size:** a build
 
 > **Status: design spine SETTLED, pre-requirements.** Supersedes the
-> preliminary [alignment-religion-slate](../deferred-rpg/alignment-religion-slate.md)
+> preliminary [alignment-religion-slate](./alignment-religion-slate.md)
 > (RPG-layer, deferred) — that doc's D&D-grid + worship-is-chosen intuitions
 > survive here, now fully reconciled with [story-bible.md](../../story-bible.md)
 > §Alignment/§Gods and grounded in the shipped derive-on-read substrates

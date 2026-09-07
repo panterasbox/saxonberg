@@ -26,7 +26,7 @@ Substrate: [crafting](../../subsystems/crafting.md) ·
 [fire](../../subsystems/fire.md)
 Siblings: [ranching](./ranching-slate.md) (**the gate**) ·
 [zoning](./zoning-slate.md) (⭐ the nuisance trades) ·
-[preservation](./preservation-slate.md) ·
+[preservation](../tails/preservation-slate.md) ·
 [textiles](./cosmetics-slate.md) *(fibre's sibling — leather is not fibre)* ·
 [../../settlement-model.md](../../settlement-model.md) § 1
 

@@ -42,7 +42,7 @@ See also:
   reading substrate** (viewer + search + spoiler + transclusion). Help
   is the **Docs** source for the frame's grouped search, and a consumer
   of the **public read-only surface** for its pre-auth face.
-- [spoiler-slate.md](../deferred-rpg/spoiler-slate.md) — the reveal substrate help
+- [spoiler-slate.md](../tails/spoiler-slate.md) — the reveal substrate help
   consumes. Help sets the **transparency-by-default** posture; the
   **capability ceiling** does help's pre-auth gating for free (anonymous
   = the floor tier).
@@ -64,7 +64,7 @@ See also:
 - [docs/subsystems/messaging.md](../../subsystems/messaging.md) +
   [message-rendering.md](../../subsystems/message-rendering.md) — the MML the
   topic body renders in; the shared renderer + click model.
-- [persistence-architecture-slate.md](../tails/persistence-architecture-slate.md)
+- [persistence-architecture-slate.md](./persistence-architecture-slate.md)
   — standalone help topics are plain `Document`s (a `help` collection).
 - [docs/deployment.md](../../deployment.md) — the pre-auth web view the
   public help face is part of.
@@ -266,7 +266,7 @@ wiki source viewer + the CMS edit handoff).
 - **The shared reading substrate** (viewer / search / spoiler /
   transclusion) — owned by [client-shell-slate.md](../tails/client-shell-slate.md).
 - **The spoiler reveal substrate** — owned by
-  [spoiler-slate.md](../deferred-rpg/spoiler-slate.md); help consumes it and sets the
+  [spoiler-slate.md](../tails/spoiler-slate.md); help consumes it and sets the
   transparency-by-default posture.
 - **The wiki** (content half) — [wiki-slate.md](../tails/wiki-slate.md).
 - **The public read-only surface mechanics** (gather-on-bus /

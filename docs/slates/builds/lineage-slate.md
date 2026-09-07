@@ -256,7 +256,7 @@ practitioner examines, and it survives with the parents fully legible.**
 
 ⭐ **A convergence worth noting:** weighting generator output by
 deviation-from-mean is the same principle as
-[trait-slate](./trait-slate.md)'s `expressed = equilibrium + deviation`
+[trait-slate](../tails/trait-slate.md)'s `expressed = equilibrium + deviation`
 and `measurement.md` Part 6's *"announce the surprising, not the every."*
 **The deviation is the story** arrived here independently, which is
 usually a sign it is right.
@@ -999,7 +999,7 @@ disposition claim reads as *things that happened in that household*.
 > **Genotype is inherited. Disposition is learned from.** Same card, two
 > mechanisms.
 
-⭐ Under [trait-slate](./trait-slate.md)'s two-value model this acquires a
+⭐ Under [trait-slate](../tails/trait-slate.md)'s two-value model this acquires a
 precise meaning: **seeded claims set your `equilibrium`; your own acts
 drive `expressed`.** So the family choice is a permanent baseline rather
 than a permanent verdict — sustained contrary behavior moves equilibrium
@@ -1011,7 +1011,7 @@ the property an inescapable species field could never have.
 The generator has to draw the `Raised` column from *something* or it
 reads as noise stapled to a family. It must not be the trade — *"delvers
 are guarded"* is the same essentialism one axis over, and
-[trade-roster-slate](./trade-roster-slate.md) already bans the identical
+[trade-roster-slate](../tails/trade-roster-slate.md) already bans the identical
 move on faith (*"if a player can conclude 'delvers are Cernunnos,' we
 have built essentialism"*).
 
@@ -1638,7 +1638,7 @@ still where the design risk lives.**
 
 ⭐ Questions **2** (*the hook vocabulary*) and **6** (*how much the
 trade gives you*) are now substantially answered — by
-[trade-roster-slate](./trade-roster-slate.md) and by § *the seeding
+[trade-roster-slate](../tails/trade-roster-slate.md) and by § *the seeding
 surface* respectively — and should be closed at requirements time rather
 than re-opened.
 
@@ -1685,7 +1685,7 @@ than re-opened.
   and the quality criterion the body budget has to satisfy
 - [species-expansion-slate](../tails/species-expansion-slate.md) — the
   roster, and the hybrid-retirement note
-- [trait-slate](./trait-slate.md) — equilibrium vs expressed (what a
+- [trait-slate](../tails/trait-slate.md) — equilibrium vs expressed (what a
   seeded claim actually sets), and the shared *deviation, not absolutes*
   narration rule the gallery card follows
 - [trait.md](../../subsystems/trait.md) — `dispositions` claim-seeding,

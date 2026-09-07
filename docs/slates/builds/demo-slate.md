@@ -9,7 +9,7 @@
 **Capture doc (2026-07-28): the build list supporting the
 education-video track and the study.com pitch demo.** Source
 artifacts: [education-videos.md](../../education-videos.md) (§
-Pre-script gap audit), [study-com-strategy.md](../../study-com-strategy.md),
+Pre-script gap audit), [study-com-strategy.md](../../study-com/strategy.md),
 the fresh lens pass (docs/lenses/, entries 1–18), and
 [staging/wishbook.md](../../staging/wishbook.md).
 

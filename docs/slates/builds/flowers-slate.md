@@ -13,7 +13,7 @@
 > **Size:** a build
 
 > **Status: design surface, unbuilt, no phase gate passed.** Spun out of the
-> [farmstead](../../plans/farmstead-plan.md) design pass
+> farmstead *(retired artifact)* design pass
 > (2026-09-03), which put flowers into the *industrial* economy — clover as
 > nitrogen and forage and bee plant (D43), saffron as the labour-intensive
 > smallholder crop (D44), pollination as a positive externality (D35), and
@@ -26,9 +26,9 @@
 > relics are the same shape. Design it once, on the case where it is most
 > obviously true.
 
-See also: [farmstead plan](../../plans/farmstead-plan.md)
+See also: farmstead plan *(retired artifact)*
 (the industrial half, and D44's unifying fact) ·
-[farming-slate](./farming-slate.md) (the `_flowering` latch, breeding) ·
+[farming-slate](../tails/farming-slate.md) (the `_flowering` latch, breeding) ·
 [cosmetics-slate](./cosmetics-slate.md) (scent, and dye as a textiles chain) ·
 [standing-mint-slate](./standing-mint-slate.md) (what a scalar of social worth
 does) · [currency-slate](./currency-slate.md) +
@@ -166,7 +166,7 @@ rather than waiting on the full genome. Probably yes, same argument.
 
 ## ⭐ Lawns — a flower at field scale
 
-Handed here by the [farmstead](../../plans/farmstead-plan.md)
+Handed here by the farmstead *(retired artifact)*
 land-use pass (**D69**), which sorted ground into four modes — *growing,
 concentrating, accumulating,* and **being**. The fourth is this slate's, because
 its product is amenity and amenity is meaning.

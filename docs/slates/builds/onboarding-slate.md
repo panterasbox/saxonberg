@@ -63,7 +63,7 @@ See also:
 - [docs/slates/fast-travel-slate.md](../tails/fast-travel-slate.md) — the lounge
   and the dorm **lobby** are terminals; the lounge-exit + home-routing
   ride this network.
-- [docs/slates/scoped-authoring-slate.md](../builds/scoped-authoring-slate.md) —
+- [docs/slates/scoped-authoring-slate.md](../tails/scoped-authoring-slate.md) —
   **the dorm-customization on-ramp**: the safe, ownership-scoped
   authoring the final step teaches (the (policy, validator) model, the
   player GUI).
@@ -163,7 +163,7 @@ The **private house suggestion** rides Limen — the one affiliation axis that
 touches onboarding (read from your profile) — but **joining is opt-in**: you
 research and choose, and your real-world origin (school/state) never leaks
 (a private, attributed nudge ≠ exposure; the abstract many-to-one house
-anonymizes). See [affiliation-slate.md](../deferred-rpg/affiliation-slate.md).
+anonymizes). See [affiliation-slate.md](./affiliation-slate.md).
 
 ### The dorm + customization (the climax)
 

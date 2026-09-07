@@ -629,7 +629,7 @@ predicate** checked against the actor at dispatch (a hit on a gated
 emote the actor lacks → declined, with a note). Crucially this is an
 *entitlement* check (staff status, cohort, course completion,
 achievement), **not** the RPG capability system from
-[capability-magic-slate.md](../deferred-rpg/capability-magic-slate.md) (deferred).
+[capability-magic-slate.md](../builds/capability-magic-slate.md) (deferred).
 For an educational deployment these gates are genuinely useful —
 instructor/TA badges, cohort emotes, completion markers — and read as
 honors rather than power.
@@ -1110,7 +1110,7 @@ Indicative waves; final cut decided at requirements. Reactions (Layer
   modeled; what *grants* an entitlement is deferred.
 - **The RPG capability system** — honorary gating is an entitlement
   check, explicitly *not* the deferred capability/magic layer
-  ([capability-magic-slate.md](../deferred-rpg/capability-magic-slate.md)).
+  ([capability-magic-slate.md](../builds/capability-magic-slate.md)).
 - **Posture / physical actions that change state** — `sit`/`stand`/
   `kneel`/`lie` are the posture subsystem; emotes mutate no state.
 - **Dialogue** — `say`/`tell` (`world.speech.*`) are speech, not

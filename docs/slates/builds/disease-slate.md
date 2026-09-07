@@ -30,7 +30,7 @@ See also — **the vertical this engine serves**:
 [health-vertical-slate](./health-vertical-slate.md) (clinical practice, public
 health, the College of Physic, and the teaching seam — the *pedagogical* payoff
 of everything below).
-Consumers: [farming](./farming-slate.md) (blight; rotation's *true* reason) · [ranching](./ranching-slate.md) (**where this question started** —
+Consumers: [farming](../tails/farming-slate.md) (blight; rotation's *true* reason) · [ranching](./ranching-slate.md) (**where this question started** —
 herd disease was its "biggest open call") · [pets](./pets-slate.md) (the
 individual case; the zoonotic bridge) · [fishing](./fishing-slate.md)
 (aquaculture; its *Water composition* section already routes contamination
@@ -352,7 +352,7 @@ disease driver either follows that precedent or adds a gated
 ## Where to prove it — crops first
 
 > **Amended 2026-07-31: the *growth term* should be proven earlier, in
-> [preservation](./preservation-slate.md).** Food spoilage is **this same
+> [preservation](../tails/preservation-slate.md).** Food spoilage is **this same
 > equation minus transmission** — no `ContagionSpec`, no host range, no
 > immunity, no push tick. Build the growth term there, prove it on a fish, and
 > disease inherits it working. Crops remain the right first proof of *disease*;

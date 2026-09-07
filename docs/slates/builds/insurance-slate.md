@@ -15,7 +15,7 @@ cargo is where it should start.
 Related: [contract.md](../../subsystems/contract.md) (**a policy is a
 contract**), [banking.md](../../subsystems/banking.md) (**reserves**),
 [freight-slate](./freight-slate.md) (cargo risk),
-[farming-slate](./farming-slate.md) (crop risk — the correlated case),
+[farming-slate](../tails/farming-slate.md) (crop risk — the correlated case),
 [guild-slate](./guild-slate.md) (**the mutual**),
 [sanitation-slate](./sanitation-slate.md) (the lemons family),
 [auction-slate](./auction-slate.md) (the winner's-curse sibling),

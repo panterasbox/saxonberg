@@ -30,7 +30,7 @@
 >
 > The forcing function: the University has to teach something, and the
 > study.com pitch needs a demonstration that a real course catalog can
-> run inside this world. See [study-com-brief.md](../../study-com-brief.md)
+> run inside this world. See [study-com-brief.md](../../study-com/brief.md)
 > for what we're asking the study.com side to tell us, and
 > [arcane-science.md](../../arcane-science.md) for the invented subject
 > the first course teaches.
@@ -43,7 +43,7 @@ See also:
   assessment. Its `predict` gate is our practical exam.
 - [../../arcane-science.md](../../arcane-science.md) — the first
   invented subject, authored to be teachable.
-- [../../study-com-strategy.md](../../study-com-strategy.md) — the deal
+- [../../study-com-strategy.md](../../study-com/strategy.md) — the deal
   thinking; stakeholder map; the assessment-provenance seam.
 - [../../subsystems/advancement.md](../../subsystems/advancement.md) —
   Competence, the Transcript, Disciplines. Assessment writes here.
@@ -199,7 +199,7 @@ What it buys, in their language:
    live supervision to automated identity verification. *(Corrected
    2026-08-07: the strategy doc's "proctoring was removed" premise was too
    strong — `Proctored_Exam` is alive and CX credit rides it,
-   [platform-reality §6](../../study-com-platform-reality.md). The
+   [platform-reality §6](../../study-com/platform-reality.md). The
    generator's argument is unaffected: per-student items beat shared
    answers regardless of how the room is invigilated.)*
 3. **One generator, two modes.** The same spec emits the

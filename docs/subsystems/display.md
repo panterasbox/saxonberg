@@ -240,7 +240,7 @@ empty-state copy; the iframe path is identical. Two RTL tests.
 [employment.md](./employment.md) (`house`, the seat),
 [fasttravel.md](./fasttravel.md) (the terminal), [augmentation.md](./augmentation.md)
 (`AetherMixin` activity),
-[display-manifestation-slate.md](../slates/builds/display-manifestation-slate.md)
+[display-manifestation-slate.md](../slates/tails/display-manifestation-slate.md)
 (the three-arm model and what it deferred).
 
 ## ⭐ There is no `DisplayApi` — a display drives itself

@@ -33,7 +33,7 @@ And the correction that set the shape of everything after it:
 
 Related: [content-packs.md](../../subsystems/content-packs.md) (**the
 shipped substrate — manifest, reconcile-by-stamp installer,
-`sourcePack`**), [pack-seams-slate](./pack-seams-slate.md) (**how two
+`sourcePack`**), [pack-seams-slate](../tails/pack-seams-slate.md) (**how two
 packs articulate — *the annex knows the host, the host never knows the
 annex*; do not re-derive it here**),
 [vocations.md](../../vocations.md) (the demand test),

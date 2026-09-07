@@ -23,15 +23,15 @@
 > This pack unifies the layer that can honestly be unified, and says which
 > layer must stay split.
 >
-> ⚠ **It also resolves a blocker.** The [water pack](./water-design-pack.md)'s
+> ⚠ **It also resolves a blocker.** The [water pack](../tails/water-design-pack.md)'s
 > rain edge stalled on a sync/async seam (Part 4); the general answer here is
 > what unblocks it, which is why this was designed first.
 
-See also: [water-design-pack](./water-design-pack.md) (the first consumer) ·
+See also: [water-design-pack](../tails/water-design-pack.md) (the first consumer) ·
 [power-utility-slate](./power-utility-slate.md) (**the supply-ref this
 generalizes**) · [stewardship-doctrine § the recurring-charge
 call](../../stewardship-doctrine.md) (what may be metered) ·
-[household-design-pack](./household-design-pack.md) (**the commons argument,
+[household-design-pack](../tails/household-design-pack.md) (**the commons argument,
 reused at Part 3**) · substrates:
 [bulk](../../subsystems/bulk.md) (`UnboundedSourceMixin`) ·
 [electricity](../../subsystems/electricity.md) (`EnergizedMixin`) ·
@@ -105,7 +105,7 @@ privately held. So **the village well does not exist** — a source several
 people draw on, that can be drawn *down*.
 
 That is the same design object as the [household
-pack](./household-design-pack.md)'s shared property condition, one scale up,
+pack](../tails/household-design-pack.md)'s shared property condition, one scale up,
 and the corpus already ruled on how to guard it:
 
 > **Anti-grief guards: exclusive → LEASE, common-pool → QUOTA.**
@@ -218,7 +218,7 @@ why it is not supplying.* No per-utility verb, no bespoke phrasing.
 
 ## Part 6 — The two instances
 
-**Rain** ([water pack](./water-design-pack.md)). A source with **no fixture
+**Rain** ([water pack](../tails/water-design-pack.md)). A source with **no fixture
 at all** — the locality *is* the ref. Cache the covering `Locality` on
 sky-exposed cultivable ground; integrate `weatherAt` exactly over the gap
 against `getLandRequirementM2()` (1 mm × 1 m² = 1 L, no invented field).
@@ -286,7 +286,7 @@ two things.
 
 **2. Rivalry becoming an errand.** Part 3's guard: mains stay ∞; rivalry is
 frontier and agricultural only. A shared well is play; a metered kitchen tap
-is the treadmill the [water pack](./water-design-pack.md) refused.
+is the treadmill the [water pack](../tails/water-design-pack.md) refused.
 
 **3. ⚠⚠ The silent unresolved ref** (Part 4). The single highest-risk piece
 here, because its failure is invisible and its tests pass. Unknown must never
@@ -319,6 +319,6 @@ rather than a race — and it should be **per-window, not first-come**.
    of scope*, but flagged because it is the one source that answers to no
    upstream.
 5. **Does a source know its drawers?** Rivalry needs *some* accounting of who
-   drew how much. The [household pack](./household-design-pack.md)'s rule
+   drew how much. The [household pack](../tails/household-design-pack.md)'s rule
    applies unchanged: **aggregate, never report** — the well knows its level,
    not a leaderboard of neighbours.

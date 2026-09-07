@@ -17,7 +17,7 @@
 > names the whole design so the eventual builds don't fragment; it does
 > **not** prescribe a build sequence (that's deferred by decision).
 
-> **Forum factoring superseded by [forums-slate.md](./forums-slate.md)
+> **Forum factoring superseded by [forums-slate.md](../tails/forums-slate.md)
 > (2026-06):** the § *Layer 2* "social forum is a chat facet" framing is
 > replaced by a first-class forum primitive (`Board`/`Entry` Documents +
 > Catalogue). Everything else this slate establishes for the forum — aether

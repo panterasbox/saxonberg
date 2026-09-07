@@ -86,7 +86,7 @@ And both carry this line in their own headers:
 > `shifts` shape — a walk is the locomotion slate's)."*
 
 **So distance is free today.** That is the same class of magic as the
-bar's `populates:` bottles that [supply-chain-slate](./supply-chain-slate.md)
+bar's `populates:` bottles that [supply-chain-slate](../tails/supply-chain-slate.md)
 went after, one level up the chain and still standing.
 
 ⚠ **And there is nowhere to walk.** Every `destination:` in every

@@ -52,7 +52,7 @@ instance-persistence answer** — a keyed `PersistableMixin` host; the
 [npc-behavior-slate](./npc-behavior-slate.md) (a pet is an *owned NPC*; tameable
 fauna are Character-tier carves) ·
 [species-expansion-slate](../tails/species-expansion-slate.md) (pet/animal
-species are carves) · [dorm-warren-slate](./dorm-warren-slate.md) (where a pet
+species are carves) · [dorm-warren-slate](../tails/dorm-warren-slate.md) (where a pet
 lives) · [reputation-slate](./reputation-slate.md) (regard, scoped to the
 animal) · [provenance-slate](./provenance-slate.md) (authorship — *not* the
 possession gap this surfaces) · **[property-slate](./property-slate.md) (the
@@ -897,7 +897,7 @@ small companion; a **house** supports a pet properly.
 ### Newly constrained — the 12× tending cadence
 
 The care model says *"feed it occasionally."* That was never checked against the
-clock, and [farming § The clock](./farming-slate.md) makes it precise: at 12×,
+clock, and [farming § The clock](../tails/farming-slate.md) makes it precise: at 12×,
 **a daily player skips 12 game days between logins.** "Occasionally" cannot mean
 a cadence shorter than that or the pet is un-tendable by hand and care silently
 becomes the kennel's job — which is exactly the thing that must not happen,

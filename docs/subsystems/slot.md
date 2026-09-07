@@ -53,7 +53,7 @@ type, makes the class static side incompatible with the rest of the
 chain, and — because `Base` is a type parameter, so the check is
 deferred — reports as several hundred errors in unrelated files with
 `AvatarBase` collapsed to `never`. This cost two sessions; see
-[the slate](../slates/builds/slotted-split-slate.md).
+the slate *(slate retired 2026-09-06 — fully absorbed)*.
 
 ## Slot universe — three patterns
 
@@ -213,7 +213,7 @@ unrecognised first token binds against `args:` instead of erroring.
 ⚠ It shipped as `wear set` and **moved to `equip` on the same branch**,
 when the orchestrator landed. The stanza is unchanged; it simply rides
 the verb that owns getting your whole kit on. See
-[equip-slate.md](../slates/builds/equip-slate.md).
+equip-slate.md *(slate retired 2026-09-06 — fully absorbed)*.
 
 ⚠ **The requirement said *"`dress` is not taken"* and that premise was
 stale.** `medical/treat.yaml` has shipped `verbs: [treat, bind, dress]`

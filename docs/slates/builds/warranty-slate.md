@@ -11,7 +11,7 @@
 > **Size:** a build
 
 > **Status: design surface, unbuilt, no phase gate passed.** Found 2026-09-03 by
-> the [farmstead](../../plans/farmstead-plan.md) multiplayer pass,
+> the farmstead *(retired artifact)* multiplayer pass,
 > which needed producers to sell to each other and discovered they cannot say
 > anything binding about what they are selling.
 >
@@ -28,11 +28,11 @@
 
 See also: [auction-slate](./auction-slate.md) (**the sibling** — it already names
 the lemons problem and the winner's curse, and the appraiser is this slate's
-natural ally) · [farmstead plan](../../plans/farmstead-plan.md)
+natural ally) · farmstead plan *(retired artifact)*
 (**D79** the herdbook as a sales document · **D81** producer trade · **D48** the
 hay that burns the barn) · [legal-code-slate](./legal-code-slate.md) (**where the
 polity chooses**) · [credit-slate](./credit-slate.md) ·
-[reputation-slate](./reputation-slate.md) · [identification-slate](../tails/identification-slate.md).
+[reputation-slate](./reputation-slate.md) · [identification-slate](./identification-slate.md).
 Substrates: [contract.md](../../subsystems/contract.md) (**the mechanism —
 clauses over verifiable conditions, escrow**) ·
 [accountability.md](../../subsystems/accountability.md) (derive-on-read blame) ·

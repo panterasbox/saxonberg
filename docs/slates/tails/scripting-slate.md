@@ -80,7 +80,7 @@ The load-bearing decisions:
    scripted rung**, with `improv` for the generative beats — exactly the
    slate's "scripting and LLM aren't a separate paradigm." It sits at the
    **wizard/code tier** of the authoring ladder
-   ([scoped-authoring-slate](../builds/scoped-authoring-slate.md)), with authoring
+   ([scoped-authoring-slate](./scoped-authoring-slate.md)), with authoring
    intelligence ([authoring-intelligence-slate](../builds/authoring-intelligence-slate.md))
    over it.
 

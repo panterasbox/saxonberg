@@ -10,7 +10,7 @@
 > **Size:** a build
 
 > **Status: design captured, not built.** Mining is an **integrating
-> vertical** (the [Dave's Bar](./daves-bar-slate.md) / [farming](./farming-slate.md)
+> vertical** (the [Dave's Bar](./daves-bar-slate.md) / [farming](../tails/farming-slate.md)
 > precedent) — ~90% *composition* of shipped substrate (the activity/
 > engagement framework, reserves, respiration, thermal, encumbrance,
 > crafting/Grade/tools, advancement, scripting, employment) plus **two
@@ -52,7 +52,7 @@
 > policy; and per-face depletion rides the ROOM, not the warren's ledger —
 > which is the only way a static mine has it.
 
-See also: [daves-bar](./daves-bar-slate.md) · [farming](./farming-slate.md) ·
+See also: [daves-bar](./daves-bar-slate.md) · [farming](../tails/farming-slate.md) ·
 [livelihood](./livelihood-slate.md) (the labor-market spine mining plugs into —
 no kill-loot, income from work) · [advancement](./advancement-slate.md)
 (competence = the specialization engine) ·
@@ -938,7 +938,7 @@ demand). Historically **money-adjacent** ("salary" = salt), **taxed** (the
 gabelle), a house/corpo **monopoly** — a natural state-revenue lever and near-money
 on the frontier. Central *because* everyone needs it (value=application at its
 purest). *(2026-07-31: the consumer is now designed —
-[preservation-slate](./preservation-slate.md); note salt does not yet exist as a
+[preservation-slate](../tails/preservation-slate.md); note salt does not yet exist as a
 solid `Material`, only `bulk/salt-water`.)*
 
 **Gold — the hoard, not the coin [DECIDED].** Store of value, **Mammon's metal**,
@@ -1185,7 +1185,7 @@ data:
 
 Four steps of arithmetic over authored numbers plus one deterministic
 roll. ⭐ `waterTable` earns its keep twice exactly as
-[field-substrate-slate](./field-substrate-slate.md) predicted: it is the
+[field-substrate-slate](../tails/field-substrate-slate.md) predicted: it is the
 **oxide/sulfide boundary** *and* the depth below which **drainage becomes
 somebody's problem**.
 
@@ -1451,7 +1451,7 @@ Stability itself is **derive-on-read over facts already stored** —
 `f(span, ground, support, water)`, where span comes from the carved set,
 ground from the host `Material`, support from the sets present and their
 condition, water from the wetness substrate. ⭐ It is the **derived** kind
-of [field](./field-substrate-slate.md), consuming the **seeded** geology
+of [field](../tails/field-substrate-slate.md), consuming the **seeded** geology
 field's ground quality: the two compose exactly as that slate predicted.
 
 ⚠ **And it is a threshold, never a roll** — `uncertainty.md` forbids

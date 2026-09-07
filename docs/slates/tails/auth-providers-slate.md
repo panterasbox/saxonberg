@@ -35,7 +35,7 @@ See also:
 
 - [docs/subsystems/connection.md](../../subsystems/connection.md) — the
   login/logout, WebSocket-upgrade, and session lifecycle this hooks.
-- [docs/slates/persistence-architecture-slate.md](./persistence-architecture-slate.md)
+- [docs/slates/persistence-architecture-slate.md](../builds/persistence-architecture-slate.md)
   — `Document` (plain JSON, no Stuff) is what `GoogleProfile` / `User` /
   `TwitchProfile` all are.
 - [char-gen.md](../../subsystems/char-gen.md) *(shipped; slate retired)* — char-gen is

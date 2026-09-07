@@ -14,7 +14,7 @@
 > — the focus-tagged-Transcript *mechanic* designed there stands as the
 > substrate, but one framing there is corrected here: a guild's domain is
 > **chartered and authored**, never derived from member behavior. The
-> old [affiliation-slate § Guild](../deferred-rpg/affiliation-slate.md)
+> old [affiliation-slate § Guild](./affiliation-slate.md)
 > sketch is two supersessions deep; both now point here.
 
 ## What a guild is
@@ -681,7 +681,7 @@ Three practical payoffs beyond the fiction:
 [advancement-slate](./advancement-slate.md) (the focus mechanic + the
 superseded § Guilds) · [advancement.md](../../subsystems/advancement.md)
 (Catalog / Transcript / Competence, the estimator's difficulty math) ·
-[affiliation-slate](../deferred-rpg/affiliation-slate.md) (axes; house /
+[affiliation-slate](./affiliation-slate.md) (axes; house /
 religion siblings) · [corpos-slate](./corpos-slate.md) (sponsorship,
 labor/capital) · [party.md](../../subsystems/party.md) (the
 Idea-backed-by-Document shape; form/join/earn) ·
