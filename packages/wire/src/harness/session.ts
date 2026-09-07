@@ -140,9 +140,21 @@ function splitFrames(raw: string): AnyFrame[] {
   return out;
 }
 
-/** Strip MML tags so a prose read sees what the player sees. */
+/**
+ * Strip MML tags so a prose read sees what the player sees.
+ *
+ * ⚠ A tag becomes a SPACE, not nothing. Deleting it outright welds the
+ * text on either side into one word: `<b>expert</b><i>business-admin</i>`
+ * renders as `expertbusiness-admin`, and `\bexpert\b` then does not
+ * match. That cost a real diagnosis — a competence sweep counted one
+ * band where the world had answered with two — and it is the kind of
+ * bug that makes a test wrong in the safe-looking direction.
+ */
 export const plain = (s: string): string =>
-  s.replace(/<[^>]*>/g, '').replace(/\\n/g, '\n');
+  s
+    .replace(/<[^>]*>/g, ' ')
+    .replace(/\\n/g, '\n')
+    .replace(/[ \t]{2,}/g, ' ');
 
 /** POST the test-auth seam and return the session cookie header. */
 async function login(

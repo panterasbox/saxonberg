@@ -13,6 +13,7 @@ export type { CommandResult, QueryRecord } from './session';
 export {
   expectOk,
   expectRefused,
+  expectOkOr,
   expectNote,
   expectNoNote,
   engagementIdOf,

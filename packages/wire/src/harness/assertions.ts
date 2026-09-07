@@ -54,6 +54,32 @@ export function expectNote(
   return found!;
 }
 
+/**
+ * The act succeeded, **or** was declined for a reason the caller has
+ * decided is equivalent for its purposes.
+ *
+ * ⭐ For preconditions, not outcomes. The canonical case is a shared
+ * fixture another file already put into the state you wanted: `ignite
+ * oven` answers `already-burning` when the hearth is lit, and a test
+ * whose requirement is *"the hearth is lit"* should not care which file
+ * lit it. Use it where the postcondition is what matters; never to
+ * launder a refusal you did not expect.
+ */
+export function expectOkOr(
+  result: CommandResult,
+  ...reasons: string[]
+): void {
+  if (result.status === 'ok') return;
+  const seen = result.notes
+    .map((n) => (n as { reason?: string }).reason)
+    .filter((r): r is string => typeof r === 'string');
+  const matched = seen.some((r) => reasons.includes(r));
+  expect(
+    matched,
+    `expected ok or one of [${reasons.join(', ')}] — got ${describe(result)}`
+  ).toBe(true);
+}
+
 /** The dispatch carried NO note of this kind. */
 export function expectNoNote(result: CommandResult, kind: Note['kind']): void {
   const found = result.notes.find((n) => n.kind === kind);
