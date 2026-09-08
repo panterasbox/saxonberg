@@ -4149,3 +4149,52 @@ odd one out is usually the one whose home is wrong.
 ordinary and fine. This is about optional chaining on a **method the
 type system was told to stop checking for**.
 
+
+## Keying a PERSON on `getTemplatePath()`
+
+**Every player Avatar shares one `templatePath`.** Since D17 split
+identity from lineage, an Avatar is cloned from
+`Avatar.SEED_TEMPLATE_PATH` with its per-player path supplied as
+`asIdentityPath`, and `StuffApi.clone` stamps the two **separately**
+(`_stampTemplatePath` then `_stampIdentityPath`). So the template path
+is the LINEAGE — the same string for every player alive — and only
+`getIdentityPath()` tells one person from another.
+
+```ts
+// WRONG — every player collapses to the same key
+const key = actor.getTemplatePath() ?? "";
+if (key === record.issuer.templatePath) { /* "your own gig" */ }
+
+// RIGHT — the minted identity, falling back to lineage for anything
+// that has none (an NPC, a business, a fixture)
+const key = actor.getIdentityPath() ?? "";
+```
+
+`getIdentityPath()` returns the stamped instance identity when one was
+minted and `getTemplatePath()` otherwise, so switching is
+**behaviour-preserving for everything that is not a player** — which is
+why it is the right default for any durable person key: bank account
+owners, contract parties, chattel stamps, grants, group memberships,
+chronicle subjects.
+
+### What keying on lineage actually cost (2026-09-08)
+
+Both found by driving the world; neither was visible to the suite.
+
+- **Every player shared ONE BANK ACCOUNT.** Two characters minted
+  seconds apart both read a balance of 2,480 zorkmids — a new account
+  opens at zero. (`BankingLogic.actingActorKey()`.)
+- **Nobody could claim anybody's gig.** `job claim <any real id>`
+  answered *"you can't claim your own gig"* to every claimant including
+  the founder, because the self-claim guard compared two identical seed
+  paths. (`ContractLogic`, five sites.) `job claim <garbage>` correctly
+  answered "no such gig", so resolution was fine — the guard was
+  matching everyone.
+
+⭐⭐ **`contract-lifecycle.test.ts` covers the self-claim path and
+PASSES**, because its fixtures set real, distinct template paths. A
+green suite means self-consistent, not working.
+
+⚠ `Stuff.getPlayerId()`'s docblock *said* `getTemplatePath()` until this
+was found, and that is what every call site followed. When a convention
+turns out wrong, fix the doc that taught it — not only the callers.

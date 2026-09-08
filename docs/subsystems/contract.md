@@ -124,6 +124,21 @@ cannot solve your own backhaul*, which is a coordination problem with
 visible waste and the cleanest teachable case of why intermediaries
 exist.
 
+## ⚠⚠ A party is keyed on its IDENTITY path
+
+`ContractParty.templatePath` holds whatever
+**`getIdentityPath()`** returned — the field name predates the D17
+identity/lineage split and is now the misleading half of this record.
+Keying a party on `getTemplatePath()` instead makes **every player
+identical**, because they all share one template path: the self-claim
+guard then refuses every gig to every claimant with *"you can't claim
+your own gig"*, which is exactly what shipped until 2026-09.
+
+⭐ `contract-lifecycle.test.ts` covers that guard and passes, because
+its fixtures set real, distinct template paths. Only driving the world
+found it. See
+[antipatterns.md § Keying a PERSON on `getTemplatePath()`](../antipatterns.md).
+
 ## Claim modes
 
 - **Exclusive** (the delivery default): `claim` escrows and locks the

@@ -86,7 +86,7 @@ export default class TipController extends CommandController<TipModel> {
       });
       return;
     }
-    const recipientKey = recipient.getTemplatePath();
+    const recipientKey = recipient.getIdentityPath();
     const recipientAccount = recipientKey
       ? await BankingApi.primaryAccountIdOf(recipientKey)
       : null;

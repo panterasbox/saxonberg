@@ -170,6 +170,17 @@ the requirements doc against the running game, and append the result
 to the plan as the drive record (`farming-plan.md § Checkpoint A` is
 the precedent).
 
+⭐⭐ **The drive IS a wire file.** Since 2026-09-08 it is written at
+`packages/wire/tests/<feature>.wire.test.ts` (or `.dirty.` when it
+consumes something the world does not regenerate) and keeps running on
+every MR; `/finalize` confirms it landed in the suite instead of being
+discarded. `lint:drive-scripts` holds `packages/server/scripts/drive-*.ts`
+at zero. ⚠ The five one-off drive scripts that shape replaced were each
+dead the day after their MR merged, and when they were finally migrated
+**two had been failing on master with nobody able to know**
+(`drive-textiles` 5 of 16 checkpoints, `drive-identity` 6 of 18). See
+[testing.md § Two tiers](./testing.md).
+
 This is not optional and not a formality. Every build that was driven
 found defects the suite could not — cooking 6, textiles 3 — and
 metal-chain's drive surfaced `five pre-existing boot-breaking defects`
