@@ -13,9 +13,12 @@ X?"* by walking the entire object registry — every instance and every
 authored row — and filtering afterwards. Some of those places are cold
 (once, at shutdown). Others run when you get paid, when you put a coat
 on, when a shopkeeper notices you, and once per tick for every NPC
-minding a property. The cost does not scale with the answer; it scales
-with **how much world exists**, so every locality that ships makes every
-one of them slower, forever.
+minding a property. The cost does not scale with the answer; it scales with
+**how much world exists** — today 1,785 objects with nobody logged in,
+and it never shrinks — multiplied by how often the question is asked.
+⭐ At that size the second term is the one that hurts: one of these
+questions, asked once per creature per tick, has already pinned a CPU
+core in a live drive.
 
 This build stops that. It makes the common question cheap by indexing the
 one axis every object actually has, gives the rest of the questions to the
@@ -341,12 +344,34 @@ Observable from outside the code, by a person:
    new instance of the pattern cannot be added without the addition being
    visible and deliberate.
 
-⚠ **One measurement is owed**: how many objects a populated world
-actually holds. It does not change the priority order (the money paths
-lead regardless), but the claim *"the cost scales with how much world
-exists"* should carry a number before the MR closes, and the number is
-also the honest baseline for judging whether an indexed-but-broad
-question is still too big. Being taken during this cycle.
+### The measurement, and what it corrects
+
+**A booted world holds 1,785 objects, with nobody logged in.** Measured
+during this phase against the shipped content set.
+
+⚠ **That is smaller than the framing above implies, and it sharpens the
+diagnosis rather than weakening it.** The rest/recovery path pinned a CPU
+core *at this size*. So the dominant term is **not how big the world is —
+it is how often the question is asked**: a scan of ~1,800 objects, each
+costing a walk up its own class chain, run once per creature per tick, is
+what stalls a server. Size is the multiplier; frequency is the problem.
+
+Three consequences, and they are why this sits in requirements rather
+than the plan:
+
+1. **The priority order is confirmed by measurement**, not asserted: the
+   hot and repeated callers are fixed first, and the index — the
+   satisfying piece of substrate — comes after them, because at this size
+   an index alone would not have saved the path that actually broke.
+2. ⚠ **"Indexed but still too big" is a future risk, not a present one.**
+   At 1,785 an indexed question over even a broad category is cheap. The
+   guard against growth is that the realm's own code may only ask
+   questions the index can answer — not that any given category happens
+   to be small today. **Category sizes must be re-measured, never
+   assumed.**
+3. **This number is a baseline worth keeping.** It grows with every
+   locality shipped and every player housed, and it never shrinks. Worth
+   re-reading after the next content build to see what the curve does.
 
 ---
 
