@@ -89,6 +89,94 @@ alone.
 
 ---
 
+## ⭐⭐ Combat is a minigame — the scope statement
+
+> **User: "combat is essentially a minigame, that's how I approach
+> incorporating it into the larger design… if you play a martial style of
+> game, you can expect to be constantly fighting. but you don't have to
+> play those games that way at all… the game still affords you a sense
+> that you're competing in the same space with all the other players."**
+
+The Paradox model: combat is resolved *inside* the grand game, not as the
+grand game. Two consequences this build is bound by:
+
+- **Cadence is content's call, not the engine's.** How often anybody
+  fights is decided by what content developers write, so the engine must
+  make a fight *affordable to lose* rather than assume a frequency.
+- ⚠ **The D&D loop is the failure to design against, and it recurs one
+  level down.** D&D's XP comes from violence and is spent on violence — a
+  sealed economy. Disciplines break that at the top level, but **if
+  martial Disciplines are advanced only by fighting and useful only for
+  fighting, the fighter is in the same sealed room with better
+  furniture.** Every design in this slate should be checked for whether
+  it leaks *into and out of* the martial branch.
+
+---
+
+## ⭐⭐⭐ Player expectations — meet or defy, stated
+
+> **User: "players have some very specific expectations for gameplay on a
+> multiplayer RPG. we have to either meet them or explicitly defy them,
+> but as far as I know, we've never even had the conversation."**
+
+**This table is that conversation.** Every row is a defiance we are
+choosing, or a convention we are keeping, and the point is that none of
+them should be discovered by a player as a surprise.
+
+| expectation | verdict | what we do instead |
+|---|---|---|
+| an HP number | ⛔ **defied** | a derived band + named injuries; poise carries the per-exchange read |
+| damage is a race to 0 | ⛔ **defied** | poise is the race; the wound is the stake |
+| a potion/heal returns you to full | ⛔ **defied** | healing is time, treatment and a Discipline |
+| XP loss on death | ⛔ **defied** | the Transcript survives; the cost is a temporary global suppression (design G) |
+| levels buy survivability | ⛔⛔ **defied hardest** | advancement buys the **contest** (`Sharpness` → poise recovery + read-fog), never the body. A knife in the neck kills a veteran |
+| elemental resists as a character stat | ⛔ **defied** | resistance is a property of your **armor and tissue**, not of you |
+| a corpse run | ✅ **met, and better** | your gear is on a decaying **forensic** object others may loot *or examine* |
+| you can flee / surrender | ✅ **met** | `yield` (records a loss) and backing down (records none) both ship |
+| gear degrades and needs a smith | ✅ **met** | armor wears per blow; the repair shop is W15 |
+
+⚠ **The one that will hurt most is levels-buy-survivability**, and it is
+the one to state loudest in player-facing material. It is also the one
+the design is most confident about — see
+[the three clocks](#the-three-clocks).
+
+---
+
+## ⚠ The armour failure mode — the case content must be designed for
+
+> **User: "you can mitigate this with armor and such, and that's how
+> humans really dealt with a violent world. but then it flips from
+> everyones in the hospital to no one ever gets hurt unless their armor
+> fails. not a dealbreaker but we have to design content for that
+> specific failure mode."**
+
+Both horns are real and the shipped `energyFor(band)` already resolves
+them — **armour does not buy immunity, it buys a margin in the poise
+contest.** At `steady`/`pressed` an armoured fighter takes 1.2–1.6 and
+the fold eats it; at `broken`/`open` it is 3–4.5 and the fold does not.
+**You bleed when you are losing, not when you are touched.**
+
+But that only holds if armour stays *costly*, so this is a content
+obligation as much as an engine one:
+
+- **it wears** — already true (`craftingWearArmorPerBlow × seamWear`), and
+  W15 gives the wear a shop to be repaired at;
+- **it is heavy** — encumbrance ships and bites;
+- **it is hot, and it is expensive** — content's job.
+
+⭐ And the interesting consequence is not a failure at all: **a world
+where a blade cannot beat plate is a world where you poison the wine.**
+The routes around armour are all shipped and all more interesting than a
+bigger sword — fire, electricity, poison, drowning, falling, the gap in
+the harness. ⚠ **Content that wants a threat against armoured people
+should reach for one of those**, not for a bigger number.
+
+⭐⭐ **Who can afford not to get hurt is then a political question**, in a
+game about political questions — lenses 1 and 4 choosing the limb, not a
+compromise.
+
+---
+
 ## ⭐ What is actually wired — verified, and more than expected
 
 The conversation began from *"conditions don't do anything"*. That is
