@@ -96,6 +96,9 @@ unbuilt and the creature half of spawn-distribution is unbuilt, so
   rather than in any figure shown to a player.
 - **A player can leave an animal somewhere**, so that following is a thing
   they choose rather than a thing that happens to them.
+- **An animal that is not yet attached goes back where it belongs** rather
+  than being lost, and **where it belongs can change** by being kept and
+  fed somewhere new.
 - **An animal's reaction is worth reading** — it notices things a player
   cannot, and shows it by behaving rather than by reporting.
 - **A companion ages, and dies of it**, on the same terms as every other
@@ -117,7 +120,10 @@ unbuilt and the creature half of spawn-distribution is unbuilt, so
   room can already be attacked, and harm to a kept animal already lands
   in the harm ledger against its owner, which is the honest minimum.
 - **The six-outcome off-screen ladder** (it wandered, it was hurt, it came
-  home) and species home range → Wave 2. An absence is answered in this
+  home) and the species roaming band → Wave 2. ⚠ **Wave 1 keeps the
+  smallest piece of this**: an animal has a place it belongs, and that
+  place can change. Without it, an animal that declines to follow has
+  nowhere to be. An absence is answered in this
   build by the bond cooling toward its floor.
 - **Reading an animal's opinion of other PEOPLE** — a dog that likes a
   stranger, a cat that will not share a room with one → Wave 2. It is the
@@ -411,6 +417,67 @@ face.
 ⭐ **And a refusal must never be random.** It is legible or it is noise:
 the dog did not ignore you, the dog is watching the fox.
 
+### It does not run away — it fails to follow, and it goes home
+
+**Q:** Can a companion be lost before it is properly yours?
+
+**A:** **Yes, but never as an event.** There is no runaway. There is a
+threshold on following, and below it the animal simply goes where it
+belongs instead of where you are.
+
+> A runaway is punitive, discrete and surprising. **Not following is
+> continuous, legible and recoverable** — you always know where it is,
+> because it is where it lives.
+
+So a half-bonded animal comes home with you some days and is back on its
+own ground on others, and the player's response is to go and keep working
+at it rather than to grieve a loss. ⭐ It also makes the liminal
+*adopted-but-not-yet-yours* state real without a scrap of machinery for
+it: the wobble **is** the state.
+
+⚠ This needs one thing in Wave 1 that the fuller off-screen model
+otherwise owns: **an animal has somewhere it belongs.** Not the species
+roaming band with a radius and an outcome table — that stays Wave 2 —
+just *the place it came from*. One fact, not a field.
+
+### Home is a thing that changes, and the door is how
+
+**Q:** Should a player be able to shut a new animal in while it settles?
+
+**A:** **They already can, and this build must not turn that into a
+feature.**
+
+A closed door stops an animal because a closed door stops everything —
+that is shipped boundary behaviour and it needs nothing added. ⚠⚠ **What
+must not ship is a cage as an affordance.** A build whose thesis is *the
+animal decides* cannot also offer a pet-containment system; "the door
+works on cats too" is honest physics, and "here is how to remove its
+choice" is the design contradicting itself.
+
+⭐⭐ **And shutting an animal in is the dish.** It keeps the animal alive
+and where you left it; it earns you nothing. Delegable, cheap, protective,
+bond-neutral — the same rule as every other material act in this build.
+
+⭐⭐⭐ **The mechanic worth having is not restraint, it is that home
+moves.** The real reason a new cat is kept indoors is not to stop it
+escaping; it is so that it learns where it lives. An animal's home is
+**where it has been fed and kept**, so it updates — which turns the door
+from a cage into a temporary tool with an ending:
+
+> **You do not shut the door to stop it leaving. You shut it so that
+> leaving stops meaning going somewhere else.**
+
+The payoff is the animal choosing to come back, which is the same *who
+decided* axis the rest of this build runs on.
+
+⚠ **The cruelty edge is real and is deliberately not adjudicated.**
+Keeping a new animal in is good ownership; keeping a bonded one shut up
+indefinitely is not, and the difference is duration and bond rather than
+anything the engine can read cleanly. The harm ledger already covers
+cruelty, and the slate's answer holds: **this is enforced by witness, not
+by system.** Anyone who visits can see how long that animal has been in
+that room.
+
 ### An animal's reaction is a perception channel
 
 **Q:** Does a companion tell you anything about the world?
@@ -643,23 +710,29 @@ Run against the live game before the MR opens.
     carcass left too long. ⭐⭐⭐ **It will not touch it**, and nothing in
     the game would otherwise have told you. *Eat it yourself and find out
     why it was right.*
-18. **Log out. Log back in.** It is still there, still named, still knows
+18. Earlier than all this — back when it barely knew you — you had walked
+    off and it **had not come.** You found it again on the lane, where it
+    lives. ⭐ *Nothing was lost and nothing announced a loss.*
+19. Take it home and **shut the door** for a few days, feeding it there.
+    Then open the door. It goes out — **and it comes back.** ⭐⭐⭐ *Home
+    moved. You did not cage it; you changed where it lives.*
+20. **Log out. Log back in.** It is still there, still named, still knows
     you. ⭐ *This is the step the build exists for.*
-19. Stay away a game month. Come back to **a dish with something turned in
+21. Stay away a game month. Come back to **a dish with something turned in
     it**, and a cat that is cooler with you and has not gone feral. ⭐⭐
     *Nothing told you a number. The room told you.* Feed it twice and you
     are back.
-20. Go to the ranch and spend time with the collie. It bonds on the same
+22. Go to the ranch and spend time with the collie. It bonds on the same
     terms — and it is still a working dog, still doing its job, better for
     being known.
-21. **Ask the collie to come. It comes.** ⭐⭐⭐ *Same care, same bond, same
+23. **Ask the collie to come. It comes.** ⭐⭐⭐ *Same care, same bond, same
     verb, opposite answer — and the reason is the animal, not the player.*
-22. Ask it again while something else already has it — stock on the move,
+24. Ask it again while something else already has it — stock on the move,
     or the fox in the yard, whichever the world offers. **It does not
     come**, and you can see exactly what it chose instead. ⚠ *A refusal
     you cannot explain from the room is the defect this step is looking
     for.*
-23. Look at an animal near the end of its span. **It reads as old** — you
+25. Look at an animal near the end of its span. **It reads as old** — you
     can see it coming, and nothing had to announce it.
 
 ⚠ **Not drivable in one sitting, and stated so it is not mistaken for a
@@ -711,13 +784,20 @@ Observable from outside the code, by a person playing.
 15. A player is never told, by any interface, that the animal they have
     just been adopted by is now theirs — they work it out because it
     followed them home.
-16. A player talks to an NPC, the server restarts, and the NPC still knows
+16. A player walks away from a barely-attached animal, it does not come,
+    and they find it later where it lives — **without the game having
+    reported a loss.**
+17. A player who keeps an animal somewhere and feeds it there finds that,
+    once let out, **it comes back to that place on its own.**
+18. A player can shut a door on an animal and it stays put, and doing so
+    **does not improve the animal's regard for them at all**.
+19. A player talks to an NPC, the server restarts, and the NPC still knows
     them.
-17. A player asks the world which things are theirs, and is answered.
-18. A second companion species can be added by a content author writing two
+20. A player asks the world which things are theirs, and is answered.
+21. A second companion species can be added by a content author writing two
     rows and no code — including how winnable it is and how biddable, which
     are separate answers.
-19. A second kind of feeding vessel — a trough, a hayrack — can be added
+22. A second kind of feeding vessel — a trough, a hayrack — can be added
     the same way.
 
 ---
