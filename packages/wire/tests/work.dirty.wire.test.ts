@@ -78,6 +78,9 @@ async function balanceOf(s: Session): Promise<number | null> {
 
 async function walk(s: Session, dirs: string[]): Promise<void> {
   for (const d of dirs) expectOk(await s.cmd(d));
+  // Nobody reads a walk's prose, so its scenes would otherwise land in
+  // the next command's buffer and be mistaken for its answer.
+  await s.drainProse();
 }
 
 /**
@@ -196,52 +199,46 @@ suite('the boss funds himself and posts a gig', () => {
 });
 
 /*
- * ⚠⚠⚠ **FINDING — NOBODY CAN CLAIM ANYBODY'S GIG. The labor market does
- * not work.**
+ * ⭐⭐⭐ **This suite could not run at all until this build fixed the
+ * engine, and the bug it found was much larger than the gig board.**
  *
- * Observed on master, over the wire, against a world booted from a fresh
- * database:
+ * `job claim <any real gig>` answered *"You can't claim that: you can't
+ * claim your own gig"* — to a character minted seconds earlier that had
+ * never posted anything, for every gig on the board, and to the founder
+ * too. `job claim ZZZZnope` correctly answered "no such gig", so id
+ * resolution was fine: the SELF-CLAIM GUARD was matching everyone.
  *
- *   - `job claim <a-real-id>` answers *"You can't claim that: you can't
- *     claim your own gig"* — to a character minted seconds earlier that
- *     has never posted anything.
- *   - It answers that for EVERY gig on the board, posted by four
- *     different characters.
- *   - It answers that to the FOUNDER too.
- *   - `job claim ZZZZnope` answers *"no such gig"*, so id resolution is
- *     working. The refusal is the self-claim guard, and it is matching
- *     everyone.
+ * The cause was not in the contract substrate. Since D17 split identity
+ * from lineage, a player Avatar is cloned from `Avatar.SEED_TEMPLATE_PATH`
+ * with its per-player path supplied as `asIdentityPath`
+ * (`StuffApi.clone` stamps the two separately) — so **every player shares
+ * one `getTemplatePath()`** and only `getIdentityPath()` tells them
+ * apart. Banking and contracts were keying persons on lineage.
  *
- * The guard is `ContractLogic.ts:571`:
+ * ⚠⚠ The gig board was the SMALL half. Every player also shared ONE BANK
+ * ACCOUNT: two characters minted seconds apart both read a balance of
+ * 2480 zorkmids, and a brand-new account is supposed to open at zero.
+ * `actingActorKey()` in `BankingLogic` derived the owner key the same
+ * wrong way.
  *
- *     const key = claimer.getTemplatePath() ?? "";
- *     if (key === record.issuer.templatePath) { … "your own gig" }
+ * Fixed by keying persons on `getIdentityPath()` — which for anything
+ * that is not a minted identity falls back to `getTemplatePath()`, so
+ * NPCs, businesses and fixtures are untouched. It is the accessor
+ * `Chattel` already used, and the one `Stuff.getPlayerId()`'s docblock
+ * now names (it said `getTemplatePath()`, which is what everybody
+ * followed).
  *
- * and `ContractRecord`'s party defaults to `templatePath: ""`. A player
- * Avatar is minted with **no per-player template row** (CLAUDE.md §
- * Authentication), so the strong reading is that both sides collapse to
- * the empty string and the comparison is `"" === ""` for every pair.
- * ⓘ Not fully confirmed: `templatePath` is not a projected field, so it
- * could not be read over the wire. The behaviour is confirmed; that
- * exact mechanism is the hypothesis the code supports.
- *
- * ⭐⭐ **`contract-lifecycle.test.ts` covers this path and passes**, with
- * fixtures that set real, distinct template paths. A green suite means
- * self-consistent, not working — and this is what that sentence looks
- * like in the field.
- *
- * NOT FIXED HERE. This is an infra build; a one-line change to the
- * contract substrate is a conversation, not something to smuggle into a
- * test migration. The claim is marked `it.fails` so it documents the
- * defect and **starts failing the moment somebody repairs it**; the four
- * checkpoints downstream of it are skipped, naming this one.
+ * ⭐⭐ Neither defect was visible to the suite. `contract-lifecycle.test.ts`
+ * covers the self-claim path and passes, because its fixtures set real
+ * distinct template paths. A green suite means self-consistent, not
+ * working — and both of these took a session over the real wire.
  */
 suite('a fresh worker claims, delivers and is paid', () => {
   beforeAll(async () => {
     w = await Session.open(uniqueHandle('worker'), { startLocation: HALL });
   }, 120_000);
 
-  it.fails('sees the gig and claims it into escrow', async () => {
+  it('sees the gig and claims it into escrow', async () => {
     expect(await w.prose('job')).toContain(gigId);
     const claimed = await w.cmd(`job claim ${gigId}`);
     expect(
@@ -251,8 +248,7 @@ suite('a fresh worker claims, delivers and is paid', () => {
     expect((await claimed.said()).toLowerCase()).toContain('escrow');
   }, 120_000);
 
-  // ⛔ Blocked by the claim defect above — the worker never holds a claim.
-  it.skip('carries the torch to the gate and fulfills', async () => {
+  it('carries the torch to the gate and fulfills', async () => {
     expectOk(await w.cmd('get torch'));
     expectOk(await w.cmd('north'));
     expectOk(await w.cmd('drop torch'));
@@ -263,8 +259,7 @@ suite('a fresh worker claims, delivers and is paid', () => {
     );
   }, 180_000);
 
-  // ⛔ Blocked by the claim defect above.
-  it.skip('⭐ an unbanked worker is REFUSED the payout', async () => {
+  it('⭐ an unbanked worker is REFUSED the payout', async () => {
     // The refusal that makes the banking layer real: work done is not
     // money earned until there is somewhere to put it.
     expectOk(await w.cmd('south'));
@@ -272,8 +267,7 @@ suite('a fresh worker claims, delivers and is paid', () => {
     expect((await refused.said()).toLowerCase()).toContain('no account');
   }, 120_000);
 
-  // ⛔ Blocked by the claim defect above.
-  it.skip('opens an account, completes, and is paid out of escrow', async () => {
+  it('opens an account, completes, and is paid out of escrow', async () => {
     await walk(w, ['north', 'north', 'west', 'west']);
     expectOk(await w.cmd('bank open'));
     await walk(w, ['east', 'east', 'south', 'south']);
@@ -282,16 +276,14 @@ suite('a fresh worker claims, delivers and is paid', () => {
     expect((await paid.said()).toLowerCase()).toMatch(/pays out|released from escrow/);
   }, 300_000);
 
-  // ⛔ Blocked by the claim defect above.
-  it.skip('a closed gig cannot be completed twice, and the money landed', async () => {
+  it('a closed gig cannot be completed twice, and the money landed', async () => {
     const again = await w.cmd(`job complete ${gigId}`);
     expect((await again.said()).toLowerCase()).toMatch(/closed|no such|isn't done/);
     await walk(w, ['north', 'north', 'west', 'west']);
     expect(await balanceOf(w)).toBe(25);
   }, 300_000);
 
-  // ⛔ Blocked by the claim defect above.
-  it.skip('the settled gig comes OFF the board', async () => {
+  it('the settled gig comes OFF the board', async () => {
     /*
      * ⚠ The original asserted the board reads "bare". It cannot: gigs
      * from earlier runs are still posted, because nothing expires an

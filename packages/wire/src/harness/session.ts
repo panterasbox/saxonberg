@@ -613,6 +613,23 @@ export class Session {
     );
   }
 
+  /**
+   * Wait for the socket to fall quiet and drop whatever is buffered.
+   *
+   * ⭐ For after a run of commands whose prose nobody read — a walk of
+   * eight legs, say. Their scenes arrive on the slower prose channel
+   * (see {@link Session.cmd}) and land in the buffer of whatever command
+   * comes next, so the first `said()` after a walk can return "you leave
+   * to the east" instead of its own answer. Outcomes are unaffected;
+   * this is only needed before a PROSE read.
+   */
+  async drainProse(): Promise<void> {
+    await this.settle(200, 4_000);
+    this.captureLast?.();
+    this.captureLast = null;
+    this.proseFrames.length = 0;
+  }
+
   close(): void {
     if (this.closed) return;
     this.closed = true;
