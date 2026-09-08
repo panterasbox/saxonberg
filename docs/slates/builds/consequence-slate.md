@@ -3,10 +3,11 @@
 > **Status: PARTIAL** — the substrate is all shipped (harm · combat ·
 > mortality · poise · materials-response); the **consequence layer** over
 > it is not.
-> **Left:** the wound→poise edge · the consequence table (`signature`
-> wired · burn's fluid loss · contusion's cost) · the wake (medic ·
-> armorer · coroner · guard as *demand*) · the non-martial composure hook
-> **Size:** a build
+> **Left:** the wound→poise edge · the `afflict` door · the **three dead
+> channels** (`signature` · `resolution` · `contagion`) · the `governs`
+> rename · the diagnosis surface · burn's fluid loss · contusion's cost ·
+> the wake (medic · armorer · coroner · guard as *demand*)
+> **Size:** a build — ⭐ **a large one**; see [Scope](#scope--what-this-build-takes)
 
 **Captured 2026-09-08**, out of a design conversation that opened with
 *"we don't have hitpoints"* and ended somewhere else entirely.
@@ -26,10 +27,19 @@
 **Read first:** [combat-slate](./combat-slate.md) (§ terms & consent — the
 frame this slate leans on) · [combat-experience-slate](./combat-experience-slate.md)
 (⭐ Thesis 5 is the `Sharpness.g(composure)` inert seam **this slate's
-part D fills from the non-martial side**) ·
-[blood-slate](./blood-slate.md) (the *other* consumer of a bleed that
-bites) · [medic-judgment-slate](./medic-judgment-slate.md) (⭐ the demand
-this slate creates is that slate's missing patient).
+part D hooks from the non-martial side**) ·
+[vitals-slate](../tails/vitals-slate.md) + [health-vertical-slate](./health-vertical-slate.md)
++ [disease-slate](./disease-slate.md) (⭐⭐ **the three that each describe
+one of Finding 2's three dead channels** — read that finding before any of
+them) · [medic-judgment-slate](./medic-judgment-slate.md) (the clinic,
+W6) · [physiology-slate](./physiology-slate.md)
+(the `governs` axis W5 takes over) · [blood-slate](./blood-slate.md) (the
+*other* consumer of a bleed that bites — cut, deliberately).
+
+**Issues:** [#38 the clinic](https://gitlab.com/panterasbox/saxonberg/-/issues/38)
+(split — W6a in, W6b stretch) ·
+[#39 the repair shop](https://gitlab.com/panterasbox/saxonberg/-/issues/39) (W7) ·
+[#40 the necropolis](https://gitlab.com/panterasbox/saxonberg/-/issues/40) (W8).
 
 **Substrates:** [harm.md](../../subsystems/harm.md) ·
 [vitals.md](../../subsystems/vitals.md) ·
@@ -114,23 +124,56 @@ staggers you; staying cut keeps you losing.
 
 ---
 
-## Finding 2 ⭐⭐ — the consequence channel is declared, empty, and unread
+## Finding 2 ⭐⭐⭐ — three dead channels on one class
 
-The Kind-A affliction template declares `signature: VitalEffect[]` — *how
-this perturbs vital signs*. It is the dictionary the conversation went
-looking for.
+The `Condition` Idea is a **content schema whose behavioural half is
+fully declared and entirely unconsumed.** Every authored field checked
+against its real consumers — and two of them have same-named methods on
+*unrelated* classes (`Blueprint.getSignature`, `CombatSession.getResolution`)
+that inflate a naive grep, which is probably why this went unnoticed:
 
-- **23 of 23** authored `Condition` rows carry `signature: []`.
-- **Zero** call sites read `getSignature()` — the only occurrence of
-  the name in the server tree is its own declaration
-  (`platform/idea/Condition.ts:674`). The similarly-named
-  `lib/studio/Blueprint.ts` method is unrelated.
+| field | what it declares | consumer |
+|---|---|---|
+| `progression` | stage cadence | ✅ `Vitals:920` |
+| `toxinBehavior` | per-body rates | ✅ 2 sites |
+| `pathogenBehavior` | population constants | ✅ 1 site |
+| `mentalBands` | resist cutoffs | ✅ 1 site |
+| `observableSigns` | what a looker sees | ⚠️ `AssessController:170` — reads `[0]` only |
+| **`signature`** | **what it does to you** | ⛔ **none** |
+| **`resolution`** | **what fixes it** | ⛔ **none** |
+| **`contagion`** | **how it spreads** | ⛔ **none** |
 
-So hypothermia, asphyxiation, ptomaine, venom, lead, carbon monoxide and
-dread each declare how they change a body and each declare *nothing*, and
-nothing would read it if they did.
+All 23 authored rows carry `signature: []`. The only occurrence of
+`getSignature()` on this class in the whole server tree is its own
+declaration (`platform/idea/Condition.ts:674`).
 
-⚠ This is the **best** state to start from: the shape was designed
+⭐ **The three dead fields are exactly *what a condition does, what fixes
+it, and how it spreads*.** The four live ones were each added later by a
+build that needed something specific and grew its own field rather than
+filling the declared one.
+
+⚠ **And there is no door.** `ConditionApi` has exactly four statics —
+`inflict` (trauma-only), `die`, `embodyForSession`, `reembody`. An
+affliction **cannot be applied through the Api by anything**; the shipped
+drivers reach past it into `VitalsMixin.afflict()` directly, which
+harm.md documents as a known consequence.
+
+### ⭐⭐ This is why three slates describe one hole
+
+None of them names it as one thing, because each arrived from its own
+side:
+
+- [vitals-slate](../tails/vitals-slate.md) — *"the affliction driver —
+  disease and poison have no `inflict` path at all"*
+- [health-vertical-slate](./health-vertical-slate.md) — *"a
+  `resolution.by` dispatcher"*
+- [disease-slate](./disease-slate.md) — *"`Condition.contagion` is still
+  `null` with no consumer"*
+
+**That is the spine of this build**, and everything else in this slate is
+downstream of it.
+
+⚠ It is also the **best** state to start from: the shape was designed
 correctly and never wired. The build is a wiring job plus 23 rows of
 authoring, not a redesign.
 
@@ -419,6 +462,13 @@ slate deliberately does not lift it. It wants its own slate next to
 question is whether combat keeps its own `CombatTerms` as a specialization
 or becomes a consumer of the general thing.
 
+**Q7 — does W6b survive requirements?** The judgment loop is the one
+wave whose design is not settled. The honest test at requirements time:
+can a player be *wrong* about a diagnosis in a way the world punishes
+without a roll? If W3/W4 have made conditions genuinely distinguishable,
+yes; if not, W6b is a scoring rubric over a coin flip and should be cut
+rather than shipped thin.
+
 **Q6 — does the guard job need an engine seam at all?** Part C.4 may be
 pure content over the shipped contract board and engagement slots. If it
 is, that is a finding worth stating loudly, because it means the most
@@ -426,23 +476,87 @@ important interplay job in the game costs zero kernel code.
 
 ---
 
-## Rough phases
+## Scope — what this build takes
 
-0. **The audit as a test.** Pin the couplings table above — a
-   characterization test per row, so the two absent edges are absent *on
-   purpose* and the ten present ones cannot silently regress.
-1. **Close the loop** (design A). Wound → poise, with the recovery cap
-   behind a dial.
-2. **The consequence table** (design B). Wire `signature`; author the 23
-   rows; burn's fluid loss; contusion's cost; the `capability` term
-   generalized off fracture.
-3. **The wake** (design C). Medic demand first (it consumes phase 2
-   directly), then the armorer, then the guard contract.
-4. **The composure hook** (design D) — coordinated with combat-experience
-   Thesis 5, or deferred to whichever build reaches it first.
+**Sized 2026-09-08** against the slate backlog and the open issue queue.
+The `governs` rename was the one question that reached outside this
+build's blast radius; **decided: do it here and unblock physiology.**
 
-Phases 1 and 2 are a build on their own and phase 3 is the reason to do
-them. Phase 4 is separable.
+### The waves
+
+| | wave | what |
+|---|---|---|
+| **W0** | the audit as a test | pin the couplings table above — one characterization test per row, so the two absent edges are absent *on purpose* and the ten present ones cannot silently regress |
+| **W1** | close the loop | wound → poise, recovery cap behind a dial (design A) |
+| **W2** | the `afflict` door | `ConditionApi.afflict` / `relieve`, gated like `inflict`. **Nothing downstream is reachable without it** |
+| **W3** | `signature` wired | the declared channel becomes the route by which a condition perturbs a body · the 23 rows authored |
+| **W4** | `resolution.by` dispatched | treatment differs by condition — a burn needs fluid, a cut needs a bandage (health-vertical's named gap) |
+| **W5** | the capability term + ⭐ the `governs` rename | generalize fracture's slot-impair into a declared consequence, on physiology's axis rather than beside it |
+| **W6a** | the diagnosis surface | cues without names, the `analyze` read, the instrument gate — the **read side** of W3/W4 (issue #38, part a) |
+| **W7** | the repair shop | issue **#39** — content pass, ~600 lines mostly YAML, no engine |
+| **W8** | the necropolis | issue **#40** — content pass, no engine |
+| **W6b** | *stretch* — the judgment loop | issue #38 part b: stop auto-selecting, triage under the deterioration clocks, decision-graded `ActSignature` |
+
+W1 is the smallest wave and the largest payoff. W2 gates everything from
+W3 on. W7/W8 are near-free riders that turn part C from an assertion into
+somewhere you can walk.
+
+### ⭐ Why the clinic splits in two
+
+[Issue #38](https://gitlab.com/panterasbox/saxonberg/-/issues/38) leans on
+*"11 `Condition` seeds carrying `observableSigns`, with overlapping signs
+— which is what makes differential diagnosis emerge."* ⚠ **Signs over
+behaviourally-identical conditions are cosmetic.** Today all 23 conditions
+do the same thing (nothing), so naming which one you have changes nothing
+and the diagnosis is a guess at a label with no consequence.
+
+**W3 + W4 are what make diagnosis matter**, which is why the read side
+(W6a) belongs to this build — it is the same dataset from the other end —
+and the judgment loop (W6b) does not have to be. W6b is design-heavy, T2
+rather than T1, and carries several open questions in
+[medic-judgment-slate](./medic-judgment-slate.md). **Decide its fate at
+requirements time, not at wave 6.**
+
+### ⭐ The `governs` rename — decided
+
+[physiology-slate](./physiology-slate.md) wants `BodyPart.governsVital` →
+`governs`, so a part can govern a **capacity** and not only a vital sign,
+and states that its waves 2–3 are blocked on it. That is the **same axis**
+as W5's capability term, and building a parallel one beside
+`governsVital` is the duplication this repo exists to refuse.
+
+Blast radius measured: **12 TypeScript references across 6 files** (3 of
+them tests — `BodyPlan.ts`, `Vitals.ts`, `Attired.ts` + their tests) and
+**7 YAML lines in 3 authored `BodyPlan` rows** (`biped`, `quadruped`,
+`avian`). Cheap, and it unblocks a build that is otherwise stuck.
+
+### What the slate survey folded in
+
+| slate | its *Left* that **is** this build | stays out |
+|---|---|---|
+| [vitals](../tails/vitals-slate.md) *(a wave)* | the affliction driver · forensic exam verbs | medical instruments · consumable-crafting |
+| [health-vertical](./health-vertical-slate.md) | the `resolution.by` dispatcher · the diagnosis surface | apothecary · public health · the College of Physic · the vet track |
+| [medic-judgment](./medic-judgment-slate.md) | = W6a, and W6b as stretch | the NGN-timeline patient · the SBAR handoff |
+| [mortality](./mortality-slate.md) | what diminishment IS (`recovering` is a deliberately empty seed) · the coroner economy → W8 | the passage ladder · re-embodiment vendors |
+| [physiology](./physiology-slate.md) | ⭐ the `governs` rename · pain as a derived reader | the organ roster · substances · prosthetics |
+| [materials-response](../tails/materials-response-slate.md) *(a wave)* | repair / scrap / reforge → W7 | new channels · tissue as a construction axis |
+| [combat-experience](./combat-experience-slate.md) | T5 `g(composure)` — **the seam only** | T11 aftermath · T12 de-escalation · T13 morale |
+| [disease](./disease-slate.md) | the `contagion` consumer hook, iff nearly free | outbreak · quarantine · the husbandry coupling |
+| [blood](./blood-slate.md) | — | all of it |
+
+### ⛔ Cut, and why
+
+- **blood / transfusion** — needs a genotype + compatibility model; its
+  own build. ⭐ This build makes it *want* to exist, which is the correct
+  relationship between the two.
+- **the judgment loop (W6b)** — see above; stretch, not scope.
+- **disease content** — the `contagion` hook may ride along; outbreak,
+  quarantine and the husbandry-is-immunity coupling are a whole build.
+- **composure `g()`** — ⚠ **two claimants**: combat-experience T5 and
+  mind-slate's `traits-stress`. This build ships the **hook and does not
+  fill it**; whoever builds the stress equilibrium owns the multiplier.
+  Note it in both slates so it is not built twice.
+- **the terms/consent lift** — Q5; its own slate, next to governance.
 
 ---
 
@@ -450,7 +564,7 @@ them. Phase 4 is separable.
 
 - **Generalizing poise.** See the rejected fork.
 - **The terms/consent lift.** Q5 — its own slate.
-- **The forensic examination verbs.** Named-and-deferred in mortality.md;
-  the coroner in part C is the *demand*, not the verb suite.
+- **Blood, transfusion and the donation loop.** See the cut list.
 - **The limb-sever / part-promotion seam** at `AVULSION_BEHAVIOR.onset`.
+- **Filling `g(composure)`** — the hook ships, the axis does not.
 - **Anything that renders poise, endurance or a wound as a number.**
