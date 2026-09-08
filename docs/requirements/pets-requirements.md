@@ -74,6 +74,8 @@ unbuilt and the creature half of spawn-distribution is unbuilt, so
   rather than one of its kind.
 - **A cared-for animal follows its person**, and a poorly-bonded one does
   not.
+- **A player can ask a bonded animal for something, and be refused** — for
+  a reason they can see, and never at random.
 - **An NPC's opinion of you survives a server restart.** (W0)
 - **A player can ask the world which things are theirs.** (W0)
 - **A role-filler does not accumulate a personal opinion of anyone.** (W0)
@@ -96,6 +98,11 @@ unbuilt and the creature half of spawn-distribution is unbuilt, so
 - **Institution-held regard** — *the Watch's* opinion of you, shared by
   every watchman → Wave 2. It is a feature, and features do not belong in
   a wave whose job is closing holes.
+- **Training as measured competence** — an animal holding graded skill in
+  the acts it was taught → Wave 2. ⚠ Competence today is carried on the
+  person-tier stack, which a companion animal is deliberately not on, so
+  this is a real piece of work rather than a wiring job. Wave 1's asking
+  is gated on the bond and the species alone.
 - **Breeding, pedigree and papers** → ranching-slate, which carries the
   breeding brief.
 - **A pet Discipline.** Nowhere, deliberately: `stockmanship` is *working
@@ -216,13 +223,42 @@ The floor is per-species, and it is the same slot that says how winnable
 a species is in the first place — a nearly-untameable animal cools
 further, a thoroughly domestic one barely cools at all.
 
-### Domesticability rides the existing slot
+### Agency — you set the animal's job, and you may ask
 
-**Q:** Does a species need a new "how tameable is this" field?
+**Q:** Can a player issue commands to their animal?
 
-**A:** No. The temperament axis already carries a per-species floor and
-ceiling and has shipped with them unauthored. Authoring them *is*
-declaring how winnable the species is.
+**A:** **Yes, but never as a command line into an animal's head.** A
+closed vocabulary of things the animal was individually taught, each of
+which it may decline — plus a standing job it does on its own.
+
+⚠ The realm has **no order-an-actor surface at all** today, so whatever
+this is, it is new. But the game has already answered this question once,
+for directing allies in a fight, and the ruling is binding here:
+**set-policy-then-watch is the text-native answer.** A pet that took
+barked orders in real time would be the same game answering the same
+question two different ways.
+
+Both halves are shipped shapes already: an animal with a standing job is a
+working animal (the farm collie has one now), and a thing you ask in the
+moment is an ordinary verb.
+
+⭐⭐ **Refusal is load-bearing, not flavour.** The automation ladder this
+family runs on is *attention → wages → compute*, and the working animal is
+the rung that **costs a relationship**. If asking is free and reliable, the
+animal becomes free labour and that rung collapses into the other three.
+An animal that can always be told is not a companion; it is a tool with a
+face.
+
+⭐ **And a refusal must never be random.** It is legible or it is noise:
+the dog did not ignore you, the dog is watching the fox.
+
+### Domesticability rides the existing slot — but biddability is its own
+
+**Q:** Does a species need new "how tameable is this" data?
+
+**A:** For **winnability**, no. The temperament axis already carries a
+per-species floor and ceiling and has shipped with them unauthored.
+Authoring them *is* declaring how winnable the species is.
 
 ⭐ **And a species that declares nothing is not "untameable" — it is not
 in the conversation.** Three states, and the middle one is content: a
@@ -230,13 +266,33 @@ species can be winnable, a species can be declared unwinnable (which is
 what makes an apex animal interesting later), and a species can simply not
 be the kind of thing the question applies to.
 
+⭐⭐ **For biddability, yes — and it is a SECOND axis, not the same one.**
+
+> **Winnability and biddability are orthogonal.** A cat is highly winnable
+> and barely biddable. A working dog is biddable the moment it is bonded.
+> A half-wild horse is hard to win and very biddable once won.
+
+Collapsing them would make every well-loved animal obedient, which is
+false about animals and would quietly delete the more interesting half of
+this build. The two species shipping in Wave 1 are the proof, and the cat
+is the **control group**: it must be allowed to simply not.
+
+⭐⭐⭐ **The tell is not whether it moves — it is who decided.** A cat
+follows you down a lane because it feels like it; a dog comes because you
+asked. Identical from the outside, opposite in provenance, and that
+distinction is the whole axis made legible without a number.
+
 ---
 
 ## Lens pass
 
 **1 · Pedagogy.** The Discipline is `stockmanship` — no new one. What is
 being taught is **patience under a delay you cannot shorten**: care now,
-result later, and no way to rush it. The world stays derivable because the
+result later, and no way to rush it. ⭐⭐ And the cat teaches a second
+thing the dog cannot: **you can be loved and not obeyed.** A well-bonded
+animal that declines you separates affection from compliance — true of
+animals, truer of people, and not a lesson many games are shaped to
+deliver. The world stays derivable because the
 animal's state is legible in its behavior rather than hidden behind a
 number, and because how winnable a species is, is authored data rather
 than a class decision made once by a programmer.
@@ -256,7 +312,9 @@ player.
 is a real cost because attention is the one input this build refuses to
 let you buy, hire, or automate. Standing is conferred by the animal and by
 nobody else: no title, no rank, no announcement — it either comes to you
-or it does not.
+or it does not. ⚠ And the animal keeps the right to say no, which is what
+stops a companion becoming staff: the moment asking is free and reliable,
+the relationship is a payroll line.
 
 **5 · Epochs.** People have kept cats for nine thousand years; the
 mechanism is indifferent to the century. Only the dynamics change — a
@@ -296,14 +354,24 @@ Run against the live game before the MR opens.
 11. Try to touch it again. **It permits it.**
 12. Name it. It is yours now — and the name sticks to *this* cat, not to
     cats in general.
-13. Walk down the lane. **It follows you.**
-14. **Log out. Log back in.** It is still there, still named, still knows
+13. Walk down the lane. **It follows you** — and nothing you did asked it
+    to. It came because it felt like it.
+14. Now **ask it to come.** It looks at you. ⭐⭐ **It does not come.** The
+    bond is not the problem and nothing says it is; this is a cat.
+15. **Log out. Log back in.** It is still there, still named, still knows
     you. ⭐ *This is the step the build exists for.*
-15. Stay away a game month. Come back: it is **cooler with you, and it has
+16. Stay away a game month. Come back: it is **cooler with you, and it has
     not gone feral.** Feed it twice and you are back.
-16. Go to the ranch and spend time with the collie. It bonds on the same
+17. Go to the ranch and spend time with the collie. It bonds on the same
     terms — and it is still a working dog, still doing its job, better for
     being known.
+18. **Ask the collie to come. It comes.** ⭐⭐⭐ *Same care, same bond, same
+    verb, opposite answer — and the reason is the animal, not the player.*
+19. Ask it again while something else already has it — stock on the move,
+    or the fox in the yard, whichever the world offers. **It does not
+    come**, and you can see exactly what it chose instead. ⚠ *A refusal
+    you cannot explain from the room is the defect this step is looking
+    for.*
 
 ---
 
@@ -323,11 +391,18 @@ Observable from outside the code, by a person playing.
    handle than it was, and never to one that has become wild or vanished.
 6. A player can do the same thing to the farm collie, and the collie is
    still a working dog afterwards.
-7. A player talks to an NPC, the server restarts, and the NPC still knows
+7. A player asks their well-bonded cat to come and **it does not**; asks
+   their equally-bonded collie and **it does**. Nothing about how the two
+   were cared for differs, and the player is never shown a figure that
+   explains it.
+8. A player is refused by an animal at a moment when they can see what it
+   is attending to instead — never for no visible reason.
+9. A player talks to an NPC, the server restarts, and the NPC still knows
    them.
-8. A player asks the world which things are theirs, and is answered.
-9. A second companion species can be added by a content author writing two
-   rows and no code.
+10. A player asks the world which things are theirs, and is answered.
+11. A second companion species can be added by a content author writing two
+    rows and no code — including how winnable it is and how biddable, which
+    are separate answers.
 
 ---
 
