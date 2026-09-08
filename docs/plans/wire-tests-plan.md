@@ -803,5 +803,53 @@ Read first, in order:
 
 ## Drive record
 
-*(appended at build time, not at plan time — the requirements § The
-drive, five steps, plus the first dirty-census findings list.)*
+*Run 2026-09-08 on `design/wire-tests`, against Atlas
+`saxonberg_build1`. The requirements' five steps, in order.*
+
+**1. `pnpm test` — unchanged, and wire-free.**
+server **1,118 files / 10,312 passed** (1 skipped, 2 todo);
+client **80 files / 999 passed**. The wire suite is not in it: the
+package has no `test` script, so `pnpm -r test` cannot reach it.
+
+**2. `lint:family` — all 30 gates pass**, including the new
+`lint:drive-scripts` (ceiling 0), which self-enrolled.
+
+**3. The wire suite, cold, one boot.** **97 passed / 3 skipped**, 11
+files, **70s** — against a world booted from a freshly dropped
+database. Per-file timings print by default (`reporters: ['verbose']`).
+
+**4. ⭐⭐ The invariant: the CLEAN set, again, with no reset — GREEN.**
+30 tests, 14s. This is the assumption the whole design rests on and the
+one most likely to have been quietly false.
+
+**5. The Playwright suite, minus the migrated specs.** Collects **87
+tests in 24 files** (6,764 → 4,308 lines); no helper orphaned;
+`playwright.drive.config.ts` retired with the specs it existed for.
+⚠ The browser suite was NOT executed — it needs a client + server stack,
+it carries two pre-existing red specs unrelated to this build, and this
+build only ever REMOVES files from it. Collection is what proves the
+migration left it intact.
+
+### What the drive found
+
+It found a great deal, which is the point. Three shipped drive scripts
+and specs were RED on master with nobody able to know
+(`drive-textiles` 5/16, `drive-identity` 6/18, `work-drive`'s `job post`
+grammar). And **two live product defects, both fixed here**: every player
+shared ONE BANK ACCOUNT and nobody could claim anybody's gig — one root
+cause, persons keyed on the shared seed lineage instead of
+`getIdentityPath()` — plus `bank deposit` throwing on every deposit
+while the money moved anyway. The full write-ups are in the commits
+(`3bb64450e`, `1e6253003`) and at the call sites.
+
+### The dirty census — content findings handed over
+
+Eight files cannot run twice, each for a reason its own trade should
+answer. The full list, with owners, is in
+`docs/slates/tails/wire-suite-growth-slate.md`. The shape of it: a
+cookhouse that ships one cut of meat, a tailor's shop with one set of
+tools, a teaching farm that outfits exactly one student, a job board
+with no expiry, and a money faucet with no sink.
+
+Prose census: **79 reads across 11 files** — a measurement, no ceiling
+enforced (the ratchet is in the growth slate).
