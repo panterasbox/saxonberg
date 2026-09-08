@@ -3,10 +3,11 @@
 > **Status: PARTIAL** — the substrate is all shipped (harm · combat ·
 > mortality · poise · materials-response); the **consequence layer** over
 > it is not.
-> **Left:** the wound→poise edge · the `afflict` door · the **three dead
-> channels** (`signature` · `resolution` · `contagion`) · the `governs`
-> rename · the diagnosis surface · burn's fluid loss · contusion's cost ·
-> the wake (medic · armorer · coroner · guard as *demand*)
+> **Left:** ⭐ the wound→poise edge (arrow ②) · the `afflict` door · the
+> **eight-arm unification** behind the three dead channels (`signature` ·
+> `resolution` · `contagion`) · the `governs` rename · the diagnosis
+> surface · burn's fluid loss · contusion's cost · the wake (medic ·
+> armorer · coroner · guard as *demand*)
 > **Size:** a build — ⭐ **a large one**; see [Scope](#scope--what-this-build-takes)
 
 **Captured 2026-09-08**, out of a design conversation that opened with
@@ -53,13 +54,35 @@ the guard contract rides) · [accountability.md](../../subsystems/accountability
 
 ---
 
-## The gap in one sentence
+## The gap — two arrows and a wake
 
-**Damage is resolved beautifully and then does almost nothing**, and a
-fight leaves no wreckage anybody gets paid to clean up.
+**Damage is resolved beautifully and then does almost nothing.** Stated
+precisely, that is **two different missing arrows plus their consequence**,
+and the build must not let either arrow eat the other:
 
-Both halves are the same omission seen from two ends: an injury that
-costs the victim little also creates no work for anyone else.
+```
+   ①  condition ──▶ body       what a wound/illness DOES to you
+                               ⛔ declared (`signature`) · unconsumed
+                               ⚠ and eight rival mechanisms already exist
+
+   ②  body ──▶ contest         what your state does to your POSITION
+                               ⛔ absent — poise never hears about a wound
+
+   ③  the wake                 what a fight leaves for other people
+                               ⛔ absent — no demand, no jobs
+```
+
+⚠⚠ **These are not the same mechanism and must not be unified with each
+other.** ① is a body-state channel; ② is one combat-local coupling; ③ is
+an economy. Collapsing them would be the same over-generalization the
+[rejected fork](#-the-rejected-fork--recorded-so-nobody-re-proposes-it)
+records.
+
+⭐ **Arrow ② is the smallest work in this slate and the largest payoff,
+and it is therefore the one at risk of being cut when the build
+overruns.** It is W1, it ships first, and it is not a stretch. If the
+window ends early, ② and ③ shipping without ① is a better build than ①
+alone.
 
 ---
 
@@ -88,6 +111,79 @@ row below was read out of the tree, not remembered.
 they were confidently wrong and would have shaped the build: armor
 **does** wear when struck, and being outnumbered **does** already shred
 poise. Neither needed building.
+
+---
+
+## Finding 0 ⭐⭐⭐ — eight parallel mechanisms, discriminated by field presence
+
+**This is the finding that decides the build's shape**, and it is why
+this slate must be a *unification* and not a fourth solution.
+
+`VitalsMixin.reconcileConditions` is one method containing **seven arms**,
+each added by a different build, each discriminated by *which optional
+field happens to be set on the record*:
+
+```
+traumas        c.kind === 'trauma'
+shocks         c.kind === 'shock'
+sustained      c.kind === 'sustained'                       (magic)
+decayingMagic  c.kind === 'affliction' && magicOrigin  !== undefined
+infections     c.kind === 'affliction' && pathogenLoad !== undefined
+progressing    c.kind === 'affliction' && neither of the above
+dyings         c.kind === 'dying'
+```
+
+Plus an **eighth in a different mixin** — `Metabolic.reconcileToxinConditions`
+— which `progressAffliction` has to explicitly skip around to stop two
+arms fighting over one row's stage.
+
+⚠⚠ **The trap has already been sprung once, with a comment proving it.**
+The `progressing` arm's own docstring:
+
+> *"`ProgressionSpec` shipped with the comment 'no live scheduler is built
+> here', was authored by three rows, and was read by nothing: starvation,
+> dehydration and `recovering` all sat at stage 0 for ever… **This is the
+> arm that fills it.**"*
+
+Somebody found a declared-and-unread field and **added an arm**. That is
+exactly how you reach eight, and exactly the move this build must not
+repeat with `signature`.
+
+### ⭐⭐ The unification: separate the LAW from the EFFECT
+
+Every arm conflates two independent things:
+
+- **a progression law** — how the record's own state advances over
+  elapsed game-time. Already a small closed set: `decay` (trauma
+  severity, magic), `logistic` (infection load), `stage` (a cadence),
+  `integrate` (the bleed), `countdown` (dying), `burden` (toxin).
+- **an effect** — what that state then does to the body. Today this is
+  hardcoded per arm, and for a plain affliction it is *nothing at all*.
+
+**`signature` is the effect channel.** So the build's governing rule:
+
+> ⭐ **`signature` is not an eighth arm. It is the channel the existing
+> seven route their effects through.**
+
+Wiring it as a new parallel path would make the problem measurably worse
+and would vindicate the fear that prompted this section.
+
+⚠ The effect surface is **small**, which is what makes this tractable:
+only four producers write a vital sign at all (`Condition.ts` bloodVolume,
+`Respiration` spo2, `ThermalRegulation` coreTemperature, plus Vitals' own
+internals). Eight ways to advance a clock; four ways to change a body.
+
+### The gate — census, then ratchet
+
+The repo's own pattern ([lint-family.md](../../lint-family.md)): write the
+census, **gate today's count as the ceiling**, let a later wave drive it
+down.
+
+`lint:condition-arms` counts the discriminated arms across
+`reconcileConditions` and its siblings and holds the line at today's
+number. It may fall; it may never rise. That is what stops a ninth arm
+being added by the next build that finds a field nobody reads —
+**including this one.**
 
 ---
 
@@ -170,8 +266,10 @@ side:
 - [disease-slate](./disease-slate.md) — *"`Condition.contagion` is still
   `null` with no consumer"*
 
-**That is the spine of this build**, and everything else in this slate is
-downstream of it.
+**That is arrow ① of the gap**, and it is the largest single body of work
+here — but it is one of three, not the whole. See
+[the two arrows](#the-gap--two-arrows-and-a-wake): the poise coupling is a
+peer, not a preamble.
 
 ⚠ It is also the **best** state to start from: the shape was designed
 correctly and never wired. The build is a wiring job plus 23 rows of
@@ -486,10 +584,10 @@ build's blast radius; **decided: do it here and unblock physiology.**
 
 | | wave | what |
 |---|---|---|
-| **W0** | the audit as a test | pin the couplings table above — one characterization test per row, so the two absent edges are absent *on purpose* and the ten present ones cannot silently regress |
-| **W1** | close the loop | wound → poise, recovery cap behind a dial (design A) |
+| **W0** | the audit as a test **+ the arm census** | pin the couplings table above — one characterization test per row. ⭐ **And ship `lint:condition-arms` first**: census the eight mechanisms of Finding 0 and gate today's count as the ceiling, so this build cannot add a ninth even by accident |
+| **W1** | ⭐ close the loop (**arrow ②**) | wound → poise, recovery cap behind a dial (design A). **First, smallest, not a stretch** |
 | **W2** | the `afflict` door | `ConditionApi.afflict` / `relieve`, gated like `inflict`. **Nothing downstream is reachable without it** |
-| **W3** | `signature` wired | the declared channel becomes the route by which a condition perturbs a body · the 23 rows authored |
+| **W3** | ⭐⭐ `signature` as the **effect channel** (**arrow ①**) | not a new arm — the channel the seven existing arms route their effects *through*. Law (`decay`/`logistic`/`stage`/`integrate`/`countdown`/`burden`) separated from effect · the 23 rows authored · **the ratchet falls** |
 | **W4** | `resolution.by` dispatched | treatment differs by condition — a burn needs fluid, a cut needs a bandage (health-vertical's named gap) |
 | **W5** | the capability term + ⭐ the `governs` rename | generalize fracture's slot-impair into a declared consequence, on physiology's axis rather than beside it |
 | **W6a** | the diagnosis surface | cues without names, the `analyze` read, the instrument gate — the **read side** of W3/W4 (issue #38, part a) |
@@ -500,6 +598,19 @@ build's blast radius; **decided: do it here and unblock physiology.**
 W1 is the smallest wave and the largest payoff. W2 gates everything from
 W3 on. W7/W8 are near-free riders that turn part C from an assertion into
 somewhere you can walk.
+
+### ⚠⚠ The two rules this build is judged by
+
+1. **The arm count must not rise.** `lint:condition-arms` ships in W0,
+   before any of the work it governs. If a wave wants a ninth arm, the
+   wave is wrong — the shape it needs is *a law plus a signature*. A
+   build that wires `signature` by adding a parallel path has made the
+   codebase worse while appearing to fix it, and Finding 0 shows that
+   has already happened once.
+2. **Arrow ② does not get cut.** It is 
+   the one piece a reader of this slate would mistake for a detail, it is
+   the cheapest thing here, and without it the fight loop stays open no
+   matter how good arrow ① becomes.
 
 ### ⭐ Why the clinic splits in two
 
