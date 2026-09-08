@@ -87,6 +87,22 @@ specialness lives, so no code path compares a currency to a literal. Reserve
 status is functional, never decreed: make Compact obligations payable only
 in zorkmids and it is the reserve *by construction*.
 
+### ⚠⚠ An account owner is an IDENTITY path, never a template path
+
+`actingActorKey()` derives the owner key from
+**`getIdentityPath()`**. It must: every player Avatar shares one
+`getTemplatePath()` (D17 stamps lineage and identity separately, and no
+per-player template row exists), so keying an account on lineage gives
+**every player in the world the same account**. That is not a thought
+experiment — it shipped, and was found in 2026-09 by two wire-test
+characters minted seconds apart both reading a balance of 2,480
+zorkmids. `getIdentityPath()` falls back to `getTemplatePath()` for a
+business or an NPC, so the same call is correct for every owner kind.
+
+The same rule governs `primaryAccountIdOf(ownerKey)`'s callers — a
+payee, a tip recipient, a worker on a house card. See
+[antipatterns.md § Keying a PERSON on `getTemplatePath()`](../antipatterns.md).
+
 ### Conservation
 
 > **Total money supply** = `Σ(mint amounts) − Σ(drain amounts)` over the

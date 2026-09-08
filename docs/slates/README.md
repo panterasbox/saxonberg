@@ -277,6 +277,7 @@ Not a cycle of its own. Pull one in when its host build is in flight.
 | [spoilage (pack)](./tails/spoilage-design-pack.md) | the `WetMixin` saturation → `a_w` conversion · alcohol and acidity as real preservatives · staling by oxidation · dish-as-ingredient … |
 | [thermal](./tails/thermal-slate.md) | sauna / steam rooms · per-region frostbite · object-to-object conduction · inter-room ventilation · the indoor room-ambient convection bump · heated vehicle cabins |
 | [water (pack)](./tails/water-design-pack.md) | open question 2, does rain wet uncovered things other than soil · open question 3, the windowsill pot's indoor/sky-exposed ruling … |
+| [wire-suite growth](./tails/wire-suite-growth-slate.md) | boot groups beyond the one · the compressed-clock group (farming's growth arc is its first customer) · farming's yard legs (one actor must hold the seed AND own the lot) · metal-chain's provisioning leg · the crafting cookhouse scene → `cooking.dirty` · the prose-census ratchet · a Mongo snapshot reset path · world litter — plus the TEN content findings the first green run handed over, each with its owning trade |
 | [wiki](./tails/wiki-slate.md) | search integration · the level-3 source embed · the rest of the transclusion palette · open questions 5–7 |
 
 ---
