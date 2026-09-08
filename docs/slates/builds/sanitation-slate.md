@@ -6,6 +6,11 @@
 > two legal regimes a locality picks · the salvage yard (assay, the three
 > exits, the lossy loop) · the second-hand market + pawn
 > **Size:** a build
+>
+> ⭐⭐⭐ **And it grew a second customer 2026-09-08:** the impound yard
+> with creatures in it **is animal control**, and its output side is a
+> shelter — see § *The same yard, with creatures in it*. Anyone starting
+> an animal-control build starts here, not in pets.
 
 **Captured 2026-07-31.** Junk objects accumulate — spawned things nobody
 would ever claim, left standing for immersion. The residency sweep
@@ -86,6 +91,50 @@ warehouse design with a **different intake rule**:
 
 **On public ground after a period, fair game. Inside your parcel,
 never.**
+
+### ⭐⭐⭐ The same yard, with creatures in it, is ANIMAL CONTROL
+
+**Noted 2026-09-08, from the pets requirements cycle.** The impound design
+above is not junk-specific. Swap the noun and every line of it holds:
+
+> Take the **stray** to the yard, hold it for a period, let the owner
+> **reclaim** it for a fee. Nobody claims it? Then it **was** a stray —
+> and the world told you so, rather than an algorithm guessing.
+
+That is a **pound**, exactly — and the depot mapping survives unchanged:
+storage and two capacities (the yard fills up), the receipt you present to
+reclaim, the bailee's duty of care (a yard that loses somebody's dog
+answers for it), and the reclaim fee.
+
+⭐ **And the output side is a shelter.** An unclaimed animal is
+*adoptable*, and adoption is already the acquisition model in
+[pets-requirements](../../requirements/pets-requirements.md) — you win an
+animal over and name it. **The institutional and un-institutional paths
+are the same act**, so a shelter costs this slate its intake rule and
+nothing else.
+
+⭐⭐ **The abandonment rule's third duty is what pets could not answer on
+its own.** *"On public ground after a period, fair game. Inside your
+parcel, never"* is the line between **rescuing a stray** and **helping
+yourself to somebody's cat** — a question the pets build states and
+deliberately does not enforce, because the apparatus lives here.
+
+⚠ **Two things a creature intake adds that a junk intake does not**, and
+they should be priced before anyone builds it:
+
+- **The yard's duty of care is real work.** Impounded goods sit. Impounded
+  animals must be fed and watered, on the shipped one-mortality-rule
+  clock, or the pound kills what it collects. That is a running cost and a
+  genuine reason for a fee — and, ⭐ handled badly, the most legible
+  animal-welfare scandal the realm could produce.
+- **A held animal's bond keeps cooling** while it waits, so a long
+  holding period returns a colder animal. The period is therefore a real
+  policy dial with a cost on both sides, which is exactly what the two
+  legal regimes should be arguing about.
+
+⚠ This is **not** a pets build. It is this build with creatures in scope,
+and its substrate (impound, the regimes, the officer as a vocation) is
+unbuilt. An animal-control build starts reading here.
 
 ## ⭐⭐ Two legal regimes, and a locality picks
 

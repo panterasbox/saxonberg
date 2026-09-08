@@ -131,6 +131,19 @@ unbuilt and the creature half of spawn-distribution is unbuilt, so
   place can change. Without it, an animal that declines to follow has
   nowhere to be. An absence is answered in this
   build by the bond cooling toward its floor.
+- **Animal control as an institution** — a pound, a holding period, a
+  reclaim fee, an officer, and the locality's choice of legal regime →
+  ⭐ **the [sanitation slate](../slates/builds/sanitation-slate.md)**,
+  whose impound yard *is* this with a different intake rule. A shelter is
+  that yard's output side, and rehoming is already this build's
+  acquisition model, so the two halves converge with nothing added. It is
+  not a pets feature; it is the sanitation build with creatures in scope,
+  and its substrate is unbuilt.
+- **A locality-set companion ceiling** — the slate's *"zoning a generous
+  ceiling commits the city's allowance to funding those animals"* →
+  pets-slate + stewardship-slate. ⚠ It depends on the **allowance meter,
+  which is unbuilt**; pulling it in means pulling in property-slate
+  Phase 1.
 - **A theft or pickpocketing system** → **nowhere, on this build's
   account.** The realm has no `steal` verb and pets do not justify
   inventing one: the bond already makes taking an animal self-defeating.
@@ -613,6 +626,77 @@ stays possible.** It is recoverable, it is visible, and the standing
 answer applies: **enforced by witness, not by system.** If it becomes a
 real problem it lands on the cruelty statute, which is Wave 2, and not on
 a permission check in Wave 1.
+
+### The law, and what it deliberately does not say
+
+**Q:** What may a person be stopped from doing — how many animals, which
+species, and where?
+
+**A:** ⭐⭐ **Less than anybody expects, and every piece of it was already
+decided somewhere else.** This build adds no legal machinery; it records
+the four rules so that nobody reinvents them as a permission check.
+
+**No numeric cap.** The slate settled this and the reasoning is better
+than an ordinance number:
+
+> **Hoarding is a condition, not a count.** Real hoarding law is about
+> keeping more animals than you can care for, and the model makes that
+> automatically visible: many animals, degrading condition. **It needs no
+> separate offence.** The difference between a kennel and a mill is
+> condition, not headcount.
+
+Nobody is stopped at the fifth animal. They are visibly failing five, and
+neglect, hoarding and cruelty aftermath all read off the same fact. It
+also closes the spread-across-properties dodge without trying to.
+
+**No species ban list.** Dangerous-animal law works by making the
+**keeper answerable**, and that substrate ships: harm lands in the ledger
+and title says whose animal it was. A locality that wants a prohibition
+authors an ordinance — law is content here, not engine.
+
+**Keeping a companion is not zoned.** The settlement model's standing rule
+governs: ⭐ **nuisance is regulated, not the work.** The law does not ask
+whether you have an animal; it asks what your animals put onto other
+people. A cat puts nothing. **Keeping stock among neighbours is the
+regulated thing**, it scales with the animal rather than with pethood, and
+it belongs to the byre rather than here.
+
+⚠⚠ **Unparcelled ground is not policed**, inherited verbatim from the
+cultivation gate, which is the realm's one shipped land-use enforcement:
+
+> *"Nobody has zoned this" is not the same statement as "this is zoned
+> against you."* Ask whether a parcel **covers** the ground before asking
+> what it permits. **Measure nothing, police nothing.**
+
+That protects the hermit, and any future animal ordinance must inherit it.
+
+⭐ **And this finally answers the slate's standing question — yes, a dorm
+admits a cat** — by the rules above rather than by a special case. A
+landlord could forbid one only if a tenancy could carry such a term, and
+today a tenancy says who *owes upkeep* and deliberately nothing about what
+a tenant may keep.
+
+### Rescue and theft are separated by the abandonment rule
+
+**Q:** ⚠ *Amends § What a stranger may do with your animal.* When is
+taking somebody's animal lawful?
+
+**A:** **Where it was, and how long it had been there** — the abandonment
+rule already designed for unattended goods:
+
+> **On public ground after a period, fair game. Inside your parcel,
+> never.**
+
+⭐⭐ **This is two questions, and this build had been treating them as
+one.** *Does taking it get you an animal?* — no, and that stands
+unchanged: the bond does not transfer, so theft remains self-defeating.
+*Was taking it lawful?* — that is a separate matter with a real answer,
+and it is the line between **rescuing a stray** and **helping yourself to
+somebody's cat**.
+
+W1 states the line and relies on nobody to enforce it. The apparatus that
+would — a pound, a holding period, a reclaim fee — is named in the
+non-goals.
 
 ### An animal's reaction is a perception channel
 
