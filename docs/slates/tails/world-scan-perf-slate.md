@@ -118,7 +118,7 @@ worked example in `check-world-scan.ts`'s own header comment.) Split by
 filter namespace:
 
 - **11 `[mixin.X]`** → the one index (D1).
-- **5 `[class.X]`** → the owner's own index (D2). ⭐ Every one is
+- **5 `[class.X]`** → the owner's own lookup (D2). ⭐ Every one is
   **catalogue-shaped** — *"give me the roster of X"* — which is the
   `reference Ideas inert at boot` trap showing up a fourth time. Nobody
   warmed a roster, so everybody scanned for one.
@@ -126,6 +126,13 @@ filter namespace:
 ⭐⭐ **All 16 already pass `commandGiver: null`.** Zero engine call sites
 use `world` with a real viewer, so **gating it (D3) breaks nothing** — it
 closes only the player-typed door.
+
+⚠ **And none of the 16 is a boot warm.** *Catalogue-shaped* describes what
+they **want** (a roster), not **when they run**. The only two cold sites
+are at **shutdown**; everything else is per-command, per-login, per-tick,
+per-payment or per-equip. So there is no "warming at boot" case to
+carve out and bless — the expensive calls are all in the hot path, which
+is why the money paths are step 1 and not the substrate.
 
 ### Bucket A — selective population → **the index wins** (~8)
 
@@ -194,13 +201,38 @@ is exact and memoizable **per class**, not per object. Memoize
 makes the index cheap to maintain, and it speeds every `hasMixin` check
 in the codebase as a side effect.
 
-### D2 — Specialized slices: the owner keeps its own index and names the question
+### D2 — Specialized slices: the cheapest rung that answers the question
 
-Not a registry axis, not MQL. The owning module holds the index and
-exposes the **question**, never the table:
+Not a registry axis, not MQL. The owning module holds the lookup and
+exposes the **question**, never the table. ⭐ **Take the cheapest rung
+that answers it** — the ladder, in order:
 
-- **kernel-owned slice** → the owning `*Api` / `*Logic`
-  (`LocomotionApi.allModes` becomes a warmed roster; `EmploymentApi`
+**Rung 1 — a template-path glob, if the rows share a prefix.** ⭐⭐
+`StuffApi.findByPathGlob` is **already trie-backed**
+(`byTemplatePath.glob`) — the registry's one existing index. So a roster
+whose rows sit under a common prefix needs **no new substrate at all**:
+
+```
+world:[class.LocomotionMode]   →   /platform/idea/LocomotionMode/*
+```
+
+All 11 `LocomotionMode` rows live under that prefix, in the platform pack
+only. That is the site this slate flags as *"~5 immutable singletons
+re-derived by full registry walk on every call"* — fixed today, by a
+query rewrite.
+
+⚠ **The other four do not qualify**, and the reason is structural rather
+than an oversight: `PlatBook` and `HoldingWarren` rows are declared **per
+locality** (`/world/terminus/hinkley-hills/idea/plat-book`,
+`/world/eternal/duncan-hall/idea/dorm-programme`,
+`/world/terminus/mayfield-row/seznick-house/unit-programme`), so there is
+no prefix to glob. Check the rung before assuming the rung below.
+
+**Rung 2 — the owner's keyed map, filled at `postRegister`.** For the
+scattered rosters. The framework's existing per-object registration hook
+is the push seam; no new mechanism.
+
+- **kernel-owned slice** → the owning `*Api` / `*Logic` (`EmploymentApi`
   grows `businessAt(path)` instead of `allBusinesses().find(…)`).
 - **pack-owned slice** → ⚠ **a pack cannot ship an Api or a logic
   singleton** (CLAUDE.md § Module Categories). It ships a **catalogue
@@ -208,6 +240,20 @@ exposes the **question**, never the table:
   `WatercourseCatalogue` (water) already have. `PlatBook` and
   `HoldingWarren` belong to the `residence` pack, which has no catalogue
   yet; it needs one.
+
+⭐ **One catalogue serves two of the sites.** `OuterWarren` has **no rows
+of its own** — `[class.OuterWarren]` is matching `HoldingWarren`
+subclasses. So `OuterWarren.admitFor` and `maintains.holdingsUnder` are
+hunting **the same three objects** from two different places, and the
+residence catalogue answers both.
+
+**Rung 3 — memoize, never warm.** ⭐⭐ The reload answer. A **cache** that
+is empty after a hot reload costs a **scan**; a **memo** that is empty
+after a hot reload costs one **re-derive**. The whole difference is
+whether the re-derive is indexed — so D1 and rung 1 are not an
+alternative to solving reload, they are what **makes reload cheap**.
+Consistent with the standing rule that `Api.boot()` is an operator act
+and catalogues are self-warming.
 
 ⭐ **Bonus: this retires the `lint:world-scan` allowlist's fourth entry.**
 `WatercourseCatalogue` already *has* an allowlisted `getAllObjects()`
@@ -283,6 +329,45 @@ queryable pattern emerges, it can be lifted into MQL then — as a new
 seed or filter namespace with an index behind it, never as a scan. Not
 speculative work now.
 
+### ⛔ Rejected — a global event bus that pushes objects into caches
+
+> **User: "what about using our event framework here and for these caches
+> we actually use global event subscription for making sure the caches get
+> informed of all the objects that need to be cached. is that any better
+> or just moving furniture around?"**
+
+Considered and rejected: **mostly furniture, and worse in two specific
+ways.** Both designs maintain a derived set at the register chokepoint, so
+they are equivalent in principle. They are not in practice:
+
+1. ⚠ **Fan-out taxes object creation.** *N* caches subscribing means every
+   object creation dispatches to *N* subscribers, each running its own
+   predicate — on the hottest path in the engine (every clone, every
+   template materialization at boot). The index does one map insert per
+   composed mixin. **Adding a cache must not make creating a chair
+   slower**, and with a bus it does, permanently, worse with each cache.
+2. ⚠⚠ **The cold-start hole — the bus CAUSES the reload problem rather
+   than solving it.** A subscriber only learns about objects created
+   *after* it subscribed, so every cache must answer *"what about
+   everything that existed before I did?"* — and the only general answer
+   is a full scan. **The bus's recovery path is the banned thing.** Reload
+   a singleton and its copy is empty; rewarm it and you have done the
+   scan. A registry-owned index has no such question, because the registry
+   is the thing that knows; and one place can be wrong instead of *N*.
+
+⭐ **Precedent, one build ago.** The same question was asked during the
+logistics review — *"do you really need a global ContractSettled event? is
+there not a more local solution instead?"* — and the answer was a typed
+`onContractSettled` `@hook`. A global event is the wrong shape for a fact
+with exactly one legitimate consumer.
+
+⭐ **What survives from the instinct is real, and already built.**
+`PostRegistrationMixin.postRegister` *is* the push hook — per object, no
+subscription lifecycle, no fan-out, fires for every instance including at
+boot. (`PlatBook` already composes it and does not use it.) That is D2
+rung 2. It is still push, so it still has the reload hole — which is what
+rung 3 answers.
+
 ---
 
 ## Part 4 — Remediation order
@@ -296,24 +381,30 @@ world scan."**
    already exists on the Business.** Read-the-owner, no new substrate,
    highest value. (Bucket B)
 2. ⚠ **The per-tick brain.** `maintains.holdingsUnder` — a world scan per
-   NPC per cadence. Keyed-on-extent lookup. (Bucket B)
+   NPC per cadence. Keyed-on-extent lookup, and the same lookup
+   `OuterWarren.admitFor` wants (step 7), so land them together if the
+   catalogue exists by then. (Bucket B)
 3. **The item back-reference.** `Slottable.occupiedSlots` on
    equip/combat/metabolism paths. (Bucket B)
-4. **The mixin index + the `queryMixins` memo** (D1). Makes all of
+4. ⭐ **`allModes` → a path glob** (D2 rung 1). **Zero new substrate** —
+   the trie already answers it. Not gated on anything below; take it the
+   moment somebody is in the file.
+5. **The mixin index + the `queryMixins` memo** (D1). Makes all of
    Bucket A free at once; the one piece of new substrate.
-5. **Gate A, then Gate B** (D3) — after 1–4, so nothing legitimate is
+6. **Gate A, then Gate B** (D3) — after 1–5, so nothing legitimate is
    stranded when the door shuts.
-6. **The D2 owners**: the `residence` pack catalogue, `allModes` →
-   warmed roster, `WatercourseCatalogue` off its allowlisted scan.
-7. **`execMisidentify` → early-exit or a decoy pool.** (Bucket B)
-8. **D4: census, ratchet, then the named questions**, subsystem by
+7. **The remaining D2 owners**: the `residence` pack catalogue (which
+   retires `admitFor` **and** `holdingsUnder` together — same three
+   objects), and `WatercourseCatalogue` off its allowlisted scan.
+8. **`execMisidentify` → early-exit or a decoy pool.** (Bucket B)
+9. **D4: census, ratchet, then the named questions**, subsystem by
    subsystem behind the lint.
-9. **Invert `docs/antipatterns.md` § Bespoke Object-Search Algorithms**
-   and add the D4 rule beside it. ⚠ **Do this in the same MR as Gate B** —
-   the doc currently instructs the opposite, and a gate whose rationale
-   is not written down gets an allowlist entry the first time it is
-   inconvenient.
-10. **Leave Bucket C.**
+10. **Invert `docs/antipatterns.md` § Bespoke Object-Search Algorithms**
+    and add the D4 rule beside it. ⚠ **Do this in the same MR as Gate B** —
+    the doc currently instructs the opposite, and a gate whose rationale
+    is not written down gets an allowlist entry the first time it is
+    inconvenient.
+11. **Leave Bucket C.**
 
 > ⭐ **The index is deliberately not step 1.** The instinct is to build
 > the shiny substrate first, but the money-path fixes need no substrate
@@ -376,12 +467,19 @@ that gap is a seed to add, not a reason to widen the gate.
    that a wizard stand-in is a missing seat. Confirm archwizard (or
    system-mode-only, which all 16 sites already satisfy and which needs
    no principal at all — arguably the honest answer).
-3. **Selectivity of `CirculatingMixin` / `PublisherMixin`** — measure
+3. **Does the residence catalogue key on the base class or the concrete
+   one?** `[class.OuterWarren]` matches `HoldingWarren` subclasses today
+   (a prototype-chain walk). A catalogue keyed on the concrete class
+   misses a future sibling; keyed on the base, it must know the subclass
+   set. ⭐ Likely moot in practice — both consumers want *"every holding
+   warren"*, so the catalogue should be named for that population rather
+   than for either class. Confirm when it is written.
+4. **Selectivity of `CirculatingMixin` / `PublisherMixin`** — measure
    before finalizing Bucket A vs B for the borderline ones.
-4. **How many objects is `n`, actually?** `StuffApi.getObjectCount()` at a
+5. **How many objects is `n`, actually?** `StuffApi.getObjectCount()` at a
    populated boot (`Server.ts` already logs it). The priority order
    assumes n is large enough to matter; confirm, and record the number.
-5. **Does `lint:whole-table` key on the return type or on the method
+6. **Does `lint:whole-table` key on the return type or on the method
    name?** A type-driven rule catches more and misfires on the bounded
    vocabularies; a name-driven one (`all*` / `getAll*` / `list*`) is
    cruder and easier to ratchet. Decide at census time, when the shape of
