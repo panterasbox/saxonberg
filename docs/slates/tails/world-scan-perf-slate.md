@@ -286,8 +286,14 @@ template's backing class"*, with module trust secondary. `AnyOf(…)`
 composes the permitted pairs at the definition site, so widening the set
 is a visible diff in review.
 
-⛔⛔ **NOT an actor check, and specifically NOT `isWizard` /
-`isArchwizard`.** Three drafts of this slate reached for a principal —
+⚠ **That is the CODE arm. There is a second, actor arm for the office
+holder — D3b below.** The two are independent: code qualifies by
+provenance, a person qualifies by seat, and neither substitutes for the
+other.
+
+⛔⛔ **The code arm is NOT an actor check, and specifically NOT
+`isWizard` / `isArchwizard`.** Three drafts of this slate reached for a
+principal —
 archwizard, then the wizard axis, then a `commandGiver === null`
 convention — and all three were wrong in the same way: **"who may run a
 registry-wide scan" is a question about the CALLING CODE, not about a
@@ -369,6 +375,62 @@ keyword search **throw**.
 that merely requires a better badge, and nothing stops engine code
 reintroducing one. It is also what *forces* the 5 class sites onto D2
 rather than letting them linger.
+
+### D3b — ⭐⭐ The second arm: the Prime Minister may type it
+
+> **User: "I would want the prime minister to be able to run world:
+> based MQL queries for any command they want. maybe with a warning."**
+
+Gate A has **two arms**, and an earlier draft of this slate wrongly
+collapsed them to one by removing the actor arm altogether:
+
+| arm | who | basis |
+|---|---|---|
+| **code** | the engine's own registry-wide sweeps | `FromTemplateMethod` (D3a) |
+| **seat** | a person **holding the `prime-minister` office**, typing | `CompactApi.holdsOffice(giver, 'prime-minister')` |
+
+⭐ **Ask the office directly — not the axes that descend from it.**
+`isWizard` / `isArchwizard` fall back to `holdsPrimeMinister`, so they
+would *happen* to admit the PM, but they also admit the wizard and
+archwizard groups, and they are the code-trust and conferral axes rather
+than a statement about who may read the world. `holdsOffice` is the
+honest question, derived per check, never stored — *check offices, never
+the founder* ([record-layer.md](../../subsystems/record-layer.md)).
+Authority follows the seat through a handoff in both directions.
+
+**⚠ Where the check must live, and why it is not the resolver.**
+`CompactApi.holdsOffice` is **async** (`Promise<boolean>`);
+`MqlApi.resolveMany` is **sync**. So the seat test cannot happen inside
+the resolver at all. It belongs in the **binder** —
+`CommandLogic.resolveModel`, which is already `public async` and is the
+one place a player's raw MQL string enters. It detects a `world:` seed
+in the raw argument, awaits the office check, and on success calls the
+gated registry-wide entry.
+
+⛔ **NOT a permission flag on `MqlContext`.** The reflex is to add
+`allowRegistryScan?: boolean` and have the binder set it — which is the
+`commandGiver === null` mistake exactly: a caller-supplied field is not a
+gate, because any code can set it. **The trust boundary is the gated
+entry point**, which `FromTemplateMethod` admits the binder's own
+function to; the binder is trusted because it is the only caller that
+can reach it, and it is the thing that did the office check.
+
+**⭐ Gate B degrades to a warning on this arm — that is what the warning
+is FOR.** Gate B (index-answerable shapes only) stays **absolute for
+code**: engine code may never ask an unindexed registry question. For the
+seat holder it becomes **permitted-with-warning** — a human at a keyboard
+running one O(n) scan is fine, and the note is how they learn what it
+cost (object count scanned, and that the shape was unindexed). ⚠ The
+`Note` union carries no cost-warning shape today, so this adds a kind
+(`RegistryScanNote`-ish) — a `@saxonberg/types` change, called out here
+because it is the one piece of new wire surface in the build.
+
+**⚠⚠ The seat arm does NOT extend to MQL subscriptions.** A live `world:`
+*subscription* re-resolves on every dependency change, so a single typed
+query would become a **standing** rescan — strictly worse than the
+one-shot this arm is permitting, and invisible after the fact. Subscribing
+surfaces refuse the seed for everyone, PM included; see § *What this slate
+does NOT cover*.
 
 ### D4 — The second surface: an Api may not hand back its table
 
@@ -467,10 +529,12 @@ world scan."**
    moment somebody is in the file.
 5. **The mixin index + the `queryMixins` memo** (D1). Makes all of
    Bucket A free at once; the one piece of new substrate.
-6. **`FromTemplateMethod` (D3a), then Gate A, then Gate B** (D3) —
-   after 1–5, so nothing legitimate is stranded when the door shuts, and
-   so the permitted `(template, function)` set is already small enough to
-   enumerate honestly.
+6. **`FromTemplateMethod` (D3a), then Gate A's two arms (D3a code /
+   D3b seat), then Gate B** — after 1–5, so nothing legitimate is
+   stranded when the door shuts, and so the permitted
+   `(template, function)` set is already small enough to enumerate
+   honestly. ⚠ The seat arm carries the one new wire surface (the
+   warning `Note` kind) and the binder's async office check.
 7. **The remaining D2 owners**: the `residence` pack catalogue (which
    retires `admitFor` **and** `holdingsUnder` together — same three
    objects), and `WatercourseCatalogue` off its allowlisted scan.
@@ -539,18 +603,18 @@ that gap is a seed to add, not a reason to widen the gate.
    as such in `mql.md`, because the alternative is the
    invalidation-by-construction hard part for a use case nothing has
    asked for.
-2. ✅ **Answered — it is not a principal question at all.** D3 Gate A is
-   `FromTemplateMethod` over the calling template + calling function
-   (D3a). ⚠ Recorded because three successive drafts got it wrong the
-   same way — **reading "who may scan the registry" as a question about
-   a person**: draft 1 read "the prime minister" as loose phrasing and
-   hunted for "the nearest existing tier" (it is the constituted
-   executive seat, and `isWizard`/`isArchwizard` *descend from* it);
-   draft 2 gated on `isWizard`, which takes no new consumers ever;
-   draft 3 used `commandGiver === null`, which the caller supplies and
-   therefore gates nothing. ⭐ The tell across all three: **the question
-   was about the calling CODE, and the codebase's answer to that is the
-   call-security spine, which none of the drafts had read.**
+2. ✅ **Answered — it is TWO questions, and I kept answering only one.**
+   Code qualifies by provenance (`FromTemplateMethod`, D3a); the **Prime
+   Minister qualifies by seat** (`holdsOffice`, D3b), checked in the
+   async binder because `holdsOffice` is async and the resolver is not.
+   ⚠ Recorded because four drafts missed it in two opposite directions:
+   three read *"who may scan"* as an actor question and reached for a
+   **tier** (archwizard → `isWizard` → the `commandGiver === null`
+   non-gate); the fourth, over-correcting, removed the actor arm
+   **entirely** and made it code-only — dropping the user's actual
+   requirement. ⭐ The lesson is not "it is about code" or "it is about
+   people": **it is about both, by different bases**, and a correction
+   is a reason to add the missing half, not to swing to the other pole.
 3. **Does the residence catalogue key on the base class or the concrete
    one?** `[class.OuterWarren]` matches `HoldingWarren` subclasses today
    (a prototype-chain walk). A catalogue keyed on the concrete class
