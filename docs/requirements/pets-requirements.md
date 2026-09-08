@@ -202,6 +202,11 @@ unbuilt and the creature half of spawn-distribution is unbuilt, so
   breeding brief.
 - **A pet Discipline.** Nowhere, deliberately: `stockmanship` is *working
   with animals*, and a pet is an animal you work with.
+- **Earned longevity** — beast-magic or exceptional care extending a
+  companion's span → the apex wave. ⭐ It is the *good* answer to players
+  growing attached, because it keeps the mortality rule intact: nothing is
+  excepted, somebody did something. Tuning the authored number is the
+  cheap answer and is always available.
 - **Maturation content** (a kitten growing into a cat) → nowhere in this
   build; the mechanism shipped with ranching and can be authored onto a
   species whenever someone wants it.
@@ -761,6 +766,23 @@ nobody is ambushed.
 ⭐ This is the strongest emotional content the build can produce, it costs
 nothing to implement, and it is the thing that finally gives the
 necropolis a customer.
+
+⭐⭐ **But the number is a DIAL, and it lives in content.** *The number is
+content; the rule is doctrine.* D29 forbids saying *this animal's biology
+is different because you like it* — it does not require a cat here to live
+what a cat on Earth lives, in a realm that has already invented the pale
+grazer and the delve rat. **Ship a span, watch what it does to people,
+and turn it** if the answer is that everyone leaves when the cat dies.
+That is why lifespan must be **authorable data** rather than a constant:
+the dial has to be turnable without a code change or a doctrine argument.
+
+⭐ **And there is a better answer than tuning, kept as a seam.** Extending
+a beloved animal's life could be *earned* rather than adjusted — the realm
+ships a beast-magic Discipline, and *care quality decides what it becomes*
+is already this family's cited lesson. Earning keeps D29 completely
+intact, because nothing about the animal's biology was excepted; somebody
+did something. **Not in this build** — it is the apex wave's — but no
+decision here should foreclose it.
 
 ### When its person dies, nothing special happens
 
