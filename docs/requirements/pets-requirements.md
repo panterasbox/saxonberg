@@ -94,6 +94,12 @@ unbuilt and the creature half of spawn-distribution is unbuilt, so
   being kept alive by them buys them none of the bond.
 - **Neglect is visible in the room** — in what is or is not in the dish —
   rather than in any figure shown to a player.
+- **A player can leave an animal somewhere**, so that following is a thing
+  they choose rather than a thing that happens to them.
+- **An animal's reaction is worth reading** — it notices things a player
+  cannot, and shows it by behaving rather than by reporting.
+- **A companion ages, and dies of it**, on the same terms as every other
+  animal, with the ending visible in advance.
 - **An NPC's opinion of you survives a server restart.** (W0)
 - **A player can ask the world which things are theirs.** (W0)
 - **A role-filler does not accumulate a personal opinion of anyone.** (W0)
@@ -113,6 +119,11 @@ unbuilt and the creature half of spawn-distribution is unbuilt, so
 - **The six-outcome off-screen ladder** (it wandered, it was hurt, it came
   home) and species home range → Wave 2. An absence is answered in this
   build by the bond cooling toward its floor.
+- **Reading an animal's opinion of other PEOPLE** — a dog that likes a
+  stranger, a cat that will not share a room with one → Wave 2. It is the
+  perception channel pointed at the social graph and it is good, but it
+  wants the multiplayer rules (whose regard, earned how, and read by whom)
+  settled first.
 - **Institution-held regard** — *the Watch's* opinion of you, shared by
   every watchman → Wave 2. It is a feature, and features do not belong in
   a wave whose job is closing holes.
@@ -235,7 +246,21 @@ a place in the record.
 
 This is the whole acquisition model. There is no purchase, no adoption
 paperwork, and no ceremony — you feed a cat until it lets you near it, and
-then you call it something, and then it is yours.
+then you call it something.
+
+⭐⭐ **And the animal is the one who decides, not you.** The threshold is
+crossed from its side: it starts following you, waiting for you, being
+where you are. Only then is there anything to name.
+
+> **You do not acquire a companion. You are adopted by one, and naming it
+> is how you admit it.**
+
+This is the same threshold either way — what changes is who the sentence
+is about, and that is not cosmetic here: **the axis this build runs on is
+already *who decided*.** An acquisition model where the player claims the
+animal would contradict the agency model two decisions below it, where the
+animal may always refuse. Being chosen and being refused are the same
+property seen from two sides.
 
 ### An unnamed animal is free; a named one is remembered
 
@@ -369,6 +394,13 @@ Both halves are shipped shapes already: an animal with a standing job is a
 working animal (the farm collie has one now), and a thing you ask in the
 moment is an ordinary verb.
 
+⭐ **One member of that vocabulary is load-bearing rather than
+decorative: *stay*.** A companion that follows you everywhere follows you
+into a mine, a fight, a slurry pit and a fire. Being able to leave an
+animal somewhere is not a convenience — **it is the only way a player can
+take responsibility for it**, and a build that ships following without it
+has made the player's care impossible to act on.
+
 ⭐⭐ **Refusal is load-bearing, not flavour.** The automation ladder this
 family runs on is *attention → wages → compute*, and the working animal is
 the rung that **costs a relationship**. If asking is free and reliable, the
@@ -378,6 +410,94 @@ face.
 
 ⭐ **And a refusal must never be random.** It is legible or it is noise:
 the dog did not ignore you, the dog is watching the fox.
+
+### An animal's reaction is a perception channel
+
+**Q:** Does a companion tell you anything about the world?
+
+**A:** ⭐⭐ **Yes, by reacting — never by reporting.** A bonded animal that
+will not go through a door, that stares at an empty corner, that growls at
+somebody, or that refuses food you were about to eat, is **information**.
+It is not a readout, it cannot be queried, and it can be wrong.
+
+**The realm already ships one of these and calls it a canary.** An animal
+whose reaction is the instrument is a solved shape here; what is new is
+only that a companion does it for things other than bad air.
+
+What it covers, all of it already built:
+
+| the animal reacts to | the shipped thing it is reading |
+|---|---|
+| ⭐⭐⭐ **food that will make you ill** | the silent contamination population |
+| somebody who is not who they appear to be | disguised identity |
+| a person nobody in the room can see | concealment |
+| a room that is not safe to walk into | hazards |
+
+⭐⭐⭐ **The first row is the important one.** Contamination is
+*deliberately* undetectable — no sense reports it, by design, and that is
+the whole point of the silent second population. **An animal's refusal
+would be the only warning that exists in the game.** It stays legitimate
+because it is a creature's judgement rather than an instrument's reading:
+it is not always offered, the animal does not always notice, and a cat may
+decline food for no better reason than being a cat.
+
+⚠ **The obvious exploit — taste everything on the cat first — is
+acknowledged and accepted.** It costs the animal, an animal that has been
+made ill trusts you less, and the biddability axis means it will not
+reliably eat what you put in front of it anyway. Food tasters are a real
+institution; a player who reduces their companion to one has said
+something about themselves that the world can see.
+
+### A companion dies of old age, and you will be there
+
+**Q:** How long does a companion live?
+
+**A:** **As long as its species really lives** — and at the realm's clock
+that is a length of time a player will actually sit through.
+
+| | lifespan | in real time at the shipped scale |
+|---|---|---|
+| a cat | ~15 years | **about fifteen months** |
+| a dog | ~12 years | **about a year** |
+
+⚠⚠ **This is a decision, not a consequence to be discovered at authoring
+time.** Species already carry lifespan and senescence as authored data, so
+somebody will type a number, and that number schedules every player's
+grief. It should be typed on purpose.
+
+**There is no carve-out**, and the reason is D29's: an exemption would say
+*this animal's biology is different because you like it*, while a cow two
+rooms away ages on the same clock. What softens it is not an exception but
+**warning** — senescence is visible, so an old animal reads as old, and
+nobody is ambushed.
+
+⭐ This is the strongest emotional content the build can produce, it costs
+nothing to implement, and it is the thing that finally gives the
+necropolis a customer.
+
+### When its person dies, nothing special happens
+
+**Q:** What becomes of an animal whose owner is gone?
+
+**A:** ⭐ **Nothing that needed designing — and that is the finding.**
+Every part is already decided by something else:
+
+- The **bond cools**, because nobody is renewing it. A permanent absence
+  is an absence.
+- The **material floor still works**: anybody who fills the dish keeps it
+  alive, and earns none of its regard for that.
+- **Somebody else can win it over**, on exactly the terms the first person
+  did.
+- **Title** goes where a dead person's movables go.
+
+So the dog waits by the door, and gradually stops. Nobody wrote that; it
+is what these four rules do when the person stops coming back.
+
+⭐⭐ **And it means a companion outlives the relationship and carries it.**
+An animal that is slowly becoming available again is how one player learns
+that another is gone — and if its person returns (which in this world they
+may), they come back to a colder animal and have to do some of it again.
+Which is correct, and also needed no code.
 
 ### Domesticability rides the existing slot — but biddability is its own
 
@@ -517,22 +637,36 @@ Run against the live game before the MR opens.
     without you present. **Have somebody else fill it** — that works too,
     and the cat is no fonder of them for it. ⭐ *The floor is delegable;
     the bond is not.*
-16. **Log out. Log back in.** It is still there, still named, still knows
+16. Head somewhere no animal should follow you. **Leave it behind**, and
+    it stays. Come back and it is where you left it.
+17. Put down something for it that has quietly gone bad — meat off a
+    carcass left too long. ⭐⭐⭐ **It will not touch it**, and nothing in
+    the game would otherwise have told you. *Eat it yourself and find out
+    why it was right.*
+18. **Log out. Log back in.** It is still there, still named, still knows
     you. ⭐ *This is the step the build exists for.*
-17. Stay away a game month. Come back to **a dish with something turned in
+19. Stay away a game month. Come back to **a dish with something turned in
     it**, and a cat that is cooler with you and has not gone feral. ⭐⭐
     *Nothing told you a number. The room told you.* Feed it twice and you
     are back.
-18. Go to the ranch and spend time with the collie. It bonds on the same
+20. Go to the ranch and spend time with the collie. It bonds on the same
     terms — and it is still a working dog, still doing its job, better for
     being known.
-19. **Ask the collie to come. It comes.** ⭐⭐⭐ *Same care, same bond, same
+21. **Ask the collie to come. It comes.** ⭐⭐⭐ *Same care, same bond, same
     verb, opposite answer — and the reason is the animal, not the player.*
-20. Ask it again while something else already has it — stock on the move,
+22. Ask it again while something else already has it — stock on the move,
     or the fox in the yard, whichever the world offers. **It does not
     come**, and you can see exactly what it chose instead. ⚠ *A refusal
     you cannot explain from the room is the defect this step is looking
     for.*
+23. Look at an animal near the end of its span. **It reads as old** — you
+    can see it coming, and nothing had to announce it.
+
+⚠ **Not drivable in one sitting, and stated so it is not mistaken for a
+gap:** an animal dying of age takes about a year of real time, and an
+animal outliving its person takes as long as that takes. Both are
+consequences of rules this drive *does* exercise — the visible ageing in
+step 23, and the cooling in step 19 — rather than separate machinery.
 
 ---
 
@@ -567,13 +701,23 @@ Observable from outside the code, by a person playing.
 11. A player can obtain animal food at the bottom rung by butchering, and
     a player with the relevant craft can turn it into something that
     keeps.
-12. A player talks to an NPC, the server restarts, and the NPC still knows
+12. A player can leave an animal somewhere and go on without it, and find
+    it there when they return.
+13. A player offers their animal food that has silently gone bad and **it
+    refuses**, in a situation where nothing else in the game would have
+    warned them.
+14. A player looking at an aged animal can tell it is near its end without
+    being shown a figure or given a warning message.
+15. A player is never told, by any interface, that the animal they have
+    just been adopted by is now theirs — they work it out because it
+    followed them home.
+16. A player talks to an NPC, the server restarts, and the NPC still knows
     them.
-13. A player asks the world which things are theirs, and is answered.
-14. A second companion species can be added by a content author writing two
+17. A player asks the world which things are theirs, and is answered.
+18. A second companion species can be added by a content author writing two
     rows and no code — including how winnable it is and how biddable, which
     are separate answers.
-15. A second kind of feeding vessel — a trough, a hayrack — can be added
+19. A second kind of feeding vessel — a trough, a hayrack — can be added
     the same way.
 
 ---
