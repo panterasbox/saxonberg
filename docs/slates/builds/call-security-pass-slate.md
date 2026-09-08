@@ -171,16 +171,28 @@ chain summary, commandId/causingCommandId, timestamp}` into an
    [world-scan-perf-slate § D3a](../tails/world-scan-perf-slate.md).
 
    ⭐ **Correction to this entry (2026-09-08): no frame change is
-   needed.** Every gated dispatch already pushes `(caller, target,
-   method)` (`SecurityApi.#pushFrame()(caller, cls, methodName, …)`), so
-   the CALLER's own function name is the `method` of the frame **one
-   below the top**. The primitive is `FromTemplate`'s existing hard
-   `#templatePath` read plus one stack-adjacent lookup.
+   needed.** Every gated dispatch pushes `(caller, target, method)`
+   (`SecurityApi.#pushFrame()(caller, cls, methodName, …)`), and the
+   policy is evaluated **before** the callee's frame is pushed — so at
+   `allows()` time the **TOP** frame is the caller's own, and
+   `top.method` IS the calling function's name. The primitive is
+   `FromTemplate`'s existing hard `#templatePath` read plus one
+   top-of-stack lookup; no new frame field.
 
-   ⭐⭐ **Attribution is exact, not heuristic**: for a top frame whose
-   caller is `X`, the frame below must read `target === X`. If
-   `frames[n-2].target !== caller`, the caller's own entry was never
-   intercepted and the adjacent frame belongs to somebody else.
+   ⚠⚠ **An earlier version of this correction said the frame *below* the
+   top (`frames[n-2]`). That was wrong** — it assumed the callee's frame
+   was already pushed when the policy runs. Verified in
+   `api/security.ts`: `policy.allows(...)` precedes `#pushFrame()`.
+
+   ⚠ **Attribution is a guard, not a guarantee, and the gap is
+   load-bearing**: `top.target === caller` (plus excluding a synthetic
+   `Root` frame) is the check, but **an un-dispatched caller inherits the
+   nearest dispatched frame**. So a free function called from a permitted
+   method IS admitted — deliberate, and how a module-level helper on a
+   permitted path qualifies — while a brain's `act()` is attributed to
+   the NPC's tick and can never qualify. The gate is therefore *"the
+   nearest dispatched (template, method)"*, not *"exactly this
+   function"*.
 
    **Decided with the user 2026-09-08:** (a) **fail closed** on no
    template stamp / no adjacent frame / attribution mismatch — never

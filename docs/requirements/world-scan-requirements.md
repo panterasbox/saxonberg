@@ -9,8 +9,8 @@ replaces, and one of them has already pinned a CPU core in a live drive.
 
 The realm answers questions about itself by **reading every object it has
 ever made**. Seventeen places in the running game ask *"where are all the
-X?"* by walking the entire object registry — every instance and every
-authored row — and filtering afterwards. Some of those places are cold
+X?"* by walking the entire object registry — every live object in the
+world — and filtering afterwards. Some of those places are cold
 (once, at shutdown). Others run when you get paid, when you put a coat
 on, when a shopkeeper notices you, and once per tick for every NPC
 minding a property. The cost does not scale with the answer; it scales with

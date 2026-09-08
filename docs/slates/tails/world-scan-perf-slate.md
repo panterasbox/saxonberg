@@ -331,33 +331,44 @@ the blocker as *"the CALLER's method name is not currently tracked in
 frames."* The dispatch says otherwise:
 
 ```
+policy.allows(caller, cls, methodName, args)      // ← evaluated FIRST
 SecurityApi.#pushFrame()(caller, cls, methodName, …)
 ```
 
-Every gated dispatch already pushes `(caller, target, method)`, so the
-caller's own function name is the `method` of the frame **one below the
-top**. No new frame field is needed; `FromTemplateMethod` is
-`FromTemplate`'s existing hard-`#templatePath` read plus one
-stack-adjacent lookup.
+Every gated dispatch pushes `(caller, target, method)`, and the policy
+runs **before** the callee's frame is pushed — so at decision time the
+**top** frame is the caller's own, and `top.method` is the calling
+function's name. No new frame field is needed; the primitive is
+`FromTemplate`'s existing hard `#templatePath` read plus one
+top-of-stack lookup.
 
-⭐⭐ **And the attribution check is exact, not heuristic.** Frames are
-`(caller, target, method)`, so for a top frame whose caller is `X`, the
-frame below must read `target === X` — that is the same object, seen as
-callee of its own invocation. **`frames[n-2].target !== caller` means the
-caller's own entry was never intercepted**, so its function name is
-unknown and the adjacent frame belongs to somebody else.
+⚠⚠ **A first draft of this said the frame BELOW the top.** That assumed
+the callee's frame was already pushed. It is not — verified in
+`api/security.ts` during planning.
+
+⚠ **And attribution is a guard, not a guarantee.** `top.target ===
+caller` (excluding a synthetic `Root` frame) is the check, but **an
+un-dispatched caller inherits the nearest dispatched frame**. A free
+function called from a permitted method IS admitted — deliberate — while
+a brain's `act()` is attributed to the NPC's tick and can never qualify.
+⭐ So the gate reads *"the nearest dispatched (template, method)"*, not
+*"exactly this function"*: coarser than the recorded preference, and the
+plan records it as doctrine rather than leaving it implicit.
 
 **⭐ Decided — the two shape questions:**
 
-1. **Fail closed.** No template stamp, no adjacent frame, or
-   `frames[n-2].target !== caller` → **deny**. Never guess a function
-   name from an unattributable frame. ⚠ **Consequence to accept
-   deliberately: an un-intercepted caller can never hold this gate** —
-   a free function, a module-scope call, or **a brain's `act()`**.
-   `maintains.ts` is a brain and one of the sixteen sites, so it hits
-   this on day one — correctly, since it should be reading the residence
-   catalogue (D2) rather than the registry at all. The constraint is
-   general to the primitive, not local to this build.
+1. **Fail closed.** No template stamp, template glob miss, no top
+   frame, `top.target !== caller`, a synthetic `Root` frame, or
+   `top.method !== methodName` → **deny**. Never guess a function name
+   from an unattributable frame. ⚠ **Consequence to accept
+   deliberately: a caller whose own entry was never dispatched cannot
+   name itself** — it inherits the nearest dispatched frame instead. A
+   free function called from a permitted method is therefore admitted
+   (deliberate), while **a brain's `act()` is attributed to the NPC's
+   tick and can never qualify**. `maintains.ts` is a brain and one of
+   the seventeen sites, so it hits this on day one — correctly, since it
+   should be reading the residence roster (D2) rather than the registry
+   at all.
 2. **The module term is OPTIONAL** — `FromTemplateMethod(templatePath,
    methodName, opts?)` with the module glob as a third, opt-in term.
    ⭐ It is a **disambiguator**, not part of the identity: `flowSplitsFor`
