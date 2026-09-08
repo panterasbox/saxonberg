@@ -66,7 +66,7 @@ suite('the yard outfits you', () => {
      * is the same sentence whether or not you already had it, and a
      * teaching farm hands you the tools rather than selling them.
      */
-    for (const t of ['spade', 'scythe', 'kit', 'plough']) {
+    for (const t of ['spade', 'kit', 'scythe']) {
       await p.cmd(`get ${t}`);
     }
     const inv = await carried();
@@ -92,6 +92,14 @@ suite('the yard outfits you', () => {
 });
 
 suite('⭐⭐ the ground reads three ways, and agrees with its own row', () => {
+  // ⚠ The readings are taken IN THE FIELD, not in the yard — `go field`
+  // is a named exit off the yard. The yard is where the tools live; the
+  // ground is somewhere you walk to, which is the whole shape of a farm.
+  beforeAll(async () => {
+    expectOk(await p.cmd('go field'));
+    await p.drainProse();
+  }, 60_000);
+
   it('texture is the ribbon test — no instrument, no expertise', async () => {
     expect(await p.prose('measure texture')).toMatch(/loam/i);
   }, 60_000);
@@ -126,6 +134,13 @@ suite('the ley and the furrow', () => {
   }, 60_000);
 
   it('⭐ a man-drawn share goes in about half as far as a beast’s', async () => {
+    // ⚠ The plough is fetched now rather than with the hand tools: it is
+    // a different building, and the walk is the point.
+    expectOk(await p.cmd('go yard'));
+    await p.cmd('get plough');
+    expect(await carried()).toMatch(/plough/i);
+    expectOk(await p.cmd('go field'));
+    await p.drainProse();
     expect(await p.prose('plough')).toMatch(
       /traces over your shoulders|turned and clean|want a plough/i
     );
@@ -133,6 +148,11 @@ suite('the ley and the furrow', () => {
 });
 
 suite('the herdbook — you file, you do not hold the pen', () => {
+  beforeAll(async () => {
+    expectOk(await p.cmd('go yard'));
+    await p.drainProse();
+  }, 60_000);
+
   it('the book on the byre door is readable', async () => {
     expect(await p.prose('look herdbook')).toMatch(/hide-bound|ruled columns/i);
   }, 60_000);

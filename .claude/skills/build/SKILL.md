@@ -127,6 +127,19 @@ is `test:near` + the lint family. Never start it in the background.
 Run the **drive script** from the requirements doc against the running
 game, and append the result to the plan as the **drive record**.
 
+⭐⭐ **The drive IS a wire file.** Write it at
+`packages/wire/tests/<feature>.wire.test.ts` (or `.dirty.wire.test.ts`
+when it consumes something the world does not regenerate), import the
+harness rather than re-deriving login/socket/roster, and declare the
+packs the flow needs. Its first run output is the drive record.
+
+Do NOT write `packages/server/scripts/drive-<feature>.ts` — that shape
+is retired and `lint:drive-scripts` fails on it. Five of them
+accumulated, each with its own copy of the same harness, and each was
+dead the day after its MR merged: when they were migrated, two turned
+out to have been RED on master for weeks with nobody able to know.
+See `docs/testing.md § Two tiers`.
+
 ⚠ Expect it to find things: tests build state, they never use it. Every
 build that was driven found defects the suite could not — cooking 6,
 textiles 3, and metal-chain's drive surfaced five *pre-existing*

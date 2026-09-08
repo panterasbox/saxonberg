@@ -116,6 +116,28 @@ is appended to the plan (`farming-plan.md § Checkpoint A` is the
 precedent). By this phase it should already have been run — it is the
 exit criterion for the build phase, before the MR opens.
 
+⭐⭐ **Graduation — the drive must have landed IN the suite, not beside
+it.** From 2026-09-08 a drive is written as a wire file and keeps
+running on every MR:
+
+```bash
+pnpm -C packages/server lint:drive-scripts   # ceiling 0; part of lint:family
+ls packages/wire/tests/                      # the feature's file is here
+```
+
+Confirm it declares the packs its flow needs, and that its dirtiness is
+honest — a `.dirty.` name iff it exports a `DIRTY_REASON`, and the
+reason says what it CONSUMES. ⭐ Each dirty reason is a question for the
+owning trade (a producer that should be producing): offer it to that
+trade's slate as a one-line finding here. The wire build reports them;
+it does not fix them.
+
+⚠ Why this check exists: the five retired one-off drive scripts were
+each dead the day after their MR merged, and when they were finally
+migrated **two of them had been failing on master with nobody able to
+know** (`drive-textiles` 5 of 16 checkpoints, `drive-identity` 6 of 18).
+A drive nobody runs decays silently.
+
 - **Record present.** Read it. Confirm every step of the script was
   actually run, and that anything it found was fixed rather than
   noted.
