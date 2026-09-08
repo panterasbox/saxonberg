@@ -375,6 +375,35 @@ somebody else's labour.
 
 ---
 
+## Finding 6 ⭐⭐⭐ — competence can only go up
+
+**The fifth instance of this slate's one pattern, and the one that
+answers [Q8](#open-questions).**
+
+`Outcome` declares four values:
+
+```ts
+export type Outcome = "failure" | "partial" | "success" | "critical";
+```
+
+**Production code has never written `failure` or `partial`.** Every
+`ActSignature` minted anywhere in the kernel or the thirty-six packs
+carries `success` or `critical`; the only four `failure` literals in the
+tree are in `lib/advancement/__tests__/`.
+
+⭐⭐ So the BKT estimator's entire **negative-evidence path** — documented
+in its own header, *"a master can fail a formidable task… a formidable
+failure is unsurprising and barely moves the estimate"* — **has never
+been exercised outside a unit test.** Competence is a ratchet that only
+ratchets one way, and nothing in the world can make you worse at
+anything.
+
+Combat already mints per-exchange signatures
+(`CombatLogic:4946`, `:4955`, and a captain's at `:4566`). All
+`outcome: "success"`.
+
+---
+
 ## The design
 
 ### A. Close the loop *(smallest, largest payoff)*
@@ -459,9 +488,14 @@ The *determination* is solid and needs no work: six resolutions
 `disengage`), a named victim and killer, narration, and a venue hook. The
 question this build answers is what an outcome **means**.
 
-- **Winning pays.** Renown is the obvious currency and it is shipped and
-  scoped. ⚠ What a non-lethal win is *worth* is a values call, not an
-  engineering one — see [Q8](#open-questions).
+- **Winning pays — ✅ decided: the disciplines you used.** Not a purse,
+  not a token: you get better at what you actually did, and **losing
+  makes you worse at it**. `Outcome` already has `failure`; nothing has
+  ever written one (Finding 6). The BKT's difficulty coupling means
+  losing to a monster barely dents you while losing to your equal
+  stings, and its ZPD gate means beating novices teaches nothing — so
+  the rule cannot be farmed and cannot spiral. See
+  [Q8](#open-questions).
 - **Losing costs**, and the cost is legible. At the extreme this is
   mortality's `recovering` seed, which ships **deliberately empty** —
   *"what diminishment should actually BE is undesigned."* This build
@@ -641,13 +675,55 @@ slate deliberately does not lift it. It wants its own slate next to
 question is whether combat keeps its own `CombatTerms` as a specialization
 or becomes a consumer of the general thing.
 
-**Q8 — what does winning a non-lethal fight pay?** ⚠ **The one question
-in this slate that is a values call rather than an engineering one.**
-Renown is shipped, scoped, and the obvious currency — but standing is the
-game's real money (`standing = max(0, renown) × participation`), and how
-much of it a bar brawl mints is a statement about what the polity
-rewards. An engine answer here would be the engine deciding what the game
-is about. See [measurement.md](../../measurement.md) § layer 3.
+**Q8 — what does winning pay? ✅ DECIDED.**
+
+> **User: "winning pays is advancing the disciplines you used for the
+> win. and losing regresses those disciplines."**
+
+⭐⭐ **This needs almost no new machinery, because it is the unused
+three-quarters of a vocabulary that already shipped** (Finding 6). The
+reward is *intrinsic* — you get better at what you actually did — which
+is the anti-XP move stated as a mechanism: no points, no purse, just
+competence, measured.
+
+**Why it is safe** — the BKT's two couplings give the hard parts for
+free, and they are already built:
+
+| situation | difficulty | what the estimator does | why that is right |
+|---|---|---|---|
+| lose to someone far above you | formidable | high slip → the failure was *expected* → **barely moves** | no punishment for being outmatched; **no death spiral** |
+| lose to someone you should have beaten | standard | surprising → **this is what regresses you** | the loss that should sting, does |
+| beat a novice as an expert | trivial | high guess → success expected, **and ZPD learn rate ≈ 0** | ⭐ **it cannot be farmed** |
+| beat someone at your edge | hard | the surprising evidence dominates | you learn where learning happens |
+
+**The user's rule is safe precisely because the estimator was built right
+and then only half-used.**
+
+**What the work actually is** — all of it lands on **W3**, in the two
+empty hooks:
+
+1. `onDefeated` mints the loser's signature with `outcome: 'failure'`;
+   `onDefeatedFoe` mints the victor's. The hooks stop being no-ops and
+   the outcome model gets its first implementers.
+2. ⭐ **Difficulty derived from the opponent** (their competence band
+   against yours). This is the genuinely new piece, and it is the term
+   that makes the whole thing fair.
+3. ⚠ **"Disciplines" is plural and the code has one hardcoded string.**
+   `MELEE_COMBAT_DISCIPLINE = "melee-combat"` is a lone constant, while
+   `ActSignature.discipline` is already a **list** of per-discipline
+   sub-checks with per-discipline outcomes. So a fight can honestly
+   record *footwork went well, swordsmanship did not* — but something has
+   to declare which disciplines a given fight exercised. Weapon profiles
+   are the obvious home; command and awareness are the obvious
+   additions.
+
+⚠ **The one consequence worth staring at before building it: nothing in
+this game has ever taken competence away.** Regression is a genuinely
+new player experience, it interacts with Q9's diminishment, and it is the
+first mechanism that can make a character *worse*. That is the right
+design — a world where practice only ever pays is not one where losing
+means anything — but it should ship with its numbers visible and
+deliberately gentle at the formidable end.
 
 **Q9 — what IS diminishment?** mortality.md ships `recovering` as a
 deliberately empty seed and names four candidates: a temporary competence
@@ -701,7 +777,7 @@ govern.
 |---|---|---|
 | **W1** | ⭐ wound → poise | the loop closes. First, smallest, **not a stretch** (design A) |
 | **W2** | the poise read | per-exchange narration of the delta — prose, never a card (design F) |
-| **W3** | the outcome model | `onDefeated`/`onDefeatedFoe` get implementers; winning pays, losing costs (design E) |
+| **W3** | ⭐ the outcome model | `onDefeated`/`onDefeatedFoe` get implementers. **Q8 decided:** winning advances the disciplines you used, losing regresses them — via `outcome: 'failure'`, which production has never written (Finding 6). Difficulty from the opponent's band (design E) |
 | **W4** | morale & surrender | combat-experience **T13** — an opponent that gives up; answers [Q4](#open-questions) |
 | **W5** | de-escalation | combat-experience **T12** — the non-fighter's exits |
 | **W6** | aftermath | combat-experience **T11** — the combat-side wake |
@@ -729,7 +805,7 @@ govern.
 
 ### ⭐⭐ W0c — `lint:unconsumed-seams`, and why it is the most valuable wave
 
-Four of this slate's five findings are **the same defect**: a
+Five of this slate's six findings are **the same defect**: a
 correctly-designed seam with nothing on the consumer end.
 
 | seam | consumers |
@@ -738,6 +814,7 @@ correctly-designed seam with nothing on the consumer end.
 | `Condition.resolution` | 0 |
 | `Condition.contagion` | 0 |
 | `Combatant.onDefeated` / `onDefeatedFoe` | 0 |
+| `Outcome.failure` / `.partial` | 0 (tests only) |
 
 Every one was found **by hand**, one at a time, across four separate
 investigations — and `ProgressionSpec` was a fifth that a previous build
