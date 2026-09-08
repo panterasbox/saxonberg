@@ -118,6 +118,40 @@ test-gym:
   script:
     - pnpm test:gym
 
+# The WIRE suite — game flows driven over the real WebSocket, with no
+# browser. Its own job for the same reason `test-gym` is: it needs a
+# BOOTED SERVER, so it can never live inside `pnpm test`, and taking it
+# out of a pipeline should be a decision somebody makes visibly rather
+# than a line quietly deleted from another job's script.
+#
+# `WIRE_BOOT=1` makes the runner own its world (port 2012, its own
+# preflight — it never spawns onto 2010, which is how Playwright's
+# webServer used to kill the operator's running game). The database is
+# the job's throwaway mongo service, so a dirty file costs nothing here.
+#
+# ⚠ CI always boots COLD, and a cold boot measured 245-251s
+# (docs/testing.md § The boot cost). Budget the job accordingly; the
+# suite itself runs in seconds.
+wire:
+  extends: [.node, .mr-only]
+  stage: validate
+  services:
+    - name: mongo:7
+      alias: mongo
+  variables:
+    MONGODB_URI: 'mongodb://mongo:27017'
+    MONGODB_DATABASE: 'saxonberg_wire'
+    SESSION_SECRET: 'ci-wire-not-a-secret'
+    FOUNDER_GOOGLE_EMAIL: 'founder@e2e.local'
+    WIRE_BOOT: '1'
+  script:
+    - pnpm wire
+  artifacts:
+    when: on_failure
+    paths:
+      - packages/wire/.wire/
+    expire_in: 1 week
+
 build:
   extends: [.node, .mr-only]
   stage: validate

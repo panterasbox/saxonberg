@@ -145,9 +145,9 @@ const COIN_PATH = "/stuff/thing/Coin";
  */
 function actingActorKey(): string {
   const principal = actingPrincipal() as {
-    getTemplatePath?(): string | null;
+    getIdentityPath?(): string | null;
   } | null;
-  return principal?.getTemplatePath?.() ?? "system";
+  return principal?.getIdentityPath?.() ?? "system";
 }
 
 /**

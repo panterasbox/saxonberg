@@ -400,7 +400,10 @@ run: never report `test:near` green as though the suite passed.
 Per-package commands live in `packages/server/` and `packages/client/`
 (`pnpm dev`, `pnpm build`, `pnpm test`, `pnpm clean`, `pnpm preview`).
 
-[docs/testing.md](./docs/testing.md) — the suite's cost model: `pnpm
+[docs/testing.md](./docs/testing.md) — the **two tiers** (wire =
+flows over the real socket, `packages/wire`, `pnpm wire`; render =
+Playwright in `e2e/`) and when to write which; the boot cost; plus the
+suite's cost model: `pnpm
 bench` + the measurement history, the ±6% noise floor (nothing under
 10% is a real win), how often to run the full suite, why `isolate:
 false` stays declined, and the one rule for a new test — anything
@@ -1053,6 +1056,7 @@ orchestration cases:
 | `resolveSetting(actor, 'movement.defaultMode') ?? 'walk'` | `LocomotionApi.defaultModeFor(actor)` — three-tier chain: explicit setting → bodyplan default → universe 'walk' (the raw resolveSetting skips the bodyplan layer for NPCs) |
 | `avatar.questStarted = true` (direct field assignment for dynamic state) | `avatar.setProp(Property.of<boolean>('quest_started'), true)` (PropertiedMixin). ⚠ A prop is for a slot whose **key is computed at runtime** (`circleProp(corpoKey)`, `Property.of(eventName)` — the only two production call sites). Anything **authored in YAML** or **narrowed on** is a mixin field, because the Hydrator reflects into fields and `MixinApi.isX` threads the type. ⚠⚠ **Money is neither** — it lives in `bank_ledger` behind the sealed `postTransaction` chokepoint. |
 | `(stuff as unknown as { templatePath? }).templatePath` | `stuff.getTemplatePath()` (runtime stamp). For `Template` docs use `template.path` — the two are distinct. |
+| `person.getTemplatePath()` as a durable PERSON key (an account owner, a contract party, a grant subject) | `person.getIdentityPath()`. ⚠⚠ **Every player Avatar shares one `templatePath`** — D17 stamps lineage and identity separately, so keying on lineage collapses every player into one. It cost a SHARED BANK ACCOUNT and a dead labor market, invisibly to the suite. `getIdentityPath()` falls back to `getTemplatePath()` for anything with no minted identity, so it is safe everywhere. See [antipatterns.md § Keying a PERSON on `getTemplatePath()`](./docs/antipatterns.md). |
 | `(stuff as { templatePath? }).templatePath = path` | `stuff.setTemplatePath(path)` (ApiOnly-gated, re-keys `byTemplatePath`). The slot is hard-private (`#templatePath`); bracket-writes are runtime no-ops. Clone-pipeline pre-register stamps use the caller-allowlisted `Stuff._stampTemplatePath` seam. |
 | `(stuff as { zone? }).zone = z` | `stuff.setZone(z)` (gated by `FromSpatialZone` — only `SpatialZone` subclasses may call). Slot is hard-private (`#zone`); bracket-writes are runtime no-ops. Clone-pipeline pre-register stamps use the caller-allowlisted `Stuff._stampZone` seam. |
 | `other.foo` / `other.foo = x` from another Stuff | `other.getFoo()` / `other.setFoo(x)` — see "Inter-Stuff Contract" above |

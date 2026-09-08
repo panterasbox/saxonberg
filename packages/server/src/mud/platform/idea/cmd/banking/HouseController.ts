@@ -101,7 +101,7 @@ export default class HouseController extends BankingControllerBase<HouseModel> {
       return;
     }
     const worker = model.worker?.stuff;
-    const workerKey = worker?.getTemplatePath() ?? null;
+    const workerKey = worker?.getIdentityPath() ?? null;
     if (!workerKey) {
       MessageApi.scene(giver)
         .topic(TOPIC)

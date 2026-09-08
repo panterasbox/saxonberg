@@ -1,0 +1,19 @@
+{
+  "name": "@saxonberg/wire",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Wire tests — game flows driven over the real WebSocket, with no browser.",
+  "scripts": {
+    "wire": "vitest run",
+    "wire:clean": "vitest run --exclude '**/*.dirty.wire.test.ts'",
+    "wire:dirty": "vitest run tests/*.dirty.wire.test.ts"
+  },
+  "devDependencies": {
+    "@saxonberg/types": "workspace:*",
+    "@types/node": "^20.0.0",
+    "@types/ws": "^8.5.10",
+    "vitest": "^2.0.0",
+    "ws": "^8.16.0"
+  }
+}

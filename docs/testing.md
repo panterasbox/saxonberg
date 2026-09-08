@@ -540,6 +540,147 @@ Related: a guard that scans source can pass by **matching nothing**.
 Assert what it found (`expect(inspected).toBe(N)`), or a rename
 silently reduces it to `expect([]).toEqual([])`.
 
+## ⭐⭐ Two tiers: WIRE and RENDER
+
+Testing splits in two, and the split is about what a test is entitled to
+have an opinion on.
+
+| | **wire** (`packages/wire`) | **render** (`e2e/`) |
+|---|---|---|
+| proves | a FLOW is sound | the browser draws it right |
+| speaks | the socket the client opens | a real Chromium |
+| runs | `pnpm wire` | `pnpm e2e` |
+| costs | seconds | minutes |
+| in `pnpm test`? | no — it needs a booted world | no |
+
+**Write a wire test** when the question is *does this work end to end* —
+washing dishes, delivering mail, claiming a gig, walking to Rejection.
+**Write a render test** when the question is about the SCREEN: a layout,
+a card, a theme, a mobile bar. **Write a unit test** for arithmetic; wire
+tests prove flows compose and are a bad instrument for a number.
+
+⚠ The two were tangled until 2026-09-08. `e2e/tests/` held eight
+`drive-*` specs — 2,071 lines with 44 assertions between them, almost
+none about the browser — that drove a real Chromium and took screenshots
+in order to exercise SERVER flows. `work-drive.spec.ts` ran a banking
+loop through `document.body.innerText`; `drive-farming.spec.ts` spent
+~60 lines on roster re-entry and page reloads purely so it could keep
+typing. They paid the full Playwright cost for none of the benefit.
+
+### The three assertion channels, and what each owns
+
+1. **The envelope — OUTCOMES.** Every dispatch emits exactly one
+   `dispatch-response` carrying a status and typed notes. `expectOk`,
+   `expectNote(r, 'controller-rejected', { reason })`. **Never assert a
+   refusal by its prose**: prose changes with a copy edit, and the
+   render tier checks wording once, in one place.
+2. **`mql-query` — STATE.** A one-shot MQL read over the same socket,
+   projected over the same `subscribableFields` the card surface
+   renders, resolved AS THE PLAYER — so perception, concealment and
+   belief stay honest and a test cannot see what its actor could not.
+   "Is the pot in the room" is `query('peers')`, not a regex on `look`.
+3. **`prose()` — the RESIDUE, counted.** Where a fact's only observable
+   is a rendered line. Every call is counted and the run prints a
+   per-file census, so the residue stays visible instead of
+   accumulating as regexes.
+
+⭐ **A wire file may not add a `subscribableFields` descriptor to make
+itself assertable.** A state a flow needs and the projection cannot
+reach is a card-surface finding, recorded like a `dirtiesWorld` reason —
+the descriptor serves the card first and the test second.
+
+⚠⚠ **The envelope ends the DISPATCH, not the OUTPUT.** Scenes travel to
+the socket independently, so a line can arrive *after* the envelope that
+reports the outcome. Outcomes are therefore clock-free and exact, while
+`said()` is async and settles the socket first; after a run of commands
+nobody read, call `drainProse()`. This is the single thing most likely
+to look like a bug in the harness and not be one.
+
+### Repeatable by default; `dirtiesWorld` is a CONTENT finding
+
+A file is repeatable when it brings its own actor, its own money and its
+own fixtures, and consumes only what the world REGENERATES. Those run
+first. A file that cannot is named `<flow>.dirty.wire.test.ts`, exports
+a `DIRTY_REASON`, and is batched to the end by the runner's sequencer;
+after a run that executed dirty files, a reset is owed.
+
+⭐⭐ **And the flag is a question for the owning trade, not a property of
+the test.** `cooking.dirty` cannot run twice because it eats the
+cookhouse's only cut of meat — *a cookhouse that ships one cut and never
+produces another is a world that does not restock*. The first run's
+findings list came back with: a teaching farm that can outfit exactly
+one student; a tailor's shop whose single set of tools never returns; a
+job board with no expiry; and a money faucet with no sink. Most should
+turn out to be a producer that should be producing.
+
+### Attach or own
+
+`pnpm wire` **attaches** to a world already running on 2010. It never
+spawns and never kills — the server's `dev` script preflights by
+KILLING whatever holds its port, and a runner that started its own
+server would terminate the operator's game mid-run. (Playwright's
+`webServer` did exactly that, repeatedly, and the fix was a config with
+no `webServer` at all.)
+
+`WIRE_BOOT=1 pnpm wire` (and CI, always) **owns** a world on port
+**2012** — its own port, where the same preflight can only ever reap a
+stale wire server. It gets no database of its own (one database per
+worktree stands), so locally it REPLACES a dev server rather than
+joining one.
+
+⚠⚠ The spawned server must not inherit `VITEST`: `preload.js` registers
+the call-security loader only when it is unset, so a leaked env makes
+the world boot with no module provenance and die on the first
+`FromModule` policy — which reads exactly like a call-security defect.
+`boot.ts` scrubs it, and `NODE_OPTIONS` with it.
+
+### A drive is BORN a wire file
+
+A build's exit criterion is still the DRIVE. What changed is where it
+lives: the drive script IS a wire file, so it keeps running on every MR
+instead of being written once and abandoned. `lint:drive-scripts` holds
+`packages/server/scripts/drive-*.ts` at zero.
+
+⭐⭐⭐ **This is not tidiness.** When the five one-off scripts were
+migrated, two of them turned out to be RED on master and nobody could
+have known, because nothing ran them: `drive-textiles` failed 5 of 16
+checkpoints and `drive-identity` 6 of 18. Porting the Playwright specs
+found a third (`job post` had grown a required condition clause). A
+drive nobody runs decays silently, and decays fast.
+
+## The boot cost — what a wire run pays for a world
+
+Measured 2026-09-06 in `build-1` against Atlas, per the wire-tests
+requirements' specified procedure: `reset:db`, time from process start
+to the port answering, twice cold and twice warm.
+
+| boot | database | total |
+|---|---|---|
+| cold 1 | freshly dropped | **245.2s** |
+| cold 2 | freshly dropped | **250.7s** |
+| warm 1 | already seeded | **98.7s** |
+| warm 2 | already seeded | **96.3s** |
+
+Warm 2 was split further: **58.2s** from process start to
+`AppBootstrap: world open`, then **38.1s** more before the HTTP port
+accepted a connection.
+
+**What it decides.** Seeding is ~150s of a cold boot — about 60% of it —
+so a reset is genuinely expensive and `dirtiesWorld` batching earns its
+keep: a suite that reset per file would pay four minutes per file. A
+Mongo snapshot/restore reset path would attack the right 150s, and is
+recorded as a candidate in the wire-suite growth slate rather than built
+— nothing today needs a reset mid-run.
+
+⚠ **The 38 seconds after the world opens are a dev-only compile
+watcher.** `AppBootstrap.run` starts `CompileWatcher` — a full
+TypeScript watch program — and only then does `Server.start` bind the
+port, so *every* boot pays it, warm ones included, and so does every CI
+wire run. It is gated on `NODE_ENV !== 'production'` and the wire suite
+cannot set that (`AUTH_MODE=test` is refused in production), so the cost
+stands. Recorded here as a finding; nothing in this build changes the
+engine to avoid it.
+
 ## Adding a test
 
 Nothing to do, unless your test touches the wired runtime — the Stuff
