@@ -271,11 +271,34 @@ invisible to the type system today.
 ### D3 — Two gates, because there are two failure modes
 
 **Gate A — who.** The `world` seed requires **system mode
-(`commandGiver === null`) or archwizard**. Player-typed `world:` throws a
-resolver error naming `reachable` / `here` / `person`. `MqlPermissionError`
-already exists and no path currently throws it — a ready seam. Strip
-`world:` from the **player-facing** `docs/mql-grammar.md`, which
-advertises `world:[mixin.Door]` today.
+(`commandGiver === null`) or `AccessApi.isWizard(giver)`**. Player-typed
+`world:` throws a resolver error naming `reachable` / `here` / `person`.
+`MqlPermissionError` already exists and no path currently throws it — a
+ready seam. Strip `world:` from the **player-facing**
+`docs/mql-grammar.md`, which advertises `world:[mixin.Door]` today.
+
+⭐⭐ **"The prime minister" is not a metaphor — it is the seat, and it is
+already how this is spelled.** `prime-minister` is the constituted
+executive seat in `OFFICE_APPARATUS`
+([governance.md](../../subsystems/governance.md)), and **both**
+`AccessRegistry.isWizard` and `isArchwizard` fall back to
+`holdsPrimeMinister`, **derived on every check, never stored** — the
+world ships with no wizards, and the founder's provider id only picks the
+default holder until somebody is seated
+([record-layer.md](../../subsystems/record-layer.md): *check offices,
+never the founder*). So gating on the wizard axis **is** gating on the
+office; authority follows the seat in both directions, including through
+a handoff.
+
+⭐ **Why `isWizard` and not `isArchwizard`: anything stricter is
+theatre.** A wizard holds TypeScript escape — `eval`, source-tree
+writes — so they can call `StuffApi.getAllObjects()` directly no matter
+what MQL permits. A gate above that axis would deny a capability its
+holder already has by another route, which is exactly the kind of guard
+that only constrains good faith. The gate's real job is the
+**player-typed** door, and `isWizard` closes it at the honest line.
+⚠ The archwizard axis is the *conferral* axis (who may make wizards);
+it has nothing to say about who may read the registry.
 
 > ⚠ The exposure is real and not hypothetical: the dispatcher hands the
 > player's raw argument straight to `resolveMany(raw, {commandGiver, scope})`,
@@ -461,12 +484,15 @@ that gap is a seed to add, not a reason to widen the gate.
    as such in `mql.md`, because the alternative is the
    invalidation-by-construction hard part for a use case nothing has
    asked for.
-2. **What principal is "prime minister" exactly?** Archwizard is the
-   nearest existing tier ([access.md](../../subsystems/access.md)).
-   ⚠⚠ It must **not** become a new invented tier — the standing rule is
-   that a wizard stand-in is a missing seat. Confirm archwizard (or
-   system-mode-only, which all 16 sites already satisfy and which needs
-   no principal at all — arguably the honest answer).
+2. ✅ **Answered — "the prime minister" is the seat, not a placeholder.**
+   Resolved into D3 Gate A: `system mode || AccessApi.isWizard(giver)`,
+   which *is* the PM's office because `isWizard` derives from
+   `holdsPrimeMinister`. ⚠ Recorded because the first pass got it wrong
+   in a way worth not repeating: it read a named, shipped office as loose
+   phrasing and went hunting for "the nearest existing tier" — reaching
+   for the stand-in when the seat was the thing being named, and
+   inverting the derivation (archwizard comes *from* the PM seat, not
+   beside it).
 3. **Does the residence catalogue key on the base class or the concrete
    one?** `[class.OuterWarren]` matches `HoldingWarren` subclasses today
    (a prototype-chain walk). A catalogue keyed on the concrete class
