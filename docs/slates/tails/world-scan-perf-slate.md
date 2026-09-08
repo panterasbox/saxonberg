@@ -1,63 +1,89 @@
-# World-scan performance slate — the `world:` seed is O(n), and indexing only half-fixes it
+# World-scan slate — you may not be handed the world; you may ask it a question
 
-> **Status: UNBUILT**
-> **Left:** the money-path owner reads (`flowSplitsFor`,
-> `holdersByPosition` off the Business roster) · the per-tick
-> `maintains.holdingsUnder` extent lookup · `findOccupiedSlots`'s item
-> back-reference · the by-mixin/by-class index at `stuff.ts`'s
-> register chokepoint · `allModes` roster cache · `execMisidentify`
-> early-exit · the companion `world:`-is-for-selective-populations norm
-> **Size:** a wave
+**Captured 2026-09-01** as a performance inventory. **Decided
+2026-09-08**: the remedy is not only "make `world:` cheap" — it is a
+**prohibition plus a gate**, and it extends to a second surface with the
+same shape, Api methods that hand back their whole backing table.
 
-**Captured 2026-09-01.** An inventory of every runtime `world:` MQL query
-— each a full O(n) scan of the object registry — plus the triage that
-falls out of one sharp observation: **a by-mixin index only helps when
-the mixin is selective; for a broad mixin you still pay, and for the
-worst sites you were scanning to rebuild a relationship something else
-already owns.**
+> **Status: design conversation settled. Requirements not written.**
+> Every ⭐ decision in Part 3 was taken in the 2026-09-08 conversation,
+> not proposed. Call sites re-verified against `master` at
+> `ae891fa52` (2026-09-08); line numbers drift — the enclosing
+> **function names** are the durable anchors.
 
-> **Status: design conversation + verified inventory, captured. Not
-> requirements.** Call sites verified against `master` at capture; line
-> numbers will drift — the enclosing function names are the durable
-> anchors.
+**Provenance — two conversations:**
 
-**Provenance:**
-
-> **User: "any inventory on anything that's doing mql queries with
-> 'world' … things that do a full scan of every stuff item in the game.
-> we have to get rid of that shit or somehow make it performant."**
+> **2026-09-01 — User: "any inventory on anything that's doing mql
+> queries with 'world' … things that do a full scan of every stuff item
+> in the game. we have to get rid of that shit or somehow make it
+> performant."**
 >
-> **User (the crux): "even if we index mixin.X, depending on what X is
-> the scan could still be really expensive."**
+> **2026-09-01 (the crux): "even if we index mixin.X, depending on what
+> X is the scan could still be really expensive."**
+>
+> **2026-09-08: "we need to deal with anything that's doing world-based
+> MQL queries … we've basically got to prohibit it across the board. And
+> let's gate 'world' as a predicate to only things being run by the
+> prime-minister or something. it should not be possible for just
+> anything to do full table scans against the stuff runtimes."**
+>
+> **2026-09-08 (the shape of the fix): "I don't want some ever growing
+> bag of indices on the stuff table especially ones that only apply to a
+> specific slice of the taxonomy. but if like 15 or 17 are all just
+> mixin checks, that probably tells us we should be indexing on mixin
+> composition. for the specialized check's I'd rather apis keep their own
+> indexes and offer their own APIs for operating over those indexes …
+> with maybe some optional MQL grammar later on if there are some common
+> use cases we want to be queryable."**
+>
+> **2026-09-08 (the second surface): "any Api class that's returning back
+> full copies of it's tables/lists … it shouldn't just expose its
+> internal data structures for anyone. same problem, different causes."**
 
 **Sits on:** [mql.md](../../subsystems/mql.md) (the `world` seed + system
 mode — **read first**), [antipatterns.md](../../antipatterns.md)
-(§ Bespoke Object-Search Algorithms), [employment.md](../../subsystems/employment.md)
-(the roster that two of the worst sites should be reading),
-[boot-time-build] doctrine (cache at the chokepoint that writes;
-invalidation by construction — the index pattern here).
+(§ Bespoke Object-Search Algorithms — ⚠ **this build inverts it**),
+[lint-family.md](../../lint-family.md) (census-then-ratchet),
+[employment.md](../../subsystems/employment.md) (the roster two of the
+worst sites should be reading),
+[augmentation.md](../../subsystems/augmentation.md) (the active-vs-composed
+mixin question), [content-packs.md](../../subsystems/content-packs.md)
+(⚠ a pack cannot ship an Api — Part 3 D2).
 
 ---
 
-## Part 0 — The finding: `world:` is the *sanctioned* mechanism, and it is O(n)
+## Part 0 — ⚠⚠ The doctrine reversal
 
-Two facts that must be held together:
+Two facts, held together:
 
-1. ⭐ **`world:[mixin.X]` is not the antipattern — it is the fix for the
-   OLD antipattern.** `pnpm lint:world-scan` (CI-gating) bans bespoke
-   `StuffApi.getAllObjects()` filter-loops and herds them onto MQL. So
-   the goal is **not** "get rid of `world:`" — it is "make `world:`
-   cheap, or stop asking it questions a relationship already answers."
-2. ⚠ **Every `world:` query is a full O(n) scan.** `resolver.ts:324`
-   resolves the `world` seed to `StuffApi.getAllObjects()` — the entire
-   `#indexes.byId` registry — and the `[mixin.X]` / `[class.X]` filter
-   is applied **after**, per object. The registry maintains a
-   `byTemplatePath` PathTrie but **no by-mixin or by-class index**. So
-   `world:[mixin.X]` walks every object in the game and tests each.
+1. ⚠⚠ **`docs/antipatterns.md` currently teaches the defect as the
+   fix.** § *Bespoke Object-Search Algorithms* shows a `getAllObjects()`
+   attendant loop as BAD and
+   `MqlApi.resolveMany('world:[mixin.AttendantMixin]', …)` as INSTEAD —
+   **which is the live code in `AttendantLogic.allPoints`, and the same
+   scan behind nicer syntax.** `pnpm lint:world-scan` (CI-gating) exists
+   to herd code *onto* it. The 2026-09-01 capture read this as settling
+   the question ("the goal is **not** get rid of `world:`"); ⭐ the
+   2026-09-08 decision is that it does not. The previous sweep moved the
+   scan and shipped it as a fix.
+2. ⚠ **Every `world:` query is a full O(n) scan, and it is worse than
+   O(n).** `resolver.ts` resolves the `world` seed to
+   `StuffApi.getAllObjects()` — the entire `#indexes.byId` registry,
+   which holds **every template row as well as every instance** (1,820
+   content YAML files' worth) — and applies `[mixin.X]` / `[class.X]`
+   **after**, per object. The registry keeps `byId` and a
+   `byTemplatePath` PathTrie and **nothing else**. ⭐ And
+   `MixinApi.queryMixins` is **not memoized** — it re-walks the
+   prototype chain on every call — so `world:[mixin.X]` costs
+   *registry-size × chain-depth*, not registry-size.
 
-The three sanctioned raw-`getAllObjects` homes (the lint allowlist —
-`resolver.ts`, `ResidencyLogic`, `stuff.ts`) are correct and out of
-scope; this slate is about the `world:` *consumers*.
+**It has already bitten once.** `Metabolic.ts` carries the post-mortem
+at `currentRestQuality`: *"A live drive found the server pinned at a core
+with five of five debugger pauses in that chain"* —
+`getConditionBand → … → getOccupiedHost → world:[SlottedMixin]`, per
+metabolism tick. The fix was a short-circuit on the common case; the scan
+is still there, still carrying its own "promote to an inverse index if
+profiling demands" note. Profiling demanded, once, and got a bypass.
 
 ---
 
@@ -80,135 +106,305 @@ walks *every employed actor in the game* to pay one business's wages —
 but the Business already has a roster. That is not a query to make
 faster; it is a query to **stop making**, by asking the owner.
 
-So there are **three** remediations, not one.
+So there are **three** remediations, not one — and the gate in D3 is what
+keeps the third from quietly becoming the first again.
 
 ---
 
-## Part 2 — The full inventory (17 sites), triaged
+## Part 2 — The inventory, triaged
 
-### Bucket A — selective population → **by-mixin/class index wins** (~8)
+**16 live call sites**, re-verified 2026-09-08. (A 17th grep hit is the
+worked example in `check-world-scan.ts`'s own header comment.) Split by
+filter namespace:
+
+- **11 `[mixin.X]`** → the one index (D1).
+- **5 `[class.X]`** → the owner's own index (D2). ⭐ Every one is
+  **catalogue-shaped** — *"give me the roster of X"* — which is the
+  `reference Ideas inert at boot` trap showing up a fourth time. Nobody
+  warmed a roster, so everybody scanned for one.
+
+⭐⭐ **All 16 already pass `commandGiver: null`.** Zero engine call sites
+use `world` with a real viewer, so **gating it (D3) breaks nothing** — it
+closes only the player-typed door.
+
+### Bucket A — selective population → **the index wins** (~8)
 
 | site | query | rough pop | note |
 |---|---|---|---|
 | `CommandController.resolveScreen` | `[mixin.DisplayMixin]` | dozens | per-command (Aether display resolve, `house` verbs) — warm, so the win matters |
-| `BankingLogic.findBranchOf` | `[mixin.BankMixin]` | handful | find-one-by-`getBank()` key → a bank-key map is even better than a mixin index |
-| `AttendantLogic.allPoints` | `[mixin.AttendantMixin]` | dozens | registry sweep |
-| `EmploymentLogic.allBusinessesImpl` | `[mixin.BusinessMixin]` | dozens | registry sweep |
-| `TitleController.books` | `[class.PlatBook]` | handful | per-title command |
+| `BankingLogic.findBranchOf` | `[mixin.BankMixin]` | handful | find-one-by-`getBank()` key → a bank-key map beats even a mixin index |
+| `AttendantLogic.allPoints` | `[mixin.AttendantMixin]` | dozens | registry sweep; ⚠ **the antipatterns doc's own worked example** |
+| `EmploymentLogic.allBusinessesImpl` | `[mixin.BusinessMixin]` | dozens | registry sweep — and `findBusiness` does `allBusinesses().find(…)`, so one keyed lookup is a full registry walk |
+| `TitleController.books` | `[class.PlatBook]` | handful | per-title command · ⚠ kernel controller naming a **pack** class |
 | `OuterWarren.admitFor` | `[class.OuterWarren]` | handful | per-login admit |
 | `PressLogic.holdsAnyPublishingPosition` | `[mixin.PublisherMixin]` | few | permission check |
-| `LocomotionLogic.allModes` | `[class.LocomotionMode]` | **~5 singletons** | ⭐ these never change — a cached roster is trivial and beats even an index |
+| `LocomotionLogic.allModes` | `[class.LocomotionMode]` | **~5 singletons** | ⭐ immutable; a warmed roster beats an index |
 
-### Bucket B — broad population, keyed subset → **read the owner, NOT an index** (~5)
+### Bucket B — broad population, keyed subset → **read the owner** (~5)
 
-These stay expensive at scale *even indexed*, because the mixin is broad
-and the caller wants a narrow keyed slice. **Two are money paths.**
+Expensive *even indexed*: broad mixin, narrow want. **Two are money paths.**
 
 | site | query | wants | should read |
 |---|---|---|---|
-| ⚠ `EmploymentLogic.flowSplitsForImpl` | `[mixin.EmployedMixin]` (broad) | employees of **one business** with share-of-flow | the **Business roster** ([employment.md](../../subsystems/employment.md)) — **MONEY PATH** (wage/tip remittance) |
+| ⚠ `EmploymentLogic.flowSplitsForImpl` | `[mixin.EmployedMixin]` (broad) | employees of **one business** with share-of-flow | the **Business roster** — **MONEY PATH** (wage/tip remittance) |
 | ⚠ `EmploymentLogic.holdersByPositionImpl` | `[mixin.EmployedMixin]` (broad) | holders of **one org's** positions | the org roster, keyed by position |
-| `SlotLogic.findOccupiedSlots` | `[mixin.SlottedMixin]` (broad) | who holds **one item** | a **back-reference on the item** ("what slots am I in?"), not a reverse world sweep — warm (equip/unequip/combat) |
-| ⚠⚠ `maintains.holdingsUnder` | `[class.HoldingWarren]` | holdings under **one extent** | keyed-on-extent lookup. **This is an NPC BRAIN → per-tick scan** — the worst frequency profile in the set |
+| `Slottable.occupiedSlots` | `[mixin.SlottedMixin]` (broad) | who holds **one item** | a **back-reference on the item**; warm (equip/unequip/combat/metabolism) |
+| ⚠⚠ `maintains.holdingsUnder` | `[class.HoldingWarren]` | holdings under **one extent** | keyed-on-extent lookup. **An NPC BRAIN → per-tick scan**, the worst frequency profile in the set · ⚠ kernel brain naming a **pack** class |
 | `MagicLogic.execMisidentify` | `[mixin.IdentifiableMixin]` (broad) | **one** arbitrary decoy (`others[0]`) | a descriptor/decoy pool, or at minimum **early-exit** — it builds the whole filtered list to take element 0 |
 
-### Bucket C — broad population, genuinely wants ALL, cold path → **leave it** (2)
+### Bucket C — genuinely wants ALL, cold path → **leave it** (2)
 
 | site | query | why it is fine |
 |---|---|---|
-| `AppBootstrap.shutdown` + `Persistable.capturesAtShutdown` | `[mixin.PersistableMixin]` (broadest) | wants literally all of them, **once, at shutdown**. O(n) is correct. |
-| `mixin.getAllGlobIdentityFields` (doc) / dev `[mixin.GlobbableMixin]` reload | `[mixin.GlobbableMixin]` | a dev-triggered "reload every globbable" — rare, wants all |
+| `AppBootstrap.shutdown` + `Persistable.capturesAtShutdown` | `[mixin.PersistableMixin]` (broadest) | wants literally all of them, **once, at shutdown**. O(n) is correct — and it is indexed anyway under D1. |
+| dev `[mixin.GlobbableMixin]` reload | `[mixin.GlobbableMixin]` | dev-triggered "reload every globbable" — rare, wants all |
 
-### Also present, benign frequency (verify before touching)
+### Benign frequency (verify before touching)
 
 `Census.takeCensus` (`[mixin.CirculatingMixin]`) is scheduled/periodic;
-fine unless the interval is tight. It is a candidate for the index if
-`CirculatingMixin` turns out selective.
+fine unless the interval is tight, and free under D1 if `Circulating` is
+selective.
 
 ---
 
-## Part 3 — The remediation, in priority order
+## Part 3 — ⭐ The decisions (2026-09-08)
+
+### D1 — ONE new registry index, and it is mixin composition
+
+`Map<mixinName, Set<Stuff>>` maintained at the existing register/unregister
+chokepoint (`StuffApi.#updateIndexes`, beside `byTemplatePath`);
+invalidation by construction. The resolver's `world:[mixin.X]` path
+consults it and never enumerates.
+
+⭐ **Legitimate because it is an axis of the substrate, not a slice of the
+taxonomy.** Every Stuff has a mixin composition; the index describes the
+type system, not one subsystem's content. That is the line the user drew,
+and it is the test for any future registry index: *does this describe
+every object, or does it describe my feature?*
+
+⛔ **No `byClassName` index.** Rejected explicitly — *"I don't want some
+ever growing bag of indices on the stuff table especially ones that only
+apply to a specific slice of the taxonomy."* The 5 `[class.X]` sites go
+to D2.
+
+**Enabling fact:** `hasMixinByLowercaseName` and `matchesClass` are
+**pure functions of the constructor** — no instance state. So the index
+is exact and memoizable **per class**, not per object. Memoize
+`queryMixins` on a `WeakMap<ctor, Set<lowercased name>>`; that is what
+makes the index cheap to maintain, and it speeds every `hasMixin` check
+in the codebase as a side effect.
+
+### D2 — Specialized slices: the owner keeps its own index and names the question
+
+Not a registry axis, not MQL. The owning module holds the index and
+exposes the **question**, never the table:
+
+- **kernel-owned slice** → the owning `*Api` / `*Logic`
+  (`LocomotionApi.allModes` becomes a warmed roster; `EmploymentApi`
+  grows `businessAt(path)` instead of `allBusinesses().find(…)`).
+- **pack-owned slice** → ⚠ **a pack cannot ship an Api or a logic
+  singleton** (CLAUDE.md § Module Categories). It ships a **catalogue
+  `Idea`** — the shape `LaneCatalogue` (transport) and
+  `WatercourseCatalogue` (water) already have. `PlatBook` and
+  `HoldingWarren` belong to the `residence` pack, which has no catalogue
+  yet; it needs one.
+
+⭐ **Bonus: this retires the `lint:world-scan` allowlist's fourth entry.**
+`WatercourseCatalogue` already *has* an allowlisted `getAllObjects()`
+scan — surrendered to precisely because a pack could not ship an Api.
+Indexing inside the catalogue removes it, leaving only the three
+structural homes (the definition in `stuff.ts`, the seed's own
+implementation in `resolver.ts`, and `ResidencyLogic`'s deliberate
+raw-proxy sweeps).
+
+⭐ **And it fixes a layering smell.** `TitleController` (kernel civics)
+and `maintains.ts` (kernel brain) both reach for **pack-owned classes by
+name**; `class.X` is a string, so that kernel→pack dependency is
+invisible to the type system today.
+
+### D3 — Two gates, because there are two failure modes
+
+**Gate A — who.** The `world` seed requires **system mode
+(`commandGiver === null`) or archwizard**. Player-typed `world:` throws a
+resolver error naming `reachable` / `here` / `person`. `MqlPermissionError`
+already exists and no path currently throws it — a ready seam. Strip
+`world:` from the **player-facing** `docs/mql-grammar.md`, which
+advertises `world:[mixin.Door]` today.
+
+> ⚠ The exposure is real and not hypothetical: the dispatcher hands the
+> player's raw argument straight to `resolveMany(raw, {commandGiver, scope})`,
+> and a seed in the string **overrides the spec's `scope:`**. So every
+> verb with an `mql`-typed argument is a registry-scan trigger. (No
+> command YAML declares `scope: world`; the whole exposure is free-typed
+> seeds.)
+
+**Gate B — what.** Inside system mode, `world` must be answerable **from
+the mixin index**: `world:[mixin.X]` resolves; bare `world`,
+`world:[class.X]`, `world:[prop.X]`, `world:[address=…]` and `world` +
+keyword search **throw**.
+
+⭐⭐ **Gate B is the load-bearing half.** Without it `world` stays a scan
+that merely requires a better badge, and nothing stops engine code
+reintroducing one. It is also what *forces* the 5 class sites onto D2
+rather than letting them linger.
+
+### D4 — The second surface: an Api may not hand back its table
+
+Same defect from the other end. `EmploymentLogic` reads
+`this.allBusinesses().find(match)` — a caller doing a linear scan because
+the Api handed it the array, over a collection that was itself a world
+scan. `ParcelApi.allRecords()` (the whole Mongo collection — read by
+`AccessRegistry` and by the water pack), `WikiRegistry.allPages()` (5
+internal callers, each re-reading everything), `CommandApi.allDefinitions()`,
+`PlayerApi.getAllAvatars()` with `.find()` / `.filter()` at 8 sites.
+
+⭐ **The discriminator is whether the collection grows with the world**,
+not whether the method returns an array:
+
+- ✅ **Fine** — a bounded authored vocabulary returning its whole roster:
+  `Disposition.all()` (17 axes), `Currency.all()`, `LocomotionApi.allModes()`
+  (~5), the `*Catalogue` rosters. These are enum-shaped.
+- ⛔ **Not fine** — a collection that grows with play: parcels, wiki
+  pages, avatars, interactives, businesses, ledger entries, lanes,
+  reaches. The Api must expose the **question** (`businessAt`,
+  `parcelCovering`, `pageBySlug`, `avatarFor`) answered from its own
+  index, and keep the collection private.
+
+**Mechanism: census, then ratchet** ([lint-family.md](../../lint-family.md)).
+`lint:whole-table` counts the offending returns, gates today's count as
+the ceiling, and each caller that gets a named question drives it down.
+⚠ The census is the build's **first** task — the numbers above are a
+survey, not a count.
+
+### D5 — MQL grammar for the specialized slices: later, if at all
+
+A D2 index stays behind its owner's method surface. **If** a common
+queryable pattern emerges, it can be lifted into MQL then — as a new
+seed or filter namespace with an index behind it, never as a scan. Not
+speculative work now.
+
+---
+
+## Part 4 — Remediation order
 
 ⭐ **Priority is frequency × population, and it does NOT track "is it a
-world scan."** The order:
+world scan."**
 
 1. ⚠⚠ **The money paths first, independently of any index work.**
-   `flowSplitsFor` + `holdersByPosition` scan every employed actor in
-   the game to pay/enumerate one business's staff, on a money path, and
-   **the roster already exists on the Business.** This is a
-   read-the-owner fix with no new substrate — pullable now, and the
+   `flowSplitsFor` + `holdersByPosition` scan every employed actor in the
+   game to pay one business's staff, on a money path, and **the roster
+   already exists on the Business.** Read-the-owner, no new substrate,
    highest value. (Bucket B)
-2. ⚠ **The per-tick brain.** `maintains.holdingsUnder` is a world scan
-   *per NPC per cadence*. Keyed-on-extent lookup. (Bucket B)
-3. **The item back-reference.** `findOccupiedSlots` on equip/combat
-   paths. (Bucket B)
-4. **The by-mixin/class index substrate** — maintained at the
-   register/unregister chokepoint in `stuff.ts` (beside `byTemplatePath`),
-   `Map<mixinName, Set<Stuff>>` + `Map<className, Set<Stuff>>`,
-   invalidation by construction. Flip the resolver's `world:[mixin.X]` /
-   `[class.X]` path to consult it. This makes **all of Bucket A** free at
-   once and is the one piece of new substrate. (Bucket A)
-5. **`allModes` → cached roster.** Trivial; the modes are immutable
-   singletons. (Bucket A, special)
-6. **`execMisidentify` → early-exit or a decoy pool.** (Bucket B)
-7. **Leave Bucket C.**
+2. ⚠ **The per-tick brain.** `maintains.holdingsUnder` — a world scan per
+   NPC per cadence. Keyed-on-extent lookup. (Bucket B)
+3. **The item back-reference.** `Slottable.occupiedSlots` on
+   equip/combat/metabolism paths. (Bucket B)
+4. **The mixin index + the `queryMixins` memo** (D1). Makes all of
+   Bucket A free at once; the one piece of new substrate.
+5. **Gate A, then Gate B** (D3) — after 1–4, so nothing legitimate is
+   stranded when the door shuts.
+6. **The D2 owners**: the `residence` pack catalogue, `allModes` →
+   warmed roster, `WatercourseCatalogue` off its allowlisted scan.
+7. **`execMisidentify` → early-exit or a decoy pool.** (Bucket B)
+8. **D4: census, ratchet, then the named questions**, subsystem by
+   subsystem behind the lint.
+9. **Invert `docs/antipatterns.md` § Bespoke Object-Search Algorithms**
+   and add the D4 rule beside it. ⚠ **Do this in the same MR as Gate B** —
+   the doc currently instructs the opposite, and a gate whose rationale
+   is not written down gets an allowlist entry the first time it is
+   inconvenient.
+10. **Leave Bucket C.**
 
-> ⭐ **The index (step 4) is deliberately NOT step 1.** The instinct is
-> to build the shiny substrate first, but the money-path fixes need no
-> substrate and carry more value, and the index does **nothing** for the
+> ⭐ **The index is deliberately not step 1.** The instinct is to build
+> the shiny substrate first, but the money-path fixes need no substrate
+> and carry more value, and the index does **nothing** for the
 > broad-mixin sites that are the actual scaling risk. Substrate last.
 
 ---
 
-## Part 4 — The rule this leaves behind
+## Part 5 — The rule this leaves behind
 
-`lint:world-scan` already enforces "search via MQL, not bespoke loops."
-It should gain a companion norm (doc, maybe lint later):
+> ⭐⭐ **You may not be handed the world. You may ask the world a
+> question.**
+>
+> `world:[mixin.X]` is for a **selective, global** population you
+> genuinely want all of, from engine code. If you are filtering the
+> result down to one business / one item / one extent / one owner, you
+> want that owner's relationship — no matter how well the mixin is
+> indexed. And an Api that returns a collection which grows with the
+> world is the same mistake made one layer out: name the question,
+> keep the table.
 
-> ⭐⭐ **`world:[mixin.X]` is for a SELECTIVE, GLOBAL population you
-> genuinely want all of. If you are filtering the result down to one
-> business / one item / one extent / one owner, you want that owner's
-> relationship, not a world scan — no matter how well the mixin is
-> indexed.**
+The narrower MQL seeds already say the first half: `reachable` / `person`
+/ `inventory` are actor-anchored. `world:` was being reached for where an
+anchored query or a relationship read belongs.
 
-The narrower MQL seeds already say this: `reachable` / `person` /
-`inventory` are actor-anchored; a business's roster is a direct read.
-`world:` is being reached for where an anchored query or a relationship
-read belongs. The index makes the *legitimate* `world:` uses cheap; it
-must not become the reason the illegitimate ones feel fine.
+---
+
+## Lens pass
+
+Honest finding: **four of the five barely bite.** This is engine hygiene,
+not design — no Discipline is exercised, no fiction changes, no value is
+conferred, and the mechanism is epoch-neutral because it is not a
+mechanism in the world at all.
+
+The one that bites is **lens 2, creative expression**. Gate A takes a
+documented capability away from whoever is typing MQL, and the ordinary
+authored case must not need code to get it back: an author asking *"every
+door in my extent"* should reach a scoped seed, not be told no. ⚠ Check at
+requirements time that the authored cases `world:` currently serves are
+served by `heldExtents` / path globs / `reachable` — and if one is not,
+that gap is a seed to add, not a reason to widen the gate.
 
 ---
 
 ## Open questions
 
-1. **Is the by-mixin index keyed on mixin NAME or on the full active-mixin
-   set?** Augmentation confers mixins at runtime ([augmentation.md](../../subsystems/augmentation.md));
-   `getActiveMixins` can change post-register. The index must update on
-   augment/unaugment, not only register/destruct — or it silently misses
-   conferred mixins. This is the invalidation-by-construction hard part.
-2. **Does `[class.X]` want subclass matching?** `world:[class.LocomotionMode]`
-   matches subclasses today (post-scan `instanceof`). A class index keyed
-   on exact constructor would miss them; keyed on the prototype chain is
-   heavier to maintain.
+1. ⚠⚠ **Composed or active mixins?** Augmentation confers mixins at
+   runtime; `getActiveMixins` changes post-register. `[mixin.X]` matches
+   **composed** today, so a constructor-keyed index is faithful to
+   current semantics — but D1 **hardens that** into the engine. Decide
+   deliberately: keep composed-only (and an active-mixin selector becomes
+   its own operator later), or index actives too and pay
+   augment/unaugment invalidation. **Recommended: composed-only**, named
+   as such in `mql.md`, because the alternative is the
+   invalidation-by-construction hard part for a use case nothing has
+   asked for.
+2. **What principal is "prime minister" exactly?** Archwizard is the
+   nearest existing tier ([access.md](../../subsystems/access.md)).
+   ⚠⚠ It must **not** become a new invented tier — the standing rule is
+   that a wizard stand-in is a missing seat. Confirm archwizard (or
+   system-mode-only, which all 16 sites already satisfy and which needs
+   no principal at all — arguably the honest answer).
 3. **Selectivity of `CirculatingMixin` / `PublisherMixin`** — measure
-   before deciding Bucket A vs B for the borderline ones.
-4. **How many objects is `n`, actually?** `StuffApi.getObjectCount()`
-   at a populated boot. The whole priority order assumes n is large
-   enough to matter; confirm it. (The boot-time build showed the world
-   stands up a lot of Stuff.)
+   before finalizing Bucket A vs B for the borderline ones.
+4. **How many objects is `n`, actually?** `StuffApi.getObjectCount()` at a
+   populated boot (`Server.ts` already logs it). The priority order
+   assumes n is large enough to matter; confirm, and record the number.
+5. **Does `lint:whole-table` key on the return type or on the method
+   name?** A type-driven rule catches more and misfires on the bounded
+   vocabularies; a name-driven one (`all*` / `getAll*` / `list*`) is
+   cruder and easier to ratchet. Decide at census time, when the shape of
+   the offenders is visible.
 
 ---
 
 ## What this slate does NOT cover
 
-- **The raw-`getAllObjects` allowlist** (`resolver`, `ResidencyLogic`,
-  `stuff.ts`) — correct as-is; the residency sweeps *must* walk raw
-  proxies (documented at both loops).
-- **The `flat` seed** (`resolver.ts:634`, also `getAllObjects`) — it is
-  the deep-contents scan, a different consumer; audit separately.
-- **MQL subscription re-resolve cost** ([mql-subscription.md](../../subsystems/mql-subscription.md))
-  — a live `world:` *subscription* re-scans on every dep change, which is
-  strictly worse than a one-shot. ✅ **Checked at capture: zero `world:`
-  subscriptions exist** — every inventoried site is one-shot. Re-audit if
-  one is ever added; a live `world:` subscription would be Bucket-B-urgent
-  on arrival.
+- **The raw-`getAllObjects` allowlist's three structural homes**
+  (`resolver`, `ResidencyLogic`, `stuff.ts`) — correct as-is; the
+  residency sweeps *must* walk raw proxies so enumeration never counts as
+  a dispatch-touch (documented at both loops). The fourth entry
+  (`WatercourseCatalogue`) is in scope — see D2.
+- **The `flat` seed** (also `getAllObjects`) — the deep-contents scan, a
+  different consumer; audit separately.
+- **Api surface/depth normalization** —
+  [api-normalization-slate](./api-normalization-slate.md) measures the
+  layer on different axes and does not overlap D4.
+- **MQL subscription re-resolve cost**
+  ([mql-subscription.md](../../subsystems/mql-subscription.md)) — a live
+  `world:` *subscription* re-scans on every dep change, strictly worse
+  than a one-shot. ✅ **Re-checked 2026-09-08: zero `world:` subscriptions
+  exist**; every inventoried site is one-shot. Gate B makes a future one
+  impossible from player input, and Bucket-B-urgent if engine code ever
+  adds one.
