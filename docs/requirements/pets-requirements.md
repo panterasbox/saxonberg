@@ -99,6 +99,9 @@ unbuilt and the creature half of spawn-distribution is unbuilt, so
 - **An animal that is not yet attached goes back where it belongs** rather
   than being lost, and **where it belongs can change** by being kept and
   fed somewhere new.
+- **An animal can genuinely be lost**, and **another person can find it
+  and get it home** — knowing what is yours must never tell you where it
+  is.
 - **An animal's reaction is worth reading** — it notices things a player
   cannot, and shows it by behaving rather than by reporting.
 - **A companion ages, and dies of it**, on the same terms as every other
@@ -125,6 +128,11 @@ unbuilt and the creature half of spawn-distribution is unbuilt, so
   place can change. Without it, an animal that declines to follow has
   nowhere to be. An absence is answered in this
   build by the bond cooling toward its floor.
+- **An organised lost-and-found** — a board, finder's fees, a reward
+  escrow, a search party mechanic → Wave 2. Wave 1 ships the *situation*
+  (an animal can be lost, a stranger can return it) and lets people use
+  the press, the forums and their mouths, which all ship. The apparatus
+  can follow once anyone wants it.
 - **Reading an animal's opinion of other PEOPLE** — a dog that likes a
   stranger, a cat that will not share a room with one → Wave 2. It is the
   perception channel pointed at the social graph and it is good, but it
@@ -478,6 +486,61 @@ cruelty, and the slate's answer holds: **this is enforced by witness, not
 by system.** Anyone who visits can see how long that animal has been in
 that room.
 
+### An animal can be LOST — and finding one is a community act
+
+**Q:** Can a player lose track of their animal, and should they be able
+to?
+
+**A:** ⭐⭐ **Yes, and it is the most valuable social mechanic in the
+build.** Lost is not the same as gone, and neither is the same as a
+runaway. An animal that declines to follow goes home; a **lost** animal is
+somewhere neither of you expects.
+
+⭐ **And the ordinary cause is blameless: a door.** The same doors that
+move an animal's home also shut it in — a cat closed into a pantry, a
+barn, a cellar, by somebody going about their business. Nobody did
+anything wrong. That is the flip side of the containment decision above,
+and it is the right source precisely because there is no villain in it.
+
+**Why it earns its place:**
+
+> **High value to the person who lost it; near-zero cost to whoever finds
+> it.** Finding somebody's animal does not take altruism — it takes
+> noticing.
+
+Almost every other problem in this realm is solved by the person who has
+it. This one **cannot be solved alone and is trivial for a stranger**,
+which is a very cheap way to make people matter to each other.
+
+⭐⭐ **And the fixed room graph is what makes it a game rather than a
+misery.** A real lost-pet search is hopeless because space is continuous
+and unbounded. Here there are N rooms with people standing in them, and an
+animal is in one of them or it is not — so searching is *tractable*, and
+therefore worth organising.
+
+**How a finder knows whose it is — and this needs nothing built:**
+
+⭐⭐⭐ **The animal identifies itself.** A bonded animal goes to its person
+when it sees them, so a finder who brings it where people are will be
+told by the animal. The bond *is* the identification mechanism. Failing
+that, it has a name, and names are public.
+
+**Telling the owner** is the shipped press and forum surface doing what it
+already does; a notice on the ticker costs nothing and the press room is
+already anonymous.
+
+⚠⚠ **The one thing that would kill this outright**, and it is a real risk
+rather than a hypothetical: **owning a thing must not locate it.** The
+query language has no permission tiers by deliberate decision — *resolving
+a query is never a permission; the verb gates* — so a player can and
+should be able to ask what is still theirs. **Asking must answer *what*,
+never *where*.** Knowing Mouse is still yours while having no idea where
+Mouse is, is both the honest reading of ownership and exactly the
+emotional state of having lost a pet.
+
+> A result surface that helpfully rendered each match's surroundings would
+> delete this mechanic in one line, and would do it silently.
+
 ### An animal's reaction is a perception channel
 
 **Q:** Does a companion tell you anything about the world?
@@ -716,23 +779,34 @@ Run against the live game before the MR opens.
 19. Take it home and **shut the door** for a few days, feeding it there.
     Then open the door. It goes out — **and it comes back.** ⭐⭐⭐ *Home
     moved. You did not cage it; you changed where it lives.*
-20. **Log out. Log back in.** It is still there, still named, still knows
+20. Let somebody shut a door on it while it is out of the room — a
+    pantry, a barn, whatever the world offers. **Now you do not know
+    where it is.**
+21. Ask what is still yours. ⭐⭐ **You are told the animal is still
+    yours, and not one word about where.** *If the answer names a place,
+    the mechanic is already dead — that is what this step is checking.*
+22. Go and look for it. It is in a room, because everything is; the graph
+    is finite and people are standing in it. **Ask somebody.**
+23. Have a second player find it first. They bring it to where people
+    are, ⭐⭐⭐ **and it walks to you.** *Nobody looked anything up. The
+    animal said whose it was.*
+24. **Log out. Log back in.** It is still there, still named, still knows
     you. ⭐ *This is the step the build exists for.*
-21. Stay away a game month. Come back to **a dish with something turned in
+25. Stay away a game month. Come back to **a dish with something turned in
     it**, and a cat that is cooler with you and has not gone feral. ⭐⭐
     *Nothing told you a number. The room told you.* Feed it twice and you
     are back.
-22. Go to the ranch and spend time with the collie. It bonds on the same
+26. Go to the ranch and spend time with the collie. It bonds on the same
     terms — and it is still a working dog, still doing its job, better for
     being known.
-23. **Ask the collie to come. It comes.** ⭐⭐⭐ *Same care, same bond, same
+27. **Ask the collie to come. It comes.** ⭐⭐⭐ *Same care, same bond, same
     verb, opposite answer — and the reason is the animal, not the player.*
-24. Ask it again while something else already has it — stock on the move,
+28. Ask it again while something else already has it — stock on the move,
     or the fox in the yard, whichever the world offers. **It does not
     come**, and you can see exactly what it chose instead. ⚠ *A refusal
     you cannot explain from the room is the defect this step is looking
     for.*
-25. Look at an animal near the end of its span. **It reads as old** — you
+29. Look at an animal near the end of its span. **It reads as old** — you
     can see it coming, and nothing had to announce it.
 
 ⚠ **Not drivable in one sitting, and stated so it is not mistaken for a
@@ -791,13 +865,19 @@ Observable from outside the code, by a person playing.
     once let out, **it comes back to that place on its own.**
 18. A player can shut a door on an animal and it stays put, and doing so
     **does not improve the animal's regard for them at all**.
-19. A player talks to an NPC, the server restarts, and the NPC still knows
+19. A player whose animal is shut in somewhere by accident **cannot find
+    it by asking the world what is theirs** — they are told it is still
+    theirs and nothing about where.
+20. A second player who comes across a stranger's animal can get it home,
+    and works out whose it is **from the animal's own behaviour**, not
+    from a record.
+21. A player talks to an NPC, the server restarts, and the NPC still knows
     them.
-20. A player asks the world which things are theirs, and is answered.
-21. A second companion species can be added by a content author writing two
+22. A player asks the world which things are theirs, and is answered.
+23. A second companion species can be added by a content author writing two
     rows and no code — including how winnable it is and how biddable, which
     are separate answers.
-22. A second kind of feeding vessel — a trough, a hayrack — can be added
+24. A second kind of feeding vessel — a trough, a hayrack — can be added
     the same way.
 
 ---
