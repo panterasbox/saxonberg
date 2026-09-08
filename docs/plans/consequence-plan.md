@@ -678,6 +678,57 @@ already has its consumer.
 
 ---
 
+
+### D21 — Fluid restores VOLUME, never blood; the restore is capped well below baseline
+
+⚠⚠ **Raised by the user after the plan was written, and it is a real
+collision.** W11 as first drafted had `bloodVolume` *"climb toward
+baseline"* on hydration. That **silently deletes the premise of
+[blood-slate](../slates/builds/blood-slate.md)**, whose whole gap is:
+
+> *"Nothing replaces the blood. You can stop a bleed; you cannot undo
+> one… the treatment for a big one is a thing the world has no way to
+> produce."*
+
+A full restore gives the world exactly that way — drink and wait — and
+demotes transfusion from a treatment to a convenience, leaving that build
+with nothing to be for.
+
+⭐ **It is also physiologically wrong, and the correct model is the one
+that preserves the other build.** Drinking restores **plasma volume, not
+red cells**: a body that has lost a lot of blood and taken on water has
+its volume back and its oxygen-carrying capacity still gone — dilutional
+anaemia, which is precisely *why* transfusion exists.
+
+**The decision:** `bloodVolume` climbs on hydration only to
+`METABOLIC_DEFAULTS.PLASMA_RESTORE_CEILING_FRAC` of the species baseline
+— a **fraction, not the baseline**. Enough to walk a body back out of the
+immediate hypovolemic danger; never enough to make it whole. The
+remaining deficit is what blood-slate's transfusion is for, and this
+build hands that build a *sharper* motivation than it had: a survivor who
+is permanently short until somebody gives.
+
+⚠ The ceiling is a dial, but **that it is below 1.0 is a shape decision,
+not a tuning one.** A future change that raises it to baseline is
+deleting another build's reason to exist and must be argued as such.
+
+### D22 — An effect naming a vital a species does not have is a NO-OP, never an error
+
+Forced by D4 + W11 and flagged first as
+[blood-slate](../slates/builds/blood-slate.md) open question 6: *"Species
+with no blood — `constructa`, `plantae` and `fungi` clades exist. Do they
+bleed at all?"*
+
+The 23 rows and the trauma table now declare effects naming specific
+vital signs (`bloodVolume`, `spo2`, `coreTemperature`). A clade whose
+`Species.vitalProfile` has no entry for the named sign must **absorb the
+effect silently**, not throw and not zero-fill: a construct that takes an
+edge blow has a wound, and no bleed, and that is the honest answer.
+
+⚠ It must be a *deliberate* no-op with a test, because the failure mode
+is the silent-and-closed one this whole build exists to end — an effect
+that does nothing because nobody wrote the branch reads identical to an
+effect that does nothing because the author said so.
 ## ⭐⭐ Host placement
 
 For every new field, mixin and class: which host carries it, and what
@@ -1101,10 +1152,14 @@ D4), and the two numbers-that-count-down become consequences.
 (the plasma weep, Finding 4) beside W10's capability term; `CONTUSION_BEHAVIOR`
 gets `[{kind: reserve, reserve: endurance, pctPerHour: −HARM_DEFAULTS.CONTUSION_STIFFNESS_PCT_PER_HOUR}]`
 (the sparring currency — small); `lib/metabolism/Metabolic.ts`
-`reconcileMetabolism` — **plasma restoration**: while `hydration` is
+`reconcileMetabolism` — **plasma restoration (D21)**: while `hydration` is
 above `METABOLIC_DEFAULTS.PLASMA_RESTORE_HYDRATION_PCT`, `bloodVolume`
-climbs toward baseline at `PLASMA_RESTORE_L_PER_HOUR` (a reserve→vital
-coupling like `drainForLimp`, not an arm — it iterates no conditions);
+climbs at `PLASMA_RESTORE_L_PER_HOUR` **toward
+`PLASMA_RESTORE_CEILING_FRAC` of the species baseline — a fraction, never
+baseline** (a reserve→vital coupling like `drainForLimp`, not an arm — it
+iterates no conditions). ⚠⚠ The ceiling being below 1.0 is a **shape**
+decision: at baseline this build would delete blood-slate's premise.
+Effects naming a vital a species lacks are silent no-ops (D22);
 the 23 rows authored per the table below; `AssessController.ts:170`
 reads signs past `[0]` (all signs at `novice`+, the name at
 `competent`+). Tests per row family in `lib/vitals/__tests__/rows.consequence.test.ts`
@@ -1122,8 +1177,10 @@ effect and nothing else).
 | `mortality/recovering` | `stage` | `expression 2` (W12 authors it; W11 leaves the row as W12 finds it) | `rest`, `atStage: 12` |
 
 *Acceptance.* Drive steps 8–10; a burn victim who drinks recovers plasma
-and one who does not slides toward the exsanguination window on the
-burn's own clock; a bruised sparrer is a little slower the next morning
+**to the ceiling and no further — still measurably short, and `assess`
+says so** (D21) — and one who does not slides toward the exsanguination
+window on the burn's own clock; a bloodless clade takes an edge wound and
+no bleed, asserted rather than incidental (D22); a bruised sparrer is a little slower the next morning
 and nothing else; `lint:perishable`/`lint:pathogens` green.
 
 *Commit.* `build(consequence W11): twenty-three rows say what they do; a burn weeps, a bruise stiffens, fluid restores`
@@ -1505,6 +1562,31 @@ Clean attach points, each leaving as a slate, none as a plan section:
   unmodelled. → mortality-slate.
 
 ---
+
+### ⭐ What this build hands blood-slate (D21, D22, W16)
+
+Checked against [blood-slate](../slates/builds/blood-slate.md) after the
+user raised it. The cut stands — ABO/Rh genotypes, allele frequencies and
+the compatibility graph are a build — but three things change for it:
+
+- **A sharper motivation than it had.** D21 leaves a bled body
+  *permanently short* rather than merely slow to recover. Transfusion
+  stops being "faster healing" and becomes the only route back to whole.
+- **Its open question 6 is answered here** (D22): bloodless clades absorb
+  a bleed effect silently. Blood-slate can delete the question.
+- ⭐ **W16 gives it its first non-transfusion consumer.** Blood-slate's
+  open question 1 asks *"does blood type interact with anything else,
+  ever? … candidates worth checking early: forensics."* This build ships
+  `analyze postmortem` and a `forensics` Discipline. **Nothing here reads
+  blood type** — but the reader now exists, so that question is
+  answerable rather than speculative when blood is built.
+
+⚠ **Not folded in, deliberately:** the draw/store/transfuse loop over
+`Bulkable` + `introduceToxin` (metabolism's bloodstream seam, which
+blood-slate correctly identifies as already built). It is a small amount
+of code and a large amount of design — types, compatibility, donation
+economics, consent-while-unconscious — and taking the mechanism without
+the design is how a half-built system ships.
 
 ## Critical files
 
