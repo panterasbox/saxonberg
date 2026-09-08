@@ -165,12 +165,32 @@ chain summary, commandId/causingCommandId, timestamp}` into an
 
 ## Future gate primitives to design (not yet built)
 
-1. **`FromTemplateMethod(templatePath, methodName)`** — the user's
-   preferred combined basis. The interception context knows the CALLED
-   method (`ctx.prop`); the CALLER's method name is not currently
-   tracked in frames — check what `ExecutionContextApi` frames carry
-   and whether adding the dispatching method name to the frame is cheap
-   (it is known at `method.apply` time in the proxy).
+1. **`FromTemplateMethod(templatePath, methodName, opts?)`** — the
+   user's preferred combined basis. ✅ **Being built by the world-scan
+   build as its first consumer** — see
+   [world-scan-perf-slate § D3a](../tails/world-scan-perf-slate.md).
+
+   ⭐ **Correction to this entry (2026-09-08): no frame change is
+   needed.** Every gated dispatch already pushes `(caller, target,
+   method)` (`SecurityApi.#pushFrame()(caller, cls, methodName, …)`), so
+   the CALLER's own function name is the `method` of the frame **one
+   below the top**. The primitive is `FromTemplate`'s existing hard
+   `#templatePath` read plus one stack-adjacent lookup.
+
+   ⭐⭐ **Attribution is exact, not heuristic**: for a top frame whose
+   caller is `X`, the frame below must read `target === X`. If
+   `frames[n-2].target !== caller`, the caller's own entry was never
+   intercepted and the adjacent frame belongs to somebody else.
+
+   **Decided with the user 2026-09-08:** (a) **fail closed** on no
+   template stamp / no adjacent frame / attribution mismatch — never
+   guess a function name; the accepted consequence is that an
+   un-intercepted caller (a free function, a module-scope call, **a
+   brain's `act()`**) can never hold this gate. (b) The **module term is
+   OPTIONAL**, a third opt-in argument used only to disambiguate an
+   ambiguous function name — always-on module matching would re-import
+   the basis this slate calls secondary and redundant once template +
+   function are checked.
 2. **`FromIdentity`** — already doctrine'd in call-security.md: MUST
    read the raw identity stamp, never the overridable
    `getIdentityPath()` (the FromTemplate/#templatePath reasoning).

@@ -270,39 +270,95 @@ invisible to the type system today.
 
 ### D3 — Two gates, because there are two failure modes
 
-**Gate A — who.** The `world` seed requires **system mode
-(`commandGiver === null`). That is the whole gate.** Player-typed
-`world:` is refused for **everyone**, and throws a resolver error naming
-`reachable` / `here` / `person`. `MqlPermissionError` already exists and
-no path currently throws it — a ready seam. Strip `world:` from the
-**player-facing** `docs/mql-grammar.md`, which advertises
-`world:[mixin.Door]` today.
+**Gate A — who.** Registry-wide resolution moves behind a **separate,
+gated entry point** (the narrow-entry pattern —
+[access.md](../../subsystems/access.md)). `MqlApi.resolveMany` stays
+`Public` and **refuses the `world` seed outright, for everyone**,
+throwing a resolver error naming `reachable` / `here` / `person`;
+`MqlPermissionError` already exists and no path throws it today — a
+ready seam. Strip `world:` from the player-facing `docs/mql-grammar.md`,
+which advertises `world:[mixin.Door]` today.
 
-⭐⭐ **There is no principal, and nothing to add.** All 16 engine sites
-are already giver-less, so system mode alone strands nothing. A gate with
-no principal cannot be widened by accident, cannot drift, and needs no
-check written anywhere.
+The gated entry's policy is **`FromTemplateMethod`** — ⭐ the user's
+recorded preferred trust basis (`call-security-pass-slate`, 2026-09-02):
+*"the calling TEMPLATE combined with the calling FUNCTION in that
+template's backing class"*, with module trust secondary. `AnyOf(…)`
+composes the permitted pairs at the definition site, so widening the set
+is a visible diff in review.
 
-⛔⛔ **Do NOT gate this on `AccessApi.isWizard` / `isArchwizard`.** Two
-drafts of this slate reached for the wizard axis and both were wrong.
-**The wizard axis is TypeScript authoring and nothing else** — `eval`,
-`reload`, source-tree writes, the `class`/`hydratorClass`/`brain` content
-fields — and **no new `isWizard` check is to be introduced anywhere in
-the game, ever.** ⚠ The rationalization to watch for is the sentence
-*"anything stricter would be theatre, because a wizard can already
-`eval`"*: it is true and it is irrelevant, because it argues for the
-wizard axis rather than for **no check at all**, which is the actual
-answer here.
+⛔⛔ **NOT an actor check, and specifically NOT `isWizard` /
+`isArchwizard`.** Three drafts of this slate reached for a principal —
+archwizard, then the wizard axis, then a `commandGiver === null`
+convention — and all three were wrong in the same way: **"who may run a
+registry-wide scan" is a question about the CALLING CODE, not about a
+person.** ⚠ The wizard axis is TypeScript authoring and takes **no new
+consumers, ever**. ⚠ And `commandGiver === null` is not a gate at all —
+the caller chooses that argument, so any code that wants to scan simply
+passes `null`; it constrains only the player-typed path, which is
+already handled by the seed refusal above.
 
 ⭐ **If a human-facing registry-wide read is ever wanted, it is a VERB
-with a seat**, not a widening of this gate. The infrastructure to hang it
-on is shipped and plural — offices (`OFFICE_APPARATUS` /
-`CompactApi.holdsOffice`), groups, committees, titles
+with a seat** — offices (`OFFICE_APPARATUS` / `CompactApi.holdsOffice`),
+groups, committees, titles
 ([governance.md](../../subsystems/governance.md),
-[civics.md](../../subsystems/civics.md),
-[access.md](../../subsystems/access.md)). That is a separate design
-question with a separate answer; it is **not** MQL's, and it does not
-belong in this slate.
+[civics.md](../../subsystems/civics.md)). A separate design question with
+a separate answer; not MQL's, and not this slate's. `call-security.md`
+already names the growth path — **trust-layer policies** (ownership via
+`ParcelApi`, authorship via `ProvenanceApi`, group membership via
+`GroupApi`) as sibling policies, with `allows` already async-capable —
+so such a reader would qualify **by relationship**, never by a tier.
+
+### D3a — ⭐⭐ Building `FromTemplateMethod` is in this build's scope
+
+The primitive is designed and **unbuilt** — item 1 of *Future gate
+primitives* in
+[call-security-pass-slate](../builds/call-security-pass-slate.md).
+World-scan is its **first consumer**, and a good one: after the Part 4
+remediation the legitimate registry-wide readers are a handful of
+*specific functions* (`EmploymentLogic.flowSplitsFor`,
+`AppBootstrap.shutdown`), which is exactly where a template+function pair
+is strongest and a module glob is sloppiest — a glob would admit every
+method in those files.
+
+⭐ **Correction to that slate, in the primitive's favour.** It records
+the blocker as *"the CALLER's method name is not currently tracked in
+frames."* The dispatch says otherwise:
+
+```
+SecurityApi.#pushFrame()(caller, cls, methodName, …)
+```
+
+Every gated dispatch already pushes `(caller, target, method)`, so the
+caller's own function name is the `method` of the frame **one below the
+top**. No new frame field is needed; `FromTemplateMethod` is
+`FromTemplate`'s existing hard-`#templatePath` read plus one
+stack-adjacent lookup.
+
+⭐⭐ **And the attribution check is exact, not heuristic.** Frames are
+`(caller, target, method)`, so for a top frame whose caller is `X`, the
+frame below must read `target === X` — that is the same object, seen as
+callee of its own invocation. **`frames[n-2].target !== caller` means the
+caller's own entry was never intercepted**, so its function name is
+unknown and the adjacent frame belongs to somebody else.
+
+**⭐ Decided — the two shape questions:**
+
+1. **Fail closed.** No template stamp, no adjacent frame, or
+   `frames[n-2].target !== caller` → **deny**. Never guess a function
+   name from an unattributable frame. ⚠ **Consequence to accept
+   deliberately: an un-intercepted caller can never hold this gate** —
+   a free function, a module-scope call, or **a brain's `act()`**.
+   `maintains.ts` is a brain and one of the sixteen sites, so it hits
+   this on day one — correctly, since it should be reading the residence
+   catalogue (D2) rather than the registry at all. The constraint is
+   general to the primitive, not local to this build.
+2. **The module term is OPTIONAL** — `FromTemplateMethod(templatePath,
+   methodName, opts?)` with the module glob as a third, opt-in term.
+   ⭐ It is a **disambiguator**, not part of the identity: `flowSplitsFor`
+   is unique in the codebase and needs none, while a `shutdown` almost
+   certainly is not and does. Always-on module matching would re-import
+   the module basis the recorded position calls *secondary and redundant
+   once template + function are checked*.
 
 **Gate B — what.** Inside system mode, `world` must be answerable **from
 the mixin index**: `world:[mixin.X]` resolves; bare `world`,
@@ -411,8 +467,10 @@ world scan."**
    moment somebody is in the file.
 5. **The mixin index + the `queryMixins` memo** (D1). Makes all of
    Bucket A free at once; the one piece of new substrate.
-6. **Gate A, then Gate B** (D3) — after 1–5, so nothing legitimate is
-   stranded when the door shuts.
+6. **`FromTemplateMethod` (D3a), then Gate A, then Gate B** (D3) —
+   after 1–5, so nothing legitimate is stranded when the door shuts, and
+   so the permitted `(template, function)` set is already small enough to
+   enumerate honestly.
 7. **The remaining D2 owners**: the `residence` pack catalogue (which
    retires `admitFor` **and** `holdingsUnder` together — same three
    objects), and `WatercourseCatalogue` off its allowlisted scan.
@@ -481,17 +539,18 @@ that gap is a seed to add, not a reason to widen the gate.
    as such in `mql.md`, because the alternative is the
    invalidation-by-construction hard part for a use case nothing has
    asked for.
-2. ✅ **Answered — system mode, and no principal at all.** D3 Gate A is
-   `commandGiver === null`, full stop; all 16 engine sites already
-   satisfy it. ⚠ Recorded because two successive drafts got here the
-   wrong way: the first read "the prime minister" as loose phrasing and
-   went hunting for "the nearest existing tier" (it is the constituted
-   executive seat in `OFFICE_APPARATUS`, and `isWizard`/`isArchwizard`
-   *descend from* it — there was nothing to translate); the second then
-   gated on `isWizard`, which is **TypeScript authoring and nothing
-   else** and must never take a new check. **The right move was to stop
-   looking for a principal**, since a gate that admits only giver-less
-   engine calls needs none.
+2. ✅ **Answered — it is not a principal question at all.** D3 Gate A is
+   `FromTemplateMethod` over the calling template + calling function
+   (D3a). ⚠ Recorded because three successive drafts got it wrong the
+   same way — **reading "who may scan the registry" as a question about
+   a person**: draft 1 read "the prime minister" as loose phrasing and
+   hunted for "the nearest existing tier" (it is the constituted
+   executive seat, and `isWizard`/`isArchwizard` *descend from* it);
+   draft 2 gated on `isWizard`, which takes no new consumers ever;
+   draft 3 used `commandGiver === null`, which the caller supplies and
+   therefore gates nothing. ⭐ The tell across all three: **the question
+   was about the calling CODE, and the codebase's answer to that is the
+   call-security spine, which none of the drafts had read.**
 3. **Does the residence catalogue key on the base class or the concrete
    one?** `[class.OuterWarren]` matches `HoldingWarren` subclasses today
    (a prototype-chain walk). A catalogue keyed on the concrete class
