@@ -624,6 +624,16 @@ Playwright suite runs minus the eight; no helper orphaned.
 **Commit:** `build(wire W4): flow specs out of Playwright; e2e is
 render-only`.
 
+> ✅ **Done** (`1e6253003`, `ed7efc37c`, `0e785c996`). e2e 6,764 → 4,308
+> lines, still 87 tests in 24 files, no helper orphaned. Two structural
+> findings: **two dirty files cannot share a venue** (cooking and
+> crafting both worked the cookhouse, and dirty files run
+> alphabetically — one venue, one dirty file), and **engagements**, which
+> is where `awaitActivity()` finally earned its place: `heat`/`hammer`
+> return `ok` immediately and the work lands later, so acting early
+> answers "a cold iron ingot doesn't wear out" and reads like a broken
+> forge.
+
 ### W5 — docs, skills, and the sweep notes
 
 **Implements:** D8; the docs acceptance criteria.
@@ -646,6 +656,16 @@ render-only`.
 new test belongs to; the two skills describe the born-a-wire-file
 path. **Commit:** `build(wire W5): two-tier testing docs + the
 graduation path in the skills`.
+
+> ✅ **Done** (`0e785c996`). `docs/testing.md § Two tiers: WIRE and
+> RENDER`; `/build` and `/finalize` carry the born-a-wire-file rule and
+> the graduation check. Deferred surface written to
+> `docs/slates/tails/wire-suite-growth-slate.md`, which also carries the
+> ten content findings the first run handed over.
+>
+> ⚠ For the SWEEP, not raced here: `docs/slates/README.md` needs a row
+> for the growth slate; CLAUDE.md's docs-map line for `testing.md` can
+> mention the two tiers.
 
 ### W6 — the drive, and the MR
 
