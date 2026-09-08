@@ -508,6 +508,96 @@ question this build answers is what an outcome **means**.
   exit, and the precondition for [Q4](#open-questions) — a beast that
   refuses a yield is only honest once the other exits are real.
 
+### G. ⭐⭐⭐ Losing ≠ dying — two layers that must never be one
+
+> **User: "losing a fight may hurt you but it hurts you along whatever
+> disciplines you needed to win… dying should be something different…
+> the repercussions for dying aren't the game trying to be honest or
+> teach you, it's just punishment. negative reinforcement… I kinda want
+> the dying to punish you across the board."**
+
+| | **losing a fight** | **dying** |
+|---|---|---|
+| what it is | **measurement** — honest evidence | **punishment** — negative reinforcement |
+| scope | the disciplines you needed to win | ⭐ **across the board** |
+| writes to | the **Transcript** (the ledger) | a **Condition** on the body |
+| must be honest? | **yes** | ⭐ **no — and it cannot be** |
+| recovers? | no, but **floored** | **fully**, on its own |
+| seam | `ActSignature` at `onDefeated` | a suppression term on `competenceBandFor` |
+
+#### Why "punishment" is not a betrayal of the sim here
+
+⭐⭐ **An honest simulation of death is that you are gone.** This game
+already refuses that — the shade, `reembody`, the `passage` floor. So
+**the entire death-recovery arc is an abstraction, not a simulation**,
+and you cannot be *honest* about a death you are undoing. Once that is
+true, what death costs is a **design** choice, and the governing rule is
+already written: [uncertainty.md](../../uncertainty.md)'s abstraction law
+— *an abstraction is legitimate while it still costs somebody the
+activity.*
+
+⚠ This is worth stating because it will otherwise be relitigated by
+someone (reasonably) applying the honest-sim doctrine to the one place it
+does not reach.
+
+#### ⚠⚠ The invariant: punishment may be arbitrary; the RECORD may never be false
+
+So death must **not** write failure evidence across every Discipline.
+That would put a lie in the Transcript — *you failed at cooking* because
+you died in a mineshaft — and every downstream reader (competence, the
+dossier, the clinic's graded judgment, standing) would then reason from a
+falsehood. Ledgers in this codebase are re-scorable precisely because
+nothing false is ever appended.
+
+**Suppress expression; never falsify the record.** That single rule is
+what keeps a punitive death from corrupting a measured world.
+
+#### The seam — one method, already there
+
+⭐⭐ `competenceBandFor` is the **single read surface** for competence, and
+**nothing modifies it anywhere today**. Every consumer goes through it:
+`Spell.requiredBand` (competence *is* access), stealth
+(`ArmController`/`HideController`), medicine (`Treat`/`Assess`),
+awareness (`PerceptionLogic`), `practice`, and combat sharpness.
+
+So a suppression term applied there is **across-the-board by
+construction**, with zero per-consumer work. That is the mechanism the
+user's *"whatever that means for us"* resolves to.
+
+#### `recovering` becomes this build's reference implementation
+
+The seed already ships with everything it needs and uses none of it:
+
+```yaml
+signature: []                       # ⛔ dead channel — this build wires it
+progression: { intervalMs: 3600000 }  # an hourly stage clock → it can TAPER
+resolution: { by: rest }              # ⛔ dead channel — self-clearing
+```
+
+⭐ So `recovering` is a condition whose stage decays hourly, suppressing
+`competenceBandFor` by a margin derived from that stage, tapering to
+nothing. It keeps mortality's two shipped constraints (*unpleasant never
+dangerous* — it touches no vital sign; *legible* — `assess` reads it),
+and it exercises **three** of this build's own mechanisms (the effect
+channel, a progression law, `resolution.by`) on the one condition that
+most needs them.
+
+⭐ **The floor and the suppression never conflict, because they are at
+different layers.** The floor protects the *record*; suppression operates
+on *expression*. You can be an expert swordsman who currently cannot
+hold a sword.
+
+#### On rarity
+
+⚠ The severity of the penalty and the length of the rescue window are
+**one decision, not two**: harsh-and-rare is tension, harsh-and-common is
+why people quit. And death is made rare by the **dying clock** — most
+lethal events are survivable if somebody is there — which means *"death
+should be rare"* is a consequence of the wake (movement IV) existing, not
+a separate dial.
+
+---
+
 ### F. Legibility — the poise read
 
 The metric exists, is banded, and moves every exchange. The player is
@@ -686,8 +776,37 @@ reward is *intrinsic* — you get better at what you actually did — which
 is the anti-XP move stated as a mechanism: no points, no purse, just
 competence, measured.
 
-**Why it is safe** — the BKT's two couplings give the hard parts for
-free, and they are already built:
+⚠⚠ **CORRECTION, measured 2026-09-08.** An earlier draft of this section
+claimed the difficulty coupling prevents a death spiral. **It does not.**
+The per-observation damping is real; the *accumulation* is not bounded,
+and the estimator was run to find out:
+
+```
+200× easy successes            → competent (θ=0.612, saturated)   ✓ farming is dead
+50× hard✓ then 1 loss          → Δθ = −0.0001                     ✓ the bike property
+one loss: easy −0.22 · formidable −0.036                          ✓ difficulty coupling
+
+20× hard✓ (expert, θ=0.9975) + 4 standard failures   → novice     ✖
+                             + 6 standard failures   → untrained  ✖
+10× standard✓ (proficient)   + 10 formidable failures → untrained ✖✖
+```
+
+**Six losses erase a genuine expert**, and losing repeatedly to people
+*far above* you takes you from proficient to untrained — exactly
+backwards. Classic BKT assumes a learner moving through a curriculum, not
+a master with a decade of record: no floor, no recency weighting.
+
+⭐ **Two invariants fix it, and they are the user's own objections made
+explicit rather than left to emerge:**
+
+1. **A floor — the high-water mark.** The estimate may fall, but never
+   below one band under your best-ever. *You do not forget how to ride a
+   bike*, stated rather than hoped for.
+2. **Failures above your band contribute nothing** (rather than a
+   little). Losing to your betters can then never reduce you, by
+   construction.
+
+**What the couplings DO give for free** — all verified above:
 
 | situation | difficulty | what the estimator does | why that is right |
 |---|---|---|---|
@@ -725,13 +844,19 @@ design — a world where practice only ever pays is not one where losing
 means anything — but it should ship with its numbers visible and
 deliberately gentle at the formidable end.
 
-**Q9 — what IS diminishment?** mortality.md ships `recovering` as a
-deliberately empty seed and names four candidates: a temporary competence
-penalty, a wound that heals over time, a diminished vessel, or something
-a patron marks you with. Two constraints are already fixed — *unpleasant
-but never dangerous* (anything that could push you back over a lethal
-threshold reopens the death loop) and *legible* (a price you cannot feel
-is one no temple can undercut).
+**Q9 — what IS diminishment? ✅ DECIDED** — see [design G](#g--losing--dying--two-layers-that-must-never-be-one).
+A **global, temporary suppression of `competenceBandFor`**, carried by the
+`recovering` condition, tapering on its shipped hourly `progression`
+clock, clearing itself through `resolution: { by: rest }`. It is
+punishment rather than measurement, it is uniform rather than
+cause-specific, and it **never touches the Transcript**.
+
+⚠ **Open sub-questions, all tuning rather than shape:** how many bands
+(one is the obvious start); over how many hours; whether it floors at
+`untrained` or can suppress below it; and whether a *service* revival
+(a temple, a clinic) buys a shallower suppression, a shorter taper, or
+both — that is the competitive axis mortality.md wants and it needs no
+engine work.
 
 **Q7 — does W14 survive requirements?** The judgment loop is the one wave
 whose design is not settled. The honest test: **can a player be *wrong*
@@ -777,7 +902,7 @@ govern.
 |---|---|---|
 | **W1** | ⭐ wound → poise | the loop closes. First, smallest, **not a stretch** (design A) |
 | **W2** | the poise read | per-exchange narration of the delta — prose, never a card (design F) |
-| **W3** | ⭐ the outcome model | `onDefeated`/`onDefeatedFoe` get implementers. **Q8 decided:** winning advances the disciplines you used, losing regresses them — via `outcome: 'failure'`, which production has never written (Finding 6). Difficulty from the opponent's band (design E) |
+| **W3** | ⭐ the outcome model + **the floor** | `onDefeated`/`onDefeatedFoe` get implementers. **Q8 decided:** winning advances the disciplines you used, losing regresses them — via `outcome: 'failure'`, which production has never written (Finding 6). Difficulty from the opponent's band (design E) |
 | **W4** | morale & surrender | combat-experience **T13** — an opponent that gives up; answers [Q4](#open-questions) |
 | **W5** | de-escalation | combat-experience **T12** — the non-fighter's exits |
 | **W6** | aftermath | combat-experience **T11** — the combat-side wake |
@@ -791,7 +916,7 @@ govern.
 | **W9** | `resolution.by` dispatched | treatment differs by condition — a burn needs fluid, a cut needs a bandage |
 | **W10** | the capability term + ⭐ the `governs` rename | `BodyPart.governsVital` → `governs`; unblocks physiology's waves 2–3 |
 | **W11** | the 23 rows + the two dead traumas | burn's fluid loss · contusion's cost · `observableSigns` read past `[0]` |
-| **W12** | diminishment | fill mortality's deliberately-empty `recovering` seed — the cost of losing, at the extreme |
+| **W12** | ⭐ diminishment | **Q9 decided:** a global, temporary suppression on `competenceBandFor` carried by `recovering` — punishment, not measurement; uniform, not cause-specific; **never touches the Transcript** (design G). ⭐ It exercises the effect channel, a progression law and `resolution.by` at once — this build's reference implementation |
 
 **Movement IV — the wake** (arrow ③): violence as demand.
 
