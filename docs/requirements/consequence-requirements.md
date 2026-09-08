@@ -71,9 +71,12 @@ is on the other side of:
 - it declares **what cures it**, and nothing reads it;
 - winning a fight **notifies the winner and the loser**, and nobody is
   listening;
-- the record of what you have done can record a **failure**, and nothing
-  has ever written one, so nothing in the world can make you worse at
-  anything;
+- **losing a fight teaches the world nothing** — every *exchange* inside
+  it is recorded, but the verdict is not, so who won is banked by nobody;
+- ⚠ and the record-keeping that *does* run is **actively mis-scoring
+  people**: a missed swing counts against you as though you had failed at
+  something easy, which over an ordinary run of bad fights can reduce a
+  genuinely expert character to untrained (measured);
 - a burn and a bruise are **numbers that count down** and do nothing
   else;
 - being wounded **does not affect the fight you are losing**;
@@ -194,10 +197,20 @@ learn near the edge of your ability. So the only route up is fighting
 people who might beat you, and the only reason that is a *decision* is
 that losing costs something.
 
-⚠⚠ **Bounded, and this was measured rather than assumed.** Run as it
-stands, six ordinary losses reduce a genuine expert to untrained, and
-losing repeatedly to people far above you is the *worst* case rather than
-the mildest. Two limits are therefore part of the product:
+⭐ **Much of this already runs**, which the planning pass established and
+this section originally denied: every exchange is already credited, to
+the weapon-appropriate skill, at a difficulty taken from how hard the
+opponent was to hit. What is missing is that **the fight's verdict is
+credited to nobody** — and that the crediting which *does* happen has no
+floor under it.
+
+⚠⚠ **Bounded, and this is a live defect rather than a hypothetical
+one.** Measured on the shipped estimator: six ordinary losses reduce a
+genuine expert to untrained, and losing repeatedly to people far above
+you is the *worst* case rather than the mildest. Because missed swings
+are already recorded as failures, **this is happening to characters
+today.** Two limits are therefore part of the product, and the first of
+them is a bug fix:
 
 1. **You do not forget how to ride a bike.** A long record of doing
    something well cannot be erased by a bad run — there is a floor
@@ -442,7 +455,8 @@ Run against the live game before the MR opens.
   them**, and it is the ones the fight used.
 - A player with a long record of doing something well **cannot be reduced
   to a beginner** by a run of bad luck, and can say so from what the game
-  shows them.
+  shows them. ⚠ **This is currently false and is a live defect**, not
+  merely a new guarantee.
 - A player who is beaten by someone far better **is not diminished for
   it**.
 - A player who dies **is worse at everything for a while, and their

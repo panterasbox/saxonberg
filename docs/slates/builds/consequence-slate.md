@@ -463,32 +463,55 @@ somebody else's labour.
 
 ---
 
-## Finding 6 ⭐⭐⭐ — competence can only go up
+## Finding 6 ⭐⭐⭐ — the death spiral is LIVE, and no fight's outcome is credited
 
-**The fifth instance of this slate's one pattern, and the one that
-answers [Q8](#open-questions).**
+> ⚠⚠ **CORRECTED 2026-09-08, by the planner's grounding pass.** This
+> finding was first written as *"competence can only go up — production
+> has never written a `failure`."* **That is false.** The claim was
+> produced by grepping for `outcome: 'failure'` as a *literal*, when
+> every production site **computes** it. Recorded rather than quietly
+> fixed, because the false version reached this slate, the requirements
+> doc, and three commit messages before anyone opened the file. The
+> instrument, not the conclusion, was the defect — twice on the same
+> question.
 
-`Outcome` declares four values:
+Production writes **all four** outcomes. `CombatLogic:4929` maps an
+exchange to one:
 
-```ts
-export type Outcome = "failure" | "partial" | "success" | "critical";
+```
+exploit                    → critical
+land / control-land        → success
+parried / control-resisted → partial
+whiff                      → failure     ← minted EVERY exchange
 ```
 
-**Production code has never written `failure` or `partial`.** Every
-`ActSignature` minted anywhere in the kernel or the thirty-six packs
-carries `success` or `critical`; the only four `failure` literals in the
-tree are in `lib/advancement/__tests__/`.
+`mintExchangeSignature` (`:4879`) is wired and player-side only. It
+credits `melee-combat`, plus `blades` for an edge/point instrument and
+`unarmed` for an innate one — **so the plural-disciplines problem is
+already half-solved in code.** And `difficultyFor(target)` (`:4910`)
+derives the difficulty **from the opponent's poise band** — *"beating a
+composed, armed guard is `hard`; exploiting an open one is `easy`."*
+A failed `treat` mints a `failure` too (`TreatController:92`, `:257`).
 
-⭐⭐ So the BKT estimator's entire **negative-evidence path** — documented
-in its own header, *"a master can fail a formidable task… a formidable
-failure is unsurprising and barely moves the estimate"* — **has never
-been exercised outside a unit test.** Competence is a ratchet that only
-ratchets one way, and nothing in the world can make you worse at
-anything.
+⭐⭐ **So two things I called "the one genuinely new piece" of
+[Q8](#open-questions) already exist**: difficulty-from-the-opponent, and
+multi-discipline crediting.
 
-Combat already mints per-exchange signatures
-(`CombatLogic:4946`, `:4955`, and a captain's at `:4566`). All
-`outcome: "success"`.
+### ⚠⚠ What actually survives, and it is worse
+
+**The measured death spiral is not hypothetical — it is running in
+production today.** A whiff against an *open* opponent mints an `easy`
+failure, which is the maximal-sting case in the measurement above
+(Δθ ≈ −0.22), and whiffing is ordinary. Player transcripts are being
+de-ranked right now, by a mechanism nobody designed as a penalty.
+
+**W3's floor is therefore a FIX FOR A LIVE DEFECT, not a safety rail for
+a new feature.** That raises its priority; it does not lower it.
+
+And the seam that genuinely is empty still is: ⭐ **no fight's *outcome*
+is ever credited.** Exchanges are; winning and losing are not.
+`onDefeated`/`onDefeatedFoe` remain no-op terminals with zero
+implementers. Design E stands unchanged.
 
 ---
 
@@ -1027,7 +1050,7 @@ correctly-designed seam with nothing on the consumer end.
 | `Condition.resolution` | 0 |
 | `Condition.contagion` | 0 |
 | `Combatant.onDefeated` / `onDefeatedFoe` | 0 |
-| `Outcome.failure` / `.partial` | 0 (tests only) |
+| a fight's *outcome* credited to anyone | 0 (exchanges are; the verdict is not) |
 
 Every one was found **by hand**, one at a time, across four separate
 investigations — and `ProgressionSpec` was a fifth that a previous build
