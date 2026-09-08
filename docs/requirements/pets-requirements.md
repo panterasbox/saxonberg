@@ -24,11 +24,25 @@ conventions).
 
 ## What already exists
 
-**Verbs: nothing.** All 529 shipped command views were checked for
-`tame · pet · feed · adopt · name · dub · call · follow · heel · train ·
-befriend · groom · walk`. **Zero hits.** The verb surface is entirely new.
-`give` ships and force-moves the item, so an offer a recipient may refuse
-has never existed.
+**Verbs: the pet-shaped ones are mostly free — but ⚠ three of the most
+obvious names are already TAKEN, by things with nothing to do with
+animals.**
+
+| name | already means | consequence |
+|---|---|---|
+| `feed` | ⭐ **feed the ground** — put compost on soil to restore nitrogen | a pet-feeding verb of that name would collide outright |
+| `walk` | move, on foot | "walk the dog" cannot be spelled the obvious way |
+| `play` | choose a character at the front door | "play with the cat" likewise |
+| `handle` | work an animal (ranching) | the nearest shipped relative; keep |
+
+⭐⭐ **This makes the feeding-vessel decision necessary rather than
+merely elegant.** The design that avoids a `feed` verb was chosen on its
+own merits; it turns out to be the only one available without taking a
+name the soil already owns.
+
+Genuinely free: `tame`, `pet`, `adopt`, `name`, `dub`, `call`, `heel`,
+`train`, `befriend`, `groom`. `give` ships and force-moves the item, so an
+offer a recipient may refuse has never existed.
 
 **Animals: plenty, none of them companions.**
 
@@ -107,6 +121,25 @@ unbuilt and the creature half of spawn-distribution is unbuilt, so
   person-tier stack, which a companion animal is deliberately not on, so
   this is a real piece of work rather than a wiring job. Wave 1's asking
   is gated on the bond and the species alone.
+- **Animal waste** → **ranching, not here.** Waste already has two shipped
+  homes and needs no pet-specific mechanic: as a **resource** (soil names
+  manure as the input to both its nitrogen and its organic-matter
+  reserves) and as a **contaminant** (sewage is a named water contaminant
+  that cleans itself over a few miles).
+
+  ⭐⭐ **And the loop is broken at exactly one link.** Compost ships as a
+  material, a compost pit ships as a place, feeding the ground ships as a
+  verb, and the soil reserve it restores ships — **but nothing in the
+  realm produces any muck.** The conserved *crops → feed → livestock →
+  ? → crops* loop the ranching slate names is complete except for the
+  return leg. That is a small, high-value ranching build, and the animal
+  that matters for it is the cow, not the cat: a byre of cattle is where
+  muck is a resource worth carrying, and a housecat's contribution is
+  rounding error.
+
+  ⚠ A litter tray therefore stays a **furnishing anyone may ship**, and
+  territory stays unmodelled — not because waste is beneath the sim, but
+  because its real weight is agricultural and belongs where the herd is.
 - **Vermin and stored-food predation** → **its own build, and it is
   bigger than pets.** The realm has granaries, larders, warehouses, stock
   counters and a spoilage clock, and *nothing eats any of it*. That gap is
