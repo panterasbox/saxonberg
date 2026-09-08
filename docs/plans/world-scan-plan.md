@@ -663,6 +663,73 @@ gate strategy.
 
 ---
 
+### D21 — a per-reader cost table behind the one gated entry, read out at `/stats`
+
+⭐ **The requirement this closes** (user, at the plan checkpoint): *"I
+would want them to be individually optimizable at a time of our choosing,
+when we get enough players to merit more of these indexes."* D15 gives the
+**seam** — every comprehensive read is one named method, so any one can
+gain an index later without a caller moving. It does not give the
+**signal**: `resolveWorldIndexed` returns a plain `MqlMany`, so the nine
+engine readers emit nothing, and "when to index" would be answered by a
+profiler after a complaint — which is exactly how the metabolism defect
+was found.
+
+⚠ **Growth is not uniform across the nine, which is why a per-reader
+table and not one global counter.** Five are bounded by **authored**
+content (attendant · bank · publisher · display · the water catalogue) —
+they grow when we ship, not when people play. Three grow with **player
+activity**: `CirculatingMixin` (items in circulation), `IdentifiableMixin`
+(the decoy pool), and `PersistableMixin` (everything, but once and cold at
+shutdown). `EmployedMixin` was the fourth; W1 retires it to roster reads.
+**Those first two are the ones to watch**, and a table is what lets that
+claim be checked rather than believed.
+
+**The design.** The gate already resolves the caller's
+`(templatePath, method)` pair to decide admission, so the identity is in
+hand at zero extra cost. `MqlLogic` records into a field:
+
+```ts
+// platform/idea/api/MqlLogic.ts — instance state on the singleton
+private registryReads = new Map<string, RegistryReadStat>();
+// RegistryReadStat = { calls, returned, maxReturned, lastAt }
+```
+
+incremented in `resolveWorldIndexed` (key = `"<template>#<method>"`) and in
+`resolveWorldForSeat` (key = `"seat"`, so a person's costly queries are
+visible in the same table rather than only in their own response).
+
+**The read-out** is one new Api static forwarding to the logic —
+`MqlApi.registryReadStats(): readonly RegistryReadStat[]` (`RegistryReadStat`
+exported from `api/mql/types.ts`, re-exported by `api/mql.ts`) — surfaced
+on the existing dev endpoint in `services/Server.ts:171`, beside
+`objects` and `uptime`:
+
+```ts
+res.json({ connections, objects, uptime, registryReads: MqlApi.registryReadStats() });
+```
+
+⭐ **`/stats` is chosen because it needs no new authority question.** It
+already reports the registry's size ungated; the read counts are the same
+class of fact. ⚠ **Explicitly NOT a verb** — a verb would need a seat, and
+inventing one for a diagnostic is how this build's Gate A went wrong four
+times.
+
+**Accepted limits, stated so nobody reports them as bugs:**
+
+- The counters are **process-local and reset on restart**, and on an HMR
+  reload of the logic singleton. They answer *"what is this server doing
+  now"*, not *"what happened last month"*. ⚠ A durable series would be a
+  new collection, which is forbidden — if it is ever wanted it is a slate
+  line, not a widening here.
+- They count **admitted** reads. A denied caller is a gate failure and
+  belongs in the diagnostics store, not the cost table.
+- `maxReturned` is the load-bearing column, not `calls`: an indexed read
+  of a broad category is what the requirements name as the future risk,
+  and category size is the thing the requirements say must be
+  **re-measured, never assumed**.
+
+
 ## ⭐⭐ Host placement
 
 | new thing | host | what composing/placing it claims | why not elsewhere |
@@ -851,7 +918,10 @@ Resolver mode slots + refusal + scan record; `MqlApi.resolveWorldIndexed /
 resolveWorldForSeat` + `RegistryWideReaders` + `MqlLogic` methods; every W1–
 W5 owner's one call switched to `resolveWorldIndexed`; `CommandLogic.
 resolveModel` `resolveScoped` helper with the office check; `RegistryScanNote`
-in `packages/types` + prose + client typecheck; `check-world-scan` second
+in `packages/types` + prose + client typecheck; **the D21 cost table**
+(`registryReads` on `MqlLogic`, incremented in both entries;
+`MqlApi.registryReadStats()`; `registryReads` added to the `/stats`
+payload in `services/Server.ts`); `check-world-scan` second
 pattern + header rewrite; docs: `antipatterns.md` inverted, `mql-grammar.md`
 stripped, `mql.md` (the seed, the two entries, index-answerable, composed-
 only), `call-security.md` (policy table row + the top-frame correction +
@@ -871,10 +941,12 @@ returns `'permission'` for a `world:` subscribe and `mql-query`; binder —
 holder resolves + gets the note, non-holder gets `mql-error` with the
 alternatives text and `{result:'failed'}`, the check runs at most once
 per `resolveModel`; every `world`-typed arg on a sample of the 154 views
-refuses identically.
+refuses identically; **D21 — the table keys on the admitted pair, counts
+`calls`/`returned`/`maxReturned`, records the seat arm under `seat`, and
+is absent for a denied call.**
 Commit `build(world-scan W6b): the world seed refused; two gated entries;
-the Prime Minister's typed query reports its cost; the antipattern doc
-inverted`.
+the Prime Minister's typed query reports its cost; a per-reader cost
+table; the antipattern doc inverted`.
 
 ### W7 — the drive, the full suite, the MR
 
@@ -901,6 +973,7 @@ each of which fails closed and silent:
 | the water mixins | — | composed on `Conduit` (+ grep hits) — an implementer that does not compose is silently invisible to the river; the drive's wharfside checks + the water pack tests catch it | — | — |
 | the mixin index | — | every `register()` | — | — |
 | `FromTemplateMethod` pairs | — | the pair list in `api/mql.ts`; a mistyped template or method **fails closed silently** — `lint:gates` (D18) is the catch | — | — |
+| the D21 cost table | — | incremented inside both gated entries, so **every admitted read is counted by construction** — there is no second place to forget | — | ⚠ process-local: it resets on restart and on an HMR reload of `MqlLogic`. Read it from a server that has been up a while, or the numbers mean nothing |
 
 ---
 
@@ -1009,6 +1082,10 @@ Unmapped: none.
   kernel-side institution roster on a location Api) contradicts the
   requirements' placement; the plan chose the pack per requirements and
   the shape because institution classes span packs.
+- **The cost table is only as good as the uptime behind it** (D21).
+  Process-local counters on a freshly-booted server read as zero, which
+  looks exactly like "nothing scans" — the opposite of the finding. The
+  drive record should note the server's uptime beside the table.
 - **Category sizes must be measured, never assumed**: the seat note's
   `scanned` for `world:[mixin.X]` shapes reports each bucket's size; the
   drive record lists them for Employed, Slotted, Circulating, Identifiable,
