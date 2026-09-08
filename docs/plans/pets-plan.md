@@ -1174,9 +1174,11 @@ no compliant path exists (per workflow: decide, record, continue).
    never holds; the honest tool for a cat is the door, and the drive's
    step 16 ("leave it behind and it stays") works for the cat only by
    leaving it somewhere its `homes` beat cannot exit — or by `stay` on
-   the collie. If the user wants `stay` exempt from biddability, it is
-   one condition in `StayController`. ⚠ **Still open — the requirements'
-   drive step 16 reads as though it works on the cat.**
+   the collie. ✅ **CLOSED 2026-09-08 — the requirements were reworded,
+   not the design.** Drive step 16 now has the cat **refuse** `stay` and
+   the player use the door; step 29 has the collie hold. `stay` stays
+   subject to biddability like every other asked act — *the word is for
+   the dog, the door is for the cat* — and AC 12 asserts both paths.
 7. ⚠ **Stray replenishment.** The lane's `cast:` re-mints a thin cat on
    every boot in which no live instance of `/stuff/agent/cat` exists at
    hydrate time. After Mouse is adopted and the server restarts, the lane

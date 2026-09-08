@@ -946,8 +946,11 @@ Run against the live game before the MR opens.
     without you present. **Have somebody else fill it** — that works too,
     and the cat is no fonder of them for it. ⭐ *The floor is delegable;
     the bond is not.*
-16. Head somewhere no animal should follow you. **Leave it behind**, and
-    it stays. Come back and it is where you left it.
+16. Head somewhere no animal should follow you, and **ask it to stay.**
+    ⭐ **It does not** — you already know why; this is a cat. So shut the
+    door instead, and it is there when you come back. *The word is for
+    the dog. The door is for the cat, and that is not a workaround — it
+    is the difference between the two animals doing its job.*
 17. Put down something for it that has quietly gone bad — meat off a
     carcass left too long. ⭐⭐⭐ **It will not touch it**, and nothing in
     the game would otherwise have told you. *Eat it yourself and find out
@@ -974,28 +977,42 @@ Run against the live game before the MR opens.
     ⭐⭐⭐ *Nothing refused them. It simply did not work.*
 25. **Log out. Log back in.** It is still there, still named, still knows
     you. ⭐ *This is the step the build exists for.*
-26. Stay away a game month. Come back to **a dish with something turned in
-    it**, and a cat that is cooler with you and has not gone feral. ⭐⭐
-    *Nothing told you a number. The room told you.* Feed it twice and you
-    are back.
+26. **Ask somebody to keep the dish filled**, then stay away a game month.
+    ⚠ *Arranging that is not politeness — a kept animal's clock runs while
+    you are gone and nothing exempts it, so an unarranged month is a dead
+    cat.* Come back to an animal that is **alive, and cooler with you**,
+    beside **a dish holding something that has turned** since the last
+    time your friend came. ⭐⭐ *Nothing told you a number; the room told
+    you — and the person who kept it alive earned none of its regard.*
+    Sit with it twice and you are back.
 27. Go to the ranch and spend time with the collie. It bonds on the same
     terms — and it is still a working dog, still doing its job, better for
     being known.
 28. **Ask the collie to come. It comes.** ⭐⭐⭐ *Same care, same bond, same
     verb, opposite answer — and the reason is the animal, not the player.*
-29. Ask it again while something else already has it — stock on the move,
+29. Ask the collie to **stay** while you walk on. **It stays** — the same
+    word the cat ignored, and neither animal was wrong.
+30. Ask it again while something else already has it — stock on the move,
     or the fox in the yard, whichever the world offers. **It does not
     come**, and you can see exactly what it chose instead. ⚠ *A refusal
     you cannot explain from the room is the defect this step is looking
     for.*
-30. Look at an animal near the end of its span. **It reads as old** — you
+31. Look at an animal near the end of its span. **It reads as old** — you
     can see it coming, and nothing had to announce it.
 
-⚠ **Not drivable in one sitting, and stated so it is not mistaken for a
-gap:** an animal dying of age takes about a year of real time, and an
-animal outliving its person takes as long as that takes. Both are
-consequences of rules this drive *does* exercise — the visible ageing in
-step 23, and the cooling in step 19 — rather than separate machinery.
+⚠ **Three things this drive cannot show in one sitting, stated so none is
+mistaken for a gap.** Each is a consequence of a rule the drive *does*
+exercise, not separate machinery:
+
+- **Dying of age** — about a year of real time. Exercised as the visible
+  ageing in step 31.
+- **An animal outliving its person** — as long as that takes. Exercised as
+  the cooling in step 26.
+- ⚠⚠ **Starving.** Real, and deliberately not a drive step: an unfed
+  animal takes most of a day of real uptime to die, and *proving it* means
+  killing one on purpose. Step 26 exercises the rule from the other side —
+  the arrangement that prevents it — which is the side the design is
+  actually about. **The mitigation is delegation, never an exemption.**
 
 ---
 
@@ -1011,8 +1028,10 @@ Observable from outside the code, by a person playing.
    that name.
 4. A player logs out and back in, and their named animal is the same
    animal — same name, same standing with them.
-5. A player returns after a long absence to an animal that is harder to
-   handle than it was, and never to one that has become wild or vanished.
+5. A player who **arranged for their animal to be fed** returns after a
+   long absence to one that is alive and harder to handle than it was —
+   never to one that has become wild or vanished. A player who arranged
+   nothing returns to a consequence, and no rule spared them it.
 6. A player can do the same thing to the farm collie, and the collie is
    still a working dog afterwards.
 7. A player asks their well-bonded cat to come and **it does not**; asks
@@ -1031,7 +1050,9 @@ Observable from outside the code, by a person playing.
     a player with the relevant craft can turn it into something that
     keeps.
 12. A player can leave an animal somewhere and go on without it, and find
-    it there when they return.
+    it there when they return — **by asking a biddable animal, and by
+    shutting a door on one that is not.** Both work; only one of them is
+    a word.
 13. A player offers their animal food that has silently gone bad and **it
     refuses**, in a situation where nothing else in the game would have
     warned them.
