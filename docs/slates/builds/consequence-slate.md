@@ -173,17 +173,49 @@ only four producers write a vital sign at all (`Condition.ts` bloodVolume,
 `Respiration` spo2, `ThermalRegulation` coreTemperature, plus Vitals' own
 internals). Eight ways to advance a clock; four ways to change a body.
 
-### The gate — census, then ratchet
+### ✅ The gate — census run, ratchet shipped (2026-09-08)
 
 The repo's own pattern ([lint-family.md](../../lint-family.md)): write the
 census, **gate today's count as the ceiling**, let a later wave drive it
 down.
 
-`lint:condition-arms` counts the discriminated arms across
-`reconcileConditions` and its siblings and holds the line at today's
-number. It may fall; it may never rise. That is what stops a ninth arm
-being added by the next build that finds a field nobody reads —
-**including this one.**
+**`lint:condition-arms` is built and green** —
+`packages/server/scripts/check-condition-arms.ts`, in the derived roster
+(now 30 gates), with a fixture test. **Measured on this branch, before
+any build work:**
+
+```
+condition arms — 7 found
+  lib/vitals/Vitals.ts
+    1052  reconcileConditions() → traumas
+    1055  reconcileConditions() → shocks
+    1058  reconcileConditions() → sustained
+    1061  reconcileConditions() → decayingMagic
+    1069  reconcileConditions() → infections
+    1080  reconcileConditions() → progressing
+    1086  reconcileConditions() → dyings
+
+parallel stores (enumerated): 1
+    lib/metabolism/Metabolic.ts#reconcileToxinConditions
+
+  total mechanisms = 7 arms + 1 parallel = 8
+```
+
+⭐ **`ARM_CEILING = 7`.** It may fall; it may never rise. That is what
+stops a ninth arm being added by the next build that finds a field nobody
+reads — **including this one.**
+
+⚠ **The definition had to be a census of MECHANISMS, not of loops**, and
+the first cut got it wrong in a way worth recording: it counted
+`MagicLogic.execRelieve` (the dispel selection) and
+`AssessController.execute` (the `assess` readout) as arms. Both genuinely
+discriminate the condition collection and iterate it; neither advances
+anything. **An arm must also progress state over time** — it sits in a
+`reconcile*` method, or its loop body references a game-time cursor. The
+fixture (`scripts/__fixtures__/condition-arm-shapes.ts.txt`) pins four
+must-fire shapes and four must-not-fire ones, per the shipped-broken-gate
+clause; the ceiling's failure path was exercised directly (lowered to 6 →
+exit 1) rather than assumed.
 
 ---
 
@@ -584,7 +616,7 @@ build's blast radius; **decided: do it here and unblock physiology.**
 
 | | wave | what |
 |---|---|---|
-| **W0** | the audit as a test **+ the arm census** | pin the couplings table above — one characterization test per row. ⭐ **And ship `lint:condition-arms` first**: census the eight mechanisms of Finding 0 and gate today's count as the ceiling, so this build cannot add a ninth even by accident |
+| **W0** | the audit as a test **+ the arm census** | ✅ **`lint:condition-arms` is DONE** (measured 7 + 1 parallel; ceiling set; in the derived roster). Remaining: pin the couplings table above — one characterization test per row |
 | **W1** | ⭐ close the loop (**arrow ②**) | wound → poise, recovery cap behind a dial (design A). **First, smallest, not a stretch** |
 | **W2** | the `afflict` door | `ConditionApi.afflict` / `relieve`, gated like `inflict`. **Nothing downstream is reachable without it** |
 | **W3** | ⭐⭐ `signature` as the **effect channel** (**arrow ①**) | not a new arm — the channel the seven existing arms route their effects *through*. Law (`decay`/`logistic`/`stage`/`integrate`/`countdown`/`burden`) separated from effect · the 23 rows authored · **the ratchet falls** |

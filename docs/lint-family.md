@@ -127,6 +127,46 @@ growing the day it is noticed, without being fixed first.
   `globIdentityFields` returning, every entry well-formed. Registration
   only validates classes it loads; this sees the whole tree.
 
+### `lint:condition-arms` — the ratchet that ships before its build (2026-09)
+
+⭐⭐ **The strongest census this family has, because it was written
+*before* the work it governs rather than after.**
+
+`VitalsMixin.reconcileConditions` is one method containing **seven arms**,
+each added by a different build, each discriminated by *which optional
+field happens to be set on the record* — traumas · shocks · sustained ·
+decayingMagic · infections · progressing · dyings. An eighth mechanism
+(`Metabolic.reconcileToxinConditions`) keeps its state outside the
+condition collection entirely and mirrors a band into `stage`, which is
+why `progressAffliction` has to explicitly skip rows carrying a
+`toxinBehavior`: two mechanisms owning one field.
+
+⚠⚠ **The trap has already been sprung once, with a comment proving it.**
+The `progressing` arm's own docstring records that `ProgressionSpec` *"was
+authored by three rows, and was read by nothing… This is the arm that
+fills it."* Somebody found a declared-and-unread field and **added an
+arm** — and `signature`, `resolution` and `contagion` are three more such
+fields, which the
+[consequence build](./slates/builds/consequence-slate.md) is about to
+wire. So the gate ships in that build's **W0**, before any of it.
+
+The rule it enforces: a condition's **progression law** (decay · logistic
+· stage · integrate · countdown · burden) and its **effect** on the body
+are independent. A new condition kind needs a law plus a `signature`,
+never a new arm.
+
+⭐ **The definition is a census of MECHANISMS, not of loops**, and getting
+that wrong is instructive: the first cut counted `MagicLogic.execRelieve`
+(the dispel selection) and `AssessController.execute` (the readout), both
+of which genuinely discriminate the collection and iterate it, and neither
+of which advances anything. An arm must also *progress state over time* —
+either it sits in a `reconcile*` method or its loop references a game-time
+cursor. The fixture pins both halves, must-fire and must-not-fire.
+
+Measured **7** on `design/consequence` before any build work; ceiling set
+there. It may fall, never rise. `KNOWN_PARALLEL_STORES` is enumerated in
+the script so a second parallel store is a visible diff.
+
 ### The identity build's three (2026-09)
 
 Each guards a failure that is **closed and silent** — the family's
