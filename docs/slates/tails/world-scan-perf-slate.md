@@ -425,12 +425,14 @@ cost (object count scanned, and that the shape was unindexed). ⚠ The
 (`RegistryScanNote`-ish) — a `@saxonberg/types` change, called out here
 because it is the one piece of new wire surface in the build.
 
-**⚠⚠ The seat arm does NOT extend to MQL subscriptions.** A live `world:`
-*subscription* re-resolves on every dependency change, so a single typed
-query would become a **standing** rescan — strictly worse than the
-one-shot this arm is permitting, and invisible after the fact. Subscribing
-surfaces refuse the seed for everyone, PM included; see § *What this slate
-does NOT cover*.
+**⭐ Decided — the seat arm does NOT extend to MQL subscriptions.**
+(*User, asked directly: "no subscriptions is fine, keep it that way."*)
+A live `world:` *subscription* re-resolves on every dependency change, so
+a single typed query would become a **standing** rescan — strictly worse
+than the one-shot this arm permits, and invisible after the fact.
+Subscribing surfaces refuse the seed for **everyone, PM included**. ⚠ Not
+a widen-later dial: the whole point is that nobody, including the office,
+can leave a rescan running that they will not remember starting.
 
 ### D4 — The second surface: an Api may not hand back its table
 
