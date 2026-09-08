@@ -660,7 +660,7 @@ through `MessageApi.scene(host)` since the host has no Soul:
 The brains are wired by the **rows** (`behaviors:` on the cat, the collie,
 the canary), not by the class — data, as `behavior.md` insists.
 
-### D14 — Verbs: four social, one inventory; `wait` in place of the colliding `stay`
+### D14 — Verbs: four social, one inventory; `stay` (freed from combat 2026-09-08)
 
 Controllers in `mud/platform/idea/cmd/social/` and `.../inventory/`,
 views in the platform pack, arg `requires: BondedMixin`, validators
@@ -673,14 +673,27 @@ hand-over (`inventory`).
 | `pet <animal>` | `PetController` | `handle(0.5)` + `adjustRegard(giver, PET_REGARD)` | handling band below `TOUCH_BAND`, or `bondWith < 0.15`: *it moves off* |
 | `offer <food> to <animal>` | `OfferController` | at `wary`+ it takes from the hand (the `feeds` refusal rules run inline); below, the food is set down and `pendingOffer` is recorded for the next beat — *"it waits until you step back"* | not edible; not hungry; turned; silently contaminated |
 | `call <animal>` | `CallController` | if `wouldComply` and the animal holds no status: it comes (a traverse into your room when adjacent, else a step toward you); clears `waiting` | not bonded: *it looks at you*; not biddable: *it looks at you* (the same line — the cat); attending: the refusal line **quotes its status** (D7's `StatusMixin`) |
-| `wait <animal>` (alias `settle`) | `WaitController` | if `wouldComply`: `waiting = true` (it stays until called or until you `pet` it) | as `call` |
+| `stay <animal>` | `StayController` | if `wouldComply`: `waiting = true` (it stays until called or until you `pet` it) | as `call` |
 | `name <animal> <name>` | `NameController` | D5's four steps, then `learnIdentityOf` over everyone present | `bondWith < NAME_BOND` or giver not in `followedKeys` (*it has not chosen you*); already named; a name matching a live `Cast`'s `getName()` or any online player's name, case-insensitively (the naming slate's Defence B, partially — see § Deferred) |
 
-⚠ `stay` is combat's alias on `intervene.yaml`, whose arg binds anything
-Visible, so two `stay` views cannot be separated by shape. The plan ships
-`wait` rather than edit a shipped combat verb inside a pets build; taking
-`stay` off `intervene.yaml`'s alias list is a one-line change the user may
-prefer (§ Risks).
+✅ **`stay` is this build's, ruled 2026-09-08.** It was an alias on
+combat's `intervene.yaml`, whose arg binds anything Visible, so the two
+could not be separated by shape — one of them had to give it up.
+
+**Drop `stay` from `intervene.yaml`'s `verbs:` list** (leaving
+`[intervene]`) in the same wave that adds `StayController`; check
+`intervene`'s `help` prose and any test asserting the alias. `wait` /
+`settle` are retired from this plan.
+
+⭐ The reasoning generalised into
+[command-spec.md § Choosing between them](../subsystems/command-spec.md):
+*a bare verb is something your body does; a subcommand is something you
+operate* — and **a collision is evidence that one of the two is on the
+wrong side of that line.** Telling a companion to stay is your voice to a
+creature in front of you. Combat's sense is a standing tactical
+instruction, and combat's own doctrine is already set-policy-then-watch.
+⚠ Re-homing the tactical sense onto the formation surface is **not this
+build's job**; dropping the alias is.
 
 ### D15 — Offal is a row, in both yield tables; the two butcher models are **not** unified here
 
@@ -1065,7 +1078,7 @@ Each capability, the four links, each of which fails closed and silent.
 | 9 | W1d | a Provision in a Feeder spoils on `FreshnessMixin`'s clock; `look saucer` shows the band phrase (shipped) |
 | 10 | W1c | `feeds` credits `FEEDER_REGARD = 0` |
 | 11 | W1d | the offal row from either `butcher`; cure/dry/smoke (trade-cooking, shipped) keep it |
-| 12 | W1a + W1c | `wait` sets `waiting`; `follows` and `homes` both honour it |
+| 12 | W1a + W1c | `stay` sets `waiting`; `follows` and `homes` both honour it |
 | 13 | W1c | `feeds`/`offer` refuse at the olfactory threshold with the same line as any other refusal; a contaminated item renders clean (shipped) |
 | 14 | W1a | `senescent` stage + the age augmenter; no message, no figure |
 | 15 | W1c | nothing announces the crossing; `follows` simply fires once `bondWith ≥ FOLLOW_BOND` |
@@ -1125,10 +1138,14 @@ no compliant path exists (per workflow: decide, record, continue).
    turned food and for contaminated food is **the same sentence**. A
    reviewer grepping the brains for `danger|trap|poison|sick|bad air`
    must find nothing.
-3. ⚠ **Death of age (D9) contradicts `race.md`'s standing decision** in
-   letter while honouring its reason. The user should confirm the
-   boundary (non-sentient only) before the sweep rewrites `race.md`.
-   The mechanism is one method and one call; reverting is one line.
+3. ~~⚠ **Death of age (D9) contradicts `race.md`'s standing decision**~~
+   ✅ **RULED 2026-09-08 — non-sentient only is confirmed.** Proceed as
+   D9 has it; the sweep rewrites `race.md`'s reservation to name the
+   boundary rather than the blanket. ⭐ Note also that the *span* is a
+   dial in authored content, not a doctrine cliff (requirements § A
+   companion dies of old age): ship a number, watch, turn it. That is
+   why `lifespanMin`/`lifespanMax` becoming authorable is load-bearing
+   rather than tidy.
 4. ⚠ **Drive step 26 is lethal as written.** A stamped animal integrates
    the whole absence; unwatered it dies in ≈ 5 real hours, unfed in ≈ 9.
    "Stay away a game month" (2.5 real days) is survivable only with the
@@ -1137,16 +1154,29 @@ no compliant path exists (per workflow: decide, record, continue).
    temperature). This is the requirements' own rule ("no exemption; the
    floor is delegable") and the plan does not soften it — but the drive
    must be run that way, and the user may want to shorten the step.
-5. ⚠ **`stay` is combat's.** The plan ships `wait` (alias `settle`).
-   Removing `stay` from `intervene.yaml`'s alias list would free the
-   requirements' word at the cost of a combat edit; the user's call.
-6. ⚠ **The cat may decline `wait`.** The requirements make every member
+5. ~~⚠ **`stay` is combat's.**~~ ✅ **RULED 2026-09-08 — free it.**
+   Drop `stay` from `intervene.yaml`'s `verbs:` list (leaving
+   `[intervene]`) in the wave that adds the companion verb, and **ship
+   `stay` rather than `wait`**; `wait`/`settle` are retired from the
+   plan. Check `help intervene`'s prose and any test asserting the alias.
+
+   ⭐ The reasoning is now general doctrine — see
+   [command-spec.md § Choosing between them](../subsystems/command-spec.md):
+   *a bare verb is something your body does; a subcommand is something you
+   operate*, and **a collision is evidence that one of the two is on the
+   wrong side of that line.** Telling an animal to stay is your voice to a
+   creature in front of you; combat's sense is a standing tactical
+   instruction, and combat's own doctrine is already set-policy-then-watch.
+   ⚠ Moving the tactical sense onto the formation surface is **not this
+   build's** — dropping the alias is.
+6. ⚠ **The cat may decline `stay`.** The requirements make every member
    of the closed vocabulary refusable, so a cat at `biddability 0.1`
    never holds; the honest tool for a cat is the door, and the drive's
    step 16 ("leave it behind and it stays") works for the cat only by
-   leaving it somewhere its `homes` beat cannot exit — or by `wait` on
-   the collie. If the user wants `wait` exempt from biddability, it is
-   one condition in `WaitController`.
+   leaving it somewhere its `homes` beat cannot exit — or by `stay` on
+   the collie. If the user wants `stay` exempt from biddability, it is
+   one condition in `StayController`. ⚠ **Still open — the requirements'
+   drive step 16 reads as though it works on the cat.**
 7. ⚠ **Stray replenishment.** The lane's `cast:` re-mints a thin cat on
    every boot in which no live instance of `/stuff/agent/cat` exists at
    hydrate time. After Mouse is adopted and the server restarts, the lane
@@ -1211,8 +1241,9 @@ Attach points left clean, and the slate each goes to.
 - **Stray replenishment / a live-or-recorded-aware `cast:` applier** →
   `spawn-distribution-slate`.
 - **The naming defence** → `naming-slate` (Defence B).
-- **`stay` vs `wait`** → nothing to slate; a one-line combat edit if
-  wanted.
+- **The tactical sense of `stay`** (a standing instruction to an ally)
+  → combat-formations, whose set-policy-then-watch surface is where it
+  belongs. This build only drops the alias.
 - **Age death for persons and succession** → stays where `race.md` left it.
 - **Diet** (`Species.diet` is authored and unread): the `feeds` brain eats
   any edible Provision; a carnivore refusing bread is a one-line read once

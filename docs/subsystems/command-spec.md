@@ -211,6 +211,64 @@ options:                      # optional; verb-scoped
 A zero-arg verb (e.g. `inventory`, `ping`) has neither `args` nor
 `subcommands` — that's fine.
 
+### ⭐⭐ Choosing between them — and what a collision is telling you
+
+The mechanical rule above (`args` **or** `subcommands`, never both) says
+nothing about *which*. The rule that decides it, stated once:
+
+> **A bare verb is something your body does. A subcommand is something
+> you operate.**
+
+**This is not a preference — it is what the shipped roster already is.**
+37 of the ~250 command views take subcommands, and the list is uniform:
+`bank` `house` `reserve` `wallet` · `government` `title` `office`
+`committee` · `settings` `var` `alias` `cockpit` `prompt` `errors` ·
+`chat` `contacts` `forum` `group` `notify` `party` `soul` `subject` ·
+`stream` `tune` `watch` · `git` `help` `press` `wiki` `job` `equip`
+`fight` · `analyze` `measure` · `pack` `player` `wizard`.
+
+**Every one is a system you operate or a register you consult. Not one is
+a bodily act.** The other ~213 — `pour`, `stir`, `milk`, `shear`, `hew`,
+`sit`, `look` — are things a person does with their hands, and none of
+them is subcommanded.
+
+⚠ **The "subcommands feel immersion-breaking" objection is correct, and
+it is the rule working.** They feel wrong on a bodily act *because they
+are wrong there*: nobody in the fiction says "title buy," but nobody says
+"open the ledger and record a purchase" either — it is an interface to an
+institution, and reading like one is honest. The same construction on
+`pet cat` would be a lie about what the player is doing.
+
+#### ⭐⭐⭐ A collision is evidence, not an accident
+
+The real objection is that **you cannot know a name will collide until it
+does** — and the answer is that you do not have to:
+
+> **A verb collision is evidence that one of the two is on the wrong side
+> of the line.** Resolve it by working out which one, not by prefixing
+> both.
+
+⚠ **Do NOT pre-emptively subcommand to reserve a name.** That is what
+makes subcommands feel excessive, and the cost is real: a subcommanded
+verb is longer to type, harder to discover, and buys nothing until a
+second claimant exists.
+
+**The worked example, live as of 2026-09-08.** `stay` was an alias on
+combat's `intervene`, and pets wanted it for speaking to an animal. Asking
+which side each sits on answered it immediately: telling a companion to
+stay is **your voice, to an animal in front of you** — bodily, bare verb.
+Combat's is a **standing tactical instruction**, and combat's own
+doctrine is already *set-policy-then-watch* — a surface you operate. So
+the bare verb goes to the animal and the tactical sense belongs with the
+policy surface, which is where formations already live. **Nobody had to
+predict the collision; the collision did the work.**
+
+⭐ The general shape: when two claimants appear, one of them almost always
+turns out to have been a systemic act wearing a bodily verb's clothes.
+Duplicate verbs across packs remain fine where the *argument* separates
+them (`butcher` a live animal vs a carcass); this rule is for when it
+cannot.
+
 ### `async:` — detach the controller from the giver's input chain
 
 An optional top-level `async: true` (default `false`) makes the verb
