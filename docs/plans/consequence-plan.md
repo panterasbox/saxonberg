@@ -490,7 +490,7 @@ loss), `success` for the named killer, nothing for a `draw`
 melee names the killer as `lastStruckBy` else the sole live foe, closing
 the `opponentState` gap.
 
-### D6 — A weapon declares what it exercises; a beast's band is its transcript
+### D6 — A weapon declares what it exercises; a beast's difficulty comes from its BODY
 
 `Weapon` gains an authored `exercises: string[]` (Discipline keys). Arms
 rows author it; three Discipline rows are added because the sim already
@@ -500,13 +500,60 @@ tells the practices apart by delivery form and guard class (advancement.md
 belt-knife and the oak waster (a practice sword). No wielded weapon →
 `unarmed` (shipped). `snapshotBandsImpl` snapshots `competenceBand` as the
 **max over `melee-combat` and the wielded weapon's `exercises`** — which
-also fixes `Sharpness` reading only `melee-combat` for a swordsman. A
-non-sentient opponent's band is read the same way, from its (shared,
-`Extra`) transcript — untrained until it wins fights. A `Species`-authored
-threat band was considered and declined: the identity build settled that
-a competence claim is *seeded evidence, never a declared floor*, and a
-beast's danger in this engine is its body (fangs, blood volume), not a
-contest skill. Recorded under Risks & opens for the user's eye.
+also fixes `Sharpness` reading only `melee-combat` for a swordsman.
+
+#### ⭐⭐ The beast: a third answer, replacing both the ones first considered
+
+**The problem.** Exchange difficulty derives from the opponent's
+competence band, and that feeds two things — how much you *learn* from
+winning (the ZPD gate) and how much you *lose* from losing (difficulty
+modulation).
+
+⚠⚠ **A beast has no meaningful transcript.** Wolves are `Extra`s sharing
+one identity, so the band reads `untrained` and every wolf fight is
+`easy`. Beating one teaching you nothing is *correct*. But **losing to
+one would be the single most punishing loss in the game** — an `easy`
+failure is the maximal-sting case (Δθ ≈ −0.22, measured) — so being
+mauled by a wolf would cost more competence than being beaten by a master
+swordsman. That is backwards, and it is a correctness problem rather than
+a preference.
+
+**Both first-considered answers were wrong:**
+
+- *the shared transcript* — the bug above;
+- *an authored `Species.contestBand`* — declined because the identity
+  build settled that a competence claim is **seeded evidence, never a
+  declared floor**.
+
+⭐ **The resolution is the plan's own reasoning, acted on instead of
+abandoned: a beast's danger is its BODY, not a contest skill.** So derive
+the difficulty from the body, which already says how dangerous the animal
+is. `NaturalAttack.deriveProfile` (`lib/combat/NaturalAttack.ts`) yields
+`tempoFactor` / `poiseDamageFactor` / `overextendFactor` / `reachRank`
+from the species' authored `naturalAttacks` hints (`massKg`, `lengthM`,
+`reach`) with a banded body-scale fallback off `BodyPlan.baseMass`. Map
+that profile onto the difficulty scale for any **non-sentient**
+opponent; sentient opponents keep the transcript read.
+
+**Why this is better than either:**
+
+- **Derived, never declared** — it honours the identity build's rule
+  rather than working around it.
+- **Honest** — a dire wolf is a hard fight because it is large, fast and
+  long-reached, which is *what the rows already say*. Skill was never the
+  right noun for a wolf.
+- ⭐ **Authors get the flexibility for free.** There is no new authoring
+  surface to learn and nothing to keep in sync: author a heavier,
+  longer-reached animal and it *is* a harder fight, in the same numbers
+  that already govern how it hits. A `Species.contestBand` would have
+  been a second dial to drift out of agreement with the first.
+- It reuses a shipped, unit-tested pure function; no new curve settings.
+
+⚠ **The band-to-difficulty map is a small new pure function** and belongs
+beside the profile it reads, on `NaturalAttack`. W3's acceptance asserts a
+`largeBodyMassKg`-class beast reads `hard` (so losing to it barely stings
+and beating it teaches), while a rat reads `easy` (beating it teaches
+nothing, and losing to it is a story, not a career setback).
 
 ### D7 — Morale is a derived read, never a stored scalar; it fills nothing in `Sharpness`
 
@@ -886,6 +933,31 @@ belongs to this build is added to its wave here.
 
 ### Movement II — combat that resolves
 
+#### W0d — the floor and the above-band rule *(⚠ a live bug fix — the FIRST behavioural change)*
+
+⚠⚠ **Promoted out of W3 by the user's call.** This is not a safety rail
+for a new feature: a whiff already mints an `easy` failure every
+exchange (`CombatLogic:4929`), which is the maximal-sting case, so
+**characters on the live world are being de-ranked today**. It touches
+`Competence.ts` and `CompetenceBand.ts` and nothing else, depends on no
+wave before it, and is independently landable. W0b and W0c precede it
+only because they are *instruments* — a test file and a lint script,
+neither of which changes runtime behaviour — so **this is the first wave
+that changes the world**, and if the build is ever cut short the
+de-ranking bug is already fixed.
+
+*Goal (D1, D2).* `lib/advancement/Competence.ts` —
+running θmax + the band floor; the above-band failure skip;
+`lib/advancement/CompetenceBand.ts` — `lowered(band, n)`,
+`difficultyAgainst(mine, theirs)`, `oneBelow`. Tests in
+`lib/advancement/__tests__/Competence.floor.test.ts` pinning the measured
+scenarios: 20× hard✓ + 6 standard✗ stays ≥ `proficient`; 10× standard✓ +
+10 formidable✗ is unchanged; 50× hard✓ + 1 loss is Δθ ≈ 0; 200× easy✓
+still saturates at `competent`; `seedRunFor` returns the same runs for
+all five bands; `lint:dossiers` green.
+*Commit:* `fix(consequence W0d): the floor and the above-band rule, derived in the fold`
+
+
 #### W1 — wound → poise
 
 *Goal.* The loop closes: getting cut staggers you; staying cut keeps you
@@ -931,20 +1003,9 @@ greps the rendered lines for `\d`).
 
 *Commit.* `build(consequence W2): the poise read — you give ground, in words`
 
-#### W3 — the outcome model, the floor, the rule *(two commits)*
+#### W3 — the outcome model: winning pays *(the floor moved to W0d)*
 
-*W3a — the estimator (D1, D2).* `lib/advancement/Competence.ts` —
-running θmax + the band floor; the above-band failure skip;
-`lib/advancement/CompetenceBand.ts` — `lowered(band, n)`,
-`difficultyAgainst(mine, theirs)`, `oneBelow`. Tests in
-`lib/advancement/__tests__/Competence.floor.test.ts` pinning the measured
-scenarios: 20× hard✓ + 6 standard✗ stays ≥ `proficient`; 10× standard✓ +
-10 formidable✗ is unchanged; 50× hard✓ + 1 loss is Δθ ≈ 0; 200× easy✓
-still saturates at `competent`; `seedRunFor` returns the same runs for
-all five bands; `lint:dossiers` green.
-*Commit:* `build(consequence W3a): the floor and the above-band rule, derived in the fold`
-
-*W3b — the credit (D5, D6).* `platform/thing/equipment/Weapon.ts`
+*Goal (D5, D6).* `platform/thing/equipment/Weapon.ts`
 (`exercises: string[]`, `fieldMeta` authorable + persistent, `getExercises()`);
 the eleven arms rows; three Discipline rows (`bludgeons.yaml`,
 `polearms.yaml`, `flails.yaml`, each `specializes: [melee-combat]`,
@@ -952,8 +1013,12 @@ the eleven arms rows; three Discipline rows (`bludgeons.yaml`,
 (`exercised: Set<string>`, `exchangesWon`, `exchangesLost`,
 `woundsTaken: OutcomeBand[]` — the last also feeds W4); `CombatLogic.ts`
 — `resolveExchange` accumulates the tallies; `snapshotBandsImpl` reads
-the max over `melee-combat` + the wielded weapon's `exercises`; retire
-`mintExchangeSignature` / `outcomeToResult` / `difficultyFor(target)`
+the max over `melee-combat` + the wielded weapon's `exercises`;
+`lib/combat/NaturalAttack.ts` gains the pure profile→difficulty map (D6)
+and `difficultyFor` routes non-sentient opponents through it (sentience
+via `SpeciesApi.isSentient`, never a new `MixinApi.isX` in `lib/combat/`
+— `lint:combat-dynamics`); retire
+`mintExchangeSignature` / `outcomeToResult` / the transcript-only `difficultyFor(target)`
 and the two tests that pin them (`CombatLogic.test.ts:2286/:2309` become
 fight-level assertions); `yieldFight` names the killer as `lastStruckBy
 ?? sole live foe`; `lib/combat/Combatant.ts` — `onDefeated` /
@@ -961,10 +1026,10 @@ fight-level assertions); `yieldFight` names the killer as `lastStruckBy
 hosts bank nothing — read `ctx.targetState.brainPath`); `MELEE_COMBAT_DISCIPLINE`
 folds into `MELEE_DISCIPLINE`. Tests: a fixture fight credits the loser
 `failure` at the right difficulty and the winner `success`, both only
-for disciplines in `exercised`; a draw credits nobody; `lint:unconsumed-seams`
+for disciplines in `exercised`; a draw credits nobody; ⭐ **a large-bodied beast reads `hard` and a rat reads `easy`** (D6), so losing to a wolf is a story rather than a career setback; `lint:unconsumed-seams`
 falls by 2. Gym: the pinned cells are unaffected (crediting is
 post-resolution) — assert the hook-fire counts still match.
-*Commit:* `build(consequence W3b): winning pays — the two empty hooks credit the disciplines you used`
+*Commit:* `build(consequence W3): winning pays — the two empty hooks credit the disciplines you used`
 
 #### W4 — morale & surrender
 
@@ -1377,7 +1442,7 @@ Each link fails closed and silent.
 |---|---|---|---|---|
 | wound → poise (W1) | none (inside the exchange) | — | `combat.wound.*` settings rows (merge-missing) | the settings pack installs them; a dial missing reads its code fallback — **assert the row exists** in the gym cell |
 | the poise read (W2) | none | — | topic `combat.footing` descriptor | `lint:topics` |
-| the credit (W3b) | none (the hooks) | `onDefeated`/`onDefeatedFoe` fire from `endWith` for every named victim/killer — a yield in a melee now names one | `Weapon.exercises` on eleven rows; three Discipline rows | `DisciplineCatalogue` warms rows by descendant walk — a new row needs no list edit; **a row with a typo'd `specializes` is silently orphaned** — assert the three keys resolve in a test |
+| the credit (W3) | none (the hooks) | `onDefeated`/`onDefeatedFoe` fire from `endWith` for every named victim/killer — a yield in a melee now names one | `Weapon.exercises` on eleven rows; three Discipline rows | `DisciplineCatalogue` warms rows by descendant walk — a new row needs no list edit; **a row with a typo'd `specializes` is silently orphaned** — assert the three keys resolve in a test |
 | morale (W4) | none | the `combatant` brain is invoked by the engine each beat for every brain-driven state | `combat.morale.*` rows | as W1 |
 | parley (W5) | `fight parley <target>` | `fight.yaml` is contributed by `CombatantMixin.commandContributions` — the new subcommand rides it | `requires:` on the target arg | `lint:arg-kinds` |
 | aftermath (W6) | none | fires from `runResolutionConsumers` on every resolution path (five callers — **check all five**) | topic `combat.aftermath` | `lint:topics` |
@@ -1402,9 +1467,9 @@ Each link fails closed and silent.
 | requirement acceptance criterion | waves |
 |---|---|
 | A player who is cut mid-fight can tell the fight turned, from prose alone | W1 (the mechanism) + W2 (the read) |
-| A player who loses a fight can name which skills it cost them, and it is the ones the fight used | W3b (`exercised` → the signature) + W6 (the after-read names them) |
-| A long record cannot be reduced to a beginner by a run of bad luck, and the player can say so from what the game shows | W3a (D1) + W12's `competence` marker precedent (the band shown is the floored one) |
-| Beaten by someone far better → not diminished | W3a (D2) + W3b (difficulty from bands) |
+| A player who loses a fight can name which skills it cost them, and it is the ones the fight used | W3 (`exercised` → the signature) + W6 (the after-read names them) |
+| A long record cannot be reduced to a beginner by a run of bad luck, and the player can say so from what the game shows | **W0d** (D1) + W12's `competence` marker precedent (the band shown is the floored one) |
+| Beaten by someone far better → not diminished | **W0d** (D2) + W3 (difficulty from the body, D6) |
 | Dies → worse at everything for a while, history intact, both visible | W12 (suppression + the `(diminished)` marker; `chronicle` unchanged) |
 | Tell a burn from a cut from a poisoning by what it does and what fixes it | W8 + W9 + W11 |
 | An author adds a new affliction by writing a row, and a player meets it | W8 (law + signature) + W9 (resolution) + W7 (a way to afflict it) + W13 (a way to meet it: `analyze patient` shows it) |
@@ -1415,14 +1480,14 @@ Each link fails closed and silent.
 | Every row of the meet-or-defy table is true of the shipped game | rows 1–3, 6, 7, 9 are true today (Grounding); row 4 (XP loss) → W12; row 5 (levels buy survivability) → W1 keeps `Sharpness` on the contest and adds nothing to the body — a gym cell asserts an expert dies to a knife at `open` exactly as fast as a novice; row 8 (flee/surrender) → W4/W5 (an NPC can now do both) |
 
 Nothing unmapped. The drive's 24 steps map: 1–5 → W1/W2/W3/W6; 6–7 →
-W3; 8–10 → W10/W11/W9; 11–14 → W13/W14; 15–19 → W12/W13; 20 → W15; 21 →
+W0d/W3; 8–10 → W10/W11/W9; 11–14 → W13/W14; 15–19 → W12/W13; 20 → W15; 21 →
 W16; 22 → W17; 23–24 → W4/W5.
 
 ---
 
 ## Test & gate strategy
 
-- **Unit** (`pnpm test:near` per wave): the estimator scenarios (W3a);
+- **Unit** (`pnpm test:near` per wave): the estimator scenarios (W0d);
   the effect interpreter per kind and per law (W8); each row family's
   declared effect and *nothing else* (W11); the suppression at all four
   surfaces (W12); narration snapshots (W2, W4, W5, W6); the gate fixtures
@@ -1430,7 +1495,7 @@ W16; 22 → W17; 23–24 → W4/W5.
 - **Gym** (`pnpm test:gym`, its own CI job): re-pinned at W1; new cells
   at W1 (first blood turns a fight), W4 (yield before death; the wolf
   flees), the survivability row (an expert at `open` dies as fast as a
-  novice). Run at W1, W3b, W4, W5 and before the MR.
+  novice). Run at W1, W3, W4, W5 and before the MR.
 - **Pack suites**: `trade-medicine`'s own vitest (two controllers);
   `trade-smithing`'s (unchanged, re-run at W15).
 - **Lint family**: `pnpm -C packages/server lint:family` at every wave
@@ -1462,13 +1527,15 @@ Things the build should price, and the two that need the user's eye.
    against an `open` opponent mints an `easy` failure — the maximal-sting
    case (Δθ ≈ −0.22) — every exchange. **W3a's floor is a bug fix, not a
    safety rail for a new feature.** See the ordering note in Risk 13.
-2. ⚠ **A beast's opponent band** (D6). The plan reads it from the
-   beast's (shared, `Extra`) transcript — untrained until the wolves win.
-   The alternative is a `Species`-authored threat band, which the
-   identity build's "seeded, never declared" rule argues against. Lens 3
-   chose the transcript; **the user may prefer the wolf to read as
-   dangerous from day one**, and if so a `Species.contestBand` seeded as
-   `claim` rows on first fight is the honest shape — a small W3b addition.
+2. ✅ **A beast's opponent band (D6) — RESOLVED, and neither way it was
+   first framed.** The shared-transcript read was a live correctness bug
+   (losing to a wolf would sting *more* than losing to a master); an
+   authored `Species.contestBand` violated "seeded, never declared". The
+   difficulty now derives from `NaturalAttack.deriveProfile` — the body
+   facts the species rows already author. ⭐ Content authors get the
+   flexibility with **no new surface**: a heavier, longer-reached animal
+   is a harder fight in the same numbers that already govern how it hits.
+
 3. **The per-exchange mint is retired** (D5). A player used to seeing
    `practisingCompetence` move every exchange now sees it move per fight.
    The requirements say per-fight; recorded because it is a felt change.
@@ -1513,14 +1580,11 @@ Things the build should price, and the two that need the user's eye.
     the derived roster absorbs it without a list edit. Not a new module
     category (a `scripts/check-*.ts`).
 
-13. ⚠⚠ **The floor is a live bug fix sitting at W3, behind two waves of
-    feature work.** W0b/W0c/W1/W2 all land before the thing that stops
-    real characters being de-ranked today. **The floor (D1+D2, W3a) is
-    independently landable and depends on nothing before it** — it is a
-    change inside `Competence.derive` alone. If there is any chance this
-    build is interrupted, cut short, or lands in stages, **W3a should go
-    first**, as `W0d`. Raised for the user because the plan as written
-    does not do this.
+13. ✅ **The floor was a live bug fix sitting at W3 — RESOLVED.** The
+    user's call: it is now **W0d and lands first**, before any feature
+    wave. `Competence.ts` + `CompetenceBand.ts` only; nothing precedes
+    it. If this build is ever interrupted or lands in stages, the
+    de-ranking bug is already fixed.
 
 No new module category, no new exported helper, no new Mongo collection
 is planned anywhere above. If a wave finds it needs one, it stops there
