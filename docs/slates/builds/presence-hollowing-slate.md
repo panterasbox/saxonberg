@@ -1,5 +1,13 @@
 # Presence-vs-hollowing slate (working doc) — is anyone home?
 
+> **Status: UNBUILT** — named, not designed; nothing in the tree carries a
+> presence or hollowing state.
+> **Left:** presence-vs-hollow as a physical state on an agent · who
+> perceives it (ESP · the attuned reader dial · sacred instruments) ·
+> binary or degree · the present→hollow transition · the reified
+> inhabitant↔vessel model
+> **Size:** a build
+
 > **Status (2026-07): named, not designed — spun out of the magic-items walk.**
 > A candidate new substrate: **experiential presence vs. hollowness as a physical
 > state of an agent** — *is there an experience here, or is this animate-but-no-one?*
@@ -13,7 +21,7 @@ See also:
 between person and thing,"* capture, the Feed, *"a world that runs perfectly and
 contains no one"*) · the build-1 `alignment-slate.md` (the moral-gravity axis —
 **kept distinct**: alignment is *derived, non-mechanical, undetectable*; this is
-the *physical, perceivable* layer) · [magic-items-slate](../tails/magic-items-slate.md)
+the *physical, perceivable* layer) · [magic-items-slate](./magic-items-slate.md)
 (where this surfaced — sanctity/holy water + ESP) ·
 [vitals.md](../../subsystems/vitals.md) (`getConsciousness` — *adjacent but
 distinct*, below) · [belief.md](../../subsystems/belief.md) (the *person↔thing
@@ -48,7 +56,7 @@ The build-signal is that two unrelated item features both need it:
 
 - **Sanctity / holy water *reacts* to the hollow** — a consecrated instrument of
   presence disrupts the animate-but-no-one (a nature-conditional effect reading
-  this state). See [magic-items-slate](../tails/magic-items-slate.md) §Sanctity.
+  this state). See [magic-items-slate](./magic-items-slate.md) §Sanctity.
 - **ESP *fails to perceive* the hollow** — `VerbalESP`/`EmotiveESP` sense
   mind-activity = they sense *presence*; a hollow emits nothing, so it reads as
   **absence**. One reacts to it, the other can't see it — both key on the same

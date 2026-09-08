@@ -79,7 +79,7 @@ belonging. "Change the player for the better" is the literal product goal
 Ethical instincts are wired into specific decisions, not just principles:
 
 - House affiliation is opt-in and private — "you're never auto-outed"
-  ([affiliation](../slates/deferred-rpg/affiliation-slate.md)).
+  ([affiliation](../slates/builds/affiliation-slate.md)).
 - Reactions are ephemeral, not persisted — "social texture, not
   surveillance" ([reactions](../slates/tails/reactions-slate.md)).
 - Recognition is per-viewer and in-world, not a central dossier

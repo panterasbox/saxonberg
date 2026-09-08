@@ -1,5 +1,13 @@
 # Content packs slate — the trade as the unit, and seeding an economy backwards
 
+> **Status: PARTIAL** — the pack substrate + 43 shipped packs
+> → [content-packs.md](../../subsystems/content-packs.md)
+> **Left:** the unbuilt trades (butchery · milling · forestry · fishing ·
+> medicine · sanitation · funerary · repair · papermaking · insurance) ·
+> localities-as-compositions · the scoped-verb selector syntax ·
+> the npm repo split (A10.1)
+> **Size:** a build
+
 **Captured 2026-08-04.** The session opened on version control and
 turned into economics:
 
@@ -25,7 +33,7 @@ And the correction that set the shape of everything after it:
 
 Related: [content-packs.md](../../subsystems/content-packs.md) (**the
 shipped substrate — manifest, reconcile-by-stamp installer,
-`sourcePack`**), [pack-seams-slate](./pack-seams-slate.md) (**how two
+`sourcePack`**), [pack-seams-slate](../tails/pack-seams-slate.md) (**how two
 packs articulate — *the annex knows the host, the host never knows the
 annex*; do not re-derive it here**),
 [vocations.md](../../vocations.md) (the demand test),

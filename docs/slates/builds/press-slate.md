@@ -1,5 +1,16 @@
 # Press slate — the vocation that makes transparency actual
 
+> **Status: PARTIAL** — the publishing substrate shipped: `PublisherMixin`
+> over `OrganizationMixin`, Release documents, the news ticker, the
+> `press` verb, the anonymous press room →
+> [press.md](../../subsystems/press.md)
+> **Left:** the newspaper as an organization + its newsroom roster
+> (publisher → editor-in-chief → editor → reporter) · subscription /
+> push distribution · bylines · the credibility track record · the
+> paywall · sealing + the FOIA docket · source protection · the
+> recording instrument · retraction & correction · the pedagogy pass
+> **Size:** a build
+
 **Captured 2026-07-31**, out of the amendment-roster walk
 ([amendment-library-slate](./amendment-library-slate.md), the 1A
 gap). The press is the institution the verification architecture has

@@ -1,5 +1,13 @@
 # CMS / content-authoring-tools slate (working doc)
 
+> **Status: PARTIAL** — Wave 1 (the code editor) shipped, and the Studio,
+> git and diagnostics with it → [cms.md](../../subsystems/cms.md)
+> **Left:** lease-scoped trees + `domain_history` versioning · the
+> draft/changeset overlay + atomic publish · the law==code review gate ·
+> engine-typed IntelliSense/LSP + the VS Code path · anon read-only ·
+> cross-tab sync · the zone map
+> **Size:** a build
+
 > **Status: architecture set; start with the code editor.** The
 > content-authoring application — a **client-heavy** authoring surface over
 > the **same backend the game uses** (the access layer's lease-scoped
@@ -67,7 +75,7 @@ See also:
   diagnostics / nav) the code editor surfaces, the LSP that travels to
   external editors, and the model shared with the save-gate. The CMS owns the
   *UI*; that owns the *intelligence*.
-- [docs/slates/scoped-authoring-slate.md](../builds/scoped-authoring-slate.md) — the
+- [docs/slates/scoped-authoring-slate.md](../tails/scoped-authoring-slate.md) — the
   **in-game light-authoring tier** (dorm-theming, kiosks, the
   describe/decorate path), the third authoring surface alongside the CMS and
   external editors.
@@ -591,7 +599,7 @@ each emitting the same canonical TS/YAML.
 - **The access / lease model, the holodeck, versioning/audit** →
   [access-slate.md](../tails/access-slate.md). The CMS *consumes* all of it.
 - **In-world light authoring** (dorm-theming, kiosks, the shell) →
-  [scoped-authoring-slate.md](../builds/scoped-authoring-slate.md). A sibling
+  [scoped-authoring-slate.md](../tails/scoped-authoring-slate.md). A sibling
   surface, not the CMS.
 - **The play client / cockpit rendering** →
   [client-cockpit-slate.md](../tails/client-cockpit-slate.md). The CMS shares the

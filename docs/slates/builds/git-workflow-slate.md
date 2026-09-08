@@ -1,5 +1,12 @@
 # Git workflow / in-runtime VCS slate (working doc)
 
+> **Status: PARTIAL** — Wave 1 shipped (MR !132): `GitApi`/`GitLogic`,
+> the `git` verb, the CMS panel, snapshot-and-push, the same-gate
+> permission spine → [git-workflow.md](../../subsystems/git-workflow.md)
+> **Left:** the content/document → git bridge (a Mongo→file export) ·
+> finer-than-branch review · per-user `/home` submodules
+> **Size:** a build
+
 > **Status: Wave 1 SHIPPED** (`feature/git-workflow`, MR !132) →
 > [../../subsystems/git-workflow.md](../../subsystems/git-workflow.md) is
 > the live reference. The `GitApi`/`GitLogic` pair + `git` verb + CMS git

@@ -1,5 +1,14 @@
 # Onboarding slate (working doc)
 
+> **Status: PARTIAL** — `enroll`, the lounge, the built campus route and
+> Katie's dorm handover shipped →
+> [char-gen.md](../../subsystems/char-gen.md)
+> **Left:** the `onboarded` flag + lounge-exit routing · Dr. Limen (seat,
+> model-backed brain, the reply contract) · the onboarding-progress flags
+> and their subscription · Gus's first-login greeter variant · the
+> wayfinding signs
+> **Size:** a build
+
 > **Status: flow set, mostly content.** The new-player journey after
 > char-gen: land in the lounge → fast-travel to campus → a learn-by-doing
 > journey → your dorm → learn to customize it. Almost entirely authored
@@ -54,7 +63,7 @@ See also:
 - [docs/slates/fast-travel-slate.md](../tails/fast-travel-slate.md) — the lounge
   and the dorm **lobby** are terminals; the lounge-exit + home-routing
   ride this network.
-- [docs/slates/scoped-authoring-slate.md](../builds/scoped-authoring-slate.md) —
+- [docs/slates/scoped-authoring-slate.md](../tails/scoped-authoring-slate.md) —
   **the dorm-customization on-ramp**: the safe, ownership-scoped
   authoring the final step teaches (the (policy, validator) model, the
   player GUI).
@@ -154,7 +163,7 @@ The **private house suggestion** rides Limen — the one affiliation axis that
 touches onboarding (read from your profile) — but **joining is opt-in**: you
 research and choose, and your real-world origin (school/state) never leaks
 (a private, attributed nudge ≠ exposure; the abstract many-to-one house
-anonymizes). See [affiliation-slate.md](../deferred-rpg/affiliation-slate.md).
+anonymizes). See [affiliation-slate.md](./affiliation-slate.md).
 
 ### The dorm + customization (the climax)
 

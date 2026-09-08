@@ -1,19 +1,26 @@
 # Room condition & cleanliness design pack — the "condition model," dissolved
 
+> **Status: UNBUILT** — nothing of the decomposition exists; only `wash`
+> ships, and it came from the libations build
+> **Left:** `SoilableMixin` · the room debris field · `sweep` / `wipe` /
+> `tidy` / `dispose` · the `restQuality` aggregation · the pest threshold
+> · the attributed `(actor, target, extent)` deposit/clear events
+> **Size:** a build
+
 > **Status: design, planner-ready, captured 2026-08-06. Not requirements.**
 > The genuinely **un-designed** archetype-2-adjacent producer — the *"condition
 > model"* `furnishing.md` keeps deferring room state and `restQuality`-from-
 > tidiness to. This pack designs it outright, and in doing so **corrects the
 > stewardship doctrine's classification of a dirty room** (Part 2). Same
 > per-object format as the [fridge](./fridge-design-pack.md) and
-> [spoilage](./spoilage-design-pack.md) packs.
+> [spoilage](../tails/spoilage-design-pack.md) packs.
 
 See also: [stewardship-doctrine](../../stewardship-doctrine.md) (**this pack amends
 its archetype table**) · [furnishing](../../subsystems/furnishing.md) (the
 `restQuality` consumer; "cleanliness to items and bodies, not the room") ·
 [disease-slate](./disease-slate.md) (**hygiene → infection; "care is
 immunity"**) · [sanitation-slate](./sanitation-slate.md) (debris → the
-collection pipeline) · [spoilage-design-pack](./spoilage-design-pack.md) (debris
+collection pipeline) · [spoilage-design-pack](../tails/spoilage-design-pack.md) (debris
 + exposed food) · [health-vertical-slate](./health-vertical-slate.md) (the
 public-health pedagogy payoff).
 
@@ -66,7 +73,7 @@ tax-on-absence Part 2 forbids.
 ### ⭐⭐⭐ Every deposit and every clear carries an ACTOR
 
 **(Constraint carried in from the [household
-pack](./household-design-pack.md), 2026-08-06 — the one thing that build asks
+pack](../tails/household-design-pack.md), 2026-08-06 — the one thing that build asks
 of this one.)**
 
 The deposit-and-clear model above is stated as *state mutation*: an act soils
@@ -167,7 +174,7 @@ watched."** Each is a legible act that clears a gauge; none is a bar you stare
 at. `dispose` hands debris to sanitation (a bin, or dumped → public litter).
 
 ⭐ **The water-using ones (`wash`/`wipe`/`bathe`) take a PRECONDITION, not a
-consumable** — see [water-design-pack § Part 4](./water-design-pack.md). Where
+consumable** — see [water-design-pack § Part 4](../tails/water-design-pack.md). Where
 there is a tap the act simply works; where there is not, you need a filled
 vessel. Deliberately **not** metered water: the shipped taps are `∞` on
 purpose, and charging the care loop an errand per wash is the friction this
@@ -184,7 +191,7 @@ beside the bands, never a per-occupant tally.
 `restQuality` (furnishing), disease (routes + growth term), sanitation (debris),
 stewardship condition (the ladder), and — via the attributed events —
 [advancement](../../subsystems/advancement.md) (the Stewardship transcript) plus
-the [household](./household-design-pack.md) commons read. The **disease payoff**
+the [household](../tails/household-design-pack.md) commons read. The **disease payoff**
 waits on the disease build; everything else is near-term.
 
 **7. Fault line.** A near-term build on shipped substrate (furnishing room-
@@ -295,7 +302,7 @@ spoilage's growth term. So the sequence is: **spoilage → room condition
    worse floor, never a punishment cliff).
 2. ✅ **Body `Soilable` ↔ the bathroom — ANSWERED 2026-08-11.** The tub/basin
    is **the fixture that makes `bathe` available** (the water precondition,
-   [water pack § Part 4](./water-design-pack.md)). That is a real modelled
+   [water pack § Part 4](../tails/water-design-pack.md)). That is a real modelled
    function with no needs-bar, and it makes *running water* a residence-ladder
    rung feature rather than a `prestige` number.
 3. **Tidiness from placement** — is it truly derivable from item `place`/resting

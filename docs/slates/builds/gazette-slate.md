@@ -1,5 +1,15 @@
 # Gazette slate — the state's publishing arm, and the road to a press
 
+> **Status: PARTIAL** — Wave 0 shipped as the anonymous press room
+> (`GET /api/press/releases`), and Wave 1 was struck by the
+> organizations build (publisher = organization, authority = position)
+> → [press.md](../../subsystems/press.md)
+> **Left:** the docket — unedited, chronological, complete · the
+> events-not-significance rule enforced structurally · locality-scoped
+> gazettes as shipped content · Wave 2, the press industry (worked in
+> press-slate, not here)
+> **Size:** a build
+
 **Captured 2026-08-02**, in preparation for the video series and the
 rebuilt homepage. The user's framing, and it is the load-bearing one:
 

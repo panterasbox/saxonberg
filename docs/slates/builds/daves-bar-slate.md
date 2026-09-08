@@ -1,5 +1,15 @@
 # Dave's Bar slate (working doc) — the integrating vertical
 
+> **Status: PARTIAL** — the near-term scope shipped (shift work, wages,
+> `order`, the supply chain, the bar fight) →
+> [employment.md](../../subsystems/employment.md) ·
+> [crafting.md](../../subsystems/crafting.md)
+> **Left:** the succession arc · tabs + customer records (regular / 86'd)
+> · corpo faction-approval standing · the Scene composer's crowd
+> aggregation for a full room · appraisal-as-skill + the congener /
+> hangover tuning · the player distillery that retires the faucet
+> **Size:** a build
+
 > **Status: experience design, pre-requirements.** Dave's Bar is the
 > **minimal complete vertical** — the smallest single place that exercises
 > nearly the whole physics stack at once: matter, place, crafting, skills,
@@ -9,7 +19,7 @@
 > *before* sequencing (build-phasing is deliberately deferred — see *Open*).
 
 Contributing slates (Dave's Bar is where they meet):
-[crafting](../tails/crafting-slate.md) (the venue, recipes, tools, craft-resolve) ·
+[crafting](./crafting-slate.md) (the venue, recipes, tools, craft-resolve) ·
 [advancement](./advancement-slate.md) (skills as a leveled profession via
 the skill seam) · [economy](./economy-slate.md) (the currency slice, the
 reserve, employment, the NPC floor) · [activity](../../subsystems/activity.md)
@@ -267,7 +277,7 @@ bounded by the pool, not the drink-count.
   **remembered** (regard hit / 86'd) — self-defeating, so no mechanical lock.
 - **Breakage / walk-off = a small leak the bar restocks** — glassware is a
   **durable-good recurring sink** (the same shape as *tools*:
-  [crafting-slate](../tails/crafting-slate.md) § *Tools*); a shattered glass is a real
+  [crafting-slate](./crafting-slate.md) § *Tools*); a shattered glass is a real
   matter sink (conservation). The restock *cost* lands in the ledger; the live
   *count* is **transient** (persistence track 4 above).
 
@@ -337,7 +347,7 @@ The crafting inputs, modeled as honest matter:
   underneath; the player reads the label + the description. **No Diablo-style
   rarity tiers** — for a consumable it's a non-concept (drunk and gone); only
   quality + who-made-it matter. (Full model:
-  [crafting-slate](../tails/crafting-slate.md) § *Quality — the verdict, rendered*.)
+  [crafting-slate](./crafting-slate.md) § *Quality — the verdict, rendered*.)
 - **Low quality → worse hangover (honest chemistry).** Cheaper spirits carry
   more **congeners** (fusel oils / distillation byproducts), which really cause
   worse hangovers. Congeners are an honest measure (like ABV) driving the

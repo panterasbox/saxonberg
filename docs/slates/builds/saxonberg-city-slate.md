@@ -1,5 +1,13 @@
 # Saxonberg city slate — the seat of government, deliberately unfurnished
 
+> **Status: UNBUILT** — no City of Saxonberg locality pack exists; the
+> lounge is the only `/world` root carrying the name.
+> **Left:** the Locality + parcel spine · the residential district and
+> its launch stock · the PM's Residence (office-keyed tenure) · the three
+> chamber halls + the Central Bank · the TPA node · the municipal
+> Government row
+> **Size:** a build
+
 **Captured 2026-08-01.** The City of Saxonberg: a new TPA destination,
 the **diegetic seat of the Compact** — our Washington, D.C. — and the
 second city the [stewardship slate](./stewardship-slate.md)'s Tiebout

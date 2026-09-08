@@ -1,5 +1,15 @@
 # Affordance verbs (working slate)
 
+> **Status: PARTIAL** — `put` / `give` / `Surfaced` / `restingOn` /
+> `placeOn` shipped → [spatial.md](../../subsystems/spatial.md), and
+> affordance attribution + `getAffordances()` shipped →
+> [command-routing.md](../../subsystems/command-routing.md)
+> **Left:** source-scoped invocation (`watch::set`, sigil unsettled) and
+> its parse wiring · the verb-provenance help listing (which object and
+> mixin affords each verb) · the pocket-watch worked example · the
+> `Receiving` mixin (NPC consent for `give`) · extra `put` prepositions
+> **Size:** a tail
+
 > **Status:** `put` / `give` / `Surfaced` shipped (see
 > [docs/subsystems/spatial.md](../../subsystems/spatial.md) for the
 > built surface). Source-scoping (`::`), command-provenance/help,

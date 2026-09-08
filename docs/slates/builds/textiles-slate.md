@@ -1,5 +1,12 @@
 # Textiles slate — REDUCED to its unbuilt tail
 
+> **Status: PARTIAL** — the chain shipped 2026-09-03 →
+> [textiles.md](../../subsystems/textiles.md)
+> **Left:** leatherwork + tanning (blocked on a hide faucet) · wool and
+> its left edge — felting, fulling, knitting (blocked on ranching) ·
+> patterned weaving · piece bleaching · magic garments · hair dye
+> **Size:** a build
+
 > ## ✅ BUILT — this slate is now the UNBUILT TAIL only
 >
 > **Status 2026-09-03: the chain is built and in review.** The kernel half (a garment is
@@ -63,14 +70,14 @@
 > It does **not** own searching. The design session found that the
 > viewer side of detection is missing an equipment term, and that gap is
 > big enough to want its own cycle — see
-> [search-slate](./search-slate.md), written alongside this one. Textiles
+> [search-slate](../tails/search-slate.md), written alongside this one. Textiles
 > builds the *target* half of that seam (a camouflaged cloak is clothing);
 > the search slate builds the *viewer* half (a lens is not).
 >
 > Supersedes nothing. Consumes the **cosmetics slate's** load-bearing
 > finding (*dye is a textiles input; cosmetics is a second customer*) and
 > discharges four **GAP** rows: `textiles` and `leatherwork` on the
-> [trade roster](./trade-roster-slate.md), `barber / tailor` and
+> [trade roster](../tails/trade-roster-slate.md), `barber / tailor` and
 > `miller / tanner` in [vocations.md](../../vocations.md).
 
 ---
@@ -729,7 +736,7 @@ That is *the same architectural move as `clo`*, on a different channel.
 Once it exists a camo cloak contributes negatively to its wearer's
 detectability and a hi-vis vest positively, with no new machinery.
 
-| textiles takes | [search-slate](./search-slate.md) takes |
+| textiles takes | [search-slate](../tails/search-slate.md) takes |
 |---|---|
 | target-side derive over the covering stack | viewer-side equipment term (lenses, rings, goggles, augments) |
 | the conspicuity band past `obvious` | terrain / biome matching for camo |
@@ -1266,7 +1273,7 @@ Kernel first, then packs — the metal-chain shape.
 **Consumed / discharged:**
 [cosmetics-slate](./cosmetics-slate.md) (⭐⭐⭐ *dye is a textiles input*;
 open questions 1, 2, 4 and 9 carried forward) ·
-[trade-roster-slate](./trade-roster-slate.md) (`textiles` + `leatherwork`
+[trade-roster-slate](../tails/trade-roster-slate.md) (`textiles` + `leatherwork`
 GAP rows; `tailor`/`tanner` rostered) · [vocations.md](../../vocations.md)
 (`barber / tailor`, `miller / tanner` GAPs) ·
 [launch-worklist.md](../../launch-worklist.md) (the deferred tailoring
@@ -1277,7 +1284,7 @@ branch + its fiber-faucet condition).
 `SoilableMixin`** — textiles is a consumer; its attributed events are not
 retrofittable) · [lineage-slate](./lineage-slate.md) (the
 body-composition budget; textiles ships the consumer, lineage the
-variance) · [search-slate](./search-slate.md) (the viewer half of
+variance) · [search-slate](../tails/search-slate.md) (the viewer half of
 detection) · [ranching-slate](./ranching-slate.md) (wool's left edge;
 possibly hide's) · [zoning-slate](./zoning-slate.md) (the tannery as
 industrial nuisance) · [guild-slate](./guild-slate.md).

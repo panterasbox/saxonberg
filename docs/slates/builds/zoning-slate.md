@@ -1,5 +1,13 @@
 # Zoning slate — industrial land use & the settlement family
 
+> **Status: PARTIAL** — the closed-six land use shipped →
+> [smallholding.md](../../subsystems/smallholding.md); the type taxonomy
+> is doctrine in [settlement-model.md](../../settlement-model.md)
+> **Left:** the emission/nuisance model over `signalAt` · the cap at the
+> boundary · the LULU host problem · nonconforming use · derived
+> settlement type · industrial premises + the stockyard fight
+> **Size:** a build
+
 **Captured 2026-07-31.** Two live builds (a parcel with a farm on it;
 generic residences — apartments, suburban homes) both want **raw
 acreage**, and a third concern has emerged that the existing use
@@ -23,7 +31,7 @@ turnpike, the depot-as-town-generator),
 [legal-code-slate](./legal-code-slate.md),
 [instrumentation-slate](./instrumentation-slate.md),
 [prison-slate](./prison-slate.md),
-[ranged-slate](../tails/ranged-slate.md) (the shared extent dependency),
+[ranged-slate](./ranged-slate.md) (the shared extent dependency),
 `docs/staging/terminus-city.md` (the map this sites against).
 
 ## ⭐⭐ What makes industrial categorically different
@@ -96,7 +104,7 @@ difficulty:
 
 | Consumer | Why it needs it |
 |---|---|
-| [ranged](../tails/ranged-slate.md) | distance bands from real room dimensions |
+| [ranged](./ranged-slate.md) | distance bands from real room dimensions |
 | [freight](./freight-slate.md) | an 8 m wagon does not fit a 3 m cell |
 | **this slate** | outdoor parcel acreage |
 
@@ -364,7 +372,7 @@ viewer, on demand. Nuisance is **the same query on other channels** —
 
 #### ⭐ Which surfaces the second shared dependency
 
-The acoustics fix [ranged](../tails/ranged-slate.md) already wants —
+The acoustics fix [ranged](./ranged-slate.md) already wants —
 **per-meter attenuation instead of flat per-hop, and killing
 `MAX_HOPS = 2`** — is exactly what nuisance measurement needs. *A
 factory whose noise stops after two rooms is useless.* And per-meter

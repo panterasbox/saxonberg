@@ -1,5 +1,12 @@
 # LLM-driven content slate (working doc)
 
+> **Status: UNBUILT** — the model is set (one stateless director on the
+> command bus, authoring scripts); nothing is built.
+> **Left:** the director agent + its locality prompt · the forced-cast
+> command-bus seam · the ambient narrator · script emission · sponsorship
+> funding · the first experiment (the one mine)
+> **Size:** a build
+
 > **Status: model set — one director, riding the bus, authoring scripts.**
 > How LLMs drive *content* at runtime — NPC behavior and ambient atmosphere
 > alike. Fills [npc-behavior-slate](./npc-behavior-slate.md)'s open Q7 (the

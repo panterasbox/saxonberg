@@ -1,5 +1,12 @@
 # Corpos slate (working doc) — the marks and the fault line
 
+> **Status: PARTIAL** — phase 1, the mark substrate and the v1 roster,
+> shipped → [corpo.md](../../subsystems/corpo.md)
+> **Left:** the multipolar approval vector · competition + rival-tanking ·
+> sponsorship · approval→access gates · player-founded corpos ·
+> portfolios beyond booze
+> **Size:** a build
+
 > **Status: the model is settled; the roster is authored (v1, booze slice);
 > the player-facing faction gameplay is now DESIGNED (Phase 2, below) but
 > unbuilt.** Corpos are a handful of
@@ -14,7 +21,7 @@ See also:
 / Corporations," tentative) · [advancement-slate](./advancement-slate.md)
 (**corp = the cross-cutting third social axis**, guild/party/corp) ·
 [daves-bar-slate](./daves-bar-slate.md) (the first consumer — the back-bar's
-booze is corpo-owned) · [affiliation-slate](../deferred-rpg/affiliation-slate.md)
+booze is corpo-owned) · [affiliation-slate](./affiliation-slate.md)
 (related deferred faction/org work). Substrate: provenance/maker's-mark (the
 mark), [belief](../../subsystems/belief.md) / renown (the approval scope).
 

@@ -1,5 +1,11 @@
 # Discovery slate — what the world gives you for looking
 
+> **Status: UNBUILT** — no forage verb and no distribution table exist.
+> **Left:** the forage verb + the patch Stuff · biome-authored tables with
+> derived, depleting stock · the NetHack consumable distribution · the
+> almanac + the astrological correlation · remoteness/traffic
+> **Size:** a build
+
 **Captured 2026-08-02** as `foraging-slate`; **renamed and widened the
 same day** when the user pointed out there are **two systems here, and
 they overlap**:
@@ -26,15 +32,15 @@ gathering vertical was never written.
 > **Status: direction set, nothing built.** Sits **above**
 > [spawn-distribution-slate](./spawn-distribution-slate.md) (the weighted-
 > table mechanism) and beside
-> [magic-items-slate](../tails/magic-items-slate.md) (BUC),
-> [identification-slate](../tails/identification-slate.md) (**the
+> [magic-items-slate](./magic-items-slate.md) (BUC),
+> [identification-slate](./identification-slate.md) (**the
 > class-level deduction game this makes communal**) and
 > [pharma-slate](./pharma-slate.md) (the product line).
 
 Related: [fishing-slate](./fishing-slate.md) (**the sibling — and the
 contrast**), [mining-slate](./mining-slate.md),
 [pharma-slate](./pharma-slate.md) (**the demanding consumer**),
-[farming-slate](./farming-slate.md) (where foraging goes when demand
+[farming-slate](../tails/farming-slate.md) (where foraging goes when demand
 outgrows the wild), [sanitation-slate](./sanitation-slate.md) (**the
 boundary — scavenging is not foraging**),
 [biome.md](../../subsystems/biome.md) (where things grow),
@@ -50,7 +56,7 @@ information**).
 > **⭐ Two consumers arrived 2026-09-03 (the farmstead design pass), and this
 > slate is unchanged by either — they consume it, they do not restate it.**
 >
-> - [farmstead plan](../../plans/farmstead-plan.md) **D61**
+> - farmstead plan *(retired artifact)* **D61**
 >   — forage is the income that pays for *reclamation*: newly claimed ground is
 >   wilderness, and **the forage declines as you clear it.** Converting a
 >   foraging commons into a farm is the neolithic transition expressed as a

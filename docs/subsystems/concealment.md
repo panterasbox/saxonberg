@@ -81,7 +81,7 @@ stops somebody being easy to spot.
 
 ⚠ **The offset is ABSOLUTE, not terrain-matched.** Real camouflage is a
 relationship between a thing and a background, and that belongs to the
-[search slate](../slates/builds/search-slate.md). *A dark close weave is
+[search slate](../slates/tails/search-slate.md). *A dark close weave is
 quieter than a bright open one everywhere* is a true and much smaller
 claim, and the code makes only that one.
 

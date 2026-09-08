@@ -1,5 +1,12 @@
 # Insurance slate — risk pooling as an industry
 
+> **Status: UNBUILT** — nothing of the register exists; shipped banking
+> and contract escrow are named as substrate only.
+> **Left:** the policy-as-contract + reserve ratio · cargo underwriting ·
+> the mutual · the credit vocation · the ratings agency · the accountant ·
+> the notary/scrivener · innkeeper · veterinarian · ostler · almanac-maker
+> **Size:** a build
+
 **Captured 2026-07-31**, named as fire's dependency in
 [fire-combustion-slate § The fire service](./fire-combustion-slate.md)
 and flagged there as its own industry. Fire is *why* insurance exists;
@@ -8,7 +15,7 @@ cargo is where it should start.
 Related: [contract.md](../../subsystems/contract.md) (**a policy is a
 contract**), [banking.md](../../subsystems/banking.md) (**reserves**),
 [freight-slate](./freight-slate.md) (cargo risk),
-[farming-slate](./farming-slate.md) (crop risk — the correlated case),
+[farming-slate](../tails/farming-slate.md) (crop risk — the correlated case),
 [guild-slate](./guild-slate.md) (**the mutual**),
 [sanitation-slate](./sanitation-slate.md) (the lemons family),
 [auction-slate](./auction-slate.md) (the winner's-curse sibling),

@@ -352,7 +352,7 @@ the interactions are (channels-not-nouns). See
 [materials-response.md](./materials-response.md). Still deferred: the combat
 loop / playstyle, the tissue-vulnerability term, other channels
 (crush/heat/cold), and the magic-side mirror
-([capability-magic-slate.md](../slates/deferred-rpg/capability-magic-slate.md)).
+([capability-magic-slate.md](../slates/builds/capability-magic-slate.md)).
 
 ## Cross-references
 
@@ -368,7 +368,7 @@ loop / playstyle, the tissue-vulnerability term, other channels
 - [docs/architecture.md](../architecture.md) — the `Creature` hierarchy
 - [docs/slates/builds/vitals-slate.md](../slates/tails/vitals-slate.md) —
   the seeding slate
-- [capability-magic-slate.md](../slates/deferred-rpg/capability-magic-slate.md)
+- [capability-magic-slate.md](../slates/builds/capability-magic-slate.md)
   — physical attributes + mana ride this substrate
 
 ## The dying arc (shipped 2026-07-31)

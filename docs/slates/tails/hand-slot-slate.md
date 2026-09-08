@@ -1,5 +1,12 @@
 # Hand-slot redesign slate (working doc)
 
+> **Status: UNBUILT** — the v1 shape is unchanged; `hands` is still a
+> pair-slot beside singular `hand:left` / `hand:right`
+> **Left:** picking Option A vs B (layered `:worn` / `:held` slots) ·
+> wrist slots · single-hand wearables · `SlotSpec.accepts` as an array if
+> A · the body-plan + `slotClaims` content migration
+> **Size:** a wave
+
 > **Status: deferred — design exploration, unbuilt.** The current v1
 > hand-slot shape works but carries conceptual tension; flagged during
 > locomotion-plan review and explicitly parked for a future embodiment

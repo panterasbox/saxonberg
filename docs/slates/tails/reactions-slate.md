@@ -1,5 +1,13 @@
 # Reactions & aggregation slate (working doc)
 
+> **Status: PARTIAL** — Waves 1–2 shipped: act-scoped emote, the
+> fixed-cadence aggregate-delta broadcaster, threshold flip, tag-grouped
+> chips, expand, the quick-react palette, the renown event →
+> [reactions.md](../../subsystems/reactions.md)
+> **Left:** the analytics event-stream tap · the emote-flood salvage ·
+> reactability beyond chat-first
+> **Size:** a tail
+
 > **Status: core SHIPPED (see [docs/subsystems/reactions.md](../../subsystems/reactions.md)); this slate keeps the deferred tail.**
 > The Wave-1/2 substrate is built: act-scoped emote, the fixed-cadence
 > aggregate-delta broadcaster, threshold flip, tag-grouped chips, expand,

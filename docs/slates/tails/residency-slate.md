@@ -1,5 +1,11 @@
 # Residency — self-eviction of the cold tail + scheduled state-reset
 
+> **Status: PARTIAL** — the cold-tail eviction sweep shipped 2026-07 →
+> [residency.md](../../subsystems/residency.md)
+> **Left:** the game-time reset sibling — `resets:` + `ResettableMixin`,
+> restock vs field-revert, the presence skip
+> **Size:** a tail
+
 > **Status: TAIL — the eviction sweep shipped 2026-07**
 > ([residency.md](../../subsystems/residency.md)); this slate now holds
 > the deferred **reset** sweep. Shipped: the real-time cold-tail culler —

@@ -38,7 +38,7 @@ invent even more questions?**
 Rico is the education vertical's whole theory of value, stated by
 Schell in one anecdote. Coursework is obligated work with an urgent
 goal — exactly what the [high-stakes
-reconciliation](../study-com-strategy.md) says we must not compete
+reconciliation](../study-com/strategy.md) says we must not compete
 with. Rico's line names what the game actually *does* to it: **the
 world manufactures personal questions about the subject.** "Can I
 finally wire the substation?" is a personal question whose answer
@@ -138,7 +138,7 @@ the same answer.
    one-sentence answer to *what does the game do to learning* — and
    it's assert-don't-defend compatible: nothing about the coursework
    changes; the reason does. (Feeds
-   [study-com-strategy.md](../study-com-strategy.md) and whichever
+   [study-com-strategy.md](../study-com/strategy.md) and whichever
    video carries the conferral experience.)
 2. **Bank on systemic curiosity; budget authored curiosity.** New
    content should default to planting questions the *model* can

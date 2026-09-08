@@ -1,5 +1,12 @@
 # Blood slate (working doc)
 
+> **Status: UNBUILT** — no blood type, no donation, no transfusion door
+> anywhere in the shipped vitals/harm/metabolism stack.
+> **Left:** the genotype/phenotype endowment · the compatibility cost curve
+> · the donation loop + the bag · screening · the trait payoff · the
+> Titmuss paid-market lever (designed-for, explicitly not v1)
+> **Size:** a build
+
 > **Status: design proposed, nothing built.** The transfusion economy —
 > blood types, donation, and the supply that the shipped
 > [harm](../../subsystems/harm.md) vertical creates demand for but

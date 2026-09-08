@@ -1,7 +1,14 @@
 # Hunting slate — the fugitive resource
 
+> **Status: UNBUILT** — no hunting exists; stealth, ranged, `TrapKit`,
+> hazards and butchery ship as its substrate.
+> **Left:** the wild population as a record materialized on encounter ·
+> `track` + the method ladder · *ferae naturae* + game law + close
+> seasons · poaching enforcement · taming as the other outcome
+> **Size:** a build
+
 > **Status: design surface, unbuilt, no phase gate passed.** Spun out of the
-> [farmstead](../../plans/farmstead-plan.md) design pass
+> farmstead *(retired artifact)* design pass
 > (2026-09-03), whose D60 put deer, rabbits and boar on a farm as **ongoing
 > pest pressure** and then had nowhere to send them. Hunting is where they go —
 > and it turns out to carry the hardest property question in the game.
@@ -23,7 +30,7 @@ and the pattern this borrows**) · [guild-slate](./guild-slate.md) (the Wardens)
 and venison*, the wood and the deer; share the enforcement design) ·
 [legal-code-slate](./legal-code-slate.md) + [policing-slate](./policing-slate.md)
 + [enforcement-slate](./enforcement-slate.md) (game law) ·
-[field-substrate-slate](./field-substrate-slate.md) (seeded × derived) ·
+[field-substrate-slate](../tails/field-substrate-slate.md) (seeded × derived) ·
 [species-slate](./species-slate.md). Substrates:
 [stealth.md](../../subsystems/stealth.md) (`TrapKit`, ambush) ·
 [hazard.md](../../subsystems/hazard.md) · [ranged.md](../../subsystems/ranged.md)

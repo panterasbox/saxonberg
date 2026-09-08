@@ -169,7 +169,7 @@ mixin.
 ⭐⭐ **Six verbs, two controllers.** `equip` / `unequip` are the
 orchestrators; `wear` · `wield` · `remove` · `doff` · `unwield` are the
 precise acts and **keep their own views**. See
-[equip-slate.md](../slates/builds/equip-slate.md).
+equip-slate.md *(slate retired 2026-09-06 — fully absorbed)*.
 
 | Verb | Action |
 |---|---|

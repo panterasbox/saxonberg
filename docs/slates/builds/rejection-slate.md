@@ -1,5 +1,15 @@
 # Rejection slate (working doc) — the mining town, and the one mine
 
+> **Status: PARTIAL** — Stage A (the metal chain) shipped 2026-09-01 →
+> [mining.md](../../subsystems/mining.md)
+> **Left:** everything below the water table — shaft, hoist, pump ·
+> the drainage commons + the hoist toll and district · sulfides and
+> roasting · collapse entrapment, the rescue clock and cascade · the
+> deep ecology, the apex and the Hush cast · tribute pitches and the
+> setting-day auction · high-grading as an OFFENCE (needs an
+> adjudicator)
+> **Size:** a build
+
 > **Status: merged design, pre-requirements. Placement DECIDED
 > 2026-08-29 — this is a venue on the OUTSKIRTS OF TERMINUS**, the main
 > locality, not a separate sphere. **One venue**: a mining camp, the mine

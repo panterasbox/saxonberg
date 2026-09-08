@@ -1,5 +1,13 @@
 # Encumbrance slate (working doc)
 
+> **Status: PARTIAL** — the `LoadBearing` gauge, the consequence ladder
+> and the haulage draft term shipped →
+> [encumbrance.md](../../subsystems/encumbrance.md)
+> **Left:** per-item placement refinement (a frame pack beating the worn
+> floor) · augment-conferred capacity · gravity/environmental margins ·
+> tissue-derived mass · numeric tuning
+> **Size:** a tail
+
 > **Status (2026-06):** the **build has shipped** — the `LoadBearing`
 > gauge (borne burden + carry capacity + load ratio), `BodyPlan.baseMass`
 > mass-seeding, `Vessel.transmissionFactor` + the `Adornable`→`ExitableVessel`
@@ -56,10 +64,10 @@ See also (read before building — these are the substrate this leans on):
 - [docs/slates/tails/bulkable-slate.md](../tails/bulkable-slate.md) —
   a partially-full waterskin's borne weight tracks its bulk; future
   tie-in.
-- [docs/slates/deferred-rpg/capability-magic-slate.md](../deferred-rpg/capability-magic-slate.md)
+- [docs/slates/deferred-rpg/capability-magic-slate.md](../builds/capability-magic-slate.md)
   — **the boundary.** Encumbrance capacity is *not* a draw on the
   deferred general stat system. See "Capacity is not a stat."
-- [docs/slates/deferred-rpg/collision-slate.md](../deferred-rpg/collision-slate.md)
+- [docs/slates/deferred-rpg/collision-slate.md](./collision-slate.md)
   — container capacity (does the bag *fit* it?) is the other gauge;
   decomposed there, not here.
 
@@ -185,7 +193,7 @@ apart:
 
 - **The container's gauge** — *can it hold this?* Volume/mass the bag
   can physically swallow. (Container capacity — lives in the
-  [collision-slate](../deferred-rpg/collision-slate.md) decomposition,
+  [collision-slate](./collision-slate.md) decomposition,
   **not here.**) The backpack sees the honest 20 kg.
 - **The bearer's gauge** — *how much does bearing it cost me?* This is
   encumbrance. The bearer sees a *burden*, not a mass.
@@ -257,7 +265,7 @@ carryCapacity = f(physiologyBaseline, augments) × Π(marginConditions)
 ```
 
 This is distinct from — and does **not** wait on — the deferred
-[capability-magic](../deferred-rpg/capability-magic-slate.md) stat
+[capability-magic](../builds/capability-magic-slate.md) stat
 system. It reads physiology directly for one purpose.
 
 The consequence is that **capacity barely moves over a character's
@@ -447,9 +455,9 @@ You drop the gold into the bag. It feels      (borne burden barely
   the capacity-conferring gear seam.
 - [docs/slates/builds/vitals-slate.md](./vitals-slate.md) — sibling in
   the Vitals & survival build.
-- [docs/slates/deferred-rpg/collision-slate.md](../deferred-rpg/collision-slate.md)
+- [docs/slates/deferred-rpg/collision-slate.md](./collision-slate.md)
   — container capacity (the other gauge).
-- [docs/slates/deferred-rpg/capability-magic-slate.md](../deferred-rpg/capability-magic-slate.md)
+- [docs/slates/deferred-rpg/capability-magic-slate.md](../builds/capability-magic-slate.md)
   — the stat-system boundary encumbrance deliberately does not cross.
 </content>
 </invoke>

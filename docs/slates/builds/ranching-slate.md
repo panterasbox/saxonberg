@@ -1,5 +1,16 @@
 # Ranching slate (working doc) — livestock, husbandry, and the animal economy
 
+> **Status: PARTIAL** — the farmstead build shipped the keeping: the
+> herdbook, pasture-as-field, boundary acts, handling, the taps, the
+> carcass yield (tallow · hide · bone · meat) and the hazards (hay fire ·
+> slurry pit · fox) → [ranching.md](../../subsystems/ranching.md)
+> **Left:** breeding (gestation · birth · heredity; nothing writes
+> `bornAt`) · bees — the hive, pollination, forage range, swarming (AC 14
+> unmet) · the training/skill axis (working-animal transcripts) · disease
+> · herd UX · the rendering chain this build must leave open (knacker →
+> tanner → chandler — `organic/leather` ships and nothing makes leather)
+> **Size:** a build
+
 > **Status: conventions + the core loop DECIDED (2026-07-30/31 design sessions);
 > disease DESIGNED; ⭐ breeding BRIEFED (§ Breeding — everything we know,
 > 2026-09-05, after the farmstead build shipped it and it was cut back to
@@ -10,7 +21,7 @@
 >
 > **Session 1** ran ranching against **both** its neighbors at once —
 > [pets](./pets-slate.md) (the relationship half) and
-> [farming](./farming-slate.md) (the plant half) — and settled the five
+> [farming](../tails/farming-slate.md) (the plant half) — and settled the five
 > conventions all three must agree on, plus the deliberate divergences.
 >
 > **Session 2** designed the loop. Three decisions carry the most weight:
@@ -43,7 +54,7 @@
 > `hide-stock`, `hide-jerkin`, `leather-boots` and `leather-whip` — **and
 > nothing makes leather.** Seed backwards from shipped sinks.
 
-See also: [farming-slate](./farming-slate.md) (**the primary sibling** — same
+See also: [farming-slate](../tails/farming-slate.md) (**the primary sibling** — same
 guild, same production family; the feed loop + the shared genome) ·
 [pets-slate](./pets-slate.md) (the *substrate* sibling — an owned animal, but a
 different experience; see The family placement) ·
@@ -500,7 +511,7 @@ alongside fencing, allowance, and attention. It also promotes the hired hand
 from convenience to structure: **subdividing past ~weekly residency is what
 actually makes hiring necessary**, which is the automation ladder doing its job
 rather than a balance patch. Full clock math in [farming § The
-clock](./farming-slate.md).
+clock](../tails/farming-slate.md).
 
 ### The move is a *read*, not a timer
 
@@ -556,7 +567,7 @@ working ranch; the difference is output per acre, never access.
 **Fencing** (materials + labor, and it wears — which finally gives fence
 maintenance something to be other than a gauge; a **grown hedge** is the cheap-
 in-materials, expensive-in-time third option — see [farming § Pests, thorns, and
-navigability](./farming-slate.md)) · **compute allowance** (each paddock is a
+navigability](../tails/farming-slate.md)) · **compute allowance** (each paddock is a
 room, and the property substrate prices persistent simulation, so subdividing
 spends the game's real scarcity currency) · **attention** (the whole point) ·
 **the clock** (above — residency below ~a game week can't be hand-run). A player
@@ -601,7 +612,7 @@ problem too. **That is the interlock made mechanical rather than thematic**, and
 it is what makes farm+ranch complementary by construction instead of by bonus
 multiplier.
 
-**The shared genome.** [Farming](./farming-slate.md) already claims the
+**The shared genome.** [Farming](../tails/farming-slate.md) already claims the
 `Genome` / reaction-norm genetics layer is **husbandry-wide**, not crop-only: an
 animal has a `Species` + `BodyPlan` + vital-profile parameters, and
 genes-as-reaction-norms bend *those* curves exactly as they bend a crop's
@@ -856,3 +867,80 @@ made for its rates and curves — these want live play to tune against.
   YAML+controller pairs.
 - **The economy stays conserved.** Yield is a *transform* (feed → product), not
   a faucet.
+
+---
+
+## ⭐ Tier 3 criteria, salvaged from the retired farmstead plan
+
+*Extracted 2026-09-06 when `farmstead-plan.md` was retired. Deferred design does not live in a plan — the plan is an
+execution artifact and gets deleted at the sweep; this is the
+surface that outlived it. Verbatim below.*
+
+### Tier 3 — the criteria this MR does NOT gate
+
+⚠ **Salvaged verbatim from the requirements doc at `/finalize`**, which
+retires. The requirements said outright that it was keeping these *"so the
+follow-on build inherits them rather than re-deriving them"*, so retiring
+the doc without moving them would have thrown away the one thing it asked
+to keep. They gate the tier-3 build, not this one.
+
+```
+36. A coppice stand is cut and regrows on a rotation, and a single stand cannot
+    simultaneously satisfy charcoal, mine timber and winter firewood — the
+    contest is observable.
+37. A saltern yields salt as a function of weather over elapsed time, with no
+    plant involved; brine boiling yields it faster and consumes fuel that
+    heating and charcoal also want.
+38. Cut peat does not measurably regrow, and a drained peat field subsides.
+39. A flooded bog can be harvested by flotation, and draining ground upstream
+    changes water reaching ground downstream.
+40. A right to take produce from land somebody else holds — grazing, mast, wood,
+    turf — is expressible and enforceable without transferring title.
+41. No spell, item or working improves a field's fertility, waters a field, or
+    warms one at production scale; attempts are priced out by the shipped price
+    list rather than refused by a special case.
+42. A caster can read soil and animal condition as instrument-tier readings with
+    error bars, and can quiet an animal — and doing so requires being present at
+    the thing read.
+43. An animal's record is readable by a prospective buyer, not only by its
+    keeper, and a recorded animal fetches more than an unrecorded one.
+44. Two producers can trade hay, manure, stud service and grazing (agistment)
+    through the contract substrate, including forward and in-kind terms.
+45. A market day occurs on the calendar; prices at it are set by what sellers and
+    buyers do rather than by an authored figure.
+46. A specialist producer's output is measurably better than a generalist's, so
+    buying beats making without anything being withheld.
+47. An indivisible capital asset can be owned jointly and its use scheduled
+    between the owners.
+```
+
+⭐ AC 41–42 (the magic negatives — no working improves fertility, waters or
+warms at production scale; a caster reads instrument-tier with error bars
+and must be present) are **this MR's** and are met by absence plus the
+shipped price list, which is what D75–D78 asked for.
+
+## Risks & opens
+
+1. ✅ **Every plan-level decision is settled** (P1–P12). P2 and P3 were
+   corrected after the fact — a location class and a seeded field both belong to
+   the farming pack, following `trade-mining`'s shipped vertical.
+2. ⚠ **`trade-ranching` depends on `trade-farming`** (P9). Declare it in the
+   manifest; a missing pack dependency fails at install, not at build.
+3. ⚠ **P4's read-side prefix check is load-bearing and easy to skip.** A herd
+   read that trusts the `kind` tag reopens the forgery the path titling closes.
+   It belongs in W8's tests, not in a later hardening pass.
+4. **W1 is a refactor of 871 lines of shipped, tested code** on a branch that
+   will absorb two merges. Do it first, prove it with unchanged tests, and never
+   mix feature work into it.
+5. **Wave count is high (17).** If the build runs long, the cut order is: W15
+   (bees), then saffron and turnips out of W11, then W13 — **never** W12, because
+   a build nobody can start is not shippable.
+6. ⚠ **The archetype is *reported, never enforced* (P12)** — the easiest thing
+   in this build to get wrong, because a satisfaction score is the obvious next
+   step and it is forbidden. **Nothing multiplies off a slot.**
+7. **The band vocabularies are the most likely thing to be skimped**, and
+   skimping them fails silently — two bands that read alike collapse the whole
+   honest-opacity model.
+8. **Tier 3's three forward obligations** (D79 record legibility, D82 quality
+   levers, D74 not foreclosing profits à prendre) must be honoured in W8 and W10
+   or tier 3 becomes a rewrite.

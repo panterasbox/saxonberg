@@ -1,5 +1,13 @@
 # Mind slate — the equilibrium, and what disturbs it
 
+> **Status: UNBUILT** — the trait substrate it builds on shipped, but
+> nothing of the equilibrium has.
+> **Left:** the equanimity Reserve + the stress equilibrium (the deferred
+> `traits-stress` build named in trait.md) · the dials that configure
+> "yourself" · situational conditions · persistent conditions + shapes ·
+> the evidence channel through emotes and regard
+> **Size:** a build
+
 **Captured 2026-08-02**, out of the physiology slate's admission that
 **the mind is the one part of the experience that is not modelled.**
 **Reframed the same day** (below) from a single-condition design into a

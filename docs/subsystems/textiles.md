@@ -320,7 +320,7 @@ is just a worse card.
 - **Getting dressed is one command**: `equip set <name>`, a **stanza**
   on a dressing view rather than a verb of its own. It shipped as `wear
   set` and moved when `equip` landed — see
-  [equip-slate.md](../slates/builds/equip-slate.md) and
+  equip-slate.md *(slate retired 2026-09-06 — fully absorbed)* and
   [slot.md](./slot.md).
 
 ---
@@ -389,7 +389,7 @@ seed ─▶ plant ─▶ SHEAF ─▶ pit ─▶ line ─▶ yarn ─▶ BOLT �
 saved-set stanza, both **stanzas on shipped views**, so the chain itself
 adds those eight and no more. (`equip` / `unequip` shipped on the same
 branch and are not the chain's: they are the dressing surface, and the
-slate for them is [equip-slate.md](../slates/builds/equip-slate.md).)
+slate for them is equip-slate.md *(slate retired 2026-09-06 — fully absorbed)*.)
 
 ⚠ The fitting stanza is `measure figure`, and it shipped for a day as
 `measure customer`. Every other stanza on that view names the CHANNEL

@@ -1,5 +1,13 @@
 # Delivery & addressing slate (working doc)
 
+> **Status: PARTIAL** — the addressing foundation shipped →
+> [address.md](../../subsystems/address.md); carriage and the freight
+> market shipped → [logistics.md](../../subsystems/logistics.md)
+> **Left:** providers + coverage + metering (power, aether) · the
+> aether-line ↔ comms unification · post/mail to an address · the
+> broadcast/field carry
+> **Size:** a build
+
 > **Status: systems architecture proposed; internals open.** The substrate
 > for getting *things and services to addressed places* — mail, parcels,
 > utilities (power / water / cable / phone), an "aether line," and the
@@ -9,7 +17,7 @@
 > names the whole design so the eventual builds don't fragment; it does
 > **not** prescribe a build sequence (that's deferred by decision).
 
-> **Forum factoring superseded by [forums-slate.md](./forums-slate.md)
+> **Forum factoring superseded by [forums-slate.md](../tails/forums-slate.md)
 > (2026-06):** the § *Layer 2* "social forum is a chat facet" framing is
 > replaced by a first-class forum primitive (`Board`/`Entry` Documents +
 > Catalogue). Everything else this slate establishes for the forum — aether

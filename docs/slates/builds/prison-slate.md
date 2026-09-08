@@ -1,5 +1,13 @@
 # Prison slate — confinement, the three enforcement tiers, and the guardrail
 
+> **Status: UNBUILT** — the parcel/access exclusion machinery it inverts
+> ships, and mortality's `Incorporeal` lever is reserved for it; nothing
+> of confinement exists.
+> **Left:** `PrisonMixin` (a locality you cannot leave) · the three
+> enforcement tiers in content · the federal facility on its reserved
+> Saxonberg site · terms and the appeal path
+> **Size:** a build
+
 **Captured 2026-08-01**, out of the Saxonberg city design session
 ([saxonberg-city-slate.md](./saxonberg-city-slate.md) reserves the
 federal facility's site). Prisons have never been designed in the

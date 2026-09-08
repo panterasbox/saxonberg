@@ -1,5 +1,15 @@
 # Sampling & labs slate — the field/bench split, and why the round-trip is the lesson
 
+> **Status: PARTIAL** — the ten instruments, ore grade as a shipped
+> composition fraction and the honest assay ship →
+> [mining.md](../../subsystems/mining.md)
+> **Left:** the sample object + its provenance field · bench
+> instruments and the campus lab as a place · the hand-tool middle
+> tier (lens, streak plate, hardness kit) · the certified assayer
+> vocation · salting as a commitable fraud · sample integrity/
+> chain-of-custody
+> **Size:** a build
+
 **Captured 2026-09-01.** The companion to
 [instrumentation-slate](./instrumentation-slate.md): that one says *you
 are as good as your toolkit*; this one says **where the toolkit lives,

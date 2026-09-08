@@ -1,5 +1,15 @@
 # Senses slate (working doc)
 
+> **Status: PARTIAL** — Wave 1 shipped 2026-06, both halves (authoring +
+> the physics/`Modality` layer)
+> → [senses.md](../../subsystems/senses.md)
+> **Left:** smell trails / temporal persistence · echolocation (the
+> active-sense pattern) · the full ESP local-field walk · per-species
+> `hearingProfile`/`tactileProfile`/`gustatoryProfile` · scalding
+> burn-damage · RT60 reverberation · NPC scent-tracking ·
+> sensorium-relative stealth · the alien channels
+> **Size:** a wave
+
 > **Status: Wave 1 SHIPPED 2026-06 — authoring half + physics half
 > both landed.** Authoring (2026-06 senses build): per-sense
 > `Detail` slot map, `<sense channel="X">` MML wrapper,

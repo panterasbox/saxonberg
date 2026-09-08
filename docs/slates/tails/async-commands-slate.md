@@ -1,5 +1,17 @@
 # Async commands (working slate)
 
+> **Status: PARTIAL** — the core shipped with MR !122: the `async:` spec
+> field, framework-universal `--async`/`--sync`, the accept-time detach in
+> `_executeOne`, and the `script` verb →
+> [command-routing.md § Async dispatch](../../subsystems/command-routing.md)
+> + [command-spec.md](../../subsystems/command-spec.md). Sync stays the
+> default and is per-giver, never global.
+> **Left:** a line-level `--async`/`--sync` prefix so a bare typed
+> multi-statement script detaches without the `script` verb · a per-actor
+> async concurrency cap · a generic cancel-my-running-async-command verb
+> (engagement owns cancel today)
+> **Size:** a tail
+
 > **Status:** **shipped** (MR !122) →
 > [command-routing.md § Async dispatch](../../subsystems/command-routing.md)
 > + [command-spec.md](../../subsystems/command-spec.md). The `async:`

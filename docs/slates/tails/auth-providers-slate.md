@@ -1,5 +1,12 @@
 # Auth providers & account linking slate (working doc)
 
+> **Status: PARTIAL** — Waves 1+2 shipped; Google, Twitch and Kick are
+> co-equal login providers → [connection.md](../../subsystems/connection.md)
+> **Left:** account merge · provider-side token revocation · incremental
+> chat scopes (`user:write:chat`) · YouTube as a linkable provider (a
+> `@`-seed still rejects `character-youtube`) · LLM name-refraction
+> **Size:** a tail
+
 > **Status: Waves 1+2 shipped (2026-06) → [connection.md](../../subsystems/connection.md).**
 > The multi-provider spine, Twitch login, account link/unlink, and
 > token-at-rest encryption shipped (Phase 1 of the
@@ -28,7 +35,7 @@ See also:
 
 - [docs/subsystems/connection.md](../../subsystems/connection.md) — the
   login/logout, WebSocket-upgrade, and session lifecycle this hooks.
-- [docs/slates/persistence-architecture-slate.md](./persistence-architecture-slate.md)
+- [docs/slates/persistence-architecture-slate.md](../builds/persistence-architecture-slate.md)
   — `Document` (plain JSON, no Stuff) is what `GoogleProfile` / `User` /
   `TwitchProfile` all are.
 - [char-gen.md](../../subsystems/char-gen.md) *(shipped; slate retired)* — char-gen is

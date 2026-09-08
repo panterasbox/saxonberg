@@ -59,7 +59,7 @@ community isn't ambiance here, it's load-bearing.
 - **Belonging without division.** Academic Houses unify (prosocial,
   campus-wide), while competitive affiliations are gated "past the gate"
   and framed as "house-cup / team-sports energy" rather than war
-  ([affiliation](../slates/deferred-rpg/affiliation-slate.md)).
+  ([affiliation](../slates/builds/affiliation-slate.md)).
 - **Auditable by construction.** Every action is a visible, attributable
   command on the bus ([interaction-philosophy.md](../interaction-philosophy.md))
   — the substrate-level foundation for moderation and anti-griefing.

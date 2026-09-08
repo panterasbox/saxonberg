@@ -1,5 +1,11 @@
 # Map / spatial-visualization slate (working doc)
 
+> **Status: UNBUILT** — no renderer exists on either data source
+> **Left:** the 2D per-floor grid + the player minimap · the 2D
+> node-graph · the 3D procedural box render · the draft-template and
+> live-Stuff adapters · `SphericalZone.canPlace` non-overlap
+> **Size:** a build
+
 > **Status: direction set; 2D first, 3D earned.** A shared **map renderer**
 > that visualizes the engine's *honest spatial model* (real-meter
 > coordinates) in multiple modes — **2D** (per-floor grid, node-graph,

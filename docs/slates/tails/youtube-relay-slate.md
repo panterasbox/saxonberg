@@ -1,5 +1,12 @@
 # YouTube Live Chat Relay — Scope
 
+> **Status: PARTIAL** — YouTube READ shipped in the unified stream-tuning
+> build (2026-07-02) → [streaming.md](../../subsystems/streaming.md)
+> **Left:** outbound `liveChatMessages.insert` · the quota accountant +
+> coalescing and drop policy · per-player `youtube.force-ssl` OAuth · the
+> `GoogleProfile` token extension + `google-reauth`
+> **Size:** a wave
+
 > **Status (2026-07-02): YouTube READ shipped, OUTBOUND deferred.**
 > Read-only YouTube chat shipped in the **unified stream-tuning build**
 > (`feature/stream-tuning` → [streaming.md](../../subsystems/streaming.md)),

@@ -1,5 +1,12 @@
 # External chat relay slate (working doc)
 
+> **Status: PARTIAL** — Twitch two-way and YouTube read shipped, as a
+> unified `watch`/`tune` surface over `StreamerTarget` — NOT the
+> `Channel`-facet model designed below →
+> [streaming.md](../../subsystems/streaming.md)
+> **Left:** YouTube outbound
+> **Size:** a tail
+
 > **Status: Twitch + YouTube-READ SHIPPED → [streaming.md](../../subsystems/streaming.md);
 > YouTube outbound deferred.** The shipped work **deviated** from the
 > "external channel = a `Channel` facet" model below — the relay is a

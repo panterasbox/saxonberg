@@ -178,7 +178,7 @@ precedents):
 - **Marshal-credential issuance** [T4, small] — Office or court?
   Waits on the courts design.
 - **Preservation / spoilage** [T2 —
-  [preservation-slate](./slates/builds/preservation-slate.md)] — **the
+  [preservation-slate](./slates/tails/preservation-slate.md)] — **the
   keystone deferral of the extraction family.** Mining's salt ("preservation
   is the killer app" [DECIDED]) and fishing ("the natural driver to finally
   build perishability") both point at it and stop. Without it winter is a

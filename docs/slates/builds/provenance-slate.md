@@ -1,5 +1,14 @@
 # Provenance, ownership & git-in-runtime — the authorship substrate
 
+> **Status: PARTIAL** — the authoring ledger, the in-runtime VCS,
+> parcel-title ownership and the producer stock all shipped →
+> [provenance.md](../../subsystems/provenance.md) ·
+> [git-workflow.md](../../subsystems/git-workflow.md)
+> **Left:** the dependency DAG (infrastructure earning from what rides
+> it) · the contributor-set / team split behind `authorOf`'s derivation
+> seam · versioned law (an amendment as branch/edit/merge)
+> **Size:** a build
+
 > **Status: exploratory — the structural gap between Build 5 (authoring)
 > and Build 9 (producer influence).** Build 5 (`cms-slate`,
 > `scoped-authoring-slate`, `authoring-intelligence-slate`) designs how
@@ -33,7 +42,7 @@ the first and most demanding consumer, not the only one.
   slate **elevates** that GitApi from an external-editor overlay into the
   in-runtime authoring spine, and adds the two things cms-slate doesn't:
   **ownership-as-attribution** and the **dependency graph**.
-- [scoped-authoring-slate.md](./scoped-authoring-slate.md) — establishes
+- [scoped-authoring-slate.md](../tails/scoped-authoring-slate.md) — establishes
   `/home/<playerId>/` homedirs, the dorm-as-homedir, and the
   ownership-scoped permission ladder (player → builder → wizard). The
   **sandbox** end of sandbox→release.

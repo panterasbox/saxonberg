@@ -1,5 +1,12 @@
 # Language (working slate)
 
+> **Status: PARTIAL** — the written half shipped 2026-08 as `MarkedMixin`
+> + `read` + `markScript` (no owning subsystem doc)
+> **Left:** the `Language` Idea + catalogue · `Character.languages`
+> proficiency · the `decode` literacy gate · `Vocal.speechLanguage` + the
+> speech garble render-gate · the spellbook comprehension floor
+> **Size:** a wave
+
 > **Status: design captured, deferred — unbuilt.** v1 shape is proposed
 > (language tags gating `read`, NPC fantasy-language rendering, proficiency-
 > mediated comprehension); leans on the shipped `Perceiver` + `Character`
@@ -38,7 +45,7 @@
 > partly on pedagogical real-language readables (a TOEFL register). TOEFL
 > was cut as a vertical on 2026-08-07 — a text-only English world cannot
 > serve speaking/listening or low-proficiency entrants
-> ([study-com-cx-and-the-aspiring-teacher.md](../../study-com-cx-and-the-aspiring-teacher.md)
+> ([study-com-cx-and-the-aspiring-teacher.md](../../study-com/cx-and-the-aspiring-teacher.md)
 > §1). The substrate stands on its own diegetic merits; that argument does
 > not.
 

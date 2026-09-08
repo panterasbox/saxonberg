@@ -1,5 +1,14 @@
 # Mirror slate — the game state that stays in parity with your life
 
+> **Status: UNBUILT** — captured 2026-07-31; deliberately further out
+> than anything else in `builds/`. The real units it mirrors (money,
+> labor, standing, competence, property, condition) all ship; the
+> inbound channel does not exist.
+> **Left:** the inbound assertion channel · the density threshold ·
+> the never-see-the-raw-feed privacy invariant · sensor-silence as
+> neutral · calibration/trust tiers · diegetic-or-marked framing
+> **Size:** a build
+
 > **Status: design captured 2026-07-31, not built. Deliberately further out
 > than anything else in `builds/`.** The thesis: a player's in-game state can
 > be held in **parity with their real state**, so that acting in the world

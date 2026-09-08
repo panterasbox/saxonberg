@@ -1,5 +1,14 @@
 # Fast-travel slate (working doc)
 
+> **Status: PARTIAL** — v1 shipped (network · credential · on-demand
+> travel), and the TPA reform (2026-09-02) added fares and a gate `status`
+> derived from supply → [fasttravel.md](../../subsystems/fasttravel.md)
+> **Left:** scheduled mode + wayfinding (published schedules, route maps,
+> hubs) · terminals that WEAR · the maintenance round the self-governing
+> Authority now owes · disruption/rerouting/sabotage · cross-restart
+> credential durability
+> **Size:** a wave
+
 > **Status: SHIPPED (v1) → graduated to
 > [../../subsystems/fasttravel.md](../../subsystems/fasttravel.md). This
 > slate is now a TAIL holding the deferred surface.**

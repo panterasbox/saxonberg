@@ -1,5 +1,17 @@
 # Client cockpit slate (working doc)
 
+> **Status: PARTIAL** — the tracks shipped: MQL subscriptions, MML
+> semantic tags + the click model, the widget shelf, the inspection card,
+> the prompt stack, envelope rendering, char-gen, and the one `cockpit`
+> verb with its mode × arrangement axes →
+> [cockpit.md](../../subsystems/cockpit.md) +
+> [card-surface.md](../../subsystems/card-surface.md)
+> **Left:** the `study` and `classroom` modes · the content surface
+> (video + transcript payloads, diegetic triggers, completion events) ·
+> the live-tutor / classroom shape · the `<mql>` / `mudq:` sleeper, still
+> inert by design
+> **Size:** a wave
+
 Working slate for the **reference web client** — the affordance-first
 cockpit that sits on top of the existing command-bus + MML wire and
 turns the server's structured world model into a UI that's intuitive

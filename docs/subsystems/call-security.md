@@ -1741,7 +1741,7 @@ a constant, paid per dispatch.
 
 Five changes, none of them the thing the first profile pointed at. The
 full investigation, with the numbers at each step, is
-[call-security-performance-slate.md](../slates/builds/call-security-performance-slate.md).
+[call-security-performance-slate.md](../slates/tails/call-security-performance-slate.md).
 
 1. **⭐ The caller proof is taken per CALL SITE, not per call.**
    `ExecutionContextApi.run` walked the stack on every call to prove its

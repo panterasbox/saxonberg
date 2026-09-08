@@ -1,5 +1,13 @@
 # Cosmetics slate — giving appearance an input, so its scarcity is grown rather than declared
 
+> **Status: PARTIAL** — the dye chain (dyestuff × mordant, fastness,
+> overdyeing as arithmetic) shipped with textiles →
+> [textiles.md](../../subsystems/textiles.md)
+> **Left:** the appearance-mark carrier on a body (the `Looks` cell) ·
+> the personal-services vocation + graded cuts · tattoos · the dye-plant
+> crop rows
+> **Size:** a build
+
 **Captured 2026-08-25**, out of the [lineage](./lineage-slate.md)
 phase-1 card discussion. Char-gen settled that **appearance is inherited
 only** — no editor at creation — which relocates all appearance change
@@ -21,7 +29,7 @@ And the framing that this slate exists to serve:
 > **Status: design conversation, captured. Not requirements.**
 
 Related: [lineage-slate](./lineage-slate.md) (the char-gen decision this
-serves), [trade-roster-slate](./trade-roster-slate.md) (the `textiles` /
+serves), [trade-roster-slate](../tails/trade-roster-slate.md) (the `textiles` /
 `leatherwork` / `apothecary` gaps below),
 [vocations.md](../../vocations.md) (the `barber / tailor` **GAP** row),
 [content-packs-slate](./content-packs-slate.md) (*a trade pack is
@@ -58,7 +66,7 @@ on a constant.
 It is a **textiles** input, and cosmetics is a *second* customer of the
 same chain.
 
-The [trade roster](./trade-roster-slate.md) already needs `textiles` and
+The [trade roster](../tails/trade-roster-slate.md) already needs `textiles` and
 `leatherwork` (both in its gap report), and `tailor` is a rostered trade
 in Terminus. Cloth is dyed. Leather is dyed. Hair is dyed. **One chain,
 four demands.**

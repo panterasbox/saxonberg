@@ -1,5 +1,13 @@
 # Connection-quality slate — latency as a fact about the player, never the character
 
+> **Status: UNBUILT** — the client-side ping probe predates the slate;
+> none of the design below is built.
+> **Left:** the three-band jitter state (fine / laggy / unstable) · the
+> opt-in party publish as an `AFK`-style status rather than a number ·
+> the operator's aggregate distribution read + the per-player
+> break-glass
+> **Size:** a tail
+
 **Captured 2026-08-05**, out of the freight/logistics thread. Having just
 written the rule that **no economic rate may be wall-clock**, the obvious
 next question was whether latency should be measured at all.

@@ -1,5 +1,11 @@
 # Connection-origin slate (working doc)
 
+> **Status: PARTIAL** — country v1 shipped in the social-graph build
+> → [social-graph.md](../../subsystems/social-graph.md)
+> **Left:** the developer-gated IP read · the `whois`/`locate` lookup
+> verb · city / region resolution · a persisted last-seen country
+> **Size:** a tail
+
 > **Partially shipped (country v1) in the social-graph build.** The
 > capture seam (`WebSocketService.handleUpgrade` → threaded to
 > `ConnectionApi.recordOrigin`), the offline `geoip-lite` country lookup,

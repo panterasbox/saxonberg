@@ -1,5 +1,13 @@
 # Thermal slate (working doc)
 
+> **Status: PARTIAL** — the `Thermal` capability, Option-C
+> thermoregulation, worn insulation and phase change all shipped
+> → [thermal.md](../../subsystems/thermal.md)
+> **Left:** sauna / steam rooms · per-region frostbite · object-to-object
+> conduction · inter-room ventilation · the indoor room-ambient
+> convection bump · heated vehicle cabins
+> **Size:** a tail
+
 Working slate for a generic **`Thermal` capability** — objects that **hold a
 temperature and exchange heat with their environment**, drifting toward
 ambient over time. Surfaced by Gus's thermos (a vacuum flask keeping coffee

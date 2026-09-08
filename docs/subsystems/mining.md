@@ -74,7 +74,7 @@ put to a use*, with `landUse: industrial` naming the purpose.
 
 ## The geology field
 
-Three layers ([field-substrate-slate](../slates/builds/field-substrate-slate.md)):
+Three layers ([field-substrate-slate](../slates/tails/field-substrate-slate.md)):
 
 - **the model** — `Deposit`, a pure-data `Idea` in `trade-mining`;
 - **the instantiation** — the zone naming a row of it, with the seed
@@ -397,7 +397,7 @@ not written.
 
 ## Cross-references
 
-[field-substrate](../slates/builds/field-substrate-slate.md) ·
+[field-substrate](../slates/tails/field-substrate-slate.md) ·
 [mining](../slates/builds/mining-slate.md) ·
 [metal-chain](../slates/builds/metal-chain-slate.md) ·
 [rejection](../slates/builds/rejection-slate.md) ·

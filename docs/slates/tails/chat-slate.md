@@ -1,5 +1,14 @@
 # Chat slate (working doc)
 
+> **Status: PARTIAL** — the v1 core shipped (Channel Document, the three
+> kinds, ChannelCatalogue, the Subject retrofit) →
+> [chat.md](../../subsystems/chat.md)
+> **Left:** the role overlay · the channel config block · mentions + the
+> offline inbox · group-projected channels (party/guild/zone) ·
+> edit/delete · pinned + announcement mode · directory/search ·
+> channel succession
+> **Size:** a wave
+
 > **Status: architecture set, a few forks leaned.** The channel system —
 > "our own chat app inside the game." Graduates the *channels* half of
 > the comms slate into its own subsystem. Chat is the rich end of the

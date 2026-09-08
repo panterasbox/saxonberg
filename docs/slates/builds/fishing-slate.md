@@ -1,8 +1,15 @@
 # Fishing slate (working doc)
 
+> **Status: UNBUILT** — no fishing act, species or water regime exists.
+> **Left:** the catch-distribution field · the landing contest · the fish
+> and aquatic-harvest roster · the method ladder (rod · trap · net ·
+> spear) · the three water regimes · current & tide · the Angling
+> Discipline · the fishery `Business` wrapper
+> **Size:** a build
+
 > **Status: design captured, not built.** Fishing is the **third
 > extraction vertical** and the **lightest** — a lean sibling of
-> [mining](./mining-slate.md) and [farming](./farming-slate.md), not a
+> [mining](./mining-slate.md) and [farming](../tails/farming-slate.md), not a
 > full integrating vertical. It is ~90% *composition* of shipped
 > substrate (the activity/engagement framework, reserves, crafting/`Grade`/
 > tools, the creature/species stack, metabolism, weather, time, advancement,
@@ -14,7 +21,7 @@
 > *panning grown up*, the socializer's low-attention income floor. It is
 > also the **first real gameplay consumer of weather-as-a-system** beyond
 > wetness, and the natural driver to finally build **perishability** —
-> now designed in [preservation-slate](./preservation-slate.md), with fish as
+> now designed in [preservation-slate](../tails/preservation-slate.md), with fish as
 > its v1 perishable. The
 > **spatial model** bottoms out in navigable rooms as **three regimes** —
 > a shore *feature* in a land room (v1, free) / a boat on a **liquid
@@ -26,7 +33,7 @@
 See also: [mining](./mining-slate.md) (the precedent extraction vertical —
 share its "the boring act is never the fun" doctrine, its Business/
 employment/conserved-economy wrapper, its `Grade`/`ToolMixin` reuse; **read
-the water** is the aquatic twin of **read the rock**) · [farming](./farming-slate.md)
+the water** is the aquatic twin of **read the rock**) · [farming](../tails/farming-slate.md)
 (the sibling *source node*; fishing is farming's low-barrier cousin and
 shares the food→craft→market loop) · [ranching](./ranching-slate.md) (the
 deferred **aquaculture** tail — fish-farming is ranching-in-water) ·

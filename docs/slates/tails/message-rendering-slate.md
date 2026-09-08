@@ -1,5 +1,12 @@
 # Message rendering & styling slate (working doc)
 
+> **Status: PARTIAL** — waves 1–3 shipped bar one tag; `<list>`,
+> `<table>` and channel stylesheets are all live
+> → [message-rendering.md](../../subsystems/message-rendering.md)
+> **Left:** the `<box>` tag — and first the decision whether the cockpit
+> layout work already covers what it was for
+> **Size:** a tail
+
 > **Status: Wave 1 shipped (2026-06).** Substrate lives in
 > [docs/subsystems/message-rendering.md](../../subsystems/message-rendering.md):
 > nested-aware client renderer, stylesheet engine + three themes,

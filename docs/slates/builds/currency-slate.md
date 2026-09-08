@@ -1,5 +1,13 @@
 # Currency slate — generalizing the issuer, and shipping it with one currency
 
+> **Status: PARTIAL** — the generalized issuer, structural denominations
+> and per-currency conservation shipped →
+> [banking.md](../../subsystems/banking.md)
+> **Left:** a second issuer + who may authorize a mint · opt-in acceptance
+> lists / corpo scrip · the peg as a redeemable standing offer ·
+> wages-in-scrip consent
+> **Size:** a build
+
 **Captured 2026-08-04. Revised 2026-08-04** (naming decision + a code
 survey that corrected this slate's own headline finding).
 

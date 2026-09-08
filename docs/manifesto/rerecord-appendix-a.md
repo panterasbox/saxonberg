@@ -412,7 +412,7 @@ since it is nothing but dimmed and lit rows.
     exclusions against a long Schedule"** — the proportion survives, the kicker cadence does
     not.
 
-  ⚠ **Second person is KEPT** at [0] (*"You have read one of these before"*). B is strictly
+  ⚠ **Second person is KEPT** at [0](*"You have read one of these before"*). B is strictly
   impersonal, but Ch 1–7 address the viewer throughout, and A opens the appendix set — the
   familiarity hook is the one place it earns its keep. This is the deliberate seam between
   A's register and B's.

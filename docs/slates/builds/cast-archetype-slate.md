@@ -1,5 +1,14 @@
 # Cast archetype slate — composable character profiles, and why props can't have one
 
+> **Status: PARTIAL** — the identity build (2026-09, MR !248) shipped the
+> Cast/Extra rungs, the dossier, the `archetype:` STAMP and `lint:dossiers`
+> → [identity.md](../../subsystems/identity.md)
+> **Left:** the archetype rows themselves (closed `role` + `temperament`
+> kinds, open entries) · the lens-vs-seed dual compilation · the `requires`
+> config gate + its lint · standing as pointers · role suppression · the
+> expander extracted out of `EnrollController.commit`
+> **Size:** a build
+
 **Captured 2026-09-01.** It started from the mixin analogy and turned into
 an identity question:
 

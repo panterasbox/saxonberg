@@ -1,5 +1,13 @@
 # MQL subscription substrate (working doc)
 
+> **Status: PARTIAL** — the server substrate shipped →
+> [mql-subscription.md](../../subsystems/mql-subscription.md)
+> **Left:** the client-side subscription lifecycle in the cockpit ·
+> widget composition + cache coherence · shadow-aware projection ·
+> `mql-subscribe-update` · the heartbeat / `closed` envelope ·
+> `mixins[]` / `capabilities[]` wire fields
+> **Size:** a wave
+
 Working slate for the **client-driven live-state substrate** —
 how the client knows what's happening in the world without the
 server pushing a hardcoded taxonomy of delta types.

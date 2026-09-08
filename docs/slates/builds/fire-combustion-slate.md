@@ -1,9 +1,19 @@
 # Fire & combustion slate — the Fire channel (combustion as a driver)
 
+> **Status: PARTIAL** — the whole combustion substrate shipped: the six
+> `Material` numbers, the `heat` channel, `Combustible`/`Burning`,
+> phase change, the furnace family
+> → [fire.md](../../subsystems/fire.md)
+> **Left:** the fire service (§ below) — the brigade, prevention, and
+> fire insurance · arson-as-crime · map-scale wildfire · burning-DoT as
+> a combat weapon · vision-obscuring smoke + cross-room drift ·
+> flammability limits (LEL/UEL)
+> **Size:** a build
+
 The next **frontier-physics** build in the "real channels magic actuates"
-arc (sibling of the shipped [electricity](./electricity-slate.md)
+arc (sibling of the shipped [electricity](../tails/electricity-slate.md)
 Lightning-frontier and the [storms-and-wetness](../tails/weather-slate.md)
-Storm-frontier). The [capability-magic](../deferred-rpg/capability-magic-slate.md)
+Storm-frontier). The [capability-magic](./capability-magic-slate.md)
 model is *elemental schools inject **real** physics; the consequences obey
 real chemistry* — Fire → **thermal energy / combustion**. So this build
 ships the **mundane** combustion substrate — ignition, burning, spread,
@@ -386,7 +396,7 @@ past its melting point — the crafting substrate proven, no recipe).
   the combustion design surface this build promotes (§ *A fire is a Thermal
   object kept hot by combustion*, the microclimate/warming-slot model).
 - [electricity.md](../../subsystems/electricity.md) /
-  [electricity-slate](./electricity-slate.md) — the channel + spread-driver
+  [electricity-slate](../tails/electricity-slate.md) — the channel + spread-driver
   precedent (a reserved `thermal`/Joule→fire combo; the conduction-graph
   walk fire spread mirrors); the mundane-frontier-built-for-its-own-sake
   posture.
@@ -413,7 +423,7 @@ past its melting point — the crafting substrate proven, no recipe).
   demonstrated, not told) — the measurement surface the Andy-Weir depth
   serves; electricity is its flagship discoverable-law domain and fire is
   the combustion sibling.
-- [capability-magic-slate](../deferred-rpg/capability-magic-slate.md) — the
+- [capability-magic-slate](./capability-magic-slate.md) — the
   **magic** downstream consumer: the **Fire** school actuates this
   combustion channel (schools-actuate-real-channels); the magical-property
   material layer.

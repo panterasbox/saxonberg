@@ -1,5 +1,20 @@
 # Logistics slate — the realm as one connected place
 
+> **Status: PARTIAL** — the logistics build shipped (2026-09): real
+> corridors between localities, the induced `Lane` graph, `Route`, the
+> Journey engagement on a game-minute metronome, the bill of lading +
+> rate card, the depot, wagon/team/barge, the haulage labor market, and
+> the teleport-ripple fix → [logistics.md](../../subsystems/logistics.md).
+> Four of § 12's open questions were answered there.
+> **Left:** piracy · live cargo and drovers (the steer walks, the carcass
+> rides) · infrastructure politics — tollgate, turnpike trust, barricade,
+> banditry, congestion, road wear · rail and the ore train (a data
+> addition on the lane substrate) · customs and tariffs (⚠ blocked on a
+> statute engine, not deferred) · warehousing as a business · the
+> wainwright · navigation as a discipline · a passenger market · the
+> entrenchment tier for free movement · the Delight/Kestrel inconsistency
+> **Size:** a build
+
 **Captured 2026-09-03**, out of *"I wanna start designing and building
 our logistics trade… cooking and tailoring and ranching/farming are
 building now and they all need logistics for the supply chain to be
@@ -71,7 +86,7 @@ And both carry this line in their own headers:
 > `shifts` shape — a walk is the locomotion slate's)."*
 
 **So distance is free today.** That is the same class of magic as the
-bar's `populates:` bottles that [supply-chain-slate](./supply-chain-slate.md)
+bar's `populates:` bottles that [supply-chain-slate](../tails/supply-chain-slate.md)
 went after, one level up the chain and still standing.
 
 ⚠ **And there is nowhere to walk.** Every `destination:` in every
