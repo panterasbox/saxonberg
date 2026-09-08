@@ -3,12 +3,15 @@
 > **Status: PARTIAL** — the substrate is all shipped (harm · combat ·
 > mortality · poise · materials-response); the **consequence layer** over
 > it is not.
-> **Left:** ⭐ the wound→poise edge (arrow ②) · the `afflict` door · the
+> **Left:** ⭐ the wound→poise edge (arrow ②) · the poise read · **the
+> outcome model** (`onDefeated` has zero implementers) · morale &
+> surrender · de-escalation · aftermath · the `afflict` door · the
 > **eight-arm unification** behind the three dead channels (`signature` ·
-> `resolution` · `contagion`) · the `governs` rename · the diagnosis
-> surface · burn's fluid loss · contusion's cost · the wake (medic ·
-> armorer · coroner · guard as *demand*)
-> **Size:** a build — ⭐ **a large one**; see [Scope](#scope--what-this-build-takes)
+> `resolution` · `contagion`) · `resolution.by` · the `governs` rename ·
+> diminishment · the clinic (#38) · the repair shop (#39) · the
+> necropolis (#40) · the guard contract
+> **Size:** ⭐⭐ **a large build — four movements, eighteen waves.** See
+> [Scope](#scope--what-this-build-takes)
 
 **Captured 2026-09-08**, out of a design conversation that opened with
 *"we don't have hitpoints"* and ended somewhere else entirely.
@@ -444,6 +447,52 @@ built twice.
 
 ---
 
+### E. The outcome — winning and losing, with certainty
+
+⭐⭐ **The fourth instance of this slate's one pattern, found last and the
+most surprising: `onDefeated` and `onDefeatedFoe` are no-op terminals
+with ZERO overrides anywhere** — not in the kernel, not in any of the
+thirty-six packs. Winning a fight fires two hooks that do nothing.
+
+The *determination* is solid and needs no work: six resolutions
+(`first-blood` · `yield` · `incapacitation` · `death` · `draw` ·
+`disengage`), a named victim and killer, narration, and a venue hook. The
+question this build answers is what an outcome **means**.
+
+- **Winning pays.** Renown is the obvious currency and it is shipped and
+  scoped. ⚠ What a non-lethal win is *worth* is a values call, not an
+  engineering one — see [Q8](#open-questions).
+- **Losing costs**, and the cost is legible. At the extreme this is
+  mortality's `recovering` seed, which ships **deliberately empty** —
+  *"what diminishment should actually BE is undesigned."* This build
+  fills it, because the cost of losing is exactly what a fight is for.
+- **Somebody gives up.** A fight that can only end in incapacitation or
+  death is not a fight anyone starts twice. Morale and surrender
+  (combat-experience **T13**) is what makes `yield` a thing an *opponent*
+  does, not just a verb the player types.
+- **Somebody walks away.** De-escalation (**T12**) is the non-fighter's
+  exit, and the precondition for [Q4](#open-questions) — a beast that
+  refuses a yield is only honest once the other exits are real.
+
+### F. Legibility — the poise read
+
+The metric exists, is banded, and moves every exchange. The player is
+told almost nothing.
+
+⚠⚠ **Narration, not a card.** The pressure to render poise as a bar will
+be enormous and it is the one thing that would actually betray the
+design. The raw scalar is `private` and only the band is exposed — keep
+it that way and let the *prose* carry it: *you give ground; his blade is
+where yours should be.* **A `CombatCard` is explicitly out of scope**
+(it belongs to [combat-slate](./combat-slate.md), and a card is the
+gauge this design refuses wearing a client costume).
+
+That delivers the three reads an HP bar actually gives — *can I continue ·
+am I losing · did that matter* — as fiction. See
+[measurement.md](../../measurement.md) § the no-gauge reading rules.
+
+---
+
 ## ⛔ The rejected fork — recorded so nobody re-proposes it
 
 Mid-conversation this slate's author proposed **generalizing poise into a
@@ -592,12 +641,28 @@ slate deliberately does not lift it. It wants its own slate next to
 question is whether combat keeps its own `CombatTerms` as a specialization
 or becomes a consumer of the general thing.
 
-**Q7 — does W6b survive requirements?** The judgment loop is the one
-wave whose design is not settled. The honest test at requirements time:
-can a player be *wrong* about a diagnosis in a way the world punishes
-without a roll? If W3/W4 have made conditions genuinely distinguishable,
-yes; if not, W6b is a scoring rubric over a coin flip and should be cut
-rather than shipped thin.
+**Q8 — what does winning a non-lethal fight pay?** ⚠ **The one question
+in this slate that is a values call rather than an engineering one.**
+Renown is shipped, scoped, and the obvious currency — but standing is the
+game's real money (`standing = max(0, renown) × participation`), and how
+much of it a bar brawl mints is a statement about what the polity
+rewards. An engine answer here would be the engine deciding what the game
+is about. See [measurement.md](../../measurement.md) § layer 3.
+
+**Q9 — what IS diminishment?** mortality.md ships `recovering` as a
+deliberately empty seed and names four candidates: a temporary competence
+penalty, a wound that heals over time, a diminished vessel, or something
+a patron marks you with. Two constraints are already fixed — *unpleasant
+but never dangerous* (anything that could push you back over a lethal
+threshold reopens the death loop) and *legible* (a price you cannot feel
+is one no temple can undercut).
+
+**Q7 — does W14 survive requirements?** The judgment loop is the one wave
+whose design is not settled. The honest test: **can a player be *wrong*
+about a diagnosis in a way the world punishes, without a roll?** If W8/W9
+have made conditions genuinely distinguishable, yes; if not, W14 is a
+scoring rubric over a coin flip and should be cut rather than shipped
+thin.
 
 **Q6 — does the guard job need an engine seam at all?** Part C.4 may be
 pure content over the shipped contract board and engagement slots. If it
@@ -612,39 +677,85 @@ important interplay job in the game costs zero kernel code.
 The `governs` rename was the one question that reached outside this
 build's blast radius; **decided: do it here and unblock physiology.**
 
-### The waves
+### The waves — four movements
+
+⚠ **This is a large build and it is meant to be.** The user's call:
+*"go big… yes to everything in the slate plus anything else you want to
+make room to include."* Each movement below is a build's worth on its
+own; they are one build because each one's output is the next one's
+input, and shipping any of them alone leaves a seam with no consumer —
+the exact failure this slate exists to end.
+
+**Movement I — the instruments.** Ship the gates before the work they
+govern.
 
 | | wave | what |
 |---|---|---|
-| **W0** | the audit as a test **+ the arm census** | ✅ **`lint:condition-arms` is DONE** (measured 7 + 1 parallel; ceiling set; in the derived roster). Remaining: pin the couplings table above — one characterization test per row |
-| **W1** | ⭐ close the loop (**arrow ②**) | wound → poise, recovery cap behind a dial (design A). **First, smallest, not a stretch** |
-| **W2** | the `afflict` door | `ConditionApi.afflict` / `relieve`, gated like `inflict`. **Nothing downstream is reachable without it** |
-| **W3** | ⭐⭐ `signature` as the **effect channel** (**arrow ①**) | not a new arm — the channel the seven existing arms route their effects *through*. Law (`decay`/`logistic`/`stage`/`integrate`/`countdown`/`burden`) separated from effect · the 23 rows authored · **the ratchet falls** |
-| **W4** | `resolution.by` dispatched | treatment differs by condition — a burn needs fluid, a cut needs a bandage (health-vertical's named gap) |
-| **W5** | the capability term + ⭐ the `governs` rename | generalize fracture's slot-impair into a declared consequence, on physiology's axis rather than beside it |
-| **W6a** | the diagnosis surface | cues without names, the `analyze` read, the instrument gate — the **read side** of W3/W4 (issue #38, part a) |
-| **W7** | the repair shop | issue **#39** — content pass, ~600 lines mostly YAML, no engine |
-| **W8** | the necropolis | issue **#40** — content pass, no engine |
-| **W6b** | *stretch* — the judgment loop | issue #38 part b: stop auto-selecting, triage under the deterioration clocks, decision-graded `ActSignature` |
+| **W0a** | ✅ the arm ratchet | **DONE** — `lint:condition-arms`, measured 7 + 1 parallel, ceiling set, in the derived roster |
+| **W0b** | the couplings as tests | one characterization test per row of the table above, so the two absent edges are absent *on purpose* |
+| **W0c** | ⭐ `lint:unconsumed-seams` | **the instrument that would have found all four of this slate's findings.** See below |
 
-W1 is the smallest wave and the largest payoff. W2 gates everything from
-W3 on. W7/W8 are near-free riders that turn part C from an assertion into
-somewhere you can walk.
+**Movement II — combat that resolves** (arrow ②).
 
-### ⚠⚠ The two rules this build is judged by
+| | wave | what |
+|---|---|---|
+| **W1** | ⭐ wound → poise | the loop closes. First, smallest, **not a stretch** (design A) |
+| **W2** | the poise read | per-exchange narration of the delta — prose, never a card (design F) |
+| **W3** | the outcome model | `onDefeated`/`onDefeatedFoe` get implementers; winning pays, losing costs (design E) |
+| **W4** | morale & surrender | combat-experience **T13** — an opponent that gives up; answers [Q4](#open-questions) |
+| **W5** | de-escalation | combat-experience **T12** — the non-fighter's exits |
+| **W6** | aftermath | combat-experience **T11** — the combat-side wake |
 
-1. **The arm count must not rise.** `lint:condition-arms` ships in W0,
-   before any of the work it governs. If a wave wants a ninth arm, the
-   wave is wrong — the shape it needs is *a law plus a signature*. A
-   build that wires `signature` by adding a parallel path has made the
-   codebase worse while appearing to fix it, and Finding 0 shows that
-   has already happened once.
-2. **Arrow ② does not get cut.** It is 
-   the one piece a reader of this slate would mistake for a detail, it is
-   the cheapest thing here, and without it the fight loop stays open no
-   matter how good arrow ① becomes.
+**Movement III — the body remembers** (arrow ①).
 
-### ⭐ Why the clinic splits in two
+| | wave | what |
+|---|---|---|
+| **W7** | the `afflict` door | `ConditionApi.afflict`/`relieve`, gated like `inflict`. **Nothing downstream is reachable without it** |
+| **W8** | ⭐⭐ the 8-arm unification | law (`decay`/`logistic`/`stage`/`integrate`/`countdown`/`burden`) separated from effect; `signature` becomes the channel the seven arms route **through**, never an eighth. **The ratchet falls.** The `contagion` consumer rides here iff nearly free |
+| **W9** | `resolution.by` dispatched | treatment differs by condition — a burn needs fluid, a cut needs a bandage |
+| **W10** | the capability term + ⭐ the `governs` rename | `BodyPart.governsVital` → `governs`; unblocks physiology's waves 2–3 |
+| **W11** | the 23 rows + the two dead traumas | burn's fluid loss · contusion's cost · `observableSigns` read past `[0]` |
+| **W12** | diminishment | fill mortality's deliberately-empty `recovering` seed — the cost of losing, at the extreme |
+
+**Movement IV — the wake** (arrow ③): violence as demand.
+
+| | wave | what |
+|---|---|---|
+| **W13** | the diagnosis surface | issue **#38a** — cues without names, the `analyze` read, the instrument gate. The **read side** of W8/W9 |
+| **W14** | the judgment loop | issue **#38b** — stop auto-selecting; triage under the deterioration clocks; decision-graded `ActSignature` |
+| **W15** | the repair shop | issue **#39** — content pass, ~600 lines mostly YAML, no engine |
+| **W16** | the necropolis | issue **#40** — content pass + the forensic examination verbs the decay curve has been waiting for |
+| **W17** | the guard contract | Finding 5.2 over the shipped contract board — ⭐ possibly zero kernel code ([Q6](#open-questions)) |
+
+### ⭐⭐ W0c — `lint:unconsumed-seams`, and why it is the most valuable wave
+
+Four of this slate's five findings are **the same defect**: a
+correctly-designed seam with nothing on the consumer end.
+
+| seam | consumers |
+|---|---|
+| `Condition.signature` | 0 |
+| `Condition.resolution` | 0 |
+| `Condition.contagion` | 0 |
+| `Combatant.onDefeated` / `onDefeatedFoe` | 0 |
+
+Every one was found **by hand**, one at a time, across four separate
+investigations — and `ProgressionSpec` was a fifth that a previous build
+found the same way. That is not a discovery method; it is luck repeated.
+
+⭐ **The doctrine already exists in this repo** — `lint:does-nothing`
+enforces *"a made thing must do something"* for materials-response
+constructions. W0c is that doctrine one level up: **a declared seam must
+have a consumer.** Census the authored fields on data Ideas and the
+`@hook` override surfaces, count the ones nothing reads or implements,
+and ratchet.
+
+⚠ It will find more than the four above, and **that is the point** — the
+census result should be read before the wave order is finalized, because
+a fifth or sixth unconsumed seam may belong in this build rather than the
+next one.
+
+### ⭐ Why the clinic still splits — even though both halves are in
 
 [Issue #38](https://gitlab.com/panterasbox/saxonberg/-/issues/38) leans on
 *"11 `Condition` seeds carrying `observableSigns`, with overlapping signs
@@ -653,12 +764,18 @@ behaviourally-identical conditions are cosmetic.** Today all 23 conditions
 do the same thing (nothing), so naming which one you have changes nothing
 and the diagnosis is a guess at a label with no consequence.
 
-**W3 + W4 are what make diagnosis matter**, which is why the read side
-(W6a) belongs to this build — it is the same dataset from the other end —
-and the judgment loop (W6b) does not have to be. W6b is design-heavy, T2
-rather than T1, and carries several open questions in
-[medic-judgment-slate](./medic-judgment-slate.md). **Decide its fate at
-requirements time, not at wave 6.**
+**W8 + W9 are what make diagnosis matter.** So the split survives as a
+**sequencing constraint, not a scope one**: W13 (the read side) cannot be
+specified before W8/W9 settle what there is to read, and W14 (the
+judgment loop) cannot be specified before W13. Building them in that order
+is the difference between a diagnosis loop and a scoring rubric over a
+coin flip.
+
+⚠ W14 carries the only genuinely unsettled design in this build (see
+[medic-judgment-slate](./medic-judgment-slate.md): the clinical-judgment
+competence, the NGN-timeline patient, the SBAR handoff). It is **in
+scope** and it is **last** — and [Q7](#open-questions) is its kill test if
+the design does not close.
 
 ### ⭐ The `governs` rename — decided
 
@@ -679,35 +796,45 @@ them tests — `BodyPlan.ts`, `Vitals.ts`, `Attired.ts` + their tests) and
 |---|---|---|
 | [vitals](../tails/vitals-slate.md) *(a wave)* | the affliction driver · forensic exam verbs | medical instruments · consumable-crafting |
 | [health-vertical](./health-vertical-slate.md) | the `resolution.by` dispatcher · the diagnosis surface | apothecary · public health · the College of Physic · the vet track |
-| [medic-judgment](./medic-judgment-slate.md) | = W6a, and W6b as stretch | the NGN-timeline patient · the SBAR handoff |
-| [mortality](./mortality-slate.md) | what diminishment IS (`recovering` is a deliberately empty seed) · the coroner economy → W8 | the passage ladder · re-embodiment vendors |
+| [medic-judgment](./medic-judgment-slate.md) | **both halves** → W13 + W14 | the NGN-timeline patient · the SBAR handoff (⚠ may return at W14) |
+| [mortality](./mortality-slate.md) | **diminishment → W12** · the coroner economy → W16 · forensic verbs → W16 | the passage ladder · re-embodiment vendors |
 | [physiology](./physiology-slate.md) | ⭐ the `governs` rename · pain as a derived reader | the organ roster · substances · prosthetics |
-| [materials-response](../tails/materials-response-slate.md) *(a wave)* | repair / scrap / reforge → W7 | new channels · tissue as a construction axis |
-| [combat-experience](./combat-experience-slate.md) | T5 `g(composure)` — **the seam only** | T11 aftermath · T12 de-escalation · T13 morale |
+| [materials-response](../tails/materials-response-slate.md) *(a wave)* | repair / scrap / reforge → W15 | new channels · tissue as a construction axis |
+| [combat-experience](./combat-experience-slate.md) | ⭐ **T11 aftermath → W6 · T12 de-escalation → W5 · T13 morale & surrender → W4**; T5 `g(composure)` **seam only** | T7/T8 loadout-as-chemistry · T15 the bestiary · T16 expressive authoring |
 | [disease](./disease-slate.md) | the `contagion` consumer hook, iff nearly free | outbreak · quarantine · the husbandry coupling |
 | [blood](./blood-slate.md) | — | all of it |
 
-### ⛔ Cut, and why
+### ⛔ Still cut, and why
 
-- **blood / transfusion** — needs a genotype + compatibility model; its
-  own build. ⭐ This build makes it *want* to exist, which is the correct
-  relationship between the two.
-- **the judgment loop (W6b)** — see above; stretch, not scope.
-- **disease content** — the `contagion` hook may ride along; outbreak,
-  quarantine and the husbandry-is-immunity coupling are a whole build.
+The scope went wide deliberately. These four stayed out, and each for a
+reason that is not "no room":
+
+- **blood / transfusion** — needs a genotype + compatibility model and a
+  donation economy; that is its own build. ⭐ This build makes it *want*
+  to exist, which is the correct relationship between the two.
 - **composure `g()`** — ⚠ **two claimants**: combat-experience T5 and
-  mind-slate's `traits-stress`. This build ships the **hook and does not
-  fill it**; whoever builds the stress equilibrium owns the multiplier.
-  Note it in both slates so it is not built twice.
-- **the terms/consent lift** — Q5; its own slate, next to governance.
+  mind-slate's `traits-stress`. Filling it here would take another
+  build's core mechanic. This build ships **the hook and does not fill
+  it**; note it in both slates so it is never built twice.
+- **disease content** — the `contagion` consumer may ride W8 if nearly
+  free, but outbreak, quarantine and the husbandry-is-immunity coupling
+  are a whole build with their own pedagogy.
+- **the terms/consent lift** — [Q5](#open-questions). It is a *legal*
+  primitive, it belongs next to governance and contracts, and lifting it
+  from inside a combat build would give it combat's shape. Its own slate.
+- **the `CombatCard`** — design F. Not a resourcing decision: a card is
+  the gauge this design refuses, wearing a client costume.
 
 ---
 
 ## Not in scope
 
-- **Generalizing poise.** See the rejected fork.
-- **The terms/consent lift.** Q5 — its own slate.
-- **Blood, transfusion and the donation loop.** See the cut list.
+- **Generalizing poise.** See the rejected fork — the single most
+  important thing this slate refuses.
+- **The terms/consent lift.** Q5 — its own slate, next to governance.
+- **Blood, transfusion and the donation loop.**
+- **Filling `g(composure)`** — the hook ships; the axis belongs to
+  `traits-stress`.
+- **A `CombatCard`** — design F.
 - **The limb-sever / part-promotion seam** at `AVULSION_BEHAVIOR.onset`.
-- **Filling `g(composure)`** — the hook ships, the axis does not.
 - **Anything that renders poise, endurance or a wound as a number.**
