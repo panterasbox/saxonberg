@@ -76,6 +76,10 @@ unbuilt and the creature half of spawn-distribution is unbuilt, so
   not.
 - **A player can ask a bonded animal for something, and be refused** — for
   a reason they can see, and never at random.
+- **An animal can be kept alive by somebody other than its person**, and
+  being kept alive by them buys them none of the bond.
+- **Neglect is visible in the room** — in what is or is not in the dish —
+  rather than in any figure shown to a player.
 - **An NPC's opinion of you survives a server restart.** (W0)
 - **A player can ask the world which things are theirs.** (W0)
 - **A role-filler does not accumulate a personal opinion of anyone.** (W0)
@@ -103,6 +107,18 @@ unbuilt and the creature half of spawn-distribution is unbuilt, so
   person-tier stack, which a companion animal is deliberately not on, so
   this is a real piece of work rather than a wiring job. Wave 1's asking
   is gated on the bond and the species alone.
+- **Vermin and stored-food predation** → **its own build, and it is
+  bigger than pets.** The realm has granaries, larders, warehouses, stock
+  counters and a spoilage clock, and *nothing eats any of it*. That gap is
+  what a mousing cat would fill, so a working cat waits for a food-storage
+  build rather than dragging one in here.
+- **An offer the recipient may decline** (handing a thing to an actor
+  currently force-moves it) → Wave 2. In scope here only as far as
+  offering food from the hand requires.
+- **Upkeep as a standing charge** — a per-day fee for keeping an animal →
+  **nowhere, deliberately.** The slate retracted this once already for
+  failing the time-respect test, and the mitigation for absence is
+  somebody filling a dish, not a subscription.
 - **Breeding, pedigree and papers** → ranching-slate, which carries the
   breeding brief.
 - **A pet Discipline.** Nowhere, deliberately: `stockmanship` is *working
@@ -223,6 +239,84 @@ The floor is per-species, and it is the same slot that says how winnable
 a species is in the first place — a nearly-untameable animal cools
 further, a thoroughly domestic one barely cools at all.
 
+### The hand and the vessel — how an animal is fed
+
+**Q:** What act feeds an animal?
+
+**A:** ⭐⭐ **Two different ones, and the distinction is the whole care
+model.**
+
+- **From your hand** — the bond act. Intimate, unscalable, refusable, and
+  the only way a stray is ever won over.
+- **From a vessel you filled** — the household. A placed thing an animal
+  feeds from, which **anyone** can fill.
+
+This is not a new idea; it is the shipped doctrine made physical:
+*automation maintains your assets, it cannot maintain your
+relationships.* The vessel is the delegable material floor. The hand is
+the part nobody can do for you.
+
+⭐ **There is no `feed` verb.** You put food down and the animal eats it,
+which is how animals are actually fed and which costs the build nothing:
+placing things is shipped, the vessel is an ordinary furnishing that
+persists with its owner, and **what is in it spoils on the shipped
+clock.**
+
+⭐⭐⭐ **And that is what makes neglect legible without a gauge.** You do
+not read the animal's hunger. You look at the bowl. An empty one, or one
+holding something turned, is a better signal than any number could be —
+and it is a signal that sits *in the room*, where anyone visiting can also
+see it.
+
+⚠ **Substrate, not a bowl.** The thing being defined is *a placed vessel
+an animal feeds from* — a saucer, a trough, a hayrack, a hanging feeder —
+so a new one is content, never code. Nothing in this build may hard-code
+the cat's dish as the concept.
+
+⚠⚠ **The vessel does not exempt an animal from mortality.** There is one
+mortality rule for every kept animal and a pet is not outside it: an
+exemption would say *this animal's biology is different because you like
+it*, while a cow two rooms away starves on the same clock. **What protects
+a pet is that the material floor is cheap and delegable** — a neighbour, a
+hired hand — never an engine carve-out. A standing per-day fee for keeping
+an animal is separately out (see non-goals): the mitigation is somebody
+filling a dish, not a subscription.
+
+> **The governing test, from the slate:** *needs create occasions, acts
+> create bond, and a need must never be a chore.* Filling the vessel is
+> not the bond. Being there when it eats is.
+
+### Pet food is a ladder, not a period
+
+**Q:** What does a companion animal eat, and who makes it?
+
+**A:** ⭐ **A processing chain with rungs**, exactly like every other
+consumable in the realm — and the epoch lens is what decides this. The
+mechanism is *a pet eats prepared food made from inputs people won't eat*,
+and that mechanism is true in Rome and in New York. Only the **rung**
+changes:
+
+| rung | what it is | who can do it |
+|---|---|---|
+| gather | offal, scraps, milk, what the animal catches | anyone |
+| preserve | dried, cured, smoked | an existing craft act |
+| compound | a mixed, shelf-stable, sold feed | a trade with the Discipline for it |
+
+⚠ **The top rung is kibble, and kibble is not an anachronism** — it is
+rendered offal and grain, compounded. Refusing it as "not medieval" would
+be treating the epoch as a setting constraint rather than the **dial** the
+lens says it is. It arrives by Discipline, not by century.
+
+⭐⭐ **And the bottom rung's input already exists as an absence.** A
+butchered carcass currently yields meat, bone, hide and tallow — about
+two-thirds of the animal. **The missing third is the offal**, and it is
+precisely what a cat eats. Making it a yield turns butchery's waste into
+this build's staple and teaches the lesson ranching's pig already
+teaches: waste-to-value.
+
+⭐ The geography falls out unauthored: **an animal is cheap to keep near a
+butcher or a dairy and expensive far from one.**
+
 ### Agency — you set the animal's job, and you may ask
 
 **Q:** Can a player issue commands to their animal?
@@ -292,7 +386,12 @@ result later, and no way to rush it. ⭐⭐ And the cat teaches a second
 thing the dog cannot: **you can be loved and not obeyed.** A well-bonded
 animal that declines you separates affection from compliance — true of
 animals, truer of people, and not a lesson many games are shaped to
-deliver. The world stays derivable because the
+deliver.
+
+⭐ The supply chain teaches its own lesson, and it is the one ranching's
+pig already teaches: **waste-to-value.** A third of every butchered
+carcass currently goes nowhere; the thing that keeps your cat alive is
+made out of it. The world stays derivable because the
 animal's state is legible in its behavior rather than hidden behind a
 number, and because how winnable a species is, is authored data rather
 than a class decision made once by a programmer.
@@ -302,6 +401,18 @@ row with a floor and a ceiling, an agent row with a description. The
 bespoke case works too — any pack can declare an animal winnable without
 asking the kernel for permission, and one that declares nothing is
 silently *not applicable* rather than silently broken.
+
+⚠ **The feeding vessel is where this lens has to be enforced, because it
+is where it is easiest to fail.** The concept is *a placed vessel an
+animal feeds from*, not *a cat's bowl* — a trough, a hayrack, a hanging
+seed-feeder and a saucer are the same thing, and a new one must be two
+rows and no code. Naming the first consumer instead of the substrate is
+the standing failure mode here.
+
+⭐ And where the engine declines to model something — territory, play as a
+metered need — that is a statement about the **engine**, never a
+restriction on authors. A litter tray is a furnishing anybody may ship;
+it simply is not a mechanic.
 
 **3 · Immersion & roleplay.** ⭐ **This lens decided the build's most
 visible property** — the bond is never shown. A cat that will not come to
@@ -319,8 +430,18 @@ the relationship is a payroll line.
 **5 · Epochs.** People have kept cats for nine thousand years; the
 mechanism is indifferent to the century. Only the dynamics change — a
 Roman cat is a mouser, a New York cat is a companion, and the same animal
-under the same rules is both. The magic axis has its own Discipline
-already in the catalogue for the later apex path.
+under the same rules is both.
+
+⭐⭐ **This lens decides the food chain, and it decides it against the
+obvious answer.** *"No kibble, we are medieval"* treats the epoch as a
+setting constraint, which is the exact reading this lens exists to refuse.
+Kibble is rendered offal and grain, compounded — **the same mechanism at a
+further rung**, reached by Discipline rather than by date. The chain is
+gather → preserve → compound at every epoch; only who can do which rung
+moves.
+
+The magic axis has its own Discipline already in the catalogue for the
+later apex path.
 
 ---
 
@@ -348,9 +469,10 @@ Run against the live game before the MR opens.
 7. Look at it. You are told how it is holding itself — wary, watchful, not
    coming closer. **No number anywhere.**
 8. Try to touch it. **It moves off.** You have not earned that.
-9. Feed it. It waits until you step back, then eats.
-10. Feed it again over the following days. Its description changes: it
-    stops leaving when you arrive.
+9. **Offer it something from your hand** — a scrap of offal off a
+   butchered carcass. It waits until you step back, then eats.
+10. Offer again over the following days. Its description changes: it stops
+    leaving when you arrive.
 11. Try to touch it again. **It permits it.**
 12. Name it. It is yours now — and the name sticks to *this* cat, not to
     cats in general.
@@ -358,16 +480,22 @@ Run against the live game before the MR opens.
     to. It came because it felt like it.
 14. Now **ask it to come.** It looks at you. ⭐⭐ **It does not come.** The
     bond is not the problem and nothing says it is; this is a cat.
-15. **Log out. Log back in.** It is still there, still named, still knows
+15. Put a dish down where you live and fill it. The cat eats from it
+    without you present. **Have somebody else fill it** — that works too,
+    and the cat is no fonder of them for it. ⭐ *The floor is delegable;
+    the bond is not.*
+16. **Log out. Log back in.** It is still there, still named, still knows
     you. ⭐ *This is the step the build exists for.*
-16. Stay away a game month. Come back: it is **cooler with you, and it has
-    not gone feral.** Feed it twice and you are back.
-17. Go to the ranch and spend time with the collie. It bonds on the same
+17. Stay away a game month. Come back to **a dish with something turned in
+    it**, and a cat that is cooler with you and has not gone feral. ⭐⭐
+    *Nothing told you a number. The room told you.* Feed it twice and you
+    are back.
+18. Go to the ranch and spend time with the collie. It bonds on the same
     terms — and it is still a working dog, still doing its job, better for
     being known.
-18. **Ask the collie to come. It comes.** ⭐⭐⭐ *Same care, same bond, same
+19. **Ask the collie to come. It comes.** ⭐⭐⭐ *Same care, same bond, same
     verb, opposite answer — and the reason is the animal, not the player.*
-19. Ask it again while something else already has it — stock on the move,
+20. Ask it again while something else already has it — stock on the move,
     or the fox in the yard, whichever the world offers. **It does not
     come**, and you can see exactly what it chose instead. ⚠ *A refusal
     you cannot explain from the room is the defect this step is looking
@@ -397,12 +525,23 @@ Observable from outside the code, by a person playing.
    explains it.
 8. A player is refused by an animal at a moment when they can see what it
    is attending to instead — never for no visible reason.
-9. A player talks to an NPC, the server restarts, and the NPC still knows
-   them.
-10. A player asks the world which things are theirs, and is answered.
-11. A second companion species can be added by a content author writing two
+9. A player who has been away returns to a dish holding food that has gone
+   over, and understands the animal has been neglected **without being
+   shown a figure of any kind**.
+10. A player asks a friend to feed their animal while they are away; the
+    animal is fine when they return, and **the friend has gained none of
+    its regard**.
+11. A player can obtain animal food at the bottom rung by butchering, and
+    a player with the relevant craft can turn it into something that
+    keeps.
+12. A player talks to an NPC, the server restarts, and the NPC still knows
+    them.
+13. A player asks the world which things are theirs, and is answered.
+14. A second companion species can be added by a content author writing two
     rows and no code — including how winnable it is and how biddable, which
     are separate answers.
+15. A second kind of feeding vessel — a trough, a hayrack — can be added
+    the same way.
 
 ---
 
@@ -420,6 +559,24 @@ Observable from outside the code, by a person playing.
   [husbandry](../subsystems/husbandry.md) + [race](../subsystems/race.md)
   (species data, maturation) · [mql](../subsystems/mql.md) (asking what is
   yours)
+### ⭐ Forward pointer — the necropolis's first customer
+
+Noted 2026-09-08, **not in this build.** The necropolis is already
+designed as a LULU town in
+[settlement-model.md](../settlement-model.md) — `civic` ground, plots of
+about four units, sold in rows, provisioned as a warren, on the reading
+that *a cemetery is a subdivision*. It has never had a reason to exist
+yet.
+
+**Pets are a better first customer for it than people are.** A pet death
+is frequent, personal, and politically weightless: you get the grief and
+the plot economy without inheritance, wills, rites, or the question of who
+owns a body. And this build already produces the input — one mortality
+rule, no exemption, and a corpse that behaves like any other.
+
+Whoever picks up the necropolis should start here rather than with human
+remains.
+
 - **Adjacent slates, deliberately not consumed:**
   [hunting](../slates/builds/hunting-slate.md) and
   [spawn-distribution](../slates/builds/spawn-distribution-slate.md) (no
