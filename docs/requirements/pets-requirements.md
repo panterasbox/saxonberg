@@ -102,6 +102,9 @@ unbuilt and the creature half of spawn-distribution is unbuilt, so
 - **An animal can genuinely be lost**, and **another person can find it
   and get it home** — knowing what is yours must never tell you where it
   is.
+- **Anyone may interact with anyone's animal**, and no amount of doing so
+  transfers ownership — while enough of it transfers the animal's
+  affection, which the game records and does not arbitrate.
 - **An animal's reaction is worth reading** — it notices things a player
   cannot, and shows it by behaving rather than by reporting.
 - **A companion ages, and dies of it**, on the same terms as every other
@@ -128,6 +131,11 @@ unbuilt and the creature half of spawn-distribution is unbuilt, so
   place can change. Without it, an animal that declines to follow has
   nowhere to be. An absence is answered in this
   build by the bond cooling toward its floor.
+- **A theft or pickpocketing system** → **nowhere, on this build's
+  account.** The realm has no `steal` verb and pets do not justify
+  inventing one: the bond already makes taking an animal self-defeating.
+  Shop-theft remains the slate's own parked question and is untouched
+  here.
 - **An organised lost-and-found** — a board, finder's fees, a reward
   escrow, a search party mechanic → Wave 2. Wave 1 ships the *situation*
   (an animal can be lost, a stranger can return it) and lets people use
@@ -541,6 +549,71 @@ emotional state of having lost a pet.
 > A result surface that helpfully rendered each match's surroundings would
 > delete this mechanic in one line, and would do it silently.
 
+### What a stranger may do with your animal
+
+**Q:** Somebody else's companion is standing in front of me. What am I
+allowed to do with it?
+
+**A:** ⭐⭐ **Nearly everything, because the bond makes the bad options
+pointless.** This build ships **no theft gate and no permission check**,
+and it does not need one.
+
+| a stranger can… | meaning |
+|---|---|
+| look at it | free |
+| **pet it** | raises **its** regard for *them*. Delightful, and never custody |
+| **feed it** | the material floor, which is delegable by design |
+| **call it** | it may come **if it likes them** — and luring is temporary |
+| **carry it off** | possible, and pointless |
+| **shut it in** | the deliberate version of the accident |
+| **keep it** | takes weeks, and is adoption |
+| **sell it** | transfers paper, not the animal |
+| **harm it** | the harm ledger, with the owner as the wronged party |
+
+⭐ Nothing needs building for the physical half: an animal can already be
+picked up, gated only by **weight** — so a cat can be carried off and a
+cow cannot, and the world arrived at that with no rule about animals in it
+at all.
+
+⭐⭐⭐ **Why no lock is needed:**
+
+> A stolen animal is **an animal that does not like you.** It will not
+> come when called, and it goes home the moment it can — it is
+> simultaneously its own alarm and its own homing device.
+>
+> To actually keep one you would have to feed it, house it and win it over
+> for weeks, at which point **you have adopted an animal whose person
+> stopped coming.** ⭐ **Successful pet theft is indistinguishable from
+> rescue, and that is correct.**
+
+Selling is the same joke told with paperwork: title moves, the animal does
+not, and the buyer owns a document and a cat that leaves.
+
+### Title says yours; the animal says theirs
+
+**Q:** What if somebody else's care beats mine?
+
+**A:** ⭐⭐ **Then the animal prefers them, and that is the thesis rather
+than a hole in it.** A stranger's attention works exactly as well as
+yours, because attention cannot be delegated *and cannot be faked*. An
+animal goes to whoever actually showed up.
+
+So the build deliberately produces a situation it refuses to adjudicate:
+
+> **The record says the animal is yours. The animal says otherwise. The
+> game does not settle it.**
+
+That is a dispute between neighbours about who has behaved like an owner,
+and the realm already has the places where such things get settled —
+standing, reputation, and eventually a court. An engine ruling would
+replace the most interesting thing this build can generate with a lookup.
+
+⚠ **Deliberate griefing — shutting someone's animal in on purpose —
+stays possible.** It is recoverable, it is visible, and the standing
+answer applies: **enforced by witness, not by system.** If it becomes a
+real problem it lands on the cruelty statute, which is Wave 2, and not on
+a permission check in Wave 1.
+
 ### An animal's reaction is a perception channel
 
 **Q:** Does a companion tell you anything about the world?
@@ -790,23 +863,26 @@ Run against the live game before the MR opens.
 23. Have a second player find it first. They bring it to where people
     are, ⭐⭐⭐ **and it walks to you.** *Nobody looked anything up. The
     animal said whose it was.*
-24. **Log out. Log back in.** It is still there, still named, still knows
+24. Have that second player **carry it off and keep it.** Watch what
+    happens: it will not come when they call, and it makes its way back.
+    ⭐⭐⭐ *Nothing refused them. It simply did not work.*
+25. **Log out. Log back in.** It is still there, still named, still knows
     you. ⭐ *This is the step the build exists for.*
-25. Stay away a game month. Come back to **a dish with something turned in
+26. Stay away a game month. Come back to **a dish with something turned in
     it**, and a cat that is cooler with you and has not gone feral. ⭐⭐
     *Nothing told you a number. The room told you.* Feed it twice and you
     are back.
-26. Go to the ranch and spend time with the collie. It bonds on the same
+27. Go to the ranch and spend time with the collie. It bonds on the same
     terms — and it is still a working dog, still doing its job, better for
     being known.
-27. **Ask the collie to come. It comes.** ⭐⭐⭐ *Same care, same bond, same
+28. **Ask the collie to come. It comes.** ⭐⭐⭐ *Same care, same bond, same
     verb, opposite answer — and the reason is the animal, not the player.*
-28. Ask it again while something else already has it — stock on the move,
+29. Ask it again while something else already has it — stock on the move,
     or the fox in the yard, whichever the world offers. **It does not
     come**, and you can see exactly what it chose instead. ⚠ *A refusal
     you cannot explain from the room is the defect this step is looking
     for.*
-29. Look at an animal near the end of its span. **It reads as old** — you
+30. Look at an animal near the end of its span. **It reads as old** — you
     can see it coming, and nothing had to announce it.
 
 ⚠ **Not drivable in one sitting, and stated so it is not mistaken for a
@@ -871,13 +947,19 @@ Observable from outside the code, by a person playing.
 20. A second player who comes across a stranger's animal can get it home,
     and works out whose it is **from the animal's own behaviour**, not
     from a record.
-21. A player talks to an NPC, the server restarts, and the NPC still knows
+21. A second player can pick up, carry off and keep another player's
+    animal, and **it does not become theirs** — it will not come when they
+    call it, and it goes home when it can.
+22. A second player who genuinely cares for someone else's animal over
+    time **does** win its affection, **and still holds no title over it** —
+    and the game offers no ruling about which of them it belongs to.
+23. A player talks to an NPC, the server restarts, and the NPC still knows
     them.
-22. A player asks the world which things are theirs, and is answered.
-23. A second companion species can be added by a content author writing two
+24. A player asks the world which things are theirs, and is answered.
+25. A second companion species can be added by a content author writing two
     rows and no code — including how winnable it is and how biddable, which
     are separate answers.
-24. A second kind of feeding vessel — a trough, a hayrack — can be added
+26. A second kind of feeding vessel — a trough, a hayrack — can be added
     the same way.
 
 ---
