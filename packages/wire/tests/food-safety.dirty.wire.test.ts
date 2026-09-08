@@ -94,7 +94,7 @@ suite('butchering is the one source of the silent population', () => {
     expectOk(await cook.cmd('get boning knife'));
     const butchered = await cook.cmd('butcher carcass');
     expectOk(butchered);
-    const said = butchered.said();
+    const said = await butchered.said();
     const m = /work it down to (\d+) cuts/i.exec(said);
     expect(m, `expected a cut count — saw: ${said.slice(0, 200)}`).toBeTruthy();
     expect(Number(m![1]), 'genuinely several').toBeGreaterThanOrEqual(4);
@@ -111,7 +111,7 @@ suite('butchering is the one source of the silent population', () => {
      */
     const cured = await cook.cmd('cure');
     expectOk(cured);
-    expect(cured.said()).toMatch(/in salt/i);
+    expect(await cured.said()).toMatch(/in salt/i);
   }, 60_000);
 });
 
@@ -149,7 +149,7 @@ suite('the other hurdle, and a proper cook', () => {
   it('drying resolves — no salt, no fire', async () => {
     const dried = await cook.cmd('dry');
     expectOk(dried);
-    expect(dried.said()).toMatch(/to dry/i);
+    expect(await dried.said()).toMatch(/to dry/i);
   }, 60_000);
 
   it('the sear resolves, or declines for a reason a player can act on', async () => {
@@ -166,7 +166,7 @@ suite('the other hurdle, and a proper cook', () => {
     // hearth IS lit, not that this test lit it.
     expectOkOr(await cook.cmd('ignite oven'), 'already-burning');
     const seared = await cook.cmd('cook seared-cut');
-    expect(seared.said()).toMatch(/you cook|haven't learned|work it by hand/i);
+    expect(await seared.said()).toMatch(/you cook|haven't learned|work it by hand/i);
   }, 120_000);
 });
 
@@ -176,7 +176,7 @@ suite('⭐⭐ the counterplay is reachable', () => {
     // build, so a knife could not be washed anywhere, ever.
     const washed = await cook.cmd('wash boning');
     expectOk(washed);
-    expect(washed.said()).toMatch(/you (wash|take)/i);
+    expect(await washed.said()).toMatch(/you (wash|take)/i);
   }, 60_000);
 });
 
@@ -184,7 +184,7 @@ suite('eating it', () => {
   it('the act is reachable and the world says NOTHING about what was on it', async () => {
     const ate = await cook.cmd('eat treated');
     expectOk(ate);
-    const said = ate.said();
+    const said = await ate.said();
     expect(said).toMatch(/you eat/i);
     expect(said, 'no warning — that is the design').not.toMatch(
       /sick|ill\b|poison|contaminat|wrong/i

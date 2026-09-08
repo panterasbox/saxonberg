@@ -122,7 +122,7 @@ suite('order a stew — the medium, and the claim', () => {
     const eaten = await cook.cmd('eat stew');
     expectOk(eaten);
     // Cutlery READS, never gates — which utensil is the interesting bit.
-    expect(eaten.said()).toMatch(/spoon|fork|knife|fingers/i);
+    expect(await eaten.said()).toMatch(/spoon|fork|knife|fingers/i);
   }, 60_000);
 });
 

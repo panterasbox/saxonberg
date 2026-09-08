@@ -75,10 +75,19 @@ export interface CommandResult {
   /** The command as typed, for failure messages. */
   text: string;
   /**
-   * The prose the frames carried, MML stripped. ⚠ Reading this is a
-   * prose read and is counted — reach for `notes` or `query()` first.
+   * The prose the frames carried, MML stripped.
+   *
+   * ⚠⚠ **`await` it, and await it before the next command.** Unlike the
+   * envelope, prose is not done when the dispatch is: scenes reach the
+   * socket independently, so a line can land *after* the
+   * dispatch-response that reports the outcome. This settles the socket
+   * first — see {@link Session.cmd}'s note — which is why it is async
+   * where everything else on this object is a plain value.
+   *
+   * ⚠ Reading it is a prose read and is COUNTED. Reach for `notes` or
+   * `query()` first.
    */
-  said(): string;
+  said(): Promise<string>;
 }
 
 interface Pending<T> {
@@ -210,8 +219,10 @@ export class Session {
 
   private queryCounter = 0;
   private closed = false;
-  /** When the socket last carried anything — the handoff's only clock. */
+  /** When the socket last carried anything — the prose channel's clock. */
   private lastFrameAt = 0;
+  /** Snapshot the in-flight command's prose before the buffer is drained. */
+  private captureLast: (() => void) | null = null;
 
   /** The handle this session logged in as — for failure messages. */
   public handle = '';
@@ -400,6 +411,22 @@ export class Session {
    *
    * One command in flight per session: the prose buffer is drained
    * before the send, so the frames this returns are this command's.
+   *
+   * ⚠⚠⚠ **The envelope ends the DISPATCH, not the OUTPUT — and this cost
+   * a long diagnosis twice.** `emitDispatchResponse` fires when the
+   * command finishes, but a controller's scenes travel to the socket on
+   * their own, so a line can arrive after the envelope that reports the
+   * outcome. Read the buffer the instant the envelope lands and you get
+   * the PREVIOUS command's tail: `fulfill` answered "you drop
+   * something", `read board` answered with a movement line, and `bank`
+   * answered nothing at all. It looked exactly like an off-by-one in
+   * the correlation — it is not; correlation is exact. Prose is simply
+   * a second, slower channel.
+   *
+   * So outcomes stay clock-free (the envelope is exact, and every
+   * `expectOk` / `expectNote` uses it) and only `said()` pays a bounded
+   * settle. A test that asserts structurally pays nothing at all, which
+   * is one more reason to prefer `notes` and `query()`.
    */
   async cmd(text: string): Promise<CommandResult> {
     if (this.pendingDispatch) {
@@ -410,6 +437,8 @@ export class Session {
           `cmd() first, or open a second session.`
       );
     }
+    this.captureLast?.();
+    this.captureLast = null;
     this.proseFrames.length = 0;
     const envelope = await new Promise<DispatchResponseEnvelope>(
       (resolve, reject) => {
@@ -428,14 +457,25 @@ export class Session {
         );
       }
     );
-    const said = this.proseFrames.slice();
+    let snapshot: string[] | null = null;
+    const capture = (): void => {
+      if (snapshot === null) snapshot = this.proseFrames.slice();
+    };
+    // If the next command starts before anyone reads this one's prose,
+    // take what there is rather than losing it to the buffer drain.
+    this.captureLast = capture;
+
     return {
       status: envelope.outcome.status,
       notes: envelope.outcome.notes.filter((n) => n.kind !== 'prompt-refresh'),
       text,
-      said: () => {
+      said: async () => {
         countProseRead();
-        return plain(said.join('\n'));
+        if (snapshot === null) {
+          await this.settle(200, 4_000);
+          capture();
+        }
+        return plain((snapshot ?? []).join('\n'));
       },
     };
   }
@@ -446,7 +486,7 @@ export class Session {
    */
   async prose(text: string): Promise<string> {
     const result = await this.cmd(text);
-    return result.said();
+    return await result.said();
   }
 
   /**

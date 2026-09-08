@@ -230,7 +230,7 @@ suite('the labor market is visible', () => {
     expectOk(await p.cmd('jobs'));
     const back = await p.cmd('jobs --origin here');
     expectOk(back);
-    expect(back.said()).toMatch(
+    expect(await back.said()).toMatch(
       /wanting carriage|nothing wants moving|board is bare|go back empty|Posted work/i
     );
   });
@@ -251,7 +251,7 @@ suite('the labor market is visible', () => {
       'jobs --origin /world/terminus/counting-houses/cash-and-carry'
     );
     expectOk(keeper);
-    const said = keeper.said();
+    const said = await keeper.said();
     console.log(
       /wanting carriage/i.test(said)
         ? '   ⓘ the bar keeper HAS posted — carriage wanted out of the cash-and-carry'

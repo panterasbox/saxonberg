@@ -221,7 +221,7 @@ suite('the watchpost', () => {
     // arrives with nothing.
     for (let i = 0; i < 14; i++) {
       const round = await c.cmd('fight strike');
-      if (/dies|falls|is slain|put to death/i.test(round.said())) break;
+      if (/dies|falls|is slain|put to death/i.test(await round.said())) break;
     }
     const watch = await c.prose('chronicle the watch');
     expect(watch).toMatch(/Watch of the Last Counted Mile/i);
