@@ -1369,9 +1369,15 @@ Read first, in this order:
 ## Drive record
 
 `packages/wire/tests/world-scan.dirty.wire.test.ts`, run against an
-owned world (`WIRE_BOOT=1`, cold boot 91.5s). **14 checks; the door's
-five all pass; the plumbing's eight all pass; the handoff half is
-blocked by a documented defect and says so.** The whole wire suite was
+owned world (`WIRE_BOOT=1`, cold boot ~85s). **14 of 14 green** on the
+final run — the door's five, the plumbing's eight, and the handoff step,
+which warns loudly and returns because the documented `office assign`
+defect reproduces.
+
+⚠ It took five runs, and each one earned its keep: run 1 hung (finding
+1), run 3 named the posture-gate denial (finding 2) once failures
+printed their notes, run 4 hit a wedged founder session left by a killed
+run, run 5 is the green one. The whole wire suite was
 run first — logistics, platform-smoke, textiles, cooking, crafting,
 farming, farmstead, food-safety, identity, metal-chain, work — and
 every one of those files passed, which is the plumbing's real
@@ -1382,7 +1388,7 @@ regression evidence.
 | | |
 |---|---|
 | **the registry, walked by the seat** | **1,807 objects** (requirements measured 1,785 — it grew by 22 in a week, and *it never shrinks* is the whole point) |
-| **ten `rest`/`stand` round trips** | **135–143 ms** — the path a live drive once found pinning a CPU core |
+| **ten `rest`/`stand` round trips** | **135–167 ms** across runs — the path a live drive once found pinning a CPU core |
 | **shutdown sweep** | `AppBootstrap: shutdown captured 8 persistable host(s)` — the moved `captureAtShutdown` ran through its gate |
 | `world:[mixin.DoorMixin]` as the seat | `registry-scan { indexed: true }` |
 | `world` as the seat | `registry-scan { indexed: false, scanned: 1807 }` |
@@ -1435,14 +1441,15 @@ on `world-seat-query.test.ts`, which drives the binder with
 `holdsOffice` stubbed both ways and pins that the office is asked at most
 once per dispatch.
 
-**5. A cosmetic pack-installer gap**, surfaced by moving a brain into a
-pack: `PackApi: pack 'residence' ships 5 class(es) no row of any
+**5. A pack-shipped BRAIN read as dead code**, surfaced by moving one
+into a pack: `PackApi: pack 'residence' ships 5 class(es) no row of any
 installed pack names: /system/residence/behavior/maintains, …`. The
 dead-code check reads `class:` / `hydratorClass:` and not
 `behaviors[].brain`, so a pack-shipped brain reads as dead even though
-`katie.yaml` and `walter.yaml` name it. Four exit classes were already
-in that warning for the same reason. **Not fixed here** — it is a
-warning about the installer's own check, and it wants a slate line.
+`katie.yaml` and `walter.yaml` name it. **Fixed for brains**
+(`brainsNamedBy`); ⚠ the four exit classes already in that warning are
+named in ways the report still does not read, and widening it that far
+is a slate line rather than a silent extension here.
 
 ### What the walk proved about the plumbing
 
