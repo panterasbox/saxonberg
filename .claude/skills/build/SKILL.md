@@ -103,7 +103,9 @@ For each wave in order:
 1. Implement it.
 2. Verify: `pnpm test:near`, the touched packs' own vitest, and the
    lint gates the plan named (`pnpm -C packages/server lint:family`
-   runs all 25 in ~85s and is cheap enough to run often).
+   runs the whole derived roster in ~2 min and is cheap enough to run
+   often — never name a count, the roster is read from
+   `package.json`).
 3. **Commit** — `build(<feature> W<n>): <what the wave did>`.
 4. **Update the plan**: mark the wave done, and add a one-or-two-line
    note — what changed, what you decided, what surprised you.

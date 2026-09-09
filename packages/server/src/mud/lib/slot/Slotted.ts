@@ -388,6 +388,10 @@ export function SlottedMixin<TBase extends MixinConstructor<Stuff>>(
       }
       set.add(candidate);
       this.slots.set(slot, set);
+      // The candidate's back-reference, before any witness runs: a
+      // witness that asks `getOccupiedHost()` must see the claim it is
+      // being told about.
+      candidate._noteOccupied(this as unknown as Stuff & Slotted, slot);
       // Synchronous slot-claim witness — the symmetric twin of
       // `onSlotReleased`, declared as an optional method on Slottable.
       // v1 consumer: PosedMixin records WHICH host's posture slot a body
@@ -431,6 +435,9 @@ export function SlottedMixin<TBase extends MixinConstructor<Stuff>>(
       if (!set || !set.has(candidate)) return null;
       set.delete(candidate);
       if (set.size === 0) this.slots.delete(slot);
+      // The back-reference drops with the forward map, before the
+      // witnesses — the same ordering the claim uses.
+      candidate._noteReleased(this as unknown as Stuff & Slotted, slot);
       // Synchronous slot-release witness — declared as an optional
       // method on the Slottable interface. v1 consumer: Mobile clears
       // engagedMode for passthrough modes when the vacated host is

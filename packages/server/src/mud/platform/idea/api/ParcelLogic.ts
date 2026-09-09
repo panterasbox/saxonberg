@@ -81,11 +81,27 @@ export class ParcelLogic extends ApiLogic {
     return reg ? reg.resolveOwnerRef(owner) : null;
   }
 
-  /** See {@link ParcelApi.groupOwnerRefs}. */
+  /** See {@link ParcelApi.extentsHeldBy}. */
   @CallSecurity(ParcelApiCallers)
-  public async groupOwnerRefs(): Promise<GroupRef[]> {
+  public async extentsHeldBy(
+    admits: (owner: ParcelOwner) => Promise<boolean>,
+  ): Promise<string[]> {
     const reg = lookupRegistry();
-    return reg ? reg.groupOwnerRefs() : [];
+    return reg ? reg.extentsHeldBy(admits) : [];
+  }
+
+  /** See {@link ParcelApi.parcelsOnReach}. */
+  @CallSecurity(ParcelApiCallers)
+  public async parcelsOnReach(reachRef: string): Promise<ParcelRecord[]> {
+    const reg = lookupRegistry();
+    // No registry (a cold box): the rows are the only source, and the
+    // reach citation is on the row.
+    if (!reg) {
+      return (await ParcelRecord.findAll()).filter(
+        (r) => r.getReach() === reachRef,
+      );
+    }
+    return reg.parcelsOnReach(reachRef);
   }
 
   /** See {@link ParcelApi.subdivide}. */
@@ -113,12 +129,7 @@ export class ParcelLogic extends ApiLogic {
       : { capacity: 0, allocated: 0, unallocated: 0, utilisation: 0 };
   }
 
-  /** See {@link ParcelApi.allRecords}. No registry → the rows themselves. */
-  @CallSecurity(ParcelApiCallers)
-  public async allRecords(): Promise<ParcelRecord[]> {
-    const reg = lookupRegistry();
-    return reg ? reg.allRecords() : ParcelRecord.findAll();
-  }
+
 
   /** See {@link ParcelApi.grant}. The grant path MINTS the registry when
    *  absent (the registry-at-boot rule: the installer's requires phase

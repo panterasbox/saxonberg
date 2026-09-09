@@ -618,7 +618,7 @@ describe('permissions (19, 20, 21)', () => {
       await create('oak', { body: 'A dense hardwood.' });
       const hit = await asGuest(() => registry.resolve('oak'));
       expect(hit?.page.getBody()).toContain('dense hardwood');
-      expect(await asGuest(() => registry.allPages())).toHaveLength(1);
+      expect(await asGuest(() => registry.pagesIn(''))).toHaveLength(1);
     });
 
     it('a signed-in player is unaffected', async () => {

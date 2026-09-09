@@ -22,6 +22,9 @@
 
 import { ApiLogic } from '../../../lib/stuff/ApiLogic';
 import { StuffApi } from '../../../api/stuff';
+// The own-Api self-import: the clock callback below re-enters through
+// the face so the sweep runs under a dispatched method frame.
+import { ResidencyApi } from '../../../api/residency';
 import { ProxyApi } from '../../../api/proxy';
 import { SecurityApi } from '../../../api/security';
 import { ScheduleApi, type ScheduleHandle } from '../../../api/schedule';
@@ -742,7 +745,12 @@ export class ResidencyLogic extends ApiLogic {
         's',
       ),
       () => {
-        void runSpawnSweep().catch((err) =>
+        // ⚠ Through the FACE, not the free function. The sweep takes a
+        // census, and a census reads the whole registry — a read gated on
+        // the calling function. A clock callback runs on a synthetic root
+        // frame with no method identity, so calling `runSpawnSweep()`
+        // directly would be denied and the sweep would stop silently.
+        void ResidencyApi.spawnNow().catch((err) =>
           console.warn('[residency] spawn sweep failed', err),
         );
       },

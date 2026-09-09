@@ -32,6 +32,10 @@ import type {
   SettlementReceipt,
 } from "../../../lib/banking/Charge";
 import { AppApi } from "../../../api/app";
+// The own-Api self-import (the PressLogic precedent): a free function
+// here has no dispatched frame, so it re-enters through the face to
+// acquire one before the registry-wide read.
+import { BankingApi } from "../../../api/banking";
 import { AppSettingKeys } from "../../../lib/config/AppSettings";
 import { WorldClockApi } from "../../../api/worldclock";
 import { PersistApi } from "../../../api/persist";
@@ -302,21 +306,42 @@ function defaultCustodianBankImpl(): string {
 }
 
 /**
- * The first live branch of `bank` (an institution key) — the MQL
- * system-mode enumeration (viewer-blind, the EmploymentLogic
- * allBusinesses precedent). Null when no branch of that bank is live.
+ * ⭐ `bank` (an institution key) → its first live branch, memoized.
+ *
+ * The banks are authored content and there are a handful of them, but
+ * this is asked on every custodian validation and every transfer, so it
+ * was reading the whole registry on a money path. A live branch is
+ * looked up once per institution and remembered; an entry whose branch
+ * has since gone is dropped and re-derived, so a branch standing up or
+ * being destroyed is picked up without a second lifecycle.
+ *
+ * A module memo rather than singleton state: the enumeration behind it
+ * has to happen under the `branchOf` frame (the registry-wide read names
+ * that pair), and the free functions in this module re-enter through
+ * `BankingApi.branchOf` to get one.
  */
+const branchMemo = new Map<string, Stuff & Bank>();
+
 function findBranchOf(bank: string): (Stuff & Bank) | null {
   if (!bank) return null;
-  const matches = MqlApi.resolveMany("world:[mixin.BankMixin]", {
-    commandGiver: null,
-    scope: "world",
-  });
-  return (
-    matches.stuff.find(
+  const cached = branchMemo.get(bank);
+  if (cached && !cached.isDestroyed()) return cached;
+  if (cached) branchMemo.delete(bank);
+  // Re-enter through the face, so the enumeration inside runs under the
+  // `branchOf` method's own frame.
+  return BankingApi.branchOf(bank);
+}
+
+/** The enumeration itself — reached only from `BankingLogic.branchOf`. */
+function branchOfImpl(bank: string): (Stuff & Bank) | null {
+  if (!bank) return null;
+  const matches = StuffApi.findByMixin('BankMixin');
+  const found =
+    matches.find(
       (s): s is Stuff & Bank => MixinApi.isBank(s) && s.getBank() === bank,
-    ) ?? null
-  );
+    ) ?? null;
+  if (found) branchMemo.set(bank, found);
+  return found;
 }
 
 /**
@@ -1753,6 +1778,12 @@ export class BankingLogic extends ApiLogic {
   @CallSecurity(BankingBootCallers)
   public async restampCustodians(): Promise<void> {
     await restampCustodiansImpl();
+  }
+
+  /** See {@link BankingApi.branchOf}. */
+  @CallSecurity(BankingApiCallers)
+  public branchOf(bank: string): (Stuff & Bank) | null {
+    return branchOfImpl(bank);
   }
 
   /** See {@link BankingApi.mint}. */

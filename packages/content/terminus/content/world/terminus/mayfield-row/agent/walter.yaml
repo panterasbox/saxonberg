@@ -39,7 +39,7 @@ data:
     # who is responsible; this is the agency that performs it. What a
     # tenant puts INSIDE a unit stays the tenant's problem, which is
     # exactly what the term says and exactly what `maintain` does.
-    - brain: /lib/behavior/maintains
+    - brain: /system/residence/behavior/maintains
       trigger: cadence:19m
       config:
         extent: /world/terminus/mayfield-row/seznick-house

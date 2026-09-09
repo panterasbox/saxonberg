@@ -36,6 +36,7 @@ import { CommandController } from '../../../../lib/command/CommandController';
 import type { CommandContext, CommandModel } from '../../../../api/command';
 import { MessageApi } from '../../../../api/message';
 import { MixinApi } from '../../../../api/mixin';
+import { EmploymentApi } from '../../../../api/employment';
 import { MqlApi } from '../../../../api/mql';
 import { Mml } from '../../../../api/mml';
 import type { Stuff } from '../../../../lib/stuff/Stuff';
@@ -103,33 +104,19 @@ export abstract class RecordControllerBase<
   }
 
   /**
-   * A live organization by label or path. ⚠ System-scoped on purpose: an
-   * organization is an `Idea`, not a thing standing in a room, so
-   * "reachable" would find none of them — and a body of people is not
+   * A live organization by label or path — asked of the employment
+   * subsystem, which owns the organization population. ⚠ Viewer-blind on
+   * purpose: an organization is an `Idea`, not a thing standing in a room,
+   * so "reachable" would find none of them — and a body of people is not
    * something a viewer's fog hides.
    */
   protected findBody(needle: string): Stuff | null {
-    const candidates = MqlApi.resolveMany('world:[mixin.OrganizationMixin]', {
-      commandGiver: null,
-      scope: 'world',
-    }).stuff;
-    let loose: Stuff | null = null;
-    for (const org of candidates) {
-      const label = needleOf(this.labelOf(org));
-      const path = (org.getTemplatePath() ?? '').toLowerCase();
-      if (namesItself(label, needle)) return org;
-      if (loose === null && (label.includes(needle) || path.endsWith(`/${needle}`))) {
-        loose = org;
-      }
-    }
-    return loose;
+    return EmploymentApi.findOrganization(needle);
   }
 
   /** What a body of people calls itself. */
   protected labelOf(body: Stuff): string {
-    return MixinApi.isPublisher(body)
-      ? body.getLabel()
-      : body.getPresentation();
+    return EmploymentApi.organizationLabel(body);
   }
 
   protected fail(

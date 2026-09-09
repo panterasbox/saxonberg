@@ -42,7 +42,6 @@
 
 import { Warren } from './Warren';
 import { PlatPlan } from './PlatPlan';
-import { MqlApi } from '../../api/mql';
 import { StuffApi } from '../../api/stuff';
 import { AppApi } from '../../api/app';
 import { ParcelApi } from '../../api/parcel';
@@ -95,6 +94,19 @@ interface HoldingView {
 interface WarrenMemberView {
   getWarren?: () => HoldingView | null | undefined;
 }
+
+/**
+ * The residence system's roster, met over a **path and a shape** — never
+ * an import. The `TravelNode` precedent: the kernel knows there is such
+ * a thing as a residence catalogue and what one question of it looks
+ * like; the catalogue itself is a capability pack's.
+ */
+interface ResidenceCatalogueView {
+  institutionsCovering?: (key: string) => Promise<Stuff[]>;
+}
+
+/** Where the residence pack's roster stands, if the pack is installed. */
+const RESIDENCE_CATALOGUE_PATH = '/system/residence/idea/ResidenceCatalogue';
 
 export abstract class OuterWarren extends Warren {
   static fieldMeta: FieldMeta = {
@@ -371,12 +383,7 @@ export abstract class OuterWarren extends Warren {
   public static async admitFor(
     key: string,
   ): Promise<MemberStuff | null> {
-    const warrens = MqlApi.resolveMany('world:[class.OuterWarren]', {
-      commandGiver: null,
-      scope: 'world',
-    }).stuff;
-    for (const w of warrens) {
-      if (!(w instanceof OuterWarren)) continue;
+    for (const w of await OuterWarren.institutionsCovering(key)) {
       const parent = w.getParentExtent();
       if (!parent || !key.startsWith(parent + '/')) continue;
       const rest = key.slice(parent.length + 1);
@@ -392,6 +399,40 @@ export abstract class OuterWarren extends Warren {
       return w.entryRoomOf(holding);
     }
     return null;
+  }
+
+  /**
+   * The residence roster's answer to *which institutions claim this
+   * key*, innermost first — or nothing at all when the residence pack
+   * is not installed, which is a realm with no holdings and therefore
+   * the honest empty answer.
+   */
+  private static async institutionsCovering(
+    key: string,
+  ): Promise<OuterWarren[]> {
+    let catalogue: Stuff | null = null;
+    try {
+      catalogue = await StuffApi.singleton<Stuff>(RESIDENCE_CATALOGUE_PATH);
+    } catch {
+      return [];
+    }
+    const view = catalogue as unknown as ResidenceCatalogueView;
+    if (typeof view.institutionsCovering !== 'function') return [];
+    const found = await view.institutionsCovering(key);
+    return found.filter((w): w is OuterWarren => w instanceof OuterWarren);
+  }
+
+  /**
+   * Every live holding this institution is currently standing. The read
+   * behind the residence roster's `holdingsUnder` — a walk of one map,
+   * where the property-minder used to walk the world.
+   */
+  public holdings(): MemberStuff[] {
+    const out: MemberStuff[] = [];
+    for (const h of this._holdingsByKey.values()) {
+      if (!h.isDestroyed()) out.push(h);
+    }
+    return out;
   }
 
   /** The live holding for a key (if standing), or null. */

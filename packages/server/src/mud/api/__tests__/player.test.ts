@@ -21,7 +21,12 @@ import { makeStuff } from '../../lib/security/__tests__/test-setup';
 // Mock Avatar objects for testing.
 // The migration's methods-only contract means PlayerApi reads
 // `avatar.getPlayerId()`; the mock has to implement those methods.
-const createMockAvatar = (playerId: string): Avatar => {
+//
+// ⚠ `getUser` is on the list because the registry now keeps a SECOND
+// index — user id → avatar — so that "which avatar belongs to this
+// account" stops being a `.find` over the whole roster. A stub missing
+// it fails structurally, which is the fixture doing its job.
+const createMockAvatar = (playerId: string, userId?: string): Avatar => {
   let _playerId = playerId;
   return {
     getPlayerId: () => _playerId,
@@ -29,6 +34,10 @@ const createMockAvatar = (playerId: string): Avatar => {
     getName: () => 'Test',
     getSurname: () => 'User',
     getFullName: () => 'Test User',
+    getUser: () => (userId ? ({ _id: userId } as User) : null),
+    getPresentation: () => 'Test User',
+    isDestroyed: () => false,
+    isConnected: () => false,
     stuffId: `avatar-${playerId}`,
   } as unknown as Avatar;
 };
@@ -193,6 +202,43 @@ describe('PlayerApi', () => {
       expect(avatars).toHaveLength(1);
       expect(avatars).toContain(avatar2);
       expect(avatars).not.toContain(avatar1);
+    });
+  });
+
+  /**
+   * ⭐ The three keyed reads that replaced `.find`/`.filter` over the
+   * whole roster. `getAllAvatars` STAYS — it is the broadcast set, and
+   * its size is bounded by concurrency — but finding ONE person in it
+   * was a scan wearing a nice name.
+   */
+  describe('the keyed reads', () => {
+    it('findAvatarByName matches the name or the presentation', () => {
+      const a = createMockAvatar('p1');
+      PlayerApi.registerAvatar(a);
+      expect(PlayerApi.findAvatarByName('test')).toBe(a);
+      expect(PlayerApi.findAvatarByName('TEST USER')).toBe(a);
+      expect(PlayerApi.findAvatarByName('nobody')).toBeUndefined();
+      expect(PlayerApi.findAvatarByName('  ')).toBeUndefined();
+    });
+
+    it('findAvatarByUserId is an index, maintained by register/unregister', () => {
+      const a = createMockAvatar('p1', 'u1');
+      PlayerApi.registerAvatar(a);
+      expect(PlayerApi.findAvatarByUserId('u1')).toBe(a);
+      PlayerApi.unregisterAvatar(a);
+      expect(PlayerApi.findAvatarByUserId('u1')).toBeUndefined();
+    });
+
+    it('connectedAvatars is the roster source — disconnected are out', () => {
+      const offline = createMockAvatar('p1');
+      const online = {
+        ...createMockAvatar('p2'),
+        isConnected: () => true,
+      } as unknown as Avatar;
+      PlayerApi.registerAvatar(offline);
+      PlayerApi.registerAvatar(online);
+      expect(PlayerApi.getAllAvatars()).toHaveLength(2);
+      expect(PlayerApi.connectedAvatars()).toEqual([online]);
     });
   });
 

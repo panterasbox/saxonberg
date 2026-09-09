@@ -113,6 +113,16 @@ function proseForFrameworkNote(note: Note): string | null {
     }
     case 'mql-error':
       return `Couldn't resolve '${note.field}' (${note.stage}): ${note.detail}`;
+    case 'registry-scan':
+      // ⭐ The office holder's receipt. It says the SHAPE they typed and
+      // whether an index answered it, because those two together are
+      // what tells them whether to keep doing it.
+      return (
+        `Registry read: ${note.scanned} object${note.scanned === 1 ? '' : 's'} ` +
+        `for '${note.field}' (` +
+        (note.indexed ? 'indexed' : `unindexed shape ${note.shape}`) +
+        `).`
+      );
     case 'validator-failed':
       // The validator's return string IS the player-facing prose.
       return note.detail;

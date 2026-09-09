@@ -235,7 +235,8 @@ git status --short | grep -vE '^.. (docs/|CLAUDE\.md|.*\.md$)'
 Either way:
 
 - `pnpm build` — type-clean (cheap; always run).
-- `pnpm lint` + the eight lint gates — clean (cheap; always run).
+- `pnpm lint` + `pnpm -C packages/server lint:family` — clean (cheap;
+  always run). ⚠ Never name a count or a subset: the roster is derived.
 
 If anything fails, fix before committing. Don't ship a sweep commit
 that breaks the suite — but don't buy that assurance twice.

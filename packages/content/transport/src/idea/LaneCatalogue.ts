@@ -94,6 +94,13 @@ interface RouteDescriptor {
 interface CompiledIndex {
   lanes: Map<string, CompiledLane>;
   routes: Map<string, RouteDescriptor>;
+  /**
+   * ⭐ `place → the lanes running through it`, filled in the compile.
+   * *What ways touch here* is the read a depot makes, and it used to be
+   * a filter over every lane in the realm, recomputed per depot per
+   * question.
+   */
+  byNode: Map<string, CompiledLane[]>;
   problems: string[];
 }
 
@@ -126,8 +133,13 @@ export default class LaneCatalogue extends Idea {
 
   /* ─────────────────────────── reads ─────────────────────────── */
 
-  /** Every compiled lane in the realm. */
-  public async allLanes(): Promise<CompiledLane[]> {
+  /**
+   * Every compiled lane in the realm — **private**. The realm's ways
+   * grow with what gets authored, and a caller narrowing the whole list
+   * at the call site is what makes that everybody's cost. `lanesAt` is
+   * the read consumers actually want.
+   */
+  private async allLanes(): Promise<CompiledLane[]> {
     return [...(await this.index()).lanes.values()];
   }
 
@@ -151,7 +163,7 @@ export default class LaneCatalogue extends Idea {
    * touch here* is how a lane meets the local economy.
    */
   public async lanesAt(path: string): Promise<CompiledLane[]> {
-    return (await this.allLanes()).filter((l) => l.nodes.includes(path));
+    return [...((await this.index()).byNode.get(path) ?? [])];
   }
 
   /**
@@ -384,7 +396,19 @@ async function loadIndex(): Promise<CompiledIndex> {
     routes.set(d.key, d);
   }
 
-  return { lanes, routes, problems };
+  // The node index, built once with the lanes rather than derived per
+  // question. A lane's `nodes` list is already deduplicated by the
+  // compile, so one pass is enough.
+  const byNode = new Map<string, CompiledLane[]>();
+  for (const lane of lanes.values()) {
+    for (const node of lane.nodes) {
+      const list = byNode.get(node);
+      if (list) list.push(lane);
+      else byNode.set(node, [lane]);
+    }
+  }
+
+  return { lanes, routes, byNode, problems };
 }
 
 /** Compile one lane — authored edges, or the induced walk. */

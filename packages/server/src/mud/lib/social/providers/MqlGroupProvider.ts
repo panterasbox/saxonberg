@@ -24,24 +24,28 @@ import type {
 } from '../GroupProvider';
 import type { GroupRole } from '../Group';
 import { MqlApi } from '../../../api/mql';
-import { PlayerApi } from '../../../api/player';
 
 export class MqlGroupProvider implements GroupProvider {
   readonly source = 'mql';
 
   async members(id: string): Promise<Stuff[]> {
-    // The MqlApi.resolveMany surface requires a commandGiver context.
-    // For server-side consumers we use any registered Avatar as the
-    // viewer — same shape the `online` scope already relies on. If
-    // no avatars are online, we surface an empty set; the resolver
-    // can't run without a viewer.
-    const viewer = PlayerApi.getAllAvatars()[0];
-    if (!viewer) return [];
-    const result = MqlApi.resolveMany(id, {
-      commandGiver: viewer as unknown as Parameters<typeof MqlApi.resolveMany>[1]['commandGiver'],
-      scope: 'online',
-    });
-    return result.stuff;
+    // ⭐ SYSTEM MODE, not "an arbitrary logged-in person as the viewer".
+    // This used to take `getAllAvatars()[0]`, which meant a group's
+    // membership depended on whose session happened to be first in a
+    // map — a viewer-dependent answer to a question that is not about a
+    // viewer, and empty whenever nobody was online. The `online` seed
+    // resolves with a null giver, so the honest reading is that there
+    // is no principal here at all.
+    //
+    // A query that genuinely needs a viewer (an anchored seed) throws;
+    // an unresolvable group is an empty membership, which is what the
+    // arbitrary-viewer version degraded to anyway.
+    try {
+      return MqlApi.resolveMany(id, { commandGiver: null, scope: 'online' })
+        .stuff;
+    } catch {
+      return [];
+    }
   }
 
   /**

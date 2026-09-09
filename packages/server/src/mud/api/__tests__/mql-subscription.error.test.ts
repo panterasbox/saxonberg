@@ -104,6 +104,30 @@ describe('MqlSubscriptionApi — error envelopes', () => {
     expect(MqlSubscriptionApi._getRegistrySizeForTesting()).toBe(0);
   });
 
+  it('⭐⭐ a standing `world` query is refused for EVERYONE — no exception', async () => {
+    // AC4. The seat's exemption is for a query somebody TYPES and is
+    // told the cost of; a subscription is a query that re-runs on every
+    // change, and there is nobody to tell. Subscriptions route through
+    // `MqlApi.resolveMany`, so the refusal is the same one the binder
+    // catches — and here nothing catches it, which is the point.
+    await bootRegistry();
+    const { interactive, avatar } = await makeAvatarInteractive();
+    const envelopes = captureEnvelopes(avatar);
+    MqlSubscriptionApi.handleSubscribe({
+      interactive,
+      subscriptionId: 's-world',
+      query: 'world:[mixin.NamedMixin]',
+      cardinality: 'many',
+    });
+    const errors = envelopes.filter((e) => e.type === 'mql-subscription-error');
+    expect(errors).toHaveLength(1);
+    expect(errors[0]).toMatchObject({
+      subscriptionId: 's-world',
+      reason: 'permission',
+    });
+    expect(MqlSubscriptionApi._getRegistrySizeForTesting()).toBe(0);
+  });
+
   it('malformed MQL query → reason: parse, no registration', async () => {
     await bootRegistry();
     const { interactive, avatar } = await makeAvatarInteractive();

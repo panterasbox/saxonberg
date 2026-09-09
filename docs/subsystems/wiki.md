@@ -783,6 +783,17 @@ one, because it reports links that are not there.
   *will* happen; without the report a stale article quietly documents
   nothing.
 
+⭐ These four are the **only** whole-corpus reads, and they honestly are
+whole-corpus questions — a backlink report is *about* every page and
+every body. So `WikiRegistry.pages()` is **private**, kept as their
+shared input, and `pagesIn(namespace)` is what everything else gets:
+`wiki list <ns>` goes to `WikiPage.findByNamespace`, which uses the
+collection's existing `{namespace, slug}` index instead of reading the
+corpus and filtering at the call site. The corpus grows with what people
+write, which is exactly the kind of growth a listing must not be priced
+at. See
+[antipatterns.md § An Api May Not Hand Back Its Table](../antipatterns.md).
+
 `[[refs]]` inside code are excluded — MML `<code>`/`<pre>`, markdown
 fences and backtick spans alike — or an author writing *about* the
 syntax creates phantom demand for a page called `Page`. The guide page

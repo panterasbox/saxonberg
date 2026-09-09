@@ -36,6 +36,7 @@ import type {
   MqlOne,
   MqlMany,
   MqlQuantity,
+  RegistryScan,
 } from './mql/types';
 
 export type {
@@ -46,6 +47,7 @@ export type {
   MqlOne,
   MqlMany,
   MqlQuantity,
+  RegistryScan,
 };
 
 // Symbols the non-api layer consumes flow through this facade so the
@@ -108,6 +110,12 @@ export class MqlApi {
   static resolveMany(query: string, ctx: MqlContext): MqlMany {
     return logic().resolveMany(query, ctx);
   }
+
+  // ⭐ There is no third resolve method. `world` is refused for
+  // everybody here and permitted by the ENVIRONMENT — see
+  // `CompactApi.readWorldAs` and `ExecutionContextApi.getWorldReadGrant`.
+  // A separately-gated entry point would make the permission a property
+  // of which door you knocked on rather than of who is at the helm.
 
   /**
    * Unwrap a YAML-bound field value into a flat `Stuff[]`. Accepts

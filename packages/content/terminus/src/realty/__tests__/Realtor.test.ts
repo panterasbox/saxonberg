@@ -28,6 +28,10 @@ import { StuffApi } from "@saxonberg/server/mud/api/stuff";
 import { ParcelApi } from "@saxonberg/server/mud/api/parcel";
 import { DialogueEffectRegistry } from "@saxonberg/server/mud/lib/npc/DialogueEffects";
 import { makeStuffAtPath } from "@saxonberg/server/mud/lib/security/__tests__/test-setup";
+import { PersistenceManager } from "@saxonberg/server/mud/lib/persistence/__tests__/backend-store";
+import ResidenceCatalogue, {
+  RESIDENCE_CATALOGUE_PATH,
+} from "@saxonberg/content-residence/src/idea/ResidenceCatalogue";
 import type { Stuff } from "@saxonberg/server/mud/lib/stuff/Stuff";
 
 /** The provisioner half a book asks for capacity and the next free leaf. */
@@ -44,6 +48,29 @@ class TestHolder extends Idea {
 
 let sold: string[];
 
+/**
+ * The rows behind the roster. The window is enumerated off the residence
+ * system's roster now, and a book is ON that roster because its ROW
+ * authors a `parentExtent` — so a synthetic book here declares one, the
+ * same way a real subdivision does. That is still no code change: it is
+ * content.
+ */
+let rows: Array<Record<string, unknown>>;
+
+function installStore(): void {
+  rows = [];
+  vi.spyOn(PersistenceManager, "get").mockReturnValue({
+    save: vi.fn(async () => "x"),
+    find: vi.fn(async (collection: string, q: Record<string, unknown>) =>
+      collection === "content" && "data.parentExtent" in q ? rows.slice() : [],
+    ),
+    findById: vi.fn(async () => null),
+    delete: vi.fn(async () => {}),
+    isConnected: () => true,
+  } as unknown as PersistenceManager);
+  makeStuffAtPath(() => new ResidenceCatalogue(), RESIDENCE_CATALOGUE_PATH);
+}
+
 function book(
   path: string,
   label: string,
@@ -53,6 +80,12 @@ function book(
 ): PlatBook {
   const holder = makeStuffAtPath(() => new TestHolder(), `${path}-holder`);
   holder.next = nextLeaf;
+  rows.push({
+    _id: path,
+    path,
+    class: "/system/residence/idea/PlatBook",
+    data: { parentExtent: parent },
+  });
   const b = makeStuffAtPath(() => new PlatBook(), path);
   b.setLabel(label);
   b.setParentExtent(parent);
@@ -86,6 +119,7 @@ let issued: Array<{ actor: Stuff; line: string }>;
 
 beforeEach(() => {
   StuffApi.clearAll();
+  installStore();
   sold = [];
   issued = [];
   choiceFn = vi.fn();

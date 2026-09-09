@@ -96,6 +96,8 @@ suite REPORTS these; fixing them was an explicit non-goal.
 | the smithy ships two ingots sharing a keyword, one of which fails a durability validator — the bareword picks the decoy | trade-smithing |
 | the by-hand smithing build completes and confers no deed (`forge` stays `not-learned`) | trade-smithing |
 | `measure strike` without an instrument is `unknown-verb`, not a refusal naming the instrument — two defensible designs | trade-mining |
+| a standing MQL subscription has no teardown a flow can reach, so a wire file that opens one leaks it for the rest of the run (`world-scan.dirty` is the first to do it) | mql-subscription / the harness |
+| `office assign` answers "No such player." over the raw socket, so no wire flow can move a seat — `world-scan.dirty` step 14 warns instead of proving the handoff | governance ⭐ two builds have routed around this |
 
 ## What this slate is NOT
 

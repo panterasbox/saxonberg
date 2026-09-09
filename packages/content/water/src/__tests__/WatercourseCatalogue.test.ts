@@ -24,8 +24,13 @@ import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { PersistApi } from '@saxonberg/server/mud/api/persist';
 import { Collections } from '@saxonberg/server/mud/lib/persistence/Collections';
 import { StuffApi } from '@saxonberg/server/mud/api/stuff';
-import { makeStuff } from '@saxonberg/server/mud/lib/security/__tests__/test-setup';
-import WatercourseCatalogue from '../idea/WatercourseCatalogue';
+import {
+  makeStuff,
+  makeStuffAtPath,
+} from '@saxonberg/server/mud/lib/security/__tests__/test-setup';
+import WatercourseCatalogue, {
+  WATERCOURSE_CATALOGUE_PATH,
+} from '../idea/WatercourseCatalogue';
 import type { WatercourseNode } from '../idea/Watercourse';
 
 interface CourseSpec {
@@ -72,7 +77,10 @@ function installCourses(specs: CourseSpec[]): void {
 }
 
 const catalogue = (): WatercourseCatalogue =>
-  makeStuff(() => new WatercourseCatalogue()) as WatercourseCatalogue;
+  makeStuffAtPath(
+    () => new WatercourseCatalogue(),
+    WATERCOURSE_CATALOGUE_PATH,
+  ) as WatercourseCatalogue;
 
 /** The Kestrel: a trunk running 1200 m down to the sea in five reaches. */
 const KESTREL: CourseSpec = {

@@ -31,7 +31,11 @@ import {
   OMNI_SCOPE,
 } from '../execution-context';
 import { desugar } from './desugar';
-import { MqlPermissionError, type MqlQuantity } from './types';
+import {
+  MqlPermissionError,
+  type MqlQuantity,
+  type RegistryScan,
+} from './types';
 import { getOnlineHolders } from './online-provider';
 import { parse, type MqlParseError } from './parser';
 import { isPredicateName, MQL_PREDICATES } from './predicates';
@@ -120,8 +124,26 @@ export function resolve(query: string, ctx: MqlContext): MqlMatch[] {
  */
 export function resolveWithQuantity(
   query: string,
+  ctx: MqlContext,
+): { matches: MqlMatch[]; quantity?: MqlQuantity; scan?: RegistryScan } {
+  // ⭐ `registryScan` is a COST RECORD, not a permission — what this run
+  // read, so whoever was entitled to read it can be told. It lives for
+  // exactly one synchronous run; save/restore rather than assign/clear,
+  // because a predicate can re-enter `MqlApi.resolveMany` and the outer
+  // run's record must survive the nested one.
+  const outerScan = registryScan;
+  registryScan = null;
+  try {
+    return resolveInner(query, ctx);
+  } finally {
+    registryScan = outerScan;
+  }
+}
+
+function resolveInner(
+  query: string,
   ctx: MqlContext
-): { matches: MqlMatch[]; quantity?: MqlQuantity } {
+): { matches: MqlMatch[]; quantity?: MqlQuantity; scan?: RegistryScan } {
   const desugared = desugar(query);
   if (desugared.error) {
     throw new MqlDesugarError(desugared.error);
@@ -132,8 +154,11 @@ export function resolveWithQuantity(
   const finalized = finalize(matches);
   const quantity: MqlQuantity | undefined =
     parserQuantity ?? desugared.quantityHint;
-  if (quantity) return { matches: finalized, quantity };
-  return { matches: finalized };
+  const out: { matches: MqlMatch[]; quantity?: MqlQuantity; scan?: RegistryScan } =
+    { matches: finalized };
+  if (quantity) out.quantity = quantity;
+  if (registryScan) out.scan = registryScan;
+  return out;
 }
 
 /**
@@ -188,11 +213,111 @@ function resolveSublist(node: SublistNode, ctx: MqlContext): MqlMatch[] {
 }
 
 function resolveChain(node: ChainNode, ctx: MqlContext): MqlMatch[] {
-  let matches = resolveSeed(node.head, ctx);
+  const indexed = indexedWorldSeed(node);
+  let matches: MqlMatch[];
+  if (indexed === null) {
+    matches = resolveSeed(node.head, ctx);
+  } else {
+    // The index-answerable shape. Still refused when nothing granted the
+    // read — being cheap is not being permitted.
+    if (!mayReadWorld()) {
+      throw new MqlPermissionError(WORLD_REFUSED, 'world');
+    }
+    const bucket = StuffApi.findByMixin(indexed);
+    registryScan = {
+      scanned: bucket.length,
+      indexed: true,
+      shape: `world:[mixin.${indexed}]`,
+    };
+    matches = matchesFromStuff(bucket);
+  }
   for (const op of node.rest) {
     matches = applyChainOp(matches, op, ctx);
   }
   return matches;
+}
+
+/**
+ * ⭐⭐ **The index-answerable shape**: `world` at the chain head,
+ * immediately followed by a `[mixin.X]` bracket filter.
+ *
+ * That single shape is what the registry's composition index answers
+ * directly, so the seed reads a bucket instead of the world. The filter
+ * op still runs afterwards and is idempotent — the answer is
+ * *identical*, which is the whole claim: the query means what it always
+ * meant, it merely stops costing the size of the realm.
+ *
+ * ⚠ `[mixin.X]` in any other position, and every other bracket
+ * namespace (`class.`, `prop.`, `template.`, `keyword.`) is NOT
+ * index-answerable and returns null here. `class.` in particular looks
+ * similar and is not: it matches subclasses by a prototype walk, which
+ * is a different question about a different axis.
+ *
+ * Returns the lowercased mixin name, or null.
+ */
+function indexedWorldSeed(node: ChainNode): string | null {
+  const head = node.head;
+  if (head.kind !== 'keywords') return null;
+  if (head.words.length !== 1 || head.words[0] !== 'world') return null;
+  const first = node.rest[0]?.element;
+  if (!first || first.kind !== 'bracket-filter') return null;
+  const expr = first.expr;
+  if (expr.kind !== 'truthy' && expr.kind !== 'has') return null;
+  const atom = expr.atom;
+  if (atom.kind !== 'namespaced' || atom.namespace !== 'mixin') return null;
+  return atom.key.toLowerCase();
+}
+
+/**
+ * ⭐⭐ **May whoever is running right now read the whole world?**
+ *
+ * The resolver asks the *environment*, and nothing else. Not a flag on
+ * `MqlContext` — a context is supplied by the caller, and a permission
+ * a caller can hand itself is not a permission. Not the shape of the
+ * call stack either — which function called says nothing about the
+ * person acting.
+ *
+ * The grant is planted by `CompactApi.readWorldAs`, and only on the far
+ * side of the executive being asked about the acting principal. So a
+ * `true` here means a real authority said yes about a real person, and
+ * every question of *who* may do this — the seat today, group
+ * membership or per-shape carve-ups tomorrow — is answered in that one
+ * method with nothing in the query engine moving.
+ *
+ * ⭐ There is no engine grant. The realm's own bookkeeping never wanted
+ * a query — every one of its eleven reads was `world:[mixin.X]`, which
+ * is `StuffApi.findByMixin` with extra steps. They ask the registry
+ * directly now, and the query engine is back to being only a query
+ * engine.
+ */
+function mayReadWorld(): boolean {
+  return ExecutionContextApi.getWorldReadGrant() !== null;
+}
+
+/** What this run read, recorded so an entitled reader can be told. */
+let registryScan: RegistryScan | null = null;
+
+/**
+ * The refusal every ordinary caller gets. ⚠ It names the alternatives:
+ * a refusal that only says no turns a working query into a dead end,
+ * and the alternatives are the whole reason this is affordable.
+ */
+const WORLD_REFUSED =
+  "'world' is not available here — anchor the query (reachable, here, " +
+  'person, inventory, online) or use a /path glob.';
+
+/**
+ * The whole registry, for a caller entitled to it — and a record of what
+ * that cost. Throws for everyone else.
+ *
+ * `shape` is the leading fragment as typed, so the note a person reads
+ * names the query they actually wrote.
+ */
+function wholeRegistry(shape: string): Stuff[] {
+  if (!mayReadWorld()) throw new MqlPermissionError(WORLD_REFUSED, 'world');
+  const all = StuffApi.getAllObjects();
+  registryScan = { scanned: all.length, indexed: false, shape };
+  return all;
 }
 
 // ----- seeds ---------------------------------------------------------
@@ -321,7 +446,7 @@ function resolveKeywordSeed(node: KeywordsNode, ctx: MqlContext): MqlMatch[] {
       return matchesFromStuff(allOnlineCommandGivers());
     }
     if (w === 'world') {
-      return matchesFromStuff(StuffApi.getAllObjects());
+      return matchesFromStuff(wholeRegistry('world'));
     }
     if (w === 'peers') {
       return candidatesToMatches(
@@ -631,7 +756,14 @@ function candidatesForScopePart(
     return candidatesForFlat(allOnlineCommandGivers(), ctx.commandGiver, ctx.attention);
   }
   if (lower === 'world') {
-    return candidatesForFlat(StuffApi.getAllObjects(), ctx.commandGiver, ctx.attention);
+    // ⚠ The scope keyword is never index-answerable: a scope is a
+    // candidate POOL that later keyword matching runs over, so there is
+    // no composition filter to read a bucket from.
+    return candidatesForFlat(
+      wholeRegistry("scope 'world'"),
+      ctx.commandGiver,
+      ctx.attention,
+    );
   }
   if (lower === 'me') {
     return [

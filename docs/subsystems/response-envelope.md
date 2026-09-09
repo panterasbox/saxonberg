@@ -127,6 +127,15 @@ forwarded by controllers via `ctx.note`):
   `reason` is one of `'parse-failed' | 'unknown-verb' | 'shape-fall-through' | 'bind-failed' | 'missing-subcommand'`.
 - `mql-error { field, stage, detail }` — MQL threw during resolve;
   `stage` is `'desugar' | 'lex' | 'parse' | 'resolve'`.
+- `registry-scan { field, scanned, indexed, shape }` — ⭐ **the receipt
+  for reading the whole realm.** `world:` is refused for everyone
+  except somebody the executive says may read it (today the holder of
+  the Prime Minister's seat); when their query runs, this says what it
+  cost. `scanned` is objects READ, not
+  matched, and `indexed: false` means the shape answered to no index —
+  the number that grows with the realm. **It does not escalate the
+  status**: the command succeeded, and being told the price is not a
+  complaint about it.
 - `validator-failed { field?, validator, detail }` — a field /
   verb / option / payload / subcommand validator returned a string.
   Validators MAY also emit their own richer notes (`controller-rejected
@@ -201,6 +210,7 @@ internally in `api/command.ts` (`autoEscalationFor`):
 | `slot-occupied`                | `declined`     |
 | `command-rejected`             | `declined`     |
 | `mql-error`                    | `declined`     |
+| `registry-scan`                | *(none)*       |
 | `validator-failed`             | `declined`     |
 | `controller-error`             | `error`        |
 

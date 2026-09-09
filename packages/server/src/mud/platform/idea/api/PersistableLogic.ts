@@ -11,6 +11,7 @@ import { StuffApi } from "../../../api/stuff";
 import { ContainmentApi } from "../../../api/containment";
 import type { Adornment } from "../../../lib/boundary/Adornment";
 import { ParcelApi } from "../../../api/parcel";
+import { MqlApi } from "../../../api/mql";
 import { ChattelApi } from "../../../api/chattel";
 import { Mixins } from "../../../lib/mixin";
 import { ExecutionContextApi } from "../../../api/execution-context";
@@ -479,6 +480,45 @@ function captureState(host: Stuff): Record<string, MixinSlice> {
     }
   }
   return state;
+}
+
+/**
+ * ⭐ **The shutdown sweep, ASKED not remembered.** The world's
+ * persistable singletons — venue rooms, stock counters — capture at
+ * establish and at the residency sweep; a stop between two sweeps would
+ * lose everything consigned or placed since (the libations live drive
+ * watched a dev restart empty the cash-and-carry counter).
+ *
+ * Who wants a capture is `PersistableMixin`'s own knowledge, including
+ * the Avatar exclusion, so this asks the population and each host
+ * answers for itself. ⚠ A `PersistableRegistry` that hosts enrolled
+ * themselves into was tried and removed: it was a third index of Stuff
+ * holding no fact the objects did not already hold, maintained on every
+ * key-set and every destruct forever, to save one sweep at process exit.
+ *
+ * ⭐ It lives HERE rather than in the bootstrapper because the
+ * registry-wide read is gated on the calling function, and a backend
+ * class has no dispatched frame to be recognized by. Returns the number
+ * captured; each failure is logged and skipped.
+ */
+async function captureAtShutdownImpl(): Promise<number> {
+  const hosts = StuffApi.findByMixin('PersistableMixin');
+  let captured = 0;
+  for (const stuff of hosts) {
+    if (!MixinApi.isPersistable(stuff)) continue;
+    if (!stuff.capturesAtShutdown()) continue;
+    try {
+      await captureImpl(stuff);
+      captured += 1;
+    } catch (err) {
+      console.error(
+        `PersistableLogic.captureAtShutdown: failed for ` +
+          `${stuff.getTemplatePath() ?? stuff.stuffId}:`,
+        err,
+      );
+    }
+  }
+  return captured;
 }
 
 /**
@@ -1055,6 +1095,12 @@ export class PersistableLogic extends ApiLogic {
   @CallSecurity(PersistableApiCallers)
   public async capture(host: Stuff, key?: string): Promise<void> {
     return captureImpl(host, key);
+  }
+
+  /** See {@link PersistableApi.captureAtShutdown}. */
+  @CallSecurity(PersistableApiCallers)
+  public async captureAtShutdown(): Promise<number> {
+    return captureAtShutdownImpl();
   }
 
   /** See {@link PersistableApi.materialize}. */

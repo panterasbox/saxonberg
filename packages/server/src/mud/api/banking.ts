@@ -390,6 +390,16 @@ export class BankingApi {
   }
 
   /**
+   * The first **live branch** of `bank` (an institution key), or null
+   * when no branch of it is standing. The custodian-validation and
+   * transfer paths' one question about where an institution actually is;
+   * memoized per institution behind the face.
+   */
+  public static branchOf(bank: string): (Stuff & Bank) | null {
+    return logic().branchOf(bank);
+  }
+
+  /**
    * The custodian bank (an institution key) recorded on an account, or
    * null for an unknown/uncustodied row — the relationship read a payer
    * derives a payee's new account from (e.g. a contract payout opens

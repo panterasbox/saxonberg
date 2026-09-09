@@ -78,6 +78,24 @@ export const WATERCOURSE_CATALOGUE_PATH = '/system/water/idea/WatercourseCatalog
 /** Where the kernel's `Locality` reference rows live. */
 const LOCALITY_PATH_PREFIX = '/stuff/idea/Locality';
 
+/**
+ * ⭐⭐ **The classes that can take water out of a reach, or put
+ * something back into it.** The roster is derived from the `content`
+ * rows naming these classes, so a conduit authored in any locality is
+ * found without anybody registering it and without walking the world.
+ *
+ * ⚠ **A new water work adds itself here** — a local edit in the pack
+ * that ships the mechanism, which is the same pack that would define
+ * the class. That is deliberately a plain list rather than a mixin the
+ * works compose: two classes in one pack do not earn an interface, and
+ * *a capability only one class composes is a method on that class
+ * wearing a costume*.
+ */
+const WATERWORK_CLASSES: readonly string[] = [
+  '/system/water/thing/Conduit',
+  '/system/water/thing/ControlStructure',
+];
+
 /** A reach citation, `"<courseKey>:<nodeName>"`. */
 export type ReachRef = string;
 
@@ -263,6 +281,12 @@ interface WorldScan {
 
 interface CompiledIndex {
   reaches: Map<ReachRef, CompiledReach>;
+  /**
+   * ⭐ The template paths of every water work that can draw or
+   * discharge — derived from the ROWS, memoised with the rest of the
+   * compile, and resolved to live objects on each read.
+   */
+  works: string[];
   /** For each reach, every reach downstream of it. */
   downstream: Map<ReachRef, Set<ReachRef>>;
   /** Immediate downstream neighbours (a delta has more than one). */
@@ -301,9 +325,26 @@ export default class WatercourseCatalogue extends Idea {
     };
   }
 
+  /**
+   * ⚠ **The works roster has its OWN slot, not a field on the compiled
+   * index.** The two expire on different clocks: the reach graph is
+   * compiled once and is expensive, while the roster is one row query
+   * and has to reflect content installed after that compile. Folding it
+   * into the index made a conduit that stood up after the first flow
+   * read invisible to the river — exactly the staleness the note on
+   * `worldScan` refuses.
+   */
+  private worksLoading: Promise<string[]> | null = null;
+
+  private works(): Promise<string[]> {
+    if (!this.worksLoading) this.worksLoading = loadWorks();
+    return this.worksLoading;
+  }
+
   /** Drop the compiled drainage; the next read rebuilds. Fired by HMR. */
   public invalidateCache(): void {
     this.loading = null;
+    this.worksLoading = null;
     this.flowCache.clear();
     this.flowCacheSegment = -1;
   }
@@ -549,14 +590,25 @@ export default class WatercourseCatalogue extends Idea {
    * the roster to go quietly stale — a failure this codebase has paid
    * for three times. A scan cannot go stale.
    *
-   * **Why not MQL**, which is normally how you search: MQL selects by
-   * MIXIN, and a capability pack cannot ship a mixin (its module
-   * categories are branches, controllers and tests — no `lib/`). Its
-   * `class.X` filter matches by class NAME, and three unrelated things
-   * in this codebase are called `Conduit`. So a shape scan is the
-   * honest mechanism available here — and `check-world-scan` names this
-   * file, so the choice is a diff a reviewer sees rather than a hole in
-   * a gate.
+   * ⭐⭐ **It used to walk every object in the world** and duck-type each
+   * one for a `withdrawalM3S`. It now walks the works the CONTENT ROWS
+   * name (`WATERWORK_CLASSES`) — five objects rather than eighteen
+   * hundred — and duck-types those, which is the same check over a set
+   * the size of the answer.
+   *
+   * ⭐ Nothing in the paragraphs above changes: the ROW list is memoised
+   * (authored content only moves at install), the LIVE resolution is
+   * not (so a shut sluice stops drawing on the very next query), and
+   * there is still no registry to go stale.
+   *
+   * ⚠ **And it took no new interface.** The obvious alternative — written
+   * in this build, then withdrawn in review — was a
+   * `WithdrawingMixin` the works compose: self-declaring, and it would
+   * make a third-party withdrawer possible. It was written and then
+   * withdrawn: two composers in one pack do not earn an interface, the
+   * mechanism is this pack's so a new work is a local edit here anyway,
+   * and *"we need an interface change to stop a scan"* is the wrong
+   * shape of answer. The rows already knew.
    */
   private async worldScan(nowS: number): Promise<WorldScan> {
     const index = await this.index();
@@ -567,7 +619,9 @@ export default class WatercourseCatalogue extends Idea {
       kind: ContaminantKind;
     }> = [];
 
-    for (const obj of StuffApi.getAllObjects()) {
+    for (const path of await this.works()) {
+      const obj = StuffApi.findByTemplatePath(path);
+      if (!obj || obj.isDestroyed()) continue; // authored but not standing
       const w = obj as unknown as Withdrawing & Discharging;
 
       if (typeof w.withdrawalM3S === 'function') {
@@ -741,7 +795,27 @@ async function loadIndex(): Promise<CompiledIndex> {
   assignDepths(reaches, successors);
   cascadeWildCatchments(reaches, downstream);
   await accumulateCatchments(reaches, downstream);
-  return { reaches, downstream, successors, byCourse };
+  return { reaches, downstream, successors, byCourse, works: await loadWorks() };
+}
+
+/**
+ * The template paths of every authored water work — one row query per
+ * class, at compile time, memoised with the rest of the index and
+ * dropped by `invalidateCache()` like everything else.
+ *
+ * ⚠ **Paths, not objects.** What is standing changes constantly and the
+ * flow read must see that immediately (a shut sluice stops drawing on
+ * the next query, not six game-hours later); what is AUTHORED changes
+ * only when content is installed. Memoising the first would be the
+ * cache bug this file's header warns about; memoising the second is
+ * free.
+ */
+async function loadWorks(): Promise<string[]> {
+  const out: string[] = [];
+  for (const cls of WATERWORK_CLASSES) {
+    for (const tpl of await Template.findByClass(cls)) out.push(tpl.path);
+  }
+  return out;
 }
 
 /**

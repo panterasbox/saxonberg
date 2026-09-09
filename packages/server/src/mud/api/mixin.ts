@@ -250,6 +250,31 @@ export class MixinApi {
    * @returns Array of mixin constructors
    */
   public static queryMixins(constructor: AnyConstructor): MixinClass[] {
+    return [...MixinApi.#composedMixins(constructor)];
+  }
+
+  /**
+   * ⭐ **Memoized composition.** A class's mixin list is a pure function
+   * of the constructor — the prototype chain does not change under a
+   * live class — so the walk runs once per class instead of once per
+   * question. It was running on every `isX` narrowing anywhere in the
+   * engine, and on every object of every bracket filter in a query.
+   *
+   * The memo is a `WeakMap` keyed on the constructor, which means HMR
+   * needs no invalidation: a reloaded class is a **different**
+   * constructor and simply gets its own entry, while the old one is
+   * collected with the last object holding it.
+   *
+   * ⚠ Composition only. Shadows and augments are runtime facts about an
+   * *instance* and are consulted by `hasMixin(host, …)` /
+   * `getActiveMixins`, never here.
+   */
+  static #mixinMemo = new WeakMap<AnyConstructor, readonly MixinClass[]>();
+  static #lowercaseMemo = new WeakMap<AnyConstructor, ReadonlySet<string>>();
+
+  static #composedMixins(constructor: AnyConstructor): readonly MixinClass[] {
+    const cached = MixinApi.#mixinMemo.get(constructor);
+    if (cached) return cached;
     const mixins: MixinClass[] = [];
     let current: unknown = constructor;
 
@@ -267,7 +292,32 @@ export class MixinApi {
       current = Object.getPrototypeOf(current);
     }
 
-    return mixins;
+    const frozen: readonly MixinClass[] = mixins;
+    MixinApi.#mixinMemo.set(constructor, frozen);
+    return frozen;
+  }
+
+  /**
+   * Every composed mixin name on `constructor`, **lowercased** — the key
+   * space of the registry's composition index and of MQL's
+   * `[mixin.<name>]` filter, which has always compared case-insensitively.
+   *
+   * Its own memo: the registry asks this on every register and
+   * unregister, and the lowercasing is the part that would otherwise
+   * repeat per object.
+   */
+  public static lowercasedMixinNames(
+    constructor: AnyConstructor,
+  ): ReadonlySet<string> {
+    const cached = MixinApi.#lowercaseMemo.get(constructor);
+    if (cached) return cached;
+    const names = new Set<string>();
+    for (const mixin of MixinApi.#composedMixins(constructor)) {
+      const name = mixin._mixinName || mixin.name;
+      if (name) names.add(name.toLowerCase());
+    }
+    MixinApi.#lowercaseMemo.set(constructor, names);
+    return names;
   }
 
   /**
@@ -364,11 +414,11 @@ export class MixinApi {
     constructor: AnyConstructor,
     mixinName: MixinName
   ): boolean {
-    const mixins = this.queryMixins(constructor);
-    return mixins.some((mixin) => {
+    for (const mixin of MixinApi.#composedMixins(constructor)) {
       const name = mixin._mixinName || mixin.name;
-      return name === mixinName;
-    });
+      if (name === mixinName) return true;
+    }
+    return false;
   }
 
   /**

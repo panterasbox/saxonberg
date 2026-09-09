@@ -175,7 +175,7 @@ Pick from here to deepen something that already works. Cheaper to start
 | [venue-and-supply](./builds/venue-and-supply-slate.md) | V6 — `needs` past the closed six (ground/water/sun) and producer `yields` · V5 `lint:supply` · V4 the five support archetypes · V2 the uniform `kind: office` sweep … |
 | [zoning](./builds/zoning-slate.md) | the emission/nuisance model over `signalAt` · the cap at the boundary · the LULU host problem · nonconforming use · derived settlement type … |
 
-## Waves — rides another build (57)
+## Waves — rides another build (56)
 
 Not a cycle of its own. Pull one in when its host build is in flight.
 
@@ -236,10 +236,9 @@ Not a cycle of its own. Pull one in when its host build is in flight.
 | [trait](./tails/trait-slate.md) | the equilibrium / expressed split · the deviation narrator · the self-view showing acts not positions · the valence-scale denominator … |
 | [vitals](./tails/vitals-slate.md) | the affliction driver — disease and poison have no `inflict` path at all · medical instruments + consumable-crafting past the bandage … |
 | [weather](./tails/weather-slate.md) | fog → visibility · snow depth · vector wind · moving fronts · a weather-pin write Api (it blocks the `storm` Discipline) … |
-| [world-scan-perf](./tails/world-scan-perf-slate.md) | the money-path owner reads (`flowSplitsFor`, `holdersByPosition` off the Business roster) · the per-tick `maintains.holdingsUnder` extent lookup … |
 | [youtube-relay](./tails/youtube-relay-slate.md) | outbound `liveChatMessages.insert` · the quota accountant + coalescing and drop policy · per-player `youtube.force-ssl` OAuth … |
 
-## Tails — small and opportunistic (35)
+## Tails — small and opportunistic (36)
 
 | slate | left to build |
 |---|---|
@@ -279,6 +278,7 @@ Not a cycle of its own. Pull one in when its host build is in flight.
 | [water (pack)](./tails/water-design-pack.md) | open question 2, does rain wet uncovered things other than soil · open question 3, the windowsill pot's indoor/sky-exposed ruling … |
 | [wire-suite growth](./tails/wire-suite-growth-slate.md) | boot groups beyond the one · the compressed-clock group (farming's growth arc is its first customer) · farming's yard legs (one actor must hold the seed AND own the lot) · metal-chain's provisioning leg · the crafting cookhouse scene → `cooking.dirty` · the prose-census ratchet · a Mongo snapshot reset path · world litter — plus the TEN content findings the first green run handed over, each with its owning trade |
 | [wiki](./tails/wiki-slate.md) | search integration · the level-3 source embed · the rest of the transclusion palette · open questions 5–7 |
+| [world-scan-perf](./tails/world-scan-perf-slate.md) | the `flat` seed (same `getAllObjects` shape, different consumer) · an engine-side `world:` subscription if one is ever added · MQL grammar for the specialized rosters … |
 
 ---
 

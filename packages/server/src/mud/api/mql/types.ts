@@ -179,6 +179,8 @@ export interface MqlOne {
   stuff: Stuff | null;
   via?: MqlMatchVia;
   quantity?: MqlQuantity;
+  /** Present only when the run walked the registry — see {@link RegistryScan}. */
+  scan?: RegistryScan;
 }
 
 /**
@@ -194,7 +196,32 @@ export interface MqlMany {
   stuff: Stuff[];
   via?: MqlMatchVia;
   quantity?: MqlQuantity;
+  /** Present only when the run walked the registry — see {@link RegistryScan}. */
+  scan?: RegistryScan;
 }
+
+/**
+ * ⭐ **What a registry-wide read cost**, recorded by the resolver and
+ * carried back to whoever was entitled to make it.
+ *
+ * It exists because *"this person may read the world"* is only a
+ * defensible grant if they are told what they just did. `scanned`
+ * is objects READ, not matched — a query that returns three things after
+ * reading eighteen hundred is exactly the case worth showing.
+ *
+ * `indexed: false` means the whole registry was walked because the query
+ * was not in a shape any index answers; that is the number that grows
+ * with the realm.
+ */
+export interface RegistryScan {
+  /** Objects read to answer the query. */
+  scanned: number;
+  /** False ⇒ the whole registry was walked. */
+  indexed: boolean;
+  /** The leading fragment, as typed — e.g. `world:[class.Door]`. */
+  shape: string;
+}
+
 
 /**
  * Per-field model-side wrapper for a `type: object` resolution. The

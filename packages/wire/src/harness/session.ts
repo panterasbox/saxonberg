@@ -42,6 +42,8 @@ import type {
   DispatchResponseEnvelope,
   MqlQueryResultEnvelope,
   MqlQueryErrorEnvelope,
+  MqlSubscriptionResultEnvelope,
+  MqlSubscriptionErrorEnvelope,
   ActivityUpdateEnvelope,
   PromptEnvelope,
   Note,
@@ -60,6 +62,11 @@ const WS_URL = (): string => SERVER_URL().replace(/^http/, 'ws');
 
 /** How long any single frame may take to arrive before we call it lost. */
 const FRAME_TIMEOUT_MS = Number(process.env.WIRE_FRAME_TIMEOUT ?? 30_000);
+
+/** Whichever answer a `subscribe()` got first. */
+export type SubscribeOutcome =
+  | MqlSubscriptionResultEnvelope
+  | MqlSubscriptionErrorEnvelope;
 
 export type QueryRecord =
   | StuffRefRecord
@@ -103,6 +110,7 @@ type AnyFrame = {
   body?: unknown;
   payload?: unknown;
   queryId?: unknown;
+  subscriptionId?: unknown;
   engagementId?: unknown;
   promptId?: unknown;
   outcome?: unknown;
@@ -205,6 +213,11 @@ export class Session {
 
   /** One command in flight per session — correlation is by ORDER (D2). */
   private pendingDispatch: Pending<DispatchResponseEnvelope> | null = null;
+  private readonly pendingSubscriptions = new Map<
+    string,
+    { resolve: (o: SubscribeOutcome) => void; timer: NodeJS.Timeout }
+  >();
+
   private readonly pendingQueries = new Map<
     string,
     Pending<MqlQueryResultEnvelope>
@@ -346,6 +359,19 @@ export class Session {
         } else {
           p.resolve(frame as unknown as MqlQueryResultEnvelope);
         }
+        continue;
+      }
+      if (
+        type === 'mql-subscription-error' ||
+        type === 'mql-subscription-result'
+      ) {
+        const id =
+          typeof frame.subscriptionId === 'string' ? frame.subscriptionId : '';
+        const p = this.pendingSubscriptions.get(id);
+        if (!p) continue;
+        this.pendingSubscriptions.delete(id);
+        clearTimeout(p.timer);
+        p.resolve(frame as unknown as SubscribeOutcome);
         continue;
       }
       if (type === 'activity-update') {
@@ -536,6 +562,49 @@ export class Session {
       }
     );
     return envelope.result;
+  }
+
+  /**
+   * Open a STANDING query and return whichever answer the server gives
+   * first — the result envelope, or the refusal.
+   *
+   * ⚠ It resolves rather than throwing on a refusal, because for some
+   * queries the refusal IS the expected outcome and a thrown error would
+   * make the two indistinguishable from "the socket went quiet". The
+   * caller asserts on `type`.
+   *
+   * The subscription is left registered when it succeeds; a wire file
+   * that opens one is a `.dirty.` file by that alone.
+   */
+  async subscribe(
+    query: string,
+    opts: { cardinality?: 'one' | 'many'; fields?: string[] } = {}
+  ): Promise<SubscribeOutcome> {
+    const subscriptionId = `wire-sub-${++this.queryCounter}-${Date.now().toString(36)}`;
+    return new Promise<SubscribeOutcome>((resolve, reject) => {
+      const timer = setTimeout(() => {
+        this.pendingSubscriptions.delete(subscriptionId);
+        reject(
+          new Error(
+            `wire: no mql-subscribe answer for '${query}' within ` +
+              `${FRAME_TIMEOUT_MS}ms`
+          )
+        );
+      }, FRAME_TIMEOUT_MS);
+      this.pendingSubscriptions.set(subscriptionId, { resolve, timer });
+      this.ws.send(
+        JSON.stringify({
+          type: 'mql-subscribe',
+          payload: {
+            type: 'mql-subscribe',
+            subscriptionId,
+            query,
+            cardinality: opts.cardinality ?? 'many',
+            ...(opts.fields ? { fields: opts.fields } : {}),
+          },
+        })
+      );
+    });
   }
 
   /** `query(..., cardinality: 'one')` — the record, or null. */

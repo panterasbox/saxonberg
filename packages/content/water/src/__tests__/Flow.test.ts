@@ -29,8 +29,13 @@ import { PersistApi } from '@saxonberg/server/mud/api/persist';
 import { Collections } from '@saxonberg/server/mud/lib/persistence/Collections';
 import { StuffApi } from '@saxonberg/server/mud/api/stuff';
 import { WeatherApi } from '@saxonberg/server/mud/api/weather';
-import { makeStuff } from '@saxonberg/server/mud/lib/security/__tests__/test-setup';
-import WatercourseCatalogue from '../idea/WatercourseCatalogue';
+import {
+  makeStuff,
+  makeStuffAtPath,
+} from '@saxonberg/server/mud/lib/security/__tests__/test-setup';
+import WatercourseCatalogue, {
+  WATERCOURSE_CATALOGUE_PATH,
+} from '../idea/WatercourseCatalogue';
 import type { DrawLedger } from '../idea/WatercourseCatalogue';
 
 const DAY = 86_400;
@@ -99,7 +104,10 @@ function installValley(): void {
 }
 
 const catalogue = (): WatercourseCatalogue =>
-  makeStuff(() => new WatercourseCatalogue()) as WatercourseCatalogue;
+  makeStuffAtPath(
+    () => new WatercourseCatalogue(),
+    WATERCOURSE_CATALOGUE_PATH,
+  ) as WatercourseCatalogue;
 
 beforeEach(() => {
   StuffApi.clearAll();

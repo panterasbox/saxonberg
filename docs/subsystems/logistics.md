@@ -676,6 +676,13 @@ still imports no pack, a crossroads on two ways is asked about both, and
 **outdoor ground that is on no lane is asked nothing at all**, which is
 the behaviour a courtyard should have had from the start.
 
+⭐ `lanesAt` is a **keyed read** off a `byNode` index built during the
+compile (`place → the lanes running through it`). It was a filter over
+every lane in the realm, recomputed per depot per question; `allLanes`
+is private now, because a public whole-table read invites the next
+caller to narrow it too. See
+[antipatterns.md § An Api May Not Hand Back Its Table](../antipatterns.md).
+
 Two substrate fields, and the second is not optional:
 
 - **`materializesOnto`** — ⭐ an archetype builds a **wagon**, not a

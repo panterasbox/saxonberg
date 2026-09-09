@@ -155,26 +155,36 @@ export default class ParcelRegistry extends ParcelRegistryBase {
   }
 
   /**
-   * Every managed-group ref named by a `group`-kind parcel owner — the
-   * former input to the retired author scope (which folded in
-   * `core` itself). Player-owned parcels contribute nothing.
+   * ⭐ Every extent `subject` holds — asked of the **owners**, not of
+   * the parcels.
+   *
+   * The caller supplies `admits`, the same holder test `can` dispatches
+   * on. Each DISTINCT owner is asked exactly once and its extents are
+   * unioned, so the cost is bounded by how many holders there are rather
+   * than by how much land exists. The walk it replaced ran that test per
+   * ROW, on every access check.
    */
   @CallSecurity(ParcelApiCallers)
-  public async groupOwnerRefs(): Promise<GroupRef[]> {
-    const refs = new Set<GroupRef>();
-    for (const record of await ParcelRecord.findAll()) {
-      const owner = record.getOwner();
-      if (!owner || owner.kind !== "group") continue;
-      const ref = await this.resolveRefImpl(owner);
-      if (ref) refs.add(ref);
+  public async extentsHeldBy(
+    admits: (owner: ParcelOwner) => Promise<boolean>,
+  ): Promise<string[]> {
+    const out = new Set<string>();
+    for (const [, entry] of this.byOwner) {
+      if (!(await admits(entry.owner))) continue;
+      for (const extent of entry.extents) out.add(extent);
     }
-    return [...refs];
+    return [...out];
   }
 
-  /** Every parcel row, as stored (the held-extents walk's input). */
+  /**
+   * Every parcel row citing `reachRef` — the bank-holders of a reach,
+   * which is how riparian rights are derived (there is no record). A
+   * keyed read; the reach index is maintained beside the coverage trie.
+   */
   @CallSecurity(ParcelApiCallers)
-  public async allRecords(): Promise<ParcelRecord[]> {
-    return ParcelRecord.findAll();
+  public async parcelsOnReach(reachRef: string): Promise<ParcelRecord[]> {
+    if (!reachRef) return [];
+    return [...(this.byReach.get(reachRef) ?? [])];
   }
 
   // ── Title mutations (gated) ──
@@ -563,6 +573,7 @@ export default class ParcelRegistry extends ParcelRegistryBase {
     for (const stale of this.coverage.exact(extent)) {
       this.coverage.remove(extent, stale);
     }
+    this.deindexExtent(extent);
   }
 
   /** Drop + rebuild the coverage index from the `parcels` collection. */
@@ -592,6 +603,10 @@ export default class ParcelRegistry extends ParcelRegistryBase {
       this.coverage.remove(extent, stale);
     }
     this.coverage.insert(extent, record);
+    // The owner and reach indexes move with the trie, always: they are
+    // maintained by the same writes so there is no second lifecycle.
+    this.deindexExtent(extent);
+    this.indexRecord(record);
   }
 
   private async resolveRefImpl(owner: ParcelOwner): Promise<GroupRef | null> {
@@ -719,9 +734,72 @@ export default class ParcelRegistry extends ParcelRegistryBase {
 
   private async rebuildIndex(): Promise<void> {
     this.coverage.clear();
+    this.byOwner.clear();
+    this.byReach.clear();
     for (const record of await ParcelRecord.findAll()) {
       const extent = record.getExtent();
       if (extent.length > 0) this.coverage.insert(extent, record);
+      this.indexRecord(record);
+    }
+  }
+
+  /**
+   * ⭐ **`owner → the extents it holds`, and `reach → the parcels on
+   * it`** — the two questions anything outside this class actually asks,
+   * kept beside the coverage trie and maintained by the same writes.
+   *
+   * The owner index is keyed by a STRING because a `ParcelOwner` is a
+   * value, not an identity: two rows held by the same group are two
+   * distinct objects naming one holder, and the point of the index is to
+   * ask that holder once.
+   */
+  private byOwner = new Map<
+    string,
+    { owner: ParcelOwner; extents: Set<string> }
+  >();
+  private byReach = new Map<string, Set<ParcelRecord>>();
+
+  /** The owner index's key. `''` for a row with no resolvable holder. */
+  private ownerKeyOf(owner: ParcelOwner): string {
+    switch (owner.kind) {
+      case "player":
+      case "organization":
+        return `${owner.kind}:${owner.templatePath}`;
+      case "group":
+        return `group:${owner.ref ?? owner.name ?? ""}`;
+    }
+  }
+
+  /** Add `record` to the owner and reach indexes. */
+  private indexRecord(record: ParcelRecord): void {
+    const extent = record.getExtent();
+    const owner = record.getOwner();
+    if (extent.length > 0 && owner) {
+      const key = this.ownerKeyOf(owner);
+      const entry = this.byOwner.get(key);
+      if (entry) entry.extents.add(extent);
+      else this.byOwner.set(key, { owner, extents: new Set([extent]) });
+    }
+    const reach = record.getReach();
+    if (reach.length > 0) {
+      const bucket = this.byReach.get(reach);
+      if (bucket) bucket.add(record);
+      else this.byReach.set(reach, new Set([record]));
+    }
+  }
+
+  /** Drop everything `extent` contributed to the owner/reach indexes. */
+  private deindexExtent(extent: string): void {
+    if (!extent) return;
+    for (const [key, entry] of this.byOwner) {
+      entry.extents.delete(extent);
+      if (entry.extents.size === 0) this.byOwner.delete(key);
+    }
+    for (const [reach, bucket] of this.byReach) {
+      for (const record of bucket) {
+        if (record.getExtent() === extent) bucket.delete(record);
+      }
+      if (bucket.size === 0) this.byReach.delete(reach);
     }
   }
 }

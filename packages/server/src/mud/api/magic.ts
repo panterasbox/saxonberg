@@ -114,6 +114,16 @@ export class MagicApi {
   public static async relocationCost(spec: RelocationSpec): Promise<number> {
     return logic().relocationCost(spec);
   }
+
+  /**
+   * A plausible false name for the thing whose identity is `signature` —
+   * some other identifiable class's real name, borrowed so the lie names
+   * a thing that really exists. `'something entirely harmless'` when the
+   * realm has nothing else to borrow.
+   */
+  public static decoyNameFor(signature: string): string {
+    return logic().decoyNameFor(signature);
+  }
 }
 
 SecurityApi.decorateApiClass(MagicApi);

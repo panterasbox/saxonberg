@@ -35,7 +35,7 @@ const REACH = 'kestrel:confluence';
 
 /**
  * An in-memory document store behind `DocumentApi`, and an in-memory
- * parcel roster behind `ParcelApi.allRecords`.
+ * parcel roster behind `ParcelApi.parcelsOnReach`.
  *
  * The seam is the two **Api faces** — a pack sees the kernel only
  * through them, so they are the only honest place to intercept.
@@ -62,19 +62,17 @@ function installStores(): void {
       .filter(([p]) => p === prefix || p.startsWith(prefix + '/'))
       .map(([, data]) => ({ getData: () => data }) as never);
   });
-  vi.spyOn(ParcelApi, 'allRecords').mockImplementation(async () =>
-    parcels.map(
-      (p) =>
-        ({
-          getExtent: () => p.extent,
-          getReach: () => p.reach,
-          getOwner: () =>
-            p.owner === null
-              ? null
-              : { kind: 'player', templatePath: p.owner },
-        }) as never,
-    ),
-  );
+  vi.spyOn(ParcelApi, 'parcelsOnReach').mockImplementation((async (
+    reachRef: string,
+  ) =>
+    parcels
+      .filter((p) => p.reach === reachRef)
+      .map((p) => ({
+        getExtent: () => p.extent,
+        getReach: () => p.reach,
+        getOwner: () =>
+          p.owner === null ? null : { kind: 'player', templatePath: p.owner },
+      }))) as never);
 }
 
 const registry = (): WaterRightRegistry =>

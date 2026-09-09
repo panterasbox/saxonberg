@@ -12,10 +12,16 @@
  * this one was maintained on every key-set and every destruct, forever,
  * to save a single sweep at process exit.
  *
- * The hosts are now found by the sanctioned world search —
- * `world:[mixin.PersistableMixin]` in system mode, which is exactly what
- * `lint:world-scan` points a bespoke `getAllObjects()` loop at — and
- * asked. Nothing to keep in sync, nothing to go stale on a hot reload.
+ * The hosts are found by asking the registry once, at shutdown, and
+ * asking each one for itself. Nothing to keep in sync, nothing to go
+ * stale on a hot reload.
+ *
+ * ⭐ The sweep lives on `PersistableLogic.captureAtShutdown` rather than
+ * in the bootstrapper, because the registry-wide read is gated on the
+ * calling function and a backend class has no dispatched frame to be
+ * recognized by. So the stand-in below reads the population through a
+ * reader stamped at that template — which means these tests exercise
+ * the gate end to end rather than around it.
  */
 
 import '../../../../test-bootstrap';
@@ -27,6 +33,7 @@ import { PostRegistrationMixin } from '../../stuff/PostRegistration';
 import { ContainerMixin } from '../../spatial/Container';
 import { HasInteractiveMixin } from '../../connection/HasInteractive';
 import Thing from '../../stuff/Thing';
+import { Idea } from '../../stuff/Idea';
 import { makeStuffAtPath } from '../../security/__tests__/test-setup';
 
 class Counter extends PersistableMixin(
@@ -40,16 +47,28 @@ class Persona extends PersistableMixin(
 
 let seq = 0;
 
+/**
+ * A stand-in for the sweep's owner — stamped at the persistence logic's
+ * template with the method the pair list names, so the read is admitted
+ * exactly as the real one is.
+ */
+class ShutdownReader extends Idea {
+  public captureAtShutdown(): unknown[] {
+    return StuffApi.findByMixin('PersistableMixin').filter((s) =>
+      (s as unknown as { capturesAtShutdown(): boolean }).capturesAtShutdown(),
+    );
+  }
+}
+
 /** What the shutdown loop actually does, minus the capture itself. */
 function shutdownHosts(): unknown[] {
-  return MqlApi.resolveMany('world:[mixin.PersistableMixin]', {
-    commandGiver: null,
-    scope: 'world',
-  }).stuff.filter(
-    (s) =>
-      (s as unknown as { capturesAtShutdown(): boolean }).capturesAtShutdown(),
-  );
+  const reader =
+    StuffApi.findByTemplatePath<ShutdownReader>(PERSISTABLE_LOGIC) ??
+    makeStuffAtPath(() => new ShutdownReader(), PERSISTABLE_LOGIC);
+  return reader.captureAtShutdown();
 }
+
+const PERSISTABLE_LOGIC = '/platform/idea/api/persistable';
 
 describe('capturesAtShutdown — the shutdown capture asks, it does not remember', () => {
   beforeEach(() => {

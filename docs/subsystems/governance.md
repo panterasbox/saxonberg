@@ -252,6 +252,38 @@ The soul committee's group (`soul`, holding `/expression`) is
 **PM-owned** (`owner: { office: prime-minister }` in the manifest): the
 seat appoints its members; nobody self-enrols.
 
+### ⭐ What else the seat confers: reading the whole realm
+
+The Prime Minister may type `world:` in any command — the query that
+reads every object the realm has ever made, which is refused for
+everybody else on every surface (see
+[mql.md](./mql.md) § *The registry-read grant*). It is the only
+person-shaped exemption in that design, and it has three properties
+worth stating because each was a deliberate choice:
+
+- **Derived, never stored.** `CompactApi.readWorldAs` asks
+  `holdsOffice` at the moment the query is refused, so the ability
+  arrives with a handoff and leaves with it, in the same act, with no
+  restart and no grant to revoke.
+- ⭐⭐ **The executive decides, in one method.** `readWorldAs` is the
+  whole of the rule: it answers *may this person read the world*, and
+  on a yes it — and only it — plants the grant in the execution
+  environment the query runs in. Today the answer is the seat. When
+  the executive wants to carve it up (a standing group, a per-shape
+  allowance, a delegate who may scan but not act) it is carved up
+  there; the query engine reads one ambient fact and knows nothing
+  about offices.
+- **Told what it cost.** The answer carries a `registry-scan` note —
+  how many objects were read, and whether any index answered. A grant
+  to read the whole realm is only defensible if the holder can see the
+  price of what they just typed.
+- **Typed queries only.** There are **no standing `world:`
+  subscriptions** for anybody, the seat included: a subscription
+  re-runs on every change and there is nobody to tell.
+
+⚠ It is asked at most once per dispatch, and only when a query is
+actually refused — an ordinary command pays nothing for the lookup.
+
 ## Deferred
 
 - The **filling workflow** (investiture-by-bill, constructive
@@ -286,6 +318,17 @@ every office in the game is permanently stuck on its founder default.
 Everything downstream of `holdsOffice` — `requiresGovernor`, the civics
 roster, the whole seats-as-positions story — would be describing a
 handoff that cannot happen.
+
+⚠⚠ **Reproduced over the raw WebSocket, 2026-09-08** — so it is not the
+e2e harness. `world-scan.dirty.wire.test.ts` step 14 moves the
+`prime-minister` seat to a throwaway character to prove the world-read
+ability **arrives and leaves with the office**; `office assign` answers
+*"No such player."* against a session that is connected and in the room,
+so the step logs `SEAT HANDOFF UNAVAILABLE` and returns rather than
+failing. The both-directions property therefore rests on unit tests
+(`world-seat-query.test.ts`, `holdsOffice` stubbed both ways) and has
+never been observed end to end. ⭐ **This is now the highest-value thing
+to fix in governance**: two builds have had to route around it.
 
 **Live consequence today.** The e2e suite needs the
 `central-bank-governor` seat to exercise `reserve issue`, cannot obtain

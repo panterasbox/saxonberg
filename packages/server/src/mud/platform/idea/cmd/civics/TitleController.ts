@@ -64,7 +64,6 @@ import { LandUses, type LandUse } from '../../../../lib/parcel/LandUse';
 import { Money } from '../../../../lib/banking/Money';
 import { Quantity } from '../../../../lib/quantity';
 import type { Stuff } from '../../../../lib/stuff/Stuff';
-import { MqlApi } from '../../../../api/mql';
 import { AppApi } from '../../../../api/app';
 import { Lock } from '../../../../lib/lock/Lock';
 import { OuterWarren } from '../../../../lib/location/OuterWarren';
@@ -92,6 +91,17 @@ interface PlatBookShape extends Stuff {
   /** Sold ∪ next-free — the GENERATIVE listing (D10; no roster). */
   lotExtents(): Promise<string[]>;
 }
+
+/**
+ * The residence system's roster, met over a path and a shape — never an
+ * import, because the kernel does not depend on a pack.
+ */
+interface ResidenceCatalogueView {
+  platBooks?: () => Promise<Stuff[]>;
+}
+
+/** Where the residence pack's roster stands, if the pack is installed. */
+const RESIDENCE_CATALOGUE_PATH = '/system/residence/idea/ResidenceCatalogue';
 
 /** The provisioning half a book names by path (`residence/idea/PlatWarren`). */
 interface PlatWarrenShape extends Stuff {
@@ -121,16 +131,21 @@ export default class TitleController extends CommandController<TitleModel> {
   }
 
   /**
-   * Every subdivision with lots to sell. MQL system enumeration (null
-   * giver — the plat books are world content, not a viewer's
-   * perception), the `LocomotionLogic.allModes` shape.
+   * Every subdivision with lots to sell — asked of the residence
+   * system's own roster, reached by **path and shape** rather than by
+   * naming a pack's class in a string (the `TravelNode` precedent). A
+   * realm with no residence pack installed simply sells no land.
    */
-  private books(): PlatBookShape[] {
-    const matches = MqlApi.resolveMany('world:[class.PlatBook]', {
-      commandGiver: null,
-      scope: 'world',
-    });
-    return matches.stuff.filter(
+  private async books(): Promise<PlatBookShape[]> {
+    let catalogue: Stuff | null = null;
+    try {
+      catalogue = await StuffApi.singleton<Stuff>(RESIDENCE_CATALOGUE_PATH);
+    } catch {
+      return [];
+    }
+    const view = catalogue as unknown as ResidenceCatalogueView;
+    if (typeof view.platBooks !== 'function') return [];
+    return (await view.platBooks()).filter(
       (s): s is PlatBookShape =>
         typeof (s as Partial<PlatBookShape>).lotExtents === 'function' &&
         typeof (s as Partial<PlatBookShape>).getHolderPath === 'function',
@@ -154,7 +169,7 @@ export default class TitleController extends CommandController<TitleModel> {
     const me = giver.getIdentityPath() ?? '';
     const held: string[] = [];
 
-    for (const book of this.books()) {
+    for (const book of await this.books()) {
       const where = book.getLabel();
       for (const extent of await book.lotExtents()) {
         const record = await ParcelApi.coveringParcelOf(extent);
@@ -204,7 +219,7 @@ export default class TitleController extends CommandController<TitleModel> {
     }
 
     const lines: string[] = [];
-    for (const book of this.books()) {
+    for (const book of await this.books()) {
       const price = Money.of(book.getPriceMinor(), Currency.compact());
       const area = Quantity.of(book.getAreaM2(), 'm²');
       const use = book.getLandUse();
@@ -256,7 +271,7 @@ export default class TitleController extends CommandController<TitleModel> {
     const raw = model.lot ?? '';
     let book: PlatBookShape | null = null;
     let extent: string | null = null;
-    for (const b of this.books()) {
+    for (const b of await this.books()) {
       const candidate = b.extentFor(raw);
       if (candidate) {
         book = b;
