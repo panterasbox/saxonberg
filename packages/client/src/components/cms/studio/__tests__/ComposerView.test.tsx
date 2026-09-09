@@ -43,9 +43,9 @@ vi.mock("../../studioClient", async (orig) => {
 });
 
 const GLOBBABLE_DETAIL: MixinDetail = {
-  name: "GlobbableMixin",
+  name: "StackableMixin",
   description:
-    "GlobbableMixin — fungible-stack substrate.\n\n" +
+    "StackableMixin — fungible-stack substrate.\n\n" +
     "Three guarantees:\n  1. One Stuff, N units.",
   authorableFields: [
     { name: "quantity", typeShape: "number", kind: "property" },
@@ -60,7 +60,7 @@ const SUMMARY = "fungible-stack substrate.";
 const PALETTE: MixinPalette = {
   mixins: [
     { name: "Idea", kind: "base" },
-    { name: "GlobbableMixin", kind: "mixin", summary: SUMMARY },
+    { name: "StackableMixin", kind: "mixin", summary: SUMMARY },
     { name: "UndocMixin", kind: "mixin" },
     // A summary that redundantly opens with the mixin's own name (the doubling
     // the strip + tooltip must collapse to a single occurrence).
@@ -110,7 +110,7 @@ describe("ComposerView mixin inspector card", () => {
     render(<ComposerView />);
     // The quick summary tooltip still rides each chip.
     expect(
-      screen.getByText("GlobbableMixin").getAttribute("title"),
+      screen.getByText("StackableMixin").getAttribute("title"),
     ).toContain(SUMMARY);
     // A summary that opens with the mixin's own name reads once, not doubled.
     const named = screen.getByRole("button", { name: "NamedMixin" });
@@ -134,7 +134,7 @@ describe("ComposerView mixin inspector card", () => {
     describeMixinMock.mockResolvedValue(GLOBBABLE_DETAIL);
     render(<ComposerView />);
 
-    fireEvent.mouseEnter(screen.getByText("GlobbableMixin"));
+    fireEvent.mouseEnter(screen.getByText("StackableMixin"));
 
     // The full multi-paragraph description renders (not just a one-liner).
     expect(
@@ -146,14 +146,14 @@ describe("ComposerView mixin inspector card", () => {
     // The contributed field surfaces with its type shape.
     expect(card.textContent).toContain("quantity");
     expect(card.textContent).toContain("(number)");
-    expect(describeMixinMock).toHaveBeenCalledWith("GlobbableMixin");
+    expect(describeMixinMock).toHaveBeenCalledWith("StackableMixin");
   });
 
   it("is sticky — it keeps the last inspected mixin after mouse-out", async () => {
     describeMixinMock.mockResolvedValue(GLOBBABLE_DETAIL);
     render(<ComposerView />);
 
-    const chip = screen.getByText("GlobbableMixin");
+    const chip = screen.getByText("StackableMixin");
     fireEvent.mouseEnter(chip);
     await screen.findByText(/Three guarantees/);
 
@@ -168,23 +168,23 @@ describe("ComposerView mixin inspector card", () => {
     describeMixinMock.mockResolvedValue(GLOBBABLE_DETAIL);
     render(<ComposerView />);
 
-    const glob = screen.getByText("GlobbableMixin");
+    const glob = screen.getByText("StackableMixin");
     const undoc = screen.getByText("UndocMixin");
 
     fireEvent.mouseEnter(glob);
     await screen.findByText(/Three guarantees/);
     expect(describeMixinMock).toHaveBeenCalledTimes(1);
 
-    // Hover away, then back to Globbable — still ONE fetch for it.
+    // Hover away, then back to Stackable — still ONE fetch for it.
     fireEvent.mouseEnter(undoc);
     await act(async () => {});
     fireEvent.mouseEnter(glob);
     await act(async () => {});
 
-    const globCalls = describeMixinMock.mock.calls.filter(
-      (c) => c[0] === "GlobbableMixin",
+    const stackCalls = describeMixinMock.mock.calls.filter(
+      (c) => c[0] === "StackableMixin",
     );
-    expect(globCalls).toHaveLength(1);
+    expect(stackCalls).toHaveLength(1);
   });
 });
 

@@ -592,7 +592,7 @@
     "runtime": [],
     "refs": {}
   },
-  "GlobbableMixin": {
+  "StackableMixin": {
     "authorable": [
       "_quantity",
       "quantity"

@@ -122,7 +122,7 @@ portable inanimate object gets per-instance identity for free
 
 ### Discrete goods only — and what a LOT is
 
-The stamp is coherent only on a **discrete** instance. A `Globbable`
+The stamp is coherent only on a **discrete** instance. A `Stackable`
 fungible stack is structurally incompatible — a split of a stack of five
 has no answer for which unit keeps the id, and a merge equates identities.
 So chattel is **discrete-goods only**: `stampChattel`/`transferChattel`/
@@ -135,16 +135,16 @@ banking ledger, not the ownership registry.
 above closely: *both* halves of it are about a stack that is still a
 stack, and neither survives at quantity one — there is nothing to split,
 and a merge is refused outright. So the gate is `isFungibleStack`
-(`Globbable` **and** `getQuantity() > 1`), not `Globbable`, and it is
-paired with one invariant in `GlobbableMixin.canMergeWith`: **a titled
+(`Stackable` **and** `getQuantity() > 1`), not `Stackable`, and it is
+paired with one invariant in `StackableMixin.canMergeWith`: **a titled
 stack does not merge.** That pairing is what keeps "a merge equates
 identities" from ever arising, and it is why the narrowing is a
-refinement rather than a loophole. An untitled glob merges exactly as it
+refinement rather than a loophole. An untitled stack merges exactly as it
 always did.
 
-⚠ It is not a nicety. `consign` refused every glob, so a mill could weave
+⚠ It is not a nicety. `consign` refused every stack, so a mill could weave
 cloth it could never sell: a live drive of the textile chain ended on
-`controller-rejected:fungible(bolt)`. A bolt is a glob **on purpose** —
+`controller-rejected:fungible(bolt)`. A bolt is a stack **on purpose** —
 `canMergeWith` is narrowed to grade + form + dye stack so two dye lots
 never merge — and a good whose fungibility is load-bearing was thereby
 barred from the sale layer entirely. Consigning now takes ONE unit off
@@ -160,7 +160,7 @@ See `ConsignController`.
   `StuffApi.singletonSync` + `HotReloadApi`. Actor context-derived.
 - **`ChattelLogic`** (`platform/idea/api/ChattelLogic.ts`, `/platform/idea/api/chattel`,
   `extends ApiLogic`) — the `ownerOf = stamp ?? parcel ?? authorOf` chain, the
-  glob-refusal invariant, and the **pure degrade** when no registry is
+  stack-refusal invariant, and the **pure degrade** when no registry is
   live (the author fallback still resolves; mutators no-op). Gated
   `FromModule('/api/chattel#ChattelApi')`.
 - **`ChattelRegistry`** (`obj/ChattelRegistry.ts`, `/platform/idea/ChattelRegistry`)
@@ -189,7 +189,7 @@ v1; the union leaves room for a group/corpo owner without a migration).
 
 Chattel is proven independent of the shop (stamp/transfer/ownerOf, author
 fallback, survival across a container move + a persistence round-trip,
-glob refusal, GC), then consumed by the store's **buy-that-stamps** and
+stack refusal, GC), then consumed by the store's **buy-that-stamps** and
 its **custody-vs-ownership consignment** — see [retail.md](./retail.md).
 Consignment is the load-bearing exercise: `consign` moves *custody* to the
 shop while the owner-stamp stays put, and the sale transfers *both*.

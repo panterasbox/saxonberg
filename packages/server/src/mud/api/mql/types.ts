@@ -121,7 +121,7 @@ export interface MqlMatch {
  * The value an MQL quantity carries — what the quantity *is*:
  *
  *   - `'count'` — a discrete integer count (`5 coins`, `coin:{5}`).
- *     Consumed by `GlobbableApi.applyQuantity`.
+ *     Consumed by `StackableApi.applyQuantity`.
  *   - `'all'` — the sentinel "the whole lot" (`all coins`, `coin:{*}`).
  *   - `'measure'` — a continuous bulk measure (`2 cups`,
  *     `water:{2 cups}`). Carries a serializable `{ value, unit }`
@@ -141,7 +141,7 @@ export type MqlQuantityValue =
  *
  * `mode` is **transport-only**: it carries the syntax-form signal
  * (formal `:{N}` → strict; natural-language `2 X` → lenient) from
- * the resolver to the helper. `GlobbableApi.applyQuantity` is its
+ * the resolver to the helper. `StackableApi.applyQuantity` is its
  * only legitimate consumer. **Controllers don't read `mode`** — they
  * pass the whole `MqlQuantity` through to the helper without
  * branching. The one exception is a controller that wants to
@@ -172,7 +172,7 @@ export type MqlQuantityHint = MqlQuantity;
  *
  * `quantity` carries the leading-number or formal `:{N}` hint when
  * the query supplied one; controllers thread it into
- * `GlobbableApi.applyQuantity` to distribute the action across
+ * `StackableApi.applyQuantity` to distribute the action across
  * candidates.
  */
 export interface MqlOne {
@@ -405,7 +405,7 @@ export interface GroupNode {
  * quantity forward onto the final `MqlMany` / `MqlOne` wrapper, marked
  * `mode: 'strict'`. See {@link MqlQuantityValue}, {@link MqlQuantity},
  * `docs/mql-grammar.md § Formal quantity` (user-facing surface), and
- * `docs/subsystems/glob.md § MQL touchpoints` (runtime hookup).
+ * `docs/subsystems/stacks.md § MQL touchpoints` (runtime hookup).
  */
 export interface QuantityNode {
   kind: 'quantity';

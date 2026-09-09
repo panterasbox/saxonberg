@@ -51,7 +51,7 @@ See also:
 - [docs/subsystems/bulk.md](../../subsystems/bulk.md) — continuous matter:
   the bar's spirits and mixers, measured pours (`fill`/`pour`/`drink`),
   the material-keyword + measure grammar. The liquid half of inputs.
-- [docs/subsystems/glob.md](../../subsystems/glob.md) — fungible stacks:
+- [docs/subsystems/stacks.md](../../subsystems/stacks.md) — fungible stacks:
   ingredient piles, the discrete half of inputs.
 - [docs/subsystems/quantities.md](../../subsystems/quantities.md) —
   `Quantity<U>` for measures.

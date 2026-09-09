@@ -92,8 +92,8 @@ The bulk of the standard model — each unlocks a verb / controller.
 - `Switchable` / `Toggleable` — on/off (lamp button, radio)
 - `Pourable` — moves liquid into a target
 - `Mixable` — combines with other Mixable contents
-- `Stackable` / `Globbable` *(have)* — fungible, quantity-syntax.
-  Shipped — see [glob.md](../../subsystems/glob.md).
+- `Stackable` / `Stackable` *(have)* — fungible, quantity-syntax.
+  Shipped — see [stacks.md](../../subsystems/stacks.md).
 - `Combinable` — recipe input (composes into Crafted)
 - `Lightable` — accepts a flame; transitions to `Burning` /
   `Lit-source`
@@ -289,7 +289,7 @@ composition baked into properties.
   `Hidden` / `Stealthing`, `Lockable`, `Keyed`, `Readable`,
   `Writable`, `Searchable`, `Surfaced`, `Sittable` /
   `Lieable` / `Standable-on`, `Pourable`, `Stackable` /
-  `Globbable`. None care whether the actor is organic.
+  `Stackable`. None care whether the actor is organic.
 
 ---
 
@@ -406,7 +406,7 @@ real. Ordered by what unblocks the most authoring at once.
 - `Hangable`, `Tieable`, `Throwable`, `Pushable` /
   `Pullable` / `Liftable`
 - `Switchable` / `Toggleable`, `Pourable`, `Mixable`,
-  `Stackable` / `Globbable`, `Combinable`
+  `Stackable` / `Stackable`, `Combinable`
 - `Writable`
 
 **Status effects (when first content needs them)**

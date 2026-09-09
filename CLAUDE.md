@@ -241,7 +241,7 @@ behavior. Read the relevant doc before editing in its area.
   - [logistics.md](./docs/subsystems/logistics.md) — goods over real ground: induced lanes, the Route/Journey, the paper, the depot, the haulage labor market, the cost surface
   - [fasttravel.md](./docs/subsystems/fasttravel.md) — the TPA teleport network, now a **utility that runs on mana**: ⭐⭐ the VERB is the kernel's and the NETWORK is the `tpa` pack's, meeting over the `TravelNode` shape (you must not need the TPA to teleport — free-in-your-extent and the anchored spell are kernel forks); FastTravelMixin nodes + `ride()`, the travel credential, the board-for-everyone, the three supplies + the arming floor + the amber band, the derived mana rate, the self-governing Authority
   - [credential.md](./docs/subsystems/credential.md) — the unified credential substrate: the wallet mixin, payment/travel/key kinds, lock/key + `presentsKey`
-  - [glob.md](./docs/subsystems/glob.md) — fungible stacks: Globbable quantity, split/merge/applyQuantity, the MQL quantity surface
+  - [stacks.md](./docs/subsystems/stacks.md) — fungible stacks: Stackable quantity, split/merge/applyQuantity, the MQL quantity surface
   - [response-envelope.md](./docs/subsystems/response-envelope.md) — DispatchResponseEnvelope, 16 Note kinds, Status auto-escalation, CommandContext
   - [activity.md](./docs/subsystems/activity.md) — the engagement framework: SchedulerApi, EngagedMixin slots, the AbortReason vocabulary
   - [behavior.md](./docs/subsystems/behavior.md) — NPC behavior: BehavedMixin data-specs, brains as modules, cadence/witness triggers, the NPC class

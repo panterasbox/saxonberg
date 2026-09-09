@@ -60,7 +60,7 @@ export default class CutController extends ManualBuildController<CutModel> {
   execute(model: CutModel, context: CommandContext): void {
     const giver = context.commandGiver;
     const cloth = model.cloth?.stuff ?? null;
-    if (!cloth || !MixinApi.isGlobbable(cloth)) {
+    if (!cloth || !MixinApi.isStackable(cloth)) {
       this.declineStep(context, Mml.compose`Cut what?`, 'no-cloth');
       return;
     }
@@ -154,7 +154,7 @@ async function finish(
   const giver = context.commandGiver;
   // ⚠⚠ A module function — the controller is destructed by now.
   const watching = !giver.isDestroyed();
-  // `split` is the shipped Globbable operation: `cut` takes units off a
+  // `split` is the shipped Stackable operation: `cut` takes units off a
   // bolt, and the remainder stays a bolt.
   const left = Math.max(0, cloth.getQuantity() - units);
   if (left === 0) StuffApi.destruct(cloth);
@@ -194,7 +194,7 @@ async function finish(
     // of what it costs.
     const offcutUnits = Math.max(1, allowance + 1);
     const offcuts = await StuffApi.clone<Stuff>(OFFCUT_ROW);
-    if (MixinApi.isGlobbable(offcuts)) offcuts.setQuantity(offcutUnits);
+    if (MixinApi.isStackable(offcuts)) offcuts.setQuantity(offcutUnits);
     if (MixinApi.isContainable(offcuts) && MixinApi.isContainer(giver)) {
       ContainmentApi.move(
         offcuts as Stuff & Containable,

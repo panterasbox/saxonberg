@@ -1,5 +1,5 @@
 /**
- * Scrap — the fungible salvage stack: `GlobbableMixin(Thing)` (the Coin
+ * Scrap — the fungible salvage stack: `StackableMixin(Thing)` (the Coin
  * precedent), material-stamped per salvage, **quantity by mass** (one
  * unit = {@link Scrap.UNIT_KG}). The non-metal half of salvage's
  * matter-typed outputs (metal returns as re-meltable Castings) and the
@@ -8,9 +8,9 @@
  */
 
 import Thing from '../../lib/stuff/Thing';
-import { GlobbableMixin } from '../../lib/stuff/Globbable';
+import { StackableMixin } from '../../lib/stuff/Stackable';
 
-const ScrapBase = GlobbableMixin(Thing);
+const ScrapBase = StackableMixin(Thing);
 
 export default class Scrap extends ScrapBase {
   /** One scrap unit's mass (kg) — quantity counts these. */

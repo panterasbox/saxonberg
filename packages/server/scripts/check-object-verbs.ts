@@ -143,8 +143,8 @@ const EXEMPT_APIS = new Set<string>([
   // the publisher-gated path-addressed document write
   "DocumentApi",
   // applyQuantity is a LIST-first dispatch helper (split/absorb moved
-  // onto Globbable in F1)
-  "GlobbableApi",
+  // onto Stackable in F1)
+  "StackableApi",
   // group-ref ownership resolution (refs are typed strings)
   "GroupApi",
   // the standing derive for host roll-ups (the account seam)

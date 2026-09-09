@@ -100,7 +100,7 @@ denomination and the quantity:
 ```ts
 const coin = await StuffApi.clone(COIN_PATH);
 (coin as unknown as { denomination: string }).denomination = line.denomination;
-(coin as unknown as Globbable).setQuantity(line.count);
+(coin as unknown as Stackable).setQuantity(line.count);
 ```
 
 No `shortDescription` restamp, no `keywords` restamp. So a 25-value coin
@@ -246,7 +246,7 @@ not audited across a codebase.
 
 ## 1. The glob-merge mint
 
-`Coin` declares `globIdentityFields = ['denomination']` — two coin stacks
+`Coin` declares `stackIdentityFields = ['denomination']` — two coin stacks
 merge iff the denomination string matches. With one currency that is
 correct. With two issuers who both name a coin `crown`:
 

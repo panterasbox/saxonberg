@@ -181,7 +181,7 @@ async function resolveDestination(path: string): Promise<Stuff | null> {
  * the two questions differ in cost: delivery stops at the first hit and
  * supply cannot.
  *
- * ⚠ `Globbable` goods are refused by `matchesItem`, so this counts
+ * ⚠ `Stackable` goods are refused by `matchesItem`, so this counts
  * DISCRETE things — ten lumps of ore, not a merged stack of ten. That is
  * the same identity rule crates exist for, and it is why a supply gig
  * for something fungible is unpostable rather than unverifiable.
@@ -476,7 +476,7 @@ async function postImpl(spec: GigSpec): Promise<PostGigResult> {
     const exemplar = StuffApi.findAllByTemplatePath(
       spec.condition.item.path,
     )[0];
-    if (exemplar && MixinApi.isGlobbable(exemplar)) {
+    if (exemplar && MixinApi.isStackable(exemplar)) {
       return { ok: false, reason: "fungible goods can't be contracted" };
     }
     // ⭐ And the kind has to BE something. A poster naming a kind it has

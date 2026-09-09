@@ -412,7 +412,7 @@ describe('MQL lexer', () => {
     });
   });
 
-  describe('quantity braces and star (globbable syntax)', () => {
+  describe('quantity braces and star (stackable syntax)', () => {
     it('lexes { and } as lbrace / rbrace', () => {
       expect(kinds('{}')).toEqual(['lbrace', 'rbrace']);
     });

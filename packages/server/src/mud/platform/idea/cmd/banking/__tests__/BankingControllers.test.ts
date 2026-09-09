@@ -101,7 +101,7 @@ describe("Banking controllers — verb wiring", () => {
     return coin;
   }, "/stuff/thing/Coin");
     coins.setMass(Quantity.of(0.01, "kg"));
-    // Raw fixture state: `setQuantity` on a Coin is gated (only the glob
+    // Raw fixture state: `setQuantity` on a Coin is gated (only the stack
     // mechanics and the cash faucet may resize a money stack), so a test
     // building a starting stack writes the field, it does not mint.
     coins.quantity = 100;
@@ -154,7 +154,7 @@ describe("Banking controllers — verb wiring", () => {
     return coin;
   }, "/stuff/thing/Coin");
     coins.setMass(Quantity.of(0.01, "kg"));
-    // Raw fixture state: `setQuantity` on a Coin is gated (only the glob
+    // Raw fixture state: `setQuantity` on a Coin is gated (only the stack
     // mechanics and the cash faucet may resize a money stack), so a test
     // building a starting stack writes the field, it does not mint.
     coins.quantity = 100;

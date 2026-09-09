@@ -336,7 +336,7 @@ interface StuffRefRecord {
   stuffId: string;
   displayName: string;             // per-viewer-rendered
   iconKind?: 'item' | 'npc' | 'player' | 'container' | 'door' | 'feature' | 'fixture';
-  quantity?: number;               // globbable stacks
+  quantity?: number;               // stackable stacks
   capabilities?: string[];         // verbs this actor can issue against this target
 }
 ```

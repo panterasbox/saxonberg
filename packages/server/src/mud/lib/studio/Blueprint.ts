@@ -201,7 +201,7 @@ export class Blueprint extends Document {
    * The structural signature of a live backing-class constructor:
    * `<baseClassName>|<queryMixins(ctor).map(_mixinName).sort()>`. The base is
    * the nearest non-mixin prototype-chain ancestor (the class the mixins were
-   * applied over — `Idea` for `class Coin extends GlobbableMixin(Idea)`).
+   * applied over — `Idea` for `class Coin extends StackableMixin(Idea)`).
    */
   static signatureOf(ctor: AnyConstructor): string {
     return Blueprint.signatureFromParts(

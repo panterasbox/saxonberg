@@ -116,7 +116,7 @@ export function PerceptibleMixin<TBase extends MixinConstructor>(Base: TBase) {
      * at projection time. Non-Perceptible hosts contribute no
      * `primaryKeyword` descriptor; the substrate omits the field
      * from their wire records, same shape `quantity` uses on
-     * Globbable.
+     * Stackable.
      *
      * `dependsOnFields` lists the leaf sources: the authored override
      * (`primaryKeyword`) AND the two fields the derived-pool head

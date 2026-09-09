@@ -134,7 +134,7 @@ studio and the author-surface projection):
 | `fieldMarshallers` | 16 |
 | `settings` | 15 |
 | `instructionFields` | 10 |
-| `globIdentityFields` | 7 |
+| `stackIdentityFields` | 7 |
 
 The natural end state is to **invert**: one field-keyed structure where
 each field declares everything about itself.

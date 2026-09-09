@@ -641,7 +641,7 @@ this is fresh work off `origin/master`.
 
 The `Money`/`Coin` model already supports a denomination set (a `COIN_FACE_VALUES`
 map; per-denomination `Coin` stacks, each with its own mass via `Tangible`;
-`globIdentityFields = ['denomination']` so denominations stack separately). v1
+`stackIdentityFields = ['denomination']` so denominations stack separately). v1
 ships only `credit = 1` — so today a drink is *twelve* one-credit coins and a
 fortune is a mountain of them. The design = populate the richer set.
 

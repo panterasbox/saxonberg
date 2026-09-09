@@ -7,7 +7,7 @@
  * The single legitimate path to the ownership registry: the `ChattelLogic`
  * singleton + `ChattelRegistry` gate to this face. The actor behind an
  * event is always execution-context-derived (never a caller-supplied
- * param). Chattel is **discrete-goods only** — a fungible stack (`Globbable`)
+ * param). Chattel is **discrete-goods only** — a fungible stack (`Stackable`)
  * is owned-by-possession, and `stamp`/`transfer` refuse it.
  */
 

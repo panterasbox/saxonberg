@@ -797,7 +797,7 @@ function fieldLines(meta: FieldMeta | undefined): string[] {
     if (entry.persistent) notes.push('stored');
     if (entry.instruction) notes.push('applied at hydrate');
     if (entry.marshaller) notes.push(`via ${entry.marshaller}`);
-    if (entry.globIdentity) notes.push('part of glob identity');
+    if (entry.stackIdentity) notes.push('part of stack identity');
     if (entry.ref) notes.push(`points at other stuff (${entry.ref})`);
     if (entry.lifetime) notes.push(`lifetime ${entry.lifetime}`);
     rows.push(

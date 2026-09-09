@@ -871,7 +871,7 @@ Which means "warehouse" is **three things fused into one word**:
 | | what it is | ships? |
 |---|---|---|
 | **the space** | a room you walk into, with weather, light and a door | ✅ |
-| **the stock** | fungible goods as `Globbable` stacks / a `Stock` counter — never 10,000 objects | ✅ |
+| **the stock** | fungible goods as `Stackable` stacks / a `Stock` counter — never 10,000 objects | ✅ |
 | **the institution** | ⭐ the **bailee** — the business that keeps the room and answers for what is in it | D8 |
 
 ⭐ So the warehouse *object* is not the building. It is the business that

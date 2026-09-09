@@ -951,7 +951,7 @@ melt-down, the entropy sink): flatten the item's Material composition;
 each constituent above the dust floor yields `mass × fraction ×
 crafting.salvageRate` in its natural raw form — `metal` → a
 re-meltable `/stuff/thing/Casting`, anything else → an `/stuff/thing/Scrap` stack (a
-`GlobbableMixin(Thing)`, material-stamped, **quantity by mass** at
+`StackableMixin(Thing)`, material-stamped, **quantity by mass** at
 0.1 kg units). Conservation asserted (Σ output ≤ input × rate, throw
 on breach); provenance, grade, and the chattel id die with the form
 (the shipped destruct release). Salvaging the forged knife yields less

@@ -1,11 +1,11 @@
 /**
- * GlobbableMixin — fungible-stack substrate.
+ * StackableMixin — fungible-stack substrate.
  *
- * A `Globbable` Stuff carries an integer `quantity` and is treated by
+ * A `Stackable` Stuff carries an integer `quantity` and is treated by
  * the framework as if it were `quantity` separate instances at the
  * contract surface (`drop 5 coins`, "30 coins are here"), while
  * storing only one row. Operational reference:
- * `docs/subsystems/glob.md`. The bulk-form extension story lives in
+ * `docs/subsystems/stacks.md`. The bulk-form extension story lives in
  * `docs/slates/tails/bulkable-slate.md`.
  *
  * Three guarantees:
@@ -14,29 +14,29 @@
  *      `quantity: 30`, not 30 sibling Stuffs. Split on transfer when
  *      taking fewer than the whole; merge on arrival when a mergeable
  *      sibling already lives in the destination.
- *   2. **Quantity is part of identity.** Globs render with their count
+ *   2. **Quantity is part of identity.** Stacks render with their count
  *      (`30 coins`); ordinal MQL (`coin:[2]`) does NOT index into a
- *      glob's units.
- *   3. **Non-globs are unaffected.** A non-Globbable rose still
+ *      stack's units.
+ *   3. **Non-globs are unaffected.** A non-Stackable rose still
  *      resolves exactly as it does today.
  *
  * The mixin's surface is methods only (per the inter-stuff contract);
  * the persistent `quantity` field is reflected into by the Hydrator.
  *
  * Composition constraints (G6):
- *   - `Globbable ⊥ Container` — globs aren't containers. A subclass
+ *   - `Stackable ⊥ Container` — stacks aren't containers. A subclass
  *     that composes both throws at first registration via the
  *     `__validateComposition__` hook on `MixinApi.assertComposable`.
- *   - `globIdentityFields ⊂ persistentFields` — glob-identity fields
+ *   - `stackIdentityFields ⊂ persistentFields` — stack-identity fields
  *     must round-trip through hydration; runtime-only fields would
  *     diverge after a reload. Enforced in the same hook.
  *
- * Glob identity via `globIdentityFields`:
+ * Stack identity via `stackIdentityFields`:
  *   Two stacks merge iff (a) same template path, (b) neither side has
  *   shadows or adornments, (c) equal values for every field in the
- *   union of both classes' `static globIdentityFields`. Subclasses
+ *   union of both classes' `static stackIdentityFields`. Subclasses
  *   extend the parent's list:
- *     `static globIdentityFields = [...Coin.globIdentityFields, 'mintMark']`.
+ *     `static stackIdentityFields = [...Coin.stackIdentityFields, 'mintMark']`.
  */
 
 import type { MixinConstructor, FieldMeta } from '../mixin';
@@ -47,16 +47,16 @@ import { MixinApi } from '../../api/mixin';
 import { ShadowApi } from '../../api/shadow';
 import { StuffApi } from '../../api/stuff';
 import { Final, Unshadowable } from '../security/decorators';
-// eslint-disable-next-line no-restricted-imports -- the F1 object face: a stack's split()/absorb() forward into the glob logic singleton exactly as the api/glob facade does (the Combustible/Energized precedent)
-import { GlobbableLogic } from '../../platform/idea/api/GlobbableLogic';
+// eslint-disable-next-line no-restricted-imports -- the F1 object face: a stack's split()/absorb() forward into the stack logic singleton exactly as the api/glob facade does (the Combustible/Energized precedent)
+import { StackableLogic } from '../../platform/idea/api/StackableLogic';
 import { Appearance } from '../identification/Appearance';
 import {
   MqlSubscriptionApi,
   type SubscribableFieldDescriptor,
 } from '../../api/mql-subscription';
 
-/** Public shape added by GlobbableMixin. */
-export interface Globbable {
+/** Public shape added by StackableMixin. */
+export interface Stackable {
   /** Current stack size. Always a positive integer. */
   getQuantity(): number;
 
@@ -69,7 +69,7 @@ export interface Globbable {
 
   /**
    * Veto seam for merge. Default: same templatePath, no shadows /
-   * adornments on either side, every glob-identity field equal. A
+   * adornments on either side, every stack-identity field equal. A
    * future shadow that wants to block (or permit) merging overrides
    * this on its shadow layer.
    */
@@ -88,25 +88,25 @@ export interface Globbable {
    */
   onSplit(splitoff: Stuff): void;
 
-  // The stack face (F1) — forwards into GlobbableLogic.
+  // The stack face (F1) — forwards into StackableLogic.
   /** Split `n` units off into a new Stuff (whole-stack returns this). */
-  split(n: number): Promise<Stuff & Globbable>;
+  split(n: number): Promise<Stuff & Stackable>;
   /** Fold `absorbed` into this stack; destructs the absorbed Stuff. */
-  absorb(absorbed: Stuff & Globbable): void;
+  absorb(absorbed: Stuff & Stackable): void;
 
   /**
-   * Witness on the surviving stack after `GlobbableApi.merge` absorbs
+   * Witness on the surviving stack after `StackableApi.merge` absorbs
    * another. No-op terminal so subclasses can
    * `super.onMerged(absorbed)`.
    */
   onMerged(absorbed: Stuff): void;
 }
 
-export function GlobbableMixin<TBase extends MixinConstructor<Stuff>>(
+export function StackableMixin<TBase extends MixinConstructor<Stuff>>(
   Base: TBase
 ) {
-  class GlobbableMixin extends Base {
-    static _mixinName = 'GlobbableMixin';
+  class StackableMixin extends Base {
+    static _mixinName = 'StackableMixin';
 
     /**
      * Stack size. Persisted by name; default 1. Template authoring
@@ -116,7 +116,7 @@ export function GlobbableMixin<TBase extends MixinConstructor<Stuff>>(
     public quantity: number = 1;
 
     /**
-     * Subset of `persistentFields` that defines glob identity. Two
+     * Subset of `persistentFields` that defines stack identity. Two
      * stacks of the same templatePath merge iff every field listed
      * here has equal values on both sides.
      *
@@ -137,7 +137,7 @@ export function GlobbableMixin<TBase extends MixinConstructor<Stuff>>(
     static subscribableFields: SubscribableFieldDescriptor[] = [
       {
         name: 'quantity',
-        read: (stuff) => (stuff as unknown as Globbable).getQuantity(),
+        read: (stuff) => (stuff as unknown as Stackable).getQuantity(),
       },
     ];
 
@@ -146,36 +146,36 @@ export function GlobbableMixin<TBase extends MixinConstructor<Stuff>>(
      * the first time a concrete class is registered.
      *
      * Enforces:
-     *   - `Globbable ⊥ Container` — globs aren't containers.
-     *   - `Globbable ⊥ Singleton` — singletons are one-instance-per-
+     *   - `Stackable ⊥ Container` — stacks aren't containers.
+     *   - `Stackable ⊥ Singleton` — singletons are one-instance-per-
      *     templatePath; splitting would need a second instance at
      *     the same path and `StuffApi.clone` would refuse it.
-     *   - `globIdentityFields ⊂ persistentFields` — identity fields
+     *   - `stackIdentityFields ⊂ persistentFields` — identity fields
      *     must survive save/load.
      */
     static __validateComposition__(ctor: AnyConstructor): void {
       const name = (ctor as { name?: string }).name ?? 'class';
       if (MixinApi.hasMixin(ctor, Mixins.Container)) {
         throw new Error(
-          `${name} composes GlobbableMixin and ContainerMixin; ` +
-            `globs cannot be containers.`
+          `${name} composes StackableMixin and ContainerMixin; ` +
+            `stacks cannot be containers.`
         );
       }
       if (MixinApi.hasMixin(ctor, Mixins.Singleton)) {
         throw new Error(
-          `${name} composes GlobbableMixin and SingletonMixin; ` +
-            `globs split into siblings at the same templatePath, ` +
+          `${name} composes StackableMixin and SingletonMixin; ` +
+            `stacks split into siblings at the same templatePath, ` +
             `which SingletonMixin rejects.`
         );
       }
-      const idFields = MixinApi.getAllGlobIdentityFields(ctor);
+      const idFields = MixinApi.getAllStackIdentityFields(ctor);
       if (idFields.length === 0) return;
       const persisted = new Set(MixinApi.getAllPersistentFields(ctor));
       for (const f of idFields) {
         if (!persisted.has(f)) {
           throw new Error(
-            `${name}: globIdentityFields entry '${f}' is not in ` +
-              `persistentFields. Glob-identity fields must round-trip ` +
+            `${name}: stackIdentityFields entry '${f}' is not in ` +
+              `persistentFields. Stack-identity fields must round-trip ` +
               `through hydration.`
           );
         }
@@ -189,7 +189,7 @@ export function GlobbableMixin<TBase extends MixinConstructor<Stuff>>(
     public setQuantity(n: number): void {
       if (!Number.isInteger(n) || n < 1) {
         throw new Error(
-          `GlobbableMixin.setQuantity: quantity must be a positive integer (got ${n})`
+          `StackableMixin.setQuantity: quantity must be a positive integer (got ${n})`
         );
       }
       this.quantity = MqlSubscriptionApi.fireFieldChange(
@@ -201,9 +201,9 @@ export function GlobbableMixin<TBase extends MixinConstructor<Stuff>>(
     }
 
     public canMergeWith(other: Stuff): boolean {
-      const self = this as unknown as Stuff & Globbable;
+      const self = this as unknown as Stuff & Stackable;
       if (other === (self as unknown as Stuff)) return false;
-      if (!MixinApi.isGlobbable(other)) return false;
+      if (!MixinApi.isStackable(other)) return false;
       if (other.getTemplatePath() === null) return false;
       if (self.getTemplatePath() !== other.getTemplatePath()) return false;
       if (hasAnyShadow(self) || hasAnyShadow(other)) return false;
@@ -217,31 +217,31 @@ export function GlobbableMixin<TBase extends MixinConstructor<Stuff>>(
        * put up for sale is a THING with an owner in the registry;
        * folding it into another stack would silently destroy a title.
        *
-       * ⚠ Reads the id, not the mixin: an untitled glob merges exactly
+       * ⚠ Reads the id, not the mixin: an untitled stack merges exactly
        * as it always did, so nothing about ordinary fungible goods
        * changes.
        */
       if (titled(self) || titled(other)) return false;
 
-      // Union of both classes' globIdentityFields. Equal values required
+      // Union of both classes' stackIdentityFields. Equal values required
       // for every field. Reads through the public getter pattern (per
       // the inter-stuff contract); falls through to property access for
       // fields that don't expose a getter (the typical case for
-      // glob-identity scalars — bare persisted fields).
-      const aFields = MixinApi.getAllGlobIdentityFields(
+      // stack-identity scalars — bare persisted fields).
+      const aFields = MixinApi.getAllStackIdentityFields(
         self.constructor as AnyConstructor
       );
-      const bFields = MixinApi.getAllGlobIdentityFields(
+      const bFields = MixinApi.getAllStackIdentityFields(
         other.constructor as AnyConstructor
       );
       const all = new Set([...aFields, ...bFields]);
       for (const f of all) {
-        if (readGlobField(self, f) !== readGlobField(other, f)) return false;
+        if (readStackField(self, f) !== readStackField(other, f)) return false;
       }
 
       // ── The identification vetoes (magic-items D27/D28) ──
       //
-      // These live HERE rather than in `globIdentityFields` because
+      // These live HERE rather than in `stackIdentityFields` because
       // identity fields must be a subset of *persistent* fields (the
       // framework enforces it at registration), and neither of these
       // facts is a stored scalar: rendered appearance is DERIVED, and a
@@ -276,7 +276,7 @@ export function GlobbableMixin<TBase extends MixinConstructor<Stuff>>(
     public canSplit(n: number): boolean {
       if (!Number.isInteger(n) || n < 1) return false;
       if (n > this.getQuantity()) return false;
-      const self = this as unknown as Stuff & Globbable;
+      const self = this as unknown as Stuff & Stackable;
       if (hasAnyShadow(self)) return false;
       if (hasAnyAdornment(self)) return false;
       return true;
@@ -290,7 +290,7 @@ export function GlobbableMixin<TBase extends MixinConstructor<Stuff>>(
       // No-op terminal so subclasses can super.onMerged().
     }
 
-    // ------- the stack face (F1) — forwards into GlobbableLogic -------
+    // ------- the stack face (F1) — forwards into StackableLogic -------
 
     /**
      * Split `n` units off this stack into a new Stuff (whole-stack
@@ -301,8 +301,8 @@ export function GlobbableMixin<TBase extends MixinConstructor<Stuff>>(
      */
     @Final
     @Unshadowable
-    public async split(n: number): Promise<Stuff & Globbable> {
-      return globLogic().split(this as unknown as Stuff & Globbable, n);
+    public async split(n: number): Promise<Stuff & Stackable> {
+      return stackLogic().split(this as unknown as Stuff & Stackable, n);
     }
 
     /**
@@ -312,19 +312,19 @@ export function GlobbableMixin<TBase extends MixinConstructor<Stuff>>(
      */
     @Final
     @Unshadowable
-    public absorb(absorbed: Stuff & Globbable): void {
-      globLogic().merge(this as unknown as Stuff & Globbable, absorbed);
+    public absorb(absorbed: Stuff & Stackable): void {
+      stackLogic().merge(this as unknown as Stuff & Stackable, absorbed);
     }
   }
 
-  return GlobbableMixin;
+  return StackableMixin;
 }
 
-/** Resolve the HMR-able GlobbableLogic singleton (the stack mechanics). */
-function globLogic(): GlobbableLogic {
+/** Resolve the HMR-able StackableLogic singleton (the stack mechanics). */
+function stackLogic(): StackableLogic {
   return StuffApi.singletonSync(
-    '/platform/idea/api/glob',
-    () => new GlobbableLogic(),
+    '/platform/idea/api/stackable',
+    () => new StackableLogic(),
   );
 }
 
@@ -341,7 +341,7 @@ function titled(stuff: Stuff): boolean {
 
 /**
  * "Any shadow attached?" — used by the canMerge / canSplit defaults.
- * A glob carrying a shadow has per-instance state that breaks
+ * A stack carrying a shadow has per-instance state that breaks
  * fungibility; conservative default disqualifies it.
  */
 function hasAnyShadow(stuff: Stuff): boolean {
@@ -355,7 +355,7 @@ function hasAnyShadow(stuff: Stuff): boolean {
 /**
  * "Any adornment attached to this stuff as an Adornable host?" —
  * fixtures attached to a coin (somehow) make it instance-distinct.
- * Globs typically don't compose Adornable; this guard catches the
+ * Stacks typically don't compose Adornable; this guard catches the
  * unusual case.
  */
 function hasAnyAdornment(stuff: Stuff): boolean {
@@ -364,14 +364,14 @@ function hasAnyAdornment(stuff: Stuff): boolean {
 }
 
 /**
- * Read a glob-identity field. Prefers `getX()` if present (per the
+ * Read a stack-identity field. Prefers `getX()` if present (per the
  * inter-stuff contract — methods are the surface), falls back to
  * direct property access. The fallback covers the common case of
  * bare-persisted scalars that don't have a custom getter on the
  * host (a `tarnished: boolean` field on Coin has no `getTarnished`
  * by default).
  */
-function readGlobField(stuff: Stuff, name: string): unknown {
+function readStackField(stuff: Stuff, name: string): unknown {
   const cap = name.charAt(0).toUpperCase() + name.slice(1);
   const getter = (stuff as unknown as Record<string, unknown>)[`get${cap}`];
   if (typeof getter === 'function') {

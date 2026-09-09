@@ -17,8 +17,8 @@
 
 See also: [stewardship-doctrine](../../stewardship-doctrine.md) (**the line
 this closes**) · [crafting](../../subsystems/crafting.md) (`Durable`, `Keen`,
-`Graded`, the repair economy) · [glob](../../subsystems/glob.md) (⭐
-`globIdentity` — the identity half, already solved) ·
+`Graded`, the repair economy) · [stacks](../../subsystems/stacks.md) (⭐
+`stackIdentity` — the identity half, already solved) ·
 [chattel](../../subsystems/chattel.md) (per-instance ownership + chain of
 title) · [retail](../../subsystems/retail.md) (the used-goods market) ·
 [vocations](../../vocations.md) (the appraiser — a listed GAP) ·
@@ -102,12 +102,12 @@ downgrade — which would invert the whole point.
 ## Part 3 — ⭐⭐⭐ Identity: the glob substrate already solves this
 
 A patinated object must stop being interchangeable with a shop copy. That
-needs **no new machinery** — [glob](../../subsystems/glob.md) already keys
-fungibility on `globIdentity` fields, and **the precedent is already in the
-doc**: `Coin` carries `tarnished: { globIdentity: true }`, so a tarnished coin
+needs **no new machinery** — [stacks](../../subsystems/stacks.md) already keys
+fungibility on `stackIdentity` fields, and **the precedent is already in the
+doc**: `Coin` carries `tarnished: { stackIdentity: true }`, so a tarnished coin
 will not merge with a clean one.
 
-> **Mark the patina field `globIdentity: true` and fungibility breaks by
+> **Mark the patina field `stackIdentity: true` and fungibility breaks by
 > construction.** A seasoned pan cannot merge with a new one, cannot be
 > silently swapped, and is a *particular object* forever after.
 
@@ -171,14 +171,14 @@ material honestly rather than by opting in.
 ## Part 6 — Designed to the format
 
 **1–2. What it is / composition.** One **mixin** carrying an accrual band, one
-**material field** gating who can have it, and a **`globIdentity` flag**. No
+**material field** gating who can have it, and a **`stackIdentity` flag**. No
 new subsystem, no new Api.
 
 **3. New / updated surfaces.**
 
 | | Work | State |
 |---|---|---|
-| ⭐⭐ **`SeasonedMixin`** | the accrual band + the use-then-care rule; `globIdentity: true` | **new — the whole feature** |
+| ⭐⭐ **`SeasonedMixin`** | the accrual band + the use-then-care rule; `stackIdentity: true` | **new — the whole feature** |
 | ⭐ **`takesPatina` material field** | which substances can accrue it | **new (a field on the closed set)** |
 | ✳ **Maintenance verbs accrue** | `repair` / `sharpen` / oiling check "used since last care?" | **update to shipped verbs** |
 | ✳ **Failure-mode reads** | cooking stick, blister, fumble, variance consult the band | **wire into existing outcome rolls** |
@@ -189,7 +189,7 @@ new subsystem, no new Api.
 verbs that already ship — which is the strongest argument for the cycle rule,
 since it needs no player-facing addition at all.
 
-**5. Persisted fields.** The accrual band, on the mixin, `globIdentity`-marked.
+**5. Persisted fields.** The accrual band, on the mixin, `stackIdentity`-marked.
 
 **6. Seams & dependencies.** **None hard.** `Durable`, `Keen`, `Graded`, glob
 and chattel all ship. It reads better alongside
@@ -246,7 +246,7 @@ crosses a band, and otherwise silent.
 
 - **[Crafting](../../subsystems/crafting.md)** — `Durable`/`Keen` supply the
   wear axis this is the counterpart to; `Graded` is the other quality axis.
-- **[Glob](../../subsystems/glob.md)** — `globIdentity` is the identity
+- **[Glob](../../subsystems/stacks.md)** — `stackIdentity` is the identity
   mechanism, already proven by `Coin.tarnished`.
 - **[Chattel](../../subsystems/chattel.md)** — per-instance id + chain of
   title; a patinated object already has provenance.

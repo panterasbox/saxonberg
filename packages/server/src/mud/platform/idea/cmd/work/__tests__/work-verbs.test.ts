@@ -317,7 +317,7 @@ describe("work verbs", () => {
     /*
      * ⚠⚠ The whole point of a kind-bound gig is a kind, and a kind you
      * order is one there are lots of. `ContractApi.post` used
-     * `StuffApi.findByTemplatePath` for its Globbable check, and that
+     * `StuffApi.findByTemplatePath` for its Stackable check, and that
      * form THROWS on more than one live instance — so ordering anything
      * ordinary threw `expected singleton, found N` from inside a forced
      * NPC command, where nothing surfaces it.

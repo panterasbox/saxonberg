@@ -22,7 +22,7 @@ import Ore from '../Ore';
 import Material from '@saxonberg/server/mud/platform/idea/material/Material';
 import { StuffApi } from '@saxonberg/server/mud/api/stuff';
 import { ExecutionContextApi } from '@saxonberg/server/mud/api/execution-context';
-import { GlobbableApi } from '@saxonberg/server/mud/api/glob';
+import { StackableApi } from '@saxonberg/server/mud/api/stackable';
 import { MixinApi } from '@saxonberg/server/mud/api/mixin';
 import { makeStuff, makeStuffAtPath, stampTemplatePathForTest } from '@saxonberg/server/mud/lib/security/__tests__/test-setup';
 import { installV1QuantityMarshallers } from '@saxonberg/server/mud/lib/persistence/__tests__/quantity-marshaller-test-helpers';
@@ -80,9 +80,9 @@ describe('the ore lump', () => {
     StuffApi.clearAll();
   });
 
-  it('is Globbable and Chattel — it stacks, and a lump carries its owner', () => {
+  it('is Stackable and Chattel — it stacks, and a lump carries its owner', () => {
     const o = lump(1, 0.08);
-    expect(MixinApi.isGlobbable(o)).toBe(true);
+    expect(MixinApi.isStackable(o)).toBe(true);
     expect(MixinApi.isChattel(o)).toBe(true);
     // ⚠ NOT GradedMixin — that is the poor…masterful QUALITY band, a
     // different axis entirely. Grade is a fraction of metal by mass.

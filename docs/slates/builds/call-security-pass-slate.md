@@ -67,7 +67,7 @@ AnyOf(
 )
 ```
 
-Hosts as shipped: Combustible, Furnace, Globbable, Chattel, Energized,
+Hosts as shipped: Combustible, Furnace, Stackable, Chattel, Energized,
 Charged (arg 1), Arcane, Caster, PartyMember, NotifyPolicy,
 HasInteractive, SubjectSubscriber, Organization (args 0 *and* 1
 variants), Employed, Bank, Combatant (args 0 and 1 variants),

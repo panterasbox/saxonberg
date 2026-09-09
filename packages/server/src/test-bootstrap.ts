@@ -7,7 +7,7 @@
  *
  * It runs `BootstrapManager.installFrameworkWiring()` exactly as the
  * server does at start: the registry-class handoffs, the security↔shadow
- * slot, the shadow↔command recency bridge, the glob merge-on-arrival
+ * slot, the shadow↔command recency bridge, the stack merge-on-arrival
  * ripple, the PM scope resolver, the sandbox boundary's exempt bases.
  * Without it, the first touch of any of those is a "Registry class not
  * registered" throw.

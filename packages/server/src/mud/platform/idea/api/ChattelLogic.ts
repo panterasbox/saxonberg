@@ -5,14 +5,14 @@
  *
  * Owns the ownership-resolution chain
  * (`stamp ?? parcel-extent ?? authorOf`) and the
- * glob-refusal invariant, delegating storage to the `ChattelRegistry`
+ * stack-refusal invariant, delegating storage to the `ChattelRegistry`
  * singleton (reached via `StuffApi.findByTemplatePath`, memoized). Like
  * `ParcelLogic` it **pure-degrades** when the registry isn't live (no
  * registry → the author fallback still resolves; mutators no-op).
  *
- * Fungible stacks (`Globbable`) are structurally out of scope: a stack that
+ * Fungible stacks (`Stackable`) are structurally out of scope: a stack that
  * splits/merges has no stable per-instance id, so `stamp`/`transfer` refuse
- * a glob (a clear no-op, not a silent mint), and `ownerOf` of a glob is
+ * a stack (a clear no-op, not a silent mint), and `ownerOf` of a stack is
  * null (owned-by-possession).
  */
 
@@ -65,20 +65,20 @@ const GLOB_REFUSAL =
  * at quantity ONE — there is nothing to split, and a merge is refused
  * outright by the veto below.
  *
- * ⚠ It mattered: `consign` refused every glob, so a mill could weave
- * cloth it could never sell. A bolt is a glob ON PURPOSE (two dye lots
+ * ⚠ It mattered: `consign` refused every stack, so a mill could weave
+ * cloth it could never sell. A bolt is a stack ON PURPOSE (two dye lots
  * must never merge), and a good whose fungibility is load-bearing was
  * thereby barred from the sale layer entirely. Taking ONE unit off the
  * stack and titling it is what a consignment actually is: the lot is a
  * thing, the rest of the stack stays owned-by-possession.
  *
- * Paired invariant, in `GlobbableMixin.canMergeWith`: a titled stack
+ * Paired invariant, in `StackableMixin.canMergeWith`: a titled stack
  * does not merge. That is what keeps "a merge equates identities" from
  * ever arising, and it is why this narrowing is safe rather than a
  * loophole.
  */
 function isFungibleStack(item: Stuff): boolean {
-  if (!MixinApi.isGlobbable(item)) return false;
+  if (!MixinApi.isStackable(item)) return false;
   // ⚠ An UNREADABLE quantity is treated as a stack, not as a lot: the
   // refusal is the conservative answer, and something that claims to be
   // fungible without saying how many is exactly the case not to mint an
@@ -189,7 +189,7 @@ export class ChattelLogic extends ApiLogic {
    */
   @CallSecurity(ChattelCallers)
   public async followCustody(item: Stuff): Promise<void> {
-    if (MixinApi.isGlobbable(item) || !MixinApi.isChattel(item)) return;
+    if (MixinApi.isStackable(item) || !MixinApi.isChattel(item)) return;
     const good = item as Stuff & Chattel;
     if (!good.getChattelId()) return; // unstamped: nothing owns it
     const owner = await this.resolveOwner(item);
@@ -209,7 +209,7 @@ export class ChattelLogic extends ApiLogic {
    * `chattel` row's by-room index, and a live owner's estate.
    */
   private async applyPlace(item: Stuff, place: string): Promise<void> {
-    if (MixinApi.isGlobbable(item)) return; // a fungible stack has no place
+    if (MixinApi.isStackable(item)) return; // a fungible stack has no place
     if (!MixinApi.isChattel(item)) return;
     const good = item as Stuff & Chattel;
     good._setPlace(place);

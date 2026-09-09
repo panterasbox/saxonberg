@@ -131,7 +131,7 @@ speaks bare integers with one implicit currency:
 | `SupplyAggregate` (`bank_supply`) | one `{minted, drained}` row + one cached pair | key by currency (row-per-currency + `Map<currency,…>` cache); `cachedSupply(currency)` |
 | `BankTransaction.assertConserving` | conservation is per-*transaction* | conservation per-*currency*: a transfer/payment/wage/tax leg's two ends must be the same currency; `supplyDelta` returns per-currency |
 | `postTransaction` + ~12 call sites | assume `credit` | thread the leg currency through (mint / drain / deposit / withdraw / transfer / payment / wage / tax) |
-| `Coinage` / `Money.render` / `Coin` | hardcodes "credit(s)" + 1/5/25; `Coin.denomination` **defaults to `DEFAULT_CURRENCY`** (a currency in a denomination field); `globIdentityFields = ['denomination']` | per-currency `[{value, massKg, label?}]`; denomination identity becomes **`(currency, faceValue)`** — ⚠ **glob identity must include the currency or two issuers' like-valued coins MERGE (an invisible mint)**; presentation derives from the pair |
+| `Coinage` / `Money.render` / `Coin` | hardcodes "credit(s)" + 1/5/25; `Coin.denomination` **defaults to `DEFAULT_CURRENCY`** (a currency in a denomination field); `stackIdentityFields = ['denomination']` | per-currency `[{value, massKg, label?}]`; denomination identity becomes **`(currency, faceValue)`** — ⚠ **glob identity must include the currency or two issuers' like-valued coins MERGE (an invisible mint)**; presentation derives from the pair |
 | Reporting: `bank statement`, `profitAndLoss`, `moneySupply`/`reconcile` | one-currency display | currency-aware display + per-currency reconcile |
 
 The **load-bearing** one is `assertConserving`. Today "money isn't created
@@ -268,7 +268,7 @@ auditable ledger — no printed FX faucet.
      coins present as "a 25-zorkmid piece". The optional `label` is for
      an issuer who wants named coins (a corpo scrip will; the Compact
      won't).
-   - ⚠⚠ **`Coin.globIdentityFields` must include the currency**, or two
+   - ⚠⚠ **`Coin.stackIdentityFields` must include the currency**, or two
      issuers' like-keyed coins merge into one stack — money created by a
      merge, no ledger row, no error.
    - ⚠⚠ **The `?? 1` unknown-denomination fallback should become a

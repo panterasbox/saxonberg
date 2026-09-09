@@ -14,7 +14,7 @@
  * ⭐⭐ **A stack goes up ONE UNIT at a time.** A stack is
  * owned-by-possession and cannot bear title, but a lot of one can (see
  * `ChattelLogic`): consigning takes a unit off, titles it, and leaves the
- * rest in your hands. That is what lets a mill sell cloth, which is a glob
+ * rest in your hands. That is what lets a mill sell cloth, which is a stack
  * on purpose so two dye lots never merge.
  *
  * ⭐ **Consigning as the house.** With a business's operating account
@@ -88,9 +88,9 @@ export default class ConsignController extends CommandController<ConsignModel> {
     /*
      * ⭐⭐ **A stack goes up ONE UNIT at a time.**
      *
-     * This used to refuse every `Globbable` outright — a true statement
+     * This used to refuse every `Stackable` outright — a true statement
      * about a STACK and the wrong conclusion about a SALE. A bolt of
-     * cloth is a glob on purpose (two dye lots must never merge), so the
+     * cloth is a stack on purpose (two dye lots must never merge), so the
      * rule meant a mill could weave cloth it could never sell: a live
      * drive of the textile chain ended on
      * `controller-rejected:fungible(bolt)`.
@@ -104,8 +104,8 @@ export default class ConsignController extends CommandController<ConsignModel> {
      * cap. A stack divided by a consignment that then refuses is a stack
      * the caller has to put back together.
      */
-    const glob = MixinApi.isGlobbable(item) ? item : null;
-    if (glob && !glob.canSplit(1)) {
+    const stack = MixinApi.isStackable(item) ? item : null;
+    if (stack && !stack.canSplit(1)) {
       // The veto seam's own reasons — a shadowed or adorned stack has
       // per-instance state that does not divide.
       this.reject(
@@ -195,15 +195,15 @@ export default class ConsignController extends CommandController<ConsignModel> {
     // Take one unit off the stack. `split` short-circuits to the source
     // when the lot IS the whole stack, so a one-unit stack and a
     // discrete good travel the same path from here.
-    const listed = glob
-      ? ((await glob.split(1)) as unknown as Stuff &
+    const listed = stack
+      ? ((await stack.split(1)) as unknown as Stuff &
           Containable & { getChattelId(): string })
       : item;
 
     // Establish the title if the good is unstamped (author-owned) — a
     // consignment needs a durable chattel id to key the listing on. A
     // freshly split lot is always unstamped: identity is per-instance
-    // and is not among the glob-identity fields a split copies.
+    // and is not among the stack-identity fields a split copies.
     if (!listed.getChattelId()) {
       await (listed as unknown as Stuff & Chattel).stampChattel(principal);
     }
@@ -212,7 +212,7 @@ export default class ConsignController extends CommandController<ConsignModel> {
     ContainmentApi.move(listed, shelf as unknown as Stuff & Container);
     shelf.recordListing(listed.getChattelId(), consignorKey, ask);
 
-    const kept = glob && listed !== item ? glob.getQuantity() : 0;
+    const kept = stack && listed !== item ? stack.getQuantity() : 0;
     MessageApi.scene(giver)
       .topic(TOPIC)
       .toSelf(

@@ -21,11 +21,11 @@ type ContainerStuff = Stuff & Container;
 type ContainableStuff = Stuff & Containable;
 
 /**
- * Late-bound merge-on-arrival hook slot. `GlobbableApi` registers a
+ * Late-bound merge-on-arrival hook slot. `StackableApi` registers a
  * function at module load (forwarded through the face's
  * `_registerMergeOnArrivalHook`). Module-level so it survives
  * `dest`/recreate of the singleton — the registration happens once at
- * `GlobbableApi` module load, not per singleton lifetime.
+ * `StackableApi` module load, not per singleton lifetime.
  */
 let _mergeOnArrivalHook: MergeOnArrivalHook | null = null;
 
@@ -59,7 +59,7 @@ const ContainmentApiCallers = SecurityPolicies.AnyOf(
  * not at the class level: a class-level default would also cover the
  * inherited `Stuff`/`Idea` framework methods the framework itself
  * invokes (e.g. during `register`), whose caller is `StuffApi`, and
- * they'd be denied. (Mirrors `LocomotionLogic` / `GlobbableLogic`.)
+ * they'd be denied. (Mirrors `LocomotionLogic` / `StackableLogic`.)
  *
  * @internal
  */
@@ -247,10 +247,10 @@ function moveCore(
   if (to) callHook(to, 'onContainableAdded', [item]);
   callHook(item, 'onMoved', [from, to]);
 
-  // Merge-on-arrival ripple (globbable substrate). Fires after the
+  // Merge-on-arrival ripple (stackable substrate). Fires after the
   // arrival witnesses so subscribers see the arriving Stuff before
   // it's absorbed and destructed. The hook is responsible for its
-  // own `isGlobbable` skip path.
+  // own `isStackable` skip path.
   if (to !== null && _mergeOnArrivalHook !== null) {
     _mergeOnArrivalHook(item, to);
   }

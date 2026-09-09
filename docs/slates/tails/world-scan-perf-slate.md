@@ -117,7 +117,7 @@ and the caller wants a narrow keyed slice. **Two are money paths.**
 | site | query | why it is fine |
 |---|---|---|
 | `AppBootstrap.shutdown` + `Persistable.capturesAtShutdown` | `[mixin.PersistableMixin]` (broadest) | wants literally all of them, **once, at shutdown**. O(n) is correct. |
-| `mixin.getAllGlobIdentityFields` (doc) / dev `[mixin.GlobbableMixin]` reload | `[mixin.GlobbableMixin]` | a dev-triggered "reload every globbable" — rare, wants all |
+| `mixin.getAllStackIdentityFields` (doc) / dev `[mixin.StackableMixin]` reload | `[mixin.StackableMixin]` | a dev-triggered "reload every stackable" — rare, wants all |
 
 ### Also present, benign frequency (verify before touching)
 

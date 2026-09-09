@@ -223,7 +223,7 @@ specific static. Three are recognized today:
 
 | Static | Read by | What it contributes |
 |---|---|---|
-| `static fieldMeta: FieldMeta` | `PersistentHydrator`, `Document.toDocument`, `StudioLogic` | Everything a field declares about itself — `persistent` / `marshaller` / `instruction` / `globIdentity` / `authorable` / `runtimeState`, plus the `ref` + `lifetime` reference axes |
+| `static fieldMeta: FieldMeta` | `PersistentHydrator`, `Document.toDocument`, `StudioLogic` | Everything a field declares about itself — `persistent` / `marshaller` / `instruction` / `stackIdentity` / `authorable` / `runtimeState`, plus the `ref` + `lifetime` reference axes |
 | `static commandProvider: CommandProviderRegistry` | `CommandGiverMixin.getAvailableCommands` | YAML command files exposed when this mixin is in scope |
 | `static _mixinName: string` | `MixinApi.queryMixins` | Identity (above) |
 | `static cleanupOnDestruct(stuff: Stuff): void` | `StuffApi.destruct` dispatcher | Substrate-invariant cleanup when an instance of this mixin destructs (see below) |
@@ -441,20 +441,20 @@ Subsystem](./call-security.md#shadow-subsystem).
 ### Composition validation (`__validateComposition__`)
 
 When a mixin has a hard composition rule that the TypeScript bound
-can't express — `Globbable ⊥ Container`, `Globbable ⊥ Singleton`,
+can't express — `Stackable ⊥ Container`, `Stackable ⊥ Singleton`,
 "every glob-identity field must also be persistent" — it can opt
 into a runtime check that fires once per concrete class:
 
 ```typescript
-export function GlobbableMixin<TBase extends MixinConstructor<Stuff>>(
+export function StackableMixin<TBase extends MixinConstructor<Stuff>>(
   Base: TBase
 ) {
-  return class GlobbableMixin extends Base {
-    static _mixinName = 'GlobbableMixin';
+  return class StackableMixin extends Base {
+    static _mixinName = 'StackableMixin';
 
     static __validateComposition__(ctor: AnyConstructor): void {
       if (MixinApi.hasMixin(ctor, Mixins.Container)) {
-        throw new Error(`${ctor.name} composes Globbable + Container; not allowed.`);
+        throw new Error(`${ctor.name} composes Stackable + Container; not allowed.`);
       }
       // …
     }
@@ -479,9 +479,9 @@ the bound. Specifically:
   this doc). The error is at compile time, the diagnostic is
   precise, and refactors that break the chain fail loudly.
 - **Use `__validateComposition__`** when the rule is "mixin A
-  cannot co-exist with mixin B at the same level" (Globbable ⊥
+  cannot co-exist with mixin B at the same level" (Stackable ⊥
   Container), or when the rule reads other static data on the class
-  (`globIdentityFields ⊂ persistentFields`). The bound can't reject
+  (`stackIdentityFields ⊂ persistentFields`). The bound can't reject
   "extends both" — at the type level both are present, the conflict
   is semantic.
 
@@ -546,19 +546,19 @@ makes.
 
 **Leaf reload is required for a new check to fire.** Reloading a
 mixin module alone doesn't retroactively rewire the leaf classes
-that import it — `class Coin extends GlobbableMixin(Idea)`
+that import it — `class Coin extends StackableMixin(Idea)`
 captures the mixin function that existed at class-evaluation time.
-Reloading `Globbable.ts` produces a new mixin function but doesn't
+Reloading `Stackable.ts` produces a new mixin function but doesn't
 touch `Coin`; since `Coin`'s identity hasn't changed, the WeakSet
 hit memoizes the old validation indefinitely. The dev has to reload
 the leaf module too (`Coin.ts`) — which re-evaluates the class
 expression against the new mixin and produces a fresh identity.
 
-There's no auto-cascade. Reloading `Globbable.ts` doesn't fan out
+There's no auto-cascade. Reloading `Stackable.ts` doesn't fan out
 to every leaf that imports it. That's intentional: bulk
 re-instantiation while a player is mid-action would shock the world.
-For "rotate every class that composes Globbable," use an MQL query
-to find the population and reload deliberately — `world:[mixin.GlobbableMixin]`
+For "rotate every class that composes Stackable," use an MQL query
+to find the population and reload deliberately — `world:[mixin.StackableMixin]`
 plus an explicit `reload` per class. Forgetting to reload leaves is
 *not* a correctness bug — the old check just keeps applying and the
 new constraint silently doesn't tighten. Worst case: the dev
@@ -566,8 +566,8 @@ notices a constraint isn't taking and re-reloads the leaf.
 
 #### Current opt-ins
 
-- `GlobbableMixin` — `⊥ Container`, `⊥ Singleton`,
-  `globIdentityFields ⊂ persistentFields`.
+- `StackableMixin` — `⊥ Container`, `⊥ Singleton`,
+  `stackIdentityFields ⊂ persistentFields`.
 - `PerceiverMixin` — requires `Sensor` on the chain. The TS bound is
   loose (`MixinConstructor`); the `Perceiver extends Sensor`
   interface narrows the type but doesn't enforce composition.
@@ -579,7 +579,7 @@ time through the `MixinConstructor<Stuff & X>` bound (`Adornable`,
 over `Organization`). When you add a new mixin, prefer the
 bound; reach for `__validateComposition__` only for `⊥` (mutual-
 exclusion) rules and for cross-static-data checks the bound can't
-express (`globIdentityFields ⊂ persistentFields`).
+express (`stackIdentityFields ⊂ persistentFields`).
 
 Cross-reference: [hot-reload.md § Composition validation](./hot-reload.md#composition-validation).
 

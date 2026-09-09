@@ -5,7 +5,7 @@
  * which mints `growsIntoPath` into the pot's slot. It carries **no
  * inherited variation** — a seed grows into its parent's species, full
  * stop. Genetics (a `Genome`, cross-pollination, segregating lines) is
- * farming-slate work, and it is what makes `Globbable` seed *lots*
+ * farming-slate work, and it is what makes `Stackable` seed *lots*
  * meaningful; until then a seed is **discrete, never a stack**, matching
  * the general store's stated convention that its goods are all discrete
  * Things so each carries a chattel stamp on buy.

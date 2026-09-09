@@ -40,7 +40,7 @@ import {
   OMNI_SCOPE,
 } from "../../../api/execution-context";
 import { ContainmentApi } from "../../../api/containment";
-import { GlobbableApi } from "../../../api/glob";
+import { StackableApi } from "../../../api/stackable";
 import { MixinApi } from "../../../api/mixin";
 import { MqlApi } from "../../../api/mql";
 import { StuffApi } from "../../../api/stuff";
@@ -50,7 +50,7 @@ import type { Stuff } from "../../../lib/stuff/Stuff";
 import type { CommandGiver } from "../../../lib/command/CommandGiver";
 import type { Container } from "../../../lib/spatial/Container";
 import type { Containable } from "../../../lib/spatial/Containable";
-import type { Globbable } from "../../../lib/stuff/Globbable";
+import type { Stackable } from "../../../lib/stuff/Stackable";
 import { Currency } from "../../../lib/banking/Currency";
 
 const BankingApiCallers = SecurityPolicies.FromModule("/api/banking#BankingApi",
@@ -182,7 +182,7 @@ interface CashLike {
   getQuantity(): number;
 }
 
-function isCashLike(stuff: unknown): stuff is Stuff & Globbable & CashLike {
+function isCashLike(stuff: unknown): stuff is Stuff & Stackable & CashLike {
   const s = stuff as Partial<CashLike>;
   return (
     typeof s?.getCurrency === "function" &&
@@ -1250,7 +1250,7 @@ async function issueCashImpl(
   ]);
   // Dispense largest-first: a real cash faucet hands out efficient coins
   // (25s, then 5s, then 1s), not a heap of ones. Each denomination is its own
-  // stack (they never merge — glob identity is `(currency, denomination)`).
+  // stack (they never merge — stack identity is `(currency, denomination)`).
   const lines = Coinage.dispense(amount.currency, amount.minor);
   let representative: Stuff | null = null;
   for (const line of lines) {
@@ -1261,7 +1261,7 @@ async function issueCashImpl(
     };
     stamped.currency = line.currency;
     stamped.denomination = line.denomination;
-    (coin as unknown as Globbable).setQuantity(line.count);
+    (coin as unknown as Stackable).setQuantity(line.count);
     ContainmentApi.move(coin as unknown as Stuff & Containable, into);
     if (!representative) representative = coin;
   }
@@ -1918,7 +1918,7 @@ export class BankingLogic extends ApiLogic {
   @CallSecurity(BankCallers)
   public async deposit(
     bank: Stuff & Bank,
-    coinStack: Stuff & Globbable,
+    coinStack: Stuff & Stackable,
   ): Promise<void> {
     if (!isCashLike(coinStack)) {
       throw new Error("BankingLogic.deposit: that isn't cash");

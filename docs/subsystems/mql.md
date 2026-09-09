@@ -131,8 +131,8 @@ messaging. `prep` is what the matcher consumed off this field's
 `quantity` carries the leading-number or formal `:{N}` hint when the
 query supplied one — `5 coins`, `coins:{5}`, `all coins`,
 `coins:{*}`. The `mode` discriminator is transport-only: controllers
-pass the whole `MqlQuantity` through to `GlobbableApi.applyQuantity`
-without branching on it. See [glob.md](./glob.md) for the helper's
+pass the whole `MqlQuantity` through to `StackableApi.applyQuantity`
+without branching on it. See [stacks.md](./glob.md) for the helper's
 distribution algorithm.
 
 ## Pipeline stages

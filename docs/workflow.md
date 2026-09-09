@@ -268,7 +268,7 @@ comment-thread loop that this project does not use.
   `host-slot-activities-slate.md`.
 - **Slate** — kept by default. Retired only when *fully* absorbed
   into a subsystem doc with no remaining design surface (see the
-  globbable-slate / response-envelope-slate precedents). When
+  stackable-slate / response-envelope-slate precedents). When
   retired, salvage open questions into the consuming subsystem doc
   first.
 - **Subsystem doc** — never retired; updated in place. If the slate

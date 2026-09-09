@@ -1,6 +1,6 @@
 /**
- * GlobbableMixin tests — substrate-only coverage. Containment ripple,
- * GlobbableApi.split / merge / applyQuantity, and controller
+ * StackableMixin tests — substrate-only coverage. Containment ripple,
+ * StackableApi.split / merge / applyQuantity, and controller
  * integration are exercised in their own test files.
  */
 
@@ -14,7 +14,7 @@ import { Idea } from '../Idea';
 import { Stuff } from '../Stuff';
 import { Shadow } from '../Shadow';
 import { Shadowing } from '../../security/decorators';
-import { GlobbableMixin } from '../Globbable';
+import { StackableMixin } from '../Stackable';
 import { ContainerMixin } from '../../spatial/Container';
 import { SingletonMixin } from '../Singleton';
 import {
@@ -22,32 +22,32 @@ import {
   makeStuffAtPath,
 } from '../../security/__tests__/test-setup';
 
-class Coin extends GlobbableMixin(Idea) {
+class Coin extends StackableMixin(Idea) {
   static _mixinName = 'Coin';
   static fieldMeta: FieldMeta = {
     quantity: { persistent: true },
-    tarnished: { persistent: true, globIdentity: true },
-    denomination: { persistent: true, globIdentity: true },
+    tarnished: { persistent: true, stackIdentity: true },
+    denomination: { persistent: true, stackIdentity: true },
   };
 
   public tarnished: boolean = false;
   public denomination: 'gold' | 'silver' | 'copper' = 'copper';
 }
 
-class Arrow extends GlobbableMixin(Idea) {
+class Arrow extends StackableMixin(Idea) {
   static _mixinName = 'Arrow';
 }
 
-describe('GlobbableMixin', () => {
+describe('StackableMixin', () => {
   beforeEach(() => {
     ShadowApi._clearAllForTesting();
     StuffApi.clearAll();
   });
 
-  it('registers in the mixin registry under Mixins.Globbable', () => {
+  it('registers in the mixin registry under Mixins.Stackable', () => {
     const coin = makeStuff(() => new Coin());
-    expect(MixinApi.isGlobbable(coin)).toBe(true);
-    expect(MixinApi.hasMixin(coin, Mixins.Globbable)).toBe(true);
+    expect(MixinApi.isStackable(coin)).toBe(true);
+    expect(MixinApi.hasMixin(coin, Mixins.Stackable)).toBe(true);
   });
 
   it('default quantity is 1', () => {
@@ -123,7 +123,7 @@ describe('GlobbableMixin', () => {
       expect(a.canMergeWith(b as unknown as Stuff)).toBe(false);
     });
 
-    it('false when a glob-identity field differs', () => {
+    it('false when a stack-identity field differs', () => {
       const a = makeStuffAtPath(() => new Coin(), '/obj/item/Coin');
       const b = makeStuffAtPath(() => new Coin(), '/obj/item/Coin');
       a.denomination = 'gold';
@@ -131,7 +131,7 @@ describe('GlobbableMixin', () => {
       expect(a.canMergeWith(b)).toBe(false);
     });
 
-    it('false against a non-Globbable peer', () => {
+    it('false against a non-Stackable peer', () => {
       class Plain extends Idea {}
       const a = makeStuffAtPath(() => new Coin(), '/obj/item/Coin');
       const p = makeStuff(() => new Plain());
@@ -159,7 +159,7 @@ describe('GlobbableMixin', () => {
     });
 
     it('false when neither side has a stamped template path', () => {
-      // Unstamped globs can't be merged — there's no kind identity.
+      // Unstamped stacks can't be merged — there's no kind identity.
       const a = makeStuff(() => new Coin());
       const b = makeStuff(() => new Coin());
       expect(a.canMergeWith(b)).toBe(false);
@@ -167,39 +167,39 @@ describe('GlobbableMixin', () => {
   });
 
   describe('composition validation at registration', () => {
-    it('throws when a class composes both Globbable and Container', () => {
-      class BadStack extends GlobbableMixin(ContainerMixin(Idea)) {
+    it('throws when a class composes both Stackable and Container', () => {
+      class BadStack extends StackableMixin(ContainerMixin(Idea)) {
         static _mixinName = 'BadStack';
       }
       expect(() => makeStuff(() => new BadStack())).toThrow(
-        /globs cannot be containers/
+        /stacks cannot be containers/
       );
     });
 
-    it('throws when a class composes both Globbable and Singleton (splits collide)', () => {
-      class SingletonGlob extends GlobbableMixin(SingletonMixin(Idea)) {
-        static _mixinName = 'SingletonGlob';
+    it('throws when a class composes both Stackable and Singleton (splits collide)', () => {
+      class SingletonStack extends StackableMixin(SingletonMixin(Idea)) {
+        static _mixinName = 'SingletonStack';
       }
-      expect(() => makeStuff(() => new SingletonGlob())).toThrow(
+      expect(() => makeStuff(() => new SingletonStack())).toThrow(
         /SingletonMixin/
       );
     });
 
-    it('throws when globIdentityFields is not a subset of persistentFields', () => {
-      class Misdeclared extends GlobbableMixin(Idea) {
+    it('throws when stackIdentityFields is not a subset of persistentFields', () => {
+      class Misdeclared extends StackableMixin(Idea) {
         static _mixinName = 'Misdeclared';
         static fieldMeta: FieldMeta = {
           quantity: { persistent: true },
-          notPersisted: { globIdentity: true },
+          notPersisted: { stackIdentity: true },
         };
       }
       expect(() => makeStuff(() => new Misdeclared())).toThrow(
-        /globIdentityFields entry 'notPersisted' is not in persistentFields/
+        /stackIdentityFields entry 'notPersisted' is not in persistentFields/
       );
     });
 
-    it('accepts an empty globIdentityFields default (strict fungibility)', () => {
-      // Arrow declares no globIdentityFields and no extra persistentFields;
+    it('accepts an empty stackIdentityFields default (strict fungibility)', () => {
+      // Arrow declares no stackIdentityFields and no extra persistentFields;
       // first registration should not throw.
       expect(() => makeStuff(() => new Arrow())).not.toThrow();
     });

@@ -5,7 +5,7 @@
  * pattern (whole-set vs quantity-bearing). Source for `get` is the
  * location's contents, destination is the giver's inventory.
  *
- * v1 envelope stub: notes from `GlobbableApi.applyQuantity` are
+ * v1 envelope stub: notes from `StackableApi.applyQuantity` are
  * folded into the `summary` inline. Future response-envelope work
  * threads them through `ctx.note(...)` instead.
  */
@@ -18,7 +18,7 @@ import type {
 import type { MqlManyResult } from '../../../../api/mql';
 import type { Stuff } from '../../../../lib/stuff/Stuff';
 import { ContainmentApi } from '../../../../api/containment';
-import { GlobbableApi, type ApplyQuantityResult } from '../../../../api/glob';
+import { StackableApi, type ApplyQuantityResult } from '../../../../api/stackable';
 import { MessageApi } from '../../../../api/message';
 import { MixinApi } from '../../../../api/mixin';
 import { Mml } from '../../../../api/mml';
@@ -91,14 +91,14 @@ export default class GetController extends CommandController<GetModel> {
       return this.declineAllFixed(reachable, raw, context);
     }
 
-    const result = await GlobbableApi.applyQuantity<GetPayload>(
+    const result = await StackableApi.applyQuantity<GetPayload>(
       candidates,
       quantity,
       async (operand, applied) => {
         if (!(await this.pickUpOperand(operand, context))) {
           // Lift gate declined this operand — the decline scene + note
           // already fired in `pickUpOperand`; report it as a non-applied
-          // result so glob skips it.
+          // result so stack skips it.
           return { ok: false, reason: 'too-heavy-to-lift' };
         }
         return { ok: true, payload: { operand, applied } };
@@ -254,7 +254,7 @@ export default class GetController extends CommandController<GetModel> {
     context: CommandContext,
   ): void {
     for (const note of result.notes) {
-      // Glob already constructed canonical-shape notes — forward
+      // Stack already constructed canonical-shape notes — forward
       // straight through. Prose for the kinds that the controller
       // surfaces to the player rides alongside.
       context.note(note);
