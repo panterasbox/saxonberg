@@ -240,6 +240,40 @@ game-time passed, which is both wrong and a regression against the
 parallel store it replaced (that derived synchronously). Everything else
 in `reconcileConditions` is about integrating elapsed time; this is not.
 
+## ⭐⭐ `resolution.by` — the treatment matches the condition
+
+`Condition.resolution.by` shipped authored on two rows and read by
+nothing, so **every treatment was the same treatment**: `treat` picked the
+worst wound and applied whatever was to hand, and a bandage on a burn
+worked exactly as well as water on it.
+
+Each condition now declares what relieves it — a `Condition` row through
+`resolution.by`, a trauma type through `TraumaBehavior.resolution` — and
+`treat` resolves what the medic is **offering** and matches it:
+
+| offered | is | treats |
+|---|---|---|
+| a `Dressing` item | `dressing` | laceration · puncture · avulsion |
+| a `Bulkable` vessel with something in it | `fluid` | burn |
+| nothing — the medic's own hands | `medicine` | an illness (the load knock) |
+| — | `rest` | contusion · fracture · `recovering` |
+
+⚠ **A mismatch is refused with prose that names what the wound wants**,
+rather than silently doing the wrong thing. *That refusal is the
+teaching*: you learn a burn needs fluid by being told a bandage does
+nothing for it. `treat <target> with <item>` chooses explicitly.
+
+⭐ Fluid is **drunk**, through the shipped `Metabolic.ingest` path, so
+water is a real supply that runs out — a medic with an empty skin has
+nothing to give, which is what makes a priced treatment mean anything. A
+dressing is spent; a vessel is only emptied.
+
+⭐ **Bare hands are a treatment, not an absence**, and that is what
+finally reaches `tendInfection` — a complete, commented private method
+that had been in `TreatController` since it was written **with no caller
+anywhere**. The `mustHaveDressing` validator is gone with it: it would
+have refused a medic carrying water.
+
 ## The couplings — limp + coverage
 
 - **The limp** (`Vitals.drainForLimp`) is a severity-gated `endurance`

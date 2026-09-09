@@ -196,8 +196,26 @@ export const HARM_DEFAULTS = {
   /** Natural (undressed) severity decay per game-second, per trauma family. */
   LACERATION_HEAL_PER_SEC: 0.003,
   CONTUSION_HEAL_PER_SEC: 0.02,
+  /**
+   * ⭐ **The sparring currency.** A bruise costs endurance while you
+   * carry it — you are a little slower the morning after a beating, and
+   * that is all. Small on purpose: this is the fee for a fight you walked
+   * away from, not an injury.
+   */
+  CONTUSION_STIFFNESS_PCT_PER_HOUR: 0.4,
   FRACTURE_HEAL_PER_SEC: 0.0015,
   BURN_HEAL_PER_SEC: 0.006,
+  /**
+   * ⭐⭐ **The plasma weep** — litres per game-hour per unit of burn
+   * severity.
+   *
+   * A serious burn loses fluid through the wound. It is why burn victims
+   * are given fluids, why `BURN_BEHAVIOR.resolution` is `fluid` rather
+   * than `dressing`, and why a burn left alone slides toward the
+   * exsanguination window on a clock the burn itself owns. Before this a
+   * burn was a number that counted down and did nothing.
+   */
+  BURN_WEEP_L_PER_HOUR_PER_SEVERITY: 0.08,
   /** Fracture at/above this severity disables its coupled slot. */
   FRACTURE_IMPAIR_SEVERITY: 0.5,
   /** Avulsion severity floor — "a severe laceration". */
@@ -565,6 +583,8 @@ export const LACERATION_BEHAVIOR: TraumaBehavior = {
     if (t.bleeding) return `a bleeding laceration on ${t.site}`;
     return `a clotted laceration on ${t.site}`;
   },
+  // The bleed family: what arrests it is a dressing.
+  resolution: 'dressing',
 };
 
 /**
@@ -591,10 +611,23 @@ function decayingBehavior(
 }
 
 /** contusion — mild, self-resolving over time; no bleed. */
-export const CONTUSION_BEHAVIOR: TraumaBehavior = decayingBehavior(
-  HARM_DEFAULTS.CONTUSION_HEAL_PER_SEC,
-  (t) => `a bruise on ${t.site}`
-);
+export const CONTUSION_BEHAVIOR: TraumaBehavior = {
+  ...decayingBehavior(
+    HARM_DEFAULTS.CONTUSION_HEAL_PER_SEC,
+    (t) => `a bruise on ${t.site}`
+  ),
+  // Nothing to bandage and nothing to pour on it. A bruise wants time.
+  resolution: 'rest',
+  // ⭐ The sparring currency: you are a little slower the morning after a
+  // beating. Small on purpose — the fee for a fight you walked away from.
+  signature: [
+    {
+      kind: 'reserve',
+      reserve: 'endurance',
+      pctPerHour: -HARM_DEFAULTS.CONTUSION_STIFFNESS_PCT_PER_HOUR,
+    },
+  ],
+};
 
 /**
  * fracture — a slow natural heal. The **impairment is a derived read** of
@@ -604,16 +637,61 @@ export const CONTUSION_BEHAVIOR: TraumaBehavior = decayingBehavior(
  * step. Setting the bone (a splint instrument) is a deferred first-aid
  * branch; v1 only heals it over time.
  */
-export const FRACTURE_BEHAVIOR: TraumaBehavior = decayingBehavior(
-  HARM_DEFAULTS.FRACTURE_HEAL_PER_SEC,
-  (t) => `a fracture of ${t.site}`
-);
+export const FRACTURE_BEHAVIOR: TraumaBehavior = {
+  ...decayingBehavior(
+    HARM_DEFAULTS.FRACTURE_HEAL_PER_SEC,
+    (t) => `a fracture of ${t.site}`
+  ),
+  // ⚠ `rest` until the splint lands — setting a bone is a first-aid
+  // instrument this build does not ship, and pretending a bandage does it
+  // would be worse than saying so. → physiology-slate.
+  resolution: 'rest',
+  // ⭐⭐ **The impairment, DECLARED.** A broken hand cannot hold a shield,
+  // and `Vitals.isSlotImpairedByCondition` used to know that by naming
+  // `fracture` in code. It is now a term on the table beside the decay
+  // law, which is what makes the rule available to every wound type
+  // instead of hard-coded for one.
+  signature: [
+    {
+      kind: 'capability',
+      disables: 'slots-at-site',
+      aboveSeverity: HARM_DEFAULTS.FRACTURE_IMPAIR_SEVERITY,
+    },
+  ],
+};
 
 /** burn — real behavior: severity + a slow heal at its own rate. */
-export const BURN_BEHAVIOR: TraumaBehavior = decayingBehavior(
-  HARM_DEFAULTS.BURN_HEAL_PER_SEC,
-  (t) => `a burn on ${t.site}`
-);
+export const BURN_BEHAVIOR: TraumaBehavior = {
+  ...decayingBehavior(
+    HARM_DEFAULTS.BURN_HEAL_PER_SEC,
+    (t) => `a burn on ${t.site}`
+  ),
+  // ⭐ **Fluid, not a bandage** — the one that makes the difference
+  // legible. A serious burn weeps plasma, which is why burn victims are
+  // given fluids; wrapping it does nothing for that. Before this, `treat`
+  // applied whatever was to hand to whatever was worst, so a bandage on a
+  // burn worked exactly as well as water on it.
+  resolution: 'fluid',
+  // ⭐ **A badly burned hand cannot grip either**, and now the engine can
+  // say so — the generalization is the point of the term. Above severity
+  // 1 (a real burn, not a scald), the slots at the site are gone until it
+  // heals: a derived read, so the affordance returns on its own.
+  //
+  // ⭐⭐ …and the WEEP. A serious burn loses fluid through the wound,
+  // which is the whole reason its treatment is fluid rather than a
+  // bandage, and the reason an untreated one is dangerous rather than
+  // merely slow: it slides toward the exsanguination window on a clock
+  // the burn itself owns. ⚠ A bloodless clade absorbs this silently
+  // (D22) — a construct that takes a fire blow has a burn, and no weep.
+  signature: [
+    { kind: 'capability', disables: 'slots-at-site', aboveSeverity: 1 },
+    {
+      kind: 'vital',
+      sign: 'bloodVolume',
+      perHour: -HARM_DEFAULTS.BURN_WEEP_L_PER_HOUR_PER_SEVERITY,
+    },
+  ],
+};
 
 /**
  * avulsion — behaves as a **severe laceration** (floors severity, bleeds,
@@ -635,6 +713,8 @@ export const AVULSION_BEHAVIOR: TraumaBehavior = {
     if (t.bleeding) return `a gaping avulsion of ${t.site}`;
     return `a clotted avulsion of ${t.site}`;
   },
+  // The bleed family: what arrests it is a dressing.
+  resolution: 'dressing',
 };
 
 /**
@@ -656,6 +736,8 @@ export const PUNCTURE_BEHAVIOR: TraumaBehavior = {
     if (t.bleeding) return `a bleeding puncture wound of ${t.site}`;
     return `a clotted puncture wound of ${t.site}`;
   },
+  // The bleed family: what arrests it is a dressing.
+  resolution: 'dressing',
 };
 
 /**

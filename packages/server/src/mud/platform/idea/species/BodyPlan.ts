@@ -87,11 +87,21 @@ export interface BodyPart {
   /** Named tissues + masses — NOT a single default material. */
   tissues: TissueComposition[];
   /**
-   * Organ → vital coupling. A `VitalSign` key (see `lib/vitals/Vitals.ts`);
-   * typed `string` here deliberately to keep `BodyPlan` free of any
-   * import from `lib/vitals`.
+   * ⭐⭐ **What this part is FOR** — the keys of the things it governs.
+   * Vital-sign keys today (`heartRate`, `respiratoryRate`); capacity keys
+   * later, which is physiology's axis. Typed `string[]` here deliberately
+   * to keep `BodyPlan` free of any import from `lib/vitals`.
+   *
+   * ⚠ Was `governsVital?: string` — singular, and named for the only
+   * thing it could point at. **Every read of it is an organ-exclusion
+   * filter**: the surface-fraction walk and the four `Attired` walks all
+   * ask "is this part internal?", none reads the value. Naming a field
+   * for its first consumer is what blocks the second one, and physiology
+   * needs a lung to govern a capacity as well as a rate — so this is the
+   * rename that unblocks it, with the semantics untouched: a part with a
+   * non-empty `governs` is internal.
    */
-  governsVital?: string;
+  governs?: string[];
   /** Can detach — future part-promotion seam. */
   severable?: boolean;
   // Deferred-with-seam (declared, no reader this build): the
@@ -448,7 +458,7 @@ export default class BodyPlan extends SingletonMixin(PropertiedMixin(Idea)) {
    * number would be a second copy of a fact the tissue masses already
    * carry, and the two would drift.
    *
-   * ⚠ **Organs are excluded.** A part with `governsVital` is internal
+   * ⚠ **Organs are excluded.** A part with a non-empty `governs` is internal
    * (the heart, the lungs) and has no external surface at all; counting
    * it would dilute every other part's share by a body nobody can put a
    * coat on. That signal is already in the data, so the exclusion is
@@ -464,7 +474,7 @@ export default class BodyPlan extends SingletonMixin(PropertiedMixin(Idea)) {
     let total = 0;
     let own = 0;
     for (const part of this.bodyParts) {
-      if (part.governsVital) continue;
+      if (part.governs?.length) continue;
       let mass = 0;
       for (const t of part.tissues ?? []) mass += t.mass;
       if (!(mass > 0)) continue;

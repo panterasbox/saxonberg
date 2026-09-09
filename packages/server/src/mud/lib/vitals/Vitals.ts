@@ -84,7 +84,7 @@ function elecDial(key: string, fallback: number): number {
 /**
  * The engine's vital-sign vocabulary — the canonical key list, used by
  * the band profile (`Species.VitalProfile`), the per-sign storage, and
- * anatomy's `governsVital` coupling. Re-exported as the single source
+ * anatomy's `governs` coupling. Re-exported as the single source
  * of truth so `BodyPlan` can validate against it value-only.
  */
 export const VITAL_SIGNS = [
@@ -223,6 +223,12 @@ const VITALS_DEFAULTS = {
   /** Load per severity stage — three stages over the full range. */
   INFECTION_STAGE_LOAD: 0.34,
   /** `%` hydration a severe infection costs per game-hour, per stage over 1. */
+  /**
+   * ⚠ **Retired**, kept only so a row that wants the old rate can cite
+   * it. The drain moved onto every pathogen row's `signature` — it used
+   * to be hard-coded in `progressInfection`, the one effect any
+   * affliction had on a body anywhere in the engine.
+   */
   INFECTION_HYDRATION_PCT_PER_HOUR: 3,
 } as const;
 
@@ -1020,11 +1026,10 @@ export function VitalsMixin<TBase extends MixinConstructor>(Base: TBase) {
           if (e.disables !== 'slots-at-site') continue;
           if (c.severity >= e.aboveSeverity) return true;
         }
-        // The shipped fracture rule, until W10 moves it onto the table.
-        return (
-          c.type === 'fracture' &&
-          c.severity >= HARM_DEFAULTS.FRACTURE_IMPAIR_SEVERITY
-        );
+        // ⭐ No special case left. Fracture declares its own capability
+        // term on `TRAUMA_BEHAVIOR` like every other type — the rule is
+        // the table's, not this method's.
+        return false;
       });
     }
 
@@ -1267,19 +1272,13 @@ export function VitalsMixin<TBase extends MixinConstructor>(Base: TBase) {
         Math.max(1, Math.ceil(load / VITALS_DEFAULTS.INFECTION_STAGE_LOAD)),
       );
 
-      // The consequence, and it is the SHIPPED one: fluid loss. A severe
-      // infection dehydrates you, and dehydration already ends where it
-      // ends.
-      const self = this as unknown as Stuff;
-      if (record.stage >= 2 && MixinApi.isReserved(self)) {
-        const drained =
-          VITALS_DEFAULTS.INFECTION_HYDRATION_PCT_PER_HOUR *
-          (record.stage - 1) *
-          hours;
-        if (drained > 0) {
-          self.adjustReserve('hydration', Quantity.of(-drained, '%'));
-        }
-      }
+      // ⭐⭐ **The fluid loss is the ROW's now.** It used to be
+      // hard-coded here — the ONE effect any affliction had on a body
+      // anywhere in the engine, for pathogens only, that no row asked
+      // for and no row could ask for. Every pathogen row authors it as a
+      // `reserve` effect on its `signature`, and the affliction arm
+      // applies it through `applyEffects` like any other. Nothing about
+      // the outcome changed; what changed is who gets to say so.
     }
 
     /**
@@ -1393,6 +1392,13 @@ export function VitalsMixin<TBase extends MixinConstructor>(Base: TBase) {
             continue;
           }
           t.tickedAt = nowS;
+          // ⚠ The intensity is the severity the wound had **during** the
+          // interval, not after the tick healed it. A burn that clears
+          // inside one reconcile still wept for the time it was there —
+          // read post-tick, a wound that healed to zero in the same slice
+          // contributes nothing, which silently loses every effect on a
+          // fast-healing type.
+          const carried = t.severity;
           TRAUMA_BEHAVIOR[t.type].tick(this, t, elapsed);
           // ⭐ …and what CARRYING the wound does, over and above its own
           // tick. The Kind-B half of the effect channel, through the same
@@ -1401,7 +1407,7 @@ export function VitalsMixin<TBase extends MixinConstructor>(Base: TBase) {
           // beside the decay law rather than hard-coded somewhere else.
           this.applyEffects(
             TRAUMA_BEHAVIOR[t.type].signature,
-            t.severity,
+            carried,
             elapsed,
           );
         }

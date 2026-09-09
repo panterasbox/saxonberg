@@ -11,7 +11,10 @@ class: /platform/idea/Condition
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: overchannel-strain
-  signature: []
+  # ⭐ Overchannelling leaves you unable to do what you know how to
+  # do — a band of expressed skill, fading as the strain decays.
+  signature:
+    - { kind: expression, bands: 1 }
   progression:
     law: decay
   resolution:

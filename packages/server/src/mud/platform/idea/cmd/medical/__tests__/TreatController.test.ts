@@ -372,3 +372,120 @@ describe('TreatController — stabilization', () => {
     );
   });
 });
+
+/* ─────────── W9: resolution.by — a burn wants fluid, a cut a bandage ─────────── */
+
+describe('TreatController — the treatment matches the condition', () => {
+  /** A medic in a room, carrying `item`, with the given wound. */
+  function medicWithWound(
+    item: Thing | null,
+    wound: Trauma,
+    path: string,
+  ): { medic: MedicCreature; room: Location } {
+    const room = makeStuff(() => new Location());
+    const medic = makeStuff(() => new MedicCreature());
+    stampTemplatePathForTest(medic, path);
+    ContainmentApi.move(medic, room);
+    if (item) ContainmentApi.move(item, medic);
+    medic.afflict(wound);
+    return { medic, room };
+  }
+
+  it('⭐⭐ a bandage on a BURN is refused, and TOLD WHY', async () => {
+    // The teaching. Before this, `treat` picked the worst wound and
+    // applied whatever was to hand, so a bandage on a burn worked exactly
+    // as well as water on it — and `Condition.resolution` /
+    // `TraumaBehavior.resolution` had no reader anywhere in the tree.
+    const bandage = makeStuff(() => new Bandage());
+    const burn: Trauma = {
+      kind: 'trauma',
+      type: 'burn',
+      site: 'body.torso',
+      severity: 1.5,
+    };
+    const { medic, room } = medicWithWound(
+      bandage,
+      burn,
+      '/platform/agent/Avatar/medic-burn',
+    );
+    const ctrl = makeStuff(() => new TreatController());
+    await ctrl.execute({}, ctxFor(medic, room));
+
+    expect(note).toHaveBeenCalledWith(
+      expect.objectContaining({ reason: 'wrong-treatment' }),
+    );
+    // …and the refusal NAMES what it wants, which is the whole point.
+    const detail = String(
+      (note.mock.calls[0]![0] as { detail: string }).detail,
+    );
+    expect(detail).toContain('water');
+    // Nothing happened to the burn, and the bandage is still there.
+    expect(burn.dressed).toBeFalsy();
+    expect(StuffApi.findById(bandage.stuffId)).toBeTruthy();
+  });
+
+  it('a bandage on a CUT still works, exactly as before', async () => {
+    const bandage = makeStuff(() => new Bandage());
+    const cut: Trauma = {
+      kind: 'trauma',
+      type: 'laceration',
+      site: 'body.arm.left',
+      severity: 1.2,
+      bleeding: true,
+    };
+    const { medic, room } = medicWithWound(
+      bandage,
+      cut,
+      '/platform/agent/Avatar/medic-cut',
+    );
+    const ctrl = makeStuff(() => new TreatController());
+    await ctrl.execute({}, ctxFor(medic, room));
+    expect(note).not.toHaveBeenCalled();
+    expect(cut.dressed).toBe(true);
+  });
+
+  it('⚠ a bruise wants TIME, and says so — neither a bandage nor water', async () => {
+    const bandage = makeStuff(() => new Bandage());
+    const bruise: Trauma = {
+      kind: 'trauma',
+      type: 'contusion',
+      site: 'body.torso',
+      severity: 0.8,
+    };
+    const { medic, room } = medicWithWound(
+      bandage,
+      bruise,
+      '/platform/agent/Avatar/medic-bruise',
+    );
+    const ctrl = makeStuff(() => new TreatController());
+    await ctrl.execute({}, ctxFor(medic, room));
+    const detail = String(
+      (note.mock.calls[0]![0] as { detail: string }).detail,
+    );
+    expect(detail).toContain('rest');
+  });
+
+  it('the mismatch is reported even with nothing to hand (bare hands are `medicine`)', async () => {
+    // ⭐ Bare hands are a treatment, not an absence — which is what lets
+    // `treat` reach an illness at all. `tendInfection` had been complete
+    // and commented in this file since it was written, WITH NO CALLER.
+    const cut: Trauma = {
+      kind: 'trauma',
+      type: 'laceration',
+      site: 'body.arm.left',
+      severity: 1.2,
+      bleeding: true,
+    };
+    const { medic, room } = medicWithWound(
+      null,
+      cut,
+      '/platform/agent/Avatar/medic-bare',
+    );
+    const ctrl = makeStuff(() => new TreatController());
+    await ctrl.execute({}, ctxFor(medic, room));
+    const detail = String(
+      (note.mock.calls[0]![0] as { detail: string }).detail,
+    );
+    expect(detail).toContain('bandage');
+  });
+});

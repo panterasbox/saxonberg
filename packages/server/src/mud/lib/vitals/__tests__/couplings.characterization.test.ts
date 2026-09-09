@@ -27,6 +27,8 @@ import '../../../../test-bootstrap';
 import { describe, it, expect, beforeAll, beforeEach, afterEach } from 'vitest';
 import { Creature } from '../../creature/Creature';
 import { UNIVERSE_DEFAULT_VITAL_PROFILE } from '../Vitals';
+import { METABOLIC_DEFAULTS } from '../../metabolism/Metabolic';
+import { Quantity } from '../../quantity';
 import Condition from '../../../platform/idea/Condition';
 import type { AfflictionRecord, Trauma } from '../../../platform/idea/Condition';
 import { StuffApi } from '../../../api/stuff';
@@ -201,10 +203,12 @@ describe('vitals couplings — characterization', () => {
     );
   });
 
-  it('⚠ ABSENT (W11 flips this) — a burn costs no blood, however long it burns', () => {
-    // A serious burn weeps plasma; that is why burn victims are given
-    // fluids. Today `BURN_BEHAVIOR` decays its own severity and nothing
-    // else, so a burn is a number that counts down.
+  it('⭐ W11 — a burn WEEPS: it costs blood while you carry it', () => {
+    // Was ABSENT: `BURN_BEHAVIOR` decayed its own severity and nothing
+    // else, so a burn was a number that counted down. A serious burn
+    // loses fluid through the wound — which is why its treatment is
+    // fluid rather than a bandage, and why an untreated one is dangerous
+    // rather than merely slow.
     const body = makeStuff(() => new Creature());
     const bloodBefore = body.getVitalSign('bloodVolume').rawValue();
     const burn: Trauma = {
@@ -217,16 +221,15 @@ describe('vitals couplings — characterization', () => {
 
     live(body, 3 * HOUR);
 
-    expect(burn.severity).toBeLessThan(0.9); // the decay IS wired
-    expect(body.getVitalSign('bloodVolume').rawValue()).toBeCloseTo(
+    expect(burn.severity).toBeLessThan(0.9); // the decay is still wired
+    expect(body.getVitalSign('bloodVolume').rawValue()).toBeLessThan(
       bloodBefore,
-      5,
     );
   });
 
-  it('⚠ ABSENT (W11 flips this) — a bruise costs no endurance', () => {
-    // The sparring currency: you should be a little slower the morning
-    // after a beating. Today a contusion is the same countdown as a burn.
+  it('⭐ W11 — a bruise stiffens: the sparring currency', () => {
+    // You are a little slower the morning after a beating, and that is
+    // all. The fee for a fight you walked away from.
     const body = makeStuff(() => new Creature());
     const before = endurancePct(body);
     expect(Number.isNaN(before)).toBe(false);
@@ -241,7 +244,14 @@ describe('vitals couplings — characterization', () => {
     live(body, 3 * HOUR);
 
     expect(bruise.severity).toBeLessThan(0.8);
-    expect(endurancePct(body)).toBeCloseTo(before, 5);
+    // ⚠ Compared against an UNBRUISED twin living the same hours, not
+    // against the starting level: a resting body rebuilds endurance
+    // through metabolism's coupled recovery, so the level alone says
+    // nothing. What the bruise changes is the balance of that race.
+    const control = makeStuff(() => new Creature());
+    control.getConditions();
+    live(control, 3 * HOUR);
+    expect(endurancePct(body)).toBeLessThanOrEqual(endurancePct(control));
   });
 
   /* ──────────────── the one edge that IS wired ──────────────── */
@@ -317,5 +327,80 @@ describe('vitals — the affliction inflicter', () => {
       body.afflict(record);
     });
     expect(record.inflictedBy).toBe('/test/the-real-culprit');
+  });
+});
+
+/* ─────── W11 / D21: fluid restores VOLUME, never all the way back ─────── */
+
+describe('plasma restoration — the ceiling is a SHAPE decision', () => {
+  /**
+   * Live through game-time while STAYING HYDRATED — the restore is
+   * conditioned on it, and the basal drain would otherwise walk the body
+   * below the threshold and stop the very thing under test.
+   */
+  function liveWatered(body: Creature, gameSeconds: number): void {
+    const until = gameNow() + gameSeconds;
+    for (let i = 0; i < 4000 && gameNow() < until; i++) {
+      setNow(now - BASE + 20);
+      if (MixinApi.isReserved(body)) {
+        const cur = body.getReserve('hydration');
+        if (cur && cur.current.rawValue() < 90) {
+          body.adjustReserve('hydration', Quantity.of(20, '%'));
+        }
+      }
+      body.getReserves(); // drives the metabolic reconcile
+    }
+  }
+
+  beforeEach(() => {
+    installV1QuantityMarshallers();
+    WorldClockApi._resetForTesting();
+    setNow(0);
+    WorldClockApi._setNowProviderForTesting(() => now);
+    WorldClockApi.setScale(1000);
+  });
+  afterEach(() => WorldClockApi._resetForTesting());
+
+  it('⭐ a bled body recovers VOLUME on hydration — the hospital problem', () => {
+    // Nothing in the engine regenerated `bloodVolume`. The only writers
+    // outside tests were the bleed and the species-baseline reset, so a
+    // bled fraction was permanent until death: you could stop a bleed and
+    // never undo one.
+    const body = makeStuff(() => new Creature());
+    const baseline = body.getVitalBand('bloodVolume').baseline;
+    body.setVitalSign('bloodVolume', Quantity.of(baseline * 0.5, 'L'));
+    const before = body.getVitalSign('bloodVolume').rawValue();
+
+    liveWatered(body, 6 * HOUR);
+
+    expect(body.getVitalSign('bloodVolume').rawValue()).toBeGreaterThan(before);
+  });
+
+  it('⚠⚠ …and it STOPS short of whole — the blood build\'s premise', () => {
+    // Drinking restores plasma volume, not red cells. A full restore
+    // would give the world a way to replace blood by drinking and
+    // waiting, which demotes transfusion from a treatment to a
+    // convenience and leaves that build with nothing to be for.
+    const body = makeStuff(() => new Creature());
+    const baseline = body.getVitalBand('bloodVolume').baseline;
+    body.setVitalSign('bloodVolume', Quantity.of(baseline * 0.5, 'L'));
+
+    liveWatered(body, 48 * HOUR);
+
+    const after = body.getVitalSign('bloodVolume').rawValue();
+    expect(after).toBeLessThan(baseline);
+    expect(after).toBeCloseTo(
+      baseline * METABOLIC_DEFAULTS.PLASMA_RESTORE_CEILING_FRAC,
+      2,
+    );
+  });
+
+  it('never pushes an intact body ABOVE its baseline', () => {
+    const body = makeStuff(() => new Creature());
+    const baseline = body.getVitalBand('bloodVolume').baseline;
+    liveWatered(body, 6 * HOUR);
+    expect(body.getVitalSign('bloodVolume').rawValue()).toBeLessThanOrEqual(
+      baseline,
+    );
   });
 });

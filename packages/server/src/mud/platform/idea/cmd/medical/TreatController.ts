@@ -24,6 +24,8 @@ import type { MqlOneResult } from '../../../../api/mql';
 import { MessageApi } from '../../../../api/message';
 import { MixinApi } from '../../../../api/mixin';
 import { StuffApi } from '../../../../api/stuff';
+import { Quantity } from '../../../../lib/quantity';
+import type Condition from '../../Condition';
 import { Mml } from '../../../../api/mml';
 import type { Stuff } from '../../../../lib/stuff/Stuff';
 import type { Vitals } from '../../../../lib/vitals/Vitals';
@@ -36,7 +38,12 @@ const TOPIC = 'act.deed';
 
 interface TreatModel extends CommandModel {
   target?: MqlOneResult;
+  /** `treat <target> with <item>` — the treatment being offered. */
+  with?: MqlOneResult;
 }
+
+/** How much a single treatment pours into someone. */
+const TREAT_FLUID_LITRES = 0.25;
 
 /** Pick the most-pressing dressable wound: bleeding first, then severity. */
 function pickWound(target: Stuff & Vitals): Trauma | null {
@@ -95,6 +102,48 @@ function outcomeFor(band: string, quality: number): Outcome {
   return 'critical';
 }
 
+/**
+ * ⭐ **What the treater is offering**, matched against what the target's
+ * conditions declare relieves them.
+ *
+ * The closed vocabulary is `ResolutionSpec.by`'s: `dressing` · `fluid` ·
+ * `medicine` · `rest` · `warmth` · `cooling` · `air` · an antidote token.
+ * `treat` can supply the first three; the rest are things the world does
+ * to you, not things a medic hands over, and asking for them is refused
+ * with the reason.
+ */
+type Treatment =
+  | { by: 'dressing'; item: Stuff & Dressing }
+  | { by: 'fluid'; item: Stuff }
+  | { by: 'medicine' }
+  | { by: string; item: Stuff };
+
+/** What a condition declares relieves it, or null when nothing does. */
+function resolutionOf(c: Trauma | AfflictionRecord): string | null {
+  if (c.kind === 'trauma') {
+    return TRAUMA_BEHAVIOR[c.type]?.resolution ?? null;
+  }
+  const row = StuffApi.findByTemplatePath<Condition>(c.templatePath);
+  return row?.getResolution()?.by ?? null;
+}
+
+/** Prose for a treatment that does nothing for what is wrong. */
+function mismatchLine(offered: string, wanted: string | null): string {
+  if (wanted === null) return 'Nothing you have will touch that.';
+  const words: Record<string, string> = {
+    dressing: 'a bandage',
+    fluid: 'water',
+    medicine: 'sitting with them',
+    rest: 'rest',
+    warmth: 'warmth',
+    cooling: 'cooling',
+    air: 'air',
+  };
+  const o = words[offered] ?? offered;
+  const w = words[wanted] ?? wanted;
+  return `${o[0]!.toUpperCase()}${o.slice(1)} does nothing for that. It wants ${w}.`;
+}
+
 export default class TreatController extends CommandController<TreatModel> {
   async execute(model: TreatModel, context: CommandContext): Promise<void> {
     const giver = context.commandGiver;
@@ -127,27 +176,37 @@ export default class TreatController extends CommandController<TreatModel> {
     // dress — the thing killing it may be cold, or a toxin, or blood
     // already lost. Stabilizing is not the same act as dressing.
     const dying = target.isDying();
-    const wound = pickWound(target);
-    if (!wound && !dying) {
-      const who = isSelf ? 'You have' : `${target.getPresentation()} has`;
-      return this.fail(context, `${who} no wound to dress.`, 'no-wound');
-    }
 
-    const dressing =
-      MqlApi.resolveMany('reachable', {
-        commandGiver: giver,
-        scope: 'reachable',
-      }).stuff.find(
-        (s): s is Stuff & Dressing => MixinApi.isDressing(s)
-      ) ?? null;
-    if (!dressing) {
+    // ⭐ **What are you actually offering?** An explicit `with <item>`
+    // wins; otherwise the first thing to hand that could treat anything.
+    const treatment = this.resolveTreatment(model, giver);
+
+    // ⭐⭐ **Match it against what is wrong.** `pickWound` used to choose
+    // the worst wound and the verb applied whatever was carried to it. It
+    // now picks the worst condition **this treatment can actually
+    // relieve** — and refuses, with the reason, when nothing matches.
+    const treatable = this.pickTreatable(target, treatment.by);
+    if (!treatable && !dying) {
+      const worst = pickWound(target) ?? firstAffliction(target);
+      if (!worst) {
+        const who = isSelf ? 'You have' : `${target.getPresentation()} has`;
+        return this.fail(context, `${who} nothing to treat.`, 'no-wound');
+      }
+      // Something IS wrong — this is just not what it wants. That
+      // refusal is the teaching.
       return this.fail(
         context,
-        'You have nothing to dress the wound with.',
-        'no-dressing'
+        mismatchLine(treatment.by, resolutionOf(worst)),
+        'wrong-treatment',
       );
     }
 
+    // An illness wants a medic's hands, not an item.
+    if (treatable && treatable.kind === 'affliction') {
+      return this.tendInfection(target, treatable, isSelf, context);
+    }
+
+    const wound = treatable as Trauma | null;
     const band = MixinApi.isAdvancing(giver)
       ? await giver.competenceBandFor('medicine')
       : CompetenceBand.FLOOR;
@@ -156,12 +215,23 @@ export default class TreatController extends CommandController<TreatModel> {
     const difficulty: Difficulty = dying
       ? 'formidable'
       : difficultyFor(wound!);
-    const outcome = outcomeFor(band, dressing.getDressingQuality());
+    // Quality is the dressing's when there is one; fluid and bare hands
+    // are worth a middling article.
+    const quality =
+      treatment.by === 'dressing'
+        ? (treatment as { item: Stuff & Dressing }).item.getDressingQuality()
+        : 0.5;
+    const outcome = outcomeFor(band, quality);
 
-    // Mechanical effect: dress the wound (arrest the bleed, begin the
-    // clot) and spend the item. The dressed wound heals to clear on the
-    // next read (reconcile-on-read — no tick to arm).
-    if (wound) TRAUMA_BEHAVIOR[wound.type].resolve(target, wound);
+    // Mechanical effect. A dressing arrests the bleed and begins the clot
+    // through the trauma's own `resolve`; fluid is DRUNK, through the
+    // shipped ingest path, which is what makes it a real supply that runs
+    // out rather than a gesture.
+    if (wound && treatment.by === 'dressing') {
+      TRAUMA_BEHAVIOR[wound.type].resolve(target, wound);
+    } else if (wound && treatment.by === 'fluid') {
+      this.pourInto(target, (treatment as { item: Stuff }).item);
+    }
 
     // The stabilization: pull them out of the dying window. RESCUED, NOT
     // HEALED — whatever drove them under is untouched, so a body still
@@ -170,7 +240,11 @@ export default class TreatController extends CommandController<TreatModel> {
     const stabilized =
       dying && outcome !== 'failure' ? target.stabilize() : false;
 
-    await StuffApi.destruct(dressing);
+    // The dressing is spent either way; a vessel is emptied, not
+    // destroyed — you keep the waterskin.
+    if (treatment.by === 'dressing') {
+      await StuffApi.destruct((treatment as { item: Stuff }).item);
+    }
 
     // Mint the graded deed into the treater's Transcript (the ActSignature).
     if (MixinApi.isAdvancing(giver))
@@ -210,18 +284,106 @@ export default class TreatController extends CommandController<TreatModel> {
       return;
     }
 
+    const verb = treatment.by === 'fluid' ? 'get water onto' : 'dress';
     const selfLine = isSelf
-      ? Mml.compose`You dress the ${wound.type} on your ${siteWord(wound)}.`
-      : Mml.compose`You dress the ${wound.type} on ${Mml.actor(target)}.`;
+      ? Mml.compose`You ${verb} the ${wound.type} on your ${siteWord(wound)}.`
+      : Mml.compose`You ${verb} the ${wound.type} on ${Mml.actor(target)}.`;
     MessageApi.scene(giver)
       .topic(TOPIC)
       .toSelf(selfLine)
       .toPeers(
         isSelf
-          ? Mml.compose`${Mml.actor(giver)} dresses a wound.`
-          : Mml.compose`${Mml.actor(giver)} dresses a wound on ${Mml.actor(target)}.`
+          ? Mml.compose`${Mml.actor(giver)} tends a wound.`
+          : Mml.compose`${Mml.actor(giver)} tends a wound on ${Mml.actor(target)}.`
       )
       .send();
+  }
+
+  /**
+   * ⭐ **What the treater is offering.** An explicit `with <item>` wins;
+   * otherwise the first thing to hand that could treat anything, and
+   * failing that the medic's own hands.
+   *
+   * ⚠ Bare hands are `medicine` — the load knock — not "nothing". That
+   * is what lets `treat` reach an illness at all: `tendInfection` has
+   * been in this file since it was written, complete, commented, and
+   * **with no caller anywhere**.
+   */
+  private resolveTreatment(model: TreatModel, giver: Stuff): Treatment {
+    const named = model.with?.stuff ?? null;
+    const reachable = MqlApi.resolveMany('reachable', {
+      commandGiver: giver as never,
+      scope: 'reachable',
+    }).stuff;
+    const classify = (item: Stuff): Treatment | null => {
+      if (MixinApi.isDressing(item)) return { by: 'dressing', item };
+      if (
+        MixinApi.isBulkable(item) &&
+        item.getBulkAmount('interior').rawValue() > 0
+      ) {
+        return { by: 'fluid', item };
+      }
+      return null;
+    };
+    if (named) {
+      // A named item that treats nothing is still what they chose: the
+      // mismatch is reported against it rather than silently ignored.
+      return classify(named) ?? { by: 'medicine' };
+    }
+    for (const item of reachable) {
+      const t = classify(item);
+      if (t) return t;
+    }
+    return { by: 'medicine' };
+  }
+
+  /**
+   * The worst condition this treatment can actually relieve, or null.
+   * Bleeding first, then severity — the shipped ordering, now filtered by
+   * what the treatment is FOR.
+   */
+  private pickTreatable(
+    target: Stuff & Vitals,
+    by: string,
+  ): Trauma | AfflictionRecord | null {
+    const conditions = target.getConditions();
+    const traumas = conditions
+      .filter((c): c is Trauma => c.kind === 'trauma')
+      .filter((t) => !t.dressed && t.severity > 0)
+      .filter((t) => resolutionOf(t) === by);
+    if (traumas.length > 0) {
+      const bleeding = traumas.filter((t) => t.bleeding);
+      const pool = bleeding.length ? bleeding : traumas;
+      return [...pool].sort((a, b) => b.severity - a.severity)[0]!;
+    }
+    const afflictions = conditions
+      .filter((c): c is AfflictionRecord => c.kind === 'affliction')
+      .filter((a) => resolutionOf(a) === by);
+    return [...afflictions].sort((a, b) => b.stage - a.stage)[0] ?? null;
+  }
+
+  /**
+   * Fluid, drunk. Routed through the shipped `Metabolic.ingest` path so
+   * the water is a real supply that runs out — a medic with an empty
+   * skin has nothing to give, which is the whole point of pricing a
+   * treatment.
+   */
+  private pourInto(target: Stuff & Vitals, vessel: Stuff): void {
+    if (!MixinApi.isBulkable(vessel)) return;
+    const self = target as unknown as Stuff;
+    if (!MixinApi.isMetabolic(self)) return;
+    const material = vessel.getBulkMaterial('interior');
+    if (!material) return;
+    const have = vessel.getBulkAmount('interior').rawValue();
+    const dose = Math.min(have, TREAT_FLUID_LITRES);
+    if (!(dose > 0)) return;
+    const taken = self.ingest(
+      material,
+      Quantity.of(dose, 'L'),
+      'liquid',
+      vessel.getBulkPayload('interior'),
+    );
+    if (taken > 0) vessel.debitBulk('interior', taken);
   }
 
   /**
@@ -296,6 +458,14 @@ export default class TreatController extends CommandController<TreatModel> {
       .toSelf(Mml.fromMarkup(Mml.escape(detail)))
       .send();
   }
+}
+
+/** The first affliction on a body, for the mismatch report. */
+function firstAffliction(target: Stuff & Vitals): AfflictionRecord | null {
+  for (const c of target.getConditions()) {
+    if (c.kind === 'affliction') return c;
+  }
+  return null;
 }
 
 /** A short human word for the wound's site (`body.leg.left.foot` → `foot`). */

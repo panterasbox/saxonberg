@@ -7,7 +7,12 @@ class: /platform/idea/Condition
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: lead-poisoning
-  signature: []
+  # ⭐⭐ The cognitive tax, and it is the honest one: chronic lead
+  # poisoning dulls you. `expression` costs a BAND of expressed skill
+  # while the burden lasts — it never touches the Transcript, so what
+  # you have done stays true and only what you can currently do falls.
+  signature:
+    - { kind: expression, bands: 1 }
   progression:
     law: burden
   resolution:

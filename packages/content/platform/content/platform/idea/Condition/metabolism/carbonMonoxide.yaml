@@ -10,7 +10,10 @@ class: /platform/idea/Condition
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: carbon-monoxide-poisoning
-  signature: []
+  # ⭐ CO displaces oxygen. `spo2` falling is the mechanism, not a
+  # flavour note — and respiration's own cascade takes it from there.
+  signature:
+    - { kind: vital, sign: spo2, perHour: -6 }
   progression:
     law: burden
   resolution:

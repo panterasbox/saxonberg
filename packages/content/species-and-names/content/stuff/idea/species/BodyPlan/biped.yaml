@@ -75,7 +75,7 @@ data:
     - { modality: taste, count: 1, position: forward }
   # Typed anatomy (Vitals substrate). Coarse v1 roster: limbs / head /
   # torso + heart / lungs. Tissue masses (kg) are the strength substrate;
-  # enablesSlots gates wear/wield; governsVital is the organ→vital
+  # enablesSlots gates wear/wield; governs is the organ→vital
   # coupling. Stable body.* keys are the trauma-site anchor.
   bodyParts:
     - key: body.torso
@@ -148,11 +148,11 @@ data:
         - { tissuePath: /stuff/idea/material/tissue/flesh, mass: 0.5 }
     - key: body.torso.heart
       parent: body.torso
-      governsVital: heartRate
+      governs: [heartRate]
       tissues:
         - { tissuePath: /stuff/idea/material/tissue/muscle, mass: 0.3 }
     - key: body.torso.lungs
       parent: body.torso
-      governsVital: respiratoryRate
+      governs: [respiratoryRate]
       tissues:
         - { tissuePath: /stuff/idea/material/tissue/flesh, mass: 1 }

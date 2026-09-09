@@ -133,3 +133,43 @@ describe('Fracture impairs affordances via canOccupy', () => {
     expect(creature.canOccupy(item, 'grip')).toBe(true);
   });
 });
+
+/* ────── W10: the capability term — the fracture rule, generalized ────── */
+
+describe('the capability term', () => {
+  beforeEach(() => installV1QuantityMarshallers());
+  afterEach(() => StuffApi.clearAll());
+
+  it('⭐ a badly BURNED hand cannot grip either — the rule is the table\'s now', () => {
+    // `isSlotImpairedByCondition` used to name `fracture` in code, so a
+    // hand burned to the bone held a shield perfectly well. The term is
+    // now declared on TRAUMA_BEHAVIOR beside the decay law, which makes
+    // it available to every wound type instead of hard-coded for one.
+    const creature = anatomicalCreature();
+    expect(creature.isSlotImpairedByCondition('grip')).toBe(false);
+    const burn: Trauma = {
+      kind: 'trauma',
+      type: 'burn',
+      site: 'body.arm.left.hand',
+      severity: 2,
+    };
+    creature.afflict(burn);
+    expect(creature.isSlotImpairedByCondition('grip')).toBe(true);
+    // …and it is a DERIVED read: the affordance returns as it heals, with
+    // no separate un-impair step.
+    burn.severity = 0.5;
+    expect(creature.isSlotImpairedByCondition('grip')).toBe(false);
+  });
+
+  it('⚠ a wound type that declares no capability term never impairs', () => {
+    const creature = anatomicalCreature();
+    creature.afflict({
+      kind: 'trauma',
+      type: 'laceration',
+      site: 'body.arm.left.hand',
+      severity: 3,
+      bleeding: true,
+    });
+    expect(creature.isSlotImpairedByCondition('grip')).toBe(false);
+  });
+});

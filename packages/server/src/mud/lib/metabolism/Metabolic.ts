@@ -211,6 +211,26 @@ export const METABOLIC_DEFAULTS = {
   /** Basal drain (`%`-points per game-minute at the reference mass). */
   BASAL_SATIATION_PER_MIN: 0.02,
   BASAL_HYDRATION_PER_MIN: 0.03,
+
+  /**
+   * ⭐⭐ **Plasma restoration** — the answer to "you can stop a bleed but
+   * never undo one", bounded so it stays an answer to that and not to
+   * everything.
+   *
+   * Drinking restores plasma VOLUME, not red cells. A body that has lost
+   * a lot of blood and taken on water has its volume back and its
+   * oxygen-carrying capacity still gone — dilutional anaemia, which is
+   * precisely why transfusion exists.
+   *
+   * ⚠⚠ `PLASMA_RESTORE_CEILING_FRAC` being **below 1.0 is a shape
+   * decision, not tuning.** At baseline this would give the world a way
+   * to replace blood by drinking and waiting, which deletes the premise
+   * of the blood build (transfusion as the only route back to whole).
+   * Raising it is arguing that; see `Metabolic.restorePlasma`.
+   */
+  PLASMA_RESTORE_HYDRATION_PCT: 40,
+  PLASMA_RESTORE_L_PER_HOUR: 0.12,
+  PLASMA_RESTORE_CEILING_FRAC: 0.85,
   /** Reference body mass (kg) — basal scales linearly off this. */
   REFERENCE_MASS_KG: 70,
 
@@ -862,6 +882,57 @@ export function MetabolicMixin<TBase extends MixinConstructor>(Base: TBase) {
       const hyd = D.BASAL_HYDRATION_PER_MIN * stepMin * massFactor * thermal;
       self.adjustReserve("satiation", Quantity.of(-sat, "%"));
       self.adjustReserve("hydration", Quantity.of(-hyd, "%"));
+      this.restorePlasma(stepMin);
+    }
+
+    /**
+     * ⭐⭐ **Fluid restores VOLUME, never red cells** — and the ceiling
+     * being below baseline is a SHAPE decision, not a dial.
+     *
+     * Nothing in this engine regenerated `bloodVolume`. The only writers
+     * outside tests were the bleed and the species-baseline reset, so a
+     * bled fraction was permanent until death: you could stop a bleed,
+     * and never undo one. That is the real "hospital problem" — and it
+     * is what makes a burn's plasma weep a permanent debit rather than a
+     * consequence.
+     *
+     * ⚠⚠ **But a FULL restore would delete another build's reason to
+     * exist.** The blood slate's whole gap is *"nothing replaces the
+     * blood… the treatment for a big one is a thing the world has no way
+     * to produce"*. Drink-and-wait is exactly that way, and it demotes
+     * transfusion from a treatment to a convenience.
+     *
+     * ⭐ It is also physiologically wrong, and the correct model is the
+     * one that preserves the other build. Drinking restores **plasma
+     * volume, not red cells**: a body that has lost a lot of blood and
+     * taken on water has its volume back and its oxygen-carrying capacity
+     * still gone — dilutional anaemia, which is precisely *why*
+     * transfusion exists. So volume climbs, on hydration, to a
+     * **fraction** of baseline and no further. Enough to walk a body back
+     * out of immediate danger; never enough to make it whole.
+     *
+     * ⚠ A future change that raises `PLASMA_RESTORE_CEILING_FRAC` to 1.0
+     * is deleting a build's premise and must be argued as such.
+     */
+    protected restorePlasma(stepMin: number): void {
+      const self = this as unknown as MetabolicHost;
+      const D = METABOLIC_DEFAULTS;
+      if (!MixinApi.isVitals(self as unknown as Stuff)) return;
+      const body = self as unknown as Vitals;
+      // No blood, nothing to restore — a construct absorbs this the same
+      // way it absorbs a bleed (D22).
+      if (!body.hasVitalSign("bloodVolume")) return;
+      const hydration = self.getReserve("hydration")?.current.rawValue() ?? 0;
+      if (hydration < D.PLASMA_RESTORE_HYDRATION_PCT) return;
+      const baseline = body.getVitalBand("bloodVolume").baseline;
+      const ceiling = baseline * D.PLASMA_RESTORE_CEILING_FRAC;
+      const have = body.getVitalSign("bloodVolume").rawValue();
+      if (have >= ceiling) return;
+      const gain = (D.PLASMA_RESTORE_L_PER_HOUR * stepMin) / 60;
+      body.setVitalSign(
+        "bloodVolume",
+        Quantity.of(Math.min(ceiling, have + gain), "L"),
+      );
     }
 
     /**

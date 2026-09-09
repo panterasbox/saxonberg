@@ -10,7 +10,10 @@ class: /platform/idea/Condition
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: botulinum toxin
-  signature: []
+  # Fluid loss, and the paralytic dullness of a serious neurotoxin.
+  signature:
+    - { kind: reserve, reserve: hydration, pctPerHour: -3 }
+    - { kind: expression, bands: 1 }
   progression:
     law: burden
   resolution:

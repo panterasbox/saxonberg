@@ -6,7 +6,10 @@ class: /platform/idea/Condition
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: food-poisoning
-  signature: []
+  # The fluid loss that makes food poisoning dangerous rather than
+  # merely unpleasant. Dehydration already ends where it ends.
+  signature:
+    - { kind: reserve, reserve: hydration, pctPerHour: -3 }
   progression:
     law: burden
   resolution:

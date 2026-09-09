@@ -12,6 +12,38 @@ Read [vitals.md](./vitals.md) and [harm.md](./harm.md) first — this drives
 their substrate. [sandbox.md](./sandbox.md) matters more than it looks:
 death reuses its crossing machinery, backwards.
 
+## ⭐⭐ The recuperation model — dying diminishes everything, briefly
+
+**Losing a fight and dying are deliberately different punishments.**
+Losing costs you along the Disciplines the fight actually used — that is
+the game teaching you honestly, and it goes in the ledger as evidence.
+Dying is not teaching; it is punishment. So it costs you **across the
+board**, it **fades**, and it **writes nothing down**.
+
+The mechanism is one row. `mortality/recovering` — already applied by the
+floor route (`passage`) as the price of coming back cheap — authors
+`signature: [{kind: expression, bands: 2}]` and `resolution: {by: rest,
+atStage: 12}`. `VitalsMixin.expressionSuppression()` derives the live cost
+(two bands for six game-hours, one for six more, then clear) and
+`AdvancementMixin` applies it at its **four read surfaces**
+(`competenceBandFor`, `competenceBands`, `practisingCompetenceCached`,
+`competenceDigestCached`).
+
+⚠⚠ **The Transcript is byte-identical before and after.** `chronicle`
+shows no new row and nothing is rewritten; only what you can currently
+*express* falls. That is the whole difference between punishment and a
+lie about your history — and it is what makes the diminishment safe to be
+this heavy-handed.
+
+⭐ `competence` shows **both facts at once**: the lowered bands, and a
+line saying you are recovering and nothing has been forgotten. A player
+who saw only the lowered bands would reasonably believe dying had eaten
+their record.
+
+⭐ A **better way back** is the same row at a later stage: a `revive`
+service afflicts `recovering` at `stage: 6` — one band, six hours, zero
+new rows. That is what a resurrection service sells.
+
 ## The shape
 
 ```

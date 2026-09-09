@@ -1783,6 +1783,28 @@ has a reader).
 
 *Commit.* `build(consequence W9): resolution.by — a burn needs fluid, a cut needs a bandage`
 
+✅ **Done.** 15 medical tests; 34 gates.
+
+`TreatController` resolves the treatment **offered** (a `Dressing` →
+`dressing`; a `Bulkable` vessel with something in it → `fluid`, drunk
+through the shipped `Metabolic.ingest`; nothing → `medicine`) and matches
+it against what the target's conditions declare. A mismatch is refused
+with prose that **names what the wound wants** — that refusal is the
+teaching. `treat <target> with <item>` chooses explicitly.
+
+⭐ **Two dead things woken up.** `tendInfection` was a complete,
+commented private method in this file **with no caller anywhere** — bare
+hands being a treatment rather than an absence is what reaches it. And
+the `mustHaveDressing` validator is **deleted**: it would have refused a
+medic carrying water, which is exactly the case the wave exists to
+enable.
+
+⚠ The `with` arg declares `requires: any`, deliberately. A treatment can
+be a dressing OR a vessel OR (later) an antidote, and an alternation
+would *delete* the check rather than widen it — but more importantly the
+useful answer is not "you can't use that", it is the controller's named
+mismatch. Narrowing would replace the teaching with a shrug.
+
 #### W10 — the capability term + the `governs` rename
 
 *Goal.* Generalize what fracture does bespoke; unblock physiology (D15).
@@ -1802,6 +1824,22 @@ healed one can; the covering/insulation tests are byte-identical in
 outcome; `grep -rn governsVital packages` returns nothing.
 
 *Commit.* `build(consequence W10): the capability term, and governsVital → governs`
+
+✅ **Done.** 300 vitals/slot/species tests; 34 gates;
+`grep -rn governsVital packages` finds only the rename note.
+
+`BodyPart.governsVital?: string` → `governs?: string[]`. ⭐ **Every read
+of it was already an organ-exclusion filter** — the surface-fraction walk
+and the four `Attired` walks all ask *"is this part internal?"* and none
+reads the value — so naming the field for the only thing it could point
+at was what blocked physiology's second consumer (a lung governs a
+capacity as well as a rate). Semantics untouched: a part with a non-empty
+`governs` is internal.
+
+`FRACTURE_BEHAVIOR` and `BURN_BEHAVIOR` now declare `capability` terms and
+`isSlotImpairedByCondition` has **no special case left** — the rule is the
+table's, not the method's. ⭐ Which means a badly burned hand cannot grip
+either, and the engine can finally say so.
 
 #### W11 — the 23 rows + the two dead traumas + plasma restores
 
@@ -1846,6 +1884,44 @@ and nothing else; `lint:perishable`/`lint:pathogens` green.
 
 *Commit.* `build(consequence W11): twenty-three rows say what they do; a burn weeps, a bruise stiffens, fluid restores`
 
+✅ **Done.** 12 characterization tests; 191 body-system tests; 34 gates.
+
+Sixteen rows author a signature; the burn weeps
+(`BURN_WEEP_L_PER_HOUR_PER_SEVERITY`) and the bruise stiffens
+(`CONTUSION_STIFFNESS_PCT_PER_HOUR`). ⭐ **The pathogens' hydration drain
+moved out of code onto the five rows** — it was the ONE effect any
+affliction had on a body anywhere in the engine, hard-coded in
+`progressInfection` for pathogens only, that no row asked for and no row
+could ask for. Nothing about the outcome changed; what changed is who
+gets to say so.
+
+#### ⚠ Two measurement corrections
+
+1. **The trauma effect must use the severity carried DURING the interval,
+   not after the tick.** Read post-tick, a burn that healed to zero inside
+   one reconcile contributed nothing — which silently loses every effect
+   on a fast-healing type, and is exactly how a wired edge can look
+   unwired.
+2. **A reserve drain competes with metabolism's coupled recovery**, so
+   the bruise test asserts against an *unbruised twin living the same
+   hours* rather than against the starting level. The level alone says
+   nothing; what the bruise changes is the balance of that race.
+
+#### D21 — the plasma ceiling, and why it is a SHAPE decision
+
+`Metabolic.restorePlasma` climbs `bloodVolume` on hydration to
+`PLASMA_RESTORE_CEILING_FRAC` (0.85) of baseline and **no further**.
+Nothing regenerated blood before — the only writers were the bleed and
+the baseline reset, so a bled fraction was permanent until death.
+
+⚠⚠ A **full** restore would give the world a way to replace blood by
+drinking and waiting, deleting
+[blood-slate](../slates/builds/blood-slate.md)'s premise. It is also
+physiologically wrong: drinking restores **plasma volume, not red
+cells** — dilutional anaemia, which is precisely why transfusion exists.
+The test asserts the ceiling by name, so raising it to 1.0 has to be
+argued rather than tuned.
+
 #### W12 — diminishment
 
 *Goal.* Punishment across the board, temporary, never in the record
@@ -1869,6 +1945,26 @@ row.
 (`signature` has its third reader).
 
 *Commit.* `build(consequence W12): dying diminishes everything for a while, and writes nothing`
+
+✅ **Done.** 58 advancement tests; 4324 near tests; 34 gates.
+
+`recovering.yaml` authors `signature: [{kind: expression, bands: 2}]` and
+`resolution: {by: rest, atStage: 12}` — two bands for six game-hours, one
+for six more, then clear. `expressionSuppression()` derives it;
+`AdvancementMixin` applies it at all four read surfaces and **nowhere
+else**, so the fold caches stay pure folds of the ledger and the taper
+needs no invalidation.
+
+⭐ **This is the user's distinction, implemented.** Losing a fight costs
+you along the Disciplines the fight used — pointed, honest, in the
+ledger. Dying is punishment: **across the board**, temporary, and written
+nowhere. The test that matters is the negative one — the Transcript is
+byte-identical before and after, asserted by comparing the rows.
+
+⭐ `competence` shows **both facts at once**: the lowered bands, and a
+line saying you are recovering and nothing has been forgotten. A player
+shown only the lowered bands would reasonably conclude that dying had
+eaten their record.
 
 ### Movement IV — the wake
 

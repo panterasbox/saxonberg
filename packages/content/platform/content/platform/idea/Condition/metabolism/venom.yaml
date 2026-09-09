@@ -6,7 +6,12 @@ class: /platform/idea/Condition
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: envenomation
-  signature: []
+  # ⭐ A fast poison drives the heart and takes the legs out from
+  # under you. Both scale with the burden band, so the antivenin's
+  # crash of the burden is felt immediately.
+  signature:
+    - { kind: vital, sign: heartRate, perHour: 18 }
+    - { kind: reserve, reserve: endurance, pctPerHour: -4 }
   progression:
     law: burden
   resolution:

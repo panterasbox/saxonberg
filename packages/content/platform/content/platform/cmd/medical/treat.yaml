@@ -1,29 +1,40 @@
 verbs: [treat, bind, dress]
 controller: /platform/idea/cmd/medical/TreatController
-description: "Dress a wound to arrest bleeding"
+description: "Treat what is wrong — a dressing, water, or your own hands"
 help: |
-  `treat` (also `bind` or `dress`) dresses a bleeding wound, using up a
-  dressing you're carrying — a bandage, gauze, a clean rag. It sets the
-  bleed under control and lets the wound begin to clot. With no target you
-  treat your own worst wound; name someone to treat them.
+  `treat` (also `bind` or `dress`) treats what is wrong with a body. With
+  no target you treat yourself; name someone to treat them.
 
-  How well it goes depends on the dressing's quality and your skill at
+  ⭐ **What you treat it WITH matters.** Different things want different
+  answers, and the game will tell you when you have the wrong one:
+    a cut, a puncture, a tear — a dressing (bandage, gauze, a clean rag)
+    a burn                    — fluid: water, from anything that holds it
+    an illness                — your own hands; sit with them
+    a bruise, a broken bone   — neither. They want time.
+
+  Say `treat <someone> with <thing>` to choose; with nothing named, the
+  first thing to hand that could treat anything is used, and failing that
+  your hands. A bandage on a burn is refused, and told why — that is how
+  you learn what a burn wants.
+
+  How well it goes depends on what you brought and your skill at
   medicine: a clean bandage in a practised hand clots fast and holds; a
-  filthy rag in an untrained one, less so. The dressing is spent either
-  way.
+  filthy rag in an untrained one, less so. A dressing is spent; a vessel
+  is only emptied.
 
   A freshly dressed wound hasn't clotted yet — pull the dressing off too
   soon (`undress`) and it bleeds again. Once it has clotted it is safe to
   remove and heals on its own.
 examples:
   - cmd: treat
-    note: Dress your own worst wound
+    note: Treat your own worst wound with whatever is to hand
   - cmd: bind the guard
     note: Dress a wound on someone else
+  - cmd: treat the smith with my waterskin
+    note: Get fluid onto a burn — a bandage would do nothing for it
 validators:
   - /lib/command/validators/requiresAnimate
   - /lib/command/validators/requiresConscious
-  - /lib/command/validators/mustHaveDressing
   - /lib/command/validators/requiresEmbodied
 args:
   - name: target
@@ -33,3 +44,15 @@ args:
     updates_focus: extend
     prepositions: [on]
     requires: [VisibleMixin, VitalsMixin]
+  # ⚠ `any`, deliberately. A treatment can be a dressing OR a vessel of
+  # fluid OR (later) an antidote, and an alternation would DELETE the
+  # check rather than widen it. More importantly the useful answer is not
+  # "you can't use that" — it is the controller's named mismatch, which
+  # tells you what the wound actually wants. Narrowing here would replace
+  # the teaching with a shrug.
+  - name: with
+    type: object
+    required: false
+    scope: ["inventory", "reachable"]
+    prepositions: [with, using]
+    requires: any
