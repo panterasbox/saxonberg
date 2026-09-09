@@ -17,6 +17,7 @@ data:
   name: salmonellosis
   signature: []
   progression:
+    law: logistic
     intervalMs: 1800000
   resolution:
     by: rest

@@ -17,7 +17,8 @@ hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: staphylococcal food poisoning
   signature: []
-  progression: null
+  progression:
+    law: logistic
   resolution:
     by: rest
   observableSigns: [nauseous, pallid, sweating]

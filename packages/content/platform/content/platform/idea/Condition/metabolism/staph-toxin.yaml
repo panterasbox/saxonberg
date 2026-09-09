@@ -14,7 +14,8 @@ hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: staph toxin
   signature: []
-  progression: null
+  progression:
+    law: burden
   resolution:
     by: rest
   observableSigns: [nauseous, sweating, pallid]

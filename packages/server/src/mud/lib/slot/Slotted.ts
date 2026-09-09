@@ -335,7 +335,7 @@ export function SlottedMixin<TBase extends MixinConstructor<Stuff>>(
       if (
         MixinApi.isVitals(host) &&
         (host.isSlotDisabledByAnatomy(slot) ||
-          host.isSlotImpairedByTrauma(slot))
+          host.isSlotImpairedByCondition(slot))
       ) {
         return false;
       }

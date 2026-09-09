@@ -11,7 +11,8 @@ hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: carbon-monoxide-poisoning
   signature: []
-  progression: null
+  progression:
+    law: burden
   resolution:
     by: fresh-air
   observableSigns: [flushed, dizzy, confused]

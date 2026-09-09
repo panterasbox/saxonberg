@@ -11,7 +11,8 @@ hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: botulinum toxin
   signature: []
-  progression: null
+  progression:
+    law: burden
   resolution:
     by: antitoxin
   observableSigns: [slack-faced, weak, blurred-sighted]

@@ -10,7 +10,8 @@ hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: dread
   signature: []
-  progression: null
+  progression:
+    law: decay
   resolution:
     by: rest
   observableSigns: [wide-eyed, trembling, glancing-at-exits]

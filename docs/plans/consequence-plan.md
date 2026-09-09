@@ -1687,6 +1687,64 @@ rows, `null` stays `null`). `check-condition-arms.ts` `ARM_CEILING = 5`.
 W0b's absent test flips. Drop the dev DB (record shape changed).
 *Commit:* `build(consequence W8a): signature is the effect channel — three arms become one, ceiling 7 → 5`
 
+✅ **Done.** `lint:condition-arms` reports **5 arms**; 4190 near tests;
+34 gates.
+
+**Shipped.** `VitalEffect` as a four-kind union; `ProgressionSpec.law` +
+`PROGRESSION_LAWS`; `ResolutionSpec.atStage`; `TraumaBehavior.signature`
++ `.resolution`; `Vitals.applyEffects` / `expressionSuppression()` /
+`hasVitalSign()`; `isSlotImpairedByTrauma` → `isSlotImpairedByCondition`,
+reading `capability` effects *in addition to* the shipped fracture rule
+(so the wave lands on its own and W10 moves fracture onto the table);
+the three affliction arms collapsed to one dispatching on the row's law;
+`progression.law` authored on 18 of the 23 rows.
+
+⭐ **`delta` became `perHour`, and that is why the field was never
+wired.** A raw delta has no answer to *"applied how often?"*, so it could
+only ever have meant "once, on a tick nobody defined". A rate integrates
+over whatever elapsed — the only shape that works with reconcile-on-read
+and an absent player.
+
+⭐ **Five rows keep `progression: null`** and that is a first-class
+answer, not an omission: a driver outside the condition collection owns
+their clock (the metabolic collapse gate, respiration's `spo2`, thermal's
+temperature). It matches the plan's table exactly.
+
+#### ⭐ A new gate, because the build's own new surface could reintroduce its own bug
+
+`lint:conditions` (34 gates now). A **missing or misspelled `law`** falls
+through the arm's switch and the condition never progresses — authored,
+warmed, afflicted, read, inert. An unknown effect `kind` is skipped. A
+`vital` effect naming a nonexistent sign is a no-op — ⚠⚠ and since a
+*deliberate* no-op is a real feature (D22's bloodless clade), the two are
+**indistinguishable in play**, so only a build-time check can tell them
+apart. Both vocabularies are read out of their source files **by text**:
+importing `Vitals.ts` into a script dies at module load, and copying is
+how a gate silently stops matching. 11 fixture tests.
+
+*Commit:* `build(consequence W8b): the burden law — the parallel store is gone`
+
+✅ **Done.** `KNOWN_PARALLEL_STORES` is **empty**.
+
+`Metabolic.reconcileToxinConditions` no longer writes `stage` on an
+existing record; `Metabolic.toxinLevelFor` / `toxinBandsFor` expose the
+live burden and its ladder, and the condition's own `burden` arm derives
+the stage. Absorption, the spawn/relieve lifecycle and the purge all stay
+where they belong — **only the stage moved**, which is what removes the
+second owner and lets `progressAffliction`'s explicit "skip anything with
+a `toxinBehavior`" be deleted.
+
+⚠⚠ **The finding: the burden derive runs ABOVE the world-clock guard,
+and that is load-bearing.** Placed inside the time-integrating arm (where
+the plan put it) two shipped metabolism tests failed, and they were right
+to: a toxin's stage is a live **read** of what the body is carrying, not
+a counter. Behind the clock guard — or behind the presence-freeze guards
+— a body that had just drunk would read sober until enough game-time
+passed. That is both wrong and a regression against the parallel store it
+replaced, which derived synchronously. Everything else in
+`reconcileConditions` is about integrating elapsed time; this is not, and
+now it says so.
+
 *W8b — the burden law absorbs the parallel store.* `Vitals.ts` — the
 `burden` law: `stage` derived from `self.toxinLevelFor(type)` (a new
 public read on `MetabolicMixin` beside `getBAC`, `MixinApi.isMetabolic`

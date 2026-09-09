@@ -23,6 +23,7 @@ data:
   name: recovering
   signature: []
   progression:
+    law: stage
     intervalMs: 3600000
   resolution:
     by: rest

@@ -353,6 +353,11 @@ export interface CoupledConsumer {
 }
 
 export interface Metabolic {
+  /** The live level a toxin's severity bands are read against (BAC for a
+   * `storeRaw` toxin, the raw burden otherwise). */
+  toxinLevelFor(type: string): number;
+  /** The severity ladder a toxin's condition reads, or null. */
+  toxinBandsFor(type: string): readonly ToxinBand[] | null;
   /**
    * The reserves this body rebuilds by spending its tanks, in fuel
    * priority order (body before gift). Override and `super`-append to
@@ -1051,8 +1056,22 @@ export function MetabolicMixin<TBase extends MixinConstructor>(Base: TBase) {
             (acc, b) => (level >= b.threshold ? Math.max(acc, b.severity) : acc),
             0,
           );
-          if (existing) existing.stage = severity;
-          else
+          // ⭐⭐ **This no longer writes `stage` on an existing record.**
+          //
+          // It used to, and that made this method the eighth mechanism in
+          // the condition census: state kept OUTSIDE the condition
+          // collection and mirrored in, so two owners wrote one field and
+          // `Vitals.progressAffliction` had to carry an explicit "skip
+          // anything with a `toxinBehavior`" to stop them fighting. Since
+          // the consequence build the row declares `law: burden` and the
+          // condition's own arm derives the stage from
+          // `Metabolic.toxinLevelFor`, live, at read time.
+          //
+          // ⚠ Absorption, the spawn/relieve lifecycle and the purge all
+          // still live here — this gave up the STAGE, and only the stage.
+          // The seeded severity below is the initial value the arm then
+          // owns.
+          if (!existing)
             self.afflict({
               kind: "affliction",
               templatePath: path,
@@ -1089,6 +1108,37 @@ export function MetabolicMixin<TBase extends MixinConstructor>(Base: TBase) {
       }
     }
 
+
+    /**
+     * ⭐⭐ **The live level a toxin's severity bands are read against** —
+     * the BAC for a `storeRaw` toxin (alcohol, normalized at the read by
+     * Widmark), the raw burden for everything else.
+     *
+     * Public because the condition machinery needs it: since the
+     * consequence build a toxin condition's `stage` is derived by the
+     * `burden` law inside `Vitals.progressAffliction`, from here, instead
+     * of being **mirrored in from outside the condition collection** by
+     * `reconcileToxinConditions`. That mirror was the eighth mechanism
+     * the arm census counted, and the reason `progressAffliction` used to
+     * carry an explicit skip for anything with a `toxinBehavior`: two
+     * owners of one field.
+     *
+     * ⚠ Absorption, spawn/relieve and the purge all still live in
+     * `reconcileToxinConditions` — this moves the STAGE, and only the
+     * stage.
+     */
+    public toxinLevelFor(type: string): number {
+      const behavior = this.resolveToxinBehavior(type);
+      if (!behavior) return 0;
+      return behavior.storeRaw
+        ? this.getBAC().rawValue()
+        : (this.toxinBurdens[type] ?? 0);
+    }
+
+    /** The severity ladder a toxin's condition reads, or null. */
+    public toxinBandsFor(type: string): readonly ToxinBand[] | null {
+      return this.resolveToxinBehavior(type)?.bands ?? null;
+    }
 
     protected findAffliction(path: string): AfflictionRecord | null {
       const self = this as unknown as MetabolicHost;

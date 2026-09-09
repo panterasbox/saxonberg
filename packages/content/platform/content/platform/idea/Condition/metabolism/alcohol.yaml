@@ -10,7 +10,8 @@ hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: intoxicated
   signature: []
-  progression: null
+  progression:
+    law: burden
   resolution:
     by: time
   observableSigns: [flushed, unsteady, slurring]

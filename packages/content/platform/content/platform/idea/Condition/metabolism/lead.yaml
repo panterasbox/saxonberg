@@ -8,7 +8,8 @@ hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: lead-poisoning
   signature: []
-  progression: null
+  progression:
+    law: burden
   resolution:
     by: chelation
   observableSigns: [pallid, confused, aching]

@@ -85,6 +85,10 @@ function ensureCondition(behavior: ToxinBehavior): void {
   makeStuffAtPath(() => {
     const c = new Condition();
     c.setName(behavior.toxinType);
+    // ⭐ `law: burden` — since the consequence build the stage is
+    // derived by the condition's OWN arm from the live burden, instead
+    // of being mirrored in by `reconcileToxinConditions`.
+    c.setProgression({ law: 'burden' });
     c.setToxinBehavior(behavior);
     return c;
   }, path);

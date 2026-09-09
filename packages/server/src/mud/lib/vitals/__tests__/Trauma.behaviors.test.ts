@@ -117,13 +117,13 @@ describe('Fracture impairs affordances via canOccupy', () => {
       severity: HARM_DEFAULTS.FRACTURE_IMPAIR_SEVERITY + 0.5,
     };
     creature.afflict(fracture);
-    expect(creature.isSlotImpairedByTrauma('grip')).toBe(true);
+    expect(creature.isSlotImpairedByCondition('grip')).toBe(true);
     expect(creature.canOccupy(item, 'grip')).toBe(false);
 
     // Heal below the impair threshold → the affordance returns (a derived
     // read, no separate un-impair step).
     fracture.severity = HARM_DEFAULTS.FRACTURE_IMPAIR_SEVERITY - 0.1;
-    expect(creature.isSlotImpairedByTrauma('grip')).toBe(false);
+    expect(creature.isSlotImpairedByCondition('grip')).toBe(false);
     expect(creature.canOccupy(item, 'grip')).toBe(true);
 
     // Relieving it entirely also restores.

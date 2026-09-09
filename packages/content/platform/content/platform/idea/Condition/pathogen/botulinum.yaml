@@ -18,7 +18,8 @@ hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: botulism
   signature: []
-  progression: null
+  progression:
+    law: logistic
   resolution:
     by: antitoxin
   observableSigns: [slack-faced, weak, blurred-sighted]

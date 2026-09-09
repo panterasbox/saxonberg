@@ -178,9 +178,44 @@ of which advances anything. An arm must also *progress state over time* —
 either it sits in a `reconcile*` method or its loop references a game-time
 cursor. The fixture pins both halves, must-fire and must-not-fire.
 
-Measured **7** on `design/consequence` before any build work; ceiling set
-there. It may fall, never rise. `KNOWN_PARALLEL_STORES` is enumerated in
-the script so a second parallel store is a visible diff.
+Measured **7** on `design/consequence` before any build work; **5** after
+the consequence build's W8a collapsed `decayingMagic` + `infections` +
+`progressing` into one arm dispatching on the row's declared
+`progression.law`. It may fall, never rise. ⭐ What remains is four
+genuinely different mechanisms — integrate (trauma) · circuit (shock) ·
+pull (sustained) · countdown (dying) — plus the one affliction arm;
+driving it lower would mean unifying mechanisms that really are distinct.
+`KNOWN_PARALLEL_STORES` is enumerated in the script so a second parallel
+store is a visible diff.
+
+### `lint:conditions` — the value gate the effect channel needed (2026-09)
+
+⭐ **The third of the trio, and it exists because the consequence build's
+own new surface could reintroduce the failure it was written to end.**
+
+Since the eight-arm unification a `Condition` row declares **how its stage
+advances** (`progression.law`) and **what carrying it does**
+(`signature`). Both are YAML, and both fail closed and silent when wrong:
+a **missing or misspelled law** falls through the arm's switch and the
+condition never progresses — authored, warmed, afflicted, read, inert; an
+unknown effect `kind` is skipped by the interpreter; a `vital` effect
+naming a sign that does not exist is a no-op.
+
+⚠⚠ **That last one is why the gate has to exist**, because a *deliberate*
+no-op is a real feature: a bloodless clade absorbs a bleed effect
+silently, on purpose (D22). An accidental one is **indistinguishable from
+it in play**. Only a build-time check can tell them apart.
+
+⭐ Both vocabularies are **read out of their own source files by text** —
+not imported (pulling `Vitals.ts` into a script drags the mudlib decorator
+machinery in and dies at module load) and not copied (which is how a gate
+silently stops matching). The reader throws rather than passing if it
+cannot find the literal.
+
+`lint:unconsumed-seams` counts fields nothing reads; this counts fields
+whose *value* nothing can read. Same failure class, other end.
+A `progression: null` row is fine and common — five shipped rows have a
+driver outside the condition collection that owns their clock.
 
 ### `lint:unconsumed-seams` — the sibling census: declared and unread (2026-09)
 

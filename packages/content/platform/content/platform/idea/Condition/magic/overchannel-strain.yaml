@@ -12,7 +12,8 @@ hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: overchannel-strain
   signature: []
-  progression: null
+  progression:
+    law: decay
   resolution:
     by: rest
   observableSigns: [drawn, trembling-hands, glassy-eyed]

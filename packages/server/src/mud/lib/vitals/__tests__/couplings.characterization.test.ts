@@ -26,6 +26,7 @@
 import '../../../../test-bootstrap';
 import { describe, it, expect, beforeAll, beforeEach, afterEach } from 'vitest';
 import { Creature } from '../../creature/Creature';
+import { UNIVERSE_DEFAULT_VITAL_PROFILE } from '../Vitals';
 import Condition from '../../../platform/idea/Condition';
 import type { AfflictionRecord, Trauma } from '../../../platform/idea/Condition';
 import { StuffApi } from '../../../api/stuff';
@@ -33,7 +34,12 @@ import { MixinApi } from '../../../api/mixin';
 import { WorldClockApi } from '../../../api/worldclock';
 import { ExecutionContextApi } from '../../../api/execution-context';
 import { TemplatePathPrefixes } from '../../paths';
-import { makeStuff, makeStuffAtPath } from '../../security/__tests__/test-setup';
+import {
+  makeStuff,
+  makeStuffAtPath,
+  stampTemplatePathForTest,
+} from '../../security/__tests__/test-setup';
+import Species from '../../../platform/idea/species/Species';
 import { installV1QuantityMarshallers } from '../../persistence/__tests__/quantity-marshaller-test-helpers';
 import '../../../platform/idea/WorldClockRegistry';
 
@@ -85,10 +91,10 @@ describe('vitals couplings — characterization', () => {
       // volume, hour after hour. `signature` is persistent, authorable
       // and spoiler-levelled — every affordance of a live field.
       c.setSignature([
-        { sign: 'heartRate', delta: 40 },
-        { sign: 'bloodVolume', delta: -1 },
+        { kind: 'vital', sign: 'heartRate', perHour: 40 },
+        { kind: 'vital', sign: 'bloodVolume', perHour: -1 },
       ]);
-      c.setProgression({ intervalMs: 60 * 60 * 1000 });
+      c.setProgression({ law: 'stage', intervalMs: 60 * 60 * 1000 });
       return c;
     }, DECLARED);
   });
@@ -107,7 +113,11 @@ describe('vitals couplings — characterization', () => {
 
   /* ───────────────────── the absent edges ───────────────────── */
 
-  it('⚠ ABSENT (W8 flips this) — a row that DECLARES a vital effect moves no vital sign', () => {
+  it('⭐ W8 — a row that DECLARES a vital effect now HAS it', () => {
+    // Was ABSENT: the row staged (so the arm reached it) and moved no
+    // vital sign, because `signature` had no reader anywhere. It is now
+    // the effect channel, and what a condition does is independent of how
+    // it progresses.
     const body = makeStuff(() => new Creature());
     const record: AfflictionRecord = {
       kind: 'affliction',
@@ -121,14 +131,73 @@ describe('vitals couplings — characterization', () => {
 
     live(body, 3 * HOUR);
 
-    // The clock ran — the row's own progression staged, so the arm
-    // reached this record and did the one thing it knows how to do.
     expect(record.stage).toBeGreaterThan(0);
-    // …and the declared effect did nothing at all.
-    expect(body.getVitalSign('heartRate').rawValue()).toBeCloseTo(hrBefore, 5);
-    expect(body.getVitalSign('bloodVolume').rawValue()).toBeCloseTo(
+    expect(body.getVitalSign('heartRate').rawValue()).toBeGreaterThan(hrBefore);
+    expect(body.getVitalSign('bloodVolume').rawValue()).toBeLessThan(
       bloodBefore,
-      5,
+    );
+  });
+
+  it('⭐⭐ the effect scales with the condition\'s own severity', () => {
+    // One row, one signature, and it gets worse as THAT condition gets
+    // worse — which is why the arm that advanced it never needs to know
+    // what the effect was.
+    const mk = (): { body: Creature; rec: AfflictionRecord } => {
+      const body = makeStuff(() => new Creature());
+      const rec: AfflictionRecord = {
+        kind: 'affliction',
+        templatePath: DECLARED,
+        stage: 1,
+        elapsed: 0,
+      };
+      body.afflict(rec);
+      return { body, rec };
+    };
+    const mild = mk();
+    const severe = mk();
+    severe.rec.stage = 6;
+    severe.rec.elapsed = 6 * 60 * 60 * 1000;
+    const base = mild.body.getVitalSign('heartRate').rawValue();
+    live(mild.body, 1 * HOUR);
+    live(severe.body, 1 * HOUR);
+    const mildRise = mild.body.getVitalSign('heartRate').rawValue() - base;
+    const severeRise = severe.body.getVitalSign('heartRate').rawValue() - base;
+    expect(severeRise).toBeGreaterThan(mildRise);
+  });
+
+  it('⚠⚠ D22 — an effect naming a sign the body does not HAVE is a silent no-op', () => {
+    // The `constructa`, `plantae` and `fungi` clades exist. A construct
+    // that takes an edge blow has a wound, and no bleed, and that is the
+    // honest answer — not a throw, and not a zero-filled sign it never
+    // had. Asserted rather than incidental, BECAUSE the failure mode is
+    // the silent-and-closed one this build exists to end: an effect that
+    // does nothing because nobody wrote the branch reads identical to one
+    // that does nothing because the author said so.
+    const species = makeStuff(() => new Species());
+    species.setVitalProfile({
+      ...UNIVERSE_DEFAULT_VITAL_PROFILE,
+      bloodVolume: { baseline: 0, survivableMin: 0, survivableMax: 0 },
+    });
+    stampTemplatePathForTest(species, '/stuff/idea/species/test/constructa');
+    const bloodless = makeStuff(() => new Creature());
+    bloodless.setSpecies(species);
+    expect(bloodless.hasVitalSign('bloodVolume')).toBe(false);
+    expect(bloodless.hasVitalSign('heartRate')).toBe(true);
+
+    const rec: AfflictionRecord = {
+      kind: 'affliction',
+      templatePath: DECLARED,
+      stage: 1,
+      elapsed: 0,
+    };
+    const hrBefore = bloodless.getVitalSign('heartRate').rawValue();
+    const bloodBefore = bloodless.getVitalSign('bloodVolume').rawValue();
+    bloodless.afflict(rec);
+    expect(() => live(bloodless, 2 * HOUR)).not.toThrow();
+    // The sign it does not have: untouched. The one it does: moved.
+    expect(bloodless.getVitalSign('bloodVolume').rawValue()).toBe(bloodBefore);
+    expect(bloodless.getVitalSign('heartRate').rawValue()).toBeGreaterThan(
+      hrBefore,
     );
   });
 

@@ -371,7 +371,7 @@ describe("CombatLogic — gambit eligibility (injury edits the menu)", () => {
     // The engine drops the weapon when its grip slot is impaired; with no
     // innate attack, strike is lost.
     const elig = (a as unknown as Stuff & Combatant).gambitEligibility("strike");
-    if (a.isSlotImpairedByTrauma("grip")) {
+    if (a.isSlotImpairedByCondition("grip")) {
       expect(elig.ok).toBe(false);
     }
   });

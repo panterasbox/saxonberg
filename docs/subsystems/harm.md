@@ -160,6 +160,86 @@ reads that must reflect the current bleed — `getVitalSign('bloodVolume')`,
   no code: `getConsciousness()` already reads a low `bloodVolume` as
   `unconscious`.
 
+## ⭐⭐ The effect channel — what a condition DOES
+
+`Condition.signature` shipped as `{sign, delta}[]`, persistent,
+authorable, spoiler-levelled, with a public accessor — **and nothing
+anywhere read it.** All twenty-three shipped rows author `signature: []`
+because there was nothing else to author. The one effect any affliction
+had on a body was a hydration drain **hard-coded inside**
+`Vitals.progressInfection`, for pathogens only, that no row asked for and
+no row could ask for.
+
+`VitalEffect` is now a four-kind union, interpreted by one method,
+`Vitals.applyEffects(effects, intensity, elapsedSec)`, which every arm
+calls after advancing its law:
+
+| kind | what it does | when |
+|---|---|---|
+| `vital` | integrates `perHour` on a vital sign | per reconcile |
+| `reserve` | integrates `pctPerHour` on a biological reserve | per reconcile |
+| `capability` | a derived slot impairment at the site (the fracture rule, generalized) | read |
+| `expression` | competence suppression in bands | read |
+
+⚠ **`delta` became `perHour` deliberately.** A raw delta has no answer to
+*"applied how often?"*, so it could only ever have meant "once, on some
+tick nobody defined" — which is why it was never wired. A **rate**
+integrates over whatever elapsed, which is the only shape that works with
+reconcile-on-read and an absent player.
+
+`intensity` is the condition's own severity axis (a stage, a wound
+severity, a pathogen load), so one row's declared effect scales with how
+bad *that* condition has got and the arm that advanced it never has to
+know what the effect was. `TraumaBehavior` carries the same `signature`
+for the Kind-B half, declared on the closed engine table beside each
+type's `tick`.
+
+⚠⚠ **A `vital` effect naming a sign the body does not have is a
+deliberate silent no-op.** The `constructa`, `plantae` and `fungi` clades
+exist; a construct that takes an edge blow has a wound and no bleed, and
+that is the honest answer. A species says so by authoring the band's
+`baseline` at zero (`Vitals.hasVitalSign`). It has a **test**, because
+the failure mode is the silent-and-closed one: an effect that does
+nothing because nobody wrote the branch reads identical to one that does
+nothing because the author said so. `lint:conditions` is the other half
+of that guard.
+
+## ⭐⭐ The progression laws — seven arms become five
+
+`reconcileConditions` grew seven arms, each added by a different build,
+each discriminated by **which optional field happened to be set on the
+record**: `magicOrigin` → decay, `pathogenLoad` → logistic, neither →
+dwell. The *shape of the record* decided the law, so a row could not
+choose one and every new law meant a new arm. An eighth mechanism
+(`Metabolic.reconcileToxinConditions`) kept its state outside the
+collection entirely and mirrored a band into `stage`.
+
+⚠ The trap sprang once already, with a comment proving it: the arm that
+filled `ProgressionSpec` recorded that the field *"was authored by three
+rows, and was read by nothing"* — and **added an arm** rather than asking
+why. `lint:condition-arms` was written before this build for that reason.
+
+A row now declares `progression.law`, one of **`stage` · `decay` ·
+`logistic` · `burden`**, and one `afflictions` arm dispatches on it. The
+three affliction arms collapse to one (**7 → 5**), and
+`reconcileToxinConditions` stops writing `stage` (**parallel 1 → 0**).
+The rule the ratchet enforces: **a condition's progression law and its
+effect on the body are independent — a new condition kind is a law plus a
+signature, never a new arm.**
+
+⭐ `progression: null` is a first-class answer, and five shipped rows use
+it: a driver outside the condition collection owns their clock (the
+metabolic collapse gate, respiration's `spo2`, thermal's temperature).
+
+⚠⚠ **The `burden` law runs above the world-clock guard**, and that is
+load-bearing rather than an optimisation: a toxin's stage is a live
+*read* of how much of it the body is carrying, not a counter that
+accumulates. Behind the clock guard — or behind the presence-freeze
+guards — a body that had just drunk would read sober until enough
+game-time passed, which is both wrong and a regression against the
+parallel store it replaced (that derived synchronously). Everything else
+in `reconcileConditions` is about integrating elapsed time; this is not.
+
 ## The couplings — limp + coverage
 
 - **The limp** (`Vitals.drainForLimp`) is a severity-gated `endurance`

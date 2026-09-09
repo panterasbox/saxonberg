@@ -4161,7 +4161,7 @@ function wieldedWeapon(
       if (
         state &&
         MixinApi.isVitals(actor) &&
-        actor.isSlotImpairedByTrauma(slot)
+        actor.isSlotImpairedByCondition(slot)
       ) {
         continue;
       }

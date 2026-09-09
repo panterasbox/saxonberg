@@ -7,7 +7,8 @@ hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: food-poisoning
   signature: []
-  progression: null
+  progression:
+    law: burden
   resolution:
     by: antitoxin
   observableSigns: [nauseous, cramping, sweating]

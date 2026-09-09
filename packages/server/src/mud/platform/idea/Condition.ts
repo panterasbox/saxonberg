@@ -367,19 +367,96 @@ export type ActiveCondition =
   | SustainedEffect
   | DyingRecord;
 
-/** How a condition perturbs a vital sign (shape only — no consumer v1). */
-export interface VitalEffect {
-  /** A `VitalSign` key (see Vitals.ts). */
-  sign: string;
-  /** Perturbation in the sign's canonical unit. */
-  delta: number;
-}
+/**
+ * ⭐⭐ **What a condition DOES to a body — the effect channel.**
+ *
+ * `signature` shipped as `{sign, delta}[]`, persistent, authorable and
+ * spoiler-levelled, on an Idea with a public accessor — and **nothing
+ * anywhere read it**. All twenty-three shipped rows author `signature: []`
+ * because there was nothing else to author. The one effect any affliction
+ * had on a body was a hydration drain hard-coded inside
+ * `Vitals.progressInfection`, for pathogens only, that no row asked for
+ * and no row could ask for.
+ *
+ * The union is what makes it a channel rather than a field: four kinds,
+ * two integrated over time and two read on demand, and a new affliction
+ * becomes **a law plus a signature** rather than a new arm in
+ * `reconcileConditions`.
+ *
+ * ⚠ `delta` became `perHour` deliberately. A raw delta has no answer to
+ * *"applied how often?"*, so it could only ever have meant "once, on some
+ * tick nobody defined" — which is why it was never wired. A **rate**
+ * integrates over whatever elapsed, which is the only shape that works
+ * with reconcile-on-read and an absent player.
+ */
+export type VitalEffect =
+  | {
+      /** Integrate a rate on a vital sign (`bloodVolume`, `spo2`, …). */
+      kind: 'vital';
+      /** A `VitalSign` key (see Vitals.ts). */
+      sign: string;
+      /** Signed change per game-hour, in the sign's canonical unit. */
+      perHour: number;
+    }
+  | {
+      /** Integrate a rate on a biological reserve (`endurance`, …). */
+      kind: 'reserve';
+      reserve: string;
+      /** Signed percentage points per game-hour. */
+      pctPerHour: number;
+    }
+  | {
+      /**
+       * A derived slot impairment — READ, never integrated. The fracture
+       * rule, generalized: a condition at a body part can take the
+       * affordances that part carries.
+       */
+      kind: 'capability';
+      disables: 'slots-at-site';
+      /** Only bites above this intensity impair. */
+      aboveSeverity: number;
+    }
+  | {
+      /**
+       * Competence suppression — READ, never integrated. How many bands
+       * of *expressed* skill this condition costs while it lasts. The
+       * Transcript is never touched.
+       */
+      kind: 'expression';
+      bands: number;
+    };
 
-/** Stages + cadence for a progressing condition. */
+/** The laws a condition's stage can advance under. */
+export const PROGRESSION_LAWS = [
+  'stage',
+  'decay',
+  'logistic',
+  'burden',
+] as const;
+export type ProgressionLaw = (typeof PROGRESSION_LAWS)[number];
+
+/**
+ * ⭐⭐ **How a condition's stage moves — declared by the author, not
+ * inferred from which optional field happens to be set.**
+ *
+ * `reconcileConditions` grew seven arms because each new condition kind
+ * arrived with a new discriminator: *has a `magicOrigin`* → decay, *has a
+ * `pathogenLoad`* → logistic, *has neither* → dwell. The shape of the
+ * record decided the law, so a row could not choose one and every new law
+ * meant a new arm.
+ *
+ * ⚠ The trap sprang once already, with a comment proving it: the arm that
+ * filled `ProgressionSpec` recorded that the field *"was authored by
+ * three rows, and was read by nothing"* — and added an arm rather than
+ * asking why. Naming the law is what lets three arms collapse into one.
+ */
 export interface ProgressionSpec {
-  /** Targets `ScheduleApi.recurring(intervalMs, fn, opts?)`. */
-  intervalMs: number;
-  // Stages/cadence detail is content; no live scheduler is built here.
+  /** Which law advances this condition's stage. */
+  law: ProgressionLaw;
+  /** `stage`: game-milliseconds of dwell per stage. */
+  intervalMs?: number;
+  /** `decay`: stage lost per game-second (else the magic dial). */
+  decayPerSec?: number;
 }
 
 /**
@@ -402,6 +479,24 @@ export interface TraumaBehavior {
   /** The undress action — remove a dressing; reopen the bleed if un-clotted. */
   reopen(host: Vitals, t: Trauma): void;
   describe(t: Trauma): string;
+  /**
+   * ⭐ **What carrying this wound does to the body**, over and above its
+   * own `tick`. The Kind-B twin of a `Condition` row's `signature`, and
+   * the same channel: the trauma arm interprets it through
+   * `Vitals.applyEffects` with the wound's severity as the intensity.
+   *
+   * ⚠ Declared on the closed engine table rather than authored, because
+   * the trauma vocabulary IS closed — a burn is a burn everywhere. What
+   * an author writes is a Kind-A `Condition` row.
+   */
+  signature?: readonly VitalEffect[];
+  /**
+   * ⭐ What TREATS this wound — a `ResolutionSpec.by` token
+   * (`dressing`, `fluid`, `rest`). Before this, `treat` applied whatever
+   * was to hand to whatever was worst, so a bandage on a burn was as good
+   * as water on it.
+   */
+  resolution?: string;
 }
 
 const noop = (): void => {};
@@ -504,7 +599,7 @@ export const CONTUSION_BEHAVIOR: TraumaBehavior = decayingBehavior(
 /**
  * fracture — a slow natural heal. The **impairment is a derived read** of
  * this trauma through the `canOccupy` / slot machinery
- * (`Vitals.isSlotImpairedByTrauma`), NOT a tick effect — so clearing /
+ * (`Vitals.isSlotImpairedByCondition`), NOT a tick effect — so clearing /
  * healing the fracture restores the affordance with no separate un-impair
  * step. Setting the bone (a splint instrument) is a deferred first-aid
  * branch; v1 only heals it over time.
@@ -579,10 +674,19 @@ export const TRAUMA_BEHAVIOR: Record<TraumaType, TraumaBehavior> = {
 
 // ---------- Kind-A: the Condition Idea template ----------
 
-/** What relieves a condition — the treatment seam (shape only v1). */
+/**
+ * ⭐ **What relieves a condition.** Shipped with `by` authored on two rows
+ * and read by nothing, so every treatment was the same treatment: a
+ * bandage on a burn worked exactly as well as water on it.
+ */
 export interface ResolutionSpec {
   /** A resolution-mechanism token (e.g. `'antitoxin'`, `'rest'`). */
   by: string;
+  /**
+   * For a self-resolving condition (`by: 'rest'`), the stage at which it
+   * clears itself. Absent means it never does on its own.
+   */
+  atStage?: number;
 }
 
 /** Disease-spread descriptor — RESERVED, no consumer in this build. */

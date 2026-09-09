@@ -65,14 +65,23 @@ const MUD_ROOT = join(SERVER_SRC, "mud");
 const CONTENT_ROOT = join(here, "..", "..", "content");
 
 /**
- * ⭐ The ceiling. Measured 2026-09-08 on `design/consequence`, before any
- * consequence-build work. **It may fall; it may never rise.**
+ * ⭐ The ceiling. Measured **7** on `design/consequence` before any
+ * consequence-build work; **5** after W8a. It may fall; it may never rise.
  *
- * Driving it down is the consequence build's W3: each arm migrates onto
- * (progression law × `signature`) and the number drops. When it reaches
- * the floor this becomes a zero-gate like `lint:object-verbs`.
+ * W8a is the fall: `decayingMagic` + `infections` + `progressing` were
+ * three arms discriminated by *which optional field happened to be set on
+ * the record* (`magicOrigin`, `pathogenLoad`, neither), so the shape of
+ * the record decided the law and a row could not choose one. They are now
+ * ONE arm dispatching on `progression.law` — the discriminator moved from
+ * the record's shape to what the author said, which is what makes a
+ * fourth law a row rather than a fourth arm.
+ *
+ * What remains is four genuinely different mechanisms — integrate
+ * (trauma), circuit (shock), pull (sustained), countdown (dying) — plus
+ * the one affliction arm. Driving it lower means unifying mechanisms that
+ * are actually distinct, which is not obviously right.
  */
-const ARM_CEILING = 7;
+const ARM_CEILING = 5;
 
 /**
  * Mechanisms that advance a condition's state from a store OUTSIDE the
@@ -84,8 +93,18 @@ const ARM_CEILING = 7;
  * owns, which is the collision `progressAffliction` works around today.
  */
 const KNOWN_PARALLEL_STORES: readonly string[] = [
-  // toxins: iterates `toxinBurdens`, derives a band, writes `stage`.
-  "lib/metabolism/Metabolic.ts#reconcileToxinConditions",
+  // ⭐⭐ **EMPTY, and that is the point of W8b.**
+  //
+  // The one entry was `lib/metabolism/Metabolic.ts#reconcileToxinConditions`:
+  // it iterated `toxinBurdens`, derived a band, and wrote it into the
+  // condition's `stage` from outside the condition collection — two owners
+  // of one field, which is why `progressAffliction` carried an explicit
+  // skip for any row with a `toxinBehavior`. The row now declares
+  // `law: burden` and the condition's own arm derives the stage live from
+  // `Metabolic.toxinLevelFor`. Absorption, spawn/relieve and the purge
+  // stayed where they belong; only the stage moved.
+  //
+  // A new entry here is a claim that some field has two owners again.
 ];
 
 /** Time cursors that mark a loop as advancing state, not reading it. */

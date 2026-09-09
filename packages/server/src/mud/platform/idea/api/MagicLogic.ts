@@ -435,7 +435,7 @@ async function prepareCastImpl(
   // The somatic component needs working hands.
   if (
     MixinApi.isVitals(caster) &&
-    caster.isSlotImpairedByTrauma('hands')
+    caster.isSlotImpairedByCondition('hands')
   ) {
     return {
       ok: false,
