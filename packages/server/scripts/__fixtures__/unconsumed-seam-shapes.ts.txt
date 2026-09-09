@@ -1,0 +1,91 @@
+/*
+ * Fixture for check-unconsumed-seams. Not compiled — read as text and
+ * parsed by the gate's own pure functions, the
+ * `condition-arm-shapes.ts.txt` precedent.
+ *
+ * The path the test feeds this under is a `platform/idea/` path, so the
+ * data-Idea filter admits it.
+ *
+ * MUST FIRE (a seam with nothing on the other end):
+ *   - `orphanField`      — read only by its own accessor, in this file
+ *   - `onNothing`        — an empty no-op terminal
+ *   - `defaultsToZero`   — a terminal returning a bare constant
+ *   - `contractOnly`     — an interface signature with no implementation
+ *
+ * MUST NOT FIRE:
+ *   - `readElsewhere`    — read from another file by its accessor
+ *   - `touchedElsewhere` — read from another file by property access
+ *   - `flagged`          — a BOOLEAN read by its PREDICATE-form getter
+ *                          from another file (the `respires` shape that
+ *                          the first cut of this gate got wrong)
+ *   - `applyThings`      — an interface `@hook` the mixin below really
+ *                          implements (the Hydrator-applier shape)
+ *   - `onOverridden`     — a terminal a pack overrides
+ */
+
+export interface Fixture {
+  /**
+   * @hook A contract with no implementation anywhere.
+   */
+  contractOnly(): void;
+
+  /**
+   * @hook An instruction applier — implemented below, in this file.
+   */
+  applyThings(data: Record<string, unknown>): void;
+}
+
+export class FixtureIdea {
+  static fieldMeta = {
+    orphanField: { persistent: true },
+    readElsewhere: { persistent: true },
+    touchedElsewhere: { persistent: true },
+    flagged: { persistent: true },
+  };
+
+  protected orphanField: string = "";
+  protected readElsewhere: string = "";
+  public touchedElsewhere: string = "";
+  protected flagged: boolean = true;
+
+  public getOrphanField(): string {
+    return this.orphanField;
+  }
+  public setOrphanField(v: string): void {
+    this.orphanField = v;
+  }
+
+  public getReadElsewhere(): string {
+    return this.readElsewhere;
+  }
+
+  /** The predicate-form getter for a boolean noun field. */
+  public isFlagging(): boolean {
+    return this.flagged;
+  }
+  public setFlagged(v: boolean): void {
+    this.flagged = v;
+  }
+
+  /**
+   * @hook Compose via super; the framework invokes this.
+   */
+  public onNothing(): void {}
+
+  /**
+   * @hook Composed hosts supply the real read.
+   */
+  public defaultsToZero(): number {
+    return 0;
+  }
+
+  /**
+   * @hook Compose via super; a pack overrides this one.
+   */
+  public onOverridden(): void {}
+
+  public applyThings(data: Record<string, unknown>): void {
+    this.touchedElsewhere = String(data.x ?? "");
+    this.orphanField = String(data.y ?? "");
+  }
+}

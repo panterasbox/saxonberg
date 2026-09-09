@@ -994,7 +994,92 @@ ceiling equals the count; the fixture test proves both halves fire;
 `lint:family --list` shows 31 gates. Any seam the census names that
 belongs to this build is added to its wave here.
 
-*Commit.* `build(consequence W0c): lint:unconsumed-seams — census N, ceiling set`
+*Commit.* `build(consequence W0c): lint:unconsumed-seams — census 21, ceiling set`
+
+✅ **Done.** 33 gates in the family, all green; 14 fixture tests.
+`SEAM_CEILING = 21`, `KNOWN_EXTENSION_ONLY = []`.
+
+#### The census, pasted as D19 requires
+
+```
+unconsumed seams — 21 found
+
+  declared-and-unread FIELDS: 4
+    platform/idea/Condition.ts            661  Condition.contagion
+    platform/idea/species/Species.ts      529  Species._parentCladePath
+                                          531  Species.lifecycleStates
+                                          534  Species.lifespanMin
+
+  un-overridden HOOKS: 17
+    lib/combat/CombatHookContext.ts       118  CombatVenue.onCombatOpened
+                                          131  CombatVenue.onBloodDrawn
+                                          145  CombatVenue.onCombatResolved
+    lib/combat/CombatReactive.ts           59  CombatReactive.onWielded
+                                           69  CombatReactive.onUnwielded
+                                           97  CombatReactive.onStrikeResolved
+                                          109  CombatReactive.onStruck
+                                          119  CombatReactive.onParry
+                                          131  CombatReactive.onBypassed
+    lib/combat/Combatant.ts               123  Combatant.onSessionEntered
+                                          134  Combatant.onExchangeResolved
+                                          144  Combatant.onPoiseBandChanged
+                                          154  Combatant.onDowned
+                                          164  Combatant.onDefeated
+                                          175  Combatant.onDefeatedFoe
+                                          186  Combatant.onCoupBegun
+    lib/magic/Memorized.ts                132  MemorizedMixin.competenceRankFor
+```
+
+#### ⭐⭐ What it found that the plan did not have
+
+**Seventeen of the twenty-one are combat hooks.** `Combatant` (7),
+`CombatReactive` (6) and `CombatVenue` (3) are the three surfaces
+`docs/subsystems/combat-hooks.md` calls *"the wizard-facing combat
+extension grammar"*, and **not one of them is composed by anything that
+ships** — not in the kernel, not in any of the 42 packs. Only test
+doubles implement them. The grammar is complete, documented, invoked by
+the engine at the right moments, and spoken by nobody.
+
+That is the same shape as `signature`/`resolution`/`contagion` at four
+times the size, and it independently corroborates the slate's Finding 0
+from a direction the slate never looked.
+
+⚠⚠ **This build wires three of the twenty-one and deliberately leaves
+the rest.** W3 gives `onDefeated`/`onDefeatedFoe` default bodies; W13
+gives `contagion` a reader. **Ceiling falls 21 → 18.** Inventing
+consumers for the other seventeen would be *exactly the mistake the arm
+census exists to stop*, in a new costume: the `progressing` arm was added
+because somebody found a declared-and-unread field and filled it rather
+than asking why it had no reader. A hook earns a consumer when something
+genuinely needs to hook it. Recorded here, and the gate now holds the
+number so the next build inherits the question instead of rediscovering
+it.
+
+⭐ The four field seams that are **not** this build's: `Species`'s three
+(`_parentCladePath`, `lifecycleStates`, `lifespanMin`) belong to the
+maturation/lifespan axis — → species-slate, added to Deferred seams.
+
+#### The gate's own three false-positive shapes, and the fix
+
+The first cut reported **38**. Twelve were false, from three shapes worth
+recording because each is a repo convention rather than a bug:
+
+1. a `protected _foo` read through `getFoo()` — the underscore defeats
+   `get` + capitalize;
+2. ⭐ a **boolean read through its predicate-form getter** (`respires` →
+   `isRespiring()`) — the CLAUDE.md convention, which *no* name
+   derivation can reach;
+3. an interface `@hook` implemented by the mixin **in the same file**
+   (`Detailed.applyDetails`), where "no override outside the declaring
+   file" is the wrong question entirely.
+
+The fix for 1 and 2 was to stop guessing the accessor's name and
+**derive** the read surface — which methods actually read `this.<field>`.
+The fix for 3 was body shape: a `@hook` counts only as a **terminal**
+(empty body, bare-constant return, or a bodiless contract). That is also
+what separates `Combatant.onDefeated` (dead) from `Detailed.applyDetails`
+(a Hydrator applier, no caller and no override, entirely alive). All
+three are pinned in the fixture.
 
 ### Movement II — combat that resolves
 
@@ -1704,6 +1789,15 @@ Clean attach points, each leaving as a slate, none as a plan section:
   `fracture → rest`; instruments (a stethoscope that turns `analyze
   patient`'s bands up one). → physiology-slate / health-vertical-slate.
 - **A `Species` contest band** for beasts (Risks 2). → species-slate.
+- **`Species._parentCladePath` / `lifecycleStates` / `lifespanMin`** —
+  three authored fields no code reads, found by W0c's census. The
+  maturation/lifespan axis. → species-slate.
+- ⭐⭐ **The combat hook grammar — seventeen un-composed `@hook`s**
+  (`Combatant` ×7, `CombatReactive` ×6, `CombatVenue` ×3, minus the two
+  W3 fills). Documented, invoked, implemented by nobody but test doubles.
+  `lint:unconsumed-seams` now holds the number. → combat-experience-slate.
+- **`MemorizedMixin.competenceRankFor`** — `return 0` under "composed
+  hosts supply the real read"; no host does. → magic-model-design.
 - **The temple** — a second `revive` vendor with different terms; the
   Tariff makes it rows. → mortality-slate.
 - **Corpse custody and remains after `spent`** — `interIn` keeps the

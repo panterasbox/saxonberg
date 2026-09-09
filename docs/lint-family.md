@@ -182,6 +182,55 @@ Measured **7** on `design/consequence` before any build work; ceiling set
 there. It may fall, never rise. `KNOWN_PARALLEL_STORES` is enumerated in
 the script so a second parallel store is a visible diff.
 
+### `lint:unconsumed-seams` — the sibling census: declared and unread (2026-09)
+
+⭐⭐ **The gate `lint:condition-arms` implies.** The arm census counts what
+a build *added* when it found a dead field. This one counts the dead
+fields, so the next build has the number in front of it rather than
+having to notice.
+
+It counts two shapes across the kernel **and every pack's `src/`**:
+
+1. **An unread authored field** — a `static fieldMeta` key on a data Idea
+   under `platform/idea/**` (not `cmd/`, not `api/`) that no other file
+   reads. ⚠ **A write is not a consumer.** The Hydrator sets every
+   persistent field by reflection and a YAML row authoring a value is the
+   *supply* side; what makes a seam real is somebody reading it.
+2. **An un-overridden extension hook** — a `@hook`-tagged **terminal**
+   (empty body, or `return` of a bare constant, or an interface contract)
+   that nothing anywhere composes.
+
+⭐ **Body shape is what separates the two things `@hook` marks**, and it
+is the whole difficulty of the gate. `Combatant.onDefeated` is a no-op
+terminal nothing composes — dead surface. `Detailed.applyDetails` is a
+Hydrator applier with a real body, invoked by name through reflection: no
+textual caller, no override, and perfectly alive. "Zero overrides" alone
+cannot tell them apart.
+
+⚠ **The read surface is DERIVED, never guessed.** The first cut reported
+38 seams and twelve were false, from three shapes: a `protected _foo`
+read through `getFoo()`; a boolean read through its predicate-form getter
+(`respires` → `isRespiring()`, which no name derivation reaches); and an
+interface hook the mixin implements *in the same file*. The fix was to
+stop deriving the accessor's name and instead ask which methods actually
+read `this.<field>`. All three are pinned in the fixture.
+
+⚠ Neither class is a bug on its own — a hook one wave ahead of its first
+consumer is good sequencing. This is a **ceiling**, not a zero-gate: what
+it refuses is the *accumulation*, where the authored surface grows faster
+than the engine that honours it and a row that says what the author wants
+is silently ignored.
+
+Measured **21** on `design/consequence` before any build work.
+⭐⭐ **Seventeen of the twenty-one are combat**: `Combatant` (7),
+`CombatReactive` (6) and `CombatVenue` (3) are the three `@hook` surfaces
+[combat-hooks.md](./subsystems/combat-hooks.md) calls *"the wizard-facing
+combat extension grammar"* — and **not one is composed by anything that
+ships**, in the kernel or in any of the 42 packs. The grammar is
+complete, documented, and spoken by nobody. `KNOWN_EXTENSION_ONLY` is
+**empty on purpose**, so the first allowlisting is a diff somebody has to
+defend.
+
 ### The identity build's three (2026-09)
 
 Each guards a failure that is **closed and silent** — the family's
