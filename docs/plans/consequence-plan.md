@@ -382,6 +382,27 @@ Facts verified this cycle by opening the file. Paths are relative to
 
 ---
 
+### ⚠ Resync against master, 2026-09-08 (`a8fd82d7f`)
+
+Two builds landed after this plan was written — **world-scan** and
+**refactor/stackable** — 50 commits, merged with **zero textual
+conflicts**. ⚠ That is the dangerous shape (the identity build merged
+clean and then failed two gates), so the facts were re-checked rather
+than assumed:
+
+- ✅ **`lint:condition-arms` still reads 7 + 1 parallel** at the same
+  lines. `Vitals.ts`, `Condition.ts`, `CombatLogic.ts`, `Competence.ts`,
+  `Advancement.ts`, `Combatant.ts`, `NaturalAttack.ts`, `Poise.ts`,
+  `BodyPlan.ts` and `api/condition.ts` are **untouched by master**.
+- ✅ `Metabolic.ts` changed, but **comment-only** (a perf note about
+  `getOccupiedHost`). W11/D21's plasma coupling is unaffected.
+- ✅ The `GlobbableMixin` → `StackableMixin` rename touches nothing this
+  plan references.
+- ⭐ **New: `packages/wire`** — the wire-test harness shipped. See the
+  Test & gate strategy; it moves several items off the drive-only list.
+- ⭐ **New: `FromTemplateMethod`** call-security policy. See D12.
+- ⭐ **New gate: `lint:whole-table`.** See Convention conformance.
+
 ## Plan-level decisions
 
 Numbered so waves and commits can cite them. Lens limbs are named where a
@@ -620,6 +641,20 @@ poisoning). The shipped drivers (metabolism, thermal, respiration, magic,
 `PassageController`) keep calling the body directly (harm.md's stated
 rule); the door's first consumers are the `CombatHookContext.afflict`
 consequence (re-routed through the Api) and W13's `revive`.
+
+⚠ **Re-opened by the resync (2026-09-08).** Master shipped
+`FromTemplateMethod(templateGlob, methodName)` — *"trust by the calling
+FUNCTION, not merely by the calling object"* — whose own doc criticises
+exactly the shape `inflict` uses: *"a singleton has dozens of methods,
+and admitting all of them because one of them needs the reach is the
+same shape as admitting a whole module."*
+
+**W7 must evaluate it rather than reflexively copying `inflict`'s
+`FromModule`.** ⚠ It may not apply here: the legitimate caller is the
+`ConditionApi` **facade**, an Api class with *no template identity*,
+which is why the `FromModule` form was chosen originally. If it does not
+apply, say so in the commit — the point is that the choice is made, not
+inherited.
 
 ### D13 — `resolution.by` is a closed treatment vocabulary matched against what the treater offers
 
@@ -873,6 +908,8 @@ the ones it touches):
 | `lint:field-meta` | `Weapon.exercises`, `Tariff.services`, `ContractRecord.watchedSec` entries well-formed |
 | `lint:schema` | `contracts` schema doc gains `watchedSec` |
 | `lint:object-verbs` | stays at zero (above) |
+| `lint:whole-table` (new on master) | ⚠ **an Api may not hand back its table.** Flags `.find`/`.filter`/`[0]` right after a whole-collection read. Watch W17's contract lookup (`board.allContracts().filter(…)` is the shape it fires on — ask the board for the claim, don't fetch the table) and W12's condition read (host-internal `this.conditions` is fine; a *consumer-side* `getConditions().find(…)` is not) |
+| `lint:world-scan` (new on master) | no new world-wide registry read; W12's suppression is a per-host field read |
 | `lint:gates` | the new `FromModule` strings on `ConditionLogic.afflict/relieve/conditionsOf` resolve |
 | `lint:test-bootstrap` | every new test touching the wired runtime imports `test-bootstrap` |
 | `lint:perishable` / `lint:pathogens` | untouched but re-run (W11 edits pathogen rows) |
@@ -1320,6 +1357,8 @@ deletes it, or keeps it — the mining town needs one); `lint:untitled` /
 `lint:census` green; `lint:unconsumed-seams` falls (`contagion` has a
 reader).
 
+*Wire.* Add `consequence.dirty.wire.test.ts` — the `analyze patient` envelope and the `order treatment` billing round-trip.
+
 *Commit.* `build(consequence W13): analyze patient, the Tariff, and the first clinic`
 
 #### W14 — the judgment loop
@@ -1501,12 +1540,30 @@ W16; 22 → W17; 23–24 → W4/W5.
 - **Lint family**: `pnpm -C packages/server lint:family` at every wave
   end (cheap); the two ratchets' numbers recorded in each commit message
   that moves them.
-- **Only the drive can prove**: the overlay merge of the `analyze`
-  stanzas; the lazy business stand-up under a tariff; on-shift billing;
-  the reserve cost + suppression *felt* on re-embodiment in the dorm; the
-  poise read *in the client's rendering* (the card surface treats `look`
-  and combat lines differently — textiles found three defects this way);
-  a fresh DB boot after the two drops.
+- ⭐⭐ **Wire tests — a tier that did not exist when this plan was
+  written** (`packages/wire`, landed on master). They flow over the **raw
+  WebSocket and assert the ENVELOPE** — by `kind` and `reason`, never by
+  the sentence that renders it — plus one-shot `mql-query` reads and
+  counted prose. One boot per run; a suite that mutates the world is
+  named `*.dirty.wire.test.ts`.
+
+  **This build adds `consequence.dirty.wire.test.ts`**, and it takes most
+  of what was previously drive-only:
+
+  | claim | channel |
+  |---|---|
+  | `analyze patient` exists after the overlay merge (not `unknown-verb`) | envelope |
+  | the lazy business stand-up + on-shift billing under a tariff | envelope of `order treatment` |
+  | `competence` reports the diminished band after death, and the intact history | `mql-query` |
+  | a fresh boot survives the two DB drops | the suite's own boot |
+  | the `afflict` door refuses an ungated caller | envelope |
+
+- **Still only the drive can prove**: the poise read *in the client's
+  rendering* (the card surface treats `look` and combat lines
+  differently — textiles found three defects exactly there, and an
+  envelope assertion cannot see a rendering); and the reserve cost +
+  suppression *felt* in the dorm, which is a judgement about whether a
+  price lands, not a fact about a message.
 - ⚠ `pnpm test` runs **twice**: before the MR opens, and at `/finalize`.
   Everything between is `test:near` + the touched packs' suites + the
   lint family, however large the wave (W8 included).
