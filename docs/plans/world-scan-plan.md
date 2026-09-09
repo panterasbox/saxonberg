@@ -938,7 +938,7 @@ comment is rewritten: the inverse lookup is now a map read, and the
 short-circuit is kept because standing on nothing is the common case and
 costs one field read.
 
-### W4 — the index and the memo; `allModes` by glob (D1, D6, D16 first half)
+### W4 — the index and the memo; `allModes` by glob (D1, D6, D16 first half) — ✅ DONE
 
 - `MixinApi` memo + `lowercasedMixinNames`; `StuffApi.#indexes.byMixin` +
   gated `findByMixin`; `resolveChain` seeds `world:[mixin.X]` from the
@@ -952,6 +952,26 @@ costs one field read.
 - Acceptance: `pnpm test:near` green; measured: `world:[mixin.X]` no longer
   calls `getAllObjects` (spy).
 - Commit: `build(world-scan W4): one registry index — mixin composition; queryMixins memoized; allModes by glob`.
+
+**Done.** Notes:
+
+- `indexedWorldSeed(node)` in `resolver.ts` recognizes the one
+  index-answerable shape (head `world`, `rest[0]` a `[mixin.X]` bracket
+  filter, `truthy` or `has`). The filter op still runs afterwards and is
+  idempotent, so **the answer is identical** — asserted as set equality
+  against the walk-and-filter in `mixin-index.test.ts`, which is the
+  claim the whole build rests on.
+- `queryMixins` now returns a copy of a `WeakMap`-memoized list; a caller
+  that mutates the result cannot corrupt the memo (tested).
+- ⚠ The `findByMixin` gate is `FromTemplate('/platform/idea/api/mql')`
+  today. In W6 the resolver still reaches it under an `MqlLogic` frame,
+  so this stays — but note the gate names the TEMPLATE, not the method:
+  the method-level narrowing is `RegistryWideReaders` on the two `MqlApi`
+  entries, one layer out.
+- A shadow is itself a registered `Stuff`, so a shadow that composes a
+  mixin appears in that bucket **as itself** — which is what the pre-index
+  walk did too. What composed-only means is that the shadow's HOST is not
+  bucketed, and that is what the test pins.
 
 ### W5 — every other reader becomes a named question (D15, D16 water, D17)
 

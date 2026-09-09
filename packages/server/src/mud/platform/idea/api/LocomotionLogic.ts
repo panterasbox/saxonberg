@@ -14,7 +14,6 @@ import { LocomotionMode } from '../LocomotionMode';
 import type { Enablement } from '../../../lib/locomotion/Enablement';
 import { StuffApi } from '../../../api/stuff';
 import { MixinApi } from '../../../api/mixin';
-import { MqlApi } from '../../../api/mql';
 import { SpeciesApi } from '../../../api/species';
 import type { MixinName } from '../../../lib/mixin';
 import { LOAD_BEARING_DEFAULTS } from '../../../lib/encumbrance/LoadBearing';
@@ -136,13 +135,12 @@ export class LocomotionLogic extends ApiLogic {
   /** See {@link LocomotionApi.allModes}. */
   @CallSecurity(LocomotionApiCallers)
   public allModes(): readonly LocomotionMode[] {
-    // MQL system enumeration (null giver — the mode roster is engine
-    // vocabulary, not a viewer's perception).
-    const matches = MqlApi.resolveMany('world:[class.LocomotionMode]', {
-      commandGiver: null,
-      scope: 'world',
-    });
-    return matches.stuff.filter(
+    // ⭐ The cheapest rung that answers it. Every mode is declared under
+    // ONE branch of the platform pack, so the registry's existing path
+    // index already knows them — no world walk, and no new index for a
+    // roster that is eleven rows. `instanceof` still narrows, so a
+    // stray row under the branch cannot widen the vocabulary.
+    return StuffApi.findByPathGlob('/platform/idea/LocomotionMode/*').filter(
       (s): s is LocomotionMode => s instanceof LocomotionMode,
     );
   }

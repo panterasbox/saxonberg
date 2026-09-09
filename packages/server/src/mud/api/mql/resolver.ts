@@ -188,11 +188,46 @@ function resolveSublist(node: SublistNode, ctx: MqlContext): MqlMatch[] {
 }
 
 function resolveChain(node: ChainNode, ctx: MqlContext): MqlMatch[] {
-  let matches = resolveSeed(node.head, ctx);
+  const indexed = indexedWorldSeed(node);
+  let matches =
+    indexed === null
+      ? resolveSeed(node.head, ctx)
+      : matchesFromStuff(StuffApi.findByMixin(indexed));
   for (const op of node.rest) {
     matches = applyChainOp(matches, op, ctx);
   }
   return matches;
+}
+
+/**
+ * ⭐⭐ **The index-answerable shape**: `world` at the chain head,
+ * immediately followed by a `[mixin.X]` bracket filter.
+ *
+ * That single shape is what the registry's composition index answers
+ * directly, so the seed reads a bucket instead of the world. The filter
+ * op still runs afterwards and is idempotent — the answer is
+ * *identical*, which is the whole claim: the query means what it always
+ * meant, it merely stops costing the size of the realm.
+ *
+ * ⚠ `[mixin.X]` in any other position, and every other bracket
+ * namespace (`class.`, `prop.`, `template.`, `keyword.`) is NOT
+ * index-answerable and returns null here. `class.` in particular looks
+ * similar and is not: it matches subclasses by a prototype walk, which
+ * is a different question about a different axis.
+ *
+ * Returns the lowercased mixin name, or null.
+ */
+function indexedWorldSeed(node: ChainNode): string | null {
+  const head = node.head;
+  if (head.kind !== 'keywords') return null;
+  if (head.words.length !== 1 || head.words[0] !== 'world') return null;
+  const first = node.rest[0]?.element;
+  if (!first || first.kind !== 'bracket-filter') return null;
+  const expr = first.expr;
+  if (expr.kind !== 'truthy' && expr.kind !== 'has') return null;
+  const atom = expr.atom;
+  if (atom.kind !== 'namespaced' || atom.namespace !== 'mixin') return null;
+  return atom.key.toLowerCase();
 }
 
 // ----- seeds ---------------------------------------------------------

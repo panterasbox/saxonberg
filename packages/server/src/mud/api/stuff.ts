@@ -84,9 +84,11 @@ export class StuffApi {
   static #indexes: {
     byId: Map<string, Stuff>;
     byTemplatePath: PathTrie<Stuff>;
+    byMixin: Map<string, Set<Stuff>>;
   } = {
     byId: new Map(),
     byTemplatePath: new PathTrie<Stuff>(),
+    byMixin: new Map(),
   };
 
   /**
@@ -140,15 +142,36 @@ export class StuffApi {
     // Deliberately the raw slot, never the overridable method — a
     // sandbox vessel projects another identity and must not index there.
     const key = Stuff._identityStampOf(obj) ?? obj.getTemplatePath();
+    // ⭐⭐ The composition index — the ONE axis every object has. It is
+    // not a bucket for a feature's slice (that would be the start of an
+    // ever-growing bag of indexes, each true of a fraction of the
+    // population); it is the type axis, and it describes everything.
+    // Maintained here so invalidation is by construction: an object is
+    // in exactly the buckets its class composes, for exactly as long as
+    // it is registered.
+    const mixins = MixinApi.lowercasedMixinNames(
+      obj.constructor as AnyConstructor,
+    );
     if (action === 'add') {
       this.#indexes.byId.set(id, obj);
       if (key) {
         this.#indexes.byTemplatePath.insert(key, obj);
       }
+      for (const name of mixins) {
+        const bucket = this.#indexes.byMixin.get(name);
+        if (bucket) bucket.add(obj);
+        else this.#indexes.byMixin.set(name, new Set([obj]));
+      }
     } else {
       this.#indexes.byId.delete(id);
       if (key) {
         this.#indexes.byTemplatePath.remove(key, obj);
+      }
+      for (const name of mixins) {
+        const bucket = this.#indexes.byMixin.get(name);
+        if (!bucket) continue;
+        bucket.delete(obj);
+        if (bucket.size === 0) this.#indexes.byMixin.delete(name);
       }
     }
   }
@@ -1304,6 +1327,36 @@ export class StuffApi {
   }
 
   /**
+   * ⭐⭐ Every live object composing `mixinName` (lowercased) — the
+   * registry's composition index, answered as a bucket read instead of a
+   * walk of the world.
+   *
+   * ⚠ **Composed only.** A mixin granted at runtime by a shadow or
+   * conferred by an augment does NOT put an object in a bucket: the
+   * index describes what a class IS, and `hasMixin(host, …)` /
+   * `getActiveMixins` remain the questions about an instance. That is
+   * today's `world:[mixin.X]` meaning, hardened deliberately.
+   *
+   * Gated to the MQL logic singleton. A public ungated reader would be a
+   * second door beside the one this build closes — the point is not that
+   * the read is expensive, it is that *being handed a slice of the world*
+   * is the thing that has to be asked for by name.
+   */
+  @CallSecurity(SecurityPolicies.FromTemplate('/platform/idea/api/mql'))
+  public static findByMixin(mixinName: string): Stuff[] {
+    const bucket = this.#indexes.byMixin.get(mixinName.toLowerCase());
+    if (!bucket) return [];
+    const out: Stuff[] = [];
+    for (const obj of bucket) {
+      // Liveness on the RAW target, as `getAllObjects` does: enumerating
+      // is not "using", so it must not refresh residency recency.
+      if (!ProxyApi.unwrap(obj).isDestroyed()) out.push(obj);
+      else this.#updateIndexes(obj, 'remove');
+    }
+    return out;
+  }
+
+  /**
    * Get all active objects.
    * Filters out destroyed objects.
    *
@@ -1343,6 +1396,7 @@ export class StuffApi {
   public static clearAll(): void {
     this.#indexes.byId.clear();
     this.#indexes.byTemplatePath.clear();
+    this.#indexes.byMixin.clear();
   }
 
   /**
