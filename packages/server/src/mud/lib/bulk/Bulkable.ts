@@ -24,7 +24,7 @@
  * host — the auto-compose-on-every-Container question is deferred.
  *
  * **This mixin is NOT** discrete containment (that's `Container`), a
- * fungible-stack of discrete units (that's `Globbable`), or a lid's
+ * fungible-stack of discrete units (that's `Stackable`), or a lid's
  * open/close state (that's `Sealable`). The `closure` scale here is
  * the vessel's inherent construction (a steel bucket vs a steel
  * sieve), gating only the bulk domain.
@@ -39,7 +39,7 @@
  * substrate knows nothing about it.
  *
  * Operational reference: `docs/subsystems/bulk.md`. Discrete sibling:
- * `docs/subsystems/glob.md`.
+ * `docs/subsystems/stacks.md`.
  */
 
 import type { MixinConstructor, FieldMeta } from '../mixin';

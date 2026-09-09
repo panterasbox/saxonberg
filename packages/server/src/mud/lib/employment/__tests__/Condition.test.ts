@@ -1,7 +1,7 @@
 /**
  * Condition — the engine-verifiable delivery predicate: template-vocabulary
  * validation (the "engine-verifiable or rejected" boundary), item matching
- * (chattel / template, glob refusal), and the authoritative `holdsFor`
+ * (chattel / template, stack refusal), and the authoritative `holdsFor`
  * walk (ancestor chain, the restingOn surface leg, and the
  * creature-ancestor strict-possession refusal).
  */
@@ -15,7 +15,7 @@ import { Creature } from "../../creature/Creature";
 import { ContainerMixin } from "../../spatial/Container";
 import { ContainableMixin } from "../../spatial/Containable";
 import { SurfacedMixin } from "../../spatial/Surfaced";
-import { GlobbableMixin } from "../../stuff/Globbable";
+import { StackableMixin } from "../../stuff/Stackable";
 import { ChattelMixin } from "../../chattel/Chattel";
 import { ContainmentApi } from "../../../api/containment";
 import { StuffApi } from "../../../api/stuff";
@@ -34,7 +34,7 @@ class TestCrate extends ContainableMixin(Idea) {
 class TestCounter extends SurfacedMixin(ContainableMixin(Idea)) {
   static _mixinName = "TestCounter";
 }
-class TestStack extends GlobbableMixin(ContainableMixin(Idea)) {
+class TestStack extends StackableMixin(ContainableMixin(Idea)) {
   static _mixinName = "TestStack";
 }
 class TestParcel extends ChattelMixin(ContainableMixin(Idea)) {

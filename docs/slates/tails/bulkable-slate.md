@@ -17,7 +17,7 @@
 > `Container`+`Bulkable`, auto-compose, amount-aware appearance).
 
 Working slate for **bulk** — continuous, formless, measured matter
-(water, flour, sand, oil, gas). Sibling to the shipped globbable
+(water, flour, sand, oil, gas). Sibling to the shipped stackable
 substrate (discrete fungible counts), but built on a fundamentally
 different premise.
 
@@ -25,7 +25,7 @@ different premise.
 > *fluid-as-Stuff*: "2.3 kg of flour" was its own Stuff with a
 > `Quantity<U>` count, split into sibling Stuffs via `placeDirect`,
 > merged via a merge-on-arrival ripple — the structural mirror of
-> Globbable. **That model is retired.** Continuous matter is never an
+> Stackable. **That model is retired.** Continuous matter is never an
 > independent object, because it physically can't exist un-held — it's
 > always *in* a container or *on* a surface. So bulk is now modelled as
 > an **attribute of its holder**, not a Stuff. `Bulkable` is redefined
@@ -35,7 +35,7 @@ different premise.
 
 See also:
 
-- [docs/subsystems/glob.md](../../subsystems/glob.md) — the discrete-count
+- [docs/subsystems/stacks.md](../../subsystems/stacks.md) — the discrete-count
   sibling, shipped. Bulk reuses its response-envelope notes and its
   `via`/`quantity` result-slot patterns; it does **not** reuse the
   split/merge/`placeDirect` machinery (no fluid Stuffs to split).
@@ -83,10 +83,10 @@ problem that doesn't exist.
 
 ### The discrete / continuous split
 
-This is the line between Globbable and Bulkable, and it's the cleanest
+This is the line between Stackable and Bulkable, and it's the cleanest
 way to decide which a thing wants:
 
-| | **Globbable** (shipped) | **Bulkable** (this slate) |
+| | **Stackable** (shipped) | **Bulkable** (this slate) |
 |---|---|---|
 | Models | discrete, countable, individually graspable units | continuous, formless, measured matter |
 | Examples | coins, arrows, gems | water, flour, sand, oil, gas |
@@ -264,7 +264,7 @@ Behavior:
 - Strict shortfall (formal `:{N unit}`) → decline with
   `quantity-clamped-rejected`. Lenient overflow (natural language) →
   `quantity-clamped`, status `partial`. **These are the exact
-  response-envelope notes glob already ships**, measure-typed.
+  response-envelope notes stack already ships**, measure-typed.
 
 Every verb is a *direction* over `transfer`:
 
@@ -278,7 +278,7 @@ Every verb is a *direction* over `transfer`:
 | `draw from well` | `transfer(well, bucket, amount)` — `well.available()` is ∞/regen |
 
 Same-material pour is just `to.amount += applied` — **the case that was
-glob's hairiest machinery (merge + identity reconcile + destruct)
+stack's hairiest machinery (merge + identity reconcile + destruct)
 becomes plain addition.** That collapse is the strongest evidence the
 attribute model beats fluid-as-Stuff.
 
@@ -337,8 +337,8 @@ cube (discrete `Thing`) and interior-bulk water at once:
 - `look glass` → description composes both ("a glass of clear water, an
   ice cube floating in it").
 
-Note the **inversion from glob**: Globbable carries a hard
-`Globbable ⊥ Container` constraint (a coin-pile can't contain things).
+Note the **inversion from stack**: Stackable carries a hard
+`Stackable ⊥ Container` constraint (a coin-pile can't contain things).
 Bulkable is the opposite — bulk-holders are *usually* containers
 (vessels exist to hold formless matter). No constraint to police;
 composition is the expected case. The surface variant is identical (a
@@ -617,7 +617,7 @@ Three existing result slots, one new facet:
   `via.exit` already use (`MqlMatchVia` is an open
   `export interface MqlMatchVia {}` in `mud/api/mql/types.ts`). It
   signals "you reached this holder through its bulk."
-- **`quantity`** — the existing glob result slot, extended to a
+- **`quantity`** — the existing stack result slot, extended to a
   `value.kind: 'measure'` variant carrying `Quantity<U>` for the
   amount.
 
@@ -655,11 +655,11 @@ The detail precedent is load-bearing: a detail isn't a Stuff either;
 
 Quantity composes on both: `glass:b:{2 cups}` and `water:{2 cups}` —
 the `:{N unit}` measure body (the grammar lift below) rides the bulk
-referent exactly as `coin:{5}` rides a glob.
+referent exactly as `coin:{5}` rides a stack.
 
 ### Grammar lift — `:{N unit}`
 
-The `{…}` formal-quantity body extends from glob's `:{N}` to `:{N unit}`:
+The `{…}` formal-quantity body extends from stack's `:{N}` to `:{N unit}`:
 
 ```
 water:{2 cups}        2 cups (strict — composer)
@@ -669,7 +669,7 @@ water:{*}             all of it (strict)
 
 Unit tokens parse via the Quantities tag-table registry. The
 natural-language path (`pour 2 cups water`) needs a richer desugar
-than glob's integer-prefix — a multi-token unit capture, likely
+than stack's integer-prefix — a multi-token unit capture, likely
 consulting `GrammarApi` for unit recognition. **This is the single
 biggest implementation cost** (parser work, not mixin work) and wants
 a dedicated section at requirements time.
@@ -743,7 +743,7 @@ the engine supports both; the author picks per object:
 
 - **Discrete `Stuff`** when a unit has *shape and identity* and players
   treat it as countable — a loaf, an apple, a wheel of cheese, a coin.
-  (Fungible + countable → also `Globbable`.)
+  (Fungible + countable → also `Stackable`.)
 - **`bulk`** when it's a *formless measured amount that conforms to its
   holder* — water, flour, sand, oil. The linguistic tell: "three Xs"
   (discrete) vs "some X" / "200 g of X" (bulk).
@@ -761,19 +761,19 @@ food-prep content drives them.)
 
 ---
 
-## What carries over from glob (substrate reuse)
+## What carries over from stack (substrate reuse)
 
 - **Response-envelope notes** — `quantity-clamped`,
   `quantity-clamped-rejected`, `empty-result` carry over, measure-typed.
 - **Result-slot patterns** — `via` facet (detail precedent) and the
-  `quantity` slot (glob precedent); no new MQL payload type.
+  `quantity` slot (stack precedent); no new MQL payload type.
 - **`MqlQuantity` discriminated union** — the `value.kind: 'measure'`
   slot and `mode: 'strict' | 'lenient'` discriminator apply identically.
 - **`Quantity<U>` substrate + `QuantityMarshaller`** — `amount`
   storage, arithmetic, unit handling.
 
 **Not** reused: `placeDirect`, `split`, `merge`, the merge-on-arrival
-ripple, `globIdentityFields` — all of that existed to reconcile fluid
+ripple, `stackIdentityFields` — all of that existed to reconcile fluid
 Stuffs, which no longer exist.
 
 ---
@@ -884,7 +884,7 @@ You pour the glass out into the sink.              (ok — :b facet)
 
 ## Cross-references
 
-- [glob.md](../../subsystems/glob.md) — discrete sibling; note reuse.
+- [stacks.md](../../subsystems/stacks.md) — discrete sibling; note reuse.
 - [quantities.md](../../subsystems/quantities.md) — `Quantity<U>` backing.
 - [race.md](../../subsystems/race.md) — `Material` identity + physics.
 - [mql.md](../../subsystems/mql.md) — `MqlMatchVia`, `via.detailPath`

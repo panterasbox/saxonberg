@@ -15,7 +15,7 @@ standing** shape (renown / participation / producer) with one hard addition:
 
 Money exists in two domains, joined only at the bank:
 
-- **Cash** — `Coin`, a physical `Globbable` `Thing` carrying per-coin
+- **Cash** — `Coin`, a physical `Stackable` `Thing` carrying per-coin
   **mass**. Off the *governed* ledger: a hand-to-hand handover changes
   *location*, not *total supply*. Self-limiting by mass (a `Coin` stack's
   `getMass()` is per-coin × quantity, read by the shipped `LoadBearing`
@@ -444,7 +444,7 @@ over a game-clock advance.
 - `SupplyAggregate.ts` — the supply headline, **one row per currency**
   (`bank_supply`, unique index on `currency`).
 
-`obj/Coin.ts` — the physical cash object (`GlobbableMixin(Thing)`); a
+`obj/Coin.ts` — the physical cash object (`StackableMixin(Thing)`); a
 concrete content object beside `Flask`/`AirTank` (memory: *obj vs lib Stuff
 placement*).
 
@@ -537,7 +537,7 @@ The currency build added three more:
    single-currency, so `(bank, currency)` is the identity. It keeps the
    scalar `balance` and its warmed cache untouched, where a multi-currency
    wallet would have rewritten every read site.
-10. **The `setQuantity` gate lives on `Coin`, not on `GlobbableMixin`** — a
+10. **The `setQuantity` gate lives on `Coin`, not on `StackableMixin`** — a
    glob is not necessarily money, and gating the mixin gates every pile of
    ore in the world. `Coin` is the value-bearing glob (and scrip will be a
    `Coin`), so it inherits. A general *value-bearing* marker is the

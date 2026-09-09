@@ -1,7 +1,7 @@
 /**
  * CraftingLogic.repair — the deficit-priced reverse-craft: cost ∝
  * (1 − condition) (doubled broken), metal wants forge-grade heat, soft
- * goods a `mending` tool, stock drawn from the gather walk (glob
+ * goods a `mending` tool, stock drawn from the gather walk (stack
  * partial-debit / discrete donor within the 2× overshoot rule), and the
  * restore is ceiling-free — immediately reversing the wear producers
  * (`hasCapability`, the covering-stack read, the delivery scale all see
@@ -132,7 +132,7 @@ afterEach(() => {
 });
 
 describe('CraftingLogic.repair', () => {
-  it('prices the deficit: cost = mass × (1−condition) × costFactor, debited from a glob', async () => {
+  it('prices the deficit: cost = mass × (1−condition) × costFactor, debited from a stack', async () => {
     ContainmentApi.move(makeHotForge(), room);
     const scrap = makeIronScrap(10);
     ContainmentApi.move(scrap, room);

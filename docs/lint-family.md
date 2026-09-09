@@ -133,7 +133,7 @@ growing the day it is noticed, without being fixed first.
   cannot **parse**: an unreadable spec silently shrinks every total.
 - **`lint:field-meta`** — field metadata is ONE field-keyed static: no
   legacy `persistentFields` / `fieldMarshallers` / `instructionFields` /
-  `globIdentityFields` returning, every entry well-formed. Registration
+  `stackIdentityFields` returning, every entry well-formed. Registration
   only validates classes it loads; this sees the whole tree.
 
 ### The identity build's three (2026-09)

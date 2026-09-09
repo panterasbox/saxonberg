@@ -1560,7 +1560,7 @@ export class StuffApi {
    * common case of bare persisted scalars that don't expose a custom
    * getter / setter (a `tarnished: boolean` field on Coin).
    *
-   * Used by `GlobbableApi.split` to clone the glob-identity field
+   * Used by `StackableApi.split` to clone the glob-identity field
    * set onto the split-off; general enough to live on the Stuff
    * registry rather than buried in glob.
    *
@@ -1569,7 +1569,7 @@ export class StuffApi {
    * sense for `dst`'s class. Mismatched casing or typos write a
    * dynamic property that nobody reads, silently. Treat as a
    * framework primitive: the callers are short, well-typed lists of
-   * known fields (e.g., `static globIdentityFields`).
+   * known fields (e.g., `static stackIdentityFields`).
    */
   public static copyField(src: Stuff, dst: Stuff, name: string): void {
     const cap = name.charAt(0).toUpperCase() + name.slice(1);

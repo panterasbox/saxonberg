@@ -1,9 +1,9 @@
 /**
  * Coin — physical, massed, fungible cash.
  *
- * A `Coin` is a {@link GlobbableMixin} over {@link Thing} (so it is
+ * A `Coin` is a {@link StackableMixin} over {@link Thing} (so it is
  * Containable, Tangible, Perceptible and Visible): carry / split / merge /
- * count come from the shipped glob substrate, and each coin carries a
+ * count come from the shipped stack substrate, and each coin carries a
  * **mass** (`Tangible`), so a large stack blows past carry capacity through
  * the shipped `LoadBearing` / encumbrance gauge — the cap on cash is the
  * honest physics, not an arbitrary rule (banking-requirements § Goals).
@@ -24,7 +24,7 @@
  * pair that does not resolve **throws** rather than being worth what it
  * says.)
  *
- * ⚠⚠ `globIdentityFields = ['currency', 'denomination']`: two stacks merge
+ * ⚠⚠ `stackIdentityFields = ['currency', 'denomination']`: two stacks merge
  * only when **both** match. The currency half is load-bearing — without it
  * two issuers' like-valued coins would merge into one stack, creating money
  * by a merge with no ledger row and no error. The key is the defence, not a
@@ -36,14 +36,14 @@
  */
 
 import Thing from "../../lib/stuff/Thing";
-import { GlobbableMixin } from "../../lib/stuff/Globbable";
+import { StackableMixin } from "../../lib/stuff/Stackable";
 import { SecurityPolicies } from "../../lib/security/SecurityPolicies";
 import { CallSecurity, Final, Unshadowable } from "../../lib/security/decorators";
 import { Currency } from "../../lib/banking/Currency";
 import { Quantity } from "../../lib/quantity";
 import type { FieldMeta } from "../../lib/mixin";
 
-const CoinBase = GlobbableMixin(Thing);
+const CoinBase = StackableMixin(Thing);
 
 /**
  * ⚠⚠ Who may change a coin stack's size — the cash-side conservation gate.
@@ -56,16 +56,16 @@ const CoinBase = GlobbableMixin(Thing);
  *
  * The realistic threat is not an attacker — it is a future contributor's
  * well-meant feature inflating the supply while nobody notices. This caller
- * set IS the policy: the glob mechanics (split/merge) and the cash faucet.
+ * set IS the policy: the stack mechanics (split/merge) and the cash faucet.
  * Anything else is a design conversation, not a list edit.
  *
- * ⚠ Gated **here and not on `GlobbableMixin`**: a glob is not necessarily
+ * ⚠ Gated **here and not on `StackableMixin`**: a stack is not necessarily
  * money. Gating the mixin would gate every pile of ore and every stack of
  * apples in the world, which is both wrong and enormously disruptive. The
  * generalization — a *value-bearing* marker that a scrip token or a bearer
  * credential could also carry — is the money-integrity slate's own cycle
  * (docs/slates/builds/money-integrity-slate.md § open question 2). Until
- * then, `Coin` is the value-bearing glob, and scrip will be a `Coin` with a
+ * then, `Coin` is the value-bearing stack, and scrip will be a `Coin` with a
  * different currency, so it inherits this gate for free.
  */
 const CoinQuantityMutators = SecurityPolicies.AnyOf(
@@ -89,12 +89,12 @@ const CoinQuantityMutators = SecurityPolicies.AnyOf(
     includeSubclasses: true,
   }),
   SecurityPolicies.FromTemplate("/platform/idea/persistence/*Hydrator"),
-  // The glob mechanics: split subtracts what it hands out, merge sums what it
+  // The stack mechanics: split subtracts what it hands out, merge sums what it
   // absorbs — both conserve by construction.
-  SecurityPolicies.FromModule("/api/glob#GlobbableApi", {
+  SecurityPolicies.FromModule("/api/stackable#StackableApi", {
     includeSubclasses: false,
   }),
-  SecurityPolicies.FromTemplate("/platform/idea/api/glob"),
+  SecurityPolicies.FromTemplate("/platform/idea/api/stackable"),
   // The cash faucet: `issueCash` sizes a freshly minted stack, and every mint
   // it performs is a logged `mint` leg through the conservation chokepoint.
   SecurityPolicies.FromModule("/api/banking#BankingApi", {
@@ -105,8 +105,8 @@ const CoinQuantityMutators = SecurityPolicies.AnyOf(
 
 export default class Coin extends CoinBase {
   static fieldMeta: FieldMeta = {
-    currency: { persistent: true, globIdentity: true },
-    denomination: { persistent: true, globIdentity: true },
+    currency: { persistent: true, stackIdentity: true },
+    denomination: { persistent: true, stackIdentity: true },
   };
 
   /**
@@ -123,7 +123,7 @@ export default class Coin extends CoinBase {
 
   /**
    * ⚠⚠ The cash-side conservation gate — see {@link CoinQuantityMutators}.
-   * Only the glob mechanics and the cash faucet may resize a money stack.
+   * Only the stack mechanics and the cash faucet may resize a money stack.
    */
   @CallSecurity(CoinQuantityMutators)
   @Final
@@ -146,7 +146,7 @@ export default class Coin extends CoinBase {
    * The **stack's** total mass: the per-coin mass — derived from
    * `(currency, denomination)` ({@link Currency.perCoinMass},
    * currency-intrinsic like face value, NOT a worth on the good) — scaled
-   * by the stack size. Deriving from preserved `globIdentityField`s makes
+   * by the stack size. Deriving from preserved `stackIdentityField`s makes
    * mass correct across clone / split / merge without depending on the
    * stored `Tangible` mass, so a 25-value stack is always heavier per coin
    * than a pile of 1-value pieces of the same total. This is what flows
@@ -186,7 +186,7 @@ export default class Coin extends CoinBase {
    * `getPresentation` composes a stack as `` `${n} ${pluralize(base)}` ``
    * where `base` is the short description, and a short description that
    * leads with an article reads wrong once a count is prefixed. (This is a
-   * general glob-rendering wart — *"4 a red apples"* — that predates the
+   * general stack-rendering wart — *"4 a red apples"* — that predates the
    * currency build; `getPluralForm` is the sanctioned host-side opt-out, and
    * money is the surface where it shows most.)
    */

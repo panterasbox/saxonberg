@@ -85,7 +85,7 @@ export class CategoryMeasure {
    * How much `item` contributes to a `category` line denominated in
    * `unit` — `0` when it contributes nothing.
    *
-   * ⚠ A `count` line counts a glob's whole quantity (six limes in a
+   * ⚠ A `count` line counts a stack's whole quantity (six limes in a
    * stack are six limes), while `L`/`kg` read the interior. The two
    * readings are why this is one function rather than a predicate plus
    * arithmetic at each call site.
@@ -97,7 +97,7 @@ export class CategoryMeasure {
   ): number {
     if (unit === 'count') {
       if (!CategoryMeasure.names(item, category)) return 0;
-      return MixinApi.isGlobbable(item) ? item.getQuantity() : 1;
+      return MixinApi.isStackable(item) ? item.getQuantity() : 1;
     }
     if (!MixinApi.isBulkable(item) || !item.hasInteriorBulk()) return 0;
     const material = item.getBulkMaterial('interior');

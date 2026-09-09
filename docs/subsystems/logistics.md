@@ -318,7 +318,7 @@ plus the route's legs.
 > and it happens to be the datum every freight statistic reads from.
 
 ⭐⭐ **It is what makes a fungible shipment nameable.** The gig
-substrate's `Condition` refuses `Globbable` outright ("a merging stack
+substrate's `Condition` refuses `Stackable` outright ("a merging stack
 has no stable identity"), and supply needs are overwhelmingly fungible.
 A gig for "twenty bottles" is unpostable — so the consignment is a
 **discrete, chattel-stamped crate**, and the bill says what is in it. No

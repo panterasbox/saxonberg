@@ -186,7 +186,7 @@ async function finish(
     if (units <= 0) continue;
     try {
       const stock = await StuffApi.clone<Stuff>(row);
-      if (MixinApi.isGlobbable(stock)) stock.setQuantity(units);
+      if (MixinApi.isStackable(stock)) stock.setQuantity(units);
       // ⭐ The grade rides `CraftedMixin` — the same stamp the harvest
       // put on the sheaf, carried one more step by the shipped
       // weakest-link rule and nothing else.

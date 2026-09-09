@@ -553,7 +553,7 @@ function corpseIdentityFor(body: Stuff, nowS: number): string | undefined {
  * Mint a corpse carrying a body's material state and its loadout.
  *
  * Cloned from the authored corpse template, then configured from the body
- * — the `GlobbableApi.split` shape, which mints a runtime-derived instance
+ * — the `StackableApi.split` shape, which mints a runtime-derived instance
  * the same way. What a corpse IS is authored; whose it WAS is poured in.
  *
  * **Throws if the template is missing**, deliberately. A body failing to

@@ -11,7 +11,7 @@
  *         valid records for both.
  * AC 18 — a record learned in a prior generation displays as a hedge.
  * AC 19 — a label survives a generation change.
- * AC 20 — consumables glob; per-instance continuous state does not.
+ * AC 20 — consumables stack; per-instance continuous state does not.
  * AC 22 — a labelled item does not auto-merge.
  * AC 23 — a stack flips as a unit at its own window position.
  * AC 25 — banks are deep enough and name no material.
@@ -29,7 +29,7 @@ import { Appearance, GENERATION_DEFAULTS } from '../Appearance';
 import { DescriptorBank } from '../DescriptorBank';
 import { IdentifiableMixin } from '../Identifiable';
 import { LabelledMixin } from '../../description/Labelled';
-import { GlobbableMixin } from '../../stuff/Globbable';
+import { StackableMixin } from '../../stuff/Stackable';
 import { ChargedMixin } from '../../magic/Charged';
 import { ReservedMixin } from '../../reserve';
 import { VisibleMixin } from '../../description/Visible';
@@ -48,9 +48,9 @@ import { installV1QuantityMarshallers } from '../../persistence/__tests__/quanti
 class Viewer extends BeliefStoreMixin(PerceptionMixin(SensorMixin(Idea))) {}
 /** A stackable, labellable, identifiable consumable — the potion shape. */
 class Flask extends LabelledMixin(
-  IdentifiableMixin(GlobbableMixin(VisibleMixin(ContainableMixin(Idea)))),
+  IdentifiableMixin(StackableMixin(VisibleMixin(ContainableMixin(Idea)))),
 ) {}
-/** A charged item: continuous per-instance state, so it must NOT glob. */
+/** A charged item: continuous per-instance state, so it must NOT stack. */
 class Wand extends ChargedMixin(ReservedMixin(IdentifiableMixin(Thing))) {}
 
 const __filename = fileURLToPath(import.meta.url);
@@ -381,7 +381,7 @@ describe('Globbing — what merges and what must not', () => {
     expect(a.canMergeWith(b)).toBe(true);
   });
 
-  it('AC20 — anything with continuous per-instance state does NOT glob', () => {
+  it('AC20 — anything with continuous per-instance state does NOT stack', () => {
     // A charged item cannot be fungible: two wands at different charge
     // levels are not interchangeable, and folding them into a stack
     // would have to pick one number and throw the other away.

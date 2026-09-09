@@ -164,7 +164,7 @@ Expensive *even indexed*: broad mixin, narrow want. **Two are money paths.**
 | site | query | why it is fine |
 |---|---|---|
 | `AppBootstrap.shutdown` + `Persistable.capturesAtShutdown` | `[mixin.PersistableMixin]` (broadest) | wants literally all of them, **once, at shutdown**. O(n) is correct — and it is indexed anyway under D1. |
-| dev `[mixin.GlobbableMixin]` reload | `[mixin.GlobbableMixin]` | dev-triggered "reload every globbable" — rare, wants all |
+| `mixin.getAllStackIdentityFields` (doc) / dev `[mixin.StackableMixin]` reload | `[mixin.StackableMixin]` | a dev-triggered "reload every stackable" — rare, wants all |
 
 ### Benign frequency (verify before touching)
 

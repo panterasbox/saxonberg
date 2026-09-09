@@ -24,7 +24,7 @@ args:
     type: object
     required: true
     scope: [inventory, reachable]
-    requires: GlobbableMixin
+    requires: StackableMixin
 options:
   count:
     type: number

@@ -204,7 +204,7 @@ Per `docs/workflow.md`:
   subsystem doc now covers everything the slate covered. Before
   retiring, salvage any remaining open questions into the
   consuming subsystem doc (the "graduate slate to subsystem doc"
-  pattern — see the activity sweep and the globbable-slate
+  pattern — see the activity sweep and the stackable-slate
   retirement).
 
 Surface the retirement decisions to the user before deleting.

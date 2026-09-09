@@ -357,7 +357,7 @@ and a seed. When in doubt, it's a template.
 
 **Not an exception: an object derived from another object.** "This
 instance's state comes from a live source, not from authored data" is not
-a reason to skip the template — it is the `GlobbableApi.split` shape.
+a reason to skip the template — it is the `StackableApi.split` shape.
 Clone at a template, then copy the derived fields in. The corpse a death
 leaves behind does exactly this: what a corpse *is* is authored
 (`/stuff/agent/Corpse`), whose it *was* is poured in through a gated
@@ -726,7 +726,7 @@ internally (not duck typing) and falls back in this order:
 2. `VisibleMixin.shortDescription`
 3. Baked-in `'something'` default
 
-For a `Globbable` stack the count folds in as an affix (`"30 coins"`).
+For a `Stackable` stack the count folds in as an affix (`"30 coins"`).
 The method ALWAYS returns a string; there is no caller-supplied
 fallback. It is **viewer-blind** — the shared baseline. The
 viewer-aware naming step (recognition / identification) composes on
@@ -1064,7 +1064,7 @@ is decisive for a field**:
    `T | undefined` on *every* Stuff, so there is no compile-time
    notion of "a thing that has this".
 
-A third, narrower: **glob identity**. `globIdentity` is declared in
+A third, narrower: **glob identity**. `stackIdentity` is declared in
 `fieldMeta`; props have no equivalent, so anything stack-merge
 identity keys on must be a field.
 

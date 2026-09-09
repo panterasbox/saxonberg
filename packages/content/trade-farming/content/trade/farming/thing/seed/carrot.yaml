@@ -1,5 +1,5 @@
 # A packet of carrot seed. Same discrete-Thing shape as the houseplant
-# seeds (never Globbable) — it names the plant it grows into and carries
+# seeds (never Stackable) — it names the plant it grows into and carries
 # no variation of its own.
 class: /platform/thing/Seed
 hydratorClass: /platform/idea/persistence/PersistentHydrator

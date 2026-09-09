@@ -67,7 +67,7 @@ character (part of a bareword, path segment, or quoted string).
 | `:` | Chain operator (filter / transform / intersection) |
 | `(` `)` | Grouping |
 | `[` `]` | Filter expression / ordinal index (overloaded) |
-| `{` `}` | Formal quantity body (`:{N}` strict count, `:{*}` strict all) — see [subsystems/glob.md](./subsystems/glob.md). |
+| `{` `}` | Formal quantity body (`:{N}` strict count, `:{*}` strict all) — see [subsystems/stacks.md](./subsystems/stacks.md). |
 | `'…'` | Literal string (preserves whitespace, no MQL parsing inside) |
 | `-` | Set difference (only between expressions; literal inside barewords) |
 | `#` | Identifier prefix: `#5` ordinal, `#abc123` stuff id |
@@ -486,10 +486,10 @@ The body is `int` or `*` only in v1. `{1..3}` (range),
 `{half}` / fractional, and bulk-form `{N unit}` all have real estate
 reserved.
 
-The strict assertion is "N units total." Non-globbable matches
-contribute 1 unit each; globbable matches contribute up to their full
+The strict assertion is "N units total." Non-stackable matches
+contribute 1 unit each; stackable matches contribute up to their full
 quantity. `swords:{3}` is a legal assertion against three separate
-non-globbable swords *or* a 3-stack of globbable swords. Shortfall
+non-stackable swords *or* a 3-stack of stackable swords. Shortfall
 declines without acting.
 
 Why curly: `{` / `}` are unclaimed elsewhere; the shape is visually
@@ -498,7 +498,7 @@ which-bracket-does-what — different shape, different operation.
 
 Mid-chain only. `{5}` at chain head has no current set to address.
 
-See [subsystems/glob.md](./subsystems/glob.md) for the runtime
+See [subsystems/stacks.md](./subsystems/stacks.md) for the runtime
 mechanics (split-on-take, merge-on-arrival, the `applyQuantity`
 distribution algorithm).
 
@@ -597,9 +597,9 @@ one keyword token rides on a side-channel quantity hint:
 | `2 red roses` | quantity = 2 (lenient), rewritten = `red roses` |
 
 Lenient means: clamp on shortfall and emit a `quantity-clamped`
-note. The dispatcher's helper (`GlobbableApi.applyQuantity`)
+note. The dispatcher's helper (`StackableApi.applyQuantity`)
 distributes the count across matches in scored order — see
-[subsystems/glob.md](./subsystems/glob.md).
+[subsystems/stacks.md](./subsystems/stacks.md).
 
 Composers who want strict (decline-on-shortfall) semantics use
 `coin:{5}` instead.

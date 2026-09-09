@@ -70,7 +70,7 @@ export function LabelledMixin<TBase extends MixinConstructor>(Base: TBase) {
     };
 
     static fieldMeta: FieldMeta = {
-      // Persistent, and NOT a glob-identity field: identity keys on
+      // Persistent, and NOT a stack-identity field: identity keys on
       // class + BUC-bucket, and a labelled item is kept out of merges by
       // the `canMergeWith` veto instead. Putting it in identity would
       // let two identically-labelled stacks merge, which is fine, but

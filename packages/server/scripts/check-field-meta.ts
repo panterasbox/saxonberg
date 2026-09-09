@@ -20,7 +20,7 @@
  * The point of the single file is that `--snapshot` and `--verify` share
  * ONE extractor. The extractor reads whichever shape a class body
  * carries — the four legacy statics (`persistentFields`,
- * `fieldMarshallers`, `instructionFields`, `globIdentityFields`) or the
+ * `fieldMarshallers`, `instructionFields`, `stackIdentityFields`) or the
  * unified `static fieldMeta` that replaces them — and normalizes both to
  * the same record. That is what lets the golden master captured BEFORE
  * the codemod be diffed against the tree AFTER it.
@@ -39,7 +39,7 @@
  * ## Array order: strict everywhere except marshallers
  *
  * The codemod emits one key sequence per class body — `persistentFields`
- * (declared order) → `instructionFields` → `globIdentityFields` →
+ * (declared order) → `instructionFields` → `stackIdentityFields` →
  * `fieldMarshallers` keys not already emitted (plan F2). Each array is
  * then read back as a FILTER over that sequence, so a field belonging to
  * two sets is pinned to its first-emitted position and a later array can
@@ -50,14 +50,14 @@
  * `[length, mass]` because `length` is also persistent. `persistentFields`
  * — the one order the docs call load-bearing (`PersistentHydrator` Phase 1
  * applies in that order) — is preserved by construction, since it is
- * emitted first. `instructionFields` and `globIdentityFields` shift
+ * emitted first. `instructionFields` and `stackIdentityFields` shift
  * nowhere.
  *
  * So marshaller keys are stored SORTED here and compared
  * order-insensitively, and the other three stay order-sensitive. That is
  * sound rather than convenient: `getAllFieldMarshallers` is consumed as a
  * lookup map (`marshallerPaths[field]` in the Hydrator), and
- * `getAllGlobIdentityFields` is unioned into a `Set` — neither has an
+ * `getAllStackIdentityFields` is unioned into a `Set` — neither has an
  * order to lose. The alternative, blanket-sorting all four, would throw
  * away a real check on the one array that needs it.
  *
@@ -87,7 +87,7 @@ const TAGS_GOLDEN = join(here, "__fixtures__", "field-tags-golden.json");
 const ARRAY_STATICS = [
   "persistentFields",
   "instructionFields",
-  "globIdentityFields",
+  "stackIdentityFields",
 ] as const;
 const OBJECT_STATICS = ["fieldMarshallers"] as const;
 
@@ -109,7 +109,7 @@ interface ClassRecord {
   persistentFields: string[];
   fieldMarshallers: Record<string, string>;
   instructionFields: string[];
-  globIdentityFields: string[];
+  stackIdentityFields: string[];
 }
 
 /** A declaration form the extractor does not understand. Never skipped. */
@@ -132,7 +132,7 @@ const census = {
     persistentFields: 0,
     fieldMarshallers: 0,
     instructionFields: 0,
-    globIdentityFields: 0,
+    stackIdentityFields: 0,
     fieldMeta: 0,
   } as Record<string, number>,
   emptyArrayInitializers: 0,
@@ -206,7 +206,7 @@ function extractClass(
     persistentFields: [],
     fieldMarshallers: {},
     instructionFields: [],
-    globIdentityFields: [],
+    stackIdentityFields: [],
   };
   let sawAny = false;
 
@@ -310,8 +310,8 @@ function extractClass(
           rec.persistentFields.push(field);
         } else if (key === "instruction" && val.kind === ts.SyntaxKind.TrueKeyword) {
           rec.instructionFields.push(field);
-        } else if (key === "globIdentity" && val.kind === ts.SyntaxKind.TrueKeyword) {
-          rec.globIdentityFields.push(field);
+        } else if (key === "stackIdentity" && val.kind === ts.SyntaxKind.TrueKeyword) {
+          rec.stackIdentityFields.push(field);
         } else if (key === "marshaller") {
           rec.fieldMarshallers[field] = normalizeExpr(
             source.slice(attr.initializer.getStart(sf), attr.initializer.getEnd())
@@ -340,7 +340,7 @@ function collect(): ClassRecord[] {
       !source.includes("persistentFields") &&
       !source.includes("fieldMarshallers") &&
       !source.includes("instructionFields") &&
-      !source.includes("globIdentityFields") &&
+      !source.includes("stackIdentityFields") &&
       !source.includes("fieldMeta")
     ) {
       continue;
@@ -391,7 +391,7 @@ function reportCensus(records: ClassRecord[]): void {
     `  declarations consumed: persistentFields=${d.persistentFields} ` +
       `fieldMarshallers=${d.fieldMarshallers} ` +
       `instructionFields=${d.instructionFields} ` +
-      `globIdentityFields=${d.globIdentityFields} ` +
+      `stackIdentityFields=${d.stackIdentityFields} ` +
       `fieldMeta=${d.fieldMeta}`
   );
   console.log(
@@ -524,7 +524,7 @@ const KNOWN_PROPS = new Set([
   "persistent",
   "marshaller",
   "instruction",
-  "globIdentity",
+  "stackIdentity",
   "ref",
   "lifetime",
   "inverse",
@@ -537,7 +537,7 @@ const KNOWN_PROPS = new Set([
 const TRUE_ONLY = new Set([
   "persistent",
   "instruction",
-  "globIdentity",
+  "stackIdentity",
   "authorable",
   "runtimeState",
 ]);

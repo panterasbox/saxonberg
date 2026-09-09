@@ -123,7 +123,7 @@ export function IdentifiableMixin<TBase extends MixinConstructor>(Base: TBase) {
       identifiedName: { persistent: true, authorable: true },
       descriptorClass: { persistent: true, authorable: true },
       selfIdentifying: { persistent: true, authorable: true },
-      // ⚠ Persistent but deliberately NOT a glob-identity field — every
+      // ⚠ Persistent but deliberately NOT a stack-identity field — every
       // item carries a different seed, so keying identity on it would
       // stop stacks merging at all. It records WHEN this item crosses
       // the turnover window, which is invisible and confers nothing.

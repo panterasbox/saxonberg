@@ -2,7 +2,7 @@
 
 The substrate for **continuous, formless, measured matter** (liquid in
 v1) — the **`Bulkable`** holder attribute: water, coffee. Bulk is the sibling of the discrete fungible-stack
-substrate ([glob.md](./glob.md)), built on a fundamentally different
+substrate ([stacks.md](./glob.md)), built on a fundamentally different
 premise — **bulk is not a Stuff.**
 
 A discrete glob (30 coins) is one Stuff with a `quantity`. Bulk (0.3 L
@@ -158,7 +158,7 @@ discard sink — `drink`):
   source with a material is never empty).
 - `getMaterial()` / `getAmount()` / `getCapacity()` / `getClosure()`.
 - `setMaterial()` / `setAmount()` — the low-level primitives `transfer`
-  composes (the bulk analog of `Globbable.setQuantity`).
+  composes (the bulk analog of `Stackable.setQuantity`).
 
 ### Closure scale — gated retention
 
@@ -180,7 +180,7 @@ scale but unexercised until gas content lands.
 
 ## `BulkableApi.transfer` (`api/bulk.ts`)
 
-The one primitive — the bulk analog of `GlobbableApi.applyQuantity`
+The one primitive — the bulk analog of `StackableApi.applyQuantity`
 (not of `split` / `merge`). It is **ungated** so controllers call it
 directly; the raw slot writes it composes are the low-level layer.
 Programmatic-contract violations throw; user-input failures ride the
@@ -409,7 +409,7 @@ Each lands in a named home later; none is in this slice.
 
 ## Cross-references
 
-- [glob.md](./glob.md) — discrete sibling; reused notes + result-slot
+- [stacks.md](./glob.md) — discrete sibling; reused notes + result-slot
   patterns.
 - [quantities.md](./quantities.md) — `Quantity<U>`, unit catalog,
   marshallers (volume units added here).

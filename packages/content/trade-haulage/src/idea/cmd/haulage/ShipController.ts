@@ -70,7 +70,7 @@ export default class ShipController extends CommandController<ShipModel> {
     // reason it cannot be the subject of a gig: a merging stack has no
     // stable identity, so nothing could say WHICH litres arrived. Put it
     // in a crate — which is what the bill of lading is for.
-    if (MixinApi.isGlobbable(goods)) {
+    if (MixinApi.isStackable(goods)) {
       return this.fail(
         context,
         'Loose goods have no identity to put on a bill — crate them first, ' +

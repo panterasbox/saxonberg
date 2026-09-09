@@ -142,7 +142,7 @@ export class StudioApi {
    * argument by design**. Throws `StudioError('denied')` for a non-author,
    * `('invalid')` for an empty name.
    *
-   * @param name - the mixin's `_mixinName` (e.g. `'GlobbableMixin'`).
+   * @param name - the mixin's `_mixinName` (e.g. `'StackableMixin'`).
    */
   public static describeMixin(name: string): Promise<MixinDetail> {
     return logic().describeMixin(name);

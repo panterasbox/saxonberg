@@ -174,7 +174,7 @@ export default class BankController extends BankingControllerBase<BankModel> {
   ): Promise<void> {
     const giver = context.commandGiver;
     const coins = model.coins?.stuff;
-    if (!coins || !MixinApi.isGlobbable(coins)) {
+    if (!coins || !MixinApi.isStackable(coins)) {
       MessageApi.scene(giver)
         .topic(TOPIC)
         .toSelf(Mml.compose`You don't have any '${model.coins?.raw ?? ""}' to deposit.`)
@@ -183,7 +183,7 @@ export default class BankController extends BankingControllerBase<BankModel> {
       return;
     }
     // ⚠⚠ Read the stack's NAME AS TEXT before banking it. `deposit()`
-    // CONSUMES the glob, and `Mml.thing()` holds the Stuff and resolves
+    // CONSUMES the stack, and `Mml.thing()` holds the Stuff and resolves
     // it at RENDER time — so by the time the scene renders, it is naming
     // a destructed object, its presentation comes back undefined, and
     // MML's `escape()` throws "Cannot read properties of undefined

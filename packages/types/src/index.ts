@@ -440,7 +440,7 @@ export interface SocialRulesState {
  */
 export type Status = 'ok' | 'partial' | 'declined' | 'error';
 
-/* ---- Glob / quantity notes -------------------------------------- */
+/* ---- Stack / quantity notes -------------------------------------- */
 
 export interface QuantityClampedNote {
   kind: 'quantity-clamped';
@@ -1514,8 +1514,8 @@ export interface PromptCancelMessage {
  *
  * `displayName` is non-optional here — the substrate's synthetic
  * descriptor ensures `Stuff.getPresentation()` always renders a
- * usable string. `quantity` rides along for Globbable hosts; absent
- * for non-Globbable. `primaryKeyword` rides along for Perceptible
+ * usable string. `quantity` rides along for Stackable hosts; absent
+ * for non-Stackable. `primaryKeyword` rides along for Perceptible
  * hosts (every in-world Stuff with a keyword pool); absent otherwise.
  */
 export interface StuffRefRecord {
@@ -4434,7 +4434,7 @@ export interface TemplateWriteResult {
  * One entry of the composition palette — a mixin (or an instantiable base
  * class) the author can pick when scaffolding a new backing class. `name`
  * is the exported identifier used verbatim in the generated `extends`
- * clause (`GlobbableMixin`, `Idea`, …).
+ * clause (`StackableMixin`, `Idea`, …).
  */
 export interface MixinPaletteEntry {
   /** The exported identifier (a mixin factory name or a base class name). */
@@ -4574,7 +4574,7 @@ export interface MixinFieldDetail {
  * absent — the card never throws on a missing topic).
  */
 export interface MixinDetail {
-  /** The mixin's `_mixinName` (e.g. `'GlobbableMixin'`). */
+  /** The mixin's `_mixinName` (e.g. `'StackableMixin'`). */
   name: string;
   /**
    * The mixin file's FULL top TSDoc concept comment as clean text —

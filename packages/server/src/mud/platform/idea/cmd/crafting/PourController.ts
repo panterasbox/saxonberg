@@ -148,7 +148,7 @@ export default class PourController extends ManualBuildController<PourModel> {
    * The discrete-ingredient step: an engaged `add` that — at completion —
    * consumes the ingredient whole (`StuffApi.destruct`, chattel released
    * by the shipped path) and banks an item-contribution (category by
-   * tags, grade or `fair`, a glob's stack as its count).
+   * tags, grade or `fair`, a stack's stack as its count).
    */
   private addIngredient(
     context: CommandContext,
@@ -174,7 +174,7 @@ export default class PourController extends ManualBuildController<PourModel> {
             ? ingredient.getGradeBand()
             : "fair",
           kind: "item",
-          count: MixinApi.isGlobbable(ingredient)
+          count: MixinApi.isStackable(ingredient)
             ? ingredient.getQuantity()
             : 1,
           tags: [...material.getTags()],

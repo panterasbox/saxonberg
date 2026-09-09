@@ -12,7 +12,7 @@
  *
  * Authored per-item in `data:` — `emittedIntensity` (lumens when lit),
  * `emittedColorTemperature` (warmth), and `on` (starts unlit off the shelf).
- * A discrete good (chattel-stampable, never Globbable). Fuel / burn-time is
+ * A discrete good (chattel-stampable, never Stackable). Fuel / burn-time is
  * the combustion build's concern; here a light is simply on or off.
  */
 

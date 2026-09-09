@@ -34,7 +34,7 @@ import { ContainableMixin } from '../../../../lib/spatial/Containable';
 import { SealableMixin } from '../../../../lib/spatial/Sealable';
 import { NamedMixin } from '../../../../lib/description/Named';
 import { CraftedMixin } from '../../../../lib/craft/Crafted';
-import { GlobbableMixin } from '../../../../lib/stuff/Globbable';
+import { StackableMixin } from '../../../../lib/stuff/Stackable';
 import { Stuff } from '../../../../lib/stuff/Stuff';
 import { BlendLabel } from '../../../../lib/metabolism/BlendLabel';
 import { BlendIdentity } from '../../../../lib/craft/BlendIdentity';
@@ -58,8 +58,8 @@ class TestKnife extends CraftedMixin(Thing) {
 class TestChest extends SealableMixin(ContainerMixin(Thing)) {
   static _mixinName = 'TestChestBranches';
 }
-/** A fungible discrete foodstuff — the glob debit path. */
-class TestProduce extends GlobbableMixin(Thing) {
+/** A fungible discrete foodstuff — the stack debit path. */
+class TestProduce extends StackableMixin(Thing) {
   static _mixinName = 'TestProduceBranches';
 }
 
@@ -379,12 +379,12 @@ describe('the edible (cooking) branch', () => {
     const outSlot = BulkableApi.slotFor(outcome.output, undefined)!;
     expect(outSlot.getMaterialPath()).toBe(STEW);
     expect(outSlot.getAmount().rawValue()).toBeCloseTo(0.4, 9);
-    // Conservation: the glob debited exactly 2 units; the meat consumed whole.
+    // Conservation: the stack debited exactly 2 units; the meat consumed whole.
     expect(veg.getQuantity()).toBe(3);
     expect(meat.isDestroyed()).toBe(true);
   });
 
-  it('throws (conservation breach) when a matched glob shrinks before consume', async () => {
+  it('throws (conservation breach) when a matched stack shrinks before consume', async () => {
     cleanDish();
     const { veg } = stockKitchen();
     // Rig: the stack shrinks between slot-match and consume — the strict

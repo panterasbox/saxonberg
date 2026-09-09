@@ -93,7 +93,7 @@ export class AppBootstrap {
    */
   public static async run(config: AppBootstrapConfig): Promise<void> {
     // Framework cross-module wiring (registry-class handoffs, the
-    // security/shadow/command/glob seams). Idempotent; `BootstrapManager.run`
+    // security/shadow/command/stack seams). Idempotent; `BootstrapManager.run`
     // re-invokes it. Branch registration is NOT here — the five branch
     // classes self-register at their own module load (the hierarchy's
     // root invariant must populate before any construction, including

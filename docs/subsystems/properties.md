@@ -71,7 +71,7 @@ on `fieldMeta` and have no prop equivalent:
 2. **narrowing** — `MixinApi.isX(obj)` threads a mixin's interface into
    TypeScript's control flow; `getProp` returns `T | undefined` on every
    Stuff.
-3. **`globIdentity`** — stack-merge identity is declared in `fieldMeta`.
+3. **`stackIdentity`** — stack-merge identity is declared in `fieldMeta`.
 
 `LabelledMixin` is three accessors and no logic, yet it carries a setter
 invariant the Hydrator routes through, contributes the `label` verb, is

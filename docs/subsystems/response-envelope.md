@@ -94,7 +94,7 @@ signal in `outcome.notes`. They carry no prose — body text fires
 through `Scene.send` on the parallel `MessageFrame` channel. The 16
 kinds form one closed discriminated union:
 
-**Glob / quantity** (emitted by `GlobbableApi.applyQuantity`,
+**Glob / quantity** (emitted by `StackableApi.applyQuantity`,
 forwarded by controllers via `ctx.note`):
 
 - `quantity-clamped { field, requested, applied }` — lenient
@@ -637,7 +637,7 @@ shipped subsystem:
   matching, recency stack, `CommandContext` accumulator API, validator
   conventions, dynamic contributions (the retired `pass: true`
   replacement)
-- [glob.md](./glob.md) — `applyQuantity` opts shape (`{ field, query? }`)
+- [stacks.md](./glob.md) — `applyQuantity` opts shape (`{ field, query? }`)
   and the canonical-shaped notes the helper emits
 - [locomotion.md](./locomotion.md) — `LocomotionControllerBase.emitRejection`
   and the `locomotion-gate-failed` note's gate vocabulary
