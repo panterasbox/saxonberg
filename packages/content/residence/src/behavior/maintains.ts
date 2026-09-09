@@ -30,15 +30,20 @@
  * they happen to be standing.
  */
 
-import { MixinApi } from '../../api/mixin';
-import { MqlApi } from '../../api/mql';
-import { CommandApi } from '../../api/command';
-import type { CommandGiver } from '../command/CommandGiver';
-import type { Stuff } from '../stuff/Stuff';
-import type { Mobile } from '../spatial/Mobile';
-import type { Container } from '../spatial/Container';
-import type { Containable } from '../spatial/Containable';
-import type { BrainContext, BrainStatics } from './brain';
+import { MixinApi } from '@saxonberg/server/mud/api/mixin';
+import { StuffApi } from '@saxonberg/server/mud/api/stuff';
+import type { CommandGiver } from '@saxonberg/server/mud/lib/command/CommandGiver';
+import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
+import type { Mobile } from '@saxonberg/server/mud/lib/spatial/Mobile';
+import type { Container } from '@saxonberg/server/mud/lib/spatial/Container';
+import type { Containable } from '@saxonberg/server/mud/lib/spatial/Containable';
+import type {
+  BrainContext,
+  BrainStatics,
+} from '@saxonberg/server/mud/lib/behavior/brain';
+import ResidenceCatalogue, {
+  RESIDENCE_CATALOGUE_PATH,
+} from '../idea/ResidenceCatalogue';
 
 const DEFAULT_BATCH = 3;
 
@@ -78,7 +83,7 @@ export const brain = class {
     const keeper = host as Keeper;
     const where = keeper.getContainer();
     let done = 0;
-    for (const holding of holdingsUnder(extent)) {
+    for (const holding of await holdingsUnder(extent)) {
       if (done >= batch) break;
       // Sound shells cost nothing to skip and the verb would refuse
       // anyway; skipping here keeps the beat's teleports honest.
@@ -104,19 +109,23 @@ export const brain = class {
 /**
  * Every live holding programme whose key sits under `extent`.
  *
- * Resolved through MQL by CLASS NAME — a string, never an import: the
- * residential programme is a capability pack's class and the kernel does
- * not import packs. The `key` atom is the programme's own parcel extent
- * (residences D16), so the prefix test is the ownership test.
+ * ⭐ Asked of the residence system's own roster. It used to be asked of
+ * the WORLD, by class name in a string — every live object read and
+ * filtered, once per property manager per cadence, from a kernel file
+ * naming a pack's class. Both halves of that are fixed by the brain
+ * living where its subject does.
+ *
+ * The `key` atom is the programme's own parcel extent (residences D16),
+ * so the prefix test is the ownership test.
  */
-function holdingsUnder(extent: string): HoldingShape[] {
+async function holdingsUnder(extent: string): Promise<HoldingShape[]> {
   const out: HoldingShape[] = [];
   let found: Stuff[] = [];
   try {
-    found = MqlApi.resolveMany('world:[class.HoldingWarren]', {
-      commandGiver: null,
-      scope: 'world',
-    }).stuff;
+    const catalogue = await StuffApi.singleton<ResidenceCatalogue>(
+      RESIDENCE_CATALOGUE_PATH,
+    );
+    found = await catalogue.holdingsUnder(extent);
   } catch {
     return out;
   }
@@ -129,8 +138,6 @@ function holdingsUnder(extent: string): HoldingShape[] {
     ) {
       continue;
     }
-    const key = h.holdingKey();
-    if (!key || !(key === extent || key.startsWith(`${extent}/`))) continue;
     out.push(h as HoldingShape);
   }
   return out;

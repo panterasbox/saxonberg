@@ -1,0 +1,13 @@
+# /system/residence/idea/ResidenceCatalogue — the residence system's
+# roster of itself: the institutions that admit holdings, and the plat
+# books that sell lots.
+#
+# Pure data: everything it knows it derives from the rows that author a
+# `parentExtent`. Lazily cloned on first use by whatever asks a residence
+# question — there is deliberately no boot step to forget.
+#
+# No `hydratorClass`: there is no `data` to apply, and declaring one with
+# nothing to hydrate is what `lint:instanceable` invariant 5 exists to
+# catch.
+class: /system/residence/idea/ResidenceCatalogue
+data: {}

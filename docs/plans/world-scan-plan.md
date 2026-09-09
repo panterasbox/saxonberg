@@ -866,7 +866,7 @@ until W6).
   definition, the controller forwards) — otherwise the label dispatch
   would have been copied into two kernel modules.
 
-### W2 — the residence catalogue; the per-tick brain reads it (D13)
+### W2 — the residence catalogue; the per-tick brain reads it (D13) — ✅ DONE
 
 - `ResidenceCatalogue.ts` + row; `OuterWarren.holdings()`; `admitFor` over
   `institutionCovering` by path + shape; `TitleController.books()` and
@@ -883,6 +883,31 @@ until W6).
   `class.OuterWarren` / `class.HoldingWarren` / `class.PlatBook` string
   anywhere in `src/`.
 - Commit: `build(world-scan W2): the residence catalogue — admitFor, title, the realtor and the maintains brain read it`.
+
+**Done.** Notes:
+
+- The catalogue derives from `Template.findWhereDataHas('parentExtent')`
+  as planned; `institutionsCovering(key)` sorts **longest extent first**
+  so a building inside a district answers before the district.
+- `holdingsUnder(extent)` consults **every** institution, not only the
+  covering one — an extent may name a district containing several, and
+  the holding's own key is the ownership test. Four institutions ship,
+  so it is a walk over four maps. This is exactly equivalent to the
+  brain's old filter and does not depend on `institutionsCovering`.
+- ⚠ **Three test fixtures had to learn the roster exists**, and each
+  failure was silent-and-empty rather than loud: `TitleVerb.test.ts` (its
+  store mock answered flat equality only, so the `$exists` query on a
+  dotted key returned nothing and `title list` was correct-looking and
+  empty — it now has a `matches` helper), `Realtor.test.ts` (no store
+  mock at all: `Template.find*` threw "Not connected"), and the moved
+  brain test. That is the D13 risk in miniature: a roster nothing
+  populates reads empty forever.
+- The moved brain test now stands a stand-in **institution** holding
+  stand-in programmes, with the roster's REAL `holdingsUnder` running
+  between them — so the extent filter is still under test where it now
+  lives.
+- `Realtor`'s duck-typed `BookShape` is gone: `platBooks()` returns
+  `PlatBook`, which terminus already imports.
 
 ### W3 — the item back-reference (D14)
 

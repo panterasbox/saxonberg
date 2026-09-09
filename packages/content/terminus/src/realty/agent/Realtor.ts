@@ -34,7 +34,7 @@ import {
   DialogueEffectRegistry,
   type DialogueEffectHandler,
 } from "@saxonberg/server/mud/lib/npc/DialogueEffects";
-import { MqlApi } from "@saxonberg/server/mud/api/mql";
+import { StuffApi } from "@saxonberg/server/mud/api/stuff";
 import { MessageApi } from "@saxonberg/server/mud/api/message";
 import { MixinApi } from "@saxonberg/server/mud/api/mixin";
 import { Mml } from "@saxonberg/server/mud/api/mml";
@@ -45,15 +45,9 @@ import { Money } from "@saxonberg/server/mud/lib/banking/Money";
 import { Currency } from "@saxonberg/server/mud/lib/banking/Currency";
 import { Quantity } from "@saxonberg/server/mud/lib/quantity";
 import type { Stuff } from "@saxonberg/server/mud/lib/stuff/Stuff";
-
-/** What the realty desk reads off a plat book — duck-typed, never imported. */
-interface BookShape extends Stuff {
-  getLabel(): string;
-  getPriceMinor(): number;
-  getAreaM2(): number;
-  getLandUse(): string;
-  lotExtents(): Promise<string[]>;
-}
+import ResidenceCatalogue, {
+  RESIDENCE_CATALOGUE_PATH,
+} from "@saxonberg/content-residence/src/idea/ResidenceCatalogue";
 
 /** One unsold lot, as the office describes it. */
 interface Offer {
@@ -82,16 +76,12 @@ export default class Realtor extends CastMixin(PopulatesMixin(NPC)) {
 
   /** Every unsold lot in every live plat book, cheapest first. */
   static async offers(): Promise<Offer[]> {
-    // MQL by class name with a duck-check — the same read `title list`
+    // The residence system's own roster — the same read `title list`
     // does, and the reason a new subdivision needs no code here.
-    const books = MqlApi.resolveMany("world:[class.PlatBook]", {
-      commandGiver: null,
-      scope: "world",
-    }).stuff.filter(
-      (s): s is BookShape =>
-        typeof (s as Partial<BookShape>).lotExtents === "function" &&
-        typeof (s as Partial<BookShape>).getLabel === "function",
+    const catalogue = await StuffApi.singleton<ResidenceCatalogue>(
+      RESIDENCE_CATALOGUE_PATH,
     );
+    const books = await catalogue.platBooks();
 
     const out: Offer[] = [];
     for (const book of books) {

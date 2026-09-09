@@ -16,34 +16,40 @@
  *     building is covered over several rounds rather than one thundering
  *     pass.
  *
- * The programmes here are stand-ins named for the class the brain looks
- * up — the brain resolves them through MQL by class NAME, never by
- * import, because the residential programme is a capability pack's class
- * and the kernel does not import packs. A fake with the right name and
- * shape is therefore the exact contract under test.
+ * The brain no longer finds its holdings by walking the world for a
+ * class NAME; it asks the residence system's own roster. So the fixture
+ * here is a stand-in **institution** standing stand-in programmes, and
+ * the roster's real `holdingsUnder` — extent filter included — runs
+ * between the two. That is the contract under test: what the roster
+ * hands back is what the round works.
  */
 
-import '../../../../test-bootstrap';
+import '@saxonberg/server/test-bootstrap';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { brain } from '../maintains';
-import { InnerWarren } from '../../location/InnerWarren';
-import { StuffApi } from '../../../api/stuff';
-import { ContainmentApi } from '../../../api/containment';
-import SingletonCartesianLocation from '../../../platform/location/SingletonCartesianLocation';
-import Avatar from '../../../platform/agent/Avatar';
-import { makeStuff, makeStuffAtPath } from '../../security/__tests__/test-setup';
-import type { Stuff } from '../../stuff/Stuff';
-import type { Container } from '../../spatial/Container';
-import type { Containable } from '../../spatial/Containable';
-import type { BrainContext } from '../brain';
+import ResidenceCatalogue, {
+  RESIDENCE_CATALOGUE_PATH,
+} from '../../idea/ResidenceCatalogue';
+import { InnerWarren } from '@saxonberg/server/mud/lib/location/InnerWarren';
+import { OuterWarren } from '@saxonberg/server/mud/lib/location/OuterWarren';
+import { StuffApi } from '@saxonberg/server/mud/api/stuff';
+import { ContainmentApi } from '@saxonberg/server/mud/api/containment';
+import SingletonCartesianLocation from '@saxonberg/server/mud/platform/location/SingletonCartesianLocation';
+import Avatar from '@saxonberg/server/mud/platform/agent/Avatar';
+import {
+  makeStuff,
+  makeStuffAtPath,
+} from '@saxonberg/server/mud/lib/security/__tests__/test-setup';
+import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
+import type { Container } from '@saxonberg/server/mud/lib/spatial/Container';
+import type { Containable } from '@saxonberg/server/mud/lib/spatial/Containable';
+import type { Attachment } from '@saxonberg/server/mud/lib/location/Warren';
+import type { BrainContext } from '@saxonberg/server/mud/lib/behavior/brain';
 
 const DORMS = '/test/duncan/dorms';
 const OTHER = '/test/elsewhere/units';
 
-/**
- * A stand-in programme. The NAME is the contract — `world:[class.
- * HoldingWarren]` matches on it — and so are the three methods.
- */
+/** A stand-in programme — the three methods are the contract. */
 class HoldingWarren extends InnerWarren {
   public key = '';
   public band = 'sound';
@@ -69,11 +75,59 @@ class HoldingWarren extends InnerWarren {
   protected async unwireHostFixtures(): Promise<void> {}
 }
 
+/**
+ * A stand-in institution. It stands the programmes the roster will find;
+ * everything else an `OuterWarren` does is unused here.
+ */
+class TestInstitution extends OuterWarren {
+  public standing: (Stuff & Container)[] = [];
+  override holdings(): (Stuff & Container)[] {
+    return this.standing;
+  }
+  protected async standUpHolding(): Promise<Stuff & Container> {
+    throw new Error('unused');
+  }
+  protected circulationTemplateFor(): string | null {
+    return null;
+  }
+  protected async wireCirculationNode(): Promise<void> {}
+  protected async entryEdgeFor(): Promise<null> {
+    return null;
+  }
+  protected occupantsOf(): (Stuff & Container)[] {
+    return [];
+  }
+  protected async createMember(): Promise<Stuff & Container> {
+    throw new Error('unused');
+  }
+  async admitArrival(): Promise<void> {}
+  protected attachmentFor(): Attachment {
+    throw new Error('unused');
+  }
+  protected async reconcile(): Promise<void> {}
+  protected async wireHostFixtures(): Promise<void> {}
+  protected async unwireHostFixtures(): Promise<void> {}
+}
+
+/**
+ * The roster, standing at its real path, with only its ROW DERIVATION
+ * replaced — `holdingsUnder`'s extent filter is the shipped one.
+ */
+class TestCatalogue extends ResidenceCatalogue {
+  public roster: OuterWarren[] = [];
+  override async institutions(): Promise<OuterWarren[]> {
+    return this.roster;
+  }
+}
+
+let institution: TestInstitution;
+
 function programme(key: string, band: string): HoldingWarren {
   const p = makeStuff(() => new HoldingWarren());
   p.key = key;
   p.band = band;
   p.entry = makeStuff(() => new SingletonCartesianLocation()) as unknown as Stuff;
+  institution.standing.push(p as unknown as Stuff & Container);
   return p;
 }
 
@@ -111,6 +165,12 @@ function keeper(desk: SingletonCartesianLocation): Avatar {
 beforeEach(() => {
   StuffApi.clearAll();
   issued = [];
+  institution = makeStuff(() => new TestInstitution());
+  const catalogue = makeStuffAtPath(
+    () => new TestCatalogue(),
+    RESIDENCE_CATALOGUE_PATH,
+  );
+  catalogue.roster = [institution as unknown as OuterWarren];
 });
 
 /**
