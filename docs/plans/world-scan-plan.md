@@ -909,7 +909,7 @@ until W6).
 - `Realtor`'s duck-typed `BookShape` is gone: `platBooks()` returns
   `PlatBook`, which terminus already imports.
 
-### W3 — the item back-reference (D14)
+### W3 — the item back-reference (D14) — ✅ DONE
 
 - `Slottable._occupancy` + the two gated mutators; `Slotted.occupy/vacate`
   call them; `occupiedSlots()` reads the map; decide and record the
@@ -921,6 +921,22 @@ until W6).
 - Acceptance: equip/unequip/sit/stand/mount/rest paths unchanged; no
   `world:` in `Slottable.ts`.
 - Commit: `build(world-scan W3): Slottable carries its occupancy — no world walk per rest tick`.
+
+**Done.** ⭐ **D14's open `fieldMeta` question is decided: neither side is
+declared.** The forward map `Slotted.slots` is not in `fieldMeta` either
+— it is private, transient runtime state — so the pair is not a
+persistent live-ref relationship and the R2.1–R2.4 rules do not govern
+it. Both sides are already cleared by destruct through the same `vacate`
+chokepoint (`Slottable.cleanupOnDestruct` vacates the candidate from
+every host; `Slotted.cleanupOnDestruct` vacates every occupant), and the
+comment on `_occupancy` cites both walks.
+
+The back-reference is written *before* the witnesses fire on both sides,
+so a witness that asks `getOccupiedHost()` sees the claim it is being
+told about. `Metabolic.currentRestQuality`'s short-circuit stays and its
+comment is rewritten: the inverse lookup is now a map read, and the
+short-circuit is kept because standing on nothing is the common case and
+costs one field read.
 
 ### W4 — the index and the memo; `allModes` by glob (D1, D6, D16 first half)
 
