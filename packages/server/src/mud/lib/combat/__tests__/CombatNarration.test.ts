@@ -229,3 +229,79 @@ describe("CombatNarration", () => {
     expect(note).toHaveBeenCalledTimes(2);
   });
 });
+
+/* ────────────── W2: the poise read (the fight's own state) ────────────── */
+
+describe("CombatNarration — the poise read", () => {
+  it("⭐ narrates a crossing in each direction, self and peers differently", () => {
+    const { a, b } = scene();
+    CombatNarration.narrateBandChange(a as never, "steady", "reeling");
+    // Three viewers in the room: the subject reads a self line, the other
+    // two read the peer line.
+    const selfLines = formatCalls.filter((c) => c.tpl.startsWith("You"));
+    const peerLines = formatCalls.filter((c) => c.tpl.startsWith("{{c}}"));
+    expect(selfLines).toHaveLength(1);
+    expect(peerLines.length).toBeGreaterThanOrEqual(1);
+    expect(selfLines[0]!.tpl).toContain("reeling");
+
+    formatCalls = [];
+    CombatNarration.narrateBandChange(b as never, "broken", "steady");
+    const recovering = formatCalls.filter((c) => c.tpl.startsWith("You"));
+    expect(recovering[0]!.tpl).toContain("footing");
+  });
+
+  it("⚠ never renders a digit — bands, not numbers, end to end", () => {
+    const { a } = scene();
+    const bands = ["steady", "pressed", "reeling", "broken", "open"] as const;
+    for (const from of bands) {
+      for (const to of bands) {
+        if (from === to) continue;
+        CombatNarration.narrateBandChange(a as never, from, to);
+      }
+    }
+    CombatNarration.narrateFootingCapped(a as never, true);
+    CombatNarration.narrateFootingCapped(a as never, false);
+    expect(formatCalls.length).toBeGreaterThan(0);
+    for (const c of formatCalls) {
+      expect(c.tpl, `digit in "${c.tpl}"`).not.toMatch(/\d/);
+    }
+  });
+
+  it("⭐ the wound telling reads differently for a deep bite", () => {
+    const { a } = scene();
+    CombatNarration.narrateFootingCapped(a as never, true);
+    const deep = formatCalls.filter((c) => c.tpl.startsWith("The wound"));
+    expect(deep).toHaveLength(1);
+
+    formatCalls = [];
+    CombatNarration.narrateFootingCapped(a as never, false);
+    const shallow = formatCalls.filter((c) => c.tpl.startsWith("The cut"));
+    expect(shallow).toHaveLength(1);
+  });
+
+  it("every band arrived at has a line in both voices and both directions", () => {
+    // A missing entry would fall back to the generic sentence, which reads
+    // fine and says nothing — the silent-and-closed failure this build
+    // exists to end. Assert the tables are total over what can be reached.
+    const { a } = scene();
+    const reachable: Array<[string, string]> = [
+      ["steady", "pressed"],
+      ["pressed", "reeling"],
+      ["reeling", "broken"],
+      ["broken", "open"],
+      ["open", "broken"],
+      ["broken", "reeling"],
+      ["reeling", "pressed"],
+      ["pressed", "steady"],
+    ];
+    for (const [from, to] of reachable) {
+      formatCalls = [];
+      CombatNarration.narrateBandChange(a as never, from as never, to as never);
+      for (const c of formatCalls) {
+        expect(c.tpl, `${from}→${to} fell back`).not.toMatch(
+          /^You are giving ground\.$|^You find your feet\.$/,
+        );
+      }
+    }
+  });
+});

@@ -1277,6 +1277,41 @@ greps the rendered lines for `\d`).
 
 *Commit.* `build(consequence W2): the poise read — you give ground, in words`
 
+✅ **Done.** 11 narration tests; 386 combat tests green; 33 gates.
+
+**Shipped.** `CombatNarration.narrateBandChange(combatant, from, to)` —
+called from `dispatchBandChanges` beside the existing hook, from the
+transition the engine has always computed. Direction, not magnitude:
+*you are being pressed* / *your guard breaks* / *you have your footing
+again*. Self voice and peer voice, band words only, no card.
+
+⭐ **Plus a second line the plan did not have, and W1 made necessary:
+`narrateFootingCapped`.** The wound ceiling never moves the gauge, so it
+never surfaces as a crossing — it would have been the build's *own* new
+silent mechanism. It is also the line that does the design work: *"the
+wound tells. Whatever you get back now, it will not be all of it."* is
+the sentence that makes breaking off a decision rather than a forfeit.
+
+⚠ **Two plan items deliberately not shipped, each for a stated reason:**
+
+- **`ExchangeReport.footingLost`** — a clause on the land line saying the
+  blow cost the defender a band. `narrateBandChange` already reports that
+  crossing, on the same beat, as its own line. Two copies of one sentence
+  is a known failure in this repo; the clause is dropped, not deferred.
+- **The `combat.footing` topic** — ⭐ **the topic roots are closed** (7 of
+  them; `combat` is not one), and the shipped `act.combat` row already
+  reads *"Blows, gambits, and the turns of a fight."* A crossing **is** a
+  turn of the fight. Both new lines ride `act.combat`; no new row, and
+  `lint:topics` has nothing to check. The same reasoning retires the
+  plan's `combat.aftermath` topic at W6.
+
+**Acceptance.** A fixture crossing narrates on the beat it happens; ⚠ a
+test greps every rendered template across all 20 reachable band
+transitions plus both wound lines for `\d` and finds none; and a totality
+test asserts no reachable transition falls through to the generic
+sentence — a fallback that reads fine and says nothing is exactly the
+silent-and-closed failure this build exists to end.
+
 #### W3 — the outcome model: winning pays *(the floor moved to W0d)*
 
 *Goal (D5, D6).* `platform/thing/equipment/Weapon.ts`

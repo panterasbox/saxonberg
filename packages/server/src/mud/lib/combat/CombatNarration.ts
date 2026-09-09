@@ -124,6 +124,45 @@ function flavorOutcomeFor(band: OutcomeBand | undefined): FlavorOutcome {
   }
 }
 
+
+/** Ascending severity — index is the "how badly are you losing" rank. */
+const POISE_RANK: Record<PoiseBand, number> = {
+  steady: 0,
+  pressed: 1,
+  reeling: 2,
+  broken: 3,
+  open: 4,
+};
+
+/**
+ * The crossing lines, keyed by the band ARRIVED AT. Two directions, two
+ * voices, band words only — the whole surface of the poise read.
+ */
+const SELF_LOSING: Partial<Record<PoiseBand, string>> = {
+  pressed: "You are being pressed.",
+  reeling: "You are reeling — the fight is getting away from you.",
+  broken: "Your guard breaks.",
+  open: "Your guard is wide open.",
+};
+const SELF_GAINING: Partial<Record<PoiseBand, string>> = {
+  steady: "You have your footing again.",
+  pressed: "You steady — pressed, but no longer reeling.",
+  reeling: "You claw back some shape; you are still reeling.",
+  broken: "You are still broken, but the worst window has closed.",
+};
+const PEER_LOSING: Partial<Record<PoiseBand, string>> = {
+  pressed: "{{c}} is being pressed.",
+  reeling: "{{c}} is reeling.",
+  broken: "{{c}}'s guard breaks.",
+  open: "{{c}} is wide open.",
+};
+const PEER_GAINING: Partial<Record<PoiseBand, string>> = {
+  steady: "{{c}} has their footing again.",
+  pressed: "{{c}} steadies.",
+  reeling: "{{c}} claws back some shape.",
+  broken: "{{c}}'s window closes.",
+};
+
 export class CombatNarration {
   private constructor() {}
 
@@ -370,6 +409,89 @@ export class CombatNarration {
     const body = Mml.fromMarkup(Mml.escape(line));
     for (const viewer of CombatNarration.witnesses(anchor)) {
       try {
+        MessageApi.scene(viewer as Stuff)
+          .topic(COMBAT_EXCHANGE_TOPIC)
+          .meta({ commandId })
+          .toSelf(body)
+          .send();
+      } catch {
+        // best-effort per-viewer relay
+      }
+    }
+    return commandId;
+  }
+
+  /**
+   * ⭐⭐ **The poise read — the fight's own state, in words.**
+   *
+   * Poise decides every fight and, until this, **nothing ever said so.**
+   * The gauge is private by doctrine (bands, not numbers) and the band was
+   * legible only through what a blow happened to do; a player could lose a
+   * fight without ever being told the moment it turned. `dispatchBandChanges`
+   * has always computed the per-beat crossing to fire `onPoiseBandChanged` —
+   * this puts prose beside the hook, so the fact the engine already knew
+   * finally reaches the person it is about.
+   *
+   * Direction, not magnitude: *giving ground* or *finding your feet*. Band
+   * words only — never the scalar, never a gauge, never a card
+   * (requirements non-goal). A test greps the rendered lines for a digit.
+   *
+   * Rides `act.combat` rather than a new topic: the roots are closed
+   * (7 of them), a crossing IS "a turn of the fight", and the shipped row
+   * says exactly that.
+   */
+  static narrateBandChange(
+    combatant: Stuff,
+    from: PoiseBand,
+    to: PoiseBand,
+  ): string {
+    const commandId = SecurityApi.uuid();
+    const worse = POISE_RANK[to] > POISE_RANK[from];
+    const C = Mml.actor(combatant);
+    const selfTpl = worse
+      ? SELF_LOSING[to] ?? "You are giving ground."
+      : SELF_GAINING[to] ?? "You find your feet.";
+    const peerTpl = worse
+      ? PEER_LOSING[to] ?? "{{c}} is giving ground."
+      : PEER_GAINING[to] ?? "{{c}} finds their feet.";
+    for (const viewer of CombatNarration.witnesses(combatant)) {
+      const isSelf = (viewer as Stuff) === (combatant as Stuff);
+      try {
+        const body = ProseApi.format(isSelf ? selfTpl : peerTpl, { c: C });
+        MessageApi.scene(viewer as Stuff)
+          .topic(COMBAT_EXCHANGE_TOPIC)
+          .meta({ commandId })
+          .toSelf(body)
+          .send();
+      } catch {
+        // best-effort per-viewer relay
+      }
+    }
+    return commandId;
+  }
+
+  /**
+   * ⭐ **The wound telling.** Fired when a landed blow lowers a fighter's
+   * recovery ceiling (`Poise.lowerCeiling`) — the one fact W1 introduced
+   * that has no other reading, because the ceiling never moves the gauge
+   * and so never shows up as a crossing.
+   *
+   * This is the sentence that makes breaking off a decision: you are told,
+   * in the moment, that you are not going to get all of this back.
+   */
+  static narrateFootingCapped(combatant: Stuff, deep: boolean): string {
+    const commandId = SecurityApi.uuid();
+    const C = Mml.actor(combatant);
+    const selfTpl = deep
+      ? "The wound tells. Whatever you get back now, it will not be all of it."
+      : "The cut nags at you — your guard will not settle quite as it did.";
+    const peerTpl = deep
+      ? "{{c}} is favouring the wound; it is costing them."
+      : "{{c}} moves a shade more carefully than before.";
+    for (const viewer of CombatNarration.witnesses(combatant)) {
+      const isSelf = (viewer as Stuff) === (combatant as Stuff);
+      try {
+        const body = ProseApi.format(isSelf ? selfTpl : peerTpl, { c: C });
         MessageApi.scene(viewer as Stuff)
           .topic(COMBAT_EXCHANGE_TOPIC)
           .meta({ commandId })

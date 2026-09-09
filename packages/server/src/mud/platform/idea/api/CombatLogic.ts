@@ -73,7 +73,11 @@ import {
   type Lethality,
   type StopCondition,
 } from "../../../lib/combat/CombatTerms";
-import { Poise, type PoiseConfig } from "../../../lib/combat/Poise";
+import {
+  Poise,
+  type PoiseBand,
+  type PoiseConfig,
+} from "../../../lib/combat/Poise";
 import { Tempo, type TempoConfig } from "../../../lib/combat/Tempo";
 import { CombatFlags } from "../../../lib/combat/CombatFlags";
 import type { RangeState } from "../../../lib/combat/CombatGraph";
@@ -2265,12 +2269,20 @@ function applyWoundToPoise(
         ? dial(K.combatWoundCeilingBites, 0.85)
         : 1; // `grazes` shoves, `turned` was eaten by the covering stack
   if (mult >= 1) return;
+  const before = targetState.poise.ceiling();
   targetState.poise.lowerCeiling(
-    Math.max(
-      dial(K.combatWoundCeilingFloor, 0.4),
-      targetState.poise.ceiling() * mult,
-    ),
+    Math.max(dial(K.combatWoundCeilingFloor, 0.4), before * mult),
   );
+  // ⭐ The wound telling (W2). The ceiling never moves the gauge, so it
+  // never surfaces as a band crossing — this is its only reading, and it
+  // is the sentence that makes breaking off a decision rather than a
+  // forfeit. Silent when the floor already held the ceiling where it was.
+  if (targetState.poise.ceiling() < before) {
+    CombatNarration.narrateFootingCapped(
+      targetState.combatant,
+      report.band === "bites-deep",
+    );
+  }
 }
 
 function commitInflict(
@@ -3087,6 +3099,15 @@ function dispatchBandChanges(
       actorState: s,
       venue: venueOf(combatant),
     });
+    // ⭐ The poise read (W2): prose beside the hook, from the transition
+    // the engine has always computed. Poise decides every fight and until
+    // now nothing said so — a player could lose without being told the
+    // beat it turned. Direction only, band words only, never the scalar.
+    CombatNarration.narrateBandChange(
+      combatant,
+      (before[i] ?? band) as PoiseBand,
+      band,
+    );
     guardedHook("onPoiseBandChanged", () => combatant.onPoiseBandChanged(ctx));
     applyConsequences(ctx);
   }
