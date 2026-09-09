@@ -825,9 +825,7 @@ export function MaturingMixin<TBase extends MixinConstructor>(Base: TBase) {
 
     /** The kill ceiling of `strain`'s culture profile (pitch check). */
     private cultureKillKFor(strain: string): number {
-      const culture = MaturationProfileRef.all().find(
-        (p) => p.getKind() === 'culture' && p.getStrain() === strain,
-      );
+      const culture = MaturationProfileRef.cultureForStrain(strain);
       return culture?.getKillK() ?? DEFAULT_PITCH_KILL_K;
     }
 

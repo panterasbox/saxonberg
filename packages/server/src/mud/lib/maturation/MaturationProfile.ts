@@ -476,6 +476,20 @@ export default class MaturationProfile extends SingletonMixin(Idea) {
   }
 
   /**
+   * The **culture** profile pitching `strain`, or `null` — the keyed
+   * read behind a pitch check. A caller narrowing `all()` itself would
+   * be reading the whole roster to answer one question about one strain.
+   */
+  static cultureForStrain(strain: string): MaturationProfile | null {
+    if (!strain) return null;
+    return (
+      MaturationProfile.all().find(
+        (p) => p.getKind() === 'culture' && p.getStrain() === strain,
+      ) ?? null
+    );
+  }
+
+  /**
    * The profile matching `material` — matched by the must's TAGS
    * against each profile's `inputCategory`. Two matching profiles is
    * an AUTHORING error, surfaced as a warning and resolved

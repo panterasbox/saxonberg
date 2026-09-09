@@ -39,6 +39,7 @@
     "lint:module-scope": "tsx scripts/check-module-scope.ts",
     "lint:boundary": "tsx scripts/check-boundary-exemptions.ts",
     "lint:world-scan": "tsx scripts/check-world-scan.ts",
+    "lint:whole-table": "tsx scripts/check-whole-table.ts",
     "lint:thin-forwarder": "tsx scripts/check-thin-forwarder.ts",
     "lint:object-verbs": "tsx scripts/check-object-verbs.ts",
     "lint:pm": "tsx scripts/check-pm-access.ts",

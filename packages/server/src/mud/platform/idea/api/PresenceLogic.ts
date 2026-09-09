@@ -89,9 +89,7 @@ function latestInputAt(target: Avatar): Date | undefined {
 
 /** The connected, non-destroyed player avatars — the roster source. */
 function onlineImpl(): Avatar[] {
-  return PlayerApi.getAllAvatars().filter(
-    (a) => !a.isDestroyed() && a.isConnected()
-  );
+  return PlayerApi.connectedAvatars();
 }
 
 /** Derive a target's session-liveness (reconnecting > engaged > idle > active). */

@@ -223,14 +223,15 @@ export default class AccessRegistry extends AccessRegistryBase {
     if (subject === null) return [];
     const memberKey = this.memberKeyOf(subject);
     if (memberKey === null) return [];
-    const out = new Set<string>();
-    for (const record of await ParcelApi.allRecords()) {
-      const owner = record.getOwner();
-      if (!owner) continue;
-      if (await this.subjectIsOwnerMember(subject, memberKey, owner)) {
-        out.add(record.getExtent());
-      }
-    }
+    // ⭐ Asked of the OWNERS. `subjectIsOwnerMember` is the expensive
+    // half (it resolves groups, positions and offices), and it used to
+    // run once per parcel ROW on every access check; the registry now
+    // asks each distinct holder once and unions its extents.
+    const out = new Set<string>(
+      await ParcelApi.extentsHeldBy((owner) =>
+        this.subjectIsOwnerMember(subject, memberKey, owner),
+      ),
+    );
     const key = memberKey.split('/').filter(Boolean).pop();
     if (key && PlayerApi.isAvatarStuff(subject)) out.add(`/home/${key}`);
     return [...out].sort();

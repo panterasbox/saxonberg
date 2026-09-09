@@ -45,6 +45,10 @@ import { CallSecurity, Unshadowable } from '../../../lib/security/decorators';
 import { SecurityPolicies } from '../../../lib/security/SecurityPolicies';
 import type { Stuff } from '../../../lib/stuff/Stuff';
 import { StuffApi } from '../../../api/stuff';
+// The own-Api self-import (the PressLogic precedent): a free function
+// has no dispatched frame, so the registry-wide read is reached back
+// through the face to run under `decoyNameFor`.
+import { MagicApi } from '../../../api/magic';
 import { MixinApi } from '../../../api/mixin';
 import { MqlApi } from '../../../api/mql';
 import { Mixins } from '../../../lib/mixin';
@@ -331,6 +335,12 @@ export class MagicLogic extends ApiLogic {
   @CallSecurity(MagicApiCallers)
   public relocationCost(spec: RelocationSpec): Promise<number> {
     return relocationCostImpl(spec);
+  }
+
+  /** See {@link MagicApi.decoyNameFor}. */
+  @CallSecurity(MagicApiCallers)
+  public decoyNameFor(signature: string): string {
+    return decoyNameForImpl(signature);
   }
 
   /** See {@link MagicApi.discharge}. */
@@ -1742,27 +1752,7 @@ function execMisidentify(ctx: EffectContext, target: Stuff | undefined): string 
   // Borrow another identifiable class's true name. Drawn from the world
   // rather than invented, so the lie is plausible — it names a thing
   // that really exists, which is exactly why it is believable.
-  //
-  // ⚠ A **system-mode MQL query**, not a `getAllObjects()` filter-loop.
-  // The raw enumeration is allowlisted to three engine homes and this is
-  // not one of them (`lint:world-scan`, CI-gating); the declarative form
-  // is the sanctioned way to ask the world a question. `commandGiver:
-  // null` is what makes the `mixin.` filter legal here — those are
-  // author-gated for a real caller, and system mode has no principal to
-  // gate. Same shape as `Census.takeCensus`.
-  const others = MqlApi.resolveMany('world:[mixin.IdentifiableMixin]', {
-    commandGiver: null,
-    scope: 'world',
-  }).stuff.filter(
-    (o) =>
-      MixinApi.isIdentifiable(o) &&
-      o.getIdentityPath() !== signature &&
-      o.getIdentifiedName().length > 0,
-  );
-  const decoy = others[0];
-  const believedName = decoy
-    ? (decoy as unknown as { getIdentifiedName(): string }).getIdentifiedName()
-    : 'something entirely harmless';
+  const believedName = MagicApi.decoyNameFor(signature);
   learner.know(IDENTIFICATION, signature, {
     typeKnown: true,
     knownAttributes: ['type'],
@@ -1770,6 +1760,34 @@ function execMisidentify(ctx: EffectContext, target: Stuff | undefined): string 
     believedName,
   });
   return `The letters crawl, and you know it: ${believedName}.`;
+}
+
+/**
+ * ⭐ A **plausible false name** for the thing whose identity is
+ * `signature` — some other identifiable class's real name, so the lie
+ * names a thing that really exists, which is exactly why it is
+ * believable. Falls back to a harmless phrase when the realm has nothing
+ * else to borrow from.
+ *
+ * ⚠ It reads the identifiable population, which is a registry-wide read
+ * and therefore has to happen in a method the gate knows by name — the
+ * reason this is not still inline in `execMisidentify`. It takes the
+ * FIRST match: the decoy is arbitrary on purpose (a *chosen* decoy would
+ * be resolutional randomness in the world's own voice), and the pool is
+ * the population, not a roll over it.
+ */
+function decoyNameForImpl(signature: string): string {
+  const others = MqlApi.resolveMany('world:[mixin.IdentifiableMixin]', {
+    commandGiver: null,
+    scope: 'world',
+  }).stuff;
+  for (const o of others) {
+    if (!MixinApi.isIdentifiable(o)) continue;
+    if (o.getIdentityPath() === signature) continue;
+    const name = o.getIdentifiedName();
+    if (name.length > 0) return name;
+  }
+  return 'something entirely harmless';
 }
 
 /**

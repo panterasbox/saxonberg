@@ -96,12 +96,33 @@ export class PlayerApi {
   }
 
   /**
-   * Get all active avatars.
+   * Every registered avatar.
    *
-   * @returns Array of all active avatars
+   * ⚠ **This is the BROADCAST roster** — the set every logged-in person
+   * is in — and its size is bounded by concurrency, not by how much
+   * world exists. Consuming all of it is legitimate when the operation
+   * genuinely is *"tell everyone"* (a channel, a ticker, a presence
+   * relay). It is NOT the way to find one person: narrowing it at the
+   * call site with `.find` is a scan wearing a nice name, and the three
+   * keyed reads below are what those callers want.
    */
   public static getAllAvatars(): Avatar[] {
     return logic().getAllAvatars();
+  }
+
+  /** One registered avatar by name or presentation, case-insensitive. */
+  public static findAvatarByName(name: string): Avatar | undefined {
+    return logic().findAvatarByName(name);
+  }
+
+  /** The registered avatar belonging to a user account, if one is live. */
+  public static findAvatarByUserId(userId: string): Avatar | undefined {
+    return logic().findAvatarByUserId(userId);
+  }
+
+  /** The connected, non-destroyed avatars — the `who` roster's source. */
+  public static connectedAvatars(): Avatar[] {
+    return logic().connectedAvatars();
   }
 
   /**

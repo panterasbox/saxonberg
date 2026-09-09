@@ -726,9 +726,7 @@ export default class WikiController extends CommandController<WikiModel> {
   ): Promise<void> {
     const registry = await this.registry();
     const filter = WikiPage.normalizeName(model.namespace ?? '');
-    const pages = (await registry.allPages()).filter(
-      (p) => !filter || p.getNamespace() === filter,
-    );
+    const pages = await registry.pagesIn(filter);
     if (pages.length === 0) {
       this.send(context, Mml.fromMarkup(`\nNo pages.\n`));
       return;

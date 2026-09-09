@@ -35,6 +35,7 @@
  */
 
 import Thing from '@saxonberg/server/mud/lib/stuff/Thing';
+import { WithdrawingMixin } from '../lib/Withdrawing';
 import { DetailedMixin } from '@saxonberg/server/mud/lib/description/Detailed';
 import { AppApi } from '@saxonberg/server/mud/api/app';
 import { AppSettingKeys } from '@saxonberg/server/mud/lib/config/AppSettings';
@@ -60,7 +61,7 @@ export interface ControlSplit {
   generatedW: number;
 }
 
-const ControlStructureBase = DetailedMixin(Thing);
+const ControlStructureBase = WithdrawingMixin(DetailedMixin(Thing));
 
 export default class ControlStructure extends ControlStructureBase {
   static fieldMeta: FieldMeta = {

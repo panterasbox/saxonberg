@@ -49,6 +49,7 @@ import { Idea } from '@saxonberg/server/mud/lib/stuff/Idea';
 import { Template } from '@saxonberg/server/mud/lib/stuff/Template';
 import { AppApi } from '@saxonberg/server/mud/api/app';
 import { StuffApi } from '@saxonberg/server/mud/api/stuff';
+import { MqlApi } from '@saxonberg/server/mud/api/mql';
 import type Locality from '@saxonberg/server/mud/platform/idea/Locality';
 import { AppSettingKeys } from '@saxonberg/server/mud/lib/config/AppSettings';
 import { WeatherApi } from '@saxonberg/server/mud/api/weather';
@@ -549,14 +550,18 @@ export default class WatercourseCatalogue extends Idea {
    * the roster to go quietly stale — a failure this codebase has paid
    * for three times. A scan cannot go stale.
    *
-   * **Why not MQL**, which is normally how you search: MQL selects by
-   * MIXIN, and a capability pack cannot ship a mixin (its module
-   * categories are branches, controllers and tests — no `lib/`). Its
-   * `class.X` filter matches by class NAME, and three unrelated things
-   * in this codebase are called `Conduit`. So a shape scan is the
-   * honest mechanism available here — and `check-world-scan` names this
-   * file, so the choice is a diff a reviewer sees rather than a hole in
-   * a gate.
+   * ⭐ **It used to be a shape scan over every object in the world**, and
+   * the note here said why: a capability pack could not ship a mixin, and
+   * `class.X` matches by class NAME while three unrelated things in this
+   * codebase are called `Conduit`. The first half stopped being true when
+   * a pack gained a `lib/` of its own, so the withdrawers and dischargers
+   * now DECLARE themselves ({@link WithdrawingMixin},
+   * {@link DischargingMixin}) and this is an indexed read of exactly
+   * them.
+   *
+   * ⚠ The trade: an implementer that declares the methods without
+   * composing the mixin is invisible to the river rather than found by
+   * accident. That is a gate a reviewer sees.
    */
   private async worldScan(nowS: number): Promise<WorldScan> {
     const index = await this.index();
@@ -567,32 +572,34 @@ export default class WatercourseCatalogue extends Idea {
       kind: ContaminantKind;
     }> = [];
 
-    for (const obj of StuffApi.getAllObjects()) {
-      const w = obj as unknown as Withdrawing & Discharging;
-
-      if (typeof w.withdrawalM3S === 'function') {
-        const ref = typeof w.getReachRef === 'function' ? w.getReachRef() : '';
-        const reach = index.reaches.get(ref);
-        if (reach !== undefined) {
-          const natural = this.naturalFlowOf(reach, nowS).total;
-          const taken = w.withdrawalM3S.call(obj, natural);
-          if (Number.isFinite(taken) && taken > 0) {
-            draws.set(ref, (draws.get(ref) ?? 0) + taken);
-          }
-        }
+    for (const obj of MqlApi.resolveMany('world:[mixin.WithdrawingMixin]', {
+      commandGiver: null,
+      scope: 'world',
+    }).stuff) {
+      const w = obj as unknown as Withdrawing;
+      if (typeof w.withdrawalM3S !== 'function') continue;
+      const ref = typeof w.getReachRef === 'function' ? w.getReachRef() : '';
+      const reach = index.reaches.get(ref);
+      if (reach === undefined) continue;
+      const natural = this.naturalFlowOf(reach, nowS).total;
+      const taken = w.withdrawalM3S.call(obj, natural);
+      if (Number.isFinite(taken) && taken > 0) {
+        draws.set(ref, (draws.get(ref) ?? 0) + taken);
       }
+    }
 
-      if (typeof w.dischargeLoad === 'function') {
-        const at =
-          typeof w.getDischargeReach === 'function'
-            ? w.getDischargeReach()
-            : '';
-        if (at !== '' && index.reaches.has(at)) {
-          const { load, kind } = w.dischargeLoad.call(obj);
-          if (Number.isFinite(load) && load > 0) {
-            discharges.push({ at, load, kind });
-          }
-        }
+    for (const obj of MqlApi.resolveMany('world:[mixin.DischargingMixin]', {
+      commandGiver: null,
+      scope: 'world',
+    }).stuff) {
+      const d = obj as unknown as Discharging;
+      if (typeof d.dischargeLoad !== 'function') continue;
+      const at =
+        typeof d.getDischargeReach === 'function' ? d.getDischargeReach() : '';
+      if (at === '' || !index.reaches.has(at)) continue;
+      const { load, kind } = d.dischargeLoad.call(obj);
+      if (Number.isFinite(load) && load > 0) {
+        discharges.push({ at, load, kind });
       }
     }
     return { draws, discharges };

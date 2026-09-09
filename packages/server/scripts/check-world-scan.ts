@@ -16,13 +16,13 @@
  *     walk RAW unwrapped proxies so enumeration never counts as a
  *     touch (documented at both loops), which MQL can't express.
  *   - `api/stuff.ts` — where `getAllObjects` is DEFINED.
- *   - `water/src/idea/WatercourseCatalogue.ts` — the one walk that
- *     finds every withdrawal and every outfall on the realm's rivers.
- *     MQL selects by MIXIN and a capability pack cannot ship one (its
- *     module categories are branches, controllers and tests); its
- *     `class.X` filter matches by class NAME and three unrelated things
- *     in this codebase are called `Conduit`. A shape scan is the honest
- *     mechanism available to a pack.
+ *
+ * ⭐ The water catalogue used to be a fourth, granted a shape scan
+ * because *"a capability pack cannot ship a mixin"*. That stopped being
+ * true when a pack gained a `lib/` of its own, so the withdrawers and
+ * dischargers now declare themselves and the entry is gone. Whenever an
+ * allowlist entry's REASON expires, the entry goes — that is what keeps
+ * the list from becoming the place exceptions retire to.
  *
  * ⚠ **It walks capability packs' `src/` as well as the kernel tree.**
  * It did not until the watershed build put a scan in one and nothing
@@ -52,9 +52,6 @@ const ALLOWLIST = [
   /\/mud\/api\/stuff\.ts$/, // the definition
   /\/mud\/api\/mql\/resolver\.ts$/, // the `world` seed implementation
   /\/mud\/platform\/idea\/api\/ResidencyLogic\.ts$/, // raw-proxy sweeps (documented)
-  // A pack cannot ship a mixin, so it cannot be selected by MQL; the
-  // shape scan is documented at its call site. See the header.
-  /\/content\/water\/src\/idea\/WatercourseCatalogue\.ts$/,
 ];
 
 const CALL = /\bStuffApi\.getAllObjects\s*\(/;

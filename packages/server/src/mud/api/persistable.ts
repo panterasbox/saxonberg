@@ -76,6 +76,20 @@ export class PersistableApi {
   }
 
   /**
+   * Capture every live host that wants a shutdown capture — the world's
+   * persistable singletons (venue rooms, stock counters), each asked for
+   * itself. Returns how many were written; a failure is logged and
+   * skipped, never fatal at process exit.
+   *
+   * ⭐ Asked, not remembered: who wants one is `PersistableMixin`'s
+   * knowledge, including the Avatar exclusion (it captures at logout on
+   * its own seam, and a shutdown sweep would only race that).
+   */
+  static captureAtShutdown(): Promise<number> {
+    return logic().captureAtShutdown();
+  }
+
+  /**
    * Restore `host` from its {@link PersistedRecord}(s) — reconstituting the
    * captured content tree and worn gear onto the already-cloned shell, each
    * record restored **as its owner** (the principal). Atomic per record.

@@ -262,8 +262,15 @@ export default class HerdRegistry extends RegistrarMixin(Idea) {
     return herdOf(doc.getData());
   }
 
-  /** Every filed herd. Rows outside the registry prefix are DROPPED. */
-  public async all(): Promise<HerdRecord[]> {
+  /**
+   * Every filed herd. Rows outside the registry prefix are DROPPED.
+   *
+   * ⚠ **Private.** The herdbook grows with what people file, so handing
+   * the whole book out and letting a caller `.find` in it prices every
+   * read at the size of the register. The keyed reads below are what
+   * callers get; this is their shared input.
+   */
+  private async all(): Promise<HerdRecord[]> {
     const docs = await DocumentApi.list(HERD_PREFIX);
     const out: HerdRecord[] = [];
     for (const doc of docs) {
@@ -273,6 +280,34 @@ export default class HerdRegistry extends RegistrarMixin(Idea) {
       if (herd !== null) out.push(herd);
     }
     return out;
+  }
+
+  /** The herd answering to `needle` — its id or its name, either case. */
+  public async named(needle: string): Promise<HerdRecord | null> {
+    const want = needle.trim().toLowerCase();
+    if (!want) return null;
+    for (const herd of await this.all()) {
+      if (herd.herdId.toLowerCase() === want) return herd;
+      if (herd.name.toLowerCase() === want) return herd;
+    }
+    return null;
+  }
+
+  /**
+   * The **only** herd filed, or null when there are none or several.
+   *
+   * ⭐ Null on "several" rather than an arbitrary first: *draft 3* is
+   * unambiguous only while exactly one herd exists, and answering
+   * anyway would make the second farm silently draft out of the first.
+   */
+  public async sole(): Promise<HerdRecord | null> {
+    const herds = await this.all();
+    return herds.length === 1 ? (herds[0] as HerdRecord) : null;
+  }
+
+  /** Is the book empty? — the "nothing is filed at all" branch. */
+  public async isEmpty(): Promise<boolean> {
+    return (await this.all()).length === 0;
   }
 
   /** Overwrite a filed herd. */

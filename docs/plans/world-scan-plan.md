@@ -973,7 +973,7 @@ costs one field read.
   walk did too. What composed-only means is that the shadow's HOST is not
   bucketed, and that is what the test pins.
 
-### W5 — every other reader becomes a named question (D15, D16 water, D17)
+### W5 — every other reader becomes a named question (D15, D16 water, D17) — ✅ DONE
 
 - `PersistableLogic.captureAtShutdown` + `AppBootstrap` call;
   `BankingLogic.branchOf` + memo; `MagicLogic.decoyNameFor`;
@@ -992,6 +992,41 @@ costs one field read.
 - Acceptance: no `.find/.filter/[0]` over a whole read anywhere;
   `lint:family` green with 31 gates.
 - Commit: `build(world-scan W5): named questions for parcels, wiki, herds, lanes, avatars, banks, decoys, shutdown; lint:whole-table`.
+
+**Done.** Notes, including two the plan did not anticipate:
+
+- ⭐⭐ **`lint:whole-table` needed a SELF exemption, and that is the
+  gate's own doctrine talking.** The first run found five offenders and
+  four of them were an owner narrowing its OWN table
+  (`this.allModes().filter(…)` in `LocomotionLogic`,
+  `MaturationProfile.all().find(…)` inside `MaturationProfile.ts`) —
+  which is precisely the fix the gate tells callers to make. So the
+  receiver is captured and a receiver of `this`, or of the class the
+  file is named for, is not a finding. The one genuine offender
+  (`Maturing.ts` reading `MaturationProfileRef.all().find(…)`) became
+  `MaturationProfile.cultureForStrain(strain)`. **Ceiling 0, 0 exempt.**
+- ⚠ **`PlayerApi.getAllAvatars` STAYS**, and its doc now says why: the
+  avatar roster is bounded by *concurrency*, which the requirements put
+  out of scope, and the broadcast loops (channels, the ticker, presence
+  relay) genuinely want all of it. What moved is the four callers that
+  were narrowing it — two `.find`s, a `.filter` and a `[0]`.
+- `MqlGroupProvider` was taking `getAllAvatars()[0]` as "a viewer", which
+  made a group's membership depend on whose session happened to be first
+  in a map, and empty whenever nobody was online. It runs in **system
+  mode** now: there is no principal in that question.
+- The residency spawn sweep's clock callback now goes through
+  `ResidencyApi.spawnNow()`. ⚠ This is not a tidy-up — a clock callback
+  runs on a synthetic root frame, so in W6 the direct call to the free
+  function would have been denied and **the sweep would have stopped
+  silently**.
+- `AppBootstrap`'s shutdown loop moved wholesale into
+  `PersistableLogic.captureAtShutdown` — a backend class has no
+  dispatched frame and could never be a recognized caller.
+- Water: `WithdrawingMixin` / `DischargingMixin` in the pack's own
+  `src/lib/`, composed by `Conduit` (both) and `ControlStructure`
+  (withdraw). The `getAllObjects` allowlist is down to **three** homes,
+  and `check-world-scan`'s header records the rule that produced that:
+  when an allowlist entry's REASON expires, the entry goes.
 
 ### W6 — the door (D3a, D3b, D7–D11, D18, D19). Two commits, one wave.
 

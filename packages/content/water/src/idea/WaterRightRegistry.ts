@@ -275,9 +275,8 @@ export default class WaterRightRegistry extends Idea {
     reachRef: string,
     availableM3S: number,
   ): Promise<WaterRight[]> {
-    const parcels = await ParcelApi.allRecords();
-    const holders = parcels.filter(
-      (p) => p.getReach() === reachRef && p.getOwner() !== null,
+    const holders = (await ParcelApi.parcelsOnReach(reachRef)).filter(
+      (p) => p.getOwner() !== null,
     );
     if (holders.length === 0) return [];
     const share = Math.max(0, availableM3S) / holders.length;
