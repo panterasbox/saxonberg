@@ -2283,7 +2283,12 @@ describe("CombatLogic — fisticuffs (the bar-fight build)", () => {
     expect(firstStrikeEnergy(legacy(40))).toBe(firstStrikeEnergy(legacy(100)));
   });
 
-  it("an unarmed exchange credits `unarmed` + `melee-combat`, never `blades`", () => {
+  it("⭐ a fight credits ONCE, at resolution, in the disciplines it used", () => {
+    // Was: one signature per EXCHANGE. Twenty rows per fight drowned the
+    // verdict — a loser who took eight of twenty exchanges netted UP —
+    // and a whiff minted an `easy` failure, which is the estimator's
+    // maximal-sting case. The fight's own outcome is what a player
+    // experiences, so it is what the ledger records.
     const subs = mintedSubs;
     subs.length = 0;
     const room = makeStuff(() => new TestRoom());
@@ -2292,39 +2297,87 @@ describe("CombatLogic — fisticuffs (the bar-fight build)", () => {
       .setNaturalAttacks([{ key: "fist", channel: "blunt" }]);
     const target = bag(room);
     const session = open(brawler, target, nonLethal);
-    // player-driven so the transcript mints (brains bank nothing)
     (session.getState(brawler) as unknown as { brainPath: string | null })
       .brainPath = null;
     const targetState = session.getState(target)!;
-    for (let i = 0; i < 8 && !targetState.down; i++) {
+    // ⭐ Exchanges first — nothing may be credited while the fight runs.
+    for (let i = 0; i < 6 && session.isActive(); i++) {
+      expect(subs, "credited mid-fight").toHaveLength(0);
       (brawler as unknown as Stuff & Combatant).queueGambit("strike");
       CombatApi.advance(session);
     }
+    // …then it ENDS, and that is when the ledger hears about it. The
+    // target concedes: a deterministic resolution that names a victor,
+    // independent of whatever the poise contest was doing.
+    expect(subs).toHaveLength(0);
+    (target as unknown as Stuff & Combatant).yieldFight();
+    void targetState;
     const disc = subs.map((s) => s.discipline);
     expect(disc).toContain("unarmed");
     expect(disc).toContain("melee-combat");
     expect(disc).not.toContain("blades");
+    // One row per discipline — no duplicates from the per-beat tally.
+    expect(new Set(disc).size).toBe(disc.length);
+    // The winner's row is a success at the difficulty of the opponent.
+    for (const sub of subs) expect(sub.outcome).toBe("success");
   });
 
-  it("an armed exchange credits `blades`, never `unarmed`", () => {
+  it("⭐ a weapon DECLARES what it exercises; the channel no longer guesses", () => {
+    // The engine used to infer the discipline from the delivery channel
+    // (edge/point → `blades`), which meant a spear and a dagger trained
+    // the same skill and a mace trained nothing at all.
     const subs = mintedSubs;
     subs.length = 0;
     const room = makeStuff(() => new TestRoom());
-    const swordsman = makeFighter(room, { weaponForm: "bladed" });
+    const macer = makeFighter(room);
+    const mace = makeStuff(() => new Weapon());
+    mace.setMaterial(steel());
+    mace.setConstruction(Construction.of("hafted"));
+    mace.exercises = ["bludgeons"]; // the authored row's field
+    mace.setSlotClaim(planPathOf(macer), ["grip"]);
+    (macer as unknown as { occupy(x: unknown, s: string): void }).occupy(
+      mace,
+      "grip",
+    );
     const target = bag(room);
-    const session = open(swordsman, target, nonLethal);
-    (session.getState(swordsman) as unknown as { brainPath: string | null })
+    const session = open(macer, target, nonLethal);
+    (session.getState(macer) as unknown as { brainPath: string | null })
       .brainPath = null;
     const targetState = session.getState(target)!;
-    for (let i = 0; i < 8 && !targetState.down; i++) {
-      (swordsman as unknown as Stuff & Combatant).queueGambit("strike");
+    for (let i = 0; i < 6 && session.isActive(); i++) {
+      (macer as unknown as Stuff & Combatant).queueGambit("strike");
       CombatApi.advance(session);
     }
+    (target as unknown as Stuff & Combatant).yieldFight();
+    void targetState;
     const disc = subs.map((s) => s.discipline);
-    expect(disc).toContain("blades");
+    expect(disc).toContain("bludgeons");
     expect(disc).toContain("melee-combat");
     expect(disc).not.toContain("unarmed");
+    expect(disc).not.toContain("blades");
   });
+
+  it("⚠ an UNAUTHORED weapon exercises nothing but melee-combat", () => {
+    // A torch, a chair leg, a length of pipe are all weapons and none of
+    // them is a discipline. The general skill still advances.
+    const subs = mintedSubs;
+    subs.length = 0;
+    const room = makeStuff(() => new TestRoom());
+    const a = makeFighter(room, { weaponForm: "bladed" });
+    const target = bag(room);
+    const session = open(a, target, nonLethal);
+    (session.getState(a) as unknown as { brainPath: string | null })
+      .brainPath = null;
+    const targetState = session.getState(target)!;
+    for (let i = 0; i < 6 && session.isActive(); i++) {
+      (a as unknown as Stuff & Combatant).queueGambit("strike");
+      CombatApi.advance(session);
+    }
+    (target as unknown as Stuff & Combatant).yieldFight();
+    void targetState;
+    expect(subs.map((s) => s.discipline)).toEqual(["melee-combat"]);
+  });
+
 
   it("two unarmed humans resolve a brawl to a downed loser (end-to-end fists)", () => {
     const room = makeStuff(() => new TestRoom());

@@ -36,6 +36,9 @@ import {
 } from "../shell/Environment";
 import { LETHALITIES, STOP_CONDITIONS } from "./CombatTerms";
 import { StuffApi } from "../../api/stuff";
+import { MixinApi } from "../../api/mixin";
+import { CompetenceBand } from "../advancement/CompetenceBand";
+import type { Outcome, Subcheck } from "../advancement/ActSignature";
 import type {
   InitiateResult,
   CombatAssessResult,
@@ -320,11 +323,11 @@ export function CombatantMixin<TBase extends MixinConstructor>(Base: TBase) {
      *
      * @hook Invoked by the combat engine in `endWith`, after
      * `narrateResolution` and before `session.resolve`. Override to
-     * react; compose via `super.onDefeated(ctx)`. No-op terminal.
-     * Shadowable by design.
+     * react; **compose via `super.onDefeated(ctx)` or the loser's
+     * transcript is never written.** Shadowable by design.
      */
-    onDefeated(_ctx: CombatHookContext): void {
-      // no-op terminal — overriders compose via super
+    onDefeated(ctx: CombatHookContext): void {
+      creditFightOutcome(this as unknown as Stuff, ctx, false);
     }
 
     /**
@@ -338,11 +341,12 @@ export function CombatantMixin<TBase extends MixinConstructor>(Base: TBase) {
      *
      * @hook Invoked by the combat engine in `endWith`, immediately after
      * the victim's `onDefeated` and before `session.resolve` (states
-     * still live). Override to react; compose via
-     * `super.onDefeatedFoe(ctx)`. No-op terminal. Shadowable by design.
+     * still live). Override to react; **compose via
+     * `super.onDefeatedFoe(ctx)` or the winner's transcript is never
+     * written.** Shadowable by design.
      */
-    onDefeatedFoe(_ctx: CombatHookContext): void {
-      // no-op terminal — overriders compose via super
+    onDefeatedFoe(ctx: CombatHookContext): void {
+      creditFightOutcome(this as unknown as Stuff, ctx, true);
     }
 
     /**
@@ -595,4 +599,69 @@ function combatStateAugmenter(
   if (state.down) parts.push("down");
   const line = `In combat — ${parts.join(", ")}.`;
   return text && text.length > 0 ? `${text}\n\n${line}` : line;
+}
+
+/**
+ * ⭐⭐ **Winning pays; losing costs — once per fight, in the Disciplines
+ * you actually used.**
+ *
+ * This is the answer to *"what does the game record when a fight ends?"*,
+ * and until now the answer was **nothing**. The engine minted a row per
+ * *exchange*, so twenty rows drowned the verdict — a loser who won eight
+ * of twenty exchanges netted *up*, and the one thing the player
+ * experienced (*I lost that fight*) was the one thing the ledger never
+ * said. The loser was never credited with anything at resolution, and
+ * difficulty was never derived from who they were fighting.
+ *
+ * The signature written here:
+ *
+ * - **Disciplines** — everything in `exercised`: `melee-combat` always,
+ *   plus what the weapons actually held during the fight declared, plus
+ *   `unarmed` for an innate exchange. What the fight cost or paid you is
+ *   what you *did*, never what you were carrying at the end.
+ * - **Difficulty** — `CompetenceBand.difficultyAgainst(mine, theirs)`
+ *   over the two `contestBand`s. Beating somebody two rungs above you is
+ *   `formidable` and teaches a great deal; losing to them is
+ *   unsurprising and, by the estimator's above-band rule, costs nothing
+ *   at all. ⭐ For a **beast** the opponent's band comes from its BODY,
+ *   so being mauled by a wolf is a story rather than a career setback.
+ * - **Outcome** — `success` for the winner; for the loser `partial` when
+ *   they took at least half the exchanges they were in (a close loss is
+ *   not the same evidence as a rout) and `failure` otherwise.
+ *
+ * ⚠ **Brains bank nothing** (`brainPath` set) — the shipped parity rule.
+ * An `Extra` shares one identity across every instance, so crediting one
+ * would make "the wolves of this wood" a single learner. That is a real
+ * design; it is not this one.
+ *
+ * ⚠ A `draw` names neither side, so `endWith` fires neither hook and
+ * backing down records nothing — which is the meet-or-defy table's
+ * answer, not an omission.
+ *
+ * Fire-and-forget: advancement never blocks the resolution.
+ */
+function creditFightOutcome(
+  self: Stuff,
+  ctx: CombatHookContext,
+  won: boolean,
+): void {
+  const mine = won ? ctx.actorState : ctx.targetState;
+  const theirs = won ? ctx.targetState : ctx.actorState;
+  if (!mine) return;
+  if (mine.brainPath) return; // brains bank nothing
+  if (!MixinApi.isAdvancing(self)) return;
+  const difficulty = CompetenceBand.difficultyAgainst(
+    mine.contestBand,
+    theirs?.contestBand ?? mine.contestBand,
+  );
+  const fought = mine.exchangesWon + mine.exchangesLost;
+  const outcome: Outcome = won
+    ? "success"
+    : fought > 0 && mine.exchangesWon * 2 >= fought
+      ? "partial"
+      : "failure";
+  const discipline: Subcheck[] = [];
+  for (const d of mine.exercised) discipline.push({ discipline: d, difficulty, outcome });
+  if (discipline.length === 0) return;
+  void self.creditSignature({ discipline }).catch(() => {});
 }

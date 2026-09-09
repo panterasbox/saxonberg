@@ -1340,6 +1340,84 @@ falls by 2. Gym: the pinned cells are unaffected (crediting is
 post-resolution) — assert the hook-fire counts still match.
 *Commit:* `build(consequence W3): winning pays — the two empty hooks credit the disciplines you used`
 
+✅ **Done.** 87 CombatLogic tests, 221 combat-lib tests, 1367 near, 33
+gates; `test:gym` still at the master baseline (the same 3 pre-existing
+failures, every canonical pin byte-identical).
+
+**Shipped.** `Weapon.exercises: string[]` (authored, persistent) +
+`getExercises()`; the ten arms rows author it; three Discipline rows
+(`bludgeons`, `polearms`, `flails`, each `specializes: [melee-combat]`,
+ISCED-F 1014) — ⭐ the shield authors none, on purpose.
+`CombatantState` gains `exercised` / `exchangesWon` / `exchangesLost` /
+`woundsTaken` / `contestBand`. `noteExercise` accumulates per exchange.
+`mintExchangeSignature`, `outcomeToResult` and the transcript-only
+`difficultyFor(target)` are **deleted**; `BLADES_DISCIPLINE` and the
+duplicate `MELEE_COMBAT_DISCIPLINE` fold away. `creditFightOutcome`
+(private to `Combatant.ts`) fills the two hooks. `snapshotBandsImpl` now
+takes the **max over `melee-combat` and the wielded weapon's
+`exercises`** — a swordsman carrying `blades: expert` and no separate
+melee record used to fight with a novice's sharpness.
+
+#### ⭐⭐ `CombatantState.contestBand` — one field, one rule
+
+D6 left the beast's difficulty as "derive it from the body at the credit
+site", which would have meant reading the dial-backed
+`NaturalProfileConfig` from inside `Combatant.ts`, where it does not
+live — two config paths for one number, and the drift is guaranteed.
+
+Instead a beast's body is translated into the **same currency**, once, at
+`deriveState` where the config already resolves:
+`NaturalAttack.difficultyFor(profile)` → `CompetenceBand.bandFor`. A
+sentient's `contestBand` is simply the snapshotted competence band. The
+credit rule is then uniform for everything —
+`difficultyAgainst(mine, theirs)` — and the beast question disappears
+from the credit site entirely.
+
+⚠ Deliberately **distinct from `competenceBand`**, which still drives
+`Sharpness`: `competenceBand` is *skill*, `contestBand` is *danger*.
+Folding them would have changed every beast's read-fog and poise recovery
+and moved the gym pins for no reason.
+
+`NaturalAttack.difficultyFor` is calibrated against the shipped curve,
+not against its test: easy (a rat) · standard (150–300 kg: a boar) · hard
+(a 400 kg bear, or real reach) · formidable (long-reached **and** heavy).
+⭐ `trivial` is unreachable by construction — nothing with teeth is a
+trivial fight, and grading one that way would make losing to it maximally
+punishing, which is the exact bug D6 exists to avoid.
+
+#### ⭐ A second silent failure found, and gated
+
+`exercises` is a free-text list of Discipline keys, and the credit walk
+adds whatever it finds. **A typo writes a transcript row for a Discipline
+that does not exist** — appended, grouped by `bandsFor`, never resolved,
+never surfaced. Closed and silent, exactly like the inert-profile failure
+`lint:inert-weapon` already walks these same rows for, so the check went
+**into that gate** rather than into a new one. The Discipline roster is
+read from the rows, so a new Discipline needs no edit to the script.
+Proven to FIRE (a deliberate `bludgeonz` → exit 1), per the
+shipped-broken-gate clause.
+
+#### The yield-in-a-melee gap, closed
+
+`yieldFight` named the victor through `session.opponentState(actor)`,
+which is **null in any fight that is not exactly two-sided** — so
+yielding in a three-way fired no `onDefeatedFoe` and the victor was
+credited with nothing. `soleLiveFoe` falls back to `lastStruckBy`, then
+to the only live foe left standing, then to nobody (a genuine free-for-all
+honestly names no winner).
+
+#### Test shape: the credit is a VERDICT, so the tests must end a fight
+
+The two shipped credit tests asserted after eight beats, which the
+per-exchange mint satisfied and a resolution-time credit cannot. They now
+resolve the fight deliberately (the target yields) and assert **nothing
+is credited mid-fight** on every beat before it. ⚠ Running them "to
+resolution" instead did not work — an unarmed duel hits the engine's
+pre-existing mutual-exhaustion cycle and never resolves (W1's record).
+Three tests where there were two: credited-once, the weapon *declares*,
+and ⚠ an **unauthored** weapon exercises nothing but `melee-combat` (a
+torch and a chair leg are weapons and neither is a discipline).
+
 #### W4 — morale & surrender
 
 *Goal.* An opponent that gives up (D7, D8).

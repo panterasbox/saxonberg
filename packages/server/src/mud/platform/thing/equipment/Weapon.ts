@@ -101,7 +101,37 @@ export default class Weapon extends WeaponBase {
     balanceFactor: { persistent: true, authorable: true },
     length: { persistent: true, marshaller: QuantityMarshaller.pathFor('m'), authorable: true },
     mass: { marshaller: QuantityMarshaller.pathFor('kg') },
+    exercises: { persistent: true, authorable: true },
   };
+
+  /**
+   * ⭐⭐ **Which Disciplines fighting with this thing PRACTISES.** Discipline
+   * keys, authored on the row.
+   *
+   * Everything else about a weapon derives from its shape — reach from
+   * length, balance from mass, delivery from form. **A practice does not.**
+   * The sim can see that a mace and a spear deliver differently, but which
+   * *field of study* each belongs to is a fact about how people organise
+   * knowledge, not about mass in kilograms, so it is authored rather than
+   * inferred. Until now the engine inferred it from the delivery channel —
+   * `edge`/`point` → `blades` — which quietly meant a spear and a dagger
+   * trained the same skill, and a mace trained nothing at all.
+   *
+   * Empty (the default) is honest: a torch, a chair leg, a length of pipe
+   * are all weapons and none of them is a discipline. `melee-combat` is
+   * credited for every armed exchange regardless, so an unauthored weapon
+   * still advances the general skill — it just teaches no specialism.
+   *
+   * ⚠ Not on `Wieldable` (a shield, a torch and a chisel are wieldable and
+   * exercise nothing in a fight) and not on `WeaponProfile` (derived, and a
+   * discipline cannot derive from mass).
+   */
+  public exercises: string[] = [];
+
+  /** The Disciplines this weapon practises (empty when unauthored). */
+  getExercises(): readonly string[] {
+    return this.exercises;
+  }
 
   /**
    * The weapon's **length** in metres — the authored dimension reach derives

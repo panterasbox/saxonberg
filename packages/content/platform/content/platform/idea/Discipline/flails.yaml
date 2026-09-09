@@ -1,0 +1,22 @@
+# Flails — the flail and the whip: the specialist's command of a weapon
+# with a hinge in it. A specialization of melee-combat, credited on any
+# exchange delivered with a weapon whose row authors `exercises: [flails]`.
+#
+# The practice is distinct in a way the engine already enforces: a
+# hinged weapon brings no guard of its own, so it bypasses a steady
+# defence and cannot answer a riposte. It is the offense-only limb of the
+# offense↔defense axis, and learning it is learning to live without a
+# guard.
+class: /platform/idea/Discipline
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  key: flails
+  channel: skill
+  label: Flails
+  iscedf: "1014"
+  specializes:
+    - melee-combat
+  description: >-
+    A weapon with a hinge in it — the flail, the whip, the chain. It
+    bypasses a guard because it has none of its own, which is the bargain
+    the flailer accepts and the reason they are never safe.

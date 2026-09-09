@@ -300,7 +300,14 @@ export class CombatLogic extends ApiLogic {
     const session = sessionForImpl(actor);
     if (!session) return false;
     // The yielding actor loses; the fight ends on the yield terminus.
-    const opp = session.opponentState(actor)?.combatant;
+    // ⚠ `opponentState` is null in any fight that is not exactly
+    // two-sided, so a yield in a melee named nobody and fired no
+    // `onDefeatedFoe` — the victor of a three-way was credited with
+    // nothing. Fall back to who last landed a blow, then to the sole
+    // remaining live foe.
+    const opp =
+      session.opponentState(actor)?.combatant ??
+      soleLiveFoe(session, actor);
     endWith(session, "yield", actor, opp);
     if (opp) runResolutionConsumers(session, opp, actor, false, false);
     return true;
@@ -1055,10 +1062,12 @@ function openSessionImpl(
   const aState = deriveState(initiator);
   aState.side = safeSideOf(initiator);
   aState.competenceBand = bandFromOpts(initiator, opts);
+  if (safeIsSentient(initiator)) aState.contestBand = aState.competenceBand;
   aState.deliberateTarget = defender;
   const bState = deriveState(defender);
   bState.side = safeSideOf(defender);
   bState.competenceBand = bandFromOpts(defender, opts);
+  if (safeIsSentient(defender)) bState.contestBand = bState.competenceBand;
   // Ambush — surprise DENIES the opening poise contest: an unaware defender
   // (struck from concealment they didn't perceive) starts broken/open,
   // arming the aggressor's free first exchange. Erode from full poise at
@@ -1143,6 +1152,7 @@ function joinImpl(
   const state = deriveState(joiner);
   state.side = safeSideOf(joiner);
   state.competenceBand = bandFromOpts(joiner, opts);
+  if (safeIsSentient(joiner)) state.contestBand = state.competenceBand;
   state.deliberateTarget = target;
   const hold = session.addParticipant(state);
   if (!SchedulerApi.start(hold).ok) {
@@ -1244,6 +1254,18 @@ function deriveState(combatant: Stuff & Engaged): CombatantState {
     deliberateTarget: null,
     openingArmedBy: null,
     bandSeen: null,
+    exercised: new Set<string>(),
+    exchangesWon: 0,
+    exchangesLost: 0,
+    woundsTaken: [],
+    // A beast's danger is its BODY, resolved here where the dial-backed
+    // profile config lives; a sentient's is overwritten with the
+    // snapshotted competence band by the caller (`bandFromOpts`).
+    contestBand: safeIsSentient(combatant)
+      ? CompetenceBand.FLOOR
+      : CompetenceBand.bandFor(
+          NaturalAttack.difficultyFor(actorStrikeProfile(combatant)),
+        ),
   };
 }
 
@@ -1898,10 +1920,35 @@ function resolveExchange(
     beat,
   );
 
-  // Advancement: the actor earns credit for the exchange (self-credit
-  // only). Minted for the player-driven side; a brain-driven beast needs
-  // no transcript. Fire-and-forget — never blocks the beat.
-  mintExchangeSignature(actorState, targetState, outcome);
+  // ⭐⭐ **Advancement is tallied here and CREDITED ONCE, at resolution.**
+  //
+  // This used to mint an `ActSignature` every exchange, for the
+  // player-driven side, at a difficulty read off the *target's poise
+  // band*. Two things were wrong with that and both were measured:
+  //
+  //   - **A fight's verdict drowned in its beats.** Twenty rows per fight
+  //     meant a loser who won eight of twenty exchanges netted *up*. The
+  //     thing a player experiences — *I lost that fight* — was the one
+  //     thing the ledger never recorded.
+  //   - ⚠⚠ **It was a live de-ranking machine.** A whiff mints `failure`,
+  //     and a whiff against an opening opponent reads `easy` — the
+  //     maximal-sting case the estimator has (Δθ ≈ −0.22). Characters on
+  //     the live world were being de-ranked for missing.
+  //
+  // So: tally what was *exercised* and how the exchanges went; the two
+  // resolution hooks (`onDefeated` / `onDefeatedFoe`) write one signature
+  // per side, graded against the opponent. W0d's floor and above-band
+  // rule are what make that verdict safe to write at all.
+  noteExercise(actorState);
+  if (outcome === "whiff" || outcome === "parried" ||
+      outcome === "control-resisted") {
+    actorState.exchangesLost++;
+    targetState.exchangesWon++;
+  } else if (outcome === "land" || outcome === "exploit" ||
+             outcome === "control-land") {
+    actorState.exchangesWon++;
+    targetState.exchangesLost++;
+  }
 
   switch (outcome) {
     case "whiff": {
@@ -3208,6 +3255,25 @@ function dispatchCoupBegun(
  * (the silent bleed-out / unconsciousness gap). `victim`/`killer` label
  * the loser/winner when there is one.
  */
+/**
+ * The one combatant a yield can honestly name as the victor when the
+ * session is not a clean duel: whoever last landed a blow, else the only
+ * live foe left standing, else nobody (a genuine free-for-all names no
+ * winner, and `endWith` fires no victor hook — which is correct).
+ */
+function soleLiveFoe(
+  session: CombatSession,
+  actor: Stuff,
+): (Stuff & Engaged) | undefined {
+  const mine = session.getState(actor);
+  const struckBy = mine?.lastStruckBy;
+  if (struckBy && !session.getState(struckBy)?.down) return struckBy;
+  const live = session
+    .getStates()
+    .filter((s) => !s.down && s.combatant !== actor && s.side !== mine?.side);
+  return live.length === 1 ? live[0]!.combatant : undefined;
+}
+
 function endWith(
   session: CombatSession,
   outcome: CombatResolution,
@@ -4001,7 +4067,6 @@ function clamp01(n: number): number {
 
 /** The combat Disciplines credit accrues to (seeded as data). */
 const MELEE_DISCIPLINE = "melee-combat";
-const BLADES_DISCIPLINE = "blades";
 const UNARMED_DISCIPLINE = "unarmed";
 const COMMAND_DISCIPLINE = "command";
 
@@ -4035,9 +4100,6 @@ function termsFor(
 ): CombatTerms {
   return session.getGraph().edgeBetween(killer, victim)?.terms ?? session.getTerms();
 }
-
-/** The discipline whose competence band drives combat sharpness. */
-const MELEE_COMBAT_DISCIPLINE = "melee-combat";
 
 /** What an initiation resolved to. `terms` and `consented` are present
  * only on success — a caller that wants to narrate the opening needs to
@@ -4116,12 +4178,21 @@ async function snapshotBandsImpl(
     const key = c.getIdentityPath();
     if (!key) continue;
     try {
-      competenceBands.set(
-        key,
-        MixinApi.isAdvancing(c)
-          ? await c.competenceBandFor(MELEE_COMBAT_DISCIPLINE)
-          : CompetenceBand.FLOOR,
-      );
+      if (!MixinApi.isAdvancing(c)) {
+        competenceBands.set(key, CompetenceBand.FLOOR);
+        continue;
+      }
+      // ⭐ The **max over `melee-combat` and whatever the weapon in hand
+      // declares it exercises.** A swordsman with `blades: expert` and no
+      // separate `melee-combat` record used to read `untrained` here and
+      // fight with a novice's sharpness — the specialization existed and
+      // the fight could not see it.
+      let band = await c.competenceBandFor(MELEE_DISCIPLINE);
+      const held = wieldedWeapon(c);
+      for (const d of (held as Partial<Weapon> | null)?.getExercises?.() ?? []) {
+        band = CompetenceBand.higher(band, await c.competenceBandFor(d));
+      }
+      competenceBands.set(key, band);
     } catch {
       // Unresolved → the combatant defaults to `untrained` sharpness.
     }
@@ -4990,65 +5061,39 @@ function presentationOf(s: Stuff): string {
 /* ───────────────────────── advancement ───────────────────────── */
 
 /**
- * Mint the actor's per-exchange `ActSignature` (self-credit only). Only
- * the player-driven side accrues a transcript — a brain-driven beast
- * needs none. A bladed instrument additionally credits `blades`. Fire-
- * and-forget: advancement never blocks the beat.
+ * ⭐ **What this combatant just practised.** `melee-combat` always (every
+ * exchange is melee practice), plus whatever the instrument in hand
+ * *declares* it exercises — `Weapon.exercises`, authored on the row —
+ * plus `unarmed` for an innate exchange.
+ *
+ * Accumulated per exchange rather than read once at the end, because a
+ * fighter can switch grips mid-fight: what a fight paid or cost you
+ * should be what you **did**, not what you happened to be holding when it
+ * finished.
+ *
+ * ⚠ This replaces inferring the discipline from the delivery channel
+ * (`edge`/`point` → `blades`), which quietly meant a spear and a dagger
+ * trained the same skill and a mace trained nothing at all. The sim can
+ * see that a mace and a spear deliver differently; which *field of study*
+ * each belongs to is a fact about how people organise knowledge, so the
+ * row says it.
  */
-function mintExchangeSignature(
-  actorState: CombatantState,
-  targetState: CombatantState,
-  outcome: OutcomeKind,
-): void {
-  if (actorState.brainPath) return; // player side only
-  const actor = actorState.combatant;
-  const difficulty = difficultyFor(targetState);
-  const result = outcomeToResult(outcome);
-  const subs: Subcheck[] = [
-    { discipline: MELEE_DISCIPLINE, difficulty, outcome: result },
-  ];
+function noteExercise(actorState: CombatantState): void {
+  actorState.exercised.add(MELEE_DISCIPLINE);
   const instr = resolveInstrument(actorState);
-  if (instr && (instr.channel === "edge" || instr.channel === "point")) {
-    subs.push({ discipline: BLADES_DISCIPLINE, difficulty, outcome: result });
+  if (!instr) return;
+  if (!instr.weapon) {
+    actorState.exercised.add(UNARMED_DISCIPLINE);
+    return;
   }
-  // The fisticuffs sibling of the blades credit: an innate-instrument
-  // exchange (no wielded weapon) additionally credits `unarmed`, so the
-  // brawler's and swordsman's transcripts diverge. An armed exchange
-  // never does.
-  if (instr && !instr.weapon) {
-    subs.push({ discipline: UNARMED_DISCIPLINE, difficulty, outcome: result });
-  }
-  if (MixinApi.isAdvancing(actor))
-    void actor.creditSignature({ discipline: subs }).catch(
-    () => {},
-  );
-}
-
-/** The exchange difficulty from the target's tactical state — beating a
- * composed, armed guard is `hard`; exploiting an open one is `easy`. */
-function difficultyFor(target: CombatantState): Difficulty {
-  const band = target.poise.band();
-  if (band === "open" || band === "broken") return "easy";
-  if (band === "reeling") return "standard";
-  return resolveInstrument(target) ? "hard" : "standard";
-}
-
-/** Map an exchange outcome to a competence outcome. */
-function outcomeToResult(outcome: OutcomeKind): Outcome {
-  switch (outcome) {
-    case "exploit":
-      return "critical";
-    case "land":
-    case "control-land":
-      return "success";
-    case "parried":
-    case "control-resisted":
-      return "partial";
-    case "whiff":
-      return "failure";
-    default:
-      return "partial";
-  }
+  // ⚠ A duck-typed read, deliberately: `ResolvedInstrument.weapon` is a
+  // bare `Stuff` (an instrument can be any wielded thing), and a torch or
+  // a chair leg has no `exercises` and should contribute nothing rather
+  // than throw. Not a `MixinApi.isX` — `exercises` is a field on the
+  // `Weapon` CLASS, not a mixin, so there is no predicate to narrow with
+  // and `lint:combat-dynamics` has nothing to say about it.
+  const declared = (instr.weapon as Partial<Weapon>).getExercises?.() ?? [];
+  for (const d of declared) actorState.exercised.add(d);
 }
 
 /** The costed `assess` mints a modest melee-combat read credit. */

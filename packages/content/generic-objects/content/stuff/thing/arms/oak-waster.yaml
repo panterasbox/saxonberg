@@ -22,3 +22,5 @@ data:
   length: 0.9
   slotClaims:
     "/stuff/idea/species/BodyPlan/biped": ["hand:right"]
+  # ⭐ A practice sword. It trains the same craft as the steel — that is what it is FOR.
+  exercises: [blades]

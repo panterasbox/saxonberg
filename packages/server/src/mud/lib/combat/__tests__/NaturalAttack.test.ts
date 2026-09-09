@@ -18,6 +18,7 @@ import {
   NEUTRAL_NATURAL_PROFILE,
   type NaturalAttackSpec,
 } from "../NaturalAttack";
+import { DIFFICULTIES } from "../../advancement/ActSignature";
 import {
   WeaponProfile,
   DEFAULT_WEAPON_PROFILE_CONFIG,
@@ -175,5 +176,60 @@ describe("NaturalAttack.validateSpecs — the Species setter invariant", () => {
     expect(() =>
       NaturalAttack.validateSpecs([{ key: "", channel: "point" }]),
     ).toThrow(/key/);
+  });
+});
+
+/* ─────────── W3: a beast's danger is its BODY, not a transcript ─────────── */
+
+describe("NaturalAttack.difficultyFor — the beast's contest band", () => {
+  const plan = (kg: number): { getBaseMass(): number } => ({
+    getBaseMass: () => kg,
+  });
+
+  it("⭐ a large-bodied beast is a HARD fight; a rat is an EASY one", () => {
+    // The correctness problem this exists to fix: wolves are `Extra`s
+    // sharing one identity, so a transcript read makes EVERY beast
+    // `untrained` and every beast fight `easy` — and an `easy` failure is
+    // the estimator's maximal-sting case, so being mauled by a wolf would
+    // cost more competence than being beaten by a master swordsman.
+    const bear = NaturalAttack.difficultyFor(
+      NaturalAttack.deriveProfile({ key: "maul", channel: "edge" }, plan(400)),
+    );
+    const rat = NaturalAttack.difficultyFor(
+      NaturalAttack.deriveProfile({ key: "bite", channel: "point" }, plan(0.4)),
+    );
+    expect(DIFFICULTIES.indexOf(bear)).toBeGreaterThan(
+      DIFFICULTIES.indexOf(rat),
+    );
+    expect(rat).toBe("easy");
+    expect(DIFFICULTIES.indexOf(bear)).toBeGreaterThanOrEqual(
+      DIFFICULTIES.indexOf("hard"),
+    );
+  });
+
+  it("⭐ authored reach and mass move it — no new authoring surface", () => {
+    // The whole argument for deriving rather than declaring: an author
+    // who writes a longer-reached, heavier animal gets a harder fight in
+    // the SAME numbers that already govern how it hits, with nothing to
+    // keep in sync.
+    const shortArmed = NaturalAttack.difficultyFor(
+      NaturalAttack.deriveProfile(
+        { key: "claw", channel: "edge", massKg: 2, lengthM: 0.2 },
+        null,
+      ),
+    );
+    const longArmed = NaturalAttack.difficultyFor(
+      NaturalAttack.deriveProfile(
+        { key: "gore", channel: "point", massKg: 12, lengthM: 1.6 },
+        null,
+      ),
+    );
+    expect(DIFFICULTIES.indexOf(longArmed)).toBeGreaterThan(
+      DIFFICULTIES.indexOf(shortArmed),
+    );
+  });
+
+  it("a neutral body floors at easy and never below", () => {
+    expect(NaturalAttack.difficultyFor(NEUTRAL_NATURAL_PROFILE)).toBe("easy");
   });
 });
