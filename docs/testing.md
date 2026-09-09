@@ -584,6 +584,16 @@ typing. They paid the full Playwright cost for none of the benefit.
    per-file census, so the residue stays visible instead of
    accumulating as regexes.
 
+⭐ **A fourth, narrow seam: `subscribe()`.** A STANDING query, returning
+whichever answer the server gives first — the result envelope or the
+refusal. It resolves rather than throwing on a refusal, because for some
+queries the refusal *is* the expected outcome and a thrown error would
+be indistinguishable from "the socket went quiet". ⚠ A file that opens
+one is `.dirty.` by that alone: the subscription stays registered. It
+exists because the world-scan drive has to prove that a `world:` query
+is refused as a subscription and not only as a one-shot, and there was
+no seam for it.
+
 ⭐ **A wire file may not add a `subscribableFields` descriptor to make
 itself assertable.** A state a flow needs and the projection cannot
 reach is a card-surface finding, recorded like a `dirtiesWorld` reason —

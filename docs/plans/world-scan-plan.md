@@ -1251,19 +1251,27 @@ Unmapped: none.
 
 - **The `office assign` defect** (governance.md, open since 2026-08-02)
   can block the handoff half of AC3 in the drive. Not in this build's
-  scope to fix unless trivial; the plan says what to do (drive step 6).
-  ⚠ Needs the user's eye: accept "unit-proven, drive-`todo`" for that
-  half if the defect reproduces.
+  scope to fix. The drive's step 14 **warns loudly and returns** rather
+  than passing quietly if it reproduces, and the handoff half is
+  unit-proven meanwhile (`world-seat-query.test.ts` drives the binder
+  with `holdsOffice` stubbed both ways, and pins that the office is
+  asked at most once per dispatch).
 - **A denied legitimate reader fails closed and silent** — the exact class
   of bug the requirements call out. Mitigations: every reader is a named
   method (D15); `lint:gates` resolves each pair (D18); the spawn-sweep
   callback rerouted (W5); the drive's plumbing half. The build should grep
   for every `MqlApi.resolveWorldIndexed(` call and confirm the enclosing
   frame by reading the call path, not the file.
-- **`$focus` set to a `world:` fragment** (`focus world:[mixin.X]`) would
-  make every subsequent command's scope chain throw. Check
-  `FocusController` refuses to store a `world` fragment (it resolves at
-  set time → the refusal fires there); if it does not, add the check.
+- ~~**`$focus` set to a `world:` fragment**~~ — **checked, no code
+  needed.** Two independent things close it: `focus`'s `fragment` arg is
+  `type: objects`, so the binder resolves it at SET time and an ordinary
+  player's `focus world:[mixin.X]` is refused there and never stored;
+  and even if a fragment did get stored, `candidatesForScope`'s slow
+  path already wraps its nested resolve in `try/catch` and backstops to
+  `reachable` (the graceful-fallback rule from the unified-scope delta).
+  A seat holder can store one and their later commands quietly scope to
+  `reachable` — recoverable with a bare `focus`, and self-inflicted by
+  the one person who can do it.
 - **The residence catalogue's rows-by-shape derivation** (`parentExtent`)
   is a shape, not a class. ⚠ Needs the user's eye: the alternative (a
   kernel-side institution roster on a location Api) contradicts the
@@ -1277,10 +1285,13 @@ Unmapped: none.
   `scanned` for `world:[mixin.X]` shapes reports each bucket's size; the
   drive record lists them for Employed, Slotted, Circulating, Identifiable,
   Publisher, Display, Bank, Attendant, Business, Organization, Persistable.
-- **`employments` as an accessor pair**: confirm the persistence spine's
-  default slice restore fires the setter (persistence.md; a bracket
-  assign through an accessor pair on the prototype does). If it bypasses,
-  enrol from `EmployedMixin`'s `restoreSlice` instead and record it.
+- ~~**`employments` as an accessor pair**~~ — **confirmed.** The
+  Hydrator's Phase 1 prefers `set<Field>` and otherwise bracket-assigns
+  (`target[field] = value`), which fires an accessor pair on the
+  prototype; the capture side reads `field in host` (true for a
+  prototype accessor) and `self[field]` (the getter). The roster test's
+  *"sees records that arrive by assignment"* pins exactly that shape.
+  ⚠ What DID need fixing was the witness call itself — see W1's note.
 - **Client exhaustiveness**: adding a `Note` member may break an
   exhaustive switch in `packages/client`; run its typecheck in W6b.
 - **MqlGroupProvider's null giver** is a small semantic change for group

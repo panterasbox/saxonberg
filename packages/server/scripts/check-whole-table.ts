@@ -122,7 +122,7 @@ for (const file of files) {
 if (findings.length === 0) {
   console.log(
     `check-whole-table: 0 whole-table reads narrowed at the call site ` +
-      `(ceiling 0; ${files.length} files scanned, ${EXEMPT.length} exempt) OK`,
+      `(ceiling 0; ${files.length} files scanned, ${EXEMPT.length} exempt) ✔`,
   );
   process.exit(0);
 }
@@ -139,10 +139,10 @@ for (const f of findings) {
 }
 console.error(
   `\nAsk the owner the question instead of asking for the table:\n` +
-    `  registry.recordFor(x)   not   registry.allRecords().find(...)\n` +
-    `  catalogue.lanesAt(p)    not   catalogue.allLanes().filter(...)\n\n` +
-    `If the owner has no such read, ADD ONE - that is the fix, and it is\n` +
+    `  registry.recordFor(x)   not   registry.allRecords().find(…)\n` +
+    `  catalogue.lanesAt(p)    not   catalogue.allLanes().filter(…)\n\n` +
+    `If the owner has no such read, ADD ONE — that is the fix, and it is\n` +
     `where an index can later go without a caller moving. See\n` +
-    `docs/antipatterns.md, section: An Api May Not Hand Back Its Table.`,
+    `docs/antipatterns.md § An Api May Not Hand Back Its Table.`,
 );
 process.exit(EXIT_ON_FINDINGS ? 1 : 0);
