@@ -97,11 +97,18 @@ it.
 
 - **Green before round 2**: `pnpm test` (server 1,122 files / 10,364
   tests; client 80/999; all 25 packages) and the drive at 14/14.
-- **Since round 3**: 236 files / 2,606 tests over every affected area
-  (`api/**`, `api/mql/**`, `lib/command/**`), typecheck clean.
-  ⚠ **The FULL suite and the DRIVE have not been re-run since the
-  `resolveWorldIndexed` collapse or the round-3 change** — both are owed
-  before merge.
+- **After round 3, both owed runs are done and green:**
+  - `pnpm test` — every package, exit 0.
+  - The **drive**, on a freshly reset DB: `WIRE_BOOT=1 pnpm wire` →
+    12 files, **111 passed / 3 skipped / 0 failed**.
+    `world-scan.dirty.wire.test.ts` is **14/14**, including step 4 (the
+    entitled query resolves and reports its cost — 2,060 objects walked)
+    and steps 1–3/5 (refused for everyone else, one-shot and standing
+    alike). Steps 6 and 10, which failed in the round-1 drive, both pass.
+  - All 31 lint gates; typecheck clean.
+  - ⚠ Step 14 still warns rather than proving the handoff over the wire:
+    `office assign` reproduces its documented "No such player" defect
+    (see below). The both-directions property rests on unit tests.
 
 ### Also still open for the user
 
