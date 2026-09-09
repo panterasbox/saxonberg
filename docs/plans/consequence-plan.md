@@ -1107,6 +1107,38 @@ still saturates at `competent`; `seedRunFor` returns the same runs for
 all five bands; `lint:dossiers` green.
 *Commit:* `fix(consequence W0d): the floor and the above-band rule, derived in the fold`
 
+✅ **Done.** 15 new tests; the 6 existing advancement suites, 48 files of
+magic / practicum / medical / perception / combat consumers (410 tests)
+and all 33 gates green — `lint:dossiers` included, as D1 predicted from
+construction (both rules touch only `failure`/`partial` rows, and every
+dossier claim is seeded as `success`).
+
+**Shipped.** `CompetenceBand` gained the arithmetic both rules need and
+W3/W12 will reuse — `lowered(band, n)`, `oneBelow`, `higher`,
+`difficultyAgainst(mine, theirs)` (the rank gap mapped onto the
+difficulty ladder) and `bandFor(difficulty)` (the identity map between
+the two five-rung ladders). `Competence.derive` gained a running `θmax`
+and the two rules, both inside the single existing pass.
+
+⭐ **`theta` stays raw and only the BAND is floored.** That was not
+spelled out in D1 and is load-bearing: everything downstream re-derives
+from the band, so flooring the surface makes the promise the player is
+shown, while flooring `theta` would have made the *next* fold inherit a
+fiction and compound it.
+
+⭐⭐ **The above-band rule is order-dependent, and that is correct rather
+than a wart.** The band a row is compared against is the one the fold has
+reached *at that row*, so a formidable failure that meant nothing to a
+novice means something once the same character has become an expert. A
+test pins it (`the rule re-legislates as the history plays forward`),
+because the alternative reading — compare against the final band — would
+retroactively excuse an expert's whole apprenticeship.
+
+⚠ One tuning fact worth having in front of W3: after this wave a
+`trivial` failure still costs everybody, because `trivial` maps to
+`untrained` and no band sits below it. The rule excuses being outclassed,
+never fumbling something anyone could do.
+
 
 #### W1 — wound → poise
 
