@@ -96,6 +96,69 @@ subcommands:
         default: "here"
         scope: ["reachable"]
         requires: ContainerMixin
+  # ⚠ The controller ships in `trade-medicine` — the instrumentation
+  # split, the same one that puts `analyze soil`'s in `trade-farming` and
+  # `analyze ground`'s in `trade-mining`. The stanza is the platform's
+  # because `analyze` is ONE verb; what it reads belongs to whoever owns
+  # the subject matter.
+  patient:
+    description: "Read a body — the signs, what could be causing them, what would treat it (medicine)"
+    help: |
+      Look someone over properly. What you get back rises with your
+      medicine, and ⭐ **it is always INFORMATION, never a better
+      outcome** — a good doctor does not heal harder, they see more:
+
+        untrained  — something is wrong. You could not say what.
+        novice     — every sign the body is showing.
+        competent  — which conditions could produce those signs.
+        proficient — what would treat it, and how it spreads.
+        expert     — how far it has gone.
+
+      ⚠ At `competent` the answer is a LIST, unranked. That is deliberate:
+      two illnesses that present alike are two illnesses that present
+      alike, and choosing between them is the medic's job, not the
+      game's. `treat <someone> for <condition>` is where you commit.
+    examples:
+      - cmd: analyze patient
+        note: Look yourself over
+      - cmd: analyze patient the smith
+        note: Read what is wrong with somebody
+    controller: /trade/medicine/idea/cmd/perception/AnalyzePatientController
+    args:
+      - name: target
+        type: object
+        required: false
+        scope: ["reachable"]
+        requires: VitalsMixin
+  # ⚠ The controller ships in `trade-medicine` — as `patient`'s does.
+  postmortem:
+    description: "Read a body for what happened to it — the marks, and back to the act (forensics)"
+    help: |
+      Examine a corpse. ⭐ **The cause is inferred from what is left, not
+      read off the body** — a corpse knows what killed it and an examiner
+      does not, so what you get is your reading, and your reading can be
+      wrong.
+
+      And it gets worse as the body goes: how many of the marks are still
+      legible falls with decomposition, so what you can conclude at all
+      depends on how quickly you got there. Somebody who wants the truth
+      about a death has a reason to hurry — and somebody who does not has
+      a reason to wait.
+
+      What your forensics buys you, on top of the marks anyone can see:
+        competent  — what kind of thing did it.
+        proficient — your reading of what killed them.
+        expert     — how long they have been dead.
+    examples:
+      - cmd: analyze postmortem the body
+        note: Read a corpse before it is past reading
+    controller: /trade/medicine/idea/cmd/perception/AnalyzePostmortemController
+    args:
+      - name: target
+        type: object
+        required: true
+        scope: ["reachable"]
+        requires: PostmortemMixin
   chemistry:
     description: "Analyze the chemistry of a target"
     help: |

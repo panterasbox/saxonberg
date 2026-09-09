@@ -68,7 +68,17 @@ export class ContractRecord extends Document {
     settledBy: { persistent: true },
     closedAt: { persistent: true },
     realAt: { persistent: true },
+    watchedSec: { persistent: true },
   };
+
+  /**
+   * ⭐ Game-seconds of watch the claimant has accrued on this contract
+   * (`watch` clauses only). Accrued on the CONTRACT rather than on the
+   * worker because a guard's watch is *for* a contract: two overlapping
+   * posts are two separate accruals, and a worker-side counter could not
+   * tell them apart.
+   */
+  watchedSec = 0;
 
   /** Durable gig id (server-minted uuid) — the escrow account keys on it. */
   contractId = "";

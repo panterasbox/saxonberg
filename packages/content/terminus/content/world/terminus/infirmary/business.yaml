@@ -1,0 +1,30 @@
+# The infirmary as a Business — the physician's own practice, not a
+# municipal service. It owns the physician position + roster (= the hours
+# the door is open), the operating location (the ward), and through its
+# own path the P&L account that `order treatment` settles into.
+#
+# Stands up LAZILY off `operatingLocations` on the first order — no
+# manifest entry, no standup hook.
+class: /platform/idea/Business
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  name: "the infirmary"
+  appointingAuthority:
+    kind: entity
+    path: /world/terminus/infirmary/agent/physician
+  positions:
+    - key: physician
+      label: keeping the infirmary
+      wageRate: 6
+      confers: []
+  rosterSlots:
+    - positionKey: physician
+      assignee: /world/terminus/infirmary/agent/physician
+      # ⚠ Not around the clock. A clinic that never closes is a vending
+      # machine; one with hours is a reason to think about when you pick
+      # a fight.
+      schedule:
+        - { days: [0, 1, 2, 3, 4, 5, 6], hours: [7, 19] }
+  banksAt: goodkin
+  operatingLocations:
+    - /world/terminus/infirmary/ward

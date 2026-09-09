@@ -26,6 +26,8 @@ import { MixinApi } from '../../../../api/mixin';
 import { StuffApi } from '../../../../api/stuff';
 import { Quantity } from '../../../../lib/quantity';
 import type Condition from '../../Condition';
+import type ConditionCatalogue from '../../ConditionCatalogue';
+import { TemplatePaths } from '../../../../lib/paths';
 import { Mml } from '../../../../api/mml';
 import type { Stuff } from '../../../../lib/stuff/Stuff';
 import type { Vitals } from '../../../../lib/vitals/Vitals';
@@ -40,6 +42,12 @@ interface TreatModel extends CommandModel {
   target?: MqlOneResult;
   /** `treat <target> with <item>` — the treatment being offered. */
   with?: MqlOneResult;
+  /**
+   * ⭐⭐ `treat <target> for <condition>` — **what the medic thinks it
+   * is.** The judgment loop: `analyze patient` hands back candidates
+   * plural and unranked, and this is where the medic commits.
+   */
+  for?: string;
 }
 
 /** How much a single treatment pours into someone. */
@@ -181,6 +189,12 @@ export default class TreatController extends CommandController<TreatModel> {
     // wins; otherwise the first thing to hand that could treat anything.
     const treatment = this.resolveTreatment(model, giver);
 
+    // ⭐⭐ **The judgment loop.** When the medic NAMES what they are
+    // treating, that is the act being graded — not the bandaging.
+    if (model.for) {
+      return this.treatNamed(target, model.for, treatment, isSelf, context);
+    }
+
     // ⭐⭐ **Match it against what is wrong.** `pickWound` used to choose
     // the worst wound and the verb applied whatever was carried to it. It
     // now picks the worst condition **this treatment can actually
@@ -296,6 +310,131 @@ export default class TreatController extends CommandController<TreatModel> {
           ? Mml.compose`${Mml.actor(giver)} tends a wound.`
           : Mml.compose`${Mml.actor(giver)} tends a wound on ${Mml.actor(target)}.`
       )
+      .send();
+  }
+
+  /**
+   * ⭐⭐ **The medic names it, and can be wrong.**
+   *
+   * `analyze patient` deliberately returns candidates *plural and
+   * unranked*, so choosing between them is the medic's act rather than a
+   * readout. This grades that act:
+   *
+   * - **difficulty** is the AMBIGUITY — how many warmed conditions could
+   *   produce the signs this body is showing. That is a measurement of
+   *   the world, not a tag: a presentation only one thing causes is easy
+   *   to call and a presentation four things cause is not.
+   * - **outcome** is whether the named condition is one the body actually
+   *   carries.
+   *
+   * ⚠ A wrong call **spends the supply and changes nothing**, and the
+   * body tells the medic by not getting better — the next `analyze` shows
+   * the same signs. Nothing announces the mistake, because a game that
+   * announced it would be grading the medic instead of letting the world
+   * do it.
+   */
+  private async treatNamed(
+    target: Stuff & Vitals,
+    named: string,
+    treatment: Treatment,
+    isSelf: boolean,
+    context: CommandContext,
+  ): Promise<void> {
+    const giver = context.commandGiver;
+    const wanted = named.trim().toLowerCase();
+    const carried = target
+      .getConditions()
+      .filter((c): c is AfflictionRecord => c.kind === 'affliction');
+
+    // What this body is showing, and everything that could show it.
+    const signs = new Set<string>();
+    for (const c of carried) {
+      const row = StuffApi.findByTemplatePath<Condition>(c.templatePath);
+      for (const sign of row?.getObservableSigns() ?? []) signs.add(sign);
+    }
+    const catalogue = StuffApi.findByTemplatePath<ConditionCatalogue>(
+      TemplatePaths.conditionCatalogue,
+    );
+    const candidates = (catalogue?.roster() ?? []).filter((row) =>
+      (row.getObservableSigns() ?? []).some((sign) => signs.has(sign)),
+    );
+    // ⭐ The ambiguity IS the difficulty.
+    const difficulty: Difficulty =
+      candidates.length >= 4
+        ? 'formidable'
+        : candidates.length === 3
+          ? 'hard'
+          : candidates.length === 2
+            ? 'standard'
+            : 'easy';
+
+    const hit =
+      carried.find((c) => {
+        const row = StuffApi.findByTemplatePath<Condition>(c.templatePath);
+        return (row?.getName() ?? '').toLowerCase() === wanted;
+      }) ?? null;
+
+    // The supply is spent either way — that is what makes a wrong call
+    // cost something.
+    if (treatment.by === 'dressing') {
+      await StuffApi.destruct((treatment as { item: Stuff }).item);
+    }
+
+    if (MixinApi.isAdvancing(giver)) {
+      await giver.creditDeed({
+        discipline: 'medicine',
+        difficulty,
+        outcome: hit ? 'success' : 'failure',
+      });
+    }
+
+    const who = isSelf ? 'yourself' : target.getPresentation();
+    if (!hit) {
+      // ⚠ It does NOT say "wrong". The body says it, by not improving.
+      MessageApi.scene(giver)
+        .topic(TOPIC)
+        .toSelf(
+          Mml.fromMarkup(
+            Mml.escape(
+              `You treat ${who} for ${named}, and do it properly. ` +
+                `Nothing about them changes.`,
+            ),
+          ),
+        )
+        .send();
+      return;
+    }
+
+    // Right call: resolve it the way its own row says it resolves.
+    if (hit.pathogenLoad !== undefined) {
+      return this.tendInfection(target, hit, isSelf, context);
+    }
+    const row = StuffApi.findByTemplatePath<Condition>(hit.templatePath);
+    const wants = row?.getResolution()?.by ?? null;
+    if (wants && wants !== treatment.by) {
+      MessageApi.scene(giver)
+        .topic(TOPIC)
+        .toSelf(
+          Mml.fromMarkup(
+            Mml.escape(
+              `You have it right — but ${mismatchLine(treatment.by, wants)}`,
+            ),
+          ),
+        )
+        .send();
+      return;
+    }
+    if (treatment.by === 'fluid') {
+      this.pourInto(target, (treatment as { item: Stuff }).item);
+    }
+    MessageApi.scene(giver)
+      .topic(TOPIC)
+      .toSelf(
+        Mml.fromMarkup(
+          Mml.escape(`You treat ${who} for ${named}, and it answers.`),
+        ),
+      )
+      .toPeers(Mml.compose`${Mml.actor(giver)} tends ${Mml.actor(target as unknown as Stuff)}.`)
       .send();
   }
 

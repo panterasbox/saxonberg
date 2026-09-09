@@ -44,6 +44,7 @@ export const TemplatePaths = {
   soulCatalogue: "/platform/idea/SoulCatalogue",
   disciplineCatalogue: "/platform/idea/DisciplineCatalogue",
   corpoCatalogue: "/platform/idea/CorpoCatalogue",
+  conditionCatalogue: "/platform/idea/ConditionCatalogue",
   governmentCatalogue: "/platform/idea/GovernmentCatalogue",
   helpCatalogue: "/platform/idea/HelpCatalogue",
   pressBoard: "/platform/idea/PressBoard",

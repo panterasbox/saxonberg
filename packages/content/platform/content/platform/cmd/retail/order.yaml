@@ -1,10 +1,20 @@
 verbs: [order]
 controller: /platform/idea/cmd/retail/OrderController
-description: "Order a cocktail from the menu"
+description: "Order from a menu, or buy a service off a tariff"
 help: |
   Order a drink off the menu — `order martini`. Whoever's tending the
   bar makes it and hands it to you. Name a brand with `with` to steer
   the pour: `order martini with bombay`.
+
+  ⭐ **Where there's a tariff instead of a menu, you buy a service** —
+  something done to what you already have, rather than something made or
+  sold:
+    `order repair my sword`  — a smithy makes it good again
+    `order treatment`        — a clinic sees to what is wrong with you
+    `order burial the body`  — a necropolis lays them to rest
+  The tariff on the wall lists what the house does and what it costs;
+  `menu` reads it. You pay for what the house has and you don't: the
+  forge, the dressings, the ground.
 validators:
   - /lib/command/validators/requiresAnimate
   - /lib/command/validators/requiresConscious

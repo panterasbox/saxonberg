@@ -174,21 +174,73 @@ export default class JobController extends CommandController<JobModel> {
     context: CommandContext,
   ):
     | {
-        template: "delivery" | "supply";
+        template: "delivery" | "supply" | "watch";
         itemRef: ConditionData["item"];
         destinationPath: string;
         count: number;
+        gameHours?: number;
       }
     | { error: string; reason: string } {
     const words = raw.trim().split(/\s+/).filter(Boolean);
     const verb = (words.shift() ?? "").toLowerCase();
-    if (verb !== "deliver" && verb !== "supply") {
+    if (verb !== "deliver" && verb !== "supply" && verb !== "watch") {
       return {
         error:
           `Post what? Say what has to be true — ` +
-          `\`deliver <thing> to <place>\` or ` +
-          `\`supply <n> <kind> to <place>\`.`,
+          `\`deliver <thing> to <place>\`, ` +
+          `\`supply <n> <kind> to <place>\` or ` +
+          `\`watch <place> for <n> hours\`.`,
         reason: "no-condition",
+      };
+    }
+
+    /*
+     * ⭐⭐ `watch <place> for <n> hours` — the guard contract, and the
+     * third clause template.
+     *
+     * ⚠ What makes it postable is **giving up on intent**. The engine
+     * cannot check that you protected anything; it can check that you
+     * were present, for the term, with your hands full of nothing else.
+     * That is the whole of the third template, and it is why the
+     * canonical example of what sits BEHIND the verifiability wall — a
+     * guard contract — turned out to need four kernel touches rather
+     * than being impossible.
+     */
+    if (verb === "watch") {
+      const forAt = words.findIndex((w) => w.toLowerCase() === "for");
+      if (forAt < 1 || forAt >= words.length - 1) {
+        return {
+          error:
+            `Watch it for how long? \`watch <place> for <n> hours\`.`,
+          reason: "no-term",
+        };
+      }
+      const placePath = this.place(
+        words.slice(0, forAt).join(" "),
+        context,
+      );
+      if (placePath.length === 0) {
+        return {
+          error: `Nobody here has heard of that place.`,
+          reason: "unknown-destination",
+        };
+      }
+      const hours = Number(words[forAt + 1]);
+      if (!Number.isFinite(hours) || hours <= 0) {
+        return {
+          error: `Watch it for how many hours?`,
+          reason: "no-term",
+        };
+      }
+      return {
+        template: "watch",
+        // ⚠ A watch binds no item and the shape requires one, so it
+        // names the PLACE — inert for this template, and honest: what is
+        // bound is where you stand.
+        itemRef: { kind: "template", path: placePath },
+        destinationPath: placePath,
+        count: 1,
+        gameHours: hours,
       };
     }
     // The destination is everything after `to`; the subject is what is
@@ -359,6 +411,7 @@ export default class JobController extends CommandController<JobModel> {
       return this.fail(context, parsed.error, parsed.reason);
     }
     const { itemRef, destinationPath, template, count } = parsed;
+    const gameHours = parsed.gameHours;
     const reward = Number(model.reward);
 
     // Where the work STARTS. Omitted ⇒ ContractApi derives it from the
@@ -376,6 +429,7 @@ export default class JobController extends CommandController<JobModel> {
         // omitting it "because 1 is the default" made `supply 1` — the
         // one-of-a-kind case that replaced `--kind` — refuse itself.
         ...(template === "supply" ? { count } : {}),
+        ...(template === "watch" ? { gameHours } : {}),
       },
       rewardMinor: reward,
       claimMode: model.bounty ? "open-bounty" : "exclusive",

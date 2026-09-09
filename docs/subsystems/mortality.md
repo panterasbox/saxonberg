@@ -12,6 +12,30 @@ Read [vitals.md](./vitals.md) and [harm.md](./harm.md) first — this drives
 their substrate. [sandbox.md](./sandbox.md) matters more than it looks:
 death reuses its crossing machinery, backwards.
 
+## ⭐ The grave — `Postmortem.interIn`
+
+`Postmortem` has always run a decay clock and a forensic-readability
+curve, and until the consequence build **nothing read the curve and
+nothing ended the clock**: a body lay where it fell until the residency
+sweep took it.
+
+`interIn(grave)` does three things, each the end of something: the body
+moves into the grave, a deed lands on the **deceased's own** chronicle
+(being buried is a fact about you, not about the undertaker), and the
+corpse **withdraws its eviction objection** — a grave is exactly the
+place a body is meant to stop being the world's problem.
+
+⚠ It is on the BODY rather than on the grave or in a funerary Api,
+because being interred is something that happens to a corpse: it already
+owns the postmortem clock and the eviction opinion, and burial ends both.
+Composed on `Creature`, so "every creature can be buried" — honest,
+including for a hanging carcass.
+
+Sold as `order burial <body>` off a necropolis `Tariff`. ⭐ The price is
+the dearest of the three services on purpose: the ground is finite, the
+digging is real work, and a price that made burying somebody trivial
+would make the grave a bin.
+
 ## ⭐⭐ The recuperation model — dying diminishes everything, briefly
 
 **Losing a fight and dying are deliberately different punishments.**

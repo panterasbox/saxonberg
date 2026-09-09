@@ -29,5 +29,9 @@ data:
   # store's shop floor props exactly two things and both are fixtures.
   props:
     - /world/rejection/thing/store-counter
+    # ⭐ The second repair shop, and it is ONE `props:` line plus one row.
+    # That is the second-instance test: a service the kernel orchestrates,
+    # priced by content, in a town whose pack ships no code for it.
+    - /world/rejection/thing/mending-slate
   cast:
     - /world/rejection/agent/storekeeper

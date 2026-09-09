@@ -19,6 +19,7 @@
  */
 
 import { StuffApi } from "./stuff";
+import type { Stuff } from '../lib/stuff/Stuff';
 import { HotReloadApi } from "./hot-reload";
 import { ContractLogic } from "../platform/idea/api/ContractLogic";
 import type { ConditionData } from "../lib/employment/Condition";
@@ -108,6 +109,23 @@ export class ContractApi {
    * escrow reverts, the `breached` event names the claimant, the
    * issuer-side regard nudge lands, and the gig reopens.
    */
+  /**
+   * ⭐⭐ Accrue watch on a claimed `watch` contract — the guard's clock.
+   *
+   * ⚠ A guard's product is **presence with free hands**, not protection:
+   * whether a theft was deterred is counterfactual and whether you were
+   * attentive is not a modelled fact. What the engine can verify is that
+   * you were there, for the term, unable to be doing something else — and
+   * that turns out to be what a guard actually sells.
+   */
+  public static async noteWatch(
+    contractId: string,
+    worker: Stuff,
+    gameSeconds: number,
+  ): Promise<void> {
+    return logic().noteWatch(contractId, worker, gameSeconds);
+  }
+
   public static async abandon(contractId: string): Promise<AbandonResult> {
     return logic().abandon(contractId);
   }

@@ -1,0 +1,22 @@
+# The undertaking — a working business, not a civic office. Somebody digs
+# the ground, somebody cuts the stone, and both are paid for it.
+class: /platform/idea/Business
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  name: "the necropolis"
+  appointingAuthority:
+    kind: entity
+    path: /world/terminus/necropolis/agent/undertaker
+  positions:
+    - key: undertaker
+      label: keeping the necropolis
+      wageRate: 5
+      confers: []
+  rosterSlots:
+    - positionKey: undertaker
+      assignee: /world/terminus/necropolis/agent/undertaker
+      schedule:
+        - { days: [0, 1, 2, 3, 4, 5, 6], hours: [6, 18] }
+  banksAt: goodkin
+  operatingLocations:
+    - /world/terminus/necropolis/ground

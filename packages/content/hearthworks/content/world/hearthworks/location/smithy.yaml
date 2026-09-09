@@ -46,6 +46,9 @@ data:
     - /stuff/thing/gear/smiths-hammer
     - /stuff/thing/items/hide-stock
     - /trade/smithing/thing/whetstone
+    # ⭐ The mending slate — one `props:` line, and the smithy sells
+    # repairs. That is the second-instance test passing.
+    - /world/hearthworks/thing/smithy-tariff
     - /world/hearthworks/thing/smithy-menu
   cast:
     - /world/hearthworks/agent/smith

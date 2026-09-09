@@ -1,0 +1,19 @@
+# ⭐ The third `Tariff` in the world, and the third service kind — which
+# is the point: the vocabulary is the kernel's and the venues are rows.
+#
+# ⚠ Burial is the dearest of the three services, and deliberately: the
+# ground is finite, the digging is real work, and a price that made
+# burying somebody trivial would make the grave a bin. It should be a
+# decision somebody makes for a person they knew.
+class: /platform/thing/Tariff
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: a slate of charges
+  primaryKeyword: slate
+  keywords: [slate, tariff, charges, board]
+  longDescription: |
+    A slate set into the wall by the entrance, lettered rather than chalked — whoever cut it expected the price to hold. GROUND, it says, and a figure, and underneath in smaller letters: STONE BY ARRANGEMENT.
+  prices:
+    burial: 20
+  services:
+    burial: burial

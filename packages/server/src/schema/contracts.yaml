@@ -22,6 +22,12 @@ invariants:
     moves: value moves only in `bank_ledger`, and the escrow account is
     where it sits meanwhile.
   - >-
+    ⭐ A `watch` clause accrues its served time in `watchedSec`, on the
+    CONTRACT rather than on the worker — a guard's watch is *for* a
+    contract, and two overlapping posts are two separate accruals a
+    worker-side counter could not tell apart. Game-seconds, banked when a
+    stint is released, so standing down early keeps what was served.
+  - >-
     REFUSE under the sandbox.
 sandbox: refuse
 reset: wipe

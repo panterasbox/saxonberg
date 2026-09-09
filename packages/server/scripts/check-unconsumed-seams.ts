@@ -76,7 +76,7 @@ const REPO = join(here, "..", "..", "..");
  * `CombatReactive` (6) and `CombatVenue` (3) are the three `@hook`
  * surfaces `docs/subsystems/combat-hooks.md` calls "the wizard-facing
  * combat extension grammar" — and **not one of them is composed by
- * anything that ships**, in the kernel or in any of the 42 packs. The
+ * anything that ships**, in the kernel or in any of the 43 packs. The
  * grammar is complete, documented, and spoken by nobody. That is the
  * same shape as `signature`/`resolution`/`contagion`, at four times the
  * size, and it is why this gate counts hooks as well as fields.

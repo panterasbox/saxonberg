@@ -261,7 +261,7 @@ Measured **21** on `design/consequence` before any build work.
 `CombatReactive` (6) and `CombatVenue` (3) are the three `@hook` surfaces
 [combat-hooks.md](./subsystems/combat-hooks.md) calls *"the wizard-facing
 combat extension grammar"* — and **not one is composed by anything that
-ships**, in the kernel or in any of the 42 packs. The grammar is
+ships**, in the kernel or in any of the 43 packs. The grammar is
 complete, documented, and spoken by nobody. `KNOWN_EXTENSION_ONLY` is
 **empty on purpose**, so the first allowlisting is a diff somebody has to
 defend.

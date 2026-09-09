@@ -2016,6 +2016,45 @@ reader).
 
 *Commit.* `build(consequence W13): analyze patient, the Tariff, and the first clinic`
 
+✅ **Done.** 8 Tariff tests; 34 gates; 4592 near tests.
+
+**Kernel.** `PricedOfferMixin.collect(key, reason)` (the settlement path
+lifted out of `OrderController.charge`); `/platform/thing/Tariff` with a
+closed `SERVICE_KINDS`; the `OrderController` service branch;
+`ConditionCatalogue.roster()`; the `act.service` topic; `menu` reads a
+tariff.
+
+**Pack.** `trade-medicine` — pack.yaml, package.json, tsconfig, README,
+`AnalyzePatientController`, and the `analyze patient` stanza on the
+platform's `analyze.yaml`. **Venue:** the Terminus infirmary — zone,
+business, ward, tariff, cot, cabinet, physician, and a `northeast` off
+Counting-House Row, which had a bank, a store and a realty office and
+nowhere at all to be seen to.
+
+#### ⚠⚠ Three plan assumptions the code corrected
+
+1. **`revive` is not buildable as a service**, and the reason is doctrine.
+   `requiresEmbodied` names *buy* among the acts a shade loses — *"Death
+   costs embodied agency and the price of coming back; it never costs a
+   seat as a person."* A shade cannot purchase anything. `treatment` takes
+   its place, where the customer and the patient are the same body — the
+   only shape the payer rule allows. → mortality-slate.
+2. **`collect` takes no customer.** `BankingLogic.settle` derives the
+   payer from execution context; there is no payer parameter. So a
+   service is *bought* through `order`, not billed to a bystander
+   mid-`treat`. Letting a player initiate a debit against another player
+   is a consent question far larger than a priced clinic.
+3. **The stanza lives in the platform's `analyze.yaml`**, not as a pack
+   overlay — that is how `analyze ground`, `analyze soil` and `analyze
+   water` already ship. The plan's overlay-merge risk (Risk 6) does not
+   arise; the instrumentation split is stanza-here / controller-there.
+
+⭐ **And one the parser corrected:** the service key is the first word of
+the greedy `cocktail` arg, split in the controller. A greedy arg cannot
+be followed by a bare one, so a separate `subject` arg is unparseable —
+and splitting keeps `order repair my sword` reading the way somebody
+would say it.
+
 #### W14 — the judgment loop
 
 *Goal.* Issue #38b: stop auto-selecting; the medic chooses, and can be
@@ -2044,6 +2083,21 @@ plan, and the slate keeps it.
 
 *Commit.* `build(consequence W14): the medic chooses — and can be wrong`
 
+✅ **Done.** The kill test **passes**: W11's rows leave conditions
+distinguishable by course (venom drives the heart, carbon monoxide takes
+the `spo2`, a pathogen takes the water, lead takes a band of skill), so
+W14 ships rather than being cut.
+
+`treat <target> for <condition>` — the medic names it. ⭐ **Difficulty is
+the AMBIGUITY**: how many warmed conditions could produce the signs this
+body is showing, which is a measurement of the world rather than a tag.
+Outcome is whether the named condition is one the body carries.
+
+⚠⚠ **A wrong call spends the supply, does the work properly, and changes
+nothing — and NOTHING SAYS SO.** The body says it, by still being ill
+when you look again. A game that announced the mistake would be grading
+the medic instead of letting the world do it.
+
 #### W15 — the repair shop
 
 *Goal.* Issue #39 as content over W13's primitive.
@@ -2064,6 +2118,16 @@ changes" — true of this wave); `repair` by an on-shift player smith bills
 the harness's chattel owner.
 
 *Commit.* `build(consequence W15): the repair shop — two of them, rows only`
+
+✅ **Done, and it is the second-instance test passing.** The hearthworks
+smithy gains a mending slate (one row, one `props:` line); the Rejection
+provisioning shed gains another at a different price — **zero pack code
+in either**, in a town whose pack ships no service code at all.
+
+⭐ The price difference is the content doing the work a rule would
+otherwise have to: mending at the diggings is dearer than at the
+hearthworks because the diggings are a long way from anywhere, and a
+player who does the sums walks their gear down the Delight.
 
 #### W16 — the necropolis
 
@@ -2097,6 +2161,25 @@ bereaved pays; a second necropolis is rows.
 
 *Commit.* `build(consequence W16): the necropolis — read a body before it is gone, and bury it`
 
+✅ **Done.** `Postmortem.interIn` + `interred`; `AnalyzePostmortemController`
++ the `analyze postmortem` stanza; the `forensics` Discipline; the
+Terminus necropolis (zone, business, ground, tariff, open plot,
+undertaker) off Mayfield Row.
+
+⭐⭐ **`FORENSIC_READABILITY` finally has its reader.** It shipped with the
+comment that it was *"consumed by a **future** examination surface"* and
+nothing has ever read it. The examiner sees `ceil(readability × wounds)`
+of the wounds, worst first, and **infers** the cause from those — the
+`causeOfDeath` stamp is deliberately never read. So a reading can be
+wrong, and gets worse as the body goes: somebody who wants the truth
+about a death has a reason to hurry, and somebody who does not has a
+reason to wait. That is a whole design falling out of one honest
+inference.
+
+⚠ The undertaker's `masonry` claim was **dropped**, not invented: no such
+Discipline exists, `lint:dossiers` caught it, and the honest fix is to
+claim only what the world can read back.
+
 #### W17 — the guard contract *(the finding)*
 
 *Goal.* Finding 5.2 over the board — **and it needs kernel code** (D18).
@@ -2118,6 +2201,35 @@ refused by the engagement conflict and `say` is not; the contract settles
 on the accrued hours; `lint:schema` green after `gen:schema`.
 
 *Commit.* `build(consequence W17): the guard contract — a third clause, stated loudly`
+
+✅ **Done.** 97 employment tests; 34 gates.
+
+`CONDITION_TEMPLATES` += `watch` (+ `gameHours`);
+`Condition.watchHolds`; `ContractRecord.watchedSec` + the schema doc;
+`ContractApi.noteWatch`; `WatchEngagement`; the `watch` verb, afforded by
+the credential wallet like `fulfill`; `job post watch <place> for <n>
+hours`; a `JobBoard` at the Rejection pithead.
+
+⭐⭐ **What made it checkable was giving up on intent entirely.** The
+engine cannot verify that you *protected* anything — deterrence is
+counterfactual and "attentive" is not a modelled fact. It can verify that
+you were **present, for N hours, with your hands free**, and that turns
+out to be what a guard actually sells. So a guard who served the full
+watch and was robbed blind still gets paid, for the same reason a courier
+is paid on arrival rather than on the client being pleased.
+
+⭐ **The slots ARE the contract.** `WatchEngagement` claims `body`,
+`hands`, `attention` and leaves `voice` free: everything else is refused
+by the engagement conflict rather than by a rule anybody wrote, and a
+guard who could not talk to people would be a bollard. It is the tree's
+first **pure-occupancy** engagement — the time is the whole deliverable.
+
+⚠ `Condition.watchHolds(data, watchedSec)` is deliberately not a
+`holdsFor(data, item)`: **there is no item**, and that asymmetry is the
+finding. The shipped vocabulary is *"a thing is at a place"*; a guard
+contract is *"a person was at a place, for a while"*, which the existing
+predicate cannot express however it is squeezed. Four kernel touches,
+stated loudly as the requirements asked.
 
 ### Closing
 

@@ -1,0 +1,28 @@
+# ⭐⭐ The infirmary's slate — the first `Tariff` in the world.
+#
+# A `Menu` prices recipes and a `Stock` counter prices items; neither can
+# price *something done to what you already have*. This is that: the
+# house's price for seeing to you.
+#
+# ⚠ The prices sit against the shipped anchors (stipend 20, wages 4-6 a
+# game-hour, coinage 1/5/25). Being patched up costs about two hours of
+# honest work, which is meant to be felt without being ruinous — a fight
+# you walked away from should cost you an afternoon, not a career.
+class: /platform/thing/Tariff
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: a slate of charges
+  primaryKeyword: slate
+  keywords: [slate, tariff, charges, prices, board]
+  longDescription: |
+    A slate hung by the door, ruled into two columns and written up in a small square hand. What the house does on the left; what the house charges on the right. Somebody has gone over the figures more than once with a damp cloth and written them in again a little lower.
+  prices:
+    treatment: 12
+    repair: 8
+  # What each priced key MEANS, from the kernel's closed vocabulary.
+  # `treatment` — the house sees to what is wrong with you.
+  # `repair`    — the physician's hands are steady and the surgery has a
+  #               vice; a strap, a buckle, a snapped haft gets mended.
+  services:
+    treatment: treatment
+    repair: repair

@@ -216,6 +216,31 @@ function countDeliveredItemsAt(
   return found;
 }
 
+/**
+ * ⭐⭐ Accrue watch on a claimed `watch` contract.
+ *
+ * Called by `WatchEngagement` when a stint is released — the same
+ * capture-at-dispatch / credit-at-completion shape a repair uses. Silent
+ * on anything that is not a live watch claim of this worker's: an
+ * engagement that outlived its contract must never write.
+ */
+async function noteWatchImpl(
+  contractId: string,
+  worker: Stuff,
+  gameSeconds: number,
+): Promise<void> {
+  if (!(gameSeconds > 0)) return;
+  const record = await ContractRecord.findByContractId(contractId);
+  if (!record) return;
+  if (record.state !== "claimed") return;
+  const condition = conditionOf(record);
+  if (condition?.template !== "watch") return;
+  const key = worker.getIdentityPath() ?? "";
+  if (record.claimant !== key) return;
+  record.watchedSec = (record.watchedSec ?? 0) + gameSeconds;
+  await record.save();
+}
+
 /** Whether the condition is satisfied at `dest` — one, or a tally. */
 function conditionHoldsAt(dest: Stuff, condition: ConditionData): boolean {
   if (condition.template === 'supply') {
@@ -690,7 +715,17 @@ async function completeImpl(contractId: string): Promise<CompleteResult> {
   // Verification: live `holdsFor` now, OR a sealed post-claim `fulfilled`
   // row whose actor is the completer (the payout survives state drift).
   let verified = false;
-  const dest = await resolveDestination(condition.destinationPath);
+  // ⭐ A `watch` clause verifies against the ACCRUED WATCH on the record,
+  // not against anything at a destination — there is no item to find.
+  if (condition.template === "watch") {
+    verified = Condition.watchHolds(condition, record.watchedSec ?? 0);
+    if (!verified) {
+      return { ok: false, reason: "the watch isn't served out" };
+    }
+  }
+  const dest = verified
+    ? null
+    : await resolveDestination(condition.destinationPath);
   if (dest && conditionHoldsAt(dest, condition)) verified = true;
   if (!verified && (await hasValidFulfilledRow(record, key))) verified = true;
   if (!verified) return { ok: false, reason: "the delivery isn't done" };
@@ -835,6 +870,16 @@ export class ContractLogic extends ApiLogic {
   @CallSecurity(ContractApiCallers)
   public async claim(contractId: string): Promise<ClaimResult> {
     return claimImpl(contractId);
+  }
+
+  /** See {@link ContractApi.noteWatch}. */
+  @CallSecurity(ContractApiCallers)
+  public async noteWatch(
+    contractId: string,
+    worker: Stuff,
+    gameSeconds: number,
+  ): Promise<void> {
+    return noteWatchImpl(contractId, worker, gameSeconds);
   }
 
   /** See {@link ContractApi.abandon}. */

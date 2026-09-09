@@ -1,0 +1,20 @@
+# ⭐ Services — somebody doing something to what you already have, for
+# money. A repair, a treatment, a burial.
+#
+# Its own topic rather than `act.deed` because the reading is different:
+# a deed is something YOU did, and this is something that was done for
+# you and that you paid for. A player filtering their feed for "what did
+# I accomplish" should not get an itemized bill.
+class: /platform/idea/Topic
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  topic: act.service
+  family: "act"
+  label: "Services"
+  description: "Work done for you, and what it cost. The repair, the treatment, the burial."
+  address: personal
+  actor: person
+  weight: consequence
+  audience: player
+  durable: true
+  affordance: decays

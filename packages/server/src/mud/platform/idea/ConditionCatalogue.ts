@@ -30,6 +30,7 @@ import { PostRegistrationMixin } from '../../lib/stuff/PostRegistration';
 import { StuffApi } from '../../api/stuff';
 import { Template } from '../../lib/stuff/Template';
 import { TemplatePathPrefixes } from '../../lib/paths';
+import type Condition from './Condition';
 import type { VetoResult } from '../../lib/errors';
 import type { EvictionContext } from '../../lib/stuff/Stuff';
 
@@ -60,17 +61,41 @@ export default class ConditionCatalogue extends ConditionCatalogueBase {
    * so a pack go-live can re-warm (idempotent — `singleton` no-ops rows
    * already live). Returns the count stood.
    */
+  /**
+   * ⭐ The paths this catalogue stood up. It already knows them; keeping
+   * the set costs nothing and is what makes the roster **enumerable**.
+   *
+   * ⚠ Without it, "every condition that could present like this" — the
+   * diagnostic read the medical trade is built on — has no way to ask
+   * the question, and a differential diagnosis would have to hard-code
+   * its own list of what exists. A catalogue that can warm a roster and
+   * not name it is half a catalogue.
+   */
+  private readonly paths = new Set<string>();
+
+  /** Every live condition row, in path order. */
+  public roster(): Condition[] {
+    const out: Condition[] = [];
+    for (const path of [...this.paths].sort()) {
+      const row = StuffApi.findByTemplatePath<Condition>(path);
+      if (row) out.push(row);
+    }
+    return out;
+  }
+
   public async warm(): Promise<number> {
     const templates = await Template.findDescendants(
       TemplatePathPrefixes.condition,
     );
     let stood = 0;
+    this.paths.clear();
     for (const tpl of templates) {
       // Leaf rows only — a folder row under the tree belongs to the
       // zone substrate, not to us (the MaterialCatalogue filter).
       if (tpl.class !== CONDITION_CLASS) continue;
       try {
         await StuffApi.singleton(tpl.path);
+        this.paths.add(tpl.path);
         stood++;
       } catch (err) {
         console.warn(

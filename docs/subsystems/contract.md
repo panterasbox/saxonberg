@@ -17,6 +17,44 @@ pairs), with its own gated face — `ContractApi` (`api/contract.ts`) →
 `ContractLogic` (`/platform/idea/api/contract`) beside the shipped
 `EmploymentApi`/`EmploymentLogic`.
 
+## ⭐⭐ `watch` — the third template, and the wall it came through
+
+*"Guard my shop"* was this doc's canonical example of an intent that sits
+**behind** the verifiability wall — the reason `CONDITION_TEMPLATES` is
+closed rather than authored. The consequence build asked whether it could
+be expressed on the shipped board. It could not, and saying so loudly was
+the requirement.
+
+It took **four kernel touches**: a third template with a `gameHours`
+term, a `watchedSec` accrual on `ContractRecord`, a `WatchEngagement`,
+and a `watch` verb. Stated here because "it needs engine work" is a real
+answer that the board's design was previously unable to give.
+
+⭐ **What made it checkable was giving up on intent entirely.** The engine
+cannot verify that you *protected* anything: whether a theft was deterred
+is counterfactual, and "attentive" is not a modelled fact. What it can
+verify is that you were **present, for N hours, with your hands free** —
+and that turns out to be what a guard actually sells. Somebody standing in
+the door is the product; quiet is the hoped-for consequence, not the
+deliverable.
+
+⚠ So a guard who served the full watch and was robbed blind still gets
+paid, for exactly the reason a courier is paid on arrival rather than on
+the client being pleased.
+
+⭐ **The slots ARE the contract.** `WatchEngagement` claims `body`,
+`hands` and `attention` and deliberately leaves `voice` free: hewing,
+hauling, crafting and carrying are refused by the engagement conflict
+rather than by a rule anybody wrote, and a guard who could not talk to
+people would be a bollard. It is the first **pure-occupancy** engagement
+in the tree — nothing is produced or transformed, and the time is the
+whole deliverable.
+
+⚠ Accrual banks at RELEASE, in game-seconds, on the **contract's** record
+rather than the worker's: two overlapping posts are two accruals a
+worker-side counter could not tell apart, and standing down early banks a
+short watch rather than voiding it.
+
 ## The clause primitive
 
 A **clause** is the first-class unit of work: `{shape, condition}`

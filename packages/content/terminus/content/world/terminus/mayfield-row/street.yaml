@@ -30,6 +30,12 @@ data:
     # declares `row` back.
     realty:
       destination: /world/terminus/realty/office
+    # ⭐ The necropolis, past the far end where the rock softens. Its own
+    # zone, so a named cross-zone pair with both sides explicit — the
+    # ground declares NORTHWEST back. ⚠ At the quiet end on purpose: a
+    # burial ground on the money block would be a different city.
+    graves:
+      destination: /world/terminus/necropolis/ground
     # ⭐ The tailor's, at the respectable end. Its own zone, so a named
     # cross-zone pair with both sides explicit — the shop declares
     # `row` back. ⚠ Deliberately NOT beside the mill and the dyehouse:

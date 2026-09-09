@@ -49,6 +49,11 @@ export default class CredentialWalletUpdate extends CredentialWalletMixin(
       "platform/cmd/banking/wallet.yaml",
       "platform/cmd/banking/draw.yaml",
       "platform/cmd/work/fulfill.yaml",
+      // ⭐ `watch` rides the wallet for the same reason `fulfill` does:
+      // the work travels with the WORKER, not with a fixture. A guard
+      // stands a post wherever the post is, and there may be nothing
+      // there but a doorway.
+      "platform/cmd/work/watch.yaml",
     ],
     peers: [],
     environment: [],

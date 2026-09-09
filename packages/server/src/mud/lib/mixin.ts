@@ -586,6 +586,7 @@ export const MixinRefusals: Partial<Record<MixinName, string>> = {
 
   // Bodies & behavior.
   VitalsMixin: "{} isn't alive",
+  PostmortemMixin: "{} is not a body you can examine",
   /*
    * ⚠ A measurement is taken off a BODY. `measure figure`, `cut --for`
    * and `alter --for` all read stature off the species and girth off the

@@ -1,0 +1,34 @@
+verbs: [watch]
+controller: /platform/idea/cmd/work/WatchController
+description: "Stand a guard's post — the watch a job asked for"
+help: |
+  Take up a post you have been hired to keep. `watch` stands it,
+  `watch off` stands down.
+
+  ⭐ **Standing watch is the whole of the work.** Your body, your hands
+  and your attention are taken up with it, so you cannot hew, haul,
+  craft, fight or carry anything while you are on — everything else says
+  no for you. Your VOICE stays free: a guard who cannot talk to anybody
+  is a bollard, and telling people things is most of what a guard does.
+
+  ⚠ What you are paid for is being HERE, for the hours agreed, unable to
+  be somewhere else. Not for nothing happening — whether trouble was
+  deterred is not something anybody can check, and a watch that only paid
+  when the night went badly would be a strange contract. Serve the hours
+  and the job is done, however quiet it was.
+
+  Time banks when you stand down, so standing down early is a short watch
+  rather than a wasted one. Redeem at the board with `job complete`.
+examples:
+  - cmd: watch
+    note: Take up the post you claimed
+  - cmd: watch off
+    note: Stand down, banking the hours served
+validators:
+  - /lib/command/validators/requiresAnimate
+  - /lib/command/validators/requiresConscious
+  - /lib/command/validators/requiresEmbodied
+args:
+  - name: subcommand
+    type: string
+    required: false
