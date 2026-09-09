@@ -1030,7 +1030,7 @@ costs one field read.
 
 ### W6 — the door (D3a, D3b, D7–D11, D18, D19). Two commits, one wave.
 
-**W6a — the primitive.** `FromTemplateMethod` in `SecurityPolicies.ts` +
+**W6a — the primitive. ✅ DONE.** `FromTemplateMethod` in `SecurityPolicies.ts` +
 `lib/security/__tests__/FromTemplateMethod.test.ts`: admitted from the
 named method of a stamped singleton; denied from a sibling method; denied
 from a free function under a Root frame (`ExecutionContextApi.runRoot(null,
@@ -1039,6 +1039,28 @@ shape); the glob template term; the module disambiguator (a wrong module
 denies); static-wrapper and instance-gate paths both covered.
 `lint:gates` extension. Commit `build(world-scan W6a): FromTemplateMethod —
 trust by template + function`.
+
+⚠ **Two things the tests found, both worth knowing before W6b:**
+
+1. **A free function inherits the frame of the method that called it —
+   which is the method's OWN name, not any name further up.** The first
+   draft of the test had `knockViaHelper()` call a helper and expected
+   the `knock` gate to admit it; it does not, because the frame says
+   `knockViaHelper`. The doctrine is exact: *you run as your immediate
+   dispatched caller*, and nothing more generous.
+2. **Test modules are not plugin-stamped**, so a test-local class has no
+   module id and the optional `module:` disambiguator fails closed
+   against it. The test stamps explicitly with `ModuleApi._stampForTest`.
+   Worth knowing because it means an unstamped caller is refused by the
+   module term even when template and method both match — which is the
+   right behaviour and is now pinned.
+
+`lint:gates` resolves the PAIR: the template path (with the Api-logic
+convention, `/platform/idea/api/<feature>` → `<Feature>Logic.ts`) and
+then that the file declares a public method of that name. ⭐ The method
+half is the one that matters — a mistyped module id fails loudly the
+first time, while a mistyped METHOD name denies forever while looking
+correct in the pair list.
 
 **W6b — the refusal, the two entries, the seat arm, the note, the docs.**
 Resolver mode slots + refusal + scan record; `MqlApi.resolveWorldIndexed /

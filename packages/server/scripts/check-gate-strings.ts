@@ -2,8 +2,9 @@
  * check-gate-strings — lint #1 of the surface-architecture lint family.
  *
  * Every concrete `FromModule('path#Export')` / `FromController(...)`
- * call-security policy string, and every `*_MODULE_ID`-style const that
- * holds one, must resolve to a real module + export under
+ * call-security policy string, every `FromTemplateMethod('<template>',
+ * '<method>')` PAIR, and every `*_MODULE_ID`-style const that holds one,
+ * must resolve to a real module + export under
  * `packages/server/src/` — or, for a path under a capability pack's
  * namespace root, under that pack's `src/` (content-packs, the
  * capability rung; `scripts/pack-roots.ts` is the table). This catches stale gates after a rename (the
@@ -44,6 +45,20 @@ const MUD_ROOT = join(SERVER_SRC, "mud");
 
 const POLICY_CALL = /\b(?:FromModule|FromController)\(\s*['"]([^'"]+)['"]/g;
 const MODULE_ID_CONST = /\b\w*MODULE_ID\b\s*=\s*['"]([^'"]+)['"]/g;
+/**
+ * ⭐ `FromTemplateMethod('<template>', '<method>')` — **two** strings,
+ * and the second one is the reason this matters more than the others.
+ *
+ * A mistyped module id makes a gate that never admits anybody, which at
+ * least fails loudly the first time someone tries. A mistyped METHOD
+ * name does the same thing while looking correct — the caller is right
+ * there in the pair list, and the read is simply denied forever. The
+ * registry-wide reads this policy guards are exactly the paths where a
+ * silent denial reads as "the world has no banks / no businesses / no
+ * displays", so the pair is resolved here at build time.
+ */
+const TEMPLATE_METHOD_CALL =
+  /\bFromTemplateMethod\(\s*['"]([^'"]+)['"]\s*,\s*['"]([^'"]+)['"]/g;
 
 interface Finding {
   file: string;
@@ -146,6 +161,76 @@ function checkString(raw: string, file: string, findings: Finding[], sources: re
   }
 }
 
+/**
+ * The source file backing a TEMPLATE path.
+ *
+ * Mostly the backing-class-mirrors-template-path convention, plus the
+ * one deliberate exception CLAUDE.md records: an Api logic singleton is
+ * registered at `/platform/idea/api/<feature>` while its class is
+ * `platform/idea/api/<Feature>Logic.ts` — named for the logic, not for
+ * the feature.
+ */
+export function templateFileOf(
+  templatePath: string,
+  sources: readonly PackSource[],
+  mudRoot: string = MUD_ROOT,
+): string {
+  const logic = /^\/platform\/idea\/api\/([a-z0-9][a-z0-9-]*)$/.exec(
+    templatePath,
+  );
+  if (logic) {
+    const feature = logic[1]!;
+    const pascal = feature
+      .split("-")
+      .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+      .join("");
+    return join(mudRoot, "platform", "idea", "api", `${pascal}Logic.ts`);
+  }
+  if (packOfClassPath(templatePath, sources)) {
+    return classFileOf(templatePath, sources, mudRoot);
+  }
+  return join(mudRoot, templatePath.replace(/^\//, "") + ".ts");
+}
+
+/** Does `source` declare a public method (or static) called `method`? */
+function declaresMethod(source: string, method: string): boolean {
+  const n = method.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  return new RegExp(
+    `\\bpublic\\s+(?:static\\s+)?(?:override\\s+)?(?:async\\s+)?${n}\\s*[(<]`,
+  ).test(source);
+}
+
+function checkTemplateMethod(
+  templatePath: string,
+  method: string,
+  file: string,
+  findings: Finding[],
+  sources: readonly PackSource[],
+): void {
+  const raw = `${templatePath}#${method}`;
+  // A glob names a FAMILY of templates (a base-class method inherited
+  // across controllers); there is no single file to resolve it against.
+  if (templatePath.includes("*")) return;
+  const target = templateFileOf(templatePath, sources);
+  if (!existsSync(target)) {
+    findings.push({
+      file,
+      raw,
+      reason: `no source file for template '${templatePath}' (looked at ${relative(SERVER_SRC, target)})`,
+    });
+    return;
+  }
+  if (!declaresMethod(readFileSync(target, "utf8"), method)) {
+    findings.push({
+      file,
+      raw,
+      reason:
+        `'${relative(SERVER_SRC, target)}' declares no public method ` +
+        `'${method}' — the gate would admit nobody, silently`,
+    });
+  }
+}
+
 function main(): void {
   const files: string[] = [];
   walk(MUD_ROOT, files);
@@ -163,11 +248,17 @@ function main(): void {
         checkString(m[1]!, file, findings, sources);
       }
     }
+    TEMPLATE_METHOD_CALL.lastIndex = 0;
+    let pair: RegExpExecArray | null;
+    while ((pair = TEMPLATE_METHOD_CALL.exec(source)) !== null) {
+      checkTemplateMethod(pair[1]!, pair[2]!, file, findings, sources);
+    }
   }
 
   if (findings.length === 0) {
     console.log(
-      `check-gate-strings: all FromModule/FromController gate strings resolve (${files.length} files scanned).`
+      `check-gate-strings: all FromModule/FromController/FromTemplateMethod ` +
+        `gate strings resolve (${files.length} files scanned).`
     );
     return;
   }

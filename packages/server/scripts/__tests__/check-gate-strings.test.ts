@@ -7,7 +7,7 @@
  */
 
 import { describe, it, expect } from 'vitest';
-import { gateFileOf } from '../check-gate-strings';
+import { gateFileOf, templateFileOf } from '../check-gate-strings';
 import type { PackSource } from '../pack-roots';
 
 const ARCANA: PackSource = {
@@ -37,5 +37,38 @@ describe('check-gate-strings.gateFileOf', () => {
   it('a relative gate in a kernel file resolves against the declaring dir', () => {
     const r = gateFileOf('./Sibling', `${MUD}/platform/idea/cmd/governance/OfficeController.ts`, [ARCANA], MUD);
     expect(r).toEqual({ base: `${MUD}/platform/idea/cmd/governance/Sibling` });
+  });
+});
+
+/**
+ * ⭐ `FromTemplateMethod` resolves a TEMPLATE path, which is a different
+ * namespace from a module id — and the one place they deliberately
+ * diverge is the Api logic singleton, registered at
+ * `/platform/idea/api/<feature>` while its class is named for the logic
+ * (CLAUDE.md § Backing-class path mirrors template path).
+ */
+describe('check-gate-strings.templateFileOf', () => {
+  it('maps an Api logic singleton to its <Feature>Logic class', () => {
+    expect(templateFileOf('/platform/idea/api/employment', [ARCANA], MUD)).toBe(
+      `${MUD}/platform/idea/api/EmploymentLogic.ts`,
+    );
+  });
+
+  it('handles a hyphenated feature name', () => {
+    expect(templateFileOf('/platform/idea/api/hot-reload', [ARCANA], MUD)).toBe(
+      `${MUD}/platform/idea/api/HotReloadLogic.ts`,
+    );
+  });
+
+  it('mirrors the template path for everything else', () => {
+    expect(
+      templateFileOf('/platform/idea/cmd/civics/TitleController', [ARCANA], MUD),
+    ).toBe(`${MUD}/platform/idea/cmd/civics/TitleController.ts`);
+  });
+
+  it('resolves a pack template into the pack src/', () => {
+    expect(templateFileOf('/system/arcana/idea/Grimoire', [ARCANA], MUD)).toBe(
+      `${ARCANA.srcDir}/idea/Grimoire.ts`,
+    );
   });
 });
