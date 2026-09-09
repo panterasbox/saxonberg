@@ -81,7 +81,7 @@ const REPO = join(here, "..", "..", "..");
  * same shape as `signature`/`resolution`/`contagion`, at four times the
  * size, and it is why this gate counts hooks as well as fields.
  */
-const SEAM_CEILING = 21;
+const SEAM_CEILING = 19;
 
 /**
  * Seams that are deliberately extension-only: shipped for an author or a
