@@ -242,30 +242,47 @@ existing trie and is very often the cheapest honest rung —
 index at all.
 
 **3. Only then, the index.** When the population genuinely is global AND
-selective — every `PersistableMixin`, every `BankMixin` — the read goes
-through `MqlApi.resolveWorldIndexed`, which is gated to a list of
-`(template, method)` pairs declared beside it in `api/mql.ts`, and which
-accepts **only** the shape the registry's composition index answers:
-`world` at the chain head followed immediately by `[mixin.X]`.
+selective — every `PersistableMixin`, every `BankMixin` — ask the
+REGISTRY, not the query language:
 
 ```typescript
 // The ONLY sanctioned registry-wide read, and only from a method the
 // pair list names.
-const hosts = MqlApi.resolveWorldIndexed('world:[mixin.PersistableMixin]', {
-  commandGiver: null,
-  scope: 'world',
-});
+const hosts = StuffApi.findByMixin('PersistableMixin');
 ```
+
+⭐ **Note what it is NOT: a query.** Every one of the engine's eleven
+wide reads asked for exactly `world:[mixin.X]` — no chaining, no
+scoring, no viewer, no other filter. None of them wanted a query
+language; they wanted *every object composing X*, which is what this is.
+
+`findByMixin` is gated to a list of `(template, method)` pairs declared
+beside it in `api/stuff.ts` — an object is trusted for ONE function. And
+the parameter type is the second half of the guarantee: you name a
+**mixin**, so an unindexed read of the whole world is not expressible
+here at all. That used to be a runtime check inside the resolver; a
+signature is better.
 
 ⚠ **A null giver is not a grant.** System mode says *nobody is looking*;
 it never said *and therefore you may read everything*. The two happened
 to coincide, and separating them is what closed this door.
 
 **A person typing `world:` is refused**, on every surface, with one
-exception: the holder of the Prime Minister's seat, whose query resolves
-and who is **told what it cost** (a `registry-scan` note). There are no
-standing `world:` subscriptions for anybody, seat included — a
-subscription re-runs on every change and there is nobody to tell.
+exception: somebody the **executive** says may read the world — today
+the holder of the Prime Minister's seat — whose query resolves and who
+is **told what it cost** (a `registry-scan` note). There are no standing
+`world:` subscriptions for anybody, seat included — a subscription
+re-runs on every change and there is nobody to tell.
+
+⛔ **And the exemption is not a second door.** `MqlApi` is
+`resolveOne`/`resolveMany`, differing only by cardinality; the entitled
+query and the refused one go through the same one. A permission is a
+fact about *the person at the helm*, so it lives in the execution
+environment (`ExecutionContextApi.getWorldReadGrant()`, planted only by
+`CompactApi.readWorldAs`), never in a parameter the caller supplies and
+never in a specially-gated entry point. **A gate that admits one calling
+function is a calling convention standing in for an authority** — it
+says which code ran, which is exactly what you did not want to know.
 
 Enforced by `pnpm lint:world-scan` (CI-gating), which now watches both
 patterns: the raw enumeration (three sanctioned homes) and the `world:`

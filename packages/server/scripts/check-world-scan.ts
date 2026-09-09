@@ -85,23 +85,24 @@ const WORLD_QUERY = /["']world:\[/;
 const WORLD_SCOPE = /scope:\s*["']world["']/;
 
 /**
- * Files permitted to write a `world:` query or a `world` scope. Every
- * entry is either the mechanism itself or a method NAMED in
- * `RegistryWideReaders` (api/mql.ts) — the two lists move together, and
- * `lint:gates` resolves that one against the source.
+ * Files permitted to write a `world:` query or a `world` scope — the
+ * mechanism, and nothing else.
+ *
+ * ⭐ It used to name nine engine files as well. It does not any more,
+ * because none of them writes a query: every one of the realm's own
+ * registry-wide reads was `world:[mixin.X]`, which is
+ * `StuffApi.findByMixin` with extra steps. They ask the registry
+ * directly, so `world:` is now purely a thing a PERSON can type — and
+ * the only person who may is the office holder.
  */
 const WORLD_QUERY_ALLOWLIST = [
-  /\/mud\/api\/mql\.ts$/, // the two gated entries + the pair list
-  /\/mud\/api\/mql\/resolver\.ts$/, // the seed's own implementation
-  /\/mud\/platform\/idea\/api\/PersistableLogic\.ts$/, // captureAtShutdown
-  /\/mud\/platform\/idea\/api\/AttendantLogic\.ts$/, // allPoints
-  /\/mud\/platform\/idea\/api\/BankingLogic\.ts$/, // branchOf
-  /\/mud\/platform\/idea\/api\/EmploymentLogic\.ts$/, // allBusinesses · employeesOf · findOrganization
-  /\/mud\/platform\/idea\/api\/PressLogic\.ts$/, // holdsAnyPublishingPosition
-  /\/mud\/lib\/residency\/Census\.ts$/, // takeCensus · spawnNow
-  /\/mud\/platform\/idea\/api\/MagicLogic\.ts$/, // decoyNameFor
-  /\/mud\/lib\/command\/CommandController\.ts$/, // resolveScreen
+  // ⭐ ONE. The seed's own implementation, and nothing else in the
+  // engine. `api/mql.ts` came off this list in review round 3: with the
+  // seat entry gone there is no second door to describe, so the facade
+  // no longer names the seed at all.
+  /\/mud\/api\/mql\/resolver\.ts$/,
 ];
+
 
 function walk(dir: string, out: string[]): void {
   for (const name of readdirSync(dir)) {

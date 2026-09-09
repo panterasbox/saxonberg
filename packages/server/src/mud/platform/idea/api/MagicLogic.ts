@@ -1777,10 +1777,7 @@ function execMisidentify(ctx: EffectContext, target: Stuff | undefined): string 
  * the population, not a roll over it.
  */
 function decoyNameForImpl(signature: string): string {
-  const others = MqlApi.resolveWorldIndexed('world:[mixin.IdentifiableMixin]', {
-    commandGiver: null,
-    scope: 'world',
-  }).stuff;
+  const others = StuffApi.findByMixin('IdentifiableMixin');
   for (const o of others) {
     if (!MixinApi.isIdentifiable(o)) continue;
     if (o.getIdentityPath() === signature) continue;

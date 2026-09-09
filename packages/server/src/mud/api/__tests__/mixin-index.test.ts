@@ -24,7 +24,6 @@ import '../../../test-bootstrap';
 import { describe, it, expect, beforeEach } from 'vitest';
 import { StuffApi } from '../stuff';
 import { MixinApi } from '../mixin';
-import { MqlApi } from '../mql';
 import { ShadowApi } from '../shadow';
 import { Idea } from '../../lib/stuff/Idea';
 import { Shadow } from '../../lib/stuff/Shadow';
@@ -55,20 +54,19 @@ const systemCtx = (): MqlContext => ({ commandGiver: null, scope: 'world' });
 /**
  * ⭐ A stand-in for a real engine reader.
  *
- * `world:[mixin.X]` is refused for everybody; the engine's own reads go
- * through `MqlApi.resolveWorldIndexed`, which admits a `(template,
- * method)` pair. So the test stands an object at one of the SHIPPED
- * pair templates with the matching method name — which means these
- * assertions exercise the gate end to end rather than around it, and
- * would fail if that pair were mistyped.
+ * The engine's registry-wide read is `StuffApi.findByMixin`, gated to a
+ * `(template, method)` pair per admitted caller. So the test stands an
+ * object at one of the SHIPPED pair templates with the matching method
+ * name — which means these assertions exercise the gate end to end
+ * rather than around it, and would fail if that pair were mistyped.
  */
 class Reader extends Idea {
-  public employeesOf(query: string): Stuff[] {
-    return MqlApi.resolveWorldIndexed(query, systemCtx()).stuff;
+  public employeesOf(mixinName: string): Stuff[] {
+    return StuffApi.findByMixin(mixinName);
   }
   /** The same call from a method the pair list does not name. */
-  public sneak(query: string): Stuff[] {
-    return MqlApi.resolveWorldIndexed(query, systemCtx()).stuff;
+  public sneak(mixinName: string): Stuff[] {
+    return StuffApi.findByMixin(mixinName);
   }
 }
 
@@ -94,8 +92,8 @@ function byWalk(mixinName: string): Set<string> {
   return out;
 }
 
-const idsOf = (query: string): Set<string> =>
-  new Set(reader().employeesOf(query).map((s) => s.stuffId));
+const idsOf = (mixinName: string): Set<string> =>
+  new Set(reader().employeesOf(mixinName).map((s) => s.stuffId));
 
 describe('the registry composition index', () => {
   beforeEach(() => {
@@ -107,24 +105,24 @@ describe('the registry composition index', () => {
     makeStuff(() => new Named());
     makeStuff(() => new Named());
     makeStuff(() => new Both());
-    expect(idsOf('world:[mixin.NamedMixin]')).toEqual(byWalk('NamedMixin'));
-    expect(idsOf('world:[mixin.ContainableMixin]')).toEqual(
+    expect(idsOf('NamedMixin')).toEqual(byWalk('NamedMixin'));
+    expect(idsOf('ContainableMixin')).toEqual(
       byWalk('ContainableMixin'),
     );
-    expect(idsOf('world:[mixin.NoSuchMixin]')).toEqual(new Set());
+    expect(idsOf('NoSuchMixin')).toEqual(new Set());
   });
 
   it('is case-insensitive, as the filter has always been', () => {
     makeStuff(() => new Named());
-    expect(idsOf('world:[mixin.namedmixin]')).toEqual(byWalk('NamedMixin'));
+    expect(idsOf('namedmixin')).toEqual(byWalk('NamedMixin'));
   });
 
   it('drops an object from its buckets when it is destroyed', async () => {
     const a = makeStuff(() => new Named());
     makeStuff(() => new Named());
-    expect(idsOf('world:[mixin.NamedMixin]').size).toBe(2);
+    expect(idsOf('NamedMixin').size).toBe(2);
     await StuffApi.destruct(a as unknown as Stuff);
-    const after = idsOf('world:[mixin.NamedMixin]');
+    const after = idsOf('NamedMixin');
     expect(after.size).toBe(1);
     expect(after.has(a.stuffId)).toBe(false);
     expect(after).toEqual(byWalk('NamedMixin'));
@@ -133,7 +131,7 @@ describe('the registry composition index', () => {
   it('starts empty after clearAll — no bucket outlives the registry', () => {
     makeStuff(() => new Named());
     StuffApi.clearAll();
-    expect(idsOf('world:[mixin.NamedMixin]')).toEqual(new Set());
+    expect(idsOf('NamedMixin')).toEqual(new Set());
   });
 
   it('⭐ is COMPOSED-only: a shadow-granted mixin does not bucket its host', async () => {
@@ -148,16 +146,7 @@ describe('the registry composition index', () => {
     // … and the index, which is about what the CLASS is, says no. That is
     // today's meaning of `world:[mixin.X]`, hardened deliberately: an
     // `[active.X]` selector is the place a runtime grant would belong.
-    expect(idsOf('world:[mixin.NamedMixin]').has(plain.stuffId)).toBe(false);
-  });
-
-  it('narrows further down the chain, unchanged', () => {
-    const named = makeStuff(() => new Named());
-    named.setName('rose');
-    makeStuff(() => new Named()).setName('daisy');
-    expect([...idsOf('world:[mixin.NamedMixin]:rose')]).toEqual([
-      named.stuffId,
-    ]);
+    expect(idsOf('NamedMixin').has(plain.stuffId)).toBe(false);
   });
 
   it('refuses a reader that is not the query engine', () => {
@@ -169,17 +158,18 @@ describe('the registry composition index', () => {
     makeStuff(() => new Named());
     // Same object, same template, one method along. The gate is on the
     // FUNCTION, which is the whole reason it is `FromTemplateMethod`.
-    expect(() => reader().sneak('world:[mixin.NamedMixin]')).toThrow();
+    expect(() => reader().sneak('NamedMixin')).toThrow();
   });
 
-  it('⚠ refuses a shape no index answers, even from an admitted reader', () => {
+  it('⭐ cannot express an unindexed read at all — the SIGNATURE is the gate', () => {
+    // Being permitted is not being permitted to walk the world. This
+    // used to be a runtime check inside the query resolver; it is now
+    // the parameter type. `findByMixin` takes a mixin NAME, so
+    // `world:[class.X]` — or bare `world` — is not something an engine
+    // reader can ask for, correctly or otherwise.
     makeStuff(() => new Named());
-    // Being permitted is not being permitted to walk the world: the
-    // engine arm is bounded to the shape the composition index answers.
-    expect(() => reader().employeesOf('world')).toThrow(/indexed/);
-    expect(() => reader().employeesOf('world:[class.Named]')).toThrow(
-      /indexed/,
-    );
+    expect(idsOf('world')).toEqual(new Set());
+    expect(idsOf('world:[class.Named]')).toEqual(new Set());
   });
 });
 

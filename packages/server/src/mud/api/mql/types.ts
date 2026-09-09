@@ -179,6 +179,8 @@ export interface MqlOne {
   stuff: Stuff | null;
   via?: MqlMatchVia;
   quantity?: MqlQuantity;
+  /** Present only when the run walked the registry — see {@link RegistryScan}. */
+  scan?: RegistryScan;
 }
 
 /**
@@ -194,14 +196,16 @@ export interface MqlMany {
   stuff: Stuff[];
   via?: MqlMatchVia;
   quantity?: MqlQuantity;
+  /** Present only when the run walked the registry — see {@link RegistryScan}. */
+  scan?: RegistryScan;
 }
 
 /**
  * ⭐ **What a registry-wide read cost**, recorded by the resolver and
  * carried back to whoever was entitled to make it.
  *
- * It exists because *"the Prime Minister may read the world"* is only a
- * defensible grant if the holder is told what they just did. `scanned`
+ * It exists because *"this person may read the world"* is only a
+ * defensible grant if they are told what they just did. `scanned`
  * is objects READ, not matched — a query that returns three things after
  * reading eighteen hundred is exactly the case worth showing.
  *
@@ -218,26 +222,6 @@ export interface RegistryScan {
   shape: string;
 }
 
-/**
- * One admitted reader's running cost, keyed by the `(template, method)`
- * pair the gate resolved — the D21 table behind `/stats`.
- *
- * ⚠ Process-local: it resets on restart and on an HMR reload of the
- * logic singleton. It answers *what is this server doing now*, never
- * *what happened last month*.
- */
-export interface RegistryReadStat {
-  /** `"<template>#<method>"`, or `"seat"` for an office holder's query. */
-  reader: string;
-  /** How many times this reader was admitted. */
-  calls: number;
-  /** Objects read across all of them. */
-  returned: number;
-  /** ⭐ The load-bearing column: the largest single read. */
-  maxReturned: number;
-  /** Wall-clock ms of the most recent read. */
-  lastAt: number;
-}
 
 /**
  * Per-field model-side wrapper for a `type: object` resolution. The

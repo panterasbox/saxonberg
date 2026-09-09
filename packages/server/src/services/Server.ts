@@ -34,7 +34,6 @@ import { WebSocketService } from './websocket/WebSocketService';
 import { AppBootstrap } from '../backend/AppBootstrap';
 import { ConnectionApi } from '../mud/api/connection';
 import { StuffApi } from '../mud/api/stuff';
-import { MqlApi } from '../mud/api/mql';
 
 /**
  * Server - Main application server.
@@ -186,7 +185,7 @@ export class Server {
         connections: ConnectionApi.getConnectionCount(),
         objects: StuffApi.getObjectCount(),
         uptime: process.uptime(),
-        registryReads: MqlApi.registryReadStats(),
+        registryReads: StuffApi.registryReadStats(),
       });
     });
 

@@ -29,6 +29,7 @@ import type {
 import { Idea } from '../stuff/Idea';
 import { MixinApi } from '../../api/mixin';
 import { MqlApi } from '../../api/mql';
+import { StuffApi } from '../../api/stuff';
 import type { Display } from '../display/Display';
 import type { Stuff } from '../stuff/Stuff';
 import type { CommandGiver } from '../command/CommandGiver';
@@ -99,10 +100,7 @@ export abstract class CommandController<
       if (await d.mayDrive(actor)) return { display: d, mode: 'hand' };
     }
     if (MixinApi.isActive(actor, 'AetherMixin')) {
-      const all = MqlApi.resolveWorldIndexed('world:[mixin.DisplayMixin]', {
-        commandGiver: null,
-        scope: 'world',
-      }).stuff.filter((s): s is Stuff & Display => MixinApi.isDisplay(s));
+      const all = StuffApi.findByMixin('DisplayMixin').filter((s): s is Stuff & Display => MixinApi.isDisplay(s));
       for (const d of all) {
         if (d.getPairing() === 'open') continue;
         if (await d.mayDrive(actor)) return { display: d, mode: 'mind' };

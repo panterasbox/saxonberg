@@ -129,8 +129,9 @@ forwarded by controllers via `ctx.note`):
   `stage` is `'desugar' | 'lex' | 'parse' | 'resolve'`.
 - `registry-scan { field, scanned, indexed, shape }` — ⭐ **the receipt
   for reading the whole realm.** `world:` is refused for everyone
-  except the holder of the Prime Minister's seat; when the holder's
-  query runs, this says what it cost. `scanned` is objects READ, not
+  except somebody the executive says may read it (today the holder of
+  the Prime Minister's seat); when their query runs, this says what it
+  cost. `scanned` is objects READ, not
   matched, and `indexed: false` means the shape answered to no index —
   the number that grows with the realm. **It does not escalate the
   status**: the command succeeded, and being told the price is not a

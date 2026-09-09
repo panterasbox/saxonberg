@@ -21,6 +21,102 @@ the numbering as **D6–D20** so waves and commits can cite either.
 
 ---
 
+## ⚠⚠ REVIEW STATE — read this first if you are picking the thread back up
+
+**MR !252** is open against master:
+https://gitlab.com/panterasbox/saxonberg/-/merge_requests/252
+Branch `design/world-scan`, worktree `build-4`. Everything below is
+committed and pushed.
+
+### Three review rounds have landed (all the user's calls, all right)
+
+1. **The two water mixins are gone.** `WithdrawingMixin` /
+   `DischargingMixin` were an interface change to stop a scan. Every
+   water work names a water-pack class in its ROW, so
+   `Template.findByClass` gives the roster — the same rows-derived shape
+   `ResidenceCatalogue` uses. See the D16 amendment below.
+2. **`MqlApi.resolveWorldIndexed` is gone.** All eleven engine callers
+   asked for exactly `world:[mixin.X]` — none wanted a query language.
+   They call `StuffApi.findByMixin(name)` now, which already existed and
+   was already gated. Consequences: the pair list moved to
+   `api/stuff.ts` beside the read; the cost table moved onto `StuffApi`
+   (both wide reads — `findByMixin` and `getAllObjects` — are the
+   registry's, so every one counts itself in one place); the resolver
+   lost its `'indexed'` mode entirely; and **Gate B became a signature**
+   — `findByMixin` takes a mixin NAME, so an unindexed engine read is
+   inexpressible rather than runtime-rejected. `world:` permitted homes
+   went from ten to two (the resolver and the seat entry).
+
+⚠ Round 2 also found a bug in the new code: `registryReadStats()` was
+handing out the LIVE mutable rows, so a caller holding a "before"
+snapshot watched it become "after". It copies now; the seat test caught
+it.
+
+3. ⭐⭐ **`MqlApi.resolveWorldForSeat` is gone, and the permission moved
+   into the environment.** The user's objection was to the *shape* of
+   the exception, not the exception: *"any permissions need to be built
+   into the engine itself. I don't want to rely on calling conventions
+   to gate special operations … the engine just needs to detect who's at
+   the helm and permit or restrict accordingly. no special payloads or
+   function calls."*
+
+   What replaced it (**D21**):
+
+   - `ExecutionContextApi.getWorldReadGrant()` — an **ambient
+     environment fact**, read off the frame chain, `null` for every
+     ordinary execution. It is the only thing the resolver consults when
+     it meets a `world` seed. The resolver's `RegistryMode` module slot
+     and the `mode` parameter on `resolveWithQuantity` are both gone.
+   - `CompactApi.readWorldAs(subject, fn)` — **the single seam where who
+     may do this is decided.** It asks the executive about the acting
+     principal and only on a yes plants the grant on a frame around
+     `fn`. Asking and granting are ONE act deliberately: a grant
+     primitive that could be planted without the question would be a
+     permission anybody in `api/**` could hand themselves. The
+     executive's answer today is its head — the Prime Minister's seat —
+     and the group-membership / per-shape carve-ups the user described
+     elaborate *inside this one method*, with nothing in the query
+     engine moving.
+   - `MqlApi` is back to `resolveOne` / `resolveMany`, differing only by
+     cardinality. `scan` rides on `MqlOne` / `MqlMany` as an optional
+     field beside `via` and `quantity` — a cost report, not a
+     permission. The entitled query and the refused one go through the
+     same door.
+   - The binder keeps catch-and-retry (so it still knows no grammar, and
+     an ordinary command still pays nothing), but the retry calls the
+     **ordinary** `resolveMany` inside the granted environment.
+
+   ⚠ One property was deliberately dropped: the per-dispatch memo of the
+   office answer. The check now happens once per *refused field* rather
+   than once per dispatch — two office reads on a two-field `world`
+   query. Reinstating it meant the binder holding authority state again,
+   which is the thing being removed, and `world` queries are
+   exceptional by construction.
+
+### Verification state
+
+- **Green before round 2**: `pnpm test` (server 1,122 files / 10,364
+  tests; client 80/999; all 25 packages) and the drive at 14/14.
+- **Since round 3**: 236 files / 2,606 tests over every affected area
+  (`api/**`, `api/mql/**`, `lib/command/**`), typecheck clean.
+  ⚠ **The FULL suite and the DRIVE have not been re-run since the
+  `resolveWorldIndexed` collapse or the round-3 change** — both are owed
+  before merge.
+
+### Also still open for the user
+
+- The **seat handoff** rests on unit tests: `office assign` reproduces
+  its documented "No such player" defect (governance.md, open since
+  2026-08-02). Drive step 14 warns and returns.
+- **Two commits are outside world-scan's subject** — `fix(posture)` (six
+  verbs whose gate named a module id that cannot exist) and `fix(packs)`
+  (a pack-shipped brain reading as dead code). Both are here because the
+  drive was the first thing to walk them; splittable on request.
+- Housekeeping left to the sweep: `docs/slates/README.md`'s row for this
+  slate is stale and sits under *Waves* rather than *Continuations*.
+
+---
+
 ## Grounding
 
 Verified this cycle by opening files. Line numbers are as of
@@ -384,6 +480,13 @@ catalogue (D13).**
 
 ### D9 — the refusal is the resolver's; the index path is the chain resolver's
 
+⚠⚠ **AMENDED by review round 3 (D21) — see REVIEW STATE.** The
+`registryMode` slot, the `'seat'` mode and `MqlApi.resolveWorldForSeat`
+are gone. The resolver now reads one ambient environment fact,
+`ExecutionContextApi.getWorldReadGrant()`, and the binder retries through
+the ordinary `resolveMany` inside a grant planted by
+`CompactApi.readWorldAs`. What follows is the wave as originally built.
+
 - `api/mql/resolver.ts`: a module-private run slot `let registryMode:
   'indexed' | 'seat' | null` + `let scan: RegistryScan | null`, set by
   `resolveWithQuantity` for the duration of one synchronous run
@@ -406,6 +509,13 @@ catalogue (D13).**
 - `resolveWithQuantity` returns `{ matches, quantity, scan? }`.
 
 ### D10 — the seat arm lives in the binder, catch-and-retry
+
+⚠⚠ **AMENDED by review round 3 (D21) — see REVIEW STATE.** The
+`registryMode` slot, the `'seat'` mode and `MqlApi.resolveWorldForSeat`
+are gone. The resolver now reads one ambient environment fact,
+`ExecutionContextApi.getWorldReadGrant()`, and the binder retries through
+the ordinary `resolveMany` inside a grant planted by
+`CompactApi.readWorldAs`. What follows is the wave as originally built.
 
 `CommandLogic.resolveModel`: the six resolve calls collapse onto one
 module-private helper `resolveScoped(raw, giver, scope, cardinality,

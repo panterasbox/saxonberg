@@ -125,22 +125,17 @@ export function resolve(query: string, ctx: MqlContext): MqlMatch[] {
 export function resolveWithQuantity(
   query: string,
   ctx: MqlContext,
-  mode: RegistryMode = null,
 ): { matches: MqlMatch[]; quantity?: MqlQuantity; scan?: RegistryScan } {
-  // ⭐ The mode is PIPELINE-INTERNAL and lives for exactly one
-  // synchronous run. It is not on `MqlContext` because a context is
-  // supplied by the caller, and a permission a caller can hand itself is
-  // not a permission. Save/restore rather than assign/clear: a predicate
-  // can re-enter `MqlApi.resolveMany`, and that nested run must be
-  // ungranted (mode `null`) rather than inheriting this one.
-  const outerMode = registryMode;
+  // ⭐ `registryScan` is a COST RECORD, not a permission — what this run
+  // read, so whoever was entitled to read it can be told. It lives for
+  // exactly one synchronous run; save/restore rather than assign/clear,
+  // because a predicate can re-enter `MqlApi.resolveMany` and the outer
+  // run's record must survive the nested one.
   const outerScan = registryScan;
-  registryMode = mode;
   registryScan = null;
   try {
     return resolveInner(query, ctx);
   } finally {
-    registryMode = outerMode;
     registryScan = outerScan;
   }
 }
@@ -225,7 +220,7 @@ function resolveChain(node: ChainNode, ctx: MqlContext): MqlMatch[] {
   } else {
     // The index-answerable shape. Still refused when nothing granted the
     // read — being cheap is not being permitted.
-    if (registryMode === null) {
+    if (!mayReadWorld()) {
       throw new MqlPermissionError(WORLD_REFUSED, 'world');
     }
     const bucket = StuffApi.findByMixin(indexed);
@@ -274,20 +269,32 @@ function indexedWorldSeed(node: ChainNode): string | null {
 }
 
 /**
- * ⭐⭐ **The registry-read grant for ONE synchronous run.**
+ * ⭐⭐ **May whoever is running right now read the whole world?**
  *
- * `null` — the ordinary state, and the state every player-typed query
- * runs in. The `world` seed refuses.
- * `'indexed'` — the engine's own read, admitted only in the one shape
- * the composition index answers (`world:[mixin.X]`).
- * `'seat'` — the office holder's typed query. Any `world` shape
- * resolves, and what it cost is recorded so they can be told.
+ * The resolver asks the *environment*, and nothing else. Not a flag on
+ * `MqlContext` — a context is supplied by the caller, and a permission
+ * a caller can hand itself is not a permission. Not the shape of the
+ * call stack either — which function called says nothing about the
+ * person acting.
  *
- * Module scope DECLARES; `resolveWithQuantity` assigns at call time and
- * restores in a `finally`.
+ * The grant is planted by `CompactApi.readWorldAs`, and only on the far
+ * side of the executive being asked about the acting principal. So a
+ * `true` here means a real authority said yes about a real person, and
+ * every question of *who* may do this — the seat today, group
+ * membership or per-shape carve-ups tomorrow — is answered in that one
+ * method with nothing in the query engine moving.
+ *
+ * ⭐ There is no engine grant. The realm's own bookkeeping never wanted
+ * a query — every one of its eleven reads was `world:[mixin.X]`, which
+ * is `StuffApi.findByMixin` with extra steps. They ask the registry
+ * directly now, and the query engine is back to being only a query
+ * engine.
  */
-type RegistryMode = 'indexed' | 'seat' | null;
-let registryMode: RegistryMode = null;
+function mayReadWorld(): boolean {
+  return ExecutionContextApi.getWorldReadGrant() !== null;
+}
+
+/** What this run read, recorded so an entitled reader can be told. */
 let registryScan: RegistryScan | null = null;
 
 /**
@@ -299,11 +306,6 @@ const WORLD_REFUSED =
   "'world' is not available here — anchor the query (reachable, here, " +
   'person, inventory, online) or use a /path glob.';
 
-/** The engine's refusal: it may read the registry, but only by index. */
-const WORLD_NOT_INDEXED =
-  "'world' is readable here only as an indexed query — write " +
-  'world:[mixin.X], a composition filter immediately after the seed.';
-
 /**
  * The whole registry, for a caller entitled to it — and a record of what
  * that cost. Throws for everyone else.
@@ -312,10 +314,7 @@ const WORLD_NOT_INDEXED =
  * names the query they actually wrote.
  */
 function wholeRegistry(shape: string): Stuff[] {
-  if (registryMode === null) throw new MqlPermissionError(WORLD_REFUSED, 'world');
-  if (registryMode === 'indexed') {
-    throw new MqlPermissionError(WORLD_NOT_INDEXED, 'world');
-  }
+  if (!mayReadWorld()) throw new MqlPermissionError(WORLD_REFUSED, 'world');
   const all = StuffApi.getAllObjects();
   registryScan = { scanned: all.length, indexed: false, shape };
   return all;

@@ -321,10 +321,9 @@ function rememberEmployment(
  * treating an empty set as a miss.
  */
 function fillRosters(rosters: Map<string, Set<string>>): void {
-  const actors = MqlApi.resolveWorldIndexed('world:[mixin.EmployedMixin]', {
-    commandGiver: null,
-    scope: 'world',
-  }).stuff.filter((x): x is EmployedActor => MixinApi.isEmployed(x));
+  const actors = StuffApi.findByMixin('EmployedMixin').filter(
+    (x): x is EmployedActor => MixinApi.isEmployed(x),
+  );
   for (const actor of actors) {
     const who = actor.getIdentityPath();
     if (!who) continue;
@@ -377,10 +376,7 @@ function organizationLabelImpl(body: Stuff): string {
 function findOrganizationImpl(asked: string): Stuff | null {
   const needle = needleOf(asked);
   if (!needle) return null;
-  const candidates = MqlApi.resolveWorldIndexed('world:[mixin.OrganizationMixin]', {
-    commandGiver: null,
-    scope: 'world',
-  }).stuff;
+  const candidates = StuffApi.findByMixin('OrganizationMixin');
   let loose: Stuff | null = null;
   for (const org of candidates) {
     const label = needleOf(organizationLabelImpl(org));
@@ -424,11 +420,8 @@ function employeesOfImpl(organizationPath: string): EmployedActor[] {
  * fresh.
  */
 function allBusinessesImpl(): BusinessStuff[] {
-  const matches = MqlApi.resolveWorldIndexed('world:[mixin.BusinessMixin]', {
-    commandGiver: null,
-    scope: 'world',
-  });
-  return matches.stuff.filter((s): s is BusinessStuff =>
+  const matches = StuffApi.findByMixin('BusinessMixin');
+  return matches.filter((s): s is BusinessStuff =>
     MixinApi.hasMixin(s, Mixins.Business),
   );
 }

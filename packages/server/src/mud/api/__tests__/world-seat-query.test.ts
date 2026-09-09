@@ -1,15 +1,20 @@
 /**
  * ⭐⭐ **The one exception to "nobody may read the world."**
  *
- * `world:` is refused for every typed input on every surface. The Prime
- * Minister is the exception, and the shape of that exception is the
- * decision this build took four attempts to get right, so it is pinned
+ * `world:` is refused for every typed input on every surface. The
+ * executive is the exception, and the shape of that exception is the
+ * decision this build took five attempts to get right, so it is pinned
  * here rather than described:
  *
- *  - **The seat, asked of the office, derived at the moment of asking.**
- *    Not a stored grant, not a flag, not a tier — so authority follows a
- *    handoff in BOTH directions with no restart, which is what makes it
- *    an office rather than a permission bit.
+ *  - **The permission is a fact about the PERSON, not about the call.**
+ *    There is no second resolve method and no gate on who called: the
+ *    engine asks the executive about whoever is at the helm, and the
+ *    answer rides the execution environment the query runs in. Which
+ *    door you knocked on says nothing about who you are.
+ *  - **Derived at the moment of asking.** Not a stored grant, not a
+ *    flag, not a tier — so authority follows a handoff in BOTH
+ *    directions with no restart, which is what makes it an office
+ *    rather than a permission bit.
  *  - **Catch-and-retry, in the BINDER.** The refusal is thrown by the
  *    resolver wherever `world` actually appears, and the binder — the
  *    one place a player's raw MQL enters the engine — is the one place
@@ -17,16 +22,17 @@
  *  - **Told what it cost.** A grant to read the whole realm is only
  *    defensible if the holder sees the price, so the answer arrives with
  *    a `registry-scan` note beside it.
- *  - **Asked at most once per dispatch**, however many fields bind.
+ *  - **An ordinary command pays nothing** — the executive is asked only
+ *    once a query has actually been refused.
  */
 
 import '../../../test-bootstrap';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { CommandApi, type CommandContext } from '../command';
 import { CompactApi } from '../compact';
-import { MqlApi } from '../mql';
-import { CommandDefinition } from '../../lib/command/CommandDefinition';
+import { ExecutionContextApi } from '../execution-context';
 import { StuffApi } from '../stuff';
+import { CommandDefinition } from '../../lib/command/CommandDefinition';
 import { ShadowApi } from '../shadow';
 import { EventApi } from '../event';
 import { Stuff } from '../../lib/stuff/Stuff';
@@ -119,6 +125,19 @@ function contextFor(
   });
 }
 
+/**
+ * The row a person's world query lands on in the registry's cost table.
+ * ⭐ The key is DERIVED from the call stack, not passed in — so it names
+ * the ordinary resolve entry (`…/api/mql#resolveMany`), which is the
+ * point: the entitled read and the refused one go through the same
+ * door.
+ */
+function seatStat(): { calls: number; maxReturned: number } | undefined {
+  return StuffApi.registryReadStats().find((r) =>
+    r.reader.includes('/api/mql#resolveMany'),
+  );
+}
+
 /** The notes a dispatch accumulated, by kind. */
 function notesOf(ctx: CommandContext): Array<{ kind: string; [k: string]: unknown }> {
   return (ctx as unknown as { getNotes(): Array<{ kind: string }> }).getNotes() as Array<{
@@ -192,7 +211,7 @@ describe("the Prime Minister's typed world query", () => {
     expect(scan).toMatchObject({ indexed: false, shape: 'world' });
   });
 
-  it('asks the office at most ONCE per dispatch, however many fields bind', async () => {
+  it('asks the EXECUTIVE — about the person, once per refused field', async () => {
     const { avatar, location } = await setup();
     const holds = vi.spyOn(CompactApi, 'holdsOffice').mockResolvedValue(true);
     const ctx = contextFor(avatar, location, TWO_FIELD_SPEC, 'pair');
@@ -202,11 +221,32 @@ describe("the Prime Minister's typed world query", () => {
       ctx,
     );
 
-    expect(holds).toHaveBeenCalledTimes(1);
-    expect(holds).toHaveBeenCalledWith(expect.anything(), 'prime-minister');
+    // ⭐ The subject is the giver, and the question is the executive's
+    // — the head of it today. Both fields were refused, so both asked.
+    expect(holds).toHaveBeenCalledTimes(2);
+    expect(holds).toHaveBeenCalledWith(avatar, 'prime-minister');
   });
 
-  it('costs an ordinary command nothing — the office is asked only on a refusal', async () => {
+  it('⛔ the grant does not outlive the query that earned it', async () => {
+    // The environment carries the permission, so the one thing that
+    // must never happen is it leaking past the retry into the rest of
+    // the dispatch — or into the next one.
+    const { avatar, location } = await setup();
+    vi.spyOn(CompactApi, 'holdsOffice').mockResolvedValue(true);
+    await CommandApi.resolveModel(
+      { target: 'world' },
+      contextFor(avatar, location, SPEC, 'poke'),
+    );
+
+    expect(ExecutionContextApi.getWorldReadGrant()).toBeNull();
+
+    vi.spyOn(CompactApi, 'holdsOffice').mockResolvedValue(false);
+    const ctx = contextFor(avatar, location, SPEC, 'poke');
+    const out = await CommandApi.resolveModel({ target: 'world' }, ctx);
+    expect(out).toEqual({ result: 'failed' });
+  });
+
+  it('costs an ordinary command nothing — the executive is asked only on a refusal', async () => {
     const { avatar, location } = await setup();
     const holds = vi.spyOn(CompactApi, 'holdsOffice').mockResolvedValue(false);
     const ctx = contextFor(avatar, location, SPEC, 'poke');
@@ -221,27 +261,29 @@ describe("the Prime Minister's typed world query", () => {
     vi.spyOn(CompactApi, 'holdsOffice').mockResolvedValue(true);
     const ctx = contextFor(avatar, location, SPEC, 'poke');
 
-    const before = MqlApi.registryReadStats().find((r) => r.reader === 'seat');
+    const before = seatStat();
     await CommandApi.resolveModel({ target: 'world' }, ctx);
-    const after = MqlApi.registryReadStats().find((r) => r.reader === 'seat');
+    const after = seatStat();
 
     expect(after).toBeDefined();
+    // ⚠ A snapshot, not a live row — `registryReadStats` copies, and
+    // this comparison is what proved it must.
     expect(after!.calls).toBe((before?.calls ?? 0) + 1);
     expect(after!.maxReturned).toBeGreaterThan(0);
-    // A person's costly queries sit in the same table as the engine's,
-    // rather than only in their own response.
-    expect(after!.reader).toBe('seat');
+    // A person's costly queries sit in the SAME table as the engine's,
+    // rather than only in their own response — the registry counts
+    // every wide read of itself, whoever asked.
   });
 
   it('a DENIED read is not counted — a gate failure is not a cost', async () => {
     const { avatar, location } = await setup();
     vi.spyOn(CompactApi, 'holdsOffice').mockResolvedValue(false);
-    const before = MqlApi.registryReadStats().find((r) => r.reader === 'seat');
+    const before = seatStat();
     const ctx = contextFor(avatar, location, SPEC, 'poke');
 
     await CommandApi.resolveModel({ target: 'world' }, ctx);
 
-    const after = MqlApi.registryReadStats().find((r) => r.reader === 'seat');
+    const after = seatStat();
     expect(after?.calls ?? 0).toBe(before?.calls ?? 0);
   });
 });

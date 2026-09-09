@@ -261,10 +261,18 @@ everybody else on every surface (see
 person-shaped exemption in that design, and it has three properties
 worth stating because each was a deliberate choice:
 
-- **Derived, never stored.** The binder asks `CompactApi.holdsOffice`
-  at the moment the query is refused, so the ability arrives with a
-  handoff and leaves with it, in the same act, with no restart and no
-  grant to revoke.
+- **Derived, never stored.** `CompactApi.readWorldAs` asks
+  `holdsOffice` at the moment the query is refused, so the ability
+  arrives with a handoff and leaves with it, in the same act, with no
+  restart and no grant to revoke.
+- ⭐⭐ **The executive decides, in one method.** `readWorldAs` is the
+  whole of the rule: it answers *may this person read the world*, and
+  on a yes it — and only it — plants the grant in the execution
+  environment the query runs in. Today the answer is the seat. When
+  the executive wants to carve it up (a standing group, a per-shape
+  allowance, a delegate who may scan but not act) it is carved up
+  there; the query engine reads one ambient fact and knows nothing
+  about offices.
 - **Told what it cost.** The answer carries a `registry-scan` note —
   how many objects were read, and whether any index answered. A grant
   to read the whole realm is only defensible if the holder can see the

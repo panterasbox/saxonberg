@@ -21,6 +21,7 @@ import type { Hydrator } from '../lib/stuff/Hydrator';
 import { MixinApi, type AnyConstructor } from './mixin';
 import { Mixins } from '../lib/mixin';
 import { PathTrie } from '../lib/collections/PathTrie';
+import type { RegistryReadStat } from '../lib/stuff/RegistryReadStat';
 import { ProxyApi } from './proxy';
 import {
   ExecutionContextApi,
@@ -68,6 +69,75 @@ export interface ClassResolution {
 /**
  * Static API for object management and registry.
  */
+/**
+ * ⭐⭐ **Who may read the registry wide, and from which function.**
+ *
+ * Every entry is a `(template, method)` pair: an object is trusted for
+ * ONE function, because a logic singleton has dozens and only one of
+ * them needs the reach. Declared here, beside the read it guards, so
+ * widening the set is a diff in one place.
+ *
+ * ⚠ Every pair is resolved at build time by `lint:gates` — both halves,
+ * including that the class really declares a method of that name. A
+ * mistyped method name would otherwise deny forever while looking
+ * correct in this list, and a denied engine read reads as *"the world
+ * has no banks"*.
+ */
+const RegistryWideReaders = SecurityPolicies.AnyOf(
+  // The world's persistable singletons, once, cold, at shutdown.
+  SecurityPolicies.FromTemplateMethod(
+    '/platform/idea/api/persistable',
+    'captureAtShutdown',
+  ),
+  // Storefront attention: the lease sweep and the disconnect drop.
+  SecurityPolicies.FromTemplateMethod(
+    '/platform/idea/api/attendant',
+    'allPoints',
+  ),
+  // Where an institution actually has a branch (custodian validation).
+  SecurityPolicies.FromTemplateMethod('/platform/idea/api/banking', 'branchOf'),
+  // The labour market's three: the business roster, who works at one,
+  // and finding an organization by what somebody typed.
+  SecurityPolicies.FromTemplateMethod(
+    '/platform/idea/api/employment',
+    'allBusinesses',
+  ),
+  SecurityPolicies.FromTemplateMethod(
+    '/platform/idea/api/employment',
+    'employeesOf',
+  ),
+  SecurityPolicies.FromTemplateMethod(
+    '/platform/idea/api/employment',
+    'findOrganization',
+  ),
+  // Whether a principal holds any publishing position anywhere.
+  SecurityPolicies.FromTemplateMethod(
+    '/platform/idea/api/press',
+    'holdsAnyPublishingPosition',
+  ),
+  // Items in circulation — the residency census, and the spawn sweep.
+  SecurityPolicies.FromTemplateMethod(
+    '/platform/idea/api/residency',
+    'takeCensus',
+  ),
+  SecurityPolicies.FromTemplateMethod(
+    '/platform/idea/api/residency',
+    'spawnNow',
+  ),
+  // A plausible false name, borrowed from the identifiable population.
+  SecurityPolicies.FromTemplateMethod(
+    '/platform/idea/api/magic',
+    'decoyNameFor',
+  ),
+  // ⚠ A GLOB: `resolveScreen` is a base-class method on
+  // `CommandController`, so it lives on every controller template.
+  SecurityPolicies.FromTemplateMethod('/**/idea/cmd/**', 'resolveScreen'),
+  // The query engine, for the one shape a PERSON may ask for: a
+  // `world:[mixin.X]` typed by somebody the executive has said may read
+  // the world. See `CompactApi.readWorldAs`.
+  SecurityPolicies.FromTemplate('/platform/idea/api/mql'),
+);
+
 export class StuffApi {
   /**
    * Registry of all active runtime objects, organized by lookup attribute.
@@ -1337,13 +1407,22 @@ export class StuffApi {
    * `getActiveMixins` remain the questions about an instance. That is
    * today's `world:[mixin.X]` meaning, hardened deliberately.
    *
-   * Gated to the MQL logic singleton. A public ungated reader would be a
-   * second door beside the one this build closes — the point is not that
-   * the read is expensive, it is that *being handed a slice of the world*
-   * is the thing that has to be asked for by name.
+   * ⭐⭐ **This is the engine's registry-wide read**, and the shape of
+   * the signature is the safety property: you name a MIXIN, so an
+   * unindexed read of the whole world is not expressible here at all.
+   * That used to be a runtime check inside the query resolver; a
+   * parameter type is better.
+   *
+   * Gated to {@link RegistryWideReaders} — a `(template, method)` pair
+   * per admitted caller. A public ungated reader would be a second door
+   * beside the one this build closes: the point is not that the read is
+   * expensive, it is that *being handed a slice of the world* has to be
+   * asked for by name.
    */
-  @CallSecurity(SecurityPolicies.FromTemplate('/platform/idea/api/mql'))
+  @CallSecurity(RegistryWideReaders)
   public static findByMixin(mixinName: string): Stuff[] {
+    const bucketSize = this.#indexes.byMixin.get(mixinName.toLowerCase())?.size;
+    StuffApi.#recordRead(bucketSize ?? 0);
     const bucket = this.#indexes.byMixin.get(mixinName.toLowerCase());
     if (!bucket) return [];
     const out: Stuff[] = [];
@@ -1363,6 +1442,7 @@ export class StuffApi {
    * @returns Array of all active objects
    */
   public static getAllObjects(): Stuff[] {
+    StuffApi.#recordRead(this.#indexes.byId.size);
     const objects: Stuff[] = [];
 
     for (const obj of this.#indexes.byId.values()) {
@@ -1379,6 +1459,76 @@ export class StuffApi {
     }
 
     return objects;
+  }
+
+  /**
+   * ⭐⭐ **What each registry-wide reader has read this process** —
+   * `"<template>#<method>"` → its running cost.
+   *
+   * It lives on the REGISTRY because that is where the reads are: the
+   * engine's `findByMixin` and the whole-world `getAllObjects` are both
+   * StuffApi's, so every wide read is counted in one place by
+   * construction and there is no second door to forget. The gate has
+   * already resolved the caller's identity in order to decide
+   * admission, so the key costs nothing extra.
+   *
+   * ⚠ **Process-local.** It resets on restart. A freshly-booted server
+   * reads as all zeros, which looks identical to "nothing scans" — the
+   * opposite of the finding — so read it from a server that has been up
+   * a while, and note the uptime beside it.
+   *
+   * ⭐ `maxReturned` is the load-bearing column, not `calls`: a broad
+   * category read once is the growth risk, and category size is the
+   * thing that must be re-measured rather than assumed.
+   */
+  static #registryReads = new Map<string, RegistryReadStat>();
+
+  /** Attribute one wide read to the function that asked for it. */
+  static #recordRead(returned: number): void {
+    // Inside a static Api body the top frame is this Api's own, so the
+    // caller's frame — the one the policy just matched — is below it.
+    const stack = ExecutionContextApi.getCallStack();
+    const frame = stack[stack.length - 2];
+    let reader = 'unknown';
+    if (frame) {
+      const target = frame.target as { getTemplatePath?: () => string | null };
+      let path: string | null = null;
+      try {
+        path =
+          typeof target?.getTemplatePath === 'function'
+            ? target.getTemplatePath()
+            : null;
+      } catch {
+        path = null;
+      }
+      reader = `${path ?? 'unknown'}#${frame.method}`;
+    }
+    const prior = StuffApi.#registryReads.get(reader);
+    if (prior) {
+      prior.calls += 1;
+      prior.returned += returned;
+      prior.maxReturned = Math.max(prior.maxReturned, returned);
+      prior.lastAt = Date.now();
+      return;
+    }
+    StuffApi.#registryReads.set(reader, {
+      reader,
+      calls: 1,
+      returned,
+      maxReturned: returned,
+      lastAt: Date.now(),
+    });
+  }
+
+  /** The cost table, widest single read first. See {@link RegistryReadStat}. */
+  public static registryReadStats(): readonly RegistryReadStat[] {
+    // ⚠ COPIES. The rows are mutated in place on every read, so handing
+    // out the live objects means a caller holding "before" watches it
+    // become "after" — which is not a hypothetical: it is how this was
+    // first written, and the test comparing two snapshots caught it.
+    return [...StuffApi.#registryReads.values()]
+      .map((r) => ({ ...r }))
+      .sort((a, b) => b.maxReturned - a.maxReturned);
   }
 
   /**

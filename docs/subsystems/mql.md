@@ -541,29 +541,59 @@ Built-in scopes:
 ### ⭐⭐ The registry-read grant
 
 `world` is the only seed whose cost is *the size of the realm*, so it is
-the only one that is not simply available. The resolver carries a
-**run-scoped mode**, set by whichever entry point started the run and
-restored in a `finally`:
+the only one that is not simply available. ⭐⭐ **The permission is a
+fact about the person at the helm, and it lives in the execution
+environment** — never in the Api surface, never in a parameter, never in
+the shape of the call stack:
 
-| mode | set by | `world` behaviour |
-|---|---|---|
-| `null` | `MqlApi.resolveOne` / `resolveMany` — i.e. every player-typed query, every subscription, every ordinary engine call | throws `MqlPermissionError`, naming the anchored alternatives |
-| `'indexed'` | `MqlApi.resolveWorldIndexed` | resolves **only** `world` at the head followed immediately by `[mixin.X]`, seeded from the registry's composition index. Any other shape throws |
-| `'seat'` | `MqlApi.resolveWorldForSeat` | any shape resolves; the run records a `RegistryScan` (`scanned`, `indexed`, `shape`) which the binder turns into a `registry-scan` note |
+```
+ExecutionContextApi.getWorldReadGrant()   // 'office:prime-minister' | null
+```
 
-⭐ The mode is a **module slot in the pipeline**, deliberately not a
-field on `MqlContext`: a context is supplied by the caller, and a
-permission a caller can hand itself is not a permission. It is
-saved/restored rather than assigned/cleared, so a nested
-`MqlApi.resolveMany` from inside a predicate runs **ungranted**.
+That single read is everything the resolver consults. `null` — which is
+what every ordinary execution reads — makes `world` throw
+`MqlPermissionError`, naming the anchored alternatives. Non-null lets any
+`world` shape resolve, and the run records a `RegistryScan` (`scanned`,
+`indexed`, `shape`) which the binder turns into a `registry-scan` note.
 
-Who may call the two entries is `api/mql.ts`'s business: a list of
-`(template, method)` pairs (`FromTemplateMethod`), declared beside the
-methods so widening it is a one-file diff, and resolved at build time by
-`lint:gates`. The seat entry admits exactly one function — the command
-binder's `resolveModel`, the one place a player's raw MQL enters the
-engine and the one place the office can be checked against the person
-who typed it.
+**Who may hold the grant is decided in exactly one place**:
+
+```
+CompactApi.readWorldAs(subject, fn)
+```
+
+— which asks the **executive** about `subject`, and only on a yes plants
+the grant on a frame around `fn`. Asking and granting are one act on
+purpose: a grant primitive that could be planted without the question
+would be a permission anybody in the engine could hand themselves.
+Today the executive's answer is its head, the Prime Minister's seat,
+derived at the moment of asking so authority follows a handoff in both
+directions with no restart. When the executive wants to carve it up
+further — a standing group, a per-shape allowance, a delegate who may
+scan but not act — it is carved up *there*, and nothing in the query
+engine moves.
+
+⚠ **There is no second resolve method and no caller gate.** `MqlApi` is
+`resolveOne` / `resolveMany`, differing only by cardinality; the
+entitled query and the refused one go through the same door. Two
+rejected shapes, and why:
+
+| rejected | why |
+|---|---|
+| a `permission:` field on `MqlContext` | a context is supplied by the caller, and a permission a caller can hand itself is not a permission |
+| a separate `resolveWorldForSeat` gated to the binder | that makes the permission a property of *which function called*, which says nothing about *who is acting* — a calling convention standing in for an authority |
+
+The binder's arm is **catch-and-retry**: it lets the resolver refuse
+from wherever `world` actually appears (a chain head, a mid-chain
+intersect, a scope keyword), then asks the executive and re-runs the
+same query inside the granted environment. So nothing in the binder
+knows the grammar, a new place `world` can appear is covered the day it
+exists, and an ordinary command never pays for the authority lookup.
+
+⭐ **The engine's registry reads are not here.** `StuffApi.findByMixin`
+is where they live, gated to its own `(template, method)` pair list —
+because a wide read of the registry is the registry's business, not the
+query language's, and the eleven callers never wanted a query.
 
 **The composition index** (`StuffApi.findByMixin`, maintained inside
 `register`/`unregister`) is what makes the indexed shape cheap. It is
@@ -782,9 +812,10 @@ sweeps and fixture indexes (`AttendantLogic.allPoints`,
 - ⭐ **`world` is NOT among them.** A null giver says *nobody is
   looking*; it never said *and therefore you may read everything*. The
   two coincided, and every one of the seventeen engine scans came
-  through that door. The registry read is its own grant now (above), so
-  an engine sweep says both things explicitly: null giver AND
-  `resolveWorldIndexed`;
+  through that door. ⭐ The engine does not come through it at all any
+  more: every one of those reads was `world:[mixin.X]`, which is
+  `StuffApi.findByMixin` with extra steps, so they ask the registry
+  directly and MQL is back to being only a query engine;
 - the giver-anchored seeds (`me`/`here`/`peers`/`reachable`/`person`/
   `inventory`) and the bareword predicates (`visible`/`mine`/`here`
   all read the giver) **throw** a clear resolver error — nothing

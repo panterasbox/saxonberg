@@ -54,10 +54,7 @@ let seq = 0;
  */
 class ShutdownReader extends Idea {
   public captureAtShutdown(): unknown[] {
-    return MqlApi.resolveWorldIndexed('world:[mixin.PersistableMixin]', {
-      commandGiver: null,
-      scope: 'world',
-    }).stuff.filter((s) =>
+    return StuffApi.findByMixin('PersistableMixin').filter((s) =>
       (s as unknown as { capturesAtShutdown(): boolean }).capturesAtShutdown(),
     );
   }
