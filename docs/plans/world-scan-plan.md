@@ -1135,7 +1135,7 @@ Other notes:
 - `Session.subscribe()` added to the wire harness — the drive needs to
   prove the standing-query refusal, and there was no seam for it.
 
-### W7 — the drive, the full suite, the MR
+### W7 — the drive, the full suite, the MR — ✅ DONE
 
 - Author `packages/wire/tests/world-scan.dirty.wire.test.ts` (§ Test &
   gate strategy). Run `pnpm -C packages/wire wire`; run `pnpm test` once
@@ -1143,6 +1143,14 @@ Other notes:
   re-measured `n` and the per-category `scanned` counts the seat notes
   report; push; open the MR.
 - Commit `drive(world-scan): <what driving found>`.
+
+**Done.** The drive is `world-scan.dirty.wire.test.ts` (14/14 green on
+run 5); the record is at the end of this doc. Two fixes fell out of it
+and shipped as their own commits — the posture verbs' gate
+(`fix(posture)`) and the pack installer's brain blindness
+(`fix(packs)`) — because *what the drive finds becomes more waves*.
+⚠ Both are OUTSIDE world-scan's subject; they are here because the
+drive was the first thing to walk them.
 
 ---
 
