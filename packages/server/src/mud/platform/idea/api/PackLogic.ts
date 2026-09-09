@@ -1173,6 +1173,28 @@ function staleCodeOf(pack: ResolvedPack, recorded: Record<string, string> | unde
   return Object.keys(now).filter((rel) => was[rel] !== now[rel]).sort();
 }
 
+/**
+ * Every brain path a row's `data` names. A brain is code the way a
+ * `class:` is, but it is named from inside the `behaviors[]` list, so
+ * the dead-code report has to look there too.
+ *
+ * ⚠ Other executable paths are still named in ways this does not read —
+ * the door/exit classes an institution mints, for one, which is why the
+ * residence and eternal-university packs still report four each. That
+ * is a wider fix and a slate line, not a silent widening here.
+ */
+function brainsNamedBy(data: Record<string, unknown>): string[] {
+  const behaviors = data.behaviors;
+  if (!Array.isArray(behaviors)) return [];
+  const out: string[] = [];
+  for (const entry of behaviors) {
+    if (typeof entry !== 'object' || entry === null) continue;
+    const brain = (entry as { brain?: unknown }).brain;
+    if (typeof brain === 'string' && brain.length > 0) out.push(brain);
+  }
+  return out;
+}
+
 /** The class path a pack `src/` file backs: `<root>/<rel-without-ext>`. */
 function classPathOfSrcFile(root: string, rel: string): string {
   return `${root}/${rel.replace(/\.ts$/, '')}`;
@@ -1190,6 +1212,13 @@ async function reportUnreferencedClasses(read: ReadPack[]): Promise<void> {
     for (const f of rp.content.domain) {
       named.add(f.class);
       if (f.hydratorClass) named.add(f.hydratorClass);
+      // ⚠ A BRAIN is named in `data.behaviors[].brain`, not in `class:`,
+      // so a pack that ships one read as dead code until this line
+      // existed. Found when the world-scan build moved the `maintains`
+      // brain into the residence pack and the installer immediately
+      // reported it unreferenced — while `katie.yaml` and `walter.yaml`
+      // both name it.
+      for (const brain of brainsNamedBy(f.data)) named.add(brain);
     }
   }
   for (const rp of read) {

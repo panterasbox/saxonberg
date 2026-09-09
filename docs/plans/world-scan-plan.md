@@ -1368,4 +1368,88 @@ Read first, in this order:
 
 ## Drive record
 
-*(appended at build time)*
+`packages/wire/tests/world-scan.dirty.wire.test.ts`, run against an
+owned world (`WIRE_BOOT=1`, cold boot 91.5s). **14 checks; the door's
+five all pass; the plumbing's eight all pass; the handoff half is
+blocked by a documented defect and says so.** The whole wire suite was
+run first — logistics, platform-smoke, textiles, cooking, crafting,
+farming, farmstead, food-safety, identity, metal-chain, work — and
+every one of those files passed, which is the plumbing's real
+regression evidence.
+
+### The measurements
+
+| | |
+|---|---|
+| **the registry, walked by the seat** | **1,807 objects** (requirements measured 1,785 — it grew by 22 in a week, and *it never shrinks* is the whole point) |
+| **ten `rest`/`stand` round trips** | **135–143 ms** — the path a live drive once found pinning a CPU core |
+| **shutdown sweep** | `AppBootstrap: shutdown captured 8 persistable host(s)` — the moved `captureAtShutdown` ran through its gate |
+| `world:[mixin.DoorMixin]` as the seat | `registry-scan { indexed: true }` |
+| `world` as the seat | `registry-scan { indexed: false, scanned: 1807 }` |
+
+### ⭐⭐ What the drive found that nothing else could
+
+**1. `look world:…` HANGS — a `world:` query is only usable on a plural
+view.** `look`'s `target` is `type: object` with `onExcess: prompt`, so a
+query matching 1,807 things asks the seat holder to pick one of them:
+the dispatch suspends on a prompt nobody answers, and the drive sat
+there until the 30s frame timeout. The drive now uses `find` (read-only,
+`type: objects`). ⚠ **This is a property of the seat's grant worth
+knowing and is NOT a bug in it** — the refusal, the note and the
+resolution are all correct; the verb's cardinality policy is what makes
+the answer unusable. Recorded here rather than "fixed", because
+`onExcess: prompt` is right for `look`.
+
+**2. ⭐⭐ THE SIX POSTURE VERBS WERE BROKEN, AND HAD BEEN ALL ALONG.**
+`stand` returned `controller-error`:
+
+> `Policy AnyOf(FromModule(…/StandController#StandController) | …) denied vacatePostureBearingSlots()`
+
+A module id is `<path>#<exportName>` for a NAMED export and the **bare
+path** for a DEFAULT one. All six controllers in `PostureVerbCallers`
+are default exports, so every one of those gate strings named an id that
+**cannot exist**, and the gate denied every caller. `sit`, `stand`,
+`lie`, `kneel`, `mount`, `dismount`.
+
+Why nothing caught it: 225 posture/slot unit tests pass either way,
+because they call the mixin methods directly where `SelfOnly` admits
+them; and `lint:gates` checked that the export EXISTS — which it does,
+just not under that id. Fixed, plus `lint:gates` now refuses a `#Name`
+suffix naming a default export (proved by reverting one string; four
+unit tests pin `isDefaultExport`, including the exported-both-ways
+case).
+
+⭐ **The lesson is the drive's own: a gate that fails closed fails
+SILENTLY, and only a real dispatch walks the real gate.**
+
+**3. `title list` is desk-gated**, so it answers `not-at-registry` from
+anywhere else — a drive-step error, not a code one. The step now asserts
+the controller reached its own gate; the positive (the book lists unsold
+lots, and one can be bought) is proven in the same suite by
+`farming.dirty.wire.test.ts`, which walks to the desk.
+
+**4. `office assign` reproduces its documented defect** — "No such
+player", `governance.md`'s open item since 2026-08-02. Step 14 warns
+loudly and returns rather than passing quietly. AC3's handoff half rests
+on `world-seat-query.test.ts`, which drives the binder with
+`holdsOffice` stubbed both ways and pins that the office is asked at most
+once per dispatch.
+
+**5. A cosmetic pack-installer gap**, surfaced by moving a brain into a
+pack: `PackApi: pack 'residence' ships 5 class(es) no row of any
+installed pack names: /system/residence/behavior/maintains, …`. The
+dead-code check reads `class:` / `hydratorClass:` and not
+`behaviors[].brain`, so a pack-shipped brain reads as dead even though
+`katie.yaml` and `walter.yaml` name it. Four exit classes were already
+in that warning for the same reason. **Not fixed here** — it is a
+warning about the installer's own check, and it wants a slate line.
+
+### What the walk proved about the plumbing
+
+Every rewritten path was exercised as a player: rest and stand
+(occupancy), the three locomotion modes (the path-glob mode roster),
+`wiki list` (the namespace-keyed read), `press` (the publisher roster),
+`bank` and `buy` (the branch and operator lookups), **logging out and
+back in inside a holding** (the residence roster's `admitFor`), and
+`errors` reporting no denied engine read. Plus the whole rest of the
+wire suite, unchanged and green.

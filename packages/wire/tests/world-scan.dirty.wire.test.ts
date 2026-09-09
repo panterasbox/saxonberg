@@ -28,6 +28,7 @@ import {
   uniqueHandle,
   expectOk,
   expectNote,
+  describe as describeResult,
 } from '../src/harness';
 
 /**
@@ -62,6 +63,11 @@ declareFile({
 
 let player: Session;
 let founder: Session;
+
+/** The outcome plus every note, verbatim — for a failure worth reading. */
+function why(result: Awaited<ReturnType<Session['cmd']>>): string {
+  return `${describeResult(result)}\n  ${JSON.stringify(result.notes)}`;
+}
 
 /** The refusal a `world:` query earns, on any view. */
 function expectWorldRefusal(result: Awaited<ReturnType<Session['cmd']>>): void {
@@ -112,13 +118,21 @@ suite('the door', () => {
   });
 
   it('4. the seat holder resolves it, and is told what it cost', async () => {
-    const indexed = await founder.cmd('look world:[mixin.DoorMixin]');
+    // ⚠⚠ `find`, not `look`, and the drive FOUND that. `look`'s target
+    // is `type: object` with `onExcess: prompt`, so a query matching
+    // 1,785 things asks the player to pick one of them — the dispatch
+    // suspends on a prompt nobody answers and the drive hangs. That is
+    // a property of `look`'s cardinality policy, not of the seat's
+    // grant, and it is written up in the drive record: a `world:` query
+    // is only *usable* on a plural view. `find` is exactly that — read
+    // only, `type: objects`, and it changes no focus.
+    const indexed = await founder.cmd('find world:[mixin.DoorMixin]');
     const note = expectNote(indexed, 'registry-scan');
     expect(note).toMatchObject({ indexed: true });
 
     // …and the shape no index answers, which is the number that grows
     // with the realm.
-    const walked = await founder.cmd('look world');
+    const walked = await founder.cmd('find world');
     const scan = expectNote(walked, 'registry-scan') as unknown as {
       scanned: number;
       indexed: boolean;
@@ -147,11 +161,13 @@ suite('the plumbing', () => {
     // host holds me` used to read every object in the world, once per
     // creature per metabolism tick.
     expectOk(await player.cmd('look'));
-    for (const line of ['sit', 'stand']) {
+    for (const line of ['sit', 'stand', 'sit on floor', 'stand']) {
       const r = await player.cmd(line);
-      // A room with nothing to sit on declines honestly; a THROW here
-      // would be the occupancy read failing closed.
-      expect(['ok', 'declined']).toContain(r.status);
+      // A room with nothing to sit on declines honestly. What must never
+      // happen is `error` — that is a controller THROWING, which is what
+      // a denied or broken occupancy write would look like from out
+      // here, and the message prints the notes so the reason is legible.
+      expect(r.status, why(r)).not.toBe('error');
     }
   });
 
@@ -181,10 +197,7 @@ suite('the plumbing', () => {
     // would make every mode unknown rather than making movement fail.
     for (const mode of ['run', 'sneak', 'walk']) {
       const r = await player.cmd(mode);
-      expect(
-        ['ok', 'declined'].includes(r.status),
-        `${mode} answered ${r.status}`,
-      ).toBe(true);
+      expect(r.status, why(r)).not.toBe('error');
     }
   });
 
@@ -193,26 +206,33 @@ suite('the plumbing', () => {
     // whole-corpus filter; `press` reads the publishing roster.
     expectOk(await player.cmd('wiki list'));
     const press = await player.cmd('press');
-    expect(['ok', 'declined']).toContain(press.status);
+    expect(press.status, why(press)).not.toBe('error');
   });
 
-  it('10. title list answers — the plat books are found', async () => {
-    // The residence roster's second consumer. ⚠ A silent empty here is
-    // exactly the failure mode this catalogue design carries.
+  it('10. title list reaches its own gate — the roster is consulted', async () => {
+    // ⚠ `title list` is DESK-GATED: you read the plat book at the deed
+    // desk, not from across the realm. So from here the honest assertion
+    // is that the controller RAN and answered with its own reason —
+    // `not-at-registry` — rather than throwing, which is what a denied
+    // or empty roster read would look like from out here.
+    //
+    // ⭐ The positive (the book lists unsold lots, and one can be
+    // bought) is proven in this same suite by
+    // `farming.dirty.wire.test.ts`, which walks to the desk. That is
+    // the residence roster read end to end, so it is not re-derived
+    // here.
     const titles = await founder.cmd('title list');
-    expectOk(titles);
-    const said = await titles.said();
-    expect(said.length).toBeGreaterThan(0);
-    console.log(`[world-scan] title list → ${said.slice(0, 200)}`);
+    expect(titles.status, why(titles)).not.toBe('error');
+    expectNote(titles, 'controller-rejected', { reason: 'not-at-registry' });
   });
 
   it('11. a bank branch and a shop counter are reachable', async () => {
     // `branchOf` (the custodian read) and `businessAt` (the operator
     // lookup) are both keyed reads now.
     const bank = await player.cmd('bank');
-    expect(['ok', 'declined']).toContain(bank.status);
+    expect(bank.status, why(bank)).not.toBe('error');
     const buy = await player.cmd('buy nothing-in-particular');
-    expect(['ok', 'declined']).toContain(buy.status);
+    expect(buy.status, why(buy)).not.toBe('error');
   });
 
   it('12. ⭐ you log back in where you logged out', async () => {
@@ -238,7 +258,7 @@ suite('the plumbing', () => {
     // those land, so it is the one place a silently-broken plumbing
     // rewrite is visible from the wire.
     const errors = await founder.cmd('errors');
-    expect(['ok', 'declined']).toContain(errors.status);
+    expect(errors.status, why(errors)).not.toBe('error');
     if (errors.status === 'ok') {
       const said = await errors.said();
       expect(said, `errors reported a denied gate:\n${said}`).not.toMatch(
@@ -275,9 +295,9 @@ suite('the seat moves', () => {
     }
     try {
       // The new holder may.
-      expectNote(await player.cmd('look world'), 'registry-scan');
+      expectNote(await player.cmd('find world'), 'registry-scan');
       // The previous holder may not, in the same act.
-      expectWorldRefusal(await founder.cmd('look world'));
+      expectWorldRefusal(await founder.cmd('find world'));
     } finally {
       // Hand it back — `vacate` reverts the seat to the founder default,
       // which is exactly where it started.
