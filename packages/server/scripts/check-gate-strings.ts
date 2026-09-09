@@ -152,13 +152,60 @@ function checkString(raw: string, file: string, findings: Finding[], sources: re
     });
     return;
   }
-  if (!exportsName(readFileSync(found, "utf8"), exportName)) {
+  const source = readFileSync(found, "utf8");
+  if (!exportsName(source, exportName)) {
     findings.push({
       file,
       raw,
       reason: `export '${exportName ?? "default"}' not found in '${modulePath}'`,
     });
+    return;
   }
+  // ⚠⚠ The export EXISTS but the module id has the wrong SHAPE.
+  //
+  // `ModuleApi.stamp` names a default export by its bare path and a
+  // named export as `<path>#<name>`, so `…/StandController#StandController`
+  // on a `export default class StandController` is a module id that can
+  // never exist — and a gate naming it denies EVERY caller, silently,
+  // forever.
+  //
+  // ⭐ Six gates were written that way (the posture and mount verbs),
+  // and the check above passed all six: the class is genuinely exported,
+  // just not under that id. The world-scan build's live drive found it
+  // at the first `stand` anybody had typed over the wire. This is the
+  // ratchet that stops it recurring.
+  if (exportName !== null && isDefaultExport(source, exportName)) {
+    findings.push({
+      file,
+      raw,
+      reason:
+        `'${exportName}' is the DEFAULT export of '${modulePath}', whose ` +
+        `module id is the bare path — drop the '#${exportName}' suffix, or ` +
+        `this gate admits nobody`,
+    });
+  }
+}
+
+/**
+ * Is `name` exported ONLY as the module's default? Both forms count —
+ * `export default class X` and a bare declaration followed by
+ * `export default X;` — and a class exported BOTH ways is fine, because
+ * then both module ids genuinely exist.
+ */
+export function isDefaultExport(source: string, name: string): boolean {
+  const n = name.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  const isDefault =
+    new RegExp(
+      `export\\s+default\\s+(?:abstract\\s+)?class\\s+${n}\\b`,
+    ).test(source) ||
+    new RegExp(`export\\s+default\\s+${n}\\s*;`).test(source);
+  if (!isDefault) return false;
+  const alsoNamed =
+    new RegExp(
+      `export\\s+(?:const|let|var|function|interface|type|enum|abstract\\s+class|class)\\s+${n}\\b`,
+    ).test(source) ||
+    new RegExp(`export\\s+(?:type\\s+)?\\{[^}]*\\b${n}\\b[^}]*\\}`).test(source);
+  return !alsoNamed;
 }
 
 /**

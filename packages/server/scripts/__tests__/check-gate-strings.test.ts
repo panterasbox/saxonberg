@@ -7,7 +7,11 @@
  */
 
 import { describe, it, expect } from 'vitest';
-import { gateFileOf, templateFileOf } from '../check-gate-strings';
+import {
+  gateFileOf,
+  templateFileOf,
+  isDefaultExport,
+} from '../check-gate-strings';
 import type { PackSource } from '../pack-roots';
 
 const ARCANA: PackSource = {
@@ -70,5 +74,44 @@ describe('check-gate-strings.templateFileOf', () => {
     expect(templateFileOf('/system/arcana/idea/Grimoire', [ARCANA], MUD)).toBe(
       `${ARCANA.srcDir}/idea/Grimoire.ts`,
     );
+  });
+});
+
+/**
+ * ⭐⭐ A module id is `<path>#<name>` for a NAMED export and the bare
+ * `<path>` for a DEFAULT one. A gate that writes `#Name` against a
+ * default export names an id that CANNOT EXIST — so it denies every
+ * caller, silently, forever.
+ *
+ * Six shipped gates were written that way (the posture and mount
+ * verbs); the export-exists check passed all six, because the class is
+ * genuinely exported, just not under that id. The world-scan build's
+ * live drive found it at the first `stand` anybody typed over the wire.
+ */
+describe('check-gate-strings.isDefaultExport', () => {
+  it('catches a default-exported class', () => {
+    expect(
+      isDefaultExport('export default class StandController {}', 'StandController'),
+    ).toBe(true);
+  });
+
+  it('catches the statement form too — a bare class, exported at the tail', () => {
+    expect(isDefaultExport('class Foo {}\nexport default Foo;', 'Foo')).toBe(
+      true,
+    );
+  });
+
+  it('leaves a NAMED export alone — its `#Name` id is real', () => {
+    expect(isDefaultExport('export class StuffApi {}', 'StuffApi')).toBe(false);
+    expect(isDefaultExport('export const Mixins = {};', 'Mixins')).toBe(false);
+  });
+
+  it('leaves a class exported BOTH ways alone — both ids exist', () => {
+    expect(
+      isDefaultExport('export default class Door {}\nexport { Door };', 'Door'),
+    ).toBe(false);
+    expect(
+      isDefaultExport('export class Door {}\nexport default Door;', 'Door'),
+    ).toBe(false);
   });
 });

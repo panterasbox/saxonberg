@@ -40,14 +40,31 @@ export type PostureTransferResult =
  * The posture verbs' controllers — the only legitimate posture-transfer
  * entry paths (the narrow-entry pattern; module-id strings so lib does
  * not import the controller classes).
+ *
+ * ⚠⚠ **BARE PATHS, with no `#ClassName`, and that is not a style
+ * choice.** A module id is `<path>#<exportName>` for a NAMED export and
+ * the bare `<path>` for a DEFAULT one (`ModuleApi`, `stamp`). All six of
+ * these controllers are default exports, so `…/StandController#StandController`
+ * named a module id that can never exist — and every one of these gates
+ * denied every caller, for as long as they have been written that way.
+ *
+ * ⭐ Found by the world-scan build's live drive, at the first `stand`
+ * anyone had typed over the wire: `sit`, `stand`, `lie`, `kneel`,
+ * `mount` and `dismount` all threw `controller-error`. The unit suites
+ * could not see it — they call the mixin methods directly, where
+ * `SelfOnly` admits them. ⭐⭐ **A gate that fails closed fails
+ * SILENTLY, and only a real dispatch walks the real gate.**
+ *
+ * `lint:gates` now refuses a `#Name` suffix naming a default export, so
+ * this shape cannot be written again.
  */
 const PostureVerbCallers = SecurityPolicies.AnyOf(
-  SecurityPolicies.FromModule('/platform/idea/cmd/posture/SitController#SitController'),
-  SecurityPolicies.FromModule('/platform/idea/cmd/posture/StandController#StandController'),
-  SecurityPolicies.FromModule('/platform/idea/cmd/posture/LieController#LieController'),
-  SecurityPolicies.FromModule('/platform/idea/cmd/posture/KneelController#KneelController'),
-  SecurityPolicies.FromModule('/platform/idea/cmd/movement/MountController#MountController'),
-  SecurityPolicies.FromModule('/platform/idea/cmd/movement/DismountController#DismountController'),
+  SecurityPolicies.FromModule('/platform/idea/cmd/posture/SitController'),
+  SecurityPolicies.FromModule('/platform/idea/cmd/posture/StandController'),
+  SecurityPolicies.FromModule('/platform/idea/cmd/posture/LieController'),
+  SecurityPolicies.FromModule('/platform/idea/cmd/posture/KneelController'),
+  SecurityPolicies.FromModule('/platform/idea/cmd/movement/MountController'),
+  SecurityPolicies.FromModule('/platform/idea/cmd/movement/DismountController'),
   SecurityPolicies.SelfOnly,
 );
 
