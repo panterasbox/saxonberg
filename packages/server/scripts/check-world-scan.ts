@@ -101,7 +101,6 @@ const WORLD_QUERY_ALLOWLIST = [
   /\/mud\/lib\/residency\/Census\.ts$/, // takeCensus · spawnNow
   /\/mud\/platform\/idea\/api\/MagicLogic\.ts$/, // decoyNameFor
   /\/mud\/lib\/command\/CommandController\.ts$/, // resolveScreen
-  /\/content\/water\/src\/idea\/WatercourseCatalogue\.ts$/, // worldScan
 ];
 
 function walk(dir: string, out: string[]): void {

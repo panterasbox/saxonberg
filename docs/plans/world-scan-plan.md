@@ -570,6 +570,9 @@ constant at build time (`lint:gates`, D18).
 
 - `allModes()` → `StuffApi.findByPathGlob('/platform/idea/LocomotionMode/*')`
   filtered `instanceof LocomotionMode` (rung 1; identical population).
+- ⚠⚠ **D16's water half was AMENDED at review — see below.** The
+  original text follows for the record.
+
 - Water: `content/water/src/lib/Withdrawing.ts` (`WithdrawingMixin`) and
   `content/water/src/lib/Discharging.ts` (`DischargingMixin`) declare the
   `withdrawalM3S(natural) / getReachRef()` and `dischargeLoad() /
@@ -580,6 +583,52 @@ constant at build time (`lint:gates`, D18).
   `…DischargingMixin` — still per call, never memoised (the file's own
   reasoning stands). The `getAllObjects` allowlist drops to three homes.
   ⚠ Water pack files import the kernel by package specifier only.
+
+#### ⚠⚠ D16 AMENDED (review) — the water half needs no mixin
+
+**The objection, and it was right:** *"do we really need two new mixins
+here? I didn't think we'd need any major interface changes just to
+prevent world scans."*
+
+**What the check found.** Every water work is authored per-locality
+(`/world/terminus/wharfside/thing/city-intake`) but every one names a
+**water-pack class** in `class:`. So `Template.findByClass` gives the
+roster exactly — the same rows-derived shape D13 already uses for
+`ResidenceCatalogue`, in this same build. The mixins bought
+self-declaration for a **two-class composer set inside one pack**, which
+is the thing `ManaPowered`'s own header calls out: *a capability only
+one class composes is a method on that class wearing a costume.*
+
+**What shipped instead:** `WATERWORK_CLASSES` (a two-entry list in the
+catalogue) + `Template.findByClass` at load, memoised in **its own lazy
+slot** and resolved live per read.
+
+⚠ **The slot split is not cosmetic.** The first draft folded the roster
+into the compiled reach index, and a conduit that stood up *after* the
+first flow read went invisible — the exact staleness `worldScan`'s note
+refuses ("a scan cannot go stale"). The reach graph and the roster
+expire on different clocks, so they get different slots. Caught by
+`Storage.test.ts`'s headgate check, which shuts a gate after the first
+read on purpose.
+
+**Consequences beyond water:**
+
+- the `/system/*/idea/*Catalogue#worldScan` **convention pair is gone**
+  from `RegistryWideReaders`. Water was its only candidate and no longer
+  needs it, so it was speculative surface — the requirements' own rule
+  (*a kernel-led build must name its first consumer*) applied to a pair
+  entry. A pack that genuinely needs an indexed registry read adds it
+  then, with a consumer.
+- water leaves `check-world-scan`'s `world:` allowlist as well as the
+  `getAllObjects` one.
+- four test fixtures gained a row for the works they stand up, which
+  makes them *more* honest: a conduit with no row is not in the world,
+  and now the test says so.
+
+⭐ **The general lesson, worth more than the diff:** the roster question
+is *what already knows this?* — and the answer was the content rows, in
+both the residence case and this one. Reaching for a new interface was
+the reflex; two catalogues now use one pattern instead of two.
 
 ### D17 — D4 named questions, and the whole-table gate is consumer-side
 
@@ -748,7 +797,7 @@ times.
 | `OuterWarren.holdings()` | kernel `lib/location/OuterWarren.ts` | a read of the institution's own map | — |
 | `ResidenceCatalogueView` duck shape | kernel `OuterWarren.ts` / `TitleController.ts` | the kernel meets the pack over path + shape | an import would be kernel→pack |
 | `maintains` brain | residence pack `src/behavior/` | the beat is residence-specific | in the kernel it names pack objects by string |
-| `WithdrawingMixin` / `DischargingMixin` | water pack `src/lib/` | a withdrawer/discharger declares it; composers today: `Conduit` (+ whatever the grep finds) | the ban on pack `lib/` is lifted; a kernel mixin would be substrate with a single-pack composer set |
+| ~~`WithdrawingMixin` / `DischargingMixin`~~ | **withdrawn at review** — see the D16 note | | |
 | `byOwner` / `byReach` maps, `extentsHeldBy`, `parcelsOnReach` | `ParcelRegistry` (+ `ParcelApi`) | the registry already owns the coverage trie and every write | `AccessRegistry` would be a second table |
 | `pagesIn`, `findByNamespace` | `WikiRegistry` / `WikiPage` | the wiki owns its corpus | — |
 | `named`, `isEmpty` | `HerdRegistry` (ranching pack) | — | — |
@@ -1022,11 +1071,11 @@ costs one field read.
 - `AppBootstrap`'s shutdown loop moved wholesale into
   `PersistableLogic.captureAtShutdown` — a backend class has no
   dispatched frame and could never be a recognized caller.
-- Water: `WithdrawingMixin` / `DischargingMixin` in the pack's own
-  `src/lib/`, composed by `Conduit` (both) and `ControlStructure`
-  (withdraw). The `getAllObjects` allowlist is down to **three** homes,
-  and `check-world-scan`'s header records the rule that produced that:
-  when an allowlist entry's REASON expires, the entry goes.
+- Water: ~~two declaring mixins~~ → **the content rows**, at review. See
+  the D16 amendment below. The `getAllObjects` allowlist is down to
+  **three** homes either way, and `check-world-scan`'s header records
+  the rule that produced that: when an allowlist entry's REASON expires,
+  the entry goes.
 
 ### W6 — the door (D3a, D3b, D7–D11, D18, D19). Two commits, one wave.
 

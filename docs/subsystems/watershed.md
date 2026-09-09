@@ -655,30 +655,30 @@ costs microseconds; the expensive part is the snowpack integral it calls
 per withdrawer, and that is already memoised per reach per segment.
 **Cache the expensive derivation, never the enumeration.**
 
-⭐ **It used to be a shape scan over every object in the world**, and the
-note here said why: MQL selects by **mixin**, a capability pack could not
-ship one (its module categories were branches, controllers and tests —
-no `lib/`), and the `class.X` filter matches by class *name* while three
-unrelated things in this codebase are called `Conduit`.
+⭐⭐ **It used to walk every object in the world** and duck-type each
+one for a `withdrawalM3S` — 1,807 objects to find five. It now walks
+the works the **content rows** name (`WATERWORK_CLASSES` — `Conduit`
+and `ControlStructure`) and duck-types those: the same check, over a
+set the size of the answer.
 
-The first half stopped being true when a pack gained a `lib/` of its
-own. Withdrawers and dischargers now **declare themselves** —
-`WithdrawingMixin` and `DischargingMixin` in `water/src/lib/`, composed
-by `Conduit` (both) and `ControlStructure` (withdraw only) — and the
-walk is an indexed read of exactly them, through
-`MqlApi.resolveWorldIndexed` from this method (`worldScan`, which is on
-the registry-read pair list under the system-catalogue convention).
+Nothing above changes. The ROW list is memoised — authored content only
+moves at install — while the LIVE resolution is not, so a shut sluice
+stops drawing on the very next query. ⚠ The roster has its **own** lazy
+slot rather than riding the compiled reach index: the two expire on
+different clocks, and folding them together made a conduit that stood up
+after the first flow read invisible to the river, which is precisely the
+staleness this section refuses.
 
-They are two mixins rather than one because they are two facts: a
-headgate draws and returns nothing, a stormwater outfall returns and
-draws nothing, and a conduit does both.
-
-⚠ **The trade:** an implementer that declares `withdrawalM3S` without
-composing the mixin is invisible to the river, where the shape scan
-would have found it by accident. That is a gate a reviewer sees.
-`check-world-scan`'s `getAllObjects` allowlist lost its entry for this
-file in the same change — when an allowlist entry's REASON expires, the
-entry goes.
+⚠ **And it took no new interface.** The obvious alternative was a
+`WithdrawingMixin` / `DischargingMixin` pair the works compose —
+self-declaring, and it would let a third-party pack ship a withdrawer.
+It was written and then withdrawn: two composers in one pack do not earn
+an interface (*a capability only one class composes is a method on that
+class wearing a costume*), the mechanism is this pack's so a new work is
+a local edit to `WATERWORK_CLASSES` anyway, and **"we need an interface
+change to stop a scan" is the wrong shape of answer**. The rows already
+knew. ⭐ A third pack wanting to ship a withdrawer is the signal to
+revisit that — and is the same test `lib/` substrate is promoted on.
 
 A withdrawal is sized against the **natural** (undrawn) flow, because
 sizing it against the already-drawn flow would be recursive and because

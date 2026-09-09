@@ -6,6 +6,7 @@
  * transform leaves it alone — pack code writes absolute gates).
  */
 
+import '../../src/test-bootstrap';
 import { describe, it, expect } from 'vitest';
 import {
   gateFileOf,

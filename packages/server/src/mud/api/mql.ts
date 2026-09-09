@@ -103,10 +103,14 @@ function logic(): MqlLogic {
  * correct in this list, and a denied engine read reads as *"the world
  * has no banks"*.
  *
- * ⭐ The last entry is CONVENTION-shaped rather than a named pack: any
- * system pack's catalogue may take its one indexed read from a method
- * called `worldScan`, so a new system pack needs no kernel edit. It is
- * bounded by the index-answerable rule like everybody else.
+ * ⚠ **Every entry is the KERNEL's.** A convention-shaped entry was
+ * drafted — *any system pack's catalogue, from a method called
+ * `worldScan`* — so that a pack could take an indexed registry read
+ * without a kernel edit. It is not here, because its one candidate (the
+ * water catalogue) turned out not to need a registry read at all: its
+ * subject is authored content, and the `content` rows already name it.
+ * A pack that genuinely needs one can add the entry then, with a real
+ * consumer to justify it.
  */
 const RegistryWideReaders = SecurityPolicies.AnyOf(
   // The world's persistable singletons, once, cold, at shutdown.
@@ -160,8 +164,6 @@ const RegistryWideReaders = SecurityPolicies.AnyOf(
     '/**/idea/cmd/**',
     'resolveScreen',
   ),
-  // The convention rung: a system pack's catalogue, from `worldScan`.
-  SecurityPolicies.FromTemplateMethod('/system/*/idea/*Catalogue', 'worldScan'),
 );
 
 /**

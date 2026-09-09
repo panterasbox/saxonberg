@@ -53,8 +53,6 @@
  */
 
 import Thing from '@saxonberg/server/mud/lib/stuff/Thing';
-import { WithdrawingMixin } from '../lib/Withdrawing';
-import { DischargingMixin } from '../lib/Discharging';
 import { SwitchableMixin } from '@saxonberg/server/mud/lib/boundary/Switchable';
 import { DetailedMixin } from '@saxonberg/server/mud/lib/description/Detailed';
 import { AppApi } from '@saxonberg/server/mud/api/app';
@@ -95,9 +93,7 @@ export interface ConduitReading {
   pumpWatts: number;
 }
 
-const ConduitBase = WithdrawingMixin(
-  DischargingMixin(DetailedMixin(SwitchableMixin(Thing))),
-);
+const ConduitBase = DetailedMixin(SwitchableMixin(Thing));
 
 export default class Conduit extends ConduitBase {
   static fieldMeta: FieldMeta = {
