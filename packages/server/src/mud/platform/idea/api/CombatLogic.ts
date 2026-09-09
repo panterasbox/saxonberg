@@ -78,6 +78,11 @@ import {
   type PoiseBand,
   type PoiseConfig,
 } from "../../../lib/combat/Poise";
+import {
+  Morale,
+  type MoraleBand,
+  type MoraleConfig,
+} from "../../../lib/combat/Morale";
 import { Tempo, type TempoConfig } from "../../../lib/combat/Tempo";
 import { CombatFlags } from "../../../lib/combat/CombatFlags";
 import type { RangeState } from "../../../lib/combat/CombatGraph";
@@ -295,10 +300,36 @@ export class CombatLogic extends ApiLogic {
     return bandBetweenImpl(a, b);
   }
 
+  /**
+   * The actor's live morale band, or null out of combat. Read by the
+   * `combatant` brain (which acts on it) and by `assess` (which shows it
+   * to a player, who then decides for themselves).
+   */
+  @CallSecurity(CombatantCallers)
+  public moraleBand(actor: Stuff): MoraleBand | null {
+    const session = sessionForImpl(actor);
+    const state = session?.getState(actor);
+    if (!session || !state) return null;
+    return moraleFor(session, state);
+  }
+
   @CallSecurity(CombatantCallers)
   public yieldFight(actor: Stuff): boolean {
     const session = sessionForImpl(actor);
     if (!session) return false;
+    // ⭐ **A beast does not take a yield.** Surrender is a contract, and
+    // one of the parties has to be able to hold up their end. A wolf that
+    // accepted one would be a lie the player would notice the moment it
+    // kept eating them — so the yield is refused with prose, and the
+    // non-fighter's exits against an animal are the honest ones: back
+    // down (which it ignores), run, or somebody intervening.
+    const liveFoes = session
+      .getStates()
+      .filter((st) => !st.down && st.combatant !== actor);
+    if (liveFoes.length > 0 && !liveFoes.some((st) => safeIsSentient(st.combatant))) {
+      CombatNarration.narrateYieldRefused(actor);
+      return false;
+    }
     // The yielding actor loses; the fight ends on the yield terminus.
     // ⚠ `opponentState` is null in any fight that is not exactly
     // two-sided, so a yield in a melee named nobody and fired no
@@ -464,6 +495,15 @@ function sharpnessConfig(): SharpnessConfig {
   return {
     min: dial(K.combatSharpnessMin, 0.35),
     max: dial(K.combatSharpnessMax, 1),
+  };
+}
+
+function moraleConfig(): MoraleConfig {
+  const K = AppSettingKeys;
+  return {
+    shakenAt: dial(K.combatMoraleShakenAt, 0.45),
+    breakingAt: dial(K.combatMoraleBreakingAt, 0.75),
+    lethalTermsWeight: dial(K.combatMoraleLethalWeight, 0.2),
   };
 }
 
@@ -1261,6 +1301,7 @@ function deriveState(combatant: Stuff & Engaged): CombatantState {
     // A beast's danger is its BODY, resolved here where the dial-backed
     // profile config lives; a sentient's is overwritten with the
     // snapshotted competence band by the caller (`bandFromOpts`).
+    moraleSeen: null,
     contestBand: safeIsSentient(combatant)
       ? CompetenceBand.FLOOR
       : CompetenceBand.bandFor(
@@ -2315,6 +2356,11 @@ function applyWoundToPoise(
       : report.band === "bites"
         ? dial(K.combatWoundCeilingBites, 0.85)
         : 1; // `grazes` shoves, `turned` was eaten by the covering stack
+  // How the FIGHT has gone for you — not the same question as your
+  // current poise band, and the input the morale read needs that nothing
+  // else keeps (a fighter cut three times over is in trouble even while
+  // their footing is briefly fine).
+  targetState.woundsTaken.push(report.band);
   if (mult >= 1) return;
   const before = targetState.poise.ceiling();
   targetState.poise.lowerCeiling(
@@ -3135,6 +3181,18 @@ function dispatchBandChanges(
     // fired — the next beat compares against this beat's closing band.
     const band = s.poise.band();
     const changed = band !== before[i];
+    // ⚠ Morale first, and on its OWN baseline: it moves on wounds taken,
+    // allies falling and being outnumbered, none of which change a poise
+    // band — so riding the poise comparison would silence exactly the
+    // transitions that matter most.
+    if (!s.down) {
+      const morale = moraleFor(session, s);
+      if (s.moraleSeen !== null && morale !== s.moraleSeen &&
+          Morale.rank(morale) > Morale.rank(s.moraleSeen as MoraleBand)) {
+        CombatNarration.narrateMorale(s.combatant, morale);
+      }
+      s.moraleSeen = morale;
+    }
     s.bandSeen = band;
     if (!changed) continue;
     const combatant = s.combatant;
@@ -3255,6 +3313,54 @@ function dispatchCoupBegun(
  * (the silent bleed-out / unconsciousness gap). `victim`/`killer` label
  * the loser/winner when there is one.
  */
+/**
+ * ⭐ The live morale read for one combatant — the session-side gatherer
+ * that turns the threat graph into {@link Morale}'s inputs. Pure apart
+ * from the dial reads; nothing is stored.
+ */
+function moraleFor(
+  session: CombatSession,
+  state: CombatantState,
+): MoraleBand {
+  const self = state.combatant;
+  const live = session
+    .getStates()
+    .filter((s) => !s.down && s.combatant !== self);
+  const foes = live.filter((s) => s.side !== state.side);
+  const alliesDown = session
+    .getStates()
+    .filter((s) => s.down && s.combatant !== self && s.side === state.side)
+    .length;
+  // The foe in the best shape is the frightening one — being ground down
+  // by somebody untouched is worse than trading with somebody reeling.
+  let foeBand: PoiseBand | null = null;
+  for (const f of foes) {
+    const b = f.poise.band();
+    if (!foeBand || POISE_SEVERITY[b] < POISE_SEVERITY[foeBand]) foeBand = b;
+  }
+  return Morale.bandFor(
+    state,
+    session,
+    {
+      lethal: session.getTerms().isLethalAuthorized(),
+      sentient: safeIsSentient(self),
+      foes: Math.max(1, foes.length),
+      alliesDown,
+      foeBand,
+    },
+    moraleConfig(),
+  );
+}
+
+/** Band severity for "who is in the best shape" comparisons. */
+const POISE_SEVERITY: Record<PoiseBand, number> = {
+  steady: 0,
+  pressed: 1,
+  reeling: 2,
+  broken: 3,
+  open: 4,
+};
+
 /**
  * The one combatant a yield can honestly name as the victor when the
  * session is not a clean duel: whoever last landed a blow, else the only

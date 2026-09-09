@@ -52,6 +52,23 @@ settings:
   - key: combat.wound.ceilingFloor
     value: "0.4"
 
+  # ⭐⭐ Morale — whether a fighter still wants to be in this fight.
+  # Pressure in [0, ~1.5] from poise band + trend, wounds already taken,
+  # being outnumbered, allies down, and (sentient only) lethal terms.
+  # `resolute` below shakenAt, `shaken` between, `breaking` at/above
+  # breakingAt. A brain acts on it; a player's is narrated and never
+  # seizes their decision.
+  - key: combat.morale.shakenAt
+    value: "0.45"
+
+  - key: combat.morale.breakingAt
+    value: "0.75"
+
+  # Dying is worse than losing, and a person knows it. A beast does not
+  # read terms, so this contributes nothing to one.
+  - key: combat.morale.lethalWeight
+    value: "0.2"
+
   # Ambush (stealth build): the poise an unaware defender loses at the
   # opening when struck from concealment. Poise starts at 1.0 and breaks at
   # combat.poise.brokenAt (0.25); 0.85 drops it to 0.15 < 0.25, arming the

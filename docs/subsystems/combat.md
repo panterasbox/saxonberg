@@ -110,6 +110,70 @@ of two of inverting it again. With the spend at zero and the ceiling live,
 that cell reads *better* than it did before. What a wound uniquely says is
 that **it persists**; that is the ceiling, and the ceiling is enough.
 
+## ⭐⭐ Morale — whether a fighter still wants to be in this fight
+
+`lib/combat/Morale.ts` — a **derived read, never a stored scalar**. No
+gauge, nothing to drain, nothing to buff, nothing persisting past the
+beat: a pure function of state the session already keeps, computed fresh
+whenever anybody asks. The `Sharpness` shape, and deliberately so —
+"never stored morale points" is structural here rather than a convention.
+
+**Why it exists.** `DEFAULT_TERMS.stopCondition` has always been
+`"yield"`, and **nothing ever enforced it**: no brain, no NPC and no
+content class had ever called `yieldFight` or `offerBreak`. Every fight
+ran to incapacitation whatever the terms said, and the non-fighter's only
+honest exit from violence was to win it.
+
+**What it reads** — how badly the fight has gone, which is *not* the
+question the poise band answers:
+
+- the poise band **and its trend** (`bandSeen`, the cross-beat baseline
+  the session already keeps) — reeling-and-climbing reads differently
+  from reeling-and-falling;
+- ⭐ **what you have taken** (`woundsTaken`) — a fighter cut three times
+  over with briefly-steady footing is in trouble, and no poise read can
+  say so;
+- how outnumbered you are, and whether your side is going down;
+- the best-off live foe's band — losing to somebody untouched is worse
+  than trading with somebody reeling;
+- ⭐ **the terms.** Lethal terms lower a *sentient's* break point, because
+  dying is worse than losing and a person knows it. **A beast does not
+  read terms at all.**
+
+Three bands (`resolute | shaken | breaking`) because a fourth would be a
+gauge. Dials `combat.morale.*`. Narrated on the beat it worsens
+(`CombatNarration.narrateMorale`), on its own cross-beat baseline
+(`CombatantState.moraleSeen`) — riding the poise comparison would silence
+exactly the transitions that matter, since wounds and allies falling move
+morale without moving a band.
+
+⚠ **It is not `Sharpness`'s `g(composure)`.** That seam stays inert and
+empty; it has two prior claimants (combat-experience T5, the mind slate's
+`traits-stress`) and folding morale into it would settle their question by
+accident. Morale answers *should I still be here*; sharpness answers *how
+well am I fighting*.
+
+⚠⚠ **It never seizes a player's decision.** The `combatant` brain reads
+it and acts — yields to a foe who can take one, runs from one who cannot,
+accepts a standing break offer when shaken. A player's morale is
+computed, narrated and readable, and then the player decides. The engine
+models the stakes; the choice stays theirs.
+
+### ⭐ A beast does not take a yield
+
+`yieldFight` is **refused with prose** when every live foe is
+non-sentient. Surrender is a contract and one of the parties has to be
+able to hold up their end; a wolf that accepted one would be a lie the
+player would notice the moment it kept eating them. The non-fighter's
+exits against an animal are the honest ones — back down (which it
+ignores), run, or somebody intervening.
+
+⚠ `Species.sentient` defaults **false**, correctly (a new huntable animal
+should be one row). Before this build nothing in combat read it on the
+yield path, so a test fixture with a bare `Species` was quietly a beast —
+which is why `makeFighter` in `CombatLogic.test.ts` now defaults its
+species to sentient and the cull's beast opts out explicitly.
+
 ### ⚠⚠ Two pre-existing defects the wound work measured
 
 Neither is caused by the wound ceiling — both were **already live and

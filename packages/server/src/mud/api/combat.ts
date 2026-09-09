@@ -23,6 +23,7 @@ import type { BlameVerdict } from "../lib/accountability/AccountabilityEvent";
 import type { CompetenceBandName } from "../lib/advancement/CompetenceBand";
 import type { WeaponProfile } from "../lib/combat/WeaponProfile";
 import type { RangeState } from "../lib/combat/CombatGraph";
+import type { MoraleBand } from "../lib/combat/Morale";
 import type { TermsProposal } from "../lib/combat/CombatTerms";
 import type {
   InitiateResult,
@@ -192,6 +193,18 @@ export class CombatApi {
    * the survivor; the other's beat is torn down). */
   public static merge(a: CombatSession, b: CombatSession): void {
     logic().merge(a, b);
+  }
+
+  /**
+   * The actor's live **morale band** (`resolute | shaken | breaking`), or
+   * null out of combat. A derived read over state the session already
+   * keeps — nothing is stored.
+   *
+   * ⚠ A brain reads this and *acts*; a player reads it through `assess`
+   * and decides for themselves. It never seizes a player's decision.
+   */
+  public static moraleBand(actor: Stuff): MoraleBand | null {
+    return logic().moraleBand(actor);
   }
 
   /** The actor's active combat session, or undefined. */

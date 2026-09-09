@@ -1445,6 +1445,60 @@ predicate).
 
 *Commit.* `build(consequence W4): morale as a read — an opponent that gives up`
 
+✅ **Done.** 10 Morale tests + 4 behaviour tests; 73 brain tests; 33
+gates; `test:gym` still at the master baseline.
+
+**Shipped.** `lib/combat/Morale.ts` (a pure value-object, the `Sharpness`
+file shape); `combat.morale.*` dials; `CombatantState.moraleSeen` (its
+own cross-beat baseline); `Combatant.moraleBand()` + `CombatApi`;
+`CombatNarration.narrateMorale` on the beat it worsens; the `combatant`
+brain reads it and yields / accepts a break / flees;
+`CombatNarration.narrateYieldRefused` and the beast rule.
+
+⭐ **`moraleBand` lives on the object, not on `CombatApi`, and that was
+forced by the gate.** The brain's first attempt called
+`CombatApi.moraleBand(host)` and the `CombatantCallers` policy refused it
+silently (`invokeBrain` swallows a brain's throw), so the yield never
+fired and nothing said why. Every other gated thing the brain touches it
+touches through a host method — `queueGambit`, `gambitEligibility`,
+`yieldFight`. Verbs on objects, enforced by the security layer rather
+than by remembering.
+
+#### ⚠⚠ Three measurement findings, all worth having
+
+1. **`Species.sentient` defaults FALSE** — correctly (a new huntable
+   animal should be one row), but nothing in combat had ever read it on
+   the yield path, so **every test fighter was quietly a beast.** The
+   moment a yield could be refused, six shipped tests started failing.
+   `makeFighter` now defaults its species to a person and the cull's
+   beast opts out explicitly.
+2. ⭐⭐ **The shipped `combatant` brain does not run under vitest at
+   all.** `invokeBrain` resolves the module through
+   `StuffApi.resolveExportSync`, which needs a warmed module registry a
+   unit test does not have; the resolve returns null and the call
+   silently returns. So the brain's decision is tested by **importing the
+   module and calling `act`** — which is how a brain should be tested
+   anyway (it is a pure strategy module) — and the live path belongs to
+   the drive.
+3. ⚠ **…which means the gym's `brain-vs-brain@competent` cell is really
+   "neither side queues anything".** `Policies.brain` returns `null` to
+   defer to the engine's brain, and the brain never runs. That is why W4
+   moved **no** gym pin: the balance bench has never measured brain
+   behaviour. → combat-experience-slate.
+
+#### The gym cells the plan asked for, and why they are not here
+
+D7/D8's acceptance wanted gym cells for the yield and the wolf's flight.
+Both are unreachable in the gym as it stands: its fighters carry a bare
+`Species` (so all are beasts, and a beast is refused a yield) and its
+brain policy never invokes the brain (finding 3). Making them sentient
+would move every canonical pin — destroying the byte-parity record those
+pins exist to be — so the behaviour is pinned in `CombatLogic.test.ts`
+instead: the brain yields when breaking, a yield to a beast is refused, a
+yield is accepted when *somebody* present can take one, and the read is
+live through the Api. The gym is left measuring exactly what it measured
+before.
+
 #### W5 — de-escalation
 
 *Goal.* The non-fighter's exits (D9).

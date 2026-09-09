@@ -101,6 +101,16 @@ interface FighterOpts {
   /** A second weapon in the off-hand (dual-wield). */
   offWeaponForm?: string;
   ctor?: new () => TestFighter;
+  /**
+   * ⚠ Whether this fighter's species is a **person**. Defaults true — a
+   * `TestFighter extends Character` is a person, and `Species.sentient`
+   * defaults FALSE (correctly: a new huntable animal should be one row).
+   * Before the morale build nothing read it here, so every test fighter
+   * was quietly a beast; now a yield offered to one is refused, because
+   * surrender is a contract and an animal cannot hold up its end. Tests
+   * that want an actual beast pass `sentient: false`.
+   */
+  sentient?: boolean;
 }
 
 /**
@@ -110,7 +120,7 @@ interface FighterOpts {
  * class-static seam; the arrays are cleared at each using test.
  */
 const mintedDeeds: Array<Record<string, unknown>> = [];
-const mintedSubs: Array<{ discipline: string }> = [];
+const mintedSubs: Array<{ discipline: string; outcome?: string }> = [];
 function installCreditCapture(f: TestFighter): void {
   vi.spyOn(
     f as unknown as { creditDeed(sub: unknown): Promise<void> },
@@ -162,6 +172,7 @@ function makeFighter(room: TestRoom, opts: FighterOpts = {}): TestFighter {
 
   const species = makeStuff(() => new Species());
   species.setBodyPlan(plan);
+  species.setSentient(opts.sentient ?? true);
   stampTemplatePathForTest(species, `/stuff/idea/species/test/fighter-${id}`);
 
   const f = makeStuff(() => new (opts.ctor ?? TestFighter)());
@@ -380,7 +391,7 @@ describe("CombatLogic — resolution", () => {
   it("the cull: a lethal fight resolves to death with a dead loser", () => {
     const room = makeStuff(() => new TestRoom());
     const player = makeFighter(room, { weaponForm: "bladed", weaponMaterial: steel() });
-    const beast = makeFighter(room, { natural: "point" });
+    const beast = makeFighter(room, { natural: "point", sentient: false });
     const session = open(player, beast, lethal, true);
 
     // Step the fight to resolution (bounded).
@@ -2572,5 +2583,89 @@ describe("CombatLogic — the bum's rush + the truce (the bar-fight build)", () 
     expect(CombatApi.sessionFor(c as never)).toBe(session);
     // B left the fight (its only edge dissolved).
     expect(CombatApi.sessionFor(b as never)).toBeUndefined();
+  });
+});
+
+/* ─────────────── W4: morale — an opponent that gives up ─────────────── */
+
+describe("CombatLogic — morale & surrender", () => {
+  it("⭐ the brain gives up when its morale breaks — the first caller `yield` ever had", async () => {
+    // ⚠ Driven by IMPORTING the brain and calling `act`, not by stepping
+    // the session: `invokeBrain` resolves the module through
+    // `StuffApi.resolveExportSync`, which needs a warmed module registry
+    // that a unit test does not have — so the shipped brain never runs
+    // under vitest at all. (That is also why the gym's "brain-vs-brain"
+    // cell is really "neither side queues anything".) The live path is
+    // the drive's.
+    const { brain } = await import("../../../../lib/behavior/combatant");
+    const room = makeStuff(() => new TestRoom());
+    const bully = makeFighter(room, {
+      weaponForm: "bladed",
+      weaponMaterial: steel(),
+    });
+    const victim = makeFighter(room);
+    const session = open(bully, victim, nonLethal);
+    const victimState = session.getState(victim)!;
+    // Worn down the way a fight would: guard broken, three wounds carried.
+    victimState.poise.erode(0.85, 0);
+    victimState.woundsTaken.push("bites-deep", "bites-deep", "bites");
+    expect((victim as unknown as Stuff & Combatant).moraleBand()).toBe(
+      "breaking",
+    );
+
+    brain.act({
+      host: victim as never,
+      config: {},
+      state: {},
+      perceived: undefined,
+      trigger: { source: "cadence", raw: "combat" },
+      say: () => {},
+      emote: async () => {},
+      emoteFree: () => {},
+    } as never);
+
+    expect(session.getResolution()).toBe("yield");
+    expect(victimState.down).toBe(false); // gave up BEFORE being downed
+  });
+
+  it("⚠ a yield offered to a BEAST is refused — surrender is a contract", () => {
+    const room = makeStuff(() => new TestRoom());
+    const wolf = makeFighter(room, { natural: "point", sentient: false });
+    const person = makeFighter(room);
+    const session = open(wolf, person, lethal);
+    expect(
+      (person as unknown as Stuff & Combatant).yieldFight(),
+    ).toBe(false);
+    expect(session.isActive()).toBe(true);
+    expect(session.getResolution()).toBeNull();
+  });
+
+  it("a yield to a person is accepted even with a beast also in the fight", () => {
+    // `some(sentient)` — somebody present can hold up their end of it.
+    const room = makeStuff(() => new TestRoom());
+    const bandit = makeFighter(room, { weaponForm: "bladed" });
+    const person = makeFighter(room);
+    const session = open(bandit, person, nonLethal);
+    const hound = makeFighter(room, { natural: "point", sentient: false });
+    expect(
+      CombatApi.join(hound as never, person as never, session.getTerms()).ok,
+    ).toBe(true);
+    expect((person as unknown as Stuff & Combatant).yieldFight()).toBe(true);
+    expect(session.getResolution()).toBe("yield");
+  });
+
+  it("the morale read is live and reachable through the Api", () => {
+    const room = makeStuff(() => new TestRoom());
+    const a = makeFighter(room, { weaponForm: "bladed" });
+    const b = makeFighter(room);
+    const session = open(a, b, nonLethal);
+    expect(CombatApi.moraleBand(b)).toBe("resolute");
+    const st = session.getState(b)!;
+    st.poise.erode(0.85, 0);
+    st.woundsTaken.push("bites-deep", "bites-deep");
+    expect(CombatApi.moraleBand(b)).toBe("breaking");
+    // …and null out of combat.
+    const bystander = makeFighter(room);
+    expect(CombatApi.moraleBand(bystander)).toBeNull();
   });
 });

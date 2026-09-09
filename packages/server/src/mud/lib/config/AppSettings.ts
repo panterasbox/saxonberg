@@ -794,6 +794,16 @@ export const AppSettingKeys = {
   combatWoundCeilingBitesDeep: "combat.wound.ceiling.bitesDeep",
   combatWoundCeilingFloor: "combat.wound.ceilingFloor",
   /**
+   * ⭐⭐ Combat — **the break points for the morale read.** Pressure
+   * accumulates from poise band and trend, wounds already taken, being
+   * outnumbered, allies down, and — for a sentient only — whether the
+   * terms authorize a kill. Three bands, because a fourth would be a
+   * gauge. Nothing is stored; the read is a pure function of live state.
+   */
+  combatMoraleShakenAt: "combat.morale.shakenAt",
+  combatMoraleBreakingAt: "combat.morale.breakingAt",
+  combatMoraleLethalWeight: "combat.morale.lethalWeight",
+  /**
    * Combat — the poise an **ambush** strips from an unaware defender at the
    * opening (a struck-from-concealment surprise). Large enough to cross
    * `combat.poise.brokenAt` from full poise, arming the aggressor's free

@@ -38,6 +38,7 @@ import { LETHALITIES, STOP_CONDITIONS } from "./CombatTerms";
 import { StuffApi } from "../../api/stuff";
 import { MixinApi } from "../../api/mixin";
 import { CompetenceBand } from "../advancement/CompetenceBand";
+import type { MoraleBand } from "./Morale";
 import type { Outcome, Subcheck } from "../advancement/ActSignature";
 import type {
   InitiateResult,
@@ -104,6 +105,8 @@ export interface Combatant {
   getStandingLethality(): string;
   /** The authored standing stop-condition posture (`''` = none). */
   getStandingStopCondition(): string;
+  /** This fighter's live morale band, or null out of combat. */
+  moraleBand(): MoraleBand | null;
 
   // The participant hook terminals (the combat hook grammar — every
   // combatant, player or NPC, hears the same lifecycle moments). The
@@ -451,6 +454,19 @@ export function CombatantMixin<TBase extends MixinConstructor>(Base: TBase) {
     /** Attempt-time eligibility for a gambit (capability + band + parts). */
     public gambitEligibility(gambitKey: string): GambitEligibility {
       return combatLogic().eligibilityFor(this as unknown as Stuff, gambitKey);
+    }
+
+    /**
+     * ⭐ This fighter's live **morale band** (`resolute | shaken |
+     * breaking`), or null out of combat — a derived read over state the
+     * session already keeps, never a stored gauge.
+     *
+     * ⚠ Reading it does not act on it. A brain reads this and decides; a
+     * player reads it through `assess` and decides. The engine models the
+     * stakes; the choice stays theirs.
+     */
+    public moraleBand(): MoraleBand | null {
+      return combatLogic().moraleBand(this as unknown as Stuff);
     }
 
     /** Yield — resolves the fight in the opponent's favour. */

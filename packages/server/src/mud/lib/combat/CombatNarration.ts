@@ -504,6 +504,69 @@ export class CombatNarration {
     return commandId;
   }
 
+  /**
+   * ⭐ **The morale tell** — a fighter's nerve going, in words, to
+   * everyone who can see it. `shaken` is a waver; `breaking` is visible
+   * and is what a foe reads before a yield or a rout.
+   *
+   * ⚠ For a player this is narration and nothing more. A brain acts on
+   * the same read; a player is told, and then decides. That asymmetry is
+   * the point — the engine models the stakes, the choice stays theirs.
+   */
+  static narrateMorale(combatant: Stuff, band: string): string {
+    const commandId = SecurityApi.uuid();
+    const C = Mml.actor(combatant);
+    const selfTpl =
+      band === "breaking"
+        ? "You want out of this."
+        : "Something in you wavers.";
+    const peerTpl =
+      band === "breaking"
+        ? "{{c}} is looking for a way out."
+        : "{{c}} wavers.";
+    for (const viewer of CombatNarration.witnesses(combatant)) {
+      const isSelf = (viewer as Stuff) === (combatant as Stuff);
+      try {
+        const body = ProseApi.format(isSelf ? selfTpl : peerTpl, { c: C });
+        MessageApi.scene(viewer as Stuff)
+          .topic(COMBAT_EXCHANGE_TOPIC)
+          .meta({ commandId })
+          .toSelf(body)
+          .send();
+      } catch {
+        // best-effort per-viewer relay
+      }
+    }
+    return commandId;
+  }
+
+  /**
+   * ⭐ **A yield offered to something that cannot take one.** Surrender is
+   * a contract and one of the parties has to be able to hold up their end.
+   * The refusal is prose rather than a silent no-op, because the player
+   * needs to learn the rule at the moment it matters.
+   */
+  static narrateYieldRefused(combatant: Stuff): string {
+    const commandId = SecurityApi.uuid();
+    for (const viewer of CombatNarration.witnesses(combatant)) {
+      if ((viewer as Stuff) !== (combatant as Stuff)) continue;
+      try {
+        const body = ProseApi.format(
+          "You try to give it up. It has no idea what you are offering.",
+          {},
+        );
+        MessageApi.scene(viewer as Stuff)
+          .topic(COMBAT_EXCHANGE_TOPIC)
+          .meta({ commandId })
+          .toSelf(body)
+          .send();
+      } catch {
+        // best-effort per-viewer relay
+      }
+    }
+    return commandId;
+  }
+
   /** The per-viewer resolution line (self/target/bystander voice), naming
    * the cause of the fall when there is one (no bare "cut down"). */
   private static resolutionBody(

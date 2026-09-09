@@ -202,6 +202,16 @@ export interface CombatantState {
    * `CompetenceBand.difficultyAgainst(mine, theirs)`.
    */
   contestBand: CompetenceBandName;
+  /**
+   * The morale band as of the last per-beat comparison — the same
+   * cross-beat baseline shape as {@link bandSeen}, so a fighter's nerve
+   * going is narrated once, on the beat it goes.
+   *
+   * ⚠ It needs its own baseline rather than riding the poise one: morale
+   * moves on wounds taken, allies falling and being outnumbered, none of
+   * which change a poise band.
+   */
+  moraleSeen: string | null;
 }
 
 export class CombatSession {
