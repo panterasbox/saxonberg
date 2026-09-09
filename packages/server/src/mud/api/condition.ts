@@ -11,8 +11,18 @@
  * the `VitalsMixin.afflict()` door; the wound then progresses / heals /
  * kills **reconcile-on-read** (`VitalsMixin.reconcileConditions`, the
  * metabolism / thermal / respiration precedent — no recurring push tick,
- * no re-arm seam). The facade also forwards the plain condition mutators
- * (`afflict` / `relieve`) and a query (`conditionsOf`).
+ * no re-arm seam).
+ *
+ * ⚠ **It does NOT forward `afflict` / `relieve` / `conditionsOf`**, and
+ * the header said it did for three builds after they were removed. Those
+ * are single-object mutations, so callers narrow with `MixinApi.isVitals`
+ * and call `target.afflict(...)` / `.relieve(...)` / `.getConditions()`
+ * directly — the item-1 antipattern sweep removed the thin forwarders
+ * deliberately, and `VitalsMixin.afflict` is the real door: it runs the
+ * `canAfflict` veto and, since the consequence build, stamps
+ * `inflictedBy` from execution context. Re-adding an Api tier here would
+ * cover only the drivers that remembered to use it; stamping at the
+ * object's own door covers every one of them.
  *
  * `inflict` is a **powerful primitive** — it must not be callable by
  * arbitrary content. The logic lives in the gated, hot-reloadable

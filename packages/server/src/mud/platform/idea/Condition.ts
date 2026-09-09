@@ -79,6 +79,24 @@ export interface AfflictionRecord {
    * backwards to *what you did* rather than forwards from what you feel.
    */
   symptomsAt?: number;
+  /**
+   * ⭐⭐ **Who did this** — the `templatePath` of the acting author at the
+   * moment the affliction landed, or absent when nobody did (a fever, a
+   * frostbite, the cold).
+   *
+   * The `Trauma.inflictedBy` twin, and it closes the same gap on the
+   * other half of the condition vocabulary. A wound has always known who
+   * dealt it; a **poisoning** did not — so the one kind of harm that is
+   * deliberate, premeditated and quiet was the one kind the world could
+   * not attribute. Stamped at `VitalsMixin.afflict`, from execution
+   * context, never from a caller-supplied parameter (the gated-Api
+   * actor-from-context rule).
+   *
+   * ⚠ Recorded, not acted on. This build gives accountability something
+   * true to read; it does not make poisoning a crime, which is the
+   * accountability ledger's decision and not the body's.
+   */
+  inflictedBy?: string;
 }
 
 /** The closed engine trauma vocabulary. Grow additively. */

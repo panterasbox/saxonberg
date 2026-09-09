@@ -31,6 +31,7 @@ import type { AfflictionRecord, Trauma } from '../../../platform/idea/Condition'
 import { StuffApi } from '../../../api/stuff';
 import { MixinApi } from '../../../api/mixin';
 import { WorldClockApi } from '../../../api/worldclock';
+import { ExecutionContextApi } from '../../../api/execution-context';
 import { TemplatePathPrefixes } from '../../paths';
 import { makeStuff, makeStuffAtPath } from '../../security/__tests__/test-setup';
 import { installV1QuantityMarshallers } from '../../persistence/__tests__/quantity-marshaller-test-helpers';
@@ -187,5 +188,65 @@ describe('vitals couplings — characterization', () => {
     expect((src as Condition).getSignature()).toHaveLength(2);
     // …and the only consumer of ANY effect anywhere is the hydration
     // drain in `Vitals.progressInfection`, which reads no signature.
+  });
+});
+
+/* ─────────── W7: who did this — the poisoner's name on the record ─────────── */
+
+describe('vitals — the affliction inflicter', () => {
+  beforeEach(() => installV1QuantityMarshallers());
+
+  it('⭐ an affliction landed by an actor records who did it', () => {
+    // A wound has always known who dealt it (`Trauma.inflictedBy`); an
+    // affliction never did — so the one kind of harm that is deliberate,
+    // premeditated and quiet was the one kind the world could not
+    // attribute. Stamped at the door every driver already uses, so
+    // metabolism, thermal, respiration, magic, the passage and combat's
+    // hook rider are all covered with no call-site changes.
+    const poisoner = makeStuffAtPath(() => new Creature(), '/test/poisoner');
+    const victim = makeStuff(() => new Creature());
+    const record: AfflictionRecord = {
+      kind: 'affliction',
+      templatePath: DECLARED,
+      stage: 0,
+      elapsed: 0,
+    };
+    ExecutionContextApi.runRoot(null, 'test', () => {
+      ExecutionContextApi.tagActingAuthor(poisoner);
+      victim.afflict(record);
+    });
+    expect(record.inflictedBy).toBe('/test/poisoner');
+  });
+
+  it('⚠ nobody did the cold — an unattributed affliction stays unattributed', () => {
+    // Most harm has no author. Inventing one would sweep the weather into
+    // the crime ledger (accountability.md § Producers, the wrong blast
+    // radius).
+    const body = makeStuff(() => new Creature());
+    const record: AfflictionRecord = {
+      kind: 'affliction',
+      templatePath: DECLARED,
+      stage: 0,
+      elapsed: 0,
+    };
+    body.afflict(record);
+    expect(record.inflictedBy).toBeUndefined();
+  });
+
+  it('never overwrites a stamp a producer set deliberately', () => {
+    const other = makeStuffAtPath(() => new Creature(), '/test/someone-else');
+    const body = makeStuff(() => new Creature());
+    const record: AfflictionRecord = {
+      kind: 'affliction',
+      templatePath: DECLARED,
+      stage: 0,
+      elapsed: 0,
+      inflictedBy: '/test/the-real-culprit',
+    };
+    ExecutionContextApi.runRoot(null, 'test', () => {
+      ExecutionContextApi.tagActingAuthor(other);
+      body.afflict(record);
+    });
+    expect(record.inflictedBy).toBe('/test/the-real-culprit');
   });
 });

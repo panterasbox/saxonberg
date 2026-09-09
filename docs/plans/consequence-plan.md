@@ -1608,7 +1608,57 @@ direct caller; a hook rider's affliction carries the inflicter.
 `lint:object-verbs --list` unchanged at zero; `lint:unconsumed-seams`
 falls (the `afflict` consequence now has a consumer through the Api).
 
-*Commit.* `build(consequence W7): ConditionApi.afflict — the door`
+*Commit.* `build(consequence W7): the affliction records who did it`
+
+✅ **Done.** 7 tests; 145 vitals/metabolism/condition tests; 33 gates.
+
+⚠⚠ **D12 was written against a STALE COMMENT and the wave changed shape.**
+`api/condition.ts`'s header claims it *"forwards `afflict` / `relieve` /
+`conditionsOf`"*. It does not, and has not for three builds:
+`ConditionLogic` carries a comment saying the item-1 antipattern sweep
+**removed** those thin forwarders on purpose, because *"callers narrow
+with `MixinApi.isVitals` and call `target.afflict` directly"*. Re-adding
+them is the antipattern CLAUDE.md names in as many words — *don't add a
+thin Api wrapper around a single object method*.
+
+⭐ **So the door already exists, and it is `VitalsMixin.afflict`.** It is
+public, it runs the `canAfflict` veto, and harm.md's stated rule is that
+every driver calls it directly. What was missing was not a gate but a
+**stamp**, and stamping it at the object's own door is strictly better
+than stamping it behind a new Api tier: metabolism, thermal, respiration,
+magic, `PassageController` and combat's `afflict` hook rider **all** land
+through this one method, so every one is covered with no call-site
+changes and no driver left to forget. A new Api static would have covered
+only the callers that remembered to use it.
+
+**Shipped.** `AfflictionRecord.inflictedBy?` (the `Trauma.inflictedBy`
+twin) stamped inside `VitalsMixin.afflict` from
+`ExecutionContextApi.getActingAuthor()` — un-spoofable, never a
+caller-supplied parameter — and **never overwriting** a stamp a producer
+set deliberately. Plus the stale `api/condition.ts` header, corrected in
+place with the reason.
+
+⭐ **The gap it closes:** a wound has always known who dealt it; an
+affliction never did. So the one kind of harm that is deliberate,
+premeditated and quiet — **a poisoning** — was the one kind the world
+could not attribute. ⚠ Recorded, not acted on: this gives accountability
+something true to read; whether poisoning is a crime is the
+accountability ledger's decision, not the body's.
+
+⚠ **An unattributed affliction stays unattributed**, asserted rather than
+incidental. Most harm has no author, and inventing one would sweep the
+weather into the crime ledger (accountability.md § Producers — the wrong
+blast radius).
+
+#### D12's `FromTemplateMethod` question, answered
+
+It **does not arise**: there is no new gate. The resync flagged that
+master's `FromTemplateMethod` criticises the shape `inflict`'s
+`FromModule` uses, and W7 should evaluate rather than copy it. Since W7
+adds no gated method, nothing was copied and nothing needed choosing.
+`inflict`'s existing `FromModule` is untouched — narrowing it is a
+call-security question about a shipped seam, not this build's. →
+call-security-pass-slate.
 
 #### W8 — the eight-arm unification *(two commits; the ratchet falls)*
 

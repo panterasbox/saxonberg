@@ -35,6 +35,7 @@ import { Quantity } from '../quantity';
 import type { Unit } from '../quantity';
 import { QuantityMarshaller } from '../../platform/idea/persistence/QuantityMarshaller';
 import { MixinApi } from '../../api/mixin';
+import { ExecutionContextApi } from '../../api/execution-context';
 import { CallSecurity, Final, Unshadowable } from '../security/decorators';
 import { SecurityPolicies } from '../security/SecurityPolicies';
 import type { VitalBand, VitalProfile } from '../../platform/idea/species/Species';
@@ -1568,6 +1569,25 @@ export function VitalsMixin<TBase extends MixinConstructor>(Base: TBase) {
       // through the proxy `this` so a shadow can veto too.
       const verdict = (this as unknown as Vitals).canAfflict(condition);
       if (!verdict.ok) return false;
+      // ⭐⭐ **Stamp who did this, at the door every driver already uses.**
+      //
+      // A wound has always recorded its inflicter; an affliction never
+      // did — so the one kind of harm that is deliberate, premeditated
+      // and quiet (a poisoning) was the one kind the world could not
+      // attribute. Stamping it HERE rather than behind a new gated Api
+      // static is what makes it total: metabolism, thermal, respiration,
+      // magic, the passage and combat's hook rider all land through this
+      // one method, so every one of them is covered with no call-site
+      // changes and no driver left to forget.
+      //
+      // ⚠ From execution context, never from a parameter — the
+      // un-spoofable rule `ConditionApi.inflict` already follows — and
+      // never overwriting a stamp a producer set deliberately.
+      if (condition.kind === 'affliction' && condition.inflictedBy === undefined) {
+        const author = ExecutionContextApi.getActingAuthor();
+        const path = author ? (author as Stuff).getTemplatePath?.() : null;
+        if (path) condition.inflictedBy = path;
+      }
       // Pure add this build — no onset()/tick() invocation, nothing ticks.
       this.conditions.push(condition);
       return true;
