@@ -255,7 +255,14 @@ suite('the seat moves', () => {
     // The whole reason the exemption is an OFFICE and not a flag: it is
     // derived at the moment of asking, so it arrives and leaves with a
     // handoff, in the same act, with no restart.
-    const assign = await founder.cmd(`office handoff prime-minister ${player.handle}`);
+    // ⚠ `office assign <player> <office>`, founder-only, with the player
+    // resolved from the `online` scope — which is the documented open
+    // defect this step may trip over.
+    const who = String(
+      (await player.queryOne('me', ['displayName']) as { displayName?: string })
+        ?.displayName ?? player.handle,
+    );
+    const assign = await founder.cmd(`office assign ${who} prime-minister`);
     if (assign.status !== 'ok') {
       // ⚠ `governance.md` records an open defect in the handoff verb's
       // player lookup. If it reproduces, say so out loud rather than
@@ -272,8 +279,9 @@ suite('the seat moves', () => {
       // The previous holder may not, in the same act.
       expectWorldRefusal(await founder.cmd('look world'));
     } finally {
-      // Hand it back however this run can.
-      await player.cmd('office handoff prime-minister founder');
+      // Hand it back — `vacate` reverts the seat to the founder default,
+      // which is exactly where it started.
+      await founder.cmd('office vacate prime-minister');
     }
   });
 });
