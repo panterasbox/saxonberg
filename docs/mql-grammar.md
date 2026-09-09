@@ -164,11 +164,12 @@ can type must not.
 it is usually *better*: it is answered by an index, and it says which
 part of the realm you mean.
 
-**The one exception** is the holder of the Prime Minister's seat, who
-may type `world:` in any command — and is told what it cost afterwards
-("Registry read: 1,785 objects for 'target' (unindexed shape world)").
-The seat is derived at the moment of asking, so the ability arrives and
-leaves with the office and needs no restart. Even for the holder there
+**The one exception** is somebody the **executive** says may read the
+world — today the holder of the Prime Minister's seat — who may type
+`world:` in any command and is told what it cost afterwards ("Registry
+read: 2,060 objects for 'target' (unindexed shape world)"). It is
+derived at the moment of asking, so the ability arrives and leaves with
+the office and needs no restart. Even for the holder there
 are **no standing `world:` subscriptions**: a subscription re-runs on
 every change and there is nobody to tell.
 

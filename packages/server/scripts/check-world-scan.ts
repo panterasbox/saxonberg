@@ -19,11 +19,14 @@
  * owns the answer, and that method is where an index can later go
  * without a caller moving. When the population genuinely is global and
  * selective — every `PersistableMixin`, every `BankMixin` — the read is
- * `MqlApi.resolveWorldIndexed` from a method NAMED in the pair list on
- * `api/mql.ts`, which is index-answerable by construction.
+ * `StuffApi.findByMixin(name)` from a method NAMED in the
+ * `RegistryWideReaders` pair list in `api/stuff.ts`. It takes a mixin
+ * NAME, so an unindexed engine read is inexpressible rather than
+ * runtime-rejected.
  *
- * A person typing `world:` is refused outright, with one exception: the
- * holder of the Prime Minister's seat, who is told what it cost. See
+ * A person typing `world:` is refused outright, with one exception:
+ * somebody the executive says may read the world (today the holder of
+ * the Prime Minister's seat), who is told what it cost. See
  * docs/antipatterns.md § Bespoke Object-Search Algorithms and
  * docs/subsystems/mql.md.
  *
@@ -172,8 +175,8 @@ if (worldQueryFindings.length > 0) {
     `\nAsk the owner: 'which business operates here', 'who works at this\n` +
       `organization', 'which host holds this item'. When the population\n` +
       `really is global AND selective, add a (template, method) pair to\n` +
-      `RegistryWideReaders in mud/api/mql.ts and read through\n` +
-      `MqlApi.resolveWorldIndexed from that method.`
+      `RegistryWideReaders in mud/api/stuff.ts and read through\n` +
+      `StuffApi.findByMixin(name) from that method.`
   );
   process.exit(1);
 }

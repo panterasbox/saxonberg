@@ -147,6 +147,24 @@ Adornment, MQL no-match surfaces "you can't sit on the ground here"
 
 See [command-spec.md](./command-spec.md) for the field semantics.
 
+## ⚠⚠ The gate that named an id that cannot exist
+
+From the OO sweep until the world-scan build's drive (2026-09), the six
+posture verbs **did not work over the wire at all**. `PosedMixin`'s
+mutators are gated to the posture controllers — the narrow-entry
+pattern, correct — but every one of those controllers is a **default
+export**, whose module id is the bare path. The policy list appended
+`#StandController` to each, naming an id nothing can ever have, so
+`sit` / `stand` / `lie` / `kneel` / `mount` / `dismount` denied every
+caller.
+
+⭐ **225 unit tests passed either way**, because they call the mixin
+methods directly, where `SelfOnly` admits them. Only a real dispatch
+goes through the controller, and only the live drive does a real
+dispatch. `lint:gates` refuses the suffixed form on a default export
+now — see [call-security.md](./call-security.md) and
+[lint-family.md](../lint-family.md).
+
 ## Cross-references
 
 - [slot.md](./slot.md) — substrate.

@@ -319,6 +319,17 @@ Everything downstream of `holdsOffice` — `requiresGovernor`, the civics
 roster, the whole seats-as-positions story — would be describing a
 handoff that cannot happen.
 
+⚠⚠ **Reproduced over the raw WebSocket, 2026-09-08** — so it is not the
+e2e harness. `world-scan.dirty.wire.test.ts` step 14 moves the
+`prime-minister` seat to a throwaway character to prove the world-read
+ability **arrives and leaves with the office**; `office assign` answers
+*"No such player."* against a session that is connected and in the room,
+so the step logs `SEAT HANDOFF UNAVAILABLE` and returns rather than
+failing. The both-directions property therefore rests on unit tests
+(`world-seat-query.test.ts`, `holdsOffice` stubbed both ways) and has
+never been observed end to end. ⭐ **This is now the highest-value thing
+to fix in governance**: two builds have had to route around it.
+
 **Live consequence today.** The e2e suite needs the
 `central-bank-governor` seat to exercise `reserve issue`, cannot obtain
 it, and therefore runs as the **founder** instead — which holds every

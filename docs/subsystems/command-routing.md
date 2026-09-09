@@ -836,6 +836,34 @@ for each type:object field present:
   bind the wrapper (MqlOne / MqlMany) onto the model
 ```
 
+### ⭐⭐ The `world` arm — catch, ask the executive, retry
+
+Each of those two resolve calls is wrapped. `world:` is refused inside
+the resolver, so the binder never inspects the query: it catches the
+`MqlPermissionError`, and if the operator was `world` it asks
+`CompactApi.readWorldAs(giver, …)`, which decides whether the person at
+the helm may read the whole realm and — only on a yes — re-runs **the
+same `resolveMany`** inside an execution environment carrying the
+grant. A denial rethrows, and the ordinary `mql-error` note reports the
+refusal text.
+
+Three properties this shape buys, each deliberate:
+
+- **The binder knows no grammar.** The refusal is thrown from wherever
+  `world` actually appears — a chain head, a mid-chain intersect, a
+  scope keyword — so a new place it can appear is covered the day it
+  exists.
+- **An ordinary command pays nothing.** The authority is asked only
+  after a query has actually been refused.
+- **The permission is a fact about the person, not the call.** There is
+  no second resolve method and no gate on who called; see
+  [mql.md § The registry-read grant](./mql.md).
+
+When the retry succeeds the result carries a `RegistryScan`, which the
+binder turns into a `registry-scan` note — what the read cost, beside
+the answer. See
+[response-envelope.md § Notes](./response-envelope.md).
+
 ### Cardinality policy
 
 After MQL produces a candidate list per field, `resolveModel`

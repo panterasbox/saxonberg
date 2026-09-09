@@ -601,8 +601,9 @@ export default class WatercourseCatalogue extends Idea {
    * not (so a shut sluice stops drawing on the very next query), and
    * there is still no registry to go stale.
    *
-   * ⚠ **And it took no new interface.** The obvious alternative was a
-   * `WithdrawingMixin` the works compose — self-declaring, and it would
+   * ⚠ **And it took no new interface.** The obvious alternative — written
+   * in this build, then withdrawn in review — was a
+   * `WithdrawingMixin` the works compose: self-declaring, and it would
    * make a third-party withdrawer possible. It was written and then
    * withdrawn: two composers in one pack do not earn an interface, the
    * mechanism is this pack's so a new work is a local edit here anyway,

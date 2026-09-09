@@ -1,15 +1,45 @@
-# World-scan slate — you may not be handed the world; you may ask it a question
+# World-scan slate (tail — the prohibition, the gate and the index all shipped)
+
+> **Status: PARTIAL** — the `world` seed refused everywhere, the
+> executive's exception, one mixin-composition index, the seventeen call
+> sites rewritten, and two ratchet gates all shipped (MR !252) →
+> [mql.md](../../subsystems/mql.md)
+> **Left:** the `flat` seed (the deep-contents scan — the same
+> `getAllObjects` shape, a different consumer) · an engine-side `world:`
+> *subscription* if one is ever added (strictly worse than a one-shot;
+> zero exist today) · MQL grammar for the specialized rosters (D5, "later
+> if at all") · an active-mixin selector `[active.X]` if anything ever
+> wants one
+> **Size:** a tail
 
 **Captured 2026-09-01** as a performance inventory. **Decided
 2026-09-08**: the remedy is not only "make `world:` cheap" — it is a
 **prohibition plus a gate**, and it extends to a second surface with the
 same shape, Api methods that hand back their whole backing table.
 
-> **Status: design conversation settled. Requirements not written.**
-> Every ⭐ decision in Part 3 was taken in the 2026-09-08 conversation,
-> not proposed. Call sites re-verified against `master` at
-> `ae891fa52` (2026-09-08); line numbers drift — the enclosing
-> **function names** are the durable anchors.
+> ## ✅ SHIPPED 2026-09-08 — `design/world-scan`, MR !252
+>
+> Part 3's D1–D5 all shipped; Part 4's remediation order was followed;
+> the doctrine reversal in Part 0 landed in the same change as the
+> refusal. **The slate is kept for its TAIL**, not its history — see
+> *What this slate does NOT cover* (the `flat` seed, Api
+> surface/depth normalization, a future engine-side `world:`
+> subscription) and the closed open questions below.
+>
+> ⚠⚠ **D3b's SHAPE was superseded in review** — the seat still decides,
+> but not by the mechanism D3b describes. See the note on D3b.
+>
+> Where the shipped truth lives now:
+> [mql.md § The registry-read grant](../../subsystems/mql.md) ·
+> [command-routing.md § The `world` arm](../../subsystems/command-routing.md) ·
+> [governance.md § What else the seat confers](../../subsystems/governance.md) ·
+> [call-security.md § `FromTemplateMethod`](../../subsystems/call-security.md) ·
+> [slot.md § The occupancy back-reference](../../subsystems/slot.md) ·
+> [antipatterns.md § An Api May Not Hand Back Its Table](../../antipatterns.md).
+>
+> Call sites in Parts 1–2 were verified against `master` at `ae891fa52`
+> (2026-09-08) and are a **historical inventory** now; line numbers
+> drift, and the enclosing function names are the durable anchors.
 
 **Provenance — two conversations:**
 
@@ -392,6 +422,28 @@ rather than letting them linger.
 > **User: "I would want the prime minister to be able to run world:
 > based MQL queries for any command they want. maybe with a warning."**
 
+> ⚠⚠ **SUPERSEDED IN REVIEW (2026-09-08).** The *decision* below stands
+> — the seat is the exception, derived at the moment of asking, told
+> what it cost. Its **shape** does not. As built and then rejected, the
+> seat arm was a second Api method (`MqlApi.resolveWorldForSeat`) gated
+> to the one function allowed to call it, which makes the permission a
+> property of *which door you knocked on*.
+>
+> **User: "any permissions need to be built into the engine itself. I
+> don't want to rely on calling conventions to gate special operations
+> … the engine just needs to detect who's at the helm and permit or
+> restrict accordingly. no special payloads or function calls."**
+>
+> What shipped instead: the grant is an **ambient environment fact**
+> (`ExecutionContextApi.getWorldReadGrant()`), planted only by
+> `CompactApi.readWorldAs(subject, fn)` — one method that asks the
+> **executive** about the acting principal and, on a yes, plants the
+> grant around the call. `MqlApi` stayed at `resolveOne`/`resolveMany`.
+> ⭐ The extension point the user named — *"probably group membership at
+> the least. maybe some world queries are okay for some agents and some
+> aren't"* — is `readWorldAs`, and nothing in the query engine has to
+> move for it.
+
 Gate A has **two arms**, and an earlier draft of this slate wrongly
 collapsed them to one by removing the actor arm altogether:
 
@@ -606,7 +658,12 @@ that gap is a seed to add, not a reason to widen the gate.
 
 ## Open questions
 
-1. ⚠⚠ **Composed or active mixins?** Augmentation confers mixins at
+⭐ **1 and 3–6 are CLOSED by the build; 2 is amended.** Kept with their
+answers rather than deleted, because each records a decision somebody
+will otherwise re-open.
+
+1. ✅ **Closed — composed-only, and now hardened.** ⚠⚠ **Composed or
+   active mixins?** Augmentation confers mixins at
    runtime; `getActiveMixins` changes post-register. `[mixin.X]` matches
    **composed** today, so a constructor-keyed index is faithful to
    current semantics — but D1 **hardens that** into the engine. Decide
@@ -615,7 +672,9 @@ that gap is a seed to add, not a reason to widen the gate.
    augment/unaugment invalidation. **Recommended: composed-only**, named
    as such in `mql.md`, because the alternative is the
    invalidation-by-construction hard part for a use case nothing has
-   asked for.
+   asked for. **Shipped composed-only**, named as such in `mql.md`; an
+   active-mixin selector (`[active.X]`) is a separate operator if
+   anything ever wants it.
 2. ✅ **Answered — it is TWO questions, and I kept answering only one.**
    Code qualifies by provenance (`FromTemplateMethod`, D3a); the **Prime
    Minister qualifies by seat** (`holdsOffice`, D3b), checked in the
@@ -628,23 +687,36 @@ that gap is a seed to add, not a reason to widen the gate.
    requirement. ⭐ The lesson is not "it is about code" or "it is about
    people": **it is about both, by different bases**, and a correction
    is a reason to add the missing half, not to swing to the other pole.
-3. **Does the residence catalogue key on the base class or the concrete
-   one?** `[class.OuterWarren]` matches `HoldingWarren` subclasses today
+3. ✅ **Closed — neither; it is named for the population.** Does the
+   residence catalogue key on the base class or the concrete one? `[class.OuterWarren]` matches `HoldingWarren` subclasses today
    (a prototype-chain walk). A catalogue keyed on the concrete class
    misses a future sibling; keyed on the base, it must know the subclass
    set. ⭐ Likely moot in practice — both consumers want *"every holding
    warren"*, so the catalogue should be named for that population rather
    than for either class. Confirm when it is written.
-4. **Selectivity of `CirculatingMixin` / `PublisherMixin`** — measure
-   before finalizing Bucket A vs B for the borderline ones.
-5. **How many objects is `n`, actually?** `StuffApi.getObjectCount()` at a
-   populated boot (`Server.ts` already logs it). The priority order
-   assumes n is large enough to matter; confirm, and record the number.
-6. **Does `lint:whole-table` key on the return type or on the method
-   name?** A type-driven rule catches more and misfires on the bounded
-   vocabularies; a name-driven one (`all*` / `getAll*` / `list*`) is
-   cruder and easier to ratchet. Decide at census time, when the shape of
-   the offenders is visible.
+4. ✅ **Closed — both landed in Bucket A.** Selectivity of
+   `CirculatingMixin` / `PublisherMixin` — measure before finalizing
+   Bucket A vs B for the borderline ones. `Census.takeCensus` and
+   `PressLogic.holdsAnyPublishingPosition` are both indexed
+   `StuffApi.findByMixin` reads on the pair list; neither needed an
+   owner-side roster.
+5. ✅ **Closed — n = 1,785 at a populated boot with nobody logged in**
+   (measured at requirements time; the drive walked **2,060** with a
+   session up). ⚠ Smaller than the framing assumed, and it **sharpens**
+   the diagnosis: the rest path pinned a CPU core *at this size*, so the
+   dominant term is not how big the world is but **how often the
+   question is asked**. Size is the multiplier; frequency is the
+   problem. The number never shrinks — re-measure after the next content
+   build rather than assuming a category is small.
+6. ✅ **Closed — the method NAME, plus an immediate narrowing.** As
+   shipped, `lint:whole-table` matches `allX()` / `getAllX()` / a bare
+   `all()` **only when the caller narrows it on the spot** (`.find` /
+   `.filter` / `.some` / `.every` / `.flatMap`, or an index straight
+   into it — `allX()[0]` is a lookup wearing a list's clothes). ⚠ The
+   census over-fired on the first pass: 4 of its 5 findings were owners
+   narrowing their **own** table, which is the fix the gate recommends,
+   so a self-receiver exemption (`this`, or the class the file is named
+   for) is part of the rule.
 
 ---
 

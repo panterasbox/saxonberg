@@ -262,7 +262,7 @@ suite('the plumbing', () => {
     if (errors.status === 'ok') {
       const said = await errors.said();
       expect(said, `errors reported a denied gate:\n${said}`).not.toMatch(
-        /resolveWorldIndexed|findByMixin|denied/i,
+        /findByMixin|getWorldReadGrant|denied/i,
       );
     }
   });

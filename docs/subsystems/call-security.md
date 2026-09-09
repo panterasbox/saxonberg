@@ -926,6 +926,17 @@ while looking correct in the policy list, and a denied engine read reads
 as *"the world has no banks"*. `lint:gates` resolves both halves of
 every pair against the source.
 
+⚠⚠ **A `#Name` suffix on a DEFAULT export is the same failure**, and it
+shipped. A default-exported class's module id is the **bare path** (the
+table above), so
+`FromModule('/platform/idea/cmd/posture/StandController#StandController')`
+names an id that cannot exist and denies every caller forever. It cost
+`sit` / `stand` / `lie` / `kneel` / `mount` / `dismount` — six verbs
+that had **never worked over the wire** — and 225 unit tests passed
+either way, because they call the mixin methods directly where
+`SelfOnly` admits them. `lint:gates` refuses a `#Name` suffix naming a
+default export now; the live drive is what found it.
+
 ### Participant contracts — the preferred gate for object-owned surfaces
 
 `ApiOnly` says "someone in the Api tier is calling" — a *module*

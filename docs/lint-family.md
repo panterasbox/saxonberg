@@ -61,6 +61,12 @@ growing the day it is noticed, without being fixed first.
   *"the world has no banks"*. The template half knows the one
   deliberate naming exception — a logic singleton registers at
   `/platform/idea/api/<feature>` while its class is `<Feature>Logic.ts`.
+  ⚠⚠ It also refuses a **`#Name` suffix naming a DEFAULT export** — a
+  default-exported class's module id is the bare path, so the suffixed
+  form denies everybody forever while reading correctly. That one had
+  shipped: six posture verbs had never worked over the wire, and 225
+  unit tests passed either way because they call the mixin methods
+  directly where `SelfOnly` admits them.
 - **`lint:imports`** — the driver/mudlib import boundary: nothing under
   `src/mud/` imports outside the tree (Node built-ins included) except
   the Api tier, which imports and wraps. `import type` is exempt
