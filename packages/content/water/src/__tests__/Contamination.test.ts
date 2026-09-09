@@ -31,6 +31,7 @@ import {
 } from '@saxonberg/server/mud/lib/security/__tests__/test-setup';
 import Conduit from '../thing/Conduit';
 import WatercourseCatalogue, {
+  WATERCOURSE_CATALOGUE_PATH,
   CONTAMINANT_SURVIVAL_PER_HOP,
   type ContaminantKind,
 } from '../idea/WatercourseCatalogue';
@@ -133,7 +134,10 @@ function makeIntake(reach: string, treatment = 0): Conduit {
 }
 
 const catalogue = (): WatercourseCatalogue =>
-  makeStuff(() => new WatercourseCatalogue()) as WatercourseCatalogue;
+  makeStuffAtPath(
+    () => new WatercourseCatalogue(),
+    WATERCOURSE_CATALOGUE_PATH,
+  ) as WatercourseCatalogue;
 
 beforeEach(() => {
   StuffApi.clearAll();

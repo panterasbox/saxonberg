@@ -329,7 +329,8 @@ permission](#resolving-is-not-permission).
 | `'literal'` | `LiteralNode` | exact name/keyword match (whitespace preserved) |
 | `me` | `PronounNode` | the giver |
 | `here` | `PronounNode` | the giver's location |
-| `peers` / `reachable` / `person` / `inventory` / `online` / `world` | name-promoted `KeywordsNode` | the corresponding scope-walk pool |
+| `peers` / `reachable` / `person` / `inventory` / `online` | name-promoted `KeywordsNode` | the corresponding scope-walk pool |
+| `world` | name-promoted `KeywordsNode` | ⚠ **refused** unless the run carries a registry-read grant — see *The registry-read grant* |
 | `it` / `him` / `her` / `them` | `PronounNode` | pronoun memory read |
 | `$$` | `LastResultNode` | pronoun memory `last` slot |
 | `/path/with/*globs` | `PathNode` | template-path glob seed (PathTrie) |
@@ -535,7 +536,40 @@ Built-in scopes:
 | `person` | the **on-person** pool: the giver + their own attunement-hosted updates + installed slot occupants (+ each occupant's hosted updates) + carried inventory (+ each carried attuned host's hosted updates). Bearer semantics — no location leg; the anchor for `presentsKey` / payment-credential / hosted-app resolution (a matching key on the floor is never "presented") |
 | `reachable` | `person` + `here` + `peers`, emitted **on-person-first** (the former `ContainmentApi.findReachable` contract, absorbed into the seed): first-match consumers and tie-broken targeting prefer your own gear over the floor's |
 | `online` | every connected interactive's holder Stuff |
-| `world` | every Stuff |
+| `world` | every Stuff — ⚠ gated; see below |
+
+### ⭐⭐ The registry-read grant
+
+`world` is the only seed whose cost is *the size of the realm*, so it is
+the only one that is not simply available. The resolver carries a
+**run-scoped mode**, set by whichever entry point started the run and
+restored in a `finally`:
+
+| mode | set by | `world` behaviour |
+|---|---|---|
+| `null` | `MqlApi.resolveOne` / `resolveMany` — i.e. every player-typed query, every subscription, every ordinary engine call | throws `MqlPermissionError`, naming the anchored alternatives |
+| `'indexed'` | `MqlApi.resolveWorldIndexed` | resolves **only** `world` at the head followed immediately by `[mixin.X]`, seeded from the registry's composition index. Any other shape throws |
+| `'seat'` | `MqlApi.resolveWorldForSeat` | any shape resolves; the run records a `RegistryScan` (`scanned`, `indexed`, `shape`) which the binder turns into a `registry-scan` note |
+
+⭐ The mode is a **module slot in the pipeline**, deliberately not a
+field on `MqlContext`: a context is supplied by the caller, and a
+permission a caller can hand itself is not a permission. It is
+saved/restored rather than assigned/cleared, so a nested
+`MqlApi.resolveMany` from inside a predicate runs **ungranted**.
+
+Who may call the two entries is `api/mql.ts`'s business: a list of
+`(template, method)` pairs (`FromTemplateMethod`), declared beside the
+methods so widening it is a one-file diff, and resolved at build time by
+`lint:gates`. The seat entry admits exactly one function — the command
+binder's `resolveModel`, the one place a player's raw MQL enters the
+engine and the one place the office can be checked against the person
+who typed it.
+
+**The composition index** (`StuffApi.findByMixin`, maintained inside
+`register`/`unregister`) is what makes the indexed shape cheap. It is
+**composed-only**: a mixin granted by a shadow or conferred by an
+augment does not bucket its host, which is what `world:[mixin.X]` has
+always meant. A runtime-grant selector would be its own thing.
 
 `here` deliberately does NOT include peers; that's `peers`' job. The
 split lets `get` declare the surgical scope it actually wants
@@ -698,8 +732,12 @@ There are **no permission tiers** (content-packs wave 3 deleted them
 along with the `core` group and the "author tier" — see
 [access.md](./access.md)). Every seed, scope, namespace filter and
 predicate resolves for every giver: a guest may type `flower:online`,
-`world:[mixin.Door]` or `/platform/location/*:fountain` and get the honest
-answer, fogged by perception exactly as `look` is. What that guest may
+`reachable:[mixin.Door]` or `/platform/location/*:fountain` and get the honest
+answer, fogged by perception exactly as `look` is. ⚠ **The one thing
+that is gated is not a permission tier**: `world:` reads every object
+the realm has ever made, and what gates it is *cost*, not privilege —
+which is why the exception is an office with a receipt rather than a
+tier. What that guest may
 then *do* with a match is decided where it always was — by the verb:
 `attack online:<name>` fails on reachability, `teleport` on title over
 the destination's extent, a mutation on the covering parcel's holder.
@@ -736,12 +774,17 @@ mode** (the `attention` precedent: the command dispatcher always
 stamps a real giver, so player-typed MQL can never reach it). A null
 giver is the engine's own viewer-blind enumeration for registry
 sweeps and fixture indexes (`AttendantLogic.allPoints`,
-`EmploymentLogic.allBusinesses`, `LocomotionLogic.allModes`,
-`SlotLogic.findOccupiedSlots` — the former `getAllObjects` scans):
+`EmploymentLogic.allBusinesses`, and the rest of the pair list):
 
-- the viewer-free seeds resolve (`world`, `/path` globs, `#id`,
-  `online`) with **no perception gate** and baseline
-  (`getPresentation`) names — omniscient, not fogged;
+- the viewer-free seeds resolve (`/path` globs, `#id`, `online`) with
+  **no perception gate** and baseline (`getPresentation`) names —
+  omniscient, not fogged;
+- ⭐ **`world` is NOT among them.** A null giver says *nobody is
+  looking*; it never said *and therefore you may read everything*. The
+  two coincided, and every one of the seventeen engine scans came
+  through that door. The registry read is its own grant now (above), so
+  an engine sweep says both things explicitly: null giver AND
+  `resolveWorldIndexed`;
 - the giver-anchored seeds (`me`/`here`/`peers`/`reachable`/`person`/
   `inventory`) and the bareword predicates (`visible`/`mine`/`here`
   all read the giver) **throw** a clear resolver error — nothing
@@ -772,7 +815,7 @@ by parser keywords. Adding a predicate is a one-line append.
 
 ## Online-holders provider seam
 
-The `online` / `world` seeds and the `:online` predicate need to
+The `online` seed and the `:online` predicate need to
 enumerate connected `Interactive`s back to their holder Stuff.
 Importing `ConnectionApi` from anywhere on the eager
 `command.ts → MqlApi` chain forces the

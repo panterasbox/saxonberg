@@ -321,7 +321,7 @@ function rememberEmployment(
  * treating an empty set as a miss.
  */
 function fillRosters(rosters: Map<string, Set<string>>): void {
-  const actors = MqlApi.resolveMany('world:[mixin.EmployedMixin]', {
+  const actors = MqlApi.resolveWorldIndexed('world:[mixin.EmployedMixin]', {
     commandGiver: null,
     scope: 'world',
   }).stuff.filter((x): x is EmployedActor => MixinApi.isEmployed(x));
@@ -377,7 +377,7 @@ function organizationLabelImpl(body: Stuff): string {
 function findOrganizationImpl(asked: string): Stuff | null {
   const needle = needleOf(asked);
   if (!needle) return null;
-  const candidates = MqlApi.resolveMany('world:[mixin.OrganizationMixin]', {
+  const candidates = MqlApi.resolveWorldIndexed('world:[mixin.OrganizationMixin]', {
     commandGiver: null,
     scope: 'world',
   }).stuff;
@@ -424,7 +424,7 @@ function employeesOfImpl(organizationPath: string): EmployedActor[] {
  * fresh.
  */
 function allBusinessesImpl(): BusinessStuff[] {
-  const matches = MqlApi.resolveMany('world:[mixin.BusinessMixin]', {
+  const matches = MqlApi.resolveWorldIndexed('world:[mixin.BusinessMixin]', {
     commandGiver: null,
     scope: 'world',
   });

@@ -197,6 +197,49 @@ export interface MqlMany {
 }
 
 /**
+ * ⭐ **What a registry-wide read cost**, recorded by the resolver and
+ * carried back to whoever was entitled to make it.
+ *
+ * It exists because *"the Prime Minister may read the world"* is only a
+ * defensible grant if the holder is told what they just did. `scanned`
+ * is objects READ, not matched — a query that returns three things after
+ * reading eighteen hundred is exactly the case worth showing.
+ *
+ * `indexed: false` means the whole registry was walked because the query
+ * was not in a shape any index answers; that is the number that grows
+ * with the realm.
+ */
+export interface RegistryScan {
+  /** Objects read to answer the query. */
+  scanned: number;
+  /** False ⇒ the whole registry was walked. */
+  indexed: boolean;
+  /** The leading fragment, as typed — e.g. `world:[class.Door]`. */
+  shape: string;
+}
+
+/**
+ * One admitted reader's running cost, keyed by the `(template, method)`
+ * pair the gate resolved — the D21 table behind `/stats`.
+ *
+ * ⚠ Process-local: it resets on restart and on an HMR reload of the
+ * logic singleton. It answers *what is this server doing now*, never
+ * *what happened last month*.
+ */
+export interface RegistryReadStat {
+  /** `"<template>#<method>"`, or `"seat"` for an office holder's query. */
+  reader: string;
+  /** How many times this reader was admitted. */
+  calls: number;
+  /** Objects read across all of them. */
+  returned: number;
+  /** ⭐ The load-bearing column: the largest single read. */
+  maxReturned: number;
+  /** Wall-clock ms of the most recent read. */
+  lastAt: number;
+}
+
+/**
  * Per-field model-side wrapper for a `type: object` resolution. The
  * dispatcher lands this on `model[fieldName]` after running MQL,
  * bundling everything a controller might need:

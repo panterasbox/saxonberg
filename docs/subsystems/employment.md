@@ -709,3 +709,43 @@ plan. Notable design→implementation shifts:
 > substrate ([press.md](./press.md)); the obvious next one is `Corpo`,
 > which cannot answer *who runs Veshko?* while positions live only on
 > Businesses.
+
+## ⭐ The employee roster — a memo, never a warm
+
+*Who works at this organization* used to be answered by reading **every
+object in the world** and asking each one whether it held a record here.
+It ran on the two hottest money paths — `holdersOf` (every position read)
+and `flowSplitsFor` (every revenue moment) — so the cost was the size of
+the realm multiplied by how often anybody got paid.
+
+`EmploymentLogic` keeps `organizationPath → the durable identities of
+everyone with a record there`, and `EmploymentApi.employeesOf(path)` is
+the read. Four properties, each load-bearing:
+
+- **Terminal records stay in.** An exit has to be *visible* for
+  `holdersByPosition` to suppress the matching authored roster entry, so
+  the contract is *everyone with a record*, not *everyone employed*.
+- **Filled lazily, and ALL AT ONCE.** One enumeration fills every
+  organization's set and flips a `rostersFilled` flag, so a second
+  organization's first read costs nothing — and an organization absent
+  from the map afterwards genuinely has nobody, which an empty set alone
+  could not distinguish from a miss.
+- **Never warmed.** Nothing at boot is responsible for it; a logic
+  reload costs one re-derivation. (A roster nothing warms reading empty
+  forever is a mistake this codebase has made three times.)
+- **Maintained by a witness, and safe when stale.** `EmployedMixin`'s
+  `employments` is an **accessor pair**, so every write lands on the
+  setter — a hire, an exit, the Hydrator's bracket-assign, the
+  persistence spine's restore. Nothing is ever removed: a leftover entry
+  resolves to no record and every reader skips it.
+
+⚠ **The setter calls a METHOD (`_noteEmploymentChange`), not the logic
+directly.** The witness is gated on *the actor writing its own
+relationship*, and an accessor is not a dispatched frame — a bare call
+out of the setter is attributed to whoever did the assigning (a test,
+the Hydrator) and denied.
+
+Businesses are found the same way: `businessByLocation` and
+`businessByProprietor`, filled by the one enumeration that fills the
+business cache, with today's rebuild-and-retry on a miss for a business
+that post-dates the memo.

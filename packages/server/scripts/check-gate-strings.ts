@@ -192,11 +192,26 @@ export function templateFileOf(
   return join(mudRoot, templatePath.replace(/^\//, "") + ".ts");
 }
 
-/** Does `source` declare a public method (or static) called `method`? */
+/**
+ * Does `source` declare a method called `method`?
+ *
+ * ⚠ **Any visibility, deliberately.** TypeScript's `private` is a
+ * compile-time modifier: at runtime the method is an ordinary property,
+ * the call-security proxy intercepts it, and it pushes a frame under its
+ * own name — so a gate naming a private method works, and two of the
+ * shipped pairs do exactly that (`AttendantLogic.allPoints`,
+ * `EmploymentLogic.allBusinesses`, both reached by `this.` from a
+ * public method). What this gate is for is the TYPO, not the modifier.
+ *
+ * Anchored to a line start so a CALL site (`return allPoints();`) is not
+ * mistaken for a declaration.
+ */
 function declaresMethod(source: string, method: string): boolean {
   const n = method.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
   return new RegExp(
-    `\\bpublic\\s+(?:static\\s+)?(?:override\\s+)?(?:async\\s+)?${n}\\s*[(<]`,
+    `^\\s*(?:(?:public|private|protected)\\s+)?(?:static\\s+)?` +
+      `(?:override\\s+)?(?:async\\s+)?${n}\\s*[(<]`,
+    "m",
   ).test(source);
 }
 

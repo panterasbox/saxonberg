@@ -252,6 +252,30 @@ The soul committee's group (`soul`, holding `/expression`) is
 **PM-owned** (`owner: { office: prime-minister }` in the manifest): the
 seat appoints its members; nobody self-enrols.
 
+### ⭐ What else the seat confers: reading the whole realm
+
+The Prime Minister may type `world:` in any command — the query that
+reads every object the realm has ever made, which is refused for
+everybody else on every surface (see
+[mql.md](./mql.md) § *The registry-read grant*). It is the only
+person-shaped exemption in that design, and it has three properties
+worth stating because each was a deliberate choice:
+
+- **Derived, never stored.** The binder asks `CompactApi.holdsOffice`
+  at the moment the query is refused, so the ability arrives with a
+  handoff and leaves with it, in the same act, with no restart and no
+  grant to revoke.
+- **Told what it cost.** The answer carries a `registry-scan` note —
+  how many objects were read, and whether any index answered. A grant
+  to read the whole realm is only defensible if the holder can see the
+  price of what they just typed.
+- **Typed queries only.** There are **no standing `world:`
+  subscriptions** for anybody, the seat included: a subscription
+  re-runs on every change and there is nobody to tell.
+
+⚠ It is asked at most once per dispatch, and only when a query is
+actually refused — an ordinary command pays nothing for the lookup.
+
 ## Deferred
 
 - The **filling workflow** (investiture-by-bill, constructive

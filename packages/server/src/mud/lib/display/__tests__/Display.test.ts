@@ -132,8 +132,17 @@ class LadderProbe extends CommandController {
   }
 }
 
+/**
+ * ⚠ Stamped at a controller template path, not bare. The ladder's
+ * by-mind rung reads the display population, and that read is gated on
+ * the calling function AND the calling template — a probe with no
+ * template identity is refused, exactly as a controller living outside
+ * `idea/cmd/` would be.
+ */
+const PROBE_PATH = '/platform/idea/cmd/stream/LadderProbeController';
+
 function resolveScreenFor(actor: Stuff) {
-  return makeStuff(() => new LadderProbe()).run(actor);
+  return makeStuffAtPath(() => new LadderProbe(), PROBE_PATH).run(actor);
 }
 
 describe('DisplayMixin — a display drives itself', () => {

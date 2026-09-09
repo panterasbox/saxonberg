@@ -1062,7 +1062,7 @@ half is the one that matters — a mistyped module id fails loudly the
 first time, while a mistyped METHOD name denies forever while looking
 correct in the pair list.
 
-**W6b — the refusal, the two entries, the seat arm, the note, the docs.**
+**W6b — the refusal, the two entries, the seat arm, the note, the docs. ✅ DONE.**
 Resolver mode slots + refusal + scan record; `MqlApi.resolveWorldIndexed /
 resolveWorldForSeat` + `RegistryWideReaders` + `MqlLogic` methods; every W1–
 W5 owner's one call switched to `resolveWorldIndexed`; `CommandLogic.
@@ -1096,6 +1096,44 @@ is absent for a denied call.**
 Commit `build(world-scan W6b): the world seed refused; two gated entries;
 the Prime Minister's typed query reports its cost; a per-reader cost
 table; the antipattern doc inverted`.
+
+**Done.** ⭐⭐ **What the gate found that nothing else would have — five
+test fixtures with no template identity.** `FromTemplateMethod` keys on
+the caller's template path, so a fixture built with `makeStuff` (no
+path) is refused even when the production object at the same class would
+be admitted. Three families:
+
+- the **water catalogue** in five files (`makeStuff(() => new
+  WatercourseCatalogue())`) plus terminus's `watershed.test.ts` — now
+  `makeStuffAtPath(…, WATERCOURSE_CATALOGUE_PATH)`;
+- the **display ladder probe** (`Display.test.ts`), a bare
+  `CommandController` subclass — now stamped at a controller path, which
+  is also what a real pack controller outside `idea/cmd/` would need;
+- the **PlayerApi mocks**, which lacked `getUser` once the registry kept
+  a user-id index.
+
+⭐ This is the same class as *"fixtures without the mixin fail
+STRUCTURALLY once narrowing moves caller-side"*: a fixture that was
+approximately right becomes exactly wrong when identity starts being
+checked, and it fails loudly rather than silently. Worth the churn.
+
+Other notes:
+
+- `MqlApi.resolveWorldIndexed` derives the cost table's key from the
+  call stack (`stack[n-2]` — inside a static Api body the top frame is
+  the Api's own, so the caller's is one below). The gate has already
+  matched that frame, so the key is free.
+- `lint:gates`'s `declaresMethod` had to accept **any visibility**: two
+  shipped pairs name PRIVATE methods (`AttendantLogic.allPoints`,
+  `EmploymentLogic.allBusinesses`), which is fine at runtime because
+  TypeScript's `private` is compile-time only and the proxy still pushes
+  a frame under the method's name. The gate is for the typo, not the
+  modifier — and it caught both on the first run.
+- The system-mode test's *"bareword predicates throw under a null
+  giver"* had to move off `world:living`, which now throws its own
+  refusal FIRST and would have passed for the wrong reason.
+- `Session.subscribe()` added to the wire harness — the drive needs to
+  prove the standing-query refusal, and there was no seam for it.
 
 ### W7 — the drive, the full suite, the MR
 

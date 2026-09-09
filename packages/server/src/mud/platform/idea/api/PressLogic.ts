@@ -170,7 +170,7 @@ async function writeReleaseImpl(
  */
 function holdsAnyPublishingPositionImpl(principal: Stuff | null): boolean {
   if (principal === null) return false;
-  const publishers = MqlApi.resolveMany('world:[mixin.PublisherMixin]', {
+  const publishers = MqlApi.resolveWorldIndexed('world:[mixin.PublisherMixin]', {
     commandGiver: null,
     scope: 'world',
   }).stuff;

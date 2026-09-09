@@ -87,7 +87,7 @@ export class Census {
   public static async takeCensus(): Promise<WorldCensus> {
     // The system-mode seed: the declarative form of a getAllObjects
     // filter-loop, and the sanctioned one.
-    const matches = MqlApi.resolveMany('world:[mixin.CirculatingMixin]', {
+    const matches = MqlApi.resolveWorldIndexed('world:[mixin.CirculatingMixin]', {
       commandGiver: null,
       scope: 'world',
     });

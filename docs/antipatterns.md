@@ -186,43 +186,130 @@ Enforced by `pnpm lint:module-scope` (CI-gating).
 
 ## Bespoke Object-Search Algorithms
 
-**ANTIPATTERN**: Hand-rolled runtime Stuff searches — a
-`getAllObjects()` loop with a filter, a custom multi-leg containment
-walk with a predicate.
+**ANTIPATTERN**: Reading the whole object registry — by a hand-rolled
+`getAllObjects()` loop, **or by a `world:` query**, which is the same
+scan behind nicer syntax.
 
 ```typescript
 // BAD — a private world scan
 for (const obj of StuffApi.getAllObjects()) {
   if (MixinApi.isAttendant(obj)) out.push(obj);
 }
-// BAD — a bespoke reachability walk (the deleted findReachable)
-```
-
-**INSTEAD**: MQL is how you search for Stuff at runtime; grow MQL when
-it can't express the search.
-
-```typescript
-// Engine sweep (viewer-blind): the code-only system mode
+// BAD — and this is the SAME defect, which this document used to
+// recommend as the fix:
 const points = MqlApi.resolveMany('world:[mixin.AttendantMixin]', {
   commandGiver: null,
   scope: 'world',
 });
-// Actor-anchored capability scan: the reachable/person seeds + local
-// narrowing (the resolveIn pattern)
-const wallet = MqlApi.resolveMany('person', { commandGiver: actor, scope: 'person' })
-  .stuff.find((s): s is Stuff & CredentialWallet =>
-    MixinApi.isCredentialWallet(s));
+// BAD — a bespoke reachability walk (the deleted findReachable)
 ```
 
-Pick the anchor honestly: `person` for bearer semantics (a key on the
-floor is never "presented"), `reachable` for what the actor can act
-on, system mode only for engine bookkeeping with no character in the
-frame. The two sanctioned exceptions are `ResidencyLogic`'s raw-proxy
-sweeps (enumeration must not count as a touch — commented at the
-loops) and single-object reads (one container's contents, one host's
-hosted updates) — those are object-local reads, not searches. The
-`getAllObjects()` half is enforced by `pnpm lint:world-scan`
-(CI-gating; the allowlist is the three sanctioned scan sites).
+⚠⚠ **This entry taught the defect for a year.** It showed a hand-rolled
+loop as the wrong way and a `world:` query as the right way — using, as
+its worked example, a call site that later turned out to be one of
+seventeen doing the same thing. So the pattern was never drift: it was
+the documented house style, and `lint:world-scan` enforced the teaching.
+The cost does not scale with the answer, it scales with **how much world
+exists** (1,785 objects with nobody logged in, and it never shrinks)
+multiplied by how often the question is asked — and one of the
+seventeen, asked once per creature per tick, pinned a CPU core in a live
+drive.
+
+⭐ **The rule now: you may not be handed the world; you may ask it a
+question.**
+
+**INSTEAD** — in this order:
+
+**1. Ask the owner.** *Which business operates here*, *who works at this
+organization*, *which host holds this item*, *what lanes touch this
+place*. Every one of those has an owner, and the answer belongs on it as
+a named, keyed method — which is also the seam an index can go behind
+later without a caller moving.
+
+```typescript
+EmploymentApi.businessAt(locationPath);   // not: every business, .find
+EmploymentApi.employeesOf(orgPath);       // not: every Employed, filter
+item.getOccupiedHost();                   // not: every Slotted, look in
+catalogue.lanesAt(path);                  // not: every lane, .filter
+```
+
+**2. Anchor the search.** `reachable` for what an actor can act on,
+`person` for bearer semantics (a key on the floor is never "presented"),
+`here` / `inventory` / `online`, or a `/path` glob when the population is
+declared under one branch. A path glob is answered by the registry's
+existing trie and is very often the cheapest honest rung —
+`LocomotionLogic.allModes` is eleven rows under one branch and needs no
+index at all.
+
+**3. Only then, the index.** When the population genuinely is global AND
+selective — every `PersistableMixin`, every `BankMixin` — the read goes
+through `MqlApi.resolveWorldIndexed`, which is gated to a list of
+`(template, method)` pairs declared beside it in `api/mql.ts`, and which
+accepts **only** the shape the registry's composition index answers:
+`world` at the chain head followed immediately by `[mixin.X]`.
+
+```typescript
+// The ONLY sanctioned registry-wide read, and only from a method the
+// pair list names.
+const hosts = MqlApi.resolveWorldIndexed('world:[mixin.PersistableMixin]', {
+  commandGiver: null,
+  scope: 'world',
+});
+```
+
+⚠ **A null giver is not a grant.** System mode says *nobody is looking*;
+it never said *and therefore you may read everything*. The two happened
+to coincide, and separating them is what closed this door.
+
+**A person typing `world:` is refused**, on every surface, with one
+exception: the holder of the Prime Minister's seat, whose query resolves
+and who is **told what it cost** (a `registry-scan` note). There are no
+standing `world:` subscriptions for anybody, seat included — a
+subscription re-runs on every change and there is nobody to tell.
+
+Enforced by `pnpm lint:world-scan` (CI-gating), which now watches both
+patterns: the raw enumeration (three sanctioned homes) and the `world:`
+query (the owners on the pair list). Every pair is resolved by
+`lint:gates` — including that the class really declares a method of that
+name, because a mistyped method denies forever while looking correct.
+
+## An Api May Not Hand Back Its Table
+
+**ANTIPATTERN**: A public read that returns a whole collection, which
+the caller then narrows.
+
+```typescript
+// BAD — three ways of saying "I wanted one thing and asked for all of them"
+(await ParcelApi.allRecords()).find((r) => r.getExtent() === extent);
+(await catalogue.allLanes()).filter((l) => l.nodes.includes(here));
+PlayerApi.getAllAvatars()[0];
+```
+
+The scan is the same as the world-scan above; only the table differs.
+And the surface is worse than the call site, because it invites the next
+caller to do it too.
+
+**INSTEAD**: name the question and answer it inside the owner.
+`registry.recordFor(extent)`, `catalogue.lanesAt(here)`,
+`PlayerApi.findAvatarByUserId(id)`. If the owner has no such read, **add
+one** — that is the fix, and it is where an index can later go.
+
+⭐ **Three tests decide whether a whole-table read is a defect:**
+
+1. **Does it grow with the world, or with something bounded?** The
+   avatar roster grows with *concurrency* and a channel broadcast
+   genuinely wants all of it, so `PlayerApi.getAllAvatars()` stays. The
+   parcel table grows with how much land has ever been titled.
+2. **Is it keyed without taking a key?** `BankingApi.accountsOf()` and
+   `ContractApi.activeClaims()` look unkeyed and are not — both derive
+   the subject from the execution context. A signature-only reading
+   calls those defects; they are not.
+3. **Is the narrowing at the CALL site?** An owner narrowing its own
+   table (`this.allModes().filter(…)`) is the fix, not the defect.
+
+Test 3 is mechanical, so it is a gate: `pnpm lint:whole-table`, a
+ratchet at zero, with an exemption list that ships empty. Tests 1 and 2
+stay a review judgment, because no regex can make them.
 
 ## `StuffApi.create()` Instead of a Template
 

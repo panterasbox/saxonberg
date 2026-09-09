@@ -502,7 +502,7 @@ function captureState(host: Stuff): Record<string, MixinSlice> {
  * captured; each failure is logged and skipped.
  */
 async function captureAtShutdownImpl(): Promise<number> {
-  const hosts = MqlApi.resolveMany('world:[mixin.PersistableMixin]', {
+  const hosts = MqlApi.resolveWorldIndexed('world:[mixin.PersistableMixin]', {
     commandGiver: null,
     scope: 'world',
   }).stuff;

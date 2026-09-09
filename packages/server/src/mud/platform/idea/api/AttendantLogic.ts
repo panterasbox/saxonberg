@@ -103,7 +103,7 @@ export class AttendantLogic extends ApiLogic {
     // a concealed point must still evict its idle leases): the world
     // seed + mixin filter is the declarative form of the old
     // getAllObjects scan.
-    const matches = MqlApi.resolveMany('world:[mixin.AttendantMixin]', {
+    const matches = MqlApi.resolveWorldIndexed('world:[mixin.AttendantMixin]', {
       commandGiver: null,
       scope: 'world',
     });

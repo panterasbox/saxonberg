@@ -37,7 +37,9 @@ import {
   makeStuff,
   makeStuffAtPath,
 } from '@saxonberg/server/mud/lib/security/__tests__/test-setup';
-import WatercourseCatalogue from '@saxonberg/content-water/src/idea/WatercourseCatalogue';
+import WatercourseCatalogue, {
+  WATERCOURSE_CATALOGUE_PATH,
+} from '@saxonberg/content-water/src/idea/WatercourseCatalogue';
 import Conduit from '@saxonberg/content-water/src/thing/Conduit';
 import ControlStructure from '@saxonberg/content-water/src/thing/ControlStructure';
 import StorageNode from '@saxonberg/content-water/src/thing/StorageNode';
@@ -127,7 +129,10 @@ function installRootBiome(): void {
 }
 
 const catalogue = (): WatercourseCatalogue =>
-  makeStuff(() => new WatercourseCatalogue()) as WatercourseCatalogue;
+  makeStuffAtPath(
+    () => new WatercourseCatalogue(),
+    WATERCOURSE_CATALOGUE_PATH,
+  ) as WatercourseCatalogue;
 
 /** Build a live pack object from its own authored row. */
 let seq = 0;

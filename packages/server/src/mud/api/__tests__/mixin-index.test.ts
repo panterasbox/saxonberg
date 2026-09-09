@@ -31,7 +31,10 @@ import { Shadow } from '../../lib/stuff/Shadow';
 import { Shadowing } from '../../lib/security/decorators';
 import { NamedMixin } from '../../lib/description/Named';
 import { ContainableMixin } from '../../lib/spatial/Containable';
-import { makeStuff } from '../../lib/security/__tests__/test-setup';
+import {
+  makeStuff,
+  makeStuffAtPath,
+} from '../../lib/security/__tests__/test-setup';
 import type { Stuff } from '../../lib/stuff/Stuff';
 import type { MqlContext } from '../mql/types';
 
@@ -49,6 +52,35 @@ class NamedShadow extends NamedMixin(Shadow) {
 
 const systemCtx = (): MqlContext => ({ commandGiver: null, scope: 'world' });
 
+/**
+ * ⭐ A stand-in for a real engine reader.
+ *
+ * `world:[mixin.X]` is refused for everybody; the engine's own reads go
+ * through `MqlApi.resolveWorldIndexed`, which admits a `(template,
+ * method)` pair. So the test stands an object at one of the SHIPPED
+ * pair templates with the matching method name — which means these
+ * assertions exercise the gate end to end rather than around it, and
+ * would fail if that pair were mistyped.
+ */
+class Reader extends Idea {
+  public employeesOf(query: string): Stuff[] {
+    return MqlApi.resolveWorldIndexed(query, systemCtx()).stuff;
+  }
+  /** The same call from a method the pair list does not name. */
+  public sneak(query: string): Stuff[] {
+    return MqlApi.resolveWorldIndexed(query, systemCtx()).stuff;
+  }
+}
+
+const EMPLOYMENT = '/platform/idea/api/employment';
+
+function reader(): Reader {
+  return (
+    StuffApi.findByTemplatePath<Reader>(EMPLOYMENT) ??
+    makeStuffAtPath(() => new Reader(), EMPLOYMENT)
+  );
+}
+
 /** The pre-index answer: walk the world, filter by composition. */
 function byWalk(mixinName: string): Set<string> {
   const wanted = mixinName.toLowerCase();
@@ -63,7 +95,7 @@ function byWalk(mixinName: string): Set<string> {
 }
 
 const idsOf = (query: string): Set<string> =>
-  new Set(MqlApi.resolveMany(query, systemCtx()).stuff.map((s) => s.stuffId));
+  new Set(reader().employeesOf(query).map((s) => s.stuffId));
 
 describe('the registry composition index', () => {
   beforeEach(() => {
@@ -123,13 +155,31 @@ describe('the registry composition index', () => {
     const named = makeStuff(() => new Named());
     named.setName('rose');
     makeStuff(() => new Named()).setName('daisy');
-    const out = MqlApi.resolveMany('world:[mixin.NamedMixin]:rose', systemCtx());
-    expect(out.stuff.map((s) => s.stuffId)).toEqual([named.stuffId]);
+    expect([...idsOf('world:[mixin.NamedMixin]:rose')]).toEqual([
+      named.stuffId,
+    ]);
   });
 
   it('refuses a reader that is not the query engine', () => {
     makeStuff(() => new Named());
     expect(() => StuffApi.findByMixin('namedmixin')).toThrow();
+  });
+
+  it('⭐ refuses a method the pair list does not name', () => {
+    makeStuff(() => new Named());
+    // Same object, same template, one method along. The gate is on the
+    // FUNCTION, which is the whole reason it is `FromTemplateMethod`.
+    expect(() => reader().sneak('world:[mixin.NamedMixin]')).toThrow();
+  });
+
+  it('⚠ refuses a shape no index answers, even from an admitted reader', () => {
+    makeStuff(() => new Named());
+    // Being permitted is not being permitted to walk the world: the
+    // engine arm is bounded to the shape the composition index answers.
+    expect(() => reader().employeesOf('world')).toThrow(/indexed/);
+    expect(() => reader().employeesOf('world:[class.Named]')).toThrow(
+      /indexed/,
+    );
   });
 });
 

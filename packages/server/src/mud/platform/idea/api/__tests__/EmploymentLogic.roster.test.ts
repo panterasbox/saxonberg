@@ -26,11 +26,11 @@ import { Idea } from '../../../../lib/stuff/Idea';
 import { StuffApi } from '../../../../api/stuff';
 import { makeStuffAtPath } from '../../../../lib/security/__tests__/test-setup';
 
-const BUSINESS = '/world/lounge/idea/business';
-const BAR = '/world/lounge/location/bar';
-const DAVE = '/world/lounge/agent/dave';
-const MARA = '/world/lounge/agent/mara';
-const KIT = '/world/lounge/agent/kit';
+const BUSINESS = '/test/roster/idea/business';
+const BAR = '/test/roster/location/bar';
+const DAVE = '/test/roster/agent/dave';
+const MARA = '/test/roster/agent/mara';
+const KIT = '/test/roster/agent/kit';
 
 class Worker extends EmployedMixin(Idea) {
   static _mixinName = 'Worker';
@@ -108,7 +108,7 @@ describe('the employee roster memo', () => {
 
   it('answers an organization nobody works at with an empty roster', () => {
     seedBusiness();
-    expect(EmploymentApi.employeesOf('/world/lounge/idea/nobody')).toEqual([]);
+    expect(EmploymentApi.employeesOf('/test/roster/idea/nobody')).toEqual([]);
     expect(EmploymentApi.employeesOf('')).toEqual([]);
   });
 

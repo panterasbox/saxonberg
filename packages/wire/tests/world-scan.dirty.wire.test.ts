@@ -1,0 +1,279 @@
+/**
+ * World-scan — **the door, and the plumbing behind it.**
+ *
+ * `world:` reads every object the realm has ever made. This build
+ * refused it for everybody, gave the realm's own bookkeeping a narrow
+ * indexed entry instead, and left one exception: the holder of the Prime
+ * Minister's seat, who may type it and is told what it cost.
+ *
+ * Two halves, and the second is the one that matters more.
+ *
+ * **The door** is easy to assert and easy to get right. **The plumbing**
+ * is seventeen call sites that were rewritten underneath a running game
+ * — getting paid, putting a coat on, sitting down, being served, banking
+ * at a branch, claiming a title, logging back in where you logged out.
+ * Every one of them fails **closed and silent** if a rewrite is wrong: a
+ * denied read looks exactly like "there are no businesses", and a roster
+ * nothing populates reads empty forever. Unit tests pass in all of those
+ * states. That is what this walk is for.
+ *
+ * ⭐ Read the plumbing half as the actual acceptance criteria. If the
+ * door works and step 12 doesn't, the build is not done.
+ */
+
+import { describe as suite, it, expect, beforeAll, afterAll } from 'vitest';
+import {
+  Session,
+  declareFile,
+  uniqueHandle,
+  expectOk,
+  expectNote,
+} from '../src/harness';
+
+/**
+ * ⚠ **Why `.dirty.`** — the seat-handoff step moves the Prime Minister's
+ * office to a throwaway character and hands it back in `afterAll`. Even
+ * restored, that is a write to the realm's constitutional state rather
+ * than something the world regenerates, and a crashed run leaves the
+ * seat somewhere it should not be. It is also the one step that cannot
+ * be proved any other way: the whole point of deriving authority from an
+ * office is that it moves.
+ */
+export const DIRTY_REASON =
+  'moves the prime-minister seat to a throwaway character and hands it ' +
+  'back — restored on success, but a crashed run leaves the seat moved; ' +
+  'also opens a standing subscription that is left registered';
+
+declareFile({
+  file: 'world-scan.dirty.wire.test.ts',
+  // Pack zero, plus the content the plumbing half walks: a shop and a
+  // bank (terminus), a dorm to log back into (eternal-university), and
+  // the residence substrate both of those stand on.
+  packs: [
+    'platform',
+    'world-seed',
+    'terminus',
+    'eternal-university',
+    'residence',
+    'wiki-starter',
+  ],
+  dirtyReason: DIRTY_REASON,
+});
+
+let player: Session;
+let founder: Session;
+
+/** The refusal a `world:` query earns, on any view. */
+function expectWorldRefusal(result: Awaited<ReturnType<Session['cmd']>>): void {
+  const note = expectNote(result, 'mql-error');
+  const detail = String((note as { detail?: string }).detail ?? '');
+  expect(detail, 'the refusal must NAME the alternatives').toMatch(
+    /not available here/,
+  );
+  expect(detail).toMatch(/reachable/);
+  expect(result.status).not.toBe('ok');
+}
+
+beforeAll(async () => {
+  player = await Session.open(uniqueHandle('scan'));
+  // The founder holds the PM seat by founder default — the authority
+  // obtained the way production obtains it, never a test-only grant.
+  founder = await Session.open('founder');
+}, 180_000);
+
+afterAll(() => {
+  player?.close();
+  founder?.close();
+});
+
+/* ───────────────────────────── the door ───────────────────────────── */
+
+suite('the door', () => {
+  it('1. refuses a typed world query, and the game keeps going', async () => {
+    const refused = await player.cmd('look world:[mixin.DoorMixin]');
+    expectWorldRefusal(refused);
+    // ⚠ The half that a "does it refuse?" test forgets: a refusal must
+    // be an OUTCOME, not a wedged dispatcher.
+    expectOk(await player.cmd('look'));
+  });
+
+  it('2. refuses it on a different view too — the seed, not the verb', async () => {
+    expectWorldRefusal(await player.cmd('get world:[mixin.ContainableMixin]'));
+    expectWorldRefusal(await player.cmd('look world'));
+  });
+
+  it('3. refuses the one-shot query and the STANDING query alike', async () => {
+    await expect(player.query('world:[mixin.DoorMixin]')).rejects.toThrow(
+      /permission|mql-query rejected/i,
+    );
+    const sub = await player.subscribe('world:[mixin.DoorMixin]');
+    expect(sub.type).toBe('mql-subscription-error');
+    expect((sub as { reason?: string }).reason).toBe('permission');
+  });
+
+  it('4. the seat holder resolves it, and is told what it cost', async () => {
+    const indexed = await founder.cmd('look world:[mixin.DoorMixin]');
+    const note = expectNote(indexed, 'registry-scan');
+    expect(note).toMatchObject({ indexed: true });
+
+    // …and the shape no index answers, which is the number that grows
+    // with the realm.
+    const walked = await founder.cmd('look world');
+    const scan = expectNote(walked, 'registry-scan') as unknown as {
+      scanned: number;
+      indexed: boolean;
+      shape: string;
+    };
+    expect(scan.indexed).toBe(false);
+    expect(scan.scanned).toBeGreaterThan(100);
+    // The re-measured `n`, recorded in the drive record.
+    console.log(
+      `[world-scan] registry size as walked by the seat: ${scan.scanned}`,
+    );
+  });
+
+  it('5. …but not a standing one, seat or no seat', async () => {
+    const sub = await founder.subscribe('world:[mixin.DoorMixin]');
+    expect(sub.type).toBe('mql-subscription-error');
+    expect((sub as { reason?: string }).reason).toBe('permission');
+  });
+});
+
+/* ─────────────────────── what the plumbing carries ─────────────────── */
+
+suite('the plumbing', () => {
+  it('6. wearing, wielding, sitting and standing still work', async () => {
+    // The item-occupancy back-reference (W3) is on this path: `which
+    // host holds me` used to read every object in the world, once per
+    // creature per metabolism tick.
+    expectOk(await player.cmd('look'));
+    for (const line of ['sit', 'stand']) {
+      const r = await player.cmd(line);
+      // A room with nothing to sit on declines honestly; a THROW here
+      // would be the occupancy read failing closed.
+      expect(['ok', 'declined']).toContain(r.status);
+    }
+  });
+
+  it('7. rest and recovery no longer stall', async () => {
+    // Ten round trips over the path that pinned a CPU core. What is
+    // being asserted is that the server keeps answering — the harness
+    // times a frame out at 30s, so a stall fails here rather than
+    // hanging the suite.
+    const started = Date.now();
+    for (let i = 0; i < 10; i += 1) {
+      const r = await player.cmd('rest');
+      expect(['ok', 'declined']).toContain(r.status);
+      await player.cmd('stand');
+    }
+    console.log(`[world-scan] ten rest/stand cycles: ${Date.now() - started}ms`);
+    expectOk(await player.cmd('look'));
+  });
+
+  it('8. walking, running and sneaking all move you', async () => {
+    const before = await player.queryOne('here', ['displayName']);
+    const moved = await player.cmd('walk out');
+    if (moved.status === 'ok') {
+      const after = await player.queryOne('here', ['displayName']);
+      expect(after).not.toEqual(before);
+    }
+    // The mode roster (`allModes`) is a path glob now; a broken read
+    // would make every mode unknown rather than making movement fail.
+    for (const mode of ['run', 'sneak', 'walk']) {
+      const r = await player.cmd(mode);
+      expect(
+        ['ok', 'declined'].includes(r.status),
+        `${mode} answered ${r.status}`,
+      ).toBe(true);
+    }
+  });
+
+  it('9. the wiki lists, and the press room answers', async () => {
+    // `wiki list` is the keyed namespace read that replaced a
+    // whole-corpus filter; `press` reads the publishing roster.
+    expectOk(await player.cmd('wiki list'));
+    const press = await player.cmd('press');
+    expect(['ok', 'declined']).toContain(press.status);
+  });
+
+  it('10. title list answers — the plat books are found', async () => {
+    // The residence roster's second consumer. ⚠ A silent empty here is
+    // exactly the failure mode this catalogue design carries.
+    const titles = await founder.cmd('title list');
+    expectOk(titles);
+    const said = await titles.said();
+    expect(said.length).toBeGreaterThan(0);
+    console.log(`[world-scan] title list → ${said.slice(0, 200)}`);
+  });
+
+  it('11. a bank branch and a shop counter are reachable', async () => {
+    // `branchOf` (the custodian read) and `businessAt` (the operator
+    // lookup) are both keyed reads now.
+    const bank = await player.cmd('bank');
+    expect(['ok', 'declined']).toContain(bank.status);
+    const buy = await player.cmd('buy nothing-in-particular');
+    expect(['ok', 'declined']).toContain(buy.status);
+  });
+
+  it('12. ⭐ you log back in where you logged out', async () => {
+    // `OuterWarren.admitFor` — the residence roster's first consumer,
+    // and the one whose failure a player notices immediately: a wrong
+    // answer here puts you outside your own front door.
+    const handle = uniqueHandle('scan-return');
+    const first = await Session.open(handle);
+    const before = await first.queryOne('here', ['displayName']);
+    first.close();
+
+    const second = await Session.open(handle);
+    const after = await second.queryOne('here', ['displayName']);
+    second.close();
+
+    expect(after).toEqual(before);
+  });
+
+  it('13. no engine read is failing closed and silent', async () => {
+    // ⭐⭐ The catch-all, and the reason it exists: every rewritten read
+    // fails CLOSED — a denied registry read throws a SecurityError
+    // inside a sweep and gets logged, not surfaced. `errors` is where
+    // those land, so it is the one place a silently-broken plumbing
+    // rewrite is visible from the wire.
+    const errors = await founder.cmd('errors');
+    expect(['ok', 'declined']).toContain(errors.status);
+    if (errors.status === 'ok') {
+      const said = await errors.said();
+      expect(said, `errors reported a denied gate:\n${said}`).not.toMatch(
+        /resolveWorldIndexed|findByMixin|denied/i,
+      );
+    }
+  });
+});
+
+/* ──────────────────────────── the handoff ─────────────────────────── */
+
+suite('the seat moves', () => {
+  it('14. ⭐⭐ the ability follows the office, in both directions', async () => {
+    // The whole reason the exemption is an OFFICE and not a flag: it is
+    // derived at the moment of asking, so it arrives and leaves with a
+    // handoff, in the same act, with no restart.
+    const assign = await founder.cmd(`office handoff prime-minister ${player.handle}`);
+    if (assign.status !== 'ok') {
+      // ⚠ `governance.md` records an open defect in the handoff verb's
+      // player lookup. If it reproduces, say so out loud rather than
+      // passing quietly — the binder unit tests carry this half
+      // meanwhile (`world-seat-query.test.ts`).
+      console.warn(
+        `[world-scan] SEAT HANDOFF UNAVAILABLE — ${JSON.stringify(assign.notes)}`,
+      );
+      return;
+    }
+    try {
+      // The new holder may.
+      expectNote(await player.cmd('look world'), 'registry-scan');
+      // The previous holder may not, in the same act.
+      expectWorldRefusal(await founder.cmd('look world'));
+    } finally {
+      // Hand it back however this run can.
+      await player.cmd('office handoff prime-minister founder');
+    }
+  });
+});

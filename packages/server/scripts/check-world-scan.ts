@@ -1,12 +1,30 @@
 /**
- * check-world-scan — the "MQL is how you search" lint.
+ * check-world-scan — **you may not be handed the world.**
  *
- * `StuffApi.getAllObjects()` is a raw enumeration of the entire object
- * registry. Runtime Stuff search should go through MQL instead
- * (`MqlApi.resolveMany('world:[mixin.X]', …)` — the code-only system
- * mode for engine sweeps, `reachable`/`person` for actor-anchored
- * scans), so bespoke `getAllObjects()` filter-loops don't proliferate.
- * See docs/antipatterns.md § Bespoke Object-Search Algorithms and
+ * Two patterns, one rule. `StuffApi.getAllObjects()` is a raw
+ * enumeration of the entire object registry; `world:` is the same thing
+ * behind nicer syntax.
+ *
+ * ⚠⚠ **This gate used to point offenders AT the second one.** Its
+ * header said the fix for a bespoke `getAllObjects()` loop was
+ * `MqlApi.resolveMany('world:[mixin.X]', …)` — so the pattern was not
+ * drift, it was the documented house style, and it spread. Inverting the
+ * guidance is part of the change that closes the door, not a footnote to
+ * it: a gate whose rationale still recommends the thing it forbids gets
+ * argued away the first time it is inconvenient.
+ *
+ * **The sanctioned fix is now the OWNER'S QUESTION.** *Which business
+ * operates here*, *who works at this organization*, *which host holds
+ * this item*, *what lanes touch this place* — each is asked of whoever
+ * owns the answer, and that method is where an index can later go
+ * without a caller moving. When the population genuinely is global and
+ * selective — every `PersistableMixin`, every `BankMixin` — the read is
+ * `MqlApi.resolveWorldIndexed` from a method NAMED in the pair list on
+ * `api/mql.ts`, which is index-answerable by construction.
+ *
+ * A person typing `world:` is refused outright, with one exception: the
+ * holder of the Prime Minister's seat, who is told what it cost. See
+ * docs/antipatterns.md § Bespoke Object-Search Algorithms and
  * docs/subsystems/mql.md.
  *
  * The sanctioned homes are allowlisted below:
@@ -56,6 +74,36 @@ const ALLOWLIST = [
 
 const CALL = /\bStuffApi\.getAllObjects\s*\(/;
 
+/**
+ * The second pattern: a `world:` query, or a YAML/`MqlContext` scope of
+ * `world`, written anywhere but the resolver and the owners on the pair
+ * list. It is a build-time echo of a runtime refusal — the resolver
+ * throws for an ungated caller either way — so that a new one is caught
+ * in review rather than at the moment somebody's shop stops working.
+ */
+const WORLD_QUERY = /["']world:\[/;
+const WORLD_SCOPE = /scope:\s*["']world["']/;
+
+/**
+ * Files permitted to write a `world:` query or a `world` scope. Every
+ * entry is either the mechanism itself or a method NAMED in
+ * `RegistryWideReaders` (api/mql.ts) — the two lists move together, and
+ * `lint:gates` resolves that one against the source.
+ */
+const WORLD_QUERY_ALLOWLIST = [
+  /\/mud\/api\/mql\.ts$/, // the two gated entries + the pair list
+  /\/mud\/api\/mql\/resolver\.ts$/, // the seed's own implementation
+  /\/mud\/platform\/idea\/api\/PersistableLogic\.ts$/, // captureAtShutdown
+  /\/mud\/platform\/idea\/api\/AttendantLogic\.ts$/, // allPoints
+  /\/mud\/platform\/idea\/api\/BankingLogic\.ts$/, // branchOf
+  /\/mud\/platform\/idea\/api\/EmploymentLogic\.ts$/, // allBusinesses · employeesOf · findOrganization
+  /\/mud\/platform\/idea\/api\/PressLogic\.ts$/, // holdsAnyPublishingPosition
+  /\/mud\/lib\/residency\/Census\.ts$/, // takeCensus · spawnNow
+  /\/mud\/platform\/idea\/api\/MagicLogic\.ts$/, // decoyNameFor
+  /\/mud\/lib\/command\/CommandController\.ts$/, // resolveScreen
+  /\/content\/water\/src\/idea\/WatercourseCatalogue\.ts$/, // worldScan
+];
+
 function walk(dir: string, out: string[]): void {
   for (const name of readdirSync(dir)) {
     const full = join(dir, name);
@@ -84,16 +132,50 @@ interface Finding {
 
 const findings: Finding[] = [];
 
+const worldQueryFindings: Finding[] = [];
+
 for (const file of files) {
-  if (ALLOWLIST.some((re) => re.test(file))) continue;
   const source = readFileSync(file, "utf8");
   const lines = source.split("\n");
+  const rawAllowed = ALLOWLIST.some((re) => re.test(file));
+  const queryAllowed = WORLD_QUERY_ALLOWLIST.some((re) => re.test(file));
   for (let i = 0; i < lines.length; i++) {
     const line = lines[i]!;
-    if (CALL.test(line)) {
+    if (line.trimStart().startsWith("*") || line.trimStart().startsWith("//")) {
+      continue; // prose about the pattern is not the pattern
+    }
+    if (!rawAllowed && CALL.test(line)) {
       findings.push({ file, line: i + 1, text: line.trim().slice(0, 100) });
     }
+    if (!queryAllowed && (WORLD_QUERY.test(line) || WORLD_SCOPE.test(line))) {
+      worldQueryFindings.push({
+        file,
+        line: i + 1,
+        text: line.trim().slice(0, 100),
+      });
+    }
   }
+}
+
+if (worldQueryFindings.length > 0) {
+  console.error(
+    `check-world-scan: ${worldQueryFindings.length} 'world:' quer${
+      worldQueryFindings.length === 1 ? "y" : "ies"
+    } outside the owners on the pair list:`
+  );
+  for (const f of worldQueryFindings) {
+    console.error(
+      `  ${relative(join(SERVER_SRC, ".."), f.file)}:${f.line}  ${f.text}`
+    );
+  }
+  console.error(
+    `\nAsk the owner: 'which business operates here', 'who works at this\n` +
+      `organization', 'which host holds this item'. When the population\n` +
+      `really is global AND selective, add a (template, method) pair to\n` +
+      `RegistryWideReaders in mud/api/mql.ts and read through\n` +
+      `MqlApi.resolveWorldIndexed from that method.`
+  );
+  process.exit(1);
 }
 
 if (findings.length > 0) {
@@ -112,7 +194,7 @@ if (findings.length > 0) {
 }
 
 console.log(
-  `check-world-scan: no bespoke getAllObjects() scans ` +
-    `(${files.length} files scanned; ${ALLOWLIST.length} sanctioned ` +
-      `homes allowlisted).`
+  `check-world-scan: no bespoke getAllObjects() scans and no stray ` +
+    `'world:' queries (${files.length} files scanned; ${ALLOWLIST.length} ` +
+    `raw-enumeration homes, ${WORLD_QUERY_ALLOWLIST.length} query homes).`
 );

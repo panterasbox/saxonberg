@@ -93,6 +93,13 @@ The substrate ships these predicates:
    and it is the Teleport Authority like everyone else, and the wizard
    axis — code trust — buys no movement at all.
 
+   ⭐ **It asks the OWNERS, not the parcels.** `ParcelApi.extentsHeldBy`
+   takes this dispatch as its argument and walks each distinct holder
+   exactly once, unioning their extents — so an access check costs the
+   number of people who hold ground, not the amount of ground. It used
+   to run the holder test (groups, positions, offices) once per parcel
+   ROW, on every check.
+
    ⚠ **A use-grant is not authorship, and it is excluded structurally.**
    `heldExtents` admits on `ParcelRecord.getOwner()` and never reads
    `grants[]`, so somebody who *leases* a place gets none of this and

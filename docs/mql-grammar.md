@@ -20,9 +20,12 @@ above:
    period in a sentence. Brackets, sigils, and operators are not
    part of the player-typed surface.
 2. **Authors** (everyone, within their own extent). The full surface
-   — introspective filters, templates, mixins, glob paths, world
-   reach. Nothing in the grammar is permission-gated: what you may
-   *do* with a match is the verb's gate, never the query's.
+   — introspective filters, templates, mixins, glob paths. What you may
+   *do* with a match is still the verb's gate, never the query's.
+   ⚠ **One thing in the grammar is gated, and it is not about
+   permission**: the `world` seed reads every object in the realm, which
+   costs more the longer the realm has existed, so nobody types it. See
+   *There is no `world` seed* below for what to write instead.
 
 ## Quick examples
 
@@ -132,12 +135,42 @@ seed yields a list of Stuff (possibly empty).
 | `reachable` | `person` ∪ `here` ∪ `peers`, your own gear emitted first (you can reach yourself) |
 | `inventory` | the giver's contents (the giver itself is `me`) |
 | `online` | every connected command-giver |
-| `world` | every Stuff |
 | `it` / `him` / `her` | last single match of matching gender |
 | `them` | last multi-match list |
 | `$$` | result of the previous query |
 | `/platform/thing/Sword/*` | template path lookup (instances of matching templates) |
 | `#abc123` | direct stuff id lookup |
+
+### ⭐⭐ There is no `world` seed
+
+`world:` — every object the realm has ever made — **is refused**, for
+every player, in every command, on every surface, including standing
+subscriptions. Not because reading it is forbidden knowledge: because it
+costs the size of the realm, which never shrinks, and a query anybody
+can type must not.
+
+**What to write instead**, in the order to reach for them:
+
+| you want | write |
+|---|---|
+| things you can act on | `reachable` |
+| things on your person | `person` · `inventory` |
+| things in the room | `here` · `peers` |
+| people playing right now | `online` |
+| everything under one branch of content | a `/path` glob — `/world/terminus/**` |
+| one thing you know the identity of | `/its/path` or `#id` |
+
+⭐ The path glob is the one that replaces most former `world:` uses, and
+it is usually *better*: it is answered by an index, and it says which
+part of the realm you mean.
+
+**The one exception** is the holder of the Prime Minister's seat, who
+may type `world:` in any command — and is told what it cost afterwards
+("Registry read: 1,785 objects for 'target' (unindexed shape world)").
+The seat is derived at the moment of asking, so the ability arrives and
+leaves with the office and needs no restart. Even for the holder there
+are **no standing `world:` subscriptions**: a subscription re-runs on
+every change and there is nobody to tell.
 
 `reachable` is the closest analogue to "everything I can act on right
 now." It exists as a single token (rather than the union form
@@ -302,8 +335,8 @@ has a per-element interpretation:
   and the transforms `:i` / `:I` / `:e` / `:E`) **flat-map** over
   the prior set: for each element `x`, expand to `seed(x)` and
   union the results.
-- **Fixed-pool seeds** (`me`, `here`, `online`, `world`, paths,
-  stuff ids, `$$`, groups) **intersect** with the prior set.
+- **Fixed-pool seeds** (`me`, `here`, `online`, paths, stuff ids,
+  `$$`, groups) **intersect** with the prior set.
 
 `peers` and `inventory` additionally exclude the prior set from the
 flat-map result (because they cross-pollinate: bob is in joe's
@@ -332,8 +365,8 @@ reachable:online          people in the giver's reachable set who are
                           this way)
 ```
 
-The split keeps the common cases reading naturally: `:online` /
-`:world` filter ("of these, which are online?"); `:peers` /
+The split keeps the common cases reading naturally: `:online`
+filters ("of these, which are online?"); `:peers` /
 `:reachable` / `:i` / `:e` extend ("for each of these, give me
 peers / reachable / contents / container").
 
@@ -346,9 +379,14 @@ first. The keyed-member locator composes it with the `key` / `address`
 atoms:
 
 ```
-world:[class.DormWarren]:members:[key = '/world/eternal/duncan-hall/dorms/f1-r3']
-world:[mixin.PersistableMixin][address = 'terminus/hinkley-hills/lot-1']
+/world/eternal/duncan-hall/idea/dorm-warren:members:[key = '/world/eternal/duncan-hall/dorms/f1-r3']
+/world/terminus/hinkley-hills/**[address = 'terminus/hinkley-hills/lot-1']
 ```
+
+⚠ Both used to be written `world:[class.…]` / `world:[mixin.…]`. Seed
+from the **path** instead: an institution's rows live under one branch,
+so the path glob is both narrower and cheaper — and it says which
+building you mean, which the class name never did.
 
 A migration note: an older form like `flower:peers` used to mean
 "flowers among the peer pool" (intersection). Under the new rule
@@ -677,8 +715,8 @@ peers:online                            (online is fixed-pool, intersect)
 # Burnable items I'm carrying
 me:i:[mixin.Burnable]
 
-# Doors anywhere in the world
-world:[mixin.Door]
+# Doors in this locality (a path glob — `world:` is not yours to type)
+/world/terminus/**:[mixin.Door]
 
 # Take 5 of a coin pile
 get 5 coins                             (lenient — clamps if short)

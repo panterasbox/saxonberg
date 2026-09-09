@@ -40,7 +40,9 @@ import {
 } from '@saxonberg/server/mud/lib/security/__tests__/test-setup';
 import StorageNode from '../thing/StorageNode';
 import ControlStructure from '../thing/ControlStructure';
-import WatercourseCatalogue from '../idea/WatercourseCatalogue';
+import WatercourseCatalogue, {
+  WATERCOURSE_CATALOGUE_PATH,
+} from '../idea/WatercourseCatalogue';
 
 const YEAR = 365 * 86_400;
 const RHO = 1000;
@@ -188,7 +190,10 @@ function makeControl(spec: {
 }
 
 const catalogue = (): WatercourseCatalogue =>
-  makeStuff(() => new WatercourseCatalogue()) as WatercourseCatalogue;
+  makeStuffAtPath(
+    () => new WatercourseCatalogue(),
+    WATERCOURSE_CATALOGUE_PATH,
+  ) as WatercourseCatalogue;
 
 beforeEach(() => {
   StuffApi.clearAll();

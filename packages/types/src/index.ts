@@ -543,6 +543,33 @@ export interface MqlErrorNote {
   detail: string;
 }
 
+/**
+ * ⭐⭐ **What a registry-wide read cost**, told to the one person
+ * entitled to make one.
+ *
+ * The whole realm is unreadable by typed input — for everybody, on every
+ * surface — with exactly one exception: the holder of the Prime
+ * Minister's seat, who may type `world:` in any command. That grant is
+ * only defensible if the holder is told what they just did, so the
+ * answer arrives with its price beside it.
+ *
+ * `scanned` is objects READ, not matched: a query returning three things
+ * after reading eighteen hundred is precisely the case worth showing.
+ * `indexed: false` means the whole registry was walked because the shape
+ * answered to no index — the number that grows with the realm.
+ */
+export interface RegistryScanNote {
+  kind: 'registry-scan';
+  /** The command field whose query this was. */
+  field: string;
+  /** Objects read to answer it. */
+  scanned: number;
+  /** False ⇒ the whole registry was walked. */
+  indexed: boolean;
+  /** The leading fragment as typed, e.g. `world:[class.Door]`. */
+  shape: string;
+}
+
 export interface ValidatorFailedNote {
   kind: 'validator-failed';
   /** present for field validators */
@@ -812,6 +839,7 @@ export type Note =
   | SlotOccupiedNote
   | CommandRejectedNote
   | MqlErrorNote
+  | RegistryScanNote
   | ValidatorFailedNote
   | ControllerErrorNote
   | EngagementStartedNote

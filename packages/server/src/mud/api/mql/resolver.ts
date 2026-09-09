@@ -31,7 +31,11 @@ import {
   OMNI_SCOPE,
 } from '../execution-context';
 import { desugar } from './desugar';
-import { MqlPermissionError, type MqlQuantity } from './types';
+import {
+  MqlPermissionError,
+  type MqlQuantity,
+  type RegistryScan,
+} from './types';
 import { getOnlineHolders } from './online-provider';
 import { parse, type MqlParseError } from './parser';
 import { isPredicateName, MQL_PREDICATES } from './predicates';
@@ -120,8 +124,31 @@ export function resolve(query: string, ctx: MqlContext): MqlMatch[] {
  */
 export function resolveWithQuantity(
   query: string,
+  ctx: MqlContext,
+  mode: RegistryMode = null,
+): { matches: MqlMatch[]; quantity?: MqlQuantity; scan?: RegistryScan } {
+  // ⭐ The mode is PIPELINE-INTERNAL and lives for exactly one
+  // synchronous run. It is not on `MqlContext` because a context is
+  // supplied by the caller, and a permission a caller can hand itself is
+  // not a permission. Save/restore rather than assign/clear: a predicate
+  // can re-enter `MqlApi.resolveMany`, and that nested run must be
+  // ungranted (mode `null`) rather than inheriting this one.
+  const outerMode = registryMode;
+  const outerScan = registryScan;
+  registryMode = mode;
+  registryScan = null;
+  try {
+    return resolveInner(query, ctx);
+  } finally {
+    registryMode = outerMode;
+    registryScan = outerScan;
+  }
+}
+
+function resolveInner(
+  query: string,
   ctx: MqlContext
-): { matches: MqlMatch[]; quantity?: MqlQuantity } {
+): { matches: MqlMatch[]; quantity?: MqlQuantity; scan?: RegistryScan } {
   const desugared = desugar(query);
   if (desugared.error) {
     throw new MqlDesugarError(desugared.error);
@@ -132,8 +159,11 @@ export function resolveWithQuantity(
   const finalized = finalize(matches);
   const quantity: MqlQuantity | undefined =
     parserQuantity ?? desugared.quantityHint;
-  if (quantity) return { matches: finalized, quantity };
-  return { matches: finalized };
+  const out: { matches: MqlMatch[]; quantity?: MqlQuantity; scan?: RegistryScan } =
+    { matches: finalized };
+  if (quantity) out.quantity = quantity;
+  if (registryScan) out.scan = registryScan;
+  return out;
 }
 
 /**
@@ -189,10 +219,23 @@ function resolveSublist(node: SublistNode, ctx: MqlContext): MqlMatch[] {
 
 function resolveChain(node: ChainNode, ctx: MqlContext): MqlMatch[] {
   const indexed = indexedWorldSeed(node);
-  let matches =
-    indexed === null
-      ? resolveSeed(node.head, ctx)
-      : matchesFromStuff(StuffApi.findByMixin(indexed));
+  let matches: MqlMatch[];
+  if (indexed === null) {
+    matches = resolveSeed(node.head, ctx);
+  } else {
+    // The index-answerable shape. Still refused when nothing granted the
+    // read — being cheap is not being permitted.
+    if (registryMode === null) {
+      throw new MqlPermissionError(WORLD_REFUSED, 'world');
+    }
+    const bucket = StuffApi.findByMixin(indexed);
+    registryScan = {
+      scanned: bucket.length,
+      indexed: true,
+      shape: `world:[mixin.${indexed}]`,
+    };
+    matches = matchesFromStuff(bucket);
+  }
   for (const op of node.rest) {
     matches = applyChainOp(matches, op, ctx);
   }
@@ -228,6 +271,54 @@ function indexedWorldSeed(node: ChainNode): string | null {
   const atom = expr.atom;
   if (atom.kind !== 'namespaced' || atom.namespace !== 'mixin') return null;
   return atom.key.toLowerCase();
+}
+
+/**
+ * ⭐⭐ **The registry-read grant for ONE synchronous run.**
+ *
+ * `null` — the ordinary state, and the state every player-typed query
+ * runs in. The `world` seed refuses.
+ * `'indexed'` — the engine's own read, admitted only in the one shape
+ * the composition index answers (`world:[mixin.X]`).
+ * `'seat'` — the office holder's typed query. Any `world` shape
+ * resolves, and what it cost is recorded so they can be told.
+ *
+ * Module scope DECLARES; `resolveWithQuantity` assigns at call time and
+ * restores in a `finally`.
+ */
+type RegistryMode = 'indexed' | 'seat' | null;
+let registryMode: RegistryMode = null;
+let registryScan: RegistryScan | null = null;
+
+/**
+ * The refusal every ordinary caller gets. ⚠ It names the alternatives:
+ * a refusal that only says no turns a working query into a dead end,
+ * and the alternatives are the whole reason this is affordable.
+ */
+const WORLD_REFUSED =
+  "'world' is not available here — anchor the query (reachable, here, " +
+  'person, inventory, online) or use a /path glob.';
+
+/** The engine's refusal: it may read the registry, but only by index. */
+const WORLD_NOT_INDEXED =
+  "'world' is readable here only as an indexed query — write " +
+  'world:[mixin.X], a composition filter immediately after the seed.';
+
+/**
+ * The whole registry, for a caller entitled to it — and a record of what
+ * that cost. Throws for everyone else.
+ *
+ * `shape` is the leading fragment as typed, so the note a person reads
+ * names the query they actually wrote.
+ */
+function wholeRegistry(shape: string): Stuff[] {
+  if (registryMode === null) throw new MqlPermissionError(WORLD_REFUSED, 'world');
+  if (registryMode === 'indexed') {
+    throw new MqlPermissionError(WORLD_NOT_INDEXED, 'world');
+  }
+  const all = StuffApi.getAllObjects();
+  registryScan = { scanned: all.length, indexed: false, shape };
+  return all;
 }
 
 // ----- seeds ---------------------------------------------------------
@@ -356,7 +447,7 @@ function resolveKeywordSeed(node: KeywordsNode, ctx: MqlContext): MqlMatch[] {
       return matchesFromStuff(allOnlineCommandGivers());
     }
     if (w === 'world') {
-      return matchesFromStuff(StuffApi.getAllObjects());
+      return matchesFromStuff(wholeRegistry('world'));
     }
     if (w === 'peers') {
       return candidatesToMatches(
@@ -666,7 +757,14 @@ function candidatesForScopePart(
     return candidatesForFlat(allOnlineCommandGivers(), ctx.commandGiver, ctx.attention);
   }
   if (lower === 'world') {
-    return candidatesForFlat(StuffApi.getAllObjects(), ctx.commandGiver, ctx.attention);
+    // ⚠ The scope keyword is never index-answerable: a scope is a
+    // candidate POOL that later keyword matching runs over, so there is
+    // no composition filter to read a bucket from.
+    return candidatesForFlat(
+      wholeRegistry("scope 'world'"),
+      ctx.commandGiver,
+      ctx.attention,
+    );
   }
   if (lower === 'me') {
     return [

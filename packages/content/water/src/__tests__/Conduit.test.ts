@@ -30,7 +30,9 @@ import {
 } from '@saxonberg/server/mud/lib/security/__tests__/test-setup';
 import { SUPPLY_STATES } from '@saxonberg/server/mud/lib/supply/SupplyState';
 import Conduit from '../thing/Conduit';
-import WatercourseCatalogue from '../idea/WatercourseCatalogue';
+import WatercourseCatalogue, {
+  WATERCOURSE_CATALOGUE_PATH,
+} from '../idea/WatercourseCatalogue';
 import type { DrawLedger } from '../idea/WatercourseCatalogue';
 
 const YEAR = 365 * 86_400;
@@ -127,7 +129,10 @@ function installRootBiome(): void {
 }
 
 const catalogue = (): WatercourseCatalogue =>
-  makeStuff(() => new WatercourseCatalogue()) as WatercourseCatalogue;
+  makeStuffAtPath(
+    () => new WatercourseCatalogue(),
+    WATERCOURSE_CATALOGUE_PATH,
+  ) as WatercourseCatalogue;
 
 let seq = 0;
 function makeConduit(spec: {

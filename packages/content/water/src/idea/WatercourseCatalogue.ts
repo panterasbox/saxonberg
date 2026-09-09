@@ -572,7 +572,7 @@ export default class WatercourseCatalogue extends Idea {
       kind: ContaminantKind;
     }> = [];
 
-    for (const obj of MqlApi.resolveMany('world:[mixin.WithdrawingMixin]', {
+    for (const obj of MqlApi.resolveWorldIndexed('world:[mixin.WithdrawingMixin]', {
       commandGiver: null,
       scope: 'world',
     }).stuff) {
@@ -588,7 +588,7 @@ export default class WatercourseCatalogue extends Idea {
       }
     }
 
-    for (const obj of MqlApi.resolveMany('world:[mixin.DischargingMixin]', {
+    for (const obj of MqlApi.resolveWorldIndexed('world:[mixin.DischargingMixin]', {
       commandGiver: null,
       scope: 'world',
     }).stuff) {

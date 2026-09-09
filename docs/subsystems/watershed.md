@@ -655,13 +655,30 @@ costs microseconds; the expensive part is the snowpack integral it calls
 per withdrawer, and that is already memoised per reach per segment.
 **Cache the expensive derivation, never the enumeration.**
 
-⚠ **Why not MQL**, which is normally how you search: MQL selects by
-**mixin**, and a capability pack cannot ship one (its module categories
-are branches, controllers and tests — no `lib/`). Its `class.X` filter
-matches by class *name*, and three unrelated things in this codebase are
-called `Conduit`. So a shape scan is the honest mechanism available to a
-pack — and `check-world-scan` was extended to walk packs' `src/` so the
-choice is a diff a reviewer sees rather than a hole in a gate.
+⭐ **It used to be a shape scan over every object in the world**, and the
+note here said why: MQL selects by **mixin**, a capability pack could not
+ship one (its module categories were branches, controllers and tests —
+no `lib/`), and the `class.X` filter matches by class *name* while three
+unrelated things in this codebase are called `Conduit`.
+
+The first half stopped being true when a pack gained a `lib/` of its
+own. Withdrawers and dischargers now **declare themselves** —
+`WithdrawingMixin` and `DischargingMixin` in `water/src/lib/`, composed
+by `Conduit` (both) and `ControlStructure` (withdraw only) — and the
+walk is an indexed read of exactly them, through
+`MqlApi.resolveWorldIndexed` from this method (`worldScan`, which is on
+the registry-read pair list under the system-catalogue convention).
+
+They are two mixins rather than one because they are two facts: a
+headgate draws and returns nothing, a stormwater outfall returns and
+draws nothing, and a conduit does both.
+
+⚠ **The trade:** an implementer that declares `withdrawalM3S` without
+composing the mixin is invisible to the river, where the shape scan
+would have found it by accident. That is a gate a reviewer sees.
+`check-world-scan`'s `getAllObjects` allowlist lost its entry for this
+file in the same change — when an allowlist entry's REASON expires, the
+entry goes.
 
 A withdrawal is sized against the **natural** (undrawn) flow, because
 sizing it against the already-drawn flow would be recursive and because

@@ -28,6 +28,9 @@ import { MqlLogic } from '../platform/idea/api/MqlLogic';
 import { fileURLToPath } from 'url';
 
 import { SecurityApi } from './security';
+import { CallSecurity } from '../lib/security/decorators';
+import { SecurityPolicies } from '../lib/security/SecurityPolicies';
+import { ExecutionContextApi } from './execution-context';
 import type {
   MqlContext,
   MqlMatchVia,
@@ -36,6 +39,8 @@ import type {
   MqlOne,
   MqlMany,
   MqlQuantity,
+  RegistryScan,
+  RegistryReadStat,
 } from './mql/types';
 
 export type {
@@ -46,6 +51,8 @@ export type {
   MqlOne,
   MqlMany,
   MqlQuantity,
+  RegistryScan,
+  RegistryReadStat,
 };
 
 // Symbols the non-api layer consumes flow through this facade so the
@@ -81,6 +88,112 @@ function logic(): MqlLogic {
   );
 }
 
+/**
+ * ⭐⭐ **Who may read the whole registry, and from which function.**
+ *
+ * Declared here, beside the method it guards, so that widening the set
+ * is a diff in one file rather than a decorator edit somewhere in the
+ * subsystem that wanted the reach. Every entry is a
+ * `(template, method)` pair: the object is trusted for ONE function,
+ * because a logic singleton has dozens and only one of them needs this.
+ *
+ * ⚠ Every pair is resolved at build time by `lint:gates` — both halves,
+ * including that the class really declares a public method of that name.
+ * A mistyped method name would otherwise deny forever while looking
+ * correct in this list, and a denied engine read reads as *"the world
+ * has no banks"*.
+ *
+ * ⭐ The last entry is CONVENTION-shaped rather than a named pack: any
+ * system pack's catalogue may take its one indexed read from a method
+ * called `worldScan`, so a new system pack needs no kernel edit. It is
+ * bounded by the index-answerable rule like everybody else.
+ */
+const RegistryWideReaders = SecurityPolicies.AnyOf(
+  // The world's persistable singletons, once, cold, at shutdown.
+  SecurityPolicies.FromTemplateMethod(
+    '/platform/idea/api/persistable',
+    'captureAtShutdown',
+  ),
+  // Storefront attention: the lease sweep and the disconnect drop.
+  SecurityPolicies.FromTemplateMethod(
+    '/platform/idea/api/attendant',
+    'allPoints',
+  ),
+  // Where an institution actually has a branch (custodian validation).
+  SecurityPolicies.FromTemplateMethod('/platform/idea/api/banking', 'branchOf'),
+  // The labour market's three: the business roster, who works at one,
+  // and finding an organization by what somebody typed.
+  SecurityPolicies.FromTemplateMethod(
+    '/platform/idea/api/employment',
+    'allBusinesses',
+  ),
+  SecurityPolicies.FromTemplateMethod(
+    '/platform/idea/api/employment',
+    'employeesOf',
+  ),
+  SecurityPolicies.FromTemplateMethod(
+    '/platform/idea/api/employment',
+    'findOrganization',
+  ),
+  // Whether a principal holds any publishing position anywhere.
+  SecurityPolicies.FromTemplateMethod(
+    '/platform/idea/api/press',
+    'holdsAnyPublishingPosition',
+  ),
+  // Items in circulation — the residency census, and the spawn sweep.
+  SecurityPolicies.FromTemplateMethod(
+    '/platform/idea/api/residency',
+    'takeCensus',
+  ),
+  SecurityPolicies.FromTemplateMethod(
+    '/platform/idea/api/residency',
+    'spawnNow',
+  ),
+  // A plausible false name, borrowed from the identifiable population.
+  SecurityPolicies.FromTemplateMethod(
+    '/platform/idea/api/magic',
+    'decoyNameFor',
+  ),
+  // ⚠ A GLOB: `resolveScreen` is a base-class method on
+  // `CommandController`, so it lives on every controller template.
+  SecurityPolicies.FromTemplateMethod(
+    '/**/idea/cmd/**',
+    'resolveScreen',
+  ),
+  // The convention rung: a system pack's catalogue, from `worldScan`.
+  SecurityPolicies.FromTemplateMethod('/system/*/idea/*Catalogue', 'worldScan'),
+);
+
+/**
+ * The seat arm's admitted caller: exactly the command binder's
+ * `resolveModel`, which is where a player's raw MQL enters the engine.
+ */
+const SeatQueryCaller = SecurityPolicies.FromTemplateMethod(
+  '/platform/idea/api/command',
+  'resolveModel',
+);
+
+/**
+ * The admitted caller's identity, for the cost table. Inside a static
+ * Api body the top frame is this Api's own, so the caller's frame — the
+ * one the policy just matched — is the one below it.
+ */
+function callingReader(): string {
+  const stack = ExecutionContextApi.getCallStack();
+  const frame = stack[stack.length - 2];
+  if (!frame) return 'unknown';
+  const target = frame.target as { getTemplatePath?: () => string | null };
+  let path: string | null = null;
+  try {
+    path = typeof target?.getTemplatePath === 'function'
+      ? target.getTemplatePath()
+      : null;
+  } catch {
+    path = null;
+  }
+  return `${path ?? 'unknown'}#${frame.method}`;
+}
+
 export class MqlApi {
   /**
    * Resolve a query under one-of-N intent. Returns the highest-scored
@@ -107,6 +220,64 @@ export class MqlApi {
    */
   static resolveMany(query: string, ctx: MqlContext): MqlMany {
     return logic().resolveMany(query, ctx);
+  }
+
+  /**
+   * ⭐⭐ **The engine's own registry-wide read.**
+   *
+   * `world` is refused everywhere else — for every player, on every
+   * surface, including this one's own `resolveOne`/`resolveMany`. This
+   * is the narrow door the realm's own bookkeeping comes through, and
+   * the policy on it is the list of who may: a `(template, method)`
+   * pair each, so a singleton is trusted for the one method that needs
+   * the reach and not for the other thirty.
+   *
+   * ⚠ **Index-answerable shapes only**: `world` at the head followed
+   * immediately by `[mixin.X]`. Anything else throws
+   * `MqlPermissionError`, which is deliberate — an unindexed read that
+   * grows with the realm is exactly what this build exists to stop, and
+   * a caller wanting one is a caller who should be asking an owner a
+   * keyed question instead.
+   *
+   * ⭐ Adding a pair here is a visible diff in one place, which is the
+   * whole point of declaring the policy beside the method.
+   */
+  @CallSecurity(RegistryWideReaders)
+  static resolveWorldIndexed(query: string, ctx: MqlContext): MqlMany {
+    return logic().resolveWorldIndexed(query, ctx, callingReader());
+  }
+
+  /**
+   * ⭐⭐ **The office holder's typed query**, and the only path by which
+   * a person's input reads the whole realm.
+   *
+   * Admitted from exactly one function: the command binder, which is
+   * where a player's raw MQL enters the engine and the one place the
+   * seat can be checked against the person who typed it. Any `world`
+   * shape resolves; the result carries `scan`, so the holder is told
+   * what it cost.
+   *
+   * ⚠ "Permitted with a warning" is therefore a **method identity bound
+   * to a policy**, never a flag on a context somebody could hand
+   * themselves.
+   */
+  @CallSecurity(SeatQueryCaller)
+  static resolveWorldForSeat(
+    query: string,
+    ctx: MqlContext,
+  ): MqlMany & { scan?: RegistryScan } {
+    return logic().resolveWorldForSeat(query, ctx);
+  }
+
+  /**
+   * What each admitted registry reader has read this process — the
+   * growth signal behind `/stats`.
+   *
+   * ⚠ Process-local and reset by a restart or an HMR reload; and
+   * `maxReturned` is the column that matters, not `calls`.
+   */
+  static registryReadStats(): readonly RegistryReadStat[] {
+    return logic().registryReadStats();
   }
 
   /**

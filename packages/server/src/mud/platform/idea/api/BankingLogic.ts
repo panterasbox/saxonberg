@@ -335,7 +335,7 @@ function findBranchOf(bank: string): (Stuff & Bank) | null {
 /** The enumeration itself — reached only from `BankingLogic.branchOf`. */
 function branchOfImpl(bank: string): (Stuff & Bank) | null {
   if (!bank) return null;
-  const matches = MqlApi.resolveMany("world:[mixin.BankMixin]", {
+  const matches = MqlApi.resolveWorldIndexed("world:[mixin.BankMixin]", {
     commandGiver: null,
     scope: "world",
   });

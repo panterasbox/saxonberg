@@ -34,6 +34,7 @@ import { WebSocketService } from './websocket/WebSocketService';
 import { AppBootstrap } from '../backend/AppBootstrap';
 import { ConnectionApi } from '../mud/api/connection';
 import { StuffApi } from '../mud/api/stuff';
+import { MqlApi } from '../mud/api/mql';
 
 /**
  * Server - Main application server.
@@ -168,11 +169,24 @@ export class Server {
     });
 
     // Server stats (for development)
+    //
+    // ⭐ `registryReads` is the growth signal: what each admitted
+    // registry-wide reader has actually read this process. It rides
+    // here, beside `objects`, because /stats already reports the
+    // registry's SIZE ungated and read counts are the same class of
+    // fact — no new authority question, and deliberately not a verb (a
+    // verb would need a seat, and inventing one for a diagnostic is how
+    // this build's access gate went wrong four times).
+    //
+    // ⚠ Process-local: read it from a server that has been up a while.
+    // A freshly-booted one reports zeros, which looks identical to
+    // "nothing scans" and is the opposite of the finding.
     this.app.get('/stats', (req, res) => {
       res.json({
         connections: ConnectionApi.getConnectionCount(),
         objects: StuffApi.getObjectCount(),
         uptime: process.uptime(),
+        registryReads: MqlApi.registryReadStats(),
       });
     });
 

@@ -99,7 +99,7 @@ export abstract class CommandController<
       if (await d.mayDrive(actor)) return { display: d, mode: 'hand' };
     }
     if (MixinApi.isActive(actor, 'AetherMixin')) {
-      const all = MqlApi.resolveMany('world:[mixin.DisplayMixin]', {
+      const all = MqlApi.resolveWorldIndexed('world:[mixin.DisplayMixin]', {
         commandGiver: null,
         scope: 'world',
       }).stuff.filter((s): s is Stuff & Display => MixinApi.isDisplay(s));
