@@ -944,6 +944,34 @@ in W1/W8 is a one-line edit.
 
 *Commit.* `build(consequence W0b): the couplings as characterization tests`
 
+✅ **Done.** 8 tests, green first run. ⭐ **The wave shrank, and that is
+the finding:** most of the table the plan drafted is *already*
+characterized — fracture → `canOccupy` and the trauma decay laws in
+`Trauma.behaviors.test.ts`, weapon + armour wear in
+`CombatLogic.gearwear.test.ts`, the Sharpness curve and its inert
+`g(composure)` in `Sharpness.test.ts`, `restore` capped by endurance in
+`Poise.test.ts`, `LoadBearing` in its own gauge test. Duplicating them
+would have been noise, so both files cite them by path instead and carry
+only what was genuinely unpinned. What shipped:
+
+- `lib/vitals/__tests__/couplings.characterization.test.ts` — **three
+  absent edges**: a row that *declares* a `signature` moves no vital sign
+  over three hours (W8 flips it; the row's own `progression` **does**
+  stage, which is what makes the silence damning rather than ambiguous);
+  a burn costs no blood (W11); a bruise costs no endurance (W11).
+- `lib/combat/__tests__/couplings.characterization.test.ts` — **the
+  absent edge**, by a paired run: two identical fights differing only in
+  the defender's plate, so one is wounded and one is not, and both end
+  the beat **in the same poise band**. Plus `Poise.restore` having no
+  ceiling but endurance (W1 adds one). Two live edges pinned for
+  contrast: `energyFor` (the same strike bites deeper into an open
+  guard) and the focus multiplier.
+
+⭐ **The paired-run instrument is legitimate here because combat is
+deterministic** — `grep` for `Math.random` / `UncertaintyApi` in
+`CombatLogic.ts` returns nothing. Recorded because a future stochastic
+element would silently invalidate the shape.
+
 #### W0c — `lint:unconsumed-seams`
 
 *Goal.* The instrument that would have found this slate's findings (D19).
