@@ -1164,7 +1164,99 @@ previously even matchup. W0b's absent test flips.
 `lint:combat-dynamics` green (no new predicate); the gym's "no policy
 dominates" and NPC≈PC cells still hold.
 
-*Commit.* `build(consequence W1): a landed wound spends poise and caps recovery`
+*Commit.* `build(consequence W1): a landed wound caps what a fighter can recover`
+
+✅ **Done**, and ⚠⚠ **D10 changed shape under measurement — the wave ships
+ONE mutation, not two.**
+
+**What shipped.** `Poise` gains a `ceiling` (default 1) with
+`lowerCeiling(to)` (a ratchet) and `ceiling()`; `restore` is capped by
+`min(enduranceRatio, ceiling)` — two independent caps, the tighter wins.
+`applyWoundToPoise` lowers the ceiling on a `bites` / `bites-deep`
+outcome; a `grazes` never caps. `seedWoundCeiling` seeds it at session
+open from the body's live trauma, so a fight picked while already cut
+starts already capped. Dials `combat.wound.ceiling.{bites,bitesDeep}` +
+`combat.wound.ceilingFloor`.
+
+⭐ **Called from inside `commitInflict` and `commitShockInflict`, not at
+the four blow sites the plan named.** Same behaviour by construction and
+one fewer way to be wrong — a fifth blow path added later inherits the
+edge instead of silently missing it, which is the exact failure class
+this build exists to end. It also retires the Reachability table's
+"check all five callers" worry.
+
+#### ⚠⚠ The spend is gone, and it is a finding rather than a timid dial
+
+D10 had a wound *spend* poise as well as cap recovery. Measured, that
+half was **redundant and harmful**:
+
+- **Redundant** — `resolveExchange` erodes the target *before* resolving
+  the blow, scaled by the attacker's weapon and reach. That already **is**
+  "getting hit costs you footing"; a second, wound-sized erosion
+  double-counts one event.
+- **Harmful** — at the plan's values (0.05/0.15/0.30) a symmetric duel
+  went from a **2-beat result to a 201-beat draw**. Tuning only moved the
+  cliff (deep-bite 0.15 → 201 beats, 0.12 → 2 beats — a bifurcation, not
+  a curve). At the safe values it still compressed a 3-beat crew fight to
+  2, i.e. **below the length at which formation policy can express itself
+  at all** (the interception pass runs at beat-top), inverting the gym's
+  focus-fire cell. No spend value cleared that cell that was not within a
+  factor of two of inverting it again.
+- ⭐ **With the spend at zero and the ceiling live, the focus-fire cell
+  reads BETTER than on master**: the called side wins under both
+  formations and strictly faster under focus fire.
+
+⭐ What a wound uniquely says is that **it persists**. That is the
+ceiling, and the ceiling is enough. The plan's `combat.wound.spend.*`
+keys were never shipped — a dial that must stay at zero is a seam with
+no consumer, and W0c's gate exists to stop exactly that.
+
+⚠ **Consequence for W2:** there is no wound-caused band crossing to
+narrate, so `ExchangeReport.footingLost` narrates the crossing the
+*exchange* computes — which is what D11 said in the first place ("prose
+from the transition the engine already computes"). W2 additionally
+narrates the **ceiling** falling, since that is the fact the fighter
+needs and the one that has no other reading.
+
+#### Gym: zero movement
+
+`pnpm test:gym` reports **the same 3 failures as master, and no others** —
+every canonical pin byte-identical. ⚠ Those 3 are **pre-existing and RED
+on `master`**: the two `shipped species — the size table` cells (a
+snapshot mismatch and `halfling: expected 35 to be greater than 35`) and
+`combat-gym — the parry seam is dead (rock-paper-scissors)`, whose name
+is the finding. `test:gym` is its own CI job and is not in `pnpm test`,
+which is how they stayed red. Not this build's to fix; recorded in
+`docs/subsystems/combat.md` and here so the pre-merge sweep does not
+mistake them for W1's.
+
+#### ⭐⭐ Two pre-existing engine defects the measurement characterized
+
+Both are written up in `docs/subsystems/combat.md § Two pre-existing
+defects the wound work measured`, and neither was fixed — deliberately.
+
+1. **The mutual-exhaustion limit cycle.** `decideOutcome` refuses an
+   offensive gambit from an `overextended` actor (`broken` **or** `open`)
+   and the whiff penalty keeps them there, so once *every* live fighter is
+   under the floor no offensive outcome can resolve and the fight expires
+   at `combat.maxBeats` as a draw. Determinism means a symmetric matchup
+   falls into a stable anti-phase cycle rather than drifting out. Two gym
+   pins already record it *in their own names*.
+2. **The band is read twice, inconsistently.** `resolveExchange` reads the
+   band at beat-top to pick the intent, erodes both sides, then
+   `decideOutcome` re-reads it — so a fighter fit to strike at beat-top
+   can be refused for overextension **caused by their own strike**.
+
+⭐ Both fixes were built and measured during this wave (passing the
+beat-top band into `decideOutcome`; skipping the whiff penalty for an
+already-overextended actor; letting a merely-`broken` actor cash an
+opening). **All three were reverted**, because once the wound spend was
+dropped none of them changed a single test result — and shipping a
+combat-balance change that buys nothing is worse than recording it. →
+combat-experience-slate.
+
+**Verification.** 382 combat tests green; `test:gym` at the master
+baseline; type-clean.
 
 #### W2 — the poise read
 

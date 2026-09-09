@@ -75,6 +75,76 @@ and the binary `isOpen()`. Band thresholds + magnitudes are injected by the
 session from `combat.*` AppSettings, so `Poise` stays a pure, tunable state
 machine with no I/O (unit-tested standalone).
 
+### ⭐⭐ The wound ceiling — staying cut keeps you losing
+
+`Poise.lowerCeiling(to)` / `ceiling()`, and `restore` capped by
+**`min(enduranceRatio, ceiling)`** — the tighter of the two wins. Two
+independent caps saying different things: how gassed you are, and how badly
+you are hurt.
+
+Until the consequence build, **a landed wound made no tactical difference
+at all.** The fight was decided by pressure alone and the injury was
+bookkeeping happening beside it: a cut fighter bought their footing back
+exactly as readily as an untouched one, so breaking off to heal was a
+forfeit rather than a decision — which is why armour read as immunity and a
+fight had no shape between *fine* and *down*. `applyWoundToPoise`
+(`CombatLogic`, called from inside `commitInflict` and its shock twin, so a
+future blow path inherits the edge instead of silently missing it) lowers
+the ceiling on a `bites` / `bites-deep` outcome. A `grazes` does not cap,
+so trading light blows stays a contest of pressure and **armour buys a
+margin in the contest rather than immunity**. `combat.wound.ceilingFloor`
+bounds a body full of wounds; the ceiling is a ratchet (a wound does not
+un-happen mid-fight) and is seeded at session open from the body's live
+trauma, so a fight picked while already cut starts already capped.
+
+⚠⚠ **A wound deliberately does NOT spend poise, and that is a measured
+finding.** The design first had it do both — cost footing now *and* cap
+recovery. But **the exchange that delivers a wound has already eroded the
+target**, scaled by the attacker's weapon and reach: that *is* "getting hit
+costs you footing". A second, wound-sized erosion double-counts one event,
+and every measurable effect of the double count was harmful — it compressed
+a 3-beat crew fight to 2, i.e. **below the length at which formation policy
+can express itself at all** (the interception pass runs at beat-top), and
+no dial value cleared the gym's focus-fire cell that was not within a factor
+of two of inverting it again. With the spend at zero and the ceiling live,
+that cell reads *better* than it did before. What a wound uniquely says is
+that **it persists**; that is the ceiling, and the ceiling is enough.
+
+### ⚠⚠ Two pre-existing defects the wound work measured
+
+Neither is caused by the wound ceiling — both were **already live and
+already pinned** — but both were characterized while measuring it, and
+they are recorded here because the next person to touch these numbers will
+meet them.
+
+**1. The mutual-exhaustion limit cycle.** `decideOutcome` refuses an
+offensive gambit from an `overextended` actor (`broken` or `open`), and a
+whiff costs `whiffPenalty`, which keeps them there. So once **every** live
+fighter is under the break floor, no offensive outcome can resolve and the
+fight can only expire at `combat.maxBeats` as a **draw**. The engine is
+fully deterministic, so a symmetric matchup falls into a stable anti-phase
+cycle rather than drifting out of it. Two of the gym's six canonical pins
+already record it in their own names — `feinter-vs-turtle@untrained → draw
+in 201 beats`, `spear-vs-dagger@competent → draw in 201 beats`.
+
+**2. The band is read twice, inconsistently.** `resolveExchange` reads the
+actor's band at beat-top to pick the intent (an overextended fighter covers
+up and catches their breath *"which is what keeps a fight from
+stalemating"*), then erodes both sides, then `decideOutcome` re-reads the
+band. A fighter fit to strike at beat-top can therefore be refused a few
+lines later for overextension **caused by their own strike** — the beat is
+wasted, the whiff penalty opens them further, and the next beat is refused
+for the same reason. Passing the beat-top band into `decideOutcome` is a
+two-line change that measurably reduces the stalling; it was not taken in
+the consequence build because, once the wound spend was dropped, it bought
+nothing and shipping a combat-balance change that buys nothing is worse
+than recording it.
+
+⚠ Relatedly: **three `test:gym` cells are RED on master** and have been for
+some time — the two species size-table cells and `combat-gym — the parry
+seam is dead (rock-paper-scissors)`, whose name is the finding. `test:gym`
+is its own CI job and is not part of `pnpm test`.
+
 ## Tempo — emergent cadence
 
 `lib/combat/Tempo.ts` — **no attacks-per-round scalar**. Each combatant

@@ -31,6 +31,27 @@ settings:
   - key: combat.poise.whiffPenalty
     value: "0.25"
 
+  # ⭐⭐ Consequence build — how far a landed wound caps the recovery of
+  # the fighter it lands on. Staying cut keeps you losing: the wound does
+  # not take footing away, it takes away how much of it you can buy back.
+  # A graze never caps, so trading light blows stays a contest of pressure.
+  #
+  # ⚠ There is deliberately no `combat.wound.spend.*` — the exchange that
+  # delivers a wound has already eroded the target, and eroding again for
+  # the same event compressed fights below the length at which formation
+  # policy can act. See docs/subsystems/combat.md.
+  - key: combat.wound.ceiling.bites
+    value: "0.85"
+
+  - key: combat.wound.ceiling.bitesDeep
+    value: "0.6"
+
+  # The ceiling ratchets down per wound, so this bounds a body full of
+  # them: a fighter can be worn to 40% recovery and no lower by wounds
+  # alone. Endurance is the other cap, and the tighter of the two wins.
+  - key: combat.wound.ceilingFloor
+    value: "0.4"
+
   # Ambush (stealth build): the poise an unaware defender loses at the
   # opening when struck from concealment. Poise starts at 1.0 and breaks at
   # combat.poise.brokenAt (0.25); 0.85 drops it to 0.15 < 0.25, arming the

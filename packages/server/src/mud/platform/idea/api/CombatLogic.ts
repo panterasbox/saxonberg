@@ -1178,6 +1178,29 @@ function mergeImpl(a: CombatSession, b: CombatSession): void {
 }
 
 /** Build a combatant's transient fight state from its body + gear. */
+/**
+ * Lower a fresh gauge's recovery ceiling for the wounds the body is
+ * already carrying, worst first. Reuses the same per-band multipliers a
+ * blow landing mid-fight applies, so "entering cut" and "being cut" are
+ * priced identically — one rule, read twice.
+ */
+function seedWoundCeiling(poise: Poise, combatant: Stuff): void {
+  if (!MixinApi.isVitals(combatant)) return;
+  const K = AppSettingKeys;
+  const floor = dial(K.combatWoundCeilingFloor, 0.4);
+  for (const c of combatant.getConditions()) {
+    if (c.kind !== "trauma") continue;
+    const band = MaterialApi.severityToBand(c.severity);
+    const mult =
+      band === "bites-deep"
+        ? dial(K.combatWoundCeilingBitesDeep, 0.6)
+        : band === "bites"
+          ? dial(K.combatWoundCeilingBites, 0.85)
+          : 1;
+    if (mult < 1) poise.lowerCeiling(Math.max(floor, poise.ceiling() * mult));
+  }
+}
+
 function deriveState(combatant: Stuff & Engaged): CombatantState {
   const inputs = {
     encumbrance: MixinApi.isLoadBearing(combatant)
@@ -1190,9 +1213,17 @@ function deriveState(combatant: Stuff & Engaged): CombatantState {
     balanceFactor: balanceFactorOf(combatant),
   };
   const tempo = new Tempo(Tempo.rateFor(inputs, tempoConfig()));
+  const poise = new Poise(poiseConfig());
+  // ⭐ **A fighter who walks in already cut walks in already capped.** The
+  // wound ceiling is session-scoped, but the wounds are not — so a fight
+  // picked the morning after a bad one starts from the body's live trauma
+  // rather than from a clean slate. Without this seeding, breaking off to
+  // heal and immediately re-engaging would be free, and the whole
+  // "staying cut keeps you losing" claim would last exactly one session.
+  seedWoundCeiling(poise, combatant);
   return {
     combatant,
-    poise: new Poise(poiseConfig()),
+    poise,
     tempo,
     flags: new CombatFlags(),
     queuedGambit: null,
@@ -2177,6 +2208,71 @@ function wearWeaponOnStrike(weapon: Stuff | null, channel: Channel): void {
   }
 }
 
+/**
+ * ⭐⭐ **The wound → poise edge — the loop the whole build turns on.**
+ *
+ * Before this, a landed wound made no tactical difference at all: the
+ * fight was decided by pressure (`erode`) alone, and the injury was
+ * bookkeeping happening beside it. A cut fighter recovered their footing
+ * exactly as readily as an untouched one, so **breaking off to heal was a
+ * forfeit rather than a decision** — which is the whole reason armour read
+ * as immunity and the fight had no shape between "fine" and "down".
+ *
+ * The edge is **one mutation, not two**: a bite lowers the recovery
+ * ceiling. *Staying cut keeps you losing.* A `grazes` does not cap at
+ * all, so trading light blows stays a contest of pressure and armour buys
+ * a **margin in the contest** rather than immunity.
+ *
+ * ⚠⚠ **It deliberately does NOT spend poise, and that is a measured
+ * finding rather than a timid dial.** The plan's D10 had a wound do two
+ * things — cost footing now *and* cap recovery. But the exchange that
+ * delivered the wound **already eroded the target**, scaled by the
+ * attacker's weapon and reach: that IS "getting hit costs you footing". A
+ * second, wound-sized erosion double-counts one event, and every
+ * measurable effect of the double count was harmful:
+ *
+ *   - it compressed a 3-beat crew fight to 2 — **below the length at
+ *     which formation policy can express itself at all**, since the
+ *     interception pass runs at beat-top (the gym's focus-fire cell
+ *     inverted, and no dial value cleared it that was not within a factor
+ *     of two of inverting it again);
+ *   - it pushed symmetric matchups toward the engine's **pre-existing**
+ *     mutual-exhaustion draw (see `docs/subsystems/combat.md`).
+ *
+ * With the spend at zero and the ceiling live, that gym cell reads
+ * *better* than it did on master: the called side wins under both
+ * formations, and strictly faster under focus fire.
+ *
+ * ⭐ What a wound uniquely says is that **it persists**. That is the
+ * ceiling, and the ceiling is enough.
+ *
+ * ⭐ Called from inside {@link commitInflict} (and its shock twin) rather
+ * than at each of the four blow sites the plan named. Same behaviour by
+ * construction and one fewer way to be wrong: a fifth blow path added
+ * later inherits the edge instead of silently missing it, which is the
+ * exact failure class this build exists to end.
+ */
+function applyWoundToPoise(
+  targetState: CombatantState,
+  report: InflictReport,
+): void {
+  if (report.deflected) return;
+  const K = AppSettingKeys;
+  const mult =
+    report.band === "bites-deep"
+      ? dial(K.combatWoundCeilingBitesDeep, 0.6)
+      : report.band === "bites"
+        ? dial(K.combatWoundCeilingBites, 0.85)
+        : 1; // `grazes` shoves, `turned` was eaten by the covering stack
+  if (mult >= 1) return;
+  targetState.poise.lowerCeiling(
+    Math.max(
+      dial(K.combatWoundCeilingFloor, 0.4),
+      targetState.poise.ceiling() * mult,
+    ),
+  );
+}
+
 function commitInflict(
   session: CombatSession,
   actorState: CombatantState,
@@ -2299,6 +2395,7 @@ function commitInflict(
     weapon,
     report,
   );
+  applyWoundToPoise(targetState, report);
   return report;
 }
 
@@ -2391,6 +2488,7 @@ function commitShockInflict(
     weapon,
     report,
   );
+  applyWoundToPoise(targetState, report);
   return report;
 }
 

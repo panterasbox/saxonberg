@@ -774,6 +774,26 @@ export const AppSettingKeys = {
   /** Combat — extra poise a whiff/parry self-opens the actor. */
   combatPoiseWhiffPenalty: "combat.poise.whiffPenalty",
   /**
+   * ⭐⭐ Combat — **how far a landed wound caps the recovery** of the
+   * fighter it lands on, by the blow's outcome band. Staying cut keeps you
+   * losing: a wound does not take footing away, it takes away how much of
+   * it you can buy back.
+   *
+   * A `grazes` only shoves — it never caps — so trading light blows stays a
+   * contest of pressure and armour buys a margin in that contest rather
+   * than immunity. `ceilingFloor` bounds a body full of wounds, so a long
+   * fight cannot arithmetically reach zero recovery.
+   *
+   * ⚠ There is deliberately **no `combat.wound.spend.*`**: the exchange
+   * that delivers a wound has already eroded the target, and a second
+   * wound-sized erosion double-counts one event. Measured — it compressed
+   * fights below the length at which formation policy can act. See
+   * `applyWoundToPoise`.
+   */
+  combatWoundCeilingBites: "combat.wound.ceiling.bites",
+  combatWoundCeilingBitesDeep: "combat.wound.ceiling.bitesDeep",
+  combatWoundCeilingFloor: "combat.wound.ceilingFloor",
+  /**
    * Combat — the poise an **ambush** strips from an unaware defender at the
    * opening (a struck-from-concealment surprise). Large enough to cross
    * `combat.poise.brokenAt` from full poise, arming the aggressor's free

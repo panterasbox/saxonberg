@@ -1,18 +1,18 @@
 /**
- * ⭐⭐ The combat-side couplings, characterized — **including the one that
- * is ABSENT.**
+ * ⭐⭐ The combat-side couplings — including **the edge W1 closed.**
  *
- * The fight already has a rich set of edges: poise band → blow energy,
+ * The fight already had a rich set of edges: poise band → blow energy,
  * focus-fire → erosion, endurance → how much poise you can buy back.
- * Exactly one edge is missing, and it is the one the whole consequence
- * build turns on: **a landed wound does not touch the poise of the
- * fighter it lands on.** Getting cut costs you nothing tactically; the
- * fight is decided by pressure alone, and the injury is bookkeeping that
- * happens beside it.
+ * Exactly one was missing, and it is the one the whole consequence build
+ * turns on: **a landed wound did not touch the poise of the fighter it
+ * landed on.** Getting cut cost you nothing tactically; the fight was
+ * decided by pressure alone, with the injury as bookkeeping happening
+ * beside it.
  *
- * ⚠ Two assertions here are **negative on purpose**. Each is marked
- * `ABSENT` and names the wave that flips it (W1). A failure after that
- * wave is the expected outcome, not a regression.
+ * This file was written at W0b with those assertions **negative on
+ * purpose** — a paired run showing the wounded and the unwounded defender
+ * ending the beat in the same poise band. W1 flipped them, and the
+ * comments below keep the before/after so the change is legible.
  *
  * Couplings already characterized elsewhere, deliberately not duplicated:
  * the Sharpness curve and its inert `g(composure)` (`Sharpness.test.ts`),
@@ -207,9 +207,9 @@ afterEach(() => {
 });
 
 describe('combat couplings — characterization', () => {
-  /* ───────────────────── the absent edge ───────────────────── */
+  /* ──────────────── the edge W1 closed (was ABSENT) ──────────────── */
 
-  it('⚠ ABSENT (W1 flips this) — a landed wound leaves the target exactly where pressure alone put it', () => {
+  it('⭐ W1 — a landed wound costs the target footing the deflected twin keeps', () => {
     // Two identical fights. The only difference is the defender's plate:
     // one takes a wound, one turns the blow. Poise erosion is
     // `poiseDamage × reachScale`, which reads the ATTACKER's weapon and
@@ -235,22 +235,58 @@ describe('combat couplings — characterization', () => {
     expect(worstSeverity(bare)).toBeGreaterThan(0);
     expect(worstSeverity(plated)).toBeLessThan(worstSeverity(bare));
 
-    // …and it made no tactical difference whatsoever.
-    expect(sA.getState(bare)!.poise.band()).toBe(
-      sB.getState(plated)!.poise.band(),
-    );
+    // ⭐ Before W1 the two ended the beat in the SAME poise band, and the
+    // wound was bookkeeping happening beside the fight. Now the wounded
+    // one is measurably worse off on the axis that decides fights: their
+    // recovery is capped and the plated one's is not.
+    const bareCeiling = sA.getState(bare)!.poise.ceiling();
+    const platedCeiling = sB.getState(plated)!.poise.ceiling();
+    expect(bareCeiling).toBeLessThan(platedCeiling);
+    expect(platedCeiling).toBe(1);
+    // …and it is bounded: wounds wear a fighter down, they never take
+    // recovery away entirely (`combat.wound.ceilingFloor`).
+    expect(bareCeiling).toBeGreaterThanOrEqual(0.4);
   });
 
-  it('⚠ ABSENT (W1 flips this) — nothing can cap how much poise a fighter buys back but endurance', () => {
-    // `restore`'s only ceiling is the endurance ratio the caller passes.
-    // A fighter who has been opened to the bone recovers to full as
-    // readily as one who has not been touched — there is no per-fighter
-    // ceiling to lower, and no caller that would lower one.
+  it('⭐ W1 — staying cut keeps you losing: the ceiling caps recovery below full', () => {
+    // Two identical gauges driven to the same place. The unhurt one buys
+    // its footing all the way back; the cut one cannot, however fresh it
+    // is — which is what makes breaking off a real decision rather than a
+    // forfeit.
+    const unhurt = new Poise();
+    unhurt.erode(0.8, 0);
+    expect(unhurt.band()).toBe('open');
+    unhurt.restore(1, 1);
+    expect(unhurt.band()).toBe('steady');
+
+    const cut = new Poise();
+    cut.erode(0.8, 0);
+    cut.lowerCeiling(0.6);
+    cut.restore(1, 1); // fully rested, fully fresh
+    expect(cut.band()).not.toBe('steady');
+    expect(cut.ceiling()).toBe(0.6);
+
+    // The ceiling is a RATCHET — a wound does not un-happen mid-fight.
+    cut.lowerCeiling(0.9);
+    expect(cut.ceiling()).toBe(0.6);
+  });
+
+  it('⭐ W1 — a wound caps recovery and NEVER touches the gauge', () => {
+    // One mutation, not two. The exchange that delivered the wound has
+    // already eroded the target — that is "getting hit costs you
+    // footing". What the wound uniquely says is that it PERSISTS, and a
+    // second wound-sized erosion for the same event measurably compressed
+    // fights below the length at which tactics can act.
     const p = new Poise();
-    p.erode(0.8, 0);
+    p.erode(0.6, 0);
+    expect(p.band()).toBe('reeling');
+    p.lowerCeiling(0.5);
+    expect(p.band()).toBe('reeling'); // the gauge did not move
+    expect(p.isOpen()).toBe(false); // …and no opening was manufactured
+
+    // The contest still breaks guards, exactly as before.
+    p.spend(0.9, 2);
     expect(p.band()).toBe('open');
-    p.restore(1, 1);
-    expect(p.band()).toBe('steady');
   });
 
   /* ───────────────── the edges that ARE wired ───────────────── */
