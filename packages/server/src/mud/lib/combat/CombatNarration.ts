@@ -163,6 +163,24 @@ const PEER_GAINING: Partial<Record<PoiseBand, string>> = {
   broken: "{{c}}'s window closes.",
 };
 
+/** What one participant is left with when the fight stops. */
+export interface AftermathReport {
+  combatant: Stuff;
+  /** The worst wound's own prose, or null when unmarked. */
+  worstWound: string | null;
+  /** A line about what the fight cost the gear, or null. */
+  gearNote: string | null;
+  /** Human-readable names of the Disciplines this fight exercised. */
+  exercised: readonly string[];
+}
+
+/** `a`, `a and b`, `a, b and c`. */
+function listOf(items: readonly string[]): string {
+  if (items.length === 1) return `Your ${items[0]}`;
+  const head = items.slice(0, -1).join(", ");
+  return `Your ${head} and ${items[items.length - 1]}`;
+}
+
 export class CombatNarration {
   private constructor() {}
 
@@ -563,6 +581,89 @@ export class CombatNarration {
       } catch {
         // best-effort per-viewer relay
       }
+    }
+    return commandId;
+  }
+
+  /**
+   * ⭐ **The parley** — the non-fighter's exit, in words. Three outcomes,
+   * and each says something different about what was read: `accepted`
+   * (they wanted out and you saw it), `refused` (they did not, and you
+   * spent the beat finding out), `deaf` (there was nobody in there to
+   * negotiate with).
+   */
+  static narrateParley(
+    combatant: Stuff,
+    outcome: "accepted" | "refused" | "deaf",
+  ): string {
+    const commandId = SecurityApi.uuid();
+    const C = Mml.actor(combatant);
+    const self =
+      outcome === "accepted"
+        ? "You put it into words, and they take it. Weapons down."
+        : outcome === "refused"
+          ? "You put it into words. They are not finished with you."
+          : "You speak. It has no ear for any of it.";
+    const peer =
+      outcome === "accepted"
+        ? "{{c}} talks it down, and it works."
+        : outcome === "refused"
+          ? "{{c}} tries to talk it down. Nobody lowers anything."
+          : "{{c}} is talking to an animal.";
+    for (const viewer of CombatNarration.witnesses(combatant)) {
+      const isSelf = (viewer as Stuff) === (combatant as Stuff);
+      try {
+        const body = ProseApi.format(isSelf ? self : peer, { c: C });
+        MessageApi.scene(viewer as Stuff)
+          .topic(COMBAT_EXCHANGE_TOPIC)
+          .meta({ commandId })
+          .toSelf(body)
+          .send();
+      } catch {
+        // best-effort per-viewer relay
+      }
+    }
+    return commandId;
+  }
+
+  /**
+   * ⭐⭐ **The aftermath — what the fight left you with.**
+   *
+   * Every durable product of a fight already had a consumer
+   * (accountability, chronicle, regard, gear wear, the corpse) and none
+   * of them was ever *said*. The fight simply stopped and the player was
+   * left to run `look` at themselves and guess what had changed.
+   *
+   * This is emission and nothing else — a read of state that already
+   * exists, fired once per surviving participant on **every** resolution
+   * kind, including the ones with no victor. It adds no system: nothing
+   * here is stored, decayed, or scored.
+   *
+   * Three things, because they are the three that matter afterwards:
+   * what you are carrying out of it, what it cost your gear, and what it
+   * tested — the last being the one that pays, so naming it is how a
+   * player learns that fights credit the skills they use.
+   */
+  static narrateAftermath(report: AftermathReport): string {
+    const commandId = SecurityApi.uuid();
+    const parts: string[] = [];
+    parts.push(
+      report.worstWound
+        ? `You come out of it with ${report.worstWound}.`
+        : "You come out of it unmarked.",
+    );
+    if (report.gearNote) parts.push(report.gearNote);
+    if (report.exercised.length > 0) {
+      parts.push(`${listOf(report.exercised)} was tested.`);
+    }
+    try {
+      MessageApi.scene(report.combatant)
+        .topic(COMBAT_EXCHANGE_TOPIC)
+        .meta({ commandId })
+        .toSelf(Mml.fromMarkup(Mml.escape(parts.join(" "))))
+        .send();
+    } catch {
+      // best-effort — the aftermath is a read, never a beat
     }
     return commandId;
   }

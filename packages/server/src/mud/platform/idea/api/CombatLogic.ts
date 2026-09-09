@@ -40,6 +40,7 @@ import type { EnergyInflictSpec, ShockInflictSpec } from "../../../api/condition
 import type { ConductionOutcome } from "../../../api/electricity";
 import { Quantity } from "../../../lib/quantity";
 import Weapon from "../../thing/equipment/Weapon";
+import { TRAUMA_BEHAVIOR } from "../Condition";
 import type { OutcomeBand } from "../../../api/material";
 import type { BrainContext, BrainStatics } from "../../../lib/behavior/brain";
 import {
@@ -115,6 +116,7 @@ import {
   CombatNarration,
   type ExchangeOutcome,
   type BeatIntensity,
+  type AftermathReport,
 } from "../../../lib/combat/CombatNarration";
 import type {
   OpenSessionResult,
@@ -356,6 +358,14 @@ export class CombatLogic extends ApiLogic {
     attention?: number,
   ): Stuff[] {
     return visibleArmsImpl(viewer, subject, attention);
+  }
+
+  @CallSecurity(CombatantCallers)
+  public parley(
+    actor: Stuff,
+    target?: Stuff,
+  ): { ok: boolean; reason?: string; stoodDown: boolean } {
+    return parleyImpl(actor, target);
   }
 
   @CallSecurity(CombatantCallers)
@@ -3362,6 +3372,73 @@ const POISE_SEVERITY: Record<PoiseBand, number> = {
 };
 
 /**
+ * Gather what one participant is left with. A pure read of state that
+ * already exists — the whole of D20's "aftermath is emission, not a
+ * system".
+ */
+function aftermathFor(state: CombatantState): AftermathReport {
+  const who = state.combatant as Stuff;
+  let worstWound: string | null = null;
+  if (MixinApi.isVitals(who)) {
+    let worst = 0;
+    for (const c of who.getConditions()) {
+      if (c.kind !== "trauma") continue;
+      if (c.severity <= worst) continue;
+      worst = c.severity;
+      worstWound = TRAUMA_BEHAVIOR[c.type]?.describe(c) ?? null;
+    }
+  }
+  // What the fight cost the gear: the worst-conditioned durable thing
+  // worn or held. `Attired`'s upkeep bands are the same two thresholds.
+  let gearNote: string | null = null;
+  if (MixinApi.isSlotted(who)) {
+    let worstCondition = 1;
+    let worstItem: Stuff | null = null;
+    for (const [, occupants] of who.getAllOccupants()) {
+      for (const occ of occupants) {
+        if (!MixinApi.isDurable(occ)) continue;
+        const c = occ.getCondition();
+        if (c < worstCondition) {
+          worstCondition = c;
+          worstItem = occ as Stuff;
+        }
+      }
+    }
+    if (worstItem && worstCondition < 0.35) {
+      gearNote = `Your ${presentationOf(worstItem)} is in a bad way.`;
+    } else if (worstItem && worstCondition < 0.7) {
+      gearNote = `Your ${presentationOf(worstItem)} has taken a beating.`;
+    }
+  }
+  return {
+    combatant: who,
+    worstWound,
+    gearNote,
+    exercised: [...state.exercised].map(disciplineWord),
+  };
+}
+
+/** A Discipline key as the prose calls it — "bladework", not "blades". */
+function disciplineWord(key: string): string {
+  switch (key) {
+    case "melee-combat":
+      return "fighting";
+    case "blades":
+      return "bladework";
+    case "unarmed":
+      return "hands";
+    case "bludgeons":
+      return "arm";
+    case "polearms":
+      return "reach";
+    case "flails":
+      return "timing";
+    default:
+      return key;
+  }
+}
+
+/**
  * The one combatant a yield can honestly name as the victor when the
  * session is not a clean duel: whoever last landed a blow, else the only
  * live foe left standing, else nobody (a genuine free-for-all names no
@@ -3428,6 +3505,15 @@ function endWith(
     callVenueHook(room, "onCombatResolved", ctx);
     applyConsequences(ctx);
   }
+  // ⭐ The aftermath, for everyone still standing — every resolution
+  // kind, including the ones with no victor. It sits HERE rather than in
+  // `runResolutionConsumers` because that runs from `endWith`'s callers
+  // and only on the paths that name a victor: a draw, a disengage and a
+  // mutual break would all have stopped in silence.
+  for (const st of session.getStates()) {
+    if (st.down) continue;
+    CombatNarration.narrateAftermath(aftermathFor(st));
+  }
   flushFlavor();
   session.resolve(outcome);
 }
@@ -3482,6 +3568,112 @@ function sessionHasNoThreatEdges(session: CombatSession): boolean {
  * (yield concedes and records a loss; break does not — which is what makes
  * backing down chooseable). Distinct from yield by that alone.
  */
+/**
+ * ⭐⭐ **`fight parley` — the terms renegotiated down to no fight.**
+ *
+ * The non-fighter's exit. `fight break` already existed and requires the
+ * *other side* to offer too, which is fine between two people who both
+ * want out and useless against somebody who is winning. Parley is the
+ * act of **reading** an opponent and pressing on the fact that they no
+ * longer want this: against a foe whose morale is `shaken` or
+ * `breaking`, it dissolves their edge unilaterally.
+ *
+ * It is not a social minigame and it mints no diplomacy skill. The engine
+ * models the **stakes** — how badly the other side wants out, which it
+ * already computes — and the words are the player's. What it credits is
+ * `awareness`: reading the person in front of you is the skill being
+ * exercised, and it is one the game already has.
+ *
+ * ⚠ It costs the beat, exactly like `defend`. Talking while somebody is
+ * swinging at you is not free, and against a `resolute` foe it simply
+ * fails — the olive branch has a price, which is the same rule `break`
+ * already lives under.
+ *
+ * ⚠ A beast has no ear for it (D8): nothing to read, nothing to
+ * renegotiate. Refused with prose, like a yield.
+ */
+function parleyImpl(
+  actor: Stuff,
+  target?: Stuff,
+): { ok: boolean; reason?: string; stoodDown: boolean } {
+  const session = sessionForImpl(actor);
+  if (!session) return { ok: false, reason: "not-in-combat", stoodDown: false };
+  const state = session.getState(actor);
+  if (!state || state.down) {
+    return { ok: false, reason: "not-in-combat", stoodDown: false };
+  }
+  // Spend the beat covering up, exactly like `break`.
+  state.queuedGambit = "defend";
+
+  const candidates = session
+    .getStates()
+    .filter(
+      (s) =>
+        !s.down &&
+        s.combatant !== actor &&
+        edgedBetween(session, actor, s.combatant) &&
+        (!target || (s.combatant as Stuff) === target),
+    );
+  if (candidates.length === 0) {
+    return { ok: false, reason: "no-target", stoodDown: false };
+  }
+  const graph = session.getGraph();
+  const swayed: Stuff[] = [];
+  let anySentient = false;
+  let toughest: MoraleBand = "breaking";
+  for (const opp of candidates) {
+    if (!safeIsSentient(opp.combatant)) continue;
+    anySentient = true;
+    const band = moraleFor(session, opp);
+    if (Morale.rank(band) < Morale.rank(toughest)) toughest = band;
+    if (band === "resolute") continue;
+    swayed.push(opp.combatant);
+  }
+  if (!anySentient) {
+    CombatNarration.narrateParley(actor, "deaf");
+    return { ok: true, reason: "no-ear", stoodDown: false };
+  }
+  if (swayed.length === 0) {
+    CombatNarration.narrateParley(actor, "refused");
+    // The read still happened, and reading a resolute opponent correctly
+    // is the harder version of the same act.
+    mintParleyRead(state, "hard");
+    return { ok: true, reason: "refused", stoodDown: false };
+  }
+  for (const opp of swayed) {
+    graph.removeEdge(actor, opp);
+    graph.removeEdge(opp, actor);
+  }
+  CombatNarration.narrateParley(actor, "accepted");
+  mintParleyRead(state, toughest === "breaking" ? "standard" : "hard");
+  // ⭐ `disengage` is a declared `CombatResolution` that no caller had
+  // ever passed to `endWith`. This is its first use, and it is the right
+  // word: nobody won, nobody conceded, the fight stopped.
+  if (session.isActive() && sessionHasNoThreatEdges(session)) {
+    endWith(session, "disengage");
+    return { ok: true, stoodDown: true };
+  }
+  const leaving = session
+    .getStates()
+    .map((s) => s.combatant)
+    .filter((c) => !hasAnyThreatEdge(session, c));
+  for (const c of leaving) session.removeParticipant(c);
+  return { ok: true, stoodDown: leaving.length > 0 };
+}
+
+/** The parley's credit: reading the person in front of you. */
+function mintParleyRead(state: CombatantState, difficulty: Difficulty): void {
+  if (state.brainPath) return; // brains bank nothing
+  if (!MixinApi.isAdvancing(state.combatant)) return;
+  void state.combatant
+    .creditDeed({
+      discipline: AWARENESS_DISCIPLINE,
+      difficulty,
+      outcome: "success",
+    })
+    .catch(() => {});
+}
+
 function offerBreakImpl(
   actor: Stuff,
 ): { ok: boolean; reason?: string; broke: boolean } {
@@ -4173,6 +4365,7 @@ function clamp01(n: number): number {
 
 /** The combat Disciplines credit accrues to (seeded as data). */
 const MELEE_DISCIPLINE = "melee-combat";
+const AWARENESS_DISCIPLINE = "awareness";
 const UNARMED_DISCIPLINE = "unarmed";
 const COMMAND_DISCIPLINE = "command";
 

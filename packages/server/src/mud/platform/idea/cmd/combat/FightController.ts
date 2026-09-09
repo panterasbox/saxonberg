@@ -95,6 +95,7 @@ export default class FightController extends CommandController<FightModel> {
     const sub = model.subcommand;
     if (sub === "yield") return this.doYield(context);
     if (sub === "break") return this.doBreak(context);
+    if (sub === "parley") return this.doParley(model, context);
     if (sub === "rush") return this.doRush(model, context);
     if (sub === "switch") return this.doSwitch(model, context);
     if (sub === "draw") return this.doDraw(context);
@@ -128,6 +129,33 @@ export default class FightController extends CommandController<FightModel> {
       .toSelf(line)
       .toPeers(Mml.compose`${Mml.actor(giver)} steps back, hands raised.`)
       .send();
+  }
+
+  /**
+   * ⭐ `fight parley [<target>]` — talk it down. Spends the beat like
+   * `defend`; against a foe whose morale has gone it dissolves their
+   * edge, and when nothing is left to fight the session resolves as
+   * `disengage` — no victor, no defeat on anyone's record.
+   *
+   * The prose is the engine's (it knows which of the three things
+   * happened); the controller only reports a refusal it can name.
+   */
+  private doParley(model: FightModel, context: CommandContext): void {
+    const giver = context.commandGiver;
+    if (!CombatApi.sessionFor(giver)) {
+      return this.fail(context, "You're not in a fight.", "not-in-combat");
+    }
+    const target = model.target as Stuff | undefined;
+    const result = ((giver) as unknown as Stuff & Combatant).parley(target);
+    if (!result.ok) {
+      return this.fail(
+        context,
+        result.reason === "no-target"
+          ? "There's nobody there to talk to."
+          : "You're not in a fight.",
+        result.reason ?? "ineligible",
+      );
+    }
   }
 
   /** `fight rush <direction>` — the bum's rush: throw a grappled foe out

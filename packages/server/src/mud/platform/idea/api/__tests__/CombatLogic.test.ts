@@ -44,6 +44,7 @@ import { SchedulerApi } from "../../../../api/scheduler";
 import { ConditionApi } from "../../../../api/condition";
 import { Quantity } from "../../../../lib/quantity";
 import { CombatApi } from "../../../../api/combat";
+import { MessageApi } from "../../../../api/message";
 import { CombatTerms, type TermsProposal } from "../../../../lib/combat/CombatTerms";
 import {
   COMBAT_PARTICIPANT_TYPE,
@@ -2667,5 +2668,190 @@ describe("CombatLogic — morale & surrender", () => {
     // …and null out of combat.
     const bystander = makeFighter(room);
     expect(CombatApi.moraleBand(bystander)).toBeNull();
+  });
+});
+
+/* ──────────── W5: parley — the terms renegotiated down ──────────── */
+
+describe("CombatLogic — parley", () => {
+  function breaking(session: CombatSession, f: TestFighter): void {
+    const st = session.getState(f)!;
+    st.poise.erode(0.85, 0);
+    st.woundsTaken.push("bites-deep", "bites-deep");
+  }
+
+  it("⭐ talks down a foe whose nerve has gone — and `disengage` gets its first caller", () => {
+    // `CombatResolution.disengage` has been a declared member of the
+    // union since combat shipped and NO caller ever passed it to
+    // `endWith`. Nobody wins, nobody concedes, the fight stops.
+    const room = makeStuff(() => new TestRoom());
+    const talker = makeFighter(room);
+    const wavering = makeFighter(room, { weaponForm: "bladed" });
+    const session = open(wavering, talker, nonLethal);
+    breaking(session, wavering);
+
+    const r = (talker as unknown as Stuff & Combatant).parley();
+    expect(r.ok).toBe(true);
+    expect(r.stoodDown).toBe(true);
+    expect(session.getResolution()).toBe("disengage");
+    // ⚠ Nobody is down and nobody yielded — this is not a defeat.
+    expect(session.getState(talker)?.down ?? false).toBe(false);
+  });
+
+  it("costs the beat against a foe who still wants this", () => {
+    const room = makeStuff(() => new TestRoom());
+    const talker = makeFighter(room);
+    const resolute = makeFighter(room, { weaponForm: "bladed" });
+    const session = open(resolute, talker, nonLethal);
+
+    const r = (talker as unknown as Stuff & Combatant).parley();
+    expect(r.ok).toBe(true);
+    expect(r.reason).toBe("refused");
+    expect(r.stoodDown).toBe(false);
+    expect(session.isActive()).toBe(true);
+    // The beat is spent covering up — the olive branch has a price.
+    expect(session.getState(talker)!.queuedGambit).toBe("defend");
+  });
+
+  it("⚠ an animal has no ear for it", () => {
+    const room = makeStuff(() => new TestRoom());
+    const talker = makeFighter(room);
+    const wolf = makeFighter(room, { natural: "point", sentient: false });
+    const session = open(wolf, talker, lethal);
+    breaking(session, wolf); // even a terrified one
+
+    const r = (talker as unknown as Stuff & Combatant).parley();
+    expect(r.reason).toBe("no-ear");
+    expect(r.stoodDown).toBe(false);
+    expect(session.isActive()).toBe(true);
+  });
+
+  it("⭐ credits `awareness` — reading the person is the skill", () => {
+    // No diplomacy Discipline is invented here. What the game can
+    // honestly measure is whether you read them right.
+    mintedDeeds.length = 0;
+    const room = makeStuff(() => new TestRoom());
+    const talker = makeFighter(room);
+    const wavering = makeFighter(room, { weaponForm: "bladed" });
+    const session = open(wavering, talker, nonLethal);
+    (session.getState(talker) as unknown as { brainPath: string | null })
+      .brainPath = null;
+    breaking(session, wavering);
+    (talker as unknown as Stuff & Combatant).parley();
+    expect(
+      mintedDeeds.map((d) => d.discipline),
+    ).toContain("awareness");
+  });
+
+  it("a named target parleys only that foe; the rest of the fight goes on", () => {
+    const room = makeStuff(() => new TestRoom());
+    const talker = makeFighter(room);
+    const wavering = makeFighter(room, { weaponForm: "bladed" });
+    const session = open(wavering, talker, nonLethal);
+    const stubborn = makeFighter(room, { weaponForm: "bladed" });
+    expect(
+      CombatApi.join(stubborn as never, talker as never, session.getTerms()).ok,
+    ).toBe(true);
+    breaking(session, wavering);
+
+    const r = (talker as unknown as Stuff & Combatant).parley(
+      wavering as unknown as Stuff,
+    );
+    expect(r.ok).toBe(true);
+    expect(session.isActive()).toBe(true); // stubborn is still on them
+    expect(session.getResolution()).toBeNull();
+  });
+});
+
+/* ──────────────── W6: the aftermath — emission, not a system ──────────────── */
+
+describe("CombatLogic — the aftermath", () => {
+  /** Every scene body sent to `who` during `run`. */
+  function linesFor(who: TestFighter, run: () => void): string[] {
+    const seen: string[] = [];
+    const spy = vi
+      .spyOn(MessageApi, "scene")
+      .mockImplementation((anchor: unknown) => {
+        const builder: Record<string, unknown> = {};
+        for (const m of ["topic", "meta", "tags", "modality", "payload"]) {
+          builder[m] = () => builder;
+        }
+        builder.toSelf = (body: unknown) => {
+          if ((anchor as Stuff) === (who as unknown as Stuff)) {
+            seen.push(String(body));
+          }
+          return builder;
+        };
+        builder.toPeers = () => builder;
+        builder.send = () => {};
+        return builder as never;
+      });
+    try {
+      run();
+    } finally {
+      spy.mockRestore();
+    }
+    return seen;
+  }
+
+  it("⭐ fires on a DRAW — the resolutions with no victor stopped in silence", () => {
+    // `runResolutionConsumers` runs from `endWith`'s CALLERS and only on
+    // the paths that name a victor, so a draw, a disengage and a mutual
+    // break all ended without a word about what anyone was left with.
+    const room = makeStuff(() => new TestRoom());
+    const a = makeFighter(room, { weaponForm: "bladed", weaponMaterial: steel() });
+    const b = makeFighter(room, { weaponForm: "bladed" });
+    const session = open(a, b, nonLethal);
+    a.queueGambit("strike");
+    CombatApi.advance(session);
+
+    const lines = linesFor(a, () => {
+      (a as unknown as Stuff & Combatant).offerBreak();
+      (b as unknown as Stuff & Combatant).offerBreak();
+    });
+    expect(session.getResolution()).toBe("draw");
+    expect(lines.some((l) => l.includes("You come out of it"))).toBe(true);
+  });
+
+  it("names what the fight tested — which is what it paid", () => {
+    const room = makeStuff(() => new TestRoom());
+    const a = makeFighter(room, { weaponForm: "bladed" });
+    const b = makeFighter(room);
+    const session = open(a, b, nonLethal);
+    const weapon = (session.getState(a)!.combatant as unknown as {
+      getAllOccupants(): Map<string, Stuff[]>;
+    });
+    void weapon;
+    a.queueGambit("strike");
+    CombatApi.advance(session);
+    const lines = linesFor(a, () => {
+      (b as unknown as Stuff & Combatant).yieldFight();
+    });
+    expect(lines.some((l) => l.includes("was tested"))).toBe(true);
+    expect(lines.some((l) => l.includes("fighting"))).toBe(true);
+  });
+
+  it("an unmarked fighter is told so, rather than told nothing", () => {
+    const room = makeStuff(() => new TestRoom());
+    const a = makeFighter(room);
+    const b = makeFighter(room);
+    const session = open(a, b, nonLethal);
+    const lines = linesFor(a, () => {
+      (b as unknown as Stuff & Combatant).yieldFight();
+    });
+    void session;
+    expect(lines.some((l) => l.includes("unmarked"))).toBe(true);
+  });
+
+  it("⚠ says nothing about anyone already down — they have their own line", () => {
+    const room = makeStuff(() => new TestRoom());
+    const a = makeFighter(room, { weaponForm: "bladed", weaponMaterial: steel() });
+    const b = makeFighter(room);
+    const session = open(a, b, nonLethal);
+    session.getState(b)!.down = true;
+    const lines = linesFor(b, () => {
+      (b as unknown as Stuff & Combatant).yieldFight();
+    });
+    expect(lines.some((l) => l.includes("You come out of it"))).toBe(false);
   });
 });

@@ -1523,6 +1523,30 @@ and costs the beat.
 
 *Commit.* `build(consequence W5): parley — the terms renegotiated down to no fight`
 
+✅ **Done.** 5 tests; 33 gates.
+
+**Shipped.** `fight parley [<target>]` — a `command-view` subcommand with
+an optional target arg; `FightController.doParley`; `Combatant.parley()`
+→ `CombatLogic.parleyImpl`; `CombatNarration.narrateParley` in three
+voices (accepted · refused · deaf).
+
+It spends the beat like `defend`, dissolves the edge of any **sentient**
+foe reading `shaken` or `breaking`, and — when nothing is left to fight —
+resolves the session as **`disengage`**. ⭐ That resolution has been a
+declared member of `CombatResolution` since combat shipped with **no
+caller ever passing it to `endWith`**; this is its first use, and it is
+the right word: nobody won, nobody conceded, the fight stopped.
+
+⭐ **It credits `awareness`, and no diplomacy Discipline is invented.**
+What the game can honestly measure is whether you read the person in
+front of you; the words are the player's. Reading a *resolute* foe
+correctly costs the beat and still credits, at `hard` — finding out is
+also a read.
+
+⚠ Against an animal it is refused with prose (D8): there is nothing in
+there to renegotiate with, the same rule as the yield. A named target
+parleys only that foe and the rest of the fight goes on.
+
 #### W6 — aftermath
 
 *Goal.* The combat-side wake as emission (D20).
@@ -1540,6 +1564,29 @@ fires once per participant on every resolution kind, including `draw` and
 twin the moment the fight ends.
 
 *Commit.* `build(consequence W6): the aftermath — what the fight left you with`
+
+✅ **Done.** 4 tests; 486 combat tests; 33 gates.
+
+**Shipped.** `CombatNarration.narrateAftermath` + `aftermathFor` — three
+sentences per surviving participant: what you are carrying out of it (the
+worst wound's own prose), what it cost your gear, and ⭐ **what it
+tested**, which is how a player learns that fights credit the skills they
+use.
+
+⭐ **It fires from inside `endWith`, not from `runResolutionConsumers`,
+and that is the finding.** `runResolutionConsumers` runs from `endWith`'s
+**callers** and only on the paths that name a victor — so a `draw`, a
+mutual `break` and W5's new `disengage` all ended **in silence**, which
+is exactly the class of gap this wave exists to close. Inside `endWith`
+every resolution kind is covered by construction, and the test that
+proves it uses a draw.
+
+⚠ Skipped for anyone already `down`: they have their own resolution line,
+and telling a downed fighter what they are "left with" reads wrong.
+
+⭐ The plan's `combat.aftermath` topic is not added — same reasoning as
+W2's: the roots are closed and `act.combat` already means "the turns of a
+fight".
 
 ### Movement III — the body remembers
 
