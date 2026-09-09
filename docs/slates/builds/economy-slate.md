@@ -29,9 +29,9 @@ design that rides on top come later.
 
 See also:
 
-- [docs/subsystems/glob.md](../../subsystems/glob.md) — fungible stacks.
+- [docs/subsystems/stacks.md](../../subsystems/stacks.md) — fungible stacks.
   **Coins and raw materials are already modeled.** A coin-stack is one
-  `Globbable` Stuff with a `quantity` field; so is a pile of ore.
+  `Stackable` Stuff with a `quantity` field; so is a pile of ore.
   Split / merge / `applyQuantity` already work. Currency is the
   simplest possible glob; the economy mints no new money substrate.
 - [docs/subsystems/quantities.md](../../subsystems/quantities.md) —
@@ -224,7 +224,7 @@ authored / carried things are exempt.
 
 ## Currency: hybrid (soft coin + barter)
 
-- **Soft coin** — a light abstract currency (a `Globbable`) for everyday
+- **Soft coin** — a light abstract currency (a `Stackable`) for everyday
   and NPC convenience. Gives new players a legible floor.
 - **Barter + provenance** — high-value goods trade without a fixed
   price; worth is relational and carried by the maker's mark.
@@ -243,7 +243,7 @@ and notably what makes it fail*).
 
 **Cash vs. accounts — and large cash is untenable by *physics*, not rule.**
 
-- **Cash** — the soft coin is **physical matter** (`Globbable`, with per-coin
+- **Cash** — the soft coin is **physical matter** (`Stackable`, with per-coin
   **mass**): hand-to-hand, immersive, small, **off-ledger**, **robbable**, and
   **self-limiting** — a big enough stack blows past your carry capacity (the
   shipped `LoadBearing`/encumbrance), so you *can't* practically haul a fortune
@@ -733,7 +733,7 @@ employment is one of the seams where the economy and the polity touch.
 Enough is settled to ship a **basic currency system** without touching
 the deferred macro/advancement problems:
 
-- **Coin as a `Globbable`** (already exists) — carry, split, merge,
+- **Coin as a `Stackable`** (already exists) — carry, split, merge,
   count. No price display anywhere.
 - **NPC vendor as a located stance-holder** — bounded stock + coin,
   owner-set stances expressed as characterization (flat by who-you-are

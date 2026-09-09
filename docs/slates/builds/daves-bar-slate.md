@@ -29,7 +29,7 @@ contribution → standing) · [lounge](./lounge-slate.md) (the bar is north of
 the spawn lounge).
 
 Substrate it leans on (largely shipped): [bulk](../../subsystems/bulk.md) /
-[glob](../../subsystems/glob.md) / Material (the stock), location (the
+[stacks](../../subsystems/stacks.md) / Material (the stock), location (the
 venue), [time](../../subsystems/time.md) (the shift clock),
 [belief](../../subsystems/belief.md) (recognition + the regard realm),
 [metabolism](../../subsystems/metabolism.md) (the drink's consumer),

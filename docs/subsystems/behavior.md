@@ -41,6 +41,23 @@ decision #1), a brain is transient logic with no persistence, identity,
 proxy, or lifecycle. It lives on the filesystem under `lib/behavior/`
 and is *code*, not content cloned into the world.
 
+⭐ **A brain lives with its SUBJECT, and a pack may ship one.** A pack
+brain sits at `<packRoot>/behavior/<verb>` (`/trade/haulage/behavior/hauls`,
+`/system/residence/behavior/maintains`) and rows name it by that path
+like any other. The `maintains` brain moved out of the kernel for
+exactly this reason: it reads holdings, which are the residence system's,
+and while it was in `lib/behavior/` it had to name a pack's class in a
+string to find them.
+
+⚠⚠ **A brain can never hold a call-security gate keyed on the calling
+function.** `Behaved`'s dispatch is a plain `descriptor.act(ctx)` — not
+a method call through the proxy — so the brain runs inside the NPC's
+behaviour-tick frame and is attributed to it. Anything a brain needs
+that is gated must be reachable some other way: a pack catalogue, an Api
+static, an object it can see. This is doctrine, not a limitation to
+route around; see [call-security.md](./call-security.md) § *The calling
+function*.
+
 A brain module's **sole concept-export** is:
 
 ```ts

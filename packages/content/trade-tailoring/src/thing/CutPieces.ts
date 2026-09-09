@@ -17,7 +17,7 @@
  */
 
 import Thing from '@saxonberg/server/mud/lib/stuff/Thing';
-import { GlobbableMixin } from '@saxonberg/server/mud/lib/stuff/Globbable';
+import { StackableMixin } from '@saxonberg/server/mud/lib/stuff/Stackable';
 import { WearableMixin } from '@saxonberg/server/mud/lib/slot/Wearable';
 import { SlottableMixin } from '@saxonberg/server/mud/lib/slot/Slottable';
 import { ConstructedMixin } from '@saxonberg/server/mud/lib/material/Constructed';
@@ -28,7 +28,7 @@ import type { Grade } from '@saxonberg/server/mud/lib/craft/Grade';
 
 const CutPiecesBase = WearableMixin(
   SlottableMixin(
-    GlobbableMixin(CraftedMixin(ConstructedMixin(DetailedMixin(Thing)))),
+    StackableMixin(CraftedMixin(ConstructedMixin(DetailedMixin(Thing)))),
   ),
 );
 

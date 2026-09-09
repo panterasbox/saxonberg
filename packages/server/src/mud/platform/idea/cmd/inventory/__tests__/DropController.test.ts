@@ -1,8 +1,8 @@
 /**
  * DropController tests — bareword and quantity-bearing paths.
  *
- * The quantity-bearing path defers to `GlobbableApi.applyQuantity`,
- * which calls `GlobbableApi.split` → `StuffApi.clone(...)` for
+ * The quantity-bearing path defers to `StackableApi.applyQuantity`,
+ * which calls `StackableApi.split` → `StuffApi.clone(...)` for
  * partial-stack splits. Tests stub `StuffApi.clone` so the
  * Persistence-layer domain collection doesn't need to be set up.
  */
@@ -15,7 +15,7 @@ import { ContainableMixin } from '../../../../../lib/spatial/Containable';
 import { CommandGiverMixin } from '../../../../../lib/command/CommandGiver';
 import { NamedMixin } from '../../../../../lib/description/Named';
 import { SensorMixin } from '../../../../../lib/message/Sensor';
-import { GlobbableMixin } from '../../../../../lib/stuff/Globbable';
+import { StackableMixin } from '../../../../../lib/stuff/Stackable';
 import { Idea } from '../../../../../lib/stuff/Idea';
 import Location from '../../../../../lib/stuff/Location';
 import { Stuff } from '../../../../../lib/stuff/Stuff';
@@ -43,12 +43,12 @@ class TestGiver extends SensorMixin(
   static _mixinName = 'TestGiver';
 }
 
-class Coin extends GlobbableMixin(ContainableMixin(NamedMixin(Idea))) {
+class Coin extends StackableMixin(ContainableMixin(NamedMixin(Idea))) {
   static _mixinName = 'Coin';
   static fieldMeta: FieldMeta = {
     quantity: { persistent: true },
     name: { persistent: true },
-    denomination: { persistent: true, globIdentity: true },
+    denomination: { persistent: true, stackIdentity: true },
   };
   public denomination: 'gold' | 'silver' | 'copper' = 'copper';
 }

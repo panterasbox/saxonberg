@@ -337,7 +337,7 @@ factory in the folder shown.
   spawns and their back-reference.
 - **`Populates`** — declaratively spawns contents into a `Container`
   at clone time.
-- **`Globbable`** — a fungible stack carrying an integer quantity;
+- **`Stackable`** — a fungible stack carrying an integer quantity;
   splits and merges.
 
 **`shell/`**

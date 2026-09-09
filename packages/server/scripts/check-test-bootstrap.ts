@@ -84,7 +84,7 @@ const NEEDS_WIRING = [
   "MqlApi", // MqlSubscriptionRegistry
   "ShadowApi", // SecurityApi._registerShadowApi
   "CommandApi", // installShadowBridge
-  "GlobbableApi", // installMergeOnArrival
+  "StackableApi", // installMergeOnArrival
   "PersistenceManager", // the injected scope resolver
 ];
 

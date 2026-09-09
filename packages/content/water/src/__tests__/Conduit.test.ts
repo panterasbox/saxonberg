@@ -30,7 +30,9 @@ import {
 } from '@saxonberg/server/mud/lib/security/__tests__/test-setup';
 import { SUPPLY_STATES } from '@saxonberg/server/mud/lib/supply/SupplyState';
 import Conduit from '../thing/Conduit';
-import WatercourseCatalogue from '../idea/WatercourseCatalogue';
+import WatercourseCatalogue, {
+  WATERCOURSE_CATALOGUE_PATH,
+} from '../idea/WatercourseCatalogue';
 import type { DrawLedger } from '../idea/WatercourseCatalogue';
 
 const YEAR = 365 * 86_400;
@@ -96,8 +98,23 @@ const WORLD: Row[] = [
   },
 ];
 
+/**
+ * ⚠ The row store is module-scoped so a FIXTURE can add to it. A water
+ * work is found by its `content` row naming a waterwork class — that is
+ * how the catalogue finds the city's conduits without walking the world
+ * — so a conduit built only in memory is, correctly, invisible to the
+ * river. `work()` below is what makes a fixture a real one.
+ */
+let store: Array<{ _id: string; path: string } & Record<string, unknown>> = [];
+
+/** Give `path` a row, so the catalogue's roster can find what stands there. */
+function work(path: string, cls = '/system/water/thing/Conduit'): string {
+  store.push({ _id: `w-${store.length + 1}`, path, class: cls, data: {} });
+  return path;
+}
+
 function installWorld(extra: Row[] = []): void {
-  const store = [...WORLD, ...extra].map((r, i) => ({ _id: String(i + 1), ...r }));
+  store = [...WORLD, ...extra].map((r, i) => ({ _id: String(i + 1), ...r }));
   vi.spyOn(PersistApi, 'find').mockImplementation(
     async (collection: string, query: Record<string, unknown>) => {
       if (collection !== Collections.Content) return [];
@@ -127,7 +144,10 @@ function installRootBiome(): void {
 }
 
 const catalogue = (): WatercourseCatalogue =>
-  makeStuff(() => new WatercourseCatalogue()) as WatercourseCatalogue;
+  makeStuffAtPath(
+    () => new WatercourseCatalogue(),
+    WATERCOURSE_CATALOGUE_PATH,
+  ) as WatercourseCatalogue;
 
 let seq = 0;
 function makeConduit(spec: {
@@ -149,7 +169,7 @@ function makeConduit(spec: {
     c.setTreatmentFactor(spec.treatment ?? 0);
     c.switchOn();
     return c;
-  }, `/system/water/thing/Conduit/_test-${seq}`) as Conduit;
+  }, work(`/system/water/thing/Conduit/_test-${seq}`)) as Conduit;
 }
 
 beforeEach(() => {

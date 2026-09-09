@@ -45,7 +45,7 @@ import { LocomotionMode } from '../mud/platform/idea/LocomotionMode';
 import { Zone } from '../mud/lib/zone/Zone';
 import { ShadowApi } from '../mud/api/shadow';
 import { CommandApi } from '../mud/api/command';
-import { GlobbableApi } from '../mud/api/glob';
+import { StackableApi } from '../mud/api/stackable';
 import { registerSchedulerRegistryClass } from '../mud/api/scheduler';
 import { registerWorldClockRegistryClass } from '../mud/api/worldclock';
 import { registerMqlSubscriptionRegistryClass } from '../mud/api/mql-subscription';
@@ -108,7 +108,7 @@ export class BootstrapManager {
    * class handoffs (each Logic lazy-creates its Registry for
    * harnesses that never run the manifest; the class can't be
    * value-imported there — cycle avoidance), the security↔shadow
-   * slot, the shadow↔command recency bridge, and the glob
+   * slot, the shadow↔command recency bridge, and the stack
    * merge-on-arrival ripple. Idempotent — `run()` calls it every
    * time, and the vitest setup file calls it before every suite
    * (tests get the same wiring production does).
@@ -131,7 +131,7 @@ export class BootstrapManager {
     );
     SecurityApi._registerShadowApi(ShadowApi);
     CommandApi.installShadowBridge();
-    GlobbableApi.installMergeOnArrival();
+    StackableApi.installMergeOnArrival();
     // The sandbox scope resolver (Decision G): PM learns the ambient
     // circle scope through this injected closure — backend stays
     // import-clean of the mud layer's scope machinery, and the omni

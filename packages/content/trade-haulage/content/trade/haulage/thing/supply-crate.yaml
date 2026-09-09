@@ -1,7 +1,7 @@
 # ⭐⭐ The supply crate — **the thing that makes a fungible shipment
 # postable.**
 #
-# The gig substrate's `Condition` refuses `Globbable` outright ("a merging
+# The gig substrate's `Condition` refuses `Stackable` outright ("a merging
 # stack has no stable identity"), and supply needs are overwhelmingly
 # fungible: litres of gin, kilos of ore, six of anything. A gig for
 # "twenty bottles" is unpostable, and widening the condition vocabulary

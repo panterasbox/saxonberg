@@ -86,7 +86,7 @@ function carried(hand: Hand, path: string): Stuff[] {
 
 /**
  * How much of `path` the hand holds — the SUMMED quantity for a stack,
- * the count otherwise. Line and yarn are `Globbable`, so two acts leave
+ * the count otherwise. Line and yarn are `Stackable`, so two acts leave
  * one object with a bigger number rather than two objects, and a
  * progress guard that counted objects would call a working spin a
  * failure.
@@ -94,7 +94,7 @@ function carried(hand: Hand, path: string): Stuff[] {
 function held(hand: Hand, path: string): number {
   let total = 0;
   for (const item of carried(hand, path)) {
-    total += MixinApi.isGlobbable(item) ? item.getQuantity() : 1;
+    total += MixinApi.isStackable(item) ? item.getQuantity() : 1;
   }
   return total;
 }

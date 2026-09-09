@@ -870,6 +870,7 @@ called method (per-method, then class-level fallback, then framework
 | `SelfOnly` | `caller === target` — only the target can call itself. |
 | `ApiOnly` | Sugar for `FromModule('/api/**', { includeSubclasses: true })`. |
 | `FromTemplate(glob)` | Caller's **clone-instance template path** (`getTemplatePath`) matches `glob` — trust by clone lineage. A caller that isn't a cloned Stuff has no template identity and fails closed. |
+| `FromTemplateMethod(templateGlob, method, opts?)` | ⭐⭐ **Trust by the calling FUNCTION.** The caller's template path matches `templateGlob` **and** it is asking from the method named `method`. `opts.module` adds a code-provenance term as a **disambiguator only**. The basis a privileged operation actually wants: a logic singleton has dozens of methods, and admitting all of them because one needs the reach is the same shape as admitting a whole module. See *The calling function* below. |
 | `FromModule(glob, opts?)` | Caller's **class module ID** (`ModuleApi.lookup` on the class) matches `glob` — trust by code provenance, independent of any template path. With `{ includeSubclasses: true }`, walks the prototype chain so any ancestor whose module ID matches passes. Module IDs are `/`-absolute (same shape as template paths); the two policies are told apart by which identity each reads, not by the slash. |
 | `FromClass(() => Cls, opts?)` | **Participant policy** — the caller is an *instance* of the thunked class (subclasses included, ordinary `instanceof`). The thunk defers class resolution past import cycles, fail-closed if it throws. Cross-HMR-reload safety: falls back to comparing module ids along the caller's class chain against the thunked class's module id when `instanceof` misses (a reloaded class is a fresh identity; the module id is the stable one). `opts.where(caller, target, method, args)` adds the **relational half** of the contract — e.g. "the Party calling me must be writing *its own* path and already roster me". |
 | `FromMixin(name, opts?)` | **Participant policy** — the caller *composes* the named mixin, checked by walking the caller's class chain for the `_mixinName` static marker (pure string identity: HMR-stable, import-cycle-free). Class composition only — a Shadow-granted mixin does not confer caller privilege. Same `opts.where` relational half as `FromClass`. |
@@ -878,6 +879,63 @@ called method (per-method, then class-level fallback, then framework
 | `AllOf(...)` | Composition: every policy passes. |
 | `AnyOf(...)` | Composition: at least one policy passes. |
 | `Not(p)` | Composition: invert. |
+
+### ⭐⭐ The calling function — `FromTemplateMethod`, and where the frame is
+
+`FromTemplate` answers *what was this caller cloned from?* and
+`FromModule` answers *what module is its class?*. Neither can say
+*"…and it is asking from THIS method"*, which is what the world-scan
+build needed: `EmploymentLogic` may read the registry from
+`employeesOf`, and from nothing else it can do.
+
+**The mechanism, and it is the fact everything else follows from.** The
+policy runs **before** the callee's frame is pushed — `#wrapStaticDescriptor`
+reads the caller, evaluates the policy, and only then calls
+`#pushFrame`; the instance gate is the same order. So at decision time
+the **top** frame is the *caller's own*: `getCallStack()[n-1].target`
+is `caller` by construction, and `[n-1].method` is the function the
+caller is currently executing.
+
+⚠ **Consequence, and it is doctrine rather than a wrinkle: an
+un-dispatched caller inherits the frame of its nearest dispatched
+caller.**
+
+- A **module-private free function** called from a permitted method is
+  admitted, because it *is* running as that method. This is what lets a
+  logic singleton keep its work in free functions.
+- ⚠ …but only its **immediate** dispatched caller. A helper called from
+  `knockViaHelper` runs as `knockViaHelper`, not as anything further up.
+- An **NPC brain's `act()`** is attributed to the behaviour tick that
+  called it, so a brain can never hold one of these gates — which is why
+  the `maintains` brain reads a pack catalogue instead.
+- A **timer or network callback** sits on a synthetic `Root` frame,
+  whose `method` is a label rather than a function anybody declared.
+  `FromTemplateMethod` refuses those outright. ⭐ **The recipe when you
+  need a frame: re-enter through your own Api static.** The static's
+  frame names the Api class, and the logic method it forwards to then
+  runs under its own name — which is exactly what the residency spawn
+  sweep's clock callback had to start doing.
+
+It **fails closed** on five conditions: a caller with no template
+identity, a template that does not match, a top frame that is not the
+caller's (unreachable through either dispatch site — kept as a
+documented guard), a root frame, and a method name that does not match.
+
+⚠ A mistyped **method name** is the dangerous typo: it denies forever
+while looking correct in the policy list, and a denied engine read reads
+as *"the world has no banks"*. `lint:gates` resolves both halves of
+every pair against the source.
+
+⚠⚠ **A `#Name` suffix on a DEFAULT export is the same failure**, and it
+shipped. A default-exported class's module id is the **bare path** (the
+table above), so
+`FromModule('/platform/idea/cmd/posture/StandController#StandController')`
+names an id that cannot exist and denies every caller forever. It cost
+`sit` / `stand` / `lie` / `kneel` / `mount` / `dismount` — six verbs
+that had **never worked over the wire** — and 225 unit tests passed
+either way, because they call the mixin methods directly where
+`SelfOnly` admits them. `lint:gates` refuses a `#Name` suffix naming a
+default export now; the live drive is what found it.
 
 ### Participant contracts — the preferred gate for object-owned surfaces
 
@@ -942,7 +1000,8 @@ to run sync through the gate. The widening lets future policies do
 async lookups (group membership, zone inheritance walks, etc.)
 without forcing every existing call site through a microtask.
 
-All identity-keyed policies (`FromTemplate`, `FromModule`, `ApiOnly`)
+All identity-keyed policies (`FromTemplate`, `FromTemplateMethod`,
+`FromModule`, `ApiOnly`)
 **fail closed** when the caller has no matching identity (`resolveModuleId`
 / `resolveTemplatePath` returns `null`) — a class that wasn't stamped by
 the loader transform can never be trusted.

@@ -366,14 +366,40 @@ parcels. See [access.md](./access.md) for the consumer side. In brief:
 - **`canMutateZone`** — same substitution; a group owner keeps the `'owner'`-
   role requirement, a player owner is an identity match, an organization
   owner the same staff-or-authority test.
-- **`heldExtents(subject)`** — the inverse read: every `parcels` row whose
+- **`heldExtents(subject)`** — the inverse read: every extent whose
   holder admits the subject through the same dispatch, plus the self-home
   root — what `broadcast`, `teleport`, `find` and the CMS tree scope to.
+  ⭐ It asks the **owners**, not the parcels: `ParcelApi.extentsHeldBy`
+  takes the holder test as an argument, walks each DISTINCT owner once
+  and unions its extents. The holder test is the expensive half (it
+  resolves groups, positions and offices) and used to run once per
+  parcel ROW, on every access check — so the cost was the amount of land
+  in the realm rather than the number of people who hold any.
 - The former **`ensureAuthorGroups` / `isAuthor`** scope is gone with the
   author tier (wave 3): capability is title over a resource, never a tier.
 - **Retired** from `AccessRegistry`: `effectiveOwnerRef`,
   `resolveOwnerGroupName`, `cachedOwnerNameRefs` (the mint-or-find moved to
   `ParcelRegistry`).
+
+### The registry's two derived indexes
+
+`ParcelRegistry` keeps `byOwner` (`ownerKey → the extents it holds`) and
+`byReach` (`reach → the parcels citing it`) beside the coverage trie,
+maintained by the same writes — `rebuildIndex`, `reindex`, `retire` —
+so there is no second lifecycle and no invalidation to forget.
+
+`byOwner` is keyed by a **string** rather than the owner object, because
+a `ParcelOwner` is a value and not an identity: two rows held by the
+same group are two distinct objects naming one holder, and asking that
+holder once is the entire point. `byReach` is what
+`parcelsOnReach(ref)` answers — the bank-holders of a reach, from which
+riparian rights are derived with no record at all
+(see [watershed.md](./watershed.md)).
+
+⚠ **Retired**: `ParcelApi.allRecords()` and `ParcelApi.groupOwnerRefs()`.
+The first was the whole title table, narrowed by whoever asked; the
+second had no callers left. See
+[antipatterns.md § An Api May Not Hand Back Its Table](../antipatterns.md).
 
 ## Zone field removal
 

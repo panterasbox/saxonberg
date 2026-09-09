@@ -1,6 +1,6 @@
 /**
  * Coin — the physical cash object. Covers the AC#1 guarantees:
- *   - it is a Globbable with mass (count / split / merge work);
+ *   - it is a Stackable with mass (count / split / merge work);
  *   - a stack's total mass = per-coin mass × quantity, where the per-coin mass
  *     is DERIVED from `(currency, denomination)` ({@link Currency.perCoinMass})
  *     so a 25-value coin is heavier per coin than a 1-value piece;
@@ -11,7 +11,7 @@
 import "../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import Coin from "../thing/Coin";
-import { GlobbableApi } from "../../api/glob";
+import { StackableApi } from "../../api/stackable";
 import { StuffApi } from "../../api/stuff";
 import { ContainmentApi } from "../../api/containment";
 import { MixinApi } from "../../api/mixin";
@@ -49,7 +49,7 @@ function makeCoins(qty: number, denom = 1, currency = "zorkmid"): Coin {
     coin.denomination = denom;
     return coin;
   }, COIN_PATH);
-  // Raw fixture state: `setQuantity` on a Coin is gated (only the glob
+  // Raw fixture state: `setQuantity` on a Coin is gated (only the stack
   // mechanics and the cash faucet may resize a money stack), so a test
   // building a starting stack writes the field, it does not mint.
   c.quantity = qty;
@@ -64,13 +64,13 @@ describe("Coin — composition", () => {
   beforeEach(() => installV1QuantityMarshallers());
   afterEach(() => StuffApi.clearAll());
 
-  it("is Globbable, Tangible, and Containable", () => {
+  it("is Stackable, Tangible, and Containable", () => {
     const c = makeCoins(1);
-    expect(MixinApi.isGlobbable(c)).toBe(true);
-    expect(MixinApi.hasMixin(c, Mixins.Globbable)).toBe(true);
+    expect(MixinApi.isStackable(c)).toBe(true);
+    expect(MixinApi.hasMixin(c, Mixins.Stackable)).toBe(true);
     expect(MixinApi.isTangible(c)).toBe(true);
     expect(MixinApi.isContainable(c)).toBe(true);
-    // A glob is never a container.
+    // A stack is never a container.
     expect(MixinApi.isContainer(c)).toBe(false);
   });
 
@@ -113,7 +113,7 @@ describe("Coin — split / merge", () => {
 
   it("splits a stack, preserving the per-coin (denomination) mass", async () => {
     // split clones at the source's templatePath; stub clone so the unit
-    // test doesn't need the domain collection (the glob.test precedent).
+    // test doesn't need the domain collection (the stack.test precedent).
     // No setMass needed — mass derives from the copied `denomination`.
     vi.spyOn(StuffApi, "clone").mockImplementation((async (path: string) => {
       return makeStuffAtPath(() => {

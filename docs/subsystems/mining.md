@@ -199,7 +199,7 @@ because its species row puts `spo2` survivable at 82 against a person's
 
 ## Ore, grade and the smelt
 
-`Ore` is `Globbable` with **one new field: `grade`** — a fraction, and
+`Ore` is `Stackable` with **one new field: `grade`** — a fraction, and
 explicitly *not* `GradedMixin` (that is the `poor…masterful` quality
 band). Two lumps of one row pool regardless of grade, which is what a
 cart does; `onMerged` mass-weights the average and `onSplit` carries it

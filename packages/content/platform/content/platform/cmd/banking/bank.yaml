@@ -29,7 +29,7 @@ subcommands:
         type: object
         required: true
         scope: "inventory"
-        requires: GlobbableMixin
+        requires: StackableMixin
   withdraw:
     description: "Withdraw cash from your account (till-bounded)"
     args:

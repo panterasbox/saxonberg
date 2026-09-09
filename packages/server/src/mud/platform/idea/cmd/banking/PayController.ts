@@ -52,7 +52,7 @@ export default class PayController extends BankingControllerBase<PayModel> {
       return;
     }
 
-    const payeeKey = payee.getTemplatePath();
+    const payeeKey = payee.getIdentityPath();
     const payeeAccountId = payeeKey
       ? await BankingApi.primaryAccountIdOf(payeeKey)
       : null;

@@ -815,7 +815,7 @@ recognizes — **old and new stock coexisting on the shelf**.
 > `stuffId` is a fresh UUID per construction, so hashing it would make
 > every item's flip moment jitter on reboot and items would visibly flip
 > *back*. The seed stores a **position**, not an appearance, and is
-> excluded from `globIdentityFields` — otherwise stacks would stop
+> excluded from `stackIdentityFields` — otherwise stacks would stop
 > merging entirely.
 
 **A stack is a batch, and batches turn over as batches**: one Stuff, one
@@ -1278,6 +1278,6 @@ glass, shared by `look` and the identify effect)
 [magic.md](./magic.md) · [arcane-science.md](../arcane-science.md) ·
 [belief.md](./belief.md) · [bulk.md](./bulk.md) ·
 [metabolism.md](./metabolism.md) · [residency.md](./residency.md) ·
-[reserve.md](./reserve.md) · [glob.md](./glob.md) ·
+[reserve.md](./reserve.md) · [stacks.md](./glob.md) ·
 [chronicle.md](./chronicle.md) · [advancement.md](./advancement.md) ·
 [content-packs.md](./content-packs.md)

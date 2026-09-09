@@ -20,9 +20,6 @@
   "scripts": {
     "dev": "node scripts/dev-preflight.mjs 2010 server && AUTH_MODE=test tsx watch src/preload.js",
     "reset:db": "tsx scripts/reset-db.ts",
-    "drive:cooking": "tsx scripts/drive-cooking.ts",
-    "drive:food-safety": "tsx scripts/drive-food-safety.ts",
-    "drive:identity": "tsx scripts/drive-identity.ts",
     "build": "tsc",
     "start": "tsx src/preload.js",
     "test": "vitest run",
@@ -42,12 +39,14 @@
     "lint:module-scope": "tsx scripts/check-module-scope.ts",
     "lint:boundary": "tsx scripts/check-boundary-exemptions.ts",
     "lint:world-scan": "tsx scripts/check-world-scan.ts",
+    "lint:whole-table": "tsx scripts/check-whole-table.ts",
     "lint:thin-forwarder": "tsx scripts/check-thin-forwarder.ts",
     "lint:object-verbs": "tsx scripts/check-object-verbs.ts",
     "lint:pm": "tsx scripts/check-pm-access.ts",
     "lint:imports": "tsx scripts/check-mud-imports.ts",
     "lint:identity": "tsx scripts/check-identity.ts",
     "lint:does-nothing": "tsx scripts/check-does-nothing.ts",
+    "lint:drive-scripts": "tsx scripts/check-drive-scripts.ts",
     "lint:dossiers": "tsx scripts/check-dossiers.ts",
     "lint:inert-weapon": "tsx scripts/check-inert-weapon.ts",
     "lint:combat-dynamics": "tsx scripts/check-combat-dynamics.ts",
@@ -65,9 +64,7 @@
     "lint:test-content": "tsx scripts/check-test-content.ts --lint",
     "lint:schema": "tsx scripts/check-schema-docs.ts --lint",
     "lint:untitled": "tsx scripts/check-untitled-paths.ts --lint",
-    "lint:test-bootstrap:verify": "tsx scripts/check-test-bootstrap.ts --verify",
-    "drive:logistics": "tsx scripts/drive-logistics.ts",
-    "drive:textiles": "tsx scripts/drive-textiles.ts"
+    "lint:test-bootstrap:verify": "tsx scripts/check-test-bootstrap.ts --verify"
   },
   "dependencies": {
     "@saxonberg/types": "workspace:*",

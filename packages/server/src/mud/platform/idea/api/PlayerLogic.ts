@@ -94,6 +94,8 @@ export class PlayerLogic extends ApiLogic {
     }
 
     this.avatarsByPlayerId.set(avatar.getPlayerId(), avatar);
+    const userId = avatar.getUser()?._id;
+    if (userId) this.avatarsByUserId.set(userId, avatar);
   }
 
   /** See {@link PlayerApi.unregisterAvatar}. */
@@ -119,6 +121,10 @@ export class PlayerLogic extends ApiLogic {
     const held = this.avatarsByPlayerId.get(playerId);
     if (held && held.stuffId !== avatar.stuffId) return;
     this.avatarsByPlayerId.delete(playerId);
+    const userId = avatar.getUser()?._id;
+    if (userId && this.avatarsByUserId.get(userId)?.stuffId === avatar.stuffId) {
+      this.avatarsByUserId.delete(userId);
+    }
   }
 
   /** See {@link PlayerApi.findAvatarByPlayerId}. */
@@ -131,6 +137,40 @@ export class PlayerLogic extends ApiLogic {
   @CallSecurity(PlayerApiCallers)
   public getAllAvatars(): Avatar[] {
     return Array.from(this.avatarsByPlayerId.values());
+  }
+
+  /**
+   * Registry of avatars by USER id — the second identity an avatar has.
+   * Maintained beside `avatarsByPlayerId` by the same two writes.
+   */
+  private avatarsByUserId: Map<string, Avatar> = new Map();
+
+  /** See {@link PlayerApi.findAvatarByName}. */
+  @CallSecurity(PlayerApiCallers)
+  public findAvatarByName(name: string): Avatar | undefined {
+    const want = name.trim().toLowerCase();
+    if (!want) return undefined;
+    for (const avatar of this.avatarsByPlayerId.values()) {
+      if (avatar.getName()?.toLowerCase() === want) return avatar;
+      if (avatar.getPresentation().toLowerCase() === want) return avatar;
+    }
+    return undefined;
+  }
+
+  /** See {@link PlayerApi.findAvatarByUserId}. */
+  @CallSecurity(PlayerApiCallers)
+  public findAvatarByUserId(userId: string): Avatar | undefined {
+    return this.avatarsByUserId.get(userId);
+  }
+
+  /** See {@link PlayerApi.connectedAvatars}. */
+  @CallSecurity(PlayerApiCallers)
+  public connectedAvatars(): Avatar[] {
+    const out: Avatar[] = [];
+    for (const avatar of this.avatarsByPlayerId.values()) {
+      if (!avatar.isDestroyed() && avatar.isConnected()) out.push(avatar);
+    }
+    return out;
   }
 
   /** See {@link PlayerApi.getAvatarCount}. */
@@ -201,5 +241,6 @@ export class PlayerLogic extends ApiLogic {
   @CallSecurity(PlayerApiCallers)
   public clearAll(): void {
     this.avatarsByPlayerId.clear();
+    this.avatarsByUserId.clear();
   }
 }

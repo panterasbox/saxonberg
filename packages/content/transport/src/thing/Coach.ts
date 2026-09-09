@@ -38,6 +38,7 @@ import { MobileMixin } from '@saxonberg/server/mud/lib/spatial/Mobile';
 import { SealableMixin } from '@saxonberg/server/mud/lib/spatial/Sealable';
 import { DrivableMixin } from '@saxonberg/server/mud/lib/slot/Drivable';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
+import type { MixinConstructor } from '@saxonberg/server/mud/lib/mixin';
 import type { Slotted } from '@saxonberg/server/mud/lib/slot/Slotted';
 import type { Sealable } from '@saxonberg/server/mud/lib/spatial/Sealable';
 import type { Mobile } from '@saxonberg/server/mud/lib/spatial/Mobile';
@@ -87,7 +88,7 @@ type CoachChassisShape = Stuff &
 
 const CoachChassis = SealableMixin(
   MobileMixin(ExitableVessel),
-) as unknown as new (...args: any[]) => CoachChassisShape;
+) as unknown as MixinConstructor<CoachChassisShape>;
 
 const CoachBase = VehicularMixin(DrivableMixin(CoachChassis));
 

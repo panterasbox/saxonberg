@@ -12,7 +12,7 @@
  *     round-trip** (capture → clone → materialize restores the `_chattelId`
  *     and `ownerOf` still resolves).
  *   - `chattel_events` records a `mint` then a `transfer` row.
- *   - a fungible STACK (`Globbable`, quantity > 1) is **refused**
+ *   - a fungible STACK (`Stackable`, quantity > 1) is **refused**
  *     (owned-by-possession) — but a LOT OF ONE can be titled, which is
  *     what lets a good whose fungibility is load-bearing be sold.
  *   - GC on destruct releases the current-state row + appends a terminal
@@ -360,17 +360,17 @@ describe("chattel possession core", () => {
   });
 
   it("refuses a fungible stack — owned by possession, never stamped", async () => {
-    const glob = makeTorch();
+    const stack = makeTorch();
     const alice = makeOwner("alice");
-    vi.spyOn(MixinApi, "isGlobbable").mockImplementation((o) => o === glob);
+    vi.spyOn(MixinApi, "isStackable").mockImplementation((o) => o === stack);
 
-    const stamp = await glob.stampChattel(alice);
+    const stamp = await stack.stampChattel(alice);
     expect(stamp.ok).toBe(false);
     if (!stamp.ok) expect(stamp.reason).toMatch(/possession/);
 
     // ownerOf of a stack is null (not asked; owned-by-possession).
-    expect(await glob.chattelOwner()).toBeNull();
-    expect(glob.getChattelId()).toBe("");
+    expect(await stack.chattelOwner()).toBeNull();
+    expect(stack.getChattelId()).toBe("");
   });
 
   it("⭐⭐ but a LOT OF ONE can be titled — the split has nothing to divide", async () => {
@@ -379,13 +379,13 @@ describe("chattel possession core", () => {
      * answer for which unit keeps the id, and a merge equates
      * identities". Both halves are about a stack that is still a stack;
      * neither survives at quantity one, and the paired veto in
-     * `GlobbableMixin.canMergeWith` (a titled stack does not merge)
+     * `StackableMixin.canMergeWith` (a titled stack does not merge)
      * closes the second. Without this, a mill could weave cloth it could
-     * never sell — a bolt is a glob on purpose.
+     * never sell — a bolt is a stack on purpose.
      */
     const lot = makeTorch();
     const alice = makeOwner("alice");
-    vi.spyOn(MixinApi, "isGlobbable").mockImplementation((o) => o === lot);
+    vi.spyOn(MixinApi, "isStackable").mockImplementation((o) => o === lot);
     // A lot of one says so.
     (lot as unknown as { getQuantity(): number }).getQuantity = () => 1;
 

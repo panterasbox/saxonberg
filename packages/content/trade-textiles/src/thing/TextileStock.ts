@@ -19,13 +19,13 @@
  */
 
 import Thing from '@saxonberg/server/mud/lib/stuff/Thing';
-import { GlobbableMixin } from '@saxonberg/server/mud/lib/stuff/Globbable';
+import { StackableMixin } from '@saxonberg/server/mud/lib/stuff/Stackable';
 import { CraftedMixin } from '@saxonberg/server/mud/lib/craft/Crafted';
 import { DetailedMixin } from '@saxonberg/server/mud/lib/description/Detailed';
 import type { FieldMeta } from '@saxonberg/server/mud/lib/mixin';
 import type { Grade } from '@saxonberg/server/mud/lib/craft/Grade';
 
-const TextileStockBase = GlobbableMixin(CraftedMixin(DetailedMixin(Thing)));
+const TextileStockBase = StackableMixin(CraftedMixin(DetailedMixin(Thing)));
 
 export default class TextileStock extends TextileStockBase {
   // ⚠ TS re-surface of the inner `GradedMixin`'s members: they are

@@ -44,7 +44,7 @@
  * That stores a **position**, not an appearance, so D26 still holds: all
  * current-generation items of a class still look identical, and the seed
  * only decides *when* an item crosses. It is excluded from
- * `globIdentityFields` — otherwise stacks would stop merging entirely,
+ * `stackIdentityFields` — otherwise stacks would stop merging entirely,
  * since every item would have a different seed.
  *
  * **A stack is a batch, and batches turn over as batches**: one Stuff,
@@ -215,7 +215,7 @@ export class Appearance {
     if (!bank) return '';
     // Memoized per (class, generation). `canMergeWith` sits on the
     // merge-on-arrival ripple, which fires on every move into a
-    // container holding globbables — a derived read there is a hot-path
+    // container holding stackables — a derived read there is a hot-path
     // read. The answer is IDENTICAL for every instance in a generation,
     // so the cache is tiny (one entry per class per rotation) and the
     // window comparison downstream is a cheap string compare.

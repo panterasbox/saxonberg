@@ -281,7 +281,7 @@ Resolves, or sharpens, several of
 2. **Is the field read free, or does it want the hand tool?** Part 2 says
    free-at-coarse, better-with-tool. Confirm the naked-eye rung actually
    says something useful, or collapse to two tiers.
-3. **What is a sample, as an object?** A `Globbable` quantity of the
+3. **What is a sample, as an object?** A `Stackable` quantity of the
    material with a provenance stamp? A distinct `Sample` class wrapping
    one? The glob substrate looks close — verify before minting a class.
 4. **Where does the provenance stamp live**, and can it be forged

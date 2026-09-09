@@ -161,7 +161,7 @@ describe('CraftingLogic.salvage', () => {
     expect(knife.isDestroyed()).toBe(true);
   });
 
-  it('a composite splits matter-typed: metal → casting, organics → scrap glob', async () => {
+  it('a composite splits matter-typed: metal → casting, organics → scrap stack', async () => {
     const bound = makeStuff(() => new Weapon());
     bound.setMaterial(mat(COMPOSITE));
     bound.setMass(Quantity.of(2, 'kg'));

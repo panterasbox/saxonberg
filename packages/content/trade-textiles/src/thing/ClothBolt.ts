@@ -2,7 +2,7 @@
  * ClothBolt — woven cloth, by the unit, and ⭐⭐ **the place dye lots
  * fall out of the model for free**.
  *
- * A bolt is `Globbable`, so bolts of the same cloth stack. What
+ * A bolt is `Stackable`, so bolts of the same cloth stack. What
  * `canMergeWith` is narrowed to *refuse* is the interesting half:
  * beyond the shipped requirements (same row, no shadows, no adornments)
  * two bolts must also share a **grade**, a **construction form**, and a
@@ -23,11 +23,11 @@
  * does on its own.
  *
  * `split` is the other half — what `cut` uses to take units off a bolt,
- * through the operation `Globbable` already ships.
+ * through the operation `Stackable` already ships.
  */
 
 import Thing from '@saxonberg/server/mud/lib/stuff/Thing';
-import { GlobbableMixin } from '@saxonberg/server/mud/lib/stuff/Globbable';
+import { StackableMixin } from '@saxonberg/server/mud/lib/stuff/Stackable';
 import { ConstructedMixin } from '@saxonberg/server/mud/lib/material/Constructed';
 import { DyedMixin } from '@saxonberg/server/mud/lib/material/Dyed';
 import { CraftedMixin } from '@saxonberg/server/mud/lib/craft/Crafted';
@@ -36,7 +36,7 @@ import { MixinApi } from '@saxonberg/server/mud/api/mixin';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import type { Grade } from '@saxonberg/server/mud/lib/craft/Grade';
 
-const ClothBoltBase = GlobbableMixin(
+const ClothBoltBase = StackableMixin(
   CraftedMixin(ConstructedMixin(DyedMixin(DetailedMixin(Thing)))),
 );
 

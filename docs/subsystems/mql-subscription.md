@@ -386,7 +386,7 @@ nothing to the merge. Subscriptions with `cardinality: 'many'` AND a
 | VisibleMixin | `shortDescription`, `longDescription` | — | defaults; ShadowChangedEvent |
 | DetailedMixin | `details` (alias-grouped) | `{ ids, description, hasChildren }` | default `dependsOnFields: ['details']`; ShadowChangedEvent |
 | TangibleMixin | `bulkMaterial`, `mass` | `{ material }` (prefix-walk at focus key) | defaults for `bulkMaterial` / `mass`; **explicit** `dependsOnFields: ['detailMaterials']` for `detailMaterial` because the descriptor name doesn't match the setter's field discriminator. ShadowChangedEvent on the shadow-aware ones. |
-| GlobbableMixin | `quantity` | — | default `dependsOnFields: ['quantity']` |
+| StackableMixin | `quantity` | — | default `dependsOnFields: ['quantity']` |
 | ContainerMixin | `contents` | — | explicit `dependsOnFields: ['contents']`; fired inline from `addContainable` / `removeContainable`. ⚠ Subtracts anything currently occupying a slot on the host — see `SlottedMixin` below |
 | SlottedMixin | `worn` | — | explicit `dependsOnFields: ['worn']`; fired inline from `occupy` / `vacate` / `vacateSole` |
 
@@ -619,7 +619,7 @@ so the substrate owns its own helpers and the event class stays a
 pure DTO.
 
 Used by `NamedMixin.setName`, `VisibleMixin.setShortDescription` /
-`setLongDescription`, `GlobbableMixin.setQuantity`. `DetailedMixin`
+`setLongDescription`, `StackableMixin.setQuantity`. `DetailedMixin`
 (setDetail / removeDetail), `TangibleMixin` (setMaterial / setMass),
 and `PropertiedMixin` (setProp) inline the fire because their
 mutation shape doesn't fit the helper cleanly (Map mutations,
@@ -772,7 +772,7 @@ The universal `displayName` descriptor's `read` delegates to
   routine the prose path uses. The descriptor isn't overloaded; the
   viewer-aware step is applied at projection. See
   [belief.md](./belief.md).
-- **Count folds in.** For a `Globbable` stack `getPresentation()`
+- **Count folds in.** For a `Stackable` stack `getPresentation()`
   returns `"30 coins"`; the `quantity` field still rides along
   separately for clients that want the raw number.
 
@@ -896,7 +896,7 @@ whole tree today:
 | `Tangible` | `mass`, `bulkMaterial`, `detailMaterial` |
 | `Container` | `contents` |
 | `Exitable` | `exits` |
-| `Globbable` | `quantity` |
+| `Stackable` | `quantity` |
 | `Focused` | `focus` |
 | `LoadBearing` | `borneBurden`, `carryCapacity`, `loadRatio` |
 | `Branded` | `brand`, `corpo` |

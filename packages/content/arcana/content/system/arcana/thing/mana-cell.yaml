@@ -8,7 +8,7 @@
 # them has a running cost somebody has to cover.
 #
 # It is `Circulating` so distribution and the general store carry it,
-# and it is a discrete Thing (never Globbable) so each carries a chattel
+# and it is a discrete Thing (never Stackable) so each carries a chattel
 # stamp on buy.
 class: /system/arcana/thing/ManaCell
 hydratorClass: /platform/idea/persistence/PersistentHydrator

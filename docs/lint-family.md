@@ -49,9 +49,24 @@ growing the day it is noticed, without being fixed first.
 ## Architecture & call security
 
 - **`lint:gates`** — every concrete `FromModule`/`FromController`
-  string and `*_MODULE_ID` constant resolves to a real module + export.
+  string, every `FromTemplateMethod('<template>', '<method>')` **pair**,
+  and every `*_MODULE_ID` constant resolves to a real module + export.
   A script rather than an ESLint rule because ESLint 8's legacy config
   can't load a local rule without `--rulesdir`.
+  ⭐ **The method half is the one that earns its keep.** A mistyped
+  module id makes a gate that admits nobody, which fails loudly the
+  first time somebody tries it; a mistyped METHOD name does the same
+  thing while looking correct in the policy list, and the reads
+  `FromTemplateMethod` guards are the ones whose silent denial reads as
+  *"the world has no banks"*. The template half knows the one
+  deliberate naming exception — a logic singleton registers at
+  `/platform/idea/api/<feature>` while its class is `<Feature>Logic.ts`.
+  ⚠⚠ It also refuses a **`#Name` suffix naming a DEFAULT export** — a
+  default-exported class's module id is the bare path, so the suffixed
+  form denies everybody forever while reading correctly. That one had
+  shipped: six posture verbs had never worked over the wire, and 225
+  unit tests passed either way because they call the mixin methods
+  directly where `SelfOnly` admits them.
 - **`lint:imports`** — the driver/mudlib import boundary: nothing under
   `src/mud/` imports outside the tree (Node built-ins included) except
   the Api tier, which imports and wraps. `import type` is exempt
@@ -124,7 +139,7 @@ growing the day it is noticed, without being fixed first.
   cannot **parse**: an unreadable spec silently shrinks every total.
 - **`lint:field-meta`** — field metadata is ONE field-keyed static: no
   legacy `persistentFields` / `fieldMarshallers` / `instructionFields` /
-  `globIdentityFields` returning, every entry well-formed. Registration
+  `stackIdentityFields` returning, every entry well-formed. Registration
   only validates classes it loads; this sees the whole tree.
 
 ### `lint:condition-arms` — the ratchet that ships before its build (2026-09)
@@ -244,8 +259,35 @@ configured**.
   and it matched the mixin name inside COMMENTS, so every bare `Thing`
   row passed on a comment saying the mixin is deliberately NOT there. See
   [spoilage.md](./subsystems/spoilage.md).
-- **`lint:world-scan`** — MQL is how you search: no bespoke
-  `getAllObjects()` scans.
+- **`lint:world-scan`** — **you may not be handed the world.** Two
+  patterns: a raw `StuffApi.getAllObjects()` enumeration (three
+  sanctioned homes) and a `world:` query or `scope: world` (the owners
+  named in `RegistryWideReaders`, `api/mql.ts`).
+  ⚠⚠ **This gate used to point offenders AT the second pattern.** Its
+  header said the fix for a hand-rolled loop was
+  `MqlApi.resolveMany('world:[mixin.X]', …)`, so the scan was not drift
+  — it was the documented house style, and it spread to seventeen
+  sites. Inverting the guidance shipped in the same change as the
+  refusal, deliberately: a gate whose rationale still recommends the
+  thing it forbids gets argued away the first time it is inconvenient.
+  ⭐ And the third rule the header now carries: **when an allowlist
+  entry's REASON expires, the entry goes.** The water catalogue was
+  allowlisted because "a capability pack cannot ship a mixin"; a pack
+  gained a `lib/`, and the entry went.
+- **`lint:whole-table`** — **an Api may not hand back its table**: the
+  same defect from the other end, gated on the CONSUMER. A whole-table
+  read (`allX()` / `getAllX()` / a bare `all()`) immediately narrowed
+  with `.find`/`.filter`/`.some`/`.every`/`.flatMap`, or indexed into
+  with `[0]`, says out loud that the caller wanted one thing and asked
+  for all of them. Ratchet at 0; `EXEMPT` ships empty.
+  ⭐ **An owner narrowing its OWN table is the fix, not the defect** —
+  a `this.` receiver, or the class the file is named for, is not a
+  finding. That exemption is not a loophole; it is where the keyed read
+  is supposed to live. Whether a whole-table read is legitimate at all
+  (does it grow with the world? is it keyed via the execution context
+  rather than by an argument?) stays a review judgment, because no
+  regex can make it — `BankingApi.accountsOf()` looks unkeyed and is
+  not.
 
 ## Tests
 

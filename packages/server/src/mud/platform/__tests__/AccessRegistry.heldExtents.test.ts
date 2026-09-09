@@ -79,13 +79,25 @@ describe("AccessApi.heldExtents", () => {
     await boot();
     const org = makeStuffAtPath(() => new OrganizationEntity(), "/compact/executive");
     org.appointingAuthority = { kind: "office", office: "prime-minister" };
-    vi.spyOn(ParcelApi, "allRecords").mockResolvedValue([
+    // The registry now asks each DISTINCT owner once and unions its
+    // extents, so the stand-in is owner-keyed the same way — which is
+    // also what makes `/studio` and `/obj` one question, not two.
+    const rows = [
       record("/studio/lounge", { kind: "group", name: "lounge" }),
       record("/studio/terminus", { kind: "group", name: "terminus" }),
       record("/studio", { kind: "organization", templatePath: "/compact/executive" }),
       record("/obj", { kind: "organization", templatePath: "/compact/executive" }),
       record("/plot/17", { kind: "player", templatePath: "/platform/agent/Avatar/alice" }),
-    ] as never);
+    ];
+    vi.spyOn(ParcelApi, "extentsHeldBy").mockImplementation((async (
+      admits: (owner: ParcelOwner) => Promise<boolean>,
+    ) => {
+      const out: string[] = [];
+      for (const r of rows) {
+        if (await admits(r.getOwner())) out.push(r.getExtent());
+      }
+      return out;
+    }) as never);
     vi.spyOn(ParcelApi, "resolveOwnerRef").mockImplementation(
       async (o) => (o.kind === "group" ? `managed:${o.name}` : null) as never,
     );

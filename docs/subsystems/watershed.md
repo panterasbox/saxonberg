@@ -655,13 +655,30 @@ costs microseconds; the expensive part is the snowpack integral it calls
 per withdrawer, and that is already memoised per reach per segment.
 **Cache the expensive derivation, never the enumeration.**
 
-⚠ **Why not MQL**, which is normally how you search: MQL selects by
-**mixin**, and a capability pack cannot ship one (its module categories
-are branches, controllers and tests — no `lib/`). Its `class.X` filter
-matches by class *name*, and three unrelated things in this codebase are
-called `Conduit`. So a shape scan is the honest mechanism available to a
-pack — and `check-world-scan` was extended to walk packs' `src/` so the
-choice is a diff a reviewer sees rather than a hole in a gate.
+⭐⭐ **It used to walk every object in the world** and duck-type each
+one for a `withdrawalM3S` — 1,807 objects to find five. It now walks
+the works the **content rows** name (`WATERWORK_CLASSES` — `Conduit`
+and `ControlStructure`) and duck-types those: the same check, over a
+set the size of the answer.
+
+Nothing above changes. The ROW list is memoised — authored content only
+moves at install — while the LIVE resolution is not, so a shut sluice
+stops drawing on the very next query. ⚠ The roster has its **own** lazy
+slot rather than riding the compiled reach index: the two expire on
+different clocks, and folding them together made a conduit that stood up
+after the first flow read invisible to the river, which is precisely the
+staleness this section refuses.
+
+⚠ **And it took no new interface.** The obvious alternative was a
+`WithdrawingMixin` / `DischargingMixin` pair the works compose —
+self-declaring, and it would let a third-party pack ship a withdrawer.
+It was written and then withdrawn: two composers in one pack do not earn
+an interface (*a capability only one class composes is a method on that
+class wearing a costume*), the mechanism is this pack's so a new work is
+a local edit to `WATERWORK_CLASSES` anyway, and **"we need an interface
+change to stop a scan" is the wrong shape of answer**. The rows already
+knew. ⭐ A third pack wanting to ship a withdrawer is the signal to
+revisit that — and is the same test `lib/` substrate is promoted on.
 
 A withdrawal is sized against the **natural** (undrawn) flow, because
 sizing it against the already-drawn flow would be recursive and because

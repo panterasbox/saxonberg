@@ -1404,26 +1404,20 @@ export function MetabolicMixin<TBase extends MixinConstructor>(Base: TBase) {
       const self = this as unknown as Stuff;
       if (!MixinApi.isSlottable(self)) return 1.0;
       // ⭐⭐ The body already RECORDS where it rests, so ask it before
-      // going looking. `getOccupiedHost()` is an inverse lookup, and its
-      // implementation is a WORLD-WIDE MQL over every `Slotted` host —
-      // on a path that runs constantly:
+      // going looking. This chain runs constantly:
       //
       //   getConditionBand → getReserves → reconcileMetabolism
       //   → integrateSlice → coupledRecovery → currentRestQuality
-      //   → getOccupiedHost → findOccupiedSlots → world:[SlottedMixin]
+      //   → getOccupiedHost
       //
-      // A live drive found the server pinned at a core with five of five
-      // debugger pauses in that chain. An actor resting on nothing — the
-      // overwhelming common case, since standing is the default posture
-      // — has no host to find, and `Posed.getRestingOnPath()` says so in
-      // one field read.
-      //
-      // Deliberately a SHORT-CIRCUIT rather than resolving the path
-      // itself: identical behaviour, no new index, and the inverse
-      // lookup stays the one authority for the case that really needs
-      // it. `SlotLogic.findOccupiedSlots` still carries its own
-      // "promote to an inverse index if profiling demands" note; this
-      // removes the caller that was doing the demanding.
+      // and a live drive once found the server pinned at a core with
+      // five of five debugger pauses in it, because `getOccupiedHost()`
+      // was a world-wide read of every `Slotted` host. ⭐ It is now the
+      // candidate's own back-reference (`Slottable._occupancy`), so the
+      // inverse lookup costs a map read — but the short-circuit stays:
+      // an actor resting on nothing is the overwhelming common case
+      // (standing is the default posture) and `getRestingOnPath()`
+      // answers it in one field read without touching the map at all.
       if (MixinApi.isPosed(self) && !self.getRestingOnPath()) return 1.0;
       const host = self.getOccupiedHost();
       if (host && MixinApi.isPostured(host)) return host.getRestQuality();

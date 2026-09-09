@@ -1,12 +1,33 @@
 /**
- * check-world-scan — the "MQL is how you search" lint.
+ * check-world-scan — **you may not be handed the world.**
  *
- * `StuffApi.getAllObjects()` is a raw enumeration of the entire object
- * registry. Runtime Stuff search should go through MQL instead
- * (`MqlApi.resolveMany('world:[mixin.X]', …)` — the code-only system
- * mode for engine sweeps, `reachable`/`person` for actor-anchored
- * scans), so bespoke `getAllObjects()` filter-loops don't proliferate.
- * See docs/antipatterns.md § Bespoke Object-Search Algorithms and
+ * Two patterns, one rule. `StuffApi.getAllObjects()` is a raw
+ * enumeration of the entire object registry; `world:` is the same thing
+ * behind nicer syntax.
+ *
+ * ⚠⚠ **This gate used to point offenders AT the second one.** Its
+ * header said the fix for a bespoke `getAllObjects()` loop was
+ * `MqlApi.resolveMany('world:[mixin.X]', …)` — so the pattern was not
+ * drift, it was the documented house style, and it spread. Inverting the
+ * guidance is part of the change that closes the door, not a footnote to
+ * it: a gate whose rationale still recommends the thing it forbids gets
+ * argued away the first time it is inconvenient.
+ *
+ * **The sanctioned fix is now the OWNER'S QUESTION.** *Which business
+ * operates here*, *who works at this organization*, *which host holds
+ * this item*, *what lanes touch this place* — each is asked of whoever
+ * owns the answer, and that method is where an index can later go
+ * without a caller moving. When the population genuinely is global and
+ * selective — every `PersistableMixin`, every `BankMixin` — the read is
+ * `StuffApi.findByMixin(name)` from a method NAMED in the
+ * `RegistryWideReaders` pair list in `api/stuff.ts`. It takes a mixin
+ * NAME, so an unindexed engine read is inexpressible rather than
+ * runtime-rejected.
+ *
+ * A person typing `world:` is refused outright, with one exception:
+ * somebody the executive says may read the world (today the holder of
+ * the Prime Minister's seat), who is told what it cost. See
+ * docs/antipatterns.md § Bespoke Object-Search Algorithms and
  * docs/subsystems/mql.md.
  *
  * The sanctioned homes are allowlisted below:
@@ -16,13 +37,13 @@
  *     walk RAW unwrapped proxies so enumeration never counts as a
  *     touch (documented at both loops), which MQL can't express.
  *   - `api/stuff.ts` — where `getAllObjects` is DEFINED.
- *   - `water/src/idea/WatercourseCatalogue.ts` — the one walk that
- *     finds every withdrawal and every outfall on the realm's rivers.
- *     MQL selects by MIXIN and a capability pack cannot ship one (its
- *     module categories are branches, controllers and tests); its
- *     `class.X` filter matches by class NAME and three unrelated things
- *     in this codebase are called `Conduit`. A shape scan is the honest
- *     mechanism available to a pack.
+ *
+ * ⭐ The water catalogue used to be a fourth, granted a shape scan
+ * because *"a capability pack cannot ship a mixin"*. That stopped being
+ * true when a pack gained a `lib/` of its own, so the withdrawers and
+ * dischargers now declare themselves and the entry is gone. Whenever an
+ * allowlist entry's REASON expires, the entry goes — that is what keeps
+ * the list from becoming the place exceptions retire to.
  *
  * ⚠ **It walks capability packs' `src/` as well as the kernel tree.**
  * It did not until the watershed build put a scan in one and nothing
@@ -52,12 +73,39 @@ const ALLOWLIST = [
   /\/mud\/api\/stuff\.ts$/, // the definition
   /\/mud\/api\/mql\/resolver\.ts$/, // the `world` seed implementation
   /\/mud\/platform\/idea\/api\/ResidencyLogic\.ts$/, // raw-proxy sweeps (documented)
-  // A pack cannot ship a mixin, so it cannot be selected by MQL; the
-  // shape scan is documented at its call site. See the header.
-  /\/content\/water\/src\/idea\/WatercourseCatalogue\.ts$/,
 ];
 
 const CALL = /\bStuffApi\.getAllObjects\s*\(/;
+
+/**
+ * The second pattern: a `world:` query, or a YAML/`MqlContext` scope of
+ * `world`, written anywhere but the resolver and the owners on the pair
+ * list. It is a build-time echo of a runtime refusal — the resolver
+ * throws for an ungated caller either way — so that a new one is caught
+ * in review rather than at the moment somebody's shop stops working.
+ */
+const WORLD_QUERY = /["']world:\[/;
+const WORLD_SCOPE = /scope:\s*["']world["']/;
+
+/**
+ * Files permitted to write a `world:` query or a `world` scope — the
+ * mechanism, and nothing else.
+ *
+ * ⭐ It used to name nine engine files as well. It does not any more,
+ * because none of them writes a query: every one of the realm's own
+ * registry-wide reads was `world:[mixin.X]`, which is
+ * `StuffApi.findByMixin` with extra steps. They ask the registry
+ * directly, so `world:` is now purely a thing a PERSON can type — and
+ * the only person who may is the office holder.
+ */
+const WORLD_QUERY_ALLOWLIST = [
+  // ⭐ ONE. The seed's own implementation, and nothing else in the
+  // engine. `api/mql.ts` came off this list in review round 3: with the
+  // seat entry gone there is no second door to describe, so the facade
+  // no longer names the seed at all.
+  /\/mud\/api\/mql\/resolver\.ts$/,
+];
+
 
 function walk(dir: string, out: string[]): void {
   for (const name of readdirSync(dir)) {
@@ -87,16 +135,50 @@ interface Finding {
 
 const findings: Finding[] = [];
 
+const worldQueryFindings: Finding[] = [];
+
 for (const file of files) {
-  if (ALLOWLIST.some((re) => re.test(file))) continue;
   const source = readFileSync(file, "utf8");
   const lines = source.split("\n");
+  const rawAllowed = ALLOWLIST.some((re) => re.test(file));
+  const queryAllowed = WORLD_QUERY_ALLOWLIST.some((re) => re.test(file));
   for (let i = 0; i < lines.length; i++) {
     const line = lines[i]!;
-    if (CALL.test(line)) {
+    if (line.trimStart().startsWith("*") || line.trimStart().startsWith("//")) {
+      continue; // prose about the pattern is not the pattern
+    }
+    if (!rawAllowed && CALL.test(line)) {
       findings.push({ file, line: i + 1, text: line.trim().slice(0, 100) });
     }
+    if (!queryAllowed && (WORLD_QUERY.test(line) || WORLD_SCOPE.test(line))) {
+      worldQueryFindings.push({
+        file,
+        line: i + 1,
+        text: line.trim().slice(0, 100),
+      });
+    }
   }
+}
+
+if (worldQueryFindings.length > 0) {
+  console.error(
+    `check-world-scan: ${worldQueryFindings.length} 'world:' quer${
+      worldQueryFindings.length === 1 ? "y" : "ies"
+    } outside the owners on the pair list:`
+  );
+  for (const f of worldQueryFindings) {
+    console.error(
+      `  ${relative(join(SERVER_SRC, ".."), f.file)}:${f.line}  ${f.text}`
+    );
+  }
+  console.error(
+    `\nAsk the owner: 'which business operates here', 'who works at this\n` +
+      `organization', 'which host holds this item'. When the population\n` +
+      `really is global AND selective, add a (template, method) pair to\n` +
+      `RegistryWideReaders in mud/api/stuff.ts and read through\n` +
+      `StuffApi.findByMixin(name) from that method.`
+  );
+  process.exit(1);
 }
 
 if (findings.length > 0) {
@@ -115,7 +197,7 @@ if (findings.length > 0) {
 }
 
 console.log(
-  `check-world-scan: no bespoke getAllObjects() scans ` +
-    `(${files.length} files scanned; ${ALLOWLIST.length} sanctioned ` +
-      `homes allowlisted).`
+  `check-world-scan: no bespoke getAllObjects() scans and no stray ` +
+    `'world:' queries (${files.length} files scanned; ${ALLOWLIST.length} ` +
+    `raw-enumeration homes, ${WORLD_QUERY_ALLOWLIST.length} query homes).`
 );

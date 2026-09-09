@@ -133,9 +133,9 @@ describe('the weaves beat is bounded and literal', () => {
   });
 
   it('measures a stack by QUANTITY, not by object count', () => {
-    // Line and yarn are Globbable: two spins leave one bigger stack, and
+    // Line and yarn are Stackable: two spins leave one bigger stack, and
     // a guard counting objects would read a working beat as a failure.
-    expect(SRC).toContain('MixinApi.isGlobbable(item) ? item.getQuantity() : 1');
+    expect(SRC).toContain('MixinApi.isStackable(item) ? item.getQuantity() : 1');
   });
 
   it('works the AUTHORED floor, not wherever the hand woke up', () => {

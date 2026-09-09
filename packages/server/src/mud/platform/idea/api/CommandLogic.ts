@@ -42,12 +42,14 @@ import type {
 } from '@saxonberg/types';
 import {
   MqlApi,
+  MqlPermissionError,
   type MqlMany,
   type MqlManyResult,
   type MqlMatchVia,
   type MqlOneResult,
   type MqlOne,
 } from '../../../api/mql';
+import { CompactApi } from '../../../api/compact';
 import { MixinApi } from '../../../api/mixin';
 import { Mixins, MixinRefusals, type MixinName } from '../../../lib/mixin';
 import { PerceptionApi } from '../../../api/perception';
@@ -337,6 +339,98 @@ class CommandContextImpl implements CommandContext {
  *
  * @internal
  */
+/**
+ * ⭐⭐ **The world arm.** A `world` query is refused for everyone; the
+ * engine then asks the executive about the person who typed it, and if
+ * the answer is yes the SAME query runs again — this time inside an
+ * execution environment carrying the grant — and they are told what it
+ * cost.
+ *
+ * Three shapes, and all three matter:
+ *
+ *  - **Catch-and-retry**, not check-then-run. The refusal is the
+ *    resolver's, thrown from wherever `world` actually appears — a
+ *    chain head, a mid-chain intersect, a scope keyword — so nothing
+ *    here has to know the grammar, and a new place `world` can appear
+ *    is covered the day it exists.
+ *  - **The authority is asked only when a query is refused.** An
+ *    ordinary command never pays for the lookup.
+ *  - **The retry is the ordinary entry point.** There is no
+ *    differently-gated resolve method: `MqlApi.resolveMany` is what
+ *    everybody calls, and what changed is the environment it runs in.
+ *
+ * ⛔ There is no flag on `MqlContext` and no calling convention deciding
+ * this: a permission a caller can hand itself is not a permission, and
+ * which function called says nothing about who is at the helm. Who may
+ * do this is decided in exactly one place —
+ * {@link CompactApi.readWorldAs}. Returns `null` when this was not a
+ * `world` refusal, or the executive said no, and the caller then
+ * rethrows so the ordinary `mql-error` path reports the refusal text.
+ */
+async function worldRetry(
+  err: unknown,
+  raw: string,
+  giver: Stuff & CommandGiver,
+  scope: string,
+  field: string,
+  context: CommandContext,
+): Promise<MqlMany | null> {
+  if (!(err instanceof MqlPermissionError)) return null;
+  if (err.operator !== 'world') return null;
+  const out = await CompactApi.readWorldAs(giver, () =>
+    MqlApi.resolveMany(raw, { commandGiver: giver, scope }),
+  );
+  if (!out) return null;
+  if (out.scan) {
+    context.note({
+      kind: 'registry-scan',
+      field,
+      scanned: out.scan.scanned,
+      indexed: out.scan.indexed,
+      shape: out.scan.shape,
+    });
+  }
+  return out;
+}
+
+/** `resolveMany` for one scope, with the seat arm behind it. */
+async function scopedMany(
+  raw: string,
+  giver: Stuff & CommandGiver,
+  scope: string,
+  field: string,
+  context: CommandContext,
+): Promise<MqlMany> {
+  try {
+    return MqlApi.resolveMany(raw, { commandGiver: giver, scope });
+  } catch (err) {
+    const wide = await worldRetry(err, raw, giver, scope, field, context);
+    if (wide) return wide;
+    throw err;
+  }
+}
+
+/** `resolveOne` for one scope, with the same arm. */
+async function scopedOne(
+  raw: string,
+  giver: Stuff & CommandGiver,
+  scope: string,
+  field: string,
+  context: CommandContext,
+): Promise<MqlOne> {
+  try {
+    return MqlApi.resolveOne(raw, { commandGiver: giver, scope });
+  } catch (err) {
+    const wide = await worldRetry(err, raw, giver, scope, field, context);
+    if (!wide) throw err;
+    const top = wide.stuff[0];
+    const out: MqlOne = { stuff: top ?? null };
+    if (wide.via) out.via = wide.via;
+    if (wide.quantity) out.quantity = wide.quantity;
+    return out;
+  }
+}
+
 @Unshadowable
 export class CommandLogic extends ApiLogic {
   /** See {@link CommandApi.getCommand}. */
@@ -1128,7 +1222,7 @@ export class CommandLogic extends ApiLogic {
           // scan pretending it saw nothing.
           let firstRaw: MqlMany | null = null;
           for (const scope of tries) {
-            const got = MqlApi.resolveMany(raw, { commandGiver: giver, scope });
+            const got = await scopedMany(raw, giver, scope, fname, context);
             if (got.stuff.length > 0 && !firstRaw) firstRaw = got;
             const kept = got.stuff.filter(admissible);
             if (kept.length > 0) {
@@ -1172,7 +1266,7 @@ export class CommandLogic extends ApiLogic {
           let firstRaw: MqlMany | null = null;
           for (const scope of tries) {
             if (useTop && terms.length === 0) {
-              const r: MqlOne = MqlApi.resolveOne(raw, { commandGiver: giver, scope });
+              const r: MqlOne = await scopedOne(raw, giver, scope, fname, context);
               if (r.stuff !== null) {
                 stuff = [r.stuff];
                 via = r.via;
@@ -1185,7 +1279,7 @@ export class CommandLogic extends ApiLogic {
               // scope is resolved in full and the first admissible
               // match is the top. The first raw match is the fallback
               // when nothing anywhere is admissible (see above).
-              const r: MqlMany = MqlApi.resolveMany(raw, { commandGiver: giver, scope });
+              const r: MqlMany = await scopedMany(raw, giver, scope, fname, context);
               if (r.stuff.length > 0 && !firstRaw) firstRaw = r;
               const kept = r.stuff.filter(admissible);
               if (kept.length > 0) {
@@ -1284,7 +1378,7 @@ export class CommandLogic extends ApiLogic {
           // scan pretending it saw nothing.
           let firstRaw: MqlMany | null = null;
           for (const scope of tries) {
-            const got = MqlApi.resolveMany(raw, { commandGiver: giver, scope });
+            const got = await scopedMany(raw, giver, scope, fname, context);
             if (got.stuff.length > 0 && !firstRaw) firstRaw = got;
             const kept = got.stuff.filter(admissible);
             if (kept.length > 0) {
@@ -1320,7 +1414,7 @@ export class CommandLogic extends ApiLogic {
           let firstRaw: MqlMany | null = null;
           for (const scope of tries) {
             if (useTop && terms.length === 0) {
-              const r: MqlOne = MqlApi.resolveOne(raw, { commandGiver: giver, scope });
+              const r: MqlOne = await scopedOne(raw, giver, scope, fname, context);
               if (r.stuff !== null) {
                 stuff = [r.stuff];
                 via = r.via;
@@ -1333,7 +1427,7 @@ export class CommandLogic extends ApiLogic {
               // scope is resolved in full and the first admissible
               // match is the top. The first raw match is the fallback
               // when nothing anywhere is admissible (see above).
-              const r: MqlMany = MqlApi.resolveMany(raw, { commandGiver: giver, scope });
+              const r: MqlMany = await scopedMany(raw, giver, scope, fname, context);
               if (r.stuff.length > 0 && !firstRaw) firstRaw = r;
               const kept = r.stuff.filter(admissible);
               if (kept.length > 0) {

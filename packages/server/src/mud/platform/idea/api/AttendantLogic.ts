@@ -10,6 +10,7 @@
 //
 // See docs/subsystems/attendant.md.
 
+import { StuffApi } from '../../../api/stuff';
 import { ApiLogic } from "../../../lib/stuff/ApiLogic";
 import { ScheduleApi, type ScheduleHandle } from "../../../api/schedule";
 import { AppApi } from "../../../api/app";
@@ -103,10 +104,9 @@ export class AttendantLogic extends ApiLogic {
     // a concealed point must still evict its idle leases): the world
     // seed + mixin filter is the declarative form of the old
     // getAllObjects scan.
-    const matches = MqlApi.resolveMany('world:[mixin.AttendantMixin]', {
-      commandGiver: null,
-      scope: 'world',
-    });
-    return matches.stuff.filter((s) => MixinApi.isAttendant(s));
+    const matches = StuffApi.findByMixin('AttendantMixin');
+    return matches.filter((s): s is Stuff & Attendant =>
+      MixinApi.isAttendant(s),
+    );
   }
 }

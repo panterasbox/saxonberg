@@ -4,7 +4,7 @@
  * Fired whenever a mixin setter mutates a persistent field that other
  * subsystems may want to observe (Named.setName, Visible.set*Description,
  * Detailed.setDetail / removeDetail, Tangible.setMaterial / setMass,
- * Globbable.setQuantity, etc.).
+ * Stackable.setQuantity, etc.).
  *
  * The payload's `field` discriminator names the mixin-declared field
  * that changed. `PropertyChangedEvent` uses a separate KIND with a

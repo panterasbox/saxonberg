@@ -15,7 +15,7 @@ standing** shape (renown / participation / producer) with one hard addition:
 
 Money exists in two domains, joined only at the bank:
 
-- **Cash** — `Coin`, a physical `Globbable` `Thing` carrying per-coin
+- **Cash** — `Coin`, a physical `Stackable` `Thing` carrying per-coin
   **mass**. Off the *governed* ledger: a hand-to-hand handover changes
   *location*, not *total supply*. Self-limiting by mass (a `Coin` stack's
   `getMass()` is per-coin × quantity, read by the shipped `LoadBearing`
@@ -86,6 +86,22 @@ is **policy data, not a property of the money** — it is where the zorkmid's
 specialness lives, so no code path compares a currency to a literal. Reserve
 status is functional, never decreed: make Compact obligations payable only
 in zorkmids and it is the reserve *by construction*.
+
+### ⚠⚠ An account owner is an IDENTITY path, never a template path
+
+`actingActorKey()` derives the owner key from
+**`getIdentityPath()`**. It must: every player Avatar shares one
+`getTemplatePath()` (D17 stamps lineage and identity separately, and no
+per-player template row exists), so keying an account on lineage gives
+**every player in the world the same account**. That is not a thought
+experiment — it shipped, and was found in 2026-09 by two wire-test
+characters minted seconds apart both reading a balance of 2,480
+zorkmids. `getIdentityPath()` falls back to `getTemplatePath()` for a
+business or an NPC, so the same call is correct for every owner kind.
+
+The same rule governs `primaryAccountIdOf(ownerKey)`'s callers — a
+payee, a tip recipient, a worker on a house card. See
+[antipatterns.md § Keying a PERSON on `getTemplatePath()`](../antipatterns.md).
 
 ### Conservation
 
@@ -428,7 +444,7 @@ over a game-clock advance.
 - `SupplyAggregate.ts` — the supply headline, **one row per currency**
   (`bank_supply`, unique index on `currency`).
 
-`obj/Coin.ts` — the physical cash object (`GlobbableMixin(Thing)`); a
+`obj/Coin.ts` — the physical cash object (`StackableMixin(Thing)`); a
 concrete content object beside `Flask`/`AirTank` (memory: *obj vs lib Stuff
 placement*).
 
@@ -521,7 +537,7 @@ The currency build added three more:
    single-currency, so `(bank, currency)` is the identity. It keeps the
    scalar `balance` and its warmed cache untouched, where a multi-currency
    wallet would have rewritten every read site.
-10. **The `setQuantity` gate lives on `Coin`, not on `GlobbableMixin`** — a
+10. **The `setQuantity` gate lives on `Coin`, not on `StackableMixin`** — a
    glob is not necessarily money, and gating the mixin gates every pile of
    ore in the world. `Coin` is the value-bearing glob (and scrip will be a
    `Coin`), so it inherits. A general *value-bearing* marker is the

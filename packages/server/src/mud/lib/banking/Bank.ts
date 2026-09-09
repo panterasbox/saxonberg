@@ -38,7 +38,7 @@ import { Terms } from "./Terms";
 import type { TermsData } from "./Terms";
 import { Currency } from "./Currency";
 import { StuffApi } from "../../api/stuff";
-import type { Globbable } from "../stuff/Globbable";
+import type { Stackable } from "../stuff/Stackable";
 // eslint-disable-next-line no-restricted-imports -- the F4 branch face: a bank's deposit()/withdraw() forward into the banking logic singleton exactly as the api/banking facade does (the Combustible/Energized precedent)
 import { BankingLogic } from "../../platform/idea/api/BankingLogic";
 
@@ -59,7 +59,7 @@ const FromBankingApi = SecurityPolicies.AnyOf(
 export interface Bank {
   // The branch face (F4) — forwards into BankingLogic.
   /** Deposit a coin stack: coin → vault, balance credited 1:1. */
-  deposit(coinStack: Stuff & Globbable): Promise<void>;
+  deposit(coinStack: Stuff & Stackable): Promise<void>;
   /** Withdraw cash: balance → coin, bounded by the till. */
   withdraw(amount: Money): Promise<void>;
 
@@ -231,7 +231,7 @@ export function BankMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
      */
     @Final
     @Unshadowable
-    public deposit(coinStack: Stuff & Globbable): Promise<void> {
+    public deposit(coinStack: Stuff & Stackable): Promise<void> {
       return bankBankingLogic().deposit(this as unknown as Stuff & Bank, coinStack);
     }
 

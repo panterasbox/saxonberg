@@ -5,6 +5,6 @@ baseClass: Thing
 classPath: /platform/thing/Coin
 parent: things
 blessed: true
-description: 'Fungible currency: a Globbable whose stack mass scales with count (the honest cap on carried cash). Carries a denomination identity — a kind, not a bare composition.
+description: 'Fungible currency: a Stackable whose stack mass scales with count (the honest cap on carried cash). Carries a denomination identity — a kind, not a bare composition.
 
   '

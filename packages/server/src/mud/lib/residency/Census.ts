@@ -62,6 +62,7 @@
 
 import type { Stuff } from '../stuff/Stuff';
 import { MqlApi } from '../../api/mql';
+import { StuffApi } from '../../api/stuff';
 import { MixinApi } from '../../api/mixin';
 import { ZoneApi } from '../../api/zone';
 
@@ -87,13 +88,10 @@ export class Census {
   public static async takeCensus(): Promise<WorldCensus> {
     // The system-mode seed: the declarative form of a getAllObjects
     // filter-loop, and the sanctioned one.
-    const matches = MqlApi.resolveMany('world:[mixin.CirculatingMixin]', {
-      commandGiver: null,
-      scope: 'world',
-    });
+    const matches = StuffApi.findByMixin('CirculatingMixin');
 
     const world = new Map<string, Map<string, number>>();
-    for (const stuff of matches.stuff) {
+    for (const stuff of matches) {
       if (!MixinApi.isCirculating(stuff)) continue;
       const key = stuff.getCensusKey();
       if (key.length === 0) continue; // uncounted by its own declaration
@@ -105,7 +103,7 @@ export class Census {
       }
       // A stack counts as its quantity, not as one thing: twenty
       // potions in one stack are twenty potions on the shelf.
-      const n = MixinApi.isGlobbable(stuff) ? stuff.getQuantity() : 1;
+      const n = MixinApi.isStackable(stuff) ? stuff.getQuantity() : 1;
       bucket.set(key, (bucket.get(key) ?? 0) + n);
     }
     return world;

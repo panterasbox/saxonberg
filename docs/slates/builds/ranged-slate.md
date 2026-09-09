@@ -99,7 +99,7 @@ carriers, one honest heat effect. Nothing in the magic system is
 duplicated; ranged just adds carriers.
 
 **Arrows and knives are the simple cases and prove the uniformity:**
-arrows as Globbable stacks, spent projectiles persisting in the room
+arrows as Stackable stacks, spent projectiles persisting in the room
 and recoverable (materials-honest break chance), fletching as a
 crafting branch; thrown blades as instruments doing double duty
 (the loadout question "is this knife for my hand or the air?" is a

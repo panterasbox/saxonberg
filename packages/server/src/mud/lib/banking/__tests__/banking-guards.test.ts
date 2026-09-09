@@ -63,7 +63,7 @@ function makeCoinsIn(holder: Stuff, qty: number): Coin {
     coin.denomination = 1;
     return coin;
   }, "/stuff/thing/Coin");
-  // Raw fixture state: `setQuantity` on a Coin is gated (only the glob
+  // Raw fixture state: `setQuantity` on a Coin is gated (only the stack
   // mechanics and the cash faucet may resize a money stack), so a test
   // building a starting stack writes the field, it does not mint.
   c.quantity = qty;

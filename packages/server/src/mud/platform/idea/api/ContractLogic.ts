@@ -113,7 +113,7 @@ function actor(): Stuff | null {
 
 /** The acting principal's durable key, or "". */
 function actorKey(): string {
-  return actor()?.getTemplatePath() ?? "";
+  return actor()?.getIdentityPath() ?? "";
 }
 
 /** Append one event row (money legs live in bank_ledger; txId links). */
@@ -181,7 +181,7 @@ async function resolveDestination(path: string): Promise<Stuff | null> {
  * the two questions differ in cost: delivery stops at the first hit and
  * supply cannot.
  *
- * ⚠ `Globbable` goods are refused by `matchesItem`, so this counts
+ * ⚠ `Stackable` goods are refused by `matchesItem`, so this counts
  * DISCRETE things — ten lumps of ore, not a merged stack of ten. That is
  * the same identity rule crates exist for, and it is why a supply gig
  * for something fungible is unpostable rather than unverifiable.
@@ -434,7 +434,7 @@ async function resolveIssuer(
       accountId,
     };
   }
-  const key = poster.getTemplatePath() ?? "";
+  const key = poster.getIdentityPath() ?? "";
   const accountId = await BankingApi.primaryAccountIdOf(key);
   if (!accountId) {
     return { ok: false, reason: "you have no account to fund the escrow" };
@@ -476,7 +476,7 @@ async function postImpl(spec: GigSpec): Promise<PostGigResult> {
     const exemplar = StuffApi.findAllByTemplatePath(
       spec.condition.item.path,
     )[0];
-    if (exemplar && MixinApi.isGlobbable(exemplar)) {
+    if (exemplar && MixinApi.isStackable(exemplar)) {
       return { ok: false, reason: "fungible goods can't be contracted" };
     }
     // ⭐ And the kind has to BE something. A poster naming a kind it has
@@ -568,7 +568,7 @@ async function claimImpl(contractId: string): Promise<ClaimResult> {
   if (record.state !== "open") {
     return { ok: false, reason: "that gig isn't open" };
   }
-  const key = claimer.getTemplatePath() ?? "";
+  const key = claimer.getIdentityPath() ?? "";
   if (key === record.issuer.templatePath) {
     return { ok: false, reason: "you can't claim your own gig" };
   }
@@ -645,7 +645,7 @@ async function fulfillImpl(contractId: string): Promise<FulfillResult> {
   if (record.state !== "open" && record.state !== "claimed") {
     return { ok: false, reason: "that gig is closed" };
   }
-  const key = presenter.getTemplatePath() ?? "";
+  const key = presenter.getIdentityPath() ?? "";
   if (record.claimMode === "exclusive" && record.claimant !== key) {
     return { ok: false, reason: "that isn't your claim" };
   }
@@ -680,7 +680,7 @@ async function completeImpl(contractId: string): Promise<CompleteResult> {
   if (record.state !== "open" && record.state !== "claimed") {
     return { ok: false, reason: "that gig is closed" };
   }
-  const key = completer.getTemplatePath() ?? "";
+  const key = completer.getIdentityPath() ?? "";
   if (record.claimMode === "exclusive" && record.claimant !== key) {
     return { ok: false, reason: "that isn't your claim" };
   }

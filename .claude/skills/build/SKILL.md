@@ -103,7 +103,9 @@ For each wave in order:
 1. Implement it.
 2. Verify: `pnpm test:near`, the touched packs' own vitest, and the
    lint gates the plan named (`pnpm -C packages/server lint:family`
-   runs all 25 in ~85s and is cheap enough to run often).
+   runs the whole derived roster in ~2 min and is cheap enough to run
+   often — never name a count, the roster is read from
+   `package.json`).
 3. **Commit** — `build(<feature> W<n>): <what the wave did>`.
 4. **Update the plan**: mark the wave done, and add a one-or-two-line
    note — what changed, what you decided, what surprised you.
@@ -126,6 +128,19 @@ is `test:near` + the lint family. Never start it in the background.
 
 Run the **drive script** from the requirements doc against the running
 game, and append the result to the plan as the **drive record**.
+
+⭐⭐ **The drive IS a wire file.** Write it at
+`packages/wire/tests/<feature>.wire.test.ts` (or `.dirty.wire.test.ts`
+when it consumes something the world does not regenerate), import the
+harness rather than re-deriving login/socket/roster, and declare the
+packs the flow needs. Its first run output is the drive record.
+
+Do NOT write `packages/server/scripts/drive-<feature>.ts` — that shape
+is retired and `lint:drive-scripts` fails on it. Five of them
+accumulated, each with its own copy of the same harness, and each was
+dead the day after its MR merged: when they were migrated, two turned
+out to have been RED on master for weeks with nobody able to know.
+See `docs/testing.md § Two tiers`.
 
 ⚠ Expect it to find things: tests build state, they never use it. Every
 build that was driven found defects the suite could not — cooking 6,

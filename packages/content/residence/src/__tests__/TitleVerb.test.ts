@@ -22,6 +22,9 @@ import TitleController from '@saxonberg/server/mud/platform/idea/cmd/civics/Titl
 import ParcelRegistry from '@saxonberg/server/mud/platform/idea/ParcelRegistry';
 import PlatWarren from '../idea/PlatWarren';
 import PlatBook from '../idea/PlatBook';
+import ResidenceCatalogue, {
+  RESIDENCE_CATALOGUE_PATH,
+} from '../idea/ResidenceCatalogue';
 import DeedDesk from '../thing/DeedDesk';
 import HoldingWarren from '../idea/HoldingWarren';
 import GroupRegistry from '@saxonberg/server/mud/platform/idea/GroupRegistry';
@@ -117,6 +120,29 @@ function col(c: string): Doc[] {
   return a;
 }
 
+/**
+ * The store's one non-trivial predicate: the residence roster asks for
+ * every row that AUTHORS `data.parentExtent`, which is a dotted key and
+ * an `$exists` — the shape a flat equality mock silently answers with
+ * nothing, leaving `title list` correct-looking and empty.
+ */
+function matches(doc: Doc, key: string, want: unknown): boolean {
+  const read = key
+    .split('.')
+    .reduce<unknown>(
+      (acc, part) =>
+        acc && typeof acc === 'object'
+          ? (acc as Record<string, unknown>)[part]
+          : undefined,
+      doc,
+    );
+  if (want && typeof want === 'object' && '$exists' in want) {
+    return (read !== undefined) === Boolean((want as { $exists: unknown }).$exists);
+  }
+  if (Array.isArray(read)) return read.includes(want);
+  return read === want;
+}
+
 function installStore(): void {
   store = new Map();
   idCounter = 0;
@@ -137,7 +163,7 @@ function installStore(): void {
       const arr = col(c);
       const keys = Object.keys(q);
       if (keys.length === 0) return arr.slice();
-      return arr.filter((d) => keys.every((k) => d[k] === q[k]));
+      return arr.filter((d) => keys.every((k) => matches(d, k, q[k])));
     }),
     findById: vi.fn(async () => null),
     delete: vi.fn(async () => {}),
@@ -215,6 +241,19 @@ function seedSubdivision(): void {
       },
     ],
   });
+
+  // The roster the verb reads. The book's own ROW is what puts it on the
+  // roster (`data.parentExtent` is the derivation), and the catalogue
+  // singleton has to be standing for `StuffApi.singleton` to find it.
+  col('content').push({
+    _id: `d-book-${++idCounter}`,
+    path: BOOK_PATH,
+    class: '/system/residence/idea/PlatBook',
+    data: { parentExtent: SUBURB },
+  });
+  if (!StuffApi.findByTemplatePath(RESIDENCE_CATALOGUE_PATH)) {
+    makeStuffAtPath(() => new ResidenceCatalogue(), RESIDENCE_CATALOGUE_PATH);
+  }
 
   const book =
     StuffApi.findByTemplatePath<PlatBook>(BOOK_PATH) ??

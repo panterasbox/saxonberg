@@ -380,10 +380,7 @@ export class StreamLogic extends ApiLogic {
   private async resolveCharacter(identifier: string): Promise<ResolveResult> {
     const name = identifier.replace(/^@/, '').trim().toLowerCase();
     if (!name) return { ok: false, reason: 'unknown-character' };
-    const avatar = PlayerApi.getAllAvatars().find((a) => {
-      const n = a.getName()?.toLowerCase();
-      return n === name || a.getPresentation().toLowerCase() === name;
-    });
+    const avatar = PlayerApi.findAvatarByName(name);
     if (!avatar) return { ok: false, reason: 'unknown-character' };
     const user = avatar.getUser();
 
@@ -644,8 +641,6 @@ async function resolveSpeaker(
 /** The online Avatar ref for a user id, or null. */
 function linkedOnlineAvatar(userId: string | undefined) {
   if (!userId) return null;
-  const avatar = PlayerApi.getAllAvatars().find(
-    (a) => a.getUser()?._id === userId,
-  );
+  const avatar = PlayerApi.findAvatarByUserId(userId);
   return avatar ? MessageApi.refOf(avatar) : null;
 }

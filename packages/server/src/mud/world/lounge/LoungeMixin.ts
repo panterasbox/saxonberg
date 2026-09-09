@@ -83,7 +83,7 @@ export function LoungeMixin<
      * Composition constraint: LoungeMixin requires WarrenMemberMixin on
      * the chain (it reads/writes the back-ref via `getWarren`). The TS
      * bound documents it; this runtime check enforces it the first time
-     * an instance registers (mirrors GlobbableMixin's opt-in).
+     * an instance registers (mirrors StackableMixin's opt-in).
      */
     static __validateComposition__(ctor: AnyConstructor): void {
       if (!MixinApi.hasMixin(ctor, Mixins.WarrenMember)) {

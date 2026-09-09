@@ -53,7 +53,7 @@ describe("Law 1 — count, don't price (no worth on goods)", () => {
     return coin;
   }, "/stuff/thing/Coin");
     coin.setMass(Quantity.of(0.008, "kg"));
-    // Raw fixture state: `setQuantity` on a Coin is gated (only the glob
+    // Raw fixture state: `setQuantity` on a Coin is gated (only the stack
     // mechanics and the cash faucet may resize a money stack), so a test
     // building a starting stack writes the field, it does not mint.
     coin.quantity = 10;
@@ -97,7 +97,7 @@ describe("Law 2 — never tax absence (no idle fee / decay)", () => {
     return coin;
   }, "/stuff/thing/Coin");
     coin.setMass(Quantity.of(0.008, "kg"));
-    // Raw fixture state: `setQuantity` on a Coin is gated (only the glob
+    // Raw fixture state: `setQuantity` on a Coin is gated (only the stack
     // mechanics and the cash faucet may resize a money stack), so a test
     // building a starting stack writes the field, it does not mint.
     coin.quantity = 50;

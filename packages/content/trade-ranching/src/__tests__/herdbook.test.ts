@@ -164,8 +164,8 @@ describe('the herdbook', () => {
       tally: 999,
     });
     expect(await r.read('my-prize-flock')).toBeNull();
-    const all = await r.all();
-    expect(all.map((h) => h.herdId)).not.toContain('my-prize-flock');
+    expect(await r.named('my-prize-flock')).toBeNull();
+    expect(await r.isEmpty()).toBe(true);
   });
 
   it('⚠ and neither does a sibling path that merely SHARES the prefix', async () => {
@@ -173,8 +173,8 @@ describe('the herdbook', () => {
     // which is why the separator is part of the test.
     const r = registry();
     await forge('/trade/ranching/herdsX/sneaky', { ...HERD, herdId: 'sneaky' });
-    const all = await r.all();
-    expect(all.map((h) => h.herdId)).not.toContain('sneaky');
+    expect(await r.named('sneaky')).toBeNull();
+    expect(await r.isEmpty()).toBe(true);
   });
 
   it('⭐ drafting and returning move one head across the boundary', async () => {
@@ -334,7 +334,7 @@ describe('the herdbook fixture', () => {
       '/world/test/thing/blank-book',
     ) as Herdbook;
     await expect(b.postRegister()).resolves.toBeUndefined();
-    expect(await reg.all()).toEqual([]);
+    expect(await reg.isEmpty()).toBe(true);
   });
 });
 

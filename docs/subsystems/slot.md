@@ -342,22 +342,64 @@ Same slot, two paths.
 `setStaticSlots` validates that no two slots on the same host share
 a `userFacingDetail`.
 
+## ⭐⭐ The occupancy back-reference — the candidate knows its host
+
+Occupancy is recorded on **both** sides, and the two sides are not
+symmetric in status:
+
+- **`Slotted.slots`** — the host's forward map, slot name → occupants.
+  This is the side that is authoritative and the side that restores.
+- **`Slottable._occupancy`** — the candidate's private `Map<host, Set<
+  slot>>`. **Runtime only**, rebuilt by the same `occupy` calls that
+  restore the forward map.
+
+⭐ It exists because *which host holds me?* is a **reverse-relational**
+question, and MQL has no predicate for one. Answering it used to mean
+reading every object in the world and looking inside each one's slots —
+on the metabolism path, once per creature per tick, where a live drive
+found it pinning a CPU core. The back-reference makes the same question
+a map lookup.
+
+Both writes are gated by a **participant contract**, not `ApiOnly`:
+`FromMixin('SlottedMixin', { where: caller is args[0] })` — the host
+that is the other party to the occupancy, writing *itself* in. The
+`@Final @Unshadowable` pair is what seals it.
+
+⚠ **Deliberately not declared in `fieldMeta`**, exactly as its forward
+twin `Slotted.slots` is not: neither side persists, so neither is a
+live-ref field the R2.1–R2.4 rules govern. Both sides are already
+cleared by destruct — `Slottable.cleanupOnDestruct` vacates the
+candidate from every host, `Slotted.cleanupOnDestruct` vacates every
+occupant from the host — and both routes go through `vacate`, which is
+what drops the entry.
+
 ## Slotted/Slottable reference
+
+Verbs on objects — the host answers host questions, the candidate
+answers candidate questions.
+
+**On the host (`Slotted`):**
 
 | Method | Purpose |
 |---|---|
-| `occupyAll(host, candidate, slots)` | Multi-slot transactional claim |
-| `vacateAll(host, candidate, slots)` | Multi-slot vacate |
-| `findOpenSlotFor(host, candidate)` | First open compatible slot (single-slot candidates) |
-| `findOccupiedHost(candidate)` | Single host or null; throws on multi-host |
-| `findOccupiedSlots(candidate)` | Full host → slots map |
-| `resolveSlot(host, { detail \| accepts })` | Slot-name resolution |
-| `walkOccupants(root, visit)` | Recursive walker; once-per-unique-occupant |
-| `transferOccupancy(candidate, from, to)` | Atomic vacate-then-occupy with rollback |
+| `occupy(candidate, slot)` / `vacate(slot, candidate)` | The two chokepoints; every occupancy change goes through one of them, and each maintains the candidate's back-reference |
+| `occupyAll(candidate, slots)` / `vacateAll(candidate, slots)` | Multi-slot transactional claim / release |
+| `findOpenSlotFor(candidate)` | First open compatible slot (single-slot candidates) |
+| `getOccupant(slot)` / `getOccupants(slot)` / `getAllOccupants()` | Who is in a slot |
+| `isSlotOccupied(slot)` / `isSlotFull(slot)` / `getOccupantCount(slot)` | Slot state |
+| `resolveSlot({ detail \| accepts })` | Slot-name resolution |
+| `walkOccupants(visit)` | Recursive walker; once-per-unique-occupant |
+| `getSlotNames()` / `getSlotSpec(name)` | The slot universe |
 
-`Slottable.getOccupiedHost()` delegates to `findOccupiedHost`. The
-two-step API is "use the convenience instance method by default;
-go through Slotted/Slottable when you need the verbose form."
+**On the candidate (`Slottable`):**
+
+| Method | Purpose |
+|---|---|
+| `occupiedSlots()` | Full host → slots map, read off the back-reference. A fresh Map with copied slot lists each call — `cleanupOnDestruct` iterates it while vacating |
+| `getOccupiedHost()` | The single host, or null; **throws** on multi-host (only Wearable's multi-claim case reaches it, and a gauntlet on each hand of one wearer is still one host) |
+| `transferOccupancy(from, to)` | Atomic vacate-then-occupy with rollback; every posture verb swaps the posture-bearing slot through it |
+| `fitsSlot(host, slot)` | The candidate-side acceptance test `canOccupy` consults |
+| `_noteOccupied` / `_noteReleased` | ⚠ Not caller surface — the host's write into the back-reference, gated to that host |
 
 ## Wear / wield / mount failure notes
 
@@ -391,6 +433,15 @@ without re-parsing prose.
   posture verbs for the `ground` fallback.
 
 ## History
+
+**The occupancy back-reference landed** in the world-scan build
+(`design/world-scan`, W3). Before it, `occupiedSlots()` answered *which
+host holds me?* by walking the whole object registry and looking inside
+every `Slotted`'s slots; the metabolism path asked it once per creature
+per tick. The forward map on the host is unchanged and still the
+persisted side — see § *The occupancy back-reference* above, and
+[mql.md § The registry-read grant](./mql.md) for why a reverse-relational
+question has no query to fall back on.
 
 **Foldable landed** in the University Avenue crossing build
 (`feature/university-avenue-crossing`, commits `ab0867ba` Phase 1B–1D),

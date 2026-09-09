@@ -80,7 +80,7 @@ const COIN = bp({
   name: "Coin",
   kind: "concrete",
   baseClass: "Idea",
-  mixinNames: ["GlobbableMixin"],
+  mixinNames: ["StackableMixin"],
   classPath: "/stuff/thing/Coin",
   blessed: true,
 });
@@ -88,7 +88,7 @@ const MONEYBAG = bp({
   blueprintId: "moneybag",
   name: "MoneyBag",
   baseClass: "Idea",
-  mixinNames: ["GlobbableMixin", "ContainerMixin"],
+  mixinNames: ["StackableMixin", "ContainerMixin"],
   classPath: "/obj/MoneyBag",
 });
 
@@ -96,7 +96,7 @@ const PALETTE: MixinPalette = {
   mixins: [
     { name: "Idea", kind: "base" },
     { name: "Thing", kind: "base" },
-    { name: "GlobbableMixin", kind: "mixin" },
+    { name: "StackableMixin", kind: "mixin" },
     { name: "ContainerMixin", kind: "mixin" },
     { name: "VisibleMixin", kind: "mixin" },
   ],
@@ -238,14 +238,14 @@ describe("studioSlice pure helpers", () => {
 
   it("classifyMatches partitions exact (same set+base) vs superset (strict)", () => {
     const list = [COIN, MONEYBAG];
-    // Composition = Idea + GlobbableMixin → exact = Coin; superset = MoneyBag.
-    const m = classifyMatches(list, "Idea", ["GlobbableMixin"]);
+    // Composition = Idea + StackableMixin → exact = Coin; superset = MoneyBag.
+    const m = classifyMatches(list, "Idea", ["StackableMixin"]);
     expect(m.exact.map((b) => b.name)).toEqual(["Coin"]);
     expect(m.superset.map((b) => b.name)).toEqual(["MoneyBag"]);
   });
 
   it("classifyMatches: a different base is NOT an exact match", () => {
-    const m = classifyMatches([COIN], "Thing", ["GlobbableMixin"]);
+    const m = classifyMatches([COIN], "Thing", ["StackableMixin"]);
     expect(m.exact).toEqual([]);
     // Not a superset either (same size, same set but the base differs → the
     // size-strict superset rule excludes equal sets regardless of base).
@@ -254,7 +254,7 @@ describe("studioSlice pure helpers", () => {
 
   it("classifyMatches: exact set wins over superset (no double-count)", () => {
     const m = classifyMatches([MONEYBAG], "Idea", [
-      "GlobbableMixin",
+      "StackableMixin",
       "ContainerMixin",
     ]);
     expect(m.exact.map((b) => b.name)).toEqual(["MoneyBag"]);
@@ -315,8 +315,8 @@ describe("studioSlice view router", () => {
     s.studioBeginComposer();
     expect(st().view).toBe("composer");
 
-    // Compose Idea + GlobbableMixin → exact match is Coin.
-    s.studioComposerAddMixin("GlobbableMixin");
+    // Compose Idea + StackableMixin → exact match is Coin.
+    s.studioComposerAddMixin("StackableMixin");
     const matches = useStore.getState().studioMatchingBlueprints();
     expect(matches.exact.map((b) => b.name)).toEqual(["Coin"]);
     expect(matches.superset.map((b) => b.name)).toEqual(["MoneyBag"]);
@@ -359,18 +359,18 @@ describe("studioSlice composer", () => {
 
   it("reorder moves an added mixin (drag reorder)", () => {
     const s = useStore.getState();
-    s.studioComposerAddMixin("GlobbableMixin");
+    s.studioComposerAddMixin("StackableMixin");
     s.studioComposerAddMixin("ContainerMixin");
     s.studioComposerAddMixin("VisibleMixin");
     expect(st().composer.orderedMixins).toEqual([
-      "GlobbableMixin",
+      "StackableMixin",
       "ContainerMixin",
       "VisibleMixin",
     ]);
     s.studioComposerReorder(2, 0);
     expect(st().composer.orderedMixins).toEqual([
       "VisibleMixin",
-      "GlobbableMixin",
+      "StackableMixin",
       "ContainerMixin",
     ]);
   });
@@ -384,7 +384,7 @@ describe("studioSlice composer", () => {
     expect(st().composer.base.classPath).toBe("/obj/MoneyBag");
     expect(st().composer.base.rootBaseClass).toBe("Idea");
     expect(st().composer.base.impliedMixins).toEqual([
-      "GlobbableMixin",
+      "StackableMixin",
       "ContainerMixin",
     ]);
     expect(st().composer.orderedMixins).toEqual([]);
@@ -446,14 +446,14 @@ describe("studioSlice scaffold + commit (composer act #3)", () => {
 
   it("scaffold stores the generated source + paths and resets commit state", async () => {
     scaffoldMock.mockResolvedValue({
-      source: "export class Coin extends GlobbableMixin(Idea) {}\n",
+      source: "export class Coin extends StackableMixin(Idea) {}\n",
       targetPath: "/stuff/thing/Coin.ts",
       draftPath: "/home/alice/drafts/Coin.ts",
     });
     await useStore
       .getState()
       .studioScaffold(
-        { name: "Coin", baseClass: "Idea", mixinNames: ["GlobbableMixin"] },
+        { name: "Coin", baseClass: "Idea", mixinNames: ["StackableMixin"] },
         "csrf",
       );
     expect(st().scaffoldSource).toContain("export class Coin");

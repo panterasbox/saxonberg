@@ -49,6 +49,7 @@ import type {
 } from '../../api/employment';
 // eslint-disable-next-line no-restricted-imports -- the F4 org face: an organization's appoint()/dismiss()/roster reads forward into the employment logic singleton exactly as the api/employment facade does (the Combustible/Energized precedent)
 import { EmploymentLogic } from '../../platform/idea/api/EmploymentLogic';
+import { EmploymentApi } from '../../api/employment';
 
 /**
  * The organization's own mutation surface: itself, or the employment engine
@@ -79,6 +80,11 @@ export interface Organization {
   allowsPublishingBy(principal: Stuff | null): boolean;
   /** Every actor holding `positionKey` here (durable templatePaths). */
   holdersOf(positionKey: string): string[];
+  /**
+   * Everyone with an employment record here, exits included (durable
+   * identity paths). The roster read; `holdersOf` is the per-position one.
+   */
+  employees(): readonly string[];
   /** The organization chain above this one, nearest parent first. */
   organizationChain(): OrganizationStuff[];
   /** The live stock sheet against what `viewer` perceives. */
@@ -460,6 +466,11 @@ export function OrganizationMixin<TBase extends MixinConstructor>(
         this as unknown as OrganizationStuff,
         positionKey,
       );
+    }
+
+    /** Everyone with an employment record here (durable identity paths). */
+    public employees(): readonly string[] {
+      return EmploymentApi.employeesOf(this.getOrganizationPath());
     }
 
     /** The organization chain above this one, nearest parent first. */

@@ -205,10 +205,29 @@ export default class WikiRegistry extends WikiRegistryBase {
     return rows.find((p) => !p.isDeleted()) ?? null;
   }
 
-  /** Every live page (the maintenance reports' input). */
-  public async allPages(includeDeleted = false): Promise<WikiPage[]> {
+  /**
+   * Every live page — the **whole corpus**, and private on purpose.
+   *
+   * The four maintenance reports (backlinks, wanted, orphans, dangling)
+   * genuinely are questions about every page and every body, so this is
+   * their honest input. Nothing outside this class gets it: a listing
+   * narrowed at the call site is the shape that made a growing corpus
+   * everybody's problem, and `pagesIn` is the keyed read instead.
+   */
+  private async pages(includeDeleted = false): Promise<WikiPage[]> {
     const rows = await WikiPage.find<WikiPage>({});
     return includeDeleted ? rows : rows.filter((p) => !p.isDeleted());
+  }
+
+  /**
+   * Every live page in one namespace, or — with no namespace — the whole
+   * corpus, which is what `wiki list` unqualified means and is the one
+   * place a person deliberately asks for all of it.
+   */
+  public async pagesIn(namespace: string): Promise<WikiPage[]> {
+    if (!namespace) return this.pages();
+    const rows = await WikiPage.findByNamespace(namespace);
+    return rows.filter((p) => !p.isDeleted());
   }
 
   /** A page's revisions, newest first (criterion 9). */
@@ -238,7 +257,7 @@ export default class WikiRegistry extends WikiRegistryBase {
    */
   public async backlinks(handle: string): Promise<WikiPage[]> {
     const want = handle.trim().toLowerCase();
-    const pages = await this.allPages();
+    const pages = await this.pages();
     const target = await this.resolve(want);
     // Match through aliases too, so a rename does not orphan the
     // backlinks pointing at the old name.
@@ -261,7 +280,7 @@ export default class WikiRegistry extends WikiRegistryBase {
    * reader who noticed a gap, counted.
    */
   public async wanted(): Promise<Array<{ ref: string; demand: number }>> {
-    const pages = await this.allPages();
+    const pages = await this.pages();
     const live = new Set<string>();
     for (const p of pages) {
       for (const n of p.getNames()) live.add(`${p.getNamespace()}:${n}`);
@@ -280,7 +299,7 @@ export default class WikiRegistry extends WikiRegistryBase {
 
   /** Pages nothing links to. Not an error — just unreachable by browsing. */
   public async orphans(): Promise<WikiPage[]> {
-    const pages = await this.allPages();
+    const pages = await this.pages();
     const linked = new Set<string>();
     for (const p of pages) {
       for (const ref of WikiPage.linkRefs(p.getBody(), p.getNamespace())) {
@@ -309,7 +328,7 @@ export default class WikiRegistry extends WikiRegistryBase {
    * and too expensive for a sweep.
    */
   public async dangling(): Promise<Array<{ page: WikiPage; ref: string }>> {
-    const pages = await this.allPages();
+    const pages = await this.pages();
     const out: Array<{ page: WikiPage; ref: string }> = [];
     const checked = new Map<string, boolean>();
     for (const page of pages) {

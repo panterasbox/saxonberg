@@ -600,9 +600,16 @@ describe("security (AC #8)", () => {
     // the owner's record, written by the same gated `capture` as everything
     // else. So the invariant this test guards (no raw record write on the
     // Api) is unchanged.
+    // `captureAtShutdown` (world-scan build) is the shutdown SWEEP: it
+    // asks the registry which hosts want a capture and calls the same
+    // gated `capture` on each. It lives on the Api rather than in the
+    // bootstrapper because the registry-wide read is gated on the
+    // calling function and a backend class has no dispatched frame to
+    // be recognized by. Still no raw record write.
     expect(surface.sort()).toEqual(
       [
         "capture",
+        "captureAtShutdown",
         "captureHostOf",
         "captureDetached",
         "restoreDetached",
