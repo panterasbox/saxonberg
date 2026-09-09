@@ -9,6 +9,11 @@ import { StuffApi } from '../../../api/stuff';
 import { MixinApi } from '../../../api/mixin';
 import { CategoryMeasure } from '../../../lib/employment/CategoryMeasure';
 import { MqlApi } from '../../../api/mql';
+// ⭐ The own-Api self-import (the `PressLogic` precedent). A free
+// function in this module has no dispatched frame of its own, so it
+// re-enters through the face to acquire one — which is what lets the
+// gated methods below name a caller at all.
+import { EmploymentApi } from '../../../api/employment';
 import { CompactApi } from '../../../api/compact';
 import { GovernmentApi } from '../../../api/government';
 import { PlayerApi } from '../../../api/player';
@@ -156,7 +161,7 @@ async function isProprietorOfImpl(
 
 /**
  * ⭐ **The one holder-resolution path**: every position at `organization`
- * mapped to the actors holding it, in a single scan.
+ * mapped to the actors holding it, read off that organization's roster.
  *
  * Two sources, unioned: live non-terminal `Employment` records (runtime
  * hires) and the authored roster (what makes a never-ticked, lazily
@@ -184,11 +189,7 @@ function holdersByPositionImpl(
   };
 
   const exited = new Set<string>();
-  const holders = MqlApi.resolveMany('world:[mixin.EmployedMixin]', {
-    commandGiver: null,
-    scope: 'world',
-  }).stuff.filter((s): s is EmployedActor => MixinApi.isEmployed(s));
-  for (const holder of holders) {
+  for (const holder of employeesOfImpl(organizationPath)) {
     const who = holder.getIdentityPath() ?? '';
     if (!who) continue;
     const record = holder.getEmployment(organizationPath);
@@ -298,6 +299,122 @@ function organizationChainOfImpl(
     out.push(parent);
     current = parent;
   }
+}
+
+/** Add `who` to `organizationPath`'s roster set, creating it if absent. */
+function rememberEmployment(
+  rosters: Map<string, Set<string>>,
+  organizationPath: string,
+  who: string,
+): void {
+  if (!organizationPath || !who) return;
+  const bucket = rosters.get(organizationPath);
+  if (bucket) bucket.add(who);
+  else rosters.set(organizationPath, new Set([who]));
+}
+
+/**
+ * Fill EVERY organization's roster set from one enumeration of the
+ * `Employed` population, so a second organization's first read costs
+ * nothing. An organization absent from the map afterwards genuinely has
+ * nobody — which is why the caller flips `rostersFilled` rather than
+ * treating an empty set as a miss.
+ */
+function fillRosters(rosters: Map<string, Set<string>>): void {
+  const actors = MqlApi.resolveMany('world:[mixin.EmployedMixin]', {
+    commandGiver: null,
+    scope: 'world',
+  }).stuff.filter((x): x is EmployedActor => MixinApi.isEmployed(x));
+  for (const actor of actors) {
+    const who = actor.getIdentityPath();
+    if (!who) continue;
+    for (const record of actor.getEmployments()) {
+      rememberEmployment(rosters, record.organizationPath, who);
+    }
+  }
+}
+
+/** The words a phrase is made of, lowercased and punctuation-stripped. */
+function words(text: string): string[] {
+  return text
+    .toLowerCase()
+    .replace(/[^a-z0-9\s-]/g, ' ')
+    .split(/\s+/)
+    .filter(Boolean);
+}
+
+/** Drop a leading article — "the watch" and "watch" name one thing. */
+function needleOf(asked: string): string {
+  return asked.trim().toLowerCase().replace(/^(the|a|an)\s+/, '');
+}
+
+/** Whether `needle` is a WHOLE word of `text` (not merely a prefix). */
+function namesItself(text: string, needle: string): boolean {
+  const parts = words(needle);
+  if (parts.length === 0) return false;
+  const pool = words(text);
+  return parts.every((p) => pool.includes(p));
+}
+
+/** What a body of people calls itself. */
+function organizationLabelImpl(body: Stuff): string {
+  return MixinApi.isPublisher(body) ? body.getLabel() : body.getPresentation();
+}
+
+/**
+ * A live organization by label or path — the *whose record?* read behind
+ * `chronicle` and `competence`, and the one place that enumerates the
+ * organization population.
+ *
+ * ⚠ Viewer-blind on purpose: an organization is an `Idea`, not a thing
+ * standing in a room, so an anchored seed would find none of them — and a
+ * body of people is not something a viewer's fog hides.
+ *
+ * A whole-word match on the label wins outright; otherwise the first loose
+ * match (label substring, or a path whose last atom is the needle) answers,
+ * which is what keeps a half-typed keyword working.
+ */
+function findOrganizationImpl(asked: string): Stuff | null {
+  const needle = needleOf(asked);
+  if (!needle) return null;
+  const candidates = MqlApi.resolveMany('world:[mixin.OrganizationMixin]', {
+    commandGiver: null,
+    scope: 'world',
+  }).stuff;
+  let loose: Stuff | null = null;
+  for (const org of candidates) {
+    const label = needleOf(organizationLabelImpl(org));
+    const path = (org.getTemplatePath() ?? '').toLowerCase();
+    if (namesItself(label, needle)) return org;
+    if (
+      loose === null &&
+      (label.includes(needle) || path.endsWith(`/${needle}`))
+    ) {
+      loose = org;
+    }
+  }
+  return loose;
+}
+
+/**
+ * ⭐ **Who works at `organizationPath`** — the memo read, resolved to live
+ * actors. The set holds durable identity paths, so resolution is one
+ * O(1) trie hit each and an actor that has since been destroyed simply
+ * drops out. Population is **exactly** what the former registry walk
+ * produced: live, registered, `Employed`.
+ *
+ * Deliberately not exported and deliberately not on the mixin: the
+ * question *who works here* has one owner, and the free functions below
+ * are inside it.
+ */
+function employeesOfImpl(organizationPath: string): EmployedActor[] {
+  if (!organizationPath) return [];
+  const out: EmployedActor[] = [];
+  for (const key of EmploymentApi.employeesOf(organizationPath)) {
+    const actor = StuffApi.findByTemplatePath(key);
+    if (actor && MixinApi.isEmployed(actor)) out.push(actor as EmployedActor);
+  }
+  return out;
 }
 
 /**
@@ -419,7 +536,10 @@ async function endEmploymentImpl(
  * ⚠ Authority is the **position's**: a holder of the house tablet who
  * holds no position here is not in this list, whatever they carry.
  */
-async function buysForImpl(actor: Stuff): Promise<BusinessStuff[]> {
+async function buysForImpl(
+  actor: Stuff,
+  businesses: readonly BusinessStuff[],
+): Promise<BusinessStuff[]> {
   const who = actor.getIdentityPath() ?? actor.getTemplatePath();
   if (!who) return [];
   // The actor's own records + each business's roster — never the
@@ -428,7 +548,7 @@ async function buysForImpl(actor: Stuff): Promise<BusinessStuff[]> {
   // first live drive found it at 70% of a saturated CPU.
   const out: BusinessStuff[] = [];
   const employed = MixinApi.isEmployed(actor) ? (actor as EmployedActor) : null;
-  for (const business of allBusinessesImpl()) {
+  for (const business of businesses) {
     const path = business.getTemplatePath() ?? '';
     const record = employed?.getEmployment(path);
     const exited = record ? TERMINAL.includes(record.status) : false;
@@ -759,9 +879,9 @@ async function settlePieceworkImpl(
  * holder's primary account), capped so Σ splits < amount. Empty for all
  * shipped content (no authored Position carries the basis) — the
  * consignment-split trick, now nameable on an employment arrangement.
- * Holders are enumerated viewer-blind (MQL system mode over the Employed
- * marker — share-of-flow needs no roster slot, so the roster can't serve
- * as the index).
+ * Holders come off the business's own employee roster, viewer-blind — the
+ * AUTHORED roster cannot serve as the index (share-of-flow needs no roster
+ * slot), which is why the employment logic keeps a roster of its own.
  */
 async function flowSplitsForImpl(
   business: BusinessStuff,
@@ -769,10 +889,7 @@ async function flowSplitsForImpl(
 ): Promise<RemittanceSplit[]> {
   if (amountMinor <= 0) return [];
   const businessPath = business.getTemplatePath() ?? '';
-  const holders = MqlApi.resolveMany('world:[mixin.EmployedMixin]', {
-    commandGiver: null,
-    scope: 'world',
-  }).stuff.filter((s): s is EmployedActor => MixinApi.isEmployed(s));
+  const holders = employeesOfImpl(businessPath);
   const splits: RemittanceSplit[] = [];
   let total = 0;
   for (const holder of holders) {
@@ -827,21 +944,124 @@ export class EmploymentLogic extends ApiLogic {
    */
   private businessCache: BusinessStuff[] | null = null;
 
+  /**
+   * `operatingLocation → Business` and `proprietorPath → Business`, built
+   * from the same enumeration that fills `businessCache`. Keyed lookups
+   * replace the `.find(predicate)` over the whole list that `findBusiness`
+   * used to do — the shape `lint:whole-table` forbids at the call site.
+   */
+  private businessByLocation: Map<string, BusinessStuff> | null = null;
+  private businessByProprietor: Map<string, BusinessStuff> | null = null;
+
   private allBusinesses(): BusinessStuff[] {
     if (this.businessCache) return this.businessCache;
     const out = allBusinessesImpl();
     this.businessCache = out;
+    const byLocation = new Map<string, BusinessStuff>();
+    const byProprietor = new Map<string, BusinessStuff>();
+    for (const b of out) {
+      for (const loc of b.getOperatingLocations()) {
+        if (!byLocation.has(loc)) byLocation.set(loc, b);
+      }
+      const proprietor = b.getProprietor();
+      if (proprietor && !byProprietor.has(proprietor)) {
+        byProprietor.set(proprietor, b);
+      }
+    }
+    this.businessByLocation = byLocation;
+    this.businessByProprietor = byProprietor;
     return out;
   }
 
-  private findBusiness(
-    match: (b: BusinessStuff) => boolean,
+  /**
+   * A keyed business lookup, with today's rebuild-and-retry: a newly
+   * stood-up business post-dates the memo, so a miss drops it and asks
+   * once more. Never a scan of the list at the call site.
+   */
+  private businessByKey(
+    which: 'location' | 'proprietor',
+    key: string,
   ): BusinessStuff | null {
-    const hit = this.allBusinesses().find(match);
+    if (!key) return null;
+    const read = (): BusinessStuff | null => {
+      this.allBusinesses();
+      const map =
+        which === 'location' ? this.businessByLocation : this.businessByProprietor;
+      return map?.get(key) ?? null;
+    };
+    const hit = read();
     if (hit) return hit;
-    // A newly-stood-up business may post-date the cache: rebuild + retry.
+    this.invalidateBusinessCache();
+    return read();
+  }
+
+  /** Drop the business memo and its two keyed indexes together. */
+  private invalidateBusinessCache(): void {
     this.businessCache = null;
-    return this.allBusinesses().find(match) ?? null;
+    this.businessByLocation = null;
+    this.businessByProprietor = null;
+  }
+
+  /**
+   * ⭐⭐ **The employee roster memo** — `organizationPath → the durable
+   * identities of everyone holding a record there`, terminal records
+   * included (an exit has to be *visible* to suppress the authored roster
+   * entry; see `holdersByPositionImpl`).
+   *
+   * **A memo, never a warm.** It is filled once, lazily, from a single
+   * index-answerable enumeration of `EmployedMixin`, and maintained
+   * thereafter by `noteEmployments` — which the `employments` setter on
+   * `EmployedMixin` fires on every write. A logic reload starts empty and
+   * re-derives; nothing at boot has to remember to fill it.
+   *
+   * **Additive, and safe when stale.** Nothing is ever removed: an entry
+   * whose actor has quit, been destroyed or was never registered resolves
+   * to no record and every reader skips it. That is what makes the
+   * maintenance a one-way witness instead of a second lifecycle.
+   */
+  private employeeRosters = new Map<string, Set<string>>();
+  private rostersFilled = false;
+
+  /** See {@link EmploymentApi.employeesOf}. */
+  @CallSecurity(EmploymentApiCallers)
+  public employeesOf(organizationPath: string): readonly string[] {
+    if (!organizationPath) return [];
+    if (!this.rostersFilled) {
+      // ⚠ The fill is a module-private FREE function called from here, not
+      // a private method: a private method still dispatches through the
+      // instance proxy and would push a frame of its OWN name, while the
+      // registry-wide read is gated on the pair (this template,
+      // `employeesOf`). See call-security.md § the calling function.
+      fillRosters(this.employeeRosters);
+      this.rostersFilled = true;
+    }
+    const bucket = this.employeeRosters.get(organizationPath);
+    return bucket ? [...bucket] : [];
+  }
+
+  /** See {@link EmploymentApi.noteEmployments}. */
+  @CallSecurity(EmployedCallers)
+  public noteEmployments(actor: Stuff): void {
+    // Before the fill there is nothing to maintain — the fill will see it.
+    if (!this.rostersFilled) return;
+    if (!MixinApi.isEmployed(actor)) return;
+    const who = actor.getIdentityPath();
+    if (!who) return;
+    for (const record of (actor as EmployedActor).getEmployments()) {
+      rememberEmployment(this.employeeRosters, record.organizationPath, who);
+    }
+  }
+
+  /** See {@link EmploymentApi.findOrganization}. */
+  @CallSecurity(EmploymentApiCallers)
+  public findOrganization(asked: string): Stuff | null {
+    return findOrganizationImpl(asked);
+  }
+
+  /** See {@link EmploymentApi.organizationLabel}. */
+  @CallSecurity(EmploymentApiCallers)
+  public organizationLabel(body: Stuff): string {
+    return organizationLabelImpl(body);
   }
 
   /** The recurring game-time tick handle (runtime-only; re-armed on reload). */
@@ -1049,7 +1269,7 @@ export class EmploymentLogic extends ApiLogic {
   /** See {@link EmploymentApi.buysFor}. */
   @CallSecurity(EmployedCallers)
   public buysFor(actor: Stuff): Promise<BusinessStuff[]> {
-    return buysForImpl(actor);
+    return buysForImpl(actor, this.allBusinesses());
   }
 
   /** See {@link EmploymentApi.stockSheetFor}. */
@@ -1091,9 +1311,7 @@ export class EmploymentLogic extends ApiLogic {
   /** See {@link EmploymentApi.businessAt}. */
   @CallSecurity(EmploymentApiCallers)
   public businessAt(locationPath: string): BusinessStuff | null {
-    return this.findBusiness((b) =>
-      b.getOperatingLocations().includes(locationPath),
-    );
+    return this.businessByKey('location', locationPath);
   }
 
   /**
@@ -1129,9 +1347,7 @@ export class EmploymentLogic extends ApiLogic {
     // Call the ungated private finder, not `this.businessAt` — a gated
     // intra-singleton self-call would be denied (the caller is the logic, not
     // the face).
-    const live = this.findBusiness((b) =>
-      b.getOperatingLocations().includes(locationPath),
-    );
+    const live = this.businessByKey('location', locationPath);
     if (live) {
       // ⚠⚠ **An already-live business still needs the pass.** This used to
       // `return live` here, which quietly voided the promise the paragraph
@@ -1160,7 +1376,7 @@ export class EmploymentLogic extends ApiLogic {
     const tplPath = idx.get(locationPath);
     if (!tplPath) return null;
     const inst = await StuffApi.singletonOrClone<Stuff>(tplPath);
-    this.businessCache = null; // the live scan must re-see the new instance
+    this.invalidateBusinessCache(); // the enumeration must re-see it
     if (MixinApi.isBusiness(inst)) {
       // A lazily stood-up business arrives with CORRECT on-shift state —
       // the same immediate roster pass `boot()` runs for boot-time
@@ -1178,7 +1394,7 @@ export class EmploymentLogic extends ApiLogic {
   public businessOfProprietor(subject: Stuff): BusinessStuff | null {
     const path = subject.getTemplatePath();
     if (!path) return null;
-    return this.findBusiness((b) => b.getProprietor() === path);
+    return this.businessByKey('proprietor', path);
   }
 
   /** See {@link EmploymentApi.tickRoster}. */

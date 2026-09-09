@@ -814,7 +814,7 @@ last. Every wave ends at a commit `build(world-scan W<n>): …`, passes
 lint:family`, and is landable on its own (behaviour identical to master
 until W6).
 
-### W1 — the money paths read the owner (D12)
+### W1 — the money paths read the owner (D12) — ✅ DONE
 
 - `EmploymentLogic`: `employeesByOrganization` memo; `employeesOf`,
   `noteEmployments`, `findOrganization`; keyed memos replacing
@@ -834,6 +834,37 @@ until W6).
 - Acceptance: wage settlement and `holdersOf` answer identically; no
   `world:` string remains in `EmploymentLogic` except the one cold-fill.
 - Commit: `build(world-scan W1): wages and holders read the business roster, not the world`.
+
+**Done.** Notes for whoever reads this next:
+
+- ⚠ **The witness had to become a METHOD, not a call out of the setter.**
+  `noteEmployments` is gated on *the actor writing its own relationship*
+  (`FromMixin('EmployedMixin', where caller is args[0])`), and **an
+  accessor is not a dispatched frame** — a bare
+  `employedLogic().noteEmployments(this)` inside the `employments` setter
+  is attributed to whoever did the assigning (a test, the Hydrator) and
+  denied. The setter now calls `this._noteEmploymentChange()`, a real
+  method, which gives the call the actor's own frame. Eleven tests failed
+  on exactly this before the fix; it is the same "who is the caller of an
+  un-dispatched function" fact D8 turns into a policy.
+- ⭐ **The fill fills EVERY organization, not just the one asked for**,
+  and flips a `rostersFilled` flag. A per-organization fill would rescan
+  for each new organization, and an organization with genuinely nobody
+  would rescan on every read (an empty set is indistinguishable from a
+  miss). With the flag, absent-after-fill means empty.
+- The fill is a module-private **free function** (`fillRosters`) called
+  from `employeesOf`, not a private method: a private method still
+  dispatches through the instance proxy and would push a frame of its own
+  name, and W6 gates the registry read on the pair (template,
+  `employeesOf`). `buysForImpl` likewise now takes the business list from
+  its calling method so the read happens under the `allBusinesses` frame.
+- `findBusiness(predicate)` is gone; `businessByLocation` /
+  `businessByProprietor` are filled by the same enumeration and read by
+  key, with today's rebuild-and-retry on a miss.
+- `RecordControllerBase.findBody` moved to `EmploymentLogic.
+  findOrganization`, and `labelOf` with it as `organizationLabel` (one
+  definition, the controller forwards) — otherwise the label dispatch
+  would have been copied into two kernel modules.
 
 ### W2 — the residence catalogue; the per-tick brain reads it (D13)
 

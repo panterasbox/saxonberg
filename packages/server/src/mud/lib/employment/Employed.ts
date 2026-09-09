@@ -220,8 +220,41 @@ export function EmployedMixin<TBase extends MixinConstructor>(Base: TBase) {
      * Stored employment records (plain data). Sparse: `null` on an
      * unemployed Character (nothing written to the doc). Wrapped into
      * `Employment` value objects on read.
+     *
+     * ⭐ **An accessor pair, not a plain field.** Every write lands on the
+     * setter — a hire (`_upsertEmployment`), an exit (`_removeEmployment`),
+     * the Hydrator's bracket-assign fallback, the persistence spine's
+     * restore, and a test's direct assignment — and the setter is what
+     * keeps the employment logic's per-organization roster memo true. Its
+     * predecessor was the reason *who works here?* had to read every
+     * object in the world twice on the wage path. CLAUDE.md §
+     * per-field invariants belong on setters.
      */
-    public employments: StoredEmployment[] | null = null;
+    private _employments: StoredEmployment[] | null = null;
+
+    public get employments(): StoredEmployment[] | null {
+      return this._employments;
+    }
+
+    public set employments(value: StoredEmployment[] | null) {
+      this._employments = value;
+      this._noteEmploymentChange();
+    }
+
+    /**
+     * ⚠ **A method, not a call straight out of the setter.** The roster
+     * witness is gated on *the actor writing its own relationship*, and an
+     * accessor is not a dispatched frame — a bare
+     * `employedLogic().noteEmployments(this)` inside the setter is
+     * attributed to whoever did the assigning (a test, the Hydrator) and
+     * denied. Going through a method gives the call the actor's own frame.
+     *
+     * The memo is additive and safe when stale: a leftover entry resolves
+     * to no record and every reader skips it, so nothing is removed here.
+     */
+    public _noteEmploymentChange(): void {
+      employedLogic().noteEmployments(this as unknown as Stuff);
+    }
 
     /**
      * The authored institution — an **identity path-string**, not a live
@@ -326,20 +359,23 @@ export function EmployedMixin<TBase extends MixinConstructor>(Base: TBase) {
     @Final
     @Unshadowable
     public _upsertEmployment(record: EmploymentData): void {
-      if (this.employments === null) this.employments = [];
-      const idx = this.employments.findIndex(
+      // Rebuild-and-assign rather than mutate in place: the assignment is
+      // what fires the setter, and the setter is the roster memo's witness.
+      const store = this._employments ? [...this._employments] : [];
+      const idx = store.findIndex(
         (e) => recordKey(e) === record.organizationPath,
       );
-      if (idx >= 0) this.employments[idx] = record;
-      else this.employments.push(record);
+      if (idx >= 0) store[idx] = record;
+      else store.push(record);
+      this.employments = store;
     }
 
     @CallSecurity(ByEmployingOrganization)
     @Final
     @Unshadowable
     public _removeEmployment(organizationPath: string): void {
-      if (!this.employments) return;
-      this.employments = this.employments.filter(
+      if (!this._employments) return;
+      this.employments = this._employments.filter(
         (e) => recordKey(e) !== organizationPath,
       );
     }
