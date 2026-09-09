@@ -25,7 +25,7 @@ import { BlessableMixin } from '../Blessable';
 import { ChargedMixin } from '../Charged';
 import { ArcaneMixin } from '../Arcane';
 import { ReservedMixin } from '../../reserve';
-import { GlobbableMixin } from '../../stuff/Globbable';
+import { StackableMixin } from '../../stuff/Stackable';
 import Thing from '../../stuff/Thing';
 import { Creature } from '../../creature/Creature';
 import type { ActiveCondition, SustainedEffect } from '../../../platform/idea/Condition';
@@ -41,7 +41,7 @@ class TestRing extends BlessableMixin(
   ChargedMixin(ReservedMixin(ArcaneMixin(Thing))),
 ) {}
 /** A stackable blessable — the merge-leak case. */
-class TestCharm extends BlessableMixin(GlobbableMixin(Thing)) {}
+class TestCharm extends BlessableMixin(StackableMixin(Thing)) {}
 /** A body that refuses burns — the conferred-immunity case. */
 class WardedBody extends Creature {
   public override canAfflict(condition: ActiveCondition): VetoResult {

@@ -67,7 +67,7 @@ function coinsIn(holder: Stuff, qty: number): Coin {
     return coin;
   }, "/stuff/thing/Coin");
   c.setMass(Quantity.of(0.01, "kg"));
-  // Raw fixture state: `setQuantity` on a Coin is gated (only the glob
+  // Raw fixture state: `setQuantity` on a Coin is gated (only the stack
   // mechanics and the cash faucet may resize a money stack), so a test
   // building a starting stack writes the field, it does not mint.
   c.quantity = qty;

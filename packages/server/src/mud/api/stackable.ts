@@ -1,6 +1,6 @@
 /**
- * GlobbableApi — split / merge / canMerge / applyQuantity for
- * fungible-stack hosts (`GlobbableMixin`).
+ * StackableApi — split / merge / canMerge / applyQuantity for
+ * fungible-stack hosts (`StackableMixin`).
  *
  * Two concerns:
  *
@@ -12,7 +12,7 @@
  *     player- or author-tier code.
  *   - **Dispatch helper** (`applyQuantity`): the workhorse every
  *     quantity-bearing verb routes through. Owns empty-list /
- *     pre-check / scored-order walk / split-and-reglob / clamp-note
+ *     pre-check / scored-order walk / split-and-restack / clamp-note
  *     emission. The action callback runs per-operand; the helper
  *     handles the rest.
  *
@@ -22,16 +22,16 @@
  * recognition pipeline composes on top of that baseline.
  *
  * Notes use the canonical `@saxonberg/types` shapes — `applyQuantity`
- * stamps `field` from the caller's opts so glob notes drop into
+ * stamps `field` from the caller's opts so stack notes drop into
  * `ctx.note(...)` without re-shaping at the controller.
  *
  * Thin, security-gated forwarding shell: the mechanics live in the
- * hot-reloadable {@link GlobbableLogic} singleton at `/platform/idea/api/glob`,
+ * hot-reloadable {@link StackableLogic} singleton at `/platform/idea/api/stackable`,
  * reached synchronously via `StuffApi.singletonSync`.
- * `dest /platform/idea/api/glob` reloads it. The `split` / `merge` forwarders keep
+ * `dest /platform/idea/api/stackable` reloads it. The `split` / `merge` forwarders keep
  * their `ApiOnly` guard so the powerful public surface stays Api-tier.
  *
- * Operational reference: `docs/subsystems/glob.md`. The bulk-form
+ * Operational reference: `docs/subsystems/stacks.md`. The bulk-form
  * extension story lives in `docs/slates/tails/bulkable-slate.md`.
  */
 
@@ -42,13 +42,13 @@ import type {
   TargetDeclinedNote,
 } from '@saxonberg/types';
 import type { Stuff } from '../lib/stuff/Stuff';
-import type { Globbable } from '../lib/stuff/Globbable';
+import type { Stackable } from '../lib/stuff/Stackable';
 import type { MqlQuantity } from './mql';
 import { MixinApi } from './mixin';
 import { StuffApi } from './stuff';
 import { HotReloadApi } from './hot-reload';
 import { ContainmentApi } from './containment';
-import { GlobbableLogic } from '../platform/idea/api/GlobbableLogic';
+import { StackableLogic } from '../platform/idea/api/StackableLogic';
 import { fileURLToPath } from 'url';
 import { CallSecurity } from '../lib/security/decorators';
 import { SecurityPolicies } from '../lib/security/SecurityPolicies';
@@ -61,10 +61,10 @@ import { SecurityApi } from './security';
  * when nothing happened (empty list, strict pre-check rejected, every
  * target declined). Absent on a clean run.
  */
-export type GlobApplyStatus = 'partial' | 'declined';
+export type StackApplyStatus = 'partial' | 'declined';
 
 /**
- * Action callback contract for {@link GlobbableApi.applyQuantity}.
+ * Action callback contract for {@link StackableApi.applyQuantity}.
  *
  *   - `ok: true` → the action succeeded on this operand. `payload`
  *     rides on the helper's payloads list for controller post-
@@ -73,23 +73,23 @@ export type GlobApplyStatus = 'partial' | 'declined';
  *   - `ok: false` → the action declined this candidate (e.g.,
  *     destination full, cursed item, recipient refused). `reason` is
  *     an open enumeration carried into a `target-declined` note.
- *     The helper reglobs the operand back into the candidate (if a
+ *     The helper restacks the operand back into the candidate (if a
  *     split occurred) and continues the walk.
  *
  * Action callbacks should NOT throw to signal soft failures —
  * throws propagate and the helper does not clean up. See G5 in the
  * plan; `ok: false` is the only soft-failure signal.
  */
-export type GlobActionResult<T> =
+export type StackActionResult<T> =
   | { ok: true; payload: T }
   | { ok: false; reason: string };
 
 /**
  * Quantity shape consumed by `applyQuantity` — alias of MQL's
- * {@link MqlQuantity}. Kept under a glob-side name so controller
+ * {@link MqlQuantity}. Kept under a stack-side name so controller
  * call sites read naturally; the underlying shape is identical.
  */
-export type GlobApplyQuantity = MqlQuantity;
+export type StackApplyQuantity = MqlQuantity;
 
 /**
  * The four note kinds `applyQuantity` ever emits. Controllers consume
@@ -97,7 +97,7 @@ export type GlobApplyQuantity = MqlQuantity;
  * `result.notes` into `ctx.note(...)` without naming the kinds
  * individually.
  */
-type GlobNote =
+type StackNote =
   | QuantityClampedNote
   | QuantityClampedRejectedNote
   | EmptyResultNote
@@ -106,8 +106,8 @@ type GlobNote =
 export interface ApplyQuantityResult<R> {
   ok: boolean;
   applied: number;
-  status?: GlobApplyStatus;
-  notes: GlobNote[];
+  status?: StackApplyStatus;
+  notes: StackNote[];
   payloads: R[];
 }
 
@@ -115,33 +115,33 @@ export interface ApplyQuantityResult<R> {
 // API
 // ---------------------------------------------------------------------------
 
-type GlobbableStuff = Stuff & Globbable;
+type StackableStuff = Stuff & Stackable;
 
-const LOGIC_PATH = '/platform/idea/api/glob';
+const LOGIC_PATH = '/platform/idea/api/stackable';
 const LOGIC_CLASS_FILE = fileURLToPath(
-  new URL('../platform/idea/api/GlobbableLogic', import.meta.url)
+  new URL('../platform/idea/api/StackableLogic', import.meta.url)
 );
 
-/** Resolve the HMR-able GlobbableLogic singleton (sync). */
-function logic(): GlobbableLogic {
+/** Resolve the HMR-able StackableLogic singleton (sync). */
+function logic(): StackableLogic {
   return StuffApi.singletonSync(
     LOGIC_PATH,
     () =>
       new ((HotReloadApi.getCurrentExport(
         LOGIC_CLASS_FILE,
-        'GlobbableLogic'
-      ) as typeof GlobbableLogic | null) ?? GlobbableLogic)()
+        'StackableLogic'
+      ) as typeof StackableLogic | null) ?? StackableLogic)()
   );
 }
 
-export class GlobbableApi {
+export class StackableApi {
   /**
    * Walk `candidates` in scored order, distributing `quantity` across
-   * matches. Non-globbable matches contribute 1 unit each; globbable
+   * matches. Non-stackable matches contribute 1 unit each; stackable
    * matches contribute up to their full `getQuantity()`. The
    * action callback runs per operand with the contribution applied.
    *
-   * See `docs/subsystems/glob.md § GlobbableApi.applyQuantity` for
+   * See `docs/subsystems/stacks.md § StackableApi.applyQuantity` for
    * the full contract.
    *
    * Behavior:
@@ -154,11 +154,11 @@ export class GlobbableApi {
    *     contribution; no clamp.
    *   - **Count-kind**: walk in scored order; for each candidate
    *     `contribution = min(units(c), remaining)`. Split when the
-   *     candidate is globbable and `contribution < c.getQuantity()`,
+   *     candidate is stackable and `contribution < c.getQuantity()`,
    *     else operand = c.
    *   - **Action ok:false**: emit a `target-declined` note (target =
    *     the candidate, not the operand); if a split occurred, merge
-   *     the operand back into c (reglob); continue the walk; remaining
+   *     the operand back into c (restack); continue the walk; remaining
    *     is unchanged.
    *   - **Lenient overflow** (`mode: 'lenient'`, count kind,
    *     remaining > 0 after walk): emit `quantity-clamped`; status
@@ -170,16 +170,16 @@ export class GlobbableApi {
    *
    * Throw propagation (G5): if the action throws, the helper does
    * NOT catch — the throw propagates. Partial state may be left in
-   * place (a successful split with no reglob). The controller's
+   * place (a successful split with no restack). The controller's
    * outer error handler is responsible.
    */
   static async applyQuantity<R>(
     candidates: Stuff[],
-    quantity: GlobApplyQuantity,
+    quantity: StackApplyQuantity,
     action: (
       operand: Stuff,
       applied: number
-    ) => Promise<GlobActionResult<R>>,
+    ) => Promise<StackActionResult<R>>,
     opts: { field: string; query?: string }
   ): Promise<ApplyQuantityResult<R>> {
     return logic().applyQuantity(candidates, quantity, action, opts);
@@ -190,25 +190,25 @@ export class GlobbableApi {
    * `BootstrapManager.installFrameworkWiring` — never a module-scope
    * side effect). Fires after `onContainableAdded` for every
    * `ContainmentApi.move` into a container that ends up holding a
-   * mergeable sibling of the arriving Stuff. Non-globbable arrivals
+   * mergeable sibling of the arriving Stuff. Non-stackable arrivals
    * are skipped; a sole mergeable sibling absorbs the arrival via
-   * `GlobbableApi.merge`. Idempotent (the containment slot holds one
+   * `StackableApi.merge`. Idempotent (the containment slot holds one
    * hook).
    * @internal
    */
   static installMergeOnArrival(): void {
     ContainmentApi._registerMergeOnArrivalHook((moved, to) => {
-      if (!MixinApi.isGlobbable(moved)) return;
+      if (!MixinApi.isStackable(moved)) return;
       if (!MixinApi.isContainer(to)) return;
       for (const sibling of to.getContents()) {
         if (sibling === (moved as unknown as Stuff)) continue;
-        if (!MixinApi.isGlobbable(sibling)) continue;
+        if (!MixinApi.isStackable(sibling)) continue;
         // Mutual mergeability (a subclass canMergeWith may veto
         // asymmetrically — the Ore transition-window probe).
         if (!sibling.canMergeWith(moved) || !moved.canMergeWith(sibling))
           continue;
         // Resident absorbs the arrival. First mergeable sibling wins —
-        // multiple mergeable globs in the same container should never
+        // multiple mergeable stacks in the same container should never
         // exist by invariant; if they do (initial-state seed, an edge
         // case the slate's "PostRegistration sweep" defers), absorbing
         // into the first one is the conservative pick.
@@ -219,4 +219,4 @@ export class GlobbableApi {
   }
 }
 
-SecurityApi.decorateApiClass(GlobbableApi);
+SecurityApi.decorateApiClass(StackableApi);

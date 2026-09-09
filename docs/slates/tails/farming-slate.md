@@ -762,7 +762,7 @@ measure, select the best, cross again. Over generations you drive alleles
 to **homozygous ("fixed")** and the line **breeds true**. Emergent payoffs:
 
 - **A fixed line is fungible; a segregating one isn't.** Homozygous seed →
-  identical offspring → a stackable `Globbable`. F2 seed → heterogeneous →
+  identical offspring → a stackable `Stackable`. F2 seed → heterogeneous →
   can't cleanly stack. The genetics decides the item behavior.
 - **A stabilized cultivar is a named, provenance-stamped, world-
   distributable artifact** ("Bobalu's Drought-King tomato") — sold, gifted,

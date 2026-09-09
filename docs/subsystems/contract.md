@@ -60,7 +60,7 @@ a spot market liquid. **How you sourced it is your business.**
 **Delivery** (`lib/employment/Condition.ts`): *item X rests in/on
 destination Y*. The item ref is instance-bound (`chattel`, the durable
 `_chattelId` — deliver *this* crate) or kind-bound (`template` — any
-clone); a `Globbable` is refused outright (a merging stack has no stable
+clone); a `Stackable` is refused outright (a merging stack has no stable
 identity — the chattel precedent). `holdsFor` is the authoritative
 check: a bounded **upward** containment walk comparing ancestor
 `templatePath`s to the destination (a crate in a chest in Dave's Bar

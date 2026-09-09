@@ -200,7 +200,7 @@ export abstract class Stuff {
    *      the object's *visual identity* ("a heavy oak door").
    *   3. The baked-in fallback ({@link DEFAULT_PRESENTATION}).
    *
-   * For a `Globbable` stack (`quantity !== 1`) the count folds in as
+   * For a `Stackable` stack (`quantity !== 1`) the count folds in as
    * an affix — `"30 coins"` — pluralized via {@link GrammarApi.pluralize}
    * (which honors host-side `getPluralForm()` overrides for
    * irregulars). Named takes precedence over Visible so a
@@ -305,7 +305,7 @@ export abstract class Stuff {
       if (short) base = short;
     }
     let identity = base;
-    if (MixinApi.isGlobbable(this)) {
+    if (MixinApi.isStackable(this)) {
       const n = this.getQuantity();
       if (n !== 1) identity = `${n} ${GrammarApi.pluralize(this, base)}`;
     }

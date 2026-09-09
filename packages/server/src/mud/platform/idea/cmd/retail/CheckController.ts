@@ -76,7 +76,7 @@ export default class CheckController extends CommandController<CheckModel> {
         { kind: "controller-rejected", reason: "not-a-weapon", detail: model.thing },
       );
     }
-    if (MixinApi.isGlobbable(item)) {
+    if (MixinApi.isStackable(item)) {
       return this.reject(
         giver,
         context,

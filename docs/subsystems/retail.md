@@ -47,7 +47,7 @@ composes its capability).
   consignment shelf — the cash-and-carry. `buy` resolves either; a listed
   good on a Stock counter routes to the listing path.
 
-The ownable staples **must be discrete `Thing`s, never `Globbable`** —
+The ownable staples **must be discrete `Thing`s, never `Stackable`** —
 chattel stamps a discrete instance, so a fungible stack would fall through
 the buy/consign loops (a CI-adjacent content-integrity lint enforces this
 on the seeds).

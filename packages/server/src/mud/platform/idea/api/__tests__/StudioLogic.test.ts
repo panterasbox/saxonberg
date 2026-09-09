@@ -202,7 +202,7 @@ describe('StudioLogic.publishBlueprint — signature dedup + durable id', () => 
       name: 'Coin',
       kind: 'concrete',
       baseClass: 'Thing',
-      mixinNames: ['GlobbableMixin'],
+      mixinNames: ['StackableMixin'],
     });
     expect(r.disposition).toBe('committed');
     expect(docSave).toHaveBeenCalledTimes(1);
@@ -223,7 +223,7 @@ describe('StudioLogic.publishBlueprint — signature dedup + durable id', () => 
       name: 'Coin',
       kind: 'concrete',
       baseClass: 'Thing',
-      mixinNames: ['GlobbableMixin'],
+      mixinNames: ['StackableMixin'],
     });
     expect(first.disposition).toBe('committed');
     const id = first.blueprintId!;
@@ -234,7 +234,7 @@ describe('StudioLogic.publishBlueprint — signature dedup + durable id', () => 
       name: 'Renamed Coin',
       kind: 'concrete',
       baseClass: 'Thing',
-      mixinNames: ['GlobbableMixin'],
+      mixinNames: ['StackableMixin'],
     });
     expect(second.disposition).toBe('committed');
     expect(second.blueprintId).toBe(id);
@@ -245,7 +245,7 @@ describe('StudioLogic.publishBlueprint — signature dedup + durable id', () => 
     expect(bp.getName()).toBe('Renamed Coin');
     expect(bp.getBlueprintId()).toBe(id);
     expect(bp.getSignature()).toBe(
-      Blueprint.signatureFromParts('Thing', ['GlobbableMixin'])
+      Blueprint.signatureFromParts('Thing', ['StackableMixin'])
     );
   });
 
@@ -343,19 +343,19 @@ describe('StudioLogic.scaffoldClass', () => {
     const out = await StudioApi.scaffoldClass({
       name: 'ScaffoldCoin',
       baseClass: 'Idea',
-      mixinNames: ['GlobbableMixin'],
+      mixinNames: ['StackableMixin'],
     });
 
     expect(out.targetPath).toBe('/platform/thing/ScaffoldCoin.ts');
     // Import resolution: the base + mixin are imported by name (path resolved
     // from the source scan; assert the identifier, not the exact file path).
     expect(out.source).toContain('import { Idea } from');
-    expect(out.source).toContain('import { GlobbableMixin } from');
+    expect(out.source).toContain('import { StackableMixin } from');
     // No `.js` extension in a generated import.
     expect(out.source).not.toMatch(/from '[^']*\.js'/);
     // The composition: `export class Name extends Mixin(Base) {}`.
     expect(out.source).toContain(
-      'export class ScaffoldCoin extends GlobbableMixin(Idea) {}'
+      'export class ScaffoldCoin extends StackableMixin(Idea) {}'
     );
     // A wizard gets no draft path (they can commit directly).
     expect(out.draftPath).toBeUndefined();
@@ -717,13 +717,13 @@ describe('StudioLogic.listMixins — bases with implied mixin sets', () => {
 
     const byName = new Map(palette.mixins.map((m) => [m.name, m]));
     // A well-documented mixin surfaces its concept comment's first sentence.
-    const globbable = byName.get('GlobbableMixin');
-    expect(globbable?.kind).toBe('mixin');
-    expect(globbable?.summary).toBeTruthy();
-    expect(globbable!.summary!.toLowerCase()).toContain('fungible');
+    const stackable = byName.get('StackableMixin');
+    expect(stackable?.kind).toBe('mixin');
+    expect(stackable?.summary).toBeTruthy();
+    expect(stackable!.summary!.toLowerCase()).toContain('fungible');
     // The summary is a single line — no gutter asterisks, no @tags leaked.
-    expect(globbable!.summary).not.toContain('*');
-    expect(globbable!.summary).not.toContain('@');
+    expect(stackable!.summary).not.toContain('*');
+    expect(stackable!.summary).not.toContain('@');
 
     // Base entries carry no summary (help is a mixin-palette concern).
     expect(byName.get('Idea')?.summary).toBeUndefined();
@@ -744,9 +744,9 @@ describe('StudioLogic.describeMixin', () => {
     // No help catalogue is warmed in this harness → the enrichment is absent.
     vi.spyOn(HelpApi, 'apiTopic').mockReturnValue(null);
 
-    const detail = await StudioApi.describeMixin('GlobbableMixin');
+    const detail = await StudioApi.describeMixin('StackableMixin');
 
-    expect(detail.name).toBe('GlobbableMixin');
+    expect(detail.name).toBe('StackableMixin');
 
     // The description is the WHOLE concept comment, not the first sentence:
     // it spans multiple paragraphs and preserves the "Three guarantees" list.
@@ -763,7 +763,7 @@ describe('StudioLogic.describeMixin', () => {
     expect(detail.description).not.toContain('**');
 
     // The `docs/…` pointer named in the prose rides back as docRef.
-    expect(detail.docRef).toBe('docs/subsystems/glob.md');
+    expect(detail.docRef).toBe('docs/subsystems/stacks.md');
 
     // The contributed authorable field `quantity` surfaces (with a shape).
     const byName = new Map(detail.authorableFields.map((f) => [f.name, f]));
@@ -777,7 +777,7 @@ describe('StudioLogic.describeMixin', () => {
     stubAuthorGateOpen();
     vi.spyOn(HelpApi, 'apiTopic').mockReturnValue(null);
 
-    const detail = await StudioApi.describeMixin('GlobbableMixin');
+    const detail = await StudioApi.describeMixin('StackableMixin');
     expect(detail.relations).toEqual([]);
     expect(detail.methods).toEqual([]);
     // The always-available source-scan halves are still populated.
@@ -791,7 +791,7 @@ describe('StudioLogic.describeMixin', () => {
       throw new Error('catalogue not warm');
     });
 
-    const detail = await StudioApi.describeMixin('GlobbableMixin');
+    const detail = await StudioApi.describeMixin('StackableMixin');
     expect(detail.relations).toEqual([]);
     expect(detail.methods).toEqual([]);
     expect(detail.description).toContain('fungible-stack substrate');
@@ -800,22 +800,22 @@ describe('StudioLogic.describeMixin', () => {
   it('surfaces HelpApi enrichment (relations + conferred methods) when present', async () => {
     stubAuthorGateOpen();
     vi.spyOn(HelpApi, 'apiTopic').mockReturnValue({
-      id: 'mixin.Globbable',
+      id: 'mixin.Stackable',
       kind: 'mixin',
-      title: 'Globbable',
+      title: 'Stackable',
       summary: 'fungible',
       keywords: [],
       body: '',
       spoiler: false,
-      source: { subdivision: 'api', ref: 'Globbable' },
+      source: { subdivision: 'api', ref: 'Stackable' },
       relations: [
-        { kind: 'confers', targetId: 'mixin.Globbable', targetTitle: 'getQuantity' },
-        { kind: 'confers', targetId: 'mixin.Globbable', targetTitle: 'setQuantity' },
-        { kind: 'consumed-by', targetId: 'api.GlobbableApi', targetTitle: 'GlobbableApi' },
+        { kind: 'confers', targetId: 'mixin.Stackable', targetTitle: 'getQuantity' },
+        { kind: 'confers', targetId: 'mixin.Stackable', targetTitle: 'setQuantity' },
+        { kind: 'consumed-by', targetId: 'api.StackableApi', targetTitle: 'StackableApi' },
       ],
     });
 
-    const detail = await StudioApi.describeMixin('GlobbableMixin');
+    const detail = await StudioApi.describeMixin('StackableMixin');
     // Conferred method names ride the `confers` edges.
     expect(detail.methods).toEqual(
       expect.arrayContaining(['getQuantity', 'setQuantity'])
@@ -823,14 +823,14 @@ describe('StudioLogic.describeMixin', () => {
     // The non-confers relation is passed through verbatim.
     expect(
       detail.relations.some(
-        (r) => r.kind === 'consumed-by' && r.targetTitle === 'GlobbableApi'
+        (r) => r.kind === 'consumed-by' && r.targetTitle === 'StackableApi'
       )
     ).toBe(true);
   });
 
   it('reads for a null context actor (composition reads are everyone\'s) and rejects an empty name', async () => {
     vi.spyOn(ExecutionContextApi, 'getActingAuthor').mockReturnValue(null);
-    await expect(StudioApi.describeMixin('GlobbableMixin')).resolves.toBeDefined();
+    await expect(StudioApi.describeMixin('StackableMixin')).resolves.toBeDefined();
 
     // An empty name is an invalid request.
     await expect(StudioApi.describeMixin('  ')).rejects.toMatchObject({

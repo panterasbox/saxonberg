@@ -69,7 +69,7 @@ export default class WeaveController extends ManualBuildController<WeaveModel> {
   async execute(model: WeaveModel, context: CommandContext): Promise<void> {
     const giver = context.commandGiver;
     const yarn = model.yarn?.stuff ?? null;
-    if (!yarn || !MixinApi.isGlobbable(yarn)) {
+    if (!yarn || !MixinApi.isStackable(yarn)) {
       this.declineStep(context, Mml.compose`Weave what?`, 'no-yarn');
       return;
     }
@@ -133,7 +133,7 @@ async function finish(
 
   try {
     const bolt = await StuffApi.clone<Stuff>(BOLT_ROW);
-    if (MixinApi.isGlobbable(bolt)) bolt.setQuantity(units);
+    if (MixinApi.isStackable(bolt)) bolt.setQuantity(units);
     if (MixinApi.isConstructed(bolt)) bolt.setConstructionForm(form);
     if (MixinApi.isGraded(bolt)) bolt.setGrade(Grade.of(band));
     if (MixinApi.isContainable(bolt) && MixinApi.isContainer(giver)) {

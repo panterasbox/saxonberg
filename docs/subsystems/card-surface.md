@@ -673,14 +673,14 @@ export const REF_FIELDS: FieldSet = [
 Every ref record shipped by the substrate carries `primaryKeyword`
 for Perceptible hosts. Non-Perceptible hosts return `undefined`
 from the descriptor and the substrate omits the field on the wire
-(same as `quantity` for non-Globbable hosts).
+(same as `quantity` for non-Stackable hosts).
 
 The descriptor lives on `PerceptibleMixin.subscribableFields` —
 contributed by the mixin that owns the gate, per the rule
 `Stuff.subscribableFields` documents. Non-Perceptible hosts
 contribute no descriptor; the substrate's projection loop tolerates
 the absence and the field is naturally omitted from those hosts'
-wire records (same shape `quantity` uses on Globbable). `REF_FIELDS`
+wire records (same shape `quantity` uses on Stackable). `REF_FIELDS`
 can list `'primaryKeyword'` unconditionally because the loop's
 `if (!d || !d.read) continue;` skip handles missing descriptors.
 

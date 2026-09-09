@@ -5,7 +5,7 @@
  * broken Business wiring here, not silently at buy/traverse time.
  *
  * The load-bearing invariant: every ownable staple is a discrete
- * `/lib/stuff/Thing` (never Globbable) — chattel is stamped per-instance, so
+ * `/lib/stuff/Thing` (never Stackable) — chattel is stamped per-instance, so
  * a fungible stack would fall through the buy/consign loops.
  */
 
@@ -132,13 +132,13 @@ describe("general-store content integrity", () => {
   });
 
   // The real, discrete item classes the store sells — each extends `Thing`
-  // (chattel-stampable) and none composes GlobbableMixin. A stray Globbable
-  // class would fail the allowlist; the runtime `!isGlobbable` proof lives in
+  // (chattel-stampable) and none composes StackableMixin. A stray Stackable
+  // class would fail the allowlist; the runtime `!isStackable` proof lives in
   // the standup integration test (which clones the goods for real).
   const DISCRETE_ITEM_CLASSES = new Set([
     "/platform/thing/Thing",
     // A `Provision` is the food class — discrete, `Crafted` (so it carries a
-    // maker's mark and a grade), and no more Globbable than a bare `Thing`. The
+    // maker's mark and a grade), and no more Stackable than a bare `Thing`. The
     // ration pack is one: perishable matter belongs on the class that says
     // so, not on the generic `Thing` that happened to be carrying the gauge.
     "/platform/thing/Provision",
@@ -150,7 +150,7 @@ describe("general-store content integrity", () => {
     // differ only in `rate`/`control`, which is row data. The whetstone
     // carries the Audible rasp AND its own carried-only `sharpen`, and
     // lives in the smithing pack so the kernel never names a trade's
-    // view. The ingot a Meltable Thing — all discrete, none Globbable.
+    // view. The ingot a Meltable Thing — all discrete, none Stackable.
     "/platform/thing/ToolItem",
     "/platform/thing/MendingTool",
     "/trade/smithing/thing/Whetstone",
@@ -163,7 +163,7 @@ describe("general-store content integrity", () => {
     // The mana line (TPA reform W5): a cell is a Charged + Slottable
     // shell — a wand that fits a bay instead of a hand — and the lamp is
     // the domestic half of the mana-powered device category. Both
-    // discrete, neither Globbable.
+    // discrete, neither Stackable.
     "/system/arcana/thing/ManaCell",
     "/system/arcana/thing/ManaLamp",
     // The homebrew line (fermentation D15): the carboy and culture jar
@@ -183,7 +183,7 @@ describe("general-store content integrity", () => {
     // the labor market's first rung reachable on a stipend. The other
     // three are one `HaulageRig` class differing only in row data
     // (capacity, tare, what pulls it), the way the furnishings line is
-    // one `Chair`. All discrete, none Globbable — a cart is a thing you
+    // one `Chair`. All discrete, none Stackable — a cart is a thing you
     // own, not a quantity you carry.
     "/platform/thing/equipment/Handcart",
     "/system/transport/thing/HaulageRig",
@@ -197,7 +197,7 @@ describe("general-store content integrity", () => {
     "/system/residence/thing/HouseholdersKit",
   ]);
 
-  it("every priced/stocked good is a real, discrete item (never Globbable)", () => {
+  it("every priced/stocked good is a real, discrete item (never Stackable)", () => {
     const counter = load(STORE_DIR, "counter.yaml");
     const lines = counter.data?.stockLines as { itemTemplatePath: string; par: number }[];
     const prices = counter.data?.prices as Record<string, number>;
@@ -292,7 +292,7 @@ describe("general-store content integrity", () => {
     expect(row?.holder).toEqual({ group: "terminus" });
   });
 
-  it("no shelf good uses an off-allowlist (Globbable-risking) class", () => {
+  it("no shelf good uses an off-allowlist (Stackable-risking) class", () => {
     const goods = readdirSync(`${STORE_DIR}thing/`).filter((f) =>
       f.endsWith(".yaml"),
     );

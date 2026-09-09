@@ -14,7 +14,7 @@ import {
 import { NamedMixin } from '../../lib/description/Named';
 import { VisibleMixin } from '../../lib/description/Visible';
 import { DetailedMixin } from '../../lib/description/Detailed';
-import { GlobbableMixin } from '../../lib/stuff/Globbable';
+import { StackableMixin } from '../../lib/stuff/Stackable';
 import Material from '../../lib/material/Material';
 import { Quantity } from '../../lib/quantity';
 import { Idea } from '../../lib/stuff/Idea';
@@ -31,7 +31,7 @@ class PlainNamed extends NamedMixin(Idea) {
   static fieldMeta: FieldMeta = {};
 }
 
-class FullThing extends GlobbableMixin(
+class FullThing extends StackableMixin(
   DetailedMixin(VisibleMixin(NamedMixin(Thing))),
 ) {
   static _mixinName = 'FullThing';
@@ -75,7 +75,7 @@ describe('MQL subscription — MqlSubscriptionApi.projectFields (flat)', () => {
     StuffApi.clearAll();
   });
 
-  it('REF_FIELDS yields { displayName, quantity } for a Globbable host', () => {
+  it('REF_FIELDS yields { displayName, quantity } for a Stackable host', () => {
     const obj = makeStuff(() => {
       const t = new FullThing();
       t.setName('coin');
@@ -84,14 +84,14 @@ describe('MQL subscription — MqlSubscriptionApi.projectFields (flat)', () => {
     });
     const viewer = obj as unknown as Parameters<typeof MqlSubscriptionApi.projectFields>[2];
     const rec = MqlSubscriptionApi.projectFields(obj, REF_FIELDS, viewer);
-    // getPresentation folds the Globbable count in as an affix, so the
+    // getPresentation folds the Stackable count in as an affix, so the
     // displayName render is count-aware; `quantity` still rides along
     // separately for clients that want the raw number.
     expect(rec.displayName).toBe('3 coins');
     expect(rec.quantity).toBe(3);
   });
 
-  it('non-Globbable host has no quantity in the record', () => {
+  it('non-Stackable host has no quantity in the record', () => {
     const obj = makeStuff(() => {
       const t = new PlainNamed();
       t.setName('Alice');

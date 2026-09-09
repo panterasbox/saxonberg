@@ -3,7 +3,7 @@
  * two claims that make them load-bearing rather than decorative.
  *
  *  1. ⭐⭐ **The bill is what makes a fungible shipment nameable.** The
- *     gig substrate refuses `Globbable` outright, so a gig for "twenty
+ *     gig substrate refuses `Stackable` outright, so a gig for "twenty
  *     bottles" is unpostable — the consignment is a discrete crate and
  *     the bill says what is in it.
  *  2. ⭐ **A depot's records cover exactly what it handled and no

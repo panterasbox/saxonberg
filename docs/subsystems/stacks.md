@@ -1,6 +1,6 @@
-# Glob subsystem — fungible stacks
+# Stacks subsystem — fungible quantity
 
-The glob subsystem models "a quantity of indistinguishable units" as
+The stack subsystem models "a quantity of indistinguishable units" as
 a single Stuff with an integer `quantity` field. A 30-coin stack is
 one Stuff, not 30 sibling Stuffs; the framework treats it as 30
 units at the contract surface (`drop 5 coins`, `30 coins are
@@ -8,20 +8,20 @@ here`) while persisting one row.
 
 Pieces:
 
-- **`GlobbableMixin`** (`lib/stuff/Globbable.ts`) — the substrate
+- **`StackableMixin`** (`lib/stuff/Stackable.ts`) — the substrate
   declaration. Adds `quantity: number`, the inter-Stuff contract
   methods (`getQuantity` / `setQuantity` / `canMergeWith` /
   `canSplit` / `onSplit` / `onMerged`), and the
-  `fieldMeta`'s globIdentity entries static.
-- **`Mixins.Globbable` / `MixinApi.isGlobbable`** — registry constant
+  `fieldMeta`'s stackIdentity entries static.
+- **`Mixins.Stackable` / `MixinApi.isStackable`** — registry constant
   and predicate, same pattern as every other mixin.
-- **`GlobbableApi`** (`api/glob.ts`) — `split`, `merge`, `canMerge`,
+- **`StackableApi`** (`api/glob.ts`) — `split`, `merge`, `canMerge`,
   and the `applyQuantity` workhorse used by every quantity-bearing
   controller.
 - **`Stuff.getPresentation()`** — count-aware display naming
   (`"30 coins"`); pluralization defers to `GrammarApi.pluralize`.
   The count is an affix on the universal self-presentation render,
-  not a Globbable-owned method, because presentation is every
+  not a Stackable-owned method, because presentation is every
   Stuff's concern.
 - **`ContainmentApi.placeDirect`** — fresh-placement primitive used
   by split. Bypasses arrival/leave witnesses, capacity validators,
@@ -45,7 +45,7 @@ defined in [response-envelope.md](./response-envelope.md).
 ## The mixin
 
 ```ts
-export interface Globbable {
+export interface Stackable {
   getQuantity(): number;
   setQuantity(n: number): void;          // validates n >= 1, integer
   canMergeWith(other: Stuff): boolean;   // veto seam
@@ -63,21 +63,21 @@ to 1.
 `super.onSplit(splitoff)` without ceremony — same shape as
 `Stuff.onDestruct()`.
 
-### `globIdentityFields ⊂ persistentFields`
+### `stackIdentityFields ⊂ persistentFields`
 
 A class declares a (possibly empty) subset of its `fieldMeta`'s persistent entries
-that defines glob identity:
+that defines stack identity:
 
 ```ts
-class Coin extends GlobbableMixin(Thing) {
+class Coin extends StackableMixin(Thing) {
   static fieldMeta: FieldMeta = {
     tarnished: { persistent: true },
     denomination: { persistent: true },
     lastTouchedAt: { persistent: true },
   };
   static fieldMeta: FieldMeta = {
-    tarnished: { globIdentity: true },
-    denomination: { globIdentity: true },
+    tarnished: { stackIdentity: true },
+    denomination: { stackIdentity: true },
   };
   // ...
 }
@@ -89,16 +89,16 @@ Two stacks of `Coin` merge iff:
 2. Neither side has shadows.
 3. Neither side has attached adornments.
 4. Equal values for every field in the **union** of both classes'
-   `fieldMeta`'s globIdentity entries.
+   `fieldMeta`'s stackIdentity entries.
 
 Subclasses extend the parent's list:
-a `{ globIdentity: true }` entry per field; a subclass adds its own
+a `{ stackIdentity: true }` entry per field; a subclass adds its own
 rather than spreading the parent's, because `getAllFieldMeta` already
 unions up the chain.
 
-The framework verifies `globIdentityFields ⊂ persistentFields` at
+The framework verifies `stackIdentityFields ⊂ persistentFields` at
 class-registration time via `MixinApi.assertComposable` —
-runtime-only fields can't define glob identity (they wouldn't survive
+runtime-only fields can't define stack identity (they wouldn't survive
 save/load and the two "matching" stacks would diverge after a
 reload).
 
@@ -107,11 +107,11 @@ reload).
 Three constraints enforced at first registration via
 `__validateComposition__` (called by `MixinApi.assertComposable`):
 
-- `Globbable ⊥ Container` — a glob is not a container.
-- `Globbable ⊥ Singleton` — singletons are one-instance-per-
+- `Stackable ⊥ Container` — a stack is not a container.
+- `Stackable ⊥ Singleton` — singletons are one-instance-per-
   templatePath; `split` produces a sibling at the same path that
   `StuffApi.clone` would refuse for a singleton class.
-- `globIdentityFields ⊂ persistentFields` — identity fields must
+- `stackIdentityFields ⊂ persistentFields` — identity fields must
   round-trip through hydration.
 
 All three throw at first instance registration; the check is
@@ -120,8 +120,8 @@ binding re-validates against the new chain).
 
 ### Defaults
 
-- `globIdentityFields = []` is legal and means *every* instance of
-  this glob is mergeable with every other (strict template-fungibility).
+- `stackIdentityFields = []` is legal and means *every* instance of
+  this stack is mergeable with every other (strict template-fungibility).
 - Coin-with-fields above behaves more carefully — only same-denomination
   same-tarnish stacks merge.
 
@@ -129,8 +129,8 @@ binding re-validates against the new chain).
 > the currency half is load-bearing.** Denomination identity is
 > `(currency, faceValue)`, so without the currency in the key two issuers'
 > like-valued coins would **merge into one stack — creating money by a
-> merge**, with no ledger row and no error. Glob identity is the defence
-> here, not a rule someone remembers. Any future value-bearing glob (scrip,
+> merge**, with no ledger row and no error. Stack identity is the defence
+> here, not a rule someone remembers. Any future value-bearing stack (scrip,
 > a bearer token) inherits the same obligation. See
 > [banking.md](./banking.md).
 
@@ -139,7 +139,7 @@ binding re-validates against the new chain).
 ## `stack.split(n)`
 
 ```ts
-source.split(n): Promise<Stuff & Globbable>
+source.split(n): Promise<Stuff & Stackable>
 ```
 
 - Validates `n` is a positive integer ≤ `source.getQuantity()`.
@@ -149,7 +149,7 @@ source.split(n): Promise<Stuff & Globbable>
   whole stack).
 - Otherwise:
   - `StuffApi.clone(source.getTemplatePath())` → splitoff.
-  - Copies every value in `source.constructor.globIdentityFields`
+  - Copies every value in `source.constructor.stackIdentityFields`
     onto the splitoff via the public method surface (`getX` / `setX`
     if present, falling back to direct property access).
   - Sets `splitoff.setQuantity(n)`; `source.setQuantity(M - n)`.
@@ -176,7 +176,7 @@ doesn't constitute "arrival." That's what `placeDirect` ensures.
 survivor.absorb(absorbed): void
 ```
 
-- Validates both are Globbable and that `survivor.canMergeWith(absorbed)`
+- Validates both are Stackable and that `survivor.canMergeWith(absorbed)`
   returns true.
 - `survivor.setQuantity(survivor.getQuantity() + absorbed.getQuantity())`.
 - `StuffApi.destruct(absorbed)` — fires its `onDestruct` chain,
@@ -191,7 +191,7 @@ survivor.absorb(absorbed): void
    destination for a mergeable sibling and calls `merge`. Ordering:
    merge **after** `onContainableAdded` so subscribers see the
    arrival as a distinct event before the destruct.
-2. **Reglob** inside `applyQuantity`. When the action callback
+2. **Restack** inside `applyQuantity`. When the action callback
    returns `{ ok: false }` for a candidate that was split, the
    operand is folded back into the source.
 
@@ -225,13 +225,13 @@ teleport-past-guard (relocating without arrival-witnesses).
 
 Use cases:
 
-- Glob split (splitoff is freshly cloned).
+- Stack split (splitoff is freshly cloned).
 - First-placement bootstrap paths after `StuffApi.clone`.
 - Hot-reload reattach (post-clone, pre-relink).
 
 ---
 
-## `GlobbableApi.applyQuantity`
+## `StackableApi.applyQuantity`
 
 The workhorse every quantity-bearing controller routes through.
 
@@ -265,16 +265,16 @@ Behavior:
   'declined' }` with an `empty-result` note. No actions run.
 - **Strict pre-check** (`mode: 'strict'`, `kind: 'count'`):
   `sum(units across candidates) < n` → immediate decline with
-  `quantity-clamped-rejected`. No actions run. Non-globbable
-  candidates contribute 1 unit each; globbable candidates contribute
+  `quantity-clamped-rejected`. No actions run. Non-stackable
+  candidates contribute 1 unit each; stackable candidates contribute
   up to their full quantity.
 - **All-kind**: action runs on every candidate at full contribution.
 - **Count-kind**: walk in scored order; for each candidate
-  `contribution = min(units(c), remaining)`. Split when globbable
+  `contribution = min(units(c), remaining)`. Split when stackable
   and `contribution < c.getQuantity()`, else operand = c.
 - **Action `ok: false`**: emit a `target-declined` note (target =
   the candidate, *not* the post-split operand). If a split occurred,
-  reglob (merge operand back into c). Continue the walk; remaining
+  restack (merge operand back into c). Continue the walk; remaining
   is unchanged.
 - **Lenient overflow** (`mode: 'lenient'`, count kind, remaining > 0
   after walk): emit `quantity-clamped`; status `'partial'`.
@@ -319,13 +319,13 @@ a loud explicit signal; v1 has no such verbs.
 ## Display rendering — count folds into `Stuff.getPresentation()`
 
 Count-aware naming is an affix on the universal self-presentation
-render — not a `GlobbableApi` concern and not a separate method:
+render — not a `StackableApi` concern and not a separate method:
 
 ```ts
 stuff.getPresentation(): string
 ```
 
-Returns `count + " " + plural` when `stuff` is globbable with
+Returns `count + " " + plural` when `stuff` is stackable with
 `getQuantity() !== 1`; otherwise the bare name/shortDescription
 chain. Pluralization defers to `GrammarApi.pluralize`, which
 respects host-side `getPluralForm()` overrides for irregulars
@@ -335,7 +335,7 @@ respects host-side `getPluralForm()` overrides for irregulars
 1-stack coin   → "coin"
 30-stack coin  → "30 coins"
 3-stack mouse  → "3 mice"        (Mouse declares getPluralForm)
-non-globbable rock → "rock"
+non-stackable rock → "rock"
 ```
 
 The recognition pipeline (recognition slate) composes on top of
@@ -386,10 +386,10 @@ objects`.
 
 ## Author guide
 
-To compose Globbable on a host:
+To compose Stackable on a host:
 
 ```ts
-class Coin extends GlobbableMixin(ContainableMixin(NamedMixin(Idea))) {
+class Coin extends StackableMixin(ContainableMixin(NamedMixin(Idea))) {
   static _mixinName = 'Coin';
   static fieldMeta: FieldMeta = {
     quantity: { persistent: true },
@@ -398,8 +398,8 @@ class Coin extends GlobbableMixin(ContainableMixin(NamedMixin(Idea))) {
     tarnished: { persistent: true },
   };
   static fieldMeta: FieldMeta = {
-    denomination: { globIdentity: true },
-    tarnished: { globIdentity: true },
+    denomination: { stackIdentity: true },
+    tarnished: { stackIdentity: true },
   };
 
   public denomination: 'gold' | 'silver' | 'copper' = 'copper';
@@ -413,8 +413,8 @@ Then in the template:
 # /stuff/thing/Coin/seed.yaml
 path:  /stuff/thing/Coin
 class: /lib/glob/Coin   # illustrative — Coin is a test fixture; the
-                        # shipped substrate is the GlobbableMixin in
-                        # lib/stuff/Globbable.ts (no lib/glob/ dir)
+                        # shipped substrate is the StackableMixin in
+                        # lib/stuff/Stackable.ts (no lib/glob/ dir)
 data:
   keywords: [coin, gold]
   quantity: 1      # default; clone-time override is common
@@ -434,7 +434,7 @@ async execute(model, context): Promise<void> {
     await this.executeWholeSet(stuff, raw, context);
     return;
   }
-  const result = await GlobbableApi.applyQuantity(
+  const result = await StackableApi.applyQuantity(
     candidates,
     quantity,
     async (operand, applied) => {
@@ -463,9 +463,9 @@ arrives with the collision slate.
 Trade-offs and deferred work documented for future maintainers:
 
 - **Merge-on-arrival is O(siblings).** Every `ContainmentApi.move`
-  into a container holding any Globbable contents walks the contents
+  into a container holding any Stackable contents walks the contents
   list looking for a mergeable sibling. Fine at v1 scale; if a
-  container ends up with many distinct glob kinds (a treasury), a
+  container ends up with many distinct stack kinds (a treasury), a
   per-container index keyed on `templatePath` takes the scan to
   O(1) — cheap to maintain on add/remove. Land that index when
   measurement shows the scan biting.
@@ -496,36 +496,36 @@ Trade-offs and deferred work documented for future maintainers:
 ## Future extensions
 
 - **Bulk form** — continuous matter (water, coffee) **shipped** as a
-  separate substrate, NOT as a Quantity-valued glob. The earlier
+  separate substrate, NOT as a Quantity-valued stack. The earlier
   fluid-as-Stuff sketch (a `Quantity<U>` count split via `placeDirect`,
-  merged on arrival — the structural mirror of Globbable) was retired:
+  merged on arrival — the structural mirror of Stackable) was retired:
   bulk is **not a Stuff** at all. It is a `{ material, amount }`
-  attribute of its holder, moved by `BulkableApi.transfer`. Glob and
-  bulk share only the `MqlQuantity` discriminated union (glob uses
+  attribute of its holder, moved by `BulkableApi.transfer`. Stack and
+  bulk share only the `MqlQuantity` discriminated union (stack uses
   `count` / `all`; bulk uses the `measure` variant) and the reused
   response-note kinds. See [bulk.md](./bulk.md).
 - **The recognition pipeline** composes on top of the count affix in
   `Stuff.getPresentation()`. It weaves count, perception-filtered
   visibility, viewer-side recognition, and bucket-keyed verbosity in
-  one viewer-aware step. Globbable contributes data (`getQuantity`,
+  one viewer-aware step. Stackable contributes data (`getQuantity`,
   the host's presentation and optional `getPluralForm`); it doesn't
   know about viewer state. See
   [recognition-slate.md](../slates/tails/recognition-slate.md).
 
 ## Antipatterns
 
-- **Glob inside a glob.** Globs aren't `Container`; the composition
+- **Stack inside a stack.** Stacks aren't `Container`; the composition
   validator catches it at registration. If you want a containment-
-  bearing glob, you want a different abstraction (probably bulk —
+  bearing stack, you want a different abstraction (probably bulk —
   see [bulk.md](./bulk.md)).
 - **Instance-unique state on a stack.** Shadows and adornments
   disqualify a stack from merging. If you find yourself wanting
-  per-instance details on a glob (a unique scratch on one coin),
-  the host class should not be Globbable — or the unique instance
-  should be its own non-globbable Stuff.
-- **Stuff-count capacity on glob-bearing containers.** A bag rated
+  per-instance details on a stack (a unique scratch on one coin),
+  the host class should not be Stackable — or the unique instance
+  should be its own non-stackable Stuff.
+- **Stuff-count capacity on stack-bearing containers.** A bag rated
   for "5 items" that holds a 30-coin pile shouldn't refuse to let
-  you split the pile. Glob-bearing containers should declare
+  you split the pile. Stack-bearing containers should declare
   capacity in units, mass, or volume — see the capacity model in
   the future collision slate.
 - **Reaching past `placeDirect` for fresh placement.** Don't write
@@ -551,7 +551,7 @@ Trade-offs and deferred work documented for future maintainers:
   the structured-notes kinds.
 - [response-envelope.md](./response-envelope.md) — the
   structured-notes substrate `applyQuantity` emits into; canonical
-  shapes for the four glob note kinds.
+  shapes for the four stack note kinds.
 - [../slates/tails/recognition-slate.md](../slates/tails/recognition-slate.md) —
   where the recognition pipeline composes count + perception +
   recognition on top of `getPresentation()`'s count affix.

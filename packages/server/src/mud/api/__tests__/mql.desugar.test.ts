@@ -3,7 +3,7 @@
  * prefix, the formal-MQL guard, and quantity + ordinal collision
  * detection.
  *
- * The post-globbable signature of `desugar` returns
+ * The post-stackable signature of `desugar` returns
  * `{ rewritten, quantityHint?, error? }`. Most existing assertions
  * only care about the `rewritten` string, so the local `rewrittenOf`
  * helper keeps the spelling tight; quantity-bearing cases assert on

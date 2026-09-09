@@ -768,7 +768,7 @@ function applyColon(
       // by `extractQuantityFromAst` and threaded onto the result
       // wrapper. The resolver deliberately does NOT slice the match
       // list to N here — distribution is a controller/helper concern
-      // (see `GlobbableApi.applyQuantity`).
+      // (see `StackableApi.applyQuantity`).
       return input;
     default: {
       const exhaustive: never = el;

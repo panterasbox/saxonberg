@@ -21,7 +21,7 @@ import { StuffApi } from "../../../api/stuff";
 import { ExecutionContextApi } from "../../../api/execution-context";
 import { Quantity } from "../../quantity";
 import type { Stuff } from "../../stuff/Stuff";
-import type { Globbable } from "../../stuff/Globbable";
+import type { Stackable } from "../../stuff/Stackable";
 import {
   makeStuffAtPath,
   withRootContext,
@@ -98,7 +98,7 @@ describe("The bar money loop (end to end)", () => {
     );
     const cash = (await asOwner(patron, () =>
       BankingApi.issueCash(patron as never, Money.of(300, Currency.compact()))
-    )) as Stuff & Globbable;
+    )) as Stuff & Stackable;
     await asOwner(patron, () => bank.deposit(cash));
     expect(BankingApi.balanceOf(patronAcct).minor).toBe(300);
 

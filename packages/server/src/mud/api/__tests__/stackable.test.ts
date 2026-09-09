@@ -1,5 +1,5 @@
 /**
- * GlobbableApi tests — split / merge / canMerge / formatName /
+ * StackableApi tests — split / merge / canMerge / formatName /
  * applyQuantity plus the merge-on-arrival ripple integration with
  * `ContainmentApi.move`.
  *
@@ -11,8 +11,8 @@
 
 import "../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import { GlobbableApi } from '../glob';
-import { GlobbableLogic } from '../../platform/idea/api/GlobbableLogic';
+import { StackableApi } from '../stackable';
+import { StackableLogic } from '../../platform/idea/api/StackableLogic';
 import { SecurityError } from '../../lib/security/errors';
 import { ContainmentApi } from '../containment';
 import { ContainerMixin } from '../../lib/spatial/Container';
@@ -24,7 +24,7 @@ import { StuffApi } from '../stuff';
 import { ShadowApi } from '../shadow';
 import { Shadow } from '../../lib/stuff/Shadow';
 import { Shadowing } from '../../lib/security/decorators';
-import { GlobbableMixin } from '../../lib/stuff/Globbable';
+import { StackableMixin } from '../../lib/stuff/Stackable';
 import { ExecutionContextApi } from '../execution-context';
 import {
   makeStuff,
@@ -32,16 +32,16 @@ import {
 } from '../../lib/security/__tests__/test-setup';
 import type { FieldMeta } from '../../lib/mixin';
 
-// Test class — Globbable + Containable + Named so we can stuff
+// Test class — Stackable + Containable + Named so we can stuff
 // instances into containers and pull display names through
 // formatName.
-class Coin extends GlobbableMixin(ContainableMixin(NamedMixin(Idea))) {
+class Coin extends StackableMixin(ContainableMixin(NamedMixin(Idea))) {
   static _mixinName = 'Coin';
   static fieldMeta: FieldMeta = {
     quantity: { persistent: true },
     name: { persistent: true },
-    tarnished: { persistent: true, globIdentity: true },
-    denomination: { persistent: true, globIdentity: true },
+    tarnished: { persistent: true, stackIdentity: true },
+    denomination: { persistent: true, stackIdentity: true },
   };
 
   public tarnished: boolean = false;
@@ -96,7 +96,7 @@ function stubCoinClone() {
     }) as ReturnType<typeof vi.spyOn>;
 }
 
-describe('GlobbableApi.canMerge', () => {
+describe('StackableApi.canMerge', () => {
   beforeEach(() => {
     ShadowApi._clearAllForTesting();
     StuffApi.clearAll();
@@ -109,7 +109,7 @@ describe('GlobbableApi.canMerge', () => {
     expect(b.canMergeWith(a) && a.canMergeWith(b)).toBe(true);
   });
 
-  it('false when one side is non-Globbable', () => {
+  it('false when one side is non-Stackable', () => {
     const a = makeCoinAt(COIN_PATH, 3);
     const p = makeStuff(() => new PlainItem());
     expect(a.canMergeWith(p)).toBe(false);
@@ -127,7 +127,7 @@ describe('GlobbableApi.canMerge', () => {
   });
 });
 
-describe('GlobbableApi.split', () => {
+describe('StackableApi.split', () => {
   beforeEach(() => {
     ShadowApi._clearAllForTesting();
     StuffApi.clearAll();
@@ -256,7 +256,7 @@ describe('GlobbableApi.split', () => {
   });
 });
 
-describe('GlobbableApi.merge', () => {
+describe('StackableApi.merge', () => {
   beforeEach(() => {
     ShadowApi._clearAllForTesting();
     StuffApi.clearAll();
@@ -306,7 +306,7 @@ describe('ContainmentApi.move — merge-on-arrival ripple', () => {
     StuffApi.clearAll();
   });
 
-  it('absorbs an arriving glob into a mergeable sibling already in the destination', () => {
+  it('absorbs an arriving stack into a mergeable sibling already in the destination', () => {
     const resident = makeCoinAt(COIN_PATH, 10, 'gold');
     const arrival = makeCoinAt(COIN_PATH, 5, 'gold');
     const dest = makeStuff(() => new TestContainer());
@@ -329,7 +329,7 @@ describe('ContainmentApi.move — merge-on-arrival ripple', () => {
     expect(dest.getContents()).toHaveLength(1);
   });
 
-  it('no merge for non-globbable arrivals (regression: existing behavior)', () => {
+  it('no merge for non-stackable arrivals (regression: existing behavior)', () => {
     const plain = makeStuff(() => {
       const p = new PlainItem();
       p.setName('rock');
@@ -374,7 +374,7 @@ describe('ContainmentApi.move — merge-on-arrival ripple', () => {
   });
 });
 
-describe('GlobbableApi.applyQuantity', () => {
+describe('StackableApi.applyQuantity', () => {
   beforeEach(() => {
     ShadowApi._clearAllForTesting();
     StuffApi.clearAll();
@@ -385,7 +385,7 @@ describe('GlobbableApi.applyQuantity', () => {
   });
 
   it('empty candidate list → declined + empty-result note', async () => {
-    const result = await GlobbableApi.applyQuantity(
+    const result = await StackableApi.applyQuantity(
       [],
       { value: { kind: 'count', n: 3 }, mode: 'lenient' },
       async () => ({ ok: true, payload: null }),
@@ -403,7 +403,7 @@ describe('GlobbableApi.applyQuantity', () => {
     stubCoinClone();
     const a = makeCoinAt(COIN_PATH, 5);
     const calls: number[] = [];
-    const result = await GlobbableApi.applyQuantity(
+    const result = await StackableApi.applyQuantity(
       [a],
       { value: { kind: 'count', n: 10 }, mode: 'strict' },
       async (_op, n) => {
@@ -430,7 +430,7 @@ describe('GlobbableApi.applyQuantity', () => {
     const env = makeStuff(() => new TestContainer());
     ContainmentApi.move(a, env);
     const result = await asApiCallerAsync(() =>
-      GlobbableApi.applyQuantity(
+      StackableApi.applyQuantity(
         [a],
         { value: { kind: 'count', n: 3 }, mode: 'strict' },
         async () => ({ ok: true, payload: 'acted' }),
@@ -450,7 +450,7 @@ describe('GlobbableApi.applyQuantity', () => {
     const env = makeStuff(() => new TestContainer());
     ContainmentApi.move(a, env);
     const result = await asApiCallerAsync(() =>
-      GlobbableApi.applyQuantity(
+      StackableApi.applyQuantity(
         [a],
         { value: { kind: 'count', n: 10 }, mode: 'lenient' },
         async () => ({ ok: true, payload: null }),
@@ -468,7 +468,7 @@ describe('GlobbableApi.applyQuantity', () => {
     });
   });
 
-  it('multi-match distribution across globs (apples + oranges shape)', async () => {
+  it('multi-match distribution across stacks (apples + oranges shape)', async () => {
     stubCoinClone();
     const apples = makeCoinAt(COIN_PATH, 2, 'gold');
     const oranges = makeCoinAt(COIN_PATH, 2, 'silver');
@@ -477,7 +477,7 @@ describe('GlobbableApi.applyQuantity', () => {
     ContainmentApi.move(oranges, env);
     const actions: number[] = [];
     const result = await asApiCallerAsync(() =>
-      GlobbableApi.applyQuantity(
+      StackableApi.applyQuantity(
         [apples, oranges],
         { value: { kind: 'count', n: 3 }, mode: 'lenient' },
         async (_op, n) => {
@@ -495,7 +495,7 @@ describe('GlobbableApi.applyQuantity', () => {
     expect(result.status).toBeUndefined();
   });
 
-  it('mixed glob + non-glob counts non-glob as 1 unit', async () => {
+  it('mixed stack + non-glob counts non-glob as 1 unit', async () => {
     stubCoinClone();
     const stack = makeCoinAt(COIN_PATH, 5, 'gold');
     const singleton = makeStuff(() => {
@@ -507,7 +507,7 @@ describe('GlobbableApi.applyQuantity', () => {
     ContainmentApi.move(stack, env);
     ContainmentApi.move(singleton, env);
     const result = await asApiCallerAsync(() =>
-      GlobbableApi.applyQuantity(
+      StackableApi.applyQuantity(
         [singleton, stack],
         { value: { kind: 'count', n: 3 }, mode: 'lenient' },
         async (op, n) => ({ ok: true, payload: { op, n } }),
@@ -528,7 +528,7 @@ describe('GlobbableApi.applyQuantity', () => {
     ContainmentApi.move(b, env);
     const ns: number[] = [];
     const result = await asApiCallerAsync(() =>
-      GlobbableApi.applyQuantity(
+      StackableApi.applyQuantity(
         [a, b],
         { value: { kind: 'all' }, mode: 'lenient' },
         async (_op, n) => {
@@ -543,13 +543,13 @@ describe('GlobbableApi.applyQuantity', () => {
     expect(result.status).toBeUndefined();
   });
 
-  it('action ok:false on a split candidate triggers reglob; walk continues', async () => {
+  it('action ok:false on a split candidate triggers restack; walk continues', async () => {
     stubCoinClone();
     const a = makeCoinAt(COIN_PATH, 10, 'gold');
     const env = makeStuff(() => new TestContainer());
     ContainmentApi.move(a, env);
     const result = await asApiCallerAsync(() =>
-      GlobbableApi.applyQuantity(
+      StackableApi.applyQuantity(
         [a],
         { value: { kind: 'count', n: 3 }, mode: 'lenient' },
         async () => ({ ok: false, reason: 'cursed' }),
@@ -558,7 +558,7 @@ describe('GlobbableApi.applyQuantity', () => {
     );
     expect(result.applied).toBe(0);
     expect(result.status).toBe('declined');
-    expect(a.getQuantity()).toBe(10); // reglob restored
+    expect(a.getQuantity()).toBe(10); // restack restored
     expect(result.notes).toContainEqual(
       expect.objectContaining({
         kind: 'target-declined',
@@ -578,7 +578,7 @@ describe('GlobbableApi.applyQuantity', () => {
     // First candidate declines, second succeeds.
     let calls = 0;
     const result = await asApiCallerAsync(() =>
-      GlobbableApi.applyQuantity(
+      StackableApi.applyQuantity(
         [a, b],
         { value: { kind: 'count', n: 4 }, mode: 'lenient' },
         async (_op, _n) => {
@@ -607,7 +607,7 @@ describe('GlobbableApi.applyQuantity', () => {
     ContainmentApi.move(b, env);
     let calls = 0;
     const result = await asApiCallerAsync(() =>
-      GlobbableApi.applyQuantity(
+      StackableApi.applyQuantity(
         [a, b],
         { value: { kind: 'count', n: 10 }, mode: 'lenient' },
         async (_op, _n) => {
@@ -633,7 +633,7 @@ describe('GlobbableApi.applyQuantity', () => {
     ContainmentApi.move(a, env);
     ContainmentApi.move(b, env);
     const result = await asApiCallerAsync(() =>
-      GlobbableApi.applyQuantity(
+      StackableApi.applyQuantity(
         [a, b],
         { value: { kind: 'count', n: 4 }, mode: 'lenient' },
         async () => ({ ok: false, reason: 'cursed' }),
@@ -654,7 +654,7 @@ describe('GlobbableApi.applyQuantity', () => {
     ContainmentApi.move(a, env);
     await expect(
       asApiCallerAsync(() =>
-        GlobbableApi.applyQuantity(
+        StackableApi.applyQuantity(
           [a],
           { value: { kind: 'count', n: 3 }, mode: 'lenient' },
           async () => {
@@ -667,7 +667,7 @@ describe('GlobbableApi.applyQuantity', () => {
   });
 
   it('passes query through to empty-result note', async () => {
-    const result = await GlobbableApi.applyQuantity(
+    const result = await StackableApi.applyQuantity(
       [],
       { value: { kind: 'count', n: 1 }, mode: 'lenient' },
       async () => ({ ok: true, payload: null }),
@@ -681,7 +681,7 @@ describe('GlobbableApi.applyQuantity', () => {
   });
 });
 
-describe('GlobbableLogic singleton encapsulation', () => {
+describe('StackableLogic singleton encapsulation', () => {
   beforeEach(() => {
     StuffApi.clearAll();
   });
@@ -689,31 +689,31 @@ describe('GlobbableLogic singleton encapsulation', () => {
     StuffApi.clearAll();
   });
 
-  it('lives at /platform/idea/api/glob once the facade has materialized it', async () => {
+  it('lives at /platform/idea/api/stackable once the facade has materialized it', async () => {
     // A facade call lazily creates the logic singleton. An empty
     // applyQuantity walk has no side effects.
-    await GlobbableApi.applyQuantity(
+    await StackableApi.applyQuantity(
       [],
       { kind: 'all' } as never,
       async () => ({ ok: true, value: undefined }) as never,
       { field: 'quantity' },
     ).catch(() => undefined);
-    const logic = StuffApi.findByTemplatePath('/platform/idea/api/glob');
+    const logic = StuffApi.findByTemplatePath('/platform/idea/api/stackable');
     expect(logic).toBeDefined();
     expect(StuffApi.findByPathGlob('/platform/idea/api/*')).toContain(logic);
   });
 
-  it('denies a direct logic-method call from a non-GlobbableApi caller', async () => {
+  it('denies a direct logic-method call from a non-StackableApi caller', async () => {
     const a = makeStuff(() => new Idea());
-    await GlobbableApi.applyQuantity(
+    await StackableApi.applyQuantity(
       [],
       { kind: 'all' } as never,
       async () => ({ ok: true, value: undefined }) as never,
       { field: 'quantity' },
     ).catch(() => undefined);
-    const logic = StuffApi.findByTemplatePath<GlobbableLogic>('/platform/idea/api/glob');
+    const logic = StuffApi.findByTemplatePath<StackableLogic>('/platform/idea/api/stackable');
     expect(logic).toBeDefined();
-    // The test module is neither `mud/api/glob#GlobbableApi` (FromModule)
+    // The test module is neither `mud/api/stackable#StackableApi` (FromModule)
     // nor the singleton itself (SelfOnly), so the gate denies the call.
     expect(() => logic!.split(a as never, 1)).toThrow(SecurityError);
   });

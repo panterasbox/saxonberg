@@ -4,7 +4,7 @@
 # (`bladed` → a cutting edge) and its playstyle from its shape, and is
 # Wieldable (claims a hand slot — you can `wield` and fight with it). A
 # short, light, plain blade: fast tempo, close range, a fair working grade.
-# A discrete Thing (chattel-stampable, never Globbable).
+# A discrete Thing (chattel-stampable, never Stackable).
 class: /platform/thing/equipment/Weapon
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:

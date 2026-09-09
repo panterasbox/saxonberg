@@ -168,7 +168,7 @@ export const brain = class {
 /** An ore lot: a chattel glob with a grade on it. */
 function isOre(thing: Stuff): boolean {
   return (
-    MixinApi.isGlobbable(thing) &&
+    MixinApi.isStackable(thing) &&
     MixinApi.isChattel(thing) &&
     typeof (thing as unknown as { getGrade?(): number }).getGrade === 'function'
   );

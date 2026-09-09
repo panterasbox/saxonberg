@@ -1,7 +1,7 @@
 # A pitch-pine torch — a real, carriable light. A PortableLight (LightSource
 # ⊕ Switchable): sold unlit off the shelf; `switch torch on` lights it and it
 # genuinely casts light (VisionModality reads its flux), off goes dark. A
-# discrete Thing (chattel-stampable, never Globbable). Priced on the store's
+# discrete Thing (chattel-stampable, never Stackable). Priced on the store's
 # price-list (Law 1), never here.
 class: /platform/thing/equipment/PortableLight
 hydratorClass: /platform/idea/persistence/PersistentHydrator

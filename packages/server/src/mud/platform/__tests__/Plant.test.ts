@@ -513,6 +513,6 @@ describe('PlantPot + Seed — the rest of the assembly', () => {
       return seed;
     }, '/trade/farming/thing/seed/peace-lily');
     expect(s.getGrowsIntoPath()).toBe('/trade/farming/thing/plant/peace-lily');
-    expect(MixinApi.isGlobbable(s)).toBe(false);
+    expect(MixinApi.isStackable(s)).toBe(false);
   });
 });

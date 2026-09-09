@@ -49,7 +49,7 @@
  * **Hidden until identified.** BUC is the paradigm hidden-state axis, so
  * it is also the paradigm leak risk: it must not escape through merge
  * behaviour, through an affordance list, or through anything else nobody
- * thought of as a channel. Wave 5's `globIdentityFields` uses the
+ * thought of as a channel. Wave 5's `stackIdentityFields` uses the
  * **bucket**, never the true band, for exactly this reason.
  *
  * **Cursed sticks.** A cursed item will not come off — and for a charged

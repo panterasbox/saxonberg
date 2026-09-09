@@ -164,18 +164,18 @@ export class Condition {
 
   /**
    * Whether a live `stuff` is the item this condition names. Refuses a
-   * `Globbable` outright — a merging stack has no stable identity (the
+   * `Stackable` outright — a merging stack has no stable identity (the
    * chattel precedent), so a fungible good can never satisfy a gig.
    */
   public static matchesItem(data: ConditionData, stuff: Stuff): boolean {
     if (data.item.kind === "category") {
-      // ⚠ A glob is allowed HERE and nowhere else: a category condition
+      // ⚠ A stack is allowed HERE and nowhere else: a category condition
       // measures QUANTITY, so a stack of six limes is six limes and has
       // no identity problem to solve. The identity rule that refuses
-      // globs is about naming ONE object, which this never does.
+      // stacks is about naming ONE object, which this never does.
       return CategoryMeasure.counts(stuff, data.item.category);
     }
-    if (MixinApi.isGlobbable(stuff)) return false;
+    if (MixinApi.isStackable(stuff)) return false;
     if (data.item.kind === "chattel") {
       return (
         MixinApi.isChattel(stuff) &&

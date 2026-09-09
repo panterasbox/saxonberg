@@ -105,7 +105,7 @@ export class Census {
       }
       // A stack counts as its quantity, not as one thing: twenty
       // potions in one stack are twenty potions on the shelf.
-      const n = MixinApi.isGlobbable(stuff) ? stuff.getQuantity() : 1;
+      const n = MixinApi.isStackable(stuff) ? stuff.getQuantity() : 1;
       bucket.set(key, (bucket.get(key) ?? 0) + n);
     }
     return world;

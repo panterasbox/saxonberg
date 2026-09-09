@@ -20,7 +20,7 @@ import { StuffApi } from "../../../api/stuff";
 import { ExecutionContextApi } from "../../../api/execution-context";
 import { Quantity } from "../../quantity";
 import type { Stuff } from "../../stuff/Stuff";
-import type { Globbable } from "../../stuff/Globbable";
+import type { Stackable } from "../../stuff/Stackable";
 import {
   makeStuffAtPath,
   withRootContext,
@@ -93,7 +93,7 @@ describe("Reconciliation invariant", () => {
     // 1. issue cash into Alice's hand → circulating
     const cash = (await asOwner(alice, () =>
       BankingApi.issueCash(alice as never, Money.of(500, Currency.compact()))
-    )) as Stuff & Globbable;
+    )) as Stuff & Stackable;
     expectBalanced(500);
     expect(BankingApi.reconcile(Currency.compact()).circulatingCoin).toBe(500);
 

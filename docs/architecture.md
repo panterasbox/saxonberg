@@ -1203,7 +1203,7 @@ static fieldMeta: FieldMeta = {
 ```
 
 It replaced four parallel field-keyed statics (`fieldMeta`'s persistent entries,
-`fieldMeta`'s marshaller entries, `fieldMeta`'s instruction entries, `fieldMeta`'s globIdentity entries) and the
+`fieldMeta`'s marshaller entries, `fieldMeta`'s instruction entries, `fieldMeta`'s stackIdentity entries) and the
 `@authorable` / `@runtimeState` TSDoc tags that a source scan used to
 grep for. Collected by `MixinApi.getAllFieldMeta`, up the prototype
 chain, own-property only, **merging PROPERTIES independently** —

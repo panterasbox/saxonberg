@@ -79,7 +79,7 @@ export default class SpinController extends ManualBuildController<SpinModel> {
   async execute(model: SpinModel, context: CommandContext): Promise<void> {
     const giver = context.commandGiver;
     const stock = model.stock?.stuff ?? null;
-    if (!stock || !MixinApi.isGlobbable(stock)) {
+    if (!stock || !MixinApi.isStackable(stock)) {
       this.declineStep(context, Mml.compose`Spin what?`, 'no-stock');
       return;
     }
@@ -173,7 +173,7 @@ async function finish(
 
   try {
     const yarn = await StuffApi.clone<Stuff>(YARN_ROW);
-    if (MixinApi.isGlobbable(yarn)) yarn.setQuantity(yieldUnits);
+    if (MixinApi.isStackable(yarn)) yarn.setQuantity(yieldUnits);
     // ⭐ The band still comes from the STOCK, not from the spinner: the
     // flax is what the flax is, and no amount of skill lengthens a
     // staple.

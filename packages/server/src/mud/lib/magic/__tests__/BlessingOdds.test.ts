@@ -128,14 +128,14 @@ describe('applyMintOdds — the zone wins, and silence preserves intent', () => 
     expect(t.getBlessingBand()).toBe('blessed');
   });
 
-  it('odds are NOT glob identity — two items differing only in them merge', () => {
+  it('odds are NOT stack identity — two items differing only in them merge', () => {
     // The odds that MADE an item are not a fact about it. Splitting a
     // stack on them would leak a generation parameter as instance state.
     const meta = (Trinket as unknown as { fieldMeta: Record<string, {
-      globIdentity?: boolean;
+      stackIdentity?: boolean;
     }> }).fieldMeta;
-    expect(meta.blessingOdds?.globIdentity).toBeUndefined();
-    expect(meta.blessingBucket?.globIdentity).toBe(true);
+    expect(meta.blessingOdds?.stackIdentity).toBeUndefined();
+    expect(meta.blessingBucket?.stackIdentity).toBe(true);
   });
 });
 

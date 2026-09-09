@@ -49,7 +49,7 @@ import type {
 } from "../lib/banking/Charge";
 import type AccountBalance from "../lib/banking/AccountBalance";
 import type { Stuff } from "../lib/stuff/Stuff";
-import type { Globbable } from "../lib/stuff/Globbable";
+import type { Stackable } from "../lib/stuff/Stackable";
 import { StuffApi } from "./stuff";
 import { HotReloadApi } from "./hot-reload";
 import { BankingLogic } from "../platform/idea/api/BankingLogic";

@@ -11,7 +11,7 @@
  *
  * ## ⭐⭐ It is what makes a fungible shipment nameable
  *
- * The gig substrate's `Condition` refuses `Globbable` outright — *"a
+ * The gig substrate's `Condition` refuses `Stackable` outright — *"a
  * merging stack has no stable identity"* — and supply needs are
  * overwhelmingly fungible: litres of gin, kilos of ore. A gig for
  * "twenty bottles" is unpostable. So the consignment is a **discrete,

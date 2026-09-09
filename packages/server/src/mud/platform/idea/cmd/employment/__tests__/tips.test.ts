@@ -135,7 +135,7 @@ describe('tips — the tip jar', () => {
   }
 
   function giveCoin(holder: Stuff, qty: number): void {
-    // At `/stuff/thing/Coin` so GlobbableApi.split can clone a sibling stack.
+    // At `/stuff/thing/Coin` so StackableApi.split can clone a sibling stack.
     const coins = makeStuffAtPath(() => {
     const coin = new Coin();
     coin.currency = "zorkmid";
@@ -143,7 +143,7 @@ describe('tips — the tip jar', () => {
     return coin;
   }, '/stuff/thing/Coin');
     coins.setMass(Quantity.of(0.01, 'kg'));
-    // Raw fixture state: `setQuantity` on a Coin is gated (only the glob
+    // Raw fixture state: `setQuantity` on a Coin is gated (only the stack
     // mechanics and the cash faucet may resize a money stack), so a test
     // building a starting stack writes the field, it does not mint.
     coins.quantity = qty;
