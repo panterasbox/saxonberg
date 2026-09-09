@@ -2525,6 +2525,89 @@ Read first, in this order:
 
 ## Drive record
 
-*(appended at build time — the output of running the requirements doc's
-24-step drive against the running game, and what it found; precedent
-`farming-plan.md § Checkpoint A`.)*
+Run 2026-09-09 against a **fresh world** — the worktree DB dropped
+(`reset:db`) and every one of the 43 packs reinstalled from the
+checkout, which is not optional here: `ProgressionSpec`, `VitalEffect`
+and `BodyPart.governs` all changed shape and all 23 condition rows were
+re-authored, so a boot off a stale DB would have proved nothing.
+
+The drive is `packages/wire/tests/consequence.dirty.wire.test.ts`
+(15 assertions over the requirements doc's 24 steps).
+
+### The boot itself
+
+```
+PackApi: 43 pack(s) installed — 0 FAILED
+ConditionCatalogue: 23 condition singleton(s) live
+PersistenceManager: 91 indexes created successfully
+AppBootstrap: world open — the cast may act
+```
+
+⭐ **`ConditionCatalogue: 23`** is the line the whole of Movement III
+rides on. The catalogue warns and continues on a row that fails to stand
+up, so a broken roster is *silent*; 23 of 23 on a fresh install is the
+only place that can be said.
+
+### Result
+
+**15 / 15 green.** Every claim the plan routed to the wire held:
+`analyze patient` and `analyze postmortem` exist as verbs (the four
+links — pack installed, stanza MERGED onto the platform's `analyze.yaml`
+rather than replacing it, class resolved through the server's `exports`
+map, seed row on disk); the infirmary is reachable from the street; the
+tariff reads and prices; `order treatment` reaches the service branch
+(so `ensureOperatorAt` stands the business up lazily rather than serving
+on the house forever); the necropolis prices burial; the smithy sells
+mending off one row and one `props:` line; `watch` is a verb the
+credential wallet affords and refuses honestly without a claim;
+`competence` and `fight parley` render.
+
+### ⚠ What it found — one real defect, mine
+
+**`menu` at a venue that sells BOTH showed only the tariff.** The
+hearthworks smithy's mending slate *hid its forging menu*: W15's
+`MenuController` read the tariff and **returned**, so
+`crafting.dirty.wire.test.ts` went red on `/Belt Knife/`. The comment at
+the site even claimed *"a venue that carries both still reads its slate
+here"* — it was wrong, and no unit test existed to contradict it.
+
+⭐ This is exactly what the drive is for. A house that makes things and
+also mends them is the ordinary case — it *is* W15's second-instance
+test — so the two blocks now compose into one read rather than one
+shadowing the other. Fixed in `MenuController`, pinned by four new tests
+in `platform/idea/cmd/retail/__tests__/MenuController.test.ts` (both,
+tariff-only, menu-only, and neither-still-refuses), and re-driven green
+against the live world.
+
+### ⚠ What it found that is NOT the build
+
+13 other wire assertions failed, and all 13 root at **one missing
+environment variable**, not at this branch: `FOUNDER_GOOGLE_EMAIL` /
+`FOUNDER_TWITCH_HANDLE` are unset in this worktree's `.env`, which the
+boot says out loud —
+
+```
+[OfficeRegistry] neither FOUNDER_GOOGLE_EMAIL nor FOUNDER_TWITCH_HANDLE
+is set; isFounder will always be false and every office shows
+"(founder unset)" until configured.
+```
+
+So nobody holds the `central-bank-governor` office, `reserve issue`
+fails `requiresGovernor`, and every suite that funds a character by
+minting cascades from there (`work.dirty` × 8, `farming.dirty` × 2),
+along with `platform-smoke`'s two founder reads and `world-scan`'s seat
+step. Nothing in this branch touches the office substrate. ⚠ **Worth
+noting for the sweep**: the wire suite is not runnable end-to-end in a
+worktree whose `.env` has no founder, and nothing says so until 13
+assertions fail in four files for four apparently different reasons.
+
+### Not driveable, and not faked
+
+Steps 6–7 and 15–19 need a competence history and a death, both of which
+take game hours the shipped 12× clock will not hand over inside a test.
+Turning the clock up needs a wizard, which would prove something no
+player can do. Those arcs are proven exactly, in milliseconds, by
+`Competence.floor.test.ts` (the floor, the above-band rule, the measured
+scenarios) and `Advancement.suppression.test.ts` (across-the-board,
+tapering, and the byte-identical Transcript). What the wire adds for
+them is that the **surfaces** are reachable and honest.
