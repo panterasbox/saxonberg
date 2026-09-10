@@ -5,7 +5,7 @@
 > `buy`/`consign`/`reclaim` → [retail.md](../../subsystems/retail.md)
 > **Left:** S2 the Circulation Reserve (the welfare-floor buy) ·
 > S3 producer + real cost/supply pricing · S4 player-owned storefronts
-> and the market arena
+> and the market arena · ⚠ **a business never stands DOWN** (below)
 > **Size:** a build
 
 > **Status: the retailer archetype, staged across four builds of
@@ -273,3 +273,27 @@ distinct from S3 on purpose.
 - **S4 vs S3 boundary.** Does the *first* player-run store (a single
   proprietor, no franchising) ride S3, with franchising + the arena as
   S4? Or is any player ownership S4? (Open.)
+
+---
+
+## ⚠ Wire finding (consequence build, 2026-09-10) — a venue visited once is operated forever
+
+`EmploymentApi.ensureOperatorAt` stands a business up **lazily on the
+first `order`**, which is right: a room with a tariff and no operator
+would otherwise serve on the house, silently, forever. But **nothing
+anywhere stands one down again.**
+
+⭐ It surfaced as a *dirtiness* question rather than a bug.
+`consequence.dirty.wire.test.ts` had to be marked dirty for exactly one
+reason — every other command in it is a read — and that reason is *"the
+infirmary's business stands up and stays up."* A wire file's dirty reason
+is a question for the owning trade, and this is the question: **what ends
+an operation?**
+
+Candidates: nothing (correct if standing up is genuinely permanent — say
+so); an idle sweep (the `AttendantLogic` lease-eviction shape); or the
+roster deciding it (no positions filled for N days → not operating).
+
+⚠ It matters beyond tidiness because **the P&L is derived from operating
+businesses**: a realm where every venue anyone ever ordered from is
+permanently "operating" reports an economy that is not happening.

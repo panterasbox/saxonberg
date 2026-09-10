@@ -266,6 +266,47 @@ complete, documented, and spoken by nobody. `KNOWN_EXTENSION_ONLY` is
 **empty on purpose**, so the first allowlisting is a diff somebody has to
 defend.
 
+### `lint:verb-collisions` — two views, one verb, and one of them is gone (2026-09)
+
+⭐⭐ **The failure it exists for shipped, and nothing noticed.** The
+consequence build added `platform/cmd/work/watch.yaml` for standing a
+guard's post. `platform/cmd/stream/watch.yaml` had claimed `watch` since
+the streaming build. **Both are afforded from `self`** — the streaming
+one off `Avatar.commandContributions`, the new one off the born-with
+credential wallet — so the new view shadowed the old for **every
+character alive**:
+
+```
+help watch              → "WATCH: Stand a guard's post"
+watch twitch.tv/shroud  → declined: no-watch-claim
+```
+
+⚠⚠ Not a test, not a lint, not the boot. A shipped feature simply became
+unreachable by its own name, in a project whose market thesis is
+livestream communities, and it surfaced only because somebody asked what
+the new verb was for.
+
+**What it counts:** every `verbs:` entry across every pack's command
+views — ⚠ *every* pack, not just the capability ones, because a locality
+ships domain-local verbs and collides just as hard. Aliases count
+(`verbs: [job, jobs]` claims both). Controller rows under
+`<root>/idea/cmd/**` are skipped by the shipped path rule.
+
+**Measured nine already shipped**, so it is an **allowlist with a reason
+per row** rather than a zero — and it ratchets **both ways**: a fresh
+collision fails, and a fixed one still listed also fails, because a list
+nobody prunes stops meaning anything.
+
+⚠ Only `lease`/`unlease` is understood safe (domain-local, two different
+localities, never afforded together). The other seven — `me`, `pour`,
+`hang`, `mount`, `dress`, `drive`, `butcher` — are **undiagnosed**: the
+census measured which verbs are claimed twice, not which of them actually
+shadow, or in which direction. ⭐ `dress` is the instructive one — *dress
+a wound* and *dress a carcass* are both correct English and both correct
+game, which is why "just rename one" is not automatically the answer. The
+alternatives are one view with subcommands, or a rename; **never a new
+line in the allowlist.**
+
 ### The identity build's three (2026-09)
 
 Each guards a failure that is **closed and silent** — the family's

@@ -60,13 +60,23 @@ import {
 /**
  * ⭐ **Why this file cannot run twice.**
  *
- * It buys a treatment (money leaves an account), stands a business up,
- * and leaves a body wounded. None of that comes back on its own; a
- * second run against the same world reads as a broken build.
+ * ⚠ Narrower than it first shipped, and the correction is the honest
+ * one: **every command here is a READ except `order treatment`**, and
+ * that one is refused on a sound body. No money moves and no body is
+ * wounded — the fight and death arcs are not driveable inside a test
+ * (see the header). What does not come back is the **lazy business
+ * stand-up**: `ensureOperatorAt` fires before the refusal, an operator
+ * begins operating at the ward, and nothing anywhere stands a business
+ * down again.
+ *
+ * ⭐ Which is a question for the trade rather than for this file: *a
+ * venue visited once is permanently operated.* Offered to
+ * `retail-slate` / `employment` as a finding — the wire build reports
+ * dirtiness, it does not fix it.
  */
 export const DIRTY_REASON =
-  'settles real charges against the infirmary and the smithy, stands two ' +
-  'businesses up lazily, and leaves a wounded body behind';
+  "stands the infirmary's business up lazily on the first `order`, and " +
+  'nothing in the tree ever stands one down again';
 
 declareFile({
   file: 'consequence.dirty.wire.test.ts',

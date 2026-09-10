@@ -233,3 +233,28 @@ gap is so wide **nobody else bothers.**
 5. **The ectotherm is the strongest candidate and the biggest change.** Is
    a temperature-variable player character acceptable, or is that too much
    for someone's first character?
+
+---
+
+## ⭐ Hand-off from the consequence build (MR!254, 2026-09-10)
+
+Two seams, salvaged out of the retiring plan doc.
+
+- ⭐⭐ **A `Species` contest band for beasts.** The build needed a
+  difficulty for fighting an animal and derived it from the **body** —
+  mass, reach, natural-attack profile — rather than authoring a tag
+  (`NaturalAttack.difficultyFor`). That is the right default and it
+  should stay the default. What it cannot express is a species that is
+  harder or easier than its body implies (a thing that is *cunning*, a
+  thing that is *docile*), which is an authored band the derivation
+  yields to. ⚠ It must not become the ordinary path: the whole point of
+  deriving is that a new animal is one row with no tuning.
+- ⚠ **Three authored `Species` fields nothing reads** — found by the
+  build's own `lint:unconsumed-seams` census, not by inspection:
+  `_parentCladePath`, `lifecycleStates`, `lifespanMin`. They are the
+  **maturation / lifespan axis**, declared and inert.
+  ⭐⭐⭐ And `lifespanMin`/`Max` are inert **on purpose** —
+  [race.md](../../subsystems/race.md) decided that nothing dies of old
+  age until succession is solved (*"does the innkeeper die, and who
+  replaces her?"*), and warns in as many words that a later build must
+  not quietly finish it. So this is a seam to **document**, not to wire.

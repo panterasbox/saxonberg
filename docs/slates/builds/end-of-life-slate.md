@@ -272,4 +272,5 @@ open economics:
 - `docs/slates/builds/towns-slate.md` — the necropolis as a locality
 - `docs/slates/builds/mortality-slate.md` — the other half of dying
 - `docs/slates/builds/insurance-slate.md` — the mutual, for the burial club
-- `docs/plans/consequence-plan.md` — W16, what the 122 lines actually do
+- [mortality.md § The grave](../../subsystems/mortality.md) — what
+  `interIn`/`interred` actually do (⚠ the consequence plan is retired)

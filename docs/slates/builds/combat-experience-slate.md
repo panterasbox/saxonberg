@@ -976,3 +976,37 @@ alongside as the tuning tool throughout.
   moderation-as-diegetic — the death/aftermath consequence of this slate.
 - `docs/subsystems/combat.md` — the cycle-1 build-1 subsystem doc
   (the no-slots determinism stance shipped there; requirements retired at sweep).
+
+---
+
+## ⭐ Hand-off from the consequence build (MR!254, 2026-09-10)
+
+Three seams the build opened and did not close. Salvaged here because the
+plan doc retires and these would go with it.
+
+- ⚠⚠ **`CombatResolution.disengage` has NO caller.** It was a declared
+  union member with none for as long as combat has shipped; `fight
+  parley` briefly became its first and then the review cut parley. Its
+  right home is obvious and unbuilt: **fleeing.** `disengageImpl` already
+  carries the name and the section header reads *"fleeing (disengage)"* —
+  but today a flight that empties a session goes `removeParticipant` →
+  `dissolve()` and records **no resolution at all**, which also means it
+  fires no aftermath. ⚠ Wiring it is a behaviour change (a successful
+  flight would start emitting the W6 aftermath read), so it is a wave and
+  not a cleanup. ⭐ Note the collision: `intervention-slate` open question
+  7 also wants `disengage` for a fight that gets broken up. Two
+  claimants; whoever gets there first should say so.
+- ⭐⭐ **The hook grammar is spoken by nobody — seventeen un-composed
+  `@hook`s.** `Combatant` ×7, `CombatReactive` ×6, `CombatVenue` ×3,
+  minus the two the build filled (`onDefeated` / `onDefeatedFoe`).
+  [combat-hooks.md](../../subsystems/combat-hooks.md) calls this *"the
+  wizard-facing combat extension grammar"*; it is documented, invoked
+  each beat, and **implemented by nothing that ships** — not in the
+  kernel and not in any of the 43 packs. `lint:unconsumed-seams` now
+  holds the number (measured 21 total, 17 of them combat), so the next
+  build has it in front of it rather than having to notice. T15's
+  non-humanoid bestiary is the obvious first consumer.
+- **A diplomacy Discipline** — T12's *"face/diplomat career"* wants its
+  own field of study. ⚠ Nothing in the tree measures language, which is
+  why `fight parley` was cut; a Discipline here has to answer *what does
+  the engine honestly count?* before it can answer what it teaches.

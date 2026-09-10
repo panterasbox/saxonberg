@@ -3,15 +3,23 @@
 > **Status: PARTIAL** — the substrate is all shipped (harm · combat ·
 > mortality · poise · materials-response); the **consequence layer** over
 > it is not.
-> **Left:** ⭐ the wound→poise edge (arrow ②) · the poise read · **the
-> outcome model** (`onDefeated` has zero implementers) · morale &
-> surrender · de-escalation · aftermath · the `afflict` door · the
-> **eight-arm unification** behind the three dead channels (`signature` ·
-> `resolution` · `contagion`) · `resolution.by` · the `governs` rename ·
-> diminishment · the clinic (#38) · the repair shop (#39) · the
-> necropolis (#40) · the guard contract
-> **Size:** ⭐⭐ **a large build — four movements, eighteen waves.** See
-> [Scope](#scope--what-this-build-takes)
+> ✅ **The eighteen waves SHIPPED (MR!254, 2026-09-10)** — the wound→poise
+> ceiling, the poise read, the outcome model (`onDefeated` filled),
+> morale & surrender, aftermath, the `afflict` door, the eight-arm
+> unification (7+1 → 5+0), `resolution.by`, the `governs` rename,
+> diminishment, the clinic, the repair shop, the necropolis and the guard
+> contract → [combat.md](../../subsystems/combat.md) ·
+> [harm.md](../../subsystems/harm.md) ·
+> [contract.md](../../subsystems/contract.md)
+> **Left:** ⚠ **de-escalation was REINTERPRETED, not delivered as
+> designed** — `fight parley` shipped and was cut in review (a persuasion
+> check the engine cannot measure); what replaced it is the room reading
+> to morale, and the act half is
+> [intervention-slate](./intervention-slate.md) · the **necropolis is a
+> 122-line stub inside Terminus** and wants to be a sixth locality
+> ([towns-slate](./towns-slate.md)) with a real vertical
+> ([end-of-life-slate](./end-of-life-slate.md))
+> **Size:** a build (two, now — see Left)
 
 **Captured 2026-09-08**, out of a design conversation that opened with
 *"we don't have hitpoints"* and ended somewhere else entirely.

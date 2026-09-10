@@ -214,8 +214,13 @@ only `employment.md` (positions). The cheaper answer is positions.
 2. **What ends an interposition?** Beats elapsed, the interposer going
    down, the interposer choosing to stop, or the fight resolving. Almost
    certainly an engagement (`SustainedEngagement`, slots) rather than a
-   flag — which would make it the second pure-occupancy engagement after
-   `WatchEngagement`.
+   flag — which would make it the tree's **first** pure-occupancy
+   engagement. ⚠ A second one nearly shipped (`WatchEngagement`, for
+   standing a guard's post) and was cut, for a reason this build should
+   weigh: an engagement needs a VERB to start it, and *"I am now
+   interposing"* may be no more an act than *"I am now keeping watch"*
+   was. If the answer is presence, the precedent is
+   `ContractLogic.reconcileWatches` — the engine looks.
 3. **Does interposition reduce the fight, or only hold it open?** Does
    getting between two people *dissolve* their edge, or merely make every
    exchange pass through you? The second is more honest and more
@@ -275,5 +280,7 @@ only `employment.md` (positions). The cheaper answer is positions.
 - `docs/slates/builds/combat-slate.md` — the `guards` intervention brain
 - `docs/slates/builds/combat-experience-slate.md` — T12 de-escalation
   (closed, with the parley stop-block), T13 morale & surrender
-- `docs/plans/consequence-plan.md` — D9 (retracted), W5 (the onlooker
-  read), and the deferred seams naming intervention-as-an-act
+- [combat.md § Onlookers](../../subsystems/combat.md) — the ambient half
+  this build's act half sits beside, and *why there is no verb for
+  talking a fight down* (⚠ the consequence plan that decided it is
+  retired; combat.md is the durable record)

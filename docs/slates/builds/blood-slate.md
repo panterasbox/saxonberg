@@ -19,7 +19,7 @@
 > lever](#-the-titmuss-lever--designed-for-not-v1).
 
 > ⭐⭐ **What the consequence build hands this one (2026-09-08).**
-> [consequence-plan](../../plans/consequence-plan.md) considered folding
+> the consequence build (MR!254, plan retired at its sweep) considered folding
 > transfusion in and **the user ruled it stays separate** — this slate
 > keeps its whole scope. Three things changed in its favour:
 >
