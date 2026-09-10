@@ -546,6 +546,31 @@ roleplay, witnessed. No gauge, no instrument-puzzle — this is the
 violated. Mechanically, de-escalation = **renegotiating the terms *down to
 no-fight*.**
 
+> ⚠⚠ **Tried, shipped, and cut — read this before proposing it again.**
+> The consequence build implemented exactly the above as `fight parley`
+> (a verb that read the foe's `Morale` and dissolved their threat edge),
+> and it was **removed in its own MR review** (MR!254, 2026-09-10).
+>
+> The objection: *"the persuading is roleplay, witnessed"* means the
+> engine never reads the words — so the verb consulted a number and
+> whatever the player actually said was decorative. It is a persuasion
+> check with the check hidden, and this platform has none anywhere.
+>
+> ⭐ What replaced it is the thing this section was reaching for and
+> missed: **third parties break up fights.** `Morale` now counts live
+> sentients in the room who are not in the fight, and being watched
+> pushes both ends toward wanting out — the winner included, since harm
+> in front of witnesses is harm on somebody's account. No language is
+> measured, only bodies in a room. It also makes *where* you fight a
+> decision, which is a better game than a talk-down button.
+>
+> So: a de-escalation design that arrives here again needs to answer
+> **"what does the engine honestly measure?"** first. If the answer is
+> "the player's words," it is not buildable. Intervention as an *act* (a
+> bystander who `shove`s between two fighters, read into both fighters' morale)
+> is the open and buildable half — see the consequence plan's deferred
+> seams.
+
 **The PC/NPC will-asymmetry (interchangeability holds for *bodies*, not
 *wills*):**
 - **NPC de-escalation** — the target's will is *modeled*: brain + traits +

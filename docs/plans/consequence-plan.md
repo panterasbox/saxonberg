@@ -2335,6 +2335,19 @@ Nothing unmapped. The drive's 24 steps map: 1–5 → W1/W2/W3/W6; 6–7 →
 W0d/W3; 8–10 → W10/W11/W9; 11–14 → W13/W14; 15–19 → W12/W13; 20 → W15; 21 →
 W16; 22 → W17; 23–24 → W4/W5.
 
+⚠⚠ **One deliberate deviation from the requirements doc, and it is worth
+the reviewer's eye.** Drive step 23 reads *"You can yield, back down, or
+**be talked out of it**, and you survive it."* The third clause is no
+longer literally true as a **player action**: the review cut `fight
+parley` (see D9), so nothing you type talks a fight down. What survives
+is the same product outcome by four other routes — `yield`, `break`,
+walking out, and the foe's own nerve going — plus the new one, which is
+arguably what the phrase always meant in a social game: **somebody else
+being there stops it.** The requirements phrasing was product-level and
+the product still delivers; but a criterion was reinterpreted rather than
+met word-for-word, and that is a call the reviewer should get to
+overturn.
+
 ---
 
 ## Test & gate strategy
@@ -2660,6 +2673,19 @@ step. Nothing in this branch touches the office substrate. ⚠ **Worth
 noting for the sweep**: the wire suite is not runnable end-to-end in a
 worktree whose `.env` has no founder, and nothing says so until 13
 assertions fail in four files for four apparently different reasons.
+
+### Re-driven 2026-09-10, after the review cut `fight parley`
+
+Same recipe — DB dropped, all 43 packs reinstalled, `ConditionCatalogue:
+23 condition singleton(s) live`. **15 / 15 green again.**
+
+⭐ The step-23 assertion was rewritten and is now the one that earns its
+place: `help fight` names `yield` and `break` and **no longer names
+`parley`**. That is a *content* link, and content links fail closed and
+silent — the subcommand lives in `fight.yaml`, installed as a
+`command-view` document, so deleting it from the checkout proves nothing
+until a boot reconciles the row. The live world's own help is the only
+place that can say it.
 
 ### Not driveable, and not faked
 
