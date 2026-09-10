@@ -801,6 +801,14 @@ export const AppSettingKeys = {
    * because a fourth would be a gauge. Nothing is stored; the read is a
    * pure function of live state.
    */
+  /**
+   * ⭐⭐ Contract — how often the **watch reconcile** samples, in REAL ms.
+   * A guard is paid for presence, so the engine looks rather than asking:
+   * every claimed `watch` gig is checked for a claimant standing at the
+   * post with their hands free, and credited the elapsed game-time since
+   * the last look (capped, so a downtime gap pays nothing absurd).
+   */
+  contractWatchSweepMs: "contract.watchSweepMs",
   combatMoraleShakenAt: "combat.morale.shakenAt",
   combatMoraleBreakingAt: "combat.morale.breakingAt",
   combatMoraleLethalWeight: "combat.morale.lethalWeight",

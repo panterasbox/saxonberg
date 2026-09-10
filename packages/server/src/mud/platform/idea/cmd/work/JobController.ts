@@ -396,7 +396,24 @@ export default class JobController extends CommandController<JobModel> {
           : "exclusive, unclaimed";
     const expiry =
       gig.postingExpiresAt > 0 ? `, lapses at ${gig.postingExpiresAt}` : "";
+    if (condition?.template === "watch") {
+      // ⭐⭐ The watch read-out, and it is what REPLACED the `watch` verb.
+      // Standing a post has no command — the engine looks — so the hours
+      // have to be legible somewhere or a guard cannot tell whether they
+      // are earning. This line is that somewhere.
+      return (
+        `  [${short}] watch ${where} — ${this.watchProgress(gig)} ` +
+        `— ${gig.rewardMinor} credits (${mode}${expiry})`
+      );
+    }
     return `  [${short}] deliver ${what} to ${where} — ${gig.rewardMinor} credits (${mode}${expiry})`;
+  }
+
+  /** `3 of 8 hours stood` — game-hours served against the term. */
+  private watchProgress(gig: ContractRecord): string {
+    const asked = Math.max(0, gig.clause?.condition?.gameHours ?? 0);
+    const served = Math.floor((gig.watchedSec ?? 0) / 3600);
+    return `${served} of ${asked} hours stood`;
   }
 
   /* ──────────────────────────── post ──────────────────────────── */

@@ -49,11 +49,15 @@ export default class CredentialWalletUpdate extends CredentialWalletMixin(
       "platform/cmd/banking/wallet.yaml",
       "platform/cmd/banking/draw.yaml",
       "platform/cmd/work/fulfill.yaml",
-      // ⭐ `watch` rides the wallet for the same reason `fulfill` does:
-      // the work travels with the WORKER, not with a fixture. A guard
-      // stands a post wherever the post is, and there may be nothing
-      // there but a doorway.
-      "platform/cmd/work/watch.yaml",
+      // ⚠ `watch` rode this list for one build and was removed. Two
+      // reasons, and the second is the one that generalizes:
+      //   1. it SHADOWED the livestream `watch` — and because this
+      //      wallet is born-with, it did so for every character alive.
+      //   2. a wallet is not why you can stand a post. `fulfill` earns
+      //      its place here (the implant logs the delivery); `watch`
+      //      had no such story, and reaching for the wallet because it
+      //      is the thing everybody has is how a host goes wrong.
+      // Standing a watch is now derived from PRESENCE and needs no verb.
     ],
     peers: [],
     environment: [],

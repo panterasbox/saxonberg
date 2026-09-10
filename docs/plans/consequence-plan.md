@@ -2274,8 +2274,85 @@ first **pure-occupancy** engagement — the time is the whole deliverable.
 `holdsFor(data, item)`: **there is no item**, and that asymmetry is the
 finding. The shipped vocabulary is *"a thing is at a place"*; a guard
 contract is *"a person was at a place, for a while"*, which the existing
-predicate cannot express however it is squeezed. Four kernel touches,
-stated loudly as the requirements asked.
+predicate cannot express however it is squeezed.
+
+### ⚠⚠ RE-PLANNED IN REVIEW — it was FOUR kernel touches, and the fourth was wrong
+
+The verb and the engagement were **cut** (MR!254 review, 2026-09-10).
+Three touches remain: the template, the accrual, and a reconcile.
+
+**Why.** *"Typing `watch` never made anybody keep watch."* The verb
+marked an intention and the engine then trusted it — but the clause is
+*"be at place P for N hours"*, and where somebody is standing is a fact
+the engine **already holds**. So it looks instead of asking.
+
+⭐ **Three things in the tree already said so**, and the wave walked past
+all three:
+
+1. `Condition.ts`'s own rule — the vocabulary is the seam builds widen,
+   *"each a new `holdsFor` predicate, **never a new engine seam**."*
+   W17 added a verb, a controller, an engagement and a field, then
+   reported the choice as a discovery.
+2. **`job` is already the general palette** — `post · claim · complete ·
+   abandon · origin`. The clause templates surface there as *arguments*
+   (`job post deliver…` / `supply…` / `watch…`), never as verbs. The
+   posting side already generalized; only the doing side sprouted one.
+3. **`AttendanceEngagement` has no verb.** A shopkeeper does not type
+   `attend` — attendance starts because a customer arrived and the roster
+   says who is on shift. Standing a post is the same shape.
+
+**Removed.** `platform/cmd/work/watch.yaml` + its controller row;
+`WatchController`; `WatchEngagement`; `ContractApi.noteWatch`; the
+`CredentialWalletUpdate` contribution.
+
+**Added.** `ContractRecord.watchSeenSec` (a high-water mark, not a start
+time); `ContractApi.reconcileWatches` — credits elapsed game-time when it
+finds the claimant at the post with no other engagement holding their
+hands, capped per sample by the far-past guard; `WatchWarden` arming it
+on the platform pack's `boot:` manifest; a `job` read-out
+(*"watch the pithead — 3 of 8 hours stood"*) to replace the ceremony of
+typing a verb; `lint:verb-collisions`.
+
+⭐⭐ **The hands-free rule got better by losing its rule.** The
+engagement CLAIMED `body`/`hands`/`attention`, so the game refused to let
+a guard craft. Now nothing refuses — craft if you like, those minutes do
+not count. Same doctrine as the guard who was robbed blind and still gets
+paid: **the engine measures presence, not virtue**, and a bad guard is
+expressed by a short paycheque rather than a prohibition.
+
+### ⚠⚠⚠ And the verb had SHADOWED a shipped feature, for everybody
+
+`cmd/stream/watch.yaml` has claimed `watch` since the streaming build and
+is on `Avatar.commandContributions.self`. Mine rode the born-with
+credential wallet — also `self`. Two views, one verb, and mine won:
+
+```
+help watch              → "WATCH: Stand a guard's post"
+watch twitch.tv/shroud  → declined: no-watch-claim
+watch off               → "You are not on watch."
+```
+
+**Nothing failed.** Not a test, not a lint, not the boot. Putting a
+livestream in the cockpit embed was unreachable by its own name for every
+character alive — in a project whose market thesis is livestream
+communities. It surfaced only because somebody asked what the new verb
+was for.
+
+`lint:verb-collisions` is the census that now catches it, and it found
+**nine collisions already shipped** — so the gate is a named allowlist
+with a reason per row, not a zero. ⚠ Only `lease`/`unlease` is understood
+to be safe (domain-local, two different localities); the other seven are
+undiagnosed and the list is a to-do.
+
+⚠⚠ **Two bugs the unit suite could not see, both found by booting.** A
+`#`-private field on `ContractLogic` threw *"Cannot read from private
+field"* — it is a `Stuff`, so the call-security Proxy makes `#` slots
+unreachable, which `CLAUDE.md § Member Privacy` states outright. And
+adding `ScheduleApi` to `ContractLogic`'s import graph re-entered the
+module before its policy consts initialized, so **every controller that
+imports it** failed to load with a TDZ `ContractWatchSweepCallers is not
+defined`. Both fixed by moving the timer onto `WatchWarden`, which is
+where the operator-shaped thing belonged anyway.
 
 ### Closing
 
@@ -2310,7 +2387,7 @@ Each link fails closed and silent.
 | repair billed (W15) | `repair` / `order repair <item>` | `Anvil` affords `repair`; the tariff affords `order` | `tariff.yaml` | the forge's 900 K must be reachable — the shipped `hearthworks` forge is; assert `reachableHeatK` in the drive |
 | `analyze postmortem` (W16) | `analyze postmortem <body>` | as `analyze patient` | `forensics.yaml` | as W13 |
 | burial (W16) | `order burial <body>` | the necropolis tariff | grave fixtures on titled plots — the plot title must resolve (`ParcelApi.ownerOf`) or `place`/containment is refused | `lint:census` on every plot path |
-| the guard contract (W17) | `job post watch <place> for <n> hours`, `watch` | `JobBoard` affords `job`; the claim's credential affords `watch` (the `fulfill` precedent — `CredentialWalletUpdate`) | a board in the mine (`props:`), `contracts.yaml` schema | `gen:schema`; `lint:schema` |
+| the guard contract (W17) | `job post watch <place> for <n> hours` — ⭐ **no verb for standing it** | `JobBoard` affords `job`; standing the post affords nothing, because it is not an act | a board in the mine (`props:`), `contracts.yaml` schema | `gen:schema`; `lint:schema`; ⭐ `WatchWarden` on the pack's `boot:` manifest — an unarmed sweep accrues nothing, silently |
 
 ---
 

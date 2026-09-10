@@ -263,6 +263,7 @@ ContractRecord.realAt = 0
 ContractRecord.rewardMinor = 0
 ContractRecord.settledBy = 0
 ContractRecord.state = 0
+ContractRecord.watchSeenSec = 0
 ContractRecord.watchedSec = 0
 Corpo.aesthetic = 0
 Corpo.description = 0

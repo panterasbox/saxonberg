@@ -110,20 +110,20 @@ export class ContractApi {
    * issuer-side regard nudge lands, and the gig reopens.
    */
   /**
-   * ⭐⭐ Accrue watch on a claimed `watch` contract — the guard's clock.
+   * ⭐⭐⭐ Sweep every claimed `watch` gig and credit the claimants who
+   * are standing at their posts. Returns how many were credited.
    *
    * ⚠ A guard's product is **presence with free hands**, not protection:
    * whether a theft was deterred is counterfactual and whether you were
    * attentive is not a modelled fact. What the engine can verify is that
-   * you were there, for the term, unable to be doing something else — and
-   * that turns out to be what a guard actually sells.
+   * you were there — so it looks, rather than asking you to say so.
+   *
+   * ⭐ There is deliberately **no `watch` verb**. Typing a word never made
+   * anybody keep watch; standing at the post is the whole of the work,
+   * and where somebody is standing is a fact the engine already holds.
    */
-  public static async noteWatch(
-    contractId: string,
-    worker: Stuff,
-    gameSeconds: number,
-  ): Promise<void> {
-    return logic().noteWatch(contractId, worker, gameSeconds);
+  public static async reconcileWatches(): Promise<number> {
+    return logic().reconcileWatches();
   }
 
   public static async abandon(contractId: string): Promise<AbandonResult> {

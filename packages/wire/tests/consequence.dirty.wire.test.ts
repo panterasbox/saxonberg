@@ -25,6 +25,11 @@
  *   - **The poise read renders.** Textiles found three defects exactly
  *     here — the card surface treats `look` and combat lines differently,
  *     and an envelope assertion cannot see a rendering.
+ *   - **A verb that was cut is actually gone.** `fight parley` and the
+ *     guard-post `watch` were both removed in review; a deleted
+ *     `command-view` row only stops existing once a boot reconciles it,
+ *     so the checkout proves nothing and the world's own help proves
+ *     everything.
  *   - **The ways out of a fight are the ones that survived review.**
  *     `fight parley` was cut (see the step-23 assertion); what the wire
  *     proves is that the menu still names the honest exits and no longer
@@ -234,20 +239,29 @@ suite('the repair shop — the second instance, rows only (step 20)', () => {
 /* ───────────────── the guard contract (step 22) ───────────────── */
 
 suite('the guard contract — the third clause (step 22)', () => {
-  it('⭐⭐ `watch` is a verb, afforded by the wallet everybody is born with', async () => {
-    // Like `fulfill`, it travels with the WORKER: a post may be nothing
-    // but a doorway, so there is no fixture to hang it on.
+  it('⭐⭐⭐ `watch` is the LIVESTREAM verb again — the shadow is gone', async () => {
+    // ⚠⚠ The regression this build shipped and review caught. A guard-post
+    // `watch` rode the born-with credential wallet and shadowed the
+    // streaming one for EVERY character alive: `help watch` answered
+    // "Stand a guard's post" and `watch twitch.tv/…` was declined
+    // `no-watch-claim`. Nothing failed — not a test, not a lint, not the
+    // boot. Standing a post now accrues from PRESENCE and has no verb.
     const help = await patient.cmd('help watch');
     expectOk(help);
-    expect(await help.said()).toMatch(/post|watch/i);
+    const said = await help.said();
+    expect(said, 'the livestream verb owns its own name').toMatch(
+      /stream|embed|twitch/i,
+    );
+    expect(said, 'and the guard verb is gone').not.toMatch(/guard's post/i);
   }, 60_000);
 
-  it('⚠ standing a watch you were not hired for is refused, in words', async () => {
-    // A watch is worth standing only against a gig that asked for one;
-    // otherwise it is loitering, which needs no verb.
-    const out = await patient.cmd('watch');
-    const said = await out.said();
-    expect(said).toMatch(/claim|board|watch/i);
+  it('⭐⭐ the guard clause lives on the BOARD, not on a verb of its own', async () => {
+    // The general employment palette already carries it: the clause
+    // templates surface as arguments to `job post`, never as verbs. That
+    // is what makes widening the vocabulary cost no engine surface.
+    const help = await patient.cmd('help job');
+    expectOk(help);
+    expectOk(await patient.cmd('job'));
   }, 60_000);
 });
 

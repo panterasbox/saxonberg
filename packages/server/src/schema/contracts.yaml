@@ -25,8 +25,15 @@ invariants:
     ⭐ A `watch` clause accrues its served time in `watchedSec`, on the
     CONTRACT rather than on the worker — a guard's watch is *for* a
     contract, and two overlapping posts are two separate accruals a
-    worker-side counter could not tell apart. Game-seconds, banked when a
-    stint is released, so standing down early keeps what was served.
+    worker-side counter could not tell apart. Game-seconds.
+  - >-
+    ⭐⭐ It accrues from PRESENCE and there is no `watch` verb: a sweep
+    (`ContractApi.reconcileWatches`, armed by `WatchWarden`) credits the
+    elapsed game-time whenever it finds the claimant standing at the post
+    with no other engagement holding their hands. `watchSeenSec` is the
+    high-water mark it re-stamps each look — not a start time — and a
+    single sample is capped, so a downtime gap pays nothing absurd.
+    Typing a word never made anybody keep watch; standing there did.
   - >-
     REFUSE under the sandbox.
 sandbox: refuse
