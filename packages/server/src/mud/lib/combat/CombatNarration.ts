@@ -586,47 +586,6 @@ export class CombatNarration {
   }
 
   /**
-   * ⭐ **The parley** — the non-fighter's exit, in words. Three outcomes,
-   * and each says something different about what was read: `accepted`
-   * (they wanted out and you saw it), `refused` (they did not, and you
-   * spent the beat finding out), `deaf` (there was nobody in there to
-   * negotiate with).
-   */
-  static narrateParley(
-    combatant: Stuff,
-    outcome: "accepted" | "refused" | "deaf",
-  ): string {
-    const commandId = SecurityApi.uuid();
-    const C = Mml.actor(combatant);
-    const self =
-      outcome === "accepted"
-        ? "You put it into words, and they take it. Weapons down."
-        : outcome === "refused"
-          ? "You put it into words. They are not finished with you."
-          : "You speak. It has no ear for any of it.";
-    const peer =
-      outcome === "accepted"
-        ? "{{c}} talks it down, and it works."
-        : outcome === "refused"
-          ? "{{c}} tries to talk it down. Nobody lowers anything."
-          : "{{c}} is talking to an animal.";
-    for (const viewer of CombatNarration.witnesses(combatant)) {
-      const isSelf = (viewer as Stuff) === (combatant as Stuff);
-      try {
-        const body = ProseApi.format(isSelf ? self : peer, { c: C });
-        MessageApi.scene(viewer as Stuff)
-          .topic(COMBAT_EXCHANGE_TOPIC)
-          .meta({ commandId })
-          .toSelf(body)
-          .send();
-      } catch {
-        // best-effort per-viewer relay
-      }
-    }
-    return commandId;
-  }
-
-  /**
    * ⭐⭐ **The aftermath — what the fight left you with.**
    *
    * Every durable product of a fight already had a consumer

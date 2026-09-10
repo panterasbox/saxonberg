@@ -32,6 +32,7 @@ const inputs = (over: Partial<MoraleInputs> = {}): MoraleInputs => ({
   foes: 1,
   alliesDown: 0,
   foeBand: null,
+  onlookers: 0,
   ...over,
 });
 
@@ -152,5 +153,72 @@ describe("Morale — the bands", () => {
       mk({}, { foes: 3, alliesDown: 2, lethal: true }),
     ]);
     expect(values.size).toBe(3);
+  });
+});
+
+/* ─────────── who is standing there watching (the room read) ─────────── */
+
+describe("⭐⭐ Morale — being watched", () => {
+  it("⭐ a fight in front of people reads closer to wanting out", () => {
+    // The whole of "third parties break up fights", and it took no verb:
+    // both ends know somebody is about to stop this.
+    const alone = Morale.pressure(state(), session, inputs({ onlookers: 0 }));
+    const seen = Morale.pressure(state(), session, inputs({ onlookers: 1 }));
+    const scene = Morale.pressure(state(), session, inputs({ onlookers: 8 }));
+    expect(seen).toBeGreaterThan(alone);
+    expect(scene).toBeGreaterThan(seen);
+  });
+
+  it("⭐⭐ two steps, not a count — six watchers is not worse than five", () => {
+    // Banded for the same reason the OUTPUT is banded. `seen` and `a
+    // scene` are the two states anybody feels; the gradient between them
+    // is a gauge nobody asked for.
+    const at = (n: number) =>
+      Morale.pressure(state(), session, inputs({ onlookers: n }));
+    expect(at(1)).toBe(at(2)); // both merely *seen*
+    expect(at(3)).toBe(at(60)); // both merely *a scene*
+    expect(at(3)).toBeGreaterThan(at(2)); // and the step is real
+  });
+
+  it("⚠ a beast does not care who is looking", () => {
+    // Exactly like the terms it cannot read. One gate covers both.
+    const beast = inputs({ sentient: false });
+    expect(
+      Morale.pressure(state(), session, { ...beast, onlookers: 12 }),
+    ).toBe(Morale.pressure(state(), session, { ...beast, onlookers: 0 }));
+  });
+
+  it("⭐ it pushes the WINNER toward stopping too, not just the loser", () => {
+    // The point that separates this from a fear mechanic. Harm in front
+    // of witnesses is harm on somebody's account, so the fighter who is
+    // doing fine has a reason of their own to stop.
+    const winning = state(); // untouched, steady
+    const alone = Morale.pressure(winning, session, inputs({ onlookers: 0 }));
+    const watched = Morale.pressure(winning, session, inputs({ onlookers: 5 }));
+    expect(watched).toBeGreaterThan(alone);
+  });
+
+  it("⚠ it never drowns out how the fight is actually going", () => {
+    // A crowd is worth about one extra foe. If being watched could break
+    // somebody who is winning comfortably, it would have stopped being a
+    // pressure and started being a rule.
+    const crowded = state();
+    expect(
+      Morale.bandFor(crowded, session, inputs({ onlookers: 40 })),
+    ).toBe("resolute");
+  });
+
+  it("⭐ a full taproom turns a bad fight from shaken into breaking", () => {
+    // What it is FOR, end to end: the same beating, in public, is the one
+    // that stops.
+    const p = new Poise();
+    p.erode(0.62, 0);
+    const losing = state({ poise: p, woundsTaken: ["bites-deep", "bites"] });
+    expect(Morale.bandFor(losing, session, inputs({ onlookers: 0 }))).toBe(
+      "shaken",
+    );
+    expect(Morale.bandFor(losing, session, inputs({ onlookers: 6 }))).toBe(
+      "breaking",
+    );
   });
 });

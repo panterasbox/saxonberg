@@ -35,7 +35,10 @@
  *     reeling is not the same as losing to somebody untouched;
  *   - the **terms**. ⭐ Lethal terms lower a sentient's break point,
  *     because dying is worse than losing, and a person knows it. A beast
- *     does not read terms at all.
+ *     does not read terms at all;
+ *   - ⭐⭐ **who is standing there watching.** A fight in front of people
+ *     is a fight somebody is about to stop, and both sides know it. See
+ *     the onlooker note on {@link MoraleInputs.onlookers}.
  *
  * ## What it does NOT do
  *
@@ -67,12 +70,21 @@ export interface MoraleConfig {
   breakingAt: number;
   /** Extra pressure a sentient feels when the terms authorize a kill. */
   lethalTermsWeight: number;
+  /**
+   * Extra pressure a sentient feels for being **watched** — full weight
+   * at a crowd, half at one or two. See {@link MoraleInputs.onlookers}.
+   */
+  onlookerWeight: number;
+  /** Onlookers at or above which it stops being *seen* and becomes *a scene*. */
+  crowdAt: number;
 }
 
 export const DEFAULT_MORALE_CONFIG: MoraleConfig = {
   shakenAt: 0.45,
   breakingAt: 0.75,
   lethalTermsWeight: 0.2,
+  onlookerWeight: 0.15,
+  crowdAt: 3,
 };
 
 /** How much each poise band contributes on its own. */
@@ -111,6 +123,30 @@ export interface MoraleInputs {
   alliesDown: number;
   /** The worst-off live foe's poise band, or null when unknown. */
   foeBand: PoiseBand | null;
+  /**
+   * ⭐⭐ **Live sentients present who are not in this fight.**
+   *
+   * A fight in front of people is a fight somebody is about to stop, and
+   * both sides know it — so being watched pushes *both* ends toward
+   * wanting out, the winner included. The winner has the better reason:
+   * harm in front of witnesses is harm on somebody's account, and the
+   * accountability ledger has been recording exactly that all along.
+   *
+   * ⚠ **This is what makes WHERE you fight a decision.** Violence in a
+   * taproom gets stopped; violence down a lane does not. Nobody had to
+   * author that — it falls out of who happens to be standing there.
+   *
+   * ⭐ It is deliberately NOT a persuasion check, a reputation read or a
+   * roll: the engine counts bodies in the room, which it can do honestly,
+   * and counts nothing about what anybody said. It is banded rather than
+   * continuous for the same reason the output is — *seen* and *a scene*
+   * are the two states that differ; six onlookers versus seven is not a
+   * distinction anybody feels.
+   *
+   * ⚠ A beast does not care who is watching, exactly as it does not read
+   * terms — the `sentient` gate covers both.
+   */
+  onlookers: number;
 }
 
 export class Morale {
@@ -173,6 +209,16 @@ export class Morale {
     // ⭐ The terms. Dying is worse than losing, and a person knows it; a
     // beast does not read terms and this contributes nothing to one.
     if (inputs.lethal && inputs.sentient) p += config.lethalTermsWeight;
+
+    // ⭐⭐ Who is watching. Two steps, not a count: the categorical
+    // difference is *nobody saw* → *somebody saw*, and a crowd is worth
+    // a little more again because a crowd is likelier to wade in.
+    if (inputs.sentient && inputs.onlookers > 0) {
+      p +=
+        inputs.onlookers >= config.crowdAt
+          ? config.onlookerWeight
+          : config.onlookerWeight / 2;
+    }
 
     return Math.max(0, p);
   }

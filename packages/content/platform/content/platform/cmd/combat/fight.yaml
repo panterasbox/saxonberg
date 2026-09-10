@@ -23,8 +23,9 @@ help: |
   strike. A reader, or a foe who isn't turtling, isn't fooled.
   Or hold: `fight defend` covers up and recovers your poise (capped by
   your endurance) instead of attacking — the patient defender's game.
-  And `fight yield` concedes. `fight parley` is the other way out — talk
-  down a foe whose nerve has gone, and the fight stops with no victor.
+  And `fight yield` concedes. To stop without conceding: `fight break`
+  offers a mutual stand-down, and simply walking out is a flight — your
+  foes get a parting shot at your back.
 examples:
   - cmd: fight
     note: Read your current fight
@@ -116,34 +117,6 @@ subcommands:
       (focus-fire, master-apprentice), a downed foe is not finished until
       the captain gives the word. `fight finish` is that word. Withhold it
       and the moment passes — the fallen is spared.
-  parley:
-    description: "Talk it down — press a foe whose nerve has gone into standing off"
-    help: |
-      `fight parley` is the exit for somebody who has no business winning
-      this. You spend the beat covering up and reading the person in front
-      of you, and if their nerve has gone — if they are shaken, or looking
-      for a way out — you press on that and they stand off. Nobody wins,
-      nobody concedes, the fight simply stops.
-
-      It is not a persuasion roll and there is nothing to say. What the
-      game measures is whether you READ them right, so it credits
-      `awareness`; the words are yours. Against somebody who still wants
-      this it fails and costs you the beat, and against an animal there is
-      nothing in there to negotiate with.
-
-      The difference from `break`: `break` needs them to offer too.
-      `parley` works on somebody who is winning and does not want to be.
-    examples:
-      - cmd: fight parley
-        note: Try to talk down anyone still fighting you
-      - cmd: fight parley the bandit
-        note: Talk down one named foe
-    args:
-      - name: target
-        type: object
-        required: false
-        scope: ["reachable"]
-        requires: VitalsMixin
   yield:
     description: "Concede the fight"
 validators:

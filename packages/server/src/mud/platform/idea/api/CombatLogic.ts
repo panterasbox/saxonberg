@@ -361,14 +361,6 @@ export class CombatLogic extends ApiLogic {
   }
 
   @CallSecurity(CombatantCallers)
-  public parley(
-    actor: Stuff,
-    target?: Stuff,
-  ): { ok: boolean; reason?: string; stoodDown: boolean } {
-    return parleyImpl(actor, target);
-  }
-
-  @CallSecurity(CombatantCallers)
   public offerBreak(
     actor: Stuff,
   ): { ok: boolean; reason?: string; broke: boolean } {
@@ -514,6 +506,8 @@ function moraleConfig(): MoraleConfig {
     shakenAt: dial(K.combatMoraleShakenAt, 0.45),
     breakingAt: dial(K.combatMoraleBreakingAt, 0.75),
     lethalTermsWeight: dial(K.combatMoraleLethalWeight, 0.2),
+    onlookerWeight: dial(K.combatMoraleOnlookerWeight, 0.15),
+    crowdAt: dial(K.combatMoraleCrowdAt, 3),
   };
 }
 
@@ -3357,9 +3351,50 @@ function moraleFor(
       foes: Math.max(1, foes.length),
       alliesDown,
       foeBand,
+      onlookers: onlookersOf(session, self),
     },
     moraleConfig(),
   );
+}
+
+/**
+ * ⭐⭐ **Who is standing there watching** — live sentients sharing the
+ * room who are not in this fight.
+ *
+ * The whole of "third parties break up fights", and it needed no verb:
+ * a fight in front of people is a fight somebody is about to stop, and
+ * both ends know it, so both read closer to wanting out. What it makes
+ * real is that **where you fight is a decision** — a taproom brawl gets
+ * stopped and an alley one does not, and nobody authored either.
+ *
+ * ⚠ The count is of BODIES, not of opinions. No perception gate, no
+ * regard read, no roll: this must stay something the engine can say
+ * honestly, and "how many people are in this room" is. A hidden watcher
+ * is deliberately still counted — concealment hides you from a `look`,
+ * not from the room, and the alternative is a per-combatant perception
+ * sweep every beat of every fight.
+ *
+ * ⚠ Corpses do not watch; a shade does. A downed *combatant* is excluded
+ * already, by being in the session at all.
+ */
+function onlookersOf(session: CombatSession, self: Stuff): number {
+  if (!MixinApi.isContainable(self)) return 0;
+  const room = self.getContainer();
+  if (!room || !MixinApi.isContainer(room)) return 0;
+  let n = 0;
+  for (const occ of room.getContents()) {
+    if ((occ as Stuff) === self) continue;
+    if (session.getState(occ as Stuff)) continue; // in the fight, not at it
+    if (!safeIsSentient(occ as Stuff)) continue;
+    // ⚠ `isDead()`, NOT `isAlive()`. `lifecycleState` defaults to the
+    // empty string, so an unhydrated or unauthored body reads
+    // not-*alive* while being perfectly present — `Organism.isLivingBody`
+    // carries the same warning, and this read cost a green test to
+    // rediscover it. A shade watches you; only a corpse does not.
+    if (MixinApi.isOrganism(occ) && occ.isDead()) continue;
+    n++;
+  }
+  return n;
 }
 
 /** Band severity for "who is in the best shape" comparisons. */
@@ -3568,112 +3603,6 @@ function sessionHasNoThreatEdges(session: CombatSession): boolean {
  * (yield concedes and records a loss; break does not — which is what makes
  * backing down chooseable). Distinct from yield by that alone.
  */
-/**
- * ⭐⭐ **`fight parley` — the terms renegotiated down to no fight.**
- *
- * The non-fighter's exit. `fight break` already existed and requires the
- * *other side* to offer too, which is fine between two people who both
- * want out and useless against somebody who is winning. Parley is the
- * act of **reading** an opponent and pressing on the fact that they no
- * longer want this: against a foe whose morale is `shaken` or
- * `breaking`, it dissolves their edge unilaterally.
- *
- * It is not a social minigame and it mints no diplomacy skill. The engine
- * models the **stakes** — how badly the other side wants out, which it
- * already computes — and the words are the player's. What it credits is
- * `awareness`: reading the person in front of you is the skill being
- * exercised, and it is one the game already has.
- *
- * ⚠ It costs the beat, exactly like `defend`. Talking while somebody is
- * swinging at you is not free, and against a `resolute` foe it simply
- * fails — the olive branch has a price, which is the same rule `break`
- * already lives under.
- *
- * ⚠ A beast has no ear for it (D8): nothing to read, nothing to
- * renegotiate. Refused with prose, like a yield.
- */
-function parleyImpl(
-  actor: Stuff,
-  target?: Stuff,
-): { ok: boolean; reason?: string; stoodDown: boolean } {
-  const session = sessionForImpl(actor);
-  if (!session) return { ok: false, reason: "not-in-combat", stoodDown: false };
-  const state = session.getState(actor);
-  if (!state || state.down) {
-    return { ok: false, reason: "not-in-combat", stoodDown: false };
-  }
-  // Spend the beat covering up, exactly like `break`.
-  state.queuedGambit = "defend";
-
-  const candidates = session
-    .getStates()
-    .filter(
-      (s) =>
-        !s.down &&
-        s.combatant !== actor &&
-        edgedBetween(session, actor, s.combatant) &&
-        (!target || (s.combatant as Stuff) === target),
-    );
-  if (candidates.length === 0) {
-    return { ok: false, reason: "no-target", stoodDown: false };
-  }
-  const graph = session.getGraph();
-  const swayed: Stuff[] = [];
-  let anySentient = false;
-  let toughest: MoraleBand = "breaking";
-  for (const opp of candidates) {
-    if (!safeIsSentient(opp.combatant)) continue;
-    anySentient = true;
-    const band = moraleFor(session, opp);
-    if (Morale.rank(band) < Morale.rank(toughest)) toughest = band;
-    if (band === "resolute") continue;
-    swayed.push(opp.combatant);
-  }
-  if (!anySentient) {
-    CombatNarration.narrateParley(actor, "deaf");
-    return { ok: true, reason: "no-ear", stoodDown: false };
-  }
-  if (swayed.length === 0) {
-    CombatNarration.narrateParley(actor, "refused");
-    // The read still happened, and reading a resolute opponent correctly
-    // is the harder version of the same act.
-    mintParleyRead(state, "hard");
-    return { ok: true, reason: "refused", stoodDown: false };
-  }
-  for (const opp of swayed) {
-    graph.removeEdge(actor, opp);
-    graph.removeEdge(opp, actor);
-  }
-  CombatNarration.narrateParley(actor, "accepted");
-  mintParleyRead(state, toughest === "breaking" ? "standard" : "hard");
-  // ⭐ `disengage` is a declared `CombatResolution` that no caller had
-  // ever passed to `endWith`. This is its first use, and it is the right
-  // word: nobody won, nobody conceded, the fight stopped.
-  if (session.isActive() && sessionHasNoThreatEdges(session)) {
-    endWith(session, "disengage");
-    return { ok: true, stoodDown: true };
-  }
-  const leaving = session
-    .getStates()
-    .map((s) => s.combatant)
-    .filter((c) => !hasAnyThreatEdge(session, c));
-  for (const c of leaving) session.removeParticipant(c);
-  return { ok: true, stoodDown: leaving.length > 0 };
-}
-
-/** The parley's credit: reading the person in front of you. */
-function mintParleyRead(state: CombatantState, difficulty: Difficulty): void {
-  if (state.brainPath) return; // brains bank nothing
-  if (!MixinApi.isAdvancing(state.combatant)) return;
-  void state.combatant
-    .creditDeed({
-      discipline: AWARENESS_DISCIPLINE,
-      difficulty,
-      outcome: "success",
-    })
-    .catch(() => {});
-}
-
 function offerBreakImpl(
   actor: Stuff,
 ): { ok: boolean; reason?: string; broke: boolean } {

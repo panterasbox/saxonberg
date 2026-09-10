@@ -107,8 +107,6 @@ export interface Combatant {
   getStandingStopCondition(): string;
   /** This fighter's live morale band, or null out of combat. */
   moraleBand(): MoraleBand | null;
-  /** Talk a fight down against a foe whose nerve has gone. */
-  parley(target?: Stuff): { ok: boolean; reason?: string; stoodDown: boolean };
 
   // The participant hook terminals (the combat hook grammar — every
   // combatant, player or NPC, hears the same lifecycle moments). The
@@ -469,17 +467,6 @@ export function CombatantMixin<TBase extends MixinConstructor>(Base: TBase) {
      */
     public moraleBand(): MoraleBand | null {
       return combatLogic().moraleBand(this as unknown as Stuff);
-    }
-
-    /**
-     * ⭐ **Talk it down.** Against a foe whose nerve has gone, presses on
-     * that fact and dissolves their part of the fight; against a resolute
-     * one it costs the beat and nothing else. A beast has no ear for it.
-     */
-    public parley(
-      target?: Stuff,
-    ): { ok: boolean; reason?: string; stoodDown: boolean } {
-      return combatLogic().parley(this as unknown as Stuff, target);
     }
 
     /** Yield — resolves the fight in the opponent's favour. */

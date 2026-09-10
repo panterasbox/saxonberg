@@ -2669,97 +2669,56 @@ describe("CombatLogic — morale & surrender", () => {
     const bystander = makeFighter(room);
     expect(CombatApi.moraleBand(bystander)).toBeNull();
   });
-});
 
-/* ──────────── W5: parley — the terms renegotiated down ──────────── */
+  it("⭐⭐ the read counts the ROOM — a watched fight is closer to over", () => {
+    // The wiring test for `onlookersOf`. The unit pins live in
+    // `Morale.test.ts`; what only this can say is that the pressure term
+    // is actually fed from who is standing in the room, which is the link
+    // that fails silently.
+    const empty = makeStuff(() => new TestRoom());
+    const taproom = makeStuff(() => new TestRoom());
+    const hurt = (session: ReturnType<typeof open>, who: TestFighter) => {
+      const st = session.getState(who as unknown as Stuff)!;
+      st.poise.erode(0.62, 0);
+      st.woundsTaken.push("bites-deep", "bites");
+    };
 
-describe("CombatLogic — parley", () => {
-  function breaking(session: CombatSession, f: TestFighter): void {
-    const st = session.getState(f)!;
-    st.poise.erode(0.85, 0);
-    st.woundsTaken.push("bites-deep", "bites-deep");
-  }
+    // The same beating, twice, in two rooms.
+    const aloneA = makeFighter(empty, { weaponForm: "bladed" });
+    const aloneB = makeFighter(empty);
+    hurt(open(aloneA, aloneB, nonLethal), aloneB);
 
-  it("⭐ talks down a foe whose nerve has gone — and `disengage` gets its first caller", () => {
-    // `CombatResolution.disengage` has been a declared member of the
-    // union since combat shipped and NO caller ever passed it to
-    // `endWith`. Nobody wins, nobody concedes, the fight stops.
-    const room = makeStuff(() => new TestRoom());
-    const talker = makeFighter(room);
-    const wavering = makeFighter(room, { weaponForm: "bladed" });
-    const session = open(wavering, talker, nonLethal);
-    breaking(session, wavering);
+    const seenA = makeFighter(taproom, { weaponForm: "bladed" });
+    const seenB = makeFighter(taproom);
+    hurt(open(seenA, seenB, nonLethal), seenB);
+    // …and a taproom full of people who are not in it.
+    for (let i = 0; i < 6; i++) makeFighter(taproom);
 
-    const r = (talker as unknown as Stuff & Combatant).parley();
-    expect(r.ok).toBe(true);
-    expect(r.stoodDown).toBe(true);
-    expect(session.getResolution()).toBe("disengage");
-    // ⚠ Nobody is down and nobody yielded — this is not a defeat.
-    expect(session.getState(talker)?.down ?? false).toBe(false);
+    expect(CombatApi.moraleBand(aloneB)).toBe("shaken");
+    expect(CombatApi.moraleBand(seenB)).toBe("breaking");
   });
 
-  it("costs the beat against a foe who still wants this", () => {
+  it("⚠ the other FIGHTERS are not onlookers — they are the fight", () => {
+    // Otherwise every brawl would count itself as its own audience and
+    // being outnumbered would get paid for twice.
     const room = makeStuff(() => new TestRoom());
-    const talker = makeFighter(room);
-    const resolute = makeFighter(room, { weaponForm: "bladed" });
-    const session = open(resolute, talker, nonLethal);
-
-    const r = (talker as unknown as Stuff & Combatant).parley();
-    expect(r.ok).toBe(true);
-    expect(r.reason).toBe("refused");
-    expect(r.stoodDown).toBe(false);
-    expect(session.isActive()).toBe(true);
-    // The beat is spent covering up — the olive branch has a price.
-    expect(session.getState(talker)!.queuedGambit).toBe("defend");
+    const a = makeFighter(room, { weaponForm: "bladed" });
+    const b = makeFighter(room);
+    open(a, b, nonLethal);
+    expect(CombatApi.moraleBand(b)).toBe("resolute");
   });
 
-  it("⚠ an animal has no ear for it", () => {
+  it("⚠ a beast in a crowded room does not care who is looking", () => {
     const room = makeStuff(() => new TestRoom());
-    const talker = makeFighter(room);
+    const person = makeFighter(room, { weaponForm: "bladed" });
     const wolf = makeFighter(room, { natural: "point", sentient: false });
-    const session = open(wolf, talker, lethal);
-    breaking(session, wolf); // even a terrified one
-
-    const r = (talker as unknown as Stuff & Combatant).parley();
-    expect(r.reason).toBe("no-ear");
-    expect(r.stoodDown).toBe(false);
-    expect(session.isActive()).toBe(true);
-  });
-
-  it("⭐ credits `awareness` — reading the person is the skill", () => {
-    // No diplomacy Discipline is invented here. What the game can
-    // honestly measure is whether you read them right.
-    mintedDeeds.length = 0;
-    const room = makeStuff(() => new TestRoom());
-    const talker = makeFighter(room);
-    const wavering = makeFighter(room, { weaponForm: "bladed" });
-    const session = open(wavering, talker, nonLethal);
-    (session.getState(talker) as unknown as { brainPath: string | null })
-      .brainPath = null;
-    breaking(session, wavering);
-    (talker as unknown as Stuff & Combatant).parley();
-    expect(
-      mintedDeeds.map((d) => d.discipline),
-    ).toContain("awareness");
-  });
-
-  it("a named target parleys only that foe; the rest of the fight goes on", () => {
-    const room = makeStuff(() => new TestRoom());
-    const talker = makeFighter(room);
-    const wavering = makeFighter(room, { weaponForm: "bladed" });
-    const session = open(wavering, talker, nonLethal);
-    const stubborn = makeFighter(room, { weaponForm: "bladed" });
-    expect(
-      CombatApi.join(stubborn as never, talker as never, session.getTerms()).ok,
-    ).toBe(true);
-    breaking(session, wavering);
-
-    const r = (talker as unknown as Stuff & Combatant).parley(
-      wavering as unknown as Stuff,
-    );
-    expect(r.ok).toBe(true);
-    expect(session.isActive()).toBe(true); // stubborn is still on them
-    expect(session.getResolution()).toBeNull();
+    const session = open(person, wolf, nonLethal);
+    for (let i = 0; i < 8; i++) makeFighter(room);
+    const st = session.getState(wolf as unknown as Stuff)!;
+    st.poise.erode(0.62, 0);
+    st.woundsTaken.push("bites-deep", "bites");
+    // A person taking exactly this beating in exactly this room breaks.
+    expect(CombatApi.moraleBand(wolf)).toBe("shaken");
   });
 });
 

@@ -138,7 +138,8 @@ question the poise band answers:
   than trading with somebody reeling;
 - ⭐ **the terms.** Lethal terms lower a *sentient's* break point, because
   dying is worse than losing and a person knows it. **A beast does not
-  read terms at all.**
+  read terms at all**;
+- ⭐⭐ **who is standing there watching** — see below.
 
 Three bands (`resolute | shaken | breaking`) because a fourth would be a
 gauge. Dials `combat.morale.*`. Narrated on the beat it worsens
@@ -158,6 +159,69 @@ it and acts — yields to a foe who can take one, runs from one who cannot,
 accepts a standing break offer when shaken. A player's morale is
 computed, narrated and readable, and then the player decides. The engine
 models the stakes; the choice stays theirs.
+
+### ⭐⭐ Onlookers — third parties break up fights, and it took no verb
+
+`MoraleInputs.onlookers` is a count of **live sentients sharing the room
+who are not in the session** (`onlookersOf` in `CombatLogic`). A fight in
+front of people is a fight somebody is about to stop, and both ends know
+it — so it adds pressure to **both**, the winner included. The winner has
+the better reason: harm in front of witnesses is harm on somebody's
+account, and `accountability_events` has been recording exactly that all
+along.
+
+⭐ **This is what makes *where* you fight a decision.** A taproom brawl
+gets broken up; an alley one does not. Nobody authored either — it falls
+out of who happens to be standing there.
+
+**Two steps, not a count** (`combat.morale.onlookerWeight` 0.15,
+`combat.morale.crowdAt` 3): half weight when one or two are watching,
+full at a crowd. The categorical difference is *nobody saw* → *somebody
+saw*; a crowd is worth a little more again because a crowd is likelier to
+wade in. Banded for the same reason the output is — six watchers versus
+seven is not a distinction anybody feels. Full weight is worth roughly
+one extra foe, which is enough to matter and never enough to drown out
+how the fight is actually going.
+
+⭐ **It is not a persuasion check, a reputation read or a roll.** The
+engine counts bodies in a room, which it can do honestly, and counts
+nothing about what anybody said. There is deliberately **no perception
+gate** — a hidden watcher still counts, because concealment hides you
+from a `look` rather than from the room, and the alternative is a
+per-combatant perception sweep every beat of every fight.
+
+⚠ A beast does not care who is looking — the same `sentient` gate that
+covers the terms. Corpses do not watch; **a shade does**. And the other
+*fighters* are never onlookers: they are the fight, and being outnumbered
+is already paid for.
+
+⚠⚠ **The predicate is `!isDead()`, never `isAlive()`.** `lifecycleState`
+defaults to the empty string, so an unhydrated or unauthored body reads
+not-*alive* while standing right there — `Organism.isLivingBody` carries
+the same warning, and this read cost a green test to rediscover it.
+
+### ⚠ Why there is no verb for talking a fight down
+
+`fight parley` shipped in the consequence build and was **cut in its own
+MR review**. It spent the beat like `defend` and dissolved the edge of a
+foe reading `shaken` or `breaking`.
+
+The objection that killed it: **the engine cannot measure natural
+language, so the words were decorative.** You typed `fight parley`, the
+engine consulted `Morale`, and whatever you actually *said* was never
+read. Its docstring denied being a social minigame three separate times,
+which is what code does when it is one — and this game has no persuasion
+check anywhere, so the first one should not have arrived as a combat
+subcommand.
+
+It was redundant besides. A foe whose nerve has gone → **the opponent's
+brain's call**, not a word you type. Both want out → `break`. You want
+out and they do not → `yield`, or walk and take the parting shot.
+
+⭐ **Fleeing is the model.** It is not a verb: you type `north`, and
+`disengageImpl` resolves the traverse as a break with parting shots. You
+do the ordinary thing and the sim prices it. The onlooker read above is
+the same shape — nothing to type, and the room decides.
 
 ### ⭐ A beast does not take a yield
 

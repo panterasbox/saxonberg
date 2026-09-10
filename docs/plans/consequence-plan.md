@@ -599,16 +599,48 @@ non-fighter's exits against a beast are back down (ignored by a beast —
 honest), flee, and somebody intervening. Lens 3 chose: a wolf that takes
 surrenders is a lie the player would notice (slate Q4).
 
-### D9 — De-escalation is terms renegotiated down, never a social minigame
+### D9 — ⚠⚠ RETRACTED IN REVIEW — de-escalation is the ROOM, not a verb
 
-Per Thesis 12: `fight parley` spends the beat like `defend`; against a
-**sentient** foe whose morale read is `shaken` or `breaking` it dissolves
-that foe's edge (the `offerBreak` mechanism) and, when no edges remain,
-resolves the session as `disengage` — the declared-never-used resolution's
-first use. It credits `awareness` (reading the target is the skill; no
-diplomacy Discipline exists and this build does not add one — Deferred
-seams) at difficulty from the foe's morale band. The engine models the
-stakes; the words are roleplay.
+**What D9 said**, and W5 shipped: `fight parley` spends the beat like
+`defend`; against a **sentient** foe reading `shaken` or `breaking` it
+dissolves that foe's edge and, when no edges remain, resolves the session
+as `disengage`. It credited `awareness` rather than inventing a diplomacy
+Discipline. *The engine models the stakes; the words are roleplay.*
+
+**Why it was cut** (MR!254 review, 2026-09-10): that last sentence is the
+tell. The words being "the player's" meant the engine never read them —
+so a player typed `fight parley`, the engine consulted `Morale`, and
+whatever they actually *said* was decorative. The docstring denied being
+a social minigame three separate times, which is what code does when it
+is one. **We have no persuasion check anywhere**, and the first one
+should not arrive smuggled in as a combat subcommand.
+
+It was also redundant three ways over. Its outcomes were already covered:
+a foe whose nerve has gone → that is the opponent's brain's call (W4),
+not a word you type; both sides want out → `break`; you want out and they
+don't → `yield`, or walk and take the parting shot. ⭐ And **fleeing is
+already the model to copy** — it is not a verb at all. You type `north`;
+`disengageImpl` resolves the traverse as a break with parting shots. You
+do the ordinary thing and the sim prices it.
+
+⭐⭐ **What replaced it: `Morale` reads the room.** The true observation
+is that *you cannot usually talk your way out of a fight that has
+started — third parties break them up.* That needs no measurement of
+language: it is bodies in a room, which the engine can count honestly.
+Onlookers (live sentients present who are not in the fight) now add
+pressure to **both** ends — the winner included, because harm in front of
+witnesses is harm on somebody's account.
+
+⚠ **And it makes WHERE you fight a decision.** A taproom brawl gets
+broken up; an alley one does not. Nobody authored that; it falls out of
+who is standing there. See W5 (rewritten) and the new
+`combat.morale.onlookerWeight` / `crowdAt` dials.
+
+⚠ The no-witness case is not a hole. Two players alone need no mechanic —
+they stop, and `break` is the handshake. You and an NPC alone is the only
+case left, and the honest answer is that you concede or you run, both at a
+price. **That is the fight being worth avoiding**, which is the point of
+the build.
 
 ### D10 — Wound → poise is a second mutation after the report, plus a stored ceiling
 
@@ -903,7 +935,7 @@ the ones it touches):
 | `lint:dossiers` | D1/D2 must leave every `asserting:` fold unchanged |
 | `lint:instanceable` | `Tariff` at `/platform/thing/Tariff`; `Morale`, `WatchEngagement` under `lib/` and never instanced from a row |
 | `lint:census` / `lint:untitled` | every new `props:` path and pack path resolves and is titled |
-| `lint:arg-kinds` | `watch`, `fight parley`, the two `analyze` stanzas declare `requires:` |
+| `lint:arg-kinds` | `watch` and the two `analyze` stanzas declare `requires:` |
 | `lint:topics` | new topics `combat.footing`, `combat.aftermath`, `act.service` are authored descriptors |
 | `lint:field-meta` | `Weapon.exercises`, `Tariff.services`, `ContractRecord.watchedSec` entries well-formed |
 | `lint:schema` | `contracts` schema doc gains `watchedSec` |
@@ -1499,53 +1531,67 @@ yield is accepted when *somebody* present can take one, and the read is
 live through the Api. The gym is left measuring exactly what it measured
 before.
 
-#### W5 — de-escalation
+#### W5 — de-escalation *(⚠ shipped as `parley`, then CUT and rebuilt in review)*
 
 *Goal.* The non-fighter's exits (D9).
 
-*Files.* `packages/content/platform/content/platform/cmd/combat/fight.yaml`
-(`parley` subcommand, `requires:` on the target);
-`platform/idea/cmd/combat/FightController.ts` (`doParley` →
-`combatant.parley(target)`); `lib/combat/Combatant.ts` (`parley`
-forwards to `CombatLogic.parleyImpl`); `CombatLogic.ts` (`parleyImpl`:
-resolves the beat as `defend`; sentient + `shaken|breaking` → dissolve
-the edge via the break mechanism; no edges → `endWith(session,
-"disengage")`; credits `awareness` at difficulty from the foe's morale
-band); the `combatant` brain accepts a standing break offer when
-`shaken` (already in W4); `CombatNarration` parley lines (accepted /
-refused / "it has no ear for it"). Tests: a parley against a breaking
-duelist ends the fight as `disengage` with no loss recorded for either
-side; against a wolf it is refused; against a `resolute` foe it fails
-and costs the beat.
+*Originally shipped.* `fight parley [<target>]` — a `command-view`
+subcommand, `FightController.doParley`, `Combatant.parley()` →
+`CombatLogic.parleyImpl`, `CombatNarration.narrateParley` in three voices.
+5 tests.
 
-*Acceptance.* Drive step 23 is reachable without a martial Discipline;
-`CombatResolution.disengage` has its first caller.
+✅ **Done — as the ROOM READ, after review cut the verb.** See D9 for the
+full reasoning. In one line: *a verb for talking your way out of a fight
+is a persuasion check, and we do not have those; what actually stops
+fights is other people being there.*
 
-*Commit.* `build(consequence W5): parley — the terms renegotiated down to no fight`
+**Removed.** The `parley:` subcommand and its help/examples/arg; the
+dispatch arm and `doParley`; `Combatant.parley` (interface + method);
+`CombatLogic.parley`, `parleyImpl` and `mintParleyRead`;
+`CombatNarration.narrateParley`; the 5 tests. ⭐ Deleting `mintParleyRead`
+also disposed of an **unguarded credit farm** the review found: unlike
+`break` (which tracks `breakOfferedBeat`), parley had no per-beat guard,
+so it minted an `awareness` deed at `hard`/`success` **every beat**,
+including on refusal.
 
-✅ **Done.** 5 tests; 33 gates.
+**Added.** `MoraleInputs.onlookers` — live sentients sharing the room who
+are not in the session — fed by `onlookersOf(session, self)` in
+`CombatLogic.moraleFor`, weighted by two new dials
+(`combat.morale.onlookerWeight` 0.15, `combat.morale.crowdAt` 3).
 
-**Shipped.** `fight parley [<target>]` — a `command-view` subcommand with
-an optional target arg; `FightController.doParley`; `Combatant.parley()`
-→ `CombatLogic.parleyImpl`; `CombatNarration.narrateParley` in three
-voices (accepted · refused · deaf).
+⭐⭐ **Two steps, not a count.** The categorical difference is *nobody
+saw* → *somebody saw*; a crowd is worth a little more again because a
+crowd is likelier to wade in. Banded for the same reason the output is
+banded — six watchers versus seven is not a distinction anybody feels.
+Full weight is worth about one extra foe: enough to matter, never enough
+to drown out how the fight is actually going (there is a test for exactly
+that).
 
-It spends the beat like `defend`, dissolves the edge of any **sentient**
-foe reading `shaken` or `breaking`, and — when nothing is left to fight —
-resolves the session as **`disengage`**. ⭐ That resolution has been a
-declared member of `CombatResolution` since combat shipped with **no
-caller ever passing it to `endWith`**; this is its first use, and it is
-the right word: nobody won, nobody conceded, the fight stopped.
+⚠ **A beast does not care who is looking** — the same `sentient` gate
+that already covered the terms.
 
-⭐ **It credits `awareness`, and no diplomacy Discipline is invented.**
-What the game can honestly measure is whether you read the person in
-front of you; the words are the player's. Reading a *resolute* foe
-correctly costs the beat and still credits, at `hard` — finding out is
-also a read.
+⚠⚠ **The trap this hit, and it is written down two files away.** The
+occupancy filter first used `isAlive()`, and every onlooker vanished:
+`lifecycleState` defaults to `''`, so an unhydrated or unauthored body
+reads not-*alive* while standing right there. `Organism.isLivingBody`
+carries the warning verbatim. The predicate is `!isDead()` — **a shade
+watches you; only a corpse does not.**
 
-⚠ Against an animal it is refused with prose (D8): there is nothing in
-there to renegotiate with, the same rule as the yield. A named target
-parleys only that foe and the rest of the fight goes on.
+⚠ **`CombatResolution.disengage` is unconsumed again.** Parley was its
+only caller (and W5 originally celebrated being its first). Its right
+home is obvious and was left alone deliberately: **fleeing**. The
+function is literally called `disengageImpl` and its section header reads
+*"fleeing (disengage)"*, but today a flight that empties a session goes
+through `removeParticipant` → `dissolve()`, which records **no
+resolution at all** and fires no aftermath. Wiring that is a real
+behaviour change (a successful flight would start emitting W6's
+aftermath) and belongs to its own wave, not to a review cut.
+
+*Acceptance.* The same beating in an empty room and in a full taproom
+reads `shaken` and `breaking` respectively; other fighters are not
+counted as their own audience; a beast in a crowd is unmoved.
+
+*Commit.* `build(consequence W5): the room breaks up the fight — parley cut`
 
 #### W6 — aftermath
 
@@ -2250,7 +2296,7 @@ Each link fails closed and silent.
 | the poise read (W2) | none | — | topic `combat.footing` descriptor | `lint:topics` |
 | the credit (W3) | none (the hooks) | `onDefeated`/`onDefeatedFoe` fire from `endWith` for every named victim/killer — a yield in a melee now names one | `Weapon.exercises` on eleven rows; three Discipline rows | `DisciplineCatalogue` warms rows by descendant walk — a new row needs no list edit; **a row with a typo'd `specializes` is silently orphaned** — assert the three keys resolve in a test |
 | morale (W4) | none | the `combatant` brain is invoked by the engine each beat for every brain-driven state | `combat.morale.*` rows | as W1 |
-| parley (W5) | `fight parley <target>` | `fight.yaml` is contributed by `CombatantMixin.commandContributions` — the new subcommand rides it | `requires:` on the target arg | `lint:arg-kinds` |
+| de-escalation (W5) | **none — no verb** | — | `combat.morale.onlookerWeight` + `crowdAt` settings rows (merge-missing) | the settings pack installs them; a dial missing reads its code fallback — the `Morale` suite asserts the default behaviour directly |
 | aftermath (W6) | none | fires from `runResolutionConsumers` on every resolution path (five callers — **check all five**) | topic `combat.aftermath` | `lint:topics` |
 | `afflict` door (W7) | none | `ConditionApi` statics | — | `lint:gates` resolves the `FromModule` |
 | the effect channel (W8) | none | every arm calls `applyEffects` | 23 rows' `progression.law` + `signature` | `ConditionCatalogue.warm` stands the rows; **a row whose `law` is misspelled advances nothing, silently** — W0c's census does not catch a bad *value*; add a `lint:conditions` value check to W8a's acceptance (a 20-line sibling of `check-pathogens.ts`, in the derived roster) |
@@ -2280,7 +2326,7 @@ Each link fails closed and silent.
 | Tell a burn from a cut from a poisoning by what it does and what fixes it | W8 + W9 + W11 |
 | An author adds a new affliction by writing a row, and a player meets it | W8 (law + signature) + W9 (resolution) + W7 (a way to afflict it) + W13 (a way to meet it: `analyze patient` shows it) |
 | A medic can be wrong, find out, and is not told the answer | W13 (candidates, unranked) + W14 (the choice, graded by the body's course) |
-| No martial skill, present at violence, survives without winning | W4 (a foe that breaks) + W5 (parley, break, flee) + W8/D8 (the beast is honestly different) |
+| No martial skill, present at violence, survives without winning | W4 (a foe that breaks) + W5 (the room reads — a watched fight ends sooner) + `break`/`yield`/walking out, all pre-existing + W8/D8 (the beast is honestly different). ⚠ Rests on morale plus an open door rather than on a verb, which is the stronger reading of the criterion. |
 | Somebody not in the fight earns money — a repair, a treatment, a burial | W13 (Tariff; treatment) + W15 (repair) + W16 (burial) |
 | A second clinic, repair shop, necropolis with no new code | W13 (rejection's clinic), W15 (two shops), W16 (rows) — each wave's acceptance *runs* the test |
 | Every row of the meet-or-defy table is true of the shipped game | rows 1–3, 6, 7, 9 are true today (Grounding); row 4 (XP loss) → W12; row 5 (levels buy survivability) → W1 keeps `Sharpness` on the contest and adds nothing to the body — a gym cell asserts an expert dies to a knife at `open` exactly as fast as a novice; row 8 (flee/surrender) → W4/W5 (an NPC can now do both) |
@@ -2432,8 +2478,21 @@ Clean attach points, each leaving as a slate, none as a plan section:
 - **A pack-owned condition row** — `ConditionCatalogue.warm` walks
   `/platform/idea/Condition/` by prefix; a `/trade/<x>/idea/Condition/`
   row would not warm. The fix is a class-keyed walk. → health-vertical-slate.
-- **A diplomacy Discipline** — parley credits `awareness`; T12's
+- **A diplomacy Discipline** — nothing here measures language; T12's
   "face/diplomat career" wants its own field of study. → combat-experience-slate.
+- ⚠ **`CombatResolution.disengage` has no caller** — parley was its only
+  one and the review cut it, so it is a declared-and-unconsumed union
+  member again. Its right home is **fleeing**: `disengageImpl` already
+  carries the name, but a flight that empties a session goes through
+  `removeParticipant` → `dissolve()` and records no resolution and fires
+  no aftermath. Wiring it is a real behaviour change (a successful flight
+  would start emitting W6's aftermath), so it is a wave, not a cut. →
+  combat-experience-slate.
+- ⭐ **Intervention as an act** — a third party who `shove`s or `subdue`s
+  between two fighters already spends a beat and takes the risk; having
+  that read to both fighters' morale would make "somebody broke it up"
+  an act rather than an ambient count. W5 ships only the ambient half. →
+  combat-experience-slate.
 - **Group morale (rout & rally)** — W4 is per-combatant; T13's
   leader-down shock and ally-fleeing contagion ride the same read with
   the threat graph as input. → combat-experience-slate.
@@ -2560,7 +2619,8 @@ tariff reads and prices; `order treatment` reaches the service branch
 on the house forever); the necropolis prices burial; the smithy sells
 mending off one row and one `props:` line; `watch` is a verb the
 credential wallet affords and refuses honestly without a claim;
-`competence` and `fight parley` render.
+`competence` renders, and the fight menu names the exits that survived
+review.
 
 ### ⚠ What it found — one real defect, mine
 

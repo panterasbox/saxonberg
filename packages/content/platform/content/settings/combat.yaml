@@ -54,7 +54,8 @@ settings:
 
   # ⭐⭐ Morale — whether a fighter still wants to be in this fight.
   # Pressure in [0, ~1.5] from poise band + trend, wounds already taken,
-  # being outnumbered, allies down, and (sentient only) lethal terms.
+  # being outnumbered, allies down, who is watching, and (sentient only)
+  # lethal terms.
   # `resolute` below shakenAt, `shaken` between, `breaking` at/above
   # breakingAt. A brain acts on it; a player's is narrated and never
   # seizes their decision.
@@ -68,6 +69,21 @@ settings:
   # read terms, so this contributes nothing to one.
   - key: combat.morale.lethalWeight
     value: "0.2"
+
+  # ⭐⭐ Being watched. A fight in front of people is a fight somebody is
+  # about to stop, and BOTH sides know it — the winner most of all, since
+  # harm in front of witnesses is harm on somebody's account. Half weight
+  # when one or two are watching, full at a crowd. Sentient only.
+  #
+  # ⭐ This is what makes WHERE you fight a decision: a taproom brawl gets
+  # broken up and an alley one does not, and nobody authored either.
+  # Worth roughly one extra foe (0.15) at full — enough to matter, not
+  # enough to drown out how the fight is actually going.
+  - key: combat.morale.onlookerWeight
+    value: "0.15"
+
+  - key: combat.morale.crowdAt
+    value: "3"
 
   # Ambush (stealth build): the poise an unaware defender loses at the
   # opening when struck from concealment. Poise starts at 1.0 and breaks at

@@ -25,6 +25,10 @@
  *   - **The poise read renders.** Textiles found three defects exactly
  *     here — the card surface treats `look` and combat lines differently,
  *     and an envelope assertion cannot see a rendering.
+ *   - **The ways out of a fight are the ones that survived review.**
+ *     `fight parley` was cut (see the step-23 assertion); what the wire
+ *     proves is that the menu still names the honest exits and no longer
+ *     names the retired one.
  *
  * ⚠⚠ **What is NOT driveable, and must not be faked.** Steps 6–7 and
  * 15–19 need a competence history and a death, both of which take game
@@ -262,10 +266,18 @@ suite('the reads render (steps 1-5, 16-18)', () => {
     expect(said, 'bands, never a scalar').not.toMatch(/0\.\d/);
   }, 60_000);
 
-  it('⭐ `fight parley` is on the fight menu — the non-fighter’s exit (step 23)', async () => {
+  it('⭐ the fight menu names the ways OUT of a fight (step 23)', async () => {
+    // ⚠ `fight parley` was cut in review — talking your way out of a
+    // started fight is a persuasion check wearing a costume, and this
+    // game has none. The exits it leaves are the honest ones: concede,
+    // offer a mutual stand-down, or walk and take one in the back. The
+    // fourth is not a verb at all — the foe's own nerve going.
     const help = await patient.cmd('help fight');
     expectOk(help);
-    expect(await help.said()).toMatch(/parley/i);
+    const said = await help.said();
+    expect(said).toMatch(/yield/i);
+    expect(said).toMatch(/break/i);
+    expect(said, 'and the retired verb stays retired').not.toMatch(/parley/i);
   }, 60_000);
 
   it('the medical verbs answer', async () => {

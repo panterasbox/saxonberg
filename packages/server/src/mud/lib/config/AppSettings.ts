@@ -796,13 +796,23 @@ export const AppSettingKeys = {
   /**
    * ⭐⭐ Combat — **the break points for the morale read.** Pressure
    * accumulates from poise band and trend, wounds already taken, being
-   * outnumbered, allies down, and — for a sentient only — whether the
-   * terms authorize a kill. Three bands, because a fourth would be a
-   * gauge. Nothing is stored; the read is a pure function of live state.
+   * outnumbered, allies down, who is standing there watching, and — for a
+   * sentient only — whether the terms authorize a kill. Three bands,
+   * because a fourth would be a gauge. Nothing is stored; the read is a
+   * pure function of live state.
    */
   combatMoraleShakenAt: "combat.morale.shakenAt",
   combatMoraleBreakingAt: "combat.morale.breakingAt",
   combatMoraleLethalWeight: "combat.morale.lethalWeight",
+  /**
+   * ⭐⭐ Combat — **what being watched is worth.** A fight in front of
+   * people is a fight somebody is about to stop, and both sides know it,
+   * so onlookers push both ends toward wanting out. Two steps, not a
+   * count: half weight when one or two are watching, full at `crowdAt`.
+   * Sentient only — a beast does not care who is looking.
+   */
+  combatMoraleOnlookerWeight: "combat.morale.onlookerWeight",
+  combatMoraleCrowdAt: "combat.morale.crowdAt",
   /**
    * Combat — the poise an **ambush** strips from an unaware defender at the
    * opening (a struck-from-concealment surprise). Large enough to cross
