@@ -1,0 +1,23 @@
+# Bludgeons — the mace, the warhammer, the club: the specialist's command
+# of a weapon that wins by mass rather than by edge. A specialization of
+# melee-combat, credited on any exchange delivered with a weapon whose row
+# authors `exercises: [bludgeons]`.
+#
+# ⭐ It exists because the sim already tells the practice apart: a hafted
+# head carries its mass at the far end, which is why it breaks a guard and
+# why it is slow to recover from. What it does NOT do is derive from that
+# — a discipline is how people organise knowledge, not a function of
+# kilograms, so the weapon row says which one it trains.
+class: /platform/idea/Discipline
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  key: bludgeons
+  channel: skill
+  label: Bludgeons
+  iscedf: "1014"
+  specializes:
+    - melee-combat
+  description: >-
+    Mass at the end of a haft — the mace, the hammer, the club. The
+    bludgeoner wins by breaking a guard rather than by finding a gap, and
+    pays for every swing they do not land.

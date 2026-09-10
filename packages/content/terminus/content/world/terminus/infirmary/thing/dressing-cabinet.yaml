@@ -1,0 +1,15 @@
+# The dressing cabinet — a plain container of bandages. ⭐ It is a
+# CONTAINER rather than a `Stock` counter on purpose: the dressings are
+# the house's supplies, part of what `order treatment` buys, not a
+# separate retail line. A patient who wants to buy a bandage and do it
+# themselves goes to the general store.
+#
+# `Chest` is the shipped openable-container class; the doors stand open.
+class: /platform/thing/Chest
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: a tall dressing cabinet
+  primaryKeyword: cabinet
+  keywords: [cabinet, dressings, bandages, cupboard]
+  longDescription: |
+    A tall pine cabinet with its doors folded back, the shelves stacked with folded linen in graded sizes, a jar of lint, and a coil of clean cloth on a wooden former.

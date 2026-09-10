@@ -26,6 +26,7 @@ import { Construction } from "../src/mud/lib/material/Construction";
 
 const EXIT_ON_FINDINGS = true; // CI-gating
 const WEAPON_CLASS = "/platform/thing/equipment/Weapon";
+const DISCIPLINE_CLASS = "/platform/idea/Discipline";
 
 const SEEDS_DIR = fileURLToPath(new URL("../src/mud/seeds", import.meta.url));
 const CONTENT_DIR = fileURLToPath(new URL("../../content", import.meta.url));
@@ -69,11 +70,44 @@ function inputsFromSeed(data: Record<string, unknown>): WeaponProfileInputs {
   };
 }
 
+/**
+ * ⭐ Every Discipline key any shipped row declares. Read from the rows
+ * rather than from a list in this file, so a new Discipline needs no edit
+ * here (the derived-roster rule applied to content).
+ */
+function shippedDisciplineKeys(files: readonly string[]): Set<string> {
+  const keys = new Set<string>();
+  for (const file of files) {
+    try {
+      const doc = YAML.parse(readFileSync(file, "utf8")) ?? {};
+      if (doc.class !== DISCIPLINE_CLASS) continue;
+      const key = (doc.data ?? {}).key;
+      if (typeof key === "string" && key) keys.add(key);
+    } catch {
+      continue;
+    }
+  }
+  return keys;
+}
+
+const rel = (f: string): string =>
+  f.replace(SEEDS_DIR, "seeds").replace(CONTENT_DIR, "content");
+
 function main(): void {
   const findings: string[] = [];
   let weapons = 0;
 
-  for (const file of templateRoots().flatMap((r) => [...walkYaml(r)])) {
+  const files = templateRoots().flatMap((r) => [...walkYaml(r)]);
+  // ⚠⚠ **The second silent failure a weapon row can have.** `exercises`
+  // names the Disciplines fighting with this thing practises, and the
+  // credit walk simply adds whatever it finds to the exercised set. A
+  // typo names a Discipline that does not exist: the transcript gets a
+  // row for it, `bandsFor` groups it, nothing ever resolves it, and the
+  // author sees a weapon that "trains something" which no competence
+  // read will ever surface. Closed and silent, exactly like an inert
+  // profile — so it is checked in the same walk.
+  const disciplines = shippedDisciplineKeys(files);
+  for (const file of files) {
     let doc: { class?: string; data?: Record<string, unknown> };
     try {
       doc = YAML.parse(readFileSync(file, "utf8")) ?? {};
@@ -82,10 +116,27 @@ function main(): void {
     }
     if (doc.class !== WEAPON_CLASS) continue;
     weapons++;
+    const exercises = (doc.data ?? {}).exercises;
+    if (exercises !== undefined) {
+      if (!Array.isArray(exercises)) {
+        findings.push(
+          `${rel(file)}: 'exercises' must be a list of Discipline keys`,
+        );
+      } else {
+        for (const key of exercises) {
+          if (typeof key !== "string" || !disciplines.has(key)) {
+            findings.push(
+              `${rel(file)}: exercises '${String(key)}' — no Discipline row ` +
+                `declares that key (the credit would be written and never read)`,
+            );
+          }
+        }
+      }
+    }
     const profile = WeaponProfile.derive(inputsFromSeed(doc.data ?? {}));
     if (profile.isInert()) {
       findings.push(
-        `${file.replace(SEEDS_DIR, "seeds").replace(CONTENT_DIR, "content")}: derives an INERT WeaponProfile ` +
+        `${rel(file)}: derives an INERT WeaponProfile ` +
           `(no delivery form — check 'constructionForm')`,
       );
     }
@@ -93,7 +144,9 @@ function main(): void {
 
   if (findings.length === 0) {
     console.log(
-      `check-inert-weapon: all ${weapons} weapon seed(s) derive a real playstyle.`,
+      `check-inert-weapon: all ${weapons} weapon seed(s) derive a real ` +
+        `playstyle and name only real Disciplines ` +
+        `(${disciplines.size} shipped).`,
     );
     return;
   }

@@ -18,3 +18,5 @@ data:
   length: 1.1
   slotClaims:
     "/stuff/idea/species/BodyPlan/biped": ["hand:left", "hand:right"]
+  # ⭐ A hammer is a mace that has committed further.
+  exercises: [bludgeons]

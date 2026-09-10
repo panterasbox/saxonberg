@@ -18,6 +18,8 @@
  * (calibration against real evidence) is deferred to a running game.
  */
 
+import { DIFFICULTIES, type Difficulty } from "./ActSignature";
+
 export type CompetenceBandName =
   | "untrained"
   | "novice"
@@ -75,6 +77,76 @@ export class CompetenceBand {
     threshold: CompetenceBandName
   ): boolean {
     return CompetenceBand.rank(current) >= CompetenceBand.rank(threshold);
+  }
+
+  /**
+   * `n` bands below `band`, floored at `untrained`. Band arithmetic
+   * lives beside the band vocabulary because both are pure.
+   *
+   * Two consumers, deliberately different in kind: the estimator's
+   * **floor** (one band below best-ever — a veteran who loses is rusty,
+   * not reset) and the body's **suppression** (a temporary global
+   * lowering after death, applied at the read and never written down).
+   */
+  public static lowered(
+    band: CompetenceBandName,
+    n: number,
+  ): CompetenceBandName {
+    if (n <= 0) return band;
+    const at = Math.max(0, CompetenceBand.rank(band) - Math.floor(n));
+    return COMPETENCE_BANDS[at] ?? CompetenceBand.FLOOR;
+  }
+
+  /** One band below `band`, floored at `untrained`. */
+  public static oneBelow(band: CompetenceBandName): CompetenceBandName {
+    return CompetenceBand.lowered(band, 1);
+  }
+
+  /** The higher of two bands. */
+  public static higher(
+    a: CompetenceBandName,
+    b: CompetenceBandName,
+  ): CompetenceBandName {
+    return CompetenceBand.rank(a) >= CompetenceBand.rank(b) ? a : b;
+  }
+
+  /**
+   * ⭐ **How hard a contest against `theirs` is, for someone at `mine`.**
+   *
+   * The band ladder and the difficulty ladder are the same five rungs, so
+   * the rank gap maps straight across: an equal opponent is `standard`,
+   * each rung they hold above you is one step harder, each rung below one
+   * step easier, clamped at the ends. Beating somebody two bands above
+   * you is `formidable` and teaches you a great deal; losing to them is
+   * unsurprising and (by {@link Competence.derive}'s above-band rule)
+   * costs you nothing at all.
+   *
+   * ⚠ The referent is a **contest**, not a task — which is why it lives
+   * here rather than on any one subsystem. A fight uses it; so could a
+   * negotiation or a race.
+   */
+  public static difficultyAgainst(
+    mine: CompetenceBandName,
+    theirs: CompetenceBandName,
+  ): Difficulty {
+    const gap = CompetenceBand.rank(theirs) - CompetenceBand.rank(mine);
+    const mid = DIFFICULTIES.indexOf("standard");
+    const at = Math.max(0, Math.min(DIFFICULTIES.length - 1, mid + gap));
+    return DIFFICULTIES[at] ?? "standard";
+  }
+
+  /**
+   * ⭐ The band a check of this difficulty is *expected* to be met by —
+   * the identity map between the two five-rung ladders.
+   *
+   * `trivial↔untrained … formidable↔expert`. Read by the estimator's
+   * above-band rule: a failure at a difficulty above your band is not
+   * evidence about you, because nobody at your band was expected to pass
+   * it.
+   */
+  public static bandFor(difficulty: Difficulty): CompetenceBandName {
+    const at = DIFFICULTIES.indexOf(difficulty);
+    return COMPETENCE_BANDS[at < 0 ? 0 : at] ?? CompetenceBand.FLOOR;
   }
 
   /** Whether a value is a recognized band name. */

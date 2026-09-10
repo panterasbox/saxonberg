@@ -16,13 +16,17 @@ import { StuffApi } from "../../../api/stuff";
 import { ContainmentApi } from "../../../api/containment";
 import { WorldClockApi } from "../../../api/worldclock";
 import "../../../platform/idea/WorldClockRegistry";
+import Condition from "../../../platform/idea/Condition";
 import {
   makeStuff,
+  makeStuffAtPath,
   stampTemplatePathForTest,
 } from "../../security/__tests__/test-setup";
 import { installV1QuantityMarshallers } from "../../persistence/__tests__/quantity-marshaller-test-helpers";
 import type { SustainedEffect, AfflictionRecord } from "../../../platform/idea/Condition";
 import type { MagicProvenance } from "../Grid";
+
+const DREAD_PATH = "/platform/idea/Condition/magic/dread";
 
 class TestCharacter extends Character {}
 class TestOrb extends LightSourceMixin(Thing) {
@@ -148,10 +152,24 @@ describe("SustainedEffect — the modifier condition kind", () => {
   });
 
   it("a magic-tagged affliction decays on the authored timescale (dread)", () => {
+    // ⚠ The row must be WARM. Since the consequence build the decay law
+    // is declared on the row (`progression.law: decay`) rather than
+    // inferred from the record carrying a `magicOrigin`, so an unwarmed
+    // row means no decay. `ConditionCatalogue` warms every row at boot
+    // and warns loudly on a stand-up failure; a unit test has to stand
+    // its own.
+    if (!StuffApi.findByTemplatePath(DREAD_PATH)) {
+      makeStuffAtPath(() => {
+        const c = new Condition();
+        c.setName("dread");
+        c.setProgression({ law: "decay" });
+        return c;
+      }, DREAD_PATH);
+    }
     const actor = makeActor();
     const dread: AfflictionRecord = {
       kind: "affliction",
-      templatePath: "/platform/idea/Condition/magic/dread",
+      templatePath: DREAD_PATH,
       stage: 2,
       elapsed: 0,
       magicOrigin: { ...ORIGIN, verb: "destroy", noun: "mind", spellId: "dread" },

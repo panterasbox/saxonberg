@@ -25,7 +25,7 @@ const VALID: BodyPart[] = [
   {
     key: 'body.torso.heart',
     parent: 'body.torso',
-    governsVital: 'heartRate',
+    governs: ['heartRate'],
     tissues: [{ tissuePath: '/stuff/idea/material/tissue/muscle', mass: 0.3 }],
   },
 ];

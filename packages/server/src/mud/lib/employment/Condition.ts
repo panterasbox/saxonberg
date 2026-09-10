@@ -52,8 +52,28 @@ import type { Stuff } from "../stuff/Stuff";
  * human adjudicating, because escrow holds real money. That is the wall
  * fuzzier intents ("guard my shop", "be nice to Mara") sit behind, and
  * it is the reason this list is closed rather than authored.
+ *
+ * ## ⭐⭐ `watch` — and it took kernel code, which is the finding
+ *
+ * *"Guard my shop"* was the canonical example of what sits BEHIND the
+ * wall, and the consequence build asked whether it could be expressed on
+ * the shipped board. It could not, and stating that loudly was the
+ * requirement: a third template plus a phrase, a `watchedSec` accrual on
+ * the record, an engagement and a verb — four kernel touches.
+ *
+ * ⭐ What makes it checkable is **giving up on intent entirely**. The
+ * engine cannot verify that you *protected* anything: whether a theft was
+ * deterred is counterfactual, and whether you were "attentive" is not a
+ * modelled fact. What it CAN verify is that you were **present, for N
+ * hours, with your hands free** — and that turns out to be what a guard
+ * actually sells. Somebody standing in the door is the product; the
+ * absence of trouble is the hoped-for consequence, not the deliverable.
+ *
+ * ⚠ Which means a guard who watched the full term and was robbed blind
+ * still gets paid. That is correct, and it is the same reason a delivery
+ * pays on arrival rather than on the client being pleased.
  */
-export const CONDITION_TEMPLATES = ["delivery", "supply"] as const;
+export const CONDITION_TEMPLATES = ["delivery", "supply", "watch"] as const;
 
 export type ConditionTemplate = (typeof CONDITION_TEMPLATES)[number];
 
@@ -91,6 +111,12 @@ export interface ConditionData {
    * which is the one-of-something case.
    */
   count?: number;
+  /**
+   * ⭐ `watch` only: how many game-hours of presence the term is. The
+   * clause holds when the claimant has accrued at least this much watch
+   * on the contract's own record.
+   */
+  gameHours?: number;
 }
 
 /** How deep the upward ancestor walk goes (a chest inside a room is 2). */
@@ -123,6 +149,12 @@ export class Condition {
       return "item must be template-, chattel- or category-bound";
     }
     if (!d.destinationPath) return "condition needs a destinationPath";
+    if (d.template === "watch") {
+      const h = d.gameHours;
+      if (typeof h !== "number" || !Number.isFinite(h) || h <= 0) {
+        return "a watch condition needs an hour count greater than zero";
+      }
+    }
     if (d.template === "supply") {
       const n = d.count;
       // ⚠ Whole things are counted in wholes; litres and kilos are not.
@@ -155,6 +187,21 @@ export class Condition {
       data.item.category,
       data.item.unit,
     );
+  }
+
+  /**
+   * ⭐⭐ Whether a `watch` clause holds — the accrued watch against the
+   * term.
+   *
+   * ⚠ Deliberately NOT a `holdsFor(data, item)`: there is no item. That
+   * asymmetry is the whole shape of the finding — the shipped clause
+   * vocabulary is *"a thing is at a place"*, and a guard contract is
+   * *"a person was at a place, for a while"*, which the existing
+   * predicate cannot express however it is squeezed.
+   */
+  public static watchHolds(data: ConditionData, watchedSec: number): boolean {
+    if (data.template !== "watch") return false;
+    return watchedSec >= Math.max(0, data.gameHours ?? 0) * 3600;
   }
 
   /** How many the condition asks for — 1 unless it is a counted supply. */

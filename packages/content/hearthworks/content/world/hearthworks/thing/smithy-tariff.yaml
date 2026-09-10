@@ -1,0 +1,22 @@
+# ⭐ The smithy's OTHER slate — what the smith charges to mend what you
+# already own, as distinct from what she charges to make you something
+# new. That distinction is exactly the gap `Tariff` fills: `repair` costs
+# materials and a forge, and until now there was no way to be paid for
+# it at all.
+#
+# ⚠ A repair is priced well under making the thing fresh (a belt-knife is
+# 15 new, mending one is 5), which is the whole reason to own gear rather
+# than replace it — and the reason a fight that ruins your armour is a
+# bill rather than a shopping trip.
+class: /platform/thing/Tariff
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: a second slate, for mending
+  primaryKeyword: mending
+  keywords: [mending, tariff, repairs, second slate]
+  longDescription: |
+    A smaller slate hung beside the first, this one for mending rather than making. Two words and a figure, wiped and rewritten often enough that the chalk has gone into the grain.
+  prices:
+    repair: 5
+  services:
+    repair: repair

@@ -12,6 +12,62 @@ Read [vitals.md](./vitals.md) and [harm.md](./harm.md) first — this drives
 their substrate. [sandbox.md](./sandbox.md) matters more than it looks:
 death reuses its crossing machinery, backwards.
 
+## ⭐ The grave — `Postmortem.interIn`
+
+`Postmortem` has always run a decay clock and a forensic-readability
+curve, and until the consequence build **nothing read the curve and
+nothing ended the clock**: a body lay where it fell until the residency
+sweep took it.
+
+`interIn(grave)` does three things, each the end of something: the body
+moves into the grave, a deed lands on the **deceased's own** chronicle
+(being buried is a fact about you, not about the undertaker), and the
+corpse **withdraws its eviction objection** — a grave is exactly the
+place a body is meant to stop being the world's problem.
+
+⚠ It is on the BODY rather than on the grave or in a funerary Api,
+because being interred is something that happens to a corpse: it already
+owns the postmortem clock and the eviction opinion, and burial ends both.
+Composed on `Creature`, so "every creature can be buried" — honest,
+including for a hanging carcass.
+
+Sold as `order burial <body>` off a necropolis `Tariff`. ⭐ The price is
+the dearest of the three services on purpose: the ground is finite, the
+digging is real work, and a price that made burying somebody trivial
+would make the grave a bin.
+
+## ⭐⭐ The recuperation model — dying diminishes everything, briefly
+
+**Losing a fight and dying are deliberately different punishments.**
+Losing costs you along the Disciplines the fight actually used — that is
+the game teaching you honestly, and it goes in the ledger as evidence.
+Dying is not teaching; it is punishment. So it costs you **across the
+board**, it **fades**, and it **writes nothing down**.
+
+The mechanism is one row. `mortality/recovering` — already applied by the
+floor route (`passage`) as the price of coming back cheap — authors
+`signature: [{kind: expression, bands: 2}]` and `resolution: {by: rest,
+atStage: 12}`. `VitalsMixin.expressionSuppression()` derives the live cost
+(two bands for six game-hours, one for six more, then clear) and
+`AdvancementMixin` applies it at its **four read surfaces**
+(`competenceBandFor`, `competenceBands`, `practisingCompetenceCached`,
+`competenceDigestCached`).
+
+⚠⚠ **The Transcript is byte-identical before and after.** `chronicle`
+shows no new row and nothing is rewritten; only what you can currently
+*express* falls. That is the whole difference between punishment and a
+lie about your history — and it is what makes the diminishment safe to be
+this heavy-handed.
+
+⭐ `competence` shows **both facts at once**: the lowered bands, and a
+line saying you are recovering and nothing has been forgotten. A player
+who saw only the lowered bands would reasonably believe dying had eaten
+their record.
+
+⭐ A **better way back** is the same row at a later stage: a `revive`
+service afflicts `recovering` at `stage: 6` — one band, six hours, zero
+new rows. That is what a resurrection service sells.
+
 ## The shape
 
 ```

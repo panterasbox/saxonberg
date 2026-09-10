@@ -1,0 +1,13 @@
+# The Necropolis — Terminus's burial ground, out past Mayfield Row where
+# the rock goes soft enough to cut.
+#
+# ⭐ It exists because the consequence build gave a corpse somewhere to
+# go. `Postmortem` has always run a decay clock and a forensic-readability
+# curve; until now nothing read the curve and nothing ended the clock, so
+# a body simply lay where it fell until the residency sweep took it. A
+# grave is the honest terminus, and somebody is paid to dig it.
+class: /platform/idea/location/CartesianZone
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  name: The Necropolis
+  cellSize: 4.0

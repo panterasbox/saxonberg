@@ -15,6 +15,53 @@ Heavy reuse, few new primitives: `Business`/employment
 (generalized). The net-new pieces are the **retail counter**, the
 **consignment listing**, and the **shared price-list**.
 
+## ⭐⭐ The priced SERVICE — `Tariff`
+
+A `Menu` prices **recipes** (make me this) and the `Stock` counter prices
+**items** (sell me that). Neither can price *something done to what you
+already have*, and that is what a repair shop, a clinic and a necropolis
+sell.
+
+⚠ **The gap was total.** No shipped priced key resolved to anything but a
+recipe or a stock line, so paying for a repair, a treatment or a burial
+had **no path at all** — and the one paid service in the whole tree, the
+TPA fare, was pack code rather than content. The wreckage a fight leaves
+could not become anybody's work.
+
+`/platform/thing/Tariff` = `PricedOfferMixin(DetailedMixin(Thing))` plus
+`services: Record<offerKey, ServiceKind>` over a **closed kernel
+vocabulary** — `repair` · `treatment` · `burial`. `OrderController`
+orchestrates each. Closed and kernel-owned on purpose: a venue that could
+define its own service kinds would need pack code, and then a second
+venue would need pack code too. ⭐ **A second clinic is a `Tariff` row and
+a `Business` row** — the shipped proof is a repair tariff at the
+hearthworks smithy and a second one, at a different price, in the
+Rejection provisioning shed.
+
+`PricedOfferMixin.collect(key, reason)` is the one settlement path, lifted
+out of `OrderController.charge` so a `Menu` and a `Tariff` share it.
+Income keys on the **Business** account (the same account shift wages come
+out of); `ensureOperatorAt` stands the business up lazily on the first
+sale; credential first, then cash. ⚠ **Every failure is "on the house",
+never a throw** — no operator, no bank, no funds: the customer is served
+and nothing is taken.
+
+### ⚠⚠ The customer is the one who asks
+
+`BankingLogic.settle` derives the payer from **execution context** and
+takes no payer parameter. So a service is *bought* (`order treatment`)
+rather than billed to a bystander mid-`treat`. That is a real constraint
+and the right one: letting one player initiate a debit against another is
+a consent question far larger than a priced clinic.
+
+⭐ It is also why **`revive` is not in the vocabulary.** A paid revival
+was the obvious third service and it is unbuildable as an `order`:
+`requiresEmbodied` names *buy* among the embodied acts a shade loses —
+*"Death costs embodied agency and the price of coming back; it never
+costs a seat as a person."* A shade cannot purchase anything. The two
+routes out — a third-party payer, or an option on `passage` — are both
+real design, and neither is decided in passing. → mortality-slate.
+
 ## The shared price-list (`PricedOfferMixin`)
 
 Extracted from the bar's `Menu` so the bar and the store share one offer

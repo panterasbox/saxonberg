@@ -49,7 +49,7 @@ function anatomicalCreature(): Creature {
     {
       key: 'body.torso.heart',
       parent: 'body.torso',
-      governsVital: 'heartRate',
+      governs: ['heartRate'],
       tissues: [{ tissuePath: '/stuff/idea/material/tissue/muscle', mass: 0.3 }],
     },
   ]);
@@ -73,7 +73,7 @@ describe('VitalsMixin — anatomy resolver', () => {
     const keys = creature.getParts().map((p) => p.key);
     expect(keys).toContain('body.torso');
     expect(keys).toContain('body.arm.left.hand');
-    expect(creature.getPart('body.torso.heart')?.governsVital).toBe(
+    expect(creature.getPart('body.torso.heart')?.governs?.[0]).toBe(
       'heartRate',
     );
   });

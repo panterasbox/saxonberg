@@ -40,6 +40,7 @@ import type { EnergyInflictSpec, ShockInflictSpec } from "../../../api/condition
 import type { ConductionOutcome } from "../../../api/electricity";
 import { Quantity } from "../../../lib/quantity";
 import Weapon from "../../thing/equipment/Weapon";
+import { TRAUMA_BEHAVIOR } from "../Condition";
 import type { OutcomeBand } from "../../../api/material";
 import type { BrainContext, BrainStatics } from "../../../lib/behavior/brain";
 import {
@@ -73,7 +74,16 @@ import {
   type Lethality,
   type StopCondition,
 } from "../../../lib/combat/CombatTerms";
-import { Poise, type PoiseConfig } from "../../../lib/combat/Poise";
+import {
+  Poise,
+  type PoiseBand,
+  type PoiseConfig,
+} from "../../../lib/combat/Poise";
+import {
+  Morale,
+  type MoraleBand,
+  type MoraleConfig,
+} from "../../../lib/combat/Morale";
 import { Tempo, type TempoConfig } from "../../../lib/combat/Tempo";
 import { CombatFlags } from "../../../lib/combat/CombatFlags";
 import type { RangeState } from "../../../lib/combat/CombatGraph";
@@ -106,6 +116,7 @@ import {
   CombatNarration,
   type ExchangeOutcome,
   type BeatIntensity,
+  type AftermathReport,
 } from "../../../lib/combat/CombatNarration";
 import type {
   OpenSessionResult,
@@ -291,12 +302,45 @@ export class CombatLogic extends ApiLogic {
     return bandBetweenImpl(a, b);
   }
 
+  /**
+   * The actor's live morale band, or null out of combat. Read by the
+   * `combatant` brain (which acts on it) and by `assess` (which shows it
+   * to a player, who then decides for themselves).
+   */
+  @CallSecurity(CombatantCallers)
+  public moraleBand(actor: Stuff): MoraleBand | null {
+    const session = sessionForImpl(actor);
+    const state = session?.getState(actor);
+    if (!session || !state) return null;
+    return moraleFor(session, state);
+  }
+
   @CallSecurity(CombatantCallers)
   public yieldFight(actor: Stuff): boolean {
     const session = sessionForImpl(actor);
     if (!session) return false;
+    // ⭐ **A beast does not take a yield.** Surrender is a contract, and
+    // one of the parties has to be able to hold up their end. A wolf that
+    // accepted one would be a lie the player would notice the moment it
+    // kept eating them — so the yield is refused with prose, and the
+    // non-fighter's exits against an animal are the honest ones: back
+    // down (which it ignores), run, or somebody intervening.
+    const liveFoes = session
+      .getStates()
+      .filter((st) => !st.down && st.combatant !== actor);
+    if (liveFoes.length > 0 && !liveFoes.some((st) => safeIsSentient(st.combatant))) {
+      CombatNarration.narrateYieldRefused(actor);
+      return false;
+    }
     // The yielding actor loses; the fight ends on the yield terminus.
-    const opp = session.opponentState(actor)?.combatant;
+    // ⚠ `opponentState` is null in any fight that is not exactly
+    // two-sided, so a yield in a melee named nobody and fired no
+    // `onDefeatedFoe` — the victor of a three-way was credited with
+    // nothing. Fall back to who last landed a blow, then to the sole
+    // remaining live foe.
+    const opp =
+      session.opponentState(actor)?.combatant ??
+      soleLiveFoe(session, actor);
     endWith(session, "yield", actor, opp);
     if (opp) runResolutionConsumers(session, opp, actor, false, false);
     return true;
@@ -453,6 +497,17 @@ function sharpnessConfig(): SharpnessConfig {
   return {
     min: dial(K.combatSharpnessMin, 0.35),
     max: dial(K.combatSharpnessMax, 1),
+  };
+}
+
+function moraleConfig(): MoraleConfig {
+  const K = AppSettingKeys;
+  return {
+    shakenAt: dial(K.combatMoraleShakenAt, 0.45),
+    breakingAt: dial(K.combatMoraleBreakingAt, 0.75),
+    lethalTermsWeight: dial(K.combatMoraleLethalWeight, 0.2),
+    onlookerWeight: dial(K.combatMoraleOnlookerWeight, 0.15),
+    crowdAt: dial(K.combatMoraleCrowdAt, 3),
   };
 }
 
@@ -1051,10 +1106,12 @@ function openSessionImpl(
   const aState = deriveState(initiator);
   aState.side = safeSideOf(initiator);
   aState.competenceBand = bandFromOpts(initiator, opts);
+  if (safeIsSentient(initiator)) aState.contestBand = aState.competenceBand;
   aState.deliberateTarget = defender;
   const bState = deriveState(defender);
   bState.side = safeSideOf(defender);
   bState.competenceBand = bandFromOpts(defender, opts);
+  if (safeIsSentient(defender)) bState.contestBand = bState.competenceBand;
   // Ambush — surprise DENIES the opening poise contest: an unaware defender
   // (struck from concealment they didn't perceive) starts broken/open,
   // arming the aggressor's free first exchange. Erode from full poise at
@@ -1139,6 +1196,7 @@ function joinImpl(
   const state = deriveState(joiner);
   state.side = safeSideOf(joiner);
   state.competenceBand = bandFromOpts(joiner, opts);
+  if (safeIsSentient(joiner)) state.contestBand = state.competenceBand;
   state.deliberateTarget = target;
   const hold = session.addParticipant(state);
   if (!SchedulerApi.start(hold).ok) {
@@ -1178,6 +1236,29 @@ function mergeImpl(a: CombatSession, b: CombatSession): void {
 }
 
 /** Build a combatant's transient fight state from its body + gear. */
+/**
+ * Lower a fresh gauge's recovery ceiling for the wounds the body is
+ * already carrying, worst first. Reuses the same per-band multipliers a
+ * blow landing mid-fight applies, so "entering cut" and "being cut" are
+ * priced identically — one rule, read twice.
+ */
+function seedWoundCeiling(poise: Poise, combatant: Stuff): void {
+  if (!MixinApi.isVitals(combatant)) return;
+  const K = AppSettingKeys;
+  const floor = dial(K.combatWoundCeilingFloor, 0.4);
+  for (const c of combatant.getConditions()) {
+    if (c.kind !== "trauma") continue;
+    const band = MaterialApi.severityToBand(c.severity);
+    const mult =
+      band === "bites-deep"
+        ? dial(K.combatWoundCeilingBitesDeep, 0.6)
+        : band === "bites"
+          ? dial(K.combatWoundCeilingBites, 0.85)
+          : 1;
+    if (mult < 1) poise.lowerCeiling(Math.max(floor, poise.ceiling() * mult));
+  }
+}
+
 function deriveState(combatant: Stuff & Engaged): CombatantState {
   const inputs = {
     encumbrance: MixinApi.isLoadBearing(combatant)
@@ -1190,9 +1271,17 @@ function deriveState(combatant: Stuff & Engaged): CombatantState {
     balanceFactor: balanceFactorOf(combatant),
   };
   const tempo = new Tempo(Tempo.rateFor(inputs, tempoConfig()));
+  const poise = new Poise(poiseConfig());
+  // ⭐ **A fighter who walks in already cut walks in already capped.** The
+  // wound ceiling is session-scoped, but the wounds are not — so a fight
+  // picked the morning after a bad one starts from the body's live trauma
+  // rather than from a clean slate. Without this seeding, breaking off to
+  // heal and immediately re-engaging would be free, and the whole
+  // "staying cut keeps you losing" claim would last exactly one session.
+  seedWoundCeiling(poise, combatant);
   return {
     combatant,
-    poise: new Poise(poiseConfig()),
+    poise,
     tempo,
     flags: new CombatFlags(),
     queuedGambit: null,
@@ -1209,6 +1298,19 @@ function deriveState(combatant: Stuff & Engaged): CombatantState {
     deliberateTarget: null,
     openingArmedBy: null,
     bandSeen: null,
+    exercised: new Set<string>(),
+    exchangesWon: 0,
+    exchangesLost: 0,
+    woundsTaken: [],
+    // A beast's danger is its BODY, resolved here where the dial-backed
+    // profile config lives; a sentient's is overwritten with the
+    // snapshotted competence band by the caller (`bandFromOpts`).
+    moraleSeen: null,
+    contestBand: safeIsSentient(combatant)
+      ? CompetenceBand.FLOOR
+      : CompetenceBand.bandFor(
+          NaturalAttack.difficultyFor(actorStrikeProfile(combatant)),
+        ),
   };
 }
 
@@ -1863,10 +1965,35 @@ function resolveExchange(
     beat,
   );
 
-  // Advancement: the actor earns credit for the exchange (self-credit
-  // only). Minted for the player-driven side; a brain-driven beast needs
-  // no transcript. Fire-and-forget — never blocks the beat.
-  mintExchangeSignature(actorState, targetState, outcome);
+  // ⭐⭐ **Advancement is tallied here and CREDITED ONCE, at resolution.**
+  //
+  // This used to mint an `ActSignature` every exchange, for the
+  // player-driven side, at a difficulty read off the *target's poise
+  // band*. Two things were wrong with that and both were measured:
+  //
+  //   - **A fight's verdict drowned in its beats.** Twenty rows per fight
+  //     meant a loser who won eight of twenty exchanges netted *up*. The
+  //     thing a player experiences — *I lost that fight* — was the one
+  //     thing the ledger never recorded.
+  //   - ⚠⚠ **It was a live de-ranking machine.** A whiff mints `failure`,
+  //     and a whiff against an opening opponent reads `easy` — the
+  //     maximal-sting case the estimator has (Δθ ≈ −0.22). Characters on
+  //     the live world were being de-ranked for missing.
+  //
+  // So: tally what was *exercised* and how the exchanges went; the two
+  // resolution hooks (`onDefeated` / `onDefeatedFoe`) write one signature
+  // per side, graded against the opponent. W0d's floor and above-band
+  // rule are what make that verdict safe to write at all.
+  noteExercise(actorState);
+  if (outcome === "whiff" || outcome === "parried" ||
+      outcome === "control-resisted") {
+    actorState.exchangesLost++;
+    targetState.exchangesWon++;
+  } else if (outcome === "land" || outcome === "exploit" ||
+             outcome === "control-land") {
+    actorState.exchangesWon++;
+    targetState.exchangesLost++;
+  }
 
   switch (outcome) {
     case "whiff": {
@@ -2177,6 +2304,84 @@ function wearWeaponOnStrike(weapon: Stuff | null, channel: Channel): void {
   }
 }
 
+/**
+ * ⭐⭐ **The wound → poise edge — the loop the whole build turns on.**
+ *
+ * Before this, a landed wound made no tactical difference at all: the
+ * fight was decided by pressure (`erode`) alone, and the injury was
+ * bookkeeping happening beside it. A cut fighter recovered their footing
+ * exactly as readily as an untouched one, so **breaking off to heal was a
+ * forfeit rather than a decision** — which is the whole reason armour read
+ * as immunity and the fight had no shape between "fine" and "down".
+ *
+ * The edge is **one mutation, not two**: a bite lowers the recovery
+ * ceiling. *Staying cut keeps you losing.* A `grazes` does not cap at
+ * all, so trading light blows stays a contest of pressure and armour buys
+ * a **margin in the contest** rather than immunity.
+ *
+ * ⚠⚠ **It deliberately does NOT spend poise, and that is a measured
+ * finding rather than a timid dial.** The plan's D10 had a wound do two
+ * things — cost footing now *and* cap recovery. But the exchange that
+ * delivered the wound **already eroded the target**, scaled by the
+ * attacker's weapon and reach: that IS "getting hit costs you footing". A
+ * second, wound-sized erosion double-counts one event, and every
+ * measurable effect of the double count was harmful:
+ *
+ *   - it compressed a 3-beat crew fight to 2 — **below the length at
+ *     which formation policy can express itself at all**, since the
+ *     interception pass runs at beat-top (the gym's focus-fire cell
+ *     inverted, and no dial value cleared it that was not within a factor
+ *     of two of inverting it again);
+ *   - it pushed symmetric matchups toward the engine's **pre-existing**
+ *     mutual-exhaustion draw (see `docs/subsystems/combat.md`).
+ *
+ * With the spend at zero and the ceiling live, that gym cell reads
+ * *better* than it did on master: the called side wins under both
+ * formations, and strictly faster under focus fire.
+ *
+ * ⭐ What a wound uniquely says is that **it persists**. That is the
+ * ceiling, and the ceiling is enough.
+ *
+ * ⭐ Called from inside {@link commitInflict} (and its shock twin) rather
+ * than at each of the four blow sites the plan named. Same behaviour by
+ * construction and one fewer way to be wrong: a fifth blow path added
+ * later inherits the edge instead of silently missing it, which is the
+ * exact failure class this build exists to end.
+ */
+function applyWoundToPoise(
+  targetState: CombatantState,
+  report: InflictReport,
+): void {
+  if (report.deflected) return;
+  const K = AppSettingKeys;
+  const mult =
+    report.band === "bites-deep"
+      ? dial(K.combatWoundCeilingBitesDeep, 0.6)
+      : report.band === "bites"
+        ? dial(K.combatWoundCeilingBites, 0.85)
+        : 1; // `grazes` shoves, `turned` was eaten by the covering stack
+  // How the FIGHT has gone for you — not the same question as your
+  // current poise band, and the input the morale read needs that nothing
+  // else keeps (a fighter cut three times over is in trouble even while
+  // their footing is briefly fine).
+  targetState.woundsTaken.push(report.band);
+  if (mult >= 1) return;
+  const before = targetState.poise.ceiling();
+  targetState.poise.lowerCeiling(
+    Math.max(dial(K.combatWoundCeilingFloor, 0.4), before * mult),
+  );
+  // ⭐ The wound telling (W2). The ceiling never moves the gauge, so it
+  // never surfaces as a band crossing — this is its only reading, and it
+  // is the sentence that makes breaking off a decision rather than a
+  // forfeit. Silent when the floor already held the ceiling where it was.
+  if (targetState.poise.ceiling() < before) {
+    CombatNarration.narrateFootingCapped(
+      targetState.combatant,
+      report.band === "bites-deep",
+    );
+  }
+}
+
 function commitInflict(
   session: CombatSession,
   actorState: CombatantState,
@@ -2299,6 +2504,7 @@ function commitInflict(
     weapon,
     report,
   );
+  applyWoundToPoise(targetState, report);
   return report;
 }
 
@@ -2391,6 +2597,7 @@ function commitShockInflict(
     weapon,
     report,
   );
+  applyWoundToPoise(targetState, report);
   return report;
 }
 
@@ -2978,6 +3185,18 @@ function dispatchBandChanges(
     // fired — the next beat compares against this beat's closing band.
     const band = s.poise.band();
     const changed = band !== before[i];
+    // ⚠ Morale first, and on its OWN baseline: it moves on wounds taken,
+    // allies falling and being outnumbered, none of which change a poise
+    // band — so riding the poise comparison would silence exactly the
+    // transitions that matter most.
+    if (!s.down) {
+      const morale = moraleFor(session, s);
+      if (s.moraleSeen !== null && morale !== s.moraleSeen &&
+          Morale.rank(morale) > Morale.rank(s.moraleSeen as MoraleBand)) {
+        CombatNarration.narrateMorale(s.combatant, morale);
+      }
+      s.moraleSeen = morale;
+    }
     s.bandSeen = band;
     if (!changed) continue;
     const combatant = s.combatant;
@@ -2989,6 +3208,15 @@ function dispatchBandChanges(
       actorState: s,
       venue: venueOf(combatant),
     });
+    // ⭐ The poise read (W2): prose beside the hook, from the transition
+    // the engine has always computed. Poise decides every fight and until
+    // now nothing said so — a player could lose without being told the
+    // beat it turned. Direction only, band words only, never the scalar.
+    CombatNarration.narrateBandChange(
+      combatant,
+      (before[i] ?? band) as PoiseBand,
+      band,
+    );
     guardedHook("onPoiseBandChanged", () => combatant.onPoiseBandChanged(ctx));
     applyConsequences(ctx);
   }
@@ -3089,6 +3317,181 @@ function dispatchCoupBegun(
  * (the silent bleed-out / unconsciousness gap). `victim`/`killer` label
  * the loser/winner when there is one.
  */
+/**
+ * ⭐ The live morale read for one combatant — the session-side gatherer
+ * that turns the threat graph into {@link Morale}'s inputs. Pure apart
+ * from the dial reads; nothing is stored.
+ */
+function moraleFor(
+  session: CombatSession,
+  state: CombatantState,
+): MoraleBand {
+  const self = state.combatant;
+  const live = session
+    .getStates()
+    .filter((s) => !s.down && s.combatant !== self);
+  const foes = live.filter((s) => s.side !== state.side);
+  const alliesDown = session
+    .getStates()
+    .filter((s) => s.down && s.combatant !== self && s.side === state.side)
+    .length;
+  // The foe in the best shape is the frightening one — being ground down
+  // by somebody untouched is worse than trading with somebody reeling.
+  let foeBand: PoiseBand | null = null;
+  for (const f of foes) {
+    const b = f.poise.band();
+    if (!foeBand || POISE_SEVERITY[b] < POISE_SEVERITY[foeBand]) foeBand = b;
+  }
+  return Morale.bandFor(
+    state,
+    session,
+    {
+      lethal: session.getTerms().isLethalAuthorized(),
+      sentient: safeIsSentient(self),
+      foes: Math.max(1, foes.length),
+      alliesDown,
+      foeBand,
+      onlookers: onlookersOf(session, self),
+    },
+    moraleConfig(),
+  );
+}
+
+/**
+ * ⭐⭐ **Who is standing there watching** — live sentients sharing the
+ * room who are not in this fight.
+ *
+ * The whole of "third parties break up fights", and it needed no verb:
+ * a fight in front of people is a fight somebody is about to stop, and
+ * both ends know it, so both read closer to wanting out. What it makes
+ * real is that **where you fight is a decision** — a taproom brawl gets
+ * stopped and an alley one does not, and nobody authored either.
+ *
+ * ⚠ The count is of BODIES, not of opinions. No perception gate, no
+ * regard read, no roll: this must stay something the engine can say
+ * honestly, and "how many people are in this room" is. A hidden watcher
+ * is deliberately still counted — concealment hides you from a `look`,
+ * not from the room, and the alternative is a per-combatant perception
+ * sweep every beat of every fight.
+ *
+ * ⚠ Corpses do not watch; a shade does. A downed *combatant* is excluded
+ * already, by being in the session at all.
+ */
+function onlookersOf(session: CombatSession, self: Stuff): number {
+  if (!MixinApi.isContainable(self)) return 0;
+  const room = self.getContainer();
+  if (!room || !MixinApi.isContainer(room)) return 0;
+  let n = 0;
+  for (const occ of room.getContents()) {
+    if ((occ as Stuff) === self) continue;
+    if (session.getState(occ as Stuff)) continue; // in the fight, not at it
+    if (!safeIsSentient(occ as Stuff)) continue;
+    // ⚠ `isDead()`, NOT `isAlive()`. `lifecycleState` defaults to the
+    // empty string, so an unhydrated or unauthored body reads
+    // not-*alive* while being perfectly present — `Organism.isLivingBody`
+    // carries the same warning, and this read cost a green test to
+    // rediscover it. A shade watches you; only a corpse does not.
+    if (MixinApi.isOrganism(occ) && occ.isDead()) continue;
+    n++;
+  }
+  return n;
+}
+
+/** Band severity for "who is in the best shape" comparisons. */
+const POISE_SEVERITY: Record<PoiseBand, number> = {
+  steady: 0,
+  pressed: 1,
+  reeling: 2,
+  broken: 3,
+  open: 4,
+};
+
+/**
+ * Gather what one participant is left with. A pure read of state that
+ * already exists — the whole of D20's "aftermath is emission, not a
+ * system".
+ */
+function aftermathFor(state: CombatantState): AftermathReport {
+  const who = state.combatant as Stuff;
+  let worstWound: string | null = null;
+  if (MixinApi.isVitals(who)) {
+    let worst = 0;
+    for (const c of who.getConditions()) {
+      if (c.kind !== "trauma") continue;
+      if (c.severity <= worst) continue;
+      worst = c.severity;
+      worstWound = TRAUMA_BEHAVIOR[c.type]?.describe(c) ?? null;
+    }
+  }
+  // What the fight cost the gear: the worst-conditioned durable thing
+  // worn or held. `Attired`'s upkeep bands are the same two thresholds.
+  let gearNote: string | null = null;
+  if (MixinApi.isSlotted(who)) {
+    let worstCondition = 1;
+    let worstItem: Stuff | null = null;
+    for (const [, occupants] of who.getAllOccupants()) {
+      for (const occ of occupants) {
+        if (!MixinApi.isDurable(occ)) continue;
+        const c = occ.getCondition();
+        if (c < worstCondition) {
+          worstCondition = c;
+          worstItem = occ as Stuff;
+        }
+      }
+    }
+    if (worstItem && worstCondition < 0.35) {
+      gearNote = `Your ${presentationOf(worstItem)} is in a bad way.`;
+    } else if (worstItem && worstCondition < 0.7) {
+      gearNote = `Your ${presentationOf(worstItem)} has taken a beating.`;
+    }
+  }
+  return {
+    combatant: who,
+    worstWound,
+    gearNote,
+    exercised: [...state.exercised].map(disciplineWord),
+  };
+}
+
+/** A Discipline key as the prose calls it — "bladework", not "blades". */
+function disciplineWord(key: string): string {
+  switch (key) {
+    case "melee-combat":
+      return "fighting";
+    case "blades":
+      return "bladework";
+    case "unarmed":
+      return "hands";
+    case "bludgeons":
+      return "arm";
+    case "polearms":
+      return "reach";
+    case "flails":
+      return "timing";
+    default:
+      return key;
+  }
+}
+
+/**
+ * The one combatant a yield can honestly name as the victor when the
+ * session is not a clean duel: whoever last landed a blow, else the only
+ * live foe left standing, else nobody (a genuine free-for-all names no
+ * winner, and `endWith` fires no victor hook — which is correct).
+ */
+function soleLiveFoe(
+  session: CombatSession,
+  actor: Stuff,
+): (Stuff & Engaged) | undefined {
+  const mine = session.getState(actor);
+  const struckBy = mine?.lastStruckBy;
+  if (struckBy && !session.getState(struckBy)?.down) return struckBy;
+  const live = session
+    .getStates()
+    .filter((s) => !s.down && s.combatant !== actor && s.side !== mine?.side);
+  return live.length === 1 ? live[0]!.combatant : undefined;
+}
+
 function endWith(
   session: CombatSession,
   outcome: CombatResolution,
@@ -3136,6 +3539,15 @@ function endWith(
     const ctx = mk();
     callVenueHook(room, "onCombatResolved", ctx);
     applyConsequences(ctx);
+  }
+  // ⭐ The aftermath, for everyone still standing — every resolution
+  // kind, including the ones with no victor. It sits HERE rather than in
+  // `runResolutionConsumers` because that runs from `endWith`'s callers
+  // and only on the paths that name a victor: a draw, a disengage and a
+  // mutual break would all have stopped in silence.
+  for (const st of session.getStates()) {
+    if (st.down) continue;
+    CombatNarration.narrateAftermath(aftermathFor(st));
   }
   flushFlavor();
   session.resolve(outcome);
@@ -3678,7 +4090,7 @@ function wieldedWeapon(
       if (
         state &&
         MixinApi.isVitals(actor) &&
-        actor.isSlotImpairedByTrauma(slot)
+        actor.isSlotImpairedByCondition(slot)
       ) {
         continue;
       }
@@ -3882,7 +4294,7 @@ function clamp01(n: number): number {
 
 /** The combat Disciplines credit accrues to (seeded as data). */
 const MELEE_DISCIPLINE = "melee-combat";
-const BLADES_DISCIPLINE = "blades";
+const AWARENESS_DISCIPLINE = "awareness";
 const UNARMED_DISCIPLINE = "unarmed";
 const COMMAND_DISCIPLINE = "command";
 
@@ -3916,9 +4328,6 @@ function termsFor(
 ): CombatTerms {
   return session.getGraph().edgeBetween(killer, victim)?.terms ?? session.getTerms();
 }
-
-/** The discipline whose competence band drives combat sharpness. */
-const MELEE_COMBAT_DISCIPLINE = "melee-combat";
 
 /** What an initiation resolved to. `terms` and `consented` are present
  * only on success — a caller that wants to narrate the opening needs to
@@ -3997,12 +4406,21 @@ async function snapshotBandsImpl(
     const key = c.getIdentityPath();
     if (!key) continue;
     try {
-      competenceBands.set(
-        key,
-        MixinApi.isAdvancing(c)
-          ? await c.competenceBandFor(MELEE_COMBAT_DISCIPLINE)
-          : CompetenceBand.FLOOR,
-      );
+      if (!MixinApi.isAdvancing(c)) {
+        competenceBands.set(key, CompetenceBand.FLOOR);
+        continue;
+      }
+      // ⭐ The **max over `melee-combat` and whatever the weapon in hand
+      // declares it exercises.** A swordsman with `blades: expert` and no
+      // separate `melee-combat` record used to read `untrained` here and
+      // fight with a novice's sharpness — the specialization existed and
+      // the fight could not see it.
+      let band = await c.competenceBandFor(MELEE_DISCIPLINE);
+      const held = wieldedWeapon(c);
+      for (const d of (held as Partial<Weapon> | null)?.getExercises?.() ?? []) {
+        band = CompetenceBand.higher(band, await c.competenceBandFor(d));
+      }
+      competenceBands.set(key, band);
     } catch {
       // Unresolved → the combatant defaults to `untrained` sharpness.
     }
@@ -4871,65 +5289,39 @@ function presentationOf(s: Stuff): string {
 /* ───────────────────────── advancement ───────────────────────── */
 
 /**
- * Mint the actor's per-exchange `ActSignature` (self-credit only). Only
- * the player-driven side accrues a transcript — a brain-driven beast
- * needs none. A bladed instrument additionally credits `blades`. Fire-
- * and-forget: advancement never blocks the beat.
+ * ⭐ **What this combatant just practised.** `melee-combat` always (every
+ * exchange is melee practice), plus whatever the instrument in hand
+ * *declares* it exercises — `Weapon.exercises`, authored on the row —
+ * plus `unarmed` for an innate exchange.
+ *
+ * Accumulated per exchange rather than read once at the end, because a
+ * fighter can switch grips mid-fight: what a fight paid or cost you
+ * should be what you **did**, not what you happened to be holding when it
+ * finished.
+ *
+ * ⚠ This replaces inferring the discipline from the delivery channel
+ * (`edge`/`point` → `blades`), which quietly meant a spear and a dagger
+ * trained the same skill and a mace trained nothing at all. The sim can
+ * see that a mace and a spear deliver differently; which *field of study*
+ * each belongs to is a fact about how people organise knowledge, so the
+ * row says it.
  */
-function mintExchangeSignature(
-  actorState: CombatantState,
-  targetState: CombatantState,
-  outcome: OutcomeKind,
-): void {
-  if (actorState.brainPath) return; // player side only
-  const actor = actorState.combatant;
-  const difficulty = difficultyFor(targetState);
-  const result = outcomeToResult(outcome);
-  const subs: Subcheck[] = [
-    { discipline: MELEE_DISCIPLINE, difficulty, outcome: result },
-  ];
+function noteExercise(actorState: CombatantState): void {
+  actorState.exercised.add(MELEE_DISCIPLINE);
   const instr = resolveInstrument(actorState);
-  if (instr && (instr.channel === "edge" || instr.channel === "point")) {
-    subs.push({ discipline: BLADES_DISCIPLINE, difficulty, outcome: result });
+  if (!instr) return;
+  if (!instr.weapon) {
+    actorState.exercised.add(UNARMED_DISCIPLINE);
+    return;
   }
-  // The fisticuffs sibling of the blades credit: an innate-instrument
-  // exchange (no wielded weapon) additionally credits `unarmed`, so the
-  // brawler's and swordsman's transcripts diverge. An armed exchange
-  // never does.
-  if (instr && !instr.weapon) {
-    subs.push({ discipline: UNARMED_DISCIPLINE, difficulty, outcome: result });
-  }
-  if (MixinApi.isAdvancing(actor))
-    void actor.creditSignature({ discipline: subs }).catch(
-    () => {},
-  );
-}
-
-/** The exchange difficulty from the target's tactical state — beating a
- * composed, armed guard is `hard`; exploiting an open one is `easy`. */
-function difficultyFor(target: CombatantState): Difficulty {
-  const band = target.poise.band();
-  if (band === "open" || band === "broken") return "easy";
-  if (band === "reeling") return "standard";
-  return resolveInstrument(target) ? "hard" : "standard";
-}
-
-/** Map an exchange outcome to a competence outcome. */
-function outcomeToResult(outcome: OutcomeKind): Outcome {
-  switch (outcome) {
-    case "exploit":
-      return "critical";
-    case "land":
-    case "control-land":
-      return "success";
-    case "parried":
-    case "control-resisted":
-      return "partial";
-    case "whiff":
-      return "failure";
-    default:
-      return "partial";
-  }
+  // ⚠ A duck-typed read, deliberately: `ResolvedInstrument.weapon` is a
+  // bare `Stuff` (an instrument can be any wielded thing), and a torch or
+  // a chair leg has no `exercises` and should contribute nothing rather
+  // than throw. Not a `MixinApi.isX` — `exercises` is a field on the
+  // `Weapon` CLASS, not a mixin, so there is no predicate to narrow with
+  // and `lint:combat-dynamics` has nothing to say about it.
+  const declared = (instr.weapon as Partial<Weapon>).getExercises?.() ?? [];
+  for (const d of declared) actorState.exercised.add(d);
 }
 
 /** The costed `assess` mints a modest melee-combat read credit. */

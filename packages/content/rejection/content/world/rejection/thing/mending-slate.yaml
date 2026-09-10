@@ -1,0 +1,24 @@
+# ⭐⭐ **The second-instance test, and it passes with ZERO pack code.**
+#
+# The hearthworks smithy sells repairs off a `Tariff`. This is a second
+# shop selling the same service, in a different town, at a different
+# price — and it is one file: a class the kernel already ships, a price,
+# and a service key. No controller, no mixin, no pack.
+#
+# ⚠ Dearer than the hearthworks smithy (7 against 5) and that is the
+# point of a price rather than a rule: the diggings are a long way from
+# anywhere, the store's forge is a corner of a provisioning shed, and
+# convenience costs. A player who does the sums walks their gear down the
+# Delight.
+class: /platform/thing/Tariff
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: a mending slate
+  primaryKeyword: mending
+  keywords: [mending, slate, repairs, tariff]
+  longDescription: |
+    A slate propped against the counter's end, chalked in a hand that gave up on neatness some years ago. MENDING, it says, and a figure. Underneath, smaller: NO CREDIT.
+  prices:
+    repair: 7
+  services:
+    repair: repair

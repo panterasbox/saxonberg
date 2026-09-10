@@ -1,0 +1,22 @@
+# The burial ground. One room off Mayfield Row (NORTHWEST back).
+class: /platform/location/SingletonCartesianLocation
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: the necropolis
+  primaryKeyword: necropolis
+  alternateNames: [graveyard, burial ground, graves, cemetery]
+  _address: terminus/city/mayfield-row/necropolis
+  longDescription: |
+    A wide low chamber where the rock softens enough to cut, opened out and gone on being opened out for longer than anyone has kept count. The graves run in rows under a ceiling worked flat, each one a shallow trough cut into the floor with a stone at its head; the older rows toward the back have gone smooth and unreadable and somebody has planted lamps along them anyway. An open plot stands ready near the front, the spoil heaped tidily beside it. By the entrance a slate lists the charge for the ground, and a mason's bench holds a half-lettered stone with the chisel still lying in the groove.
+  coords:
+    x: 0
+    y: 0
+    z: 0
+  exits:
+    northwest:
+      destination: /world/terminus/mayfield-row/street
+  props:
+    - /world/terminus/necropolis/thing/tariff
+    - /world/terminus/necropolis/thing/open-plot
+  cast:
+    - /world/terminus/necropolis/agent/undertaker

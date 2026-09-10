@@ -1,0 +1,26 @@
+# The infirmary ward. One room off the Counting-House Row block
+# (SOUTHWEST back to the street; the block declares NORTHEAST in here —
+# cross-zone cardinal exit, both sides explicit), on the same walk as the
+# store and the bank.
+class: /platform/location/SingletonCartesianLocation
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: the infirmary
+  primaryKeyword: infirmary
+  alternateNames: [ward, clinic, surgery]
+  _address: terminus/city/counting-houses/infirmary
+  longDescription: |
+    A low white room that smells of lye and boiled linen. Two cots stand along the far wall under a window with the shutters folded back; between them a scrubbed deal table holds a basin, a jug, and a roll of clean cloth. A tall cabinet by the door is stacked with folded dressings, and beside it a slate lists what the house does and what the house charges, in a small square hand that has written it many times. There is a chair by the near cot, angled for sitting with somebody.
+  coords:
+    x: 0
+    y: 0
+    z: 0
+  exits:
+    southwest:
+      destination: /world/terminus/counting-houses/avenue-block
+  props:
+    - /world/terminus/infirmary/thing/tariff
+    - /world/terminus/infirmary/thing/cot
+    - /world/terminus/infirmary/thing/dressing-cabinet
+  cast:
+    - /world/terminus/infirmary/agent/physician

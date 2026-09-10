@@ -466,7 +466,51 @@ export function AdvancementMixin<TBase extends MixinConstructor<Stuff>>(
         owner: ownerId,
         discipline,
       });
-      return Competence.bandOf(entries);
+      return this.suppressed(Competence.bandOf(entries));
+    }
+
+    /**
+     * ⭐⭐ **What the body is currently costing you** — applied at the
+     * READ, never written down.
+     *
+     * Dying should be punishment, not teaching: it costs you across the
+     * board rather than in the skills the death happened to involve, and
+     * it fades. So the diminishment is a *body* fact (an `expression`
+     * effect on the `recovering` condition, tapering as it clears) read
+     * here and folded into what you can currently express.
+     *
+     * ⚠⚠ **The Transcript is byte-identical before and after.** Being
+     * diminished must never rewrite what you have done — `chronicle`
+     * shows no new row, and the moment the condition clears the band is
+     * exactly what it was. That is the whole difference between
+     * punishment and a lie about your history.
+     *
+     * ⚠ Applied at the four read surfaces and NOT inside `bandsForImpl`
+     * or the fold caches, so a cache stays a pure fold of the ledger and
+     * the taper needs no invalidation.
+     *
+     * The narrowing is composition, not a re-narrowing of the host set:
+     * every `AdvancementMixin` host today is a `Character`, which is a
+     * `Creature`, which has Vitals. A host with no body has nothing to
+     * suppress.
+     */
+    private suppressed(band: CompetenceBandName): CompetenceBandName {
+      const self = this as unknown as Stuff;
+      if (!MixinApi.isVitals(self)) return band;
+      const bands = self.expressionSuppression();
+      return bands > 0 ? CompetenceBand.lowered(band, bands) : band;
+    }
+
+    /** The same fold over a whole digest. */
+    private suppressAll(rows: DisciplineBand[]): DisciplineBand[] {
+      const self = this as unknown as Stuff;
+      if (!MixinApi.isVitals(self)) return rows;
+      const n = self.expressionSuppression();
+      if (n <= 0) return rows;
+      return rows.map((r) => ({
+        ...r,
+        band: CompetenceBand.lowered(r.band, n),
+      }));
     }
 
     /**
@@ -475,7 +519,7 @@ export function AdvancementMixin<TBase extends MixinConstructor<Stuff>>(
      * evidence are absent (the floor is implicit).
      */
     public async competenceBands(): Promise<DisciplineBand[]> {
-      return bandsForImpl(this as unknown as Stuff);
+      return this.suppressAll(await bandsForImpl(this as unknown as Stuff));
     }
 
     /**
@@ -494,7 +538,9 @@ export function AdvancementMixin<TBase extends MixinConstructor<Stuff>>(
      */
     public practisingCompetenceCached(): DisciplineBand | null | undefined {
       const key = ownerKeyOf(this as unknown as Stuff);
-      return key === null ? undefined : practisingCache.get(key);
+      if (key === null) return undefined;
+      const row = practisingCache.get(key);
+      return row ? this.suppressAll([row])[0] : row;
     }
 
     /**
@@ -504,7 +550,9 @@ export function AdvancementMixin<TBase extends MixinConstructor<Stuff>>(
      */
     public competenceDigestCached(): DisciplineBand[] | undefined {
       const key = ownerKeyOf(this as unknown as Stuff);
-      return key === null ? undefined : digestCache.get(key);
+      if (key === null) return undefined;
+      const rows = digestCache.get(key);
+      return rows ? this.suppressAll(rows) : rows;
     }
   }
   return AdvancementMixin;

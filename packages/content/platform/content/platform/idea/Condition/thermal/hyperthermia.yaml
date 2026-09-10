@@ -7,7 +7,10 @@ class: /platform/idea/Condition
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: hyperthermia
-  signature: []
+  # Heat exhaustion: the endurance goes, and so does the water.
+  signature:
+    - { kind: reserve, reserve: endurance, pctPerHour: -5 }
+    - { kind: reserve, reserve: hydration, pctPerHour: -4 }
   progression: null
   resolution:
     by: cooling

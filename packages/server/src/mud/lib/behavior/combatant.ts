@@ -25,6 +25,7 @@ import type { EngagementSlot } from "../activity/Engaged";
 import type { BrainContext, BrainStatics } from "./brain";
 import { CombatApi } from "../../api/combat";
 import { PartyApi } from "../../api/party";
+import { SpeciesApi } from "../../api/species";
 import type { Combatant } from '../combat/Combatant';
 import type { Stuff } from '../stuff/Stuff';
 import { MixinApi } from '../../api/mixin';
@@ -61,6 +62,34 @@ export const brain = class {
           !PartyApi.areAllied(host, c),
       );
     if (foes.length === 0) return;
+
+    // ⭐⭐ **Does this fighter still want to be in this fight?**
+    //
+    // `DEFAULT_TERMS.stopCondition` has always been `"yield"` and nothing
+    // ever enforced it: no brain, no NPC and no content class had ever
+    // called `yieldFight` or `offerBreak`, so every fight ran to
+    // incapacitation whatever the terms said. This is the first caller —
+    // and it is what makes "present at violence without winning it" a
+    // real option rather than a design intention.
+    //
+    // ⚠ The asymmetry with a player is deliberate: a brain reads morale
+    // and ACTS; a player reads the same thing narrated and decides. The
+    // engine models the stakes; the choice stays theirs.
+    const morale = host.moraleBand();
+    if (morale === "breaking") {
+      const sentientFoe = foes.some((c) => SpeciesApi.isSentient(c));
+      if (sentientFoe) {
+        // Somebody who can take a surrender is present. Under terms that
+        // stop at a yield (or worse), give it up.
+        if (host.yieldFight()) return;
+      } else {
+        // ⭐ Nothing here can accept a surrender, so the honest move is
+        // to run. A beast that "yielded" would be a lie the player would
+        // notice the moment it kept eating them.
+        if (host.disengage().ok) return;
+      }
+    }
+    if (morale === "shaken" && host.offerBreak().broke) return;
 
     // When overextended (broken/open), don't queue — let the engine's
     // state-aware default cover up and recover. A fresh fighter presses

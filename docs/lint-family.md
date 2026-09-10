@@ -142,6 +142,171 @@ growing the day it is noticed, without being fixed first.
   `stackIdentityFields` returning, every entry well-formed. Registration
   only validates classes it loads; this sees the whole tree.
 
+### `lint:condition-arms` — the ratchet that ships before its build (2026-09)
+
+⭐⭐ **The strongest census this family has, because it was written
+*before* the work it governs rather than after.**
+
+`VitalsMixin.reconcileConditions` is one method containing **seven arms**,
+each added by a different build, each discriminated by *which optional
+field happens to be set on the record* — traumas · shocks · sustained ·
+decayingMagic · infections · progressing · dyings. An eighth mechanism
+(`Metabolic.reconcileToxinConditions`) keeps its state outside the
+condition collection entirely and mirrors a band into `stage`, which is
+why `progressAffliction` has to explicitly skip rows carrying a
+`toxinBehavior`: two mechanisms owning one field.
+
+⚠⚠ **The trap has already been sprung once, with a comment proving it.**
+The `progressing` arm's own docstring records that `ProgressionSpec` *"was
+authored by three rows, and was read by nothing… This is the arm that
+fills it."* Somebody found a declared-and-unread field and **added an
+arm** — and `signature`, `resolution` and `contagion` are three more such
+fields, which the
+[consequence build](./slates/builds/consequence-slate.md) is about to
+wire. So the gate ships in that build's **W0**, before any of it.
+
+The rule it enforces: a condition's **progression law** (decay · logistic
+· stage · integrate · countdown · burden) and its **effect** on the body
+are independent. A new condition kind needs a law plus a `signature`,
+never a new arm.
+
+⭐ **The definition is a census of MECHANISMS, not of loops**, and getting
+that wrong is instructive: the first cut counted `MagicLogic.execRelieve`
+(the dispel selection) and `AssessController.execute` (the readout), both
+of which genuinely discriminate the collection and iterate it, and neither
+of which advances anything. An arm must also *progress state over time* —
+either it sits in a `reconcile*` method or its loop references a game-time
+cursor. The fixture pins both halves, must-fire and must-not-fire.
+
+Measured **7** on `design/consequence` before any build work; **5** after
+the consequence build's W8a collapsed `decayingMagic` + `infections` +
+`progressing` into one arm dispatching on the row's declared
+`progression.law`. It may fall, never rise. ⭐ What remains is four
+genuinely different mechanisms — integrate (trauma) · circuit (shock) ·
+pull (sustained) · countdown (dying) — plus the one affliction arm;
+driving it lower would mean unifying mechanisms that really are distinct.
+`KNOWN_PARALLEL_STORES` is enumerated in the script so a second parallel
+store is a visible diff.
+
+### `lint:conditions` — the value gate the effect channel needed (2026-09)
+
+⭐ **The third of the trio, and it exists because the consequence build's
+own new surface could reintroduce the failure it was written to end.**
+
+Since the eight-arm unification a `Condition` row declares **how its stage
+advances** (`progression.law`) and **what carrying it does**
+(`signature`). Both are YAML, and both fail closed and silent when wrong:
+a **missing or misspelled law** falls through the arm's switch and the
+condition never progresses — authored, warmed, afflicted, read, inert; an
+unknown effect `kind` is skipped by the interpreter; a `vital` effect
+naming a sign that does not exist is a no-op.
+
+⚠⚠ **That last one is why the gate has to exist**, because a *deliberate*
+no-op is a real feature: a bloodless clade absorbs a bleed effect
+silently, on purpose (D22). An accidental one is **indistinguishable from
+it in play**. Only a build-time check can tell them apart.
+
+⭐ Both vocabularies are **read out of their own source files by text** —
+not imported (pulling `Vitals.ts` into a script drags the mudlib decorator
+machinery in and dies at module load) and not copied (which is how a gate
+silently stops matching). The reader throws rather than passing if it
+cannot find the literal.
+
+`lint:unconsumed-seams` counts fields nothing reads; this counts fields
+whose *value* nothing can read. Same failure class, other end.
+A `progression: null` row is fine and common — five shipped rows have a
+driver outside the condition collection that owns their clock.
+
+### `lint:unconsumed-seams` — the sibling census: declared and unread (2026-09)
+
+⭐⭐ **The gate `lint:condition-arms` implies.** The arm census counts what
+a build *added* when it found a dead field. This one counts the dead
+fields, so the next build has the number in front of it rather than
+having to notice.
+
+It counts two shapes across the kernel **and every pack's `src/`**:
+
+1. **An unread authored field** — a `static fieldMeta` key on a data Idea
+   under `platform/idea/**` (not `cmd/`, not `api/`) that no other file
+   reads. ⚠ **A write is not a consumer.** The Hydrator sets every
+   persistent field by reflection and a YAML row authoring a value is the
+   *supply* side; what makes a seam real is somebody reading it.
+2. **An un-overridden extension hook** — a `@hook`-tagged **terminal**
+   (empty body, or `return` of a bare constant, or an interface contract)
+   that nothing anywhere composes.
+
+⭐ **Body shape is what separates the two things `@hook` marks**, and it
+is the whole difficulty of the gate. `Combatant.onDefeated` is a no-op
+terminal nothing composes — dead surface. `Detailed.applyDetails` is a
+Hydrator applier with a real body, invoked by name through reflection: no
+textual caller, no override, and perfectly alive. "Zero overrides" alone
+cannot tell them apart.
+
+⚠ **The read surface is DERIVED, never guessed.** The first cut reported
+38 seams and twelve were false, from three shapes: a `protected _foo`
+read through `getFoo()`; a boolean read through its predicate-form getter
+(`respires` → `isRespiring()`, which no name derivation reaches); and an
+interface hook the mixin implements *in the same file*. The fix was to
+stop deriving the accessor's name and instead ask which methods actually
+read `this.<field>`. All three are pinned in the fixture.
+
+⚠ Neither class is a bug on its own — a hook one wave ahead of its first
+consumer is good sequencing. This is a **ceiling**, not a zero-gate: what
+it refuses is the *accumulation*, where the authored surface grows faster
+than the engine that honours it and a row that says what the author wants
+is silently ignored.
+
+Measured **21** on `design/consequence` before any build work.
+⭐⭐ **Seventeen of the twenty-one are combat**: `Combatant` (7),
+`CombatReactive` (6) and `CombatVenue` (3) are the three `@hook` surfaces
+[combat-hooks.md](./subsystems/combat-hooks.md) calls *"the wizard-facing
+combat extension grammar"* — and **not one is composed by anything that
+ships**, in the kernel or in any of the 43 packs. The grammar is
+complete, documented, and spoken by nobody. `KNOWN_EXTENSION_ONLY` is
+**empty on purpose**, so the first allowlisting is a diff somebody has to
+defend.
+
+### `lint:verb-collisions` — two views, one verb, and one of them is gone (2026-09)
+
+⭐⭐ **The failure it exists for shipped, and nothing noticed.** The
+consequence build added `platform/cmd/work/watch.yaml` for standing a
+guard's post. `platform/cmd/stream/watch.yaml` had claimed `watch` since
+the streaming build. **Both are afforded from `self`** — the streaming
+one off `Avatar.commandContributions`, the new one off the born-with
+credential wallet — so the new view shadowed the old for **every
+character alive**:
+
+```
+help watch              → "WATCH: Stand a guard's post"
+watch twitch.tv/shroud  → declined: no-watch-claim
+```
+
+⚠⚠ Not a test, not a lint, not the boot. A shipped feature simply became
+unreachable by its own name, in a project whose market thesis is
+livestream communities, and it surfaced only because somebody asked what
+the new verb was for.
+
+**What it counts:** every `verbs:` entry across every pack's command
+views — ⚠ *every* pack, not just the capability ones, because a locality
+ships domain-local verbs and collides just as hard. Aliases count
+(`verbs: [job, jobs]` claims both). Controller rows under
+`<root>/idea/cmd/**` are skipped by the shipped path rule.
+
+**Measured nine already shipped**, so it is an **allowlist with a reason
+per row** rather than a zero — and it ratchets **both ways**: a fresh
+collision fails, and a fixed one still listed also fails, because a list
+nobody prunes stops meaning anything.
+
+⚠ Only `lease`/`unlease` is understood safe (domain-local, two different
+localities, never afforded together). The other seven — `me`, `pour`,
+`hang`, `mount`, `dress`, `drive`, `butcher` — are **undiagnosed**: the
+census measured which verbs are claimed twice, not which of them actually
+shadow, or in which direction. ⭐ `dress` is the instructive one — *dress
+a wound* and *dress a carcass* are both correct English and both correct
+game, which is why "just rename one" is not automatically the answer. The
+alternatives are one view with subcommands, or a rename; **never a new
+line in the allowlist.**
+
 ### The identity build's three (2026-09)
 
 Each guards a failure that is **closed and silent** — the family's

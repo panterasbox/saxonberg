@@ -546,6 +546,33 @@ roleplay, witnessed. No gauge, no instrument-puzzle — this is the
 violated. Mechanically, de-escalation = **renegotiating the terms *down to
 no-fight*.**
 
+> ⚠⚠ **Tried, shipped, and cut — read this before proposing it again.**
+> The consequence build implemented exactly the above as `fight parley`
+> (a verb that read the foe's `Morale` and dissolved their threat edge),
+> and it was **removed in its own MR review** (MR!254, 2026-09-10).
+>
+> The objection: *"the persuading is roleplay, witnessed"* means the
+> engine never reads the words — so the verb consulted a number and
+> whatever the player actually said was decorative. It is a persuasion
+> check with the check hidden, and this platform has none anywhere.
+>
+> ⭐ What replaced it is the thing this section was reaching for and
+> missed: **third parties break up fights.** `Morale` now counts live
+> sentients in the room who are not in the fight, and being watched
+> pushes both ends toward wanting out — the winner included, since harm
+> in front of witnesses is harm on somebody's account. No language is
+> measured, only bodies in a room. It also makes *where* you fight a
+> decision, which is a better game than a talk-down button.
+>
+> So: a de-escalation design that arrives here again needs to answer
+> **"what does the engine honestly measure?"** first. If the answer is
+> "the player's words," it is not buildable.
+>
+> ⭐ **The open and buildable half now has its own slate** — intervention
+> as an *act*: a third party who gets between two fighters and eats what
+> that costs. → [intervention-slate.md](./intervention-slate.md). T12 is
+> closed; that is where the design surface went.
+
 **The PC/NPC will-asymmetry (interchangeability holds for *bodies*, not
 *wills*):**
 - **NPC de-escalation** — the target's will is *modeled*: brain + traits +
@@ -949,3 +976,37 @@ alongside as the tuning tool throughout.
   moderation-as-diegetic — the death/aftermath consequence of this slate.
 - `docs/subsystems/combat.md` — the cycle-1 build-1 subsystem doc
   (the no-slots determinism stance shipped there; requirements retired at sweep).
+
+---
+
+## ⭐ Hand-off from the consequence build (MR!254, 2026-09-10)
+
+Three seams the build opened and did not close. Salvaged here because the
+plan doc retires and these would go with it.
+
+- ⚠⚠ **`CombatResolution.disengage` has NO caller.** It was a declared
+  union member with none for as long as combat has shipped; `fight
+  parley` briefly became its first and then the review cut parley. Its
+  right home is obvious and unbuilt: **fleeing.** `disengageImpl` already
+  carries the name and the section header reads *"fleeing (disengage)"* —
+  but today a flight that empties a session goes `removeParticipant` →
+  `dissolve()` and records **no resolution at all**, which also means it
+  fires no aftermath. ⚠ Wiring it is a behaviour change (a successful
+  flight would start emitting the W6 aftermath read), so it is a wave and
+  not a cleanup. ⭐ Note the collision: `intervention-slate` open question
+  7 also wants `disengage` for a fight that gets broken up. Two
+  claimants; whoever gets there first should say so.
+- ⭐⭐ **The hook grammar is spoken by nobody — seventeen un-composed
+  `@hook`s.** `Combatant` ×7, `CombatReactive` ×6, `CombatVenue` ×3,
+  minus the two the build filled (`onDefeated` / `onDefeatedFoe`).
+  [combat-hooks.md](../../subsystems/combat-hooks.md) calls this *"the
+  wizard-facing combat extension grammar"*; it is documented, invoked
+  each beat, and **implemented by nothing that ships** — not in the
+  kernel and not in any of the 43 packs. `lint:unconsumed-seams` now
+  holds the number (measured 21 total, 17 of them combat), so the next
+  build has it in front of it rather than having to notice. T15's
+  non-humanoid bestiary is the obvious first consumer.
+- **A diplomacy Discipline** — T12's *"face/diplomat career"* wants its
+  own field of study. ⚠ Nothing in the tree measures language, which is
+  why `fight parley` was cut; a Discipline here has to answer *what does
+  the engine honestly count?* before it can answer what it teaches.

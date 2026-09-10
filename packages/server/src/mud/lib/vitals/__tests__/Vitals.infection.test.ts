@@ -106,6 +106,7 @@ describe('VitalsMixin — the in-host infection arm', () => {
       const c = new Condition();
       c.setName('test bug');
       c.setObservableSigns(['feverish', 'cramping']);
+      c.setProgression({ law: 'logistic' });
       c.setPathogenBehavior(BUG);
       return c;
     }, PATH);
@@ -148,7 +149,8 @@ describe('VitalsMixin — the in-host infection arm', () => {
       makeStuffAtPath(() => {
         const c = new Condition();
         c.setName('weak bug');
-        c.setPathogenBehavior(weakBug);
+        c.setProgression({ law: 'logistic' });
+      c.setPathogenBehavior(weakBug);
         return c;
       }, weakPath);
     }
@@ -194,6 +196,7 @@ describe('VitalsMixin — the in-host infection arm', () => {
     makeStuffAtPath(() => {
       const c = new Condition();
       c.setName('feeble bug');
+      c.setProgression({ law: 'logistic' });
       c.setPathogenBehavior({ ...BUG, inHostPerHour: 0 });
       return c;
     }, gonePath);
@@ -229,7 +232,7 @@ describe('VitalsMixin — the in-host infection arm', () => {
     makeStuffAtPath(() => {
       const c = new Condition();
       c.setName('slow thing');
-      c.setProgression({ intervalMs: 3_600_000 });
+      c.setProgression({ law: 'stage', intervalMs: 3_600_000 });
       return c;
     }, path);
     const body = makeStuff(() => new Creature());
@@ -244,14 +247,19 @@ describe('VitalsMixin — the in-host infection arm', () => {
     expect(rec.stage).toBe(4);
   });
 
-  it('⚠ …and a TOXIN row is left alone — its stage is a live band', () => {
-    // A dwell counter fighting the burden read would make the answer
-    // depend on which arm ran last.
+  it('⚠ …and a TOXIN row is a BURDEN, not a dwell counter', () => {
+    // ⭐ Was: "the toxin row is left ALONE" — `progressAffliction` carried
+    // an explicit skip for anything with a `toxinBehavior`, because
+    // `Metabolic.reconcileToxinConditions` owned that stage from OUTSIDE
+    // the condition collection and a dwell counter fighting it would make
+    // the answer depend on which arm ran last. The row now declares
+    // `law: burden` and the condition's own arm derives the stage from
+    // the live burden — one owner, no skip.
     const path = '/platform/idea/Condition/metabolism/toxin-progression-test';
     makeStuffAtPath(() => {
       const c = new Condition();
       c.setName('a burden');
-      c.setProgression({ intervalMs: 3_600_000 });
+      c.setProgression({ law: 'burden' });
       c.setToxinBehavior({
         toxinType: 'toxin-progression-test',
         absorptionRate: 1,
@@ -270,6 +278,8 @@ describe('VitalsMixin — the in-host infection arm', () => {
     };
     body.afflict(rec);
     live(body, 10 * HOUR);
-    expect(rec.stage).toBe(2);
+    // A body carrying NO burden of this toxin reads stage 0 — the honest
+    // derivation, where the old skip froze whatever was there.
+    expect(rec.stage).toBe(0);
   });
 });

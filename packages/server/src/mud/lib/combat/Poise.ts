@@ -81,6 +81,30 @@ export class Poise {
 
   private opening: Opening = { open: false, expiresAtTick: 0 };
 
+  /**
+   * ⭐⭐ **The wound ceiling — how much footing a hurt fighter can ever get
+   * back.** In [0,1], 1 = unhurt.
+   *
+   * The gauge and the ceiling are two different statements. Erosion says
+   * *you are giving ground right now*; the ceiling says *you will not
+   * fully recover it while you are bleeding from that*. Without it a
+   * wound is a one-off shove: spend the poise, recover it next defensive
+   * beat, and the fight is decided by pressure alone with the injury as
+   * bookkeeping beside it. With it, **staying cut keeps you losing** —
+   * which is the whole of the consequence build's first claim, and the
+   * reason a fighter chooses to break off.
+   *
+   * Session-scoped, like everything on this class: a wound's *lasting*
+   * cost is the trauma on the body, which is already there and outlives
+   * the fight. The ceiling only translates it into this fight's terms,
+   * and evaporates with the session.
+   *
+   * ⚠ It never lowers the gauge — a fighter cut while steady is still
+   * steady, and simply cannot climb all the way back. Ratchet: it falls
+   * and never rises, because a wound does not un-happen mid-fight.
+   */
+  private ceilingValue = 1;
+
   constructor(private readonly config: PoiseConfig = DEFAULT_POISE_CONFIG) {}
 
   /* ─────────────────────────── readouts ─────────────────────────── */
@@ -132,12 +156,31 @@ export class Poise {
    * break floor disarms any live opening.
    */
   restore(amount: number, enduranceRatio: number): void {
-    const ceiling = clamp01(enduranceRatio);
+    // Two independent caps, and the tighter wins: how gassed you are, and
+    // how badly you are hurt. Neither substitutes for the other — a fresh
+    // fighter with a deep cut and an exhausted unhurt one are different
+    // problems with the same reading.
+    const ceiling = Math.min(clamp01(enduranceRatio), this.ceilingValue);
     if (this.value >= ceiling) return;
     this.value = Math.min(ceiling, this.value + Math.max(0, amount));
     if (this.value > this.config.brokenAt) {
       this.opening.open = false;
     }
+  }
+
+  /**
+   * Lower the recovery ceiling to `to` (a ratchet — a higher value is
+   * ignored). Called when a blow bites: the wound does not take footing
+   * away, it takes away how much of it you can get back.
+   */
+  lowerCeiling(to: number): void {
+    const next = clamp01(to);
+    if (next < this.ceilingValue) this.ceilingValue = next;
+  }
+
+  /** The current recovery ceiling in [0,1]; 1 = unhurt. */
+  ceiling(): number {
+    return this.ceilingValue;
   }
 
   /**

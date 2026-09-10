@@ -7,7 +7,11 @@ class: /platform/idea/Condition
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: torpor
-  signature: []
+  # ⚠ Torpor is the cold gone far enough to dull the mind — a band of
+  # expressed skill, and the endurance with it.
+  signature:
+    - { kind: expression, bands: 1 }
+    - { kind: reserve, reserve: endurance, pctPerHour: -3 }
   progression: null
   resolution:
     by: warmth

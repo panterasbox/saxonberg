@@ -1,0 +1,17 @@
+# The Infirmary — a one-room building zone off the Counting-House Row
+# block, the same shape as the general store.
+#
+# ⭐ It exists because the consequence build made the wreckage of a fight
+# into somebody's paid work, and there was nowhere for that work to
+# happen. Counting-House Row had a bank, a store and a realty office and
+# no way at all to be seen to.
+#
+# ⚠ Nothing here is pack code. The medical TRADE ships `analyze patient`
+# and nothing else; this is a business row, a room row, a tariff row, a
+# cot and a medic — which is the second-instance test: the next town's
+# infirmary is the same six files with different prose.
+class: /platform/idea/location/CartesianZone
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  name: The Infirmary
+  cellSize: 3.0

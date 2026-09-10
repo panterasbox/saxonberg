@@ -84,11 +84,11 @@ data:
         - { tissuePath: /stuff/idea/material/tissue/flesh, mass: 1 }
     - key: body.torso.heart
       parent: body.torso
-      governsVital: heartRate
+      governs: [heartRate]
       tissues:
         - { tissuePath: /stuff/idea/material/tissue/muscle, mass: 0.1 }
     - key: body.torso.lungs
       parent: body.torso
-      governsVital: respiratoryRate
+      governs: [respiratoryRate]
       tissues:
         - { tissuePath: /stuff/idea/material/tissue/flesh, mass: 0.5 }

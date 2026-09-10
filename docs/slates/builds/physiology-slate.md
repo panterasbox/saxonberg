@@ -2161,3 +2161,24 @@ business problem.
    survivable, the city stays better. **(User: come back to this.)**
 7. **Does the immune/contagion seam open here or stay deferred?** The
    coupling half of the alarm work is its precondition either way.
+
+---
+
+## ⭐ Hand-off from the consequence build (MR!254, 2026-09-10)
+
+Three attach points the build left clean rather than filled.
+
+- **The severed limb** — `AVULSION_BEHAVIOR.onset` is authored and does
+  nothing. The build re-authored all 23 condition rows onto a declared
+  `progression.law` + `signature`, so an avulsion now has somewhere to
+  say what it *does*; what it should do is this slate's.
+- **The splint** — `fracture` resolves `by: rest` and nothing shortens
+  that. The treatment vocabulary is closed and matched against what the
+  treater offers (`resolution.by`), so a splint is a row plus one
+  vocabulary entry, not new machinery.
+- ⭐ **Instruments** — a stethoscope that turns `analyze patient`'s bands
+  up one. The diagnostic ladder is banded by competence today; an
+  instrument that shifts the band is the natural second axis, and
+  [instrumentation-slate](./instrumentation-slate.md) owns the general
+  shape (⚠ check it first — it is the *"check before any
+  measure/analyze/instrument design"* slate).

@@ -48,6 +48,10 @@ data:
     # stops"; this is the box that runs on it, and `/stuff/idea/Lane/
     # ferrow-tram` is the twenty yards.
     - /system/transport/thing/ore-tram
+    # ⭐ The board. The mine could not hire anybody until it had one, and
+    # the guard contract the consequence build added is exactly the job a
+    # mine has and a station does not.
+    - /world/rejection/thing/pithead-board
   details:
     outcrop:
       keywords: [outcrop, stain, green, band, rock, malachite]

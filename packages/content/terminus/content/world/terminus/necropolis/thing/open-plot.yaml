@@ -1,0 +1,17 @@
+# An open plot — the grave `order burial` puts a body into. ⭐ It is an
+# ordinary container: `interIn` moves the body in, records a deed on the
+# DECEASED's own chronicle (being buried is a fact about you, not about
+# the undertaker), and the corpse stops vetoing its own eviction, because
+# a grave is exactly the place a body is meant to stop being the world's
+# problem.
+#
+# ⚠ Its keyword matters: the burial arm finds a grave by looking for one
+# in the room, and `plot` is one of the words it knows.
+class: /platform/thing/Chest
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: an open plot
+  primaryKeyword: plot
+  keywords: [plot, grave, trough, hole]
+  longDescription: |
+    A shallow trough cut into the rock near the front of the rows, clean-edged and empty, the spoil heaped tidily beside it under a board. A stone blank stands at its head, waiting for a name.

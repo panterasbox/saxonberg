@@ -142,3 +142,45 @@ describe("Condition.matchesItem / holdsFor", () => {
     expect(Condition.holdsFor(delivery(), crate)).toBe(true);
   });
 });
+
+/* ────────── W17: `watch` — the guard contract, and the finding ────────── */
+
+describe('the watch clause', () => {
+  const watch = (gameHours: number): ConditionData => ({
+    template: 'watch',
+    item: { kind: 'template', path: '/world/rejection/location/fuel-yard' },
+    destinationPath: '/world/rejection/location/fuel-yard',
+    gameHours,
+  });
+
+  it('⭐ validates with an hour term', () => {
+    expect(Condition.validate(watch(4))).toBeNull();
+  });
+
+  it('⚠ refuses a term of zero or nonsense — escrow holds real money', () => {
+    expect(Condition.validate(watch(0))).toContain('hour count');
+    expect(
+      Condition.validate({ ...watch(4), gameHours: undefined }),
+    ).toContain('hour count');
+  });
+
+  it('⭐⭐ holds on ACCRUED PRESENCE, not on anything being at a place', () => {
+    // The asymmetry IS the finding. Every shipped clause is "a thing is
+    // at a place"; a guard contract is "a person was at a place, for a
+    // while", which `holdsFor(data, item)` cannot express however it is
+    // squeezed — so the predicate is a different one.
+    const c = watch(4);
+    expect(Condition.watchHolds(c, 3 * 3600)).toBe(false);
+    expect(Condition.watchHolds(c, 4 * 3600)).toBe(true);
+    expect(Condition.watchHolds(c, 9 * 3600)).toBe(true);
+  });
+
+  it('⚠ a delivery clause never satisfies a watch predicate', () => {
+    const delivery: ConditionData = {
+      template: 'delivery',
+      item: { kind: 'template', path: '/stuff/thing/crate' },
+      destinationPath: '/somewhere',
+    };
+    expect(Condition.watchHolds(delivery, 999 * 3600)).toBe(false);
+  });
+});

@@ -11,6 +11,7 @@ data:
   name: starvation
   signature: []
   progression:
+    law: stage
     intervalMs: 3600000
   resolution:
     by: food

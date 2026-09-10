@@ -4,7 +4,8 @@
 > anywhere in the shipped vitals/harm/metabolism stack.
 > **Left:** the genotype/phenotype endowment · the compatibility cost curve
 > · the donation loop + the bag · screening · the trait payoff · the
-> Titmuss paid-market lever (designed-for, explicitly not v1)
+> Titmuss paid-market lever (designed-for, explicitly not v1). ⭐ Q6 is
+> answered and Q1 has a reader — see the consequence note below.
 > **Size:** a build
 
 > **Status: design proposed, nothing built.** The transfusion economy —
@@ -16,6 +17,22 @@
 > loop.** The paid-market policy lever is designed-for and deliberately
 > **not built** — see [The Titmuss
 > lever](#-the-titmuss-lever--designed-for-not-v1).
+
+> ⭐⭐ **What the consequence build hands this one (2026-09-08).**
+> the consequence build (MR!254, plan retired at its sweep) considered folding
+> transfusion in and **the user ruled it stays separate** — this slate
+> keeps its whole scope. Three things changed in its favour:
+>
+> - ⭐ **A sharper motivation than the gap above states.** That build's
+>   **D21** caps hydration's plasma restore at a *fraction* of the species
+>   baseline, never baseline — because drinking restores plasma volume and
+>   **not red cells**. So a bled survivor is **permanently short until
+>   somebody gives**, and transfusion is the only route back to whole
+>   rather than merely the fast one. ⚠ That the ceiling sits below 1.0 is
+>   a **shape** decision there, guarding this build's premise; anyone
+>   raising it to baseline is deleting this slate's reason to exist.
+> - ✅ **Open question 6 is answered** — see below.
+> - ⭐ **Open question 1 has a reader now** — see below.
 
 ---
 
@@ -317,6 +334,10 @@ disease transmission, and any cross-instance concern.
    is its only consumer it is a lot of machinery for one verb. Candidates
    worth checking early: forensics (a blood trail identifying a species
    or narrowing a suspect pool), disguise, and the belief store.
+   ⭐ **Now answerable rather than speculative:** the consequence build's
+   W16 ships `analyze postmortem` and a `forensics` Discipline. Nothing
+   there reads blood type — but **the reader exists**, so this question
+   can be settled against a real consumer instead of a guess.
 2. **Shelf life in game-time or real-time?** Renown decays on the game
    clock, participation on real time. Blood is a *world* object, so game
    time — but that couples supply pressure to the clock scale, and
@@ -331,9 +352,13 @@ disease transmission, and any cross-instance concern.
 5. **Do NPCs donate on their own?** The trait-driven answer says yes and
    gives the supply an emergent baseline; it also means NPC transcripts
    and standings start moving without a player involved.
-6. **Species with no blood.** `constructa`, `plantae`, and `fungi` clades
-   exist. Do they bleed at all, and if not, what does harm's laceration
-   behavior do to them today?
+6. ✅ **Species with no blood — ANSWERED** by the consequence build's
+   **D22**: an effect naming a vital sign a species does not have is a
+   **deliberate no-op with a test**, never an error and never a
+   zero-fill. A construct takes an edge blow, has a wound, and does not
+   bleed. (The test is load-bearing: *"does nothing because nobody wrote
+   the branch"* and *"does nothing because the author said so"* read
+   identically.)
 
 ---
 

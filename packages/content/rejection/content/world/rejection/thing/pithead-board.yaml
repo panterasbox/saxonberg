@@ -1,0 +1,20 @@
+# ⭐ The pithead board — a second labour market, in the town where the
+# work is.
+#
+# The Terminus terminal has one; the diggings did not, which meant the
+# only place in the world you could take a job was the place you arrived
+# at. A mine with a board is a mine you can be hired AT — including for
+# the one thing a mine visibly needs and could not previously ask for: a
+# guard on the fuel yard through the night shift.
+class: /platform/thing/JobBoard
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: a board of nailed-up slips
+  primaryKeyword: board
+  longDescription: >
+    A sheet of planking nailed up beside the winch house, layered with
+    slips and the ghosts of slips — work wanted, work offered, each one
+    stamped where the escrow was sealed. A pencil hangs on a wire. Two of
+    the slips are for the same job, posted a week apart, and nobody has
+    taken the old one down.
+  keywords: [board, slips, notices, jobs, job-board]

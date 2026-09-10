@@ -6,7 +6,8 @@
 > **Left:** Rejection Act I + the inert `stocks:` table · Heart's Delight
 > (gated on winter) · Hinkley facades/neighbours/the Death Man + `knock` ·
 > Rejection's support half · homes off `Offstage` · depots + the valley
-> road · the necropolis · freight
+> road · **the necropolis as a SIXTH LOCALITY** (⚠ a 122-line stub
+> shipped *inside* Terminus — see the section) · freight
 > **Size:** a build
 
 > **Captured 2026-09-02**, design session in the `master` worktree while
@@ -915,6 +916,34 @@ remembered is a function of who could pay.**
 
 ⚠ **Open, and it decides whether this is scenery or consequence: did
 Terminus ban burial, when, and could a player-held office repeal it?**
+
+### ⚠⚠ What shipped (consequence build, MR!254) — and it is in the wrong place
+
+A necropolis now exists, and it is **122 lines across five files**: one
+ground, one open plot, a tariff pricing `burial`, an undertaker, a
+business. `order burial <body>` settles a real charge, `analyze
+postmortem` reads a corpse, and `Postmortem.interIn` sets `interred`.
+
+⭐ It was scoped as *"the wreckage becomes somebody's work"* and it does
+exactly that much — it proves burial is a **priced service** rather than
+a wizard act, and nothing beyond.
+
+⚠⚠ **But it shipped at `/world/terminus/necropolis` — INSIDE the city**,
+and that contradicts the whole mechanism above. A LULU town exists to be
+*outside* the prohibition; a necropolis that is a Terminus district is
+the one thing Colma is not. The follow-on has to promote it to the
+**sixth locality** this section describes.
+
+⭐ Cheap to fix, and worth stating so it is not inherited silently: there
+are no migrations here and dev DBs are dropped, so moving the rows costs
+a path rename. What it must not do is quietly stay a district because
+something already sits there.
+
+⚠ Note also what burial currently *means* mechanically: `interred` makes
+a corpse **stop objecting to eviction**, so the residency sweep may
+reclaim it. Burial today is a residency fix with a price tag — nothing
+social happens. The rite, the mourners, the monument and the money are
+→ [end-of-life-slate.md](./end-of-life-slate.md).
 
 ---
 

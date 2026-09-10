@@ -1,0 +1,29 @@
+# Merrick Sault — the undertaker, and the only person in Terminus who has
+# read every stone in the place.
+#
+# ⭐ His `forensics` is not decoration: `analyze postmortem` grades an
+# inference, and somebody who has looked at this many bodies is the person
+# a widow asks what happened. He will not tell you unless you ask.
+class: /platform/agent/Cast
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  name: Merrick Sault
+  pronouns: he
+  _speciesPath: /stuff/idea/species/animalia/chordata/mammalia/primates/hominidae/homo/sapiens
+  lifecycleState: alive
+  primaryKeyword: undertaker
+  alternateNames: [merrick, sault, gravedigger, sexton]
+  shortDescription: a soft-spoken undertaker
+  longDescription: |
+    A wide, slow man with stone dust worked permanently into the creases of his hands, dressed better than the job requires because he thinks the job requires it. He speaks quietly and only when there is something to say, and he has an unhurried way of standing near people who have just lost somebody that they generally end up grateful for.
+  dispositions:
+    - { disposition: diligence, valence: 65 }
+    - { disposition: sociability, valence: 30 }
+  archetype: undertaker
+  competence:
+    - { discipline: forensics, asserting: competent }
+    # ⚠ No `masonry` Discipline exists, so the stonework claim is prose
+    # rather than a seed — `lint:dossiers` catches exactly this, and the
+    # honest fix is to claim only what the world can read back.
+  behaviors:
+    - brain: /lib/behavior/shifts

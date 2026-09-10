@@ -4302,3 +4302,72 @@ green suite means self-consistent, not working.
 ⚠ `Stuff.getPlayerId()`'s docblock *said* `getTemplatePath()` until this
 was found, and that is what every call site followed. When a convention
 turns out wrong, fix the doc that taught it — not only the callers.
+
+---
+
+## A verb for something that is not an act
+
+⭐⭐⭐ **The test: does typing the word make the thing true?** If the
+answer is *"no — the word only announces an intention the engine then
+trusts"*, the verb is a lie and the state it sets is unearned.
+
+The consequence build shipped `watch` for standing a guard's post. The
+clause was *"be at place P for N hours"*. Typing `watch` did not put you
+anywhere; it started an engagement that **asserted** you were on duty,
+and the contract believed it.
+
+```ts
+// WRONG — a verb whose whole job is to assert a fact the engine
+// could have observed. The player says "I am keeping watch"; the
+// engine has no way to disagree.
+class WatchController {
+  execute(model, context) {
+    const engagement = new WatchEngagement(giver, gig.contractId, post);
+    SchedulerApi.start(engagement);   // …and time now accrues
+  }
+}
+
+// RIGHT — the engine LOOKS. Where somebody is standing, and whether
+// their hands are free, are facts it already holds.
+function standingThePost(record, condition): boolean {
+  const worker = claimantStuff(record);
+  return (
+    !!worker &&
+    worker.getContainer()?.getTemplatePath() === condition.destinationPath &&
+    worker.getEngagements().length === 0
+  );
+}
+```
+
+**The tell is a verb with no object and no effect** — one that changes
+nothing in the world except a flag meaning *"I am now doing this."*
+Compare `strike`, `shove`, `pour`: each moves something. `watch` moved
+nothing.
+
+⭐ **The shipped precedent that settles it.** `AttendanceEngagement` — a
+shopkeeper attending a customer — has **no verb**. It starts because a
+customer arrived and the roster says who is on shift. Standing a post is
+the same shape, and so is fleeing: `disengageImpl` is not a `flee` verb,
+it is what happens when you try to walk out of a room while engaged. **You
+do the ordinary thing and the sim prices it.**
+
+⚠ Three costs, all of which the guard verb paid:
+
+1. **It cannot be honest.** A verb-set flag survives you wandering off;
+   an observation does not.
+2. **It needs a rule where the world already had one.** The engagement
+   claimed `body`/`hands`/`attention` so the game *refused* to let a
+   guard craft. Observing instead needs no refusal — craft if you like,
+   those minutes do not count. **Measure presence, not virtue.**
+3. **It spends a verb**, and verbs are a scarce global namespace. This
+   one shadowed the livestream `watch` for every character alive
+   (`lint:verb-collisions`).
+
+⚠⚠ **The adjacent trap: one verb per job type.** A clause vocabulary is
+an extension seam — *"each a new `holdsFor` predicate, never a new engine
+seam"* (`lib/employment/Condition.ts`). Templates surface as **arguments
+to `job post`**, never as verbs, and the doing side should follow: where
+a job genuinely needs a discrete act (a courier's handover) it is a
+subcommand of the general palette, not a new top-level verb.
+
+See [contract.md § No verb for standing a post](./subsystems/contract.md).

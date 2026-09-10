@@ -3,7 +3,9 @@
 > **Status: PARTIAL** — cycles 1 + 2 shipped (session, poise, terms,
 > blame, the threat graph) → [combat.md](../../subsystems/combat.md)
 > **Left:** pursuit / the chase · rout & rally retreat · the morale +
-> de-escalation suite · the `guards` intervention brain · the client
+> de-escalation suite · the `guards` intervention brain (⚠ content riding
+> substrate that does not exist — see
+> [intervention-slate.md](./intervention-slate.md)) · the client
 > `CombatCard` · NPC-vs-NPC crews · the composure/luck axis
 > **Size:** a build
 

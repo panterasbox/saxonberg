@@ -19,3 +19,5 @@ data:
   length: 0.9
   slotClaims:
     "/stuff/idea/species/BodyPlan/biped": ["hand:right"]
+  # ⭐ A hinged head — no guard of its own, which is the practice.
+  exercises: [flails]
