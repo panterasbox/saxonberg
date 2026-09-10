@@ -256,12 +256,19 @@ suite('the guard contract — the third clause (step 22)', () => {
   }, 60_000);
 
   it('⭐⭐ the guard clause lives on the BOARD, not on a verb of its own', async () => {
-    // The general employment palette already carries it: the clause
-    // templates surface as arguments to `job post`, never as verbs. That
-    // is what makes widening the vocabulary cost no engine surface.
+    // The general employment palette carries it: the clause templates
+    // surface as ARGUMENTS to `job post`, never as verbs. That is what
+    // makes widening the vocabulary cost no engine surface.
+    //
+    // ⚠ Asserted through `help`, deliberately. Bare `job` is afforded by
+    // a `JobBoard` fixture, so away from one it is honestly an
+    // `unknown-verb` — which this test learned by asserting otherwise.
     const help = await patient.cmd('help job');
     expectOk(help);
-    expectOk(await patient.cmd('job'));
+    const said = await help.said();
+    expect(said, 'the board is the palette').toMatch(/post|claim|complete/i);
+    // …and standing a post is nowhere on it as a verb of its own.
+    expect(said).not.toMatch(/`watch`/);
   }, 60_000);
 });
 

@@ -2764,6 +2764,28 @@ silent — the subcommand lives in `fight.yaml`, installed as a
 until a boot reconciles the row. The live world's own help is the only
 place that can say it.
 
+### Re-driven 2026-09-10 (second time), after the `watch` verb was cut
+
+Fresh world again — DB dropped, 43 packs reinstalled. **15 / 15 green.**
+
+⭐⭐⭐ The assertion that earns its place this round:
+
+```
+help watch  →  "Put a livestream's video in the focal embed"
+```
+
+**`watch` is the livestream verb again.** A `command-view` row is a
+document, so deleting `cmd/work/watch.yaml` from the checkout proves
+nothing until a boot reconciles it away — the live world's own help is
+the only thing that can say the shadow is gone.
+
+⚠ **And one assertion was wrong rather than the world.** The first cut
+asserted bare `job` was `ok`; it is `unknown-verb` away from a board,
+because `job` is afforded by the `JobBoard` fixture. Correct behaviour,
+caught by the drive, and the test now asks through `help` instead. That
+is the second time this build a wire assertion was the defect — the first
+was `expectOkOr` taking an array.
+
 ### Not driveable, and not faked
 
 Steps 6–7 and 15–19 need a competence history and a death, both of which
