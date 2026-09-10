@@ -566,10 +566,12 @@ no-fight*.**
 >
 > So: a de-escalation design that arrives here again needs to answer
 > **"what does the engine honestly measure?"** first. If the answer is
-> "the player's words," it is not buildable. Intervention as an *act* (a
-> bystander who `shove`s between two fighters, read into both fighters' morale)
-> is the open and buildable half — see the consequence plan's deferred
-> seams.
+> "the player's words," it is not buildable.
+>
+> ⭐ **The open and buildable half now has its own slate** — intervention
+> as an *act*: a third party who gets between two fighters and eats what
+> that costs. → [intervention-slate.md](./intervention-slate.md). T12 is
+> closed; that is where the design surface went.
 
 **The PC/NPC will-asymmetry (interchangeability holds for *bodies*, not
 *wills*):**
