@@ -1440,4 +1440,65 @@ Read first, in this order:
 
 ## Drive record
 
-*(appended at build time)*
+**Run 2026-09-10** against a freshly reset world (`saxonberg_build2`),
+packs reinstalled from the checkout.
+
+### The wire file — 13/13
+
+`packages/wire/tests/presentation.wire.test.ts`, attached to the live
+world on 2010. All four rows of the D9 anonymity table, the three
+`look <instrument>` assertions that pin the `getLong` regression, the
+targeting checks, and the ad-hoc refusal.
+
+### ⚠⚠ The transcript diff found TWO more, and both were mine
+
+65 renderings in five rooms, against the pre-sweep baseline. Ten keys
+differed. **Four were noise** of the kind § W1 already documented (NPC
+brain ticks; a `look <ambiguous>` prompt firing in one run and not the
+other; an extra drive character standing in two rooms). **Two were
+real**, and they are the same defect seen twice:
+
+| where | was | became |
+|---|---|---|
+| the Terminus registry, room item list | `the deed desk` | `something` |
+| Duncan Hall, `look <super>` → `── In it:` | `a householder's kit` and `a heavy ring of master keys` | `something` and `something` |
+
+⭐⭐ **D5's blast radius was wider than D5 priced it.** Making `Mml.list`
+lazy was scoped in the plan to *"a disguised or unrecognized **person**"*.
+But an item list resolved late also starts consulting the **vision
+gate**, and the gate disagrees with the surface that built the list:
+
+- `LookController` already filters its contents through
+  **`PerceptionApi.perceives(actor, item)`**. Everything in the list has
+  been judged perceivable.
+- `describeFor` then asks **`VisionModality.canSee`**, which reads the
+  light band at the target's container. In an unlit interior that fails,
+  and the item renders `obscured` → **`something`**.
+- Worse for a container: `canSee` walks up **one** level, so the contents
+  of an NPC's own inventory land on the NPC — who carries no light — and
+  every one of them reads `something`.
+
+⚠ *Every object reading "something"* is the documented tell for exactly
+this ([unlit interiors are pitch black]). The room's prose read in full
+while its furniture was anonymous — incoherent, and a visible change the
+acceptance bar forbids.
+
+**Fixed by refusing the second gate**, not by reverting D5: `look`'s two
+item lists resolve **now**, viewer-blind, which is what they always did.
+They are `toSelf` renders for one known viewer whose perception was
+already resolved, and an inert thing has no recognition for late binding
+to add. D5's real fix — a person you have never met no longer named by
+`sense`, `search`, a surface or a container — is untouched.
+
+⭐ **The two gates disagreeing is a genuine finding and is NOT settled
+here.** `PerceptionApi.perceives` and `VisionModality.canSee` answer
+differently about the same object, and `canSee`'s one-level walk cannot
+see into a creature's inventory at all. → the perception/naming slate.
+
+### What the drive cost, honestly
+
+It found **three** defects the 10,041-test kernel suite could not: the
+`getLong` fallback (W1) and these two. All three are *rendering* bugs,
+and the suite's blind spot is the same in each case — it asserts fields
+and envelopes, and the prose is assembled downstream of everything it
+checks.
