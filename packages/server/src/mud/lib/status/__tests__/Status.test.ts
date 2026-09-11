@@ -86,18 +86,18 @@ describe('StatusMixin', () => {
     viewer.know(RECOGNITION, g.getTemplatePath()!, { knownAs: 'Gus' });
     // The act-subject path (describe) shows the bare identity.
     expect(g.describeFor(viewer)).toBe('Gus');
-    // The presence-scan path weaves the status in (no double-decoration).
-    expect(g.describeWithStatusFor(viewer)).toBe(
+    // The presence-scan FORM weaves the status in (no double-decoration).
+    expect(g.describeFor(viewer, 'presence')).toBe(
       'Gus, watching the road',
     );
   });
 
-  it('describeWithStatus decorates the salient-feature name for an unknown', () => {
+  it('the presence form decorates the stranger name too', () => {
     const viewer = makeStuff(() => new Viewer());
     const g = makeGus();
     g.setStatus('watching the road');
     expect(g.describeFor(viewer)).toBe('a stout man');
-    expect(g.describeWithStatusFor(viewer)).toBe(
+    expect(g.describeFor(viewer, 'presence')).toBe(
       'a stout man, watching the road',
     );
   });

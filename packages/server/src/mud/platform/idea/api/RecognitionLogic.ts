@@ -5,6 +5,7 @@
 import { ApiLogic } from '../../../lib/stuff/ApiLogic';
 import { Unshadowable } from '../../../lib/security/decorators';
 import type { Stuff } from '../../../lib/stuff/Stuff';
+import type { PresentationForm } from '../../../lib/description/NounPhrase';
 import type { Sensor } from '../../../lib/message/Sensor';
 import type { Perception } from '../../../lib/perception/Perception';
 import { MixinApi } from '../../../api/mixin';
@@ -292,16 +293,41 @@ function salientFeaturesImpl(
  * The fallback branches (no-sensor / obscured / masked) never decorate.
  */
 function describeCore(
-  viewer: Stuff,
+  viewer: Stuff | undefined,
   target: Stuff,
-  withFeatures: boolean,
-  withStatus: boolean
+  form: PresentationForm
 ): string {
   const baseline = target.getPresentation();
 
+  // ⭐⭐ `bare` and `handle` short-circuit EVERY gate below, and that is
+  // the disguise/anonymity split in two lines of code. A disguise works
+  // because somebody is LOOKING AT YOU; a channel is not looking. So a
+  // hooded man on a named channel is himself, and an anonymous poster is
+  // a handle no matter how plainly he is standing there.
+  if (form === 'bare') {
+    if (MixinApi.isNamed(target)) {
+      const name = target.getName();
+      if (name) return name;
+    }
+    return target.handlePhrase().render();
+  }
+  if (form === 'handle') return target.handlePhrase().render();
+
+  const withFeatures = form === 'distinguishing';
+  const withStatus = form === 'presence';
+
+  // No viewer at all: a log, a snapshot, the history ring, the group
+  // label the occupant block builds for a whole room at once. Nobody is
+  // being recognized — but the object's OWN decorations still apply, and
+  // that distinction cost a real regression: `distinguishing` with no
+  // viewer is exactly what the old `salientFeaturesOf(target)` was, and
+  // collapsing it to the baseline silently stopped the room's similarity
+  // grouping finding "12 dwarves in red robes".
+  if (!viewer) return viewerlessForm(target, form, baseline);
+
   // The viewer must be able to run perception queries.
   if (!MixinApi.isSensor(viewer) || !MixinApi.isPerception(viewer)) {
-    return baseline;
+    return viewerlessForm(target, form, baseline);
   }
   // Backstop visibility gate.
   if (!canSeeGate(viewer, target)) {
@@ -323,6 +349,13 @@ function describeCore(
         ? (viewer.recall(RECOGNITION, referent)?.knownAs ?? null)
         : null;
     let core: string;
+    // ⭐ `formal` is the full name WITH honorific and suffix — but only
+    // for somebody this viewer actually recognizes. It is a richer form
+    // of a name you already have, never a way to learn one.
+    if (form === 'formal' && instanceName && MixinApi.isNamed(target)) {
+      const full = target.getFullName();
+      if (full) return full;
+    }
     if (instanceName && typeName) core = `${instanceName}, ${typeName}`;
     else if (instanceName) core = instanceName;
     else if (typeName) core = typeName; // identified, not yet recognized
@@ -349,8 +382,34 @@ function describeCore(
 }
 
 /** The `describe` face — see the object surface (Stuff/BeliefStore). */
-function describeImpl(viewer: Stuff, target: Stuff): string {
-  return describeCore(viewer, target, false, false);
+function describeImpl(
+  viewer: Stuff | undefined,
+  target: Stuff,
+  form: PresentationForm
+): string {
+  return describeCore(viewer, target, form);
+}
+
+/**
+ * A form resolved with nobody recognizing — a log, a snapshot, a label
+ * built once for a whole room.
+ *
+ * ⭐ Recognition is what is missing, not decoration: the object can
+ * still say what it is wearing and what it is doing. A log also wants
+ * the fullest honest answer, because there is no secret to keep from it.
+ */
+function viewerlessForm(
+  target: Stuff,
+  form: PresentationForm,
+  baseline: string
+): string {
+  if (form === 'formal') {
+    if (!MixinApi.isNamed(target)) return baseline;
+    return target.getFullName() || baseline;
+  }
+  if (form === 'distinguishing') return salientFeaturesImpl(target);
+  if (form === 'presence') return decorate(baseline, target);
+  return baseline;
 }
 
 /**
@@ -384,11 +443,6 @@ function kindOfImpl(viewer: Stuff | undefined, target: Stuff): RefKind {
   return 'player';
 }
 
-/** The `describeWithStatus` face — see the object surface (Stuff/BeliefStore). */
-function describeWithStatusImpl(viewer: Stuff, target: Stuff): string {
-  return describeCore(viewer, target, false, true);
-}
-
 /** The `perceivedKeywords` face — see the object surface (Stuff/BeliefStore). */
 function perceivedKeywordsImpl(viewer: Stuff, target: Stuff): string[] {
   if (MixinApi.isOrganism(target)) {
@@ -396,7 +450,7 @@ function perceivedKeywordsImpl(viewer: Stuff, target: Stuff): string[] {
     // form) even though the prose (`describe`) drops them, so `look vest`
     // resolves a stranger the roll-call prose names only "a crossing
     // guard". Status is not a targeting handle, so `withStatus` stays off.
-    return GrammarApi.tokenize(describeCore(viewer, target, true, false));
+    return GrammarApi.tokenize(describeCore(viewer, target, 'distinguishing'));
   }
   return MixinApi.isPerceptible(target) ? target.getKeywords() : [];
 }
@@ -454,16 +508,13 @@ export class RecognitionLogic extends ApiLogic {
    * circle boundary. The outer `describeFor` hop is admitted by the
    * boundary's exempt-method set.
    */
-  public describe(viewer: Stuff, target: Stuff): string {
-    return SecurityApi.projectAcross(viewer, target, () =>
-      describeImpl(viewer, target),
-    this);
-  }
-
-  /** The `describeWithStatus` face — same aperture as `describe`. */
-  public describeWithStatus(viewer: Stuff, target: Stuff): string {
-    return SecurityApi.projectAcross(viewer, target, () =>
-      describeWithStatusImpl(viewer, target),
+  public describe(
+    viewer: Stuff | undefined,
+    target: Stuff,
+    form: PresentationForm = 'concise'
+  ): string {
+    return SecurityApi.projectAcross(viewer ?? target, target, () =>
+      describeImpl(viewer, target, form),
     this);
   }
 
@@ -479,20 +530,6 @@ export class RecognitionLogic extends ApiLogic {
   /** The `recognizes` face — see the object surface (Stuff/BeliefStore). */
   public recognizes(viewer: Stuff, subject: Stuff): boolean {
     return recognizesImpl(viewer, subject);
-  }
-
-  /**
-   * The `salientFeatures` face — single-subject form of the same
-   * aperture (the worn-feature walk is a chain; the projection is the
-   * unit, not the hop).
-   */
-  public salientFeaturesOf(
-    target: Stuff,
-    covered: ReadonlySet<string> = EMPTY_COVERAGE
-  ): string {
-    return SecurityApi.projectAcross(target, undefined, () =>
-      salientFeaturesImpl(target, covered),
-    this);
   }
 
   /** The `knowsTrueType` face — see the object surface (Stuff/BeliefStore). */

@@ -258,10 +258,15 @@ export default class LookController extends CommandController<LookModel> {
         const items = topLevel.filter((item) => !MixinApi.isOrganism(item));
         const segments: Mml[] = [];
         if (occupants.length > 0) {
+          // ⭐ Both paths render the same FORM now. The rich composer
+          // (players) and the plain list (everyone else) used to differ
+          // in what they showed — status or no status — because only the
+          // eager path could afford it. Which form a surface gets is the
+          // surface's choice, not a consequence of who is looking.
           segments.push(
             MixinApi.isNotifyPolicy(actor)
               ? await actor.composeOccupants(occupants, occupants.length)
-              : Mml.list(occupants.map((o) => Mml.actor(o))),
+              : Mml.list(occupants.map((o) => Mml.actor(o, { form: 'presence' }))),
           );
         }
         if (items.length > 0) {

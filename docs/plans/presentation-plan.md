@@ -839,6 +839,17 @@ this build**:
    `Visible.getLong()` falls back to the short description when nobody
    wrote a long one, and it handed back the RAW field. Fixed; pinned in
    `NounPhrase.test.ts` and in the wire file.
+
+   ⚠ **Correction to my own account of this.** I wrote three times that
+   *"no unit test asserted the fallback."* **There was one** —
+   `Visible.test.ts` → *"should fall back to shortDescription when
+   longDescription is empty"*. It could not catch the bug because it
+   asserted a **field round-trip**: it set `'A rusty sword'` and expected
+   `'A rusty sword'` back, which is true of the raw field and says
+   nothing about the prose. The honest lesson is narrower and more
+   useful than the one I first drew: ⭐ **a test that feeds a value in
+   and asserts the same value out cannot see a rendering change.** The
+   rewritten assertion sets a stem and expects an article.
 2. **Dave's Bar** — extra ambient lines in one run and not the other.
    Confirmed **timing noise**: it varies run-to-run on identical code
    (the bartender's brain ticks).
@@ -907,6 +918,43 @@ person; anything else is a defect). Step 7 of the drive (emote in a room
 of four) shows each recipient their own naming.
 
 **Commit.** `build(presentation W2): a reference states its form — six forms on one seam, the occupant block late-bound, Mml.list lazy`
+
+
+
+#### W2 as built (2026-09-10)
+
+Done. `describeFor(viewer | undefined, form)` is the single face;
+`describeWithStatusFor` and `salientFeatures` are gone, and
+`RecognitionFace` is four methods instead of six.
+
+- ⚠ **The no-viewer branch is not "no decoration."** My first cut sent
+  every viewer-less call to the baseline, which silently stopped the
+  room's similarity grouping finding *"12 dwarves in red robes"* — the
+  old `salientFeaturesOf(target)` took **only a target**, so
+  `distinguishing` with no viewer is exactly what it was. What a
+  viewer-less call lacks is **recognition**, not decoration: the object
+  can still say what it is wearing and what it is doing.
+  `viewerlessForm` says so.
+- `Mml.list` is lazy. The seven leaking sites (`sense`, `search`,
+  on-surface, in-container) close by construction — no site was edited.
+- `nameMml` drops its hand-built markup and becomes
+  `Mml.actor(occ, { form: 'presence', color })`. The `color` attribute
+  was the stated reason it could not use `Mml.actor`; it is an ordinary
+  argument now. ⭐ What stays eager is the **rule** (boost/hide/group),
+  because that is an attention decision, not a name — conflating the two
+  is what forced every rich surface to give up per-recipient naming.
+- `LookController`'s fallback path renders `presence` too, so both paths
+  show the same form (AC5).
+- `handlePhrase()` lands here with the two rungs that exist today
+  (species, description stem). W3 adds the authored-keyword rung and W4
+  the Position rung — each wave independently landable, and the W2 test
+  says out loud which rung it is asserting.
+- ⚠ A test's **fake recognition face** had to be rewritten to the new
+  shape. That is the right kind of breakage: a stub is a mirror of an
+  interface, and it broke exactly where the interface changed.
+- `Mml.actor`'s docstring loses its claim that *"server-side
+  disambiguation walks bodies … to pick the minimal-distinguishing form
+  per recipient."* It does not and never did; the naming slate owns it.
 
 ### W3 — the hosts: Named off Creature, Perceptible onto it
 

@@ -51,9 +51,21 @@ describe('VisibleMixin', () => {
       expect(visible.getLong()).toBe('A long, detailed description of a rusty sword.');
     });
 
-    it('should fall back to shortDescription when longDescription is empty', () => {
-      visible.setShortDescription('A rusty sword');
-      expect(visible.getLong()).toBe('A rusty sword');
+    it('should fall back to the RENDERED shortDescription', () => {
+      // ⚠ RENDERED, not the raw field. The description is a STEM now, so
+      // handing it back bare printed "rusty sword" into the body of a
+      // `look` where a player had always read "a rusty sword". The live
+      // drive caught it; this suite did not, because this assertion was
+      // the only one that touched the fallback and it asserted the
+      // field rather than the prose.
+      visible.setShortDescription('rusty sword');
+      expect(visible.getLong()).toBe('a rusty sword');
+    });
+
+    it('the fallback honours the register', () => {
+      visible.setShortDescription('rusty sword');
+      visible.setRegister('definite');
+      expect(visible.getLong()).toBe('the rusty sword');
     });
 
     it('should prefer longDescription over shortDescription', () => {

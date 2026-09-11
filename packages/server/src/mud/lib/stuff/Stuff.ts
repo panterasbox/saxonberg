@@ -39,7 +39,10 @@ import { ProxyApi } from '../../api/proxy';
 import { SecurityApi } from '../../api/security';
 import { MixinApi } from '../../api/mixin';
 import { GrammarApi } from '../../api/grammar';
-import { NounPhrase } from '../description/NounPhrase';
+import {
+  NounPhrase,
+  type PresentationForm,
+} from '../description/NounPhrase';
 // Type-only: `Stuff` is the root base, so a *value* import of `Mml`
 // (which pulls recognition → belief → `Idea extends Stuff`) would form a
 // load-time cycle. The default fragment is built by `Mml.ref` instead;
@@ -141,9 +144,24 @@ export type RefKind = 'player' | 'npc' | 'thing';
  * presentation.
  */
 export interface RecognitionFace {
-  describe(viewer: Stuff, target: Stuff): string;
-  describeWithStatus(viewer: Stuff, target: Stuff): string;
-  salientFeaturesOf(target: Stuff, covered?: ReadonlySet<string>): string;
+  /**
+   * ⭐⭐ **One method, two axes.** WHO is reading (`viewer`, `undefined`
+   * for a log or a snapshot) and WHAT FORM the sentence asked for.
+   *
+   * It was four methods — `describe`, `describeWithStatus`,
+   * `salientFeaturesOf` and the viewer-blind baseline — and the shape of
+   * that was doing real damage: the richer two had **one caller each**,
+   * both on the same surface, because the only way to reach them was to
+   * resolve eagerly for a single known viewer and give up per-recipient
+   * naming. Which form a sentence gets is now the sentence's choice
+   * rather than a consequence of how the message happened to be
+   * delivered.
+   */
+  describe(
+    viewer: Stuff | undefined,
+    target: Stuff,
+    form: PresentationForm,
+  ): string;
   perceivedKeywords(viewer: Stuff, target: Stuff): string[];
   kindOf(viewer: Stuff | undefined, target: Stuff): RefKind;
   knowsTrueType(viewer: Stuff, target: Stuff): boolean;
@@ -256,31 +274,31 @@ export abstract class Stuff {
    * fallback — the `getPresentation` precedent). The concise form: a
    * recognized name or the stranger stem, no worn feature, no status.
    */
-  describeFor(viewer: Stuff): string {
-    return (
-      Stuff._recognitionFace()?.describe(viewer, this) ??
-      this.getPresentation()
-    );
+  describeFor(
+    viewer: Stuff | undefined,
+    form: PresentationForm = 'concise',
+  ): string {
+    const face = Stuff._recognitionFace();
+    if (face) return face.describe(viewer, this, form);
+    // ⚠ The no-face fallback (a bare harness) answers PER FORM rather
+    // than handing back the concise presentation for all six — a
+    // fixture asking for `bare` and silently getting `concise` is a
+    // test that passes for the wrong reason.
+    return this.fallbackForm(form);
   }
 
-  /** {@link describeFor} with the activity-status affix — the
-   * presence-scan (room roll-call) form. */
-  describeWithStatusFor(viewer: Stuff): string {
-    return (
-      Stuff._recognitionFace()?.describeWithStatus(viewer, this) ??
-      this.getPresentation()
-    );
-  }
-
-  /**
-   * The stranger stem plus the most-notable worn item (unless `covered`
-   * hides the region) — the presence / targeting surface's fuller form.
-   */
-  salientFeatures(covered?: ReadonlySet<string>): string {
-    return (
-      Stuff._recognitionFace()?.salientFeaturesOf(this, covered) ??
-      this.getPresentation()
-    );
+  /** The describe ladder with no recognition engine registered. */
+  private fallbackForm(form: PresentationForm): string {
+    if (form === 'bare' && MixinApi.isNamed(this)) {
+      const name = this.getName();
+      if (name) return name;
+    }
+    if (form === 'formal' && MixinApi.isNamed(this)) {
+      const full = this.getFullName();
+      if (full) return full;
+    }
+    if (form === 'handle') return this.handlePhrase().render();
+    return this.getPresentation();
   }
 
   /** The keywords `viewer` may target this by (worn features included
@@ -342,6 +360,40 @@ export abstract class Stuff {
     // decoration, not identity — it weaves in only at the `presence`
     // form, never on act-subject naming.
     return phrase;
+  }
+
+  /**
+   * ⭐ **The short handle** — what kind of thing this is, in one or two
+   * words, with an article: *a weaver*, *a dwarf*, *a brass lamp*.
+   *
+   * It is what an anonymous channel post is signed with, and the reason
+   * it exists is that the DESCRIPTION is the wrong thing to put in a
+   * chat line: *"a weaver with a shuttle in one hand and a tally in the
+   * other says…"* is unreadable, and nine shipped rows are written as
+   * portraits exactly like it.
+   *
+   * The chain, and ⚠ **an authored value always wins** — the world may
+   * derive what KIND of thing something is; it may never derive what it
+   * is LIKE:
+   *
+   *   1. the handle its author wrote  *(arrives in W3)*
+   *   2. else the role they hold  *(arrives in W4)*
+   *   3. else their species
+   *   4. else the description stem
+   *   5. else `someone` / `something`
+   */
+  handlePhrase(): NounPhrase {
+    if (MixinApi.isOrganism(this)) {
+      const common = this.getSpecies()?.getCommonNames()[0];
+      if (common) return NounPhrase.of(common, 'indefinite');
+    }
+    if (MixinApi.isVisible(this)) {
+      const short = this.getShortDescription();
+      if (short) return NounPhrase.of(short, this.getRegister());
+    }
+    return NounPhrase.proper(
+      MixinApi.isOrganism(this) ? DEFAULT_UNKNOWN_ORGANISM : DEFAULT_PRESENTATION,
+    );
   }
 
   /** The rung ladder, without the count. See {@link presentationPhrase}. */

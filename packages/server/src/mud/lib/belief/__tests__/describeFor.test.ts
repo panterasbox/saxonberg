@@ -130,10 +130,15 @@ describe('RecognitionApi.describe', () => {
   });
 });
 
-describe('RecognitionApi.salientFeatures', () => {
+describe("the `distinguishing` form — what salientFeatures became", () => {
+  // ⭐ It was a method of its own with exactly ONE caller, because the
+  // only way to reach it was to resolve eagerly for a single known
+  // viewer. It is a form a sentence asks for now. Viewer-blind here (the
+  // room's group label is one label for everybody), which is precisely
+  // the aperture the old single-argument method had.
   it('uses the authored appearance when present', () => {
     const bob = makeBeing('Bob', 'tall stranger');
-    expect(bob.salientFeatures()).toBe('a tall stranger');
+    expect(bob.describeFor(undefined, 'distinguishing')).toBe('a tall stranger');
   });
 
   it('falls back to "someone" with no appearance or species', () => {
@@ -142,7 +147,7 @@ describe('RecognitionApi.salientFeatures', () => {
       `/obj/npc/featureless-${beingCounter++}`,
     );
     b.setName('Nemo');
-    expect(b.salientFeatures()).toBe('someone');
+    expect(b.describeFor(undefined, 'distinguishing')).toBe('someone');
   });
 });
 

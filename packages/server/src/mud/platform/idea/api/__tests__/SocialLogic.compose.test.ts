@@ -14,6 +14,7 @@
 
 import "../../../../../test-bootstrap";
 import { Stuff } from "../../../../lib/stuff/Stuff";
+import type { PresentationForm } from "../../../../lib/description/NounPhrase";
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import { SocialApi } from "../../../../api/social";
 import { GroupApi } from "../../../../api/group";
@@ -110,18 +111,20 @@ beforeEach(() => {
   // reaches the viewer's `recognizes`; the fake face covers the
   // describe family.
   vi.spyOn(MixinApi, "isBeliefStore").mockReturnValue(true);
+  // ⭐ ONE method, two axes — the shape the real face has since the
+  // presentation build. `presence` mirrors `concise` here because these
+  // stub occupants carry no StatusMixin; `distinguishing` is what the
+  // similarity grouping reads, and it is asked for VIEWER-BLIND (one
+  // label for the whole room, so a per-viewer answer would be a promise
+  // the grouping cannot keep).
   Stuff._registerRecognitionFace(() => ({
-    describe: (_v: Stuff, t: Stuff) =>
-      t instanceof Occupant ? t.display : "someone",
-    // The occupant roll-call renders through `describeWithStatus`
-    // (presence decoration). These stub occupants carry no
-    // `StatusMixin`, so it mirrors `describe`.
-    describeWithStatus: (_v: Stuff, t: Stuff) =>
-      t instanceof Occupant ? t.display : "someone",
-    salientFeaturesOf: (t: Stuff) => {
+    describe: (_v: Stuff | undefined, t: Stuff, form: PresentationForm) => {
       if (!(t instanceof Occupant)) return "someone";
-      const stem = t.speciesName ? `a ${t.speciesName}` : "someone";
-      return t.feature ? `${stem} wearing ${t.feature}` : stem;
+      if (form === "distinguishing") {
+        const stem = t.speciesName ? `a ${t.speciesName}` : "someone";
+        return t.feature ? `${stem} wearing ${t.feature}` : stem;
+      }
+      return t.display;
     },
     perceivedKeywords: () => [],
     kindOf: () => "npc" as const,

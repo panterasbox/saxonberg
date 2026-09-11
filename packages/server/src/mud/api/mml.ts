@@ -52,6 +52,7 @@
  */
 
 import type { Stuff } from '../lib/stuff/Stuff';
+import type { PresentationForm } from '../lib/description/NounPhrase';
 import type { Sensor } from '../lib/message/Sensor';
 import type Exit from '../lib/boundary/Exit';
 import type { SenseChannel } from '../lib/description/Perceiver';
@@ -243,7 +244,15 @@ function renderValue(value: unknown, viewer?: Stuff & Sensor): string {
 type MmlPayload =
   | { kind: 'eager'; raw: string }
   | { kind: 'lazy'; strings: readonly string[]; values: readonly unknown[] }
-  | { kind: 'ref'; tag: string; stuff: Stuff };
+  | {
+      kind: 'ref';
+      tag: string;
+      stuff: Stuff;
+      /** Which form of the identity the sentence needs. Default `concise`. */
+      form?: PresentationForm;
+      /** Extra wire attributes (today: `color`, from the attention rule). */
+      attrs?: Readonly<Record<string, string>>;
+    };
 
 /**
  * The placeholder tag `Mml.actor` carries until render time, when
@@ -255,6 +264,22 @@ type MmlPayload =
  * asserts its absence from the wire vocabulary.
  */
 const ACTOR_TAG = 'actor';
+
+/**
+ * What an emitter may say about a reference beyond *which object*.
+ *
+ * ⭐ Both are late-bound: `form` is resolved beside the viewer at
+ * `toString(viewer)`, and `color` is an attention rule the composer
+ * already knows. Neither forces the emitter to resolve a name early,
+ * which is the whole point — before this, a surface that wanted the
+ * rich form had to give up per-recipient naming to get it.
+ */
+export interface RefOpts {
+  /** Which form of the identity this sentence needs. Default `concise`. */
+  form?: PresentationForm;
+  /** A palette key the client tints the identity tag with. */
+  color?: string;
+}
 
 /**
  * `Mml.list(items)` switches from inline (comma + "and") to block
@@ -316,8 +341,14 @@ export class Mml {
    * The **tag** is resolved at the same seam for {@link ACTOR_TAG},
    * which is why that one is not a wire tag at all.
    */
-  private static ref(tag: string, stuff: Stuff): Mml {
-    return new Mml({ kind: 'ref', tag, stuff });
+  private static ref(tag: string, stuff: Stuff, opts?: RefOpts): Mml {
+    return new Mml({
+      kind: 'ref',
+      tag,
+      stuff,
+      ...(opts?.form ? { form: opts.form } : {}),
+      ...(opts?.color ? { attrs: { color: opts.color } } : {}),
+    });
   }
 
   /**
@@ -337,14 +368,34 @@ export class Mml {
    * are the cases the framework must not guess at, and they stay
    * explicit.
    *
-   * The `stuff-id` attribute carries the runtime identity through to
-   * the wire — server-side disambiguation walks bodies for these tokens
-   * to pick the minimal-distinguishing form per recipient, and
-   * client-side features (right-click → tell, social-graph rendering,
-   * identity overlays) read the id directly.
+   * The `stuff-id` attribute carries the runtime identity through to the
+   * wire, where client-side features (right-click → tell, social-graph
+   * rendering, identity overlays) read it directly.
+   *
+   * ⚠ This docstring used to claim that *"server-side disambiguation
+   * walks bodies for these tokens to pick the minimal-distinguishing
+   * form per recipient."* **It does not and never did.** The claim is
+   * recorded, as unbuilt, on the naming slate, which owns it.
+   *
+   * ⭐ `opts.form` picks WHICH form of the identity the sentence needs,
+   * resolved late, beside the viewer:
+   *
+   * | form | shows |
+   * |---|---|
+   * | `concise` (default) | the ordinary identity — act lines, emotes |
+   * | `presence` | + what they are doing — the room survey |
+   * | `distinguishing` | + what they are wearing — targeting |
+   * | `formal` | the full name, honorific and suffix |
+   * | `bare` | the name alone — a channel that forbids anonymity |
+   * | `handle` | article + the short handle — an anonymous post |
+   *
+   * ⚠⚠ `bare` and `handle` consult **no perception gate**: a channel is
+   * not looking at you, so a hood does not reach it. And a `handle`
+   * names nobody, so its tag carries **no `stuff-id`** — the client's
+   * `commandFor` already tolerates an id-less identity tag.
    */
-  static actor(stuff: Stuff): Mml {
-    return Mml.ref(ACTOR_TAG, stuff);
+  static actor(stuff: Stuff, opts?: RefOpts): Mml {
+    return Mml.ref(ACTOR_TAG, stuff, opts);
   }
 
   /**
@@ -366,8 +417,8 @@ export class Mml {
    * Render a location's display name inside `<location stuff-id="...">`
    * tags. Same identity-tagging rationale as `name`.
    */
-  static location(stuff: Stuff): Mml {
-    return Mml.ref('location', stuff);
+  static location(stuff: Stuff, opts?: RefOpts): Mml {
+    return Mml.ref('location', stuff, opts);
   }
 
   /** Render a direction (e.g., 'north') inside `<direction>` tags. */
@@ -402,8 +453,8 @@ export class Mml {
    * somebody picks it up — so the split was never stable and no
    * consumer ever acted on it.
    */
-  static thing(stuff: Stuff): Mml {
-    return Mml.ref('thing', stuff);
+  static thing(stuff: Stuff, opts?: RefOpts): Mml {
+    return Mml.ref('thing', stuff, opts);
   }
 
   /**
@@ -441,8 +492,8 @@ export class Mml {
    * applies friend/foe coloring on player-tagged references through
    * the stylesheet's `attribute → bucket` selector.
    */
-  static player(stuff: Stuff): Mml {
-    return Mml.ref('player', stuff);
+  static player(stuff: Stuff, opts?: RefOpts): Mml {
+    return Mml.ref('player', stuff, opts);
   }
 
   /**
@@ -451,8 +502,8 @@ export class Mml {
    * them distinct treatments (NPCs aren't friend/foe candidates the
    * same way other players are).
    */
-  static npc(stuff: Stuff): Mml {
-    return Mml.ref('npc', stuff);
+  static npc(stuff: Stuff, opts?: RefOpts): Mml {
+    return Mml.ref('npc', stuff, opts);
   }
 
   /**
@@ -728,23 +779,45 @@ export class Mml {
     options?: { style?: 'auto' | 'inline' | 'block' }
   ): Mml {
     if (items.length === 0) return Mml.fromMarkup('nothing');
-    if (items.length === 1) return Mml.fromMarkup(items[0]!.toString());
 
     const style = options?.style ?? 'auto';
     const useBlock =
       style === 'block' ||
       (style === 'auto' && items.length > INLINE_LIST_THRESHOLD);
 
+    // ⚠⚠ **LAZY, and this was a live honest-fog leak.**
+    //
+    // Every branch used to call `item.toString()` — with NO VIEWER — and
+    // build a finished string. So the moment an identity reference went
+    // through a list, late binding died and the list rendered
+    // viewer-blind: `getPresentation()`, the true name. A person you
+    // have never met was named to you by `sense`, by `search` results,
+    // by an on-surface list and by an in-container list. The room's own
+    // roll-call escaped only because it resolved eagerly per viewer
+    // before listing, which is the accident this build exists to stop
+    // relying on.
+    //
+    // A lazy payload holds the parts and materializes at
+    // `toString(viewer)`, so each item resolves beside whoever is
+    // reading. ⭐ This is the build's ONE deliberate departure from
+    // "a player cannot tell": every shipped row renders identically, but
+    // a disguised or unrecognized person in those lists now reads the
+    // way the room already read them. That is the contract
+    // `belief.md § The prose path` documents; the alternative is a
+    // second lazy list for occupants only, which is a guard.
     if (useBlock) {
-      const lines = items.map((i) => `  ${i.toString()}`).join('\n');
-      return Mml.fromMarkup(`\n${lines}`);
+      const strings = ['\n  ', ...items.slice(1).map(() => '\n  '), ''];
+      return new Mml({ kind: 'lazy', strings, values: items });
     }
-
+    if (items.length === 1) return new Mml({ kind: 'lazy', strings: ['', ''], values: items });
     if (items.length === 2) {
-      return Mml.fromMarkup(`${items[0]!.toString()} and ${items[1]!.toString()}`);
+      return new Mml({ kind: 'lazy', strings: ['', ' and ', ''], values: items });
     }
-    const head = items.slice(0, -1).map((i) => i.toString()).join(', ');
-    return Mml.fromMarkup(`${head}, and ${items[items.length - 1]!.toString()}`);
+    const strings = items.map((_, i) =>
+      i === 0 ? '' : i === items.length - 1 ? ', and ' : ', ',
+    );
+    strings.push('');
+    return new Mml({ kind: 'lazy', strings, values: items });
   }
 
   /**
@@ -965,12 +1038,19 @@ export class Mml {
       // viewer. Resolved here, beside the naming step, because both
       // questions are the same question — what does THIS recipient
       // perceive.
+      const form = this.payload.form ?? 'concise';
+      // ⭐ A handle names nobody, so the tag reports what the object IS
+      // (`player` for a player — that a weaver is a player is not the
+      // secret; WHICH player is) and carries no id at all.
       const tag = wire === ACTOR_TAG
-        ? stuff.kindFor(viewer)
+        ? stuff.kindFor(form === 'handle' ? undefined : viewer)
         : wire;
-      const label = viewer
-        ? stuff.describeFor(viewer)
-        : stuff.getPresentation();
+      // ⭐⭐ One face, two axes: WHO is reading (viewer, possibly
+      // undefined for logs and snapshots) and WHAT FORM the sentence
+      // asked for. Both resolve here, together, because they are the
+      // same question — what should THIS recipient read in THIS
+      // sentence.
+      const label = stuff.describeFor(viewer, form);
       // The object turns its label into a composable `Mml` *fragment*
       // (`getPresentationMml`, Stuff): `null` = the plain default, which
       // we build here as an escaped-once text fragment; a non-null
@@ -979,7 +1059,12 @@ export class Mml {
       // is never re-escaped — no plain-vs-markup decision at this seam.
       const inner = (stuff.getPresentationMml(label) ?? Mml.text(label))
         .toString();
-      return `<${tag} stuff-id="${escapeText(stuff.stuffId)}">${inner}</${tag}>`;
+      const id =
+        form === 'handle' ? '' : ` stuff-id="${escapeText(stuff.stuffId)}"`;
+      const extra = Object.entries(this.payload.attrs ?? {})
+        .map(([k, v]) => ` ${k}="${escapeText(v)}"`)
+        .join('');
+      return `<${tag}${id}${extra}>${inner}</${tag}>`;
     }
     let out = '';
     const { strings, values } = this.payload;
