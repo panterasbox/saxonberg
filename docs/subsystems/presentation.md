@@ -148,10 +148,22 @@ kept in step by hand. The first change to touch one broke the other.
 3. else **their species**
 4. else the description stem
 
-⚠ Rung 1 reads the **authored** slot, never `getPrimaryKeyword()`, whose
-derived fallback is the trailing keyword-pool token — `other`, for a row
-described as *"a weaver with a shuttle in one hand and a tally in the
-other"*. Nobody signs a message *"an other"*.
+⚠⚠ **Rung 1 reads the *authored* slot, and that is an anonymity
+guarantee rather than a nicety.** `getPrimaryKeyword()` always answers
+something, because targeting needs it to — and its derived pool folds in
+`tokenizeName(getName())` for any `Named` host.
+
+A player body is `Named` (enroll writes it), `Perceptible` (from
+`Creature`), and carries **no authored keyword**, because nobody types
+one for a player. So the derived answer for a player called Odile is
+**`odile`**, and a handle chain reading it would sign her anonymous post
+*"an odile"* — the single fact the whole setting exists to withhold.
+`getAuthoredPrimaryKeyword()` returns `undefined` there, the chain falls
+to her species, and she posts as *"a human"*.
+
+⭐ Two different questions, two right answers: *what may I type to refer
+to this?* derives freely; *what does this call itself?* is only ever what
+somebody wrote.
 
 ⭐ **Rung 2 follows the job**, and that is a bug fix rather than a
 convenience: a handle retyped onto the NPC goes stale, which is why a

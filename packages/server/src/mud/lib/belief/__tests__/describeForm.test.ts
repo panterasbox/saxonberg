@@ -175,10 +175,32 @@ describe('⭐⭐ the handle chain — an authored word always wins', () => {
     expect(b.describeFor(v, 'handle')).toBe('a weaver');
   });
 
-  it('⚠ rung 1 reads the AUTHORED slot, not the derived one', () => {
-    // `getPrimaryKeyword()` always answers something — its fallback is
-    // the trailing pool token, which for this portrait is `hand`.
-    // Signing a chat line "a hand" is not what anybody wrote down.
+  it('⚠⚠ rung 1 reads the AUTHORED slot — the derived one is the NAME', () => {
+    // ⭐⭐ **This is why `getAuthoredPrimaryKeyword()` exists**, and it is
+    // an anonymity leak rather than an aesthetic complaint.
+    //
+    // `getPrimaryKeyword()` always answers something, because targeting
+    // needs it to: with nothing authored it returns the trailing token
+    // of the DERIVED pool — and that pool folds in
+    // `tokenizeName(getName())` for any Named host. A player body is
+    // Named (enroll writes it), Perceptible (from Creature) and has no
+    // authored keyword, because nobody types one for a player.
+    //
+    // So the derived answer for a player called Odile is `odile`, and a
+    // handle chain reading it would sign her anonymous post **"an
+    // odile"** — her own name, which is the one fact the whole setting
+    // exists to withhold.
+    const v = makeStuff(() => new Viewer());
+    const b = being('Odile', '');
+    expect(b.getAuthoredPrimaryKeyword()).toBeUndefined();
+    expect(b.getPrimaryKeyword()).toBe('odile');
+    expect(b.describeFor(v, 'handle')).not.toMatch(/odile/i);
+  });
+
+  it('⚠ and the derived token is nonsense even when it is not a name', () => {
+    // The milder half: for a portrait row the trailing pool token is
+    // whatever word the sentence happened to end on. Nobody writes
+    // "a hand" down as what somebody is called.
     const v = makeStuff(() => new Viewer());
     const b = being('Mitch', 'weaver with a shuttle in one hand');
     expect(b.getPrimaryKeyword()).toBeDefined();

@@ -383,11 +383,11 @@ export abstract class Stuff {
    *   5. else `someone` / `something`
    */
   handlePhrase(): NounPhrase {
-    // 1 — the word its author chose. ⚠ The AUTHORED slot, never
-    // `getPrimaryKeyword()`, which always answers something: its derived
-    // fallback is the trailing pool token, and for a row described as
-    // "a weaver with a shuttle in one hand and a tally in the other"
-    // that is `other`. Nobody would sign a message "an other".
+    // 1 — the word its author chose. ⚠⚠ The AUTHORED slot, never
+    // `getPrimaryKeyword()`: its derived pool folds in the host's own
+    // NAME, so for a player called Odile it answers `odile` and this
+    // would sign her anonymous post "an odile". See
+    // `Perceptible.getAuthoredPrimaryKeyword`.
     if (MixinApi.isPerceptible(this)) {
       const authored = this.getAuthoredPrimaryKeyword();
       if (authored) return NounPhrase.of(authored, 'indefinite');

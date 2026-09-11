@@ -283,12 +283,21 @@ export function PerceptibleMixin<TBase extends MixinConstructor>(Base: TBase) {
      * `undefined` when nobody wrote one.
      *
      * `getPrimaryKeyword` always answers something, which is right for
-     * targeting and wrong for the **handle chain**: the handle's first
-     * rung is *"the word its author chose"*, and the derived trailing
-     * token is not that. For a row described as *"a weaver with a
-     * shuttle in one hand and a tally in the other"* the derived answer
-     * is `other`, and signing an anonymous chat line *"an other"* is
-     * the kind of thing nobody would ever have written down.
+     * targeting (a click affordance must resolve) and **wrong for the
+     * handle chain** — two different questions:
+     *
+     *   - *what may I type to refer to this?* → derive freely.
+     *   - *what does this call itself?* → only what somebody wrote.
+     *
+     * ⚠⚠ **And the difference is an anonymity leak, not a matter of
+     * taste.** The derived pool folds in `tokenizeName(getName())` for
+     * any `Named` host. A player body is Named (enroll writes it),
+     * Perceptible (from `Creature`), and has no authored keyword —
+     * nobody types one for a player. So `getPrimaryKeyword()` for a
+     * player called Odile answers **`odile`**, and a handle chain
+     * reading it would sign her anonymous chat post *"an odile"*: the
+     * one fact the setting exists to withhold. Pinned in
+     * `describeForm.test.ts`.
      *
      * ⚠ It reads the raw slot rather than validating against the pool,
      * deliberately: an authored value that has fallen out of the pool
