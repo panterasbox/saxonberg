@@ -108,6 +108,17 @@ export function classFileOf(
  * `class BusinessEntity` that the module exports as its default further
  * down (the `Bank`→`BankCounter` naming convention). Anchoring on
  * `export` silently read that file as composing nothing.
+ *
+ * ⚠⚠ It also follows a **same-file `const XBase = …` binding**, which is
+ * how every deep stack in the tree is actually written: `Creature`,
+ * `Character`, `NPC`, `Avatar` and pets' `KeptAnimal` all read
+ * `const XBase = AMixin(BMixin(Base)); class X extends XBase {}`. Until
+ * 2026-09-10 the `extends` text was `XBase` alone and the identifier
+ * resolved through imports only, so **every one of them composed
+ * nothing** as far as this reader was concerned — `lint:identity` passed
+ * because its Cast rows happen to name their mixin inline, not because
+ * it was looking. A gate that answers `no` to every question is the
+ * failure class the derived family exists to prevent.
  */
 export function composesMixin(
   classPath: string,
@@ -125,9 +136,7 @@ export function composesMixin(
   const file = classFileOf(classPath, sources);
   if (!existsSync(file)) return false;
   const source = readFileSync(file, "utf8");
-  const exprs = [...source.matchAll(/\bclass\s+\w+\s+extends\s+([^{]+)\{/g)]
-    .map((m) => m[1] ?? "")
-    .filter(Boolean);
+  const exprs = extendsExpressions(source);
   if (exprs.length === 0) return false;
   const wanted = new RegExp(`\\b${mixin}\\b`);
   for (const expr of exprs) {
@@ -147,6 +156,56 @@ export function composesMixin(
   }
   cache.set(key, false);
   return false;
+}
+
+/**
+ * Every `class X extends <expr>` expression in a file, with same-file
+ * `const` bases inlined — so `const XBase = AMixin(B); class X extends
+ * XBase {}` reads as `AMixin(B)` and not as the bare word `XBase`.
+ *
+ * Exported for the gate's own tests; the inlining is transitive (a base
+ * built from another base) and cycle-guarded by the visited set.
+ */
+export function extendsExpressions(source: string): string[] {
+  const out = [...source.matchAll(/\bclass\s+\w+\s+extends\s+([^{]+)\{/g)]
+    .map((m) => (m[1] ?? "").trim())
+    .filter(Boolean);
+  const visited = new Set<string>();
+  // Breadth-first over identifiers: anything named in an expression that
+  // is bound by a same-file `const` contributes that binding's text too.
+  for (let i = 0; i < out.length; i++) {
+    for (const id of new Set(out[i]?.match(/[A-Za-z_$][\w$]*/g) ?? [])) {
+      if (visited.has(id)) continue;
+      visited.add(id);
+      const bound = constBinding(source, id);
+      if (bound) out.push(bound);
+    }
+  }
+  return out;
+}
+
+/**
+ * The initializer text of a same-file `const <id> = …;`, or null.
+ *
+ * Scanned by balancing brackets to the terminating `;` rather than by
+ * regex, because every real base stack spans dozens of lines and nests
+ * parentheses to a depth of twenty.
+ */
+function constBinding(source: string, id: string): string | null {
+  const decl = new RegExp(`(?:^|[\\n;])\\s*(?:export\\s+)?const\\s+${id}\\s*(?::[^=]+)?=`, "m");
+  const at = decl.exec(source);
+  if (!at) return null;
+  let i = at.index + at[0].length;
+  let depth = 0;
+  const start = i;
+  for (; i < source.length; i++) {
+    const ch = source[i];
+    if (ch === "(" || ch === "[" || ch === "{") depth++;
+    else if (ch === ")" || ch === "]" || ch === "}") depth--;
+    else if (ch === ";" && depth <= 0) break;
+  }
+  const text = source.slice(start, i).trim();
+  return text.length ? text : null;
 }
 
 /** The class path a source file backs — the inverse of `classFileOf`. */

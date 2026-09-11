@@ -695,10 +695,33 @@ in W2). No rendering path other than `presentationCore` changes.
   `ManaCell.ts:49`, `ManaLamp.ts:116`, `TpaTerminal.ts:407` — each
   drops its `a `; their registers stay the default `indefinite`. Their
   tests follow.
-- `mud/platform/idea/api/ConditionLogic.ts:584-591` — the corpse overlay
-  becomes `shortDescription: `body of ${presentation}`, register:
-  'definite'`; the `:578` comment and `generic-objects/…/agent/Corpse.yaml`'s
-  header say what arrives (carried D4).
+- ⚠⚠ **Every RUNTIME writer of `shortDescription` must write a STEM**,
+  and W0's audit found **nine**, not the one the plan named. Each writes
+  an article into the field today, so each would render a **double
+  article** the moment the register does the article's job — *"a a
+  salvaged lump of iron"*. None is covered by the golden, which reads
+  YAML; they are covered by the unit tests beside them and by the drive.
+
+  | site | writes today | becomes |
+  |---|---|---|
+  | `platform/idea/api/ConditionLogic.ts:586` | `the body of ${presentation}` | stem + `register: 'definite'` (carried D4) |
+  | `platform/idea/cmd/retail/CheckController.ts:103` | `a coat-check ticket` | `coat-check ticket` |
+  | `platform/idea/api/CraftingLogic.ts:1625` | `a worked lump of ${material}` | `worked lump of …` |
+  | `platform/idea/api/CraftingLogic.ts:2241` | `a salvaged lump of ${material}` | `salvaged lump of …` |
+  | `platform/idea/api/CraftingLogic.ts:2258` | `a heap of ${material} scrap` | `heap of … scrap` |
+  | `lib/lock/Lock.ts:110-117` (`keyDescription`, 4 literals) | `a worn brass key`, … | `worn brass key`, … |
+  | `lib/thermal/Thermal.ts:725` | `a cast lump of ${material}` | `cast lump of …` |
+  | `trade-ranching/src/idea/cmd/ranching/DraftController.ts:239` | `` `a ${primary}` `` where `primary` is a species common name | `` `${primary}` `` — the register supplies the article |
+  | `eternal-university/src/duncan-hall/dorm-themes.yaml` (28 overlays) | `a miner's dorm room`, … | stems; the file is under `src/`, **outside the golden's walk**, so its own pack suite is the proof |
+
+  ⭐ `DraftController` is the argument for the whole build in one line. It
+  prepends `"a "` to a **species common name it is handed at runtime** —
+  so the correctness of the article depends on content nobody has written
+  yet. ⚠ Checked: no shipped livestock species has a vowel-initial common
+  name, so the bug is **latent, not live** (`elf`, `ogre`, `orc`, `ewe`
+  exist, none of them reachable by `draft`). It is exactly the kind of
+  thing that only becomes wrong when somebody authors an ox — and after
+  this build the site cannot get it wrong, because it stops choosing.
 - `mud/lib/disguise/Disguise.ts` — `appearsAs` doc: a stem; the wearer's
   phrase is always indefinite. `Stuff.presentationPhrase` builds
   `NounPhrase.of(appearsAs, 'indefinite')`.
@@ -1037,11 +1060,71 @@ listed sites; the user should price that (§ Risks 1).
     D8 (the noun) and D9 (the default's third case) and are flagged for
     the user's eye in the handoff, not held for sign-off.
 
-### W0 gate deltas *(filled in by the build)*
+### W0 gate deltas *(filled in by the build, 2026-09-10)*
 
-- `lint:identity` before / after the resolver change: …
-- `lint:dossiers` before / after: …
-- `lint:presentation` leading-article ceiling recorded: …
+- **`lint:identity`** before / after the resolver change: **0 findings /
+  0 findings**, and the `--report` roster is **byte-identical**. Every
+  shipped `Cast` class names `CastMixin` inline in its own `extends`, so
+  the const-stack blindness was never changing this gate's answer — it
+  was a latent hole, not a live miss. It matters from W3 on, where rule 6
+  walks `NamedMixin` reach and **every** organism class reaches it
+  through a const base.
+- **`lint:dossiers`** before / after: **0 / 0**, same reason (it shares
+  the resolver).
+- **The resolver's own before/after**, which is the real delta:
+  `composesMixin('/lib/creature/Creature', 'NamedMixin')` answered **no**
+  and now answers **yes**; so did `Character`→`EmployedMixin`,
+  `Avatar`→`NamedMixin`, `Creature`→`VisibleMixin`. ⚠ It was answering
+  **no to every question asked of a const-stacked class** — which is
+  every deep stack in the tree.
+- **`lint:presentation` ceiling recorded: 611**, not the 612 the plan
+  predicted — see the finding below.
+
+### ⚠ W0 findings
+
+**1 — a capitalized article is part of a name, and one row proves it.**
+The round-trip audit (strip the article, record the register, re-render,
+compare) ran over all 635 authored strings and found **exactly one** that
+would change: `hearthworks/…/location/offstage.yaml`,
+`"The Hearthworks — Back room"`. Read case-insensitively that is a
+definite article over the stem `"Hearthworks — Back room"`, and the sweep
+would have re-rendered it **decapitalized** — a venue's proper name
+quietly lowercased. So `LEADING_ARTICLE` matches **lowercase only**, that
+row is `proper`, and the ceiling is 611 rather than 612. ⭐ With the rule
+fixed the audit reports **0 of 635 strings change**, which is the
+build's central claim established mechanically before a single row moved.
+
+**2 — ⚠⚠ all 60 `alternateNames:` blocks in the content are dead.** Found
+by rule 6's `--report`. There is exactly one `alternateNames` declaration
+in the tree (`Named.fieldMeta`), typed `AlternateName[]` =
+`{ kind, value }[]`:
+
+| | rows |
+|---|---|
+| class composes `NamedMixin` (the field exists) | 25 |
+| class does **not** (27 `SingletonCartesianLocation`, 4 `FurnishableRoom`, 2 `CartesianLocation`, 2 water things) — key discarded whole | 35 |
+| authored as `{kind, value}` | **0** |
+| authored as plain strings → hydrates to `[{kind: undefined, value: undefined}]` | **60** |
+
+Every author clearly meant *alternate keywords for targeting*
+(`[road, crest, top]`, `[barkeep, bartender]`, `[odile, clerk,
+magistrate]`) — which is `Perceptible.keywords`, a different field.
+**Not fixed here, deliberately:** converting them to `keywords:` would
+*add* targeting words, and AC1 forbids a visible change. Recorded to
+§ Deferred seams. ⚠ W3 must delete **two** blocks, not one — the
+`duelist` as well as the `sellsword`; both are `Extra`s, so rule 6 fires
+on them the moment `Named` leaves `Creature`. The plan named only the
+sellsword.
+
+**3 — the drive's job steps use the drive's OWN player, not a minted
+NPC.** The requirements' steps 12–13 say *"place a new NPC into a job"*,
+which needs `clone` and therefore a wizard — and every drive in this tree
+is an ordinary player on purpose (`drive-cooking`: *"no wizard, no
+`clone`, no `startLocation` trickery beyond the seat"*). A player's own
+body is the honest instrument here and a **better** one: an Avatar has no
+authored `primaryKeyword` at all, so the derivation chain is exercised
+without anyone conveniently leaving a field blank. Same rungs, same
+assertion, no authoring powers.
 
 ---
 
@@ -1079,7 +1162,11 @@ listed sites; the user should price that (§ Risks 1).
 - **The general silent-discard gate** (carried) — *every authored
   `data:` key must be a field some composed class declares* — the mixin
   slate; this build closes the `primaryKeyword`-on-agents instance by
-  composition, not by a gate.
+  composition, not by a gate. ⭐ W0 gave that gate its census: **60 dead
+  `alternateNames:` blocks** (see § W0 findings 2), 35 of them on classes
+  with no such field at all. They are authored *keywords*, and the fix is
+  to move them to `keywords:` — a targeting-word gain, so it waits for a
+  build that is allowed to change what a player can type.
 
 ---
 
