@@ -228,8 +228,9 @@ chain summary, commandId/causingCommandId, timestamp}` into an
   should hoist it into `SecurityPolicies` (e.g. `SelfSubject(argIndex)`)
   — it exists ~20 times.
 - Boundary method sets: `#BOUNDARY_EXEMPT_METHODS` (now includes the
-  naming projections `describeFor`/`describeWithStatusFor`/
-  `salientFeatures`/`perceivedKeywordsFor`/`kindFor`/`presenceStatus`),
+  naming projections `describeFor(viewer, form)`/
+  `perceivedKeywordsFor`/`kindFor`/`presenceStatus` — the four-method
+  family collapsed to one call with a `form` argument, 2026-09-10),
   `#MESSAGE_DELIVERY_METHODS`, `#INBOUND_TRANSPORT_METHODS`. The read
   aperture is `SecurityApi.projectAcross` — the naming/presence logics
   wrap their interior walks in it (RecognitionLogic, PresenceLogic,

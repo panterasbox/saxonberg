@@ -64,17 +64,53 @@ export class Channel extends Document {
     kind: { persistent: true },
     subject: { persistent: true },
     procedure: { persistent: true },
+    anonymity: { persistent: true },
   };
 
   name: string = '';
   kind: ChannelKind = 'player-created';
   subject: string = '';                 // _id of the owning Subject
   procedure: ChannelProcedure = 'open'; // 'open' (cycle 1) | 'ordered'
+  anonymity: ChannelAnonymity = 'permitted';
 }
 
 export type ChannelKind = 'player-created' | 'open-join-standalone';
 export type ChannelProcedure = 'open' | 'ordered';
+export type ChannelAnonymity = 'permitted' | 'forbidden';
 ```
+
+### ⭐⭐ `anonymity` — whether somebody may speak without being named
+
+| channel | post | shows |
+|---|---|---|
+| `forbidden` | plain | the **name**, for everyone, hood or no hood |
+| `forbidden` | `--anon` | **refused** — never silently named |
+| `permitted` | plain | the ordinary concise identity (today's behaviour) |
+| `permitted` | `--anon` | a short **handle** — *"a weaver"* |
+
+`chat anonymity <name> permit|forbid`, owner-only. The default is
+`permitted`, which is exactly what every channel did before the field
+existed, so a row minted earlier behaves identically — **no migration**.
+
+⚠⚠ **This is not a disguise, and the distinction is the point.** A
+disguise is a *visual fact* defeated by perception; anonymity is a
+*declared stance about a message*. A channel is not **looking** at you —
+it is reading what you typed. So a hooded man on a named channel **is
+himself**. The two were one mechanism, which is why *"is a hooded man
+anonymous on a channel?"* had no answer rather than a wrong one.
+
+⚠ **The description is the wrong thing to put in a chat line**, which is
+why an anonymous post uses the *handle* and not the `shortDescription`:
+nine shipped rows are written as portraits, and *"a weaver with a shuttle
+in one hand and a tally in the other says…"* is unreadable.
+
+⚠ An anonymous post **omits** `payload.speaker` rather than blanking it —
+a `StuffRef` carries a `stuffId`, and a client holding one can ask the
+world about it. And `anonymity` is in `RESERVED_NAMES`: the bare post is
+a fallthrough, so an unreserved subcommand silently steals a channel name
+somebody could already hold.
+
+Full argument: [presentation.md](./presentation.md).
 
 > **Since forums cycle-1:** `Channel` no longer carries its own
 > `owner` / `groupRef`. Identity (the mutation gate) and audience (the

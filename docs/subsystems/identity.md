@@ -33,12 +33,29 @@ collier, *the* smelterman, *the* storekeeper.
 > made the engine agree with the prose rather than introducing a new
 > signal.
 
+⭐⭐ **And the article is a FIELD now, not prose.** The presentation build
+(2026-09-10) moved it into `register` — `proper` · `definite` ·
+`indefinite` — so `lint:identity` rule 2 reads a field instead of
+matching `/^the\s+/` against a description. ⚠ It had to land in the same
+commit as the content sweep: the moment the articles left the prose, the
+regex matched nothing and the rule would have **passed everything in
+silence**.
+
+⭐ That also settles what *"a proper name belongs to somebody"* actually
+meant. The original framing — take the name off every creature — was
+right about the conclusion and wrong about the reason. The question was
+never *does it have a name*; it was **what article does it take**. A
+nameless `Cast` is still `Cast`: it carries the name FIELD (that is the
+rung's claim) and leaves it empty, and its `register: definite` is what
+makes it *the* collier. See [presentation.md](./presentation.md).
+
 | | `Cast` | `Extra` |
 |---|---|---|
 | is | somebody — Odile, Dave, *the* collier | a role — *a* sentry, *a* sellsword, a wolf |
 | singleton | ✅ `SingletonMixin`; a second live clone **throws** | ❌ two sentries are the point |
 | dossier | ✅ | ⛔ a build error (`lint:identity`) |
-| proper name | ✅ or the definite article | ⛔ a build error |
+| proper name | ✅ `CastMixin` composes `NamedMixin` | ⛔ **structural** — the field is not there to fill in |
+| register | `proper` (named) or `definite` | `indefinite` |
 | harm attributes to | the person **and** the institution | the institution only |
 | personality | ✅ | ✅ — a role is a mask, not a life, so it never changes |
 
@@ -245,7 +262,7 @@ so a role reads as a **role** and not as an empty person.
 | gate | refuses |
 |---|---|
 | `lint:dispositions` | an authored disposition axis that resolves to nothing (five authored valences were landing nowhere), and an out-of-band valence the estimator silently clamps |
-| `lint:identity` | a proper name on an Extra · a definite article on an Extra (or an indefinite one on a nameless Cast) · a Cast row instantiated twice · **a sentient Extra answering to nobody** · a dossier on an Extra |
+| `lint:identity` | a proper name on an Extra · a non-indefinite **`register`** on an Extra (or an indefinite one on a nameless Cast) · a Cast row instantiated twice · **a sentient Extra answering to nobody** · a dossier on an Extra · **a name-shaped key on an organism whose class cannot hold one** (rule 6 — otherwise the Hydrator discards it in silence) |
 | `lint:dossiers` | a dossier with no `archetype:` · an unknown Discipline · a band outside its vocabulary · ⭐ **an assertion the estimator cannot derive** · and a census-then-ratchet on dossier-less Cast rows (at **0**) |
 
 ⚠ `lint:dossiers` deliberately does **not** fold renown: its derive is

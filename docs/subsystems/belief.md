@@ -69,8 +69,8 @@ instance method **on the target**. The consumer-intelligence layer over
 the dumb store.
 
 > **Home note.** The Api OO sweep retired `RecognitionApi` — the read
-> surface (`describeFor` / `describeWithStatusFor` / `salientFeatures` /
-> `perceivedKeywordsFor` / `kindFor`) now lives on the **`Stuff` base**
+> surface (`describeFor(viewer, form)` / `perceivedKeywordsFor` /
+> `kindFor`) now lives on the **`Stuff` base**
 > (every thing can be asked what a viewer calls it; the no-face fallback
 > is `getPresentation()`), forwarding to a **registered recognition
 > face** — the ungated `RecognitionLogic` singleton at
@@ -95,14 +95,20 @@ Algorithm (per target):
    applies alone; an unknown being renders the **bare stem** — its
    `shortDescription` ("a crossing guard"), else a species fallback —
    never its true name.
-5. `describe` is **pure identity**: no worn-feature affix and no
-   status. The two escalations are separate surfaces — the
-   distinguishing worn-feature form ("… wearing a faded hi-vis vest")
-   lives on `salientFeatures` and rides `perceivedKeywords` for
-   *targeting*; the activity-status affix rides
-   `describeWithStatus` (below). Keeping both off `describe` is what
-   makes ambient act lines read "a crossing guard says …", not the
-   whole life story.
+5. **`concise` is pure identity**: no worn-feature affix and no status.
+   The two escalations are separate **forms** of the same call — the
+   distinguishing worn-feature form ("… wearing a faded hi-vis vest") is
+   `'distinguishing'`, which `perceivedKeywords` rides for *targeting*;
+   the activity-status affix is `'presence'`. Keeping both off
+   `concise` is what makes ambient act lines read "a crossing guard says
+   …", not the whole life story.
+
+   ⭐⭐ **They were separate METHODS until 2026-09-10**, and that shape
+   was doing real damage: the only way to reach the richer two was to
+   resolve a name eagerly for one known viewer, so a surface had to give
+   up per-recipient naming to get them — and each had exactly **one
+   caller**. Which form a sentence gets is the sentence's choice now.
+   See [presentation.md](./presentation.md).
 
 `describe` is **pure** — it runs for every perceived target × viewer on
 every look / listing / MQL projection, so it never mutates memory. The
@@ -212,11 +218,11 @@ Per-field invariant on the setter (collapse whitespace, reject over-long).
 **Distinct from derived status-flags** (poisoned, glowing) — don't merge.
 
 **A presence affix, not identity.** The status is *not* woven into
-`getPresentation()` or `describe` (those are pure identity). It rides
-`target.describeWithStatusFor(viewer)` — the presence-scan
-variant used only by the room occupant roll-call ("a crossing guard,
-watching the empty road"), never by act-subject naming ("a crossing guard
-says …") or the look-at header. That split is what keeps the status from
+`getPresentation()` or the `concise` form (those are pure identity). It
+rides `target.describeFor(viewer, 'presence')` — the presence-scan form,
+asked for by the room occupant roll-call ("a crossing guard, watching
+the empty road"), never by act-subject naming ("a crossing guard says
+…") or the look-at header. That split is what keeps the status from
 contradicting the act in flight; see [message-rendering.md] /
 `SocialLogic.composeOccupants` for the one presence consumer.
 
@@ -403,8 +409,8 @@ holds; sequential single-viewer commands keep the race benign).
 
 ## Naming across the sandbox boundary
 
-`describeFor` / `describeWithStatusFor` / `perceivedKeywordsFor`
-/ `salientFeatures` route through `SecurityApi.projectAcross` (see
+`describeFor` / `perceivedKeywordsFor` route through
+`SecurityApi.projectAcross` (see
 [call-security.md](./call-security.md)). `describeFor` is the one place
 the engine answers "what does THIS viewer call THAT thing", and both
 halves routinely sit on opposite sides of a circle: a channel post from

@@ -593,6 +593,39 @@ reaches a parser, a policy, a stylesheet or a client, and a test pins
 its absence. Nothing downstream grows a branch for a tag meaning "ask
 again."
 
+### ⭐⭐ A reference also states its FORM
+
+`kindFor` answers *which kind of thing*. Since 2026-09-10 a reference
+also says **which form of the identity the sentence needs**, resolved at
+the same seam for the same reason:
+
+```typescript
+Mml.actor(occ, { form: 'presence', color })   // + what they are doing
+Mml.actor(speaker, { form: 'bare' })          // the name alone
+```
+
+Six forms — `bare · handle · concise · presence · distinguishing ·
+formal`; `concise` is the default and is what every existing call site
+gets. ⚠⚠ Before this, a surface that wanted a rich form had to resolve
+**eagerly for one known viewer** and give up per-recipient naming to do
+it, so the two richer faces had one caller each. The full argument is in
+[presentation.md](./presentation.md).
+
+⚠ `bare` and `handle` consult **no perception gate** — a channel is not
+looking at you — and a `handle` names nobody, so its tag carries **no
+`stuff-id`**.
+
+⚠⚠ **`Mml.list` was EAGER and that was a live leak.** Every branch called
+`toString()` with **no viewer**, so a reference passing through a list
+rendered viewer-blind: `sense`, `search` results, on-surface and
+in-container lists named a person you had never met. It builds a lazy
+payload now; no call site was edited.
+
+⚠ `Mml.actor`'s docstring used to claim *"server-side disambiguation
+walks bodies for these tokens to pick the minimal-distinguishing form
+per recipient."* **It does not and never did** — the
+[naming slate](../slates/tails/naming-slate.md) owns it, as unbuilt.
+
 > ⚠ **Any list of "what is here" must use `Mml.actor`.** Room contents
 > include people. `look` splits organisms out to the occupant formatter
 > and so was already right; the **sense** verbs do not, and rendered a
