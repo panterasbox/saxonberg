@@ -155,6 +155,7 @@ CastMixin.competence = 0
 CastMixin.prologue = 0
 CastMixin.renown = 0
 CasterMixin.facultyClockStamp = 0
+Channel.anonymity = 0
 Channel.archived = 0
 Channel.kind = 0
 Channel.name = 0

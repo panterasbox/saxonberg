@@ -22,9 +22,11 @@ data:
     path: /trade/haulage/agent/dispatcher
   positions:
     - key: dispatcher
+      noun: dispatcher
       label: keeping the book
       wageRate: 6
     - key: carter
+      noun: carter
       label: on the road
       wageRate: 5
   rosterSlots:

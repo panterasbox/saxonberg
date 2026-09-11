@@ -11,9 +11,20 @@ purpose: |
 
   The name is a flat global handle, which is what makes 'join the tavern
   channel' resolve without a path.
+
+  `anonymity` is the one setting a channel's owner makes about their own
+  space: whether somebody may post without being named. `forbidden` shows
+  the speaker's NAME to everyone — hood or no hood, because a channel is
+  not looking at you — and refuses an anonymous post outright rather than
+  quietly naming somebody who asked not to be. `permitted` (the default,
+  and what every channel did before the field existed) leaves the choice
+  to the poster, who signs with a short handle when they take it.
 invariants:
   - >-
     `name` is unique across all channels — the handle is flat and global.
+  - >-
+    `anonymity` is 'permitted' or 'forbidden'; absent reads as
+    'permitted', so a row minted before the field behaves as it did.
   - >-
     Membership is durable identifiers only.
   - >-

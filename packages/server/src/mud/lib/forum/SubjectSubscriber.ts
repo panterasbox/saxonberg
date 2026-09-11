@@ -98,7 +98,11 @@ export interface SubjectSubscriber {
   /** Open an ad-hoc channel with `members` (this actor included). */
   openAdHocChat(members: Iterable<Stuff>): Promise<AdHocChannel>;
   /** Post to a channel as this actor (the audience-fanout chokepoint). */
-  postToChannel(channel: Channel, body: string): Promise<void>;
+  postToChannel(
+    channel: Channel,
+    body: string,
+    opts?: { anonymous?: boolean },
+  ): Promise<void>;
   /** Every channel this actor may see. */
   visibleChannels(): Promise<{ persistent: Channel[]; adHoc: AdHocChannel[] }>;
   /** The chat-facing subscription for `channel`. */
@@ -223,8 +227,17 @@ export function SubjectSubscriberMixin<TBase extends MixinConstructor>(
       return chatLogic().openAdHoc(this as unknown as Stuff, members);
     }
 
-    public postToChannel(channel: Channel, body: string): Promise<void> {
-      return chatLogic().postToChannel(this as unknown as Stuff, channel, body);
+    public postToChannel(
+      channel: Channel,
+      body: string,
+      opts?: { anonymous?: boolean },
+    ): Promise<void> {
+      return chatLogic().postToChannel(
+        this as unknown as Stuff,
+        channel,
+        body,
+        opts,
+      );
     }
 
     public visibleChannels(): Promise<{

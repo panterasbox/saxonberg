@@ -23,6 +23,7 @@ data:
   # window, it doesn't craft (no MakerMixin).
   positions:
     - key: clerk
+      noun: clerk
       label: staffing the ticket office
       wageRate: 4
       confers: []

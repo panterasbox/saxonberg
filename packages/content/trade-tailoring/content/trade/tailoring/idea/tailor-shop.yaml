@@ -12,6 +12,7 @@ data:
     office: prime-minister
   positions:
     - key: tailor
+      noun: tailor
       label: at the bench
       wageRate: 6
       confers: []

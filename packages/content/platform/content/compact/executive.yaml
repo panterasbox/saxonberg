@@ -23,12 +23,14 @@ data:
     office: prime-minister
   positions:
     - key: communications-director
+      noun: communications-director
       label: directing the Prime Minister's communications
       wageRate: 0
       confers: []
     # The nesting consumer: the Press Secretary answers to the
     # Communications Director. Both may publish.
     - key: press-secretary
+      noun: press-secretary
       label: speaking for the Prime Minister
       wageRate: 0
       confers: []

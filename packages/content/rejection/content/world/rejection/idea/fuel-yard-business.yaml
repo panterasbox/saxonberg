@@ -13,6 +13,7 @@ data:
     path: /world/rejection/agent/collier
   positions:
     - key: collier
+      noun: collier
       label: watching the clamp
       wageRate: 5
   rosterSlots:

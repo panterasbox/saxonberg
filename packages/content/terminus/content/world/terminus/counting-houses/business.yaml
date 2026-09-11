@@ -36,10 +36,12 @@ data:
   parentOrganization: /corpo/goodkin
   positions:
     - key: teller
+      noun: teller
       label: working the Goodkin counter
       wageRate: 5
       confers: []
     - key: officer
+      noun: officer
       label: hosting the Goodkin Circle
       wageRate: 6
       confers: []

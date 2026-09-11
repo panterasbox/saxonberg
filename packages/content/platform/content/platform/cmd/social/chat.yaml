@@ -1,6 +1,6 @@
 verbs: [chat]
 controller: /platform/idea/cmd/social/ChatController
-description: "Post to a chat channel, or manage channel membership (list / join / leave / mute / unmute / who / make / rename / disband / history / promote)"
+description: "Post to a chat channel, or manage channel membership (list / join / leave / mute / unmute / who / make / rename / disband / history / promote / anonymity)"
 help: |
   Talk on a named channel that reaches everyone tuned in, wherever
   they are. The bare form posts: `chat gossip hello` sends "hello"
@@ -10,6 +10,10 @@ help: |
   Start with `chat list` to see what's available and `chat join` to
   tune in. You can spin up your own channel with `chat make`, and
   quiet a noisy one without leaving via `chat mute`.
+
+  Where a channel permits it, `chat gossip --anon <message>` posts you
+  as a short handle — "a weaver" — instead of by name. A channel's
+  owner decides with `chat anonymity <name> permit|forbid`.
 validators:
   - /lib/command/validators/requiresAnimate
   - /lib/command/validators/requiresVerbalESP
@@ -122,6 +126,29 @@ subcommands:
       - name: name
         type: string
         required: true
+  anonymity:
+    description: "Permit or forbid anonymous posts on a channel you own"
+    help: |
+      Decide whether people may speak on your channel without being
+      named. `forbid` shows every poster's name — including someone
+      wearing a hood, because a channel is not looking at you, it is
+      reading what you typed. `permit` (the default) lets a poster
+      choose: post plainly and you are named as usual, or add `--anon`
+      and you are shown by a short handle instead — "a weaver".
+
+      Owner-only. Forbidding does not unmask anything already said.
+    examples:
+      - cmd: chat anonymity gossip forbid
+        note: Everyone on gossip posts under their own name
+      - cmd: chat anonymity gossip permit
+        note: Let posters choose, with `chat gossip --anon <message>`
+    args:
+      - name: name
+        type: string
+        required: true
+      - name: setting
+        type: string
+        required: true
   promote:
     description: "Promote an ad-hoc DM channel into a persistent player-created channel"
     help: |
@@ -138,6 +165,11 @@ subcommands:
       - name: new_name
         type: string
         required: true
+options:
+  anon:
+    type: boolean
+    field: anon
+    description: "Post without being named — shown by a short handle ('a weaver') instead. Refused where the channel forbids anonymity."
 args:
   # Fallthrough: when the first token isn't a reserved subcommand,
   # bind these as a bare post: `chat gossip hello`.

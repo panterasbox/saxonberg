@@ -19,9 +19,11 @@ data:
     path: /world/rejection/agent/smelterman
   positions:
     - key: smelterman
+      noun: smelterman
       label: holding the furnace at heat
       wageRate: 6
     - key: buyer
+      noun: buyer
       label: weighing ore at the shed
       wageRate: 5
   rosterSlots:

@@ -15,6 +15,7 @@ import { StuffApi } from './stuff';
 import { HotReloadApi } from './hot-reload';
 import type { Stuff } from '../lib/stuff/Stuff';
 import type { Channel } from '../lib/social/Channel';
+import type { ChannelAnonymity } from '../lib/social/Channel';
 import type Subject from '../lib/forum/Subject';
 import type { AdHocChannel } from '../lib/social/AdHocChannel';
 import type ChannelCatalogue from '../platform/idea/ChannelCatalogue';
@@ -70,6 +71,18 @@ export class ChatApi {
 
   static async disbandPlayerChannel(name: string): Promise<boolean> {
     return logic().disbandPlayerChannel(name);
+  }
+
+  /**
+   * Set whether a channel permits anonymous posts. ⭐ The owner's call
+   * about their own space — a values question a community gets to
+   * answer, and the one visible change this build ships.
+   */
+  static async setAnonymity(
+    name: string,
+    anonymity: ChannelAnonymity,
+  ): Promise<Channel> {
+    return logic().setAnonymity(name, anonymity);
   }
 
   static async renamePlayerChannel(

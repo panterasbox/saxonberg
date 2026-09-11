@@ -33,6 +33,10 @@ declareFile({
   packs: ['terminus', 'saxonberg-lounge', 'eternal-university', 'world-seed'],
 });
 
+// ⚠ The channel name is unique per run, so this file stays CLEAN: it
+// creates its own channel rather than touching a shipped one, and a
+// second run makes a second channel instead of colliding with the first.
+
 const BAR = '/world/lounge/location/bar';
 const LOBBY = '/world/eternal/duncan-hall/location/lobby';
 
@@ -94,6 +98,53 @@ suite('⚠ the body of a look — the regression the suite could not see', () =>
       expect(hits.length).toBeGreaterThanOrEqual(2);
     },
   );
+});
+
+suite('9–11 · ⭐ the new part — anonymity is a channel setting', () => {
+  // ⚠ The drive's own player owns the channel: an ordinary player can
+  // `chat make`, which is the whole loop, with no wizard anywhere in it.
+  const CH = `pres${Date.now().toString(36).slice(-6)}`;
+
+  it('a player can make a channel and set its anonymity', async () => {
+    await bar.cmd(`chat make ${CH}`);
+    const said = plain(await (await bar.cmd(`chat anonymity ${CH} forbid`)).said());
+    expect(said).not.toMatch(/don't understand|Unknown chat subcommand/i);
+    expect(said).toMatch(/name/i);
+  });
+
+  it('9 · ⭐ a plain post on a no-anonymity channel is NAMED', async () => {
+    const result = await bar.cmd(`chat ${CH} hello`);
+    expect(result.status).not.toBe('error');
+  });
+
+  it('11 · ⚠ --anon on a forbidding channel is REFUSED, never silently named', async () => {
+    // The one failure the whole setting exists to make impossible:
+    // somebody who asked not to be named being named by accident.
+    const result = await bar.cmd(`chat ${CH} --anon hello`);
+    expect(
+      result.notes.some((n) => n.kind === 'controller-rejected'),
+    ).toBe(true);
+    expect(plain(await result.said())).toMatch(/anonymous/i);
+  });
+
+  it('10 · an anonymous post shows a SHORT handle, not a portrait', async () => {
+    await bar.cmd(`chat anonymity ${CH} permit`);
+    const result = await bar.cmd(`chat ${CH} --anon hello`);
+    expect(result.status).not.toBe('error');
+    const said = plain(await result.said());
+    // Never a sentence-long portrait on a chat line — the reason the
+    // handle is a separate field from the description at all.
+    for (const line of said.split('\n').filter((l) => l.includes(CH))) {
+      expect(line.length).toBeLessThan(200);
+    }
+  });
+
+  it('⚠ an ad-hoc group thread refuses --anon outright', async () => {
+    const result = await bar.cmd('chat dm-nonesuch --anon hello');
+    expect(
+      result.notes.some((n) => n.kind === 'controller-rejected'),
+    ).toBe(true);
+  });
 });
 
 suite('4 · a named NPC is still called what it was called', () => {

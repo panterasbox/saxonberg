@@ -25,6 +25,7 @@ import { SensorMixin } from '../../message/Sensor';
 import { ContainableMixin } from '../../spatial/Containable';
 import { NamedMixin } from '../../description/Named';
 import { VisibleMixin } from '../../description/Visible';
+import { PerceptibleMixin } from '../../description/Perceptible';
 import { StatusMixin } from '../../status/Status';
 import { OrganismMixin } from '../../species/Organism';
 import { Idea } from '../../stuff/Idea';
@@ -36,7 +37,9 @@ class Viewer extends BeliefStoreMixin(
 ) {}
 
 class Being extends StatusMixin(
-  VisibleMixin(OrganismMixin(NamedMixin(ContainableMixin(Idea)))),
+  PerceptibleMixin(
+    VisibleMixin(OrganismMixin(NamedMixin(ContainableMixin(Idea)))),
+  ),
 ) {}
 
 let n = 0;
@@ -159,6 +162,41 @@ describe('⚠⚠ a channel is not looking at you', () => {
     const b = makeStuffAtPath(() => new Being(), `/obj/npc/form-${n++}`);
     b.setShortDescription('sentry');
     expect(b.describeFor(v, 'bare')).toBe('a sentry');
+  });
+});
+
+describe('⭐⭐ the handle chain — an authored word always wins', () => {
+  // The world may derive what KIND of thing something is. It may never
+  // derive what it is LIKE.
+  it('rung 1: the handle its author wrote', () => {
+    const v = makeStuff(() => new Viewer());
+    const b = being('Mitch', 'weaver with a shuttle in one hand');
+    b.setPrimaryKeyword('weaver');
+    expect(b.describeFor(v, 'handle')).toBe('a weaver');
+  });
+
+  it('⚠ rung 1 reads the AUTHORED slot, not the derived one', () => {
+    // `getPrimaryKeyword()` always answers something — its fallback is
+    // the trailing pool token, which for this portrait is `hand`.
+    // Signing a chat line "a hand" is not what anybody wrote down.
+    const v = makeStuff(() => new Viewer());
+    const b = being('Mitch', 'weaver with a shuttle in one hand');
+    expect(b.getPrimaryKeyword()).toBeDefined();
+    expect(b.getAuthoredPrimaryKeyword()).toBeUndefined();
+    expect(b.describeFor(v, 'handle')).not.toBe('a hand');
+  });
+
+  it('rung 4: the description, when nothing above it answers', () => {
+    const v = makeStuff(() => new Viewer());
+    const b = being('Mitch', 'sentry');
+    expect(b.describeFor(v, 'handle')).toBe('a sentry');
+  });
+
+  it('the handle takes its article from the vowel rule', () => {
+    const v = makeStuff(() => new Viewer());
+    const b = being('Mitch', 'sentry');
+    b.setPrimaryKeyword('archivist');
+    expect(b.describeFor(v, 'handle')).toBe('an archivist');
   });
 });
 

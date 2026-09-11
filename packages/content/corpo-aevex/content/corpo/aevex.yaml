@@ -38,6 +38,7 @@ data:
   positions:
     # One position, and it is the one the docs kept promising an answer to.
     - key: chief-executive
+      noun: chief-executive
       label: running Aevex
       wageRate: 0
       confers: []

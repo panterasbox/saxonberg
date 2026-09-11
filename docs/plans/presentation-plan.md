@@ -1097,6 +1097,40 @@ identical to `before.json`.
 
 **Commit.** `build(presentation W4): the handle chain (primaryKeyword → Position.noun → species), and chat anonymity as a channel setting`
 
+
+
+#### W4 as built (2026-09-10)
+
+Done. The handle chain has all four rungs; chat anonymity ships behind a
+default that reproduces today.
+
+- ⭐ **The plan's pushback was right, and the content proved it.** Every
+  one of the ~40 shipped `Position.label`s is a gerund or a phrase —
+  *"tending bar"*, *"on the road"*, *"running Hollis"*, *"sitting as
+  Magistrate of Terminus"* — with **no exceptions**. There is no honest
+  transform from any of them to a noun.
+- ⚠ **But the plan was wrong about the keys.** It predicted firm-name
+  keys (`vionne`, `veshko`, `hollis`) would have to go without a noun.
+  Those are **labels**, not keys. The actual key census is 31 distinct
+  values and **every one is a plain noun a holder is called** —
+  `bartender`, `clerk`, `smelterman`, `onsetter`, `warehouseman`,
+  `press-secretary`. So `noun: <key>` was authorable on **all 46**
+  shipped positions rather than the subset the plan expected.
+- `getPositionNoun()` reads the first **active** employment, not on-shift:
+  a bartender walking home is still a bartender.
+- `anonymity` on `Channel`, default `permitted`, plus
+  `chat anonymity <name> permit|forbid` (owner-gated the way `disband`
+  is) and a top-level `--anon`. ⚠ `anonymity` is added to
+  `RESERVED_NAMES` — the bare post is a fallthrough, so an unreserved
+  subcommand silently steals a channel name somebody could already hold.
+  The list gained a docstring saying so.
+- ⚠ An anonymous post **omits the speaker ref entirely** rather than
+  blanking it. A `StuffRef` carries a `stuffId`, and a client holding one
+  can ask the world about it — the rendered line is not the only place a
+  name can leak.
+- Ad-hoc (DM-group) threads refuse `--anon`: a cohort you were added to
+  **by name** has no anonymity to grant.
+
 ### W5 — docs, the drive record, the suite, the MR
 
 **Goal.** The subsystem docs say the new truth; the drive is run and
@@ -1337,6 +1371,20 @@ assertion, no authoring powers.
   three until a third row wants *"some flagstones"*.
 - **`permitted`+plain on a channel still consults the disguise** (D9)
   → one line in `postToChannel` when a visible change is allowed.
+- ⚠ **A seeded subject's `anonymity:` — deferred, and NOT merely for
+  scope.** D9 said the installer should pass it through. It is not wired,
+  because `PackLogic`'s `ensureSurface` applies its `mint()` closure
+  **only when the row is new** (an existing row gets `archived`, `name`
+  and `description` and nothing else). So an authored `anonymity:` would
+  be a **one-time default that silently diverges from the YAML forever
+  after**: edit the row, reinstall, nothing happens. That is a worse
+  authoring surface than none, and *"does the row or the owner win on
+  reinstall?"* is a real question the requirements did not decide. ⭐ The
+  attach point is the `mint()` at `PackLogic.ts:1939` plus the matching
+  field on `renderSubjectRow`'s preimage — both, or reconcile sees a
+  permanent diff. Nothing shipped wants a non-default value today, and
+  `chat anonymity` is the player-facing path the requirements actually
+  specify.
 - **17 agent rows' `keywords:` hydrate but are not consulted by organism
   targeting** (D7) → the naming slate (unioning them is a targeting-word
   gain and an identity-leak question — `keywords: [odile]` on a stranger).

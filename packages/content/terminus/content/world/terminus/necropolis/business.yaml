@@ -9,6 +9,7 @@ data:
     path: /world/terminus/necropolis/agent/undertaker
   positions:
     - key: undertaker
+      noun: undertaker
       label: keeping the necropolis
       wageRate: 5
       confers: []

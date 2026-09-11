@@ -13,10 +13,12 @@ data:
     path: /world/hearthworks/agent/smith
   positions:
     - key: smith
+      noun: smith
       label: working the forge
       wageRate: 5
       confers: [MakerMixin]
     - key: cook
+      noun: cook
       label: minding the hearth
       wageRate: 4
       confers: [MakerMixin]

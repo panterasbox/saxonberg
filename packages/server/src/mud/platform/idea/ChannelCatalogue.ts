@@ -37,6 +37,7 @@ import { SecurityApi } from '../../api/security';
 import { Idea } from '../../lib/stuff/Idea';
 import { PostRegistrationMixin } from '../../lib/stuff/PostRegistration';
 import { Channel } from '../../lib/social/Channel';
+import type { ChannelAnonymity } from '../../lib/social/Channel';
 import type { GroupRole } from '../../lib/social/Group';
 import { AdHocChannel } from '../../lib/social/AdHocChannel';
 import type { Stuff } from '../../lib/stuff/Stuff';
@@ -46,6 +47,7 @@ import { MessageApi } from '../../api/message';
 import { ReactionApi } from '../../api/reaction';
 import { ExecutionContextApi } from '../../api/execution-context';
 import { Mml } from '../../api/mml';
+import type { PresentationForm } from '../../lib/description/NounPhrase';
 import { PlayerApi } from '../../api/player';
 import { GroupApi } from '../../api/group';
 import { StuffApi } from '../../api/stuff';
@@ -306,17 +308,43 @@ export default class ChannelCatalogue extends ChannelCatalogueBase {
     speaker: Stuff,
     channel: Channel,
     body: string,
+    opts?: { anonymous?: boolean },
   ): Promise<void> {
     if (!MixinApi.isSensor(speaker)) {
       throw new Error('ChannelCatalogue.postToChannel: speaker must be a Sensor');
     }
+    // ⭐⭐ Which FORM signs the line — the whole of the anonymity design,
+    // and it costs one word at the call site rather than a parallel path.
+    //
+    //   forbidden + plain  → `bare`: the NAME, for everyone. ⭐ Hood or
+    //                        no hood: a channel is not LOOKING at you, so
+    //                        a disguise never reaches it.
+    //   forbidden + --anon → refused upstream by the controller. Refused,
+    //                        not silently named: somebody who asked not
+    //                        to be named must never be named by accident.
+    //   permitted + plain  → `concise`: exactly what every channel did
+    //                        before this field existed, byte-identical.
+    //                        ⚠ Which means a hooded speaker still reads
+    //                        as hooded here — a wart the requirements did
+    //                        not decide, recorded as a follow-up rather
+    //                        than guessed at, because fixing it is a
+    //                        VISIBLE change and this build's bar forbids
+    //                        one.
+    //   permitted + --anon → `handle`: "a weaver". No `stuff-id` on the
+    //                        tag, and no speaker ref on the payload.
+    const anonymous = opts?.anonymous === true;
+    const form: PresentationForm = anonymous
+      ? 'handle'
+      : channel.permitsAnonymity()
+        ? 'concise'
+        : 'bare';
     const channelId = channel._id ?? channel.name;
     const subject = await this.subjectFor(channel);
     const audience = await this.audienceFor(channel);
     const commandId = ExecutionContextApi.getCurrentCommandContext()?.commandId;
     const reactionScope =
       'channel:' + (subject?.getGroupRef() || channelId);
-    const speakerName = Mml.actor(speaker);
+    const speakerName = Mml.actor(speaker, { form });
     const safeBody = Mml.markdownToMml(
       body,
       Mml.perceiverMentionResolver(speaker),
@@ -333,7 +361,7 @@ export default class ChannelCatalogue extends ChannelCatalogueBase {
       .payload({
         channelId,
         channelName: channel.name,
-        speaker: MessageApi.refOf(speaker),
+        ...(anonymous ? {} : { speaker: MessageApi.refOf(speaker) }),
         text: body,
       })
       .send();
@@ -347,7 +375,12 @@ export default class ChannelCatalogue extends ChannelCatalogueBase {
     const basePayload = {
       channelId,
       channelName: channel.name,
-      speaker: MessageApi.refOf(speaker),
+      // ⚠ The speaker REF is omitted entirely for an anonymous post, not
+      // blanked: a `StuffRef` carries a `stuffId`, and a client that has
+      // one can ask the world about it. The rendered line is not the only
+      // place a name can leak. `chatTemplate` already tolerates an absent
+      // speaker (`App.tsx:67`).
+      ...(anonymous ? {} : { speaker: MessageApi.refOf(speaker) }),
       text: body,
     };
 
@@ -630,6 +663,23 @@ export default class ChannelCatalogue extends ChannelCatalogueBase {
     return true;
   }
 
+  /**
+   * Set whether a channel permits anonymous posts — the owner's call,
+   * gated upstream in the controller exactly as `disband` is.
+   */
+  public async setAnonymity(
+    name: string,
+    anonymity: ChannelAnonymity,
+  ): Promise<Channel> {
+    // Sandbox needs-a-guard: field-visible shared state.
+    SecurityApi.assertFieldMutation(this, 'setAnonymity');
+    const c = await this.resolveByName(name);
+    if (!c) throw new Error(`No channel '${name}'.`);
+    c.anonymity = anonymity;
+    await c.save();
+    return c;
+  }
+
   public async renamePlayerChannel(
     oldName: string,
     newName: string,
@@ -689,7 +739,15 @@ export default class ChannelCatalogue extends ChannelCatalogueBase {
   }
 }
 
+/**
+ * ⚠ **Every subcommand in `chat.yaml`, and it must stay that way.** The
+ * bare post is a FALLTHROUGH, so a channel named `history` would be
+ * unreachable — `chat history` resolves to the subcommand forever. A new
+ * subcommand that is not listed here silently steals a name somebody
+ * could already have taken.
+ */
 const RESERVED_NAMES: ReadonlySet<string> = new Set([
+  'anonymity',
   'list',
   'join',
   'leave',

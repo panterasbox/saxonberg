@@ -30,6 +30,7 @@ data:
     office: prime-minister
   positions:
     - key: labourer
+      noun: labourer
       label: working on the university farm
       wageRate: 2
       confers: []

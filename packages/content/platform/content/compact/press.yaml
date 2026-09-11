@@ -24,6 +24,7 @@ data:
     parcel: /compact
   positions:
     - key: communications-director
+      noun: communications-director
       label: speaking for the Compact
       wageRate: 0
       confers: []

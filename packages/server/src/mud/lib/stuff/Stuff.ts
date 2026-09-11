@@ -377,7 +377,7 @@ export abstract class Stuff {
    * is LIKE:
    *
    *   1. the handle its author wrote
-   *   2. else the role they hold  *(arrives in W4)*
+   *   2. else the role they hold
    *   3. else their species
    *   4. else the description stem
    *   5. else `someone` / `something`
@@ -392,10 +392,21 @@ export abstract class Stuff {
       const authored = this.getAuthoredPrimaryKeyword();
       if (authored) return NounPhrase.of(authored, 'indefinite');
     }
+    // 2 — the role they hold. ⭐ It FOLLOWS the job, which is the point:
+    // a handle retyped onto the NPC leaves a dismissed weaver reading
+    // "a weaver" forever, and this one stops the day they are let go.
+    if (MixinApi.isEmployed(this)) {
+      const noun = this.getPositionNoun();
+      if (noun) return NounPhrase.of(noun, 'indefinite');
+    }
+    // 3 — what they are.
     if (MixinApi.isOrganism(this)) {
       const common = this.getSpecies()?.getCommonNames()[0];
       if (common) return NounPhrase.of(common, 'indefinite');
     }
+    // 4 — the description, which for a portrait row is too long for a
+    // chat line. That is why rung 1 exists and why the sweep authored a
+    // handle on every row it touched.
     if (MixinApi.isVisible(this)) {
       const short = this.getShortDescription();
       if (short) return NounPhrase.of(short, this.getRegister());
