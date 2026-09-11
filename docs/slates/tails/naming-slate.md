@@ -5,8 +5,48 @@
 > **Left:** the rename act (notify every recognition holder · decay
 > window · chronicle deed) · Defense A, `learnIdentity` refusing a
 > conflicting name · Defense B, taking a load-bearing name is gated ·
-> Defense C, the name-holder is told · the cooldown dial
+> Defense C, the name-holder is told · the cooldown dial ·
+> ⭐ **minimal-distinguishing rendering** (below)
 > **Size:** a wave
+
+## ⭐⭐ This slate owns MINIMAL-DISTINGUISHING RENDERING
+
+**Assigned 2026-09-10**, from the presentation-layer design session.
+
+If names are not unique, then **two people called Mitch in one room are
+indistinguishable in prose**, and that is this slate's problem rather
+than the renderer's. The wanted behaviour is the obvious one:
+
+> `Mitch` until there are two, then `Mitch H.`, then
+> `Mitch Hodgemeyere` — **the shortest form that still separates them,
+> decided per rendered message and per recipient.**
+
+⚠⚠ **And it is claimed to exist already. It does not.** `Mml.actor`'s
+own docstring says the wire tag carries the runtime identity through
+because *"server-side disambiguation walks bodies for these tokens to
+pick the minimal-distinguishing form per recipient."* There is **no such
+pass** — no collision check, no label comparison, nothing keyed on the
+id at the flatten or tree stage. Every `disambiguat*` hit in the tree is
+*command-parsing* disambiguation (which object did you mean), which is a
+different thing entirely.
+
+So the docstring describes a mechanism that was designed and never
+built, and it reads as shipped. Same class as a gate that passes
+everything.
+
+⭐ **What the presentation build leaves ready for it.** That build gives
+every reference a **form** resolved late, beside the viewer — including
+a `bare` form (the name alone, no description), which is what chat uses
+when a channel forbids anonymity. **`bare` is exactly the form that needs
+this**, because it is the only one with nothing else in it to tell two
+people apart. The seam is one function and one parameter; the algorithm,
+the scope question (*what counts as "this message's" population*) and
+the escalation ladder are yours.
+
+⚠ Deliberately **not** taken into the presentation build, which is a
+tidy refactor whose acceptance bar is *a player cannot tell it happened*.
+This is a visible new behaviour and does not belong there.
+
 
 **Captured 2026-08-12**, from a design conversation about the cost of the
 platform's founding naming choice: **names are not unique.** Any player
