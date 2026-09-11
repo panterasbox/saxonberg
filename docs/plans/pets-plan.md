@@ -130,9 +130,17 @@ repo-relative; `mud/` means `packages/server/src/mud/`.
   `Chattel · Branded · Postmortem · Concealable · LoadBearing · Container ·
   Containable · Disguisable · Visible · ThermalRegulation · Thermal ·
   Respiration · Metabolic · Vitals · Reserved · Posed · Slottable · Attired ·
-  BodyPlanSlots · Slotted · Organism · Named · Propertied` over `Agent`.
-  ⚠ It composes **no** `Behaved`, `PostRegistration`, `Mobile`, `Engaged`,
-  `Sensor`, `Perceptible`, `Status` or `Persistable`. `Character`
+  BodyPlanSlots · Slotted · Organism · Propertied` over `Agent`.
+  ⚠⚠ **Superseded by the presentation build (2026-09-10), and in both
+  directions:** `Named` is **off** `Creature` (a body is not a somebody
+  — it composes on `CastMixin` and on `Avatar`), and `Perceptible` is
+  **on** it (every body is addressable by keyword; 48 shipped agent rows
+  had been authoring `primaryKeyword:` into a void). So `KeptAnimal`
+  composes `NamedMixin` **explicitly** — which is exactly what naming a
+  pet should cost — and must **not** compose `PerceptibleMixin`, which
+  now arrives from the base and would be a double declaration.
+  ⚠ It still composes **no** `Behaved`, `PostRegistration`, `Mobile`,
+  `Engaged`, `Sensor`, `Status` or `Persistable`. `Character`
   (`Character.ts:93`) adds the agency stack including `Mobile`, `Engaged`,
   `Sensor`, `BeliefStore`, `Persona`, `Vocal`, `Caster`.
 - ⚠⚠ **The farm dog's brain has never run.** `WorkingAnimal`
@@ -406,8 +414,23 @@ PersistableMixin(                // outermost — the documented host rule
               EngagedMixin(      // brain slot contention
                 MobileMixin(     // traverse — follows / homes
                   SensorMixin(   // witness triggers
-                    PerceptibleMixin(Creature)))))))))))   // keywords — the Livestock lesson
+                    NamedMixin(Creature)))))))))))   // ⭐ a pet HAS a name
 ```
+
+⚠⚠ **Corrected by the presentation build (2026-09-10).** It was
+`PerceptibleMixin(Creature)`, on the reasoning that an animal is
+addressed by what it is. Both halves moved underneath this plan:
+
+- `PerceptibleMixin` is **on `Creature`** now — every body is
+  addressable, and composing it here would declare `fieldMeta` twice.
+  `Livestock` and `WorkingAnimal` dropped their local copies for the
+  same reason.
+- `NamedMixin` is **off `Creature`** — a body is not a somebody — so a
+  kept animal has to say it composes one. ⭐ That is the right cost:
+  naming the cat is the moment it stops being *a* cat, and the class
+  that can hold a name declares so.
+
+See `docs/plans/presentation-plan.md` § Host placement.
 
 `Persistable` outer of `Behaved` is safe: `Persistable.postRegister` only
 chains, `Behaved.postRegister` chains super *then* wires, so the single

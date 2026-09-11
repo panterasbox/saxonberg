@@ -47,6 +47,7 @@
 
 import type { FieldMeta, MixinConstructor } from '../mixin';
 import { SingletonMixin } from '../stuff/Singleton';
+import { NamedMixin, type Named } from '../description/Named';
 import { MixinApi } from '../../api/mixin';
 import { Competence } from '../advancement/Competence';
 import type { CompetenceBandName } from '../advancement/CompetenceBand';
@@ -78,7 +79,7 @@ export interface RenownClaim {
 }
 
 /** Public method surface. The dossier fields are Hydrator-facing. */
-export interface Cast {
+export interface Cast extends Named {
   /** The archetype that minted this character's seeded rows, or `''`. */
   getArchetype(): string;
   /** The authored prologue lines, in order. */
@@ -90,7 +91,22 @@ export interface Cast {
 }
 
 export function CastMixin<TBase extends MixinConstructor>(Base: TBase) {
-  return class CastMixin extends SingletonMixin(Base) implements Cast {
+  // ⭐⭐ **NamedMixin is composed HERE, on the rung that means somebody.**
+  // A proper name belongs to a person, not to every body: it was on the
+  // creature base, so a wolf, a corpse and a head of stock all carried
+  // name-shaped surface an author could fill in by accident — and the
+  // object branch's own header already stated the rule it broke
+  // ("names are for proper names, not generic descriptions").
+  //
+  // ⚠ A `Cast` may still have NO name — the collier, the smelterman —
+  // and that is what `register: definite` says. Carrying the FIELD is
+  // the rung's claim; filling it in is the author's choice.
+  // ⚠ No `implements Cast`: the interface extends `Named`, whose members
+  // arrive from the base chain, and a class-factory mixin's `implements`
+  // clause cannot see through a generic `Base`. `MixinApi.isCast` is
+  // what threads the contract (`obj is Stuff & Cast`), and it is the
+  // surface every caller actually narrows through.
+  return class CastMixin extends SingletonMixin(NamedMixin(Base)) {
     static _mixinName = 'CastMixin';
 
     static fieldMeta: FieldMeta = {

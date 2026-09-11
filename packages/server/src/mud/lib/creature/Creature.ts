@@ -37,12 +37,12 @@
 
 import { Agent } from '../stuff/Agent';
 import { PropertiedMixin } from '../stuff/Propertied';
-import { NamedMixin } from '../description/Named';
 import { OrganismMixin } from '../species/Organism';
 import { SlottedMixin } from '../slot/Slotted';
 import { BodyPlanSlotsMixin } from '../slot/BodyPlanSlots';
 import { PosedMixin } from '../character/Posed';
 import { VisibleMixin } from '../description/Visible';
+import { PerceptibleMixin } from '../description/Perceptible';
 import { ContainableMixin } from '../spatial/Containable';
 import { ContainerMixin } from '../spatial/Container';
 import { VitalsMixin } from '../vitals/Vitals';
@@ -139,6 +139,21 @@ const CreatureBase = ChattelMixin(
     ContainerMixin(
     ContainableMixin(
       DisguisableMixin(
+        // ⭐⭐ **Perceptible, beside Visible, because every BODY is
+        // addressable.** A creature is referred to by keyword — `look
+        // wolf`, `pet collie` — and carries the guaranteed-resolvable
+        // handle its own field documentation describes.
+        //
+        // ⚠⚠ It was not composed here until 2026-09-10, and **48 shipped
+        // agent rows have been authoring `primaryKeyword:` into a void**
+        // the whole time (`clerk`, `wolf`, `sentry`, `collier`, `weaver`,
+        // `dave`, `katie`, `pony`, `ox`…), plus 17 authoring `keywords:`.
+        // The Hydrator reflects only into fields a composed class
+        // declares, so every one was discarded at hydration without a
+        // word. Ranching had noticed the symptom and composed it on
+        // `Livestock`/`WorkingAnimal` locally; those go, because the
+        // answer was never "these two animals" — it was "a body".
+        PerceptibleMixin(
         VisibleMixin(
           ThermalRegulationMixin(
             ThermalMixin(
@@ -163,7 +178,7 @@ const CreatureBase = ChattelMixin(
                         BodyPlanSlotsMixin(
                           SlottedMixin(
                               OrganismMixin(
-                                NamedMixin(PropertiedMixin(Agent))
+                                PropertiedMixin(Agent)
                               )
                             )
                           )
@@ -177,6 +192,7 @@ const CreatureBase = ChattelMixin(
               )
             )
           )
+        )
         )
       )
     )

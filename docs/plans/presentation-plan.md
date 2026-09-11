@@ -1003,6 +1003,46 @@ with a "Welcome, ." banner); the drive transcript identical to
 
 **Commit.** `build(presentation W3): NamedMixin off Creature — on CastMixin and Avatar; PerceptibleMixin on Creature — 48 authored handles go live`
 
+
+
+#### W3 as built (2026-09-10)
+
+Done. `Creature` composes `Perceptible` and not `Named`; `CastMixin` and
+`Avatar` compose `Named` explicitly.
+
+- ⚠ **The fixture blast radius was 5 files, not the ~35–40 the carried
+  grounding predicted** — and only 20 tests. The reason is the other
+  half of the move: `Avatar` gaining `NamedMixin` fixed every
+  `setName`-on-an-Avatar site at a stroke (18 of the 19 files `tsc`
+  first flagged), and most creature-derived fixtures never name
+  anything. The four that did were all eaters in `cmd/bulk`, which name
+  their subject to read the scene line.
+- ⚠ **Correction to my own W0 finding:** I predicted rule 6 would fire on
+  **two** rows. It fires on one. The `duelist` is on
+  `/platform/agent/Cast`, which composes `NamedMixin`, so its block is
+  *held* — still mis-shaped, still dead, but part of the 60-block finding
+  rather than a W3 blocker. **Rule 6 checks REACH, not shape.** The
+  plan's single deletion was right.
+- ⚠ `CastMixin` **drops its `implements Cast` clause.** `Cast` extends
+  `Named` now, whose members arrive from the base chain, and a
+  class-factory mixin's `implements` cannot see through a generic
+  `Base`. `MixinApi.isCast` (`obj is Stuff & Cast`) is what threads the
+  contract, and it is what every caller narrows through.
+- `Livestock`'s header is rewritten rather than deleted: it had
+  **diagnosed the symptom correctly and treated it locally**, and the
+  argument it made ("a person is addressed by their NAME, an animal by
+  what it is") is the premise that turned out to be wrong. 48 agent rows
+  were in the same void. ⭐ That is the mixin-slate lesson in one class:
+  *a fix that needs a local re-composition usually means the host is
+  wrong one level up.*
+- `handlePhrase()` gains rung 1, `getAuthoredPrimaryKeyword()` — the raw
+  slot, never `getPrimaryKeyword()`, whose derived fallback is the
+  trailing pool token (`other`, for the weaver).
+- Docs corrected at their source: `Named.ts` (who composes it, and that
+  it is never a base), `Thing.ts` (its rule is now true of the agent
+  branch too), `Character.ts` (no name surface), and **`pets-plan.md`,
+  whose `KeptAnimal` composition was wrong in both directions.**
+
 ### W4 — the handle chain, and chat anonymity
 
 **Goal.** The only new behaviour, behind a setting that defaults to
@@ -1268,10 +1308,11 @@ Every author clearly meant *alternate keywords for targeting*
 magistrate]`) — which is `Perceptible.keywords`, a different field.
 **Not fixed here, deliberately:** converting them to `keywords:` would
 *add* targeting words, and AC1 forbids a visible change. Recorded to
-§ Deferred seams. ⚠ W3 must delete **two** blocks, not one — the
-`duelist` as well as the `sellsword`; both are `Extra`s, so rule 6 fires
-on them the moment `Named` leaves `Creature`. The plan named only the
-sellsword.
+§ Deferred seams. ⚠ **Correction (W3):** I predicted rule 6 would fire on **two** rows,
+the `duelist` as well as the `sellsword`. It fires on one — the duelist
+is on `/platform/agent/Cast`, which composes `NamedMixin`, so its block
+is *held* (and still mis-shaped, and still dead: it is one of the 60).
+Rule 6 checks REACH, not shape. The plan's single deletion was right.
 
 **3 — the drive's job steps use the drive's OWN player, not a minted
 NPC.** The requirements' steps 12–13 say *"place a new NPC into a job"*,

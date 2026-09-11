@@ -19,7 +19,9 @@
  *
  * Key Design Points:
  * - NO stat fields in Character itself (xp, level are PC-specific, deferred)
- * - honorific/name/surname/suffix/alternateNames/fullName come from NamedMixin (Creature)
+ * - ⚠ NO name surface. `NamedMixin` is NOT on Creature (since
+ *   2026-09-10): a body is not a somebody. A character that IS somebody
+ *   composes it — `CastMixin` does, and so does `Avatar`.
  * - pronouns come from GenderedMixin (social presentation — Character-tier)
  * - shortDescription/longDescription come from VisibleMixin (Creature)
  * - inventory management from ContainerMixin (Creature)

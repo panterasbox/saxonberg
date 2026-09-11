@@ -376,13 +376,22 @@ export abstract class Stuff {
    * derive what KIND of thing something is; it may never derive what it
    * is LIKE:
    *
-   *   1. the handle its author wrote  *(arrives in W3)*
+   *   1. the handle its author wrote
    *   2. else the role they hold  *(arrives in W4)*
    *   3. else their species
    *   4. else the description stem
    *   5. else `someone` / `something`
    */
   handlePhrase(): NounPhrase {
+    // 1 — the word its author chose. ⚠ The AUTHORED slot, never
+    // `getPrimaryKeyword()`, which always answers something: its derived
+    // fallback is the trailing pool token, and for a row described as
+    // "a weaver with a shuttle in one hand and a tally in the other"
+    // that is `other`. Nobody would sign a message "an other".
+    if (MixinApi.isPerceptible(this)) {
+      const authored = this.getAuthoredPrimaryKeyword();
+      if (authored) return NounPhrase.of(authored, 'indefinite');
+    }
     if (MixinApi.isOrganism(this)) {
       const common = this.getSpecies()?.getCommonNames()[0];
       if (common) return NounPhrase.of(common, 'indefinite');

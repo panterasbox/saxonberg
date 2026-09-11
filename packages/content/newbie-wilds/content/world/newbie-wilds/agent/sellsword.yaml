@@ -28,11 +28,13 @@ data:
   _speciesPath: /stuff/idea/species/animalia/chordata/mammalia/primates/hominidae/homo/sapiens
   lifecycleState: alive
   primaryKeyword: sellsword
-  alternateNames:
-    - sellsword
-    - mercenary
-    - merc
-    - woman
+  # ⚠ An `alternateNames:` block stood here. It was dead twice over: a
+  # Mercenary is an Extra, which carries no name to have alternates FOR,
+  # and it was authored as plain strings where the field takes
+  # `{kind, value}` pairs. What the author meant is `keywords:` — the
+  # targeting pool — and 59 other rows in the content mean the same
+  # thing by it. Moving them all ADDS words a player can type, which
+  # this build's invisibility bar forbids; the census is in the plan.
   shortDescription: lean sellsword with a blade for hire
   register: indefinite
   # She belongs to no lord and to one company. Recruited by role rather

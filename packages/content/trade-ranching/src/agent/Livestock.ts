@@ -29,29 +29,35 @@
 import { Creature } from '@saxonberg/server/mud/lib/creature/Creature';
 import { HandlingMixin } from '@saxonberg/server/mud/lib/husbandry/Handling';
 import { HandledMixin } from '../lib/Handled';
-import { PerceptibleMixin } from '@saxonberg/server/mud/lib/description/Perceptible';
 import { ProducingMixin } from '../lib/Producing';
 import type { CommandContributions } from '@saxonberg/server/mud/api/command';
 import type { FieldMeta } from '@saxonberg/server/mud/lib/mixin';
 
 /**
- * ⚠⚠ **`PerceptibleMixin`, and it is a bug fix rather than a feature.**
+ * ⭐ **`Perceptible` arrives from `Creature` now, and the argument this
+ * class used to carry is why.**
  *
- * A `Creature` composes `Visible` and `Named` but NOT `Perceptible`,
- * because a person is addressed by their NAME. An animal is not: it is
- * addressed by what it is — *the cow*, *the beast*, *the heifer*. The
- * livestock row has always authored
- * `keywords: [head, stock, animal, beast]`, and every one of them was
- * **silently discarded**: the Hydrator writes only what `fieldMeta`
- * declares, nothing declared `keywords`, and the field did not exist.
+ * It composed `PerceptibleMixin` locally, against a `Creature` that had
+ * `Visible` and `Named` but not `Perceptible` — on the reasoning that *a
+ * person is addressed by their NAME and an animal by what it is.* The
+ * symptom was real: the livestock row authored
+ * `keywords: [head, stock, animal, beast]` and every one was **silently
+ * discarded**, so `handle beast` said *"that is not an animal you can
+ * work with"* about the animal standing in front of you. Found by
+ * driving it.
  *
- * The symptom in play was that a drafted head answered to `stock` and to
- * nothing else — and only because *"a head of stock"* is its short
- * description. `handle beast` said *"that is not an animal you can work
- * with"* about the animal standing in front of you. Found by driving it.
+ * ⚠⚠ The diagnosis was half right. The premise — that a person is
+ * addressed by name — was the thing to reject: **48 shipped agent rows
+ * were authoring `primaryKeyword:` into the same void**, and `look
+ * clerk` was broken for every one of them. So `Perceptible` went onto
+ * `Creature` (a BODY is addressable) and `Named` came off it (a body is
+ * not a somebody), and this local composition became a double
+ * declaration. The lesson is the mixin-slate one: ⭐ when a fix needs a
+ * guard or a local re-composition, the host is usually wrong one level
+ * up.
  */
 const LivestockBase = ProducingMixin(
-  HandledMixin(HandlingMixin(PerceptibleMixin(Creature))),
+  HandledMixin(HandlingMixin(Creature)),
 );
 
 export default class Livestock extends LivestockBase {

@@ -14,6 +14,7 @@ import { describe, it, expect, beforeEach, afterEach } from "vitest";
 import EatController from "../EatController";
 import VomitController from "../VomitController";
 import { Creature } from "../../../../../lib/creature/Creature";
+import { NamedMixin } from "../../../../../lib/description/Named";
 import { SensorMixin } from "../../../../../lib/message/Sensor";
 import { CommandGiverMixin } from "../../../../../lib/command/CommandGiver";
 import Condition from "../../../Condition";
@@ -35,7 +36,10 @@ import {
 } from "../../../../../lib/security/__tests__/test-setup";
 import { installV1QuantityMarshallers } from "../../../../../lib/persistence/__tests__/quantity-marshaller-test-helpers";
 
-class TestEater extends SensorMixin(CommandGiverMixin(Creature)) {
+// ⭐ `NamedMixin` is composed EXPLICITLY, which is what a class that has
+// a proper name now does — it is off the creature base, because a body
+// is not a somebody. This fixture gives its eater a name, so it says so.
+class TestEater extends SensorMixin(CommandGiverMixin(NamedMixin(Creature))) {
   static _mixinName = "TestEaterSpoiled";
 }
 

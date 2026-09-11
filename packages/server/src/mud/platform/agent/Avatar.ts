@@ -11,6 +11,7 @@
  */
 
 import { ShelledCharacter } from "../../lib/shell/ShelledCharacter";
+import { NamedMixin } from "../../lib/description/Named";
 import { PlayerApi } from "../../api/player";
 import { SandboxApi } from "../../api/sandbox";
 import { ConnectionApi } from "../../api/connection";
@@ -170,7 +171,21 @@ const AvatarBase = PersistableMixin(
                 // a `Record<string, string[]>` field, so they need no
                 // collection and no marshaller of their own.
                 WardrobeMixin(
-                  PartyMemberMixin(SubjectSubscriberMixin(ShelledCharacter)),
+                  PartyMemberMixin(
+                    SubjectSubscriberMixin(
+                      // ⭐ A player body has a name because ENROLL WRITES
+                      // ONE, and it is the one piece of identity a player
+                      // typed themselves. Composed here rather than
+                      // inherited from the creature base: a body is not a
+                      // somebody, and an Avatar is.
+                      //
+                      // ⚠ The fails-closed check on this is the ROUND
+                      // TRIP — enroll → `holder_snapshots` → reconnect. A
+                      // missing field hydrates as empty and the banner
+                      // reads "Welcome, ." with nothing thrown.
+                      NamedMixin(ShelledCharacter),
+                    ),
+                  ),
                 ),
               ),
             ),

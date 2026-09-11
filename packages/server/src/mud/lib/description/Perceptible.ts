@@ -67,6 +67,8 @@ export interface Perceptible {
    * the live pool (an unrecognized value is ignored with a warning).
    */
   getPrimaryKeyword(): string | undefined;
+  /** The authored value only — no derived fallback. */
+  getAuthoredPrimaryKeyword(): string | undefined;
   setPrimaryKeyword(value: string | undefined): void;
 }
 
@@ -274,6 +276,26 @@ export function PerceptibleMixin<TBase extends MixinConstructor>(Base: TBase) {
         return this.primaryKeyword;
       }
       return pool[pool.length - 1];
+    }
+
+    /**
+     * ⭐ **What the author actually wrote**, with no derived fallback —
+     * `undefined` when nobody wrote one.
+     *
+     * `getPrimaryKeyword` always answers something, which is right for
+     * targeting and wrong for the **handle chain**: the handle's first
+     * rung is *"the word its author chose"*, and the derived trailing
+     * token is not that. For a row described as *"a weaver with a
+     * shuttle in one hand and a tally in the other"* the derived answer
+     * is `other`, and signing an anonymous chat line *"an other"* is
+     * the kind of thing nobody would ever have written down.
+     *
+     * ⚠ It reads the raw slot rather than validating against the pool,
+     * deliberately: an authored value that has fallen out of the pool
+     * is still what the author said.
+     */
+    getAuthoredPrimaryKeyword(): string | undefined {
+      return this.primaryKeyword;
     }
 
     /**
