@@ -82,6 +82,19 @@ documentation as *the guaranteed-resolvable handle*.
 creature base — and the object branch's own comment already states the
 rule it breaks: *"names are for proper names, not generic descriptions."*
 
+**⭐⭐ And most of what a description says is already modelled.** The
+recurring patterns were tested against worlds this realm does not contain
+yet — Tolkien, Austen, noir, Star Trek, Dickens — and **six of the seven
+that recur are already fields**: a rank or title prefix (*Lieutenant
+Commander* Data, *Mr.* Darcy), a proper name, an epithet (Gandalf **the
+Grey**), a species (a **Bolian** ensign), a role (a militia **officer**),
+and a faction (a Rider **of Rohan**). Only the free descriptor — *a man in
+a sharp grey suit* — is not.
+
+⚠ So descriptions currently **retype modelled data as prose**, and when
+the two disagree **the prose wins silently**: a weaver who is dismissed
+still reads *"a weaver"*.
+
 > **Therefore what is genuinely new here is:** the register as a field
 > rather than a typed-in article, the **form** as something a sentence
 > asks for rather than something the delivery shape decides, and the
@@ -106,6 +119,9 @@ rule it breaks: *"names are for proper names, not generic descriptions."*
 - **Being disguised and being anonymous are different things** and stop
   sharing one mechanism.
 - **Only things that can have a proper name carry proper-name surface.**
+- **An author who models a thing gets its handle for free**, and that
+  handle stays true when the model changes — while an author who writes
+  one is never argued with.
 
 ## Non-goals
 
@@ -127,6 +143,17 @@ rule it breaks: *"names are for proper names, not generic descriptions."*
   tail. This build needs only *"a channel is not looking at you"*.
 - **New authored description text.** No row gains prose; rows lose a
   leading article and gain a register.
+- ⚠⚠ **Deriving the FLAVOUR — ever, even optionally.** **Nowhere,
+  deliberately, and this is the line the build must not cross.** The
+  moment the engine can generate a portrait, every world gets the same
+  portraits. That is the failure mode of every procedural NPC system ever
+  shipped and the opposite of what this platform is for. *"A dyer whose
+  hands are blue to the wrist and will not come clean"* is not derivable
+  from any model, and a system that cannot express it has narrowed what
+  stories can be told here.
+- **Templating the description.** Prose templating already ships and an
+  author may use it inside their own flavour text. The engine must never
+  require it.
 
 ## Placement
 
@@ -227,6 +254,48 @@ beside the viewer:
 
 ⭐ The richer forms already exist and are nearly unreachable. This makes
 them ordinary.
+
+### The handle derives; the flavour never does
+
+**Q:** Should an NPC's description be standardized, or generated from
+what is already modelled?
+
+**A:** ⭐⭐ **Neither. It should be decomposed, and only the part that is
+already modelled should derive.**
+
+One field is doing three jobs, which is why it is simultaneously too long
+for a chat line and unable to say *the collie*:
+
+| job | example | where it goes |
+|---|---|---|
+| **what kind of thing** | `weaver` | the **handle** — derivable |
+| **which article** | indefinite | the **register** |
+| **flavour** | `with a shuttle in one hand and a tally in the other` | **free text, forever** |
+
+**The handle resolves down a chain, and an authored value always wins:**
+
+1. what the author wrote, if they wrote one
+2. else the **role they hold** — drop an NPC into a bakery and they are
+   *a baker*, with no code and no typing
+3. else their **species** — *a dwarf*, *a wolf*
+4. else the author must write one
+
+⭐ **This is the ordinary case needing no code, and it fixes a real bug
+rather than tidying.** A handle that derives from the job **stays true
+when the job changes**; a retyped one does not, which is why a dismissed
+weaver still reads as a weaver today.
+
+⚠ **And it does not break the invisibility bar**, because derivation only
+fires where nothing is authored — and the content sweep authors a handle
+for every row it touches, read off what that row already says. So nothing
+shipped changes, and the staleness fix applies to content written from
+here on. **That is the correct direction:** retroactively "correcting" a
+hand-written description would be exactly the overreach the flavour rule
+forbids.
+
+⭐ **Things are exempt and that is not an oversight.** An object has no
+role and no species, so there is nothing to derive from; a sword is
+whatever its author says it is. Anything goes, as it does today.
 
 ### Chat anonymity is a channel setting, and the anonymous form is the handle
 
@@ -333,6 +402,13 @@ things that should be identical.
     appears — "a weaver" — never a sentence-long portrait.**
 11. Speak on a named channel while hooded. ⭐⭐ **You are named**, because
     the hood is something people *see* and the channel is not looking.
+12. Place a new NPC into a job, giving it **no handle of its own**. Speak
+    to it anonymously on a channel: ⭐ **it is "a baker."** Nobody typed
+    that.
+13. Move it to a different job. **It is now the other thing** — the
+    handle followed the model rather than a string somebody typed once.
+14. Give an NPC its own handle and then change its job. ⭐⭐ **Its handle
+    does not move.** *The author's word always wins.*
 
 ## Acceptance criteria
 
@@ -360,6 +436,13 @@ Observable from outside the code, by a person playing.
    plural correctly.
 10. A content author cannot give a role-filler a surname, because the
     field is not there to give.
+11. A content author who gives an NPC a job and no handle finds the world
+    already calls it by that job, and **keeps calling it correctly when
+    the job changes**.
+12. A content author who writes a handle finds nothing ever overrides it.
+13. ⚠ No NPC anywhere acquires descriptive prose that a person did not
+    write. The world may derive **what kind of thing** something is; it
+    may never derive **what it is like**.
 
 ## Cross-references
 
