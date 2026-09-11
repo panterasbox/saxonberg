@@ -14,7 +14,8 @@
 class: /trade/farming/location/Field
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: a field
+  shortDescription: field
+  register: indefinite
   longDescription: >-
     Open ground under open sky, walked out to its edges and turned. The
     line of the first sod is still visible along one side.

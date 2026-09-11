@@ -6,7 +6,8 @@
 class: /trade/hospitality/thing/GlassRack
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: a glass rack
+  shortDescription: glass rack
+  register: indefinite
   longDescription: An overhead rack of glassware, stems hooked in rows, catching the light.
   primaryKeyword: rack
   keywords: [rack, glass-rack, glassware, glasses]

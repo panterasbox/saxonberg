@@ -12,7 +12,8 @@
 class: /platform/thing/Stock
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: the general-store counter
+  shortDescription: general-store counter
+  register: definite
   primaryKeyword: counter
   keywords: [counter, shelf, shelves, goods, stock]
   longDescription: |

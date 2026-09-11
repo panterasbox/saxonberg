@@ -6,7 +6,8 @@
 class: /platform/thing/Provision
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: a pail of fat
+  shortDescription: pail of fat
+  register: indefinite
   primaryKeyword: fat
   keywords: [fat, tallow, suet]
   longDescription: >-

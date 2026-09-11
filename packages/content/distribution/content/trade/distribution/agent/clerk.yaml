@@ -11,7 +11,8 @@ data:
   lifecycleState: alive
   primaryKeyword: clerk
   alternateNames: [tam, ferrier]
-  shortDescription: a brisk clerk with a stub of chalk
+  shortDescription: brisk clerk with a stub of chalk
+  register: indefinite
   longDescription: |
     A wiry woman in a leather apron with a stub of chalk behind one ear and a tally-book chained to her belt. She counts a delivery once, fast, and is never wrong; the chalkboard of asks above the counter is in her hand, and so is the price of everything on it.
   dispositions:

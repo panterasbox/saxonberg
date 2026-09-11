@@ -5,7 +5,8 @@
 class: /platform/thing/Crate
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: a crate of grapefruits
+  shortDescription: crate of grapefruits
+  register: indefinite
   primaryKeyword: grapefruits
   keywords: [crate, grapefruits, grapefruit, produce]
   longDescription: A slatted wooden crate of grapefruits, the grower's stencil on the side.

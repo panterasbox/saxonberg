@@ -12,7 +12,8 @@
 class: /platform/location/SingletonCartesianLocation
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: the crossroads at the last counted mile
+  shortDescription: crossroads at the last counted mile
+  register: definite
   primaryKeyword: crossroads
   _address: last-counted-mile/hub
   longDescription: |

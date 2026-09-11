@@ -27,7 +27,8 @@
 class: /platform/location/FurnishableRoom
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: a living room
+  shortDescription: living room
+  register: indefinite
   primaryKeyword: living
   keywords: [living, lounge, sitting, room]
   longDescription: |

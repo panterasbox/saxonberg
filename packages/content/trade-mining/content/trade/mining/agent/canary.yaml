@@ -11,7 +11,8 @@ data:
   lifecycleState: alive
   primaryKeyword: canary
   keywords: ["canary", "bird", "cage"]
-  shortDescription: a canary in a wicker cage
+  shortDescription: canary in a wicker cage
+  register: indefinite
   longDescription: >-
     A small yellow bird in a wicker cage, hung from a nail or carried on
     a hook. It watches you sideways with a bright black eye. Miners do

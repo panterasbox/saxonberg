@@ -12,7 +12,8 @@
 class: /platform/thing/Stock
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: the produce stalls
+  shortDescription: produce stalls
+  register: definite
   primaryKeyword: stall
   keywords: [stall, stalls, produce, trestle, counter]
   longDescription: |

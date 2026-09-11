@@ -12,7 +12,8 @@
 class: /platform/location/SingletonCartesianLocation
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: the Goodkin banking hall
+  shortDescription: Goodkin banking hall
+  register: definite
   primaryKeyword: hall
   alternateNames: [bank, goodkin, floor]
   _address: terminus/city/counting-houses/goodkin-hall

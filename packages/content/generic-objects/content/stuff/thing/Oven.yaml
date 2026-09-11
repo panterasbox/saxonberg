@@ -3,7 +3,8 @@
 class: /platform/thing/Oven
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: a clay oven
+  shortDescription: clay oven
+  register: indefinite
   longDescription: >
     A rounded clay oven with an arched mouth, warm to the hand and smelling of
     woodsmoke and bread.

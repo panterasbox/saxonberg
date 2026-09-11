@@ -11,7 +11,8 @@
 class: /trade/dyeing/thing/WoadVat
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: the woad vat
+  shortDescription: woad vat
+  register: definite
   primaryKeyword: woad-vat
   keywords: [woad-vat, woad, vat, blue]
   longDescription: |

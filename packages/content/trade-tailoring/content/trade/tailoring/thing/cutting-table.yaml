@@ -9,7 +9,8 @@
 class: /trade/tailoring/thing/CuttingTool
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: a cutting table
+  shortDescription: cutting table
+  register: indefinite
   primaryKeyword: table
   # ⚠ `shears` REMOVED as a keyword: shears are their own object now
   # (the rung-zero cutting tool), and two things in one room answering

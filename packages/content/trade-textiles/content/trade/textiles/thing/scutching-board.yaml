@@ -8,7 +8,8 @@
 class: /trade/textiles/thing/ScutchingBoard
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: a scutching board
+  shortDescription: scutching board
+  register: indefinite
   primaryKeyword: board
   keywords: [board, scutching, knife, swingle]
   longDescription: |

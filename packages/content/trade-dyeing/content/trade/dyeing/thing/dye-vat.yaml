@@ -8,7 +8,8 @@
 class: /trade/dyeing/thing/DyeVat
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: a dyehouse vat
+  shortDescription: dyehouse vat
+  register: indefinite
   primaryKeyword: vat
   keywords: [vat, bath, dye-vat, copper]
   longDescription: |

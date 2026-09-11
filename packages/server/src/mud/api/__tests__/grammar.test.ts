@@ -82,34 +82,66 @@ describe('GrammarApi.possessive', () => {
   });
 });
 
+/**
+ * ⭐ `article()` asks the PHRASE now, and the phrase knows its register —
+ * so a proper name answers `''`, which is the truth: there is no such
+ * thing as *"a Bob"*.
+ *
+ * ⚠ It used to read the article off the *rendered* string, which made it
+ * wrong two ways at once: it said `'a'` for every proper name, and given
+ * a description that already began with an article it answered for the
+ * ARTICLE's first letter — `article(x)` on *"a heavy door"* was `'an'`.
+ * Latent both times: the `| article` prose filter is its only caller and
+ * **no shipped template uses it**, which is why the old tests could
+ * encode the wrong answer and stay green for the life of the project.
+ */
 describe('GrammarApi.article', () => {
-  it("returns 'a' for consonant-onset names", () => {
+  it('answers nothing for a proper name — there is no "a Bob"', () => {
     const obj = makeStuff(() => new NamedThing());
     obj.setName('sword');
+    expect(GrammarApi.article(obj)).toBe('');
+  });
+
+  it("returns 'a' for a consonant-onset description", () => {
+    const obj = makeStuff(() => new VisibleThing());
+    obj.setShortDescription('heavy door');
     expect(GrammarApi.article(obj)).toBe('a');
   });
 
-  it("returns 'an' for vowel-onset names", () => {
-    const obj = makeStuff(() => new NamedThing());
-    obj.setName('axe');
+  it("returns 'an' for a vowel-onset description", () => {
+    const obj = makeStuff(() => new VisibleThing());
+    obj.setShortDescription('orcish blade');
     expect(GrammarApi.article(obj)).toBe('an');
   });
 
   it('handles uppercase first letters', () => {
-    const obj = makeStuff(() => new NamedThing());
-    obj.setName('Onyx amulet');
-    expect(GrammarApi.article(obj)).toBe('an');
-  });
-
-  it("falls back to 'a' when there's no display name", () => {
-    const obj = makeStuff(() => new Plain());
-    expect(GrammarApi.article(obj)).toBe('a');
-  });
-
-  it('uses Visible.shortDescription when no proper name is set', () => {
     const obj = makeStuff(() => new VisibleThing());
-    obj.setShortDescription('orcish blade');
+    obj.setShortDescription('Onyx amulet');
     expect(GrammarApi.article(obj)).toBe('an');
+  });
+
+  it("returns 'the' for a definite register", () => {
+    const obj = makeStuff(() => new VisibleThing());
+    obj.setShortDescription('collier');
+    obj.setRegister('definite');
+    expect(GrammarApi.article(obj)).toBe('the');
+  });
+
+  it('answers nothing for a thing with no identity at all', () => {
+    // The baseline is `something`, which takes no article either.
+    const obj = makeStuff(() => new Plain());
+    expect(GrammarApi.article(obj)).toBe('');
+  });
+
+  it('⚠ is not fooled by an article inside the text', () => {
+    // The old implementation answered 'an' here, having found the vowel
+    // at the front of the article. A stem carries no article now, and
+    // lint:presentation is what keeps it that way — but even handed one,
+    // the register decides, not the first letter.
+    const obj = makeStuff(() => new VisibleThing());
+    obj.setShortDescription('heavy door');
+    obj.setRegister('definite');
+    expect(GrammarApi.article(obj)).toBe('the');
   });
 });
 

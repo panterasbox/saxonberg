@@ -6,7 +6,8 @@
 class: /trade/cooking/thing/KitchenTool
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: a fruit press
+  shortDescription: fruit press
+  register: indefinite
   longDescription: A screw press over a slatted oak basket, the spout below it worn smooth and permanently damp.
   primaryKeyword: press
   keywords: [press, fruit-press, juicer]

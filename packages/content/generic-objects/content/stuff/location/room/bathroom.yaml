@@ -26,7 +26,8 @@
 class: /platform/location/FurnishableRoom
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: a bathroom
+  shortDescription: bathroom
+  register: indefinite
   primaryKeyword: bathroom
   keywords: [bathroom, bath, washroom, room]
   longDescription: |

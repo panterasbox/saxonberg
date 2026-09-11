@@ -13,7 +13,8 @@ data:
   lifecycleState: alive
   primaryKeyword: dyer
   alternateNames: ["ilva", "marrow"]
-  shortDescription: "a dyer whose hands are blue to the wrist and will not come clean"
+  shortDescription: "dyer whose hands are blue to the wrist and will not come clean"
+  register: indefinite
   longDescription: |
     Blue to the wrist, permanently, and she has stopped apologising for it. She can tell you what is wrong with a vat by leaning over it, and she will not tell you how.
   dispositions:

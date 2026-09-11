@@ -34,7 +34,8 @@
 class: /trade/ranching/thing/Herdbook
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: the herdbook
+  shortDescription: herdbook
+  register: definite
   primaryKeyword: herdbook
   keywords: [herdbook, book, register, ledger]
   longDescription: >-

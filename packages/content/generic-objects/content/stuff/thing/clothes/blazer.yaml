@@ -1,7 +1,8 @@
 class: /platform/thing/equipment/Garment
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: a sharp blazer
+  shortDescription: sharp blazer
+  register: indefinite
   primaryKeyword: blazer
   longDescription: >
     A well-cut blazer, a touch too confident for a first-year. The

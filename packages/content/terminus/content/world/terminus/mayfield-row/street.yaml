@@ -8,6 +8,7 @@ class: /platform/location/SingletonCartesianLocation
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: Mayfield Row
+  register: proper
   primaryKeyword: row
   alternateNames: [street, mayfield]
   _address: terminus/mayfield-row

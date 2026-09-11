@@ -13,7 +13,8 @@
 class: /system/residence/thing/HouseholdersKit
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: a householder's kit
+  shortDescription: householder's kit
+  register: indefinite
   primaryKeyword: kit
   keywords: [kit, householder, householders, tools, box, putty]
   longDescription: |

@@ -20,7 +20,8 @@
 class: /platform/thing/BankCounter
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: the Goodkin teller counter
+  shortDescription: Goodkin teller counter
+  register: definite
   longDescription: |
     A long counter of honey-coloured wood topped with a brass rail, a worn
     ledger pad, a tray of stamped Goodkin sunrise tokens, and a little card

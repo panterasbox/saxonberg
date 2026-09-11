@@ -3,7 +3,8 @@
 class: /platform/thing/Menu
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: a chalkboard menu
+  shortDescription: chalkboard menu
+  register: indefinite
   longDescription: A chalkboard propped behind the bar, cocktails listed in a tidy hand.
   keywords: [menu, chalkboard, board]
   # The 24 lines of the libations menu (slate Part 9): the hospitality

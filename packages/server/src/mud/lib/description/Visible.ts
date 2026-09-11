@@ -30,6 +30,12 @@ import {
   type MarkupAugmenter,
 } from '../../api/mml';
 import { PerceptionApi } from '../../api/perception';
+import {
+  NounPhrase,
+  REGISTERS,
+  isRegister,
+  type Register,
+} from './NounPhrase';
 import type { SenseChannel } from './Perceiver';
 import { SENSE_CHANNELS } from './Perceiver';
 
@@ -58,6 +64,20 @@ import { SENSE_CHANNELS } from './Perceiver';
 export interface Visible {
   getShortDescription(): string;
   setShortDescription(value: string): void;
+  /**
+   * ⭐ **Which article this thing's description takes** — the register,
+   * the thing 611 shipped rows have been encoding by typing *"a"* or
+   * *"the"* into the front of the prose.
+   *
+   * It lives here, beside the description it qualifies, rather than on
+   * the identity rungs the concept belongs to — because **480 of the 611
+   * articled rows are things and locations, which have no rung at all.**
+   * The rungs constrain it instead, as agreement: `lint:identity` rule 2
+   * reads this field to check that an `Extra` is *a* sentry and a
+   * nameless `Cast` is *the* collier.
+   */
+  getRegister(): Register;
+  setRegister(value: Register): void;
   getLongDescription(): string;
   setLongDescription(value: string): void;
   /**
@@ -135,6 +155,7 @@ export function VisibleMixin<TBase extends MixinConstructor>(Base: TBase) {
      */
     static fieldMeta: FieldMeta = {
       shortDescription: { persistent: true, authorable: true },
+      register: { persistent: true, authorable: true },
       longDescription: { persistent: true, authorable: true },
       illustration: { persistent: true, authorable: true },
     };
@@ -173,6 +194,14 @@ export function VisibleMixin<TBase extends MixinConstructor>(Base: TBase) {
         changes: [{ on: ShadowChangedEvent, by: 'target' }],
       },
       {
+        // The register is half of the rendered phrase, so a change to it
+        // moves every projected name the description feeds — the wire's
+        // `displayName` included.
+        name: 'register',
+        read: (stuff) => (stuff as unknown as Visible).getRegister(),
+        changes: [{ on: ShadowChangedEvent, by: 'target' }],
+      },
+      {
         // `getMarkupLong(viewer)` is the host-level affordance-
         // annotated long description. The substrate's
         // `Mml.augment` static walks every contributing mixin's
@@ -199,8 +228,19 @@ export function VisibleMixin<TBase extends MixinConstructor>(Base: TBase) {
       },
     ];
 
-    /** Brief description, shown with an article ("a heavy iron door"). */
+    /**
+     * ⚠ **A STEM, with no article** — `heavy iron door`, not *"a heavy
+     * iron door"*. The article is `register`'s job, and a stem that
+     * smuggles one in renders *"a a heavy iron door"*.
+     * `lint:presentation` clause (a) gates it at build time.
+     */
     protected shortDescription: string = '';
+    /**
+     * Which article the description takes. `indefinite` is the default
+     * because 476 of the 611 articled rows are — the common case costs
+     * an author nothing.
+     */
+    protected register: Register = 'indefinite';
     /** Detailed examine text. */
     protected longDescription: string = '';
     /** Bucket-relative media key for this thing's illustration. */
@@ -215,6 +255,31 @@ export function VisibleMixin<TBase extends MixinConstructor>(Base: TBase) {
         this,
         'shortDescription',
         this.shortDescription,
+        value,
+      );
+    }
+
+    getRegister(): Register {
+      return this.register;
+    }
+
+    /**
+     * ⚠ Throws on a value outside the vocabulary rather than silently
+     * defaulting — the `Status` precedent for a per-field invariant. A
+     * register that quietly falls back to `indefinite` is a row that
+     * reads *"a collier"* forever and never says why.
+     */
+    setRegister(value: Register): void {
+      if (!isRegister(value)) {
+        throw new RangeError(
+          `register: unknown register '${String(value)}' ` +
+            `(expected ${REGISTERS.join(' | ')})`,
+        );
+      }
+      this.register = MqlSubscriptionApi.fireFieldChange(
+        this,
+        'register',
+        this.register,
         value,
       );
     }
@@ -260,7 +325,17 @@ export function VisibleMixin<TBase extends MixinConstructor>(Base: TBase) {
      * Get the long description with fallback to short, then default.
      */
     getLong(): string {
-      return this.longDescription || this.shortDescription || 'You see nothing special.';
+      if (this.longDescription) return this.longDescription;
+      // ⚠ RENDER the short description, never hand back the raw field.
+      // It is a stem now, so returning it printed "brass altimeter" into
+      // the body of a `look` where the player had always read "a brass
+      // altimeter". Caught by the live drive's transcript diff, which is
+      // the only instrument that could see it — the golden reads YAML,
+      // and no unit test asserts this fallback.
+      if (this.shortDescription) {
+        return NounPhrase.of(this.shortDescription, this.register).render();
+      }
+      return 'You see nothing special.';
     }
 
     /**

@@ -7,7 +7,8 @@
 class: /platform/thing/Crop
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: a bundle of madder root
+  shortDescription: bundle of madder root
+  register: indefinite
   primaryKeyword: madder
   keywords: [madder, root, roots, dyestuff]
   longDescription: |

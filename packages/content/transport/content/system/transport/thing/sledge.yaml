@@ -18,7 +18,8 @@
 class: /system/transport/thing/HaulageRig
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: a dragged sledge
+  shortDescription: dragged sledge
+  register: indefinite
   primaryKeyword: sledge
   keywords: [sledge, sled, drag, boat]
   longDescription: |

@@ -12,7 +12,8 @@ data:
   lifecycleState: alive
   primaryKeyword: hand
   alternateNames: ["dez", "okoro"]
-  shortDescription: "a quick bottling hand in a hairnet"
+  shortDescription: "quick bottling hand in a hairnet"
+  register: indefinite
   longDescription: |
     A quick, compact hand in a hairnet who stacks with both hands and counts by fours.
   dispositions:

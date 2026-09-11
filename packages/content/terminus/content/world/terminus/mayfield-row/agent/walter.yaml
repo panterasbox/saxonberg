@@ -12,7 +12,8 @@ data:
   _speciesPath: /stuff/idea/species/animalia/chordata/mammalia/primates/hominidae/homo/sapiens
   lifecycleState: alive
   primaryKeyword: walter
-  shortDescription: the house manager, pencil behind his ear
+  shortDescription: house manager, pencil behind his ear
+  register: definite
   longDescription: |
     A spare, neat man in a cardigan the colour of weak tea, a pencil behind one ear and a ring of flat keys worn to brass on his belt loop. He keeps the letting board, the boiler, and his own counsel, in that order. The radio in his room has been mid-cricket-season since before you arrived.
   dispositions:

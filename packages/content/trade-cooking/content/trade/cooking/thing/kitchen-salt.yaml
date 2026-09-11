@@ -14,7 +14,8 @@
 class: /platform/thing/Bottle
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: "a working sack of salt"
+  shortDescription: "working sack of salt"
+  register: indefinite
   longDescription: "A half-empty sack of coarse salt, folded over at the neck, standing where a cook can get a hand into it without looking."
   primaryKeyword: salt
   keywords: ["salt", "sack"]

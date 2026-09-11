@@ -18,7 +18,8 @@ data:
     x: 0
     y: 0
     z: 0
-  shortDescription: "the mill floor"
+  shortDescription: "mill floor"
+  register: definite
   primaryKeyword: floor
   keywords: [floor, mill, shed, spinning]
   longDescription: |

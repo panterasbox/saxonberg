@@ -7,7 +7,8 @@
 class: /platform/thing/JobBoard
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: a public noticeboard
+  shortDescription: public noticeboard
+  register: indefinite
   primaryKeyword: noticeboard
   longDescription: >
     A public noticeboard in an Authority frame, bolted to the wall between

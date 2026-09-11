@@ -28,7 +28,8 @@
 class: /platform/thing/GradedReceptacle
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: a bale of retted flax
+  shortDescription: bale of retted flax
+  register: indefinite
   primaryKeyword: bale
   # ⚠ NOT `stricks` — `line` answers to `strick`, and a bale that
   # answers to it too puts the wrong thing under the spinner's hand.

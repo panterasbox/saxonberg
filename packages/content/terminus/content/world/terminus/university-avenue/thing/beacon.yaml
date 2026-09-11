@@ -5,7 +5,8 @@
 class: /platform/thing/Beacon
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: a crossing beacon
+  shortDescription: crossing beacon
+  register: indefinite
   primaryKeyword: beacon
   longDescription: |
     A pole-mounted pedestrian beacon at the kerb, a stencilled figure lit behind its lens. Right now it shows STOP in steady red over an empty road — it changes to WALK when someone works it, though nothing out here obeys it either way.

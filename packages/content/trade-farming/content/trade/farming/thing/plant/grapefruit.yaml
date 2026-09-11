@@ -4,7 +4,8 @@
 class: /platform/thing/Plant
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: a grapefruit tree
+  shortDescription: grapefruit tree
+  register: indefinite
   primaryKeyword: "grapefruit tree"
   keywords: ["grapefruit tree", grapefruit, tree, citrus, plant]
   longDescription: |

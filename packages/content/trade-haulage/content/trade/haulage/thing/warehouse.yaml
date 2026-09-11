@@ -7,7 +7,8 @@
 class: /trade/haulage/thing/Warehouse
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: the goods shed
+  shortDescription: goods shed
+  register: definite
   primaryKeyword: shed
   keywords: [shed, warehouse, store, goods]
   longDescription: |

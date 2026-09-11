@@ -873,6 +873,7 @@ Vessel.transmissionFactor = 0
 VesselKindMixin.category = 0
 VisibleMixin.illustration = 0
 VisibleMixin.longDescription = 0
+VisibleMixin.register = 0
 VisibleMixin.shortDescription = 0
 VitalsMixin._bloodPressureDiastolic = 0
 VitalsMixin._bloodPressureSystolic = 0

@@ -5,7 +5,8 @@
 class: /platform/thing/Plant
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: an olive tree
+  shortDescription: olive tree
+  register: indefinite
   primaryKeyword: "olive tree"
   keywords: ["olive tree", olive, tree, plant]
   longDescription: |

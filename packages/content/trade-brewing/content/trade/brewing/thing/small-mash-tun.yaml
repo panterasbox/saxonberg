@@ -3,7 +3,8 @@
 class: /platform/thing/ToolItem
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: a small mash tun
+  shortDescription: small mash tun
+  register: indefinite
   primaryKeyword: tun
   keywords: [tun, "mash tun", kettle]
   longDescription: A lidded tin kettle with a false bottom and a wooden paddle.

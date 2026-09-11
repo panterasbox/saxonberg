@@ -15,7 +15,8 @@
 class: /platform/thing/Provision
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: a barrowload of marl
+  shortDescription: barrowload of marl
+  register: indefinite
   primaryKeyword: marl
   keywords: [marl, clay, calcareous-clay]
   longDescription: >-

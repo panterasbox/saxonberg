@@ -13,7 +13,8 @@
 class: /platform/thing/equipment/Garment
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: a coarse work apron
+  shortDescription: coarse work apron
+  register: indefinite
   primaryKeyword: apron
   keywords: [apron, pinny, work]
   longDescription: |

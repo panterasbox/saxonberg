@@ -2,7 +2,8 @@
 class: /platform/thing/Provision
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: a bundle of root vegetables
+  shortDescription: bundle of root vegetables
+  register: indefinite
   primaryKeyword: vegetables
   keywords: [vegetables, roots, bundle, veg]
   _materialPath: /stuff/idea/material/food/root-vegetable

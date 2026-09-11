@@ -6,7 +6,8 @@
 class: /platform/thing/LiveWire
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: a downed live cable
+  shortDescription: downed live cable
+  register: indefinite
   longDescription: A heavy cable, come down from the ceiling and half-submerged in the water, its frayed end still humming faintly.
   keywords: [cable, wire, cord, line]
   voltage: 120

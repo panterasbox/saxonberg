@@ -6,7 +6,8 @@
 class: /platform/thing/equipment/Garment
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: a plain linen shirt
+  shortDescription: plain linen shirt
+  register: indefinite
   primaryKeyword: shirt
   keywords: [shirt, linen]
   longDescription: |

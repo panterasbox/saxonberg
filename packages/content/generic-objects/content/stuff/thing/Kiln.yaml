@@ -3,7 +3,8 @@
 class: /platform/thing/Kiln
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: a brick kiln
+  shortDescription: brick kiln
+  register: indefinite
   longDescription: >
     A domed brick kiln with a low stoking door, its inner walls glazed by
     countless firings.

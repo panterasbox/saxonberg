@@ -2,7 +2,8 @@
 class: /platform/thing/Bottle
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: "a bottle of soda water"
+  shortDescription: "bottle of soda water"
+  register: indefinite
   longDescription: "A one-litre screw-capped bottle of soda water, the bottling floor's plain label."
   primaryKeyword: soda
   keywords: ["soda", "soda-water", "fizz", "bottle", "mixer"]

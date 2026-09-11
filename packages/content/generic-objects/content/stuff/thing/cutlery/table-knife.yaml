@@ -10,7 +10,8 @@
 class: /platform/thing/Cutlery
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: a table knife
+  shortDescription: table knife
+  register: indefinite
   primaryKeyword: table-knife
   keywords: [table-knife, knife, utensil]
   longDescription: |

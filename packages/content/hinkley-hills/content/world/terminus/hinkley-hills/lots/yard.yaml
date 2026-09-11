@@ -30,7 +30,8 @@
 class: /platform/location/FurnishableRoom
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: the yard behind the house
+  shortDescription: yard behind the house
+  register: definite
   primaryKeyword: yard
   alternateNames: [garden, back, plot]
   _biomePath: /stuff/idea/biome/outdoor/baseline

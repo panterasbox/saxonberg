@@ -7,7 +7,8 @@
 class: /platform/thing/ConsignmentShelf
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: the consignment shelf
+  shortDescription: consignment shelf
+  register: definite
   primaryKeyword: shelf
   keywords: [consignment, board, secondhand, resale]
   longDescription: |

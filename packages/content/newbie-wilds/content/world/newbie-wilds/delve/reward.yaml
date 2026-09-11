@@ -6,7 +6,8 @@
 class: /platform/thing/Thing
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: a dull metal offering bowl
+  shortDescription: dull metal offering bowl
+  register: indefinite
   primaryKeyword: bowl
   longDescription: |
     A shallow bowl of dull grey metal, older than the traps that guard it, left on the vault shelf for whoever crossed the corridor and lived. Plain to see and plain to take.

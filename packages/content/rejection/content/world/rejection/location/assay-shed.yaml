@@ -13,7 +13,8 @@
 class: /platform/location/SingletonCartesianLocation
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: the assay shed
+  shortDescription: assay shed
+  register: definite
   primaryKeyword: shed
   keywords: [shed, "assay shed", assay]
   longDescription: |

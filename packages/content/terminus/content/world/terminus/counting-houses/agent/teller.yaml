@@ -15,7 +15,8 @@ data:
   alternateNames:
     - wenna
     - clerk
-  shortDescription: a brisk Goodkin teller
+  shortDescription: brisk Goodkin teller
+  register: indefinite
   longDescription: |
     Neat in a grey Goodkin blazer with a small sunrise pin at the collar, with
     a teller's unhurried efficiency and a pen she taps when she's waiting. She

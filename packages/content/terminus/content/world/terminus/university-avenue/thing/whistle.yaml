@@ -6,7 +6,8 @@
 class: /world/terminus/university-avenue/thing/Whistle
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: a brass pea whistle
+  shortDescription: brass pea whistle
+  register: indefinite
   primaryKeyword: whistle
   keywords: [whistle, brass, pea, cord]
   longDescription: |

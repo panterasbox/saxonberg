@@ -4,7 +4,8 @@
 class: /platform/thing/Plant
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: a lemon tree
+  shortDescription: lemon tree
+  register: indefinite
   primaryKeyword: "lemon tree"
   keywords: ["lemon tree", lemon, tree, citrus, plant]
   longDescription: |

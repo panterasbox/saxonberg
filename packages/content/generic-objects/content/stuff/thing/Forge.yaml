@@ -5,7 +5,8 @@
 class: /platform/thing/Forge
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: a stone forge
+  shortDescription: stone forge
+  register: indefinite
   longDescription: >
     A squat stone forge with a deep charcoal bed and a great leather bellows
     at its side. Cold, it is just soot and iron fittings; lit and pumped, it

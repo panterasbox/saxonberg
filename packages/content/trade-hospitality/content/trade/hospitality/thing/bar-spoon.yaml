@@ -2,7 +2,8 @@
 class: /platform/thing/ToolItem
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: a bar spoon
+  shortDescription: bar spoon
+  register: indefinite
   longDescription: A long twisted-stem bar spoon.
   primaryKeyword: bar-spoon
   keywords: [bar-spoon, spoon]

@@ -110,9 +110,9 @@ export class Lock {
   static keyDescription(technology: LockType, master = false): string {
     switch (technology) {
       case "pin-tumbler":
-        return master ? "a heavy ring of master keys" : "a worn brass key";
+        return master ? "heavy ring of master keys" : "worn brass key";
       case "keycard":
-        return master ? "a black master keycard" : "a plastic keycard";
+        return master ? "black master keycard" : "plastic keycard";
     }
   }
 }

@@ -5,7 +5,8 @@
 class: /platform/thing/Thing
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: a drystone wall
+  shortDescription: drystone wall
+  register: indefinite
   primaryKeyword: wall
   keywords: [wall]
   longDescription: >-

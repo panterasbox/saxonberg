@@ -12,7 +12,8 @@
 class: /system/arcana/thing/Potion
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: a stoppered glass flask
+  shortDescription: stoppered glass flask
+  register: indefinite
   longDescription: >
     A squat glass flask with a waxed stopper. Whatever is in it moves a little slowly when tilted, and the glass is faintly warm.
   interiorMaterial: /stuff/idea/material/potion/blistering-draught

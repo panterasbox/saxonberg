@@ -10,7 +10,8 @@
 class: /trade/textiles/thing/RettingPit
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: a retting pit
+  shortDescription: retting pit
+  register: indefinite
   primaryKeyword: pit
   keywords: [pit, pond, retting, water]
   longDescription: |

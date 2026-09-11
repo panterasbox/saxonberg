@@ -10,7 +10,8 @@
 class: /platform/thing/Receptacle
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: a sack of malt
+  shortDescription: sack of malt
+  register: indefinite
   primaryKeyword: malt
   keywords: [malt, sack, grain, "malt sack", barley]
   longDescription: |

@@ -6,7 +6,8 @@
 class: /platform/thing/Menu
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: a chalked slate of smith-work
+  shortDescription: chalked slate of smith-work
+  register: indefinite
   primaryKeyword: slate
   keywords: [slate, board, menu, price-board]
   longDescription: |

@@ -19,7 +19,8 @@ data:
   lifecycleState: alive
   primaryKeyword: pony
   keywords: ["pony", "pit-pony", "horse"]
-  shortDescription: a stocky pit pony
+  shortDescription: stocky pit pony
+  register: indefinite
   longDescription: >-
     A short, barrel-chested pony with a clipped mane and the patient,
     unbothered look of an animal that has done this a great many times.

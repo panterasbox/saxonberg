@@ -7,7 +7,8 @@ data:
   lifecycleState: alive
   primaryKeyword: collier
   keywords: [collier, burner]
-  shortDescription: the collier
+  shortDescription: collier
+  register: definite
   longDescription: >-
     Black to the elbow and grey in the face, with a long iron bar she uses
     to stop and open vents and which she is never more than an arm's

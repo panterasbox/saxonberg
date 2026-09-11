@@ -39,6 +39,7 @@ import { ProxyApi } from '../../api/proxy';
 import { SecurityApi } from '../../api/security';
 import { MixinApi } from '../../api/mixin';
 import { GrammarApi } from '../../api/grammar';
+import { NounPhrase } from '../description/NounPhrase';
 // Type-only: `Stuff` is the root base, so a *value* import of `Mml`
 // (which pulls recognition → belief → `Idea extends Stuff`) would form a
 // load-time cycle. The default fragment is built by `Mml.ref` instead;
@@ -72,6 +73,21 @@ export interface DestroyedObjectMetadata {
  * returns a string, so call sites never write `??` ceremony.
  */
 const DEFAULT_PRESENTATION = 'something';
+
+/**
+ * The same fallback for an organism that has neither a name, a
+ * description nor a species common name. `RecognitionLogic.obscured` has
+ * always answered `someone` for a body and `something` for a thing;
+ * bringing it here is what lets one ladder serve both views.
+ */
+const DEFAULT_UNKNOWN_ORGANISM = 'someone';
+
+/**
+ * Which rungs of the identity ladder a reader is entitled to.
+ * `'stranger'` skips the name and the disguise; see
+ * {@link Stuff.presentationPhrase}.
+ */
+export type PresentationView = 'own' | 'stranger';
 
 /**
  * `setZone` is callable only from `SpatialZone` and its subclasses.
@@ -230,7 +246,7 @@ export abstract class Stuff {
     // Same-side calls — the overwhelming majority — cost one scope
     // compare and nothing else.
     return SecurityApi.projectAcross(this, undefined, () =>
-      this.presentationCore()
+      this.presentationPhrase().render()
     );
   }
 
@@ -282,39 +298,76 @@ export abstract class Stuff {
     return Stuff._recognitionFace()?.kindOf(viewer, this) ?? 'thing';
   }
 
-  /** The pure identity synthesis; see `getPresentation` for the seam. */
-  private presentationCore(): string {
-    let base = DEFAULT_PRESENTATION;
-    // Disguise defers FIRST and at the baseline (not via a shadow on
-    // the synthesizer): a masked creature presents its covering's
-    // `appearsAs` ("a hooded figure") in place of its true identity, so
-    // every reader — prose, MQL projection, logs — sees the disguise
-    // uniformly. The viewer-relative half (withholding a *known* name
-    // from someone who'd recognize the wearer) lives in
-    // `RecognitionApi.describe`; this layer is viewer-blind.
-    if (MixinApi.isDisguisable(this)) {
-      const disguise = this.getDisguise();
-      if (disguise) base = disguise.appearsAs;
-    }
-    if (base === DEFAULT_PRESENTATION && MixinApi.isNamed(this)) {
-      const name = this.getName();
-      if (name) base = name;
-    }
-    if (base === DEFAULT_PRESENTATION && MixinApi.isVisible(this)) {
-      const short = this.getShortDescription();
-      if (short) base = short;
-    }
-    let identity = base;
+  /**
+   * ⭐⭐ **The structured identity** — a stem, a register and a count,
+   * from which the article, the definite form, the possessive and the
+   * plural all derive. `getPresentation()` is this, rendered.
+   *
+   * ⭐ **This is the override point.** A class with a name of its own
+   * (`Organization`, a farm `Field`) overrides *this*, not
+   * `getPresentation`, and gets every grammatical form right for free
+   * instead of returning a string with an article welded to the front.
+   *
+   * The chain, in order, each rung tried only if the one above is empty:
+   *
+   *   1. **the disguise** — a masked creature presents its covering's
+   *      `appearsAs` in place of its true identity, so every reader
+   *      (prose, MQL projection, logs) sees the disguise uniformly. A
+   *      disguise is always `indefinite`: being one of many is what a
+   *      disguise is FOR. The viewer-relative half — withholding a name
+   *      from somebody who would recognize the wearer — lives in
+   *      `RecognitionLogic`; this layer is viewer-blind.
+   *   2. **a proper name**, if the object can hold one. `proper`.
+   *   3. **the authored description**, in its authored register.
+   *   4. **the species common name**, for an organism. `indefinite`.
+   *   5. `something` / `someone`.
+   *
+   * @param view `'own'` is the whole chain. ⭐ `'stranger'` skips rungs
+   * 1 and 2 — the name and the disguise — which is exactly what being a
+   * stranger means and exactly what `RecognitionLogic` used to do in a
+   * second, separately-maintained copy of this ladder.
+   */
+  presentationPhrase(view: PresentationView = 'own'): NounPhrase {
+    const phrase = this.identityPhrase(view);
+    // A count other than 1 wins over the register: a stack of two apples
+    // is called "2 apples", and no article belongs in front of it.
     if (MixinApi.isGlobbable(this)) {
       const n = this.getQuantity();
-      if (n !== 1) identity = `${n} ${GrammarApi.pluralize(this, base)}`;
+      if (n !== 1) {
+        return phrase.withCount(n, GrammarApi.pluralize(this, phrase.stem));
+      }
     }
     // `getPresentation()` is pure identity. The authored activity-status
     // affix (`StatusMixin`, "watching the empty road") is a *presence*
-    // decoration, not identity — it weaves in only through
-    // `RecognitionApi.describeWithStatus` at presence-scan surfaces (the
-    // room occupant roll-call, the profile), never on act-subject naming.
-    return identity;
+    // decoration, not identity — it weaves in only at the `presence`
+    // form, never on act-subject naming.
+    return phrase;
+  }
+
+  /** The rung ladder, without the count. See {@link presentationPhrase}. */
+  private identityPhrase(view: PresentationView): NounPhrase {
+    if (view === 'own') {
+      if (MixinApi.isDisguisable(this)) {
+        const disguise = this.getDisguise();
+        if (disguise?.appearsAs) {
+          return NounPhrase.of(disguise.appearsAs, 'indefinite');
+        }
+      }
+      if (MixinApi.isNamed(this)) {
+        const name = this.getName();
+        if (name) return NounPhrase.proper(name);
+      }
+    }
+    if (MixinApi.isVisible(this)) {
+      const short = this.getShortDescription();
+      if (short) return NounPhrase.of(short, this.getRegister());
+    }
+    if (MixinApi.isOrganism(this)) {
+      const common = this.getSpecies()?.getCommonNames()[0];
+      if (common) return NounPhrase.of(common, 'indefinite');
+      return NounPhrase.proper(DEFAULT_UNKNOWN_ORGANISM);
+    }
+    return NounPhrase.proper(DEFAULT_PRESENTATION);
   }
 
   /**

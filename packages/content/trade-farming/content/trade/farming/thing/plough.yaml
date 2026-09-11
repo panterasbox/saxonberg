@@ -12,7 +12,8 @@ hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   primaryKeyword: plough
   keywords: ["plough", "plow", "ard"]
-  shortDescription: a wooden plough
+  shortDescription: wooden plough
+  register: indefinite
   longDescription: >-
     An ash beam with an iron share and a mouldboard worn bright as a
     mirror on one face and rusted on the other. There are two handles

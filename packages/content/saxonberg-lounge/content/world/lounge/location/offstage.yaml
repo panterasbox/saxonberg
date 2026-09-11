@@ -5,6 +5,7 @@ class: /platform/location/Offstage
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: Dave's Bar — Back office
+  register: proper
   primaryKeyword: backoffice
   longDescription: |
     A cramped back office that doubles as the staff's bolt-hole: a desk

@@ -10,7 +10,8 @@ data:
   _speciesPath: /stuff/idea/species/animalia/chordata/mammalia/primates/hominidae/homo/sensitivus
   lifecycleState: alive
   primaryKeyword: sloane
-  shortDescription: a still, attentive bartender
+  shortDescription: still, attentive bartender
+  register: indefinite
   longDescription: |
     Quiet at the dark end of the bar, polishing nothing in particular,
     watching the room over the rim of a glass they never quite drink

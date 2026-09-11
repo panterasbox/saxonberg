@@ -9,7 +9,8 @@ data:
   _speciesPath: /stuff/idea/species/animalia/chordata/mammalia/primates/hominidae/homo/infernalis
   lifecycleState: alive
   primaryKeyword: remy
-  shortDescription: a grinning, fast-talking tiefling
+  shortDescription: grinning, fast-talking tiefling
+  register: indefinite
   longDescription: |
     All motion and warmth, a crooked grin under a neat pair of swept-back
     horns and a tail that punctuates his stories when his hands are busy.

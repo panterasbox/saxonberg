@@ -3,7 +3,8 @@
 class: /platform/thing/Vat
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: an oak wash vat
+  shortDescription: oak wash vat
+  register: indefinite
   primaryKeyword: vat
   keywords: [vat, "wash vat", back]
   longDescription: |

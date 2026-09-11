@@ -4,7 +4,8 @@
 class: /platform/thing/Bottle
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: "a wine bottle"
+  shortDescription: "wine bottle"
+  register: indefinite
   longDescription: "A dark-green 750 mL bottle with a punted base, the neck ready for a cork."
   primaryKeyword: bottle
   keywords: ["bottle", "wine", "empty"]

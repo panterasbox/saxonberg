@@ -26,7 +26,8 @@
 class: /system/water/thing/StorageNode
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: the District tank
+  shortDescription: District tank
+  register: definite
   primaryKeyword: tank
   alternateNames: [cistern, reservoir, standtank]
   keywords: [tank, cistern, reservoir, district, water]

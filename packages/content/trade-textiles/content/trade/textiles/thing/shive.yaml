@@ -7,7 +7,8 @@
 class: /trade/textiles/thing/TextileStock
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: a heap of shive
+  shortDescription: heap of shive
+  register: indefinite
   primaryKeyword: shive
   keywords: [shive, boon, chaff, woody]
   longDescription: |

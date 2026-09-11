@@ -13,7 +13,8 @@ data:
   lifecycleState: alive
   primaryKeyword: weaver
   alternateNames: ["adren", "coll"]
-  shortDescription: "a weaver with a shuttle in one hand and a tally in the other"
+  shortDescription: "weaver with a shuttle in one hand and a tally in the other"
+  register: indefinite
   longDescription: |
     Broad across the shoulders from the beater and deaf in one ear from the loom. He keeps a chalked tally on the frame of how many bolts are owed to how many spinners, and he is never wrong about it.
   dispositions:

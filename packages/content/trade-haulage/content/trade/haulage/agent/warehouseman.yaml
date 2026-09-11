@@ -11,7 +11,8 @@ data:
   lifecycleState: alive
   primaryKeyword: warehouseman
   keywords: [warehouseman, clerk, counter]
-  shortDescription: the warehouseman
+  shortDescription: warehouseman
+  register: definite
   longDescription: >-
     Broad, patient, and entirely uninterested in what is in your crate.
     She writes it down as you describe it, reads it back to you once,

@@ -12,6 +12,7 @@ data:
     - smith
     - blacksmith
   shortDescription: Berta the smith
+  register: proper
   longDescription: |
     A broad-shouldered woman in a scorched leather apron, forearms like
     cable, a squint that measures your knife hand before it measures you.

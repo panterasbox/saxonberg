@@ -15,7 +15,8 @@
 class: /trade/mining/location/MineRoom
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: a working face
+  shortDescription: working face
+  register: indefinite
   primaryKeyword: face
   keywords: [face, working, heading]
   longDescription: |

@@ -176,19 +176,20 @@ export default class Coin extends CoinBase {
     try {
       return Currency.describeDenomination(this.currency, this.denomination);
     } catch {
-      return "a blank coin";
+      return "blank coin";
     }
   }
 
   /**
-   * The counted form — `"4 5-zorkmid pieces"`, not `"4 a 5-zorkmid pieces"`.
+   * The counted form — `"4 5-zorkmid pieces"`.
    *
-   * `getPresentation` composes a stack as `` `${n} ${pluralize(base)}` ``
-   * where `base` is the short description, and a short description that
-   * leads with an article reads wrong once a count is prefixed. (This is a
-   * general glob-rendering wart — *"4 a red apples"* — that predates the
-   * currency build; `getPluralForm` is the sanctioned host-side opt-out, and
-   * money is the surface where it shows most.)
+   * ⭐ The wart this used to work around is **gone**: a description was a
+   * string with an article typed into it, so a stack read *"4 a red
+   * apples"* and every host that counted had to opt out by hand. A
+   * description is a stem now and `NounPhrase.render()` drops the article
+   * whenever the count is not 1. This override survives for the real
+   * reason — `"piece"` pluralizes irregularly enough to be worth saying
+   * — not to dodge a doubled article.
    */
   public getPluralForm(): string {
     let singular = "";

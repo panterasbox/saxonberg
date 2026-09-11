@@ -3,7 +3,8 @@
 class: /platform/thing/Surface
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: a smithy workbench
+  shortDescription: smithy workbench
+  register: indefinite
   primaryKeyword: workbench
   keywords: [workbench, bench, table]
   longDescription: |

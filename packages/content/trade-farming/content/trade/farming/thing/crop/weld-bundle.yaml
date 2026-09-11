@@ -5,7 +5,8 @@
 class: /platform/thing/Crop
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: a bundle of dried weld
+  shortDescription: bundle of dried weld
+  register: indefinite
   primaryKeyword: weld
   keywords: [weld, bundle, dyestuff, rocket]
   longDescription: |

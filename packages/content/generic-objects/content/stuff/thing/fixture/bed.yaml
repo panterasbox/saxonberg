@@ -11,7 +11,8 @@
 class: /platform/thing/Chair
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: a bed
+  shortDescription: bed
+  register: indefinite
   primaryKeyword: bed
   keywords: [bed, mattress, bedding]
   longDescription: |

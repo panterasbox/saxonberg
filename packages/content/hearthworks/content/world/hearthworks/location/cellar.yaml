@@ -5,7 +5,8 @@
 class: /world/hearthworks/SealedCellar
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: a sealed cellar
+  shortDescription: sealed cellar
+  register: indefinite
   primaryKeyword: cellar
   longDescription: |
     A cramped stone cellar behind a heavy, ill-fitting door. The air is close and still; there is no window, no flue.

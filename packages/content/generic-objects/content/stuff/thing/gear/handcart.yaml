@@ -10,7 +10,8 @@
 class: /platform/thing/equipment/Handcart
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: a wooden handcart
+  shortDescription: wooden handcart
+  register: indefinite
   primaryKeyword: handcart
   longDescription: >
     A sturdy two-wheeled handcart with a long pull-handle and a plank

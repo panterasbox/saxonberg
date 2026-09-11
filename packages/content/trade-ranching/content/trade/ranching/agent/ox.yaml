@@ -8,7 +8,8 @@
 class: /trade/ranching/agent/Livestock
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: a red ox
+  shortDescription: red ox
+  register: indefinite
   primaryKeyword: ox
   keywords: [ox, bullock, beast]
   longDescription: >-

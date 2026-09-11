@@ -6,7 +6,8 @@
 class: /platform/location/SingletonCartesianLocation
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: the bank at the confluence
+  shortDescription: bank at the confluence
+  register: definite
   primaryKeyword: bank
   alternateNames: [wharfside, waterfront, riverside]
   _address: terminus/city/wharfside

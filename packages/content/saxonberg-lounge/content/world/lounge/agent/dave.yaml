@@ -19,6 +19,7 @@ data:
     - barkeep
     - bartender
   shortDescription: Dave the Barkeep
+  register: proper
   longDescription: |
     Dave keeps to the back these days and lets the staff run the rail.
     When he does drift out front he can't quite help himself — a glass

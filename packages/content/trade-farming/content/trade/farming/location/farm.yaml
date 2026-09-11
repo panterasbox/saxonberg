@@ -28,7 +28,8 @@ data:
     x: 0
     y: 0
     z: 0
-  shortDescription: "the farm"
+  shortDescription: "farm"
+  register: definite
   primaryKeyword: floor
   keywords: ["floor", "shed", "packing"]
   longDescription: |

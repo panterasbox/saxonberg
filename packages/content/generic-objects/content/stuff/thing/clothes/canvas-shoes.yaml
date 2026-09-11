@@ -1,7 +1,8 @@
 class: /platform/thing/equipment/Garment
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: a pair of canvas shoes
+  shortDescription: pair of canvas shoes
+  register: indefinite
   primaryKeyword: shoes
   longDescription: >
     Simple lace-up canvas shoes, broken in at the heel. Good for a long

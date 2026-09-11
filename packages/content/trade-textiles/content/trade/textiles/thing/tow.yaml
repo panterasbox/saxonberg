@@ -6,7 +6,8 @@
 class: /trade/textiles/thing/TextileStock
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: a wad of tow
+  shortDescription: wad of tow
+  register: indefinite
   primaryKeyword: tow
   keywords: [tow, wad, short, fibre]
   longDescription: |

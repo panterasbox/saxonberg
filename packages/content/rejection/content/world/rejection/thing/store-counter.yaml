@@ -10,7 +10,8 @@
 class: /platform/thing/Stock
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: the provisioning counter
+  shortDescription: provisioning counter
+  register: definite
   primaryKeyword: counter
   keywords: [counter, till, stores, goods]
   longDescription: |

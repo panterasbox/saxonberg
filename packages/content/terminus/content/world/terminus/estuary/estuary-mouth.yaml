@@ -8,7 +8,8 @@
 class: /platform/location/SingletonCartesianLocation
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: the mouth of the estuary
+  shortDescription: mouth of the estuary
+  register: definite
   primaryKeyword: mouth
   alternateNames: [estuary, saltings, marsh, water]
   _address: terminus/city/wharfside/estuary-mouth

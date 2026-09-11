@@ -6,7 +6,8 @@
 class: /platform/thing/Thing
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: a stone water trough
+  shortDescription: stone water trough
+  register: indefinite
   primaryKeyword: trough
   keywords: [trough]
   longDescription: >-

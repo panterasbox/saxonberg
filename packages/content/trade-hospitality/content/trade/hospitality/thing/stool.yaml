@@ -3,7 +3,8 @@
 class: /platform/thing/Chair
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: a bar stool
+  shortDescription: bar stool
+  register: indefinite
   primaryKeyword: stool
   keywords: [stool, seat, bar-stool]
   longDescription: A tall stool with a worn leather seat, shaped by whoever sits there most.

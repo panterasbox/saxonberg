@@ -10,7 +10,8 @@
 class: /platform/thing/Surface
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: a plain deal table
+  shortDescription: plain deal table
+  register: indefinite
   primaryKeyword: table
   keywords: [table, deal, top]
   longDescription: |

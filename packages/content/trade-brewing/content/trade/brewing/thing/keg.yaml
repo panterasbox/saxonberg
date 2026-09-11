@@ -4,7 +4,8 @@
 class: /platform/thing/Bottle
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: "a keg"
+  shortDescription: "keg"
+  register: indefinite
   longDescription: "A thirty-litre steel keg, a tap-coupler on the crown."
   primaryKeyword: keg
   keywords: ["keg", "barrel", "empty"]

@@ -28,7 +28,8 @@
  */
 
 import type { MixinConstructor, FieldMeta } from '../mixin';
-import type { Stuff } from '../stuff/Stuff';
+import type { Stuff, PresentationView } from '../stuff/Stuff';
+import { NounPhrase } from '../description/NounPhrase';
 import { CallSecurity } from '../security/decorators';
 import { SecurityPolicies } from '../security/SecurityPolicies';
 import { Authority, type PrincipalRef } from './Authority';
@@ -205,8 +206,17 @@ export function OrganizationMixin<TBase extends MixinConstructor>(
       this.name = typeof value === 'string' ? value.trim() : '';
     }
 
-    public getPresentation(): string {
-      return this.name.length > 0 ? this.name : super.getPresentation();
+    /**
+     * ⭐ Overrides the PHRASE, not the rendered string. An organization's
+     * name is a proper name, so it takes no article and the possessive
+     * and the definite form come out right without this class knowing
+     * any grammar — which is the whole point of the override point
+     * moving one layer down.
+     */
+    public presentationPhrase(view: PresentationView = 'own'): NounPhrase {
+      return this.name.length > 0
+        ? NounPhrase.proper(this.name)
+        : super.presentationPhrase(view);
     }
 
     /**

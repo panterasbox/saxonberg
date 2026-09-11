@@ -3,5 +3,6 @@
 class: /platform/thing/instrument/Barometer
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: an aneroid barometer
+  shortDescription: aneroid barometer
+  register: indefinite
   long: A dial-faced barometer calibrated in pascals. Tap to read the local atmospheric pressure.

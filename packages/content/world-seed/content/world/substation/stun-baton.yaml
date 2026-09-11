@@ -14,7 +14,8 @@
 class: /platform/thing/equipment/StunBaton
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: a stun baton
+  shortDescription: stun baton
+  register: indefinite
   primaryKeyword: baton
   longDescription: >
     A short, rubber-gripped baton with two blunt steel electrodes at the tip

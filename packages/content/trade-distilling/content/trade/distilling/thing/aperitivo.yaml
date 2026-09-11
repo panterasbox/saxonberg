@@ -11,7 +11,8 @@
 class: /trade/distilling/thing/SpiritBottle
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: a bottle of aperitivo
+  shortDescription: bottle of aperitivo
+  register: indefinite
   longDescription: A bright red bottle of aperitivo.
   primaryKeyword: aperitivo
   keywords: [aperitivo, bottle, liqueur, spirit]

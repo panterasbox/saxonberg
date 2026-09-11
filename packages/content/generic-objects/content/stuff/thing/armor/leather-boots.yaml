@@ -1,7 +1,8 @@
 class: /platform/thing/equipment/Garment
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: a pair of stout leather boots
+  shortDescription: pair of stout leather boots
+  register: indefinite
   primaryKeyword: boots
   longDescription: >
     Heavy hobnailed boots of thick tooled leather. The stout soles turn the

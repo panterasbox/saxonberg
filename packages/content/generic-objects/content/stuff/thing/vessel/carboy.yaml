@@ -6,7 +6,8 @@
 class: /platform/thing/Vat
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: a glass carboy
+  shortDescription: glass carboy
+  register: indefinite
   primaryKeyword: carboy
   keywords: [carboy, demijohn, "glass carboy"]
   longDescription: |

@@ -15,6 +15,7 @@
 
 import { Pronouns } from '@saxonberg/types';
 import type { Stuff } from '../lib/stuff/Stuff';
+import { NounPhrase } from '../lib/description/NounPhrase';
 import { MixinApi } from './mixin';
 import { SecurityApi } from './security';
 
@@ -55,8 +56,6 @@ const SETS: Record<Pronouns, PronounSet> = {
 };
 
 const NEUTRAL: PronounSet = SETS[Pronouns.It];
-
-const VOWELS = new Set(['a', 'e', 'i', 'o', 'u']);
 
 /**
  * Articles stripped during MQL desugar (req §9.1). Lowercase. Used
@@ -141,22 +140,31 @@ export class GrammarApi {
   }
 
   /**
-   * Return the indefinite article (`'a'` / `'an'`) for a Stuff's
-   * presentation string. Vowel-onset heuristic; not phonetic.
+   * The article a Stuff's identity takes — `'a'`, `'an'`, `'the'`, or
+   * `''` for a proper name.
+   *
+   * ⚠ **This used to be wrong and nothing noticed**, because it read the
+   * article off the *rendered* string: `article(x)` where x presented as
+   * `"a heavy door"` answered **`'an'`**, having found a vowel at the
+   * front of the article somebody had already typed. It was latent only
+   * because no shipped template used the `| article` prose filter. It
+   * asks the phrase now, which knows its own register.
    */
   static article(stuff: Stuff): string {
-    return this.articleFor(stuff.getPresentation());
+    return stuff.presentationPhrase().article();
   }
 
   /**
    * Indefinite article (`'a'` / `'an'`) for a raw word or phrase by
-   * vowel onset — the string-level core of {@link article}. Not
-   * phonetic (`a unicorn` / `an honest` need per-stuff overrides).
+   * vowel onset. Not phonetic (`a unicorn` / `an honest` would need a
+   * per-row override).
+   *
+   * ⭐ The rule itself lives on `NounPhrase` — the value object that owns
+   * the concept — and this forwards, so there is one vowel check in the
+   * tree rather than two that can drift.
    */
   static articleFor(text: string): string {
-    const trimmed = text.trim();
-    if (!trimmed) return 'a';
-    return VOWELS.has(trimmed.charAt(0).toLowerCase()) ? 'an' : 'a';
+    return NounPhrase.articleFor(text);
   }
 
   /**

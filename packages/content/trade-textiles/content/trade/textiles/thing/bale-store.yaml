@@ -26,7 +26,8 @@
 class: /platform/thing/Stock
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: "the mill's bale store"
+  shortDescription: "mill's bale store"
+  register: definite
   # ⚠ `bales`, not `stock` — the output shelf already answers to `stock`,
   # and a hand told to `get bale from stock` must not find the shelf it
   # is meant to be filling.

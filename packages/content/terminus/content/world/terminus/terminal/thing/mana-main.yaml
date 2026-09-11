@@ -16,7 +16,8 @@ class: /system/arcana/thing/ManaMain
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   seatIn: /world/terminus/terminal/location/arrival-gate
-  shortDescription: the district mana line
+  shortDescription: district mana line
+  register: definite
   primaryKeyword: line
   keywords: [line, main, conduit, mains]
   longDescription: >

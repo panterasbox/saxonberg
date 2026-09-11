@@ -6,7 +6,8 @@
 class: /platform/thing/Crop
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: a paper of saffron
+  shortDescription: paper of saffron
+  register: indefinite
   primaryKeyword: saffron
   keywords: [saffron, crop]
   longDescription: |

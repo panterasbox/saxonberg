@@ -14,6 +14,7 @@ class: /platform/location/SingletonCartesianLocation
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: Terminus Terminal, the station hall
+  register: proper
   primaryKeyword: hall
   longDescription: |
     The great hall of Terminus rises three storeys to a ribbed glass vault, grey daylight pooling on a floor worn to a shine by a century of boots. Departure gates open off the concourse to either side and a cordoned dead gate at the south end; an arrival alcove yawns to the north, letting in a slice of University Avenue, and a raised ticket office overlooks it all from a mezzanine reached by a short iron stair.

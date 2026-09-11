@@ -6,7 +6,8 @@
 class: /platform/location/SingletonCartesianLocation
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: the floor of the pit
+  shortDescription: floor of the pit
+  register: definite
   primaryKeyword: pit
   longDescription: |
     You have come down harder than you meant to. The pit is a stone box a little taller than a man, its floor gritty with old spoil and the odd blackened spike that missed. Above, the ragged hole shows the corridor you dropped from, and a rough scramble of set stones climbs back to it.

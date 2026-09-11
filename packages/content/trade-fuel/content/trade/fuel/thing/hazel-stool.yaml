@@ -8,7 +8,8 @@
 class: /platform/thing/Plant
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: a hazel stool
+  shortDescription: hazel stool
+  register: indefinite
   primaryKeyword: stool
   keywords: [stool, hazel, coppice]
   longDescription: |

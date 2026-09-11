@@ -6,7 +6,8 @@
 class: /trade/textiles/thing/TextileStock
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: a skein of linen yarn
+  shortDescription: skein of linen yarn
+  register: indefinite
   primaryKeyword: yarn
   # ⚠⚠ NOT `linen`. `line` is a PREFIX of it, and the resolver matches on
   # prefixes — so a spinner holding both line and this answered `spin

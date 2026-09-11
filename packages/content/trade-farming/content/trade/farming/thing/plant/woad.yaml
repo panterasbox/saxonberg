@@ -11,7 +11,8 @@
 class: /platform/thing/Plant
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: a bed of woad
+  shortDescription: bed of woad
+  register: indefinite
   primaryKeyword: woad
   keywords: [woad, pastel, crop]
   longDescription: |

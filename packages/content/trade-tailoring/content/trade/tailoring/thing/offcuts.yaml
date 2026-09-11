@@ -2,7 +2,8 @@
 class: /trade/textiles/thing/TextileStock
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: a bag of offcuts
+  shortDescription: bag of offcuts
+  register: indefinite
   primaryKeyword: offcuts
   keywords: [offcuts, scraps, rags, patchwork]
   longDescription: |

@@ -4,7 +4,8 @@
 class: /system/tpa/thing/TravelCard
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: a Teleport Authority travel card
+  shortDescription: Teleport Authority travel card
+  register: indefinite
   primaryKeyword: card
   longDescription: |
     A slim card of brushed alloy, warm to the touch, its face etched with the Teleport Authority's spiral mark. A row of tiny indicator pips records the stops you've registered.

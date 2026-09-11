@@ -17,7 +17,8 @@
 class: /platform/thing/Crate
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: a supply crate
+  shortDescription: supply crate
+  register: indefinite
   primaryKeyword: crate
   keywords: [crate, box, case, consignment]
   longDescription: |

@@ -2,7 +2,8 @@
 class: /platform/thing/CocktailShaker
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: a mixing glass
+  shortDescription: mixing glass
+  register: indefinite
   longDescription: A heavy mixing glass, thick-walled and straight-sided, its lip cold to the back of a finger.
   # ⚠ NOT `spoon`, and the prose no longer promises one: the bar spoon is
   # its OWN fixture on the well (`/trade/hospitality/thing/bar-spoon`).

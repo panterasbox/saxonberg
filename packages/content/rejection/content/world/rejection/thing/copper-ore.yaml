@@ -7,7 +7,8 @@
 class: /trade/mining/thing/Ore
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: a lump of green-stained rock
+  shortDescription: lump of green-stained rock
+  register: indefinite
   primaryKeyword: ore
   keywords: [ore, rock, lump, malachite]
   longDescription: >-

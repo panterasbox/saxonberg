@@ -4,7 +4,8 @@
 class: /platform/thing/equipment/PortableLight
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: a punched-tin lantern
+  shortDescription: punched-tin lantern
+  register: indefinite
   primaryKeyword: lantern
   keywords: [lantern, lamp, light, tin]
   longDescription: |

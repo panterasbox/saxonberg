@@ -6,7 +6,8 @@
 class: /trade/cooking/thing/SaltingTrough
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: a salting trough
+  shortDescription: salting trough
+  register: indefinite
   primaryKeyword: trough
   keywords: [trough, salting, salting-trough, tub]
   longDescription: |

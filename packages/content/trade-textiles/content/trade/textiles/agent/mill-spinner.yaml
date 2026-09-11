@@ -12,7 +12,8 @@ data:
   lifecycleState: alive
   primaryKeyword: spinner
   alternateNames: ["sefa", "roke"]
-  shortDescription: "a spinner at the wheel with her hands full and her mouth free"
+  shortDescription: "spinner at the wheel with her hands full and her mouth free"
+  register: indefinite
   longDescription: |
     She has not looked at the wheel in eleven years. The thread comes off it even because her fingers know it, which leaves the whole of her attention for whatever is being argued about along the bench.
   dispositions:

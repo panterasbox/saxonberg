@@ -8,7 +8,8 @@
 class: /platform/location/SingletonCartesianLocation
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: the university farmyard
+  shortDescription: university farmyard
+  register: definite
   primaryKeyword: farmyard
   keywords: [farmyard, yard, farm]
   longDescription: |

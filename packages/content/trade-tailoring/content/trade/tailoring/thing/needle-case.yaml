@@ -14,7 +14,8 @@
 class: /trade/tailoring/thing/SewingTool
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: a needle-case
+  shortDescription: needle-case
+  register: indefinite
   primaryKeyword: needle-case
   keywords: [needle-case, needlecase, case, needle, needles, thread]
   longDescription: |

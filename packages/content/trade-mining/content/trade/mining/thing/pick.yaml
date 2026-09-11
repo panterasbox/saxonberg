@@ -8,7 +8,8 @@ hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   primaryKeyword: pick
   keywords: ["pick", "miners-pick"]
-  shortDescription: a miner's pick
+  shortDescription: miner's pick
+  register: indefinite
   longDescription: >-
     A steel head on a hickory haft, one end drawn to a point and the
     other flattened to a chisel. The haft is worn pale where two hands

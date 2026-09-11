@@ -12,7 +12,8 @@
 class: /platform/thing/GardenBed
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: a raised garden bed
+  shortDescription: raised garden bed
+  register: indefinite
   primaryKeyword: bed
   keywords: [bed, "garden bed", "raised bed", plot, planter]
   longDescription: |

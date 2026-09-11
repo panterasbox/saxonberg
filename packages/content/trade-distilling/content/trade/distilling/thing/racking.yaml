@@ -4,6 +4,7 @@
 class: /platform/thing/Surface
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: the racking
+  shortDescription: racking
+  register: definite
   longDescription: Steel racking to the rafters, the lower bays cased and labelled, the upper ones empty and waiting.
   keywords: [racking, rack, shelves, shelving, bay]

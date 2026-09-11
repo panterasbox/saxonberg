@@ -12,7 +12,8 @@ hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   primaryKeyword: compass
   keywords: ["compass", "surveyors-compass", "needle"]
-  shortDescription: a surveyor's brass compass
+  shortDescription: surveyor's brass compass
+  register: indefinite
   longDescription: >-
     A heavy brass compass in a fitted case, its card marked in whole
     degrees and its needle jewelled at the pivot. The lid carries a

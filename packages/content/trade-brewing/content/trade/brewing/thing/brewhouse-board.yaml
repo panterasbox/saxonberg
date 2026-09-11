@@ -3,7 +3,8 @@
 class: /platform/thing/Menu
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: the brewhouse board
+  shortDescription: brewhouse board
+  register: definite
   primaryKeyword: board
   keywords: [board, chalkboard, "brew board"]
   longDescription: |

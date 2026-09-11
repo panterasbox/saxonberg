@@ -16,7 +16,8 @@
 class: /platform/location/SingletonCartesianLocation
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: a watchpost in the treeline
+  shortDescription: watchpost in the treeline
+  register: indefinite
   primaryKeyword: watchpost
   _address: last-counted-mile/watchpost
   longDescription: |

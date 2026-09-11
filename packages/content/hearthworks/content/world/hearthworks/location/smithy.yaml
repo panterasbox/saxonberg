@@ -8,7 +8,8 @@
 class: /platform/location/SingletonCartesianLocation
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: a smithy
+  shortDescription: smithy
+  register: indefinite
   primaryKeyword: smithy
   longDescription: |
     A soot-blackened smithy, an anvil squat on its stump and a great stone forge banked along the wall. A leather bellows hangs ready at its side, a workbench under racked stock along the other wall, and a slate of chalked prices by the door.

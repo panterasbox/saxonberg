@@ -7,7 +7,8 @@
 class: /platform/thing/Campfire
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: a crackling campfire
+  shortDescription: crackling campfire
+  register: indefinite
   longDescription: >
     A ring of stones cradles a crackling campfire, its flames licking at
     split logs. Heat rolls off it in waves.

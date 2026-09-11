@@ -13,7 +13,8 @@
 class: /platform/thing/ConsignmentShelf
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: the assay counter
+  shortDescription: assay counter
+  register: definite
   primaryKeyword: counter
   keywords: [counter, bins, scale, assay]
   longDescription: |

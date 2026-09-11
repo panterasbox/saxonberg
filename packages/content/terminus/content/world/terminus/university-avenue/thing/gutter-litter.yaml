@@ -4,7 +4,8 @@
 class: /platform/thing/Thing
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: a crumpled ticket stub
+  shortDescription: crumpled ticket stub
+  register: indefinite
   primaryKeyword: stub
   longDescription: |
     A crumpled Teleport Authority ticket stub, dropped just short of the bin. The fare and the destination are half-torn away; someone arrived, and didn't look back at what it cost them.

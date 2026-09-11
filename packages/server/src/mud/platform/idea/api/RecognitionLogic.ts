@@ -239,17 +239,21 @@ function decorate(core: string, target: Stuff): string {
  * top of it for the fuller presence / targeting surfaces.
  */
 function strangerStem(target: Stuff): string {
-  // Authored generic appearance wins — it's the content author's "what a
-  // stranger sees" and never leaks a proper name.
-  if (MixinApi.isVisible(target)) {
-    const short = target.getShortDescription();
-    if (short) return short;
-  }
-  // Generated fallback from species.
-  const species = MixinApi.isOrganism(target)
-    ? target.getSpecies()?.getCommonNames()[0]
-    : undefined;
-  return species ? `${GrammarApi.articleFor(species)} ${species}` : 'someone';
+  // ⭐⭐ ONE ladder, asked for the stranger's view — not a second copy of
+  // it maintained here.
+  //
+  // This function used to walk its own rungs: description → species →
+  // "someone", prepending the article by hand. That was the same ladder
+  // `presentationCore` walked, minus the name and the disguise, kept in
+  // step by hand. It stopped being possible the moment the article moved
+  // into a `register` field — reading `getShortDescription()` raw now
+  // yields a STEM, so this returned "weaver" where it used to return
+  // "a weaver", for every stranger in the game.
+  //
+  // `presentationPhrase('stranger')` IS "the same rungs, minus the name
+  // and the disguise". The object owns its ladder; this asks for a view
+  // of it.
+  return target.presentationPhrase('stranger').render();
 }
 
 /** The `salientFeatures` face — see the object surface (Stuff/BeliefStore). */

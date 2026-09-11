@@ -9,7 +9,8 @@ hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   primaryKeyword: scythe
   keywords: ["scythe", "snath"]
-  shortDescription: a scythe
+  shortDescription: scythe
+  register: indefinite
   longDescription: >-
     A long curved blade on a snath bent to fit somebody who is not you,
     with two grips pegged along it. The edge is bright for a hand's width

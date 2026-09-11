@@ -2,7 +2,8 @@
 class: /platform/thing/Surface
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: the racking
+  shortDescription: racking
+  register: definite
   longDescription: Steel racking along the cellar wall, kegs on the floor beneath it.
   primaryKeyword: racking
   keywords: [racking, rack, shelves, shelf]

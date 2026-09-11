@@ -4,7 +4,8 @@
 class: /trade/hospitality/thing/Tap
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: a beer tap
+  shortDescription: beer tap
+  register: indefinite
   longDescription: A brass tap handle over a drip tray, the line running down behind the bar to the keg.
   primaryKeyword: tap
   keywords: [tap, taps, beer-tap, handle]

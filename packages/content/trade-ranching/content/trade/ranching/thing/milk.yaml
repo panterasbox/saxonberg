@@ -6,7 +6,8 @@
 class: /platform/thing/Provision
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: a pail of milk
+  shortDescription: pail of milk
+  register: indefinite
   primaryKeyword: milk
   keywords: [milk, pail]
   longDescription: >-

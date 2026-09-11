@@ -34,7 +34,8 @@ data:
   # only because that pack owns cooking, and a coords sweep by pack name
   # took it for a trade floor until `check-location-classes`'s FURNISHED
   # roster said otherwise. It is on that roster for exactly this reason.
-  shortDescription: a kitchen
+  shortDescription: kitchen
+  register: indefinite
   primaryKeyword: kitchen
   keywords: [kitchen, room]
   longDescription: |

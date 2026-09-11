@@ -6,7 +6,8 @@
 class: /platform/thing/Vat
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: "a cask"
+  shortDescription: "cask"
+  register: indefinite
   longDescription: "An oak cask, hooped and bunged, that once held something stronger."
   primaryKeyword: cask
   keywords: ["cask", "barrel", "oak", "empty"]

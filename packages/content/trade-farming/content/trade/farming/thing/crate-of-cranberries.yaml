@@ -5,7 +5,8 @@
 class: /platform/thing/Crate
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: a crate of cranberries
+  shortDescription: crate of cranberries
+  register: indefinite
   primaryKeyword: cranberries
   keywords: [crate, cranberries, cranberry, produce]
   longDescription: A slatted wooden crate of cranberries, the grower's stencil on the side.

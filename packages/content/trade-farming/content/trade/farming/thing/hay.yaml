@@ -13,7 +13,8 @@
 class: /trade/farming/thing/HayBale
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: a cut of hay
+  shortDescription: cut of hay
+  register: indefinite
   primaryKeyword: hay
   keywords: [hay, grass, fodder, sward]
   longDescription: >-

@@ -5,7 +5,8 @@
 class: /platform/thing/Dish
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: a platter
+  shortDescription: platter
+  register: indefinite
   primaryKeyword: platter
   keywords: [platter, dish, board, serving]
   longDescription: |

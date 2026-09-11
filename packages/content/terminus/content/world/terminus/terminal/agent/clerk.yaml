@@ -20,6 +20,7 @@ data:
     - clerk
     - ticket clerk
   shortDescription: Tootie, the ticket clerk
+  register: proper
   longDescription: |
     A compact, iron-haired woman behind the ticket window, reading glasses
     pushed up into a nest of pins, a franking stamp within easy reach of her

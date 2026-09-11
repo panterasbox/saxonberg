@@ -5,7 +5,8 @@
 class: /platform/thing/ToolItem
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: a smith's hammer
+  shortDescription: smith's hammer
+  register: indefinite
   primaryKeyword: hammer
   keywords: [hammer, smiths-hammer, cross-peen]
   longDescription: |

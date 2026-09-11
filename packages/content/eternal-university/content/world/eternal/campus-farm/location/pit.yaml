@@ -23,7 +23,8 @@
 class: /platform/location/SingletonCartesianLocation
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: the slurry pit
+  shortDescription: slurry pit
+  register: definite
   primaryKeyword: pit
   keywords: [pit, slurry, tank, midden]
   longDescription: |

@@ -3,7 +3,8 @@
 class: /platform/thing/ServingVessel
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: a juice bottle
+  shortDescription: juice bottle
+  register: indefinite
   longDescription: A half-litre glass bottle with a pouring spout, for the day's pressed juice.
   primaryKeyword: juice-bottle
   keywords: [juice-bottle, bottle, juice]

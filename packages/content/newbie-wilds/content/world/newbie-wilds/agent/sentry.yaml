@@ -16,7 +16,8 @@ data:
   _speciesPath: /stuff/idea/species/animalia/chordata/mammalia/primates/hominidae/homo/sapiens
   lifecycleState: alive
   primaryKeyword: sentry
-  shortDescription: a watchful sentry
+  shortDescription: watchful sentry
+  register: indefinite
   # ⭐ Who fields this picket. An Extra has no identity of its own, so the
   # institution is the ONLY attribution its harms carry — and the crime
   # marker below is exactly what needed somewhere to land.

@@ -7,7 +7,8 @@
 class: /trade/textiles/thing/TextileStock
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: a hank of flax line
+  shortDescription: hank of flax line
+  register: indefinite
   primaryKeyword: line
   keywords: [line, flax, fibre, hank, strick]
   longDescription: |

@@ -2,7 +2,8 @@
 class: /platform/thing/Bottle
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: "a bottle of cola"
+  shortDescription: "bottle of cola"
+  register: indefinite
   longDescription: "A one-litre screw-capped bottle of cola, the bottling floor's plain label."
   primaryKeyword: cola
   keywords: ["cola", "coke", "bottle", "mixer"]

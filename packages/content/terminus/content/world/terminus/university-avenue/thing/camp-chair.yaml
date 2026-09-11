@@ -6,7 +6,8 @@
 class: /platform/thing/FoldingChair
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: a folding camp chair
+  shortDescription: folding camp chair
+  register: indefinite
   primaryKeyword: chair
   folded: false
   longDescription: |

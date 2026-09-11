@@ -2,7 +2,8 @@
 class: /platform/thing/Seed
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: a tray of saffron corms
+  shortDescription: tray of saffron corms
+  register: indefinite
   primaryKeyword: seed
   keywords: [seed, seeds, saffron]
   longDescription: |

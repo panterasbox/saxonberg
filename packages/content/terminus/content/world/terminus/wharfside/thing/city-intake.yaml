@@ -15,7 +15,8 @@
 class: /system/water/thing/Conduit
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: the city intake
+  shortDescription: city intake
+  register: definite
   primaryKeyword: intake
   keywords: [intake, mouth, screen, pillar, waterworks]
   longDescription: |

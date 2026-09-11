@@ -5,7 +5,8 @@
 class: /platform/thing/Thing
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: a hay barn
+  shortDescription: hay barn
+  register: indefinite
   primaryKeyword: barn
   keywords: [barn]
   longDescription: >-

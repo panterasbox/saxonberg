@@ -17,7 +17,8 @@
 class: /system/transport/thing/Coach
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: a road coach
+  shortDescription: road coach
+  register: indefinite
   primaryKeyword: coach
   keywords: [coach, carriage, cab]
   longDescription: |

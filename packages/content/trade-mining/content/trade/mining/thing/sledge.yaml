@@ -5,7 +5,8 @@ hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   primaryKeyword: sledge
   keywords: ["sledge", "sledgehammer", "maul"]
-  shortDescription: a long-hafted sledge
+  shortDescription: long-hafted sledge
+  register: indefinite
   longDescription: >-
     A heavy square head on a haft long enough to need both hands and
     most of the room.

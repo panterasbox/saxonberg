@@ -5,7 +5,8 @@
 class: /platform/thing/Plant
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: a juniper bush
+  shortDescription: juniper bush
+  register: indefinite
   primaryKeyword: "juniper"
   keywords: [juniper, bush, plant]
   longDescription: |

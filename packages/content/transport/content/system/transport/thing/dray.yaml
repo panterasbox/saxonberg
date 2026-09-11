@@ -16,7 +16,8 @@ data:
   # it. The data carries it.
   requiredDiscipline: teamstering
   requiredBand: novice
-  shortDescription: a low flat dray
+  shortDescription: low flat dray
+  register: indefinite
   primaryKeyword: dray
   keywords: [dray, wagon, flat, cart]
   longDescription: |

@@ -7,7 +7,8 @@ hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   primaryKeyword: assay
   keywords: ["assay", "assay-kit", "balance", "scale"]
-  shortDescription: an assayer's kit
+  shortDescription: assayer's kit
+  register: indefinite
   longDescription: >-
     A folding balance in a fitted case, a nest of brass weights, a
     handful of bone-ash cupels and a small furnace with a bellows the

@@ -29,7 +29,8 @@
 class: /system/water/thing/Conduit
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: the Cold Fell aqueduct
+  shortDescription: Cold Fell aqueduct
+  register: definite
   primaryKeyword: aqueduct
   keywords: [aqueduct, conduit, channel, coldfell, cold-fell]
   longDescription: |

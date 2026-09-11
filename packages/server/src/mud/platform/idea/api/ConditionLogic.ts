@@ -583,7 +583,14 @@ async function mintCorpseFrom(
 
   const corpse = await StuffApi.clone(TemplatePaths.mortalityCorpse, undefined, {
     dataOverlay: {
-      shortDescription: `the body of ${body.getPresentation()}`,
+      // ⚠ A STEM plus its register, not a string with "the" welded on.
+      // ⭐ And note what the stem contains: `getPresentation()` renders
+      // the dead body's OWN phrase, so a corpse reads "the body of Odile"
+      // for somebody and "the body of a sentry" for a role — the one
+      // place in the tree where a description is built out of another
+      // thing's identity, and the reason it has to be a phrase.
+      shortDescription: `body of ${body.getPresentation()}`,
+      register: 'definite',
       _speciesPath: speciesPath,
       causeOfDeath: cause,
       diedAtGameSec: nowS,

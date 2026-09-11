@@ -5,7 +5,8 @@
 class: /platform/location/FurnishableRoom
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: the hall
+  shortDescription: hall
+  register: definite
   primaryKeyword: hall
   alternateNames: [hallway, passage]
   ambientIntensity: 40

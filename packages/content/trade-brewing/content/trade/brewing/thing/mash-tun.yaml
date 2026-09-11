@@ -5,7 +5,8 @@
 class: /platform/thing/ToolItem
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: a copper mash tun
+  shortDescription: copper mash tun
+  register: indefinite
   primaryKeyword: tun
   keywords: [tun, "mash tun", copper]
   longDescription: |

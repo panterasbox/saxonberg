@@ -5,7 +5,8 @@
 class: /platform/thing/Crate
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: a crate of oranges
+  shortDescription: crate of oranges
+  register: indefinite
   primaryKeyword: oranges
   keywords: [crate, oranges, orange, produce]
   longDescription: A slatted wooden crate of oranges, the grower's stencil on the side.

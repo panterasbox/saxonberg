@@ -24,7 +24,8 @@
 class: /platform/thing/Signpost
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: a small dotted slate
+  shortDescription: small dotted slate
+  register: indefinite
   primaryKeyword: slate
   keywords: [slate, tablet, dots]
   longDescription: >

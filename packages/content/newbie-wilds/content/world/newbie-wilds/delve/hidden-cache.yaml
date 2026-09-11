@@ -9,7 +9,8 @@
 class: /platform/thing/Thing
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: a mortar-chinked stash pouch
+  shortDescription: mortar-chinked stash pouch
+  register: indefinite
   primaryKeyword: pouch
   longDescription: |
     A small oilcloth pouch tucked into a gap where a slab has slumped and chinked back over with crumbling mortar — the last delver's cache, missed by whatever came after. It has the weight of coin in it.

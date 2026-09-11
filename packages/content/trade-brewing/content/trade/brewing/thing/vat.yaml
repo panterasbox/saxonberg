@@ -3,7 +3,8 @@
 class: /platform/thing/Vat
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: an oak fermenting vat
+  shortDescription: oak fermenting vat
+  register: indefinite
   primaryKeyword: vat
   keywords: [vat, "fermenting vat", tun]
   longDescription: |

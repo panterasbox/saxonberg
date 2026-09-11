@@ -1622,8 +1622,9 @@ async function mintWorkpiece(
     setMaterial(m: Material): void;
     setMass(q: Quantity<'kg'>): void;
   };
+  // A STEM — the register supplies the article (default indefinite).
   l.setShortDescription(
-    `a worked lump of ${material?.getName() ?? 'metal'}`,
+    `worked lump of ${material?.getName() ?? 'metal'}`,
   );
   if (material) l.setMaterial(material);
   if (massKg > 0) l.setMass(Quantity.of(massKg, 'kg'));
@@ -2238,7 +2239,7 @@ async function salvageImpl(req: SalvageRequest): Promise<SalvageOutcome> {
         setMaterial(m: Material): void;
         setMass(q: Quantity<'kg'>): void;
       };
-      lump.setShortDescription(`a salvaged lump of ${c.material.getName()}`);
+      lump.setShortDescription(`salvaged lump of ${c.material.getName()}`);
       lump.setMaterial(c.material);
       lump.setMass(Quantity.of(yieldKg, 'kg'));
       outputs.push(cast);
@@ -2255,7 +2256,7 @@ async function salvageImpl(req: SalvageRequest): Promise<SalvageOutcome> {
         setMass(q: Quantity<'kg'>): void;
         setQuantity(n: number): void;
       };
-      s.setShortDescription(`a heap of ${c.material.getName()} scrap`);
+      s.setShortDescription(`heap of ${c.material.getName()} scrap`);
       s.setMaterial(c.material);
       s.setMass(Quantity.of(Scrap.UNIT_KG, 'kg'));
       s.setQuantity(units);

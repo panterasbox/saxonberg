@@ -4,6 +4,7 @@ class: /platform/thing/Stock
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: Veshko's stock
+  register: proper
   primaryKeyword: stock
   keywords: [stock, pallet, cases]
   longDescription: Pallets of Volk shrink-wrapped by the hundred, and the unbranded cases behind them.

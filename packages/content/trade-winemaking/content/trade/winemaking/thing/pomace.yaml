@@ -5,7 +5,8 @@
 class: /platform/thing/Receptacle
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: a cake of pomace
+  shortDescription: cake of pomace
+  register: indefinite
   primaryKeyword: pomace
   keywords: [pomace, cake, marc, skins]
   longDescription: |

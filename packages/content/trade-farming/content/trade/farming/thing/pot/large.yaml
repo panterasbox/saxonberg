@@ -6,7 +6,8 @@
 class: /platform/thing/PlantPot
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: a large clay pot
+  shortDescription: large clay pot
+  register: indefinite
   primaryKeyword: pot
   keywords: [pot, "large pot", "clay pot", planter]
   longDescription: |

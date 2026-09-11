@@ -9,7 +9,8 @@ data:
   _speciesPath: /stuff/idea/species/animalia/chordata/mammalia/primates/hominidae/homo/khazadicus
   lifecycleState: alive
   primaryKeyword: mara
-  shortDescription: a steady, watchful dwarf tending bar
+  shortDescription: steady, watchful dwarf tending bar
+  register: indefinite
   longDescription: |
     Stocky and unhurried, with dark eyes that listen better than they
     speak and broad, capable hands never far from a cloth. She moves with

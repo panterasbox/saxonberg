@@ -12,7 +12,8 @@
 class: /platform/thing/Bottle
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: "a sack"
+  shortDescription: "sack"
+  register: indefinite
   longDescription: "A hessian sack, wide-mouthed, the neck tie hanging loose."
   primaryKeyword: sack
   keywords: ["sack", "bag", "empty"]

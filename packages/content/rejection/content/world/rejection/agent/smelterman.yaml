@@ -6,7 +6,8 @@ data:
   lifecycleState: alive
   primaryKeyword: smelterman
   keywords: [smelterman, smelter, founder]
-  shortDescription: the smelterman
+  shortDescription: smelterman
+  register: definite
   longDescription: >-
     A tall, deliberate man with no eyebrows and burn scars on both
     forearms in the same place. He watches the colour in the shaft the way

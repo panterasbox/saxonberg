@@ -235,8 +235,13 @@ export default class DraftController extends CommandController<DraftModel> {
     self.setKeywords([...new Set([...existing, ...names])]);
     // ⭐ And it LOOKS like one too. "a head of stock" in a byre full of
     // cattle is the room telling you less than it knows.
+    // ⭐ A stem. It used to prepend `"a "` by hand, which made the
+    // article's correctness depend on a species common name handed in at
+    // runtime — right for every one that ships, wrong the day somebody
+    // authors an ox. The register supplies it now, and the site stops
+    // being able to get it wrong.
     const primary = names[0];
-    if (primary && MixinApi.isVisible(self)) self.setShortDescription(`a ${primary}`);
+    if (primary && MixinApi.isVisible(self)) self.setShortDescription(primary);
   }
 
   /**

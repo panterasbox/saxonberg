@@ -12,7 +12,8 @@
 class: /platform/thing/AttendancePoint
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: "the dyehouse counter"
+  shortDescription: "dyehouse counter"
+  register: definite
   primaryKeyword: counter
   keywords: [counter, board, dyehouse]
   longDescription: |

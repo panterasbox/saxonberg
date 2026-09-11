@@ -15,7 +15,8 @@
 class: /platform/thing/AttendancePoint
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: "the tailor's counter"
+  shortDescription: "tailor's counter"
+  register: definite
   primaryKeyword: counter
   keywords: [counter, desk, tailor]
   longDescription: |

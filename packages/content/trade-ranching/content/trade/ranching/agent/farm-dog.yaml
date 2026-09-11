@@ -9,7 +9,8 @@
 class: /trade/ranching/agent/WorkingAnimal
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: a rough-coated collie
+  shortDescription: rough-coated collie
+  register: indefinite
   primaryKeyword: dog
   keywords: [dog, collie, sheepdog]
   longDescription: >-

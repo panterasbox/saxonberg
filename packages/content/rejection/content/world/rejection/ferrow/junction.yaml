@@ -5,7 +5,8 @@
 class: /trade/mining/location/MineRoom
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: a junction
+  shortDescription: junction
+  register: indefinite
   primaryKeyword: junction
   keywords: [junction, crossing, meeting]
   longDescription: |

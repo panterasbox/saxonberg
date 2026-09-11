@@ -4,7 +4,8 @@
 class: /platform/thing/Provision
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: an orange
+  shortDescription: orange
+  register: indefinite
   primaryKeyword: orange
   keywords: [orange, oranges, produce]
   longDescription: "A thick-skinned orange."

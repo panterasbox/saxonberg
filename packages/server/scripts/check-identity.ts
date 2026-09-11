@@ -16,10 +16,19 @@
  *      class says nobody, and the player sees whichever surface they
  *      happened to hit. There is no error today; there is just a
  *      character who is a person in one place and a role in another.
- *   2. **A definite-article `shortDescription` on an `Extra`** (*"the
- *      collier"*), or an **indefinite one on a nameless `Cast`** (*"a
- *      sentry"*). Same drift, spelled the other way — and the article IS
- *      the signal, because it is the one a player actually reads.
+ *   2. **A `register: definite` on an `Extra`** (*"the collier"*), or
+ *      `indefinite` on a nameless `Cast`** (*"a sentry"*). Same drift,
+ *      spelled the other way — and the register IS the signal, because
+ *      the article is the one thing a player actually reads.
+ *
+ *      ⚠ It read the leading article out of the prose with a regex until
+ *      2026-09-10. The presentation build moved the article into a
+ *      `register:` field, at which point `/^the\s+/` matched **nothing**
+ *      and this rule would have passed everything in silence — a gate
+ *      that ships broken and quietly succeeds, which is the failure
+ *      class the whole derived family exists to prevent. The rewrite
+ *      lands in the same commit as the sweep, deliberately: one of them
+ *      without the other is the bug.
  *   3. **A `Cast` row instantiated twice.** `CastMixin` composes
  *      `SingletonMixin`, so the second clone THROWS at standup — a boot
  *      failure rather than a lint one, which is worse for the person who
@@ -149,6 +158,9 @@ function contentRows(): Row[] {
 
 /* ─────────────────────────── rung resolution ─────────────────────── */
 
+const str = (v: unknown): string =>
+  typeof v === 'string' ? v.trim().replace(/^["']|["']$/g, '') : '';
+
 const rungCache = new Map<string, boolean>();
 
 /**
@@ -246,6 +258,11 @@ function businessRosterAssignees(rows: Row[]): Set<string> {
   return out;
 }
 
+/**
+ * ⚠ **No longer how rule 2 decides** — the register field is. Kept
+ * because the roster report still reads prose, and because a test that
+ * pins the old shape is the cheapest reminder of why it went.
+ */
 export const DEFINITE = /^the\s+/i;
 export const INDEFINITE = /^an?\s+/i;
 
@@ -312,19 +329,21 @@ function main(): void {
           `person, the row's class is the Cast rung.`,
       );
     }
-    // 2 — the article, which is the signal a player actually reads.
-    if (!cast && DEFINITE.test(short)) {
+    // 2 — the register, which decides the article a player reads.
+    const register = str(row.data.register) || 'indefinite';
+    if (!cast && register !== 'indefinite') {
       failures.push(
-        `${where}: an Extra whose shortDescription reads as an individual ` +
-          `('${short}'). "the collier" is one person; "a hewer on tutwork" ` +
-          `is a role. Move it to the Cast rung or reword it.`,
+        `${where}: an Extra with register '${register}' ('${short}'). ` +
+          `"the collier" is one person and "Odile" is another; ` +
+          `"a hewer on tutwork" is a role. A role is INDEFINITE — move ` +
+          `the row to the Cast rung, or change the register.`,
       );
     }
-    if (cast && !name && INDEFINITE.test(short)) {
+    if (cast && !name && register === 'indefinite') {
       failures.push(
-        `${where}: a Cast row with no name whose shortDescription reads as ` +
-          `a role ('${short}'). Give them a name, say "the ...", or drop ` +
-          `them to the Extra rung.`,
+        `${where}: a Cast row with no name whose register is indefinite ` +
+          `('${short}'), so it reads as a role. Give them a name, set ` +
+          `'register: definite', or drop them to the Extra rung.`,
       );
     }
     // 3 — one live instance per Cast row.

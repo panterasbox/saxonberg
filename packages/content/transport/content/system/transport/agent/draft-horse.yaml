@@ -12,7 +12,8 @@ data:
   lifecycleState: alive
   primaryKeyword: horse
   keywords: ["horse", "draft-horse", "carthorse", "shire", "team"]
-  shortDescription: a heavy draft horse
+  shortDescription: heavy draft horse
+  register: indefinite
   longDescription: >-
     Seventeen hands of deliberate animal with feathered feet and a neck
     like a barrel, standing with the patience of something that has

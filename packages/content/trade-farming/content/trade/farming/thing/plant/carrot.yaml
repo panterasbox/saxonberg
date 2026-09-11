@@ -14,7 +14,8 @@
 class: /platform/thing/Plant
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: a row of carrots
+  shortDescription: row of carrots
+  register: indefinite
   primaryKeyword: carrots
   keywords: [carrot, carrots, "carrot tops", tops, crop]
   longDescription: |

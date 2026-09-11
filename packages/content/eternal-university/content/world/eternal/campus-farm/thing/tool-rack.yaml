@@ -21,7 +21,8 @@
 class: /trade/farming/thing/ToolRack
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: a tool rack
+  shortDescription: tool rack
+  register: indefinite
   primaryKeyword: rack
   keywords: [rack, tools, pegs]
   longDescription: >-

@@ -11,7 +11,8 @@ data:
   lifecycleState: alive
   primaryKeyword: keeper
   alternateNames: [odell, marrow, owner, proprietor]
-  shortDescription: the store's grey-haired keeper
+  shortDescription: store's grey-haired keeper
+  register: definite
   longDescription: |
     A small, square woman with iron-grey hair scraped back hard and reading glasses on a cord, watching the floor from a stool by the strongbox. She has sold gear to three generations of delvers and has no illusions left about the trade or the odds; what she has instead is a straight price, an honest weight, and a way of looking at a green arrival's kit that tells them exactly what they've forgotten.
   dispositions:

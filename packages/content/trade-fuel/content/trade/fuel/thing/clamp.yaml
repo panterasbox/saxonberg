@@ -8,7 +8,8 @@
 class: /trade/fuel/thing/CharcoalPit
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: a turfed charcoal clamp
+  shortDescription: turfed charcoal clamp
+  register: indefinite
   primaryKeyword: clamp
   keywords: [clamp, pit, heap, kiln]
   longDescription: >-

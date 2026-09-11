@@ -4,7 +4,8 @@
 class: /trade/cooking/thing/CookPot
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: a cook pot
+  shortDescription: cook pot
+  register: indefinite
   primaryKeyword: pot
   keywords: [pot, cook-pot, kettle]
   longDescription: |

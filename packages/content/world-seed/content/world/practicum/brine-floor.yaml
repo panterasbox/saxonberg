@@ -3,7 +3,8 @@
 class: /platform/thing/Floor
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: a brine-flooded stone floor
+  shortDescription: brine-flooded stone floor
+  register: indefinite
   longDescription: A stone floor under a sheet of ankle-deep brine.
   surfaceBulk: true
   surfaceMaterial: /stuff/idea/material/bulk/salt-water

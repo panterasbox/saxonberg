@@ -1,7 +1,8 @@
 class: /platform/thing/equipment/Garment
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: a pair of sturdy trousers
+  shortDescription: pair of sturdy trousers
+  register: indefinite
   primaryKeyword: trousers
   longDescription: >
     Plain, hard-wearing trousers in a neutral weave — the kind issued by

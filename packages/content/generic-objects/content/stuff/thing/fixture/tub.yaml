@@ -14,7 +14,8 @@
 class: /platform/thing/Chair
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: a bathtub
+  shortDescription: bathtub
+  register: indefinite
   primaryKeyword: tub
   keywords: [tub, bath, bathtub]
   longDescription: |

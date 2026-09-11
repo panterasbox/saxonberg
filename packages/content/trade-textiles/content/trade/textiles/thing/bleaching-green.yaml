@@ -11,7 +11,8 @@
 class: /trade/textiles/thing/BleachingGreen
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: a bleaching green
+  shortDescription: bleaching green
+  register: indefinite
   primaryKeyword: green
   keywords: [green, sward, bleaching, grass]
   longDescription: |

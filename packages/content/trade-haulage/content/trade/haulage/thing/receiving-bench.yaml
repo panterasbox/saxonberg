@@ -14,7 +14,8 @@
 class: /platform/thing/Surface
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: the receiving bench
+  shortDescription: receiving bench
+  register: definite
   primaryKeyword: bench
   keywords: [bench, dock, delivery, receiving, counter]
   longDescription: |

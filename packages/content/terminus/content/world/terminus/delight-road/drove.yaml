@@ -8,7 +8,8 @@
 class: /platform/location/SingletonCartesianLocation
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: the drove crossing
+  shortDescription: drove crossing
+  register: definite
   primaryKeyword: drove
   alternateNames: [crossing, road, green]
   _address: terminus/delight-valley/drove

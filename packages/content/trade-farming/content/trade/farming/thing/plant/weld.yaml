@@ -7,7 +7,8 @@
 class: /platform/thing/Plant
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: a stand of weld
+  shortDescription: stand of weld
+  register: indefinite
   primaryKeyword: weld
   keywords: [weld, rocket, crop]
   longDescription: |

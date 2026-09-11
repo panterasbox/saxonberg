@@ -5,7 +5,8 @@
 class: /trade/mining/location/MineRoom
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: a worked stope
+  shortDescription: worked stope
+  register: indefinite
   primaryKeyword: stope
   keywords: [stope, void, chamber]
   longDescription: |

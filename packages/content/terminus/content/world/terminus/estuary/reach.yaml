@@ -3,7 +3,8 @@
 class: /platform/location/SingletonCartesianLocation
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: the reach
+  shortDescription: reach
+  register: definite
   primaryKeyword: reach
   alternateNames: [river, water, towpath, bank]
   _address: terminus/city/wharfside/reach

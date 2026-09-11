@@ -6,7 +6,8 @@
 class: /platform/thing/equipment/PortableLight
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: a pitch-pine torch
+  shortDescription: pitch-pine torch
+  register: indefinite
   primaryKeyword: torch
   keywords: [torch, brand, light]
   longDescription: |

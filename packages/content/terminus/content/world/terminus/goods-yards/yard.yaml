@@ -7,7 +7,8 @@
 class: /platform/location/SingletonCartesianLocation
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: the goods yards
+  shortDescription: goods yards
+  register: definite
   primaryKeyword: yards
   alternateNames: [yard, goods, backs, loading]
   _address: terminus/city/wharfside/goods-yards

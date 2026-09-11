@@ -16,7 +16,8 @@ class: /world/lounge/location/Lounge
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   warren: /world/lounge/idea/warren
-  shortDescription: the lounge
+  shortDescription: lounge
+  register: definite
   primaryKeyword: lounge
   illustration: location/lounge.png
   longDescription: |

@@ -4,7 +4,8 @@
 class: /platform/thing/Thing
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: a steaming midden
+  shortDescription: steaming midden
+  register: indefinite
   primaryKeyword: midden
   keywords: [midden]
   longDescription: >-

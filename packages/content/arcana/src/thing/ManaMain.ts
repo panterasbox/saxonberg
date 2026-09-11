@@ -94,7 +94,7 @@ export default class ManaMain extends ManaMainBase {
   }
 
   override getShortDescription(): string {
-    return super.getShortDescription() || 'a mana line';
+    return super.getShortDescription() || 'mana line';
   }
 
   override getLongDescription(): string {

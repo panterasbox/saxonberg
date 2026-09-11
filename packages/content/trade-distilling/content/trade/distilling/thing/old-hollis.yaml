@@ -2,7 +2,8 @@
 class: /trade/distilling/thing/SpiritBottle
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: "a bottle of Old Hollis"
+  shortDescription: "bottle of Old Hollis"
+  register: indefinite
   longDescription: "A red-labelled bottle of Old Hollis whiskey \u2014 cheap, cheerful, proud of it. The fine print says the liquid is Veshko's."
   primaryKeyword: old-hollis
   keywords: ["old-hollis", "hollis", "whiskey", "bottle", "spirit"]

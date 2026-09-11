@@ -3,5 +3,6 @@
 class: /platform/thing/instrument/Hygrometer
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: a calibrated hygrometer
+  shortDescription: calibrated hygrometer
+  register: indefinite
   long: A small instrument with a hair-tension dial that registers relative humidity as a percentage.

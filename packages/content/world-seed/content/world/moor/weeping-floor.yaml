@@ -7,6 +7,7 @@ class: /platform/thing/Floor
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: wet flagstones
+  register: proper
   longDescription: Worn flagstones under a spreading skin of rainwater that never quite drains.
   surfaceBulk: true
   surfaceCapacity: 60

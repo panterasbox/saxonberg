@@ -1,7 +1,8 @@
 class: /platform/thing/equipment/DisguiseGarment
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: a deep grey hood
+  shortDescription: deep grey hood
+  register: indefinite
   primaryKeyword: hood
   longDescription: >
     A plain grey hood of coarse wool, cut deep enough to throw a face
@@ -11,7 +12,7 @@ data:
   # Disguise data (DisguiseBearingMixin). Drawn up, the hood presents
   # "a hooded figure" and masks identity — a known wearer reads as that
   # to others until it comes off, when recognition re-fires for free.
-  appearsAs: a hooded figure
+  appearsAs: hooded figure
   masksIdentity: true
   covers: [face]
   # Coarse wool, as the prose already said.

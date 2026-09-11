@@ -9,7 +9,8 @@ data:
   lifecycleState: alive
   primaryKeyword: recorder
   keywords: [recorder, registrar, clerk]
-  shortDescription: the claims recorder
+  shortDescription: claims recorder
+  register: definite
   longDescription: >-
     A dry, unhurried man behind the counter with ink to the second
     knuckle and a pair of spectacles pushed up into his hair. He does not

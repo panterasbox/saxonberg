@@ -3,7 +3,8 @@
 class: /platform/thing/ServingVessel
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: a rocks glass
+  shortDescription: rocks glass
+  register: indefinite
   longDescription: A short, heavy-bottomed tumbler.
   primaryKeyword: rocks
   keywords: [rocks, tumbler, glass, old-fashioned-glass]

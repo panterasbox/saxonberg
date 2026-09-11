@@ -4,7 +4,8 @@ hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   primaryKeyword: shovel
   keywords: ["shovel", "spade"]
-  shortDescription: a short-handled shovel
+  shortDescription: short-handled shovel
+  register: indefinite
   longDescription: >-
     A worn steel blade on a short handle — short because a long one has
     nowhere to go in a drift.

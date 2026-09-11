@@ -53,7 +53,8 @@ data:
   # decoration: a stranger in the room roll-call reads "a crossing guard
   # wearing a faded hi-vis vest, watching the empty road", while his
   # act-subject lines stay clean ("a crossing guard … says …").
-  shortDescription: a crossing guard
+  shortDescription: crossing guard
+  register: indefinite
   authoredStatus: watching the empty road
   longDescription: |
     An older man in a high-vis orange vest gone soft at the seams, with a weathered, kindly face and sensible shoes. His gear rides on him and means business — the watch on its chain, the whistle on its cord, the STOP paddle held ready in one hand — and a laminated CROSSING AUTHORITY badge is clipped square to his chest. Even while his eyes are on you they flick both ways down the empty avenue, out of a habit older than the quiet.

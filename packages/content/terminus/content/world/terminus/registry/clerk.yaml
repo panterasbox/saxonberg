@@ -19,6 +19,7 @@ data:
     - clerk
     - magistrate
   shortDescription: Odile, the city registrar
+  register: proper
   _domicileAddress: terminus/city/civic/registry
   longDescription: |
     A precise woman in ink-cuffed sleeves at the long counter, a ledger

@@ -14,7 +14,8 @@
 class: /trade/textiles/thing/ClothBolt
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: a bolt of linen
+  shortDescription: bolt of linen
+  register: indefinite
   primaryKeyword: bolt
   # ⚠⚠ NOT `linen`. `line` is a PREFIX of it, and the resolver matches on
   # prefixes — so a spinner holding both line and this answered `spin

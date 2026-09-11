@@ -18,7 +18,8 @@
 class: /system/arcana/thing/Wand
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: a slender ashwood wand
+  shortDescription: slender ashwood wand
+  register: indefinite
   primaryKeyword: wand
   longDescription: >
     A finger-length rod of pale ash, banded at the grip with tarnished

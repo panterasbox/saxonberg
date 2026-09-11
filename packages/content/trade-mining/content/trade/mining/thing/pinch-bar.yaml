@@ -6,7 +6,8 @@ hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   primaryKeyword: bar
   keywords: ["bar", "pinch-bar", "crowbar"]
-  shortDescription: a steel pinch bar
+  shortDescription: steel pinch bar
+  register: indefinite
   longDescription: >-
     A metre of round steel, one end drawn to a chisel and the other bent
     to a claw. You bar down the loose before you work under it, and you

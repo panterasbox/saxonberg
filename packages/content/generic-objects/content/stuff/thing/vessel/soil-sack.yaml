@@ -6,7 +6,8 @@
 class: /platform/thing/Receptacle
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: a sack of potting soil
+  shortDescription: sack of potting soil
+  register: indefinite
   primaryKeyword: sack
   keywords: [sack, soil, "potting soil", bag, dirt, compost]
   longDescription: |

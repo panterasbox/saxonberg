@@ -19,7 +19,8 @@ class: /trade/farming/location/Field
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   fieldName: the home field
-  shortDescription: the home field
+  shortDescription: home field
+  register: definite
   primaryKeyword: field
   keywords: [field, "home field", ground, ley]
   longDescription: |

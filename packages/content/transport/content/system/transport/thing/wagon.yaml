@@ -29,7 +29,8 @@ data:
   # it. The data carries it.
   requiredDiscipline: teamstering
   requiredBand: competent
-  shortDescription: a four-wheeled wagon
+  shortDescription: four-wheeled wagon
+  register: indefinite
   primaryKeyword: wagon
   keywords: [wagon, cart, rig, waggon]
   longDescription: |

@@ -8,7 +8,8 @@
 class: /platform/location/SingletonCartesianLocation
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: the Hinkley Hills stop
+  shortDescription: Hinkley Hills stop
+  register: definite
   primaryKeyword: stop
   _address: terminus/hinkley-hills/stop
   _biomePath: /stuff/idea/biome/outdoor/baseline

@@ -11,7 +11,8 @@
 class: /platform/thing/Vat
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: a glass culture jar
+  shortDescription: glass culture jar
+  register: indefinite
   primaryKeyword: jar
   keywords: [jar, "culture jar", crock]
   longDescription: |

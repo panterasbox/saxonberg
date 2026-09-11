@@ -13,7 +13,8 @@
 class: /trade/distilling/thing/SpiritBottle
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: a bottle of dark rum
+  shortDescription: bottle of dark rum
+  register: indefinite
   longDescription: A dark bottle of dark rum, heavy in the hand.
   primaryKeyword: rum
   keywords: [rum, bottle, spirit, dark]

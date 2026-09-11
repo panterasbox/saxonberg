@@ -7,7 +7,8 @@
 class: /platform/location/SingletonCartesianLocation
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: the dry
+  shortDescription: dry
+  register: definite
   primaryKeyword: dry
   keywords: [dry, "the dry", shack, canteen]
   longDescription: |

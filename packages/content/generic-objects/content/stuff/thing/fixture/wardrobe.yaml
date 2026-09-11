@@ -10,7 +10,8 @@
 class: /platform/thing/Chest
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: a pine wardrobe
+  shortDescription: pine wardrobe
+  register: indefinite
   primaryKeyword: wardrobe
   keywords: [wardrobe, closet, press, doors]
   longDescription: |

@@ -6,7 +6,8 @@
 class: /platform/location/CartesianLocation
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: a reach of Hinkley Lane
+  shortDescription: reach of Hinkley Lane
+  register: indefinite
   primaryKeyword: lane
   alternateNames: [road, reach, street]
   _biomePath: /stuff/idea/biome/outdoor/baseline

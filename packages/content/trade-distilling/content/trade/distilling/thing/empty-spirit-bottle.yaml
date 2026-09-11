@@ -4,7 +4,8 @@
 class: /trade/distilling/thing/SpiritBottle
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: an empty spirit bottle
+  shortDescription: empty spirit bottle
+  register: indefinite
   primaryKeyword: bottle
   keywords: [bottle, "spirit bottle", empty]
   longDescription: A square clear-glass spirit bottle, clean and empty.

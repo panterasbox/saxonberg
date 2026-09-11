@@ -4,6 +4,7 @@
 class: /arcane-library/thing/SparkLocus
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: a crackle of gathered charge
+  shortDescription: crackle of gathered charge
+  register: indefinite
   longDescription: >-
     A snapping knot of charge, gone as fast as it came.

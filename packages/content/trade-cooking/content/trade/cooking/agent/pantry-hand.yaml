@@ -12,7 +12,8 @@ data:
   lifecycleState: alive
   primaryKeyword: hand
   alternateNames: ["rufus", "penhallow"]
-  shortDescription: "a floury pantry hand in a canvas coat"
+  shortDescription: "floury pantry hand in a canvas coat"
+  register: indefinite
   longDescription: |
     A stout hand in a canvas coat dusted white to the elbows, who weighs everything twice.
   dispositions:

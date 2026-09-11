@@ -17,7 +17,8 @@ data:
     x: 0
     y: 0
     z: 0
-  shortDescription: "the vintner floor"
+  shortDescription: "vintner floor"
+  register: definite
   primaryKeyword: floor
   keywords: ["floor", "cellar", "vintner", "winery"]
   longDescription: |

@@ -13,7 +13,8 @@
 class: /system/arcana/thing/ManaMain
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: a mana line
+  shortDescription: mana line
+  register: indefinite
   primaryKeyword: line
   keywords: [line, main, conduit]
   longDescription: >

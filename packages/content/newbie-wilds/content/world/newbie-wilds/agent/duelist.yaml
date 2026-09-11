@@ -29,7 +29,8 @@ data:
     - duelist
     - gentleman
     - man
-  shortDescription: the gentleman out of the fog
+  shortDescription: gentleman out of the fog
+  register: definite
   longDescription: |
     A gentleman, out of the fog and unhurried, dressed a little too well for a wet hollow in the wilds — a long coat gone grey at the hems, gloves, a collar buttoned against the damp. He carries himself with the small, complete stillness of someone who has done this many times and expects to do it many more. When he inclines his head at you it is genuinely courteous, and it is not an apology.
 

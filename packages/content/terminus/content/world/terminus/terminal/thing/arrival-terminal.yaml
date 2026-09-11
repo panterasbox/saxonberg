@@ -8,7 +8,8 @@ class: /system/tpa/thing/TpaTerminal
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   seatIn: /world/terminus/terminal/location/arrival-gate
-  shortDescription: a Teleport Authority terminal
+  shortDescription: Teleport Authority terminal
+  register: indefinite
   keywords: [terminus, arrival]
   directionality: arrival
   status: operational

@@ -28,7 +28,8 @@
 class: /platform/thing/equipment/PortableLight
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: a bed of glowcap in a niche
+  shortDescription: bed of glowcap in a niche
+  register: indefinite
   primaryKeyword: glowcap
   keywords: [glowcap, niche, fungus, light]
   longDescription: >-

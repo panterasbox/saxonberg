@@ -6,7 +6,8 @@ hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   primaryKeyword: billhook
   keywords: ["billhook", "bill", "hook"]
-  shortDescription: a heavy billhook
+  shortDescription: heavy billhook
+  register: indefinite
   longDescription: >-
     A curved blade on a short handle, ground on the inside of the hook.
     One stroke takes a stool of hazel off at the ankle.

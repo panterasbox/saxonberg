@@ -4,7 +4,8 @@
 class: /platform/thing/Provision
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: a lime
+  shortDescription: lime
+  register: indefinite
   primaryKeyword: lime
   keywords: [lime, limes, produce]
   longDescription: "A green lime, waxy-skinned."

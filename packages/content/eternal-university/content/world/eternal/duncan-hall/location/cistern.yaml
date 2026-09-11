@@ -17,7 +17,8 @@
 class: /platform/location/SingletonCartesianLocation
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: a flooded cistern
+  shortDescription: flooded cistern
+  register: indefinite
   primaryKeyword: cistern
   longDescription: |
     Cold black water fills this brick vault to the brim — a maintenance cistern that overflowed a long time ago and was never pumped out. Iron rungs climb the near wall back up toward daylight. Whatever was stored down here is gone; only silt and the slow drift of the water remain.

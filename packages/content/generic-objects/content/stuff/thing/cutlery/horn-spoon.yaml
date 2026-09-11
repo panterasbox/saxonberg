@@ -12,7 +12,8 @@
 class: /platform/thing/Cutlery
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: a horn spoon
+  shortDescription: horn spoon
+  register: indefinite
   primaryKeyword: spoon
   keywords: [spoon, horn-spoon, utensil]
   longDescription: |

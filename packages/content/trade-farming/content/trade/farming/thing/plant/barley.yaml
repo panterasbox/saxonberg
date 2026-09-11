@@ -7,7 +7,8 @@
 class: /platform/thing/Plant
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: a stand of barley
+  shortDescription: stand of barley
+  register: indefinite
   primaryKeyword: barley
   keywords: [barley, crop]
   longDescription: |

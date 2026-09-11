@@ -9,7 +9,8 @@
 class: /trade/mining/location/AuthoredWorking
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: a break in the rock
+  shortDescription: break in the rock
+  register: indefinite
   primaryKeyword: break
   oreRow: /world/rejection/thing/copper-ore
   keywords: [break, hole, mouth]

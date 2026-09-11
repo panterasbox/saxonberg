@@ -4,7 +4,8 @@
 class: /platform/location/FurnishableRoom
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: the entry hall
+  shortDescription: entry hall
+  register: definite
   primaryKeyword: hall
   alternateNames: [hallway, entry]
   ambientIntensity: 30

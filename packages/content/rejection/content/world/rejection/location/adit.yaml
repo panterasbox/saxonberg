@@ -15,7 +15,8 @@
 class: /platform/location/SingletonCartesianLocation
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: the adit mouth
+  shortDescription: adit mouth
+  register: definite
   primaryKeyword: adit
   keywords: [adit, mouth, entrance, tunnel]
   longDescription: |

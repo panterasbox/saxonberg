@@ -87,7 +87,7 @@ const SOURCES = packSources();
  * ⚠ It may only ever fall. Raising it to make a new row pass is the one
  * edit that defeats the gate.
  */
-export const LEADING_ARTICLE_CEILING = 611;
+export const LEADING_ARTICLE_CEILING = 0;
 
 /* ────────────────────────── the vocabularies ───────────────────────── */
 
@@ -262,13 +262,20 @@ export function presentationOf(row: Row, byPath: Map<string, Row>): Rendered | n
   if (!short && !holdsName && !species) return null;
 
   const described = short ? renderPhrase(...phraseArgs(row, short)) : '';
+  const common = species ? commonNameOf(species, byPath) : '';
+  // ⭐ One ladder, two views — the runtime's `presentationPhrase(view)`.
+  // The species rung joins the OWN view here; it was previously reached
+  // only by the stranger stem, and whether any shipped row notices is
+  // exactly what `--verify` against the pre-change golden answers.
+  const fallback = species
+    ? common
+      ? renderPhrase(common, 'indefinite')
+      : 'someone'
+    : 'something';
 
-  const presentation = holdsName ? name : described || 'something';
-
+  const presentation = holdsName ? name : described || fallback;
   if (!species) return { presentation };
-
-  const common = commonNameOf(species, byPath);
-  const stranger = described || (common ? renderPhrase(common, 'indefinite') : 'someone');
+  const stranger = described || fallback;
   return { presentation, stranger };
 }
 
@@ -282,6 +289,29 @@ const phraseArgs = (row: Row, short: string): [string, Register] => {
 interface Golden {
   [path: string]: Rendered;
 }
+
+/**
+ * ⭐ **The deliberate deltas, each with its reason** — never a silent
+ * re-snapshot.
+ *
+ * Re-running `--snapshot` to make `--verify` green is how the proof gets
+ * lost: the golden stops being a record of what the world said before
+ * and becomes a record of what the code does now, which proves nothing.
+ * A row that is *meant* to change is named here with the argument for
+ * why no player can tell, and the diff stays legible in the source
+ * forever.
+ */
+const KNOWN_DELTAS: Record<string, { was: string; why: string }> = {
+  // D3 puts the species common name on the OWN view, not just the
+  // stranger view. One shipped row notices: the Avatar seed, which has
+  // no description. ⚠ It is unreachable — an Avatar is NAMED at enroll,
+  // so the name rung answers first for every player body that exists,
+  // and the seed row's own presentation is never rendered to anybody.
+  '/platform/agent/Avatar/seed': {
+    was: 'something',
+    why: 'the Avatar seed has no description; every real Avatar is named at enroll, so rung 2 answers first and this value never renders',
+  },
+};
 
 function buildGolden(rows: Row[]): Golden {
   const byPath = new Map(rows.map((r) => [r.path, r]));
@@ -314,9 +344,42 @@ function assertNoPluralRows(rows: Row[], failures: string[]): void {
   }
 }
 
+/**
+ * ⚠ A pack's `src/` also holds authored prose that reaches
+ * `setShortDescription` — `eternal-university/src/duncan-hall/
+ * dorm-themes.yaml` dresses a dorm room in 28 of them. It is not a
+ * template row so `contentRows` never sees it, and an article that crept
+ * back there would render *"a a miner's dorm room"* with no gate saying
+ * so. Clause (a) walks it too, by text.
+ */
+function srcProseArticles(): string[] {
+  const out: string[] = [];
+  for (const pack of packSources()) {
+    const walk = (dir: string): void => {
+      for (const entry of readdirSync(dir).sort()) {
+        const abs = join(dir, entry);
+        if (statSync(abs).isDirectory()) {
+          if (entry !== '__tests__') walk(abs);
+          continue;
+        }
+        if (!entry.endsWith('.yaml')) continue;
+        for (const line of readFileSync(abs, 'utf8').split('\n')) {
+          const m = /^\s*shortDescription:\s+"?'?(.+?)"?'?\s*$/.exec(line);
+          const text = m?.[1];
+          if (text && leadingArticleOf(text)) {
+            out.push(`${relative(REPO_ROOT, abs)} (shortDescription: "${text}")`);
+          }
+        }
+      }
+    };
+    walk(pack.srcDir);
+  }
+  return out;
+}
+
 function lint(rows: Row[]): string[] {
   const failures: string[] = [];
-  const articled: string[] = [];
+  const articled: string[] = [...srcProseArticles()];
 
   for (const row of rows) {
     // (a) — the stem carries no article.
@@ -423,14 +486,20 @@ function main(): void {
     const golden = JSON.parse(readFileSync(GOLDEN, 'utf8')) as Golden;
     const now = buildGolden(rows);
     const diffs: string[] = [];
+    const allowed: string[] = [];
     for (const [path, was] of Object.entries(golden)) {
       const is = now[path];
       if (!is) {
         diffs.push(`  ${path}: rendered "${was.presentation}", now renders nothing`);
         continue;
       }
+      const known = KNOWN_DELTAS[path];
       if (is.presentation !== was.presentation) {
-        diffs.push(`  ${path}: "${was.presentation}" → "${is.presentation}"`);
+        if (known && known.was === was.presentation) {
+          allowed.push(`  ${path}: "${was.presentation}" → "${is.presentation}" — ${known.why}`);
+        } else {
+          diffs.push(`  ${path}: "${was.presentation}" → "${is.presentation}"`);
+        }
       }
       if ((was.stranger ?? '') !== (is.stranger ?? '')) {
         diffs.push(
@@ -452,9 +521,11 @@ function main(): void {
     console.log(
       `✔ check-presentation --verify — ${Object.keys(golden).length} rows ` +
         `render byte-identically` +
+        (allowed.length ? `, bar ${allowed.length} named delta(s)` : '') +
         (added.length ? `; ${added.length} row(s) added since the golden` : '') +
         `.`,
     );
+    for (const a of allowed) console.log(a);
     return;
   }
 

@@ -13,7 +13,8 @@ data:
   lifecycleState: alive
   primaryKeyword: hand
   alternateNames: [wren, ashby]
-  shortDescription: a lean hand in a Crowsfoot apron
+  shortDescription: lean hand in a Crowsfoot apron
+  register: indefinite
   longDescription: |
     A lean, quick person in an ink-stained apron with a crow's foot burned into the bib, carrying a single case as if it were the only one in the world — which, most mornings, it is.
   dispositions:

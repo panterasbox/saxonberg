@@ -6,7 +6,8 @@
 class: /platform/thing/equipment/Garment
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: a pair of linen trousers
+  shortDescription: pair of linen trousers
+  register: indefinite
   primaryKeyword: trousers
   keywords: [trousers, breeches, linen]
   longDescription: |

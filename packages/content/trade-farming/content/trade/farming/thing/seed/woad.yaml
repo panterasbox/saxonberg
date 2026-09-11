@@ -4,7 +4,8 @@
 class: /platform/thing/Seed
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: a packet of woad seed
+  shortDescription: packet of woad seed
+  register: indefinite
   primaryKeyword: seed
   keywords: [seed, seeds, packet, "woad seed", woad, pastel]
   longDescription: |

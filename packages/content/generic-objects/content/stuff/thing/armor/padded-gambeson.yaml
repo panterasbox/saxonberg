@@ -1,7 +1,8 @@
 class: /platform/thing/equipment/Garment
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: a padded gambeson
+  shortDescription: padded gambeson
+  register: indefinite
   primaryKeyword: gambeson
   longDescription: >
     A thick quilted coat of layered wool. It does little against an edge or

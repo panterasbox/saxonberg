@@ -12,7 +12,8 @@ data:
   lifecycleState: alive
   primaryKeyword: hand
   alternateNames: ["ilse", "marrow"]
-  shortDescription: "a wiry vintner's hand with purple-stained fingers"
+  shortDescription: "wiry vintner's hand with purple-stained fingers"
+  register: indefinite
   longDescription: |
     A wiry hand with purple-stained fingers and a habit of holding a bottle up to the light before she cases it.
   dispositions:

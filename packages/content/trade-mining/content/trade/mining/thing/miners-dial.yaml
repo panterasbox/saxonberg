@@ -12,7 +12,8 @@ hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   primaryKeyword: dial
   keywords: ["dial", "miners-dial", "theodolite"]
-  shortDescription: a miner's dial in a leather case
+  shortDescription: miner's dial in a leather case
+  register: indefinite
   longDescription: >-
     A compass slung in brass gimbals over a clinometer arc, the whole
     thing screwed to a tripod head. It reads a bearing and a fall at once,

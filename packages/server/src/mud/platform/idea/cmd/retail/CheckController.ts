@@ -100,7 +100,7 @@ export default class CheckController extends CommandController<CheckModel> {
     const ticket = await StuffApi.create(() => new Ticket());
     ticket.pointPath = rack.getTemplatePath() ?? "";
     ticket.number = rack.countHeld(consignorKey);
-    ticket.setShortDescription("a coat-check ticket");
+    ticket.setShortDescription("coat-check ticket");
     ContainmentApi.move(ticket as unknown as Stuff & Containable, giver as unknown as Stuff & Container);
 
     MessageApi.scene(giver)

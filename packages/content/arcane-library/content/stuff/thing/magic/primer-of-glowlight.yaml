@@ -20,7 +20,8 @@
 class: /system/arcana/thing/Spellbook
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: a slim grey primer
+  shortDescription: slim grey primer
+  register: indefinite
   primaryKeyword: primer
   longDescription: >
     A thin volume in grey board, the spine cracked from being opened flat

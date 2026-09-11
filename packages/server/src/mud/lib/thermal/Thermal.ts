@@ -722,7 +722,7 @@ function reconcileBulkPhase(v: Stuff & Bulkable & Thermal): void {
         setMaterial(m: Material): void;
         setMass(q: Quantity<'kg'>): void;
       };
-      c.setShortDescription(`a cast lump of ${mat.getName()}`);
+      c.setShortDescription(`cast lump of ${mat.getName()}`);
       c.setMaterial(mat);
       c.setMass(Quantity.of(massKg, 'kg'));
       if (scope && MixinApi.isContainer(scope)) {

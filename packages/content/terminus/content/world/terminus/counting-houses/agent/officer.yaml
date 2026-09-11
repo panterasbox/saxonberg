@@ -24,7 +24,8 @@ data:
     - officer
     - mr halloran
     - manager
-  shortDescription: the Goodkin branch officer
+  shortDescription: Goodkin branch officer
+  register: definite
   longDescription: |
     A broad, comfortable man in a good grey suit gone soft at the elbows, with
     a warm handshake already half-extended and a way of remembering your name a

@@ -12,7 +12,8 @@ data:
   lifecycleState: alive
   primaryKeyword: hand
   alternateNames: ["tamsin", "roke"]
-  shortDescription: "a broad brewer's hand in a rubber apron"
+  shortDescription: "broad brewer's hand in a rubber apron"
+  register: indefinite
   longDescription: |
     A broad-shouldered hand in a rubber apron, forearms like hawsers from rolling kegs. Smells of malt.
   dispositions:

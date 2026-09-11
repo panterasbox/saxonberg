@@ -5,7 +5,8 @@
 class: /platform/thing/Plant
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: a grapevine
+  shortDescription: grapevine
+  register: indefinite
   primaryKeyword: "grapevine"
   keywords: [grapevine, grape, vine, plant]
   longDescription: |

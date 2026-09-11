@@ -2,7 +2,8 @@ class: /platform/thing/IdentifiableThing
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   # The unidentified appearance — what anyone sees until they identify it.
-  shortDescription: a blue potion
+  shortDescription: blue potion
+  register: indefinite
   primaryKeyword: vial
   longDescription: >
     A small stoppered vial of faintly luminous blue liquid. Whatever it

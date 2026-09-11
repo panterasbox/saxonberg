@@ -5,7 +5,8 @@
 class: /platform/thing/equipment/Pack
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: a canvas backpack
+  shortDescription: canvas backpack
+  register: indefinite
   primaryKeyword: backpack
   longDescription: >
     A sturdy canvas backpack with broad shoulder straps, built to carry

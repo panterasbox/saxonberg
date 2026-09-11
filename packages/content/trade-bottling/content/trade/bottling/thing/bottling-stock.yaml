@@ -5,7 +5,8 @@
 class: /platform/thing/Stock
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: "the bottling stock"
+  shortDescription: "bottling stock"
+  register: definite
   primaryKeyword: stock
   keywords: [stock, pallet, cases]
   longDescription: "Shrink-wrapped pallets of mixers and a chest freezer humming under bags of ice."

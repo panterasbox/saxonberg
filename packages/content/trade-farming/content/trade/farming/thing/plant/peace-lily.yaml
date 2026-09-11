@@ -11,7 +11,8 @@
 class: /platform/thing/Plant
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: a peace lily
+  shortDescription: peace lily
+  register: indefinite
   primaryKeyword: lily
   keywords: [lily, "peace lily", plant, houseplant]
   longDescription: |

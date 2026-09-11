@@ -2,7 +2,8 @@
 class: /platform/thing/CocktailShaker
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: a cocktail shaker
+  shortDescription: cocktail shaker
+  register: indefinite
   longDescription: A dented steel cocktail shaker, cold to the touch.
   keywords: [shaker]
   capabilities:

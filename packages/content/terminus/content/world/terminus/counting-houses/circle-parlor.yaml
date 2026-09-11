@@ -10,7 +10,8 @@
 class: /platform/location/SingletonCartesianLocation
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: the Goodkin Circle parlor
+  shortDescription: Goodkin Circle parlor
+  register: definite
   primaryKeyword: parlor
   alternateNames: [parlour, circle, office, back]
   _address: terminus/city/counting-houses/goodkin-parlor

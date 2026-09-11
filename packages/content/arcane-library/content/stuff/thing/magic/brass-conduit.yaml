@@ -8,7 +8,8 @@
 class: /system/arcana/thing/Conduit
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: a brass conduit
+  shortDescription: brass conduit
+  register: indefinite
   primaryKeyword: conduit
   keywords: [conduit, coil, brass]
   longDescription: >

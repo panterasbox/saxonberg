@@ -2,7 +2,8 @@
 class: /platform/thing/Provision
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: a wrapped cut of stew meat
+  shortDescription: wrapped cut of stew meat
+  register: indefinite
   primaryKeyword: meat
   keywords: [meat, stew-meat, stew, cut, cuts]
   _materialPath: /stuff/idea/material/food/stew-meat

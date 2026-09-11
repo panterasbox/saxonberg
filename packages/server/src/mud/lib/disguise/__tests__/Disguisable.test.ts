@@ -5,7 +5,10 @@
  * Covers: `getDisguise` resolves a worn DisguiseBearing garment;
  * `setDisguise`/`clearDisguise` impose/lift with no worn item;
  * `getPresentation` defers to the merged `appearsAs` (no shadow); a known
- * wearer reads as "a hooded figure" to others while hooded and recognition
+ * wearer reads as "a hooded figure" to others while hooded (the field
+ * holds the STEM, `hooded figure`; the indefinite register supplies the
+ * article, because being one of many is what a disguise is FOR) and
+ * recognition
  * re-fires when it comes off (BOTH transitions).
  */
 
@@ -49,7 +52,7 @@ class Hood extends DisguiseBearingMixin(
 class Viewer extends BeliefStoreMixin(PerceptionMixin(SensorMixin(Idea))) {}
 
 const IMPOSED: Disguise = {
-  appearsAs: 'a shimmering illusion',
+  appearsAs: 'shimmering illusion',
   covers: ['face'],
   masksIdentity: true,
 };
@@ -66,8 +69,8 @@ function makeWearer(name: string, appearance: string): Wearer {
 
 function makeHood(): Hood {
   const h = makeStuff(() => new Hood());
-  h.setShortDescription('a deep grey hood');
-  h.setAppearsAs('a hooded figure');
+  h.setShortDescription('deep grey hood');
+  h.setAppearsAs('hooded figure');
   h.setCovers(['face']);
   h.setMasksIdentity(true);
   return h;
@@ -80,7 +83,7 @@ describe('Disguisable resolver', () => {
     w.occupy(hood, 'head');
     const d = w.getDisguise();
     expect(d).not.toBeNull();
-    expect(d!.appearsAs).toBe('a hooded figure');
+    expect(d!.appearsAs).toBe('hooded figure');
     expect(d!.masksIdentity).toBe(true);
   });
 
@@ -88,7 +91,7 @@ describe('Disguisable resolver', () => {
     const w = makeWearer('Bob', 'a tall man');
     expect(w.getDisguise()).toBeNull();
     w.setDisguise(IMPOSED);
-    expect(w.getDisguise()?.appearsAs).toBe('a shimmering illusion');
+    expect(w.getDisguise()?.appearsAs).toBe('shimmering illusion');
     w.clearDisguise();
     expect(w.getDisguise()).toBeNull();
   });

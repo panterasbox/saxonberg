@@ -9,7 +9,8 @@ data:
   lifecycleState: alive
   primaryKeyword: buyer
   keywords: [buyer, assayer]
-  shortDescription: the ore buyer
+  shortDescription: ore buyer
+  register: definite
   longDescription: >-
     A broad woman in a leather apron with a jeweller's glass on a cord and
     green under her nails that will not come off. She weighs everything

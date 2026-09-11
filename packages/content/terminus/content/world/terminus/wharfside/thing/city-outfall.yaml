@@ -14,7 +14,8 @@
 class: /system/water/thing/Conduit
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: the outfall
+  shortDescription: outfall
+  register: definite
   primaryKeyword: outfall
   keywords: [outfall, sewer, arch, discharge, drain]
   longDescription: |

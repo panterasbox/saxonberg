@@ -13,7 +13,8 @@
 class: /trade/cooking/thing/BoningKnife
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: a boning knife
+  shortDescription: boning knife
+  register: indefinite
   primaryKeyword: knife
   keywords: [knife, boning, blade, boning-knife]
   longDescription: |

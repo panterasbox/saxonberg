@@ -2,7 +2,8 @@
 class: /platform/thing/Bottle
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: "a bottle of ginger beer"
+  shortDescription: "bottle of ginger beer"
+  register: indefinite
   longDescription: "A one-litre screw-capped bottle of ginger beer, the bottling floor's plain label."
   primaryKeyword: ginger-beer
   keywords: ["ginger-beer", "ginger", "bottle", "mixer"]

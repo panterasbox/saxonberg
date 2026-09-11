@@ -4,7 +4,8 @@
 class: /trade/hospitality/thing/IceBin
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: an ice bin
+  shortDescription: ice bin
+  register: indefinite
   longDescription: A deep insulated bin under the rail with a scoop hooked on its lip.
   primaryKeyword: bin
   keywords: [bin, ice-bin, ice]

@@ -10,7 +10,8 @@
 class: /platform/thing/Forge
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: a stone smelting furnace
+  shortDescription: stone smelting furnace
+  register: indefinite
   primaryKeyword: furnace
   keywords: [furnace, smelter, shaft, bellows]
   longDescription: >-

@@ -7,6 +7,7 @@ class: /platform/location/SingletonCartesianLocation
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: Departure Gate A
+  register: proper
   primaryKeyword: gate-a
   longDescription: |
     A departure gate off the east side of the hall: a raised platform ringed by a brass rail, a departures terminal standing at its head like a lectern. Gate A is the one that runs — its status light burns a steady red, and a short queue forms and dissolves as travellers step up, name a stop, and are gone.

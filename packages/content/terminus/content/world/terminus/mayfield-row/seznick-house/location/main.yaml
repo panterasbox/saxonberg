@@ -3,7 +3,8 @@
 class: /platform/location/FurnishableRoom
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: the main room
+  shortDescription: main room
+  register: definite
   primaryKeyword: room
   alternateNames: [main, sitting, living]
   ambientIntensity: 55

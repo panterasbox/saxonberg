@@ -8,7 +8,8 @@
 class: /trade/textiles/thing/SpinningTool
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: a drop spindle
+  shortDescription: drop spindle
+  register: indefinite
   primaryKeyword: spindle
   keywords: [spindle, drop-spindle, whorl]
   longDescription: |

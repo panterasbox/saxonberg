@@ -8,7 +8,8 @@
 class: /platform/location/SingletonCartesianLocation
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: the treeline past the crossroads
+  shortDescription: treeline past the crossroads
+  register: definite
   primaryKeyword: treeline
   _address: last-counted-mile/treeline
   longDescription: |

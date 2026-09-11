@@ -4,7 +4,8 @@
 class: /platform/thing/Crate
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: a crate of grapes
+  shortDescription: crate of grapes
+  register: indefinite
   primaryKeyword: grapes
   keywords: [crate, grapes, grape, produce]
   longDescription: A slatted wooden crate of dusty wine grapes, packed tight.

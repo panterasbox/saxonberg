@@ -11,7 +11,8 @@ hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   primaryKeyword: spade
   keywords: ["spade", "garden-spade", "digging-spade"]
-  shortDescription: a garden spade
+  shortDescription: garden spade
+  register: indefinite
   longDescription: >-
     A flat steel blade with a rolled tread along its shoulder, worn
     bright on one side where a boot has gone against it ten thousand

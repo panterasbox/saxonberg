@@ -4,7 +4,8 @@
 class: /platform/thing/Provision
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: a drift of pale ash
+  shortDescription: drift of pale ash
+  register: indefinite
   primaryKeyword: ash
   keywords: [ash, ashes]
   longDescription: >-

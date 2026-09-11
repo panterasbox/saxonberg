@@ -6,7 +6,8 @@
 class: /platform/location/SingletonCartesianLocation
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: the Terminus ticket office
+  shortDescription: Terminus ticket office
+  register: definite
   primaryKeyword: office
   longDescription: |
     A cramped mezzanine office walled in frosted glass, overlooking the concourse from above the arrival arch. A single ticket window faces a short counter; behind it, pigeonholes of forms, a franking stamp, a cold kettle, and a hand-lettered card that reads LOST YOUR CARD? ASK HERE. The whole room smells of carbon paper and stewed tea.

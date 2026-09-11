@@ -10,7 +10,8 @@
 class: /platform/thing/JobBoard
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: a works board
+  shortDescription: works board
+  register: indefinite
   primaryKeyword: works-board
   keywords: [works-board, board, jobs, work, slate]
   longDescription: >

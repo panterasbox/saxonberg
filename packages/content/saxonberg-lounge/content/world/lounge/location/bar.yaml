@@ -23,6 +23,7 @@ data:
     y: 0
     z: 0
   shortDescription: Dave's Bar
+  register: proper
   primaryKeyword: bar
   illustration: location/bar.png
   longDescription: |

@@ -4,7 +4,8 @@ hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   primaryKeyword: axe
   keywords: ["axe", "felling-axe"]
-  shortDescription: a felling axe
+  shortDescription: felling axe
+  register: indefinite
   longDescription: >-
     A wide thin bit on a long haft, ground for cutting across the grain
     rather than splitting along it.

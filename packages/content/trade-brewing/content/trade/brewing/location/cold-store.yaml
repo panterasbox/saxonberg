@@ -15,7 +15,8 @@ data:
     x: 0
     y: 0
     z: -1
-  shortDescription: "the cold store"
+  shortDescription: "cold store"
+  register: definite
   primaryKeyword: store
   keywords: ["store", "cold store", "cellar", "lagering cellar"]
   longDescription: |

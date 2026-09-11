@@ -26,10 +26,20 @@ import { CARDS } from '../../lib/connection/Cards';
 import SingletonCartesianLocation from '../../platform/location/SingletonCartesianLocation';
 import Thing from '../../platform/thing/Thing';
 import { makeHarness, makeContext, type Harness } from './card-harness';
+import type { Register } from '../../lib/description/NounPhrase';
 
-async function makeRoom(name: string): Promise<SingletonCartesianLocation> {
+/**
+ * `name` is the STEM. Rooms are overwhelmingly definite — "the lounge",
+ * "the yard" — so that is what these fixtures take; the article comes
+ * from the register, which is the point of the whole thing.
+ */
+async function makeRoom(
+  name: string,
+  register: Register = 'definite',
+): Promise<SingletonCartesianLocation> {
   const room = await StuffApi.create(() => new SingletonCartesianLocation());
   room.setShortDescription(name);
+  room.setRegister(register);
   return room;
 }
 
@@ -85,7 +95,7 @@ describe('static and live are different KINDS of answer', () => {
 
   it('a LIVE card carries no `takenAt` — there is no stale answer to stamp', async () => {
     const h = await makeHarness();
-    const room = await makeRoom('the lounge');
+    const room = await makeRoom('lounge');
     ContainmentApi.move(h.avatar, room);
 
     h.interactive.pushCard('subject', { subjectId: room.stuffId });
@@ -113,8 +123,8 @@ describe('static and live are different KINDS of answer', () => {
    */
   it('⭐ a live card tracks ITS subject when the world changes', async () => {
     const h = await makeHarness();
-    const lounge = await makeRoom('the lounge');
-    const yard = await makeRoom('the yard');
+    const lounge = await makeRoom('lounge');
+    const yard = await makeRoom('yard');
     ContainmentApi.move(h.avatar, lounge);
 
     const instanceId = h.interactive.pushCard('subject', {
@@ -124,7 +134,7 @@ describe('static and live are different KINDS of answer', () => {
 
     // Something arrives IN the lounge. Nothing else happens.
     const lamp = await StuffApi.create(() => new Thing());
-    lamp.setShortDescription('a brass lamp');
+    lamp.setShortDescription('brass lamp');
     ContainmentApi.move(lamp, lounge);
     await MqlSubscriptionApi._drainScheduledForTesting();
 
@@ -139,8 +149,8 @@ describe('static and live are different KINDS of answer', () => {
    */
   it('⚠ moving the VIEWER leaves the card on the room it is about', async () => {
     const h = await makeHarness();
-    const lounge = await makeRoom('the lounge');
-    const yard = await makeRoom('the yard');
+    const lounge = await makeRoom('lounge');
+    const yard = await makeRoom('yard');
     ContainmentApi.move(h.avatar, lounge);
 
     const instanceId = h.interactive.pushCard('subject', {
@@ -197,7 +207,7 @@ describe('static and live are different KINDS of answer', () => {
    */
   it('⭐ the delta is APPLICABLE — an update in place, not an append', async () => {
     const h = await makeHarness();
-    const lounge = await makeRoom('the lounge');
+    const lounge = await makeRoom('lounge');
     ContainmentApi.move(h.avatar, lounge);
 
     const instanceId = h.interactive.pushCard('subject', {
@@ -212,7 +222,7 @@ describe('static and live are different KINDS of answer', () => {
 
     // Something arrives in the room: same subject, new reading.
     const lamp = await StuffApi.create(() => new Thing());
-    lamp.setShortDescription('a brass lamp');
+    lamp.setShortDescription('brass lamp');
     ContainmentApi.move(lamp, lounge);
     await MqlSubscriptionApi._drainScheduledForTesting();
 
@@ -266,8 +276,8 @@ describe('static and live are different KINDS of answer', () => {
    */
   it('⚠ a live card is touched WITHOUT a body — the subscription owns it', async () => {
     const h = await makeHarness();
-    const lounge = await makeRoom('the lounge');
-    const yard = await makeRoom('the yard');
+    const lounge = await makeRoom('lounge');
+    const yard = await makeRoom('yard');
     ContainmentApi.move(h.avatar, lounge);
 
     h.interactive.pushCard('subject', { subjectId: lounge.stuffId });
@@ -301,7 +311,7 @@ describe('static and live are different KINDS of answer', () => {
 
   it('the live card OWNS its subscription handle', async () => {
     const h = await makeHarness();
-    const room = await makeRoom('the lounge');
+    const room = await makeRoom('lounge');
     ContainmentApi.move(h.avatar, room);
 
     const before = MqlSubscriptionApi._getRegistrySizeForTesting();

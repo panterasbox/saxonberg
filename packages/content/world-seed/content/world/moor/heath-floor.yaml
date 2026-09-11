@@ -8,6 +8,7 @@ class: /platform/thing/Floor
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: sodden peat ground
+  register: proper
   longDescription: Black peat, waterlogged and treacherous, pooling the rain into shallow meres.
   # Surface-bulk: an (initially dry) pool the rain fills. No surfaceMaterial /
   # surfaceAmount — it starts dry; the weather fills it with fresh water.

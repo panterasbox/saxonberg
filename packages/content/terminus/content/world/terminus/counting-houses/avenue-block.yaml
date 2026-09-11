@@ -17,6 +17,7 @@ class: /platform/location/SingletonCartesianLocation
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: Counting-House Row, University Avenue
+  register: proper
   primaryKeyword: row
   alternateNames: [avenue, block, street, downtown]
   _biomePath: /stuff/idea/biome/outdoor/baseline

@@ -11,7 +11,8 @@
 class: /world/terminus/university-avenue/thing/Watch
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: a brass pocket-watch
+  shortDescription: brass pocket-watch
+  register: indefinite
   primaryKeyword: watch
   keywords: [watch, pocketwatch, brass, hunter, chain]
   longDescription: |

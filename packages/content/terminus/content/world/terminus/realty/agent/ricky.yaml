@@ -18,7 +18,8 @@ data:
   name: Ricky
   pronouns: he
   _speciesPath: /stuff/idea/species/animalia/chordata/mammalia/primates/hominidae/homo/sapiens
-  shortDescription: a land agent in a good coat gone slightly shiny
+  shortDescription: land agent in a good coat gone slightly shiny
+  register: indefinite
   longDescription: |
     A trim, quick man in a coat that was expensive about six years ago, with a rule in his breast pocket where another man would keep a pen. He talks about ground the way other people talk about weather — constantly, cheerfully, and with the assumption that you are as interested as he is.
   dispositions:

@@ -9,7 +9,8 @@
 class: /platform/location/SingletonCartesianLocation
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: the provisioning shed
+  shortDescription: provisioning shed
+  register: definite
   primaryKeyword: provisioning
   keywords: [provisioning, stores, shop]
   longDescription: |

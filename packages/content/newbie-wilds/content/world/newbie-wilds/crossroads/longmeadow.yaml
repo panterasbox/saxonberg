@@ -15,7 +15,8 @@
 class: /platform/location/SingletonCartesianLocation
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: the long meadow
+  shortDescription: long meadow
+  register: definite
   primaryKeyword: meadow
   _address: last-counted-mile/long-meadow
   extent: 12

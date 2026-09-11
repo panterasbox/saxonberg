@@ -6,7 +6,8 @@
 class: /trade/cooking/thing/DryingRack
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: a drying rack
+  shortDescription: drying rack
+  register: indefinite
   primaryKeyword: rack
   keywords: [rack, drying, drying-rack, hooks]
   longDescription: |

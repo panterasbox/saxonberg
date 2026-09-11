@@ -5,7 +5,8 @@
 class: /platform/thing/Cutlery
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: a table fork
+  shortDescription: table fork
+  register: indefinite
   primaryKeyword: fork
   keywords: [fork, table-fork, utensil]
   longDescription: |

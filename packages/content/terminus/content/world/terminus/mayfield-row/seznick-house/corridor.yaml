@@ -4,7 +4,8 @@
 class: /platform/location/CartesianLocation
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: a Seznick House landing
+  shortDescription: Seznick House landing
+  register: indefinite
   primaryKeyword: landing
   alternateNames: [corridor, hallway]
   ambientIntensity: 25

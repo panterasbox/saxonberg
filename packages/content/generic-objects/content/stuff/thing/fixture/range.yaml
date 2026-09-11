@@ -9,7 +9,8 @@
 class: /platform/thing/Oven
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: a kitchen range
+  shortDescription: kitchen range
+  register: indefinite
   primaryKeyword: range
   keywords: [range, stove, oven, hearth, fire]
   longDescription: >

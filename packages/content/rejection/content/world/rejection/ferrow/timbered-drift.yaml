@@ -8,7 +8,8 @@
 class: /trade/mining/location/AuthoredWorking
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: the timbered drift
+  shortDescription: timbered drift
+  register: definite
   primaryKeyword: drift
   oreRow: /world/rejection/thing/copper-ore
   keywords: [drift, "timbered drift"]

@@ -4,7 +4,8 @@
 class: /platform/thing/Thing
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: a folded tanned hide
+  shortDescription: folded tanned hide
+  register: indefinite
   primaryKeyword: hide
   keywords: [hide, leather, skin]
   longDescription: |

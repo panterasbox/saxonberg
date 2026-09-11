@@ -4,7 +4,8 @@
 class: /platform/thing/Plant
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: a cherry tree
+  shortDescription: cherry tree
+  register: indefinite
   primaryKeyword: "cherry tree"
   keywords: ["cherry tree", cherry, tree, plant]
   longDescription: |

@@ -3,7 +3,8 @@
 class: /platform/location/SingletonCartesianLocation
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: the tips
+  shortDescription: tips
+  register: definite
   primaryKeyword: tips
   alternateNames: [spoil, road, waste, bank]
   _address: terminus/rejection/road/tips

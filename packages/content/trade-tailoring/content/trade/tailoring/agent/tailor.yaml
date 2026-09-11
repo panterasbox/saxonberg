@@ -14,7 +14,8 @@ data:
   lifecycleState: alive
   primaryKeyword: tailor
   alternateNames: ["vasca", "idrin"]
-  shortDescription: "a tailor with pins down one cuff and a tape round her neck"
+  shortDescription: "tailor with pins down one cuff and a tape round her neck"
+  register: indefinite
   longDescription: |
     Pins down one cuff, a tape round her neck, and the particular way of looking at somebody that means she is not looking at their face. She has your measurements written down somewhere, and if she has not, she would like to.
   dispositions:

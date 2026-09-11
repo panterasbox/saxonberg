@@ -33,7 +33,8 @@ data:
     - mercenary
     - merc
     - woman
-  shortDescription: a lean sellsword with a blade for hire
+  shortDescription: lean sellsword with a blade for hire
+  register: indefinite
   # She belongs to no lord and to one company. Recruited by role rather
   # than by name, so the company is the only party a wrong against her
   # can land on.

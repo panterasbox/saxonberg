@@ -5,7 +5,8 @@
 class: /platform/thing/NeonSign
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: a Volk neon sign
+  shortDescription: Volk neon sign
+  register: indefinite
   keywords: [sign, neon, veshko, volk]
   longDescription: |
     A neon sign in Veshko's blunt industrial typeface — the word VOLK stamped out in hard amber capitals over a stylized cogwheel. It throws a warm, faintly migraine-bright glow across its corner of the back-bar and hums at a pitch you stop hearing after the first drink.

@@ -7,7 +7,8 @@
 class: /platform/thing/Door
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: the university gate
+  shortDescription: university gate
+  register: definite
   primaryKeyword: gate
   longDescription: >
     Tall iron gates in a low stone wall, the university's pale terraces

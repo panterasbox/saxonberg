@@ -26,6 +26,7 @@ class: /platform/location/Crossing
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: University Avenue
+  register: proper
   primaryKeyword: crossing
   # Sky-exposed outdoor city street: the biome makes the room weather-eligible
   # (SkyExposedBiome from the base-library content pack) and the address puts

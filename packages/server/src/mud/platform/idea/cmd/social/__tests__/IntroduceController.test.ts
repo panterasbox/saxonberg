@@ -90,7 +90,7 @@ function model(subject?: Person): CommandModel {
 describe('IntroduceController', () => {
   it('self-introduce upgrades in-earshot listeners; they then see the name', () => {
     const room = makeStuff(() => new Room());
-    const mara = makePerson('Mara', 'a tall stranger');
+    const mara = makePerson('Mara', 'tall stranger');
     const listener = makePerson('Pat', 'a short person');
     ContainmentApi.move(mara, room);
     ContainmentApi.move(listener, room);
@@ -106,7 +106,7 @@ describe('IntroduceController', () => {
   it('a listener who never heard the intro still sees salient features', () => {
     const room = makeStuff(() => new Room());
     const elsewhere = makeStuff(() => new Room());
-    const mara = makePerson('Mara', 'a tall stranger');
+    const mara = makePerson('Mara', 'tall stranger');
     const absent = makePerson('Gus', 'a stout person');
     ContainmentApi.move(mara, room);
     ContainmentApi.move(absent, elsewhere); // out of earshot
@@ -121,7 +121,7 @@ describe('IntroduceController', () => {
   it('third-party introduce by someone who knows the subject upgrades listeners', () => {
     const room = makeStuff(() => new Room());
     const alice = makePerson('Alice', 'a woman');
-    const bob = makePerson('Bob', 'a tall stranger');
+    const bob = makePerson('Bob', 'tall stranger');
     const listener = makePerson('Pat', 'a short person');
     ContainmentApi.move(alice, room);
     ContainmentApi.move(bob, room);
@@ -142,7 +142,7 @@ describe('IntroduceController', () => {
   it('third-party introduce is rejected when the speaker does not know the subject', () => {
     const room = makeStuff(() => new Room());
     const alice = makePerson('Alice', 'a woman');
-    const bob = makePerson('Bob', 'a tall stranger');
+    const bob = makePerson('Bob', 'tall stranger');
     const listener = makePerson('Pat', 'a short person');
     ContainmentApi.move(alice, room);
     ContainmentApi.move(bob, room);
@@ -158,7 +158,7 @@ describe('IntroduceController', () => {
   it('repeat-perception via learnIdentity coalesces to one advancing record', () => {
     const room = makeStuff(() => new Room());
     const watcher = makePerson('Watcher', 'an observer');
-    const subject = makePerson('Subject', 'a tall stranger');
+    const subject = makePerson('Subject', 'tall stranger');
     ContainmentApi.move(watcher, room);
     ContainmentApi.move(subject, room);
 
@@ -174,7 +174,7 @@ describe('IntroduceController', () => {
 
   it('demo regard seam: a self-introduce warms in-earshot listeners toward the speaker', async () => {
     const room = makeStuff(() => new Room());
-    const mara = makePerson('Mara', 'a tall stranger');
+    const mara = makePerson('Mara', 'tall stranger');
     const listener = makePerson('Pat', 'a short person');
     ContainmentApi.move(mara, room);
     ContainmentApi.move(listener, room);
@@ -190,7 +190,7 @@ describe('IntroduceController', () => {
 
   it('an introduce after repeat-perception upgrades the same record', () => {
     const room = makeStuff(() => new Room());
-    const mara = makePerson('Mara', 'a tall stranger');
+    const mara = makePerson('Mara', 'tall stranger');
     const listener = makePerson('Pat', 'a short person');
     ContainmentApi.move(mara, room);
     ContainmentApi.move(listener, room);

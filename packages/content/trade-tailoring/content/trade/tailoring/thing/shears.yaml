@@ -23,7 +23,8 @@
 class: /trade/tailoring/thing/CuttingTool
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: a pair of shears
+  shortDescription: pair of shears
+  register: indefinite
   primaryKeyword: shears
   keywords: [shears, scissors, snips]
   longDescription: |

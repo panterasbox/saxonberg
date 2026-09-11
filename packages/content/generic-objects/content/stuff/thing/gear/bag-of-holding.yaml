@@ -5,7 +5,8 @@
 class: /platform/thing/Vessel
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: a plain grey bag
+  shortDescription: plain grey bag
+  register: indefinite
   primaryKeyword: bag
   longDescription: >
     An unremarkable grey bag. Far heavier things vanish into it than its

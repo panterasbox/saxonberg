@@ -37,7 +37,7 @@ let counter = 0;
 function makeGus(): InstanceType<typeof Gus> {
   const g = makeStuffAtPath(() => new Gus(), `/obj/npc/gus-${counter++}`);
   g.setName('Gus');
-  g.setShortDescription('a stout man');
+  g.setShortDescription('stout man');
   return g;
 }
 

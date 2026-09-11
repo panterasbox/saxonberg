@@ -4,7 +4,8 @@
 class: /platform/thing/Provision
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: a grapefruit
+  shortDescription: grapefruit
+  register: indefinite
   primaryKeyword: grapefruit
   keywords: [grapefruit, grapefruits, produce]
   longDescription: "A heavy pink grapefruit."

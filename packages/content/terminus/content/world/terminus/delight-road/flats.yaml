@@ -8,7 +8,8 @@
 class: /platform/location/SingletonCartesianLocation
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: the empty flats
+  shortDescription: empty flats
+  register: definite
   primaryKeyword: flats
   alternateNames: [road, plain, alluvium]
   _address: terminus/delight-valley/flats

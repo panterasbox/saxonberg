@@ -6,7 +6,8 @@ hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   primaryKeyword: pick-head
   keywords: ["pick-head", "head"]
-  shortDescription: a forged pick head
+  shortDescription: forged pick head
+  register: indefinite
   longDescription: >-
     A drawn-out head with an eye through the middle, one point and one
     chisel edge, still carrying the hammer marks. It wants a haft.

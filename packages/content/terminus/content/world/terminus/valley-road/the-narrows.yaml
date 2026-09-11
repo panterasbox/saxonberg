@@ -3,7 +3,8 @@
 class: /platform/location/SingletonCartesianLocation
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: the narrows
+  shortDescription: narrows
+  register: definite
   primaryKeyword: narrows
   alternateNames: [road, valley]
   _address: terminus/city/wharfside/narrows

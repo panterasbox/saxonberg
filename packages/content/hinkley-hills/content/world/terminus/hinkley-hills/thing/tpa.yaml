@@ -9,7 +9,8 @@ class: /system/tpa/thing/TpaTerminal
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   seatIn: /world/terminus/hinkley-hills/location/arrival
-  shortDescription: a Teleport Authority post
+  shortDescription: Teleport Authority post
+  register: indefinite
   keywords: [post, terminal, tpa, hinkley]
   directionality: both
   status: operational

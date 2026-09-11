@@ -11,7 +11,8 @@
 class: /platform/thing/Chair
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: a worn armchair
+  shortDescription: worn armchair
+  register: indefinite
   primaryKeyword: armchair
   keywords: [armchair, chair, seat]
   longDescription: |

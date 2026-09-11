@@ -17,7 +17,8 @@ data:
     x: 0
     y: 0
     z: 0
-  shortDescription: "the brewery floor"
+  shortDescription: "brewery floor"
+  register: definite
   primaryKeyword: floor
   keywords: ["floor", "brewery", "brewhouse", "yard"]
   longDescription: |

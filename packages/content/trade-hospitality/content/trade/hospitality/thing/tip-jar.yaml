@@ -6,7 +6,8 @@
 class: /platform/thing/TipJar
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: a tip jar
+  shortDescription: tip jar
+  register: indefinite
   longDescription: >
     A wide-mouthed glass jar by the register, a curl of masking tape on the
     side reading "TIPS" in three different hands. It catches the neon and

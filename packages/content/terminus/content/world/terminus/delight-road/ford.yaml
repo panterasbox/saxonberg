@@ -13,7 +13,8 @@
 class: /platform/location/SingletonCartesianLocation
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: the ford on the Delight
+  shortDescription: ford on the Delight
+  register: definite
   primaryKeyword: ford
   alternateNames: [crossing, road, stones]
   _address: terminus/delight-valley/ford

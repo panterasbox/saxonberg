@@ -6,5 +6,6 @@
 class: /platform/thing/Key
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: a key
+  shortDescription: key
+  register: indefinite
   keywords: [key]

@@ -16,7 +16,8 @@
 class: /system/arcana/thing/ManaLamp
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: a mana lamp
+  shortDescription: mana lamp
+  register: indefinite
   primaryKeyword: lamp
   keywords: [lamp, sconce, light]
   longDescription: >

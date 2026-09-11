@@ -747,6 +747,42 @@ identical to `before.json`.
 
 **Commit.** `build(presentation W1): the noun phrase — stem + register, the article out of 634 rows, the golden holds`
 
+#### ⚠ W1 re-planned in place (2026-09-10)
+
+**`strangerStem` moved from W2 to W1, because W1 is what breaks it.**
+`RecognitionLogic.strangerStem` read `getShortDescription()` **raw** and
+prepended the article itself. The moment the article left the field, it
+returned `"weaver"` where it had returned `"a weaver"` — for every
+stranger in the game, in W1, with W2 still two commits away. A wave has
+to be independently landable, so D3's stranger view lands here: the
+function is now one line, `target.presentationPhrase('stranger').render()`.
+
+⭐ That is the argument for the collapse, arriving on its own: the two
+ladders were the same ladder maintained by hand in two places, and the
+first change that touched one of them broke the other.
+
+**Also in W1 and not in the plan's file list:**
+
+- `Organization.getPresentation` and `Field.getPresentation` become
+  `presentationPhrase` overrides returning `NounPhrase.proper(name)` —
+  planned, but worth naming what it buys: both now render the
+  possessive and the definite form correctly, which neither could do
+  while overriding a finished string.
+- `Coin.getPluralForm`'s docstring **loses its reason to exist**. It was
+  written to dodge *"4 a red apples"* — a stack rendering the article
+  inside the description. `NounPhrase.render()` drops the article at any
+  count but 1, so the override survives only for the honest reason
+  (`piece` pluralizes irregularly). A test pins the old wart.
+- `lint:presentation` clause (a) now also walks every pack's `src/*.yaml`
+  by text. `dorm-themes.yaml` holds **28 authored descriptions** that
+  reach `setShortDescription` and is not a template row, so
+  `contentRows()` never saw it; an article creeping back there would
+  render *"a a miner's dorm room"* with nothing to say so.
+- The `--verify` golden gained a **`KNOWN_DELTAS`** table rather than a
+  re-snapshot. Re-running `--snapshot` to make `--verify` green is how
+  the proof gets lost; a row that is meant to change is named with the
+  argument for why no player can tell, and the diff stays in the source.
+
 ### W2 — the form axis on the seam; the occupant block unified; `Mml.list` lazy
 
 **Goal.** A reference states its form; the four faces collapse to one;

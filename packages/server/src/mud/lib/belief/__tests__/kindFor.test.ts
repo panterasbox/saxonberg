@@ -60,7 +60,7 @@ describe('RecognitionApi.kindOf — the three answers', () => {
   it('a non-organism is `thing`, whatever else it composes', () => {
     const viewer = makeStuff(() => new Viewer());
     const rock = makeStuff(() => new Rock());
-    rock.setName('a blue rock');
+    rock.setName('blue rock');
     expect(rock.kindFor(viewer)).toBe('thing');
   });
 

@@ -22,6 +22,7 @@ class: /platform/location/SingletonCartesianLocation
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: Hinkley Lane
+  register: proper
   primaryKeyword: lane
   alternateNames: [road, street]
   _address: terminus/hinkley-hills/lane

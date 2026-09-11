@@ -4,7 +4,8 @@
 class: /platform/thing/Thing
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: a low stone byre
+  shortDescription: low stone byre
+  register: indefinite
   primaryKeyword: byre
   keywords: [byre]
   longDescription: >-

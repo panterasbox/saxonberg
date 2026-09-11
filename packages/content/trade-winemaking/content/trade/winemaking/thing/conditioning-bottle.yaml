@@ -6,7 +6,8 @@
 class: /platform/thing/Vat
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: a heavy conditioning bottle
+  shortDescription: heavy conditioning bottle
+  register: indefinite
   primaryKeyword: bottle
   keywords: [bottle, "conditioning bottle", fizz]
   longDescription: |

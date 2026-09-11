@@ -12,7 +12,8 @@
 class: /trade/textiles/thing/SpinningTool
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: a spinning wheel
+  shortDescription: spinning wheel
+  register: indefinite
   primaryKeyword: wheel
   keywords: [wheel, spinning-wheel, treadle, flyer]
   longDescription: |

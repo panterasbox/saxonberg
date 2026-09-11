@@ -7,7 +7,8 @@
 class: /trade/smithing/thing/Anvil
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: the smithy anvil
+  shortDescription: smithy anvil
+  register: definite
   primaryKeyword: anvil
   keywords: [anvil, stump]
   longDescription: |

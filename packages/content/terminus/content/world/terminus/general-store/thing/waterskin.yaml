@@ -5,7 +5,8 @@
 class: /platform/thing/Receptacle
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: a leather waterskin
+  shortDescription: leather waterskin
+  register: indefinite
   primaryKeyword: waterskin
   keywords: [waterskin, skin, water, flask, bottle]
   longDescription: |

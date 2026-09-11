@@ -7,7 +7,8 @@
 class: /platform/thing/Plant
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: a bed of madder
+  shortDescription: bed of madder
+  register: indefinite
   primaryKeyword: madder
   keywords: [madder, crop]
   longDescription: |

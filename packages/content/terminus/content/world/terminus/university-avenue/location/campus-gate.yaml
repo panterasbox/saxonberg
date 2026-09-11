@@ -9,7 +9,8 @@
 class: /platform/location/SingletonCartesianLocation
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: the university gatehouse
+  shortDescription: university gatehouse
+  register: definite
   primaryKeyword: gatehouse
   longDescription: |
     A cramped stone gatehouse just inside the university wall, its inner door barred and its lamp unlit. Beyond it a gravel path climbs toward the campus proper — closed to the town for now. Nobody is on duty; nobody comes through.

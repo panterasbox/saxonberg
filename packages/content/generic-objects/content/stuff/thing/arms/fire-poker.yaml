@@ -5,7 +5,8 @@
 class: /platform/thing/equipment/Weapon
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: a fire poker
+  shortDescription: fire poker
+  register: indefinite
   primaryKeyword: poker
   keywords: [poker, fire-poker, rod]
   longDescription: |

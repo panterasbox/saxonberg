@@ -12,7 +12,8 @@ data:
   lifecycleState: alive
   primaryKeyword: hand
   alternateNames: ["wen", "hartley"]
-  shortDescription: "a sun-browned market hand with a knife on a string"
+  shortDescription: "sun-browned market hand with a knife on a string"
+  register: indefinite
   longDescription: |
     A sun-browned hand with a paring knife on a string round their neck, who tastes one of everything before it goes out.
   dispositions:

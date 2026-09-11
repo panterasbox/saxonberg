@@ -15,7 +15,8 @@
 class: /system/transport/thing/Barge
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: a flat-bottomed barge
+  shortDescription: flat-bottomed barge
+  register: indefinite
   primaryKeyword: barge
   keywords: [barge, boat, lighter, craft]
   longDescription: |

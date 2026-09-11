@@ -1,7 +1,8 @@
 class: /platform/thing/equipment/Weapon
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: a steel war-hammer
+  shortDescription: steel war-hammer
+  register: indefinite
   primaryKeyword: warhammer
   longDescription: >
     A brutal wedge of steel on a long two-handed haft. It is all commitment

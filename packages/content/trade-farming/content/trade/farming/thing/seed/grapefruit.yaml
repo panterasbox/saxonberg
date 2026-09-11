@@ -4,7 +4,8 @@
 class: /platform/thing/Seed
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: a packet of grapefruit seed
+  shortDescription: packet of grapefruit seed
+  register: indefinite
   primaryKeyword: seed
   keywords: [seed, seeds, "grapefruit seed", grapefruit, packet]
   longDescription: |

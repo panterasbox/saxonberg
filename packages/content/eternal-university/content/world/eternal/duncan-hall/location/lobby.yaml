@@ -22,6 +22,7 @@ hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   _address: terminus/city/campus/duncan-hall
   shortDescription: Duncan Hall lobby
+  register: proper
   primaryKeyword: lobby
   illustration: location/duncan-hall-lobby.png
   longDescription: |

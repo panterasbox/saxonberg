@@ -13,7 +13,8 @@
 class: /system/transport/thing/HaulageRig
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: an ore tram
+  shortDescription: ore tram
+  register: indefinite
   primaryKeyword: tram
   keywords: ["tram", "ore-tram", "box"]
   longDescription: |

@@ -12,7 +12,8 @@
 class: /generic-objects/thing/SconceLamp
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: a brass wall sconce
+  shortDescription: brass wall sconce
+  register: indefinite
   primaryKeyword: sconce
   keywords: [sconce, lamp, light, wall, brass]
   longDescription: |

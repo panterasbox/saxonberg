@@ -7,7 +7,8 @@
 class: /platform/thing/Thermos
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: a dented steel thermos
+  shortDescription: dented steel thermos
+  register: indefinite
   primaryKeyword: thermos
   keywords: [thermos, flask, coffee, steel]
   longDescription: |

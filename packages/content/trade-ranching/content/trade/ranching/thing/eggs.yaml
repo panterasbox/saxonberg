@@ -6,7 +6,8 @@
 class: /platform/thing/Provision
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: a clutch of eggs
+  shortDescription: clutch of eggs
+  register: indefinite
   primaryKeyword: eggs
   keywords: [eggs, egg, clutch]
   longDescription: >-

@@ -8,7 +8,8 @@
 class: /platform/location/SingletonCartesianLocation
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: the claims office
+  shortDescription: claims office
+  register: definite
   primaryKeyword: office
   keywords: [office, "claims office", claims]
   longDescription: |

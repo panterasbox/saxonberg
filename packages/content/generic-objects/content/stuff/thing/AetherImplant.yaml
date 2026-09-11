@@ -3,6 +3,7 @@
 class: /platform/thing/AetherImplant
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: "an aether implant"
+  shortDescription: "aether implant"
+  register: indefinite
   longDescription: "A small, hardened cybernetic device the size of a thumbnail — brass and silicon, sealed against the field. It hums faintly in your hand."
   targetSlot: cranial

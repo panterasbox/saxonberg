@@ -80,7 +80,7 @@ function seedDomain(): void {
     upkeepTerm: 'institution-all',
   });
   add(DormRoom.SCOPE, '/world/eternal/duncan-hall/location/DormRoom', {
-    shortDescription: 'a dorm room',
+    shortDescription: 'dorm room',
     // Fixtures as data — the spine's seedBornWith lays these down once.
     props: FIXTURES,
   });

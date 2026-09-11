@@ -6,7 +6,8 @@
 class: /platform/location/SingletonCartesianLocation
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: a cookhouse
+  shortDescription: cookhouse
+  register: indefinite
   primaryKeyword: cookhouse
   longDescription: |
     A low cookhouse warm with woodsmoke, a clay hearth glowing along one wall and a scrubbed table down the middle. A pantry chest stands against the wall, and the smell of stew never quite leaves the rafters.

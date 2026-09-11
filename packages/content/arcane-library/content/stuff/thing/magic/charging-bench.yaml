@@ -10,7 +10,8 @@
 class: /system/arcana/thing/Conduit
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: a charging bench
+  shortDescription: charging bench
+  register: indefinite
   primaryKeyword: bench
   keywords: [bench, cradle, apparatus]
   longDescription: >

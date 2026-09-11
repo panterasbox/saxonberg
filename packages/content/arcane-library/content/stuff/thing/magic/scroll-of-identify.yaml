@@ -12,7 +12,8 @@
 class: /system/arcana/thing/Scroll
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: a scroll of identify
+  shortDescription: scroll of identify
+  register: indefinite
   primaryKeyword: scroll
   longDescription: >
     A tight roll of vellum dense with shifting glyphs. Read it upon a

@@ -7,7 +7,8 @@
 class: /trade/haulage/thing/DepotCounter
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: the depot counter
+  shortDescription: depot counter
+  register: definite
   primaryKeyword: counter
   keywords: [counter, desk, shipping, depot]
   longDescription: |

@@ -4,7 +4,8 @@
 class: /platform/thing/Chest
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: a pantry chest
+  shortDescription: pantry chest
+  register: indefinite
   primaryKeyword: chest
   keywords: [chest, pantry, larder]
   longDescription: |

@@ -13,7 +13,8 @@
 class: /platform/thing/Crop
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: a bunch of carrots
+  shortDescription: bunch of carrots
+  register: indefinite
   primaryKeyword: carrots
   keywords: [carrot, carrots, bunch, vegetable, veg]
   longDescription: |

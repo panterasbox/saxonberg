@@ -4,7 +4,8 @@
 class: /trade/smithing/thing/Whetstone
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: a whetstone
+  shortDescription: whetstone
+  register: indefinite
   primaryKeyword: whetstone
   keywords: [whetstone, stone, hone]
   longDescription: |

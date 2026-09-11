@@ -5,7 +5,8 @@
 class: /platform/thing/Crop
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: a cut of clover hay
+  shortDescription: cut of clover hay
+  register: indefinite
   primaryKeyword: clover
   keywords: [clover, crop]
   longDescription: |

@@ -7,7 +7,8 @@
 class: /platform/thing/Dish
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: a plated dish
+  shortDescription: plated dish
+  register: indefinite
   primaryKeyword: dish
   keywords: [dish, plate, meal, serving]
   # ⭐ The vessel kind — what the pool matches on and what the house par

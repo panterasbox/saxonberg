@@ -4,7 +4,8 @@
 class: /arcane-library/thing/GlowlightMote
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: a mote of cold light
+  shortDescription: mote of cold light
+  register: indefinite
   longDescription: >-
     A palm-sized mote of steady, heatless light, hanging where its maker
     willed it. It flickers only when the magic holding it does.

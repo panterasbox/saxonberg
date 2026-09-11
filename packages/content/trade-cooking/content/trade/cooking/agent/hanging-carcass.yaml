@@ -18,7 +18,8 @@ hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   _speciesPath: /stuff/idea/species/hog
   lifecycleState: dead
-  shortDescription: a hog carcass on a hook
+  shortDescription: hog carcass on a hook
+  register: indefinite
   primaryKeyword: carcass
   keywords: [carcass, hog, pig, body, hook]
   longDescription: >-

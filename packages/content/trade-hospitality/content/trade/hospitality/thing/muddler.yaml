@@ -3,7 +3,8 @@
 class: /trade/hospitality/thing/Muddler
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: a muddler
+  shortDescription: muddler
+  register: indefinite
   longDescription: A thick hardwood muddler, its end stained green with mint.
   primaryKeyword: muddler
   keywords: [muddler]

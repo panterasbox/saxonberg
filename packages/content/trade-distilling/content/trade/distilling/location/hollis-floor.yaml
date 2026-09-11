@@ -15,7 +15,8 @@ data:
     x: 1
     y: 0
     z: 0
-  shortDescription: the Hollis bottling floor
+  shortDescription: Hollis bottling floor
+  register: definite
   primaryKeyword: floor
   keywords: [floor, bottling, hollis, warehouse]
   longDescription: |

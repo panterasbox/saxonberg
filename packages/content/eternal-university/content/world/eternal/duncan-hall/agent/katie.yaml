@@ -39,7 +39,8 @@ data:
     # loadout "exactly like the master ring"; the list disagreed. Found
     # by booting the metal-chain build against a real database.
     - /world/eternal/duncan-hall/agent/master-ring
-  shortDescription: the live-in super, keys jangling at her belt
+  shortDescription: live-in super, keys jangling at her belt
+  register: definite
   longDescription: |
     Big and solid and never quite still — there's always a light to fix, a
     door that sticks, a ring of keys chiming at her hip like she's part of

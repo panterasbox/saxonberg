@@ -38,7 +38,8 @@ data:
     x: 0
     y: -1
     z: 0
-  shortDescription: the cash-and-carry
+  shortDescription: cash-and-carry
+  register: definite
   primaryKeyword: cash-and-carry
   keywords: [cash-and-carry, distributor, warehouse, showroom]
   longDescription: |

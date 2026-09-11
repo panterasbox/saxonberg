@@ -4,7 +4,8 @@
 class: /platform/thing/Provision
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: a cherry
+  shortDescription: cherry
+  register: indefinite
   primaryKeyword: cherry
   keywords: [cherry, cherries, produce]
   longDescription: "A dark red cherry, stem on."

@@ -3,7 +3,8 @@
 class: /platform/thing/Receptacle
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: a stone basin
+  shortDescription: stone basin
+  register: indefinite
   keywords: [basin, bowl]
   longDescription: A squat stone basin, dry at the bottom, waiting to be filled.
   interiorBulk: true

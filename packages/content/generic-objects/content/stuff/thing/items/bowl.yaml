@@ -5,7 +5,8 @@
 class: /platform/thing/Dish
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: a bowl
+  shortDescription: bowl
+  register: indefinite
   primaryKeyword: bowl
   keywords: [bowl, dish, serving]
   longDescription: |

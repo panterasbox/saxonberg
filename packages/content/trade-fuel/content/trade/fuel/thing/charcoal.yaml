@@ -6,7 +6,8 @@
 class: /platform/thing/Provision
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: a basket of charcoal
+  shortDescription: basket of charcoal
+  register: indefinite
   primaryKeyword: charcoal
   keywords: [charcoal, char, coal]
   longDescription: >-

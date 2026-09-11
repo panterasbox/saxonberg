@@ -2,7 +2,8 @@
 class: /trade/textiles/thing/Loom
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: a hand loom
+  shortDescription: hand loom
+  register: indefinite
   primaryKeyword: loom
   keywords: [loom, hand-loom, shuttle, heddle]
   longDescription: |

@@ -15,7 +15,8 @@ data:
   lifecycleState: alive
   primaryKeyword: carter
   keywords: [carter, driver, teamster]
-  shortDescription: the carter
+  shortDescription: carter
+  register: definite
   longDescription: >-
     Weather-cut, deliberate, and dressed for standing still in the cold
     for a long time. He walks at the horse's head rather than riding,

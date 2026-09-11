@@ -3,7 +3,8 @@
 class: /platform/thing/Provision
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: a handful of juniper berries
+  shortDescription: handful of juniper berries
+  register: indefinite
   primaryKeyword: berries
   keywords: [juniper, berries, berry, produce, "juniper berries"]
   longDescription: "A handful of blue-black juniper berries, resinous when crushed."

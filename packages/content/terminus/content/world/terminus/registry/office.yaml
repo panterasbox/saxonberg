@@ -7,7 +7,8 @@
 class: /platform/location/SingletonCartesianLocation
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: the Terminus Registry
+  shortDescription: Terminus Registry
+  register: definite
   primaryKeyword: registry
   _address: terminus/city/civic/registry
   longDescription: |

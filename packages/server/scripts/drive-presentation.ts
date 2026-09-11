@@ -209,16 +209,24 @@ const ROOMS: Array<[label: string, path: string]> = [
 ];
 
 /**
+ * Every `stuff-id` is re-minted when the packs reinstall, so a raw
+ * transcript diff would be 59 lines of noise hiding the one line that
+ * matters. The id is not what this build can change; the PROSE is.
+ */
+const normalize = (said: string): string =>
+  said.replace(/stuff-id="[^"]*"/g, 'stuff-id="#"').trim();
+
+/**
  * Capture what the world SAYS in each room, and about each thing the
- * room names. Order-stable and whitespace-normalized so the diff shows
- * prose changes and nothing else.
+ * room names. Order-stable and id-normalized so the diff shows prose
+ * changes and nothing else.
  */
 async function transcript(file: string): Promise<void> {
   const out: Record<string, string> = {};
   for (const [label, path] of ROOMS) {
     const s = await Session.open(`drive-presentation-${path.replace(/\W+/g, '-')}`, path);
     const looked = await s.cmd('look', 2200);
-    out[`${label} · look`] = looked.trim();
+    out[`${label} · look`] = normalize(looked);
 
     // Everything the room named, looked at in turn. The keywords come
     // out of the room's own prose rather than a list, so a handle that
@@ -230,7 +238,7 @@ async function transcript(file: string): Promise<void> {
     );
     for (const word of [...words].sort().slice(0, 12)) {
       const said = await s.cmd(`look ${word}`, 900);
-      out[`${label} · look ${word}`] = said.trim();
+      out[`${label} · look ${word}`] = normalize(said);
     }
     s.close();
   }

@@ -4,7 +4,8 @@
 class: /platform/thing/Seed
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: a packet of weld seed
+  shortDescription: packet of weld seed
+  register: indefinite
   primaryKeyword: seed
   keywords: [seed, seeds, packet, "weld seed", weld, rocket]
   longDescription: |

@@ -2,7 +2,8 @@
 class: /trade/tailoring/thing/CutPieces
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: a bundle of cut pieces
+  shortDescription: bundle of cut pieces
+  register: indefinite
   primaryKeyword: pieces
   keywords: [pieces, pattern, cut, panels]
   longDescription: |

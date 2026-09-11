@@ -5,7 +5,8 @@
 class: /trade/mining/location/MineRoom
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: a fall of ground
+  shortDescription: fall of ground
+  register: indefinite
   primaryKeyword: fall
   keywords: [fall, collapse, rubble]
   longDescription: |

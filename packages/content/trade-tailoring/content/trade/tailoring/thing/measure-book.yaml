@@ -13,7 +13,8 @@
 class: /trade/tailoring/thing/MeasureBook
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: the shop's book
+  shortDescription: shop's book
+  register: definite
   primaryKeyword: book
   keywords: [book, ledger, measurements, measure]
   longDescription: |

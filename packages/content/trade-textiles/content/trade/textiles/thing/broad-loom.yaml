@@ -6,7 +6,8 @@
 class: /trade/textiles/thing/Loom
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: a broad loom
+  shortDescription: broad loom
+  register: indefinite
   primaryKeyword: broadloom
   keywords: [broadloom, broad-loom, loom, wide]
   longDescription: |

@@ -22,7 +22,8 @@ class: /system/tpa/thing/TpaTerminal
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   seatIn: /world/lounge/idea/warren
-  shortDescription: a Teleport Authority terminal
+  shortDescription: Teleport Authority terminal
+  register: indefinite
   boardLabel: The Lounge
   keywords: [lounge]
   directionality: both

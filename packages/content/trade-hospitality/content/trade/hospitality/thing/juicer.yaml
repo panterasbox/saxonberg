@@ -2,7 +2,8 @@
 class: /platform/thing/ToolItem
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: a citrus press
+  shortDescription: citrus press
+  register: indefinite
   longDescription: A hinged hand press that halves a lime and squeezes it in one squeeze.
   primaryKeyword: juicer
   keywords: [juicer, press, citrus-press]

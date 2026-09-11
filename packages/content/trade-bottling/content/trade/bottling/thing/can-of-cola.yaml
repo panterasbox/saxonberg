@@ -8,7 +8,8 @@
 class: /platform/thing/Bottle
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: "a can of cola"
+  shortDescription: "can of cola"
+  register: indefinite
   longDescription: "A 330 mL can of cola, cold to the hand, the lid unbroken."
   primaryKeyword: cola
   keywords: ["cola", "coke", "can", "tin"]

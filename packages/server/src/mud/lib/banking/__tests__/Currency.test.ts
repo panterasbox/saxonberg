@@ -23,7 +23,7 @@ const FIXTURE: CurrencyRecord = {
   issuer: "test-mint",
   governorOffice: "test-mint-governor",
   denominations: [
-    { value: 10, massKg: 0.005, label: "a chit" },
+    { value: 10, massKg: 0.005, label: "chit" },
     { value: 1, massKg: 0.001 },
   ],
 };
@@ -78,16 +78,16 @@ describe("Currency — presentation derives, it is never authored", () => {
   });
 
   it("describes a coin from (currency, faceValue) with no authored name", () => {
-    expect(Currency.describeDenomination(ZM, 25)).toBe("a 25-zorkmid piece");
-    expect(Currency.describeDenomination(ZM, 1)).toBe("a 1-zorkmid piece");
+    expect(Currency.describeDenomination(ZM, 25)).toBe("25-zorkmid piece");
+    expect(Currency.describeDenomination(ZM, 1)).toBe("1-zorkmid piece");
   });
 
   it("uses an issuer's label when it chose to name its coins", () => {
     Currency._registerForTesting(FIXTURE);
-    expect(Currency.describeDenomination("testcoin", 10)).toBe("a chit");
+    expect(Currency.describeDenomination("testcoin", 10)).toBe("chit");
     // …and still derives for the one it left unnamed.
     expect(Currency.describeDenomination("testcoin", 1)).toBe(
-      "a 1-testcoin piece"
+      "1-testcoin piece"
     );
   });
 });

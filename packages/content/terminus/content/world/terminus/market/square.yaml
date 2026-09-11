@@ -19,7 +19,8 @@
 class: /platform/location/SingletonCartesianLocation
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: the farmers market square
+  shortDescription: farmers market square
+  register: definite
   primaryKeyword: square
   alternateNames: [market, "farmers market", stalls]
   _biomePath: /stuff/idea/biome/outdoor/baseline

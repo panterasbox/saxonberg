@@ -8,7 +8,8 @@
 class: /trade/mining/location/AuthoredWorking
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: the cage bottom
+  shortDescription: cage bottom
+  register: definite
   primaryKeyword: bottom
   oreRow: /world/rejection/thing/copper-ore
   keywords: [bottom, "cage bottom", cage, junction]

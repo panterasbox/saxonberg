@@ -5,7 +5,8 @@
 class: /trade/distilling/thing/Still
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: a small pot still
+  shortDescription: small pot still
+  register: indefinite
   primaryKeyword: still
   keywords: [still, "pot still", alembic]
   longDescription: A knee-high copper alembic with a coiled worm, bright with polishing.

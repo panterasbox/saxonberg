@@ -4,7 +4,8 @@
 class: /platform/thing/Menu
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: the still book
+  shortDescription: still book
+  register: definite
   primaryKeyword: book
   keywords: [book, "still book", board, ledger]
   longDescription: |

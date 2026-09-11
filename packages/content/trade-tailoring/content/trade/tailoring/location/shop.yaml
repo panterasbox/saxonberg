@@ -16,7 +16,8 @@ data:
     x: 0
     y: 0
     z: 0
-  shortDescription: "the tailor's shop"
+  shortDescription: "tailor's shop"
+  register: definite
   primaryKeyword: shop
   keywords: [shop, tailor, tailors]
   longDescription: |

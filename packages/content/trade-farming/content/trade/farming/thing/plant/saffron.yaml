@@ -4,7 +4,8 @@
 class: /platform/thing/Plant
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: a bed of saffron crocus
+  shortDescription: bed of saffron crocus
+  register: indefinite
   primaryKeyword: saffron
   keywords: [saffron, crop]
   longDescription: |

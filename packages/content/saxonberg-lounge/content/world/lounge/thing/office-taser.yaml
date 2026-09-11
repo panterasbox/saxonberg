@@ -12,7 +12,8 @@
 class: /platform/thing/equipment/StunBaton
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: a stun baton
+  shortDescription: stun baton
+  register: indefinite
   primaryKeyword: taser
   keywords: [taser, baton, stun]
   longDescription: >

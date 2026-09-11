@@ -7,7 +7,8 @@
 class: /platform/location/SingletonCartesianLocation
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: the last span before the vault
+  shortDescription: last span before the vault
+  register: definite
   primaryKeyword: corridor
   longDescription: |
     The corridor makes its last run here toward a low arch and the dark room beyond. A single flag near the arch sits a shade proud of the rest, and a hair-fine slot runs across the passage at ankle height where the wall has been let out for something to swing.

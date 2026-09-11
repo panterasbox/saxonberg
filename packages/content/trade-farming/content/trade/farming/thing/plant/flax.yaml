@@ -11,7 +11,8 @@
 class: /platform/thing/Plant
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: a stand of flax
+  shortDescription: stand of flax
+  register: indefinite
   primaryKeyword: flax
   keywords: [flax, linseed, stems, crop]
   longDescription: |

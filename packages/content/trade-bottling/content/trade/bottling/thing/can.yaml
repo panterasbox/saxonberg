@@ -10,7 +10,8 @@
 class: /platform/thing/Bottle
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: "a can"
+  shortDescription: "can"
+  register: indefinite
   longDescription: "A 330 mL aluminium can — drawn in one piece, lined, the lid seamed on. It weighs almost nothing."
   primaryKeyword: can
   keywords: ["can", "tin", "empty"]

@@ -11,7 +11,8 @@ hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   primaryKeyword: kit
   keywords: ["kit", "soil-kit", "soil-test-kit", "test-kit"]
-  shortDescription: a soil test kit
+  shortDescription: soil test kit
+  register: indefinite
   longDescription: >-
     A shallow wooden case holding a rack of little glass tubes, a stopper
     of indicator solution gone slightly cloudy, and a printed card of

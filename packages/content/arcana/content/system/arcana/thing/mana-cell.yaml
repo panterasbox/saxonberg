@@ -13,7 +13,8 @@
 class: /system/arcana/thing/ManaCell
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: a mana cell
+  shortDescription: mana cell
+  register: indefinite
   primaryKeyword: cell
   keywords: [cell, mana cell, battery]
   longDescription: >

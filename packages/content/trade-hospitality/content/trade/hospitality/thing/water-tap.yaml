@@ -4,7 +4,8 @@
 class: /platform/thing/WaterFixture
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: a water tap
+  shortDescription: water tap
+  register: indefinite
   longDescription: A gooseneck tap over the well, running cold all day.
   primaryKeyword: water-tap
   keywords: [water-tap, faucet, water]

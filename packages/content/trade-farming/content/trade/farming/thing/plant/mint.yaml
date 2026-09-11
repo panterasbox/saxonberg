@@ -6,7 +6,8 @@
 class: /platform/thing/Plant
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: a clump of mint
+  shortDescription: clump of mint
+  register: indefinite
   primaryKeyword: "mint"
   keywords: [mint, clump, spearmint, herb, plant]
   longDescription: |

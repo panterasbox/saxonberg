@@ -9,7 +9,8 @@
 class: /platform/thing/Plant
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: a snake plant
+  shortDescription: snake plant
+  register: indefinite
   primaryKeyword: "snake plant"
   keywords: ["snake plant", snake, sansevieria, plant, houseplant]
   longDescription: |

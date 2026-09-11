@@ -11,7 +11,8 @@
 class: /system/arcana/thing/Amulet
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: a dull brass amulet on a cord
+  shortDescription: dull brass amulet on a cord
+  register: indefinite
   primaryKeyword: amulet
   longDescription: >
     A disc of brass the size of a coin, hung on a leather cord. A

@@ -10,7 +10,8 @@
 class: /world/terminus/university-avenue/thing/CrossingLog
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: a crossing-log clipboard
+  shortDescription: crossing-log clipboard
+  register: indefinite
   primaryKeyword: log
   keywords: [log, clipboard, tally, ledger, crossing-log]
   longDescription: |

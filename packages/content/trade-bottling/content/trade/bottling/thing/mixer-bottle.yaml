@@ -4,7 +4,8 @@
 class: /platform/thing/Bottle
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: "a mixer bottle"
+  shortDescription: "mixer bottle"
+  register: indefinite
   longDescription: "A one-litre bottle, straight-sided, with a screw cap."
   primaryKeyword: bottle
   keywords: ["bottle", "mixer", "empty"]
