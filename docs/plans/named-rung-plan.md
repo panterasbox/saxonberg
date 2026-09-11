@@ -1,5 +1,23 @@
 # Named on the identity rung — implementation plan
 
+> ⚠⚠ **SUPERSEDED 2026-09-10 — do not build from this.** The design
+> session that followed widened the build from *move proper-name identity
+> to the identity rung* to the whole presentation layer: the noun phrase
+> (register + number, the article out of the authored string), the
+> **form** axis resolved late beside the viewer, chat anonymity as a
+> channel setting, and the split between being disguised and being
+> anonymous. See
+> [presentation-requirements.md](../requirements/presentation-requirements.md)
+> and re-plan against it.
+>
+> ⭐ **The grounding below is still good and should carry into the new
+> plan** — in particular the mixin-reach resolver's blindness to
+> `const`-stack bases (which makes the identity gate work only by
+> accident), the corpse overlay never having carried a name, the Realtor
+> row being Cast-composed, and the ~35–40 test fixtures that set a name
+> on a creature-derived fixture and will not be selected by a near-run.
+> Those were expensive to find and none of them changed.
+
 Executes [named-rung-requirements.md](../requirements/named-rung-requirements.md).
 **Kind:** refactor/sweep. **Leads from:** kernel. **First consumer:** the
 Cast roster (30 shipped rows carrying a `name:`) and, after it lands, pets'
