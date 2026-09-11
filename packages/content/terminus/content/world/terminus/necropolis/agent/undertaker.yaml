@@ -13,7 +13,8 @@ data:
   lifecycleState: alive
   primaryKeyword: undertaker
   alternateNames: [merrick, sault, gravedigger, sexton]
-  shortDescription: a soft-spoken undertaker
+  shortDescription: soft-spoken undertaker
+  register: indefinite
   longDescription: |
     A wide, slow man with stone dust worked permanently into the creases of his hands, dressed better than the job requires because he thinks the job requires it. He speaks quietly and only when there is something to say, and he has an unhurried way of standing near people who have just lost somebody that they generally end up grateful for.
   dispositions:

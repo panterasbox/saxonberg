@@ -16,7 +16,8 @@ data:
   lifecycleState: alive
   primaryKeyword: physician
   alternateNames: [aldis, verrow, doctor, medic]
-  shortDescription: a spare, unhurried physician
+  shortDescription: spare, unhurried physician
+  register: indefinite
   longDescription: |
     A spare woman in her fifties with her sleeves turned back to the elbow and her hair pinned out of the way, entirely unhurried in a manner that is plainly a decision rather than a temperament. She looks at a wound the way a mason looks at a wall — for how it was made, and what it will want.
   dispositions:

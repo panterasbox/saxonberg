@@ -10,7 +10,8 @@
 class: /platform/thing/Chest
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: an open plot
+  shortDescription: open plot
+  register: indefinite
   primaryKeyword: plot
   keywords: [plot, grave, trough, hole]
   longDescription: |

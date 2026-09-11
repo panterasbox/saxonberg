@@ -783,6 +783,79 @@ first change that touched one of them broke the other.
   the proof gets lost; a row that is meant to change is named with the
   argument for why no player can tell, and the diff stays in the source.
 
+
+#### ⚠⚠ Caught up to master mid-W1 — and master changed a convention
+
+The branch was **90 commits behind** `origin/master`, which had landed 12
+new articled `shortDescription`s. Merging *after* a 635-file content
+sweep is the worst possible moment, so it was done as soon as W1 was
+committed and pushed. Three conflicts, all small; ⭐ the sweep is
+**idempotent** (it skips a row that already has a neighbouring
+`register:`), so re-running it over the merged tree swept master's 12 new
+rows and `--verify` came back green with *"12 row(s) added since the
+golden"*.
+
+**What master changed that this build had to adopt:**
+
+| master's change | what it cost here |
+|---|---|
+| `Globbable` → `Stackable` (mixin + `MixinApi.isGlobbable`) | one call site in `Stuff.presentationPhrase`, one test import |
+| a new `trade-medicine` pack | `pnpm install` — the stale-`node_modules` symptom that reads like a repo defect |
+| 6 new lint gates (30 → 36) | ⚠ one of them **failed**: see below |
+
+⭐⭐ **`lint:drive-scripts` retired the drive-script shape entirely.**
+Master's wire-tests build (MR!251) moved every drive into
+`packages/wire/tests/<feature>.wire.test.ts` behind a shared harness, and
+gates the old shape at a ceiling of **0** — it deleted
+`drive-cooking`, `drive-food-safety`, `drive-identity`, `drive-logistics`
+and `drive-textiles` on its way past. W0's `drive-presentation.ts` was
+therefore obsolete the moment the merge landed.
+
+**Decided:** master's convention wins — it is newer, it is gated, and a
+wire test is strictly better than a script because *it keeps running*.
+So the drive splits in two:
+
+- **The checkpoints** become `packages/wire/tests/presentation.wire.test.ts`,
+  written against the harness (`Session`, `declareFile`, `plain`), and
+  extended wave by wave — it must be green at every wave, so W1 ships the
+  steps W1 can prove and W4 adds the chat ones. ⭐ Its three
+  `look <instrument>` assertions are the `getLong` regression pinned in
+  the only tier that could ever have seen it.
+- **The transcript** stays a build-cycle instrument and moves to the
+  **scratchpad** (`transcript.mjs`), uncommitted, beside the golden. It
+  is a before/after diff of what five rooms *say*, not a test, and
+  `lint:drive-scripts` is right that it does not belong in
+  `packages/server/scripts/`.
+
+#### The W1 transcript diff, read honestly
+
+`before.json` (pre-sweep) vs `after.json` (post-sweep) over 65
+renderings in five rooms. Four groups of difference, and **only one was
+this build**:
+
+1. ⚠⚠ **Duncan Hall's instruments — a real regression, and the only
+   instrument that could see it.** `look altimeter` rendered *"a brass
+   altimeter"* in its identity tag and **"brass altimeter"** in its body.
+   `Visible.getLong()` falls back to the short description when nobody
+   wrote a long one, and it handed back the RAW field. Fixed; pinned in
+   `NounPhrase.test.ts` and in the wire file.
+2. **Dave's Bar** — extra ambient lines in one run and not the other.
+   Confirmed **timing noise**: it varies run-to-run on identical code
+   (the bartender's brain ticks).
+3. **The Terminus registry** — Odile read `someone` before and by her
+   description after. ⭐ Confirmed **not this build**: `someone` is
+   `RecognitionLogic.obscured`, reached only when `canSeeGate` fails —
+   a light/visibility gate this build does not touch. The companion
+   difference (`look city` finding nothing in the same run) is exactly
+   what an unperceivable target produces, since an organism's keywords
+   derive from `describeCore`. A day/night-shaped variable between two
+   runs 50 real minutes (≈10 game hours) apart.
+4. **Nothing else.** The other 61 renderings are byte-identical.
+
+⚠ **A transcript diff is a noisy instrument and that is worth writing
+down**: two of its four findings were the world moving, not the code.
+It is still the only thing that found (1).
+
 ### W2 — the form axis on the seam; the occupant block unified; `Mml.list` lazy
 
 **Goal.** A reference states its form; the four faces collapse to one;

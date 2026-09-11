@@ -9,7 +9,8 @@
 class: /platform/thing/JobBoard
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: a board of nailed-up slips
+  shortDescription: board of nailed-up slips
+  register: indefinite
   primaryKeyword: board
   longDescription: >
     A sheet of planking nailed up beside the winch house, layered with

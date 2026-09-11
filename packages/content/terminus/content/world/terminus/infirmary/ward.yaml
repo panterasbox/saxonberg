@@ -5,7 +5,8 @@
 class: /platform/location/SingletonCartesianLocation
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: the infirmary
+  shortDescription: infirmary
+  register: definite
   primaryKeyword: infirmary
   alternateNames: [ward, clinic, surgery]
   _address: terminus/city/counting-houses/infirmary

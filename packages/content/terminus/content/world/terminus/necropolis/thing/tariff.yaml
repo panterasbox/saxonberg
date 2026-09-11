@@ -8,7 +8,8 @@
 class: /platform/thing/Tariff
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: a slate of charges
+  shortDescription: slate of charges
+  register: indefinite
   primaryKeyword: slate
   keywords: [slate, tariff, charges, board]
   longDescription: |

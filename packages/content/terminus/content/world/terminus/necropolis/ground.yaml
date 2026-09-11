@@ -2,7 +2,8 @@
 class: /platform/location/SingletonCartesianLocation
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: the necropolis
+  shortDescription: necropolis
+  register: definite
   primaryKeyword: necropolis
   alternateNames: [graveyard, burial ground, graves, cemetery]
   _address: terminus/city/mayfield-row/necropolis

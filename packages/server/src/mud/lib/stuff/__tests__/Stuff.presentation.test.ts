@@ -18,7 +18,7 @@ import '../../../../test-bootstrap';
 import { describe, it, expect, afterEach } from 'vitest';
 import { NamedMixin } from '../../description/Named';
 import { VisibleMixin } from '../../description/Visible';
-import { GlobbableMixin } from '../Globbable';
+import { StackableMixin } from '../Stackable';
 import { DisguisableMixin } from '../../disguise/Disguisable';
 import { DisguiseBearingMixin } from '../../disguise/Disguise';
 import { SlottedMixin } from '../../slot/Slotted';
@@ -31,7 +31,7 @@ import { makeStuff } from '../../security/__tests__/test-setup';
 class Plain extends Idea {}
 class Described extends VisibleMixin(Idea) {}
 class NamedAndDescribed extends NamedMixin(VisibleMixin(Idea)) {}
-class Stack extends GlobbableMixin(VisibleMixin(Idea)) {}
+class Stack extends StackableMixin(VisibleMixin(Idea)) {}
 // A wearer and the thing it wears: `DisguisableMixin` RESOLVES a
 // disguise from worn garments — it never holds one — so the only honest
 // way to reach the top rung is to put a hood on somebody.

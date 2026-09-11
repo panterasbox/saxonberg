@@ -6,7 +6,8 @@
 class: /platform/thing/Chair
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: a low cot
+  shortDescription: low cot
+  register: indefinite
   primaryKeyword: cot
   keywords: [cot, bed, bunk]
   longDescription: |
