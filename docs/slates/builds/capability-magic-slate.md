@@ -785,3 +785,21 @@ When RPG work begins, this boils down to:
 
 The taxonomy, the spell/skill content, and the combat coupling wait
 for their own work.
+
+---
+
+## ⭐ Hand-off from the consequence build (MR!254, 2026-09-10)
+
+⚠ **`MemorizedMixin.competenceRankFor` is a `return 0` terminal that no
+host overrides** — found by the build's `lint:unconsumed-seams` census,
+which counts exactly this shape (an extension hook nothing composes).
+Its docstring says *"composed hosts supply the real read"*; no composed
+host does, so every memorized working reports competence rank **0**
+(`lib/magic/Memorized.ts:132`, read at :168).
+
+⭐ It is a seam waiting for a consumer rather than a bug — but a
+`return 0` that has waited long enough to be found by a census is worth
+a decision: fill it, or delete it and let the caller read competence
+directly. A hook one wave ahead of its consumer is good sequencing; one
+several builds ahead is a claim nobody is honouring.
+

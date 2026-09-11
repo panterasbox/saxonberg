@@ -54,6 +54,7 @@ const ContractApiCallers = SecurityPolicies.FromModule(
   "/api/contract#ContractApi",
 );
 
+
 /** One game-hour in game-seconds (the expiry math). */
 const ONE_GAME_HOUR_S = 3_600;
 
@@ -63,6 +64,15 @@ const MAX_SEARCH_DEPTH = 6;
 /** Persistence is required for every contract touchpoint. */
 function active(): boolean {
   return PersistApi.isConnected();
+}
+
+/** Game-time seconds, or 0 when no world clock is running. */
+function worldSeconds(): number {
+  try {
+    return WorldClockApi.getNow().rawValue();
+  } catch {
+    return 0;
+  }
 }
 
 /** A dial read; unwarmed/unseeded (throw or empty) → the fallback. */
@@ -113,7 +123,7 @@ function actor(): Stuff | null {
 
 /** The acting principal's durable key, or "". */
 function actorKey(): string {
-  return actor()?.getTemplatePath() ?? "";
+  return actor()?.getIdentityPath() ?? "";
 }
 
 /** Append one event row (money legs live in bank_ledger; txId links). */
@@ -181,7 +191,7 @@ async function resolveDestination(path: string): Promise<Stuff | null> {
  * the two questions differ in cost: delivery stops at the first hit and
  * supply cannot.
  *
- * ⚠ `Globbable` goods are refused by `matchesItem`, so this counts
+ * ⚠ `Stackable` goods are refused by `matchesItem`, so this counts
  * DISCRETE things — ten lumps of ore, not a merged stack of ten. That is
  * the same identity rule crates exist for, and it is why a supply gig
  * for something fungible is unpostable rather than unverifiable.
@@ -214,6 +224,106 @@ function countDeliveredItemsAt(
     found += countDeliveredItemsAt(item, condition, depth + 1);
   }
   return found;
+}
+
+/**
+/**
+ * ⚠ The longest gap a single sample may credit. The far-past guard the
+ * condition reconciles already use: a world that was down overnight must
+ * not pay a night's wages to somebody who logged out in the right
+ * doorway. Comfortably longer than the sweep interval, so an ordinary
+ * missed tick still pays in full.
+ */
+const MAX_WATCH_SAMPLE_SEC = 900;
+
+/**
+ * ⭐⭐⭐ **The watch reconcile — a guard is paid for being there, and
+ * being there is something the engine can see without being told.**
+ *
+ * ⚠⚠ This replaced a `watch` VERB, and the reasoning is the build's
+ * sharpest correction. Typing `watch` never made anybody keep watch; it
+ * marked an intention, and the engine then trusted it. But the clause is
+ * *"be at place P for N hours"*, and where somebody is standing is a
+ * fact the engine already holds. So there is no verb, no engagement and
+ * nothing to remember to type: you claim the gig, you go and stand at
+ * the post, and the contract notices.
+ *
+ * ⭐ **The `AttendanceEngagement` precedent decided it.** A shopkeeper
+ * does not type `attend` — attendance starts because a customer arrived
+ * and the roster says who is on shift. Standing a post is the same
+ * shape, and it should not have needed a word.
+ *
+ * ⭐⭐ **And the hands-free rule got better by losing its rule.** The old
+ * engagement CLAIMED `body`/`hands`/`attention`, so the game refused to
+ * let you craft while on watch. Now nothing refuses: craft if you like —
+ * those minutes simply do not count. That is the same doctrine as the
+ * guard who was robbed blind and still gets paid. **The engine measures
+ * presence, not virtue**, and a bad guard is expressed by a short
+ * paycheque instead of by a prohibition somebody had to write.
+ */
+async function reconcileWatchesImpl(): Promise<number> {
+  if (!active()) return 0;
+  const now = worldSeconds();
+  if (now <= 0) return 0;
+  let credited = 0;
+  for (const record of await ContractRecord.findAllClaimed()) {
+    const condition = conditionOf(record);
+    if (condition?.template !== "watch") continue;
+    const seen = record.watchSeenSec ?? 0;
+    // ⚠ First sight stamps and pays nothing — the first-touch rule. An
+    // unstamped record is a gig just claimed, not an eight-hour vigil.
+    const elapsed = seen > 0 ? Math.min(now - seen, MAX_WATCH_SAMPLE_SEC) : 0;
+    record.watchSeenSec = now;
+    if (elapsed > 0 && standingThePost(record, condition)) {
+      record.watchedSec = (record.watchedSec ?? 0) + elapsed;
+      credited++;
+    }
+    await record.save();
+  }
+  return credited;
+}
+
+/**
+ * Is the claimant, right now, at the post with their hands free?
+ *
+ * ⚠ Deliberately three cheap facts and no fourth. Whether they were
+ * *watching* is not a modelled thing and must never be guessed at.
+ */
+function standingThePost(
+  record: ContractRecord,
+  condition: ConditionData,
+): boolean {
+  const worker = claimantStuff(record);
+  if (!worker) return false; // logged out, or not resident — nobody is there
+  if (!MixinApi.isContainable(worker)) return false;
+  if (worker.getContainer()?.getTemplatePath() !== condition.destinationPath) {
+    return false;
+  }
+  // ⭐ Hands free, expressed as the absence of any other engagement
+  // rather than as a rule about which acts a guard may perform. Hewing
+  // takes your hands; while it does, you are not standing a post.
+  if (MixinApi.isEngaged(worker) && worker.getEngagements().length > 0) {
+    return false;
+  }
+  return true;
+}
+
+/**
+ * The live body behind a claimant key, or null when nobody is standing
+ * there.
+ *
+ * ⭐ Resolved off the CONNECTED roster rather than by a lookup, and that
+ * is the honest reading rather than a shortcut: a guard who logged out is
+ * not at their post, so a claimant with no live avatar should accrue
+ * nothing. The absent case and the not-here case are the same case.
+ */
+function claimantStuff(record: ContractRecord): Stuff | null {
+  if (!record.claimant) return null;
+  for (const avatar of PlayerApi.connectedAvatars()) {
+    const who = avatar as unknown as Stuff;
+    if (who.getIdentityPath() === record.claimant) return who;
+  }
+  return null;
 }
 
 /** Whether the condition is satisfied at `dest` — one, or a tally. */
@@ -434,7 +544,7 @@ async function resolveIssuer(
       accountId,
     };
   }
-  const key = poster.getTemplatePath() ?? "";
+  const key = poster.getIdentityPath() ?? "";
   const accountId = await BankingApi.primaryAccountIdOf(key);
   if (!accountId) {
     return { ok: false, reason: "you have no account to fund the escrow" };
@@ -476,7 +586,7 @@ async function postImpl(spec: GigSpec): Promise<PostGigResult> {
     const exemplar = StuffApi.findAllByTemplatePath(
       spec.condition.item.path,
     )[0];
-    if (exemplar && MixinApi.isGlobbable(exemplar)) {
+    if (exemplar && MixinApi.isStackable(exemplar)) {
       return { ok: false, reason: "fungible goods can't be contracted" };
     }
     // ⭐ And the kind has to BE something. A poster naming a kind it has
@@ -568,7 +678,7 @@ async function claimImpl(contractId: string): Promise<ClaimResult> {
   if (record.state !== "open") {
     return { ok: false, reason: "that gig isn't open" };
   }
-  const key = claimer.getTemplatePath() ?? "";
+  const key = claimer.getIdentityPath() ?? "";
   if (key === record.issuer.templatePath) {
     return { ok: false, reason: "you can't claim your own gig" };
   }
@@ -645,7 +755,7 @@ async function fulfillImpl(contractId: string): Promise<FulfillResult> {
   if (record.state !== "open" && record.state !== "claimed") {
     return { ok: false, reason: "that gig is closed" };
   }
-  const key = presenter.getTemplatePath() ?? "";
+  const key = presenter.getIdentityPath() ?? "";
   if (record.claimMode === "exclusive" && record.claimant !== key) {
     return { ok: false, reason: "that isn't your claim" };
   }
@@ -680,7 +790,7 @@ async function completeImpl(contractId: string): Promise<CompleteResult> {
   if (record.state !== "open" && record.state !== "claimed") {
     return { ok: false, reason: "that gig is closed" };
   }
-  const key = completer.getTemplatePath() ?? "";
+  const key = completer.getIdentityPath() ?? "";
   if (record.claimMode === "exclusive" && record.claimant !== key) {
     return { ok: false, reason: "that isn't your claim" };
   }
@@ -690,7 +800,17 @@ async function completeImpl(contractId: string): Promise<CompleteResult> {
   // Verification: live `holdsFor` now, OR a sealed post-claim `fulfilled`
   // row whose actor is the completer (the payout survives state drift).
   let verified = false;
-  const dest = await resolveDestination(condition.destinationPath);
+  // ⭐ A `watch` clause verifies against the ACCRUED WATCH on the record,
+  // not against anything at a destination — there is no item to find.
+  if (condition.template === "watch") {
+    verified = Condition.watchHolds(condition, record.watchedSec ?? 0);
+    if (!verified) {
+      return { ok: false, reason: "the watch isn't served out" };
+    }
+  }
+  const dest = verified
+    ? null
+    : await resolveDestination(condition.destinationPath);
   if (dest && conditionHoldsAt(dest, condition)) verified = true;
   if (!verified && (await hasValidFulfilledRow(record, key))) verified = true;
   if (!verified) return { ok: false, reason: "the delivery isn't done" };
@@ -835,6 +955,21 @@ export class ContractLogic extends ApiLogic {
   @CallSecurity(ContractApiCallers)
   public async claim(contractId: string): Promise<ClaimResult> {
     return claimImpl(contractId);
+  }
+
+  /**
+   * See {@link ContractApi.reconcileWatches}.
+   *
+   * ⚠ The CADENCE lives on `WatchWarden`, not here. `AttendantLogic`
+   * keeps its own sweep handle because it is entangled with that
+   * module's hot-reload re-assertion; this one only calls a static, so
+   * the timer belongs with the operator-shaped singleton that arms it —
+   * and putting it there also keeps `ScheduleApi` out of this module's
+   * import graph, which is not cosmetic (see the warden's docstring).
+   */
+  @CallSecurity(ContractApiCallers)
+  public async reconcileWatches(): Promise<number> {
+    return reconcileWatchesImpl();
   }
 
   /** See {@link ContractApi.abandon}. */

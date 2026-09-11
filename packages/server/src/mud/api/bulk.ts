@@ -1,20 +1,20 @@
 /**
  * BulkableApi — the single `transfer` primitive over the bulk
- * substrate ({@link BulkableMixin}). Sibling of {@link GlobbableApi}:
- * glob moves discrete fungible units, bulk moves continuous measured
+ * substrate ({@link BulkableMixin}). Sibling of {@link StackableApi}:
+ * stack moves discrete fungible units, bulk moves continuous measured
  * matter. Every bulk verb (`fill` / `pour` / `spill` / `drink` /
  * `sip`) is a thin direction over `transfer`.
  *
  * `transfer` is the verb-facing dispatch surface — the bulk analog of
- * `GlobbableApi.applyQuantity` (not of `split` / `merge`): it owns the
+ * `StackableApi.applyQuantity` (not of `split` / `merge`): it owns the
  * clamp, the material-compatibility check, the closure / drain-through
  * cascade, and the structured-notes envelope, and every bulk verb is a
  * thin direction over it. Like `applyQuantity`, it is ungated so the
  * controllers can call it directly; the raw slot writes it composes
  * (`BulkSlot.setAmount` / `setMaterial`) are the low-level primitives,
- * mirroring `Globbable.setQuantity`. Programmatic-contract violations
+ * mirroring `Stackable.setQuantity`. Programmatic-contract violations
  * throw; user-input failures (clamp, material mismatch, empty source)
- * ride the notes, reusing glob's canonical `@saxonberg/types` note
+ * ride the notes, reusing stack's canonical `@saxonberg/types` note
  * kinds (no new kinds).
  *
  * Thin, security-gated forwarding shell: the logic lives in the
@@ -47,7 +47,7 @@ import { fileURLToPath } from 'url';
 import { SecurityApi } from './security';
 
 /**
- * The note kinds `transfer` ever emits — reused from glob's set.
+ * The note kinds `transfer` ever emits — reused from stack's set.
  * Controllers forward `result.notes` straight into `ctx.note(...)`.
  */
 export type BulkNote =

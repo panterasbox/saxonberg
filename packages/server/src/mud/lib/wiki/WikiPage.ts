@@ -269,6 +269,20 @@ export class WikiPage extends Document {
    * page), so the comparison has to be the same in both directions:
    * case-folded, whitespace collapsed to hyphens.
    */
+  /**
+   * Every page in one namespace — the keyed read behind `wiki list`.
+   *
+   * ⭐ It goes to the `{namespace, slug}` index the collection already
+   * has, rather than reading the whole corpus and filtering at the call
+   * site. The corpus grows with what people write, which is exactly the
+   * kind of growth a listing must not be priced at.
+   */
+  static async findByNamespace(namespace: string): Promise<WikiPage[]> {
+    return WikiPage.find<WikiPage>({
+      namespace: WikiPage.normalizeName(namespace),
+    } as Record<string, unknown>);
+  }
+
   static normalizeName(raw: string): string {
     return raw
       .trim()

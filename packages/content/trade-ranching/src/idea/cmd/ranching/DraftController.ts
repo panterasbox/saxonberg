@@ -52,13 +52,16 @@ export default class DraftController extends CommandController<DraftModel> {
   async execute(model: DraftModel, context: CommandContext): Promise<void> {
     const giver = context.commandGiver;
     const registry = await this.registry();
-    const herds = await registry.all();
-    const picked = this.pickHerd(herds, model.herd, this.bookHerdId(giver));
+    const picked = await this.pickHerd(
+      registry,
+      model.herd,
+      this.bookHerdId(giver),
+    );
     const herd = picked === null ? null : await this.reapStrays(registry, picked);
     if (!herd) {
       this.decline(
         context,
-        herds.length === 0
+        (await registry.isEmpty())
           ? Mml.compose`There is no herd filed that you could draft one out of.`
           : Mml.compose`You have no herd by that name.`,
         'no-herd',
@@ -254,24 +257,17 @@ export default class DraftController extends CommandController<DraftModel> {
    * exactly one herd is filed in the entire world, which is not a rule
    * anybody could have discovered from the inside.
    */
-  private pickHerd(
-    herds: readonly HerdRecord[],
+  private async pickHerd(
+    registry: HerdRegistry,
     named?: string,
     bookHerdId?: string | null,
-  ): HerdRecord | null {
-    if (named) {
-      const want = named.toLowerCase();
-      return (
-        herds.find(
-          (h) => h.herdId.toLowerCase() === want || h.name.toLowerCase() === want,
-        ) ?? null
-      );
-    }
+  ): Promise<HerdRecord | null> {
+    if (named) return registry.named(named);
     if (bookHerdId) {
-      const here = herds.find((h) => h.herdId === bookHerdId);
+      const here = await registry.read(bookHerdId);
       if (here) return here;
     }
-    return herds.length === 1 ? (herds[0] as HerdRecord) : null;
+    return registry.sole();
   }
 
   /**

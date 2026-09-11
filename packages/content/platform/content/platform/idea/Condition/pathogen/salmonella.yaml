@@ -15,8 +15,17 @@ class: /platform/idea/Condition
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: salmonellosis
-  signature: []
+  # ⭐⭐ The hydration drain, MOVED OUT OF CODE. It used to be
+  # hard-coded inside `Vitals.progressInfection` — the ONE effect any
+  # affliction had on a body anywhere in the engine, for pathogens
+  # only, that no row asked for and no row could ask for. A severe
+  # infection dehydrates you, and dehydration already has a lethal
+  # cascade with a rescuable window at the end of it: nothing new
+  # kills anyone.
+  signature:
+    - { kind: reserve, reserve: hydration, pctPerHour: -4 }
   progression:
+    law: logistic
     intervalMs: 1800000
   resolution:
     by: rest

@@ -126,7 +126,7 @@ import type { Haulable } from '../lib/slot/Haulable';
 import type { Hauler } from '../lib/slot/Hauler';
 import type { Spawner } from '../lib/stuff/Spawner';
 import type { Spawned } from '../lib/stuff/Spawned';
-import type { Globbable } from '../lib/stuff/Globbable';
+import type { Stackable } from '../lib/stuff/Stackable';
 import type { Chattel } from '../lib/chattel/Chattel';
 import type { Estate } from '../lib/chattel/Estate';
 import type { Resettable } from '../lib/residency/Resettable';
@@ -197,7 +197,7 @@ export type { FieldMeta, FieldMetaEntry } from '../lib/mixin';
  * property access rather than declared on this type.
  *
  * Exported so callers that thread a constructor into MixinApi
- * (composition validation hooks, glob-identity helpers) can name the
+ * (composition validation hooks, stack-identity helpers) can name the
  * type without redeclaring the `Function & ...` shape locally.
  */
 // eslint-disable-next-line @typescript-eslint/ban-types
@@ -250,6 +250,31 @@ export class MixinApi {
    * @returns Array of mixin constructors
    */
   public static queryMixins(constructor: AnyConstructor): MixinClass[] {
+    return [...MixinApi.#composedMixins(constructor)];
+  }
+
+  /**
+   * ⭐ **Memoized composition.** A class's mixin list is a pure function
+   * of the constructor — the prototype chain does not change under a
+   * live class — so the walk runs once per class instead of once per
+   * question. It was running on every `isX` narrowing anywhere in the
+   * engine, and on every object of every bracket filter in a query.
+   *
+   * The memo is a `WeakMap` keyed on the constructor, which means HMR
+   * needs no invalidation: a reloaded class is a **different**
+   * constructor and simply gets its own entry, while the old one is
+   * collected with the last object holding it.
+   *
+   * ⚠ Composition only. Shadows and augments are runtime facts about an
+   * *instance* and are consulted by `hasMixin(host, …)` /
+   * `getActiveMixins`, never here.
+   */
+  static #mixinMemo = new WeakMap<AnyConstructor, readonly MixinClass[]>();
+  static #lowercaseMemo = new WeakMap<AnyConstructor, ReadonlySet<string>>();
+
+  static #composedMixins(constructor: AnyConstructor): readonly MixinClass[] {
+    const cached = MixinApi.#mixinMemo.get(constructor);
+    if (cached) return cached;
     const mixins: MixinClass[] = [];
     let current: unknown = constructor;
 
@@ -267,7 +292,32 @@ export class MixinApi {
       current = Object.getPrototypeOf(current);
     }
 
-    return mixins;
+    const frozen: readonly MixinClass[] = mixins;
+    MixinApi.#mixinMemo.set(constructor, frozen);
+    return frozen;
+  }
+
+  /**
+   * Every composed mixin name on `constructor`, **lowercased** — the key
+   * space of the registry's composition index and of MQL's
+   * `[mixin.<name>]` filter, which has always compared case-insensitively.
+   *
+   * Its own memo: the registry asks this on every register and
+   * unregister, and the lowercasing is the part that would otherwise
+   * repeat per object.
+   */
+  public static lowercasedMixinNames(
+    constructor: AnyConstructor,
+  ): ReadonlySet<string> {
+    const cached = MixinApi.#lowercaseMemo.get(constructor);
+    if (cached) return cached;
+    const names = new Set<string>();
+    for (const mixin of MixinApi.#composedMixins(constructor)) {
+      const name = mixin._mixinName || mixin.name;
+      if (name) names.add(name.toLowerCase());
+    }
+    MixinApi.#lowercaseMemo.set(constructor, names);
+    return names;
   }
 
   /**
@@ -364,11 +414,11 @@ export class MixinApi {
     constructor: AnyConstructor,
     mixinName: MixinName
   ): boolean {
-    const mixins = this.queryMixins(constructor);
-    return mixins.some((mixin) => {
+    for (const mixin of MixinApi.#composedMixins(constructor)) {
       const name = mixin._mixinName || mixin.name;
-      return name === mixinName;
-    });
+      if (name === mixinName) return true;
+    }
+    return false;
   }
 
   /**
@@ -1213,8 +1263,8 @@ export class MixinApi {
     return this.hasMixin(obj, Mixins.Spawned);
   }
 
-  public static isGlobbable(obj: Stuff): obj is Stuff & Globbable {
-    return this.hasMixin(obj, Mixins.Globbable);
+  public static isStackable(obj: Stuff): obj is Stuff & Stackable {
+    return this.hasMixin(obj, Mixins.Stackable);
   }
 
   /** A movable good carrying a durable per-instance chattel identity. */
@@ -1629,17 +1679,17 @@ export class MixinApi {
   }
 
   /**
-   * Walk the prototype chain unioning the static `globIdentityFields`
+   * Walk the prototype chain unioning the static `stackIdentityFields`
    * arrays declared at each level. Deduplicates. Mirrors the shape of
    * {@link getAllPersistentFields}.
    *
-   * A glob's "kind" is defined by the values of these fields plus
-   * `templatePath`; two globs merge iff their templatePath matches and
-   * every glob-identity field has equal values.
+   * A stack's "kind" is defined by the values of these fields plus
+   * `templatePath`; two stacks merge iff their templatePath matches and
+   * every stack-identity field has equal values.
    */
-  public static getAllGlobIdentityFields(constructor: AnyConstructor): string[] {
+  public static getAllStackIdentityFields(constructor: AnyConstructor): string[] {
     const meta = MixinApi.getAllFieldMeta(constructor);
-    return Object.keys(meta).filter((f) => meta[f]!.globIdentity === true);
+    return Object.keys(meta).filter((f) => meta[f]!.stackIdentity === true);
   }
 
   /**
@@ -1668,16 +1718,16 @@ export class MixinApi {
    *
    * **Leaf reload required.** Reloading a mixin module alone is NOT
    * enough to pick up a new check. JS class inheritance is bound at
-   * class-definition time: `class Coin extends GlobbableMixin(Idea)`
-   * captures whatever `GlobbableMixin` returned at that expression's
-   * evaluation. Reloading `Globbable.ts` produces a new mixin
+   * class-definition time: `class Coin extends StackableMixin(Idea)`
+   * captures whatever `StackableMixin` returned at that expression's
+   * evaluation. Reloading `Stackable.ts` produces a new mixin
    * function and registers it with `HotReloadApi`, but `Coin`'s
    * prototype chain still points at the OLD mixin output. Since
    * `Coin`'s constructor identity hasn't changed, the WeakSet hit
    * memoizes the old validation forever.
    *
    * To rotate the validation: reload the **leaf class** too. That
-   * re-evaluates its `class Coin extends GlobbableMixin(Idea)`
+   * re-evaluates its `class Coin extends StackableMixin(Idea)`
    * expression against the new mixin output, produces a fresh
    * `Coin` constructor identity, and the next first-instance triggers
    * the new check.
@@ -1685,8 +1735,8 @@ export class MixinApi {
    * No auto-cascade — there's no machinery that reloads leaves when
    * a mixin reloads. That's intentional: bulk re-instantiation while
    * a player is mid-action would be jarring. The right tool for
-   * "refresh every Globbable in the world" is an MQL query (e.g.,
-   * `world:[mixin.GlobbableMixin]`) plus an explicit reload, run by
+   * "refresh every Stackable in the world" is an MQL query (e.g.,
+   * `world:[mixin.StackableMixin]`) plus an explicit reload, run by
    * the dev when they're ready. Forgetting to reload leaves doesn't
    * create inconsistency — the old check just keeps applying; the
    * new constraint silently doesn't tighten, but nothing breaks.
@@ -1697,8 +1747,8 @@ export class MixinApi {
    *
    * ## Current opt-ins
    *
-   * - `GlobbableMixin` — `⊥ Container`, `⊥ Singleton`,
-   *   `globIdentityFields ⊂ persistentFields`.
+   * - `StackableMixin` — `⊥ Container`, `⊥ Singleton`,
+   *   `stackIdentityFields ⊂ persistentFields`.
    * - `PerceiverMixin` — requires `Sensor` on the chain. The TS
    *   bound is loose (`MixinConstructor`); the `Perceiver extends
    *   Sensor` interface relationship narrows the type but doesn't

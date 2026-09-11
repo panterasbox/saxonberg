@@ -170,20 +170,20 @@ export function BlessableMixin<TBase extends MixinConstructor>(Base: TBase) {
     static _mixinName = 'BlessableMixin';
 
     static fieldMeta: FieldMeta = {
-      // ⚠ The true band is persistent but is NOT a glob-identity field.
+      // ⚠ The true band is persistent but is NOT a stack-identity field.
       // Putting it there would split stacks by a fact nobody can see —
       // which IS the leak: you would learn an item was cursed by
       // watching it refuse to stack.
       blessingBand: { persistent: true, authorable: true },
       // The BUCKET is what identity keys on. Both persistent, satisfying
-      // the framework's `globIdentityFields ⊂ persistentFields`
+      // the framework's `stackIdentityFields ⊂ persistentFields`
       // constraint, which it enforces at registration.
       blessingBucket: {
         persistent: true,
         authorable: true,
-        globIdentity: true,
+        stackIdentity: true,
       },
-      // ⚠ NOT a glob-identity field. Two items differing only in the
+      // ⚠ NOT a stack-identity field. Two items differing only in the
       // odds that MADE them are indistinguishable, and splitting a
       // stack on it would leak a generation parameter as instance state.
       blessingOdds: { persistent: true, authorable: true },

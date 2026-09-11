@@ -18,3 +18,5 @@ data:
   # One-handed — claims a single hand slot (wield it in either hand).
   slotClaims:
     "/stuff/idea/species/BodyPlan/biped": ["hand:right"]
+  # ⭐ A dagger is blades at the clinch.
+  exercises: [blades]

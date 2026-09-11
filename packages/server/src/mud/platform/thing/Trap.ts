@@ -1,7 +1,7 @@
 /**
  * Trap — the canonical deployable **hazard**: `HazardMixin(DetailedMixin(
  * Thing))`, a placed object that springs when a mover meets it (the
- * `Bandage = DressingMixin(Thing)` / `Coin = GlobbableMixin(Thing)`
+ * `Bandage = DressingMixin(Thing)` / `Coin = StackableMixin(Thing)`
  * precedent — a Thing plus its capability mixin).
  *
  * `Thing` already composes `ConcealableMixin` (Phase 1), so a `Trap` is

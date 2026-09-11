@@ -1,0 +1,82 @@
+/**
+ * Fixture for check-condition-arms. Half of these shapes MUST be counted
+ * as arms; half MUST NOT. The must-nots are the real ones the first cut
+ * of the gate false-positived on (a dispel selection and an `assess`
+ * readout both discriminate and iterate, and neither advances anything).
+ */
+
+export class Fixture {
+  private conditions: Array<{ kind: string; stage: number }> = [];
+
+  // ── MUST FIRE ─────────────────────────────────────────────────────
+
+  /** bound arm: discriminated subset, iterated, inside a reconcile*. */
+  private reconcileAlpha(): void {
+    const alphas = this.conditions.filter((c) => c.kind === 'alpha');
+    for (const a of alphas) {
+      a.stage += 1;
+    }
+  }
+
+  /** bound arm: discriminated by optional-field presence. */
+  private reconcileBeta(nowS: number): void {
+    const betas = this.conditions.filter((c) => c.kind !== undefined);
+    for (const b of betas) {
+      b.stage = nowS;
+    }
+  }
+
+  /** bound arm outside a reconcile*, but the loop advances over time. */
+  private stepGamma(elapsed: number): void {
+    const gammas = this.conditions.filter((c) => c.kind === 'gamma');
+    for (const g of gammas) {
+      g.stage += elapsed;
+    }
+  }
+
+  /** inline arm: no bound subset, but a time cursor in the body. */
+  private stepDelta(): void {
+    const host = this as unknown as { getConditions(): typeof this.conditions };
+    for (const c of host.getConditions()) {
+      const elapsed = 1;
+      c.stage += elapsed;
+    }
+  }
+
+  // ── MUST NOT FIRE ─────────────────────────────────────────────────
+
+  /** a dispel-style SELECTION: discriminated + iterated, advances nothing. */
+  public execRelieve(): number {
+    const matches = this.conditions.filter((c) => c.kind === 'magic');
+    let n = 0;
+    for (const m of matches) {
+      n += m.stage;
+    }
+    return n;
+  }
+
+  /** an assess-style READOUT. */
+  public readout(): string[] {
+    const afflictions = this.conditions.filter((c) => c.kind === 'affliction');
+    const out: string[] = [];
+    for (const a of afflictions) {
+      out.push(String(a.stage));
+    }
+    return out;
+  }
+
+  /** a lookup helper. */
+  public findAffliction(k: string): { kind: string; stage: number } | null {
+    for (const c of this.conditions) {
+      if (c.kind === k) return c;
+    }
+    return null;
+  }
+
+  /** a bulk clear. */
+  public clearAll(): void {
+    for (const c of [...this.conditions]) {
+      void c;
+    }
+  }
+}

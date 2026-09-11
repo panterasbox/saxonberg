@@ -88,6 +88,13 @@ export default class CompetenceController extends RecordControllerBase<Competenc
     const bands = MixinApi.isAdvancing(subject)
       ? await subject.competenceBands()
       : [];
+    // ⭐⭐ **Both facts have to be visible at once**: that you are reading
+    // lower than usual, and that nothing about your record changed. A
+    // player who saw only the lowered bands would reasonably believe
+    // dying had eaten their history.
+    const diminished = MixinApi.isVitals(subject)
+      ? subject.expressionSuppression()
+      : 0;
 
     const heading = isSelf
       ? "Competence"
@@ -116,6 +123,20 @@ export default class CompetenceController extends RecordControllerBase<Competenc
             )
           )
         ).toString()
+      );
+    }
+
+    if (diminished > 0) {
+      blocks.push(
+        Mml.escape(
+          isSelf
+            ? `You are still recovering. What you can bring to bear is ` +
+              `${diminished === 1 ? "a band" : `${diminished} bands`} short ` +
+              `of what you know — and nothing you have done has been ` +
+              `forgotten. It will come back.`
+            : `${subject.getPresentation()} is still recovering, and not ` +
+              `showing everything they have.`,
+        ),
       );
     }
 

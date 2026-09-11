@@ -17,3 +17,5 @@ data:
   length: 0.7
   slotClaims:
     "/stuff/idea/species/BodyPlan/biped": ["hand:right"]
+  # ⭐ Not a weapon, but swung like one; a bar of iron trains the bludgeon.
+  exercises: [bludgeons]

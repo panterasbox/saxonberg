@@ -643,7 +643,7 @@ export function AttiredMixin<TBase extends MixinConstructor>(Base: TBase) {
       if (!plan) return Quantity.of(0, 'clo');
       let total = 0;
       for (const part of plan.getBodyParts()) {
-        if (part.governsVital) continue;
+        if (part.governs?.length) continue;
         const share = plan.getPartSurfaceFraction(part.key);
         if (!(share > 0)) continue;
         total += share * this.insulationAt(part.key).rawValue();
@@ -657,7 +657,7 @@ export function AttiredMixin<TBase extends MixinConstructor>(Base: TBase) {
       if (!plan) return 0;
       let weighted = 0;
       for (const part of plan.getBodyParts()) {
-        if (part.governsVital) continue;
+        if (part.governs?.length) continue;
         const share = plan.getPartSurfaceFraction(part.key);
         if (!(share > 0)) continue;
         const outer = this.outermostAt(part.key);
@@ -682,7 +682,7 @@ export function AttiredMixin<TBase extends MixinConstructor>(Base: TBase) {
       );
       let weighted = 0;
       for (const part of plan.getBodyParts()) {
-        if (part.governsVital) continue;
+        if (part.governs?.length) continue;
         const share = plan.getPartSurfaceFraction(part.key);
         if (!(share > 0)) continue;
         const outer = this.outermostAt(part.key);
@@ -702,7 +702,7 @@ export function AttiredMixin<TBase extends MixinConstructor>(Base: TBase) {
       if (!plan) return 1;
       let masked = 0;
       for (const part of plan.getBodyParts()) {
-        if (part.governsVital) continue;
+        if (part.governs?.length) continue;
         // ⚠ Only the HEAD masks a face. A cloak over the torso hides
         // nothing anybody was reading you by.
         if (!part.key.startsWith('body.head')) continue;

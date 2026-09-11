@@ -30,7 +30,7 @@ full verticals to ship."*
 Related: [crafting.md](../../subsystems/crafting.md),
 [retail.md](../../subsystems/retail.md) (⭐ the correction in Part 2),
 [chattel.md](../../subsystems/chattel.md) (discrete-goods-only),
-[glob.md](../../subsystems/glob.md),
+[stacks.md](../../subsystems/stacks.md),
 [husbandry.md](../../subsystems/husbandry.md) (⭐ the shape the new mixin
 copies), [smallholding.md](../../subsystems/smallholding.md),
 [banking.md](../../subsystems/banking.md) (the bar's P&L),
@@ -159,30 +159,30 @@ consumer.
 
 # Part 2 — ⚠ Proposed change to shipped code: fungible consignment
 
-> **User: "wait, why can't things be globbable? that sounds like something
+> **User: "wait, why can't things be stackable? that sounds like something
 > that can be fixed easily."**
 
 **Correct.** The refusal is **one guard** in `ConsignController`:
 
 ```ts
 // Discrete-goods only — a fungible stack is owned-by-possession.
-if (MixinApi.isGlobbable(item)) { … reject … }
+if (MixinApi.isStackable(item)) { … reject … }
 ```
 
 The reason chain: `consign` proves ownership via `ChattelApi.ownerOf` →
-`ownerOf` refuses globs → therefore globs cannot be consigned.
+`ownerOf` refuses stacks → therefore stacks cannot be consigned.
 
 > ⭐⭐⭐ **The blocker is not consignment. It is using CHATTEL as the proof
 > of ownership.**
 
 ## chattel.md already supplies the alternative
 
-> *"a glob's `_chattelId` stays empty, and fungible stacks are
+> *"a stack's `_chattelId` stays empty, and fungible stacks are
 > **owned-by-possession** (whoever holds them)."*
 
 So for a stack, *"is this yours to sell?"* has a trivially correct answer —
 **you are holding it** — which `resolveHeld(giver, model.thing)` established
-two lines earlier. **The chattel check is redundant on the glob path.**
+two lines earlier. **The chattel check is redundant on the stack path.**
 
 ⭐ The doc's structural objection is real but aimed elsewhere: *"a split of a
 stack of five has no answer for which unit keeps the id."* True — **and it
@@ -195,41 +195,41 @@ evaporates when nothing is ever stamped.**
 | **consign** | you hold it ⇒ you may list it. The listing carries `{consignor, quantity, askPerUnit}` |
 | **buy** | split N units off, hand over — **no stamp** (possession transfers with the goods) — settle `N × ask`, split to the consignor |
 | **reclaim** | split the remainder back |
-| ⚠ **the one hazard** | two consignors' stacks **merging** on the shelf. Fix: **each listing holds its own lot**, segregated — no `globIdentityFields` change |
+| ⚠ **the one hazard** | two consignors' stacks **merging** on the shelf. Fix: **each listing holds its own lot**, segregated — no `stackIdentityFields` change |
 
 ## ⭐⭐ Refreshed 2026-08-05 — the currency build merged, and it ARGUES FOR THIS
 
 The currency build (MR !169) had this exact fight and settled it in this
 slate's favour. Its plan called for gating `setQuantity` on
-`GlobbableMixin` so future value-bearing globs would inherit conservation.
+`StackableMixin` so future value-bearing stacks would inherit conservation.
 **55 failing tests said no**, and the recorded conclusion was:
 
 > ⭐⭐⭐ ***"A pile of ore is not money."*** The gate belongs on **`Coin`**,
-> the value-bearing class — not on every glob in the world.
+> the value-bearing class — not on every stack in the world.
 
-⇒ **Ordinary commodity globs are deliberately, and now testedly, NOT
+⇒ **Ordinary commodity stacks are deliberately, and now testedly, NOT
 conservation-gated.** Splitting and merging grain freely is a position the
 codebase has already defended, so fungible consignment is not asking for an
 exception — it is using the substrate as decided.
 
 ⭐ `Coin.setQuantity` is now `@CallSecurity`-gated with the caller set
-*"the glob mechanics (split/merge) and the cash faucet"* — so **split and
+*"the stack mechanics (split/merge) and the cash faucet"* — so **split and
 merge remain the sanctioned mutators even for money.** Commodity lots need
 nothing beyond them.
 
 ### ⚠⚠ CORRECTION to the merge hazard above
 
-Coin now carries **`globIdentityFields = ['currency', 'denomination']`** —
+Coin now carries **`stackIdentityFields = ['currency', 'denomination']`** —
 the currency build's fix for the two-issuers-merge mint. That establishes
 the house pattern for *"these stacks must not fuse"*, and the obvious
 question is whether consignment should add the **consignor** the same way.
 
 > **No — and the reason sharpens the design.**
 >
-> ⭐⭐⭐ **`globIdentityFields` is for what the matter IS, never for who
+> ⭐⭐⭐ **`stackIdentityFields` is for what the matter IS, never for who
 > holds it.**
 
-Two things break otherwise: `globIdentityFields ⊂ persistentFields`, so a
+Two things break otherwise: `stackIdentityFields ⊂ persistentFields`, so a
 consignor field would put **per-instance ownership back onto fungibles** —
 exactly what [chattel.md](../../subsystems/chattel.md) refuses — and
 identity-by-holder would **fragment a stack on every transfer**, since two
@@ -284,7 +284,7 @@ when the supply chain gives multiple venues real pricing power, not before.
 > forged by Bob, with a chain of title. **Owning a carrot is absurd;
 > possessing it is not.** The store's own stock has the same issue from the
 > other side (`buy` stamps the buyer), so one branch — *discrete → stamp,
-> glob → split* — fixes both paths.
+> stack → split* — fixes both paths.
 
 ---
 

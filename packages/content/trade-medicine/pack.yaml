@@ -1,0 +1,27 @@
+id: trade-medicine
+version: 0.1.0
+root: /trade/medicine
+description: >-
+  The medical trade — how a body is READ, and nothing about where the
+  reading happens. It ships one thing the kernel cannot: `analyze
+  patient`, the diagnostic surface that turns a medic's competence into
+  INFORMATION rather than into outcomes.
+
+  ⭐ The line it holds: competence buys what you can SEE, never what you
+  can DO. An untrained eye knows something is wrong; a novice reads the
+  signs; a competent medic knows which conditions could produce them —
+  PLURAL and UNRANKED, because that ambiguity is what makes the medic's
+  choice a choice; a proficient one knows what would treat it and how it
+  spreads; an expert reads how far it has gone. Nothing on that ladder
+  makes a treatment work better.
+
+  ⚠ It ships no venue. A clinic is rows — a business, a room, a tariff,
+  a cot — in whatever locality wants one, which is the second-instance
+  test: a second clinic needs ZERO pack code.
+requires:
+  groups:
+    - name: medicine
+      purpose: the medical trade's own body
+      owner: { office: prime-minister }
+  title:
+    - { extent: /trade/medicine, holder: { group: medicine } }

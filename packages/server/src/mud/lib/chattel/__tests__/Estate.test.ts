@@ -6,7 +6,7 @@
  * Proves the D1/D3 acceptance criteria:
  *
  *   - `place` round-trips on the good, is gated (a direct write is refused),
- *     and a glob cannot carry one;
+ *     and a stack cannot carry one;
  *   - the `chattel` row's `place` is written by the SAME call — the by-room
  *     index, which is what `placedIn` reads;
  *   - materialize routes on `place`: `inventory` clones into the owner's own
@@ -176,11 +176,11 @@ describe("owner-based persistence — place", () => {
     expect(torch.getPlace()).toBe(ESTATE_STORAGE);
   });
 
-  it("a glob carries no place — a fungible stack has nowhere to be kept", async () => {
-    const glob = makeTorch();
-    vi.spyOn(MixinApi, "isGlobbable").mockImplementation((o) => o === glob);
-    await glob.setChattelPlace(ROOM_ID);
-    expect(glob.getPlace()).toBe(ESTATE_STORAGE);
+  it("a stack carries no place — a fungible stack has nowhere to be kept", async () => {
+    const stack = makeTorch();
+    vi.spyOn(MixinApi, "isStackable").mockImplementation((o) => o === stack);
+    await stack.setChattelPlace(ROOM_ID);
+    expect(stack.getPlace()).toBe(ESTATE_STORAGE);
   });
 
   it("an unstamped good takes no place — nothing owns it, so nothing keeps it", async () => {

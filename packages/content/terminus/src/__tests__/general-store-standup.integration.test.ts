@@ -221,12 +221,12 @@ describe("general-store standup (real seeds)", () => {
     expect(torch!.getTemplatePath()).toBe(TORCH);
   });
 
-  it("every stocked good is discrete + chattel-stampable (never Globbable)", async () => {
+  it("every stocked good is discrete + chattel-stampable (never Stackable)", async () => {
     const counter = await StuffApi.singleton<Stock>(COUNTER);
     const shelf = counter.offeredItems();
     expect(shelf.length).toBeGreaterThan(0);
     for (const good of shelf) {
-      expect(MixinApi.isGlobbable(good)).toBe(false); // discrete
+      expect(MixinApi.isStackable(good)).toBe(false); // discrete
       expect(MixinApi.isChattel(good)).toBe(true); // stampable
     }
   });

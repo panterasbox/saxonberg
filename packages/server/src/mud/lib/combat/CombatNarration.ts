@@ -124,6 +124,63 @@ function flavorOutcomeFor(band: OutcomeBand | undefined): FlavorOutcome {
   }
 }
 
+
+/** Ascending severity — index is the "how badly are you losing" rank. */
+const POISE_RANK: Record<PoiseBand, number> = {
+  steady: 0,
+  pressed: 1,
+  reeling: 2,
+  broken: 3,
+  open: 4,
+};
+
+/**
+ * The crossing lines, keyed by the band ARRIVED AT. Two directions, two
+ * voices, band words only — the whole surface of the poise read.
+ */
+const SELF_LOSING: Partial<Record<PoiseBand, string>> = {
+  pressed: "You are being pressed.",
+  reeling: "You are reeling — the fight is getting away from you.",
+  broken: "Your guard breaks.",
+  open: "Your guard is wide open.",
+};
+const SELF_GAINING: Partial<Record<PoiseBand, string>> = {
+  steady: "You have your footing again.",
+  pressed: "You steady — pressed, but no longer reeling.",
+  reeling: "You claw back some shape; you are still reeling.",
+  broken: "You are still broken, but the worst window has closed.",
+};
+const PEER_LOSING: Partial<Record<PoiseBand, string>> = {
+  pressed: "{{c}} is being pressed.",
+  reeling: "{{c}} is reeling.",
+  broken: "{{c}}'s guard breaks.",
+  open: "{{c}} is wide open.",
+};
+const PEER_GAINING: Partial<Record<PoiseBand, string>> = {
+  steady: "{{c}} has their footing again.",
+  pressed: "{{c}} steadies.",
+  reeling: "{{c}} claws back some shape.",
+  broken: "{{c}}'s window closes.",
+};
+
+/** What one participant is left with when the fight stops. */
+export interface AftermathReport {
+  combatant: Stuff;
+  /** The worst wound's own prose, or null when unmarked. */
+  worstWound: string | null;
+  /** A line about what the fight cost the gear, or null. */
+  gearNote: string | null;
+  /** Human-readable names of the Disciplines this fight exercised. */
+  exercised: readonly string[];
+}
+
+/** `a`, `a and b`, `a, b and c`. */
+function listOf(items: readonly string[]): string {
+  if (items.length === 1) return `Your ${items[0]}`;
+  const head = items.slice(0, -1).join(", ");
+  return `Your ${head} and ${items[items.length - 1]}`;
+}
+
 export class CombatNarration {
   private constructor() {}
 
@@ -378,6 +435,194 @@ export class CombatNarration {
       } catch {
         // best-effort per-viewer relay
       }
+    }
+    return commandId;
+  }
+
+  /**
+   * ⭐⭐ **The poise read — the fight's own state, in words.**
+   *
+   * Poise decides every fight and, until this, **nothing ever said so.**
+   * The gauge is private by doctrine (bands, not numbers) and the band was
+   * legible only through what a blow happened to do; a player could lose a
+   * fight without ever being told the moment it turned. `dispatchBandChanges`
+   * has always computed the per-beat crossing to fire `onPoiseBandChanged` —
+   * this puts prose beside the hook, so the fact the engine already knew
+   * finally reaches the person it is about.
+   *
+   * Direction, not magnitude: *giving ground* or *finding your feet*. Band
+   * words only — never the scalar, never a gauge, never a card
+   * (requirements non-goal). A test greps the rendered lines for a digit.
+   *
+   * Rides `act.combat` rather than a new topic: the roots are closed
+   * (7 of them), a crossing IS "a turn of the fight", and the shipped row
+   * says exactly that.
+   */
+  static narrateBandChange(
+    combatant: Stuff,
+    from: PoiseBand,
+    to: PoiseBand,
+  ): string {
+    const commandId = SecurityApi.uuid();
+    const worse = POISE_RANK[to] > POISE_RANK[from];
+    const C = Mml.actor(combatant);
+    const selfTpl = worse
+      ? SELF_LOSING[to] ?? "You are giving ground."
+      : SELF_GAINING[to] ?? "You find your feet.";
+    const peerTpl = worse
+      ? PEER_LOSING[to] ?? "{{c}} is giving ground."
+      : PEER_GAINING[to] ?? "{{c}} finds their feet.";
+    for (const viewer of CombatNarration.witnesses(combatant)) {
+      const isSelf = (viewer as Stuff) === (combatant as Stuff);
+      try {
+        const body = ProseApi.format(isSelf ? selfTpl : peerTpl, { c: C });
+        MessageApi.scene(viewer as Stuff)
+          .topic(COMBAT_EXCHANGE_TOPIC)
+          .meta({ commandId })
+          .toSelf(body)
+          .send();
+      } catch {
+        // best-effort per-viewer relay
+      }
+    }
+    return commandId;
+  }
+
+  /**
+   * ⭐ **The wound telling.** Fired when a landed blow lowers a fighter's
+   * recovery ceiling (`Poise.lowerCeiling`) — the one fact W1 introduced
+   * that has no other reading, because the ceiling never moves the gauge
+   * and so never shows up as a crossing.
+   *
+   * This is the sentence that makes breaking off a decision: you are told,
+   * in the moment, that you are not going to get all of this back.
+   */
+  static narrateFootingCapped(combatant: Stuff, deep: boolean): string {
+    const commandId = SecurityApi.uuid();
+    const C = Mml.actor(combatant);
+    const selfTpl = deep
+      ? "The wound tells. Whatever you get back now, it will not be all of it."
+      : "The cut nags at you — your guard will not settle quite as it did.";
+    const peerTpl = deep
+      ? "{{c}} is favouring the wound; it is costing them."
+      : "{{c}} moves a shade more carefully than before.";
+    for (const viewer of CombatNarration.witnesses(combatant)) {
+      const isSelf = (viewer as Stuff) === (combatant as Stuff);
+      try {
+        const body = ProseApi.format(isSelf ? selfTpl : peerTpl, { c: C });
+        MessageApi.scene(viewer as Stuff)
+          .topic(COMBAT_EXCHANGE_TOPIC)
+          .meta({ commandId })
+          .toSelf(body)
+          .send();
+      } catch {
+        // best-effort per-viewer relay
+      }
+    }
+    return commandId;
+  }
+
+  /**
+   * ⭐ **The morale tell** — a fighter's nerve going, in words, to
+   * everyone who can see it. `shaken` is a waver; `breaking` is visible
+   * and is what a foe reads before a yield or a rout.
+   *
+   * ⚠ For a player this is narration and nothing more. A brain acts on
+   * the same read; a player is told, and then decides. That asymmetry is
+   * the point — the engine models the stakes, the choice stays theirs.
+   */
+  static narrateMorale(combatant: Stuff, band: string): string {
+    const commandId = SecurityApi.uuid();
+    const C = Mml.actor(combatant);
+    const selfTpl =
+      band === "breaking"
+        ? "You want out of this."
+        : "Something in you wavers.";
+    const peerTpl =
+      band === "breaking"
+        ? "{{c}} is looking for a way out."
+        : "{{c}} wavers.";
+    for (const viewer of CombatNarration.witnesses(combatant)) {
+      const isSelf = (viewer as Stuff) === (combatant as Stuff);
+      try {
+        const body = ProseApi.format(isSelf ? selfTpl : peerTpl, { c: C });
+        MessageApi.scene(viewer as Stuff)
+          .topic(COMBAT_EXCHANGE_TOPIC)
+          .meta({ commandId })
+          .toSelf(body)
+          .send();
+      } catch {
+        // best-effort per-viewer relay
+      }
+    }
+    return commandId;
+  }
+
+  /**
+   * ⭐ **A yield offered to something that cannot take one.** Surrender is
+   * a contract and one of the parties has to be able to hold up their end.
+   * The refusal is prose rather than a silent no-op, because the player
+   * needs to learn the rule at the moment it matters.
+   */
+  static narrateYieldRefused(combatant: Stuff): string {
+    const commandId = SecurityApi.uuid();
+    for (const viewer of CombatNarration.witnesses(combatant)) {
+      if ((viewer as Stuff) !== (combatant as Stuff)) continue;
+      try {
+        const body = ProseApi.format(
+          "You try to give it up. It has no idea what you are offering.",
+          {},
+        );
+        MessageApi.scene(viewer as Stuff)
+          .topic(COMBAT_EXCHANGE_TOPIC)
+          .meta({ commandId })
+          .toSelf(body)
+          .send();
+      } catch {
+        // best-effort per-viewer relay
+      }
+    }
+    return commandId;
+  }
+
+  /**
+   * ⭐⭐ **The aftermath — what the fight left you with.**
+   *
+   * Every durable product of a fight already had a consumer
+   * (accountability, chronicle, regard, gear wear, the corpse) and none
+   * of them was ever *said*. The fight simply stopped and the player was
+   * left to run `look` at themselves and guess what had changed.
+   *
+   * This is emission and nothing else — a read of state that already
+   * exists, fired once per surviving participant on **every** resolution
+   * kind, including the ones with no victor. It adds no system: nothing
+   * here is stored, decayed, or scored.
+   *
+   * Three things, because they are the three that matter afterwards:
+   * what you are carrying out of it, what it cost your gear, and what it
+   * tested — the last being the one that pays, so naming it is how a
+   * player learns that fights credit the skills they use.
+   */
+  static narrateAftermath(report: AftermathReport): string {
+    const commandId = SecurityApi.uuid();
+    const parts: string[] = [];
+    parts.push(
+      report.worstWound
+        ? `You come out of it with ${report.worstWound}.`
+        : "You come out of it unmarked.",
+    );
+    if (report.gearNote) parts.push(report.gearNote);
+    if (report.exercised.length > 0) {
+      parts.push(`${listOf(report.exercised)} was tested.`);
+    }
+    try {
+      MessageApi.scene(report.combatant)
+        .topic(COMBAT_EXCHANGE_TOPIC)
+        .meta({ commandId })
+        .toSelf(Mml.fromMarkup(Mml.escape(parts.join(" "))))
+        .send();
+    } catch {
+      // best-effort — the aftermath is a read, never a beat
     }
     return commandId;
   }

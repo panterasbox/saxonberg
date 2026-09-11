@@ -87,12 +87,32 @@ describe('MQL resolver — direct seeds', () => {
       expect(resolve('online', ctx)).toEqual([]);
     });
 
-    it('world resolves all stuff for anyone — what you may DO with it is the verb\'s gate', () => {
-      const out = resolve('world', ctx);
-      const idSet = new Set(ids(out));
-      expect(idSet.has(world.giver.stuffId)).toBe(true);
-      expect(idSet.has(world.rose.stuffId)).toBe(true);
-      expect(idSet.has(world.location.stuffId)).toBe(true);
+    it('⭐ world is REFUSED, and the refusal names the alternatives', () => {
+      // The wide seeds are not one family any more. `online` is bounded
+      // by who is playing and stays open; `world` is bounded by how much
+      // world exists, and reading it is now a grant nobody typing has.
+      // ⚠ The refusal has to name a way forward — a bare "no" turns a
+      // working query into a dead end, which is what would make this
+      // unaffordable.
+      expect(() => resolve('world', ctx)).toThrow(/not available here/);
+      expect(() => resolve('world', ctx)).toThrow(
+        /reachable, here, person, inventory, online/,
+      );
+      expect(() => resolve('world', ctx)).toThrow(/path glob/);
+    });
+
+    it('refuses world in every position it can be written', () => {
+      expect(() => resolve('world:[mixin.NamedMixin]', ctx)).toThrow(
+        /not available here/,
+      );
+      // Mid-chain, where `world` intersects rather than seeds.
+      expect(() => resolve('reachable:world', ctx)).toThrow(
+        /not available here/,
+      );
+      // And as a SCOPE, which is a different code path entirely.
+      expect(() =>
+        resolve('rose', { ...ctx, scope: 'world' }),
+      ).toThrow(/not available here/);
     });
   });
 

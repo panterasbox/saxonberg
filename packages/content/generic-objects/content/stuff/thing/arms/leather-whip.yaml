@@ -20,3 +20,5 @@ data:
   length: 2.5
   slotClaims:
     "/stuff/idea/species/BodyPlan/biped": ["hand:right"]
+  # ⭐ A whip is a flail with all the hinge and none of the mass.
+  exercises: [flails]

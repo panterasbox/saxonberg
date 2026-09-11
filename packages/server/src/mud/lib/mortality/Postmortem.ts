@@ -32,6 +32,8 @@ import type { EvictionContext } from '../stuff/Stuff';
 import type { VetoResult } from '../errors';
 import { MixinApi } from '../../api/mixin';
 import { StuffApi } from '../../api/stuff';
+import { ContainmentApi } from '../../api/containment';
+import type { Container } from '../spatial/Container';
 import { WorldClockApi } from '../../api/worldclock';
 import { TemplatePaths } from '../paths';
 import {
@@ -65,6 +67,19 @@ export interface Postmortem {
    * composes no `FreshnessMixin`.
    */
   sinceDeath(): number | null;
+  /**
+   * ⭐⭐ **Lay this body to rest in `grave`.** Moves it in, records a
+   * chronicle deed on the deceased's identity, and stops the corpse
+   * vetoing its own eviction — the grave keeps it from here.
+   *
+   * ⚠ It is on the BODY rather than on the grave, and rather than in a
+   * funerary Api, because being interred is something that happens to a
+   * corpse: it already owns the postmortem clock and the eviction
+   * opinion, and burial is the act that ends both. Composed on
+   * `Creature`, so "every creature can be buried" — which is honest,
+   * including for a hanging carcass.
+   */
+  interIn(grave: Stuff & Container): boolean;
 }
 
 export function PostmortemMixin<TBase extends MixinConstructor<Stuff>>(
@@ -75,7 +90,11 @@ export function PostmortemMixin<TBase extends MixinConstructor<Stuff>>(
 
     static fieldMeta: FieldMeta = {
       diedAtGameSec: { persistent: true, runtimeState: true },
+      interred: { persistent: true, runtimeState: true },
     };
+
+    /** Whether this body has been laid to rest (see {@link interIn}). */
+    public interred: boolean = false;
 
     public diedAtGameSec = 0;
 
@@ -140,10 +159,43 @@ export function PostmortemMixin<TBase extends MixinConstructor<Stuff>>(
       const self = this as unknown as Stuff;
       const dead =
         MixinApi.isOrganism(self) && (self as unknown as Organism).isDead();
-      if (dead && this.getDecayStage() !== 'spent') {
+      // ⭐ An interred body stops objecting: the grave keeps it, so the
+      // ordinary sweep may reclaim it whenever it likes.
+      if (dead && !this.interred && this.getDecayStage() !== 'spent') {
         return { ok: false, reason: 'a body still lies here' };
       }
       return super.canEvict(context);
+    }
+
+    /**
+     * ⭐⭐ See {@link Postmortem.interIn} — laid to rest.
+     *
+     * Three things, and each is the end of something: the body goes into
+     * the grave, a deed goes on the **deceased's own** chronicle (not the
+     * undertaker's — being buried is a fact about you), and the corpse
+     * withdraws its objection to eviction, because a grave is exactly the
+     * place a body is supposed to stop being the world's problem.
+     */
+    public interIn(grave: Stuff & Container): boolean {
+      const self = this as unknown as Stuff;
+      if (!MixinApi.isContainable(self)) return false;
+      if (!MixinApi.isOrganism(self)) return false;
+      if (!(self as unknown as Organism).isDead()) return false;
+      try {
+        ContainmentApi.move(self as never, grave as never);
+      } catch {
+        return false;
+      }
+      this.interred = true;
+      if (MixinApi.isPersona(self)) {
+        void self
+          .recordDeed({
+            text: `Laid to rest in ${grave.getPresentation()}.`,
+            tags: ['mortality', 'burial'],
+          })
+          .catch(() => {});
+      }
+      return true;
     }
 
     // NO `mergeSlice_` of any kind lives here. See MATERIAL_FORK_SLICES in

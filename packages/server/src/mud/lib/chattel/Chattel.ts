@@ -19,9 +19,9 @@
  *
  * Composed at the movable-good tier (`Thing`), so pets/apartments/
  * ranching/retail all get per-instance identity for free. Fungible stacks
- * (`Globbable`) are deliberately out of scope — a stack that splits/merges
- * has no stable per-instance id; `ChattelApi` refuses to stamp a glob, so a
- * glob's `_chattelId` stays empty and it is owned-by-possession.
+ * (`Stackable`) are deliberately out of scope — a stack that splits/merges
+ * has no stable per-instance id; `ChattelApi` refuses to stamp a stack, so a
+ * stack's `_chattelId` stays empty and it is owned-by-possession.
  */
 
 import type { MixinConstructor, FieldMeta } from "../mixin";

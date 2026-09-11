@@ -49,7 +49,7 @@ import type {
 } from "../lib/banking/Charge";
 import type AccountBalance from "../lib/banking/AccountBalance";
 import type { Stuff } from "../lib/stuff/Stuff";
-import type { Globbable } from "../lib/stuff/Globbable";
+import type { Stackable } from "../lib/stuff/Stackable";
 import { StuffApi } from "./stuff";
 import { HotReloadApi } from "./hot-reload";
 import { BankingLogic } from "../platform/idea/api/BankingLogic";
@@ -387,6 +387,16 @@ export class BankingApi {
    */
   public static defaultCustodianBank(): string {
     return logic().defaultCustodianBank();
+  }
+
+  /**
+   * The first **live branch** of `bank` (an institution key), or null
+   * when no branch of it is standing. The custodian-validation and
+   * transfer paths' one question about where an institution actually is;
+   * memoized per institution behind the face.
+   */
+  public static branchOf(bank: string): (Stuff & Bank) | null {
+    return logic().branchOf(bank);
   }
 
   /**

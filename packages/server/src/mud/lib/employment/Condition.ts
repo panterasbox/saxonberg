@@ -52,8 +52,28 @@ import type { Stuff } from "../stuff/Stuff";
  * human adjudicating, because escrow holds real money. That is the wall
  * fuzzier intents ("guard my shop", "be nice to Mara") sit behind, and
  * it is the reason this list is closed rather than authored.
+ *
+ * ## ⭐⭐ `watch` — and it took kernel code, which is the finding
+ *
+ * *"Guard my shop"* was the canonical example of what sits BEHIND the
+ * wall, and the consequence build asked whether it could be expressed on
+ * the shipped board. It could not, and stating that loudly was the
+ * requirement: a third template plus a phrase, a `watchedSec` accrual on
+ * the record, an engagement and a verb — four kernel touches.
+ *
+ * ⭐ What makes it checkable is **giving up on intent entirely**. The
+ * engine cannot verify that you *protected* anything: whether a theft was
+ * deterred is counterfactual, and whether you were "attentive" is not a
+ * modelled fact. What it CAN verify is that you were **present, for N
+ * hours, with your hands free** — and that turns out to be what a guard
+ * actually sells. Somebody standing in the door is the product; the
+ * absence of trouble is the hoped-for consequence, not the deliverable.
+ *
+ * ⚠ Which means a guard who watched the full term and was robbed blind
+ * still gets paid. That is correct, and it is the same reason a delivery
+ * pays on arrival rather than on the client being pleased.
  */
-export const CONDITION_TEMPLATES = ["delivery", "supply"] as const;
+export const CONDITION_TEMPLATES = ["delivery", "supply", "watch"] as const;
 
 export type ConditionTemplate = (typeof CONDITION_TEMPLATES)[number];
 
@@ -91,6 +111,12 @@ export interface ConditionData {
    * which is the one-of-something case.
    */
   count?: number;
+  /**
+   * ⭐ `watch` only: how many game-hours of presence the term is. The
+   * clause holds when the claimant has accrued at least this much watch
+   * on the contract's own record.
+   */
+  gameHours?: number;
 }
 
 /** How deep the upward ancestor walk goes (a chest inside a room is 2). */
@@ -123,6 +149,12 @@ export class Condition {
       return "item must be template-, chattel- or category-bound";
     }
     if (!d.destinationPath) return "condition needs a destinationPath";
+    if (d.template === "watch") {
+      const h = d.gameHours;
+      if (typeof h !== "number" || !Number.isFinite(h) || h <= 0) {
+        return "a watch condition needs an hour count greater than zero";
+      }
+    }
     if (d.template === "supply") {
       const n = d.count;
       // ⚠ Whole things are counted in wholes; litres and kilos are not.
@@ -157,6 +189,21 @@ export class Condition {
     );
   }
 
+  /**
+   * ⭐⭐ Whether a `watch` clause holds — the accrued watch against the
+   * term.
+   *
+   * ⚠ Deliberately NOT a `holdsFor(data, item)`: there is no item. That
+   * asymmetry is the whole shape of the finding — the shipped clause
+   * vocabulary is *"a thing is at a place"*, and a guard contract is
+   * *"a person was at a place, for a while"*, which the existing
+   * predicate cannot express however it is squeezed.
+   */
+  public static watchHolds(data: ConditionData, watchedSec: number): boolean {
+    if (data.template !== "watch") return false;
+    return watchedSec >= Math.max(0, data.gameHours ?? 0) * 3600;
+  }
+
   /** How many the condition asks for — 1 unless it is a counted supply. */
   public static countOf(data: ConditionData): number {
     return data.template === "supply" ? Math.max(1, data.count ?? 1) : 1;
@@ -164,18 +211,18 @@ export class Condition {
 
   /**
    * Whether a live `stuff` is the item this condition names. Refuses a
-   * `Globbable` outright — a merging stack has no stable identity (the
+   * `Stackable` outright — a merging stack has no stable identity (the
    * chattel precedent), so a fungible good can never satisfy a gig.
    */
   public static matchesItem(data: ConditionData, stuff: Stuff): boolean {
     if (data.item.kind === "category") {
-      // ⚠ A glob is allowed HERE and nowhere else: a category condition
+      // ⚠ A stack is allowed HERE and nowhere else: a category condition
       // measures QUANTITY, so a stack of six limes is six limes and has
       // no identity problem to solve. The identity rule that refuses
-      // globs is about naming ONE object, which this never does.
+      // stacks is about naming ONE object, which this never does.
       return CategoryMeasure.counts(stuff, data.item.category);
     }
-    if (MixinApi.isGlobbable(stuff)) return false;
+    if (MixinApi.isStackable(stuff)) return false;
     if (data.item.kind === "chattel") {
       return (
         MixinApi.isChattel(stuff) &&

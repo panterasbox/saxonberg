@@ -8,7 +8,10 @@ class: /platform/idea/Condition
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: hypothermia
-  signature: []
+  # ⭐ Shivering costs. The thermal driver owns the temperature; what
+  # this row says is what CARRYING the cold does to you.
+  signature:
+    - { kind: reserve, reserve: endurance, pctPerHour: -5 }
   progression: null
   resolution:
     by: warmth

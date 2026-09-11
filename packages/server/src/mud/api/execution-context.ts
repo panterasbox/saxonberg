@@ -705,6 +705,37 @@ export class ExecutionContextApi {
   }
 
   /**
+   * ⭐⭐ **Who is at the helm, as far as reading the whole world goes.**
+   *
+   * The grant riding the current execution tree — a short string naming
+   * the authority that conferred it (`'office:prime-minister'` today) —
+   * or `null`, which is what every ordinary execution reads.
+   *
+   * This is the *only* thing the MQL resolver consults when it meets a
+   * `world` seed. It is deliberately an **ambient environment fact**,
+   * not a parameter and not a caller identity:
+   *
+   *  - a permission passed in an argument is one the caller handed
+   *    itself, and
+   *  - a permission inferred from *which function called* is a calling
+   *    convention, which says nothing about the person acting.
+   *
+   * The grant is planted by {@link CompactApi.readWorldAs} and only
+   * after the executive has been asked about the acting principal, so a
+   * non-null answer here means a real authority said yes about a real
+   * person. Walks up parents (the grant frame sits above the command
+   * root and below the query), same discipline as
+   * {@link getCurrentCausingCommandId}.
+   */
+  public static getWorldReadGrant(): string | null {
+    for (let n = _als.getStore() ?? null; n !== null; n = n.parent) {
+      const g = n.frame.metadata?.worldRead;
+      if (typeof g === 'string') return g;
+    }
+    return null;
+  }
+
+  /**
    * Walk the call stack top-down and return the first
    * `metadata.causingCommandId` we hit. Set on the Command frame by
    * `CommandGiverMixin.executeCommand`, and re-planted on a fresh

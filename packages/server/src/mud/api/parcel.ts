@@ -9,7 +9,7 @@
  * the parcel subsystem. This Api is the only legitimate path — the
  * narrow-entry pattern (one state home, one calling surface).
  *
- * `AccessApi` consults `ownerOf`/`resolveOwnerRef`/`groupOwnerRefs` for
+ * `AccessApi` consults `ownerOf`/`resolveOwnerRef`/`extentsHeldBy` for
  * ownership resolution (access-*decision* logic stays in the access
  * layer); the `subdivide`/`transfer` verbs mint titles; `DocumentLogic`
  * consumes the pure {@link ParcelApi.selfHomeOwnerOf} (the shared
@@ -98,12 +98,28 @@ export class ParcelApi {
   }
 
   /**
-   * Every managed-group ref named by a `group`-kind parcel owner — the
-   * former input to the retired author scope; kept as the group-owner walk.
+   * ⭐ Every extent whose holder admits `subject`, under the caller's own
+   * `admits` test — the same holder dispatch `can` uses.
+   *
+   * Asked of the **owners**, not of the parcels: each distinct holder is
+   * tested once and its extents unioned, so the cost is bounded by how
+   * many holders there are rather than by how much land exists.
    */
-  public static async groupOwnerRefs(): Promise<GroupRef[]> {
-    return logic().groupOwnerRefs();
+  public static async extentsHeldBy(
+    admits: (owner: ParcelOwner) => Promise<boolean>,
+  ): Promise<string[]> {
+    return logic().extentsHeldBy(admits);
   }
+
+  /**
+   * Every parcel row citing `reachRef` — the bank-holders of a reach.
+   * There is no riparian record; the right is derived from who owns the
+   * ground fronting the water.
+   */
+  public static async parcelsOnReach(reachRef: string): Promise<ParcelRecord[]> {
+    return logic().parcelsOnReach(reachRef);
+  }
+
 
   /**
    * Write a genesis child-parcel row (owner inherited, `parentParcel` set)
@@ -183,10 +199,7 @@ export class ParcelApi {
     return (await logic().spaceOf(extent)).unallocated;
   }
 
-  /** Every parcel row (the title registry's full read; the held-extents walk). */
-  public static async allRecords(): Promise<ParcelRecord[]> {
-    return logic().allRecords();
-  }
+
 
   /**
    * Cite the reach this ground fronts (or `''` to take it off the

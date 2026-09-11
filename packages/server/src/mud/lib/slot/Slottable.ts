@@ -16,9 +16,21 @@
 import type { MixinConstructor } from '../mixin';
 import type { Stuff } from '../stuff/Stuff';
 import type { Slotted } from './Slotted';
-import { MqlApi } from '../../api/mql';
-import { MixinApi } from '../../api/mixin';
-import { Final, Unshadowable } from '../security/decorators';
+import { CallSecurity, Final, Unshadowable } from '../security/decorators';
+import { SecurityPolicies } from '../security/SecurityPolicies';
+
+/**
+ * The participant contract on the back-reference: the `Slotted` host
+ * that is the other party to the occupancy, writing itself in. Compares
+ * by `stuffId` — the caller may surface as the raw target while the
+ * argument is the proxy, or the other way round.
+ */
+const BySlottedHost = SecurityPolicies.FromMixin('SlottedMixin', {
+  where: (caller, _target, _method, args) =>
+    (caller as { stuffId?: string }).stuffId !== undefined &&
+    (caller as { stuffId?: string }).stuffId ===
+      (args[0] as { stuffId?: string } | undefined)?.stuffId,
+});
 
 /**
  * Public shape provided by SlottableMixin.
@@ -78,6 +90,15 @@ export interface Slottable {
    * @hook
    */
   onSlotOccupied?(host: Stuff & Slotted, slotName: string): void;
+
+  /**
+   * Participant-gated: the host recording that it has just put this
+   * candidate in `slotName`. Written by the `Slotted` host that is the
+   * other party to the relationship, and by nobody else.
+   */
+  _noteOccupied(host: Stuff & Slotted, slotName: string): void;
+  /** Participant-gated: the host recording the release. */
+  _noteReleased(host: Stuff & Slotted, slotName: string): void;
 }
 
 export function SlottableMixin<TBase extends MixinConstructor<Stuff>>(
@@ -137,27 +158,66 @@ export function SlottableMixin<TBase extends MixinConstructor<Stuff>>(
       return true;
     }
     /**
+     * ⭐⭐ **The back-reference.** Runtime only — the forward map on the
+     * host is the persisted side, and this is rebuilt from it by the
+     * same `occupy` calls that restore it.
+     *
+     * It exists because the question *which host holds me?* used to be
+     * answered by reading every object in the world and looking inside
+     * each one's slots. That is a reverse-relational read MQL has no
+     * predicate for, so the cost was the whole registry — and it ran on
+     * the metabolism path, once per creature per tick, where a live
+     * drive found it pinning a CPU core.
+     *
+     * ⚠ **Deliberately not declared in `fieldMeta`**, exactly as its
+     * forward twin `Slotted.slots` is not: neither side persists, so
+     * neither is a live-ref field the R2.1–R2.4 rules govern. Both sides
+     * are already cleared by destruct — `Slottable.cleanupOnDestruct`
+     * vacates the candidate from every host, `Slotted.cleanupOnDestruct`
+     * vacates every occupant from the host — and both routes go through
+     * `vacate`, which is what drops this entry. See ref-shapes.md §
+     * Declaring it.
+     */
+    private _occupancy: Map<Stuff & Slotted, Set<string>> = new Map();
+
+    /**
+     * The host's own record of the claim it just made. Gated to the
+     * `Slotted` party to the relationship writing **itself** in — a
+     * participant contract, not `ApiOnly`.
+     */
+    @CallSecurity(BySlottedHost)
+    @Final
+    @Unshadowable
+    public _noteOccupied(host: Stuff & Slotted, slotName: string): void {
+      const slots = this._occupancy.get(host);
+      if (slots) slots.add(slotName);
+      else this._occupancy.set(host, new Set([slotName]));
+    }
+
+    /** The symmetric release. An empty host entry is dropped. */
+    @CallSecurity(BySlottedHost)
+    @Final
+    @Unshadowable
+    public _noteReleased(host: Stuff & Slotted, slotName: string): void {
+      const slots = this._occupancy.get(host);
+      if (!slots) return;
+      slots.delete(slotName);
+      if (slots.size === 0) this._occupancy.delete(host);
+    }
+
+    /**
      * Every host-slot this candidate currently occupies (was
-     * `SlotApi.findOccupiedSlots` — the OO sweep). O(N) over an MQL
-     * system enumeration (null giver — slot bookkeeping must see every
-     * host regardless of any viewer's fog); the inner occupancy test
-     * is a reverse-relational read MQL has no predicate for. Promote
-     * to an inverse index if profiling demands.
+     * `SlotApi.findOccupiedSlots` — the OO sweep). A read of the
+     * candidate's own back-reference, maintained by `Slotted.occupy` /
+     * `vacate`, which are the only two places occupancy changes.
+     *
+     * A fresh Map each call, with a copied slot list: `cleanupOnDestruct`
+     * iterates this while vacating, which mutates the live map.
      */
     public occupiedSlots(): ReadonlyMap<Stuff & Slotted, readonly string[]> {
-      const candidate = this as unknown as Stuff & Slottable;
-      const hosts = MqlApi.resolveMany('world:[mixin.SlottedMixin]', {
-        commandGiver: null,
-        scope: 'world',
-      });
       const out = new Map<Stuff & Slotted, string[]>();
-      for (const obj of hosts.stuff) {
-        if (!MixinApi.isSlotted(obj)) continue;
-        const slotNames: string[] = [];
-        for (const [name, occupants] of obj.getAllOccupants().entries()) {
-          if (occupants.has(candidate)) slotNames.push(name);
-        }
-        if (slotNames.length > 0) out.set(obj, slotNames);
+      for (const [host, slots] of this._occupancy.entries()) {
+        if (slots.size > 0) out.set(host, [...slots]);
       }
       return out;
     }

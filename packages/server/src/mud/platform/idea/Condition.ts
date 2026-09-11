@@ -79,6 +79,24 @@ export interface AfflictionRecord {
    * backwards to *what you did* rather than forwards from what you feel.
    */
   symptomsAt?: number;
+  /**
+   * ⭐⭐ **Who did this** — the `templatePath` of the acting author at the
+   * moment the affliction landed, or absent when nobody did (a fever, a
+   * frostbite, the cold).
+   *
+   * The `Trauma.inflictedBy` twin, and it closes the same gap on the
+   * other half of the condition vocabulary. A wound has always known who
+   * dealt it; a **poisoning** did not — so the one kind of harm that is
+   * deliberate, premeditated and quiet was the one kind the world could
+   * not attribute. Stamped at `VitalsMixin.afflict`, from execution
+   * context, never from a caller-supplied parameter (the gated-Api
+   * actor-from-context rule).
+   *
+   * ⚠ Recorded, not acted on. This build gives accountability something
+   * true to read; it does not make poisoning a crime, which is the
+   * accountability ledger's decision and not the body's.
+   */
+  inflictedBy?: string;
 }
 
 /** The closed engine trauma vocabulary. Grow additively. */
@@ -178,8 +196,26 @@ export const HARM_DEFAULTS = {
   /** Natural (undressed) severity decay per game-second, per trauma family. */
   LACERATION_HEAL_PER_SEC: 0.003,
   CONTUSION_HEAL_PER_SEC: 0.02,
+  /**
+   * ⭐ **The sparring currency.** A bruise costs endurance while you
+   * carry it — you are a little slower the morning after a beating, and
+   * that is all. Small on purpose: this is the fee for a fight you walked
+   * away from, not an injury.
+   */
+  CONTUSION_STIFFNESS_PCT_PER_HOUR: 0.4,
   FRACTURE_HEAL_PER_SEC: 0.0015,
   BURN_HEAL_PER_SEC: 0.006,
+  /**
+   * ⭐⭐ **The plasma weep** — litres per game-hour per unit of burn
+   * severity.
+   *
+   * A serious burn loses fluid through the wound. It is why burn victims
+   * are given fluids, why `BURN_BEHAVIOR.resolution` is `fluid` rather
+   * than `dressing`, and why a burn left alone slides toward the
+   * exsanguination window on a clock the burn itself owns. Before this a
+   * burn was a number that counted down and did nothing.
+   */
+  BURN_WEEP_L_PER_HOUR_PER_SEVERITY: 0.08,
   /** Fracture at/above this severity disables its coupled slot. */
   FRACTURE_IMPAIR_SEVERITY: 0.5,
   /** Avulsion severity floor — "a severe laceration". */
@@ -349,19 +385,96 @@ export type ActiveCondition =
   | SustainedEffect
   | DyingRecord;
 
-/** How a condition perturbs a vital sign (shape only — no consumer v1). */
-export interface VitalEffect {
-  /** A `VitalSign` key (see Vitals.ts). */
-  sign: string;
-  /** Perturbation in the sign's canonical unit. */
-  delta: number;
-}
+/**
+ * ⭐⭐ **What a condition DOES to a body — the effect channel.**
+ *
+ * `signature` shipped as `{sign, delta}[]`, persistent, authorable and
+ * spoiler-levelled, on an Idea with a public accessor — and **nothing
+ * anywhere read it**. All twenty-three shipped rows author `signature: []`
+ * because there was nothing else to author. The one effect any affliction
+ * had on a body was a hydration drain hard-coded inside
+ * `Vitals.progressInfection`, for pathogens only, that no row asked for
+ * and no row could ask for.
+ *
+ * The union is what makes it a channel rather than a field: four kinds,
+ * two integrated over time and two read on demand, and a new affliction
+ * becomes **a law plus a signature** rather than a new arm in
+ * `reconcileConditions`.
+ *
+ * ⚠ `delta` became `perHour` deliberately. A raw delta has no answer to
+ * *"applied how often?"*, so it could only ever have meant "once, on some
+ * tick nobody defined" — which is why it was never wired. A **rate**
+ * integrates over whatever elapsed, which is the only shape that works
+ * with reconcile-on-read and an absent player.
+ */
+export type VitalEffect =
+  | {
+      /** Integrate a rate on a vital sign (`bloodVolume`, `spo2`, …). */
+      kind: 'vital';
+      /** A `VitalSign` key (see Vitals.ts). */
+      sign: string;
+      /** Signed change per game-hour, in the sign's canonical unit. */
+      perHour: number;
+    }
+  | {
+      /** Integrate a rate on a biological reserve (`endurance`, …). */
+      kind: 'reserve';
+      reserve: string;
+      /** Signed percentage points per game-hour. */
+      pctPerHour: number;
+    }
+  | {
+      /**
+       * A derived slot impairment — READ, never integrated. The fracture
+       * rule, generalized: a condition at a body part can take the
+       * affordances that part carries.
+       */
+      kind: 'capability';
+      disables: 'slots-at-site';
+      /** Only bites above this intensity impair. */
+      aboveSeverity: number;
+    }
+  | {
+      /**
+       * Competence suppression — READ, never integrated. How many bands
+       * of *expressed* skill this condition costs while it lasts. The
+       * Transcript is never touched.
+       */
+      kind: 'expression';
+      bands: number;
+    };
 
-/** Stages + cadence for a progressing condition. */
+/** The laws a condition's stage can advance under. */
+export const PROGRESSION_LAWS = [
+  'stage',
+  'decay',
+  'logistic',
+  'burden',
+] as const;
+export type ProgressionLaw = (typeof PROGRESSION_LAWS)[number];
+
+/**
+ * ⭐⭐ **How a condition's stage moves — declared by the author, not
+ * inferred from which optional field happens to be set.**
+ *
+ * `reconcileConditions` grew seven arms because each new condition kind
+ * arrived with a new discriminator: *has a `magicOrigin`* → decay, *has a
+ * `pathogenLoad`* → logistic, *has neither* → dwell. The shape of the
+ * record decided the law, so a row could not choose one and every new law
+ * meant a new arm.
+ *
+ * ⚠ The trap sprang once already, with a comment proving it: the arm that
+ * filled `ProgressionSpec` recorded that the field *"was authored by
+ * three rows, and was read by nothing"* — and added an arm rather than
+ * asking why. Naming the law is what lets three arms collapse into one.
+ */
 export interface ProgressionSpec {
-  /** Targets `ScheduleApi.recurring(intervalMs, fn, opts?)`. */
-  intervalMs: number;
-  // Stages/cadence detail is content; no live scheduler is built here.
+  /** Which law advances this condition's stage. */
+  law: ProgressionLaw;
+  /** `stage`: game-milliseconds of dwell per stage. */
+  intervalMs?: number;
+  /** `decay`: stage lost per game-second (else the magic dial). */
+  decayPerSec?: number;
 }
 
 /**
@@ -384,6 +497,24 @@ export interface TraumaBehavior {
   /** The undress action — remove a dressing; reopen the bleed if un-clotted. */
   reopen(host: Vitals, t: Trauma): void;
   describe(t: Trauma): string;
+  /**
+   * ⭐ **What carrying this wound does to the body**, over and above its
+   * own `tick`. The Kind-B twin of a `Condition` row's `signature`, and
+   * the same channel: the trauma arm interprets it through
+   * `Vitals.applyEffects` with the wound's severity as the intensity.
+   *
+   * ⚠ Declared on the closed engine table rather than authored, because
+   * the trauma vocabulary IS closed — a burn is a burn everywhere. What
+   * an author writes is a Kind-A `Condition` row.
+   */
+  signature?: readonly VitalEffect[];
+  /**
+   * ⭐ What TREATS this wound — a `ResolutionSpec.by` token
+   * (`dressing`, `fluid`, `rest`). Before this, `treat` applied whatever
+   * was to hand to whatever was worst, so a bandage on a burn was as good
+   * as water on it.
+   */
+  resolution?: string;
 }
 
 const noop = (): void => {};
@@ -452,6 +583,8 @@ export const LACERATION_BEHAVIOR: TraumaBehavior = {
     if (t.bleeding) return `a bleeding laceration on ${t.site}`;
     return `a clotted laceration on ${t.site}`;
   },
+  // The bleed family: what arrests it is a dressing.
+  resolution: 'dressing',
 };
 
 /**
@@ -478,29 +611,87 @@ function decayingBehavior(
 }
 
 /** contusion — mild, self-resolving over time; no bleed. */
-export const CONTUSION_BEHAVIOR: TraumaBehavior = decayingBehavior(
-  HARM_DEFAULTS.CONTUSION_HEAL_PER_SEC,
-  (t) => `a bruise on ${t.site}`
-);
+export const CONTUSION_BEHAVIOR: TraumaBehavior = {
+  ...decayingBehavior(
+    HARM_DEFAULTS.CONTUSION_HEAL_PER_SEC,
+    (t) => `a bruise on ${t.site}`
+  ),
+  // Nothing to bandage and nothing to pour on it. A bruise wants time.
+  resolution: 'rest',
+  // ⭐ The sparring currency: you are a little slower the morning after a
+  // beating. Small on purpose — the fee for a fight you walked away from.
+  signature: [
+    {
+      kind: 'reserve',
+      reserve: 'endurance',
+      pctPerHour: -HARM_DEFAULTS.CONTUSION_STIFFNESS_PCT_PER_HOUR,
+    },
+  ],
+};
 
 /**
  * fracture — a slow natural heal. The **impairment is a derived read** of
  * this trauma through the `canOccupy` / slot machinery
- * (`Vitals.isSlotImpairedByTrauma`), NOT a tick effect — so clearing /
+ * (`Vitals.isSlotImpairedByCondition`), NOT a tick effect — so clearing /
  * healing the fracture restores the affordance with no separate un-impair
  * step. Setting the bone (a splint instrument) is a deferred first-aid
  * branch; v1 only heals it over time.
  */
-export const FRACTURE_BEHAVIOR: TraumaBehavior = decayingBehavior(
-  HARM_DEFAULTS.FRACTURE_HEAL_PER_SEC,
-  (t) => `a fracture of ${t.site}`
-);
+export const FRACTURE_BEHAVIOR: TraumaBehavior = {
+  ...decayingBehavior(
+    HARM_DEFAULTS.FRACTURE_HEAL_PER_SEC,
+    (t) => `a fracture of ${t.site}`
+  ),
+  // ⚠ `rest` until the splint lands — setting a bone is a first-aid
+  // instrument this build does not ship, and pretending a bandage does it
+  // would be worse than saying so. → physiology-slate.
+  resolution: 'rest',
+  // ⭐⭐ **The impairment, DECLARED.** A broken hand cannot hold a shield,
+  // and `Vitals.isSlotImpairedByCondition` used to know that by naming
+  // `fracture` in code. It is now a term on the table beside the decay
+  // law, which is what makes the rule available to every wound type
+  // instead of hard-coded for one.
+  signature: [
+    {
+      kind: 'capability',
+      disables: 'slots-at-site',
+      aboveSeverity: HARM_DEFAULTS.FRACTURE_IMPAIR_SEVERITY,
+    },
+  ],
+};
 
 /** burn — real behavior: severity + a slow heal at its own rate. */
-export const BURN_BEHAVIOR: TraumaBehavior = decayingBehavior(
-  HARM_DEFAULTS.BURN_HEAL_PER_SEC,
-  (t) => `a burn on ${t.site}`
-);
+export const BURN_BEHAVIOR: TraumaBehavior = {
+  ...decayingBehavior(
+    HARM_DEFAULTS.BURN_HEAL_PER_SEC,
+    (t) => `a burn on ${t.site}`
+  ),
+  // ⭐ **Fluid, not a bandage** — the one that makes the difference
+  // legible. A serious burn weeps plasma, which is why burn victims are
+  // given fluids; wrapping it does nothing for that. Before this, `treat`
+  // applied whatever was to hand to whatever was worst, so a bandage on a
+  // burn worked exactly as well as water on it.
+  resolution: 'fluid',
+  // ⭐ **A badly burned hand cannot grip either**, and now the engine can
+  // say so — the generalization is the point of the term. Above severity
+  // 1 (a real burn, not a scald), the slots at the site are gone until it
+  // heals: a derived read, so the affordance returns on its own.
+  //
+  // ⭐⭐ …and the WEEP. A serious burn loses fluid through the wound,
+  // which is the whole reason its treatment is fluid rather than a
+  // bandage, and the reason an untreated one is dangerous rather than
+  // merely slow: it slides toward the exsanguination window on a clock
+  // the burn itself owns. ⚠ A bloodless clade absorbs this silently
+  // (D22) — a construct that takes a fire blow has a burn, and no weep.
+  signature: [
+    { kind: 'capability', disables: 'slots-at-site', aboveSeverity: 1 },
+    {
+      kind: 'vital',
+      sign: 'bloodVolume',
+      perHour: -HARM_DEFAULTS.BURN_WEEP_L_PER_HOUR_PER_SEVERITY,
+    },
+  ],
+};
 
 /**
  * avulsion — behaves as a **severe laceration** (floors severity, bleeds,
@@ -522,6 +713,8 @@ export const AVULSION_BEHAVIOR: TraumaBehavior = {
     if (t.bleeding) return `a gaping avulsion of ${t.site}`;
     return `a clotted avulsion of ${t.site}`;
   },
+  // The bleed family: what arrests it is a dressing.
+  resolution: 'dressing',
 };
 
 /**
@@ -543,6 +736,8 @@ export const PUNCTURE_BEHAVIOR: TraumaBehavior = {
     if (t.bleeding) return `a bleeding puncture wound of ${t.site}`;
     return `a clotted puncture wound of ${t.site}`;
   },
+  // The bleed family: what arrests it is a dressing.
+  resolution: 'dressing',
 };
 
 /**
@@ -561,10 +756,19 @@ export const TRAUMA_BEHAVIOR: Record<TraumaType, TraumaBehavior> = {
 
 // ---------- Kind-A: the Condition Idea template ----------
 
-/** What relieves a condition — the treatment seam (shape only v1). */
+/**
+ * ⭐ **What relieves a condition.** Shipped with `by` authored on two rows
+ * and read by nothing, so every treatment was the same treatment: a
+ * bandage on a burn worked exactly as well as water on it.
+ */
 export interface ResolutionSpec {
   /** A resolution-mechanism token (e.g. `'antitoxin'`, `'rest'`). */
   by: string;
+  /**
+   * For a self-resolving condition (`by: 'rest'`), the stage at which it
+   * clears itself. Absent means it never does on its own.
+   */
+  atStage?: number;
 }
 
 /** Disease-spread descriptor — RESERVED, no consumer in this build. */

@@ -1,0 +1,19 @@
+# A cot — a rest surface, so lying on one is worth something (metabolism
+# recovers by posture × restQuality on its own reconcile clock). ⭐ It is
+# the shipped `Chair` class: the posture-bearing slot is authored per row,
+# which is exactly why a bed needs no class of its own and why a cot needs
+# none either.
+class: /platform/thing/Chair
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: a low cot
+  primaryKeyword: cot
+  keywords: [cot, bed, bunk]
+  longDescription: |
+    A low wooden cot with a straw tick and a folded grey blanket at its foot, the frame rubbed pale where hands have gripped it.
+  slots:
+    - name: surface
+      accepts: PosturedMixin
+      capacity: 1
+      postures: [lying, sitting]
+  restQuality: 0.7

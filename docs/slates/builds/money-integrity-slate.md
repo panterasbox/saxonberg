@@ -30,7 +30,7 @@
 
 Related: [banking.md](../../subsystems/banking.md) (the conservation
 chokepoint), [persistence.md](../../subsystems/persistence.md) (the
-self-persistence spine), [glob.md](../../subsystems/glob.md) (fungible
+self-persistence spine), [stacks.md](../../subsystems/stacks.md) (fungible
 stacks), [sandbox.md](../../subsystems/sandbox.md) (scope taint),
 [call-security.md](../../subsystems/call-security.md) (the gating
 discipline this slate says to apply), [currency-slate](./currency-slate.md).
@@ -61,7 +61,7 @@ total supply**, not a cosmetic one.
 
 ## 1. `setQuantity` is ungated — the direct mint
 
-`Coin` composes `GlobbableMixin`. `GlobbableMixin.setQuantity(n)` carries
+`Coin` composes `StackableMixin`. `StackableMixin.setQuantity(n)` carries
 **no `@CallSecurity`, no `@Final`, no `@Unshadowable`** — only a
 positive-integer check:
 
@@ -75,7 +75,7 @@ public setQuantity(n: number): void {
 Any code holding a coin reference can call `setQuantity(1_000_000)` and
 **mint money with zero ledger involvement.**
 
-⚠ Today's callers are all legitimate (`GlobbableLogic` split/merge,
+⚠ Today's callers are all legitimate (`StackableLogic` split/merge,
 `BankingLogic.issueCash`, `CraftingLogic` consumption). **That is
 convention holding the line, not enforcement.** Compare `Stuff.destroy()`
 — `ApiOnly` + `@Final` + `@Unshadowable`. The discipline exists; it was
@@ -178,8 +178,8 @@ that finding 3 failed.
 | Surface | The question |
 |---|---|
 | `setQuantity` | **Finding 1.** Gate it. |
-| `GlobbableApi.applyQuantity` | The verb workhorse — does every path through it conserve? |
-| `split` / `merge` | `GlobbableLogic` looks correct (split subtracts, merge sums). **Prove it with a property test**, not a reading. |
+| `StackableApi.applyQuantity` | The verb workhorse — does every path through it conserve? |
+| `split` / `merge` | `StackableLogic` looks correct (split subtracts, merge sums). **Prove it with a property test**, not a reading. |
 | Shadows / adornments | `canMergeWith` refuses shadowed stacks — is that a conservation guard or incidental? |
 
 ## C. Persist and restore — ⭐ the user's specific concern
@@ -225,7 +225,7 @@ Shipped by the currency build (see [banking.md](../../subsystems/banking.md))
 because those paths are being rewritten anyway:
 
 1. **Gate `setQuantity`** on the money-bearing path (finding 1) — landed
-   on `Coin`, not on `GlobbableMixin`: a glob is not necessarily money, and
+   on `Coin`, not on `StackableMixin`: a glob is not necessarily money, and
    gating the mixin gates every pile of ore in the world.
 2. **Complete the instrument** — `fullReconcile` counts snapshotted coin
    (finding 2), **scoped to non-resident holders**, and reports vault float

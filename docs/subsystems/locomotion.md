@@ -101,10 +101,22 @@ The substrate exercises every reference pattern from
 
 ## LocomotionApi surface
 
+⭐ **`allModes()` is a path glob, not a world scan.** Every mode is
+declared under one branch (`/platform/idea/LocomotionMode/*` — eleven
+rows), so the registry's existing path trie already knows them and no
+new index is needed. It used to be `world:[class.LocomotionMode]`, which
+read every object in the realm to find eleven singletons. ⭐ **The rung
+matters more than the mechanism**: when a roster's content lives under
+one branch, the path index is the cheapest honest answer, and it is the
+first thing to reach for before an index is even considered. The
+`instanceof` narrowing stays, so a stray row under the branch cannot
+widen the vocabulary.
+
+
 ```
 modeOf(nameOrPath)           → LocomotionMode | null
 modeOfOrThrow(nameOrPath)    → LocomotionMode (throws if not loaded)
-allModes()                   → readonly LocomotionMode[]
+allModes()                   → readonly LocomotionMode[]  (a PATH GLOB — see below)
 resolveHostMode(host)        → LocomotionMode (engagedMode → vehicularMode → walk)
 bodyPlanAllows(actor, mode)  → boolean
 postureAllows(actor, mode)   → boolean

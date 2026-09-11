@@ -10,8 +10,8 @@
 #
 #   - **Unpleasant, never dangerous.** Diminishment that can kill you
 #     re-opens the death loop through a side door. This drains reserves and
-#     nothing else — it never touches a vital sign, so it can never carry a
-#     body back across a lethal threshold.
+#     suppresses EXPRESSED skill; it never touches a vital sign, so it can
+#     never carry a body back across a lethal threshold.
 #   - **Legible.** A player has to be able to feel it, or a service has
 #     nothing to advertise against.
 #
@@ -21,10 +21,29 @@ class: /platform/idea/Condition
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: recovering
-  signature: []
+  # ⭐⭐ **Dying makes you worse at EVERYTHING, for a while, and writes
+  # nothing down.**
+  #
+  # Losing a fight costs you along the disciplines the fight used — that
+  # is the game teaching you honestly. Dying is not teaching; it is
+  # punishment, and punishment should be BROAD rather than pointed. So
+  # this suppresses two bands of *expressed* competence across the board,
+  # tapering to one at the halfway mark and clearing at `atStage`.
+  #
+  # ⚠⚠ It never touches the Transcript. What you have done stays true and
+  # `chronicle` shows no new row; only what you can currently do falls.
+  # That is the whole difference between punishment and a lie about your
+  # history — and it is what makes the diminishment safe to be this
+  # heavy-handed.
+  signature:
+    - { kind: expression, bands: 2 }
   progression:
+    law: stage
     intervalMs: 3600000
   resolution:
     by: rest
+    # Twelve game-hours: two bands for the first six, one for the next
+    # six, then it clears itself and you are exactly who you were.
+    atStage: 12
   observableSigns: [unsteady, hollow, newly-made]
   contagion: null

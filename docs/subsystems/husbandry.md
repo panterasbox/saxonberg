@@ -620,7 +620,7 @@ and the shipped `competence` verb reports its band.
 - **No soil *quality*.** Soil is a volume and a prerequisite — no N/P/K, no
   pH, no tilth, no fertilizer. The six-reserve soil is phase 2/4.
 - **No genetics.** A seed grows into its parent's species, full stop, and
-  carries no inherited variation. `Globbable` seed *lots* arrive with
+  carries no inherited variation. `Stackable` seed *lots* arrive with
   genetics, where fixed-vs-segregating lines make stacking meaningful.
 - **The switchable desk lamp.** `obj/Lamp.ts` and `device/switch.yaml` both
   ship, so a *player-controlled* in-room light lever is cheap — but wiring one

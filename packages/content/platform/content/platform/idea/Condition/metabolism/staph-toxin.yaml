@@ -13,8 +13,11 @@ class: /platform/idea/Condition
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: staph toxin
-  signature: []
-  progression: null
+  # Violent, fast, and short — the fluid goes out of you.
+  signature:
+    - { kind: reserve, reserve: hydration, pctPerHour: -4 }
+  progression:
+    law: burden
   resolution:
     by: rest
   observableSigns: [nauseous, sweating, pallid]

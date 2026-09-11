@@ -1,0 +1,24 @@
+# Forensics — reading a body for what happened to it. A specialization of
+# medicine: the same anatomy, asked a different question.
+#
+# ⭐ It exists because `analyze postmortem` grades an INFERENCE, and the
+# thing being graded is not medical skill. A physician keeps people
+# alive; a forensic examiner reads what a corpse can still tell you, and
+# the two diverge the moment the patient stops being one.
+#
+# ⚠ Its difficulty is `1 − forensic readability` — a measurement of the
+# world, never a tag. A fresh body is easy and a spent one is formidable,
+# which is why somebody who wants the truth about a death has a reason to
+# hurry and somebody who does not has a reason to wait.
+class: /platform/idea/Discipline
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  key: forensics
+  channel: skill
+  label: Forensics
+  iscedf: "0912"
+  specializes:
+    - medicine
+  description: >-
+    What a body can still tell you, and for how long. The examiner reads
+    the marks and reasons back to the act; the body never simply says.

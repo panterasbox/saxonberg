@@ -20,3 +20,5 @@ data:
   length: 2.4
   slotClaims:
     "/stuff/idea/species/BodyPlan/biped": ["hand:left", "hand:right"]
+  # ⭐ The spear is the reach argument, and reach is its own practice.
+  exercises: [polearms]

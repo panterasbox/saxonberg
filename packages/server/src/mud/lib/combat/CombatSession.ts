@@ -157,6 +157,61 @@ export interface CombatantState {
    * following beat — no new hook.
    */
   bandSeen: string | null;
+  /**
+   * ⭐⭐ **The Disciplines this combatant actually exercised this fight** —
+   * `melee-combat` always, plus whatever the weapon in hand at each
+   * exchange declared (`Weapon.exercises`), plus `unarmed` for an innate
+   * exchange. Accumulated per exchange because a fighter may switch
+   * grips mid-fight, and what the fight *cost or paid* them should be
+   * what they *did*, not what they were holding when it ended.
+   *
+   * Read once, at resolution, by the credit hooks. Dies with the session.
+   */
+  readonly exercised: Set<string>;
+  /**
+   * Exchanges this combatant won and lost as the ACTOR, tallied per beat.
+   * The loser's outcome is `partial` rather than `failure` when they took
+   * at least half the exchanges they were in — a close loss is not the
+   * same evidence as a rout, and the ledger should not pretend it is.
+   */
+  exchangesWon: number;
+  exchangesLost: number;
+  /**
+   * Every wound this combatant TOOK this fight, by outcome band. Feeds
+   * the aftermath read (W6) and the morale read (W4) — how badly a fight
+   * has gone for you is not the same question as your current poise.
+   */
+  readonly woundsTaken: string[];
+  /**
+   * ⭐⭐ **The band this combatant fights AS** — how hard they are to beat,
+   * for the purpose of grading what the fight taught or cost the other
+   * side. Stamped once at open/join.
+   *
+   * ⚠ Distinct from {@link competenceBand}, and the distinction is the
+   * point. `competenceBand` is *skill* and drives `Sharpness` (read-fog,
+   * poise recovery). `contestBand` is *danger*, and for a **beast** it is
+   * derived from the BODY (`NaturalAttack.difficultyFor` over the strike
+   * profile), never from a transcript — wolves are `Extra`s sharing one
+   * identity, so a transcript read makes every wolf `untrained`, every
+   * wolf fight `easy`, and **losing to one the most punishing loss in the
+   * game**. A dire wolf is a hard fight because it is large, fast and
+   * long-reached, which is what the species rows already say.
+   *
+   * For a sentient it is simply the snapshotted competence band, so the
+   * two currencies meet in one field and the credit rule stays uniform:
+   * `CompetenceBand.difficultyAgainst(mine, theirs)`.
+   */
+  contestBand: CompetenceBandName;
+  /**
+   * The morale band as of the last per-beat comparison — the same
+   * cross-beat baseline shape as {@link bandSeen}, so a fighter's nerve
+   * going is narrated once, on the beat it goes.
+   *
+   * ⚠ It needs its own baseline rather than riding the poise one: morale
+   * moves on wounds taken, allies falling and being outnumbered, none of
+   * which change a poise band.
+   */
+  moraleSeen: string | null;
 }
 
 export class CombatSession {

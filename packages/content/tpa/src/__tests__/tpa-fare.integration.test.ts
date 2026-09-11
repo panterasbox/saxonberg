@@ -226,7 +226,7 @@ describe("TPA fare settlement (integration)", () => {
   beforeEach(async () => {
     installV1QuantityMarshallers();
     installBankingHarness();
-    // issueCash / GlobbableApi.split clone /stuff/thing/Coin — stub the clone so the
+    // issueCash / StackableApi.split clone /stuff/thing/Coin — stub the clone so the
     // coin stack round-trips without a full domain-store hydration.
     vi.spyOn(StuffApi, "clone").mockImplementation((async (path: string) => {
       const c = makeStuffAtPath(() => {

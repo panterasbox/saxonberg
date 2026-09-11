@@ -121,7 +121,7 @@ export interface MqlMatch {
  * The value an MQL quantity carries — what the quantity *is*:
  *
  *   - `'count'` — a discrete integer count (`5 coins`, `coin:{5}`).
- *     Consumed by `GlobbableApi.applyQuantity`.
+ *     Consumed by `StackableApi.applyQuantity`.
  *   - `'all'` — the sentinel "the whole lot" (`all coins`, `coin:{*}`).
  *   - `'measure'` — a continuous bulk measure (`2 cups`,
  *     `water:{2 cups}`). Carries a serializable `{ value, unit }`
@@ -141,7 +141,7 @@ export type MqlQuantityValue =
  *
  * `mode` is **transport-only**: it carries the syntax-form signal
  * (formal `:{N}` → strict; natural-language `2 X` → lenient) from
- * the resolver to the helper. `GlobbableApi.applyQuantity` is its
+ * the resolver to the helper. `StackableApi.applyQuantity` is its
  * only legitimate consumer. **Controllers don't read `mode`** — they
  * pass the whole `MqlQuantity` through to the helper without
  * branching. The one exception is a controller that wants to
@@ -172,13 +172,15 @@ export type MqlQuantityHint = MqlQuantity;
  *
  * `quantity` carries the leading-number or formal `:{N}` hint when
  * the query supplied one; controllers thread it into
- * `GlobbableApi.applyQuantity` to distribute the action across
+ * `StackableApi.applyQuantity` to distribute the action across
  * candidates.
  */
 export interface MqlOne {
   stuff: Stuff | null;
   via?: MqlMatchVia;
   quantity?: MqlQuantity;
+  /** Present only when the run walked the registry — see {@link RegistryScan}. */
+  scan?: RegistryScan;
 }
 
 /**
@@ -194,7 +196,32 @@ export interface MqlMany {
   stuff: Stuff[];
   via?: MqlMatchVia;
   quantity?: MqlQuantity;
+  /** Present only when the run walked the registry — see {@link RegistryScan}. */
+  scan?: RegistryScan;
 }
+
+/**
+ * ⭐ **What a registry-wide read cost**, recorded by the resolver and
+ * carried back to whoever was entitled to make it.
+ *
+ * It exists because *"this person may read the world"* is only a
+ * defensible grant if they are told what they just did. `scanned`
+ * is objects READ, not matched — a query that returns three things after
+ * reading eighteen hundred is exactly the case worth showing.
+ *
+ * `indexed: false` means the whole registry was walked because the query
+ * was not in a shape any index answers; that is the number that grows
+ * with the realm.
+ */
+export interface RegistryScan {
+  /** Objects read to answer the query. */
+  scanned: number;
+  /** False ⇒ the whole registry was walked. */
+  indexed: boolean;
+  /** The leading fragment, as typed — e.g. `world:[class.Door]`. */
+  shape: string;
+}
+
 
 /**
  * Per-field model-side wrapper for a `type: object` resolution. The
@@ -405,7 +432,7 @@ export interface GroupNode {
  * quantity forward onto the final `MqlMany` / `MqlOne` wrapper, marked
  * `mode: 'strict'`. See {@link MqlQuantityValue}, {@link MqlQuantity},
  * `docs/mql-grammar.md § Formal quantity` (user-facing surface), and
- * `docs/subsystems/glob.md § MQL touchpoints` (runtime hookup).
+ * `docs/subsystems/stacks.md § MQL touchpoints` (runtime hookup).
  */
 export interface QuantityNode {
   kind: 'quantity';

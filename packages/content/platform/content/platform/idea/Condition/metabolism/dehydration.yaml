@@ -9,6 +9,7 @@ data:
   name: dehydration
   signature: []
   progression:
+    law: stage
     intervalMs: 1800000
   resolution:
     by: water

@@ -93,7 +93,7 @@ export class AppBootstrap {
    */
   public static async run(config: AppBootstrapConfig): Promise<void> {
     // Framework cross-module wiring (registry-class handoffs, the
-    // security/shadow/command/glob seams). Idempotent; `BootstrapManager.run`
+    // security/shadow/command/stack seams). Idempotent; `BootstrapManager.run`
     // re-invokes it. Branch registration is NOT here — the five branch
     // classes self-register at their own module load (the hierarchy's
     // root invariant must populate before any construction, including
@@ -310,44 +310,19 @@ export class AppBootstrap {
     // libations live drive watched a dev restart empty the cash-and-carry
     // counter). Capture each one, best-effort, before the process ends.
     //
-    // ⭐ ASKED, not remembered. The hosts are found by a system-mode MQL
-    // sweep — the sanctioned "search the world" (mql.md; it is what
-    // `lint:world-scan` points a bespoke `getAllObjects()` loop at) —
-    // and each says for itself whether it wants a capture. Who wants one
-    // is `PersistableMixin`'s knowledge, including the Avatar exclusion;
-    // this file only asks.
+    // ⭐ ASKED, not remembered — but asked by the persistence subsystem,
+    // not by this file. The sweep reads the whole registry, and that read
+    // is gated on the calling function; a backend class has no dispatched
+    // frame, so it could never be a recognized caller. The loop lives on
+    // `PersistableLogic.captureAtShutdown`, which is also where the
+    // knowledge of who wants a capture already lives.
     //
     // ⚠ This briefly kept a `PersistableRegistry` that hosts enrolled
     // themselves into. It was a third index of Stuff holding no fact the
-    // objects did not already hold — and this very loop re-derived every
-    // one of them on read (`isPersistable`, a null key, `isDestroyed`),
-    // which is the tell that a cache is buying nothing. Maintained on
-    // every key-set and every destruct, forever, to save one sweep at
-    // process exit.
-    // Imported HERE, not at module scope: this file deliberately keeps
-    // `api/mql` off its eager chain to avoid the documented
-    // `ConnectionApi → ConnectionManager → Interactive → Idea` cycle
-    // (see the `installOnlineHoldersProvider` note above). By shutdown
-    // everything is long since loaded.
-    const { MqlApi } = await import('../mud/api/mql');
-    const hosts = MqlApi.resolveMany('world:[mixin.PersistableMixin]', {
-      commandGiver: null,
-      scope: 'world',
-    }).stuff;
-    let captured = 0;
-    for (const stuff of hosts) {
-      if (!MixinApi.isPersistable(stuff)) continue;
-      if (!stuff.capturesAtShutdown()) continue;
-      try {
-        await PersistableApi.capture(stuff);
-        captured += 1;
-      } catch (err) {
-        console.error(
-          `AppBootstrap: shutdown capture failed for ${stuff.getTemplatePath() ?? stuff.stuffId}:`,
-          err,
-        );
-      }
-    }
+    // objects did not already hold — and the loop re-derived every one of
+    // them on read anyway (`isPersistable`, a null key, `isDestroyed`),
+    // which is the tell that a cache is buying nothing.
+    const captured = await PersistableApi.captureAtShutdown();
     console.info(`AppBootstrap: shutdown captured ${captured} persistable host(s)`);
   }
 }

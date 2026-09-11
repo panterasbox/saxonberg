@@ -40,7 +40,9 @@ import {
 } from '@saxonberg/server/mud/lib/security/__tests__/test-setup';
 import StorageNode from '../thing/StorageNode';
 import ControlStructure from '../thing/ControlStructure';
-import WatercourseCatalogue from '../idea/WatercourseCatalogue';
+import WatercourseCatalogue, {
+  WATERCOURSE_CATALOGUE_PATH,
+} from '../idea/WatercourseCatalogue';
 
 const YEAR = 365 * 86_400;
 const RHO = 1000;
@@ -94,8 +96,23 @@ const WORLD: Row[] = [
  * persistence spine actually puts a captured level, so the
  * survives-a-restart claim can be PROVEN rather than asserted.
  */
+/**
+ * ⚠ The row store is module-scoped so a FIXTURE can add to it. A water
+ * work is found by its `content` row naming a waterwork class — that is
+ * how the catalogue finds the city's conduits without walking the world
+ * — so a conduit built only in memory is, correctly, invisible to the
+ * river. `work()` below is what makes a fixture a real one.
+ */
+let store: Array<{ _id: string; path: string } & Record<string, unknown>> = [];
+
+/** Give `path` a row, so the catalogue's roster can find what stands there. */
+function work(path: string, cls = '/system/water/thing/Conduit'): string {
+  store.push({ _id: `w-${store.length + 1}`, path, class: cls, data: {} });
+  return path;
+}
+
 function installWorld(): void {
-  const store = WORLD.map((r, i) => ({ _id: String(i + 1), ...r }));
+  store = WORLD.map((r, i) => ({ _id: String(i + 1), ...r }));
   const snapshots: Array<Record<string, unknown> & { _id?: string }> = [];
   let nextId = 1;
 
@@ -184,11 +201,17 @@ function makeControl(spec: {
     c.setHeadM(spec.head ?? 0);
     c.setGenerates(spec.generates ?? false);
     return c;
-  }, `/system/water/thing/ControlStructure/_test-${seq}`) as ControlStructure;
+  }, work(
+    `/system/water/thing/ControlStructure/_test-${seq}`,
+    '/system/water/thing/ControlStructure',
+  )) as ControlStructure;
 }
 
 const catalogue = (): WatercourseCatalogue =>
-  makeStuff(() => new WatercourseCatalogue()) as WatercourseCatalogue;
+  makeStuffAtPath(
+    () => new WatercourseCatalogue(),
+    WATERCOURSE_CATALOGUE_PATH,
+  ) as WatercourseCatalogue;
 
 beforeEach(() => {
   StuffApi.clearAll();

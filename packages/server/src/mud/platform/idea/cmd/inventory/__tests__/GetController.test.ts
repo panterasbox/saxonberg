@@ -1,7 +1,7 @@
 /**
  * GetController tests — mirror of DropController coverage focused on
  * the environment-to-inventory direction. The two controllers share
- * the same `GlobbableApi.applyQuantity` workhorse, so this suite
+ * the same `StackableApi.applyQuantity` workhorse, so this suite
  * checks the source/destination flip plus a few unique-to-get cases.
  */
 
@@ -13,7 +13,7 @@ import { ContainableMixin } from '../../../../../lib/spatial/Containable';
 import { CommandGiverMixin } from '../../../../../lib/command/CommandGiver';
 import { NamedMixin } from '../../../../../lib/description/Named';
 import { SensorMixin } from '../../../../../lib/message/Sensor';
-import { GlobbableMixin } from '../../../../../lib/stuff/Globbable';
+import { StackableMixin } from '../../../../../lib/stuff/Stackable';
 import { Idea } from '../../../../../lib/stuff/Idea';
 import Location from '../../../../../lib/stuff/Location';
 import { Stuff } from '../../../../../lib/stuff/Stuff';
@@ -39,12 +39,12 @@ class TestGiver extends SensorMixin(
   static _mixinName = 'TestGiver';
 }
 
-class Coin extends GlobbableMixin(ContainableMixin(NamedMixin(Idea))) {
+class Coin extends StackableMixin(ContainableMixin(NamedMixin(Idea))) {
   static _mixinName = 'Coin';
   static fieldMeta: FieldMeta = {
     quantity: { persistent: true },
     name: { persistent: true },
-    denomination: { persistent: true, globIdentity: true },
+    denomination: { persistent: true, stackIdentity: true },
   };
   public denomination: 'gold' | 'silver' | 'copper' = 'copper';
 }
@@ -254,7 +254,7 @@ describe('GetController — quantity-bearing path', () => {
     expect(counter.getContainer()).toBe(loc);
   });
 
-  // ⭐ DISCRETE items, not a glob. The coin case below splits one stack;
+  // ⭐ DISCRETE items, not a stack. The coin case below splits one stack;
   // this is N separate things sharing a keyword — a floor stock's dozen
   // grapefruits, a rack's dozen coupes — and it is the case the
   // `consigns` beat depends on. A bare `get <kw>` binds them ALL

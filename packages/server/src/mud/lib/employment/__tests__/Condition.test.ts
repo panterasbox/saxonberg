@@ -1,7 +1,7 @@
 /**
  * Condition — the engine-verifiable delivery predicate: template-vocabulary
  * validation (the "engine-verifiable or rejected" boundary), item matching
- * (chattel / template, glob refusal), and the authoritative `holdsFor`
+ * (chattel / template, stack refusal), and the authoritative `holdsFor`
  * walk (ancestor chain, the restingOn surface leg, and the
  * creature-ancestor strict-possession refusal).
  */
@@ -15,7 +15,7 @@ import { Creature } from "../../creature/Creature";
 import { ContainerMixin } from "../../spatial/Container";
 import { ContainableMixin } from "../../spatial/Containable";
 import { SurfacedMixin } from "../../spatial/Surfaced";
-import { GlobbableMixin } from "../../stuff/Globbable";
+import { StackableMixin } from "../../stuff/Stackable";
 import { ChattelMixin } from "../../chattel/Chattel";
 import { ContainmentApi } from "../../../api/containment";
 import { StuffApi } from "../../../api/stuff";
@@ -34,7 +34,7 @@ class TestCrate extends ContainableMixin(Idea) {
 class TestCounter extends SurfacedMixin(ContainableMixin(Idea)) {
   static _mixinName = "TestCounter";
 }
-class TestStack extends GlobbableMixin(ContainableMixin(Idea)) {
+class TestStack extends StackableMixin(ContainableMixin(Idea)) {
   static _mixinName = "TestStack";
 }
 class TestParcel extends ChattelMixin(ContainableMixin(Idea)) {
@@ -140,5 +140,47 @@ describe("Condition.matchesItem / holdsFor", () => {
     expect(Condition.holdsFor(toCounter, crate)).toBe(true);
     // …and to the room: the crate is in the room's contents via placeOn.
     expect(Condition.holdsFor(delivery(), crate)).toBe(true);
+  });
+});
+
+/* ────────── W17: `watch` — the guard contract, and the finding ────────── */
+
+describe('the watch clause', () => {
+  const watch = (gameHours: number): ConditionData => ({
+    template: 'watch',
+    item: { kind: 'template', path: '/world/rejection/location/fuel-yard' },
+    destinationPath: '/world/rejection/location/fuel-yard',
+    gameHours,
+  });
+
+  it('⭐ validates with an hour term', () => {
+    expect(Condition.validate(watch(4))).toBeNull();
+  });
+
+  it('⚠ refuses a term of zero or nonsense — escrow holds real money', () => {
+    expect(Condition.validate(watch(0))).toContain('hour count');
+    expect(
+      Condition.validate({ ...watch(4), gameHours: undefined }),
+    ).toContain('hour count');
+  });
+
+  it('⭐⭐ holds on ACCRUED PRESENCE, not on anything being at a place', () => {
+    // The asymmetry IS the finding. Every shipped clause is "a thing is
+    // at a place"; a guard contract is "a person was at a place, for a
+    // while", which `holdsFor(data, item)` cannot express however it is
+    // squeezed — so the predicate is a different one.
+    const c = watch(4);
+    expect(Condition.watchHolds(c, 3 * 3600)).toBe(false);
+    expect(Condition.watchHolds(c, 4 * 3600)).toBe(true);
+    expect(Condition.watchHolds(c, 9 * 3600)).toBe(true);
+  });
+
+  it('⚠ a delivery clause never satisfies a watch predicate', () => {
+    const delivery: ConditionData = {
+      template: 'delivery',
+      item: { kind: 'template', path: '/stuff/thing/crate' },
+      destinationPath: '/somewhere',
+    };
+    expect(Condition.watchHolds(delivery, 999 * 3600)).toBe(false);
   });
 });

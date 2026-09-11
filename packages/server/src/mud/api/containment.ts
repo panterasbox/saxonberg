@@ -84,15 +84,15 @@ export class ContainmentError extends Error {
 }
 
 /**
- * Late-bound merge-on-arrival hook. `GlobbableApi` registers a
- * function at module load that handles the "moved Globbable arrived
+ * Late-bound merge-on-arrival hook. `StackableApi` registers a
+ * function at module load that handles the "moved Stackable arrived
  * in a container holding a mergeable sibling" ripple. Lives here as
  * a slot rather than a direct import to avoid the
- * containment → glob → containment cycle.
+ * containment → stack → containment cycle.
  *
  * The hook fires AFTER post-move `on*` witnesses so subscribers see
  * the arrival before the absorbed Stuff destructs. Hook implementor
- * is responsible for the `MixinApi.isGlobbable` skip path.
+ * is responsible for the `MixinApi.isStackable` skip path.
  */
 export type MergeOnArrivalHook = (
   moved: Stuff,
@@ -105,7 +105,7 @@ export type MergeOnArrivalHook = (
 export class ContainmentApi {
   /**
    * Install (or replace) the merge-on-arrival hook. Called once by
-   * `GlobbableApi` at module load. The `_` prefix marks it
+   * `StackableApi` at module load. The `_` prefix marks it
    * framework-internal — same shape as `SecurityApi._registerShadowApi`.
    *
    * @internal
@@ -176,7 +176,7 @@ export class ContainmentApi {
 
   /**
    * Place `item` in `env` without firing movement witnesses, running
-   * capacity validators, or triggering the glob merge-on-arrival
+   * capacity validators, or triggering the stack merge-on-arrival
    * ripple. The matter is treated as if it were already in `env`;
    * this call just records the topological fact.
    *
@@ -185,7 +185,7 @@ export class ContainmentApi {
    * `ContainmentApi.move`. Throws when violated.
    *
    * Use when the placement is semantically NOT an arrival:
-   *   - Glob split (splitoff is freshly cloned, has no container).
+   *   - Stack split (splitoff is freshly cloned, has no container).
    *   - First-placement bootstrap paths after `StuffApi.clone` that
    *     deliberately bypass arrival hooks.
    *   - Hot-reload re-attachment (post-clone, pre-relink).
@@ -205,7 +205,7 @@ export class ContainmentApi {
    * What's bypassed:
    *   - Capacity validators (matter-was-already-there assumption).
    *   - `can*` / `on*` witnesses (placement is not movement).
-   *   - Merge-on-arrival ripple for globs.
+   *   - Merge-on-arrival ripple for stacks.
    *   - Recency-stack bookkeeping (no command-contribution delta —
    *     the matter is treated as already-present).
    *

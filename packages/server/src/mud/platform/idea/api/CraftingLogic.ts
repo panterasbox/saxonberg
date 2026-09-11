@@ -39,7 +39,7 @@ import {
   type ResolvedTechnique,
 } from '../../../lib/craft/Technique';
 import { ContainmentApi } from '../../../api/containment';
-import { GlobbableApi } from '../../../api/glob';
+import { StackableApi } from '../../../api/stackable';
 import type RecipeCatalogue from '../RecipeCatalogue';
 import type { BulkSlot, BulkPayload } from '../../../lib/bulk/Bulkable';
 import type { Tooled } from '../../../lib/craft/Tooled';
@@ -114,13 +114,13 @@ interface MatchedInput {
   material: Material | null;
 }
 
-/** A reachable discrete/glob item input candidate. */
+/** A reachable discrete/stack item input candidate. */
 interface ItemCandidate {
   stuff: Stuff;
   material: Material;
   /** Graded band, or the `fair` fallback for ungraded stock (an Ingot). */
   grade: Grade;
-  /** Glob stack size; 1 for a plain discrete Tangible. */
+  /** Stack size; 1 for a plain discrete Tangible. */
   quantity: number;
 }
 
@@ -128,8 +128,8 @@ interface ItemCandidate {
 interface MatchedItemInput {
   stuff: Stuff;
   count: number;
-  /** True ⇒ quantity debit (glob); false ⇒ destruct the whole Tangible. */
-  glob: boolean;
+  /** True ⇒ quantity debit (stack); false ⇒ destruct the whole Tangible. */
+  stack: boolean;
   /** The source's grade (joins the weakest-link derivation). */
   grade: Grade;
   /** The source's Material (flows onto a tangible output's primary). */
@@ -179,7 +179,7 @@ function resolveMaker(mode: MakerMode): Stuff | null {
 }
 
 /**
- * The gather walk's yield: bulk holders, tools, discrete/glob items, and
+ * The gather walk's yield: bulk holders, tools, discrete/stack items, and
  * the glass pool (every Crafted bulk vessel in reach — a claimed glass is
  * the output form; a glass is never an input).
  */
@@ -325,7 +325,7 @@ function isEdibleMatter(c: Stuff): boolean {
 }
 
 /**
- * Whether `c` qualifies as a discrete/glob item-input candidate: a
+ * Whether `c` qualifies as a discrete/stack item-input candidate: a
  * Material-bearing Tangible that is raw *matter*, not capital or a made
  * form — not a tool (the anvil never feeds the forge), not crafted
  * NON-FOOD (a grown, marked lime is still matter — see
@@ -401,7 +401,7 @@ async function collectCandidate(c: Stuff, into: GatheredMatter): Promise<void> {
       // An ungraded item (an Ingot) derives at `fair` — the
       // deriveAtFixedControl fallback made explicit per candidate.
       grade: MixinApi.isGraded(c) ? c.getGrade() : Grade.of('fair'),
-      quantity: MixinApi.isGlobbable(c) ? c.getQuantity() : 1,
+      quantity: MixinApi.isStackable(c) ? c.getQuantity() : 1,
     });
   }
 }
@@ -603,12 +603,12 @@ function pickCandidate(
 }
 
 /**
- * Pick the item inputs for one discrete/glob slot: category tag on the
+ * Pick the item inputs for one discrete/stack slot: category tag on the
  * Material + min grade (ungraded stock counts `fair`) + enough un-claimed
  * units across the reachable candidates. Honors a `with <brand>`
  * preference, then the LOWEST sufficient grade (the rail — see
  * `pickBulkInput`); greedy across sources until the slot's
- * `count` is covered (a glob covers many units, a discrete Tangible one).
+ * `count` is covered (a stack covers many units, a discrete Tangible one).
  * `claimedUnits` tracks per-source draw so two slots never double-claim.
  * Returns the matched draws, or null when the slot cannot be covered.
  */
@@ -658,7 +658,7 @@ function pickItemInputs(
     picked.push({
       stuff: cand.stuff,
       count: take,
-      glob: MixinApi.isGlobbable(cand.stuff),
+      stack: MixinApi.isStackable(cand.stuff),
       grade: cand.grade,
       material: cand.material,
     });
@@ -1016,11 +1016,11 @@ async function finishGlass(
       );
     }
   }
-  // Garnish: a thing in the glass (a glob splits off the units).
+  // Garnish: a thing in the glass (a stack splits off the units).
   if (MixinApi.isContainer(output)) {
     for (const g of garnish) {
       let piece: Stuff = g.stuff;
-      if (g.glob && MixinApi.isGlobbable(g.stuff) && g.stuff.getQuantity() > g.count) {
+      if (g.stack && MixinApi.isStackable(g.stuff) && g.stuff.getQuantity() > g.count) {
         piece = await g.stuff.split(g.count);
       }
       if (MixinApi.isContainable(piece)) ContainmentApi.move(piece, output);
@@ -1127,8 +1127,8 @@ function applyTangibleOutput(
   for (const m of matchedItems) {
     if (!MixinApi.isTangible(m.stuff)) continue;
     const unitKg = m.stuff.getMass().rawValue();
-    // A glob's mass is per-unit (the stack is `quantity` instances).
-    totalKg += m.glob ? unitKg * m.count : unitKg;
+    // A stack's mass is per-unit (the stack is `quantity` instances).
+    totalKg += m.stack ? unitKg * m.count : unitKg;
   }
   output.setMaterial(primary.material);
   if (totalKg > 0) output.setMass(Quantity.of(totalKg, 'kg'));
@@ -1244,7 +1244,7 @@ async function applyEdibleOutput(
 
 /**
  * Domain seam — consume the matched **item** inputs (conservation), the
- * discrete sibling of {@link consumeBulkInputs}: a glob is debited by
+ * discrete sibling of {@link consumeBulkInputs}: a stack is debited by
  * exactly the matched units (destructed when fully drawn); a discrete
  * Tangible is destructed whole — its chattel id released by the shipped
  * `onDestruct` path. Mismatches are programmatic conservation breaches →
@@ -1252,10 +1252,10 @@ async function applyEdibleOutput(
  */
 function consumeItemInputs(matched: MatchedItemInput[]): void {
   for (const m of matched) {
-    if (m.glob) {
-      if (!MixinApi.isGlobbable(m.stuff)) {
+    if (m.stack) {
+      if (!MixinApi.isStackable(m.stuff)) {
         throw new Error(
-          'CraftingLogic: conservation breach — a glob input lost its stack',
+          'CraftingLogic: conservation breach — a stack input lost its stack',
         );
       }
       const q = m.stuff.getQuantity();
@@ -1282,7 +1282,7 @@ function consumeItemInputs(matched: MatchedItemInput[]): void {
 /**
  * Domain seam #2 — consume the inputs (conservation). The **only** bulk-
  * specific consume step: debit each matched bottle slot by exactly its
- * measure (strict). Globs/items add sibling `consumeGlobInputs` /
+ * measure (strict). Stacks/items add sibling `consumeStackInputs` /
  * `consumeItemInputs`. A short debit is a programmatic conservation breach →
  * throw (feasibility was already checked).
  */
@@ -1777,7 +1777,7 @@ async function craftImpl(req: CraftRequest): Promise<CraftOutcome> {
   const { bottles, tools, items, glasses } = await gatherMatter(location, maker);
 
   // Match input slots (per-source no-double-claim), dispatching each slot
-  // on its kind: bulk → bottle draw, item → discrete/glob units.
+  // on its kind: bulk → bottle draw, item → discrete/stack units.
   const claimed = new Map<Stuff, number>();
   const claimedUnits = new Map<Stuff, number>();
   // The player's `with <brand>` token, resolved to a brand KEY once —
@@ -2050,7 +2050,7 @@ async function craftImpl(req: CraftRequest): Promise<CraftOutcome> {
  * (`item mass × deficit × crafting.repair.costFactor`, doubled broken);
  * the domain gates by matter — `metal` wants forge-grade reachable heat,
  * soft goods a reachable `mending` tool; stock is drawn from the same
- * gather walk a craft uses (a glob debits partially; a discrete donor is
+ * gather walk a craft uses (a stack debits partially; a discrete donor is
  * consumed whole only when its mass ≤ 2× the need). On success the
  * condition is restored to full — ceiling-free (gear never obsoletes, it
  * asks for care). Repair never touches keenness; `sharpen` never touches
@@ -2124,7 +2124,7 @@ async function repairImpl(req: RepairRequest): Promise<RepairOutcome> {
     const donors = items.filter(
       (i) => i.stuff !== item && wantTags.some((t) => i.material.hasTag(t)),
     );
-    // Globs first (partial-mass debits waste nothing).
+    // Stacks first (partial-mass debits waste nothing).
     donors.sort((a, b) => Number(b.quantity > 1) - Number(a.quantity > 1));
     let remaining = needKg;
     for (const donor of donors) {
@@ -2132,12 +2132,12 @@ async function repairImpl(req: RepairRequest): Promise<RepairOutcome> {
       if (!MixinApi.isTangible(donor.stuff)) continue;
       const unitKg = donor.stuff.getMass().rawValue();
       if (unitKg <= 0) continue;
-      if (MixinApi.isGlobbable(donor.stuff)) {
+      if (MixinApi.isStackable(donor.stuff)) {
         const take = Math.min(donor.quantity, Math.ceil(remaining / unitKg));
         draws.push({
           stuff: donor.stuff,
           count: take,
-          glob: true,
+          stack: true,
           grade: donor.grade,
           material: donor.material,
         });
@@ -2149,7 +2149,7 @@ async function repairImpl(req: RepairRequest): Promise<RepairOutcome> {
         draws.push({
           stuff: donor.stuff,
           count: 1,
-          glob: false,
+          stack: false,
           grade: donor.grade,
           material: donor.material,
         });

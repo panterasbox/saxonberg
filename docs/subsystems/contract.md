@@ -17,6 +17,87 @@ pairs), with its own gated face — `ContractApi` (`api/contract.ts`) →
 `ContractLogic` (`/platform/idea/api/contract`) beside the shipped
 `EmploymentApi`/`EmploymentLogic`.
 
+## ⭐⭐ `watch` — the third template, and the wall it came through
+
+*"Guard my shop"* was this doc's canonical example of an intent that sits
+**behind** the verifiability wall — the reason `CONDITION_TEMPLATES` is
+closed rather than authored. The consequence build asked whether it could
+be expressed on the shipped board. It could not, and saying so loudly was
+the requirement.
+
+It took **three kernel touches**: a third template with a `gameHours`
+term, a `watchedSec` accrual on `ContractRecord`, and a reconcile that
+credits presence. Stated here because "it needs engine work" is a real
+answer that the board's design was previously unable to give.
+
+> ⚠⚠ **It shipped with four, and the fourth was wrong.** The build also
+> added a `watch` VERB and a `WatchEngagement`, and both were cut in
+> review. See *No verb for standing a post*, below.
+
+⭐ **What made it checkable was giving up on intent entirely.** The engine
+cannot verify that you *protected* anything: whether a theft was deterred
+is counterfactual, and "attentive" is not a modelled fact. What it can
+verify is that you were **present, for N hours, with your hands free** —
+and that turns out to be what a guard actually sells. Somebody standing in
+the door is the product; quiet is the hoped-for consequence, not the
+deliverable.
+
+⚠ So a guard who served the full watch and was robbed blind still gets
+paid, for exactly the reason a courier is paid on arrival rather than on
+the client being pleased.
+
+⚠ Accrual is in game-seconds on the **contract's** record rather than
+the worker's: two overlapping posts are two accruals a worker-side
+counter could not tell apart.
+
+### ⭐⭐⭐ No verb for standing a post
+
+`watch` shipped as a verb and was **cut in the same MR's review.** The
+objection is the one this whole section is built on, turned around:
+
+> **Typing `watch` never made anybody keep watch.** It marked an
+> intention and the engine then trusted it.
+
+But the clause is *"be at place P for N hours"*, and where somebody is
+standing is a fact the engine **already holds**. So it looks instead of
+asking. `ContractApi.reconcileWatches` — a sweep armed by `WatchWarden`,
+the `AttendantWarden` shape — credits the elapsed game-time whenever it
+finds the claimant at the post with no other engagement holding their
+hands. `watchSeenSec` is the high-water mark it re-stamps each look, not
+a start time, and one sample is capped so a downtime gap pays nothing
+absurd.
+
+⭐ **The `AttendanceEngagement` precedent decided it.** A shopkeeper does
+not type `attend`; attendance starts because a customer arrived and the
+roster says who is on shift. Standing a post is the same shape and should
+never have needed a word.
+
+⭐⭐ **And the hands-free rule got better by losing its rule.** The
+engagement CLAIMED `body`/`hands`/`attention`, so the game *refused* to
+let a guard craft. Now nothing refuses: craft if you like — those minutes
+simply do not count. Same doctrine as the guard who was robbed blind and
+still gets paid. **The engine measures presence, not virtue**, and a bad
+guard is expressed by a short paycheque rather than by a prohibition
+somebody had to write.
+
+⚠⚠ **The other reason it went**, and it is the one with a gate now: the
+verb rode the born-with credential wallet and **shadowed the livestream
+`watch`** for every character alive. `help watch` answered *"Stand a
+guard's post"*; `watch twitch.tv/…` was declined `no-watch-claim`.
+Nothing failed — not a test, not a lint, not the boot. `lint:verb-collisions`
+is the census that now catches it, and it found **nine collisions already
+shipped**.
+
+⭐ Where a job genuinely needs a discrete act rather than continuous
+presence — a courier's handover — that is `fulfill`, which earns riding
+the wallet because the implant logging a delivery is a real story. A
+future clause wanting one gets a `job` subcommand, **never a new
+top-level verb**: the vocabulary is the extension seam builds widen, and
+the whole point is that widening it costs no new engine surface.
+
+The hours read back on the board: `job` prints *"watch the pithead — 3 of
+8 hours stood"*, which is what replaces the ceremony of typing a verb.
+
 ## The clause primitive
 
 A **clause** is the first-class unit of work: `{shape, condition}`
@@ -60,7 +141,7 @@ a spot market liquid. **How you sourced it is your business.**
 **Delivery** (`lib/employment/Condition.ts`): *item X rests in/on
 destination Y*. The item ref is instance-bound (`chattel`, the durable
 `_chattelId` — deliver *this* crate) or kind-bound (`template` — any
-clone); a `Globbable` is refused outright (a merging stack has no stable
+clone); a `Stackable` is refused outright (a merging stack has no stable
 identity — the chattel precedent). `holdsFor` is the authoritative
 check: a bounded **upward** containment walk comparing ancestor
 `templatePath`s to the destination (a crate in a chest in Dave's Bar
@@ -123,6 +204,21 @@ hauler at the far end of a corridor asking what wants moving back. *You
 cannot solve your own backhaul*, which is a coordination problem with
 visible waste and the cleanest teachable case of why intermediaries
 exist.
+
+## ⚠⚠ A party is keyed on its IDENTITY path
+
+`ContractParty.templatePath` holds whatever
+**`getIdentityPath()`** returned — the field name predates the D17
+identity/lineage split and is now the misleading half of this record.
+Keying a party on `getTemplatePath()` instead makes **every player
+identical**, because they all share one template path: the self-claim
+guard then refuses every gig to every claimant with *"you can't claim
+your own gig"*, which is exactly what shipped until 2026-09.
+
+⭐ `contract-lifecycle.test.ts` covers that guard and passes, because
+its fixtures set real, distinct template paths. Only driving the world
+found it. See
+[antipatterns.md § Keying a PERSON on `getTemplatePath()`](../antipatterns.md).
 
 ## Claim modes
 

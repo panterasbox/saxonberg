@@ -201,3 +201,23 @@ classroom composition; 6 waits on the integration.
 - **Does the same loop generalise to the `vet`?** The audit flagged the vet
   as the closest medic-adjacent judgment seam ("observation without
   self-report"); this loop may serve it with no new design.
+
+---
+
+## ⭐ Hand-off from the consequence build (MR!254, 2026-09-10)
+
+**The NPC medic — the missing half of the paid treatment.** The build
+shipped `Tariff` (a priced service, `SERVICE_KINDS = repair · treatment ·
+burial`), the Terminus infirmary, and `order treatment` reaching the
+service branch. What it does **not** ship is somebody on the other side
+of the counter who is any good.
+
+An NPC that renders `treatment` on `order` needs a brain that makes this
+slate's clinical decision — read the body, choose among candidate
+conditions, pick a treatment that matches. `Tariff.services` is where
+`treatment` slots in, and the vocabulary is already closed and waiting.
+
+⭐ The interesting consequence: **a bad NPC medic is a real thing to
+model.** `analyze patient` deliberately returns candidates *plural and
+unranked*, so an NPC choosing among them can be honestly wrong — which
+is a better clinic than one that always heals.

@@ -41,6 +41,7 @@ describe('the hearthworks venue pack props/cast rows the packs ship at those pat
       'agent/cook.yaml', 'agent/smith.yaml', 'idea/business.yaml',
       'location/cellar.yaml', 'location/cookhouse.yaml', 'location/offstage.yaml', 'location/smithy.yaml', 'location/woodshed.yaml',
       'thing/forge-floor.yaml', 'thing/kitchen-menu.yaml', 'thing/pantry-chest.yaml', 'thing/smithy-menu.yaml',
+      'thing/smithy-tariff.yaml',
     ]);
   });
   it('every props:/cast: path is a shipped template file (trade-smithing, generic-objects, the venue itself)', () => {
@@ -71,6 +72,7 @@ describe('the hearthworks venue pack props/cast rows the packs ship at those pat
     expect([...seen].filter((p) => p.startsWith('/world/hearthworks/')).sort()).toEqual([
       '/world/hearthworks/agent/cook', '/world/hearthworks/agent/smith',
       '/world/hearthworks/thing/kitchen-menu', '/world/hearthworks/thing/pantry-chest', '/world/hearthworks/thing/smithy-menu',
+      '/world/hearthworks/thing/smithy-tariff',
     ]);
   });
 });

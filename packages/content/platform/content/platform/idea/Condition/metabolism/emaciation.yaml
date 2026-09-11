@@ -24,6 +24,7 @@ data:
   name: emaciation
   signature: []
   progression:
+    law: stage
     intervalMs: 86400000
   resolution:
     by: food

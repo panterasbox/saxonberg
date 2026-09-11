@@ -206,7 +206,7 @@ export function ShipmentDeskMixin<
  * argue about it.
  */
 function describeQuantity(goods: Stuff): string {
-  if (MixinApi.isGlobbable(goods)) {
+  if (MixinApi.isStackable(goods)) {
     return `${String(goods.getQuantity())}`;
   }
   if (MixinApi.isBulkable(goods) && goods.hasInteriorBulk()) {

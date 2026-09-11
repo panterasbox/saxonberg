@@ -59,11 +59,11 @@ describe("⚠⚠ setQuantity on a coin is gated — no minting by assignment", (
     expect(stack.getQuantity()).toBe(10);
   });
 
-  // The positive direction — that the gate still ADMITS the glob mechanics —
+  // The positive direction — that the gate still ADMITS the stack mechanics —
   // is covered by `obj/__tests__/Coin.test.ts` ("splits a stack, preserving
   // the per-coin mass" / "merges same-denomination stacks"), which already
   // carries the clone stub and container scaffolding a real split needs.
-  // Those tests exercise the same gated method through `GlobbableApi`, so a
+  // Those tests exercise the same gated method through `StackableApi`, so a
   // gate that denied a legitimate caller would fail there, loudly.
 
   it("cannot be shadowed away", () => {

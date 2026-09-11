@@ -127,9 +127,54 @@ export class EmploymentApi {
     return logic().tipRecipientFor(patron);
   }
 
-  /** The **live** Business operating at `locationPath`, or null (a sync scan). */
+  /** The **live** Business operating at `locationPath`, or null (keyed). */
   public static businessAt(locationPath: string): BusinessStuff | null {
     return logic().businessAt(locationPath);
+  }
+
+  /**
+   * ⭐ **Who works at `organizationPath`** — the durable identity path of
+   * every actor holding an employment record there, terminal records
+   * included (an exit has to be visible to suppress the authored roster
+   * entry). In no guaranteed order.
+   *
+   * This is the *keyed* form of a question that used to be asked of the
+   * whole world once per wage settlement and once per holder read. The
+   * roster behind it is a memo, filled lazily and maintained by every
+   * employment write; it is never warmed at boot and costs one
+   * re-derivation after a reload.
+   *
+   * ⚠ Identity paths, not live objects — resolve with
+   * `StuffApi.findByTemplatePath` and skip what no longer resolves. An
+   * entry may be stale; none is ever missing.
+   */
+  public static employeesOf(organizationPath: string): readonly string[] {
+    return logic().employeesOf(organizationPath);
+  }
+
+  /**
+   * Witness: `actor`'s employment records were rewritten. Fired by the
+   * `employments` setter on `EmployedMixin` — the participant contract is
+   * the actor writing its own relationship — so the roster memo stays true
+   * without anything having to re-enumerate.
+   */
+  public static noteEmployments(actor: Stuff): void {
+    return logic().noteEmployments(actor);
+  }
+
+  /**
+   * A live organization by the phrase someone typed — a whole-word match on
+   * its label first, then a loose label/path match. Viewer-blind: an
+   * organization is an `Idea` standing nowhere, so no anchored seed finds
+   * one, and a body of people is not something a viewer's fog hides.
+   */
+  public static findOrganization(asked: string): Stuff | null {
+    return logic().findOrganization(asked);
+  }
+
+  /** What a body of people calls itself (a publisher's label, else its name). */
+  public static organizationLabel(body: Stuff): string {
+    return logic().organizationLabel(body);
   }
 
   /**

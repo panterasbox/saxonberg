@@ -67,7 +67,7 @@ AnyOf(
 )
 ```
 
-Hosts as shipped: Combustible, Furnace, Globbable, Chattel, Energized,
+Hosts as shipped: Combustible, Furnace, Stackable, Chattel, Energized,
 Charged (arg 1), Arcane, Caster, PartyMember, NotifyPolicy,
 HasInteractive, SubjectSubscriber, Organization (args 0 *and* 1
 variants), Employed, Bank, Combatant (args 0 and 1 variants),
@@ -165,12 +165,44 @@ chain summary, commandId/causingCommandId, timestamp}` into an
 
 ## Future gate primitives to design (not yet built)
 
-1. **`FromTemplateMethod(templatePath, methodName)`** — the user's
-   preferred combined basis. The interception context knows the CALLED
-   method (`ctx.prop`); the CALLER's method name is not currently
-   tracked in frames — check what `ExecutionContextApi` frames carry
-   and whether adding the dispatching method name to the frame is cheap
-   (it is known at `method.apply` time in the proxy).
+1. **`FromTemplateMethod(templatePath, methodName, opts?)`** — the
+   user's preferred combined basis. ✅ **Being built by the world-scan
+   build as its first consumer** — see
+   [world-scan-perf-slate § D3a](../tails/world-scan-perf-slate.md).
+
+   ⭐ **Correction to this entry (2026-09-08): no frame change is
+   needed.** Every gated dispatch pushes `(caller, target, method)`
+   (`SecurityApi.#pushFrame()(caller, cls, methodName, …)`), and the
+   policy is evaluated **before** the callee's frame is pushed — so at
+   `allows()` time the **TOP** frame is the caller's own, and
+   `top.method` IS the calling function's name. The primitive is
+   `FromTemplate`'s existing hard `#templatePath` read plus one
+   top-of-stack lookup; no new frame field.
+
+   ⚠⚠ **An earlier version of this correction said the frame *below* the
+   top (`frames[n-2]`). That was wrong** — it assumed the callee's frame
+   was already pushed when the policy runs. Verified in
+   `api/security.ts`: `policy.allows(...)` precedes `#pushFrame()`.
+
+   ⚠ **Attribution is a guard, not a guarantee, and the gap is
+   load-bearing**: `top.target === caller` (plus excluding a synthetic
+   `Root` frame) is the check, but **an un-dispatched caller inherits the
+   nearest dispatched frame**. So a free function called from a permitted
+   method IS admitted — deliberate, and how a module-level helper on a
+   permitted path qualifies — while a brain's `act()` is attributed to
+   the NPC's tick and can never qualify. The gate is therefore *"the
+   nearest dispatched (template, method)"*, not *"exactly this
+   function"*.
+
+   **Decided with the user 2026-09-08:** (a) **fail closed** on no
+   template stamp / no adjacent frame / attribution mismatch — never
+   guess a function name; the accepted consequence is that an
+   un-intercepted caller (a free function, a module-scope call, **a
+   brain's `act()`**) can never hold this gate. (b) The **module term is
+   OPTIONAL**, a third opt-in argument used only to disambiguate an
+   ambiguous function name — always-on module matching would re-import
+   the basis this slate calls secondary and redundant once template +
+   function are checked.
 2. **`FromIdentity`** — already doctrine'd in call-security.md: MUST
    read the raw identity stamp, never the overridable
    `getIdentityPath()` (the FromTemplate/#templatePath reasoning).

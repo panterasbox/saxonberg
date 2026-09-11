@@ -1,0 +1,9 @@
+# WatchWarden — the singleton whose postRegister arms the watch reconcile:
+# the sweep that pays a guard for standing at their post (the
+# AttendantWarden self-warming shape; eager via this pack's boot list,
+# not an AppBootstrap sequencer line).
+#
+# ⭐ It exists because standing a watch has NO VERB. Typing a word never
+# made anybody keep watch, so the engine looks instead of asking.
+class: /platform/idea/WatchWarden
+data: {}

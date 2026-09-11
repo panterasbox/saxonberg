@@ -8,6 +8,7 @@ import "../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach } from "vitest";
 import { ContractRecord } from "../ContractRecord";
 import { ContractEvent } from "../ContractEvent";
+import { Condition } from "../Condition";
 import {
   installBankingHarness,
   teardownBankingHarness,
@@ -101,3 +102,63 @@ describe("ContractRecord round-trip + finders", () => {
     ]);
   });
 });
+
+/* ─────────── the watch reconcile's storage (no verb) ─────────── */
+
+describe("⭐⭐ watch accrual — presence, not a verb", () => {
+  beforeEach(() => installBankingHarness());
+  afterEach(() => teardownBankingHarness());
+
+  function watchGig(over: Partial<ContractRecord> = {}): ContractRecord {
+    return makeRecord({
+      contractId: "gig-watch",
+      state: "claimed",
+      claimant: "/platform/agent/Avatar/guard",
+      clause: {
+        shape: "achieve",
+        condition: {
+          template: "watch",
+          item: { kind: "template", path: "/obj/test/nothing" },
+          destinationPath: "/world/test/pithead",
+          gameHours: 4,
+        },
+      },
+      ...over,
+    });
+  }
+
+  it("⭐ both watch fields round-trip", async () => {
+    const r = watchGig({ watchedSec: 7_200, watchSeenSec: 99_000 });
+    await r.save();
+    const back = await ContractRecord.findByContractId("gig-watch");
+    expect(back?.watchedSec).toBe(7_200);
+    expect(back?.watchSeenSec).toBe(99_000);
+  });
+
+  it("⚠ a fresh claim carries NO high-water mark", async () => {
+    // The first-touch rule lives on this default. If an unstamped record
+    // read as `seen: 0` meaning "seen at the dawn of the world", the
+    // first sweep would pay a claimant for the entire age of the game.
+    const r = watchGig();
+    expect(r.watchSeenSec).toBe(0);
+    await r.save();
+    expect((await ContractRecord.findByContractId("gig-watch"))?.watchSeenSec).toBe(0);
+  });
+
+  it("⭐ findAllClaimed is claimant-agnostic — a sweep asks nobody's question", async () => {
+    await watchGig().save();
+    await watchGig({ contractId: "gig-b", claimant: "/platform/agent/Avatar/other" }).save();
+    await makeRecord({ contractId: "gig-open", state: "open" }).save();
+    const claimed = await ContractRecord.findAllClaimed();
+    expect(claimed.map((r) => r.contractId).sort()).toEqual(["gig-b", "gig-watch"]);
+  });
+
+  it("the clause holds once the hours are stood, and not before", async () => {
+    const r = watchGig({ watchedSec: 3 * 3600 });
+    const c = r.clause!.condition;
+    expect(Condition.watchHolds(c, r.watchedSec)).toBe(false);
+    r.watchedSec = 4 * 3600;
+    expect(Condition.watchHolds(c, r.watchedSec)).toBe(true);
+  });
+});
+

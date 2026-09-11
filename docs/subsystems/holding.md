@@ -70,8 +70,14 @@ is not arbitrary: the elastic-graph machinery and the layout algebra are
 substrate anything could use, while a *residential programme* is content
 vocabulary — a floorplan, a tenure term, a weathering clock. The kernel
 never imports the pack; where it must read a programme (the `survey`
-verb, the `maintains` brain) it does so through the `WarrenMember`
-back-ref BY SHAPE, or through MQL by class NAME.
+verb) it does so through the `WarrenMember` back-ref BY SHAPE, or —
+where it needs the whole roster — through the residence pack's own
+`ResidenceCatalogue`, reached by PATH and SHAPE (the `TravelNode`
+precedent). ⚠ It used to reach through MQL **by class NAME in a
+string**: a kernel→pack dependency the type system cannot see, priced at
+the size of the world. `OuterWarren.admitFor` and `title list` were the
+two sites; the `maintains` brain was a third and moved into the pack
+outright.
 
 ---
 
@@ -315,11 +321,18 @@ would be modelling permission where the world models work.
   householder's kit): restores the shell to sound and wears the kit. The
   kit is a class rather than a row precisely because **an affordance is a
   static on a class**, so the tool is what makes the verb visible.
-- **the `maintains` brain** (kernel, `lib/behavior/maintains`): the
-  agency that performs a term. Katie walks the dorms, Walter the Seznick
-  shell, on a cadence, bounded by `batch`, through the LITERAL verb via
-  `forceCommand` — so every gate on a typed `maintain` gates the beat.
-  Take the kit off Katie and the dorm weathers.
+- **the `maintains` brain** (the residence pack,
+  `/system/residence/behavior/maintains`): the agency that performs a
+  term. Katie walks the dorms, Walter the Seznick shell, on a cadence,
+  bounded by `batch`, through the LITERAL verb via `forceCommand` — so
+  every gate on a typed `maintain` gates the beat. Take the kit off
+  Katie and the dorm weathers.
+  ⭐ It lives **with its subject** rather than in the kernel: it reads
+  holdings, which are the residence system's, and the move deleted the
+  kernel's last `class.HoldingWarren` string. It asks
+  `ResidenceCatalogue.holdingsUnder(extent)` — which matters more here
+  than anywhere, because this is the per-NPC, per-cadence beat, and it
+  was the site that read the whole world most often.
 
 ---
 

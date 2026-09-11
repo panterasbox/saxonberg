@@ -80,6 +80,7 @@ boot:
   - { template: /platform/idea/SandboxWarden, role: producer, reason: "arms the sandbox orphan sweeper at postRegister (the discard doctrine's first pass)" }
   - { template: /platform/idea/EmploymentEngine, role: producer, reason: "arms the recurring game-time roster tick at postRegister (the immediate boot pass is the sequencer's tickRoster line — P2)", dependsOn: [/platform/idea/CentralBank] }
   - { template: /platform/idea/AttendantWarden, role: producer, reason: "arms the lease idle-eviction sweep + linkdead release at postRegister (server resolution reads on-shift state)", dependsOn: [/platform/idea/EmploymentEngine] }
+  - { template: /platform/idea/WatchWarden, role: producer, reason: "arms the watch reconcile at postRegister — a guard is paid for PRESENCE, so the engine looks on its own schedule rather than waiting to be told (there is no watch verb)" }
   - { template: /platform/idea/ResetWarden, role: producer, reason: "arms the nightly world reset if the operator dialed one (off unless armed; enforce refuses without a published resetPolicy)", dependsOn: [/platform/idea/WorldClockRegistry] }
   - { template: /platform/idea/PresenceRelay, role: producer, reason: "installs the notify-gated presence relay + the roster delta tap at postRegister (self-warming — no Api.boot)", dependsOn: [/platform/idea/EventSubscriptions] }
   - { template: /platform/idea/PartyRoster, role: producer, reason: "registers the party: grouping provider and re-materializes durable parties at postRegister", dependsOn: [/platform/idea/GroupRegistry] }

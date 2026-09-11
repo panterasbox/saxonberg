@@ -7,15 +7,15 @@
  *     candidate list, move each into the room, emit one scene per
  *     drop.
  *   - **Quantity present** (`drop 5 coins`, `drop coins:{5}`): defer
- *     to `GlobbableApi.applyQuantity`. The helper owns the
+ *     to `StackableApi.applyQuantity`. The helper owns the
  *     distribution algorithm, the strict pre-check, the
- *     split/reglob ripple, and the note emission. The action
+ *     split/restack ripple, and the note emission. The action
  *     callback always returns `ok: true` in v1 because
  *     `ContainmentApi.move` throws on programmatic-contract failure
  *     (no soft failure to signal). Capacity-driven `ok: false`
  *     arrives with the collision slate.
  *
- * Glob emits canonical `@saxonberg/types` note shapes pre-stamped
+ * Stack emits canonical `@saxonberg/types` note shapes pre-stamped
  * with `field: 'targets'`; `renderResult` forwards each into
  * `ctx.note(...)` and pairs the player-facing kinds with their
  * Scene.send prose. Status auto-escalates via the dispatch-response
@@ -30,7 +30,7 @@ import type {
 import type { MqlManyResult } from '../../../../api/mql';
 import type { Stuff } from '../../../../lib/stuff/Stuff';
 import { ContainmentApi } from '../../../../api/containment';
-import { GlobbableApi, type ApplyQuantityResult } from '../../../../api/glob';
+import { StackableApi, type ApplyQuantityResult } from '../../../../api/stackable';
 import { MessageApi } from '../../../../api/message';
 import { MixinApi } from '../../../../api/mixin';
 import { Mml } from '../../../../api/mml';
@@ -74,7 +74,7 @@ export default class DropController extends CommandController<DropModel> {
       inventory.some((it) => it.stuffId === s.stuffId)
     );
 
-    const result = await GlobbableApi.applyQuantity<DropPayload>(
+    const result = await StackableApi.applyQuantity<DropPayload>(
       inInventory,
       quantity,
       async (operand, applied) => {
@@ -132,7 +132,7 @@ export default class DropController extends CommandController<DropModel> {
     context: CommandContext,
   ): void {
     for (const note of result.notes) {
-      // Glob already constructed canonical-shape notes — forward
+      // Stack already constructed canonical-shape notes — forward
       // straight through. Per-kind prose decides whether the player
       // sees a Scene frame.
       context.note(note);

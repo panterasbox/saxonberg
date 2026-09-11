@@ -9,8 +9,12 @@ class: /platform/idea/Condition
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: dread
-  signature: []
-  progression: null
+  # ⭐ Dread is exhausting to carry. It decays on its own clock; while
+  # it lasts it costs the body.
+  signature:
+    - { kind: reserve, reserve: endurance, pctPerHour: -3 }
+  progression:
+    law: decay
   resolution:
     by: rest
   observableSigns: [wide-eyed, trembling, glancing-at-exits]

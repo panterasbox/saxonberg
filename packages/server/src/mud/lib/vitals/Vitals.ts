@@ -35,6 +35,7 @@ import { Quantity } from '../quantity';
 import type { Unit } from '../quantity';
 import { QuantityMarshaller } from '../../platform/idea/persistence/QuantityMarshaller';
 import { MixinApi } from '../../api/mixin';
+import { ExecutionContextApi } from '../../api/execution-context';
 import { CallSecurity, Final, Unshadowable } from '../security/decorators';
 import { SecurityPolicies } from '../security/SecurityPolicies';
 import type { VitalBand, VitalProfile } from '../../platform/idea/species/Species';
@@ -48,6 +49,7 @@ import type {
   DyingRecord,
 } from '../../platform/idea/Condition';
 import { HARM_DEFAULTS, TRAUMA_BEHAVIOR } from '../../platform/idea/Condition';
+import type { VitalEffect, ProgressionLaw } from '../../platform/idea/Condition';
 import type Condition from '../../platform/idea/Condition';
 import { StuffApi } from '../../api/stuff';
 import { WorldClockApi } from '../../api/worldclock';
@@ -82,7 +84,7 @@ function elecDial(key: string, fallback: number): number {
 /**
  * The engine's vital-sign vocabulary — the canonical key list, used by
  * the band profile (`Species.VitalProfile`), the per-sign storage, and
- * anatomy's `governsVital` coupling. Re-exported as the single source
+ * anatomy's `governs` coupling. Re-exported as the single source
  * of truth so `BodyPlan` can validate against it value-only.
  */
 export const VITAL_SIGNS = [
@@ -221,6 +223,12 @@ const VITALS_DEFAULTS = {
   /** Load per severity stage — three stages over the full range. */
   INFECTION_STAGE_LOAD: 0.34,
   /** `%` hydration a severe infection costs per game-hour, per stage over 1. */
+  /**
+   * ⚠ **Retired**, kept only so a row that wants the old rate can cite
+   * it. The drain moved onto every pathogen row's `signature` — it used
+   * to be hard-coded in `progressInfection`, the one effect any
+   * affliction had on a body anywhere in the engine.
+   */
   INFECTION_HYDRATION_PCT_PER_HOUR: 3,
 } as const;
 
@@ -374,7 +382,11 @@ export interface Vitals {
    * derived read (heals as the fracture heals), sibling of
    * `isSlotDisabledByAnatomy`.
    */
-  isSlotImpairedByTrauma(slot: string): boolean;
+  isSlotImpairedByCondition(slot: string): boolean;
+  /** Whether this body carries the named vital sign at all (D22). */
+  hasVitalSign(sign: VitalSign): boolean;
+  /** Bands of expressed competence this body currently suppresses. */
+  expressionSuppression(): number;
 
   // ---------- conditions — both kinds, one collection ----------
   getConditions(): readonly ActiveCondition[];
@@ -425,6 +437,27 @@ export interface Vitals {
   causeOfDeath: string | null;
   bodyPartDeltas: Record<string, BodyPartDelta>;
   conditions: ActiveCondition[];
+}
+
+/**
+ * ⭐ **A condition's own severity axis, in one number.** A stage for a
+ * dwelling or banded condition, a load for an infection — whichever the
+ * record carries. `applyEffects` scales a signature by it, so one row's
+ * declared effect gets worse as that particular condition gets worse and
+ * the arm that advanced it never has to know.
+ */
+/** The law a record's own row declares, or null when a driver owns it. */
+function lawOf(record: AfflictionRecord): ProgressionLaw | null {
+  const row = StuffApi.findByTemplatePath<Condition>(record.templatePath);
+  return row?.getProgression()?.law ?? null;
+}
+
+function intensityOf(record: AfflictionRecord): number {
+  if (record.pathogenLoad !== undefined) {
+    // A load is [0,1]; a stage-0 infection is incubating and does nothing.
+    return record.stage > 0 ? record.pathogenLoad : 0;
+  }
+  return Math.max(0, record.stage);
 }
 
 export function VitalsMixin<TBase extends MixinConstructor>(Base: TBase) {
@@ -654,6 +687,30 @@ export function VitalsMixin<TBase extends MixinConstructor>(Base: TBase) {
      * (runtime-guarded). The "always composed with Organism" rule lives
      * here, not in a comment.
      */
+    /**
+     * ⭐⭐ **Does this body HAVE this sign at all?** — D22, and it is a
+     * deliberate no-op rather than a missing branch.
+     *
+     * The `constructa`, `plantae` and `fungi` clades exist. A construct
+     * that takes an edge blow has a wound, and no bleed, and **that is
+     * the honest answer** — not a throw, and not a zero-filled sign it
+     * never had. A species says so by authoring the band's `baseline` at
+     * zero, which is the shape `VitalProfile` already has (every sign is
+     * required, so "absent" cannot mean "missing from the profile").
+     *
+     * ⚠ It has a test *because* the failure mode is the silent-and-closed
+     * one this whole build exists to end: an effect that does nothing
+     * because nobody wrote the branch reads exactly like an effect that
+     * does nothing because the author said so.
+     */
+    public hasVitalSign(sign: VitalSign): boolean {
+      try {
+        return this.getVitalBand(sign).baseline > 0;
+      } catch {
+        return false; // no species resolved — nothing to perturb
+      }
+    }
+
     public getVitalBand(sign: VitalSign): VitalBand {
       const self = this as unknown as Stuff;
       if (!MixinApi.isOrganism(self)) {
@@ -841,7 +898,110 @@ export function VitalsMixin<TBase extends MixinConstructor>(Base: TBase) {
       return this.getPart(spec.bodyPart)?.missing ?? false;
     }
 
-    public isSlotImpairedByTrauma(slot: string): boolean {
+    /**
+     * ⭐⭐ **The effect channel — one interpreter every arm routes
+     * through.**
+     *
+     * A condition's `signature` (a `Condition` row's, or a
+     * `TraumaBehavior`'s) says what carrying it does to the body; this
+     * applies it. `intensity` is the condition's own severity axis —
+     * a stage, a wound severity, a pathogen load — so one row's effect
+     * scales with how bad that particular condition has got, and the arm
+     * that advanced it does not need to know what the effect was.
+     *
+     * ⚠ **Rates, integrated over elapsed game-time.** Nothing here fires
+     * "once per tick": there is no tick. The whole condition machinery is
+     * reconcile-on-read, so an effect that is not a rate has no
+     * well-defined meaning across an absence — which is exactly why the
+     * shipped `{sign, delta}` shape was never wired to anything.
+     *
+     * The two read-only kinds (`capability`, `expression`) are no-ops
+     * here: they are consulted at the surface that cares, not integrated.
+     */
+    private applyEffects(
+      effects: readonly VitalEffect[] | undefined,
+      intensity: number,
+      elapsedSec: number,
+    ): void {
+      if (!effects || effects.length === 0) return;
+      const hours = elapsedSec / VITALS_DEFAULTS.SECONDS_PER_HOUR;
+      if (!(hours > 0) || !(intensity > 0)) return;
+      const self = this as unknown as Stuff;
+      for (const e of effects) {
+        switch (e.kind) {
+          case 'vital': {
+            // ⚠⚠ **A sign this species does not have is a NO-OP, and a
+            // deliberate one** (D22). A construct that takes an edge blow
+            // has a wound and no bleed, and that is the honest answer —
+            // not a throw, and not a zero-filled sign it never had.
+            if (!this.hasVitalSign(e.sign as VitalSign)) break;
+            const cur = this.getVitalSign(e.sign as VitalSign);
+            this.setVitalSign(
+              e.sign as VitalSign,
+              Quantity.of(
+                Math.max(0, cur.rawValue() + e.perHour * intensity * hours),
+                cur.unit,
+              ),
+            );
+            break;
+          }
+          case 'reserve': {
+            if (!MixinApi.isReserved(self)) break;
+            if (!self.hasReserve(e.reserve)) break;
+            self.adjustReserve(
+              e.reserve,
+              Quantity.of(e.pctPerHour * intensity * hours, '%'),
+            );
+            break;
+          }
+          // `capability` and `expression` are DERIVED READS — consulted
+          // by `isSlotImpairedByCondition` and `expressionSuppression`,
+          // never integrated. Listed so the switch stays total.
+          case 'capability':
+          case 'expression':
+            break;
+        }
+      }
+    }
+
+    /**
+     * ⭐⭐ **How many bands of expressed competence this body is currently
+     * costing its owner.**
+     *
+     * Derived on read from the `expression` effects of the active
+     * conditions, each scaled by its own taper — a condition at stage 6
+     * of 12 costs half what it did at stage 0. Zero for a body carrying
+     * nothing that suppresses.
+     *
+     * ⚠⚠ **It never touches the Transcript.** Being diminished is a fact
+     * about the body right now, not a rewriting of what you have done;
+     * the record stays byte-identical and `chronicle` shows no new row.
+     * That is the whole difference between *punishment* and *a lie about
+     * your history*.
+     */
+    public expressionSuppression(): number {
+      let bands = 0;
+      for (const c of this.getConditions()) {
+        if (c.kind !== 'affliction') continue;
+        const row = StuffApi.findByTemplatePath<Condition>(c.templatePath);
+        const sig = row?.getSignature();
+        if (!sig) continue;
+        for (const e of sig) {
+          if (e.kind !== 'expression') continue;
+          // The taper: a `by: rest, atStage: N` condition fades toward
+          // clear, and what it costs fades with it.
+          const atStage = row?.getResolution()?.atStage;
+          const frac =
+            atStage && atStage > 0
+              ? Math.max(0, 1 - c.stage / atStage)
+              : 1;
+          bands = Math.max(bands, Math.ceil(e.bands * frac));
+        }
+      }
+      return bands;
+    }
+
+    public isSlotImpairedByCondition(slot: string): boolean {
       // Same slot→part resolve as the anatomy gate, but the disqualifier
       // is an active fracture (above the impair threshold) sitting at the
       // slot's `bodyPart`. A derived read — no stored "impaired" flag; the
@@ -855,13 +1015,22 @@ export function VitalsMixin<TBase extends MixinConstructor>(Base: TBase) {
         .find((s) => s.name === slot);
       const part = spec?.bodyPart;
       if (!part) return false;
-      return this.conditions.some(
-        (c) =>
-          c.kind === 'trauma' &&
-          c.type === 'fracture' &&
-          c.site === part &&
-          c.severity >= HARM_DEFAULTS.FRACTURE_IMPAIR_SEVERITY,
-      );
+      return this.conditions.some((c) => {
+        if (c.kind !== 'trauma' || c.site !== part) return false;
+        // ⭐ The generalized rule: a trauma type whose behaviour DECLARES
+        // a `capability` effect takes the affordances of the part it sits
+        // on, above its declared severity. The fracture rule, made
+        // available to every wound type instead of hard-coded for one.
+        for (const e of TRAUMA_BEHAVIOR[c.type]?.signature ?? []) {
+          if (e.kind !== 'capability') continue;
+          if (e.disables !== 'slots-at-site') continue;
+          if (c.severity >= e.aboveSeverity) return true;
+        }
+        // ⭐ No special case left. Fracture declares its own capability
+        // term on `TRAUMA_BEHAVIOR` like every other type — the rule is
+        // the table's, not this method's.
+        return false;
+      });
     }
 
     // ---------- conditions (both kinds, one collection) ----------
@@ -897,30 +1066,130 @@ export function VitalsMixin<TBase extends MixinConstructor>(Base: TBase) {
     }
 
     /**
-     * ⭐ **Advance a plain affliction on its own authored cadence.**
+     * ⭐⭐ **Advance ONE affliction under the law its own row declares,
+     * then apply what that row says it does.**
      *
-     * `ProgressionSpec` is `{ intervalMs }` and it has been authored by
-     * three shipped rows and read by nothing since it landed — so a body
-     * three days into starvation staged identically to one that had missed
-     * lunch, and `assess` had nothing to grade. Dwell time now moves the
-     * stage.
+     * This is the collapse. Three arms — `decayingMagic`, `infections`,
+     * `progressing` — each discriminated by *which optional field happens
+     * to be set on the record* (`magicOrigin`, `pathogenLoad`, neither),
+     * become one, dispatching on `progression.law`. The discriminator
+     * moves from the shape of the record to **what the author said**,
+     * which is what lets a fourth law be a row rather than a fourth arm.
      *
-     * ⚠ **Only what nothing else drives.** A toxin's stage is a live band
-     * read off its burden (`reconcileToxinConditions`), and a dwell counter
-     * fighting it would make the reading depend on which arm ran last. So
-     * a row carrying a `toxinBehavior` is skipped here, on purpose.
+     * ⚠ The laws are the mechanisms the census already named, not new
+     * ones: `stage` is the dwell counter, `decay` is the magic fade,
+     * `logistic` is the in-host population, `burden` reads a toxin's live
+     * amount. Nothing changed about any of them except who chooses.
+     *
+     * Every law is followed by `applyEffects` over the row's `signature`,
+     * so **what a condition does is independent of how it progresses** —
+     * the rule the whole ratchet exists to enforce.
      */
     private progressAffliction(
       record: AfflictionRecord,
       elapsedSec: number,
+      nowS: number,
     ): void {
       const row = StuffApi.findByTemplatePath<Condition>(record.templatePath);
       if (!row) return;
-      if (row.getToxinBehavior()) return; // a burden's stage is a live band
       const spec = row.getProgression();
-      if (!spec || !(spec.intervalMs > 0)) return;
-      record.elapsed += elapsedSec * 1000;
-      record.stage = Math.floor(record.elapsed / spec.intervalMs);
+      switch (spec?.law) {
+        case 'stage': {
+          // Dwell time moves the stage. Before this arm existed, a body
+          // three days into starvation staged identically to one that had
+          // missed lunch.
+          if (!(spec.intervalMs && spec.intervalMs > 0)) break;
+          record.elapsed += elapsedSec * 1000;
+          record.stage = Math.floor(record.elapsed / spec.intervalMs);
+          break;
+        }
+        case 'decay': {
+          // A landed impulse fades. The row may set its own rate; the
+          // magic dial is the fallback the shipped rows still use.
+          const rate =
+            spec.decayPerSec ??
+            magicDial(AppSettingKeys.magicDreadDecayPerSec, 0.005);
+          record.stage -= rate * elapsedSec;
+          if (record.stage <= 0) {
+            this.relieve(record);
+            return;
+          }
+          break;
+        }
+        case 'logistic': {
+          this.progressInfection(record, elapsedSec, nowS);
+          // `progressInfection` may have relieved the record outright.
+          if (!this.conditions.includes(record)) return;
+          break;
+        }
+        case 'burden':
+          // Handled in the arm's pre-pass: a live read needs no elapsed
+          // time, and must not sit behind the presence-freeze guards.
+          break;
+        default:
+          break; // `null` — a driver outside the collection owns the clock
+      }
+      // ⭐ …and then, whatever the law, what the row SAYS it does.
+      this.applyEffects(
+        row.getSignature(),
+        intensityOf(record),
+        elapsedSec,
+      );
+      // A self-resolving condition clears itself at its declared stage.
+      const res = row.getResolution();
+      if (
+        res?.by === 'rest' &&
+        res.atStage !== undefined &&
+        record.stage >= res.atStage
+      ) {
+        this.relieve(record);
+      }
+    }
+
+    /**
+     * Derive the stage of every `law: burden` affliction from the live
+     * burden the metabolism carries. Clock-free by construction; called
+     * before any of the time-integrating arms.
+     */
+    private reconcileBurdenStages(): void {
+      for (const c of this.conditions) {
+        if (c.kind !== 'affliction') continue;
+        if (lawOf(c) !== 'burden') continue;
+        this.progressBurden(c);
+      }
+    }
+
+    /**
+     * ⭐ **The burden law** — a toxin's stage is a live read of how much
+     * of it the body is carrying, banded by the row's own
+     * `toxinBehavior.bands`.
+     *
+     * ⚠ This is the arm that retires the eighth mechanism.
+     * `Metabolic.reconcileToxinConditions` kept the state OUTSIDE the
+     * condition collection and mirrored a band into `stage` from there —
+     * two owners of one field, which is why `progressAffliction` used to
+     * carry an explicit "skip anything with a `toxinBehavior`". Reading
+     * the burden from here makes the condition's own arm the only writer.
+     */
+    private progressBurden(record: AfflictionRecord): void {
+      const self = this as unknown as Stuff;
+      if (!MixinApi.isMetabolic(self)) return;
+      const type = record.templatePath.startsWith(
+        TemplatePathPrefixes.metabolismCondition,
+      )
+        ? record.templatePath.slice(
+            TemplatePathPrefixes.metabolismCondition.length,
+          )
+        : '';
+      if (!type) return;
+      const bands = self.toxinBandsFor(type);
+      if (!bands || bands.length === 0) return;
+      const level = self.toxinLevelFor(type);
+      // The same reduce the parallel store used — one owner now.
+      record.stage = bands.reduce(
+        (acc, b) => (level >= b.threshold ? Math.max(acc, b.severity) : acc),
+        0,
+      );
     }
 
     /**
@@ -1003,19 +1272,13 @@ export function VitalsMixin<TBase extends MixinConstructor>(Base: TBase) {
         Math.max(1, Math.ceil(load / VITALS_DEFAULTS.INFECTION_STAGE_LOAD)),
       );
 
-      // The consequence, and it is the SHIPPED one: fluid loss. A severe
-      // infection dehydrates you, and dehydration already ends where it
-      // ends.
-      const self = this as unknown as Stuff;
-      if (record.stage >= 2 && MixinApi.isReserved(self)) {
-        const drained =
-          VITALS_DEFAULTS.INFECTION_HYDRATION_PCT_PER_HOUR *
-          (record.stage - 1) *
-          hours;
-        if (drained > 0) {
-          self.adjustReserve('hydration', Quantity.of(-drained, '%'));
-        }
-      }
+      // ⭐⭐ **The fluid loss is the ROW's now.** It used to be
+      // hard-coded here — the ONE effect any affliction had on a body
+      // anywhere in the engine, for pathogens only, that no row asked
+      // for and no row could ask for. Every pathogen row authors it as a
+      // `reserve` effect on its `signature`, and the affliction arm
+      // applies it through `applyEffects` like any other. Nothing about
+      // the outcome changed; what changed is who gets to say so.
     }
 
     /**
@@ -1042,6 +1305,23 @@ export function VitalsMixin<TBase extends MixinConstructor>(Base: TBase) {
       // A corpse doesn't bleed — nothing left to progress.
       if (self.getLifecycleState() === 'dead') return;
 
+      // ⭐⭐ **The burden law runs FIRST, above the clock guard, because
+      // it needs no clock.**
+      //
+      // A toxin's stage is a live READ of how much of it the body is
+      // carrying right now — not a counter that accumulates over elapsed
+      // time. Everything below this line is about integrating game-time,
+      // and none of it applies: a body that just drank is drunk whether
+      // or not a world clock is running, and putting the derive behind
+      // the clock guard (or behind the presence-freeze guards further
+      // down) would make it read sober until enough time passed. That is
+      // both wrong and a regression against the parallel store this
+      // replaced — `reconcileToxinConditions` derived synchronously.
+      //
+      // ⚠ It is still the condition's OWN arm doing it, which is the
+      // whole point of W8b: one owner for `stage`, not two.
+      this.reconcileBurdenStages();
+
       // In-session game-time; `null` when no world clock is running
       // (pre-boot / a unit test that hasn't bootstrapped one) → idle.
       if (!StuffApi.findByTemplatePath(TemplatePaths.worldClockRegistry)) {
@@ -1058,30 +1338,16 @@ export function VitalsMixin<TBase extends MixinConstructor>(Base: TBase) {
       const sustained = this.conditions.filter(
         (c): c is SustainedEffect => c.kind === 'sustained',
       );
-      const decayingMagic = this.conditions.filter(
-        (c): c is AfflictionRecord =>
-          c.kind === 'affliction' && c.magicOrigin !== undefined,
-      );
-      // ⭐ The infections — an affliction that carries a live POPULATION
-      // rather than a burden or a stage somebody set. Identified by the
-      // field, not by the path prefix: what makes it an infection is that
-      // something is growing.
-      const infections = this.conditions.filter(
-        (c): c is AfflictionRecord =>
-          c.kind === 'affliction' && c.pathogenLoad !== undefined,
-      );
-      // ⭐ The plain PROGRESSING afflictions — the ones that just get worse
-      // the longer they last, on a cadence their own row authors.
-      // `ProgressionSpec` shipped with the comment *"no live scheduler is
-      // built here"*, was authored by three rows, and was read by nothing:
-      // starvation, dehydration and `recovering` all sat at stage 0 for
-      // ever, so a body three days without food read exactly like one that
-      // had missed lunch. This is the arm that fills it.
-      const progressing = this.conditions.filter(
-        (c): c is AfflictionRecord =>
-          c.kind === 'affliction' &&
-          c.pathogenLoad === undefined &&
-          c.magicOrigin === undefined,
+      // ⭐⭐ **ONE arm for every affliction**, whatever law it advances
+      // under. This was three — `decayingMagic` (has a `magicOrigin`),
+      // `infections` (has a `pathogenLoad`), `progressing` (has neither)
+      // — each discriminated by *which optional field happened to be set
+      // on the record*, so the shape of the record decided the law and a
+      // row could not choose one. The law is now declared on the row and
+      // `progressAffliction` dispatches on it; a fourth law is a row,
+      // never a fourth arm.
+      const afflictions = this.conditions.filter(
+        (c): c is AfflictionRecord => c.kind === 'affliction',
       );
       const dyings = this.conditions.filter(
         (c): c is DyingRecord => c.kind === 'dying',
@@ -1090,9 +1356,7 @@ export function VitalsMixin<TBase extends MixinConstructor>(Base: TBase) {
         traumas.length === 0 &&
         shocks.length === 0 &&
         sustained.length === 0 &&
-        decayingMagic.length === 0 &&
-        infections.length === 0 &&
-        progressing.length === 0 &&
+        afflictions.length === 0 &&
         dyings.length === 0
       ) {
         return;
@@ -1128,7 +1392,24 @@ export function VitalsMixin<TBase extends MixinConstructor>(Base: TBase) {
             continue;
           }
           t.tickedAt = nowS;
+          // ⚠ The intensity is the severity the wound had **during** the
+          // interval, not after the tick healed it. A burn that clears
+          // inside one reconcile still wept for the time it was there —
+          // read post-tick, a wound that healed to zero in the same slice
+          // contributes nothing, which silently loses every effect on a
+          // fast-healing type.
+          const carried = t.severity;
           TRAUMA_BEHAVIOR[t.type].tick(this, t, elapsed);
+          // ⭐ …and what CARRYING the wound does, over and above its own
+          // tick. The Kind-B half of the effect channel, through the same
+          // interpreter a Kind-A row's `signature` goes through — so a
+          // burn's plasma weep and a bruise's stiffness are declared
+          // beside the decay law rather than hard-coded somewhere else.
+          this.applyEffects(
+            TRAUMA_BEHAVIOR[t.type].signature,
+            carried,
+            elapsed,
+          );
         }
 
         // Sustained shock — the being-shocked circuit. Same presence-freeze
@@ -1219,40 +1500,15 @@ export function VitalsMixin<TBase extends MixinConstructor>(Base: TBase) {
           this.applySustainedRealization(s);
         }
 
-        // Magic-tagged afflictions decay on their authored timescale (the
-        // v1 dread evolution — a landed impulse fades; suppression never
-        // touches it, dispel relieves it early).
-        const decayPerSec = magicDial(AppSettingKeys.magicDreadDecayPerSec, 0.005);
-        for (const a of decayingMagic) {
-          if (a.tickedAt === undefined) {
-            a.tickedAt = nowS;
-            continue;
-          }
-          if (linkdead) {
-            a.tickedAt = nowS;
-            continue;
-          }
-          const elapsed = nowS - a.tickedAt;
-          a.tickedAt = nowS;
-          if (elapsed <= 0 || elapsed > HARM_DEFAULTS.MAX_REASONABLE_GAP_SEC) {
-            continue;
-          }
-          a.stage -= decayPerSec * elapsed;
-          if (a.stage <= 0) this.relieve(a);
-        }
-
-        // ── the in-host infections ──────────────────────────────────
-        // ⭐⭐ **The population half of the illness.** A toxin is an amount
-        // you carry and clear; an infection is a thing that GROWS, and it
-        // grows against how well the body is holding up. The band a medic
-        // reads is derived from the load, so an infection getting worse
-        // and a treatment starting to work are the same number moving.
+        // ── the afflictions, each under its own declared law ────────
         //
         // ⚠ Full presence-freeze parity with trauma — the linkdead
         // re-stamp and the far-past guard both apply. Being away must
         // never cost a player anything, and this arm is not the dying
-        // clock.
-        for (const a of infections) {
+        // clock. (Snapshot the list: a law may relieve its own record —
+        // a dread that fades to nothing, an infection the body cleared,
+        // a `by: rest` condition reaching its `atStage`.)
+        for (const a of [...afflictions]) {
           if (a.tickedAt === undefined) {
             a.tickedAt = nowS;
             continue;
@@ -1266,25 +1522,7 @@ export function VitalsMixin<TBase extends MixinConstructor>(Base: TBase) {
           if (elapsed <= 0 || elapsed > HARM_DEFAULTS.MAX_REASONABLE_GAP_SEC) {
             continue;
           }
-          this.progressInfection(a, elapsed, nowS);
-        }
-
-        // ── the plain progressing afflictions ───────────────────────
-        for (const a of progressing) {
-          if (a.tickedAt === undefined) {
-            a.tickedAt = nowS;
-            continue;
-          }
-          if (linkdead) {
-            a.tickedAt = nowS;
-            continue;
-          }
-          const elapsed = nowS - a.tickedAt;
-          a.tickedAt = nowS;
-          if (elapsed <= 0 || elapsed > HARM_DEFAULTS.MAX_REASONABLE_GAP_SEC) {
-            continue;
-          }
-          this.progressAffliction(a, elapsed);
+          this.progressAffliction(a, elapsed, nowS);
         }
 
         // Relieve any wound healed to (near) zero severity.
@@ -1568,6 +1806,25 @@ export function VitalsMixin<TBase extends MixinConstructor>(Base: TBase) {
       // through the proxy `this` so a shadow can veto too.
       const verdict = (this as unknown as Vitals).canAfflict(condition);
       if (!verdict.ok) return false;
+      // ⭐⭐ **Stamp who did this, at the door every driver already uses.**
+      //
+      // A wound has always recorded its inflicter; an affliction never
+      // did — so the one kind of harm that is deliberate, premeditated
+      // and quiet (a poisoning) was the one kind the world could not
+      // attribute. Stamping it HERE rather than behind a new gated Api
+      // static is what makes it total: metabolism, thermal, respiration,
+      // magic, the passage and combat's hook rider all land through this
+      // one method, so every one of them is covered with no call-site
+      // changes and no driver left to forget.
+      //
+      // ⚠ From execution context, never from a parameter — the
+      // un-spoofable rule `ConditionApi.inflict` already follows — and
+      // never overwriting a stamp a producer set deliberately.
+      if (condition.kind === 'affliction' && condition.inflictedBy === undefined) {
+        const author = ExecutionContextApi.getActingAuthor();
+        const path = author ? (author as Stuff).getTemplatePath?.() : null;
+        if (path) condition.inflictedBy = path;
+      }
       // Pure add this build — no onset()/tick() invocation, nothing ticks.
       this.conditions.push(condition);
       return true;

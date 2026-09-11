@@ -211,6 +211,26 @@ export const METABOLIC_DEFAULTS = {
   /** Basal drain (`%`-points per game-minute at the reference mass). */
   BASAL_SATIATION_PER_MIN: 0.02,
   BASAL_HYDRATION_PER_MIN: 0.03,
+
+  /**
+   * ⭐⭐ **Plasma restoration** — the answer to "you can stop a bleed but
+   * never undo one", bounded so it stays an answer to that and not to
+   * everything.
+   *
+   * Drinking restores plasma VOLUME, not red cells. A body that has lost
+   * a lot of blood and taken on water has its volume back and its
+   * oxygen-carrying capacity still gone — dilutional anaemia, which is
+   * precisely why transfusion exists.
+   *
+   * ⚠⚠ `PLASMA_RESTORE_CEILING_FRAC` being **below 1.0 is a shape
+   * decision, not tuning.** At baseline this would give the world a way
+   * to replace blood by drinking and waiting, which deletes the premise
+   * of the blood build (transfusion as the only route back to whole).
+   * Raising it is arguing that; see `Metabolic.restorePlasma`.
+   */
+  PLASMA_RESTORE_HYDRATION_PCT: 40,
+  PLASMA_RESTORE_L_PER_HOUR: 0.12,
+  PLASMA_RESTORE_CEILING_FRAC: 0.85,
   /** Reference body mass (kg) — basal scales linearly off this. */
   REFERENCE_MASS_KG: 70,
 
@@ -353,6 +373,11 @@ export interface CoupledConsumer {
 }
 
 export interface Metabolic {
+  /** The live level a toxin's severity bands are read against (BAC for a
+   * `storeRaw` toxin, the raw burden otherwise). */
+  toxinLevelFor(type: string): number;
+  /** The severity ladder a toxin's condition reads, or null. */
+  toxinBandsFor(type: string): readonly ToxinBand[] | null;
   /**
    * The reserves this body rebuilds by spending its tanks, in fuel
    * priority order (body before gift). Override and `super`-append to
@@ -857,6 +882,57 @@ export function MetabolicMixin<TBase extends MixinConstructor>(Base: TBase) {
       const hyd = D.BASAL_HYDRATION_PER_MIN * stepMin * massFactor * thermal;
       self.adjustReserve("satiation", Quantity.of(-sat, "%"));
       self.adjustReserve("hydration", Quantity.of(-hyd, "%"));
+      this.restorePlasma(stepMin);
+    }
+
+    /**
+     * ⭐⭐ **Fluid restores VOLUME, never red cells** — and the ceiling
+     * being below baseline is a SHAPE decision, not a dial.
+     *
+     * Nothing in this engine regenerated `bloodVolume`. The only writers
+     * outside tests were the bleed and the species-baseline reset, so a
+     * bled fraction was permanent until death: you could stop a bleed,
+     * and never undo one. That is the real "hospital problem" — and it
+     * is what makes a burn's plasma weep a permanent debit rather than a
+     * consequence.
+     *
+     * ⚠⚠ **But a FULL restore would delete another build's reason to
+     * exist.** The blood slate's whole gap is *"nothing replaces the
+     * blood… the treatment for a big one is a thing the world has no way
+     * to produce"*. Drink-and-wait is exactly that way, and it demotes
+     * transfusion from a treatment to a convenience.
+     *
+     * ⭐ It is also physiologically wrong, and the correct model is the
+     * one that preserves the other build. Drinking restores **plasma
+     * volume, not red cells**: a body that has lost a lot of blood and
+     * taken on water has its volume back and its oxygen-carrying capacity
+     * still gone — dilutional anaemia, which is precisely *why*
+     * transfusion exists. So volume climbs, on hydration, to a
+     * **fraction** of baseline and no further. Enough to walk a body back
+     * out of immediate danger; never enough to make it whole.
+     *
+     * ⚠ A future change that raises `PLASMA_RESTORE_CEILING_FRAC` to 1.0
+     * is deleting a build's premise and must be argued as such.
+     */
+    protected restorePlasma(stepMin: number): void {
+      const self = this as unknown as MetabolicHost;
+      const D = METABOLIC_DEFAULTS;
+      if (!MixinApi.isVitals(self as unknown as Stuff)) return;
+      const body = self as unknown as Vitals;
+      // No blood, nothing to restore — a construct absorbs this the same
+      // way it absorbs a bleed (D22).
+      if (!body.hasVitalSign("bloodVolume")) return;
+      const hydration = self.getReserve("hydration")?.current.rawValue() ?? 0;
+      if (hydration < D.PLASMA_RESTORE_HYDRATION_PCT) return;
+      const baseline = body.getVitalBand("bloodVolume").baseline;
+      const ceiling = baseline * D.PLASMA_RESTORE_CEILING_FRAC;
+      const have = body.getVitalSign("bloodVolume").rawValue();
+      if (have >= ceiling) return;
+      const gain = (D.PLASMA_RESTORE_L_PER_HOUR * stepMin) / 60;
+      body.setVitalSign(
+        "bloodVolume",
+        Quantity.of(Math.min(ceiling, have + gain), "L"),
+      );
     }
 
     /**
@@ -1051,8 +1127,22 @@ export function MetabolicMixin<TBase extends MixinConstructor>(Base: TBase) {
             (acc, b) => (level >= b.threshold ? Math.max(acc, b.severity) : acc),
             0,
           );
-          if (existing) existing.stage = severity;
-          else
+          // ⭐⭐ **This no longer writes `stage` on an existing record.**
+          //
+          // It used to, and that made this method the eighth mechanism in
+          // the condition census: state kept OUTSIDE the condition
+          // collection and mirrored in, so two owners wrote one field and
+          // `Vitals.progressAffliction` had to carry an explicit "skip
+          // anything with a `toxinBehavior`" to stop them fighting. Since
+          // the consequence build the row declares `law: burden` and the
+          // condition's own arm derives the stage from
+          // `Metabolic.toxinLevelFor`, live, at read time.
+          //
+          // ⚠ Absorption, the spawn/relieve lifecycle and the purge all
+          // still live here — this gave up the STAGE, and only the stage.
+          // The seeded severity below is the initial value the arm then
+          // owns.
+          if (!existing)
             self.afflict({
               kind: "affliction",
               templatePath: path,
@@ -1089,6 +1179,37 @@ export function MetabolicMixin<TBase extends MixinConstructor>(Base: TBase) {
       }
     }
 
+
+    /**
+     * ⭐⭐ **The live level a toxin's severity bands are read against** —
+     * the BAC for a `storeRaw` toxin (alcohol, normalized at the read by
+     * Widmark), the raw burden for everything else.
+     *
+     * Public because the condition machinery needs it: since the
+     * consequence build a toxin condition's `stage` is derived by the
+     * `burden` law inside `Vitals.progressAffliction`, from here, instead
+     * of being **mirrored in from outside the condition collection** by
+     * `reconcileToxinConditions`. That mirror was the eighth mechanism
+     * the arm census counted, and the reason `progressAffliction` used to
+     * carry an explicit skip for anything with a `toxinBehavior`: two
+     * owners of one field.
+     *
+     * ⚠ Absorption, spawn/relieve and the purge all still live in
+     * `reconcileToxinConditions` — this moves the STAGE, and only the
+     * stage.
+     */
+    public toxinLevelFor(type: string): number {
+      const behavior = this.resolveToxinBehavior(type);
+      if (!behavior) return 0;
+      return behavior.storeRaw
+        ? this.getBAC().rawValue()
+        : (this.toxinBurdens[type] ?? 0);
+    }
+
+    /** The severity ladder a toxin's condition reads, or null. */
+    public toxinBandsFor(type: string): readonly ToxinBand[] | null {
+      return this.resolveToxinBehavior(type)?.bands ?? null;
+    }
 
     protected findAffliction(path: string): AfflictionRecord | null {
       const self = this as unknown as MetabolicHost;
@@ -1404,26 +1525,20 @@ export function MetabolicMixin<TBase extends MixinConstructor>(Base: TBase) {
       const self = this as unknown as Stuff;
       if (!MixinApi.isSlottable(self)) return 1.0;
       // ⭐⭐ The body already RECORDS where it rests, so ask it before
-      // going looking. `getOccupiedHost()` is an inverse lookup, and its
-      // implementation is a WORLD-WIDE MQL over every `Slotted` host —
-      // on a path that runs constantly:
+      // going looking. This chain runs constantly:
       //
       //   getConditionBand → getReserves → reconcileMetabolism
       //   → integrateSlice → coupledRecovery → currentRestQuality
-      //   → getOccupiedHost → findOccupiedSlots → world:[SlottedMixin]
+      //   → getOccupiedHost
       //
-      // A live drive found the server pinned at a core with five of five
-      // debugger pauses in that chain. An actor resting on nothing — the
-      // overwhelming common case, since standing is the default posture
-      // — has no host to find, and `Posed.getRestingOnPath()` says so in
-      // one field read.
-      //
-      // Deliberately a SHORT-CIRCUIT rather than resolving the path
-      // itself: identical behaviour, no new index, and the inverse
-      // lookup stays the one authority for the case that really needs
-      // it. `SlotLogic.findOccupiedSlots` still carries its own
-      // "promote to an inverse index if profiling demands" note; this
-      // removes the caller that was doing the demanding.
+      // and a live drive once found the server pinned at a core with
+      // five of five debugger pauses in it, because `getOccupiedHost()`
+      // was a world-wide read of every `Slotted` host. ⭐ It is now the
+      // candidate's own back-reference (`Slottable._occupancy`), so the
+      // inverse lookup costs a map read — but the short-circuit stays:
+      // an actor resting on nothing is the overwhelming common case
+      // (standing is the default posture) and `getRestingOnPath()`
+      // answers it in one field read without touching the map at all.
       if (MixinApi.isPosed(self) && !self.getRestingOnPath()) return 1.0;
       const host = self.getOccupiedHost();
       if (host && MixinApi.isPostured(host)) return host.getRestQuality();

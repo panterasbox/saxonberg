@@ -323,3 +323,22 @@ Stated honestly, because the medic vertical reads richer than it is:
   second city to make its politics real.
 - **Where the aid post sits** relative to the College of Physic's hall — demo
   content first, institution later?
+
+---
+
+## ⭐ Hand-off from the consequence build (MR!254, 2026-09-10)
+
+⚠⚠ **A pack cannot ship a condition row.** `ConditionCatalogue.warm`
+selects candidates by **template-path prefix** —
+`/platform/idea/Condition/` — so a row a trade pack authors at
+`/trade/<x>/idea/Condition/…` is never stood up. It fails **closed and
+silent**: the catalogue warns per row on a stand-up failure, but a row it
+never *looked* at produces no warning at all.
+
+⭐ The fix is the one `MaterialCatalogue` already uses: select by **class**
+(`extends Condition`) rather than by root, so any pack's row qualifies —
+[content-packs.md](../../subsystems/content-packs.md) calls the material
+version out explicitly as *"never an allowlist of roots"*. Until then,
+every condition in the game must live in the platform pack, which makes
+*"an author adds a new affliction by writing a row"* true only for one
+author.

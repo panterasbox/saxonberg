@@ -16,7 +16,7 @@
  * is no other consumer worth extracting it through a separate types file.
  */
 
-import { ExecutionContextApi } from '../../api/execution-context';
+import { ExecutionContextApi, FrameKind } from '../../api/execution-context';
 import { ModuleApi } from '../../api/module';
 import { PathPatternApi } from '../../api/path-pattern';
 
@@ -147,6 +147,92 @@ function FromTemplate(glob: string): SecurityPolicy {
       // object) has no template identity and fails closed here.
       const path = resolveTemplatePath(caller);
       return path !== null && PathPatternApi.matches(path, glob);
+    },
+  };
+}
+
+/**
+ * ⭐⭐ `FromTemplateMethod(templateGlob, methodName, opts?)` — **trust by
+ * the calling FUNCTION, not merely by the calling object.**
+ *
+ * `FromTemplate` answers *what was this caller cloned from?* and
+ * `FromModule` answers *what source module is its class?*. Neither can
+ * say *"…and it is asking from THIS method"*, which is the basis this
+ * project actually wants for a privileged operation: a singleton has
+ * dozens of methods, and admitting all of them because one of them needs
+ * the reach is the same shape as admitting a whole module.
+ *
+ * ```ts
+ * // only EmploymentLogic.employeesOf, and nothing else on it
+ * FromTemplateMethod('/platform/idea/api/employment', 'employeesOf')
+ * // a base-class method inherited across a family of templates
+ * FromTemplateMethod('/platform/idea/cmd/**', 'resolveScreen')
+ * // …disambiguated by code provenance when the name is ambiguous
+ * FromTemplateMethod('/trade/*\/idea/*Catalogue', 'worldScan',
+ *                    { module: '/system/water/**' })
+ * ```
+ *
+ * ## How the calling function is known
+ *
+ * The gate runs **before** the callee's frame is pushed (verified in
+ * `api/security.ts`: `#wrapStaticDescriptor` reads the caller, evaluates
+ * the policy, and only then calls `#pushFrame`; the instance gate is the
+ * same order). So at decision time the TOP frame is the caller's own —
+ * `getCallStack()[n-1].target` is `caller` by construction, and
+ * `[n-1].method` is the function the caller is currently executing.
+ *
+ * ⚠ **Consequence, and it is doctrine rather than a wrinkle: an
+ * un-dispatched caller inherits the nearest dispatched frame.** A
+ * module-private free function called from a permitted method IS
+ * admitted, because it is running as that method — which is how a logic
+ * singleton's `fooImpl` qualifies. By the same rule an NPC brain's
+ * `act()` is attributed to the behaviour tick that called it and can
+ * never qualify, and a timer callback sits on a synthetic root frame and
+ * never qualifies either. If you need a frame, re-enter through your own
+ * Api static: the static's frame names the Api class, and the logic
+ * method it forwards to then runs under its own name.
+ *
+ * ## Fails closed, on five conditions
+ *
+ * A non-Stuff caller · a template path that does not match · a top frame
+ * that is not the caller's (impossible through either dispatch site, kept
+ * as a documented guard) · a synthetic root frame, whose `method` is a
+ * label rather than a function · a method name that does not match. Plus
+ * the optional module term, which is a **disambiguator only** — omit it
+ * unless the function name alone is ambiguous.
+ */
+function FromTemplateMethod(
+  templateGlob: string,
+  methodName: string,
+  opts?: { module?: string },
+): SecurityPolicy {
+  const label = opts?.module
+    ? `FromTemplateMethod(${templateGlob}#${methodName} in ${opts.module})`
+    : `FromTemplateMethod(${templateGlob}#${methodName})`;
+  return {
+    name: label,
+    allows(caller) {
+      const path = resolveTemplatePath(caller);
+      if (path === null) return false;
+      if (!PathPatternApi.matches(path, templateGlob)) return false;
+      const stack = ExecutionContextApi.getCallStack();
+      const top = stack[stack.length - 1];
+      if (!top) return false;
+      // Attribution guard: the top frame must BE the caller's. Both
+      // dispatch sites read `caller` from this frame, so a mismatch
+      // cannot happen today — it is here so that a future dispatch path
+      // that breaks the assumption fails closed instead of open.
+      if (top.target !== caller) return false;
+      // A root frame's `method` is a synthetic label ("ws-message"), not
+      // a function anyone declared. Nothing may qualify through one.
+      if (top.kind === FrameKind.Root) return false;
+      if (top.method !== methodName) return false;
+      if (opts?.module) {
+        const moduleId = resolveModuleId(caller);
+        if (moduleId === null) return false;
+        if (!PathPatternApi.matches(moduleId, opts.module)) return false;
+      }
+      return true;
     },
   };
 }
@@ -528,6 +614,7 @@ export const SecurityPolicies = {
   AnyOf,
   Not,
   FromTemplate,
+  FromTemplateMethod,
   FromModule,
   FromClass,
   FromMixin,

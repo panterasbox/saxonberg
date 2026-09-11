@@ -121,7 +121,33 @@ export class Competence {
       (a, b) => (a.when ?? 0) - (b.when ?? 0)
     );
     let pL = PRIOR;
+    /** Running high-water mark — the floor's only state, and it is local. */
+    let thetaMax = PRIOR;
     for (const e of sorted) {
+      // ⭐ **The above-band rule (D2).** A negative outcome against a
+      // check harder than your band is expected to meet says nothing
+      // about you — nobody at your band was expected to pass it — so the
+      // estimator declines to read it as evidence. The row is still
+      // appended, still shown by `transcriptEntries` and `chronicle`:
+      // **the record stays true; only the inference is refused.**
+      //
+      // The band compared against is the one the fold has reached AT THIS
+      // ROW, not the final one, so the rule re-legislates itself as a
+      // history plays forward — a formidable failure that meant nothing
+      // to a novice means something to the expert they become.
+      //
+      // ⚠ Successes above your band are KEPT. That is the
+      // desirable-difficulty path and the whole point of fighting up.
+      if (e.outcome === "failure" || e.outcome === "partial") {
+        const expected = CompetenceBand.bandFor(e.difficulty);
+        if (
+          CompetenceBand.rank(expected) >
+          CompetenceBand.rank(CompetenceBand.forTheta(pL))
+        ) {
+          continue;
+        }
+      }
+
       const { slip, guess } = DIFFICULTY_PARAMS[e.difficulty];
       const correctness = OUTCOME_CORRECTNESS[e.outcome];
 
@@ -139,8 +165,27 @@ export class Competence {
       // edge, not from rote-easy reps.
       const transit = DIFFICULTY_TRANSIT[e.difficulty];
       pL = post + (1 - post) * transit;
+      if (pL > thetaMax) thetaMax = pL;
     }
-    return { theta: pL, band: CompetenceBand.forTheta(pL) };
+    // ⭐ **The floor (D1).** The band never falls more than one rung
+    // below the best this history ever warranted. A long record cannot be
+    // reduced to a beginner by a run of bad luck — **a veteran who loses
+    // is rusty, not reset** — and a player can say so from what the game
+    // shows them, because the shown band IS the floored one.
+    //
+    // Derived inside the fold, never stored: one comparison per row in
+    // the pass already being made, no second fold, no high-water mark to
+    // migrate, and the whole rule re-legislates every existing history
+    // the moment the constant changes. `theta` is the raw estimate and
+    // stays raw — the floor is a property of the *surface*.
+    //
+    // `seedRunFor` is unaffected: successes only ever raise `thetaMax`,
+    // so a seeded run folds to the same band it always did.
+    const band = CompetenceBand.higher(
+      CompetenceBand.forTheta(pL),
+      CompetenceBand.oneBelow(CompetenceBand.forTheta(thetaMax)),
+    );
+    return { theta: pL, band };
   }
 
   /** The band a Discipline's evidence currently warrants — the only surface. */

@@ -216,7 +216,7 @@ export abstract class Stuff {
    *      the object's *visual identity* ("a heavy oak door").
    *   3. The baked-in fallback ({@link DEFAULT_PRESENTATION}).
    *
-   * For a `Globbable` stack (`quantity !== 1`) the count folds in as
+   * For a `Stackable` stack (`quantity !== 1`) the count folds in as
    * an affix — `"30 coins"` — pluralized via {@link GrammarApi.pluralize}
    * (which honors host-side `getPluralForm()` overrides for
    * irregulars). Named takes precedence over Visible so a
@@ -331,7 +331,7 @@ export abstract class Stuff {
     const phrase = this.identityPhrase(view);
     // A count other than 1 wins over the register: a stack of two apples
     // is called "2 apples", and no article belongs in front of it.
-    if (MixinApi.isGlobbable(this)) {
+    if (MixinApi.isStackable(this)) {
       const n = this.getQuantity();
       if (n !== 1) {
         return phrase.withCount(n, GrammarApi.pluralize(this, phrase.stem));
@@ -469,9 +469,22 @@ export abstract class Stuff {
    * player-controlled body (an NPC, a prop, a fixture). `Avatar` overrides to
    * return its `playerId`. This is the auth/account identity (OAuth id,
    * `User.playerIds`) — NOT a membership key. Group / authority membership
-   * keys uniformly on `getTemplatePath()` (a player as `/platform/agent/Avatar/<id>`, an
-   * NPC as its own path), so a membership check never branches on player-vs-NPC
-   * and never mixes id shapes. Kept as a typed method (rather than the old
+   * keys uniformly on **`getIdentityPath()`** (a player as
+   * `/platform/agent/Avatar/<id>`, an NPC as its own path), so a membership
+   * check never branches on player-vs-NPC and never mixes id shapes.
+   *
+   * ⚠⚠ This paragraph said `getTemplatePath()` until 2026-09-08, and that
+   * was FALSE after D17 split identity from lineage: a player Avatar is
+   * cloned from `Avatar.SEED_TEMPLATE_PATH` with the per-player path
+   * supplied as `asIdentityPath`, so **every player shares one
+   * `templatePath`** and only `getIdentityPath()` tells them apart.
+   * Banking and the work-contract substrate followed this comment and
+   * keyed on lineage: every player shared ONE BANK ACCOUNT (two
+   * characters minted seconds apart both read the same balance), and
+   * `job claim` refused every gig with "you can't claim your own gig"
+   * because the self-claim guard compared two identical seed paths. Both
+   * were found by driving the world, not by the suite — the unit tests
+   * pass because their fixtures set distinct template paths. Kept as a typed method (rather than the old
    * `(x as { getPlayerId?() }).getPlayerId?.()` duck-typing) so the auth-layer
    * call sites that legitimately need the account id can ask any Stuff.
    */

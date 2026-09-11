@@ -39,6 +39,7 @@
 
 import type { Channel } from "../material/Channel";
 import { CHANNELS } from "../material/Channel";
+import { DIFFICULTIES, type Difficulty } from "../advancement/ActSignature";
 import {
   WeaponProfile,
   REACH_CLASSES,
@@ -190,6 +191,64 @@ export class NaturalAttack {
       overextendFactor: profile.overextendFactor(),
       reachRank: 1, // one rank — ogre reach, never `long`
     };
+  }
+
+  /**
+   * ⭐⭐ **How hard a fight this animal is — derived from its BODY.**
+   *
+   * Exchange difficulty is normally the opponent's competence band, and
+   * that read is meaningless for a beast: wolves are `Extra`s sharing one
+   * identity, so every wolf reads `untrained` and every wolf fight reads
+   * `easy`. Beating one teaching you nothing is correct. **Losing to one
+   * would then be the single most punishing loss in the game** — an
+   * `easy` failure is the maximal-sting case the estimator has — so being
+   * mauled by a wolf would cost more competence than being beaten by a
+   * master swordsman. That is backwards, and it is a correctness problem
+   * rather than a preference.
+   *
+   * Two answers were rejected. **A shared transcript** is the bug above.
+   * **An authored `Species.contestBand`** violates the identity build's
+   * settled rule that a competence claim is *seeded evidence, never a
+   * declared floor* — and would be a second dial to drift out of
+   * agreement with the first.
+   *
+   * ⭐ So: **a beast's danger is its body, not a contest skill.** The
+   * profile already says how dangerous the animal is — how hard it hits,
+   * how fast, how far it reaches — in the same numbers that govern how it
+   * fights. Author a heavier, longer-reached animal and it *is* a harder
+   * fight, with **no new authoring surface and nothing to keep in sync.**
+   *
+   * The read: reach is worth a full step (a thing that can hit you before
+   * you can hit it is the difference between a boar and a bear), striking
+   * power a step at the heavy end, and the floor is `easy` — a rat is a
+   * story, not a career setback. Skill was never the right noun for a
+   * wolf.
+   */
+  static difficultyFor(profile: NaturalProfile): Difficulty {
+    // Neutral body (a rat, a housecat, an unarmoured human fist) → the
+    // bottom of the ladder: winning teaches nothing and losing costs
+    // nothing, which is the honest reading of both.
+    // The ladder, calibrated against the shipped curve (`reachRank` is 0
+    // or 1 for a hint-less body and up to 2+ when authored;
+    // `poiseDamageFactor` runs ~0.79 … 1.5):
+    //
+    //   easy       — a rat, a dog, an ordinary animal you drive off
+    //   standard   — a big animal, 150–300 kg: a boar, a big cat
+    //   hard       — a bear (400 kg+), or anything with real reach
+    //   formidable — long-reached AND heavy: a monster
+    //
+    // `trivial` is unreachable by construction, and that is deliberate:
+    // nothing with teeth is a trivial fight, and grading one that way
+    // would make losing to it maximally punishing.
+    let rung = DIFFICULTIES.indexOf("easy");
+    rung += Math.min(2, Math.max(0, Math.round(profile.reachRank)));
+    if (profile.poiseDamageFactor >= 1.45) rung += 1;
+    else if (profile.poiseDamageFactor < 0.9) rung -= 1;
+    const at = Math.max(
+      DIFFICULTIES.indexOf("easy"),
+      Math.min(DIFFICULTIES.length - 1, rung),
+    );
+    return DIFFICULTIES[at] ?? "easy";
   }
 
   /**

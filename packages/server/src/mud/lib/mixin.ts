@@ -25,7 +25,7 @@ export type MixinConstructor<T = object> = (new (...args: any[]) => T) | (abstra
  *
  * `static fieldMeta` inverts the old arrangement. Field metadata used to
  * live in four parallel statics — `persistentFields`, `fieldMarshallers`,
- * `instructionFields`, `globIdentityFields` — each keyed by field name,
+ * `instructionFields`, `stackIdentityFields` — each keyed by field name,
  * so answering "what is true of this field?" meant consulting four
  * places and adding a fifth concern meant adding a fifth static. Here
  * each field is a key and everything about it is its value.
@@ -55,10 +55,10 @@ export interface FieldMetaEntry {
    */
   instruction?: true;
   /**
-   * Participates in glob stack identity — two globs merge only when
-   * every such field is equal. Was `static globIdentityFields`.
+   * Participates in stack stack identity — two stacks merge only when
+   * every such field is equal. Was `static stackIdentityFields`.
    */
-  globIdentity?: true;
+  stackIdentity?: true;
 
   /**
    * **Axis 1** — what this field points at when it points at other
@@ -266,7 +266,7 @@ export const Mixins = {
   Branded: 'BrandedMixin',
   // Chattel — a movable good's durable per-instance identity, the key its
   // unspoofable ownership is stamped against (the parcel-title twin).
-  // Composed at the Thing tier; refused on fungible stacks (Globbable).
+  // Composed at the Thing tier; refused on fungible stacks (Stackable).
   Chattel: 'ChattelMixin',
   // Estate — owner-based persistence: the goods a principal holds title to,
   // wherever they sit. The counterpart to the Container slice's skip rule.
@@ -307,7 +307,7 @@ export const Mixins = {
   Populates: 'PopulatesMixin',
   Persistable: 'PersistableMixin',
   Forkable: 'ForkableMixin',
-  Globbable: 'GlobbableMixin',
+  Stackable: 'StackableMixin',
   Bulkable: 'BulkableMixin',
   VesselKind: 'VesselKindMixin',
   Cutlery: 'CutleryMixin',
@@ -586,6 +586,7 @@ export const MixinRefusals: Partial<Record<MixinName, string>> = {
 
   // Bodies & behavior.
   VitalsMixin: "{} isn't alive",
+  PostmortemMixin: "{} is not a body you can examine",
   /*
    * ⚠ A measurement is taken off a BODY. `measure figure`, `cut --for`
    * and `alter --for` all read stature off the species and girth off the
@@ -633,7 +634,7 @@ export const MixinRefusals: Partial<Record<MixinName, string>> = {
   WieldableMixin: "{} isn't something you can wield",
 
   // Stacks, charges, marks, labels.
-  GlobbableMixin: "{} doesn't come in stacks",
+  StackableMixin: "{} doesn't come in stacks",
   ChargedMixin: "{} doesn't hold a charge",
   MarkedMixin: "{} doesn't carry a mark",
   LabelledMixin: "{} can't be labelled",

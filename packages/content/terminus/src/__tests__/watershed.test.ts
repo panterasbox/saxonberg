@@ -37,7 +37,9 @@ import {
   makeStuff,
   makeStuffAtPath,
 } from '@saxonberg/server/mud/lib/security/__tests__/test-setup';
-import WatercourseCatalogue from '@saxonberg/content-water/src/idea/WatercourseCatalogue';
+import WatercourseCatalogue, {
+  WATERCOURSE_CATALOGUE_PATH,
+} from '@saxonberg/content-water/src/idea/WatercourseCatalogue';
 import Conduit from '@saxonberg/content-water/src/thing/Conduit';
 import ControlStructure from '@saxonberg/content-water/src/thing/ControlStructure';
 import StorageNode from '@saxonberg/content-water/src/thing/StorageNode';
@@ -70,8 +72,16 @@ const data = (rel: string): Record<string, unknown> =>
  * `PersistApi.find`, at the template paths the installer would give
  * them — so the catalogue compiles the REAL geography.
  */
+/**
+ * ⚠ Module-scoped so a fixture can add to it. A water work is found by
+ * its `content` row naming a waterwork class — that is how the
+ * catalogue finds the city's conduits without walking the world — so a
+ * conduit standing with no row is, correctly, invisible to the river.
+ */
+let store: Array<Record<string, unknown> & { path: string }> = [];
+
 function installShippedContent(): void {
-  const store: Array<Record<string, unknown> & { path: string }> = [];
+  store = [];
   const add = (path: string, rel: string): void => {
     const doc = row(rel);
     store.push({ _id: String(store.length + 1), path, ...doc });
@@ -127,7 +137,10 @@ function installRootBiome(): void {
 }
 
 const catalogue = (): WatercourseCatalogue =>
-  makeStuff(() => new WatercourseCatalogue()) as WatercourseCatalogue;
+  makeStuffAtPath(
+    () => new WatercourseCatalogue(),
+    WATERCOURSE_CATALOGUE_PATH,
+  ) as WatercourseCatalogue;
 
 /** Build a live pack object from its own authored row. */
 let seq = 0;
@@ -138,11 +151,20 @@ function fromRow<T extends Stuff>(
 ): T {
   seq += 1;
   const d = data(rel);
+  const path = `/world/_watershed-test/${seq}`;
+  // Give it the row the installer would have written, so the
+  // catalogue's roster finds it exactly as it finds the shipped ones.
+  store.push({
+    _id: `w-${seq}`,
+    path,
+    class: String(row(rel).class ?? ''),
+    data: {},
+  });
   return makeStuffAtPath(() => {
     const o = make();
     apply(o, d);
     return o;
-  }, `/world/_watershed-test/${seq}`) as T;
+  }, path) as T;
 }
 
 function conduitFrom(rel: string): Conduit {

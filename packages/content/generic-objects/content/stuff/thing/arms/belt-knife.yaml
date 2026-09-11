@@ -18,3 +18,5 @@ data:
   length: 0.2
   slotClaims:
     "/stuff/idea/species/BodyPlan/biped": ["hand:right"]
+  # ⭐ A working knife pressed into a fight still trains the edge.
+  exercises: [blades]

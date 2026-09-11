@@ -48,6 +48,17 @@ function faceHost(): object {
         k: string,
       ) => unknown
     )(h, k);
+  // The morale face — the brain's first read every beat. Routed through
+  // the real logic like every other face, so the stub cannot drift from
+  // what a live host would answer.
+  h.moraleBand = () =>
+    (CombatLogic.prototype.moraleBand as unknown as (a: unknown) => unknown)(h);
+  h.yieldFight = () =>
+    (CombatLogic.prototype.yieldFight as unknown as (a: unknown) => unknown)(h);
+  h.offerBreak = () =>
+    (CombatLogic.prototype.offerBreak as unknown as (a: unknown) => unknown)(h);
+  h.disengage = () =>
+    (CombatLogic.prototype.disengage as unknown as (a: unknown) => unknown)(h);
   h.formationStanding = () =>
     (
       CombatLogic.prototype.formationStandingOf as unknown as (

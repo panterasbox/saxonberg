@@ -1,6 +1,6 @@
 verbs: [fight]
 controller: /platform/idea/cmd/combat/FightController
-description: "Act inside a fight — read it, throw a gambit, or yield"
+description: "Act inside a fight — read it, throw a gambit, talk it down, or yield"
 help: |
   `fight` is your handle on a fight already under way (start one with
   `attack <target>`). On its own it reads the fray at a glance — your
@@ -23,7 +23,9 @@ help: |
   strike. A reader, or a foe who isn't turtling, isn't fooled.
   Or hold: `fight defend` covers up and recovers your poise (capped by
   your endurance) instead of attacking — the patient defender's game.
-  And `fight yield` concedes.
+  And `fight yield` concedes. To stop without conceding: `fight break`
+  offers a mutual stand-down, and simply walking out is a flight — your
+  foes get a parting shot at your back.
 examples:
   - cmd: fight
     note: Read your current fight

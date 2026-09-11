@@ -19,3 +19,5 @@ data:
   # One-handed — claims a single hand slot.
   slotClaims:
     "/stuff/idea/species/BodyPlan/biped": ["hand:right"]
+  # ⭐ Mass at the end of a haft — the guard-breaking practice.
+  exercises: [bludgeons]

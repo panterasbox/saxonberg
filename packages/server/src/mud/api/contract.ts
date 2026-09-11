@@ -19,6 +19,7 @@
  */
 
 import { StuffApi } from "./stuff";
+import type { Stuff } from '../lib/stuff/Stuff';
 import { HotReloadApi } from "./hot-reload";
 import { ContractLogic } from "../platform/idea/api/ContractLogic";
 import type { ConditionData } from "../lib/employment/Condition";
@@ -108,6 +109,23 @@ export class ContractApi {
    * escrow reverts, the `breached` event names the claimant, the
    * issuer-side regard nudge lands, and the gig reopens.
    */
+  /**
+   * ⭐⭐⭐ Sweep every claimed `watch` gig and credit the claimants who
+   * are standing at their posts. Returns how many were credited.
+   *
+   * ⚠ A guard's product is **presence with free hands**, not protection:
+   * whether a theft was deterred is counterfactual and whether you were
+   * attentive is not a modelled fact. What the engine can verify is that
+   * you were there — so it looks, rather than asking you to say so.
+   *
+   * ⭐ There is deliberately **no `watch` verb**. Typing a word never made
+   * anybody keep watch; standing at the post is the whole of the work,
+   * and where somebody is standing is a fact the engine already holds.
+   */
+  public static async reconcileWatches(): Promise<number> {
+    return logic().reconcileWatches();
+  }
+
   public static async abandon(contractId: string): Promise<AbandonResult> {
     return logic().abandon(contractId);
   }

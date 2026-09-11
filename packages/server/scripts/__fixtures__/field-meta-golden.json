@@ -9,7 +9,7 @@
     ],
     "fieldMarshallers": {},
     "instructionFields": [],
-    "globIdentityFields": []
+    "stackIdentityFields": []
   },
   {
     "file": "packages/content/eternal-university/src/duncan-hall/Bed.ts",
@@ -18,7 +18,7 @@
     "persistentFields": [],
     "fieldMarshallers": {},
     "instructionFields": [],
-    "globIdentityFields": []
+    "stackIdentityFields": []
   },
   {
     "file": "packages/content/eternal-university/src/duncan-hall/Corridor.ts",
@@ -27,7 +27,7 @@
     "persistentFields": [],
     "fieldMarshallers": {},
     "instructionFields": [],
-    "globIdentityFields": []
+    "stackIdentityFields": []
   },
   {
     "file": "packages/content/eternal-university/src/duncan-hall/Desk.ts",
@@ -36,7 +36,7 @@
     "persistentFields": [],
     "fieldMarshallers": {},
     "instructionFields": [],
-    "globIdentityFields": []
+    "stackIdentityFields": []
   },
   {
     "file": "packages/content/eternal-university/src/duncan-hall/DormRoom.ts",
@@ -45,7 +45,7 @@
     "persistentFields": [],
     "fieldMarshallers": {},
     "instructionFields": [],
-    "globIdentityFields": []
+    "stackIdentityFields": []
   },
   {
     "file": "packages/content/eternal-university/src/duncan-hall/Footlocker.ts",
@@ -54,7 +54,7 @@
     "persistentFields": [],
     "fieldMarshallers": {},
     "instructionFields": [],
-    "globIdentityFields": []
+    "stackIdentityFields": []
   },
   {
     "file": "packages/content/eternal-university/src/university-avenue/CrossingLog.ts",
@@ -66,7 +66,7 @@
     ],
     "fieldMarshallers": {},
     "instructionFields": [],
-    "globIdentityFields": []
+    "stackIdentityFields": []
   },
   {
     "file": "packages/content/residence/src/idea/LotHolder.ts",
@@ -79,7 +79,7 @@
     ],
     "fieldMarshallers": {},
     "instructionFields": [],
-    "globIdentityFields": []
+    "stackIdentityFields": []
   },
   {
     "file": "packages/content/residence/src/idea/PlatBook.ts",
@@ -97,7 +97,7 @@
     ],
     "fieldMarshallers": {},
     "instructionFields": [],
-    "globIdentityFields": []
+    "stackIdentityFields": []
   },
   {
     "file": "packages/server/src/mud/__tests__/integration/spawnSubstrate.integration.test.ts",
@@ -106,7 +106,7 @@
     "persistentFields": [],
     "fieldMarshallers": {},
     "instructionFields": [],
-    "globIdentityFields": []
+    "stackIdentityFields": []
   },
   {
     "file": "packages/server/src/mud/__tests__/integration/spawnSubstrate.integration.test.ts",
@@ -115,7 +115,7 @@
     "persistentFields": [],
     "fieldMarshallers": {},
     "instructionFields": [],
-    "globIdentityFields": []
+    "stackIdentityFields": []
   },
   {
     "file": "packages/server/src/mud/__tests__/integration/spawnSubstrate.integration.test.ts",
@@ -124,7 +124,7 @@
     "persistentFields": [],
     "fieldMarshallers": {},
     "instructionFields": [],
-    "globIdentityFields": []
+    "stackIdentityFields": []
   },
   {
     "file": "packages/server/src/mud/__tests__/integration/spawnSubstrate.integration.test.ts",
@@ -133,7 +133,7 @@
     "persistentFields": [],
     "fieldMarshallers": {},
     "instructionFields": [],
-    "globIdentityFields": []
+    "stackIdentityFields": []
   },
   {
     "file": "packages/server/src/mud/api/__tests__/glob.test.ts",
@@ -147,7 +147,7 @@
     ],
     "fieldMarshallers": {},
     "instructionFields": [],
-    "globIdentityFields": [
+    "stackIdentityFields": [
       "tarnished",
       "denomination"
     ]
@@ -162,7 +162,7 @@
     ],
     "fieldMarshallers": {},
     "instructionFields": [],
-    "globIdentityFields": []
+    "stackIdentityFields": []
   },
   {
     "file": "packages/server/src/mud/api/__tests__/mixin.fieldMeta.test.ts",
@@ -173,7 +173,7 @@
     ],
     "fieldMarshallers": {},
     "instructionFields": [],
-    "globIdentityFields": []
+    "stackIdentityFields": []
   },
   {
     "file": "packages/server/src/mud/api/__tests__/mixin.fieldMeta.test.ts",
@@ -186,7 +186,7 @@
       "mass": "'/lib/quantity/kg'"
     },
     "instructionFields": [],
-    "globIdentityFields": []
+    "stackIdentityFields": []
   },
   {
     "file": "packages/server/src/mud/api/__tests__/mixin.fieldMeta.test.ts",
@@ -199,7 +199,7 @@
     "instructionFields": [
       "mass"
     ],
-    "globIdentityFields": []
+    "stackIdentityFields": []
   },
   {
     "file": "packages/server/src/mud/api/__tests__/mixin.fieldMeta.test.ts",
@@ -208,7 +208,7 @@
     "persistentFields": [],
     "fieldMarshallers": {},
     "instructionFields": [],
-    "globIdentityFields": []
+    "stackIdentityFields": []
   },
   {
     "file": "packages/server/src/mud/api/__tests__/mixin.fieldMeta.test.ts",
@@ -217,7 +217,7 @@
     "persistentFields": [],
     "fieldMarshallers": {},
     "instructionFields": [],
-    "globIdentityFields": []
+    "stackIdentityFields": []
   },
   {
     "file": "packages/server/src/mud/api/__tests__/mixin.fieldMetaValidation.test.ts",
@@ -228,7 +228,7 @@
     ],
     "fieldMarshallers": {},
     "instructionFields": [],
-    "globIdentityFields": []
+    "stackIdentityFields": []
   },
   {
     "file": "packages/server/src/mud/api/__tests__/mixin.fieldMetaValidation.test.ts",
@@ -239,7 +239,7 @@
     ],
     "fieldMarshallers": {},
     "instructionFields": [],
-    "globIdentityFields": []
+    "stackIdentityFields": []
   },
   {
     "file": "packages/server/src/mud/api/__tests__/mixin.fieldMetaValidation.test.ts",
@@ -248,7 +248,7 @@
     "persistentFields": [],
     "fieldMarshallers": {},
     "instructionFields": [],
-    "globIdentityFields": []
+    "stackIdentityFields": []
   },
   {
     "file": "packages/server/src/mud/api/__tests__/mixin.fieldMetaValidation.test.ts",
@@ -257,7 +257,7 @@
     "persistentFields": [],
     "fieldMarshallers": {},
     "instructionFields": [],
-    "globIdentityFields": []
+    "stackIdentityFields": []
   },
   {
     "file": "packages/server/src/mud/api/__tests__/mixin.fieldMetaValidation.test.ts",
@@ -266,7 +266,7 @@
     "persistentFields": [],
     "fieldMarshallers": {},
     "instructionFields": [],
-    "globIdentityFields": []
+    "stackIdentityFields": []
   },
   {
     "file": "packages/server/src/mud/api/__tests__/mixin.fieldMetaValidation.test.ts",
@@ -275,7 +275,7 @@
     "persistentFields": [],
     "fieldMarshallers": {},
     "instructionFields": [],
-    "globIdentityFields": []
+    "stackIdentityFields": []
   },
   {
     "file": "packages/server/src/mud/api/__tests__/mixin.fieldMetaValidation.test.ts",
@@ -284,7 +284,7 @@
     "persistentFields": [],
     "fieldMarshallers": {},
     "instructionFields": [],
-    "globIdentityFields": []
+    "stackIdentityFields": []
   },
   {
     "file": "packages/server/src/mud/api/__tests__/mixin.fieldMetaValidation.test.ts",
@@ -293,7 +293,7 @@
     "persistentFields": [],
     "fieldMarshallers": {},
     "instructionFields": [],
-    "globIdentityFields": []
+    "stackIdentityFields": []
   },
   {
     "file": "packages/server/src/mud/api/__tests__/mixin.fieldMetaValidation.test.ts",
@@ -302,7 +302,7 @@
     "persistentFields": [],
     "fieldMarshallers": {},
     "instructionFields": [],
-    "globIdentityFields": []
+    "stackIdentityFields": []
   },
   {
     "file": "packages/server/src/mud/api/__tests__/mixin.fieldMetaValidation.test.ts",
@@ -311,7 +311,7 @@
     "persistentFields": [],
     "fieldMarshallers": {},
     "instructionFields": [],
-    "globIdentityFields": []
+    "stackIdentityFields": []
   },
   {
     "file": "packages/server/src/mud/api/__tests__/mixin.fieldMetaValidation.test.ts",
@@ -322,7 +322,7 @@
     ],
     "fieldMarshallers": {},
     "instructionFields": [],
-    "globIdentityFields": []
+    "stackIdentityFields": []
   },
   {
     "file": "packages/server/src/mud/api/__tests__/mixin.fieldMetaValidation.test.ts",
@@ -336,7 +336,7 @@
       "mass": "'/lib/quantity/kg'"
     },
     "instructionFields": [],
-    "globIdentityFields": []
+    "stackIdentityFields": []
   },
   {
     "file": "packages/server/src/mud/api/__tests__/mql-subscription.displayName.test.ts",
@@ -345,7 +345,7 @@
     "persistentFields": [],
     "fieldMarshallers": {},
     "instructionFields": [],
-    "globIdentityFields": []
+    "stackIdentityFields": []
   },
   {
     "file": "packages/server/src/mud/api/__tests__/mql-subscription.displayName.test.ts",
@@ -354,7 +354,7 @@
     "persistentFields": [],
     "fieldMarshallers": {},
     "instructionFields": [],
-    "globIdentityFields": []
+    "stackIdentityFields": []
   },
   {
     "file": "packages/server/src/mud/api/__tests__/mql-subscription.focus.test.ts",
@@ -363,7 +363,7 @@
     "persistentFields": [],
     "fieldMarshallers": {},
     "instructionFields": [],
-    "globIdentityFields": []
+    "stackIdentityFields": []
   },
   {
     "file": "packages/server/src/mud/api/__tests__/mql-subscription.projection.test.ts",
@@ -372,7 +372,7 @@
     "persistentFields": [],
     "fieldMarshallers": {},
     "instructionFields": [],
-    "globIdentityFields": []
+    "stackIdentityFields": []
   },
   {
     "file": "packages/server/src/mud/api/__tests__/perception.sensorium.augment.test.ts",
@@ -381,7 +381,7 @@
     "persistentFields": [],
     "fieldMarshallers": {},
     "instructionFields": [],
-    "globIdentityFields": []
+    "stackIdentityFields": []
   },
   {
     "file": "packages/server/src/mud/api/__tests__/prompt.format.test.ts",
@@ -390,7 +390,7 @@
     "persistentFields": [],
     "fieldMarshallers": {},
     "instructionFields": [],
-    "globIdentityFields": []
+    "stackIdentityFields": []
   },
   {
     "file": "packages/server/src/mud/api/__tests__/proxy.weakRef.test.ts",
@@ -399,7 +399,7 @@
     "persistentFields": [],
     "fieldMarshallers": {},
     "instructionFields": [],
-    "globIdentityFields": []
+    "stackIdentityFields": []
   },
   {
     "file": "packages/server/src/mud/api/__tests__/proxy.weakRef.test.ts",
@@ -410,7 +410,7 @@
     ],
     "fieldMarshallers": {},
     "instructionFields": [],
-    "globIdentityFields": []
+    "stackIdentityFields": []
   },
   {
     "file": "packages/server/src/mud/api/__tests__/stuff.slot25.test.ts",
@@ -419,7 +419,7 @@
     "persistentFields": [],
     "fieldMarshallers": {},
     "instructionFields": [],
-    "globIdentityFields": []
+    "stackIdentityFields": []
   },
   {
     "file": "packages/server/src/mud/api/__tests__/stuff.slot25.test.ts",
@@ -428,7 +428,7 @@
     "persistentFields": [],
     "fieldMarshallers": {},
     "instructionFields": [],
-    "globIdentityFields": []
+    "stackIdentityFields": []
   },
   {
     "file": "packages/server/src/mud/api/__tests__/stuff.slot25.test.ts",
@@ -437,7 +437,7 @@
     "persistentFields": [],
     "fieldMarshallers": {},
     "instructionFields": [],
-    "globIdentityFields": []
+    "stackIdentityFields": []
   },
   {
     "file": "packages/server/src/mud/api/__tests__/stuff.slot25.test.ts",
@@ -446,7 +446,7 @@
     "persistentFields": [],
     "fieldMarshallers": {},
     "instructionFields": [],
-    "globIdentityFields": []
+    "stackIdentityFields": []
   },
   {
     "file": "packages/server/src/mud/api/__tests__/stuff.slot25.test.ts",
@@ -455,7 +455,7 @@
     "persistentFields": [],
     "fieldMarshallers": {},
     "instructionFields": [],
-    "globIdentityFields": []
+    "stackIdentityFields": []
   },
   {
     "file": "packages/server/src/mud/api/__tests__/stuff.slot25.test.ts",
@@ -464,7 +464,7 @@
     "persistentFields": [],
     "fieldMarshallers": {},
     "instructionFields": [],
-    "globIdentityFields": []
+    "stackIdentityFields": []
   },
   {
     "file": "packages/server/src/mud/api/__tests__/stuff.slot25.test.ts",
@@ -473,7 +473,7 @@
     "persistentFields": [],
     "fieldMarshallers": {},
     "instructionFields": [],
-    "globIdentityFields": []
+    "stackIdentityFields": []
   },
   {
     "file": "packages/server/src/mud/api/__tests__/stuff.slot25.test.ts",
@@ -482,7 +482,7 @@
     "persistentFields": [],
     "fieldMarshallers": {},
     "instructionFields": [],
-    "globIdentityFields": []
+    "stackIdentityFields": []
   },
   {
     "file": "packages/server/src/mud/api/__tests__/template.snapshotRestore.test.ts",
@@ -494,7 +494,7 @@
     ],
     "fieldMarshallers": {},
     "instructionFields": [],
-    "globIdentityFields": []
+    "stackIdentityFields": []
   },
   {
     "file": "packages/server/src/mud/api/__tests__/template.validateSingletonContainerTarget.test.ts",
@@ -503,7 +503,7 @@
     "persistentFields": [],
     "fieldMarshallers": {},
     "instructionFields": [],
-    "globIdentityFields": []
+    "stackIdentityFields": []
   },
   {
     "file": "packages/server/src/mud/api/__tests__/template.validateSingletonContainerTarget.test.ts",
@@ -512,7 +512,7 @@
     "persistentFields": [],
     "fieldMarshallers": {},
     "instructionFields": [],
-    "globIdentityFields": []
+    "stackIdentityFields": []
   },
   {
     "file": "packages/server/src/mud/api/__tests__/template.validateSingletonContainerTarget.test.ts",
@@ -521,7 +521,7 @@
     "persistentFields": [],
     "fieldMarshallers": {},
     "instructionFields": [],
-    "globIdentityFields": []
+    "stackIdentityFields": []
   },
   {
     "file": "packages/server/src/mud/api/__tests__/template.validateSingletonContainerTarget.test.ts",
@@ -530,7 +530,7 @@
     "persistentFields": [],
     "fieldMarshallers": {},
     "instructionFields": [],
-    "globIdentityFields": []
+    "stackIdentityFields": []
   },
   {
     "file": "packages/server/src/mud/lib/accountability/AccountabilityEvent.ts",
@@ -557,7 +557,7 @@
     ],
     "fieldMarshallers": {},
     "instructionFields": [],
-    "globIdentityFields": []
+    "stackIdentityFields": []
   },
   {
     "file": "packages/server/src/mud/lib/address/Addressable.ts",
@@ -568,7 +568,7 @@
     ],
     "fieldMarshallers": {},
     "instructionFields": [],
-    "globIdentityFields": []
+    "stackIdentityFields": []
   },
   {
     "file": "packages/server/src/mud/lib/advancement/TranscriptEntry.ts",
@@ -585,7 +585,7 @@
     ],
     "fieldMarshallers": {},
     "instructionFields": [],
-    "globIdentityFields": []
+    "stackIdentityFields": []
   },
   {
     "file": "packages/server/src/mud/lib/attendant/Attendant.ts",
@@ -601,7 +601,7 @@
     ],
     "fieldMarshallers": {},
     "instructionFields": [],
-    "globIdentityFields": []
+    "stackIdentityFields": []
   },
   {
     "file": "packages/server/src/mud/lib/banking/AccountBalance.ts",
@@ -620,7 +620,7 @@
     ],
     "fieldMarshallers": {},
     "instructionFields": [],
-    "globIdentityFields": []
+    "stackIdentityFields": []
   },
   {
     "file": "packages/server/src/mud/lib/banking/Bank.ts",
@@ -633,7 +633,7 @@
     ],
     "fieldMarshallers": {},
     "instructionFields": [],
-    "globIdentityFields": []
+    "stackIdentityFields": []
   },
   {
     "file": "packages/server/src/mud/lib/banking/LedgerEntry.ts",
@@ -655,7 +655,7 @@
     ],
     "fieldMarshallers": {},
     "instructionFields": [],
-    "globIdentityFields": []
+    "stackIdentityFields": []
   },
   {
     "file": "packages/server/src/mud/lib/banking/SupplyAggregate.ts",
@@ -668,7 +668,7 @@
     ],
     "fieldMarshallers": {},
     "instructionFields": [],
-    "globIdentityFields": []
+    "stackIdentityFields": []
   },
   {
     "file": "packages/server/src/mud/lib/behavior/Behaved.ts",
@@ -680,7 +680,7 @@
     ],
     "fieldMarshallers": {},
     "instructionFields": [],
-    "globIdentityFields": []
+    "stackIdentityFields": []
   },
   {
     "file": "packages/server/src/mud/lib/belief/BeliefDocument.ts",
@@ -697,7 +697,7 @@
     ],
     "fieldMarshallers": {},
     "instructionFields": [],
-    "globIdentityFields": []
+    "stackIdentityFields": []
   },
   {
     "file": "packages/server/src/mud/lib/biome/Atmospheric.ts",
@@ -727,7 +727,7 @@
       "_wind": "QuantityMarshaller.pathFor('m/s')"
     },
     "instructionFields": [],
-    "globIdentityFields": []
+    "stackIdentityFields": []
   },
   {
     "file": "packages/server/src/mud/lib/biome/Biome.ts",
@@ -755,7 +755,7 @@
       "_defaultWind": "QuantityMarshaller.pathFor('m/s')"
     },
     "instructionFields": [],
-    "globIdentityFields": []
+    "stackIdentityFields": []
   },
   {
     "file": "packages/server/src/mud/lib/boundary/Adornable.ts",
@@ -766,7 +766,7 @@
     "instructionFields": [
       "adornments"
     ],
-    "globIdentityFields": []
+    "stackIdentityFields": []
   },
   {
     "file": "packages/server/src/mud/lib/boundary/Adornment.ts",
@@ -775,7 +775,7 @@
     "persistentFields": [],
     "fieldMarshallers": {},
     "instructionFields": [],
-    "globIdentityFields": []
+    "stackIdentityFields": []
   },
   {
     "file": "packages/server/src/mud/lib/boundary/Boundary.ts",
@@ -784,7 +784,7 @@
     "persistentFields": [],
     "fieldMarshallers": {},
     "instructionFields": [],
-    "globIdentityFields": []
+    "stackIdentityFields": []
   },
   {
     "file": "packages/server/src/mud/lib/boundary/DoorBearing.ts",
@@ -793,7 +793,7 @@
     "persistentFields": [],
     "fieldMarshallers": {},
     "instructionFields": [],
-    "globIdentityFields": []
+    "stackIdentityFields": []
   },
   {
     "file": "packages/server/src/mud/lib/boundary/Exit.ts",
@@ -811,7 +811,7 @@
     ],
     "fieldMarshallers": {},
     "instructionFields": [],
-    "globIdentityFields": []
+    "stackIdentityFields": []
   },
   {
     "file": "packages/server/src/mud/lib/boundary/Exitable.ts",
@@ -822,7 +822,7 @@
     "instructionFields": [
       "exits"
     ],
-    "globIdentityFields": []
+    "stackIdentityFields": []
   },
   {
     "file": "packages/server/src/mud/lib/boundary/Locked.ts",
@@ -833,7 +833,7 @@
     ],
     "fieldMarshallers": {},
     "instructionFields": [],
-    "globIdentityFields": []
+    "stackIdentityFields": []
   },
   {
     "file": "packages/server/src/mud/lib/boundary/Switchable.ts",
@@ -844,7 +844,7 @@
     ],
     "fieldMarshallers": {},
     "instructionFields": [],
-    "globIdentityFields": []
+    "stackIdentityFields": []
   },
   {
     "file": "packages/server/src/mud/lib/bulk/Bulkable.ts",
@@ -871,7 +871,7 @@
       "surfaceCapacity": "VOLUME_MARSHALLER"
     },
     "instructionFields": [],
-    "globIdentityFields": []
+    "stackIdentityFields": []
   },
   {
     "file": "packages/server/src/mud/lib/character/Character.ts",
@@ -882,7 +882,7 @@
     ],
     "fieldMarshallers": {},
     "instructionFields": [],
-    "globIdentityFields": []
+    "stackIdentityFields": []
   },
   {
     "file": "packages/server/src/mud/lib/character/Gendered.ts",
@@ -893,7 +893,7 @@
     ],
     "fieldMarshallers": {},
     "instructionFields": [],
-    "globIdentityFields": []
+    "stackIdentityFields": []
   },
   {
     "file": "packages/server/src/mud/lib/character/Persona.ts",
@@ -905,7 +905,7 @@
     ],
     "fieldMarshallers": {},
     "instructionFields": [],
-    "globIdentityFields": []
+    "stackIdentityFields": []
   },
   {
     "file": "packages/server/src/mud/lib/character/Posed.ts",
@@ -918,7 +918,7 @@
     ],
     "fieldMarshallers": {},
     "instructionFields": [],
-    "globIdentityFields": []
+    "stackIdentityFields": []
   },
   {
     "file": "packages/server/src/mud/lib/character/Sexed.ts",
@@ -929,7 +929,7 @@
     ],
     "fieldMarshallers": {},
     "instructionFields": [],
-    "globIdentityFields": []
+    "stackIdentityFields": []
   },
   {
     "file": "packages/server/src/mud/lib/chattel/Chattel.ts",
@@ -941,7 +941,7 @@
     ],
     "fieldMarshallers": {},
     "instructionFields": [],
-    "globIdentityFields": []
+    "stackIdentityFields": []
   },
   {
     "file": "packages/server/src/mud/lib/chattel/ChattelEvent.ts",
@@ -957,7 +957,7 @@
     ],
     "fieldMarshallers": {},
     "instructionFields": [],
-    "globIdentityFields": []
+    "stackIdentityFields": []
   },
   {
     "file": "packages/server/src/mud/lib/chattel/ChattelRecord.ts",
@@ -971,7 +971,7 @@
     ],
     "fieldMarshallers": {},
     "instructionFields": [],
-    "globIdentityFields": []
+    "stackIdentityFields": []
   },
   {
     "file": "packages/server/src/mud/lib/chattel/Estate.ts",
@@ -980,7 +980,7 @@
     "persistentFields": [],
     "fieldMarshallers": {},
     "instructionFields": [],
-    "globIdentityFields": []
+    "stackIdentityFields": []
   },
   {
     "file": "packages/server/src/mud/lib/chattel/__tests__/Estate.test.ts",
@@ -989,7 +989,7 @@
     "persistentFields": [],
     "fieldMarshallers": {},
     "instructionFields": [],
-    "globIdentityFields": []
+    "stackIdentityFields": []
   },
   {
     "file": "packages/server/src/mud/lib/chattel/__tests__/RoomOverlay.test.ts",
@@ -998,7 +998,7 @@
     "persistentFields": [],
     "fieldMarshallers": {},
     "instructionFields": [],
-    "globIdentityFields": []
+    "stackIdentityFields": []
   },
   {
     "file": "packages/server/src/mud/lib/chattel/__tests__/RoomOverlay.test.ts",
@@ -1007,7 +1007,7 @@
     "persistentFields": [],
     "fieldMarshallers": {},
     "instructionFields": [],
-    "globIdentityFields": []
+    "stackIdentityFields": []
   },
   {
     "file": "packages/server/src/mud/lib/chattel/__tests__/RoomOverlay.test.ts",
@@ -1016,7 +1016,7 @@
     "persistentFields": [],
     "fieldMarshallers": {},
     "instructionFields": [],
-    "globIdentityFields": []
+    "stackIdentityFields": []
   },
   {
     "file": "packages/server/src/mud/lib/chronicle/ChronicleEntry.ts",
@@ -1035,7 +1035,7 @@
     ],
     "fieldMarshallers": {},
     "instructionFields": [],
-    "globIdentityFields": []
+    "stackIdentityFields": []
   },
   {
     "file": "packages/server/src/mud/lib/combat/Combatant.ts",
@@ -1048,7 +1048,7 @@
     ],
     "fieldMarshallers": {},
     "instructionFields": [],
-    "globIdentityFields": []
+    "stackIdentityFields": []
   },
   {
     "file": "packages/server/src/mud/lib/command/validators/__tests__/requiresSensorium.test.ts",
@@ -1057,7 +1057,7 @@
     "persistentFields": [],
     "fieldMarshallers": {},
     "instructionFields": [],
-    "globIdentityFields": []
+    "stackIdentityFields": []
   },
   {
     "file": "packages/server/src/mud/lib/commerce/Menu.ts",
@@ -1068,7 +1068,7 @@
     ],
     "fieldMarshallers": {},
     "instructionFields": [],
-    "globIdentityFields": []
+    "stackIdentityFields": []
   },
   {
     "file": "packages/server/src/mud/lib/commerce/PricedOffer.ts",
@@ -1079,7 +1079,7 @@
     ],
     "fieldMarshallers": {},
     "instructionFields": [],
-    "globIdentityFields": []
+    "stackIdentityFields": []
   },
   {
     "file": "packages/server/src/mud/lib/comms/__tests__/Comms.test.ts",
@@ -1088,7 +1088,7 @@
     "persistentFields": [],
     "fieldMarshallers": {},
     "instructionFields": [],
-    "globIdentityFields": []
+    "stackIdentityFields": []
   },
   {
     "file": "packages/server/src/mud/lib/concealment/Concealable.ts",
@@ -1100,7 +1100,7 @@
     ],
     "fieldMarshallers": {},
     "instructionFields": [],
-    "globIdentityFields": []
+    "stackIdentityFields": []
   },
   {
     "file": "packages/server/src/mud/lib/concealment/Hiding.ts",
@@ -1112,7 +1112,7 @@
     ],
     "fieldMarshallers": {},
     "instructionFields": [],
-    "globIdentityFields": []
+    "stackIdentityFields": []
   },
   {
     "file": "packages/server/src/mud/lib/config/AppSettings.ts",
@@ -1123,7 +1123,7 @@
     ],
     "fieldMarshallers": {},
     "instructionFields": [],
-    "globIdentityFields": []
+    "stackIdentityFields": []
   },
   {
     "file": "packages/server/src/mud/lib/connection/HasInteractive.ts",
@@ -1134,7 +1134,7 @@
     ],
     "fieldMarshallers": {},
     "instructionFields": [],
-    "globIdentityFields": []
+    "stackIdentityFields": []
   },
   {
     "file": "packages/server/src/mud/lib/corpo/Branded.ts",
@@ -1145,7 +1145,7 @@
     ],
     "fieldMarshallers": {},
     "instructionFields": [],
-    "globIdentityFields": []
+    "stackIdentityFields": []
   },
   {
     "file": "packages/server/src/mud/lib/craft/Crafted.ts",
@@ -1158,7 +1158,7 @@
     ],
     "fieldMarshallers": {},
     "instructionFields": [],
-    "globIdentityFields": []
+    "stackIdentityFields": []
   },
   {
     "file": "packages/server/src/mud/lib/craft/Graded.ts",
@@ -1169,7 +1169,7 @@
     ],
     "fieldMarshallers": {},
     "instructionFields": [],
-    "globIdentityFields": []
+    "stackIdentityFields": []
   },
   {
     "file": "packages/server/src/mud/lib/craft/Recipe.ts",
@@ -1195,7 +1195,7 @@
     ],
     "fieldMarshallers": {},
     "instructionFields": [],
-    "globIdentityFields": []
+    "stackIdentityFields": []
   },
   {
     "file": "packages/server/src/mud/lib/craft/Tooled.ts",
@@ -1206,7 +1206,7 @@
     ],
     "fieldMarshallers": {},
     "instructionFields": [],
-    "globIdentityFields": []
+    "stackIdentityFields": []
   },
   {
     "file": "packages/server/src/mud/lib/credential/CredentialWallet.ts",
@@ -1217,7 +1217,7 @@
     ],
     "fieldMarshallers": {},
     "instructionFields": [],
-    "globIdentityFields": []
+    "stackIdentityFields": []
   },
   {
     "file": "packages/server/src/mud/lib/description/Detailed.ts",
@@ -1230,7 +1230,7 @@
     "instructionFields": [
       "details"
     ],
-    "globIdentityFields": []
+    "stackIdentityFields": []
   },
   {
     "file": "packages/server/src/mud/lib/description/Labelled.ts",
@@ -1241,7 +1241,7 @@
     ],
     "fieldMarshallers": {},
     "instructionFields": [],
-    "globIdentityFields": []
+    "stackIdentityFields": []
   },
   {
     "file": "packages/server/src/mud/lib/description/Marked.ts",
@@ -1254,7 +1254,7 @@
     ],
     "fieldMarshallers": {},
     "instructionFields": [],
-    "globIdentityFields": []
+    "stackIdentityFields": []
   },
   {
     "file": "packages/server/src/mud/lib/description/Named.ts",
@@ -1269,7 +1269,7 @@
     ],
     "fieldMarshallers": {},
     "instructionFields": [],
-    "globIdentityFields": []
+    "stackIdentityFields": []
   },
   {
     "file": "packages/server/src/mud/lib/description/Perceiver.ts",
@@ -1278,7 +1278,7 @@
     "persistentFields": [],
     "fieldMarshallers": {},
     "instructionFields": [],
-    "globIdentityFields": []
+    "stackIdentityFields": []
   },
   {
     "file": "packages/server/src/mud/lib/description/Perceptible.ts",
@@ -1291,7 +1291,7 @@
     ],
     "fieldMarshallers": {},
     "instructionFields": [],
-    "globIdentityFields": []
+    "stackIdentityFields": []
   },
   {
     "file": "packages/server/src/mud/lib/description/Visible.ts",
@@ -1304,7 +1304,7 @@
     ],
     "fieldMarshallers": {},
     "instructionFields": [],
-    "globIdentityFields": []
+    "stackIdentityFields": []
   },
   {
     "file": "packages/server/src/mud/lib/description/__tests__/Detailed.fieldChange.test.ts",
@@ -1313,7 +1313,7 @@
     "persistentFields": [],
     "fieldMarshallers": {},
     "instructionFields": [],
-    "globIdentityFields": []
+    "stackIdentityFields": []
   },
   {
     "file": "packages/server/src/mud/lib/description/__tests__/Detailed.test.ts",
@@ -1322,7 +1322,7 @@
     "persistentFields": [],
     "fieldMarshallers": {},
     "instructionFields": [],
-    "globIdentityFields": []
+    "stackIdentityFields": []
   },
   {
     "file": "packages/server/src/mud/lib/description/__tests__/Named.fieldChange.test.ts",
@@ -1331,7 +1331,7 @@
     "persistentFields": [],
     "fieldMarshallers": {},
     "instructionFields": [],
-    "globIdentityFields": []
+    "stackIdentityFields": []
   },
   {
     "file": "packages/server/src/mud/lib/description/__tests__/Named.test.ts",
@@ -1340,7 +1340,7 @@
     "persistentFields": [],
     "fieldMarshallers": {},
     "instructionFields": [],
-    "globIdentityFields": []
+    "stackIdentityFields": []
   },
   {
     "file": "packages/server/src/mud/lib/description/__tests__/Visible.fieldChange.test.ts",
@@ -1349,7 +1349,7 @@
     "persistentFields": [],
     "fieldMarshallers": {},
     "instructionFields": [],
-    "globIdentityFields": []
+    "stackIdentityFields": []
   },
   {
     "file": "packages/server/src/mud/lib/description/__tests__/Visible.senseStrip.test.ts",
@@ -1358,7 +1358,7 @@
     "persistentFields": [],
     "fieldMarshallers": {},
     "instructionFields": [],
-    "globIdentityFields": []
+    "stackIdentityFields": []
   },
   {
     "file": "packages/server/src/mud/lib/description/__tests__/Visible.senseStrip.test.ts",
@@ -1367,7 +1367,7 @@
     "persistentFields": [],
     "fieldMarshallers": {},
     "instructionFields": [],
-    "globIdentityFields": []
+    "stackIdentityFields": []
   },
   {
     "file": "packages/server/src/mud/lib/disguise/Disguise.ts",
@@ -1380,7 +1380,7 @@
     ],
     "fieldMarshallers": {},
     "instructionFields": [],
-    "globIdentityFields": []
+    "stackIdentityFields": []
   },
   {
     "file": "packages/server/src/mud/lib/display/Display.ts",
@@ -1394,7 +1394,7 @@
     ],
     "fieldMarshallers": {},
     "instructionFields": [],
-    "globIdentityFields": []
+    "stackIdentityFields": []
   },
   {
     "file": "packages/server/src/mud/lib/display/__tests__/Display.test.ts",
@@ -1403,7 +1403,7 @@
     "persistentFields": [],
     "fieldMarshallers": {},
     "instructionFields": [],
-    "globIdentityFields": []
+    "stackIdentityFields": []
   },
   {
     "file": "packages/server/src/mud/lib/document/StoredDocument.ts",
@@ -1417,7 +1417,7 @@
     ],
     "fieldMarshallers": {},
     "instructionFields": [],
-    "globIdentityFields": []
+    "stackIdentityFields": []
   },
   {
     "file": "packages/server/src/mud/lib/electricity/Energized.ts",
@@ -1430,7 +1430,7 @@
       "voltage": "VOLTAGE_MARSHALLER"
     },
     "instructionFields": [],
-    "globIdentityFields": []
+    "stackIdentityFields": []
   },
   {
     "file": "packages/server/src/mud/lib/employment/ContractEvent.ts",
@@ -1448,7 +1448,7 @@
     ],
     "fieldMarshallers": {},
     "instructionFields": [],
-    "globIdentityFields": []
+    "stackIdentityFields": []
   },
   {
     "file": "packages/server/src/mud/lib/employment/ContractRecord.ts",
@@ -1475,7 +1475,7 @@
     ],
     "fieldMarshallers": {},
     "instructionFields": [],
-    "globIdentityFields": []
+    "stackIdentityFields": []
   },
   {
     "file": "packages/server/src/mud/lib/employment/Employed.ts",
@@ -1486,7 +1486,7 @@
     ],
     "fieldMarshallers": {},
     "instructionFields": [],
-    "globIdentityFields": []
+    "stackIdentityFields": []
   },
   {
     "file": "packages/server/src/mud/lib/employment/Offstage.ts",
@@ -1495,7 +1495,7 @@
     "persistentFields": [],
     "fieldMarshallers": {},
     "instructionFields": [],
-    "globIdentityFields": []
+    "stackIdentityFields": []
   },
   {
     "file": "packages/server/src/mud/lib/employment/Organization.ts",
@@ -1511,7 +1511,7 @@
     ],
     "fieldMarshallers": {},
     "instructionFields": [],
-    "globIdentityFields": []
+    "stackIdentityFields": []
   },
   {
     "file": "packages/server/src/mud/lib/fasttravel/FastTravel.ts",
@@ -1529,7 +1529,7 @@
     "instructionFields": [
       "routes"
     ],
-    "globIdentityFields": []
+    "stackIdentityFields": []
   },
   {
     "file": "packages/server/src/mud/lib/fire/Combustible.ts",
@@ -1544,7 +1544,7 @@
     ],
     "fieldMarshallers": {},
     "instructionFields": [],
-    "globIdentityFields": []
+    "stackIdentityFields": []
   },
   {
     "file": "packages/server/src/mud/lib/fire/Furnace.ts",
@@ -1560,7 +1560,7 @@
     ],
     "fieldMarshallers": {},
     "instructionFields": [],
-    "globIdentityFields": []
+    "stackIdentityFields": []
   },
   {
     "file": "packages/server/src/mud/lib/forum/Board.ts",
@@ -1576,7 +1576,7 @@
     ],
     "fieldMarshallers": {},
     "instructionFields": [],
-    "globIdentityFields": []
+    "stackIdentityFields": []
   },
   {
     "file": "packages/server/src/mud/lib/forum/Entry.ts",
@@ -1597,7 +1597,7 @@
     ],
     "fieldMarshallers": {},
     "instructionFields": [],
-    "globIdentityFields": []
+    "stackIdentityFields": []
   },
   {
     "file": "packages/server/src/mud/lib/forum/ForumEvent.ts",
@@ -1615,7 +1615,7 @@
     ],
     "fieldMarshallers": {},
     "instructionFields": [],
-    "globIdentityFields": []
+    "stackIdentityFields": []
   },
   {
     "file": "packages/server/src/mud/lib/forum/Subject.ts",
@@ -1634,7 +1634,7 @@
     ],
     "fieldMarshallers": {},
     "instructionFields": [],
-    "globIdentityFields": []
+    "stackIdentityFields": []
   },
   {
     "file": "packages/server/src/mud/lib/forum/SubjectSubscriber.ts",
@@ -1645,7 +1645,7 @@
     ],
     "fieldMarshallers": {},
     "instructionFields": [],
-    "globIdentityFields": []
+    "stackIdentityFields": []
   },
   {
     "file": "packages/server/src/mud/lib/forum/Vote.ts",
@@ -1658,7 +1658,7 @@
     ],
     "fieldMarshallers": {},
     "instructionFields": [],
-    "globIdentityFields": []
+    "stackIdentityFields": []
   },
   {
     "file": "packages/server/src/mud/lib/governance/OfficeHolder.ts",
@@ -1670,7 +1670,7 @@
     ],
     "fieldMarshallers": {},
     "instructionFields": [],
-    "globIdentityFields": []
+    "stackIdentityFields": []
   },
   {
     "file": "packages/server/src/mud/lib/hazard/Hazard.ts",
@@ -1688,7 +1688,7 @@
     ],
     "fieldMarshallers": {},
     "instructionFields": [],
-    "globIdentityFields": []
+    "stackIdentityFields": []
   },
   {
     "file": "packages/server/src/mud/lib/husbandry/Cultivable.ts",
@@ -1702,7 +1702,7 @@
     ],
     "fieldMarshallers": {},
     "instructionFields": [],
-    "globIdentityFields": []
+    "stackIdentityFields": []
   },
   {
     "file": "packages/server/src/mud/lib/husbandry/Growing.ts",
@@ -1723,7 +1723,7 @@
     ],
     "fieldMarshallers": {},
     "instructionFields": [],
-    "globIdentityFields": []
+    "stackIdentityFields": []
   },
   {
     "file": "packages/server/src/mud/lib/husbandry/Plantable.ts",
@@ -1734,7 +1734,7 @@
     ],
     "fieldMarshallers": {},
     "instructionFields": [],
-    "globIdentityFields": []
+    "stackIdentityFields": []
   },
   {
     "file": "packages/server/src/mud/lib/identification/DescriptorBank.ts",
@@ -1751,7 +1751,7 @@
     ],
     "fieldMarshallers": {},
     "instructionFields": [],
-    "globIdentityFields": []
+    "stackIdentityFields": []
   },
   {
     "file": "packages/server/src/mud/lib/identification/Identifiable.ts",
@@ -1765,7 +1765,7 @@
     ],
     "fieldMarshallers": {},
     "instructionFields": [],
-    "globIdentityFields": []
+    "stackIdentityFields": []
   },
   {
     "file": "packages/server/src/mud/lib/identity/GoogleProfile.ts",
@@ -1782,7 +1782,7 @@
     ],
     "fieldMarshallers": {},
     "instructionFields": [],
-    "globIdentityFields": []
+    "stackIdentityFields": []
   },
   {
     "file": "packages/server/src/mud/lib/identity/KickProfile.ts",
@@ -1805,7 +1805,7 @@
       "refreshToken": "EncryptedStringMarshaller.templatePath"
     },
     "instructionFields": [],
-    "globIdentityFields": []
+    "stackIdentityFields": []
   },
   {
     "file": "packages/server/src/mud/lib/identity/TwitchProfile.ts",
@@ -1827,7 +1827,7 @@
       "refreshToken": "EncryptedStringMarshaller.templatePath"
     },
     "instructionFields": [],
-    "globIdentityFields": []
+    "stackIdentityFields": []
   },
   {
     "file": "packages/server/src/mud/lib/identity/User.ts",
@@ -1841,7 +1841,7 @@
     ],
     "fieldMarshallers": {},
     "instructionFields": [],
-    "globIdentityFields": []
+    "stackIdentityFields": []
   },
   {
     "file": "packages/server/src/mud/lib/location/CartesianCoordinates.ts",
@@ -1852,7 +1852,7 @@
     ],
     "fieldMarshallers": {},
     "instructionFields": [],
-    "globIdentityFields": []
+    "stackIdentityFields": []
   },
   {
     "file": "packages/server/src/mud/lib/location/CartesianLocation.ts",
@@ -1864,7 +1864,7 @@
     ],
     "fieldMarshallers": {},
     "instructionFields": [],
-    "globIdentityFields": []
+    "stackIdentityFields": []
   },
   {
     "file": "packages/server/src/mud/lib/location/SphericalCoordinates.ts",
@@ -1876,7 +1876,7 @@
     ],
     "fieldMarshallers": {},
     "instructionFields": [],
-    "globIdentityFields": []
+    "stackIdentityFields": []
   },
   {
     "file": "packages/server/src/mud/lib/location/WarrenMember.ts",
@@ -1885,7 +1885,7 @@
     "persistentFields": [],
     "fieldMarshallers": {},
     "instructionFields": [],
-    "globIdentityFields": []
+    "stackIdentityFields": []
   },
   {
     "file": "packages/server/src/mud/lib/locomotion/Climbable.ts",
@@ -1897,7 +1897,7 @@
     ],
     "fieldMarshallers": {},
     "instructionFields": [],
-    "globIdentityFields": []
+    "stackIdentityFields": []
   },
   {
     "file": "packages/server/src/mud/lib/locomotion/Flyable.ts",
@@ -1909,7 +1909,7 @@
     ],
     "fieldMarshallers": {},
     "instructionFields": [],
-    "globIdentityFields": []
+    "stackIdentityFields": []
   },
   {
     "file": "packages/server/src/mud/lib/locomotion/Swimmable.ts",
@@ -1921,7 +1921,7 @@
     ],
     "fieldMarshallers": {},
     "instructionFields": [],
-    "globIdentityFields": []
+    "stackIdentityFields": []
   },
   {
     "file": "packages/server/src/mud/lib/magic/Arcane.ts",
@@ -1935,7 +1935,7 @@
     ],
     "fieldMarshallers": {},
     "instructionFields": [],
-    "globIdentityFields": []
+    "stackIdentityFields": []
   },
   {
     "file": "packages/server/src/mud/lib/magic/Blessable.ts",
@@ -1948,7 +1948,7 @@
     ],
     "fieldMarshallers": {},
     "instructionFields": [],
-    "globIdentityFields": [
+    "stackIdentityFields": [
       "blessingBucket"
     ]
   },
@@ -1961,7 +1961,7 @@
     ],
     "fieldMarshallers": {},
     "instructionFields": [],
-    "globIdentityFields": []
+    "stackIdentityFields": []
   },
   {
     "file": "packages/server/src/mud/lib/magic/Charged.ts",
@@ -1975,7 +1975,7 @@
     ],
     "fieldMarshallers": {},
     "instructionFields": [],
-    "globIdentityFields": []
+    "stackIdentityFields": []
   },
   {
     "file": "packages/server/src/mud/lib/magic/Conduit.ts",
@@ -1986,7 +1986,7 @@
     ],
     "fieldMarshallers": {},
     "instructionFields": [],
-    "globIdentityFields": []
+    "stackIdentityFields": []
   },
   {
     "file": "packages/server/src/mud/lib/magic/Consumable.ts",
@@ -1998,7 +1998,7 @@
     ],
     "fieldMarshallers": {},
     "instructionFields": [],
-    "globIdentityFields": []
+    "stackIdentityFields": []
   },
   {
     "file": "packages/server/src/mud/lib/magic/Memorized.ts",
@@ -2009,7 +2009,7 @@
     ],
     "fieldMarshallers": {},
     "instructionFields": [],
-    "globIdentityFields": []
+    "stackIdentityFields": []
   },
   {
     "file": "packages/server/src/mud/lib/magic/Potable.ts",
@@ -2021,7 +2021,7 @@
     ],
     "fieldMarshallers": {},
     "instructionFields": [],
-    "globIdentityFields": []
+    "stackIdentityFields": []
   },
   {
     "file": "packages/server/src/mud/lib/material/Constructed.ts",
@@ -2032,7 +2032,7 @@
     ],
     "fieldMarshallers": {},
     "instructionFields": [],
-    "globIdentityFields": []
+    "stackIdentityFields": []
   },
   {
     "file": "packages/server/src/mud/lib/material/Durable.ts",
@@ -2043,7 +2043,7 @@
     ],
     "fieldMarshallers": {},
     "instructionFields": [],
-    "globIdentityFields": []
+    "stackIdentityFields": []
   },
   {
     "file": "packages/server/src/mud/lib/material/Keen.ts",
@@ -2054,7 +2054,7 @@
     ],
     "fieldMarshallers": {},
     "instructionFields": [],
-    "globIdentityFields": []
+    "stackIdentityFields": []
   },
   {
     "file": "packages/server/src/mud/lib/material/Material.ts",
@@ -2105,7 +2105,7 @@
       "waterAbsorptionCapacity": "QuantityMarshaller.pathFor('%')"
     },
     "instructionFields": [],
-    "globIdentityFields": []
+    "stackIdentityFields": []
   },
   {
     "file": "packages/server/src/mud/lib/material/Radioactive.ts",
@@ -2118,7 +2118,7 @@
     ],
     "fieldMarshallers": {},
     "instructionFields": [],
-    "globIdentityFields": []
+    "stackIdentityFields": []
   },
   {
     "file": "packages/server/src/mud/lib/material/Tangible.ts",
@@ -2133,7 +2133,7 @@
       "mass": "QuantityMarshaller.pathFor('kg')"
     },
     "instructionFields": [],
-    "globIdentityFields": []
+    "stackIdentityFields": []
   },
   {
     "file": "packages/server/src/mud/lib/media/MediaAsset.ts",
@@ -2154,7 +2154,7 @@
     ],
     "fieldMarshallers": {},
     "instructionFields": [],
-    "globIdentityFields": []
+    "stackIdentityFields": []
   },
   {
     "file": "packages/server/src/mud/lib/message/Aether.ts",
@@ -2163,7 +2163,7 @@
     "persistentFields": [],
     "fieldMarshallers": {},
     "instructionFields": [],
-    "globIdentityFields": []
+    "stackIdentityFields": []
   },
   {
     "file": "packages/server/src/mud/lib/metabolism/Metabolic.ts",
@@ -2179,7 +2179,7 @@
     ],
     "fieldMarshallers": {},
     "instructionFields": [],
-    "globIdentityFields": []
+    "stackIdentityFields": []
   },
   {
     "file": "packages/server/src/mud/lib/mortality/Postmortem.ts",
@@ -2190,7 +2190,7 @@
     ],
     "fieldMarshallers": {},
     "instructionFields": [],
-    "globIdentityFields": []
+    "stackIdentityFields": []
   },
   {
     "file": "packages/server/src/mud/lib/parcel/ParcelEvent.ts",
@@ -2206,7 +2206,7 @@
     ],
     "fieldMarshallers": {},
     "instructionFields": [],
-    "globIdentityFields": []
+    "stackIdentityFields": []
   },
   {
     "file": "packages/server/src/mud/lib/parcel/ParcelRecord.ts",
@@ -2226,7 +2226,7 @@
     ],
     "fieldMarshallers": {},
     "instructionFields": [],
-    "globIdentityFields": []
+    "stackIdentityFields": []
   },
   {
     "file": "packages/server/src/mud/lib/party/PartyMember.ts",
@@ -2237,7 +2237,7 @@
     ],
     "fieldMarshallers": {},
     "instructionFields": [],
-    "globIdentityFields": []
+    "stackIdentityFields": []
   },
   {
     "file": "packages/server/src/mud/lib/party/PartyRecord.ts",
@@ -2256,7 +2256,7 @@
     ],
     "fieldMarshallers": {},
     "instructionFields": [],
-    "globIdentityFields": []
+    "stackIdentityFields": []
   },
   {
     "file": "packages/server/src/mud/lib/perception/AmbientLit.ts",
@@ -2268,7 +2268,7 @@
     ],
     "fieldMarshallers": {},
     "instructionFields": [],
-    "globIdentityFields": []
+    "stackIdentityFields": []
   },
   {
     "file": "packages/server/src/mud/lib/perception/LightSource.ts",
@@ -2280,7 +2280,7 @@
     ],
     "fieldMarshallers": {},
     "instructionFields": [],
-    "globIdentityFields": []
+    "stackIdentityFields": []
   },
   {
     "file": "packages/server/src/mud/lib/perception/Modality.ts",
@@ -2293,7 +2293,7 @@
     ],
     "fieldMarshallers": {},
     "instructionFields": [],
-    "globIdentityFields": []
+    "stackIdentityFields": []
   },
   {
     "file": "packages/server/src/mud/lib/perception/Scryable.ts",
@@ -2302,7 +2302,7 @@
     "persistentFields": [],
     "fieldMarshallers": {},
     "instructionFields": [],
-    "globIdentityFields": []
+    "stackIdentityFields": []
   },
   {
     "file": "packages/server/src/mud/lib/perception/SmellSource.ts",
@@ -2314,7 +2314,7 @@
     ],
     "fieldMarshallers": {},
     "instructionFields": [],
-    "globIdentityFields": []
+    "stackIdentityFields": []
   },
   {
     "file": "packages/server/src/mud/lib/perception/SoundSource.ts",
@@ -2326,7 +2326,7 @@
     ],
     "fieldMarshallers": {},
     "instructionFields": [],
-    "globIdentityFields": []
+    "stackIdentityFields": []
   },
   {
     "file": "packages/server/src/mud/lib/perception/__tests__/Perception.test.ts",
@@ -2335,7 +2335,7 @@
     "persistentFields": [],
     "fieldMarshallers": {},
     "instructionFields": [],
-    "globIdentityFields": []
+    "stackIdentityFields": []
   },
   {
     "file": "packages/server/src/mud/lib/persistence/PersistedRecord.ts",
@@ -2349,7 +2349,7 @@
     ],
     "fieldMarshallers": {},
     "instructionFields": [],
-    "globIdentityFields": []
+    "stackIdentityFields": []
   },
   {
     "file": "packages/server/src/mud/lib/persistence/__tests__/Document.test.ts",
@@ -2361,7 +2361,7 @@
     ],
     "fieldMarshallers": {},
     "instructionFields": [],
-    "globIdentityFields": []
+    "stackIdentityFields": []
   },
   {
     "file": "packages/server/src/mud/lib/persistence/__tests__/Document.test.ts",
@@ -2370,7 +2370,7 @@
     "persistentFields": [],
     "fieldMarshallers": {},
     "instructionFields": [],
-    "globIdentityFields": []
+    "stackIdentityFields": []
   },
   {
     "file": "packages/server/src/mud/lib/persistence/__tests__/Document.test.ts",
@@ -2384,7 +2384,7 @@
       "box": "MARSHALLER_PATH"
     },
     "instructionFields": [],
-    "globIdentityFields": []
+    "stackIdentityFields": []
   },
   {
     "file": "packages/server/src/mud/lib/persistence/__tests__/Marshaller.test.ts",
@@ -2397,7 +2397,7 @@
       "wallet": "MoneyBagMarshaller.templatePath"
     },
     "instructionFields": [],
-    "globIdentityFields": []
+    "stackIdentityFields": []
   },
   {
     "file": "packages/server/src/mud/lib/persistence/__tests__/Marshaller.test.ts",
@@ -2408,7 +2408,7 @@
     ],
     "fieldMarshallers": {},
     "instructionFields": [],
-    "globIdentityFields": []
+    "stackIdentityFields": []
   },
   {
     "file": "packages/server/src/mud/lib/persistence/__tests__/PersistableOrganizationGoods.test.ts",
@@ -2417,7 +2417,7 @@
     "persistentFields": [],
     "fieldMarshallers": {},
     "instructionFields": [],
-    "globIdentityFields": []
+    "stackIdentityFields": []
   },
   {
     "file": "packages/server/src/mud/lib/persistence/__tests__/PersistableOrganizationGoods.test.ts",
@@ -2426,7 +2426,7 @@
     "persistentFields": [],
     "fieldMarshallers": {},
     "instructionFields": [],
-    "globIdentityFields": []
+    "stackIdentityFields": []
   },
   {
     "file": "packages/server/src/mud/lib/persistence/__tests__/PersistableOrganizationGoods.test.ts",
@@ -2435,7 +2435,7 @@
     "persistentFields": [],
     "fieldMarshallers": {},
     "instructionFields": [],
-    "globIdentityFields": []
+    "stackIdentityFields": []
   },
   {
     "file": "packages/server/src/mud/lib/persistence/__tests__/persistence-spine.test.ts",
@@ -2446,7 +2446,7 @@
     ],
     "fieldMarshallers": {},
     "instructionFields": [],
-    "globIdentityFields": []
+    "stackIdentityFields": []
   },
   {
     "file": "packages/server/src/mud/lib/persistence/__tests__/persistence-spine.test.ts",
@@ -2457,7 +2457,7 @@
     ],
     "fieldMarshallers": {},
     "instructionFields": [],
-    "globIdentityFields": []
+    "stackIdentityFields": []
   },
   {
     "file": "packages/server/src/mud/lib/persistence/__tests__/persistence-spine.test.ts",
@@ -2468,7 +2468,7 @@
     ],
     "fieldMarshallers": {},
     "instructionFields": [],
-    "globIdentityFields": []
+    "stackIdentityFields": []
   },
   {
     "file": "packages/server/src/mud/lib/persistence/__tests__/persistence-spine.test.ts",
@@ -2479,7 +2479,7 @@
     ],
     "fieldMarshallers": {},
     "instructionFields": [],
-    "globIdentityFields": []
+    "stackIdentityFields": []
   },
   {
     "file": "packages/server/src/mud/lib/persistence/__tests__/persistence-spine.test.ts",
@@ -2490,7 +2490,7 @@
     ],
     "fieldMarshallers": {},
     "instructionFields": [],
-    "globIdentityFields": []
+    "stackIdentityFields": []
   },
   {
     "file": "packages/server/src/mud/lib/persistence/__tests__/persistence-spine.test.ts",
@@ -2501,7 +2501,7 @@
     ],
     "fieldMarshallers": {},
     "instructionFields": [],
-    "globIdentityFields": []
+    "stackIdentityFields": []
   },
   {
     "file": "packages/server/src/mud/lib/persistence/__tests__/persistence-spine.test.ts",
@@ -2512,7 +2512,7 @@
     ],
     "fieldMarshallers": {},
     "instructionFields": [],
-    "globIdentityFields": []
+    "stackIdentityFields": []
   },
   {
     "file": "packages/server/src/mud/lib/persistence/__tests__/persistence-spine.test.ts",
@@ -2523,7 +2523,7 @@
     ],
     "fieldMarshallers": {},
     "instructionFields": [],
-    "globIdentityFields": []
+    "stackIdentityFields": []
   },
   {
     "file": "packages/server/src/mud/lib/press/Publisher.ts",
@@ -2538,7 +2538,7 @@
     ],
     "fieldMarshallers": {},
     "instructionFields": [],
-    "globIdentityFields": []
+    "stackIdentityFields": []
   },
   {
     "file": "packages/server/src/mud/lib/reserve.ts",
@@ -2549,7 +2549,7 @@
     ],
     "fieldMarshallers": {},
     "instructionFields": [],
-    "globIdentityFields": []
+    "stackIdentityFields": []
   },
   {
     "file": "packages/server/src/mud/lib/residency/Circulating.ts",
@@ -2562,7 +2562,7 @@
     ],
     "fieldMarshallers": {},
     "instructionFields": [],
-    "globIdentityFields": []
+    "stackIdentityFields": []
   },
   {
     "file": "packages/server/src/mud/lib/respiration/Respiration.ts",
@@ -2573,7 +2573,7 @@
     ],
     "fieldMarshallers": {},
     "instructionFields": [],
-    "globIdentityFields": []
+    "stackIdentityFields": []
   },
   {
     "file": "packages/server/src/mud/lib/retail/Consignment.ts",
@@ -2584,7 +2584,7 @@
     ],
     "fieldMarshallers": {},
     "instructionFields": [],
-    "globIdentityFields": []
+    "stackIdentityFields": []
   },
   {
     "file": "packages/server/src/mud/lib/shell/Alias.ts",
@@ -2595,7 +2595,7 @@
     ],
     "fieldMarshallers": {},
     "instructionFields": [],
-    "globIdentityFields": []
+    "stackIdentityFields": []
   },
   {
     "file": "packages/server/src/mud/lib/shell/Author.ts",
@@ -2604,7 +2604,7 @@
     "persistentFields": [],
     "fieldMarshallers": {},
     "instructionFields": [],
-    "globIdentityFields": []
+    "stackIdentityFields": []
   },
   {
     "file": "packages/server/src/mud/lib/shell/Environment.ts",
@@ -2615,7 +2615,7 @@
     ],
     "fieldMarshallers": {},
     "instructionFields": [],
-    "globIdentityFields": []
+    "stackIdentityFields": []
   },
   {
     "file": "packages/server/src/mud/lib/shell/Workspace.ts",
@@ -2627,7 +2627,7 @@
     ],
     "fieldMarshallers": {},
     "instructionFields": [],
-    "globIdentityFields": []
+    "stackIdentityFields": []
   },
   {
     "file": "packages/server/src/mud/lib/slot/Drivable.ts",
@@ -2639,7 +2639,7 @@
     ],
     "fieldMarshallers": {},
     "instructionFields": [],
-    "globIdentityFields": []
+    "stackIdentityFields": []
   },
   {
     "file": "packages/server/src/mud/lib/slot/Foldable.ts",
@@ -2650,7 +2650,7 @@
     ],
     "fieldMarshallers": {},
     "instructionFields": [],
-    "globIdentityFields": []
+    "stackIdentityFields": []
   },
   {
     "file": "packages/server/src/mud/lib/slot/Haulable.ts",
@@ -2663,7 +2663,7 @@
     ],
     "fieldMarshallers": {},
     "instructionFields": [],
-    "globIdentityFields": []
+    "stackIdentityFields": []
   },
   {
     "file": "packages/server/src/mud/lib/slot/Hauler.ts",
@@ -2672,7 +2672,7 @@
     "persistentFields": [],
     "fieldMarshallers": {},
     "instructionFields": [],
-    "globIdentityFields": []
+    "stackIdentityFields": []
   },
   {
     "file": "packages/server/src/mud/lib/slot/Mountable.ts",
@@ -2683,7 +2683,7 @@
     ],
     "fieldMarshallers": {},
     "instructionFields": [],
-    "globIdentityFields": []
+    "stackIdentityFields": []
   },
   {
     "file": "packages/server/src/mud/lib/slot/Postured.ts",
@@ -2695,7 +2695,7 @@
     ],
     "fieldMarshallers": {},
     "instructionFields": [],
-    "globIdentityFields": []
+    "stackIdentityFields": []
   },
   {
     "file": "packages/server/src/mud/lib/slot/Slotted.ts",
@@ -2706,7 +2706,7 @@
     ],
     "fieldMarshallers": {},
     "instructionFields": [],
-    "globIdentityFields": []
+    "stackIdentityFields": []
   },
   {
     "file": "packages/server/src/mud/lib/slot/Wearable.ts",
@@ -2720,7 +2720,7 @@
       "clo": "QuantityMarshaller.pathFor('clo')"
     },
     "instructionFields": [],
-    "globIdentityFields": []
+    "stackIdentityFields": []
   },
   {
     "file": "packages/server/src/mud/lib/slot/Wieldable.ts",
@@ -2731,7 +2731,7 @@
     ],
     "fieldMarshallers": {},
     "instructionFields": [],
-    "globIdentityFields": []
+    "stackIdentityFields": []
   },
   {
     "file": "packages/server/src/mud/lib/social/Channel.ts",
@@ -2746,7 +2746,7 @@
     ],
     "fieldMarshallers": {},
     "instructionFields": [],
-    "globIdentityFields": []
+    "stackIdentityFields": []
   },
   {
     "file": "packages/server/src/mud/lib/social/Contacts.ts",
@@ -2757,7 +2757,7 @@
     ],
     "fieldMarshallers": {},
     "instructionFields": [],
-    "globIdentityFields": []
+    "stackIdentityFields": []
   },
   {
     "file": "packages/server/src/mud/lib/social/Group.ts",
@@ -2771,7 +2771,7 @@
     ],
     "fieldMarshallers": {},
     "instructionFields": [],
-    "globIdentityFields": []
+    "stackIdentityFields": []
   },
   {
     "file": "packages/server/src/mud/lib/social/NotifyPolicy.ts",
@@ -2782,7 +2782,7 @@
     ],
     "fieldMarshallers": {},
     "instructionFields": [],
-    "globIdentityFields": []
+    "stackIdentityFields": []
   },
   {
     "file": "packages/server/src/mud/lib/spatial/Containable.ts",
@@ -2795,7 +2795,7 @@
     "instructionFields": [
       "container"
     ],
-    "globIdentityFields": []
+    "stackIdentityFields": []
   },
   {
     "file": "packages/server/src/mud/lib/spatial/Sealable.ts",
@@ -2806,7 +2806,7 @@
     ],
     "fieldMarshallers": {},
     "instructionFields": [],
-    "globIdentityFields": []
+    "stackIdentityFields": []
   },
   {
     "file": "packages/server/src/mud/lib/spatial/Surfaced.ts",
@@ -2817,7 +2817,7 @@
     ],
     "fieldMarshallers": {},
     "instructionFields": [],
-    "globIdentityFields": []
+    "stackIdentityFields": []
   },
   {
     "file": "packages/server/src/mud/lib/spatial/__tests__/Containable.test.ts",
@@ -2826,7 +2826,7 @@
     "persistentFields": [],
     "fieldMarshallers": {},
     "instructionFields": [],
-    "globIdentityFields": []
+    "stackIdentityFields": []
   },
   {
     "file": "packages/server/src/mud/lib/spatial/__tests__/Container.skip-rule.test.ts",
@@ -2835,7 +2835,7 @@
     "persistentFields": [],
     "fieldMarshallers": {},
     "instructionFields": [],
-    "globIdentityFields": []
+    "stackIdentityFields": []
   },
   {
     "file": "packages/server/src/mud/lib/spatial/__tests__/Container.skip-rule.test.ts",
@@ -2844,7 +2844,7 @@
     "persistentFields": [],
     "fieldMarshallers": {},
     "instructionFields": [],
-    "globIdentityFields": []
+    "stackIdentityFields": []
   },
   {
     "file": "packages/server/src/mud/lib/spatial/__tests__/Mobile.autoSense.test.ts",
@@ -2853,7 +2853,7 @@
     "persistentFields": [],
     "fieldMarshallers": {},
     "instructionFields": [],
-    "globIdentityFields": []
+    "stackIdentityFields": []
   },
   {
     "file": "packages/server/src/mud/lib/species/Organism.ts",
@@ -2866,7 +2866,7 @@
     ],
     "fieldMarshallers": {},
     "instructionFields": [],
-    "globIdentityFields": []
+    "stackIdentityFields": []
   },
   {
     "file": "packages/server/src/mud/lib/standing/AuthoringEvent.ts",
@@ -2881,7 +2881,7 @@
     ],
     "fieldMarshallers": {},
     "instructionFields": [],
-    "globIdentityFields": []
+    "stackIdentityFields": []
   },
   {
     "file": "packages/server/src/mud/lib/standing/ParticipationEvent.ts",
@@ -2896,7 +2896,7 @@
     ],
     "fieldMarshallers": {},
     "instructionFields": [],
-    "globIdentityFields": []
+    "stackIdentityFields": []
   },
   {
     "file": "packages/server/src/mud/lib/standing/ParticipationStanding.ts",
@@ -2911,7 +2911,7 @@
     ],
     "fieldMarshallers": {},
     "instructionFields": [],
-    "globIdentityFields": []
+    "stackIdentityFields": []
   },
   {
     "file": "packages/server/src/mud/lib/standing/Position.ts",
@@ -2928,7 +2928,7 @@
     ],
     "fieldMarshallers": {},
     "instructionFields": [],
-    "globIdentityFields": []
+    "stackIdentityFields": []
   },
   {
     "file": "packages/server/src/mud/lib/standing/ProducerEvent.ts",
@@ -2946,7 +2946,7 @@
     ],
     "fieldMarshallers": {},
     "instructionFields": [],
-    "globIdentityFields": []
+    "stackIdentityFields": []
   },
   {
     "file": "packages/server/src/mud/lib/standing/ProducerStanding.ts",
@@ -2961,7 +2961,7 @@
     ],
     "fieldMarshallers": {},
     "instructionFields": [],
-    "globIdentityFields": []
+    "stackIdentityFields": []
   },
   {
     "file": "packages/server/src/mud/lib/standing/RenownEvent.ts",
@@ -2979,7 +2979,7 @@
     ],
     "fieldMarshallers": {},
     "instructionFields": [],
-    "globIdentityFields": []
+    "stackIdentityFields": []
   },
   {
     "file": "packages/server/src/mud/lib/standing/RenownStanding.ts",
@@ -2994,7 +2994,7 @@
     ],
     "fieldMarshallers": {},
     "instructionFields": [],
-    "globIdentityFields": []
+    "stackIdentityFields": []
   },
   {
     "file": "packages/server/src/mud/lib/status/Status.ts",
@@ -3005,7 +3005,7 @@
     ],
     "fieldMarshallers": {},
     "instructionFields": [],
-    "globIdentityFields": []
+    "stackIdentityFields": []
   },
   {
     "file": "packages/server/src/mud/lib/studio/Blueprint.ts",
@@ -3025,7 +3025,7 @@
     ],
     "fieldMarshallers": {},
     "instructionFields": [],
-    "globIdentityFields": []
+    "stackIdentityFields": []
   },
   {
     "file": "packages/server/src/mud/lib/stuff/Fixture.ts",
@@ -3036,18 +3036,18 @@
     ],
     "fieldMarshallers": {},
     "instructionFields": [],
-    "globIdentityFields": []
+    "stackIdentityFields": []
   },
   {
-    "file": "packages/server/src/mud/lib/stuff/Globbable.ts",
+    "file": "packages/server/src/mud/lib/stuff/Stackable.ts",
     "index": 0,
-    "className": "GlobbableMixin",
+    "className": "StackableMixin",
     "persistentFields": [
       "quantity"
     ],
     "fieldMarshallers": {},
     "instructionFields": [],
-    "globIdentityFields": []
+    "stackIdentityFields": []
   },
   {
     "file": "packages/server/src/mud/lib/stuff/Location.ts",
@@ -3058,7 +3058,7 @@
     ],
     "fieldMarshallers": {},
     "instructionFields": [],
-    "globIdentityFields": []
+    "stackIdentityFields": []
   },
   {
     "file": "packages/server/src/mud/lib/stuff/Populates.ts",
@@ -3071,7 +3071,7 @@
     "instructionFields": [
       "populates"
     ],
-    "globIdentityFields": []
+    "stackIdentityFields": []
   },
   {
     "file": "packages/server/src/mud/lib/stuff/Propertied.ts",
@@ -3083,7 +3083,7 @@
     ],
     "fieldMarshallers": {},
     "instructionFields": [],
-    "globIdentityFields": []
+    "stackIdentityFields": []
   },
   {
     "file": "packages/server/src/mud/lib/stuff/Spawned.ts",
@@ -3092,7 +3092,7 @@
     "persistentFields": [],
     "fieldMarshallers": {},
     "instructionFields": [],
-    "globIdentityFields": []
+    "stackIdentityFields": []
   },
   {
     "file": "packages/server/src/mud/lib/stuff/Template.ts",
@@ -3106,7 +3106,7 @@
     ],
     "fieldMarshallers": {},
     "instructionFields": [],
-    "globIdentityFields": []
+    "stackIdentityFields": []
   },
   {
     "file": "packages/server/src/mud/lib/stuff/Thing.ts",
@@ -3115,7 +3115,7 @@
     "persistentFields": [],
     "fieldMarshallers": {},
     "instructionFields": [],
-    "globIdentityFields": []
+    "stackIdentityFields": []
   },
   {
     "file": "packages/server/src/mud/lib/stuff/Vessel.ts",
@@ -3126,10 +3126,10 @@
     ],
     "fieldMarshallers": {},
     "instructionFields": [],
-    "globIdentityFields": []
+    "stackIdentityFields": []
   },
   {
-    "file": "packages/server/src/mud/lib/stuff/__tests__/Globbable.test.ts",
+    "file": "packages/server/src/mud/lib/stuff/__tests__/Stackable.test.ts",
     "index": 0,
     "className": "Coin",
     "persistentFields": [
@@ -3139,13 +3139,13 @@
     ],
     "fieldMarshallers": {},
     "instructionFields": [],
-    "globIdentityFields": [
+    "stackIdentityFields": [
       "tarnished",
       "denomination"
     ]
   },
   {
-    "file": "packages/server/src/mud/lib/stuff/__tests__/Globbable.test.ts",
+    "file": "packages/server/src/mud/lib/stuff/__tests__/Stackable.test.ts",
     "index": 7,
     "className": "Misdeclared",
     "persistentFields": [
@@ -3153,7 +3153,7 @@
     ],
     "fieldMarshallers": {},
     "instructionFields": [],
-    "globIdentityFields": [
+    "stackIdentityFields": [
       "notPersisted"
     ]
   },
@@ -3164,7 +3164,7 @@
     "persistentFields": [],
     "fieldMarshallers": {},
     "instructionFields": [],
-    "globIdentityFields": []
+    "stackIdentityFields": []
   },
   {
     "file": "packages/server/src/mud/lib/stuff/__tests__/Populates.test.ts",
@@ -3173,7 +3173,7 @@
     "persistentFields": [],
     "fieldMarshallers": {},
     "instructionFields": [],
-    "globIdentityFields": []
+    "stackIdentityFields": []
   },
   {
     "file": "packages/server/src/mud/lib/stuff/__tests__/Populates.test.ts",
@@ -3182,7 +3182,7 @@
     "persistentFields": [],
     "fieldMarshallers": {},
     "instructionFields": [],
-    "globIdentityFields": []
+    "stackIdentityFields": []
   },
   {
     "file": "packages/server/src/mud/lib/stuff/__tests__/Propertied.fieldChange.test.ts",
@@ -3194,7 +3194,7 @@
     ],
     "fieldMarshallers": {},
     "instructionFields": [],
-    "globIdentityFields": []
+    "stackIdentityFields": []
   },
   {
     "file": "packages/server/src/mud/lib/stuff/__tests__/Propertied.test.ts",
@@ -3203,7 +3203,7 @@
     "persistentFields": [],
     "fieldMarshallers": {},
     "instructionFields": [],
-    "globIdentityFields": []
+    "stackIdentityFields": []
   },
   {
     "file": "packages/server/src/mud/lib/thermal/Meltable.ts",
@@ -3215,7 +3215,7 @@
     ],
     "fieldMarshallers": {},
     "instructionFields": [],
-    "globIdentityFields": []
+    "stackIdentityFields": []
   },
   {
     "file": "packages/server/src/mud/lib/thermal/Thermal.ts",
@@ -3229,7 +3229,7 @@
     ],
     "fieldMarshallers": {},
     "instructionFields": [],
-    "globIdentityFields": []
+    "stackIdentityFields": []
   },
   {
     "file": "packages/server/src/mud/lib/thermal/ThermalRegulation.ts",
@@ -3243,7 +3243,7 @@
     ],
     "fieldMarshallers": {},
     "instructionFields": [],
-    "globIdentityFields": []
+    "stackIdentityFields": []
   },
   {
     "file": "packages/server/src/mud/lib/time/MechanicalMovement.ts",
@@ -3258,7 +3258,7 @@
     ],
     "fieldMarshallers": {},
     "instructionFields": [],
-    "globIdentityFields": []
+    "stackIdentityFields": []
   },
   {
     "file": "packages/server/src/mud/lib/time/WorldClockState.ts",
@@ -3271,7 +3271,7 @@
     ],
     "fieldMarshallers": {},
     "instructionFields": [],
-    "globIdentityFields": []
+    "stackIdentityFields": []
   },
   {
     "file": "packages/server/src/mud/lib/trait/DispositionEntry.ts",
@@ -3287,7 +3287,7 @@
     ],
     "fieldMarshallers": {},
     "instructionFields": [],
-    "globIdentityFields": []
+    "stackIdentityFields": []
   },
   {
     "file": "packages/server/src/mud/lib/vitals/Dressing.ts",
@@ -3298,7 +3298,7 @@
     ],
     "fieldMarshallers": {},
     "instructionFields": [],
-    "globIdentityFields": []
+    "stackIdentityFields": []
   },
   {
     "file": "packages/server/src/mud/lib/vitals/Vitals.ts",
@@ -3326,7 +3326,7 @@
       "_spo2": "QuantityMarshaller.pathFor('%')"
     },
     "instructionFields": [],
-    "globIdentityFields": []
+    "stackIdentityFields": []
   },
   {
     "file": "packages/server/src/mud/lib/wetness/Wet.ts",
@@ -3338,7 +3338,7 @@
     ],
     "fieldMarshallers": {},
     "instructionFields": [],
-    "globIdentityFields": []
+    "stackIdentityFields": []
   },
   {
     "file": "packages/server/src/mud/lib/wiki/WikiPage.ts",
@@ -3363,7 +3363,7 @@
     ],
     "fieldMarshallers": {},
     "instructionFields": [],
-    "globIdentityFields": []
+    "stackIdentityFields": []
   },
   {
     "file": "packages/server/src/mud/lib/wiki/WikiRevision.ts",
@@ -3382,7 +3382,7 @@
     ],
     "fieldMarshallers": {},
     "instructionFields": [],
-    "globIdentityFields": []
+    "stackIdentityFields": []
   },
   {
     "file": "packages/server/src/mud/lib/wiki/__tests__/composition.test.ts",
@@ -3394,7 +3394,7 @@
     ],
     "fieldMarshallers": {},
     "instructionFields": [],
-    "globIdentityFields": []
+    "stackIdentityFields": []
   },
   {
     "file": "packages/server/src/mud/lib/wiki/__tests__/composition.test.ts",
@@ -3410,7 +3410,7 @@
       "density": "'/platform/idea/persistence/QuantityMarshaller/kg-per-m3'"
     },
     "instructionFields": [],
-    "globIdentityFields": []
+    "stackIdentityFields": []
   },
   {
     "file": "packages/server/src/mud/lib/wiki/__tests__/composition.test.ts",
@@ -3423,7 +3423,7 @@
     ],
     "fieldMarshallers": {},
     "instructionFields": [],
-    "globIdentityFields": []
+    "stackIdentityFields": []
   },
   {
     "file": "packages/server/src/mud/lib/wiki/__tests__/composition.test.ts",
@@ -3436,7 +3436,7 @@
     ],
     "fieldMarshallers": {},
     "instructionFields": [],
-    "globIdentityFields": []
+    "stackIdentityFields": []
   },
   {
     "file": "packages/server/src/mud/lib/wiki/__tests__/composition.test.ts",
@@ -3447,7 +3447,7 @@
     ],
     "fieldMarshallers": {},
     "instructionFields": [],
-    "globIdentityFields": []
+    "stackIdentityFields": []
   },
   {
     "file": "packages/server/src/mud/lib/wiki/__tests__/composition.test.ts",
@@ -3456,7 +3456,7 @@
     "persistentFields": [],
     "fieldMarshallers": {},
     "instructionFields": [],
-    "globIdentityFields": []
+    "stackIdentityFields": []
   },
   {
     "file": "packages/server/src/mud/lib/wiki/__tests__/composition.test.ts",
@@ -3469,7 +3469,7 @@
     ],
     "fieldMarshallers": {},
     "instructionFields": [],
-    "globIdentityFields": []
+    "stackIdentityFields": []
   },
   {
     "file": "packages/server/src/mud/lib/zone/SpatialZone.ts",
@@ -3482,7 +3482,7 @@
     ],
     "fieldMarshallers": {},
     "instructionFields": [],
-    "globIdentityFields": []
+    "stackIdentityFields": []
   },
   {
     "file": "packages/server/src/mud/lib/zone/Zone.ts",
@@ -3494,7 +3494,7 @@
     ],
     "fieldMarshallers": {},
     "instructionFields": [],
-    "globIdentityFields": []
+    "stackIdentityFields": []
   },
   {
     "file": "packages/server/src/mud/platform/__tests__/ChattelRegistry.test.ts",
@@ -3503,7 +3503,7 @@
     "persistentFields": [],
     "fieldMarshallers": {},
     "instructionFields": [],
-    "globIdentityFields": []
+    "stackIdentityFields": []
   },
   {
     "file": "packages/server/src/mud/platform/__tests__/ChattelRegistry.test.ts",
@@ -3512,7 +3512,7 @@
     "persistentFields": [],
     "fieldMarshallers": {},
     "instructionFields": [],
-    "globIdentityFields": []
+    "stackIdentityFields": []
   },
   {
     "file": "packages/server/src/mud/platform/agent/Avatar.ts",
@@ -3526,7 +3526,7 @@
     "instructionFields": [
       "startLocation"
     ],
-    "globIdentityFields": []
+    "stackIdentityFields": []
   },
   {
     "file": "packages/server/src/mud/platform/idea/Business.ts",
@@ -3540,7 +3540,7 @@
     ],
     "fieldMarshallers": {},
     "instructionFields": [],
-    "globIdentityFields": []
+    "stackIdentityFields": []
   },
   {
     "file": "packages/server/src/mud/platform/idea/CombatFormation.ts",
@@ -3559,7 +3559,7 @@
     ],
     "fieldMarshallers": {},
     "instructionFields": [],
-    "globIdentityFields": []
+    "stackIdentityFields": []
   },
   {
     "file": "packages/server/src/mud/platform/idea/Condition.ts",
@@ -3577,7 +3577,7 @@
     ],
     "fieldMarshallers": {},
     "instructionFields": [],
-    "globIdentityFields": []
+    "stackIdentityFields": []
   },
   {
     "file": "packages/server/src/mud/platform/idea/Discipline.ts",
@@ -3596,7 +3596,7 @@
     ],
     "fieldMarshallers": {},
     "instructionFields": [],
-    "globIdentityFields": []
+    "stackIdentityFields": []
   },
   {
     "file": "packages/server/src/mud/platform/idea/EvalScript.ts",
@@ -3607,7 +3607,7 @@
     ],
     "fieldMarshallers": {},
     "instructionFields": [],
-    "globIdentityFields": []
+    "stackIdentityFields": []
   },
   {
     "file": "packages/server/src/mud/platform/idea/Government.ts",
@@ -3624,7 +3624,7 @@
     ],
     "fieldMarshallers": {},
     "instructionFields": [],
-    "globIdentityFields": []
+    "stackIdentityFields": []
   },
   {
     "file": "packages/server/src/mud/platform/idea/Locality.ts",
@@ -3639,7 +3639,7 @@
     ],
     "fieldMarshallers": {},
     "instructionFields": [],
-    "globIdentityFields": []
+    "stackIdentityFields": []
   },
   {
     "file": "packages/server/src/mud/platform/idea/LocomotionMode.ts",
@@ -3661,7 +3661,7 @@
     ],
     "fieldMarshallers": {},
     "instructionFields": [],
-    "globIdentityFields": []
+    "stackIdentityFields": []
   },
   {
     "file": "packages/server/src/mud/platform/idea/Party.ts",
@@ -3680,7 +3680,7 @@
     ],
     "fieldMarshallers": {},
     "instructionFields": [],
-    "globIdentityFields": []
+    "stackIdentityFields": []
   },
   {
     "file": "packages/server/src/mud/platform/idea/Topic.ts",
@@ -3694,7 +3694,7 @@
     ],
     "fieldMarshallers": {},
     "instructionFields": [],
-    "globIdentityFields": []
+    "stackIdentityFields": []
   },
   {
     "file": "packages/server/src/mud/platform/idea/WikiNamespaceZone.ts",
@@ -3705,7 +3705,7 @@
     ],
     "fieldMarshallers": {},
     "instructionFields": [],
-    "globIdentityFields": []
+    "stackIdentityFields": []
   },
   {
     "file": "packages/server/src/mud/platform/idea/api/__tests__/PersistableKeyedNesting.test.ts",
@@ -3716,7 +3716,7 @@
     ],
     "fieldMarshallers": {},
     "instructionFields": [],
-    "globIdentityFields": []
+    "stackIdentityFields": []
   },
   {
     "file": "packages/server/src/mud/platform/idea/api/__tests__/PersistableKeyedNesting.test.ts",
@@ -3727,7 +3727,7 @@
     ],
     "fieldMarshallers": {},
     "instructionFields": [],
-    "globIdentityFields": []
+    "stackIdentityFields": []
   },
   {
     "file": "packages/server/src/mud/platform/idea/api/__tests__/PersistableKeyedNesting.test.ts",
@@ -3738,7 +3738,7 @@
     ],
     "fieldMarshallers": {},
     "instructionFields": [],
-    "globIdentityFields": []
+    "stackIdentityFields": []
   },
   {
     "file": "packages/server/src/mud/platform/idea/cmd/inventory/__tests__/DropController.test.ts",
@@ -3751,7 +3751,7 @@
     ],
     "fieldMarshallers": {},
     "instructionFields": [],
-    "globIdentityFields": [
+    "stackIdentityFields": [
       "denomination"
     ]
   },
@@ -3766,7 +3766,7 @@
     ],
     "fieldMarshallers": {},
     "instructionFields": [],
-    "globIdentityFields": [
+    "stackIdentityFields": [
       "denomination"
     ]
   },
@@ -3777,7 +3777,7 @@
     "persistentFields": [],
     "fieldMarshallers": {},
     "instructionFields": [],
-    "globIdentityFields": []
+    "stackIdentityFields": []
   },
   {
     "file": "packages/server/src/mud/platform/idea/cmd/perception/__tests__/FeelController.test.ts",
@@ -3786,7 +3786,7 @@
     "persistentFields": [],
     "fieldMarshallers": {},
     "instructionFields": [],
-    "globIdentityFields": []
+    "stackIdentityFields": []
   },
   {
     "file": "packages/server/src/mud/platform/idea/cmd/perception/__tests__/ListenController.test.ts",
@@ -3795,7 +3795,7 @@
     "persistentFields": [],
     "fieldMarshallers": {},
     "instructionFields": [],
-    "globIdentityFields": []
+    "stackIdentityFields": []
   },
   {
     "file": "packages/server/src/mud/platform/idea/cmd/perception/__tests__/ListenController.test.ts",
@@ -3804,7 +3804,7 @@
     "persistentFields": [],
     "fieldMarshallers": {},
     "instructionFields": [],
-    "globIdentityFields": []
+    "stackIdentityFields": []
   },
   {
     "file": "packages/server/src/mud/platform/idea/cmd/perception/__tests__/SenseController.test.ts",
@@ -3813,7 +3813,7 @@
     "persistentFields": [],
     "fieldMarshallers": {},
     "instructionFields": [],
-    "globIdentityFields": []
+    "stackIdentityFields": []
   },
   {
     "file": "packages/server/src/mud/platform/idea/cmd/perception/__tests__/SenseController.test.ts",
@@ -3822,7 +3822,7 @@
     "persistentFields": [],
     "fieldMarshallers": {},
     "instructionFields": [],
-    "globIdentityFields": []
+    "stackIdentityFields": []
   },
   {
     "file": "packages/server/src/mud/platform/idea/cmd/perception/__tests__/SmellController.test.ts",
@@ -3831,7 +3831,7 @@
     "persistentFields": [],
     "fieldMarshallers": {},
     "instructionFields": [],
-    "globIdentityFields": []
+    "stackIdentityFields": []
   },
   {
     "file": "packages/server/src/mud/platform/idea/cmd/perception/__tests__/SmellController.test.ts",
@@ -3840,7 +3840,7 @@
     "persistentFields": [],
     "fieldMarshallers": {},
     "instructionFields": [],
-    "globIdentityFields": []
+    "stackIdentityFields": []
   },
   {
     "file": "packages/server/src/mud/platform/idea/cmd/perception/__tests__/TasteController.test.ts",
@@ -3849,7 +3849,7 @@
     "persistentFields": [],
     "fieldMarshallers": {},
     "instructionFields": [],
-    "globIdentityFields": []
+    "stackIdentityFields": []
   },
   {
     "file": "packages/server/src/mud/platform/idea/cmd/perception/__tests__/TasteController.test.ts",
@@ -3858,7 +3858,7 @@
     "persistentFields": [],
     "fieldMarshallers": {},
     "instructionFields": [],
-    "globIdentityFields": []
+    "stackIdentityFields": []
   },
   {
     "file": "packages/server/src/mud/platform/idea/cmd/social/__tests__/DmController.test.ts",
@@ -3867,7 +3867,7 @@
     "persistentFields": [],
     "fieldMarshallers": {},
     "instructionFields": [],
-    "globIdentityFields": []
+    "stackIdentityFields": []
   },
   {
     "file": "packages/server/src/mud/platform/idea/corpo/Brand.ts",
@@ -3883,7 +3883,7 @@
     ],
     "fieldMarshallers": {},
     "instructionFields": [],
-    "globIdentityFields": []
+    "stackIdentityFields": []
   },
   {
     "file": "packages/server/src/mud/platform/idea/corpo/Corpo.ts",
@@ -3901,7 +3901,7 @@
     ],
     "fieldMarshallers": {},
     "instructionFields": [],
-    "globIdentityFields": []
+    "stackIdentityFields": []
   },
   {
     "file": "packages/server/src/mud/platform/idea/location/CartesianZone.ts",
@@ -3913,7 +3913,7 @@
     ],
     "fieldMarshallers": {},
     "instructionFields": [],
-    "globIdentityFields": []
+    "stackIdentityFields": []
   },
   {
     "file": "packages/server/src/mud/platform/idea/location/SphericalZone.ts",
@@ -3924,7 +3924,7 @@
     ],
     "fieldMarshallers": {},
     "instructionFields": [],
-    "globIdentityFields": []
+    "stackIdentityFields": []
   },
   {
     "file": "packages/server/src/mud/platform/idea/magic/Spell.ts",
@@ -3944,7 +3944,7 @@
     ],
     "fieldMarshallers": {},
     "instructionFields": [],
-    "globIdentityFields": []
+    "stackIdentityFields": []
   },
   {
     "file": "packages/server/src/mud/platform/idea/persistence/QuantityMarshaller.ts",
@@ -3955,7 +3955,7 @@
     ],
     "fieldMarshallers": {},
     "instructionFields": [],
-    "globIdentityFields": []
+    "stackIdentityFields": []
   },
   {
     "file": "packages/server/src/mud/platform/idea/persistence/__tests__/PersistentHydrator.test.ts",
@@ -3966,7 +3966,7 @@
     ],
     "fieldMarshallers": {},
     "instructionFields": [],
-    "globIdentityFields": []
+    "stackIdentityFields": []
   },
   {
     "file": "packages/server/src/mud/platform/idea/persistence/__tests__/PersistentHydrator.test.ts",
@@ -3977,7 +3977,7 @@
     ],
     "fieldMarshallers": {},
     "instructionFields": [],
-    "globIdentityFields": []
+    "stackIdentityFields": []
   },
   {
     "file": "packages/server/src/mud/platform/idea/persistence/__tests__/PersistentHydrator.test.ts",
@@ -3988,7 +3988,7 @@
     ],
     "fieldMarshallers": {},
     "instructionFields": [],
-    "globIdentityFields": []
+    "stackIdentityFields": []
   },
   {
     "file": "packages/server/src/mud/platform/idea/persistence/__tests__/PersistentHydrator.test.ts",
@@ -3999,7 +3999,7 @@
     ],
     "fieldMarshallers": {},
     "instructionFields": [],
-    "globIdentityFields": []
+    "stackIdentityFields": []
   },
   {
     "file": "packages/server/src/mud/platform/idea/persistence/__tests__/PersistentHydrator.test.ts",
@@ -4010,7 +4010,7 @@
     "instructionFields": [
       "exits"
     ],
-    "globIdentityFields": []
+    "stackIdentityFields": []
   },
   {
     "file": "packages/server/src/mud/platform/idea/persistence/__tests__/PersistentHydrator.test.ts",
@@ -4021,7 +4021,7 @@
     "instructionFields": [
       "missingApplier"
     ],
-    "globIdentityFields": []
+    "stackIdentityFields": []
   },
   {
     "file": "packages/server/src/mud/platform/idea/persistence/__tests__/PersistentHydrator.test.ts",
@@ -4034,7 +4034,7 @@
     "instructionFields": [
       "exits"
     ],
-    "globIdentityFields": []
+    "stackIdentityFields": []
   },
   {
     "file": "packages/server/src/mud/platform/idea/species/BodyPlan.ts",
@@ -4054,7 +4054,7 @@
     ],
     "fieldMarshallers": {},
     "instructionFields": [],
-    "globIdentityFields": []
+    "stackIdentityFields": []
   },
   {
     "file": "packages/server/src/mud/platform/idea/species/Clade.ts",
@@ -4066,7 +4066,7 @@
     ],
     "fieldMarshallers": {},
     "instructionFields": [],
-    "globIdentityFields": []
+    "stackIdentityFields": []
   },
   {
     "file": "packages/server/src/mud/platform/idea/species/Species.ts",
@@ -4097,7 +4097,7 @@
     ],
     "fieldMarshallers": {},
     "instructionFields": [],
-    "globIdentityFields": []
+    "stackIdentityFields": []
   },
   {
     "file": "packages/server/src/mud/platform/location/FurnishableRoom.ts",
@@ -4108,7 +4108,7 @@
     ],
     "fieldMarshallers": {},
     "instructionFields": [],
-    "globIdentityFields": []
+    "stackIdentityFields": []
   },
   {
     "file": "packages/server/src/mud/platform/location/Offstage.ts",
@@ -4117,7 +4117,7 @@
     "persistentFields": [],
     "fieldMarshallers": {},
     "instructionFields": [],
-    "globIdentityFields": []
+    "stackIdentityFields": []
   },
   {
     "file": "packages/server/src/mud/platform/location/SphericalLocation.ts",
@@ -4128,7 +4128,7 @@
     ],
     "fieldMarshallers": {},
     "instructionFields": [],
-    "globIdentityFields": []
+    "stackIdentityFields": []
   },
   {
     "file": "packages/server/src/mud/platform/location/sandbox/CircleFloor.ts",
@@ -4137,7 +4137,7 @@
     "persistentFields": [],
     "fieldMarshallers": {},
     "instructionFields": [],
-    "globIdentityFields": []
+    "stackIdentityFields": []
   },
   {
     "file": "packages/server/src/mud/platform/thing/AttendancePoint.ts",
@@ -4146,7 +4146,7 @@
     "persistentFields": [],
     "fieldMarshallers": {},
     "instructionFields": [],
-    "globIdentityFields": []
+    "stackIdentityFields": []
   },
   {
     "file": "packages/server/src/mud/platform/thing/BankCounter.ts",
@@ -4157,7 +4157,7 @@
     ],
     "fieldMarshallers": {},
     "instructionFields": [],
-    "globIdentityFields": []
+    "stackIdentityFields": []
   },
   {
     "file": "packages/server/src/mud/platform/thing/Coin.ts",
@@ -4169,7 +4169,7 @@
     ],
     "fieldMarshallers": {},
     "instructionFields": [],
-    "globIdentityFields": [
+    "stackIdentityFields": [
       "currency",
       "denomination"
     ]
@@ -4181,7 +4181,7 @@
     "persistentFields": [],
     "fieldMarshallers": {},
     "instructionFields": [],
-    "globIdentityFields": []
+    "stackIdentityFields": []
   },
   {
     "file": "packages/server/src/mud/platform/thing/CraftVessel.ts",
@@ -4197,7 +4197,7 @@
     ],
     "fieldMarshallers": {},
     "instructionFields": [],
-    "globIdentityFields": []
+    "stackIdentityFields": []
   },
   {
     "file": "packages/server/src/mud/platform/thing/Crop.ts",
@@ -4206,7 +4206,7 @@
     "persistentFields": [],
     "fieldMarshallers": {},
     "instructionFields": [],
-    "globIdentityFields": []
+    "stackIdentityFields": []
   },
   {
     "file": "packages/server/src/mud/platform/thing/GardenBed.ts",
@@ -4215,7 +4215,7 @@
     "persistentFields": [],
     "fieldMarshallers": {},
     "instructionFields": [],
-    "globIdentityFields": []
+    "stackIdentityFields": []
   },
   {
     "file": "packages/server/src/mud/platform/thing/JobBoard.ts",
@@ -4224,7 +4224,7 @@
     "persistentFields": [],
     "fieldMarshallers": {},
     "instructionFields": [],
-    "globIdentityFields": []
+    "stackIdentityFields": []
   },
   {
     "file": "packages/server/src/mud/platform/thing/Plant.ts",
@@ -4235,7 +4235,7 @@
     ],
     "fieldMarshallers": {},
     "instructionFields": [],
-    "globIdentityFields": []
+    "stackIdentityFields": []
   },
   {
     "file": "packages/server/src/mud/platform/thing/PlantPot.ts",
@@ -4244,7 +4244,7 @@
     "persistentFields": [],
     "fieldMarshallers": {},
     "instructionFields": [],
-    "globIdentityFields": []
+    "stackIdentityFields": []
   },
   {
     "file": "packages/server/src/mud/platform/thing/Seed.ts",
@@ -4255,7 +4255,7 @@
     ],
     "fieldMarshallers": {},
     "instructionFields": [],
-    "globIdentityFields": []
+    "stackIdentityFields": []
   },
   {
     "file": "packages/server/src/mud/platform/thing/Stock.ts",
@@ -4266,7 +4266,7 @@
     ],
     "fieldMarshallers": {},
     "instructionFields": [],
-    "globIdentityFields": []
+    "stackIdentityFields": []
   },
   {
     "file": "packages/server/src/mud/platform/thing/Surface.ts",
@@ -4275,7 +4275,7 @@
     "persistentFields": [],
     "fieldMarshallers": {},
     "instructionFields": [],
-    "globIdentityFields": []
+    "stackIdentityFields": []
   },
   {
     "file": "packages/server/src/mud/platform/thing/Ticket.ts",
@@ -4287,7 +4287,7 @@
     ],
     "fieldMarshallers": {},
     "instructionFields": [],
-    "globIdentityFields": []
+    "stackIdentityFields": []
   },
   {
     "file": "packages/server/src/mud/platform/thing/TrapKit.ts",
@@ -4298,7 +4298,7 @@
     ],
     "fieldMarshallers": {},
     "instructionFields": [],
-    "globIdentityFields": []
+    "stackIdentityFields": []
   },
   {
     "file": "packages/server/src/mud/platform/thing/Window.ts",
@@ -4313,7 +4313,7 @@
     ],
     "fieldMarshallers": {},
     "instructionFields": [],
-    "globIdentityFields": []
+    "stackIdentityFields": []
   },
   {
     "file": "packages/server/src/mud/platform/thing/equipment/Weapon.ts",
@@ -4328,7 +4328,7 @@
       "mass": "QuantityMarshaller.pathFor('kg')"
     },
     "instructionFields": [],
-    "globIdentityFields": []
+    "stackIdentityFields": []
   },
   {
     "file": "packages/server/src/mud/platform/thing/sandbox/SandboxCrossing.ts",
@@ -4340,7 +4340,7 @@
     ],
     "fieldMarshallers": {},
     "instructionFields": [],
-    "globIdentityFields": []
+    "stackIdentityFields": []
   },
   {
     "file": "packages/server/src/mud/world/lounge/LoungeMixin.ts",
@@ -4351,7 +4351,7 @@
     "instructionFields": [
       "warren"
     ],
-    "globIdentityFields": []
+    "stackIdentityFields": []
   },
   {
     "file": "packages/server/src/mud/world/lounge/location/Bar.ts",
@@ -4360,7 +4360,7 @@
     "persistentFields": [],
     "fieldMarshallers": {},
     "instructionFields": [],
-    "globIdentityFields": []
+    "stackIdentityFields": []
   },
   {
     "file": "packages/server/src/mud/world/lounge/location/GlassAlley.ts",
@@ -4369,7 +4369,7 @@
     "persistentFields": [],
     "fieldMarshallers": {},
     "instructionFields": [],
-    "globIdentityFields": []
+    "stackIdentityFields": []
   },
   {
     "file": "packages/server/src/mud/world/lounge/location/Lounge.ts",
@@ -4378,6 +4378,6 @@
     "persistentFields": [],
     "fieldMarshallers": {},
     "instructionFields": [],
-    "globIdentityFields": []
+    "stackIdentityFields": []
   }
 ]

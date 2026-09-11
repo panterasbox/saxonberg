@@ -44,6 +44,7 @@ import { SchedulerApi } from "../../../../api/scheduler";
 import { ConditionApi } from "../../../../api/condition";
 import { Quantity } from "../../../../lib/quantity";
 import { CombatApi } from "../../../../api/combat";
+import { MessageApi } from "../../../../api/message";
 import { CombatTerms, type TermsProposal } from "../../../../lib/combat/CombatTerms";
 import {
   COMBAT_PARTICIPANT_TYPE,
@@ -101,6 +102,16 @@ interface FighterOpts {
   /** A second weapon in the off-hand (dual-wield). */
   offWeaponForm?: string;
   ctor?: new () => TestFighter;
+  /**
+   * ⚠ Whether this fighter's species is a **person**. Defaults true — a
+   * `TestFighter extends Character` is a person, and `Species.sentient`
+   * defaults FALSE (correctly: a new huntable animal should be one row).
+   * Before the morale build nothing read it here, so every test fighter
+   * was quietly a beast; now a yield offered to one is refused, because
+   * surrender is a contract and an animal cannot hold up its end. Tests
+   * that want an actual beast pass `sentient: false`.
+   */
+  sentient?: boolean;
 }
 
 /**
@@ -110,7 +121,7 @@ interface FighterOpts {
  * class-static seam; the arrays are cleared at each using test.
  */
 const mintedDeeds: Array<Record<string, unknown>> = [];
-const mintedSubs: Array<{ discipline: string }> = [];
+const mintedSubs: Array<{ discipline: string; outcome?: string }> = [];
 function installCreditCapture(f: TestFighter): void {
   vi.spyOn(
     f as unknown as { creditDeed(sub: unknown): Promise<void> },
@@ -162,6 +173,7 @@ function makeFighter(room: TestRoom, opts: FighterOpts = {}): TestFighter {
 
   const species = makeStuff(() => new Species());
   species.setBodyPlan(plan);
+  species.setSentient(opts.sentient ?? true);
   stampTemplatePathForTest(species, `/stuff/idea/species/test/fighter-${id}`);
 
   const f = makeStuff(() => new (opts.ctor ?? TestFighter)());
@@ -359,7 +371,7 @@ describe("CombatLogic — gambit eligibility (injury edits the menu)", () => {
     // The engine drops the weapon when its grip slot is impaired; with no
     // innate attack, strike is lost.
     const elig = (a as unknown as Stuff & Combatant).gambitEligibility("strike");
-    if (a.isSlotImpairedByTrauma("grip")) {
+    if (a.isSlotImpairedByCondition("grip")) {
       expect(elig.ok).toBe(false);
     }
   });
@@ -380,7 +392,7 @@ describe("CombatLogic — resolution", () => {
   it("the cull: a lethal fight resolves to death with a dead loser", () => {
     const room = makeStuff(() => new TestRoom());
     const player = makeFighter(room, { weaponForm: "bladed", weaponMaterial: steel() });
-    const beast = makeFighter(room, { natural: "point" });
+    const beast = makeFighter(room, { natural: "point", sentient: false });
     const session = open(player, beast, lethal, true);
 
     // Step the fight to resolution (bounded).
@@ -2283,7 +2295,12 @@ describe("CombatLogic — fisticuffs (the bar-fight build)", () => {
     expect(firstStrikeEnergy(legacy(40))).toBe(firstStrikeEnergy(legacy(100)));
   });
 
-  it("an unarmed exchange credits `unarmed` + `melee-combat`, never `blades`", () => {
+  it("⭐ a fight credits ONCE, at resolution, in the disciplines it used", () => {
+    // Was: one signature per EXCHANGE. Twenty rows per fight drowned the
+    // verdict — a loser who took eight of twenty exchanges netted UP —
+    // and a whiff minted an `easy` failure, which is the estimator's
+    // maximal-sting case. The fight's own outcome is what a player
+    // experiences, so it is what the ledger records.
     const subs = mintedSubs;
     subs.length = 0;
     const room = makeStuff(() => new TestRoom());
@@ -2292,39 +2309,87 @@ describe("CombatLogic — fisticuffs (the bar-fight build)", () => {
       .setNaturalAttacks([{ key: "fist", channel: "blunt" }]);
     const target = bag(room);
     const session = open(brawler, target, nonLethal);
-    // player-driven so the transcript mints (brains bank nothing)
     (session.getState(brawler) as unknown as { brainPath: string | null })
       .brainPath = null;
     const targetState = session.getState(target)!;
-    for (let i = 0; i < 8 && !targetState.down; i++) {
+    // ⭐ Exchanges first — nothing may be credited while the fight runs.
+    for (let i = 0; i < 6 && session.isActive(); i++) {
+      expect(subs, "credited mid-fight").toHaveLength(0);
       (brawler as unknown as Stuff & Combatant).queueGambit("strike");
       CombatApi.advance(session);
     }
+    // …then it ENDS, and that is when the ledger hears about it. The
+    // target concedes: a deterministic resolution that names a victor,
+    // independent of whatever the poise contest was doing.
+    expect(subs).toHaveLength(0);
+    (target as unknown as Stuff & Combatant).yieldFight();
+    void targetState;
     const disc = subs.map((s) => s.discipline);
     expect(disc).toContain("unarmed");
     expect(disc).toContain("melee-combat");
     expect(disc).not.toContain("blades");
+    // One row per discipline — no duplicates from the per-beat tally.
+    expect(new Set(disc).size).toBe(disc.length);
+    // The winner's row is a success at the difficulty of the opponent.
+    for (const sub of subs) expect(sub.outcome).toBe("success");
   });
 
-  it("an armed exchange credits `blades`, never `unarmed`", () => {
+  it("⭐ a weapon DECLARES what it exercises; the channel no longer guesses", () => {
+    // The engine used to infer the discipline from the delivery channel
+    // (edge/point → `blades`), which meant a spear and a dagger trained
+    // the same skill and a mace trained nothing at all.
     const subs = mintedSubs;
     subs.length = 0;
     const room = makeStuff(() => new TestRoom());
-    const swordsman = makeFighter(room, { weaponForm: "bladed" });
+    const macer = makeFighter(room);
+    const mace = makeStuff(() => new Weapon());
+    mace.setMaterial(steel());
+    mace.setConstruction(Construction.of("hafted"));
+    mace.exercises = ["bludgeons"]; // the authored row's field
+    mace.setSlotClaim(planPathOf(macer), ["grip"]);
+    (macer as unknown as { occupy(x: unknown, s: string): void }).occupy(
+      mace,
+      "grip",
+    );
     const target = bag(room);
-    const session = open(swordsman, target, nonLethal);
-    (session.getState(swordsman) as unknown as { brainPath: string | null })
+    const session = open(macer, target, nonLethal);
+    (session.getState(macer) as unknown as { brainPath: string | null })
       .brainPath = null;
     const targetState = session.getState(target)!;
-    for (let i = 0; i < 8 && !targetState.down; i++) {
-      (swordsman as unknown as Stuff & Combatant).queueGambit("strike");
+    for (let i = 0; i < 6 && session.isActive(); i++) {
+      (macer as unknown as Stuff & Combatant).queueGambit("strike");
       CombatApi.advance(session);
     }
+    (target as unknown as Stuff & Combatant).yieldFight();
+    void targetState;
     const disc = subs.map((s) => s.discipline);
-    expect(disc).toContain("blades");
+    expect(disc).toContain("bludgeons");
     expect(disc).toContain("melee-combat");
     expect(disc).not.toContain("unarmed");
+    expect(disc).not.toContain("blades");
   });
+
+  it("⚠ an UNAUTHORED weapon exercises nothing but melee-combat", () => {
+    // A torch, a chair leg, a length of pipe are all weapons and none of
+    // them is a discipline. The general skill still advances.
+    const subs = mintedSubs;
+    subs.length = 0;
+    const room = makeStuff(() => new TestRoom());
+    const a = makeFighter(room, { weaponForm: "bladed" });
+    const target = bag(room);
+    const session = open(a, target, nonLethal);
+    (session.getState(a) as unknown as { brainPath: string | null })
+      .brainPath = null;
+    const targetState = session.getState(target)!;
+    for (let i = 0; i < 6 && session.isActive(); i++) {
+      (a as unknown as Stuff & Combatant).queueGambit("strike");
+      CombatApi.advance(session);
+    }
+    (target as unknown as Stuff & Combatant).yieldFight();
+    void targetState;
+    expect(subs.map((s) => s.discipline)).toEqual(["melee-combat"]);
+  });
+
 
   it("two unarmed humans resolve a brawl to a downed loser (end-to-end fists)", () => {
     const room = makeStuff(() => new TestRoom());
@@ -2519,5 +2584,233 @@ describe("CombatLogic — the bum's rush + the truce (the bar-fight build)", () 
     expect(CombatApi.sessionFor(c as never)).toBe(session);
     // B left the fight (its only edge dissolved).
     expect(CombatApi.sessionFor(b as never)).toBeUndefined();
+  });
+});
+
+/* ─────────────── W4: morale — an opponent that gives up ─────────────── */
+
+describe("CombatLogic — morale & surrender", () => {
+  it("⭐ the brain gives up when its morale breaks — the first caller `yield` ever had", async () => {
+    // ⚠ Driven by IMPORTING the brain and calling `act`, not by stepping
+    // the session: `invokeBrain` resolves the module through
+    // `StuffApi.resolveExportSync`, which needs a warmed module registry
+    // that a unit test does not have — so the shipped brain never runs
+    // under vitest at all. (That is also why the gym's "brain-vs-brain"
+    // cell is really "neither side queues anything".) The live path is
+    // the drive's.
+    const { brain } = await import("../../../../lib/behavior/combatant");
+    const room = makeStuff(() => new TestRoom());
+    const bully = makeFighter(room, {
+      weaponForm: "bladed",
+      weaponMaterial: steel(),
+    });
+    const victim = makeFighter(room);
+    const session = open(bully, victim, nonLethal);
+    const victimState = session.getState(victim)!;
+    // Worn down the way a fight would: guard broken, three wounds carried.
+    victimState.poise.erode(0.85, 0);
+    victimState.woundsTaken.push("bites-deep", "bites-deep", "bites");
+    expect((victim as unknown as Stuff & Combatant).moraleBand()).toBe(
+      "breaking",
+    );
+
+    brain.act({
+      host: victim as never,
+      config: {},
+      state: {},
+      perceived: undefined,
+      trigger: { source: "cadence", raw: "combat" },
+      say: () => {},
+      emote: async () => {},
+      emoteFree: () => {},
+    } as never);
+
+    expect(session.getResolution()).toBe("yield");
+    expect(victimState.down).toBe(false); // gave up BEFORE being downed
+  });
+
+  it("⚠ a yield offered to a BEAST is refused — surrender is a contract", () => {
+    const room = makeStuff(() => new TestRoom());
+    const wolf = makeFighter(room, { natural: "point", sentient: false });
+    const person = makeFighter(room);
+    const session = open(wolf, person, lethal);
+    expect(
+      (person as unknown as Stuff & Combatant).yieldFight(),
+    ).toBe(false);
+    expect(session.isActive()).toBe(true);
+    expect(session.getResolution()).toBeNull();
+  });
+
+  it("a yield to a person is accepted even with a beast also in the fight", () => {
+    // `some(sentient)` — somebody present can hold up their end of it.
+    const room = makeStuff(() => new TestRoom());
+    const bandit = makeFighter(room, { weaponForm: "bladed" });
+    const person = makeFighter(room);
+    const session = open(bandit, person, nonLethal);
+    const hound = makeFighter(room, { natural: "point", sentient: false });
+    expect(
+      CombatApi.join(hound as never, person as never, session.getTerms()).ok,
+    ).toBe(true);
+    expect((person as unknown as Stuff & Combatant).yieldFight()).toBe(true);
+    expect(session.getResolution()).toBe("yield");
+  });
+
+  it("the morale read is live and reachable through the Api", () => {
+    const room = makeStuff(() => new TestRoom());
+    const a = makeFighter(room, { weaponForm: "bladed" });
+    const b = makeFighter(room);
+    const session = open(a, b, nonLethal);
+    expect(CombatApi.moraleBand(b)).toBe("resolute");
+    const st = session.getState(b)!;
+    st.poise.erode(0.85, 0);
+    st.woundsTaken.push("bites-deep", "bites-deep");
+    expect(CombatApi.moraleBand(b)).toBe("breaking");
+    // …and null out of combat.
+    const bystander = makeFighter(room);
+    expect(CombatApi.moraleBand(bystander)).toBeNull();
+  });
+
+  it("⭐⭐ the read counts the ROOM — a watched fight is closer to over", () => {
+    // The wiring test for `onlookersOf`. The unit pins live in
+    // `Morale.test.ts`; what only this can say is that the pressure term
+    // is actually fed from who is standing in the room, which is the link
+    // that fails silently.
+    const empty = makeStuff(() => new TestRoom());
+    const taproom = makeStuff(() => new TestRoom());
+    const hurt = (session: ReturnType<typeof open>, who: TestFighter) => {
+      const st = session.getState(who as unknown as Stuff)!;
+      st.poise.erode(0.62, 0);
+      st.woundsTaken.push("bites-deep", "bites");
+    };
+
+    // The same beating, twice, in two rooms.
+    const aloneA = makeFighter(empty, { weaponForm: "bladed" });
+    const aloneB = makeFighter(empty);
+    hurt(open(aloneA, aloneB, nonLethal), aloneB);
+
+    const seenA = makeFighter(taproom, { weaponForm: "bladed" });
+    const seenB = makeFighter(taproom);
+    hurt(open(seenA, seenB, nonLethal), seenB);
+    // …and a taproom full of people who are not in it.
+    for (let i = 0; i < 6; i++) makeFighter(taproom);
+
+    expect(CombatApi.moraleBand(aloneB)).toBe("shaken");
+    expect(CombatApi.moraleBand(seenB)).toBe("breaking");
+  });
+
+  it("⚠ the other FIGHTERS are not onlookers — they are the fight", () => {
+    // Otherwise every brawl would count itself as its own audience and
+    // being outnumbered would get paid for twice.
+    const room = makeStuff(() => new TestRoom());
+    const a = makeFighter(room, { weaponForm: "bladed" });
+    const b = makeFighter(room);
+    open(a, b, nonLethal);
+    expect(CombatApi.moraleBand(b)).toBe("resolute");
+  });
+
+  it("⚠ a beast in a crowded room does not care who is looking", () => {
+    const room = makeStuff(() => new TestRoom());
+    const person = makeFighter(room, { weaponForm: "bladed" });
+    const wolf = makeFighter(room, { natural: "point", sentient: false });
+    const session = open(person, wolf, nonLethal);
+    for (let i = 0; i < 8; i++) makeFighter(room);
+    const st = session.getState(wolf as unknown as Stuff)!;
+    st.poise.erode(0.62, 0);
+    st.woundsTaken.push("bites-deep", "bites");
+    // A person taking exactly this beating in exactly this room breaks.
+    expect(CombatApi.moraleBand(wolf)).toBe("shaken");
+  });
+});
+
+/* ──────────────── W6: the aftermath — emission, not a system ──────────────── */
+
+describe("CombatLogic — the aftermath", () => {
+  /** Every scene body sent to `who` during `run`. */
+  function linesFor(who: TestFighter, run: () => void): string[] {
+    const seen: string[] = [];
+    const spy = vi
+      .spyOn(MessageApi, "scene")
+      .mockImplementation((anchor: unknown) => {
+        const builder: Record<string, unknown> = {};
+        for (const m of ["topic", "meta", "tags", "modality", "payload"]) {
+          builder[m] = () => builder;
+        }
+        builder.toSelf = (body: unknown) => {
+          if ((anchor as Stuff) === (who as unknown as Stuff)) {
+            seen.push(String(body));
+          }
+          return builder;
+        };
+        builder.toPeers = () => builder;
+        builder.send = () => {};
+        return builder as never;
+      });
+    try {
+      run();
+    } finally {
+      spy.mockRestore();
+    }
+    return seen;
+  }
+
+  it("⭐ fires on a DRAW — the resolutions with no victor stopped in silence", () => {
+    // `runResolutionConsumers` runs from `endWith`'s CALLERS and only on
+    // the paths that name a victor, so a draw, a disengage and a mutual
+    // break all ended without a word about what anyone was left with.
+    const room = makeStuff(() => new TestRoom());
+    const a = makeFighter(room, { weaponForm: "bladed", weaponMaterial: steel() });
+    const b = makeFighter(room, { weaponForm: "bladed" });
+    const session = open(a, b, nonLethal);
+    a.queueGambit("strike");
+    CombatApi.advance(session);
+
+    const lines = linesFor(a, () => {
+      (a as unknown as Stuff & Combatant).offerBreak();
+      (b as unknown as Stuff & Combatant).offerBreak();
+    });
+    expect(session.getResolution()).toBe("draw");
+    expect(lines.some((l) => l.includes("You come out of it"))).toBe(true);
+  });
+
+  it("names what the fight tested — which is what it paid", () => {
+    const room = makeStuff(() => new TestRoom());
+    const a = makeFighter(room, { weaponForm: "bladed" });
+    const b = makeFighter(room);
+    const session = open(a, b, nonLethal);
+    const weapon = (session.getState(a)!.combatant as unknown as {
+      getAllOccupants(): Map<string, Stuff[]>;
+    });
+    void weapon;
+    a.queueGambit("strike");
+    CombatApi.advance(session);
+    const lines = linesFor(a, () => {
+      (b as unknown as Stuff & Combatant).yieldFight();
+    });
+    expect(lines.some((l) => l.includes("was tested"))).toBe(true);
+    expect(lines.some((l) => l.includes("fighting"))).toBe(true);
+  });
+
+  it("an unmarked fighter is told so, rather than told nothing", () => {
+    const room = makeStuff(() => new TestRoom());
+    const a = makeFighter(room);
+    const b = makeFighter(room);
+    const session = open(a, b, nonLethal);
+    const lines = linesFor(a, () => {
+      (b as unknown as Stuff & Combatant).yieldFight();
+    });
+    void session;
+    expect(lines.some((l) => l.includes("unmarked"))).toBe(true);
+  });
+
+  it("⚠ says nothing about anyone already down — they have their own line", () => {
+    const room = makeStuff(() => new TestRoom());
+    const a = makeFighter(room, { weaponForm: "bladed", weaponMaterial: steel() });
+    const b = makeFighter(room);
+    const session = open(a, b, nonLethal);
+    session.getState(b)!.down = true;
+    const lines = linesFor(b, () => {
+      (b as unknown as Stuff & Combatant).yieldFight();
+    });
+    expect(lines.some((l) => l.includes("You come out of it"))).toBe(false);
   });
 });

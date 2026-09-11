@@ -774,6 +774,54 @@ export const AppSettingKeys = {
   /** Combat — extra poise a whiff/parry self-opens the actor. */
   combatPoiseWhiffPenalty: "combat.poise.whiffPenalty",
   /**
+   * ⭐⭐ Combat — **how far a landed wound caps the recovery** of the
+   * fighter it lands on, by the blow's outcome band. Staying cut keeps you
+   * losing: a wound does not take footing away, it takes away how much of
+   * it you can buy back.
+   *
+   * A `grazes` only shoves — it never caps — so trading light blows stays a
+   * contest of pressure and armour buys a margin in that contest rather
+   * than immunity. `ceilingFloor` bounds a body full of wounds, so a long
+   * fight cannot arithmetically reach zero recovery.
+   *
+   * ⚠ There is deliberately **no `combat.wound.spend.*`**: the exchange
+   * that delivers a wound has already eroded the target, and a second
+   * wound-sized erosion double-counts one event. Measured — it compressed
+   * fights below the length at which formation policy can act. See
+   * `applyWoundToPoise`.
+   */
+  combatWoundCeilingBites: "combat.wound.ceiling.bites",
+  combatWoundCeilingBitesDeep: "combat.wound.ceiling.bitesDeep",
+  combatWoundCeilingFloor: "combat.wound.ceilingFloor",
+  /**
+   * ⭐⭐ Combat — **the break points for the morale read.** Pressure
+   * accumulates from poise band and trend, wounds already taken, being
+   * outnumbered, allies down, who is standing there watching, and — for a
+   * sentient only — whether the terms authorize a kill. Three bands,
+   * because a fourth would be a gauge. Nothing is stored; the read is a
+   * pure function of live state.
+   */
+  /**
+   * ⭐⭐ Contract — how often the **watch reconcile** samples, in REAL ms.
+   * A guard is paid for presence, so the engine looks rather than asking:
+   * every claimed `watch` gig is checked for a claimant standing at the
+   * post with their hands free, and credited the elapsed game-time since
+   * the last look (capped, so a downtime gap pays nothing absurd).
+   */
+  contractWatchSweepMs: "contract.watchSweepMs",
+  combatMoraleShakenAt: "combat.morale.shakenAt",
+  combatMoraleBreakingAt: "combat.morale.breakingAt",
+  combatMoraleLethalWeight: "combat.morale.lethalWeight",
+  /**
+   * ⭐⭐ Combat — **what being watched is worth.** A fight in front of
+   * people is a fight somebody is about to stop, and both sides know it,
+   * so onlookers push both ends toward wanting out. Two steps, not a
+   * count: half weight when one or two are watching, full at `crowdAt`.
+   * Sentient only — a beast does not care who is looking.
+   */
+  combatMoraleOnlookerWeight: "combat.morale.onlookerWeight",
+  combatMoraleCrowdAt: "combat.morale.crowdAt",
+  /**
    * Combat — the poise an **ambush** strips from an unaware defender at the
    * opening (a struck-from-concealment surprise). Large enough to cross
    * `combat.poise.brokenAt` from full poise, arming the aggressor's free

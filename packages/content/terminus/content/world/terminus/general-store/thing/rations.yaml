@@ -1,7 +1,7 @@
 # A ration pack — real, edible food. A discrete Thing whose Material is the
 # wholesome `trail-ration` (edibility: true), so `eat rations` genuinely
 # routes its carbohydrates to satiation and consumes the pack. Deliberately a
-# discrete "pack", NOT a Globbable stack — a chattel stamp needs a discrete
+# discrete "pack", NOT a Stackable stack — a chattel stamp needs a discrete
 # instance, so it can be bought and consigned.
 class: /platform/thing/Provision
 hydratorClass: /platform/idea/persistence/PersistentHydrator

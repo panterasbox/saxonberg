@@ -8,8 +8,11 @@
 > vendors, employer coverage, the price of walking out) · what
 > diminishment actually IS — the `recovering` seed is deliberately empty ·
 > the in-circle death arc (minting a real body from inside a circle) ·
-> corpse remains + the coroner economy · where "wake at your residence"
-> plugs in · the passage ladder (trial / bargain / Orpheus)
+> where "wake at your residence" plugs in · the passage ladder (trial /
+> bargain / Orpheus)
+> **Moved out 2026-09-10:** corpse **custody**, corpse **remains** and the
+> **coroner economy** are trade questions, not metaphysics ones →
+> [end-of-life-slate.md](./end-of-life-slate.md)
 > **Size:** a build
 
 > **Status: BUILT 2026-07-31** — graduated to

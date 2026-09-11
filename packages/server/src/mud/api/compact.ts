@@ -32,6 +32,7 @@ import type {
   OfficeAssignResult,
 } from "../lib/governance/Office";
 import { StuffApi } from "./stuff";
+import { ExecutionContextApi } from "./execution-context";
 import { HotReloadApi } from "./hot-reload";
 import { CallSecurity } from "../lib/security/decorators";
 import { SecurityPolicies } from "../lib/security/SecurityPolicies";
@@ -89,6 +90,14 @@ function logic(): CompactLogic {
   );
 }
 
+/**
+ * The head of the executive. The one seat that answers
+ * {@link CompactApi.readWorldAs} today — named once, here, so the
+ * executive's rule is a line in this file rather than a string in the
+ * query engine.
+ */
+const PRIME_MINISTER = "prime-minister";
+
 export class CompactApi {
   // ───────────────── the office face (the Compact's seats) ─────────────────
   // Absorbed from the retired OfficeApi: the government-office substrate's
@@ -119,6 +128,42 @@ export class CompactApi {
     officeKey: string
   ): Promise<boolean> {
     return logic().holdsOffice(subject, officeKey);
+  }
+
+  /**
+   * ⭐⭐ **May `subject` read the whole world at once — and if so, do
+   * it.** The single seam through which a person's query is allowed to
+   * walk the registry.
+   *
+   * Asking and granting are ONE act on purpose. A grant primitive that
+   * could be planted without the question is a permission anybody in
+   * the engine could hand themselves; here the environment can only
+   * carry the grant on the far side of a real authority answering about
+   * a real person.
+   *
+   * **The executive decides.** Today that is its head — the Prime
+   * Minister's seat, derived on every call so authority follows a
+   * handoff in both directions with no restart. When the executive
+   * wants to carve this up further — a standing group, a per-shape
+   * allowance, a delegate who may scan but not act — it is carved up
+   * *here*, and nothing else in the engine moves: the resolver reads
+   * only {@link ExecutionContextApi.getWorldReadGrant}.
+   *
+   * Returns `null` when the subject is not entitled — the caller then
+   * lets the ordinary refusal stand.
+   */
+  public static async readWorldAs<T>(
+    subject: Stuff | null,
+    fn: () => T
+  ): Promise<T | null> {
+    if (!(await CompactApi.holdsOffice(subject, PRIME_MINISTER))) return null;
+    return ExecutionContextApi.run(
+      CompactApi,
+      CompactApi,
+      "compact.readWorld",
+      { metadata: { worldRead: `office:${PRIME_MINISTER}` } },
+      fn
+    );
   }
 
   /**

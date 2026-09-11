@@ -11,13 +11,13 @@
  *
  * ## Pooling, and why the lie moves
  *
- * Ore is `Globbable`, and it keeps the shipped `canMergeWith` default —
+ * Ore is `Stackable`, and it keeps the shipped `canMergeWith` default —
  * **two lumps of one ore row pool regardless of grade**, which is
  * literally what happens in a cart. {@link Ore.onMerged} mass-weights the
  * average.
  *
  * ⚠ The formula is the **delta** form, and the shipped merge order is
- * why: `GlobbableLogic.merge` runs
+ * why: `StackableLogic.merge` runs
  * `setQuantity(total)` → `destruct(absorbed)` → `onMerged(absorbed)`, so
  * by the time the hook fires the survivor's quantity is ALREADY the
  * total. With `Q` the new total and `a` the absorbed count:
@@ -33,14 +33,14 @@
  */
 
 import Thing from '@saxonberg/server/mud/lib/stuff/Thing';
-import { GlobbableMixin } from '@saxonberg/server/mud/lib/stuff/Globbable';
+import { StackableMixin } from '@saxonberg/server/mud/lib/stuff/Stackable';
 import type Material from '@saxonberg/server/mud/lib/material/Material';
 import type { FieldMeta } from '@saxonberg/server/mud/lib/mixin';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
 
 // `Thing` already carries Tangible (the material) and Chattel (the
 // per-instance owner a cut lump needs from the face to the scale).
-const OreBase = GlobbableMixin(Thing);
+const OreBase = StackableMixin(Thing);
 
 export default class Ore extends OreBase {
   static fieldMeta: FieldMeta = {
@@ -140,7 +140,7 @@ export default class Ore extends OreBase {
    * ⚠⚠ **The absorbed lot is read HERE, before it is destructed**, and
    * that is not a stylistic choice.
    *
-   * `GlobbableLogic.merge` runs, in order:
+   * `StackableLogic.merge` runs, in order:
    * `canMergeWith` → `setQuantity(total)` → `destruct(absorbed)` →
    * `onMerged(absorbed)`. A destructed Stuff's accessors return
    * `undefined` — verified by test, because the plan flagged it as the
@@ -149,7 +149,7 @@ export default class Ore extends OreBase {
    * two figures still exist.
    *
    * The stash is keyed on the candidate's `stuffId` and cleared on use,
-   * so a speculative `GlobbableApi.canMerge` probe that never proceeds
+   * so a speculative `StackableApi.canMerge` probe that never proceeds
    * to a merge cannot leak into the next real one.
    */
   public override canMergeWith(other: Stuff): boolean {

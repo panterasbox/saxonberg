@@ -440,7 +440,7 @@ export interface SocialRulesState {
  */
 export type Status = 'ok' | 'partial' | 'declined' | 'error';
 
-/* ---- Glob / quantity notes -------------------------------------- */
+/* ---- Stack / quantity notes -------------------------------------- */
 
 export interface QuantityClampedNote {
   kind: 'quantity-clamped';
@@ -541,6 +541,33 @@ export interface MqlErrorNote {
   field: string;
   stage: 'desugar' | 'lex' | 'parse' | 'resolve';
   detail: string;
+}
+
+/**
+ * ⭐⭐ **What a registry-wide read cost**, told to the one person
+ * entitled to make one.
+ *
+ * The whole realm is unreadable by typed input — for everybody, on every
+ * surface — with exactly one exception: the holder of the Prime
+ * Minister's seat, who may type `world:` in any command. That grant is
+ * only defensible if the holder is told what they just did, so the
+ * answer arrives with its price beside it.
+ *
+ * `scanned` is objects READ, not matched: a query returning three things
+ * after reading eighteen hundred is precisely the case worth showing.
+ * `indexed: false` means the whole registry was walked because the shape
+ * answered to no index — the number that grows with the realm.
+ */
+export interface RegistryScanNote {
+  kind: 'registry-scan';
+  /** The command field whose query this was. */
+  field: string;
+  /** Objects read to answer it. */
+  scanned: number;
+  /** False ⇒ the whole registry was walked. */
+  indexed: boolean;
+  /** The leading fragment as typed, e.g. `world:[class.Door]`. */
+  shape: string;
 }
 
 export interface ValidatorFailedNote {
@@ -812,6 +839,7 @@ export type Note =
   | SlotOccupiedNote
   | CommandRejectedNote
   | MqlErrorNote
+  | RegistryScanNote
   | ValidatorFailedNote
   | ControllerErrorNote
   | EngagementStartedNote
@@ -1486,8 +1514,8 @@ export interface PromptCancelMessage {
  *
  * `displayName` is non-optional here — the substrate's synthetic
  * descriptor ensures `Stuff.getPresentation()` always renders a
- * usable string. `quantity` rides along for Globbable hosts; absent
- * for non-Globbable. `primaryKeyword` rides along for Perceptible
+ * usable string. `quantity` rides along for Stackable hosts; absent
+ * for non-Stackable. `primaryKeyword` rides along for Perceptible
  * hosts (every in-world Stuff with a keyword pool); absent otherwise.
  */
 export interface StuffRefRecord {
@@ -4406,7 +4434,7 @@ export interface TemplateWriteResult {
  * One entry of the composition palette — a mixin (or an instantiable base
  * class) the author can pick when scaffolding a new backing class. `name`
  * is the exported identifier used verbatim in the generated `extends`
- * clause (`GlobbableMixin`, `Idea`, …).
+ * clause (`StackableMixin`, `Idea`, …).
  */
 export interface MixinPaletteEntry {
   /** The exported identifier (a mixin factory name or a base class name). */
@@ -4546,7 +4574,7 @@ export interface MixinFieldDetail {
  * absent — the card never throws on a missing topic).
  */
 export interface MixinDetail {
-  /** The mixin's `_mixinName` (e.g. `'GlobbableMixin'`). */
+  /** The mixin's `_mixinName` (e.g. `'StackableMixin'`). */
   name: string;
   /**
    * The mixin file's FULL top TSDoc concept comment as clean text —

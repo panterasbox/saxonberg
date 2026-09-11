@@ -17,7 +17,7 @@ import ConsignController from "../ConsignController";
 import ReclaimController from "../ReclaimController";
 import ConsignmentShelf from "../../../../thing/ConsignmentShelf";
 import Thing from "../../../../../lib/stuff/Thing";
-import { GlobbableMixin } from "../../../../../lib/stuff/Globbable";
+import { StackableMixin } from "../../../../../lib/stuff/Stackable";
 import BankCounter from "../../../../thing/BankCounter";
 import PaymentCard from "../../../../thing/PaymentCard";
 import ChattelRegistry from "../../../ChattelRegistry";
@@ -80,7 +80,7 @@ class TestGiver extends SensorMixin(
 class Torch extends Thing {}
 
 /** A fungible good — the shape a bolt of cloth has. */
-class Bale extends GlobbableMixin(Thing) {
+class Bale extends StackableMixin(Thing) {
   static _mixinName = "Bale";
 }
 
@@ -358,9 +358,9 @@ describe("Consignment — sell loop over real ownership", () => {
   /*
    * ⭐⭐ A STACK GOES UP A LOT AT A TIME.
    *
-   * `consign` refused every `Globbable` outright — a true statement
+   * `consign` refused every `Stackable` outright — a true statement
    * about a stack ("owned-by-possession") and the wrong conclusion
-   * about a sale. A bolt of cloth is a glob ON PURPOSE (two dye lots
+   * about a sale. A bolt of cloth is a stack ON PURPOSE (two dye lots
    * must never merge), so the rule meant a mill could weave cloth it
    * could never sell: a live drive of the textile chain ended on
    * `controller-rejected:fungible(bolt)`.
@@ -424,7 +424,7 @@ describe("Consignment — sell loop over real ownership", () => {
     const alice = await fundedAvatar("/platform/agent/Avatar/alice", 0);
     const bale = ownedBale(alice, 5);
 
-    // (That untitled globs still merge normally is the Globbable
+    // (That untitled stacks still merge normally is the Stackable
     // suite's own `canMergeWith` coverage — the veto below is the only
     // new reason a merge can be refused.)
 

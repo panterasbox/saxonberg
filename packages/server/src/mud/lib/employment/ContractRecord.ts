@@ -68,7 +68,35 @@ export class ContractRecord extends Document {
     settledBy: { persistent: true },
     closedAt: { persistent: true },
     realAt: { persistent: true },
+    watchedSec: { persistent: true },
+    watchSeenSec: { persistent: true },
   };
+
+  /**
+   * ⭐ Game-seconds of watch the claimant has accrued on this contract
+   * (`watch` clauses only). Accrued on the CONTRACT rather than on the
+   * worker because a guard's watch is *for* a contract: two overlapping
+   * posts are two separate accruals, and a worker-side counter could not
+   * tell them apart.
+   */
+  watchedSec = 0;
+
+  /**
+   * ⭐⭐ The last game-second the claimant was **observed at the post** —
+   * the reconcile's high-water mark, not a start time.
+   *
+   * Watch accrues from PRESENCE, never from a verb. The sweep credits
+   * `now - watchSeenSec` when it finds the claimant standing at the
+   * place with their hands free, and re-stamps either way; so a guard
+   * who wanders off simply stops earning at the last moment anybody
+   * looked, and one who comes back starts earning again.
+   *
+   * ⚠ The gap between samples is capped (`MAX_WATCH_SAMPLE_SEC`) — the
+   * far-past guard the condition reconciles use. A world that was down
+   * for a week must not pay a week's wages to somebody who happened to
+   * log out standing in the right doorway.
+   */
+  watchSeenSec = 0;
 
   /** Durable gig id (server-minted uuid) — the escrow account keys on it. */
   contractId = "";
@@ -167,5 +195,16 @@ export class ContractRecord extends Document {
     claimant: string,
   ): Promise<ContractRecord[]> {
     return ContractRecord.find<ContractRecord>({ claimant, state: "claimed" });
+  }
+
+  /**
+   * ⭐ Every claimed gig in the world, for the watch reconcile — which is
+   * claimant-agnostic by nature (nobody asked it a question; it is a
+   * sweep). Narrowed to `watch` clauses by the caller, because the
+   * clause template lives inside the `clause` payload rather than in a
+   * queryable column.
+   */
+  static async findAllClaimed(): Promise<ContractRecord[]> {
+    return ContractRecord.find<ContractRecord>({ state: "claimed" });
   }
 }

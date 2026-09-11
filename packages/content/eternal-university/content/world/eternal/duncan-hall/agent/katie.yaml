@@ -78,7 +78,7 @@ data:
     # agency that makes that claim true instead of decorative
     # (residences D5). She walks her extent, works over anything that
     # has slipped below sound, and comes back to the desk.
-    - brain: /lib/behavior/maintains
+    - brain: /system/residence/behavior/maintains
       trigger: cadence:17m
       config:
         extent: /world/eternal/duncan-hall/dorms
