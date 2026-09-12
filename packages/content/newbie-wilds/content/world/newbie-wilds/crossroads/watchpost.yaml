@@ -17,8 +17,8 @@ class: /platform/location/SingletonCartesianLocation
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: watchpost in the treeline
+  keywords: [watchpost, treeline]
   register: indefinite
-  primaryKeyword: watchpost
   _address: last-counted-mile/watchpost
   longDescription: |
     A cut in the pines where the wood thins to a held breath: deadfall and bracken to the knees, a lightning-split trunk gone to shadow, and the needles deep enough to swallow a footstep. The light comes down broken here, more shade than sun — the kind of ground made for not being seen on.

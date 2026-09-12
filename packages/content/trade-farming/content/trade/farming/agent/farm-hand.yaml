@@ -7,10 +7,10 @@ class: /platform/agent/Cast
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: Wen Hartley
+  keywords: [hand, wen, hartley, sun-browned, market, knife, string]
   pronouns: they
   _speciesPath: /stuff/idea/species/animalia/chordata/mammalia/primates/hominidae/homo/sapiens
   lifecycleState: alive
-  primaryKeyword: hand
   alternateNames: ["wen", "hartley"]
   shortDescription: "sun-browned market hand with a knife on a string"
   register: indefinite

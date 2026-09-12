@@ -15,6 +15,7 @@
 import Location from '../../../lib/stuff/Location';
 import { CartesianCoordinatesMixin } from '../../../lib/location/CartesianCoordinates';
 import { VisibleMixin } from '../../../lib/description/Visible';
+import { PerceptibleMixin } from '../../../lib/description/Perceptible';
 import { DetailedMixin } from '../../../lib/description/Detailed';
 import { ExitableMixin } from '../../../lib/boundary/Exitable';
 import { PostRegistrationMixin } from '../../../lib/stuff/PostRegistration';
@@ -39,11 +40,16 @@ import type { FieldMeta } from '../../../lib/mixin';
  * under it — the door named a direction the world could not check.
  * `/world/lounge` is a `CartesianZone` now and the bar is its origin.
  */
+// ⭐ `PerceptibleMixin` — a room is addressable by keyword. ⚠ Composed
+// per class because `Location` does NOT carry it (only
+// `CartesianLocation` does), so every room class built directly on
+// `Location` has to remember. These rows were authoring `primaryKeyword`
+// into a void until 2026-09-11; `lint:presentation` clause (d) found it.
 const BarBase = SingletonMixin(
   PostRegistrationMixin(
     PopulatesMixin(
       CartesianCoordinatesMixin(
-        ExitableMixin(DetailedMixin(VisibleMixin(Location))),
+        ExitableMixin(DetailedMixin(VisibleMixin(PerceptibleMixin(Location)))),
       ),
     ),
   ),

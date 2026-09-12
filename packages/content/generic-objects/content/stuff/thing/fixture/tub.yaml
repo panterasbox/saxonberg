@@ -15,9 +15,8 @@ class: /platform/thing/Chair
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: bathtub
-  register: indefinite
-  primaryKeyword: tub
   keywords: [tub, bath, bathtub]
+  register: indefinite
   longDescription: |
     A deep enamelled tub on four squat feet, big enough to lie back in, with a brass tap at one end and a chain on the plug.
   restQuality: 1.4

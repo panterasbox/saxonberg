@@ -7,6 +7,7 @@ class: /platform/idea/material/Material
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: bone
+  keywords: [bone]
   density: 1900
   specificHeat: 1300
   thermalConductivity: 0.32

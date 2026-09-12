@@ -11,8 +11,8 @@ class: /platform/location/SingletonCartesianLocation
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: Mayfield & Co., land agents
+  keywords: [agents, mayfield, co, land]
   register: proper
-  primaryKeyword: office
   alternateNames: [realty, agents, shopfront]
   _address: terminus/city/mayfield-row/realty
   ambientIntensity: 320

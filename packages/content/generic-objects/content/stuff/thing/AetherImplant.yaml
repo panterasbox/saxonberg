@@ -4,6 +4,7 @@ class: /platform/thing/AetherImplant
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: "aether implant"
+  keywords: [implant, aether]
   register: indefinite
   longDescription: "A small, hardened cybernetic device the size of a thumbnail — brass and silicon, sealed against the field. It hums faintly in your hand."
   targetSlot: cranial

@@ -7,8 +7,7 @@ class: /platform/thing/Thing
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: stone water trough
+  keywords: [trough, stone, water]
   register: indefinite
-  primaryKeyword: trough
-  keywords: [trough]
   longDescription: >-
     A hollowed stone trough along the wall, fed by a lead pipe from somewhere uphill, with a skin of green on the waterline.

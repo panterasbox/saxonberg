@@ -11,9 +11,8 @@ class: /platform/thing/Stock
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: provisioning counter
+  keywords: [counter, till, stores, goods, provisioning]
   register: definite
-  primaryKeyword: counter
-  keywords: [counter, till, stores, goods]
   longDescription: |
     A plank counter worn hollow in two places where hands go, a till with no lock on it, and a slate of prices rubbed out and rewritten more times than it has been read. Behind it: the tool wall, the timber stack, and a rank of stoppered jars with a soft green light in them.
   discipline: scrum

@@ -5,7 +5,7 @@ class: /world/eternal/duncan-hall/thing/Desk
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: plain desk
+  keywords: [desk, plain]
   register: indefinite
-  primaryKeyword: desk
   longDescription: |
     A laminate desk with one shallow drawer and a lamp bolted to the corner. A ring from a mug that isn't there marks the surface.

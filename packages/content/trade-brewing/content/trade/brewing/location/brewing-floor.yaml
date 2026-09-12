@@ -18,9 +18,8 @@ data:
     y: 0
     z: 0
   shortDescription: "brewery floor"
+  keywords: [floor, brewery, brewhouse, yard]
   register: definite
-  primaryKeyword: floor
-  keywords: ["floor", "brewery", "brewhouse", "yard"]
   longDescription: |
     A wet stone floor under a roller door, and a working one: the copper tun steams by the standpipe, two oak vats stand chalk-tallied against the wall, the brewhouse board hangs over the paddle rack, and a wired jar of barm sits shoulder-high out of the draught. Stacked kegs wait by the door; the cold store is below.
   ambientIntensity: 25

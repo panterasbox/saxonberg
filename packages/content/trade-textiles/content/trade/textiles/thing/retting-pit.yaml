@@ -11,9 +11,8 @@ class: /trade/textiles/thing/RettingPit
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: retting pit
-  register: indefinite
-  primaryKeyword: pit
   keywords: [pit, pond, retting, water]
+  register: indefinite
   longDescription: |
     A stone-lined pool the length of a cart, brimful of water gone brown and still. Bundles are weighted under it with flat stones. The smell arrives about a second before you do and stays about an hour after you leave.
   _materialPath: /stuff/idea/material/rock/slate

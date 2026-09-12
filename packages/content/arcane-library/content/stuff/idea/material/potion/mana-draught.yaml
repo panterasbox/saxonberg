@@ -16,7 +16,7 @@ class: /system/arcana/idea/material/PotionMaterial
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: mana draught
-  keywords: [draught, potion, philtre]
+  keywords: [mana, draught, potion, philtre]
   density: 1080
   thermalConductivity: 0.6
   specificHeat: 3900

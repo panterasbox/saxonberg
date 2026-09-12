@@ -4,8 +4,8 @@ class: /platform/idea/material/ConsumableMaterial
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: juniper
+  keywords: [juniper]
   appearance: "a blue-black juniper berry"
-  keywords: ["juniper"]
   density: 800
   thermalConductivity: 0.5
   specificHeat: 3600

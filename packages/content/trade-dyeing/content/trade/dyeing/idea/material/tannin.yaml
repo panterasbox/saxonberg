@@ -10,8 +10,8 @@ class: /platform/idea/material/Material
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: tannin
+  keywords: [tannin]
   appearance: dark astringent tannin
-  keywords: [tannin, tannin]
   density: 1750
   thermalConductivity: 0.3
   hardness: 2

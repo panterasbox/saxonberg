@@ -8,8 +8,8 @@ class: /platform/thing/Flask
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: steel thermos
+  keywords: [steel, thermos, flask]
   register: indefinite
   longDescription: A dented steel thermos with a screw-top cap.
-  keywords: [thermos, flask]
   interiorBulk: true
   interiorCapacity: 0.5

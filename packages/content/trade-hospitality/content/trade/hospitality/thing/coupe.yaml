@@ -6,10 +6,9 @@ class: /platform/thing/ServingVessel
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: coupe
+  keywords: [coupe, glass, cocktail, cocktail-glass]
   register: indefinite
   longDescription: A stemmed cocktail glass, its bowl a shallow saucer.
-  primaryKeyword: coupe
-  keywords: [coupe, glass, cocktail, cocktail-glass]
   category: coupe
   interiorBulk: true
   interiorCapacity: 0.2

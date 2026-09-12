@@ -8,8 +8,8 @@ class: /platform/location/SingletonCartesianLocation
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: Mayfield Row
+  keywords: [row, mayfield]
   register: proper
-  primaryKeyword: row
   alternateNames: [street, mayfield]
   _address: terminus/mayfield-row
   _biomePath: /stuff/idea/biome/outdoor/baseline

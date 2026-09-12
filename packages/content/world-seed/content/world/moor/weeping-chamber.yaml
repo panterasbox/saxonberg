@@ -13,8 +13,8 @@ class: /platform/location/SingletonCartesianLocation
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: weeping chamber
+  keywords: [chamber, weeping]
   register: indefinite
-  primaryKeyword: chamber
   longDescription: |
     A windowless stone vault, its ceiling lost in the dark above. Water beads on every surface and falls in a thin, ceaseless indoor rain, pattering into a spreading pool across the flagstones. The air is cold and utterly saturated. No sky reaches here — and still it weeps.
   # A sheltered indoor biome (no sky) — the field deviations don't reach here.

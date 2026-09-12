@@ -9,8 +9,8 @@ class: /platform/location/SingletonCartesianLocation
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: shoulder
+  keywords: [shoulder]
   register: definite
-  primaryKeyword: shoulder
   alternateNames: [road, crest, top]
   _address: terminus/city/wharfside/shoulder
   _biomePath: /stuff/idea/biome/outdoor/baseline

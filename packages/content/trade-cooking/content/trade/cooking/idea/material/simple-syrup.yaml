@@ -3,8 +3,8 @@ class: /platform/idea/material/ConsumableMaterial
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: simple syrup
+  keywords: [simple, syrup, simple-syrup]
   appearance: "clear, viscous simple syrup"
-  keywords: ["syrup", "simple-syrup"]
   density: 1300
   thermalConductivity: 0.4
   specificHeat: 3000

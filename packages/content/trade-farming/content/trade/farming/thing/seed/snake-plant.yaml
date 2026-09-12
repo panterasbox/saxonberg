@@ -5,9 +5,8 @@ class: /platform/thing/Seed
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: snake plant seed
+  keywords: [seed, "snake plant seed", "snake seed", snake, plant]
   register: indefinite
-  primaryKeyword: seed
-  keywords: [seed, "snake plant seed", "snake seed"]
   longDescription: |
     A flat pale seed in a paper sleeve, with a pencilled note that reads: hard to kill.
   growsIntoPath: /trade/farming/thing/plant/snake-plant

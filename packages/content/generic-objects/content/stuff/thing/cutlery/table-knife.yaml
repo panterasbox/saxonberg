@@ -11,9 +11,8 @@ class: /platform/thing/Cutlery
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: table knife
+  keywords: [table-knife, knife, utensil, table]
   register: indefinite
-  primaryKeyword: table-knife
-  keywords: [table-knife, knife, utensil]
   longDescription: |
     A blunt-tipped knife with a broad flat blade, made for a table rather than a belt: it will part a roast and would embarrass anybody who drew it anywhere else.
   utensilKind: table-knife

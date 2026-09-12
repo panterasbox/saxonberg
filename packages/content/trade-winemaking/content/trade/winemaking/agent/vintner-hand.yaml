@@ -7,10 +7,10 @@ class: /platform/agent/Cast
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: Ilse Marrow
+  keywords: [hand, ilse, marrow, wiry, "vintner's", vintner, purple-stained, fingers]
   pronouns: they
   _speciesPath: /stuff/idea/species/animalia/chordata/mammalia/primates/hominidae/homo/sapiens
   lifecycleState: alive
-  primaryKeyword: hand
   alternateNames: ["ilse", "marrow"]
   shortDescription: "wiry vintner's hand with purple-stained fingers"
   register: indefinite

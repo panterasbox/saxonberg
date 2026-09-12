@@ -1360,6 +1360,110 @@ assertion, no authoring powers.
 
 ---
 
+## W6 — keywords are authored (added 2026-09-11, at the user's direction)
+
+Not in the plan. Raised in review of !255, and the census settled it
+before any argument did.
+
+### The finding
+
+| | |
+|---|---|
+| rows that author a `shortDescription` | 646 |
+| **rows that already author `keywords` by hand** | **568 (88%)** |
+| rows that author `autoDeriveKeywords: false` | **0** |
+
+⭐ **Derivation was saving authors nothing** — they were already writing
+the keywords — while what it produced was junk. A tailor described as
+*"tailor with pins down one cuff and a tape round her neck"* answered to
+`look with`, `look and`, `look her` and `look neck`. The `other` that
+made `getAuthoredPrimaryKeyword()` necessary came from exactly this.
+
+### The rule
+
+> **Keywords are authored. `primaryKeyword` is `keywords[0]` unless an
+> author pins one.**
+
+- `Perceptible.keywords` returns `_keywords` verbatim. The name/description
+  folding is gone; `autoDeriveKeywords` is gone with it (**zero** users).
+- `getAuthoredPrimaryKeyword()` **deleted**. With one value there is
+  nothing to disambiguate — and ⭐ the anonymity leak becomes
+  *unrepresentable* rather than guarded: a player authors no keywords, so
+  the handle chain's first rung is simply empty.
+- `lint:presentation` gains clause (d): a pinned `primaryKeyword` must be
+  in that row's own `keywords`, because a click sends `look <that word>`.
+
+### The sweep — 770 rows
+
+⭐ **`primaryKeyword` changed on 0 of 756 rows.** Each swept list leads
+with *today's* `getPrimaryKeyword()` answer, so every click sends exactly
+what it sent before. 182 targeting words dropped, **all function words
+but one** (`&`): `of` ×137, `in` ×13, `with` ×7.
+
+⚠ **`look super` failed today.** `tokenizeName` split on whitespace
+alone, so *"live-in super, keys jangling at her belt"* put **`super,`** —
+comma included — in the pool. The clean token was never there; the sweep
+strips punctuation, so those rows *gained* the word they should have had.
+
+### ⚠⚠ The host finding, again
+
+Clause (d) fired on **16 rows across 6 room classes** the day it existed.
+`Location` does **not** compose `Perceptible` (only `CartesianLocation`
+does), so `FurnishableRoom`, `Bar`, `Lounge`, `Offstage`, `DormRoom` and
+`Corridor` all missed it — and **every single `FurnishableRoom` row
+authors keyword fields.** Same shape as W3's 48 agent rows, fixed the
+same way. ⭐ The root observation — a room class built directly on
+`Location` has to *remember* — belongs to the mixin slate.
+
+### Seven runtime writers had to start saying it
+
+A thing minted in code has no row to author keywords in, and used to get
+them free from its description: the coat-check ticket, three crafting
+lumps, the keys, the cast lump, and `Coin` — whose description is
+**computed from its denomination**, so no author could ever have written
+them.
+
+### ⚠ My sweep had five bugs, and every one was caught by a gate
+
+Worth recording, because the pattern is that *I* was not the check:
+
+1. `rstrip("'s")` mangled plurals — `keys` → `key`.
+2. A token with a comma broke the YAML flow list.
+3. It rewrote a **nested** `keywords:` inside a detail block — matching
+   any indentation instead of the `data:` level. That broke a file, and
+   then the census **silently skipped** it (`catch { continue }`), so one
+   row escaped the sweep entirely.
+4. A bare `no` (from *"with no floor"*) parsed as **boolean false** —
+   `keyword.toLowerCase is not a function`, eleven tests deep in the
+   Sunken Delve.
+5. Quoting it fixed that and broke possessives: `'blacksmith's'` is
+   unterminated YAML. Double quotes.
+
+### The value-object ruling
+
+⭐⭐ **`NounPhrase` lost every static.** `GrammarApi.phrase()` /
+`properPhrase()` / `articleFor()` / `isRegister()` own construction now.
+
+The reason is mechanical, not stylistic: the author-surface projection
+admits **public Api statics** and **public instance methods**, and a
+static on a non-Api class is neither — so `NounPhrase.proper()` was
+*callable by anyone and visible to nobody*, which the governing
+invariant `callable == visible == cared-about` forbids outright.
+
+⚠ **24 other value classes still break it** (`Money.of`, `Position.of`,
+`Position.fromData`…) →
+[value-object-statics-slate](../slates/tails/value-object-statics-slate.md).
+
+### ⚠ And a gate I was not running
+
+Two ESLint errors sat in `NounPhrase.ts` for the whole build — free
+exported functions in `lib/`, which `no-restricted-syntax` refuses. **I
+ran `lint:family` after every wave and never ran `pnpm lint`**, and the
+export-discipline rule is an ESLint rule, not a `lint:*` gate. The
+family cannot see it. ⭐ Same shape as *"a gate that reports and exits 0
+is a gate you have not run"*, one step sideways: **a rule that is not in
+the family you run is a rule you are not running.**
+
 ## Deferred seams
 
 - **Minimal-distinguishing rendering** → [naming-slate.md](../slates/tails/naming-slate.md):

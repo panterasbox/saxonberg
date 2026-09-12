@@ -82,6 +82,7 @@ import { AddressApi } from '@saxonberg/server/mud/api/address';
 import { CelestialApi } from '@saxonberg/server/mud/api/celestial';
 import type { Stuff, PresentationView } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import { NounPhrase } from '@saxonberg/server/mud/lib/description/NounPhrase';
+import { GrammarApi } from '@saxonberg/server/mud/api/grammar';
 import type { Container } from '@saxonberg/server/mud/lib/spatial/Container';
 import type { FieldMeta } from '@saxonberg/server/mud/lib/mixin';
 import GroundCharacter, {
@@ -616,7 +617,7 @@ export default class Field extends FieldBase {
    */
   public override presentationPhrase(view: PresentationView = 'own'): NounPhrase {
     return this.fieldName
-      ? NounPhrase.proper(this.fieldName)
+      ? GrammarApi.properPhrase(this.fieldName)
       : super.presentationPhrase(view);
   }
 

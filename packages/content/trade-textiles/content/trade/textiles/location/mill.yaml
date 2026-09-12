@@ -19,9 +19,8 @@ data:
     y: 0
     z: 0
   shortDescription: "mill floor"
-  register: definite
-  primaryKeyword: floor
   keywords: [floor, mill, shed, spinning]
+  register: definite
   longDescription: |
     A long low shed with the river running under one end of it. Wheels on the left, looms on the right, and between them a permanent haze of dust that catches the light coming through the shutters.
 

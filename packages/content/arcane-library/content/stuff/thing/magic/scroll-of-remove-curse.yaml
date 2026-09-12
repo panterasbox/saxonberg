@@ -12,8 +12,8 @@ class: /system/arcana/thing/Scroll
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: scroll of remove curse
+  keywords: [scroll, remove, curse]
   register: indefinite
-  primaryKeyword: scroll
   longDescription: >
     A short strip of vellum, the lettering pressed rather than inked and
     laid out in a spiral that reads inward. Read it upon a thing that

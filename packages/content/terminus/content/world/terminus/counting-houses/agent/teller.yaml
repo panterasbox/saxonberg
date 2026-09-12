@@ -8,10 +8,10 @@ class: /platform/agent/Cast
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: Wenna
+  keywords: [teller, wenna, brisk, goodkin]
   pronouns: she
   _speciesPath: /stuff/idea/species/animalia/chordata/mammalia/primates/hominidae/homo/sapiens
   lifecycleState: alive
-  primaryKeyword: teller
   alternateNames:
     - wenna
     - clerk

@@ -5,9 +5,8 @@ class: /platform/thing/Seed
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: packet of carrot seed
+  keywords: [seed, seeds, packet, "carrot seed", carrot]
   register: indefinite
-  primaryKeyword: seed
-  keywords: [seed, seeds, packet, "carrot seed"]
   longDescription: |
     A paper packet with the corner torn off, holding more of the tiny ridged seeds than anyone could count.
   growsIntoPath: /trade/farming/thing/plant/carrot

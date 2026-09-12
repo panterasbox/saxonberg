@@ -5,9 +5,8 @@ class: /platform/thing/Thing
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: folded tanned hide
+  keywords: [hide, leather, skin, folded, tanned]
   register: indefinite
-  primaryKeyword: hide
-  keywords: [hide, leather, skin]
   longDescription: |
     A supple tanned hide folded square, edges trimmed, smelling of the tannery.
   _materialPath: /stuff/idea/material/organic/leather

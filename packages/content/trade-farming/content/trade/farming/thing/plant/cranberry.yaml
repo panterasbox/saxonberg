@@ -6,9 +6,8 @@ class: /platform/thing/Plant
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: cranberry shrub
-  register: indefinite
-  primaryKeyword: "cranberry"
   keywords: [cranberry, shrub, bush, plant]
+  register: indefinite
   longDescription: |
     A low, wiry cranberry shrub, runners spreading flat over the soil.
   _speciesPath: /stuff/idea/species/plantae/tracheophyta/magnoliopsida/ericales/ericaceae/vaccinium/macrocarpon

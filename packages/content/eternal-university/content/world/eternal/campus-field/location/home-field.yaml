@@ -20,9 +20,8 @@ hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   fieldName: the home field
   shortDescription: home field
+  keywords: [field, "home field", ground, ley, home]
   register: definite
-  primaryKeyword: field
-  keywords: [field, "home field", ground, ley]
   longDescription: |
     Four hundred square metres of good level ground behind the yard, laid
     down to a clover ley that is a shade greener than it has any business

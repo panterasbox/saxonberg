@@ -5,9 +5,8 @@ class: /platform/thing/Seed
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: packet of weld seed
-  register: indefinite
-  primaryKeyword: seed
   keywords: [seed, seeds, packet, "weld seed", weld, rocket]
+  register: indefinite
   longDescription: |
     Far more seed than the packet ought to hold, which is what weld is like. Half of it will come up where you did not put it.
   growsIntoPath: /trade/farming/thing/plant/weld

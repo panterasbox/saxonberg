@@ -24,8 +24,8 @@ hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   seatIn: /world/newbie-wilds/crossroads/hub
   shortDescription: Teleport Authority terminal
+  keywords: [terminal, crossroads, frontier, teleport, authority]
   register: indefinite
-  keywords: [crossroads, frontier]
   directionality: both
   status: operational
   surcharge: 2

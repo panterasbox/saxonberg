@@ -5,8 +5,7 @@
 class: /platform/thing/ToolItem
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  primaryKeyword: assay
-  keywords: ["assay", "assay-kit", "balance", "scale"]
+  keywords: [assay, assay-kit, balance, scale, "assayer's", assayer, kit]
   shortDescription: assayer's kit
   register: indefinite
   longDescription: >-

@@ -5,9 +5,8 @@ class: /platform/thing/Seed
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: packet of madder seed
-  register: indefinite
-  primaryKeyword: seed
   keywords: [seed, seeds, packet, "madder seed", madder, alizarin]
+  register: indefinite
   longDescription: |
     A pinch of dark seed, and a note on the packet in somebody else's hand saying THREE YEARS, underlined twice.
   growsIntoPath: /trade/farming/thing/plant/madder

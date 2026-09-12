@@ -7,9 +7,8 @@ class: /trade/cooking/thing/SaltingTrough
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: salting trough
-  register: indefinite
-  primaryKeyword: trough
   keywords: [trough, salting, salting-trough, tub]
+  register: indefinite
   longDescription: |
     A long trough hollowed out of a single block of grey stone, standing on trestles at hip height. The inside is bleached and slightly powdery to the touch; there is a plug at the low end for the brine to run off.
   _materialPath: /stuff/idea/material/rock/granite

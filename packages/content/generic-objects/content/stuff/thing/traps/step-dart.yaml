@@ -9,8 +9,8 @@ class: /platform/thing/Trap
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: needle-slotted dart plate
+  keywords: [dart, needle-slotted, plate]
   register: indefinite
-  primaryKeyword: dart
   longDescription: |
     A flagstone rigged over a spring: tread it and a poisoned needle drives up through a slot no wider than a straw. The venom is old but not dead.
   concealment: hidden

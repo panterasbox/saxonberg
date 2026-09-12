@@ -643,7 +643,6 @@ PartyRecord.memberIds = 0
 PartyRecord.name = 0
 PartyRecord.path = 0
 PartyRecord.roleAssignments = 0
-PerceptibleMixin.autoDeriveKeywords = 0
 PerceptibleMixin.keywords = 0
 PerceptibleMixin.primaryKeyword = 0
 PersistedRecord.owner = 0

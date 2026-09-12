@@ -5,9 +5,8 @@ class: /platform/thing/equipment/PortableLight
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: punched-tin lantern
+  keywords: [lantern, lamp, light, tin, punched-tin]
   register: indefinite
-  primaryKeyword: lantern
-  keywords: [lantern, lamp, light, tin]
   longDescription: |
     A punched-tin lantern with a little glass door and a hook to hang it by. Lit, it throws a steady patterned light where a torch only gutters. It costs more than a fistful of torches and is worth it the first time you need both hands and still want to see.
   on: false

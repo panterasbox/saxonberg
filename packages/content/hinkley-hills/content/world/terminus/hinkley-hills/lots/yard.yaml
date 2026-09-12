@@ -31,8 +31,8 @@ class: /platform/location/FurnishableRoom
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: yard behind the house
+  keywords: [yard, behind, house]
   register: definite
-  primaryKeyword: yard
   alternateNames: [garden, back, plot]
   _biomePath: /stuff/idea/biome/outdoor/baseline
   # Full open sky — the whole point of being out here. A carrot wants 120

@@ -5,7 +5,7 @@ class: /platform/thing/Bandage
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: clean bandage
+  keywords: [bandage, clean]
   register: indefinite
-  primaryKeyword: bandage
   longDescription: A roll of clean white gauze, the kind kept in every first-aid tin. Enough to dress a wound once.
   dressingQuality: 1

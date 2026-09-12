@@ -5,9 +5,8 @@ class: /platform/thing/Provision
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: lemon
-  register: indefinite
-  primaryKeyword: lemon
   keywords: [lemon, lemons, produce]
+  register: indefinite
   longDescription: "A bright yellow lemon."
   _materialPath: /trade/farming/idea/material/lemon
   gradeBand: fair

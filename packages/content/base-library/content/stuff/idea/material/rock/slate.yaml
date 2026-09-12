@@ -13,6 +13,7 @@ class: /platform/idea/material/Material
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: slate
+  keywords: [slate]
   density: 2750
   specificHeat: 760
   thermalConductivity: 2.0

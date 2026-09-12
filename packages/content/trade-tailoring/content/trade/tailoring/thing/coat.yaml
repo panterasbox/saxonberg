@@ -7,9 +7,8 @@ class: /platform/thing/equipment/Garment
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: linen coat
-  register: indefinite
-  primaryKeyword: coat
   keywords: [coat, linen]
+  register: indefinite
   longDescription: |
     A long coat, close-woven and lined at the shoulders. It is the most cloth anybody puts on at one time, which is why it costs what it costs.
   slotClaims:

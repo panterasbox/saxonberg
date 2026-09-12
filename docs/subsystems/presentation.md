@@ -16,10 +16,19 @@ different sides: *who is reading* and *what does this sentence need*.
 a count**.
 
 ```ts
-NounPhrase.of('collie', 'definite')   // the collie
-  .withCount(2)                       // 2 collies
-  .possessive()                       // 2 collies'
+GrammarApi.phrase('collie', 'definite')   // the collie
+  .withCount(2)                           // 2 collies
+  .possessive()                           // 2 collies'
 ```
+
+⚠ **Built through the Api, never `new` and never a static on the value
+class.** Construction is an Api concern — the same rule that sends
+`new SomeStuff()` through `StuffApi.create` — and the reason is
+mechanical: the author-surface projection admits public **Api statics**
+and public **instance methods**, so a static on a `lib/` class is
+*callable by anyone and visible to nobody*. ⭐ 24 other value classes in
+this tree still break that; see
+[value-object-statics-slate](../slates/tails/value-object-statics-slate.md).
 
 `Stuff.getPresentation()` is `presentationPhrase().render()`. Its
 signature never changed, so all ~265 callers, the wire's `displayName`,
@@ -263,6 +272,7 @@ which is a guard.
 | piece | file |
 |---|---|
 | the value object + both vocabularies | `lib/description/NounPhrase.ts` |
+| **building one** (`phrase` · `properPhrase` · `articleFor`) | `api/grammar.ts` |
 | `register` | `lib/description/Visible.ts` |
 | `presentationPhrase` · `handlePhrase` · `describeFor(viewer, form)` | `lib/stuff/Stuff.ts` |
 | form resolution on the wire | `api/mml.ts` |

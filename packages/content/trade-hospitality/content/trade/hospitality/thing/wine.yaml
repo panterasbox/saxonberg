@@ -4,10 +4,9 @@ class: /platform/thing/ServingVessel
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: wine glass
+  keywords: [wine, glass, wine-glass]
   register: indefinite
   longDescription: A stemmed wine glass with a generous bowl.
-  primaryKeyword: wine
-  keywords: [wine, glass, wine-glass]
   category: wine
   interiorBulk: true
   interiorCapacity: 0.25

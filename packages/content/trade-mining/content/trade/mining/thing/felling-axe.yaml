@@ -2,8 +2,7 @@
 class: /platform/thing/ToolItem
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  primaryKeyword: axe
-  keywords: ["axe", "felling-axe"]
+  keywords: [axe, felling-axe, felling]
   shortDescription: felling axe
   register: indefinite
   longDescription: >-

@@ -21,6 +21,7 @@ class: /platform/thing/BankCounter
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: Goodkin teller counter
+  keywords: [goodkin, counter, teller, desk, window, till, grille]
   register: definite
   longDescription: |
     A long counter of honey-coloured wood topped with a brass rail, a worn
@@ -29,7 +30,6 @@ data:
     the public side from the till and the vault beyond. It is kept scrupulously
     tidy, and there is always, somehow, a fresh cup of coffee going cold on the
     customer's side of it.
-  keywords: [counter, teller, desk, window, till, grille]
   corpoKey: goodkin
   terms:
     minBalance: 0

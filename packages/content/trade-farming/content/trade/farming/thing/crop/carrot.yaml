@@ -14,9 +14,8 @@ class: /platform/thing/Crop
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: bunch of carrots
+  keywords: [carrots, carrot, bunch, vegetable, veg]
   register: indefinite
-  primaryKeyword: carrots
-  keywords: [carrot, carrots, bunch, vegetable, veg]
   longDescription: |
     A bunch of carrots with the tops still on, tied at the neck with twine and smelling of cold earth.
   material: /stuff/idea/material/food/root-vegetable

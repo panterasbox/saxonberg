@@ -6,8 +6,8 @@ class: /platform/location/SingletonCartesianLocation
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: timber woodshed
+  keywords: [woodshed, timber]
   register: indefinite
-  primaryKeyword: woodshed
   longDescription: |
     An open-fronted woodshed, its racks stacked with split oak seasoning for the winter. One log near the eaves is dark and swollen with rain.
   # ⚠⚠ **An interior with no authored ambient and nothing lit inside it

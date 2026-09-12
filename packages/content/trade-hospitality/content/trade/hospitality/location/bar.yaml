@@ -22,9 +22,9 @@ data:
     y: 0
     z: 0
   name: a bar
+  keywords: [taproom, bar, barroom]
   description: |
     A narrow room with a long bar down one side, stools along it, the back-bar mirrored and lit from beneath. A brass tap handle stands over its drip tray; the ice bin and the well sit under the lip where the bartender works.
-  keywords: [bar, barroom, taproom]
   props:
     # The back-bar and the well: the Surfaced shelves the working bottles
     # rest ON once bought (`put gin on back-bar`). Listed before their

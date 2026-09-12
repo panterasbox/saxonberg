@@ -6,8 +6,8 @@ class: /platform/location/SingletonCartesianLocation
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: Departure Gate B
+  keywords: [b, departure, gate]
   register: proper
-  primaryKeyword: gate-b
   longDescription: |
     A departure gate off the hall, cordoned off behind a folding barrier. Its terminal stands dark, the status light a dead grey; a laminated notice zip-tied to the rail reads OUT OF SERVICE — thank you for your patience. Dust has settled on the platform. Whatever line ran from here doesn't, for now.
   coords:

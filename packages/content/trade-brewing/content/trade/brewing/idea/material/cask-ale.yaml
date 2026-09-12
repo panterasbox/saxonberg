@@ -6,9 +6,8 @@ class: /platform/idea/material/ConsumableMaterial
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: cask ale
-  primaryKeyword: ale
+  keywords: [ale, "cask ale", beer, cask]
   appearance: "a soft-glowing amber ale with a live, fine bead"
-  keywords: ["ale", "cask ale", "beer"]
   density: 1010
   thermalConductivity: 0.5
   specificHeat: 3900

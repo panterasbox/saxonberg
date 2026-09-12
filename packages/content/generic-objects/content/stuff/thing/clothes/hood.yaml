@@ -2,8 +2,8 @@ class: /platform/thing/equipment/DisguiseGarment
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: deep grey hood
+  keywords: [hood, deep, grey]
   register: indefinite
-  primaryKeyword: hood
   longDescription: >
     A plain grey hood of coarse wool, cut deep enough to throw a face
     into shadow. Drawn up, it leaves little to recognize but a shape.

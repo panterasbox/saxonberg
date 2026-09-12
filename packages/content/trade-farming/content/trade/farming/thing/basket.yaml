@@ -5,7 +5,6 @@ class: /platform/thing/Crate
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: wicker basket
-  register: indefinite
-  primaryKeyword: basket
   keywords: [basket, wicker, empty]
+  register: indefinite
   longDescription: A wide wicker basket with a bent-cane handle.

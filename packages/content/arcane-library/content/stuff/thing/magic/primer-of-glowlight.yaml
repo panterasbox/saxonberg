@@ -21,8 +21,8 @@ class: /system/arcana/thing/Spellbook
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: slim grey primer
+  keywords: [primer, slim, grey]
   register: indefinite
-  primaryKeyword: primer
   longDescription: >
     A thin volume in grey board, the spine cracked from being opened flat
     too often. Someone has pencilled corrections in the margins.

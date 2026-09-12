@@ -19,10 +19,10 @@ class: /world/eternal/duncan-hall/agent/Katie
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: Katie
+  keywords: [katie, live-in, super, keys, jangling, belt]
   pronouns: she
   _speciesPath: /stuff/idea/species/animalia/chordata/mammalia/primates/hominidae/homo/trollius
   lifecycleState: alive
-  primaryKeyword: katie
   # Owner-authored spawn loadout: the super's master ring (a physical master
   # key for every pin-tumbler dorm lock), cloned into her inventory at
   # hydration. Conferred here, not self-issued in her class code.

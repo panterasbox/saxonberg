@@ -24,9 +24,8 @@ class: /trade/tailoring/thing/CuttingTool
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: pair of shears
+  keywords: [shears, scissors, snips, pair]
   register: indefinite
-  primaryKeyword: shears
-  keywords: [shears, scissors, snips]
   longDescription: |
     Iron, a hand span long, with a bow spring at the hinge and one blade worn brighter than the other. They will cut anything soft, and they do not care what you have laid it on.
   capabilities:

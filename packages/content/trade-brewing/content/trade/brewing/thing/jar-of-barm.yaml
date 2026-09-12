@@ -4,9 +4,8 @@ class: /platform/thing/Vat
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: jar of barm
-  register: indefinite
-  primaryKeyword: jar
   keywords: [jar, barm, culture]
+  register: indefinite
   longDescription: A wired glass jar of tan, bready sediment — the house yeast.
   category: culture-jar
   interiorBulk: true

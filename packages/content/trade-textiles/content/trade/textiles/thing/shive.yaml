@@ -8,9 +8,8 @@ class: /trade/textiles/thing/TextileStock
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: heap of shive
+  keywords: [shive, boon, chaff, woody, heap]
   register: indefinite
-  primaryKeyword: shive
-  keywords: [shive, boon, chaff, woody]
   longDescription: |
     Splintered woody chaff, ankle-deep where the board stands. It burns fast and hot and dirty, and it makes a warm dry bedding for anything with four legs.
   _materialPath: /stuff/idea/material/wood/oak

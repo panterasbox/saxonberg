@@ -6,9 +6,8 @@ class: /platform/thing/Cutlery
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: table fork
+  keywords: [fork, table-fork, utensil, table]
   register: indefinite
-  primaryKeyword: fork
-  keywords: [fork, table-fork, utensil]
   longDescription: |
     A two-tined iron fork with a scrubbed wooden handle, the tines splayed a little wider than they left the smithy.
   utensilKind: fork

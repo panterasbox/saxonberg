@@ -30,6 +30,7 @@
 import type { MixinConstructor, FieldMeta } from '../mixin';
 import type { Stuff, PresentationView } from '../stuff/Stuff';
 import { NounPhrase } from '../description/NounPhrase';
+import { GrammarApi } from '../../api/grammar';
 import { CallSecurity } from '../security/decorators';
 import { SecurityPolicies } from '../security/SecurityPolicies';
 import { Authority, type PrincipalRef } from './Authority';
@@ -221,7 +222,7 @@ export function OrganizationMixin<TBase extends MixinConstructor>(
      */
     public presentationPhrase(view: PresentationView = 'own'): NounPhrase {
       return this.name.length > 0
-        ? NounPhrase.proper(this.name)
+        ? GrammarApi.properPhrase(this.name)
         : super.presentationPhrase(view);
     }
 

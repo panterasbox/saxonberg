@@ -12,9 +12,8 @@ class: /platform/thing/Plant
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: stand of flax
+  keywords: [flax, linseed, stems, crop, stand]
   register: indefinite
-  primaryKeyword: flax
-  keywords: [flax, linseed, stems, crop]
   longDescription: |
     Slender blue-flowered stems standing close and straight, grown crowded on purpose so none of them branches. A branch is a break in the fibre, and a break in the fibre is a short line.
   _speciesPath: /stuff/idea/species/plantae/tracheophyta/magnoliopsida/malpighiales/linaceae/linum/usitatissimum

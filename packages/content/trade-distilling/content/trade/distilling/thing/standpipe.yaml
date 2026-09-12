@@ -4,7 +4,6 @@ class: /platform/thing/WaterFixture
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: iron standpipe
+  keywords: [standpipe, tap, pipe, iron]
   register: indefinite
-  primaryKeyword: standpipe
-  keywords: [standpipe, tap, pipe]
   longDescription: An iron standpipe over a stone gutter.

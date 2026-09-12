@@ -6,8 +6,8 @@ class: /platform/idea/material/ConsumableMaterial
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: aperitivo
-  appearance: a bright red, bittersweet aperitivo
   keywords: [aperitivo]
+  appearance: a bright red, bittersweet aperitivo
   density: 940
   thermalConductivity: 0.17
   specificHeat: 2400

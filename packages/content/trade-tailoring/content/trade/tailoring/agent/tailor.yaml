@@ -9,10 +9,10 @@ class: /platform/agent/Cast
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: Vasca Idrin
+  keywords: [tailor, vasca, idrin, pins, down, one, cuff, tape, round, neck]
   pronouns: she
   _speciesPath: /stuff/idea/species/animalia/chordata/mammalia/primates/hominidae/homo/sapiens
   lifecycleState: alive
-  primaryKeyword: tailor
   alternateNames: ["vasca", "idrin"]
   shortDescription: "tailor with pins down one cuff and a tape round her neck"
   register: indefinite

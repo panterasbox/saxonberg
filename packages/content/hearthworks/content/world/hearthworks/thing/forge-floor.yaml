@@ -5,7 +5,7 @@ class: /platform/thing/Floor
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: stone floor
+  keywords: [stone, floor, ground]
   register: indefinite
-  keywords: [floor, ground, stone]
   surfaceBulk: true
   surfaceCapacity: 200

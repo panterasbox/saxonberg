@@ -7,8 +7,7 @@ hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   _speciesPath: /stuff/idea/species/animalia/chordata/mammalia/primates/hominidae/homo/sensitivus
   lifecycleState: alive
-  primaryKeyword: buyer
-  keywords: [buyer, assayer]
+  keywords: [buyer, assayer, ore]
   shortDescription: ore buyer
   register: definite
   longDescription: >-

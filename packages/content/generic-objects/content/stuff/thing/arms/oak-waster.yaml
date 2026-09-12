@@ -2,9 +2,8 @@ class: /platform/thing/equipment/Weapon
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: oak waster
+  keywords: [waster, sword, practice-sword, oak]
   register: indefinite
-  primaryKeyword: waster
-  keywords: ["waster", "sword", "practice-sword"]
   longDescription: >
     A practice sword carved from a single billet of oak — an arming sword's
     weight, length, and crossguard, with a rounded "edge" that couldn't cut

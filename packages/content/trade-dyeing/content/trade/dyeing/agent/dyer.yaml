@@ -8,10 +8,10 @@ class: /platform/agent/Cast
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: Ilva Marrow
+  keywords: [dyer, ilva, marrow, hands, blue, wrist, will, come, clean]
   pronouns: she
   _speciesPath: /stuff/idea/species/animalia/chordata/mammalia/primates/hominidae/homo/sapiens
   lifecycleState: alive
-  primaryKeyword: dyer
   alternateNames: ["ilva", "marrow"]
   shortDescription: "dyer whose hands are blue to the wrist and will not come clean"
   register: indefinite

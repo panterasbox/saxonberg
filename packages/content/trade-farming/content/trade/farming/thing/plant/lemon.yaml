@@ -5,9 +5,8 @@ class: /platform/thing/Plant
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: lemon tree
-  register: indefinite
-  primaryKeyword: "lemon tree"
   keywords: ["lemon tree", lemon, tree, citrus, plant]
+  register: indefinite
   longDescription: |
     A lemon tree with pale, sharp-scented leaves and thorns you find the hard way.
   _speciesPath: /stuff/idea/species/plantae/tracheophyta/magnoliopsida/sapindales/rutaceae/citrus/limon

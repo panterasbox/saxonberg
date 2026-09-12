@@ -12,9 +12,8 @@ class: /platform/thing/Chair
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: bed
-  register: indefinite
-  primaryKeyword: bed
   keywords: [bed, mattress, bedding]
+  register: indefinite
   longDescription: |
     A proper bed — a wooden frame, a deep mattress, blankets turned down at one corner. It looks like somewhere you could actually sleep.
   # An authored constant, deliberately: making it DERIVE from bedding

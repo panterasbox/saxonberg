@@ -2,8 +2,8 @@ class: /platform/thing/equipment/Weapon
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: arming sword
+  keywords: [sword, arming]
   register: indefinite
-  primaryKeyword: sword
   longDescription: >
     A plain, well-balanced single-handed sword of good steel, a straight
     double edge and an honest crossguard. It neither reaches like a spear nor

@@ -5,7 +5,6 @@ class: /platform/thing/WaterFixture
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: brass standpipe
+  keywords: [standpipe, tap, pipe, brass]
   register: indefinite
-  primaryKeyword: standpipe
-  keywords: [standpipe, tap, pipe]
   longDescription: A brass standpipe over a drain grate, its handle polished bright.

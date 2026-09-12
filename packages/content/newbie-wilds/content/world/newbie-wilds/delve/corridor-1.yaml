@@ -11,8 +11,8 @@ class: /platform/location/SingletonCartesianLocation
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: low slab-floored corridor
+  keywords: [corridor, low, slab-floored]
   register: indefinite
-  primaryKeyword: corridor
   longDescription: |
     The passage runs on into the hill, flag-stoned and close, the air cool and still and smelling of wet stone. The slabs underfoot are not all the same — a few sit a hair proud of their neighbours, or a hair sunk, the way a floor does when something was set beneath it.
 

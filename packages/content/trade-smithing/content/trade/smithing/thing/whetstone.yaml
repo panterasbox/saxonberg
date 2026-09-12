@@ -5,9 +5,8 @@ class: /trade/smithing/thing/Whetstone
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: smithy whetstone
+  keywords: [whetstone, stone, hone, smithy]
   register: indefinite
-  primaryKeyword: whetstone
-  keywords: [whetstone, stone, hone]
   longDescription: |
     A palm-sized bar of grey granite, one face dished by years of blades.
   capabilities:

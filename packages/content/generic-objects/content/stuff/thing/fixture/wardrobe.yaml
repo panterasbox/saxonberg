@@ -11,9 +11,8 @@ class: /platform/thing/Chest
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: pine wardrobe
+  keywords: [wardrobe, closet, press, doors, pine]
   register: indefinite
-  primaryKeyword: wardrobe
-  keywords: [wardrobe, closet, press, doors]
   longDescription: |
     A tall pine wardrobe with two doors and a brass turn-catch, deep enough to hang a coat full-length. The inside smells of cedar shavings and, faintly, of whoever owned it last.
   open: false

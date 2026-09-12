@@ -8,6 +8,7 @@ class: /platform/location/sandbox/CircleFloor
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: the circle floor
+  keywords: [bare, circle, floor]
   shortDescription: bare circle floor
   register: indefinite
   longDescription: >

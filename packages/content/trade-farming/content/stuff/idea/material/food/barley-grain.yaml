@@ -4,8 +4,8 @@ class: /platform/idea/material/Material
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: barley grain
+  keywords: [corn, barley, grain]
   appearance: pale gold, plump and hulled
-  keywords: [barley, grain, corn]
   density: 620
   specificHeat: 1900
   thermalConductivity: 0.16

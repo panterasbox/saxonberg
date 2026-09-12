@@ -5,9 +5,8 @@ class: /platform/thing/Provision
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: drift of pale ash
+  keywords: [ash, ashes, drift, pale]
   register: indefinite
-  primaryKeyword: ash
-  keywords: [ash, ashes]
   longDescription: >-
     Fine pale ash, still warm, lifting in any draught. A week's cutting
     and three days' watching, gone up the chimney of a hole in the ground.

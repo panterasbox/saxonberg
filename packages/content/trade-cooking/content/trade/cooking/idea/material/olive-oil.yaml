@@ -7,8 +7,8 @@ class: /platform/idea/material/ConsumableMaterial
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: olive oil
+  keywords: [olive, oil, olive-oil]
   appearance: green-gold olive oil
-  keywords: [oil, olive-oil, olive]
   density: 915
   thermalConductivity: 0.17
   specificHeat: 2000

@@ -8,10 +8,10 @@ class: /platform/agent/Cast
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: Adren Coll
+  keywords: [weaver, adren, coll, shuttle, one, hand, tally, other]
   pronouns: he
   _speciesPath: /stuff/idea/species/animalia/chordata/mammalia/primates/hominidae/homo/sapiens
   lifecycleState: alive
-  primaryKeyword: weaver
   alternateNames: ["adren", "coll"]
   shortDescription: "weaver with a shuttle in one hand and a tally in the other"
   register: indefinite

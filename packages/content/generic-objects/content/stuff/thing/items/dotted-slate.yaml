@@ -25,9 +25,8 @@ class: /platform/thing/Signpost
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: small dotted slate
+  keywords: [slate, tablet, dots, small, dotted]
   register: indefinite
-  primaryKeyword: slate
-  keywords: [slate, tablet, dots]
   longDescription: >
     A hand-sized slate of grey stone, its face worked into neat ranks of
     raised dots. Whoever made it cared about the spacing.

@@ -5,10 +5,10 @@ class: /platform/agent/Crafter
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: Remy
+  keywords: [remy, grinning, fast-talking, tiefling]
   pronouns: he
   _speciesPath: /stuff/idea/species/animalia/chordata/mammalia/primates/hominidae/homo/infernalis
   lifecycleState: alive
-  primaryKeyword: remy
   shortDescription: grinning, fast-talking tiefling
   register: indefinite
   longDescription: |

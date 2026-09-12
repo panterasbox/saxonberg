@@ -5,8 +5,8 @@ class: /platform/location/SingletonCartesianLocation
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: casting yard
+  keywords: [yard, casting]
   register: definite
-  primaryKeyword: yard
   longDescription: |
     A flagstone practice yard, scorch-ringed at the centre where workings land. A straw practice dummy slumps on its post, and a stone basin squats by the wall for the water exercises.
   coords:

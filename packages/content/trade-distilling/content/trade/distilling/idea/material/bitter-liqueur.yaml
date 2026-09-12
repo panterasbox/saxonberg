@@ -6,8 +6,8 @@ class: /platform/idea/material/ConsumableMaterial
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: bitter liqueur
+  keywords: [liqueur, bitter-liqueur, bitter]
   appearance: a dark, herbal bitter liqueur
-  keywords: [bitter-liqueur]
   density: 940
   thermalConductivity: 0.17
   specificHeat: 2400

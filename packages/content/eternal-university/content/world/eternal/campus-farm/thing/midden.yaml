@@ -5,8 +5,7 @@ class: /platform/thing/Thing
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: steaming midden
+  keywords: [midden, steaming]
   register: indefinite
-  primaryKeyword: midden
-  keywords: [midden]
   longDescription: >-
     A heap of straw and dung with the rain steaming off it, turned at one end and settled at the other.

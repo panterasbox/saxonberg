@@ -6,9 +6,8 @@ class: /trade/mining/location/MineRoom
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: junction
-  register: indefinite
-  primaryKeyword: junction
   keywords: [junction, crossing, meeting]
+  register: indefinite
   longDescription: |
     A place where ways meet, cut wider than either of them and timbered heavier for it.
   oreRow: /world/rejection/thing/copper-ore

@@ -2,8 +2,8 @@ class: /platform/thing/equipment/Shield
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: steel-faced shield
+  keywords: [shield, steel-faced]
   register: indefinite
-  primaryKeyword: shield
   longDescription: >
     A broad round shield, oak-boarded and faced in steel. Held up between you
     and one foe it turns almost anything — but it guards only what it faces,

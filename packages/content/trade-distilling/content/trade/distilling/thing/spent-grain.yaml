@@ -3,9 +3,8 @@ class: /platform/thing/Receptacle
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: sack of spent grain
+  keywords: [grain, sack, draff, "spent grain", spent]
   register: indefinite
-  primaryKeyword: grain
-  keywords: [grain, sack, draff, "spent grain"]
   longDescription: A dripping sack of spent grain, warm and sweet-sour.
   interiorBulk: true
   interiorCapacity: 8

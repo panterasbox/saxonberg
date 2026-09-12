@@ -16,10 +16,10 @@ class: /platform/agent/Cast
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: Halloran
+  keywords: [halloran, goodkin, branch, officer]
   pronouns: he
   _speciesPath: /stuff/idea/species/animalia/chordata/mammalia/primates/hominidae/homo/sapiens
   lifecycleState: alive
-  primaryKeyword: halloran
   alternateNames:
     - officer
     - mr halloran

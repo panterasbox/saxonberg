@@ -11,9 +11,8 @@ class: /world/terminus/university-avenue/thing/CrossingLog
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: crossing-log clipboard
-  register: indefinite
-  primaryKeyword: log
   keywords: [log, clipboard, tally, ledger, crossing-log]
+  register: indefinite
   longDescription: |
     A hardboard clipboard, its metal clip biting a thick sheaf of tally paper. Column on column of neat hand-made ticks march down the pages, each a soul walked safely across, each timed to the minute in a watch-hand that runs a little slow — and not one of them a name. It is the record of everyone, kept by the man who remembers no one.
   startingCount: 1244

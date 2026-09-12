@@ -3,8 +3,7 @@
 class: /platform/thing/ToolItem
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  primaryKeyword: tongs
-  keywords: ["tongs"]
+  keywords: [tongs, pair, long]
   shortDescription: pair of long tongs
   register: indefinite
   longDescription: >-

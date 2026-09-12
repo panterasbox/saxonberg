@@ -719,10 +719,13 @@ function reconcileBulkPhase(v: Stuff & Bulkable & Thermal): void {
     void StuffApi.clone(CASTING_TEMPLATE_PATH).then((cast) => {
       const c = cast as unknown as Stuff & {
         setShortDescription(s: string): void;
+        setKeywords(k: string[]): void;
         setMaterial(m: Material): void;
         setMass(q: Quantity<'kg'>): void;
       };
       c.setShortDescription(`cast lump of ${mat.getName()}`);
+      // ⚠ Authored keywords — the pool no longer derives from the prose.
+      c.setKeywords(['lump', 'cast', ...mat.getName().split(/\s+/)]);
       c.setMaterial(mat);
       c.setMass(Quantity.of(massKg, 'kg'));
       if (scope && MixinApi.isContainer(scope)) {

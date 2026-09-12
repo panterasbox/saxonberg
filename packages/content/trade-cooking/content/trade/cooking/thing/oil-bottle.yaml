@@ -5,10 +5,9 @@ class: /platform/thing/CraftVessel
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: oil bottle
+  keywords: [oil-bottle, bottle, oil]
   register: indefinite
   longDescription: A dark green bottle with a long neck and a cork, greasy at the lip whatever anybody does about it.
-  primaryKeyword: oil-bottle
-  keywords: [oil-bottle, bottle, oil]
   category: oil-bottle
   interiorBulk: true
   interiorCapacity: 0.5

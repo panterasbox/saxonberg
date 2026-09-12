@@ -30,9 +30,8 @@ class: /system/water/thing/Conduit
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: Cold Fell aqueduct
+  keywords: [aqueduct, conduit, channel, coldfell, cold-fell, cold, fell]
   register: definite
-  primaryKeyword: aqueduct
-  keywords: [aqueduct, conduit, channel, coldfell, cold-fell]
   longDescription: |
     A stone channel on piers, running out of the north-west in a line so nearly level that the water in it looks still. It comes off the fell above Rejection, crosses two valleys on arches, and enters the city here without a pump anywhere on it. At the last drop before the reservoir there is a house with a wheel in it.
   conduitKey: cold-fell-aqueduct

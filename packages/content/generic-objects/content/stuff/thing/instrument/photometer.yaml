@@ -4,5 +4,6 @@ class: /platform/thing/instrument/Photometer
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: brass photometer
+  keywords: [photometer, brass]
   register: indefinite
   long: A small brass instrument with a calibrated dial that reads light intensity in lux. Aim it at a location, take a measurement.

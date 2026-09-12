@@ -9,9 +9,8 @@ class: /trade/ranching/agent/Livestock
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: red ox
+  keywords: [ox, bullock, beast, red]
   register: indefinite
-  primaryKeyword: ox
-  keywords: [ox, bullock, beast]
   longDescription: >-
     A deep red ox with a yoke-worn patch across the shoulders, standing
     square and entirely still with a look of enormous patience.

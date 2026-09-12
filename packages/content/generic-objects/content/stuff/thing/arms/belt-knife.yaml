@@ -7,9 +7,8 @@ class: /platform/thing/equipment/Weapon
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: belt knife
+  keywords: [knife, belt-knife, blade, belt]
   register: indefinite
-  primaryKeyword: knife
-  keywords: [knife, belt-knife, blade]
   longDescription: |
     A plain single-edged working knife, full-tang, its grip wrapped in cord. The sort of blade a smith makes early and a traveller carries forever.
   constructionForm: bladed

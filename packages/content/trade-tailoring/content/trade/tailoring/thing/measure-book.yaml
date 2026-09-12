@@ -14,9 +14,8 @@ class: /trade/tailoring/thing/MeasureBook
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: shop's book
+  keywords: [book, ledger, measurements, measure, "shop's", shop]
   register: definite
-  primaryKeyword: book
-  keywords: [book, ledger, measurements, measure]
   longDescription: |
     A fat ledger with a strap round it, kept on the counter and never off it. Names down the left, two numbers against each, and a great many of the names have been written twice.
   _materialPath: /stuff/idea/material/wood/oak

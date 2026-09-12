@@ -8,9 +8,8 @@ class: /platform/location/SingletonCartesianLocation
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: smelter
-  register: definite
-  primaryKeyword: smelter
   keywords: [smelter, furnace, works]
+  register: definite
   longDescription: |
     A stone shaft taller than a man under an open-sided roof, a bellows lashed to its flank and a bed of sand raked flat in front of it for the pour. The slag heap outside the door is bigger than the building and glitters black-green where it has broken.
 

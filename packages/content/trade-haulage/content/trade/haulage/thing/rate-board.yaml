@@ -14,9 +14,8 @@ class: /trade/haulage/thing/RateBoard
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: rate board
+  keywords: [board, rates, tariff, prices, card, rate]
   register: definite
-  primaryKeyword: board
-  keywords: [board, rates, tariff, prices, card]
   longDescription: |
     A slate-framed board on the wall behind the counter with a printed card behind glass, and a hinge on the frame so the card can be changed without taking it down. Somebody has hung last season's card underneath, which is either honesty or oversight.
   carrierPath: /trade/haulage/idea/carrier-business

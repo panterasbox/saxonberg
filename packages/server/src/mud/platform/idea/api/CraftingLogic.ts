@@ -1619,6 +1619,7 @@ async function mintWorkpiece(
   const lump = await StuffApi.clone<Stuff>(WORKED_LUMP_TEMPLATE);
   const l = lump as unknown as Stuff & {
     setShortDescription(s: string): void;
+        setKeywords(k: string[]): void;
     setMaterial(m: Material): void;
     setMass(q: Quantity<'kg'>): void;
   };
@@ -1626,6 +1627,9 @@ async function mintWorkpiece(
   l.setShortDescription(
     `worked lump of ${material?.getName() ?? 'metal'}`,
   );
+  // ⚠ Authored keywords: a runtime-minted thing has no row, so the code
+  // that names it says what it answers to. (The pool no longer derives.)
+  l.setKeywords(['lump', 'worked', ...(material?.getName() ?? 'metal').split(/\s+/)]);
   if (material) l.setMaterial(material);
   if (massKg > 0) l.setMass(Quantity.of(massKg, 'kg'));
   StuffApi.destruct(workpiece);
@@ -2236,10 +2240,12 @@ async function salvageImpl(req: SalvageRequest): Promise<SalvageOutcome> {
       const cast = await StuffApi.clone<Stuff>(WORKED_LUMP_TEMPLATE);
       const lump = cast as unknown as Stuff & {
         setShortDescription(s: string): void;
+        setKeywords(k: string[]): void;
         setMaterial(m: Material): void;
         setMass(q: Quantity<'kg'>): void;
       };
       lump.setShortDescription(`salvaged lump of ${c.material.getName()}`);
+      lump.setKeywords(['lump', 'salvaged', ...c.material.getName().split(/\s+/)]);
       lump.setMaterial(c.material);
       lump.setMass(Quantity.of(yieldKg, 'kg'));
       outputs.push(cast);
@@ -2252,11 +2258,13 @@ async function salvageImpl(req: SalvageRequest): Promise<SalvageOutcome> {
       const scrap = await StuffApi.clone<Stuff>(SCRAP_TEMPLATE);
       const s = scrap as unknown as Stuff & {
         setShortDescription(s: string): void;
+        setKeywords(k: string[]): void;
         setMaterial(m: Material): void;
         setMass(q: Quantity<'kg'>): void;
         setQuantity(n: number): void;
       };
       s.setShortDescription(`heap of ${c.material.getName()} scrap`);
+      s.setKeywords(['scrap', 'heap', ...c.material.getName().split(/\s+/)]);
       s.setMaterial(c.material);
       s.setMass(Quantity.of(Scrap.UNIT_KG, 'kg'));
       s.setQuantity(units);

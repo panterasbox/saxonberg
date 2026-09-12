@@ -19,9 +19,8 @@ class: /system/transport/thing/HaulageRig
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: dragged sledge
+  keywords: [sledge, sled, drag, boat, dragged]
   register: indefinite
-  primaryKeyword: sledge
-  keywords: [sledge, sled, drag, boat]
   longDescription: |
     Two shaped runners under a slatted deck, with a rope bridle at the front and nothing else. It has no wheels, no axles and nothing that can break, which is why it is still in use on ground where a wagon would be firewood inside a season.
   mass: 60

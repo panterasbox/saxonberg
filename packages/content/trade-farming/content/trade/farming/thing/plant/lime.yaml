@@ -7,9 +7,8 @@ class: /platform/thing/Plant
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: lime tree
-  register: indefinite
-  primaryKeyword: "lime tree"
   keywords: ["lime tree", lime, tree, citrus, plant]
+  register: indefinite
   longDescription: |
     A glossy-leaved lime tree, no taller than a person, its branches wired low the way orchard stock is trained.
   _speciesPath: /stuff/idea/species/plantae/tracheophyta/magnoliopsida/sapindales/rutaceae/citrus/latifolia

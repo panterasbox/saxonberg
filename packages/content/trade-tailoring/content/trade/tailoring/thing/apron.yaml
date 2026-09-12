@@ -14,9 +14,8 @@ class: /platform/thing/equipment/Garment
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: coarse work apron
+  keywords: [apron, pinny, work, coarse]
   register: indefinite
-  primaryKeyword: apron
-  keywords: [apron, pinny, work]
   longDescription: |
     Sackcloth, cut wide, tied twice. It is not meant to look like anything — it is meant to be the thing that gets ruined instead of your shirt.
   slotClaims:

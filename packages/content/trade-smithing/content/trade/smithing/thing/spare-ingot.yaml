@@ -4,7 +4,7 @@ class: /platform/thing/Ingot
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: iron ingot
+  keywords: [billet, ingot, iron, bar]
   register: indefinite
-  keywords: [ingot, iron, bar, billet]
   _materialPath: /stuff/idea/material/element/iron
   mass: 0.5

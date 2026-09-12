@@ -30,12 +30,8 @@ import {
   type MarkupAugmenter,
 } from '../../api/mml';
 import { PerceptionApi } from '../../api/perception';
-import {
-  NounPhrase,
-  REGISTERS,
-  isRegister,
-  type Register,
-} from './NounPhrase';
+import { NounPhrase, REGISTERS, type Register } from './NounPhrase';
+import { GrammarApi } from '../../api/grammar';
 import type { SenseChannel } from './Perceiver';
 import { SENSE_CHANNELS } from './Perceiver';
 
@@ -270,7 +266,7 @@ export function VisibleMixin<TBase extends MixinConstructor>(Base: TBase) {
      * reads *"a collier"* forever and never says why.
      */
     setRegister(value: Register): void {
-      if (!isRegister(value)) {
+      if (!GrammarApi.isRegister(value)) {
         throw new RangeError(
           `register: unknown register '${String(value)}' ` +
             `(expected ${REGISTERS.join(' | ')})`,
@@ -333,7 +329,7 @@ export function VisibleMixin<TBase extends MixinConstructor>(Base: TBase) {
       // the only instrument that could see it — the golden reads YAML,
       // and no unit test asserts this fallback.
       if (this.shortDescription) {
-        return NounPhrase.of(this.shortDescription, this.register).render();
+        return GrammarApi.phrase(this.shortDescription, this.register).render();
       }
       return 'You see nothing special.';
     }

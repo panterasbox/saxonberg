@@ -8,9 +8,8 @@ class: /trade/haulage/thing/Warehouse
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: goods shed
-  register: definite
-  primaryKeyword: shed
   keywords: [shed, warehouse, store, goods]
+  register: definite
   longDescription: |
     A long timber shed open at both ends, with a raised plank floor at cart-bed height and a chalked grid on the boards dividing it into bays. Most of the bays have something in them and every one of those has a docket nailed to the post beside it.
   baileePath: /trade/haulage/idea/depot-business

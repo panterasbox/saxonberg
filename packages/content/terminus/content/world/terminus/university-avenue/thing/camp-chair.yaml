@@ -7,8 +7,8 @@ class: /platform/thing/FoldingChair
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: folding camp chair
+  keywords: [chair, folding, camp]
   register: indefinite
-  primaryKeyword: chair
   folded: false
   longDescription: |
     A folding camp chair of aluminum tube and faded canvas, set up clean and angled just so beside the post — the relief's, kept ready. Nobody sits in it. It waits there for the someday relief, dusted and empty, the seat forever spoken for.

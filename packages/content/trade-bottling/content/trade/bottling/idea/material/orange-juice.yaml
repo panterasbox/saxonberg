@@ -3,8 +3,8 @@ class: /platform/idea/material/ConsumableMaterial
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: orange juice
+  keywords: [orange, orange-juice, juice, oj]
   appearance: "cloudy orange juice"
-  keywords: ["orange-juice", "juice", "oj"]
   density: 1040
   thermalConductivity: 0.5
   specificHeat: 3800

@@ -16,8 +16,8 @@ class: /world/substation/FloodedCell
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: flooded switch-cell
+  keywords: [switch-cell, flooded]
   register: indefinite
-  primaryKeyword: cell
   longDescription: |
     A low concrete switch-cell, ankle-deep in brackish standing water that never drained. Ranks of dead breakers line one wall, their handles furred with corrosion; a raised steel catwalk runs dry along the other.
   coords:

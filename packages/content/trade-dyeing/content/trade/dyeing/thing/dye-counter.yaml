@@ -13,9 +13,8 @@ class: /platform/thing/AttendancePoint
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: "dyehouse counter"
-  register: definite
-  primaryKeyword: counter
   keywords: [counter, board, dyehouse]
+  register: definite
   longDescription: |
     A plank counter with a slate behind it, and the slate is the whole argument: garment-dye cheapest, piece-dye dearer, yarn-dye dearer still. Somebody has chalked WOAD ×2 under all of it and boxed it.
   discipline: line

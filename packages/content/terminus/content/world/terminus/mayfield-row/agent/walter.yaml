@@ -8,10 +8,10 @@ class: /world/terminus/mayfield-row/agent/Walter
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: Walter
+  keywords: [walter, house, manager, pencil, behind, ear]
   pronouns: he
   _speciesPath: /stuff/idea/species/animalia/chordata/mammalia/primates/hominidae/homo/sapiens
   lifecycleState: alive
-  primaryKeyword: walter
   shortDescription: house manager, pencil behind his ear
   register: definite
   longDescription: |

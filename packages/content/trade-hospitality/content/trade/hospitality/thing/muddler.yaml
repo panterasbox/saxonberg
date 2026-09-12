@@ -4,10 +4,9 @@ class: /trade/hospitality/thing/Muddler
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: muddler
+  keywords: [muddler]
   register: indefinite
   longDescription: A thick hardwood muddler, its end stained green with mint.
-  primaryKeyword: muddler
-  keywords: [muddler]
   capabilities:
     # Muddling neither chills nor dilutes — it is a preparation, so it
     # loses to a finishing instrument (a mojito is muddled, then built).

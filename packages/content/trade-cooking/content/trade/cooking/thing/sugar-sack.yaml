@@ -3,10 +3,9 @@ class: /platform/thing/Bottle
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: "sack of sugar"
+  keywords: [sugar, sack]
   register: indefinite
   longDescription: "A ten-kilo hessian sack of sugar, stencilled."
-  primaryKeyword: sugar
-  keywords: ["sugar", "sack"]
   category: sack
   interiorBulk: true
   interiorCapacity: 20

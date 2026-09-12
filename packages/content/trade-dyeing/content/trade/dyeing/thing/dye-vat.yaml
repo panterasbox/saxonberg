@@ -9,9 +9,8 @@ class: /trade/dyeing/thing/DyeVat
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: dyehouse vat
+  keywords: [vat, bath, dye-vat, copper, dyehouse]
   register: indefinite
-  primaryKeyword: vat
-  keywords: [vat, bath, dye-vat, copper]
   longDescription: |
     A copper the size of a bath, set over its own fire, with a windlass and a pair of long poles for turning the cloth. The rim is stained in rings, one for every colour it has ever held.
   _materialPath: /stuff/idea/material/element/copper

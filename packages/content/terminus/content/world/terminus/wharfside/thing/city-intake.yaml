@@ -16,9 +16,8 @@ class: /system/water/thing/Conduit
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: city intake
+  keywords: [intake, mouth, screen, pillar, waterworks, city]
   register: definite
-  primaryKeyword: intake
-  keywords: [intake, mouth, screen, pillar, waterworks]
   longDescription: |
     A screened mouth of riveted iron on a stone pillar out in the current, with a plank walkway to it and a housing on the bank where the pump lives. The pump is running. The pump is always running.
   conduitKey: terminus-intake

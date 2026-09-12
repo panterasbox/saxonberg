@@ -13,9 +13,8 @@ class: /platform/thing/Stock
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: produce stalls
-  register: definite
-  primaryKeyword: stall
   keywords: [stall, stalls, produce, trestle, counter]
+  register: definite
   longDescription: |
     A long trestle stall under canvas, its boards stained fruit-dark by years of trade. Whatever is in season is ranked in open flats — citrus in bright rows, mint in wet bundles, cherries by the scoop — each flat chalked with its grower's name and ask.
   discipline: scrum

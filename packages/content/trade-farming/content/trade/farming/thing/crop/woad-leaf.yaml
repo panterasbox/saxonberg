@@ -9,9 +9,8 @@ class: /platform/thing/Crop
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: armful of woad leaves
+  keywords: [woad, leaves, leaf, dyestuff, pastel, armful]
   register: indefinite
-  primaryKeyword: woad
-  keywords: [woad, leaves, leaf, dyestuff, pastel]
   longDescription: |
     Broad blue-green leaves, already bruising where they were handled. There is nothing blue about them to look at, which is the first surprising thing about woad and not the last.
   material: /trade/farming/idea/material/woad

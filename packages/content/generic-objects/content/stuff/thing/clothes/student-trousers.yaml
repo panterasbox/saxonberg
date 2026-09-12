@@ -2,8 +2,8 @@ class: /platform/thing/equipment/Garment
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: pair of sturdy trousers
+  keywords: [trousers, pair, sturdy]
   register: indefinite
-  primaryKeyword: trousers
   longDescription: >
     Plain, hard-wearing trousers in a neutral weave — the kind issued by
     the bushel to every incoming class and quietly worn to graduation.

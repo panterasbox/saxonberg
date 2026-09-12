@@ -4,10 +4,10 @@ class: /platform/agent/Crafter
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: Odo
+  keywords: [odo, cook]
   pronouns: he
   _speciesPath: /stuff/idea/species/animalia/chordata/mammalia/primates/hominidae/homo/sapiens
   lifecycleState: alive
-  primaryKeyword: odo
   alternateNames:
     - cook
   shortDescription: Odo the cook

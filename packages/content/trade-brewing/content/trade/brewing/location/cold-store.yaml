@@ -16,9 +16,8 @@ data:
     y: 0
     z: -1
   shortDescription: "cold store"
+  keywords: [store, "cold store", cellar, "lagering cellar", cold]
   register: definite
-  primaryKeyword: store
-  keywords: ["store", "cold store", "cellar", "lagering cellar"]
   longDescription: |
     A deep stone cellar, breath-frosting cold, kegs and two working vats sweating against the wall. A wired jar of pale sediment sits in the coldest corner.
   ambientIntensity: 15

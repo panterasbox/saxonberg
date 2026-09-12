@@ -8,8 +8,8 @@ class: /platform/location/SingletonCartesianLocation
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: last water
+  keywords: [water, last]
   register: definite
-  primaryKeyword: spring
   alternateNames: [climb, road, water, trough]
   _address: terminus/rejection/road/upper-climb
   _biomePath: /stuff/idea/biome/outdoor/baseline

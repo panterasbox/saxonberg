@@ -5,8 +5,8 @@ class: /platform/idea/material/Material
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: leather
+  keywords: [hide, leather]
   appearance: supple tanned leather
-  keywords: [leather, hide]
   density: 900
   specificHeat: 1900
   thermalConductivity: 0.14

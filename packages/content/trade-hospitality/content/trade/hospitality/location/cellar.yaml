@@ -27,9 +27,9 @@ data:
     y: 0
     z: 0
   name: a cellar
+  keywords: [store, cellar, back-room]
   description: |
     A low, cool room behind the bar, steel racking along one wall. The air is markedly cooler than the bar's, and the floor is damp where the kegs stand.
-  keywords: [cellar, back-room, store]
   _temperature: 285
   props:
     - /trade/hospitality/thing/racking

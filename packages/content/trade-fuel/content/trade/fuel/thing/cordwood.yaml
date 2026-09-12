@@ -6,9 +6,8 @@ class: /platform/thing/Provision
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: length of cordwood
+  keywords: [cordwood, wood, pole, billet, length]
   register: indefinite
-  primaryKeyword: cordwood
-  keywords: [cordwood, wood, pole, billet]
   longDescription: "A straight length of oak, barked and cut to an arm's length."
   _materialPath: /stuff/idea/material/wood/oak
   gradeBand: fair

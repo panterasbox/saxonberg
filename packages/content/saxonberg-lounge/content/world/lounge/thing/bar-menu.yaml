@@ -4,9 +4,9 @@ class: /platform/thing/Menu
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: chalkboard menu
+  keywords: [board, menu, chalkboard]
   register: indefinite
   longDescription: A chalkboard propped behind the bar, cocktails listed in a tidy hand.
-  keywords: [menu, chalkboard, board]
   # The 24 lines of the libations menu (slate Part 9): the hospitality
   # trade's 21 cocktails + coffee, and the pint / glass-of-wine / soft-drink
   # lines each serving trade ships with its stub. Every one consumes real

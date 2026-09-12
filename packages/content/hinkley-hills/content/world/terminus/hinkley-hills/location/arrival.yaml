@@ -9,8 +9,8 @@ class: /platform/location/SingletonCartesianLocation
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: Hinkley Hills stop
+  keywords: [stop, hinkley, hills]
   register: definite
-  primaryKeyword: stop
   _address: terminus/hinkley-hills/stop
   _biomePath: /stuff/idea/biome/outdoor/baseline
   # Outdoor daylight, STATIC for now — the same placeholder the Duncan

@@ -5,9 +5,8 @@ class: /platform/thing/CraftVessel
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: wort bucket
+  keywords: [bucket, pail, "wort bucket", wort]
   register: indefinite
-  primaryKeyword: bucket
-  keywords: [bucket, pail, "wort bucket"]
   longDescription: A deep steel pail, sticky at the rim.
   category: wort-bucket
   interiorBulk: true

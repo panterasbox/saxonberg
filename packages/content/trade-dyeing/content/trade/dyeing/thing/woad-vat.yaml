@@ -12,9 +12,8 @@ class: /trade/dyeing/thing/WoadVat
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: woad vat
-  register: definite
-  primaryKeyword: woad-vat
   keywords: [woad-vat, woad, vat, blue]
+  register: definite
   longDescription: |
     A lidded vat sunk to its rim in the floor, warm to the hand. Lift the lid and the surface is a coppery bloom over yellow-green liquor that smells like a stable and a brewery having an argument.
 

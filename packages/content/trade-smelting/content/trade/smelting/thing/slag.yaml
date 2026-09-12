@@ -6,9 +6,8 @@ class: /platform/thing/Provision
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: lump of cooled slag
+  keywords: [slag, dross, lump, cooled]
   register: indefinite
-  primaryKeyword: slag
-  keywords: [slag, dross]
   longDescription: >-
     Glassy, black-green, blistered where the gas came out of it. Worth
     nothing, and there is always far more of it than there is metal.

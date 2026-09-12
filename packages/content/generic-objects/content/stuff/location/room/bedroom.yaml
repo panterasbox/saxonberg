@@ -18,9 +18,8 @@ class: /platform/location/FurnishableRoom
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: bedroom
-  register: indefinite
-  primaryKeyword: bedroom
   keywords: [bedroom, bed, room]
+  register: indefinite
   longDescription: |
     A quiet room with a bed against the far wall and a window that catches the last of the afternoon. There is space for more than this, if you have it.
   ambientIntensity: 25

@@ -6,10 +6,9 @@ class: /platform/thing/WaterFixture
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: wash basin
+  keywords: [basin, sink, wash-basin, water, wash]
   register: indefinite
   longDescription: A deep steel basin with a glass-washing brush on a spring, the water never quite still.
-  primaryKeyword: basin
-  keywords: [basin, sink, wash-basin, water]
   interiorBulk: true
   interiorMaterial: /stuff/idea/material/bulk/water
   mass: 30

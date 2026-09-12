@@ -4,8 +4,7 @@
 class: /platform/thing/ToolItem
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  primaryKeyword: bar
-  keywords: ["bar", "pinch-bar", "crowbar"]
+  keywords: [bar, pinch-bar, crowbar, steel, pinch]
   shortDescription: steel pinch bar
   register: indefinite
   longDescription: >-

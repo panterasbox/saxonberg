@@ -13,9 +13,8 @@ class: /trade/textiles/thing/SpinningTool
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: spinning wheel
+  keywords: [wheel, spinning-wheel, treadle, flyer, spinning]
   register: indefinite
-  primaryKeyword: wheel
-  keywords: [wheel, spinning-wheel, treadle, flyer]
   longDescription: |
     A great wheel and a small one, a treadle, and a flyer that whips the twist in faster than a hand can follow. It does nothing a spindle cannot; it does it while you are still reaching for the spindle.
   capabilities:

@@ -5,9 +5,8 @@ class: /platform/thing/Seed
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: packet of olive pits
-  register: indefinite
-  primaryKeyword: seed
   keywords: [seed, seeds, "olive pit", olive, pits, packet]
+  register: indefinite
   longDescription: |
     A paper packet of olive pits.
   growsIntoPath: /trade/farming/thing/plant/olive

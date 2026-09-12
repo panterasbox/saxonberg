@@ -7,10 +7,10 @@ class: /platform/agent/Cast
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: Dez Okoro
+  keywords: [hand, dez, okoro, quick, bottling, hairnet]
   pronouns: they
   _speciesPath: /stuff/idea/species/animalia/chordata/mammalia/primates/hominidae/homo/sapiens
   lifecycleState: alive
-  primaryKeyword: hand
   alternateNames: ["dez", "okoro"]
   shortDescription: "quick bottling hand in a hairnet"
   register: indefinite

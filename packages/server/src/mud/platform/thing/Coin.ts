@@ -205,16 +205,25 @@ export default class Coin extends CoinBase {
   }
 
   /**
-   * Keywords gain the currency vocabulary. The `Perceptible` keyword getter
-   * already tokenizes {@link getShortDescription} on whitespace, so
-   * `"a 25-zorkmid piece"` also yields `25-zorkmid` and `piece` for free —
-   * which is what makes a 25-value stack separately addressable from a
-   * 1-value one at the parser.
+   * Keywords gain the currency vocabulary — ⚠ **including the ones the
+   * description used to supply for free.**
+   *
+   * The `Perceptible` pool tokenized `getShortDescription()` until
+   * 2026-09-11, so `"a 25-zorkmid piece"` yielded `25-zorkmid` and
+   * `piece` on its own, and that is what makes a 25-value stack
+   * separately addressable from a 1-value one at the parser. Keywords
+   * are authored now — and a coin's description is **computed at
+   * runtime from its denomination**, so there is no row an author could
+   * write them in. This override is where they come from instead.
    */
   public override getKeywords(): string[] {
     const base = super.getKeywords();
     if (!this.currency || !Currency.has(this.currency)) return base;
     const record = Currency.of(this.currency);
-    return [...base, record.unit, record.plural];
+    const described = this.getShortDescription()
+      .split(/\s+/)
+      .map((t) => t.trim().toLowerCase())
+      .filter((t) => t.length > 1);
+    return [...new Set([...base, ...described, record.unit, record.plural])];
   }
 }

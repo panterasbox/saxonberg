@@ -9,8 +9,7 @@ class: /platform/thing/Chest
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: tall dressing cabinet
+  keywords: [cabinet, dressings, bandages, cupboard, tall, dressing]
   register: indefinite
-  primaryKeyword: cabinet
-  keywords: [cabinet, dressings, bandages, cupboard]
   longDescription: |
     A tall pine cabinet with its doors folded back, the shelves stacked with folded linen in graded sizes, a jar of lint, and a coil of clean cloth on a wooden former.

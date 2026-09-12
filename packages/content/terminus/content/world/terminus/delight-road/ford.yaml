@@ -14,8 +14,8 @@ class: /platform/location/SingletonCartesianLocation
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: ford on the Delight
+  keywords: [ford, delight]
   register: definite
-  primaryKeyword: ford
   alternateNames: [crossing, road, stones]
   _address: terminus/delight-valley/ford
   _biomePath: /stuff/idea/biome/outdoor/baseline

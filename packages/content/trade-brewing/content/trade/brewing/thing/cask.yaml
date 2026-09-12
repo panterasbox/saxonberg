@@ -7,10 +7,9 @@ class: /platform/thing/Vat
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: "cask"
+  keywords: [cask, barrel, oak, empty]
   register: indefinite
   longDescription: "An oak cask, hooped and bunged, that once held something stronger."
-  primaryKeyword: cask
-  keywords: ["cask", "barrel", "oak", "empty"]
   # The VESSEL KIND — the tie between this row and every product
   # that is this vessel filled (an emptied one counts and reads as this).
   category: cask

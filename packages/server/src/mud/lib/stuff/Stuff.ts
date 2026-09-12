@@ -383,35 +383,37 @@ export abstract class Stuff {
    *   5. else `someone` / `something`
    */
   handlePhrase(): NounPhrase {
-    // 1 — the word its author chose. ⚠⚠ The AUTHORED slot, never
-    // `getPrimaryKeyword()`: its derived pool folds in the host's own
-    // NAME, so for a player called Odile it answers `odile` and this
-    // would sign her anonymous post "an odile". See
-    // `Perceptible.getAuthoredPrimaryKeyword`.
+    // 1 — the word its author chose. ⭐ `getPrimaryKeyword()` is only
+    // ever that now: `keywords[0]`, or whatever the author pinned. It
+    // used to fall back to a DERIVED pool that folded in the host's own
+    // name, so for a player called Odile it answered `odile` — and this
+    // rung would have signed her anonymous post "an odile". A player
+    // authors no keywords, so the chain falls through to her species,
+    // and the leak is now unrepresentable rather than guarded against.
     if (MixinApi.isPerceptible(this)) {
-      const authored = this.getAuthoredPrimaryKeyword();
-      if (authored) return NounPhrase.of(authored, 'indefinite');
+      const authored = this.getPrimaryKeyword();
+      if (authored) return GrammarApi.phrase(authored, 'indefinite');
     }
     // 2 — the role they hold. ⭐ It FOLLOWS the job, which is the point:
     // a handle retyped onto the NPC leaves a dismissed weaver reading
     // "a weaver" forever, and this one stops the day they are let go.
     if (MixinApi.isEmployed(this)) {
       const noun = this.getPositionNoun();
-      if (noun) return NounPhrase.of(noun, 'indefinite');
+      if (noun) return GrammarApi.phrase(noun, 'indefinite');
     }
     // 3 — what they are.
     if (MixinApi.isOrganism(this)) {
       const common = this.getSpecies()?.getCommonNames()[0];
-      if (common) return NounPhrase.of(common, 'indefinite');
+      if (common) return GrammarApi.phrase(common, 'indefinite');
     }
     // 4 — the description, which for a portrait row is too long for a
     // chat line. That is why rung 1 exists and why the sweep authored a
     // handle on every row it touched.
     if (MixinApi.isVisible(this)) {
       const short = this.getShortDescription();
-      if (short) return NounPhrase.of(short, this.getRegister());
+      if (short) return GrammarApi.phrase(short, this.getRegister());
     }
-    return NounPhrase.proper(
+    return GrammarApi.properPhrase(
       MixinApi.isOrganism(this) ? DEFAULT_UNKNOWN_ORGANISM : DEFAULT_PRESENTATION,
     );
   }
@@ -422,24 +424,24 @@ export abstract class Stuff {
       if (MixinApi.isDisguisable(this)) {
         const disguise = this.getDisguise();
         if (disguise?.appearsAs) {
-          return NounPhrase.of(disguise.appearsAs, 'indefinite');
+          return GrammarApi.phrase(disguise.appearsAs, 'indefinite');
         }
       }
       if (MixinApi.isNamed(this)) {
         const name = this.getName();
-        if (name) return NounPhrase.proper(name);
+        if (name) return GrammarApi.properPhrase(name);
       }
     }
     if (MixinApi.isVisible(this)) {
       const short = this.getShortDescription();
-      if (short) return NounPhrase.of(short, this.getRegister());
+      if (short) return GrammarApi.phrase(short, this.getRegister());
     }
     if (MixinApi.isOrganism(this)) {
       const common = this.getSpecies()?.getCommonNames()[0];
-      if (common) return NounPhrase.of(common, 'indefinite');
-      return NounPhrase.proper(DEFAULT_UNKNOWN_ORGANISM);
+      if (common) return GrammarApi.phrase(common, 'indefinite');
+      return GrammarApi.properPhrase(DEFAULT_UNKNOWN_ORGANISM);
     }
-    return NounPhrase.proper(DEFAULT_PRESENTATION);
+    return GrammarApi.properPhrase(DEFAULT_PRESENTATION);
   }
 
   /**

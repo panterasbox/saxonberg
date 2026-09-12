@@ -14,9 +14,8 @@ class: /platform/location/SingletonCartesianLocation
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: pithead yard
-  register: definite
-  primaryKeyword: yard
   keywords: [yard, pithead]
+  register: definite
   longDescription: |
     A flat of trodden mud and grey spoil, walled on three sides by the slope it was cut out of. Ore carts stand where they were left. A cable drum, a winch house with its door off, and a rail line that runs twenty yards and stops.
 

@@ -15,7 +15,13 @@
 
 import { Pronouns } from '@saxonberg/types';
 import type { Stuff } from '../lib/stuff/Stuff';
-import { NounPhrase } from '../lib/description/NounPhrase';
+import {
+  NounPhrase,
+  PRESENTATION_FORMS,
+  REGISTERS,
+  type PresentationForm,
+  type Register,
+} from '../lib/description/NounPhrase';
 import { MixinApi } from './mixin';
 import { SecurityApi } from './security';
 
@@ -155,16 +161,48 @@ export class GrammarApi {
   }
 
   /**
+   * ⭐⭐ **Build a {@link NounPhrase}** — a stem, a register and a count,
+   * from which the article, the definite form, the possessive and the
+   * plural all derive.
+   *
+   * ⚠ This is where construction lives, and that is the codebase's rule
+   * rather than this build's taste: `new SomeStuff()` goes through
+   * `StuffApi.create` for the same reason. A static factory on a `lib/`
+   * value class is **callable by anyone and visible to nobody** — the
+   * author-surface projection admits public Api statics and public
+   * instance methods, and a static on a non-Api class is neither.
+   */
+  static phrase(stem: string, register: Register = 'indefinite'): NounPhrase {
+    return new NounPhrase(stem.trim(), register);
+  }
+
+  /** A proper name — takes no article, ever. */
+  static properPhrase(stem: string): NounPhrase {
+    return new NounPhrase(stem.trim(), 'proper');
+  }
+
+  /** Whether `value` is one of the three registers. */
+  static isRegister(value: unknown): value is Register {
+    return (
+      typeof value === 'string' && (REGISTERS as readonly string[]).includes(value)
+    );
+  }
+
+  /** Whether `value` is one of the six presentation forms. */
+  static isPresentationForm(value: unknown): value is PresentationForm {
+    return (
+      typeof value === 'string' &&
+      (PRESENTATION_FORMS as readonly string[]).includes(value)
+    );
+  }
+
+  /**
    * Indefinite article (`'a'` / `'an'`) for a raw word or phrase by
    * vowel onset. Not phonetic (`a unicorn` / `an honest` would need a
    * per-row override).
-   *
-   * ⭐ The rule itself lives on `NounPhrase` — the value object that owns
-   * the concept — and this forwards, so there is one vowel check in the
-   * tree rather than two that can drift.
    */
   static articleFor(text: string): string {
-    return NounPhrase.articleFor(text);
+    return new NounPhrase(text, 'indefinite').article();
   }
 
   /**

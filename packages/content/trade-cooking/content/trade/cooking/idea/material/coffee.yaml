@@ -3,8 +3,8 @@ class: /platform/idea/material/Material
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: coffee
+  keywords: [java, coffee, brew]
   appearance: "dark, steaming coffee"
-  keywords: ["coffee", "brew", "java"]
   density: 1000
   thermalConductivity: 0.6
   specificHeat: 4186

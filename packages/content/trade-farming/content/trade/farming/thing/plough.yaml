@@ -10,8 +10,7 @@
 class: /platform/thing/ToolItem
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  primaryKeyword: plough
-  keywords: ["plough", "plow", "ard"]
+  keywords: [plough, plow, ard, wooden]
   shortDescription: wooden plough
   register: indefinite
   longDescription: >-

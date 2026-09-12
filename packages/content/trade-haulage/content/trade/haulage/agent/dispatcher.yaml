@@ -5,7 +5,6 @@ hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   _speciesPath: /stuff/idea/species/animalia/chordata/mammalia/primates/hominidae/homo/sensitivus
   lifecycleState: alive
-  primaryKeyword: dispatcher
   keywords: [dispatcher, clerk, book]
   shortDescription: dispatcher
   register: definite

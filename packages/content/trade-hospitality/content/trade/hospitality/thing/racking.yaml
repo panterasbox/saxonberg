@@ -3,8 +3,7 @@ class: /platform/thing/Surface
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: racking
+  keywords: [racking, rack, shelves, shelf]
   register: definite
   longDescription: Steel racking along the cellar wall, kegs on the floor beneath it.
-  primaryKeyword: racking
-  keywords: [racking, rack, shelves, shelf]
   mass: 60

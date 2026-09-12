@@ -6,8 +6,7 @@
 class: /trade/mining/thing/TimberSet
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  primaryKeyword: timber
-  keywords: ["timber", "set", "prop", "stull"]
+  keywords: [timber, set, prop, stull, mine]
   shortDescription: set of mine timber
   register: indefinite
   longDescription: >-

@@ -6,9 +6,8 @@ class: /platform/thing/Crop
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: cut of clover hay
+  keywords: [clover, crop, cut, hay]
   register: indefinite
-  primaryKeyword: clover
-  keywords: [clover, crop]
   longDescription: |
     Clover hay, leafier and sweeter-smelling than grass hay, and worth more per pound to anything that eats it.
   material: /stuff/idea/material/food/hay

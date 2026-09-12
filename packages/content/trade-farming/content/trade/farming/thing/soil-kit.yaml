@@ -9,8 +9,7 @@
 class: /trade/farming/thing/SoilKit
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  primaryKeyword: kit
-  keywords: ["kit", "soil-kit", "soil-test-kit", "test-kit"]
+  keywords: [kit, soil-kit, soil-test-kit, test-kit, soil, test]
   shortDescription: soil test kit
   register: indefinite
   longDescription: >-

@@ -6,12 +6,12 @@ class: /platform/thing/Forge
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: stone forge
+  keywords: [stone, forge, hearth, furnace, bellows]
   register: indefinite
   longDescription: >
     A squat stone forge with a deep charcoal bed and a great leather bellows
     at its side. Cold, it is just soot and iron fittings; lit and pumped, it
     roars white-hot.
-  keywords: [forge, hearth, furnace, bellows]
   # Furnace config — charcoal base heat + a bellows multiplier to smelting heat.
   burnTemperatureK: 1300
   bellowsMultiplier: 1.6

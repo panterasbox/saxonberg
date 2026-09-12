@@ -10,9 +10,8 @@ class: /platform/location/SingletonCartesianLocation
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: provisioning shed
+  keywords: [provisioning, stores, shop, shed]
   register: definite
-  primaryKeyword: provisioning
-  keywords: [provisioning, stores, shop]
   longDescription: |
     Tool wall on the left — picks, bars, shovels, sledges, all hung by the eye and all second-hand. Timber stacked to the roof on the right, cut to length and smelling of sap. Between them a counter, and on the counter a rank of stoppered jars with a soft green light in them.
 

@@ -14,6 +14,7 @@ class: /platform/idea/material/Material
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: chalcopyrite
+  keywords: [chalcopyrite]
   density: 4200
   specificHeat: 540
   thermalConductivity: 8.0

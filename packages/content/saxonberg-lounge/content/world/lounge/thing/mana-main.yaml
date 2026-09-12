@@ -8,9 +8,8 @@ hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   seatIn: /world/lounge/idea/warren
   shortDescription: mana line
+  keywords: [line, main, conduit, mains, mana]
   register: indefinite
-  primaryKeyword: line
-  keywords: [line, main, conduit, mains]
   longDescription: >
     A slim brass conduit runs down the wall beside the terminal and
     disappears into the floor, warm to the back of a hand.

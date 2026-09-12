@@ -16,8 +16,8 @@ class: /platform/idea/material/ConsumableMaterial
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: hay
+  keywords: [herbage, hay, fodder, forage, grass]
   appearance: dry stems and leaf, still faintly green, smelling of summer
-  keywords: [hay, fodder, forage, grass, herbage]
   # Baled: loose hay runs near 70, a tight bale near 250.
   density: 160
   # ⚠ Load-bearing for the barn fire: hay is an INSULATOR, which is why a

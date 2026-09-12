@@ -4,5 +4,6 @@ class: /platform/thing/instrument/Altimeter
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: brass altimeter
+  keywords: [altimeter, brass]
   register: indefinite
   long: An altimeter calibrated against the standard sea-level reference. Refuses to give a reading in vacuum.

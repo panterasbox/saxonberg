@@ -13,8 +13,8 @@ class: /platform/location/SingletonCartesianLocation
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: crossroads at the last counted mile
+  keywords: [crossroads, last, counted, mile]
   register: definite
-  primaryKeyword: crossroads
   _address: last-counted-mile/hub
   longDescription: |
     The graded road gives out here in a rut of pink ruin-glass and pine needles — the last counted mile before the counted world quits. You have stepped off the Line onto a frontier that does not appear to have been told it is one.

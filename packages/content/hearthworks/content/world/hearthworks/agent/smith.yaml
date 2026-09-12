@@ -4,10 +4,10 @@ class: /platform/agent/Crafter
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: Berta
+  keywords: [berta, smith]
   pronouns: she
   _speciesPath: /stuff/idea/species/animalia/chordata/mammalia/primates/hominidae/homo/sapiens
   lifecycleState: alive
-  primaryKeyword: berta
   alternateNames:
     - smith
     - blacksmith

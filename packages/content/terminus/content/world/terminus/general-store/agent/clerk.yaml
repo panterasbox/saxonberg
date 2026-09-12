@@ -7,10 +7,10 @@ class: /platform/agent/Cast
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: Pemby
+  keywords: [clerk, pemby, cheerful, shop]
   pronouns: he
   _speciesPath: /stuff/idea/species/animalia/chordata/mammalia/primates/hominidae/homo/sapiens
   lifecycleState: alive
-  primaryKeyword: clerk
   alternateNames: [pemby, shopkeeper, boy]
   shortDescription: cheerful shop clerk
   register: indefinite

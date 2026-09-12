@@ -4,11 +4,11 @@ class: /platform/thing/Oven
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: clay oven
+  keywords: [clay, oven, hearth, furnace]
   register: indefinite
   longDescription: >
     A rounded clay oven with an arched mouth, warm to the hand and smelling of
     woodsmoke and bread.
-  keywords: [oven, hearth, furnace]
   burnTemperatureK: 500
   bellowsMultiplier: 1
   fuelBurnRatePerMin: 0.2

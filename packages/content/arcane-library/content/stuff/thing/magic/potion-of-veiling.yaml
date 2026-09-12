@@ -13,6 +13,7 @@ class: /system/arcana/thing/Potion
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: stoppered glass flask
+  keywords: [flask, stoppered, glass]
   register: indefinite
   longDescription: >
     A squat glass flask with a waxed stopper, the kind an apothecary sells by the crate. Whatever is in it moves a little slowly when tilted.

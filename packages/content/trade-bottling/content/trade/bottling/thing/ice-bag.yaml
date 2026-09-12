@@ -3,10 +3,9 @@ class: /platform/thing/Bottle
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: "bag of ice"
+  keywords: [ice, bag]
   register: indefinite
   longDescription: "A five-kilo bag of ice, sweating through the plastic."
-  primaryKeyword: ice
-  keywords: ["ice", "bag"]
   category: ice-bag
   interiorBulk: true
   interiorCapacity: 5.5

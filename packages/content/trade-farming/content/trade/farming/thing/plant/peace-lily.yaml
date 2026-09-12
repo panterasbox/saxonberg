@@ -12,9 +12,8 @@ class: /platform/thing/Plant
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: peace lily
+  keywords: [lily, "peace lily", plant, houseplant, peace]
   register: indefinite
-  primaryKeyword: lily
-  keywords: [lily, "peace lily", plant, houseplant]
   longDescription: |
     Broad dark leaves fan out of the soil on slender stalks, each one tapering to a point. A peace lily — the plant every hall porter hands out and nobody quite manages to kill on purpose.
   _speciesPath: /stuff/idea/species/plantae/tracheophyta/liliopsida/alismatales/araceae/spathiphyllum/wallisii

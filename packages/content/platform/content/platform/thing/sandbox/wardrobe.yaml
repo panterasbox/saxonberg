@@ -17,6 +17,7 @@ data:
   # `turbolift` here without a line of new code.
   passageDirection: wardrobe
   name: wardrobe
+  keywords: [standing, wardrobe, tall]
   shortDescription: tall standing wardrobe
   register: indefinite
   longDescription: >

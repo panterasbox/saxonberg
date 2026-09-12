@@ -7,8 +7,8 @@ class: /platform/location/SingletonCartesianLocation
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: lower climb
+  keywords: [climb, lower]
   register: definite
-  primaryKeyword: climb
   alternateNames: [road, hill, zigzag]
   _address: terminus/rejection/road/lower-climb
   _biomePath: /stuff/idea/biome/outdoor/baseline

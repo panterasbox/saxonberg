@@ -12,9 +12,8 @@ class: /platform/thing/Tariff
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: slate of charges
-  register: indefinite
-  primaryKeyword: slate
   keywords: [slate, tariff, charges, prices, board]
+  register: indefinite
   longDescription: |
     A slate hung by the door, ruled into two columns and written up in a small square hand. What the house does on the left; what the house charges on the right. Somebody has gone over the figures more than once with a damp cloth and written them in again a little lower.
   prices:

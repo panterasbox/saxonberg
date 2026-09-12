@@ -5,9 +5,8 @@ class: /platform/thing/Plant
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: bed of saffron crocus
+  keywords: [saffron, crop, bed, crocus]
   register: indefinite
-  primaryKeyword: saffron
-  keywords: [saffron, crop]
   longDescription: |
     Low purple flowers open in the cold, three crimson threads standing out of every throat.
   _speciesPath: /stuff/idea/species/plantae/tracheophyta/liliopsida/asparagales/iridaceae/crocus/sativus

@@ -175,37 +175,38 @@ describe('⭐⭐ the handle chain — an authored word always wins', () => {
     expect(b.describeFor(v, 'handle')).toBe('a weaver');
   });
 
-  it('⚠⚠ rung 1 reads the AUTHORED slot — the derived one is the NAME', () => {
-    // ⭐⭐ **This is why `getAuthoredPrimaryKeyword()` exists**, and it is
-    // an anonymity leak rather than an aesthetic complaint.
-    //
-    // `getPrimaryKeyword()` always answers something, because targeting
-    // needs it to: with nothing authored it returns the trailing token
-    // of the DERIVED pool — and that pool folds in
-    // `tokenizeName(getName())` for any Named host. A player body is
-    // Named (enroll writes it), Perceptible (from Creature) and has no
-    // authored keyword, because nobody types one for a player.
-    //
-    // So the derived answer for a player called Odile is `odile`, and a
-    // handle chain reading it would sign her anonymous post **"an
-    // odile"** — her own name, which is the one fact the whole setting
+  it('⭐⭐ a player has no keywords, so the chain cannot reach their name', () => {
+    // This used to need a guard. `getPrimaryKeyword()` fell back to a
+    // DERIVED pool that folded in `tokenizeName(getName())`, so for a
+    // player called Odile it answered `odile` — and rung 1 would have
+    // signed her anonymous post "an odile", the one fact the setting
     // exists to withhold.
+    //
+    // Keywords are authored-only now and a player authors none, so the
+    // rung is simply empty and the chain falls through. The leak is
+    // unrepresentable rather than guarded against.
     const v = makeStuff(() => new Viewer());
     const b = being('Odile', '');
-    expect(b.getAuthoredPrimaryKeyword()).toBeUndefined();
-    expect(b.getPrimaryKeyword()).toBe('odile');
+    expect(b.getPrimaryKeyword()).toBeUndefined();
     expect(b.describeFor(v, 'handle')).not.toMatch(/odile/i);
   });
 
-  it('⚠ and the derived token is nonsense even when it is not a name', () => {
-    // The milder half: for a portrait row the trailing pool token is
-    // whatever word the sentence happened to end on. Nobody writes
-    // "a hand" down as what somebody is called.
+  it('⚠ and no junk token either — a description is not a keyword list', () => {
+    // Derivation also answered with whatever word the sentence ended
+    // on: `other`, for "a weaver with a shuttle in one hand and a tally
+    // in the other". Nobody writes that down as what somebody is called.
     const v = makeStuff(() => new Viewer());
     const b = being('Mitch', 'weaver with a shuttle in one hand');
-    expect(b.getPrimaryKeyword()).toBeDefined();
-    expect(b.getAuthoredPrimaryKeyword()).toBeUndefined();
+    expect(b.getPrimaryKeyword()).toBeUndefined();
     expect(b.describeFor(v, 'handle')).not.toBe('a hand');
+  });
+
+  it('⭐ and when the author DID write one, it wins', () => {
+    const v = makeStuff(() => new Viewer());
+    const b = being('Mitch', 'weaver with a shuttle in one hand');
+    b.setKeywords(['weaver', 'shuttle']);
+    expect(b.getPrimaryKeyword()).toBe('weaver');
+    expect(b.describeFor(v, 'handle')).toBe('a weaver');
   });
 
   it('rung 4: the description, when nothing above it answers', () => {

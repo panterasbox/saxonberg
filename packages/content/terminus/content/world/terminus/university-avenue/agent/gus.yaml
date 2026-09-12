@@ -38,10 +38,10 @@ class: /platform/agent/Gus
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: Gus
+  keywords: [gus, crossing, guard]
   pronouns: he
   _speciesPath: /stuff/idea/species/animalia/chordata/mammalia/primates/hominidae/homo/sapiens
   lifecycleState: alive
-  primaryKeyword: gus
   alternateNames:
     - guard
     - authority

@@ -14,10 +14,9 @@ class: /system/water/thing/ControlStructure
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: aqueduct house
-  register: definite
-  primaryKeyword: house
-  alternateNames: [wheelhouse, turbine]
   keywords: [house, wheel, turbine, generator, aqueduct]
+  register: definite
+  alternateNames: [wheelhouse, turbine]
   longDescription: |
     A squat stone building where the channel makes its last drop into the reservoir, with a wheel inside it turning steadily and a hum you feel through the floor. The water goes on into the city afterwards, no less water for having done some work on the way.
   controlKind: weir

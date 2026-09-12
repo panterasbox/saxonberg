@@ -8,12 +8,11 @@ class: /platform/thing/JobBoard
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: public noticeboard
+  keywords: [noticeboard, notice-board, notices, jobs, job-board, public]
   register: indefinite
-  primaryKeyword: noticeboard
   longDescription: >
     A public noticeboard in an Authority frame, bolted to the wall between
     two fossilised strata of advertisements. Work wanted, work offered —
     each slip stamped with an escrow seal, because in Terminus a promise
     is only a promise when the money is already locked. A stub of pencil
     hangs from a string, worn to the ferrule.
-  keywords: [noticeboard, notice-board, notices, jobs, job-board]

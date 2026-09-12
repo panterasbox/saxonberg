@@ -4,5 +4,6 @@ class: /platform/thing/instrument/Thermometer
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: brass thermometer
+  keywords: [thermometer, brass]
   register: indefinite
   long: A pocket thermometer with a glass column and a brass case. Read it to learn the ambient temperature in Kelvin.

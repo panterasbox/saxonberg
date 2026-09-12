@@ -8,9 +8,8 @@ class: /platform/thing/Plant
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: stand of weld
+  keywords: [weld, rocket, crop, stand]
   register: indefinite
-  primaryKeyword: weld
-  keywords: [weld, rocket, crop]
   longDescription: |
     A tall thin spike of tight green flowers on a stem that reaches past the beds either side of it. It has the look of something that got in rather than something that was put in.
   _speciesPath: /stuff/idea/species/plantae/tracheophyta/magnoliopsida/brassicales/resedaceae/reseda/luteola

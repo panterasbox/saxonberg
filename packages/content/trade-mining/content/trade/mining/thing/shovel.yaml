@@ -2,8 +2,7 @@
 class: /platform/thing/ToolItem
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  primaryKeyword: shovel
-  keywords: ["shovel", "spade"]
+  keywords: [shovel, spade, short-handled]
   shortDescription: short-handled shovel
   register: indefinite
   longDescription: >-

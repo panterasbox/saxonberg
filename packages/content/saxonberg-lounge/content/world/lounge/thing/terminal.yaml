@@ -23,9 +23,9 @@ hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   seatIn: /world/lounge/idea/warren
   shortDescription: Teleport Authority terminal
+  keywords: [terminal, lounge, teleport, authority]
   register: indefinite
   boardLabel: The Lounge
-  keywords: [lounge]
   directionality: both
   # ── the mana leg (TPA reform W6) ──
   # A CITY gate runs on the line: cheap mana, and an arming floor it

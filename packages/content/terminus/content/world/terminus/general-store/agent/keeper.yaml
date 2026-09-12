@@ -6,10 +6,10 @@ class: /platform/agent/Cast
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: Odell Marrow
+  keywords: [keeper, odell, marrow, "store's", store, grey-haired]
   pronouns: she
   _speciesPath: /stuff/idea/species/animalia/chordata/mammalia/primates/hominidae/homo/sapiens
   lifecycleState: alive
-  primaryKeyword: keeper
   alternateNames: [odell, marrow, owner, proprietor]
   shortDescription: store's grey-haired keeper
   register: definite

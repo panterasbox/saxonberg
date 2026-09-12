@@ -81,23 +81,31 @@ export const PRESENTATION_FORMS = [
 ] as const;
 export type PresentationForm = (typeof PRESENTATION_FORMS)[number];
 
-/** Whether `value` is one of the three registers. */
-export function isRegister(value: unknown): value is Register {
-  return (
-    typeof value === 'string' && (REGISTERS as readonly string[]).includes(value)
-  );
-}
-
-/** Whether `value` is one of the six forms. */
-export function isPresentationForm(value: unknown): value is PresentationForm {
-  return (
-    typeof value === 'string' &&
-    (PRESENTATION_FORMS as readonly string[]).includes(value)
-  );
+/**
+ * The indefinite article for a stem — a vowel check on the first letter.
+ *
+ * ⚠ Module-private on purpose. `GrammarApi.articleFor` is the surface an
+ * author calls; this is the rule it is implemented with, and there is
+ * exactly one copy of it.
+ */
+function articleFor(text: string): 'a' | 'an' {
+  return /^[aeiou]/i.test(text.trim()) ? 'an' : 'a';
 }
 
 export class NounPhrase {
-  private constructor(
+  /**
+   * ⚠⚠ **Build one through `GrammarApi`, not with `new`** —
+   * `GrammarApi.phrase(stem, register)` / `GrammarApi.properPhrase(name)`.
+   *
+   * The constructor is public for the same reason `new Thing()` is: the
+   * Api needs to call it, and the rule that authors do not is a
+   * convention, not a visibility trick. ⭐ The reason it is a convention
+   * at all: **a static factory on a `lib/` value class is callable by
+   * anyone and visible to nobody.** The author-surface projection admits
+   * public Api statics and public instance methods, and nothing else —
+   * so `NounPhrase.proper()` could be called and could not be found.
+   */
+  constructor(
     /** The bare noun, with NO article. `collie`, `city guard`, `Odile`. */
     public readonly stem: string,
     /** Which article this identity takes. */
@@ -107,34 +115,6 @@ export class NounPhrase {
     /** The plural stem, when the host knows a better one than `+s`. */
     public readonly plural?: string,
   ) {}
-
-  /** A phrase from a stem and a register. */
-  static of(stem: string, register: Register = 'indefinite'): NounPhrase {
-    return new NounPhrase(stem.trim(), register);
-  }
-
-  /** A proper name — takes no article, ever. */
-  static proper(stem: string): NounPhrase {
-    return new NounPhrase(stem.trim(), 'proper');
-  }
-
-  /**
-   * The indefinite article for a piece of text — a vowel check on the
-   * first letter.
-   *
-   * ⭐ It reproduces **all 476** authored `a`/`an` choices in the shipped
-   * content with zero mismatches, which is why the sweep that moved the
-   * articles out needed no per-row override: the content has been obeying
-   * this rule by hand since the beginning.
-   *
-   * ⚠ It is a spelling rule, not a phonetic one, so it says *"an hour"*
-   * wrong and *"a ewe"* wrong. Neither has ever shipped, and the honest
-   * fix when one does is an authored override on the row, not a
-   * pronunciation dictionary in the kernel.
-   */
-  static articleFor(text: string): 'a' | 'an' {
-    return /^[aeiou]/i.test(text.trim()) ? 'an' : 'a';
-  }
 
   /** The same phrase, at a different count. */
   withCount(count: number, plural?: string): NounPhrase {
@@ -150,7 +130,7 @@ export class NounPhrase {
   article(): string {
     if (this.register === 'proper') return '';
     if (this.register === 'definite') return 'the';
-    return NounPhrase.articleFor(this.stem);
+    return articleFor(this.stem);
   }
 
   /** The noun alone — no article, no count. */
@@ -167,7 +147,7 @@ export class NounPhrase {
   indefinite(): string {
     return this.register === 'proper'
       ? this.stem
-      : `${NounPhrase.articleFor(this.stem)} ${this.stem}`;
+      : `${articleFor(this.stem)} ${this.stem}`;
   }
 
   /** `the collie's`, `Odile's`, `the collies'`. */
@@ -190,7 +170,7 @@ export class NounPhrase {
     }
     if (this.register === 'proper') return this.stem;
     if (this.register === 'definite') return `the ${this.stem}`;
-    return `${NounPhrase.articleFor(this.stem)} ${this.stem}`;
+    return `${articleFor(this.stem)} ${this.stem}`;
   }
 
   toString(): string {

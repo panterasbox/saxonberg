@@ -19,9 +19,8 @@ class: /platform/thing/equipment/PortableLight
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: stoppered jar of glowcap
+  keywords: [jar, glowcap, lamp, light, stoppered]
   register: indefinite
-  primaryKeyword: jar
-  keywords: [jar, glowcap, lamp, light]
   longDescription: >-
     A wide-mouthed jar packed with rotted wood and a crop of pale
     mushrooms, stoppered with waxed cloth punched through for air. It

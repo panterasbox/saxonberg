@@ -10,8 +10,7 @@ hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   _speciesPath: /stuff/idea/species/animalia/chordata/mammalia/perissodactyla/equidae/equus/caballus-major
   lifecycleState: alive
-  primaryKeyword: horse
-  keywords: ["horse", "draft-horse", "carthorse", "shire", "team"]
+  keywords: [horse, draft-horse, carthorse, shire, team, heavy, draft]
   shortDescription: heavy draft horse
   register: indefinite
   longDescription: >-

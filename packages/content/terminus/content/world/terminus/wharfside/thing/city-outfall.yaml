@@ -15,9 +15,8 @@ class: /system/water/thing/Conduit
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: outfall
-  register: definite
-  primaryKeyword: outfall
   keywords: [outfall, sewer, arch, discharge, drain]
+  register: definite
   longDescription: |
     A brick arch set into the embankment at the waterline, running steadily whatever the weather, and running hardest in the driest month — which is when the river has least to dilute it with.
   conduitKey: terminus-outfall

@@ -16,9 +16,8 @@ data:
     y: 0
     z: 0
   shortDescription: Hollis bottling floor
-  register: definite
-  primaryKeyword: floor
   keywords: [floor, bottling, hollis, warehouse]
+  register: definite
   longDescription: |
     A bright, cheap warehouse floor: a labelling line clacking away, grey Veshko cases stacked by the intake door and red Hollis cases by the dock. No still anywhere.
   ambientIntensity: 30

@@ -5,8 +5,8 @@ class: /platform/idea/material/ConsumableMaterial
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: red must
+  keywords: [red, must]
   appearance: "dark crushed must, skins riding the surface"
-  keywords: ["must"]
   density: 1090
   thermalConductivity: 0.5
   specificHeat: 3700

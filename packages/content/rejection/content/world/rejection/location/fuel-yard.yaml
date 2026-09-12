@@ -8,9 +8,8 @@ class: /platform/location/SingletonCartesianLocation
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: fuel yard
+  keywords: [yard, "fuel yard", coppice, clamp, fuel]
   register: definite
-  primaryKeyword: yard
-  keywords: [yard, "fuel yard", coppice, clamp]
   longDescription: |
     A wide flat of beaten earth with the coppice standing behind it — hazel, all of an age, cut to the ground in one panel and eight feet high in the next. Cordwood is stacked in ricks to season, and in the middle of the flat is a turfed dome the height of a man with thin blue smoke coming out of a dozen holes in it.
 

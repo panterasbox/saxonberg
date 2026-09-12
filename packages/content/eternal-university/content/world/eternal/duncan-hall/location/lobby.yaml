@@ -22,8 +22,8 @@ hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   _address: terminus/city/campus/duncan-hall
   shortDescription: Duncan Hall lobby
+  keywords: [lobby, duncan, hall]
   register: proper
-  primaryKeyword: lobby
   illustration: location/duncan-hall-lobby.png
   longDescription: |
     A long marble counter divides the lobby roughly in half. The far wall is studded with brass mail slots — most empty, a few stuffed with envelopes nobody has come down for. Bulletin boards on either side advertise things that have already happened: a study group two weeks back, a missing textbook from last term.

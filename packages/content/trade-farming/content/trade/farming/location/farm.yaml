@@ -29,9 +29,8 @@ data:
     y: 0
     z: 0
   shortDescription: "farm"
+  keywords: [floor, shed, packing, farm]
   register: definite
-  primaryKeyword: floor
-  keywords: ["floor", "shed", "packing"]
   longDescription: |
     A packing shed open on one side: trestles, a scale, crates under wet sacking (the growing is the smallholding's; the floor stands at target through the sweep until a grower supplies it).
   ambientIntensity: 25

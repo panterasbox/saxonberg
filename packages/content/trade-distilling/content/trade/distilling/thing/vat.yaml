@@ -4,9 +4,8 @@ class: /platform/thing/Vat
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: oak wash vat
+  keywords: [vat, "wash vat", back, oak, wash]
   register: indefinite
-  primaryKeyword: vat
-  keywords: [vat, "wash vat", back]
   longDescription: |
     A waist-high oak vat crusted at the tide line, a bung at the shoulder.
   category: vat

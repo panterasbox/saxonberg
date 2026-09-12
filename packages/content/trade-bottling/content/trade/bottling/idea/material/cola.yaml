@@ -3,8 +3,8 @@ class: /platform/idea/material/ConsumableMaterial
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: cola
+  keywords: [coke, cola]
   appearance: "dark, sweet, fizzing cola"
-  keywords: ["cola", "coke"]
   density: 1040
   thermalConductivity: 0.5
   specificHeat: 3800

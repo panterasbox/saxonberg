@@ -9,9 +9,8 @@ class: /trade/fuel/thing/CharcoalPit
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: turfed charcoal clamp
+  keywords: [clamp, pit, heap, kiln, turfed, charcoal]
   register: indefinite
-  primaryKeyword: clamp
-  keywords: [clamp, pit, heap, kiln]
   longDescription: >-
     A dome of stacked cordwood the height of a man, packed round a
     chimney of poles and sealed under turf and earth. A dozen vents are

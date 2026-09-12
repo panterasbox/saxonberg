@@ -11,8 +11,8 @@ class: /platform/idea/material/Material
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: potting soil
+  keywords: [potting, soil, dirt, compost]
   appearance: dark potting soil
-  keywords: [soil, dirt, compost, potting]
   # Loose peat-based potting mix, not packed earth (~1500) — it is mostly
   # air by volume, which is the point of it.
   density: 400

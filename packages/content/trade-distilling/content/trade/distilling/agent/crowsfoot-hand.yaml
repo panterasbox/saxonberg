@@ -8,10 +8,10 @@ class: /platform/agent/Cast
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: Wren Ashby
+  keywords: [hand, wren, ashby, lean, crowsfoot, apron]
   pronouns: they
   _speciesPath: /stuff/idea/species/animalia/chordata/mammalia/primates/hominidae/homo/sapiens
   lifecycleState: alive
-  primaryKeyword: hand
   alternateNames: [wren, ashby]
   shortDescription: lean hand in a Crowsfoot apron
   register: indefinite

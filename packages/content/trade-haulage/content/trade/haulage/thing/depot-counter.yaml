@@ -8,9 +8,8 @@ class: /trade/haulage/thing/DepotCounter
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: depot counter
-  register: definite
-  primaryKeyword: counter
   keywords: [counter, desk, shipping, depot]
+  register: definite
   longDescription: |
     A plank counter with a brass rail along the customer side, worn through in two places where elbows go. Behind it a slope-desk, a ledger, a spike of dockets and a rack of blank bills of lading. A chalked board above lists what is going where, and half of it has been rubbed out and rewritten since this morning.
   discipline: fifo

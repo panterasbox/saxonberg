@@ -2,8 +2,8 @@ class: /platform/thing/equipment/Garment
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: crisp white coat
+  keywords: [coat, crisp, white]
   register: indefinite
-  primaryKeyword: coat
   longDescription: >
     A clean white clinical coat, pockets still stiff. It lends the
     wearer an air of competence they may not yet have earned — but

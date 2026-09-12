@@ -6,8 +6,8 @@ class: /platform/location/SingletonCartesianLocation
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: conductive gallery
+  keywords: [gallery, conductive]
   register: definite
-  primaryKeyword: gallery
   longDescription: |
     A long stone gallery, its floor deliberately flooded ankle-deep with brine. A dry timber walkway hugs one wall; a plaque reads: MIND WHERE YOU STAND.
   coords:

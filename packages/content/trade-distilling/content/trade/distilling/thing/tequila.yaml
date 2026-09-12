@@ -14,10 +14,9 @@ class: /trade/distilling/thing/SpiritBottle
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: bottle of tequila
+  keywords: [tequila, bottle, spirit]
   register: indefinite
   longDescription: A tall bottle of pale tequila, the cork wired down.
-  primaryKeyword: tequila
-  keywords: [tequila, bottle, spirit]
   category: spirit-bottle
   interiorBulk: true
   interiorCapacity: 0.75

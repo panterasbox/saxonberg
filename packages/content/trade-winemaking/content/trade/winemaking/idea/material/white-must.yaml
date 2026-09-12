@@ -4,8 +4,8 @@ class: /platform/idea/material/ConsumableMaterial
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: white must
+  keywords: [white, must, juice]
   appearance: "cloudy pale grape juice, green-gold"
-  keywords: ["must", "juice"]
   density: 1080
   thermalConductivity: 0.5
   specificHeat: 3700

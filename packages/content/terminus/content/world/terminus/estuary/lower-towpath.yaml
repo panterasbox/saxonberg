@@ -4,8 +4,8 @@ class: /platform/location/SingletonCartesianLocation
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: lower towpath
+  keywords: [towpath, lower]
   register: definite
-  primaryKeyword: towpath
   alternateNames: [path, wharf, quay, bank]
   _address: terminus/city/wharfside/lower-towpath
   _biomePath: /stuff/idea/biome/outdoor/baseline

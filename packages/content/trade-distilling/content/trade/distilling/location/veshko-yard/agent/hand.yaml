@@ -5,10 +5,10 @@ class: /platform/agent/Cast
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: Petra Volkova
+  keywords: [hand, petra, volkova, brisk, yard, veshko-grey, coat]
   pronouns: she
   _speciesPath: /stuff/idea/species/animalia/chordata/mammalia/primates/hominidae/homo/sapiens
   lifecycleState: alive
-  primaryKeyword: hand
   alternateNames: [petra, volkova]
   shortDescription: brisk yard hand in a Veshko-grey coat
   register: indefinite

@@ -10,8 +10,8 @@ hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   _speciesPath: /stuff/idea/species/wolf
   lifecycleState: alive
-  primaryKeyword: wolf
   shortDescription: rangy grey wolf
+  keywords: [wolf, rangy, grey]
   register: indefinite
   longDescription: >-
     A rangy grey wolf, all wire and hunger, hackles up and head low. Its

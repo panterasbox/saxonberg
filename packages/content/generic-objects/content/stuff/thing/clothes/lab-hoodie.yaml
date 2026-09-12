@@ -2,8 +2,8 @@ class: /platform/thing/equipment/Garment
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: faded lab hoodie
+  keywords: [hoodie, faded, lab]
   register: indefinite
-  primaryKeyword: hoodie
   longDescription: >
     A soft, faded hoodie with a half-scrubbed equation inked on one
     cuff. It has the look of someone who codes through the night and

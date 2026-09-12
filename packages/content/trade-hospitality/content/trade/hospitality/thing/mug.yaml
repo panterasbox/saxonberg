@@ -4,10 +4,9 @@ class: /platform/thing/ServingVessel
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: mug
+  keywords: [mug, cup]
   register: indefinite
   longDescription: A heavy ceramic mug, glazed a chipped blue.
-  primaryKeyword: mug
-  keywords: [mug, cup]
   category: mug
   interiorBulk: true
   interiorCapacity: 0.35

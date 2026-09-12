@@ -7,8 +7,8 @@ hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   seatIn: /world/terminus/terminal/location/departure-gate-a
   shortDescription: Teleport Authority terminal
+  keywords: [terminal, gate-a, teleport, authority]
   register: indefinite
-  keywords: [gate-a]
   directionality: departure
   status: operational
   # ── the mana leg (TPA reform W6) ──

@@ -11,10 +11,10 @@ class: /platform/agent/Crafter
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: Dave
+  keywords: [dave, barkeep]
   pronouns: he
   _speciesPath: /stuff/idea/species/animalia/chordata/mammalia/primates/hominidae/homo/sapiens
   lifecycleState: alive
-  primaryKeyword: dave
   alternateNames:
     - barkeep
     - bartender

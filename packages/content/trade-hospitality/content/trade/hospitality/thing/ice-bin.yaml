@@ -5,10 +5,9 @@ class: /trade/hospitality/thing/IceBin
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: ice bin
+  keywords: [bin, ice-bin, ice]
   register: indefinite
   longDescription: A deep insulated bin under the rail with a scoop hooked on its lip.
-  primaryKeyword: bin
-  keywords: [bin, ice-bin, ice]
   interiorBulk: true
   interiorCapacity: 30
   interiorMaterial: /trade/bottling/idea/material/ice

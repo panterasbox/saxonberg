@@ -14,8 +14,8 @@ hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   _address: terminus/city/campus/duncan-hall
   shortDescription: dorm room
+  keywords: [room, dorm]
   register: indefinite
-  primaryKeyword: room
   longDescription: |
     A narrow single room — a bed against one wall, a desk under the window, a footlocker at the foot of the bed, a cold tap in the corner, and a tall wardrobe wedged in beside the door whose inside does not appear to have a back. Daylight comes in over the desk. The kind of blank the university hands every new arrival, waiting to be made someone's.
   # Enough daylight over the desk to keep a houseplant honest (the `lit`

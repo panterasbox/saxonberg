@@ -6,8 +6,8 @@ class: /platform/idea/material/Material
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: rubber
-  appearance: black vulcanized rubber
   keywords: [rubber]
+  appearance: black vulcanized rubber
   density: 1100
   specificHeat: 2000
   thermalConductivity: 0.16

@@ -3,10 +3,9 @@ class: /platform/thing/Bottle
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: "sack of coffee"
+  keywords: [coffee, sack, beans]
   register: indefinite
   longDescription: "A five-kilo sack of roasted coffee, still warm-smelling."
-  primaryKeyword: coffee
-  keywords: ["coffee", "sack", "beans"]
   category: sack
   interiorBulk: true
   interiorCapacity: 20

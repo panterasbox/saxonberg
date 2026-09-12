@@ -22,7 +22,7 @@ class: /system/arcana/idea/material/PotionMaterial
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: blistering draught
-  keywords: [draught, potion, caustic]
+  keywords: [blistering, draught, potion, caustic]
   density: 1120
   thermalConductivity: 0.6
   specificHeat: 3900

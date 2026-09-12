@@ -6,8 +6,8 @@ class: /platform/idea/material/ConsumableMaterial
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: aromatic bitters
+  keywords: [aromatic, bitters]
   appearance: a dark, intensely aromatic tincture
-  keywords: [bitters]
   density: 940
   thermalConductivity: 0.17
   specificHeat: 2400

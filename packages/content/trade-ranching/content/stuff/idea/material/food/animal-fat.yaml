@@ -6,8 +6,8 @@ class: /platform/idea/material/Material
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: animal fat
+  keywords: [animal, fat, tallow, suet]
   appearance: hard and waxy white
-  keywords: [fat, tallow, suet]
   density: 900
   specificHeat: 2000
   thermalConductivity: 0.17

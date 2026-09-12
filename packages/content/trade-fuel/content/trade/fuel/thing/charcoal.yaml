@@ -7,9 +7,8 @@ class: /platform/thing/Provision
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: basket of charcoal
+  keywords: [charcoal, char, coal, basket]
   register: indefinite
-  primaryKeyword: charcoal
-  keywords: [charcoal, char, coal]
   longDescription: >-
     Black, light and startlingly clean-breaking. A lump rings faintly when
     you knock two together, which is how a collier tells a good burn from

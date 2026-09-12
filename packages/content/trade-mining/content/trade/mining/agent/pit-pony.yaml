@@ -17,8 +17,7 @@ hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   _speciesPath: /stuff/idea/species/animalia/chordata/mammalia/perissodactyla/equidae/equus/caballus-pumilus
   lifecycleState: alive
-  primaryKeyword: pony
-  keywords: ["pony", "pit-pony", "horse"]
+  keywords: [pony, pit-pony, horse, stocky, pit]
   shortDescription: stocky pit pony
   register: indefinite
   longDescription: >-

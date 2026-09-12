@@ -7,10 +7,9 @@ class: /platform/thing/Bottle
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: "bottle of simple syrup"
+  keywords: [syrup, simple-syrup, bottle, simple]
   register: indefinite
   longDescription: "A half-litre bottle of clear sugar syrup, the cork sticky."
-  primaryKeyword: syrup
-  keywords: ["syrup", "simple-syrup", "bottle"]
   category: syrup-bottle
   interiorBulk: true
   interiorCapacity: 0.5

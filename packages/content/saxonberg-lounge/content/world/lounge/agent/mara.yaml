@@ -5,10 +5,10 @@ class: /platform/agent/Crafter
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: Mara
+  keywords: [mara, steady, watchful, dwarf, tending, bar]
   pronouns: she
   _speciesPath: /stuff/idea/species/animalia/chordata/mammalia/primates/hominidae/homo/khazadicus
   lifecycleState: alive
-  primaryKeyword: mara
   shortDescription: steady, watchful dwarf tending bar
   register: indefinite
   longDescription: |

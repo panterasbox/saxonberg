@@ -5,9 +5,8 @@ class: /platform/thing/Provision
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: cranberry
-  register: indefinite
-  primaryKeyword: cranberry
   keywords: [cranberry, cranberries, produce]
+  register: indefinite
   longDescription: "A hard red cranberry."
   _materialPath: /trade/farming/idea/material/cranberry
   gradeBand: fair

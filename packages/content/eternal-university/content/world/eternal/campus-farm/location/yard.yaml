@@ -9,9 +9,8 @@ class: /platform/location/SingletonCartesianLocation
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: university farmyard
+  keywords: [farmyard, yard, farm, university]
   register: definite
-  primaryKeyword: farmyard
-  keywords: [farmyard, yard, farm]
   longDescription: |
     A square of trodden mud between a low stone byre and a hay barn, with a
     water trough along one wall and a steaming midden heaped in the far

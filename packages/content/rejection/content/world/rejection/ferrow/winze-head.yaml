@@ -9,11 +9,10 @@ class: /trade/mining/location/AuthoredWorking
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: winze head
+  keywords: [winze, head, "winze head", ladder]
   register: definite
-  primaryKeyword: winze
   oreRow: /world/rejection/thing/copper-ore
 
-  keywords: [winze, head, "winze head", ladder]
   longDescription: |
     The drift ends, and the floor does. A square hole goes down out of the lamplight with a ladder in it, spiked to the timber at the top and disappearing at about the fourth rung. There is a windlass over it that nobody has used in years and a coil of rope that would not take anybody's weight.
 

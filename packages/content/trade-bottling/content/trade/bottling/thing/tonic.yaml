@@ -3,10 +3,9 @@ class: /platform/thing/Bottle
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: "bottle of tonic water"
+  keywords: [tonic, tonic-water, bottle, mixer, water]
   register: indefinite
   longDescription: "A one-litre screw-capped bottle of tonic water, the bottling floor's plain label."
-  primaryKeyword: tonic
-  keywords: ["tonic", "tonic-water", "bottle", "mixer"]
   category: mixer-bottle
   interiorBulk: true
   interiorCapacity: 1

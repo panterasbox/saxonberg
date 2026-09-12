@@ -13,8 +13,8 @@ class: /platform/idea/material/Material
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: compost
+  keywords: [humus, compost, muck, manure]
   appearance: crumbly black compost
-  keywords: [compost, muck, manure, humus]
   # Denser and wetter than a peat potting mix — it is rotted matter, not
   # an aerated growing medium.
   density: 700

@@ -8,6 +8,7 @@ class: /platform/idea/material/Material
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: carbon
+  keywords: [carbon]
   density: 2200
   specificHeat: 710
   thermalConductivity: 130

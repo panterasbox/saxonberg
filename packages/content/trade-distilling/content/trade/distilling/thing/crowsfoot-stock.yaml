@@ -7,9 +7,8 @@ class: /platform/thing/Stock
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: crowsfoot stock
+  keywords: [stock, cases, pallet, bottles, crowsfoot]
   register: definite
-  primaryKeyword: stock
-  keywords: [stock, cases, pallet, bottles]
   longDescription: A pallet of cased bottles waiting for the dray — the Crowsfoot outfit's run, stacked by the door.
   discipline: scrum
   attendDurationMs: 0

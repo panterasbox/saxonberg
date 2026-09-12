@@ -16,9 +16,8 @@ class: /trade/mining/location/MineRoom
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: working face
-  register: indefinite
-  primaryKeyword: face
   keywords: [face, working, heading]
+  register: indefinite
   longDescription: |
     A cut end, square to the rock, with the marks of the last shift still on it.
   oreRow: /world/rejection/thing/copper-ore

@@ -3,9 +3,8 @@ class: /platform/idea/material/ConsumableMaterial
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: lager
+  keywords: [lager, beer, brew]
   appearance: "a pale, bright lager"
-  primaryKeyword: lager
-  keywords: ["lager", "beer", "brew"]
   density: 1008
   thermalConductivity: 0.5
   specificHeat: 3800

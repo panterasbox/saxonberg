@@ -8,9 +8,8 @@ class: /trade/cooking/thing/ButcherBlock
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: butcher's block
+  keywords: [block, butcher, butchers-block, bench, "butcher's"]
   register: indefinite
-  primaryKeyword: block
-  keywords: [block, butcher, butchers-block, bench]
   longDescription: |
     A squat block of end-grain elm on four legs, scrubbed pale and scored to a shallow dish in the middle. The near edge is darker than the rest, the way a thing goes when hands have rested on it for years.
   _materialPath: /stuff/idea/material/wood/oak

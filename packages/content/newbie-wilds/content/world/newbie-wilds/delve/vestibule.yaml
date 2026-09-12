@@ -7,8 +7,8 @@ class: /platform/location/SingletonCartesianLocation
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: mouth of the delve
+  keywords: [delve, mouth]
   register: definite
-  primaryKeyword: vestibule
   longDescription: |
     Worked stone shows through the pine-needles here — a doorway, and behind it a low corridor going back into the hill, its floor laid in flat slabs gone green at the joints. Someone has scratched a warning by the lintel and then, later, someone else has scratched it out.
 

@@ -4,8 +4,7 @@ class: /platform/thing/Provision
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: wrapped ration pack
+  keywords: [rations, ration, pack, wrapped]
   register: indefinite
-  primaryKeyword: rations
-  keywords: [rations, ration, pack]
   _materialPath: /stuff/idea/material/food/trail-ration
   mass: 0.5

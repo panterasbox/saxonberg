@@ -5,9 +5,8 @@ class: /platform/thing/Crate
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: crate of juniper berries
+  keywords: [juniper, crate, berries, produce]
   register: indefinite
-  primaryKeyword: juniper
-  keywords: [crate, juniper, berries, produce]
   longDescription: A small slatted crate of blue-black juniper berries, resin-sharp.
   censusKey: produce:juniper
   regionTarget: 3

@@ -8,8 +8,8 @@ class: /platform/location/SingletonCartesianLocation
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: delve vault
+  keywords: [vault, delve]
   register: definite
-  primaryKeyword: vault
   longDescription: |
     The corridor opens into a squat, dry chamber with a shelf cut into the far wall. Whatever hoard it once held is long gone; a single offering-bowl of dull metal still sits on the shelf, left for whoever made it this far.
 

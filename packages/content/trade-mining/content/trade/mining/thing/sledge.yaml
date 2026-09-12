@@ -3,8 +3,7 @@
 class: /platform/thing/ToolItem
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  primaryKeyword: sledge
-  keywords: ["sledge", "sledgehammer", "maul"]
+  keywords: [sledge, sledgehammer, maul, long-hafted]
   shortDescription: long-hafted sledge
   register: indefinite
   longDescription: >-

@@ -17,9 +17,8 @@ hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   seatIn: /world/terminus/terminal/location/arrival-gate
   shortDescription: district mana line
+  keywords: [line, main, conduit, mains, district, mana]
   register: definite
-  primaryKeyword: line
-  keywords: [line, main, conduit, mains]
   longDescription: >
     A brass trunk the thickness of a thigh runs the length of the gate
     hall a foot below the ceiling, dropping a spur to each terminal.

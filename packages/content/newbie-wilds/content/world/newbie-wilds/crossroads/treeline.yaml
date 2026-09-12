@@ -9,8 +9,8 @@ class: /platform/location/SingletonCartesianLocation
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: treeline past the crossroads
+  keywords: [treeline, past, crossroads]
   register: definite
-  primaryKeyword: treeline
   _address: last-counted-mile/treeline
   longDescription: |
     The road gives out entirely here and the wood closes over it — pines gone black-green in the shadow, needles deep and silent underfoot, the light coming down in coins. This is the quiet the crossroads warned about: not peace, but the held quiet of a place with something in it that has already noticed you.

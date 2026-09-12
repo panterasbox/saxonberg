@@ -15,8 +15,8 @@ hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   _speciesPath: /stuff/idea/species/animalia/chordata/mammalia/primates/hominidae/homo/sapiens
   lifecycleState: alive
-  primaryKeyword: sentry
   shortDescription: watchful sentry
+  keywords: [sentry, watchful]
   register: indefinite
   # ⭐ Who fields this picket. An Extra has no identity of its own, so the
   # institution is the ONLY attribution its harms carry — and the crime

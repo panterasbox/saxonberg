@@ -13,9 +13,8 @@ class: /platform/thing/Cutlery
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: horn spoon
+  keywords: [spoon, horn-spoon, utensil, horn]
   register: indefinite
-  primaryKeyword: spoon
-  keywords: [spoon, horn-spoon, utensil]
   longDescription: |
     A shallow spoon cut from a cow's horn and scraped thin, the bowl of it gone translucent amber where the light comes through. Warm to hold, and it never scalds a lip.
   utensilKind: spoon

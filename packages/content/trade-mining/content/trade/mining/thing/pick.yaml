@@ -6,8 +6,7 @@
 class: /platform/thing/ToolItem
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  primaryKeyword: pick
-  keywords: ["pick", "miners-pick"]
+  keywords: [pick, miners-pick, "miner's", miner]
   shortDescription: miner's pick
   register: indefinite
   longDescription: >-

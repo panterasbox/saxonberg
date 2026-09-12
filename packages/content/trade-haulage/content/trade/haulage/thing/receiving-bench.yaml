@@ -15,8 +15,7 @@ class: /platform/thing/Surface
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: receiving bench
-  register: definite
-  primaryKeyword: bench
   keywords: [bench, dock, delivery, receiving, counter]
+  register: definite
   longDescription: |
     A scarred zinc-topped bench by the cellar door with a docket spike at one end and a stub of chalk on a string. Whatever comes in goes here first and gets looked at before it gets put away. There is a ring of something that was not looked at quickly enough.

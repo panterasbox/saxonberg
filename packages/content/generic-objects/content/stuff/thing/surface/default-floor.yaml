@@ -9,6 +9,7 @@ class: /platform/thing/Floor
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: featureless plain floor
+  keywords: [floor, featureless, plain]
   register: indefinite
   longDescription: A featureless plain floor.
   # Surface-bulk: an uncapped puddle slot. Spills, over-pours, and

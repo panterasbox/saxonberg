@@ -22,8 +22,8 @@ data:
     y: 1
     z: 0
   shortDescription: Dave's office
+  keywords: [office, "dave's", dave]
   register: proper
-  primaryKeyword: office
   longDescription: |
     Smaller than you'd think, and quieter — the noise of the bar drops to a rumor the moment you're through the door. A desk worn pale at the edges, an oxblood chair gone soft, a window onto the alley where the neon out front leaks in red and amber. There's a framed playbill on the wall and a row of clipboards hung on nails, and on the desk, within easy reach, a bottle of something a good deal better than what's on the rail. This is where the pouring stops and the keeping begins.
 

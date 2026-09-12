@@ -11,14 +11,20 @@
 
 import Location from '../../lib/stuff/Location';
 import { VisibleMixin } from '../../lib/description/Visible';
+import { PerceptibleMixin } from '../../lib/description/Perceptible';
 import { DetailedMixin } from '../../lib/description/Detailed';
 import { PostRegistrationMixin } from '../../lib/stuff/PostRegistration';
 import { SingletonMixin } from '../../lib/stuff/Singleton';
 import { OffstageMixin } from '../../lib/employment/Offstage';
 import type { FieldMeta } from '../../lib/mixin';
 
+// ⭐ `PerceptibleMixin` — a room is addressable by keyword. ⚠ It is
+// composed per class because `Location` does NOT carry it (only
+// `CartesianLocation` does), so every room class built directly on
+// `Location` has to remember. These rows were authoring `primaryKeyword`
+// into a void until 2026-09-11; `lint:presentation` clause (d) found it.
 const OffstageBase = SingletonMixin(
-  OffstageMixin(PostRegistrationMixin(DetailedMixin(VisibleMixin(Location))))
+  OffstageMixin(PostRegistrationMixin(DetailedMixin(VisibleMixin(PerceptibleMixin(Location)))))
 );
 
 export default class Offstage extends OffstageBase {

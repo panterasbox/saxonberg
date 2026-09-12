@@ -18,9 +18,8 @@ class: /platform/thing/Crate
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: supply crate
+  keywords: [crate, box, case, consignment, supply]
   register: indefinite
-  primaryKeyword: crate
-  keywords: [crate, box, case, consignment]
   longDescription: |
     A slatted timber crate with rope handles at each end and a card pocket nailed to one side. Somebody has written on the card, crossed it out, and written on it again.
   mass: 4

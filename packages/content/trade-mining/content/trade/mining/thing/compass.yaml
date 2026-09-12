@@ -10,8 +10,7 @@
 class: /trade/mining/thing/instrument/SurveyInstrument
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  primaryKeyword: compass
-  keywords: ["compass", "surveyors-compass", "needle"]
+  keywords: [compass, surveyors-compass, needle, "surveyor's", surveyor, brass]
   shortDescription: surveyor's brass compass
   register: indefinite
   longDescription: >-

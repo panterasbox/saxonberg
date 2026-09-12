@@ -4,8 +4,8 @@ class: /platform/idea/material/Material
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: down
-  appearance: soft lofted down
   keywords: [down]
+  appearance: soft lofted down
   density: 30
   # Water absorption capacity (% of dry mass, ASTM D570): down soaks heavily and clumps when wet.
   waterAbsorptionCapacity: 40

@@ -18,9 +18,8 @@ data:
     y: 0
     z: 0
   shortDescription: "vintner floor"
+  keywords: [floor, cellar, vintner, winery]
   register: definite
-  primaryKeyword: floor
-  keywords: ["floor", "cellar", "vintner", "winery"]
   longDescription: |
     A cool cellar under a trapdoor, and a working one: two oak vats stand chalk-tallied against the wall, the basket press drips into its channel, and the cellar book hangs chained to the rail. Racked cases and empty green bottles wait their turn.
   ambientIntensity: 25

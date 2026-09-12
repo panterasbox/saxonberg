@@ -5,9 +5,8 @@ class: /platform/thing/Provision
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: olive
-  register: indefinite
-  primaryKeyword: olive
   keywords: [olive, olives, produce]
+  register: indefinite
   longDescription: "A green olive, brine-wet."
   _materialPath: /trade/farming/idea/material/olive
   gradeBand: fair

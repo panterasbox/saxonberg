@@ -13,8 +13,8 @@ class: /platform/idea/material/Material
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: madder
+  keywords: [alizarin, madder]
   appearance: gritty brick-coloured madder
-  keywords: [madder, alizarin]
   density: 700
   thermalConductivity: 0.08
   hardness: 2

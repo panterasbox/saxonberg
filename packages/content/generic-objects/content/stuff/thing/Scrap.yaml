@@ -5,6 +5,6 @@ class: /platform/thing/Scrap
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: heap of scrap
+  keywords: [of, scrap, heap, salvage]
   register: indefinite
-  keywords: [scrap, heap, salvage]
   mass: 0.1

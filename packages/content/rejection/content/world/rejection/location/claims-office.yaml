@@ -9,9 +9,8 @@ class: /platform/location/SingletonCartesianLocation
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: claims office
-  register: definite
-  primaryKeyword: office
   keywords: [office, "claims office", claims]
+  register: definite
   longDescription: |
     One room, one counter, and a stove that has not been lit this month. Behind the counter the whole of the wall is a map: the diggings in plan, claims inked in and numbered, the untitled ground left white. More of it is white than is not.
 

@@ -3,9 +3,9 @@ class: /platform/thing/CocktailShaker
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: cocktail shaker
+  keywords: [cocktail, shaker]
   register: indefinite
   longDescription: A dented steel cocktail shaker, cold to the touch.
-  keywords: [shaker]
   capabilities:
     # ⭐ The tool is what knows what the working does. Shaking with ice
     # chills hardest, dilutes most, and folds air in (a shaken drink reads

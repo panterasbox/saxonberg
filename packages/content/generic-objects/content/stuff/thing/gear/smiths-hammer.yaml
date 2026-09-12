@@ -6,9 +6,8 @@ class: /platform/thing/ToolItem
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: smith's hammer
+  keywords: [hammer, smiths-hammer, cross-peen, "smith's", smith]
   register: indefinite
-  primaryKeyword: hammer
-  keywords: [hammer, smiths-hammer, cross-peen]
   longDescription: |
     A cross-peen smith's hammer, its face polished bright by work and its haft dark with hand-oil.
   capabilities: [striking]

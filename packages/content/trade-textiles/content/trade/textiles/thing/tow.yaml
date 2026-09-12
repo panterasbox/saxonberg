@@ -7,9 +7,8 @@ class: /trade/textiles/thing/TextileStock
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: wad of tow
-  register: indefinite
-  primaryKeyword: tow
   keywords: [tow, wad, short, fibre]
+  register: indefinite
   longDescription: |
     A tangled wad of short flax, all ends and no length. It will spin, after a fashion, and what it spins into will look like what it came from.
   _materialPath: /stuff/idea/material/textile/linen

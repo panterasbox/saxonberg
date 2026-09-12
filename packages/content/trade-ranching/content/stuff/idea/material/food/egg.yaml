@@ -6,8 +6,8 @@ class: /platform/idea/material/Material
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: egg
+  keywords: [eggs, egg]
   appearance: brown-shelled and still warm
-  keywords: [egg, eggs]
   density: 1031
   specificHeat: 3200
   thermalConductivity: 0.44

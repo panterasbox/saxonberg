@@ -2,8 +2,8 @@ class: /platform/thing/equipment/Weapon
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: steel mace
+  keywords: [mace, steel]
   register: indefinite
-  primaryKeyword: mace
   longDescription: >
     A flanged steel head on a stout oak haft. It delivers nothing but blunt
     force — and blunt force is exactly what shrugs off a plated foe.

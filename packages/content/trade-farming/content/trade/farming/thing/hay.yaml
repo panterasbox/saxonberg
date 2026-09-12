@@ -14,9 +14,8 @@ class: /trade/farming/thing/HayBale
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: cut of hay
+  keywords: [hay, grass, fodder, sward, cut]
   register: indefinite
-  primaryKeyword: hay
-  keywords: [hay, grass, fodder, sward]
   longDescription: >-
     Cut grass, still smelling green, with clover and a few seed heads
     through it. It will want turning before it is fit to stack.

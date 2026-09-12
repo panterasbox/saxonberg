@@ -60,38 +60,14 @@ export interface Perceptible {
   hasKeyword(keyword: string): boolean;
   setKeywords(keywords: string[]): void;
   /**
-   * The authored / derived "first" keyword used by client renderers
-   * for canonical click-to-look affordances. Defaults to the first
-   * derived-pool entry; an author can pin a specific keyword via
-   * `setPrimaryKeyword`, but the setter fail-soft-validates against
-   * the live pool (an unrecognized value is ignored with a warning).
+   * The "first" keyword — what a client renderer sends for a
+   * click-to-look affordance, and what the handle chain reads.
+   *
+   * ⭐ **`keywords[0]` unless an author pinned something else.** One
+   * value, one meaning: it is only ever a word somebody wrote down.
    */
   getPrimaryKeyword(): string | undefined;
-  /** The authored value only — no derived fallback. */
-  getAuthoredPrimaryKeyword(): string | undefined;
   setPrimaryKeyword(value: string | undefined): void;
-}
-
-/**
- * Lowercase + split-on-whitespace tokenization with article
- * filtering. Used by {@link PerceptibleMixin.keywords} to fold a
- * host's display name AND short description into the keyword pool —
- * `'a brass thermometer'` produces `['brass', 'thermometer']`,
- * letting players type either content token.
- *
- * Filters `GrammarApi.ARTICLES` (`a` / `an` / `the`) — the same set
- * MQL desugar strips from query heads, so the two pipelines stay in
- * sync. Authors who legitimately want `'a'` as a keyword can add it
- * via `addKeyword()` / explicit `keywords: ['a']` in seed data —
- * explicit additions bypass this filter (the `_keywords` field is
- * preserved verbatim in the getter).
- */
-function tokenizeName(name: string): string[] {
-  return name
-    .toLowerCase()
-    .split(/\s+/)
-    .map((s) => s.trim())
-    .filter((s) => s.length > 0 && !GrammarApi.ARTICLES.has(s));
 }
 
 export function PerceptibleMixin<TBase extends MixinConstructor>(Base: TBase) {
@@ -106,7 +82,6 @@ export function PerceptibleMixin<TBase extends MixinConstructor>(Base: TBase) {
      */
     static fieldMeta: FieldMeta = {
       keywords: { persistent: true, authorable: true },
-      autoDeriveKeywords: { persistent: true, authorable: true },
       primaryKeyword: { persistent: true, authorable: true },
     };
 
@@ -142,55 +117,30 @@ export function PerceptibleMixin<TBase extends MixinConstructor>(Base: TBase) {
      */
     private _keywords: string[] = [];
 
-    /**
-     * Opt-out for auto-deriving keywords from the host's display name
-     * (via NamedMixin) and short description (via VisibleMixin).
-     * Default true — most hosts want `"a brass thermometer"` to fold
-     * into `['brass', 'thermometer']` automatically. Set to `false`
-     * in template data when you want hand-curated keywords only
-     * (e.g., a "scroll of resurrection" where you want just `'scroll'`,
-     * not `['scroll', 'of', 'resurrection']` — though "of" would be
-     * dropped as a stop word anyway, "resurrection" wouldn't).
-     */
-    protected autoDeriveKeywords: boolean = true;
 
     /**
-     * Host-internal accessor pair (Pattern D). External callers go
-     * through `getKeywords()` / `setKeywords()`. The private setter
-     * still fires when the Hydrator bracket-assigns
-     * `target['keywords'] = data['keywords']` — bracket access bypasses
-     * TS visibility, so the normalization invariant runs during
-     * hydration.
+     * ⭐⭐ **The keywords an author wrote. Nothing else.**
      *
-     * The getter returns the **derived** keyword pool: authored
-     * keywords plus, when `autoDeriveKeywords` is true, tokenized
-     * words from the host's display name (NamedMixin) and short
-     * description (VisibleMixin). Authored entries always lead so an
-     * exact-keyword match outranks a tokenized match (see
-     * `scope-walk.scoreCandidate`). Internal callers that need the
-     * raw authored set go through `_keywords` directly.
+     * This used to fold in `tokenizeName(getName())` and
+     * `tokenizeName(getShortDescription())` behind an
+     * `autoDeriveKeywords` dial. It was removed 2026-09-11, and the
+     * census is why: **568 of the 646 described rows already authored
+     * their keywords by hand**, so derivation was saving nobody any
+     * typing — while what it produced was junk. A tailor described as
+     * *"tailor with pins down one cuff and a tape round her neck"*
+     * answered to `look with`, `look and`, `look her` and `look neck`.
+     *
+     * ⚠ And it split on whitespace ALONE, so a description reading
+     * *"live-in super, keys jangling at her belt"* put **`super,`** in
+     * the pool — comma included. `look super` failed; `look super,` was
+     * untypable. The sweep that made these authored strips the
+     * punctuation, so those rows gained the word they should have had.
+     *
+     * ⭐ `autoDeriveKeywords` went with it: **zero** shipped rows ever
+     * set it, because a dial nobody turns is a dial nobody wanted.
      */
     protected get keywords(): string[] {
-      const out: string[] = [...this._keywords];
-      if (this.autoDeriveKeywords) {
-        if (MixinApi.hasMixin(this.constructor as never, Mixins.Named)) {
-          const named = this as unknown as { getName(): string };
-          for (const tok of tokenizeName(named.getName())) {
-            if (!out.includes(tok)) out.push(tok);
-          }
-        }
-        if (MixinApi.hasMixin(this.constructor as never, Mixins.Visible)) {
-          // Read the raw `shortDescription` field, NOT `getShort()`
-          // — the latter falls back to "You see nothing special."
-          // when no description is authored, which would pollute
-          // the keyword pool with fallback prose.
-          const visible = this as unknown as { getShortDescription(): string };
-          for (const tok of tokenizeName(visible.getShortDescription())) {
-            if (!out.includes(tok)) out.push(tok);
-          }
-        }
-      }
-      return out;
+      return [...this._keywords];
     }
 
     protected set keywords(value: string[]) {
@@ -271,40 +221,7 @@ export function PerceptibleMixin<TBase extends MixinConstructor>(Base: TBase) {
      * — the setter is a separate event surface from rendering.
      */
     getPrimaryKeyword(): string | undefined {
-      const pool = this.keywords;
-      if (this.primaryKeyword !== undefined && pool.includes(this.primaryKeyword)) {
-        return this.primaryKeyword;
-      }
-      return pool[pool.length - 1];
-    }
-
-    /**
-     * ⭐ **What the author actually wrote**, with no derived fallback —
-     * `undefined` when nobody wrote one.
-     *
-     * `getPrimaryKeyword` always answers something, which is right for
-     * targeting (a click affordance must resolve) and **wrong for the
-     * handle chain** — two different questions:
-     *
-     *   - *what may I type to refer to this?* → derive freely.
-     *   - *what does this call itself?* → only what somebody wrote.
-     *
-     * ⚠⚠ **And the difference is an anonymity leak, not a matter of
-     * taste.** The derived pool folds in `tokenizeName(getName())` for
-     * any `Named` host. A player body is Named (enroll writes it),
-     * Perceptible (from `Creature`), and has no authored keyword —
-     * nobody types one for a player. So `getPrimaryKeyword()` for a
-     * player called Odile answers **`odile`**, and a handle chain
-     * reading it would sign her anonymous chat post *"an odile"*: the
-     * one fact the setting exists to withhold. Pinned in
-     * `describeForm.test.ts`.
-     *
-     * ⚠ It reads the raw slot rather than validating against the pool,
-     * deliberately: an authored value that has fallen out of the pool
-     * is still what the author said.
-     */
-    getAuthoredPrimaryKeyword(): string | undefined {
-      return this.primaryKeyword;
+      return this.primaryKeyword ?? this._keywords[0];
     }
 
     /**
@@ -340,13 +257,20 @@ export function PerceptibleMixin<TBase extends MixinConstructor>(Base: TBase) {
           );
           return;
         }
-        // Pool-membership check is informational: an out-of-pool
-        // value at runtime is a developer mistake worth flagging,
-        // but we still store the value so the getter can resolve
-        // correctly when the pool catches up (e.g., a future
-        // `setShortDescription` adds the missing keyword). An empty
-        // pool indicates Hydrator Phase 1 hasn't reached the
-        // pool-feeding mixins yet — skip the warn there.
+        // ⚠ The membership check is informational and the value is
+        // stored regardless — *"keywords[0] unless otherwise
+        // specified"* means a pinned word is the author's call.
+        //
+        // But a client renderer sends `look <primaryKeyword>` for a
+        // click, so a word nothing answers to is a **dead click**, and
+        // that is worth saying out loud. ⭐ Its real home is build time:
+        // `lint:presentation` clause (d) refuses an authored
+        // `primaryKeyword` that is not in the row's own `keywords`.
+        // This runtime warn is for the code paths that mint a thing and
+        // name it — a coat-check ticket, a salvaged lump, a key.
+        //
+        // An empty pool means the Hydrator has not reached the keyword
+        // field yet; nothing to check against, so no warn.
         const pool = this.keywords;
         if (pool.length > 0 && !pool.includes(normalized)) {
           console.warn(

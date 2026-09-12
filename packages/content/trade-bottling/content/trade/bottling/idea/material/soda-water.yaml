@@ -3,8 +3,8 @@ class: /platform/idea/material/ConsumableMaterial
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: soda water
+  keywords: [water, soda, soda-water, fizz]
   appearance: "bright, fizzing soda water"
-  keywords: ["soda", "soda-water", "fizz"]
   density: 1000
   thermalConductivity: 0.5
   specificHeat: 3800

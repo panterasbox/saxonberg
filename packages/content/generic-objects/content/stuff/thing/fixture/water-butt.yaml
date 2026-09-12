@@ -15,9 +15,8 @@ class: /platform/thing/WaterFixture
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: water butt
-  register: indefinite
-  primaryKeyword: water-butt
   keywords: [water-butt, butt, barrel, cask, water, rainwater]
+  register: indefinite
   longDescription: |
     A broad oak barrel standing against the wall, hooped in iron and dark with damp, brim-full of cold water. A tin dipper hangs from a nail beside it.
   interiorBulk: true

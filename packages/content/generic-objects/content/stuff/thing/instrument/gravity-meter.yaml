@@ -4,5 +4,6 @@ class: /platform/thing/instrument/GravityMeter
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: pocket gravimeter
+  keywords: [gravimeter, pocket]
   register: indefinite
   long: A precision instrument that reports local gravitational acceleration in m/s².

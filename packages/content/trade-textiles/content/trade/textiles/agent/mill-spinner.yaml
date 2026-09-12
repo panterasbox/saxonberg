@@ -7,10 +7,10 @@ class: /platform/agent/Cast
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: Sefa Roke
+  keywords: [spinner, sefa, roke, wheel, hands, full, mouth, free]
   pronouns: she
   _speciesPath: /stuff/idea/species/animalia/chordata/mammalia/primates/hominidae/homo/sapiens
   lifecycleState: alive
-  primaryKeyword: spinner
   alternateNames: ["sefa", "roke"]
   shortDescription: "spinner at the wheel with her hands full and her mouth free"
   register: indefinite

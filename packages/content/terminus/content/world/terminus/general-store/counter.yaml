@@ -13,9 +13,8 @@ class: /platform/thing/Stock
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: general-store counter
+  keywords: [counter, shelf, shelves, goods, stock, general-store]
   register: definite
-  primaryKeyword: counter
-  keywords: [counter, shelf, shelves, goods, stock]
   longDescription: |
     A long plank counter worn pale by decades of elbows, and behind it shelves stacked to the ceiling with the honest gear of getting by underground: torches and waterskins, ration packs and a tray of clasp knives, a row of tin lanterns catching the light. Along the back wall, where the ceiling gives them room, stand the furnishings — a bed frame on its end, a pine wardrobe, tables and chairs stacked two deep, and a card of brass sconces hung up like fish. A chalk slate by the till lists the prices in a plain hand. Nothing here is fine; everything here works.
   discipline: scrum

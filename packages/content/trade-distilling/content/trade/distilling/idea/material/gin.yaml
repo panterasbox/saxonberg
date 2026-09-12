@@ -6,8 +6,8 @@ class: /platform/idea/material/ConsumableMaterial
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: house gin
+  keywords: [house, gin]
   appearance: clear, juniper-scented gin
-  keywords: [gin]
   density: 940
   thermalConductivity: 0.17
   specificHeat: 2400

@@ -8,8 +8,8 @@ class: /platform/location/Offstage
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: The Hearthworks — Back room
+  keywords: [room, hearthworks, back]
   register: proper
-  primaryKeyword: backroom
   longDescription: |
     A low back room behind the cookhouse: a cot, a row of pegs heavy with
     aprons, a bench with a whetstone and a bowl of cold stew on it. Where

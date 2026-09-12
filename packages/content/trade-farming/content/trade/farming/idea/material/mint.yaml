@@ -3,8 +3,8 @@ class: /platform/idea/material/ConsumableMaterial
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: mint
+  keywords: [mint]
   appearance: "a sprig of fresh mint"
-  keywords: ["mint"]
   density: 400
   thermalConductivity: 0.5
   specificHeat: 3600

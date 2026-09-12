@@ -10,10 +10,9 @@ class: /trade/mining/location/AuthoredWorking
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: break in the rock
+  keywords: [break, hole, mouth, rock]
   register: indefinite
-  primaryKeyword: break
   oreRow: /world/rejection/thing/copper-ore
-  keywords: [break, hole, mouth]
   longDescription: |
     A heading that stops because the rock did. The face has gone through into a void — a ragged hole a person could get through, with a draught coming out of it that is colder than the drift and smells of nothing whatsoever.
 

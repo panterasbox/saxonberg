@@ -9,10 +9,9 @@ class: /platform/thing/Bottle
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: "can of cola"
+  keywords: [cola, coke, can, tin]
   register: indefinite
   longDescription: "A 330 mL can of cola, cold to the hand, the lid unbroken."
-  primaryKeyword: cola
-  keywords: ["cola", "coke", "can", "tin"]
   # The VESSEL KIND — the tie between this row and every product
   # that is this vessel filled (an emptied one counts and reads as this).
   category: can

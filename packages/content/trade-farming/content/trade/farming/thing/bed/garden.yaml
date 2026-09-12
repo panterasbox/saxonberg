@@ -13,9 +13,8 @@ class: /platform/thing/GardenBed
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: raised garden bed
+  keywords: [bed, "garden bed", "raised bed", plot, planter, raised, garden]
   register: indefinite
-  primaryKeyword: bed
-  keywords: [bed, "garden bed", "raised bed", plot, planter]
   longDescription: |
     A knee-high frame of weathered boards, filled level with dark soil and edged by a path worn into the grass. There is room along its length for several plants without crowding.
   material: /stuff/idea/material/wood/pine

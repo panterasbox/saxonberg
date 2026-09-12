@@ -14,9 +14,8 @@ class: /system/arcana/thing/ManaMain
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: mana line
+  keywords: [line, main, conduit, mana]
   register: indefinite
-  primaryKeyword: line
-  keywords: [line, main, conduit]
   longDescription: >
     A brass conduit the thickness of a wrist runs up out of the floor and
     into the wall, humming faintly to itself. A stopcock the size of a

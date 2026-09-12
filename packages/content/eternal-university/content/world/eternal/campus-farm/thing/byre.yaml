@@ -5,8 +5,7 @@ class: /platform/thing/Thing
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: low stone byre
+  keywords: [byre, low, stone]
   register: indefinite
-  primaryKeyword: byre
-  keywords: [byre]
   longDescription: >-
     A long single-storey byre with a slate roof and a stable door, deep in clean straw. Six can stand out of the weather in here, and in February they will.

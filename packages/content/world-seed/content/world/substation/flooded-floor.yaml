@@ -9,6 +9,7 @@ class: /platform/thing/Floor
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: flooded concrete floor
+  keywords: [floor, flooded, concrete]
   register: indefinite
   longDescription: A concrete floor under a skin of brackish standing water.
   # Surface-bulk: an authored brine pool (the conductive medium + ground).

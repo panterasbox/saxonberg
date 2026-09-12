@@ -7,10 +7,9 @@ class: /platform/thing/Tablet
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: house tablet
+  keywords: [tablet, house-tablet, screen, house]
   register: definite
   longDescription: A scuffed tablet in a rubber case propped against the back-bar mirror, the stock sheet never far from its screen.
-  primaryKeyword: tablet
-  keywords: [tablet, house-tablet, screen]
   pairing: staff
   shows:
     - card

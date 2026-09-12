@@ -16,6 +16,7 @@ class: /world/terminus/realty/agent/Realtor
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: Ricky
+  keywords: [shiny, ricky, land, agent, good, coat, gone, slightly]
   pronouns: he
   _speciesPath: /stuff/idea/species/animalia/chordata/mammalia/primates/hominidae/homo/sapiens
   shortDescription: land agent in a good coat gone slightly shiny

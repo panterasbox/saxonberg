@@ -7,9 +7,8 @@ class: /platform/thing/equipment/Garment
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: plain linen shirt
+  keywords: [shirt, linen, plain]
   register: indefinite
-  primaryKeyword: shirt
-  keywords: [shirt, linen]
   longDescription: |
     A shirt made the way shirts are made: four panels, two sleeves, and a collar that took as long as the rest of it put together.
   slotClaims:

@@ -8,9 +8,8 @@ class: /platform/thing/Plant
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: stand of barley
+  keywords: [barley, crop, stand]
   register: indefinite
-  primaryKeyword: barley
-  keywords: [barley, crop]
   longDescription: |
     Barley standing in the ear, the awns catching the light, and the whole field going over together when the wind crosses it.
   _speciesPath: /stuff/idea/species/plantae/tracheophyta/liliopsida/poales/poaceae/hordeum/vulgare

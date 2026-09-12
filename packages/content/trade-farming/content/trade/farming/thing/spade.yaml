@@ -9,8 +9,7 @@
 class: /trade/farming/thing/Spade
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  primaryKeyword: spade
-  keywords: ["spade", "garden-spade", "digging-spade"]
+  keywords: [spade, garden-spade, digging-spade, garden]
   shortDescription: garden spade
   register: indefinite
   longDescription: >-

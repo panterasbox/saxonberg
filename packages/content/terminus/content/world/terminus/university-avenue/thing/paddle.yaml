@@ -8,9 +8,8 @@ class: /platform/thing/Paddle
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: STOP paddle
-  register: indefinite
-  primaryKeyword: paddle
   keywords: [paddle, stop, sign, octagon]
+  register: indefinite
   longDescription: |
     A crossing guard's STOP paddle — one moulded octagon of red plastic on a stick, STOP the only word it knows. He never lets the imaginary traffic merely slow; it is always a full stop. The grip is worn pale where his thumb rides it.
   slotClaims:

@@ -9,7 +9,6 @@ class: /platform/thing/Crate
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: empty crate
-  register: indefinite
-  primaryKeyword: crate
   keywords: [crate, box, empty]
+  register: indefinite
   longDescription: A slatted wooden crate, empty but for a few leaves.

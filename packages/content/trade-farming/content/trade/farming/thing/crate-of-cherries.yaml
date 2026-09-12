@@ -6,9 +6,8 @@ class: /platform/thing/Crate
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: crate of cherries
+  keywords: [cherries, crate, cherry, produce]
   register: indefinite
-  primaryKeyword: cherries
-  keywords: [crate, cherries, cherry, produce]
   longDescription: A slatted wooden crate of cherries, the grower's stencil on the side.
   censusKey: produce:cherry
   regionTarget: 4

@@ -5,10 +5,9 @@ class: /platform/thing/Bottle
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: "wine bottle"
+  keywords: [bottle, wine, empty]
   register: indefinite
   longDescription: "A dark-green 750 mL bottle with a punted base, the neck ready for a cork."
-  primaryKeyword: bottle
-  keywords: ["bottle", "wine", "empty"]
   # The VESSEL KIND — the tie between this row and every product
   # that is this vessel filled (an emptied one counts and reads as this).
   category: wine-bottle

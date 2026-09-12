@@ -6,9 +6,8 @@ class: /platform/thing/Plant
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: olive tree
-  register: indefinite
-  primaryKeyword: "olive tree"
   keywords: ["olive tree", olive, tree, plant]
+  register: indefinite
   longDescription: |
     A silver-leaved olive, trunk already going gnarled the way olives do from the start.
   _speciesPath: /stuff/idea/species/plantae/tracheophyta/magnoliopsida/lamiales/oleaceae/olea/europaea

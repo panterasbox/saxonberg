@@ -12,8 +12,8 @@ hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   _address: terminus/city/campus/duncan-hall
   shortDescription: dorm corridor
+  keywords: [corridor, dorm]
   register: indefinite
-  primaryKeyword: corridor
   longDescription: |
     A long hallway of identical doors, each with a small brass number and a slot for a name card. A stairwell landing anchors one end. The carpet is the specific grey of somewhere nobody lingers.
   # Institutional strip lighting: enough to read a door number by and not

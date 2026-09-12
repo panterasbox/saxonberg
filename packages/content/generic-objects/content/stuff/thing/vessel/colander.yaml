@@ -8,9 +8,9 @@ class: /platform/thing/Receptacle
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: tin colander
+  keywords: [tin, colander, sieve, strainer]
   register: indefinite
   longDescription: A battered tin colander, its bowl pierced by a hundred little holes.
-  keywords: [colander, sieve, strainer]
   interiorBulk: true
   interiorCapacity: 0.5
   closure: open

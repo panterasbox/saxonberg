@@ -59,6 +59,7 @@ import Location from "../../lib/stuff/Location";
 import { PersistableMixin } from "../../lib/persistence/Persistable";
 import { PopulatesMixin } from "../../lib/stuff/Populates";
 import { VisibleMixin } from "../../lib/description/Visible";
+import { PerceptibleMixin } from '../../lib/description/Perceptible';
 import { DetailedMixin } from "../../lib/description/Detailed";
 import { ExitableMixin } from "../../lib/boundary/Exitable";
 import { PostRegistrationMixin } from "../../lib/stuff/PostRegistration";
@@ -108,7 +109,20 @@ const FurnishableRoomBase = PersistableMixin(
   WarrenMemberMixin(
     PostRegistrationMixin(
       ExitableMixin(
-        DetailedMixin(VisibleMixin(ReservedMixin(PopulatesMixin(Location)))),
+        // ⭐⭐ `PerceptibleMixin` beside `Visible` — a furnished room is
+        // addressable by keyword, and **all ten shipped rows already say
+        // so**: every one authors `primaryKeyword` / `keywords` /
+        // `alternateNames`, and until 2026-09-11 the Hydrator discarded
+        // every one of them, because this stack builds on `Location`
+        // rather than `CartesianLocation` and so never composed it.
+        //
+        // Same shape as the 48 agent rows W3 fixed: when authored
+        // content asserts a field the class does not declare, the class
+        // is wrong, not the content. Found by `lint:presentation`
+        // clause (d) the day the clause existed.
+        DetailedMixin(
+          VisibleMixin(PerceptibleMixin(ReservedMixin(PopulatesMixin(Location)))),
+        ),
       ),
     ),
   ),

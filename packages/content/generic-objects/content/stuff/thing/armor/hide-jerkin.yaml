@@ -2,8 +2,8 @@ class: /platform/thing/equipment/Garment
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: hide jerkin
+  keywords: [jerkin, hide]
   register: indefinite
-  primaryKeyword: jerkin
   longDescription: >
     A sleeveless jerkin of boiled leather, moulded to the chest. Middling
     against everything and cheap — the poor traveller's protection.

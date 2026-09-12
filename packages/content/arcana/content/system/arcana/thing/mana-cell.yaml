@@ -14,9 +14,8 @@ class: /system/arcana/thing/ManaCell
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: mana cell
+  keywords: [cell, "mana cell", battery, mana]
   register: indefinite
-  primaryKeyword: cell
-  keywords: [cell, mana cell, battery]
   longDescription: >
     A palm-sized cell of wound brass and grey glass, one end warm to the
     touch. A maker's stamp is pressed into the base, and a hairline seam

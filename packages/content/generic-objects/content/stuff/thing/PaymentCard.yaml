@@ -5,7 +5,7 @@ class: /platform/thing/PaymentCard
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: payment card
+  keywords: [payment, card, paymentcard]
   register: indefinite
-  keywords: [card, paymentcard]
   # The born-with payment credential record comes from
   # PaymentCard.defaultCredentialKinds; linked + capped at issue.

@@ -15,9 +15,8 @@ class: /trade/tailoring/thing/SewingTool
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: needle-case
-  register: indefinite
-  primaryKeyword: needle-case
   keywords: [needle-case, needlecase, case, needle, needles, thread]
+  register: indefinite
   longDescription: |
     A turned boxwood tube the length of a finger, stopped at both ends. Inside: needles graded fine to sailmaker's, a hank of waxed linen thread, and a thimble worn through at the crown.
   capabilities:

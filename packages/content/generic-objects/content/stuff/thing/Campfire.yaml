@@ -8,11 +8,11 @@ class: /platform/thing/Campfire
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: crackling campfire
+  keywords: [crackling, campfire, fire, flames, hearth]
   register: indefinite
   longDescription: >
     A ring of stones cradles a crackling campfire, its flames licking at
     split logs. Heat rolls off it in waves.
-  keywords: [campfire, fire, fire, flames, hearth]
   # Fuel reserve — the combustion layer. Decomposed-scalar stored form.
   reserves:
     fuel:

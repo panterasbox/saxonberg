@@ -8,8 +8,8 @@ class: /platform/thing/UnboundedReceptacle
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: coffee urn
+  keywords: [coffee, urn]
   register: indefinite
   longDescription: A tall steel coffee urn with a little spigot near its base.
-  keywords: [urn, coffee]
   interiorBulk: true
   interiorMaterial: /trade/cooking/idea/material/coffee

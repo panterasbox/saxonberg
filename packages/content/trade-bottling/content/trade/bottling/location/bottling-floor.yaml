@@ -20,9 +20,8 @@ data:
     y: 0
     z: 0
   shortDescription: "bottling floor"
+  keywords: [floor, bottling, line]
   register: definite
-  primaryKeyword: floor
-  keywords: ["floor", "bottling", "line"]
   longDescription: |
     A bright tiled floor: a filling line stopped mid-run (the line is a later build), pallets of capped bottles, a chest freezer for the ice.
   ambientIntensity: 25

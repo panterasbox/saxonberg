@@ -5,8 +5,8 @@ class: /platform/idea/material/Material
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: salt water
+  keywords: [water, brine, "salt water", saltwater, seawater, salt]
   appearance: murky brine
-  keywords: [brine, "salt water", saltwater, seawater]
   density: 1025
   thermalConductivity: 0.6
   specificHeat: 3990

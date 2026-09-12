@@ -6,10 +6,9 @@ class: /trade/cooking/thing/KitchenTool
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: kitchen sieve
+  keywords: [sieve, strainer, sifter, kitchen]
   register: indefinite
   longDescription: A wide horsehair sieve on a turned wooden hoop, stained brown from a hundred stocks.
-  primaryKeyword: sieve
-  keywords: [sieve, strainer, sifter]
   capabilities: [strainer]
   _materialPath: /stuff/idea/material/element/iron
   mass: 0.4

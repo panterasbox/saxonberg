@@ -19,9 +19,8 @@ data:
     y: 0
     z: 0
   shortDescription: Crowsfoot outfit's floor
+  keywords: [floor, yard, warehouse, crowsfoot, "outfit's", outfit]
   register: definite
-  primaryKeyword: floor
-  keywords: [floor, yard, warehouse, crowsfoot]
   longDescription: |
     A small, tidy yard, and a working one now: the copper still gleams over its firebox, the scarred tun steams by the standpipe, two wash vats stand crusted at the tide line, and the still book hangs on its chain. Cases and empty square bottles queue on the pallet.
   ambientIntensity: 25

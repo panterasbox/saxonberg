@@ -14,8 +14,8 @@ class: /platform/idea/material/Material
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: flax straw
+  keywords: [flax, straw, flax-straw, stems, haulm]
   appearance: stiff pale flax straw
-  keywords: [straw, flax-straw, stems, haulm]
   density: 400
   thermalConductivity: 0.05
   hardness: 4

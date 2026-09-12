@@ -2,8 +2,8 @@ class: /platform/thing/equipment/Garment
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: plain student shirt
+  keywords: [shirt, plain, student]
   register: indefinite
-  primaryKeyword: shirt
   longDescription: >
     An unassuming everyday shirt, soft from washing. It says nothing in
     particular about you — which is rather the point of starting over.

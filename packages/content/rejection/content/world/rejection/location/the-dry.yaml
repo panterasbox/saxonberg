@@ -8,9 +8,8 @@ class: /platform/location/SingletonCartesianLocation
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: dry
-  register: definite
-  primaryKeyword: dry
   keywords: [dry, "the dry", shack, canteen]
+  register: definite
   longDescription: |
     Long benches down both walls, hooks above them, and a stove in the middle that somebody keeps going. Clothes hang steaming over it in a rank. There is a water butt by the door with a dipper on a string, and a shelf of tin plates.
 

@@ -2,8 +2,8 @@ class: /platform/thing/equipment/Garment
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: steel mail hauberk
+  keywords: [hauberk, steel, mail]
   register: indefinite
-  primaryKeyword: hauberk
   longDescription: >
     A knee-length shirt of riveted steel rings. It resists a cut and
     softens a blow — but a stiff point finds the gaps between the rings.

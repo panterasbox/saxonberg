@@ -6,8 +6,7 @@ class: /platform/thing/Thing
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: hay barn
+  keywords: [barn, hay]
   register: indefinite
-  primaryKeyword: barn
-  keywords: [barn]
   longDescription: >-
     An open-sided barn with a stone floor and a roof on posts, stacked to the eaves at one end and empty at the other.

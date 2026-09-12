@@ -12,9 +12,8 @@ class: /platform/thing/Plant
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: bed of woad
+  keywords: [woad, pastel, crop, bed]
   register: indefinite
-  primaryKeyword: woad
-  keywords: [woad, pastel, crop]
   longDescription: |
     A low rosette of broad blue-green leaves, the outer ones already cut back to the stem. Bruise one and it darkens where your thumb was, which is the whole trade in miniature.
   _speciesPath: /stuff/idea/species/plantae/tracheophyta/magnoliopsida/brassicales/brassicaceae/isatis/tinctoria

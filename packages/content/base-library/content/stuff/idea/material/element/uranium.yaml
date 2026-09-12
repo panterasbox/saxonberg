@@ -15,6 +15,7 @@ class: /platform/idea/material/RadioactiveMaterial
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: uranium
+  keywords: [uranium]
   density: 19050
   specificHeat: 116
   thermalConductivity: 27

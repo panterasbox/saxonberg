@@ -9,9 +9,8 @@ class: /trade/textiles/thing/SpinningTool
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: drop spindle
+  keywords: [spindle, drop-spindle, whorl, drop]
   register: indefinite
-  primaryKeyword: spindle
-  keywords: [spindle, drop-spindle, whorl]
   longDescription: |
     A finger-length shaft through a stone whorl, notched at the top. It costs nothing, fits in a pocket, and has outlasted every machine invented to replace it.
   capabilities:

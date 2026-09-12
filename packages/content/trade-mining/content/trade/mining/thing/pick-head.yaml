@@ -4,8 +4,7 @@
 class: /platform/thing/ToolItem
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  primaryKeyword: pick-head
-  keywords: ["pick-head", "head"]
+  keywords: [pick-head, head, forged, pick]
   shortDescription: forged pick head
   register: indefinite
   longDescription: >-

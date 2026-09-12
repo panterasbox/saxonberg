@@ -6,8 +6,7 @@ class: /system/residence/thing/DeedDesk
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: deed desk
+  keywords: [desk, counter, book, plat, deed]
   register: definite
-  primaryKeyword: desk
-  keywords: [desk, counter, book, plat]
   longDescription: |
     A high clerk's desk with a brass rail, the plat book chained open on its slope. The pages smell of ink and blotting sand; the chain is not decoration.

@@ -6,7 +6,7 @@ class: /trade/distilling/thing/Still
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: copper pot still
+  keywords: [pot, still, pot-still, copper]
   register: indefinite
   longDescription: A squat copper pot still, its swan neck green at the joints, the firebox swept and ready.
-  keywords: [still, pot-still, copper]
   capabilities: [still]

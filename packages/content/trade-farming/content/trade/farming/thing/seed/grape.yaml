@@ -5,9 +5,8 @@ class: /platform/thing/Seed
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: grape cutting
-  register: indefinite
-  primaryKeyword: seed
   keywords: [seed, cutting, "grape cutting", grape]
+  register: indefinite
   longDescription: |
     A pencil-thick grapevine cutting, two buds showing — the way vines have always travelled.
   growsIntoPath: /trade/farming/thing/plant/grape

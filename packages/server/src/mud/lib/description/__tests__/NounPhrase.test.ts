@@ -9,48 +9,43 @@
 
 import '../../../../test-bootstrap';
 import { describe, it, expect } from 'vitest';
-import {
-  NounPhrase,
-  PRESENTATION_FORMS,
-  REGISTERS,
-  isPresentationForm,
-  isRegister,
-} from '../NounPhrase';
+import { NounPhrase, PRESENTATION_FORMS, REGISTERS } from '../NounPhrase';
+import { GrammarApi } from '../../../api/grammar';
 
 describe('render — the shipped string', () => {
   it('indefinite takes a or an by vowel', () => {
-    expect(NounPhrase.of('sentry', 'indefinite').render()).toBe('a sentry');
-    expect(NounPhrase.of('oaken door', 'indefinite').render()).toBe('an oaken door');
+    expect(GrammarApi.phrase('sentry', 'indefinite').render()).toBe('a sentry');
+    expect(GrammarApi.phrase('oaken door', 'indefinite').render()).toBe('an oaken door');
   });
 
   it('definite takes the', () => {
-    expect(NounPhrase.of('collier', 'definite').render()).toBe('the collier');
-    expect(NounPhrase.of('oaken door', 'definite').render()).toBe('the oaken door');
+    expect(GrammarApi.phrase('collier', 'definite').render()).toBe('the collier');
+    expect(GrammarApi.phrase('oaken door', 'definite').render()).toBe('the oaken door');
   });
 
   it('proper takes nothing', () => {
-    expect(NounPhrase.proper('Odile').render()).toBe('Odile');
-    expect(NounPhrase.proper('The Hearthworks — Back room').render()).toBe(
+    expect(GrammarApi.properPhrase('Odile').render()).toBe('Odile');
+    expect(GrammarApi.properPhrase('The Hearthworks — Back room').render()).toBe(
       'The Hearthworks — Back room',
     );
   });
 
   it('indefinite is the default register', () => {
-    expect(NounPhrase.of('sentry').render()).toBe('a sentry');
+    expect(GrammarApi.phrase('sentry').render()).toBe('a sentry');
   });
 
   it('trims the stem', () => {
-    expect(NounPhrase.of('  sentry  ').render()).toBe('a sentry');
+    expect(GrammarApi.phrase('  sentry  ').render()).toBe('a sentry');
   });
 });
 
 describe('⭐ a count other than 1 drops the article', () => {
   it('renders the count and the plural', () => {
-    expect(NounPhrase.of('apple').withCount(4).render()).toBe('4 apples');
+    expect(GrammarApi.phrase('apple').withCount(4).render()).toBe('4 apples');
   });
 
   it('takes an authored plural over the naive one', () => {
-    expect(NounPhrase.of('piece').withCount(4, '5-zorkmid pieces').render()).toBe(
+    expect(GrammarApi.phrase('piece').withCount(4, '5-zorkmid pieces').render()).toBe(
       '4 5-zorkmid pieces',
     );
   });
@@ -59,72 +54,72 @@ describe('⭐ a count other than 1 drops the article', () => {
     // The article used to live INSIDE the description, so every counted
     // host had to opt out of it by hand. It cannot happen now: the stem
     // carries no article and the count branch never adds one.
-    const stacked = NounPhrase.of('red apple', 'indefinite').withCount(4);
+    const stacked = GrammarApi.phrase('red apple', 'indefinite').withCount(4);
     expect(stacked.render()).toBe('4 red apples');
     expect(stacked.render()).not.toMatch(/\ba\b/);
   });
 
   it('a count of 1 renders as the register says', () => {
-    expect(NounPhrase.of('apple').withCount(1).render()).toBe('an apple');
+    expect(GrammarApi.phrase('apple').withCount(1).render()).toBe('an apple');
   });
 
   it('a count of 0 is a count, not a singular', () => {
-    expect(NounPhrase.of('apple').withCount(0).render()).toBe('0 apples');
+    expect(GrammarApi.phrase('apple').withCount(0).render()).toBe('0 apples');
   });
 });
 
 describe('the forms the string could not express', () => {
   it('definite() says "the collie" whatever the register', () => {
-    expect(NounPhrase.of('collie', 'indefinite').definite()).toBe('the collie');
-    expect(NounPhrase.of('collie', 'definite').definite()).toBe('the collie');
+    expect(GrammarApi.phrase('collie', 'indefinite').definite()).toBe('the collie');
+    expect(GrammarApi.phrase('collie', 'definite').definite()).toBe('the collie');
   });
 
   it('a proper name is already definite', () => {
-    expect(NounPhrase.proper('Odile').definite()).toBe('Odile');
-    expect(NounPhrase.proper('Odile').indefinite()).toBe('Odile');
+    expect(GrammarApi.properPhrase('Odile').definite()).toBe('Odile');
+    expect(GrammarApi.properPhrase('Odile').indefinite()).toBe('Odile');
   });
 
   it('indefinite() says "a collie" whatever the register', () => {
-    expect(NounPhrase.of('collie', 'definite').indefinite()).toBe('a collie');
+    expect(GrammarApi.phrase('collie', 'definite').indefinite()).toBe('a collie');
   });
 
   it('bare() is the noun alone', () => {
-    expect(NounPhrase.of('collie', 'definite').bare()).toBe('collie');
+    expect(GrammarApi.phrase('collie', 'definite').bare()).toBe('collie');
   });
 
   it('possessive() attaches to the rendered form', () => {
-    expect(NounPhrase.of('collie', 'definite').possessive()).toBe("the collie's");
-    expect(NounPhrase.proper('Odile').possessive()).toBe("Odile's");
+    expect(GrammarApi.phrase('collie', 'definite').possessive()).toBe("the collie's");
+    expect(GrammarApi.properPhrase('Odile').possessive()).toBe("Odile's");
   });
 
   it("a plural possessive takes the bare apostrophe", () => {
-    expect(NounPhrase.of('collie').withCount(2).possessive()).toBe("2 collies'");
+    expect(GrammarApi.phrase('collie').withCount(2).possessive()).toBe("2 collies'");
   });
 
   it('a name already ending in s takes the bare apostrophe', () => {
-    expect(NounPhrase.proper('Gus').possessive()).toBe("Gus'");
+    expect(GrammarApi.properPhrase('Gus').possessive()).toBe("Gus'");
   });
 });
 
 describe('article()', () => {
   it('answers the article the register implies', () => {
-    expect(NounPhrase.of('sentry', 'indefinite').article()).toBe('a');
-    expect(NounPhrase.of('oaken door', 'indefinite').article()).toBe('an');
-    expect(NounPhrase.of('collier', 'definite').article()).toBe('the');
-    expect(NounPhrase.proper('Odile').article()).toBe('');
+    expect(GrammarApi.phrase('sentry', 'indefinite').article()).toBe('a');
+    expect(GrammarApi.phrase('oaken door', 'indefinite').article()).toBe('an');
+    expect(GrammarApi.phrase('collier', 'definite').article()).toBe('the');
+    expect(GrammarApi.properPhrase('Odile').article()).toBe('');
   });
 
   it('⚠ the old helper answered "an" for "a heavy door"', () => {
     // It read the article off the RENDERED string and found a vowel at
     // the front of the article somebody had already typed. A phrase
     // knows its own register, so it cannot make that mistake.
-    expect(NounPhrase.of('heavy door', 'indefinite').article()).toBe('a');
+    expect(GrammarApi.phrase('heavy door', 'indefinite').article()).toBe('a');
   });
 });
 
 describe('withRegister', () => {
   it('changes the register and keeps the stem and count', () => {
-    const p = NounPhrase.of('collie').withCount(3).withRegister('definite');
+    const p = GrammarApi.phrase('collie').withCount(3).withRegister('definite');
     expect(p.stem).toBe('collie');
     expect(p.count).toBe(3);
     expect(p.register).toBe('definite');
@@ -182,10 +177,10 @@ describe('the closed vocabularies', () => {
   });
 
   it('the guards refuse anything else', () => {
-    expect(isRegister('definite')).toBe(true);
-    expect(isRegister('DEFINITE')).toBe(false);
-    expect(isRegister('mass')).toBe(false);
-    expect(isPresentationForm('presence')).toBe(true);
-    expect(isPresentationForm('loud')).toBe(false);
+    expect(GrammarApi.isRegister('definite')).toBe(true);
+    expect(GrammarApi.isRegister('DEFINITE')).toBe(false);
+    expect(GrammarApi.isRegister('mass')).toBe(false);
+    expect(GrammarApi.isPresentationForm('presence')).toBe(true);
+    expect(GrammarApi.isPresentationForm('loud')).toBe(false);
   });
 });

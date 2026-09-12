@@ -3,10 +3,9 @@ class: /platform/thing/Bottle
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: "bottle of cranberry juice"
+  keywords: [cranberry, juice, bottle, mixer]
   register: indefinite
   longDescription: "A one-litre screw-capped bottle of cranberry juice, the bottling floor's plain label."
-  primaryKeyword: cranberry
-  keywords: ["cranberry", "juice", "bottle", "mixer"]
   category: mixer-bottle
   interiorBulk: true
   interiorCapacity: 1

@@ -3,9 +3,8 @@ class: /trade/tailoring/thing/CutPieces
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: bundle of cut pieces
+  keywords: [pieces, pattern, cut, panels, bundle]
   register: indefinite
-  primaryKeyword: pieces
-  keywords: [pieces, pattern, cut, panels]
   longDescription: |
     Panels of cloth with chalk lines still on them, stacked in the order they go together and pinned at the corners. Whoever cut them knew whose body they were for.
   _materialPath: /stuff/idea/material/textile/linen

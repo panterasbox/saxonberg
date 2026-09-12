@@ -5,9 +5,8 @@ class: /platform/thing/Provision
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: cherry
-  register: indefinite
-  primaryKeyword: cherry
   keywords: [cherry, cherries, produce]
+  register: indefinite
   longDescription: "A dark red cherry, stem on."
   _materialPath: /trade/farming/idea/material/cherry
   gradeBand: fair

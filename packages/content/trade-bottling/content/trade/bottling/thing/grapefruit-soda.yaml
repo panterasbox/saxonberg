@@ -3,10 +3,9 @@ class: /platform/thing/Bottle
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: "bottle of grapefruit soda"
+  keywords: [grapefruit-soda, soda, bottle, mixer, grapefruit]
   register: indefinite
   longDescription: "A one-litre screw-capped bottle of grapefruit soda, the bottling floor's plain label."
-  primaryKeyword: grapefruit-soda
-  keywords: ["grapefruit-soda", "soda", "bottle", "mixer"]
   category: mixer-bottle
   interiorBulk: true
   interiorCapacity: 1

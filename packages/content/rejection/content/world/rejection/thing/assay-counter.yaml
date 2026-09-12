@@ -14,9 +14,8 @@ class: /platform/thing/ConsignmentShelf
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: assay counter
-  register: definite
-  primaryKeyword: counter
   keywords: [counter, bins, scale, assay]
+  register: definite
   longDescription: |
     A long bench under the north window with the scale at the end of it under a glass dome, and a rank of numbered sample bins along the front. Slates above each bin, chalked with a name and a weight and, when the assay is back, a figure.
 

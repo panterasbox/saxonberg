@@ -14,9 +14,8 @@ class: /system/residence/thing/HouseholdersKit
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: householder's kit
+  keywords: [kit, householder, householders, tools, box, putty, "householder's"]
   register: indefinite
-  primaryKeyword: kit
-  keywords: [kit, householder, householders, tools, box, putty]
   longDescription: |
     A shallow wooden box with a rope handle, holding the unglamorous half of keeping a roof over your head: a tub of putty gone stiff at the edges, a scraper, a paint pot with a stick in it, a coil of tarred twine, a paper of tacks and a saw the length of your forearm.
   mass: 6

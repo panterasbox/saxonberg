@@ -6,9 +6,8 @@ class: /platform/thing/Dish
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: bowl
-  register: indefinite
-  primaryKeyword: bowl
   keywords: [bowl, dish, serving]
+  register: indefinite
   longDescription: |
     A deep glazed bowl, thick-walled and heavy in the hand, the sort that keeps a stew hot as far as the table.
   _materialPath: /stuff/idea/material/ceramic/ceramic

@@ -7,10 +7,10 @@ class: /platform/agent/Cast
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: Tamsin Roke
+  keywords: [hand, tamsin, roke, broad, "brewer's", brewer, rubber, apron]
   pronouns: they
   _speciesPath: /stuff/idea/species/animalia/chordata/mammalia/primates/hominidae/homo/sapiens
   lifecycleState: alive
-  primaryKeyword: hand
   alternateNames: ["tamsin", "roke"]
   shortDescription: "broad brewer's hand in a rubber apron"
   register: indefinite

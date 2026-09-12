@@ -5,7 +5,6 @@ class: /platform/thing/instrument/Hydrometer
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: glass hydrometer
-  register: indefinite
-  primaryKeyword: hydrometer
   keywords: [hydrometer, glass, float]
+  register: indefinite
   long: A slim weighted glass float in a leather tube, its paper scale marked in thousandths. Float it in a working batch and read the sugar the ferment hasn't eaten yet.

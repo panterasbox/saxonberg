@@ -4,8 +4,8 @@ class: /platform/location/FurnishableRoom
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: main room
+  keywords: [room, main]
   register: definite
-  primaryKeyword: room
   alternateNames: [main, sitting, living]
   ambientIntensity: 55
   ambientColorTemperature: 4800

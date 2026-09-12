@@ -8,9 +8,8 @@ class: /platform/thing/Crop
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: bundle of madder root
+  keywords: [madder, root, roots, dyestuff, bundle]
   register: indefinite
-  primaryKeyword: madder
-  keywords: [madder, root, roots, dyestuff]
   longDescription: |
     Knotted red-brown roots, scrubbed and snapped short. They stain the hands of anyone who handles them, which is the entire point of them.
   material: /trade/farming/idea/material/madder

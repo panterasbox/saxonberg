@@ -7,9 +7,8 @@ class: /platform/thing/CraftVessel
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: must bucket
+  keywords: [bucket, tub, "must bucket", must]
   register: indefinite
-  primaryKeyword: bucket
-  keywords: [bucket, tub, "must bucket"]
   longDescription: A deep wooden bucket, purple to the rim.
   category: must-bucket
   interiorBulk: true

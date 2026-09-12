@@ -5,8 +5,8 @@ class: /platform/idea/material/Material
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: ceramic
+  keywords: [clay, ceramic]
   appearance: glazed ceramic
-  keywords: [ceramic, clay]
   density: 2300
   # Water absorption capacity (% of dry mass, ASTM D570): glazed/porous ceramic.
   waterAbsorptionCapacity: 8

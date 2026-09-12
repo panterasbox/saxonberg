@@ -8,9 +8,8 @@ class: /platform/thing/equipment/Garment
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: faded hi-vis vest
+  keywords: [vest, hi-vis, hivis, orange, safety, faded]
   register: indefinite
-  primaryKeyword: vest
-  keywords: [vest, hi-vis, hivis, orange, safety]
   longDescription: |
     A high-visibility orange safety vest gone soft at the seams, the reflective striping worn dull and grey with the years. Down the front, a scatter of pinholes marks where a badge has been clipped and re-clipped a thousand times. It is the whole uniform of a one-man Authority, and he keeps it squared.
   slotClaims:

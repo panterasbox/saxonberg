@@ -15,8 +15,8 @@ hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   _address: terminus/city/campus/duncan-hall
   shortDescription: Duncan Hall steps
+  keywords: [steps, duncan, hall]
   register: proper
-  primaryKeyword: steps
   longDescription: |
     Six broad limestone steps lead up to the open doors of Duncan Hall behind you to the north. A black-iron handrail traces the right edge; the left edge is broken by a stone planter, the geraniums in it stubbornly outliving the season.
 

@@ -3,9 +3,8 @@ class: /platform/thing/Seed
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: tray of saffron corms
+  keywords: [seed, seeds, saffron, tray, corms]
   register: indefinite
-  primaryKeyword: seed
-  keywords: [seed, seeds, saffron]
   longDescription: |
     Papery brown corms the size of a thumbnail, each with a dry tuft where last year's leaves were.
   growsIntoPath: /trade/farming/thing/plant/saffron

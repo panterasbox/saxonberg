@@ -9,9 +9,8 @@ class: /system/arcana/thing/Conduit
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: brass conduit
-  register: indefinite
-  primaryKeyword: conduit
   keywords: [conduit, coil, brass]
+  register: indefinite
   longDescription: >
     A hand's length of brass wound back on itself, warm at the grip and
     unpleasantly hot anywhere else after use. It stores nothing and does

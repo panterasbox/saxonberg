@@ -7,9 +7,8 @@ class: /platform/thing/MendingTool
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: sewing kit
-  register: indefinite
-  primaryKeyword: sewing-kit
   keywords: [sewing-kit, kit, sewing, needle, awl, thread]
+  register: indefinite
   longDescription: |
     A canvas roll of needles, waxed thread, an awl, and patience. Everything soft that tears, this mends.
   capabilities:

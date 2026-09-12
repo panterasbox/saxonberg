@@ -12,10 +12,10 @@ class: /world/terminus/terminal/agent/TicketClerk
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: Tootie
+  keywords: [tootie, ticket, clerk]
   pronouns: she
   _speciesPath: /stuff/idea/species/animalia/chordata/mammalia/primates/hominidae/homo/sapiens
   lifecycleState: alive
-  primaryKeyword: tootie
   alternateNames:
     - clerk
     - ticket clerk

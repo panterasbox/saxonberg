@@ -8,9 +8,8 @@ class: /platform/thing/Provision
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: heap of half-burnt brands
+  keywords: [brands, brand, "half-burnt wood", heap, half-burnt]
   register: indefinite
-  primaryKeyword: brands
-  keywords: [brands, brand, "half-burnt wood"]
   longDescription: >-
     Charred on the outside and still brown at the heart, heavy in the hand
     where good charcoal is light. It will burn, after a fashion, and it

@@ -8,10 +8,10 @@ class: /platform/agent/Cast
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: Merrick Sault
+  keywords: [undertaker, merrick, sault, soft-spoken]
   pronouns: he
   _speciesPath: /stuff/idea/species/animalia/chordata/mammalia/primates/hominidae/homo/sapiens
   lifecycleState: alive
-  primaryKeyword: undertaker
   alternateNames: [merrick, sault, gravedigger, sexton]
   shortDescription: soft-spoken undertaker
   register: indefinite

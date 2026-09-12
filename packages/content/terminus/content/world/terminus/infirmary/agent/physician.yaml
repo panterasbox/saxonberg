@@ -11,10 +11,10 @@ class: /platform/agent/Cast
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: Aldis Verrow
+  keywords: [physician, aldis, verrow, spare, unhurried]
   pronouns: she
   _speciesPath: /stuff/idea/species/animalia/chordata/mammalia/primates/hominidae/homo/sapiens
   lifecycleState: alive
-  primaryKeyword: physician
   alternateNames: [aldis, verrow, doctor, medic]
   shortDescription: spare, unhurried physician
   register: indefinite

@@ -9,7 +9,6 @@ hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   _speciesPath: /stuff/idea/species/animalia/chordata/mammalia/primates/hominidae/homo/sensitivus
   lifecycleState: alive
-  primaryKeyword: warehouseman
   keywords: [warehouseman, clerk, counter]
   shortDescription: warehouseman
   register: definite

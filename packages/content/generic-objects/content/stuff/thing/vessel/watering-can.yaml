@@ -6,9 +6,8 @@ class: /platform/thing/WateringCan
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: tin watering can
-  register: indefinite
-  primaryKeyword: can
   keywords: [can, "watering can", watering, tin]
+  register: indefinite
   longDescription: |
     A dented tin can with a long spout and a wire handle, sized for reaching over a windowsill without soaking the sill.
   material: /stuff/idea/material/alloy/steel

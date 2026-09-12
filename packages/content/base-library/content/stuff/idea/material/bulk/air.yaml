@@ -7,8 +7,8 @@ class: /platform/idea/material/Material
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: air
-  appearance: compressed air
   keywords: [air]
+  appearance: compressed air
   density: 1.225
   # Electrical conductivity (S/m) — dry air is a near-perfect insulator
   # (~1×10⁻¹⁴); breakdown/arcing is out of v1 scope.

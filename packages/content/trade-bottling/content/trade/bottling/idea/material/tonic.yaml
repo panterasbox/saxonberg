@@ -3,8 +3,8 @@ class: /platform/idea/material/ConsumableMaterial
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: tonic water
+  keywords: [water, tonic, tonic-water]
   appearance: "bitter, fizzing tonic water"
-  keywords: ["tonic", "tonic-water"]
   density: 1030
   thermalConductivity: 0.5
   specificHeat: 3800

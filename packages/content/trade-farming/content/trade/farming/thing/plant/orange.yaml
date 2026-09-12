@@ -5,9 +5,8 @@ class: /platform/thing/Plant
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: orange tree
-  register: indefinite
-  primaryKeyword: "orange tree"
   keywords: ["orange tree", orange, tree, citrus, plant]
+  register: indefinite
   longDescription: |
     A round-headed orange tree, dark leaves over fruit that goes from green to lantern-bright.
   _speciesPath: /stuff/idea/species/plantae/tracheophyta/magnoliopsida/sapindales/rutaceae/citrus/sinensis

@@ -29,11 +29,10 @@ class: /platform/thing/GradedReceptacle
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: bale of retted flax
+  keywords: [bale, retted, bundle, flaxbale, flax]
   register: indefinite
-  primaryKeyword: bale
   # ⚠ NOT `stricks` — `line` answers to `strick`, and a bale that
   # answers to it too puts the wrong thing under the spinner's hand.
-  keywords: [bale, retted, bundle, flaxbale]
   longDescription: |
     Waist-high and bound twice with cord, the stems gone grey-brown and gone soft at the joint where the water got into them. It smells of pond. Pull a stem and the woody core cracks away from the fibre in your fingers, which is the whole point and the whole test.
   # ⭐ Linen — the retting PRODUCT, the material carrying the `fibre`

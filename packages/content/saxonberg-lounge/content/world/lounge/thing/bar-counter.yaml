@@ -10,6 +10,7 @@ class: /platform/thing/AttendancePoint
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: bar
+  keywords: [counter, bar]
   register: definite
   # ⚠ NOT `rail`, NOT `taps`. Three fixtures in this room were claiming
   # `rail` (this counter, the back-bar, the well) and two claiming `taps`
@@ -18,7 +19,6 @@ data:
   # back-bar — that is what `house stock` reports, what the restocks beat
   # shelves onto, and what the room's own prose means by "the rail is
   # stocked by BUYING". `taps` is the thing you pull.
-  keywords: [bar, counter]
   discipline: scrum
   attendDurationMs: 0
   staffingPolicy: self-service

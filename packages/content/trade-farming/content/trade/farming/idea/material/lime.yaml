@@ -3,8 +3,8 @@ class: /platform/idea/material/ConsumableMaterial
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: lime
+  keywords: [lime]
   appearance: "a green lime, waxy-skinned"
-  keywords: ["lime"]
   density: 900
   thermalConductivity: 0.5
   specificHeat: 3600

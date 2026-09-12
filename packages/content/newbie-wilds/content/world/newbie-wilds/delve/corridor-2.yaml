@@ -8,8 +8,8 @@ class: /platform/location/SingletonCartesianLocation
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: span of corridor over a false floor
+  keywords: [corridor, span, "false", floor]
   register: indefinite
-  primaryKeyword: corridor
   longDescription: |
     The corridor widens a little here and the flagstones give way to a broad, even lid of boards dressed to look like more stone — too even, if you have the eye for it, and it gives the faintest drum-note underfoot.
 

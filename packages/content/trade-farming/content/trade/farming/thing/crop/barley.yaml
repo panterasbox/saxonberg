@@ -5,9 +5,8 @@ class: /platform/thing/Crop
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: sack of barley
+  keywords: [barley, crop, sack]
   register: indefinite
-  primaryKeyword: barley
-  keywords: [barley, crop]
   longDescription: |
     Threshed grain, still with a little chaff in it, heavy in the sack and cool to the hand.
   material: /stuff/idea/material/food/barley-grain

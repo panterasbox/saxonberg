@@ -4,8 +4,8 @@ class: /platform/thing/Campfire
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: bronze brazier
+  keywords: [bronze, brazier, fire, flames]
   register: indefinite
-  keywords: [brazier, fire, flames]
   longDescription: >
     A waist-high bronze brazier on three claw feet, its coals banked to
     burn all day.

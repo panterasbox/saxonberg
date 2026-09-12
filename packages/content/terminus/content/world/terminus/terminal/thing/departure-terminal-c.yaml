@@ -7,7 +7,7 @@ hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   seatIn: /world/terminus/terminal/location/departure-gate-c
   shortDescription: Teleport Authority terminal
+  keywords: [terminal, gate-c, teleport, authority]
   register: indefinite
-  keywords: [gate-c]
   directionality: departure
   status: out-of-service

@@ -6,6 +6,7 @@ class: /platform/idea/material/Material
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: steel
+  keywords: [steel]
   density: 7850
   specificHeat: 466
   thermalConductivity: 50

@@ -6,9 +6,9 @@ class: /trade/hospitality/thing/BarStation
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: back-bar
+  keywords: [rail, back-bar, backbar, shelf]
   register: definite
   longDescription: A long mirrored back-bar, its rail worn smooth, ranked with bottles.
   # ⚠ NOT `bar` — that is the counter you sit at (and the room). This is
   # the shelf behind it: `back-bar`, `shelf`, and `rail` (the word the
   # whole build uses for it).
-  keywords: [back-bar, backbar, shelf, rail]

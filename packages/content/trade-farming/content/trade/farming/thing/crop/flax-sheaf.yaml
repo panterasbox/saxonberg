@@ -14,9 +14,8 @@ class: /platform/thing/GradedReceptacle
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: sheaf of flax straw
-  register: indefinite
-  primaryKeyword: sheaf
   keywords: [sheaf, flax, straw, bundle]
+  register: indefinite
   longDescription: |
     A waist-high bundle of flax stems tied twice, cut low so the fibre runs the whole length. Stiff, pale, and no use whatever until something has rotted the glue out of it.
   material: /stuff/idea/material/textile/linen

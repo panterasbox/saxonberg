@@ -27,12 +27,11 @@ class: /platform/thing/Stock
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: "mill's bale store"
+  keywords: [bales, bale-store, store, flax, delivery, "mill's", mill, bale]
   register: definite
   # ⚠ `bales`, not `stock` — the output shelf already answers to `stock`,
   # and a hand told to `get bale from stock` must not find the shelf it
   # is meant to be filling.
-  primaryKeyword: bales
-  keywords: [bales, bale-store, store, flax, delivery]
   longDescription: "Bales of retted flax stacked against the river end of the shed, still smelling of the pond they came out of. The cord bindings are somebody else's knots."
   discipline: scrum
   attendDurationMs: 0

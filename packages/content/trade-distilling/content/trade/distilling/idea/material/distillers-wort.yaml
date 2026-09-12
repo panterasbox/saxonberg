@@ -5,9 +5,8 @@ class: /platform/idea/material/ConsumableMaterial
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: distiller's wort
-  primaryKeyword: wort
+  keywords: [wort, "distiller's", distiller]
   appearance: "a rough, grey-amber wort"
-  keywords: ["wort"]
   density: 1042
   thermalConductivity: 0.5
   specificHeat: 3900

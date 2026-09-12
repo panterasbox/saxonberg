@@ -8,9 +8,8 @@ class: /platform/thing/Thermos
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: dented steel thermos
+  keywords: [thermos, flask, coffee, steel, dented]
   register: indefinite
-  primaryKeyword: thermos
-  keywords: [thermos, flask, coffee, steel]
   longDescription: |
     A dented stainless-steel thermos, the screw-cap doubling as a cup, riding in the crook of Gus's arm through the whole shift. It is cool to the touch on the outside — the vacuum doing its quiet work — and heavy with coffee still hot inside. Sealed, and staying that way; the cup is forever saved for a later that doesn't arrive.
   details:

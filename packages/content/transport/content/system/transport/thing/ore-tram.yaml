@@ -14,9 +14,8 @@ class: /system/transport/thing/HaulageRig
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: ore tram
+  keywords: [tram, ore-tram, box, ore]
   register: indefinite
-  primaryKeyword: tram
-  keywords: ["tram", "ore-tram", "box"]
   longDescription: |
     A tipping box of riveted plate on four flanged wheels, sitting on the rails with its tipping catch dropped. The inside is polished bright by everything that has ever been shovelled out of it; the outside has not been painted in living memory.
   mass: 220

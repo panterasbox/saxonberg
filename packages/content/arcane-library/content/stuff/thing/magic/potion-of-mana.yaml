@@ -9,6 +9,7 @@ class: /system/arcana/thing/Potion
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: stoppered glass flask
+  keywords: [flask, stoppered, glass]
   register: indefinite
   longDescription: >
     A squat glass flask with a waxed stopper. Whatever is in it is thick,

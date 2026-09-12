@@ -7,9 +7,9 @@ class: /platform/thing/TipJar
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: tip jar
+  keywords: [tip-jar, jar, tips, tip]
   register: indefinite
   longDescription: >
     A wide-mouthed glass jar by the register, a curl of masking tape on the
     side reading "TIPS" in three different hands. It catches the neon and
     whatever the night's been generous enough to leave.
-  keywords: [jar, tips, tip, tip-jar]

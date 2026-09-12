@@ -6,9 +6,8 @@ class: /platform/thing/Stock
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: "farm's stock"
+  keywords: [stock, pallet, cases, "farm's", farm]
   register: definite
-  primaryKeyword: stock
-  keywords: [stock, pallet, cases]
   longDescription: "Crates stacked under a wet sack, the smell of citrus and cut mint."
   discipline: scrum
   attendDurationMs: 0

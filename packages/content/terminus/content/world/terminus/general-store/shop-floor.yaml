@@ -11,8 +11,8 @@ class: /platform/location/SingletonCartesianLocation
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: general store
+  keywords: [store, general]
   register: definite
-  primaryKeyword: store
   alternateNames: [shop, store, general]
   _address: terminus/city/counting-houses/general-store
   longDescription: |

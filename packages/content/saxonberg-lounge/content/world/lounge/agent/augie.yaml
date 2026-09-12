@@ -5,10 +5,10 @@ class: /platform/agent/Crafter
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: Augie
+  keywords: [augie, old, easy-handed, half-orc]
   pronouns: he
   _speciesPath: /stuff/idea/species/animalia/chordata/mammalia/primates/hominidae/homo/semiorcus
   lifecycleState: alive
-  primaryKeyword: augie
   shortDescription: old, easy-handed half-orc
   register: indefinite
   longDescription: |

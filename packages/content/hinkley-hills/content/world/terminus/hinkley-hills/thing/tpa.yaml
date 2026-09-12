@@ -10,8 +10,8 @@ hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   seatIn: /world/terminus/hinkley-hills/location/arrival
   shortDescription: Teleport Authority post
+  keywords: [authority, post, terminal, tpa, hinkley, teleport]
   register: indefinite
-  keywords: [post, terminal, tpa, hinkley]
   directionality: both
   status: operational
   # ── the mana leg (TPA reform W6) ──

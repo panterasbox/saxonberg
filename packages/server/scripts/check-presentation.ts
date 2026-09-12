@@ -395,6 +395,25 @@ function lint(rows: Row[]): string[] {
           `${REGISTERS.join(' | ')}.`,
       );
     }
+    // (d) — an authored primaryKeyword must be in the row's keywords.
+    //   ⭐ Keywords are authored-only since 2026-09-11, so the pool no
+    //   longer "catches up" from a description: a pinned word that is
+    //   not in the list is a click affordance sending `look <word>` at
+    //   nothing. The runtime setter warns; this refuses.
+    const pinned = str(row.data.primaryKeyword);
+    if (pinned) {
+      const pool = Array.isArray(row.data.keywords)
+        ? row.data.keywords.map((k) => str(k).toLowerCase())
+        : [];
+      if (!pool.includes(pinned.toLowerCase())) {
+        failures.push(
+          `${row.file}: primaryKeyword '${pinned}' is not in this row's ` +
+            `keywords [${pool.join(', ')}]. A click sends ` +
+            `\`look ${pinned}\`, which would resolve nothing. Add it to ` +
+            `keywords, or drop the pin — the default is keywords[0].`,
+        );
+      }
+    }
     // (c) — a Position noun is one lowercase word.
     const positions = row.data.positions;
     if (Array.isArray(positions)) {
@@ -537,7 +556,8 @@ function main(): void {
   }
   console.log(
     `✔ lint:presentation — no description stem carries an article, every ` +
-      `register is one of the three, and every position noun is one word.`,
+      `register is one of the three, every position noun is one word, and ` +
+      `every pinned primaryKeyword is a keyword the row actually has.`,
   );
 }
 

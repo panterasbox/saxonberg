@@ -22,9 +22,8 @@ class: /trade/farming/thing/ToolRack
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: tool rack
+  keywords: [rack, tools, pegs, tool]
   register: indefinite
-  primaryKeyword: rack
-  keywords: [rack, tools, pegs]
   longDescription: >-
     A row of iron pegs driven into the byre wall under the overhang, with
     a shelf under them for the small things. Every peg has a shape worn

@@ -10,8 +10,7 @@ class: /system/residence/thing/DeedDesk
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: deed desk
+  keywords: [desk, counter, plat, book, maps, deed]
   register: definite
-  primaryKeyword: desk
-  keywords: [desk, counter, plat, book, maps]
   longDescription: |
     A broad oak desk facing the window, its slope covered with survey maps under glass and the plat books of three subdivisions stacked at one corner. A japanned tin of drawing pins, a steel rule, and a blotter gone violet with signatures.

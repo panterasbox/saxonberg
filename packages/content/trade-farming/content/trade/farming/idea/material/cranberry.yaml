@@ -3,8 +3,8 @@ class: /platform/idea/material/ConsumableMaterial
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: cranberry
+  keywords: [cranberry]
   appearance: "a hard red cranberry"
-  keywords: ["cranberry"]
   density: 950
   thermalConductivity: 0.5
   specificHeat: 3600

@@ -6,9 +6,8 @@ class: /platform/thing/Crate
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: crate of limes
+  keywords: [limes, crate, lime, produce]
   register: indefinite
-  primaryKeyword: limes
-  keywords: [crate, limes, lime, produce]
   longDescription: A slatted wooden crate of limes, the grower's stencil on the side.
   censusKey: produce:lime
   regionTarget: 4

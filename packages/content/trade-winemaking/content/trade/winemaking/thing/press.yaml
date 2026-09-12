@@ -7,9 +7,8 @@ class: /platform/thing/ToolItem
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: basket wine press
+  keywords: [press, "wine press", basket, wine]
   register: indefinite
-  primaryKeyword: press
-  keywords: [press, "wine press", basket]
   longDescription: |
     A slatted basket press with a greased iron screw, stained purple to the waist. The drip channel is worn glassy.
   capabilities:

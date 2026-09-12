@@ -4,8 +4,8 @@ class: /platform/idea/material/ConsumableMaterial
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: lime juice
+  keywords: [lime, lime-juice, juice]
   appearance: cloudy, sharp lime juice
-  keywords: [lime-juice, juice]
   density: 1030
   thermalConductivity: 0.58
   specificHeat: 3900

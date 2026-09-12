@@ -8,9 +8,8 @@ class: /platform/thing/Plant
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: ley of clover
+  keywords: [clover, crop, ley]
   register: indefinite
-  primaryKeyword: clover
-  keywords: [clover, crop]
   longDescription: |
     White clover threading thick through the grass, its heads working with bees, and the whole sward a deeper green than the field beside it.
   _speciesPath: /stuff/idea/species/plantae/tracheophyta/magnoliopsida/fabales/fabaceae/trifolium/repens

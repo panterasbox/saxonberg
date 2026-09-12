@@ -35,9 +35,8 @@ data:
   # took it for a trade floor until `check-location-classes`'s FURNISHED
   # roster said otherwise. It is on that roster for exactly this reason.
   shortDescription: kitchen
-  register: indefinite
-  primaryKeyword: kitchen
   keywords: [kitchen, room]
+  register: indefinite
   longDescription: |
     A working kitchen — a range against one wall, a counter down the other, a larder in the corner and a basin under the window. It smells of woodsmoke and yesterday's cooking.
   ambientIntensity: 35

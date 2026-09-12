@@ -13,7 +13,6 @@ hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   _speciesPath: /stuff/idea/species/animalia/chordata/mammalia/primates/hominidae/homo/sensitivus
   lifecycleState: alive
-  primaryKeyword: carter
   keywords: [carter, driver, teamster]
   shortDescription: carter
   register: definite

@@ -7,9 +7,8 @@ class: /platform/thing/Provision
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: wrapped ration pack
+  keywords: [rations, ration, pack, food, trail, wrapped]
   register: indefinite
-  primaryKeyword: rations
-  keywords: [rations, ration, pack, food, trail]
   _materialPath: /stuff/idea/material/food/trail-ration
   longDescription: |
     A day's trail food wrapped tight in waxed cloth: hard biscuit, a knuckle of smoked sausage, a twist of dried fruit. It is not a feast and does not pretend to be — it is the difference between a long day underground and a bad one.

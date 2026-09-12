@@ -6,8 +6,8 @@ class: /platform/thing/Thing
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: blacksmith's anvil
+  keywords: [anvil, "blacksmith's", blacksmith]
   register: indefinite
-  primaryKeyword: anvil
   longDescription: >
     A blacksmith's anvil, a single dense block of iron on a worn oak
     stump. It is not going anywhere you intend to carry it.

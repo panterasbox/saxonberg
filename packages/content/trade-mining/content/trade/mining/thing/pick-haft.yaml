@@ -3,8 +3,7 @@
 class: /platform/thing/ToolItem
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  primaryKeyword: haft
-  keywords: ["haft", "pick-haft", "handle"]
+  keywords: [haft, pick-haft, handle, shaped, pick]
   shortDescription: shaped pick haft
   register: indefinite
   longDescription: >-

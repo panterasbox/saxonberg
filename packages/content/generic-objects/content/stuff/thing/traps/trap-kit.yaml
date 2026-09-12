@@ -7,8 +7,8 @@ class: /platform/thing/TrapKit
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: folded trap kit
+  keywords: [kit, folded, trap]
   register: indefinite
-  primaryKeyword: kit
   longDescription: |
     A roll of oilcloth tied with a thong: inside, a flat spring plate, a slotted needle, and a stoppered vial of something old and dark. Set it where a careless foot will find it, work it into the ground, and walk away. It makes one trap, and only one.
   trapTemplate: /stuff/thing/traps/step-dart

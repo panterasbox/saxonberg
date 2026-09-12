@@ -12,9 +12,8 @@ class: /world/terminus/university-avenue/thing/Watch
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: brass pocket-watch
+  keywords: [watch, pocketwatch, brass, hunter, chain, pocket-watch]
   register: indefinite
-  primaryKeyword: watch
-  keywords: [watch, pocketwatch, brass, hunter, chain]
   longDescription: |
     A brass hunter-cased pocket-watch on a worn chain, the lid smoothed where a thumb flips it open. Inside, the dial keeps a time all its own — close, but never quite the hour the clock tower shows, and drifting a little further off with every passing day. Nobody has ever set it right.
   # 3:47 — a wrong hour to start from; `rate` < 1.0 is the honest slow drift.

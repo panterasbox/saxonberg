@@ -8,9 +8,8 @@ class: /trade/smithing/thing/Anvil
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: smithy anvil
+  keywords: [anvil, stump, smithy]
   register: definite
-  primaryKeyword: anvil
-  keywords: [anvil, stump]
   longDescription: |
     A smithy anvil on a scarred oak stump, its face bright where ten thousand blows have polished it.
   capabilities:

@@ -11,6 +11,7 @@ class: /platform/idea/material/Material
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: oak
+  keywords: [oak]
   density: 750
   specificHeat: 2000
   thermalConductivity: 0.17

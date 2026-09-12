@@ -6,5 +6,5 @@ class: /platform/thing/Casting
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: cast lump
+  keywords: [cast, casting, lump]
   register: indefinite
-  keywords: [casting, lump, cast]

@@ -10,12 +10,11 @@ class: /platform/thing/JobBoard
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: board of nailed-up slips
+  keywords: [board, slips, notices, jobs, job-board, nailed-up]
   register: indefinite
-  primaryKeyword: board
   longDescription: >
     A sheet of planking nailed up beside the winch house, layered with
     slips and the ghosts of slips — work wanted, work offered, each one
     stamped where the escrow was sealed. A pencil hangs on a wire. Two of
     the slips are for the same job, posted a week apart, and nobody has
     taken the old one down.
-  keywords: [board, slips, notices, jobs, job-board]

@@ -5,9 +5,8 @@ class: /platform/thing/Seed
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: packet of grapefruit seed
-  register: indefinite
-  primaryKeyword: seed
   keywords: [seed, seeds, "grapefruit seed", grapefruit, packet]
+  register: indefinite
   longDescription: |
     A paper packet of grapefruit pips, big as beans.
   growsIntoPath: /trade/farming/thing/plant/grapefruit

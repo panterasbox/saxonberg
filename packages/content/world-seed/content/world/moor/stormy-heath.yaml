@@ -11,8 +11,8 @@ class: /platform/location/SingletonCartesianLocation
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: storm-lashed heath
+  keywords: [heath, storm-lashed]
   register: indefinite
-  primaryKeyword: heath
   longDescription: |
     Open moorland under a bruised, boiling sky. Heather flattens in the wind and the rain comes sideways in grey sheets; far off, a stand of dead birches stands black against the lightning. There is nowhere here that is dry.
   # SkyExposed outdoor biome (from the base-library content pack) — the storm

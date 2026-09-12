@@ -7,8 +7,8 @@ class: /platform/idea/material/Material
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: water
-  appearance: clear water
   keywords: [water]
+  appearance: clear water
   density: 1000
   thermalConductivity: 0.6
   specificHeat: 4186

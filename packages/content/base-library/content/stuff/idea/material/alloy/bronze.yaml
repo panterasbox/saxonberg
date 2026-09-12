@@ -7,6 +7,7 @@ class: /platform/idea/material/Material
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: bronze
+  keywords: [bronze]
   density: 8800
   # Water absorption capacity (% of dry mass, ASTM D570): metal wets only as a surface film.
   waterAbsorptionCapacity: 0.2

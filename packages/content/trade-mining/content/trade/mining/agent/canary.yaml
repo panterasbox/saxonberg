@@ -9,8 +9,7 @@ hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   _speciesPath: /stuff/idea/species/animalia/chordata/aves/passeriformes/fringillidae/serinus/canaria
   lifecycleState: alive
-  primaryKeyword: canary
-  keywords: ["canary", "bird", "cage"]
+  keywords: [canary, bird, cage, wicker]
   shortDescription: canary in a wicker cage
   register: indefinite
   longDescription: >-

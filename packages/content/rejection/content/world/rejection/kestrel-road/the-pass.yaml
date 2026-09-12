@@ -14,8 +14,8 @@ class: /platform/location/SingletonCartesianLocation
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: pass
+  keywords: [pass]
   register: definite
-  primaryKeyword: pass
   alternateNames: [saddle, gap, col, road, stairs]
   _address: terminus/rejection/road/the-pass
   _biomePath: /stuff/idea/biome/outdoor/baseline

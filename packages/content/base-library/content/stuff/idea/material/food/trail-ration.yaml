@@ -7,8 +7,8 @@ class: /platform/idea/material/ConsumableMaterial
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: trail ration
+  keywords: [rations, ration, food, trail]
   appearance: dense, plain, keeping food — biscuit and dried meat
-  keywords: [ration, food, trail, rations]
   density: 850
   thermalConductivity: 0.3
   specificHeat: 2500

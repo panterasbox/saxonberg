@@ -4,8 +4,7 @@ class: /platform/thing/Thing
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: handcart
+  keywords: [cart, handcart]
   register: indefinite
-  primaryKeyword: cart
-  keywords: [cart]
   longDescription: >-
     A two-wheeled handcart with worn shafts, standing tipped against the wall.

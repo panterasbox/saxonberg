@@ -253,126 +253,78 @@ describe('PerceptibleMixin', () => {
     });
   });
 
-  describe('name folding (Phase 7)', () => {
-    it('does NOT fold name tokens when host omits NamedMixin', () => {
-      // The bare TestObject doesn't compose NamedMixin, so the
-      // name-derived token branch is skipped.
-      obj.addKeyword('explicit');
-      expect(obj.getKeywords()).toEqual(['explicit']);
-    });
-
-    it('folds tokenized name into the keyword pool when Named is composed', () => {
+  describe('⭐⭐ keywords are AUTHORED — nothing derives', () => {
+    // Removed 2026-09-11, and the census is the argument: 568 of the 646
+    // described rows already authored their keywords by hand, so
+    // derivation saved nobody any typing — while what it produced was
+    // junk. A tailor described as "tailor with pins down one cuff and a
+    // tape round her neck" answered to `look with`, `look and`,
+    // `look her` and `look neck`.
+    it('a name does NOT fold into the pool', () => {
       const named = makeStuff(() => new NamedTestObject());
       named.setName('Oak Door');
-      named.addKeyword('door');
-      // 'door' is authored, 'oak' comes from the name; duplicates
-      // are deduped (the authored 'door' is preserved).
-      const kws = named.getKeywords();
-      expect(kws).toContain('door');
-      expect(kws).toContain('oak');
-      expect(kws.filter((k) => k === 'door')).toHaveLength(1);
+      expect(named.getKeywords()).toEqual([]);
     });
 
-    it('lowercases name tokens during folding', () => {
-      const named = makeStuff(() => new NamedTestObject());
-      named.setName('CRYSTAL ROSE');
-      const kws = named.getKeywords();
-      expect(kws).toContain('crystal');
-      expect(kws).toContain('rose');
-    });
-
-    it('returns just authored keywords when name is empty', () => {
-      const named = makeStuff(() => new NamedTestObject());
-      // No setName — Named.name defaults to ''.
-      named.addKeyword('flower');
-      expect(named.getKeywords()).toEqual(['flower']);
-    });
-  });
-
-  describe('short-description folding (Phase 8)', () => {
-    it('folds tokenized short description into the keyword pool when Visible is composed', () => {
+    it('a short description does NOT fold into the pool', () => {
       const v = makeStuff(() => new VisibleTestObject());
-      v.setShortDescription('a brass thermometer');
-      const kws = v.getKeywords();
-      // 'brass' and 'thermometer' come from the short description.
-      // 'a' is a stop word and gets dropped.
-      expect(kws).toContain('brass');
-      expect(kws).toContain('thermometer');
-      expect(kws).not.toContain('a');
-    });
-
-    it('does NOT fold raw `shortDescription` fallback prose', () => {
-      // `getShort()` returns "You see nothing special." when no
-      // description is set; the derive must read the raw field, not
-      // the with-fallback accessor, or empty objects pollute the
-      // keyword pool.
-      const v = makeStuff(() => new VisibleTestObject());
+      v.setShortDescription('brass thermometer');
       expect(v.getKeywords()).toEqual([]);
     });
 
-    it('drops common stop words (a, an, the)', () => {
+    it('⭐ the author\'s list is returned verbatim, order kept', () => {
       const v = makeStuff(() => new VisibleTestObject());
-      v.setShortDescription('an oak door');
-      const kws = v.getKeywords();
-      expect(kws).toEqual(['oak', 'door']);
+      v.setShortDescription('brass thermometer');
+      v.setKeywords(['thermometer', 'brass']);
+      expect(v.getKeywords()).toEqual(['thermometer', 'brass']);
     });
 
-    it('preserves explicitly authored stop words', () => {
-      // The stop-word filter applies to auto-derived tokens only —
-      // an author who explicitly adds 'a' as a keyword keeps it.
-      const v = makeStuff(() => new VisibleTestObject());
-      v.addKeyword('a');
-      v.setShortDescription('a brass thermometer');
-      const kws = v.getKeywords();
-      expect(kws).toContain('a'); // authored
-      expect(kws).toContain('brass'); // derived
-    });
-
-    it('autoDeriveKeywords=false suppresses both Named and Visible derivation', () => {
-      const v = makeStuff(() => new VisibleTestObject());
-      v.setShortDescription('a brass thermometer');
-      v.addKeyword('explicit');
-      (v as unknown as { autoDeriveKeywords: boolean }).autoDeriveKeywords = false;
-      // Only the authored keyword remains.
-      expect(v.getKeywords()).toEqual(['explicit']);
+    it('⚠ a name the author wants typeable must be authored', () => {
+      // The cost of the change, stated plainly: `look oak` resolves
+      // because somebody wrote `oak`, not because a tokenizer guessed.
+      const named = makeStuff(() => new NamedTestObject());
+      named.setName('Oak Door');
+      named.setKeywords(['door', 'oak']);
+      expect(named.hasKeyword('oak')).toBe(true);
     });
   });
 
-  describe('primaryKeyword (Wave 1)', () => {
-    it('defaults to the last pool token when no explicit value set (Named pool)', () => {
-      const named = makeStuff(() => new NamedTestObject());
-      named.setName('Oak Door');
-      // Derived pool from name: ['oak', 'door']. Last token is the
-      // head noun — what a player would type for the canonical
-      // `look <X>` reference.
-      expect(named.getPrimaryKeyword()).toBe('door');
-    });
-
-    it('defaults to the last pool token when no explicit value set (authored pool)', () => {
-      obj.addKeyword('flower');
+  describe('primaryKeyword — keywords[0] unless pinned', () => {
+    it('⭐ defaults to the FIRST authored keyword', () => {
       obj.addKeyword('plant');
-      // Authored keywords land in the pool in insertion order;
-      // the trailing one is the default canonical.
+      obj.addKeyword('flower');
+      // It used to be the TRAILING token, which was right about English
+      // for a pool derived from a description ("brisk clerk" → clerk)
+      // and arbitrary for an authored list. An authored list has the
+      // author's own answer at the front.
       expect(obj.getPrimaryKeyword()).toBe('plant');
     });
 
-    it('returns the authored value when valid', () => {
+    it('a name alone gives no keyword, so no primary either', () => {
+      const named = makeStuff(() => new NamedTestObject());
+      named.setName('Oak Door');
+      expect(named.getPrimaryKeyword()).toBeUndefined();
+    });
+
+    it('an author may pin something other than the first', () => {
       const v = makeStuff(() => new VisibleTestObject());
-      v.setShortDescription('a brass thermometer');
+      v.setKeywords(['thermometer', 'brass']);
       v.setPrimaryKeyword('brass');
       expect(v.getPrimaryKeyword()).toBe('brass');
     });
 
-    it('ignores an invalid value (not in pool) and warns', () => {
+    it('⚠ a pinned value out of the pool still wins — and still warns', () => {
+      // "Unless otherwise specified" means the author's word is honoured.
+      // But a click affordance sends `look <primaryKeyword>`, so a value
+      // nothing answers to is a dead click — worth saying out loud at
+      // the setter, and gated at build time by lint:presentation.
       const v = makeStuff(() => new VisibleTestObject());
-      v.setShortDescription('a brass thermometer');
+      v.setKeywords(['thermometer']);
       const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
       v.setPrimaryKeyword('pony');
       expect(warn).toHaveBeenCalled();
       warn.mockRestore();
-      // Stored anyway (cross-field invariant; setter is informational).
-      // Getter falls back to the trailing pool entry: 'thermometer'.
-      expect(v.getPrimaryKeyword()).toBe('thermometer');
+      expect(v.getPrimaryKeyword()).toBe('pony');
     });
 
     it('returns undefined when keyword pool is empty', () => {
@@ -387,13 +339,12 @@ describe('PerceptibleMixin', () => {
       expect(v.getPrimaryKeyword()).toBe('brass');
     });
 
-    it('setting undefined clears the authored override', () => {
+    it('setting undefined clears the pin and falls back to keywords[0]', () => {
       const v = makeStuff(() => new VisibleTestObject());
-      v.setShortDescription('a brass thermometer');
+      v.setKeywords(['thermometer', 'brass']);
       v.setPrimaryKeyword('brass');
       expect(v.getPrimaryKeyword()).toBe('brass');
       v.setPrimaryKeyword(undefined);
-      // Falls back to derived-pool default: the last token.
       expect(v.getPrimaryKeyword()).toBe('thermometer');
     });
 

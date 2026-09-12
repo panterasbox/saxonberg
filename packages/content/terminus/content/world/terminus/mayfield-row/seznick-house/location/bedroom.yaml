@@ -16,8 +16,8 @@ data:
   props:
     - /platform/thing/sandbox/wardrobe
   shortDescription: bedroom
+  keywords: [bedroom]
   register: definite
-  primaryKeyword: bedroom
   ambientIntensity: 25
   ambientColorTemperature: 4200
   longDescription: |

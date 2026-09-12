@@ -2,8 +2,8 @@ class: /platform/thing/equipment/Garment
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: steel breastplate
+  keywords: [breastplate, steel]
   register: indefinite
-  primaryKeyword: breastplate
   longDescription: >
     A fitted cuirass of polished steel plate, articulated at the shoulders.
     It turns an edge and shrugs a thrust — but a heavy blow rings straight

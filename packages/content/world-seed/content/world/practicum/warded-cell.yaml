@@ -7,8 +7,8 @@ class: /platform/location/SingletonCartesianLocation
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: warded cell
+  keywords: [cell, warded]
   register: definite
-  primaryKeyword: cell
   longDescription: |
     A round cell of close-fitted grey stone, faintly humming with the ward cut into every block. A bronze brazier burns steadily in the centre — fire, the plaque notes, is not magic.
   coords:

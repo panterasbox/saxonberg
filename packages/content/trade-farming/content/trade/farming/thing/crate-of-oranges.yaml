@@ -6,9 +6,8 @@ class: /platform/thing/Crate
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: crate of oranges
+  keywords: [oranges, crate, orange, produce]
   register: indefinite
-  primaryKeyword: oranges
-  keywords: [crate, oranges, orange, produce]
   longDescription: A slatted wooden crate of oranges, the grower's stencil on the side.
   censusKey: produce:orange
   regionTarget: 4

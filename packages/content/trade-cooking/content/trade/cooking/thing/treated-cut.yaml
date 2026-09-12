@@ -15,8 +15,7 @@ class: /platform/thing/Provision
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: treated cut of meat
-  register: indefinite
-  primaryKeyword: cut
   keywords: [cut, meat, treated, cured, salted, dried, smoked]
+  register: indefinite
   _materialPath: /stuff/idea/material/food/stew-meat
   mass: 0.4

@@ -7,9 +7,8 @@ class: /world/terminus/university-avenue/thing/Whistle
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: brass pea whistle
-  register: indefinite
-  primaryKeyword: whistle
   keywords: [whistle, brass, pea, cord]
+  register: indefinite
   longDescription: |
     A brass referee's pea whistle on a boot-lace cord, worn at the neck and gone soft-gold with handling. The mouthpiece is smoothed where his lip meets it. He blows it clean and sharp now and then, at nothing, to keep it sharp.
   slotClaims:

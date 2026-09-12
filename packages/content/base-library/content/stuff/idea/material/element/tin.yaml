@@ -17,6 +17,7 @@ class: /platform/idea/material/Material
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: tin
+  keywords: [tin]
   density: 7310
   specificHeat: 228
   thermalConductivity: 67

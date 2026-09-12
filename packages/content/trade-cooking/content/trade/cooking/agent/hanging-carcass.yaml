@@ -19,9 +19,8 @@ data:
   _speciesPath: /stuff/idea/species/hog
   lifecycleState: dead
   shortDescription: hog carcass on a hook
-  register: indefinite
-  primaryKeyword: carcass
   keywords: [carcass, hog, pig, body, hook]
+  register: indefinite
   longDescription: >-
     A dressed hog hangs head-down from a hook in the rafters, split and
     scraped and gone cold. Somebody has already done the hard part; what

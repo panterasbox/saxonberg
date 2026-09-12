@@ -8,8 +8,8 @@ class: /platform/location/SingletonCartesianLocation
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: Terminus Registry
+  keywords: [registry, terminus]
   register: definite
-  primaryKeyword: registry
   _address: terminus/city/civic/registry
   longDescription: |
     A narrow annex off the station frontage, rented by the city and not yet grown into: one long counter of dark wood, a wall of ledger shelves still mostly empty, and a brass plate by the door — REGISTRY OF THE CITY OF TERMINUS — polished brighter than anything else in the room. Behind the counter a second desk bears a smaller, sterner plate: MAGISTRATE. It is the same desk turned around.

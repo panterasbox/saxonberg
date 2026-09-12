@@ -6,10 +6,9 @@ class: /platform/thing/ServingVessel
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: syrup bottle
+  keywords: [syrup-bottle, bottle, syrup]
   register: indefinite
   longDescription: A squat half-litre bottle with a pouring spout.
-  primaryKeyword: syrup-bottle
-  keywords: [syrup-bottle, bottle, syrup]
   category: syrup-bottle
   interiorBulk: true
   interiorCapacity: 0.5

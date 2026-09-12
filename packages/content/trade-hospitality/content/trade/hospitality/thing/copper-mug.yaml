@@ -4,10 +4,9 @@ class: /platform/thing/ServingVessel
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: copper mug
+  keywords: [copper-mug, copper, mug, mule-mug]
   register: indefinite
   longDescription: A hammered copper mug, frosting where the ice sits.
-  primaryKeyword: copper-mug
-  keywords: [copper-mug, copper, mug, mule-mug]
   category: copper-mug
   interiorBulk: true
   interiorCapacity: 0.4

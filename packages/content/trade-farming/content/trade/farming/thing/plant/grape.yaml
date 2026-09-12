@@ -6,9 +6,8 @@ class: /platform/thing/Plant
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: grapevine
-  register: indefinite
-  primaryKeyword: "grapevine"
   keywords: [grapevine, grape, vine, plant]
+  register: indefinite
   longDescription: |
     A grapevine trained along a rough trellis of poles and twine, tendrils reaching for more.
   _speciesPath: /stuff/idea/species/plantae/tracheophyta/magnoliopsida/vitales/vitaceae/vitis/vinifera

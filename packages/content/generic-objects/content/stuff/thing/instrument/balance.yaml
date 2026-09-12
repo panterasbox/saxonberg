@@ -4,5 +4,6 @@ class: /platform/thing/instrument/Balance
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: precision balance
+  keywords: [balance, precision]
   register: indefinite
   long: A small precision balance with a calibrated dial. Place an object on the pan, take a reading.

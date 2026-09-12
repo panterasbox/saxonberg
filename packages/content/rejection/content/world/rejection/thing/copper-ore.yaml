@@ -8,9 +8,8 @@ class: /trade/mining/thing/Ore
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: lump of green-stained rock
+  keywords: [ore, rock, lump, malachite, green-stained]
   register: indefinite
-  primaryKeyword: ore
-  keywords: [ore, rock, lump, malachite]
   longDescription: >-
     Grey slate shot through with green, heavier than it looks and
     breaking with a dull edge. How much of it is copper is a question for

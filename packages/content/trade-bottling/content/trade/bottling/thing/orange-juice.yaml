@@ -3,10 +3,9 @@ class: /platform/thing/Bottle
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: "bottle of orange juice"
+  keywords: [orange-juice, juice, oj, bottle, mixer, orange]
   register: indefinite
   longDescription: "A one-litre screw-capped bottle of orange juice, the bottling floor's plain label."
-  primaryKeyword: orange-juice
-  keywords: ["orange-juice", "juice", "oj", "bottle", "mixer"]
   category: mixer-bottle
   interiorBulk: true
   interiorCapacity: 1

@@ -19,9 +19,8 @@ data:
     y: 0
     z: 0
   shortDescription: Veshko distillery floor
-  register: definite
-  primaryKeyword: distillery
   keywords: [distillery, floor, yard, veshko]
+  register: definite
   longDescription: |
     A hangar of a floor: column stills in a row behind a chain-link fence, forklifts, and pallets of grey-labelled Volk under sodium light. Everything is stencilled.
   ambientIntensity: 30

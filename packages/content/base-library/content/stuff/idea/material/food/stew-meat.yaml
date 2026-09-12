@@ -5,8 +5,8 @@ class: /platform/idea/material/ConsumableMaterial
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: stew meat
+  keywords: [stew, meat, cut, cuts]
   appearance: dark trimmed cuts of stew meat
-  keywords: [meat, cut, cuts]
   density: 1050
   thermalConductivity: 0.45
   specificHeat: 3200

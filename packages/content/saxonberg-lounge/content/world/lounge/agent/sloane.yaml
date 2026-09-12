@@ -6,10 +6,10 @@ class: /platform/agent/Crafter
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: Sloane
+  keywords: [sloane, still, attentive, bartender]
   pronouns: they
   _speciesPath: /stuff/idea/species/animalia/chordata/mammalia/primates/hominidae/homo/sensitivus
   lifecycleState: alive
-  primaryKeyword: sloane
   shortDescription: still, attentive bartender
   register: indefinite
   longDescription: |

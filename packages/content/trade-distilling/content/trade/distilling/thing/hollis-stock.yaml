@@ -3,9 +3,8 @@ class: /platform/thing/Stock
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: Hollis's stock
+  keywords: [stock, pallet, cases, "hollis's", hollis]
   register: proper
-  primaryKeyword: stock
-  keywords: [stock, pallet, cases]
   longDescription: Cases of Old Hollis and Hollis Cane, the labels louder than the liquid.
   discipline: scrum
   attendDurationMs: 0

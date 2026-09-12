@@ -5,6 +5,7 @@ class: /platform/idea/material/Material
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: fruit-flesh
+  keywords: [fruit-flesh]
   density: 870
   specificHeat: 3700
   thermalConductivity: 0.5

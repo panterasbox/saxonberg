@@ -4,10 +4,9 @@ class: /platform/thing/ServingVessel
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: collins glass
+  keywords: [collins, glass]
   register: indefinite
   longDescription: A tall, narrow glass, taller than a highball.
-  primaryKeyword: collins
-  keywords: [collins, glass]
   category: collins
   interiorBulk: true
   interiorCapacity: 0.4
