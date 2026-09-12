@@ -402,3 +402,36 @@ This slate boils down to:
 
 Reactions/threads, the moderation control plane, anonymity, and channel
 language gating wait for their own work.
+
+---
+
+## ⭐ Tails from the presentation build (2026-09-11)
+
+Chat anonymity shipped: a channel owner sets `chat anonymity <name>
+permit|forbid`, and `chat <name> --anon <message>` renders the poster by
+a short handle ("a weaver") where the channel permits it. ⭐ **The
+channel's setting is checked first, and forbidding never stops anyone
+talking** — `--anon` on a forbidding channel posts you *under your name*
+and tells you so. See
+[presentation.md](../../subsystems/presentation.md). Two seams remain.
+
+- **`permitted` + plain still consults the disguise.** A poster who is
+  neither anonymous nor on a forbidding channel renders `concise`, which
+  is a *declarative* form — it does not ask whether the reader could see
+  through a hood. That is deliberate (a channel is not looking at you, it
+  is reading what you typed) but it means a disguised speaker's channel
+  line and their room line can disagree. The attach point is one line in
+  `ChannelCatalogue.postToChannel` for the case where a visible change is
+  allowed to show.
+- ⚠ **A seeded subject cannot author its `anonymity:` — and not merely
+  for scope.** `PackLogic.ensureSurface` applies its `mint()` closure
+  **only when the row is new**; an existing row gets `archived`, `name`
+  and `description` and nothing else. So an authored `anonymity:` would
+  be a one-time default that silently diverges from the YAML forever
+  after: edit the row, reinstall, nothing happens. That is a worse
+  authoring surface than none, and *"does the row or the owner win on
+  reinstall?"* is a real question nobody has decided. ⭐ The attach point
+  is the `mint()` in `PackLogic.ts` **plus** the matching field on
+  `renderSubjectRow`'s preimage — both, or reconcile sees a permanent
+  diff. Nothing shipped wants a non-default value today, and `chat
+  anonymity` is the player-facing path.

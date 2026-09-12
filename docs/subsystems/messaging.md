@@ -1295,3 +1295,15 @@ the speaker from the act registry (`ReactionApi.actInfo`). See
 - [antipatterns.md § Duck Typing with Mixins](../antipatterns.md#duck-typing-with-mixins)
   — why `MessageApi.getSensors` narrows via `MixinApi.isSensor` rather
   than checking for an `onMessage` method
+
+---
+
+## History
+
+**2026-09-11 — a reference states its FORM, and `Mml.list` went lazy.**
+`MmlPayload.ref` gained `form` + `attrs`; the five faces take `RefOpts`.
+⚠ `Mml.list` was **eager** — every branch called `toString()` with no
+viewer — so a reference passing through a list rendered viewer-blind and
+`sense`, `search`, on-surface and in-container lists named a person the
+viewer had never met. Seven sites closed by construction; no call site
+was edited. See [presentation.md](./presentation.md) (MR !255).

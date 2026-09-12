@@ -319,9 +319,11 @@ export default class ChannelCatalogue extends ChannelCatalogueBase {
     //   forbidden + plain  → `bare`: the NAME, for everyone. ⭐ Hood or
     //                        no hood: a channel is not LOOKING at you, so
     //                        a disguise never reaches it.
-    //   forbidden + --anon → refused upstream by the controller. Refused,
-    //                        not silently named: somebody who asked not
-    //                        to be named must never be named by accident.
+    //   forbidden + --anon → `bare` TOO. ⭐⭐ The flag is a REQUEST the
+    //                        channel may decline, not a precondition
+    //                        that fails: you always get to speak, and
+    //                        the channel decides whether your name
+    //                        shows. The controller says so out loud.
     //   permitted + plain  → `concise`: exactly what every channel did
     //                        before this field existed, byte-identical.
     //                        ⚠ Which means a hooded speaker still reads
@@ -332,7 +334,9 @@ export default class ChannelCatalogue extends ChannelCatalogueBase {
     //                        one.
     //   permitted + --anon → `handle`: "a weaver". No `stuff-id` on the
     //                        tag, and no speaker ref on the payload.
-    const anonymous = opts?.anonymous === true;
+    // ⚠ The channel's setting is checked FIRST: a forbidding channel
+    // names you whether or not you asked not to be named.
+    const anonymous = opts?.anonymous === true && channel.permitsAnonymity();
     const form: PresentationForm = anonymous
       ? 'handle'
       : channel.permitsAnonymity()

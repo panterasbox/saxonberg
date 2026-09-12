@@ -430,7 +430,8 @@ addressed by what it is. Both halves moved underneath this plan:
   naming the cat is the moment it stops being *a* cat, and the class
   that can hold a name declares so.
 
-See `docs/plans/presentation-plan.md` § Host placement.
+See [presentation.md](../subsystems/presentation.md) — the presentation
+plan is retired; the composition it settled is documented there.
 
 `Persistable` outer of `Behaved` is safe: `Persistable.postRegister` only
 chains, `Behaved.postRegister` chains super *then* wires, so the single

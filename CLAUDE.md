@@ -130,6 +130,7 @@ behavior. Read the relevant doc before editing in its area.
   - [cockpit.md](./docs/subsystems/cockpit.md) — the one `cockpit` verb; the mode × arrangement axes + the legacy mapping; the input-mode exemption as a rule; watch embed; `cockpit shelf` + `first`
   - [messaging.md](./docs/subsystems/messaging.md) — MML, Scene composer, sensor routing, Vocal/Aether/Soul capability split
   - [message-rendering.md](./docs/subsystems/message-rendering.md) — server MML → client renderer, theme/overlay cascade, font-by-register
+  - [presentation.md](./docs/subsystems/presentation.md) — what a thing is CALLED and which form a sentence needs: the `NounPhrase` (stem · register · count, built through `GrammarApi`), the six late-bound forms (`bare · handle · concise · presence · distinguishing · formal`), ⭐ `bare`/`handle` consult no perception gate — disguise is perceptual, anonymity declarative — the handle chain (authored keyword → job → species), and chat anonymity
   - [media.md](./docs/subsystems/media.md) — `Visible.illustration` → `mediaUrl()`; MediaAsset provenance; image-generation pipeline
   - [topics.md](./docs/subsystems/topics.md) — the 7 closed roots (subject matter only; facets carry the rest), TopicCatalogue, three-tier resolution, the build/runtime/install/boot totality gate
   - [emotes.md](./docs/subsystems/emotes.md) — SoulMixin, Emote Document + EmoteGrammar, SoulCatalogue, three dispatch paths

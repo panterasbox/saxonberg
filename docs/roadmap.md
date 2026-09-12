@@ -736,12 +736,16 @@ opportunistically.
 - **Utility APIs** — `StringApi`, `TimeApi`, `ObjectApi`,
   `CallstackApi`, `FileApi`, `AssertApi`. Take on demand.
   `MudlogApi` exists but is incomplete.
-- **Recognition / viewer-aware presentation** — implements the design
-  from [recognition-slate.md](./slates/tails/recognition-slate.md).
-  Wave 0 (the viewer-blind `Stuff.getPresentation()` baseline +
-  retirement of the static `DescribeApi`) **shipped**; what remains is
-  the viewer-aware composition pipeline: per-viewer recognition /
-  identification memory, `getDisplayParts`, MML-aware decoration.
+- ~~**Recognition / viewer-aware presentation**~~ — **shipped**
+  (presentation build, 2026-09-11; see
+  [presentation.md](./subsystems/presentation.md)). A thing presents a
+  `NounPhrase` (stem · register · count); a reference states which of
+  **six forms** it needs, resolved late beside the viewer, so the rich
+  forms survive a broadcast — `getDisplayParts` in a better shape than
+  the slate imagined. ⚠ What the slate still owns:
+  **minimal-distinguishing rendering** (*Mitch* until there are two,
+  then *Mitch H.*), which a docstring claimed for years and which has
+  never existed → [naming-slate.md](./slates/tails/naming-slate.md).
 
 ---
 

@@ -18,13 +18,13 @@
  * authored field.
  *
  * A **presence decoration, not an identity affix.** The status is NOT
- * part of `getPresentation()` / `describeFor` (those are pure
- * identity) — it weaves in only through
- * `describeWithStatusFor`, which the presence-scan surfaces
- * call: the room occupant roll-call ("…, watching the empty road") and
- * the profile. Act-subject naming ("Bob says …", "Bob arrives") uses the
- * status-free `describe`, so the idle status never contradicts the act in
- * flight. Viewer-independent (the affix is the same for every viewer;
+ * part of `getPresentation()` / the `concise` form (those are pure
+ * identity) — it weaves in only through the **`presence` form**
+ * (`describeFor(viewer, 'presence')`), which the presence-scan surfaces
+ * ask for: the room occupant roll-call ("…, watching the empty road")
+ * and the profile. Act-subject naming ("Bob says …", "Bob arrives") uses
+ * the status-free `concise`, so the idle status never contradicts the
+ * act in flight. Viewer-independent (the affix is the same for every viewer;
  * only the name it hangs off bends around recognition).
  */
 

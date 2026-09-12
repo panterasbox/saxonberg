@@ -1,6 +1,6 @@
 # Slates — the design backlog, sorted by what is left
 
-222 slates. Every one carries a **status block** under its title:
+223 slates. Every one carries a **status block** under its title:
 
 ```
 > **Status: PARTIAL** — what shipped → [subsystem.md](…)
@@ -30,7 +30,7 @@ materials-response all shipped, which made the name actively misleading.
 
 ---
 
-## ⭐ Greenfield — nothing shipped yet (52)
+## ⭐ Greenfield — nothing shipped yet (53)
 
 Pick from here for a clean cycle with no existing substrate to respect.
 
@@ -84,6 +84,7 @@ Pick from here for a clean cycle with no existing substrate to respect.
 | [room-condition (pack)](./builds/room-condition-design-pack.md) | `SoilableMixin` · the room debris field · `sweep` / `wipe` / `tidy` / `dispose` · the `restQuality` aggregation · the pest threshold … |
 | [sanitation](./builds/sanitation-slate.md) | `collect` + the impound yard · the abandonment rule and the two legal regimes a locality picks · the salvage yard (assay, the three exits, the lossy loop) … |
 | [saxonberg-city](./builds/saxonberg-city-slate.md) | the Locality + parcel spine · the residential district and its launch stock · the PM's Residence (office-keyed tenure) · the three chamber halls + the Central Bank … |
+| [value-object-statics](./builds/value-object-statics-slate.md) | ⭐ `callable == visible` is broken in 136 `lib/` classes — the `lint:lib-statics` census gate at today's 461 · rehoming each public static onto an `Api` static or the owning instance · the ratchet to 0 … |
 | [warranty](./builds/warranty-slate.md) | the representation/assertion primitive · post-delivery clause verification on contract.md · the remedy ladder (rescission … |
 | [wizard-axis-cleanup](./builds/wizard-axis-cleanup-slate.md) | W0 `lint:wizard-axis` allowlist · W1 the four lease/provision `isWizard` bypasses + the `execScript` verdict … |
 | [wizard-bar](./builds/wizard-bar-slate.md) | ⭐ the conspicuous record of wizard reads/impersonations (the one non-retrofittable piece) · the safe-harbour standard text · admit (exam + archwizard flip) … |

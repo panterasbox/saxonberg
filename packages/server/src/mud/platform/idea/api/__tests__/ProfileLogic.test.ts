@@ -68,8 +68,6 @@ function makeTarget(): Stuff {
     // The viewer-aware naming face (base Stuff methods) — the fakes
     // mirror the registered face.
     describeFor: () => (recognizedNow ? 'Mara' : 'a tall human woman'),
-    describeWithStatusFor: () =>
-      recognizedNow ? 'Mara' : 'a tall human woman',
     kindFor: () => 'npc',
     // The chronicle owner face (the OO sweep): the composer reads the
     // ledger off the target itself.
@@ -191,7 +189,6 @@ describe('ProfileLogic.composeRow — country always, status gated', () => {
       getIdentityPath: () => '/platform/agent/Avatar/t1',
       getPresentation: () => 'Mara',
       describeFor: () => 'Mara',
-      describeWithStatusFor: () => 'Mara',
       kindFor: () => 'player',
       getPlayerId: () => 'p-mara',
       presenceStatus: () => statusNow,

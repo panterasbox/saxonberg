@@ -117,14 +117,17 @@ suite('9–11 · ⭐ the new part — anonymity is a channel setting', () => {
     expect(result.status).not.toBe('error');
   });
 
-  it('11 · ⚠ --anon on a forbidding channel is REFUSED, never silently named', async () => {
-    // The one failure the whole setting exists to make impossible:
-    // somebody who asked not to be named being named by accident.
+  it('11 · ⭐ --anon on a forbidding channel still POSTS — named, and said so', async () => {
+    // ⭐⭐ The flag is a REQUEST the channel may decline, not a
+    // precondition that fails. You always get to speak; the channel
+    // decides whether your name shows. ⚠ And it is said out loud — the
+    // poster typed `--anon` for a reason.
     const result = await bar.cmd(`chat ${CH} --anon hello`);
+    expect(result.status).not.toBe('error');
     expect(
       result.notes.some((n) => n.kind === 'controller-rejected'),
-    ).toBe(true);
-    expect(plain(await result.said())).toMatch(/anonymous/i);
+    ).toBe(false);
+    expect(plain(await result.said())).toMatch(/shows every poster's name/i);
   });
 
   it('10 · an anonymous post shows a SHORT handle, not a portrait', async () => {
@@ -139,11 +142,11 @@ suite('9–11 · ⭐ the new part — anonymity is a channel setting', () => {
     }
   });
 
-  it('⚠ an ad-hoc group thread refuses --anon outright', async () => {
+  it('⚠ an ad-hoc group thread declines --anon, and says so', async () => {
+    // A cohort you were added to BY NAME has no anonymity to grant —
+    // which is a reason to ignore the flag, not to refuse the message.
     const result = await bar.cmd('chat dm-nonesuch --anon hello');
-    expect(
-      result.notes.some((n) => n.kind === 'controller-rejected'),
-    ).toBe(true);
+    expect(plain(await result.said())).toMatch(/shows who is speaking|No channel/i);
   });
 });
 

@@ -101,15 +101,15 @@ export default class ChatController extends CommandController<ChatModel> {
     const anon = model.anon === true;
     const channel = await ChatApi.resolveByName(channelName);
     if (!channel) {
-      // ⚠ An ad-hoc (DM-group) thread refuses `--anon` outright: a cohort
-      // you were added to BY NAME has no anonymity to grant, and the
-      // members already know exactly who is in it.
+      // ⭐ An ad-hoc (DM-group) thread has no anonymity to grant — a
+      // cohort you were added to BY NAME already knows who is in it —
+      // but that is a reason to IGNORE the flag, not to refuse the
+      // message. You always get to speak; the channel decides whether
+      // your name shows. Told plainly below, never silently.
       if (anon) {
-        return this.fail(
+        this.send(
           context,
-          `You cannot post anonymously to a group message — everyone in ` +
-            `it was added by name.`,
-          'anonymity-forbidden',
+          Mml.compose`\nA group message shows who is speaking — posted under your name.\n`,
         );
       }
       // Try ad-hoc handle path.
@@ -165,14 +165,19 @@ export default class ChatController extends CommandController<ChatModel> {
       }
       return this.fail(context, `No channel '${channelName}'.`, 'no-such-channel');
     }
-    // ⚠ REFUSED, never silently named. Somebody who asked not to be named
-    // must not be named by accident — that is the one failure this whole
-    // setting exists to make impossible.
+    // ⭐⭐ **`--anon` is a REQUEST the channel may decline, not a
+    // precondition that fails.** You always get to speak; the channel's
+    // setting decides whether your name shows, and on a channel that
+    // forbids anonymity it shows — exactly as if you had not asked.
+    //
+    // ⚠ It is said out loud rather than quietly done. The poster typed
+    // `--anon` for a reason, and a line telling them the post went out
+    // named is the difference between a rule they can see and a
+    // surprise they find out about afterwards.
     if (anon && !channel.permitsAnonymity()) {
-      return this.fail(
+      this.send(
         context,
-        `'${channel.name}' does not permit anonymous posts.`,
-        'anonymity-forbidden',
+        Mml.compose`\n'${channel.name}' shows every poster's name — posted under yours.\n`,
       );
     }
     await speaker.postToChannel(channel, body, { anonymous: anon });

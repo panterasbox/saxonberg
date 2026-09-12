@@ -1,67 +1,40 @@
 /**
  * check-presentation — ⭐⭐ **the invisibility bar, made mechanical.**
  *
- * The presentation build moves the article out of 634 authored
- * descriptions and into a `register:` field, so that the realm can say
- * *the* collie, *a* collie and *two collies* without any of them being
- * guessed at from a string. The acceptance bar for that change is not a
- * judgment: **a player must not be able to tell it happened.** Every
- * shipped row has to render the identical string it renders today.
+ * The presentation build moved the article out of 634 authored
+ * descriptions and into a `register:` field, so the realm can say *the*
+ * collie, *a* collie and *two collies* without any of them being guessed
+ * at from a string. The acceptance bar for that change was not a
+ * judgment: **a player must not be able to tell it happened.**
  *
- * The way to know is to render them all and diff — not to reason about
- * it. That is what this gate is.
- *
- *   --snapshot   Write the golden: for every content row, the string
- *                today's `presentationCore` produces, and for every
- *                organism row, today's stranger stem. Run ONCE, on the
- *                pre-sweep tree, before a single row is touched.
- *   --verify     Recompute both from the CURRENT tree and diff against
- *                the golden. Green = every row renders byte-identically.
- *   --lint       The permanent clauses (below). The CI gate.
- *
- * ## One extractor, both sides of the sweep
- *
- * `--snapshot` and `--verify` call the same `presentationOf`, and that is
- * the whole trick — the same function reads a pre-sweep row (`a heavy
- * door`, no register) and a post-sweep row (`heavy door` + `register:
- * indefinite`) and must answer the same string for both. A golden
- * captured before the codemod therefore proves the codemod, which is the
- * `check-field-meta` pattern this borrows wholesale.
- *
- * ⚠ **What this gate proves and what it does not.** It proves the
- * *content* is equivalent under the shipped rendering rule, which it
- * reimplements statically (a gate does not import the mudlib — the
- * `pack-roots` license). It does **not** prove the engine implements
- * that rule; `NounPhrase`'s own unit tests and the drive transcript diff
- * are what prove that. Three independent instruments, because this is
- * the widest-blast-radius change in the repo's recent history.
+ * ⚠ **That proof was a build-cycle instrument and is gone.** The sweep
+ * shipped behind a golden (`--snapshot` on the pre-sweep tree, `--verify`
+ * after) which held 635 rows byte-identical; the golden was retired with
+ * the plan at `/finalize`, because a golden re-snapshotted by whoever
+ * next changes a row proves nothing. What remains is the half that
+ * keeps working: the permanent clauses below, which are what stop the
+ * articles growing back one row at a time.
  *
  * ## The permanent clauses
  *
  *   a. ⭐ **No description stem begins with an article.** Census, then
- *      ratchet: the ceiling starts at today's count and may only fall.
- *      Once the sweep lands it is flipped to a hard zero and stays
- *      there, which is what stops the articles growing back one row at
- *      a time. (`docs/lint-family.md § census-then-ratchet`.)
+ *      ratchet: the ceiling started at today's count and may only fall.
+ *      It is now a hard zero. (`docs/lint-family.md § census-then-ratchet`.)
  *   b. Every authored `register:` is one of the three.
  *   c. Every Position `noun:` is a single lowercase token — it is what
  *      one holder is CALLED (`bartender`), not what the job is.
+ *   d. An authored `primaryKeyword` is one of that row's own `keywords`.
+ *
+ * ⚠ A gate does not import the mudlib (the `pack-roots` license), so the
+ * rendering rule is reimplemented statically here. `NounPhrase`'s unit
+ * tests are what prove the engine implements it.
  *
  * Usage:
- *   tsx scripts/check-presentation.ts --snapshot
- *   tsx scripts/check-presentation.ts --verify
  *   tsx scripts/check-presentation.ts --lint      # CI gate
  *   tsx scripts/check-presentation.ts --report    # the census, by branch
  */
 
-import {
-  existsSync,
-  mkdirSync,
-  readFileSync,
-  readdirSync,
-  statSync,
-  writeFileSync,
-} from 'fs';
+import { existsSync, readFileSync, readdirSync, statSync } from 'fs';
 import { dirname, join, relative, resolve } from 'path';
 import { fileURLToPath } from 'url';
 import YAML from 'yaml';
@@ -70,7 +43,6 @@ import { composesMixin, packSources } from './pack-roots';
 const SERVER_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const REPO_ROOT = resolve(SERVER_ROOT, '../..');
 const CONTENT = join(REPO_ROOT, 'packages/content');
-const GOLDEN = join(SERVER_ROOT, 'scripts/__fixtures__/presentation-golden.json');
 
 const SOURCES = packSources();
 
@@ -102,7 +74,7 @@ export type Register = (typeof REGISTERS)[number];
  * re-rendered as *"the Hearthworks — Back room"* and quietly decapitalized
  * a venue's proper name. A capitalized article is part of a name; a
  * lowercase one is the register. One row in 635 depends on this, and it
- * is exactly the class of change the golden exists to catch.
+ * is exactly the class of change a case-insensitive match loses.
  */
 const LEADING_ARTICLE = /^(a|an|the)\s+/;
 
@@ -142,10 +114,9 @@ export function impliedRegister(text: string): Register {
 
 /**
  * Render a noun phrase at count 1 — the static twin of
- * `NounPhrase.render()`. The plural branch is deliberately absent: no
- * shipped row carries both a `shortDescription` and a `quantity` other
- * than 1, and `assertNoPluralRows` below fails the gate the day one does
- * rather than letting the golden quietly stop covering it.
+ * `NounPhrase.render()`. The plural branch is deliberately absent: this
+ * gate reads authored text, and a row's count is a runtime quantity that
+ * `NounPhrase.withCount` splices in past the article.
  */
 export function renderPhrase(stem: string, register: Register): string {
   if (register === 'proper') return stem;
@@ -219,130 +190,7 @@ export function phraseOf(
   return { stem: stemOf(text), register: impliedRegister(text) };
 }
 
-/** A species row's first common name, walking the clade chain upward. */
-function commonNameOf(speciesPath: string, byPath: Map<string, Row>): string {
-  let path: string | null = speciesPath;
-  while (path && path.length > 1) {
-    const row = byPath.get(path);
-    const names = row?.data.commonNames;
-    if (Array.isArray(names) && typeof names[0] === 'string') return names[0];
-    path = path.slice(0, path.lastIndexOf('/'));
-  }
-  return '';
-}
-
-export interface Rendered {
-  /** What `getPresentation()` answers: the own view. */
-  presentation: string;
-  /** What a stranger is shown, for an organism row. Absent otherwise. */
-  stranger?: string;
-}
-
-/**
- * The two strings a row renders, computed statically by the shipped rule.
- *
- * **Own view** (`presentationCore`): the proper name if the row's class
- * can actually hold one, else the description, else `something`. ⚠ The
- * name rung is gated on `composesMixin(class, 'NamedMixin')` rather than
- * on the key being present, so the golden is **stable across the
- * host move** — a row whose `name:` is about to stop hydrating never
- * counted toward the golden in the first place.
- *
- * **Stranger view** (`RecognitionLogic.strangerStem`): the description,
- * else the species common name, else `someone`. It skips the name, which
- * is the whole of what being a stranger means.
- */
-export function presentationOf(row: Row, byPath: Map<string, Row>): Rendered | null {
-  const classPath = str(row.raw.class);
-  const short = str(row.data.shortDescription);
-  const name = str(row.data.name);
-  const species = str(row.data._speciesPath);
-  const holdsName = !!name && !!classPath && composesMixin(classPath, 'NamedMixin', SOURCES);
-
-  if (!short && !holdsName && !species) return null;
-
-  const described = short ? renderPhrase(...phraseArgs(row, short)) : '';
-  const common = species ? commonNameOf(species, byPath) : '';
-  // ⭐ One ladder, two views — the runtime's `presentationPhrase(view)`.
-  // The species rung joins the OWN view here; it was previously reached
-  // only by the stranger stem, and whether any shipped row notices is
-  // exactly what `--verify` against the pre-change golden answers.
-  const fallback = species
-    ? common
-      ? renderPhrase(common, 'indefinite')
-      : 'someone'
-    : 'something';
-
-  const presentation = holdsName ? name : described || fallback;
-  if (!species) return { presentation };
-  const stranger = described || fallback;
-  return { presentation, stranger };
-}
-
-const phraseArgs = (row: Row, short: string): [string, Register] => {
-  const p = phraseOf(short, row.data.register);
-  return [p.stem, p.register];
-};
-
 /* ──────────────────────────── the gate itself ──────────────────────── */
-
-interface Golden {
-  [path: string]: Rendered;
-}
-
-/**
- * ⭐ **The deliberate deltas, each with its reason** — never a silent
- * re-snapshot.
- *
- * Re-running `--snapshot` to make `--verify` green is how the proof gets
- * lost: the golden stops being a record of what the world said before
- * and becomes a record of what the code does now, which proves nothing.
- * A row that is *meant* to change is named here with the argument for
- * why no player can tell, and the diff stays legible in the source
- * forever.
- */
-const KNOWN_DELTAS: Record<string, { was: string; why: string }> = {
-  // D3 puts the species common name on the OWN view, not just the
-  // stranger view. One shipped row notices: the Avatar seed, which has
-  // no description. ⚠ It is unreachable — an Avatar is NAMED at enroll,
-  // so the name rung answers first for every player body that exists,
-  // and the seed row's own presentation is never rendered to anybody.
-  '/platform/agent/Avatar/seed': {
-    was: 'something',
-    why: 'the Avatar seed has no description; every real Avatar is named at enroll, so rung 2 answers first and this value never renders',
-  },
-};
-
-function buildGolden(rows: Row[]): Golden {
-  const byPath = new Map(rows.map((r) => [r.path, r]));
-  const out: Golden = {};
-  for (const row of rows) {
-    const rendered = presentationOf(row, byPath);
-    if (rendered) out[row.path] = rendered;
-  }
-  return out;
-}
-
-/**
- * ⚠ The golden models count 1 only. A row that carries both a
- * description and a quantity other than 1 would render
- * `"${n} ${plural}"` at runtime and the golden would silently stop
- * covering it — so the gate fails instead, and whoever authored the row
- * gets to decide what the plural is.
- */
-function assertNoPluralRows(rows: Row[], failures: string[]): void {
-  for (const row of rows) {
-    const q = row.data.quantity;
-    if (typeof q === 'number' && q !== 1 && str(row.data.shortDescription)) {
-      failures.push(
-        `${row.file}: authors both a shortDescription and quantity ${q}. The ` +
-          `presentation golden models count 1 only, so this row's rendered ` +
-          `string is not covered. Give the row a plural form and teach the ` +
-          `golden, or drop the quantity.`,
-      );
-    }
-  }
-}
 
 /**
  * ⚠ A pack's `src/` also holds authored prose that reaches
@@ -432,7 +280,6 @@ function lint(rows: Row[]): string[] {
     }
   }
 
-  assertNoPluralRows(rows, failures);
 
   if (articled.length > LEADING_ARTICLE_CEILING) {
     failures.push(
@@ -480,71 +327,6 @@ function main(): void {
 
   if (mode === '--report') {
     report(rows);
-    return;
-  }
-
-  if (mode === '--snapshot') {
-    const golden = buildGolden(rows);
-    mkdirSync(dirname(GOLDEN), { recursive: true });
-    writeFileSync(GOLDEN, JSON.stringify(golden, null, 2) + '\n', 'utf8');
-    console.log(
-      `✔ check-presentation --snapshot — ${Object.keys(golden).length} rows ` +
-        `recorded to ${relative(REPO_ROOT, GOLDEN)}.`,
-    );
-    return;
-  }
-
-  if (mode === '--verify') {
-    if (!existsSync(GOLDEN)) {
-      console.error(
-        `✖ check-presentation --verify: no golden at ${relative(REPO_ROOT, GOLDEN)}. ` +
-          `Run --snapshot on the pre-sweep tree first.`,
-      );
-      process.exit(1);
-    }
-    const golden = JSON.parse(readFileSync(GOLDEN, 'utf8')) as Golden;
-    const now = buildGolden(rows);
-    const diffs: string[] = [];
-    const allowed: string[] = [];
-    for (const [path, was] of Object.entries(golden)) {
-      const is = now[path];
-      if (!is) {
-        diffs.push(`  ${path}: rendered "${was.presentation}", now renders nothing`);
-        continue;
-      }
-      const known = KNOWN_DELTAS[path];
-      if (is.presentation !== was.presentation) {
-        if (known && known.was === was.presentation) {
-          allowed.push(`  ${path}: "${was.presentation}" → "${is.presentation}" — ${known.why}`);
-        } else {
-          diffs.push(`  ${path}: "${was.presentation}" → "${is.presentation}"`);
-        }
-      }
-      if ((was.stranger ?? '') !== (is.stranger ?? '')) {
-        diffs.push(
-          `  ${path} (stranger): "${was.stranger ?? '—'}" → "${is.stranger ?? '—'}"`,
-        );
-      }
-    }
-    const added = Object.keys(now).filter((p) => !(p in golden));
-    if (diffs.length) {
-      console.error(
-        `\n✖ check-presentation --verify — ${diffs.length} row(s) render ` +
-          `differently than they did before the sweep. A player would be ` +
-          `able to tell:\n`,
-      );
-      for (const d of diffs.slice(0, 40)) console.error(d);
-      if (diffs.length > 40) console.error(`  … and ${diffs.length - 40} more`);
-      process.exit(1);
-    }
-    console.log(
-      `✔ check-presentation --verify — ${Object.keys(golden).length} rows ` +
-        `render byte-identically` +
-        (allowed.length ? `, bar ${allowed.length} named delta(s)` : '') +
-        (added.length ? `; ${added.length} row(s) added since the golden` : '') +
-        `.`,
-    );
-    for (const a of allowed) console.log(a);
     return;
   }
 

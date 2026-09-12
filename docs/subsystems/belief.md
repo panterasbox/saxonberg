@@ -426,3 +426,16 @@ One consequence worth carrying: **an unlit room makes its occupants
 unnameable.** `canSee` fails at `pitch-black`, `describe` falls back to
 "someone" / "something" for everyone present, and `tell <name>` cannot
 resolve a target at all. See [sandbox.md](./sandbox.md).
+
+---
+
+## History
+
+**2026-09-11 — the describe family collapsed to one call.** The read
+surface was four methods (`describeFor` · `describeWithStatusFor` ·
+`salientFeatures` · the viewer-blind baseline); it is now
+`describeFor(viewer | undefined, form)` with six forms. ⭐ The shape was
+doing real damage: the two richer faces had **one caller each**, because
+the only way to reach them was to resolve a name eagerly for one known
+viewer and give up per-recipient naming. See
+[presentation.md](./presentation.md) (presentation build, MR !255).

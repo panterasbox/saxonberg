@@ -84,7 +84,7 @@ export type ChannelAnonymity = 'permitted' | 'forbidden';
 | channel | post | shows |
 |---|---|---|
 | `forbidden` | plain | the **name**, for everyone, hood or no hood |
-| `forbidden` | `--anon` | **refused** — never silently named |
+| `forbidden` | `--anon` | the **name** too — declined, and the poster is told |
 | `permitted` | plain | the ordinary concise identity (today's behaviour) |
 | `permitted` | `--anon` | a short **handle** — *"a weaver"* |
 

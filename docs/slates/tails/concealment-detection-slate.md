@@ -203,3 +203,34 @@ threat-scoped, no new substrate.
   the exits-only concealment it generalizes).
 - [../../subsystems/activity.md](../../subsystems/activity.md) — searching as
   a costed engaged act.
+
+---
+
+## ⭐⭐ Tail from the presentation build (2026-09-11) — the two gates disagree
+
+Thesis 1 says *one* concealment gate on every perceivable. The
+presentation build's live drive found that there are two, and they answer
+differently about the same object:
+
+- `LookController` filters a room's contents through
+  **`PerceptionApi.perceives(actor, item)`** — everything in the list has
+  already been judged perceivable.
+- `describeFor` then asks **`VisionModality.canSee`**, which reads the
+  light band at the **target's** container. In an unlit interior that
+  fails and the item renders `obscured` → **`something`**.
+- Worse for a container: `canSee` walks up **one** level, so the contents
+  of an NPC's own inventory land on the NPC — who carries no light — and
+  every one of them reads `something`.
+
+The symptom in the drive was the documented tell for an unlit interior:
+the room's prose read in full while every piece of its furniture was
+anonymous. The build **refused the second gate** rather than reverting
+its own change — `look`'s two item lists resolve eagerly and viewer-blind,
+which is what they always did, because they are `toSelf` renders for one
+viewer whose perception was already resolved. Every other caller of the
+recognition face is untouched.
+
+⭐ That is a local fix, and the finding is not settled: **`perceives` and
+`canSee` are two gates with one job**, and `canSee`'s one-level walk
+cannot see into a creature's inventory at all. Reconciling them is this
+slate's, under Thesis 1.

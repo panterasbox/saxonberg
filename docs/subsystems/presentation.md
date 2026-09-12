@@ -28,7 +28,7 @@ mechanical: the author-surface projection admits public **Api statics**
 and public **instance methods**, so a static on a `lib/` class is
 *callable by anyone and visible to nobody*. ⭐ 24 other value classes in
 this tree still break that; see
-[value-object-statics-slate](../slates/tails/value-object-statics-slate.md).
+[value-object-statics-slate](../slates/builds/value-object-statics-slate.md).
 
 `Stuff.getPresentation()` is `presentationPhrase().render()`. Its
 signature never changed, so all ~265 callers, the wire's `displayName`,
@@ -197,13 +197,19 @@ that could generate it would give every world the same portraits.
 | channel | post | shows |
 |---|---|---|
 | `forbidden` | plain | the **name**, for everyone, hood or no hood |
-| `forbidden` | `--anon` | **refused** — never silently named |
+| `forbidden` | `--anon` | the **name** too — the flag is declined, and the poster is told |
 | `permitted` | plain | today's concise identity, byte-identical |
 | `permitted` | `--anon` | a short handle; no `stuff-id`, no speaker ref |
 
 Set with `chat anonymity <name> permit|forbid`, owner-only. ⭐ The one
 thing in this build a player can see change — and a real values question
 about a community, now expressible.
+
+⭐⭐ **`--anon` is a request the channel may decline, not a precondition
+that fails.** You always get to speak; the setting decides whether your
+name shows. ⚠ And the decline is said out loud — somebody typed `--anon`
+for a reason, so a line telling them it went out named is the difference
+between a rule they can see and a surprise they find afterwards.
 
 ⚠ An anonymous post **omits** the speaker ref rather than blanking it: a
 `StuffRef` carries a `stuffId`, and a client holding one can ask the
@@ -222,11 +228,15 @@ name somebody could already hold.
 Three independent instruments, because this was the widest-blast-radius
 change in the repo's recent history:
 
-1. **`lint:presentation --snapshot` / `--verify`** — one extractor over
-   635 content rows, spanning both sides of the codemod: it reads a
-   pre-sweep row (`a heavy door`) and a post-sweep row (`heavy door` +
-   `register: indefinite`) and must answer the same string. A golden
-   captured **before** the sweep therefore proves the sweep.
+1. **A content golden** — `check-presentation --snapshot` / `--verify`,
+   one extractor over 635 content rows spanning both sides of the
+   codemod: it read a pre-sweep row (`a heavy door`) and a post-sweep row
+   (`heavy door` + `register: indefinite`) and had to answer the same
+   string. A golden captured **before** the sweep therefore proves the
+   sweep. ⚠ **Retired at the sweep, deliberately** — a golden is only a
+   proof while nobody may re-record it, and the next person to change a
+   row would have to. The gate's permanent clauses stayed; the two modes
+   and the fixture went.
 2. **Unit tests** — the render matrix, the ladder, the form matrix.
 3. **The live transcript diff** — `look` in five rooms, before and after.
 

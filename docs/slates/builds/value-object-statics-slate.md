@@ -1,7 +1,12 @@
 # `lib/` statics — `callable == visible` is broken in 136 classes
 
-**Status:** ⭐ ready to build, and the user wants it **immediately after
-!255 merges** · **Size:** large — 136 classes, 461 statics
+> **Status: UNBUILT** — ⭐ ready to build, and the user wants it
+> **immediately after !255 merges**
+> **Left:** the census gate (`lint:lib-statics`, ceiling 461) · the 461
+> public statics on 136 non-`Api` classes, rehomed onto an `Api` static
+> or the owning instance · the ratchet to 0
+> **Size:** a build — 136 classes, 461 statics
+
 **Raised by:** the user, reviewing MR !255, 2026-09-11
 **Census:** `pnpm -C packages/server exec tsx scripts/check-lib-statics.ts`
 

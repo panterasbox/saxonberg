@@ -136,7 +136,9 @@ subcommands:
       choose: post plainly and you are named as usual, or add `--anon`
       and you are shown by a short handle instead — "a weaver".
 
-      Owner-only. Forbidding does not unmask anything already said.
+      Forbidding never stops anyone talking. Somebody who adds `--anon`
+      on a channel that forbids it is posted under their name, and told
+      so. Owner-only, and it does not unmask anything already said.
     examples:
       - cmd: chat anonymity gossip forbid
         note: Everyone on gossip posts under their own name
@@ -169,7 +171,7 @@ options:
   anon:
     type: boolean
     field: anon
-    description: "Post without being named — shown by a short handle ('a weaver') instead. Refused where the channel forbids anonymity."
+    description: "Ask to post without being named — shown by a short handle ('a weaver') instead. A channel that forbids anonymity posts you under your name and says so."
 args:
   # Fallthrough: when the first token isn't a reserved subcommand,
   # bind these as a bare post: `chat gossip hello`.

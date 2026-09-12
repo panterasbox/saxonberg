@@ -405,3 +405,48 @@ And the honest limit on renaming generally:
   probably cost less. Needs the lineage substrate
   ([blood-slate](../builds/blood-slate.md)) first.
 </content>
+
+---
+
+# ⭐ Tails from the presentation build (2026-09-11)
+
+The presentation build shipped the `NounPhrase` + six-form surface
+([presentation.md](../../subsystems/presentation.md)) and retired its
+plan. These are the naming-shaped seams that plan was holding, moved
+here so they have a home that outlives it. None is a stub — each is a
+found fact with an attach point.
+
+- **Minimal-distinguishing rendering** — already this slate's, above.
+  The seam is now concrete: `describeFor(viewer, 'bare')` in
+  `lib/stuff/Stuff.ts`, and the build left `distinguishing` as the form
+  that *does* disambiguate ("one of twelve dwarves in red robes") while
+  `bare` stays the shortest honest stem. Collision-aware rendering is a
+  change to `bare`'s one caller, not a new form.
+- **60 dead `alternateNames:` blocks in content.** The build's census
+  found them: authored on 60 rows, read by nothing, and **35 of them sit
+  on classes that declare no such field at all**. They are authored
+  *keywords*, and the fix is to move them into `keywords:` — which is a
+  **targeting-word gain** (a player could suddenly type `hallway`), so it
+  waits for a build allowed to change what a player can type. ⚠ Do not
+  "clean them up" by deleting them; the words are content somebody wrote.
+- **17 agent rows author `keywords:` that organism targeting never
+  consults.** They hydrate and sit there. Unioning them into the
+  perceived-keyword set is the same targeting-word gain *plus* an
+  identity question: `keywords: [odile]` on a row a stranger can see
+  makes the name typeable by someone who does not know it. The union is
+  cheap; deciding which keywords are *public* is the actual work.
+- **Two proper-register agent stems contain the name** — `Odo the cook`,
+  `Odile, the city registrar`. A stranger reads the name today and read
+  it before this build; the leak is authored, not engine. **The fix is
+  content** (`the cook`, `the city registrar`) and belongs to whoever
+  edits Terminus, not to the presentation engine.
+- **`formal` ships reachable and unused.** The sixth form exists and
+  renders; the profile card header deliberately stayed `concise`. Its
+  first consumer is a *document* surface — press bylines, contracts, a
+  civic register — and the form should be judged when one of those wants
+  it, not designed ahead of a caller.
+- **`wornFeatureOf` parses a string** to find the most notable worn
+  item. The honest read is a `mostNotableWorn()` face on the object.
+  Left alone because it is the shipped seam and nothing observable rides
+  it; it becomes worth fixing the first time a second caller wants the
+  item rather than its words.

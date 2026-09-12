@@ -432,3 +432,41 @@ shipped:*
   the bicycle is a forcing function but the design covers
   multi-passenger vessels too — *`Mountable` / `Drivable` shipped* —
   see [conveyance.md](../../subsystems/conveyance.md).
+
+---
+
+## ⭐ Tails from the presentation build (2026-09-11)
+
+Two seams the presentation plan was holding, moved here because both are
+questions about *what a composed class declares*, not about prose.
+
+### A `mass` register
+
+`NounPhrase`'s register vocabulary is closed at three — `proper`,
+`definite`, `indefinite`. Two authored rows are mass nouns (`sodden peat
+ground`, `wet flagstones`) and the sweep marked them `proper` because
+that is the register that emits no article. That is the right rendering
+for the wrong reason. **The vocabulary stays at three until a third row
+wants *"some flagstones"*** — a fourth register is a content-visible
+change and one row does not buy it.
+
+### ⭐⭐ The general silent-discard gate — it now has a census
+
+The standing want: **every authored `data:` key must be a field some
+composed class declares.** An authored key nothing reads is discarded in
+silence, and the author has no way to learn it.
+
+The presentation build gave the gate its first hard number: **60 dead
+`alternateNames:` blocks**, 35 of them on classes with no such field
+anywhere in the composition. It also hit the same class of bug from the
+other side — `primaryKeyword` authored on 48 agent rows reached no agent,
+because the agent branch did not compose `PerceptibleMixin`. That
+instance was closed **by composition** (`Avatar` gained `Named`), not by
+a gate; the gate is still unwritten.
+
+⭐ The census-then-ratchet shape applies directly: walk every content row,
+resolve its `class:` through the mixin composition, and count keys no
+composed class declares. Gate today's count as the ceiling. The content
+fix (moving `alternateNames` into `keywords:`) is a **targeting-word
+gain** and belongs to a build allowed to change what a player can type —
+see [naming-slate.md](./naming-slate.md).
