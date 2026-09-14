@@ -30,13 +30,14 @@ materials-response all shipped, which made the name actively misleading.
 
 ---
 
-## ⭐ Greenfield — nothing shipped yet (53)
+## ⭐ Greenfield — nothing shipped yet (54)
 
 Pick from here for a clean cycle with no existing substrate to respect.
 
 | slate | left to build |
 |---|---|
 | [agency](./builds/agency-slate.md) | the agency grant (UseGrant-shaped · scoped · revocable) · the principal/agent split in the execution context · the closed capability-kind vocabulary … |
+| [api-normalization](./builds/api-normalization-slate.md) | ⭐ the influence cluster is FIVE Apis over one `lib/standing/` · `SchedulerApi`→`ActivityApi` (a name nobody can derive) · where a system-less utility lives, before deleting `array`/`path-pattern` · the namespace barrel, proven to compile · split `command` + `banking` … |
 | [alignment](./builds/alignment-slate.md) | the vertical derivation off the chronicle (deed → demigod affinity; domain authored, direction measured) · the horizontal off the conviction record … |
 | [alignment-religion](./builds/alignment-religion-slate.md) | nothing here — design from builds/alignment-slate.md (the two asymmetric axes, pantheon-as-legend, the mirror, `Faction`) |
 | [altar](./builds/altar-slate.md) | `AltarMixin` · `swear` / `offer` / `consecrate` / `dedicate` · accreted weight as renown-of-the-object · the patron taxonomy + taint · the prophet's wilderness altar … |
@@ -239,13 +240,12 @@ Not a cycle of its own. Pull one in when its host build is in flight.
 | [weather](./tails/weather-slate.md) | fog → visibility · snow depth · vector wind · moving fronts · a weather-pin write Api (it blocks the `storm` Discipline) … |
 | [youtube-relay](./tails/youtube-relay-slate.md) | outbound `liveChatMessages.insert` · the quota accountant + coalescing and drop policy · per-player `youtube.force-ssl` OAuth … |
 
-## Tails — small and opportunistic (36)
+## Tails — small and opportunistic (35)
 
 | slate | left to build |
 |---|---|
 | [access](./tails/access-slate.md) | the structured audit sink (call-security Pillar 5 — `MudlogApi` is unwired) … |
 | [affordance-verb](./tails/affordance-verb-slate.md) | source-scoped invocation (`watch::set`, sigil unsettled) and its parse wiring · the verb-provenance help listing (which object and mixin affords each verb) … |
-| [api-normalization](./tails/api-normalization-slate.md) | delete `api/identity.ts` · fold `array`/`path-pattern`/ `grammar`/`proxy` · split `command` + `banking` · re-run the measurement script · read the broad-thin quadrant |
 | [async-commands](./tails/async-commands-slate.md) | a line-level `--async`/`--sync` prefix so a bare typed multi-statement script detaches without the `script` verb · a per-actor async concurrency cap … |
 | [auth-providers](./tails/auth-providers-slate.md) | account merge · provider-side token revocation · incremental chat scopes (`user:write:chat`) … |
 | [author-typography](./tails/author-typography-slate.md) | the ~6–10 author display tokens (typewriter · handwriting · script · inscription · blackletter · poster) · the token→face map … |

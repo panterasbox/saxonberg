@@ -1,11 +1,16 @@
 # Api normalization slate — a measured baseline for the layer
 
-> **Status: UNBUILT** — a measured baseline at `053c891a2`; no refactor
-> made (`identity.ts`, `array.ts`, `path-pattern.ts` all still present).
-> **Left:** delete `api/identity.ts` · fold `array`/`path-pattern`/
-> `grammar`/`proxy` · split `command` + `banking` · re-run the
-> measurement script · read the broad-thin quadrant
-> **Size:** a tail
+> **Status: UNBUILT** — two measured baselines (`053c891a2`, and HEAD
+> 2026-09-13 in Part 6); no refactor made (`identity.ts`, `array.ts`,
+> `path-pattern.ts` all still present).
+> **Left:** ⭐ rename `SchedulerApi` → `ActivityApi` · `AttendantApi`'s
+> surface is two test hooks · answer *where a system-less utility lives*
+> before deleting `array`/`path-pattern` · prove the namespace barrel
+> compiles, on the **influence cluster** (five Apis, one `lib/standing/`)
+> · delete `api/identity.ts` (its doctrine is salvaged in Part 6.5) ·
+> split `command` + `banking`
+> **Size:** ⚠ **a build, not a tail** — Part 6 found a five-Api merge and
+> a metric correction; this is no longer opportunistic
 
 **Captured 2026-09-02**, immediately after the **Api OO sweep** landed
 (waves A–G). A preliminary two-axis pass over every `api/*.ts` to find
@@ -303,3 +308,201 @@ split was for. Leave them alone.
 | `array` | 2 | 58 | 29 | ⛔ merge |
 | `path-pattern` | 2 | 38 | 19 | ⛔ merge |
 | `identity` | 0 | 2 | 2 | ⛔ merge |
+
+---
+
+# Part 6 — re-measured at HEAD (2026-09-13), and five things the baseline did not say
+
+The slate says re-run rather than trust. Re-run, on `build/lib-statics`,
+during the `lib/` statics sweep — which is the neighbouring question
+(*which surface may a static live on*) and kept walking into this one
+(*which Api should own it*).
+
+**Depth is computed the slate's way** (paired `*Logic` + sealed subdir;
+the facade only for unpaired Apis) so these are comparable to Part 1.
+Surface counts use the same definition throughout.
+
+## 6.0 The drift is real and it is one-directional
+
+| api | members | depth |
+|---|---|---|
+| `mixin` | 161 → **175** | 1,039 → 2,007 |
+| `mql` | 4 → 4 | 2,602 → **4,979** |
+| `combat` | 11 → 12 | 3,589 → **5,401** |
+| `pack` | 17 → 17 | 3,384 → 4,104 |
+| `command` | 33 → 33 | 2,921 → 3,578 |
+| `banking` | 38 → **39** | 1,889 → 2,340 |
+| `employment` | 11 → 15 | 890 → 1,449 |
+
+⭐ **Surface is nearly frozen; depth nearly doubled.** In eleven days
+`mql` grew 2,400 lines behind four unchanged public methods and `combat`
+1,800 behind one new one. That is the layer working exactly as intended —
+and it is also the **signal the slate was waiting for**: the condition for
+starting the normalization pass was *"wait until we've stopped minting new
+Api methods."* On this sample we have, nearly. The methods stopped; the
+implementations did not.
+
+The layer is now **93 Apis · 1,097 public statics**.
+
+## 6.1 ⚠⚠ Surface COUNT is the wrong unit — `mixin`'s 175 prove it
+
+`MixinApi` carries 175 public statics, 16% of the entire author surface,
+and Part 1 files it under *broad — wide but shallow; mostly fine*. Read
+the member list and it is sharper than that:
+
+| shape | count |
+|---|---|
+| `is<Mixin>(obj): obj is Stuff & <Mixin>` | **156** |
+| `get*` | 11 |
+| everything else | 8 |
+
+⭐⭐ **156 of them are one method written 156 times, and TypeScript makes
+that irreducible.** A generic `MixinApi.is(obj, Mixins.Container)` cannot
+return `obj is Stuff & Container` — a type predicate must name its type,
+so the narrowing that makes `MixinApi.isX` worth having is precisely what
+forbids collapsing it. `hasMixin(ctor, Mixins.X)` already exists for the
+cases that do not need narrowing.
+
+**So the metric needs a third term.** Surface and depth do not separate
+*175 uniform predicates* from *33 heterogeneous verbs*, and the first is
+far more browsable than the second:
+
+> **Scannability = can you predict the member's name before you look?**
+> `MixinApi.is` + your mixin's name — always. `CommandApi.` + what you
+> want — never; you have to read all 33.
+
+A normalization pass driven by count alone would try to shrink `mixin`
+(impossible, and wrong) while leaving `command` (33 members, four
+concepts) looking merely large. ⭐ **The Part 3 rule generalizes: cohesion
+decides, and uniformity is a kind of cohesion that the numbers cannot
+see.**
+
+## 6.2 ⭐⭐⭐ `lib/standing/` already says the answer: five Apis are one system
+
+The single most useful thing this re-measurement found.
+
+| api | members | depth |
+|---|---|---|
+| `influence` | 4 | 165 |
+| `renown` | 6 | 894 |
+| `producer` | 6 | 536 |
+| `conviction` | 7 | 458 |
+| `provenance` | 3 | 235 |
+| **total** | **26** | **2,288** |
+
+Three of those five sit in Part 2's merge tail *individually*, and the
+slate treats them as three separate small problems. They are one problem.
+Every value class all five operate on lives in **one directory**:
+
+```
+lib/standing/  Band · InfluenceStanding · RenownStanding ·
+               ParticipationStanding · ProducerStanding · ConvictionTally ·
+               CreditRouting · AccountScoped · DerivedStandingCache ·
+               RenownEvent · ParticipationEvent · ProducerEvent ·
+               AuthoringEvent · Position
+```
+
+⭐⭐ **The lib layer already models this as one substrate and the Api layer
+models it as five.** `influence.md` even names the shape — *"the
+three-stock contract: InfluenceApi dispatcher, the producer stock, the
+account roll-up seam"* — and `InfluenceApi`'s own docstring calls itself
+*"a thin, stock-parameterized dispatcher over the per-stock Apis."* A
+dispatcher over siblings that share a substrate, a cache and an output
+type is not five systems. **`lib/standing/` is the merge's blueprint, and
+it was drawn before anybody asked the question.**
+
+This is the exemplar for the whole pass: **when a cluster of thin Apis
+shares one `lib/` directory, the directory is the honest system boundary.**
+Worth running that check across the layer — it is one `ls` per cluster and
+it needs no judgment.
+
+## 6.3 The export-discipline rule MANUFACTURES type-shaped Apis
+
+Part 2 lists `array` (2 members) and `path-pattern` (2) as merge
+candidates. It does not name why they exist, and the cause matters because
+the standing instruction is **Apis are organized around systems, and types
+belong to a system**:
+
+- `ArrayApi.equal` / `.isPrefix` — generic array utilities.
+- `PathPatternApi.matches` / `.compile` — a generic glob matcher.
+
+Neither is a system. Both exist because `CLAUDE.md § Export discipline`
+forbids a free exported helper function, so a genuine utility has **no
+legal home except an Api class**, and the only honest name for a bag of
+array helpers is the type it operates on.
+
+⚠ So "delete the type-shaped Apis" is not actionable on its own — the rule
+that created them is still in force, and the next generic helper will mint
+another one. The pass has to answer *where does a genuinely generic,
+system-less utility live?* first. Three candidates, none obviously right:
+fold into the one consumer and stop pretending it is shared; a single
+`lib/` module of value-class statics now that
+[value-object-statics-slate](./value-object-statics-slate.md)
+makes those visible; or a named exception in the discipline registry.
+
+## 6.4 Two findings that are just bugs
+
+- ⚠ **`AttendantApi`'s entire public surface is two test hooks** —
+  `sweepNowForTesting`, `disconnectForTesting`. An Api whose only
+  callable surface is `*ForTesting` has **no author surface at all**; it
+  is a test seam wearing an Api's name. Part 2's merge tail should have
+  it at the top, ahead of `identity`.
+- ⚠ **`ScheduleApi` and `SchedulerApi` are unrelated systems with
+  near-identical names.** `ScheduleApi` is game-time timers
+  (`schedule · recurring · cancel`); `SchedulerApi` is the **engagement
+  framework** (`start · complete · cancelByType · getEngagementById`),
+  documented in [activity.md](../../subsystems/activity.md), which names
+  it as such. Discoverability is the stated rule of thumb and this fails
+  it outright — you cannot derive which is which from either name.
+  ⭐ **`SchedulerApi` → `ActivityApi`** is a cheap, isolated rename that
+  buys real clarity, and it does not wait for the pass.
+
+## 6.5 ⚠⚠ The namespace tier died, and its documentation is inside the corpse
+
+Part 2 says *"`identity.ts` is dead code"* and Part 5 lists **delete
+`api/identity.ts`** as step one. Both are correct about the file. But the
+file is also the **only written record in the repo** of the namespace
+pattern — the answer to the tug-of-war between *a system wants its own
+name* and *a reader wants few receivers*:
+
+> **Grouping, not merging.** A barrel exports a frozen object of the
+> already-`decorateApiClass`'d classes; `Identity.Recognition.describe(…)`
+> is byte-identical in security terms to `RecognitionApi.describe(…)`,
+> because `decorateApiClass` wraps each static in place and attributes
+> the frame from the class's **defining module, captured at decoration
+> time** — never from the access path. **The class stays the unit of
+> security; the namespace becomes the unit of discovery.** Member names
+> drop the `Api` suffix; the bare concept noun is the searchable word.
+> ⚠ Never route a `lib/` → `api/` back-call through a barrel — it makes a
+> value-import cycle. Internal plumbing keeps its direct import.
+
+It is recorded here so the file can be deleted without losing it.
+
+⭐ **And the pattern is the answer to 6.2.** `Influence.Renown`,
+`Influence.Producer`, `Influence.Conviction` keeps every system's own name
+— which is the half a merge destroys — while giving a reader one receiver
+to recall. The cluster with one `lib/` directory and five thin Apis is
+exactly the shape the barrel was invented for, and it is a far better
+first customer than `identity` ever was: the identity pilot's three
+members were all retired by the Api OO sweep within months, which is why
+the file is empty and why nobody noticed the pattern had died with them.
+
+⚠ The pilot was **inspection-verified, never compile-verified**. Reviving
+it starts with proving it compiles and that the security frame is
+genuinely unchanged, not with adopting it broadly.
+
+## 6.6 Revised order
+
+Part 5's order still stands. These come before it, because each is
+isolated, cheap, and does not wait for the layer-wide pass:
+
+1. **`SchedulerApi` → `ActivityApi`** (6.4) — a rename, no design.
+2. **`AttendantApi`** (6.4) — decide whether anything author-facing was
+   ever meant to be there; if not, the statics are test seams and belong
+   behind one.
+3. **Answer 6.3** — where a system-less utility lives. Until that is
+   answered, deleting `array`/`path-pattern` just moves the problem.
+4. **Prove the barrel compiles** (6.5) on the influence cluster, which is
+   the pass's real first customer.
+5. Then Part 5, with **cohesion and uniformity** as the split test rather
+   than density (6.1).

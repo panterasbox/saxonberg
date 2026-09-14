@@ -1,7 +1,9 @@
 # The homeless statics — a dossier for one ruling
 
-> **Status: DECISION PENDING** — this exists to be ruled on once and then
-> folded into [value-object-statics-slate.md](./value-object-statics-slate.md).
+> **Status: RULED** — 2026-09-13. The ruling is at the bottom
+> (§ The call); the analysis above it is what the ruling rests on. Folds
+> into [value-object-statics-slate.md](./value-object-statics-slate.md)
+> when the sweep lands.
 > **Raised by:** the `build/lib-statics` build, 2026-09-13.
 
 Eighteen subsystems own public statics and have **no `Api` to move the
@@ -101,7 +103,10 @@ been minted on that evidence alone.
 
 ---
 
-## What I am asking you to rule
+## What I am asking you to rule → ⭐ **ruled below, § The call**
+
+*(Kept as written, because the ruling is easier to argue with when the
+question it answered is still visible.)*
 
 1. **The widened line** — construction only, or construction + guards +
    lookups? (Above, § First.)
@@ -113,3 +118,91 @@ been minted on that evidence alone.
 4. **The pure-but-domain cases** (`Competence.derive`,
    `TraitPosition.derive`) — move them, or does "pure function of its
    arguments" earn a static the right to stay?
+
+
+---
+
+# The call
+
+Made after re-measuring the whole Api layer
+([api-normalization-slate § Part 6](./api-normalization-slate.md)),
+under the standing constraints: **Apis are organized around systems, not
+types** · **discoverability is the rule of thumb** · and *"I'm not ready
+to do the fork-and-merge pass yet — wait until we've stopped minting new
+Api methods."*
+
+## ⭐⭐ 1. Mint nothing. Not one new Api.
+
+The dossier proposed four: `IdentificationApi`, `WikiApi`,
+`AdvancementApi`, `TraitApi`. **All four are declined**, and the reason is
+not their merits — it is arithmetic. The layer is **93 Apis / 1,097 public
+statics**, its owner has said it was rubber-stamped past the point of
+control, and a fork-and-merge pass is coming that will judge every one of
+them. Minting four more thin Apis a few months before that pass is adding
+rows to the table the pass exists to shrink — and each would land
+**thin-external / thin-internal**, the one quadrant explicitly named as
+the thing to avoid: `AdvancementApi` 3 methods, `TraitApi` 3,
+`WikiApi` 5.
+
+⭐ The prerequisite is not met. The question *"which system owns this?"*
+cannot be answered honestly while the system boundaries themselves are
+what the next pass is going to redraw. Minting now bakes in answers that
+pass would overturn.
+
+**So the ~50 world-level statics in Api-less subsystems stay where they
+are**, and the ratchet stops at **≈50 + the type-level population**
+instead of at 0. That is a floor with a name and a reason, not a
+shortfall: `lint:lib-statics` records it, and the number falls to 0 when
+the normalization pass gives those systems faces.
+
+## 2. The widened line — keep it, and here is the principle
+
+I kept construction **plus** guards and lookups over the type's own closed
+vocabulary; you authorised construction only. **Keep the wider line**,
+because it is your own rule of thumb applied one level down:
+
+> **Discoverability: wherever a method goes, looking in that class has to
+> be intuitive.**
+
+`Disposition.isAxis('warmth')` — you would look on `Disposition`. Moving
+it to an Api puts a vocabulary's guard somewhere other than the
+vocabulary, which is the same discoverability failure the whole exercise
+is against, just pointed the other way. ⭐ The test that generalizes is
+not *what shape is this method* but **would a reader look for it here** —
+and that test also says `Freshness.growthRate` should move, because you
+would look for *how spoilage advances* in the spoilage system, not on a
+value.
+
+## 3. `standing` — not four subsystems, and not four rulings
+
+The dossier asked whether to split `lib/standing/`'s statics across four
+Apis or give standing its own face. **Neither.** The measurement settled
+it: `influence` · `renown` · `producer` · `conviction` · `provenance` are
+**five Apis, 26 public statics, over one `lib/standing/` directory**, and
+`InfluenceApi`'s own docstring calls itself *"a thin, stock-parameterized
+dispatcher over the per-stock Apis."*
+
+⭐⭐ **The lib layer already models this as one substrate; the Api layer
+models it as five. The lib layer is right.** So `standing` is not a
+homeless-statics question at all — it is the normalization pass's clearest
+merge, and its best first customer for the namespace barrel
+(`Influence.Renown`, `Influence.Producer`, …), which keeps every stock's
+own name while giving a reader one receiver to recall. Logged in
+[api-normalization-slate § 6.2](./api-normalization-slate.md); nothing
+moves here.
+
+## 4. Pure-but-domain (`Competence.derive`, `TraitPosition.derive`) — move, but not yet
+
+Purity is not the test; *where would you look* is. You look for **how
+competence is derived** in the advancement system, not on the `Competence`
+value — so these move. But their destination is one of the Apis declined
+in §1, so they stay put for now and are on the list, not forgotten.
+
+## What this leaves the sweep
+
+Unchanged and still worth doing: the world-level statics whose subsystem
+**already has an Api** — material, magic, combat, banking, employment,
+crafting, perception, parcel and the rest. That is the large majority of
+the ~400 world-level statics, it mints nothing, it needs no boundary
+ruling, and every one of them is the `XApi` ↔ `XLogic` split that
+`CLAUDE.md` already calls mandatory.
