@@ -25,7 +25,7 @@
  * predicates / scripted beats wait for the scripting build.
  */
 
-import { DISPOSITION_AXES } from "../trait/Disposition";
+import { Disposition } from "../trait/Disposition";
 import { DialogueEffectRegistry } from "./DialogueEffects";
 
 /** A whole tree — the `tree-dialogue` brain spec's `config`. */
@@ -373,7 +373,11 @@ function isKnownFact(fact: string): boolean {
   if (key.length === 0) return false;
   switch (ns) {
     case "trait":
-      return DISPOSITION_AXES.some((a) => a.key === key);
+      // ⚠ `Disposition.isAxis`, not a re-implementation. This was
+      // `DISPOSITION_AXES.some((a) => a.key === key)` — the guard's body
+      // copied out, which is how a roster edit reaches one reader and not
+      // the other.
+      return Disposition.isAxis(key);
     case "time":
       return (TIME_FACTS as readonly string[]).includes(key);
     case "state":

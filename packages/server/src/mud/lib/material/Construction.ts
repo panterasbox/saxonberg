@@ -328,12 +328,21 @@ export class Construction {
   }
 
   /**
-   * Narrowing predicate against the full form vocabulary — **both
-   * covering sources plus the weapon forms.** A fabric registered by a
-   * pack answers `true` here with no kernel edit, which is the whole
-   * point of the second source.
+   * Whether `s` is in the full form vocabulary — **both covering sources
+   * plus the weapon forms.** A fabric registered by a pack answers `true`
+   * here with no kernel edit, which is the whole point of the second
+   * source.
+   *
+   * ⚠⚠ **It returns `boolean`, and it used to claim `s is
+   * ConstructionForm`.** That was a no-op wearing a guarantee:
+   * `ConstructionForm` IS `string` (the covering side is open — a pack
+   * registers a fabric), so the predicate narrowed `string` to `string`
+   * and every reader of the signature believed a check had been threaded
+   * that never was. No call site lost anything — all three use it as a
+   * validator (`if (!isForm(x)) throw`), never to narrow. Found by the
+   * 2026-09-14 vocabulary-guard audit.
    */
-  public static isForm(s: string): s is ConstructionForm {
+  public static isForm(s: string): boolean {
     return isCoveringForm(s) || isDeliveryForm(s);
   }
 

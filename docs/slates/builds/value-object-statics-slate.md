@@ -884,6 +884,81 @@ replaced it (`BankingApi.balanceOf`, `RenownApi.renownOf`,
 - **D → they stay.** Both fall in categories already ruled off the table;
   including them in the cluster was my error.
 
+## ✅ The 36 vocabulary guards — AUDITED 2026-09-14
+
+**Nothing moved, and the ceiling did not change.** That is the finding,
+not a dodge: read against the *signatures* rather than the *names*, every
+one of the 36 resolves under a ruling already made — and three were
+defective in a way no disposition would have caught.
+
+| verdict | n | disposition |
+|---|---|---|
+| **A real type predicate over a closed string union declared in the same file** | 18 | ✅ **stay** — the explicit carve-out, now VERIFIED rather than assumed |
+| **Pure value arithmetic wearing an `is` name** | 15 | ✅ **stay** — already ruled off the table with the other 193 |
+| ⛔ **Defective — the predicate promises a check it does not make** | 3 | **fixed, not moved** |
+
+### The 18 that earn the carve-out
+
+`Blessing.isBand` · `Construction.isDeliveryForm` · `LandUses.isLandUse` ·
+`WikiPage.isProtection` · `Faculty.isBand` · `MagicGrid.isVerb`/`isNoun` ·
+`ConcealmentLevels.isLevel` · `Dose.isResponse` · `Grade.isBand` ·
+`Resists.isAxis` · `Channels.isChannel`/`isMechanicalChannel`/
+`isThermalChannel` · `MeasureChannels.isMeasureChannel` ·
+`ScriptBuiltins.isBuiltin` · `CompetenceBand.isBand` · `TraitBand.isBand`.
+
+Each was checked three ways: does it return `x is T`; is `T` a closed
+string union; is that union declared in the same file. All three, all
+eighteen.
+
+### ⚠ The 15 were never vocabulary guards — they were in §4 by a NAMING accident
+
+`isClean(loads)` · `hasOdds(odds)` · `hasActiveGrant(record, holder, now)` ·
+`isCoveringForm` · `isFabricForm` · `isUntreated(cure)` · `isMelee(band)` ·
+`isConcealed(level)` · `isEffective(spec, litres)` · `isEscrowAccount(id)` ·
+`isSentinel(id)` · `isRecordCurrent(a, b)` · `isItemSlot(slot)` ·
+`isAtTarget(census, …)` · `isReleased(path)`.
+
+Every one is data in, boolean out, no world read — `isRecordCurrent` is
+literally `a >= b`. They landed in "the 36 vocabulary guards" because the
+census grouped by **name**, which is the exact error this slate's own
+health warning names: *"the name heuristic filed pure functions as
+world-reaching"*. They belong with the 193.
+
+⚠ One nuance, stated rather than glossed: `isCoveringForm` and
+`isFabricForm` read the module-level `FABRICS` registry a pack extends, so
+"pure" is generous — they are vocabulary lookups over open state. They
+touch no Stuff, no Document and no clock, which is the test that matters
+here.
+
+### ⛔⛔ The three defects — a predicate that promises a check it does not make
+
+This is what the audit was actually worth.
+
+**`Construction.isForm(s): s is ConstructionForm`** and
+**`Techniques.isTechniqueName(s): s is Technique`** — and in both files
+`ConstructionForm` / `Technique` **IS `string`**, because both vocabularies
+are open by design (a pack registers a fabric; a technique word is
+authored). So each predicate narrowed `string` to `string`: **a no-op
+wearing a guarantee.** A reader of the signature believes a check has been
+threaded into the type system; nothing has. Both now return `boolean`, and
+⭐ **no call site lost anything** — all five use them as validators
+(`if (!isForm(x)) throw`), never to narrow, which is also why nothing ever
+noticed.
+
+**`Disposition.isAxis(value: unknown): value is string`** — a real
+narrowing, and a useless one: a caller who has just checked a value
+against a nineteen-entry roster learns nothing from being told the result
+is a string. ⭐ The roster was closed all along — nineteen authored
+entries — and only its *typing* (`readonly DispositionAxis[]`) widened
+every `key` to `string`. `as const satisfies` closes it, and `isAxis` now
+narrows to a derived `DispositionAxisKey`. **It moves INTO the approved
+category rather than out of the file.**
+
+⭐ And the audit turned up a bystander: `lib/npc/tree.ts` re-implemented
+the guard inline (`DISPOSITION_AXES.some((a) => a.key === key)`) — the
+guard's body copied out, which is how a roster edit reaches one reader and
+not the other. It calls `Disposition.isAxis` now.
+
 ## ⚠ Controller tests skip the BINDER — four suites and counting
 
 Every verb whose object became a declared arg broke its own unit tests,
