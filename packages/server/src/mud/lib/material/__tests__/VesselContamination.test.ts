@@ -114,7 +114,7 @@ describe('a vessel carries two loads', () => {
     const jug = vessel(2);
     const dirtyPot = vessel(0);
     dirtyPot.contaminate('vessel-bug', 1);
-    expect(Contamination.loadsFor(slot(jug))).toEqual({});
+    expect(new Contamination(slot(jug)).loads()).toEqual({});
 
     BulkableApi.transfer(slot(jug), slot(dirtyPot), {
       kind: 'measure',
@@ -123,7 +123,7 @@ describe('a vessel carries two loads', () => {
     });
 
     expect(
-      Contamination.loadsFor(slot(dirtyPot))['vessel-bug'],
+      new Contamination(slot(dirtyPot)).loads()['vessel-bug'],
     ).toBeGreaterThan(0);
   });
 
@@ -136,7 +136,7 @@ describe('a vessel carries two loads', () => {
       litres: 1,
       mode: 'strict',
     });
-    expect(Contamination.loadsFor(slot(cleanPot))).toEqual({});
+    expect(new Contamination(slot(cleanPot)).loads()).toEqual({});
   });
 
   it('⚠ 2. emptying does NOT clean — one unwashed pot is a chain', () => {
@@ -157,7 +157,7 @@ describe('a vessel carries two loads', () => {
     const pot = vessel(2);
     pot.contaminate('vessel-bug', 1);
     // Dirty the contents too, the way a fill would have.
-    Contamination.stampLoads(slot(pot), { 'vessel-bug': 0.5 });
+    new Contamination(slot(pot)).stampLoads({ 'vessel-bug': 0.5 });
 
     // ⚠ Called DIRECTLY, not through `wash <thing>`. That is the point:
     // the clearing lived in `WashController` alone for one build, so
@@ -175,8 +175,8 @@ describe('a vessel carries two loads', () => {
 
   it('the two loads are independent — a clean pot of bad stew is possible', () => {
     const pot = vessel(2);
-    Contamination.stampLoads(slot(pot), { 'vessel-bug': 0.6 });
+    new Contamination(slot(pot)).stampLoads({ 'vessel-bug': 0.6 });
     expect(pot.getPathogenLoads()).toEqual({});
-    expect(Contamination.loadsFor(slot(pot))['vessel-bug']).toBeCloseTo(0.6, 6);
+    expect(new Contamination(slot(pot)).loads()['vessel-bug']).toBeCloseTo(0.6, 6);
   });
 });

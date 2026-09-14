@@ -685,7 +685,7 @@ function contaminateTools(
   const parts: { loads: PathogenLoads; weight: number }[] = [];
   for (const m of matched) {
     if (m.measureL > 0) {
-      parts.push({ loads: Contamination.loadsFor(m.slot), weight: m.measureL });
+      parts.push({ loads: new Contamination(m.slot).loads(), weight: m.measureL });
     }
   }
   for (const m of matchedItems) {
@@ -705,11 +705,11 @@ function contaminateTools(
 
 /** Stamp a working's spoilage outcome onto the output slot. */
 function applySpoilage(outSlot: BulkSlot, outcome: SpoilageOutcome): void {
-  Freshness.stampLoad(outSlot, outcome.load);
+  new Freshness(outSlot).stampLoad(outcome.load);
   // ⚠⚠ The silent half, and it must ride the SAME stamp. A dish that
   // carried the flora through and dropped the pathogens would be a build
   // whose unit tests all pass and whose contaminated stew is harmless.
-  Contamination.stampLoads(outSlot, outcome.pathogens);
+  new Contamination(outSlot).stampLoads(outcome.pathogens);
   const formed = outcome.formed;
   if (!formed) return;
   const payload = outSlot.getPayload();
@@ -765,8 +765,8 @@ function outputMicrobialLoad(
   for (const m of matched) {
     const w = m.measureL;
     if (w <= 0) continue;
-    weighted += Freshness.loadOf(m.slot) * w;
-    parts.push({ loads: Contamination.loadsFor(m.slot), weight: w });
+    weighted += new Freshness(m.slot).load() * w;
+    parts.push({ loads: new Contamination(m.slot).loads(), weight: w });
     total += w;
   }
   for (const m of matchedItems) {

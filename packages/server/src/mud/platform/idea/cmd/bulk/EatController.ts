@@ -176,7 +176,7 @@ export default class EatController extends CommandController<EatModel> {
     const slot = BulkableApi.slotFor(target, undefined);
     if (!slot) return;
     const material = slot.getMaterial();
-    const payload = Freshness.ingestPayloadOf(slot);
+    const payload = new Freshness(slot).ingestPayload();
     const appearance =
       BlendIdentity.appearanceOf(payload, material) || "it";
     const portion = Math.min(

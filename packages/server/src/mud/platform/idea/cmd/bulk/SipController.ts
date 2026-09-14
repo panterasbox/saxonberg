@@ -57,7 +57,7 @@ export default class SipController extends CommandController<SipModel> {
     const material = fromSlot.getMaterial();
     // ⭐ The INGEST payload, not the stored one: whatever the matter
     // has spoiled into rides along with it (see `Freshness.withDose`).
-    const payload = Freshness.ingestPayloadOf(fromSlot);
+    const payload = new Freshness(fromSlot).ingestPayload();
     const result = BulkableApi.transfer(fromSlot, null, {
       kind: 'measure',
       litres: SIP_LITRES,

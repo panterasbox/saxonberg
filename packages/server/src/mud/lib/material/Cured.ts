@@ -174,6 +174,21 @@ function cureAugmenter(
  * carry the `cure` field the way it carries `freshness`, as data.
  */
 export class Cure {
+  /**
+   * A gauge bound to the slot it measures. ⭐ The model lives in this
+   * class's statics (pure, shared); the READS and WRITES of one slot's
+   * payload live on an instance of it — the `Lock` shape, where
+   * `opensFor`/`issueKeyTo` are instance methods beside the type-level
+   * `mintKeyway`.
+   *
+   * ⚠ Deliberately NOT methods on `BulkSlot`: `bulk.md` has the bulk
+   * substrate carry only what subsystems declare onto `BulkPayload`, so
+   * the slot must not learn what spoilage is. Spoilage holding a
+   * reference to a slot keeps that direction intact while putting the
+   * verb on an object.
+   */
+  constructor(private readonly slot: BulkSlot) {}
+
   /** The untreated state — the identity of the water-activity derivation. */
   public static untreated(): CureState {
     return { moisture: 1, solute: 0 };
@@ -341,24 +356,24 @@ export class Cure {
    * nothing is written. Only a treated blend (which something had to
    * treat) carries the two scalars and the stamp.
    */
-  public static stateFor(slot: BulkSlot): CureState | null {
-    const payload = slot.getPayload();
+  state(): CureState | null {
+    const payload = this.slot.getPayload();
     const cure = Cure.stateOf(payload);
     if (!cure || !payload) return null;
     const nowS = nowSeconds();
     if (nowS === null) return cure;
     const stamp = payload.cureStamp ?? 0;
     if (stamp === 0 || nowS <= stamp) {
-      slot.setPayload({ ...payload, cureStamp: nowS });
+      this.slot.setPayload({ ...payload, cureStamp: nowS });
       return cure;
     }
     const moisture = Cure.advanceMoisture(
       cure.moisture,
       nowS - stamp,
-      Cure.ambientHumidityOf(slot.getHolder()),
+      Cure.ambientHumidityOf(this.slot.getHolder()),
     );
     const next: CureState = { moisture, solute: cure.solute };
-    slot.setPayload({ ...payload, cure: next, cureStamp: nowS });
+    this.slot.setPayload({ ...payload, cure: next, cureStamp: nowS });
     return next;
   }
 
@@ -368,17 +383,17 @@ export class Cure {
    * OF, so that is a no-op; and stamping the untreated identity clears the
    * record rather than storing two default scalars forever.
    */
-  public static stampState(slot: BulkSlot, cure: CureState | null): void {
-    if (slot.getMaterial() === null) return;
-    const payload = slot.getPayload() ?? {};
+  stampState(cure: CureState | null): void {
+    if (this.slot.getMaterial() === null) return;
+    const payload = this.slot.getPayload() ?? {};
     if (Cure.isUntreated(cure)) {
       if (payload.cure === undefined) return;
       const { cure: _drop, cureStamp: _drops, ...rest } = payload;
-      slot.setPayload(rest);
+      this.slot.setPayload(rest);
       return;
     }
     const nowS = nowSeconds() ?? 0;
-    slot.setPayload({
+    this.slot.setPayload({
       ...payload,
       cure: { moisture: clamp01(cure!.moisture), solute: clamp01(cure!.solute) },
       cureStamp: nowS,

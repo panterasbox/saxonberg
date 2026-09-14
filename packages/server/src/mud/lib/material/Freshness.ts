@@ -219,6 +219,21 @@ declare module '../bulk/Bulkable' {
 
 export class Freshness {
   /**
+   * A gauge bound to the slot it measures. ⭐ The model lives in this
+   * class's statics (pure, shared); the READS and WRITES of one slot's
+   * payload live on an instance of it — the `Lock` shape, where
+   * `opensFor`/`issueKeyTo` are instance methods beside the type-level
+   * `mintKeyway`.
+   *
+   * ⚠ Deliberately NOT methods on `BulkSlot`: `bulk.md` has the bulk
+   * substrate carry only what subsystems declare onto `BulkPayload`, so
+   * the slot must not learn what spoilage is. Spoilage holding a
+   * reference to a slot keeps that direction intact while putting the
+   * verb on an object.
+   */
+  constructor(private readonly slot: BulkSlot) {}
+
+  /**
    * The specific growth rate (per game-hour) at a temperature, for a
    * material. Returns `0` for an inert material (no tabulated activation
    * energy), for a frozen one, and for one below the water-activity
@@ -549,16 +564,16 @@ export class Freshness {
    * the discrete one, and a stew nobody looks at for a week integrates
    * the whole week the moment somebody does.
    */
-  public static loadOf(slot: BulkSlot): number {
-    const payload = slot.getPayload();
+  load(): number {
+    const payload = this.slot.getPayload();
     const gauge = payload?.freshness;
     if (!gauge) {
-      if (slot.isEmpty()) return 0;
-      const mat = slot.getMaterial();
+      if (this.slot.isEmpty()) return 0;
+      const mat = this.slot.getMaterial();
       if (!Freshness.isPerishable(mat)) return 0;
       const seedAt = Freshness.nowSeconds();
       if (seedAt === null) return 0;
-      slot.setPayload({
+      this.slot.setPayload({
         ...(payload ?? Freshness.materialShadow(mat)),
         freshness: { load: 0, stamp: seedAt },
       });
@@ -567,22 +582,25 @@ export class Freshness {
     const nowS = Freshness.nowSeconds();
     if (nowS === null) return gauge.load;
     if (gauge.stamp === 0 || nowS <= gauge.stamp) {
-      slot.setPayload({ ...payload, freshness: { ...gauge, stamp: nowS } });
+      this.slot.setPayload({ ...payload, freshness: { ...gauge, stamp: nowS } });
       return gauge.load;
     }
     // ⚠ The water state FIRST, and reconciled: a blend that has been
     // rehydrating in a damp cellar spoils at the a_w it has NOW, and
     // `Cure.stateFor` may rewrite the payload — so read it before the
     // freshness write, or the write below stamps over it.
-    const cure = Cure.stateFor(slot);
+    const cure = new Cure(this.slot).state();
     const load = Freshness.advance(
       gauge.load,
       nowS - gauge.stamp,
-      slot.getMaterial(),
-      Freshness.hostTemperatureK(slot.getHolder()),
+      this.slot.getMaterial(),
+      Freshness.hostTemperatureK(this.slot.getHolder()),
       cure,
     );
-    slot.setPayload({ ...slot.getPayload(), freshness: { load, stamp: nowS } });
+    this.slot.setPayload({
+      ...this.slot.getPayload(),
+      freshness: { load, stamp: nowS },
+    });
     return load;
   }
 
@@ -592,13 +610,13 @@ export class Freshness {
    * a fill can say "this came out of the pot sterile" in one call. A slot
    * holding nothing has no matter to be a gauge OF, so that is a no-op.
    */
-  public static stampLoad(slot: BulkSlot, load: number): void {
-    const material = slot.getMaterial();
+  stampLoad(load: number): void {
+    const material = this.slot.getMaterial();
     if (material === null) return;
-    const payload = slot.getPayload() ?? Freshness.materialShadow(material);
+    const payload = this.slot.getPayload() ?? Freshness.materialShadow(material);
     const nowS = Freshness.nowSeconds() ?? 0;
     const clamped = load < 0 ? 0 : load > 1 ? 1 : load;
-    slot.setPayload({ ...payload, freshness: { load: clamped, stamp: nowS } });
+    this.slot.setPayload({ ...payload, freshness: { load: clamped, stamp: nowS } });
   }
 
   /**
@@ -607,18 +625,18 @@ export class Freshness {
    * The one seam `drink` / `sip` / `eat` read, so a spoiled pot poisons
    * through every route into a mouth without any of them knowing the word.
    */
-  public static ingestPayloadOf(slot: BulkSlot): BulkPayload | null {
+  ingestPayload(): BulkPayload | null {
     // ⚠ The load FIRST: reading it reconciles (and may seed) the payload,
     // so reading the payload before it would hand back a stale copy.
-    const load = Freshness.loadOf(slot);
+    const load = new Freshness(this.slot).load();
     // ⚠⚠ The silent half, reconciled the same way and folded the same
     // way. `Contamination.withLoads` also deposits any formed toxin an
     // intoxicating population has made, which is the arm that needs no
     // in-host machinery at all.
-    const pathogens = Contamination.loadsFor(slot);
+    const pathogens = new Contamination(this.slot).loads();
     const withDose = Freshness.withDose(
-      slot.getPayload(),
-      slot.getMaterial(),
+      this.slot.getPayload(),
+      this.slot.getMaterial(),
       load,
     );
     return Contamination.withLoads(withDose, pathogens);

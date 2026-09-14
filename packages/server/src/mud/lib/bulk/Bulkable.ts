@@ -332,7 +332,7 @@ export class BulkSlot {
 
   // ⚠ The spoilage gauge that rides this slot's matter is NOT here. A slot
   // stores it (`BulkPayload.freshness`) and the SPOILAGE subsystem reads
-  // and writes it: `Freshness.loadOf(slot)` / `.stampLoad(slot, n)` /
+  // and writes it: `new Freshness(slot).load()` / `.stampLoad(slot, n)` /
   // `.ingestPayloadOf(slot)`. Bulk carries the field the way it carries
   // `nutrients` and `toxicity` — as data, without knowing the subsystem
   // that means something by it.
