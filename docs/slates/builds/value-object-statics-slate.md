@@ -511,3 +511,121 @@ is cheap while the context is rich and expensive after a compaction. The
 mechanical ones (§1) can be executed from this document alone.
 
 **So: decide §2 and §4 in conversation, then run §1 and §3 unattended.**
+
+
+---
+
+# ⭐⭐⭐ THE KILL LIST — ruled 2026-09-14, execute after the compaction
+
+**The rule (user):** the only statics that stay are **type predicates over
+a closed string union declared in the same file** (`isForm(s): s is
+ConstructionForm`) — irreducible, because a TS predicate must name its
+type. ⭐ Everything else **moves to the Api layer**, or is **deleted and
+inlined into its caller** where there is ~1 caller and no duplication
+saved.
+
+Also still settled and off the table: the **71 record finders** on
+`Document` subclasses, the **193 pure value-arithmetic** statics, and
+**construction** (`of`/`from`/`parse`) that touches nothing.
+
+**59 statics on the table** — 40 inline-and-delete,
+19 move-to-Api.
+
+⚠ **Two artefacts in the counts below.** `Document.find`/`findById` are
+excluded here — they read as 0–1 callers only because callers use the
+SUBCLASS name (`User.findById`), and they are approved record finders
+anyway. And a caller count of 0 means *no non-test caller*: check for a
+reflective or string-keyed reach before deleting (`cleanupOnDestruct`
+nearly went that way).
+
+## A · Delete and inline — 0 or 1 caller (40)
+
+| static | callers | where |
+|---|---|---|
+| `Dyestuff.all` | 0 | — |
+| `Freshness.growthRate` | 0 | — |
+| `Freshness.isPerishable` | 0 | — |
+| `Freshness.hostTemperatureK` | 0 | — |
+| `LeaseController.ascentRefusal` | 0 | — |
+| `MaturationProfile.all` | 0 | — |
+| `MaturationProfile.forMaterial` | 0 | — |
+| `NameBank.byKey` | 0 | — |
+| `Realtor.offers` | 0 | — |
+| `Account.newId` | 1 | BankingLogic.ts |
+| `AimResolution.resolve` | 1 | CombatLogic.ts |
+| `Appearance.clearMemo` | 1 | PackLogic.ts |
+| `BankingControllerBase.businessNamed` | 1 | WalletController.ts |
+| `BlendIdentity.keywordsOf` | 1 | scope-walk.ts |
+| `BlendLabel.nutrientsOf` | 1 | Metabolic.ts |
+| `BlendLabel.amountsOf` | 1 | NutritionLabel.ts |
+| `BlendLabel.tagsOf` | 1 | CraftVessel.ts |
+| `Census.takeCensus` | 1 | ResidencyLogic.ts |
+| `ConcealmentLevels.hiddenDefault` | 1 | Exit.ts |
+| `Condition.contributionOf` | 1 | ContractLogic.ts |
+| `Condition.holdsFor` | 1 | ContractLogic.ts |
+| `Construction.clearFabrics` | 1 | FabricCatalogue.ts |
+| `Contamination.hostTemperatureK` | 1 | ButcherController.ts |
+| `CreditRouting.resolve` | 1 | ProducerLogic.ts |
+| `EmoteGrammarRunner.render` | 1 | Soul.ts |
+| `EnrollController.loadConfig` | 1 | Login.ts |
+| `Expression.evaluate` | 1 | Interpreter.ts |
+| `Freshness.waterActivityOf` | 1 | Contaminable.ts |
+| `Freshness.advance` | 1 | ButcherController.ts |
+| `Freshness.withDose` | 1 | EatController.ts |
+| `Freshness.nowSeconds` | 1 | Contaminable.ts |
+| `LaneCatalogue.exitBetween` | 1 | Journey.ts |
+| `Light.bandFor` | 1 | VisionModality.ts |
+| `NameBank.clearCache` | 1 | PackLogic.ts |
+| `Prose.parse` | 1 | ProseLogic.ts |
+| `Quantity.registerTagTable` | 1 | QuantityLogic.ts |
+| `Sections.find` | 1 | WikiController.ts |
+| `Sharpness.resolve` | 1 | CombatLogic.ts |
+| `TravelNodes.of` | 1 | TeleportController.ts |
+| `WikiRegistry.instance` | 1 | PackLogic.ts |
+
+## B · Move to the owning Api (19)
+
+| static | callers | where |
+|---|---|---|
+| `BlendIdentity.nameOf` | 2 | Metabolic.ts, scope-walk.ts |
+| `BlendLabel.toxicityOf` | 2 | Metabolic.ts, NutritionLabel.ts |
+| `Condition.matchesItem` | 2 | ContractLogic.ts, hauls.ts |
+| `Construction.registerFabric` | 2 | Fabric.ts, FabricCatalogue.ts |
+| `Contamination.behaviorOf` | 2 | Metabolic.ts, Vitals.ts |
+| `DialogueEffectRegistry.register` | 2 | BankCounter.ts, Realtor.ts |
+| `DormThemes.applyTo` | 2 | ProvisionController.ts, RemodelController.ts |
+| `EmoteGrammarRunner.bind` | 2 | CommandGiver.ts, ReactController.ts |
+| `GroundCharacter.resolve` | 2 | Field.ts, SoilChannelController.ts |
+| `NameBank.resolve` | 2 | Login.ts, Species.ts |
+| `Suppressions.fieldAt` | 2 | MagicLogic.ts, Vitals.ts |
+| `BlendLabel.isEdible` | 3 | EatController.ts, NutritionLabel.ts, mustBeE |
+| `DormWarren.resolve` | 3 | DormDoor.ts, FloorStairExit.ts, ProvisionCon |
+| `Lock.mintKeyway` | 3 | LeaseController.ts, ProvisionController.ts,  |
+| `Appearance.currentGeneration` | 4 | Identifiable.ts, MagicLogic.ts, RecognitionL |
+| `DormWarren.peek` | 4 | DormDoor.ts, FloorStairExit.ts, ProvisionCon |
+| `GroundCharacter.forZone` | 4 | Field.ts, FieldWorkController.ts, PlotContro |
+| `BlendIdentity.appearanceOf` | 5 | DrinkController.ts, EatController.ts, FeedCo |
+| `Currency.compact` | 21 | AppSettings.ts, Bank.ts, BankController.ts |
+
+⭐ **`Currency.compact` (21 callers) is the one real job here** — every
+other row is ≤5. It reads `AppApi.setting(bankingCompactCurrency)` and
+falls back to "the only registered currency, else throw", so it is a
+*settings read wearing a value-class name*: `BankingApi` is its home.
+
+⚠ **`Lock.mintKeyway` is on this list**, and the user has pointed out
+that Lock was my call and is not precedent. Under this ruling it moves
+(it reaches `SecurityApi.uuid`), which is worth noting because
+`issueKeyTo` was just moved ONTO `Lock` as an instance method — the two
+are consistent only if you read `mintKeyway` as minting a token (an Api
+act) and `issueKeyTo` as the lock handing out its own key (an instance
+act). Re-decide it rather than inherit it.
+
+## Order of execution
+
+1. **A first** — 41 deletions, each one file, no design. Guard every
+   zero-caller row with a string-literal grep before deleting.
+2. **B second**, smallest first; `Currency.compact` last, alone, because
+   21 call sites deserve their own diff.
+3. Re-baseline the ceiling after each, and re-read § *The remaining
+   scope*'s health warning: the classifier reads signatures, so confirm
+   each row by opening the body.
