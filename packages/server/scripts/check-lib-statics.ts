@@ -35,7 +35,7 @@
  *
  * A **public static method** declared in the body of an **exported class
  * declaration** that does not end in `Api`, under the kernel's `lib/` or
- * any capability pack's `src/`. Excluded, deliberately:
+ * `platform/`, or any capability pack's `src/`. Excluded, deliberately:
  *
  *   - `private` / `protected` / `#` statics — already invisible by
  *     intent, and the projection agrees;
@@ -69,11 +69,16 @@ const REPO_ROOT = join(MUD, '../../../..');
  * that pass read only the FIRST exported class in each file, so every
  * file declaring a value class beside its mixin was undercounted (11
  * such files under the kernel's `lib/` alone) and it required a static
- * to sit at exactly two spaces of indent. The corrected census is
- * **159 classes · 535 statics**, every pair verified to exist. Lowering
- * it is the sweep's whole job.
+ * to sit at exactly two spaces of indent. W0 corrected that to
+ * **159 classes · 535 statics**, every pair verified to exist.
+ *
+ * ⭐ W1 then widened the SCOPE to `mud/platform/` as well (D2): the
+ * projection's own report showed 31 equally-invisible statics there —
+ * `VisionModality.canSee` among them — and the invariant is about
+ * visibility, not about which directory a class sits in. **564.**
+ * Lowering it is the sweep's whole job.
  */
-export const LIB_STATICS_CEILING = 535;
+export const LIB_STATICS_CEILING = 564;
 
 const STATIC =
   /^\s*(?:public\s+)?static\s+(?:async\s+)?(?!readonly\b|get\b|set\b|_)([a-zA-Z]\w*)\s*[(<]/;
@@ -88,6 +93,28 @@ export interface StaticRow {
 }
 
 /**
+ * The names a module exports through a *statement* rather than inline —
+ * `export default Provision;` / `export { Foo, Bar };`. ⚠ Ten files
+ * under `lib/` and `platform/` declare their class bare and export it on
+ * a later line, and none of them carries a static TODAY. A ratchet with
+ * a hole in it is the documented failure class (*gates ship broken and
+ * silently pass*), so the hole is closed while it is still empty.
+ */
+function deferredExportNames(source: string): Set<string> {
+  const names = new Set<string>();
+  for (const m of source.matchAll(/^export\s+default\s+(\w+)\s*;/gm)) {
+    names.add(m[1]!);
+  }
+  for (const m of source.matchAll(/^export\s*\{([^}]*)\}/gm)) {
+    for (const part of m[1]!.split(',')) {
+      const name = part.trim().split(/\s+as\s+/)[0]?.trim();
+      if (name) names.add(name);
+    }
+  }
+  return names;
+}
+
+/**
  * Every exported class declaration in a source file, with the exact
  * extent of its body — brace-matched, so a nested class expression (a
  * mixin factory's return) is inside its OWN extent and never attributed
@@ -95,8 +122,10 @@ export interface StaticRow {
  */
 export function exportedClasses(source: string): { cls: string; body: string }[] {
   const out: { cls: string; body: string }[] = [];
-  const decl = /^export\s+(?:default\s+)?(?:abstract\s+)?class\s+(\w+)/gm;
+  const deferred = deferredExportNames(source);
+  const decl = /^(?:export\s+(?:default\s+)?)?(?:abstract\s+)?class\s+(\w+)/gm;
   for (const m of source.matchAll(decl)) {
+    if (!m[0].startsWith('export') && !deferred.has(m[1]!)) continue;
     const open = source.indexOf('{', m.index + m[0].length);
     if (open === -1) continue;
     let depth = 0;
@@ -141,7 +170,7 @@ export function publicStaticsOf(body: string): string[] {
 }
 
 function sourceFiles(): string[] {
-  const files = packSrcFiles(join(MUD, 'lib'));
+  const files = [...packSrcFiles(join(MUD, 'lib')), ...packSrcFiles(join(MUD, 'platform'))];
   for (const pack of packSources()) files.push(...packSrcFiles(pack.srcDir));
   return files.filter((f) => f.endsWith('.ts') && !f.includes('__tests__'));
 }

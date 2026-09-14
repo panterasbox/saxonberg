@@ -71,6 +71,26 @@ describe('exportedClasses', () => {
   it('ignores a non-exported class', () => {
     expect(exportedClasses('class Private {\n  static a(): void {}\n}')).toEqual([]);
   });
+
+  it('⚠ takes a class exported on a LATER line, not just inline', () => {
+    const src = [
+      'class Provision extends Base {',
+      '  static resolveIn(): void {}',
+      '}',
+      'export default Provision;',
+    ].join('\n');
+    expect(exportedClasses(src).map((c) => c.cls)).toEqual(['Provision']);
+  });
+
+  it('takes a named deferred export, aliased or not', () => {
+    const src = [
+      'class Stock {',
+      '  static resolveIn(): void {}',
+      '}',
+      'export { Stock as Counter };',
+    ].join('\n');
+    expect(exportedClasses(src).map((c) => c.cls)).toEqual(['Stock']);
+  });
 });
 
 describe('publicStaticsOf', () => {
@@ -141,6 +161,6 @@ describe('publicStaticsOf', () => {
 
 describe('the ratchet', () => {
   it('⭐ holds a ceiling that may fall and may never rise', () => {
-    expect(LIB_STATICS_CEILING).toBe(535);
+    expect(LIB_STATICS_CEILING).toBe(564);
   });
 });

@@ -1,10 +1,11 @@
 # `lib/` statics — `callable == visible` is broken in 159 classes
 
-> **Status: PARTIAL** — W0 landed: `lint:lib-statics` is in the derived
-> family at **ceiling 535**
-> **Left:** the 535 public statics on 159 non-`Api` classes, rehomed onto
-> an `Api` static or a logic singleton · the ratchet to 0
-> **Size:** a build — 159 classes, 535 statics
+> **Status: PARTIAL** — W0 + W1 landed: `lint:lib-statics` is in the
+> derived family at **ceiling 564**, and the projection now says out loud
+> what it drops
+> **Left:** W2 construct/guard/lookup · W3 logic · W4 registry — the 564
+> rehomed onto an `Api` static or a logic singleton · the ratchet to 0
+> **Size:** a build — 564 statics
 
 **Raised by:** the user, reviewing MR !255, 2026-09-11
 **Census:** `pnpm -C packages/server lint:lib-statics` (gate) ·
@@ -101,11 +102,29 @@ class, brace-matched; two-space-indent-only → any indent. That is where
 461 → 535 came from, and a ratchet set below the real count is a ceiling
 that never bites. 14 unit tests on the decision core.
 
-**W1 — fix the projection, and mark what stays.** A static that is
-genuinely library-internal should say `@internal` rather than being
-silently dropped by a rule aimed at framework statics. ⚠ Do this
-**first**: until the tiers agree with the code, "is this author surface?"
-has no honest answer, and every later wave is guessing.
+**W1 — fix the projection. ✅ DONE.** It now emits an **unclassified
+report** — every public method that satisfies neither tier rule — instead
+of `continue`-ing in silence, grouped by tree so the mudlib half is not
+buried under `backend/`'s singleton accessors. ⭐ `@internal` is how a
+member declares itself deliberately off the surface; everything else that
+falls through is named.
+
+Two findings came straight out of turning the light on:
+
+- ⭐⭐ **`Mml`'s 41 statics were invisible.** `isApiClass` keyed on the
+  class *name* ending in `Api`. `Mml` (`mud/api/mml`) is an Api by every
+  functional measure — `SecurityApi.decorateApiClass`'d like every other
+  face, and `Mml.compose` / `Mml.actor` / `Mml.ref` are among the
+  most-called author surface in the tree — but it is not spelled
+  `MmlApi`, so all 41 reached no doc. The rule is now **where the class
+  is declared** (`CLAUDE.md § Module Categories` admits nothing else into
+  a top-level `api/<feature>.ts`), with sealed subdirs (`api/mml/**`,
+  `api/mql/**`) explicitly excluded. *A convention enforced by spelling
+  is a convention with a hole in it.*
+- ⭐ **D2 — the gate widened to `mud/platform/`.** The report showed 31
+  equally-invisible statics there, `VisionModality.canSee` among them,
+  and the invariant is about visibility, not about which directory a
+  class sits in. 535 → **564**.
 
 **W2 — construct + guard + lookup (128 statics).** The mechanical half,
 and the one with a worked example already merged. Each class's statics
@@ -122,6 +141,15 @@ then combat, banking, magic, advancement. Each becomes an
 of these want to be a real registry singleton, not a class with a `Map`.
 
 ---
+
+## Decisions made during the build
+
+| # | decision | what decided it |
+|---|---|---|
+| D1 | an **Api face** is decided by where the class is declared, not by its name | the `Mml` hole — 41 author-facing statics invisible because of a spelling |
+| D2 | `lint:lib-statics` covers `mud/platform/` too, not just `lib/` + packs | `callable == visible` says nothing about directories; the projection found 31 there |
+| D3 | the census script was rewritten before the ratchet was set | every one of its three defects set the ceiling BELOW the real count, and a ratchet under the real count never bites |
+| D4 | mixin-factory statics stay OUT of scope | they are reached through the composed host — a different question, and one nothing is asking yet |
 
 ## ⚠ Homes that do not exist yet
 

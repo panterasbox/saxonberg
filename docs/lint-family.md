@@ -96,9 +96,10 @@ growing the day it is noticed, without being fixed first.
   public `static` on a **non-`Api`** class is *callable by anyone and
   visible to nobody*, because the author-surface projection admits
   public Api statics and public *instance* methods and a static here is
-  neither. Census-then-ratchet, **ceiling 535** across 159 classes; a
-  static's home is its subsystem Api (construction, guards, lookups) or
-  an `platform/idea/api/<X>Logic.ts` logic singleton (domain logic). ⚠ Statics
+  neither. Census-then-ratchet, **ceiling 564** across the kernel's
+  `lib/` and `platform/` plus every pack's `src/`; a static's home is its
+  subsystem Api (construction, guards, lookups) or an
+  `platform/idea/api/<X>Logic.ts` logic singleton (domain logic). ⚠ Statics
   inside a mixin factory's returned class expression are out of scope by
   definition — they are reached through the composed host, which is a
   different question. See
