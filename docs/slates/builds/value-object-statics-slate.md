@@ -3,11 +3,14 @@
 > **Status: PARTIAL** — W0 + W1 landed: `lint:lib-statics` is in the
 > derived family at **ceiling 564**, and the projection now says out loud
 > what it drops
-> **Left:** ✅ rung 2 done (27 private + 4 `@internal`; ceiling 563 →
-> **532**) · **rungs 3/4: the 464 with a production caller**, moved onto
-> that caller or to the owning system's Api · the ratchet to 0. ⭐ Not one
-> new Api is needed; the single Api change in the homeless set is
-> `Lock` → `BoundaryApi`.
+> **Left:** ✅ rungs 2–3 done (27 `private`, 4 + 25 classes `@internal`;
+> ceiling 563 → **464**) · **the real remainder is 123, not 464**: 44
+> world-SUBJECT statics that want to be instance methods on the host
+> (`lint:object-verbs`' rule), and 79 world-REACH ones that are a genuine
+> Api question. ⚠ The other 341 are type-level and the 71 ActiveRecord
+> finders belong on their record class — see § Rung 4. ⭐ Not one new Api
+> is needed; the single Api change in the homeless set is `Lock` →
+> `BoundaryApi`.
 > **Size:** a build — 564 statics
 
 **Raised by:** the user, reviewing MR !255, 2026-09-11
@@ -321,3 +324,60 @@ covers it without a rename.
 4. **Rung 4, the 126** — the only bucket with judgment in it, and the only
    one that can touch an Api's mandate. `Lock` → `BoundaryApi` is the
    exemplar.
+
+---
+
+# ⭐⭐⭐ Rung 4, and what the sweep turned out to be measuring
+
+Rung 4 was sized at 136 statics needing an Api. **It is 79.** Getting
+there found three shapes that **cannot** move, and each was found by
+almost breaking something.
+
+## The three irreducible shapes
+
+| shape | why it cannot move | found by |
+|---|---|---|
+| **type-predicate narrowing** — `MixinApi.isX(o): o is Stuff & X` | a TS type predicate must NAME its type, so the narrowing that makes it worth having is exactly what forbids a generic. 156 of them. | reading `MixinApi`'s 175 |
+| **framework-reflective contract** — `cleanupOnDestruct`, `fieldMeta`, `captureSlice` | reached by `hasOwnProperty`, never imported. Looks dead to every grep. | `Warren.cleanupOnDestruct` nearly made `private` |
+| ⭐ **polymorphic `this`** — `Document.find<T>(this: DocumentConstructor & {new(): T})` | `User.find()` returns `User[]` because `this` carries the subclass. An Api static cannot know the subclass without being handed the constructor — which `this` is already doing. | `tsc`, after 60 statics were wrongly privatised |
+
+## ⭐⭐ And a fourth: a record class's finders belong to the record class
+
+**71 of the remaining 464 statics are ActiveRecord finders on `Document`
+subclasses** — `Template`, `StoredDocument`, `ChattelRecord`,
+`ParcelRecord`, `AccountBalance`, `SupplyAggregate`, `RenownStanding`,
+`DescriptorBank` — covering **523 caller files**.
+
+They are not the antipattern. `TemplateApi`'s own docstring already
+records the split as deliberate: *"Templates themselves are modelled as
+`Template extends Document` — the standard CRUD surface lives there,
+alongside the `findByPath` and `findDescendants` helpers. This Api class
+layers on…"*. And `Template.findByPath` exists **precisely because**
+`Document.find`'s polymorphic `this` cannot serve an abstract base — it is
+the documented workaround for the irreducible shape above.
+
+⭐ Under the governing test — *would a reader look for it here?* — you look
+for **how do I find a Template** on `Template`. Moving these would scatter
+record materialization away from the record, contradict a documented
+decision, and rewrite ~500 call sites for nothing an author can see.
+
+## ⚠⚠ What the ratchet is actually counting now
+
+W2 admitted every public static on a value class into the author surface
+as a `value-static`. **So as of W2, none of them is invisible any more** —
+the breach the census was built to measure was closed by making them
+visible, not by moving them.
+
+The number therefore stopped meaning *"breaches of `callable == visible`"*
+and started meaning *"statics we still intend to relocate on OO grounds"*.
+That is a weaker and more debatable claim, and the gate should say so
+rather than implying the old one. **The honest remaining target is 123:**
+
+- **44 WORLD-subject** — the first parameter is a world object, so
+  `lint:object-verbs`' rule applies and they want to be **instance methods
+  on the host** (`Freshness.loadOf(slot)` → `slot.freshnessLoad()`).
+- **79 WORLD-reach** — async or registry-reaching, not on a record class:
+  a genuine Api question, case by case.
+
+Everything else — 341 type-level, 71 record finders, plus the framework
+and narrowing shapes — **is where it belongs**.
