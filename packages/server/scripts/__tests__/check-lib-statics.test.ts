@@ -128,13 +128,17 @@ describe('publicStaticsOf', () => {
     expect(statics(body)).toEqual([]);
   });
 
-  it('refuses the three framework declaration statics', () => {
+  it('⚠ refuses every framework static reached reflectively by name', () => {
     const body = [
       '  static fieldMeta(): void {}',
       '  static subscribableFields(): void {}',
       '  static markupAugmenters(): void {}',
+      '  static cleanupOnDestruct(): void {}',
       '  static real(): void {}',
     ].join('\n');
+    // `cleanupOnDestruct` is found by StuffApi with hasOwnProperty, not
+    // by an import — counting it as movable would have made it a
+    // candidate for `private`, silently breaking destruct cleanup.
     expect(statics(body)).toEqual(['real']);
   });
 
@@ -161,6 +165,6 @@ describe('publicStaticsOf', () => {
 
 describe('the ratchet', () => {
   it('⭐ holds a ceiling that may fall and may never rise', () => {
-    expect(LIB_STATICS_CEILING).toBe(564);
+    expect(LIB_STATICS_CEILING).toBe(563);
   });
 });

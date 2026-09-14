@@ -55,9 +55,8 @@
  *     intent, and the projection agrees;
  *   - `static readonly` fields and `_`-prefixed slots — data and
  *     framework seams, not a calling surface;
- *   - the three framework declaration statics the Hydrator and the
- *     wire read by name (`fieldMeta`, `subscribableFields`,
- *     `markupAugmenters`);
+ *   - the framework declaration statics reached reflectively by name
+ *     (`FRAMEWORK` below) — they can never move and are not surface;
  *   - ⚠ **statics inside a mixin factory's returned class expression.**
  *     They are equally invisible, but a mixin's statics are reached
  *     through the composed host and rehoming them is a different
@@ -92,13 +91,36 @@ const REPO_ROOT = join(MUD, '../../../..');
  * visibility, not about which directory a class sits in. **564.**
  * Lowering it is the sweep's whole job.
  */
-export const LIB_STATICS_CEILING = 564;
+export const LIB_STATICS_CEILING = 563;
 
 const STATIC =
   /^\s*(?:public\s+)?static\s+(?:async\s+)?(?!readonly\b|get\b|set\b|_)([a-zA-Z]\w*)\s*[(<]/;
 
-/** Declaration statics the framework reads by name — data, not surface. */
-const FRAMEWORK = new Set(['fieldMeta', 'subscribableFields', 'markupAugmenters']);
+/**
+ * Statics the framework reaches **by name**, reflectively — so they can
+ * never move, and they are not author surface either. They are the
+ * mixin-side equivalent of an `@hook`: the class declares them and the
+ * framework calls them.
+ *
+ * ⚠ The full set is found by grepping the framework for reflective
+ * access (`hasOwnProperty.call(c, '…')`): `fieldMeta` ·
+ * `subscribableFields` · `markupAugmenters` · `cleanupOnDestruct` ·
+ * `captureSlice` · `restoreSlice` · `settings`. The last three are
+ * declared inside mixin factories, which this census already excludes,
+ * so only the first four can reach it. ⭐ `cleanupOnDestruct` was being
+ * counted as a movable static — making it private would have silently
+ * broken destruct cleanup, because `StuffApi` finds it with
+ * `hasOwnProperty`, not with an import.
+ */
+const FRAMEWORK = new Set([
+  'fieldMeta',
+  'subscribableFields',
+  'markupAugmenters',
+  'cleanupOnDestruct',
+  'captureSlice',
+  'restoreSlice',
+  'settings',
+]);
 
 export interface StaticRow {
   file: string;
