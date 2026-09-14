@@ -41,7 +41,7 @@ interface RecipeLookup {
 
 export class BlendIdentity {
   /** The recipe that made this blend, or `null` — most bulk has none. */
-  public static recipeOf(payload: BulkPayload | null): Recipe | null {
+  private static recipeOf(payload: BulkPayload | null): Recipe | null {
     const id = payload?.recipeId;
     if (!id) return null;
     const catalogue = StuffApi.findByTemplatePath<Stuff>(CATALOGUE_PATH);

@@ -318,7 +318,7 @@ export class Freshness {
    * ⚠ It used to be a flat dial, so every temperature above 60 °C killed
    * at exactly the same speed and boiling was no better than warming.
    */
-  public static killRatePerHourAt(tempK: number): number {
+  private static killRatePerHourAt(tempK: number): number {
     const killK = dial(AppSettingKeys.freshnessKillK, FRESHNESS_DEFAULTS.KILL_K);
     const base = dial(
       AppSettingKeys.freshnessKillRatePerHour,
@@ -440,7 +440,7 @@ export class Freshness {
    * Writing a faithful shadow is therefore a no-op in meaning and the one
    * honest way to say "*this* batch has been out since Tuesday".
    */
-  public static materialShadow(_material: Material | null): BulkPayload {
+  private static materialShadow(_material: Material | null): BulkPayload {
     // ⭐⭐ **Empty, now — and that is the whole decomposition in one
     // function.** This used to copy the Material's name, appearance,
     // keywords, tags, nutrition, amounts, toxins and edibility, because a

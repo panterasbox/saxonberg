@@ -64,7 +64,7 @@ export class BlendLabel {
    * puddle, a material shadow — which is what makes the `blend` fallback
    * on every reader below the honest answer rather than a guard.
    */
-  public static ingredientsOf(payload: BulkPayload | null): Material[] {
+  private static ingredientsOf(payload: BulkPayload | null): Material[] {
     const composition: readonly BlendPart[] = payload?.composition ?? [];
     const out: Material[] = [];
     for (const part of composition) {

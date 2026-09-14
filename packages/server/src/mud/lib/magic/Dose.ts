@@ -60,7 +60,7 @@ export class Dose {
   };
 
   /** Narrowing predicate for the response vocabulary. */
-  public static isResponse(s: unknown): s is DoseResponse {
+  static isResponse(s: unknown): s is DoseResponse {
     return (
       typeof s === 'string' && (DOSE_RESPONSES as readonly string[]).includes(s)
     );

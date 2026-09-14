@@ -126,7 +126,7 @@ export class Reserve {
    * effects feed the derived condition band (a floored reserve
    * degrades the body).
    */
-  public static defaultBiological(): Record<string, ReserveStored> {
+  static defaultBiological(): Record<string, ReserveStored> {
     const full = (floorEffect: string): ReserveStored => ({
       capacityValue: 100,
       currentValue: 100,

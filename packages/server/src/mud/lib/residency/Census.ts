@@ -116,7 +116,7 @@ export class Census {
    * unplaced region rather than being dropped: uncounted stock is worse
    * than miscounted stock, because it is invisible to the backoff.
    */
-  public static async regionOf(stuff: Stuff): Promise<string> {
+  private static async regionOf(stuff: Stuff): Promise<string> {
     const path =
       (MixinApi.isContainable(stuff)
         ? (stuff.getContainer()?.getTemplatePath() ?? null)

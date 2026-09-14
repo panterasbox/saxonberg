@@ -264,7 +264,7 @@ export class Contamination {
   }
 
   /** Integrate every population in a map over one span. */
-  public static advanceAll(
+  static advanceAll(
     loads: PathogenLoads,
     elapsedS: number,
     tempK: number,
@@ -466,7 +466,7 @@ export class Contamination {
   }
 
   /** The effective water activity of a host's matter (material × cure). */
-  public static hostWaterActivity(host: Stuff): number {
+  static hostWaterActivity(host: Stuff): number {
     const material: Material | null = MixinApi.isTangible(host)
       ? host.getMaterial()
       : null;
@@ -527,7 +527,7 @@ export class Contamination {
   }
 
   /** The effective water activity of what a slot holds. */
-  public static slotWaterActivity(slot: BulkSlot): number {
+  private static slotWaterActivity(slot: BulkSlot): number {
     const material = slot.getMaterial();
     if (!material) return 1;
     const payload = slot.getPayload();

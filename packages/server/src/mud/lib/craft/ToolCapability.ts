@@ -76,7 +76,7 @@ export class ToolCapabilities {
   public static readonly RATE_MAX = 10;
 
   /** A well-formed capability name: a non-empty kebab token. */
-  public static isCapabilityName(s: unknown): s is string {
+  static isCapabilityName(s: unknown): s is string {
     return typeof s === 'string' && /^[a-z][a-z0-9-]*$/.test(s);
   }
 

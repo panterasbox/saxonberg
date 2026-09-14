@@ -180,13 +180,13 @@ export class Cure {
   }
 
   /** Whether a state is the untreated identity (nothing to say, nothing to store). */
-  public static isUntreated(cure: CureState | null | undefined): boolean {
+  static isUntreated(cure: CureState | null | undefined): boolean {
     if (!cure) return true;
     return cure.moisture >= 1 && cure.solute <= 0;
   }
 
   /** A payload's water state, or `null` when it carries none. */
-  public static stateOf(payload: BulkPayload | null | undefined): CureState | null {
+  private static stateOf(payload: BulkPayload | null | undefined): CureState | null {
     const cure = payload?.cure;
     if (!cure) return null;
     return {
@@ -289,7 +289,7 @@ export class Cure {
    * authored overrides and biome defaults exactly as the full resolve
    * does, and skips only the zone tier and the weather deviation.
    */
-  public static ambientHumidityOf(host: Stuff): number {
+  static ambientHumidityOf(host: Stuff): number {
     if (MixinApi.isContainable(host)) {
       const where = host.getContainer();
       if (where !== null && MixinApi.isContainer(where)) {

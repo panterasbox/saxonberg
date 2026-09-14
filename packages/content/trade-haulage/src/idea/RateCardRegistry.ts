@@ -195,7 +195,7 @@ export default class RateCardRegistry extends Idea {
   }
 
   /** See {@link RateCardRegistry.quote} — the selection rule, exposed for a reader. */
-  public static bestLine(
+  private static bestLine(
     card: RateCard,
     from: string,
     to: string,

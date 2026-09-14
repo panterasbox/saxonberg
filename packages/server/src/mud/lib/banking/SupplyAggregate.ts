@@ -88,7 +88,7 @@ export default class SupplyAggregate extends Document {
   }
 
   /** Every warmed row, by currency — what per-currency reports iterate. */
-  static allCached(): Map<string, { minted: number; drained: number }> {
+  private static allCached(): Map<string, { minted: number; drained: number }> {
     return new Map(SupplyAggregate._cache);
   }
 

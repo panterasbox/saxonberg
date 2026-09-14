@@ -165,6 +165,6 @@ describe('publicStaticsOf', () => {
 
 describe('the ratchet', () => {
   it('⭐ holds a ceiling that may fall and may never rise', () => {
-    expect(LIB_STATICS_CEILING).toBe(563);
+    expect(LIB_STATICS_CEILING).toBe(536);
   });
 });

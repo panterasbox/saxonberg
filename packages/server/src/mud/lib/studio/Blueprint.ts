@@ -112,7 +112,7 @@ export class Blueprint extends Document {
     return Blueprint.curatedData(doc.getData());
   }
 
-  static curatedData(data: Record<string, unknown>): CuratedBlueprintData {
+  private static curatedData(data: Record<string, unknown>): CuratedBlueprintData {
     if (typeof data.blueprintId !== 'string' || !data.blueprintId) {
       throw new Error(`Blueprint: curated document is missing 'blueprintId'`);
     }

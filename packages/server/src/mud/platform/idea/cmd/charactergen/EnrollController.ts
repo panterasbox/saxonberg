@@ -810,7 +810,7 @@ export default class EnrollController extends CommandController<EnrollModel> {
    * off the Species). Idempotent. Tolerant — an unresolved species just
    * gets no card.
    */
-  static async ensureSpeciesCards(cfg: CharGenConfig): Promise<void> {
+  private static async ensureSpeciesCards(cfg: CharGenConfig): Promise<void> {
     if (EnrollController.#speciesCards) return;
     const cards = new Map<
       string,

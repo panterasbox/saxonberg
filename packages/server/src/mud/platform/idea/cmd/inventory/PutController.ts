@@ -271,7 +271,7 @@ export default class PutController extends CommandController<PutModel> {
    *
    * Static so it stays unit-testable without a free-floating export.
    */
-  static openSlotFor(target: Stuff, item: Stuff): string | null {
+  private static openSlotFor(target: Stuff, item: Stuff): string | null {
     if (!MixinApi.isSlotted(target) || MixinApi.isVitals(target)) return null;
     if (!MixinApi.isSlottable(item)) return null;
     for (const name of target.getSlotNames()) {

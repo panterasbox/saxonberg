@@ -249,7 +249,7 @@ export default class GroundCharacter extends Idea {
    * learns to read one property off another would be learning a
    * falsehood.
    */
-  public static procedural(at: Spot, seed: number): GroundSample {
+  static procedural(at: Spot, seed: number): GroundSample {
     const key = spotKey(at);
     const h = hashString(key);
 

@@ -81,7 +81,7 @@ export class Techniques {
   public static readonly BUILT = 'built';
 
   /** The neutral effect — a built drink, and the fallback everywhere. */
-  public static neutral(): TechniqueEffect {
+  static neutral(): TechniqueEffect {
     return { ...NEUTRAL };
   }
 
@@ -91,7 +91,7 @@ export class Techniques {
   }
 
   /** Fill a spec's absent numbers with the neutral ones. */
-  public static effectOf(spec: TechniqueSpec): TechniqueEffect {
+  private static effectOf(spec: TechniqueSpec): TechniqueEffect {
     return {
       chillK: spec.chillK ?? NEUTRAL.chillK,
       dilutionL: spec.dilutionL ?? NEUTRAL.dilutionL,

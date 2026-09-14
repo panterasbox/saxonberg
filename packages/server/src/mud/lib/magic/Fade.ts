@@ -160,7 +160,7 @@ export class Fade {
   }
 
   /** Is this sharpness low enough to read as a bad copy? */
-  public static isHazy(sharpness: number): boolean {
+  private static isHazy(sharpness: number): boolean {
     return sharpness < FADE_DEFAULTS.DEFECTIVE_BELOW;
   }
 

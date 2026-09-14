@@ -408,7 +408,7 @@ export class Construction {
   }
 
   /** The registered spec for a fabric form, or `null`. */
-  public static fabric(key: string): FabricSpec | null {
+  static fabric(key: string): FabricSpec | null {
     return FABRICS.get(key) ?? null;
   }
 

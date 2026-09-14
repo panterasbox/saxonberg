@@ -184,7 +184,7 @@ export class Appearance {
    * it is a gentle onramp: you learn the new descriptor while the old is
    * still around.
    */
-  public static effectiveGeneration(
+  private static effectiveGeneration(
     generation: number,
     progress: number,
     seed: string,

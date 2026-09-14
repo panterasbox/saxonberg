@@ -68,7 +68,7 @@ export class CategoryMeasure {
   }
 
   /** Whether `item` HOLDS the category as interior bulk (a bottle of gin). */
-  public static holds(item: Stuff, category: string): boolean {
+  private static holds(item: Stuff, category: string): boolean {
     if (!MixinApi.isBulkable(item) || !item.hasInteriorBulk()) return false;
     return item.getBulkMaterial('interior')?.hasTag(category) ?? false;
   }

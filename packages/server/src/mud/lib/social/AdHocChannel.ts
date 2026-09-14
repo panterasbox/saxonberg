@@ -44,7 +44,7 @@ export class AdHocChannel {
    * conversation [pXkJh2]"). 6 chars of nanoid alphabet ≈ 6e10
    * combinations — comfortable for ephemeral lifetimes.
    */
-  static generateHandle(): string {
+  private static generateHandle(): string {
     return SecurityApi.uuid(6);
   }
 }

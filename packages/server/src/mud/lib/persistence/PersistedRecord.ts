@@ -93,7 +93,7 @@ export class PersistedRecord extends Document {
   }
 
   /** Every record a principal owns (the account-deletion cascade input). */
-  static async findByOwner(owner: string): Promise<PersistedRecord[]> {
+  private static async findByOwner(owner: string): Promise<PersistedRecord[]> {
     return PersistedRecord.find<PersistedRecord>({ owner });
   }
 

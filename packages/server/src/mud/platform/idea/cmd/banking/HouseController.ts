@@ -253,7 +253,7 @@ export default class HouseController extends BankingControllerBase<HouseModel> {
     return screen;
   }
 
-  static renderSheet(house: string, sheet: readonly StockSheetLine[]): string {
+  private static renderSheet(house: string, sheet: readonly StockSheetLine[]): string {
     if (sheet.length === 0) return `${house} keeps no par sheet yet — \`house par <category> <level>\` starts one.`;
     const lines = sheet.map(({ line, onHand, shortfall }) => {
       const short = shortfall > 0 ? ` — short ${String(shortfall)}` : "";

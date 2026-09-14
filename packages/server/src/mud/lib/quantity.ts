@@ -723,7 +723,7 @@ export class Quantity<U extends Unit> {
    * `unit` when no `scaleName` is passed. Throws if the scale
    * isn't registered for that unit.
    */
-  public static setDefaultScale(
+  private static setDefaultScale(
     unit: Unit,
     scaleName: ScaleName
   ): void {
