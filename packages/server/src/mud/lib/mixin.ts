@@ -290,6 +290,11 @@ export const Mixins = {
   Perceiver: 'PerceiverMixin',
   Scryable: 'ScryableMixin',
   Slotted: 'SlottedMixin',
+  // The body-plan half of `Slotted` — a host whose slot set is DERIVED
+  // from its anatomy rather than authored. Registered here like every
+  // other name: the const is the single source of truth, and a mixin
+  // missing from it cannot be named by a `requires:` however real it is.
+  BodyPlanSlots: 'BodyPlanSlotsMixin',
   Attired: 'AttiredMixin',
   Slottable: 'SlottableMixin',
   Wearable: 'WearableMixin',
@@ -299,6 +304,8 @@ export const Mixins = {
   Posed: 'PosedMixin',
   Mountable: 'MountableMixin',
   Drivable: 'DrivableMixin',
+  // Drivable from a seat you occupy — the cart's driver, not the reins.
+  SeatedDrivable: 'SeatedDrivableMixin',
   Climbable: 'ClimbableMixin',
   Swimmable: 'SwimmableMixin',
   Flyable: 'FlyableMixin',

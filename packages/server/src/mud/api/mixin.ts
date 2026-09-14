@@ -20,7 +20,7 @@
  */
 
 import type { MixinName, FieldMeta } from '../lib/mixin';
-import { Mixins } from '../lib/mixin';
+import { Mixins, MixinRefusals } from '../lib/mixin';
 import type { Stuff } from '../lib/stuff/Stuff';
 import type { SettingsSchemaEntry } from '../lib/shell/Environment';
 import type { Container } from '../lib/spatial/Container';
@@ -203,6 +203,30 @@ export type { FieldMeta, FieldMetaEntry } from '../lib/mixin';
 // eslint-disable-next-line @typescript-eslint/ban-types
 export type AnyConstructor = Function & { prototype: unknown };
 
+/**
+ * A mixin name from anywhere in the **federated** namespace: the
+ * kernel's {@link MixinName} union, or a capability pack's own
+ * `_mixinName`.
+ *
+ * ⚠⚠ **Why this is not just `MixinName`.** `MixinName` is derived from
+ * the `Mixins` const, which a pack may not edit — so as a *vocabulary*
+ * it is structurally incomplete, and typing a name parameter with it
+ * made a pack's honest question about its own mixin a compile error.
+ * Packs worked around it with a local const and no call site
+ * (`IMPROVABLE_MIXIN`, `MANA_POWERED_MIXIN`, `WORKING_MIXIN` are each
+ * declared, documented — and unused).
+ *
+ * ⭐ `string & {}` keeps editor completion on the kernel's 169 names
+ * while admitting a pack's. What it gives up is the compiler catching a
+ * typo, and that check did not disappear — it moved to
+ * `pnpm lint:mixin-names`, which reads every `_mixinName` on disk and so
+ * can see what the type system never will. Same move as `requires:`:
+ * **when the type system cannot see packs, the gate owns the
+ * namespace.**
+ */
+// eslint-disable-next-line @typescript-eslint/ban-types
+export type AnyMixinName = MixinName | (string & {});
+
 /** Shape of a mixin constructor — what queryMixins() returns elements of. */
 /**
  * One entry from {@link MixinApi.getPersistenceContributors}: a
@@ -225,6 +249,15 @@ export interface PersistenceContributor {
 
 interface MixinClass {
   _mixinName?: string;
+  /**
+   * ⭐ How this mixin refuses, in the player's words — the pack-side
+   * half of {@link MixinRefusals}. A kernel mixin's phrase lives in that
+   * map; a PACK's mixin cannot edit it, so it declares the sentence
+   * beside its name and {@link MixinApi.refusalFor} reads whichever
+   * exists. `{}` is the target's `getPresentation()`, exactly as in the
+   * kernel map.
+   */
+  _mixinRefusal?: string;
   name?: string;
   /** The unified field-metadata static. Was four parallel statics. */
   fieldMeta?: FieldMeta;
@@ -321,6 +354,115 @@ export class MixinApi {
   }
 
   /**
+   * ⭐⭐ **The declared-mixin registry — the federated half of the mixin
+   * namespace.**
+   *
+   * The kernel's {@link Mixins} const is a compile-time list, and for a
+   * long time it was also the *only* answer to "is this a real mixin?".
+   * That made one thing impossible: a **capability pack could not name
+   * its own mixin in a `requires:`**, because the validator checked
+   * `Object.values(Mixins)` and a pack may not edit a kernel list. The
+   * runtime was never the problem — {@link queryMixins} walks the
+   * prototype chain reading `_mixinName` and has never consulted the
+   * const, which is why MQL's `[mixin.ShipmentDeskMixin]` has always
+   * resolved a pack mixin. Only *validation* was kernel-bound.
+   *
+   * So the namespace has a second half, filled by `PackApi` at pack
+   * **discovery** from each pack's `src/` — every `static _mixinName` it
+   * declares, and the `static _mixinRefusal` beside it.
+   *
+   * ⚠⚠ **Discovery, not install, and that is load-bearing.** The first
+   * cut registered at install time by walking `queryMixins` over each
+   * class a pack's rows name — authoritative, and too late: the offline
+   * command preload (a unit test, a stripped boot) parses every pack's
+   * command views with nothing installed, so `ship.yaml`'s honest
+   * `requires: [ShipmentDeskMixin]` failed to load. Discovery runs
+   * first, always, and sees every declaration rather than only the
+   * composed ones.
+   *
+   * ⚠ The kernel names are NOT copied in: {@link isDeclaredMixin} reads
+   * the const directly, so there is one truth per half and no
+   * synchronisation to get wrong.
+   *
+   * ⚠ **The namespace is flat, and this makes the collisions visible.**
+   * Two packs may declare the same `_mixinName` and the second would
+   * silently take the first's refusal phrase. `pnpm lint:mixin-names` is
+   * the gate that refuses that at build time — it also refuses a
+   * declaration it cannot read, which is what stops the reader
+   * undercounting in silence. The day it fires on a real collision is
+   * the day path-addressed mixins stop being over-engineering
+   * (`docs/slates/builds/content-packs-slate.md` § RESOLVED).
+   */
+  static #declaredMixins = new Map<
+    string,
+    { refusal?: string; source?: string }
+  >();
+
+  /**
+   * Record a capability pack's mixin as nameable.
+   *
+   * Called by `PackApi` for each `_mixinName` declared under a
+   * discovered pack's `src/`. Idempotent; a name already recorded keeps
+   * its first refusal phrase, and `lint:mixin-names` reports the
+   * collision that made two registrations happen.
+   *
+   * @param name - the declared `_mixinName`
+   * @param refusal - its `_mixinRefusal`, when it declares one
+   * @param source - the pack id, for the collision report
+   * @returns whether this call was the one that recorded it
+   */
+  public static registerPackMixin(
+    name: string,
+    refusal?: string,
+    source?: string,
+  ): boolean {
+    if (name.length === 0 || MixinApi.#declaredMixins.has(name)) return false;
+    MixinApi.#declaredMixins.set(name, { refusal, source });
+    return true;
+  }
+
+  /**
+   * Is `name` a mixin anything has actually declared — the kernel's
+   * registry, or a discovered pack's `src/`?
+   *
+   * This is the check a `requires:` declaration is validated against. It
+   * answers `false` for a typo, which is the whole point of the
+   * mechanism, and `true` for a pack's own mixin, which is what it could
+   * never do before.
+   */
+  public static isDeclaredMixin(name: string): boolean {
+    if ((Object.values(Mixins) as string[]).includes(name)) return true;
+    return MixinApi.#declaredMixins.has(name);
+  }
+
+  /**
+   * The player-facing refusal sentence for a mixin, or `undefined` when
+   * nobody wrote one.
+   *
+   * A pack's own `static _mixinRefusal` wins for a pack mixin; the
+   * kernel's {@link MixinRefusals} map answers for a kernel one. A
+   * caller with neither should fall back to a usable generic sentence
+   * rather than a placeholder — worse copy, never a broken verb.
+   */
+  public static refusalFor(name: string): string | undefined {
+    const declared = MixinApi.#declaredMixins.get(name);
+    if (declared?.refusal !== undefined) return declared.refusal;
+    return MixinRefusals[name as MixinName];
+  }
+
+  /**
+   * Every mixin name a discovered pack declares, with where it came
+   * from. The kernel's own names are not included — they are
+   * {@link Mixins}. For reports and boot lines.
+   */
+  public static declaredPackMixins(): ReadonlyMap<
+    string,
+    { refusal?: string; source?: string }
+  > {
+    return new Map(MixinApi.#declaredMixins);
+  }
+
+  /**
    * Get all persistent fields from mixins applied to a class.
    * Walks the prototype chain collecting fields from all mixins.
    *
@@ -375,12 +517,12 @@ export class MixinApi {
    */
   public static hasMixin(
     constructor: AnyConstructor,
-    mixinName: MixinName
+    mixinName: AnyMixinName
   ): boolean;
-  public static hasMixin(host: Stuff, mixinName: MixinName): boolean;
+  public static hasMixin(host: Stuff, mixinName: AnyMixinName): boolean;
   public static hasMixin(
     arg: AnyConstructor | Stuff,
-    mixinName: MixinName
+    mixinName: AnyMixinName
   ): boolean {
     // A predicate's honest answer for a null/undefined host is `false`
     // — asked most often through the `isX` narrowers, whose callers may
@@ -412,7 +554,7 @@ export class MixinApi {
 
   static #hasMixinOnConstructor(
     constructor: AnyConstructor,
-    mixinName: MixinName
+    mixinName: AnyMixinName
   ): boolean {
     for (const mixin of MixinApi.#composedMixins(constructor)) {
       const name = mixin._mixinName || mixin.name;

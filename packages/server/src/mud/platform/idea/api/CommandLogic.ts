@@ -51,7 +51,7 @@ import {
 } from '../../../api/mql';
 import { CompactApi } from '../../../api/compact';
 import { MixinApi } from '../../../api/mixin';
-import { Mixins, MixinRefusals, type MixinName } from '../../../lib/mixin';
+import { type MixinName } from '../../../lib/mixin';
 import { PerceptionApi } from '../../../api/perception';
 import { AccessApi } from '../../../api/access';
 import { GroupApi } from '../../../api/group';
@@ -2666,12 +2666,21 @@ const CLASS_REQUIREMENTS: Record<
  * terms at all, which is how "deliberately unconstrained" ends up
  * costing nothing at dispatch.
  *
- * ⚠ Throws on a name that isn't in the {@link Mixins} registry. That
- * throw is the point of the whole mechanism — it is what makes a
- * declaration *checkable* where the `targetKind: 'any'` marker it
- * replaced was only an assertion. It fires at spec-load, so a typo is a
- * boot failure and a lint failure, never a validator that silently
- * never fires.
+ * ⚠ Throws on a name no mixin has declared. That throw is the point of
+ * the whole mechanism — it is what makes a declaration *checkable*
+ * where the `targetKind: 'any'` marker it replaced was only an
+ * assertion. It fires at spec-load, so a typo is a boot failure and a
+ * lint failure, never a validator that silently never fires.
+ *
+ * ⭐ **The name space is federated, not kernel-only.** It used to be
+ * `Object.values(Mixins)` — a compile-time const a capability pack may
+ * not edit — which meant a pack could ship a mixin, compose it, and
+ * then be unable to NAME it in its own command view. The runtime never
+ * had that limit (`queryMixins` reads `_mixinName` off the chain and
+ * MQL's `[mixin.X]` has always matched a pack mixin), so the fix was to
+ * ask the same walk: `MixinApi.isDeclaredMixin` answers for the kernel
+ * registry AND for every mixin an installed pack's classes compose.
+ * `pnpm lint:mixin-names` holds the flat namespace honest.
  *
  * An alternation reports its FIRST member's phrase: the alternation
  * exists because the members are the same idea from two directions
@@ -2688,7 +2697,6 @@ async function parseRequirement(
 ): Promise<RequirementTerm[]> {
   if (requires === 'any') return [];
   const entries = Array.isArray(requires) ? requires : [requires];
-  const known = new Set<string>(Object.values(Mixins));
   const terms: RequirementTerm[] = [];
   for (const entry of entries) {
     const names = String(entry)
@@ -2725,10 +2733,11 @@ async function parseRequirement(
     }
 
     for (const name of names) {
-      if (!known.has(name)) {
+      if (!MixinApi.isDeclaredMixin(name)) {
         throw new Error(
           `${where}: \`requires: ${name}\` is not a mixin — ` +
-            `no such entry in the Mixins registry (lib/mixin.ts)`,
+            `no such entry in the Mixins registry (lib/mixin.ts), and no ` +
+            `installed pack composes a class declaring it`,
         );
       }
     }
@@ -2739,7 +2748,7 @@ async function parseRequirement(
       // The fallback is deliberately usable rather than a placeholder:
       // a mixin with no authored phrase is worse copy, not a broken
       // verb. `lint:arg-kinds` reports the gap.
-      refusal: MixinRefusals[first] ?? `{} isn't the right kind of thing`,
+      refusal: MixinApi.refusalFor(first) ?? `{} isn't the right kind of thing`,
     });
   }
   return terms;

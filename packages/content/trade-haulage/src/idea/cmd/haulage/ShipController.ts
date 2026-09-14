@@ -32,15 +32,18 @@ import { MixinApi } from '@saxonberg/server/mud/api/mixin';
 import { AddressApi } from '@saxonberg/server/mud/api/address';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import type { Containable } from '@saxonberg/server/mud/lib/spatial/Containable';
-import DepotCounter from '../../../thing/DepotCounter';
-import { MqlApi } from '@saxonberg/server/mud/api/mql';
-import type { ShipmentDesk } from '../../../lib/haulage/ShipmentDesk';
+import {
+  SHIPMENT_DESK_MIXIN,
+  type ShipmentDesk,
+} from '../../../lib/haulage/ShipmentDesk';
 
 const TOPIC = 'act.deed';
 
 interface ShipModel extends CommandModel {
   /** The goods — a discrete thing you are holding or can reach. */
   goods?: MqlOneResult;
+  /** `at <desk>` — the shipping desk; defaults to the one you can reach. */
+  desk?: MqlOneResult;
   /** `to <destination>` — a place name, or a durable path. */
   destination?: string;
   /** `--worth <coin>` — the declared value, for the paper. */
@@ -50,15 +53,19 @@ interface ShipModel extends CommandModel {
 export default class ShipController extends CommandController<ShipModel> {
   async execute(model: ShipModel, context: CommandContext): Promise<void> {
     const giver = context.commandGiver;
-    // ⭐ Bound by the view, not hunted for here.
-    // ⚠ Resolved here, not declared in the view, because a `type: object`
-    // arg must name a capability mixin (`lint:arg-kinds`) and this
-    // class has none — only `DetailedMixin`, which would offer the verb
-    // on every detailed thing. Becomes a declared arg the day it gets one.
-    const desk = (MqlApi.resolveOne('reachable:[mixin.ShipmentDeskMixin]', {
-      commandGiver: context.commandGiver,
-      scope: 'reachable',
-    }).stuff as (Stuff & ShipmentDesk) | null);
+    // ⭐ Bound by the view (`ship.yaml` § desk), not hunted for here.
+    //
+    // It WAS hunted for here — an `MqlApi.resolveOne` on
+    // `reachable:[mixin.ShipmentDeskMixin]`, with a comment saying it
+    // would become a declared arg "the day it gets a capability mixin".
+    // It always had one; what it lacked was a kernel willing to hear the
+    // name. The 2026-09-14 mixin federation fixed that end, and the
+    // declaration replaced the hunt.
+    const bound = model.desk?.stuff ?? null;
+    const desk =
+      bound && MixinApi.hasMixin(bound, SHIPMENT_DESK_MIXIN)
+        ? (bound as Stuff & ShipmentDesk)
+        : null;
     if (!desk) {
       return this.fail(
         context,

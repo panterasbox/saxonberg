@@ -606,7 +606,93 @@ function registerSources(packs: ResolvedPack[]): void {
     for (const ns of namespaceRootsOf(p.manifest)) {
       ModuleApi.registerPackSource(p.srcRoot, ns);
     }
+    registerPackMixins(p);
   }
+}
+
+/**
+ * ⭐⭐ **The mixin-namespace federation, pack side.**
+ *
+ * Every `static _mixinName` a pack declares under its `src/` becomes a
+ * name a `requires:` may use — which is what lets `ship.yaml` say
+ * `requires: [ShipmentDeskMixin]` about a mixin the kernel's `Mixins`
+ * const could never contain and a pack may not edit. The refusal
+ * sentence rides along from the `static _mixinRefusal` beside it, for
+ * the same reason: `MixinRefusals` is a kernel const.
+ *
+ * ⚠ **Here, at discovery, and not at install.** The offline command
+ * preload (a unit test, a stripped boot) parses every pack's command
+ * views with nothing installed; registering at install put the names in
+ * after the only reader that needed them had already thrown. Discovery
+ * runs first in both paths.
+ *
+ * ⚠ **This reads the declaration as TEXT, and so does the gate.** The
+ * runtime alternative — importing each module and walking `queryMixins`
+ * — sees only what an installed pack's rows compose, which is a strict
+ * subset and arrives too late. The declaration site is the truth; this
+ * and `scripts/pack-roots.ts § declaredMixins` are its two readers, kept
+ * honest by `lint:mixin-names`, which FAILS on any declaration it cannot
+ * read rather than quietly counting one fewer.
+ */
+function registerPackMixins(pack: ResolvedPack): void {
+  const src = pack.srcRoot;
+  if (!src) return;
+  for (const file of tsFilesUnder(src)) {
+    let source: string;
+    try {
+      source = readFileSync(file, 'utf8');
+    } catch {
+      continue;
+    }
+    if (!source.includes('_mixinName')) continue;
+    // ⚠ Matched to the SAME quote character it opened with — a class
+    // matching any quote cut `"{} isn't a shipping desk"` at the
+    // apostrophe, which is a truncation that reads as prose.
+    const refusal = /^[ \t]*static\s+(?:override\s+)?_mixinRefusal\s*(?::[^=]+)?=\s*(['"`])((?:\\.|(?!\1)[^\\])*)\1/m
+      .exec(source)?.[2]
+      ?.replace(/\\(.)/g, '$1');
+    // ⚠ Anchored at line start (after indentation) so a TSDoc line
+    // DISCUSSING the static is not read as declaring one — the gate's
+    // reader is anchored the same way, and must stay so.
+    for (const m of source.matchAll(
+      /^[ \t]*static\s+(?:override\s+)?_mixinName\s*(?::[^=]+)?=\s*([^;\n]+)/gm,
+    )) {
+      const name = mixinNameOf((m[1] ?? '').trim(), source);
+      if (name) MixinApi.registerPackMixin(name, refusal, pack.manifest.id);
+    }
+  }
+}
+
+/** A quoted literal, or the value of a same-file `const NAME = '…'`. */
+function mixinNameOf(expr: string, source: string): string | null {
+  const lit = /^['"`]([^'"`]+)['"`]/.exec(expr);
+  if (lit) return lit[1] ?? null;
+  const id = /^[A-Za-z_$][\w$]*/.exec(expr);
+  if (!id) return null;
+  return (
+    new RegExp(
+      `const\\s+${id[0]}\\s*(?::[^=]+)?=\\s*['"\`]([^'"\`]+)['"\`]`,
+    ).exec(source)?.[1] ?? null
+  );
+}
+
+/** Every `.ts` module under a directory, `__tests__` excluded. */
+function tsFilesUnder(dir: string): string[] {
+  if (!existsSync(dir)) return [];
+  const out: string[] = [];
+  const walk = (d: string): void => {
+    for (const entry of readdirSync(d, { withFileTypes: true })) {
+      const full = join(d, entry.name);
+      if (entry.isDirectory()) {
+        if (entry.name === '__tests__' || entry.name === 'node_modules') continue;
+        walk(full);
+      } else if (entry.name.endsWith('.ts') && !entry.name.endsWith('.d.ts')) {
+        out.push(full);
+      }
+    }
+  };
+  walk(dir);
+  return out;
 }
 
 /**

@@ -77,11 +77,35 @@ export interface ShipmentDesk {
   accept(tender: Tender): Promise<TenderResult>;
 }
 
+/**
+ * The mixin's name.
+ *
+ * ⚠ A pack may not add to the kernel's `Mixins` registry, so a pack
+ * mixin owns its own constant and consumers narrow with
+ * `MixinApi.hasMixin(x, SHIPMENT_DESK_MIXIN)` — the `WorkingMixin` /
+ * `ManaPoweredMixin` shape.
+ */
+export const SHIPMENT_DESK_MIXIN = 'ShipmentDeskMixin';
+
 export function ShipmentDeskMixin<
   TBase extends MixinConstructor<Stuff & Container>,
 >(Base: TBase) {
   return class ShipmentDeskMixin extends Base implements ShipmentDesk {
-    static _mixinName = 'ShipmentDeskMixin';
+    static _mixinName = SHIPMENT_DESK_MIXIN;
+
+    /**
+     * ⭐ The pack's own half of the refusal map.
+     *
+     * `MixinRefusals` in the kernel carries the sentence for a kernel
+     * mixin, and a pack cannot edit it — so a pack mixin that a
+     * `requires:` may name declares its phrase here, and
+     * `MixinApi.refusalFor` reads whichever exists. `{}` is the target's
+     * `getPresentation()`, exactly as in the kernel map.
+     *
+     * The sentence names what the target would have to BE, because
+     * "isn't the right kind of thing" tells nobody where to go.
+     */
+    static _mixinRefusal = "{} isn't a shipping desk";
 
     static fieldMeta: FieldMeta = {
       carrierPath: {

@@ -267,3 +267,149 @@ export function packSrcFiles(srcDir: string): string[] {
   walk(srcDir);
   return out;
 }
+
+/** One `static _mixinName` declaration, and where it was written. */
+export interface MixinDeclaration {
+  /** The declared name (`ShipmentDeskMixin`), or `''` when unresolvable. */
+  name: string;
+  /** The verbatim initializer text, for reporting an unresolvable one. */
+  expr: string;
+  /** Absolute file it was declared in. */
+  file: string;
+  /** The pack id that ships it, or `'kernel'`. */
+  owner: string;
+  /** Its `static _mixinRefusal`, when the declaration carries one. */
+  refusal?: string;
+}
+
+/**
+ * Every `static _mixinName` declared in the kernel tree and in every
+ * pack's `src/` — the flat mixin namespace, read from its one
+ * declaration site.
+ *
+ * ⭐ This is the build-time twin of `MixinApi.registerComposedMixins`,
+ * which fills the same namespace at runtime by walking `queryMixins`
+ * over each class a pack's rows name. They agree because both read
+ * `_mixinName`; they differ in reach, and deliberately — the runtime
+ * knows only what an installed pack composes, while this sees every
+ * declaration on disk, which is what lets `lint:mixin-names` refuse a
+ * collision before anybody boots into it.
+ *
+ * ⚠ A name bound through a module const (`static _mixinName =
+ * WORKING_MIXIN`) is resolved through that same file's `const WORKING_MIXIN
+ * = '…'`, because most pack mixins are written that way. A name that
+ * resolves to neither a literal nor a same-file const is skipped rather
+ * than guessed at.
+ */
+export function declaredMixins(
+  contentDir: string = CONTENT,
+  mudDir: string = MUD,
+): MixinDeclaration[] {
+  const out: MixinDeclaration[] = [];
+  const scan = (file: string, owner: string): void => {
+    const source = readFileSync(file, "utf8");
+    if (!source.includes("_mixinName")) return;
+    for (const m of source.matchAll(
+      // ⚠ Anchored at line start (after indentation) so a TSDoc line
+      // DISCUSSING the static — `* \`static _mixinName = …\`` — is not
+      // read as declaring one. One such comment in `lib/slot/Attired.ts`
+      // was enough to fail the gate on a file that declares it correctly
+      // three lines further down.
+      /^[ \t]*static\s+(?:override\s+)?_mixinName\s*(?::[^=]+)?=\s*([^;\n]+)/gm,
+    )) {
+      const expr = (m[1] ?? "").trim();
+      const name = literalOrConst(expr, source);
+      // ⚠ An expression this reader cannot resolve is REPORTED, never
+      // skipped. Skipping is how a census undercounts in silence, and
+      // this one is load-bearing twice over: the runtime's own reader
+      // (`PackLogic.registerPackMixins`) resolves the same three forms,
+      // so a fourth form would be a mixin nothing could name.
+      out.push({ name: name ?? "", expr, file, owner, refusal: refusalNear(source) });
+    }
+  };
+  for (const file of tsFilesUnder(mudDir)) scan(file, "kernel");
+  for (const pack of packSources(contentDir)) {
+    for (const file of packSrcFiles(pack.srcDir)) scan(file, pack.id);
+  }
+  return out;
+}
+
+/**
+ * A quoted literal, the value of a same-file `const NAME = '…'`, or a
+ * `Mixins.<Key>` member read off the kernel registry.
+ *
+ * ⚠ All three forms are in the tree and the third is the most common in
+ * the kernel (`static _mixinName: string = Mixins.Registrar`). Reading
+ * only literals saw 165 of 167 kernel mixins and called the other two
+ * absent — the kind of quiet undercount a census gate must not ship.
+ */
+function literalOrConst(expr: string, source: string): string | null {
+  const lit = /^['"`]([^'"`]+)['"`]/.exec(expr);
+  if (lit) return lit[1] ?? null;
+  const member = /^Mixins\.([A-Za-z_$][\w$]*)/.exec(expr);
+  if (member) return kernelMixins()[member[1] ?? ""] ?? null;
+  const id = /^[A-Za-z_$][\w$]*/.exec(expr);
+  if (!id) return null;
+  const bound = new RegExp(
+    `const\\s+${id[0]}\\s*(?::[^=]+)?=\\s*['"\`]([^'"\`]+)['"\`]`,
+  ).exec(source);
+  return bound?.[1] ?? null;
+}
+
+let KERNEL_MIXINS: Record<string, string> | null = null;
+
+/**
+ * The kernel's `Mixins` const, read as text from `lib/mixin.ts`.
+ *
+ * Textual rather than imported for the reason the whole file is: a lint
+ * script does not import the mudlib, whose module graph drags in the
+ * runtime it is meant to be checking from outside.
+ */
+function kernelMixins(): Record<string, string> {
+  if (KERNEL_MIXINS) return KERNEL_MIXINS;
+  const out: Record<string, string> = {};
+  const file = join(MUD, "lib", "mixin.ts");
+  if (existsSync(file)) {
+    const body = /export const Mixins = \{([\s\S]*?)\n\} as const;/.exec(
+      readFileSync(file, "utf8"),
+    );
+    for (const m of (body?.[1] ?? "").matchAll(
+      /^\s*([A-Za-z_$][\w$]*)\s*:\s*['"]([^'"]+)['"]/gm,
+    )) {
+      out[m[1] ?? ""] = m[2] ?? "";
+    }
+  }
+  KERNEL_MIXINS = out;
+  return out;
+}
+
+/** The file's `static _mixinRefusal`, if it declares one. */
+function refusalNear(source: string): string | undefined {
+  // ⚠ Matched to the SAME quote character it opened with. A class
+  // matching any quote cut `"{} isn't a shipping desk"` at the
+  // apostrophe and registered `{} isn` — a refusal sentence truncated
+  // mid-word, in the one place a truncation reads as deliberate prose.
+  const m = /^[ \t]*static\s+(?:override\s+)?_mixinRefusal\s*(?::[^=]+)?=\s*(['"`])((?:\\.|(?!\1)[^\\])*)\1/m.exec(
+    source,
+  );
+  return m?.[2]?.replace(/\\(.)/g, "$1");
+}
+
+/** Every `.ts` module under a directory, `__tests__` excluded. */
+function tsFilesUnder(dir: string): string[] {
+  if (!existsSync(dir)) return [];
+  const out: string[] = [];
+  const walk = (d: string): void => {
+    for (const entry of readdirSync(d)) {
+      const full = join(d, entry);
+      if (statSync(full).isDirectory()) {
+        if (entry === "__tests__" || entry === "node_modules") continue;
+        walk(full);
+      } else if (entry.endsWith(".ts") && !entry.endsWith(".d.ts")) {
+        out.push(full);
+      }
+    }
+  };
+  walk(dir);
+  return out;
+}
