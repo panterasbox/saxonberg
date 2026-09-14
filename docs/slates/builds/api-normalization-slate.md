@@ -5,10 +5,10 @@
 > `path-pattern.ts` all still present).
 > **Left:** ⭐ rename `SchedulerApi` → `ActivityApi` · `AttendantApi`'s
 > surface is two test hooks · answer *where a system-less utility lives*
-> before deleting `array`/`path-pattern` · prove the namespace barrel
-> compiles, on the **influence cluster** (five Apis, one `lib/standing/`)
-> · delete `api/identity.ts` (its doctrine is salvaged in Part 6.5) ·
-> split `command` + `banking`
+> before deleting `array`/`path-pattern` · ⭐ **merge** the influence
+> cluster (five Apis, one `lib/standing/`) into one `InfluenceApi`,
+> sized on its merits · delete `api/identity.ts` (⛔ the barrel pattern
+> is retired — 6.5) · split `command` + `banking`
 > **Size:** ⚠ **a build, not a tail** — Part 6 found a five-Api merge and
 > a metric correction; this is no longer opportunistic
 
@@ -478,18 +478,26 @@ name* and *a reader wants few receivers*:
 
 It is recorded here so the file can be deleted without losing it.
 
-⭐ **And the pattern is the answer to 6.2.** `Influence.Renown`,
-`Influence.Producer`, `Influence.Conviction` keeps every system's own name
-— which is the half a merge destroys — while giving a reader one receiver
-to recall. The cluster with one `lib/` directory and five thin Apis is
-exactly the shape the barrel was invented for, and it is a far better
-first customer than `identity` ever was: the identity pilot's three
-members were all retired by the Api OO sweep within months, which is why
-the file is empty and why nobody noticed the pattern had died with them.
+### ⛔ …and the pattern is RETIRED, not revived (user, 2026-09-13)
 
-⚠ The pilot was **inspection-verified, never compile-verified**. Reviving
-it starts with proving it compiles and that the security frame is
-genuinely unchanged, not with adopting it broadly.
+I proposed the barrel as the answer to 6.2. **The user reversed it:**
+
+> *"the idea of having a wrapper api around other apis I changed my mind
+> on, I dont think that helps anything. I do think we probably want a
+> single Api for those things like `InfluenceApi` or something but I
+> dunno. it depends on how big and complex it would be."*
+
+So the influence cluster's answer is a **real merge into one
+`InfluenceApi`**, sized on its merits — 26 statics is above the layer's
+Q3 of 12, so the merge has to be argued, not assumed — and **not** a
+grouping layer. ⭐ The doctrine above is kept as a **record of a road not
+taken**, because the security argument inside it (`decorateApiClass`
+attributes from the defining module, captured at decoration time, never
+the access path) is a true and useful fact about the layer that was only
+ever written down in a file scheduled for deletion.
+
+⚠ The pilot was inspection-verified, never compile-verified. Nothing
+depends on it now.
 
 ## 6.6 Revised order
 
@@ -502,7 +510,9 @@ isolated, cheap, and does not wait for the layer-wide pass:
    behind one.
 3. **Answer 6.3** — where a system-less utility lives. Until that is
    answered, deleting `array`/`path-pattern` just moves the problem.
-4. **Prove the barrel compiles** (6.5) on the influence cluster, which is
-   the pass's real first customer.
+4. **The influence cluster** (6.2) — the pass's real first customer, and
+   now a genuine **merge** question: does one `InfluenceApi` over
+   `lib/standing/` read better than five thin ones? 26 statics is above
+   the layer's Q3, so the answer is not free either way.
 5. Then Part 5, with **cohesion and uniformity** as the split test rather
    than density (6.1).
