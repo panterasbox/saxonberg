@@ -5,8 +5,8 @@ class: /platform/idea/material/Material
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: saffron
+  keywords: [threads, saffron]
   appearance: fine red threads with an orange bloom on them
-  keywords: [saffron, threads]
   density: 300
   specificHeat: 1500
   thermalConductivity: 0.08

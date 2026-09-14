@@ -6,9 +6,9 @@
 class: /platform/thing/equipment/Garment
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: a pair of linen trousers
-  primaryKeyword: trousers
-  keywords: [trousers, breeches, linen]
+  shortDescription: pair of linen trousers
+  keywords: [trousers, breeches, linen, pair]
+  register: indefinite
   longDescription: |
     Straight-legged and plainly finished, with the seams flat-felled so they will outlast whoever bought them.
   slotClaims:

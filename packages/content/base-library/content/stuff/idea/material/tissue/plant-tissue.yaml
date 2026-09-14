@@ -5,6 +5,7 @@ class: /platform/idea/material/Material
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: plant-tissue
+  keywords: [plant-tissue]
   density: 600
   specificHeat: 2500
   thermalConductivity: 0.3

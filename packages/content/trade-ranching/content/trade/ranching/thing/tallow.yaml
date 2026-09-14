@@ -6,9 +6,9 @@
 class: /platform/thing/Provision
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: a pail of fat
-  primaryKeyword: fat
-  keywords: [fat, tallow, suet]
+  shortDescription: pail of fat
+  keywords: [fat, tallow, suet, pail]
+  register: indefinite
   longDescription: >-
     Hard white fat off the kidneys and the loin, cut away clean. It will
     render down to something that keeps for a year and burns for longer.

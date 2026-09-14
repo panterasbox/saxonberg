@@ -8,9 +8,9 @@
 class: /trade/mining/thing/ClaimsRegister
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: the claims register
-  primaryKeyword: register
-  keywords: [register, ledger, book, counter]
+  shortDescription: claims register
+  keywords: [register, ledger, book, counter, claims]
+  register: definite
   longDescription: >-
     A ledger the size of a paving slab, chained to the counter through an
     iron eye let into the boards. Ruled columns: block, date, name, mark.

@@ -3,9 +3,8 @@ class: /platform/idea/material/ConsumableMaterial
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: red wine
+  keywords: [red, wine]
   appearance: "a dark, full red wine"
-  primaryKeyword: red
-  keywords: ["red", "wine"]
   density: 995
   thermalConductivity: 0.5
   specificHeat: 3800

@@ -1,8 +1,9 @@
 class: /platform/thing/equipment/Weapon
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: a steel-tipped spear
-  primaryKeyword: spear
+  shortDescription: steel-tipped spear
+  keywords: [spear, steel-tipped]
+  register: indefinite
   longDescription: >
     A long ash shaft crowned with a leaf-shaped steel head. It keeps a foe
     at the end of its reach — and finds the gaps a shorter blade never

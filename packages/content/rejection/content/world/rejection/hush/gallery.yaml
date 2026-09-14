@@ -7,7 +7,8 @@
 class: /platform/location/SingletonSphericalLocation
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: the Hush
+  shortDescription: Hush
+  register: definite
   primaryKeyword: hush
   keywords: [hush, chamber, cavern]
   longDescription: |

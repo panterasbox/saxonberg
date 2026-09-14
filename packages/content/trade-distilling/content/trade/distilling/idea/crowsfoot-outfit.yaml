@@ -13,6 +13,7 @@ data:
     office: prime-minister
   positions:
     - key: hand
+      noun: hand
       label: running the Crowsfoot outfit's floor
       wageRate: 3
       confers: [MakerMixin]

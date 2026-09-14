@@ -717,8 +717,11 @@ needs the succession answer first. The mechanism is ready — `ageCurve` +
 
 `OrganismMixin` is composed:
 
-- Via `Character` — every Avatar is an Organism. Inserted between
-  `NamedMixin` and `GenderedMixin` in the composition chain.
+- Via `Creature` — every Avatar is an Organism. ⚠ It used to sit between
+  `NamedMixin` and `GenderedMixin`; `NamedMixin` left the creature base
+  on 2026-09-10 (a body is not a somebody — it composes on `CastMixin`
+  and on `Avatar` now), and `PerceptibleMixin` joined it. See
+  [presentation.md](./presentation.md).
 - Via concrete plant/NPC subclasses — a houseplant Thing composes
   Organism on its own class.
 

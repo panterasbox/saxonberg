@@ -5,9 +5,9 @@
 class: /platform/thing/Plant
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: a juniper bush
-  primaryKeyword: "juniper"
+  shortDescription: juniper bush
   keywords: [juniper, bush, plant]
+  register: indefinite
   longDescription: |
     A dense, prickly juniper bush, dusted with berries that take two seasons to decide to ripen.
   _speciesPath: /stuff/idea/species/plantae/tracheophyta/pinopsida/pinales/cupressaceae/juniperus/communis

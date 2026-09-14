@@ -2,10 +2,10 @@
 class: /trade/hospitality/thing/Strainer
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: a hawthorne strainer
-  longDescription: A flat strainer with a coiled spring around its rim.
-  primaryKeyword: strainer
+  shortDescription: hawthorne strainer
   keywords: [strainer, hawthorne]
+  register: indefinite
+  longDescription: A flat strainer with a coiled spring around its rim.
   capabilities: [strainer]
   _materialPath: /stuff/idea/material/element/iron
   mass: 0.1

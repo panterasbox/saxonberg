@@ -7,8 +7,9 @@
 class: /platform/thing/Trap
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: a pressure-plate sweep blade
-  primaryKeyword: blade
+  shortDescription: pressure-plate sweep blade
+  keywords: [blade, pressure-plate, sweep]
+  register: indefinite
   longDescription: |
     A proud flag wired to a blade housed in the wall: tread the flag and the blade sweeps out low on a short arc, edge-on at ankle height — meant to take the legs and put you down, not to kill.
   concealment: subtle

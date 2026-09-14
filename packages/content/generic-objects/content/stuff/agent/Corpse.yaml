@@ -23,8 +23,9 @@
 class: /platform/agent/Corpse
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: a body
-  primaryKeyword: body
+  shortDescription: body
+  keywords: [body]
+  register: indefinite
   longDescription: >-
     A body, gone still. Whatever happened to it is still written on it,
     for as long as anyone cares to look.

@@ -11,8 +11,9 @@
 class: /platform/location/SingletonCartesianLocation
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: the yard gate
-  primaryKeyword: gate
+  shortDescription: yard gate
+  keywords: [gate, yard]
+  register: definite
   alternateNames: [entrance, road, weighbridge, lodge]
   _address: terminus/rejection/road/yard-gate
   _biomePath: /stuff/idea/biome/outdoor/baseline

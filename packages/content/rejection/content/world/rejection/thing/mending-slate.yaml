@@ -13,9 +13,9 @@
 class: /platform/thing/Tariff
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: a mending slate
-  primaryKeyword: mending
+  shortDescription: mending slate
   keywords: [mending, slate, repairs, tariff]
+  register: indefinite
   longDescription: |
     A slate propped against the counter's end, chalked in a hand that gave up on neatness some years ago. MENDING, it says, and a figure. Underneath, smaller: NO CREDIT.
   prices:

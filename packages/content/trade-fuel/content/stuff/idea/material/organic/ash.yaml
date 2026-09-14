@@ -4,6 +4,7 @@ class: /platform/idea/material/Material
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: ash
+  keywords: [ash]
   density: 600
   specificHeat: 840
   thermalConductivity: 0.1

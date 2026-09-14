@@ -12,10 +12,10 @@ class: /platform/idea/material/Material
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: jute
+  keywords: [sacking, jute, hessian, burlap]
   # ⚠ A material must not assert a CONSTRUCTION; hessian is jute WOVEN
   # open, which is the garment's form, not the fibre's nature.
   appearance: coarse tan jute
-  keywords: [jute, hessian, burlap, sacking]
   density: 1450
   thermalConductivity: 0.06
   # Mechanical response (materials-response): MPa / MJ·m⁻³, marshalled.

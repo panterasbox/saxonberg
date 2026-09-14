@@ -27,6 +27,7 @@ data:
     path: /world/newbie-wilds/agent/sellsword
   positions:
     - key: blade
+      noun: blade
       label: taking a side for a while
       wageRate: 0
       confers: []

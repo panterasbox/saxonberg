@@ -3,10 +3,10 @@
 class: /platform/thing/ServingVessel
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: a pint glass
-  longDescription: A nonic pint glass with the bulge below the rim.
-  primaryKeyword: pint
+  shortDescription: pint glass
   keywords: [pint, glass, pint-glass]
+  register: indefinite
+  longDescription: A nonic pint glass with the bulge below the rim.
   category: pint
   interiorBulk: true
   interiorCapacity: 0.57

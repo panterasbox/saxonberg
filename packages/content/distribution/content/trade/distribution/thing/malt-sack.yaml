@@ -10,9 +10,9 @@
 class: /platform/thing/Receptacle
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: a sack of malt
-  primaryKeyword: malt
+  shortDescription: sack of malt
   keywords: [malt, sack, grain, "malt sack", barley]
+  register: indefinite
   longDescription: |
     A stitched jute sack stencilled MALT, heavy and faintly sweet. The grain inside is pale, dry, and crunches underfoot where a seam has leaked.
   interiorBulk: true

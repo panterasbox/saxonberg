@@ -8,8 +8,9 @@
 class: /platform/thing/Trap
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: a covered spike pit
-  primaryKeyword: pit
+  shortDescription: covered spike pit
+  keywords: [pit, covered, spike]
+  register: indefinite
   longDescription: |
     A stone-lined pit floored with old spikes, roofed over with a dressed-board lid dusted to pass for the corridor floor. The lid holds a careful weight and nothing more.
   concealment: hidden

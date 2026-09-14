@@ -15,8 +15,9 @@ data:
   # can explain. A circle is yours; its door is at your place.
   props:
     - /platform/thing/sandbox/wardrobe
-  shortDescription: the bedroom
-  primaryKeyword: bedroom
+  shortDescription: bedroom
+  keywords: [bedroom]
+  register: definite
   ambientIntensity: 25
   ambientColorTemperature: 4200
   longDescription: |

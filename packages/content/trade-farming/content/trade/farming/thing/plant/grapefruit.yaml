@@ -4,9 +4,9 @@
 class: /platform/thing/Plant
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: a grapefruit tree
-  primaryKeyword: "grapefruit tree"
+  shortDescription: grapefruit tree
   keywords: ["grapefruit tree", grapefruit, tree, citrus, plant]
+  register: indefinite
   longDescription: |
     A grapefruit tree, broad-leaved, its fruit hanging in heavy pairs.
   _speciesPath: /stuff/idea/species/plantae/tracheophyta/magnoliopsida/sapindales/rutaceae/citrus/paradisi

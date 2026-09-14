@@ -5,8 +5,9 @@
 class: /platform/location/SingletonCartesianLocation
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: the Seznick House lobby
-  primaryKeyword: lobby
+  shortDescription: Seznick House lobby
+  keywords: [lobby, seznick, house]
+  register: definite
   alternateNames: [hall, entrance]
   _address: terminus/mayfield-row/seznick-house
   ambientIntensity: 45

@@ -8,9 +8,9 @@
 class: /platform/location/FurnishableRoom
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: the kitchen
-  primaryKeyword: kitchen
+  shortDescription: kitchen
   keywords: [kitchen]
+  register: definite
   ambientIntensity: 60
   ambientColorTemperature: 4800
   longDescription: |

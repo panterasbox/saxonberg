@@ -8,8 +8,9 @@
 class: /platform/location/SingletonCartesianLocation
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: the empty flats
-  primaryKeyword: flats
+  shortDescription: empty flats
+  keywords: [flats, empty]
+  register: definite
   alternateNames: [road, plain, alluvium]
   _address: terminus/delight-valley/flats
   _biomePath: /stuff/idea/biome/outdoor/meadow

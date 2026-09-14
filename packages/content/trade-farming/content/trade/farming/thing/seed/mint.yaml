@@ -4,9 +4,9 @@
 class: /platform/thing/Seed
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: a packet of mint seed
-  primaryKeyword: seed
+  shortDescription: packet of mint seed
   keywords: [seed, seeds, "mint seed", mint, packet]
+  register: indefinite
   longDescription: |
     A paper packet of mint seed, fine as dust.
   growsIntoPath: /trade/farming/thing/plant/mint

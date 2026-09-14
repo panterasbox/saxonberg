@@ -4,9 +4,9 @@
 class: /platform/thing/Seed
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: a packet of lime seed
-  primaryKeyword: seed
+  shortDescription: packet of lime seed
   keywords: [seed, seeds, "lime seed", lime, packet]
+  register: indefinite
   longDescription: |
     A paper packet of lime pips, each one slick as a watermelon seed.
   growsIntoPath: /trade/farming/thing/plant/lime

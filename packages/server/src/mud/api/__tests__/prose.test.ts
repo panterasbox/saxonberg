@@ -142,10 +142,13 @@ describe('ProseApi.format — conditionals and filters', () => {
     expect(out).toBe(`[<thing stuff-id="${obj.stuffId}">something</thing>]`);
   });
 
-  it('article filter falls back to "a" for plain stuff', () => {
+  it('article filter answers nothing for stuff with no identity', () => {
+    // ⭐ `something` takes no article, and the filter says so rather than
+    // guessing 'a' off its first letter. Unobservable: no shipped
+    // template uses `| article`.
     const obj = makeStuff(() => new Plain());
     expect(ProseApi.format('{{ x | article }}', { x: obj }).toString()).toBe(
-      'a',
+      '',
     );
   });
 

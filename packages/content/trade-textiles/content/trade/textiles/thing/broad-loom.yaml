@@ -6,9 +6,9 @@
 class: /trade/textiles/thing/Loom
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: a broad loom
-  primaryKeyword: broadloom
-  keywords: [broadloom, broad-loom, loom, wide]
+  shortDescription: broad loom
+  keywords: [broadloom, broad-loom, loom, wide, broad]
+  register: indefinite
   longDescription: |
     Twice the width of the hand loom and built like a barn, with a bench long enough for two. One throws, one catches, and neither of them talks much.
   capabilities:

@@ -3,10 +3,10 @@
 class: /platform/thing/ServingVessel
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: a champagne flute
+  shortDescription: champagne flute
+  keywords: [flute, glass, champagne-flute, champagne]
+  register: indefinite
   longDescription: A tall, narrow flute on a thin stem.
-  primaryKeyword: flute
-  keywords: [flute, glass, champagne-flute]
   category: flute
   interiorBulk: true
   interiorCapacity: 0.18

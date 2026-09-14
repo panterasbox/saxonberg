@@ -52,7 +52,7 @@ describe("SoulMixin.introduceSelf + recognizes", () => {
   it("teaches in-range perceivers the introducer's name", () => {
     const room = makeStuff(() => new Room());
     const mara = person("Mara", "a steady, watchful dwarf");
-    const pat = person("Pat", "a tall stranger");
+    const pat = person("Pat", "tall stranger");
     ContainmentApi.move(mara, room);
     ContainmentApi.move(pat, room);
 

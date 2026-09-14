@@ -10,8 +10,8 @@
 class: /platform/thing/Chest
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: an open plot
-  primaryKeyword: plot
-  keywords: [plot, grave, trough, hole]
+  shortDescription: open plot
+  keywords: [plot, grave, trough, hole, open]
+  register: indefinite
   longDescription: |
     A shallow trough cut into the rock near the front of the rows, clean-edged and empty, the spoil heaped tidily beside it under a board. A stone blank stands at its head, waiting for a name.

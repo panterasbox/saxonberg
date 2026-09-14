@@ -80,7 +80,7 @@ function seedContent(): void {
     });
   }
   add('/world/fx-mine/thing/glowcap-jar', '/platform/thing/Thing', {
-    shortDescription: 'a jar of glowcap',
+    shortDescription: 'jar of glowcap',
   });
 }
 

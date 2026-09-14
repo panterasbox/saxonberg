@@ -12,9 +12,9 @@
 class: /platform/thing/equipment/StunBaton
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: a stun baton
-  primaryKeyword: taser
+  shortDescription: stun baton
   keywords: [taser, baton, stun]
+  register: indefinite
   longDescription: >
     A rubber-gripped baton with two blunt electrodes at the tip and a
     thumb-switch on the haft — the one concession to trouble Dave keeps back

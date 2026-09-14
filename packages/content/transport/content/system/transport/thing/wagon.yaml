@@ -29,9 +29,9 @@ data:
   # it. The data carries it.
   requiredDiscipline: teamstering
   requiredBand: competent
-  shortDescription: a four-wheeled wagon
-  primaryKeyword: wagon
-  keywords: [wagon, cart, rig, waggon]
+  shortDescription: four-wheeled wagon
+  keywords: [wagon, cart, rig, waggon, four-wheeled]
+  register: indefinite
   longDescription: |
     A plank-bed wagon on four iron-shod wheels, the fore pair on a turning bolster, with a hooped tilt frame over the bed and no cloth on it. The shafts are long enough for two abreast. Someone has painted a number on the tailboard and someone else has painted over it.
   mass: 180

@@ -7,9 +7,9 @@
 class: /trade/dyeing/thing/DyeVat
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: a dyeing pot
-  primaryKeyword: pot
-  keywords: [pot, dyeing-pot, household]
+  shortDescription: dyeing pot
+  keywords: [pot, dyeing-pot, household, dyeing]
+  register: indefinite
   longDescription: |
     A blackened iron pot that has plainly cooked as many dinners as it has dyed shirts, and which will now do neither without reminding you of the other.
   _materialPath: /stuff/idea/material/element/iron

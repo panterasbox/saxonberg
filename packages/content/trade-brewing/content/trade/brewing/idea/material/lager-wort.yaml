@@ -5,9 +5,8 @@ class: /platform/idea/material/ConsumableMaterial
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: lager wort
-  primaryKeyword: wort
+  keywords: [wort, lager]
   appearance: "a pale, clear wort"
-  keywords: ["wort", "lager"]
   density: 1038
   thermalConductivity: 0.5
   specificHeat: 3900

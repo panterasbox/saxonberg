@@ -5,9 +5,9 @@
 class: /trade/mining/location/MineRoom
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: a fall of ground
-  primaryKeyword: fall
-  keywords: [fall, collapse, rubble]
+  shortDescription: fall of ground
+  keywords: [fall, collapse, rubble, ground]
+  register: indefinite
   longDescription: |
     A place where the back has come down, the floor heaped with what used to be over it.
   oreRow: /world/rejection/thing/copper-ore

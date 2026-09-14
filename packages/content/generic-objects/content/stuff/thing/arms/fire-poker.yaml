@@ -5,9 +5,9 @@
 class: /platform/thing/equipment/Weapon
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: a fire poker
-  primaryKeyword: poker
-  keywords: [poker, fire-poker, rod]
+  shortDescription: fire poker
+  keywords: [poker, fire-poker, rod, fire]
+  register: indefinite
   longDescription: |
     A straight iron rod with a knurled grip and a bent working tip. The first thing an apprentice forges, and the last tool a hearth gives up.
   constructionForm: hafted

@@ -13,9 +13,9 @@
 class: /platform/thing/Thing
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: a toilet
-  primaryKeyword: toilet
+  shortDescription: toilet
   keywords: [toilet, lavatory, wc]
+  register: indefinite
   longDescription: |
     A plain porcelain toilet with a wooden seat and a cistern mounted high on the wall, its chain hanging within easy reach.
   mass: 70

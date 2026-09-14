@@ -5,9 +5,9 @@
 class: /platform/thing/Stock
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: "the pantry stock"
-  primaryKeyword: stock
-  keywords: [stock, pallet, cases]
+  shortDescription: "pantry stock"
+  keywords: [stock, pallet, cases, pantry]
+  register: definite
   longDescription: "Sacks on a pallet under a tarp: sugar, salt, coffee."
   discipline: scrum
   attendDurationMs: 0

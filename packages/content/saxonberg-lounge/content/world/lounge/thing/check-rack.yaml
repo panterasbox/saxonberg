@@ -14,8 +14,9 @@ class: /platform/thing/CheckRack
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   seatIn: /world/lounge/idea/warren
-  shortDescription: a weapons-check rack
-  keywords: [rack, "check rack", coat-check]
+  shortDescription: weapons-check rack
+  keywords: [weapons-check, rack, "check rack", coat-check]
+  register: indefinite
   longDescription: >-
     A sturdy oak rack by the door, its pegs and cubbies made for coats and
     canes — and, a small brass plate notes, for anything with an edge.

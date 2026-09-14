@@ -5,9 +5,9 @@
 class: /platform/thing/Crate
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: a crate of lemons
-  primaryKeyword: lemons
-  keywords: [crate, lemons, lemon, produce]
+  shortDescription: crate of lemons
+  keywords: [lemons, crate, lemon, produce]
+  register: indefinite
   longDescription: A slatted wooden crate of lemons, the grower's stencil on the side.
   censusKey: produce:lemon
   regionTarget: 4

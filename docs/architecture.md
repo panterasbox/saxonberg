@@ -156,7 +156,10 @@ adding.
 - **Named value-object / vocabulary / registry modules** — the
   sanctioned home for a substrate primitive that isn't an instanceable
   `Stuff` but is still *the concept the module exists for*: a value
-  class (`Light`, `Quantity`, `Reserve`, `lib/persistence/SchemaDoc.ts`'s
+  class (`Light`, `Quantity`, `Reserve`, `lib/description/NounPhrase.ts`'s
+  `NounPhrase` — a stem, a register and a count, from which the article,
+  the definite form, the possessive and the plural all derive;
+  `lib/persistence/SchemaDoc.ts`'s
   `SchemaDoc` — the parsed, validated form of one authored collection
   description, no `fs` and no YAML parser, so the three readers hand it
   an already-parsed object), an enum-like vocabulary plus
@@ -951,9 +954,9 @@ registry) lives in `lib/mixin.ts`.
 | `lib/metabolism/` | `PalatableMixin` | the derived taste reading, projected through the taster's own competence. On `ServingVessel` — a vessel a made portion reaches a person IN |
 | `lib/chattel/` | `EstateMixin` | owner-based persistence — every stamped good its host holds title to, wherever it sits; routes restore on `place` (furnishing.md) |
 | `lib/character/` | `GenderedMixin` | pronouns (he/she/they/etc.), persistent |
-| `lib/description/` | `NamedMixin` | proper names — `name`, `surname`, `nameSuffix`, `honorific`, `alternateNames`, `fullName`, persistent |
-| `lib/description/` | `VisibleMixin` | shortDescription, longDescription; provides `look` command |
-| `lib/description/` | `PerceptibleMixin` | MQL keyword management, persistent |
+| `lib/description/` | `NamedMixin` | proper names — `name`, `surname`, `nameSuffix`, `honorific`, `alternateNames`, `fullName`, persistent. ⚠ **Composed explicitly, never inherited**: `CastMixin`, `Avatar`, and any class minting a name of its own. It sat on the creature base until 2026-09-10, so a wolf and a corpse carried `setSurname` |
+| `lib/description/` | `VisibleMixin` | `shortDescription` (⚠ a **stem**, no article), `register` (`proper`/`definite`/`indefinite`), `longDescription`; provides `look` |
+| `lib/description/` | `PerceptibleMixin` | MQL keyword management, persistent. Composed by `Thing`, `CartesianLocation`, `Material` **and `Creature`** (every body is addressable — 48 agent rows authored a `primaryKeyword` into a void before 2026-09-10) |
 | `lib/description/` | `DetailedMixin` | hierarchical detail management, persistent |
 | `lib/spatial/` | `ContainerMixin` | inventory; provides `inventory`/`get`/`drop` |
 | `lib/spatial/` | `ContainableMixin` | environment reference, plus the auxiliary `restingOn` pointer for on-surface placement |
@@ -1002,7 +1005,7 @@ registry) lives in `lib/mixin.ts`.
 | `lib/encumbrance/` | `LoadBearingMixin` | the carry-weight gauge (first vitals driver): derived-on-read `getBorneBurden` (weighted walk over contents + slot occupants with `Vessel.transmissionFactor` + slot-derived placement coupling) / `getCarryCapacity` (body mass × physiology margins) / `getLoadRatio` / `wouldExceedCeiling` / `drainForTraversal`. Requires `Container + Slotted + Tangible + Reserved + Vitals`. Composed outermost by `Creature`. See [encumbrance.md](./subsystems/encumbrance.md). |
 | `lib/trait/` | `DispositionedMixin` | the personality owner face (the Api OO sweep's C3 mint): `imprintSignature`/`imprintDeed`/`seedTraitClaims` (SelfOnly + sealed writers over `disposition_events`) + the derive-on-read reads (`dispositionEntries`/`traitPositions`/`traitPosition`/`pronouncedTraits`/`compatibilityWith`/`regardBaselineToward`). Composed by `Character`; narrow with `MixinApi.isDispositioned`. See [trait.md](./subsystems/trait.md). |
 | `lib/belief/` | `BeliefStoreMixin` | per-viewer identity memory: a realm-namespaced (`recognition` / `identification` / `regard`) keyed bag of `BeliefRecord`s, dumb CRUD, keyed by referent `templatePath`. The in-memory working set behind `describeFor` (naming, the recognition face on the `Stuff` base) and the mixin's own regard surface (`regardFor`/`adjustRegard`, per-viewer attitude scalar); backed by `BeliefDocument` rows. Composed by `Character`. See [belief.md](./subsystems/belief.md). |
-| `lib/status/` | `StatusMixin` | settable activity-status line ("watching the empty road"); verb / runtime-setter / static-authored-default sources, only the default persists. A **presence affix, not identity**: it rides `describeWithStatusFor` (the presence-scan roll-call) — **not** `getPresentation` / `describeFor`, which stay pure identity, so act-subject naming never drags the status along. Composed by `Character`. See [belief.md](./subsystems/belief.md). |
+| `lib/status/` | `StatusMixin` | settable activity-status line ("watching the empty road"); verb / runtime-setter / static-authored-default sources, only the default persists. A **presence affix, not identity**: it rides the `presence` FORM (`describeFor(viewer, 'presence')`, the roll-call) — **not** `getPresentation` / the `concise` form, which stay pure identity, so act-subject naming never drags the status along. Composed by `Character`. See [belief.md](./subsystems/belief.md). |
 | `lib/disguise/` | `DisguisableMixin` / `DisguiseBearingMixin` | creature masking. `DisguisableMixin` (on `Creature`) resolves a viewer-blind `getDisguise()` over worn `DisguiseBearing` garments + a transient imposed slot; `Stuff.getPresentation()` defers to it. `DisguiseBearingMixin` (on a `Garment` → `DisguiseGarment`) carries the `{ appearsAs, covers, masksIdentity }` descriptor. See [belief.md](./subsystems/belief.md). |
 | `lib/identification/` | `IdentifiableMixin` | the type axis: an item whose true type (`identifiedName`) is hidden behind its unidentified appearance until a viewer identifies it. Composed by `IdentifiableThing`; the `IdentifyScroll` carries the `identify` verb. See [belief.md](./subsystems/belief.md). |
 | `lib/metabolism/` | `MetabolicMixin` | the intake-and-chemistry driver (first condition-driver): the digestion buffer + real `ingest`, the lazy reconcile-on-read over `WorldClock` game-time (absorption / mass-scaled basal drain / coupled recovery / toxin clearance), the cascade spawning `floorEffect` conditions + the death seam, the presence-freeze clock, and the toxin-burden + alcohol/BAC system. Drives `Vitals`/`Reserved`/`Posed`; composed inner of `LoadBearing`, outer of those three, by `Creature`. No Api. See [metabolism.md](./subsystems/metabolism.md). |

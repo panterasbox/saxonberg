@@ -19,7 +19,8 @@
 class: /trade/mining/idea/MineWarren
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: the Ferrow diggings
+  shortDescription: Ferrow diggings
+  register: definite
   typeRows:
     face: /world/rejection/ferrow/face
     junction: /world/rejection/ferrow/junction

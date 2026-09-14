@@ -5,8 +5,8 @@ class: /platform/idea/material/ConsumableMaterial
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: lager lees
+  keywords: [lager, lees]
   appearance: "a pale, dense cold sediment"
-  keywords: ["lees"]
   density: 1060
   thermalConductivity: 0.5
   specificHeat: 3700

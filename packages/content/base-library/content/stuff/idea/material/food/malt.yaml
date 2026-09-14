@@ -9,8 +9,8 @@ class: /platform/idea/material/ConsumableMaterial
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: malt
+  keywords: [grain, malt, "malted barley"]
   appearance: pale malted barley, dusty and sweet-smelling
-  keywords: [malt, "malted barley", grain]
   density: 600
   thermalConductivity: 0.4
   specificHeat: 1800

@@ -5,8 +5,8 @@
 class: /platform/thing/Thing
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: a drystone wall
-  primaryKeyword: wall
-  keywords: [wall]
+  shortDescription: drystone wall
+  keywords: [wall, drystone]
+  register: indefinite
   longDescription: >-
     A drystone wall about chest high, built without mortar out of stone that plainly came off this ground, with a wooden gate hung in a gap.

@@ -2,9 +2,9 @@
 class: /platform/thing/Seed
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: a sack of barley seed
-  primaryKeyword: seed
-  keywords: [seed, seeds, barley]
+  shortDescription: sack of barley seed
+  keywords: [seed, seeds, barley, sack]
+  register: indefinite
   longDescription: |
     Plump hulled grain, kept back from last year's crop and screened for the drill.
   growsIntoPath: /trade/farming/thing/plant/barley

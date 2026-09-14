@@ -6,9 +6,9 @@
 class: /trade/mining/thing/TimberSet
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  primaryKeyword: timber
-  keywords: ["timber", "set", "prop", "stull"]
-  shortDescription: a set of mine timber
+  keywords: [timber, set, prop, stull, mine]
+  shortDescription: set of mine timber
+  register: indefinite
   longDescription: >-
     Two legs and a cap, notched to each other and cut a shade long so
     they have to be driven home. Squared, but not finely — a set that

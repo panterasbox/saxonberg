@@ -18,6 +18,7 @@ class: /platform/idea/material/Material
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: marl
+  keywords: [marl]
   density: 1900
   specificHeat: 880
   thermalConductivity: 1.1

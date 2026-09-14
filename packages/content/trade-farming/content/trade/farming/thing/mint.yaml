@@ -4,9 +4,9 @@
 class: /platform/thing/Provision
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: a sprig of mint
-  primaryKeyword: mint
-  keywords: [mint, mint, produce]
+  shortDescription: sprig of mint
+  keywords: [mint, produce, sprig]
+  register: indefinite
   longDescription: "A sprig of fresh mint."
   _materialPath: /trade/farming/idea/material/mint
   gradeBand: fair

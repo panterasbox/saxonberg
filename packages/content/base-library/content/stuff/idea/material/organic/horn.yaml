@@ -11,8 +11,8 @@ class: /platform/idea/material/Material
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: horn
+  keywords: [keratin, horn]
   appearance: scraped translucent horn, amber where the light comes through
-  keywords: [horn, keratin]
   density: 1300
   specificHeat: 1700
   thermalConductivity: 0.2

@@ -20,8 +20,9 @@
 class: /world/eternal/duncan-hall/thing/Bed
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: a narrow bed
-  primaryKeyword: bed
+  shortDescription: narrow bed
+  keywords: [bed, narrow]
+  register: indefinite
   longDescription: |
     A university-issue single bed — a steel frame, a thin mattress, a folded blanket squared off at the foot.
   restQuality: 1.5

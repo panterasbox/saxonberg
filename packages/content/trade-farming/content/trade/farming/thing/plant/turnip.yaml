@@ -7,9 +7,9 @@
 class: /platform/thing/Plant
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: a field of turnips
-  primaryKeyword: turnips
-  keywords: [turnips, crop]
+  shortDescription: field of turnips
+  keywords: [turnips, crop, field]
+  register: indefinite
   longDescription: |
     Broad blue-green leaves standing shoulder-high over roots half out of the ground, purple where the sun has got at them.
   _speciesPath: /stuff/idea/species/plantae/tracheophyta/magnoliopsida/brassicales/brassicaceae/brassica/rapa

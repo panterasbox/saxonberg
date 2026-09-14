@@ -7,8 +7,8 @@ class: /platform/idea/material/ConsumableMaterial
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: wine lees
+  keywords: [wine, lees, sediment]
   appearance: "a pale, dense sediment smelling of bread and wine"
-  keywords: ["lees", "sediment"]
   density: 1060
   thermalConductivity: 0.5
   specificHeat: 3700

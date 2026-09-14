@@ -1,13 +1,24 @@
 # Pets slate (working doc) — the creature you won over
 
-> **Status: PARTIAL** — the substrate landed under husbandry/ranching:
-> the individual as base case, `Handling` in the kernel *because pets will
-> want it*, chattel ownership, brains, traits, advancement →
-> [ranching.md](../../subsystems/ranching.md)
-> **Left:** the taming encounter · the bond + four-needs care loop · the
-> accept/refuse hook · the off-screen resolution + digest · home range ·
-> `ChattelMixin` onto the Creature stack · pet combat staging · breeding
+> **Status: PARTIAL, and the storage question is SETTLED (2026-09-08).**
+> The substrate landed under husbandry/ranching: the individual as base
+> case, `Handling` in the kernel *because pets will want it*, chattel
+> ownership, brains, traits, advancement →
+> [ranching.md](../../subsystems/ranching.md). ⭐ `ChattelMixin` **is now
+> on the Creature stack** — it shipped with farmstead, so the enabler
+> Wave 1 was built around is already paid for.
+> **Left:** ⚠ **Wave 0 (clear the ground — three found defects)** · the
+> taming encounter · the bond + four-needs care loop · the accept/refuse
+> hook · the off-screen resolution + digest · home range · pet combat
+> staging · breeding
 > **Size:** a build
+>
+> ⭐⭐ **Read [§ Reconciliation
+> 2026-09-08](#reconciliation--the-farmstead-build-and-where-a-pet-is-stored-2026-09-08)
+> before requirements** — it settles where the bond composes, what a pet
+> IS as a stored object (**a keyed clone, not a minted singleton**), and
+> how you query for one. It supersedes the *Character-tier* decision and
+> retires two stale verifications.
 
 > **Reconciled 2026-07-31** against the husbandry sessions (pets · ranching ·
 > farming · stewardship). Contradicted text is struck in place; the full ledger
@@ -936,6 +947,212 @@ sessions, so the question is what it *did*, not where it was parked.
 
 ---
 
+## Reconciliation — the farmstead build, and where a pet is STORED **[2026-09-08]**
+
+The farmstead build (MR !245, merged 2026-09-06) shipped ranching, and paid
+for more of this slate than the 07-31 pass could know. This session then
+settled the three questions that were actually blocking requirements:
+**where the bond composes**, **what a pet IS as a stored object**, and
+**how you query for one**.
+
+### What farmstead already paid for
+
+| slate claim | now |
+|---|---|
+| *"`ChattelMixin` onto the Creature stack — one composition line"* | ⭐ **SHIPPED** — `Creature.ts`, composed outermost. Every animal is a titled movable with a chain of title. |
+| *"`setAge` has zero callers anywhere; `ageCurve` is a reserved comment"* | ⭐ **STALE** — `ageCurve`, `lifeStageAt` and `massAt(ageDays)` all ship and are read. Maturation arrived exactly as predicted: forced by ranching, inherited free. |
+| *"domesticability is a dial on the fear axis"* | ⭐⭐ **the dial is installed and unlabelled.** `HandlingMixin` lives in the KERNEL — *"Pets will want it, and pets is not ranching: its composers share no pack ancestor"* — and ships bands wild→quiet with a **per-species floor and ceiling authored nowhere yet.** That empty slot is domesticability. |
+| *"a pet is an owned NPC"* | superseded — see the roles split below. |
+
+Ranching also drew the line this slate assumed: **livestock / working animal
+/ pet are three ROLES, not three classes**, with the pet's axis named as *the
+bond*, and `WorkingAnimal` shipped as a deliberate absence whose header says
+the skill axis *"should land beside pets, not inside ranching."*
+
+### ⭐⭐ DECIDED — the bond composes per CLASS, not by hierarchy
+
+The session opened on a proposal to move `BeliefStoreMixin` down from
+`Character` to `Creature`, on the grounds that an author's tameable newt
+would otherwise fail closed and silent. **That was wrong, and it was wrong
+twice.**
+
+1. **The silent-failure argument doesn't hold.** The studio is thoroughly
+   mixin-aware — `describeClass` returns the effective mixin set,
+   `describeMixin` renders a mixin's full concept comment, `listMixins` is a
+   pickable palette, `scaffoldClass` composes a base. An author is not
+   working blind at the moment they would make the mistake.
+2. **Universal composition makes the capability unfalsifiable.** If every
+   `Creature` composes it, no row can be *wrong* about it, and there is
+   nothing for a gate to check. That is the identity-tag lesson exactly —
+   *a tag that asserts nothing cannot be caught wrong.*
+
+> ⭐ **Three states, and the middle one is content.**
+> **true** — composes it, species says winnable · **false** — composes it,
+> species says no (the dragon; W3's magic-taming path is defined as *"for
+> zero-domesticability species"*) · **null** — doesn't compose it; the
+> question does not apply.
+>
+> Universal composition collapses `false` into `true`-with-a-zero and
+> destroys `null` outright, which costs the dragon its whole reason to be
+> interesting.
+
+**So:** `BeliefStoreMixin` composes **where the concept is true**, on the
+codebase's own idiom — `Livestock` composes `ProducingMixin` because it has
+taps, `WorkingAnimal` composes `HandlingMixin` because it has a temper. This
+also fixes what was wrong with the `Character` answer without inventing a
+tier to escape it: `Character` drags in `CasterMixin`, `VocalMixin` and
+`EmployedMixin`, i.e. a sheepdog that can cast spells, speak and hold a job.
+
+⚠ **Supersedes § *Not a gap — a design decision* (tameable fauna must be
+Character-tier).** They are ordinary `Creature`s that compose the capability.
+
+⚠ **And a correction to the premise, recorded because it cuts the other
+way:** the *player* card deliberately does **not** show mixin composition —
+`card-surface.md` is explicit (*"no slot maps, mixin lists, raw fields, or
+property bags surface here"*) and files template path / stuff id / mixin
+composition under a **future admin surface** that does not exist. Author-side
+visibility is shipped; player-side is a design intention the card currently
+refuses. The author half is the half that carries the argument.
+
+**The gate that makes three states safe** is `check-perishable` with the
+nouns swapped: *a species authored with a domesticability value, on a class
+that cannot hold regard, fails CI.* Same failure shape (enabling data that
+silently does nothing), same fix, and this time the assertion is falsifiable
+so the gate has something to bite.
+
+### ⭐⭐ DECIDED — Extras hold no beliefs; the INSTITUTION holds the opinion
+
+Non-singletons do not get personal memory. This is not a new position —
+`Extra.ts` already says it:
+
+> ⚠ **A role-filler still has a personality**, and it reads the same as
+> anyone's — `dispositions:` stays on `BehavedMixin`, which both rungs
+> carry. **It simply never changes: a role is a mask, not a life.**
+
+An Extra's disposition is authored and static, and `Extra.ts` files animals
+at that rung by name (*"A rangy grey wolf"*).
+
+The city-watch case — *to affect one is to affect all* — is real and wanted,
+but it must **come through in the abstraction** rather than emerge from a key
+collision. It has a shipped home: **`EmployedMixin.institutionPath()`**,
+already the answer to *"who answers for you"* and already how an Extra's
+harms are attributed, precisely because an Extra has no person to attribute
+to. Making it carry the *opinion* as well is symmetric: **the Watch's regard
+for you, held by the Watch, read by any watchman** — legible as a sentence.
+
+⚠ **Status: latent, not live.** Four `Extra` rows exist tree-wide (a sentry,
+a wolf, a hewer, a canary) and none runs regard-writing dialogue; the two
+rows that do (Katie, Remy) are both `Cast`, hence singletons with durable
+identity. Pets is what would have walked into this.
+
+### ⭐⭐⭐ DECIDED — a pet is a KEYED CLONE, not a minted singleton
+
+The question: where does the state that makes an animal *yours* live?
+
+**Do not generalize from `Avatar`.** Its `templatePath`-as-identity predates
+`identityPath` and was generalized afterwards, and `Persistable.ts` carries
+three Avatar carve-outs (its own logout capture seam, an explicit *no* to the
+shutdown sweep so it does not race itself, `isGuest` opt-out). It is the
+worst thing in the tree to pattern-match on, and is itself a candidate for
+conforming to a general pattern later.
+
+⚠ **Identity and durability must arrive together, or neither.** A unique
+`asIdentityPath` on a non-durable clone is worse than nothing: the belief
+write-through keys on `getIdentityPath()`, so the animal would begin writing
+durable belief documents while the animal itself evaporates at reboot —
+accumulating orphan records keyed to dogs that no longer exist, with nothing
+to reap them.
+
+**The shape chosen is the one already shipped twice.** `setPersistenceKey`
+documents both instances in a sentence: an explicit key means *"this host is
+one of many,"* and the examples are **a leased dorm room's unit parcel** and
+**a cultivated plant's uuid**. `isPersistenceKeyExplicit()` exists to tell
+multi-instance from singleton; the nested capture already emits `{ref, key}`
+against a bare `{ref}` off it. **A pet is the third instance of that.**
+
+**And the coordinator exists too.** For movables it is not a warren, it is
+the **estate** — furnishing's owner-based persistence, where a good persists
+with its *owner* and is re-cloned *as* its owner. A pet is chattel already,
+so it is an owned good and needs no coordinator invented for it.
+
+**Rejected: seed + sparse overlay** (`HeadSeed`'s model — *"identity is
+earned by being measured"*). It is the right model for a herd and the wrong
+one here, for two reasons:
+
+- **Overlay size.** A head's overlay is small (it sickened, it was drafted).
+  A pet's overlay is *most of what the animal is* — name, bond, transcript,
+  who it remembers. Pushed far enough the overlay **is** the animal, and it
+  is a keyed snapshot with an extra indirection.
+- **MQL invisibility** (below). A herd can afford it because the *herd* is a
+  present object with heads inside it. A stray dog in a square has no
+  container coordinator, so seed-only means it is not in the room at all —
+  nobody can `look` at it, let alone query it.
+
+> ⭐ **The rule: a stray is an ordinary UNKEYED clone. Taming adds the key.**
+> Cheap, fully visible, no persistence, no mint, no singleton, no row. The
+> promotion is *clone → keyed clone*, not *clone → singleton* and not
+> *seed → snapshot*.
+
+This is also why the **dub verb is the promotion**, not a cosmetic: naming is
+the act that makes the animal one-of-many-that-is-specifically-yours, and
+therefore the act that earns it a record.
+
+⭐ **Consequence for the bond:** the pet's regard *for you* is the pet's own
+state and belongs in its capture. The belief store's per-viewer keyed bag is
+for **identity memory**, which is the other direction (you→it) and may not be
+needed at all — a dubbed pet's name is public on `NamedMixin`, not a
+per-viewer `knownAs`. Requirements should settle whether the pet needs a
+keyed map (it knows its owner, the family, the stranger who kicked it) or a
+scalar; *"reuse the bond, don't mint a stat"* survives either way.
+
+### ⭐⭐ The MQL contract — queryability does NOT depend on identity path
+
+Identity path is not a narrowing axis at all. The closest is *lineage*.
+
+| atom | narrows on |
+|---|---|
+| `template.X` | cloned from template path X — **glob-aware** |
+| `mixin.X` | composes mixin X |
+| `class.X` | instanceof |
+| `keyword.X` | has keyword |
+| `prop.K` | property value |
+| **`key`** | **the object's explicit persistence key** |
+| `address` | declared Locality address |
+
+⭐ **`key` is the keyed-instance axis, and it was built for exactly this
+case** — the grammar defines it as *"the object's explicit persistence key —
+the keyed-instance axis a holding's rooms are recorded under; `undefined` for
+an unkeyed object, so `[key = …]` never false-matches."* Implemented in both
+parser and resolver, not doc-only. So **a non-singleton is fully queryable**:
+
+```
+world:[mixin.Companion]            every pet in the world
+peers:[mixin.Companion]            pets in this room
+world:[key = 'abc-123']            this specific animal
+/trade/ranching/agent/farm-dog/*   every collie, by lineage
+```
+
+**How the rest of the family interoperates** — three storage shapes, three
+answers, and the middle row surprises people:
+
+| storage shape | examples | MQL |
+|---|---|---|
+| Stuff + keyed snapshot | cultivated plants, a holding's rooms, **pets** | ✔ visible; `mixin.X` + `[key=…]` |
+| **Document** | herds, water rights, bills of lading, rate cards | ✘ **not queryable at all** — MQL is over Stuff |
+| **Seeded, unmeasured** | heads before `draft`, deposit samples, ground character | ✘ **invisible by construction** — not in the registry |
+
+⚠ **The herdbook is not MQL-able.** Herds are filed records read through
+their register; no query reaches them. Know this before designing a verb that
+assumes otherwise.
+
+⚠ **Do not infer "is it tamed" from key presence.** `has` is a documented
+no-op outside `prop.K`, so key-presence is not cleanly testable in the
+grammar — and inferring state from storage is the same dishonesty the
+city-watch decision rejects. Tamed is a mixin or a property, so the query
+language can see it and the abstraction carries it.
+
+---
+
 ## Subsystem stress — the gap map
 
 Pets are an *integrating vertical*, so they pull on nearly every subsystem and
@@ -961,7 +1178,7 @@ punchline:
 |---|---|---|---|
 | ~~**Possession / property**~~ **CLOSED** | Chattel shipped 2026-07-23 (`chattel` / `chattel_events`, `ownerOf = stamp ?? authorOf`, chain-of-title). Remaining work is **one composition line** — `ChattelMixin` onto the Creature stack. See the custody section above. | — | — |
 | **Fear / threat axis** | `regard` is affinity-only. No aversion / alarm / flight state, no flee brain. A creature can *like* you; it cannot be *afraid* of you. | the wild taming encounter ("warms vs **flees**") | combat morale, predator/prey, intimidation, guards reacting to a drawn weapon — **all tension** |
-| ~~**Dependent presence + individual persistence**~~ **MOSTLY CLOSED** | **Presence:** resolved by decision, not code — the family runs one clock and a pet *doesn't* freeze (see Care & loss); what's left is the asymptotic condition curve. **Persistence:** `PersistableMixin` is **not** Avatar-only (a `ConsignmentShelf` and a `DormRoom` compose it) and multi-instance `(scope, key)` hosts shipped with the leased dorm room. Nothing in it is Avatar-shaped — no NPC composes it *yet*. | a pet that survives your logout *as itself* | any evolving NPC, any world that *remembers* — **the "living world" gap** |
+| ~~**Dependent presence + individual persistence**~~ **MOSTLY CLOSED** | **Presence:** resolved by decision, not code — the family runs one clock and a pet *doesn't* freeze (see Care & loss); what's left is the asymptotic condition curve. **Persistence: ⭐ ANSWERED 2026-09-08** — a pet is a **keyed clone**, the third instance of a shipped shape (`setPersistenceKey`'s own examples are *a leased dorm room's unit parcel* and *a cultivated plant's uuid*), coordinated by the owner's **estate**. Still true that no NPC composes it yet; no longer an open design question. ⚠ Do NOT pattern-match on `Avatar` — three carve-outs in `Persistable.ts` make it the worst template in the tree. | a pet that survives your logout *as itself* | any evolving NPC, any world that *remembers* — **the "living world" gap** |
 
 ### The legibility gap (rich, more specialized)
 
@@ -975,11 +1192,11 @@ punchline:
 
 ### Lighter tier (self-contained, or just wiring)
 
-- **Maturation** (kitten→cat): GAP. The *fields* exist — `Organism.age`,
-  `lifecycleState` — but **verified 2026-07-30: `setAge` has zero callers
-  anywhere, `lifecycleState` only ever transitions to `dead`, and `ageCurve` is
-  a reserved comment in `Species.ts`, not a field.** A contained build; **forced
-  by ranching** (calf→cow), so pets inherit it rather than paying for it.
+- ~~**Maturation** (kitten→cat): GAP.~~ **CLOSED 2026-09-06 by farmstead**,
+  exactly as predicted — forced by ranching (calf→cow), inherited free.
+  `ageCurve` is a real authorable field, `lifeStageAt` and `massAt(ageDays)`
+  ship and are read. ⚠ The 07-30 verification (*"`setAge` has zero callers
+  anywhere; `ageCurve` is a reserved comment"*) is **stale — do not cite it.**
 - **Spawning / population**: GAP — hand-placed seeds only; `PopulatesMixin` is
   "future." Wild taming needs supply. Already on the radar (spawn-distribution).
 - **Wiring, seams present**: a `follow` brain (+ the arrival/departure witness
@@ -995,15 +1212,20 @@ punchline:
 
 ### Not a gap — a design decision
 
-**Tameable fauna must be `Character`-tier.** Everything a tameable animal needs
-— holding an opinion of you (`BeliefStore`/regard), perceiving you (`Sensor`),
-holding an engagement beat (`Engaged`), walking over and carrying things
-(`Mobile`/`CommandGiver`) — is bundled at `Character`, not `Creature`. A bare
-`Creature` literally cannot hold an attitude toward anyone. So **tameable
-animals are "animal NPCs" — rich carves** (rhymes with "NPCs are expensive
-carves"), while ambient background critters stay thin `Creature`s. This
-validates *"a pet is an owned NPC"* against the actual code, and draws a clean
-"which animals are rich" line.
+⚠⚠ **SUPERSEDED 2026-09-08** — see § *the bond composes per CLASS*. Retained
+because the observation was right and only the conclusion was wrong.
+
+~~**Tameable fauna must be `Character`-tier.**~~ It remains true that a bare
+`Creature` cannot hold an attitude toward anyone, and that everything a
+tameable animal needs is *bundled* at `Character`. What does not follow is
+that a pet should therefore BE a `Character`: that stack also drags in
+`CasterMixin`, `VocalMixin` and `EmployedMixin` — a sheepdog that can cast
+spells, speak, and hold a job.
+
+The capability composes **per class, where the concept is true**, on the same
+idiom as `Livestock`+`ProducingMixin` and `WorkingAnimal`+`HandlingMixin`.
+Tameable animals are ordinary `Creature`s that compose what they need;
+ambient critters compose nothing and are `null` on the question, not `false`.
 
 ## The custody edge — **RESOLVED 2026-07-30: it's chattel**
 
@@ -1079,6 +1301,30 @@ can't reuse. As of 2026-07-30 each has a named shared answer:
 
 ## Build waves (re-sequenced)
 
+**Wave 0 — Clear the ground. [ADDED 2026-09-08]**
+
+Three defects found by *reading* during the design session, none of them
+pet features, all of them on this build's critical path. Each is the
+house failure mode — **a producer that produces into a void, with no
+error** — and each is small.
+
+| | the defect | the evidence | why it blocks pets |
+|---|---|---|---|
+| **D1** | ⭐⭐ **NPC regard is write-only.** The write path is already viewer-agnostic (`viewerKey()` is `getIdentityPath()`, any Stuff persists) — but `hydrateBeliefs()` has **exactly one caller in the tree**, `Avatar.ts`. | every `npc.adjustRegard(player, …)` in `DialogueConversation` is written to Mongo and never read back; each NPC's opinion of you is reconstructed as **zero** on every reboot | the bond IS regard. A bond that resets on reboot is not a bond. **Fixes every NPC in the game, not just pets.** |
+| **D2** | ⭐⭐ **`[mine]` is a hard-coded `return false`.** A registered MQL predicate that answers *no* unconditionally. | `isMine()` in `api/mql/predicates.ts`; the grammar doc still says *"owner-tracking is stub today"* — but chattel shipped 2026-07-23 with `ownerOf` + chain-of-title, and furnishing added the parcel rung | `my pets` is **the** query for this feature. Today `world:[mine]` returns nothing, silently. Fix is `ChattelApi.ownerOf` against the giver. |
+| **D3** | **Extra regard aliasing.** `getIdentityPath()` falls back to `getTemplatePath()`, so every clone of a row shares one belief record — *"affect one, affect all"* by key collision rather than by design. | latent, not live: 4 `Extra` rows tree-wide, none writes regard; Katie + Remy are `Cast` | pets is what walks into it. Close it deliberately per § *Extras hold no beliefs* — either no memory, or the institution holds it. |
+
+> ⚠ **D1 and D2 are both "the enabling data has been there for months and
+> nothing reads it."** Same class as `eat` shipping with no affordance,
+> `feel`/`taste` never having run, and `check-perishable` passing
+> everything for the three days between it shipping and anyone driving it. The lesson keeps arriving: **missing wiring
+> fails closed and silent**, so the only defence is a reader that
+> actually runs.
+
+→ *ships nothing player-visible on its own, and leaves the tree
+measurably more honest than it found it.*
+
+
 **Wave 1 — The companion. Both on-ramps, plus what the clock now forces.**
 *(Restructured 2026-07-31.)*
 
@@ -1088,11 +1334,12 @@ too) and they land different emotional registers.
 
 | | Ships in Wave 1 |
 |---|---|
-| **The shared enabler** | `ChattelMixin` on the Creature stack — one composition line; unlocks both paths, plus livestock and aquaculture |
+| ~~**The shared enabler**~~ | ⭐ **ALREADY SHIPPED** — `ChattelMixin` composes on the Creature stack (farmstead, 2026-09-06). Wave 1 starts with custody done. |
+| **Being one of many** | the keyed-clone shape: a stray is an ordinary **unkeyed** clone; taming stamps the persistence key, and the estate coordinates it. See § *a pet is a KEYED CLONE*. |
 | **Adopted (the gift)** | a `strays` brain in a high-traffic venue + the adoption scene + the liminal adopted-but-unclaimed state |
 | **Buy (the choice)** | a pet shop as a `Stock` over animal templates + the **mint-an-individual seam** at purchase |
 | **The relationship** | bonding via care/interaction; **obedience gated by bond band** (a low-bond pet ignores `heel`/`fetch`); a `follow` brain |
-| **Being an individual** | a keyed `PersistableMixin` host; a **dub/name verb** |
+| **Being an individual** | a keyed `PersistableMixin` host; a **dub/name verb** — ⭐ and the dub is the **promotion itself**, not a cosmetic: naming is what makes the animal one-of-many-that-is-yours, and therefore what earns it a record |
 | **The off-screen life** | `petLifeBetween` + the outcome ladder + `Species.homeRange` — **no longer optional, see below** |
 
 > **Wave 1 grew, and the reason is structural.** Under the retired freeze model

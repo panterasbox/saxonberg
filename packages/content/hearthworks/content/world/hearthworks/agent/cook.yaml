@@ -4,13 +4,14 @@ class: /platform/agent/Crafter
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: Odo
+  keywords: [odo, cook]
   pronouns: he
   _speciesPath: /stuff/idea/species/animalia/chordata/mammalia/primates/hominidae/homo/sapiens
   lifecycleState: alive
-  primaryKeyword: odo
   alternateNames:
     - cook
   shortDescription: Odo the cook
+  register: proper
   longDescription: |
     A round, unhurried man with a wooden spoon tucked behind one ear like
     a pencil. He tastes everything twice and trusts nothing he hasn't

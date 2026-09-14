@@ -3,9 +3,8 @@ class: /platform/idea/material/ConsumableMaterial
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: brandy
-  primaryKeyword: brandy
+  keywords: [brandy]
   appearance: "a warm amber brandy"
-  keywords: ["brandy"]
   density: 950
   thermalConductivity: 0.17
   specificHeat: 2500

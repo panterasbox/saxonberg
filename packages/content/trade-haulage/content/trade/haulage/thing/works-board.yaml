@@ -10,9 +10,9 @@
 class: /platform/thing/JobBoard
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: a works board
-  primaryKeyword: works-board
-  keywords: [works-board, board, jobs, work, slate]
+  shortDescription: works board
+  keywords: [works-board, board, jobs, work, slate, works]
+  register: indefinite
   longDescription: >
     A plank board by the door with a rail of pegs along the bottom and a
     stub of chalk on a string. Dockets hang from the pegs: what wants

@@ -4,9 +4,9 @@
 class: /platform/thing/Provision
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: a bunch of grapes
-  primaryKeyword: grapes
+  shortDescription: bunch of grapes
   keywords: [grapes, grape, bunch, produce]
+  register: indefinite
   longDescription: "A tight bunch of wine grapes, dusty-skinned."
   _materialPath: /trade/farming/idea/material/grape
   gradeBand: fair

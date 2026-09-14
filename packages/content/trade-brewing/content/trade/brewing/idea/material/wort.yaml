@@ -5,9 +5,8 @@ class: /platform/idea/material/ConsumableMaterial
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: wort
-  primaryKeyword: wort
+  keywords: [wort]
   appearance: "a sweet amber wort, still steaming faintly"
-  keywords: ["wort"]
   density: 1040
   thermalConductivity: 0.5
   specificHeat: 3900

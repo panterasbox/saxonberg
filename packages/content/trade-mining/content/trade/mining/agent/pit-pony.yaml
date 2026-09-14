@@ -17,9 +17,9 @@ hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   _speciesPath: /stuff/idea/species/animalia/chordata/mammalia/perissodactyla/equidae/equus/caballus-pumilus
   lifecycleState: alive
-  primaryKeyword: pony
-  keywords: ["pony", "pit-pony", "horse"]
-  shortDescription: a stocky pit pony
+  keywords: [pony, pit-pony, horse, stocky, pit]
+  shortDescription: stocky pit pony
+  register: indefinite
   longDescription: >-
     A short, barrel-chested pony with a clipped mane and the patient,
     unbothered look of an animal that has done this a great many times.

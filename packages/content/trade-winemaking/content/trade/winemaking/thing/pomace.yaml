@@ -5,9 +5,9 @@
 class: /platform/thing/Receptacle
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: a cake of pomace
-  primaryKeyword: pomace
+  shortDescription: cake of pomace
   keywords: [pomace, cake, marc, skins]
+  register: indefinite
   longDescription: |
     A dense pressed cake of grape skins and stems, still weeping pink at the edges.
   interiorBulk: true

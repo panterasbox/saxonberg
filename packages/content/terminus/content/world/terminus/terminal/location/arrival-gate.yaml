@@ -24,8 +24,9 @@
 class: /platform/location/SingletonCartesianLocation
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: the Terminus arrival gate
-  primaryKeyword: arrival-gate
+  shortDescription: Terminus arrival gate
+  keywords: [gate, terminus, arrival]
+  register: definite
   # Under the CITY tier of the three-tier address chain (realm terminus /
   # city terminus/city / campus terminus/city/campus — the civics build).
   _address: terminus/city/arrival-gate

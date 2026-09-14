@@ -258,14 +258,40 @@ export default class LookController extends CommandController<LookModel> {
         const items = topLevel.filter((item) => !MixinApi.isOrganism(item));
         const segments: Mml[] = [];
         if (occupants.length > 0) {
+          // ⭐ Both paths render the same FORM now. The rich composer
+          // (players) and the plain list (everyone else) used to differ
+          // in what they showed — status or no status — because only the
+          // eager path could afford it. Which form a surface gets is the
+          // surface's choice, not a consequence of who is looking.
           segments.push(
             MixinApi.isNotifyPolicy(actor)
               ? await actor.composeOccupants(occupants, occupants.length)
-              : Mml.list(occupants.map((o) => Mml.actor(o))),
+              : Mml.list(occupants.map((o) => Mml.actor(o, { form: 'presence' }))),
           );
         }
         if (items.length > 0) {
-          segments.push(Mml.list(items.map((item) => Mml.thing(item))));
+          // ⚠⚠ **Resolved NOW, viewer-blind — and that is not laziness,
+          // it is the surface refusing to be gated twice.**
+          //
+          // `visibleContents` above already ran `PerceptionApi.perceives`
+          // for this actor, so everything in `items` has been judged
+          // perceivable. Letting the lazy list re-resolve each one
+          // through `describeFor` asks a SECOND gate — vision's
+          // `canSee` — which disagrees: in an unlit interior the
+          // Terminus registry's deed desk came back `something` while
+          // the room's own prose read in full. Every object reading
+          // "something" is the documented tell for exactly this.
+          //
+          // This is a `toSelf` render for one known viewer whose
+          // perception was already resolved, so there is nothing for
+          // late binding to add — an inert thing has no recognition.
+          // ⭐ The two gates disagreeing is a real finding and is
+          // recorded; it is not this build's to settle.
+          segments.push(
+            Mml.fromMarkup(
+              Mml.list(items.map((item) => Mml.thing(item))).toString(),
+            ),
+          );
         }
         const seen = Mml.list(segments);
         body = Mml.compose`${body}\n── You also see: ${seen}.`;
@@ -404,7 +430,14 @@ export default class LookController extends CommandController<LookModel> {
         (c) => !MixinApi.isConcealable(c) || !c.isConcealed(),
       );
       if (inside.length > 0) {
-        const list = Mml.list(inside.map((c) => Mml.actor(c)));
+        // Resolved now, for the same reason as the room's item list
+        // above — and here the second gate is even further off: vision
+        // walks up ONE level from the target, so the contents of an
+        // NPC's own inventory land on the NPC, which carries no light,
+        // and every one of them read `something`.
+        const list = Mml.fromMarkup(
+          Mml.list(inside.map((c) => Mml.actor(c))).toString(),
+        );
         body = Mml.compose`${body}── In it: ${list}.`;
       }
     }

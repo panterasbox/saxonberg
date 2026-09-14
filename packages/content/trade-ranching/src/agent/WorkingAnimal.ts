@@ -45,11 +45,10 @@
 
 import { Creature } from '@saxonberg/server/mud/lib/creature/Creature';
 import { HandlingMixin } from '@saxonberg/server/mud/lib/husbandry/Handling';
-import { PerceptibleMixin } from '@saxonberg/server/mud/lib/description/Perceptible';
 import { HandledMixin } from '../lib/Handled';
 
 const WorkingAnimalBase = HandledMixin(
-  HandlingMixin(PerceptibleMixin(Creature)),
+  HandlingMixin(Creature),
 );
 
 export default class WorkingAnimal extends WorkingAnimalBase {}

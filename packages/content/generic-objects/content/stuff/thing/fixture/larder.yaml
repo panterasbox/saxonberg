@@ -7,9 +7,9 @@
 class: /platform/thing/Chest
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: a larder
-  primaryKeyword: larder
+  shortDescription: larder
   keywords: [larder, pantry, cupboard, chest]
+  register: indefinite
   longDescription: |
     A tall larder with a slatted door, cool and dark inside, smelling faintly of flour and onions.
   open: true

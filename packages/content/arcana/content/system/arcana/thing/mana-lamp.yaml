@@ -16,9 +16,9 @@
 class: /system/arcana/thing/ManaLamp
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: a mana lamp
-  primaryKeyword: lamp
-  keywords: [lamp, sconce, light]
+  shortDescription: mana lamp
+  keywords: [lamp, sconce, light, mana]
+  register: indefinite
   longDescription: >
     A brass sconce bracketed to the wall, its pale glass bowl the size of
     two cupped hands. A slot beneath the bowl takes a cell; a small lever

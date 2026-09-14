@@ -5,6 +5,7 @@ class: /platform/idea/material/Material
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: copper
+  keywords: [copper]
   density: 8960
   specificHeat: 385
   thermalConductivity: 401

@@ -18,9 +18,9 @@ hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   _speciesPath: /stuff/idea/species/animalia/chordata/mammalia/primates/hominidae/homo/sensitivus
   lifecycleState: alive
-  primaryKeyword: hewer
-  keywords: [hewer, miner]
-  shortDescription: a hewer on tutwork
+  keywords: [hewer, miner, tutwork]
+  shortDescription: hewer on tutwork
+  register: indefinite
   longDescription: >-
     Wiry, grey with rock dust to the eyebrows, working a face with the
     unhurried economy of somebody who intends to still be doing it at the

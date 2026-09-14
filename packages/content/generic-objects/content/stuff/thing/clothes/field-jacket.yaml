@@ -1,8 +1,9 @@
 class: /platform/thing/equipment/Garment
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: a rugged field jacket
-  primaryKeyword: jacket
+  shortDescription: rugged field jacket
+  keywords: [jacket, rugged, field]
+  register: indefinite
   longDescription: >
     A heavy, many-pocketed field jacket built for weather and work. It
     has the quiet competence of something meant to stand between you and

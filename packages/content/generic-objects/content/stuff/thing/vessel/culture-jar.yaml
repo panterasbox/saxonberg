@@ -11,9 +11,9 @@
 class: /platform/thing/Vat
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: a glass culture jar
-  primaryKeyword: jar
-  keywords: [jar, "culture jar", crock]
+  shortDescription: glass culture jar
+  keywords: [jar, "culture jar", crock, glass, culture]
+  register: indefinite
   longDescription: |
     A squat glass jar with a wired lid, the kind a cellar keeps its yeast alive in. A pale sediment settles at the bottom of whatever it holds.
   interiorBulk: true

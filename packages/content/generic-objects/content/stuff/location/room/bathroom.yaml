@@ -26,9 +26,9 @@
 class: /platform/location/FurnishableRoom
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: a bathroom
-  primaryKeyword: bathroom
+  shortDescription: bathroom
   keywords: [bathroom, bath, washroom, room]
+  register: indefinite
   longDescription: |
     A small tiled room with a tub along one wall, a basin under a clouded mirror, and a window of frosted glass that lets in light and nothing else.
   ambientIntensity: 20

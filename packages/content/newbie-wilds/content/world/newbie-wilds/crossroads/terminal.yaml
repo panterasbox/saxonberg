@@ -23,8 +23,9 @@ class: /system/tpa/thing/TpaTerminal
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   seatIn: /world/newbie-wilds/crossroads/hub
-  shortDescription: a Teleport Authority terminal
-  keywords: [crossroads, frontier]
+  shortDescription: Teleport Authority terminal
+  keywords: [terminal, crossroads, frontier, teleport, authority]
+  register: indefinite
   directionality: both
   status: operational
   surcharge: 2

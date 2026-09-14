@@ -3,9 +3,9 @@
 class: /platform/thing/ToolItem
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: a scarred mash tun
-  primaryKeyword: tun
-  keywords: [tun, "mash tun"]
+  shortDescription: scarred mash tun
+  keywords: [tun, "mash tun", scarred, mash]
+  register: indefinite
   longDescription: A scarred wooden tun with an iron paddle chained to its rim.
   capabilities:
     - { kind: mash-tun }

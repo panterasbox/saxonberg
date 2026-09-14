@@ -6,9 +6,9 @@
 class: /platform/thing/PlantPot
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: a large clay pot
-  primaryKeyword: pot
-  keywords: [pot, "large pot", "clay pot", planter]
+  shortDescription: large clay pot
+  keywords: [pot, "large pot", "clay pot", planter, large, clay]
+  register: indefinite
   longDescription: |
     A deep unglazed pot you would need both arms for, broad enough at the mouth to get a full root ball into without wrecking it.
   material: /stuff/idea/material/ceramic/ceramic

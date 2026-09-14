@@ -10,15 +10,16 @@ class: /platform/agent/Cast
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: Odile
+  keywords: [registrar, odile, city]
   pronouns: she
   _speciesPath: /stuff/idea/species/animalia/chordata/mammalia/primates/hominidae/homo/sapiens
   lifecycleState: alive
-  primaryKeyword: registrar
   alternateNames:
     - odile
     - clerk
     - magistrate
   shortDescription: Odile, the city registrar
+  register: proper
   _domicileAddress: terminus/city/civic/registry
   longDescription: |
     A precise woman in ink-cuffed sleeves at the long counter, a ledger

@@ -5,9 +5,9 @@
 class: /platform/thing/Menu
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: a kitchen board
-  primaryKeyword: board
-  keywords: [board, menu, kitchen-board]
+  shortDescription: kitchen board
+  keywords: [board, menu, kitchen-board, kitchen]
+  register: indefinite
   longDescription: |
     A floury board chalked with the day's cooking, prices smudged by a thumb.
   offeredRecipes: [toasted-ration, root-mash, hearty-stew, fine-roast]

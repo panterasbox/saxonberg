@@ -5,9 +5,9 @@
 class: /trade/mining/location/MineRoom
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: a worked stope
-  primaryKeyword: stope
-  keywords: [stope, void, chamber]
+  shortDescription: worked stope
+  keywords: [stope, void, chamber, worked]
+  register: indefinite
   longDescription: |
     A high, irregular void where a body of ore used to be, its walls following the shape of what was taken.
   oreRow: /world/rejection/thing/copper-ore

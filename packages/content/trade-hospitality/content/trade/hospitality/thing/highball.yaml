@@ -3,10 +3,10 @@
 class: /platform/thing/ServingVessel
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: a highball glass
-  longDescription: A tall straight-sided glass.
-  primaryKeyword: highball
+  shortDescription: highball glass
   keywords: [highball, glass, tall]
+  register: indefinite
+  longDescription: A tall straight-sided glass.
   category: highball
   interiorBulk: true
   interiorCapacity: 0.35

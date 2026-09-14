@@ -14,9 +14,9 @@
 class: /platform/thing/Plant
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: a row of carrots
-  primaryKeyword: carrots
-  keywords: [carrot, carrots, "carrot tops", tops, crop]
+  shortDescription: row of carrots
+  keywords: [carrots, carrot, "carrot tops", tops, crop, row]
+  register: indefinite
   longDescription: |
     Feathery green tops stand up in a close row, the soil around them cracked where something is swelling underneath.
   _speciesPath: /stuff/idea/species/plantae/tracheophyta/magnoliopsida/apiales/apiaceae/daucus/carota

@@ -39,6 +39,22 @@ export type ChannelKind = 'player-created' | 'open-join-standalone';
  */
 export type ChannelProcedure = 'open' | 'ordered';
 
+/**
+ * ⭐⭐ **Whether this channel lets somebody speak without being named.**
+ *
+ * A real values question about a community, and the one thing in the
+ * presentation build a player can actually see change — so it ships with
+ * the default that reproduces today exactly.
+ *
+ * ⚠ It is NOT a disguise. A disguise is a **visual fact** defeated by
+ * perception; anonymity is a **declared stance about a message**,
+ * independent of what anyone can see. They were one mechanism, which is
+ * why *"is a hooded man anonymous on a channel?"* had no answer rather
+ * than a wrong one. The answer is **no**: a channel is not looking at
+ * you, so a hooded man on a named channel is himself.
+ */
+export type ChannelAnonymity = 'permitted' | 'forbidden';
+
 export class Channel extends Document {
   static collectionName = Collections.Channels;
   static fieldMeta: FieldMeta = {
@@ -46,6 +62,7 @@ export class Channel extends Document {
     kind: { persistent: true },
     subject: { persistent: true },
     procedure: { persistent: true },
+    anonymity: { persistent: true },
     archived: { persistent: true },
   };
 
@@ -54,6 +71,23 @@ export class Channel extends Document {
 
   /** Channel kind — `'player-created' | 'open-join-standalone'`. */
   kind: ChannelKind = 'player-created';
+
+  /**
+   * Whether a poster may withhold their name. See
+   * {@link ChannelAnonymity}.
+   *
+   * ⚠ The default is `permitted` because it is what every channel does
+   * today: a plain post on a permitted channel renders the ordinary
+   * concise identity, byte-identically. A row minted before this field
+   * existed hydrates the default and behaves exactly as it did — no
+   * migration.
+   */
+  anonymity: ChannelAnonymity = 'permitted';
+
+  /** Whether this channel lets a poster withhold their name. */
+  permitsAnonymity(): boolean {
+    return this.anonymity !== 'forbidden';
+  }
 
   /**
    * The `_id` of the {@link Subject} this channel manifests. Identity +

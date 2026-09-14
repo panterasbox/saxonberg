@@ -9,6 +9,7 @@ class: /platform/idea/material/Material
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: flesh
+  keywords: [flesh]
   density: 1060
   specificHeat: 3500
   thermalConductivity: 0.4

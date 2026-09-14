@@ -13,9 +13,9 @@
 class: /platform/thing/WaterFixture
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: a washbasin
-  primaryKeyword: basin
+  shortDescription: washbasin
   keywords: [basin, sink, washbasin, tap, water]
+  register: indefinite
   longDescription: |
     A shallow basin set into a narrow shelf, with a single tap above it and a clouded mirror screwed to the wall behind.
   interiorBulk: true

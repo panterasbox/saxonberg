@@ -3,8 +3,8 @@ class: /platform/idea/material/ConsumableMaterial
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: lemon
+  keywords: [lemon]
   appearance: "a bright yellow lemon"
-  keywords: ["lemon"]
   density: 930
   thermalConductivity: 0.5
   specificHeat: 3600

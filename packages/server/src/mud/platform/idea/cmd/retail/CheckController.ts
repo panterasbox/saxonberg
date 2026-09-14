@@ -100,7 +100,13 @@ export default class CheckController extends CommandController<CheckModel> {
     const ticket = await StuffApi.create(() => new Ticket());
     ticket.pointPath = rack.getTemplatePath() ?? "";
     ticket.number = rack.countHeld(consignorKey);
-    ticket.setShortDescription("a coat-check ticket");
+    ticket.setShortDescription("coat-check ticket");
+    // ⚠ Keywords are AUTHORED, and a runtime-minted thing has no row to
+    // author them in — so the code that names it says what it answers to.
+    // They used to fall out of the description for free; that derivation
+    // is gone (see Perceptible), and without this the ticket would be
+    // untargetable.
+    ticket.setKeywords(["ticket", "coat-check", "check"]);
     ContainmentApi.move(ticket as unknown as Stuff & Containable, giver as unknown as Stuff & Container);
 
     MessageApi.scene(giver)

@@ -47,7 +47,7 @@ export default class ManaCell extends ManaCellBase {
   }
 
   override getShortDescription(): string {
-    return super.getShortDescription() || 'a mana cell';
+    return super.getShortDescription() || 'mana cell';
   }
 
   /**

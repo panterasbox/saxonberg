@@ -8,8 +8,8 @@ class: /platform/idea/material/Material
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: weld
+  keywords: [luteolin, weld]
   appearance: dusty straw-yellow weld
-  keywords: [weld, luteolin]
   density: 500
   thermalConductivity: 0.07
   hardness: 2

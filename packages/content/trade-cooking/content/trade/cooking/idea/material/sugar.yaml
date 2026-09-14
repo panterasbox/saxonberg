@@ -3,8 +3,8 @@ class: /platform/idea/material/ConsumableMaterial
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: sugar
+  keywords: [sugar]
   appearance: "white granulated sugar"
-  keywords: ["sugar"]
   density: 1600
   thermalConductivity: 0.3
   specificHeat: 1250

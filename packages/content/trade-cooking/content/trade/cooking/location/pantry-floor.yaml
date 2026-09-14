@@ -19,9 +19,9 @@ data:
     x: 1
     y: 0
     z: 0
-  shortDescription: "the pantry floor"
-  primaryKeyword: floor
-  keywords: ["floor", "pantry", "storeroom"]
+  shortDescription: "pantry floor"
+  keywords: [floor, pantry, storeroom]
+  register: definite
   longDescription: |
     A dry storeroom with a scale by the door and sacks on pallets — the dry-goods floor the cookhouse and the bar both draw on.
   ambientIntensity: 25

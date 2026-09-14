@@ -7,9 +7,9 @@
 class: /platform/thing/Dish
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: a plated dish
-  primaryKeyword: dish
-  keywords: [dish, plate, meal, serving]
+  shortDescription: plated dish
+  keywords: [dish, plate, meal, serving, plated]
+  register: indefinite
   # ⭐ The vessel kind — what the pool matches on and what the house par
   # counts by. A washed plate and a factory-fresh one are the same input
   # to a fill, which is the whole returns loop.

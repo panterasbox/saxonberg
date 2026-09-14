@@ -6,9 +6,9 @@
 class: /trade/cooking/thing/DryingRack
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: a drying rack
-  primaryKeyword: rack
+  shortDescription: drying rack
   keywords: [rack, drying, drying-rack, hooks]
+  register: indefinite
   longDescription: |
     A tall frame of slats and iron hooks, set back from the fire where the air moves. Most of the hooks are empty. The two that are not hold something dark and shrunken that has been there long enough to stop smelling of anything.
   _materialPath: /stuff/idea/material/wood/oak

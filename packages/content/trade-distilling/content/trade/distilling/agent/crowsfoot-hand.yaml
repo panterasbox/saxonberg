@@ -8,12 +8,13 @@ class: /platform/agent/Cast
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: Wren Ashby
+  keywords: [hand, wren, ashby, lean, crowsfoot, apron]
   pronouns: they
   _speciesPath: /stuff/idea/species/animalia/chordata/mammalia/primates/hominidae/homo/sapiens
   lifecycleState: alive
-  primaryKeyword: hand
   alternateNames: [wren, ashby]
-  shortDescription: a lean hand in a Crowsfoot apron
+  shortDescription: lean hand in a Crowsfoot apron
+  register: indefinite
   longDescription: |
     A lean, quick person in an ink-stained apron with a crow's foot burned into the bib, carrying a single case as if it were the only one in the world — which, most mornings, it is.
   dispositions:

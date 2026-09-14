@@ -640,6 +640,19 @@ A persistent `primaryKeyword` field on `PerceptibleMixin`
 the *guaranteed-resolvable handle* an MML affordance can click —
 `look <primaryKeyword>` is the canonical disambiguator.
 
+⚠⚠ **It reached no agent until 2026-09-10.** `PerceptibleMixin` was not
+on `Creature`, so **48 shipped agent rows authored a `primaryKeyword`
+that the Hydrator discarded in silence** (and 17 authored `keywords:`
+into the same void). Clicking an NPC's identity tag sent
+`look a brisk clerk with a stub of chalk` — the label, because there was
+no keyword — and failed. The presentation build composed `Perceptible`
+on `Creature`; that click works now.
+
+⭐ And a second read exists: **`getAuthoredPrimaryKeyword()`**, the raw
+slot with no derived fallback. The handle chain needs it, because
+`getPrimaryKeyword()` always answers *something* — the trailing pool
+token — and for a portrait row that is `other`.
+
 **Default behavior**: when unset, `getPrimaryKeyword()` returns
 `keywords[0]` (the first entry in the derived pool — typically
 the first authored keyword, falling back to the first tokenized

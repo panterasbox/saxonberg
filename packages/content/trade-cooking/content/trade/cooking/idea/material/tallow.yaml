@@ -7,8 +7,8 @@ class: /platform/idea/material/ConsumableMaterial
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: tallow
+  keywords: [suet, tallow, fat, dripping]
   appearance: pale, waxy rendered tallow
-  keywords: [tallow, fat, dripping, suet]
   density: 900
   thermalConductivity: 0.17
   specificHeat: 2000

@@ -9,9 +9,9 @@
 class: /platform/thing/Oven
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: a kitchen range
-  primaryKeyword: range
-  keywords: [range, stove, oven, hearth, fire]
+  shortDescription: kitchen range
+  keywords: [range, stove, oven, hearth, fire, kitchen]
+  register: indefinite
   longDescription: >
     A cast-iron range squatting against the wall, its firebox door hinged at
     the front and a flat plate on top worn silver where pots have stood.

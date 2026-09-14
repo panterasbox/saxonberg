@@ -6,9 +6,9 @@
 class: /platform/thing/Vat
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: an oak fermenting vat
-  primaryKeyword: vat
-  keywords: [vat, "fermenting vat", tun]
+  shortDescription: oak fermenting vat
+  keywords: [vat, "fermenting vat", tun, oak, fermenting]
+  register: indefinite
   longDescription: |
     A waist-high oak vat, staves dark with old must, a bung at the shoulder and a scrawl of chalk tallies on the head.
   category: vat

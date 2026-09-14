@@ -4,14 +4,15 @@ class: /platform/agent/Crafter
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: Berta
+  keywords: [berta, smith]
   pronouns: she
   _speciesPath: /stuff/idea/species/animalia/chordata/mammalia/primates/hominidae/homo/sapiens
   lifecycleState: alive
-  primaryKeyword: berta
   alternateNames:
     - smith
     - blacksmith
   shortDescription: Berta the smith
+  register: proper
   longDescription: |
     A broad-shouldered woman in a scorched leather apron, forearms like
     cable, a squint that measures your knife hand before it measures you.

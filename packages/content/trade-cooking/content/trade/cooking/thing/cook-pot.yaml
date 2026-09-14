@@ -4,9 +4,9 @@
 class: /trade/cooking/thing/CookPot
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: a cook pot
-  primaryKeyword: pot
-  keywords: [pot, cook-pot, kettle]
+  shortDescription: cook pot
+  keywords: [pot, cook-pot, kettle, cook]
+  register: indefinite
   longDescription: |
     A deep-bellied iron pot with a bail handle, seasoned black inside. It has boiled a thousand suppers and is ready for the next.
   capabilities:

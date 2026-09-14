@@ -85,7 +85,7 @@ function seedDomain(): void {
     upkeepTerm: 'institution-all',
   });
   add(DormRoom.SCOPE, '/world/eternal/duncan-hall/location/DormRoom', {
-    shortDescription: 'a dorm room',
+    shortDescription: 'dorm room',
     // Fixtures as data — the spine's seedBornWith lays these down once.
     props: FIXTURES,
   });
@@ -279,6 +279,14 @@ async function run(
 const shortDesc = (s: Stuff): string =>
   (s as unknown as { getShortDescription(): string }).getShortDescription();
 
+/**
+ * What a player actually reads. ⭐ The theme file holds STEMS now —
+ * `dorm-themes.yaml` writes `nautical dorm room`, and the indefinite
+ * register supplies the article — so asserting the field alone would
+ * stop proving that the room reads right.
+ */
+const presented = (s: Stuff): string => s.getPresentation();
+
 /* ────────────── Phase 5: shell personalization (move-in + remodel) ────────── */
 
 describe('shell personalization — move-in theme + local remodel', () => {
@@ -305,16 +313,18 @@ describe('shell personalization — move-in theme + local remodel', () => {
 
     const unit = (await ParcelApi.heldUnitOf(tenant.getTemplatePath()!))!.getExtent();
     const room = await w.admit(unit);
-    expect(shortDesc(room)).toBe('a nautical dorm room');
+    expect(shortDesc(room)).toBe('nautical dorm room');
+    expect(presented(room)).toBe('a nautical dorm room');
     expect(
       shortDesc(room.getContents().find((c) => c instanceof Desk)!),
-    ).toBe('a chart-laden desk');
+    ).toBe('chart-laden desk');
 
     // Dormancy: empty room reaps (captured sealed) → re-admit restores nautical.
     await (w as unknown as { reconcile(): Promise<void> }).reconcile();
     expect(room.isDestroyed()).toBe(true);
     const reborn = await w.admit(unit);
-    expect(shortDesc(reborn)).toBe('a nautical dorm room');
+    expect(shortDesc(reborn)).toBe('nautical dorm room');
+    expect(presented(reborn)).toBe('a nautical dorm room');
   });
 
   it('remodel: the leaseholder redoes the room from the menu (a local prompt)', async () => {
@@ -332,10 +342,11 @@ describe('shell personalization — move-in theme + local remodel', () => {
     const ctx = ctxWithInteractive(iris, 'remodel');
     await run(makeStuff(() => new RemodelController()), iris, {} as CommandModel, ctx);
     expect(rejectionReason(ctx)).toBeNull();
-    expect(shortDesc(room)).toBe('a nautical dorm room');
+    expect(shortDesc(room)).toBe('nautical dorm room');
+    expect(presented(room)).toBe('a nautical dorm room');
     expect(
       shortDesc(room.getContents().find((c) => c instanceof Desk)!),
-    ).toBe('a chart-laden desk');
+    ).toBe('chart-laden desk');
   });
 
   it('remodel refuses a non-leaseholder', async () => {
@@ -350,7 +361,7 @@ describe('shell personalization — move-in theme + local remodel', () => {
     const ctx = ctxWithInteractive(stranger, 'remodel');
     await run(makeStuff(() => new RemodelController()), stranger, {} as CommandModel, ctx);
     expect(rejectionReason(ctx)).toBe('no-lease');
-    expect(shortDesc(room)).toBe('a dorm room'); // untouched
+    expect(shortDesc(room)).toBe('dorm room'); // untouched
   });
 
   it('function-fixed: a style naming a non-prose field is refused whole', async () => {
@@ -371,7 +382,7 @@ describe('shell personalization — move-in theme + local remodel', () => {
     const ctx = ctxWithInteractive(iris, 'remodel');
     await run(makeStuff(() => new RemodelController()), iris, {} as CommandModel, ctx);
     expect(rejectionReason(ctx)).toBe('theme-error');
-    expect(shortDesc(room)).toBe('a dorm room'); // nothing written (atomic refuse)
+    expect(shortDesc(room)).toBe('dorm room'); // nothing written (atomic refuse)
   });
 });
 
@@ -475,7 +486,7 @@ describe('unprovision — revert + free slot; re-provision = default look', () =
     seedUnit(1, 1); // re-mint the slot (a fresh provision would)
     await w.refreshProvisioned();
     const reborn = await w.admit(k1);
-    expect(shortDesc(reborn)).toBe('a dorm room');
+    expect(shortDesc(reborn)).toBe('dorm room');
   });
 
   it('provision stamps the domicile; unprovision leaves it standing', async () => {

@@ -116,8 +116,11 @@ describe("An unresolvable coin throws rather than being valued at 1", () => {
     const blank = makeStuffAtPath(() => new Coin(), COIN_PATH);
     // Valuation must never guess…
     expect(() => blank.getMass()).toThrow();
-    // …but presentation must never crash a `look`.
-    expect(blank.getShortDescription()).toBe("a blank coin");
+    // …but presentation must never crash a `look`. The field holds the
+    // STEM; the indefinite register supplies the article, so the player
+    // still reads "a blank coin".
+    expect(blank.getShortDescription()).toBe("blank coin");
+    expect(blank.getPresentation()).toBe("a blank coin");
   });
 
   it("throws for a denomination that is not in the currency's table", () => {

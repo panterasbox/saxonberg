@@ -34,9 +34,9 @@
 class: /trade/ranching/thing/Herdbook
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: the herdbook
-  primaryKeyword: herdbook
+  shortDescription: herdbook
   keywords: [herdbook, book, register, ledger]
+  register: definite
   longDescription: >-
     A hide-bound book hanging from a nail inside the byre door, swollen
     at the corners from a wet winter. Ruled columns: number, dam, born,

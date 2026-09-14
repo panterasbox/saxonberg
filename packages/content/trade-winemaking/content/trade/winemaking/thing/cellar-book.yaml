@@ -6,9 +6,9 @@
 class: /platform/thing/Menu
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: the cellar book
-  primaryKeyword: book
-  keywords: [book, "cellar book", board, ledger]
+  shortDescription: cellar book
+  keywords: [book, "cellar book", board, ledger, cellar]
+  register: definite
   longDescription: |
     A fat ledger chained to the press rail, the day's crush chalked across the open page.
   offeredRecipes: [crush, white-crush, dry-vermouth, sweet-vermouth]

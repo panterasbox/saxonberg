@@ -8,9 +8,9 @@
 class: /platform/thing/Provision
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: a fleece
-  primaryKeyword: fleece
+  shortDescription: fleece
   keywords: [fleece, wool]
+  register: indefinite
   longDescription: >-
     A whole fleece rolled cut-side out and tied with its own neck wool,
     greasy with lanolin and smelling of the animal.

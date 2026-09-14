@@ -5,8 +5,8 @@ class: /platform/idea/material/ConsumableMaterial
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: ale lees
+  keywords: [ale, lees, barm]
   appearance: "a tan, bready sediment"
-  keywords: ["lees", "barm"]
   density: 1060
   thermalConductivity: 0.5
   specificHeat: 3700

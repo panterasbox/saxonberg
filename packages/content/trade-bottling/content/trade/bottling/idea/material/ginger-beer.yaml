@@ -3,8 +3,8 @@ class: /platform/idea/material/ConsumableMaterial
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: ginger beer
+  keywords: [beer, ginger-beer, ginger]
   appearance: "cloudy, spicy ginger beer"
-  keywords: ["ginger-beer", "ginger"]
   density: 1040
   thermalConductivity: 0.5
   specificHeat: 3800

@@ -62,8 +62,15 @@ field on the room.
 
 Four value objects + two mixins + the concrete entity:
 
-- **`Position`** — a job's terms: `{ key, label, wageRate /* minor units
-  per game-hour */, confers /* mixin names */, reportsTo? }`. The
+- **`Position`** — a job's terms: `{ key, label, noun?, wageRate /* minor
+  units per game-hour */, confers /* mixin names */, reportsTo? }`.
+  ⭐ **`noun` is what ONE holder is called** — `bartender`, `clerk` — and
+  it feeds the handle chain's second rung (`getPositionNoun()`), so an
+  NPC in a job is *"a baker"* with nobody typing it onto the NPC, and
+  **stops being one the day they are dismissed**. ⚠ It is a second field
+  because `label` cannot supply it: every shipped label is a gerund
+  (*"tending bar"*, *"on the road"*) and there is no honest
+  gerund-to-noun transform. See [presentation.md](./presentation.md). The
   `Money`/`Charge` precedent (data + `serialize`/`fromData`). `confers` is
   the knowing→doing seam — the mixins an on-shift holder's Position grants
   (v1: `['MakerMixin']` for the bartender). ⚠ **`wageRate` stays on

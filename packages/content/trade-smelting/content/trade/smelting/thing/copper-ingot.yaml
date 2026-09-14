@@ -7,9 +7,9 @@
 class: /platform/thing/Ingot
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: a copper ingot
-  primaryKeyword: ingot
+  shortDescription: copper ingot
   keywords: [ingot, copper, bar, billet]
+  register: indefinite
   longDescription: >-
     A rough bar of red metal, still carrying the shape of the sand it was
     poured into and a bloom of black scale down one face.

@@ -28,6 +28,26 @@ export interface PositionData {
   key: string;
   /** Human label for the role (e.g. `'tending bar'`). */
   label: string;
+  /**
+   * ⭐ **What ONE holder is called** — `'bartender'`, `'clerk'`,
+   * `'baker'`. Optional; absent means the job contributes no handle.
+   *
+   * ⚠ It is a second word because `label` **cannot** supply it. Every
+   * shipped label is a gerund or a phrase (*"tending bar"*, *"on the
+   * road"*, *"sitting as Magistrate of Terminus"*), and there is no
+   * honest gerund-to-noun transform — *"tending bar"* does not contain
+   * *"bartender"*. The `key` is no better: it is an identifier, and
+   * half of them are firm names (`vionne`, `hollis`, `goodkin`), so a
+   * holder of `vionne` is not *"a vionne"*.
+   *
+   * So the requirements' *"drop an NPC into a bakery and they are a
+   * baker — nobody typed that"* is very nearly true: **the bakery's
+   * author typed it once**, on the position, and every holder of that
+   * job gets it for free forever and loses it the day they are
+   * dismissed. That is the staleness fix; a retyped description is what
+   * leaves a sacked weaver reading *"a weaver"*.
+   */
+  noun?: string;
   /** Wage in banking minor units per game-hour on shift. */
   wageRate: number;
   /** Mixin names this Position confers while its holder is on shift. */
@@ -69,6 +89,8 @@ export class Position {
     public readonly reportsTo?: string,
     /** Whether the holder buys for the organization (default false). */
     public readonly purchases: boolean = false,
+    /** What one holder is CALLED, or undefined. See {@link PositionData.noun}. */
+    public readonly noun?: string,
   ) {}
 
   /** Build a Position from an already-typed descriptor. */
@@ -81,6 +103,7 @@ export class Position {
       data.compensation,
       data.reportsTo,
       data.purchases === true,
+      data.noun,
     );
   }
 
@@ -112,6 +135,9 @@ export class Position {
         ? data.reportsTo
         : undefined,
       data.purchases === true,
+      typeof data.noun === 'string' && data.noun.length > 0
+        ? data.noun
+        : undefined,
     );
   }
 
@@ -130,6 +156,7 @@ export class Position {
       ...(this.compensation ? { compensation: { ...this.compensation } } : {}),
       ...(this.reportsTo ? { reportsTo: this.reportsTo } : {}),
       ...(this.purchases ? { purchases: true } : {}),
+      ...(this.noun ? { noun: this.noun } : {}),
     };
   }
 }

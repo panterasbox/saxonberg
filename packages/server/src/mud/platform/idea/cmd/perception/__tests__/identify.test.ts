@@ -49,7 +49,7 @@ class Guard extends BeliefStoreMixin(
 let counter = 0;
 function makeVial(): Vial {
   const v = makeStuffAtPath(() => new Vial(), `/obj/item/vial-${counter++}`);
-  v.setShortDescription('a blue potion');
+  v.setShortDescription('blue potion');
   v.setIdentifiedName('a potion of healing');
   return v;
 }
@@ -81,7 +81,7 @@ describe('identification — the type axis', () => {
     const viewer = makeStuff(() => new Viewer());
     const guard = makeStuffAtPath(() => new Guard(), '/obj/npc/guard-1');
     guard.setName('Bob');
-    guard.setShortDescription('a tall figure');
+    guard.setShortDescription('tall figure');
     guard.setIdentifiedName('a city guard');
 
     // Unknown + unidentified → salient features.

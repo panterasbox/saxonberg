@@ -23,9 +23,9 @@
 class: /platform/location/SingletonCartesianLocation
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: the slurry pit
-  primaryKeyword: pit
+  shortDescription: slurry pit
   keywords: [pit, slurry, tank, midden]
+  register: definite
   longDescription: |
     A stone-lined tank under the midden, half full of black slurry with a
     crust on it that has cracked in places. Iron rungs go down one wall.

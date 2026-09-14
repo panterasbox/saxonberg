@@ -3,8 +3,8 @@
 class: /platform/thing/Surface
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: a smithy workbench
-  primaryKeyword: workbench
-  keywords: [workbench, bench, table]
+  shortDescription: smithy workbench
+  keywords: [workbench, bench, table, smithy]
+  register: indefinite
   longDescription: |
     A heavy workbench, its top scored and burned, a vise bolted to one corner.

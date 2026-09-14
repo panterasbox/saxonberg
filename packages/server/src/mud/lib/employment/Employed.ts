@@ -189,6 +189,17 @@ export interface Employed {
   isOnShift(): boolean;
   /** Mixin names conferred by every on-shift Employment's Position. */
   getConferredMixinNames(): readonly string[];
+  /**
+   * ⭐ **What the job calls its holder** — `'bartender'`, `'clerk'` —
+   * from the first ACTIVE employment's Position, or `null`.
+   *
+   * The second rung of the handle chain, under the author's own word.
+   * Active rather than on-shift, deliberately: a bartender walking home
+   * is still a bartender. ⭐ And it FOLLOWS the job — the staleness fix,
+   * because a description retyped onto the NPC leaves a dismissed
+   * weaver reading *"a weaver"* forever.
+   */
+  getPositionNoun(): string | null;
 
   /** Participant-gated: set an existing record's status — written by the
    * organization party to the record. */
@@ -335,6 +346,22 @@ export function EmployedMixin<TBase extends MixinConstructor>(Base: TBase) {
         for (const name of position.confers) out.add(name);
       }
       return [...out];
+    }
+
+    /** See {@link Employed.getPositionNoun}. */
+    public getPositionNoun(): string | null {
+      // The same walk `getConferredMixinNames` makes, taken once against
+      // the first active record: employment → organization → position.
+      const employment = this.getActiveEmployment();
+      if (!employment) return null;
+      const organization = StuffApi.findByTemplatePath(
+        employment.organizationPath,
+      );
+      if (!organization || !MixinApi.isOrganization(organization)) return null;
+      // ⚠ Null, not a guess, when the position has no noun: a firm-named
+      // key (`vionne`, `hollis`) is an identifier and "a vionne" is not
+      // a thing anybody is called. The chain falls to the species.
+      return organization.getPosition(employment.positionKey)?.noun ?? null;
     }
 
     @CallSecurity(ByEmployingOrganization)

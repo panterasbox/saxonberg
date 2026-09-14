@@ -11,9 +11,9 @@
 class: /platform/thing/Chair
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: a worn armchair
-  primaryKeyword: armchair
-  keywords: [armchair, chair, seat]
+  shortDescription: worn armchair
+  keywords: [armchair, chair, seat, worn]
+  register: indefinite
   longDescription: |
     A deep armchair with sagging springs and a blanket over one arm, the upholstery rubbed shiny where hands have rested.
   restQuality: 1.2

@@ -19,9 +19,11 @@ data:
     path: /world/rejection/agent/onsetter
   positions:
     - key: miner
+      noun: miner
       label: on tutwork at the face
       wageRate: 5
     - key: onsetter
+      noun: onsetter
       label: keeping the tally at the adit
       wageRate: 4
   rosterSlots:

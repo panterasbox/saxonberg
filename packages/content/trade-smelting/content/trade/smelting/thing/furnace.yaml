@@ -10,9 +10,9 @@
 class: /platform/thing/Forge
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: a stone smelting furnace
-  primaryKeyword: furnace
-  keywords: [furnace, smelter, shaft, bellows]
+  shortDescription: stone smelting furnace
+  keywords: [furnace, smelter, shaft, bellows, stone, smelting]
+  register: indefinite
   longDescription: >-
     A squat shaft of stone lined with clay, taller than a man and open at
     the top, with a clay tuyère low on one side and a great leather

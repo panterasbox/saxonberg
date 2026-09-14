@@ -4371,3 +4371,80 @@ a job genuinely needs a discrete act (a courier's handover) it is a
 subcommand of the general palette, not a new top-level verb.
 
 See [contract.md § No verb for standing a post](./subsystems/contract.md).
+
+## A public `static` on a `lib/` value class
+
+⭐⭐⭐ **It is callable by anyone and visible to nobody.**
+
+`scripts/project-author-surface.ts` admits exactly two things into the
+**consumer** tier:
+
+```ts
+const isStaticApi   =  apiClass && member.flags?.isStatic === true;
+const isStuffMethod = !apiClass && member.flags?.isStatic !== true;
+if (!isStaticApi && !isStuffMethod) continue;   // ← dropped
+```
+
+A static on a non-`Api` class satisfies **neither branch**, so it never
+reaches the generated docs. Its *instance* methods survive; only the
+statics vanish — which is exactly what somebody goes looking for. That
+is a direct breach of the governing invariant in `CLAUDE.md`:
+**`callable == visible == cared-about`**.
+
+```ts
+// WRONG — a factory nobody can find.
+export class NounPhrase {
+  private constructor(/* … */) {}
+  static of(stem: string, register: Register): NounPhrase { /* … */ }
+  static proper(stem: string): NounPhrase { /* … */ }
+}
+Stuff.presentationPhrase() { return NounPhrase.proper(this.getName()); }
+```
+
+```ts
+// RIGHT — construction is an Api concern, and the value class is a
+// TYPE WITH INSTANCE METHODS.
+export class NounPhrase {
+  constructor(/* … */) {}          // public: the Api calls it
+  render(): string { /* … */ }
+  possessive(): string { /* … */ }
+}
+class GrammarApi {
+  static phrase(stem: string, register: Register = 'indefinite') {
+    return new NounPhrase(stem.trim(), register);
+  }
+  static properPhrase(stem: string) { return new NounPhrase(stem.trim(), 'proper'); }
+}
+```
+
+⭐ **The codebase already holds this rule one layer up.** `new
+SomeStuff()` goes through `StuffApi.create`. **Construction is an Api
+concern**; a value class with public static factories is the same rule
+broken in `lib/`. The public constructor is not a loophole — it is the
+`new Thing()` precedent, where "authors don't call it" is a convention
+rather than a visibility trick.
+
+⚠ **It is not only factories.** The census
+(`scripts/check-lib-statics.ts`) found **136 classes / 461 statics**, and
+**318 of them are domain LOGIC** — `Freshness.growthRate`,
+`Contamination.advance`, `CombatNarration.narrate`. Those are **logic
+singletons that never got the memo**: `platform/idea/api/<X>Logic.ts` is
+the home, and `CLAUDE.md` already calls the `XApi` ↔ `XLogic` split
+**mandatory**.
+
+⚠ Two traps when fixing one:
+
+- **Don't let the value class reach back for the Api.** That makes a
+  module cycle. Keep the shared rule a **module-private function**
+  (`NounPhrase.ts`'s vowel check) and let the Api be its only public
+  surface — `api/grammar.ts` → `lib/description/NounPhrase.ts`, never
+  back.
+- **`lint:family` will not catch the related export smell.** Free
+  exported functions in `lib/` are an **ESLint** rule
+  (`no-restricted-syntax`), not a `lint:*` gate. ⭐ *A rule that is not
+  in the family you run is a rule you are not running* — run
+  `pnpm lint` too.
+
+Sweep tracked at
+[value-object-statics-slate.md](./slates/builds/value-object-statics-slate.md);
+worked example in [presentation.md](./subsystems/presentation.md).

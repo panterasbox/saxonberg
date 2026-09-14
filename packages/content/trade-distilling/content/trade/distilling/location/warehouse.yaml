@@ -18,9 +18,9 @@ data:
     x: 2
     y: 0
     z: 0
-  shortDescription: a warehouse
-  primaryKeyword: warehouse
+  shortDescription: warehouse
   keywords: [warehouse, store, depot]
+  register: indefinite
   longDescription: |
     A bare warehouse floor under a corrugated roof, racking down one wall and a roller door down the other, the concrete stained in rings where casks once stood.
   ambientIntensity: 25

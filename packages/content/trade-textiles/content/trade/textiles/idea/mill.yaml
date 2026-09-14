@@ -24,11 +24,13 @@ data:
     office: prime-minister
   positions:
     - key: spinner
+      noun: spinner
       label: at the wheel
       wageRate: 3
       confers: []
       purchases: false
     - key: weaver
+      noun: weaver
       label: at the loom
       wageRate: 5
       confers: []

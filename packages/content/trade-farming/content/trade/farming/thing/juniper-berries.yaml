@@ -3,9 +3,9 @@
 class: /platform/thing/Provision
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: a handful of juniper berries
-  primaryKeyword: berries
-  keywords: [juniper, berries, berry, produce, "juniper berries"]
+  shortDescription: handful of juniper berries
+  keywords: [berries, juniper, berry, produce, "juniper berries", handful]
+  register: indefinite
   longDescription: "A handful of blue-black juniper berries, resinous when crushed."
   _materialPath: /trade/farming/idea/material/juniper
   gradeBand: fair

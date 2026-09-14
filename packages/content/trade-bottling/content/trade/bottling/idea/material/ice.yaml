@@ -3,8 +3,8 @@ class: /platform/idea/material/Material
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: ice
+  keywords: [ice]
   appearance: "clear ice, sweating"
-  keywords: ["ice"]
   density: 917
   thermalConductivity: 2.2
   specificHeat: 2100

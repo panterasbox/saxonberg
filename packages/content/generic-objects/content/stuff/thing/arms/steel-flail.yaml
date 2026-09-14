@@ -1,8 +1,9 @@
 class: /platform/thing/equipment/Weapon
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: a steel flail
-  primaryKeyword: flail
+  shortDescription: steel flail
+  keywords: [flail, steel]
+  register: indefinite
   longDescription: >
     A spiked steel head on a length of chain. Its blow whips round a shield's
     edge and can't be parried away — but the same chain that makes it

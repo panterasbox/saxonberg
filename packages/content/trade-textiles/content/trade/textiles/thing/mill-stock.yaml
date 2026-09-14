@@ -4,9 +4,9 @@
 class: /platform/thing/Stock
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: "the mill's stock"
-  primaryKeyword: stock
-  keywords: [stock, bolts, shelf]
+  shortDescription: "mill's stock"
+  keywords: [stock, bolts, shelf, "mill's", mill]
+  register: definite
   longDescription: "Bolts stacked on their ends against the wall, each with a chalked mark on the cut edge."
   discipline: scrum
   attendDurationMs: 0

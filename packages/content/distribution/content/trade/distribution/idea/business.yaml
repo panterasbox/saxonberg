@@ -14,10 +14,12 @@ data:
     office: prime-minister
   positions:
     - key: clerk
+      noun: clerk
       label: working the cash-and-carry counter
       wageRate: 5
       confers: []
     - key: keeper
+      noun: keeper
       label: keeping the cash-and-carry
       wageRate: 0
       confers: []

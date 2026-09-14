@@ -7,8 +7,9 @@
 class: /platform/thing/Door
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: the university gate
-  primaryKeyword: gate
+  shortDescription: university gate
+  keywords: [gate, university]
+  register: definite
   longDescription: >
     Tall iron gates in a low stone wall, the university's pale terraces
     behind them. Shut, chained, and locked — the gown's, not the town's.

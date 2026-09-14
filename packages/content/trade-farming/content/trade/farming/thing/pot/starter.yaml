@@ -12,9 +12,9 @@
 class: /platform/thing/PlantPot
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: a small clay pot
-  primaryKeyword: pot
-  keywords: [pot, "small pot", "clay pot", planter]
+  shortDescription: small clay pot
+  keywords: [pot, "small pot", "clay pot", planter, small, clay]
+  register: indefinite
   longDescription: |
     A squat unglazed pot with a chipped rim, filled to within a thumb's width of the top with dark soil.
   material: /stuff/idea/material/ceramic/ceramic

@@ -5,9 +5,9 @@
 class: /platform/thing/Dish
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: a platter
-  primaryKeyword: platter
+  shortDescription: platter
   keywords: [platter, dish, board, serving]
+  register: indefinite
   longDescription: |
     A broad oval platter with a shallow lip and a channel cut round the rim to catch what a roast gives up.
   _materialPath: /stuff/idea/material/ceramic/ceramic

@@ -2,9 +2,9 @@
 class: /platform/thing/Seed
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: a bag of clover seed
-  primaryKeyword: seed
-  keywords: [seed, seeds, clover]
+  shortDescription: bag of clover seed
+  keywords: [seed, seeds, clover, bag]
+  register: indefinite
   longDescription: |
     Small hard yellow seed, dusty and slippery, the kind that goes everywhere the moment the bag is open.
   growsIntoPath: /trade/farming/thing/plant/clover

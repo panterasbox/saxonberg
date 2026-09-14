@@ -6,8 +6,8 @@ class: /platform/idea/material/ConsumableMaterial
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: tequila
-  appearance: a pale, peppery agave spirit
   keywords: [tequila]
+  appearance: a pale, peppery agave spirit
   density: 940
   thermalConductivity: 0.17
   specificHeat: 2400

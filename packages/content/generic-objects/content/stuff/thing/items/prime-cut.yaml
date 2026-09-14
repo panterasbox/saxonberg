@@ -3,9 +3,9 @@
 class: /platform/thing/Provision
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: a prime cut of meat
-  primaryKeyword: prime-cut
-  keywords: [cut, prime, meat, prime-cut]
+  shortDescription: prime cut of meat
+  keywords: [prime-cut, cut, prime, meat]
+  register: indefinite
   _materialPath: /stuff/idea/material/food/stew-meat
   gradeBand: fine
   mass: 0.5

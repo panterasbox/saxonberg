@@ -9,9 +9,9 @@
 class: /platform/thing/Provision
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: a green hide
-  primaryKeyword: hide
-  keywords: [hide, skin, pelt]
+  shortDescription: green hide
+  keywords: [hide, skin, pelt, green]
+  register: indefinite
   longDescription: >-
     A whole hide, flesh side up and still warm, salted along the edges.
     It wants to be in a tanpit within the week or it is worth nothing.

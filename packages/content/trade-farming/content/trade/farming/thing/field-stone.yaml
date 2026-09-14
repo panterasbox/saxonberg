@@ -9,9 +9,9 @@
 class: /platform/thing/Provision
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: a heap of field stone
-  primaryKeyword: stone
-  keywords: [stone, stones, field-stone, rubble]
+  shortDescription: heap of field stone
+  keywords: [stone, stones, field-stone, rubble, heap, field]
+  register: indefinite
   longDescription: >-
     Rough grey stone off the ground it was in, every piece a different
     size and none of them square. It is heavy out of all proportion to

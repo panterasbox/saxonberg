@@ -1,8 +1,9 @@
 class: /platform/thing/equipment/Garment
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: a bronze breastplate
-  primaryKeyword: breastplate
+  shortDescription: bronze breastplate
+  keywords: [breastplate, bronze]
+  register: indefinite
   longDescription: >
     A muscled cuirass of cast bronze, green at the seams. The same plate
     form as its steel cousin — but the softer metal turns an edge far less

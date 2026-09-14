@@ -1,8 +1,9 @@
 class: /platform/thing/equipment/Garment
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: a pair of stout leather boots
-  primaryKeyword: boots
+  shortDescription: pair of stout leather boots
+  keywords: [boots, pair, stout, leather]
+  register: indefinite
   longDescription: >
     Heavy hobnailed boots of thick tooled leather. The stout soles turn the
     broken glass of an alley that would open a bare foot.

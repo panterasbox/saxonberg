@@ -15,9 +15,9 @@
 class: /platform/thing/AttendancePoint
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: "the tailor's counter"
-  primaryKeyword: counter
-  keywords: [counter, desk, tailor]
+  shortDescription: "tailor's counter"
+  keywords: [counter, desk, tailor, "tailor's"]
+  register: definite
   longDescription: |
     A narrow counter with a tape measure hanging off the end of it and the book strapped shut beside the till. The price card is written small, which is its own kind of statement.
   discipline: appointment

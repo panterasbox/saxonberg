@@ -213,10 +213,13 @@ export class Currency {
   }
 
   /**
-   * How a coin of this denomination presents — the issuer's `label` when it
-   * chose one, else the derived `"a 25-zorkmid piece"`. No author writes a
-   * coin name; a second issuer's coins render correctly the moment its
+   * How a coin of this denomination presents — the issuer's `label` when
+   * it chose one, else the derived `"25-zorkmid piece"`. No author writes
+   * a coin name; a second issuer's coins render correctly the moment its
    * table exists.
+   *
+   * ⚠ **A STEM**, no article: the register supplies it. A `label` an
+   * issuer authors is a stem too.
    */
   public static describeDenomination(
     currency: string,
@@ -224,7 +227,7 @@ export class Currency {
   ): string {
     const record = Currency.of(currency);
     const denom = Currency.denominationOf(currency, denomination);
-    return denom.label ?? `a ${denom.value}-${record.unit} piece`;
+    return denom.label ?? `${denom.value}-${record.unit} piece`;
   }
 
   /**

@@ -12,8 +12,9 @@
 class: /system/arcana/thing/Spellbook
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: a stitched trade manual
-  primaryKeyword: manual
+  shortDescription: stitched trade manual
+  keywords: [manual, stitched, trade]
+  register: indefinite
   longDescription: >
     A cheap workshop binding, thickened by damp and re-sewn twice. Most
     of it is tables. The margins carry three different hands arguing

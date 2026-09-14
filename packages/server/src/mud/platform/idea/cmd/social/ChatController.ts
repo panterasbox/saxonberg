@@ -35,6 +35,10 @@ interface ChatModel extends CommandModel {
   new_name?: string;
   handle?: string;
   ordered?: boolean;
+  /** `--anon` — post without being named, where the channel permits it. */
+  anon?: boolean;
+  /** `chat anonymity <name> permit|forbid`. */
+  setting?: string;
 }
 
 export default class ChatController extends CommandController<ChatModel> {
@@ -69,6 +73,8 @@ export default class ChatController extends CommandController<ChatModel> {
         return this.executeHistory(model, context);
       case 'promote':
         return this.executePromote(model, context);
+      case 'anonymity':
+        return this.executeAnonymity(model, context);
       default:
         return this.fail(
           context,
@@ -92,8 +98,20 @@ export default class ChatController extends CommandController<ChatModel> {
     if (!body) {
       return this.fail(context, 'message required', 'message-required');
     }
+    const anon = model.anon === true;
     const channel = await ChatApi.resolveByName(channelName);
     if (!channel) {
+      // ⭐ An ad-hoc (DM-group) thread has no anonymity to grant — a
+      // cohort you were added to BY NAME already knows who is in it —
+      // but that is a reason to IGNORE the flag, not to refuse the
+      // message. You always get to speak; the channel decides whether
+      // your name shows. Told plainly below, never silently.
+      if (anon) {
+        this.send(
+          context,
+          Mml.compose`\nA group message shows who is speaking — posted under your name.\n`,
+        );
+      }
       // Try ad-hoc handle path.
       const ad = await speaker.resolveChatHandle(channelName);
       if (ad) {
@@ -147,7 +165,80 @@ export default class ChatController extends CommandController<ChatModel> {
       }
       return this.fail(context, `No channel '${channelName}'.`, 'no-such-channel');
     }
-    await speaker.postToChannel(channel, body);
+    // ⭐⭐ **`--anon` is a REQUEST the channel may decline, not a
+    // precondition that fails.** You always get to speak; the channel's
+    // setting decides whether your name shows, and on a channel that
+    // forbids anonymity it shows — exactly as if you had not asked.
+    //
+    // ⚠ It is said out loud rather than quietly done. The poster typed
+    // `--anon` for a reason, and a line telling them the post went out
+    // named is the difference between a rule they can see and a
+    // surprise they find out about afterwards.
+    if (anon && !channel.permitsAnonymity()) {
+      this.send(
+        context,
+        Mml.compose`\n'${channel.name}' shows every poster's name — posted under yours.\n`,
+      );
+    }
+    await speaker.postToChannel(channel, body, { anonymous: anon });
+  }
+
+  /**
+   * `chat anonymity <name> permit|forbid` — the owner's call about their
+   * own space. ⭐ A real values question about a community, and the only
+   * thing in this build a player can see change.
+   */
+  private async executeAnonymity(
+    model: ChatModel,
+    context: CommandContext,
+  ): Promise<void> {
+    const actor = context.commandGiver as Stuff & CommandGiver &
+      SubjectSubscriber;
+    const name = (model.name ?? '').trim();
+    const setting = (model.setting ?? '').trim().toLowerCase();
+    if (!name || !setting) {
+      return this.fail(
+        context,
+        'chat anonymity <channel> permit|forbid',
+        'setting-required',
+      );
+    }
+    if (setting !== 'permit' && setting !== 'forbid') {
+      return this.fail(
+        context,
+        `'${setting}' is not permit or forbid.`,
+        'bad-setting',
+      );
+    }
+    const channel = await ChatApi.resolveByName(name);
+    if (!channel) {
+      return this.fail(context, `No channel '${name}'.`, 'no-such-channel');
+    }
+    // Owner-gated exactly as `disband` is — the Subject holds the owner.
+    const subject = channel.subject
+      ? await SubjectApi.resolveById(channel.subject)
+      : null;
+    if (
+      subject &&
+      PlayerApi.isAvatarStuff(actor) &&
+      subject.getOwner() !== actor.getPlayerId()
+    ) {
+      return this.fail(
+        context,
+        'Only the owner sets a channel\'s anonymity.',
+        'not-owner',
+      );
+    }
+    await ChatApi.setAnonymity(
+      name,
+      setting === 'permit' ? 'permitted' : 'forbidden',
+    );
+    this.send(
+      context,
+      setting === 'permit'
+        ? Mml.compose`\n'${channel.name}' now permits anonymous posts.\n`
+        : Mml.compose`\n'${channel.name}' now shows every poster's name.\n`,
+    );
   }
 
   private async executeList(context: CommandContext): Promise<void> {

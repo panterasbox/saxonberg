@@ -3,9 +3,9 @@
 class: /platform/thing/Menu
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: the brewhouse board
-  primaryKeyword: board
-  keywords: [board, chalkboard, "brew board"]
+  shortDescription: brewhouse board
+  keywords: [board, chalkboard, "brew board", brewhouse]
+  register: definite
   longDescription: |
     A chalkboard over the tun, the day's grists rubbed and rewritten a hundred times.
   offeredRecipes: [mash, lager-mash]

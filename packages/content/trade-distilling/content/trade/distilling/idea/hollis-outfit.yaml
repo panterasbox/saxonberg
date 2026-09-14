@@ -13,6 +13,7 @@ data:
     parcel: /corpo/hollis
   positions:
     - key: hand
+      noun: hand
       label: running Hollis's bottling floor
       wageRate: 3
       confers: []

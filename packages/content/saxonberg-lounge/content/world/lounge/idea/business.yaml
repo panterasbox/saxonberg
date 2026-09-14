@@ -31,6 +31,7 @@ data:
   # bartender fulfills `order`.
   positions:
     - key: bartender
+      noun: bartender
       label: tending bar
       wageRate: 4
       confers: [MakerMixin]
@@ -41,6 +42,7 @@ data:
     # appoints (his "looking for work?" branch) holds it the same way and
     # `quit`s the same way. No wizard anywhere in the loop.
     - key: keeper
+      noun: keeper
       label: keeping the bar
       wageRate: 0
       confers: []

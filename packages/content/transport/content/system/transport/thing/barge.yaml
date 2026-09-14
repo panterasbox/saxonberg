@@ -15,9 +15,9 @@
 class: /system/transport/thing/Barge
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: a flat-bottomed barge
-  primaryKeyword: barge
-  keywords: [barge, boat, lighter, craft]
+  shortDescription: flat-bottomed barge
+  keywords: [barge, boat, lighter, craft, flat-bottomed]
+  register: indefinite
   longDescription: |
     Sixty feet of flat-bottomed timber with a shallow well amidships, a stubby mast that folds, and a steering sweep as long as a house. She draws less than a person is tall loaded, which is the only reason she gets up this river at all.
   mass: 4200

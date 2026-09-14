@@ -3,9 +3,9 @@
 class: /platform/thing/Vat
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: a jar of lager culture
-  primaryKeyword: jar
-  keywords: [jar, culture, "lager culture"]
+  shortDescription: jar of lager culture
+  keywords: [jar, culture, "lager culture", lager]
+  register: indefinite
   longDescription: A wired glass jar of pale sediment, beaded with cellar damp.
   category: culture-jar
   interiorBulk: true

@@ -5,9 +5,9 @@ hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   _speciesPath: /stuff/idea/species/animalia/chordata/mammalia/primates/hominidae/homo/sensitivus
   lifecycleState: alive
-  primaryKeyword: dispatcher
   keywords: [dispatcher, clerk, book]
-  shortDescription: the dispatcher
+  shortDescription: dispatcher
+  register: definite
   longDescription: >-
     A small, unhurried man with a pencil behind each ear and a ledger
     open on a slope-desk that he does not appear to consult. He knows

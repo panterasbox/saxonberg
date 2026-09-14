@@ -5,8 +5,8 @@ class: /platform/idea/material/ConsumableMaterial
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: root vegetable
+  keywords: [veg, vegetable, root, roots, turnip]
   appearance: knobbly root vegetables, earth still on them
-  keywords: [vegetable, root, roots, turnip, veg]
   density: 700
   thermalConductivity: 0.5
   specificHeat: 3500

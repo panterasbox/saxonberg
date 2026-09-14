@@ -27,8 +27,8 @@ class: /platform/idea/material/Material
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: fouled-water
+  keywords: [fouled-water, water, fouled, dirty]
   appearance: brown, cloudy water
-  keywords: [water, fouled, dirty]
   density: 1000
   thermalConductivity: 0.6
   specificHeat: 4186

@@ -9,9 +9,9 @@
 class: /trade/ranching/agent/WorkingAnimal
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: a rough-coated collie
-  primaryKeyword: dog
-  keywords: [dog, collie, sheepdog]
+  shortDescription: rough-coated collie
+  keywords: [dog, collie, sheepdog, rough-coated]
+  register: indefinite
   longDescription: >-
     A rough-coated collie with one ear up, lying flat with its chin on
     its paws and its eyes on the stock. It has not blinked in a while.

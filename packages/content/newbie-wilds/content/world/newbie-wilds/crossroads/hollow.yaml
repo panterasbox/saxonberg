@@ -10,8 +10,9 @@
 class: /platform/location/SingletonCartesianLocation
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: a hollow full of fog
-  primaryKeyword: hollow
+  shortDescription: hollow full of fog
+  keywords: [hollow, full, fog]
+  register: indefinite
   _address: last-counted-mile/hollow
   coords:
     x: -1

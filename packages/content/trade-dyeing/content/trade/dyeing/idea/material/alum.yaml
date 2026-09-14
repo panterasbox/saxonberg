@@ -10,8 +10,8 @@ class: /platform/idea/material/Material
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: alum
+  keywords: [alum]
   appearance: clear white alum crystals
-  keywords: [alum, alum]
   density: 1750
   thermalConductivity: 0.3
   hardness: 2

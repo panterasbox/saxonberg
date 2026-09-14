@@ -5,9 +5,9 @@
 class: /platform/thing/Crop
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: a load of turnips
-  primaryKeyword: turnips
-  keywords: [turnips, crop]
+  shortDescription: load of turnips
+  keywords: [turnips, crop, load]
+  register: indefinite
   longDescription: |
     Roots with the leaf twisted off, muddy and cold, the size of two fists.
   material: /stuff/idea/material/food/root-vegetable

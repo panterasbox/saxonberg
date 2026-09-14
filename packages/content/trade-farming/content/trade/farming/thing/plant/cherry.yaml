@@ -4,9 +4,9 @@
 class: /platform/thing/Plant
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: a cherry tree
-  primaryKeyword: "cherry tree"
+  shortDescription: cherry tree
   keywords: ["cherry tree", cherry, tree, plant]
+  register: indefinite
   longDescription: |
     A young sweet cherry on dwarfing stock, its bark banded and shining.
   _speciesPath: /stuff/idea/species/plantae/tracheophyta/magnoliopsida/rosales/rosaceae/prunus/avium

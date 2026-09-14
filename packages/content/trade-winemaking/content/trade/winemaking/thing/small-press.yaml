@@ -4,9 +4,9 @@
 class: /platform/thing/ToolItem
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: a small basket press
-  primaryKeyword: press
-  keywords: [press, "small press", basket]
+  shortDescription: small basket press
+  keywords: [press, "small press", basket, small]
+  register: indefinite
   longDescription: A knee-high basket press with a folding screw handle.
   capabilities:
     - { kind: press }

@@ -4,8 +4,9 @@
 class: /platform/thing/Firewood
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: a straw practice dummy
-  keywords: [dummy, target, straw]
+  shortDescription: straw practice dummy
+  keywords: [practice, dummy, target, straw]
+  register: indefinite
   longDescription: >
     A man-shaped bundle of straw lashed to a post, singed in a dozen old
     places and freshly repaired in two.

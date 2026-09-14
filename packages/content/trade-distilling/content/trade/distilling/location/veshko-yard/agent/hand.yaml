@@ -5,12 +5,13 @@ class: /platform/agent/Cast
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: Petra Volkova
+  keywords: [hand, petra, volkova, brisk, yard, veshko-grey, coat]
   pronouns: she
   _speciesPath: /stuff/idea/species/animalia/chordata/mammalia/primates/hominidae/homo/sapiens
   lifecycleState: alive
-  primaryKeyword: hand
   alternateNames: [petra, volkova]
-  shortDescription: a brisk yard hand in a Veshko-grey coat
+  shortDescription: brisk yard hand in a Veshko-grey coat
+  register: indefinite
   longDescription: |
     A brisk, square woman in a grey company coat with the Veshko mark on the breast, who moves pallets like she is being timed. She probably is.
   dispositions:

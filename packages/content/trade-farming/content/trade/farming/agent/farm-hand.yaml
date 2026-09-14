@@ -7,12 +7,13 @@ class: /platform/agent/Cast
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: Wen Hartley
+  keywords: [hand, wen, hartley, sun-browned, market, knife, string]
   pronouns: they
   _speciesPath: /stuff/idea/species/animalia/chordata/mammalia/primates/hominidae/homo/sapiens
   lifecycleState: alive
-  primaryKeyword: hand
   alternateNames: ["wen", "hartley"]
-  shortDescription: "a sun-browned market hand with a knife on a string"
+  shortDescription: "sun-browned market hand with a knife on a string"
+  register: indefinite
   longDescription: |
     A sun-browned hand with a paring knife on a string round their neck, who tastes one of everything before it goes out.
   dispositions:

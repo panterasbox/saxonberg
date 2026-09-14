@@ -40,6 +40,7 @@ data:
     parcel: /world/newbie-wilds
   positions:
     - key: picket
+      noun: picket
       label: keeping the watchpost at the treeline
       wageRate: 0
       confers: []

@@ -1,8 +1,9 @@
 class: /platform/thing/equipment/Weapon
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: a steel dagger
-  primaryKeyword: dagger
+  shortDescription: steel dagger
+  keywords: [dagger, steel]
+  register: indefinite
   longDescription: >
     A slim double-edged dagger of good steel, a hand-span of blade. It
     delivers a cutting edge, and its point will find a gap in mail.

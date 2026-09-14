@@ -5,9 +5,9 @@
 class: /platform/thing/Surface
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: a kitchen counter
-  primaryKeyword: counter
-  keywords: [counter, worktop, surface, bench]
+  shortDescription: kitchen counter
+  keywords: [counter, worktop, surface, bench, kitchen]
+  register: indefinite
   longDescription: |
     A scrubbed wooden counter running the length of one wall, scarred with knife marks and pale where it has been washed a thousand times.
   mass: 90

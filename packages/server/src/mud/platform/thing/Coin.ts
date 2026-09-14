@@ -176,19 +176,20 @@ export default class Coin extends CoinBase {
     try {
       return Currency.describeDenomination(this.currency, this.denomination);
     } catch {
-      return "a blank coin";
+      return "blank coin";
     }
   }
 
   /**
-   * The counted form — `"4 5-zorkmid pieces"`, not `"4 a 5-zorkmid pieces"`.
+   * The counted form — `"4 5-zorkmid pieces"`.
    *
-   * `getPresentation` composes a stack as `` `${n} ${pluralize(base)}` ``
-   * where `base` is the short description, and a short description that
-   * leads with an article reads wrong once a count is prefixed. (This is a
-   * general stack-rendering wart — *"4 a red apples"* — that predates the
-   * currency build; `getPluralForm` is the sanctioned host-side opt-out, and
-   * money is the surface where it shows most.)
+   * ⭐ The wart this used to work around is **gone**: a description was a
+   * string with an article typed into it, so a stack read *"4 a red
+   * apples"* and every host that counted had to opt out by hand. A
+   * description is a stem now and `NounPhrase.render()` drops the article
+   * whenever the count is not 1. This override survives for the real
+   * reason — `"piece"` pluralizes irregularly enough to be worth saying
+   * — not to dodge a doubled article.
    */
   public getPluralForm(): string {
     let singular = "";
@@ -204,16 +205,25 @@ export default class Coin extends CoinBase {
   }
 
   /**
-   * Keywords gain the currency vocabulary. The `Perceptible` keyword getter
-   * already tokenizes {@link getShortDescription} on whitespace, so
-   * `"a 25-zorkmid piece"` also yields `25-zorkmid` and `piece` for free —
-   * which is what makes a 25-value stack separately addressable from a
-   * 1-value one at the parser.
+   * Keywords gain the currency vocabulary — ⚠ **including the ones the
+   * description used to supply for free.**
+   *
+   * The `Perceptible` pool tokenized `getShortDescription()` until
+   * 2026-09-11, so `"a 25-zorkmid piece"` yielded `25-zorkmid` and
+   * `piece` on its own, and that is what makes a 25-value stack
+   * separately addressable from a 1-value one at the parser. Keywords
+   * are authored now — and a coin's description is **computed at
+   * runtime from its denomination**, so there is no row an author could
+   * write them in. This override is where they come from instead.
    */
   public override getKeywords(): string[] {
     const base = super.getKeywords();
     if (!this.currency || !Currency.has(this.currency)) return base;
     const record = Currency.of(this.currency);
-    return [...base, record.unit, record.plural];
+    const described = this.getShortDescription()
+      .split(/\s+/)
+      .map((t) => t.trim().toLowerCase())
+      .filter((t) => t.length > 1);
+    return [...new Set([...base, ...described, record.unit, record.plural])];
   }
 }

@@ -16,6 +16,7 @@ class: /platform/idea/material/Material
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: charcoal
+  keywords: [charcoal]
   # Light: the volatiles and most of the mass left as smoke.
   density: 350
   specificHeat: 1000

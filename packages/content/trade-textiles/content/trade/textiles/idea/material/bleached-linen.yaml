@@ -16,8 +16,8 @@ class: /platform/idea/material/Material
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: bleached linen
+  keywords: [linen, bleached, white, "bleached linen"]
   appearance: bright bleached linen
-  keywords: [bleached, white, "bleached linen"]
   density: 1500
   thermalConductivity: 0.05
   # ⚠ A shade weaker than greige: the lye and the months take something.

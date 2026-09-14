@@ -5,9 +5,9 @@ hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   _speciesPath: /stuff/idea/species/animalia/chordata/mammalia/primates/hominidae/homo/sensitivus
   lifecycleState: alive
-  primaryKeyword: storekeeper
   keywords: [storekeeper, keeper, shopkeeper]
-  shortDescription: the storekeeper
+  shortDescription: storekeeper
+  register: definite
   longDescription: >-
     A small, cheerful, entirely unsentimental person who has sold the same
     six things to the same kind of people for twenty years and has never

@@ -10,8 +10,9 @@
 class: /platform/thing/Key
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: a heavy ring of master keys
-  keywords: [ring, keys, master, key]
+  shortDescription: heavy ring of master keys
+  keywords: [of, ring, keys, master, key, heavy]
+  register: indefinite
   credentials:
     - kind: key
       masterTechs: [pin-tumbler]

@@ -6,9 +6,9 @@
 class: /platform/thing/Provision
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: a clutch of eggs
-  primaryKeyword: eggs
+  shortDescription: clutch of eggs
   keywords: [eggs, egg, clutch]
+  register: indefinite
   longDescription: >-
     Brown and dirty and still warm, with a feather stuck to one of them.
   _materialPath: /stuff/idea/material/food/egg

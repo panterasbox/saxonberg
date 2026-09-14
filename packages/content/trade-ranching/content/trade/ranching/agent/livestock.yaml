@@ -13,8 +13,9 @@
 class: /trade/ranching/agent/Livestock
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: a head of stock
-  keywords: [head, stock, animal, beast]
+  shortDescription: head of stock
+  keywords: [of, head, stock, animal, beast]
+  register: indefinite
   longDescription: >-
     One of the herd, standing where you cut it out and watching you
     sideways.

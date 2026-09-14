@@ -4,9 +4,9 @@
 class: /platform/thing/Seed
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: a packet of woad seed
-  primaryKeyword: seed
+  shortDescription: packet of woad seed
   keywords: [seed, seeds, packet, "woad seed", woad, pastel]
+  register: indefinite
   longDescription: |
     Papery winged seeds like tiny brown blades. SOW THICK AND CUT OFTEN is written on the back in pencil.
   growsIntoPath: /trade/farming/thing/plant/woad

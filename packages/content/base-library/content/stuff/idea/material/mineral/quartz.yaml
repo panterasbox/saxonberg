@@ -6,6 +6,7 @@ class: /platform/idea/material/Material
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: quartz
+  keywords: [quartz]
   density: 2650
   specificHeat: 730
   thermalConductivity: 3.0

@@ -2,9 +2,9 @@
 class: /platform/thing/Seed
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: a paper of turnip seed
-  primaryKeyword: seed
-  keywords: [seed, seeds, turnips]
+  shortDescription: paper of turnip seed
+  keywords: [seed, seeds, turnips, paper, turnip]
+  register: indefinite
   longDescription: |
     Tiny round black seed, far more of it than seems reasonable for the size of the root.
   growsIntoPath: /trade/farming/thing/plant/turnip

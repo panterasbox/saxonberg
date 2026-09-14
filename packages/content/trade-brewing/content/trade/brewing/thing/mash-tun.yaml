@@ -5,9 +5,9 @@
 class: /platform/thing/ToolItem
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: a copper mash tun
-  primaryKeyword: tun
-  keywords: [tun, "mash tun", copper]
+  shortDescription: copper mash tun
+  keywords: [tun, "mash tun", copper, mash]
+  register: indefinite
   longDescription: |
     A squat copper tun with a perforated false bottom and a long mash paddle worn smooth.
   capabilities:

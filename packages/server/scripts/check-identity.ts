@@ -16,10 +16,19 @@
  *      class says nobody, and the player sees whichever surface they
  *      happened to hit. There is no error today; there is just a
  *      character who is a person in one place and a role in another.
- *   2. **A definite-article `shortDescription` on an `Extra`** (*"the
- *      collier"*), or an **indefinite one on a nameless `Cast`** (*"a
- *      sentry"*). Same drift, spelled the other way — and the article IS
- *      the signal, because it is the one a player actually reads.
+ *   2. **A `register: definite` on an `Extra`** (*"the collier"*), or
+ *      `indefinite` on a nameless `Cast`** (*"a sentry"*). Same drift,
+ *      spelled the other way — and the register IS the signal, because
+ *      the article is the one thing a player actually reads.
+ *
+ *      ⚠ It read the leading article out of the prose with a regex until
+ *      2026-09-10. The presentation build moved the article into a
+ *      `register:` field, at which point `/^the\s+/` matched **nothing**
+ *      and this rule would have passed everything in silence — a gate
+ *      that ships broken and quietly succeeds, which is the failure
+ *      class the whole derived family exists to prevent. The rewrite
+ *      lands in the same commit as the sweep, deliberately: one of them
+ *      without the other is the bug.
  *   3. **A `Cast` row instantiated twice.** `CastMixin` composes
  *      `SingletonMixin`, so the second clone THROWS at standup — a boot
  *      failure rather than a lint one, which is worse for the person who
@@ -50,6 +59,29 @@
  *      being a role means. Written history on one is content that can
  *      never be read back.
  *
+ *   6. ⭐⭐ **A name-shaped key on an organism whose class cannot hold
+ *      one.** `NamedMixin` is composed by `CastMixin` and by `Avatar`,
+ *      and by any class that mints a proper name of its own (a pet, a
+ *      named artefact) — it is NOT on the creature base. So a row that
+ *      authors `name:` / `surname:` / `honorific:` / `nameSuffix:` /
+ *      `alternateNames:` on an `Extra`, a corpse or a head of stock is
+ *      writing a key the `Hydrator` will **discard without a word**,
+ *      because it reflects only into fields a composed class declares.
+ *
+ *      ⚠ This is the rule that makes the proper-name move SAFE rather
+ *      than merely correct. The failure it guards is the one the build
+ *      itself creates: before the move every creature had a `name` slot,
+ *      so an author could fill one in on anything and it would stick;
+ *      after it, the same row is silently ignored. The gate turns that
+ *      into a build error naming the file.
+ *
+ *      ⭐ Narrowed to **organisms** (a row with a `_speciesPath` or a
+ *      brain) on purpose. Plenty of Ideas carry a bespoke `name` field
+ *      of their own — `Locality`, `Material`, `Zone`, `Organization` —
+ *      and none of them reaches `Named`. The general form of this rule
+ *      (*every authored key must be a field somebody declares*) is a
+ *      real gate and belongs to the mixin slate; it is not this one.
+ *
  * ## How the rung is resolved
  *
  * From the class file, not from a list: a row's `class:` is resolved to
@@ -79,7 +111,7 @@ const SOURCES = packSources();
 
 /* ─────────────────────────── content walk ─────────────────────────── */
 
-interface Row {
+export interface Row {
   /** The content path this row installs at (`/world/lounge/agent/dave`). */
   path: string;
   file: string;
@@ -125,6 +157,9 @@ function contentRows(): Row[] {
 }
 
 /* ─────────────────────────── rung resolution ─────────────────────── */
+
+const str = (v: unknown): string =>
+  typeof v === 'string' ? v.trim().replace(/^["']|["']$/g, '') : '';
 
 const rungCache = new Map<string, boolean>();
 
@@ -223,8 +258,31 @@ function businessRosterAssignees(rows: Row[]): Set<string> {
   return out;
 }
 
-const DEFINITE = /^the\s+/i;
-const INDEFINITE = /^an?\s+/i;
+/**
+ * ⚠ **No longer how rule 2 decides** — the register field is. Kept
+ * because the roster report still reads prose, and because a test that
+ * pins the old shape is the cheapest reminder of why it went.
+ */
+export const DEFINITE = /^the\s+/i;
+export const INDEFINITE = /^an?\s+/i;
+
+/**
+ * The keys `NamedMixin` declares — the ones the Hydrator will reflect
+ * into if and only if the row's class composes it. Read off
+ * `Named.fieldMeta`; a field added there must be added here.
+ */
+export const NAMED_KEYS = [
+  'name',
+  'honorific',
+  'surname',
+  'nameSuffix',
+  'alternateNames',
+] as const;
+
+/** An organism row: it has a species, or it has a brain. */
+export const isOrganismRow = (row: Row): boolean =>
+  typeof row.data._speciesPath === 'string' ||
+  Array.isArray(row.data.behaviors);
 
 function main(): void {
   const report = process.argv.includes('--report');
@@ -234,6 +292,7 @@ function main(): void {
   const assignees = businessRosterAssignees(rows);
   const failures: string[] = [];
   const roster: string[] = [];
+  const namedKeys: string[] = [];
 
   for (const row of rows) {
     // A character is a row with a brain. ⚠ Census by BRAIN, never by
@@ -270,19 +329,21 @@ function main(): void {
           `person, the row's class is the Cast rung.`,
       );
     }
-    // 2 — the article, which is the signal a player actually reads.
-    if (!cast && DEFINITE.test(short)) {
+    // 2 — the register, which decides the article a player reads.
+    const register = str(row.data.register) || 'indefinite';
+    if (!cast && register !== 'indefinite') {
       failures.push(
-        `${where}: an Extra whose shortDescription reads as an individual ` +
-          `('${short}'). "the collier" is one person; "a hewer on tutwork" ` +
-          `is a role. Move it to the Cast rung or reword it.`,
+        `${where}: an Extra with register '${register}' ('${short}'). ` +
+          `"the collier" is one person and "Odile" is another; ` +
+          `"a hewer on tutwork" is a role. A role is INDEFINITE — move ` +
+          `the row to the Cast rung, or change the register.`,
       );
     }
-    if (cast && !name && INDEFINITE.test(short)) {
+    if (cast && !name && register === 'indefinite') {
       failures.push(
-        `${where}: a Cast row with no name whose shortDescription reads as ` +
-          `a role ('${short}'). Give them a name, say "the ...", or drop ` +
-          `them to the Extra rung.`,
+        `${where}: a Cast row with no name whose register is indefinite ` +
+          `('${short}'), so it reads as a role. Give them a name, set ` +
+          `'register: definite', or drop them to the Extra rung.`,
       );
     }
     // 3 — one live instance per Cast row.
@@ -325,8 +386,38 @@ function main(): void {
     }
   }
 
+  // 6 — a name-shaped key the Hydrator would discard. Its own pass: it
+  // is about every organism row, not only the ones with a brain (a
+  // corpse and a head of stock have no brain and can still be authored
+  // a name by mistake).
+  for (const row of rows) {
+    if (!isOrganismRow(row)) continue;
+    const classPath = typeof row.raw.class === 'string' ? row.raw.class : null;
+    if (!classPath) continue;
+    const authored = NAMED_KEYS.filter((k) => row.data[k] !== undefined);
+    if (!authored.length) continue;
+    if (report) {
+      namedKeys.push(
+        `  ${composes(classPath, 'NamedMixin') ? 'held    ' : 'DISCARDED'}  ` +
+          `${authored.join(', ').padEnd(24)} ${row.path}`,
+      );
+    }
+    if (composes(classPath, 'NamedMixin')) continue;
+    failures.push(
+      `${row.file}: authors ${authored.map((k) => `'${k}'`).join(', ')} on ` +
+        `${classPath}, which does not compose NamedMixin — so the Hydrator ` +
+        `discards it in silence. A proper name belongs to somebody: put the ` +
+        `row on the Cast rung, or compose NamedMixin on a class of its own ` +
+        `(that is what a named animal or a named artefact does).`,
+    );
+  }
+
   if (report) {
     console.log(`${roster.length} characters:\n${roster.sort().join('\n')}`);
+    console.log(
+      `\n${namedKeys.length} organism row(s) authoring a name-shaped key:\n` +
+        `${namedKeys.sort().join('\n')}`,
+    );
   }
   if (failures.length) {
     console.error(`\n✖ lint:identity — ${failures.length} finding(s):\n`);
@@ -335,9 +426,9 @@ function main(): void {
   }
   console.log(
     `✔ lint:identity — every character's rung agrees with its prose, ` +
-      `every Cast row is instanced once, and every sentient role answers ` +
-      `to somebody.`,
+      `every Cast row is instanced once, every sentient role answers ` +
+      `to somebody, and no organism authors a name its class cannot hold.`,
   );
 }
 
-main();
+if (process.argv[1] && /check-identity\.ts$/.test(process.argv[1])) main();

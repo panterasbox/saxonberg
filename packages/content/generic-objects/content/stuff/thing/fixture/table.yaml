@@ -10,9 +10,9 @@
 class: /platform/thing/Surface
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: a plain deal table
-  primaryKeyword: table
-  keywords: [table, deal, top]
+  shortDescription: plain deal table
+  keywords: [table, deal, top, plain]
+  register: indefinite
   longDescription: |
     A plain deal table with four square legs and a top scrubbed to the pale grey of old wood. Not fine, but flat, steady, and big enough for two to eat at.
   mass: 40

@@ -2,9 +2,9 @@
 class: /trade/textiles/thing/Loom
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: a hand loom
-  primaryKeyword: loom
-  keywords: [loom, hand-loom, shuttle, heddle]
+  shortDescription: hand loom
+  keywords: [loom, hand-loom, shuttle, heddle, hand]
+  register: indefinite
   longDescription: |
     A frame of four posts with a warp beam at the back and a cloth beam at the front, the heddles hung on cords. The shuttle lives in a groove worn for it in the breast beam.
   capabilities:

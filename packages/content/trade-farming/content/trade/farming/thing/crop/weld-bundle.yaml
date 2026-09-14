@@ -5,9 +5,9 @@
 class: /platform/thing/Crop
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: a bundle of dried weld
-  primaryKeyword: weld
-  keywords: [weld, bundle, dyestuff, rocket]
+  shortDescription: bundle of dried weld
+  keywords: [weld, bundle, dyestuff, rocket, dried]
+  register: indefinite
   longDescription: |
     A tied armful of spindly stems gone straw-coloured, the seed pods still on. It looks exactly like a weed somebody could not be bothered to pull, and it is.
   material: /trade/farming/idea/material/weld

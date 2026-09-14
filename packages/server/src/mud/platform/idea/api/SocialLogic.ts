@@ -482,12 +482,21 @@ function speciesNameOf(occ: Stuff): string | null {
 
 /**
  * The most-distinctive worn feature of an occupant, parsed out of the
- * `RecognitionApi.salientFeatures` string (`"a dwarf wearing red robes"` →
- * `"red robes"`). Null when nothing notable is worn — composing *through*
- * the shipped salient-features primitive rather than re-deriving it.
+ * `distinguishing` form (`"a dwarf wearing red robes"` → `"red robes"`).
+ * Null when nothing notable is worn — composing *through* the shipped
+ * primitive rather than re-deriving it.
+ *
+ * ⚠ It PARSES A STRING, and that is a seam, not a design. The honest
+ * shape is a `mostNotableWorn` face on the object; this is left as-is
+ * because it is what shipped and nothing observable rides on the
+ * difference. Recorded on the naming slate.
+ *
+ * Viewer-blind (`undefined`) on purpose: the group label it feeds is one
+ * label for the whole room, so resolving it per viewer would promise a
+ * per-viewer answer the grouping cannot keep.
  */
 function wornFeatureOf(occ: Stuff): string | null {
-  const salient = occ.salientFeatures();
+  const salient = occ.describeFor(undefined, 'distinguishing');
   const marker = " wearing ";
   const idx = salient.lastIndexOf(marker);
   if (idx < 0) return null;
@@ -496,28 +505,24 @@ function wornFeatureOf(occ: Stuff): string | null {
 }
 
 /**
- * Build an eager `<name>` fragment for one occupant. The display text is
- * resolved **now** through `occ.describeWithStatusFor(viewer)`
- * (compose *through* describe, never re-implement naming) because the
- * occupant block is resolved eagerly for a single known viewer (see
- * `composeOccupantsImpl`); a boosted occupant carries its rule's palette
- * token as a `color` attribute the client theme maps to a treatment. This
- * is a presence-scan surface, so it carries the activity-status affix
- * ("…, watching the empty road").
+ * One occupant's line in the roll-call, as a LATE-BOUND reference.
+ *
+ * ⭐ It used to be hand-built markup with the name resolved eagerly,
+ * because `Mml.actor` could not carry the `color` attribute the
+ * attention rule supplies and could not ask for the richer form. Both
+ * are ordinary arguments now, so this composes like every other emitter
+ * in the game and the name resolves beside whoever is reading.
+ *
+ * ⚠ What stays eager is the RULE — boost / hide / group — because that
+ * is an attention decision about this viewer, not a name. The two were
+ * conflated, and conflating them is what forced every rich surface to
+ * give up per-recipient naming.
+ *
+ * `presence` is the form: this is a presence scan, so it carries the
+ * activity-status affix ("…, watching the empty road").
  */
-function nameMml(viewer: Stuff, occ: Stuff, color?: PaletteToken): Mml {
-  const display = occ.describeWithStatusFor(viewer);
-  const colorAttr = color ? ` color="${Mml.escape(color)}"` : "";
-  // Hand-built rather than `Mml.actor` because of the `color` attribute
-  // — so the kind resolution has to be asked for explicitly. ⚠ It must
-  // be: the occupant list is the one surface where a hooded figure is
-  // read carefully, so it is the last place that should quietly admit
-  // a real person is under the hood.
-  const tag = occ.kindFor(viewer);
-  return Mml.fromMarkup(
-    `<${tag} stuff-id="${Mml.escape(occ.stuffId)}"${colorAttr}>` +
-      `${Mml.escape(display)}</${tag}>`,
-  );
+function nameMml(_viewer: Stuff, occ: Stuff, color?: PaletteToken): Mml {
+  return Mml.actor(occ, { form: 'presence', ...(color ? { color } : {}) });
 }
 
 /**

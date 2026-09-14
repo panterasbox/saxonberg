@@ -1,18 +1,29 @@
 /**
- * Character tests
+ * Character tests.
+ *
+ * ⭐⭐ **A proper name is composed, not inherited.** `NamedMixin` used to
+ * sit on the creature base, so every body in the game — a wolf, a
+ * corpse, a head of stock — carried name-shaped surface an author could
+ * fill in by accident. It composes explicitly now, on the `Cast` rung
+ * (somebody), on `Avatar` (a player, whose name enroll writes), and on
+ * any class that mints a name of its own.
+ *
+ * So the fixture below composes it too, which is exactly what an author
+ * does — and the composition block asserts the rule both ways.
  */
 
 import "../../../../test-bootstrap";
 import { describe, it, expect, beforeEach } from 'vitest';
 import { Character } from '../Character';
+import { NamedMixin } from '../../description/Named';
+import { MixinApi } from '../../../api/mixin';
 import { makeStuff } from '../../security/__tests__/test-setup';
 
-// Concrete test class that extends Character
-class TestCharacter extends Character {
-  constructor() {
-    super();
-  }
-}
+// A bare Character — a role somebody fills, with no name of its own.
+class PlainCharacter extends Character {}
+
+// A character that IS somebody, the way a Cast class is: it says so.
+class TestCharacter extends NamedMixin(Character) {}
 
 describe('Character', () => {
   let character: TestCharacter;
@@ -22,10 +33,27 @@ describe('Character', () => {
   });
 
   describe('mixin composition', () => {
-    it('should have Named mixin methods', () => {
+    it('⭐ a bare Character is NOT Named — a body is not a somebody', () => {
+      const plain = makeStuff(() => new PlainCharacter());
+      expect(MixinApi.isNamed(plain)).toBe(false);
+      expect(
+        (plain as unknown as { setSurname?: unknown }).setSurname,
+      ).toBeUndefined();
+    });
+
+    it('a class that composes NamedMixin has the name surface', () => {
+      expect(MixinApi.isNamed(character)).toBe(true);
       expect(typeof character.getName).toBe('function');
       expect(typeof character.getSurname).toBe('function');
       expect(typeof character.getFullName).toBe('function');
+    });
+
+    it('⭐ every body is Perceptible — addressable by keyword', () => {
+      // The other half of the same move: `look wolf` has to resolve, and
+      // 48 shipped agent rows author a `primaryKeyword` that went
+      // nowhere until Perceptible joined the creature base.
+      const plain = makeStuff(() => new PlainCharacter());
+      expect(MixinApi.isPerceptible(plain)).toBe(true);
     });
 
     it('should have Gendered mixin methods', () => {

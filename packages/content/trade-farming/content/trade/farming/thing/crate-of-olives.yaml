@@ -5,9 +5,9 @@
 class: /platform/thing/Crate
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: a crate of olives
-  primaryKeyword: olives
-  keywords: [crate, olives, olive, produce]
+  shortDescription: crate of olives
+  keywords: [olives, crate, olive, produce]
+  register: indefinite
   longDescription: A slatted wooden crate of olives, the grower's stencil on the side.
   censusKey: produce:olive
   regionTarget: 4

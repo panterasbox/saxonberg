@@ -11,9 +11,9 @@
 class: /platform/thing/Tariff
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: a second slate, for mending
-  primaryKeyword: mending
-  keywords: [mending, tariff, repairs, second slate]
+  shortDescription: second slate, for mending
+  keywords: [mending, tariff, repairs, "second slate", second, slate]
+  register: indefinite
   longDescription: |
     A smaller slate hung beside the first, this one for mending rather than making. Two words and a figure, wiped and rewritten often enough that the chalk has gone into the grain.
   prices:

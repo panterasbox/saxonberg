@@ -7,9 +7,9 @@
 class: /platform/thing/MendingTool
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: a treadle sewing machine
-  primaryKeyword: sewing-machine
+  shortDescription: treadle sewing machine
   keywords: [sewing-machine, machine, sewing, treadle]
+  register: indefinite
   longDescription: |
     Cast iron and walnut, a wheel taller than your hand, a needle that never hesitates. Everything the kit does, it does before you've finished threading.
   capabilities:

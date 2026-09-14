@@ -12,8 +12,8 @@ class: /platform/idea/material/Material
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: rotted flax
+  keywords: [flax, rotted-flax, rot, slime, ruin, rotted]
   appearance: grey slimy rotted flax
-  keywords: [rotted-flax, rot, slime, ruin]
   density: 450
   thermalConductivity: 0.06
   # ⚠ Weaker than the straw it came from, let alone the fibre it should

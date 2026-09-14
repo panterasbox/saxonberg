@@ -8,8 +8,8 @@ class: /platform/idea/material/ConsumableMaterial
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: spoiled ration
+  keywords: [spoiled, ration, food]
   appearance: a greying, sour-smelling ration
-  keywords: [ration, food, spoiled]
   density: 900
   thermalConductivity: 0.3
   specificHeat: 2500

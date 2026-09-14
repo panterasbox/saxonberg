@@ -4,9 +4,9 @@
 class: /platform/thing/Provision
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: a lime
-  primaryKeyword: lime
+  shortDescription: lime
   keywords: [lime, limes, produce]
+  register: indefinite
   longDescription: "A green lime, waxy-skinned."
   _materialPath: /trade/farming/idea/material/lime
   gradeBand: fair

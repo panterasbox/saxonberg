@@ -5,8 +5,8 @@ class: /platform/idea/material/Material
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: glass
-  appearance: smooth clear glass
   keywords: [glass]
+  appearance: smooth clear glass
   density: 2500
   # Water absorption capacity (% of dry mass, ASTM D570): glass is non-porous.
   waterAbsorptionCapacity: 0.1

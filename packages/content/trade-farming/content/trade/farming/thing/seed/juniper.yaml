@@ -4,9 +4,9 @@
 class: /platform/thing/Seed
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: a packet of juniper seed
-  primaryKeyword: seed
+  shortDescription: packet of juniper seed
   keywords: [seed, seeds, "juniper seed", juniper, packet]
+  register: indefinite
   longDescription: |
     A paper packet of juniper seed.
   growsIntoPath: /trade/farming/thing/plant/juniper

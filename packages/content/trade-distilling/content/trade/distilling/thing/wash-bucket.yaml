@@ -3,9 +3,9 @@
 class: /platform/thing/CraftVessel
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: a wash bucket
-  primaryKeyword: bucket
-  keywords: [bucket, pail, "wash bucket"]
+  shortDescription: wash bucket
+  keywords: [bucket, pail, "wash bucket", wash]
+  register: indefinite
   longDescription: A dented steel pail smelling of sour grain.
   category: wash-bucket
   interiorBulk: true

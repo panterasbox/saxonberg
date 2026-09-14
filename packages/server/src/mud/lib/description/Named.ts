@@ -6,6 +6,32 @@
  * thing presents itself, alongside `Visible`, `Perceptible`, and
  * `Detailed`.
  *
+ * ## ⭐⭐ Who composes it — and it is never a base class
+ *
+ * `CastMixin` (the *somebody* identity rung), `Avatar` (a player body,
+ * whose name enroll writes), and **any class that mints a proper name of
+ * its own** — a pet, a named artefact, a named vessel. That is the whole
+ * list, and adding to it is a deliberate act on one class.
+ *
+ * ⚠ It sat on the **creature base** until 2026-09-10, which made it the
+ * one composition in the tree that contradicted this file's own rule: a
+ * wolf, a corpse, a mercenary and a head of stock all carried
+ * `setSurname` and an author could fill it in by accident and have it
+ * stick. `Thing.ts`'s header already stated the rule — *"names are for
+ * proper names, not generic descriptions"* — for the object branch, and
+ * the agent branch simply did not follow it.
+ *
+ * ⭐ The question was never *does this have a name*; it was **what
+ * article does it take** — and that is `register` on `VisibleMixin`
+ * now (`proper` · `definite` · `indefinite`). A nameless `Cast` is
+ * *"the collier"*; an `Extra` is *"a sentry"*. Both compose exactly the
+ * surface their rung claims.
+ *
+ * ⚠ `lint:identity` rule 6 makes a name-shaped key on a class that
+ * cannot hold one a **build error** rather than a silent discard, which
+ * is what it would otherwise be: the Hydrator reflects only into fields
+ * a composed class declares.
+ *
  * ## What this mixin IS for
  *
  * Things with a **proper name** a character would use to refer to

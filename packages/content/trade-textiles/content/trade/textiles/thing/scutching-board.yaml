@@ -8,9 +8,9 @@
 class: /trade/textiles/thing/ScutchingBoard
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: a scutching board
-  primaryKeyword: board
+  shortDescription: scutching board
   keywords: [board, scutching, knife, swingle]
+  register: indefinite
   longDescription: |
     An upright board slotted into a foot, worn hollow on one edge, with a flat wooden knife hanging beside it on a string.
   capabilities:

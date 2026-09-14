@@ -45,6 +45,7 @@
     "lint:pm": "tsx scripts/check-pm-access.ts",
     "lint:imports": "tsx scripts/check-mud-imports.ts",
     "lint:identity": "tsx scripts/check-identity.ts",
+    "lint:presentation": "tsx scripts/check-presentation.ts --lint",
     "lint:does-nothing": "tsx scripts/check-does-nothing.ts",
     "lint:drive-scripts": "tsx scripts/check-drive-scripts.ts",
     "lint:dossiers": "tsx scripts/check-dossiers.ts",

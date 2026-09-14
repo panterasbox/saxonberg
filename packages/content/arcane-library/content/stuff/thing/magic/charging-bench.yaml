@@ -10,9 +10,9 @@
 class: /system/arcana/thing/Conduit
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: a charging bench
-  primaryKeyword: bench
-  keywords: [bench, cradle, apparatus]
+  shortDescription: charging bench
+  keywords: [bench, cradle, apparatus, charging]
+  register: indefinite
   longDescription: >
     A slab of slate bedded on brass, with a sink of coiled pipe beneath
     it that stays cold to the touch no matter what has been done on top.

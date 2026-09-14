@@ -80,7 +80,7 @@ afterEach(() => {
 describe('RecognitionApi.describe', () => {
   it('renders the learned name for a recognized being', () => {
     const viewer = makeStuff(() => new Viewer());
-    const bob = makeBeing('Bob', 'a tall stranger');
+    const bob = makeBeing('Bob', 'tall stranger');
     viewer.know(RECOGNITION, bob.getTemplatePath()!, { knownAs: 'Bob' });
     expect(bob.describeFor(viewer)).toBe('Bob');
   });
@@ -90,7 +90,7 @@ describe('RecognitionApi.describe', () => {
     // worn-feature affix (that's `salientFeatures`, reserved for targeting)
     // and no status (that's `describeWithStatus`, the presence roll-call).
     const viewer = makeStuff(() => new Viewer());
-    const bob = makeBeing('Bob', 'a tall stranger');
+    const bob = makeBeing('Bob', 'tall stranger');
     const rendered = bob.describeFor(viewer);
     expect(rendered).toBe('a tall stranger');
     expect(rendered).not.toContain('Bob');
@@ -100,14 +100,14 @@ describe('RecognitionApi.describe', () => {
     // A plain Idea isn't a Sensor/Perception — logs, refOf, viewer-less
     // contexts get the baseline `getPresentation()`.
     const nonPerceiver = makeStuff(() => new Idea());
-    const bob = makeBeing('Bob', 'a tall stranger');
+    const bob = makeBeing('Bob', 'tall stranger');
     expect(bob.describeFor(nonPerceiver)).toBe('Bob');
   });
 
   it('returns the baseline for a non-organism (identification placeholder)', () => {
     const viewer = makeStuff(() => new Viewer());
     const rock = makeStuff(() => new Item());
-    rock.setShortDescription('a blue rock');
+    rock.setShortDescription('blue rock');
     // No Named name → baseline is the shortDescription; the type axis is
     // a no-op until Wave 7.
     expect(rock.describeFor(viewer)).toBe('a blue rock');
@@ -117,7 +117,7 @@ describe('RecognitionApi.describe', () => {
     installV1QuantityTagTables(); // lux band table for the vision gate
     buildModality('vision'); // gate now active
     const viewer = makeStuff(() => new Viewer());
-    const bob = makeBeing('Bob', 'a tall stranger');
+    const bob = makeBeing('Bob', 'tall stranger');
     viewer.know(RECOGNITION, bob.getTemplatePath()!, { knownAs: 'Bob' });
 
     // Put Bob in a lightless room — vision can't resolve a figure.
@@ -130,10 +130,15 @@ describe('RecognitionApi.describe', () => {
   });
 });
 
-describe('RecognitionApi.salientFeatures', () => {
+describe("the `distinguishing` form — what salientFeatures became", () => {
+  // ⭐ It was a method of its own with exactly ONE caller, because the
+  // only way to reach it was to resolve eagerly for a single known
+  // viewer. It is a form a sentence asks for now. Viewer-blind here (the
+  // room's group label is one label for everybody), which is precisely
+  // the aperture the old single-argument method had.
   it('uses the authored appearance when present', () => {
-    const bob = makeBeing('Bob', 'a tall stranger');
-    expect(bob.salientFeatures()).toBe('a tall stranger');
+    const bob = makeBeing('Bob', 'tall stranger');
+    expect(bob.describeFor(undefined, 'distinguishing')).toBe('a tall stranger');
   });
 
   it('falls back to "someone" with no appearance or species', () => {
@@ -142,7 +147,7 @@ describe('RecognitionApi.salientFeatures', () => {
       `/obj/npc/featureless-${beingCounter++}`,
     );
     b.setName('Nemo');
-    expect(b.salientFeatures()).toBe('someone');
+    expect(b.describeFor(undefined, 'distinguishing')).toBe('someone');
   });
 });
 
@@ -151,7 +156,7 @@ describe('viewer-aware naming through a scene (real path)', () => {
     const room = makeStuff(() => new Room());
     const friend = makeStuff(() => new Viewer());
     const stranger = makeStuff(() => new Viewer());
-    const bob = makeBeing('Bob', 'a tall stranger');
+    const bob = makeBeing('Bob', 'tall stranger');
 
     ContainmentApi.move(friend, room);
     ContainmentApi.move(stranger, room);

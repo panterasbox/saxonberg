@@ -4,9 +4,9 @@
 class: /platform/thing/Seed
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: a packet of flax seed
-  primaryKeyword: seed
+  shortDescription: packet of flax seed
   keywords: [seed, seeds, packet, "flax seed", flax, linseed]
+  register: indefinite
   longDescription: |
     Tiny hard brown seeds, slippery between the fingers and shining like they have been oiled — because they have.
   growsIntoPath: /trade/farming/thing/plant/flax

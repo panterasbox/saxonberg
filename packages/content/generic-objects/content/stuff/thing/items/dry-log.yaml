@@ -4,8 +4,9 @@
 class: /platform/thing/Firewood
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: a split oak log
-  keywords: [log, oak, firewood, wood]
+  shortDescription: split oak log
+  keywords: [split, log, oak, firewood, wood]
+  register: indefinite
   _materialPath: /stuff/idea/material/wood/oak
   charMaterialPath: /stuff/idea/material/element/carbon
   reserves:

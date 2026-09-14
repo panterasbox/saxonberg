@@ -6,9 +6,9 @@
 class: /platform/thing/Menu
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: a chalked slate of smith-work
-  primaryKeyword: slate
-  keywords: [slate, board, menu, price-board]
+  shortDescription: chalked slate of smith-work
+  keywords: [slate, board, menu, price-board, chalked, smith-work]
+  register: indefinite
   longDescription: |
     A slate board chalked with the smith's standing offers, prices in a firm hand.
   offeredRecipes: [fire-poker, cook-pot, smiths-hammer, belt-knife, leather-jerkin]

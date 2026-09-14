@@ -6,9 +6,9 @@
 class: /platform/thing/Vat
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: a glass carboy
-  primaryKeyword: carboy
-  keywords: [carboy, demijohn, "glass carboy"]
+  shortDescription: glass carboy
+  keywords: [carboy, demijohn, "glass carboy", glass]
+  register: indefinite
   longDescription: |
     A shouldered glass carboy in a wicker skirt, its neck sized for a thumb-worn bung.
   category: vat

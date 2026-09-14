@@ -34,9 +34,9 @@ data:
   # only because that pack owns cooking, and a coords sweep by pack name
   # took it for a trade floor until `check-location-classes`'s FURNISHED
   # roster said otherwise. It is on that roster for exactly this reason.
-  shortDescription: a kitchen
-  primaryKeyword: kitchen
+  shortDescription: kitchen
   keywords: [kitchen, room]
+  register: indefinite
   longDescription: |
     A working kitchen — a range against one wall, a counter down the other, a larder in the corner and a basin under the window. It smells of woodsmoke and yesterday's cooking.
   ambientIntensity: 35

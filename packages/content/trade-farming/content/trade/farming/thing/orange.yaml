@@ -4,9 +4,9 @@
 class: /platform/thing/Provision
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: an orange
-  primaryKeyword: orange
+  shortDescription: orange
   keywords: [orange, oranges, produce]
+  register: indefinite
   longDescription: "A thick-skinned orange."
   _materialPath: /trade/farming/idea/material/orange
   gradeBand: fair

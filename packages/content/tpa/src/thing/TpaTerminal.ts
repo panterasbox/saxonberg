@@ -405,7 +405,7 @@ export default class TpaTerminal extends TpaTerminalBase {
   }
 
   override getShortDescription(): string {
-    return super.getShortDescription() || "a Teleport Authority terminal";
+    return super.getShortDescription() || "Teleport Authority terminal";
   }
 
   override getLongDescription(): string {

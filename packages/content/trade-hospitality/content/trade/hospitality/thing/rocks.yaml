@@ -3,10 +3,10 @@
 class: /platform/thing/ServingVessel
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: a rocks glass
-  longDescription: A short, heavy-bottomed tumbler.
-  primaryKeyword: rocks
+  shortDescription: rocks glass
   keywords: [rocks, tumbler, glass, old-fashioned-glass]
+  register: indefinite
+  longDescription: A short, heavy-bottomed tumbler.
   category: rocks
   interiorBulk: true
   interiorCapacity: 0.3

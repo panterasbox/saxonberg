@@ -16,9 +16,9 @@ data:
   # it. The data carries it.
   requiredDiscipline: teamstering
   requiredBand: novice
-  shortDescription: a low flat dray
-  primaryKeyword: dray
-  keywords: [dray, wagon, flat, cart]
+  shortDescription: low flat dray
+  keywords: [dray, wagon, flat, cart, low]
+  register: indefinite
   longDescription: |
     A flat bed on four low wheels with no sides at all, only a row of iron stanchion sockets down each edge and a coil of rope through the front two. Barrels roll onto it and off it without anybody lifting anything, which is the whole idea.
   mass: 140

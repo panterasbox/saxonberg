@@ -18,11 +18,11 @@ class: /platform/idea/material/Material
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: linen
+  keywords: [flax, linen]
   # ⚠ A material must not assert a CONSTRUCTION. Linen is the fibre;
   # `woven` / `knit` are forms a garment carries, not something the
   # substance is.
   appearance: cool smooth linen
-  keywords: [linen, flax]
   density: 1500
   # Higher than wool's 0.04 — the whole reason a wool coat beats a linen
   # one of equal mass, with nothing special-cased.

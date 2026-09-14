@@ -27,9 +27,9 @@
 class: /platform/location/FurnishableRoom
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: a living room
-  primaryKeyword: living
+  shortDescription: living room
   keywords: [living, lounge, sitting, room]
+  register: indefinite
   longDescription: |
     A bare front room with good light and a rug someone left behind. Nothing else — yet.
   ambientIntensity: 40

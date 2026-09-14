@@ -8,9 +8,9 @@
 class: /platform/thing/Tariff
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: a slate of charges
-  primaryKeyword: slate
+  shortDescription: slate of charges
   keywords: [slate, tariff, charges, board]
+  register: indefinite
   longDescription: |
     A slate set into the wall by the entrance, lettered rather than chalked — whoever cut it expected the price to hold. GROUND, it says, and a figure, and underneath in smaller letters: STONE BY ARRANGEMENT.
   prices:

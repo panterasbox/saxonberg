@@ -13,8 +13,8 @@ class: /platform/idea/material/Material
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: milk
-  appearance: white and faintly warm
   keywords: [milk]
+  appearance: white and faintly warm
   density: 1030
   specificHeat: 3930
   thermalConductivity: 0.53

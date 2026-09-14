@@ -3,8 +3,8 @@ class: /platform/idea/material/ConsumableMaterial
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: cherry
+  keywords: [cherry]
   appearance: "a dark red cherry, stem on"
-  keywords: ["cherry"]
   density: 1000
   thermalConductivity: 0.5
   specificHeat: 3600

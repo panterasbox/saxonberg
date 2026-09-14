@@ -3,8 +3,8 @@ class: /platform/idea/material/ConsumableMaterial
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: salt
+  keywords: [salt]
   appearance: "coarse white salt"
-  keywords: ["salt"]
   density: 2160
   thermalConductivity: 0.6
   specificHeat: 880

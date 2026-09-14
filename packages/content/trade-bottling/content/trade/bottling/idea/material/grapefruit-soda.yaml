@@ -3,8 +3,8 @@ class: /platform/idea/material/ConsumableMaterial
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: grapefruit soda
+  keywords: [grapefruit, grapefruit-soda, soda]
   appearance: "pink, tart, fizzing grapefruit soda"
-  keywords: ["grapefruit-soda", "soda"]
   density: 1035
   thermalConductivity: 0.5
   specificHeat: 3800

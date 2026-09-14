@@ -4,12 +4,13 @@ class: /platform/agent/Cast
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: Bram Tull
+  keywords: [hand, bram, tull, cheerful, bottling, hollis-red, cap]
   pronouns: he
   _speciesPath: /stuff/idea/species/animalia/chordata/mammalia/primates/hominidae/homo/sapiens
   lifecycleState: alive
-  primaryKeyword: hand
   alternateNames: [bram, tull]
-  shortDescription: a cheerful bottling hand in a Hollis-red cap
+  shortDescription: cheerful bottling hand in a Hollis-red cap
+  register: indefinite
   longDescription: |
     A cheerful, round-faced man in a red company cap who whistles the Hollis jingle without noticing and stacks cases label-out.
   dispositions:

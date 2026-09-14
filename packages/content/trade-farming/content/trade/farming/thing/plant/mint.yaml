@@ -6,9 +6,9 @@
 class: /platform/thing/Plant
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: a clump of mint
-  primaryKeyword: "mint"
+  shortDescription: clump of mint
   keywords: [mint, clump, spearmint, herb, plant]
+  register: indefinite
   longDescription: |
     A dense clump of spearmint, spreading exactly as far as it is allowed to and then somewhat further.
   _speciesPath: /stuff/idea/species/plantae/tracheophyta/magnoliopsida/lamiales/lamiaceae/mentha/spicata

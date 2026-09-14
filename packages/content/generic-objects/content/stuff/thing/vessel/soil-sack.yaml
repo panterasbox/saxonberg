@@ -6,9 +6,9 @@
 class: /platform/thing/Receptacle
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: a sack of potting soil
-  primaryKeyword: sack
-  keywords: [sack, soil, "potting soil", bag, dirt, compost]
+  shortDescription: sack of potting soil
+  keywords: [sack, soil, "potting soil", bag, dirt, compost, potting]
+  register: indefinite
   longDescription: |
     A stout paper sack with the top folded over twice, heavy in the middle and shedding a little dark grit from one corner.
   interiorBulk: true

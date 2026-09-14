@@ -6,9 +6,9 @@
 class: /platform/thing/Chair
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: a low cot
-  primaryKeyword: cot
-  keywords: [cot, bed, bunk]
+  shortDescription: low cot
+  keywords: [cot, bed, bunk, low]
+  register: indefinite
   longDescription: |
     A low wooden cot with a straw tick and a folded grey blanket at its foot, the frame rubbed pale where hands have gripped it.
   slots:

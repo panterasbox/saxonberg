@@ -4,8 +4,8 @@ class: /platform/idea/material/ConsumableMaterial
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: lemon juice
+  keywords: [lemon, lemon-juice, juice]
   appearance: pale, sharp lemon juice
-  keywords: [lemon-juice, juice]
   density: 1030
   thermalConductivity: 0.58
   specificHeat: 3900

@@ -15,9 +15,9 @@
 class: /platform/thing/Provision
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: a barrowload of marl
-  primaryKeyword: marl
-  keywords: [marl, clay, calcareous-clay]
+  shortDescription: barrowload of marl
+  keywords: [marl, clay, calcareous-clay, barrowload]
+  register: indefinite
   longDescription: >-
     Pale grey-white clay, greasy to the touch and studded with the
     broken shells of something that lived here a very long time ago. It

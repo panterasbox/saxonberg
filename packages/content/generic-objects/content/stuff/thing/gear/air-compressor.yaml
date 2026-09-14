@@ -5,8 +5,9 @@
 class: /platform/thing/Receptacle
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: an air compressor
-  primaryKeyword: compressor
+  shortDescription: air compressor
+  keywords: [compressor, air]
+  register: indefinite
   longDescription: >
     A squat electric air compressor bolted to the wall, a coiled fill hose
     hanging from its manifold. A sticker reads FILL CYLINDERS HERE.

@@ -4,9 +4,9 @@
 class: /platform/thing/Seed
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: a packet of lemon seed
-  primaryKeyword: seed
+  shortDescription: packet of lemon seed
   keywords: [seed, seeds, "lemon seed", lemon, packet]
+  register: indefinite
   longDescription: |
     A paper packet of lemon pips.
   growsIntoPath: /trade/farming/thing/plant/lemon

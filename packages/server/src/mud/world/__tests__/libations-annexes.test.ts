@@ -152,7 +152,13 @@ describe('libations annexes — the floor rows fit the faucet', () => {
         expect(item, `${r.path} populates ${items[0]}`).toBeDefined();
         const mat = byPath.get(item!.data._materialPath as string);
         expect(mat, `${item!.path} material`).toBeDefined();
-        expect(mat!.data.tags, mat!.path).toContain(item!.data.primaryKeyword);
+        // ⭐ `primaryKeyword` is `keywords[0]` unless a row pins one — the
+        // rule since keywords stopped deriving from the prose. Reading
+        // the raw row means applying it here too.
+        const handle =
+          (item!.data.primaryKeyword as string | undefined) ??
+          (item!.data.keywords as string[] | undefined)?.[0];
+        expect(mat!.data.tags, mat!.path).toContain(handle);
         continue;
       }
       const mat = byPath.get(r.data.interiorMaterial as string);

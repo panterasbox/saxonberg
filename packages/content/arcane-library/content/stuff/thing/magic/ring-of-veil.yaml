@@ -14,8 +14,9 @@
 class: /system/arcana/thing/Ring
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: a thin silver ring
-  primaryKeyword: ring
+  shortDescription: thin silver ring
+  keywords: [ring, thin, silver]
+  register: indefinite
   longDescription: >
     A plain band of tarnished silver, worn smooth on the inside. Held up
     to the light it seems a little less there than it should be.

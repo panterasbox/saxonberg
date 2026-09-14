@@ -11,9 +11,9 @@
 class: /trade/textiles/thing/BleachingGreen
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: a bleaching green
-  primaryKeyword: green
+  shortDescription: bleaching green
   keywords: [green, sward, bleaching, grass]
+  register: indefinite
   longDescription: |
     A close-cropped acre pegged out in long pale strips, weighted at the corners against the wind. Somebody walks it twice a day with a watering can, which is the entire technology.
   # ⚠ NO `_materialPath`, and `lint:perishable` is why. It was

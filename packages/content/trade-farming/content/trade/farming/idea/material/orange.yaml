@@ -3,8 +3,8 @@ class: /platform/idea/material/ConsumableMaterial
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: orange
+  keywords: [orange]
   appearance: "a thick-skinned orange"
-  keywords: ["orange"]
   density: 940
   thermalConductivity: 0.5
   specificHeat: 3600

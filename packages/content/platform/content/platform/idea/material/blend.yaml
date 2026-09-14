@@ -11,8 +11,8 @@ class: /platform/idea/material/ConsumableMaterial
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: blend
+  keywords: [cocktail, blend, drink, mixed]
   appearance: a cloudy, improvised mixed drink
-  keywords: [blend, drink, mixed, cocktail]
   density: 950
   thermalConductivity: 0.2
   specificHeat: 2800

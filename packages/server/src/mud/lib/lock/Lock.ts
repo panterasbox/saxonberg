@@ -110,9 +110,9 @@ export class Lock {
   static keyDescription(technology: LockType, master = false): string {
     switch (technology) {
       case "pin-tumbler":
-        return master ? "a heavy ring of master keys" : "a worn brass key";
+        return master ? "heavy ring of master keys" : "worn brass key";
       case "keycard":
-        return master ? "a black master keycard" : "a plastic keycard";
+        return master ? "black master keycard" : "plastic keycard";
     }
   }
 }
@@ -157,9 +157,19 @@ async function mintPhysical(
   const cred = key.ensureCredential("key");
   if (master) cred.addMaster(technology);
   else cred.addKey(keyway, technology);
-  (
-    key as unknown as { setShortDescription(s: string): void }
-  ).setShortDescription(Lock.keyDescription(technology, master));
+  const named = key as unknown as {
+    setShortDescription(s: string): void;
+    setKeywords(k: string[]): void;
+  };
+  named.setShortDescription(Lock.keyDescription(technology, master));
+  // ⚠ Authored keywords. A minted key has no content row to write them
+  // in, and the pool stopped deriving them from the prose — without this
+  // `look key` would not resolve the key you were just handed.
+  named.setKeywords(
+    technology === "keycard"
+      ? ["keycard", "card", ...(master ? ["master"] : [])]
+      : ["key", ...(master ? ["keys", "ring", "master"] : ["brass"])],
+  );
   ContainmentApi.move(
     key as unknown as Stuff & Containable,
     holder as Stuff & Container,

@@ -3,8 +3,8 @@ class: /platform/idea/material/ConsumableMaterial
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: olive
+  keywords: [olive]
   appearance: "a green olive, brine-wet"
-  keywords: ["olive"]
   density: 1050
   thermalConductivity: 0.5
   specificHeat: 3600

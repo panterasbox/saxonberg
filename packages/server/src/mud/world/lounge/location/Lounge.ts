@@ -26,15 +26,23 @@ import { CartesianCoordinatesMixin } from '../../../lib/location/CartesianCoordi
 import { WarrenMemberMixin } from '../../../lib/location/WarrenMember';
 import { LoungeMixin } from '../LoungeMixin';
 import { VisibleMixin } from '../../../lib/description/Visible';
+import { PerceptibleMixin } from '../../../lib/description/Perceptible';
 import { DetailedMixin } from '../../../lib/description/Detailed';
 import { ExitableMixin } from '../../../lib/boundary/Exitable';
 import { PostRegistrationMixin } from '../../../lib/stuff/PostRegistration';
 import type { FieldMeta } from '../../../lib/mixin';
 
+// ⭐ `PerceptibleMixin` — a room is addressable by keyword. ⚠ Composed
+// per class because `Location` does NOT carry it (only
+// `CartesianLocation` does), so every room class built directly on
+// `Location` has to remember. These rows were authoring `primaryKeyword`
+// into a void until 2026-09-11; `lint:presentation` clause (d) found it.
 const LoungeBase = PostRegistrationMixin(
   ExitableMixin(
     CartesianCoordinatesMixin(
-      DetailedMixin(VisibleMixin(LoungeMixin(WarrenMemberMixin(Location)))),
+      DetailedMixin(
+        VisibleMixin(PerceptibleMixin(LoungeMixin(WarrenMemberMixin(Location)))),
+      ),
     ),
   ),
 );

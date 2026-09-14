@@ -6,9 +6,9 @@
 class: /platform/thing/Provision
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: a pail of milk
-  primaryKeyword: milk
+  shortDescription: pail of milk
   keywords: [milk, pail]
+  register: indefinite
   longDescription: >-
     Warm and frothing at the top, with the cream not yet risen.
   _materialPath: /stuff/idea/material/food/milk

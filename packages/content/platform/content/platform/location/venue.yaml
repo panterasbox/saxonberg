@@ -5,5 +5,5 @@ class: /platform/location/CartesianLocation
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: a venue
+  keywords: [room, venue]
   description: A bare venue, waiting to be fitted out.
-  keywords: [venue, room]

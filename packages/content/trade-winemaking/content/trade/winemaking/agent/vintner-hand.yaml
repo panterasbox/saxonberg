@@ -7,12 +7,13 @@ class: /platform/agent/Cast
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: Ilse Marrow
+  keywords: [hand, ilse, marrow, wiry, "vintner's", vintner, purple-stained, fingers]
   pronouns: they
   _speciesPath: /stuff/idea/species/animalia/chordata/mammalia/primates/hominidae/homo/sapiens
   lifecycleState: alive
-  primaryKeyword: hand
   alternateNames: ["ilse", "marrow"]
-  shortDescription: "a wiry vintner's hand with purple-stained fingers"
+  shortDescription: "wiry vintner's hand with purple-stained fingers"
+  register: indefinite
   longDescription: |
     A wiry hand with purple-stained fingers and a habit of holding a bottle up to the light before she cases it.
   dispositions:

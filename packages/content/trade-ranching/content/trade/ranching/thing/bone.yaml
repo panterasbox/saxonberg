@@ -7,9 +7,9 @@
 class: /platform/thing/Provision
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: a heap of bone
-  primaryKeyword: bone
-  keywords: [bone, bones]
+  shortDescription: heap of bone
+  keywords: [bone, bones, heap]
+  register: indefinite
   longDescription: >-
     Sawn and jointed bone, still with a little meat on it. Boiled it
     gives up its fat and its gelatin; ground it goes back on the land.

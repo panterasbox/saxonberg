@@ -11,6 +11,7 @@ class: /platform/idea/material/Material
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: granite
+  keywords: [granite]
   density: 2750
   specificHeat: 790
   thermalConductivity: 2.9

@@ -114,7 +114,7 @@ export default class ManaLamp extends ManaLampBase {
   }
 
   override getShortDescription(): string {
-    return super.getShortDescription() || 'a mana lamp';
+    return super.getShortDescription() || 'mana lamp';
   }
 
   override getLongDescription(): string {

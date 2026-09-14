@@ -8,9 +8,9 @@
 class: /platform/thing/Plant
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: a hazel stool
-  primaryKeyword: stool
+  shortDescription: hazel stool
   keywords: [stool, hazel, coppice]
+  register: indefinite
   longDescription: |
     A low knuckle of old root with a dozen straight poles standing out of it, all of an age. Cut it to the ground and it will do the same again.
   _speciesPath: /stuff/idea/species/plantae/tracheophyta/magnoliopsida/fagales/betulaceae/corylus/avellana

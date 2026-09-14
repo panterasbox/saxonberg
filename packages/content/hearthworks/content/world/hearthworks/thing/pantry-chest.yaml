@@ -4,9 +4,9 @@
 class: /platform/thing/Chest
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: a pantry chest
-  primaryKeyword: chest
+  shortDescription: pantry chest
   keywords: [chest, pantry, larder]
+  register: indefinite
   longDescription: |
     A broad pantry chest, lid thrown back, packed with roots and wrapped cuts.
   open: true

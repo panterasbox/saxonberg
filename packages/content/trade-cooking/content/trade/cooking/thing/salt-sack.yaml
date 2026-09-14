@@ -2,10 +2,10 @@
 class: /platform/thing/Bottle
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: "a sack of salt"
+  shortDescription: "sack of salt"
+  keywords: [salt, sack]
+  register: indefinite
   longDescription: "A ten-kilo hessian sack of salt, stencilled."
-  primaryKeyword: salt
-  keywords: ["salt", "sack"]
   category: sack
   interiorBulk: true
   interiorCapacity: 20

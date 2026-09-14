@@ -11,8 +11,8 @@ class: /platform/idea/material/ConsumableMaterial
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: cooked fare
+  keywords: [cooked, food, fare, portion]
   appearance: a portion of plain cooked fare
-  keywords: [food, fare, portion]
   density: 1000
   thermalConductivity: 0.5
   specificHeat: 3500

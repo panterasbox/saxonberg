@@ -4,9 +4,9 @@
 class: /platform/thing/Provision
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: a grapefruit
-  primaryKeyword: grapefruit
+  shortDescription: grapefruit
   keywords: [grapefruit, grapefruits, produce]
+  register: indefinite
   longDescription: "A heavy pink grapefruit."
   _materialPath: /trade/farming/idea/material/grapefruit
   gradeBand: fair

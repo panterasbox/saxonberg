@@ -11,10 +11,10 @@
 class: /trade/distilling/thing/SpiritBottle
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: a bottle of aromatic bitters
+  shortDescription: bottle of aromatic bitters
+  keywords: [bitters, bottle, dasher, spirit, aromatic]
+  register: indefinite
   longDescription: A small dasher bottle of aromatic bitters, the cap crusted.
-  primaryKeyword: bitters
-  keywords: [bitters, bottle, dasher, spirit]
   category: spirit-bottle
   interiorBulk: true
   interiorCapacity: 0.2

@@ -3,9 +3,9 @@
 class: /platform/thing/ToolItem
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  primaryKeyword: haft
-  keywords: ["haft", "pick-haft", "handle"]
-  shortDescription: a shaped pick haft
+  keywords: [haft, pick-haft, handle, shaped, pick]
+  shortDescription: shaped pick haft
+  register: indefinite
   longDescription: >-
     A length of close-grained wood, shaved oval and swelled at the butt
     so a wet hand does not lose it.

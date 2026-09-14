@@ -18,6 +18,7 @@ data:
     path: /trade/haulage/agent/warehouseman
   positions:
     - key: warehouseman
+      noun: warehouseman
       label: on the depot counter
       wageRate: 5
   rosterSlots:

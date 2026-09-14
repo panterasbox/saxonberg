@@ -3,9 +3,8 @@ class: /platform/idea/material/ConsumableMaterial
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: sparkling wine
+  keywords: [sparkling, wine, fizz]
   appearance: "a pale sparkling wine, beading in the glass"
-  primaryKeyword: sparkling
-  keywords: ["sparkling", "wine", "fizz"]
   density: 995
   thermalConductivity: 0.5
   specificHeat: 3800

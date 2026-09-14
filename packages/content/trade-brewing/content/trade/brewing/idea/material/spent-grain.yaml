@@ -6,8 +6,8 @@ class: /platform/idea/material/ConsumableMaterial
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: spent grain
+  keywords: [spent, grain, draff]
   appearance: "wet, sweet-smelling spent grain"
-  keywords: ["grain", "draff"]
   density: 800
   thermalConductivity: 0.4
   specificHeat: 3000

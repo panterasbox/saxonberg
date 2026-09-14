@@ -4,9 +4,9 @@
 class: /platform/thing/Seed
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: a packet of cranberry seed
-  primaryKeyword: seed
+  shortDescription: packet of cranberry seed
   keywords: [seed, seeds, "cranberry seed", cranberry, packet]
+  register: indefinite
   longDescription: |
     A paper packet of cranberry seed.
   growsIntoPath: /trade/farming/thing/plant/cranberry

@@ -4,9 +4,9 @@
 class: /platform/thing/Seed
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: a packet of cherry stones
-  primaryKeyword: seed
+  shortDescription: packet of cherry stones
   keywords: [seed, seeds, "cherry stone", cherry, stones, packet]
+  register: indefinite
   longDescription: |
     A paper packet of cherry stones, dried and rattling.
   growsIntoPath: /trade/farming/thing/plant/cherry

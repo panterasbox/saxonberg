@@ -7,8 +7,9 @@
 class: /platform/location/SingletonCartesianLocation
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: the milestone
-  primaryKeyword: milestone
+  shortDescription: milestone
+  keywords: [milestone]
+  register: definite
   alternateNames: [stone, road, mile]
   _address: terminus/delight-valley/milestone
   _biomePath: /stuff/idea/biome/outdoor/baseline

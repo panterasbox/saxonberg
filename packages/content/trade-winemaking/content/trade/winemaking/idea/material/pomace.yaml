@@ -5,8 +5,8 @@ class: /platform/idea/material/ConsumableMaterial
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: pomace
+  keywords: [marc, pomace]
   appearance: "a pressed cake of grape skins and stems"
-  keywords: ["pomace", "marc"]
   density: 900
   thermalConductivity: 0.4
   specificHeat: 3000

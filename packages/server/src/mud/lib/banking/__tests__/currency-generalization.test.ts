@@ -41,7 +41,7 @@ const TEST_RECORD: CurrencyRecord = {
   issuer: "test-mint",
   governorOffice: "test-mint-governor",
   denominations: [
-    { value: 10, massKg: 0.005, label: "a chit" },
+    { value: 10, massKg: 0.005, label: "chit" },
     { value: 1, massKg: 0.001 },
   ],
 };
@@ -113,9 +113,9 @@ describe("⭐⭐ acceptance — the substrate does not know the zorkmid", () => 
     expect(Money.of(7, TEST_CURRENCY).render()).toBe("7 testcoins");
     // The labelled denomination, and the derived one — neither is
     // zorkmid-shaped.
-    expect(Currency.describeDenomination(TEST_CURRENCY, 10)).toBe("a chit");
+    expect(Currency.describeDenomination(TEST_CURRENCY, 10)).toBe("chit");
     expect(Currency.describeDenomination(TEST_CURRENCY, 1)).toBe(
-      "a 1-testcoin piece"
+      "1-testcoin piece"
     );
     // The fixture has no 5 and no 25 — the zorkmid's constants cannot be
     // satisfying these by accident.

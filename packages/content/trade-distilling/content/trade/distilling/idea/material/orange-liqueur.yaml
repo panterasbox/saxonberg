@@ -6,8 +6,8 @@ class: /platform/idea/material/ConsumableMaterial
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: orange liqueur
+  keywords: [liqueur, orange-liqueur, orange]
   appearance: a sweet, bitter-orange liqueur
-  keywords: [orange-liqueur]
   density: 940
   thermalConductivity: 0.17
   specificHeat: 2400

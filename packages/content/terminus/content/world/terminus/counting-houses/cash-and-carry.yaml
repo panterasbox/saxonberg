@@ -38,9 +38,9 @@ data:
     x: 0
     y: -1
     z: 0
-  shortDescription: the cash-and-carry
-  primaryKeyword: cash-and-carry
+  shortDescription: cash-and-carry
   keywords: [cash-and-carry, distributor, warehouse, showroom]
+  register: definite
   longDescription: |
     A high, cold hall that smells of sawdust and spilled spirit. Steel racking climbs the walls, cased and chalk-numbered; a long counter runs under a board of consignors' asks, and beyond a roller door somebody's dray is always half-unloaded. Nothing here is for the thirsty — it is where the thirsty's bartender comes.
   ambientIntensity: 30

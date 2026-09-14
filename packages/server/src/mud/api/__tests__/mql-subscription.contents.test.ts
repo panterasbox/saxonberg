@@ -74,6 +74,10 @@ async function makeBrassThermometer(short: string): Promise<Thing> {
   return await StuffApi.create(() => {
     const t = new Thing();
     t.setShortDescription(short);
+    // ⚠ Keywords are AUTHORED. They used to fall out of the description
+    // for free, which is how this fixture got a `primaryKeyword` without
+    // asking; derivation is gone, so the fixture says what it answers to.
+    t.setKeywords(short.split(/\s+/).filter((w) => w.length > 1));
     return t;
   });
 }

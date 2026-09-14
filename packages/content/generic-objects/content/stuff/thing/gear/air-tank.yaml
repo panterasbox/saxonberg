@@ -6,8 +6,9 @@
 class: /platform/thing/AirTank
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: an air tank
-  primaryKeyword: tank
+  shortDescription: air tank
+  keywords: [tank, air]
+  register: indefinite
   longDescription: >
     A scuffed aluminium diving cylinder on a webbing harness, fitted with
     a regulator. A gauge on the manifold reads the air remaining.

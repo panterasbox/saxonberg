@@ -8,9 +8,8 @@ class: /platform/idea/material/ConsumableMaterial
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: neutral spirit
-  primaryKeyword: spirit
+  keywords: [spirit, "neutral spirit", neutral]
   appearance: "a water-clear spirit with a hot, empty nose"
-  keywords: ["spirit", "neutral spirit"]
   density: 940
   thermalConductivity: 0.17
   specificHeat: 2400

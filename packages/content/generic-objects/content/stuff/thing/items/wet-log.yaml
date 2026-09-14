@@ -4,8 +4,9 @@
 class: /platform/thing/Firewood
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: a rain-soaked oak log
-  keywords: [log, oak, firewood, wood, wet]
+  shortDescription: rain-soaked oak log
+  keywords: [rain-soaked, log, oak, firewood, wood, wet]
+  register: indefinite
   _materialPath: /stuff/idea/material/wood/oak
   charMaterialPath: /stuff/idea/material/element/carbon
   _saturation: 1

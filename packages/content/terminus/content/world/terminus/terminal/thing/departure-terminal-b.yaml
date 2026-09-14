@@ -6,7 +6,8 @@ class: /system/tpa/thing/TpaTerminal
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   seatIn: /world/terminus/terminal/location/departure-gate-b
-  shortDescription: a Teleport Authority terminal
-  keywords: [gate-b]
+  shortDescription: Teleport Authority terminal
+  keywords: [terminal, gate-b, teleport, authority]
+  register: indefinite
   directionality: departure
   status: out-of-service

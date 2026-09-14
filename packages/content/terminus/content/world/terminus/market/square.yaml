@@ -19,8 +19,9 @@
 class: /platform/location/SingletonCartesianLocation
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: the farmers market square
-  primaryKeyword: square
+  shortDescription: farmers market square
+  keywords: [square, farmers, market]
+  register: definite
   alternateNames: [market, "farmers market", stalls]
   _biomePath: /stuff/idea/biome/outdoor/baseline
   _address: terminus/city/counting-houses/market-square

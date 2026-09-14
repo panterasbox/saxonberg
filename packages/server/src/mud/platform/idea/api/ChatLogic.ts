@@ -8,6 +8,7 @@ import { SecurityPolicies } from '../../../lib/security/SecurityPolicies';
 import { StuffApi } from '../../../api/stuff';
 import type { Stuff } from '../../../lib/stuff/Stuff';
 import type { Channel } from '../../../lib/social/Channel';
+import type { ChannelAnonymity } from '../../../lib/social/Channel';
 import type Subject from '../../../lib/forum/Subject';
 import type { AdHocChannel } from '../../../lib/social/AdHocChannel';
 import type ChannelCatalogue from '../ChannelCatalogue';
@@ -82,9 +83,15 @@ export class ChatLogic extends ApiLogic {
   public async postToChannel(
     speaker: Stuff,
     channel: Channel,
-    body: string
+    body: string,
+    opts?: { anonymous?: boolean }
   ): Promise<void> {
-    return (await requireCatalogue()).postToChannel(speaker, channel, body);
+    return (await requireCatalogue()).postToChannel(
+      speaker,
+      channel,
+      body,
+      opts
+    );
   }
 
   /** See {@link ChatApi.createPlayerChannel}. */
@@ -119,6 +126,15 @@ export class ChatLogic extends ApiLogic {
   @CallSecurity(ChatApiCallers)
   public async disbandPlayerChannel(name: string): Promise<boolean> {
     return (await requireCatalogue()).disbandPlayerChannel(name);
+  }
+
+  /** See {@link ChatApi.setAnonymity}. */
+  @CallSecurity(ChatApiCallers)
+  public async setAnonymity(
+    name: string,
+    anonymity: ChannelAnonymity
+  ): Promise<Channel> {
+    return (await requireCatalogue()).setAnonymity(name, anonymity);
   }
 
   /** See {@link ChatApi.renamePlayerChannel}. */

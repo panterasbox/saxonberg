@@ -6,9 +6,9 @@
 class: /platform/thing/Vat
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: a heavy conditioning bottle
-  primaryKeyword: bottle
-  keywords: [bottle, "conditioning bottle", fizz]
+  shortDescription: heavy conditioning bottle
+  keywords: [bottle, "conditioning bottle", fizz, heavy, conditioning]
+  register: indefinite
   longDescription: |
     A thick-walled green bottle with a wired cork, built to hold pressure.
   category: wine-bottle

@@ -7,9 +7,9 @@ class: /system/arcana/thing/ManaMain
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   seatIn: /world/lounge/idea/warren
-  shortDescription: a mana line
-  primaryKeyword: line
-  keywords: [line, main, conduit, mains]
+  shortDescription: mana line
+  keywords: [line, main, conduit, mains, mana]
+  register: indefinite
   longDescription: >
     A slim brass conduit runs down the wall beside the terminal and
     disappears into the floor, warm to the back of a hand.

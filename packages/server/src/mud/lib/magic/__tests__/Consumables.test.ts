@@ -449,7 +449,7 @@ describe('Wave 2 — consumables', () => {
     const other = makeActor();
     ContainmentApi.move(reader, room);
     const vial = makeStuffAtPath(() => new Vial(), `/obj/item/vial-${seq++}`);
-    vial.setShortDescription('a blue potion');
+    vial.setShortDescription('blue potion');
     vial.setIdentifiedName('a potion of healing');
     ContainmentApi.move(vial, room);
 

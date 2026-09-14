@@ -13,6 +13,7 @@ data:
     office: prime-minister
   positions:
     - key: dyer
+      noun: dyer
       label: at the vats
       wageRate: 5
       confers: []

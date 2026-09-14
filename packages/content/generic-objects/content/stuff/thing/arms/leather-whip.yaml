@@ -1,8 +1,9 @@
 class: /platform/thing/equipment/Weapon
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: a leather whip
-  primaryKeyword: whip
+  shortDescription: leather whip
+  keywords: [whip, leather]
+  register: indefinite
   longDescription: >
     A long plaited leather whip with a weighted fall. It keeps a foe at the
     very end of its reach and can lash a cutting welt across bare skin — but a

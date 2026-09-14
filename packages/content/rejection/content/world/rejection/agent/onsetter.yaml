@@ -10,9 +10,9 @@ hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   _speciesPath: /stuff/idea/species/animalia/chordata/mammalia/primates/hominidae/homo/sensitivus
   lifecycleState: alive
-  primaryKeyword: onsetter
   keywords: [onsetter, banksman]
-  shortDescription: the onsetter
+  shortDescription: onsetter
+  register: definite
   longDescription: >-
     An old man on a stool at the adit mouth with a tally board on his knee
     and a jar of glowcap hooked to his belt. He counts people in and he

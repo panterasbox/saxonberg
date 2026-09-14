@@ -3,8 +3,8 @@ class: /platform/idea/material/ConsumableMaterial
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: grapefruit
+  keywords: [grapefruit]
   appearance: "a heavy pink grapefruit"
-  keywords: ["grapefruit"]
   density: 950
   thermalConductivity: 0.5
   specificHeat: 3600

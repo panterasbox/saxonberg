@@ -9,9 +9,9 @@
 class: /platform/thing/Plant
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: a snake plant
-  primaryKeyword: "snake plant"
+  shortDescription: snake plant
   keywords: ["snake plant", snake, sansevieria, plant, houseplant]
+  register: indefinite
   longDescription: |
     Stiff upright leaves stand in a blade-straight cluster, banded pale and dark like something that would rather not be touched. A snake plant, entirely indifferent to whether anyone remembers it exists.
   _speciesPath: /stuff/idea/species/plantae/tracheophyta/liliopsida/asparagales/asparagaceae/dracaena/trifasciata

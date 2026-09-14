@@ -15,6 +15,13 @@
 
 import { Pronouns } from '@saxonberg/types';
 import type { Stuff } from '../lib/stuff/Stuff';
+import {
+  NounPhrase,
+  PRESENTATION_FORMS,
+  REGISTERS,
+  type PresentationForm,
+  type Register,
+} from '../lib/description/NounPhrase';
 import { MixinApi } from './mixin';
 import { SecurityApi } from './security';
 
@@ -55,8 +62,6 @@ const SETS: Record<Pronouns, PronounSet> = {
 };
 
 const NEUTRAL: PronounSet = SETS[Pronouns.It];
-
-const VOWELS = new Set(['a', 'e', 'i', 'o', 'u']);
 
 /**
  * Articles stripped during MQL desugar (req §9.1). Lowercase. Used
@@ -141,22 +146,63 @@ export class GrammarApi {
   }
 
   /**
-   * Return the indefinite article (`'a'` / `'an'`) for a Stuff's
-   * presentation string. Vowel-onset heuristic; not phonetic.
+   * The article a Stuff's identity takes — `'a'`, `'an'`, `'the'`, or
+   * `''` for a proper name.
+   *
+   * ⚠ **This used to be wrong and nothing noticed**, because it read the
+   * article off the *rendered* string: `article(x)` where x presented as
+   * `"a heavy door"` answered **`'an'`**, having found a vowel at the
+   * front of the article somebody had already typed. It was latent only
+   * because no shipped template used the `| article` prose filter. It
+   * asks the phrase now, which knows its own register.
    */
   static article(stuff: Stuff): string {
-    return this.articleFor(stuff.getPresentation());
+    return stuff.presentationPhrase().article();
+  }
+
+  /**
+   * ⭐⭐ **Build a {@link NounPhrase}** — a stem, a register and a count,
+   * from which the article, the definite form, the possessive and the
+   * plural all derive.
+   *
+   * ⚠ This is where construction lives, and that is the codebase's rule
+   * rather than this build's taste: `new SomeStuff()` goes through
+   * `StuffApi.create` for the same reason. A static factory on a `lib/`
+   * value class is **callable by anyone and visible to nobody** — the
+   * author-surface projection admits public Api statics and public
+   * instance methods, and a static on a non-Api class is neither.
+   */
+  static phrase(stem: string, register: Register = 'indefinite'): NounPhrase {
+    return new NounPhrase(stem.trim(), register);
+  }
+
+  /** A proper name — takes no article, ever. */
+  static properPhrase(stem: string): NounPhrase {
+    return new NounPhrase(stem.trim(), 'proper');
+  }
+
+  /** Whether `value` is one of the three registers. */
+  static isRegister(value: unknown): value is Register {
+    return (
+      typeof value === 'string' && (REGISTERS as readonly string[]).includes(value)
+    );
+  }
+
+  /** Whether `value` is one of the six presentation forms. */
+  static isPresentationForm(value: unknown): value is PresentationForm {
+    return (
+      typeof value === 'string' &&
+      (PRESENTATION_FORMS as readonly string[]).includes(value)
+    );
   }
 
   /**
    * Indefinite article (`'a'` / `'an'`) for a raw word or phrase by
-   * vowel onset — the string-level core of {@link article}. Not
-   * phonetic (`a unicorn` / `an honest` need per-stuff overrides).
+   * vowel onset. Not phonetic (`a unicorn` / `an honest` would need a
+   * per-row override).
    */
   static articleFor(text: string): string {
-    const trimmed = text.trim();
-    if (!trimmed) return 'a';
-    return VOWELS.has(trimmed.charAt(0).toLowerCase()) ? 'an' : 'a';
+    return new NounPhrase(text, 'indefinite').article();
   }
 
   /**

@@ -16,6 +16,12 @@
  * generic descriptions. A "brass thermometer" is just a Thing with a
  * short description, no name.
  *
+ * ⭐ **And the agent branch follows the same rule now.** This paragraph
+ * was true of `Thing` and false of `Creature` for the life of the
+ * project — the creature base composed `NamedMixin`, so every body in
+ * the game carried name-shaped surface. Fixed 2026-09-10: `CastMixin`
+ * and `Avatar` compose it, and nothing else does by inheritance.
+ *
  * If you genuinely need a physical-shaped object that opts out of
  * Visible OR Perceptible, that's a sign you want a different branch
  * (Idea for pure state holders) or you should extend Stuff directly

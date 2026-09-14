@@ -7,12 +7,13 @@ class: /platform/agent/Cast
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: Tamsin Roke
+  keywords: [hand, tamsin, roke, broad, "brewer's", brewer, rubber, apron]
   pronouns: they
   _speciesPath: /stuff/idea/species/animalia/chordata/mammalia/primates/hominidae/homo/sapiens
   lifecycleState: alive
-  primaryKeyword: hand
   alternateNames: ["tamsin", "roke"]
-  shortDescription: "a broad brewer's hand in a rubber apron"
+  shortDescription: "broad brewer's hand in a rubber apron"
+  register: indefinite
   longDescription: |
     A broad-shouldered hand in a rubber apron, forearms like hawsers from rolling kegs. Smells of malt.
   dispositions:

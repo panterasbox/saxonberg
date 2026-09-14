@@ -12,6 +12,7 @@ data:
     parcel: /corpo/veshko
   positions:
     - key: hand
+      noun: hand
       label: running Veshko's yard
       wageRate: 4
       confers: []

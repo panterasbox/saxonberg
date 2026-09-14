@@ -4,9 +4,8 @@ class: /platform/idea/material/ConsumableMaterial
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: grappa
-  primaryKeyword: grappa
+  keywords: [grappa]
   appearance: "a sharp, grassy clear spirit"
-  keywords: ["grappa"]
   density: 945
   thermalConductivity: 0.17
   specificHeat: 2450

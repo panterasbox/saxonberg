@@ -82,7 +82,7 @@ const STUBS: Doc[] = [
     path: "/world/lounge/thing/terminal",
     class: "/system/tpa/thing/TpaTerminal",
     hydratorClass: PH,
-    data: { seatIn: "/world/test/lounge-room", shortDescription: "The Lounge", keywords: ["lounge"], directionality: "both", routes: [] },
+    data: { seatIn: "/world/test/lounge-room", shortDescription: "The Lounge", register: "proper", keywords: ["lounge"], directionality: "both", routes: [] },
   },
   { path: "/world/test/lounge-room", class: "/platform/location/VoidLocation", hydratorClass: PH, data: { shortDescription: "the lounge" } },
   { path: "/world/terminus/university-avenue/location/crossing", class: "/platform/location/VoidLocation", hydratorClass: PH, data: { shortDescription: "University Avenue" } },

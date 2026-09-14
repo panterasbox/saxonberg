@@ -11,8 +11,9 @@
 class: /platform/thing/Door
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: the front doors
-  primaryKeyword: doors
+  shortDescription: front doors
+  keywords: [doors, front]
+  register: definite
   longDescription: >
     Tall paneled doors of dark wood. The hinges look heavy but
     travel smoothly. Right now they're propped open, letting the

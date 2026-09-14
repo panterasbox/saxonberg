@@ -39,6 +39,10 @@ import { ProxyApi } from '../../api/proxy';
 import { SecurityApi } from '../../api/security';
 import { MixinApi } from '../../api/mixin';
 import { GrammarApi } from '../../api/grammar';
+import {
+  NounPhrase,
+  type PresentationForm,
+} from '../description/NounPhrase';
 // Type-only: `Stuff` is the root base, so a *value* import of `Mml`
 // (which pulls recognition → belief → `Idea extends Stuff`) would form a
 // load-time cycle. The default fragment is built by `Mml.ref` instead;
@@ -72,6 +76,21 @@ export interface DestroyedObjectMetadata {
  * returns a string, so call sites never write `??` ceremony.
  */
 const DEFAULT_PRESENTATION = 'something';
+
+/**
+ * The same fallback for an organism that has neither a name, a
+ * description nor a species common name. `RecognitionLogic.obscured` has
+ * always answered `someone` for a body and `something` for a thing;
+ * bringing it here is what lets one ladder serve both views.
+ */
+const DEFAULT_UNKNOWN_ORGANISM = 'someone';
+
+/**
+ * Which rungs of the identity ladder a reader is entitled to.
+ * `'stranger'` skips the name and the disguise; see
+ * {@link Stuff.presentationPhrase}.
+ */
+export type PresentationView = 'own' | 'stranger';
 
 /**
  * `setZone` is callable only from `SpatialZone` and its subclasses.
@@ -125,9 +144,24 @@ export type RefKind = 'player' | 'npc' | 'thing';
  * presentation.
  */
 export interface RecognitionFace {
-  describe(viewer: Stuff, target: Stuff): string;
-  describeWithStatus(viewer: Stuff, target: Stuff): string;
-  salientFeaturesOf(target: Stuff, covered?: ReadonlySet<string>): string;
+  /**
+   * ⭐⭐ **One method, two axes.** WHO is reading (`viewer`, `undefined`
+   * for a log or a snapshot) and WHAT FORM the sentence asked for.
+   *
+   * It was four methods — `describe`, `describeWithStatus`,
+   * `salientFeaturesOf` and the viewer-blind baseline — and the shape of
+   * that was doing real damage: the richer two had **one caller each**,
+   * both on the same surface, because the only way to reach them was to
+   * resolve eagerly for a single known viewer and give up per-recipient
+   * naming. Which form a sentence gets is now the sentence's choice
+   * rather than a consequence of how the message happened to be
+   * delivered.
+   */
+  describe(
+    viewer: Stuff | undefined,
+    target: Stuff,
+    form: PresentationForm,
+  ): string;
   perceivedKeywords(viewer: Stuff, target: Stuff): string[];
   kindOf(viewer: Stuff | undefined, target: Stuff): RefKind;
   knowsTrueType(viewer: Stuff, target: Stuff): boolean;
@@ -230,7 +264,7 @@ export abstract class Stuff {
     // Same-side calls — the overwhelming majority — cost one scope
     // compare and nothing else.
     return SecurityApi.projectAcross(this, undefined, () =>
-      this.presentationCore()
+      this.presentationPhrase().render()
     );
   }
 
@@ -240,31 +274,31 @@ export abstract class Stuff {
    * fallback — the `getPresentation` precedent). The concise form: a
    * recognized name or the stranger stem, no worn feature, no status.
    */
-  describeFor(viewer: Stuff): string {
-    return (
-      Stuff._recognitionFace()?.describe(viewer, this) ??
-      this.getPresentation()
-    );
+  describeFor(
+    viewer: Stuff | undefined,
+    form: PresentationForm = 'concise',
+  ): string {
+    const face = Stuff._recognitionFace();
+    if (face) return face.describe(viewer, this, form);
+    // ⚠ The no-face fallback (a bare harness) answers PER FORM rather
+    // than handing back the concise presentation for all six — a
+    // fixture asking for `bare` and silently getting `concise` is a
+    // test that passes for the wrong reason.
+    return this.fallbackForm(form);
   }
 
-  /** {@link describeFor} with the activity-status affix — the
-   * presence-scan (room roll-call) form. */
-  describeWithStatusFor(viewer: Stuff): string {
-    return (
-      Stuff._recognitionFace()?.describeWithStatus(viewer, this) ??
-      this.getPresentation()
-    );
-  }
-
-  /**
-   * The stranger stem plus the most-notable worn item (unless `covered`
-   * hides the region) — the presence / targeting surface's fuller form.
-   */
-  salientFeatures(covered?: ReadonlySet<string>): string {
-    return (
-      Stuff._recognitionFace()?.salientFeaturesOf(this, covered) ??
-      this.getPresentation()
-    );
+  /** The describe ladder with no recognition engine registered. */
+  private fallbackForm(form: PresentationForm): string {
+    if (form === 'bare' && MixinApi.isNamed(this)) {
+      const name = this.getName();
+      if (name) return name;
+    }
+    if (form === 'formal' && MixinApi.isNamed(this)) {
+      const full = this.getFullName();
+      if (full) return full;
+    }
+    if (form === 'handle') return this.handlePhrase().render();
+    return this.getPresentation();
   }
 
   /** The keywords `viewer` may target this by (worn features included
@@ -282,39 +316,132 @@ export abstract class Stuff {
     return Stuff._recognitionFace()?.kindOf(viewer, this) ?? 'thing';
   }
 
-  /** The pure identity synthesis; see `getPresentation` for the seam. */
-  private presentationCore(): string {
-    let base = DEFAULT_PRESENTATION;
-    // Disguise defers FIRST and at the baseline (not via a shadow on
-    // the synthesizer): a masked creature presents its covering's
-    // `appearsAs` ("a hooded figure") in place of its true identity, so
-    // every reader — prose, MQL projection, logs — sees the disguise
-    // uniformly. The viewer-relative half (withholding a *known* name
-    // from someone who'd recognize the wearer) lives in
-    // `RecognitionApi.describe`; this layer is viewer-blind.
-    if (MixinApi.isDisguisable(this)) {
-      const disguise = this.getDisguise();
-      if (disguise) base = disguise.appearsAs;
-    }
-    if (base === DEFAULT_PRESENTATION && MixinApi.isNamed(this)) {
-      const name = this.getName();
-      if (name) base = name;
-    }
-    if (base === DEFAULT_PRESENTATION && MixinApi.isVisible(this)) {
-      const short = this.getShortDescription();
-      if (short) base = short;
-    }
-    let identity = base;
+  /**
+   * ⭐⭐ **The structured identity** — a stem, a register and a count,
+   * from which the article, the definite form, the possessive and the
+   * plural all derive. `getPresentation()` is this, rendered.
+   *
+   * ⭐ **This is the override point.** A class with a name of its own
+   * (`Organization`, a farm `Field`) overrides *this*, not
+   * `getPresentation`, and gets every grammatical form right for free
+   * instead of returning a string with an article welded to the front.
+   *
+   * The chain, in order, each rung tried only if the one above is empty:
+   *
+   *   1. **the disguise** — a masked creature presents its covering's
+   *      `appearsAs` in place of its true identity, so every reader
+   *      (prose, MQL projection, logs) sees the disguise uniformly. A
+   *      disguise is always `indefinite`: being one of many is what a
+   *      disguise is FOR. The viewer-relative half — withholding a name
+   *      from somebody who would recognize the wearer — lives in
+   *      `RecognitionLogic`; this layer is viewer-blind.
+   *   2. **a proper name**, if the object can hold one. `proper`.
+   *   3. **the authored description**, in its authored register.
+   *   4. **the species common name**, for an organism. `indefinite`.
+   *   5. `something` / `someone`.
+   *
+   * @param view `'own'` is the whole chain. ⭐ `'stranger'` skips rungs
+   * 1 and 2 — the name and the disguise — which is exactly what being a
+   * stranger means and exactly what `RecognitionLogic` used to do in a
+   * second, separately-maintained copy of this ladder.
+   */
+  presentationPhrase(view: PresentationView = 'own'): NounPhrase {
+    const phrase = this.identityPhrase(view);
+    // A count other than 1 wins over the register: a stack of two apples
+    // is called "2 apples", and no article belongs in front of it.
     if (MixinApi.isStackable(this)) {
       const n = this.getQuantity();
-      if (n !== 1) identity = `${n} ${GrammarApi.pluralize(this, base)}`;
+      if (n !== 1) {
+        return phrase.withCount(n, GrammarApi.pluralize(this, phrase.stem));
+      }
     }
     // `getPresentation()` is pure identity. The authored activity-status
     // affix (`StatusMixin`, "watching the empty road") is a *presence*
-    // decoration, not identity — it weaves in only through
-    // `RecognitionApi.describeWithStatus` at presence-scan surfaces (the
-    // room occupant roll-call, the profile), never on act-subject naming.
-    return identity;
+    // decoration, not identity — it weaves in only at the `presence`
+    // form, never on act-subject naming.
+    return phrase;
+  }
+
+  /**
+   * ⭐ **The short handle** — what kind of thing this is, in one or two
+   * words, with an article: *a weaver*, *a dwarf*, *a brass lamp*.
+   *
+   * It is what an anonymous channel post is signed with, and the reason
+   * it exists is that the DESCRIPTION is the wrong thing to put in a
+   * chat line: *"a weaver with a shuttle in one hand and a tally in the
+   * other says…"* is unreadable, and nine shipped rows are written as
+   * portraits exactly like it.
+   *
+   * The chain, and ⚠ **an authored value always wins** — the world may
+   * derive what KIND of thing something is; it may never derive what it
+   * is LIKE:
+   *
+   *   1. the handle its author wrote
+   *   2. else the role they hold
+   *   3. else their species
+   *   4. else the description stem
+   *   5. else `someone` / `something`
+   */
+  handlePhrase(): NounPhrase {
+    // 1 — the word its author chose. ⭐ `getPrimaryKeyword()` is only
+    // ever that now: `keywords[0]`, or whatever the author pinned. It
+    // used to fall back to a DERIVED pool that folded in the host's own
+    // name, so for a player called Odile it answered `odile` — and this
+    // rung would have signed her anonymous post "an odile". A player
+    // authors no keywords, so the chain falls through to her species,
+    // and the leak is now unrepresentable rather than guarded against.
+    if (MixinApi.isPerceptible(this)) {
+      const authored = this.getPrimaryKeyword();
+      if (authored) return GrammarApi.phrase(authored, 'indefinite');
+    }
+    // 2 — the role they hold. ⭐ It FOLLOWS the job, which is the point:
+    // a handle retyped onto the NPC leaves a dismissed weaver reading
+    // "a weaver" forever, and this one stops the day they are let go.
+    if (MixinApi.isEmployed(this)) {
+      const noun = this.getPositionNoun();
+      if (noun) return GrammarApi.phrase(noun, 'indefinite');
+    }
+    // 3 — what they are.
+    if (MixinApi.isOrganism(this)) {
+      const common = this.getSpecies()?.getCommonNames()[0];
+      if (common) return GrammarApi.phrase(common, 'indefinite');
+    }
+    // 4 — the description, which for a portrait row is too long for a
+    // chat line. That is why rung 1 exists and why the sweep authored a
+    // handle on every row it touched.
+    if (MixinApi.isVisible(this)) {
+      const short = this.getShortDescription();
+      if (short) return GrammarApi.phrase(short, this.getRegister());
+    }
+    return GrammarApi.properPhrase(
+      MixinApi.isOrganism(this) ? DEFAULT_UNKNOWN_ORGANISM : DEFAULT_PRESENTATION,
+    );
+  }
+
+  /** The rung ladder, without the count. See {@link presentationPhrase}. */
+  private identityPhrase(view: PresentationView): NounPhrase {
+    if (view === 'own') {
+      if (MixinApi.isDisguisable(this)) {
+        const disguise = this.getDisguise();
+        if (disguise?.appearsAs) {
+          return GrammarApi.phrase(disguise.appearsAs, 'indefinite');
+        }
+      }
+      if (MixinApi.isNamed(this)) {
+        const name = this.getName();
+        if (name) return GrammarApi.properPhrase(name);
+      }
+    }
+    if (MixinApi.isVisible(this)) {
+      const short = this.getShortDescription();
+      if (short) return GrammarApi.phrase(short, this.getRegister());
+    }
+    if (MixinApi.isOrganism(this)) {
+      const common = this.getSpecies()?.getCommonNames()[0];
+      if (common) return GrammarApi.phrase(common, 'indefinite');
+      return GrammarApi.properPhrase(DEFAULT_UNKNOWN_ORGANISM);
+    }
+    return GrammarApi.properPhrase(DEFAULT_PRESENTATION);
   }
 
   /**

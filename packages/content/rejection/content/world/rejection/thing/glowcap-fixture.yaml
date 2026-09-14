@@ -28,9 +28,9 @@
 class: /platform/thing/equipment/PortableLight
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: a bed of glowcap in a niche
-  primaryKeyword: glowcap
-  keywords: [glowcap, niche, fungus, light]
+  shortDescription: bed of glowcap in a niche
+  keywords: [glowcap, niche, fungus, light, bed]
+  register: indefinite
   longDescription: >-
     A shallow niche cut into the wall and packed with damp rotted wood,
     out of which grows a close crop of pale mushrooms. They give off a

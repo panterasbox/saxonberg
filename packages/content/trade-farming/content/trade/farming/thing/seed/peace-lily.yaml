@@ -9,9 +9,9 @@
 class: /platform/thing/Seed
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: a peace lily seed
-  primaryKeyword: seed
-  keywords: [seed, "lily seed", "peace lily seed"]
+  shortDescription: peace lily seed
+  keywords: [seed, "lily seed", "peace lily seed", peace, lily]
+  register: indefinite
   longDescription: |
     A single dark seed, barely bigger than a peppercorn, in a twist of waxed paper.
   growsIntoPath: /trade/farming/thing/plant/peace-lily

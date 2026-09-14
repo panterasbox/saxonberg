@@ -5,9 +5,9 @@
 class: /platform/thing/Crate
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: a crate of sprigs of mint
-  primaryKeyword: mint
-  keywords: [crate, mint, mint, produce]
+  shortDescription: crate of sprigs of mint
+  keywords: [mint, crate, produce, sprigs]
+  register: indefinite
   longDescription: A slatted wooden crate of sprigs of mint, the grower's stencil on the side.
   censusKey: produce:mint
   regionTarget: 4
