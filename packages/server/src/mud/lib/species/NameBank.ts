@@ -76,7 +76,7 @@ export class NameBank {
    * Resolve one bank by key (cached). Returns null if the bank is not
    * installed (a content gap; the suggester degrades to other banks).
    */
-  static async byKey(key: string): Promise<NameBank | null> {
+  private static async byKey(key: string): Promise<NameBank | null> {
     if (NameBank.#cache === null) {
       const docs = await DocumentApi.listOfKind('name-bank');
       const map = new Map<string, NameBank>();

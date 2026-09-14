@@ -91,7 +91,7 @@ const REPO_ROOT = join(MUD, '../../../..');
  * visibility, not about which directory a class sits in. **564.**
  * Lowering it is the sweep's whole job.
  */
-export const LIB_STATICS_CEILING = 433;
+export const LIB_STATICS_CEILING = 424;
 
 const STATIC =
   /^\s*(?:public\s+)?static\s+(?:async\s+)?(?!readonly\b|get\b|set\b|_)([a-zA-Z]\w*)\s*[(<]/;

@@ -239,8 +239,10 @@ export class Freshness {
    * energy), for a frozen one, and for one below the water-activity
    * floor. Returns a NEGATIVE rate above the kill temperature — the
    * population is dying, and the caller integrates that as decay.
+   * @internal the microbial growth rate — read by this module and its tests.
+   *
    */
-  public static growthRate(
+  static growthRate(
     material: Material | null,
     tempK: number,
     cure: CureState | null = null,
@@ -468,7 +470,10 @@ export class Freshness {
   }
 
   /** Whether a material's own constants let it spoil at all. */
-  public static isPerishable(material: Material | null): boolean {
+  /**
+   * @internal whether a material spoils at all — read by this module.
+   */
+  static isPerishable(material: Material | null): boolean {
     return !!material && material.getSpoilActivationEnergy().rawValue() > 0;
   }
 
@@ -531,8 +536,10 @@ export class Freshness {
    * temperature when it has one, else the neutral ambient. A food class
    * composes `ThermalMixin` precisely so the fridge, the fire and the
    * cellar are all one answer.
+   * @internal the host thermal read behind the spoilage clock.
+   *
    */
-  public static hostTemperatureK(host: Stuff): number {
+  static hostTemperatureK(host: Stuff): number {
     if (MixinApi.isThermal(host)) {
       try {
         return host.getTemperature().rawValue();

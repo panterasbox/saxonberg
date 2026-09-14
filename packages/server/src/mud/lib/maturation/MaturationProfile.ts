@@ -463,7 +463,7 @@ export default class MaturationProfile extends SingletonMixin(Idea) {
   // postRegister is what stands the population up at boot) ──
 
   /** Every live profile, sorted by key — found by the branch segment. */
-  static all(): MaturationProfile[] {
+  private static all(): MaturationProfile[] {
     return StuffApi.findByPathGlob<MaturationProfile>('/**/idea/maturation/**')
       .filter((p): p is MaturationProfile => p instanceof MaturationProfile)
       .sort((a, b) => a.getKey().localeCompare(b.getKey()));
@@ -495,6 +495,8 @@ export default class MaturationProfile extends SingletonMixin(Idea) {
    * an AUTHORING error, surfaced as a warning and resolved
    * deterministically (lowest key wins) — never a roll. `null` when
    * nothing matches (the vat stays idle).
+   * @internal the profile lookup for a material — reached only by this module’s tests.
+   *
    */
   static forMaterial(material: Material): MaturationProfile | null {
     const matches = MaturationProfile.all().filter((p) => {

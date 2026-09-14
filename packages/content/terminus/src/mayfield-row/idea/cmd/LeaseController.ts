@@ -146,7 +146,7 @@ export default class LeaseController extends CommandController<LeaseModel> {
 
   /** The ascent gate's read (P10) — shared with the sale chokepoint's
    *  shape: any held residential unit below the threshold refuses. */
-  public static async ascentRefusal(holder: string): Promise<string | null> {
+  private static async ascentRefusal(holder: string): Promise<string | null> {
     let min = 0.5;
     try {
       const raw = Number.parseFloat(

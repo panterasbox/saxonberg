@@ -75,6 +75,9 @@ export default class Realtor extends CastMixin(PopulatesMixin(NPC)) {
   }
 
   /** Every unsold lot in every live plat book, cheapest first. */
+  /**
+   * @internal the realtor’s live offer list — read by this module and its tests.
+   */
   static async offers(): Promise<Offer[]> {
     // The residence system's own roster — the same read `title list`
     // does, and the reason a new subdivision needs no code here.
