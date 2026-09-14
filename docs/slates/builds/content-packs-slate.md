@@ -3146,3 +3146,53 @@ whose `class:` resolves into its own namespace is lying about its
 rung (checked at install); `lint:imports` grows a pack profile (own
 tree + declared pack deps + the kernel's projected author surface +
 `@saxonberg/types`).
+
+---
+
+# ⛔ The pack exposure gap — one cause, three symptoms (2026-09-14)
+
+A capability pack may hold **no Api, no logic singleton, and no free
+exported function** (`CLAUDE.md § Module Categories`). Its only ways to
+expose anything outside a single file are a **public `static`** or an
+**instance method on a Stuff**. The `lib/` statics sweep hit that wall
+three separate times:
+
+1. **5 statics cannot be swept.** `DormThemes.applyTo`,
+   `DormWarren.resolve`/`peek`, `GroundCharacter.resolve`/`forZone` each
+   have 2–4 callers across their pack. The sweep's disposition for a
+   shared world-reaching static is "move it to the owning Api" — and the
+   owner is a pack, so there is no Api to move it to.
+2. **`requires:` cannot name a pack mixin.** `parseRequirement` validates
+   against the **kernel** `Mixins` registry, so `trade-haulage`'s
+   `ShipmentDeskMixin` is unnameable — which means **no pack verb can
+   declare an object arg**, because `lint:arg-kinds` requires one.
+3. **`ship.yaml` therefore keeps an in-controller MQL query** where the
+   kernel's `buy`/`consign`/`reclaim`/`check` now declare theirs.
+
+⚠ Each was routed around individually before the pattern was visible.
+The question is not "how do we unblock these five" — it is **what a pack's
+sanctioned export surface is**, given that
+[the statics ruling](./value-object-statics-slate.md) says a public
+static is not one.
+
+## The axes a design has to answer
+
+- **Discoverability** — ⭐ the governing concern. Every additional
+  "where does logic come from" pattern is a thing a content author must
+  learn, and the lint family exists largely to stop that creep.
+- **Internal vs external** — does a pack-internal helper (one file to
+  another *inside* the pack) need the same ceremony as something a second
+  pack consumes? They may not deserve the same answer.
+- **Security** — secondary. A pack that exposes anything most likely
+  exposes it to everyone; *which* packs may interoperate reads like a
+  choice of whoever installs them, not something a pack asserts on its
+  own authority.
+- **The kernel-edit rule** — ⭐⭐ whatever the answer, a pack must never
+  need a kernel list edit to ship
+  ([capability-packs](../../subsystems/content-packs.md)). Any design
+  requiring registration in `lib/mixin.ts` or an `api/` file fails on
+  that alone.
+
+*(Options, strengths and weaknesses: to be worked. This section records
+the gap and the constraints so the conversation does not restart from
+the symptoms.)*

@@ -629,3 +629,82 @@ act). Re-decide it rather than inherit it.
 3. Re-baseline the ceiling after each, and re-read § *The remaining
    scope*'s health warning: the classifier reads signatures, so confirm
    each row by opening the body.
+
+---
+
+# ⭐ PROGRESS — read this before the kill list above
+
+**Ceiling: 563 → 392.** 106 statics declared `@internal`, 37 gates green,
+tsc clean, eslint 0 errors, build clean. Branch `build/lib-statics`, no MR
+opened.
+
+## § A — DONE (all 40 rows)
+
+⚠⚠ **Of the 40 rows filed "inline-and-delete", 5 actually were.** The
+dispositions were guessed from caller counts and the **bodies overruled
+them nearly every time**:
+
+| what happened | n |
+|---|---|
+| `@internal` — one production caller **plus tests that white-box it** | 23 |
+| `private` / `@internal` — zero callers outside the declaring file | 9 |
+| ⭐ genuinely inlined + static deleted | 5 |
+| `@internal` — inlining would have to **export a module-private helper** (`BlendIdentity.recipeOf`, `Census.regionOf`, `buildRenderContext`) | 3 |
+
+⭐ **The rules that emerged, and they are not optional:**
+
+1. **`private` requires ZERO callers outside the declaring file.** A row
+   with one external caller is `@internal`. Four misfires this build; the
+   compiler caught every one.
+2. **A "0-caller" row is a `private`/`@internal` decision, never a
+   deletion** — the count means *no caller outside the home file*, and
+   same-file or test use is the norm.
+3. **Inlining that exports a private helper fails the rule** — it trades
+   one static for a wider surface.
+
+## § B — 1 of 19 done
+
+✅ `Currency.compact` → **`BankingApi.compactCurrency`**, 65 call sites. A
+settings read (`AppApi` dial + "the only registered currency") wearing a
+value class's name.
+
+⛔ **5 rows are BLOCKED and cannot take this disposition at all** —
+`DormThemes.applyTo`, `DormWarren.resolve`/`peek`,
+`GroundCharacter.resolve`/`forZone` live in **content packs, and a pack
+holds no Api**. See § *The content-pack exposure gap* below.
+
+**13 remain**, each with a kernel home:
+
+| Api | rows |
+|---|---|
+| `MaterialApi` | `Construction.registerFabric`, `Contamination.behaviorOf` |
+| `CraftingApi` | `BlendIdentity.nameOf`, `appearanceOf` |
+| `MagicApi` | `Suppressions.fieldAt`, `Appearance.currentGeneration` |
+| `SpeciesApi` | `NameBank.resolve` |
+| `SoulApi` | `EmoteGrammarRunner.bind` |
+| `ContractApi` | `Condition.matchesItem` |
+| `BoundaryApi` | ⚠ `Lock.mintKeyway` — **re-decide, do not inherit**; the user has noted `Lock` was the agent's call and is not precedent |
+| **no home** | `BlendLabel.isEdible`/`toxicityOf` (metabolism has no Api), `DialogueEffectRegistry.register` (a registry, not an Api question) |
+
+## ⚠ Controller tests skip the BINDER — four suites and counting
+
+Every verb whose object became a declared arg broke its own unit tests,
+because a controller test builds the model by hand and never runs the
+binder. Fixed in `BuyController`, `Consignment`, `CheckRack`,
+`MenuController`, `HouseAccount` and `trade-distilling` — **expect the
+same for every remaining conversion.** The model must carry what the view
+would have bound.
+
+## ⛔ The content-pack exposure gap
+
+A content pack can hold **no Api, no logic singleton, and no free
+exported function** (`CLAUDE.md § Module Categories`). So when a pack
+class needs to expose anything to callers outside itself, the only
+mechanisms it has are a **public static** or an **instance method on a
+Stuff**. That is why the 5 blocked rows exist, and it is the same gap
+that stops `requires:` naming a pack mixin (the gate reads the **kernel**
+`Mixins` registry) and stopped `ship.yaml` declaring its object arg.
+
+⭐ **Three separate symptoms, one cause.** Worth treating as its own
+design question rather than routing around three times — see
+[content-packs-slate](./content-packs-slate.md).
