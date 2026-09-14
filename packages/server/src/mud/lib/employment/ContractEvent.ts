@@ -28,6 +28,10 @@ export const CONTRACT_EVENT_KINDS = [
 
 export type ContractEventKind = (typeof CONTRACT_EVENT_KINDS)[number];
 
+/**
+ * @internal every caller of this class sits in the `contract` subsystem
+ * — it is that subsystem's private collaborator, not author surface.
+ */
 export class ContractEvent extends Document {
   static collectionName = Collections.ContractEvents;
   static fieldMeta: FieldMeta = {

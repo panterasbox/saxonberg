@@ -63,6 +63,10 @@ export const DEFAULT_ENERGY_SOURCE_CONFIG: EnergySourceConfig = {
   holdPoisePerBeat: 0.06,
 };
 
+/**
+ * @internal every caller of this class sits in the `combat` subsystem —
+ * it is that subsystem's private collaborator, not author surface.
+ */
 export class EnergySource {
   /**
    * How this launcher holds readiness.

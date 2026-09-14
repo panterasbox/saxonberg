@@ -74,7 +74,10 @@ export interface EffectContext {
   readonly tag: MagicProvenance;
 }
 
-/** Thin static holder — the two construction shapes. */
+/** Thin static holder — the two construction shapes.  *
+ * @internal every caller of this class sits in the `magic` subsystem —
+ * it is that subsystem's private collaborator, not author surface.
+ */
 export class EffectContexts {
   /**
    * The durable id the ledgers key on — the subject's **identity**

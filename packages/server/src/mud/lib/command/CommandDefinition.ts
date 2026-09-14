@@ -54,6 +54,9 @@ function resolveController(rawController: string, specFilePath: string): string 
 
 /**
  * Parsed command definition.
+  *
+ * @internal every caller of this class sits in the `command` subsystem —
+ * it is that subsystem's private collaborator, not author surface.
  */
 export class CommandDefinition {
   public readonly verbs: string[];

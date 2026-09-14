@@ -15,6 +15,10 @@ import type { AuthProvider, User as IUser } from '@saxonberg/types';
 import type { FieldMeta } from '../mixin';
 import { Collections } from '../persistence/Collections';
 
+/**
+ * @internal only the backend auth layer reads it — this is login
+ * machinery, never author surface.
+ */
 export class User extends Document implements IUser {
   static collectionName = Collections.Users;
 

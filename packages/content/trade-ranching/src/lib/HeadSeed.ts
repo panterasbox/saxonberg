@@ -60,6 +60,8 @@ export interface HerdShape {
  * The module's one concept, as a holder class rather than loose
  * functions — the `LandUses` / `Grade` shape, which is the sanctioned
  * form for a substrate primitive that is not an instanceable Stuff.
+  *
+ * @internal every caller of this class sits in the `trade-ranching` subsystem — it is that subsystem's private collaborator, not author surface.
  */
 export class HeadSeed {
   /**

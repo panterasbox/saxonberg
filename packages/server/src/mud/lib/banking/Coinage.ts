@@ -43,6 +43,10 @@ export interface CoinSupply {
   readonly quantity: number;
 }
 
+/**
+ * @internal every caller of this class sits in the `banking` subsystem —
+ * it is that subsystem's private collaborator, not author surface.
+ */
 export class Coinage {
   /**
    * Largest-first breakdown of `value` (minor units) into fresh coins — the

@@ -208,6 +208,6 @@ describe('⭐ @internal is the declared escape, and it is counted separately', (
 
 describe('the ratchet', () => {
   it('⭐ holds a ceiling that may fall and may never rise', () => {
-    expect(LIB_STATICS_CEILING).toBe(532);
+    expect(LIB_STATICS_CEILING).toBe(464);
   });
 });

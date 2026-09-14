@@ -181,6 +181,10 @@ function listOf(items: readonly string[]): string {
   return `Your ${head} and ${items[items.length - 1]}`;
 }
 
+/**
+ * @internal every caller of this class sits in the `combat` subsystem —
+ * it is that subsystem's private collaborator, not author surface.
+ */
 export class CombatNarration {
   private constructor() {}
 

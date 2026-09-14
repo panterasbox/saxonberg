@@ -43,6 +43,9 @@ export type ScriptValue =
  * the model's one concept, the home that keeps the truthiness rule (and
  * later the value→arg render + narrowing helpers) out of a free
  * function.
+ *
+ * @internal every caller of this class sits in the `script` subsystem —
+ * it is that subsystem's private collaborator, not author surface.
  */
 export class ScriptValues {
   /**

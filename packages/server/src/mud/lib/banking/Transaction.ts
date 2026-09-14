@@ -41,6 +41,10 @@ export interface LedgerLeg {
   memo?: string;
 }
 
+/**
+ * @internal every caller of this class sits in the `banking` subsystem —
+ * it is that subsystem's private collaborator, not author surface.
+ */
 export class BankTransaction {
   /**
    * Validate every leg against what its `kind` may touch, throwing on the

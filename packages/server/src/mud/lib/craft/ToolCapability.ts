@@ -69,6 +69,9 @@ export interface CapabilitySpec {
 /**
  * The capability contract holder — a thin static surface (the concept
  * this module owns) rather than a free-floating predicate function.
+  *
+ * @internal every caller of this class sits in the `craft` subsystem —
+ * it is that subsystem's private collaborator, not author surface.
  */
 export class ToolCapabilities {
   /** The work-rate clamp band — data can never zero a duration. */

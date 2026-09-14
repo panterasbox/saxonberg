@@ -52,6 +52,11 @@ interface Categorized {
   getCategory?(): string;
 }
 
+/**
+ * @internal every caller of this class sits in the `employment`
+ * subsystem — it is that subsystem's private collaborator, not author
+ * surface.
+ */
 export class CategoryMeasure {
   /**
    * Whether `item` counts against `category` at all — the discrete

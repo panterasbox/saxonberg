@@ -47,6 +47,10 @@ import type { FieldMeta } from '../mixin';
  */
 export type RevisionKind = 'create' | 'edit' | 'rollback';
 
+/**
+ * @internal only WikiRegistry reads it — it is the wiki substrate's
+ * private collaborator, not author surface.
+ */
 export class WikiRevision extends Document {
   static collectionName = Collections.WikiRevisions;
   static fieldMeta: FieldMeta = {

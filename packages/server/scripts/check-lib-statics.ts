@@ -91,7 +91,7 @@ const REPO_ROOT = join(MUD, '../../../..');
  * visibility, not about which directory a class sits in. **564.**
  * Lowering it is the sweep's whole job.
  */
-export const LIB_STATICS_CEILING = 532;
+export const LIB_STATICS_CEILING = 464;
 
 const STATIC =
   /^\s*(?:public\s+)?static\s+(?:async\s+)?(?!readonly\b|get\b|set\b|_)([a-zA-Z]\w*)\s*[(<]/;
@@ -156,12 +156,26 @@ function deferredExportNames(source: string): Set<string> {
  * mixin factory's return) is inside its OWN extent and never attributed
  * to the enclosing declaration.
  */
-export function exportedClasses(source: string): { cls: string; body: string }[] {
-  const out: { cls: string; body: string }[] = [];
+export function exportedClasses(
+  source: string,
+): { cls: string; body: string; internal: boolean }[] {
+  const out: { cls: string; body: string; internal: boolean }[] = [];
   const deferred = deferredExportNames(source);
   const decl = /^(?:export\s+(?:default\s+)?)?(?:abstract\s+)?class\s+(\w+)/gm;
   for (const m of source.matchAll(decl)) {
     if (!m[0].startsWith('export') && !deferred.has(m[1]!)) continue;
+    // ⭐ A CLASS-level `@internal` is the honest disposition for a `lib/`
+    // helper whose every caller sits in one subsystem: the class is that
+    // subsystem's private collaborator, TypeDoc drops it whole, and the
+    // cohesion that made it a class in the first place survives — which
+    // folding its methods into a 5,000-line logic singleton would not.
+    const before = source.slice(0, m.index);
+    const lastDoc = before.lastIndexOf('/**');
+    const internal =
+      lastDoc !== -1 &&
+      before.indexOf('*/', lastDoc) !== -1 &&
+      before.slice(lastDoc, before.indexOf('*/', lastDoc)).includes('@internal') &&
+      before.slice(before.indexOf('*/', lastDoc) + 2).trim().length === 0;
     const open = source.indexOf('{', m.index + m[0].length);
     if (open === -1) continue;
     let depth = 0;
@@ -178,7 +192,7 @@ export function exportedClasses(source: string): { cls: string; body: string }[]
       }
     }
     if (end === -1) continue;
-    out.push({ cls: m[1]!, body: source.slice(open + 1, end) });
+    out.push({ cls: m[1]!, body: source.slice(open + 1, end), internal });
   }
   return out;
 }
@@ -263,10 +277,14 @@ function census(): { rows: StaticRow[]; internal: number } {
   let internal = 0;
   for (const file of sourceFiles()) {
     const source = readFileSync(file, 'utf8');
-    for (const { cls, body } of exportedClasses(source)) {
+    for (const { cls, body, internal: classInternal } of exportedClasses(source)) {
       if (cls.endsWith('Api')) continue;
       const { surface, declaredInternal } = statsOf(body);
       internal += declaredInternal.length;
+      if (classInternal) {
+        internal += surface.length;
+        continue;
+      }
       if (surface.length) rows.push({ file: relative(REPO_ROOT, file), cls, statics: surface });
     }
   }
