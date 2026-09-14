@@ -343,7 +343,7 @@ describe('the residential programme (D16)', () => {
     // Keyless still refused; a presented key admits.
     const bob = makeStuffAtPath(() => new Avatar(), '/platform/agent/Avatar/bob');
     bob.setPlayerId('bob');
-    await BoundaryApi.issueKey(iris, 'kw-77', 'pin-tumbler');
+    await new Lock('kw-77', 'pin-tumbler').issueKeyTo(iris);
     expect(door.canTraverse(iris as never).ok).toBe(true);
     expect(door.canTraverse(bob as never).ok).toBe(false);
 

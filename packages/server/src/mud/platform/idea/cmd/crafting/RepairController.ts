@@ -23,6 +23,7 @@ import { CraftingApi } from '../../../../api/crafting';
 import { ExecutionContextApi } from '../../../../api/execution-context';
 import { MessageApi } from '../../../../api/message';
 import { Mml } from '../../../../api/mml';
+import { CraftingDecline } from '../../../../lib/craft/CraftingDecline';
 
 const TOPIC = 'act.deed';
 const REPAIR_MS = 6000;
@@ -78,7 +79,10 @@ function completeRepair(giver: Stuff, item: Stuff, makerPath: string): void {
   void (async (): Promise<void> => {
     const outcome = await CraftingApi.repair({ item, makerPath });
     if (!outcome.ok) {
-      CraftController.declineScene(giver, outcome);
+      MessageApi.scene(giver)
+        .topic(TOPIC)
+        .toSelf(Mml.compose`${CraftingDecline.messageFor(outcome)}`)
+        .send();
       return;
     }
     MessageApi.scene(giver)

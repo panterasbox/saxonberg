@@ -23,11 +23,13 @@ import { RecipeKnowledge } from '../../../../lib/script/RecipeKnowledge';
 import { MessageApi } from '../../../../api/message';
 import { Mml } from '../../../../api/mml';
 import { MixinApi } from '../../../../api/mixin';
+import {
+  CraftingDecline,
+  type CraftingFailure,
+} from '../../../../lib/craft/CraftingDecline';
 
 const TOPIC = 'act.deed';
 
-/** Any crafting-family decline (craft / repair / salvage) — one renderer. */
-type CraftingFailure = CraftFailure | RepairFailure | SalvageFailure;
 
 export abstract class CraftController<
   M extends CommandModel,
@@ -75,7 +77,10 @@ export abstract class CraftController<
     failure: CraftingFailure,
     context: CommandContext,
   ): void {
-    CraftController.declineScene(giver, failure);
+    MessageApi.scene(giver)
+      .topic(TOPIC)
+      .toSelf(Mml.compose`${CraftingDecline.messageFor(failure)}`)
+      .send();
     context.note({
       kind: 'controller-rejected',
       reason: failure.reason,
@@ -83,62 +88,5 @@ export abstract class CraftController<
     });
   }
 
-  /**
-   * The scene half alone, as a **static** — for engaged-completion
-   * closures, which must never call instance methods (the controller is
-   * a per-dispatch clone destructed when `execute` returns; a
-   * `this.<method>()` in `onComplete` no-ops as `[inert]` — see
-   * antipatterns.md § Activity-completion closures). No note: at
-   * completion the dispatch envelope has already shipped.
-   */
-  /**
-   * ⭐ **Static by necessity, not by neglect.** Its callers include
-   * activity-completion closures, where `this.<method>()` no-ops as
-   * `[inert]` (antipatterns.md § Activity-completion closures) — so
-   * `RepairController`'s completion body is a module-private free
-   * function with no receiver at all. An instance method here does not
-   * compile at that call site, which is the compiler agreeing.
-   */
-  public static declineScene(giver: Stuff, failure: CraftingFailure): void {
-    MessageApi.scene(giver)
-      .topic(TOPIC)
-      .toSelf(Mml.compose`${declineMessage(failure)}`)
-      .send();
-  }
 }
 
-/** Map a decline reason to its diegetic line. */
-function declineMessage(failure: CraftingFailure): string {
-  const detail = failure.detail;
-  switch (failure.reason) {
-    case 'no-maker':
-      return "There's no one on hand to make that.";
-    case 'missing-tool':
-      return `There's no ${detail || 'tool'} here to make that with.`;
-    case 'insufficient-input':
-      // The service acts' details read as states, not stock.
-      if (detail === 'no-location') return "You can't make that here.";
-      if (detail === 'nothing-to-repair') {
-        return "It's already sound — there's nothing to repair.";
-      }
-      if (detail === 'not-durable' || detail === 'not-salvageable') {
-        return "That isn't something this kind of work applies to.";
-      }
-      if (detail === 'build-in-use') {
-        return "There's a build still working in it — finish or empty it first.";
-      }
-      if (detail === 'no-material' || detail === 'no-matter') {
-        return "There's no honest matter in it to recover.";
-      }
-      return `There isn't enough ${detail || 'stock'} to make that.`;
-    case 'insufficient-heat':
-      return 'Nothing here runs hot enough for that — the forge is cold, or there is no fire at all.';
-    case 'no-recipe':
-      return "That can't be made here.";
-    case 'no-glass':
-      return 'There is no clean glass to pour that into.';
-    case 'no-output':
-    default:
-      return 'Something goes wrong, and the drink never comes together.';
-  }
-}

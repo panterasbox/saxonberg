@@ -380,7 +380,7 @@ export default class TitleController extends CommandController<TitleModel> {
     const keyway = Lock.mintKeyway();
     await ParcelApi.setKeyway(extent, keyway);
     try {
-      await BoundaryApi.issueKey(giver, keyway, 'pin-tumbler');
+      await new Lock(keyway, 'pin-tumbler').issueKeyTo(giver);
     } catch (err) {
       console.warn(`TitleController: key issue failed for ${extent}:`, err);
     }

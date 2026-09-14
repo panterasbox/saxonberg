@@ -405,13 +405,13 @@ describe('title', () => {
 
   it('⭐ the sale KEYS the house and hands the buyer the key (D7)', async () => {
     const issued: Array<[string, string]> = [];
-    vi.spyOn(BoundaryApi, 'issueKey').mockImplementation((async (
-      _who: Stuff,
-      keyway: string,
-      tech: string,
-    ) => {
-      issued.push([keyway, tech]);
-    }) as unknown as typeof BoundaryApi.issueKey);
+    // ⭐ The keyway + technology are the LOCK's now, not loose arguments
+    // — so the spy reads them off the receiver.
+    vi.spyOn(Lock.prototype, 'issueKeyTo').mockImplementation(async function (
+      this: Lock,
+    ): Promise<void> {
+      issued.push([this.keyway, this.technology]);
+    });
 
     const room = registryRoom();
     const buyer = buyerIn(room);

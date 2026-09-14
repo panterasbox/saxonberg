@@ -144,7 +144,7 @@ export default class ProvisionController extends CommandController<ProvisionMode
     // identity, so this is what actually lets them in.
     const keyway = Lock.mintKeyway();
     await ParcelApi.setKeyway(unitExtent, keyway);
-    await BoundaryApi.issueKey(target, keyway, DormWarren.DORM_LOCK_TECH);
+    await new Lock(keyway, DormWarren.DORM_LOCK_TECH).issueKeyTo(target);
 
     // Reflect the new unit into the (possibly-live) building now: hang the
     // door if its floor is already materialized, and refresh reachability +

@@ -315,12 +315,12 @@ describe('Seznick House — the lease loop', () => {
     const w = await building();
     const tenant = makeAvatar('iris');
     const issued: string[] = [];
-    vi.spyOn(BoundaryApi, 'issueKey').mockImplementation((async (
-      _who: Stuff,
-      keyway: string,
-    ) => {
-      issued.push(keyway);
-    }) as unknown as typeof BoundaryApi.issueKey);
+    // ⭐ The keyway is the LOCK's now — read it off the receiver.
+    vi.spyOn(Lock.prototype, 'issueKeyTo').mockImplementation(async function (
+      this: Lock,
+    ): Promise<void> {
+      issued.push(this.keyway);
+    });
 
     const ctx = await run(makeStuff(() => new LeaseController()), walter, tenant, 'lease');
     expect(reasons(ctx)).toEqual([]);

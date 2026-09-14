@@ -10,15 +10,6 @@ import type { Boundary } from '../../../lib/boundary/Boundary';
 import type { Adornable } from '../../../lib/boundary/Adornable';
 import { BoundaryAnchor } from '../../../lib/boundary/BoundaryAnchor';
 import { StuffApi } from '../../../api/stuff';
-import { MqlApi } from '../../../api/mql';
-import { MixinApi } from '../../../api/mixin';
-import { ContainmentApi } from '../../../api/containment';
-import { TemplatePaths } from '../../../lib/paths';
-import { Lock, type LockType } from '../../../lib/lock/Lock';
-import type { CommandGiver } from '../../../lib/command/CommandGiver';
-import type { Container } from '../../../lib/spatial/Container';
-import type { Containable } from '../../../lib/spatial/Containable';
-import type { CredentialWallet } from '../../../lib/credential/CredentialWallet';
 import type {
   AttachExistingBoundaryOptions,
   CreateBoundaryOptions,
@@ -70,41 +61,6 @@ export class BoundaryLogic extends ApiLogic {
 
   /** See {@link BoundaryApi.destruct}. */
   @CallSecurity(BoundaryApiCallers)
-  /**
-   * Issue a bearer key for `keyway`+`technology` to `holder`: an entry in
-   * their implant keychain (if any) AND a physical `Key` Thing in their
-   * inventory. Either opens the lock; the physical key is the durable
-   * form.
-   *
-   * ⭐ An Api mandate, not a value-class static. Three objects move —
-   * the holder, whatever reachable wallet carries their implant, and a
-   * freshly cloned `Key` — which is cross-object orchestration, and the
-   * holder is not itself a wallet so no instance method reaches it.
-   * ⚠ Ungated by design: issuers span kernel + pack controllers (title,
-   * lease, dorm provisioning), a set no kernel gate can enumerate.
-   */
-  public async issueKey(
-    holder: Stuff,
-    keyway: string,
-    technology: LockType,
-  ): Promise<void> {
-    addToKeychain(holder, keyway, technology, false);
-    await mintPhysical(holder, keyway, technology, false);
-  }
-
-  /**
-   * Issue a **master** key for a whole lock technology (a super's ring) to
-   * `holder` — keychain master (if any) + a physical master `Key`. Opens
-   * every lock of that technology.
-   */
-  public async issueMasterKey(
-    holder: Stuff,
-    technology: LockType,
-  ): Promise<void> {
-    addToKeychain(holder, '', technology, true);
-    await mintPhysical(holder, '', technology, true);
-  }
-
   public destruct(boundary: Boundary): void {
     StuffApi.destruct(boundary as unknown as Stuff);
   }
@@ -149,63 +105,4 @@ function installBoundary<T extends Boundary>(
   hostB.addFixture(anchorB);
 
   return boundary;
-}
-
-/** Add an entry to the holder's implant keychain (the first reachable wallet
- *  — the implant, before any physical key exists). No-op if they have none
- *  (e.g. an NPC without an implant — the physical key carries their access). */
-function addToKeychain(
-  holder: Stuff,
-  keyway: string,
-  technology: LockType,
-  master: boolean,
-): void {
-  const wallet =
-    MqlApi.resolveMany("person", {
-      // Key holders are Characters (CommandGivers); the static type
-      // at this seam is only `Stuff`.
-      commandGiver: holder as Stuff & CommandGiver,
-      scope: "person",
-    }).stuff.find(
-      (s): s is Stuff & CredentialWallet =>
-        MixinApi.isCredentialWallet(s) && s.hasCredential("key"),
-    ) ?? null;
-  if (!wallet) return;
-  const cred = wallet.ensureCredential("key");
-  if (master) cred.addMaster(technology);
-  else cred.addKey(keyway, technology);
-}
-
-/** Clone a physical `Key` Thing carrying the entry into the holder's
- *  inventory, its prose set from the technology. */
-async function mintPhysical(
-  holder: Stuff,
-  keyway: string,
-  technology: LockType,
-  master: boolean,
-): Promise<void> {
-  if (!MixinApi.isContainer(holder)) return;
-  const key = await StuffApi.clone<Stuff & CredentialWallet>(
-    TemplatePaths.key,
-  );
-  const cred = key.ensureCredential("key");
-  if (master) cred.addMaster(technology);
-  else cred.addKey(keyway, technology);
-  const named = key as unknown as {
-    setShortDescription(s: string): void;
-    setKeywords(k: string[]): void;
-  };
-  named.setShortDescription(Lock.keyDescription(technology, master));
-  // ⚠ Authored keywords. A minted key has no content row to write them
-  // in, and the pool stopped deriving them from the prose — without this
-  // `look key` would not resolve the key you were just handed.
-  named.setKeywords(
-    technology === "keycard"
-      ? ["keycard", "card", ...(master ? ["master"] : [])]
-      : ["key", ...(master ? ["keys", "ring", "master"] : ["brass"])],
-  );
-  ContainmentApi.move(
-    key as unknown as Stuff & Containable,
-    holder as Stuff & Container,
-  );
 }

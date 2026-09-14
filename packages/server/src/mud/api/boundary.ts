@@ -37,7 +37,6 @@ import { HotReloadApi } from './hot-reload';
 import { BoundaryLogic } from '../platform/idea/api/BoundaryLogic';
 import { fileURLToPath } from 'url';
 import { SecurityApi } from './security';
-import type { LockType } from '../lib/lock/Lock';
 
 export interface AttachExistingBoundaryOptions<T extends Boundary = Boundary> {
   boundary: T;
@@ -108,29 +107,7 @@ export class BoundaryApi {
     logic().destruct(boundary);
   }
 
-  /**
-   * Issue a bearer key for `keyway`+`technology` to `holder` — an entry in
-   * their implant keychain (if any) and a physical `Key` in their
-   * inventory. Either opens the lock; the physical key is the durable form.
-   */
-  public static async issueKey(
-    holder: Stuff,
-    keyway: string,
-    technology: LockType,
-  ): Promise<void> {
-    return logic().issueKey(holder, keyway, technology);
-  }
 
-  /**
-   * Issue a **master** key for a whole lock technology (a super's ring),
-   * opening every lock of that technology.
-   */
-  public static async issueMasterKey(
-    holder: Stuff,
-    technology: LockType,
-  ): Promise<void> {
-    return logic().issueMasterKey(holder, technology);
-  }
 }
 
 SecurityApi.decorateApiClass(BoundaryApi);

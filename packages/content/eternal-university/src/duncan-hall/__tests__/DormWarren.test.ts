@@ -355,7 +355,7 @@ describe('DormWarren — the DormDoor key gate', () => {
     // bob holds no key and is blocked. Possession, not identity.
     await ParcelApi.setKeyway(k1, 'kw-1');
     await w.refreshProvisioned();
-    await BoundaryApi.issueKey(iris, 'kw-1', 'pin-tumbler');
+    await new Lock('kw-1', 'pin-tumbler').issueKeyTo(iris);
     expect(w.keywayOf(k1)).toBe('kw-1');
     expect(door.canTraverse(iris as unknown as never).ok).toBe(true);
     expect(door.canTraverse(bob as unknown as never).ok).toBe(false);
@@ -378,7 +378,7 @@ describe('DormWarren — the DormDoor key gate', () => {
     const sam = makeStuffAtPath(() => new Avatar(), '/platform/agent/Avatar/sam');
     sam.setPlayerId('sam');
     // No unit key, but a pin-tumbler master → opens regardless of the keyway.
-    await BoundaryApi.issueMasterKey(sam, 'pin-tumbler');
+    await new Lock('', 'pin-tumbler').issueMasterKeyTo(sam);
     expect(door.canTraverse(sam as unknown as never).ok).toBe(true);
   });
 });
