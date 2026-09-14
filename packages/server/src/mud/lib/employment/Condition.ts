@@ -176,18 +176,6 @@ export class Condition {
     return null;
   }
 
-  /**
-   * How much `item` contributes toward this condition — 1 for a named
-   * object, and its measured quantity for a category.
-   */
-  public static contributionOf(data: ConditionData, item: Stuff): number {
-    if (data.item.kind !== "category") return 1;
-    return CategoryMeasure.contribution(
-      item,
-      data.item.category,
-      data.item.unit,
-    );
-  }
 
   /**
    * ⭐⭐ Whether a `watch` clause holds — the accrued watch against the

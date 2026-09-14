@@ -1620,7 +1620,7 @@ function wikiFileBody(f: WikiFile): { front: WikiFront; body: string } {
 async function wikiRegistry(): Promise<WikiRegistry> {
   return (
     StuffApi.findByTemplatePath<WikiRegistry>(TemplatePaths.wikiRegistry) ??
-    (await WikiRegistry.instance())
+    (await StuffApi.singleton<WikiRegistry>(TemplatePaths.wikiRegistry))
   );
 }
 

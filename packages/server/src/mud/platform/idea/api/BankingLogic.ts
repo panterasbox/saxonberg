@@ -56,6 +56,7 @@ import type { Container } from "../../../lib/spatial/Container";
 import type { Containable } from "../../../lib/spatial/Containable";
 import type { Stackable } from "../../../lib/stuff/Stackable";
 import { Currency } from "../../../lib/banking/Currency";
+import { SecurityApi } from '../../../api/security';
 
 const BankingApiCallers = SecurityPolicies.FromModule("/api/banking#BankingApi",
 );
@@ -262,7 +263,7 @@ async function openAccountImpl(
   }
 
   const row = new AccountBalance();
-  row.accountId = Account.newId();
+  row.accountId = SecurityApi.uuid();
   row.owner = owner;
   row.bank = bank;
   row.corpoKey = corpoKey;
@@ -388,7 +389,7 @@ async function ensureVenueAccountImpl(
   const existing = owned.find((a) => a.bank === bank) ?? owned[0];
   if (existing) return existing.accountId;
   const row = new AccountBalance();
-  row.accountId = Account.newId();
+  row.accountId = SecurityApi.uuid();
   row.owner = ownerPath;
   row.bank = bank;
   row.corpoKey = corpoKey;

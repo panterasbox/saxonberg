@@ -74,6 +74,9 @@ export class BlendIdentity {
   }
 
   /** Resolution keywords (`look stew`) — the recipe's, else the Material's. */
+  /**
+   * @internal its only caller is the MQL scope-walk; inlining would have to export `BlendIdentity.recipeOf` with it, trading one static for a wider surface — not author surface.
+   */
   public static keywordsOf(
     payload: BulkPayload | null,
     material: Material | null,

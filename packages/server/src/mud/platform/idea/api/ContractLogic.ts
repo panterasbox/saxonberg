@@ -49,6 +49,7 @@ import type {
   CompleteResult,
 } from "../../../api/contract";
 import type { Stuff } from "../../../lib/stuff/Stuff";
+import { CategoryMeasure } from '../../../lib/employment/CategoryMeasure';
 
 const ContractApiCallers = SecurityPolicies.FromModule(
   "/api/contract#ContractApi",
@@ -208,7 +209,7 @@ function countDeliveredItemsAt(
         Condition.matchesItem(condition, item) &&
         Condition.holdsFor(condition, item)
       ) {
-        found += Condition.contributionOf(condition, item);
+        found += contributionOf(condition, item);
       }
     }
   }
@@ -219,7 +220,7 @@ function countDeliveredItemsAt(
       Condition.matchesItem(condition, item) &&
       Condition.holdsFor(condition, item)
     ) {
-      found += Condition.contributionOf(condition, item);
+      found += contributionOf(condition, item);
     }
     found += countDeliveredItemsAt(item, condition, depth + 1);
   }
@@ -1055,4 +1056,12 @@ async function buysForOf(
       | (Stuff & BusinessShape)
       | undefined) ?? null
   );
+}
+
+/** One item's contribution toward a condition's count — inlined from
+ *  `Condition` when this file turned out to be its only caller. A
+ *  non-category condition counts the item once. */
+function contributionOf(data: ConditionData, item: Stuff): number {
+  if (data.item.kind !== 'category') return 1;
+  return CategoryMeasure.contribution(item, data.item.category, data.item.unit);
 }

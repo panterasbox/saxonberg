@@ -147,6 +147,8 @@ export class EmoteGrammarRunner {
    * `ProseApi.format`. The Mml-aware output escape ensures Mml
    * fragments emit verbatim while raw strings (slot fills) get the
    * five-entity escape.
+   * @internal its only caller is Soul; inlining would have to export the module-private `buildRenderContext` with it — not author surface.
+   *
    */
   static render(
     emote: Emote,

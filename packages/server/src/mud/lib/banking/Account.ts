@@ -80,14 +80,4 @@ export class Account {
     return Account.SENTINELS.has(accountId);
   }
 
-  /**
-   * Mint a fresh, opaque, durable account id — a nanoid via the one id seam
-   * ({@link SecurityApi.uuid}). The id keys the ledger; the friendly identity
-   * (owner / bank) lives on the {@link AccountBalance} registry row — the
-   * "durable id underneath, friendly identity on top" pattern (`templatePath`
-   * / `ContactsMixin`).
-   */
-  public static newId(): string {
-    return SecurityApi.uuid();
-  }
 }

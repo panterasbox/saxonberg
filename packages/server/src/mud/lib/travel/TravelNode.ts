@@ -82,20 +82,4 @@ export interface TravelNode {
 export class TravelNodes {
   private constructor() {}
 
-  /**
-   * Narrow a candidate to a travel node **by shape**, or `null`.
-   *
-   * Structural on purpose, twice over: a pack cannot add to the
-   * kernel's `Mixins` registry, and the kernel must not name a pack's
-   * mixin. Both methods are checked, so a thing that merely happens to
-   * have a `ride` is not mistaken for a stop.
-   */
-  public static of(o: Stuff | null | undefined): (Stuff & TravelNode) | null {
-    if (!o) return null;
-    const c = o as unknown as Partial<TravelNode>;
-    return typeof c.ride === 'function' &&
-      typeof c.renderDepartures === 'function'
-      ? (o as Stuff & TravelNode)
-      : null;
-  }
 }

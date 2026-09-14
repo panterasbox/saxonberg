@@ -898,8 +898,4 @@ export default class WikiRegistry extends WikiRegistryBase {
     await g.save();
   }
 
-  /** Resolve the singleton. */
-  public static async instance(): Promise<WikiRegistry> {
-    return StuffApi.singleton<WikiRegistry>(TemplatePaths.wikiRegistry);
-  }
 }

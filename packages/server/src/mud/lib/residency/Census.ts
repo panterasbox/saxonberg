@@ -84,6 +84,8 @@ export class Census {
    * per candidate. That is the difference between one query and one
    * query per spawn decision, and it is the whole of the cost note in
    * the plan's risk register.
+   * @internal its only caller is ResidencyLogic; inlining would have to export `Census.regionOf` with it — not author surface.
+   *
    */
   public static async takeCensus(): Promise<WorldCensus> {
     // The system-mode seed: the declarative form of a getAllObjects
