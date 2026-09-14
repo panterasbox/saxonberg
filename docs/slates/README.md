@@ -1,6 +1,6 @@
 # Slates — the design backlog, sorted by what is left
 
-223 slates. Every one carries a **status block** under its title:
+224 slates. Every one carries a **status block** under its title:
 
 ```
 > **Status: PARTIAL** — what shipped → [subsystem.md](…)
@@ -30,7 +30,7 @@ materials-response all shipped, which made the name actively misleading.
 
 ---
 
-## ⭐ Greenfield — nothing shipped yet (54)
+## ⭐ Greenfield — nothing shipped yet (55)
 
 Pick from here for a clean cycle with no existing substrate to respect.
 
@@ -56,6 +56,7 @@ Pick from here for a clean cycle with no existing substrate to respect.
 | [demo](./builds/demo-slate.md) | the mock issuer adapter · the aged demo world · the threshold-ceremony beats · aid-post content · the fountain acoustic prop · the mobile-floor check … |
 | [discovery](./builds/discovery-slate.md) | the forage verb + the patch Stuff · biome-authored tables with derived, depleting stock · the NetHack consumable distribution … |
 | [education-integration](./builds/education-integration-slate.md) | earn-by-learning (the vocational lab as a crafting venue) · the student → TA → instructor ladder · the corpo sponsor funding a cohort against outcomes … |
+| [explicit-targeting](./builds/explicit-targeting-slate.md) | ⭐ the FILTER is a policy, not a scope walk — `requires:` steers the scope chain silently while the count axis (`onExcess`) is declared and configurable · the 2-of-3 cell (`onFiltered`: take/warn/prompt/error) · one reserved per-invocation override · 60 multi-scope chains to migrate … |
 | [enforcement](./builds/enforcement-slate.md) | the enforcement-mode vocabulary (wall · camera · witness · norm) as a committee-picked field · the evidence firewall … |
 | [eternal-university-narrative](./builds/eternal-university-narrative-slate.md) | the whole arc — the three-tier serial crime, Dunny and Wren, the killer + the panic · the census mechanic (roll · enumerator · count → conviction-voting) … |
 | [faith](./builds/faith-slate.md) | the deed-tag vocabulary + the four tags Part 1 needs (`aid.treat`, `aid.attend-dying`, `harm.nonconsented`, `ritual.attend`, honouring `since`) … |
