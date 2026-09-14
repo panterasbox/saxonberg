@@ -3196,3 +3196,69 @@ static is not one.
 *(Options, strengths and weaknesses: to be worked. This section records
 the gap and the constraints so the conversation does not restart from
 the symptoms.)*
+
+## ⭐⭐⭐ RESOLVED (2026-09-14) — federate the VALIDATION, not the addressing
+
+**Decision: let `requires:` accept any mixin a pack declares. Do not
+path-address mixins.** Agreed with the user; implement next.
+
+### The evidence that shrank this
+
+⭐ **The runtime already works for pack mixins.** `MixinApi.queryMixins`
+walks the prototype chain reading `_mixinName` statics — it **never
+consults the `Mixins` const**. MQL proves it: `hasMixinByLowercaseName`
+string-matches against that walk, so `reachable:[mixin.ShipmentDeskMixin]`
+resolves a pack mixin *today*.
+
+Only two things are kernel-bound, and neither is the mechanism:
+
+1. `MixinName` — a TypeScript type derived from the const. **Compile-time
+   only.**
+2. `parseRequirement`'s `const known = new Set(Object.values(Mixins))` in
+   `CommandLogic.ts`. **Validation only.**
+
+So what blocks a pack verb from declaring an object arg is **one `Set` in
+one function**, not the architecture.
+
+### The work
+
+1. `parseRequirement` accepts any `_mixinName` reachable from installed
+   packs, not only `Object.values(Mixins)`. Source it from the same place
+   `queryMixins` reads, so there is one truth.
+2. `MixinRefusals` must take a pack-supplied phrase — the gate refuses a
+   required mixin with no refusal sentence, and a pack cannot edit the
+   kernel's map. Likely a `static _mixinRefusal` beside `_mixinName`.
+3. ⭐ **`lint:mixin-names`** — census-then-ratchet: refuse a duplicate
+   `_mixinName` across packs. A flat namespace's collision becomes a build
+   error naming both files, instead of a runtime mystery.
+4. Then unblock the three symptoms: `ship.yaml` declares its `desk` arg;
+   `DormThemes`/`DormWarren`/`GroundCharacter`'s 5 statics become instance
+   methods on their pack singletons (declared with `SingletonMixin`, which
+   the user wants used explicitly for the creation pattern).
+
+### ⚠ Why NOT path-addressed mixins — the option held in reserve
+
+The user's original design intent was a path lookup
+(`/trade/haulage/lib/ShipmentDesk`) rather than a reserved name in one
+namespace, consistent with how template paths, module ids and
+`classFileOf` already work. The diagnosis is right — **mixins are the
+last flat reserved namespace in a codebase that path-normalised
+everything else** — but the rewrite is declined for one specific reason:
+
+⭐⭐ **A type predicate cannot be path-addressed.** `isContainer(o): o is
+Stuff & Container` must NAME its type; a TS predicate cannot be generic.
+There are 156 such predicates and they are irreducible (same wall as
+`MixinApi`'s 175 statics). `hasMixinAtPath('/x/y')` returns `boolean`,
+not a narrowing — so you either lose compile-time narrowing, which is the
+best property of this mixin system, or you run predicates AND paths,
+which is two systems for one concept: exactly the complexity creep the
+lint family exists to prevent.
+
+Secondary: discoverability inverts. `MixinApi.isCon⇥` finds
+`isContainer`; `/platform/lib/spatial/Container` requires already knowing
+the tree.
+
+⭐ **The trigger to revisit, written down so it is not re-argued from
+scratch: two packs collide on a `_mixinName`.** At that point the flat
+namespace has actually broken and paths are right. `lint:mixin-names`
+(step 3) is what will tell us the day it happens.
