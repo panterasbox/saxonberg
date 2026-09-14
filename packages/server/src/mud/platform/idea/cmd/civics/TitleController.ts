@@ -68,6 +68,7 @@ import { AppApi } from '../../../../api/app';
 import { Lock } from '../../../../lib/lock/Lock';
 import { OuterWarren } from '../../../../lib/location/OuterWarren';
 import { Currency } from "../../../../lib/banking/Currency";
+import { BoundaryApi } from '../../../../api/boundary';
 
 const TOPIC = 'act.deed';
 
@@ -379,7 +380,7 @@ export default class TitleController extends CommandController<TitleModel> {
     const keyway = Lock.mintKeyway();
     await ParcelApi.setKeyway(extent, keyway);
     try {
-      await Lock.issueKey(giver, keyway, 'pin-tumbler');
+      await BoundaryApi.issueKey(giver, keyway, 'pin-tumbler');
     } catch (err) {
       console.warn(`TitleController: key issue failed for ${extent}:`, err);
     }

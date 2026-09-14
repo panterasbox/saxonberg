@@ -26,6 +26,7 @@ import { OuterWarren } from '@saxonberg/server/mud/lib/location/OuterWarren';
 import { Character } from '@saxonberg/server/mud/lib/character/Character';
 import type { ParcelOwner } from '@saxonberg/server/mud/lib/parcel/ParcelRecord';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
+import { BoundaryApi } from '@saxonberg/server/mud/api/boundary';
 
 const TOPIC = 'act.deed';
 
@@ -129,7 +130,7 @@ export default class LeaseController extends CommandController<LeaseModel> {
     // Key the unit fresh and hand the tenant the key (D7).
     const keyway = Lock.mintKeyway();
     await ParcelApi.setKeyway(unitExtent, keyway);
-    await Lock.issueKey(target, keyway, LOCK_TECH);
+    await BoundaryApi.issueKey(target, keyway, LOCK_TECH);
 
     // Reflect into the (possibly-live) building now.
     await view.refreshProvisioned();

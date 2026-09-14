@@ -73,35 +73,7 @@ export class Lock {
     return holder !== null;
   }
 
-  /**
-   * Issue a bearer key for `keyway`+`technology` to `holder`: an entry
-   * in their implant keychain (if they have one) AND a physical `Key`
-   * Thing in their inventory. Either opens the lock; the physical key
-   * is the durable form. Ungated (parity with the retired Public
-   * static): issuers span kernel + pack controllers (title, lease,
-   * dorm provisioning), a set no kernel gate can enumerate.
-   */
-  static async issueKey(
-    holder: Stuff,
-    keyway: string,
-    technology: LockType,
-  ): Promise<void> {
-    addToKeychain(holder, keyway, technology, false);
-    await mintPhysical(holder, keyway, technology, false);
-  }
 
-  /**
-   * Issue a **master** key for a whole lock technology (a super's ring)
-   * to `holder` — keychain master (if any) + a physical master `Key`.
-   * Opens every lock of that technology.
-   */
-  static async issueMasterKey(
-    holder: Stuff,
-    technology: LockType,
-  ): Promise<void> {
-    addToKeychain(holder, "", technology, true);
-    await mintPhysical(holder, "", technology, true);
-  }
 
   /**
    * Prose for a **physical** key that turns locks of `technology` — set on the
@@ -117,61 +89,4 @@ export class Lock {
   }
 }
 
-/** Add an entry to the holder's implant keychain (the first reachable wallet
- *  — the implant, before any physical key exists). No-op if they have none
- *  (e.g. an NPC without an implant — the physical key carries their access). */
-function addToKeychain(
-  holder: Stuff,
-  keyway: string,
-  technology: LockType,
-  master: boolean,
-): void {
-  const wallet =
-    MqlApi.resolveMany("person", {
-      // Key holders are Characters (CommandGivers); the static type
-      // at this seam is only `Stuff`.
-      commandGiver: holder as Stuff & CommandGiver,
-      scope: "person",
-    }).stuff.find(
-      (s): s is Stuff & CredentialWallet =>
-        MixinApi.isCredentialWallet(s) && s.hasCredential("key"),
-    ) ?? null;
-  if (!wallet) return;
-  const cred = wallet.ensureCredential("key");
-  if (master) cred.addMaster(technology);
-  else cred.addKey(keyway, technology);
-}
 
-/** Clone a physical `Key` Thing carrying the entry into the holder's
- *  inventory, its prose set from the technology. */
-async function mintPhysical(
-  holder: Stuff,
-  keyway: string,
-  technology: LockType,
-  master: boolean,
-): Promise<void> {
-  if (!MixinApi.isContainer(holder)) return;
-  const key = await StuffApi.clone<Stuff & CredentialWallet>(
-    TemplatePaths.key,
-  );
-  const cred = key.ensureCredential("key");
-  if (master) cred.addMaster(technology);
-  else cred.addKey(keyway, technology);
-  const named = key as unknown as {
-    setShortDescription(s: string): void;
-    setKeywords(k: string[]): void;
-  };
-  named.setShortDescription(Lock.keyDescription(technology, master));
-  // ⚠ Authored keywords. A minted key has no content row to write them
-  // in, and the pool stopped deriving them from the prose — without this
-  // `look key` would not resolve the key you were just handed.
-  named.setKeywords(
-    technology === "keycard"
-      ? ["keycard", "card", ...(master ? ["master"] : [])]
-      : ["key", ...(master ? ["keys", "ring", "master"] : ["brass"])],
-  );
-  ContainmentApi.move(
-    key as unknown as Stuff & Containable,
-    holder as Stuff & Container,
-  );
-}

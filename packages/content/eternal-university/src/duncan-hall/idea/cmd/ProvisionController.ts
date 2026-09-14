@@ -44,6 +44,7 @@ import DormRoom from '../../location/DormRoom';
 import { Character } from '@saxonberg/server/mud/lib/character/Character';
 import DormThemes from '../../DormThemes';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
+import { BoundaryApi } from '@saxonberg/server/mud/api/boundary';
 
 const TOPIC = 'act.deed';
 
@@ -143,7 +144,7 @@ export default class ProvisionController extends CommandController<ProvisionMode
     // identity, so this is what actually lets them in.
     const keyway = Lock.mintKeyway();
     await ParcelApi.setKeyway(unitExtent, keyway);
-    await Lock.issueKey(target, keyway, DormWarren.DORM_LOCK_TECH);
+    await BoundaryApi.issueKey(target, keyway, DormWarren.DORM_LOCK_TECH);
 
     // Reflect the new unit into the (possibly-live) building now: hang the
     // door if its floor is already materialized, and refresh reachability +

@@ -54,6 +54,7 @@ import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import type { Container } from '@saxonberg/server/mud/lib/spatial/Container';
 import { PersistenceManager } from '@saxonberg/server/mud/lib/persistence/__tests__/backend-store';
 import { CommandDefinition } from '@saxonberg/server/mud/lib/command/CommandDefinition';
+import { BoundaryApi } from '@saxonberg/server/mud/api/boundary';
 import {
   CommandApi,
   type CommandContext,
@@ -404,13 +405,13 @@ describe('title', () => {
 
   it('⭐ the sale KEYS the house and hands the buyer the key (D7)', async () => {
     const issued: Array<[string, string]> = [];
-    vi.spyOn(Lock, 'issueKey').mockImplementation((async (
+    vi.spyOn(BoundaryApi, 'issueKey').mockImplementation((async (
       _who: Stuff,
       keyway: string,
       tech: string,
     ) => {
       issued.push([keyway, tech]);
-    }) as unknown as typeof Lock.issueKey);
+    }) as unknown as typeof BoundaryApi.issueKey);
 
     const room = registryRoom();
     const buyer = buyerIn(room);
