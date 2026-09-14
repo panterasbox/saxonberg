@@ -79,6 +79,14 @@ export interface Formula {
   family: string;
   /** A real-world derivation cited in its docstring, if any. */
   derivation: string;
+  /**
+   * ⭐ The equation as the author WROTE it — `P = I²R`, `μ = μ_max · f_T ·
+   * f_aw`, `R = (L/A)/σ`. The single best signal in the tree: this
+   * codebase already states its formulas in prose, in backticks, right
+   * above the code. A table of dead mathematicians finds ten; this finds
+   * them properly.
+   */
+  equation: string;
   /** Transcendental calls used (`exp`, `pow`, …). */
   maths: string[];
 }
@@ -140,6 +148,49 @@ const DERIVATIONS: ReadonlyArray<{ name: string; test: RegExp }> = [
   { name: "logistic", test: /logistic/i },
 ];
 
+/**
+ * ⭐⭐⭐ **The index already exists — hand-written, in the docstrings.**
+ *
+ * This codebase states its formulas in prose, in backticks, above the
+ * code that implements them: `` `P = I²R` ``, `` `a_w = a_w(material) ·
+ * moisture · (1 − solute)` ``, `` `S(t) = S₀·e^(−d·t)` ``. Nobody
+ * collected them, so nobody can read them together — but they were
+ * written, one at a time, by whoever did the physics.
+ *
+ * ⚠ The filter is what makes this usable rather than noise. A backticked
+ * `x = y` is also how the tree writes mixin composition
+ * (`Bandage = DressingMixin(Thing)`), env vars (`SAXONBERG_PACKS=…`),
+ * constants (`MAX_HOPS = 2`) and interpolated error strings. An equation
+ * has a right-hand side that COMPUTES: an operator, a superscript, a
+ * Greek letter, or juxtaposed terms.
+ */
+export function harvestEquations(text: string): string[] {
+  const out: string[] = [];
+  for (const m of text.matchAll(/`([^`\n]{3,80})`/g)) {
+    const raw = (m[1] ?? "").trim();
+    const eq = /^([A-Za-z\u0370-\u03ff_][\w\u0370-\u03ff*()\u2080-\u2089\u00b2\u00b3 /]{0,28}?)\s*=\s*(.+)$/.exec(raw);
+    if (!eq) continue;
+    const [, lhs, rhs] = [eq[0], eq[1] ?? "", eq[2] ?? ""];
+    if (/[=><]/.test(rhs)) continue;                       // ==, =>, comparisons
+    if (/['"$]/.test(raw)) continue;                       // strings, interpolation
+    if (/\w+Mixin\s*\(/.test(rhs)) continue;               // mixin composition
+    if (/^[\d.]+$/.test(rhs.trim())) continue;              // a bare constant
+    if (/^[A-Za-z_][\w.]*$/.test(rhs.trim())) continue;     // a bare alias
+    // ⚠ Prose in equation clothing. The tree writes `container = the
+    // room` and `restingOn = a Surfaced sibling` to explain a FIELD, and
+    // `x = new Map()` to explain storage. An article or `new` on the
+    // right-hand side means it is a sentence, not a relationship.
+    if (/\b(the|a|an|new|getTemplatePath)\b/.test(rhs)) continue;
+    const computes =
+      /[\u00b7*/+\u2212^\u221a\u03a3\u00b2\u00b3()]/.test(rhs) ||
+      /[\u0370-\u03ff]/.test(rhs) ||
+      /\w\s+\w/.test(rhs);
+    if (!computes) continue;
+    out.push(`${lhs.trim()} = ${rhs.trim()}`);
+  }
+  return out;
+}
+
 const TRANSCENDENTAL = /Math\.(exp|pow|log|log2|log10|sqrt|cbrt|hypot|sin|cos|tan|atan|atan2)\b/g;
 
 function tsFiles(dir: string): string[] {
@@ -198,7 +249,7 @@ export function scan(file: string, source: string): Formula[] {
     // carrying the maths of twenty methods.
     // ⚠ Both spellings: `return class X extends Base {…}` AND the
     // `class X extends Base {…}; return X;` form half the tree uses.
-    if (/\breturn class\b|\bclass\s+\w+\s+extends\s+Base\b/.test(body)) return;
+    if (/\breturn class\b|\bclass\s+\w+\s+extends\s+\w+/.test(body)) return;
     const returns = node.type ? node.type.getText(sf) : "";
     if (!numericReturn(returns)) return;
     if (!doesArithmetic(body)) return;
@@ -214,6 +265,9 @@ export function scan(file: string, source: string): Formula[] {
 
     const family = FAMILIES.find((f) => f.test.test(body))?.name ?? "";
     const derivation = DERIVATIONS.find((d) => d.test.test(lead) || d.test.test(body))?.name ?? "";
+    // A backticked `lhs = rhs` in the leading comment, where the rhs
+    // carries an operator — so `key = 'foo'` and prose do not qualify.
+    const equation = (harvestEquations(lead)[0] ?? "").trim();
     const maths = [...new Set((body.match(TRANSCENDENTAL) ?? []).map((m) => m.slice(5)))];
 
     out.push({
@@ -226,13 +280,17 @@ export function scan(file: string, source: string): Formula[] {
       impurities,
       family,
       derivation,
+      equation,
       maths,
     });
   };
 
   const visit = (node: ts.Node): void => {
     if (ts.isFunctionDeclaration(node) && node.name) {
-      record(node, "function", node.name.getText(sf));
+      // ⚠ A `*Mixin` factory by name as well as by body: `class X extends
+      // HeldGoodsMixin(Base)` is not `extends Base`, and one slipped
+      // through on exactly that.
+      if (!/Mixin$/.test(node.name.getText(sf))) record(node, "function", node.name.getText(sf));
     } else if (ts.isMethodDeclaration(node) && node.name) {
       const mods = ts.getModifiers(node) ?? [];
       const isStatic = mods.some((m) => m.kind === ts.SyntaxKind.StaticKeyword);
@@ -300,7 +358,7 @@ function main(): void {
   const pure = all.filter((f) => f.impurities.length === 0);
   const gauges = all.filter((f) => f.impurities.includes("bound to `this`"));
   const dialled = all.filter((f) => f.impurities.includes("operator dial"));
-  const cited = all.filter((f) => f.derivation !== "");
+  const cited = all.filter((f) => f.derivation !== "" || f.equation !== "");
   // ⭐ The extraction candidates: free (not bound to a subject) and a
   // function of their arguments. Everything else is either a GAUGE — whose
   // verbs belong on its object, which is settled doctrine — or impure,
@@ -326,7 +384,7 @@ function main(): void {
       `  ${pure.length} are functions of their arguments · ${all.length - pure.length} are not\n` +
       `  ${gauges.length} are bound to \`this\` (a GAUGE, not a free formula)\n` +
       `  ${dialled.length} read an operator dial — output depends on a setting the signature does not name\n` +
-      `  ${cited.length} cite a real-world derivation\n` +
+      `  ${cited.length} state their equation or cite a derivation IN THE DOCSTRING\n` +
       `  ${candidates.length} are FREE and PURE — the actual extraction candidates\n` +
       `  ${anon} transcendental site(s) have NO NAME — arithmetic inline in a method,\n` +
       `      which no index can carry until somebody names it\n`,
@@ -365,6 +423,25 @@ function main(): void {
     console.log('');
   }
 
+  if (process.argv.includes("--equations")) {
+    const seen = new Map<string, string[]>();
+    for (const file of allFiles()) {
+      const src = readFileSync(file, "utf8");
+      const rel = relative(REPO, file).replace("packages/", "");
+      for (const m of src.matchAll(/\/\*\*[\s\S]*?\*\/|\/\/[^\n]*/g)) {
+        for (const e of harvestEquations(m[0])) {
+          seen.set(e, [...(seen.get(e) ?? []), rel]);
+        }
+      }
+    }
+    console.log(`━━ THE EQUATIONS, as the codebase already writes them  (${seen.size})\n`);
+    for (const [eq, files] of [...seen].sort((a, b) => a[0].localeCompare(b[0]))) {
+      console.log(`  ${eq}`);
+      console.log(`      ${[...new Set(files)].join(", ")}`);
+    }
+    return;
+  }
+
   const byFamily = new Map<string, Formula[]>();
   for (const f of all) {
     const k = f.family || "unclassified";
@@ -377,13 +454,59 @@ function main(): void {
     console.log(`\n━━ ${family}  (${fs.length})`);
     for (const f of fs.sort((a, b) => a.file.localeCompare(b.file))) process.stdout.write(row(f));
   }
+  /*
+   * ⭐⭐ **The unclassified are not one pile.** A family table can only
+   * name relationships that HAVE a name in mathematics; everything else
+   * lands here, and the useful question is what KIND of thing it is —
+   * because three of the four kinds are not formulas at all.
+   */
   const rest = byFamily.get("unclassified") ?? [];
-  console.log(`\n━━ unclassified  (${rest.length})`);
+  const TRIVIAL = /^(round\d?|roll01|norm\d+|clamp\w*|pct|ratio|toFixed\w*|readInt|skipQuoted)$/;
+  const short = (f: Formula): string => (f.name.includes(".") ? f.name.split(".")[1]! : f.name);
+  const buckets: Array<{ name: string; note: string; rows: Formula[] }> = [
+    {
+      name: "GAUGES — bound to `this`",
+      note: "not formulas: a verb whose subject is the object it is on. Settled doctrine — these stay where they are.",
+      rows: rest.filter((f) => f.impurities.includes("bound to `this`")),
+    },
+    {
+      name: "TRIVIAL numeric helpers",
+      note: "rounding, 0..1 rolls, angle normalisation. Duplicated, worth deduplicating — but nobody would put them in a textbook index.",
+      rows: rest.filter(
+        (f) => !f.impurities.includes("bound to `this`") && TRIVIAL.test(short(f)),
+      ),
+    },
+    {
+      name: "IMPURE — free, but not a function of its arguments",
+      note: "reads a dial, the clock, the world or another Api. A formula only after the dependency becomes a parameter.",
+      rows: rest.filter(
+        (f) =>
+          !f.impurities.includes("bound to `this`") &&
+          !TRIVIAL.test(short(f)) &&
+          f.impurities.length > 0,
+      ),
+    },
+    {
+      name: "⭐ FREE + PURE, plain algebra",
+      note: "the real unnamed-formula population: ratios, weighted sums, thresholds, ladders. No transcendental, so no family named them.",
+      rows: rest.filter(
+        (f) =>
+          !f.impurities.includes("bound to `this`") &&
+          !TRIVIAL.test(short(f)) &&
+          f.impurities.length === 0,
+      ),
+    },
+  ];
+  console.log(`\n━━ unclassified  (${rest.length}) — by KIND, because they are not one pile\n`);
+  for (const b of buckets) console.log(`  ${String(b.rows.length).padStart(4)}  ${b.name}\n        ${b.note}`);
   if (!process.argv.includes("--all")) {
-    console.log(`     (${rest.length} rows — \`--flat\` or \`--all\` to list them)`);
+    console.log(`\n     (\`--all\` to list them, \`--flat\` for every row)`);
     return;
   }
-  for (const f of rest.sort((a, b) => a.file.localeCompare(b.file))) process.stdout.write(row(f));
+  for (const b of buckets) {
+    console.log(`\n━━━━ ${b.name}  (${b.rows.length})`);
+    for (const f of b.rows.sort((a, b2) => a.file.localeCompare(b2.file))) process.stdout.write(row(f));
+  }
 }
 
 if (process.argv[1] && /check-formulae\.ts$/.test(process.argv[1])) main();
