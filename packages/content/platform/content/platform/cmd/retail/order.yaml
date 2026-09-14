@@ -31,3 +31,25 @@ args:
     type: string
     required: false
     prepositions: [with]
+  # ⭐ The tariff board of services — DECLARED, so the binder resolves it and the controller
+  # just reads it. `from` keeps the typed grammar intact while making it
+  # addressable. `requires:` is the honest kind gate: both a tariff and a
+  # menu ARE price lists, which is what `PricedOfferMixin` already names.
+  - name: counter
+    type: object
+    required: false
+    prepositions: [from]
+    default: "reachable:[class.Tariff]"
+    scope: [reachable]
+    requires: [PricedOfferMixin]
+  # ⭐ The recipe menu — DECLARED, so the binder resolves it and the controller
+  # just reads it. `off` keeps the typed grammar intact while making it
+  # addressable. `requires:` is the honest kind gate: both a tariff and a
+  # menu ARE price lists, which is what `PricedOfferMixin` already names.
+  - name: menu
+    type: object
+    required: false
+    prepositions: [off]
+    default: "reachable:[class.CommerceMenu]"
+    scope: [reachable]
+    requires: [PricedOfferMixin]

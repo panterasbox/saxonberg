@@ -201,7 +201,10 @@ async function walletUse(giver: TestGiver, loc: Location, corpo: string): Promis
 async function buy(giver: TestGiver, loc: Location, stock: Stock, thing: string): Promise<CommandContext> {
   const c = ctx(giver, loc, stock, `buy ${thing}`);
   const controller = makeStuff(() => new BuyController());
-  await asOwner(giver, () => controller.execute({ thing }, c));
+  await asOwner(giver, () =>
+    // ⚠ Skips the BINDER: the counter is a declared arg in `buy.yaml`.
+    controller.execute({ thing, counter: { stuff: stock as never, raw: "counter" } }, c),
+  );
   return c;
 }
 
@@ -354,7 +357,11 @@ describe("the house account in the wallet (D6)", () => {
     await walletUse(hand, loc, "house");
     const c = ctx(hand, loc, shelf, "consign torch");
     await asOwner(hand, () =>
-      makeStuff(() => new ConsignController()).execute({ thing: "torch", ask: "20" }, c),
+      makeStuff(() => new ConsignController()).execute(
+        // ⚠ Skips the BINDER: the shelf is a declared arg in `consign.yaml`.
+        { thing: "torch", ask: "20", shelf: { stuff: shelf as never, raw: "shelf" } },
+        c,
+      ),
     );
     expect(rejections(c)).toEqual([]);
     expect(await torch.chattelOwner()).toEqual({ kind: "organization", templatePath: BAR_BIZ });
@@ -364,7 +371,11 @@ describe("the house account in the wallet (D6)", () => {
     const pat = await fundedGiver("/platform/agent/Avatar/pat", 100);
     ContainmentApi.move(pat as never, loc as never);
     const b = ctx(pat, loc, shelf, "buy torch");
-    await asOwner(pat, () => makeStuff(() => new BuyController()).execute({ thing: "torch" }, b));
+    await asOwner(pat, () => makeStuff(() => new BuyController()).execute(
+        // ⚠ Skips the BINDER: the counter is a declared arg in `buy.yaml`.
+        { thing: "torch", counter: { stuff: shelf as never, raw: "counter" } },
+        b,
+      ));
     expect(rejections(b)).toEqual([]);
     expect(await torch.chattelOwner()).toEqual({ kind: "player", templatePath: "/platform/agent/Avatar/pat" });
     expect(BankingApi.balanceOf(account).minor).toBe(17); // 20 − 15% commission

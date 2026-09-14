@@ -1955,7 +1955,18 @@ async function evaluateAffordance(
   // field is an operand no radial can know (`put <thing> in <what?>`).
   // Reporting that plainly `enabled` would promise a click that then
   // stalls on a prompt.
-  const operand = fields[1];
+  //
+  // ⚠ A slot carrying a `default:` is NOT such an operand: it fills
+  // itself at bind time, so the click never stalls. Without this, giving
+  // a verb a defaulted object slot (the counter a `buy` runs against)
+  // would silently demote it from `enabled` to `pending-operand`
+  // everywhere — a menu regression caused by a purely declarative
+  // change. `fields[0]` keeps its meaning either way: it is what the
+  // affordance BINDS the target as, and `sit`'s defaulted `target`
+  // must still bind the chair.
+  const operand = fields
+    .slice(1)
+    .find((f) => cmd.args.find((a) => a.name === f)?.default === undefined);
   if (operand) {
     return {
       verb,

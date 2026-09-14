@@ -81,6 +81,22 @@ function ctx(giver: unknown): CommandContext {
   } as unknown as CommandContext;
 }
 
+/**
+ * ⚠ A controller test skips the BINDER, so the model carries what
+ * `menu.yaml` would have bound — the tariff and the menu are declared
+ * args now, not things the controller hunts for.
+ */
+function boundModel(peers: Stuff[]): Record<string, unknown> {
+  const find = (p: (x: Stuff) => boolean): Record<string, unknown> | undefined => {
+    const hit = peers.find(p);
+    return hit ? { stuff: hit, raw: "x" } : undefined;
+  };
+  return {
+    counter: find((x) => x instanceof Tariff),
+    menu: find((x) => x instanceof CommerceMenu),
+  };
+}
+
 function slate(opts: { tariff: boolean; menu: boolean }): {
   giver: Stuff;
   peers: Stuff[];
@@ -123,8 +139,8 @@ afterEach(() => {
 
 describe("`menu` reads every slate the house hangs", () => {
   it("⭐⭐ a venue carrying BOTH shows both — the drive's finding", async () => {
-    const { giver } = slate({ tariff: true, menu: true });
-    await makeStuff(() => new MenuController()).execute({}, ctx(giver));
+    const { giver, peers } = slate({ tariff: true, menu: true });
+    await makeStuff(() => new MenuController()).execute(boundModel(peers) as never, ctx(giver));
     const out = said.join("\n");
     expect(out, "the services").toMatch(/The house does/);
     expect(out, "and the recipes — this is the regression").toMatch(
@@ -133,24 +149,24 @@ describe("`menu` reads every slate the house hangs", () => {
   });
 
   it("a tariff alone shows only the services, with no blank menu heading", async () => {
-    const { giver } = slate({ tariff: true, menu: false });
-    await makeStuff(() => new MenuController()).execute({}, ctx(giver));
+    const { giver, peers } = slate({ tariff: true, menu: false });
+    await makeStuff(() => new MenuController()).execute(boundModel(peers) as never, ctx(giver));
     const out = said.join("\n");
     expect(out).toMatch(/The house does/);
     expect(out).not.toMatch(/On the menu/);
   });
 
   it("a menu alone shows only the recipes", async () => {
-    const { giver } = slate({ tariff: false, menu: true });
-    await makeStuff(() => new MenuController()).execute({}, ctx(giver));
+    const { giver, peers } = slate({ tariff: false, menu: true });
+    await makeStuff(() => new MenuController()).execute(boundModel(peers) as never, ctx(giver));
     const out = said.join("\n");
     expect(out).toMatch(/Belt Knife/);
     expect(out).not.toMatch(/The house does/);
   });
 
   it("⚠ neither is still an honest refusal, with the note", async () => {
-    const { giver } = slate({ tariff: false, menu: false });
-    await makeStuff(() => new MenuController()).execute({}, ctx(giver));
+    const { giver, peers } = slate({ tariff: false, menu: false });
+    await makeStuff(() => new MenuController()).execute(boundModel(peers) as never, ctx(giver));
     expect(said.join("\n")).toMatch(/no menu here/i);
     expect(note).toHaveBeenCalledWith(
       expect.objectContaining({ kind: "empty-result" }),

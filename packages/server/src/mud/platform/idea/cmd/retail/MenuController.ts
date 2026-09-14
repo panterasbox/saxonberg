@@ -24,11 +24,14 @@ import Tariff from '../../../thing/Tariff';
 import { Money } from '../../../../lib/banking/Money';
 import { Currency } from '../../../../lib/banking/Currency';
 import { MixinApi } from '../../../../api/mixin';
-import { MqlApi } from '../../../../api/mql';
 
 const TOPIC = 'act.deed';
 
 interface MenuModel extends CommandModel {
+  /** The tariff board — bound by the view, `from`-addressable. */
+  counter?: MqlOneResult;
+  /** The recipe menu — bound by the view, `off`-addressable. */
+  menu?: MqlOneResult;
   target?: MqlOneResult;
 }
 
@@ -45,14 +48,8 @@ export default class MenuController extends CommandController<MenuModel> {
     const blocks: string[] = [];
 
     // ⭐ Bound by the view, not hunted for here.
-    // ⚠ Resolved here, not declared in the view, because a `type: object`
-    // arg must name a capability mixin (`lint:arg-kinds`) and this
-    // class has none — only `DetailedMixin`, which would offer the verb
-    // on every detailed thing. Becomes a declared arg the day it gets one.
-    const tariff = (MqlApi.resolveOne('reachable:[class.Tariff]', {
-      commandGiver: context.commandGiver,
-      scope: 'reachable',
-    }).stuff as Tariff | null);
+    // ⭐ Bound by the view, not hunted for here.
+    const tariff = (model.counter?.stuff ?? null) as Tariff | null;
     const serviceKeys = tariff?.serviceKeys() ?? [];
     if (tariff && serviceKeys.length > 0) {
       const rows = serviceKeys
@@ -116,8 +113,5 @@ export default class MenuController extends CommandController<MenuModel> {
 function resolveMenu(model: MenuModel, context: CommandContext): Menu | null {
   const named = model.target?.stuff;
   if (named instanceof Menu) return named;
-  return (MqlApi.resolveOne('reachable:[class.CommerceMenu]', {
-      commandGiver: context.commandGiver,
-      scope: 'reachable',
-    }).stuff as Menu | null);
+  return (model.menu?.stuff ?? null) as Menu | null;
 }

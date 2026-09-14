@@ -33,6 +33,10 @@ import type { Vitals } from '../../../../lib/vitals/Vitals';
 const TOPIC = 'act.deed';
 
 interface OrderModel extends CommandModel {
+  /** The tariff board — bound by the view, `from`-addressable. */
+  counter?: MqlOneResult;
+  /** The recipe menu — bound by the view, `off`-addressable. */
+  menu?: MqlOneResult;
   cocktail: string;
   brand?: string;
 }
@@ -54,14 +58,8 @@ export default class OrderController extends CraftController<OrderModel> {
     // anything but a recipe or a stock line, so the wreckage a fight
     // leaves could not become anybody's paid work.
     // ⭐ Bound by the view, not hunted for here.
-    // ⚠ Resolved here, not declared in the view, because a `type: object`
-    // arg must name a capability mixin (`lint:arg-kinds`) and this
-    // class has none — only `DetailedMixin`, which would offer the verb
-    // on every detailed thing. Becomes a declared arg the day it gets one.
-    const tariff = (MqlApi.resolveOne('reachable:[class.Tariff]', {
-      commandGiver: context.commandGiver,
-      scope: 'reachable',
-    }).stuff as Tariff | null);
+    // ⭐ Bound by the view, not hunted for here.
+    const tariff = (model.counter?.stuff ?? null) as Tariff | null;
     if (tariff) {
       // ⚠ The service key is the FIRST word and the subject is the rest.
       // `cocktail` is greedy (menu names are multi-word — "Old
@@ -78,10 +76,7 @@ export default class OrderController extends CraftController<OrderModel> {
       // through to the menu path, so a venue can carry both.
     }
 
-    const menu = (MqlApi.resolveOne('reachable:[class.CommerceMenu]', {
-      commandGiver: context.commandGiver,
-      scope: 'reachable',
-    }).stuff as Menu | null);
+    const menu = (model.menu?.stuff ?? null) as Menu | null;
     if (!menu) {
       MessageApi.scene(giver)
         .topic(TOPIC)
