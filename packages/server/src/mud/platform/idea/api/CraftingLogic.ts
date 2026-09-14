@@ -1460,10 +1460,10 @@ async function recordCraftEvidence(
     if (witness === maker) continue;
     if (!MixinApi.isCommandGiver(witness)) continue;
     if (!witness.getIdentityPath()) continue;
-    await RecipeKnowledge.noteKnown(
-      witness,
-      recipe.getRecipeId(),
-      recipe.getName(),
+    if (!MixinApi.isPersona(witness)) continue;
+    await witness.recordChronicleOnce(
+      RecipeKnowledge.knownKey(recipe.getRecipeId()),
+      RecipeKnowledge.knownEntry(recipe.getName()),
     );
   }
 }

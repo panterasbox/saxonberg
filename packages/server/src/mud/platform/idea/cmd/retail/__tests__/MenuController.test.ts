@@ -24,7 +24,6 @@ import { CraftingApi } from "../../../../../api/crafting";
 import { MessageApi } from "../../../../../api/message";
 import { MqlApi } from "../../../../../api/mql";
 import { StuffApi } from "../../../../../api/stuff";
-import { RecipeKnowledge } from "../../../../../lib/script/RecipeKnowledge";
 import {
   makeStuff,
   stampTemplatePathForTest,
@@ -95,7 +94,9 @@ beforeEach(() => {
   installV1QuantityMarshallers();
   said = [];
   stubScene();
-  vi.spyOn(RecipeKnowledge, "noteKnown").mockResolvedValue(undefined as never);
+  // ⭐ No claim stub needed: the mint is now the OWNER's
+  // `recordChronicleOnce`, guarded by `MixinApi.isPersona`, and this
+  // test's giver is a room — so nothing is minted and nothing to stub.
   vi.spyOn(CraftingApi, "offeredRecipes").mockResolvedValue([
     { recipeId: "recipe/belt-knife", name: "Belt Knife" },
   ] as never);

@@ -1,7 +1,16 @@
 /**
- * RecipeKnowledge — the per-character recipe-learning ladder, derived on
- * read from the chronicle ledger (the renown precedent: a dumb store, a
- * smart consumer — no stored set, no mixin).
+ * RecipeKnowledge — the **vocabulary** of the per-character recipe-
+ * learning ladder: the chronicle keys it files under and the prose each
+ * entry carries. Derived on read from the chronicle ledger (the renown
+ * precedent: a dumb store, a smart consumer — no stored set, no mixin).
+ *
+ * ⭐ **The verbs are on the character, not here.** This was four
+ * `public static`s taking `actor` as their first parameter — a verb whose
+ * subject is a world object. They are now `persona.hasClaimed(key)` /
+ * `hasDone(key)` / `recordChronicleOnce(key, entry)` on `PersonaMixin`,
+ * which is key-agnostic so the kernel learns no content word. What is
+ * left here is what genuinely belongs to crafting: which key, and what
+ * the ledger line says.
  *
  *   unknown → known-of → can-make
  *
@@ -22,58 +31,26 @@
  * key would make the deed no-op on the claim's row.
  */
 
-import { MixinApi } from '../../api/mixin';
-import type { Stuff } from "../stuff/Stuff";
-
-function knownKey(recipeId: string): string {
-  return `recipe-known:${recipeId}`;
-}
-function madeKey(recipeId: string): string {
-  return `recipe-made:${recipeId}`;
-}
+import type { ChronicleEntryFields } from '../chronicle/ChronicleEntry';
 
 export class RecipeKnowledge {
-  /** True iff the actor has read of `recipeId` (a claim). */
-  static async knowsOf(actor: Stuff, recipeId: string): Promise<boolean> {
-    const key = knownKey(recipeId);
-    if (!MixinApi.isPersona(actor)) return false;
-    const entries = await actor.chronicleEntries();
-    return entries.some((e) => e.kind === "claim" && e.key === key);
+  /** The key a *known-of* claim is filed under. */
+  static knownKey(recipeId: string): string {
+    return `recipe-known:${recipeId}`;
   }
 
-  /** True iff the actor has learned to make `recipeId` (a deed). */
-  static async canMake(actor: Stuff, recipeId: string): Promise<boolean> {
-    const key = madeKey(recipeId);
-    if (!MixinApi.isPersona(actor)) return false;
-    const entries = await actor.chronicleEntries();
-    return entries.some((e) => e.kind === "deed" && e.key === key);
+  /** The key a *can-make* deed is filed under. */
+  static madeKey(recipeId: string): string {
+    return `recipe-made:${recipeId}`;
   }
 
-  /** Mint the *known-of* claim (idempotent) — on reading a recipe source. */
-  static async noteKnown(
-    actor: Stuff,
-    recipeId: string,
-    name: string,
-  ): Promise<void> {
-    if (!MixinApi.isPersona(actor)) return;
-    await actor.recordChronicleOnce(knownKey(recipeId), {
-      kind: "claim",
-      text: `Learned of ${name}.`,
-      tags: ["recipe"],
-    });
+  /** The ledger line for reading of a recipe. */
+  static knownEntry(name: string): ChronicleEntryFields {
+    return { kind: 'claim', text: `Learned of ${name}.`, tags: ['recipe'] };
   }
 
-  /** Mint the *can-make* deed (idempotent) — the first faithful build. */
-  static async noteMade(
-    actor: Stuff,
-    recipeId: string,
-    name: string,
-  ): Promise<void> {
-    if (!MixinApi.isPersona(actor)) return;
-    await actor.recordChronicleOnce(madeKey(recipeId), {
-      kind: "deed",
-      text: `Learned to make ${name}.`,
-      tags: ["recipe"],
-    });
+  /** The ledger line for the first faithful build. */
+  static madeEntry(name: string): ChronicleEntryFields {
+    return { kind: 'deed', text: `Learned to make ${name}.`, tags: ['recipe'] };
   }
 }

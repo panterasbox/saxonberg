@@ -23,6 +23,7 @@ import Menu from '../../../../lib/commerce/Menu';
 import Tariff from '../../../thing/Tariff';
 import { Money } from '../../../../lib/banking/Money';
 import { Currency } from '../../../../lib/banking/Currency';
+import { MixinApi } from '../../../../api/mixin';
 
 const TOPIC = 'act.deed';
 
@@ -71,8 +72,13 @@ export default class MenuController extends CommandController<MenuModel> {
         // (idempotent: re-reading the menu doesn't duplicate). Known-of
         // lets you attempt the manual build; making it is the deed (the
         // ladder).
-        for (const recipe of offered) {
-          await RecipeKnowledge.noteKnown(giver, recipe.recipeId, recipe.name);
+        if (MixinApi.isPersona(giver)) {
+          for (const recipe of offered) {
+            await giver.recordChronicleOnce(
+              RecipeKnowledge.knownKey(recipe.recipeId),
+              RecipeKnowledge.knownEntry(recipe.name),
+            );
+          }
         }
         const lines = offered.map((r) => `  ${r.name}`).join('\n');
         blocks.push(

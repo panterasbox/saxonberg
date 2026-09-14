@@ -94,7 +94,10 @@ describe('the crafting lifecycle — craft → wield → wear → sharpen → re
   it('walks the whole loop at the smithy', async () => {
     // The smith knows the craft (the ladder's earned-deed path is proven
     // in knowledge-ladder.test; this run starts past it).
-    await RecipeKnowledge.noteMade(smith, 'belt-knife', 'Belt Knife');
+    await smith.recordChronicleOnce(
+      RecipeKnowledge.madeKey('belt-knife'),
+      RecipeKnowledge.madeEntry('Belt Knife'),
+    );
     ContainmentApi.move(makeTool('striking'), room);
     ContainmentApi.move(makeTool('anvil'), room);
     const ingot = makeStuff(() => new Ingot());

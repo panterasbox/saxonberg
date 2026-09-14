@@ -189,10 +189,11 @@ describe('StudyController — claim, never deed', () => {
     testBand = 'competent';
     const credit = creditCalls;
     credit.length = 0;
-    // The claim seam is SpellKnowledge.noteKnown since the OO sweep
-    // (the mint itself is the owner's sealed recordChronicleOnce).
+    // ⭐ The claim seam is the OWNER's `recordChronicleOnce` — the verb
+    // lives on the character, and `SpellKnowledge` supplies only the key
+    // and the ledger prose.
     const claim = vi
-      .spyOn(SpellKnowledge, 'noteKnown')
+      .spyOn(TestCharacter.prototype, 'recordChronicleOnce')
       .mockResolvedValue(undefined as never);
     // Resolve the activity immediately so the completion body runs.
     vi.spyOn(SchedulerApi, 'start').mockImplementation((activity) => {
@@ -206,11 +207,11 @@ describe('StudyController — claim, never deed', () => {
 
     // The claim was minted…
     expect(claim).toHaveBeenCalled();
-    const [, spellPath] = claim.mock.calls[0]!;
+    const [spellKey] = claim.mock.calls[0]!;
     // The claim keys on the PATH, not the short name — a chronicle entry
     // is a durable identity record, and "I know a working called
     // firebolt" is exactly the ambiguity the path exists to remove.
-    expect(spellPath).toBe('/stuff/idea/magic/Spell/glowlight');
+    expect(spellKey).toBe('spell-known:/stuff/idea/magic/Spell/glowlight');
 
     // …and competence was NOT touched. A book that granted skill would
     // have to write evidence of practice that never happened.
@@ -221,7 +222,7 @@ describe('StudyController — claim, never deed', () => {
   it('AC26 — the claim is idempotent (recordOnce, distinct key)', async () => {
     testBand = 'competent';
         const claim = vi
-      .spyOn(SpellKnowledge, 'noteKnown')
+      .spyOn(TestCharacter.prototype, 'recordChronicleOnce')
       .mockResolvedValue(undefined as never);
     vi.spyOn(SchedulerApi, 'start').mockImplementation((activity) => {
       (activity as unknown as { onComplete(): void }).onComplete();
@@ -237,14 +238,14 @@ describe('StudyController — claim, never deed', () => {
     // {owner, key} — the ledger stays honest without the controller
     // tracking anything.
     for (const call of claim.mock.calls) {
-      expect(call[1]).toBe('/stuff/idea/magic/Spell/glowlight');
+      expect(call[0]).toBe('spell-known:/stuff/idea/magic/Spell/glowlight');
     }
   });
 
   it('AC27/28 — BELOW the comprehension floor you get a defective copy, not a refusal', async () => {
     // Untrained reader, book with a `competent` floor.
     testBand = 'untrained';
-        vi.spyOn(SpellKnowledge, 'noteKnown').mockResolvedValue(undefined as never);
+        vi.spyOn(TestCharacter.prototype, 'recordChronicleOnce').mockResolvedValue(undefined as never);
     vi.spyOn(SchedulerApi, 'start').mockImplementation((activity) => {
       (activity as unknown as { onComplete(): void }).onComplete();
       return { ok: true } as never;
@@ -267,7 +268,7 @@ describe('StudyController — claim, never deed', () => {
 
   it('AC27 — ABOVE the floor the copy is clean', async () => {
     testBand = 'competent';
-        vi.spyOn(SpellKnowledge, 'noteKnown').mockResolvedValue(undefined as never);
+        vi.spyOn(TestCharacter.prototype, 'recordChronicleOnce').mockResolvedValue(undefined as never);
     vi.spyOn(SchedulerApi, 'start').mockImplementation((activity) => {
       (activity as unknown as { onComplete(): void }).onComplete();
       return { ok: true } as never;
@@ -295,7 +296,7 @@ describe('StudyController — claim, never deed', () => {
 
   it('AC31 — the study is an ACTIVITY, and its duration falls as sharpness rises', async () => {
     testBand = 'competent';
-        vi.spyOn(SpellKnowledge, 'noteKnown').mockResolvedValue(undefined as never);
+        vi.spyOn(TestCharacter.prototype, 'recordChronicleOnce').mockResolvedValue(undefined as never);
     const durations: number[] = [];
     vi.spyOn(SchedulerApi, 'start').mockImplementation((activity) => {
       durations.push((activity as unknown as { duration: number }).duration);
@@ -319,7 +320,7 @@ describe('StudyController — claim, never deed', () => {
   it('AC31 — an INTERRUPTED study learns nothing', async () => {
     testBand = 'competent';
         const claim = vi
-      .spyOn(SpellKnowledge, 'noteKnown')
+      .spyOn(TestCharacter.prototype, 'recordChronicleOnce')
       .mockResolvedValue(undefined as never);
     vi.spyOn(SchedulerApi, 'start').mockImplementation((activity) => {
       (activity as unknown as { onAbort(r: string): void }).onAbort('interrupted');

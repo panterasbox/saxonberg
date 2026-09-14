@@ -22,6 +22,7 @@ import type { Stuff } from '../../../../lib/stuff/Stuff';
 import { RecipeKnowledge } from '../../../../lib/script/RecipeKnowledge';
 import { MessageApi } from '../../../../api/message';
 import { Mml } from '../../../../api/mml';
+import { MixinApi } from '../../../../api/mixin';
 
 const TOPIC = 'act.deed';
 
@@ -48,7 +49,12 @@ export abstract class CraftController<
     const giver = context.commandGiver;
     const view = await CraftingApi.lookupRecipe(recipeRef);
     if (!view) return true;
-    if (await RecipeKnowledge.canMake(giver, view.recipeId)) return true;
+    if (
+      MixinApi.isPersona(giver) &&
+      (await giver.hasDone(RecipeKnowledge.madeKey(view.recipeId)))
+    ) {
+      return true;
+    }
     MessageApi.scene(giver)
       .topic(TOPIC)
       .toSelf(

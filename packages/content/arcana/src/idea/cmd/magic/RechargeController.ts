@@ -106,7 +106,10 @@ export default class RechargeController extends CommandController<RechargeModel>
     }
 
     // ── the specification ──
-    if (!(await SpellKnowledge.knowsOf(actor, TRANSFER_SPELL_PATH))) {
+    if (
+      !MixinApi.isPersona(actor) ||
+      !(await actor.hasClaimed(SpellKnowledge.knownKey(TRANSFER_SPELL_PATH)))
+    ) {
       MessageApi.scene(actor)
         .topic(TOPIC)
         .toSelf(

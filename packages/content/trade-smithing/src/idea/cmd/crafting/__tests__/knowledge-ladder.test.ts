@@ -163,7 +163,7 @@ describe('the knowledge ladder, generalized (wiki parity)', () => {
       await completeStep(ms);
     }
     // The performance minted the can-make deed for the builder…
-    expect(await RecipeKnowledge.canMake(builder, 'belt-knife')).toBe(true);
+    expect(await builder.hasDone(RecipeKnowledge.madeKey('belt-knife'))).toBe(true);
     // …and the shorthand now works.
     ContainmentApi.move(makeIngot(), room);
     const earned = await tryForge(builder);
@@ -173,8 +173,8 @@ describe('the knowledge ladder, generalized (wiki parity)', () => {
     );
 
     // The watcher gained the claim (knows OF it) — but not the deed.
-    expect(await RecipeKnowledge.knowsOf(bystander, 'belt-knife')).toBe(true);
-    expect(await RecipeKnowledge.canMake(bystander, 'belt-knife')).toBe(false);
+    expect(await bystander.hasClaimed(RecipeKnowledge.knownKey('belt-knife'))).toBe(true);
+    expect(await bystander.hasDone(RecipeKnowledge.madeKey('belt-knife'))).toBe(false);
     ContainmentApi.move(makeIngot(), room);
     expect(rejectedWith(await tryForge(bystander), 'not-learned')).toBe(true);
   });
@@ -182,7 +182,10 @@ describe('the knowledge ladder, generalized (wiki parity)', () => {
   it('craft-resolve appends Transcript deeds at the authored difficulty; bar rows never do', async () => {
     standUpSmithy();
     ContainmentApi.move(makeIngot(), room);
-    await RecipeKnowledge.noteMade(builder, 'belt-knife', 'Belt Knife');
+    await builder.recordChronicleOnce(
+      RecipeKnowledge.madeKey('belt-knife'),
+      RecipeKnowledge.madeEntry('Belt Knife'),
+    );
     const ctx = await tryForge(builder);
     expect(ctx.getNotes().some((n) => n.kind === 'controller-rejected')).toBe(
       false,
