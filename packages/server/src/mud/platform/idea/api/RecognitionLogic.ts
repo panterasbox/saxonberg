@@ -45,8 +45,7 @@ function canSeeGate(
 ): boolean {
   const vision = StuffApi.findByTemplatePath(VISION_PATH);
   if (!vision) return true;
-  const VisionCtor = vision.constructor as typeof VisionModality;
-  return VisionCtor.canSee(viewer, target);
+  return (vision as VisionModality).canSee(viewer, target);
 }
 
 /**

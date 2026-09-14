@@ -244,15 +244,4 @@ export class SmellModality extends Modality {
     return result;
   }
 
-  /**
-   * Read the smell signal at `loc` — convenience wrapper around
-   * `PerceptionApi.modalityByName('smell').signalAt(loc)`. The
-   * lookup goes through `PerceptionApi` so the template surface
-   * stays the single source of truth.
-   */
-  public static smellAt(loc: Stuff & Container): Smell | null {
-    return (
-      PerceptionApi.modalityByName('smell') as SmellModality
-    ).signalAt(loc);
-  }
 }

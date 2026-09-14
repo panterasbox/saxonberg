@@ -1,7 +1,7 @@
 /**
  * ListenController — `listen` verb.
  *
- * Bare form reads true field physics via `SoundModality.soundAt(loc)`
+ * Bare form reads true field physics via `(PerceptionApi.modalityByName('sound') as SoundModality).signalAt(loc)`
  * and renders the perceived sound with source attribution. Targeted
  * form (`listen <target>`) keeps the per-Detail `hearing` slot read
  * inherited from `SingleSenseControllerBase`.
@@ -18,6 +18,7 @@ import { Mml } from '../../../../api/mml';
 import { SoundModality } from '../../modalities/SoundModality';
 import { Sound } from '../../../../lib/perception/Sound';
 import { StuffApi } from '../../../../api/stuff';
+import { PerceptionApi } from '../../../../api/perception';
 
 export default class ListenController extends SingleSenseControllerBase {
   protected readonly senseChannel: SenseChannel = 'hearing';
@@ -27,7 +28,7 @@ export default class ListenController extends SingleSenseControllerBase {
     const actor = context.commandGiver;
     const location = context.location;
     if (!location) return; // defensive: placeless avatars are blocked at inbound and Login carries no sense verbs, so location is present in practice; degrade to a quiet no-op otherwise
-    const signal = SoundModality.soundAt(location);
+    const signal = (PerceptionApi.modalityByName('sound') as SoundModality).signalAt(location);
 
     if (
       signal &&

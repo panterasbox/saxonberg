@@ -2,7 +2,7 @@
  * SmellController — `smell` verb.
  *
  * Bare form reads true field physics via
- * `SmellModality.smellAt(loc)` and renders the perceived odor with
+ * `(PerceptionApi.modalityByName('smell') as SmellModality).signalAt(loc)` and renders the perceived odor with
  * source attribution, gated by the viewer's
  * `Species.olfactoryProfile.acuity` threshold. Targeted form
  * (`smell <target>`) keeps the per-Detail `smell` slot read inherited
@@ -21,6 +21,7 @@ import type { Smell } from '../../../../lib/perception/Smell';
 import type { OlfactoryProfile } from '../../species/Species';
 import type { Organism } from '../../../../lib/species/Organism';
 import { StuffApi } from '../../../../api/stuff';
+import { PerceptionApi } from '../../../../api/perception';
 
 /**
  * Acuity → ppm threshold mapping. A viewer perceives a signal whose
@@ -49,7 +50,7 @@ export default class SmellController extends SingleSenseControllerBase {
     const actor = context.commandGiver;
     const location = context.location;
     if (!location) return; // defensive: placeless avatars are blocked at inbound and Login carries no sense verbs, so location is present in practice; degrade to a quiet no-op otherwise
-    const signal = SmellModality.smellAt(location);
+    const signal = (PerceptionApi.modalityByName('smell') as SmellModality).signalAt(location);
     const threshold = actorAcuityThreshold(actor);
 
     if (

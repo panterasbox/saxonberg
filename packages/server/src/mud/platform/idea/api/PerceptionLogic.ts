@@ -887,10 +887,9 @@ function lightConditionsFor(viewer: Stuff, target: Stuff): number {
   if (!env || !MixinApi.isContainer(env)) return 0;
   const vision = StuffApi.findByTemplatePath(VISION_PATH);
   if (!vision) return 0;
-  const VisionCtor = vision.constructor as typeof VisionModality;
   let idx: number;
   try {
-    const band = VisionCtor.perceivedBand(
+    const band = (vision as VisionModality).perceivedBand(
       viewer as Stuff & Sensor & Perception,
       env as Stuff & Container,
     );
@@ -924,9 +923,8 @@ function visionAdequateForMarks(viewer: Stuff, target: Stuff): boolean {
   if (!MixinApi.isSensor(viewer) || !MixinApi.isPerception(viewer)) return true;
   const vision = StuffApi.findByTemplatePath(VISION_PATH);
   if (!vision) return true;
-  const VisionCtor = vision.constructor as typeof VisionModality;
   try {
-    return VisionCtor.canSee(
+    return (vision as VisionModality).canSee(
       viewer as Stuff & Sensor & Perception,
       target,
       'fine',

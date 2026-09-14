@@ -254,15 +254,4 @@ export class SoundModality extends Modality {
     return result;
   }
 
-  /**
-   * Read the sound signal at `loc` — convenience wrapper around
-   * `PerceptionApi.modalityByName('sound').signalAt(loc)`. The
-   * lookup goes through `PerceptionApi` so the template surface
-   * stays the single source of truth.
-   */
-  public static soundAt(loc: Stuff & Container): Sound | null {
-    return (
-      PerceptionApi.modalityByName('sound') as SoundModality
-    ).signalAt(loc);
-  }
 }

@@ -16,6 +16,11 @@ import { StuffApi } from '../../../api/stuff';
 import { Quantity } from '../../quantity';
 import { makeStuff } from '../../security/__tests__/test-setup';
 import { installV1QuantityTagTables } from '../../persistence/__tests__/quantity-marshaller-test-helpers';
+import { PerceptionApi } from '../../../api/perception';
+
+/** The vision modality singleton — these are instance methods on it. */
+const vision = (): VisionModality =>
+  PerceptionApi.modalityByName('vision') as VisionModality;
 
 class Candle extends LightSourceMixin(Thing) {}
 class AmbientCartesianLocation extends AmbientLitMixin(CartesianLocation) {}
@@ -117,7 +122,7 @@ describe('LightSourceMixin', () => {
       candle.setEmittedColorTemperature('warm');
       ContainmentApi.move(candle, room);
 
-      const total = VisionModality.lightAt(room);
+      const total = vision().lightAt(room);
       // Default sizeScale = 1 m² → 10 lumens / 1 m² = 10 lux.
       expect(total.intensity.rawValue()).toBe(10);
       expect(total.colorTemperature!.rawValue()).toBe(2700);
@@ -134,12 +139,12 @@ describe('LightSourceMixin', () => {
       candle.setEmittedFlux(10);
 
       ContainmentApi.move(candle, a);
-      expect(VisionModality.lightAt(a).intensity.rawValue()).toBeGreaterThanOrEqual(10);
-      expect(VisionModality.lightAt(b).intensity.rawValue()).toBe(0);
+      expect(vision().lightAt(a).intensity.rawValue()).toBeGreaterThanOrEqual(10);
+      expect(vision().lightAt(b).intensity.rawValue()).toBe(0);
 
       ContainmentApi.move(candle, b);
-      expect(VisionModality.lightAt(b).intensity.rawValue()).toBeGreaterThanOrEqual(10);
-      expect(VisionModality.lightAt(a).intensity.rawValue()).toBe(0);
+      expect(vision().lightAt(b).intensity.rawValue()).toBeGreaterThanOrEqual(10);
+      expect(vision().lightAt(a).intensity.rawValue()).toBe(0);
     });
 
     it('setEmittedFlux(0) zeroes the contribution', () => {
@@ -152,9 +157,9 @@ describe('LightSourceMixin', () => {
       candle.setEmittedFlux(20);
       ContainmentApi.move(candle, room);
 
-      expect(VisionModality.lightAt(room).intensity.rawValue()).toBe(25);
+      expect(vision().lightAt(room).intensity.rawValue()).toBe(25);
       candle.setEmittedFlux(0);
-      expect(VisionModality.lightAt(room).intensity.rawValue()).toBe(5);
+      expect(vision().lightAt(room).intensity.rawValue()).toBe(5);
     });
   });
 });

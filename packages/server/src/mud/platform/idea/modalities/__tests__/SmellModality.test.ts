@@ -14,6 +14,11 @@ import { ContainmentApi } from '../../../../api/containment';
 import { makeStuff } from '../../../../lib/security/__tests__/test-setup';
 import { installV1QuantityTagTables } from '../../../../lib/persistence/__tests__/quantity-marshaller-test-helpers';
 import { buildAllModalities } from '../../../../lib/perception/modalities/__tests__/test-helpers';
+import { PerceptionApi } from '../../../../api/perception';
+
+/** The smell modality singleton — `signalAt` is an instance method on it. */
+const smellModality = (): SmellModality =>
+  PerceptionApi.modalityByName('smell') as SmellModality;
 
 class Candle extends SmellSourceMixin(Thing) {}
 class AtmosphericLocation extends AtmosphericMixin(CartesianLocation) {}
@@ -33,7 +38,7 @@ describe('SmellModality.signalAt — propagation core', () => {
     const loc = makeStuff(() => new CartesianLocation());
     zone.addLocation(loc, 0, 0, 0);
 
-    expect(SmellModality.smellAt(loc)).toBeNull();
+    expect(smellModality().signalAt(loc)).toBeNull();
   });
 
   it('a candle in a room is perceived at that scope', () => {
@@ -46,7 +51,7 @@ describe('SmellModality.signalAt — propagation core', () => {
     candle.setOdorIdentity('garlic');
     ContainmentApi.move(candle, loc);
 
-    const smell = SmellModality.smellAt(loc);
+    const smell = smellModality().signalAt(loc);
     expect(smell).toBeInstanceOf(Smell);
     expect(smell!.concentration.rawValue()).toBe(50);
     expect(smell!.identity).toBe('garlic');
@@ -66,7 +71,7 @@ describe('SmellModality.signalAt — propagation core', () => {
     candle.setOdorIdentity('garlic');
     ContainmentApi.move(candle, b);
 
-    const smellInA = SmellModality.smellAt(a);
+    const smellInA = smellModality().signalAt(a);
     expect(smellInA!.concentration.rawValue()).toBe(60);
   });
 
@@ -87,9 +92,9 @@ describe('SmellModality.signalAt — propagation core', () => {
     door.setOpen(false);
     await a.addBidirectionalExit(b, 'north', { door });
 
-    expect(SmellModality.smellAt(a)).toBeNull();
+    expect(smellModality().signalAt(a)).toBeNull();
     door.open();
-    const smellInA = SmellModality.smellAt(a);
+    const smellInA = smellModality().signalAt(a);
     expect(smellInA!.concentration.rawValue()).toBe(60);
   });
 
@@ -104,7 +109,7 @@ describe('SmellModality.signalAt — propagation core', () => {
     candle.setOdorIdentity('garlic');
     ContainmentApi.move(candle, a);
 
-    expect(SmellModality.smellAt(a)).toBeNull();
+    expect(smellModality().signalAt(a)).toBeNull();
   });
 
   it('MAX_HOPS truncates propagation past depth 2', () => {
@@ -124,7 +129,7 @@ describe('SmellModality.signalAt — propagation core', () => {
     ContainmentApi.move(candle, d);
 
     expect(MAX_HOPS).toBe(2);
-    expect(SmellModality.smellAt(a)).toBeNull();
+    expect(smellModality().signalAt(a)).toBeNull();
   });
 
   it('multi-identity merging: dominant by total concentration', () => {
@@ -143,7 +148,7 @@ describe('SmellModality.signalAt — propagation core', () => {
     smoke.setOdorIdentity('smoke');
     ContainmentApi.move(smoke, loc);
 
-    const smell = SmellModality.smellAt(loc);
+    const smell = smellModality().signalAt(loc);
     expect(smell!.concentration.rawValue()).toBe(80);
     expect(smell!.identity).toBe('smoke');
   });
@@ -161,7 +166,7 @@ describe('SmellModality.signalAt — propagation core', () => {
       ContainmentApi.move(c, loc);
     }
 
-    const smell = SmellModality.smellAt(loc);
+    const smell = smellModality().signalAt(loc);
     // Source list capped per SMELL_SOURCE_CAP (3 in v1).
     expect(smell!.sources.length).toBeLessThanOrEqual(3);
   });

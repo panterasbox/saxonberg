@@ -13,6 +13,11 @@ import { MAX_HOPS } from '../../lib/perception/Modality';
 import { buildAllModalities } from '../../lib/perception/modalities/__tests__/test-helpers';
 import { StuffApi } from '../../api/stuff';
 import { makeStuff } from '../../lib/security/__tests__/test-setup';
+import { PerceptionApi } from '../../api/perception';
+
+/** The vision modality singleton — these are instance methods on it. */
+const vision = (): VisionModality =>
+  PerceptionApi.modalityByName('vision') as VisionModality;
 
 class Candle extends LightSourceMixin(Thing) {}
 
@@ -63,9 +68,9 @@ describe('Window — multi-room propagation integration', () => {
     candle.setEmittedFlux(40);
     ContainmentApi.move(candle, roomA);
 
-    const totalA = VisionModality.lightAt(roomA);
+    const totalA = vision().lightAt(roomA);
     expect(totalA.intensity.rawValue()).toBe(40);
-    const totalB = VisionModality.lightAt(roomB);
+    const totalB = vision().lightAt(roomB);
     expect(totalB.intensity.rawValue()).toBe(40);
   });
 
@@ -84,11 +89,11 @@ describe('Window — multi-room propagation integration', () => {
     candle.setEmittedFlux(40);
     ContainmentApi.move(candle, roomA);
 
-    expect(VisionModality.lightAt(roomA).intensity.rawValue()).toBe(40);
-    expect(VisionModality.lightAt(roomB)).toBe(Light.ZERO);
+    expect(vision().lightAt(roomA).intensity.rawValue()).toBe(40);
+    expect(vision().lightAt(roomB)).toBe(Light.ZERO);
 
     window.open();
-    expect(VisionModality.lightAt(roomB).intensity.rawValue()).toBe(40);
+    expect(vision().lightAt(roomB).intensity.rawValue()).toBe(40);
   });
 
   it('partial transmissivity attenuates the leak', () => {
@@ -106,7 +111,7 @@ describe('Window — multi-room propagation integration', () => {
     candle.setEmittedFlux(40);
     ContainmentApi.move(candle, roomA);
 
-    expect(VisionModality.lightAt(roomB).intensity.rawValue()).toBe(20);
+    expect(vision().lightAt(roomB).intensity.rawValue()).toBe(20);
   });
 
   it('one-way glass: A→B leaks fully; B→A leaks not at all', () => {
@@ -125,13 +130,13 @@ describe('Window — multi-room propagation integration', () => {
     lampA.setEmittedFlux(50);
     ContainmentApi.move(lampA, roomA);
 
-    expect(VisionModality.lightAt(roomA).intensity.rawValue()).toBe(50);
-    expect(VisionModality.lightAt(roomB).intensity.rawValue()).toBe(50);
+    expect(vision().lightAt(roomA).intensity.rawValue()).toBe(50);
+    expect(vision().lightAt(roomB).intensity.rawValue()).toBe(50);
 
     // Symmetric setup with the lamp on the other side.
     ContainmentApi.move(lampA, roomB);
-    expect(VisionModality.lightAt(roomB).intensity.rawValue()).toBe(50);
-    expect(VisionModality.lightAt(roomA)).toBe(Light.ZERO);
+    expect(vision().lightAt(roomB).intensity.rawValue()).toBe(50);
+    expect(vision().lightAt(roomA)).toBe(Light.ZERO);
   });
 
   it('three-room chain through two windows respects MAX_HOPS', () => {
@@ -173,9 +178,9 @@ describe('Window — multi-room propagation integration', () => {
     lamp.setEmittedFlux(40);
     ContainmentApi.move(lamp, roomC);
 
-    expect(VisionModality.lightAt(roomC).intensity.rawValue()).toBe(40);
-    expect(VisionModality.lightAt(roomB).intensity.rawValue()).toBe(40);
-    expect(VisionModality.lightAt(roomA).intensity.rawValue()).toBe(40);
+    expect(vision().lightAt(roomC).intensity.rawValue()).toBe(40);
+    expect(vision().lightAt(roomB).intensity.rawValue()).toBe(40);
+    expect(vision().lightAt(roomA).intensity.rawValue()).toBe(40);
 
     // Now extend with a fourth room D behind a third window. D is at
     // depth 3 from A, beyond MAX_HOPS — A's read must NOT include
@@ -202,7 +207,7 @@ describe('Window — multi-room propagation integration', () => {
     // reach C from A's depth = 2, we still allow C's contents to
     // contribute (we don't need a further hop), but D requires a
     // further hop — depth 3 — which truncates to ZERO.
-    expect(VisionModality.lightAt(roomA).intensity.rawValue()).toBe(0);
+    expect(vision().lightAt(roomA).intensity.rawValue()).toBe(0);
   });
 
   it('BoundaryApi.destruct cleanly removes the leak', () => {
@@ -220,8 +225,8 @@ describe('Window — multi-room propagation integration', () => {
     lamp.setEmittedFlux(60);
     ContainmentApi.move(lamp, roomA);
 
-    expect(VisionModality.lightAt(roomB).intensity.rawValue()).toBe(60);
+    expect(vision().lightAt(roomB).intensity.rawValue()).toBe(60);
     BoundaryApi.destruct(window);
-    expect(VisionModality.lightAt(roomB)).toBe(Light.ZERO);
+    expect(vision().lightAt(roomB)).toBe(Light.ZERO);
   });
 });

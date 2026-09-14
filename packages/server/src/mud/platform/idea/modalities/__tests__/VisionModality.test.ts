@@ -13,6 +13,11 @@ import { StuffApi } from '../../../../api/stuff';
 import { makeStuff } from '../../../../lib/security/__tests__/test-setup';
 import { installV1QuantityTagTables } from '../../../../lib/persistence/__tests__/quantity-marshaller-test-helpers';
 import { buildAllModalities } from '../../../../lib/perception/modalities/__tests__/test-helpers';
+import { PerceptionApi } from '../../../../api/perception';
+
+/** The vision modality singleton — these are instance methods on it. */
+const vision = (): VisionModality =>
+  PerceptionApi.modalityByName('vision') as VisionModality;
 
 class AmbientCartesianLocation extends AmbientLitMixin(CartesianLocation) {}
 class AmbientSphericalLocation extends AmbientLitMixin(SphericalLocation) {}
@@ -32,8 +37,8 @@ describe('VisionModality.signalAt — propagation core', () => {
     const loc = makeStuff(() => new AmbientCartesianLocation());
     zone.addLocation(loc, 0, 0, 0);
 
-    expect(VisionModality.lightAt(loc)).toBe(Light.ZERO);
-    expect(VisionModality.bandAt(loc)).toBe('pitch-black');
+    expect(vision().lightAt(loc)).toBe(Light.ZERO);
+    expect(vision().bandAt(loc)).toBe('pitch-black');
   });
 
   it('room with setAmbientFlux + setAmbientColorTemperature reflects the band and color', () => {
@@ -44,10 +49,10 @@ describe('VisionModality.signalAt — propagation core', () => {
     loc.setAmbientFlux(40);
     loc.setAmbientColorTemperature('warm');
 
-    const total = VisionModality.lightAt(loc);
+    const total = vision().lightAt(loc);
     expect(total.intensity.rawValue()).toBe(40);
     expect(total.colorTemperature!.rawValue()).toBe(2700);
-    expect(VisionModality.bandAt(loc)).toBe('lit');
+    expect(vision().bandAt(loc)).toBe('lit');
   });
 
   it('the weather cloud-dim factor scales the ambient flux (Wave 2)', () => {
@@ -59,15 +64,15 @@ describe('VisionModality.signalAt — propagation core', () => {
 
     // Default (undimmed) is byte-identical to pre-Wave-2.
     expect(loc.getWeatherDimFactor()).toBe(1);
-    expect(VisionModality.lightAt(loc).intensity.rawValue()).toBe(40);
+    expect(vision().lightAt(loc).intensity.rawValue()).toBe(40);
 
     // A stormed / overcast sky dims the read.
     loc.setWeatherDimFactor(0.4);
-    expect(VisionModality.lightAt(loc).intensity.rawValue()).toBeCloseTo(16, 5);
+    expect(vision().lightAt(loc).intensity.rawValue()).toBeCloseTo(16, 5);
 
     // Clearing restores full brightness.
     loc.setWeatherDimFactor(1);
-    expect(VisionModality.lightAt(loc).intensity.rawValue()).toBe(40);
+    expect(vision().lightAt(loc).intensity.rawValue()).toBe(40);
   });
 
   it('exits leak ambient light from neighbors', async () => {
@@ -81,7 +86,7 @@ describe('VisionModality.signalAt — propagation core', () => {
     // Exits are explicit (no grid-derivation) — declare the doorless doorway.
     await a.addBidirectionalExit(b, 'north');
 
-    const totalA = VisionModality.lightAt(a);
+    const totalA = vision().lightAt(a);
     expect(totalA.intensity.rawValue()).toBe(60 * EXIT_TAU);
   });
 
@@ -99,9 +104,9 @@ describe('VisionModality.signalAt — propagation core', () => {
     door.setOpen(false);
     await a.addBidirectionalExit(b, 'north', { door });
 
-    expect(VisionModality.lightAt(a)).toBe(Light.ZERO);
+    expect(vision().lightAt(a)).toBe(Light.ZERO);
     door.open();
-    const totalA = VisionModality.lightAt(a);
+    const totalA = vision().lightAt(a);
     expect(totalA.intensity.rawValue()).toBe(60);
   });
 
@@ -123,7 +128,7 @@ describe('VisionModality.signalAt — propagation core', () => {
     await c.addBidirectionalExit(d, 'north');
 
     expect(MAX_HOPS).toBe(2);
-    expect(VisionModality.lightAt(a)).toBe(Light.ZERO);
+    expect(vision().lightAt(a)).toBe(Light.ZERO);
   });
 
   it('cycle: visited Set prevents infinite recursion', async () => {
@@ -136,7 +141,7 @@ describe('VisionModality.signalAt — propagation core', () => {
     a.setAmbientFlux(10);
     await a.addBidirectionalExit(b, 'north'); // a↔b cycle for the visited guard
 
-    const total = VisionModality.lightAt(a);
+    const total = vision().lightAt(a);
     expect(total.intensity.rawValue()).toBeGreaterThanOrEqual(10);
   });
 
@@ -147,7 +152,7 @@ describe('VisionModality.signalAt — propagation core', () => {
     loc.setAmbientFlux(40);
 
     zone.setCellSize(4.0);
-    expect(VisionModality.bandAt(loc)).toBe('very-dim');
+    expect(vision().bandAt(loc)).toBe('very-dim');
   });
 
   it('SphericalLocation.getSizeScale uses radius', () => {
@@ -157,9 +162,9 @@ describe('VisionModality.signalAt — propagation core', () => {
     loc.setRadius(8.0);
     loc.setAmbientFlux(40);
 
-    expect(VisionModality.bandAt(loc)).toBe('dim'); // 40/8 = 5
+    expect(vision().bandAt(loc)).toBe('dim'); // 40/8 = 5
     loc.setRadius(2.0);
-    expect(VisionModality.bandAt(loc)).toBe('lit'); // 40/2 = 20
+    expect(vision().bandAt(loc)).toBe('lit'); // 40/2 = 20
   });
 
   it('shadowsAt maps each band to a shadow tier', () => {
@@ -168,15 +173,15 @@ describe('VisionModality.signalAt — propagation core', () => {
     const loc = makeStuff(() => new AmbientCartesianLocation());
     zone.addLocation(loc, 0, 0, 0);
 
-    expect(VisionModality.shadowsAt(loc)).toBe('absolute');
+    expect(vision().shadowsAt(loc)).toBe('absolute');
     loc.setAmbientFlux(2);
-    expect(VisionModality.shadowsAt(loc)).toBe('deep');
+    expect(vision().shadowsAt(loc)).toBe('deep');
     loc.setAmbientFlux(10);
-    expect(VisionModality.shadowsAt(loc)).toBe('partial');
+    expect(vision().shadowsAt(loc)).toBe('partial');
     loc.setAmbientFlux(40);
-    expect(VisionModality.shadowsAt(loc)).toBe('faint');
+    expect(vision().shadowsAt(loc)).toBe('faint');
     loc.setAmbientFlux(100);
-    expect(VisionModality.shadowsAt(loc)).toBe('none');
+    expect(vision().shadowsAt(loc)).toBe('none');
   });
 });
 
@@ -205,8 +210,8 @@ describe('VisionModality — band / tag / mixing acceptance', () => {
     ];
     for (const { flux, expected } of samples) {
       loc.setAmbientFlux(flux);
-      expect(VisionModality.bandAt(loc)).toBe(expected);
-      expect(VisionModality.lightAt(loc).intensity.tag()).toBe(expected);
+      expect(vision().bandAt(loc)).toBe(expected);
+      expect(vision().lightAt(loc).intensity.tag()).toBe(expected);
     }
   });
 
@@ -217,14 +222,14 @@ describe('VisionModality — band / tag / mixing acceptance', () => {
 
     zone.setCellSize(1);
     loc.setAmbientFlux(100);
-    expect(VisionModality.lightAt(loc).intensity.rawValue()).toBe(100);
+    expect(vision().lightAt(loc).intensity.rawValue()).toBe(100);
 
     loc.setAmbientFlux(200);
-    expect(VisionModality.lightAt(loc).intensity.rawValue()).toBe(200);
+    expect(vision().lightAt(loc).intensity.rawValue()).toBe(200);
 
     zone.setCellSize(2);
     loc.setAmbientFlux(100);
-    expect(VisionModality.lightAt(loc).intensity.rawValue()).toBe(25);
+    expect(vision().lightAt(loc).intensity.rawValue()).toBe(25);
   });
 
   it('flux-weighted color mixing across two equal-flux sources', async () => {
@@ -246,7 +251,7 @@ describe('VisionModality — band / tag / mixing acceptance', () => {
     lamp.setEmittedColorTemperature('cool');
     ContainmentApi.move(lamp, loc);
 
-    const total = VisionModality.lightAt(loc);
+    const total = vision().lightAt(loc);
     expect(total.intensity.rawValue()).toBe(100);
     expect(total.colorTemperature!.rawValue()).toBeCloseTo(3850, 5);
   });

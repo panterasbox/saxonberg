@@ -14,6 +14,11 @@ import { ContainmentApi } from '../../../../api/containment';
 import { makeStuff } from '../../../../lib/security/__tests__/test-setup';
 import { installV1QuantityTagTables } from '../../../../lib/persistence/__tests__/quantity-marshaller-test-helpers';
 import { buildAllModalities } from '../../../../lib/perception/modalities/__tests__/test-helpers';
+import { PerceptionApi } from '../../../../api/perception';
+
+/** The sound modality singleton — `signalAt` is an instance method on it. */
+const soundModality = (): SoundModality =>
+  PerceptionApi.modalityByName('sound') as SoundModality;
 
 class Whistle extends SoundSourceMixin(Thing) {}
 class AtmosphericLocation extends AtmosphericMixin(CartesianLocation) {}
@@ -32,7 +37,7 @@ describe('SoundModality.signalAt — propagation core', () => {
     zone.setCellSize(1);
     const loc = makeStuff(() => new CartesianLocation());
     zone.addLocation(loc, 0, 0, 0);
-    expect(SoundModality.soundAt(loc)).toBeNull();
+    expect(soundModality().signalAt(loc)).toBeNull();
   });
 
   it('a whistle in a room is perceived at that scope', () => {
@@ -45,7 +50,7 @@ describe('SoundModality.signalAt — propagation core', () => {
     w.setCharacter('piercing whistle');
     ContainmentApi.move(w, loc);
 
-    const sound = SoundModality.soundAt(loc);
+    const sound = soundModality().signalAt(loc);
     expect(sound).toBeInstanceOf(Sound);
     expect(sound!.amplitude.rawValue()).toBeCloseTo(110, 1);
     expect(sound!.character).toBe('piercing whistle');
@@ -65,7 +70,7 @@ describe('SoundModality.signalAt — propagation core', () => {
     b.setCharacter('b');
     ContainmentApi.move(b, loc);
 
-    const sound = SoundModality.soundAt(loc);
+    const sound = soundModality().signalAt(loc);
     expect(sound!.amplitude.rawValue()).toBeCloseTo(63.0103, 2);
   });
 
@@ -82,7 +87,7 @@ describe('SoundModality.signalAt — propagation core', () => {
     w.setCharacter('whistle');
     ContainmentApi.move(w, b);
 
-    const soundInA = SoundModality.soundAt(a);
+    const soundInA = soundModality().signalAt(a);
     expect(soundInA!.amplitude.rawValue()).toBeCloseTo(100, 1);
   });
 
@@ -103,9 +108,9 @@ describe('SoundModality.signalAt — propagation core', () => {
     door.setOpen(false);
     await a.addBidirectionalExit(b, 'north', { door });
 
-    expect(SoundModality.soundAt(a)).toBeNull();
+    expect(soundModality().signalAt(a)).toBeNull();
     door.open();
-    const soundInA = SoundModality.soundAt(a);
+    const soundInA = soundModality().signalAt(a);
     expect(soundInA!.amplitude.rawValue()).toBeCloseTo(100, 1);
   });
 
@@ -120,7 +125,7 @@ describe('SoundModality.signalAt — propagation core', () => {
     w.setCharacter('whistle');
     ContainmentApi.move(w, a);
 
-    expect(SoundModality.soundAt(a)).toBeNull();
+    expect(soundModality().signalAt(a)).toBeNull();
   });
 
   it('MAX_HOPS truncates propagation past depth 2', () => {
@@ -140,6 +145,6 @@ describe('SoundModality.signalAt — propagation core', () => {
     ContainmentApi.move(w, d);
 
     expect(MAX_HOPS).toBe(2);
-    expect(SoundModality.soundAt(a)).toBeNull();
+    expect(soundModality().signalAt(a)).toBeNull();
   });
 });
