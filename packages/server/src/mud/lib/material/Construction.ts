@@ -416,12 +416,21 @@ export class Construction {
     FABRICS.set(spec.key, { ...spec });
   }
 
-  /** The registered spec for a fabric form, or `null`. */
+  /**
+   * The registered spec for a fabric form, or `null`.
+   *
+   * @internal the registry `registerFabric` fills — same ruling, same
+   * reason: `FabricCatalogue` and `Constructed` are its only readers.
+   */
   static fabric(key: string): FabricSpec | null {
     return FABRICS.get(key) ?? null;
   }
 
-  /** Every registered fabric key (HMR / test introspection). */
+  /**
+   * Every registered fabric key (HMR / test introspection).
+   *
+   * @internal read by `FabricCatalogue` alone.
+   */
   public static fabricKeys(): readonly string[] {
     return [...FABRICS.keys()];
   }

@@ -691,6 +691,10 @@ export class Quantity<U extends Unit> {
    * scale by an explicit name.
    * @internal one production caller plus the tests that white-box it — not author surface.
    *
+   *
+   * @internal the callable door is `QuantityApi.loadTagTables`; the only
+   * other callers are this module's own boot-time tables. Not author
+   * surface — a registration seam, not a question anybody asks.
    */
   public static registerTagTable(
     unit: Unit,

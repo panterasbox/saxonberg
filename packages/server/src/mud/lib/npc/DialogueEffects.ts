@@ -41,12 +41,25 @@ export interface DialogueEffectHandler {
 export class DialogueEffectRegistry {
   private static handlers = new Map<string, DialogueEffectHandler>();
 
-  /** Register a domain effect verb (idempotent overwrite — HMR-safe). */
+  /**
+   * Register a domain effect verb (idempotent overwrite — HMR-safe).
+   *
+   * @internal a **`postRegister` boot seam**, not author surface — the same
+   * ruling as `Construction.registerFabric`. Its callers are
+   * `BankCounter.postRegister` and (in the terminus pack) `Realtor`'s;
+   * pack `src/` is CODE at the capability rung, not content, so a pack
+   * caller does not make a registration seam something a content author
+   * reaches for. Advertising it in the generated docs would say otherwise.
+   */
   static register(verb: string, handler: DialogueEffectHandler): void {
     DialogueEffectRegistry.handlers.set(verb, handler);
   }
 
-  /** Whether `verb` is a registered domain effect. */
+  /**
+   * Whether `verb` is a registered domain effect.
+   *
+   * @internal read by `DialogueConversation` and the CMS save-gate.
+   */
   static has(verb: string): boolean {
     return DialogueEffectRegistry.handlers.has(verb);
   }
@@ -56,7 +69,12 @@ export class DialogueEffectRegistry {
     return DialogueEffectRegistry.handlers.get(verb);
   }
 
-  /** Validate a domain effect: unknown verb → one error; else the handler's. */
+  /**
+   * Validate a domain effect: unknown verb → one error; else the
+   * handler's.
+   *
+   * @internal the dialogue-tree save-gate (`tree.ts`) calls this.
+   */
   static validate(verb: string, effect: Record<string, unknown>): string[] {
     const handler = DialogueEffectRegistry.handlers.get(verb);
     if (!handler) return [`'${verb}' is not a registered effect`];

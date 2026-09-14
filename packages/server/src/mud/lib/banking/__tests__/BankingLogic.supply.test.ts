@@ -23,7 +23,7 @@ import {
 /** Σ over every materialized account balance. */
 function sumBalances(): number {
   let total = 0;
-  for (const balance of AccountBalance.cached().values()) total += balance;
+  for (const row of AccountBalance.cached().values()) total += row.balance;
   return total;
 }
 

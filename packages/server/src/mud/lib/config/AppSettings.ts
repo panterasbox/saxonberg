@@ -1713,6 +1713,14 @@ export class AppSettings extends Document {
    * nothing has been seeded/set yet). Does NOT seed values — that is
    * the platform pack's job (`PackApi.install`), which runs earlier in the boot sequence.
    * Called once from `AppBootstrap`.
+   *
+   * @internal the callable door is `AppApi.setting`; the warm is
+   * `AppBootstrap`'s, at step zero. Not author surface.
+   *
+   * ⚠ **Deliberately NOT on `WarmedIndex`.** This caches ONE ROW, not a
+   * key→value index — there is a single `app_settings` document and the
+   * "index" would have exactly one entry under a constant key. Forcing
+   * the shape would cost a real indirection to buy a false uniformity.
    */
   static async warm(): Promise<AppSettings> {
     const rows = await AppSettings.find({});
@@ -1723,6 +1731,8 @@ export class AppSettings extends Document {
   /**
    * The warmed singleton. Throws loudly if read before boot warmed it — a
    * boot-ordering bug, never a silent `undefined` into a sync consumer.
+   *
+   * @internal the callable door is `AppApi.setting`.
    */
   static getCached(): AppSettings {
     if (!AppSettings._cached) {

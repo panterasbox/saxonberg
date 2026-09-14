@@ -158,7 +158,7 @@ describe('Avatar standing figures — projection', () => {
     // unmaterialized scope is omitted, not zeroed (see the cold-cache
     // test below). This one is about the SHAPE of a figure that
     // resolved, so the standing is seeded first.
-    RenownStanding.cached().set(
+    RenownStanding._putForTesting(
       RenownStanding.key('/platform/agent/Avatar/tester', COMPACT_WIDE),
       3
     );
@@ -215,7 +215,7 @@ describe('Avatar standing figures — projection', () => {
    */
   it('⭐ carries a measured zero — the absence above is not "falsy"', () => {
     const avatar = makeAvatar('tester');
-    RenownStanding.cached().set(
+    RenownStanding._putForTesting(
       RenownStanding.key('/platform/agent/Avatar/tester', COMPACT_WIDE),
       0
     );

@@ -634,7 +634,7 @@ act). Re-decide it rather than inherit it.
 
 # ⭐ PROGRESS — read this before the kill list above
 
-**Ceiling: 563 → 372.** 115 statics declared `@internal`, **38** gates
+**Ceiling: 563 → 343.** 144 statics declared `@internal`, **38** gates
 green, tsc clean, eslint 0 errors, build clean. Branch
 `build/lib-statics`, no MR opened.
 
@@ -781,6 +781,108 @@ the other 36. It stays until that conversation.
 | `ContractApi` | `Condition.matchesItem` |
 | `BoundaryApi` | ⚠ `Lock.mintKeyway` — **re-decide, do not inherit**; the user has noted `Lock` was the agent's call and is not precedent |
 | **no home** | `BlendLabel.isEdible`/`toxicityOf` (metabolism has no Api), `DialogueEffectRegistry.register` (a registry, not an Api question) |
+
+## ✅ The registry/cache cluster — RULED AND BUILT (2026-09-14)
+
+**Ceiling 372 → 343.** ⚠ First: the "~37 statics in one cluster" figure
+was wrong. Read against the bodies it is **36, and four different
+things**, two of which were already-ruled categories I had misfiled.
+
+| group | n | what it actually is |
+|---|---|---|
+| **A · sync read-index on a `Document`** | 27 | `AccountBalance` 8 · `DescriptorBank` 4 · `SupplyAggregate` 4 · `Renown`/`Producer`/`ParticipationStanding` 3×3 · `AppSettings` 2 |
+| **B · registration seams** | 6 | `DialogueEffectRegistry` 3 · `Construction.fabric`/`fabricKeys` 2 · `Quantity.registerTagTable` 1 |
+| **C · roster queries over live Stuff** | 2 | `MaturationProfile.byKey`/`cultureForStrain` — `findByPathGlob` finders, **no cache at all** |
+| **D · misfiled** | 2 | `WaybillRegistry.legsOf` is pure string arithmetic; `DefaultCalendar.singleton()` is a lazy getter |
+
+### ⭐⭐ The two findings that decided group A
+
+1. **The warm-holder singleton already exists** for three of them.
+   `RenownStandings`, `ProducerStandings` and `ParticipationStandings` are
+   `PostRegistrationMixin` Ideas whose `postRegister` calls
+   `RenownStanding.warm()`, with `canEvict` / `canDestruct` vetoes. So the
+   shape was a **split-brain**: the singleton owned the lifecycle, the
+   Document static owned the state.
+2. ⚠⚠ **The index cannot live on the `XLogic` singleton** — the
+   obvious-looking home. A logic singleton is *stateless by construction*
+   so `dest` can reload it, and the next `singletonSync` builds a fresh
+   one. A warmed index there would be **silently dropped on every hot
+   reload**. Recorded on `WarmedIndex` so nobody re-derives it.
+
+### What shipped: `lib/persistence/WarmedIndex.ts`
+
+A value object owning the **storage** — the map, the atomic
+`replaceWith`, `get`/`put`/`remove`, and a `warmed` flag that separates
+*"empty because the world is fresh"* from *"empty because boot order is
+wrong"*.
+
+⭐ It does **not** own the warm, and that is the design, not a shortcut.
+Each warm carries the invariant that is the point of its subsystem:
+`SupplyAggregate` SUMS duplicate rows rather than taking the last (the
+figure is the money supply, and last-wins silently dropped money);
+`AccountBalance` THROWS on a currency-less row rather than running the
+world on money whose denomination nobody knows; the standings join a
+composite `subject|scope` key. Folding those into one loop would fold
+away the three things worth reading.
+
+⭐ **The best thing it bought was not the deduplication.**
+`AccountBalance` kept `_cache` (balance) beside `_currencyCache`
+(currency), keyed identically, with a comment calling the split
+deliberate. Two maps can disagree about which accounts exist — and both
+aggregates (`cachedTotalsByCurrency`, `cachedOverdraftByCurrency`) read
+both. One index, one value shape, invariant gone.
+
+⚠ And `cached()` now returns a `ReadonlyMap`, which **caught four tests
+writing standings straight through the read accessor**
+(`RenownStanding.cached().set(…)`). A read surface a caller can mutate is
+not a read surface; those are a named, test-gated `_putForTesting` now.
+
+### ⛔ Why NOT the mixin / base-class shape
+
+The option was previewed as `class RenownStanding extends
+WarmedIndex(Document)` promising −27 statics. Two problems, both found
+while building:
+
+1. ⚠⚠ **The −27 would have come from the GATE'S EXCLUSION, not from a
+   fix.** `check-lib-statics` skips "statics inside a mixin factory's
+   returned class expression" — *"out of scope by definition, not by
+   oversight"*. Composing the mixin would move 27 statics behind that
+   exclusion while leaving them exactly as callable and exactly as
+   invisible. The ceiling would have fallen for a reason that is not the
+   reason the ceiling exists.
+2. A mixin over `Document` carries no `_mixinName` and is never walked by
+   `queryMixins` — a **new module shape**, which CLAUDE.md says to get
+   sign-off for. The value object fits the taxonomy's *named
+   value-object* row with nothing to argue about.
+
+So: the substrate kills the duplication, and the **`@internal` marking
+does the ceiling work honestly**, each one naming the Api door that
+replaced it (`BankingApi.balanceOf`, `RenownApi.renownOf`,
+`ConsumerApi.participationOf`, `ProducerApi.producerOf`, `AppApi.setting`).
+
+### The two that do NOT fit, and why it is written at their site
+
+- **`AppSettings`** caches ONE ROW, not an index — the "index" would have
+  a single entry under a constant key. Forcing the shape costs a real
+  indirection to buy a false uniformity.
+- **`DescriptorBank`** is **lazy-by-key** (`find({key})` on a miss,
+  memoised) plus a boot prime, not warm-the-whole-collection. A bank is a
+  big authored row and most worlds touch three; the index shape would
+  load every bank at boot to serve a read that already answers in one
+  query.
+
+### Groups B, C, D
+
+- **B → `@internal`, no door.** All six are `postRegister` registration
+  seams. ⚠ Including `DialogueEffectRegistry.register`, which a PACK
+  calls (terminus's `Realtor`): pack `src/` is code at the capability
+  rung, not content, so a pack caller does not make a registration seam
+  something a content author reaches for.
+- **C → they stay.** Finders returning their own class over the live
+  population — the record-finder shape one layer up from Documents. ⭐ A
+  small widening of what was approved (Documents only), flagged as such.
+- **D → they stay.** Both fall in categories already ruled off the table;
+  including them in the cluster was my error.
 
 ## ⚠ Controller tests skip the BINDER — four suites and counting
 
