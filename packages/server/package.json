@@ -28,6 +28,7 @@
     "test:watch": "vitest",
     "test:escape": "vitest run src/mud/lib/sandbox/__tests__/escape",
     "bench": "tsx scripts/bench-suite.ts",
+    "formulae": "tsx scripts/check-formulae.ts",
     "docs": "typedoc",
     "docs:project": "tsx scripts/project-author-surface.ts",
     "docs:clean": "rm -rf docs/api",
