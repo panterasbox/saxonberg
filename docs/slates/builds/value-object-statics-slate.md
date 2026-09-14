@@ -1,6 +1,8 @@
 # `lib/` statics — `callable == visible` is broken in 159 classes
 
-> **Status: ⭐ ABSORBED-IN-PRACTICE** — the invisible-surface problem is
+> **Status: PARTIAL — scoped for the next session** (see the final
+> section, *The remaining scope*, which is written to survive a
+> compaction). Was: ⭐ ABSORBED-IN-PRACTICE — the invisible-surface problem is
 > fixed; the relocation half was examined family by family and mostly
 > should not happen (see the last section). `lint:lib-statics` sits in the
 > derived family at **ceiling 462**, and its job from here is stopping
@@ -429,3 +431,83 @@ itself.
   [concealment slate](../tails/concealment-detection-slate.md)
 - `SchedulerApi` → `ActivityApi`, and the rest of
   [api-normalization](./api-normalization-slate.md) § 6.6
+
+---
+
+# ⭐⭐⭐ The remaining scope — written to survive a compaction
+
+**Census at this point: 433 public statics · 75 declared `@internal` ·
+ceiling 433.** Ruled OFF the table by the user (2026-09-14): the **71
+record finders** on `Document` subclasses, and the **193 pure
+value-arithmetic** statics (model namespaces — `Contamination.growthRate(
+behavior, tempK, aw)` and its kin, scalars in, scalar out, no receiver to
+put the verb on). Everything below is on the table.
+
+⚠ **Read this first: my classifier was wrong in one direction, twice.**
+Both tests read the *signature's first parameter*, so a static can touch
+the world through a **later argument** (6 found) or through its **body**
+(9 found) and still be filed "pure". A third error runs the other way:
+the name heuristic (`resolve|find|load|…`) filed **pure functions** as
+world-reaching. Any count below carries that uncertainty; re-derive
+before trusting, and prefer reading the body over the signature.
+
+## The inventory, decomposed
+
+### 1 · Known pattern, no decision needed (≈11)
+
+The gauge shape — a value bound to what it measures — is proven twice in
+this build (`new Freshness(slot).load()`, `new Lock(kw, tech).issueKeyTo(holder)`).
+
+| item | n | move |
+|---|---|---|
+| `Condition.matchesItem/holdsFor/contributionOf(data, item: Stuff)` | 3 | `new Condition(data).matchesItem(item)` |
+| `EmoteGrammarRunner.bind/render(emote, …, speaker: Stuff)` | 2 | `new EmoteGrammarRunner(emote).bind(…)` |
+| `Freshness.hostTemperatureK` · `Contamination.hostTemperatureK(host)` | 2 | thin thermal reads → the thermal mixin |
+| ⚠ **never examined** — `Suppressions.fieldAt(place)`, `DormThemes.applyTo(room)`, `TravelNodes.of(o)` | 3 | ⭐ `TravelNodes.of` has ~129 call sites and looks like a **narrowing helper**, not a verb — check before touching |
+| registry/cache mutators — `Construction.registerFabric`/`clearFabrics`, `Quantity.registerTagTable`, `Appearance.clearMemo`, `NameBank.clearCache`, `DialogueEffectRegistry.register` | 6 | module-level mutable state; a **real registry singleton**, not a class with a `Map` |
+
+### 2 · Needs a decision first (≈20)
+
+| item | n | the question |
+|---|---|---|
+| async persistence lookups — `NameBank.byKey`/`resolve`, `CreditRouting.resolve`, `OuterWarren.conditionOf`/`admitFor`, `HoldingWarren.entryRowOf`, `LaneCatalogue.exitBetween`, `Census.takeCensus` | 7 | are these record finders by another name (→ approved, stay) or Api surface? **They are not `Document` subclasses**, which is the only reason they are not already settled |
+| singleton accessors — `DormWarren.resolve()`, `WikiRegistry.instance()`, `Realtor.offers()` | 3 | `X.resolve(): Promise<X>` is a singleton getter. `StuffApi.singletonSync` is the sanctioned path — do these route through it? |
+| controller statics — `EnrollController.loadConfig`, `LeaseController.ascentRefusal`, `Login.generateGuestName` | 3 | controller-internal helpers; `private` or `@internal` unless a sibling calls them |
+| settings/idiom reads — `Currency.compact`, `ConcealmentLevels.hiddenDefault` (`AppApi`), `Account.newId` (`SecurityApi.uuid`), `Light.bandFor` (`QuantityApi`) | 4 | ⭐ `Account.newId` is the same shape as `Lock.mintKeyway`, which **stayed**. Is reading a dial "the world"? |
+| genuinely world-reading — `Freshness.nowSeconds`, `Appearance.currentGeneration` (clock), `Contamination.behaviorOf`, `BankingControllerBase.businessNamed` (registry) | 4 | these read the live world from a "pure" signature |
+
+### 3 · Misclassified — probably belong with the 193 (4)
+
+`AimResolution.resolve`, `Sharpness.resolve`, `GroundCharacter.resolve`,
+`Sections.find` — caught by the **name** heuristic, not behaviour. Read
+the bodies; if pure, they are settled and the count drops.
+
+### 4 · The 36 vocabulary guards — an unruled widening
+
+`Construction` ×4, `Channels` ×3, `Blessing`/`MagicGrid`/`ConcealmentLevels`/
+`Account`/`Dose` ×2 each, then singles. ⚠ The user approved *"leave the
+factories"*; **guards and lookups were my extension and were never
+ruled on**. If cut back to construction-only, these 36 move.
+
+## ⭐ Recommended order: the HARD ones first
+
+Not the easy sells. The evidence from this build is unambiguous — every
+mechanical batch (rungs 2 and 3) moved the number and taught nothing,
+while every hard case surfaced a structural fact the codebase needed:
+
+- `Character`'s mixin stack is **at TypeScript's instantiation limit**
+  (one more compiles, two collapse it to `never`);
+- `MakerMixin`/`CasterMixin` are **augment-gated**, so knowledge on them
+  would vanish off-shift;
+- `BoundaryApi` is in `lint:object-verbs`' exempt list, which I misread
+  as **permission** rather than an accommodation;
+- the affordance resolver's `pending-operand` check **ignored `default:`**,
+  and would have demoted every defaulted-slot verb game-wide;
+- `requires:` steers the **scope chain**, which is the whole subject of
+  [explicit-targeting-slate](./explicit-targeting-slate.md).
+
+⭐ And the practical argument: the hard ones need **conversation**, which
+is cheap while the context is rich and expensive after a compaction. The
+mechanical ones (§1) can be executed from this document alone.
+
+**So: decide §2 and §4 in conversation, then run §1 and §3 unattended.**
