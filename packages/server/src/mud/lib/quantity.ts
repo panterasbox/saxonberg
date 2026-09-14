@@ -689,6 +689,8 @@ export class Quantity<U extends Unit> {
    * single-vocabulary units like `kg` or `lux`. Units with
    * multiple vocabularies (`K`'s color vs thermal) register each
    * scale by an explicit name.
+   * @internal one production caller plus the tests that white-box it — not author surface.
+   *
    */
   public static registerTagTable(
     unit: Unit,

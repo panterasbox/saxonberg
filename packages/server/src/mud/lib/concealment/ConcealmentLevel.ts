@@ -161,6 +161,8 @@ export class ConcealmentLevels {
    * The band a legacy `Exit.hidden: true` migrates to — the
    * `concealment.hiddenDefaultLevel` dial, defaulting to `hidden`. Never
    * `obvious` (a hidden exit must be concealed).
+   * @internal one production caller plus the tests that white-box it — not author surface.
+   *
    */
   public static hiddenDefault(): ConcealmentLevel {
     try {

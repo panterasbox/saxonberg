@@ -63,6 +63,8 @@ export class Sharpness {
    * Resolve the sharpness scalar in `(0, 1]`. `f(competence)` interpolates
    * `min`→`max` across the band ranks; `g(composure)` multiplies (≡ 1 when
    * absent).
+   * @internal one production caller plus the tests that white-box it — not author surface.
+   *
    */
   static resolve(
     inputs: SharpnessInputs,

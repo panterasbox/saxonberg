@@ -240,6 +240,8 @@ export class Condition {
    * {@link Creature} (strict possession: still-carried is not delivered),
    * and additionally accepts a direct `restingOn` surface match.
    * Viewer-blind by construction — engine code, no perception gate.
+   * @internal one production caller plus the tests that white-box it — not author surface.
+   *
    */
   public static holdsFor(data: ConditionData, item: Stuff): boolean {
     if (!Condition.matchesItem(data, item)) return false;

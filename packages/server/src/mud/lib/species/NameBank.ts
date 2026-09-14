@@ -67,6 +67,8 @@ export class NameBank {
    * Drop the resolution cache. Called by the installer after a content
    * pack writes any name-bank change (so the edit reaches the next
    * char-gen suggest), and a test seam.
+   * @internal one production caller plus the tests that white-box it — not author surface.
+   *
    */
   static clearCache(): void {
     NameBank.#cache = null;

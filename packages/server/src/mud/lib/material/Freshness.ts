@@ -295,6 +295,8 @@ export class Freshness {
    * ⭐ `moisture: 1, solute: 0` is the **identity**. That is why every row
    * already in the world reads exactly as it did before the cure axis
    * existed, and it is pinned by a test rather than assumed.
+   * @internal one production caller plus the tests that white-box it — not author surface.
+   *
    */
   public static waterActivityOf(
     material: Material,
@@ -378,6 +380,8 @@ export class Freshness {
    * rate for `tempK`. Closed-form, so a week-long gap costs the same as a
    * minute — logistic growth while the rate is positive, exponential death
    * while it is negative.
+   * @internal one production caller plus the tests that white-box it — not author surface.
+   *
    */
   public static advance(
     load: number,
@@ -493,6 +497,8 @@ export class Freshness {
    * payload carrying only the ptomaine would silently drop the food's real
    * nutrition. Returns the payload unchanged (possibly `null`) when the
    * load has earned no dose at all.
+   * @internal one production caller plus the tests that white-box it — not author surface.
+   *
    */
   public static withDose(
     payload: BulkPayload | null,
@@ -650,7 +656,10 @@ export class Freshness {
   }
 
   /** Game-seconds now, or `null` when no world clock (pre-boot / tests). */
-  public static nowSeconds(): number | null {
+  /**
+   * @internal one caller outside this file, plus this module — not author surface.
+   */
+  static nowSeconds(): number | null {
     if (!StuffApi.findByTemplatePath(TemplatePaths.worldClockRegistry)) {
       return null;
     }

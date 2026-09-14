@@ -75,6 +75,9 @@ export class BlendLabel {
   }
 
   /** The nutrient routing tags — the union of the ingredients'. */
+  /**
+   * @internal one production caller plus the tests that white-box it — not author surface.
+   */
   public static nutrientsOf(
     payload: BulkPayload | null,
     blend: Material | null,
@@ -93,6 +96,8 @@ export class BlendLabel {
    * scaled by its **servings** — which is why the composition carries
    * shares and not just an ordered list. A blend that is nine parts water
    * and one part stock is not a bowl of stock.
+   * @internal one production caller plus the tests that white-box it — not author surface.
+   *
    */
   public static amountsOf(
     payload: BulkPayload | null,
@@ -122,6 +127,8 @@ export class BlendLabel {
    * here only because this is the class that already walks the
    * composition. If a third composition-derived reading appears that is
    * neither label nor tag, the walk wants its own home.
+   * @internal one production caller plus the tests that white-box it — not author surface.
+   *
    */
   public static tagsOf(
     payload: BulkPayload | null,

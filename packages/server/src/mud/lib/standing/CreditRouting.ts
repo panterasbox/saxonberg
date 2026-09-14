@@ -49,6 +49,8 @@ export class CreditRouting {
    * `locationTemplatePath`: the covering zone's author, gated to released
    * content. Returns `[]` when there is no covering zone, the zone is
    * unreleased, or the zone has no recorded author (engine / unauthored).
+   * @internal one production caller plus the tests that white-box it — not author surface.
+   *
    */
   static async resolve(
     locationTemplatePath: string

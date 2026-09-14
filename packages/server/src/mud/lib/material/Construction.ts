@@ -418,6 +418,9 @@ export class Construction {
   }
 
   /** Drop the whole textile registry — the HMR / go-live re-warm seam. */
+  /**
+   * @internal one production caller plus the tests that white-box it — not author surface.
+   */
   public static clearFabrics(): void {
     FABRICS.clear();
   }

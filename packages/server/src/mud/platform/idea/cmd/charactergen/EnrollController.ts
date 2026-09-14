@@ -791,6 +791,9 @@ export default class EnrollController extends CommandController<EnrollModel> {
     StuffApi.destruct(login);
   }
 
+  /**
+   * @internal one caller outside this file, plus this module — not author surface.
+   */
   static loadConfig(): CharGenConfig {
     if (EnrollController.#config) return EnrollController.#config;
     const parsed = SourceTreeApi.readYamlResource<CharGenConfig>(

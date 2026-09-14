@@ -304,6 +304,8 @@ export class Expression {
    * Returns the infix result (boolean / number / string / `$var`
    * value) for an infix expression, or the `StuffList` for an MQL query
    * (empty list when nothing matched — falsy).
+   * @internal one production caller plus the tests that white-box it — not author surface.
+   *
    */
   static evaluate(
     source: string,

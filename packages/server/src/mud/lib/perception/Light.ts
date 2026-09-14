@@ -200,6 +200,8 @@ export class Light {
    * Throws if the lux table isn't registered (test setup gap) or if
    * the registered tags don't match `LightBand` (content-side bug —
    * the YAML tag list must equal the typed union by construction).
+   * @internal one production caller plus the tests that white-box it — not author surface.
+   *
    */
   public static bandFor(luxValue: number): LightBand {
     const tag = Quantity.of(luxValue, 'lux').tag();

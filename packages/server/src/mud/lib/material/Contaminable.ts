@@ -469,7 +469,10 @@ export class Contamination {
   }
 
   /** The temperature a gauge on this host reads (the spoilage rule). */
-  public static hostTemperatureK(host: Stuff): number {
+  /**
+   * @internal one caller outside this file, plus this module — not author surface.
+   */
+  static hostTemperatureK(host: Stuff): number {
     if (MixinApi.isThermal(host)) {
       try {
         return host.getTemperature().rawValue();

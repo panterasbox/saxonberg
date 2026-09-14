@@ -133,6 +133,9 @@ export class Sections {
   }
 
   /** The section with `anchor`, or null. */
+  /**
+   * @internal one production caller plus the tests that white-box it — not author surface.
+   */
   static find(body: string, anchor: string): SectionSpan | null {
     const want = anchor.trim().toLowerCase();
     return Sections.list(body).find((s) => s.anchor === want) ?? null;

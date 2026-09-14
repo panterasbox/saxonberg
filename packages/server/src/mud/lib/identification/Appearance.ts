@@ -252,6 +252,9 @@ export class Appearance {
   static #descriptorMemo = new Map<string, string>();
 
   /** Drop the memo — `PackApi.sync` after a bank write, and a test seam. */
+  /**
+   * @internal one production caller plus the tests that white-box it — not author surface.
+   */
   public static clearMemo(): void {
     Appearance.#descriptorMemo.clear();
   }
