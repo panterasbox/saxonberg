@@ -49,7 +49,7 @@ async function asOwner<T>(owner: Stuff, fn: () => Promise<T>): Promise<T> {
 
 function charge(amount: number): Charge {
   return {
-    amount: Money.of(amount, Currency.compact()),
+    amount: Money.of(amount, BankingApi.compactCurrency()),
     reason: "purchase",
     presented: true,
     payeeAccountId: MERCHANT,
@@ -67,13 +67,13 @@ describe("Wallet routing", () => {
     ContainmentApi.move(card, alice as never);
 
     const acctA = await asOwner(alice, () =>
-      BankingApi.openAccount(BANK_A, "goodkin", Currency.compact())
+      BankingApi.openAccount(BANK_A, "goodkin", BankingApi.compactCurrency())
     );
     const acctB = await asOwner(alice, () =>
-      BankingApi.openAccount(BANK_B, "vionne", Currency.compact())
+      BankingApi.openAccount(BANK_B, "vionne", BankingApi.compactCurrency())
     );
-    await BankingApi.mint(acctA, Money.of(1000, Currency.compact()));
-    await BankingApi.mint(acctB, Money.of(1000, Currency.compact()));
+    await BankingApi.mint(acctA, Money.of(1000, BankingApi.compactCurrency()));
+    await BankingApi.mint(acctB, Money.of(1000, BankingApi.compactCurrency()));
 
     // the one credential links both accounts; first opened is active
     const pay = card.getCredential("payment")!;

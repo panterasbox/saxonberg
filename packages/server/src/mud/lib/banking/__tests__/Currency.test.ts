@@ -12,6 +12,7 @@
 import { describe, it, expect, afterEach } from "vitest";
 import { Currency } from "../Currency";
 import type { CurrencyRecord } from "../Currency";
+import { BankingApi } from '../../../api/banking';
 
 const ZM = "zorkmid";
 
@@ -137,12 +138,12 @@ describe("Currency — the compact-currency accessor", () => {
   it("falls back to the sole registered currency when unwarmed", () => {
     // Currency-agnostic, not a zorkmid branch: with one currency registered
     // there is nothing to guess between.
-    expect(Currency.compact()).toBe(ZM);
+    expect(BankingApi.compactCurrency()).toBe(ZM);
   });
 
   it("refuses to guess once a second currency exists", () => {
     Currency._registerForTesting(FIXTURE);
-    expect(() => Currency.compact()).toThrow(/cannot be guessed/);
+    expect(() => BankingApi.compactCurrency()).toThrow(/cannot be guessed/);
   });
 });
 

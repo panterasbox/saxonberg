@@ -124,11 +124,11 @@ async function fundedAvatar(path: string, minor: number): Promise<TestGiver> {
   const av = makeStuffAtPath(() => new TestGiver(), path);
   const card = makeStuff(() => new PaymentCard());
   ContainmentApi.move(card as never, av as never);
-  await asOwner(av, () => BankingApi.openAccount("goodkin", "goodkin", Currency.compact()));
+  await asOwner(av, () => BankingApi.openAccount("goodkin", "goodkin", BankingApi.compactCurrency()));
   if (minor > 0) {
     const bank = StuffApi.findByTemplatePath<BankCounter>(BANK)!;
     const cash = await asOwner(av, () =>
-      BankingApi.issueCash(av as never, Money.of(minor, Currency.compact())),
+      BankingApi.issueCash(av as never, Money.of(minor, BankingApi.compactCurrency())),
     );
     await asOwner(av, () => bank.deposit(cash as never));
   }
@@ -209,7 +209,7 @@ describe("Consignment — sell loop over real ownership", () => {
     expect(BankingApi.balanceOf(aliceAcct).minor).toBe(7); // remainder
     expect(BankingApi.balanceOf(storeAcct).minor).toBe(1); // commission
     expect(shelf.activeListingCount("/platform/agent/Avatar/alice")).toBe(0); // listing cleared
-    expect(BankingApi.reconcile(Currency.compact()).balanced).toBe(true);
+    expect(BankingApi.reconcile(BankingApi.compactCurrency()).balanced).toBe(true);
   });
 
   it("consign without a bank account nudges; nothing moves", async () => {

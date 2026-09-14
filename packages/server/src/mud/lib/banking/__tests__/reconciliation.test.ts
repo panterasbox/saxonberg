@@ -84,7 +84,7 @@ describe("Reconciliation invariant", () => {
     const worker = avatar("/platform/agent/Avatar/wenna");
 
     const expectBalanced = (supply: number) => {
-      const r = BankingApi.reconcile(Currency.compact());
+      const r = BankingApi.reconcile(BankingApi.compactCurrency());
       expect(r.balanced).toBe(true);
       expect(r.supply).toBe(supply);
       expect(r.accountTotal + r.circulatingCoin).toBe(supply);
@@ -92,42 +92,42 @@ describe("Reconciliation invariant", () => {
 
     // 1. issue cash into Alice's hand → circulating
     const cash = (await asOwner(alice, () =>
-      BankingApi.issueCash(alice as never, Money.of(500, Currency.compact()))
+      BankingApi.issueCash(alice as never, Money.of(500, BankingApi.compactCurrency()))
     )) as Stuff & Stackable;
     expectBalanced(500);
-    expect(BankingApi.reconcile(Currency.compact()).circulatingCoin).toBe(500);
+    expect(BankingApi.reconcile(BankingApi.compactCurrency()).circulatingCoin).toBe(500);
 
     // 2. open an account + deposit the whole stack → coin into the vault
     const aliceAcct = await asOwner(alice, () =>
-      BankingApi.openAccount("goodkin", "goodkin", Currency.compact())
+      BankingApi.openAccount("goodkin", "goodkin", BankingApi.compactCurrency())
     );
     await asOwner(alice, () => bank.deposit(cash));
     expect(BankingApi.balanceOf(aliceAcct).minor).toBe(500);
-    expect(BankingApi.reconcile(Currency.compact()).circulatingCoin).toBe(0); // all in the vault
+    expect(BankingApi.reconcile(BankingApi.compactCurrency()).circulatingCoin).toBe(0); // all in the vault
     expectBalanced(500);
 
     // 3. withdraw 200 → coin back into circulation
-    await asOwner(alice, () => bank.withdraw(Money.of(200, Currency.compact())));
-    expect(BankingApi.reconcile(Currency.compact()).circulatingCoin).toBe(200);
+    await asOwner(alice, () => bank.withdraw(Money.of(200, BankingApi.compactCurrency())));
+    expect(BankingApi.reconcile(BankingApi.compactCurrency()).circulatingCoin).toBe(200);
     expectBalanced(500);
 
     // 4. CB mints 1000 to a merchant account
-    await BankingApi.mint("merchant", Money.of(1000, Currency.compact()));
+    await BankingApi.mint("merchant", Money.of(1000, BankingApi.compactCurrency()));
     expectBalanced(1500);
 
     // 5. a transfer + a wage (balance-neutral to supply)
     await asOwner(alice, () =>
-      BankingApi.transfer(aliceAcct, "merchant", Money.of(100, Currency.compact()))
+      BankingApi.transfer(aliceAcct, "merchant", Money.of(100, BankingApi.compactCurrency()))
     );
-    await asOwner(worker, () => BankingApi.openAccount("goodkin", "goodkin", Currency.compact()));
-    await BankingApi.payWage("merchant", "/platform/agent/Avatar/wenna", Money.of(50, Currency.compact()));
+    await asOwner(worker, () => BankingApi.openAccount("goodkin", "goodkin", BankingApi.compactCurrency()));
+    await BankingApi.payWage("merchant", "/platform/agent/Avatar/wenna", Money.of(50, BankingApi.compactCurrency()));
     expectBalanced(1500);
 
     // 6. drain 100 from the merchant → supply shrinks
-    await BankingApi.drain("merchant", Money.of(100, Currency.compact()));
+    await BankingApi.drain("merchant", Money.of(100, BankingApi.compactCurrency()));
     expectBalanced(1400);
 
     // money supply query
-    expect(BankingApi.moneySupply(Currency.compact()).minor).toBe(1400);
+    expect(BankingApi.moneySupply(BankingApi.compactCurrency()).minor).toBe(1400);
   });
 });

@@ -178,15 +178,15 @@ describe("Goodkin — the new-player money arc", () => {
     );
     const counter = makeCounter();
     const alice = avatar(ALICE);
-    await asOwner(alice, () => BankingApi.openAccount("goodkin", "goodkin", Currency.compact()));
+    await asOwner(alice, () => BankingApi.openAccount("goodkin", "goodkin", BankingApi.compactCurrency()));
     // Coin in the till, backed by the branch's own operating balance.
     expect(counter.getTillLiquidity().minor).toBe(500);
-    const branch = await BankingApi.ensureVenueAccount(COUNTER_PATH, "goodkin", "goodkin", Currency.compact());
+    const branch = await BankingApi.ensureVenueAccount(COUNTER_PATH, "goodkin", "goodkin", BankingApi.compactCurrency());
     expect(BankingApi.balanceOf(branch).minor).toBe(500);
-    expect(BankingApi.reconcile(Currency.compact()).balanced).toBe(true);
+    expect(BankingApi.reconcile(BankingApi.compactCurrency()).balanced).toBe(true);
     // Idempotent — a second customer's open doesn't re-seed the float.
     const bob = avatar("/platform/agent/Avatar/bob");
-    await asOwner(bob, () => BankingApi.openAccount("goodkin", "goodkin", Currency.compact()));
+    await asOwner(bob, () => BankingApi.openAccount("goodkin", "goodkin", BankingApi.compactCurrency()));
     expect(counter.getTillLiquidity().minor).toBe(500);
   });
 
@@ -195,17 +195,17 @@ describe("Goodkin — the new-player money arc", () => {
     const alice = avatar(ALICE);
     // Arrive with the onboarding 20 (four 5-credit crowns).
     const cash = (await asOwner(alice, () =>
-      BankingApi.issueCash(alice as never, Money.of(20, Currency.compact())),
+      BankingApi.issueCash(alice as never, Money.of(20, BankingApi.compactCurrency())),
     )) as Stuff;
     const acct = await asOwner(alice, async () => {
-      const id = await BankingApi.openAccount("goodkin", "goodkin", Currency.compact());
+      const id = await BankingApi.openAccount("goodkin", "goodkin", BankingApi.compactCurrency());
       await counter.deposit(cash as never);
       return id;
     });
     expect(BankingApi.balanceOf(acct).minor).toBe(20);
     expect(counter.getTillLiquidity().minor).toBe(20);
     // Withdraw it back as physical coin (till makes exact change).
-    await asOwner(alice, () => counter.withdraw(Money.of(20, Currency.compact())));
+    await asOwner(alice, () => counter.withdraw(Money.of(20, BankingApi.compactCurrency())));
     expect(BankingApi.balanceOf(acct).minor).toBe(0);
     expect(counter.getTillLiquidity().minor).toBe(0);
     expect(await BankingApi.corpoKeyOf(acct)).toBe("goodkin");
@@ -222,20 +222,20 @@ describe("Goodkin — the new-player money arc", () => {
     const counter = makeCounter();
     const alice = avatar(ALICE);
     const cash = (await asOwner(alice, () =>
-      BankingApi.issueCash(alice as never, Money.of(100, Currency.compact())),
+      BankingApi.issueCash(alice as never, Money.of(100, BankingApi.compactCurrency())),
     )) as Stuff;
     const acct = await asOwner(alice, async () => {
-      const id = await BankingApi.openAccount("goodkin", "goodkin", Currency.compact());
+      const id = await BankingApi.openAccount("goodkin", "goodkin", BankingApi.compactCurrency());
       await counter.deposit(cash as never);
       return id;
     });
     // Over the stranger cap (10) → refused.
     await expect(
-      asOwner(alice, () => counter.withdraw(Money.of(25, Currency.compact()))),
+      asOwner(alice, () => counter.withdraw(Money.of(25, BankingApi.compactCurrency()))),
     ).rejects.toThrow(/limit/);
     // Halloran enrols Alice into the Circle → the raised cap applies.
     expect(await BankingApi.enrollCircle(ALICE, "goodkin")).toBe(true);
-    await asOwner(alice, () => counter.withdraw(Money.of(25, Currency.compact())));
+    await asOwner(alice, () => counter.withdraw(Money.of(25, BankingApi.compactCurrency())));
     expect(BankingApi.balanceOf(acct).minor).toBe(75);
   });
 });

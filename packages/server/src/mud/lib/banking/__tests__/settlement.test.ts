@@ -53,9 +53,9 @@ async function fundedPayer(
   const card = makeStuffAtPath(() => new PaymentCard(), "/stuff/thing/PaymentCard");
   ContainmentApi.move(card, who as never);
   const accountId = await asOwner(who, () =>
-    BankingApi.openAccount(BANK_A, "goodkin", Currency.compact())
+    BankingApi.openAccount(BANK_A, "goodkin", BankingApi.compactCurrency())
   );
-  await BankingApi.mint(accountId, Money.of(funds, Currency.compact()));
+  await BankingApi.mint(accountId, Money.of(funds, BankingApi.compactCurrency()));
   return { who, accountId };
 }
 
@@ -111,10 +111,10 @@ describe("Settlement — cash (off-ledger) vs credential (on-ledger)", () => {
     const alice = avatar("/platform/agent/Avatar/alice");
     const bob = avatar("/platform/agent/Avatar/bob");
     coinsIn(alice, 100);
-    const supplyBefore = BankingApi.moneySupply(Currency.compact()).minor;
+    const supplyBefore = BankingApi.moneySupply(BankingApi.compactCurrency()).minor;
 
     const charge: Charge = {
-      amount: Money.of(40, Currency.compact()),
+      amount: Money.of(40, BankingApi.compactCurrency()),
       reason: "drinks",
       presented: false,
       payeeAccountId: "",
@@ -130,7 +130,7 @@ describe("Settlement — cash (off-ledger) vs credential (on-ledger)", () => {
     ) as Coin[];
     expect(bobCoins.reduce((n, c) => n + c.getQuantity(), 0)).toBe(40);
     // off-ledger: total supply unchanged (coin only moved)
-    expect(BankingApi.moneySupply(Currency.compact()).minor).toBe(supplyBefore);
+    expect(BankingApi.moneySupply(BankingApi.compactCurrency()).minor).toBe(supplyBefore);
   });
 
   it("credential clears on-ledger via the routed account", async () => {
@@ -140,11 +140,11 @@ describe("Settlement — cash (off-ledger) vs credential (on-ledger)", () => {
     );
     const bob = avatar("/platform/agent/Avatar/bob");
     const bobAcct = await asOwner(bob, () =>
-      BankingApi.openAccount(BANK_B, "vionne", Currency.compact())
+      BankingApi.openAccount(BANK_B, "vionne", BankingApi.compactCurrency())
     );
 
     const charge: Charge = {
-      amount: Money.of(200, Currency.compact()),
+      amount: Money.of(200, BankingApi.compactCurrency()),
       reason: "a round",
       presented: true, // the bar priced it
       payeeAccountId: bobAcct,
@@ -168,14 +168,14 @@ describe("Settlement — cash (off-ledger) vs credential (on-ledger)", () => {
     coinsIn(alice, 100);
     const bob = avatar("/platform/agent/Avatar/bob");
     const bobAcct = await asOwner(bob, () =>
-      BankingApi.openAccount(BANK_B, "vionne", Currency.compact())
+      BankingApi.openAccount(BANK_B, "vionne", BankingApi.compactCurrency())
     );
 
     // stated transfer by credential
     await asOwner(alice, () =>
       BankingApi.settle(
         {
-          amount: Money.of(150, Currency.compact()),
+          amount: Money.of(150, BankingApi.compactCurrency()),
           reason: "gift",
           presented: false,
           payeeAccountId: bobAcct,
@@ -190,7 +190,7 @@ describe("Settlement — cash (off-ledger) vs credential (on-ledger)", () => {
     await asOwner(alice, () =>
       BankingApi.settle(
         {
-          amount: Money.of(30, Currency.compact()),
+          amount: Money.of(30, BankingApi.compactCurrency()),
           reason: "cash gift",
           presented: false,
           payeeAccountId: bobAcct,
@@ -213,19 +213,19 @@ describe("Settlement — cash (off-ledger) vs credential (on-ledger)", () => {
     );
     const bob = avatar("/platform/agent/Avatar/bob");
     const bobAcct = await asOwner(bob, () =>
-      BankingApi.openAccount(BANK_B, "vionne", Currency.compact())
+      BankingApi.openAccount(BANK_B, "vionne", BankingApi.compactCurrency())
     );
     // the treasury account row is created on first credit by postTransaction
 
     await asOwner(alice, () =>
       BankingApi.settle(
         {
-          amount: Money.of(100, Currency.compact()),
+          amount: Money.of(100, BankingApi.compactCurrency()),
           reason: "taxed sale",
           presented: true,
           payeeAccountId: bobAcct,
           category: "sales",
-          splits: [{ accountId: TREASURY, amount: Money.of(10, Currency.compact()), category: "tax" }],
+          splits: [{ accountId: TREASURY, amount: Money.of(10, BankingApi.compactCurrency()), category: "tax" }],
         },
         { kind: "credential" }
       )

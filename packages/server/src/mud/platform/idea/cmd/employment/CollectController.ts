@@ -21,6 +21,7 @@ import TipJar from '../../../thing/TipJar';
 import Coin from '../../../thing/Coin';
 import { Currency } from "../../../../lib/banking/Currency";
 import { MqlApi } from '../../../../api/mql';
+import { BankingApi } from '../../../../api/banking';
 
 const TOPIC = 'act.deed';
 
@@ -86,7 +87,7 @@ export default class CollectController extends CommandController<CollectModel> {
 
     MessageApi.scene(giver)
       .topic(TOPIC)
-      .toSelf(Mml.compose`You scoop ${Money.of(took, Currency.compact()).render()} out of the tip jar.`)
+      .toSelf(Mml.compose`You scoop ${Money.of(took, BankingApi.compactCurrency()).render()} out of the tip jar.`)
       .toPeers(Mml.compose`${Mml.actor(giver)} empties the tip jar.`)
       .send();
   }

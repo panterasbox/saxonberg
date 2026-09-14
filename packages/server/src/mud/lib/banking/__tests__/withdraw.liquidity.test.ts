@@ -62,16 +62,16 @@ describe("Withdraw — till-liquidity bound (AC#13)", () => {
     const alice = makeStuffAtPath(() => new TestAvatar(), ALICE);
 
     const accountId = await asOwner(alice, () =>
-      BankingApi.openAccount(bank.getBank(), bank.getCorpoKey(), Currency.compact())
+      BankingApi.openAccount(bank.getBank(), bank.getCorpoKey(), BankingApi.compactCurrency())
     );
     // Credit the balance WITHOUT backing cash (a CB mint to the account) —
     // the account is solvent, but the till holds no coin.
-    await BankingApi.mint(accountId, Money.of(1000, Currency.compact()));
+    await BankingApi.mint(accountId, Money.of(1000, BankingApi.compactCurrency()));
     expect(BankingApi.balanceOf(accountId).minor).toBe(1000);
     expect(bank.getTillLiquidity().minor).toBe(0);
 
     await expect(
-      asOwner(alice, () => bank.withdraw(Money.of(100, Currency.compact())))
+      asOwner(alice, () => bank.withdraw(Money.of(100, BankingApi.compactCurrency())))
     ).rejects.toThrow(/till low/);
     // balance untouched by the refused withdrawal
     expect(BankingApi.balanceOf(accountId).minor).toBe(1000);
@@ -82,7 +82,7 @@ describe("Withdraw — till-liquidity bound (AC#13)", () => {
     const alice = makeStuffAtPath(() => new TestAvatar(), ALICE);
 
     const accountId = await asOwner(alice, () =>
-      BankingApi.openAccount(bank.getBank(), bank.getCorpoKey(), Currency.compact())
+      BankingApi.openAccount(bank.getBank(), bank.getCorpoKey(), BankingApi.compactCurrency())
     );
     // Float the branch with 50 physical coins (the till) ...
     const float = makeStuffAtPath(() => {
@@ -98,16 +98,16 @@ describe("Withdraw — till-liquidity bound (AC#13)", () => {
     float.quantity = 50;
     ContainmentApi.move(float, bank as never);
     // ... and credit a larger balance with no further cash.
-    await BankingApi.mint(accountId, Money.of(1000, Currency.compact()));
+    await BankingApi.mint(accountId, Money.of(1000, BankingApi.compactCurrency()));
 
     expect(bank.getTillLiquidity().minor).toBe(50);
     // 50 is coverable; 51 is not (till bound, not balance).
-    await asOwner(alice, () => bank.withdraw(Money.of(50, Currency.compact())));
+    await asOwner(alice, () => bank.withdraw(Money.of(50, BankingApi.compactCurrency())));
     expect(bank.getTillLiquidity().minor).toBe(0);
     expect(BankingApi.balanceOf(accountId).minor).toBe(950);
 
     await expect(
-      asOwner(alice, () => bank.withdraw(Money.of(1, Currency.compact())))
+      asOwner(alice, () => bank.withdraw(Money.of(1, BankingApi.compactCurrency())))
     ).rejects.toThrow(/till low/);
   });
 });

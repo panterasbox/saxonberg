@@ -214,7 +214,7 @@ export default class BuyController extends CommandController<BuyModel> {
         ? [
             {
               accountId: consignorPrimary,
-              amount: Money.of(remainder, Currency.compact()),
+              amount: Money.of(remainder, BankingApi.compactCurrency()),
               category: "consignment",
             },
           ]
@@ -263,7 +263,7 @@ export default class BuyController extends CommandController<BuyModel> {
       return null;
     }
     const charge: Charge = {
-      amount: Money.of(amount, Currency.compact()),
+      amount: Money.of(amount, BankingApi.compactCurrency()),
       reason,
       presented: true,
       payeeAccountId: account,
@@ -280,10 +280,10 @@ export default class BuyController extends CommandController<BuyModel> {
         return null;
       }
     }
-    if (taxable > 0) await BankingApi.remitDemoTax(account, Money.of(taxable, Currency.compact()));
+    if (taxable > 0) await BankingApi.remitDemoTax(account, Money.of(taxable, BankingApi.compactCurrency()));
     const tail = receipt.corpoKey
-      ? `(${Money.of(amount, Currency.compact()).render()}, ${receipt.corpoKey})`
-      : `(${Money.of(amount, Currency.compact()).render()})`;
+      ? `(${Money.of(amount, BankingApi.compactCurrency()).render()}, ${receipt.corpoKey})`
+      : `(${Money.of(amount, BankingApi.compactCurrency()).render()})`;
     return { tail, receipt };
   }
 

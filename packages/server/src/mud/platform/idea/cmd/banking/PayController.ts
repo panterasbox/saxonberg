@@ -90,7 +90,7 @@ export default class PayController extends BankingControllerBase<PayModel> {
     }
 
     const charge: Charge = {
-      amount: Money.of(minor, Currency.compact()),
+      amount: Money.of(minor, BankingApi.compactCurrency()),
       reason: `pay ${payee.getPresentation()}`,
       presented: false,
       payeeAccountId: payeeAccountId ?? "",
@@ -108,7 +108,7 @@ export default class PayController extends BankingControllerBase<PayModel> {
             : "from your account";
       MessageApi.scene(giver)
         .topic(TOPIC)
-        .toSelf(Mml.compose`You pay ${Money.of(minor, Currency.compact()).render()} to ${Mml.actor(payee)} ${how}.`)
+        .toSelf(Mml.compose`You pay ${Money.of(minor, BankingApi.compactCurrency()).render()} to ${Mml.actor(payee)} ${how}.`)
         .toPeers(Mml.compose`${Mml.actor(giver)} pays ${Mml.actor(payee)}.`)
         .send();
     } catch (err) {

@@ -32,32 +32,32 @@ describe("BankingApi — supply query + reconciliation", () => {
   afterEach(() => teardownBankingHarness());
 
   it("supply = Σ mints − Σ drains", async () => {
-    await BankingApi.mint("acct-a", Money.of(1000, Currency.compact()));
-    await BankingApi.mint("acct-b", Money.of(400, Currency.compact()));
-    await BankingApi.drain("acct-b", Money.of(150, Currency.compact()));
-    expect(BankingApi.moneySupply(Currency.compact()).minor).toBe(1250);
+    await BankingApi.mint("acct-a", Money.of(1000, BankingApi.compactCurrency()));
+    await BankingApi.mint("acct-b", Money.of(400, BankingApi.compactCurrency()));
+    await BankingApi.drain("acct-b", Money.of(150, BankingApi.compactCurrency()));
+    expect(BankingApi.moneySupply(BankingApi.compactCurrency()).minor).toBe(1250);
   });
 
   it("reconciles: supply == Σ account balances (Phase-1, no coin bridge)", async () => {
-    await BankingApi.mint("acct-a", Money.of(1000, Currency.compact()));
-    await BankingApi.float("acct-b", Money.of(500, Currency.compact()));
-    await BankingApi.drain("acct-a", Money.of(200, Currency.compact()));
+    await BankingApi.mint("acct-a", Money.of(1000, BankingApi.compactCurrency()));
+    await BankingApi.float("acct-b", Money.of(500, BankingApi.compactCurrency()));
+    await BankingApi.drain("acct-a", Money.of(200, BankingApi.compactCurrency()));
     // transfers conserve, so move some between accounts via two postings is
     // a Phase-2 op; here mint/drain/float already exercise both sign changes.
-    expect(BankingApi.moneySupply(Currency.compact()).minor).toBe(sumBalances());
+    expect(BankingApi.moneySupply(BankingApi.compactCurrency()).minor).toBe(sumBalances());
   });
 
   it("recomputeSupply rebuilds the headline from the ledger", async () => {
-    await BankingApi.mint("acct-a", Money.of(900, Currency.compact()));
-    await BankingApi.drain("acct-a", Money.of(100, Currency.compact()));
-    const before = BankingApi.moneySupply(Currency.compact()).minor;
+    await BankingApi.mint("acct-a", Money.of(900, BankingApi.compactCurrency()));
+    await BankingApi.drain("acct-a", Money.of(100, BankingApi.compactCurrency()));
+    const before = BankingApi.moneySupply(BankingApi.compactCurrency()).minor;
 
     // Corrupt the aggregate + drop the mirror; only the ledger is truth.
     col(Collections.BankSupply).clear();
     SupplyAggregate._resetForTesting();
-    expect(BankingApi.moneySupply(Currency.compact()).minor).toBe(0);
+    expect(BankingApi.moneySupply(BankingApi.compactCurrency()).minor).toBe(0);
 
     await BankingApi.recomputeSupply();
-    expect(BankingApi.moneySupply(Currency.compact()).minor).toBe(before);
+    expect(BankingApi.moneySupply(BankingApi.compactCurrency()).minor).toBe(before);
   });
 });

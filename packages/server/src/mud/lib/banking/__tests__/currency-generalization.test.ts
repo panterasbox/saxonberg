@@ -74,7 +74,7 @@ describe("⭐⭐ acceptance — the substrate does not know the zorkmid", () => 
     const tc = (minor: number): Money => Money.of(minor, TEST_CURRENCY);
 
     // The world's default currency IS the fixture now.
-    expect(Currency.compact()).toBe(TEST_CURRENCY);
+    expect(BankingApi.compactCurrency()).toBe(TEST_CURRENCY);
 
     // ── mint ────────────────────────────────────────────────────────────
     await BankingApi.mint("acct-a", tc(1000), "seed");

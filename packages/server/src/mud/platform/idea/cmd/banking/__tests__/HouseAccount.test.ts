@@ -124,7 +124,7 @@ async function makeBarBusiness(
   biz.operatingLocations = ["/stuff/test/bar/room"];
   biz.banksAt = BankingApi.defaultCustodianBank();
   const account = await EmploymentApi.operatingAccountOf(biz);
-  if (floatMinor > 0) await BankingApi.float(account, Money.of(floatMinor, Currency.compact()));
+  if (floatMinor > 0) await BankingApi.float(account, Money.of(floatMinor, BankingApi.compactCurrency()));
   return { biz, account };
 }
 
@@ -178,11 +178,11 @@ async function fundedGiver(path: string, minor: number): Promise<TestGiver> {
   g.setName(path.split("/").pop() ?? "someone");
   const card = makeStuff(() => new PaymentCard());
   ContainmentApi.move(card as never, g as never);
-  await asOwner(g, () => BankingApi.openAccount("goodkin", "goodkin", Currency.compact()));
+  await asOwner(g, () => BankingApi.openAccount("goodkin", "goodkin", BankingApi.compactCurrency()));
   if (minor > 0) {
     const bank = StuffApi.findByTemplatePath<BankCounter>(BANK)!;
     const cash = await asOwner(g, () =>
-      BankingApi.issueCash(g as never, Money.of(minor, Currency.compact())),
+      BankingApi.issueCash(g as never, Money.of(minor, BankingApi.compactCurrency())),
     );
     await asOwner(g, () => bank.deposit(cash as never));
   }
@@ -291,7 +291,7 @@ describe("the house account in the wallet (D6)", () => {
     });
     expect(BankingApi.balanceOf(account).minor).toBe(95);
     expect(BankingApi.balanceOf(storeAcct).minor).toBe(5);
-    expect(BankingApi.reconcile(Currency.compact()).balanced).toBe(true);
+    expect(BankingApi.reconcile(BankingApi.compactCurrency()).balanced).toBe(true);
   });
 
   it("⚠ regression: buy with a personal account stamps the player, even for a keeper", async () => {
@@ -380,7 +380,7 @@ describe("the house account in the wallet (D6)", () => {
     expect(await torch.chattelOwner()).toEqual({ kind: "player", templatePath: "/platform/agent/Avatar/pat" });
     expect(BankingApi.balanceOf(account).minor).toBe(17); // 20 − 15% commission
     expect(BankingApi.balanceOf(storeAcct).minor).toBe(3);
-    expect(BankingApi.reconcile(Currency.compact()).balanced).toBe(true);
+    expect(BankingApi.reconcile(BankingApi.compactCurrency()).balanced).toBe(true);
   });
 
   it("house refuses a non-staff giver (no wizard axis anywhere)", async () => {

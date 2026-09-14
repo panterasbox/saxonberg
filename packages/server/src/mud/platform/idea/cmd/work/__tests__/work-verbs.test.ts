@@ -153,15 +153,15 @@ describe("work verbs", () => {
       BankingApi.ensureVenueAccount(
         POSTER,
         BankingApi.defaultCustodianBank(),
-        "", Currency.compact()),
+        "", BankingApi.compactCurrency()),
     );
-    await BankingApi.mint(acct, Money.of(100, Currency.compact()));
+    await BankingApi.mint(acct, Money.of(100, BankingApi.compactCurrency()));
     // The courier is a player (the /platform/agent/Avatar/ namespace): players hold
     // their own accounts (never silently signed up at settle).
     await BankingApi.ensureVenueAccount(
       COURIER,
       BankingApi.defaultCustodianBank(),
-      "", Currency.compact());
+      "", BankingApi.compactCurrency());
   });
   afterEach(() => {
     vi.restoreAllMocks();

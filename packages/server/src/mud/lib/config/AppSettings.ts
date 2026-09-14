@@ -22,6 +22,7 @@ import { Document } from "../persistence/Document";
 import { Collections } from "../persistence/Collections";
 import { SecurityApi } from "../../api/security";
 import type { FieldMeta } from "../mixin";
+import { BankingApi } from '../../api/banking';
 
 /**
  * The blessed application-setting keys. Consumers reference these constants
@@ -240,7 +241,7 @@ export const AppSettingKeys = {
    * obligations in.** Policy data, not a property of the money: this is
    * where the zorkmid's "specialness" lives, so no code path compares a
    * currency to a literal (reserve status is functional, never decreed).
-   * Read only through `Currency.compact()`. See docs/subsystems/banking.md.
+   * Read only through `BankingApi.compactCurrency()`. See docs/subsystems/banking.md.
    */
   bankingCompactCurrency: "banking.compactCurrency",
   /**

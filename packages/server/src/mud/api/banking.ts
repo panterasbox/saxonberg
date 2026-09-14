@@ -55,6 +55,8 @@ import { HotReloadApi } from "./hot-reload";
 import { BankingLogic } from "../platform/idea/api/BankingLogic";
 import { fileURLToPath } from "url";
 import { SecurityApi } from './security';
+import { AppApi } from './app';
+import { AppSettingKeys } from '../lib/config/AppSettings';
 
 export { Money, Account, Currency };
 export type {
@@ -123,6 +125,36 @@ export class BankingApi {
   }
 
   /** Float liquidity into an account — convenience over {@link mint}. */
+  /**
+   * The currency a bare amount is denominated in — `banking.compactCurrency`
+   * when set, else the only registered currency.
+   *
+   * ⭐ Moved off `BankingApi.compactCurrency()`, which was a **settings read wearing a
+   * value class's name**: the answer comes from an `AppApi` dial and the
+   * registry, not from any one currency. 65 call sites across banking,
+   * retail, employment and six packs asked a value object a question only
+   * the banking system can answer.
+   *
+   * @throws when the dial is unset and more than one currency is registered
+   *   — the compact currency cannot be guessed.
+   */
+  public static compactCurrency(): string {
+    let configured = '';
+    try {
+      configured = AppApi.setting(AppSettingKeys.bankingCompactCurrency) || '';
+    } catch {
+      configured = '';
+    }
+    if (configured) return configured;
+    const all = Currency.all();
+    const only = all[0];
+    if (all.length === 1 && only) return only.key;
+    throw new Error(
+      'BankingApi.compactCurrency: banking.compactCurrency is unset and more ' +
+        'than one currency is registered — the compact currency cannot be guessed',
+    );
+  }
+
   public static async float(accountId: string, amount: Money): Promise<void> {
     return logic().float(accountId, amount);
   }

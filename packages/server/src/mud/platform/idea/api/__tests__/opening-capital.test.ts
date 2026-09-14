@@ -88,7 +88,7 @@ describe("a business is capitalized when its account is first materialized", () 
   it("the capital is REAL money — the supply grew by it", async () => {
     const b = seedBusiness();
     await EmploymentApi.operatingAccountOf(b);
-    expect(BankingApi.moneySupply(Currency.compact()).minor).toBe(
+    expect(BankingApi.moneySupply(BankingApi.compactCurrency()).minor).toBe(
       DEFAULT_CAPITAL
     );
   });
@@ -98,11 +98,11 @@ describe("a business is capitalized when its account is first materialized", () 
       WORKER,
       BankingApi.defaultCustodianBank(),
       "",
-      Currency.compact(),
+      BankingApi.compactCurrency(),
       0
     );
     expect(BankingApi.balanceOf(acct).minor).toBe(0);
-    expect(BankingApi.moneySupply(Currency.compact()).minor).toBe(0);
+    expect(BankingApi.moneySupply(BankingApi.compactCurrency()).minor).toBe(0);
   });
 });
 
@@ -120,12 +120,12 @@ describe("the supply report names the overdraft", () => {
       WORKER,
       BankingApi.defaultCustodianBank(),
       "",
-      Currency.compact(),
+      BankingApi.compactCurrency(),
       0
     );
-    await BankingApi.payWage(employer, WORKER, Money.of(349, Currency.compact()));
+    await BankingApi.payWage(employer, WORKER, Money.of(349, BankingApi.compactCurrency()));
 
-    const r = BankingApi.reconcile(Currency.compact());
+    const r = BankingApi.reconcile(BankingApi.compactCurrency());
     // The worker really holds it, and it really was never minted.
     expect(r.supply).toBe(0);
     // ⭐ Netting hides it: the -349 employer cancels the +349 worker.
@@ -139,7 +139,7 @@ describe("the supply report names the overdraft", () => {
     withCapitalDial(DEFAULT_CAPITAL);
     const b = seedBusiness();
     await EmploymentApi.operatingAccountOf(b);
-    expect(BankingApi.reconcile(Currency.compact()).overdraft).toBe(0);
+    expect(BankingApi.reconcile(BankingApi.compactCurrency()).overdraft).toBe(0);
   });
 });
 
@@ -177,7 +177,7 @@ describe("concurrent mints keep ONE supply row per currency", () => {
     expect(new Set(accounts).size).toBe(9);
 
     const expected = 9 * DEFAULT_CAPITAL;
-    const r = BankingApi.reconcile(Currency.compact());
+    const r = BankingApi.reconcile(BankingApi.compactCurrency());
     expect(r.accountTotal).toBe(expected);
     expect(r.supply).toBe(expected);
     expect(r.balanced).toBe(true);

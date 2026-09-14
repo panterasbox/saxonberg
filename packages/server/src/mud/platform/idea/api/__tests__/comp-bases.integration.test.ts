@@ -70,7 +70,7 @@ async function bizAccount(b: BusinessEntity): Promise<string> {
   const acct = await BankingApi.ensureVenueAccount(
     b.getAccountPath(),
     BankingApi.defaultCustodianBank(),
-    "", Currency.compact());
+    "", BankingApi.compactCurrency());
   return acct;
 }
 
@@ -102,7 +102,7 @@ describe("compensation bases", () => {
     const hewer = makeStuffAtPath(() => new Worker(), HEWER);
     biz.appoint(hewer, "hewer");
     const acct = await bizAccount(biz);
-    await BankingApi.mint(acct, Money.of(100, Currency.compact()));
+    await BankingApi.mint(acct, Money.of(100, BankingApi.compactCurrency()));
 
     await EmploymentApi.settlePiecework(biz, HEWER, 4);
     expect(await balanceOfKey(HEWER)).toBe(12); // 4 × 3
@@ -112,7 +112,7 @@ describe("compensation bases", () => {
     );
     const leg = rows.find((r) => r.kind === "wage");
     expect(leg?.category).toBe("piecework");
-    expect(BankingApi.reconcile(Currency.compact()).balanced).toBe(true);
+    expect(BankingApi.reconcile(BankingApi.compactCurrency()).balanced).toBe(true);
   });
 
   it("per-settlement refuses a non-employee and a time-basis employee", async () => {
@@ -140,18 +140,18 @@ describe("compensation bases", () => {
 
     // Settle a 50 charge carrying the splits: payer → venue 40 + holder 10.
     const payerAcct = "acct-payer";
-    await BankingApi.mint(payerAcct, Money.of(100, Currency.compact()));
+    await BankingApi.mint(payerAcct, Money.of(100, BankingApi.compactCurrency()));
     const { BankTransaction } = await import(
       "../../../../lib/banking/Transaction"
     );
     // The splits are exactly the settle's rider shape (real accounts only).
     expect(() =>
       BankTransaction.assertConserving("payment", [
-        { from: payerAcct, to: acct, amount: 40, currency: Currency.compact() },
+        { from: payerAcct, to: acct, amount: 40, currency: BankingApi.compactCurrency() },
         { from: payerAcct,
           to: splits[0]!.accountId,
           amount: splits[0]!.amount.minor,
-          category: splits[0]!.category, currency: Currency.compact() },
+          category: splits[0]!.category, currency: BankingApi.compactCurrency() },
       ]),
     ).not.toThrow();
     // And no splits exist for a business with no share-of-flow holder.
@@ -166,7 +166,7 @@ describe("compensation bases", () => {
   it("time-basis shift wage settles identically; a non-time basis accrues none", async () => {
     const biz = seedBusiness();
     const acct = await bizAccount(biz);
-    await BankingApi.mint(acct, Money.of(1000, Currency.compact()));
+    await BankingApi.mint(acct, Money.of(1000, BankingApi.compactCurrency()));
     vi.spyOn(WorldClockApi, "getNow").mockReturnValue(
       Quantity.of(10 * HOUR, "s"),
     );
@@ -198,6 +198,6 @@ describe("compensation bases", () => {
       }),
     );
     expect(await balanceOfKey(HEWER)).toBe(0);
-    expect(BankingApi.reconcile(Currency.compact()).balanced).toBe(true);
+    expect(BankingApi.reconcile(BankingApi.compactCurrency()).balanced).toBe(true);
   });
 });

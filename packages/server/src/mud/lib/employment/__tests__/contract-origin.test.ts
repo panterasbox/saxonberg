@@ -95,10 +95,10 @@ describe('a gig carries its origin', () => {
         ISSUER,
         BankingApi.defaultCustodianBank(),
         '',
-        Currency.compact(),
+        BankingApi.compactCurrency(),
       ),
     );
-    await BankingApi.mint(issuerAcct, Money.of(100, Currency.compact()));
+    await BankingApi.mint(issuerAcct, Money.of(100, BankingApi.compactCurrency()));
   });
   afterEach(() => {
     vi.restoreAllMocks();

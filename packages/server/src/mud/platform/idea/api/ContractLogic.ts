@@ -420,7 +420,7 @@ async function breachClaim(
     txId = await BankingApi.escrowRevert(
       record.contractId,
       record.issuerAccountId,
-      Money.of(record.rewardMinor, Currency.compact()),
+      Money.of(record.rewardMinor, BankingApi.compactCurrency()),
     );
   }
   await appendEvent(record.contractId, "breached", {
@@ -475,7 +475,7 @@ async function expireStale(record: ContractRecord): Promise<ContractRecord> {
       txId = await BankingApi.escrowRevert(
         record.contractId,
         record.issuerAccountId,
-        Money.of(record.rewardMinor, Currency.compact()),
+        Money.of(record.rewardMinor, BankingApi.compactCurrency()),
       );
     }
     record.state = "expired";
@@ -643,7 +643,7 @@ async function postImpl(spec: GigSpec): Promise<PostGigResult> {
     const held = await BankingApi.escrowHold(
       issuer.accountId,
       contractId,
-      Money.of(spec.rewardMinor, Currency.compact()),
+      Money.of(spec.rewardMinor, BankingApi.compactCurrency()),
     );
     if (!held.ok) {
       return { ok: false, reason: "you can't fund that reward" };
@@ -686,7 +686,7 @@ async function claimImpl(contractId: string): Promise<ClaimResult> {
   const held = await BankingApi.escrowHold(
     record.issuerAccountId,
     contractId,
-    Money.of(record.rewardMinor, Currency.compact()),
+    Money.of(record.rewardMinor, BankingApi.compactCurrency()),
   );
   if (!held.ok) {
     // Funds moved since posting — the board never advertises a check the
@@ -849,7 +849,7 @@ async function completeImpl(contractId: string): Promise<CompleteResult> {
       key,
       custodian,
       "",
-      Currency.compact(),
+      BankingApi.compactCurrency(),
       0,
     );
   }
@@ -867,7 +867,7 @@ async function completeImpl(contractId: string): Promise<CompleteResult> {
   const txId = await BankingApi.escrowRelease(
     contractId,
     payee,
-    Money.of(record.rewardMinor, Currency.compact()),
+    Money.of(record.rewardMinor, BankingApi.compactCurrency()),
   );
   await appendEvent(contractId, "settled", {
     actor: key,

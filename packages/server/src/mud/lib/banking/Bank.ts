@@ -41,6 +41,7 @@ import { StuffApi } from "../../api/stuff";
 import type { Stackable } from "../stuff/Stackable";
 // eslint-disable-next-line no-restricted-imports -- the F4 branch face: a bank's deposit()/withdraw() forward into the banking logic singleton exactly as the api/banking facade does (the Combustible/Energized precedent)
 import { BankingLogic } from "../../platform/idea/api/BankingLogic";
+import { BankingApi } from '../../api/banking';
 
 /**
  * The banking subsystem's own gate — admits the `BankingApi` face and the
@@ -184,7 +185,7 @@ export function BankMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
       for (const item of (this as unknown as Stuff & Container).getContents()) {
         if (isCashLike(item)) total += stackValue(item);
       }
-      return Money.of(total, Currency.compact());
+      return Money.of(total, BankingApi.compactCurrency());
     }
 
     /**

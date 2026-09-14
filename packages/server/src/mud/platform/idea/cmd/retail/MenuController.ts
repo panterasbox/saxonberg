@@ -24,6 +24,7 @@ import Tariff from '../../../thing/Tariff';
 import { Money } from '../../../../lib/banking/Money';
 import { Currency } from '../../../../lib/banking/Currency';
 import { MixinApi } from '../../../../api/mixin';
+import { BankingApi } from '../../../../api/banking';
 
 const TOPIC = 'act.deed';
 
@@ -58,7 +59,7 @@ export default class MenuController extends CommandController<MenuModel> {
           const price = tariff.priceFor(k);
           const money =
             price != null && price > 0
-              ? Money.of(price, Currency.compact()).render()
+              ? Money.of(price, BankingApi.compactCurrency()).render()
               : 'no charge';
           return `  ${k} — ${money}`;
         })

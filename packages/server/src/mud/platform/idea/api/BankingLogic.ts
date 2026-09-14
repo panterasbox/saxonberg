@@ -283,7 +283,7 @@ async function openAccountImpl(
   const floatMinor = openingFloatMinor();
   const branch = findBranchOf(bank);
   if (floatMinor > 0 && branch) {
-    await seedFloatImpl(branch, Money.of(floatMinor, Currency.compact())).catch(() => {
+    await seedFloatImpl(branch, Money.of(floatMinor, BankingApi.compactCurrency())).catch(() => {
       /* best-effort — a float failure never blocks opening an account */
     });
   }
@@ -1234,9 +1234,9 @@ async function remitDemoTaxImpl(
   saleAmount: Money,
 ): Promise<Money> {
   const { rate, treasury } = demoTaxConfig();
-  if (rate <= 0) return Money.zero(Currency.compact());
+  if (rate <= 0) return Money.zero(BankingApi.compactCurrency());
   const tax = Math.floor(saleAmount.minor * rate);
-  if (tax <= 0) return Money.zero(Currency.compact());
+  if (tax <= 0) return Money.zero(BankingApi.compactCurrency());
   await postTransaction("tax", [
     {
     currency: saleAmount.currency,
@@ -1247,7 +1247,7 @@ async function remitDemoTaxImpl(
       memo: "sales tax",
     },
   ]);
-  return Money.of(tax, Currency.compact());
+  return Money.of(tax, BankingApi.compactCurrency());
 }
 
 /**
@@ -1851,7 +1851,7 @@ export class BankingLogic extends ApiLogic {
   /** See {@link BankingApi.balanceOf}. Sync warm read. */
   @CallSecurity(BankingApiCallers)
   public balanceOf(accountId: string): Money {
-    return Money.of(balanceMinor(accountId), Currency.compact());
+    return Money.of(balanceMinor(accountId), BankingApi.compactCurrency());
   }
 
   /** See {@link BankingApi.discardScopeOverlay}. */
@@ -1875,7 +1875,7 @@ export class BankingLogic extends ApiLogic {
   /** See {@link BankingApi.rebuildBalance}. */
   @CallSecurity(BankingApiCallers)
   public async rebuildBalance(accountId: string): Promise<Money> {
-    return Money.of(await rebuildBalanceImpl(accountId), Currency.compact());
+    return Money.of(await rebuildBalanceImpl(accountId), BankingApi.compactCurrency());
   }
 
   /** See {@link BankingApi.recomputeSupply}. */
@@ -2212,7 +2212,7 @@ export class BankingLogic extends ApiLogic {
   public escrowBalanceOf(contractId: string): Money {
     return Money.of(
       balanceMinor(Account.escrowAccountFor(contractId)),
-      Currency.compact()
+      BankingApi.compactCurrency()
     );
   }
 

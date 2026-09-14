@@ -111,7 +111,7 @@ describe("Custodial ops — open / deposit / withdraw (AC#4, AC#5)", () => {
     const bank = makeBank();
     const alice = makeAvatar(ALICE);
     const accountId = await asOwner(alice, () =>
-      BankingApi.openAccount(bank.getBank(), bank.getCorpoKey(), Currency.compact())
+      BankingApi.openAccount(bank.getBank(), bank.getCorpoKey(), BankingApi.compactCurrency())
     );
     // The affiliation edge is recorded on the account — the key CorpoApi
     // resolves (the corpo catalogue is warmed at boot, covered by corpo's
@@ -125,7 +125,7 @@ describe("Custodial ops — open / deposit / withdraw (AC#4, AC#5)", () => {
     const coins = makeCoinsIn(alice, 100);
 
     const accountId = await asOwner(alice, async () => {
-      const id = await BankingApi.openAccount(bank.getBank(), bank.getCorpoKey(), Currency.compact());
+      const id = await BankingApi.openAccount(bank.getBank(), bank.getCorpoKey(), BankingApi.compactCurrency());
       await bank.deposit(coins);
       return id;
     });
@@ -134,7 +134,7 @@ describe("Custodial ops — open / deposit / withdraw (AC#4, AC#5)", () => {
     expect(bank.getTillLiquidity().minor).toBe(100);
     expect(BankingApi.balanceOf(accountId).minor).toBe(100);
 
-    await asOwner(alice, () => bank.withdraw(Money.of(100, Currency.compact())));
+    await asOwner(alice, () => bank.withdraw(Money.of(100, BankingApi.compactCurrency())));
     // After withdraw: vault 0, balance 0 — 1:1, coin back with alice.
     expect(bank.getTillLiquidity().minor).toBe(0);
     expect(BankingApi.balanceOf(accountId).minor).toBe(0);
@@ -161,9 +161,9 @@ describe("Custodial ops — open / deposit / withdraw (AC#4, AC#5)", () => {
     const coins = makeCoinsIn(alice, 100);
 
     const accountId = await asOwner(alice, async () => {
-      const id = await BankingApi.openAccount(bank.getBank(), bank.getCorpoKey(), Currency.compact());
+      const id = await BankingApi.openAccount(bank.getBank(), bank.getCorpoKey(), BankingApi.compactCurrency());
       await bank.deposit(coins);
-      await bank.withdraw(Money.of(30, Currency.compact()));
+      await bank.withdraw(Money.of(30, BankingApi.compactCurrency()));
       return id;
     });
 

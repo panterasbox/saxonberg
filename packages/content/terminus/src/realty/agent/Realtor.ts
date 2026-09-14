@@ -45,6 +45,7 @@ import { Money } from "@saxonberg/server/mud/lib/banking/Money";
 import { Currency } from "@saxonberg/server/mud/lib/banking/Currency";
 import { Quantity } from "@saxonberg/server/mud/lib/quantity";
 import type { Stuff } from "@saxonberg/server/mud/lib/stuff/Stuff";
+import { BankingApi } from '@saxonberg/server/mud/api/banking';
 import ResidenceCatalogue, {
   RESIDENCE_CATALOGUE_PATH,
 } from "@saxonberg/content-residence/src/idea/ResidenceCatalogue";
@@ -106,7 +107,7 @@ export default class Realtor extends CastMixin(PopulatesMixin(NPC)) {
 
   /** One offer, said the way a realtor says it. */
   static describe(offer: Offer): string {
-    const price = Money.of(offer.priceMinor, Currency.compact()).render();
+    const price = Money.of(offer.priceMinor, BankingApi.compactCurrency()).render();
     const area = Quantity.of(offer.areaM2, "m²").tag("lot");
     return `${offer.book} ${offer.leaf} — ${area}, zoned ${offer.use}, ${price}`;
   }
@@ -173,7 +174,7 @@ export default class Realtor extends CastMixin(PopulatesMixin(NPC)) {
       const offer = offers.find((o) => o.extent === picked);
       if (!offer) return;
 
-      const price = Money.of(offer.priceMinor, Currency.compact()).render();
+      const price = Money.of(offer.priceMinor, BankingApi.compactCurrency()).render();
       const yes = await interactive.promptConfirm(
         `Buy ${offer.book} ${offer.leaf} for ${price}?`,
         "no",

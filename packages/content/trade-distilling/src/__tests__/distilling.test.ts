@@ -491,7 +491,11 @@ describe('trade-distilling — the outfit consigns as itself, and the house card
         const thing = rest[0]!;
         const ask = rest[rest.indexOf('--ask') + 1]!;
         const c = ctx(giver, here, counter, text);
-        await asPrincipal(giver, () => makeStuff(() => new ConsignController()).execute({ thing, ask }, c));
+        await asPrincipal(giver, () => makeStuff(() => new ConsignController()).execute(
+          // ⚠ Skips the BINDER: the shelf is a declared arg in `consign.yaml`.
+          { thing, ask, shelf: { stuff: counter as never, raw: 'shelf' } },
+          c,
+        ));
         expect(rejections(c)).toEqual([]);
         return;
       }
@@ -654,20 +658,24 @@ describe('trade-distilling — the outfit consigns as itself, and the house card
     ContainmentApi.move(buyer as never, counterRoom as never);
     const card = makeStuff(() => new PaymentCard());
     ContainmentApi.move(card as never, buyer as never);
-    await asPrincipal(buyer, () => BankingApi.openAccount('goodkin', 'goodkin', Currency.compact()));
+    await asPrincipal(buyer, () => BankingApi.openAccount('goodkin', 'goodkin', BankingApi.compactCurrency()));
     const bank = StuffApi.findByTemplatePath<BankCounter>(BANK)!;
-    const cash = await asPrincipal(buyer, () => BankingApi.issueCash(buyer as never, Money.of(50, Currency.compact())));
+    const cash = await asPrincipal(buyer, () => BankingApi.issueCash(buyer as never, Money.of(50, BankingApi.compactCurrency())));
     await asPrincipal(buyer, () => bank.deposit(cash as never));
 
     const before = BankingApi.balanceOf(outfitAccount).minor;
     const c = ctx(buyer, counterRoom, counter, 'buy gin');
-    await asPrincipal(buyer, () => makeStuff(() => new BuyController()).execute({ thing: 'gin' }, c));
+    await asPrincipal(buyer, () => makeStuff(() => new BuyController()).execute(
+      // ⚠ Skips the BINDER: the counter is a declared arg in `buy.yaml`.
+      { thing: 'gin', counter: { stuff: counter as never, raw: 'counter' } },
+      c,
+    ));
     expect(rejections(c)).toEqual([]);
     expect(gin.getContainer()).toBe(buyer);
     expect(await gin.chattelOwner()).toEqual({ kind: 'player', templatePath: '/platform/agent/Avatar/pat' });
     const commission = Math.round(14 * 0.15);
     expect(BankingApi.balanceOf(outfitAccount).minor - before).toBe(14 - commission);
     expect(BankingApi.balanceOf(hostAccount).minor).toBeGreaterThan(0);
-    expect(BankingApi.reconcile(Currency.compact()).balanced).toBe(true);
+    expect(BankingApi.reconcile(BankingApi.compactCurrency()).balanced).toBe(true);
   });
 });

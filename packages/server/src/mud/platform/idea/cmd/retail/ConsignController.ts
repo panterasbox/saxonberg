@@ -222,8 +222,8 @@ export default class ConsignController extends CommandController<ConsignModel> {
       .topic(TOPIC)
       .toSelf(
         kept > 0
-          ? Mml.compose`You put ${Mml.thing(listed)} up for sale at ${Money.of(ask, Currency.compact()).render()}, and keep ${String(kept)} back. It's still yours until it sells.`
-          : Mml.compose`You put ${Mml.thing(listed)} up for sale at ${Money.of(ask, Currency.compact()).render()}. It's still yours until it sells.`,
+          ? Mml.compose`You put ${Mml.thing(listed)} up for sale at ${Money.of(ask, BankingApi.compactCurrency()).render()}, and keep ${String(kept)} back. It's still yours until it sells.`
+          : Mml.compose`You put ${Mml.thing(listed)} up for sale at ${Money.of(ask, BankingApi.compactCurrency()).render()}. It's still yours until it sells.`,
       )
       .toPeers(Mml.compose`${Mml.actor(giver)} sets ${Mml.thing(listed)} on the consignment shelf.`)
       .send();

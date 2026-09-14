@@ -781,7 +781,7 @@ export default class EnrollController extends CommandController<EnrollModel> {
       const stipend =
         Number(AppApi.setting(AppSettingKeys.bankingOnboardingStipend)) || 0;
       if (stipend > 0) {
-        await BankingApi.issueCash(avatar, Money.of(stipend, Currency.compact()), "onboarding");
+        await BankingApi.issueCash(avatar, Money.of(stipend, BankingApi.compactCurrency()), "onboarding");
       }
     }
 

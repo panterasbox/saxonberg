@@ -394,7 +394,7 @@ export default class OrderController extends CraftController<OrderModel> {
       return null; // no authored bank → the venue can't take payment
     }
     const charge: Charge = {
-      amount: Money.of(price, Currency.compact()),
+      amount: Money.of(price, BankingApi.compactCurrency()),
       reason: 'a drink',
       presented: true,
       payeeAccountId: venueAccount,
@@ -421,9 +421,9 @@ export default class OrderController extends CraftController<OrderModel> {
         return null; // no funds at all — the bar floats it
       }
     }
-    await BankingApi.remitDemoTax(venueAccount, Money.of(price, Currency.compact()));
+    await BankingApi.remitDemoTax(venueAccount, Money.of(price, BankingApi.compactCurrency()));
     return receipt.corpoKey
-      ? `(${Money.of(price, Currency.compact()).render()}, ${receipt.corpoKey})`
-      : `(${Money.of(price, Currency.compact()).render()})`;
+      ? `(${Money.of(price, BankingApi.compactCurrency()).render()}, ${receipt.corpoKey})`
+      : `(${Money.of(price, BankingApi.compactCurrency()).render()})`;
   }
 }

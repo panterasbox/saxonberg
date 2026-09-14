@@ -160,7 +160,7 @@ describe('tips — the tip jar', () => {
   it('cash tip moves coin patron→jar, touching no account', async () => {
     const { loc, patron, jar } = scene();
     giveCoin(patron, 100);
-    const supplyBefore = BankingApi.moneySupply(Currency.compact()).minor;
+    const supplyBefore = BankingApi.moneySupply(BankingApi.compactCurrency()).minor;
 
     await asGiver(patron, () =>
       makeStuff(() => new TipController()).execute(
@@ -174,7 +174,7 @@ describe('tips — the tip jar', () => {
     // Off every ledger — no account created for the server, no ledger
     // movement (cash is off the governed supply).
     expect(await BankingApi.primaryAccountIdOf(MARA)).toBeNull();
-    expect(BankingApi.moneySupply(Currency.compact()).minor).toBe(supplyBefore);
+    expect(BankingApi.moneySupply(BankingApi.compactCurrency()).minor).toBe(supplyBefore);
   });
 
   it('the on-shift bartender collects the whole jar', async () => {
@@ -241,12 +241,12 @@ describe('tips — the tip jar', () => {
     const { loc, patron, bartender } = scene();
     // Both hold accounts; the patron funds theirs with cash.
     const patronAcct = await asGiver(patron, () =>
-      BankingApi.openAccount('goodkin', '', Currency.compact()),
+      BankingApi.openAccount('goodkin', '', BankingApi.compactCurrency()),
     );
-    await asGiver(bartender, () => BankingApi.openAccount('goodkin', '', Currency.compact()));
+    await asGiver(bartender, () => BankingApi.openAccount('goodkin', '', BankingApi.compactCurrency()));
     giveCoin(patron, 50);
     // Deposit isn't wired here; float the patron's account directly.
-    await BankingApi.float(patronAcct, Money.of(50, Currency.compact()));
+    await BankingApi.float(patronAcct, Money.of(50, BankingApi.compactCurrency()));
 
     await asGiver(patron, () =>
       makeStuff(() => new TipController()).execute(

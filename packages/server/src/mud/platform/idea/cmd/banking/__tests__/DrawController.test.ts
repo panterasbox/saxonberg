@@ -75,12 +75,12 @@ describe("DrawController", () => {
     bizAcct = await BankingApi.ensureVenueAccount(
       biz.getAccountPath(),
       BankingApi.defaultCustodianBank(),
-      "", Currency.compact());
+      "", BankingApi.compactCurrency());
     daveAcct = await BankingApi.ensureVenueAccount(
       DAVE,
       BankingApi.defaultCustodianBank(),
-      "", Currency.compact());
-    await BankingApi.mint(bizAcct, Money.of(200, Currency.compact()));
+      "", BankingApi.compactCurrency());
+    await BankingApi.mint(bizAcct, Money.of(200, BankingApi.compactCurrency()));
   });
   afterEach(() => {
     vi.restoreAllMocks();
@@ -100,7 +100,7 @@ describe("DrawController", () => {
     const rows = await BankingApi.entriesFor(daveAcct);
     const leg = rows.find((r) => r.kind === "draw");
     expect(leg?.category).toBe("draw");
-    expect(BankingApi.reconcile(Currency.compact()).balanced).toBe(true);
+    expect(BankingApi.reconcile(BankingApi.compactCurrency()).balanced).toBe(true);
   });
 
   it("a non-proprietor is refused by the participant gate", async () => {
