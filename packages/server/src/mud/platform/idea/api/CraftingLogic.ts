@@ -60,6 +60,7 @@ import { AppSettingKeys } from '../../../lib/config/AppSettings';
 import Scrap from '../../thing/Scrap';
 import CommerceMenu from '../../../lib/commerce/Menu';
 import type { BuildContribution } from '../../../lib/craft/ManualBuild';
+import { BlendIdentity } from '../../../lib/craft/BlendIdentity';
 
 const CraftingApiCallers = SecurityPolicies.FromModule('/api/crafting#CraftingApi',
 );
@@ -2350,5 +2351,37 @@ export class CraftingLogic extends ApiLogic {
   @CallSecurity(CraftingApiCallers)
   public async offeredRecipes(menu: Stuff): Promise<RecipeView[]> {
     return offeredImpl(menu);
+  }
+
+  // ---------- what a blend IS, read back off the recipe ----------
+  //
+  // ⭐ The three doors onto `BlendIdentity`, which was a class of public
+  // statics on a `lib/` value holder — callable and invisible. The bodies
+  // stay there beside the module-private `recipeOf` walk they share; what
+  // moves is the callable surface, and it lands on CRAFTING because the
+  // answer is the recipe's. A blend has no Material of its own.
+
+  /** See {@link CraftingApi.blendName}. */
+  @CallSecurity(CraftingApiCallers)
+  public blendName(
+    payload: BulkPayload | null,
+    material: Material | null,
+  ): string {
+    return BlendIdentity.nameOf(payload, material);
+  }
+
+  /** See {@link CraftingApi.blendAppearance}. */
+  @CallSecurity(CraftingApiCallers)
+  public blendAppearance(
+    payload: BulkPayload | null,
+    material: Material | null,
+  ): string {
+    return BlendIdentity.appearanceOf(payload, material);
+  }
+
+  /** See {@link CraftingApi.blendDiscipline}. */
+  @CallSecurity(CraftingApiCallers)
+  public blendDiscipline(payload: BulkPayload | null): string {
+    return BlendIdentity.disciplineOf(payload);
   }
 }

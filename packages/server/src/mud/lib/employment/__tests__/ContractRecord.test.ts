@@ -156,9 +156,9 @@ describe("⭐⭐ watch accrual — presence, not a verb", () => {
   it("the clause holds once the hours are stood, and not before", async () => {
     const r = watchGig({ watchedSec: 3 * 3600 });
     const c = r.clause!.condition;
-    expect(Condition.watchHolds(c, r.watchedSec)).toBe(false);
+    expect(new Condition(c).watchHolds(r.watchedSec)).toBe(false);
     r.watchedSec = 4 * 3600;
-    expect(Condition.watchHolds(c, r.watchedSec)).toBe(true);
+    expect(new Condition(c).watchHolds(r.watchedSec)).toBe(true);
   });
 });
 

@@ -36,7 +36,7 @@ import {
 } from '../../../../lib/husbandry/Cultivable';
 import type { Reserved } from '../../../../lib/reserve';
 import Plant from '../../../thing/Plant';
-import { BlendIdentity } from '../../../../lib/craft/BlendIdentity';
+import { CraftingApi } from '../../../../api/crafting';
 
 const TOPIC = 'act.deed';
 
@@ -203,7 +203,7 @@ export default class WaterController extends CommandController<WaterModel> {
     }
 
     const appearance =
-      BlendIdentity.appearanceOf(payload, material) || 'water';
+      CraftingApi.blendAppearance(payload, material) || 'water';
     MessageApi.scene(giver)
       .topic(TOPIC)
       .toSelf(

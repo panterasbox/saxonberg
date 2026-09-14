@@ -19,6 +19,7 @@ import type { AnyConstructor } from '../../../api/mixin';
 import { Template } from '../../../lib/stuff/Template';
 import { StuffApi } from '../../../api/stuff';
 import { TemplatePathPrefixes } from '../../../lib/paths';
+import { NameBank, type NamePools } from '../../../lib/species/NameBank';
 
 interface CladeShape {
   getRank?(): CladeRank;
@@ -223,6 +224,12 @@ export class SpeciesLogic extends ApiLogic {
     }
 
     return { binomial: species.getBinomial(), sections };
+  }
+
+  /** See {@link SpeciesApi.resolveNamePools}. */
+  @CallSecurity(SpeciesApiCallers)
+  public resolveNamePools(keys: readonly string[]): Promise<NamePools> {
+    return NameBank.resolve(keys);
   }
 }
 

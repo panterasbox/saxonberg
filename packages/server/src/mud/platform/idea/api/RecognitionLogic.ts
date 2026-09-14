@@ -22,6 +22,7 @@ import type { VisionModality } from '../modalities/VisionModality';
 import { RECOGNITION, IDENTIFICATION } from '../../../lib/belief/BeliefStore';
 import { Appearance } from '../../../lib/identification/Appearance';
 import { DescriptorBank } from '../../../lib/identification/DescriptorBank';
+import { MagicApi } from '../../../api/magic';
 
 
 
@@ -129,7 +130,7 @@ function currentTypeRecord(
     typeof learned === 'number' &&
     !Appearance.isRecordCurrent(
       learned,
-      Appearance.currentGeneration().generation,
+      MagicApi.appearanceGeneration().generation,
     )
   ) {
     return null;
@@ -179,7 +180,7 @@ function knowsTrueTypeImpl(viewer: Stuff, target: Stuff): boolean {
  */
 function unidentifiedLook(viewer: Stuff, target: Stuff): string | null {
   if (!MixinApi.isIdentifiable(target)) return null;
-  const { generation, progress } = Appearance.currentGeneration();
+  const { generation, progress } = MagicApi.appearanceGeneration();
   const descriptor = target.renderAppearance(generation, progress);
   if (descriptor.length === 0) return null;
 

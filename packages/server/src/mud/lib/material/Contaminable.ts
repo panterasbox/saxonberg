@@ -203,7 +203,14 @@ export class Contamination {
    */
   constructor(private readonly slot: BulkSlot) {}
 
-  /** The authored behavior for a pathogen key, or `null` if none is warmed. */
+  /**
+   * The authored behavior for a pathogen key, or `null` if none is warmed.
+   *
+   * @internal the callable door is `MaterialApi.pathogenBehaviorOf` — this
+   * stays here because four of its callers are in this file, reaching it
+   * through the Api would be a cycle, and it is the spoilage substrate's
+   * own read.
+   */
   public static behaviorOf(key: string): PathogenBehavior | null {
     if (!key) return null;
     const row = StuffApi.findByTemplatePath<Condition>(

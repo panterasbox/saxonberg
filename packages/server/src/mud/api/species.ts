@@ -28,6 +28,7 @@ import { HotReloadApi } from './hot-reload';
 import { SpeciesLogic } from '../platform/idea/api/SpeciesLogic';
 import { fileURLToPath } from 'url';
 import { SecurityApi } from './security';
+import type { NamePools } from '../lib/species/NameBank';
 
 const LOGIC_PATH = '/platform/idea/api/species';
 const LOGIC_CLASS_FILE = fileURLToPath(
@@ -153,6 +154,24 @@ export class SpeciesApi {
     speciesPath: string,
   ): Promise<SpeciesDossier> {
     return logic().buildDossier(species, speciesPath);
+  }
+
+  /**
+   * Merge a list of name-bank keys into one set of pools — given names,
+   * surnames, and any style hints, order-preserving with duplicates
+   * collapsed.
+   *
+   * ⭐ A **missing bank is skipped silently**, not an error: a species
+   * naming a bank no installed pack ships is a content gap, and the
+   * suggester degrading to the banks that ARE there is better than
+   * refusing to name anybody. The banks are `kind: 'name-bank'`
+   * documents; the whole set is cached on first resolve and dropped by
+   * the installer's go-live.
+   */
+  public static async resolveNamePools(
+    keys: readonly string[],
+  ): Promise<NamePools> {
+    return logic().resolveNamePools(keys);
   }
 }
 

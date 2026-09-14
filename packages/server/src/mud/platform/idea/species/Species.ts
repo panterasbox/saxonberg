@@ -33,8 +33,8 @@ import type { FacultyProfile } from '../../../lib/magic/Faculty';
 import { Faculty } from '../../../lib/magic/Faculty';
 import type { NaturalAttackSpec } from '../../../lib/combat/NaturalAttack';
 import { NaturalAttack } from '../../../lib/combat/NaturalAttack';
-import { NameBank } from '../../../lib/species/NameBank';
 import type { FieldMeta } from '../../../lib/mixin';
+import { SpeciesApi } from '../../../api/species';
 
 /** A suggested character name (given + optional surname). */
 /**
@@ -884,7 +884,7 @@ export default class Species extends SingletonMixin(
    * for additional characters (draws straight from the bank).
    */
   public async suggestName(realName?: string): Promise<SuggestedName> {
-    const pools = await NameBank.resolve(this.nameBankKeys);
+    const pools = await SpeciesApi.resolveNamePools(this.nameBankKeys);
     const given = pickGiven(pools.given, realName);
     const surname = pick(pools.surname);
     const out: SuggestedName = { name: given };
@@ -897,7 +897,7 @@ export default class Species extends SingletonMixin(
    * for another option, or it's an additional character).
    */
   public async rerollName(): Promise<SuggestedName> {
-    const pools = await NameBank.resolve(this.nameBankKeys);
+    const pools = await SpeciesApi.resolveNamePools(this.nameBankKeys);
     const given = pickGiven(pools.given, undefined);
     const surname = pick(pools.surname);
     const out: SuggestedName = { name: given };

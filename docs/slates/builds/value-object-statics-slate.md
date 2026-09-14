@@ -634,7 +634,7 @@ act). Re-decide it rather than inherit it.
 
 # ⭐ PROGRESS — read this before the kill list above
 
-**Ceiling: 563 → 387.** 106 statics declared `@internal`, **38** gates
+**Ceiling: 563 → 372.** 115 statics declared `@internal`, **38** gates
 green, tsc clean, eslint 0 errors, build clean. Branch
 `build/lib-statics`, no MR opened.
 
@@ -682,7 +682,94 @@ to *how a pack exposes anything*: a singleton declared with
 
 ⭐ **Ceiling 392 → 387.**
 
-**13 remain**, each with a kernel home:
+## ✅ §B COMPLETE (2026-09-14) — 12 moved, 1 corrected, 1 deferred
+
+**Ceiling 387 → 372.** What the bodies said, against what the row list
+guessed:
+
+| static | shipped disposition |
+|---|---|
+| `Contamination.behaviorOf` | `MaterialApi.pathogenBehaviorOf` |
+| `BlendLabel.isEdible` / `toxicityOf` | `MaterialApi.blendEdibility` / `blendToxicity` |
+| `BlendIdentity.nameOf` / `appearanceOf` / `disciplineOf` | `CraftingApi.blendName` / `blendAppearance` / `blendDiscipline` (the third was not on the list; leaving one of three behind made the class incoherent) |
+| `Suppressions.fieldAt` | `MagicApi.suppressionAt` — ⭐ which **already existed** and already forwarded here. The static was a second, undocumented way in |
+| `Appearance.currentGeneration` | `MagicApi.appearanceGeneration` |
+| `NameBank.resolve` | `SpeciesApi.resolveNamePools` |
+| `Lock.mintKeyway` | `BoundaryApi.mintKeyway` — re-decided, not inherited (below) |
+| `Condition.matchesItem` | ⛔ **not an Api move** — a GAUGE (below) |
+| `EmoteGrammarRunner.bind` | ⛔ **not an Api move** — a GAUGE (below) |
+| `Construction.registerFabric` | ⛔ `@internal` with **no Api door** (below) |
+| `DialogueEffectRegistry.register` | ⏸ **deferred** — head of the registry cluster |
+
+### ⭐⭐ The pattern: the Api gets the DOOR, the body stays with its privates
+
+Almost none of these bodies could move. Each sits on a module-private map
+or helper — `Construction`'s `FABRICS`, `BlendLabel`'s `ingredientsOf`,
+`BlendIdentity`'s `recipeOf`, `NameBank`'s `#cache` — and moving the body
+would have to **export** it. That is the §A rule verbatim: *inlining that
+exports a private helper fails the rule*.
+
+So the shape is: the `lib/` static becomes `@internal`, and the Api gets
+the callable door. ⭐ **The difference from §A's bare `@internal` is the
+door** — §A hid 32 statics with nothing put in their place; these are
+hidden *because* there is now somewhere visible to call.
+
+### ⭐⭐⭐ `lint:object-verbs` overruled two rows, and it was right
+
+`ContractApi.conditionMatchesItem(data, …)` and
+`SoulApi.bindEmote(emote, …)` were written, and the gate **failed the
+build**: a first parameter typed as a world object means *the verb is in
+the wrong place*. The slate's own §1 had already said so — `new
+Condition(data).matchesItem(item)`, `new EmoteGrammarRunner(emote).bind(…)`
+— and §B's row list had overridden it.
+
+Both are gauges now, and the gauge was the better outcome anyway: it took
+**five** statics instead of two (`Condition`'s `watchHolds`/`countOf`/
+`holdsFor` came with `matchesItem`; `EmoteGrammarRunner`'s `render` came
+with `bind`), and added no Api surface at all.
+
+### `Construction.registerFabric` — `@internal`, and deliberately no door
+
+Its two callers are `Fabric.postRegister` and `FabricCatalogue.warm`: the
+textile subsystem populating its own vocabulary at boot. Putting
+`MaterialApi.registerFabric` in the generated docs would advertise a boot
+seam as author surface. ⭐ **The fix for an invisible callable is not
+always to make it callable by everyone.**
+
+### `Lock.mintKeyway` — re-decided, with the line written down
+
+It moves to `BoundaryApi.mintKeyway`, and the line that puts it there is:
+**minting is an act on the world** (it reaches `SecurityApi.uuid`), so it
+is the Api's; **issuing is the lock answering about itself**, so
+`issueKeyTo` / `opensFor` stay instance methods. That is the whole reason
+one moved and the others did not.
+
+### ⚠⚠ The cycle this cost — read before adding an Api import to `lib/`
+
+`api/mql/**` is imported by nearly everything low in the graph. An edge
+from `scope-walk.ts` into `CraftingApi` pulls `CraftingLogic`'s whole
+import graph in behind it and **closes a load-time cycle onto the mixin
+factories**: `TypeError: ContainableMixin is not a function`, thrown at
+import, in four validator suites. Found by bisection, not by reading.
+
+Three call sites therefore keep calling the `@internal` static and must:
+`api/mql/scope-walk.ts`, `lib/stuff/Stackable.ts` and
+`lib/identification/Identifiable.ts` (the last two for the same reason,
+one layer lower). ⭐ **The test before adding `import { XApi }` to a
+`lib/` file: does anything below it import you?**
+
+### ⏸ `DialogueEffectRegistry.register` — deferred, and why
+
+It is a class with a `Map` and four statics — the **registry/cache
+cluster** (~37 statics: `AccountBalance` ×8, the three standings ×3 each,
+`DescriptorBank`, `SupplyAggregate`, `AppSettings`…) that the slate's §1
+already calls *"a real registry singleton, not a class with a `Map`"* and
+that the user has not ruled on. Deciding this one alone would prejudge
+the other 36. It stays until that conversation.
+
+---
+
+**13 remained at the start of this pass**, each with a kernel home:
 
 | Api | rows |
 |---|---|

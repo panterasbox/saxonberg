@@ -124,6 +124,22 @@ const MAX_WALK_DEPTH = 12;
 
 export class Condition {
   /**
+   * ⭐⭐ **A gauge bound to the clause it reads.** Every question below
+   * used to be `Condition.verb(data, …)` — a static whose subject was
+   * the clause itself, which `lint:object-verbs` counts as the verb
+   * being in the wrong place, and which the author-surface projection
+   * dropped on the floor. Binding the data at construction puts the verb
+   * on an object (`new Condition(data).matchesItem(thing)`), the shape
+   * `new Freshness(slot).load()` and `new Lock(kw, tech).opensFor(x)`
+   * already ship.
+   *
+   * ⚠ {@link validate} stays STATIC and is the exception that proves the
+   * rule: it takes `unknown` and answers whether the thing is a clause
+   * at all, so there is no clause to be bound to yet.
+   */
+  constructor(private readonly data: ConditionData) {}
+
+  /**
    * The "engine-verifiable or rejected" boundary: shape + template
    * membership. Returns a reason string for a refusal, null when valid.
    */
@@ -187,22 +203,26 @@ export class Condition {
    * *"a person was at a place, for a while"*, which the existing
    * predicate cannot express however it is squeezed.
    */
-  public static watchHolds(data: ConditionData, watchedSec: number): boolean {
-    if (data.template !== "watch") return false;
-    return watchedSec >= Math.max(0, data.gameHours ?? 0) * 3600;
+  public watchHolds(watchedSec: number): boolean {
+    if (this.data.template !== "watch") return false;
+    return watchedSec >= Math.max(0, this.data.gameHours ?? 0) * 3600;
   }
 
   /** How many the condition asks for — 1 unless it is a counted supply. */
-  public static countOf(data: ConditionData): number {
-    return data.template === "supply" ? Math.max(1, data.count ?? 1) : 1;
+  public countOf(): number {
+    return this.data.template === "supply"
+      ? Math.max(1, this.data.count ?? 1)
+      : 1;
   }
 
   /**
    * Whether a live `stuff` is the item this condition names. Refuses a
    * `Stackable` outright — a merging stack has no stable identity (the
    * chattel precedent), so a fungible good can never satisfy a gig.
+   *
    */
-  public static matchesItem(data: ConditionData, stuff: Stuff): boolean {
+  public matchesItem(stuff: Stuff): boolean {
+    const data = this.data;
     if (data.item.kind === "category") {
       // ⚠ A stack is allowed HERE and nowhere else: a category condition
       // measures QUANTITY, so a stack of six limes is six limes and has
@@ -231,8 +251,9 @@ export class Condition {
    * @internal one production caller plus the tests that white-box it — not author surface.
    *
    */
-  public static holdsFor(data: ConditionData, item: Stuff): boolean {
-    if (!Condition.matchesItem(data, item)) return false;
+  public holdsFor(item: Stuff): boolean {
+    const data = this.data;
+    if (!this.matchesItem(item)) return false;
     if (!MixinApi.isContainable(item)) return false;
 
     // The surface leg: resting on the destination fixture itself.

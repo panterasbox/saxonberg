@@ -143,7 +143,7 @@ export default class ProvisionController extends CommandController<ProvisionMode
     // dead metal) and issue the tenant their key — a physical brass key in
     // hand plus an implant-keychain entry. The door checks the KEY, not
     // identity, so this is what actually lets them in.
-    const keyway = Lock.mintKeyway();
+    const keyway = BoundaryApi.mintKeyway();
     await ParcelApi.setKeyway(unitExtent, keyway);
     await new Lock(keyway, DormWarren.DORM_LOCK_TECH).issueKeyTo(target);
 

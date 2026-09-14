@@ -25,13 +25,13 @@ import { Mml } from "../../../../api/mml";
 import { METABOLIC_DEFAULTS } from "../../../../lib/metabolism/Metabolic";
 import { Freshness } from "../../../../lib/material/Freshness";
 import { Contamination } from "../../../../lib/material/Contaminable";
-import { BlendLabel } from "../../../../lib/metabolism/BlendLabel";
-import { BlendIdentity } from "../../../../lib/craft/BlendIdentity";
 import {
   UTENSIL_KINDS,
   UTENSIL_PHRASE,
   type UtensilKind,
 } from "../../../../lib/bulk/Utensil";
+import { MaterialApi } from '../../../../api/material';
+import { CraftingApi } from '../../../../api/crafting';
 
 const TOPIC = "act.deed";
 
@@ -155,7 +155,7 @@ export default class EatController extends CommandController<EatModel> {
   private isServedDish(target: Stuff): boolean {
     if (!MixinApi.isBulkable(target) || !target.hasInteriorBulk()) return false;
     if (target.isBulkEmpty("interior")) return false;
-    return BlendLabel.isEdible(
+    return MaterialApi.blendEdibility(
       target.getBulkPayload("interior"),
       target.getBulkMaterial("interior"),
     );
@@ -178,7 +178,7 @@ export default class EatController extends CommandController<EatModel> {
     const material = slot.getMaterial();
     const payload = new Freshness(slot).ingestPayload();
     const appearance =
-      BlendIdentity.appearanceOf(payload, material) || "it";
+      CraftingApi.blendAppearance(payload, material) || "it";
     const portion = Math.min(
       METABOLIC_DEFAULTS.EAT_PORTION_LITRES,
       slot.getAmount().rawValue(),

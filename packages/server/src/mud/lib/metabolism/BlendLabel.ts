@@ -143,7 +143,13 @@ export class BlendLabel {
     return out;
   }
 
-  /** Edible iff anything that went in was. */
+  /**
+   * Edible iff anything that went in was.
+   *
+   * @internal the callable door is `MaterialApi.blendEdibility` — the body
+   * stays here because `ingredientsOf` is module-private, and moving it
+   * would trade one hidden static for a wider module surface.
+   */
   public static isEdible(
     payload: BulkPayload | null,
     blend: Material | null,
@@ -163,6 +169,9 @@ export class BlendLabel {
    * actually reached its temperature. Alcohol marks none and rides into
    * the pot honestly; so does a formed ptomaine, which is not an
    * ingredient's dose at all.
+   *
+   * @internal the callable door is `MaterialApi.blendToxicity` — the
+   * body stays here beside the ingredient walk it shares.
    */
   public static toxicityOf(
     payload: BulkPayload | null,

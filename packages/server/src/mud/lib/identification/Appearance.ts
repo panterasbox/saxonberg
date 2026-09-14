@@ -106,6 +106,10 @@ export class Appearance {
    *
    * Degrades to generation 0 / progress 0 with no world clock (unit
    * fixtures), keeping appearance deterministic and testable.
+   *
+   * @internal the callable door is `MagicApi.appearanceGeneration` — the
+   * body stays beside `GENERATION_DEFAULTS` and the sibling statics that
+   * read it.
    */
   public static currentGeneration(): GenerationNow {
     let nowS = 0;

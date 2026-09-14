@@ -38,7 +38,6 @@ import { ContainmentApi } from "../../api/containment";
 import { MixinApi } from "../../api/mixin";
 import { InfluenceApi } from "../../api/influence";
 import { Template } from "../../lib/stuff/Template";
-import { NameBank } from "../../lib/species/NameBank";
 import { HasInteractiveMixin } from "../../lib/connection/HasInteractive";
 import { SensorMixin } from "../../lib/message/Sensor";
 import { CommandGiverMixin } from "../../lib/command/CommandGiver";
@@ -55,6 +54,7 @@ import type {
 import type Interactive from "./Interactive";
 import type Species from "./species/Species";
 import type { User } from "../../lib/identity/User";
+import { SpeciesApi } from '../../api/species';
 
 /** Random element of an array (undefined when empty). */
 function pickRandom<T>(arr: readonly T[]): T | undefined {
@@ -200,7 +200,7 @@ export default class Login extends LoginBase {
   }> {
     let surnames: string[] = [];
     try {
-      surnames = (await NameBank.resolve(["common"])).surname;
+      surnames = (await SpeciesApi.resolveNamePools(["common"])).surname;
     } catch {
       /* NameBank unavailable (e.g. no DB) — degrade to a bare "Guest" */
     }

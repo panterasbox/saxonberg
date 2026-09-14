@@ -29,6 +29,9 @@ import type { Channel } from '../lib/material/Channel';
 import type { Construction } from '../lib/material/Construction';
 import type { Grade } from '../lib/craft/Grade';
 import type { TraumaType } from '../platform/idea/Condition';
+import type { PathogenBehavior } from '../lib/material/Contaminable';
+import type { BulkPayload } from '../lib/bulk/Bulkable';
+import type { ToxinTag } from '../lib/metabolism/Metabolic';
 import type { Quantity } from '../lib/quantity';
 import { StuffApi } from './stuff';
 import { HotReloadApi } from './hot-reload';
@@ -295,6 +298,57 @@ export class MaterialApi {
     current: Quantity<'A'>,
   ): TraumaResolution | null {
     return logic().resolveShock(current);
+  }
+
+  // ---------- what a material DOES to a body ----------
+  //
+  // ⭐ These three were public statics on `lib/` value classes
+  // (`Contamination.behaviorOf`, `BlendLabel.isEdible`/`toxicityOf`),
+  // which the author-surface projection drops — callable and invisible,
+  // the invariant this sweep exists to restore. They answer MATERIAL
+  // questions: what a pathogen does, whether a material is food, what
+  // toxins it carries. The payload only names which materials; every
+  // answer is read off a Material (or Condition) row.
+
+  /**
+   * The authored behavior for a pathogen key — its growth and kill
+   * curves, its water-activity floor, whether it forms a toxin — or
+   * `null` when no such condition row is warmed.
+   *
+   * The key is a condition key (`/…/pathogen/<key>`), the same one an
+   * author writes on a contamination event.
+   */
+  public static pathogenBehaviorOf(key: string): PathogenBehavior | null {
+    return logic().pathogenBehaviorOf(key);
+  }
+
+  /**
+   * Is this blend food? **Edible iff anything that went into it was** —
+   * a blend has no Material of its own, so the answer is derived from
+   * the ingredients the payload names, falling back to the material for
+   * ordinary (unblended) bulk.
+   */
+  public static blendEdibility(
+    payload: BulkPayload | null,
+    blend: Material | null,
+  ): boolean {
+    return logic().blendEdibility(payload, blend);
+  }
+
+  /**
+   * The per-serving toxin doses in a blend: the ingredients' own, scaled
+   * by their servings and filtered by the heat the working actually
+   * reached, PLUS whatever the making or the keeping formed.
+   *
+   * ⚠ A **formed** toxin rides past the heat filter unless its author
+   * marked it labile — heat stops growth, it does not un-poison what the
+   * growth already produced.
+   */
+  public static blendToxicity(
+    payload: BulkPayload | null,
+    blend: Material | null,
+  ): readonly ToxinTag[] {
+    return logic().blendToxicity(payload, blend);
   }
 }
 

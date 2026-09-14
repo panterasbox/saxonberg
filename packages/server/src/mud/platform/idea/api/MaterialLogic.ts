@@ -25,6 +25,13 @@ import type {
 import { Quantity } from '../../../lib/quantity';
 import type { Grade } from '../../../lib/craft/Grade';
 import type { TraumaType } from '../Condition';
+import {
+  Contamination,
+  type PathogenBehavior,
+} from '../../../lib/material/Contaminable';
+import { BlendLabel } from '../../../lib/metabolism/BlendLabel';
+import type { BulkPayload } from '../../../lib/bulk/Bulkable';
+import type { ToxinTag } from '../../../lib/metabolism/Metabolic';
 
 const MaterialApiCallers = SecurityPolicies.FromModule('/api/material#MaterialApi'
 );
@@ -196,6 +203,41 @@ export class MaterialLogic extends ApiLogic {
   @CallSecurity(MaterialApiCallers)
   public resolveShock(current: Quantity<'A'>): TraumaResolution | null {
     return resolveShockImpl(current);
+  }
+
+  // ---------- what a material DOES to a body (the lib/ substrate's door) ----------
+  //
+  // ⭐ These three forward into `lib/` classes rather than holding the
+  // body, and that is the point: each implementation sits on a
+  // module-private map or helper (`Contaminable`'s pathogen row lookup,
+  // `BlendLabel`'s `ingredientsOf` walk) that moving the body would have
+  // to EXPORT. Trading one hidden static for a wider module surface is
+  // the trade the sweep exists to refuse. What moves is the **callable
+  // surface**: the lib statics are `@internal` now, and this pair is the
+  // only way in.
+
+  /** See {@link MaterialApi.pathogenBehaviorOf}. */
+  @CallSecurity(MaterialApiCallers)
+  public pathogenBehaviorOf(key: string): PathogenBehavior | null {
+    return Contamination.behaviorOf(key);
+  }
+
+  /** See {@link MaterialApi.blendEdibility}. */
+  @CallSecurity(MaterialApiCallers)
+  public blendEdibility(
+    payload: BulkPayload | null,
+    blend: Material | null,
+  ): boolean {
+    return BlendLabel.isEdible(payload, blend);
+  }
+
+  /** See {@link MaterialApi.blendToxicity}. */
+  @CallSecurity(MaterialApiCallers)
+  public blendToxicity(
+    payload: BulkPayload | null,
+    blend: Material | null,
+  ): readonly ToxinTag[] {
+    return BlendLabel.toxicityOf(payload, blend);
   }
 }
 

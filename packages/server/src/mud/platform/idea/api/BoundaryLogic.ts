@@ -14,6 +14,7 @@ import type {
   AttachExistingBoundaryOptions,
   CreateBoundaryOptions,
 } from '../../../api/boundary';
+import { Lock } from '../../../lib/lock/Lock';
 
 const BoundaryApiCallers = SecurityPolicies.FromModule('/api/boundary#BoundaryApi'
 );
@@ -63,6 +64,12 @@ export class BoundaryLogic extends ApiLogic {
   @CallSecurity(BoundaryApiCallers)
   public destruct(boundary: Boundary): void {
     StuffApi.destruct(boundary as unknown as Stuff);
+  }
+
+  /** See {@link BoundaryApi.mintKeyway}. */
+  @CallSecurity(BoundaryApiCallers)
+  public mintKeyway(): string {
+    return Lock.mintKeyway();
   }
 }
 

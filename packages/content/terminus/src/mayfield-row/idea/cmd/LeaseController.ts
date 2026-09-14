@@ -128,7 +128,7 @@ export default class LeaseController extends CommandController<LeaseModel> {
     }
 
     // Key the unit fresh and hand the tenant the key (D7).
-    const keyway = Lock.mintKeyway();
+    const keyway = BoundaryApi.mintKeyway();
     await ParcelApi.setKeyway(unitExtent, keyway);
     await new Lock(keyway, LOCK_TECH).issueKeyTo(target);
 

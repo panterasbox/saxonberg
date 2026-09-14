@@ -377,7 +377,7 @@ export default class TitleController extends CommandController<TitleModel> {
     // keyway on the lot's parcel row, a physical brass key in hand plus
     // an implant-keychain entry. The house door checks the KEY, never
     // identity; a resale-less re-provision re-keys.
-    const keyway = Lock.mintKeyway();
+    const keyway = BoundaryApi.mintKeyway();
     await ParcelApi.setKeyway(extent, keyway);
     try {
       await new Lock(keyway, 'pin-tumbler').issueKeyTo(giver);

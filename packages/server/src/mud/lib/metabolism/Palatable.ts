@@ -63,11 +63,11 @@ import { MixinApi } from "../../api/mixin";
 import { StuffApi } from "../../api/stuff";
 import type { BlendPart } from "../bulk/Bulkable";
 import type Material from "../material/Material";
-import { BlendIdentity } from "../../lib/craft/BlendIdentity";
 import {
   COMPETENCE_BANDS,
   type CompetenceBandName,
 } from "../advancement/CompetenceBand";
+import { CraftingApi } from '../../api/crafting';
 
 /** The sense channel a palate answers on. */
 const TASTE_CHANNEL = "taste";
@@ -190,7 +190,7 @@ function palateAugmenter(
     tastesOf(ingredients, material),
     ingredientNames(ingredients),
     MixinApi.isGraded(host) ? host.getGradeBand() : null,
-    bandFor(viewer, BlendIdentity.disciplineOf(payload)),
+    bandFor(viewer, CraftingApi.blendDiscipline(payload)),
   );
   if (!line) return text;
   return text && text.length > 0 ? `${text}\n\n${line}` : line;

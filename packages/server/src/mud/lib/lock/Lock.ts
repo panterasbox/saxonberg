@@ -45,7 +45,14 @@ export class Lock {
     readonly technology: LockType,
   ) {}
 
-  /** Mint a fresh, opaque keyway token (a re-key is simply a new keyway). */
+  /**
+   * Mint a fresh, opaque keyway token (a re-key is simply a new keyway).
+   *
+   * @internal the callable door is `BoundaryApi.mintKeyway`. ⭐ The line:
+   * MINTING is an act on the world (it reaches `SecurityApi.uuid`), so it
+   * belongs to the Api; ISSUING is the lock answering about itself, so
+   * `issueKeyTo` / `opensFor` stay instance methods here.
+   */
   static mintKeyway(): string {
     return `kw-${SecurityApi.uuid()}`;
   }

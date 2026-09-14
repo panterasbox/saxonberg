@@ -94,6 +94,9 @@ export class NameBank {
   /**
    * Resolve a list of bank keys into merged pools. Order-preserving
    * union; duplicates collapse. Missing banks are skipped silently.
+   *
+   * @internal the callable door is `SpeciesApi.resolveNamePools` — the
+   * body stays here beside the hard-private `#cache` it fills.
    */
   static async resolve(keys: readonly string[]): Promise<NamePools> {
     const given = new Set<string>();

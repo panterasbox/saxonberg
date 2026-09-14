@@ -107,7 +107,22 @@ export class BoundaryApi {
     logic().destruct(boundary);
   }
 
-
+  /**
+   * Mint a fresh, opaque keyway token — the identity of one lock. A
+   * **re-key is simply a new keyway**: every key cut against the old one
+   * stops fitting, because fitting is string equality on this token and
+   * nothing else.
+   *
+   * ⭐ Minting is the Api's and issuing is the LOCK's. `mintKeyway`
+   * produces a token from nowhere (it reaches `SecurityApi.uuid`), which
+   * is an act on the world; `new Lock(keyway, tech).issueKeyTo(holder)`
+   * and `.opensFor(mover)` are the lock answering about itself, and stay
+   * instance methods. That line is why one moved here and the others did
+   * not.
+   */
+  public static mintKeyway(): string {
+    return logic().mintKeyway();
+  }
 }
 
 SecurityApi.decorateApiClass(BoundaryApi);

@@ -65,6 +65,16 @@ export type Audience = 'self' | 'peer' | 'target';
 
 export class EmoteGrammarRunner {
   /**
+   * ⭐⭐ **A runner bound to the emote it runs.** `bind` and `render`
+   * were statics taking the emote as their first argument — a verb whose
+   * subject is a world object, which `lint:object-verbs` counts and the
+   * author-surface projection drops. Binding the emote at construction
+   * puts both verbs on an object, the shape `new Freshness(slot).load()`
+   * and `new Condition(data).matchesItem(x)` already ship.
+   */
+  constructor(private readonly emote: Emote) {}
+
+  /**
    * Bind a speaker's positional tokens against the emote's slot
    * declarations. Iterates slots in YAML order, trying to consume one
    * token per slot. Skip-on-mismatch for optional `stuff` slots that
@@ -81,11 +91,8 @@ export class EmoteGrammarRunner {
    * `wave happily` (no target, manner is "happily") works against
    * the same grammar as `wave iffy` (target, no manner).
    */
-  static bind(
-    emote: Emote,
-    tokens: string[],
-    speaker: Stuff,
-  ): BoundEmote {
+  public bind(tokens: string[], speaker: Stuff): BoundEmote {
+    const emote = this.emote;
     if (!MixinApi.isCommandGiver(speaker)) {
       throw new Error(
         `EmoteGrammarRunner.bind: speaker ${speaker.stuffId} is not a CommandGiver`,
@@ -147,17 +154,10 @@ export class EmoteGrammarRunner {
    * `ProseApi.format`. The Mml-aware output escape ensures Mml
    * fragments emit verbatim while raw strings (slot fills) get the
    * five-entity escape.
-   * @internal its only caller is Soul; inlining would have to export the module-private `buildRenderContext` with it — not author surface.
-   *
    */
-  static render(
-    emote: Emote,
-    bound: BoundEmote,
-    audience: Audience,
-    actor: Stuff,
-  ): Mml {
-    const ctx = buildRenderContext(emote, bound, audience, actor);
-    return ProseApi.format(emote.grammar.template, ctx);
+  public render(bound: BoundEmote, audience: Audience, actor: Stuff): Mml {
+    const ctx = buildRenderContext(this.emote, bound, audience, actor);
+    return ProseApi.format(this.emote.grammar.template, ctx);
   }
 }
 

@@ -206,8 +206,8 @@ function countDeliveredItemsAt(
   if (MixinApi.isSurfaced(dest)) {
     for (const item of dest.getResting()) {
       if (
-        Condition.matchesItem(condition, item) &&
-        Condition.holdsFor(condition, item)
+        new Condition(condition).matchesItem(item) &&
+        new Condition(condition).holdsFor(item)
       ) {
         found += contributionOf(condition, item);
       }
@@ -217,8 +217,8 @@ function countDeliveredItemsAt(
   for (const item of dest.getContents()) {
     if (item instanceof Creature) continue;
     if (
-      Condition.matchesItem(condition, item) &&
-      Condition.holdsFor(condition, item)
+      new Condition(condition).matchesItem(item) &&
+      new Condition(condition).holdsFor(item)
     ) {
       found += contributionOf(condition, item);
     }
@@ -331,7 +331,7 @@ function claimantStuff(record: ContractRecord): Stuff | null {
 function conditionHoldsAt(dest: Stuff, condition: ConditionData): boolean {
   if (condition.template === 'supply') {
     return (
-      countDeliveredItemsAt(dest, condition) >= Condition.countOf(condition)
+      countDeliveredItemsAt(dest, condition) >= new Condition(condition).countOf()
     );
   }
   return findDeliveredItemAt(dest, condition) !== null;
@@ -345,8 +345,8 @@ function findDeliveredItemAt(
   if (MixinApi.isSurfaced(dest)) {
     for (const item of dest.getResting()) {
       if (
-        Condition.matchesItem(condition, item) &&
-        Condition.holdsFor(condition, item)
+        new Condition(condition).matchesItem(item) &&
+        new Condition(condition).holdsFor(item)
       ) {
         return item;
       }
@@ -356,8 +356,8 @@ function findDeliveredItemAt(
   for (const item of dest.getContents()) {
     if (item instanceof Creature) continue;
     if (
-      Condition.matchesItem(condition, item) &&
-      Condition.holdsFor(condition, item)
+      new Condition(condition).matchesItem(item) &&
+      new Condition(condition).holdsFor(item)
     ) {
       return item;
     }
@@ -804,7 +804,7 @@ async function completeImpl(contractId: string): Promise<CompleteResult> {
   // ⭐ A `watch` clause verifies against the ACCRUED WATCH on the record,
   // not against anything at a destination — there is no item to find.
   if (condition.template === "watch") {
-    verified = Condition.watchHolds(condition, record.watchedSec ?? 0);
+    verified = new Condition(condition).watchHolds(record.watchedSec ?? 0);
     if (!verified) {
       return { ok: false, reason: "the watch isn't served out" };
     }
