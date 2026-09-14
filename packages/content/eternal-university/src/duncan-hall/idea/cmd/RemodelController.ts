@@ -24,9 +24,10 @@ import { MixinApi } from '@saxonberg/server/mud/api/mixin';
 import DormWarren from '../DormWarren';
 import DormThemes, {
   DormThemeError,
-} from '../../DormThemes';
+} from '../DormThemes';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import type { Container } from '@saxonberg/server/mud/lib/spatial/Container';
+import { StuffApi } from '@saxonberg/server/mud/api/stuff';
 
 const TOPIC = 'act.deed';
 
@@ -56,12 +57,16 @@ export default class RemodelController extends CommandController<CommandModel> {
     const interactive = context.interactive;
     if (!interactive) return; // no viewer to prompt
 
+    const themes = await StuffApi.singleton<DormThemes>(
+      DormThemes.CATALOGUE_PATH,
+    );
+
     let pick: string;
     try {
       pick = await interactive.promptChoice(
         'How do you want to redo the room?',
-        DormThemes.ids().map((id) => ({
-          label: DormThemes.labelOf(id),
+        themes.ids().map((id) => ({
+          label: themes.labelOf(id),
           response: id,
         })),
       );
@@ -71,7 +76,7 @@ export default class RemodelController extends CommandController<CommandModel> {
     if (!pick) return;
 
     try {
-      await DormThemes.applyTo(room, pick);
+      await themes.applyTo(room, pick);
     } catch (err) {
       if (err instanceof DormThemeError) {
         return this.fail(context, err.message, 'theme-error');
@@ -81,7 +86,7 @@ export default class RemodelController extends CommandController<CommandModel> {
 
     this.send(
       context,
-      Mml.compose`\nYou redo the room — it takes on ${DormThemes.labelOf(pick)} style.\n`,
+      Mml.compose`\nYou redo the room — it takes on ${themes.labelOf(pick)} style.\n`,
     );
   }
 

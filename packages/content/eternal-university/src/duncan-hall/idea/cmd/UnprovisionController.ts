@@ -36,6 +36,7 @@ import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import type { Container } from '@saxonberg/server/mud/lib/spatial/Container';
 import type { Containable } from '@saxonberg/server/mud/lib/spatial/Containable';
 import { AccessApi } from '@saxonberg/server/mud/api/access';
+import { StuffApi } from '@saxonberg/server/mud/api/stuff';
 
 const TOPIC = 'act.deed';
 
@@ -82,7 +83,7 @@ export default class UnprovisionController extends CommandController<Unprovision
 
     // Eject any live occupants to the floor corridor before the room dies
     // (best-effort; v1 expects a vacant/expired unit).
-    const warren = DormWarren.peek();
+    const warren = StuffApi.findByTemplatePath<DormWarren>(DormWarren.WARREN_PATH);
     if (warren) {
       this.evacuate(warren, unit);
       // Revert + tear down the live room (no recapture), then clear the

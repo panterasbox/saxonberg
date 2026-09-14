@@ -22,6 +22,7 @@ import { type TraversalGuard } from '@saxonberg/server/mud/lib/boundary/Exit';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import type { Container } from '@saxonberg/server/mud/lib/spatial/Container';
 import type { Containable } from '@saxonberg/server/mud/lib/spatial/Containable';
+import { StuffApi } from '@saxonberg/server/mud/api/stuff';
 import DormWarren from './DormWarren';
 
 export default class FloorStairExit extends DeferredDestinationExit {
@@ -46,7 +47,7 @@ export default class FloorStairExit extends DeferredDestinationExit {
    * internal error worth surfacing.
    */
   protected override async computeDestination(): Promise<Stuff & Container> {
-    const warren = await DormWarren.resolve();
+    const warren = await StuffApi.singleton<DormWarren>(DormWarren.WARREN_PATH);
     const corridor = await warren.ensureFloor(this.targetFloor);
     if (!corridor) {
       throw new Error(
@@ -68,7 +69,7 @@ export default class FloorStairExit extends DeferredDestinationExit {
   ): TraversalGuard {
     const base = super.canTraverse(mover, mode);
     if (!base.ok) return base;
-    const warren = DormWarren.peek();
+    const warren = StuffApi.findByTemplatePath<DormWarren>(DormWarren.WARREN_PATH);
     if (warren && !warren.floorReachable(this.targetFloor)) {
       return {
         ok: false,

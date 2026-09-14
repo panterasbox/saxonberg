@@ -14,7 +14,7 @@ import Desk from '../thing/Desk';
 import ProvisionController from '../idea/cmd/ProvisionController';
 import UnprovisionController from '../idea/cmd/UnprovisionController';
 import RemodelController from '../idea/cmd/RemodelController';
-import DormThemes from '../DormThemes';
+import DormThemes from '../idea/DormThemes';
 import type Interactive from '@saxonberg/server/mud/platform/idea/Interactive';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import type { Container } from '@saxonberg/server/mud/lib/spatial/Container';
@@ -79,6 +79,9 @@ function seedDomain(): void {
     domain.push({ _id: `d-${++idCounter}`, path, class: cls, hydratorClass: PH, data });
   domain.push({ _id: `d-${++idCounter}`, path: PH, class: PH, data: {} });
   add(DormWarren.WARREN_PATH, '/world/eternal/duncan-hall/idea/DormWarren');
+  // ⭐ The theme catalogue is a SINGLETON Idea now, not a class of statics
+  // — so the test world has to seed its row like any other singleton.
+  add(DormThemes.CATALOGUE_PATH, '/world/eternal/duncan-hall/idea/DormThemes');
   // D16 step 2: the unit's degenerate one-room programme row.
   add(DormWarren.PROGRAMME_PATH, '/system/residence/idea/HoldingWarren', {
     floorplan: [{ room: DormRoom.SCOPE, entry: true }],
@@ -194,6 +197,10 @@ async function warren(): Promise<DormWarren> {
   return StuffApi.singleton<DormWarren>(DormWarren.WARREN_PATH);
 }
 
+async function themes(): Promise<DormThemes> {
+  return StuffApi.singleton<DormThemes>(DormThemes.CATALOGUE_PATH);
+}
+
 class Occupant extends HasInteractiveMixin(ContainableMixin(Idea)) {
   protected handleMessage(): void {}
   protected handleEnvelope(): void {}
@@ -203,7 +210,8 @@ function reset(): void {
   vi.restoreAllMocks();
   ParcelApi._resetRegistryRefForReload();
   StuffApi.clearAll();
-  DormThemes.themesSource = null;
+  // (the catalogue instance is discarded by `clearAll` below; its
+  //  `themesSource` seam goes with it)
   /*
    * ⚠ Re-stubbed AFTER `restoreAllMocks`, and that ordering is the
    * point — a stub installed in a file-level `beforeEach` is wiped by
@@ -380,7 +388,7 @@ describe('shell personalization — move-in theme + local remodel', () => {
     ContainmentApi.move(iris, room);
 
     // A malformed style trying to set an executable-code field.
-    DormThemes.themesSource =
+    (await themes()).themesSource =
       'themes:\n  hack:\n    room:\n      shortDescription: nice\n      class: /obj/evil/Backdoor\n';
 
     choiceFn = vi.fn().mockResolvedValue('hack' as never);
@@ -464,7 +472,7 @@ describe('unprovision — revert + free slot; re-provision = default look', () =
     ContainmentApi.move(iris, room);
 
     // Personalize (seal a style), then move iris out so the unit is vacant.
-    await DormThemes.applyTo(room, 'medic');
+    await (await themes()).applyTo(room, 'medic');
     // The ROOM's record (the programme's own D16 record rides the same
     // owner — filter by scope).
     expect(

@@ -42,9 +42,10 @@ import { type ParcelOwner } from '@saxonberg/server/mud/lib/parcel/ParcelRecord'
 import DormWarren from '../DormWarren';
 import DormRoom from '../../location/DormRoom';
 import { Character } from '@saxonberg/server/mud/lib/character/Character';
-import DormThemes from '../../DormThemes';
+import DormThemes from '../DormThemes';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import { BoundaryApi } from '@saxonberg/server/mud/api/boundary';
+import { StuffApi } from '@saxonberg/server/mud/api/stuff';
 
 const TOPIC = 'act.deed';
 
@@ -99,7 +100,7 @@ export default class ProvisionController extends CommandController<ProvisionMode
     // D10/D13: the per-floor count is the `dorm.roomsPerFloor` dial, the
     // total the institution's capacity — refused at cap with the reason).
     const children = await ParcelApi.childParcelsOf(DormWarren.DORMS_EXTENT);
-    const planWarren = await DormWarren.resolve();
+    const planWarren = await StuffApi.singleton<DormWarren>(DormWarren.WARREN_PATH);
     if (children.length >= planWarren.capacity()) {
       return this.fail(
         context,
@@ -149,7 +150,7 @@ export default class ProvisionController extends CommandController<ProvisionMode
     // Reflect the new unit into the (possibly-live) building now: hang the
     // door if its floor is already materialized, and refresh reachability +
     // the keyway cache.
-    const warren = DormWarren.peek();
+    const warren = StuffApi.findByTemplatePath<DormWarren>(DormWarren.WARREN_PATH);
     if (warren) {
       await warren.ensureUnitDoor(unitExtent);
       await warren.refreshProvisioned();
@@ -162,8 +163,14 @@ export default class ProvisionController extends CommandController<ProvisionMode
     const themeId = (model.theme ?? '').trim();
     if (themeId) {
       try {
-        const room = await (await DormWarren.resolve()).admit(unitExtent);
-        await DormThemes.applyTo(room, themeId);
+        const warren = await StuffApi.singleton<DormWarren>(
+          DormWarren.WARREN_PATH,
+        );
+        const room = await warren.admit(unitExtent);
+        const themes = await StuffApi.singleton<DormThemes>(
+          DormThemes.CATALOGUE_PATH,
+        );
+        await themes.applyTo(room, themeId);
       } catch (err) {
         console.warn(
           `ProvisionController: move-in theme "${themeId}" failed for ` +
