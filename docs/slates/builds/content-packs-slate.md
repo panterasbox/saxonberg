@@ -3262,3 +3262,62 @@ the tree.
 scratch: two packs collide on a `_mixinName`.** At that point the flat
 namespace has actually broken and paths are right. `lint:mixin-names`
 (step 3) is what will tell us the day it happens.
+
+### ✅ BUILT (2026-09-14) — and the one place the plan was wrong
+
+Shipped on `build/lib-statics` as `784268db1` + `c7bf52e0c`. All four work
+items landed, plus a fifth the census turned up.
+
+| item | what shipped |
+|---|---|
+| 1 · `parseRequirement` federated | `MixinApi.isDeclaredMixin` — the kernel const OR a discovered pack's `src/` |
+| 2 · pack-supplied refusal | `static _mixinRefusal` beside `_mixinName`; `MixinApi.refusalFor` reads whichever half has it |
+| 3 · `lint:mixin-names` | gate 38. 179 declarations, 10 from packs, **0 collisions** |
+| 4 · the three symptoms | `ship.yaml` declares its `desk` arg; `DormThemes` is a `SingletonMixin` Idea; `DormWarren`'s two accessors deleted |
+| 5 · *unplanned* | `hasMixin` takes `AnyMixinName` — see below |
+
+#### ⚠⚠ Where the recorded plan was wrong: **discovery, not install**
+
+The plan said to source the known-set from *"the same place `queryMixins`
+reads"* — i.e. walk the prototype chain of each class a pack's rows name,
+at `PackApi.install`. That was built, and it **failed**: the offline
+command preload (a unit test, a stripped boot) parses every pack's
+command views with **nothing installed**, so `ship.yaml`'s honest
+`requires: [ShipmentDeskMixin]` threw before any registration had
+happened.
+
+⭐ The fix is **pack DISCOVERY**, which runs first in both paths, reading
+the `_mixinName` declaration as text out of the pack's `src/`. The
+declaration site is the truth; `PackLogic.registerPackMixins` and
+`scripts/pack-roots.ts § declaredMixins` are its two readers, and
+`lint:mixin-names` **fails on any declaration a reader cannot resolve** —
+which is what stops the pair drifting or silently undercounting.
+
+⭐ Discovery is also *more* complete than the walk: it sees every
+declaration, where `queryMixins` sees only the mixins that some row's
+class happens to compose.
+
+#### ⭐ The fifth item: `MixinName` was lying
+
+`MixinApi.hasMixin(host, name: MixinName)` made a pack's question about
+its **own** mixin a compile error — `MixinName` derives from the kernel
+const, so as a *vocabulary* it is structurally incomplete. The evidence
+was sitting in the tree: `IMPROVABLE_MIXIN`, `MANA_POWERED_MIXIN` and
+`WORKING_MIXIN` are each declared, documented with the sentence *"a pack
+mixin owns its own constant and consumers narrow with
+`MixinApi.hasMixin(cls, X)`"* — and **never once called**, because the
+call would not compile.
+
+The parameter is `AnyMixinName = MixinName | (string & {})` now: editor
+completion keeps the kernel's 169 names, and the typo check moves to
+`lint:mixin-names`, which reads every declaration on disk and so can see
+what the type system never will. ⭐ **Same move as `requires:`: when the
+type system cannot see packs, the gate owns the namespace.**
+
+#### What the census found on the way
+
+**`BodyPlanSlotsMixin` and `SeatedDrivableMixin` were not in the `Mixins`
+const.** CLAUDE.md has always said that const is the single source of
+truth for mixin names; nothing verified it, and two real kernel mixins
+had drifted out of it far enough that **no `requires:` could name
+either**. Both registered; the gate holds it now.

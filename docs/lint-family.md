@@ -148,12 +148,34 @@ growing the day it is noticed, without being fixed first.
   it fires in both directions, so a new material colliding with a
   shipped descriptor is caught too — the direction nobody checks.
 - **`lint:arg-kinds`** — affordance honesty: every object-typed slot
-  declares `requires:` (a Mixins-registry name, or `any` for
+  declares `requires:` (a mixin name — the kernel registry's **or a
+  capability pack's own**, since the 2026-09-14 federation — or `any` for
   deliberately unconstrained). An undeclared arg makes the verb menu
   assert things the controller will refuse — `attack` on a chair — and
   the client is forbidden from re-deriving semantics, so a wrong figure
   on the wire is a wrong figure on screen. Also fails on any spec it
-  cannot **parse**: an unreadable spec silently shrinks every total.
+  cannot **parse**: an unreadable spec silently shrinks every total. And
+  on a required mixin with no refusal phrase — `MixinRefusals` for a
+  kernel one, `static _mixinRefusal` for a pack's, because a pack cannot
+  edit a kernel const.
+- ⭐⭐ **`lint:mixin-names`** — the gate on the **flat mixin namespace**.
+  A mixin is addressed by a reserved name in one global namespace, which
+  survived only because that namespace was the kernel's alone. It stopped
+  being so when `requires:` was federated, so this checks three things:
+  **no duplicate `_mixinName`** across the kernel tree and every pack's
+  `src/` (ceiling 0); **no declaration the reader cannot resolve** — a
+  literal, a same-file const or `Mixins.<Key>`, because the runtime's own
+  reader resolves exactly those three and a fourth form would be a mixin
+  nothing could name; and **every KERNEL name present in the `Mixins`
+  const**, which CLAUDE.md already claimed and nothing verified —
+  `BodyPlanSlotsMixin` and `SeatedDrivableMixin` had been missing from it
+  long enough that no `requires:` could name either.
+  ⭐ It is also the **trigger** the design decision is waiting on:
+  path-addressed mixins were declined because a TS type predicate cannot
+  be path-addressed (156 irreducible `isX` narrowings), with the revisit
+  condition recorded as *"two packs collide on a `_mixinName`"*. The day
+  this gate fails for real, the flat namespace has actually broken. See
+  `docs/slates/builds/content-packs-slate.md` § RESOLVED.
 - **`lint:field-meta`** — field metadata is ONE field-keyed static: no
   legacy `persistentFields` / `fieldMarshallers` / `instructionFields` /
   `stackIdentityFields` returning, every entry well-formed. Registration

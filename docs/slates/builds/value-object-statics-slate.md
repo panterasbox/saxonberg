@@ -634,9 +634,9 @@ act). Re-decide it rather than inherit it.
 
 # ⭐ PROGRESS — read this before the kill list above
 
-**Ceiling: 563 → 392.** 106 statics declared `@internal`, 37 gates green,
-tsc clean, eslint 0 errors, build clean. Branch `build/lib-statics`, no MR
-opened.
+**Ceiling: 563 → 387.** 106 statics declared `@internal`, **38** gates
+green, tsc clean, eslint 0 errors, build clean. Branch
+`build/lib-statics`, no MR opened.
 
 ## § A — DONE (all 40 rows)
 
@@ -668,10 +668,19 @@ them nearly every time**:
 settings read (`AppApi` dial + "the only registered currency") wearing a
 value class's name.
 
-⛔ **5 rows are BLOCKED and cannot take this disposition at all** —
-`DormThemes.applyTo`, `DormWarren.resolve`/`peek`,
-`GroundCharacter.resolve`/`forZone` live in **content packs, and a pack
-holds no Api**. See § *The content-pack exposure gap* below.
+✅ **The 5 pack-blocked rows are UNBLOCKED and 3 of 5 are done**
+(2026-09-14, `c7bf52e0c`). The federation shipped, and with it the answer
+to *how a pack exposes anything*: a singleton declared with
+`SingletonMixin`, reached by `StuffApi.singleton`.
+
+| row | disposition |
+|---|---|
+| `DormThemes.applyTo` (+ `ids`, `labelOf`) | ✅ instance methods on a singleton `Idea` at `/world/eternal/duncan-hall/idea/dorm-themes` |
+| `DormWarren.resolve` / `peek` | ✅ **deleted**, not converted — a singleton accessor cannot be an instance method, and both forwarded verbatim to `StuffApi.singleton` / `findByTemplatePath`. 8 call sites say it directly. |
+| `GroundCharacter.forZone` | ⏸ **on the table, undecided** — a finder returning its own class. Same shape as the approved record finders, but not a `Document` subclass, which is the only reason it is not already settled (§2 above). |
+| `GroundCharacter.resolve` | ⏸ **on the table, undecided** — takes a **null model** as its ordinary case, which is *why* it is static. Wants a conversation, not a guess. |
+
+⭐ **Ceiling 392 → 387.**
 
 **13 remain**, each with a kernel home:
 
@@ -695,7 +704,7 @@ binder. Fixed in `BuyController`, `Consignment`, `CheckRack`,
 same for every remaining conversion.** The model must carry what the view
 would have bound.
 
-## ⛔ The content-pack exposure gap
+## ✅ The content-pack exposure gap — CLOSED 2026-09-14
 
 A content pack can hold **no Api, no logic singleton, and no free
 exported function** (`CLAUDE.md § Module Categories`). So when a pack
@@ -708,3 +717,12 @@ that stops `requires:` naming a pack mixin (the gate reads the **kernel**
 ⭐ **Three separate symptoms, one cause.** Worth treating as its own
 design question rather than routing around three times — see
 [content-packs-slate](./content-packs-slate.md).
+
+✅ **Built.** The mixin namespace is federated (`PackApi` registers every
+`_mixinName` under a discovered pack's `src/`; `lint:mixin-names` holds
+the flat namespace collision-free), and a pack exposes logic as a
+singleton declared with `SingletonMixin`. All three symptoms are gone.
+Read [content-packs-slate § ✅ BUILT](./content-packs-slate.md) for what
+shipped and, more usefully, **the one place the recorded plan was wrong**
+— registration had to move from install to discovery, because the offline
+command preload parses pack views before anything is installed.
