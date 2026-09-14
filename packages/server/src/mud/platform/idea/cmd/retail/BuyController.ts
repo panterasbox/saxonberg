@@ -42,6 +42,7 @@ import { AppApi } from "../../../../api/app";
 import { AppSettingKeys } from "../../../../lib/config/AppSettings";
 import type { Stuff } from "../../../../lib/stuff/Stuff";
 import type { Containable } from "../../../../lib/spatial/Containable";
+import { MqlApi } from '../../../../api/mql';
 
 const TOPIC = "act.deed";
 
@@ -52,8 +53,11 @@ interface BuyModel extends CommandModel {
 export default class BuyController extends CommandController<BuyModel> {
   async execute(model: BuyModel, context: CommandContext): Promise<void> {
     const giver = context.commandGiver;
-    const stock = Stock.resolveIn(context);
-    const shelf = ConsignmentShelf.resolveIn(context);
+    const stock = MqlApi.nearestInReach(context, (s): s is Stock => s instanceof Stock);
+    const shelf = MqlApi.nearestInReach(
+      context,
+      (s): s is ShelfStuff => MixinApi.isConsignmentShelf(s),
+    );
     if (!stock && !shelf) {
       this.reject(giver, context, Mml.compose`There's nothing to buy here.`, {
         kind: "empty-result",

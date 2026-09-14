@@ -107,19 +107,4 @@ export default class Tariff extends TariffBase {
     return this.pricedKeys().filter((k) => this.serviceFor(k) !== null);
   }
 
-  /**
-   * The tariff an `order` works off — the affording fixture, else the one
-   * among the room's occupants. The `CommerceMenu.resolveIn` shape,
-   * because a tariff IS a menu of a different kind and resolving it
-   * differently would be a second rule to remember.
-   */
-  static resolveIn(context: CommandContext): Tariff | null {
-    const source = context.commandSource;
-    if (source instanceof Tariff) return source;
-    const peers = MqlApi.resolveMany('peers', {
-      commandGiver: context.commandGiver,
-      scope: 'reachable',
-    });
-    return peers.stuff.find((s): s is Tariff => s instanceof Tariff) ?? null;
-  }
 }

@@ -20,6 +20,7 @@ import type { Container } from '../../../../lib/spatial/Container';
 import TipJar from '../../../thing/TipJar';
 import Coin from '../../../thing/Coin';
 import { Currency } from "../../../../lib/banking/Currency";
+import { MqlApi } from '../../../../api/mql';
 
 const TOPIC = 'act.deed';
 
@@ -44,7 +45,7 @@ export default class CollectController extends CommandController<CollectModel> {
     }
     if (!MixinApi.isContainer(giver)) return;
 
-    const jar = TipJar.resolveIn(context);
+    const jar = MqlApi.nearestInReach(context, (s): s is TipJar => s instanceof TipJar);
     if (!jar) {
       MessageApi.scene(giver)
         .topic(TOPIC)

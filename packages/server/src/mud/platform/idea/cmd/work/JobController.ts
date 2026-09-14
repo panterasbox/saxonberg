@@ -77,7 +77,7 @@ interface JobModel extends CommandModel {
 
 export default class JobController extends CommandController<JobModel> {
   async execute(model: JobModel, context: CommandContext): Promise<void> {
-    const board = JobBoard.resolveIn(context);
+    const board = MqlApi.nearestInReach(context, (s): s is JobBoard => s instanceof JobBoard);
     if (!board) {
       return this.fail(context, "There's no job board here.", "no-board");
     }

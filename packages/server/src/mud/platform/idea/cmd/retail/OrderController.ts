@@ -53,7 +53,7 @@ export default class OrderController extends CraftController<OrderModel> {
     // (items) can express. Before this no shipped priced key resolved to
     // anything but a recipe or a stock line, so the wreckage a fight
     // leaves could not become anybody's paid work.
-    const tariff = Tariff.resolveIn(context);
+    const tariff = MqlApi.nearestInReach(context, (s): s is Tariff => s instanceof Tariff);
     if (tariff) {
       // ⚠ The service key is the FIRST word and the subject is the rest.
       // `cocktail` is greedy (menu names are multi-word — "Old
@@ -70,7 +70,7 @@ export default class OrderController extends CraftController<OrderModel> {
       // through to the menu path, so a venue can carry both.
     }
 
-    const menu = Menu.resolveIn(context);
+    const menu = MqlApi.nearestInReach(context, (s): s is Menu => s instanceof Menu);
     if (!menu) {
       MessageApi.scene(giver)
         .topic(TOPIC)

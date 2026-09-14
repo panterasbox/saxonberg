@@ -44,6 +44,8 @@ import { EmploymentApi } from "../../../../api/employment";
 import type { Organization } from "../../../../lib/employment/Organization";
 import { StuffApi } from "../../../../api/stuff";
 import type { Chattel } from '../../../../lib/chattel/Chattel';
+import { MqlApi } from '../../../../api/mql';
+import type { ShelfStuff } from "../../../thing/ConsignmentShelf";
 
 const TOPIC = "act.deed";
 
@@ -55,7 +57,10 @@ interface ConsignModel extends CommandModel {
 export default class ConsignController extends CommandController<ConsignModel> {
   async execute(model: ConsignModel, context: CommandContext): Promise<void> {
     const giver = context.commandGiver;
-    const shelf = ConsignmentShelf.resolveIn(context);
+    const shelf = MqlApi.nearestInReach(
+      context,
+      (x): x is ShelfStuff => MixinApi.isConsignmentShelf(x),
+    );
     if (!shelf) {
       this.reject(giver, context, Mml.compose`There's nowhere to consign here.`, {
         kind: "empty-result",

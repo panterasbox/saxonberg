@@ -24,6 +24,7 @@ import Tariff from '../../../thing/Tariff';
 import { Money } from '../../../../lib/banking/Money';
 import { Currency } from '../../../../lib/banking/Currency';
 import { MixinApi } from '../../../../api/mixin';
+import { MqlApi } from '../../../../api/mql';
 
 const TOPIC = 'act.deed';
 
@@ -43,7 +44,7 @@ export default class MenuController extends CommandController<MenuModel> {
     // compose rather than one shadowing the other.
     const blocks: string[] = [];
 
-    const tariff = Tariff.resolveIn(context);
+    const tariff = MqlApi.nearestInReach(context, (s): s is Tariff => s instanceof Tariff);
     const serviceKeys = tariff?.serviceKeys() ?? [];
     if (tariff && serviceKeys.length > 0) {
       const rows = serviceKeys
@@ -107,5 +108,5 @@ export default class MenuController extends CommandController<MenuModel> {
 function resolveMenu(model: MenuModel, context: CommandContext): Menu | null {
   const named = model.target?.stuff;
   if (named instanceof Menu) return named;
-  return Menu.resolveIn(context);
+  return MqlApi.nearestInReach(context, (s): s is Menu => s instanceof Menu);
 }

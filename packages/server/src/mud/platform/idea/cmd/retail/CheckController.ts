@@ -36,6 +36,8 @@ import type { Container } from "../../../../lib/spatial/Container";
 import type { Containable } from "../../../../lib/spatial/Containable";
 import type { Chattel } from '../../../../lib/chattel/Chattel';
 import type { Wieldable } from '../../../../lib/slot/Wieldable';
+import { MqlApi } from '../../../../api/mql';
+import type { RackStuff } from '../../../thing/CheckRack';
 
 const TOPIC = "act.deed";
 
@@ -46,7 +48,8 @@ interface CheckModel extends CommandModel {
 export default class CheckController extends CommandController<CheckModel> {
   async execute(model: CheckModel, context: CommandContext): Promise<void> {
     const giver = context.commandGiver;
-    const rack = CheckRack.resolveIn(context);
+    const rack = MqlApi.nearestInReach(context, (s): s is RackStuff =>
+      MixinApi.isHeldGoodsShelf(s) && !MixinApi.isConsignmentShelf(s));
     if (!rack) {
       return this.reject(
         giver,

@@ -33,6 +33,8 @@ import { AddressApi } from '@saxonberg/server/mud/api/address';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import type { Containable } from '@saxonberg/server/mud/lib/spatial/Containable';
 import DepotCounter from '../../../thing/DepotCounter';
+import { MqlApi } from '@saxonberg/server/mud/api/mql';
+import type { ShipmentDesk } from '../../../lib/haulage/ShipmentDesk';
 
 const TOPIC = 'act.deed';
 
@@ -48,7 +50,8 @@ interface ShipModel extends CommandModel {
 export default class ShipController extends CommandController<ShipModel> {
   async execute(model: ShipModel, context: CommandContext): Promise<void> {
     const giver = context.commandGiver;
-    const desk = DepotCounter.resolveIn(context);
+    const desk = MqlApi.nearestInReach(context, (s): s is Stuff & ShipmentDesk =>
+      MixinApi.isActive(s, 'ShipmentDeskMixin'));
     if (!desk) {
       return this.fail(
         context,

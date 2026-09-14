@@ -52,22 +52,6 @@ export default class CheckRack extends CheckRackBase {
     await this.seatSelf();
   }
 
-  /**
-   * Resolve the check rack a `check` works off — a **pure custody** rack
-   * (a `HeldGoodsShelf` that is not a sale shelf), by the command source
-   * first (the fixture that afforded the verb), else a reachable peer.
-   */
-  static resolveIn(context: CommandContext): RackStuff | null {
-    const isRack = (s: Stuff): boolean =>
-      MixinApi.isHeldGoodsShelf(s) && !MixinApi.isConsignmentShelf(s);
-    const source = context.commandSource;
-    if (source && isRack(source)) return source as RackStuff;
-    const peers = MqlApi.resolveMany("peers", {
-      commandGiver: context.commandGiver,
-      scope: "reachable",
-    });
-    return (peers.stuff.find(isRack) as RackStuff | undefined) ?? null;
-  }
 
   static commandContributions: CommandContributions = {
     self: [],

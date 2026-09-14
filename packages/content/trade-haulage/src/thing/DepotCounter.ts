@@ -29,23 +29,4 @@ export default class DepotCounter extends DepotCounterBase {
     environment: ['trade/haulage/cmd/haulage/ship.yaml'],
   };
 
-  /**
-   * The desk a `ship` works off — by MIXIN, not class, so a second kind
-   * of counter that also takes goods for carriage resolves the same way.
-   * The `ConsignmentShelf.resolveIn` shape.
-   */
-  static resolveIn(context: CommandContext): (Stuff & ShipmentDesk) | null {
-    const source = context.commandSource;
-    if (source && MixinApi.isActive(source, 'ShipmentDeskMixin')) {
-      return source as unknown as Stuff & ShipmentDesk;
-    }
-    const peers = MqlApi.resolveMany('peers', {
-      commandGiver: context.commandGiver,
-      scope: 'reachable',
-    });
-    const hit = peers.stuff.find((s) =>
-      MixinApi.isActive(s, 'ShipmentDeskMixin'),
-    );
-    return (hit as unknown as Stuff & ShipmentDesk | undefined) ?? null;
-  }
 }

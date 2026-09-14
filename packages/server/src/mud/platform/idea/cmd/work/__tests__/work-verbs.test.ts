@@ -40,6 +40,7 @@ import {
   withRootContext,
 } from "../../../../../lib/security/__tests__/test-setup";
 import { installV1QuantityMarshallers } from "../../../../../lib/persistence/__tests__/quantity-marshaller-test-helpers";
+import { MqlApi } from "../../../../../api/mql";
 import {
   installBankingHarness,
   teardownBankingHarness,
@@ -492,8 +493,11 @@ describe("work verbs", () => {
     expect(CredentialWalletUpdate.commandContributions.self).toContain(
       "platform/cmd/work/fulfill.yaml",
     );
-    // resolveIn: reachable-peers path (no commandSource in the context).
-    const found = JobBoard.resolveIn(ctx(courier) as never);
+    // nearestInReach: reachable-peers path (no commandSource in the context).
+    const found = MqlApi.nearestInReach(
+      ctx(courier) as never,
+      (s): s is JobBoard => s instanceof JobBoard,
+    );
     expect(found).toBe(board);
   });
 

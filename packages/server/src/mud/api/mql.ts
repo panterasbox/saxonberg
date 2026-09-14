@@ -28,6 +28,7 @@ import { MqlLogic } from '../platform/idea/api/MqlLogic';
 import { fileURLToPath } from 'url';
 
 import { SecurityApi } from './security';
+import type { CommandContext } from './command';
 import type {
   MqlContext,
   MqlMatchVia,
@@ -153,6 +154,43 @@ export class MqlApi {
     predicate: (s: Stuff) => s is Stuff & T
   ): (Stuff & T) | null {
     return logic().effectiveTarget(value, predicate);
+  }
+
+  /**
+   * The nearest thing matching `predicate` that this command is acting
+   * on: the **command source** if it matches, else the first match in the
+   * giver's `reachable` peer pool. `null` when neither has one.
+   *
+   * ⭐ The "source first, reach second" sibling of {@link effectiveTarget}'s
+   * "direct first, door second" — same predicate shape, same narrowing
+   * through the return type.
+   *
+   * ⚠ This was written out **eight times**, verbatim, as a
+   * `resolveIn(context)` static on `Stock`, `Tariff`, `TipJar`,
+   * `JobBoard`, `CheckRack`, `ConsignmentShelf`, `CommerceMenu` and (in a
+   * pack) `DepotCounter` — each one a copy of the same scope walk with a
+   * different type test. It is one question, so it is one method.
+   *
+   * ⚠ Not a third *resolve* entry point: it runs on `reachable` through
+   * `resolveMany` and adds no scope the caller could not already ask for.
+   */
+  static nearestInReach<T extends object>(
+    context: CommandContext,
+    predicate: (s: Stuff) => s is Stuff & T
+  ): (Stuff & T) | null {
+    const source = context.commandSource;
+    if (source && predicate(source)) return source;
+    // ⚠ Through the PUBLIC `resolveMany`, deliberately: it is the
+    // established test seam (nine `spyOn(MqlApi, 'resolveMany')` across
+    // the suite) and it is what all eight `resolveIn` copies called, so
+    // behaviour and stubbing are both preserved. Composition only — the
+    // resolution itself stays in the hot-reloadable logic singleton.
+    return (
+      MqlApi.resolveMany('peers', {
+        commandGiver: context.commandGiver,
+        scope: 'reachable',
+      }).stuff.find(predicate) ?? null
+    );
   }
 }
 

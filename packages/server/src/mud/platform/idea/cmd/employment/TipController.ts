@@ -20,6 +20,7 @@ import { MessageApi } from '../../../../api/message';
 import { Mml } from '../../../../api/mml';
 import TipJar from '../../../thing/TipJar';
 import { Currency } from "../../../../lib/banking/Currency";
+import { MqlApi } from '../../../../api/mql';
 
 const TOPIC = 'act.deed';
 
@@ -46,7 +47,7 @@ export default class TipController extends CommandController<TipModel> {
       return;
     }
 
-    const jar = TipJar.resolveIn(context);
+    const jar = MqlApi.nearestInReach(context, (s): s is TipJar => s instanceof TipJar);
 
     // Cash route (default): drop coin in the jar — off the books.
     if (!model.eft && jar) {
