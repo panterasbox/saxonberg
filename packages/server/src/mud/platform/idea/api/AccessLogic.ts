@@ -10,6 +10,9 @@ import { PlayerApi } from '../../../api/player';
 import { TemplatePaths } from '../../../lib/paths';
 import type { Stuff } from '../../../lib/stuff/Stuff';
 import type AccessRegistry from '../AccessRegistry';
+import { ParcelApi } from '../../../api/parcel';
+import { GroupApi } from '../../../api/group';
+import type { ParcelOwner } from '../../../lib/parcel/ParcelRecord';
 
 const REGISTRY_PATH = TemplatePaths.accessRegistry;
 
@@ -125,6 +128,29 @@ export class AccessLogic extends ApiLogic {
 
   /** See {@link AccessApi.isWizard}. */
   @CallSecurity(AccessApiCallers)
+  /**
+   * Is `actor` an **agent of** `owner` — a member of the group the parcel
+   * owner resolves to? The owner-conferred authority a landlord's staff
+   * act under (Walter at Mayfield Row, Katie at Duncan Hall).
+   *
+   * ⭐ Deduplicated here from two packs that carried byte-identical
+   * `isBuildingAgent` / `isDormsAgent` statics on their controllers —
+   * a pack may not hold an Api, so the shared question belongs to the
+   * kernel's access face.
+   *
+   * ⚠ The leading `isWizard` short-circuit is inherited from both
+   * originals and is a known wrong shape — an argument that ends in a
+   * wizard check wants a SEAT instead. Carried unchanged rather than
+   * silently re-decided here; see the wizard-axis-cleanup slate.
+   */
+  public async isAgentOf(actor: Stuff, owner: ParcelOwner): Promise<boolean> {
+    if (await this.isWizard(actor)) return true;
+    const ref = await ParcelApi.resolveOwnerRef(owner);
+    if (!ref) return false;
+    const key = actor.getIdentityPath();
+    return key ? GroupApi.isMember(key, ref) : false;
+  }
+
   public async isWizard(subject: Stuff | null): Promise<boolean> {
     if (subject === null) return false;
     const reg = lookupRegistry();

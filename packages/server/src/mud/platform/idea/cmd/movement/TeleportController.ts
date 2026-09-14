@@ -394,6 +394,9 @@ export default class TeleportController extends CommandController<TeleportModel>
    * anchor cannot slip one past.
    *
    * Static so the resolver is unit-testable without a dispatch.
+   *
+   * @internal reached only by that test — the anchored-destination
+   * resolve is dispatch-internal, never author surface.
    */
   static async resolveAnchored(
     giver: Stuff,

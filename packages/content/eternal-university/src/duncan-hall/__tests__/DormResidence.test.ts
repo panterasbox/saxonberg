@@ -217,6 +217,11 @@ function reset(): void {
    */
   vi.spyOn(AccessApi, 'can').mockResolvedValue(true);
   vi.spyOn(AccessApi, 'isWizard').mockResolvedValue(true);
+  // ⭐ The dorms-staff check is `AccessApi.isAgentOf` since the statics
+  // sweep (it was `ProvisionController.isDormsAgent`, duplicated
+  // verbatim in terminus). Stub the question being asked, not the
+  // wizard short-circuit inside it.
+  vi.spyOn(AccessApi, 'isAgentOf').mockResolvedValue(true);
 }
 
 const snapshots = () => col('holder_snapshots');

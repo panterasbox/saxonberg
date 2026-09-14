@@ -91,6 +91,14 @@ export abstract class CraftController<
    * antipatterns.md § Activity-completion closures). No note: at
    * completion the dispatch envelope has already shipped.
    */
+  /**
+   * ⭐ **Static by necessity, not by neglect.** Its callers include
+   * activity-completion closures, where `this.<method>()` no-ops as
+   * `[inert]` (antipatterns.md § Activity-completion closures) — so
+   * `RepairController`'s completion body is a module-private free
+   * function with no receiver at all. An instance method here does not
+   * compile at that call site, which is the compiler agreeing.
+   */
   public static declineScene(giver: Stuff, failure: CraftingFailure): void {
     MessageApi.scene(giver)
       .topic(TOPIC)

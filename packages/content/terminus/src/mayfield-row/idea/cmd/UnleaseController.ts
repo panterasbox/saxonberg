@@ -23,6 +23,7 @@ import LeaseController, { BUILDING_EXTENT, BUILDING_PATH } from './LeaseControll
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import type { Container } from '@saxonberg/server/mud/lib/spatial/Container';
 import type { Containable } from '@saxonberg/server/mud/lib/spatial/Containable';
+import { AccessApi } from '@saxonberg/server/mud/api/access';
 
 const TOPIC = 'act.deed';
 
@@ -46,7 +47,7 @@ export default class UnleaseController extends CommandController<UnleaseModel> {
 
     const building = await ParcelApi.coveringParcelOf(BUILDING_EXTENT);
     const owner = building?.getOwner();
-    if (!owner || !(await LeaseController.isBuildingAgent(actor, owner))) {
+    if (!owner || !(await AccessApi.isAgentOf(actor, owner))) {
       return this.fail(
         context,
         "You're not authorized to end Seznick House leases.",

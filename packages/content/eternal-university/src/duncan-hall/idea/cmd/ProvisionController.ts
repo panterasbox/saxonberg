@@ -70,7 +70,7 @@ export default class ProvisionController extends CommandController<ProvisionMode
 
     // The real authorization boundary (execute-level, so a forced dispatch
     // can't skip it): a wizard, or an agent of the dorms owner (Katie).
-    if (!(await ProvisionController.isDormsAgent(actor, owner))) {
+    if (!(await AccessApi.isAgentOf(actor, owner))) {
       return this.fail(
         context,
         "You're not authorized to lease out Duncan Hall's dorms.",
@@ -192,24 +192,4 @@ export default class ProvisionController extends CommandController<ProvisionMode
     context.note({ kind: 'controller-rejected', reason, detail });
   }
 
-  /**
-   * Whether `actor` may administer the dorms: a wizard (operator), or an
-   * **agent of the dorms owner** — a member of the owner group (the
-   * landlord's staff; how Katie is authorized). NOT via `AccessApi.can`,
-   * which fails closed for NPCs (no `playerId`); membership keys on the
-   * actor's **templatePath** — the uniform member key (a player as
-   * `/platform/agent/Avatar/<id>`, an NPC like Katie as its own path), so this call site
-   * carries no player-vs-NPC branching. Shared with `UnprovisionController`
-   * (a class static, not a free helper).
-   */
-  public static async isDormsAgent(
-    actor: Stuff,
-    owner: ParcelOwner,
-  ): Promise<boolean> {
-    if (await AccessApi.isWizard(actor)) return true;
-    const ref = await ParcelApi.resolveOwnerRef(owner);
-    if (!ref) return false;
-    const key = actor.getIdentityPath();
-    return key ? GroupApi.isMember(key, ref) : false;
-  }
 }

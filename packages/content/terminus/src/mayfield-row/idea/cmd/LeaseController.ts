@@ -62,7 +62,7 @@ export default class LeaseController extends CommandController<LeaseModel> {
         'no-building-parcel',
       );
     }
-    if (!(await LeaseController.isBuildingAgent(actor, owner))) {
+    if (!(await AccessApi.isAgentOf(actor, owner))) {
       return this.fail(
         context,
         "You're not authorized to let Seznick House's rooms.",
@@ -143,18 +143,6 @@ export default class LeaseController extends CommandController<LeaseModel> {
     );
   }
 
-  /** A wizard, or an agent of the building's owner (Walter's authority —
-   *  owner-conferred group membership; the isDormsAgent shape). */
-  public static async isBuildingAgent(
-    actor: Stuff,
-    owner: ParcelOwner,
-  ): Promise<boolean> {
-    if (await AccessApi.isWizard(actor)) return true;
-    const ref = await ParcelApi.resolveOwnerRef(owner);
-    if (!ref) return false;
-    const key = actor.getIdentityPath();
-    return key ? GroupApi.isMember(key, ref) : false;
-  }
 
   /** The ascent gate's read (P10) — shared with the sale chokepoint's
    *  shape: any held residential unit below the threshold refuses. */
