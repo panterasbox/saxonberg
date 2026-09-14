@@ -1,14 +1,14 @@
-# `lib/` statics — `callable == visible` is broken in 136 classes
+# `lib/` statics — `callable == visible` is broken in 159 classes
 
-> **Status: UNBUILT** — ⭐ ready to build, and the user wants it
-> **immediately after !255 merges**
-> **Left:** the census gate (`lint:lib-statics`, ceiling 461) · the 461
-> public statics on 136 non-`Api` classes, rehomed onto an `Api` static
-> or the owning instance · the ratchet to 0
-> **Size:** a build — 136 classes, 461 statics
+> **Status: PARTIAL** — W0 landed: `lint:lib-statics` is in the derived
+> family at **ceiling 535**
+> **Left:** the 535 public statics on 159 non-`Api` classes, rehomed onto
+> an `Api` static or a logic singleton · the ratchet to 0
+> **Size:** a build — 159 classes, 535 statics
 
 **Raised by:** the user, reviewing MR !255, 2026-09-11
-**Census:** `pnpm -C packages/server exec tsx scripts/check-lib-statics.ts`
+**Census:** `pnpm -C packages/server lint:lib-statics` (gate) ·
+`… exec tsx scripts/check-lib-statics.ts --report` (the roster)
 
 > **A public `static` on a non-`Api` class is callable by anyone and
 > visible to nobody.**
@@ -50,7 +50,14 @@ cared-about`**.
 
 ## ⚠⚠ The census — bigger, and more interesting, than "some factories"
 
-**136 classes · 461 public statics.** Only **8 files** anywhere in `lib/`
+**159 classes · 535 public statics.**
+
+⚠ **The slate first said 136 / 461, and that was an undercount** — the
+script read only the FIRST exported class in each file and required a
+static to sit at exactly two spaces of indent. W0 rewrote it over
+`pack-roots` and verified all 535 pairs exist. The shape table below was
+classified at 461; **the 74 newly-visible statics are unclassified**, so
+treat its counts as a floor per row, not a partition. Only **8 files** anywhere in `lib/`
 carry an `@internal` marker, so almost none of this is even *declared*
 internal.
 
@@ -85,10 +92,14 @@ rule that ~40 classes predate.
 
 ## Waves
 
-**W0 — the ratchet.** `scripts/check-lib-statics.ts` is already in the
-tree as a report. Add `lint:lib-statics` with **461 as the ceiling**, so
-the count can only fall. ⭐ Census-then-ratchet, the pattern that took
-`lint:object-verbs` from 338 to 0.
+**W0 — the ratchet. ✅ DONE** (`build/lib-statics`). `lint:lib-statics`
+is in the derived family (37 gates) at **ceiling 535**, so the count can
+only fall. ⭐ Census-then-ratchet, the pattern that took
+`lint:object-verbs` from 338 to 0. ⚠ The script was rewritten first:
+hardcoded worktree path → `pack-roots`; first-class-only → every exported
+class, brace-matched; two-space-indent-only → any indent. That is where
+461 → 535 came from, and a ratchet set below the real count is a ceiling
+that never bites. 14 unit tests on the decision core.
 
 **W1 — fix the projection, and mark what stays.** A static that is
 genuinely library-internal should say `@internal` rather than being
