@@ -1,8 +1,10 @@
 # `lib/` statics — `callable == visible` is broken in 159 classes
 
-> **Status: PARTIAL** — W0 + W1 landed: `lint:lib-statics` is in the
-> derived family at **ceiling 564**, and the projection now says out loud
-> what it drops
+> **Status: ⭐ ABSORBED-IN-PRACTICE** — the invisible-surface problem is
+> fixed; the relocation half was examined family by family and mostly
+> should not happen (see the last section). `lint:lib-statics` sits in the
+> derived family at **ceiling 462**, and its job from here is stopping
+> growth, not burning down to 0.
 > **Left:** ✅ rungs 2–3 done (27 `private`, 4 + 25 classes `@internal`;
 > ceiling 563 → **464**) · **the real remainder is 123, not 464**: 44
 > world-SUBJECT statics that want to be instance methods on the host
@@ -381,3 +383,49 @@ rather than implying the old one. **The honest remaining target is 123:**
 
 Everything else — 341 type-level, 71 record finders, plus the framework
 and narrowing shapes — **is where it belongs**.
+
+---
+
+# The 123, one family at a time — and why almost none of them moved
+
+Worked through every one of the 123. **Two moved.** The rest each have a
+reason, and in four cases the reason was already written in the code.
+Recorded family by family so nobody re-derives this.
+
+| family | n | verdict |
+|---|---|---|
+| **`Record<string, unknown>` first param** | 4 | ⚠ my classifier's own bug — it listed `Record` as a world type. `Archetype.fromData`, `Emote.fromData`, `Recipe.fromData`, `PlatPlan.parse` are **constructors**. Type-level; stay. |
+| **bulk-payload accessors** — `Freshness.loadOf(slot)`, `Contamination.loadsFor(slot)`, `Cure.stateFor(slot)` … | 7 | ⭐ **`bulk.md` documents the design**: `BulkPayload` carries only what cannot derive, and *subsystems declare their own fields onto it*. Spoilage reaching into the payload it declared IS the pattern. `slot.freshnessLoad()` would make the bulk substrate know about spoilage. Stay. |
+| **material-first lookups** — `Freshness.growthRate(material,…)`, `MaturationProfile.forMaterial` | 4 | a `Material` here is a **lookup value**, not the subject of a verb. Pure model arithmetic: scalars in, scalar out. Type-level; stay. |
+| **ActiveRecord finders** on `Document` subclasses | 71 | see § Rung 4 — deliberate, documented in `TemplateApi`'s own docstring, and the abstract-base variants exist *because* `Document.find`'s polymorphic `this` cannot serve them. |
+| **knowledge adapters** — `RecipeKnowledge.knowsOf(actor,…)`, `SpellKnowledge.*` | 7 | reads like a textbook object-verbs violation, and the object-verbs fix is worse: `actor.knowsRecipe(id)` puts a **crafting word in the kernel's `PersonaMixin`** — the documented wrong-host tell. The general surface (`chronicleEntries`, claims/deeds by key) is *already* on Persona; these translate a recipe id into a chronicle key, which is crafting's knowledge and correctly sits in crafting. Stay. |
+| ⚠ **`Lock.issueKey` / `issueMasterKey`** | 2 | the one move this slate promised — and it is **wrong**. `BoundaryApi.issueKey(holder, …)` is `XApi.verb(subject, …)`, which is exactly what `lint:object-verbs` forbids and holds at **0**. Moving it would break a green gate to satisfy a softer rule. ⭐ And the docstring already recorded the reasoning: *"Ungated … issuers span kernel + pack controllers, a set no kernel gate can enumerate."* Stay. |
+| **modality statics** — `VisionModality.canSee`, `lightAt`, `SmellModality.smellAt` … | 9 | same shape: `PerceptionApi.canSee(viewer, target)` is subject-first. ⚠ `canSee` is separately a **live defect** — it disagrees with `PerceptionApi.perceives` — but that is the concealment slate's, not a relocation. |
+| **cross-controller helpers** — `CraftController.declineScene`, `LeaseController.isBuildingAgent` … | 4 | genuinely smelly: one controller reaching into a sibling's static. But every candidate home (`CraftingApi.declineScene(giver,…)`) is subject-first, and a shared controller base does not exist across the three. ⭐ Left as the one open item with no good answer — it wants a shared pack-lib class, which is a design question, not a move. |
+| **no caller at all** | 2 | ✅ `Contamination.hostWaterActivity`, `Cure.ambientHumidityOf` → `@internal` (both are called by a module-level function in their own file, so `private` does not reach them). |
+
+## ⭐⭐⭐ The conclusion, stated plainly
+
+**After rungs 1–3, the remaining population is not an antipattern.** Nine
+families were examined closely and eight held — four of them defended by
+reasoning already written into the code or the subsystem docs, and one
+(`Lock`) where the "fix" would have broken a gate that is currently green.
+
+That is the honest end state of this sweep, and it is a better outcome
+than a zero: **the invisible-surface problem was real and is fixed** (W2
+made every value-class static visible; rungs 2–3 removed 101 that were
+never surface at all), while the *relocation* half turned out to be a
+solution in search of a problem.
+
+⚠ **So the ratchet should stop being read as a burn-down to 0.** 462 is
+approximately the floor, and the gate's job from here is what a ratchet is
+actually for — **stopping growth**, so a new static has to argue for
+itself.
+
+## What is genuinely left
+
+- the 4 cross-controller helpers (a design question)
+- `VisionModality.canSee` vs `PerceptionApi.perceives` → the
+  [concealment slate](../tails/concealment-detection-slate.md)
+- `SchedulerApi` → `ActivityApi`, and the rest of
+  [api-normalization](./api-normalization-slate.md) § 6.6

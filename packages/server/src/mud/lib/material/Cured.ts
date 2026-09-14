@@ -288,6 +288,8 @@ export class Cure {
    * runs off a getter and cannot await. It walks the containment chain's
    * authored overrides and biome defaults exactly as the full resolve
    * does, and skips only the zone tier and the weather deviation.
+   * @internal read by this module only — ambient humidity behind the cure clock.
+   *
    */
   static ambientHumidityOf(host: Stuff): number {
     if (MixinApi.isContainable(host)) {

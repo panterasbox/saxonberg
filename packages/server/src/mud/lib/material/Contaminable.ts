@@ -466,6 +466,7 @@ export class Contamination {
   }
 
   /** The effective water activity of a host's matter (material × cure). */
+  /** @internal read by this module only — the host water-activity lookup behind the pathogen clock. */
   static hostWaterActivity(host: Stuff): number {
     const material: Material | null = MixinApi.isTangible(host)
       ? host.getMaterial()
