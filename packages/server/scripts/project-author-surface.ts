@@ -112,7 +112,17 @@ type TdType = {
 };
 
 export interface ConsumerMember {
-  kind: "api-static" | "stuff-method";
+  /**
+   * `api-static` — a public static on an Api face.
+   * `stuff-method` — a public instance method on a Stuff/mixin class.
+   * ⭐ `value-static` — a public static on a `lib/` **value class**: the
+   *   type's own surface (`Quantity.of`, `Currency.has`), which stays on
+   *   the type and is therefore VISIBLE. The line is *does this answer a
+   *   question about the TYPE, or about the WORLD* — world-level logic
+   *   belongs on a logic singleton and is ratcheted out by
+   *   `lint:lib-statics`.
+   */
+  kind: "api-static" | "stuff-method" | "value-static";
   module: string;
   face: string; // the class the method lives on
   name: string;
@@ -722,6 +732,10 @@ export function projectAuthorSurface(project: Refl): ProjectionResult {
     for (const cls of mod.children ?? []) {
       if (cls.kind !== Kind.Class && cls.kind !== Kind.Interface) continue;
       const apiClass = isApiClass(cls, mod.name);
+      // `mud/api/mml/**`, `mud/api/mql/**` — internals of a sealing face.
+      const sealedSubdir =
+        mod.name.startsWith("mud/api/") &&
+        mod.name.slice("mud/api/".length).includes("/");
       for (const member of cls.children ?? []) {
         if (member.kind === Kind.Constructor) continue;
         if (member.flags?.isPrivate) continue;
@@ -750,16 +764,41 @@ export function projectAuthorSurface(project: Refl): ProjectionResult {
 
         const isStaticApi = apiClass && member.flags?.isStatic === true;
         const isStuffMethod = !apiClass && member.flags?.isStatic !== true;
-        if (!isStaticApi && !isStuffMethod) {
-          // ⭐ Say what is being dropped. A member that reaches no tier
-          // is callable and invisible, and silence is what let 535 of
-          // them accumulate.
+        // An instance method on an Api face is unreachable by design —
+        // an Api is a static forwarding shell. Nothing to admit.
+        if (apiClass && member.flags?.isStatic !== true) {
           unclassifiedReport.push({
             module: mod.name,
             face: cls.name,
             name: member.name,
             qualified,
-            reason: apiClass ? "instance-method-on-api" : "static-on-non-api",
+            reason: "instance-method-on-api",
+          });
+          continue;
+        }
+        // ⭐ A public static on a non-Api class is a VALUE-CLASS static.
+        // It used to fall through both rules and reach no doc at all,
+        // which is how 564 of them accumulated unseen. They are admitted
+        // as their own kind rather than hidden: `callable == visible` is
+        // satisfied by making them visible, and the ones that are world-
+        // level logic rather than type-level surface are moved out by
+        // `lint:lib-statics`, not by this filter.
+        //
+        // ⚠ Two populations are NOT admitted, and neither is an
+        // oversight:
+        //   - `backend/` + `services/` — the mediator layers, which
+        //     CLAUDE.md puts outside the author surface by LAYER;
+        //   - `api/<x>/**` sealed-subdir pipeline internals, which the
+        //     module category declares internal to their sealing face.
+        const isValueStatic =
+          !isStaticApi && !isStuffMethod && mod.name.startsWith("mud/") && !sealedSubdir;
+        if (!isStaticApi && !isStuffMethod && !isValueStatic) {
+          unclassifiedReport.push({
+            module: mod.name,
+            face: cls.name,
+            name: member.name,
+            qualified,
+            reason: "static-on-non-api",
           });
           continue;
         }
@@ -792,7 +831,11 @@ export function projectAuthorSurface(project: Refl): ProjectionResult {
 
         const tsdoc = extractTsdoc(member);
         const entry: ConsumerMember = {
-          kind: isStaticApi ? "api-static" : "stuff-method",
+          kind: isStaticApi
+            ? "api-static"
+            : isValueStatic
+              ? "value-static"
+              : "stuff-method",
           module: mod.name,
           face: cls.name,
           name: member.name,

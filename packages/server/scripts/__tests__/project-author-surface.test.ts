@@ -590,11 +590,15 @@ describe("projectAuthorSurface — the unclassified report", () => {
   };
   const { surface, unclassifiedReport } = projectAuthorSurface(MODEL);
 
-  it("names a public static on a non-Api class instead of dropping it", () => {
-    const statics = unclassifiedReport.filter(
-      (u) => u.reason === "static-on-non-api"
+  it("⭐ admits a public static on a value class as its own kind", () => {
+    const vs = surface.consumer.filter((c) => c.kind === "value-static");
+    expect(vs.map((c) => c.name).sort()).toEqual(["of", "parse"]);
+  });
+
+  it("no longer drops a value-class static in silence", () => {
+    expect(unclassifiedReport.map((u) => u.reason)).not.toContain(
+      "static-on-non-api"
     );
-    expect(statics.map((u) => u.name).sort()).toEqual(["of", "parse"]);
   });
 
   it("names an instance method on an Api face — unreachable by design", () => {
@@ -604,13 +608,16 @@ describe("projectAuthorSurface — the unclassified report", () => {
     expect(instance.map((u) => u.name)).toEqual(["stray"]);
   });
 
-  it("does not report a private static — already invisible by intent", () => {
+  it("does not admit a private static — already invisible by intent", () => {
+    expect(surface.consumer.map((c) => c.name)).not.toContain("hidden");
     expect(unclassifiedReport.map((u) => u.name)).not.toContain("hidden");
   });
 
-  it("leaves the two tier rules themselves unchanged", () => {
-    expect(surface.consumer.map((c) => c.qualified).sort()).toEqual([
-      "mud/api/thing#ThingApi.build",
+  it("leaves the Api-static and Stuff-method rules themselves unchanged", () => {
+    const byKind = (k: string): string[] =>
+      surface.consumer.filter((c) => c.kind === k).map((c) => c.qualified);
+    expect(byKind("api-static")).toEqual(["mud/api/thing#ThingApi.build"]);
+    expect(byKind("stuff-method")).toEqual([
       "mud/lib/value/Thing#Thing.render",
     ]);
   });
@@ -658,8 +665,8 @@ describe("projectAuthorSurface — what counts as an Api face", () => {
     expect(mml?.kind).toBe("api-static");
   });
 
-  it("⚠ refuses a sealed-subdir pipeline internal", () => {
+  it("⚠ keeps a sealed-subdir internal off the surface entirely", () => {
     expect(surface.consumer.map((c) => c.face)).not.toContain("Tokenizer");
-    expect(unclassifiedReport.map((u) => u.face)).toContain("Tokenizer");
+    expect(unclassifiedReport.map((u) => u.face)).toEqual(["Tokenizer"]);
   });
 });

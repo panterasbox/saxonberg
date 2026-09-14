@@ -2,8 +2,22 @@
  * check-lib-statics — ⭐⭐ **the ratchet for the value-object statics
  * sweep.**
  *
- * > A public `static` on a non-`Api` class is **callable by anyone and
- * > visible to nobody.**
+ * > Does this static answer a question about the **TYPE**, or about the
+ * > **WORLD**?
+
+ * Type-level statics — construction (`Quantity.of`, `Currency.parse`),
+ * guards over the type's own closed vocabulary (`Construction.isForm`)
+ * and lookups of it (`Currency.all`) — **stay on the value class**, and
+ * as of W2 the author-surface projection admits them as their own
+ * `value-static` kind. They were never the problem; being *invisible*
+ * was, and they are visible now.
+ *
+ * ⭐ World-level statics are the sweep: `Freshness.growthRate`,
+ * `Contamination.advance`, `CombatNarration.narrate` compute facts about
+ * the world, which is a **logic singleton**'s job
+ * (`platform/idea/api/<X>Logic.ts`, `@internal`, `FromModule`-gated,
+ * HMR-able) with the subsystem Api forwarding. `CLAUDE.md` already calls
+ * that split mandatory; these classes predate it.
  *
  * `scripts/project-author-surface.ts` admits exactly two things into the
  * consumer tier — public statics on an `*Api`, and public *instance*
@@ -207,12 +221,14 @@ function main(): void {
     console.error(
       `\n✖ lint:lib-statics — ${total} public static(s) on ${rows.length} ` +
         `non-Api class(es); the ceiling is ${LIB_STATICS_CEILING}.\n\n` +
-        `  A public static on a non-Api class is callable by anyone and ` +
-        `visible to nobody: the author-surface projection admits public ` +
-        `Api statics and public INSTANCE methods, and a static here is ` +
-        `neither. Move it to the subsystem's Api (construction, guards, ` +
-        `lookups) or to a platform/idea/api/<X>Logic.ts logic singleton ` +
-        `(domain logic). The ceiling may fall; it may never rise.\n`,
+        `  Ask of the new one: does it answer a question about the TYPE ` +
+        `or about the WORLD? Type-level (construction, a guard over the ` +
+        `type's own vocabulary, a lookup of it) belongs here and is ` +
+        `documented as a value-static — but the population may not GROW ` +
+        `while the sweep runs. World-level logic belongs on a ` +
+        `platform/idea/api/<X>Logic.ts logic singleton with the ` +
+        `subsystem's Api forwarding. The ceiling may fall; it may never ` +
+        `rise.\n`,
     );
     for (const r of rows.slice(0, 20)) {
       console.error(`  ${String(r.statics.length).padStart(2)}  ${r.cls.padEnd(24)} ${r.file}`);
