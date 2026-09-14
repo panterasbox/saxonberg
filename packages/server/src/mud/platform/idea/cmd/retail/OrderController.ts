@@ -23,7 +23,7 @@ import type { Stuff } from '../../../../lib/stuff/Stuff';
 import type { Container } from '../../../../lib/spatial/Container';
 import { Currency } from "../../../../lib/banking/Currency";
 import Tariff, { type ServiceKind } from '../../../thing/Tariff';
-import { MqlApi } from '../../../../api/mql';
+import { MqlApi, type MqlOneResult } from '../../../../api/mql';
 import { ConditionApi } from '../../../../api/condition';
 import { TemplatePaths } from '../../../../lib/paths';
 import { TRAUMA_BEHAVIOR } from '../../Condition';
@@ -53,7 +53,15 @@ export default class OrderController extends CraftController<OrderModel> {
     // (items) can express. Before this no shipped priced key resolved to
     // anything but a recipe or a stock line, so the wreckage a fight
     // leaves could not become anybody's paid work.
-    const tariff = MqlApi.nearestInReach(context, (s): s is Tariff => s instanceof Tariff);
+    // ⭐ Bound by the view, not hunted for here.
+    // ⚠ Resolved here, not declared in the view, because a `type: object`
+    // arg must name a capability mixin (`lint:arg-kinds`) and this
+    // class has none — only `DetailedMixin`, which would offer the verb
+    // on every detailed thing. Becomes a declared arg the day it gets one.
+    const tariff = (MqlApi.resolveOne('reachable:[class.Tariff]', {
+      commandGiver: context.commandGiver,
+      scope: 'reachable',
+    }).stuff as Tariff | null);
     if (tariff) {
       // ⚠ The service key is the FIRST word and the subject is the rest.
       // `cocktail` is greedy (menu names are multi-word — "Old
@@ -70,7 +78,10 @@ export default class OrderController extends CraftController<OrderModel> {
       // through to the menu path, so a venue can carry both.
     }
 
-    const menu = MqlApi.nearestInReach(context, (s): s is Menu => s instanceof Menu);
+    const menu = (MqlApi.resolveOne('reachable:[class.CommerceMenu]', {
+      commandGiver: context.commandGiver,
+      scope: 'reachable',
+    }).stuff as Menu | null);
     if (!menu) {
       MessageApi.scene(giver)
         .topic(TOPIC)

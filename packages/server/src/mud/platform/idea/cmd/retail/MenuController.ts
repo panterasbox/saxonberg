@@ -44,7 +44,15 @@ export default class MenuController extends CommandController<MenuModel> {
     // compose rather than one shadowing the other.
     const blocks: string[] = [];
 
-    const tariff = MqlApi.nearestInReach(context, (s): s is Tariff => s instanceof Tariff);
+    // ⭐ Bound by the view, not hunted for here.
+    // ⚠ Resolved here, not declared in the view, because a `type: object`
+    // arg must name a capability mixin (`lint:arg-kinds`) and this
+    // class has none — only `DetailedMixin`, which would offer the verb
+    // on every detailed thing. Becomes a declared arg the day it gets one.
+    const tariff = (MqlApi.resolveOne('reachable:[class.Tariff]', {
+      commandGiver: context.commandGiver,
+      scope: 'reachable',
+    }).stuff as Tariff | null);
     const serviceKeys = tariff?.serviceKeys() ?? [];
     if (tariff && serviceKeys.length > 0) {
       const rows = serviceKeys
@@ -108,5 +116,8 @@ export default class MenuController extends CommandController<MenuModel> {
 function resolveMenu(model: MenuModel, context: CommandContext): Menu | null {
   const named = model.target?.stuff;
   if (named instanceof Menu) return named;
-  return MqlApi.nearestInReach(context, (s): s is Menu => s instanceof Menu);
+  return (MqlApi.resolveOne('reachable:[class.CommerceMenu]', {
+      commandGiver: context.commandGiver,
+      scope: 'reachable',
+    }).stuff as Menu | null);
 }

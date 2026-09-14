@@ -50,8 +50,15 @@ interface ShipModel extends CommandModel {
 export default class ShipController extends CommandController<ShipModel> {
   async execute(model: ShipModel, context: CommandContext): Promise<void> {
     const giver = context.commandGiver;
-    const desk = MqlApi.nearestInReach(context, (s): s is Stuff & ShipmentDesk =>
-      MixinApi.isActive(s, 'ShipmentDeskMixin'));
+    // ⭐ Bound by the view, not hunted for here.
+    // ⚠ Resolved here, not declared in the view, because a `type: object`
+    // arg must name a capability mixin (`lint:arg-kinds`) and this
+    // class has none — only `DetailedMixin`, which would offer the verb
+    // on every detailed thing. Becomes a declared arg the day it gets one.
+    const desk = (MqlApi.resolveOne('reachable:[mixin.ShipmentDeskMixin]', {
+      commandGiver: context.commandGiver,
+      scope: 'reachable',
+    }).stuff as (Stuff & ShipmentDesk) | null);
     if (!desk) {
       return this.fail(
         context,

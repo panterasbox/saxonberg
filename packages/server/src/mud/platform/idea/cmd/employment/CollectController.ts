@@ -24,10 +24,11 @@ import { MqlApi } from '../../../../api/mql';
 
 const TOPIC = 'act.deed';
 
-type CollectModel = CommandModel;
+interface CollectModel extends CommandModel {
+}
 
 export default class CollectController extends CommandController<CollectModel> {
-  async execute(_model: CollectModel, context: CommandContext): Promise<void> {
+  async execute(model: CollectModel, context: CommandContext): Promise<void> {
     const giver = context.commandGiver;
 
     // Only the on-shift bartender (an active maker) may collect.
@@ -45,7 +46,15 @@ export default class CollectController extends CommandController<CollectModel> {
     }
     if (!MixinApi.isContainer(giver)) return;
 
-    const jar = MqlApi.nearestInReach(context, (s): s is TipJar => s instanceof TipJar);
+    // ⭐ Bound by the view, not hunted for here.
+    // ⚠ Resolved here, not declared in the view, because a `type: object`
+    // arg must name a capability mixin (`lint:arg-kinds`) and this
+    // class has none — only `DetailedMixin`, which would offer the verb
+    // on every detailed thing. Becomes a declared arg the day it gets one.
+    const jar = (MqlApi.resolveOne('reachable:[class.TipJar]', {
+      commandGiver: context.commandGiver,
+      scope: 'reachable',
+    }).stuff as TipJar | null);
     if (!jar) {
       MessageApi.scene(giver)
         .topic(TOPIC)

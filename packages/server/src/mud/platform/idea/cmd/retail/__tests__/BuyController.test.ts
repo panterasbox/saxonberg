@@ -227,7 +227,12 @@ describe("BuyController — buy that stamps", () => {
 
     const controller = makeStuff(() => new BuyController());
     await asOwner(giver, () =>
-      controller.execute({ thing: "torch" }, makeContext(giver, loc, stock)),
+      controller.execute(
+        // ⚠ A controller test skips the BINDER, so the model carries what
+        // `buy.yaml` would have bound — the counter is a declared arg now.
+        { thing: "torch", counter: { stuff: stock as never, raw: "counter" } },
+        makeContext(giver, loc, stock),
+      ),
     );
 
     expect(torch.getContainer()).toBe(giver);
@@ -257,7 +262,12 @@ describe("BuyController — buy that stamps", () => {
 
     const controller = makeStuff(() => new BuyController());
     await asOwner(giver, () =>
-      controller.execute({ thing: "torch" }, makeContext(giver, loc, stock)),
+      controller.execute(
+        // ⚠ A controller test skips the BINDER, so the model carries what
+        // `buy.yaml` would have bound — the counter is a declared arg now.
+        { thing: "torch", counter: { stuff: stock as never, raw: "counter" } },
+        makeContext(giver, loc, stock),
+      ),
     );
 
     expect(torch.getContainer()).toBe(giver);
@@ -298,7 +308,12 @@ describe("BuyController — buy that stamps", () => {
 
     const controller = makeStuff(() => new BuyController());
     await asOwner(giver, () =>
-      controller.execute({ thing: "pot" }, makeContext(giver, loc, stock)),
+      controller.execute(
+        // ⚠ A controller test skips the BINDER, so the model carries what
+        // `buy.yaml` would have bound — the counter is a declared arg now.
+        { thing: "pot", counter: { stuff: stock as never, raw: "counter" } },
+        makeContext(giver, loc, stock),
+      ),
     );
 
     expect(pot.getContainer()).toBe(giver);
@@ -325,7 +340,12 @@ describe("BuyController — buy that stamps", () => {
 
     const controller = makeStuff(() => new BuyController());
     await asOwner(giver, () =>
-      controller.execute({ thing: "torch" }, makeContext(giver, loc, stock)),
+      controller.execute(
+        // ⚠ A controller test skips the BINDER, so the model carries what
+        // `buy.yaml` would have bound — the counter is a declared arg now.
+        { thing: "torch", counter: { stuff: stock as never, raw: "counter" } },
+        makeContext(giver, loc, stock),
+      ),
     );
 
     expect(torch.getContainer()).toBe(stock); // still on the shelf

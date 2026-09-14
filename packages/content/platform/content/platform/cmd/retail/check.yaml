@@ -16,3 +16,13 @@ args:
   - name: thing
     type: string
     required: true
+  # ⭐ The rack you are checking — DECLARED, so the binder resolves it like
+  # any other object and the controller just reads it. `from` keeps the
+  # existing grammar intact while making it addressable when it matters.
+  - name: rack
+    type: object
+    required: false
+    prepositions: [from]
+    default: "reachable:[mixin.HeldGoodsMixin] - reachable:[mixin.ConsignmentShelfMixin]"
+    scope: [reachable]
+    requires: [HeldGoodsMixin]

@@ -44,12 +44,14 @@ import { EmploymentApi } from "../../../../api/employment";
 import type { Organization } from "../../../../lib/employment/Organization";
 import { StuffApi } from "../../../../api/stuff";
 import type { Chattel } from '../../../../lib/chattel/Chattel';
-import { MqlApi } from '../../../../api/mql';
+import type { MqlOneResult } from '../../../../api/mql';
 import type { ShelfStuff } from "../../../thing/ConsignmentShelf";
 
 const TOPIC = "act.deed";
 
 interface ConsignModel extends CommandModel {
+  /** Bound by the view; addressable, defaulted to what is in reach. */
+  shelf?: MqlOneResult;
   thing: string;
   ask?: string;
 }
@@ -57,10 +59,8 @@ interface ConsignModel extends CommandModel {
 export default class ConsignController extends CommandController<ConsignModel> {
   async execute(model: ConsignModel, context: CommandContext): Promise<void> {
     const giver = context.commandGiver;
-    const shelf = MqlApi.nearestInReach(
-      context,
-      (x): x is ShelfStuff => MixinApi.isConsignmentShelf(x),
-    );
+    // ⭐ Bound by the view, not hunted for here.
+    const shelf = (model.shelf?.stuff ?? null) as ShelfStuff | null;
     if (!shelf) {
       this.reject(giver, context, Mml.compose`There's nowhere to consign here.`, {
         kind: "empty-result",

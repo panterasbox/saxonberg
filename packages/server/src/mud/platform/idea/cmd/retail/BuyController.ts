@@ -42,22 +42,28 @@ import { AppApi } from "../../../../api/app";
 import { AppSettingKeys } from "../../../../lib/config/AppSettings";
 import type { Stuff } from "../../../../lib/stuff/Stuff";
 import type { Containable } from "../../../../lib/spatial/Containable";
-import { MqlApi } from '../../../../api/mql';
+import type { MqlOneResult } from '../../../../api/mql';
 
 const TOPIC = "act.deed";
 
 interface BuyModel extends CommandModel {
+  /** Where you are buying from — bound by the view, `from`-addressable. */
+  counter?: MqlOneResult;
   thing: string;
 }
 
 export default class BuyController extends CommandController<BuyModel> {
   async execute(model: BuyModel, context: CommandContext): Promise<void> {
     const giver = context.commandGiver;
-    const stock = MqlApi.nearestInReach(context, (s): s is Stock => s instanceof Stock);
-    const shelf = MqlApi.nearestInReach(
-      context,
-      (s): s is ShelfStuff => MixinApi.isConsignmentShelf(s),
-    );
+    // ⭐ Bound by the view (`buy.yaml` § counter), not hunted for here.
+    // One counter can be both the house's shelf and a brokerage, so the
+    // single resolved object is narrowed into the two roles it plays.
+    const counter = model.counter?.stuff ?? null;
+    const stock = counter instanceof Stock ? counter : null;
+    const shelf =
+      counter && MixinApi.isConsignmentShelf(counter)
+        ? (counter as ShelfStuff)
+        : null;
     if (!stock && !shelf) {
       this.reject(giver, context, Mml.compose`There's nothing to buy here.`, {
         kind: "empty-result",

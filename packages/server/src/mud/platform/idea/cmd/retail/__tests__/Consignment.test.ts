@@ -181,7 +181,7 @@ describe("Consignment — sell loop over real ownership", () => {
     // Alice consigns the torch for 8.
     await asOwner(alice, () =>
       makeStuff(() => new ConsignController()).execute(
-        { thing: "torch", ask: "8" },
+        { thing: "torch", ask: "8" , shelf: { stuff: shelf as never, raw: "shelf" } },
         ctx(alice, loc, shelf, "consign"),
       ),
     );
@@ -199,7 +199,7 @@ describe("Consignment — sell loop over real ownership", () => {
     const storeAcct = await makeStoreBusiness();
 
     await asOwner(bob, () =>
-      makeStuff(() => new BuyController()).execute({ thing: "torch" }, ctx(bob, loc, shelf, "buy")),
+      makeStuff(() => new BuyController()).execute({ thing: "torch" , counter: { stuff: shelf as never, raw: "counter" } }, ctx(bob, loc, shelf, "buy")),
     );
 
     // commission = round(8 * 0.15) = 1; remainder = 7.
@@ -223,7 +223,7 @@ describe("Consignment — sell loop over real ownership", () => {
 
     await asOwner(broke, () =>
       makeStuff(() => new ConsignController()).execute(
-        { thing: "torch", ask: "8" },
+        { thing: "torch", ask: "8" , shelf: { stuff: shelf as never, raw: "shelf" } },
         ctx(broke, loc, shelf, "consign"),
       ),
     );
@@ -257,10 +257,10 @@ describe("Consignment — sell loop over real ownership", () => {
     await asOwner(alice, () => t2.stampChattel(alice));
 
     await asOwner(alice, () =>
-      makeStuff(() => new ConsignController()).execute({ thing: "torch", ask: "8" }, ctx(alice, loc, shelf, "consign")),
+      makeStuff(() => new ConsignController()).execute({ thing: "torch", ask: "8" , shelf: { stuff: shelf as never, raw: "shelf" } }, ctx(alice, loc, shelf, "consign")),
     );
     await asOwner(alice, () =>
-      makeStuff(() => new ConsignController()).execute({ thing: "lantern", ask: "9" }, ctx(alice, loc, shelf, "consign")),
+      makeStuff(() => new ConsignController()).execute({ thing: "lantern", ask: "9" , shelf: { stuff: shelf as never, raw: "shelf" } }, ctx(alice, loc, shelf, "consign")),
     );
     // Only the first listing took (cap = 1).
     expect(shelf.activeListingCount("/platform/agent/Avatar/alice")).toBe(1);
@@ -294,7 +294,7 @@ describe("Consignment — sell loop over real ownership", () => {
     for (const kw of ["torch", "lantern", "whetstone"]) {
       await asOwner(alice, () =>
         makeStuff(() => new ConsignController()).execute(
-          { thing: kw, ask: "5" },
+          { thing: kw, ask: "5" , shelf: { stuff: stall as never, raw: "shelf" } },
           ctx(alice, loc, stall, "consign"),
         ),
       );
@@ -325,7 +325,7 @@ describe("Consignment — sell loop over real ownership", () => {
     for (const kw of ["candle", "taper"]) {
       await asOwner(alice, () =>
         makeStuff(() => new ConsignController()).execute(
-          { thing: kw, ask: "5" },
+          { thing: kw, ask: "5" , shelf: { stuff: plain as never, raw: "shelf" } },
           ctx(alice, loc, plain, "consign"),
         ),
       );
@@ -343,12 +343,12 @@ describe("Consignment — sell loop over real ownership", () => {
     await asOwner(alice, () => torch.stampChattel(alice));
 
     await asOwner(alice, () =>
-      makeStuff(() => new ConsignController()).execute({ thing: "torch", ask: "8" }, ctx(alice, loc, shelf, "consign")),
+      makeStuff(() => new ConsignController()).execute({ thing: "torch", ask: "8" , shelf: { stuff: shelf as never, raw: "shelf" } }, ctx(alice, loc, shelf, "consign")),
     );
     expect(torch.getContainer()).toBe(shelf);
 
     await asOwner(alice, () =>
-      makeStuff(() => new ReclaimController()).execute({ thing: "torch" }, ctx(alice, loc, shelf, "reclaim")),
+      makeStuff(() => new ReclaimController()).execute({ thing: "torch" , shelf: { stuff: shelf as never, raw: "shelf" } }, ctx(alice, loc, shelf, "reclaim")),
     );
     expect(torch.getContainer()).toBe(alice); // custody back
     expect((await torch.chattelOwner())).toEqual({ kind: "player", templatePath: "/platform/agent/Avatar/alice" });
@@ -392,7 +392,7 @@ describe("Consignment — sell loop over real ownership", () => {
 
     await asOwner(alice, () =>
       makeStuff(() => new ConsignController()).execute(
-        { thing: "bale", ask: "7" },
+        { thing: "bale", ask: "7" , shelf: { stuff: shelf as never, raw: "shelf" } },
         ctx(alice, loc, shelf, "consign"),
       ),
     );
@@ -430,7 +430,7 @@ describe("Consignment — sell loop over real ownership", () => {
 
     await asOwner(alice, () =>
       makeStuff(() => new ConsignController()).execute(
-        { thing: "bale", ask: "7" },
+        { thing: "bale", ask: "7" , shelf: { stuff: shelf as never, raw: "shelf" } },
         ctx(alice, loc, shelf, "consign"),
       ),
     );
@@ -474,7 +474,7 @@ describe("Consignment — sell loop over real ownership", () => {
 
     await asOwner(broke as unknown as Stuff, () =>
       makeStuff(() => new ConsignController()).execute(
-        { thing: "bale", ask: "9" },
+        { thing: "bale", ask: "9" , shelf: { stuff: shelf as never, raw: "shelf" } },
         ctx(broke, loc, shelf, "consign"),
       ),
     );

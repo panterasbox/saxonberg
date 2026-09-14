@@ -493,11 +493,12 @@ describe("work verbs", () => {
     expect(CredentialWalletUpdate.commandContributions.self).toContain(
       "platform/cmd/work/fulfill.yaml",
     );
-    // nearestInReach: reachable-peers path (no commandSource in the context).
-    const found = MqlApi.nearestInReach(
-      ctx(courier) as never,
-      (s): s is JobBoard => s instanceof JobBoard,
-    );
+    // ⭐ The board is what `job.yaml`'s `board` arg DEFAULTS to — the
+    // query the view declares, asked here directly.
+    const found = MqlApi.resolveOne('reachable:[class.JobBoard]', {
+      commandGiver: courier as never,
+      scope: 'reachable',
+    }).stuff;
     expect(found).toBe(board);
   });
 

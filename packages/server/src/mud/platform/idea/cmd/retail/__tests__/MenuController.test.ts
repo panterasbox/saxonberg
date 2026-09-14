@@ -54,6 +54,21 @@ function stubScene(): void {
 /** The room's occupants, as the `peers` seed both resolvers read. */
 function stubPeers(stuff: Stuff[]): void {
   vi.spyOn(MqlApi, "resolveMany").mockReturnValue({ stuff } as never);
+  // ⭐ The tariff/menu lookups ask `resolveOne('reachable:[class.X]')` —
+  // the type test is in the QUERY now, not a TypeScript predicate — so
+  // the stub answers the one-thing form, filtered as the resolver would.
+  vi.spyOn(MqlApi, "resolveOne").mockImplementation(
+    ((q: string) => ({
+      stuff:
+        stuff.find((x) =>
+          q.includes("Tariff")
+            ? x instanceof Tariff
+            : q.includes("CommerceMenu")
+              ? x instanceof CommerceMenu
+              : false,
+        ) ?? null,
+    })) as never,
+  );
 }
 
 function ctx(giver: unknown): CommandContext {

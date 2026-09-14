@@ -567,6 +567,8 @@ export const MixinRefusals: Partial<Record<MixinName, string>> = {
   ContainerMixin: "{} isn't a place",
   ContainableMixin: "{} can't be carried",
   SurfacedMixin: "{} isn't a surface you can put things on",
+  HeldGoodsMixin: "{} isn't a shelf goods are held on",
+  ConsignmentShelfMixin: "{} isn't a shelf you can trade from",
 
   // Boundaries & mechanisms.
   SealableMixin: "{} doesn't open and close",
