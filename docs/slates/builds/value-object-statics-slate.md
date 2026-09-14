@@ -3,11 +3,11 @@
 > **Status: PARTIAL** — W0 + W1 landed: `lint:lib-statics` is in the
 > derived family at **ceiling 564**, and the projection now says out loud
 > what it drops
-> **Left:** the **disposition ladder** (bottom of this doc) applied to
-> 563 — rung 2 (153 with no caller → `private`) · rung 3 (285 with one
-> caller → move onto it) · rung 4 (126 shared → the owning Api) · the
-> ratchet to 0. ⭐ Not one new Api is needed; the single Api change in
-> the homeless set is `Lock` → `BoundaryApi`.
+> **Left:** ✅ rung 2 done (27 private + 4 `@internal`; ceiling 563 →
+> **532**) · **rungs 3/4: the 464 with a production caller**, moved onto
+> that caller or to the owning system's Api · the ratchet to 0. ⭐ Not one
+> new Api is needed; the single Api change in the homeless set is
+> `Lock` → `BoundaryApi`.
 > **Size:** a build — 564 statics
 
 **Raised by:** the user, reviewing MR !255, 2026-09-11
@@ -221,9 +221,20 @@ out to be the second question; **who calls it** is the first.)*
 |---|---|---|---|
 | 0 | **Reached reflectively by the framework?** | stays; not surface, not movable — the mixin-side `@hook` | 1 counted (fixed) |
 | 1 | **Type-level?** — construction, a guard over its own closed vocabulary, a lookup of it | **stays on the value class**, visible as `value-static` | ~165 |
-| 2 | world-level, **0 external callers** | `private static`, or a module-private function | **153** |
-| 3 | world-level, **1 external caller** | move onto that caller — an instance method where it owns the concern | **285** |
-| 4 | world-level, **2+ callers** | the owning system's Api / logic singleton | **126** |
+| 2 | world-level, **0 callers at all** | `private static` | **27** ✅ |
+| 2b | world-level, **test-only callers** | `@internal` — *only where that claim is true* | **4** ✅ |
+| 3/4 | has a production caller | move onto it, or to the owning system's Api | **464** |
+
+⚠⚠ **Those counts are the CORRECTED ones. The first pass said 153 / 285 /
+126 and every figure was wrong in the unsafe direction**, for one reason:
+
+> ⭐⭐⭐ **Statics are INHERITED, so call sites use the SUBCLASS name.**
+> `Document.findById` is called as `User.findById(…)` — a grep for
+> `Document.findById(` finds nothing and concludes it is dead. `tsc`
+> caught it after 60 statics had already been privatised.
+
+Recount by matching `.<method>(` on **any** receiver — which over-counts
+callers, and therefore errs toward leaving things public.
 
 ⚠ **Rung 0 is not optional and nearly bit.** `Warren.cleanupOnDestruct`
 looked like a dead static with no callers. It is found by `StuffApi` with
@@ -245,9 +256,27 @@ rather than on the arithmetic. But the arithmetic was wrong and the
 correction cuts the other way too: the sweep is **smaller and more
 tractable** than it was sold as.
 
-## ⭐⭐ What the ladder means: 78% of the problem needs no home at all
+## ⚠ What the ladder actually yielded
 
-**438 of 563** are rung 2 or rung 3 — no external caller, or exactly one.
+Rung 2 was sold as 153 statics of free win. **It was 31.** The rest of the
+apparently-callerless population was an artefact of the receiver-qualified
+grep, and the genuinely test-only remainder turned out to be mostly
+legitimate surface:
+
+> ⭐⭐ **"Only tests call it" is not "internal".** Most of the 61 test-only
+> statics are constructors and vocabulary guards — `Quantity.fromTag`,
+> `Blessing.uncursed`, `Resists.isAxis`. `@internal` is a **claim that
+> nobody should call this**; making it about a type's own constructor
+> because today's callers happen to be tests asserts something false and
+> hides real surface behind a tag nobody will re-question. Zero production
+> callers is a fact about today, not about what the type offers.
+
+And ⭐ **an unused factory is not an unwanted one** — six statics were
+privatised and then reverted because rung 1 (is it type-level?) was
+applied *after* rung 2 instead of before. Run the ladder in order.
+
+**The real shape: 464 of 563 have a production caller**, so the work is
+rungs 3 and 4, not the free win.
 They were never shared surface; they are implementation that happens to be
 spelled `public static`. Neither needs an Api, a logic singleton, or a
 decision:
