@@ -3,7 +3,10 @@
 > **Status: UNBUILT** — two measured baselines (`053c891a2`, and HEAD
 > 2026-09-13 in Part 6); no refactor made (`identity.ts`, `array.ts`,
 > `path-pattern.ts` all still present).
-> **Left:** ⭐ rename `SchedulerApi` → `ActivityApi` · `AttendantApi`'s
+> **Left:** ⭐⭐ **Part 7 first** — the facade:logic ratio finds work in
+> the tier that cannot hot-reload (`mql-subscription` 170%, `parcel`,
+> `worldclock`) plus 19 Apis with no singleton at all; mechanical, no
+> boundary ruling needed · ⭐ rename `SchedulerApi` → `ActivityApi` · `AttendantApi`'s
 > surface is two test hooks · answer *where a system-less utility lives*
 > before deleting `array`/`path-pattern` · ⭐ **merge** the influence
 > cluster (five Apis, one `lib/standing/`) into one `InfluenceApi`,
@@ -56,6 +59,14 @@ So the two axes are:
 - **Depth** = code LOC of the *implementation*: the paired `*Logic.ts`
   plus any sealed subdirectory (`api/mql/**`, `api/mml/**`), plus the
   facade itself for the unpaired Apis.
+  > ⭐⭐ **CORRECTED 2026-09-13 (user):** *"when I talked about api
+  > complexity I was referring to the combined complexity of the
+  > interface statics and the logic singletons. **Pretend the pair make
+  > up a single Api** when considering sizing."* So Depth **always
+  > includes the facade**, paired or not — the `XApi` and its `XLogic`
+  > are one unit for every sizing purpose. Part 6's tables follow the
+  > corrected definition; Part 1's predate it and run ~5–15% low on the
+  > paired Apis.
 - **Density** = Depth ÷ Surface — "complexity per member".
 
 **Validation:** MQL — the user's own example of legitimate
@@ -516,3 +527,86 @@ isolated, cheap, and does not wait for the layer-wide pass:
    the layer's Q3, so the answer is not free either way.
 5. Then Part 5, with **cohesion and uniformity** as the split test rather
    than density (6.1).
+
+---
+
+# Part 7 — the facade:logic ratio, and what it actually catches
+
+The pair is one Api for sizing (Part 0, corrected). But the user's
+follow-on is the sharper idea:
+
+> *"the relative size can expose our split along external/internal size
+> maybe."*
+
+It does — and **what it exposes is not sizing. It is a hot-reload
+correctness bug.** The `XApi` facade is a *non-HMR-able interface* by
+design; the `XLogic` singleton is the hot-reload boundary. So every line
+of real work that sits in the facade instead of the singleton is work
+that **silently does not hot-reload**, and the ratio finds it mechanically.
+
+## 7.1 Measuring it honestly took two passes
+
+⚠ The naive ratio (facade LOC ÷ logic LOC) flags **10 Apis** with a
+facade bigger than its singleton — and it is wrong about most of them,
+because **the facade is where the author-facing TSDoc lives**:
+
+| api | facade code | facade prose | logic code | the naive read |
+|---|---|---|---|---|
+| `containment` | 87 | **209** | 160 | ✗ false alarm — it is documentation |
+| `command` | 490 | **1,377** | 2,492 | ✗ false alarm |
+| `mql` | 62 | 84 | 91 | ✗ false alarm — mql's weight is its sealed subdir |
+
+⭐ So the measure has to discount **prose, imports, and the forwarder
+lines themselves** (`return logic().x(…)`), leaving *facade work*: code in
+the non-reloadable tier that is neither ceremony nor documentation.
+
+## 7.2 The result — the design holds, with a short list of exceptions
+
+**Median facade-work is 19% of logic code across 72 paired Apis.** The
+thin-shell intent is real and mostly kept. The tail is not:
+
+| api | facade work | logic code | ratio |
+|---|---|---|---|
+| ⭐ `mql-subscription` | **163** | 96 | **170%** |
+| `app` | 26 | 18 | 144% |
+| `scheduler` | 81 | 82 | 99% |
+| `parcel` | **101** | 158 | 64% |
+| `worldclock` | 81 | 143 | 57% |
+| `access` | 59 | 106 | 56% |
+| `mudlog` | 72 | 110 | 65% |
+| `boundary` | 30 | 51 | 59% |
+
+⚠ **`mql-subscription` has 70% more working code in the tier that cannot
+hot-reload than in the tier that can.** Live-subscription plumbing — a
+per-`Interactive` registry, a dep index, batched re-resolve — is exactly
+the code an author iterating on the world wants reloaded, and it is on
+the wrong side of the line. `parcel` (101 lines) and `worldclock` (81)
+are the same shape at smaller scale.
+
+⭐ Absolute size matters as much as the ratio: `app` at 144% is 26 lines
+and not worth touching, while `parcel` at 64% is 101 lines and is.
+
+## 7.3 ⚠ And 19 Apis have no `XLogic` at all — 10,821 LOC that never reloads
+
+| api | LOC | members |
+|---|---|---|
+| `mixin` | 2,007 | 175 |
+| `stuff` | 1,759 | 30 |
+| `security` | 1,481 | 11 |
+| `execution-context` | 1,011 | 23 |
+| `event` | 695 | 11 |
+| `shadow` | 603 | 4 |
+| `module` | 549 | 7 |
+
+Four of these are the **bootstrap-special** Apis CLAUDE.md already
+exempts (`security`, `proxy`, `execution-context`, `module`) — they run
+before the machinery that would reload them, and that is correct. The
+rest are not exempt by any stated rule; they simply never got a
+singleton. `stuff` (1,759 LOC) and `event` (695) are ordinary domain
+surfaces whose implementations cannot be hot-reloaded, and nothing says
+so anywhere.
+
+⭐ **This is a better first output for the normalization pass than any
+merge**: it is mechanical, it needs no boundary ruling, and every fix
+makes the live-authoring loop strictly better. The sizing question can
+keep waiting; this one has a right answer today.
