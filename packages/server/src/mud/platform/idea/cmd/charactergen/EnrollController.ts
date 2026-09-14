@@ -838,6 +838,7 @@ export default class EnrollController extends CommandController<EnrollModel> {
     return EnrollController.#speciesCards?.get(path);
   }
 
+  /** @internal a test seam: drops the cached enroll config so the next read re-loads it */
   static resetConfigCache(): void {
     EnrollController.#config = null;
     EnrollController.#speciesCards = null;

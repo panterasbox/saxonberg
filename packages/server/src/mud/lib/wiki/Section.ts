@@ -289,7 +289,11 @@ export class Sections {
     return ranges;
   }
 
-  /** Slugify heading text into an anchor. Empty for empty text. */
+  /**
+   * Slugify heading text into an anchor. Empty for empty text.
+   *
+   * @internal anchor slugs for the section index
+   */
   static slugify(text: string): string {
     return text
       .trim()

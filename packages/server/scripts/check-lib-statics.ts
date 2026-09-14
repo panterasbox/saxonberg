@@ -91,7 +91,7 @@ const REPO_ROOT = join(MUD, '../../../..');
  * visibility, not about which directory a class sits in. **564.**
  * Lowering it is the sweep's whole job.
  */
-export const LIB_STATICS_CEILING = 536;
+export const LIB_STATICS_CEILING = 532;
 
 const STATIC =
   /^\s*(?:public\s+)?static\s+(?:async\s+)?(?!readonly\b|get\b|set\b|_)([a-zA-Z]\w*)\s*[(<]/;
@@ -189,20 +189,67 @@ export function exportedClasses(source: string): { cls: string; body: string }[]
  * object literal contributes once and its innards contribute nothing.
  */
 export function publicStaticsOf(body: string): string[] {
-  const out: string[] = [];
+  return statsOf(body).surface;
+}
+
+/**
+ * Split a class body's public statics into the ones that breach the
+ * invariant and the ones that **declare** they do not.
+ *
+ * ⭐ `@internal` is the honest escape: TypeDoc drops it, so the member is
+ * invisible *because its author said so*, not silently. That is not the
+ * breach — the breach was invisibility nobody chose. But it is an escape
+ * hatch, so the gate counts it separately and prints it: a rising
+ * `declaredInternal` is a reviewable fact, not a hidden one.
+ */
+export function statsOf(body: string): {
+  surface: string[];
+  declaredInternal: string[];
+} {
+  const surface: string[] = [];
+  const declaredInternal: string[] = [];
   let depth = 0;
+  let inDoc = false;
+  let docIsInternal = false;
+  let sawDocRecently = false;
   for (const raw of body.split('\n')) {
     const line = raw.trim();
     if (depth === 0) {
-      const m = STATIC.exec(raw);
-      if (m && !FRAMEWORK.has(m[1]!)) out.push(m[1]!);
+      if (line.startsWith('/*')) {
+        inDoc = true;
+        docIsInternal = line.includes('@internal');
+        if (line.includes('*/')) {
+          inDoc = false;
+          sawDocRecently = true;
+        }
+      } else if (inDoc) {
+        if (line.includes('@internal')) docIsInternal = true;
+        if (line.includes('*/')) {
+          inDoc = false;
+          sawDocRecently = true;
+        }
+      } else {
+        const m = STATIC.exec(raw);
+        if (m && !FRAMEWORK.has(m[1]!)) {
+          (sawDocRecently && docIsInternal ? declaredInternal : surface).push(m[1]!);
+        }
+        if (line) {
+          sawDocRecently = false;
+          docIsInternal = false;
+        }
+      }
     }
-    for (const c of line) {
-      if (c === '{') depth++;
-      else if (c === '}') depth = Math.max(0, depth - 1);
+    if (!inDoc) {
+      for (const c of line) {
+        if (c === '{') depth++;
+        else if (c === '}') depth = Math.max(0, depth - 1);
+      }
     }
   }
-  return [...new Set(out)];
+  return {
+    surface: [...new Set(surface)],
+    declaredInternal: [...new Set(declaredInternal)],
+  };
 }
 
 function sourceFiles(): string[] {
@@ -211,22 +258,25 @@ function sourceFiles(): string[] {
   return files.filter((f) => f.endsWith('.ts') && !f.includes('__tests__'));
 }
 
-function census(): StaticRow[] {
+function census(): { rows: StaticRow[]; internal: number } {
   const rows: StaticRow[] = [];
+  let internal = 0;
   for (const file of sourceFiles()) {
     const source = readFileSync(file, 'utf8');
     for (const { cls, body } of exportedClasses(source)) {
       if (cls.endsWith('Api')) continue;
-      const statics = publicStaticsOf(body);
-      if (statics.length) rows.push({ file: relative(REPO_ROOT, file), cls, statics });
+      const { surface, declaredInternal } = statsOf(body);
+      internal += declaredInternal.length;
+      if (surface.length) rows.push({ file: relative(REPO_ROOT, file), cls, statics: surface });
     }
   }
-  return rows.sort((a, b) => b.statics.length - a.statics.length || a.cls.localeCompare(b.cls));
+  rows.sort((a, b) => b.statics.length - a.statics.length || a.cls.localeCompare(b.cls));
+  return { rows, internal };
 }
 
 function main(): void {
   const mode = process.argv.find((a) => a.startsWith('--')) ?? '--lint';
-  const rows = census();
+  const { rows, internal } = census();
   const total = rows.reduce((n, r) => n + r.statics.length, 0);
 
   if (mode === '--report') {
@@ -236,6 +286,7 @@ function main(): void {
       console.log(`    ${r.file}`);
     }
     console.log(`\n${total} public statics in total`);
+    console.log(`${internal} more are declared @internal (dropped by TypeDoc)`);
     return;
   }
 
@@ -261,7 +312,7 @@ function main(): void {
 
   console.log(
     `✔ lint:lib-statics — ${total} public static(s) on non-Api classes ` +
-      `(ceiling ${LIB_STATICS_CEILING}).`,
+      `(ceiling ${LIB_STATICS_CEILING}); ${internal} declared @internal.`,
   );
 }
 

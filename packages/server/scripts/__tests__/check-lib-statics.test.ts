@@ -8,10 +8,12 @@
  * classes, and a static indented by anything other than two spaces.
  */
 
+import "../../src/test-bootstrap";
 import { describe, it, expect } from 'vitest';
 import {
   exportedClasses,
   publicStaticsOf,
+  statsOf,
   LIB_STATICS_CEILING,
 } from '../check-lib-statics';
 
@@ -163,8 +165,49 @@ describe('publicStaticsOf', () => {
   });
 });
 
+describe('⭐ @internal is the declared escape, and it is counted separately', () => {
+  it('moves a documented-@internal static out of the surface count', () => {
+    const body = [
+      '  /** @internal a test seam */',
+      '  static seam(): void {}',
+      '  static real(): void {}',
+    ].join('\n');
+    const r = statsOf(body);
+    expect(r.surface).toEqual(['real']);
+    expect(r.declaredInternal).toEqual(['seam']);
+  });
+
+  it('reads @internal out of a multi-line block', () => {
+    const body = [
+      '  /**',
+      '   * Does a thing.',
+      '   *',
+      '   * @internal not author surface',
+      '   */',
+      '  static seam(): void {}',
+    ].join('\n');
+    expect(statsOf(body).declaredInternal).toEqual(['seam']);
+  });
+
+  it('⚠ does not let one @internal block bleed onto the NEXT static', () => {
+    const body = [
+      '  /** @internal a seam */',
+      '  static seam(): void {}',
+      '',
+      '  static real(): void {}',
+    ].join('\n');
+    expect(statsOf(body).surface).toEqual(['real']);
+  });
+
+  it('an ordinary docblock does not make a static internal', () => {
+    const body = ['  /** Ordinary docs. */', '  static real(): void {}'].join('\n');
+    expect(statsOf(body).surface).toEqual(['real']);
+    expect(statsOf(body).declaredInternal).toEqual([]);
+  });
+});
+
 describe('the ratchet', () => {
   it('⭐ holds a ceiling that may fall and may never rise', () => {
-    expect(LIB_STATICS_CEILING).toBe(536);
+    expect(LIB_STATICS_CEILING).toBe(532);
   });
 });

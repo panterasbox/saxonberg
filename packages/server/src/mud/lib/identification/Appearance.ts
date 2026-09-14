@@ -149,6 +149,8 @@ export class Appearance {
    * for a window position, and above all **deterministic across
    * processes**, which a JS `Map` iteration order or an object hash
    * would not be.
+   * @internal the seed hash behind descriptorFor; not a surface anyone should depend on
+   *
    */
   public static hash(input: string): number {
     let h = 0x811c9dc5;
@@ -166,6 +168,8 @@ export class Appearance {
    * Two items of the same class with different seeds sit at different
    * points, so they cross at different moments — which is the whole of
    * "nothing flips at once".
+   * @internal where a seed falls in the reuse window
+   *
    */
   public static windowPositionOf(seed: string): number {
     return Appearance.hash(seed) / 0x100000000;
