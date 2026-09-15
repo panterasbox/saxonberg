@@ -928,6 +928,32 @@ contain no `container` / `location` name.
 
 **Commit.** `build(pets W0): NPC regard survives a restart, [mine] answers, a role holds no opinion`.
 
+> ✅ **DONE 2026-09-15** — `36b8cb2a3`. 2,720 tests green, all 39 gates.
+>
+> **What surprised the build.** Two gates refused the first draft and
+> both were right, so both were taken the compliant way:
+> `lint:object-verbs` refused `ChattelApi.stampedOwnerOf(Stuff)` — the
+> read belongs ON the good, so it became `ChattelMixin.stampedOwner()`
+> and the Api static is gone; `lint:whole-table` refused
+> `allBeliefs().filter(isLearned)` inside the new capture, so the store
+> answers the question itself via `learnedBeliefs()`.
+>
+> ⚠ **The belief fixtures were modelling the bug.** Seven tests failed on
+> the D1 change, and none of them was a regression: the suite faked an
+> Avatar by registering at an Avatar-SHAPED *template* path with no
+> minted identity — structurally a generic clone — and one assertion read
+> `expect(doc.viewerId).toBe(viewer.getTemplatePath())`, which is the
+> keying antipattern `CLAUDE.md` names in capitals. `makeStuffAtPath`
+> gained an optional identity argument so a fixture can model the D17
+> split, and the assertions now read `getIdentityPath()`. ⭐ The lesson
+> is the recorded one: a fixture that fakes the shape instead of
+> composing it passes until the rule it fakes gets stricter.
+>
+> `ParcelApi.coveringParcelOf` turned out to be `async` over a wholly
+> synchronous registry read; rather than change a signature ~every caller
+> awaits, W0 added `coveringParcelOfSync` beside it. Noted as a tidy-up,
+> not fixed here.
+
 ### W1a — the substrate (kernel)
 
 **Goal.** Everything the content needs to exist, with no content yet.
