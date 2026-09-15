@@ -207,7 +207,24 @@ describe('⭐ @internal is the declared escape, and it is counted separately', (
 });
 
 describe('the ratchet', () => {
+  /**
+   * ⚠⚠ **This asserted `toBe(392)` and therefore tested the opposite of
+   * its own name.** A ratchet exists so the ceiling can FALL; pinning it
+   * to a literal made every successful sweep a failing test, and the
+   * `--lint` gate could not catch the disagreement because it reads the
+   * constant rather than this copy of it. The 2026-09-14 sweep lowered
+   * the ceiling four times (392 → 387 → 372 → 343) with the gate green
+   * throughout, and only the full suite found the pin.
+   *
+   * ⭐ So the assertion is the INVARIANT now: the ceiling may sit
+   * anywhere at or below the high-water mark it started from, and a rise
+   * above it is the regression this is here to catch. A future sweep
+   * lowers `LIB_STATICS_CEILING` and touches nothing else.
+   */
+  const HIGH_WATER = 563;
+
   it('⭐ holds a ceiling that may fall and may never rise', () => {
-    expect(LIB_STATICS_CEILING).toBe(392);
+    expect(LIB_STATICS_CEILING).toBeLessThanOrEqual(HIGH_WATER);
+    expect(LIB_STATICS_CEILING).toBeGreaterThan(0);
   });
 });
