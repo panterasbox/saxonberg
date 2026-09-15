@@ -1379,6 +1379,66 @@ census; every existing crafting/cooking test green.
 
 Commit: `build(grain-chain W1): the dose — one integral, three readers, a ceiling on every recipe`.
 
+> **✅ W1 DONE.** Landed as planned. Three things for review.
+>
+> **⭐ A kernel defect the plan did not know about, found by the scorch
+> test.** The resolve threw away the figure the ceiling needs.
+> `workingHeatK = requiresHeatK` is deliberate and correct for the kill
+> (*a stew simmered beside a roaring forge was simmered*) — and it makes
+> *"was the fire fiercer than this working wanted?"* answer **no** for
+> every recipe that has ever existed, because the number is pinned to
+> what the working wanted. `deliveredHeatK` is now threaded alongside it
+> into the three output seams (`applyBulkOutput`, `applyEdibleOutput`,
+> `applyTangibleOutput`). The medium cap still applies to it, so a wet
+> recipe beside a forge genuinely cannot scorch — the water stops at
+> 373 K, for free.
+>
+> **⭐ D29: burnt OR scorched writes the grade down.** D4 named only
+> `burnt`; a scorched thing is equally ruined, and both are the same act
+> (you wrecked it with heat). Monotone minimum — it only lowers, which is
+> the Wurm defence (risk 17) applied in the small.
+>
+> **⚠ A pinned claim was retired**, deliberately and with the reasoning
+> in the file. `trade-cooking`'s roster test asserted `getHoldS() === 0`
+> for the fourteen pre-hold recipes under the title *"a recipe with no
+> hold behaves as it always did"*. What it was pinning was the
+> short-circuit D3 removes. Now two tests: the rows still author no hold
+> (`getAuthoredHoldS()`), and an unauthored hold is now the dial.
+>
+> ⚠ `lint:lib-statics` fired — `ThermalDose` added 20 public statics over
+> a 337 global ceiling. The compliant answer (not an exemption) was
+> `@internal` on all of them, which is `Freshness`'s own disposition: the
+> author surface of doneness is the mixin's methods on a food, not the
+> arithmetic. Back to 337.
+
+### W1 census — the shipped recipes' heat, and exactly what D3 changed
+
+**36 of 81 recipe rows carry `requiresHeatK > 0`**; 19 of those cook food
+(17 state no `maxHeatK` — the `lint:doneness` ceiling; 2 are
+`smoke-cure`/`render-tallow` shapes the gate reads through their
+material).
+
+The AC-15 question was *which shipped recipes now leave a residual load
+where they left none*. Computed against the shipped kill dials
+(`killK 333`, `killRatePerHour 6`, `Ea 200 kJ/mol`) over the 1200 s
+default hold:
+
+| T | kill rate /h | survives | verdict |
+|---|---|---|---|
+| 320 K (`smoke-cure`) | — | **untouched** | below `killK`; `killOver` returns the load unchanged. **No change.** |
+| 333 K | 6.0 | 1.4e-1 | the boundary; nothing ships here |
+| 335 K (`warmed-through`) | 9.2 | — | **authors its own 120 s hold. No change.** |
+| **340 K (`simple-syrup`)** | 26.6 | **1.4e-4** | ⭐ **the one row that changes.** Was a flat 0. |
+| 345 K | 74.0 | 1.9e-11 | indistinguishable from 0 |
+| 351 K (the three distilling rows) | 243.8 | 5.1e-36 | indistinguishable from 0 |
+| 373 K + (everything else) | ≥ 1.4e4 | 0 | exactly as before |
+|
+> **So the blast radius is one recipe**, and it is the honest one: a
+> syrup warmed to 67 °C *is* a lazy warm-through and should not
+> sterilise. Everything at a real cooking heat is unchanged; everything
+> below the kill is unchanged by construction. W10's ptomaine
+> recalibration has less to absorb than the plan feared.
+
 #### W2 — the sack, the comminution primitive, the bulk-only tangible, and composition that flows (D6, D8, D11, D24, D25, D26)
 
 Files: `platform/thing/GradedReceptacle.ts` (`ThermalMixin` outer),
@@ -1953,9 +2013,7 @@ Read first, in this order:
 
 *(appended at build time)*
 
-### W1 census — the 19 cooking recipes' `requiresHeatK`
-
-*(filled by W1)*
+### W1 census — see § Waves → W1 (recorded inline with the wave)
 
 ### W9 — the first morning
 
