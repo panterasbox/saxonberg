@@ -128,6 +128,9 @@ export class SpoilerLevels {
    * (the MAXIMUM rule), and "what level is this field?" is the third
    * question of the same kind. A free-floating `spoilerLevelOf` would
    * also have tripped the export-discipline lint.
+   *
+   * @internal one production caller — `lib/wiki/components/composition.ts`, the same
+   * subsystem — plus the tests that white-box it.
    */
   static ofField(ctor: unknown, field: string): SpoilerLevel {
     if (typeof ctor !== 'function') return SpoilerLevels.OPEN;
@@ -148,6 +151,8 @@ export class SpoilerLevels {
    * the thing it names is incoherent, and it would render as a value
    * floating in a row with no label — so a declaration that inverts
    * them is clamped here rather than trusted.
+   *
+   * @internal as `ofField`: one same-subsystem caller plus its tests.
    */
   static ofFieldName(ctor: unknown, field: string): SpoilerLevel {
     if (typeof ctor !== 'function') return SpoilerLevels.OPEN;

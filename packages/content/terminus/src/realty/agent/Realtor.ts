@@ -106,7 +106,7 @@ export default class Realtor extends CastMixin(PopulatesMixin(NPC)) {
   }
 
   /** One offer, said the way a realtor says it. */
-  static describe(offer: Offer): string {
+  private static describe(offer: Offer): string {
     const price = Money.of(offer.priceMinor, BankingApi.compactCurrency()).render();
     const area = Quantity.of(offer.areaM2, "m²").tag("lot");
     return `${offer.book} ${offer.leaf} — ${area}, zoned ${offer.use}, ${price}`;
@@ -141,6 +141,11 @@ export default class Realtor extends CastMixin(PopulatesMixin(NPC)) {
    * `realty-buy` — pick a lot, confirm the price, and buy it AS
    * YOURSELF. Every gate the typed verb has still fires; the realtor
    * only saved you the walk to the plat book.
+   *
+   * ⚠ `private`, not `@internal`: both callers are in this file, so the
+   * compiler can hold the line rather than a docs tag. The rule is that
+   * `private` needs ZERO callers outside the declaring file — it has
+   * them, including no test.
    */
   static BUY_EFFECT: DialogueEffectHandler = {
     async apply({ npc, player }) {

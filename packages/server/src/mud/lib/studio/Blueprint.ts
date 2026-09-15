@@ -210,7 +210,13 @@ export class Blueprint extends Document {
     );
   }
 
-  /** The effective mixin set's `_mixinName`s (deduped + sorted). */
+  /**
+   * The effective mixin set's `_mixinName`s (deduped + sorted).
+   *
+   * @internal a sorted, de-duplicated `MixinApi.queryMixins` for the blueprint
+   * catalogue's two call sites. An author asking what a class composes
+   * reaches `MixinApi` or the studio, not this.
+   */
   static mixinNamesOf(ctor: AnyConstructor): string[] {
     const names = MixinApi.queryMixins(ctor)
       .map((m) => m._mixinName)

@@ -193,6 +193,9 @@ export default class Login extends LoginBase {
    * No parallel name list — when the bank is unseeded (a content gap,
    * or no DB in a unit test) the guest is simply "Guest", with no
    * fabricated surname. Pure read; safe to call before mint.
+   *
+   * @internal login internals — one caller, in this file, plus the test that
+   * white-boxes it.
    */
   static async generateGuestName(): Promise<{
     name: string;
