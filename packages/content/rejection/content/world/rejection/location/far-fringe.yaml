@@ -1,0 +1,34 @@
+# F4 · The Far Fringe — open ground, and the point of the whole walk.
+#
+# ⭐⭐ **Unstaked, and stakeable by anybody.** A hundred and forty metres
+# out, still in the lode, still above the water table, still outside the
+# old men's box, and in nobody's register. `stake 9,11,0` at the claims
+# office makes it yours: the claims layer's entire payload — you find
+# ground, you post a notice, the recorder writes it down — arriving as
+# ground somebody actually wants rather than as a worked example.
+#
+# ⚠ Its centre is four cells from the fringe claim's, which is what makes
+# it stakeable at all: `MineWarren.claimFor` tests the CENTRE cell
+# against existing blocks, and a block is three cells each way, so two
+# claims whose centres are four apart on one axis coexist. That is a
+# geometry fact the rooms were placed to satisfy, not a coincidence.
+#
+# It is thinner here than at the claim — the body is running out of
+# itself this far along — and that is the honest price of the ground
+# nobody had taken.
+class: /trade/mining/location/AuthoredWorking
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: open ground at the far fringe
+  keywords: [ground, "far fringe", fringe, open, outcrop, unstaked]
+  register: definite
+  oreRow: /world/rejection/thing/iron-ore
+  longDescription: |
+    The hill has flattened out and the wind has the whole of it. The rusty band is still here, narrower now and broken into lenses with barren slate between them, going on northeast towards the skyline and thinning as it goes.
+
+    There are no posts. There is no cut. There is nobody up here at all, and from this far out the pithead is a smudge of smoke and a roof.
+  coords: { x: 9, y: 11, z: 0 }
+  exits:
+    southwest:
+      destination: /world/rejection/location/fringe-claim
+      edgeMinutes: 5

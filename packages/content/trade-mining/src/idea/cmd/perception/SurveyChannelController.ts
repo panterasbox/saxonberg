@@ -50,7 +50,9 @@ import { Mml } from '@saxonberg/server/mud/api/mml';
 import { StuffApi } from '@saxonberg/server/mud/api/stuff';
 import { AddressApi } from '@saxonberg/server/mud/api/address';
 import { DISCOVERY } from '@saxonberg/server/mud/lib/belief/BeliefStore';
+import type Material from '@saxonberg/server/mud/lib/material/Material';
 import Deposit from '../../Deposit';
+import type { GroundSample } from '../../Deposit';
 
 /** The Discipline every geological read is banded by, and credits. */
 export const GEOLOGY = 'geology';
@@ -146,10 +148,63 @@ export abstract class SurveyChannelController<
     }
   }
 
+  /**
+   * The cell the actor is standing in, in **zone metres** — the deposit's
+   * own units. A deposit is a fact about the rock and does not know what
+   * cell size somebody chose for the workings cut through it, so the
+   * multiply happens here exactly as it does in `Working`.
+   */
+  protected metresAt(place: Stuff & Container): [number, number, number] {
+    const coords = (place as unknown as {
+      getCoordinates?(): [number, number, number];
+    }).getCoordinates?.() ?? [0, 0, 0];
+    const cellSize = (place as unknown as {
+      getZone?(): { getCellSize?(): number } | null;
+    }).getZone?.()?.getCellSize?.() ?? 1;
+    return [coords[0] * cellSize, coords[1] * cellSize, coords[2] * cellSize];
+  }
+
+  /**
+   * ⭐ What the ground under the actor's feet actually IS — the resolved
+   * sample and the mineral's own row, or `null` where the ground is
+   * barren.
+   *
+   * ⚠ The instruments used to hardcode the colour of copper ore
+   * (*"the ground here is stained green"*). That was fine while there
+   * was one mineral and a lie the moment there were two, so the words
+   * come off the `Material`'s `appearance` now: the fringe says rust
+   * and the heart says verdigris, and neither controller knows either
+   * word. **The room prose says rust; the instrument says goethite;
+   * neither lies.**
+   */
+  protected async groundAt(
+    place: Stuff & Container,
+  ): Promise<{ sample: GroundSample; mineral: Material | null } | null> {
+    const deposit = await this.depositAt(place);
+    if (!deposit) return null;
+    const sample = deposit.sampleAt(this.metresAt(place), await this.seedAt(place));
+    const mineral = sample.mineralPath
+      ? StuffApi.findByTemplatePath<Material>(sample.mineralPath) ?? null
+      : null;
+    return { sample, mineral };
+  }
+
   /** The deposit's seed — the covering Locality's address, and nothing stored. */
   protected async seedAt(place: Stuff & Container): Promise<number> {
     const locality = await AddressApi.resolveLocalityFor(place);
     return Deposit.seedFor(locality?.getAddress() ?? '');
+  }
+
+  /**
+   * ⭐ Whether this band can make an inference from observations at all
+   * — `SOLVE_FROM` being finite, read as the predicate it already is.
+   *
+   * ⚠ Derived rather than re-listed. Every consumer of "is this reader
+   * a geologist yet?" asks here, so the band vocabulary moving cannot
+   * leave a second copy of the answer behind in another file.
+   */
+  protected solvesGround(band: CompetenceBandName): boolean {
+    return Number.isFinite(SOLVE_FROM[band]);
   }
 
   /** The reader's band in `geology`, and the half-width it buys. */

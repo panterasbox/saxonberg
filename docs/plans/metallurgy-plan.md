@@ -955,6 +955,58 @@ tells the truth about where.
 
 **Commit.** `build(metallurgy W1): the deposit zones along strike, the fringe outcrops, an independent works it`
 
+> ### ✅ W1 — done
+>
+> The geometry in the plan's Grounding table was re-derived against the
+> shipped row and is exact: (5,7,0) is the first undepleted iron cell at
+> along = 86 m, (9,11,0) is open ground at 142 m, and the four existing
+> underground workings all sit at |along| < 30 m, so the co-op still
+> mines copper. Notes:
+>
+> - **`lodeProximity()` is how the halo landed**, and it is the same
+>   three dot products `isInLode` already makes, read as a magnitude
+>   instead of a yes/no. The three tests are along ORTHOGONAL axes (the
+>   plane's normal, its strike, its dip), so the amount by which a cell
+>   fails them is a genuine Euclidean distance. No new geometry.
+> - **`bandAt(z, along)` filters, then applies the shipped depth rule
+>   unchanged.** With no windows authored the filter is the identity, so
+>   the fifteen existing `Deposit.test.ts` cases did not move — asserted,
+>   not assumed.
+> - ⭐ **`solvesGround(band)` is derived from `SOLVE_FROM`, not
+>   re-listed.** The first draft enumerated the naming bands and got the
+>   vocabulary wrong (there is no `master` band); making it a predicate
+>   over the existing table made "the same band that solves a plane names
+>   the rock" literally true instead of a comment claiming it.
+> - ⚠ **`SurveyFrame.ground` is OPTIONAL**, because the frame is shared:
+>   `analyze soil` renders through it and has no mineral underfoot. A
+>   required field would have made the other subsystem invent an answer.
+> - ⚠ **New test file `src/__tests__/fringe.test.ts` reads the SHIPPED
+>   Ferrow row on purpose.** `Deposit.test.ts` proves the mechanism on a
+>   synthetic fixture and would pass identically while Rejection's own
+>   `alongFrom` was a typo; the geometry is the fragile part. Ten cases:
+>   both axes, symmetry, every room on the lode, iron outside the
+>   depletion box and copper inside it, every room above the water table,
+>   nothing ore in the sky, and the claim geometry.
+> - Both collar-guard tests verified load-bearing by removing the guard:
+>   2 fail, then pass again.
+> - Corrected the stale pin comment in `hush-mouth.yaml` (`-30,20,-30`
+>   → `-30,-10,-10`) and the stale *"two blocks"* comment in
+>   `ferrow-warren.yaml`, which now has two.
+>
+> ⚠⚠ **A finding for review, not a defect this build introduces.**
+> `MineWarren.claimFor` tests only the block's CENTRE cell against
+> existing blocks, so the far fringe's block (centre 4 cells away)
+> overlaps the independent's by three cells on each axis. That is how
+> `stake` has always worked and there was only ever one block to notice
+> it with. It is arguably *correct* — overlapping claims are what a claim
+> dispute IS, historically, and a register that records both is the
+> honest model of one — but it is now visible, and tightening it would
+> refuse the drive's stake without moving the rooms past the lode's
+> 180 m strike extent. Recorded in `fringe.test.ts` at the assertion.
+>
+> Deposit 20, mining pack 145 (14 files), `lint:family` all 40 green,
+> client `tsc --noEmit` clean.
+
 ### W2 — carbon on the metal (kernel)
 
 **Goal.** A bar knows what it is.
