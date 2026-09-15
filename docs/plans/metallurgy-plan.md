@@ -1172,6 +1172,81 @@ baskets 8 kg, the `SmeltingFurnace` fixture):
 
 **Commit.** `build(metallurgy W3): the bloomery — the charge decides bloom, steel or cast`
 
+> ### ✅ W3 — done, with the carbon model re-derived
+>
+> ⚠⚠ **The plan's carbon model does not separate the regimes, and was
+> replaced.** `C = C_BLOOM + K_ORE × r` over the raw fuel-to-ore ratio
+> cannot put a two-basket charge and a four-basket charge on opposite
+> sides of the melting threshold: at 1590 K the threshold is
+> `C ≥ 0.0243`, and a straight line through both points needs a 12×
+> change in carbon for a 2× change in ratio. (The plan said `K_ORE` was
+> the build's to tune; the SHAPE turned out to be the problem, not the
+> constant.)
+>
+> ⭐⭐ **The replacement is more physical, not just better-fitting:**
+> carbon dissolves from the fuel that is left OVER once reduction has
+> taken its share.
+>
+> ```
+> surplus = max(0, fuelKg/oreKg − R_STOICH)     R_STOICH = 3.7
+> C       = min(C_ORE_MAX, C_BLOOM + K_ORE × surplus)   K_ORE = 0.0075
+> liquid  ⟺ heldK ≥ T_melt(C) = max(1420, 1811 − K_MELT·C)
+> ```
+>
+> A straight ratio makes every extra basket equally dangerous, which is
+> neither true nor interesting; an excess makes lean and slightly-rich
+> both safe and then has a point past which it runs away from you. What
+> it produces at Rejection's furnace (1.4 kg lumps, 8 kg baskets,
+> bellows 1590 K):
+>
+> | charge | carbon | T_melt | result |
+> |---|---|---|---|
+> | 3 lumps, 2 baskets | 0.13 % | 1799 K | a bloom |
+> | 3 lumps, 3 baskets | 1.56 % | 1669 K | a bloom — **natural steel** |
+> | 3 lumps, 4 baskets | 4.3 % | 1539 K | it RAN: a cast pig |
+> | bellows off | — | — | 1420 K, will not reduce |
+>
+> ⭐⭐ **The middle row is new and nobody designed it.** A bloom off a
+> slightly rich charge carries enough carbon to beat straight into steel
+> without ever being carburized — which is how most pre-modern steel was
+> actually made. It falls out of the same two lines the other rows do, so
+> `Bloom.consolidate()` now picks its bar row by the carbon band
+> (`≥ 0.2 % → steel-ingot`, else `iron-ingot`). That is a deviation from
+> D4's table and it is the arithmetic's, not mine.
+>
+> Other notes:
+>
+> - ⚠ **A carburizing charge loses no mass.** Nothing is being separated
+>   out of a bar and a trace of carbon is going in. The first draft ran
+>   stock through the same `Σ mass × fraction` the ore path uses and quietly
+>   shaved 0.2 % off every steel bar (steel's composition is iron 0.998).
+> - ⚠⚠ **The tap became async-deep and the existing test drain was too
+>   short.** `completeStep` drains one macrotask, which was enough while
+>   the run was arithmetic; the tap now DISCOVERS its product row
+>   (`Template.findDescendants` — a store read), so a single drain lands
+>   between the destruct and the clone and the furnace reads EMPTY. A run
+>   that worked would have reported "no bar". The test has a `tap()`
+>   helper; **any completion that needs a store read has this shape.**
+> - ⚠ **A pack cannot import `backend/PersistenceManager`** (outside the
+>   server's exports map, and `lint:imports` holds the boundary), so the
+>   test seeds the content collection through `PersistApi.find`.
+> - The bellows went 1.5 → 1.12 and the shipped assertion that it
+>   *exceeds* iron's 1811 K was inverted. That assertion was pinning the
+>   bug: at 2130 K every ferrous run pours and the bloom — the thing the
+>   whole rung is about — is unreachable. It is now four assertions
+>   naming the four facts that pin 1590 K.
+> - `smelt` declines a **ferrous** charge with different prose from a
+>   non-ferrous one, because it is different physics: iron does not want
+>   to be melted, it wants to be reduced.
+> - The product row is discovered by `_materialPath`, asserted by taking
+>   a row AWAY: a material with no row fails loudly rather than eating
+>   the charge.
+> - `trade-smelting` gains a dependency on `trade-smithing` (the wrought
+>   bar's row is smithing's). No cycle — smithing does not depend on
+>   smelting, which is the direction D9's duck-typing protects.
+>
+> smelting pack 24 (14 of them the controller's), `lint:family` all 40.
+
 ### W4 — the anvil: consolidation, refusal, the arms, the shelf
 
 **Goal.** A bloom is not a bar; cast iron cannot be forged; a player can

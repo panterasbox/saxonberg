@@ -1,12 +1,30 @@
 # A smelting furnace — a shaft of clay and stone with a tuyère at the
 # bottom and a bellows on it.
 #
-# ⚠ The numbers are the whole design. Charcoal alone holds ~1420 K, which
-# melts copper (1358 K) — so an oxide copper smelt is reachable by the
-# EASY rung. The bellows multiplier takes it to ~2130 K, which is iron's
-# territory and Stage C's. Nothing here is a dial chosen for pacing: the
-# melting points are the materials' own, and the ladder falls out of
-# them.
+# ⚠⚠ **The numbers are the whole design**, and none of them is a dial
+# chosen for pacing.
+#
+# Charcoal alone holds ~1420 K, which melts copper (1358 K) — so an oxide
+# copper smelt is reachable by the EASY rung, with no bellows at all.
+#
+# ⭐ The bellows takes it to **1590 K**, and that figure is pinned by
+# three facts at once:
+#
+#   - ABOVE 1470 K, where iron oxide gives up its oxygen to carbon
+#     monoxide — so with the bellows you can reduce iron, and without it
+#     you cannot. That is the iron rung, and it is a FUEL-TECHNOLOGY
+#     rung rather than a temperature one.
+#   - BELOW pure iron's 1811 K — so a modest charge reduces in the SOLID
+#     state and you rake out a bloom, which is what a bloomery does.
+#   - ABOVE the eutectic's 1420 K — so a charge that takes up enough
+#     carbon melts anyway, and pours, and is unforgeable. That is the
+#     trap, and it has to be reachable or the carbon decision is not a
+#     decision.
+#
+# ⚠ It was 1.5 (≈2130 K), which is past iron's melting point outright:
+# every bellows run would have poured, so the bloom — the thing the whole
+# rung is about — would have been unreachable. The old comment called
+# iron "Stage C's"; the distal fringe put it here.
 class: /trade/smelting/thing/SmeltingFurnace
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
@@ -20,7 +38,7 @@ data:
     colour from the stone.
   mass: 2400
   burnTemperatureK: 1420
-  bellowsMultiplier: 1.5
+  bellowsMultiplier: 1.12
   fuelBurnRatePerMin: 0.4
   lit: false
   reserves:

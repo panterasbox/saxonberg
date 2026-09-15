@@ -1,0 +1,28 @@
+# ⚠⚠ A pig of cast iron — **the ladder's most instructive failure, and
+# it is not a mistake the game invented.**
+#
+# Charge a bloomery too rich with charcoal and the iron takes up carbon
+# until it saturates, at around 4 %. Carbon LOWERS iron's melting point —
+# from 1811 K down to about 1420 K — so past a certain fraction the
+# charge stops being a bloom and simply RUNS. The metal pours, which
+# looks like success. It comes out hard, grey, and completely unworkable:
+# hit it hot and it shatters instead of spreading.
+#
+# ⭐ The refusal is a signpost and not a dead end. Cast iron is what a
+# pot, a stove plate and a cannon are made of, and a pig is the stock
+# waiting for the station that casts them — a later rung with its own
+# mould. What a player learns here is that more fuel is not more better,
+# which is the whole of the carbon decision.
+class: /platform/thing/Ingot
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: pig of cast iron
+  keywords: [pig, cast-iron, "cast iron", iron, ingot]
+  register: indefinite
+  longDescription: >-
+    A blunt grey bar with the runner still on one end where it was broken
+    off the sow. The fracture is coarse and glittering, nothing like the
+    grey silk a wrought bar breaks with, and the whole thing rings like a
+    stone when you set it down.
+  _materialPath: /stuff/idea/material/alloy/cast-iron
+  mass: 1.0

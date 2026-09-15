@@ -104,16 +104,33 @@ describe('the smelt', () => {
     expect(o.metalFractionOf('/stuff/idea/material/element/iron')).toBe(0);
   });
 
-  it('the heat gate is the METAL’s own melting point, and the ladder falls out of it', () => {
+  it('⭐⭐ the furnace’s two heats are pinned by FOUR physical facts at once', () => {
     const furnace = (
       YAML.parse(readFileSync(`${PACK}content/trade/smelting/thing/furnace.yaml`, 'utf8')) as {
         data: Record<string, number>;
       }
     ).data;
-    // Charcoal alone (1420 K) clears copper's 1358 K — the EASY rung.
-    expect(furnace.burnTemperatureK).toBeGreaterThan(1358);
-    // …and the bellows reaches iron's 1811 K, which is a later stage's.
-    expect(furnace.burnTemperatureK! * furnace.bellowsMultiplier!).toBeGreaterThan(1811);
+    const bare = furnace.burnTemperatureK!;
+    const bellowsed = bare * furnace.bellowsMultiplier!;
+
+    // 1. Charcoal alone clears copper's 1358 K — the EASY rung, no
+    //    bellows, and the whole of Stage A.
+    expect(bare).toBeGreaterThan(1358);
+    // 2. …and does NOT reach 1470 K, where iron oxide gives up its
+    //    oxygen. Iron is a fuel-technology rung: without the bellows you
+    //    cannot reduce it at all.
+    expect(bare).toBeLessThan(1470);
+    // 3. With the bellows you can, and you are still BELOW pure iron's
+    //    1811 K — so the charge reduces in the SOLID state and you rake
+    //    out a bloom. ⚠ The multiplier was 1.5 (≈2130 K), past iron's
+    //    melting point outright: every bellows run would have poured,
+    //    and the bloom the whole rung is about was unreachable.
+    expect(bellowsed).toBeGreaterThan(1470);
+    expect(bellowsed).toBeLessThan(1811);
+    // 4. …but above the eutectic's 1420 K, so a charge that takes up
+    //    enough carbon melts anyway and pours something unforgeable.
+    //    The trap has to be REACHABLE or the carbon decision is not one.
+    expect(bellowsed).toBeGreaterThan(1420);
   });
 
   it('⭐ the ingot re-melts — the phase change is honest in BOTH directions', () => {

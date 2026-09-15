@@ -1093,6 +1093,9 @@ importers:
       '@saxonberg/content-trade-mining':
         specifier: workspace:*
         version: link:../trade-mining
+      '@saxonberg/content-trade-smithing':
+        specifier: workspace:*
+        version: link:../trade-smithing
       '@saxonberg/server':
         specifier: workspace:*
         version: link:../../server
