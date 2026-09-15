@@ -7,7 +7,7 @@
 # territory and Stage C's. Nothing here is a dial chosen for pacing: the
 # melting points are the materials' own, and the ladder falls out of
 # them.
-class: /platform/thing/Forge
+class: /trade/smelting/thing/SmeltingFurnace
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: stone smelting furnace

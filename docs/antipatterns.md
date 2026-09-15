@@ -4303,6 +4303,35 @@ green suite means self-consistent, not working.
 was found, and that is what every call site followed. When a convention
 turns out wrong, fix the doc that taught it — not only the callers.
 
+### The third site, and the gate (2026-09-15)
+
+The metallurgy build's grounding found a fourth cost in a pack the
+kernel sweep never reached: **every mining claim in the game was owned
+by every player.** `StakeController` passed
+`{ kind: 'player', templatePath: giver.getTemplatePath() }` into
+`ParcelApi.subdivide`, while every kernel site writing that same
+`ParcelOwner.templatePath` field — `TitleController`,
+`TransferController`, `ChattelLogic`, `EmploymentLogic` — passes an
+identity path. The field's meaning was never in doubt; one pack simply
+had not been swept. Invisible to the suite for the usual reason: the
+stake fixtures author distinct owner paths per avatar.
+
+⭐ **`pnpm -C packages/server lint:person-keys` now holds the written
+shape at zero** across the kernel and every pack `src/`
+(`scripts/check-person-keys.ts`, a ratchet not a census — the one
+offender was fixed in the commit that added it). It matches one
+literal, deliberately: a gate that tried to decide in general whether a
+given `getTemplatePath()` names a person would be wrong in both
+directions.
+
+⚠ **Still open, and outside the gate's literal:** the maker's-mark
+fallback `makerPath` in `QuenchController`, `PlateController`,
+`StrainController`, `RepairController` and `SewController` is a
+`getTemplatePath()`. It is dead today — `CraftingLogic` prefers the
+live actor's identity path — but `CraftedMixin.resolveMakerName`
+resolves a mark with `findByTemplatePath`, which cannot resolve an
+identity path at all. A follow-up sweep owns both halves.
+
 ---
 
 ## A verb for something that is not an act

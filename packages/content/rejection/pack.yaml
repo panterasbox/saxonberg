@@ -9,10 +9,11 @@ description: >-
   the fuel yard with its coppice and the smelter beside it, this place's
   own ecology (crickets, delve-rats, the pale grazer, the glowcap that
   lights it), and the functional cast.
-  ⭐ It ships NO TypeScript. Every class it names belongs to the three
-  trades or the platform — which is what makes "a second mining town is a
-  locality pack over the same trades" a fact a reviewer can check by
-  listing the directory rather than a claim.
+  ⭐ It ships NO TypeScript. Every class it names belongs to the four
+  trades (mining, fuel, smelting, smithing) or the platform — which is
+  what makes "a second mining town is a locality pack over the same
+  trades" a fact a reviewer can check by listing the directory rather
+  than a claim.
 requires:
   groups:
     - name: rejection

@@ -48,15 +48,30 @@ const COPPER = '/stuff/idea/material/element/copper';
 const INGOT_ROW = '/trade/smelting/thing/copper-ingot';
 const SLAG_ROW = '/trade/smelting/thing/slag';
 
-/** How long a run takes, in game ms. */
-const SMELT_MS = 4 * 60 * 60 * 1000;
+/**
+ * How long a run takes, in game ms. ⚠ Two game minutes — ten real
+ * seconds at the default clock scale. It was four game HOURS, which is
+ * twenty real minutes of holding one key down, and out of family with
+ * every other engaged act in the trade (`hew` 9 s, `drive` 40 s,
+ * `hammer` 5 s). A real bloomery runs for most of a day; the game's
+ * clock is the abstraction that already prices that, and an engagement
+ * a player sits through is not the same fact.
+ */
+const SMELT_MS = 120_000;
 /** Endurance a run costs, in percentage points. */
 const SMELT_COST = 10;
 /**
- * Charcoal baskets a run consumes. ⚠ More than the ore by mass, which is
- * why the smelter sits next to the fuel yard rather than next to the mine.
+ * The MINIMUM charcoal a run wants. ⚠ More than the ore by mass, which
+ * is why the smelter sits next to the fuel yard rather than next to the
+ * mine.
+ *
+ * ⭐⭐ A run consumes **everything in the furnace**, not this many
+ * baskets. It used to take `fuel.slice(0, 2)` and strand the rest,
+ * which meant the charge had no *ratio* — and the fuel-to-ore ratio is
+ * the whole of the carbon decision above copper. You charge a furnace;
+ * you do not meter it.
  */
-const CHARCOAL_PER_RUN = 2;
+const CHARCOAL_MINIMUM = 2;
 
 export default class SmeltController extends CommandController<CommandModel> {
   async execute(_model: CommandModel, context: CommandContext): Promise<void> {
@@ -77,10 +92,10 @@ export default class SmeltController extends CommandController<CommandModel> {
       this.decline(context, Mml.compose`The furnace holds no ore.`, 'no-ore');
       return;
     }
-    if (fuel.length < CHARCOAL_PER_RUN) {
+    if (fuel.length < CHARCOAL_MINIMUM) {
       this.decline(
         context,
-        Mml.compose`Not enough charcoal in the furnace — a run wants ${String(CHARCOAL_PER_RUN)} baskets and there ${fuel.length === 1 ? 'is' : 'are'} ${String(fuel.length)}.`,
+        Mml.compose`Not enough charcoal in the furnace — a run wants at least ${String(CHARCOAL_MINIMUM)} baskets and there ${fuel.length === 1 ? 'is' : 'are'} ${String(fuel.length)}.`,
         'no-fuel',
       );
       return;
@@ -110,7 +125,7 @@ export default class SmeltController extends CommandController<CommandModel> {
     // would go in and no metal would ever come out. The mining acts
     // shipped that bug and a live drive found it; this never did.
     this.engage(context, () => {
-      void runCharge(context, furnace as Stuff & Container, ore, fuel.slice(0, CHARCOAL_PER_RUN));
+      void runCharge(context, furnace as Stuff & Container, ore, fuel);
     });
   }
 

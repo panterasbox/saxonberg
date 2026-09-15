@@ -31,6 +31,7 @@ import { ThermalMixin } from '@saxonberg/server/mud/lib/thermal/Thermal';
 import { ContainerMixin } from '@saxonberg/server/mud/lib/spatial/Container';
 import { FurnaceMixin } from '@saxonberg/server/mud/lib/fire/Furnace';
 import type { FieldMeta } from '@saxonberg/server/mud/lib/mixin';
+import type { CommandContributions } from '@saxonberg/server/mud/api/command';
 
 /** What a burn can come out as. */
 export type BurnOutcome = 'charcoal' | 'brands' | 'ash';
@@ -47,7 +48,23 @@ const CharcoalPitBase = FurnaceMixin(
   ContainerMixin(ReservedMixin(ThermalMixin(Thing))),
 );
 
+/**
+ * ⭐ The clamp affords its own act. A verb an object affords is a
+ * property of what the object IS, declared exactly once on the class —
+ * the `Anvil` shape. ⚠ `char` shipped with a view, a controller and
+ * nothing naming the view, so the verb was unreachable in a booted
+ * world; a row's `commandContributions:` would have been dead silently
+ * too. The kernel's `FurnaceMixin` cannot name a trade's view (the pack
+ * boundary), which is why the list lives here.
+ */
+const CHARRING = ['trade/fuel/cmd/fuel/char.yaml'];
+
 export default class CharcoalPit extends CharcoalPitBase {
+  static commandContributions: CommandContributions = {
+    environment: CHARRING,
+    peers: CHARRING,
+  };
+
   static fieldMeta: FieldMeta = {
     draught: { persistent: true, authorable: true },
     charMaterialPath: { persistent: true, authorable: true },

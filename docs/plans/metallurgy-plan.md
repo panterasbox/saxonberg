@@ -858,6 +858,39 @@ through the existing hewer), D13, D16, D17.
 
 **Commit.** `build(metallurgy W0): smelt and char afforded, the furnace a container, the anvil at the bloomery, the stake keyed on identity`
 
+> ### ✅ W0 — done
+>
+> All four inherited defects closed as planned; no premise turned out
+> wrong. Notes for whoever reviews this:
+>
+> - **The dead-verb finding is confirmed at the class level, not just by
+>   grep.** `SmeltController.test.ts` is the smelt's first test ever, and
+>   two of its cases exist only to pin the reachability: the furnace
+>   is now `isFurnace && isContainer` (the shipped bare `Forge` was not,
+>   so the controller's own guard could never have passed) and
+>   `SmeltingFurnace.commandContributions` names `smelt.yaml`.
+> - **The identity fix has a runtime regression test, not only the gate.**
+>   `title.test.ts` stands two avatars up sharing ONE `templatePath` —
+>   the premise every existing fixture quietly avoids — stakes two blocks
+>   and asserts the recorded owners differ. Verified load-bearing by
+>   reverting the one line: 2 of its 6 cases fail, then pass again.
+> - ⚠ **`lint:person-keys` matches ONE written literal, in both key
+>   orders, comments stripped.** Its unit test pins the boundary in both
+>   directions (the stake line as it was actually written, prettier's
+>   80-column wrap of it, and the kernel's identity-keyed owner writes
+>   which must NOT match).
+> - ⚠ **`CHARCOAL_PER_RUN` became `CHARCOAL_MINIMUM`.** The old name
+>   described metering; the run now consumes the whole furnace, and the
+>   constant is only the floor the decline reads.
+> - ⚠ **A stale `@saxonberg/types` build makes `pnpm -C packages/server
+>   build` report four errors in `CommandLogic`/`CommandGiver` that are
+>   not real.** `pnpm -C packages/types build` first, and they go. Cost
+>   ten minutes; recorded so it does not cost them again.
+> - `pnpm install` was run after the `rejection` dependency edit, as the
+>   wave said. `lint:family`: **all 40 gates pass**, `lint:person-keys`
+>   among them (it self-enrolled off `package.json`, no roster edit).
+>   trade-smelting 17, trade-fuel 13, trade-mining 129, trade-smithing 20.
+
 ### W1 — the deposit answers laterally, and the fringe is a place
 
 **Goal.** Iron comes out of the ground at Rejection, and the ground

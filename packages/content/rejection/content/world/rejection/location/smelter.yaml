@@ -22,5 +22,17 @@ data:
     - /trade/smelting/thing/furnace
     - /trade/mining/thing/tongs
     - /trade/smelting/thing/slag
+    # ⭐ The bloomery's own hammer. A bloom comes out of that shaft as a
+    # spongy, slag-shot mass and is NOT a bar until it has been beaten
+    # into one — the string-hearth stood beside the furnace for exactly
+    # that reason, and a bloomery without a consolidation station is a
+    # process with no second half. ⚠ Until this row landed, the only
+    # anvil in the world was in the Hearthworks smithy, on an island
+    # with no inbound exit and no travel node: mining's own twelve
+    # `[striking, anvil]` tool recipes had never been makeable anywhere
+    # a miner could reach. Hearthworks stays the teaching smithy; this
+    # is the works' own.
+    - /trade/smithing/thing/anvil
+    - /stuff/thing/gear/smiths-hammer
   cast:
     - /world/rejection/agent/smelterman
