@@ -221,4 +221,23 @@ export class Currency {
     SecurityApi.assertTestOnly("Currency._resetForTesting");
     Currency._records = new Map([[ZORKMID.key, ZORKMID]]);
   }
+
+  /**
+   * The face value of a coin stack, in minor units.
+   *
+   * `value = faceValue(currency, denomination) × quantity`
+   *
+   * @internal ⚠ it was a module-private `stackValue` in BOTH `Bank.ts`
+   * and `BankingLogic.ts`, byte-identical. Taking three NUMBERS rather
+   * than the `CashLike` shape each file declared for itself is what let
+   * it move: the arithmetic is shared, the narrowing stays local to
+   * whichever file needs `Stuff & Stackable` and whichever needs less.
+   */
+  public static stackValue(
+    currency: string,
+    denomination: number,
+    quantity: number,
+  ): number {
+    return Currency.faceValueOf(currency, denomination) * quantity;
+  }
 }

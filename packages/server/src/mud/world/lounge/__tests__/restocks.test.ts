@@ -297,7 +297,11 @@ describe("the keeper's back loop — Mara orders Dave's Bar's rail in, and recei
       const b = ginBottle();
       ContainmentApi.move(b as never, hand as never);
       const cc = ctx(hand, cashAndCarry, counter, `consign gin --ask ${ask}`);
-      await asPrincipal(hand, () => makeStuff(() => new ConsignController()).execute({ thing: 'gin', ask: String(ask) }, cc));
+      await asPrincipal(hand, () => makeStuff(() => new ConsignController()).execute(
+        // ⚠ `shelf` is bound by the view; a hand-built model must carry it.
+        { thing: 'gin', ask: String(ask), shelf: { stuff: shelf, raw: 'shelf' } },
+        cc,
+      ));
       expect(rejections(cc)).toEqual([]);
       out.push(b);
     }

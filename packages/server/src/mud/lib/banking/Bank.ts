@@ -104,13 +104,6 @@ function isCashLike(stuff: unknown): stuff is CashLike {
   );
 }
 
-/** The face value (minor units) of a coin stack resting in the vault. */
-function stackValue(stuff: CashLike): number {
-  return (
-    Currency.faceValueOf(stuff.getCurrency(), stuff.getDenomination()) *
-    stuff.getQuantity()
-  );
-}
 
 export function BankMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
   class BankMixin extends Base implements Bank {
@@ -183,7 +176,7 @@ export function BankMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
     public getTillLiquidity(): Money {
       let total = 0;
       for (const item of (this as unknown as Stuff & Container).getContents()) {
-        if (isCashLike(item)) total += stackValue(item);
+        if (isCashLike(item)) total += Currency.stackValue(item.getCurrency(), item.getDenomination(), item.getQuantity());
       }
       return Money.of(total, BankingApi.compactCurrency());
     }

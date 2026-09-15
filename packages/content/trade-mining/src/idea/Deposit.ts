@@ -38,6 +38,7 @@ import { Idea } from '@saxonberg/server/mud/lib/stuff/Idea';
 import { StuffApi } from '@saxonberg/server/mud/api/stuff';
 import type Material from '@saxonberg/server/mud/lib/material/Material';
 import type { FieldMeta } from '@saxonberg/server/mud/lib/mixin';
+import { Seeded } from '@saxonberg/server/mud/lib/Seeded';
 
 /**
  * A point in the ground, **in metres**, z negative going down.
@@ -140,7 +141,7 @@ export interface DepositFeatures {
   /**
    * Feature keys the procedural layer may place, with the per-cell
    * probability it places them at. Seeded, never drawn — the roll is
-   * `roll01(seed, cell)`, so the pocket was always there.
+   * `Seeded.unit(seed, cell)`, so the pocket was always there.
    */
   seeded?: Array<{ feature: string; chance: number; inLodeOnly?: boolean }>;
 }
@@ -317,7 +318,7 @@ export default class Deposit extends Idea {
     if (inLode && band !== null) {
       mineralPath = band.mineral;
       ganguePath = this.lode?.gangue ?? null;
-      const r = roll01(seed, hashString(key));
+      const r = Seeded.unit(seed, hashString(key));
       grade = clamp01(band.meanGrade + band.spread * (2 * r - 1));
       grade *= this.depletionScaleAt(at);
     }
@@ -397,7 +398,7 @@ export default class Deposit extends Idea {
     // every reader; `readingDeg` carries a SEEDED offset scaled by the
     // reader's band, so the same point read twice reads the same.
     const strikeDeg = norm360(lode.strike);
-    const offset = (2 * roll01(seed, hashString(`surface:${x},${y}`)) - 1) * errorDeg;
+    const offset = (2 * Seeded.unit(seed, hashString(`surface:${x},${y}`)) - 1) * errorDeg;
     return {
       distanceM,
       staining,
@@ -426,7 +427,7 @@ export default class Deposit extends Idea {
     const lode = this.lode;
     if (lode === null || at[2] >= 0 || !this.isInLode(at)) return null;
     const dipDeg = lode.dip;
-    const offset = (2 * roll01(seed, hashString(`dip:${pointKey(at)}`)) - 1) * errorDeg;
+    const offset = (2 * Seeded.unit(seed, hashString(`dip:${pointKey(at)}`)) - 1) * errorDeg;
     return { dipDeg, readingDeg: clampDip(dipDeg + offset), errorDeg };
   }
 
@@ -495,7 +496,7 @@ export default class Deposit extends Idea {
     const rules = this.features?.seeded ?? [];
     for (const rule of rules) {
       if (rule.inLodeOnly === true && !inLode) continue;
-      const r = roll01(seed ^ hashString(rule.feature), hashString(pointKey(at)));
+      const r = Seeded.unit(seed ^ hashString(rule.feature), hashString(pointKey(at)));
       if (r < rule.chance) return rule.feature;
     }
     return null;
@@ -525,21 +526,6 @@ function hashString(s: string): number {
     h = Math.imul(h, 0x01000193);
   }
   return h >>> 0;
-}
-
-/** Integer avalanche mix of two 32-bit words → a 32-bit hash. */
-function mix2(a: number, b: number): number {
-  let h = (a ^ 0x9e3779b9) >>> 0;
-  h = Math.imul(h ^ (b >>> 0), 0x85ebca6b) >>> 0;
-  h ^= h >>> 13;
-  h = Math.imul(h, 0xc2b2ae35) >>> 0;
-  h ^= h >>> 16;
-  return h >>> 0;
-}
-
-/** Deterministic value in [0, 1) from two seed words. */
-function roll01(a: number, b: number): number {
-  return mix2(a >>> 0, b >>> 0) / 0x1_0000_0000;
 }
 
 function clamp01(v: number): number {

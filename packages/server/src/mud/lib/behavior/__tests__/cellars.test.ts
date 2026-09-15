@@ -306,7 +306,10 @@ describe('the cellars beat — rack, cork, consign, home', () => {
           const ask = rest[rest.length - 1]!;
           await asPrincipal(who, () =>
             makeStuff(() => new ConsignController()).execute(
-              { thing: kw, ask },
+              // ⚠ `shelf` is BOUND BY THE VIEW since `consign` declared
+              // it; a hand-built model skips the binder and must carry
+              // what the view would have put there.
+              { thing: kw, ask, shelf: { stuff: shelf, raw: 'shelf' } },
               ctx(who, here, shelf, text),
             ),
           );

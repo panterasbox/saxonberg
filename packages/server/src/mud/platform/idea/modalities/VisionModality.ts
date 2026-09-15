@@ -79,7 +79,7 @@ export class VisionModality extends Modality {
     const scale = readSizeScale(loc);
     const lux = scale > 0 ? acc.flux / scale : acc.flux;
     const sources = finalizeSources(acc.sources);
-    const colorTemperature = mixColorTemperature(sources);
+    const colorTemperature = Light.mixColorTemperature(sources);
     return Light.from({
       intensity: Quantity.of(lux, 'lux'),
       colorTemperature,
@@ -249,23 +249,6 @@ function finalizeSources(sources: LightSourceRef[]): LightSourceRef[] {
   return [...sources].sort((a, b) => b.flux - a.flux).slice(0, 3);
 }
 
-/**
- * Compute the flux-weighted color temperature across the source list.
- * Returns null when no source carries a color temperature.
- */
-function mixColorTemperature(
-  sources: readonly LightSourceRef[],
-): Quantity<'K'> | null {
-  let weightedSum = 0;
-  let weight = 0;
-  for (const s of sources) {
-    if (s.colorTemperature === null) continue;
-    weightedSum += s.colorTemperature * s.flux;
-    weight += s.flux;
-  }
-  if (weight === 0) return null;
-  return Quantity.of(weightedSum / weight, 'K');
-}
 
 /**
  * Internal recursive walk. Returns a flux accumulator (lumens +

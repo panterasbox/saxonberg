@@ -57,6 +57,7 @@
 import { Idea } from '@saxonberg/server/mud/lib/stuff/Idea';
 import { StuffApi } from '@saxonberg/server/mud/api/stuff';
 import type { FieldMeta } from '@saxonberg/server/mud/lib/mixin';
+import { Seeded } from '@saxonberg/server/mud/lib/Seeded';
 
 /**
  * The texture classes, coarse to fine — the axis every other soil
@@ -262,28 +263,28 @@ export default class GroundCharacter extends Idea {
     ] as TextureClass;
 
     const slopeDeg = round1(smooth(seed, at, 2) ** 2 * 24);
-    const aspectDeg = Math.round(roll01(seed ^ 0x51, h) * 360);
+    const aspectDeg = Math.round(Seeded.unit(seed ^ 0x51, h) * 360);
 
     // Fine texture holds water; slope sheds it. Both real, and the
     // second is why the low corner of every field is the wet one.
     const fineness = TEXTURE_CLASSES.indexOf(texture) / (TEXTURE_CLASSES.length - 1);
     const drainage = clamp01(
-      0.25 + 0.5 * (1 - fineness) + slopeDeg / 60 + (roll01(seed ^ 0x73, h) - 0.5) * 0.2,
+      0.25 + 0.5 * (1 - fineness) + slopeDeg / 60 + (Seeded.unit(seed ^ 0x73, h) - 0.5) * 0.2,
     );
 
     // Stone comes off the parent rock and collects where soil is thin.
     const stoniness = clamp01(
-      roll01(seed ^ 0x11, h) * 0.7 + (slopeDeg / 24) * 0.3,
+      Seeded.unit(seed ^ 0x11, h) * 0.7 + (slopeDeg / 24) * 0.3,
     );
 
     // Topsoil creeps downhill and accumulates in the bottoms.
     const topsoilM = round2(
-      0.08 + 0.42 * (1 - slopeDeg / 24) * (0.5 + 0.5 * roll01(seed ^ 0x29, h)),
+      0.08 + 0.42 * (1 - slopeDeg / 24) * (0.5 + 0.5 * Seeded.unit(seed ^ 0x29, h)),
     );
 
     // Native pH: acid on leached sand, alkaline on the calcareous end.
     const nativePh = round1(
-      4.8 + 2.9 * (0.55 * (1 - drainage) + 0.45 * roll01(seed ^ 0x3d, h)),
+      4.8 + 2.9 * (0.55 * (1 - drainage) + 0.45 * Seeded.unit(seed ^ 0x3d, h)),
     );
 
     return { texture, stoniness, drainage, slopeDeg, aspectDeg, topsoilM, nativePh };
@@ -474,21 +475,6 @@ function hashString(s: string): number {
   return h >>> 0;
 }
 
-/** Integer avalanche mix of two 32-bit words → a 32-bit hash. */
-function mix2(a: number, b: number): number {
-  let h = (a ^ 0x9e3779b9) >>> 0;
-  h = Math.imul(h ^ (b >>> 0), 0x85ebca6b) >>> 0;
-  h ^= h >>> 13;
-  h = Math.imul(h, 0xc2b2ae35) >>> 0;
-  h ^= h >>> 16;
-  return h >>> 0;
-}
-
-/** Deterministic value in `[0, 1)` from two seed words. */
-function roll01(a: number, b: number): number {
-  return mix2(a >>> 0, b >>> 0) / 0x1_0000_0000;
-}
-
 /**
  * A SMOOTH value in `[0, 1)` over the plane — bilinear interpolation
  * between lattice rolls on a 5-cell lattice.
@@ -506,7 +492,7 @@ function smooth(seed: number, at: Spot, channel: number): number {
   const fx = at[0] / L - gx;
   const fy = at[1] / L - gy;
   const corner = (i: number, j: number): number =>
-    roll01(seed ^ (channel * 0x9e37), hashString(`${gx + i},${gy + j},${channel}`));
+    Seeded.unit(seed ^ (channel * 0x9e37), hashString(`${gx + i},${gy + j},${channel}`));
   // Smoothstep the weights so the lattice does not read as a grid.
   const sx = fx * fx * (3 - 2 * fx);
   const sy = fy * fy * (3 - 2 * fy);

@@ -29,6 +29,7 @@ import { CreditRouting } from '../../../lib/standing/CreditRouting';
 // eslint-disable-next-line no-restricted-imports -- sibling logic singletons in one subsystem; class identities feed EventApi.restrictSubscribe's subscriber allowlist (cycle-safe, see comment)
 import { ConsumerLogic } from './ConsumerLogic';
 import { MqlSubscriptionApi } from '../../../api/mql-subscription';
+import { Decay } from '../../../lib/Decay';
 
 const ProducerApiCallers = SecurityPolicies.FromModule('/api/producer#ProducerApi'
 );
@@ -160,11 +161,6 @@ async function appendFromEngagement(p: CommandDispatchedPayload): Promise<void> 
   }
 }
 
-/** Half-life decay 0.5^(age/halfLife); 1 for a non-positive / ∞ half-life. */
-function decayWeight(ageS: number, halfLife: number): number {
-  if (!Number.isFinite(halfLife) || halfLife <= 0 || ageS <= 0) return 1;
-  return Math.pow(0.5, ageS / halfLife);
-}
 
 /**
  * Score an author's attributed-engagement rows: the recency-decayed,
@@ -182,7 +178,7 @@ function scoreEvents(
   for (const ev of events) {
     total +=
       ev.weight *
-      decayWeight(Math.max(0, (realNowMs - ev.realAt) / 1000), halfLifeS);
+      Decay.byHalfLife(Math.max(0, (realNowMs - ev.realAt) / 1000), halfLifeS);
   }
   return total;
 }

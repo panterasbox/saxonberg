@@ -959,7 +959,68 @@ the guard inline (`DISPOSITION_AXES.some((a) => a.key === key)`) — the
 guard's body copied out, which is how a roster edit reaches one reader and
 not the other. It calls `Disposition.isAxis` now.
 
-## ⚠ Controller tests skip the BINDER — four suites and counting
+## ✅ The formula dedupes — what the census was for (2026-09-14)
+
+The census reported **15 names in more than one file**. These are the ones
+where the definition could actually change; the rest are listed below with
+why they stayed.
+
+| what | was | now |
+|---|---|---|
+| `mix2` + `roll01` | **4 copies each**, kernel + 3 packs | `lib/Seeded.ts` — `Seeded.mix` / `Seeded.unit` |
+| `decayWeight` ×3 + `decayFactor` (base 2) | 4 copies, 3 tiers | `lib/Decay.ts` — `Decay.byHalfLife` |
+| Newton's cooling | **2 anonymous expressions** inside methods | `Decay.toward` |
+| `mixColorTemperature` | byte-identical ×2 | `Light.mixColorTemperature` |
+| `stackValue` | byte-identical ×2 | `Currency.stackValue` |
+
+⭐⭐ **`mix2` was the one that mattered.** It is the determinism primitive
+the whole procedural world rests on — *seed from the address, never roll
+and store* — and it was written four times, module-private in each. Four
+copies of a hash is not tidiness: **if one drifts, two subsystems
+disagree about the same address**, and no test catches it because each
+suite checks its own copy against itself.
+
+⭐ **Newton's cooling is the one an index could never have found.** It was
+a bare expression inside a method in both `Thermal` and
+`ThermalRegulation` — no name, so nothing could see the two as the same
+formula. Naming it was the fix; sharing it was the consequence.
+
+### ⚠ What was deliberately NOT deduplicated, and the rule that decided it
+
+> **Duplication matters when the definition could change.**
+
+- `round1`/`round2` — **8 copies across four packs**, the most-repeated
+  thing in the tree, and left alone. `Math.round(v * 100) / 100` cannot
+  acquire a second opinion; a shared home would buy a kernel import for
+  nothing.
+- `bucketOf` ×2 — `Math.floor(a / b)` where the divisor is a *different
+  dial* per subsystem. Sharing a one-liner across two configs buys
+  nothing.
+- `readInt` ×3 — two identical, one using `parseInt` and admitting
+  non-positive values. Merging would be a **behaviour change** to
+  `SandboxLogic`, not a dedupe. Wants `AppApi.settingInt` and a decision.
+- `scoreEvents` ×3 — Consumer's is Producer's without `ev.weight`;
+  Renown's is genuinely different. Unifying two subsystems' scoring is a
+  design change.
+- `getVolume` ×2 — Cartesian vs spherical. That is polymorphism.
+- `linearToDb` ×2 — ⚠ **not a duplicate at all: the same name on two
+  different functions** (`sourceDb + 10·log₁₀(τ)` vs `10·log₁₀(x)`). A
+  false friend, worth a rename, not a merge.
+
+### ⚠⚠ And the regression it surfaced — a THIRD binder victim
+
+Running the pack suites found `farms.test.ts` failing, and a bisect showed
+it was **pre-existing on this branch**, from the retail conversion:
+`consign` gained a declared `shelf` arg, and three suites hand-build the
+model and so skip the binder. `farms`, `cellars` and `restocks` all now
+carry what the view would have bound.
+
+⭐ The standing warning said *"expect the same for every remaining
+conversion"* — and I had only checked CONTROLLER suites. **A brain suite
+dispatches through `forceCommand` and is just as exposed.** Widen the
+check to any suite that constructs a controller by hand.
+
+## ⚠ Controller tests skip the BINDER — nine suites and counting
 
 Every verb whose object became a declared arg broke its own unit tests,
 because a controller test builds the model by hand and never runs the

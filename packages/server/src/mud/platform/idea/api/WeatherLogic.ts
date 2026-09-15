@@ -49,6 +49,7 @@ import {
   type WeatherSegment,
 } from '../../../lib/weather/WeatherType';
 import type { Atmospheric } from '../../../lib/biome/Atmospheric';
+import { Seeded } from '../../../lib/Seeded';
 
 const WeatherApiCallers = SecurityPolicies.AnyOf(
   SecurityPolicies.FromModule('/api/weather#WeatherApi'),
@@ -82,21 +83,6 @@ function hashString(s: string): number {
     h = Math.imul(h, 0x01000193);
   }
   return h >>> 0;
-}
-
-/** Integer avalanche mix of two 32-bit words → a 32-bit hash. */
-function mix2(a: number, b: number): number {
-  let h = (a ^ 0x9e3779b9) >>> 0;
-  h = Math.imul(h ^ (b >>> 0), 0x85ebca6b) >>> 0;
-  h ^= h >>> 13;
-  h = Math.imul(h, 0xc2b2ae35) >>> 0;
-  h ^= h >>> 16;
-  return h >>> 0;
-}
-
-/** Deterministic roll in [0, 1) from two seed words. */
-function roll01(a: number, b: number): number {
-  return mix2(a >>> 0, b >>> 0) / 0x1_0000_0000;
 }
 
 /**
@@ -205,7 +191,7 @@ function anchorTypeFor(
   lean: ClimateLean | null,
 ): WeatherType {
   const season = seasonAtSegment(anchorSeg);
-  const roll = roll01(anchorSeg, seed ^ 0x0000_a5a5);
+  const roll = Seeded.unit(anchorSeg, seed ^ 0x0000_a5a5);
   return pickWeighted(ANCHOR_CANDIDATES, season, roll, lean);
 }
 
@@ -238,7 +224,7 @@ function typeForSegment(
   let cur = anchorTypeFor(anchorSeg, seed, lean);
   for (let i = anchorSeg; i < seg; i++) {
     const season = seasonAtSegment(i + 1);
-    cur = nextTypeFrom(cur, season, roll01(i + 1, seed), lean);
+    cur = nextTypeFrom(cur, season, Seeded.unit(i + 1, seed), lean);
   }
   return cur;
 }
@@ -525,7 +511,7 @@ function walkSegments(
 function aliveScale(nowS: number, locality: Locality | null): number {
   const seg = segmentIndexAt(nowS);
   const seed = localitySeed(locality);
-  const base = roll01(seg, (seed ^ 0x00a1_11e5) >>> 0);
+  const base = Seeded.unit(seg, (seed ^ 0x00a1_11e5) >>> 0);
   const min = WEATHER_DEFAULTS.ALIVE_ANIM_MIN;
   return min + (1 - min) * base;
 }

@@ -39,6 +39,7 @@ import type { Container } from '../../../lib/spatial/Container';
 import type { GroupRef } from '../../../lib/social/GroupProvider';
 import { PersistApi } from '../../../api/persist';
 import { MqlSubscriptionApi } from '../../../api/mql-subscription';
+import { Decay } from '../../../lib/Decay';
 
 const RenownApiCallers = SecurityPolicies.FromModule('/api/renown#RenownApi'
 );
@@ -330,11 +331,6 @@ function signalTags(ev: RenownEvent): string[] {
   return Array.isArray(t) ? (t as string[]) : [];
 }
 
-/** Half-life decay 0.5^(age/halfLife); 1 for a non-positive / ∞ half-life. */
-function decayWeight(ageS: number, halfLife: number): number {
-  if (!Number.isFinite(halfLife) || halfLife <= 0 || ageS <= 0) return 1;
-  return Math.pow(0.5, ageS / halfLife);
-}
 
 /** Product of the context multipliers a signal's tags match (default 1). */
 function contextOf(ev: RenownEvent, vf: ValueFunction): number {
@@ -367,7 +363,7 @@ function scoreEvents(
   for (const ev of events) {
     if (ev.kind === 'reception') {
       receptionWeight +=
-        decayWeight(Math.max(0, nowS - ev.at), vf.esteemHalfLife) *
+        Decay.byHalfLife(Math.max(0, nowS - ev.at), vf.esteemHalfLife) *
         contextOf(ev, vf);
       continue;
     }
@@ -376,7 +372,7 @@ function scoreEvents(
     const halfLife = valence >= 0 ? vf.esteemHalfLife : vf.notorietyHalfLife;
     reactionTotal +=
       valence *
-      decayWeight(Math.max(0, nowS - ev.at), halfLife) *
+      Decay.byHalfLife(Math.max(0, nowS - ev.at), halfLife) *
       contextOf(ev, vf);
   }
   const reception = vf.receptionValence * Math.log(1 + receptionWeight);

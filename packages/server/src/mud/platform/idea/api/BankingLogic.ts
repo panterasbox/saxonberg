@@ -196,13 +196,6 @@ function isCashLike(stuff: unknown): stuff is Stuff & Stackable & CashLike {
   );
 }
 
-/** The face value (minor units) of a coin stack. */
-function stackValue(stack: CashLike): number {
-  return (
-    Currency.faceValueOf(stack.getCurrency(), stack.getDenomination()) *
-    stack.getQuantity()
-  );
-}
 
 /** Find every account owned by `ownerKey`. */
 async function accountsOfImpl(ownerKey: string): Promise<AccountBalance[]> {
@@ -500,7 +493,7 @@ async function moveCoins(
 function cashOnHand(holder: Stuff & Container): number {
   let total = 0;
   for (const item of holder.getContents()) {
-    if (isCashLike(item)) total += stackValue(item);
+    if (isCashLike(item)) total += Currency.stackValue(item.getCurrency(), item.getDenomination(), item.getQuantity());
   }
   return total;
 }
@@ -1309,8 +1302,8 @@ function liveCoinOf(currency: string): {
     const container = (
       coin as unknown as { getContainer?(): Stuff | null }
     ).getContainer?.();
-    if (container && MixinApi.isBank(container)) vault += stackValue(coin);
-    else circulating += stackValue(coin);
+    if (container && MixinApi.isBank(container)) vault += Currency.stackValue(coin.getCurrency(), coin.getDenomination(), coin.getQuantity());
+    else circulating += Currency.stackValue(coin.getCurrency(), coin.getDenomination(), coin.getQuantity());
   }
   return { circulating, vault };
 }
@@ -1960,7 +1953,7 @@ export class BankingLogic extends ApiLogic {
     if (!account) {
       throw new Error("BankingLogic.deposit: no account here — open one first");
     }
-    const value = stackValue(coinStack);
+    const value = Currency.stackValue(coinStack.getCurrency(), coinStack.getDenomination(), coinStack.getQuantity());
     // Coin physically enters the vault (merges with any resting stack); the
     // balance is credited — the two cancel (supply-neutral cash bridge).
     ContainmentApi.move(
