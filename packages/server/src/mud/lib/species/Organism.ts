@@ -75,6 +75,8 @@ export interface Organism {
   getLifeStage(): LifeStage | null;
   /** Has it reached breeding age? `false` when unmodelled or played. */
   isMature(): boolean;
+  /** Kill it if it is past its span — non-sentient animals only. */
+  reconcileSenescence(): void;
   getLifecycleState(): string;
   setLifecycleState(value: string): void;
   /** Lifecycle predicates — the organism answers for its own state. */

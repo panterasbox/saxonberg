@@ -1144,6 +1144,18 @@ green.
 
 **Commit.** `build(pets W1c): follows, feeds, homes — an animal that decides`.
 
+> ✅ **DONE 2026-09-15.** 14 brain tests, stubbed in the `enforces` shape
+> (the world reads faked so each brain's own choices are what is under
+> test). Three assertions carry the wave:
+> the unstamped-with-nothing-to-eat beat never reaches the clock; the
+> balk line contains none of `danger·trap·poison·bad air·sick·afraid`;
+> and `homes` finding no path simply does nothing, which IS "lost".
+>
+> ⚠ `OrganismMixin`'s interface needed `reconcileSenescence` declared —
+> the method existed on the class but not on the narrowing contract, so
+> `MixinApi.isOrganism(host)` did not thread it. A method a brain calls
+> through a predicate has to be on the interface, not just the impl.
+
 ### W1d — the content (packs)
 
 **Goal.** The cat on Hinkley Lane, the collie in place, the canary
