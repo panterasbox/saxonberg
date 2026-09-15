@@ -14,6 +14,16 @@ it. The requirements doc is closed scope — where this plan deviates
 from a sentence in it, the deviation is named in § Risks & opens, not
 absorbed.
 
+**Revised 2026-09-15 after the requirements' second lens pass and the
+genre survey.** Five things changed scope: the `eats` brain (D21), the
+buyer's means choosing the loaf (D22), four `HelpConcept` rows (D23),
+extraction riding the payload continuously instead of a material row
+per band (D24–D26), and the quern/mill rung buying back time rather
+than throughput (D27). D1–D20 stand with three marked revisions
+(D7, D10, D15); the waves gained one (W9, the brain) and the retrofit
+stays last (W11). The § Grounding addendum *Second pass* carries the
+new facts.
+
 ---
 
 ## Grounding
@@ -354,6 +364,85 @@ absorbed.
   `*.dirty.wire.test.ts` (`farmstead.dirty.wire.test.ts` is the
   `declareFile` + `DIRTY_REASON` exemplar).
 
+### Second pass (2026-09-15) — the brain, the label, the concepts
+
+Verified for the re-plan after the requirements' second lens pass.
+
+- **Brains.** `lib/behavior/` holds 22 kernel brains (`restocks`,
+  `consigns`, `shifts`, `patrols`, `wanders`, `cellars`, …) plus the
+  packs' own (`trade-farming/src/behavior/farms.ts`); **none eats**.
+  `Behaved._parseTrigger` (`Behaved.ts:454`) accepts exactly
+  `cadence:<N>[ms|s|m]` and the witness kinds — **cadence is
+  REAL-time** (a jittered `ScheduleApi` timer), and there is no
+  clock-hour trigger. `BrainContext` (`lib/behavior/brain.ts:61`)
+  carries `state: Record<string, unknown>` — a per-(host, wiring) bag,
+  which is where a brain's own memory lives so the module stays
+  stateless. `restocks.ts:106` — `static ambient = false` exempts a
+  functional poller from the ambient-cadence dial; `:117` gates on
+  `isEmployed && shiftState() === 'on-shift'`; `:346` `await
+  keeper.forceCommand('wallet use house')` *every beat*, because "a
+  forced command reports no outcome". The `farms`/`shifts` movement
+  shape is a `teleport` with home re-taken in `finally`.
+- **The buyer's verbs.** `platform/cmd/retail/buy.yaml` — `buy <thing>
+  [from <counter>]`, the counter defaulting to
+  `reachable:[mixin.ConsignmentShelfMixin]`;
+  `platform/idea/cmd/retail/BuyController.ts` prices a stock line by
+  `stock.priceFor(templatePath)` (129) or a consignment by
+  `listing.askMinor` (209), and declines `insufficient-funds` (323).
+  `eat <thing>` is the platform's (`EatController`).
+- **NPC hunger.** `lib/creature/Creature.ts:249` calls
+  `installBiologicalReserves()` (`lib/reserve.ts:238`) — every NPC has
+  `satiation` (floor effect `starvation`) and `hydration`.
+  `lib/metabolism/Metabolic.ts:212` `BASAL_SATIATION_PER_MIN: 0.02` (of
+  100 %, per **game**-minute — 83 game-hours ≈ 3.5 game-days ≈ 6.9 real
+  hours to empty), `EAT_PORTION_LITRES: 0.4`; the drain is billed
+  **reconcile-on-read** (`Metabolic.ts:881`), and the only caller of
+  `reconcileMetabolism()` outside the mixin is `lib/magic/Caster.ts:253`
+  — **nothing reads an NPC's reserve today, so no NPC's hunger has
+  ever moved.** The `starvation` Condition
+  (`platform/content/platform/idea/Condition/metabolism/starvation.yaml`)
+  is `progression: {law: stage, intervalMs: 3600000}`, `resolution: {by:
+  food}`; the `stage` law (`lib/vitals/Vitals.ts:1098`) only counts
+  stages — it does not itself kill.
+- **The label.** `lib/bulk/Bulkable.ts:115` `BlendPart = {materialPath,
+  servings}`; `BulkPayload.composition?: BlendPart[]` (208).
+  `lib/metabolism/BlendLabel.ts:102` `amountsOf(payload, blend)` sums
+  each part's `nutrientAmounts × servings` and falls back to the blend
+  material's own amounts when the composition is empty; `tagsOf` (133)
+  derives tags the same way. **`CraftingLogic.ts:896–934`
+  (`derivePayload`) builds `composition` as ONE part per consumed input
+  MATERIAL** — a consumed input that itself carries a composition
+  contributes as its blend identity, and its parts are lost.
+  `BuildContribution` (`lib/craft/ManualBuild.ts:60–92`) carries
+  `materialPath`, `tags`, `freshnessLoad`, `pathogenLoads` — **no
+  composition**; `PourController.ts:127` banks the contribution from
+  the source slot. `Bulkable.setBulkMaterial` (`:696–700`) **keeps the
+  payload** when the new path is non-null — a `Maturing` product swap
+  (`Maturing.ts:699`) preserves `composition`. `lib/metabolism/NutritionLabel.ts`
+  — `NutritionLabelMixin`, composed **only on `platform/thing/Dish.ts`**;
+  its augmenter reads the bulk payload (91) or, for a tangible, the
+  host's Material alone (107). `lib/material/Cured.ts:136` declares
+  `cure?: CureState` (`{moisture, solute}`) on the payload — the
+  per-instance water state `Freshness.waterActivityOf` multiplies in.
+- **Help.** `platform/idea/HelpConcept.ts` is an `Idea`, never
+  instanced, harvested by `Template.findByClass` into
+  `platform/idea/HelpCatalogue.ts` — a pack ships one by writing YAML
+  anywhere under its root. Exemplar:
+  `trade-farming/content/trade/farming/idea/HelpConcept/rotation.yaml`
+  (`key`, `title`, `summary`, `keywords`, `seeAlso`, `body`).
+- **Buyer candidates.** Tam Ferrier is
+  `distribution/content/trade/distribution/agent/clerk.yaml`
+  (`/platform/agent/Cast`, `archetype: freight-clerk`, brains
+  `introduces`/`greets`/`idles`); her outfit
+  `distribution/.../idea/business.yaml` `banksAt: goodkin`, so `wallet
+  use house` works for her exactly as it does for the `restocks`
+  keeper. Rufus Penhallow is
+  `trade-cooking/content/trade/cooking/agent/pantry-hand.yaml` with
+  `trade/cooking/idea/pantry-outfit.yaml`.
+- **The clock.** `CelestialApi.profileFor(location)` (`api/celestial.ts:83`)
+  then `secondOfDay(profile, t)` / `dayOfYear(profile, t)` (190/185)
+  with `t = WorldClockApi.getNow().rawValue()`.
+
 ---
 
 ## Plan-level decisions
@@ -570,28 +659,30 @@ is therefore where the dough becomes matter: `KneadController` sets
 `setBuildMethod('kneaded')`, engages `hands` for `paceMs`, and on
 completion calls `CraftingApi.mintFromBuild({ vessel: trough,
 contributions, method: 'kneaded', … })` exactly as `StrainController`
-does — the buffer reverse-matches the `dough`/`wholemeal-dough` recipe
-(exact cover), the trough's own bulk slot fills with the dough
-material at the summed volume, grade weakest-link, the deed is
-captured. ⚠ The requirements say "`knead` is a mix method, not a
+does — the buffer reverse-matches the one `dough` recipe (exact
+cover), the trough's own bulk slot fills with the dough material at
+the summed volume **carrying the flour's parts (D25)**, grade
+weakest-link, the deed is captured. ⚠ The requirements say "`knead` is a mix method, not a
 subsystem"; this keeps that (one controller, an open method word, no
 schema) but makes the word the terminal as well. Recorded in § Risks.
 
 Materials (commons, shipped by trade-baking under
-`content/stuff/idea/material/food/`): `dough`, `wholemeal-dough`,
-`proofed-dough`, `proofed-wholemeal-dough`, `collapsed-dough`, `bread`,
-`wholemeal-bread`, `levain`. The doubling is the cost of nutrition
-riding the material (a tangible has no payload), and it is rows.
-Profiles (`content/trade/baking/idea/maturation/`): `bread-dough`
-(`kind: batch`, `inputCategory: dough`, `spontaneousLagDays: 1`,
-`wildStrain: sourdough`, `stallBelowK: 288`, `happyK: 300`,
-`damageAboveK: 308`, `killK: 323`, `ratePerDay: 6`, `productMaterial:
-proofed-dough`, `turnedMaterial: collapsed-dough`, `turnDays: 0.5`,
-`leesFraction: 0`), `wholemeal-dough` (same, over `wholemeal-dough` →
-`proofed-wholemeal-dough`), `levain-culture` (`kind: culture`,
-`strain: sourdough`, `inputCategory: levain`, `starveDays: 7`). The
-starter is `content/trade/baking/thing/starter-crock.yaml` — a `Vat`
-row, `category: culture-jar`, 2 L of `levain` (the `jar-of-barm`
+`content/stuff/idea/material/food/`): **five** — `dough`,
+`proofed-dough`, `collapsed-dough`, `bread`, `levain`. ⚠ **Revised by
+the second pass (D24–D26):** there are no wholemeal twins. The
+wholemeal/white difference is the flour payload's `composition`
+(continuous in extraction), which flows through the knead into the
+dough payload (D25), survives the proof (`setBulkMaterial` keeps the
+payload), and is written onto the loaf as a tangible `composition`
+(D26). One profile (`content/trade/baking/idea/maturation/`):
+`bread-dough` (`kind: batch`, `inputCategory: dough`,
+`spontaneousLagDays: 1`, `wildStrain: sourdough`, `stallBelowK: 288`,
+`happyK: 300`, `damageAboveK: 308`, `killK: 323`, `ratePerDay: 6`,
+`productMaterial: proofed-dough`, `turnedMaterial: collapsed-dough`,
+`turnDays: 0.5`, `leesFraction: 0`), plus `levain-culture` (`kind:
+culture`, `strain: sourdough`, `inputCategory: levain`, `starveDays:
+7`). The starter is `content/trade/baking/thing/starter-crock.yaml` — a
+`Vat` row, `category: culture-jar`, 2 L of `levain` (the `jar-of-barm`
 shape); pitching is `pour` (the strain-transfer seam is the shipped
 one). Over-proofing is D3's turn, unchanged.
 
@@ -601,15 +692,18 @@ Kernel: `lib/craft/Comminuting.ts` → `ComminutingMixin` (host: a
 `Tooled` Thing). Fields (persistent, authorable): `throughputKgPerMin`
 (the unpowered rate), `kgPerMinPerKw` (0 = unpowered),
 `maxThroughputKgPerMin`, `extractionMin`, `extractionMax`,
-`extractionDefault`, `products: [{ maxExtraction, material }]`
-(ascending), `residueMaterial`, `productVessel`, `residueVessel`
+`extractionDefault`, `residueFraction` (the bolting's `b`),
+`productMaterial` (⚠ revised by the second pass — one material, no
+`products[]` band ladder; the product's *composition* carries the
+extraction, D24), `residueMaterial`, `productVessel`, `residueVessel`
 (template paths), `tollFraction`, `tollBinPath`. Methods:
 `planComminution(input: { kg, material, grade, maker }, extraction):
 ComminutionPlan` (pure arithmetic — clamp extraction, `productKg = kg
 · e`, `residueKg = kg · (1 − e)`, `tollKg = productKg · tollFraction`,
-litres via each output material's density, the product material by
-the first `products[]` band ≥ e, grade = weakest link of the input
-grade and this instrument's control floor), `grindMs(kg)` (=
+litres via each output material's density, the product payload's
+`composition` and `cure.moisture` from `branShare` as D24 states, grade
+= weakest link of the input grade and this instrument's control
+floor), `grindMs(kg)` (=
 `kg / throughput`, in game-minutes → real ms at the clock scale), and
 `availablePowerW()` (0 on the kernel mixin — the power read is the
 pack's, D9). The second consumer (the stamp mill) authors ore products
@@ -635,12 +729,24 @@ optional`): resolves the reachable mill (`instanceof GristMill` in the
 room — the `char` precedent), reads the input as either a tangible
 `Crop` (`getMass`, material, grade, maker) or a bulk holder whose
 material carries tag `grain` or `malt` (litres × density), builds the
-plan, engages `['hands','attention']` for `grindMs`, and completes in a
-**module-level async function**: clone `productVessel`/`residueVessel`
-(`StuffApi.clone`), fill via `BulkableApi`, `setMass` (tare + kg),
-stamp grade + maker (`CraftedMixin.stamp`), move the toll into the
-toll bin, destruct or drain the input, scene. Re-issuing `mill` while
-milling adjusts nothing and declines (`already-milling`).
+plan, then engages **by the rung (D27)**: an unpowered mill
+(`kgPerMinPerKw: 0`, the quern) holds **`hands`** for `grindMs` — you
+are cranking, and `EngagedMixin`'s slot rule refuses every other hands
+act until it completes; a powered mill (`kgPerMinPerKw > 0`) holds
+**nothing of yours** — the step's `slots` are `[]` and its `host` is
+the mill, so the grind runs on the river while you walk away (the
+`char` shape, one rung further: not even `attention`). Either way the
+completion is a **module-level async function** (the controller clone
+is destructed when `execute` returns): clone
+`productVessel`/`residueVessel` (`StuffApi.clone`), fill via
+`BulkableApi`, stamp the product payload's `composition` and
+`cure.moisture` (D24), `setMass` (tare + kg), stamp grade + maker
+(`CraftedMixin.stamp`), move the toll into the toll bin, destruct or
+drain the input, land the sacks **in the mill's room** (not the
+actor's hands — the actor may be elsewhere), scene to the room.
+Re-issuing `mill` at a mill that is grinding declines
+(`already-milling`); the mill row carries a transient `grinding` flag
+for it.
 
 **The toll is in kind** (multure), not money: a fraction of the flour
 stays in the mill's bin and the miller sells it. That is "pays for the
@@ -680,13 +786,15 @@ controller (drive 19).
 
 `mill <grain> --extraction 0.72` — the view's `extraction` arg,
 defaulting to the mill row's `extractionDefault`, clamped to
-`[extractionMin, extractionMax]`. The product material is the row's
-`products[]` band (quern and mill both: `{maxExtraction: 0.75, material:
-white-flour}`, `{maxExtraction: 1, material: wholemeal-flour}`); bran is
-always minted as `residueMaterial` in the `residueVessel`. Rejected:
-per-recipe extraction (milling is not a recipe — a recipe's residue is
-a fixed count, and the miller's decision is the whole point) and a
-setting on the mill (a decision made once is not a decision).
+`[extractionMin, extractionMax]`. ⚠ **Revised by the second pass:**
+there is no `products[]` band ladder. The product is **one flour
+material per cereal** and the extraction lives in the product payload's
+`composition` continuously (D24); bran is always minted as
+`residueMaterial` in the `residueVessel`. Rejected: per-recipe
+extraction (milling is not a recipe — a recipe's residue is a fixed
+count, and the miller's decision is the whole point), a setting on the
+mill (a decision made once is not a decision), and a material row per
+band (0.61 and 0.89 would yield identical flour — AC 20).
 
 ### D11 — `bake` mints INTO the oven; `make` stays the platform shorthand
 
@@ -770,10 +878,13 @@ new build; `square.yaml` gains `west` → bakery, bakery `east` →
 square), `market/agent/baker.yaml` (`Cast`, `archetype: baker`,
 `competence: [{baking, proficient}, {cooking, competent}]`, `introduces`
 + `idles`), `market/idea/bakery-business.yaml`, `market/thing/bread-counter.yaml`
-(`/platform/thing/Stock`, `stockLines: [{itemTemplatePath:
-/trade/baking/thing/lean-loaf, par: 6}]`, `prices: {…: 2}` — the
-eternally-fresh NPC shelf the requirements note and do not build) and
-a consignment shelf for a player's loaves. Props: `/stuff/thing/Oven`,
+(the same class as distribution's `counter.yaml`, so `buy` resolves it;
+`stockLines: [{itemTemplatePath: /trade/baking/thing/lean-loaf, par:
+4}, {itemTemplatePath: /trade/baking/thing/white-loaf, par: 4}]`,
+`prices: {lean-loaf: 2, white-loaf: 4}` — two loaves priced apart so
+D22's two buyers have a choice on day one; the eternally-fresh NPC
+shelf the requirements note and do not build) and a consignment shelf
+for a player's loaves. Props: `/stuff/thing/Oven`,
 `/trade/baking/thing/dough-trough`, `/trade/baking/thing/starter-crock`,
 two `/trade/milling/thing/flour-sack` (the baker's own stock, finite),
 a `/stuff/thing/fixture/water-butt`, `/trade/cooking/thing/kitchen-salt`.
@@ -792,17 +903,21 @@ inert — grain in a dry sack does not rot); `thing/seed/wheat.yaml`,
 three shifted numbers are why barley carries where wheat struggles
 (drive 6); nobody authors the comparison.
 
-### D15 — flour, grist and bran are commons materials shipped by `trade-milling`
+### D15 — flour, grist and bran are commons materials shipped by `trade-milling` — one flour per CEREAL, none per band
 
-`content/stuff/idea/material/food/white-flour.yaml` (density 550,
-`waterActivity: 0.62`, `spoilActivationEnergy: 45000`, tags `food
-flour white-flour baking`), `wholemeal-flour.yaml` (density 600, `aw
-0.68`, more `carb`/`protein`/`fibre`, tags `food flour wholemeal-flour
-baking`), `bran.yaml` (density 250, tags `feed bran`, edible false),
-`grist.yaml` (density 580, malt's row with tag `grist` instead of
-`malt`, `waterActivity: 0.45`). Both flours sit just above the 0.60
-growth floor — wholemeal further — which is the whole of "wholemeal
-keeps worse" without a keeping flag (drive 11).
+⚠ **Revised by the second pass.** `content/stuff/idea/material/food/`:
+`wheat-flour.yaml` (density 570, `waterActivity: 0.66`,
+`spoilActivationEnergy: 45000`, `nutrientAmounts` = **the endosperm's**
+(starch-heavy, low protein, no fibre), tags `food flour wheat-flour
+gluten baking`), `barley-flour.yaml` (same shape, no `gluten` tag —
+the honest reason barley bread is worse), `bran.yaml` (density 250,
+`nutrientAmounts` = fibre, protein, oil, minerals; tags `food bran
+feed`), `grist.yaml` (density 580, malt's row with tag `grist` instead
+of `malt`, `waterActivity: 0.45`). A cereal is a *kind* and earns a
+row; a band is not and gets none. Wholemeal and white are one material
+whose payload differs continuously (D24) — the flour row's own
+`nutrientAmounts` are the pure-endosperm reading that `amountsOf` sums
+as the endosperm part, and the bran part adds on top.
 
 ### D16 — the retrofit: three recipes change one word, the counter gains one line
 
@@ -857,10 +972,197 @@ carry `class: /platform/idea/Discipline` literally (`lint:dossiers`).
 
 Stage A (kernel) first because six consumers wait on it and every
 content wave reads it. Content waves in dependency order (wheat →
-milling → baking → the valley → the bakery). The 19-recipe ceiling
-pass and the ptomaine recalibration before the retrofit (they touch
-`trade-cooking`, whose suites should be green before brewing's are
-disturbed). The retrofit last, alone in its commit. The drive last.
+milling → baking → the valley → the bakery → **the `eats` brain**, which
+needs a counter to buy from). The 19-recipe ceiling pass and the
+ptomaine recalibration before the retrofit (they touch `trade-cooking`,
+whose suites should be green before brewing's are disturbed). The
+retrofit last, alone in its commit. The drive last.
+
+### D21 — the `eats` brain: a kernel brain on two existing Cast rows, on a morning beat, through real verbs
+
+**Question.** Who carries it, where does the beat come from, what
+happens at an empty counter, and does NPC hunger exist today?
+
+**Choice.** `packages/server/src/mud/lib/behavior/eats.ts` — a kernel
+brain (its consumers are two packs' Cast rows with no common
+ancestor; `restocks`/`consigns` are the shape). Wired by **`behaviors:`
+edits on two shipped rows**: Tam Ferrier
+(`distribution/.../agent/clerk.yaml`) and Rufus Penhallow
+(`trade-cooking/.../agent/pantry-hand.yaml`) — two people already in
+Terminus, on rosters with different `wageRate`s, whose outfits bank,
+so each has a purse of their own (`EmploymentLogic.ensurePayableWorker`
+opens a non-Avatar worker's account at the payer's bank). No new cast.
+
+**The beat.** `trigger: cadence:90s` (real-time — the only cadence
+there is), `static ambient = false`, `presenceGated = false`. The act
+reads the game clock (`CelestialApi.profileFor(home)` →
+`secondOfDay`/`dayOfYear`) and fires once per game-day inside the
+authored window (`config.fromHour: 6`, `config.toHour: 10`), keyed on
+`ctx.state.lastAteDay`. The morning IS the rhythm lens 3 wanted: a
+baker who has not stocked by mid-morning has missed the day.
+
+**The act, every line a verb the player could type** (the
+`restocks` doctrine): `teleport` to `config.counter`'s room (the
+`shifts`/`farms` movement shape; home re-taken in `finally`); read the
+counter (D22 chooses the loaf); `buy <loaf keyword>`; if a loaf is now
+in hand, `eat <loaf>`; `teleport` home. **No `wallet use house`** — the
+purse is the person's own (D22). Guards as `restocks`: `isMobile`,
+`isContainer`, `isCommandGiver`, `isEmployed`; **not** on-shift (people
+eat before work).
+
+**The empty counter** (drive 50): when nothing on the counter is a
+loaf, or `buy` left nothing in hand, the brain says one authored line
+through `ctx.say` from a small pool (config `hungryLines`, a default
+in the brain) — *"looks over the empty shelf, and goes back to work
+without breakfast."* — increments `ctx.state.hungryDays`, and leaves.
+A person who did not get bread; not an error, not silence.
+
+**⚠ NPC hunger begins existing in this build, and the plan says so
+plainly.** Satiation is reconcile-on-read and nothing reads an NPC's
+today (`Metabolic.ts:881`; the only external `reconcileMetabolism`
+caller is `Caster.ts:253`). The brain's `eat` is the first read: the
+elapsed drain is billed at that moment (~29 % per game-day at basal
+rate), and the loaf restores it. Consequences, stated: (1) drive 49's
+"the reserve moved because they ate" is literally true — the read and
+the meal are the same act; (2) an NPC whose counter stays empty for
+~3.5 game-days reaches the `starvation` floor effect — a staged
+Condition with `resolution: {by: food}`; the `stage` law counts and
+does not kill (`Vitals.ts:1098`), and a test pins that three empty
+mornings leave the buyer hungry, alive, and saying so; (3) the two
+rows that gain the brain are the ONLY NPCs whose hunger moves — every
+other Cast is exactly as inert as today.
+
+**⚠⚠ AC 18 — nothing is sharpened at the player.** No constant in
+`METABOLIC_DEFAULTS`, no reserve capacity, no floor effect, no
+condition band is touched. A test asserts `BASAL_SATIATION_PER_MIN`
+and `EAT_PORTION_LITRES` are byte-identical to today's values and that
+a player Avatar's time-to-empty at basal rate is unchanged.
+
+### D22 — the buyer's means chooses the loaf; the engine measures the purse and never the person
+
+The brain lists the loaves on the counter with their prices (a stock
+line's `priceFor`, a consignment's `askMinor` — the same two reads
+`BuyController` makes), reads `BankingApi.balanceOf(await
+BankingApi.primaryAccountIdOf(host.getIdentityPath()))` (sync balance;
+the identity key, never the template path), and buys **the dearest
+loaf whose price ≤ `balance × config.spendFraction`** (default 0.25 —
+a meal is a quarter of what you have, which is what a purse-limited
+person does at a counter). Two buyers on two wage rates therefore
+diverge: the pantry hand takes the cheap loaf, the clerk the dear one,
+and which loaf is dear is the **baker's** pricing decision — white
+was status because somebody priced it so.
+
+**The hard constraint, honoured by construction:** the brain holds no
+band, no label, no threshold on the person — one number (a balance)
+compared to prices, per purchase. Nothing is written back; no field,
+no trait, no chronicle entry says "poor". The pattern exists only in
+what a bystander sees two mornings running. Rejected: a `means:` band
+authored on the row (a label); reading `Position.wageRate` to *decide*
+(the balance already is the consequence of the wage, and a person
+spends what they have, not what they earn).
+
+### D23 — four `HelpConcept` rows, in the packs that own their subjects
+
+`/platform/idea/HelpConcept` rows (harvested by class; no boot work):
+`trade-milling/content/trade/milling/idea/HelpConcept/extraction.yaml`
+(where the nutrition and the spoilage both live: bran and germ carry
+the protein, the oil and the water; the endosperm keeps) and
+`head-and-flow.yaml` (`P = ρ·g·Δh·Q·η`; a city on a confluence has
+water and no drop; a mill is at the fall);
+`trade-baking/content/trade/baking/idea/HelpConcept/retrogradation.yaml`
+(gelatinised starch re-crystallises fastest just above freezing, is
+paused frozen, and un-crystallises above ~60 °C — so the icebox is the
+worst place for bread and the oven revives it) and `gluten.yaml`
+(kneading aligns glutenin and gliadin into the sheet that holds the
+gas; barley has the proteins but not the sheet). Each `seeAlso`s the
+others and farming's `nitrogen` where it applies. **The test the
+requirements set** (drive 54, AC 19): the four bodies together state
+the two-clock table of § Surface decisions without naming the game's
+bands, so a reader can predict drive 31–37 before running them; the
+wire drive asserts `help retrogradation` mentions the three storage
+conditions and their opposite directions.
+
+### D24 — extraction rides the flour payload, continuously; keeping rides the payload's water state
+
+The mill stamps the product payload:
+
+```
+branShare  = max(0, e − (1 − b)) / e          b = the mill row's residueFraction (0.25)
+composition = [ { <cereal>-flour, servings = kgProduct · (1 − branShare) / SERVING_KG },
+                { bran,           servings = kgProduct · branShare / SERVING_KG } ]
+cure = { moisture: 0.91 + 0.09 · min(1, branShare / b), solute: 0 }
+```
+
+`BlendLabel.amountsOf` sums the parts by servings — the label is
+continuous in `e` and no two settings coincide (AC 20; a test mills
+0.61 and 0.62 and asserts the labels differ). Keeping uses the shipped
+per-instance water state (`cure.moisture` on the payload,
+`Freshness.waterActivityOf = base · moisture · (1 − solute)`): the flour
+row's base `waterActivity` 0.66 lands white at ≈ 0.60 (the growth
+floor) and full wholemeal at 0.66 — continuous, no keeping flag, no
+second row. Appearance: the sack's description reads the bran share as
+a phrase (`fine and white` … `dark and speckled`) — words for a
+continuous number, the presentation rule, never a band the mechanism
+reads.
+
+The stamp-mill consumer authors its own `residueFraction` and parts;
+nothing here says flour.
+
+### D25 — composition flows THROUGH a blend (kernel): a consumed input's parts, not its identity
+
+Today `derivePayload` (`CraftingLogic.ts:896–934`) makes one part per
+consumed input material, so a kneaded dough would read `[wheat-flour,
+water, salt]` and the bran parts would vanish at the trough. Two kernel
+edits: (1) `BuildContribution` gains `composition?: BlendPart[]`,
+banked at the pour from the source slot's payload (`PourController.ts:127`,
+scaled to the measure); (2) `derivePayload`'s part collection expands
+any consumed input (a matched bulk slot or a contribution) that carries
+a `composition` into its parts, scaled by the consumed fraction, in
+place of the blend identity. The rule is "macros in = macros out"
+applied to what the input was actually made of. It touches every
+shipped blend-of-a-blend (a cocktail from a pressed juice) — their
+labels become more honest, and W2's test pins that a blend with no
+composition still yields one part per material. The proof keeps the
+parts (`setBulkMaterial` keeps the payload); the bake reads them (D26).
+
+### D26 — a tangible food carries its composition: `ComposedMixin` on `Provision`
+
+`lib/metabolism/Composed.ts` → `ComposedMixin` (persistent
+`composition: BlendPart[] = []`, `getComposition()`/`setComposition()`,
+`Mixins.Composed`), composed on **`Provision`** — every food can be
+made of parts (a loaf, a sausage, a cutlet in batter); the claim is
+true of the class by name, and an empty list costs nothing.
+`applyTangibleOutput`'s bulk-only branch (D11) writes the consumed bulk
+inputs' merged parts (scaled by consumed fraction) onto the output;
+`EatController.ingestPayloadFor` adds `composition` to the ingest
+payload when the target is Composed (so `amountsOf` sums it — wholemeal
+feeds you more, drive 30); `NutritionLabel`'s tangible arm (`:107`)
+reads the composition when present. `Loaf` composes
+`NutritionLabelMixin` and derives a name/appearance phrase from its
+bran share (`white loaf` / `brown loaf` / `wholemeal loaf` are *words*
+on a continuum; the recipe, price and grade never read them).
+
+**What genuinely needs a row, and why:** the loaf's Material (`bread`)
+— a tangible needs a material for mass, thermal and freshness
+constants, and there is one bread; the two flours — a cereal is a
+kind; `bran` and `grist` — real goods with their own densities. Nothing
+per band.
+
+### D27 — the rung buys back time: the quern holds your hands, the mill holds nothing of yours
+
+The quern's `ManualBuildStep` claims **`hands`** on the actor for the
+whole grind (`EngagedMixin` refuses every other hands act until it
+ends — drive 52b's "try to do anything else and you cannot" is the
+shipped slot rule, not new code). The water mill's step claims **no
+slot** and is hosted on the mill (`host: mill`), so the actor can
+leave the room, log out, or start something else; the completion
+(module-level, the `char` precedent) lands the sacks in the mill's room
+and scenes to whoever is there. Throughput still differs (a
+consequence of the power), but the assertion W5 tests is the **slot**:
+`giver.getEngagements()` holds `hands` during a quern grind and holds
+nothing during a mill grind, and the mill's grind completes with the
+actor in another room. `char` holds `attention` because a burn is
+watched; a mill is not even watched — the river does it.
 
 ---
 
@@ -886,7 +1188,13 @@ disturbed). The retrofit last, alone in its commit. The drive last.
 | the Locality row | `world-seed` | the valley is the realm's | the `AddressRegistry` roster and eleven precedents |
 | wheat rows | `trade-farming` | the trade owns the cereal | not `hearts-delight` (a second valley grows the same wheat) |
 | flour/grist/bran materials | commons root, shipped by `trade-milling` | "what things are" | the `trade-fuel` charcoal precedent |
-| `Loaf` rows (`lean-loaf`, `wholemeal-loaf`, `flatbread`) | `trade-baking/content/trade/baking/thing/` | recipe output templates | class + rows in one pack |
+| `Loaf` rows (`lean-loaf`, `flatbread`) | `trade-baking/content/trade/baking/thing/` | recipe output templates | class + rows in one pack; no wholemeal twin — the composition is the difference (D26) |
+| `ComposedMixin` | `Provision` (kernel, `lib/metabolism/Composed.ts`) | **every food can be made of parts**; an empty list costs nothing | not `Thing` (a rock has no ingredients); not `Loaf` alone (a sausage, a cutlet in batter want it too); not `CraftedMixin` (a chair is crafted and has no nutrition parts) |
+| `composition?` on `BuildContribution` | `lib/craft/ManualBuild.ts` | a banked pour remembers what its source was made of | the contribution already carries `freshnessLoad`/`pathogenLoads` the same way |
+| `NutritionLabelMixin` | `Loaf` (pack) — a second composer beside `Dish` | a loaf shows its label on `look` | not `Provision` (a raw cut's label is its material's; the mixin's tangible arm already covers that when a composer wants it) |
+| the `eats` brain | kernel `lib/behavior/eats.ts`; wired on **two shipped Cast rows** (`distribution` clerk, `trade-cooking` pantry hand) via `behaviors:` | those two people buy and eat; **only their hunger moves** | not a new cast (the demand should come from people already in the city); not a pack brain (its two consumers have no common pack ancestor); not `Creature` (every NPC would start starving) |
+| `residueFraction` | `ComminutingMixin` (a mill row) | the bolting decides what is bran | not the grain material (Material has no such field and the cloth, not the grain, decides) |
+| `grinding` transient flag | `ComminutingMixin` (runtime, not persisted) | a mill is busy or not | the engagement's host is the mill; a reload wakes it idle, the `ManualBuild` rule |
 
 **The narrowing test, applied.** No guard anywhere re-narrows a host
 set: the dose mixin is on the food class and reads nothing but the
@@ -933,10 +1241,16 @@ Checked against the tree this cycle, not recalled:
   `bake` calls `CraftingApi.craft` (orchestration) then
   `ContainmentApi.move`; no `XApi.verb(host, …)`. `lint:object-verbs`
   census stays 0.
-- **`Mixins` registry** — `ThermalDose`, `Comminuting` added to
-  `lib/mixin.ts` with their "isn't" phrases; `Staling` is pack-local
-  and does not enter the kernel registry (narrow with
+- **`Mixins` registry** — `ThermalDose`, `Comminuting`, `Composed`
+  added to `lib/mixin.ts` with their "isn't" phrases; `Staling` is
+  pack-local and does not enter the kernel registry (narrow with
   `MixinApi.hasMixin(ctor, 'StalingMixin')` inside the pack).
+- **Brains** — `eats.ts` is a named class-expression `export const
+  brain = class {…}` with statics `label`/`ambient`/`presenceGated`/`act`,
+  every act a `forceCommand` line, state in `ctx.state`, no module-scope
+  statements; the two `behaviors:` edits are rows. Wages, balances and
+  prices are read through `BankingApi`/`Stock`/the shelf — never a
+  field. **No band, no label, nothing written back** (D22).
 - **`_mixinName` widens to `string`** on every new mixin.
 - **Persistent fields public, TS modifiers in domain code**, reentry
   guards `private _reconciling…` (the Freshness shape); no `#` on
@@ -968,7 +1282,7 @@ Checked against the tree this cycle, not recalled:
 
 Every wave ends at a green `pnpm test:near` + every touched pack's own
 vitest + `pnpm -C packages/server lint:family`, and at one commit.
-`pnpm test` runs once, before the MR (W11), and again at `/finalize`.
+`pnpm test` runs once, before the MR (W12), and again at `/finalize`.
 
 ### Stage A — the kernel
 
@@ -1030,20 +1344,37 @@ census; every existing crafting/cooking test green.
 
 Commit: `build(grain-chain W1): the dose — one integral, three readers, a ceiling on every recipe`.
 
-#### W2 — the sack, the comminution primitive, the bulk-only tangible (D6, D8, D11)
+#### W2 — the sack, the comminution primitive, the bulk-only tangible, and composition that flows (D6, D8, D11, D24, D25, D26)
 
 Files: `platform/thing/GradedReceptacle.ts` (`ThermalMixin` outer),
-`platform/thing/Sack.ts` (new), `lib/craft/Comminuting.ts` (new
-mixin), `lib/mixin.ts` (`Comminuting`), `platform/idea/api/CraftingLogic.ts`
-(`applyTangibleOutput` bulk-only branch), tests:
+`platform/thing/Sack.ts` (new), `lib/craft/Comminuting.ts` (new mixin
+— `planComminution` returns the continuous `composition` +
+`cure.moisture` stamp of D24, not a material band), `lib/mixin.ts`
+(`Comminuting`, `Composed`), `lib/metabolism/Composed.ts` (new —
+`ComposedMixin`), `platform/thing/Provision.ts` (compose it),
+`lib/craft/ManualBuild.ts` (`BuildContribution.composition?`),
+`platform/idea/cmd/crafting/PourController.ts` (bank the source
+payload's parts, scaled), `platform/idea/api/CraftingLogic.ts`
+(`derivePayload` expands a consumed input's parts — D25;
+`applyTangibleOutput` bulk-only branch writes `composition` — D11/D26),
+`platform/idea/cmd/bulk/EatController.ts` (`ingestPayloadFor` adds a
+Composed target's parts), `lib/metabolism/NutritionLabel.ts` (the
+tangible arm reads a Composed host's parts). Tests:
 `lib/craft/__tests__/Comminuting.test.ts` (mass conservation: product +
-residue + toll = input; the product band by extraction; the clamp; the
-grade weakest-link with the control floor; litres by density),
+residue + toll = input; `branShare` continuous in `e`; the clamp; the
+grade weakest-link with the control floor; litres by density; **0.61
+vs 0.62 stamp different compositions** — AC 20),
+`lib/metabolism/__tests__/Composed.test.ts`,
 `platform/thing/__tests__/Sack.test.ts` (empty-vessel line, grade
 verdict, temperature), `platform/thing/__tests__/Bottle.test.ts` (a
 corked bottle cools on the vacuum τ; existing bottle tests green),
-`CraftingLogic` test for a bulk-only tangible mint. `docs/subsystems/bulk.md`
-(a paragraph: the `Sack`).
+`CraftingLogic` tests: a bulk-only tangible mint carries the merged
+parts; a blend built from a blend carries the inner parts; **a blend
+built from parts-less inputs still yields one part per material**
+(the pin that keeps every shipped cocktail label as it is unless its
+input was itself a blend); `EatController` ingests a Composed
+tangible's summed amounts. `docs/subsystems/bulk.md` (a paragraph: the
+`Sack`; the flow-through rule).
 
 Acceptance: `test:near` on `Bottle`, `GradedReceptacle`, and the
 `trade-bottling`, `trade-hospitality`, `trade-distilling`,
@@ -1088,18 +1419,25 @@ matches its input by material tag (`grain`, `malt`), never by a
 farming path), `tsconfig.json`, `vitest.config.ts`, `README.md`; root
 `package.json` dependency line (alphabetical); `pnpm install`.
 
-Content: materials ×4 (D15); `content/trade/milling/thing/{quern,
-grist-mill, flour-sack, bran-sack, grist-sack, toll-bin}.yaml`;
-`idea/Discipline/milling.yaml`; `cmd/milling/mill.yaml`;
-`idea/cmd/milling/MillController.yaml`. Code: `src/thing/GristMill.ts`,
-`src/idea/cmd/milling/MillController.ts`, tests
-`src/__tests__/mill.test.ts` (quern: 25 kg wheat at 0.72 → 18 kg
-white flour in a sack graded ≤ the grain, 7 kg bran; at 0.9 → wholemeal;
-poor grain → poor flour; a malt sack → grist; the quern's duration;
-the water mill with a stub sibling `generationW` → the powered rate
-and the toll in the bin; no sibling → 0 kg/min decline).
+Content: materials ×4 (D15 — `wheat-flour`, `barley-flour`, `bran`,
+`grist`); `content/trade/milling/thing/{quern, grist-mill, flour-sack,
+bran-sack, grist-sack, toll-bin}.yaml` (`residueFraction: 0.25` on both
+mill rows); `idea/Discipline/milling.yaml`; `cmd/milling/mill.yaml`;
+`idea/cmd/milling/MillController.yaml`; **two `HelpConcept` rows**
+(D23): `idea/HelpConcept/extraction.yaml`, `head-and-flow.yaml`. Code:
+`src/thing/GristMill.ts`, `src/idea/cmd/milling/MillController.ts`,
+tests `src/__tests__/mill.test.ts` (quern: 25 kg wheat at 0.72 → 18 kg
+flour in a sack graded ≤ the grain with `composition` ≈ 96 % endosperm
+part / 4 % bran part, 7 kg bran; at 0.9 → the bran part rises and the
+sack reads darker; **0.61 vs 0.62 differ**; poor grain → poor flour; a
+malt sack → grist; **the quern holds `hands` for the whole grind and a
+second hands act declines**; **the water mill (stub sibling
+`generationW`) holds no slot, the actor leaves the room, the grind
+completes and the sacks land in the mill's room** — D27; the toll in
+the bin; no sibling → the 0 kg/min decline; `help extraction`
+resolves).
 
-Commit: `build(grain-chain W5): trade-milling — grind, then bolt; extraction is the miller's`.
+Commit: `build(grain-chain W5): trade-milling — grind, then bolt; the quern costs your hands and the mill does not`.
 
 #### W6 — `trade-baking` (D5, D7, D11, D19)
 
@@ -1109,22 +1447,28 @@ dependency**: `bake` extends the kernel `CraftController`, and the
 salt in the bakery room is `terminus`'s reference, not this pack's).
 Root `package.json` line; `pnpm install`.
 
-Content: materials ×8 (D7); profiles ×3; recipes `dough`,
-`wholemeal-dough` (by-hand: flour bulk 1 L + water 0.6 L + salt item
-1; `outputApplication: bulk`, `outputTemplate:
+Content: materials ×5 (D7); profiles ×2; recipes `dough` (by-hand:
+flour bulk 1 L (category `flour` — either cereal) + water 0.6 L + salt
+item 1; `outputApplication: bulk`, `outputTemplate:
 /trade/baking/thing/dough-trough`, `outputMaterial: dough`), `lean-loaf`
 (`inputSlots: [{slot: dough, category: proofed-dough, measureL: 1}]`,
 `requiresHeatK: 480`, `maxHeatK: 560`, `holdS: 1800`, `medium: ''`,
 `outputApplication: tangible`, `outputTemplate:
-/trade/baking/thing/lean-loaf`, `outputMaterial: bread`,
-`discipline: baking`), `wholemeal-loaf` (over the wholemeal pair),
-`flatbread` (raw `dough`, 480 K, `holdS: 300` — the honest unleavened
-fork, one row); rows `thing/{dough-trough, starter-crock, lean-loaf,
-wholemeal-loaf, flatbread}.yaml` (loaf rows on `/trade/baking/thing/Loaf`,
-`material: …/bread`, `mass: 0.8`); `idea/Discipline/baking.yaml`;
-views `cmd/baking/{knead, bake}.yaml`; registration rows
+/trade/baking/thing/lean-loaf`, `outputMaterial: bread`, `discipline:
+baking`), `flatbread` (raw `dough`, 480 K, `holdS: 300` — the honest
+unleavened fork, one row); rows `thing/{dough-trough, starter-crock,
+lean-loaf, white-loaf, flatbread}.yaml` (loaf rows on
+`/trade/baking/thing/Loaf`, `material: …/bread`, `mass: 0.8`;
+`white-loaf` authors `composition: [{materialPath:
+/stuff/idea/material/food/wheat-flour, servings: …}]` — the baker's
+white line as a ROW with an authored composition, so an NPC counter
+can stock it before any player has milled; it is not a band, and a
+player's own white loaf comes out of the chain with no row at all); `idea/Discipline/baking.yaml`;
+**two `HelpConcept` rows** (D23): `idea/HelpConcept/retrogradation.yaml`,
+`gluten.yaml`; views `cmd/baking/{knead, bake}.yaml`; registration rows
 `idea/cmd/baking/{Knead,Bake}Controller.yaml`. Code: `src/lib/Staling.ts`,
-`src/thing/Loaf.ts`, `src/thing/DoughTrough.ts`,
+`src/thing/Loaf.ts` (= `StalingMixin(NutritionLabelMixin(Provision))`;
+the bran-share phrase on `look` — D26), `src/thing/DoughTrough.ts`,
 `src/idea/cmd/baking/{Knead,Bake}Controller.ts`. **One kernel touch
 in this wave:** `lib/maturation/MaturationProfile.ts`
 (`MATURATION_LINES[<mechanism>].stalled` and `.killed`, all three
@@ -1141,7 +1485,13 @@ floor; the phrase vocabularies disjoint from `FRESHNESS_PHRASE`; add ×3
 + knead → the trough holds `dough` and the recipe is captured; a
 cold trough stalls; a 330 K pour kills; open past `turnDays` →
 `collapsed-dough`; `bake` at a lit oven → a `Loaf` in the oven, done,
-graded weakest-link; cold oven → `insufficient-heat`).
+graded weakest-link; cold oven → `insufficient-heat`; **the chain of
+parts**: a flour sack stamped at 0.9 kneaded into dough → the dough
+payload carries the bran part → proofed dough still carries it → the
+baked `Loaf.getComposition()` carries it → `eat` credits more protein
+and fibre than a 0.65 loaf, and `look` reads it darker — one test,
+end to end, and it is the assertion drive 30 and 55 rest on; `help
+gluten` and `help retrogradation` resolve).
 
 Commit: `build(grain-chain W6): trade-baking — the trough, the levain, the loaf, and bread that goes stale`.
 
@@ -1173,9 +1523,42 @@ Files under `terminus/content/world/terminus/market/`: `bakery.yaml`,
 `agent/baker.yaml`, `idea/bakery-business.yaml`, `thing/bread-counter.yaml`,
 `thing/bakery-shelf.yaml`; `square.yaml` (`west`); `terminus/package.json`.
 
+⚠ **Revised by the second pass:** the counter stocks **two** lines
+priced apart — `lean-loaf` at **2** and trade-baking's `white-loaf`
+(W6 ships the row) at **4**. That is what D22's two buyers choose
+between on day one, before any player has milled.
+
 Commit: `build(grain-chain W8): the bakery — the first of the four the general store fragments into`.
 
-#### W9 — the tending wave lands on the shipped kitchen (D3, D4, D17)
+#### W9 — somebody is hungry: the `eats` brain (D21, D22)
+
+Files: `packages/server/src/mud/lib/behavior/eats.ts` (new kernel
+brain), `distribution/content/trade/distribution/agent/clerk.yaml` and
+`trade-cooking/content/trade/cooking/agent/pantry-hand.yaml`
+(`behaviors:` gain `{brain: /lib/behavior/eats, trigger: cadence:90s,
+config: {counter: /world/terminus/market/bread-counter, fromHour: 6,
+toHour: 10, spendFraction: 0.25}}`), `docs/subsystems/behavior.md` (the
+brain's paragraph; the "NPC hunger exists from here" note). Tests:
+`lib/behavior/__tests__/eats.test.ts` (with the test bootstrap and a
+stub counter holding two loaves at 2 and 4: a buyer with balance 30
+buys the 4, a buyer with balance 10 buys the 2, a buyer with 4 buys
+nothing and says the hungry line; the beat fires once per game-day
+inside the window and never outside it; the buyer's satiation is
+higher after the beat than before it; **three empty mornings leave
+the buyer hungry, alive, and `state.hungryDays === 3`**; no NPC
+without the brain reconciles its reserve); the AC 18 pin
+(`lib/metabolism/__tests__/basal-pin.test.ts`: `BASAL_SATIATION_PER_MIN
+=== 0.02`, `EAT_PORTION_LITRES === 0.4`, a player's time-to-empty
+unchanged). The wire drive (W12) proves the rest: two named people at
+the real counter on two mornings.
+
+Acceptance: `lint:dossiers` unchanged (no new Cast); `lint:verb-collisions`
+9; the two edited rows' packs' suites green; `pnpm test:near` on
+`lib/behavior` green.
+
+Commit: `build(grain-chain W9): the eats brain — somebody buys bread, and their purse chooses which`.
+
+#### W10 — the tending wave lands on the shipped kitchen (D3, D4, D17)
 
 Files: the 19 recipes under `trade-cooking/content/recipes/` each gain
 `maxHeatK` (a wet recipe: ≥ 373; a roast/fry: 20–60 K over its
@@ -1189,9 +1572,9 @@ record); `packages/wire/tests/cooking.dirty.wire.test.ts` and
 that the threshold kill produced is updated with the reason in the
 commit body.
 
-Commit: `build(grain-chain W9): every shipped dish can now be overcooked; the ptomaine bands re-derived`.
+Commit: `build(grain-chain W10): every shipped dish can now be overcooked; the ptomaine bands re-derived`.
 
-#### W10 — the retrofit (D16)
+#### W11 — the retrofit (D16)
 
 Files: three mash recipes; `distribution/.../thing/grist-sack.yaml`,
 `counter.yaml`; `trade-brewing`, `trade-distilling`, `distribution`
@@ -1202,15 +1585,23 @@ Acceptance: `mash` with whole malt declines `insufficient-input:
 grist`; with milled or bought grist works; Dave's Bar's chain (the
 bar-fight/libations wire flows) closes.
 
-Commit: `build(grain-chain W10): the mash wants grist — the miller's other two customers`.
+Commit: `build(grain-chain W11): the mash wants grist — the miller's other two customers`.
 
-#### W11 — the drive, the register, the MR
+#### W12 — the drive, the register, the MR
 
 `packages/wire/tests/grain-chain.dirty.wire.test.ts` (`DIRTY_REASON`:
-it consumes the barn's finite sacks and the bakery's flour) covering
-the requirements' 47 steps; `docs/vocations.md` (miller → shipped,
-baker row added — AC 16); the plan's § Drive record; `pnpm test`
-once; push; MR.
+it consumes the barn's finite sacks and the bakery's flour, and it
+advances two named people's hunger) covering the requirements' 55
+steps including **Part 9** (48–55: two mornings at the counter with
+both loaves stocked — the clerk and the pantry hand buy different
+loaves and the transcript contains no word for either's means (52a);
+the empty-counter morning reads the hungry line (50); the quern grind
+holds the driver's hands and the mill grind completes with the driver
+back at the crossroads (52b); `help retrogradation` / `extraction` /
+`head-and-flow` / `gluten` resolve and the first names all three
+storage conditions (53–54); 0.61 vs 0.62 sacks carry different labels
+(55)); `docs/vocations.md` (miller → shipped, baker row added — AC
+16); the plan's § Drive record; `pnpm test` once; push; MR.
 
 Commit: `drive(grain-chain): <what driving found>`.
 
@@ -1233,6 +1624,9 @@ Commit: `drive(grain-chain): <what driving found>`.
 | the bakery | `go west` at the square | the exit pair | the counter's `stockLines` (a par line mints fresh clones on the sweep) | none |
 | the retrofit | `mash` (brewing) | unchanged | `category: grist` on three recipes; the `grist` tag on the grist material; the counter line | the recipe catalogue re-warms on go-live |
 | `lint:doneness` | `pnpm lint:doneness` | derived into `lint:family` by name | — | CI's `gate` job must be clicked |
+| the `eats` brain | none of its own — it types `teleport`, `buy`, `eat` | the two rows' `behaviors:` entries (a brain nothing wires never fires — `lint:dispositions`' failure shape); the counter must be a `ConsignmentShelfMixin` host so `buy`'s default arg resolves | `config.counter` must be the bread counter's template path; the buyer must be on a roster whose business `banksAt` (else `primaryAccountIdOf` is `null` and the brain declines every loaf — a **silent** empty-purse; the W9 test pins that a `null` account says the hungry line, not nothing) | brains wire at `postRegister`; `AppApi.isWorldOpen` gates the first beat |
+| the label chain | none (reads on `look`/`eat`) | `Loaf` composes `NutritionLabelMixin`; the sack's `look` phrase | the mill's stamp → contribution → `derivePayload` → proof → `applyTangibleOutput` → `ComposedMixin` — **five links, each fails closed**: W6's end-to-end test walks all five | none |
+| the four concepts | `help <key>` (platform) | the help catalogue harvests by class | four rows under the two packs' `idea/HelpConcept/` | `HelpCatalogue` warms by `Template.findByClass` — confirm `help extraction` answers after a fresh boot, exactly as `help rotation` does |
 
 ⚠ The four silent failures to check by hand after W7 and W8: the
 Locality prefix registers (`AddressApi.resolveLocalityFor` on a
@@ -1252,19 +1646,27 @@ it; `bake` finds the oven as a Container.
 | 4 extraction: darker, more nutritious, worse-keeping vs white + saleable bran | W5 (D10, D15), the bran sack as a `Sack` with a grade (consignable) |
 | 5 hand quern vs valley mill, faster, premises paid | W5 (the two rows, the toll in kind), W3 + W7 (the millrace's power sets the mill's rate) |
 | 6 power tracks head and flow; a dry season moves it | W3 + W7 (`flowAt` over the weather segment) |
-| 7 hauling flour cheaper than grain | arithmetic: `RateCardRegistry` prices `perKgMinor × kg`; a 25 kg sack of grain vs an 18 kg sack of flour at 0.72 — the drive computes both with `analyze load`/the rate board (W11) |
+| 7 hauling flour cheaper than grain | arithmetic: `RateCardRegistry` prices `perKgMinor × kg`; a 25 kg sack of grain vs an 18 kg sack of flour at 0.72 — the drive computes both with `analyze load`/the rate board (W12) |
 | 8 dough from a bought culture OR caught from the air | W6 (`spontaneousLagDays: 1`, open trough; `pour` from the crock) |
 | 9 cold stalls, scald kills, forgotten collapses — each legible | W6 (the profile bands, plus the kernel prose seam W6 adds: `Maturing.ts`'s augmenter reads `starting`/`working`/`finished`/`turned` today (lines 291–301) and has **no `stalled` or `killed` line for a batch** — `MATURATION_LINES[mechanism]` in `MaturationProfile.ts` gains both, and the augmenter branches on the host's current temperature against the profile's stall bands and on `viability <= 0`; a test asserts the three phrases are distinct) |
 | 10 a loaf can be burnt, and burnt is a thing you hold | W1 (D4), W6 |
 | 11 cold vs warm diverge oppositely; stale ≠ spoiled prose | W6 (D5 + the disjoint-vocabulary test), W1 (Freshness untouched) |
 | 12 re-baking improves a stale loaf | W6 (D5 `refreshK`) |
-| 13 a brewer who has never seen this build still supplies Dave's Bar | W10 (the counter's grist line at 7) |
-| 14 milling your own malt costs less than buying grist | W5 + W10 (5 + a quern's time vs 7) |
-| 15 the 19 recipes produce what they produced, plus overcooking | W1 (D3 census), W9 (ceilings + the cooking wire flows green) |
-| 16 `vocations.md` | W11 |
+| 13 a brewer who has never seen this build still supplies Dave's Bar | W11 (the counter's grist line at 7) |
+| 14 milling your own malt costs less than buying grist | W5 + W11 (5 + a quern's time vs 7) |
+| 15 the 19 recipes produce what they produced, plus overcooking | W1 (D3 census), W10 (ceilings + the cooking wire flows green) |
+| 16 `vocations.md` | W12 |
+| 17 somebody who is not the player buys bread and eats it, daily, unprompted | W9 (D21), W8 (the counter it buys from), W12 (two mornings driven) |
+| 18 a player's hunger no more urgent than before | W9's basal pin test (D21); no metabolism constant, reserve or condition is touched anywhere in the build |
+| 19 the chemistry is readable and predictive | W5 + W6 (D23 — the four rows), W12 (drive 53–54: the reader predicts 31–37) |
+| 20 two extraction settings never yield identical flour | W2 (D24 — the continuous stamp; the 0.61/0.62 test), W5 (the sack's label), W6 (the parts survive to the loaf — D25/D26) |
+| 21 two buyers with different means buy different loaves, and nothing labels either | W9 (D22 — one balance read, no band, nothing written back; the test's three balances), W8 (two loaves priced apart), W12 (52a: the transcript is grepped for the absence of any means word) |
+| 22 the quern occupies you and the mill does not | W5 (D27 — the `hands` slot vs no slot; the mill completes with the actor gone), W12 (52b driven) |
 
 Unmapped: none. ⚠ AC 7 is proved by arithmetic the drive performs,
 not by a mechanism this build adds — the cost surface is haulage's.
+⚠ AC 4's "darker, more nutritious, worse-keeping" now rests on D24
+(composition + `cure.moisture`), not on two material rows.
 
 ---
 
@@ -1278,9 +1680,20 @@ not by a mechanism this build adds — the cost surface is haulage's.
   (spoilage without the threshold; the scorched mint; the bulk-only
   tangible).
 - **Unit (packs):** each pack's own vitest (`callSecPlugin`) — milling
-  (W5), baking (W6), farming (W4), water (W3), cooking (W9), brewing /
-  distilling / distribution (W10). ⚠ A pack with `src/` and no tests
+  (W5), baking (W6), farming (W4), water (W3), cooking (W10), brewing /
+  distilling / distribution (W11). ⚠ A pack with `src/` and no tests
   fails the root suite; `hearts-delight` has no `src/` and no vitest.
+- **Unit (second pass):** `ComposedMixin`, the `derivePayload`
+  flow-through with its no-composition pin, `Comminuting`'s continuous
+  stamp (0.61 ≠ 0.62), the `eats` brain against a stub counter (three
+  balances → three outcomes; the window; the empty-counter line; three
+  hungry mornings, alive; a `null` account says the line), the basal
+  pin (AC 18), the quern/mill slot assertions, the W6 end-to-end parts
+  chain.
+- **What only the drive proves, second pass:** two named people at the
+  real counter on two mornings choosing differently with no word for
+  why; the hungry line at an empty counter; walking away from the
+  mill; a reader of the four concepts predicting the bread box.
 - **What only the drive proves:** the road is contiguous; the farmer
   reads as a person; the trough affords `knead` where you stand; the
   loaf goes into the oven and comes out burnt; two loaves in two rooms
@@ -1290,7 +1703,7 @@ not by a mechanism this build adds — the cost surface is haulage's.
 - **Gates:** the whole family after every wave; `lint:doneness` from
   W1; `lint:verb-collisions` must read 9 after every wave (a second
   view claiming a verb shadows the first silently).
-- **`pnpm test`:** once before the MR (W11), once at `/finalize`.
+- **`pnpm test`:** once before the MR (W12), once at `/finalize`.
   Everything between is `test:near` + the touched packs + the family.
   Never in the background.
 - **Reset:** the recipe schema gains a field → `pnpm -C
@@ -1318,7 +1731,7 @@ not by a mechanism this build adds — the cost surface is haulage's.
    (Newton toward held instead of a pin) touching every forge/kiln test;
    ask before doing it.
 4. **AC 15 / D3:** a shipped recipe between 333 K and ~350 K may now
-   leave a residual load. W1 records which; W9 recalibrates ptomaine.
+   leave a residual load. W1 records which; W10 recalibrates ptomaine.
    That is the requirement, but it is a visible behaviour change in a
    shipped vertical — name it in the MR.
 5. **The Locality row's home** (D12) differs from the requirements'
@@ -1334,12 +1747,12 @@ not by a mechanism this build adds — the cost surface is haulage's.
 8. **`z = 33 K` and the band ratios are playtest numbers**, dials by
    design; the requirements accept same-width windows for everyone
    until the skill seam lands.
-9. **Eight materials for two breads** (D7) is the honest cost of
-   nutrition riding the material. If the user finds it heavy, the
-   fallback is one dough/one bread with the wholemeal difference
-   expressed only at the flour and sack level (drive 30 would then read
-   the same nutrition for both loaves) — a product call, not the
-   plan's.
+9. **The eight-materials shape is gone (D24–D26)**; its replacement
+   is a five-link chain (mill stamp → contribution → `derivePayload` →
+   proof → `applyTangibleOutput`) and every link fails closed — a lost
+   `composition` at any of them silently produces a white loaf from
+   wholemeal flour with no error. W6's end-to-end test walks all five,
+   and the drive's step 55 is the live check.
 10. **The farm's finiteness vs "seasonal":** the `farms` brain picks
     ripe stands and does not sow; after one harvest the bench is
     stubble until somebody sows it (a player can). Replanting each
@@ -1350,6 +1763,46 @@ not by a mechanism this build adds — the cost surface is haulage's.
 12. **Stop-and-ask list:** none of the above blocks the build. The
     only real stops are the standing ones — a worktree hazard, a
     credential, an irreversible act.
+13. **NPC hunger begins existing (D21).** Only the two rows that gain
+    the brain move; but the first `eat` bills the whole elapsed drain
+    since the world opened, so a long-running world's first morning
+    reads a very hungry clerk. Honest, and the drive should expect it.
+    ⚠ The `starvation` floor: the `stage` law counts and does not
+    kill, but the build must confirm no *other* consumer of the
+    `starvation` Condition (a `burden` law elsewhere, a vitals
+    threshold) ends an NPC — grep `starvation` across `lib/vitals`
+    before W9 lands. If something does, the answer is not a drain
+    edit (AC 18); it is the brain's fallback line and `hungryDays`,
+    and the finding goes in the MR.
+14. **The purse read can be silently empty.** `primaryAccountIdOf`
+    returns `null` for a person no business has ever paid; the brain
+    must treat `null` as a balance of 0 and still say the hungry line
+    (W9's test), or the demand will look like a no-op on a fresh
+    world until the first wage roll.
+15. **The flow-through changes shipped labels** (D25) wherever a blend
+    was built from a blend — a cocktail from a pressed juice reads its
+    fruit's parts instead of "juice". More honest, small, and visible
+    in `presentation.wire.test.ts`'s goldens if any cover a juice
+    cocktail; W2 names each changed expectation in the commit body.
+16. **The mill hosts its own engagement (D27).** A `ManualBuildStep`
+    with `slots: []` and `host: mill` is a shape `SchedulerApi` has not
+    carried before (`char` still holds `attention` on the actor). If
+    the scheduler requires at least one slot or an `Engaged` actor,
+    the compliant shape is `ScheduleApi.schedule(grindMs, complete)`
+    on the game clock from the controller — the `WorldClockApi.after`
+    path the script `wait` uses — with the same module-level
+    completion. Decide by reading `SchedulerApi.start` in W5; do not
+    invent a fourth engagement kind.
+17. **Prior art, stated so nobody "improves" it (Wurm Online).** The
+    closest analog to our grade chain is Wurm's QL 1–100 with maker's
+    marks, and its known failure is that quality became the grind. Our
+    defence is structural and must stay so: grade is a **five-rung
+    band** (`GRADE_BANDS`), never a number a player sees; the plant's
+    `_worstLimiting` and the batch's `_worstStretch` are **monotone
+    minima** nobody can recover; the miller's control floor raises the
+    floor and never the ceiling. A later wave that exposes a
+    percentage, lets a stretch be nursed back, or lets a tool raise the
+    ceiling has turned the band into the grind.
 
 ---
 
@@ -1363,7 +1816,8 @@ Clean attach points; each leaves as a slate line, never a plan section.
 - **Granular bulk** (`requiredClosureFor` always `liquidTight`; a sack
   of flour is nominal litres): → `bulk.md`'s existing deferred tail.
 - **A stamp mill on the Kestrel falls** — `ComminutingMixin` with ore
-  products + tailings residue; → `metal-chain-slate.md`.
+  products + tailings residue on the same `residueFraction`/parts
+  fields; → `metal-chain-slate.md`.
 - **Staling promoted to the kernel** on the third-pack signal (cooked
   rice, potatoes) → `cooking-slate.md`.
 - **The kill re-based onto a shared integrator** (one z) — deliberately
@@ -1379,6 +1833,21 @@ Clean attach points; each leaves as a slate line, never a plan section.
   already in the requirements' non-goals with their homes.
 - **The valley** — everything the bible is and this build is not →
   `towns-slate.md` (its "Retire when" is NOT satisfied).
+- **The wider `eats` roster** — every other Cast stays inert; wiring
+  the brain onto the Lounge's bar staff, the Wharfside hands, Odo, is
+  rows (a `behaviors:` line each) once the two-buyer market has been
+  watched. → `vocations.md` (the demand column) /
+  `rpg-labor-market-economy`.
+- **Demand beyond bread** — the brain buys one thing; a basket
+  (cheese, ale) per person is the Anno/Victoria shape and is config on
+  the same brain when the goods exist. → `vocations.md`.
+- **Legibility of head-and-flow** (the Timberborn gap the requirements
+  record): ours is a reading off `ρ·g·Δh·Q·η`, theirs is a wheel you
+  watch turn. `analyze power` is the honest minimum; a wheel speed on
+  `look` is a presentation wave. → `instrumentation-slate.md`.
+- **A material row per band** — explicitly NOT the fallback if a
+  flow-through link proves hard: the fallback is fixing the link (D25).
+  Recorded so nobody restores the eight.
 
 ---
 
@@ -1386,7 +1855,8 @@ Clean attach points; each leaves as a slate line, never a plan section.
 
 Read first, in this order:
 
-1. `docs/requirements/grain-chain-requirements.md`
+1. `docs/requirements/grain-chain-requirements.md` — including
+   § Prior art and the second-pass notes in § Lens pass
 2. `packages/server/src/mud/lib/material/Freshness.ts` — the gauge
    shape D2 and D5 copy
 3. `packages/server/src/mud/lib/thermal/Thermal.ts` (`restamp`,
@@ -1394,35 +1864,53 @@ Read first, in this order:
    `lib/fire/Furnace.ts` (`_setLit`, `reconcileFurnaceFuel`,
    `heatContents`)
 4. `packages/server/src/mud/platform/idea/api/CraftingLogic.ts` —
-   `resolveSpoilage` (844), `applyTangibleOutput` (1108), the resolve
-   (1840–1990), `mintFromBuildImpl` (1483), `applyControlFloor` (1536)
+   `resolveSpoilage` (844), `derivePayload` (896–934),
+   `applyTangibleOutput` (1108), the resolve (1840–1990),
+   `mintFromBuildImpl` (1483), `applyControlFloor` (1536)
 5. `packages/server/src/mud/lib/craft/Recipe.ts`, `ManualBuild.ts`,
-   `ManualBuildStep.ts`; `platform/idea/cmd/crafting/StirController.ts`;
+   `ManualBuildStep.ts`; `platform/idea/cmd/crafting/{Stir,Pour}Controller.ts`;
    `packages/content/trade-hospitality/src/idea/cmd/crafting/StrainController.ts`
-6. `packages/server/src/mud/lib/maturation/Maturing.ts` +
+6. `packages/server/src/mud/lib/bulk/Bulkable.ts` (`BlendPart`,
+   `BulkPayload`, `setBulkMaterial`), `lib/metabolism/BlendLabel.ts`
+   (`amountsOf`), `lib/metabolism/NutritionLabel.ts`,
+   `lib/material/Cured.ts` (`CureState` on the payload),
+   `platform/idea/cmd/bulk/EatController.ts`
+7. `packages/server/src/mud/lib/maturation/Maturing.ts` +
    `MaturationProfile.ts`; `platform/thing/Vat.ts`;
    `trade-brewing/.../maturation/{ale,ale-culture}.yaml`
-7. `packages/server/src/mud/platform/thing/{Oven,Campfire,Provision,GradedReceptacle,Bottle,Receptacle,Crop}.ts`
-8. `packages/content/water/src/thing/ControlStructure.ts`,
-   `water/src/idea/WatercourseCatalogue.ts` (`flowAt`, `WATERWORK_CLASSES`),
-   `packages/content/transport/src/idea/FordExit.ts`
-9. `packages/content/trade-fuel/` (the pack template) and
-   `trade-fuel/src/idea/cmd/fuel/CharController.ts` (the durative
-   verb); `packages/content/rejection/pack.yaml` (a pack with no `src/`)
-10. `packages/content/terminus/content/world/terminus/delight-road/crossroads.yaml`,
+8. `packages/server/src/mud/platform/thing/{Oven,Campfire,Provision,GradedReceptacle,Bottle,Receptacle,Crop,Dish}.ts`
+9. `packages/server/src/mud/lib/behavior/{brain,Behaved,restocks,consigns,shifts}.ts`
+   and `packages/content/trade-farming/src/behavior/farms.ts` — the
+   brain doctrine, `forceCommand`, `ctx.state`, the teleport-home
+   shape; `lib/reserve.ts` (`installBiologicalReserves`),
+   `lib/metabolism/Metabolic.ts` (`METABOLIC_DEFAULTS`, the
+   reconcile at 881); `api/banking.ts` (`balanceOf`,
+   `primaryAccountIdOf`); `platform/idea/api/EmploymentLogic.ts`
+   (`ensurePayableWorker`); `platform/idea/cmd/retail/BuyController.ts`;
+   `api/celestial.ts` (`profileFor`, `secondOfDay`, `dayOfYear`)
+10. `packages/content/water/src/thing/ControlStructure.ts`,
+    `water/src/idea/WatercourseCatalogue.ts` (`flowAt`, `WATERWORK_CLASSES`),
+    `packages/content/transport/src/idea/FordExit.ts`
+11. `packages/content/trade-fuel/` (the pack template) and
+    `trade-fuel/src/idea/cmd/fuel/CharController.ts` (the durative
+    verb); `packages/content/rejection/pack.yaml` (a pack with no `src/`)
+12. `packages/content/terminus/content/world/terminus/delight-road/crossroads.yaml`,
     `world-seed/content/stuff/idea/Locality/rejection.yaml`,
     `world-seed/.../Watercourse/delight.yaml`,
     `terminus/.../wharfside/thing/aqueduct-house.yaml`
-11. `packages/content/trade-farming/content/trade/farming/thing/{crop,plant,seed}/barley.yaml`,
+13. `packages/content/trade-farming/content/trade/farming/thing/{crop,plant,seed}/barley.yaml`,
     `stuff/idea/material/food/barley-grain.yaml`,
-    `trade-farming/src/behavior/farms.ts`,
+    `trade-farming/content/trade/farming/idea/HelpConcept/rotation.yaml`,
     `eternal-university/.../campus-field/location/home-field.yaml`
-12. `packages/content/hearthworks/content/world/hearthworks/{location/cookhouse.yaml, agent/cook.yaml, idea/business.yaml}`;
-    `rejection/.../agent/storekeeper.yaml`
-13. `packages/server/scripts/check-perishable.ts`, `check-dossiers.ts`,
+14. `packages/content/hearthworks/content/world/hearthworks/{location/cookhouse.yaml, agent/cook.yaml, idea/business.yaml}`;
+    `rejection/.../agent/storekeeper.yaml`;
+    `distribution/content/trade/distribution/{agent/clerk.yaml, idea/business.yaml, thing/counter.yaml}`;
+    `trade-cooking/content/trade/cooking/{agent/pantry-hand.yaml, idea/pantry-outfit.yaml}`
+15. `packages/server/src/mud/platform/idea/{HelpConcept,HelpCatalogue}.ts`
+16. `packages/server/scripts/check-perishable.ts`, `check-dossiers.ts`,
     `pack-roots.ts`
-14. `packages/wire/tests/farmstead.dirty.wire.test.ts`
-15. `docs/subsystems/{thermal,fire,spoilage,crafting,maturation,bulk,watershed,content-packs}.md`
+17. `packages/wire/tests/farmstead.dirty.wire.test.ts`
+18. `docs/subsystems/{thermal,fire,spoilage,crafting,maturation,bulk,watershed,content-packs,behavior,metabolism,retail,banking}.md`
 
 ---
 
@@ -1434,6 +1922,12 @@ Read first, in this order:
 
 *(filled by W1)*
 
+### W9 — the first morning
+
+*(the two buyers' balances, the two loaves' prices, who bought what,
+and the satiation before/after — filled by W9)*
+
 ### The drive
 
-*(the 47 steps, run against the booted game, with what each found)*
+*(the 55 steps, run against the booted game, with what each found;
+Part 9's two mornings recorded verbatim)*
