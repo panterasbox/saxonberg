@@ -355,6 +355,12 @@ export const Mixins = {
   // The cross-cutting spoilage gauge — any Thing can go off (inert until
   // its Material tabulates a spoilage activation energy).
   Fresh: 'FreshnessMixin',
+  // ⭐ The DONENESS gauge — how much cooking a food has had, integrated
+  // over time and temperature. Not the spoilage gauge and not re-based on
+  // it: the kill's Arrhenius and browning's decade interval are different
+  // physics. Isn't a "cooked" flag, and isn't the fire — it is what the
+  // food accumulated, including after the working ended.
+  ThermalDose: 'ThermalDoseMixin',
   // The per-instance water state — drying and curing, the levers that
   // move a thing's effective water activity off its Material's tabulated
   // base. NOT the spoilage gauge: this is the matter, that is the

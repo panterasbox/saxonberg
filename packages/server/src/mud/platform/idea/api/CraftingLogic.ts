@@ -20,6 +20,7 @@ import {
 } from '../../../lib/advancement/ActSignature';
 import type Material from '../../../lib/material/Material';
 import { Freshness } from '../../../lib/material/Freshness';
+import { ThermalDose } from '../../../lib/thermal/ThermalDose';
 import { Cure } from '../../../lib/material/Cured';
 import {
   Contamination,
@@ -727,6 +728,57 @@ function applySpoilage(outSlot: BulkSlot, outcome: SpoilageOutcome): void {
 }
 
 /**
+ * ⭐⭐ **What the working itself put on the doneness gauge.**
+ *
+ * A one-shot working "was as long as it needed": the mint stamps exactly
+ * the dose the recipe asked for, so every dish comes out of its own
+ * working **done**, and only physics after the mint takes it past. That is
+ * what keeps the gauge from re-litigating a craft that already succeeded,
+ * while still letting the loaf you forgot in the oven burn.
+ *
+ * ⚠ And the ceiling breach is stamped here, not declined at the gate: a
+ * fire too fierce for the working still produces the thing, it produces a
+ * **scorched** one. Declining would protect the player from a mistake
+ * worth being able to make.
+ */
+function donenessAtMint(
+  recipe: Recipe,
+  effectiveHeatK: number,
+): { doseS: number; scorchS: number } {
+  const requires = recipe.getRequiresHeatK();
+  // A working that asks for no heat cooks nothing — a shaken cocktail is
+  // not underdone, it is a cocktail.
+  if (requires <= 0) return { doseS: 0, scorchS: 0 };
+  const doseS = ThermalDose.wantedDoseS(requires, recipe.getHoldS());
+  const ceiling = recipe.getMaxHeatK();
+  const scorchS =
+    ceiling > 0 && effectiveHeatK > ceiling ? ThermalDose.scorchedAtS() : 0;
+  return { doseS, scorchS };
+}
+
+/**
+ * Stamp a working's doneness outcome onto a bulk output slot.
+ *
+ * ⚠ `deliveredHeatK` is **the heat the setup actually put on the food**,
+ * NOT `workingHeatK` (which the resolve deliberately pins to the recipe's
+ * own demand, because *a stew simmered beside a roaring forge was
+ * simmered*). That pinning is right for the kill and exactly wrong for the
+ * ceiling: the ceiling's whole question is whether the fire was FIERCER
+ * than the working wanted, and pinning makes the answer permanently no.
+ * The medium cap still applies to the delivered figure, so a wet recipe
+ * beside a forge genuinely cannot scorch — the water stops at 373 K.
+ */
+function applyDoneness(
+  outSlot: BulkSlot,
+  recipe: Recipe,
+  deliveredHeatK: number,
+): void {
+  const { doseS, scorchS } = donenessAtMint(recipe, deliveredHeatK);
+  if (doseS <= 0 && scorchS <= 0) return;
+  new ThermalDose(outSlot).stampDose(doseS, scorchS);
+}
+
+/**
  * What a working did to the spoilage its inputs brought: the load the
  * output starts from, and the formed toxin the killed population left.
  */
@@ -859,20 +911,27 @@ function resolveSpoilage(
     // anyway (only growth does).
     1,
   );
-  if (effectiveHeatK < Freshness.killTemperatureK()) {
-    // A lazy warm-through launders nothing: the load rides straight
-    // through and the dose stays derived from it at the ingest.
-    return { load: blended, formed: null, pathogens: survivors };
-  }
-  // ⭐⭐ **The kill is a rate held for a time.** `holdS === 0` is a recipe
-  // that authors no hold, which means the working was as long as it needed
-  // — byte-identical to the threshold this replaced, and what keeps every
-  // shipped recipe cooking exactly as it did. A hold that IS authored is a
-  // claim that the working was brief, and is integrated.
-  const load = holdS > 0 ? Freshness.killOver(blended, holdS, effectiveHeatK) : 0;
+  // ⭐⭐ **The kill is a rate held for a time, and the hold is never
+  // zero.** This used to short-circuit twice — once below the flora's
+  // kill temperature, and again when a recipe authored no hold, which
+  // sent the load to a flat `0`. Both were thresholds wearing a rate's
+  // clothes: a sear and a lazy warm-through came out identical, and a
+  // recipe that simply did not mention a hold sterilised perfectly.
+  //
+  // `killOver` is now always called, and it is the ONE place the
+  // threshold lives: it returns the load untouched below `killK`, so
+  // nothing under the kill changes. What changes is that every working
+  // ABOVE it is integrated as a rate over a real time (`getHoldS()`
+  // never returns zero — an unauthored hold reads the dial).
+  const load = Freshness.killOver(blended, holdS, effectiveHeatK);
   // ⚠ And what the killed population already MADE stays in the dish,
   // derived from the load that was there before the heat touched it.
-  return { load, formed: Freshness.doseFor(blended), pathogens: survivors };
+  // Only a working that actually reached the kill forms anything.
+  const formed =
+    effectiveHeatK >= Freshness.killTemperatureK()
+      ? Freshness.doseFor(blended)
+      : null;
+  return { load, formed, pathogens: survivors };
 }
 
 /**
@@ -1046,6 +1105,7 @@ async function applyBulkOutput(
   matchedItems: MatchedItemInput[] = [],
   effectiveHeatK = 0,
   makerPath = '',
+  deliveredHeatK: number = effectiveHeatK,
 ): Promise<void> {
   const outSlot = BulkableApi.slotFor(output, undefined);
   if (!outSlot) {
@@ -1097,6 +1157,7 @@ async function applyBulkOutput(
     outSlot,
     outputMicrobialLoad(effectiveHeatK, recipe.getHoldS(), matched, matchedItems),
   );
+  applyDoneness(outSlot, recipe, deliveredHeatK);
 }
 
 /**
@@ -1111,6 +1172,7 @@ function applyTangibleOutput(
   matched: MatchedInput[],
   matchedItems: MatchedItemInput[],
   effectiveHeatK: number,
+  deliveredHeatK: number = effectiveHeatK,
 ): void {
   const primary = matchedItems[0];
   if (!primary) {
@@ -1170,6 +1232,13 @@ function applyTangibleOutput(
       treatment ? Cure.applyTreatment(inherited, treatment) : inherited,
     );
   }
+  // ⭐ And the doneness the working put on it — the discrete twin of
+  // `applyDoneness`. A roast comes out of its working done; what happens
+  // to it in the oven afterwards is the gauge's business, not the craft's.
+  if (MixinApi.isDosed(output)) {
+    const { doseS, scorchS } = donenessAtMint(recipe, deliveredHeatK);
+    if (doseS > 0 || scorchS > 0) output.stampThermalDose(doseS, scorchS);
+  }
 }
 
 /**
@@ -1186,6 +1255,7 @@ async function applyEdibleOutput(
   matchedItems: MatchedItemInput[],
   effectiveHeatK: number,
   makerPath = '',
+  deliveredHeatK: number = effectiveHeatK,
 ): Promise<void> {
   const outSlot = BulkableApi.slotFor(output, undefined);
   if (!outSlot) {
@@ -1220,6 +1290,7 @@ async function applyEdibleOutput(
       outSlot,
       outputMicrobialLoad(effectiveHeatK, recipe.getHoldS(), matched, matchedItems),
     );
+    applyDoneness(outSlot, recipe, deliveredHeatK);
     return;
   }
   // The derived default: the generic cooked base + macros summed from
@@ -1241,6 +1312,7 @@ async function applyEdibleOutput(
     outSlot,
     outputMicrobialLoad(effectiveHeatK, recipe.getHoldS(), matched, matchedItems),
   );
+  applyDoneness(outSlot, recipe, deliveredHeatK);
 }
 
 /**
@@ -1727,7 +1799,7 @@ async function mintVessel(
     outSlot,
     buildMicrobialLoad(
       effectiveHeatK,
-      recipe?.getHoldS() ?? 0,
+      recipe?.getHoldS() ?? ThermalDose.defaultHoldS(),
       req.contributions,
     ),
   );
@@ -1878,6 +1950,13 @@ async function craftImpl(req: CraftRequest): Promise<CraftOutcome> {
   // heat-labile doses, so conflating the two would have every dish cooked
   // at the hottest thing in the room.
   const workingHeatK = requiresHeatK;
+  // ⭐ …and the OTHER figure, which the resolve used to throw away. The
+  // pinning above is right for the kill and exactly wrong for the ceiling:
+  // "was the fire fiercer than this working wanted?" cannot be answered by
+  // a number pinned to what the working wanted. This is what the setup
+  // actually delivered, medium cap included — so a wet recipe beside a
+  // roaring forge still cannot scorch, because the water stops at 373 K.
+  const deliveredHeatK = effectiveHeatK;
 
   // Derive grade (weakest-link, floored at the recipe base if any,
   // then at any used control-bearing instrument's band — skill embedded
@@ -1950,7 +2029,14 @@ async function craftImpl(req: CraftRequest): Promise<CraftOutcome> {
     output = await StuffApi.clone<Stuff>(recipe.getOutputTemplate());
   }
   if (application === 'tangible') {
-    applyTangibleOutput(output, recipe, matched, matchedItems, workingHeatK);
+    applyTangibleOutput(
+      output,
+      recipe,
+      matched,
+      matchedItems,
+      workingHeatK,
+      deliveredHeatK,
+    );
   } else if (application === 'edible') {
     await applyEdibleOutput(
       output,
@@ -1959,6 +2045,7 @@ async function craftImpl(req: CraftRequest): Promise<CraftOutcome> {
       matchedItems,
       workingHeatK,
       maker.getTemplatePath() ?? '',
+      deliveredHeatK,
     );
   } else {
     await applyBulkOutput(
@@ -1968,6 +2055,7 @@ async function craftImpl(req: CraftRequest): Promise<CraftOutcome> {
       matchedItems,
       workingHeatK,
       maker.getTemplatePath() ?? '',
+      deliveredHeatK,
     );
     const outSlot = BulkableApi.slotFor(output, undefined)!;
     await finishGlass(

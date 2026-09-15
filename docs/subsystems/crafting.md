@@ -713,6 +713,32 @@ The kernel's two generic materials moved to the **platform pack** —
 `/platform/idea/material/cooked` (`GENERIC_COOKED_MATERIAL`) — because a
 kernel module may not name a trade pack's row.
 
+## The doneness seam (the grain-chain build)
+
+`Recipe` gained `maxHeatK` — the heat a working must **not** exceed
+(sentinel `0` = states none). Enforced twice and never as a decline:
+
+1. **At the mint.** `donenessAtMint` stamps the dose the recipe asked for
+   onto the output (so every dish comes out of its own working `done`),
+   plus scorch time when the delivered heat was over the ceiling.
+2. **After the mint.** `ThermalDoseMixin` keeps integrating on the object
+   — the loaf you left in the oven.
+
+A fire over the ceiling still **mints**: the bread came out, it came out
+black. Burnt is the object with the band; there is no burnt template and
+no second terminal.
+
+⚠ The heat the ceiling reads is **`deliveredHeatK`**, not `workingHeatK`.
+The resolve pins `workingHeatK = requiresHeatK` on purpose (*a stew
+simmered beside a roaring forge was simmered*), which is right for the
+kill and makes the ceiling unanswerable — so the delivered figure, medium
+cap included, is threaded alongside it into the three output seams.
+
+`Recipe.getHoldS()` **never returns zero**: an unauthored hold reads
+`thermal.dose.defaultHoldS`. `getAuthoredHoldS()` is the raw field. See
+[spoilage.md § Doneness](./spoilage.md).
+
+
 ## The manual build (the by-hand path)
 
 Alongside the one-shot served path, a drink can be **built by hand**, one

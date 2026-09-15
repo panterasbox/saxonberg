@@ -30,6 +30,7 @@
  */
 
 import { Grade } from './Grade';
+import { ThermalDose } from '../thermal/ThermalDose';
 import type { FieldMeta } from '../mixin';
 import type { StoredDocument } from '../document/StoredDocument';
 
@@ -175,6 +176,7 @@ export class Recipe {
     baseGradeBand: { persistent: true, spoiler: 1, spoilerName: 0 },
     requiresHeatK: { persistent: true, spoiler: 1, spoilerName: 0 },
     holdS: { persistent: true, spoiler: 1, spoilerName: 0 },
+    maxHeatK: { persistent: true, spoiler: 1, spoilerName: 0 },
     medium: { persistent: true, spoiler: 1, spoilerName: 0 },
     outputResidue: { persistent: true, spoiler: 1, spoilerName: 0 },
     outputApplication: { persistent: true, spoiler: 1, spoilerName: 0 },
@@ -234,6 +236,24 @@ export class Recipe {
    * always a deliberate authoring act.
    */
   holdS: number = 0;
+
+  /**
+   * ⭐⭐ **The heat this working must NOT exceed** (K) — the other end of
+   * `requiresHeatK`, and the reason a too-fierce fire is a mistake you
+   * can make rather than a decline you are protected from.
+   *
+   * A working over its ceiling still MINTS (never a decline: the bread
+   * came out, it just came out black); the output is stamped past the
+   * scorched band and its Grade is written down. The ceiling also governs
+   * the object after the mint — a loaf sitting in an oven hotter than its
+   * recipe allows keeps accruing scorch.
+   *
+   * ⭐ **Sentinel `0` = the working states no ceiling**, and the default
+   * char point applies. ⚠ A ceiling below `requiresHeatK` is an authoring
+   * error and is rejected at load — a recipe that cannot be cooked hot
+   * enough without burning is not a recipe.
+   */
+  maxHeatK: number = 0;
 
   /**
    * The heat-carrying medium (`water` / `fat`); empty ⇒ dry. See
@@ -316,6 +336,19 @@ export class Recipe {
     r.baseGradeBand = str(data.baseGradeBand);
     r.requiresHeatK = num(data.requiresHeatK);
     r.holdS = num(data.holdS);
+    r.maxHeatK = num(data.maxHeatK);
+    if (r.maxHeatK < 0) {
+      throw new Error(
+        `Recipe '${r.recipeId}': 'maxHeatK' must not be negative`,
+      );
+    }
+    if (r.maxHeatK > 0 && r.maxHeatK < r.requiresHeatK) {
+      throw new Error(
+        `Recipe '${r.recipeId}': 'maxHeatK' (${r.maxHeatK}) is below ` +
+          `'requiresHeatK' (${r.requiresHeatK}) — a working that cannot ` +
+          `be cooked hot enough without burning is not a recipe`,
+      );
+    }
     r.medium = Recipe.mediumFrom(data.medium, r.recipeId);
     r.outputApplication = str(data.outputApplication);
     r.outputPortionL = num(data.outputPortionL);
@@ -437,6 +470,7 @@ export class Recipe {
       baseGradeBand: this.baseGradeBand,
       requiresHeatK: this.requiresHeatK,
       holdS: this.holdS,
+      maxHeatK: this.maxHeatK,
       medium: this.medium,
       outputApplication: this.outputApplication,
       outputPortionL: this.outputPortionL,
@@ -474,9 +508,32 @@ export class Recipe {
     return this.requiresHeatK;
   }
 
-  /** How long the working holds the food at its heat; `0` ⇒ as long as needed. */
+  /**
+   * ⭐⭐ **How long the working holds the food at its heat — never zero.**
+   *
+   * An unauthored hold used to short-circuit the kill to "untouched",
+   * which made every recipe that did not name a number a recipe whose
+   * heat did no microbial work at all. It does not mean "instantaneously";
+   * it means *the author did not say*. So an unauthored hold reads the
+   * dial, and the difference between a sear and a lazy warm-through
+   * becomes a consequence of the temperature instead of a consequence of
+   * whether somebody remembered to type a field.
+   *
+   * {@link getAuthoredHoldS} is the raw field, for anything that needs to
+   * know whether a number was written down.
+   */
   getHoldS(): number {
+    return this.holdS > 0 ? this.holdS : ThermalDose.defaultHoldS();
+  }
+
+  /** The hold exactly as authored; `0` ⇒ the author named none. */
+  getAuthoredHoldS(): number {
     return this.holdS;
+  }
+
+  /** The working's heat ceiling (K); `0` ⇒ it states none. */
+  getMaxHeatK(): number {
+    return this.maxHeatK;
   }
 
   /** What the working does to the output's water state; `null` ⇒ nothing. */

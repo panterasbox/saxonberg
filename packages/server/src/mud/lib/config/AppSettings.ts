@@ -1187,6 +1187,37 @@ export const AppSettingKeys = {
   /** Wetness — saturation at/above which the band reads `soaked`. */
   wetnessBandSoakedAt: "wetness.band.soakedAt",
 
+  /* ────────────────────────── thermal dose (doneness) ────────────────────────── */
+  /**
+   * ⭐⭐ Doneness — how much cooking a thing has had, integrated over time
+   * and temperature (`ThermalDoseMixin` + `BulkPayload.dose`). The F-value
+   * form: `dose += 10^((T - Tref)/z) dt` above the floor.
+   *
+   * ⚠ The BROWNING curve, not the kill's — see `freshness.kill*`, which is
+   * an Arrhenius with a far steeper effective z. Two different physics on
+   * purpose; re-basing them onto one integrator would make one a lie.
+   *
+   * ⚠⚠ Deliberately NOT under `freshness.dose.*`, which already exists and
+   * means the ptomaine dose a spoiled serving carries.
+   */
+  /** Doneness — the reference temperature (K) the dose is denominated in
+   * (water's boiling point: one dose-second = one second of simmering). */
+  thermalDoseReferenceK: "thermal.dose.referenceK",
+  /** Doneness — the decade interval (K): every `z` above the reference
+   * multiplies the browning rate tenfold. */
+  thermalDoseZK: "thermal.dose.zK",
+  /** Doneness — below this temperature (K) nothing cooks at all. */
+  thermalDoseFloorK: "thermal.dose.floorK",
+  /** Doneness — the char point (K) for matter whose working states no
+   * ceiling of its own (`Recipe.maxHeatK: 0`). */
+  thermalDoseDefaultCeilingK: "thermal.dose.defaultCeilingK",
+  /** Doneness — seconds above the ceiling that read as scorched. */
+  thermalDoseScorchedAtS: "thermal.dose.scorchedAtS",
+  /** ⭐ The hold (game-seconds) a recipe that authors none is taken to
+   * have. `holdS: 0` means "the author did not say", never
+   * "instantaneously" — the zero used to short-circuit the kill. */
+  thermalDoseDefaultHoldS: "thermal.dose.defaultHoldS",
+
   /* ────────────────────────── freshness (spoilage) ────────────────────────── */
   /**
    * Spoilage — the per-object microbial-load gauge's magnitudes

@@ -88,6 +88,7 @@ import type { Metabolic } from '../lib/metabolism/Metabolic';
 import type { Thermal } from '../lib/thermal/Thermal';
 import type { Wet } from '../lib/wetness/Wet';
 import type { Fresh } from '../lib/material/Freshness';
+import type { Dosed } from '../lib/thermal/ThermalDose';
 import type { Cured } from '../lib/material/Cured';
 import type { Contaminable } from '../lib/material/Contaminable';
 import type { Growing } from '../lib/husbandry/Growing';
@@ -1236,6 +1237,21 @@ export class MixinApi {
    */
   public static isFresh(obj: Stuff): obj is Stuff & Fresh {
     return this.hasMixin(obj, Mixins.Fresh);
+  }
+
+  /**
+   * A host carrying the **doneness** gauge — how much cooking it has had.
+   * Composed on `Provision` (every food can be cooked), so the predicate
+   * is true of all food; what decides whether it reads as anything is
+   * whether it has been near heat.
+   *
+   * ⚠ Distinct from {@link isFresh} in both direction and physics: that
+   * integrates a population under a growth law with a water-activity
+   * term, this integrates browning under a decade interval. They must
+   * not be re-based onto one integrator.
+   */
+  public static isDosed(obj: Stuff): obj is Stuff & Dosed {
+    return this.hasMixin(obj, Mixins.ThermalDose);
   }
 
   /**

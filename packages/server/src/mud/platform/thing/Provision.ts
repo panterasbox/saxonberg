@@ -15,6 +15,7 @@
 import Thing from '../../lib/stuff/Thing';
 import { DetailedMixin } from '../../lib/description/Detailed';
 import { ThermalMixin } from '../../lib/thermal/Thermal';
+import { ThermalDoseMixin } from '../../lib/thermal/ThermalDose';
 import { FreshnessMixin } from '../../lib/material/Freshness';
 import { CuredMixin } from '../../lib/material/Cured';
 import { ContaminableMixin } from '../../lib/material/Contaminable';
@@ -35,8 +36,18 @@ import type { Crafted } from '../../lib/craft/Crafted';
 // matter's own water state, and only one of them is true of a hide or a
 // plank. They coincide on `Provision` today and the split is what lets a
 // tannery dry a skin without claiming it ferments.
+// ⭐ ThermalDose OUTSIDE Thermal and INSIDE Crafted, and the ordering is
+// the claim: the gauge reads its host's temperature (so Thermal must be
+// beneath it) and reads the working it was made by to know what "done"
+// would even mean (so Crafted must be above it). **Every food can be
+// cooked** — true of this class by name, which is the whole reason the
+// gauge is here and not on `Thing`.
 const ProvisionBase = CraftedMixin(
-  ContaminableMixin(CuredMixin(FreshnessMixin(ThermalMixin(DetailedMixin(Thing))))),
+  ContaminableMixin(
+    CuredMixin(
+      ThermalDoseMixin(FreshnessMixin(ThermalMixin(DetailedMixin(Thing)))),
+    ),
+  ),
 );
 
 /**
