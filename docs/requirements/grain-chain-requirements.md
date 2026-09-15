@@ -135,9 +135,13 @@ all already there.
   reach done, and then go past it.
 - **Anything that can be cooked can be overcooked.** One ceiling, one
   burnt outcome, six consumers.
-- **The microbial kill becomes honest.** Pasteurization units rather
-  than a threshold crossing, which makes a sear, a simmer and a lazy
-  warm-through three genuinely different acts of food safety.
+- **The microbial kill stops being optional.** ⚠ Corrected at grounding:
+  a rate-based kill already ships (`killOver`, a real per-organism
+  Arrhenius curve) — but it is gated behind a threshold *and* only
+  integrates when a recipe authors a non-zero hold, which **no shipped
+  recipe does**. So today it still behaves as ">60 °C once". The goal is
+  that a sear, a simmer and a lazy warm-through differ **by default**,
+  not only where an author remembered to say so.
 - **Milling has three paying customers on day one** — the baker, the
   brewer and the distiller — and undercuts the import faucet rather than
   being handed a monopoly.
@@ -216,7 +220,11 @@ Every one names where it goes.
   the metal chain's to adopt. → `metal-chain-slate.md`.
 - **An acidity read for the lactic family** (sourdough's sourness as a
   number) — the hydrometer pattern with a different instrument; SG and
-  ABV mean nothing for dough. → `instrumentation-slate.md`.
+  ABV mean nothing for dough. ⚠ And **the word is already taken**:
+  `measure acidity` ships as `trade-farming`'s *soil* pH read off a test
+  kit. A batch-acidity read is a second claimant on one `measure`
+  stanza, which is the instrumentation split's problem, not this
+  build's. → `instrumentation-slate.md`.
 
 ---
 
