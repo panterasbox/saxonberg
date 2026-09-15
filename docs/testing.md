@@ -67,6 +67,30 @@ The post-review and sweep runs are where the duplication is.
 the full lint/test/build runs once before merge; re-running it locally
 for a docs-only change is doing CI's job by hand.
 
+### ⚠⚠ `pnpm test` does NOT include the wire suite
+
+`packages/wire` has its own command (`pnpm wire`) and is **not** reached
+by `pnpm test`. That is fine for most builds and was nearly a hole in
+one: the 2026-09 statics sweep collapsed the command binder's four
+duplicated scope walks into one and reached the MR with **no end-to-end
+coverage of the change at all** — every unit suite passed, because every
+unit suite builds its own model and never walks a scope.
+
+> ⭐ **If a branch touches dispatch, the binder, MQL resolution or a
+> command view's args, run `pnpm wire` before the MR.** It is the only
+> thing that drives a real socket against a real world, and it is
+> therefore the only thing that can tell you the refactor still binds.
+
+⚠ And read its dirty-run warning before believing a failure. Ten wire
+files cannot run twice against the same world — they consume stock that
+nothing produces again. A second run reported two `presentation`
+failures that were **artifacts of the first run**, not regressions; on a
+reset DB the same tree was 139/139. The reset is one command:
+
+```bash
+pnpm --filter @saxonberg/server reset:db     # then re-run
+```
+
 ### ⭐⭐ The exemption that keeps getting invented
 
 The table above has been in this doc for a while and the full suite

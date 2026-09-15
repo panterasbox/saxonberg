@@ -4425,12 +4425,14 @@ broken in `lib/`. The public constructor is not a loophole — it is the
 rather than a visibility trick.
 
 ⚠ **It is not only factories.** The census
-(`scripts/check-lib-statics.ts`) found **136 classes / 461 statics**, and
-**318 of them are domain LOGIC** — `Freshness.growthRate`,
-`Contamination.advance`, `CombatNarration.narrate`. Those are **logic
-singletons that never got the memo**: `platform/idea/api/<X>Logic.ts` is
-the home, and `CLAUDE.md` already calls the `XApi` ↔ `XLogic` split
-**mandatory**.
+(`scripts/check-lib-statics.ts`) opened at **563 statics across 159
+classes** and the 2026-09 sweep drove it to **337**. ⭐ What it found on
+the way is the part worth carrying: of 40 rows filed *"inline and
+delete"* from their caller counts, **5 actually were**. The bodies
+overruled the dispositions almost every time, and the remainder resolved
+into categories rather than into one rule — record finders on `Document`
+subclasses, pure value arithmetic, type predicates over a closed
+same-file string union, and factories. See the slate for the ladder.
 
 ⚠ Two traps when fixing one:
 
@@ -4439,6 +4441,19 @@ the home, and `CLAUDE.md` already calls the `XApi` ↔ `XLogic` split
   (`NounPhrase.ts`'s vowel check) and let the Api be its only public
   surface — `api/grammar.ts` → `lib/description/NounPhrase.ts`, never
   back.
+- ⚠⚠ **And the cycle is not only the value class's OWN Api.** Moving
+  `BlendIdentity.nameOf` onto `CraftingApi` meant `api/mql/scope-walk.ts`
+  had to import `CraftingApi` — which drags `CraftingLogic`'s entire
+  import graph in behind it and closes a load-time loop back onto the
+  mixin factories. The symptom is **`TypeError: ContainableMixin is not a
+  function`, thrown at import**, in suites that have nothing to do with
+  crafting; it took a bisection of a 45-file changeset to find, because
+  nothing in the error names the edge that caused it.
+  > ⭐ **The test before adding `import { XApi }` to a low-level file:
+  > does anything BELOW you import you?** `api/mql/**`, `lib/stuff/**`
+  > and `lib/description/**` are imported by nearly everything, so for
+  > them the answer is always yes — they keep calling the `@internal`
+  > static, and the Api door exists for everybody else.
 - **`lint:family` will not catch the related export smell.** Free
   exported functions in `lib/` are an **ESLint** rule
   (`no-restricted-syntax`), not a `lint:*` gate. ⭐ *A rule that is not

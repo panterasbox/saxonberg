@@ -60,6 +60,7 @@
     "lint:pathogens": "tsx scripts/check-pathogens.ts",
     "lint:arg-kinds": "tsx scripts/check-arg-kinds.ts --lint",
     "lint:mixin-names": "tsx scripts/check-mixin-names.ts --lint",
+    "lint:binder-models": "tsx scripts/check-binder-models.ts --lint",
     "lint:descriptors": "tsx scripts/check-descriptor-banks.ts",
     "lint:dispositions": "tsx scripts/check-dispositions.ts",
     "lint:condition-arms": "tsx scripts/check-condition-arms.ts",

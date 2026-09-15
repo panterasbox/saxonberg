@@ -44,6 +44,42 @@ That is the reusable shape for any antipattern worth removing:
 Step 2 is the affordable part: a new antipattern can be stopped from
 growing the day it is noticed, without being fixed first.
 
+### ⚠⚠ Three ways a census lies, all three paid for in 2026-09
+
+**1. A classifier that reads the NAME instead of the thing.** The
+`lib/` statics sweep filed 40 rows as *"inline and delete"* from their
+caller counts; reading the bodies, **5 actually were**. It filed 15
+`isX`-named functions as vocabulary guards; they were pure arithmetic
+that had landed there by their prefix. It warned that `TravelNodes.of`
+had *"~129 call sites, check before touching"*; it had **zero** — the
+grep had counted the `TravelNode` TYPE. And `check-formulae` shipped
+counting mixin FACTORIES as single formulas, because a factory's body is
+an entire class.
+
+> ⭐ **A census's classifier must read the thing it classifies.** A
+> signature scan is a way to find candidates, never a disposition — and
+> a count derived from one is not evidence, so say so when you publish
+> it.
+
+**2. A ratchet whose own test pins the number.**
+`check-lib-statics.test.ts` asserted `expect(LIB_STATICS_CEILING)
+.toBe(392)` under the title *"holds a ceiling that may fall and may
+never rise"* — so the one thing a ratchet exists to permit was a failing
+test. The gate could not see the disagreement, because `--lint` reads
+the constant while the test kept a copy; four lowerings passed it and
+only the full suite found the pin.
+
+> ⭐ **A ratchet's test asserts the INVARIANT, not the number** — at or
+> below the high-water mark, and above zero. Then a sweep lowers the
+> constant and touches nothing else.
+
+**3. A gate that has never been seen to fail.** `lint:binder-models`
+reported zero the moment it was written, which is indistinguishable from
+a gate that cannot report anything. It was proved by reverting a real
+fix and watching it fire, and then pinned with fixtures that assert the
+POSITIVE — a violation is found — not merely that a clean tree is clean.
+⚠ This repo has shipped broken gates that silently passed before.
+
 ---
 
 ## Architecture & call security
@@ -158,6 +194,19 @@ growing the day it is noticed, without being fixed first.
   on a required mixin with no refusal phrase — `MixinRefusals` for a
   kernel one, `static _mixinRefusal` for a pack's, because a pack cannot
   edit a kernel const.
+- ⭐⭐ **`lint:binder-models`** — a controller test that builds its model
+  **by hand** skips the binder, so the day a view DECLARES an object arg
+  the test still compiles, still passes, and the controller reads
+  `undefined` in production. The gate joins each view's
+  always-bound args (`required: true`, or ⭐ optional **with a
+  `default:`** — the shape that actually bites) to every test that
+  constructs that controller and passes an object literal to `.execute`.
+  ⚠ Its ceiling is 0 and the point is **not** that it stays there: it is
+  that declaring a new object arg RAISES the census, so the gate fails
+  in the same commit and the tests are fixed there. Written after
+  `consign` gained a `shelf` arg and three suites — including a BRAIN
+  suite, which nobody had thought to check — shipped broken for several
+  commits behind a note in a slate.
 - ⭐⭐ **`lint:mixin-names`** — the gate on the **flat mixin namespace**.
   A mixin is addressed by a reserved name in one global namespace, which
   survived only because that namespace was the kernel's alone. It stopped
