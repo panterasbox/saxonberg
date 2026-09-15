@@ -23,12 +23,25 @@ missing from every butchered carcass.
 Every fact below was verified by opening the file this cycle. Paths are
 repo-relative; `mud/` means `packages/server/src/mud/`.
 
+> ⭐⭐ **Re-grounded 2026-09-15**, against master at the merge of the
+> presentation build (MR !255) and the lib-statics build (MR !256) —
+> together some 350 files. Every claim in this section was re-checked
+> **by symbol**, and every `file.ts:NNN` re-pinned to where the symbol
+> actually is now. What survived unchanged: the `Creature` stack, the
+> Handling and Metabolic constants (so Risk 4's lethality arithmetic
+> still holds exactly), `EstateEntry` carrying no `key`, the 14
+> `PersistableMixin` composers, the free/taken verb split, the five
+> Disciplines, and the farm-dog's `cadenceMs` — the collie's brain
+> **still** has never run. What changed is recorded inline at each
+> site, and the four gates added since are in § Convention conformance.
+> ⚠ Line numbers are advisory: grep the symbol, not the line.
+
 ### Wave 0 — the three defects, as they stand
 
 - **`hydrateBeliefs()`** — `mud/lib/belief/BeliefStore.ts:533`, gated
   `@CallSecurity(SecurityPolicies.SelfOnly)` (a frame whose caller is
-  reference-identical to the target — `SecurityPolicies.ts:65`). Exactly
-  one caller in the tree: `mud/platform/agent/Avatar.ts:838`, from
+  reference-identical to the target — `SecurityPolicies.ts:610`). Exactly
+  one caller in the tree: `mud/platform/agent/Avatar.ts:853`, from
   `Avatar.enter`. The **write** path is already viewer-agnostic:
   `viewerKey()` (`BeliefStore.ts:315`) is `viewer.getIdentityPath()`, and
   `writeRecordImpl` upserts a `BeliefDocument` for any viewer with a
@@ -36,8 +49,8 @@ repo-relative; `mud/` means `packages/server/src/mud/`.
 - **Who writes NPC regard today:** `mud/lib/npc/DialogueConversation.ts:385`
   (`this.npc.adjustRegard(this.player, effect.delta)`),
   `mud/platform/idea/cmd/social/IntroduceController.ts:138`,
-  `mud/platform/idea/api/ContractLogic.ts:328`,
-  `mud/platform/idea/api/CombatLogic.ts:4841`. Readers:
+  `mud/platform/idea/api/ContractLogic.ts:439`,
+  `mud/platform/idea/api/CombatLogic.ts:5259`. Readers:
   `DialogueConversation.ts:342` (tree conditions), `ProfileLogic.ts:246`,
   `lib/trait/Dispositioned.ts:362`.
 - **The five W0 consumers** are all `tree-dialogue` rows on the `Cast`
@@ -46,7 +59,7 @@ repo-relative; `mud/` means `packages/server/src/mud/`.
   (`eternal-university/.../duncan-hall/agent/katie.yaml`), Odile
   (`terminus/.../registry/clerk.yaml`, `/platform/agent/Cast`). `CastMixin`
   composes `SingletonMixin` (`mud/lib/npc/Cast.ts`), and
-  `CastMixin.postRegister` (`Cast.ts:141`) chains super then seeds the
+  `CastMixin.postRegister` (`Cast.ts:157`) chains super then seeds the
   dossier — the natural hydrate seam.
 - **`Extra`** — `mud/platform/agent/Extra.ts` is `class Extra extends NPC {}`.
   Four rows tree-wide: newbie-wilds sentry + wolf, rejection hewer,
@@ -78,7 +91,7 @@ repo-relative; `mud/` means `packages/server/src/mud/`.
 ### Wave 1 — hosts and substrate
 
 - **`BeliefStoreMixin`** — factory `BeliefStoreMixin<TBase extends MixinConstructor>`
-  (`BeliefStore.ts:371`), composed at `mud/lib/character/Character.ts:110`
+  (`BeliefStore.ts:371`), composed at `mud/lib/character/Character.ts:112`
   innermost of the agency stack; the composition comment (`:80`) says
   *"it reads nothing from the other mixins, so position is free."* Imports
   only Stuff / StuffApi / PersistApi / BeliefDocument / security. Realms:
@@ -87,9 +100,9 @@ repo-relative; `mud/` means `packages/server/src/mud/`.
   (`:605–660`), sealed `@Final @Unshadowable`, keyed on the subject's
   `getIdentityPath()`. `isLearned` (`:292`) persists a record only when
   `knownAs` is set, `typeKnown` is true, or `regard ≠ 0`.
-  `MixinApi.isBeliefStore` at `mud/api/mixin.ts:1283`.
+  `MixinApi.isBeliefStore` at `mud/api/mixin.ts:1475`.
 - **The per-mixin persistence hooks** — `PersistenceContributor`
-  (`mud/api/mixin.ts:215`) carries optional static `captureSlice(host, ctx)`
+  (`mud/api/mixin.ts:239`) carries optional static `captureSlice(host, ctx)`
   / `restoreSlice(host, slice, ctx)`; `getPersistenceContributors` (`:623`)
   walks own-`_mixinName` layers. `EstateMixin` (`mud/lib/chattel/Estate.ts:166`)
   is the exemplar of both.
@@ -103,7 +116,7 @@ repo-relative; `mud/` means `packages/server/src/mud/`.
   `MixinConstructor<Stuff>` — reading the species must narrow through
   `MixinApi.isOrganism`.
 - **`Species`** — `mud/platform/idea/species/Species.ts`. `fieldMeta`
-  (`:525–560`): `lifespanMin` / `lifespanMax` are `{ persistent: true }`
+  (`:522–546`): `lifespanMin` / `lifespanMax` are `{ persistent: true }`
   without `authorable`. ⚠ Rows *do* author them today (dog `lifespanMax: 15`,
   wolf 15, canary 10) and the Hydrator writes any **persistent** field —
   the `authorable` flag gates the studio schema, not YAML hydration.
@@ -111,8 +124,8 @@ repo-relative; `mud/` means `packages/server/src/mud/`.
   `AgeCurveSpec.senescentAt` (`:160`) exists and **nothing in the tree
   reads it**. `lifeStageAt(ageDays)` (`:745`) returns `aged` for anything
   past `agedAt`. `getLifespanMax` has one reader, the char-gen dossier
-  (`SpeciesLogic.ts:143`). `sentient` (`:424`, default `false`) is what
-  `SpeciesApi.isSentient` (`mud/api/species.ts:115`) reads; ⚠ it answers
+  (`SpeciesLogic.ts:144`). `sentient` (`:424`, default `false`) is what
+  `SpeciesApi.isSentient` (`mud/api/species.ts:116`) reads; ⚠ it answers
   `false` for an un-warmed species. `olfactoryProfile.acuity` is authored
   per species (`OLFACTORY_ACUITY_VALUES`). `butcheryYield` is authorable;
   `getButcheryYield()` ships.
@@ -128,9 +141,10 @@ repo-relative; `mud/` means `packages/server/src/mud/`.
   See D9 and § Risks.
 - **`Creature`** — `mud/lib/creature/Creature.ts:134`. Composes (outer→inner)
   `Chattel · Branded · Postmortem · Concealable · LoadBearing · Container ·
-  Containable · Disguisable · Visible · ThermalRegulation · Thermal ·
-  Respiration · Metabolic · Vitals · Reserved · Posed · Slottable · Attired ·
-  BodyPlanSlots · Slotted · Organism · Propertied` over `Agent`.
+  Containable · Disguisable · **Perceptible** · Visible · ThermalRegulation ·
+  Thermal · Respiration · Metabolic · Vitals · Reserved · Posed · Slottable ·
+  Attired · BodyPlanSlots · Slotted · Organism · Propertied` over `Agent`
+  (22 layers; re-verified in order 2026-09-15).
   ⚠⚠ **Superseded by the presentation build (2026-09-10), and in both
   directions:** `Named` is **off** `Creature` (a body is not a somebody
   — it composes on `CastMixin` and on `Avatar`), and `Perceptible` is
@@ -141,12 +155,17 @@ repo-relative; `mud/` means `packages/server/src/mud/`.
   now arrives from the base and would be a double declaration.
   ⚠ It still composes **no** `Behaved`, `PostRegistration`, `Mobile`,
   `Engaged`, `Sensor`, `Status` or `Persistable`. `Character`
-  (`Character.ts:93`) adds the agency stack including `Mobile`, `Engaged`,
+  (`Character.ts:95`) adds the agency stack including `Mobile`, `Engaged`,
   `Sensor`, `BeliefStore`, `Persona`, `Vocal`, `Caster`.
 - ⚠⚠ **The farm dog's brain has never run.** `WorkingAnimal`
   (`packages/content/trade-ranching/src/agent/WorkingAnimal.ts`) is
-  `HandledMixin(HandlingMixin(PerceptibleMixin(Creature)))` — no
-  `BehavedMixin`, no `PostRegistrationMixin`. The row
+  `HandledMixin(HandlingMixin(Creature))` — no `BehavedMixin`, no
+  `PostRegistrationMixin`. ⚠ It read
+  `HandledMixin(HandlingMixin(PerceptibleMixin(Creature)))` when this
+  plan was written; the presentation build deleted the local
+  `PerceptibleMixin` from both `WorkingAnimal` and `Livestock` when it
+  put `Perceptible` on `Creature` — ⭐ *a fix that needs a local
+  re-composition usually means the host is wrong one level up*. The row
   (`trade-ranching/content/trade/ranching/agent/farm-dog.yaml`) authors
   `behaviors: [{ brain: /trade/ranching/behavior/herds, cadenceMs: 300000 }]`:
   the `behaviors` field is `BehavedMixin`'s (`Behaved.ts:117`) so the
@@ -172,7 +191,7 @@ repo-relative; `mud/` means `packages/server/src/mud/`.
   **no-ops on a host without Vocal/Soul** — an animal's behaviour must be
   emitted with `MessageApi.scene(host)`. `wanders.ts` is the traversal
   exemplar (`LocomotionApi.traverseWithDefault(mob, exit)` requires
-  `Stuff & Mobile & Containable`). `Behaved._currentPlayers` (`Behaved.ts:498`)
+  `Stuff & Mobile & Containable`). `Behaved._currentPlayers` (`Behaved.ts:499`)
   counts a room occupant as audience iff it is a `Sensor` and **not**
   `Behaved` — so a Behaved animal never keeps another brain awake.
   Cadence fires gate on `AppApi.isWorldOpen()` (`:405`). Witness triggers
@@ -188,7 +207,7 @@ repo-relative; `mud/` means `packages/server/src/mud/`.
   locked · closed …`; `Exit.getDestination()` (`:320`) is sync,
   `resolveDestination()` (`:727`) is `StuffApi.singleton(path)` — rooms are
   lazy and clone on first resolve. Only pack `boot:` entries are eager
-  (`backend/BootstrapManager.ts:198`). No kernel pathfinding exists; the
+  (`backend/BootstrapManager.ts:201`). No kernel pathfinding exists; the
   only BFS is transport's `ServiceRoute` (a pack).
 - **Doors** — `Door = LockableMixin(SealableMixin(Boundary))`; all three
   conduits and `Exit.canTraverse` gate on `isOpen()`
@@ -206,14 +225,14 @@ repo-relative; `mud/` means `packages/server/src/mud/`.
   `BulkableApi.ingestSolid(giver, material, portion, payload)`
   (`mud/api/bulk.ts:168`); then `StuffApi.destruct(target)`. The dish arm
   uses `Freshness.ingestPayloadOf(slot)`. `MetabolicMixin.ingest` is
-  `Metabolic.ts:1115`. Gauges: `getFreshnessBand()`
-  (`mud/lib/material/Freshness.ts:687`, bands
+  `Metabolic.ts:1236`. Gauges: `getFreshnessBand()`
+  (`mud/lib/material/Freshness.ts:803`, bands
   `fresh · tainted · spoiled · rotten`), `getPathogenLoads()`
-  (`mud/lib/material/Contaminable.ts:587`). A contaminated thing renders
+  (`mud/lib/material/Contaminable.ts:613`). A contaminated thing renders
   **identically** to a clean one (`docs/subsystems/spoilage.md § What a
   player sees`) — the silent population the requirements build on.
 - ⭐⭐ **Metabolism and absence.** `MetabolicMixin.reconcileMetabolism`
-  (`Metabolic.ts:554`) drops any gap over `MAX_REASONABLE_GAP_SEC = 4 game
+  (`Metabolic.ts:579`) drops any gap over `MAX_REASONABLE_GAP_SEC = 4 game
   hours` (`:203`) **unless `integratesLongAbsence()`** (`:669`), which is
   `isChattel && isStamped()` — *"yes iff somebody owns it."* Full→empty at
   basal: hydration 2.3 game-days, satiation 3.5 game-days; then
@@ -226,27 +245,27 @@ repo-relative; `mud/` means `packages/server/src/mud/`.
   `setPersistenceKey(key, explicit=true)`, `isPersistenceKeyExplicit()`
   (sticky), `shouldPersist()`, `capturesAtShutdown()`, `markForRevert()`,
   `seedBornWith()`, `reseedCast()`. Composed **outermost** by all 14
-  composers; none is a Creature. `Plant.ts:230` mints a uuid key lazily
+  composers; none is a Creature. `Plant.ts:222` mints a uuid key lazily
   on `getPersistenceKey()`. `postRegister` no longer auto-drives; the
   establishing context does (`PersistableApi.restoreOrSeed`, or
   `cloneHost` for a nested `{ref,key}`).
 - **The spine's shape that a pet fits** — `captureItem`
-  (`PersistableLogic.ts:490`) emits `{ ref, key }` for an explicitly keyed
-  nested host; `cloneHost(scope, key)` (`:~700`) clones a fresh shell,
-  stamps the key, `materializeImpl`s it. `assertUniqueKey` (`:136`) scans
+  (`PersistableLogic.ts:467`) emits `{ ref, key }` for an explicitly keyed
+  nested host; `cloneHost(scope, key)` (`:~717`) clones a fresh shell,
+  stamps the key, `materializeImpl`s it. `assertUniqueKey` (`:137`) scans
   `StuffApi.findAllByTemplatePath(scope)` for a live sibling with the same
-  key. `capturePlacement` (`:160`) records a top-level Containable host's
+  key. `capturePlacement` (`:159`) records a top-level Containable host's
   own `place` (`{container}` or `{container, containerKey}`) and records
   `null` for a host nested under another persistable host.
-  `restorePlacement` (`:197`) lands it via `ContainmentApi.resolveLanding` /
-  `StuffApi.singletonOrClone`. `placeIdOf(host)` (`:800`) is
+  `restorePlacement` (`:198`) lands it via `ContainmentApi.resolveLanding` /
+  `StuffApi.singletonOrClone`. `placeIdOf(host)` (`:840`) is
   `scope` or `scope#key` (explicit keys only).
 - **The estate** — `EstateEntry` (`mud/lib/persistence/PersistenceSlice.ts:110`)
   is `{ chattelId, templatePath, state, place, mounted? }` — **no `key`**.
   `Estate.captureSlice` (`Estate.ts:166`) re-captures every live good's
   full `state`; `restoreSlice` (`:190`) mints only `place === inventory`
   entries and leaves a room `place` for that room's overlay.
-  `overlayOwnedGoods` (`PersistableLogic.ts:829`) runs only inside
+  `overlayOwnedGoods` (`PersistableLogic.ts:869`) runs only inside
   `restoreRecord` — i.e. only for **persistable** rooms — and
   `flushSkippedOwnedGoods` (`:385`) pushes a skipped good's `captureState`
   into its owner's estate. ⚠ So a stamped good standing in a **public,
@@ -265,18 +284,18 @@ repo-relative; `mud/` means `packages/server/src/mud/`.
   `chattelOwner()` (async). The `chattel` row carries the by-room `place`
   index (`ChattelRegistry.placedIn`, `ChattelRegistry.ts:84`).
   `ChattelApi` statics: `evictToStorage · placedIn · release`.
-- **Recognition** — `mud/platform/idea/api/RecognitionLogic.ts:314`: the
+- **Recognition** — `mud/platform/idea/api/RecognitionLogic.ts:345`: the
   instance-recognition branch runs for **every `Organism`** — a stranger
   sees an unrecognized organism's `strangerStem` (its `shortDescription`),
-  never its `Named.name`. `MixinApi.isPersona` (`mixin.ts:781`) narrows to
+  never its `Named.name`. `MixinApi.isPersona` (`mixin.ts:973`) narrows to
   the `PersonaMixin` composers (Character only). `Stuff.getPresentation()`
-  (`Stuff.ts:197`) is `Named.name ?? shortDescription`.
+  (`Stuff.ts:252`) is `Named.name ?? shortDescription`.
 - **Look prose** — `MarkupAugmenter = (text, host, viewer, opts?) => string`
-  (`mud/api/mml.ts:129`); `Mml.augment` walks every contributing mixin's
+  (`mud/api/mml.ts:130`); `Mml.augment` walks every contributing mixin's
   `static markupAugmenters` (Freshness, Cured, Dyed, Maturing, Bulkable are
   the composers). `StatusMixin` (`docs/subsystems/belief.md § StatusMixin`)
   is the presence affix the room roll-call renders; `MixinApi.isStatus`
-  at `mixin.ts:1295`. `Livestock.stockmanRead()` renders the handling
+  at `mixin.ts:1487`. `Livestock.stockmanRead()` renders the handling
   phrase only inside ranching verbs' own scene lines.
 - **`PopulatesMixin`** composes on `CartesianLocation` (`:55`) so the lane
   takes `props:` / `cast:`; a Behaved entry must be `cast:` (the class is
@@ -322,12 +341,13 @@ repo-relative; `mud/` means `packages/server/src/mud/`.
   `inventory` holds `give`, `put`, `drop`. A verb affordance is a
   **static on a class or mixin** (`HandledMixin` is the pure-carrier
   exemplar); a row's `commandContributions:` is dead.
-- **The gates.** 27 `lint:*` scripts in `packages/server/package.json:38–67`,
-  run as one by `lint:family` (derived roster). `check-perishable.ts` is
+- **The gates.** 39 `lint:*` scripts in `packages/server/package.json`
+  (29 when this plan was written), run as one by `lint:family` (derived
+  roster — never enumerate them; `lint:family --list` prints it). `check-perishable.ts` is
   the textual data→class gate to mirror: it walks every pack's rows,
   finds enabling data (`spoilActivationEnergy`), and fails a row whose
   class's composition (followed through `extends` and imports) does not
-  reach the required mixin. `check-identity.ts:240` censuses characters
+  reach the required mixin. `check-identity.ts:285` censuses characters
   **by `behaviors:`**, classifies `Cast` vs `Extra` by whether the class
   composes `CastMixin`, and applies the article rules — a non-Cast animal
   row with an indefinite `shortDescription` and no `name` passes.
@@ -364,7 +384,7 @@ requirements' *"an unnamed animal is free."*
 
 ### D2 — Hydration seams: `postRegister` for a singleton, the slice for a keyed host
 
-- **Singleton NPCs (W0):** `CastMixin.postRegister` (`Cast.ts:141`) gains
+- **Singleton NPCs (W0):** `CastMixin.postRegister` (`Cast.ts:157`) gains
   `await this.hydrateBeliefs()` after the super chain — a self-call from
   an instance method, which is what `SelfOnly` admits (the `Avatar.enter`
   shape). Write-through per record is already live, so no flush seam is
@@ -528,7 +548,7 @@ two predicates inside.
   `0.9` complies once well bonded; a half-bonded collie does not.
 - `canEvict` vetoes while stamped and alive — a named animal is not a cold
   object (the `HasInteractive`/`WarrenMember` shape).
-- `static commandContributions.peers = ['platform/cmd/social/pet.yaml', 'platform/cmd/social/call.yaml', 'platform/cmd/social/wait.yaml', 'platform/cmd/social/name.yaml', 'platform/cmd/inventory/offer.yaml']`
+- `static commandContributions.peers = ['platform/cmd/social/pet.yaml', 'platform/cmd/social/call.yaml', 'platform/cmd/social/stay.yaml', 'platform/cmd/social/name.yaml', 'platform/cmd/inventory/offer.yaml']`
   — the verbs are afforded by the animal, to whoever stands beside it.
 - A `markupAugmenter` appending the bearing line to `look`: handling band
   phrase (`handlingPhrase()`, shipped) plus one of three bond sentences
@@ -584,11 +604,11 @@ inside the boundary the latter drew. The sweep must update `race.md`.
 
 ### D10 — An animal's name is public: recognition withholds names from **persons** only
 
-`RecognitionLogic.ts:315`: the instance-recognition branch narrows from
+`RecognitionLogic.ts:345`: the instance-recognition branch narrows from
 `MixinApi.isOrganism(target)` to `MixinApi.isPersona(target)`. A
 non-person organism renders its presentation (`Named.name`, else
-`shortDescription`) to every viewer: an unnamed stray is "a thin cat" to
-all, and Mouse is "Mouse" to all. `NameController` also runs
+`shortDescription` rendered through its `register:`) to every viewer: an
+unnamed stray is "a thin cat" to all, and Mouse is "Mouse" to all. `NameController` also runs
 `learnIdentityOf` over everyone present (the `introduce` shape) so the
 naming is a witnessed act. Why: recognition exists so a *person* can be a
 stranger, disguised, or impersonated; an animal cannot be any of those
@@ -838,6 +858,30 @@ Checked at plan time against the current tree:
   `lint:object-verbs`, `lint:test-bootstrap`, `lint:does-nothing`,
   `lint:world-scan` (the registry's warm reads the collection, not a
   world scan), plus the new `lint:kept-animals`.
+- ⚠⚠ **Ten gates were added after this plan was written** (29 → 39;
+  the roster is DERIVED from `package.json`, so they all run whether or
+  not a plan names them). Baseline re-verified 2026-09-15: **all 39
+  pass** on master. The four that bite this build:
+  - **`lint:verb-collisions`** — two views may not claim one verb. This
+    is now the mechanical enforcement of Risk 5: the wave that adds
+    `stay.yaml` must drop `stay` from `intervene.yaml` in the same
+    commit, or the gate fails. ⭐ It exists because a second view
+    claiming a verb used to **shadow the first silently** — nine
+    collisions had shipped.
+  - **`lint:binder-models`** — five new arg-bearing views land here, and
+    a controller test that builds its model by hand skips the binder
+    entirely. The gate exists because a declared arg on `consign` broke
+    `farms`, `cellars` and `restocks` mid-branch with every test green.
+  - **`lint:presentation`** — no article on a stem, ceiling 0. See W1d.
+  - **`lint:drive-scripts`** — ceiling 0. See W1e.
+  Satisfied already: **`lint:mixin-names`** (W1a puts `Mixins.Bonded` /
+  `Mixins.Feeder` in the kernel const, which is exactly what it
+  demands — ⚠ and note a *pack* mixin may no longer go there since the
+  2026-09-14 federation; both of these are kernel). Not a constraint:
+  **`lint:lib-statics`** (ceiling 337) **excludes statics declared
+  inside a mixin factory's returned class expression**, so `Bonded`'s
+  and `Feeder`'s `captureSlice` / `restoreSlice` /
+  `commandContributions` do not count against it.
 
 ---
 
@@ -904,10 +948,14 @@ Decisions D4, D6, D7, D8, D9, D10, D14.
   `mud/platform/agent/KeptAnimal.ts` (new, twin),
   `mud/platform/thing/Feeder.ts` (new).
 - `mud/platform/idea/api/RecognitionLogic.ts` — D10.
-- Controllers: `mud/platform/idea/cmd/social/{Pet,Call,Wait,Name}Controller.ts`,
+- Controllers: `mud/platform/idea/cmd/social/{Pet,Call,Stay,Name}Controller.ts`,
   `mud/platform/idea/cmd/inventory/OfferController.ts`. Views:
-  `packages/content/platform/content/platform/cmd/social/{pet,call,wait,name}.yaml`,
-  `.../inventory/offer.yaml` (`wait.yaml` carries `verbs: [wait, settle]`).
+  `packages/content/platform/content/platform/cmd/social/{pet,call,stay,name}.yaml`,
+  `.../inventory/offer.yaml`. ⚠ `stay.yaml` carries `verbs: [stay]` and
+  nothing else — `wait`/`settle` are **retired** (Risk 5, ruled
+  2026-09-08), and this wave is also the one that drops `stay` from
+  `intervene.yaml`. `lint:verb-collisions` is what proves the drop
+  happened before the new view lands.
 - `packages/server/scripts/check-kept-animals.ts` (new) +
   `"lint:kept-animals"` in `packages/server/package.json`.
 - `packages/content/platform/content/platform/idea/KeptAnimal.yaml`? — **no**:
@@ -1011,8 +1059,17 @@ D15.
   `handlingRange: { floor: 0.15, ceiling: 0.9 }`, `biddability: 0.1`.
 - `packages/content/generic-objects/content/stuff/agent/cat.yaml` —
   `/stuff/agent/cat`, `class: /platform/agent/KeptAnimal`,
-  `shortDescription: a thin cat`, `primaryKeyword: cat`, keywords,
-  `handling: 0.25`, `behaviors:` wiring `/lib/behavior/{follows,feeds,homes}`.
+  `shortDescription: thin cat`, `register: indefinite`,
+  `primaryKeyword: cat`, keywords, `handling: 0.25`, `behaviors:` wiring
+  `/lib/behavior/{follows,feeds,homes}`.
+  ⚠⚠ **The article is NOT in the stem.** The presentation build
+  (2026-09-10) moved it out of 634 authored descriptions and into
+  `register: indefinite | definite | proper`, and `lint:presentation`
+  holds *no article on a stem* at **ceiling 0**. Every new row in this
+  wave carries `register:` — the cat, both vessels, the store saucer and
+  both offal rows. ⭐ The same build is why `primaryKeyword:` is worth
+  authoring at all: `PerceptibleMixin` reached `Creature` only then, and
+  before it every agent row's keyword was discarded at hydration.
   ⚠ `generic-objects/package.json` gains `@saxonberg/content-species-and-names`
   as a dependency (the row names a species in that pack; a pack rename or
   new dependency needs `pnpm install` — project memory).
@@ -1020,7 +1077,8 @@ D15.
   — `cast: [/stuff/agent/cat]`.
 - `packages/content/generic-objects/content/stuff/thing/vessel/saucer.yaml`
   and `trough.yaml` — `class: /platform/thing/Feeder`, an interior bulk
-  slot each (the `PlantPot` row is the bulk-slot exemplar).
+  slot each (the `PlantPot` row is the bulk-slot exemplar), each with a
+  stem and `register: indefinite`.
 - `packages/content/terminus/content/world/terminus/general-store/thing/saucer.yaml`
   — the store's own good, mirroring `waterskin.yaml` line for line
   (class `/platform/thing/Feeder`), so the drive can buy one.
@@ -1062,6 +1120,24 @@ dev DB, which is the project's stated policy). Append the record under
 § Drive record. Fix what it finds; commit `drive(pets): <what driving
 found>`. Then `pnpm test` once, push, open the MR.
 
+⭐⭐ **The drive is BORN a wire file** — added 2026-09-08, after this
+plan was written. `lint:drive-scripts` holds a **ceiling of 0** one-off
+`scripts/drive-*.ts`, because five of the nine that existed were dead the
+day after their MR merged and two had been silently failing on master.
+So the steps land as:
+
+```
+packages/wire/tests/pets.dirty.wire.test.ts
+```
+
+`.dirty.` because this flow **consumes** its world: it stamps a stray
+that the lane's `cast:` will not re-mint while a live instance exists
+(§ Risks 7), it names an animal into `holder_snapshots`, and it butchers
+a carcass for the offal. Export a `DIRTY_REASON` that says what is
+consumed, declare the packs the flow needs, and ⭐ offer the reason to
+the owning trade's slate as a one-line finding — a dirty reason is a
+question about a producer that should be producing.
+
 ⚠ Two steps need the friend: step 15 and step 26 (§ Risks). Step 26 must
 be run with the second character refilling the saucer — water and
 scraps — at least once per game day of the absence, or the animal is dead
@@ -1078,7 +1154,7 @@ Each capability, the four links, each of which fails closed and silent.
 | NPC regard survives restart | (none — `talk` already writes) | — | the `beliefs` collection, existing | `Cast.postRegister` hydrates when the NPC's room first clones it |
 | `[mine]` | `find world:mine` (shipped `find`) | `PerceiverMixin.self` (shipped) | the `chattel` in-memory index, warmed by `ChattelRegistry` at boot; the parcel registry likewise | both registries are already in the platform `boot:` list |
 | a role holds no opinion | — | — | — | the `Extra` override is code; nothing to warm |
-| the bond | `pet · offer · call · wait · name` | `BondedMixin.commandContributions.peers` — a static on the mixin, so both `KeptAnimal` and `WorkingAnimal` afford it and neither shadows it (the `HandledMixin` `_mixinName` lesson: the mixin **must** carry `_mixinName` or the affordance is lost on the class that declares its own static) | the species dials on `cat`, `familiaris`, `canaria` | the species Idea is warmed by `SpeciesApi.preloadAnatomy` on the animal's first traverse / the controllers call it before reading `biddability` (the reference-Ideas-inert trap, fourth recurrence — every controller and brain that reads a dial calls `preloadAnatomy` first) |
+| the bond | `pet · offer · call · stay · name` | `BondedMixin.commandContributions.peers` — a static on the mixin, so both `KeptAnimal` and `WorkingAnimal` afford it and neither shadows it (the `HandledMixin` `_mixinName` lesson: the mixin **must** carry `_mixinName` or the affordance is lost on the class that declares its own static) | the species dials on `cat`, `familiaris`, `canaria` | the species Idea is warmed by `SpeciesApi.preloadAnatomy` on the animal's first traverse / the controllers call it before reading `biddability` (the reference-Ideas-inert trap, fourth recurrence — every controller and brain that reads a dial calls `preloadAnatomy` first) |
 | the vessel | `put · fill · pour` (shipped) | shipped on Container / Bulkable | the two vessel rows + the store row | none needed; a Thing clones when bought or when its room's `props:` runs |
 | following / feeding / going home | — | — | the `behaviors:` entries on the three rows — ⚠ the link the collie lacked for a whole build; `lint:census` resolves the brain paths | `Behaved.postRegister` wires at clone; `AppApi.isWorldOpen` releases the beats |
 | the named animal comes back | `name` | as above | its `holder_snapshots` record + the estate reference + the `chattel` row | `KeptAnimalRegistry` in the platform `boot:` list, **after** `ChattelRegistry` (a `boot:` list is install order; the registry's `postRegister` must tolerate a room that has not cloned yet by resolving through `singletonOrClone`) |
@@ -1137,9 +1213,12 @@ Nothing is unmapped. Not covered by any AC but in the goals and delivered:
   world-open gate; that a restart brings Mouse back onto a lane whose
   `cast:` has minted a second stray (§ Risks); that the friend's refill
   keeps the animal alive across step 26.
-- **Gates:** `lint:family` between waves; the new `lint:kept-animals`
-  joins the roster by existing. `pnpm test` runs exactly twice: before
-  the MR and at `/finalize`.
+- **Gates:** `lint:family` between waves (39 gates, ~85s, green on
+  master as of 2026-09-15); the new `lint:kept-animals` joins the roster
+  by existing. `pnpm test` runs exactly twice: before the MR and at
+  `/finalize`. ⚠ The four gates added since this plan that bite are
+  `lint:verb-collisions`, `lint:binder-models`, `lint:presentation` and
+  `lint:drive-scripts` — see § Convention conformance.
 - **Benches:** none; no combat dynamics change (`lint:combat-dynamics` and
   `test:gym` untouched).
 
