@@ -1,9 +1,21 @@
 # The homeless statics — a dossier for one ruling
 
-> **Status: RULED** — 2026-09-13. The ruling is at the bottom
-> (§ The call); the analysis above it is what the ruling rests on. Folds
-> into [value-object-statics-slate.md](./value-object-statics-slate.md)
-> when the sweep lands.
+> **Status: SUPERSEDED** — 2026-09-15. ⚠ **Its ruling no longer holds.**
+> This dossier proposed a *wider* line than the user had given (§ First),
+> and asked them to confirm or cut it. They cut it: the rule that shipped
+> is **"only a type predicate over a closed string union declared in the
+> same file stays"**, and everything else moved to an Api, became a
+> gauge, or was marked `@internal` with the Api door named at its site.
+> The outcome is recorded in
+> [value-object-statics-slate.md](./value-object-statics-slate.md)
+> (§ §B COMPLETE, § the registry/cache cluster, § the 36 vocabulary
+> guards). The analysis below is kept only as the evidence those rulings
+> were made against.
+>
+> ⭐ **Retirement recommended** — its own original block said *"folds
+> into value-object-statics when the sweep lands"*, and the sweep has
+> landed. Left in place for the user's call rather than deleted in the
+> sweep.
 > **Raised by:** the `build/lib-statics` build, 2026-09-13.
 
 Eighteen subsystems own public statics and have **no `Api` to move the

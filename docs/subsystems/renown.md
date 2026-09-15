@@ -70,9 +70,14 @@ The data-flow is **acyclic in the dangerous direction** — that acyclicity
 - **`RenownStanding`** (`lib/standing/RenownStanding.ts`, collection
   `renown`) — the materialized per-`{subject, scope}` aggregate; a
   **rebuildable cache**, never authoritative (drop it, replay the log,
-  identical standings). Reads hit an always-a-`Map` in-memory cache
-  (cold = neutral `0`, never throws) warmed at boot (`warm()`, mirroring
-  `AppSettings.warm`) and refreshed by each recompute. `scope` is the
+  identical standings). Reads hit an always-a-`Map` in-memory index
+  (cold = neutral `0`, never throws) warmed at boot (`warm()`) and
+  refreshed by each recompute. ⭐ The storage is the shared
+  `WarmedIndex` (`lib/persistence/WarmedIndex.ts`) since 2026-09 —
+  producer and participation standing had the same `_cache`/`warm`/
+  `cached` triplet written out three times. ⚠ `cached()` hands back a
+  `ReadonlyMap`: four tests were writing standings straight through the
+  read accessor, and a read surface a caller can mutate is not one. `scope` is the
   stored key — the sentinel `'*'` = Compact-wide (the scope governance
   reads), else a `Group` ref or locality prefix. Stamps `recomputedAt` +
   `recomputedRealAt`.

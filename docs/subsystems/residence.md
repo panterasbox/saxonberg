@@ -289,7 +289,13 @@ play, not a grounded first home. **Near-future**: derived from your char-gen
 major — Katie just *knows*, no move-in menu — with `remodel` staying the
 pick.)
 
-- **The core — `DormThemes` (`domain/eternal/duncan-hall/DormThemes.ts`)**, a
+- **The core — `DormThemes` (`src/duncan-hall/idea/DormThemes.ts`)**, a
+  ⭐ **singleton `Idea`** since the 2026-09 statics sweep — declared with
+  `SingletonMixin`, seeded at `/world/eternal/duncan-hall/idea/dorm-themes`
+  and reached with `StuffApi.singleton`. It was a class of public statics,
+  which a content pack has no better option for and which the author
+  surface drops on the floor; the singleton is the answer to *how a pack
+  exposes logic*. A
   named value-object (not an Api/subsystem): `ids()`/`labelOf()` (the menu) +
   `applyTo(room, themeId)` — apply the theme's prose bundle across the room +
   its fixtures (by role) through a `PROSE_SETTERS` allowlist
@@ -300,12 +306,12 @@ pick.)
   `domain/eternal/duncan-hall/dorm-themes.yaml` (the vocation set, keyed by role).
 - **Move-in → Katie** (the diegetic front): her intake dialogue's style
   choices each `dispatch` `provision $player --theme <style>`; `provision`'s
-  `--theme` option admits the room and calls `DormThemes.applyTo` **as the
+  `--theme` option admits the room and calls the catalogue's `applyTo` **as the
   institution** (already authorized — best-effort, a bad style never voids the
   lease). The dialogue tree *is* the menu.
 - **Remodel → a local prompt** (`remodel` verb, `duncan-hall` content namespace, afforded
   by the room's `Desk` to the occupant): standing in your own room, it opens a
-  `PromptApi.choice` wheel of `DormThemes.ids()` and applies the pick. Gated by
+  `PromptApi.choice` wheel of the catalogue's `ids()` and applies the pick. Gated by
   holding the lease on the room you're in (D6). **No typed `decorate <theme>`
   verb** — theme-pick is the menu; you never type a style id. Read is public
   (a visitor sees the decor).

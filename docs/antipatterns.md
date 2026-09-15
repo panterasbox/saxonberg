@@ -4091,7 +4091,7 @@ export interface TravelNode {
 
 The verb keeps the forks that are the kernel's and delegates the two that
 are the network's to whatever answers `TravelNode` — found structurally
-(`TravelNodes.of`), so neither side imports the other. A refusal of
+by the verb itself, so neither side imports the other. A refusal of
 `route-not-found` **falls through** to the spell: a terminal is a
 convenience, not a permission.
 

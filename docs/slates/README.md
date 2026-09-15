@@ -30,7 +30,7 @@ materials-response all shipped, which made the name actively misleading.
 
 ---
 
-## ⭐ Greenfield — nothing shipped yet (55)
+## ⭐ Greenfield — nothing shipped yet (54)
 
 Pick from here for a clean cycle with no existing substrate to respect.
 
@@ -56,7 +56,6 @@ Pick from here for a clean cycle with no existing substrate to respect.
 | [demo](./builds/demo-slate.md) | the mock issuer adapter · the aged demo world · the threshold-ceremony beats · aid-post content · the fountain acoustic prop · the mobile-floor check … |
 | [discovery](./builds/discovery-slate.md) | the forage verb + the patch Stuff · biome-authored tables with derived, depleting stock · the NetHack consumable distribution … |
 | [education-integration](./builds/education-integration-slate.md) | earn-by-learning (the vocational lab as a crafting venue) · the student → TA → instructor ladder · the corpo sponsor funding a cohort against outcomes … |
-| [explicit-targeting](./builds/explicit-targeting-slate.md) | ⭐ the FILTER is a policy, not a scope walk — `requires:` steers the scope chain silently while the count axis (`onExcess`) is declared and configurable · the 2-of-3 cell (`onFiltered`: take/warn/prompt/error) · one reserved per-invocation override · 60 multi-scope chains to migrate … |
 | [enforcement](./builds/enforcement-slate.md) | the enforcement-mode vocabulary (wall · camera · witness · norm) as a committee-picked field · the evidence firewall … |
 | [eternal-university-narrative](./builds/eternal-university-narrative-slate.md) | the whole arc — the three-tier serial crime, Dunny and Wren, the killer + the panic · the census mechanic (roll · enumerator · count → conviction-voting) … |
 | [faith](./builds/faith-slate.md) | the deed-tag vocabulary + the four tags Part 1 needs (`aid.treat`, `aid.attend-dying`, `harm.nonconsented`, `ritual.attend`, honouring `since`) … |
@@ -86,7 +85,7 @@ Pick from here for a clean cycle with no existing substrate to respect.
 | [room-condition (pack)](./builds/room-condition-design-pack.md) | `SoilableMixin` · the room debris field · `sweep` / `wipe` / `tidy` / `dispose` · the `restQuality` aggregation · the pest threshold … |
 | [sanitation](./builds/sanitation-slate.md) | `collect` + the impound yard · the abandonment rule and the two legal regimes a locality picks · the salvage yard (assay, the three exits, the lossy loop) … |
 | [saxonberg-city](./builds/saxonberg-city-slate.md) | the Locality + parcel spine · the residential district and its launch stock · the PM's Residence (office-keyed tenure) · the three chamber halls + the Central Bank … |
-| [value-object-statics](./builds/value-object-statics-slate.md) | ⭐ `callable == visible` is broken in 136 `lib/` classes — the `lint:lib-statics` census gate at today's 461 · rehoming each public static onto an `Api` static or the owning instance · the ratchet to 0 … |
+| [value-object-statics](./builds/value-object-statics-slate.md) | ⭐ `callable == visible` restored — the `lint:lib-statics` ratchet 563 → 337 and the kill list closed · LEFT: `GroundCharacter.forZone`/`resolve` undecided · `DialogueEffectRegistry.register` flagged to overturn · 39 dial-readers tree-wide … |
 | [warranty](./builds/warranty-slate.md) | the representation/assertion primitive · post-delivery clause verification on contract.md · the remedy ladder (rescission … |
 | [wizard-axis-cleanup](./builds/wizard-axis-cleanup-slate.md) | W0 `lint:wizard-axis` allowlist · W1 the four lease/provision `isWizard` bypasses + the `execScript` verdict … |
 | [wizard-bar](./builds/wizard-bar-slate.md) | ⭐ the conspicuous record of wizard reads/impersonations (the one non-retrofittable piece) · the safe-harbour standard text · admit (exam + archwizard flip) … |
@@ -241,11 +240,12 @@ Not a cycle of its own. Pull one in when its host build is in flight.
 | [weather](./tails/weather-slate.md) | fog → visibility · snow depth · vector wind · moving fronts · a weather-pin write Api (it blocks the `storm` Discipline) … |
 | [youtube-relay](./tails/youtube-relay-slate.md) | outbound `liveChatMessages.insert` · the quota accountant + coalescing and drop policy · per-player `youtube.force-ssl` OAuth … |
 
-## Tails — small and opportunistic (35)
+## Tails — small and opportunistic (36)
 
 | slate | left to build |
 |---|---|
 | [access](./tails/access-slate.md) | the structured audit sink (call-security Pillar 5 — `MudlogApi` is unwired) … |
+| [explicit-targeting](./tails/explicit-targeting-slate.md) | ⭐ SHIPPED `onFiltered: take/warn/error` — the kind axis of ambiguity is declarable · LEFT: the reserved `--strict`/`--loose` per-invocation override · turning `warn` on anywhere (a content question wanting a live drive) … |
 | [affordance-verb](./tails/affordance-verb-slate.md) | source-scoped invocation (`watch::set`, sigil unsettled) and its parse wiring · the verb-provenance help listing (which object and mixin affords each verb) … |
 | [async-commands](./tails/async-commands-slate.md) | a line-level `--async`/`--sync` prefix so a bare typed multi-statement script detaches without the `script` verb · a per-actor async concurrency cap … |
 | [auth-providers](./tails/auth-providers-slate.md) | account merge · provider-side token revocation · incremental chat scopes (`user:write:chat`) … |
