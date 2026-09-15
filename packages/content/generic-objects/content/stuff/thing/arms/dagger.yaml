@@ -10,18 +10,25 @@
 # metal a particular one is made of, so it does not say — the shape is
 # the row's and the metal is the instance's, and `analyze weapon` is
 # where you find out.
-class: /platform/thing/equipment/Garment
+class: /platform/thing/equipment/Weapon
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: mail hauberk
-  keywords: [hauberk, mail]
+  shortDescription: dagger
+  keywords: [dagger]
   register: indefinite
   longDescription: >
-    A knee-length shirt of riveted rings. It resists a cut and
-    softens a blow — but a stiff point finds the gaps between the rings.
-  slotClaims:
-    "/stuff/idea/species/BodyPlan/biped": [torso]
+    A slim double-edged dagger, a hand-span of blade. It
+    delivers a cutting edge, and its point will find a gap in mail.
   _materialPath: /stuff/idea/material/alloy/steel
-  constructionForm: mail
+  constructionForm: bladed
   gradeBand: fine
-  mass: 10
+  # The authored *shape* — a light, short blade. Playstyle derives: light
+  # mass -> fast tempo + an exploiter (cashes openings), short length ->
+  # a close-range weapon that owns the clinch. See combat WeaponProfile.
+  mass: 0.3
+  length: 0.25
+  # One-handed — claims a single hand slot (wield it in either hand).
+  slotClaims:
+    "/stuff/idea/species/BodyPlan/biped": ["hand:right"]
+  # ⭐ A dagger is blades at the clinch.
+  exercises: [blades]

@@ -166,7 +166,7 @@ function declinedFor(context: ReturnType<typeof makeContext>): string | undefine
 }
 
 /** A poured product: the mass is the whole assertion, so narrow to it. */
-type Massed = Stuff & { getMass(): Quantity<'kg'> };
+type Massed = Stuff & { getMass(): Quantity<'kg'>; getMaterial(): Material | null };
 
 /** Everything the furnace holds, by the template path it was cloned from. */
 function productsIn(f: SmeltingFurnace): Map<string, Massed[]> {
@@ -374,7 +374,7 @@ describe('⭐⭐ the ferrous ladder — the charge decides the metal', () => {
   }
 
   /** The one product the run left in the furnace (slag excluded). */
-  function productOf(): Stuff | null {
+  function productOf(): Massed | null {
     for (const [path, items] of productsIn(furnace)) {
       if (path !== SLAG_ROW && items[0]) return items[0];
     }

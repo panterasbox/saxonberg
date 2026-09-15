@@ -1131,6 +1131,9 @@ importers:
         specifier: workspace:*
         version: link:../../types
     devDependencies:
+      '@saxonberg/content-trade-smelting':
+        specifier: workspace:*
+        version: link:../trade-smelting
       typescript:
         specifier: ^5.4.0
         version: 5.9.3

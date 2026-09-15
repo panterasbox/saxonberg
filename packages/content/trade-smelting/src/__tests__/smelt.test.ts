@@ -149,7 +149,25 @@ describe('the smelt', () => {
   });
 });
 
-describe('⭐ the copper faucet is closed', () => {
+/**
+ * Every shipped row that would put a good matching `what` into the world
+ * from nothing — the three fields a census / spawn / storefront row uses.
+ * ⚠ A PROP is not a faucet: it is bounded and authored and does not come
+ * back. A `stockLines` entry restocks to par forever.
+ */
+function stockedFrom(what: RegExp): string[] {
+  const offenders: string[] = [];
+  for (const { file, doc } of shippedRows()) {
+    if (!what.test(JSON.stringify(doc))) continue;
+    const data = (doc.data ?? {}) as Record<string, unknown>;
+    const spawns = data.stockLines ?? data.offers ?? doc.stockLines ?? doc.offers;
+    if (!spawns) continue;
+    if (what.test(JSON.stringify(spawns))) offenders.push(file);
+  }
+  return offenders;
+}
+
+describe('⭐ the metal faucets are closed', () => {
   /**
    * ⚠ The acceptance criterion is a TEST rather than an edit, and that is
    * the finding: nothing in the shipped world ever sold or spawned copper
@@ -159,18 +177,23 @@ describe('⭐ the copper faucet is closed', () => {
    * wanted for an off-take buyer is not needed at all.
    */
   it('no shipped row spawns or stocks copper from nowhere', () => {
-    const offenders: string[] = [];
-    for (const { file, doc } of shippedRows()) {
-      const text = JSON.stringify(doc);
-      if (!/copper/i.test(text)) continue;
-      // A row that STOCKS or SPAWNS: the three fields a census/spawn/
-      // storefront row uses to put goods in the world from nothing.
-      const data = (doc.data ?? {}) as Record<string, unknown>;
-      const spawns = data.stockLines ?? data.offers ?? doc.stockLines ?? doc.offers;
-      if (!spawns) continue;
-      if (/copper/i.test(JSON.stringify(spawns))) offenders.push(file);
-    }
-    expect(offenders).toEqual([]);
+    expect(stockedFrom(/copper/i)).toEqual([]);
+  });
+
+  /**
+   * ⚠⚠ **And iron, which was NOT already shut.** The Terminus general
+   * store stocked `iron-ingot` at 5 apiece, to par, forever — a faucet
+   * for the exact good the whole iron rung exists to produce. Every bar
+   * in the world is somebody's afternoon now: walk out to the fringe,
+   * stake ground, cut ore, reduce it, beat the slag out of it. A shelf
+   * that sells metal from nowhere makes all of that optional.
+   *
+   * ⭐ Hearthworks' two props stay, and they are not a faucet: they are
+   * bounded (two bars, authored, never restocked) and they are the
+   * teaching smithy's, which is what a teaching smithy is for.
+   */
+  it('⭐⭐ and no shipped row STOCKS iron or steel from nowhere either', () => {
+    expect(stockedFrom(/\b(iron|steel)\b/i)).toEqual([]);
   });
 
   it('every copper-composed product row is downstream of a PRODUCER this build ships', () => {

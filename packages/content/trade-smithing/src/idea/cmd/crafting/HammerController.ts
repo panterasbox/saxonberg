@@ -8,6 +8,21 @@
  * completion it **banks the workpiece's own item-contribution** into the
  * buffer — the forming work is what turns matter into a build — once per
  * build (hammering more shapes, it doesn't multiply the metal).
+ *
+ * ⭐⭐ **And it is where a bloom becomes a bar.** A bloomery's product is
+ * a spongy mass with a quarter of its weight in trapped slag; beating it
+ * hot is what squeezes the glass out and welds the iron to itself, and
+ * that is not a metaphor for the forming work — it is a different act
+ * that happens to use the same tool. The first blow on a bloom does the
+ * whole consolidation: the slag lands on the floor, the bar is in your
+ * hands, and it weighs visibly less than what you put down.
+ *
+ * ⚠⚠ **Cast iron refuses here, diegetically.** It has no plastic range
+ * at all — hit it hot and it shatters — and the refusal names what it is
+ * rather than saying no. The material's missing `forgeable` tag is what
+ * actually keeps a pig out of every recipe; this is the verb saying so
+ * out loud when somebody points a hammer at one, which is the
+ * *afford statically, decline diegetically* rule.
  */
 
 import { ManualBuildController } from '@saxonberg/server/mud/platform/idea/cmd/crafting/ManualBuildController';
@@ -20,6 +35,13 @@ import { Mml } from '@saxonberg/server/mud/api/mml';
 
 const TOPIC = 'act.deed';
 const HAMMER_MS = 5000;
+
+const CARBON = '/stuff/idea/material/element/carbon';
+/**
+ * Above austenite's limit, iron cannot hold its carbon in solution and
+ * what comes out is cast — brittle, and unforgeable by anybody.
+ */
+const C_CAST_FLOOR = 0.021;
 
 interface HammerModel extends CommandModel {
   target?: MqlOneResult;
@@ -71,6 +93,14 @@ export default class HammerController extends ManualBuildController<HammerModel>
       );
       return;
     }
+    if (isUnforgeable(target)) {
+      this.declineStep(
+        context,
+        Mml.compose`You bring the hammer down and a corner of ${Mml.thing(target)} simply breaks off, grey and glittering. This is cast iron: it has taken up so much carbon that it has no give in it at all. It shatters where iron would spread. Whatever this is going to be, it will be cast in a mould — never forged.`,
+        'unforgeable',
+      );
+      return;
+    }
 
     const build = target;
     const commandText = context.commandText;
@@ -83,10 +113,20 @@ export default class HammerController extends ManualBuildController<HammerModel>
       onComplete: () => {
         // Bank the workpiece's matter — the forming work. The once-rule
         // is the substrate's (`bankWorkpiece` is idempotent per build).
-        build.bankWorkpiece();
+        const first = build.bankWorkpiece();
         build.recordCommand(commandText);
         // The hammer wears with the work (Law 2).
         if (MixinApi.isDurable(striker)) striker.wear();
+        // ⭐⭐ A bloom is CONSOLIDATED by the first blow, and only the
+        // first: `bankWorkpiece` returns true exactly once per build, so
+        // hammering twice cannot double the metal and cannot halve it
+        // either. ⚠ Duck-typed rather than narrowed on the class — the
+        // shape-not-mixin rule `analyze water` already uses — so this
+        // pack gains no dependency on the smelting trade.
+        if (first && isBloom(build)) {
+          void consolidate(giver, build);
+          return;
+        }
         MessageApi.scene(giver)
           .topic(TOPIC)
           .toSelf(Mml.compose`The metal moves under your hammer — ${Mml.thing(target)} is taking shape.`)
@@ -95,4 +135,50 @@ export default class HammerController extends ManualBuildController<HammerModel>
       },
     });
   }
+}
+
+/**
+ * ⚠ Cast iron, by the number on the piece OR the tag on the material.
+ * Both, because they answer different questions: the tag is what the
+ * kernel's recipe gather reads (silently and correctly — a pig is never
+ * picked up), and the number is what a piece that was carburized past
+ * the band carries even before anybody gave it a new material row.
+ */
+function isUnforgeable(target: Stuff): boolean {
+  const tags = MixinApi.isTangible(target)
+    ? target.getMaterial()?.getTags() ?? []
+    : [];
+  if (tags.includes('brittle')) return true;
+  return MixinApi.isAlloyed(target) && target.fractionOf(CARBON) >= C_CAST_FLOOR;
+}
+
+/** A bloom: the one thing that can say how much slag is trapped in it. */
+function isBloom(target: Stuff): boolean {
+  return typeof (target as unknown as { consolidate?: unknown }).consolidate === 'function';
+}
+
+/**
+ * Squeeze the slag out, and narrate what it cost. ⭐ The mass loss is
+ * the whole lesson — a player who has done this once knows why a bar is
+ * worth what a bar is worth — so the scene says the numbers.
+ */
+async function consolidate(giver: Stuff, target: Stuff): Promise<void> {
+  const bloom = target as unknown as {
+    consolidate(): Promise<{ bar: Stuff; steel: boolean; slagKg: number; barKg: number } | null>;
+  };
+  const done = await bloom.consolidate();
+  if (!done || giver.isDestroyed()) return;
+  MessageApi.scene(giver)
+    .topic(TOPIC)
+    .toSelf(
+      done.steel
+        // ⭐ A bloom off a rich charge comes out carrying enough carbon
+        // to be steel the moment the glass is out of it — natural steel,
+        // which is how most pre-modern steel was actually made. Nobody
+        // authored this rung; the smelt's arithmetic produced it.
+        ? Mml.compose`The mass spits glass with every blow — gouts of it, hissing onto the floor — and closes up under the hammer until it rings instead of thudding. ${String(done.slagKg)} kg of slag gone, ${String(done.barKg)} kg of metal left, and this is no ordinary bar: it came out of that furnace carrying enough carbon to be steel.`
+        : Mml.compose`The mass spits glass with every blow — gouts of it, hissing onto the floor — and closes up under the hammer until it rings instead of thudding. ${String(done.slagKg)} kg of slag gone, and ${String(done.barKg)} kg of wrought iron left in your tongs. That is what a bar costs.`,
+    )
+    .toPeers(Mml.compose`${Mml.actor(giver)} beats the slag out of a bloom, and the floor hisses.`)
+    .send();
 }

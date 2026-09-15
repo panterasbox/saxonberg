@@ -10,18 +10,26 @@
 # metal a particular one is made of, so it does not say — the shape is
 # the row's and the metal is the instance's, and `analyze weapon` is
 # where you find out.
-class: /platform/thing/equipment/Garment
+class: /platform/thing/equipment/Weapon
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: mail hauberk
-  keywords: [hauberk, mail]
+  shortDescription: mace
+  keywords: [mace]
   register: indefinite
   longDescription: >
-    A knee-length shirt of riveted rings. It resists a cut and
-    softens a blow — but a stiff point finds the gaps between the rings.
-  slotClaims:
-    "/stuff/idea/species/BodyPlan/biped": [torso]
+    A flanged head on a stout oak haft. It delivers nothing but blunt
+    force — and blunt force is exactly what shrugs off a plated foe.
   _materialPath: /stuff/idea/material/alloy/steel
-  constructionForm: mail
+  _detailMaterialPaths:
+    haft: /stuff/idea/material/wood/oak
+  constructionForm: hafted
   gradeBand: fine
-  mass: 10
+  # A heavy, medium-length bar of metal — playstyle derives: heavy mass ->
+  # a guard-breaker (high poise damage, slow tempo, costly to commit).
+  mass: 1.6
+  length: 0.7
+  # One-handed — claims a single hand slot.
+  slotClaims:
+    "/stuff/idea/species/BodyPlan/biped": ["hand:right"]
+  # ⭐ Mass at the end of a haft — the guard-breaking practice.
+  exercises: [bludgeons]

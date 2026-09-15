@@ -1311,6 +1311,59 @@ make a sword and eight more; no shelf sells metal from nowhere.
 
 **Commit.** `build(metallurgy W4): consolidation loses slag, cast refuses, nine arms on the ladder, the iron shelf deleted`
 
+> ### ✅ W4 — done
+>
+> Consolidation landed as the W2 re-plan says: a transform at the
+> `hammer`, fired by the first `bankWorkpiece()`, no recipe and no quench
+> step. Three things the plan did not foresee:
+>
+> ⚠⚠ **`Shield` composed `GradedMixin` but not `CraftedMixin`**, so the
+> shield recipe threw at mint (`mintWorkpiece` stamps a mark and requires
+> it). `Crafted` composes `Graded`, so the fix is a one-word swap and the
+> grade surface is unchanged — the shield gains the maker's mark it
+> always should have had. `Weapon` and `Garment` already composed it; the
+> shield was the odd one out among the three things a smith makes, for no
+> reason anybody had recorded. **Same class of finding as the D9 pincer**,
+> and both came from making something actually makeable.
+>
+> ⚠⚠ **The arms rows' NAMES said steel, and the mint does not rewrite
+> prose.** D11 keeps the default `_materialPath` (a material-less prop
+> delivers zero after W5), but keeping *"steel dagger"* on a row an iron
+> bar can mint is the two-copies-of-one-sentence failure: the card would
+> say iron and the room would say steel. So the nine rows now name their
+> SHAPE — `dagger`, `arming sword`, `faced shield`, `mail hauberk`,
+> `breastplate` — and the metal is the instance's, reported by the card
+> and by `analyze weapon`. That is what *"a blade names its own metal
+> honestly"* actually requires; D11's letter (drop the path) would not
+> have achieved it and this does.
+>
+> ⚠ **`pick-head` moving to `forgeable` broke a shipped assertion** in
+> `archetype-and-ladder.test.ts` that the chain closes through a `metal`
+> slot. The intent survives and the word changed; `pick` itself is
+> ASSEMBLED rather than forged, so it keeps `metal` and is right to.
+>
+> Other notes:
+>
+> - ⭐ **The tie check found no new tie**, and the two that exist
+>   (`pick-head`/`tongs` @1200, `assay-kit`/`miners-dial` @1100) both
+>   pre-date the retag — an iron bar satisfied `ferrous` and `metal`
+>   alike before there was a third word. `anvil-ladder.test.ts` holds
+>   them as a ratchet. ⚠ The plan listed `shovel` in the 1100 tie set; it
+>   is not one — its slot signature differs by `minGrade`.
+> - `forge` names cast iron when the gather comes up empty AND there is a
+>   pig in reach. The gather correctly cannot see one (no `forgeable`
+>   tag), but *"there is no stock"* teaches nothing when a grey bar is
+>   sitting right there.
+> - The iron shelf is deleted, row and all, and the faucet scan is
+>   generalised: `stockedFrom(/iron|steel/)` is green. ⭐ Hearthworks' two
+>   props stay and are not a faucet — bounded, authored, never restocked.
+> - `trade-smithing` gains a **dev**-dependency on `trade-smelting` for
+>   the `Bloom` fixture only; the runtime duck-typing is untouched, so
+>   the pack still ships with no dependency on the smelting trade.
+>
+> smithing 34, mining 145, smelting 25, generic-objects 26, terminus 109;
+> `lint:family` all 40.
+
 ### W5 — material in a blow
 
 **Goal.** Two blades forged from different metal perform differently

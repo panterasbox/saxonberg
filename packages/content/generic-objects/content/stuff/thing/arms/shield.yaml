@@ -10,18 +10,23 @@
 # metal a particular one is made of, so it does not say — the shape is
 # the row's and the metal is the instance's, and `analyze weapon` is
 # where you find out.
-class: /platform/thing/equipment/Garment
+class: /platform/thing/equipment/Shield
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: mail hauberk
-  keywords: [hauberk, mail]
+  shortDescription: faced shield
+  keywords: [shield, faced]
   register: indefinite
   longDescription: >
-    A knee-length shirt of riveted rings. It resists a cut and
-    softens a blow — but a stiff point finds the gaps between the rings.
-  slotClaims:
-    "/stuff/idea/species/BodyPlan/biped": [torso]
+    A broad round shield, oak-boarded and faced in metal. Held up between you
+    and one foe it turns almost anything — but it guards only what it faces,
+    and two attackers will find the side it can't cover.
   _materialPath: /stuff/idea/material/alloy/steel
-  constructionForm: mail
+  _detailMaterialPaths:
+    boards: /stuff/idea/material/wood/oak
+  # An armor construction (it resists like plate) worn in the hand, not on the
+  # body — combat folds it into the covering stack as a directional front
+  # cover and grants its holder a large guard bonus. Occupies the off-hand.
+  constructionForm: plate
   gradeBand: fine
-  mass: 10
+  slotClaims:
+    "/stuff/idea/species/BodyPlan/biped": ["hand:left"]

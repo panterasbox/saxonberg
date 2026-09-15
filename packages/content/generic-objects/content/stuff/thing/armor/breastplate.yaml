@@ -13,15 +13,16 @@
 class: /platform/thing/equipment/Garment
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: mail hauberk
-  keywords: [hauberk, mail]
+  shortDescription: breastplate
+  keywords: [breastplate]
   register: indefinite
   longDescription: >
-    A knee-length shirt of riveted rings. It resists a cut and
-    softens a blow — but a stiff point finds the gaps between the rings.
+    A fitted cuirass of polished plate, articulated at the shoulders.
+    It turns an edge and shrugs a thrust — but a heavy blow rings straight
+    through the rigid shell.
   slotClaims:
     "/stuff/idea/species/BodyPlan/biped": [torso]
   _materialPath: /stuff/idea/material/alloy/steel
-  constructionForm: mail
+  constructionForm: plate
   gradeBand: fine
-  mass: 10
+  mass: 9

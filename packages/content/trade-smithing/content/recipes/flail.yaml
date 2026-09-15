@@ -1,0 +1,24 @@
+# ⭐⭐ One of the nine arms a smith can now make. Seventeen arms and
+# armor templates have been in the game since the combat build and not
+# one of them was makeable by anybody: they were props, and the chain
+# that makes metal ended at a bar.
+#
+# ⚠ The stock slot asks for `forgeable` — see any anvil recipe. And it
+# authors NO `outputMaterial`, deliberately: the blade is made of the
+# metal you made, so the STOCK's material flows onto it. Forge this out
+# of a wrought bar and it is iron; out of a steel bar and it is steel,
+# and the difference is worth about 20 % of every blow you land.
+# Two bars: a head and a length of chain, and the chain is most of the
+# work.
+recipeId: flail
+name: Flail
+keywords: [flail]
+inputSlots:
+  - { slot: stock, category: forgeable, minGrade: fair, kind: item, count: 2 }
+toolCapabilities: [striking, anvil]
+outputTemplate: /stuff/thing/arms/flail
+outputMaterial: ''
+outputApplication: tangible
+requiresHeatK: 1250
+difficulty: standard
+discipline: smithing
