@@ -43,12 +43,29 @@
  * is a follow-on and it should land beside pets, not inside ranching.
  */
 
-import { Creature } from '@saxonberg/server/mud/lib/creature/Creature';
-import { HandlingMixin } from '@saxonberg/server/mud/lib/husbandry/Handling';
+import { KeptAnimal } from '@saxonberg/server/mud/lib/creature/KeptAnimal';
 import { HandledMixin } from '../lib/Handled';
 
-const WorkingAnimalBase = HandledMixin(
-  HandlingMixin(Creature),
-);
+/**
+ * ⭐⭐ **The collie moves nowhere and gains the capability in place.**
+ *
+ * `WorkingAnimal` was `HandledMixin(HandlingMixin(Creature))`. It is now
+ * `HandledMixin(KeptAnimal)` — which brings the bond, a name, a home,
+ * belief, status, mobility, senses and, at last, `BehavedMixin`.
+ *
+ * ⚠⚠ **Its brain had never run.** The farm-dog row has authored
+ * `behaviors: [{ brain: /trade/ranching/behavior/herds, … }]` since the
+ * ranching build, and this class composed no `BehavedMixin` — so the
+ * Hydrator discarded the field silently and the collie has been standing
+ * in the yard doing nothing that whole time. (The key was also wrong:
+ * `cadenceMs: 300000` is not a shape `_parseTrigger` knows; it wants
+ * `trigger: cadence:300s`.) Two dead links in one row, neither of which
+ * could fail loudly.
+ *
+ * ⭐ `HandlingMixin` is no longer composed here because `KeptAnimal`
+ * already carries it — beside `BeliefStoreMixin`, which is what makes a
+ * bond possible. A working animal is a kept animal that also has a job.
+ */
+const WorkingAnimalBase = HandledMixin(KeptAnimal);
 
 export default class WorkingAnimal extends WorkingAnimalBase {}

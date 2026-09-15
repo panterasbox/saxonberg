@@ -39,6 +39,14 @@ data:
   reproductiveMode: sexual
   lifespanMin: 0
   lifespanMax: 10
+  # ⭐ A canary can be got used to you a fair way, and it slides back
+  # further than a mammal does. ⚠⚠ `biddability: 0` is a DECLARATION, not
+  # an omission: a canary cannot be asked anything, ever, and saying so
+  # out loud is what the third state of the dial is for. Leaving it absent
+  # would mean "not in this conversation", and a canary very much is —
+  # somebody has named this bird.
+  handlingRange: { floor: 0.3, ceiling: 0.8 }
+  biddability: 0
   circadianBand: diurnal
   diet: herbivore
   visionProfile:

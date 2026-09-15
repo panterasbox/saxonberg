@@ -1,0 +1,13 @@
+# A tin saucer on the general store's shelf — the one you buy so you have
+# something to put water in for the cat on the lane. Mirrors the
+# waterskin line for line; the only difference is what it is for.
+class: /platform/thing/Feeder
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: shallow tin saucer
+  keywords: [saucer, dish, tin, bowl]
+  register: indefinite
+  longDescription: |
+    A shallow tin saucer, stacked with a dozen of its fellows. Nobody sells it as anything in particular — it holds about a cup of water, and that is the whole of its ambition.
+  interiorBulk: true
+  interiorCapacity: 0.3

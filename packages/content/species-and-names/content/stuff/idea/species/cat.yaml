@@ -1,0 +1,58 @@
+# Domestic cat — ⭐ the first animal in the game kept for no reason but
+# itself. A small quadruped carnivore, non-sentient, and the deliberate
+# opposite of the collie on both dials that matter.
+#
+# ⭐⭐ `biddability: 0.1` is the whole design of the cat, stated as a
+# number. It can be devoted to you — regard and handling both run to the
+# top — and it will still not come when called, because coming when
+# called is not a thing cats do. *The word is for the dog; the door is for
+# the cat.* Anyone who wants a cat to stay somewhere closes a door.
+#
+# ⚠ And `handlingRange.floor: 0.15` is lower than the dog's: a cat you
+# stop handling slides back further than a dog does. It does not go
+# feral — it becomes difficult, which is exactly what happens.
+#
+# ⭐ `senescentAt` (1600d) lands well before `lifespanMax` (15y ≈ 5475d),
+# so an old cat READS old for a long time before anything happens to it.
+# The warning is the point; the death is the consequence of ignoring it.
+class: /platform/idea/species/Species
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  binomial: Felis catus
+  commonNames: ["cat", "housecat", "moggy"]
+  _bodyPlanPath: /stuff/idea/species/BodyPlan/quadruped
+  _parentCladePath: /stuff/idea/species/animalia
+  _defaultMaterialPath: /stuff/idea/material/tissue/flesh
+  vitalProfile:
+    coreTemperature: { baseline: 312, survivableMin: 303, survivableMax: 317 }
+    heartRate: { baseline: 160, survivableMin: 80, survivableMax: 260 }
+    respiratoryRate: { baseline: 28, survivableMin: 10, survivableMax: 70 }
+    bloodPressureSystolic: { baseline: 125, survivableMin: 70, survivableMax: 200 }
+    bloodPressureDiastolic: { baseline: 80, survivableMin: 40, survivableMax: 135 }
+    spo2: { baseline: 97, survivableMin: 68, survivableMax: 100 }
+    bloodVolume: { baseline: 0.25, survivableMin: 0.16, survivableMax: 0.25 }
+  lifecycleStates: ["alive", "dead"]
+  sexDeterminationSystem: xy
+  reproductiveMode: sexual
+  adultMass: 4
+  lifespanMin: 0
+  lifespanMax: 15
+  ageCurve: { weanedAt: 8, matureAt: 120, agedAt: 1300, senescentAt: 1600 }
+  circadianBand: crepuscular
+  diet: carnivore
+  visionProfile:
+    scotopicMin: pitch-black
+    photopicMax: blinding
+    bandShift: 0
+  # ⭐ A keen nose is the instrument. A cat will refuse food carrying a
+  # pathogen load a person cannot detect at all — and it refuses in
+  # exactly the same words it uses when it simply is not hungry.
+  olfactoryProfile:
+    acuity: keen
+  handlingRange: { floor: 0.15, ceiling: 0.9 }
+  biddability: 0.1
+  longDescription: >-
+    A small cat with a thin frame and a watchful, unhurried way of
+    holding itself. It looks at you for exactly as long as it wants to,
+    and then looks at something else.
+  nameBankKeys: []

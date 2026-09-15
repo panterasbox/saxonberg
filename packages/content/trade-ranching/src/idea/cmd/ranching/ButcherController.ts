@@ -58,6 +58,11 @@ const YIELDS: ReadonlyArray<{ row: string; fraction: number; what: string }> = [
   // arrives carrying Freshness, Cured and Contaminable, so the clock the
   // cooking chain starts at the kill is the same clock.
   { row: '/stuff/thing/items/stew-meat', fraction: 0.42, what: 'meat' },
+  // ⭐ Offal — 10–15% of live weight, and the piece every carcass has
+  // always produced while nothing in the game yielded it. The word
+  // appeared only in this file's own help text. The rest of the missing
+  // third is blood and gut contents, which stay unmodelled.
+  { row: '/stuff/thing/items/offal', fraction: 0.12, what: 'offal' },
   { row: '/trade/ranching/thing/tallow', fraction: 0.05, what: 'tallow' },
   { row: '/trade/ranching/thing/hide', fraction: 0.07, what: 'a hide' },
   { row: '/trade/ranching/thing/bone', fraction: 0.12, what: 'bone' },

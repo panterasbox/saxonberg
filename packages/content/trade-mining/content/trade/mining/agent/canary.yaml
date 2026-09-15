@@ -4,7 +4,17 @@
 # the ONE lethal hazard in this build, and it is lethal because it comes
 # with a free continuous warning, an obvious unilateral escape (walk out
 # — every exit stays open) and no rescue requirement.
-class: /platform/agent/Extra
+# ⭐⭐ It is a `KeptAnimal` now, and this is the one place the
+# requirements' "nothing else about it changes" is not literally true. An
+# `Extra` is, by the rung's own declaration, the thing that holds no
+# personal opinion of anybody — so a bird that can bond cannot stay one.
+# Its brain path, species, description and mass are untouched, and
+# `reads-air` keeps working because `KeptAnimal` composes `Behaved`.
+#
+# ⭐ Admitting it costs nothing and is honest: miners have always kept
+# canaries, named them, and been sorry when one died. The game just never
+# had a rung that could hold that.
+class: /platform/agent/KeptAnimal
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   _speciesPath: /stuff/idea/species/animalia/chordata/aves/passeriformes/fringillidae/serinus/canaria

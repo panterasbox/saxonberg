@@ -19,6 +19,8 @@ import { HandlingMixin } from '@saxonberg/server/mud/lib/husbandry/Handling';
 import { Creature } from '@saxonberg/server/mud/lib/creature/Creature';
 import { makeStuff } from '@saxonberg/server/mud/lib/security/__tests__/test-setup';
 import { StuffApi } from '@saxonberg/server/mud/api/stuff';
+import { MixinApi } from '@saxonberg/server/mud/api/mixin';
+import { Mixins } from '@saxonberg/server/mud/lib/mixin';
 import { brain as herds } from '../behavior/herds';
 import { CommandApi } from '@saxonberg/server/mud/api/command';
 import Livestock from '../agent/Livestock';
@@ -169,5 +171,65 @@ describe('⭐⭐ the dog is the fourth rung, and it costs a relationship', () =>
     const handling = row('agent/farm-dog.yaml').handling as number;
     expect(handling).toBeGreaterThan(0.4);
     expect(handling).toBeLessThan(0.8);
+  });
+});
+
+/**
+ * ⭐⭐ **The collie's brain had never run**, for the whole life of the
+ * ranching build, and nothing could have told anybody.
+ *
+ * Two links, both dead, both silent. The class composed no `BehavedMixin`
+ * — so the Hydrator, which reflects only into fields a composed class
+ * declares, discarded the row's whole `behaviors:` block without a word.
+ * And the block used `cadenceMs:`, which is not a key `_parseTrigger`
+ * understands. Either alone would have been enough.
+ *
+ * These are the assertions the build found missing, and they are cheap.
+ */
+describe('⚠⚠ the affordance links that failed closed and silent', () => {
+  it('WorkingAnimal composes BehavedMixin — so a brain can be wired at all', () => {
+    expect(
+      MixinApi.hasMixin(WorkingAnimal as never, Mixins.Behaved),
+    ).toBe(true);
+  });
+
+  it('WorkingAnimal composes BondedMixin — the collie gains it in place', () => {
+    expect(MixinApi.hasMixin(WorkingAnimal as never, Mixins.Bonded)).toBe(true);
+  });
+
+  it("the farm-dog row's behaviors use `trigger:`, the key the parser knows", () => {
+    const row = parse(
+      readFileSync(
+        fileURLToPath(
+          new URL(
+            '../../content/trade/ranching/agent/farm-dog.yaml',
+            import.meta.url,
+          ),
+        ),
+        'utf8',
+      ),
+    ) as { data: { behaviors: Record<string, unknown>[] } };
+    expect(row.data.behaviors.length).toBeGreaterThan(0);
+    for (const spec of row.data.behaviors) {
+      expect(typeof spec.trigger).toBe('string');
+      expect(String(spec.trigger)).toMatch(/^(cadence:\d+s|departure|arrival)$/);
+      expect(spec.cadenceMs).toBeUndefined();
+    }
+  });
+
+  it("the dog's species authors both dials — or it can be asked nothing", () => {
+    const sp = parse(
+      readFileSync(
+        fileURLToPath(
+          new URL(
+            '../../content/stuff/idea/species/animalia/chordata/mammalia/carnivora/canidae/canis/familiaris.yaml',
+            import.meta.url,
+          ),
+        ),
+        'utf8',
+      ),
+    ) as { data: Record<string, unknown> };
+    expect(sp.data.biddability).toBe(0.9);
+    expect(sp.data.handlingRange).toEqual({ floor: 0.2, ceiling: 1 });
   });
 });

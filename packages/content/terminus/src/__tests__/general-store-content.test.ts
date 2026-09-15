@@ -145,6 +145,11 @@ describe("general-store content integrity", () => {
     "/platform/thing/equipment/PortableLight",
     "/platform/thing/equipment/Weapon",
     "/platform/thing/Receptacle",
+    // A `Feeder` is a `Receptacle` that an animal eats from — the same
+    // Bulkable/Container/Thing stack with one marker mixin on top, and no
+    // more Stackable than the waterskin beside it on the shelf. The store
+    // sells a tin saucer so somebody can put water down for the cat.
+    "/platform/thing/Feeder",
     // The crafting goods: the sewing kit and the sewing MACHINE are both
     // `MendingTool` — one class, because they afford identically and
     // differ only in `rate`/`control`, which is row data. The whetstone

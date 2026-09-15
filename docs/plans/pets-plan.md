@@ -1224,6 +1224,38 @@ firing.
 
 **Commit.** `build(pets W1d): a thin cat on Hinkley Lane, the collie's brain finally runs, the canary admitted, two vessels, the offal`.
 
+> ✅ **DONE 2026-09-15.**
+>
+> ⭐⭐ **`lint:kept-animals` failed on its own first real content — and it
+> was the GATE that was wrong.** It reported ranching's `WorkingAnimal`
+> as unable to bond on the very commit that gave the collie its bond,
+> because it read only the `extends` clause. The shape this codebase
+> actually recommends is `const FooBase = SomeMixin(Bar); class Foo
+> extends FooBase {}` — naming the intermediate stack, because inference
+> through nested generic factories collapses to `never` (the `PlantPot`
+> lesson). So the walk finds `FooBase`, finds no import for a local
+> const, and concludes nothing. It now resolves an extends identifier
+> through a local `const` first, and follows package specifiers
+> (`@saxonberg/server/mud/…`) as well as relative paths — a pack imports
+> the kernel only by specifier, so without that half the gate could never
+> have followed any pack class into the kernel at all.
+>
+> ⚠ Both directions then proven the only way worth trusting: by breaking
+> them. Removing the cat's `biddability` fires direction 2; pointing the
+> cat row at `/platform/agent/Extra` fires direction 1.
+>
+> **Two dead links found in shipped content**, both silent, both now
+> asserted in `working-animals.test.ts`: the farm-dog row's `cadenceMs:`
+> (not a key `_parseTrigger` knows) and `WorkingAnimal` composing no
+> `BehavedMixin` (so the Hydrator discarded the whole `behaviors:` block).
+> Either alone was enough. **The collie has been standing in the yard
+> doing nothing since the ranching build shipped.**
+>
+> `terminus`'s store-goods allowlist refused `/platform/thing/Feeder` —
+> correctly, since it exists to keep Stackable-risking classes off the
+> shelf. A Feeder is a Receptacle an animal eats from, no more Stackable
+> than the waterskin beside it, and now says so in the list.
+
 ### W1e — the drive
 
 Run the requirements' thirty steps against the running game, two

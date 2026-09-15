@@ -42,6 +42,13 @@ data:
   # ⭐ Adult liveweight in kg. A grown working collie.
   adultMass: 20
   ageCurve: { weanedAt: 20, matureAt: 200, agedAt: 1200, senescentAt: 1800 }
+  # ⭐⭐ The dog against the cat, in two numbers. A collie can be brought
+  # all the way (`ceiling: 1`) and slides back only a little (`floor:
+  # 0.2`) — a dog you stopped working is still a dog. And `biddability:
+  # 0.9` is why the word works on it: a well-bonded collie comes when
+  # called and holds when told. The cat's are 0.9/0.15 and 0.1.
+  handlingRange: { floor: 0.2, ceiling: 1 }
+  biddability: 0.9
   breeding: { daylightFrom: 0, daylightTo: 1, gestationDays: 25, litter: 5 }
   production: []
   longDescription: >-

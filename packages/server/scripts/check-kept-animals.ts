@@ -117,13 +117,49 @@ function reachesBonded(
   if (src.includes(REQUIRED_MIXIN)) return true;
   const ext = /class\s+\w+\s+extends\s+([^{]+)\{/.exec(src);
   if (!ext) return false;
-  for (const base of ext[1]!.match(/[A-Za-z_$][\w$]*/g) ?? []) {
+
+  /*
+   * ⚠⚠ **Follow the LOCAL const, not only the extends clause.**
+   *
+   * The shape this codebase actually recommends is
+   *
+   *     const FooBase = SomeMixin(Bar);
+   *     export default class Foo extends FooBase {}
+   *
+   * — naming the intermediate stack, because inference through several
+   * nested generic mixin factories in one expression collapses to
+   * `never` (the `PlantPot` lesson). Reading only the extends clause
+   * finds `FooBase`, finds no import for it because it is a local
+   * declaration, and concludes the class reaches nothing.
+   *
+   * That was not hypothetical: it reported ranching's `WorkingAnimal` —
+   * which is `HandledMixin(KeptAnimal)` — as unable to bond, on the very
+   * commit that gave the collie its bond. So an extends identifier is
+   * resolved through a local `const` first, and the identifiers in that
+   * initializer are followed instead.
+   */
+  const names = new Set(ext[1]!.match(/[A-Za-z_$][\w$]*/g) ?? []);
+  for (const name of [...names]) {
+    const local = new RegExp(
+      `const\\s+${name}\\s*=\\s*([^;]+);`,
+    ).exec(src);
+    if (!local) continue;
+    for (const inner of local[1]!.match(/[A-Za-z_$][\w$]*/g) ?? []) {
+      names.add(inner);
+    }
+  }
+
+  for (const base of names) {
     const imp = new RegExp(
       `import\\s+(?:\\{[^}]*\\b${base}\\b[^}]*\\}|${base})\\s+from\\s+['"]([^'"]+)['"]`,
     ).exec(src);
     if (!imp) continue;
-    const resolved = resolve(dirname(file), imp[1]!);
-    const rel = '/' + relative(MUD, resolved).split('\\').join('/');
+    const spec = imp[1]!;
+    // A pack imports the kernel by PACKAGE SPECIFIER, never relatively.
+    const rel = spec.startsWith('@saxonberg/server/mud/')
+      ? '/' + spec.slice('@saxonberg/server/mud/'.length)
+      : '/' +
+        relative(MUD, resolve(dirname(file), spec)).split('\\').join('/');
     if (reachesBonded(rel, sources, seen)) return true;
   }
   return false;

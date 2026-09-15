@@ -68,6 +68,17 @@ export const brain = class {
       stock.handle(reach);
       worked += 1;
     }
+
+    // ⭐⭐ **Attention is legible.** A dog working stock is not ignoring
+    // you — it is busy, and `call` quotes this back instead of giving the
+    // flat "it looks at you". That difference is the whole reason
+    // `StatusMixin` is on the rung: an animal that refuses because it is
+    // doing its job and an animal that refuses because it does not know
+    // you are two different answers, and only one of them is about you.
+    if (MixinApi.isStatus(dog)) {
+      // ⚠ Empty reverts to the authored default — that IS the clear.
+      dog.setStatus(worked > 0 ? 'watching the stock' : '');
+    }
     if (worked === 0) return;
 
     // ⚠ A badly bonded dog is not silent about it, because that is the

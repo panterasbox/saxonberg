@@ -42,6 +42,14 @@ data:
       destination: /world/terminus/hinkley-hills/location/arrival
   props:
     - /world/terminus/hinkley-hills/thing/district-tank
+  # ⭐ The stray. `cast:` and not `props:` because it is a Behaved thing —
+  # somebody who is there, not scenery. ⚠ The lane re-mints one on any
+  # boot where no live instance of the row exists, which is the cheapest
+  # supply while spawn-distribution is unbuilt; after Mouse is adopted a
+  # second cat may appear on the lane, which is unauthored rather than
+  # wrong (see the plan's Risks 7).
+  cast:
+    - /stuff/agent/cat
   details:
     lots:
       keywords: [lots, lot, stakes, string, survey, grass]

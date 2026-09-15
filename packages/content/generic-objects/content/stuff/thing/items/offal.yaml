@@ -1,0 +1,11 @@
+# The offal off a carcass — the cut a butcher sets aside and somebody's
+# dog is extremely interested in.
+class: /platform/thing/Provision
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: fold of dark offal
+  register: indefinite
+  primaryKeyword: offal
+  keywords: [offal, organ, liver, pluck]
+  _materialPath: /stuff/idea/material/food/offal
+  mass: 0.3
