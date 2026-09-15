@@ -105,13 +105,60 @@ Nothing rolls. FNV-1a over the cell string, XOR the derived seed:
 process-independent, and the player's uncertainty is **epistemic** — the
 ground was always there.
 
+### ⭐⭐ Zonation has TWO axes, and they are orthogonal facts
+
+**Down** is supergene zonation: rain weathered the top of the lode into
+an oxide cap and left the sulfides below the water table. That is
+`GradeBand.toZ`, and it is the axis the field shipped with.
+
+**Along** is magmatic zonation: the metals dropped out of one fluid at
+different distances from its source, so a body has a **heart** and a
+**distal fringe** carrying different metals. That is
+`GradeBand.alongFrom` / `alongTo` (metallurgy, 2026-09) — metres of
+|distance along strike from `lode.through`|, symmetric, because a body is
+lean at both ends. `bandAt(z, along)` filters by window and then applies
+the shipped depth rule unchanged, so a deposit that authors neither
+behaves exactly as it always did, and a mineral that is deep AND distal
+is simply a band that states both.
+
+⭐ It is a second axis on the same band list rather than a second
+mechanism, which is what makes it composable: Ferrow's copper heart
+grades outward into an iron-rich gossan at 75 m, and the gossan grades
+downward into carbonate below the water table, from four bands.
+
+⭐⭐ **And it is why iron is a WALK rather than a shaft.** The fringe
+outcrops — the lode's plane crosses `z = 0` along its whole strike — so
+the whole iron rung is above the water table, outside the old men's
+depletion box, and reachable with no adit, no pump and nobody's
+permission. *Iron is the metal you can get on your own* is a fact about
+the geology, not a rule somebody wrote.
+
+### The halo, and the collar
+
+⭐ `Lode.halo` is the **disseminated margin**: ground that far outside the
+plane's thickness and extents still carries the band's mineral, at a
+grade tapering linearly to zero. The wall rock around a real orebody is
+weakly mineralized, and modelling that is what makes a heading that
+misses come back **thin rather than empty** — thin tells you which way to
+turn. ⚠ Widening `thickness` instead would have made the miss free.
+
+The taper is the same three dot products `isInLode` already makes — the
+plane's normal, its strike and its dip are orthogonal, so the amount by
+which a cell fails the three tests is a genuine distance
+(`lodeProximity`). No new geometry.
+
+⚠⚠ **`z > 0` is air.** Nothing bounded `z` before the metallurgy build,
+so the lode's plane continued upward forever and a surface working's `up`
+face read as ore: you could have hewn a seam out of the sky. The ground
+stops at the collar.
+
 ### Surveying — three layers, not one
 
 | | Verb | What it is |
 |---|---|---|
 | **the mirror** | `survey` — shipped, free, ungated | *what is this place* |
 | **the measurement** | `measure strike` / `measure dip` | instrumented, banded, load-bearing |
-| **the interpretation** | `analyze ground` | route-gated synthesis with error bands |
+| **the interpretation** | `analyze ground` | route-gated synthesis with error bands, plus what is **underfoot** |
 
 ⭐⭐ `survey` is a MIRROR and the mine's read is a MEASUREMENT. The
 geological read is instrument-mediated, competence-banded and the thing a
@@ -221,6 +268,12 @@ pools. Stage A ships the pooling and the honest assay.
 Every term is a fact something else already knows. Nobody authors how
 much copper comes out, which is what makes grade load-bearing end to end.
 
+⭐ **And above copper the KIND is thermodynamics** — see
+[crafting.md](./crafting.md) and the smelting pack: the fuel-to-ore ratio
+and the heat decide whether a ferrous charge comes out a bloom, a steel
+or a cast pig, and the grade arrives one hop further down as the
+`slagFraction` a bloom loses at the anvil.
+
 ---
 
 ## Title
@@ -228,6 +281,14 @@ much copper comes out, which is what makes grade load-bearing end to end.
 A claim is a `ParcelRecord`, written **only** by the gated `ParcelApi` and
 never declared in content — which is exactly why ⚠ **a content edit
 cannot forge a title.**
+
+⚠⚠ **And the owner is an IDENTITY path, never a template path.** Every
+player Avatar shares one `templatePath`, so `stake` keying the claim on
+lineage made every claim in the mine owned by every player at once —
+invisibly, because every fixture authors distinct owner paths. Fixed with
+`lint:person-keys` holding the shape at zero across the kernel and every
+pack (metallurgy, 2026-09); see
+[antipatterns.md § Keying a PERSON](../antipatterns.md).
 
 ⭐ **A claim is STAKED, not bought.** `title buy` is buying from a
 catalogue; staking is a first-come registration, so `trade-mining` ships

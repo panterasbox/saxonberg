@@ -784,6 +784,54 @@ against it at the mint; reset by `clearBuild`).
 the can-make **deed** + transcribes the personal recipe-script, the
 same act.
 
+### ⭐⭐ Smithing's two extra acts (metallurgy, 2026-09)
+
+Neither is a recipe, and that is the point: they are things that happen
+to metal rather than forms a smith chooses.
+
+- **Consolidation.** A bloomery's product is a spongy, slag-shot mass
+  with about a quarter of its weight in trapped glass. The **first**
+  `hammer` on one — fired by `bankWorkpiece()` returning `true`, so
+  exactly once — squeezes the slag out, leaves it on the floor, and puts
+  a **bar** in the smith's hands carrying the bloom's carbon. The bloom
+  stops existing. ⚠ The mass loss is visible and it is the lesson.
+  ⭐ A bloom rich enough in carbon consolidates into a STEEL bar rather
+  than a wrought one — *natural steel*, which is how most pre-modern
+  steel was actually made.
+
+  ⚠⚠ **Why a transform and not a recipe**, because it is a kernel
+  constraint worth knowing: `mintWorkpiece` REQUIRES a recipe's output
+  to compose `CraftedMixin` (it stamps a maker's mark), and
+  `isItemCandidate` EXCLUDES a Crafted non-food from the one-shot
+  `forge` gather (a made form is not raw matter). Those two are a pincer
+  on **any recipe whose output is meant to be STOCK for the next
+  recipe**: a plain `Ingot` output throws, and a Crafted bar can never be
+  forged. Consolidation at the hammer is also simply truer — quenching a
+  bloom would be actively wrong.
+
+- **Heat treatment.** `quench` on a heated but **un-worked** piece (an
+  empty build) is not a mistake — it is the other thing quenching does,
+  and the piece's own carbon decides what happens: wrought iron takes
+  nothing (*quenching is not a ritual*), steel **hardens**, cast iron
+  **cracks** into two halves. The next `heat` anneals it back, which is
+  why a smith quenches last. ⚠ `temper` is recorded and reported by
+  `analyze chemistry` with no mechanical consumer yet.
+
+⭐ **`forgeable` is the anvil's tag.** Every `[striking, anvil]` recipe's
+stock slot asks for it, and hot iron, steel and copper carry it.
+`ferrous` would admit a pig of cast iron (it shatters); `metal` would
+admit a pig and a bloom (a quarter glass). One tag, one rule — so the
+kernel's gather never picks up what an anvil cannot work, silently and
+correctly, and the two verbs a player can still point at a pig decline
+diegetically and say what it is.
+
+⭐ **A tangible recipe's authored `outputMaterial` now wins**, with the
+primary stock's flowing otherwise. The field has existed since the first
+recipe schema and the edible and bulk paths read it; the tangible path
+did not, so a transform that genuinely CHANGES what the matter is had no
+way to say so. Both mint paths also flow a piece's `alloying` onto an
+Alloyed output, which is what keeps a carburized bar's carbon.
+
 ## Drink → metabolism (honest alcohol)
 
 The output glass is `Bulkable`, holding the recipe's authored cocktail

@@ -25,5 +25,22 @@ data:
     - /trade/fuel/thing/hazel-stool
     - /trade/mining/thing/billhook
     - /trade/mining/thing/felling-axe
+    # ⚠⚠ **Four baskets of finished charcoal, and they are a PROP, not a
+    # supply.** A burn takes three game days (`BURN_MS`), which is six
+    # real hours at the default clock — so nobody can char their own fuel
+    # inside a session, and the collier has an `idles` brain rather than
+    # a producer one. Without these the iron rung is unreachable in
+    # practice: you would be standing at a furnace you cannot light a
+    # charge in.
+    #
+    # ⭐ They are BOUNDED and that is what keeps them honest — four
+    # baskets, authored, never restocked, the Hearthworks-ingots shape.
+    # A `stockLines` entry would be a faucet; a prop is a starting
+    # condition. ⓘ Charcoal on a quiet night is still nobody's, and the
+    # collier's producer brain is tracked as a deferred seam.
+    - /trade/fuel/thing/charcoal
+    - /trade/fuel/thing/charcoal
+    - /trade/fuel/thing/charcoal
+    - /trade/fuel/thing/charcoal
   cast:
     - /world/rejection/agent/collier

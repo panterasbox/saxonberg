@@ -1454,6 +1454,36 @@ retire the asymmetry sentences.
 > - The asymmetry sentence is retired from `combat.md`,
 >   `crafting.md` and `materials-response.md`, each replaced with what
 >   is true now and why it changed.
+>
+> ### ⚠⚠ W5 follow-up — a null material is NEUTRAL in delivery
+>
+> The first landing of the fold scaled by `materialHeight(null) === 0`
+> and **two shipped combat tests went red**: `CombatLogic.hooks` (a
+> hook-bearing room never hears `blood:`) and `CombatLogic.test` (the
+> spear/dagger reach tier). Both fixtures build a blade with
+> `weaponForm: 'bladed'` and no `weaponMaterial` — so the weapon
+> delivered nothing at all and nobody bled.
+>
+> ⭐⭐ **The same number means two different things on the two sides of a
+> blow.** On the covering side a null material is *no covering*, and no
+> covering protects nothing — zero is exactly right and is what the
+> function has always returned. On the delivery side the weapon is
+> PRESENT; what is missing is our knowledge of what it is made of.
+> Scaling by zero there lets one unauthored content field silently
+> delete combat, which is the worst failure shape there is.
+>
+> So `instrumentDeliveryScale` **guards the null** and leaves the scale
+> neutral, rather than `materialHeight` changing for its original
+> caller. That also makes the fold's blast radius the smallest honest
+> one: every weapon nobody authored a material for behaves exactly as it
+> did before, because before the fold material was ignored entirely.
+>
+> ⚠ **D11's justification shifts and D11 still stands.** The arms rows
+> keep a default `_materialPath` not because a material-less prop would
+> deliver zero (it no longer would) but because a row should say what it
+> is made of — and W4's rename means the rows now name their SHAPE and
+> let the instance's metal speak, which is the honest version of the
+> same requirement.
 
 ### W6 — the drive, and the docs
 
@@ -1768,4 +1798,74 @@ Read first, in this order:
 
 ## Drive record
 
-*(appended at build time)*
+**Run 2026-09-15 against a booted server** (`saxonberg_build1`, the
+worktree's own DB), as `packages/wire/tests/metallurgy.dirty.wire.test.ts`.
+Final: **13 passed, 0 failed.** The shipped `metal-chain.dirty` drive
+(7) and the whole clean wire suite (43) pass alongside it.
+
+⭐ **Boot was clean.** Seven renamed rows and one deleted row reconciled
+with **zero** `FAILED at step` / `owned by pack` lines, which was the
+main content risk of the W4 renames.
+
+### ⚠⚠ What the drive found, and it is the third dead verb
+
+**`stake` had never worked in a booted world either.**
+
+```
+> stake 9,11,0
+The register names no diggings.
+```
+
+`StakeController` resolved the `MineWarren` with a bare
+`StuffApi.findByTemplatePath`. A `MineWarren` is a **reference Idea and
+nothing warms a roster of them**, so on a fresh process that reads null
+forever — and the claims layer, the whole pedagogical payload of the
+parcel subsystem, answered *"the register names no diggings"* to every
+claim anybody has ever attempted. 145 unit tests did not notice, because
+a unit test stands the warren up itself.
+
+⭐ **Three sites of one bug is a pattern, not an oversight.**
+`SurveyChannelController.depositAt` had already patched exactly this for
+`Deposit`, and `Working.resolveDeposit` for its own — both with a
+get-or-create and both with a comment saying why. `StakeController` now
+has the same. **A reference Idea that nothing instantiates at boot must
+be resolved by its reader**, and this is the fourth recorded instance.
+
+⚠ **And the drive nearly missed it.** The first draft's "already claimed"
+assertion matched `/already|register|claim/i`, and *"The register names
+no diggings"* contains the word **register** — so the refusal test passed
+green against a completely different failure. It only surfaced because
+the SUCCESS case next to it could not be fudged. The match is narrow now,
+with a comment saying why.
+
+Two smaller drive findings, both the test's own fault and both fixed:
+the general store's room is `shop-floor`, not `shop` (a bad
+`startLocation` answers **500** from `/auth/test-login`, which reads like
+an auth problem and is not); and `buy ingot` answers *"ingot isn't for
+sale here"* with a typographic apostrophe, so a `don't`-style pattern
+does not match it.
+
+### The checkpoints that passed, and what each one proves
+
+| checkpoint | proves |
+|---|---|
+| four rooms north-east out of the claims office | the fringe is a WALK — no adit, cage, lamp or permit |
+| `look` reads rust and **not** green | lateral zonation arrived as prose, not as a number |
+| `stake 5,7,0` refuses, `stake 9,11,0` takes | first come is the rule, and the register is real |
+| `hew` at the far fringe is about ore or the pick | the face is iron-bearing, never barren |
+| `analyze ground` names what is underfoot | D15, through the card's own frame |
+| **`smelt` is not `unknown-verb`** | ⭐⭐ the dead verb is alive — the build's whole premise |
+| the furnace is a container you can charge | the `as never` cast no longer hides a hole |
+| the anvil is in the smelter | a bloom has somewhere to be consolidated |
+| **`char` is not `unknown-verb`** | the second dead verb is alive |
+| charcoal is in the fuel yard | the rung is not blocked on a three-day burn |
+| `buy ingot` — *"isn't for sale here"* | the faucet is shut, from the player's side |
+
+⚠ The shipped `metal-chain.dirty` assertion that `smelt` is an
+`unknown-verb` at the fuel yard was **inverted**: it used to pass for the
+wrong reason (the verb was afforded by nothing anywhere). The fuel yard
+is one passable exit from the smelter, which is exactly the reach `peers`
+has, so the verb now arrives, finds the charcoal CLAMP — a Furnace and a
+Container like any chargeable furnace — and declines for a reason about
+what a clamp is: a heap kept deliberately starving of air. Better than
+*"I don't understand 'smelt'"*, and the rule doing its job.

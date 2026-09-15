@@ -2252,9 +2252,8 @@ interface InflictReport {
  * ⭐ **Steel is the reference**, so `materialHeight(steel) === 1.0` on
  * every channel and every shipped gym matchup is byte-identical. What
  * moves is non-steel: iron ×0.83, bronze ×0.77, copper ≈×0.70, oak
- * ≈×0.70 blunt, leather ≈×0.61 edge. ⚠ And a weapon with NO material
- * delivers **zero**, which is why every arms row keeps a default
- * `_materialPath` even though both mint paths override it.
+ * ≈×0.70 blunt, leather ≈×0.61 edge. ⚠ A weapon with no material at all
+ * is NEUTRAL rather than zero — see the guard below.
  */
 function instrumentDeliveryScale(
   weapon: Stuff | null,
@@ -2269,10 +2268,22 @@ function instrumentDeliveryScale(
   // ⭐⭐ What it is MADE of, on the channel it is being used on — the
   // same formula the covering stack reads from the other side, so an
   // iron blade and a steel blade differ by the metal and nothing else.
-  scale *= MaterialApi.materialHeight(
-    MixinApi.isTangible(weapon) ? weapon.getMaterial() : null,
-    channel,
-  );
+  //
+  // ⚠⚠ **An unauthored material is NEUTRAL here, not zero**, and the
+  // asymmetry with the attenuation side is deliberate. `materialHeight`
+  // returns 0 for a null material and is right to: on the covering side
+  // a null material is *no covering*, and no covering protects nothing.
+  // On this side the weapon is PRESENT — what is missing is our
+  // knowledge of what it is made of, which is a different fact with the
+  // same shape. Scaling by zero there would let one unauthored field
+  // silently delete combat; found by driving the suite, where two
+  // fixture blades stopped drawing blood at all.
+  //
+  // Neutral also makes the fold's blast radius the smallest honest one:
+  // every weapon nobody authored a material for behaves exactly as it
+  // did before, because before the fold material was ignored entirely.
+  const metal = MixinApi.isTangible(weapon) ? weapon.getMaterial() : null;
+  if (metal) scale *= MaterialApi.materialHeight(metal, channel);
   // The working-surface factor — the edge only matters on the edge.
   if (
     (channel === "edge" || channel === "point") &&

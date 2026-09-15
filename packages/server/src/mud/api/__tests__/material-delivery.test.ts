@@ -92,10 +92,25 @@ describe('the material a weapon is made of', () => {
       .toBeLessThan(MaterialApi.materialHeight(steel(), 'blunt'));
   });
 
-  it('⚠⚠ a weapon with NO material delivers ZERO', () => {
-    // Which is why every arms row keeps a default `_materialPath` even
-    // though both mint paths override it: a prop nobody forged would
-    // otherwise be a stick.
+  it('⚠⚠ a NULL material is zero here — and the delivery fold must not use it', () => {
+    /*
+     * ⭐⭐ **The same number means two different things on the two sides
+     * of a blow, and conflating them cost a real regression.**
+     *
+     * On the COVERING side a null material is *no covering*, and no
+     * covering protects nothing — so zero is exactly right, and that is
+     * what this function has always returned.
+     *
+     * On the DELIVERY side the weapon is PRESENT; what is missing is
+     * our knowledge of what it is made of. Scaling by zero there lets
+     * one unauthored content field silently delete combat, which is
+     * what happened: two fixture blades in `CombatLogic.hooks` carry no
+     * material and stopped drawing blood at all the moment the fold
+     * landed. `instrumentDeliveryScale` therefore GUARDS the null and
+     * leaves the scale neutral — which also makes the fold's blast
+     * radius the smallest honest one, because before it material was
+     * ignored entirely.
+     */
     for (const channel of CHANNELS) {
       expect(MaterialApi.materialHeight(null, channel), channel).toBe(0);
     }
@@ -120,5 +135,8 @@ describe('the material a weapon is made of', () => {
     expect(engine).toMatch(/MaterialApi\.materialHeight\(/);
     // …and the docblock that named the asymmetry is gone with it.
     expect(engine).not.toMatch(/Material \*height\* stays analyze-only/);
+    // ⚠ …and the null guard is there, because without it an unauthored
+    // material scales the blow to nothing. See the case above.
+    expect(engine).toMatch(/if \(metal\) scale \*= MaterialApi\.materialHeight/);
   });
 });

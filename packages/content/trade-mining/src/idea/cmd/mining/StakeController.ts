@@ -29,7 +29,7 @@ import { MessageApi } from '@saxonberg/server/mud/api/message';
 import { Mml } from '@saxonberg/server/mud/api/mml';
 import { StuffApi } from '@saxonberg/server/mud/api/stuff';
 import { ParcelApi } from '@saxonberg/server/mud/api/parcel';
-import type MineWarren from '../../MineWarren';
+import MineWarren from '../../MineWarren';
 import type { ClaimBlock } from '../../MineWarren';
 
 const TOPIC = 'act.deed';
@@ -57,7 +57,7 @@ export default class StakeController extends CommandController<StakeModel> {
       return;
     }
     const warrenPath = (counter as unknown as { getWarrenPath?(): string }).getWarrenPath?.() ?? '';
-    const warren = warrenPath ? StuffApi.findByTemplatePath<MineWarren>(warrenPath) : null;
+    const warren = warrenPath ? await resolveWarren(warrenPath) : null;
     if (!warren) {
       this.decline(context, Mml.compose`The register names no diggings.`, 'no-diggings');
       return;
@@ -152,6 +152,29 @@ function parseBlock(raw?: string): [number, number, number] | null {
   const parts = raw.split(',').map((n) => Number(n.trim()));
   if (parts.length !== 3 || parts.some((n) => !Number.isFinite(n))) return null;
   return [parts[0]!, parts[1]!, parts[2]!];
+}
+
+/**
+ * The diggings the register records for.
+ *
+ * ⚠⚠ **Get-or-create, and it is not belt-and-braces.** A `MineWarren` is
+ * a reference Idea and **nothing warms a roster of them**, so on a fresh
+ * process `findByTemplatePath` reads null forever — and `stake` answered
+ * *"The register names no diggings"* to every claim ever attempted in a
+ * booted world. Found by driving; the same hole `SurveyChannelController`
+ * had already patched for `Deposit` and `Working.resolveDeposit` for its
+ * own. ⭐ That is three separate sites of one bug, which is what makes it
+ * a pattern rather than an oversight: a reference Idea that nothing
+ * instantiates at boot must be resolved by the reader.
+ */
+async function resolveWarren(path: string): Promise<MineWarren | null> {
+  const resident = StuffApi.findByTemplatePath<MineWarren>(path);
+  if (resident) return resident;
+  try {
+    return await StuffApi.singleton<MineWarren>(path);
+  } catch {
+    return null;
+  }
 }
 
 /** The claims register: a fixture that names the diggings it records for. */

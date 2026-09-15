@@ -196,6 +196,27 @@ export default class SmeltController extends CommandController<CommandModel> {
       return;
     }
 
+    // ⚠⚠ A charcoal CLAMP is a furnace and a container, and the fuel
+    // yard is one passable exit from the smelter — which is exactly the
+    // reach `peers` has, and the reach the anvil has had all along. So
+    // the verb legitimately arrives here, finds the clamp, and must
+    // decline for a reason about what a clamp IS.
+    //
+    // ⭐ And the reason is the clamp's own whole mechanic: it is a heap
+    // kept deliberately STARVING. Charring is running a fire that is not
+    // allowed enough air to burn, and you cannot reduce ore in something
+    // you are keeping away from the air. Duck-typed on `draught` (the
+    // shape-not-mixin rule `analyze water` uses) rather than narrowed on
+    // the class, so this pack gains no dependency on the fuel trade.
+    if (isClamp(furnace)) {
+      this.decline(
+        context,
+        Mml.compose`That is a charcoal clamp, not a smelting furnace. The whole art of it is keeping the air OUT — a clamp that got enough draught to reduce an ore would have burned its own charge to ash hours ago. Take the ore to a shaft with a tuyère in it.`,
+        'not-a-smelter',
+      );
+      return;
+    }
+
     const contents = furnace.getContents() as Stuff[];
     const ore = contents.filter((c) => isOre(c));
     const stock = contents.filter((c) => isStock(c));
@@ -599,6 +620,14 @@ function meltingPointKOf(metal: Material): number {
   const point = metal.getMeltingPoint?.();
   const value = typeof point === 'number' ? point : point?.rawValue() ?? 0;
   return value > 0 ? value : T_FE;
+}
+
+/**
+ * A charcoal clamp: the one furnace in the game whose draught is a dial
+ * somebody sets, because keeping the air out is what it is FOR.
+ */
+function isClamp(item: Stuff): boolean {
+  return typeof (item as unknown as { getDraught?: unknown }).getDraught === 'function';
 }
 
 /** An ore lot: anything that can say what fraction of it is a given metal. */

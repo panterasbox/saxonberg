@@ -331,7 +331,12 @@ response` told a player a bronze blade was worse than a steel one and
 the exchange disagreed. Steel is the reference (height exactly 1.0), so
 every shipped matchup is byte-identical and the gym is unchanged either
 side of the fold; iron ×0.83 on an edge, bronze ×0.77, copper ×0.70.
-⚠ A weapon with no material delivers **zero**.
+
+⚠⚠ A weapon with **no material at all is neutral here, not zero**, and
+the asymmetry with the covering side is deliberate: there a null
+material is *no covering* and zero is right, here the weapon is present
+and only our knowledge of it is missing. Scaling by zero would let one
+unauthored content field silently delete combat.
 
 It computes **no damage**;
 `inflict` resolves the covering stack outside-in

@@ -3,11 +3,20 @@ version: 0.1.0
 root: /trade/smithing
 description: >-
   The smithing trade — what smithing introduces: its stations (anvil,
-  whetstone, workbench), its stock (iron ingots) and its recipes
-  (fire-poker, smiths-hammer, belt-knife, cook-pot). Fire
-  stations (Forge, Oven, Kiln, CookPot) are fire-substrate commons under
-  /obj; the Hearthworks smithy (/world/hearthworks/location/smithy) is the venue
-  that hosts this trade. Content packs wave 4a.
+  whetstone, workbench), its stock (the wrought bar) and its recipes.
+  ⭐ Fourteen of them now: the five household pieces, and the nine arms
+  and armour that seventeen shipped templates had been waiting for since
+  the combat build without anybody being able to make one.
+  ⭐⭐ Two of its acts are not recipes at all, because they are things
+  that happen to metal rather than forms a smith chooses: the first
+  `hammer` on a BLOOM consolidates it (the slag on the floor, a bar in
+  your hands), and `quench` on a heated but un-worked piece is a heat
+  treatment whose outcome is the piece's own carbon — nothing for
+  wrought iron, hardening for steel, a crack for cast. Every anvil
+  recipe asks for `forgeable` stock: one tag, one rule. Fire stations
+  (Forge, Oven, Kiln, CookPot) are fire-substrate commons; the
+  Hearthworks smithy is the teaching venue and Rejection's smelter now
+  has an anvil of its own.
 requires:
   groups:
     - name: smithing

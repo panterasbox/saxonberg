@@ -183,8 +183,12 @@ preview and the fight agree by construction rather than by anybody
 keeping two formulas in step. ⚠ Steel is the reference, so a steel
 weapon lends exactly 1.0 and nothing shipped moved (the gym was run
 either side of the fold, unchanged); iron lends ~0.83 on an edge, bronze
-~0.77, copper ~0.70, and a `null` material **zero** — which is why every
-arms row carries a material even when it is only a default.
+~0.77, copper ~0.70. ⚠⚠ A `null` material lends **zero**, which is right
+on the covering side (no covering protects nothing) and wrong on the
+delivery side (the weapon is present; only our knowledge of it is
+missing) — so `instrumentDeliveryScale` GUARDS the null and stays
+neutral. Conflating the two cost a regression: two fixture blades with
+no material stopped drawing blood the moment the fold landed.
 
 **Wear-on-use joins the fold** (the repair economy): inside
 `ConditionLogic`'s outside-in walk, each covering layer that attenuates a
@@ -283,6 +287,22 @@ defers is the combat **loadout + playstyle**
 (reach / poise / guard→parry / afforded gambits), orthogonal to holding the
 thing. The channel driving a given `inflict` is **explicit** at the call
 site (Settled: no auto-pick).
+
+⭐⭐ **What a weapon is MADE OF now reaches the blow** (metallurgy,
+2026-09). `CombatLogic.instrumentDeliveryScale` multiplies its
+`grade × condition × keenness` scalar by
+`MaterialApi.materialHeight(weapon.getMaterial(), channel)` — the same
+function the covering stack reads from the other side, so the preview and
+the exchange agree by construction rather than by two formulas being kept
+in step. Steel is the reference (1.0 everywhere), iron ~0.83 on an edge,
+bronze ~0.77, copper ~0.70.
+
+⚠⚠ **A weapon with no material at all is NEUTRAL, not zero**, and the
+asymmetry with the attenuation side is deliberate: there a null material
+is *no covering* and zero is right; here the weapon is present and only
+our knowledge of it is missing. Scaling by zero let one unauthored
+content field silently delete combat — two fixture blades stopped drawing
+blood the moment the fold landed.
 
 ## The legibility surface (mandatory — Settled 11)
 

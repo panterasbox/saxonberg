@@ -442,6 +442,35 @@ nothing at all if it cannot reach the band.
 the family's shared reader — because both new gates need to answer *does
 this class compose X?* from the class file.
 
+### `lint:person-keys` — a PERSON keys on `getIdentityPath()` (2026-09)
+
+⚠⚠ **Every player Avatar shares one `templatePath`.** D17 stamps lineage
+and identity separately, so a durable record keyed on the template path
+does not identify one player — it identifies **every player at once**,
+and the collapse is invisible to a suite because fixtures author distinct
+template paths per avatar. It has cost a shared bank account and a dead
+labor market (MR !251), and the metallurgy build's grounding found a
+fourth: **every mining claim in the game was owned by everybody**,
+because `StakeController` passed `giver.getTemplatePath()` into the
+parcel register while every kernel site writing that same field passes an
+identity path. The field's meaning was never in doubt; one pack simply
+never got the sweep.
+
+⭐ **A ratchet at zero, not a census** — the one offender was fixed in the
+commit that added the gate, so there is no backlog and the ceiling starts
+where it ends (the `check-drive-scripts` precedent).
+
+⭐⭐ **Deliberately a literal, not a classifier.** It matches one written
+shape — a `kind: 'player'` owner whose `templatePath` is fed by
+`getTemplatePath()`, in either key order, comments stripped — across the
+kernel and every pack `src/`. A gate that tried to decide in general
+whether a given `getTemplatePath()` names a person would be wrong in both
+directions and teach nobody anything; see *Three ways a census lies*
+above. The broader disease, and the one open half the literal cannot see
+(the maker's-mark `makerPath` fallbacks in five controllers), are
+documented at
+[antipatterns.md § Keying a PERSON](./antipatterns.md).
+
 ## Domain honesty — the gates that buy a narrowing
 
 These exist because the failure they prevent is **silent and looks
