@@ -578,6 +578,53 @@ mode — *"the upkeep treadmill pointed at a person"*. Demand comes from
 the player. If this build makes a player's own hunger more urgent, it
 has done the wrong thing.
 
+### ⭐⭐⭐ The buyer's MEANS selects the loaf — demand must be differentiated
+
+Hunger alone gives the baker a customer. It does not give extraction a
+**meaning**. If every buyer takes whatever is on the counter, white and
+wholemeal are two ways to stock a shelf and the class story the whole
+mechanism was built to tell never happens.
+
+⭐ **The genre already proved this is the payoff, not a flourish.**
+Anno 1800 gives each population tier its own basket and stalls a tier
+you cannot supply; Victoria 3 models pops by wealth stratum buying
+different baskets at price; Against the Storm differentiates demand by
+species. Those are aggregate simulations reaching for differentiated
+demand because *undifferentiated demand is not interesting*. We have a
+better substrate than any of them — individual people with jobs, wages
+and bank accounts — and no demand model at all.
+
+So the `eats` brain **reads the buyer's means and chooses accordingly**:
+the day labourer takes the cheap loaf, somebody with money takes the
+white one. `BankingApi.balanceOf` is a sync read and
+`primaryAccountIdOf` resolves a person's account, so this is a read the
+brain can already make — it is what a person does at a counter.
+
+⚠ **The engine measures the purse, never the person.** It may not label
+anybody poor, band them, or render a class. It prices a loaf and reads a
+balance; *who eats white bread* is then something a player **observes
+happening**, never something the game asserts. Same rule as every other
+band in this codebase.
+
+### ⭐⭐ The mill must buy back your TIME, not your throughput
+
+A capital ladder whose upper rung is "20 % faster" is a number, not a
+decision. **Vintage Story's hand quern is deliberately tedious**, which
+is exactly what makes getting a windmill *feel* like relief — and that
+relief is the whole emotional content of the capital rung.
+
+⭐ **The shipped engagement vocabulary already says it better than a
+rate could.** The quern takes your **hands**: you are cranking it, and
+while you crank you can do nothing else. The water mill takes the
+river's power instead, so once set going it **runs without you** —
+`trade-fuel`'s `char` is the precedent, holding `attention` rather than
+`hands` for a burn that is *watched, not held*.
+
+So the rung is not throughput. It is that the quern **costs you the
+minutes you are standing there** and the mill does not — the same
+lesson the consequence build learned about standing a post, pointed the
+other way. Faster is a consequence; freedom is the purchase.
+
 ### ⭐ The chemistry must be teachable, not merely true
 
 Lens 1's test is whether a player can **derive** outcomes from
@@ -691,6 +738,39 @@ changes the build is the pass working.
    white flour cheap*, which inverts the class story above. Nothing
    breaks, but this build does not model the inversion and a later
    industrial wave should.
+
+---
+
+## ⭐ Prior art — what the genre already proved
+
+Surveyed 2026-09-15 alongside the second lens pass. Recorded because
+three of this doc's decisions are *answers to things other games got
+right or wrong*, and a later reader should know they were checked.
+
+| game | what it settles for us |
+|---|---|
+| **Wurm Online** | ⭐⭐⭐ The closest existing thing to our grade chain — quality 1–100 propagating through every craft, with a maker's mark. **And the cautionary tale:** quality became the grind. Our defence is already in the design and worth naming — grade is a **five-rung band**, not a number, and `_worstLimiting` is a **monotone minimum**, so a plant nursed back still grades badly. You cannot farm a band you cannot recover. |
+| **Eco** | ⭐⭐ The nearest thing to this project's whole thesis: multiplayer, forced specialization, a real economy, player-made law. Its chronic failure is that **specialization is dead weight below a population threshold** — which is exactly the hole the `eats` brain fills. NPC demand is not a nicety; it is what keeps a specialized economy alive when the server is quiet. |
+| **Vintage Story** | ⭐⭐ Ships the quern-or-windmill split we are building, and makes the hand quern **deliberately tedious** so the upgrade is felt. Source of the *buy back your time* decision above. ⚠ Its varied-nutrition-raises-max-health mechanic is a **gauge** and we do not copy it. |
+| **Ostriv** | Models threshing and winnowing for real. Proof that our abstraction of them is a **choice**, not a constraint — the abstraction law still holds (the growing costs somebody the activity), but we should not pretend the fuller version is unplayable. |
+| **Timberborn** | ⭐⭐ Makes head-and-flow the **puzzle** — dams, levees, drought cycles, wheel output from flow. Ours is a reading off `ρ·g·Δh·Q·η`. ⚠ Recorded as our legibility gap: the physics is honester and far less visible. Not this build's to close. |
+| **Anno 1800** · **Victoria 3** · **Against the Storm** | ⭐⭐⭐ All three reach for **differentiated demand** — tiers, wealth strata, species — because undifferentiated demand is not interesting. They are aggregate simulations straining toward what we can do per-person. Source of *the buyer's means selects the loaf*. |
+| **Manor Lords** | Burgage plots, families who physically **fetch** goods from market stalls, regional specialization. The closest settlement-scale analog to what the valley wants to become. |
+| **Frostpunk** | The clearest demonstration of a values choice that **bites** (sawdust in the soup). Not a mechanic to copy; a bar to hold *who eats white bread* against. |
+| **RimWorld** | Individual meals with quality tiers, real rot, freezers, per-pawn preferences. Prior art that per-instance food is tractable at scale. |
+| **Valheim** · **Banished** · **Farthest Frontier** | The three shapes we are **not**: food as a combat buff; food as an aggregate population need; food as a managed throughput. ⚠ All three make food *press* more than we do — you die, or your colony starves — which is the observation that exposed lens 4's gap. |
+
+⭐⭐ **The axis the survey clarified: who is the player?** Valheim's
+player **consumes** food. Farthest Frontier's and Banished's **manage**
+its production in aggregate. Ours is the only one where the player is a
+**practitioner** — a loaf is a specific object with a maker's name on
+it, sold to somebody who chose to buy it.
+
+⚠ And the honest debits: their chains are more **legible** (you watch a
+windmill turn), their seasons are visible at a glance rather than a
+number in a soil reserve, and their feedback loops are minutes where
+ours are game-days. None of those is this build's to fix; all three are
+worth staying nervous about.
 
 ---
 
@@ -846,9 +926,17 @@ Run against the running game before the MR opens. Written now.
 51. ⚠ Confirm the loop is **demand, not a treadmill**: your own hunger
     is no more urgent than it was before this build. Nothing was
     sharpened at the player.
-52. Sell a **wholemeal** loaf and a **white** loaf to the same buyer over
-    two days. → The cheaper choice and the more nourishing choice are
-    not the same choice, and the buyer's means decide which they take.
+52. Stock **both** a wholemeal and a white loaf, priced apart, and let
+    two people with **different means** come to the counter. → ⭐⭐ They
+    do not buy the same loaf, and the reason is the purse. Watch it
+    happen twice before believing it.
+52a. ⚠ Confirm the engine never **says** it: nothing labels anybody poor
+    or renders a class. It prices a loaf and reads a balance; the
+    pattern is something you notice, not something you are told.
+52b. Mill a sack at the **quern**. → Your hands are busy for the whole
+    of it; try to do anything else and you cannot. Then mill a sack at
+    the **water mill**. → You set it going and **walk away**. ⭐ That —
+    not the rate — is what the capital bought.
 53. `help retrogradation`. → It explains *why* the icebox is the worst
     place for bread — the chemistry, not the rule.
 54. `help extraction`, `help head-and-flow`, `help gluten`. → Each
@@ -914,6 +1002,13 @@ Observable from outside the code. A player, not a test.
 20. Two flours milled at different extractions differ **continuously**;
     there is no pair of distinct extraction settings that silently
     produce identical flour.
+21. ⭐⭐ **Two buyers with different means, offered the same two loaves,
+    do not buy the same loaf** — and nothing anywhere labels either of
+    them as poor or rich. The pattern is observable and never asserted.
+22. ⭐ **The quern occupies you and the mill does not.** A player milling
+    by hand cannot do anything else while they do it; a player at the
+    water mill sets it going and leaves. The upgrade is legible as
+    bought time, not as a larger number.
 
 ---
 
