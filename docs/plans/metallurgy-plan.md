@@ -1796,6 +1796,33 @@ Read first, in this order:
 
 ---
 
+## The full suite
+
+**`pnpm test` — 10,685 tests, 1,149 files.** First run: **2 failed**, both
+in `wiki-spoiler-fields.snapshot.test.ts`, and both the intended
+consequence of `AlloyedMixin`:
+
+```
++ AlloyedMixin.alloying = 1 (name 0)
++ AlloyedMixin.temper  = 1 (name 0)
+```
+
+⭐ That file exists to make exactly this a reviewer's decision rather
+than a silent leak — the reveal model **fails open**, so a newly-added
+spoilery field is visible until somebody tags it, and the snapshot is an
+enumerating audit whose failure asks one question: *is this a spoiler?*
+
+**Yes, and both were already tagged.** Carbon on a bar is precisely what
+`analyze chemistry` earns, so `spoiler: 1, spoilerName: 0` — *that the
+field exists is public, what it reads is earned* — which is the
+`Ore.grade` cut this build deliberately copied. The two lines land in the
+"deliberately declared as spoilers" snapshot as well as the census, which
+is the tagging working. Re-recorded, and the diff is in the MR.
+
+⚠ One `StudioLogic.describeMixin` case failed in a single `test:near` run
+and passed in isolation, in its own directory, and in both full runs. A
+cross-file interference, recorded rather than dismissed.
+
 ## Drive record
 
 **Run 2026-09-15 against a booted server** (`saxonberg_build1`, the
