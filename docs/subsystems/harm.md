@@ -89,9 +89,9 @@ energy.
   The mechanical fold + the thermal/tearing passthrough stay byte-identical.
   See [electricity.md](./electricity.md).
 
-## The five trauma behaviors
+## The six trauma behaviors
 
-Live in `lib/vitals/Condition.ts`, co-located with the `Trauma` value in
+Live in `platform/idea/Condition.ts`, co-located with the `Trauma` value in
 the closed `TRAUMA_BEHAVIOR: Record<TraumaType, TraumaBehavior>` roster.
 The interface is `onset` / `tick(host, t, elapsedSec)` / `resolve` (the
 *dress* action) / `reopen` (the *undress* action) / `describe`. Rates live
@@ -108,6 +108,15 @@ in the `HARM_DEFAULTS` const-object (the driver `*_DEFAULTS` convention).
   remove). The gate is a pure boolean-flag machine on the `Trauma` value —
   no dependency on the `DressingMixin`, the `Bandage`, or the verbs (those
   are the consumers that call `resolve`/`reopen`).
+- **puncture** — delegates `onset` / `tick` / `resolve` / `reopen`
+  **wholesale to `LACERATION_BEHAVIOR`**, differing only in `describe`
+  ("a bleeding puncture wound of …"). ⭐ That is the honest model, not a
+  shortcut: a stab and a slash both open a vessel and both answer to
+  pressure and a dressing. The two exist as separate `TraumaType`s
+  because the **channel** that produced them differs (`point` vs `edge`)
+  and because a treatment build will eventually want to tell them apart —
+  a deep narrow tract and a long shallow one are not the same surgical
+  problem — not because they behave differently today.
 - **contusion** — mild, self-resolving severity decay; no bleed.
 - **fracture** — a slow natural heal. **The impairment is a derived read**,
   not a tick effect: `Vitals.isSlotImpairedByTrauma(slot)` folds into

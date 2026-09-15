@@ -9,7 +9,7 @@ driver, condition content, instruments, treatment verbs). Bodies that
 yet.
 
 Source: `lib/vitals/Vitals.ts` (the `VitalsMixin`),
-`lib/vitals/Condition.ts` (the condition type system),
+`platform/idea/Condition.ts` (the condition type system),
 `lib/reserve.ts` (the reserve substrate — see [reserve.md](./reserve.md)),
 plus `Species.vitalProfile` and `BodyPlan.bodyParts`.
 
@@ -170,7 +170,7 @@ behind one `ActiveCondition` collection (`getConditions` / `afflict` /
 `relieve`); they differ only in where *behavior* lives. (Kind C —
 `SustainedShock` — was added by the [electricity](./electricity.md) build.)
 
-- **Kind A — afflictions** (`Condition` in `lib/vitals/Condition.ts`):
+- **Kind A — afflictions** (`Condition` in `platform/idea/Condition.ts`):
   identity-bearing authored content as `Condition extends Idea` templates, resolved
   by `findByTemplatePath` like Materials/Species. The instance record is
   `{ kind: 'affliction', templatePath, stage, elapsed }`; behavior lives
@@ -194,10 +194,12 @@ behind one `ActiveCondition` collection (`getConditions` / `afflict` /
   > end-to-end pass read one back through the client. The consequence is
   > that **authored `Condition` behavior is inert**: signs, names,
   > progression and `toxinBehavior` are all read off an object that isn't
-  > there. Instantiating the catalogue at boot is its own small build —
-  > and until it lands, treat "the Idea resolves" as an assumption to
-  > verify, not a given.
-- **Kind B — trauma** (the `Trauma` value in `lib/vitals/Condition.ts`):
+  > there. ✅ **`ConditionCatalogue` closed it** — a self-warming
+  > `postRegister` stands every authored row up as a live singleton, so
+  > the sync resolve-on-read seams hit from the first frame. ⭐ The
+  > durable lesson is the one the banner keeps: the reads all
+  > `?.`-chained past a null, **so CI was green over a dead subsystem**.
+- **Kind B — trauma** (the `Trauma` value in `platform/idea/Condition.ts`):
   a parameterized value `{ kind: 'trauma', type, site, severity, bleeding?, dressed? }`
   with a closed `TraumaType` union (`laceration | fracture | contusion |
   avulsion | burn`) and the `TRAUMA_BEHAVIOR` strategy table

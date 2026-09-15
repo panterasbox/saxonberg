@@ -25,7 +25,9 @@ A blow is decomposed into three orthogonal axes — the channel selects the
 picks its *shape*:
 
 - **Channel** (`lib/material/Channel.ts`) — the closed, additively-growable
-  mechanism vocabulary, v1 **`edge` / `point` / `blunt`**. The single shared
+  mechanism vocabulary — **`edge` / `point` / `blunt`** (mechanical),
+  plus **`shock`** (resolves by circuit) and **`heat`** (resolves by
+  insulation). The single shared
   interface a weapon's *delivery*, an armor's *resistance*, and a tissue's
   *failure* all transact over. Not a "damage type" — the *shape of the
   force*. (`crush`/`heat`/`cold`/`corrosion` join as columns when their
@@ -295,15 +297,22 @@ renders MML it is given and holds zero response semantics.
 Authors author **concepts** (a *steel breastplate, fine*), never numbers;
 the tuning constants are operator-only.
 
-## The thermal / tearing passthrough
+## The tearing passthrough
 
-The mechanism vocab is unified into the channel set, but harm ships
-`thermal → burn` and `tearing → avulsion`, whose channels (`heat`, a tearing
-channel) are explicit non-goals. `InsultKind = Channel | 'thermal' |
-'tearing'`: a `Channel` runs the full stack→tissue response; `'thermal'` /
-`'tearing'` take the **legacy magnitude-only passthrough** (direct → burn /
-avulsion, byte-preserving harm's shipped math), the documented seam that
-folds into a `heat` / tearing channel when those land.
+`InsultKind = Channel | 'tearing'`. A `Channel` runs the full
+stack→tissue response; **`'tearing'` is the one remaining
+magnitude-only passthrough** (direct → `avulsion`, byte-preserving
+harm's shipped math), the documented seam that folds into a tearing
+channel when one lands.
+
+⭐ **`'thermal'` used to sit beside it and no longer does** — and that
+transition is the worked example of how this seam is meant to close. It
+did not become "a channel that skips the fold"; it became `heat`, a real
+channel with **its own physics** (a covering attenuates by its material's
+`thermalConductivity` inverted × layer depth) resolving into a tissue
+`burn`. Leather turns a burn; plate conducts it, so a steel gauntlet is
+*worse* than a bare hand. **A passthrough retires by acquiring a
+mechanism, never by being promoted.**
 
 ## The `shock` channel — resolves by circuit, not the fold
 

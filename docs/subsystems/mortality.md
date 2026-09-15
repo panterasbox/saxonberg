@@ -95,7 +95,7 @@ Crossing a lethal threshold no longer kills — it opens a window, and the
 anyone can intervene, and it turns nine independent "you are now dead"
 flips into a state a medic can act on.
 
-`DyingRecord` (condition Kind E, `lib/vitals/Condition.ts`) with the
+`DyingRecord` (condition Kind E, `platform/idea/Condition.ts`) with the
 `dying` band between `critical` and `dead`. It persists, so a dying body
 evicted and restored is still dying with its accrued time intact.
 
