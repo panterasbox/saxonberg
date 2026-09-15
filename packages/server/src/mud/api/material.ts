@@ -158,6 +158,27 @@ export class MaterialApi {
     return logic().gradeConditionScale(grade, condition);
   }
 
+  /**
+   * ⭐⭐ The *height* a material lends the response curve on a channel —
+   * the normalized ratio against the reference (steel) magnitudes,
+   * per-channel weighted. Steel is 1.0 everywhere by construction; iron
+   * ~0.83 on an edge, bronze ~0.77, copper ~0.70, a `null` material
+   * **zero**.
+   *
+   * ⚠⚠ **Both ends of a blow read it, and that is new.** It has always
+   * priced what a blow lands ON — the covering stack's attenuation — and
+   * `analyze response` has always folded it for weapons too. What the
+   * FIGHT did not do was read it for the instrument, so a bronze sword
+   * and a steel sword of equal grade and condition hit exactly as hard.
+   * That asymmetry was deliberate once, for combat balance; the
+   * metallurgy build retires it, because a chain whose whole point is
+   * WHICH METAL YOU MADE has to be answerable in the one place metal is
+   * used in anger.
+   */
+  public static materialHeight(material: Material | null, channel: Channel): number {
+    return logic().materialHeight(material, channel);
+  }
+
   public static attenuate(
     channel: Channel,
     energy: number,

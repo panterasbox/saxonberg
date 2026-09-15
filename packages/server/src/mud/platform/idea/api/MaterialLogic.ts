@@ -97,6 +97,12 @@ export class MaterialLogic extends ApiLogic {
 
   // ---------- materials-response ----------
 
+  /** See {@link MaterialApi.materialHeight}. */
+  @CallSecurity(MaterialApiCallers)
+  public materialHeight(material: Material | null, channel: Channel): number {
+    return materialHeight(material, channel);
+  }
+
   /** See {@link MaterialApi.gradeConditionScale}. */
   @CallSecurity(MaterialApiCallers)
   public gradeConditionScale(grade?: Grade, condition?: number): number {
@@ -303,6 +309,17 @@ function baseAttenuationFor(token: ResistToken): number {
  * is largely give/loft, so a soft absorber still works); `point` mixes both
  * (resist the tip AND resist punch-through). Unauthored material (zero
  * props) lends zero height on the cutting channels.
+ *
+ * ⭐⭐ **Both ends of a blow read this now.** It always priced what a blow
+ * lands ON (the covering stack's attenuation); since the metallurgy
+ * build it also prices what the blow is DELIVERED WITH
+ * (`instrumentDeliveryScale`), which is the same physics asked from the
+ * other side and was previously analyze-only. Steel is the reference, so
+ * a steel weapon lends exactly 1.0 on every channel and nothing shipped
+ * moved; iron lends ~0.83 on an edge, bronze ~0.77, copper ~0.70.
+ *
+ * ⚠ And a `null` material lends **zero**, which is why every weapon row
+ * carries a material even when it is only a default.
  */
 function materialHeight(material: Material | null, channel: Channel): number {
   const scaleMax = dial(AppSettingKeys.responseMaterialScaleMax, 1.5);

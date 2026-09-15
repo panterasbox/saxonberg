@@ -2230,8 +2230,31 @@ interface InflictReport {
  * covering stack already uses — quality scales height, never shape),
  * clamped down to the broken floor when the weapon is broken. The keenness
  * factor joins on edge/point channels for `Keen` hosts. Neutral (1) for
- * unarmed/innate strikes. Material *height* stays analyze-only — a
- * deliberate asymmetry (combat balance), documented in combat.md.
+ * unarmed/innate strikes.
+ *
+ * ⭐⭐ **And the material's own height**, which is the whole of what the
+ * metal chain buys. `MaterialApi.materialHeight` has always priced what
+ * a blow lands ON — the covering stack reads it on every attenuation —
+ * and `previewBandImpl` has always folded it for weapons too, so
+ * `analyze response` was already telling players that a bronze blade is
+ * worse than a steel one. The FIGHT was not reading it, so it was not
+ * true: a bronze sword and a steel sword of equal grade and condition
+ * delivered identically, and the preview and the exchange disagreed.
+ *
+ * ⚠ That asymmetry was deliberate and is now retired. It was defensible
+ * while every shipped weapon was steel and material was decoration; it
+ * is not defensible in a game whose metal chain exists so that WHICH
+ * METAL YOU MADE is a decision. Folding it here is what makes an iron
+ * blade honestly worse than a steel one — the requirement the whole
+ * build is for — and it makes the preview and the exchange agree by
+ * construction rather than by anybody keeping two formulas in step.
+ *
+ * ⭐ **Steel is the reference**, so `materialHeight(steel) === 1.0` on
+ * every channel and every shipped gym matchup is byte-identical. What
+ * moves is non-steel: iron ×0.83, bronze ×0.77, copper ≈×0.70, oak
+ * ≈×0.70 blunt, leather ≈×0.61 edge. ⚠ And a weapon with NO material
+ * delivers **zero**, which is why every arms row keeps a default
+ * `_materialPath` even though both mint paths override it.
  */
 function instrumentDeliveryScale(
   weapon: Stuff | null,
@@ -2243,6 +2266,13 @@ function instrumentDeliveryScale(
     ? weapon.getCondition()
     : undefined;
   let scale = MaterialApi.gradeConditionScale(grade, condition);
+  // ⭐⭐ What it is MADE of, on the channel it is being used on — the
+  // same formula the covering stack reads from the other side, so an
+  // iron blade and a steel blade differ by the metal and nothing else.
+  scale *= MaterialApi.materialHeight(
+    MixinApi.isTangible(weapon) ? weapon.getMaterial() : null,
+    channel,
+  );
   // The working-surface factor — the edge only matters on the edge.
   if (
     (channel === "edge" || channel === "point") &&

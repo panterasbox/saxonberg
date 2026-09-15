@@ -929,9 +929,12 @@ broken tool's `hasCapability` goes dark (it fails recipe tool-matching
 until repaired); a broken weapon's delivery is clamped to
 `crafting.brokenDeliveryFloor` (combat's bounded
 `instrumentDeliveryScale` — the shared
-`MaterialApi.gradeConditionScale` × the keenness factor, broken-floored,
-folded into strike energy; material *height* stays analyze-only, a
-deliberate combat-balance asymmetry).
+`MaterialApi.gradeConditionScale` × `MaterialApi.materialHeight` × the
+keenness factor, broken-floored, folded into strike energy). ⭐ The
+material term joined with the metallurgy build: an iron blade delivers
+about 83 % of a steel one on an edge, which is what makes the metal
+chain's whole question worth asking. See
+[materials-response.md](./materials-response.md).
 
 **`repair <item>`** (`CraftingApi.repair` — deficit-priced
 reverse-craft): cost mass = `item mass × (1 − condition) ×

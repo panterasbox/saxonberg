@@ -168,9 +168,23 @@ soft absorber still absorbs). `grade × condition` scales *height only*
 (Settled-4), tuned so a masterwork at ~50% condition ≈ a common piece
 pristine. The scalar is exposed as **`MaterialApi.gradeConditionScale`**
 so combat's instrument-delivery fold reads the SAME formula (the
-crafting-branches coupling — see [combat.md](./combat.md)); combat's
-delivery deliberately folds quality only, leaving material *height*
-analyze-only (the documented asymmetry).
+crafting-branches coupling — see [combat.md](./combat.md)).
+
+⭐⭐ **Both ends of a blow read `materialHeight` now** (metallurgy,
+2026-09-15). It always priced what a blow lands ON; combat's delivery
+deliberately folded quality only, leaving material *height* analyze-only
+— which meant `analyze response` told a player a bronze blade was worse
+than a steel one and the exchange disagreed. That asymmetry was
+defensible while every shipped weapon was steel and material was
+decoration, and it is not defensible in a game whose metal chain exists
+so that **which metal you made** is a decision. `MaterialApi.materialHeight`
+is exposed and `instrumentDeliveryScale` multiplies by it, so the
+preview and the fight agree by construction rather than by anybody
+keeping two formulas in step. ⚠ Steel is the reference, so a steel
+weapon lends exactly 1.0 and nothing shipped moved (the gym was run
+either side of the fold, unchanged); iron lends ~0.83 on an edge, bronze
+~0.77, copper ~0.70, and a `null` material **zero** — which is why every
+arms row carries a material even when it is only a default.
 
 **Wear-on-use joins the fold** (the repair economy): inside
 `ConditionLogic`'s outside-in walk, each covering layer that attenuates a

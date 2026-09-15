@@ -1395,6 +1395,66 @@ retire the asymmetry sentences.
 
 **Commit.** `build(metallurgy W5): material height enters delivery — the preview and the fight agree`
 
+> ### ✅ W5 — done, and the gym is UNCHANGED
+>
+> The fold is three lines. The cost was entirely in proving it moved
+> nothing, and it moved nothing.
+>
+> **The gym, run either side of the fold** (the fold was temporarily
+> disabled for the before-run, then restored):
+>
+> | | before | after |
+> |---|---|---|
+> | `combat-gym` | 1 failed, 11 passed | 1 failed, 11 passed |
+> | `waster-spar` | **3 passed** | **3 passed** |
+> | `species-mass.bench` | 2 failed | 2 failed |
+> | total | 3 failed, 32 passed | 3 failed, 32 passed |
+>
+> ⚠⚠ **All three failures are PRE-EXISTING on `origin/master`** — the gym
+> is red there and has been. Established rather than assumed: the
+> material rows were reverted to `origin/master` and the gym re-run,
+> producing byte-identical failures. They are:
+>
+> - `combat-gym` *"a feint beats a low-competence turtle"* — in a
+>   describe block named **"the parry seam is dead
+>   (rock-paper-scissors)"**, so it is a known-broken area asserting its
+>   own brokenness and now disagreeing about the shape of it.
+> - `species-mass.bench` ×2 — every shipped species reads back at the
+>   DEFAULT 70 kg / 1.78 m, which is the bench not resolving species
+>   content at all rather than a value having moved.
+>
+> **Neither is this build's, and both should be on the MR.** `test:gym`
+> is not in `pnpm test` and has its own CI job, which is how a red bench
+> stays red without anybody tripping over it.
+>
+> ⭐ **`waster-spar` passes**, which was the plan's named numeric risk.
+> Oak's toughness was authored in W2 for exactly this; without it the
+> waster would have delivered at the 0.6 floor on blunt and its blows
+> might have fallen under the wound threshold. It did not, so the
+> `heightFloor` dial was not touched.
+>
+> Other notes:
+>
+> - ⭐ **`check-combat-dynamics` needed NO allowlist edit.** The plan
+>   expected to add `isTangible`; it is already there (line 97). The
+>   build-time check the plan asked for, answered: leave the allowlist
+>   alone.
+> - The new `material-delivery.test.ts` pins the reference (steel is
+>   exactly 1.0 on every channel — the assertion that makes the change
+>   safe), the ratio (iron/steel ≈ 0.833 on an edge), the ladder
+>   (steel > iron > bronze > copper), the zero for a `null` material,
+>   and ⚠ cast iron's honest shape: a **finer edge than steel** and far
+>   worse everywhere else, which is what brittleness looks like in two
+>   numbers.
+> - The last case is structural rather than numeric, and deliberately:
+>   the asymmetry was never really *"combat ignores material"* — it was
+>   TWO FORMULAS allowed to disagree, one of which was what the player
+>   was shown. So the check is that the engine CALLS the method rather
+>   than re-deriving a height of its own.
+> - The asymmetry sentence is retired from `combat.md`,
+>   `crafting.md` and `materials-response.md`, each replaced with what
+>   is true now and why it changed.
+
 ### W6 — the drive, and the docs
 
 **Goal.** The requirements' fifteen steps, run against the running game

@@ -320,10 +320,20 @@ coupling): a weapon strike's energy is multiplied by
 formula the covering stack already folds — Settled-4: quality scales
 height, never shape), × the weapon's `keennessDeliveryFactor()` on
 edge/point channels (the working-surface axis — see
-[crafting.md](./crafting.md)), clamped down to
-`crafting.brokenDeliveryFloor` when the weapon `isBroken()`. Material
-*height* is deliberately left analyze-only (a combat-balance question —
-the delivery fold reads quality, not hardness). It computes **no damage**;
+[crafting.md](./crafting.md)), × `MaterialApi.materialHeight(material,
+channel)` — **what it is made of, on the channel it is used on** —
+clamped down to `crafting.brokenDeliveryFloor` when the weapon
+`isBroken()`.
+
+⭐⭐ The material term is new with the metallurgy build, and it retires a
+documented asymmetry: height used to be analyze-only, so `analyze
+response` told a player a bronze blade was worse than a steel one and
+the exchange disagreed. Steel is the reference (height exactly 1.0), so
+every shipped matchup is byte-identical and the gym is unchanged either
+side of the fold; iron ×0.83 on an edge, bronze ×0.77, copper ×0.70.
+⚠ A weapon with no material delivers **zero**.
+
+It computes **no damage**;
 `inflict` resolves the covering stack outside-in
 and returns the trauma type + severity, or `null` (deflected). Armor
 coverage measurably changes the outcome (a plated torso turns an edge a
