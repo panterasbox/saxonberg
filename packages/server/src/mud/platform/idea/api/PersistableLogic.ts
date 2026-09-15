@@ -134,6 +134,24 @@ function optedOutOfPersistence(host: Stuff): boolean {
  * clobber — not merely because two shells exist. Freshly-cloned, not-yet-keyed
  * siblings (`getPersistenceKey() === null`) own no record and don't collide.
  */
+/**
+ * The live instance of `(scope, key)`, or null.
+ *
+ * ⭐ The read half of {@link assertUniqueKey}'s scan: that function
+ * throws when it finds a second one, this returns the first. Both exist
+ * because a keyed host's identity IS the pair, so "is it already
+ * standing up" and "would this collide" are one question asked from two
+ * directions.
+ */
+function liveKeyed(scope: string, key: string): Stuff | null {
+  for (const other of StuffApi.findAllByTemplatePath<Stuff>(scope)) {
+    if (MixinApi.isPersistable(other) && other.getPersistenceKey() === key) {
+      return other;
+    }
+  }
+  return null;
+}
+
 function assertUniqueKey(scope: string, key: string, host: Stuff): void {
   for (const other of StuffApi.findAllByTemplatePath(scope)) {
     if ((other as unknown) === (host as unknown)) continue;
@@ -402,11 +420,19 @@ async function flushSkippedOwnedGoods(goods: Iterable<Stuff>): Promise<void> {
     // A hung good keeps its wall: the mount slot rides the entry so the
     // room's next overlay re-attaches it as a fixture (residences D11).
     const mountSlot = MixinApi.isAdornment(good) ? good.getMountSlot() : null;
+    // ⭐ A good that persists ITSELF rides as a reference: its own record
+    // is authoritative, and copying its state here would make a second
+    // copy of a live creature that is still writing the first.
+    const ownKey =
+      MixinApi.isPersistable(good) && good.isPersistenceKeyExplicit()
+        ? (good.getPersistenceKey() ?? undefined)
+        : undefined;
     const entry: EstateEntry = {
       chattelId,
       templatePath: good.getTemplatePath() ?? "",
-      state: captureState(good),
+      state: ownKey ? {} : captureState(good),
       place: good.getPlace(),
+      ...(ownKey ? { key: ownKey } : {}),
       ...(mountSlot ? { mounted: { slot: mountSlot } } : {}),
     };
     const live = StuffApi.findByTemplatePath<Stuff>(owner.templatePath);
@@ -881,6 +907,7 @@ async function overlayOwnedGoods(host: Stuff): Promise<void> {
     if (!entry) entry = await storedEstateEntry(owner.templatePath, chattelId);
     if (!entry || entry.place !== placeId) continue;
     const principal = ownerHost ?? host;
+    const keyed = entry;
     const good = await ExecutionContextApi.run(
       host,
       principal,
@@ -888,6 +915,16 @@ async function overlayOwnedGoods(host: Stuff): Promise<void> {
       undefined,
       async () => {
         ExecutionContextApi.tagActingAuthor(principal);
+        // ⭐⭐ A good that persists itself is RESOLVED, not rebuilt: if it
+        // is already standing here (the registry warmed it at boot, or it
+        // simply never left) that instance IS the animal, and minting a
+        // second one from the same record would put two identical cats on
+        // the lane sharing one key. `cloneHost` is a resolve-or-mint.
+        if (keyed.key) {
+          const live = liveKeyed(keyed.templatePath, keyed.key);
+          if (live) return live;
+          return cloneHost(keyed.templatePath, keyed.key);
+        }
         return PersistableLogicRestoreDetached(entry, host, principal);
       },
     );
@@ -1119,6 +1156,12 @@ export class PersistableLogic extends ApiLogic {
   @CallSecurity(PersistableApiCallers)
   public async restoreOrSeed(host: Stuff, key: string): Promise<boolean> {
     return restoreOrSeedImpl(host, key);
+  }
+
+  /** See {@link PersistableApi.standUpKeyed}. */
+  @CallSecurity(PersistableApiCallers)
+  public async standUpKeyed(scope: string, key: string): Promise<Stuff | null> {
+    return liveKeyed(scope, key) ?? (await cloneHost(scope, key));
   }
 
   /** See {@link PersistableApi.placeIdOf}. */

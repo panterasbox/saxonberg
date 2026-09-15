@@ -118,6 +118,22 @@ export interface EstateEntry {
   state: Record<string, MixinSlice>;
   place: string;
   /**
+   * ⭐⭐ Present iff the good **persists itself** — a host with an explicit
+   * persistence key of its own (a named animal).
+   *
+   * When it is set the entry is a **reference, not a copy**: `state` is
+   * empty and the good's own `holder_snapshots` record is authoritative
+   * for everything about it, including where it stands. The owner's
+   * estate says only *you have title to this, and here is how to find
+   * it* — which is right, because a pet's regard, hunger, handling and
+   * home are the PET's state, not its owner's inventory listing.
+   *
+   * ⚠ Without the split, capturing an owner would snapshot the animal
+   * into the owner's record and the animal would also be writing its
+   * own — two copies of one creature, diverging from the first meal.
+   */
+  key?: string;
+  /**
    * Present iff the good is **mounted** on the place rather than standing
    * in it — hung on the room's `Adornable` fixture map (residences D11).
    * `slot` is the fixture slot name to re-attach under, so a wall lamp

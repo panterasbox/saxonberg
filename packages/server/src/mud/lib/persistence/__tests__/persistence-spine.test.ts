@@ -600,6 +600,14 @@ describe("security (AC #8)", () => {
     // the owner's record, written by the same gated `capture` as everything
     // else. So the invariant this test guards (no raw record write on the
     // Api) is unchanged.
+    // `standUpKeyed` (pets build) is a RESOLVE-or-materialize: it returns
+    // the instance already keyed `(scope, key)` if one is live, and
+    // otherwise clones a shell and runs the same gated `materialize`. It
+    // reads a record and reconstitutes; it writes none. It is on the Api
+    // because three unrelated callers need the same question answered —
+    // an owner logging in, a room materializing, and the kept-animal boot
+    // roll — and every one of them must RESOLVE FIRST or the world gets
+    // two of the same animal sharing one record.
     // `captureAtShutdown` (world-scan build) is the shutdown SWEEP: it
     // asks the registry which hosts want a capture and calls the same
     // gated `capture` on each. It lives on the Api rather than in the
@@ -618,6 +626,7 @@ describe("security (AC #8)", () => {
         "hasRecord",
         "materialize",
         "restoreOrSeed",
+        "standUpKeyed",
         "forkRuntimeState",
         "mergeRuntimeState",
       ].sort(),

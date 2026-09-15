@@ -44,6 +44,7 @@ import type { MarkupAugmenter } from '../../api/mml';
 import type { CommandContributions } from '../../api/command';
 import { BulkableApi } from '../../api/bulk';
 import { StuffApi } from '../../api/stuff';
+import { PersistableApi } from '../../api/persistable';
 import { METABOLIC_DEFAULTS } from '../metabolism/Metabolic';
 
 /**
@@ -244,6 +245,31 @@ export function BondedMixin<TBase extends MixinConstructor>(Base: TBase) {
       const biddability = self.getSpecies()?.getBiddability();
       if (biddability === null || biddability === undefined) return false;
       return biddability * this.bondWith(person) >= 0.5;
+    }
+
+    /**
+     * ⭐ **Home is seeded from where it was born**, once, and only when
+     * nothing authored one. A stray's home is the lane it appeared on;
+     * the collie's is the farm. After that it moves only by being fed
+     * somewhere else for days — see {@link creditHomeCandidate}.
+     *
+     * ⚠ Chains super first: `Behaved.postRegister` wires the brains, and
+     * a brain that fires before home exists would read `''` and treat the
+     * animal as having nowhere to go.
+     */
+    public async postRegister(context?: unknown): Promise<void> {
+      const sup = (
+        Base.prototype as {
+          postRegister?: (c?: unknown) => unknown | Promise<unknown>;
+        }
+      ).postRegister;
+      if (typeof sup === 'function') await sup.call(this, context);
+      if (this.home) return;
+      const self = this as unknown as Stuff;
+      if (!MixinApi.isContainable(self)) return;
+      const room = self.getContainer();
+      if (!room) return;
+      this.home = PersistableApi.placeIdOf(room);
     }
 
     public getHome(): string {

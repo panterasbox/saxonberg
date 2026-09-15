@@ -51,6 +51,7 @@
 
 import type { MixinConstructor, FieldMeta } from "../mixin";
 import type { Stuff } from "../stuff/Stuff";
+import { MixinApi } from "../../api/mixin";
 import { CallSecurity, Final, Unshadowable } from "../security/decorators";
 import { SecurityPolicies } from "../security/SecurityPolicies";
 import {
@@ -168,14 +169,31 @@ export function EstateMixin<TBase extends MixinConstructor<Stuff>>(
       const entries: EstateEntry[] = [];
       for (const entry of self.getEstateEntries()) {
         const live = self.getEstateLive(entry.chattelId);
+        if (!live) {
+          entries.push(entry);
+          continue;
+        }
+        // ⭐⭐ A good that persists ITSELF is carried as a reference.
+        // Snapshotting it here would make a second copy of a creature
+        // that is also writing its own record, and the two would diverge
+        // from its first meal. The key is how the owner finds it again.
+        const key =
+          MixinApi.isPersistable(live) && live.isPersistenceKeyExplicit()
+            ? (live.getPersistenceKey() ?? undefined)
+            : undefined;
         entries.push(
-          live
+          key
             ? {
                 ...entry,
                 templatePath: live.getTemplatePath() ?? entry.templatePath,
-                state: ctx.captureState(live),
+                key,
+                state: {},
               }
-            : entry,
+            : {
+                ...entry,
+                templatePath: live.getTemplatePath() ?? entry.templatePath,
+                state: ctx.captureState(live),
+              },
         );
       }
       return { entries } satisfies EstateSlice;

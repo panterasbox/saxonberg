@@ -88,6 +88,22 @@ export class PersistedRecord extends Document {
     return PersistedRecord.find<PersistedRecord>({ scope });
   }
 
+  /**
+   * Every record whose capture includes a given **mixin layer** — e.g.
+   * every record written by something composing `BondedMixin`.
+   *
+   * ⭐ The one query that is about a KIND of host rather than a known
+   * identity, and it exists for boot rolls: a subsystem that must stand
+   * its hosts back up has no list of them anywhere else, because the
+   * record IS the list. `state` is keyed by layer name (see the class
+   * doc), so the layer is a first-class index into it.
+   */
+  static async findWithLayer(layer: string): Promise<PersistedRecord[]> {
+    return PersistedRecord.find<PersistedRecord>({
+      [`state.${layer}`]: { $exists: true },
+    });
+  }
+
   /** The single record for a `(scope, owner)` pair, or null. */
   static async findByScopeAndOwner(
     scope: string,

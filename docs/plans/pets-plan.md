@@ -1090,6 +1090,36 @@ test-login seam.
 
 **Commit.** `build(pets W1b): naming is the promotion — a keyed record, a titled animal, a boot roll`.
 
+> ✅ **DONE 2026-09-15.**
+>
+> ⭐⭐ **The plan proposed new surface that turned out to already exist.**
+> D12 called for `liveKeyed` + `resolvePlace` on the logic. But the
+> **`{ ref, key }` ContentEntry** shape was already there, already
+> documented as *"a nested host is a reference — never absorbed, because
+> it persists itself"*, and `cloneHost` already did the keyed
+> resolve-or-mint. The estate needed the same idea, not a new mechanism.
+> So W1b added `EstateEntry.key` beside the existing container-slice
+> concept and reused the machinery underneath.
+>
+> ⚠ The one genuinely new thing is **`PersistableApi.standUpKeyed`**, and
+> `restoreItem` is why: its ref branch moves the resolved host INTO the
+> caller, which is right for a nested chest and would teleport a pet into
+> its owner's inventory on login. `standUpKeyed` resolves without moving,
+> and resolve-FIRST is the load-bearing half — three unrelated callers
+> (owner login, room materialize, boot roll) must all ask it, or the
+> world gets two identical cats sharing one record.
+>
+> ⚠ **`persistence-spine.test.ts` refused it**, correctly: `PersistableApi`
+> carries an enumerated surface allowlist where every entry states why it
+> is not a raw record write. `standUpKeyed` is a resolve-or-materialize —
+> it reads a record and reconstitutes, writing none — and now says so in
+> the list.
+>
+> The estate-capture tests stub the host to its two reads rather than
+> fighting the `SelfOnly` gate on `_putEstateEntry`: what is under test is
+> the **decision** (copy or reference), and the security machinery has its
+> own suite.
+
 ### W1c — the brains (kernel)
 
 **Goal.** Following, feeding, going home, the reactions. Decision D13.

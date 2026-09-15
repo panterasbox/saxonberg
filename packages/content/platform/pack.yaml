@@ -66,6 +66,7 @@ boot:
   - { template: /platform/idea/AccessRegistry, role: sync-read, reason: every access predicate resolves it; seeds the axis groups at postRegister, dependsOn: [/platform/idea/GroupRegistry] }
   - { template: /platform/idea/ParcelRegistry, role: sync-read, reason: the title coverage trie every ownerOf read walks, dependsOn: [/platform/idea/GroupRegistry] }
   - { template: /platform/idea/ChattelRegistry, role: sync-read, reason: the chattelId→owner index ChattelApi reads }
+  - { template: /platform/idea/KeptAnimalRegistry, role: producer, reason: "named animals stand in PUBLIC rooms, which are lazy and have no record of their own — nothing else would ever put them back, and a friend must be able to feed one while its person is offline", dependsOn: [/platform/idea/ChattelRegistry, /platform/idea/ParcelRegistry] }
   - { template: /platform/idea/OfficeRegistry, role: sync-read, reason: every holdsOffice read resolves it; warms the founder credential at postRegister }
   - { template: /platform/idea/AddressRegistry, role: producer, reason: warms the Locality roster and the address coverage trie at postRegister }
   - { template: /platform/idea/EventSubscriptions, role: sync-read, reason: the live listener registry the EventApi bus dispatches through, dependsOn: [/platform/idea/EventRegistry] }
