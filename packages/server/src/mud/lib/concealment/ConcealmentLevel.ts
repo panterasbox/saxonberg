@@ -152,9 +152,23 @@ export class ConcealmentLevels {
    * `concealment.level.<band>` (falling back to the seeded literal).
    * Monotone in the band ordering by construction.
    */
-  public static requirementFor(level: ConcealmentLevel): number {
-    if (level === 'obvious') return 0;
-    return dial(REQUIREMENT_KEY[level], REQUIREMENT_FALLBACK[level]);
+  public static requirementFor(
+    level: ConcealmentLevel,
+    /**
+     * ⭐ The dial value, **as a parameter with the dial as its default.**
+     *
+     * The body is a function of its arguments again, and the signature
+     * names the setting it answers to — which is the whole complaint: a
+     * formula whose output moves when an operator turns a knob, and whose
+     * type said nothing about it. Every existing caller is unchanged; a
+     * caller that wants to ask *"what would this be at requirement X"* now
+     * can.
+     */
+    requirement = level === 'obvious'
+      ? 0
+      : dial(REQUIREMENT_KEY[level], REQUIREMENT_FALLBACK[level]),
+  ): number {
+    return level === 'obvious' ? 0 : requirement;
   }
 
   /**

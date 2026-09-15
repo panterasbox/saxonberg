@@ -217,6 +217,16 @@ declare module '../bulk/Bulkable' {
   }
 }
 
+/** The kill model's three dials — see {@link Freshness.killTuning}. */
+interface KillTuning {
+  /** The temperature at which the population starts dying, in K. */
+  killK: number;
+  /** The kill rate at exactly `killK`, per hour. */
+  ratePerHour: number;
+  /** The Arrhenius activation energy steepening the kill above `killK`. */
+  activationEnergy: number;
+}
+
 export class Freshness {
   /**
    * A gauge bound to the slot it measures. ⭐ The model lives in this
@@ -251,8 +261,11 @@ export class Freshness {
     const ea = material.getSpoilActivationEnergy().rawValue();
     if (!(ea > 0)) return 0; // inert: nothing tabulated, nothing rots
 
-    if (tempK >= dial(AppSettingKeys.freshnessKillK, FRESHNESS_DEFAULTS.KILL_K)) {
-      return -Freshness.killRatePerHourAt(tempK);
+    // ⭐ One read of the kill model, used for both the threshold and the
+    // rate — `killOver` takes the same bundle, for the same reason.
+    const kill = Freshness.killTuning();
+    if (tempK >= kill.killK) {
+      return -Freshness.killRatePerHourAt(tempK, kill);
     }
     if (
       tempK <= dial(AppSettingKeys.freshnessFreezingK, FRESHNESS_DEFAULTS.FREEZING_K)
@@ -318,6 +331,12 @@ export class Freshness {
    * the pasteurization floor, and the number a working has to reach for a
    * cook to have *killed* anything. Read by the crafting output step as
    * well as by the gauge, so "hot enough to cook" is one fact.
+   *
+   * ⚠ **Not parameterised, and that is the finding.** This does not READ a
+   * dial on its way to an answer — it IS the dial read. Giving it a
+   * `value = dial(…)` parameter would produce `(x) => x`. A settings
+   * accessor is a different thing from a formula that answers to a
+   * setting, and only the second one was the problem.
    */
   public static killTemperatureK(): number {
     return dial(AppSettingKeys.freshnessKillK, FRESHNESS_DEFAULTS.KILL_K);
@@ -337,18 +356,45 @@ export class Freshness {
    * ⚠ It used to be a flat dial, so every temperature above 60 °C killed
    * at exactly the same speed and boiling was no better than warming.
    */
-  private static killRatePerHourAt(tempK: number): number {
-    const killK = dial(AppSettingKeys.freshnessKillK, FRESHNESS_DEFAULTS.KILL_K);
-    const base = dial(
-      AppSettingKeys.freshnessKillRatePerHour,
-      FRESHNESS_DEFAULTS.KILL_RATE_PER_HOUR,
+  /**
+   * ⭐⭐ **The kill model's three dials, read once.**
+   *
+   * ⚠ They travel together because **purity is transitive**:
+   * {@link killOver} reads `killK` directly and then calls
+   * {@link killRatePerHourAt}, which reads all three. Parameterising only
+   * the direct read would have produced a signature that LOOKS complete
+   * and is not — worse than saying nothing, because a reader would trust
+   * it.
+   *
+   * @internal the tuning bundle, not author surface; the formulas take it.
+   */
+  private static killTuning(): KillTuning {
+    return {
+      killK: dial(AppSettingKeys.freshnessKillK, FRESHNESS_DEFAULTS.KILL_K),
+      ratePerHour: dial(
+        AppSettingKeys.freshnessKillRatePerHour,
+        FRESHNESS_DEFAULTS.KILL_RATE_PER_HOUR,
+      ),
+      activationEnergy: dial(
+        AppSettingKeys.freshnessKillActivationEnergy,
+        FRESHNESS_DEFAULTS.KILL_ACTIVATION_ENERGY,
+      ),
+    };
+  }
+
+  /**
+   * `k(T) = k₀ · e^(Eₐ/R · (1/T_kill − 1/T))` above the kill temperature,
+   * and `k₀` at or below it — the Arrhenius kill rate.
+   */
+  private static killRatePerHourAt(tempK: number, t: KillTuning): number {
+    if (tempK <= t.killK) return t.ratePerHour;
+    return (
+      t.ratePerHour *
+      Math.exp(
+        (t.activationEnergy / FRESHNESS_DEFAULTS.GAS_CONSTANT) *
+          (1 / t.killK - 1 / tempK),
+      )
     );
-    if (tempK <= killK) return base;
-    const ea = dial(
-      AppSettingKeys.freshnessKillActivationEnergy,
-      FRESHNESS_DEFAULTS.KILL_ACTIVATION_ENERGY,
-    );
-    return base * Math.exp((ea / FRESHNESS_DEFAULTS.GAS_CONSTANT) * (1 / killK - 1 / tempK));
   }
 
   /**
@@ -360,17 +406,35 @@ export class Freshness {
    * ⭐ One function, two callers, deliberately: two kill curves that drift
    * apart is the bug this avoids.
    */
-  public static killOver(load: number, holdS: number, tempK: number): number {
+  public static killOver(
+    load: number,
+    holdS: number,
+    tempK: number,
+    /**
+     * ⭐ The kill model, **as a parameter defaulting to the dials.** All
+     * three travel together — see {@link killTuning} for why splitting
+     * them would be dishonest.
+     */
+    t: KillTuning = Freshness.killTuning(),
+  ): number {
     const l0 = clamp01(load);
     if (l0 <= 0 || !(holdS > 0)) return l0;
-    const killK = dial(AppSettingKeys.freshnessKillK, FRESHNESS_DEFAULTS.KILL_K);
-    if (tempK < killK) return l0;
+    if (tempK < t.killK) return l0;
     const hours = holdS / FRESHNESS_DEFAULTS.SECONDS_PER_HOUR;
-    const survived = l0 * Math.exp(-Freshness.killRatePerHourAt(tempK) * hours);
+    const survived =
+      l0 * Math.exp(-Freshness.killRatePerHourAt(tempK, t) * hours);
     return survived < 1e-6 ? 0 : survived;
   }
 
-  /** The seed population a perishable starts from (fraction of capacity). */
+  /**
+   * The seed population a perishable starts from (fraction of capacity).
+   *
+   * ⚠ **Not parameterised, and that is the finding.** This does not READ a
+   * dial on its way to an answer — it IS the dial read. Giving it a
+   * `value = dial(…)` parameter would produce `(x) => x`. A settings
+   * accessor is a different thing from a formula that answers to a
+   * setting, and only the second one was the problem.
+   */
   public static inoculum(): number {
     return dial(AppSettingKeys.freshnessInoculum, FRESHNESS_DEFAULTS.INOCULUM);
   }
@@ -410,14 +474,28 @@ export class Freshness {
   }
 
   /** Band a load for presentation. */
-  public static bandFor(load: number): FreshnessBand {
+  public static bandFor(
+    load: number,
+    /** ⭐ The three band edges, as one parameter defaulting to the dials. */
+    bands: { rottenAt: number; spoiledAt: number; taintedAt: number } = {
+      rottenAt: dial(
+        AppSettingKeys.freshnessBandRottenAt,
+        FRESHNESS_DEFAULTS.BAND_ROTTEN_AT,
+      ),
+      spoiledAt: dial(
+        AppSettingKeys.freshnessBandSpoiledAt,
+        FRESHNESS_DEFAULTS.BAND_SPOILED_AT,
+      ),
+      taintedAt: dial(
+        AppSettingKeys.freshnessBandTaintedAt,
+        FRESHNESS_DEFAULTS.BAND_TAINTED_AT,
+      ),
+    },
+  ): FreshnessBand {
     const l = clamp01(load);
-    if (l >= dial(AppSettingKeys.freshnessBandRottenAt, FRESHNESS_DEFAULTS.BAND_ROTTEN_AT))
-      return 'rotten';
-    if (l >= dial(AppSettingKeys.freshnessBandSpoiledAt, FRESHNESS_DEFAULTS.BAND_SPOILED_AT))
-      return 'spoiled';
-    if (l >= dial(AppSettingKeys.freshnessBandTaintedAt, FRESHNESS_DEFAULTS.BAND_TAINTED_AT))
-      return 'tainted';
+    if (l >= bands.rottenAt) return 'rotten';
+    if (l >= bands.spoiledAt) return 'spoiled';
+    if (l >= bands.taintedAt) return 'tainted';
     return 'fresh';
   }
 
@@ -431,18 +509,22 @@ export class Freshness {
    * absorption / clearance / severity bands live on that seed, never here
    * (the same amount-vs-rate split as every other {@link ToxinTag}).
    */
-  public static doseFor(load: number): ToxinTag | null {
-    const onset = dial(
+  public static doseFor(
+    load: number,
+    /** ⭐ The load the dose starts at — the dial, as a parameter. */
+    onset = dial(
       AppSettingKeys.freshnessDoseOnsetLoad,
       FRESHNESS_DEFAULTS.DOSE_ONSET_LOAD,
-    );
+    ),
+    /** ⭐ Its milligram scale — likewise. */
+    scale = dial(
+      AppSettingKeys.freshnessDoseScaleMg,
+      FRESHNESS_DEFAULTS.DOSE_SCALE_MG,
+    ),
+  ): ToxinTag | null {
     const l = clamp01(load);
     if (l <= onset || onset >= 1) return null;
     const t = (l - onset) / (1 - onset);
-    const scale = dial(
-      AppSettingKeys.freshnessDoseScaleMg,
-      FRESHNESS_DEFAULTS.DOSE_SCALE_MG,
-    );
     const amount = scale * t * t;
     if (amount <= 0) return null;
     return { type: SPOILAGE_TOXIN, amount };

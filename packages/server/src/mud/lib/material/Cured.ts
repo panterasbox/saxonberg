@@ -282,15 +282,20 @@ export class Cure {
     moisture: number,
     elapsedS: number,
     humidityPct: number,
+    /**
+     * ⭐ The rehydration rate, **as a parameter with the dial as its
+     * default** — so the body is a function of its arguments and the
+     * signature names the setting the answer moves with.
+     */
+    rate = dial(
+      AppSettingKeys.cureRehydrationPerHour,
+      CURE_DEFAULTS.REHYDRATION_PER_HOUR,
+    ),
   ): number {
     const from = clamp01(moisture);
     if (!(elapsedS > 0)) return from;
     const target = Cure.equilibriumMoisture(humidityPct);
     if (target <= from) return from; // one-way: nothing dries by itself
-    const rate = dial(
-      AppSettingKeys.cureRehydrationPerHour,
-      CURE_DEFAULTS.REHYDRATION_PER_HOUR,
-    );
     if (!(rate > 0)) return from;
     const hours = elapsedS / CURE_DEFAULTS.SECONDS_PER_HOUR;
     const closed = 1 - Math.exp(-rate * hours);
@@ -325,18 +330,38 @@ export class Cure {
    * number anywhere. `null` for untreated matter, which says nothing at
    * all rather than saying "fresh".
    */
-  public static phraseFor(cure: CureState | null): string | null {
+  public static phraseFor(
+    cure: CureState | null,
+    /**
+     * ⭐ The four band edges, **as one parameter defaulting to the
+     * dials.** An object rather than four positional numbers because
+     * four bare numbers at a call site say nothing about which is which —
+     * and the point of the change is that the dependency be READABLE, not
+     * merely present.
+     */
+    bands: {
+      driedAt: number;
+      dryingAt: number;
+      curedAt: number;
+      curingAt: number;
+    } = {
+      driedAt: dial(AppSettingKeys.cureBandDriedAt, CURE_DEFAULTS.BAND_DRIED_AT),
+      dryingAt: dial(AppSettingKeys.cureBandDryingAt, CURE_DEFAULTS.BAND_DRYING_AT),
+      curedAt: dial(AppSettingKeys.cureBandCuredAt, CURE_DEFAULTS.BAND_CURED_AT),
+      curingAt: dial(AppSettingKeys.cureBandCuringAt, CURE_DEFAULTS.BAND_CURING_AT),
+    },
+  ): string | null {
     if (!cure) return null;
     const dried =
-      cure.moisture <= dial(AppSettingKeys.cureBandDriedAt, CURE_DEFAULTS.BAND_DRIED_AT)
+      cure.moisture <= bands.driedAt
         ? 'thoroughly dried'
-        : cure.moisture < dial(AppSettingKeys.cureBandDryingAt, CURE_DEFAULTS.BAND_DRYING_AT)
+        : cure.moisture < bands.dryingAt
           ? 'partly dried'
           : null;
     const cured =
-      cure.solute >= dial(AppSettingKeys.cureBandCuredAt, CURE_DEFAULTS.BAND_CURED_AT)
+      cure.solute >= bands.curedAt
         ? 'heavily salted'
-        : cure.solute > dial(AppSettingKeys.cureBandCuringAt, CURE_DEFAULTS.BAND_CURING_AT)
+        : cure.solute > bands.curingAt
           ? 'lightly salted'
           : null;
     if (dried && cured) return `It has been ${dried} and ${cured}.`;
