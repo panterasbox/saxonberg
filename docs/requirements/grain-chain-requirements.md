@@ -35,13 +35,31 @@ Surveyed against the tree this cycle, not recalled.
 real barley cereal — plant, crop, seed, species (`hordeum vulgare`) and
 a `barley-grain` material with a full nutrition profile — and a player
 can till, sow, water and harvest it today. ⚠ But **nothing in world
-content plants grain anywhere.** There is exactly one authored field in
-the world (the campus home field, 400 m², currently under a clover ley),
-and the farm outfit's own comment admits its produce is stubbed: *"the
-growing is the smallholding's; the floor stands at target through the
-sweep until a grower supplies it."* None of `roadmap.md`,
+content plants grain anywhere.** The only authored field in the world is
+the campus home field (400 m², under a clover ley) — and that is the
+**university teaching farm**, which is not a supplier and must not be
+made one. The farm outfit's own comment admits its produce is stubbed:
+*"the growing is the smallholding's; the floor stands at target through
+the sweep until a grower supplies it."* None of `roadmap.md`,
 `farming-slate.md`, `husbandry.md`, `soil.md` or `smallholding.md`
 mentions barley at all — they are stale relative to the content.
+
+**The rural locality is designed and unbuilt.** ⭐ **Heart's Delight**
+— the realm's agricultural valley — is staged as a 607-line locality
+bible (under `docs/staging/`, per the staging tree's own no-deep-link
+rule) with its geography, cast, calendar and economy settled in
+conversation. Nothing of it exists in YAML except the hydrology
+(`Watercourse/delight`: spring 720 m → **the flats, 180 m** → mouth
+35 m). ⚠ Its stated blocker — *"winter does not exist for plants"* — has
+**cleared**: the farmstead build shipped winter on 2026-09-06
+(`soil.md § Winter`), so the bible's readiness section is stale in the
+build's favour.
+
+⚠⚠ **And the valley is a FRUIT valley.** Its economy is *"dried and
+packed fruit, preserves — the only town that feeds the city"*, sited
+where it is because von Thünen puts a cannery next to perishable
+high-value crops. **Grain and a mill appear nowhere in the bible.** That
+is a placement constraint, not an obstacle — see Surface decisions.
 
 **The chain's tail is built and waiting.** The `Oven` ships as a
 `FurnaceMixin` appliance holding 500 K with no bellows, lit with
@@ -123,8 +141,12 @@ all already there.
 - **Milling has three paying customers on day one** — the baker, the
   brewer and the distiller — and undercuts the import faucet rather than
   being handed a monopoly.
-- **A mill sits where the head is, not where the people are**, so
-  haulage is priced into bread.
+- **A mill sits where the grain and the head are, not where the people
+  are** — so you ship flour rather than grain, and haulage is priced
+  into bread.
+- **Heart's Delight exists as a place, thinly**, and the chain's head is
+  a farm somebody owns rather than a faucet — the first of the supply
+  chain's stops to become real content.
 - **The miller stops being a registered GAP and the baker acquires a
   row**, as the first of the general store's predicted city-scale
   fragments to actually ship.
@@ -174,9 +196,24 @@ Every one names where it goes.
 - **Cold storage / the icebox** — the other end of the temperature axis,
   and ⚠ it is the thing that would make staling *worse*, which is the
   joke. → `fridge-design-pack.md`.
-- **Heart's Delight and the Delight-road flats** — the ploughed strip
-  with nobody working it is flagged in-repo as future content for an
-  unbuilt town. → `towns-slate.md`.
+- **Heart's Delight as a place** — this build mints the Locality, the
+  crossroads as a thin anchor, one grain farmstead and the millsite, and
+  **nothing else in the bible**: not the packing house, the drying
+  yards, the water tower, the co-op hall, the pump house, the depot,
+  Rovere's, the store, Furtado's or Avila's farmsteads, the Hendy site,
+  the cast, the annual settlement, or ⭐ *the calendar-is-the-town*
+  design that is the valley's whole point. → the valley's own build,
+  `towns-slate.md`. ⚠ **Its staging doc's "Retire when" is NOT satisfied
+  by this build** and must not be treated as such.
+- **The valley's water-rights tragedy** — senior rights on the flats,
+  junior on the bench, the head gate and the diversion fight. The mill
+  sits in the middle of it and this build does not litigate it. →
+  `towns-slate.md` · `watershed.md`.
+- **The stamp mill at the Kestrel falls.** ⭐ The comminution primitive
+  is built so ore dressing is a second consumer, and the falls (500 m of
+  head, annotated *"the obvious place to put a wheel or a dam"*) is the
+  right site for it — it sits between the mine and the city. But that is
+  the metal chain's to adopt. → `metal-chain-slate.md`.
 - **An acidity read for the lactic family** (sourdough's sourness as a
   number) — the hydrometer pattern with a different instrument; SG and
   ABV mean nothing for dough. → `instrumentation-slate.md`.
@@ -204,10 +241,23 @@ integral, the pot-on-the-fire thermal couple, the scorch ceiling, the
 comminution primitive, and the mechanical-power load. All five have
 consumers outside these two packs, which is the test.
 
-**Edits to shipped packs:** `trade-farming` gains wheat and a cereal
-course on the campus field; `trade-brewing` and `trade-distilling` gain
-the grist retrofit; `distribution` gains a grist line beside the malt
-sack.
+**One new locality pack, deliberately thin:** `hearts-delight`, root
+`/world/hearts-delight`, carrying the Locality row, the crossroads
+anchor, the grain farmstead on the upper bench, the millsite, and a
+farmer. It follows the staged bible rather than inventing, and claims
+only the slice above. ⚠ It ships **no `src/`** — a locality is
+expression, not mechanism (the trade-is-mechanism / locality-is-
+expression rule), so a second grain valley needs zero pack code.
+
+**Edits to shipped packs:** `trade-farming` gains wheat;
+`trade-brewing` and `trade-distilling` gain the grist retrofit;
+`distribution` gains a grist line beside the malt sack; `terminus`
+gains the valley-road link out of `delight-road`.
+
+⚠ **The campus teaching farm is not touched.** It was in an earlier
+draft of this doc as the cereal's home, on the reasoning that it was
+the only authored field in the world. That is the wrong reason to put a
+commodity crop somewhere — see Surface decisions.
 
 ⚠ **Naming.** The grain mill is a **grist mill**, never "the mill" —
 `trade-textiles` already ships **the Wharfside mill**, a named fulling
@@ -227,12 +277,20 @@ collision class the collision question exists to catch.
   `ControlStructure`, `headM: 60`, `generates: true`. Its docstring
   reads as an invitation. It is the mechanical-power seam's first
   consumer and it is already built and sited.
-- ⭐ **The millsite is already chosen in a comment.** The Kestrel's
-  `falls` node (500 m, channel 18 m) is annotated *"the obvious place to
-  put a wheel or a dam"* and **has no location built on it**. It is the
-  only open site in the world with moving water, an authored head and no
-  building — between Rejection and Terminus, currently bypassed by a
-  walking-only pass.
+- ⭐ **The millsite is on the Delight, below the grain.** The Delight
+  drops 720 m → 180 m (the flats) → 35 m (the mouth, joining the Kestrel
+  at Terminus), so the reach below the valley has both head and the
+  grain already passing down it on its way to market. ⚠ The Kestrel
+  `falls` is the more dramatic site and the wrong one for grain — it
+  sits between the **mine** and the city, so milling there would mean
+  hauling grain up a different river past Terminus and back. It is
+  reserved for the stamp mill (non-goals).
+- ⚠ **The mill lands inside the valley's water fight.** The bible's
+  senior rights are on the flats and junior on the bench, with a head
+  gate and an authored diversion tragedy. The mill's claim is
+  **non-consumptive** — it takes the head and returns the water — so it
+  does not compete with irrigation for volume, only for timing. That is
+  enough to site it honestly without litigating § 8.
 - **⚠ The Wharfside textile mill** already occupies the riverside-mill
   niche, *"a long low shed with the river running under one end of it."*
   Name collision (above); geographic near-neighbour.
@@ -244,12 +302,24 @@ collision class the collision question exists to catch.
   a city is where the general store fragments into
   *"greengrocer/butcher/baker/fishmonger"* — and the baker would be the
   first of those four to ship.
-- **The campus home field** (400 m², behind the university farmyard,
-  under a clover ley at `legumeFraction: 0.4`) is the world's only
-  authored field and gains the cereal course. ⭐ It already runs the
-  Norfolk four-course and the rotation is **missing its own cereal
-  quarter** — the rotation test says so: *"WHEAT (stood in for by
-  barley's draw — a cereal is a cereal)."*
+- ⭐ **The grain goes on the valley's upper bench** — *"thin soil,
+  JUNIOR rights"* in the bible's own map, where Avila's ten acres sit.
+  That is where cereal belongs and it is the bible's geography agreeing
+  rather than being overridden (Surface decisions).
+- ⚠ **The campus home field is NOT touched.** It is the university
+  teaching farm, 400 m², behind the farmyard, under a clover ley — a
+  place for students to learn the framework, not a commodity supplier.
+  ⭐ Its four-course rotation is genuinely missing a cereal quarter
+  (the rotation test says *"WHEAT (stood in for by barley's draw — a
+  cereal is a cereal)"*), and that is a legitimate **teaching-content**
+  improvement for whoever owns the campus — not this build's excuse to
+  put a supply chain in a classroom.
+- **The Delight-road corridor out of Terminus already exists** —
+  crossroads, flats, ford, with a gauge-pole and a seasonal crossing.
+  ⚠ The `crossroads` room is authored as *"an empty yard with a stone
+  the Compact put down and nobody has built on"* and is **reserved for a
+  depot** by the logistics slate; the valley road passes through it and
+  must not annex it.
 - **The cash-and-carry** (south of the Counting-Houses) is where the
   malt sack stands at par (6 sacks, price 5) and where the grist line
   joins it. Every venue's keeper buys here.
@@ -313,19 +383,25 @@ and the spoilage live (lens 1) and forcing *who eats white bread* (lens
 4). It reuses the shipped `nutrientAmounts` and `waterActivity` fields
 and invents nothing.
 
-### Two mill rungs, and the mill cannot be in town
+### Two mill rungs, and the mill is in the valley, not the city
 
 **A mill wants head, not flow.** Terminus sits at the confluence — 90 m
-of channel, 30 m of elevation: plenty of water, no drop. The falls has
-500 m of head and 18 m of channel.
+of channel, 30 m of elevation: plenty of water, no drop. So the city
+cannot host a watermill, and it should not want to.
 
-- **The hand quern** — in town, slow, no capital, anyone. The income
+- **The hand quern** — anywhere, slow, no capital, anyone. The income
   floor, and the reason a player with no money can still mill.
-- **The water-powered grist mill at the falls** — fast, capital,
-  premises, and ⭐ **the grain must be hauled up and the flour hauled
-  down.** That prices haulage into every loaf, which is the von Thünen
-  shape `freight-slate.md` predicted, arriving as a consequence rather
-  than a feature.
+- **The water-powered grist mill on the Delight**, below the grain,
+  above the mouth — fast, capital, premises.
+
+⭐⭐ **And this is von Thünen paying out twice.** Grain is low-value per
+tonne and storable, so it cannot bear freight the way the valley's fruit
+can — which is why the valley grows fruit on its good ground in the
+first place. **So you do not ship grain to a city mill; you mill where
+the grain is and ship flour.** That is why real mills were rural, and
+why the miller historically took his toll in kind. The siting is a
+*consequence* of the cost surface `freight-slate.md` already predicted,
+not a feature anybody chose.
 
 Two rungs as *rows*, per the instrument-affords-the-verb pattern — the
 capital ladder, not two mechanisms.
@@ -405,12 +481,53 @@ replaces."*
 **breaking two shipped verticals** until a mill is reachable, and Dave's
 Bar sits downstream of that chain.
 
-### The grain has to actually grow somewhere
+### ⭐⭐⭐ Two kinds of farm, and this build ships the second
 
-A cereal course on the campus home field. It is the world's only
-authored field, it already runs the four-course, and the rotation is
-missing its cereal quarter. Without this the miller's only input is the
-import faucet and the chain's head is **the data link failing closed and
+The framework and the content are different things, and conflating them
+is what put a commodity crop in a classroom in this doc's first draft.
+
+1. **The managed farm** — NPC- or player-owned, running the *whole*
+   farming framework: plots, soil reserves, rotation, sowing, growth,
+   harvest, winter. This is what the framework was built for, and the
+   campus teaching farm is one of them.
+2. **The static authored farm** — content whose job is to **feed the
+   supply chain**. Authored, fixed, with its own character and its own
+   relationship to the content around it. It does not need to be
+   simulated to be real; it needs to be *somewhere*, owned by someone,
+   with a reason to be there.
+
+⚠ **A static farm is a source NODE, never a faucet.** It is located, so
+it costs the journey; seasonal, so it costs the wait; and finite, so it
+cannot be farmed for infinite grain. That is the economy slate's
+conservation spine, and it is the whole difference between this and the
+`distribution` counter — which is honest precisely *because* it admits
+to being a faucet.
+
+⭐ **The supply chain will eventually be real content at every stop.**
+That is the direction of travel; this build is not trying to get there,
+it is building the trades and the systems and authoring the one farm the
+chain needs to have a head at all.
+
+### The grain grows on the valley's upper bench
+
+**Heart's Delight is the rural locality — grain grows there.** Not at
+the university.
+
+⭐ **And the bible's own geography says exactly where.** Its map has
+*"the upper bench (thin soil, JUNIOR rights)"* above *"the flats (deep
+alluvium, SENIOR rights)"* where the apricots are. Cereal is the
+low-value dryland crop: it is what you grow on thin ground with a junior
+water right, because fruit will not pay there. So the grain farmstead
+goes on the bench, and it arrives as the **poor relation of the fruit** —
+which gives the valley internal class texture in a locality whose design
+is already about *"two entry points, and they are class-marked."*
+
+Nothing about the fruit valley is contradicted. The valley stays what
+the bible says it is: *"the only town that feeds the city."* It now feeds
+it bread as well as apricots.
+
+⚠ Without a real grain source the miller's only input is the import
+faucet, and the chain's head is **the data link failing closed and
 silent** — the failure this repo has paid for three times.
 
 ### The bakery is in Terminus, and the stale shelf needs no new mechanism
@@ -469,121 +586,138 @@ bread, exactly as every other NPC shop does today. Noted, not built.
 
 Run against the running game before the MR opens. Written now.
 
-**Part 1 — the grain exists and can be got**
+**Part 1 — the grain exists and can be got, two ways**
 
-1. Go to the campus home field. `look`. → The field is under a cereal
-   course; the rotation reads as four-course with a cereal in it.
-2. `survey` / `analyze ground`. → Soil reads honestly; nitrogen reflects
-   what a cereal takes off.
-3. Harvest the cereal. → You hold a sack of grain carrying a **grade**
-   and **your mark**. `look` at it and both are legible.
-4. Go to the cash-and-carry. `buy malt sack`. → Whole malt, at par.
+1. Leave Terminus by the Delight road and travel the valley road. →
+   Heart's Delight is reachable on foot, and arriving reads as a valley
+   rather than a street: a crossroads and a scatter.
+2. Find the farmstead on the **upper bench**. `look`. → Standing grain
+   on thin ground, and the place has a character and an owner. ⚠ It
+   should read as somebody's farm, not as a dispenser.
+3. Buy or take delivery of a sack of grain from the farmer. → You hold
+   grain carrying a **grade** and **the grower's mark**. Both legible on
+   `look`.
+4. ⚠ Confirm it is a **source node, not a faucet**: the journey cost you
+   real time, the supply is finite, and you cannot stand there pulling
+   sacks out of nowhere.
+5. **The other path** — sow wheat on ground of your own (a Hinkley Hills
+   lot bed or any plot you hold), tend it, harvest it. → The managed
+   framework works on a cereal at small scale, and the grain carries
+   **your** mark this time.
+6. ⭐ Sow the same wheat on poor/cold ground and barley beside it. →
+   Barley carries; wheat struggles. Nobody authored that comparison.
+7. Go to the cash-and-carry. `buy malt sack`. → Whole malt, at par.
    `buy grist`. → Ground grist, **at a higher price than the malt**.
 
 **Part 2 — the quern: milling with no capital**
 
-5. With the grain and a hand quern, `mill grain`. → You get flour. It
+8. With the grain and a hand quern, `mill grain`. → You get flour. It
    took real time and it was slow.
-6. `mill grain --extraction 0.9` (or the authored coarse setting). →
+9. `mill grain --extraction 0.9` (or the authored coarse setting). →
    Wholemeal: `look` shows it darker/coarser, and its nutrition label
    carries more than the white flour's.
-7. `mill grain --extraction 0.6`. → White flour, plus **bran** as a
-   residue. ⚠ Confirm the bran is a real good, not destroyed.
-8. Compare the two flours' keeping: the wholemeal's water activity is
-   higher and it sits closer to the growth floor.
-9. Mill a **poor-grade** grain. → The flour's grade is no better than
-   the grain's (weakest-link).
+10. `mill grain --extraction 0.6`. → White flour, plus **bran** as a
+    residue. ⚠ Confirm the bran is a real good, not destroyed.
+11. Compare the two flours' keeping: the wholemeal's water activity is
+    higher and it sits closer to the growth floor.
+12. Mill a **poor-grade** grain. → The flour's grade is no better than
+    the grain's (weakest-link).
 
-**Part 3 — the mill at the falls: capital and haulage**
+**Part 3 — the valley mill: capital, water and the toll**
 
-10. Travel the Kestrel road toward the falls. → A millsite exists and is
-    reachable; the room reads as moving water with a real drop.
-11. `look` at the grist mill. → It is unpowered or idle until water is
-    admitted.
-12. Admit the water / engage the stones. → `analyze` (or the authored
-    read) reports the **power available from the head**, and it is a
-    figure derived from `ρ·g·Δh·Q·η`, not authored.
-13. `mill` a sack here. → Much faster than the quern, per sack.
-14. ⚠ Confirm the economics bite: getting the grain up and the flour
-    down costs you time or a carrier. The mill is not free throughput.
-15. Visit the **aqueduct house** at Wharfside. → Its wheel now reads as
-    driving something, or at minimum reports its available power on the
-    same seam. (The invitation in its docstring is answered.)
+13. From the bench, follow the Delight down to the millsite. → A grist
+    mill exists and is reachable; the room reads as moving water with a
+    real drop, and it is **in the valley, near the grain** — not in the
+    city.
+14. `look` at the grist mill. → It is idle until water is admitted.
+15. Admit the water / engage the stones. → `analyze` (or the authored
+    read) reports the **power available from the head**, and the figure
+    tracks `ρ·g·Δh·Q·η` rather than being authored. Change the flow (a
+    dry season, a diversion) and the figure moves.
+16. `mill` a sack here. → Much faster than the quern, per sack.
+17. ⭐ Compare the cost of hauling **grain** to Terminus against hauling
+    **flour**. → Milling in the valley is cheaper. That is von Thünen
+    arriving as arithmetic, and it is why the mill is where it is.
+18. ⚠ Confirm the mill's water claim does **not** starve the valley's
+    irrigation — it is non-consumptive and returns what it takes.
+19. Visit the **aqueduct house** at Wharfside. → Its wheel reports its
+    available power on the same seam, answering the invitation already
+    in its docstring.
 
 **Part 4 — the dough**
 
-16. In the bakery, `look`. → An oven (unlit), a trough or proofing bowl,
+20. In the bakery, `look`. → An oven (unlit), a trough or proofing bowl,
     a counter.
-17. `ignite oven`. → It lights, consumes fuel, and climbs toward 500 K
+21. `ignite oven`. → It lights, consumes fuel, and climbs toward 500 K
     **over time** (S1: it is not instantly hot).
-18. Build a dough by hand: `add flour`, `add water`, `add salt`,
+22. Build a dough by hand: `add flour`, `add water`, `add salt`,
     `knead`. → `knead` is accepted as a mix method and recorded.
-19. Leave the dough in the bowl, **open**, with no starter. Wait. →
+23. Leave the dough in the bowl, **open**, with no starter. Wait. →
     After the spontaneous lag, wild flora take it: you have a starter
     without having bought one.
-20. Alternatively `pour` from a starter jar. → Immediate, clean start.
-21. `look` / `smell` the dough while it proves. → A sensory band, never
+24. Alternatively `pour` from a starter jar. → Immediate, clean start.
+25. `look` / `smell` the dough while it proves. → A sensory band, never
     a number. It is visibly working.
-22. Prove it in a **cold** room. → It stalls. `look` says so in prose.
-23. Prove it with water hot enough to pass `killK`. → The culture dies;
+26. Prove it in a **cold** room. → It stalls. `look` says so in prose.
+27. Prove it with water hot enough to pass `killK`. → The culture dies;
     the dough does not rise. ⚠ Confirm the failure is legible, not
     silent.
-24. Leave a **finished** proof open past `turnDays`. → It collapses
+28. Leave a **finished** proof open past `turnDays`. → It collapses
     (over-proofed) into the turned material. This should cost nothing to
     implement — D3 hands it over.
 
 **Part 5 — the bake, and burning it**
 
-25. Divide and shape the dough, then `make lean-loaf` (or `bake`) at the
+29. Divide and shape the dough, then `make lean-loaf` (or `bake`) at the
     lit oven. → A tangible loaf, graded weakest-link from the flour and
     the proof.
-26. `eat` a slice. → Satiation rises; the nutrition label reflects the
+30. `eat` a slice. → Satiation rises; the nutrition label reflects the
     flour's extraction. Wholemeal feeds you more.
-27. Bake with the oven **cold**. → Declines cleanly: insufficient heat.
-28. ⭐⭐ Bake and **leave it in too long**. → It **burns**. A burnt loaf
+31. Bake with the oven **cold**. → Declines cleanly: insufficient heat.
+32. ⭐⭐ Bake and **leave it in too long**. → It **burns**. A burnt loaf
     is a real off-spec outcome, not a decline. This is the assertion the
     whole doneness annexation exists for.
-29. Bake at a temperature above the recipe's `maxHeatK`. → Scorched on
+33. Bake at a temperature above the recipe's `maxHeatK`. → Scorched on
     the outside; the dose integral got there faster.
 
 **Part 6 — the two clocks, which is the point**
 
-30. Keep a fresh loaf at **room temperature** for a day. → It stales
+34. Keep a fresh loaf at **room temperature** for a day. → It stales
     slowly and begins to grow mould.
-31. Keep an identical loaf **cold**. → No mould, and it stales
+35. Keep an identical loaf **cold**. → No mould, and it stales
     **faster**. ⚠⚠ Read both loaves side by side and confirm the prose
     distinguishes *stale* from *spoiled*. They must not be one band.
-32. Keep a third **frozen**. → Both clocks pause.
-33. Put a stale loaf **back in the oven**. → It refreshes, at least
+36. Keep a third **frozen**. → Both clocks pause.
+37. Put a stale loaf **back in the oven**. → It refreshes, at least
     partly. (Toast un-stales bread; this is real and it is the reward for
     modelling retrogradation rather than decay.)
-34. `consign` a loaf on the bakery counter, wait, and `look` at the
+38. `consign` a loaf on the bakery counter, wait, and `look` at the
     shelf. → The listed loaf is the **actual** loaf and it has aged.
 
 **Part 7 — the tending wave in its own trade**
 
-35. Put a pot of water on a lit hearth. → It heats **toward** the
+39. Put a pot of water on a lit hearth. → It heats **toward** the
     fire's temperature over time, and stops at 373 K. It does not jump.
-36. Start a braise as a recipe-script over stanzas. → The stages run in
+40. Start a braise as a recipe-script over stanzas. → The stages run in
     order over game time; the dish accumulates dose.
-37. Walk away mid-braise and come back. → It progressed. Interrupt it →
+41. Walk away mid-braise and come back. → It progressed. Interrupt it →
     it aborts legibly through the shipped engagement vocabulary.
-38. Overcook a shipped dish (a roast). → It passes done and degrades.
+42. Overcook a shipped dish (a roast). → It passes done and degrades.
     ⚠ Confirm this did not silently break any of the 19 shipped cooking
     recipes.
-39. Sear a contaminated cut vs. warm it through lazily. → Different
+43. Sear a contaminated cut vs. warm it through lazily. → Different
     pasteurization outcomes, and the dose explains why. ⚠ Confirm the
     ptomaine bands were re-calibrated: the dose is now common, and the
     old thresholds were tuned for one authored trap ration.
 
 **Part 8 — the retrofit**
 
-40. As a brewer, `mash` with **whole malt**. → It is refused or clearly
+44. As a brewer, `mash` with **whole malt**. → It is refused or clearly
     wants grist.
-41. `mill` the malt into grist, then `mash`. → Works.
-42. `mash` with **bought** grist from the counter. → Works, and cost
+45. `mill` the malt into grist, then `mash`. → Works.
+46. `mash` with **bought** grist from the counter. → Works, and cost
     more than milling it yourself.
-43. Run an existing brewing or distilling flow end to end. → ⚠⚠ Confirm
+47. Run an existing brewing or distilling flow end to end. → ⚠⚠ Confirm
     Dave's Bar's supply chain still closes. This is the blast-radius
     check.
 
@@ -593,34 +727,42 @@ Run against the running game before the MR opens. Written now.
 
 Observable from outside the code. A player, not a test.
 
-1. A player can grow a cereal, harvest it, mill it, bake it, eat it, and
-   be less hungry — without buying anything.
-2. The same player can taste the difference their grain's grade made,
+1. A player can grow a cereal on ground they hold, harvest it, mill it,
+   bake it, eat it, and be less hungry — **without buying anything**.
+2. A player who does not want to farm can instead **buy grain from a
+   farm in Heart's Delight** that is somebody's place with a character,
+   and the journey and the season cost them something real. It must not
+   be possible to mistake that farm for a dispenser.
+3. The same player can taste the difference their grain's grade made,
    and the loaf's verdict names them as its maker.
-3. Choosing a high extraction visibly yields darker, more nutritious,
+4. Choosing a high extraction visibly yields darker, more nutritious,
    worse-keeping flour, and a low extraction yields white flour **plus
    bran you can still sell**.
-4. A player with no money can mill by hand; a player with capital mills
-   at the falls much faster and pays for the haul.
-5. A player can read the power the falls makes, and the figure tracks the
-   head and the flow rather than being authored.
-6. A dough can be started from a bought culture **or** caught from the
+5. A player with no money can mill by hand; a player with capital mills
+   at the valley mill much faster and pays for the premises.
+6. A player can read the power the millrace makes, and the figure tracks
+   the head and the flow rather than being authored — a dry season
+   changes it.
+7. Hauling **flour** to Terminus is cheaper than hauling the **grain**
+   it came from, so the mill's rural siting is arithmetic a player can
+   check rather than flavour.
+8. A dough can be started from a bought culture **or** caught from the
    air by leaving it open, and both work.
-7. A cold room stalls a proof, a scalding pour kills it, and forgetting a
+9. A cold room stalls a proof, a scalding pour kills it, and forgetting a
    finished proof collapses it — and in each case the player can tell
    which happened from the prose.
-8. **A loaf can be burnt**, and burnt is a thing you are holding rather
+10. **A loaf can be burnt**, and burnt is a thing you are holding rather
    than a refusal.
-9. Two identical loaves stored cold and warm diverge in **opposite**
+11. Two identical loaves stored cold and warm diverge in **opposite**
    directions, and the prose for *stale* is never the prose for
    *spoiled*.
-10. Re-baking a stale loaf improves it.
-11. A brewer who has never seen this build can still supply Dave's Bar.
-12. A brewer who mills their own malt spends less than one who buys
+12. Re-baking a stale loaf improves it.
+13. A brewer who has never seen this build can still supply Dave's Bar.
+14. A brewer who mills their own malt spends less than one who buys
     grist.
-13. Every one of the 19 shipped cooking recipes still produces what it
+15. Every one of the 19 shipped cooking recipes still produces what it
     produced before, except that it can now be overcooked.
-14. `vocations.md` no longer lists the miller as a GAP, and lists a
+16. `vocations.md` no longer lists the miller as a GAP, and lists a
     baker.
 
 ---
@@ -645,6 +787,16 @@ Observable from outside the code. A player, not a test.
 - `docs/slates/tails/farming-slate.md` — ⚠ its status block is **stale**:
   it says Stage B waits, and the farmstead build shipped both blockers
   on 2026-09-06.
+- `docs/slates/builds/towns-slate.md` — owns Heart's Delight as a
+  locality. ⭐ This build takes the Locality row, one farmstead and the
+  millsite; **everything else the valley is** stays here.
+- `docs/slates/builds/freight-slate.md` — the cost surface that makes
+  the mill's rural siting arithmetic rather than flavour.
+- ⭐ The valley's locality bible is staged under `docs/staging/`. Per the
+  staging tree's own rules it is **not deep-linked** from here: it is
+  ephemeral, it graduates into YAML, and its design rationale lives in
+  `towns-slate.md`. ⚠ This build does **not** satisfy its
+  "Retire when".
 
 **Subsystem docs**
 - `docs/subsystems/maturation.md` — the parked bread note, which this
