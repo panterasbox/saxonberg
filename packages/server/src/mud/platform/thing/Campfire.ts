@@ -18,6 +18,7 @@
  */
 
 import Thing from '../../lib/stuff/Thing';
+import { SurfacedMixin } from '../../lib/spatial/Surfaced';
 import { SlottedMixin } from '../../lib/slot/Slotted';
 import { PosturedMixin } from '../../lib/slot/Postured';
 import { ReservedMixin } from '../../lib/reserve';
@@ -25,9 +26,13 @@ import { LightSourceMixin } from '../../lib/perception/LightSource';
 import { ThermalMixin } from '../../lib/thermal/Thermal';
 import { FurnaceMixin } from '../../lib/fire/Furnace';
 
+// ⭐ `SurfacedMixin`: a pot rests ON a fire. What rests on a lit campfire
+// takes its held temperature as its ambient (`ThermalMixin.restamp`).
 const CampfireBase = FurnaceMixin(
   LightSourceMixin(
-    ReservedMixin(PosturedMixin(SlottedMixin(ThermalMixin(Thing)))),
+    ReservedMixin(
+      PosturedMixin(SlottedMixin(SurfacedMixin(ThermalMixin(Thing)))),
+    ),
   ),
 );
 

@@ -37,6 +37,7 @@ import { Final, Unshadowable } from '../security/decorators';
 import type Material from '../material/Material';
 import type { BulkAffordance } from '../bulk/Bulkable';
 import type { Meltable } from './Meltable';
+import type { Furnace } from '../fire/Furnace';
 import { ContainmentApi } from '../../api/containment';
 import type { MixinConstructor, FieldMeta } from "../mixin";
 import type { Stuff } from "../stuff/Stuff";
@@ -489,6 +490,38 @@ export function ThermalMixin<TBase extends MixinConstructor>(Base: TBase) {
     }
 
     /**
+     * The held temperature (K) of a lit, fuelled `Furnace` that is
+     * heating this body — the furnace **holding** it (a loaf in an
+     * oven) or the furnace it **rests on** (a pot on a campfire) — or
+     * `null` when nothing does. Read only by {@link restamp}: the
+     * furnace supplies the ambient, and the body's own `tau = R*C`
+     * supplies the warm-up. The firebox is hot instantly; what climbs
+     * is what is in it.
+     */
+    private heatSourceK(): number | null {
+      const self = this.thermalHost;
+      const container = self.getContainer();
+      if (
+        container !== null &&
+        MixinApi.isFurnace(container as unknown as Stuff) &&
+        (container as unknown as Furnace).isLit() &&
+        (container as unknown as Furnace).fuelRemaining() > 0
+      ) {
+        return (container as unknown as Furnace).getHeldTemperatureK();
+      }
+      const support = self.getRestingOn();
+      if (
+        support !== null &&
+        MixinApi.isFurnace(support as unknown as Stuff) &&
+        (support as unknown as Furnace).isLit() &&
+        (support as unknown as Furnace).fuelRemaining() > 0
+      ) {
+        return (support as unknown as Furnace).getHeldTemperatureK();
+      }
+      return null;
+    }
+
+    /**
      * Resolve the current scope's ambient, freeze the current
      * temperature under the *old* cached ambient, then adopt the new
      * ambient and re-stamp. The single async mutation every re-stamp
@@ -500,17 +533,27 @@ export function ThermalMixin<TBase extends MixinConstructor>(Base: TBase) {
       // Freeze current T under the OLD ambient first (drift up to now).
       this.reconcileThermal();
 
-      // Resolve the new scope's ambient. The host is `Containable`, and
-      // `getContainer()` already returns `(Stuff & Container) | null`.
+      // ⭐ A heat source that HOLDS this body outranks the biome chain:
+      // the inside of a lit oven is not the room. `BiomeLogic` walks
+      // `Atmospheric` ancestors and a `Furnace` is not `Atmospheric`
+      // (deliberately — a lit forge must not warm the room it stands
+      // in), so the couple is read here, on the body being heated.
       let ambientK = this.lastAmbientK;
-      const container = this.thermalHost.getContainer();
-      if (container !== null) {
-        try {
-          ambientK = (
-            await BiomeApi.resolveTemperatureFor(container)
-          ).rawValue();
-        } catch {
-          // keep the cached ambient on any resolution failure
+      const sourceK = this.heatSourceK();
+      if (sourceK !== null) {
+        ambientK = sourceK;
+      } else {
+        // Resolve the new scope's ambient. The host is `Containable`, and
+        // `getContainer()` already returns `(Stuff & Container) | null`.
+        const container = this.thermalHost.getContainer();
+        if (container !== null) {
+          try {
+            ambientK = (
+              await BiomeApi.resolveTemperatureFor(container)
+            ).rawValue();
+          } catch {
+            // keep the cached ambient on any resolution failure
+          }
         }
       }
       this.lastAmbientK = ambientK;

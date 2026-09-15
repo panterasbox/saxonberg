@@ -148,6 +148,23 @@ designed: `CraftingLogic`'s heat gate declines any recipe whose
 cold"), and the by-hand `heat` step latches it onto the build buffer. See
 [crafting.md](./crafting.md).
 
+
+### The heat scope (the grain-chain build)
+
+A furnace has **two** scopes and they are different mechanisms:
+
+| scope | what it is | what it does | for what |
+|---|---|---|---|
+| `heatContents()` | the furnace's **room siblings** | deposits joules toward the held temperature, reconciles phase | `Meltable` workpieces only — the forge melting an ingot beside it |
+| `restampHeated()` | what the furnace **holds** (`Container`) and what **rests on** it (`Surfaced`) | re-stamps each body so it re-resolves its ambient | every `Thermal` body — the loaf in the oven, the pot on the fire |
+
+The second is the **furnace couple**: the reading lives on the body
+(`ThermalMixin.heatSourceK`, see thermal.md), and the furnace's job is
+only to tell its heat scope that its lit state changed — from
+`_setLit()` and from the burnout edge. ⚠ A furnace is deliberately not
+`Atmospheric`, so neither scope warms the room.
+
+
 ## Constraints honored
 
 - **Presence-freeze / no runaway** — the `fire:tick` fan-out is occupied-scope
