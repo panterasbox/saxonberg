@@ -1309,6 +1309,41 @@ green); (5) `look in oven` lists contents.
 
 Commit: `build(grain-chain W0): the couple — a furnace heats what it holds`.
 
+> **✅ W0 DONE** (`6eb5f...`). Landed as planned, with one addition and
+> one surprise.
+>
+> **Added — D28: `Oven` composes `SurfacedMixin` as well as
+> `ContainerMixin`.** The shipped kitchen-range row
+> (`generic-objects/.../fixture/range.yaml`) describes *"a flat plate on
+> top worn silver where pots have stood"*. A Container-only oven cannot
+> honour that, and prose promising an affordance the object lacks is the
+> crossroads-`south` bug class. A range is both a firebox you put a loaf
+> in and a plate you stand a pot on; `heatSourceK()` already read both
+> limbs, so it cost one mixin and no new logic. Decided by lens 2
+> (creative expression — an author writing a kitchen range must not need
+> code to stand a pot on it).
+>
+> **Surprise: `FurnaceMixin.lit` defaults to `true`** (`Furnace.ts:140`,
+> *"a Campfire seed starts lit"*). Any "unlit furnace" fixture must
+> `douse()` first — three tests failed on this before it was found. The
+> shipped `range.yaml` authors `lit: false` explicitly; the practicum
+> brazier and `Campfire.yaml` do not, and are lit on arrival.
+>
+> ⚠ `_setLit` is `ApiOnly` — tests drive lit state through `ignite()` /
+> `douse()` (the object face forwarding into `FireLogic`), never the
+> setter.
+>
+> **Blast radius checked:** the practicum brazier (risk 11) is a
+> `Campfire` and is now Surfaced — honest for a waist-high brazier with
+> banked coals. 235 tests green across thermal/fire/spatial/thing; 39/39
+> gates.
+>
+> ⚠ **Not a defect, cost 15 minutes:** `packages/types/dist` was stale,
+> so `tsc -p packages/server` reported six phantom errors in
+> `CommandLogic`/`CommandGiver` about a `candidates-filtered` Note kind
+> that exists in `packages/types/src`. Run `pnpm -C packages/types build`
+> before trusting a bare server typecheck.
+
 #### W1 — the dose, the ceiling, the hold (D2, D3, D4, D17)
 
 Files: `lib/thermal/ThermalDose.ts` (value class + mixin + payload
