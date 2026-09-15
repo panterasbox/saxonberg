@@ -151,6 +151,11 @@ all already there.
 - **Heart's Delight exists as a place, thinly**, and the chain's head is
   a farm somebody owns rather than a faucet — the first of the supply
   chain's stops to become real content.
+- ⭐⭐ **Somebody is hungry.** Bread is bought and eaten by people who are
+  not the player, so the extraction choice is a question about *who eats
+  what you make* rather than a solitaire optimisation.
+- ⭐ **The chemistry is teachable, not merely true.** A player can find
+  out *why* cold bread stales, not only *that* it does.
 - **The miller stops being a registered GAP and the baker acquires a
   row**, as the first of the general store's predicted city-scale
   fragments to actually ship.
@@ -538,6 +543,83 @@ it bread as well as apricots.
 faucet, and the chain's head is **the data link failing closed and
 silent** — the failure this repo has paid for three times.
 
+### ⭐⭐⭐ Somebody has to be hungry — the `eats` brain
+
+**Found by the lens pass, 2026-09-15, and it is the build's load-bearing
+correction.** Lens 4 asks *what choice does this force, and who confers
+standing.* Extraction is only a **values** choice if somebody else eats
+what you make; otherwise it is solitaire.
+
+⚠⚠ **And today nobody eats.** Every `Creature` installs satiation and
+hydration reserves — so every NPC in the realm *has* an appetite — but
+there are **32 shipped brains** (`farms`, `herds`, `restocks`,
+`consigns`, `hauls`, `tailors`, `weaves`, `delves`, `cellars`,
+`maintains`, `patrols`, `wanders` …) **and not one of them eats.** The
+baker's market would be players only, and a player's satiation takes
+~6.9 hours of *active play* to empty at basal rate. The demand test
+passes on paper — `settlement-model.md` lists *food, prepared* as a
+realm need — and fails in the world.
+
+So the build ships an **`eats` brain**: a person who buys bread and eats
+it, on a daily beat.
+
+⭐ **One module answers two lenses.** It is demand (lens 4) *and* the
+daily rhythm (lens 3) — a baker bakes before dawn, and until something
+in the sim wants bread *in the morning* there is no reason to.
+
+⭐ **And it costs nothing in new mechanism**, because the brain doctrine
+is already strict: *"Nothing here is unavailable to a player. Every act
+is a literal verb through `forceCommand` — gated exactly as a typed line
+is."* The brain buys and eats with the shipped verbs.
+
+⚠⚠ **Not by making hunger punish.** `vocations.md` names the failure
+mode — *"the upkeep treadmill pointed at a person"*. Demand comes from
+**other people needing bread**, never from sharpening a drain pointed at
+the player. If this build makes a player's own hunger more urgent, it
+has done the wrong thing.
+
+### ⭐ The chemistry must be teachable, not merely true
+
+Lens 1's test is whether a player can **derive** outcomes from
+principles. This build's mechanisms are honest and *none of them is
+explained anywhere*, so a player learns "cold bread goes stale faster"
+as a brute fact — a lookup table in their head, which is precisely what
+lens 1 calls failure.
+
+⚠ The contrast is damning: `trade-farming` ships **five** `HelpConcept`
+rows (`rotation`, `nitrogen`, `organic-matter`, `structure`,
+`ground-character`) and `trade-ranching` ships two. The rotation one
+opens *"⭐⭐⭐ The agricultural revolution, available to be
+REDISCOVERED."*
+
+So the build ships four: **`retrogradation`** (why the icebox is the
+worst place for bread), **`extraction`** (where the nutrition and the
+spoilage both live), **`head-and-flow`** (why a mill is at the fall and
+not in the town), **`gluten`** (what kneading is for, and why barley
+will not do it).
+
+### ⭐⭐ Extraction is continuous, and rides the payload
+
+The miller chooses a *number*; the build must not hand back a *switch*.
+Quantising extraction into two authored material rows would mean milling
+at 0.61 and 0.89 produces identical flour — telling the player the
+number does not matter, and enumerating content where it should
+compose (lens 2's named failure).
+
+⭐ **And it does not have to.** Flour, dough and proofed dough are all
+**bulk**, and a `BulkPayload` already carries `composition`, from which
+`BlendLabel` derives the whole nutrition label by summing each part by
+its servings. So extraction can ride the payload continuously, with
+**zero** material rows per band.
+
+Only the **loaf** is a tangible with no payload, so only the loaf needs
+a material — and the wholemeal/white difference the player *tastes* and
+*sells* is carried all the way to the oven door either way.
+
+⚠ This replaces the plan's eight-materials-for-two-breads shape. If some
+part of the chain genuinely cannot derive, say which and why rather than
+adding a row per band.
+
 ### The bakery is in Terminus, and the stale shelf needs no new mechanism
 
 `consign` moves custody of **the actual item**, so a consigned loaf
@@ -549,6 +631,11 @@ bread, exactly as every other NPC shop does today. Noted, not built.
 
 ## Lens pass
 
+⭐ **Run twice.** Once at scope (the entries below), and again over the
+finished plan on 2026-09-15, before the build. The second pass found
+three things and they are now scope — see Surface decisions. A pass that
+changes the build is the pass working.
+
 1. **Pedagogy.** Exercises `milling` (new) and `baking` (`specializes:
    cooking`), against `agriculture`, `soil-science`, `cooking` and
    `fermenting`. What is derivable without a lookup: that extraction
@@ -556,22 +643,34 @@ bread, exactly as every other NPC shop does today. Noted, not built.
    and not in the town; that water stops at 373 K so you cannot brown by
    boiling; that a cold larder stops the mould and ruins the crumb; that
    lean grain makes lean bread eight steps later. The dose integral is
-   real food science (D/F values), and the kill becoming pasteurization
-   units makes it *more* honest than what ships.
-2. **Expression.** The ordinary case is entirely data: a flour is a
-   material row, a proof is a `MaturationProfile` row, a loaf is a
-   recipe, a staged dish is a script, a second mill or bakery is a
-   premises plus fixtures. Bespoke: an author who wants a regional
-   bread, a different extraction convention, or a wild-caught starter
-   writes rows, not classes. ⭐ The system suggested its own bespoke
-   idea here — `spontaneousLagDays` already meant "leave it open and
-   wild flora take it", which *is* sourdough, unprompted.
+   real food science (D/F values), and the kill ceasing to be optional
+   makes it *more* honest than what ships.
+   ⚠ **Second-pass finding, now fixed in scope:** every one of those is
+   *true* in the sim and **explained nowhere**, so a player would learn
+   them as brute facts — a lookup table in the head, which is this
+   lens's named failure. Farming ships five `HelpConcept` rows for
+   exactly this reason and the grain chain shipped zero. Four now ship.
+2. **Expression.** The ordinary case is entirely data: a proof is a
+   `MaturationProfile` row, a loaf is a recipe, a staged dish is a
+   script, a second mill or bakery is a premises plus fixtures. Bespoke:
+   an author who wants a regional bread, a different extraction
+   convention, or a wild-caught starter writes rows, not classes. ⭐ The
+   system suggested its own bespoke idea here — `spontaneousLagDays`
+   already meant "leave it open and wild flora take it", which *is*
+   sourdough, unprompted.
+   ⚠ **Second-pass finding, now fixed in scope:** a material row per
+   extraction band is *enumeration*, and multiplicative — a third band
+   would have cost four more rows. Extraction rides the bulk payload
+   instead, so the bands are a continuum and an author adds none.
 3. **Immersion.** The bread box has no right answer. A mill is loud,
    dusty, and inconveniently far up a river. A loaf you baked this
    morning is worth more than the same loaf tomorrow, and everybody
    knows it without being told. Nothing here is a gauge: staleness and
    doneness read as band phrases on `look` and `smell`, and a number
    costs an instrument.
+   ⚠ **Second-pass finding, now fixed in scope:** bread has a **daily**
+   rhythm and nothing in the sim had one — no reason existed to bake
+   before dawn. The `eats` brain supplies it.
 4. **Values.** The choice forced is **what you keep and who eats it** —
    extraction is literally the decision of whether to sell nutrition or
    shelf life, and the historical answer (white bread was status) is
@@ -579,6 +678,11 @@ bread, exactly as every other NPC shop does today. Noted, not built.
    the shipped grade and maker's mark: a baker's loaves carry their name
    and their verdict. Throughput is *not* rewarded for its own sake —
    bread that does not sell goes stale in your own shop.
+   ⚠⚠ **Second-pass finding, and it was load-bearing:** the choice is
+   only a values choice if somebody else eats what you make, and **no
+   brain in the tree eats**. The build would have shipped a trade whose
+   product nobody required. The `eats` brain is the fix, and it is why
+   this lens pass was worth running twice.
 5. **Epochs.** The quern → watermill → (later) roller mill ladder is the
    same mechanism re-parameterized: head, flow, efficiency. The dose
    integral is epoch-free — it is the physics of heat and time, and it
@@ -729,6 +833,32 @@ Run against the running game before the MR opens. Written now.
     Dave's Bar's supply chain still closes. This is the blast-radius
     check.
 
+**Part 9 — somebody is hungry, and the chemistry is learnable**
+
+48. Stock the bakery counter and wait through a morning. → ⭐ Somebody
+    who is not you **buys a loaf and eats it**. You did not script it
+    and you were not required to be present.
+49. `look` at that person before and after. → They were hungry; they are
+    not. The reserve moved because they ate, not because a timer fired.
+50. Leave the counter **empty** overnight. → They arrive, find nothing,
+    and it reads as a person who did not get bread — not as an error and
+    not as a silent no-op.
+51. ⚠ Confirm the loop is **demand, not a treadmill**: your own hunger
+    is no more urgent than it was before this build. Nothing was
+    sharpened at the player.
+52. Sell a **wholemeal** loaf and a **white** loaf to the same buyer over
+    two days. → The cheaper choice and the more nourishing choice are
+    not the same choice, and the buyer's means decide which they take.
+53. `help retrogradation`. → It explains *why* the icebox is the worst
+    place for bread — the chemistry, not the rule.
+54. `help extraction`, `help head-and-flow`, `help gluten`. → Each
+    teaches the principle the mechanism runs on. ⭐ A player who reads
+    all four should be able to **predict** the bread box result before
+    they run step 31.
+55. Mill at `0.61` and at `0.89` and compare the two flours' labels. →
+    They differ **continuously**, not in two buckets. Milling at `0.62`
+    is not the same flour as milling at `0.88`.
+
 ---
 
 ## Acceptance criteria
@@ -772,6 +902,18 @@ Observable from outside the code. A player, not a test.
     produced before, except that it can now be overcooked.
 16. `vocations.md` no longer lists the miller as a GAP, and lists a
     baker.
+17. ⭐⭐ **Somebody who is not the player buys bread and eats it**, on
+    their own initiative, on a daily rhythm — so a baker who bakes and
+    stocks has customers without a player standing there.
+18. ⚠ A player's own hunger is **no more urgent than before this
+    build**. Demand came from other people, not from a sharpened drain.
+19. A player can read *why* cold bread stales, why extraction trades
+    nutrition against keeping, why a mill wants head, and what kneading
+    does — and having read them, can predict outcomes they have not yet
+    seen.
+20. Two flours milled at different extractions differ **continuously**;
+    there is no pair of distinct extraction settings that silently
+    produce identical flour.
 
 ---
 
