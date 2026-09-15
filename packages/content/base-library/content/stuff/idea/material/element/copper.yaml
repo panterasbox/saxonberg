@@ -11,6 +11,16 @@ data:
   thermalConductivity: 401
   # Electrical conductivity (S/m) — the wiring standard, ~6×10⁷.
   electricalConductivity: 6.0e7
+  # Water absorption capacity (% of dry mass, ASTM D570): metal wets only as a surface film.
+  waterAbsorptionCapacity: 0.2
+  # ⚠ Mechanical response (materials-response): MPa / MJ·m⁻³. Copper
+  # authored NEITHER until this build, which meant `materialHeight` read
+  # it at the floor — and once material enters a blow, an unauthored
+  # metal is a metal that delivers like a rock. Soft (Mohs ~3, well
+  # under iron's 350) and notably TOUGH — copper bends where cast iron
+  # shatters, which is exactly why the Chalcolithic could forge it cold.
+  hardness: 150
+  toughness: 110
   # Phase change (thermal): melts at 1358 K, boils at 2835 K; latent heats
   # are the reserve-clamp plateaus (fusion 205 kJ/kg, vaporization 4.73 MJ/kg).
   meltingPoint: 1358
@@ -20,7 +30,12 @@ data:
   edibility: false
   nutrients: ["copper"]
   toxicity: [{ type: copper-poisoning, amount: 0 }]
-  tags: ["element", "metal", "non-ferrous", "crystalline", "conductor"]
+  # ⭐ `forgeable`, and it is not a courtesy: copper was the first metal
+  # anybody forged, and an anvil works it hot or cold. What that admits
+  # is a copper belt knife or cook pot from Stage A's own bar — honest,
+  # historically exact, and priced by the material height (×0.7 on an
+  # edge against steel's 1.0) rather than by a refusal.
+  tags: ["element", "metal", "non-ferrous", "forgeable", "crystalline", "conductor"]
   composition: []
   symbol: Cu
   atomicNumber: 29

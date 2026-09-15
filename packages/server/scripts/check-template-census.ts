@@ -243,6 +243,24 @@ export function refsOf(data: Record<string, unknown>): Array<{ field: string; pa
     }
   }
   /*
+   * ⭐ `alloying[].materialPath` — the PER-INSTANCE half of the same
+   * fact, and the same vocabulary. `AlloyedMixin` says what is dissolved
+   * in one particular bar; `composition` says what the kind is. An
+   * authored row that seeds a starting carbon (the smithy's props, a
+   * fixture) names the constituent by path exactly as a composition
+   * does, and an unresolvable one would make `getEffectiveComposition`
+   * and `analyze chemistry` quietly wrong about what the metal IS —
+   * which is precisely why the composition walk above exists.
+   */
+  const alloying = data.alloying;
+  if (Array.isArray(alloying)) {
+    for (const part of alloying) {
+      if (part && typeof part === 'object') {
+        push('alloying.materialPath', (part as Record<string, unknown>).materialPath);
+      }
+    }
+  }
+  /*
    * ⭐ The deposit's MATERIAL citations. A `Deposit` is a pure-data Idea
    * whose whole content is references: each stratum names its host rock,
    * each zone its ore mineral, and the lode its gangue. They are the

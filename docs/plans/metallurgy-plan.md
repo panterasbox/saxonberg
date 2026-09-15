@@ -1061,6 +1061,69 @@ prerequisite (the mechanical numbers).
 
 **Commit.** `build(metallurgy W2): AlloyedMixin on metal stock, the ferrous material rows, forgeable, outputMaterial honoured`
 
+> ### ✅ W2 — done, and it re-planned W4
+>
+> The mixin, the rows and the two kernel mint rules all landed as
+> written. One thing the plan did not foresee, found by writing the test:
+>
+> ⚠⚠ **D9 was caught in a pincer, and consolidation moves to the
+> hammer.** Two shipped kernel rules meet badly on any recipe whose
+> output is meant to be STOCK for the next recipe:
+>
+> - `mintWorkpiece` **requires** its output to compose `CraftedMixin`
+>   (`CraftingLogic.ts:1642`) — it stamps a maker's mark on it;
+> - `isItemCandidate` **excludes** a Crafted non-food from the one-shot
+>   `forge` gather (`:337`) — a made form is not raw matter.
+>
+> So a `consolidate-bloom` recipe outputting a plain `Ingot` throws at
+> mint time, and one outputting a Crafted bar mints fine and then cannot
+> be `forge`d into anything. Verified both directions in the test before
+> deciding. **W4 therefore drops the `consolidate-bloom` recipe and makes
+> consolidation a transform at the `hammer`**: the first `bankWorkpiece()`
+> of a `Bloom` squeezes the slag out, destructs the bloom and leaves the
+> bar in its place, carbon and all.
+>
+> ⭐ That is the *better* answer on the merits, not just the available
+> one. A bloom is consolidated by HAMMERING; the quench has nothing to do
+> with it, and quenching a bloom would be actively wrong. The plan put it
+> on `quench` because that is where mints happen — an engine-shaped
+> reason. The ladder reads cleaner too: `smelt → heat, hammer → bar →
+> heat, hammer, quench → blade`, and the player learns that a bloom needs
+> beating before it is stock.
+>
+> **D8 stays** — the tangible path not reading `recipe.outputMaterial`
+> while the edible and bulk paths did was a latent inconsistency worth
+> closing on its own, and it is what will carry a casting rung. Its first
+> *shipped* tangible consumer moved out of this build with D9;
+> `lint:unconsumed-seams` does not reach it (checked, green).
+>
+> Other notes:
+>
+> - ⭐ **`getEffectiveComposition()` does NOT invent a host entry.** Iron's
+>   row is `composition: []` because it is an element, so a carburized
+>   iron bar reports `carbon 0.006` and nothing else. Writing
+>   `iron 0.994` would be authoring the entry the row deliberately omits.
+>   Pinned in `Alloyed.test.ts`.
+> - ⭐ **`setFractionOf(path, 0)` REMOVES**, so a bar carburized and melted
+>   back down is indistinguishable from one that never was.
+> - ⚠ **Steel had no `meltingPoint` at all**, so `MeltableMixin` read 0
+>   and a steel thing could never melt — the phase change was
+>   one-directional for the metal the game is mostly made of. 1723 K now,
+>   below pure iron's 1811 K, which is the same carbon fact the ladder
+>   turns on.
+> - ⚠ **Copper and oak authored NO hardness or toughness**, and carbon
+>   neither. All three are authored here, before W5 makes an unauthored
+>   material a material that delivers at the floor. Oak is the WASTER's
+>   material and `waster-spar` asserts its blows still bruise.
+> - `HeatController` anneals a hardened piece and narrates it — heating
+>   past the critical temperature is what annealing IS, and it is why a
+>   smith quenches last.
+> - `lint:census` walks `alloying[].materialPath`. Two gates caught the
+>   new test file (`lint:test-bootstrap`, `lint:test-content` — a kernel
+>   test may not name `/world/<locality>`); both fixed, all 40 green.
+>
+> Alloyed 9, tangible-material 5, smithing 20, mining 145.
+
 ### W3 — the bloomery
 
 **Goal.** The same ore charged two ways gives two different metals, and
@@ -1121,11 +1184,17 @@ make a sword and eight more; no shelf sells metal from nowhere.
   (`fractionOf(carbon) ≥ 0.021` or material tagged `brittle` →
   `unforgeable`, prose naming cast iron); after a `true` bank, the
   duck-typed `consolidate()` and the mass-loss scene.
+  ⚠⚠ **Re-planned at W2** (see the W2 note): `consolidate()` does the
+  whole transform — squeeze the slag out, clone the bar, carry the
+  carbon, destruct the bloom — and there is **no `consolidate-bloom`
+  recipe and no quench step**, because `mintWorkpiece` requires a
+  `Crafted` output and `isItemCandidate` excludes a Crafted non-food
+  from the `forge` gather. A bloom is consolidated by hammering; the
+  quench never had anything to do with it.
   `ForgeController.ts` — the same refusal on the `with` steer or when
   the only reachable ferrous stock is cast. `QuenchController.ts` — the
   treatment path (D14).
-- new `content/trade-smithing/content/recipes/consolidate-bloom.yaml`
-  and the nine arms recipes (D18); the five shipped smithing recipes and
+- the nine arms recipes (D18); the five shipped smithing recipes and
   mining's nine `[striking, anvil]` recipes (D7 names them; `pick`,
   `pick-haft`, `timber-set` are not anvil recipes and stay) →
   `category: forgeable` on the stock slot only (wood slots untouched).
@@ -1142,11 +1211,12 @@ make a sword and eight more; no shelf sells metal from nowhere.
 - `smelt.test.ts` faucet scan → iron.
 
 **Acceptance.**
-- `smithing-manual.test.ts`: `heat`/`hammer` on an `iron-bloom` drops
-  its mass by `slagFraction` and leaves a slag lump beside it; a second
-  `hammer` drops nothing; `quench` mints `/trade/smithing/thing/iron-ingot`
-  of `element/iron` at the reduced mass with the bloom's carbon; the
-  bloom worked at 1400 K still mints a bar, never a knife.
+- `smithing-manual.test.ts`: `heat`/`hammer` on an `iron-bloom` **leaves
+  a bar** — `/trade/smithing/thing/iron-ingot` of `element/iron`, mass
+  down by `slagFraction`, the bloom's carbon carried, a slag lump on the
+  floor and the bloom gone; a second `hammer` on that bar is ordinary
+  forming and squeezes nothing. ⚠ No quench step and no recipe (the W2
+  re-plan).
 - `hammer` on a `cast-iron-pig` declines `unforgeable` and the prose
   names cast iron; `forge dagger with pig` likewise; `forge dagger` with
   only a pig in reach likewise.

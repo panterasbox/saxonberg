@@ -360,6 +360,14 @@ export const Mixins = {
   // base. NOT the spoilage gauge: this is the matter, that is the
   // population living in it.
   Cured: 'CuredMixin',
+  // ⭐ The per-instance MINOR CONSTITUENTS of a piece of metal — what is
+  // dissolved in THIS bar, in the same {materialPath, fraction}
+  // vocabulary Material.composition speaks. A Material is a singleton,
+  // so it can say what steel IS and cannot say how yours came out; this
+  // is the half that can. Metal stock only (Ingot, Casting, Bloom) — a
+  // blade's metal is its Material ROW, and carbon on a blade would make
+  // every mint guard for it.
+  Alloyed: 'AlloyedMixin',
   // The SECOND population — event-seeded, silent, and carried between
   // objects rather than grown from nothing. Not the spoilage gauge: that
   // is a clock, this is a consequence.

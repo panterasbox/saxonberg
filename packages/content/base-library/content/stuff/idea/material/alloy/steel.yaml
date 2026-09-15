@@ -15,6 +15,15 @@ data:
   electricalConductivity: 6.0e6
   # Water absorption capacity (% of dry mass, ASTM D570): metal wets only as a surface film.
   waterAbsorptionCapacity: 0.2
+  # ⚠ Phase change. Steel had NO melting point at all, which meant
+  # `MeltableMixin.getMeltingPointK()` read 0 and a steel thing could
+  # never melt, re-melt or be honestly described as solid — the phase
+  # change was one-directional for the one metal the game is mostly made
+  # of. 1723 K is the real figure for a low-carbon steel: BELOW pure
+  # iron's 1811 K, because that is what carbon does to iron and it is
+  # the same fact the whole ladder turns on.
+  meltingPoint: 1723
+  latentHeatOfFusion: 270000
   # Mechanical response (materials-response): hard + tough, the
   # standard for swords and armor. MPa / MJ·m⁻³, marshalled.
   hardness: 600
@@ -22,7 +31,7 @@ data:
   edibility: false
   nutrients: []
   toxicity: []
-  tags: ["alloy", "metal", "ferrous", "magnetic"]
+  tags: ["alloy", "metal", "ferrous", "forgeable", "magnetic"]
   composition:
     - { materialPath: /stuff/idea/material/element/iron, fraction: 0.998 }
     - { materialPath: /stuff/idea/material/element/carbon, fraction: 0.002 }

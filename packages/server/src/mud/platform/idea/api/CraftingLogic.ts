@@ -1105,13 +1105,13 @@ async function applyBulkOutput(
  * onto the cloned output (the `ThermalLogic` casting-stamp surface).
  * Mass-conserving: the output weighs what the consumed matter weighed.
  */
-function applyTangibleOutput(
+async function applyTangibleOutput(
   output: Stuff,
   recipe: Recipe,
   matched: MatchedInput[],
   matchedItems: MatchedItemInput[],
   effectiveHeatK: number,
-): void {
+): Promise<void> {
   const primary = matchedItems[0];
   if (!primary) {
     throw new Error(
@@ -1131,8 +1131,35 @@ function applyTangibleOutput(
     // A stack's mass is per-unit (the stack is `quantity` instances).
     totalKg += m.stack ? unitKg * m.count : unitKg;
   }
-  output.setMaterial(primary.material);
+  // ⭐⭐ **An authored `outputMaterial` wins; otherwise the stock's flows.**
+  // The field existed and the edible and bulk paths already read it; the
+  // tangible path did not, so a transform that genuinely CHANGES what
+  // the matter is had no way to say so and every smithing output was
+  // made of whatever went in. That is right for a knife (a steel bar
+  // makes a steel knife) and wrong for the one act that is a chemical
+  // change rather than a shaping: hammering a BLOOM squeezes the slag
+  // out of it, and what is left is iron, not bloom iron.
+  const authoredMaterial = recipe.getOutputMaterial();
+  output.setMaterial(
+    authoredMaterial
+      ? await StuffApi.singleton<Material>(authoredMaterial)
+      : primary.material,
+  );
   if (totalKg > 0) output.setMass(Quantity.of(totalKg, 'kg'));
+
+  // ⭐ The per-instance minor constituents ride the transform when both
+  // ends can carry them. That is what keeps a carburized bar's carbon
+  // through consolidation: the MATERIAL becomes iron (the kind changed)
+  // and the carbon figure is still this piece's own.
+  //
+  // ⚠ Local narrowing on an output this function is already stamping —
+  // not a guard re-narrowing a host set. A knife is not Alloyed and
+  // silently takes nothing, which is the intended answer: a blade's
+  // metal is its Material row.
+  if (MixinApi.isAlloyed(output) && MixinApi.isAlloyed(primary.stuff)) {
+    output.setAlloying(primary.stuff.getAlloying());
+    output.setTemper(primary.stuff.getTemper());
+  }
 
   // ⭐⭐ **The matter's own state rides the transform.** A tangible output
   // used to start blank, which was invisible while every such recipe made
@@ -1595,8 +1622,23 @@ async function mintWorkpiece(
         `CraftingLogic: output '${recipe.getOutputTemplate()}' is not Tangible`,
       );
     }
-    if (material) output.setMaterial(material);
+    // ⭐⭐ The same rule as the one-shot path: an authored `outputMaterial`
+    // wins, and the stock's material flows otherwise. The consolidate
+    // recipe is the one that needs it — a bloom worked into a bar stops
+    // being bloom iron, because the slag is on the floor.
+    const authoredMaterial = recipe.getOutputMaterial();
+    const outMaterial = authoredMaterial
+      ? await StuffApi.singleton<Material>(authoredMaterial)
+      : material;
+    if (outMaterial) output.setMaterial(outMaterial);
     if (massKg > 0) output.setMass(Quantity.of(massKg, 'kg'));
+    // ⭐ …and the piece's own carbon rides through, when the output can
+    // hold it. A bar minted from a carburized bar is still steel by the
+    // number as well as by the row.
+    if (MixinApi.isAlloyed(output) && MixinApi.isAlloyed(workpiece)) {
+      output.setAlloying(workpiece.getAlloying());
+      output.setTemper(workpiece.getTemper());
+    }
     if (!MixinApi.isCrafted(output)) {
       throw new Error(
         `CraftingLogic: output '${recipe.getOutputTemplate()}' does not ` +
@@ -1633,6 +1675,15 @@ async function mintWorkpiece(
   l.setKeywords(['lump', 'worked', ...(material?.getName() ?? 'metal').split(/\s+/)]);
   if (material) l.setMaterial(material);
   if (massKg > 0) l.setMass(Quantity.of(massKg, 'kg'));
+  // ⚠ The off-spec lump keeps the carbon too. A player who spent three
+  // smelts carburizing a bar and then quenched it at the wrong heat has
+  // made a mistake about the FORM; losing the chemistry as well would
+  // be the engine punishing them twice for one error, and the `Casting`
+  // is re-meltable precisely so the work is recoverable.
+  if (MixinApi.isAlloyed(lump) && MixinApi.isAlloyed(workpiece)) {
+    lump.setAlloying(workpiece.getAlloying());
+    lump.setTemper(workpiece.getTemper());
+  }
   StuffApi.destruct(workpiece);
   return { ok: true, output: lump, grade, recipeId: '' };
 }
@@ -1950,7 +2001,7 @@ async function craftImpl(req: CraftRequest): Promise<CraftOutcome> {
     output = await StuffApi.clone<Stuff>(recipe.getOutputTemplate());
   }
   if (application === 'tangible') {
-    applyTangibleOutput(output, recipe, matched, matchedItems, workingHeatK);
+    await applyTangibleOutput(output, recipe, matched, matchedItems, workingHeatK);
   } else if (application === 'edible') {
     await applyEdibleOutput(
       output,

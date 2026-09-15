@@ -45,17 +45,28 @@ function row(rel: string): Record<string, unknown> {
   return YAML.parse(readFileSync(join(REJECTION, rel), 'utf8')) as Record<string, unknown>;
 }
 
+/** The authored shape of the Ferrow row's `data:` block. */
+interface FerrowData {
+  name: string;
+  stratigraphy: Parameters<Deposit['setStratigraphy']>[0];
+  waterTable: number;
+  lode: Parameters<Deposit['setLode']>[0];
+  zones: Parameters<Deposit['setZones']>[0];
+  depletion: Parameters<Deposit['setDepletion']>[0];
+  features: Parameters<Deposit['setFeatures']>[0];
+}
+
 /** The SHIPPED Ferrow row, stood up as a live `Deposit`. */
 function ferrow(): Deposit {
-  const data = row('idea/deposit/ferrow.yaml').data as Record<string, never>;
+  const data = row('idea/deposit/ferrow.yaml').data as FerrowData;
   const d = makeStuff(() => new Deposit());
-  d.setName(data['name']);
-  d.setStratigraphy(data['stratigraphy']);
-  d.setWaterTable(data['waterTable']);
-  d.setLode(data['lode']);
-  d.setZones(data['zones']);
-  d.setDepletion(data['depletion']);
-  d.setFeatures(data['features']);
+  d.setName(data.name);
+  d.setStratigraphy(data.stratigraphy);
+  d.setWaterTable(data.waterTable);
+  d.setLode(data.lode);
+  d.setZones(data.zones);
+  d.setDepletion(data.depletion);
+  d.setFeatures(data.features);
   return d;
 }
 
