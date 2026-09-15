@@ -13,6 +13,7 @@ import { PerceptionMixin } from "../../perception/Perception";
 import { SensorMixin } from "../../message/Sensor";
 import { VocalMixin } from "../../message/Vocal";
 import { OrganismMixin } from "../../species/Organism";
+import { PersonaMixin } from '../../character/Persona';
 import { VisibleMixin } from "../../description/Visible";
 import { NamedMixin } from "../../description/Named";
 import { ContainableMixin } from "../../spatial/Containable";
@@ -24,12 +25,19 @@ import {
   makeStuffAtPath,
 } from "../../security/__tests__/test-setup";
 
-class Person extends SoulMixin(
-  VocalMixin(
-    BeliefStoreMixin(
-      PerceptionMixin(
-        SensorMixin(
-          OrganismMixin(VisibleMixin(NamedMixin(ContainableMixin(Idea)))),
+// ⚠ **PersonaMixin is what makes it a PERSON.** Recognition is a
+// person-only gate now — an animal cannot be a stranger, disguised or
+// impersonated, so a non-person organism publishes its name to everyone.
+// A fixture standing in for somebody must compose the thing that makes
+// one; faking the shape passes only until the rule gets stricter.
+class Person extends PersonaMixin(
+  SoulMixin(
+    VocalMixin(
+      BeliefStoreMixin(
+        PerceptionMixin(
+          SensorMixin(
+            OrganismMixin(VisibleMixin(NamedMixin(ContainableMixin(Idea)))),
+          ),
         ),
       ),
     ),

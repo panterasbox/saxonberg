@@ -592,8 +592,19 @@ export default class Species extends SingletonMixin(
     // hydration. Declaring it only makes the schema honest.
     lifespanMin: { persistent: true, authorable: true },
     lifespanMax: { persistent: true, authorable: true },
-    handlingRange: { persistent: true, authorable: true },
-    biddability: { persistent: true, authorable: true },
+    // ⭐⭐ **Spoiler 1 — what you learn by MEETING it**, beside
+    // `vitalProfile` and `facultyProfile`, and for the reason this whole
+    // build is built on: *you find out a cat will not come when called
+    // by calling it.* The game shows band words and never a figure —
+    // `handlingPhrase()`, three bond sentences, no number anywhere —
+    // and a wiki panel printing `biddability: 0.1` at level 0 would hand
+    // back exactly the number the in-game surface refuses to show, so a
+    // player reads the stat instead of the animal.
+    // ⚠ `spoilerName: 0` because the FIELD is not the secret: that a
+    // species has a biddability at all is ordinary natural history. The
+    // value is what has to be earned.
+    handlingRange: { persistent: true, authorable: true, spoiler: 1, spoilerName: 0 },
+    biddability: { persistent: true, authorable: true, spoiler: 1, spoilerName: 0 },
     adultMass: { persistent: true, authorable: true },
     ageCurve: { persistent: true, authorable: true },
     production: { persistent: true, authorable: true },
