@@ -42,6 +42,7 @@ import { PersistenceManager } from '@saxonberg/server/mud/lib/persistence/__test
 import { makeStuffAtPath } from '@saxonberg/server/mud/lib/security/__tests__/test-setup';
 import { installV1QuantityMarshallers } from '@saxonberg/server/mud/lib/persistence/__tests__/quantity-marshaller-test-helpers';
 import { Quantity } from '@saxonberg/server/mud/lib/quantity';
+import { BoundaryApi } from '@saxonberg/server/mud/api/boundary';
 
 type MemberStuff = Stuff & Container;
 
@@ -342,7 +343,7 @@ describe('the residential programme (D16)', () => {
     // Keyless still refused; a presented key admits.
     const bob = makeStuffAtPath(() => new Avatar(), '/platform/agent/Avatar/bob');
     bob.setPlayerId('bob');
-    await Lock.issueKey(iris, 'kw-77', 'pin-tumbler');
+    await new Lock('kw-77', 'pin-tumbler').issueKeyTo(iris);
     expect(door.canTraverse(iris as never).ok).toBe(true);
     expect(door.canTraverse(bob as never).ok).toBe(false);
 

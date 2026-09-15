@@ -57,10 +57,10 @@
  */
 
 import { MixinApi } from '@saxonberg/server/mud/api/mixin';
-import { Condition } from '@saxonberg/server/mud/lib/employment/Condition';
 import { StuffApi } from '@saxonberg/server/mud/api/stuff';
 import { AppApi } from '@saxonberg/server/mud/api/app';
 import { ContractApi } from '@saxonberg/server/mud/api/contract';
+import { Condition } from '@saxonberg/server/mud/lib/employment/Condition';
 import { WorldClockApi } from '@saxonberg/server/mud/api/worldclock';
 import { AppSettingKeys } from '@saxonberg/server/mud/lib/config/AppSettings';
 import type { CommandGiver } from '@saxonberg/server/mud/lib/command/CommandGiver';
@@ -278,7 +278,7 @@ function crateFor(carter: Carter, gig: ContractRecord): (Stuff & Containable) | 
   // question have been wrong in two different ways in this build alone.
   for (const thing of here.getContents() as Stuff[]) {
     if (!MixinApi.isContainable(thing)) continue;
-    if (Condition.matchesItem(condition, thing)) {
+    if (new Condition(condition).matchesItem(thing)) {
       return thing as Stuff & Containable;
     }
   }

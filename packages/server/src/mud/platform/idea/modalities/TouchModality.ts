@@ -42,7 +42,7 @@ export class TouchModality extends Modality {
    * override on the scope's `_detailTemperatures` map (parallel to
    * the existing `measure temperature <detail>` flow).
    */
-  public static async touchAt(
+  public async touchAt(
     loc: Stuff & Container,
     detailKey?: string,
   ): Promise<Touch> {

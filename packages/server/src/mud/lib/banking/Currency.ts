@@ -120,35 +120,6 @@ export class Currency {
     return [...Currency._records.values()];
   }
 
-  /**
-   * The currency the Compact transacts and denominates its obligations in
-   * — **policy data, not a property of the money.** This is where the
-   * zorkmid's "specialness" lives (reserve status is functional, never
-   * decreed): the substrate never compares a currency to a literal, it asks
-   * which one the Compact uses.
-   *
-   * Falls back to the sole registered currency when the setting is unwarmed
-   * (every unit test that skips the settings seed) — which is
-   * currency-agnostic, not a zorkmid branch. Throws when unwarmed *and*
-   * ambiguous, because guessing between two currencies is exactly the bug
-   * this build exists to make impossible.
-   */
-  public static compact(): string {
-    let configured = "";
-    try {
-      configured = AppApi.setting(AppSettingKeys.bankingCompactCurrency) || "";
-    } catch {
-      configured = "";
-    }
-    if (configured) return configured;
-    if (Currency._records.size === 1) {
-      return Currency._records.keys().next().value as string;
-    }
-    throw new Error(
-      "Currency.compact: banking.compactCurrency is unset and more than one " +
-        "currency is registered — the compact currency cannot be guessed"
-    );
-  }
 
   private static denominationOf(
     currency: string,
@@ -249,5 +220,24 @@ export class Currency {
   public static _resetForTesting(): void {
     SecurityApi.assertTestOnly("Currency._resetForTesting");
     Currency._records = new Map([[ZORKMID.key, ZORKMID]]);
+  }
+
+  /**
+   * The face value of a coin stack, in minor units.
+   *
+   * `value = faceValue(currency, denomination) × quantity`
+   *
+   * @internal ⚠ it was a module-private `stackValue` in BOTH `Bank.ts`
+   * and `BankingLogic.ts`, byte-identical. Taking three NUMBERS rather
+   * than the `CashLike` shape each file declared for itself is what let
+   * it move: the arithmetic is shared, the narrowing stays local to
+   * whichever file needs `Stuff & Stackable` and whichever needs less.
+   */
+  public static stackValue(
+    currency: string,
+    denomination: number,
+    quantity: number,
+  ): number {
+    return Currency.faceValueOf(currency, denomination) * quantity;
   }
 }

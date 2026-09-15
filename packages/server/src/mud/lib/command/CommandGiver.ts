@@ -1021,7 +1021,7 @@ export function CommandGiverMixin<TBase extends MixinConstructor<Stuff>>(Base: T
                 .slice(1)
                 .filter((t) => t.kind === 'word')
                 .map((t) => (t as { value: string }).value);
-              const bound = await EmoteGrammarRunner.bind(emote, rest, speaker);
+              const bound = new EmoteGrammarRunner(emote).bind(rest, speaker);
               const opts: { target?: Stuff; fills?: Record<string, string> } = {
                 fills: bound.fills,
               };

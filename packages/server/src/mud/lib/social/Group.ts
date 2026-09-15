@@ -50,6 +50,10 @@ const VALID_ROLES: ReadonlySet<GroupRole> = new Set([
   'member',
 ]);
 
+/**
+ * @internal the GroupApi providers are its only callers — it is the
+ * grouping substrate's private collaborator, not author surface.
+ */
 export class Group extends Document {
   static collectionName = Collections.Groups;
   static fieldMeta: FieldMeta = {

@@ -2,7 +2,7 @@
  * FeelController — `feel` verb.
  *
  * Bare form adds an ambient-temperature line above the inherited
- * per-Detail prose, reading via `TouchModality.touchAt` (which walks
+ * per-Detail prose, reading via the `touch` modality's `touchAt` (which walks
  * the biome chain). Targeted `feel <target>` with a detail path
  * (e.g. `feel stove`) prepends a per-detail temperature line on top
  * of the per-Detail `touch` slot read.
@@ -28,6 +28,7 @@ import { ConditionApi } from '../../../../api/condition';
 import { TouchModality } from '../../modalities/TouchModality';
 import { Touch } from '../../../../lib/perception/Touch';
 import type { Thermal } from '../../../../lib/thermal/Thermal';
+import { PerceptionApi } from '../../../../api/perception';
 
 interface FeelModel extends CommandModel {
   target?: MqlOneResult;
@@ -141,7 +142,7 @@ export default class FeelController extends SingleSenseControllerBase {
       super.execute({ target: undefined } as FeelModel, context);
       return;
     }
-    const touch = await TouchModality.touchAt(location);
+    const touch = await (PerceptionApi.modalityByName('touch') as TouchModality).touchAt(location);
     const bandLine = Mml.compose`The air feels ${touch.band}.`;
     const filteredLong = MixinApi.isVisible(location)
       ? location
@@ -164,7 +165,7 @@ export default class FeelController extends SingleSenseControllerBase {
     let bandPrefix: Mml | null = null;
     if (MixinApi.isAtmospheric(host) && MixinApi.isContainer(host)) {
       try {
-        const touch = await TouchModality.touchAt(
+        const touch = await (PerceptionApi.modalityByName('touch') as TouchModality).touchAt(
           host as unknown as Stuff & Container,
           dotted,
         );

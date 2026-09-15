@@ -81,7 +81,7 @@ template, and `issueCash` restamped only the denomination, so every coin read
 *"a credit coin"* and answered to `credit`.
 
 **Which currency?** `banking.compactCurrency` (an AppSetting, read only
-through `Currency.compact()`) names the one the Compact transacts in. That
+through `BankingApi.compactCurrency()`) names the one the Compact transacts in. That
 is **policy data, not a property of the money** — it is where the zorkmid's
 specialness lives, so no code path compares a currency to a literal. Reserve
 status is functional, never decreed: make Compact obligations payable only
@@ -439,7 +439,12 @@ over a game-clock advance.
 - `Transaction.ts` — `BankTransaction`, the pure conservation rule
   (`assertConserving` / `supplyDelta`) + the `LedgerLeg` shape.
 - `LedgerEntry.ts` — the append-only `bank_ledger` row (`Document`).
-- `AccountBalance.ts` — the materialized account registry + balance
+- `AccountBalance.ts` — the materialized account registry + balance, over
+  a shared `WarmedIndex` (`lib/persistence/WarmedIndex.ts`). ⚠ It kept
+  `_cache` beside `_currencyCache`, keyed identically, until the 2026-09
+  sweep — two maps able to disagree about which accounts exist, with both
+  supply aggregates reading both. One index, one `{balance, currency}`
+  value, invariant gone
   (`bank_accounts`, warm cache; registry folded onto the row — decision 2).
 - `SupplyAggregate.ts` — the supply headline, **one row per currency**
   (`bank_supply`, unique index on `currency`).

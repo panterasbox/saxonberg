@@ -200,6 +200,8 @@ export class Light {
    * Throws if the lux table isn't registered (test setup gap) or if
    * the registered tags don't match `LightBand` (content-side bug —
    * the YAML tag list must equal the typed union by construction).
+   * @internal one production caller plus the tests that white-box it — not author surface.
+   *
    */
   public static bandFor(luxValue: number): LightBand {
     const tag = Quantity.of(luxValue, 'lux').tag();
@@ -349,7 +351,7 @@ export class Light {
     const intensity = this.intensity.add(other.intensity);
     const merged = mergeSources(this.sources, other.sources);
     const colorTemp =
-      mixColorTemperature(merged) ??
+      Light.mixColorTemperature(merged) ??
       this.colorTemperature ??
       other.colorTemperature;
     return new Light(intensity, colorTemp, merged);
@@ -402,6 +404,35 @@ export class Light {
       sources: this.sources.map((s) => ({ ...s })),
     };
   }
+
+  /**
+   * ⭐ **Flux-weighted mean colour temperature** of a set of sources —
+   * the colour a mixed room actually reads as.
+   *
+   * `K = Σ(Kᵢ · fluxᵢ) / Σ fluxᵢ`
+   *
+   * `null` when nothing contributes a temperature (every source is
+   * colourless, or there is no light at all), which callers read as
+   * *"leave the ambient alone"* rather than as black.
+   *
+   * @internal ⚠ it was a module-private function HERE and a
+   * character-for-character copy in `VisionModality`, so the two could
+   * not see each other. Lifted to a static because that is the only way a
+   * `lib/` value class can share one; the callers are both engine.
+   */
+  public static mixColorTemperature(
+    sources: readonly LightSourceRef[],
+  ): Quantity<'K'> | null {
+    let weightedSum = 0;
+    let weight = 0;
+    for (const s of sources) {
+      if (s.colorTemperature === null) continue;
+      weightedSum += s.colorTemperature * s.flux;
+      weight += s.flux;
+    }
+    if (weight === 0) return null;
+    return Quantity.of(weightedSum / weight, 'K');
+  }
 }
 
 /**
@@ -435,25 +466,6 @@ function mergeSources(
   return Array.from(byId.values())
     .sort((x, y) => y.flux - x.flux)
     .slice(0, LIGHT_SOURCE_CAP);
+
 }
 
-/**
- * Compute the flux-weighted average color temperature across the
- * source list. Sources with a null `colorTemperature` are excluded
- * from the numerator AND denominator; if no source carries a
- * color temperature, returns null. Single-source-color rooms
- * reproduce that source's color exactly.
- */
-function mixColorTemperature(
-  sources: readonly LightSourceRef[]
-): Quantity<'K'> | null {
-  let weightedSum = 0;
-  let weight = 0;
-  for (const s of sources) {
-    if (s.colorTemperature === null) continue;
-    weightedSum += s.colorTemperature * s.flux;
-    weight += s.flux;
-  }
-  if (weight === 0) return null;
-  return Quantity.of(weightedSum / weight, 'K');
-}

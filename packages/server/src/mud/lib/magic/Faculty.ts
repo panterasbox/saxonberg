@@ -102,7 +102,15 @@ export class Faculty {
     return { depth: p.depth, serenity: p.serenity, composure: p.composure };
   }
 
-  /** The mana pool capacity (pt) a depth band derives. */
+  /**
+   * The mana pool capacity (pt) a depth band derives.
+   *
+   * ⚠ **Not parameterised, and that is the finding.** This does not READ a
+   * dial on its way to an answer — it IS the dial read. Giving it a
+   * `value = dial(…)` parameter would produce `(x) => x`. A settings
+   * accessor is a different thing from a formula that answers to a
+   * setting, and only the second one was the problem.
+   */
   public static capacityFor(depth: FacultyBand): number {
     return dial(
       DEPTH_CAPACITY_KEYS[depth],
@@ -111,17 +119,23 @@ export class Faculty {
   }
 
   /** The absolute recovery rate (pt per game-minute) a serenity band derives. */
-  public static recoveryPerMinFor(serenity: FacultyBand): number {
-    return (
-      dial(
-        AppSettingKeys.magicRecoveryPerMinBase,
-        FACULTY_DEFAULTS.recoveryPerMinBase,
-      ) *
-      dial(
-        SERENITY_FACTOR_KEYS[serenity],
-        FACULTY_DEFAULTS.serenityFactor[serenity],
-      )
-    );
+  public static recoveryPerMinFor(
+    serenity: FacultyBand,
+    /**
+     * ⭐ The two dials the product is taken over, **as parameters
+     * defaulting to the dials** — so the body is a function of its
+     * arguments and the signature names what the answer moves with.
+     */
+    base = dial(
+      AppSettingKeys.magicRecoveryPerMinBase,
+      FACULTY_DEFAULTS.recoveryPerMinBase,
+    ),
+    serenityFactor = dial(
+      SERENITY_FACTOR_KEYS[serenity],
+      FACULTY_DEFAULTS.serenityFactor[serenity],
+    ),
+  ): number {
+    return base * serenityFactor;
   }
 
   /**
@@ -132,15 +146,17 @@ export class Faculty {
   public static composureFactor(
     composure: FacultyBand,
     manaFraction: number,
-  ): number {
-    const base = dial(
+    /** ⭐ The band's base multiplier — the dial, as a parameter. */
+    base = dial(
       COMPOSURE_BASE_KEYS[composure],
       FACULTY_DEFAULTS.composureBase[composure],
-    );
-    const floor = dial(
+    ),
+    /** ⭐ The floor an empty reserve still delivers — likewise. */
+    floor = dial(
       AppSettingKeys.magicComposureFloorFactor,
       FACULTY_DEFAULTS.composureFloorFactor,
-    );
+    ),
+  ): number {
     const frac = Math.min(1, Math.max(0, manaFraction));
     return base * (floor + (1 - floor) * frac);
   }

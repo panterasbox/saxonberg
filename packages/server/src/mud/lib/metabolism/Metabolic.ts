@@ -50,11 +50,11 @@ import { StuffApi } from "../../api/stuff";
 import { WorldClockApi } from "../../api/worldclock";
 import { TemplatePaths, TemplatePathPrefixes } from "../paths";
 import { BlendLabel } from './BlendLabel';
-import { Contamination } from '../material/Contaminable';
 import { AccountabilityApi } from '../../api/accountability';
 import AccountabilityEvent from '../accountability/AccountabilityEvent';
 import { SpeciesApi } from '../../api/species';
-import { BlendIdentity } from '../../lib/craft/BlendIdentity';
+import { MaterialApi } from '../../api/material';
+import { CraftingApi } from '../../api/crafting';
 
 /* ─────────────────────────── toxin model (types) ─────────────────────────── */
 //
@@ -1255,7 +1255,7 @@ export function MetabolicMixin<TBase extends MixinConstructor>(Base: TBase) {
       else this.liquidVolume = current + accepted;
 
       this.routeIntake(material, accepted, payload);
-      this.lastMealLabel = BlendIdentity.nameOf(payload, material);
+      this.lastMealLabel = CraftingApi.blendName(payload, material);
       return accepted;
     }
 
@@ -1282,7 +1282,7 @@ export function MetabolicMixin<TBase extends MixinConstructor>(Base: TBase) {
       // Toxin tags add their per-serving dose to the pool (each ingest
       // is one serving). The dose absorbs into the burden over time — so
       // the un-absorbed dose is what `vomit` can still dump.
-      for (const tox of BlendLabel.toxicityOf(payload, material)) {
+      for (const tox of MaterialApi.blendToxicity(payload, material)) {
         if (tox.amount <= 0) continue;
         pools[tox.type] = (pools[tox.type] ?? 0) + tox.amount;
       }
@@ -1323,7 +1323,7 @@ export function MetabolicMixin<TBase extends MixinConstructor>(Base: TBase) {
         ? WorldClockApi.getNow().rawValue()
         : 0;
       for (const [key, load] of Object.entries(loads)) {
-        const behavior = Contamination.behaviorOf(key);
+        const behavior = MaterialApi.pathogenBehaviorOf(key);
         if (!behavior || behavior.reach !== 'infect') continue;
         if (load < behavior.infectiousDose) continue;
         const path = TemplatePathPrefixes.pathogenCondition + key;

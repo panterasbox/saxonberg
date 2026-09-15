@@ -282,7 +282,7 @@ export class ParcelRecord extends Document {
    * is active when its `holder` matches and it has not expired
    * (`expiresAt === null` = indefinite). Pure — no I/O.
    */
-  static activeGrantFor(
+  private static activeGrantFor(
     record: ParcelRecord,
     holder: string,
     now: number,
@@ -309,7 +309,7 @@ export class ParcelRecord extends Document {
    * null — the "who leases this unit" reverse of `activeGrantFor` (v1: one
    * holder per unit). Pure. Lets a door know its tenant synchronously.
    */
-  static activeHolderOf(record: ParcelRecord, now: number): string | null {
+  private static activeHolderOf(record: ParcelRecord, now: number): string | null {
     for (const grant of record.grants) {
       if (grant.expiresAt === null || grant.expiresAt > now) return grant.holder;
     }

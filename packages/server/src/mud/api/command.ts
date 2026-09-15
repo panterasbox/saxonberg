@@ -560,6 +560,40 @@ export interface CardinalitySpec {
 export type OnExcessPolicy = 'top' | 'take-all' | 'prompt' | 'truncate' | 'error';
 
 /**
+ * ⭐⭐ **What to do when a match was discarded for being the wrong KIND.**
+ *
+ * The symmetric twin of {@link OnExcessPolicy}. Two questions arise at
+ * the same moment when a player's word matches more than one thing:
+ *
+ * | axis | question | policy |
+ * |---|---|---|
+ * | **count** | how many matched? | `cardinality` / `onExcess` |
+ * | **kind** | how many are the right kind? | `requires:` + **this** |
+ *
+ * ⚠ The count axis has been declared and configurable since the
+ * affordance build; the kind axis just *happened*. An author could say
+ * *"two matched — ask which"* and could not say *"two matched and I
+ * discarded one — say so"*. That asymmetry was the defect, not the
+ * scope walk.
+ *
+ * - `'take'` — bind the admissible ones silently. **The default**, and
+ *   it is exactly today's behaviour, so declaring the policy changes
+ *   nothing until an author asks it to.
+ * - `'warn'` — bind them AND emit a `candidates-filtered` note naming
+ *   what was dropped. This is the one that teaches: *"the painting
+ *   doesn't open; opening the chest"* is how a player learns that
+ *   `second box` exists.
+ * - `'error'` — refuse, with the same note. For a slot where guessing
+ *   is worse than asking again.
+ *
+ * ⛔ **No `'prompt'`, deliberately.** Prompting between a targetable and
+ * a non-targetable candidate asks the player to choose something that
+ * will then be refused — worse than either taking or erroring. The
+ * count axis prompts because every candidate there is a legal answer.
+ */
+export type OnFilteredPolicy = 'take' | 'warn' | 'error';
+
+/**
  * What to do when MQL resolves fewer results than `cardinality.min`.
  * v1 ships one value: `'error'`. ("Prompt to widen your MQL query"
  * is deferred per requirements doc non-goals.)
@@ -795,6 +829,13 @@ export interface FieldDefinition {
    * v1 only value: `'error'`. Future values land additively.
    */
   onShortage?: OnShortagePolicy;
+
+  /**
+   * Policy when a candidate matched the player's word but failed this
+   * slot's `requires:`. Default `'take'` — today's behaviour.
+   * See {@link OnFilteredPolicy}.
+   */
+  onFiltered?: OnFilteredPolicy;
   /**
    * Optional JSON Schema fragment for `type: 'struct'` fields. Run
    * by ajv during the structured-input coercion step; failure yields
@@ -1012,6 +1053,7 @@ export interface OptionDefinition {
   cardinality?: CardinalitySpec;
   onExcess?: OnExcessPolicy;
   onShortage?: OnShortagePolicy;
+  onFiltered?: OnFilteredPolicy;
   /** Field name to land on; defaults to the option's own name. */
   field?: string;
   /**

@@ -32,6 +32,7 @@ import type { CommandDispatchedPayload } from '../../../lib/events/CommandDispat
 // eslint-disable-next-line no-restricted-imports -- sibling logic singletons in one subsystem; class identities feed EventApi.restrictSubscribe's subscriber allowlist (cycle-safe, see comment)
 import { ProducerLogic } from './ProducerLogic';
 import { MqlSubscriptionApi } from '../../../api/mql-subscription';
+import { Decay } from '../../../lib/Decay';
 
 const ConsumerApiCallers = SecurityPolicies.FromModule('/api/consumer#ConsumerApi'
 );
@@ -153,11 +154,6 @@ async function appendFromDispatch(p: CommandDispatchedPayload): Promise<void> {
   });
 }
 
-/** Half-life decay 0.5^(age/halfLife); 1 for a non-positive / ∞ half-life. */
-function decayWeight(ageS: number, halfLife: number): number {
-  if (!Number.isFinite(halfLife) || halfLife <= 0 || ageS <= 0) return 1;
-  return Math.pow(0.5, ageS / halfLife);
-}
 
 /**
  * Score a subject's bucket rows: the recency-decayed count of active
@@ -172,7 +168,7 @@ function scoreEvents(
 ): number {
   let total = 0;
   for (const ev of events) {
-    total += decayWeight(Math.max(0, (realNowMs - ev.realAt) / 1000), halfLifeS);
+    total += Decay.byHalfLife(Math.max(0, (realNowMs - ev.realAt) / 1000), halfLifeS);
   }
   return total;
 }

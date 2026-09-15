@@ -830,10 +830,10 @@ export function FastTravelMixin<TBase extends MixinConstructor<Stuff>>(
       if (cityBudgetAccount) {
         payeeAccountId = cityBudgetAccount;
         if (networkFee > 0 && tpaAccount) {
-          splits.push({ accountId: tpaAccount, amount: Money.of(networkFee, Currency.compact()), category: "networkFee" });
+          splits.push({ accountId: tpaAccount, amount: Money.of(networkFee, BankingApi.compactCurrency()), category: "networkFee" });
         }
         if (destOperatorAccount && surcharge > 0) {
-          splits.push({ accountId: destOperatorAccount, amount: Money.of(surcharge, Currency.compact()), category: "fare" });
+          splits.push({ accountId: destOperatorAccount, amount: Money.of(surcharge, BankingApi.compactCurrency()), category: "fare" });
         }
       } else {
         // Surcharge-only (free route into a surcharged destination). Reached only
@@ -843,7 +843,7 @@ export function FastTravelMixin<TBase extends MixinConstructor<Stuff>>(
       }
 
       const charge: Charge = {
-        amount: Money.of(total, Currency.compact()),
+        amount: Money.of(total, BankingApi.compactCurrency()),
         reason: "TPA fare",
         presented: true,
         payeeAccountId,

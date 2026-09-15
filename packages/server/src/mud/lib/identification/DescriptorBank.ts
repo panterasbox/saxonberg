@@ -172,12 +172,26 @@ export class DescriptorBank extends Document {
    */
   static #cache: Map<string, DescriptorBank | null> = new Map();
 
-  /** Drop the resolution cache (`PackApi.sync` after a write; tests). */
+  /**
+   * Drop the resolution cache (`PackApi.sync` after a write; tests).
+   *
+   * ⚠ **Deliberately NOT on `WarmedIndex`.** This is LAZY-by-key
+   * (`find({key})` on a miss, memoised) plus a boot prime, not a
+   * warm-the-whole-collection index — a bank is a big authored row and
+   * most worlds touch three of them. The index shape would load every
+   * bank at boot to serve a read that already answers in one query.
+   *
+   * @internal reached by `PackApi.sync` after a write, and the tests. Not author surface.
+   */
   static clearCache(): void {
     DescriptorBank.#cache.clear();
   }
 
-  /** Resolve one bank by key (cached). `null` when unseeded. */
+  /**
+   * Resolve one bank by key (cached). `null` when unseeded.
+   *
+   * @internal the callable surface is the appearance render path (`RecognitionApi`); this is the lazy loader behind it.
+   */
   static async byKey(key: string): Promise<DescriptorBank | null> {
     if (DescriptorBank.#cache.has(key)) {
       return DescriptorBank.#cache.get(key) ?? null;
@@ -195,12 +209,18 @@ export class DescriptorBank extends Document {
    * ripple's `canMergeWith`), which cannot await a collection query. So
    * banks are warmed once at boot and read synchronously thereafter,
    * exactly as the spell catalogue is.
+   *
+   * @internal `PackLogic`'s go-live seeds the sync read path through here.
    */
   static primeCache(banks: readonly DescriptorBank[]): void {
     for (const bank of banks) DescriptorBank.#cache.set(bank.key, bank);
   }
 
-  /** The cached bank for `key`, or `null` — sync, for render paths. */
+  /**
+   * The cached bank for `key`, or `null` — sync, for render paths.
+   *
+   * @internal read by `lib/identification`'s own render path.
+   */
   static cached(key: string): DescriptorBank | null {
     return DescriptorBank.#cache.get(key) ?? null;
   }

@@ -74,7 +74,7 @@ export default class BankController extends BankingControllerBase<BankModel> {
     await BankingApi.openAccount(
       bank.getBank(),
       bank.getCorpoKey(),
-      Currency.compact(),
+      BankingApi.compactCurrency(),
     );
     const corpo = CorpoApi.getCorpo(bank.getCorpoKey());
     const house = corpo ? corpo.label : "the bank";
@@ -154,7 +154,7 @@ export default class BankController extends BankingControllerBase<BankModel> {
       .map(({ r, delta, running: bal }) => {
         const sign = delta >= 0 ? "+" : "";
         const label = r.memo || r.kind;
-        return `  ${sign}${Money.of(delta, Currency.compact()).render()}  ${label}  (balance ${Money.of(bal, Currency.compact()).render()})`;
+        return `  ${sign}${Money.of(delta, BankingApi.compactCurrency()).render()}  ${label}  (balance ${Money.of(bal, BankingApi.compactCurrency()).render()})`;
       })
       .join("\n");
     const heading =
@@ -218,13 +218,13 @@ export default class BankController extends BankingControllerBase<BankModel> {
       return this.badAmount(context, model.amount);
     }
     try {
-      await bank.withdraw(Money.of(minor, Currency.compact()));
+      await bank.withdraw(Money.of(minor, BankingApi.compactCurrency()));
     } catch (err) {
       return this.declineScene(context, "withdraw-refused", err);
     }
     MessageApi.scene(giver)
       .topic(TOPIC)
-      .toSelf(Mml.compose`You withdraw ${Money.of(minor, Currency.compact()).render()} in cash.`)
+      .toSelf(Mml.compose`You withdraw ${Money.of(minor, BankingApi.compactCurrency()).render()} in cash.`)
       .toPeers(Mml.compose`${Mml.actor(giver)} makes a withdrawal.`)
       .send();
   }
@@ -268,13 +268,13 @@ export default class BankController extends BankingControllerBase<BankModel> {
       return;
     }
     try {
-      await BankingApi.transfer(fromAccount, toAccount, Money.of(minor, Currency.compact()));
+      await BankingApi.transfer(fromAccount, toAccount, Money.of(minor, BankingApi.compactCurrency()));
     } catch (err) {
       return this.declineScene(context, "transfer-refused", err);
     }
     MessageApi.scene(giver)
       .topic(TOPIC)
-      .toSelf(Mml.compose`You transfer ${Money.of(minor, Currency.compact()).render()} to ${Mml.actor(payee!)}.`)
+      .toSelf(Mml.compose`You transfer ${Money.of(minor, BankingApi.compactCurrency()).render()} to ${Mml.actor(payee!)}.`)
       .send();
   }
 

@@ -61,6 +61,7 @@ import { fileURLToPath } from "url";
 import { dirname, join, relative } from "path";
 import { parse as parseYaml } from "yaml";
 import { Mixins, MixinRefusals } from "../src/mud/lib/mixin";
+import { declaredMixins } from "./pack-roots";
 
 const here = dirname(fileURLToPath(import.meta.url));
 const MUD_ROOT = join(here, "..", "src", "mud");
@@ -98,8 +99,36 @@ function cmdDirsUnder(dir: string, out: string[] = []): string[] {
   return out;
 }
 
-/** Live mixin vocabulary — the thing a declaration is checked against. */
-const KNOWN_MIXINS = new Set<string>(Object.values(Mixins));
+/**
+ * Live mixin vocabulary — the thing a declaration is checked against.
+ *
+ * ⭐ **The kernel registry AND every pack's declarations.** A `requires:`
+ * may name a capability pack's own mixin since the 2026-09-14
+ * federation, so checking `Object.values(Mixins)` alone would fail a
+ * pack's honest declaration — the exact bug that kept `ship.yaml` from
+ * declaring its desk. Read from `_mixinName` on disk, the same fact
+ * `MixinApi.registerComposedMixins` reads off the prototype chain at
+ * install; `lint:mixin-names` is what keeps that one flat namespace from
+ * colliding.
+ */
+const PACK_MIXINS = declaredMixins().filter((d) => d.owner !== "kernel");
+const KNOWN_MIXINS = new Set<string>([
+  ...Object.values(Mixins),
+  ...PACK_MIXINS.map((d) => d.name),
+]);
+
+/**
+ * The refusal sentence a mixin ships, from whichever half declares it.
+ *
+ * A pack cannot edit `MixinRefusals` — it is a kernel const — so a pack
+ * mixin carries its phrase as `static _mixinRefusal` beside its name,
+ * and `MixinApi.refusalFor` reads the pair the same way at runtime.
+ */
+function refusalFor(name: string): string | undefined {
+  const pack = PACK_MIXINS.find((d) => d.name === name);
+  if (pack?.refusal !== undefined) return pack.refusal;
+  return (MixinRefusals as Record<string, string | undefined>)[name];
+}
 
 /**
  * The `class:` escape, mirrored from `CommandLogic.CLASS_REQUIREMENTS`.
@@ -305,7 +334,7 @@ function main(): void {
   const phraseless = new Set<string>();
   for (const f of constrained) {
     for (const n of f.named) {
-      if (KNOWN_MIXINS.has(n) && !(n in MixinRefusals)) phraseless.add(n);
+      if (KNOWN_MIXINS.has(n) && refusalFor(n) === undefined) phraseless.add(n);
     }
   }
   if (phraseless.size > 0) {
@@ -316,7 +345,9 @@ function main(): void {
     );
     for (const n of [...phraseless].sort()) console.error(`    ${n}`);
     console.error(
-      `\n  Add one line each. \`{}\` is the target's presentation:\n` +
+      `\n  A PACK's mixin declares its own: \`static _mixinRefusal = "…"\`` +
+        ` beside \`_mixinName\`.\n  A kernel mixin's line goes in ` +
+        `MixinRefusals. \`{}\` is the target's presentation:\n` +
         [...phraseless]
           .sort()
           .map((n) => `    ${n}: "{} …",`)

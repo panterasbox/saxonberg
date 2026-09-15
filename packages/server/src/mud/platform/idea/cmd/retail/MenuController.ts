@@ -23,10 +23,16 @@ import Menu from '../../../../lib/commerce/Menu';
 import Tariff from '../../../thing/Tariff';
 import { Money } from '../../../../lib/banking/Money';
 import { Currency } from '../../../../lib/banking/Currency';
+import { MixinApi } from '../../../../api/mixin';
+import { BankingApi } from '../../../../api/banking';
 
 const TOPIC = 'act.deed';
 
 interface MenuModel extends CommandModel {
+  /** The tariff board — bound by the view, `from`-addressable. */
+  counter?: MqlOneResult;
+  /** The recipe menu — bound by the view, `off`-addressable. */
+  menu?: MqlOneResult;
   target?: MqlOneResult;
 }
 
@@ -42,7 +48,9 @@ export default class MenuController extends CommandController<MenuModel> {
     // compose rather than one shadowing the other.
     const blocks: string[] = [];
 
-    const tariff = Tariff.resolveIn(context);
+    // ⭐ Bound by the view, not hunted for here.
+    // ⭐ Bound by the view, not hunted for here.
+    const tariff = (model.counter?.stuff ?? null) as Tariff | null;
     const serviceKeys = tariff?.serviceKeys() ?? [];
     if (tariff && serviceKeys.length > 0) {
       const rows = serviceKeys
@@ -51,7 +59,7 @@ export default class MenuController extends CommandController<MenuModel> {
           const price = tariff.priceFor(k);
           const money =
             price != null && price > 0
-              ? Money.of(price, Currency.compact()).render()
+              ? Money.of(price, BankingApi.compactCurrency()).render()
               : 'no charge';
           return `  ${k} — ${money}`;
         })
@@ -71,8 +79,13 @@ export default class MenuController extends CommandController<MenuModel> {
         // (idempotent: re-reading the menu doesn't duplicate). Known-of
         // lets you attempt the manual build; making it is the deed (the
         // ladder).
-        for (const recipe of offered) {
-          await RecipeKnowledge.noteKnown(giver, recipe.recipeId, recipe.name);
+        if (MixinApi.isPersona(giver)) {
+          for (const recipe of offered) {
+            await giver.recordChronicleOnce(
+              RecipeKnowledge.knownKey(recipe.recipeId),
+              RecipeKnowledge.knownEntry(recipe.name),
+            );
+          }
         }
         const lines = offered.map((r) => `  ${r.name}`).join('\n');
         blocks.push(
@@ -101,5 +114,5 @@ export default class MenuController extends CommandController<MenuModel> {
 function resolveMenu(model: MenuModel, context: CommandContext): Menu | null {
   const named = model.target?.stuff;
   if (named instanceof Menu) return named;
-  return Menu.resolveIn(context);
+  return (model.menu?.stuff ?? null) as Menu | null;
 }

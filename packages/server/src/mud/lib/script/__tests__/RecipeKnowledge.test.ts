@@ -65,29 +65,41 @@ afterEach(() => {
 describe("RecipeKnowledge ladder", () => {
   it("unknown recipe is neither known-of nor can-make", async () => {
     const actor = makeActor();
-    expect(await RecipeKnowledge.knowsOf(actor, "martini")).toBe(false);
-    expect(await RecipeKnowledge.canMake(actor, "martini")).toBe(false);
+    expect(await actor.hasClaimed(RecipeKnowledge.knownKey("martini"))).toBe(false);
+    expect(await actor.hasDone(RecipeKnowledge.madeKey("martini"))).toBe(false);
   });
 
   it("reading marks known-of (and re-reading does not duplicate)", async () => {
     const actor = makeActor();
-    await RecipeKnowledge.noteKnown(actor, "martini", "Martini");
-    expect(await RecipeKnowledge.knowsOf(actor, "martini")).toBe(true);
+    await actor.recordChronicleOnce(
+      RecipeKnowledge.knownKey("martini"),
+      RecipeKnowledge.knownEntry("Martini"),
+    );
+    expect(await actor.hasClaimed(RecipeKnowledge.knownKey("martini"))).toBe(true);
     // Known-of does not imply can-make — the book isn't enough.
-    expect(await RecipeKnowledge.canMake(actor, "martini")).toBe(false);
+    expect(await actor.hasDone(RecipeKnowledge.madeKey("martini"))).toBe(false);
 
-    await RecipeKnowledge.noteKnown(actor, "martini", "Martini");
+    await actor.recordChronicleOnce(
+      RecipeKnowledge.knownKey("martini"),
+      RecipeKnowledge.knownEntry("Martini"),
+    );
     const entries = await actor.chronicleEntries();
     expect(entries.filter((e) => e.tags?.includes("recipe"))).toHaveLength(1);
   });
 
   it("the first build banks can-make under a distinct key (claim survives)", async () => {
     const actor = makeActor();
-    await RecipeKnowledge.noteKnown(actor, "martini", "Martini");
-    await RecipeKnowledge.noteMade(actor, "martini", "Martini");
+    await actor.recordChronicleOnce(
+      RecipeKnowledge.knownKey("martini"),
+      RecipeKnowledge.knownEntry("Martini"),
+    );
+    await actor.recordChronicleOnce(
+      RecipeKnowledge.madeKey("martini"),
+      RecipeKnowledge.madeEntry("Martini"),
+    );
 
-    expect(await RecipeKnowledge.knowsOf(actor, "martini")).toBe(true);
-    expect(await RecipeKnowledge.canMake(actor, "martini")).toBe(true);
+    expect(await actor.hasClaimed(RecipeKnowledge.knownKey("martini"))).toBe(true);
+    expect(await actor.hasDone(RecipeKnowledge.madeKey("martini"))).toBe(true);
 
     // Distinct keys: claim + deed are two rows, not one clobbered row.
     const entries = await actor.chronicleEntries();
@@ -98,24 +110,36 @@ describe("RecipeKnowledge ladder", () => {
 
   it("noteMade is idempotent — a second build banks no new deed", async () => {
     const actor = makeActor();
-    await RecipeKnowledge.noteMade(actor, "martini", "Martini");
-    await RecipeKnowledge.noteMade(actor, "martini", "Martini");
+    await actor.recordChronicleOnce(
+      RecipeKnowledge.madeKey("martini"),
+      RecipeKnowledge.madeEntry("Martini"),
+    );
+    await actor.recordChronicleOnce(
+      RecipeKnowledge.madeKey("martini"),
+      RecipeKnowledge.madeEntry("Martini"),
+    );
     const entries = await actor.chronicleEntries();
     expect(entries.filter((e) => e.kind === "deed")).toHaveLength(1);
   });
 
   it("can-make without ever reading — building is its own teacher", async () => {
     const actor = makeActor();
-    await RecipeKnowledge.noteMade(actor, "negroni", "Negroni");
-    expect(await RecipeKnowledge.canMake(actor, "negroni")).toBe(true);
-    expect(await RecipeKnowledge.knowsOf(actor, "negroni")).toBe(false);
+    await actor.recordChronicleOnce(
+      RecipeKnowledge.madeKey("negroni"),
+      RecipeKnowledge.madeEntry("Negroni"),
+    );
+    expect(await actor.hasDone(RecipeKnowledge.madeKey("negroni"))).toBe(true);
+    expect(await actor.hasClaimed(RecipeKnowledge.knownKey("negroni"))).toBe(false);
   });
 
   it("knowledge is owner-scoped — one actor's deed isn't another's", async () => {
     const a = makeActor();
     const b = makeActor();
-    await RecipeKnowledge.noteMade(a, "martini", "Martini");
-    expect(await RecipeKnowledge.canMake(a, "martini")).toBe(true);
-    expect(await RecipeKnowledge.canMake(b, "martini")).toBe(false);
+    await a.recordChronicleOnce(
+      RecipeKnowledge.madeKey("martini"),
+      RecipeKnowledge.madeEntry("Martini"),
+    );
+    expect(await a.hasDone(RecipeKnowledge.madeKey("martini"))).toBe(true);
+    expect(await b.hasDone(RecipeKnowledge.madeKey("martini"))).toBe(false);
   });
 });

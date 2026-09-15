@@ -50,6 +50,8 @@ export interface Persona {
     fields: ChronicleEntryFields,
   ): Promise<void>;
   chronicleEntries(): Promise<ChronicleEntry[]>;
+  hasClaimed(key: string): Promise<boolean>;
+  hasDone(key: string): Promise<boolean>;
   seedChronicleClaims(seeds: ChronicleClaimSeed[]): Promise<void>;
 }
 
@@ -292,6 +294,27 @@ export function PersonaMixin<TBase extends MixinConstructor>(Base: TBase) {
       const ownerId = ownerKey(this as unknown as Stuff);
       if (!ownerId) return [];
       return ChronicleEntry.find({ owner: ownerId });
+    }
+
+    /**
+     * Has the owner filed a **claim** under `key`? The read half of
+     * {@link recordClaim}, which already existed without it — every
+     * consumer had to pull the whole ledger and filter it by hand, which
+     * is how four `Knowledge.knowsOf(actor, …)` statics came to exist.
+     *
+     * ⭐ Deliberately key-agnostic: the kernel learns no content word.
+     * `recipe-known:<id>` and `spell-known:<path>` are vocabularies their
+     * own subsystems own.
+     */
+    public async hasClaimed(key: string): Promise<boolean> {
+      const entries = await this.chronicleEntries();
+      return entries.some((e) => e.kind === 'claim' && e.key === key);
+    }
+
+    /** Has the owner filed a **deed** under `key`? {@link recordDeed}'s read half. */
+    public async hasDone(key: string): Promise<boolean> {
+      const entries = await this.chronicleEntries();
+      return entries.some((e) => e.kind === 'deed' && e.key === key);
     }
 
     /** Seed the char-gen claim prologue (each `kind: 'claim'`, ordered). */

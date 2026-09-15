@@ -689,18 +689,31 @@ args:
     requires: any                               # deliberately unconstrained
 ```
 
-The name is a **mixin** from the `Mixins` registry in `lib/mixin.ts`.
-The framework synthesises the check at spec-load and prepends it to the
-slot's validator chain; the refusal sentence comes from `MixinRefusals`
-in the same file, where `{}` stands for the target's presentation.
+The name is a **mixin** — from the `Mixins` registry in `lib/mixin.ts`,
+**or one a capability pack declares**. The framework synthesises the
+check at spec-load and prepends it to the slot's validator chain; the
+refusal sentence comes from `MixinRefusals` in the same file, where `{}`
+stands for the target's presentation.
+
+⭐⭐ **A pack may name its own mixin** (2026-09-14). It could not until
+then: the validator checked `Object.values(Mixins)`, a kernel const a
+pack cannot edit, so `trade-haulage` shipped `ShipmentDeskMixin`,
+composed it, matched it from MQL — and had to hunt for the desk with a
+hand-rolled `resolveOne` in its controller, because the declaration it
+wanted would not load. The namespace is federated now: `PackApi`
+registers every `_mixinName` under a discovered pack's `src/`, and the
+pack's own `static _mixinRefusal` carries the phrase (it cannot edit
+`MixinRefusals` either). `pnpm lint:mixin-names` holds the one flat
+namespace collision-free.
 
 ⚠⚠ **If you name a mixin with no phrase, the build fails and tells you
 the line to add.** `MixinRefusals` is partial — most mixins are never
 required by a spec — so nothing in the type system catches "constraint
-added, words not". `lint:arg-kinds --lint` does. At runtime a missing
-phrase would degrade to a generic sentence rather than break the verb;
-at build it is refused, because a `requires:` is a refusal players hit,
-and one they cannot act on is a dead end.
+added, words not". `lint:arg-kinds --lint` does, for a pack's mixin as
+well as the kernel's. At runtime a missing phrase would degrade to a
+generic sentence rather than break the verb; at build it is refused,
+because a `requires:` is a refusal players hit, and one they cannot act
+on is a dead end.
 
 This exists because the affordance resolver offers a verb whenever its
 operand binds and its field validators pass. A verb whose real refusal
@@ -708,6 +721,58 @@ lives in its **controller** therefore advertises itself against targets
 it cannot act on — and the client cannot filter that out, because it is
 forbidden from re-deriving semantics. A wrong figure on the wire is a
 wrong figure on screen.
+
+##### ⭐⭐ `onFiltered:` — what to do about a match you discarded
+
+`requires:` decides **what a slot accepts**. `onFiltered:` decides
+**whether the engine says anything when it throws something away.**
+
+```yaml
+  - name: target
+    type: object
+    requires: SealableMixin
+    onFiltered: warn        # take (default) · warn · error
+```
+
+⭐ **The defect this closed was an asymmetry, not the scope walk.** Two
+questions arise at exactly the same moment, when a player's word matches
+more than one thing:
+
+| axis | question | mechanism |
+|---|---|---|
+| **count** | how many matched? | `cardinality` / `onExcess` — declared, configurable, honest |
+| **kind** | how many are the right KIND? | `requires:` + **`onFiltered:`** |
+
+Before this, an author could say *"two matched — ask which"* and could
+**not** say *"two matched and I discarded one — say so"*. `open box` in a
+room holding a chest and a painting has always opened the chest and never
+mentioned the painting — which is exactly how a player fails to learn
+that `second box` exists.
+
+- `take` — **the default**, and exactly today's behaviour. Declaring the
+  policy changes nothing until an author asks it to; 183 slots declare
+  `requires:` and none of them asked for a new voice.
+- `warn` — bind the admissible one AND emit a `candidates-filtered` note
+  naming what was dropped.
+- `error` — refuse, with the same note.
+
+⛔ **There is no `prompt`, deliberately**, though `onExcess` has one.
+Prompting between a targetable and a non-targetable candidate asks the
+player to choose something that will then be refused. The count axis can
+prompt because every candidate there is a legal answer.
+
+⚠ **`onFiltered` without a `requires:` is refused at load** — including
+against `requires: any`. Nothing would ever be discarded, so the policy
+could never fire, and an author would reasonably believe they had asked
+for something.
+
+⚠⚠ **The scope chain is untouched, and that is deliberate.** The chain
+does two jobs: it ORDERS by preference (`$focus` first — look at what I
+am attending to) and it FILTERS by kind. Only the second was ever the
+complaint. Collapsing the chain into one pool — the first design
+considered — would have made the focused object just another candidate:
+a silent regression exactly where a player would most notice. So the
+ordering stays and the DISCARD became counted and declared.
 
 ##### The three axes — `requires:` is only the first
 

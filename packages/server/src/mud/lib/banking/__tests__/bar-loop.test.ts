@@ -90,21 +90,21 @@ describe("The bar money loop (end to end)", () => {
     const barAcct = await BankingApi.ensureVenueAccount(
       BAR,
       BankingApi.defaultCustodianBank(),
-      "", Currency.compact());
+      "", BankingApi.compactCurrency());
 
     // 1. open an account + deposit cash
     const patronAcct = await asOwner(patron, () =>
-      BankingApi.openAccount("goodkin", "goodkin", Currency.compact())
+      BankingApi.openAccount("goodkin", "goodkin", BankingApi.compactCurrency())
     );
     const cash = (await asOwner(patron, () =>
-      BankingApi.issueCash(patron as never, Money.of(300, Currency.compact()))
+      BankingApi.issueCash(patron as never, Money.of(300, BankingApi.compactCurrency()))
     )) as Stuff & Stackable;
     await asOwner(patron, () => bank.deposit(cash));
     expect(BankingApi.balanceOf(patronAcct).minor).toBe(300);
 
     // 2. buy a drink — a presented Charge settled from the implant/card
     const drink: Charge = {
-      amount: Money.of(60, Currency.compact()),
+      amount: Money.of(60, BankingApi.compactCurrency()),
       reason: "a martini",
       presented: true,
       payeeAccountId: barAcct,
@@ -115,8 +115,8 @@ describe("The bar money loop (end to end)", () => {
     expect(BankingApi.balanceOf(barAcct).minor).toBe(60);
 
     // 3. the bar pays a wage that exceeds its takings → it runs RED
-    await asOwner(worker, () => BankingApi.openAccount("goodkin", "goodkin", Currency.compact()));
-    await BankingApi.payWage(barAcct, "/platform/agent/Avatar/wenna", Money.of(150, Currency.compact()));
+    await asOwner(worker, () => BankingApi.openAccount("goodkin", "goodkin", BankingApi.compactCurrency()));
+    await BankingApi.payWage(barAcct, "/platform/agent/Avatar/wenna", Money.of(150, BankingApi.compactCurrency()));
     expect(BankingApi.balanceOf(barAcct).minor).toBe(-90); // red by design
 
     // 4. the P&L shows the deficit
@@ -127,10 +127,10 @@ describe("The bar money loop (end to end)", () => {
 
     // 5. the central bank mints subsidy to cover the red — logged + visible
     const red = -BankingApi.balanceOf(barAcct).minor;
-    await BankingApi.mint(barAcct, Money.of(red, Currency.compact()), "deficit subsidy", "subsidy");
+    await BankingApi.mint(barAcct, Money.of(red, BankingApi.compactCurrency()), "deficit subsidy", "subsidy");
     expect(BankingApi.balanceOf(barAcct).minor).toBe(0);
 
     // 6. the conservation invariant holds across the whole loop
-    expect(BankingApi.reconcile(Currency.compact()).balanced).toBe(true);
+    expect(BankingApi.reconcile(BankingApi.compactCurrency()).balanced).toBe(true);
   });
 });

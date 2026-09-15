@@ -81,17 +81,26 @@ export class Techniques {
   public static readonly BUILT = 'built';
 
   /** The neutral effect — a built drink, and the fallback everywhere. */
-  public static neutral(): TechniqueEffect {
+  static neutral(): TechniqueEffect {
     return { ...NEUTRAL };
   }
 
-  /** A well-formed technique word: a non-empty kebab token. */
+  /**
+   * Whether `s` is a registered technique word.
+   *
+   * ⚠⚠ **It returns `boolean`, and it used to claim `s is Technique`.**
+   * `Technique` IS `string` — open by construction, as the type's own
+   * docstring says — so the predicate narrowed `string` to `string`: a
+   * no-op wearing a guarantee. Both call sites use it as a validator, so
+   * nothing narrowed and nothing was lost. Found by the 2026-09-14
+   * vocabulary-guard audit.
+   */
   public static isTechniqueName(s: unknown): s is Technique {
     return typeof s === 'string' && /^[a-z][a-z0-9-]*$/.test(s);
   }
 
   /** Fill a spec's absent numbers with the neutral ones. */
-  public static effectOf(spec: TechniqueSpec): TechniqueEffect {
+  private static effectOf(spec: TechniqueSpec): TechniqueEffect {
     return {
       chillK: spec.chillK ?? NEUTRAL.chillK,
       dilutionL: spec.dilutionL ?? NEUTRAL.dilutionL,

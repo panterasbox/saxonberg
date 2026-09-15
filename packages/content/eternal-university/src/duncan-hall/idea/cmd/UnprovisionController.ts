@@ -18,7 +18,7 @@
  *
  * Authorization is at `execute()` (the real boundary — a forced dispatch
  * bypasses the validator): a wizard, or an agent of the dorms owner (Katie) —
- * see `isDormsAgent` in {@link ProvisionController}.
+ * see {@link AccessApi.isAgentOf}.
  */
 
 import { CommandController } from '@saxonberg/server/mud/lib/command/CommandController';
@@ -35,6 +35,8 @@ import DormWarren from '../DormWarren';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import type { Container } from '@saxonberg/server/mud/lib/spatial/Container';
 import type { Containable } from '@saxonberg/server/mud/lib/spatial/Containable';
+import { AccessApi } from '@saxonberg/server/mud/api/access';
+import { StuffApi } from '@saxonberg/server/mud/api/stuff';
 
 const TOPIC = 'act.deed';
 
@@ -52,7 +54,7 @@ export default class UnprovisionController extends CommandController<Unprovision
     // Authorization (execute-level, so a forced dispatch can't skip it).
     const dorms = await ParcelApi.coveringParcelOf(DormWarren.DORMS_EXTENT);
     const owner = dorms?.getOwner();
-    if (!owner || !(await ProvisionController.isDormsAgent(actor, owner))) {
+    if (!owner || !(await AccessApi.isAgentOf(actor, owner))) {
       return this.fail(
         context,
         "You're not authorized to end Duncan Hall dorm leases.",
@@ -81,7 +83,7 @@ export default class UnprovisionController extends CommandController<Unprovision
 
     // Eject any live occupants to the floor corridor before the room dies
     // (best-effort; v1 expects a vacant/expired unit).
-    const warren = DormWarren.peek();
+    const warren = StuffApi.findByTemplatePath<DormWarren>(DormWarren.WARREN_PATH);
     if (warren) {
       this.evacuate(warren, unit);
       // Revert + tear down the live room (no recapture), then clear the

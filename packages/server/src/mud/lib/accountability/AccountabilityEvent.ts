@@ -229,6 +229,15 @@ export default class AccountabilityEvent extends Document {
    * `institution:`, else the employer, else nobody. It lives on
    * `EmployedMixin` because both of its tiers are authored-or-employment;
    * see that mixin's doc for why it is not a mixin of its own.
+   *
+   * @internal a FIELD DERIVATION on the record class that owns the field — the
+   * `partyFor` column, defaulted to NOBODY. Its four callers are all
+   * producers of this record.
+   *
+   * ⚠ Not an Api method: its subject is a world object, so
+   * `AccountabilityApi.partyForOf(subject)` would be the very shape
+   * `lint:object-verbs` holds at zero. An author asking who answers for
+   * somebody reaches employment, not the ledger's default.
    */
   static partyForOf(subject: Stuff): string {
     return MixinApi.isEmployed(subject)

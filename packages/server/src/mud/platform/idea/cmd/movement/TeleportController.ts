@@ -53,7 +53,7 @@ import type { CommandGiver } from '../../../../lib/command/CommandGiver';
 import type { AetherHosted } from '../../../../lib/augmentation/AetherHosted';
 import type { CredentialWallet } from '../../../../lib/credential/CredentialWallet';
 import type { Stuff } from '../../../../lib/stuff/Stuff';
-import { TravelNodes } from '../../../../lib/travel/TravelNode';
+import { TravelNodes, type TravelNode } from '../../../../lib/travel/TravelNode';
 
 /** The working the anchored front door casts. One spell, two grammars. */
 const TELEPORT_SPELL = 'teleport';
@@ -105,7 +105,7 @@ export default class TeleportController extends CommandController<TeleportModel>
         commandGiver: context.commandGiver,
         scope: 'reachable',
       })
-        .stuff.map((s) => TravelNodes.of(s))
+        .stuff.map((s) => asTravelNode(s))
         .find((n) => n !== null) ?? null;
     const raw = model.destination?.raw;
 
@@ -394,6 +394,9 @@ export default class TeleportController extends CommandController<TeleportModel>
    * anchor cannot slip one past.
    *
    * Static so the resolver is unit-testable without a dispatch.
+   *
+   * @internal reached only by that test — the anchored-destination
+   * resolve is dispatch-internal, never author surface.
    */
   static async resolveAnchored(
     giver: Stuff,
@@ -485,4 +488,14 @@ export default class TeleportController extends CommandController<TeleportModel>
     this.tell(context, `\n${detail}\n`);
     context.note({ kind: "controller-rejected", reason, detail });
   }
+}
+
+/** Narrow a Stuff to a TravelNode by the shape it must expose — inlined
+ *  from `TravelNodes` when this file turned out to be its only caller. */
+function asTravelNode(o: Stuff | null | undefined): (Stuff & TravelNode) | null {
+  if (!o) return null;
+  const c = o as unknown as Partial<TravelNode>;
+  return typeof c.ride === 'function' && typeof c.renderDepartures === 'function'
+    ? (o as Stuff & TravelNode)
+    : null;
 }

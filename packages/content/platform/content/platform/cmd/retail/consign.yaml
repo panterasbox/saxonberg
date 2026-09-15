@@ -21,6 +21,16 @@ args:
   - name: thing
     type: string
     required: true
+  # ⭐ The shelf you are listing on — DECLARED, so the binder resolves it like
+  # any other object and the controller just reads it. `on` keeps the
+  # existing grammar intact while making it addressable when it matters.
+  - name: shelf
+    type: object
+    required: false
+    prepositions: [on]
+    default: "reachable:[mixin.ConsignmentShelfMixin]"
+    scope: [reachable]
+    requires: [ConsignmentShelfMixin]
 options:
   ask:
     short: a

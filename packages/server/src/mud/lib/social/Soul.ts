@@ -173,12 +173,13 @@ export function SoulMixin<TBase extends MixinConstructor>(Base: TBase) {
         target: opts?.target ?? null,
         fills: opts?.fills ?? {},
       };
+      const runner = new EmoteGrammarRunner(emote);
       const out: EmoteBodies = {
-        self: EmoteGrammarRunner.render(emote, bound, 'self', actor),
-        peer: EmoteGrammarRunner.render(emote, bound, 'peer', actor),
+        self: runner.render(bound, 'self', actor),
+        peer: runner.render(bound, 'peer', actor),
       };
       if (bound.target) {
-        out.target = EmoteGrammarRunner.render(emote, bound, 'target', actor);
+        out.target = runner.render(bound, 'target', actor);
       }
       return out;
     }

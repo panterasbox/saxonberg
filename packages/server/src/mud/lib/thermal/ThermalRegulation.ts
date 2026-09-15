@@ -50,6 +50,7 @@ import { AppApi } from "../../api/app";
 import { AppSettingKeys } from "../config/AppSettings";
 import { TemplatePaths } from "../paths";
 import { THERMAL_DEFAULTS } from "./Thermal";
+import { Decay } from "../Decay";
 
 /** Numeric AppSetting read with a seeded-literal fallback (test/pre-warm safe). */
 function readDial(key: string, fallback: number): number {
@@ -324,8 +325,7 @@ export function ThermalRegulationMixin<TBase extends MixinConstructor>(
     /** Passive Newton's drift of the core toward the effective ambient. */
     protected driftCore(coreK: number, ambientK: number, sliceSec: number): void {
       const tau = this.bodyTau();
-      const next =
-        tau <= 0 ? ambientK : ambientK + (coreK - ambientK) * Math.exp(-sliceSec / tau);
+      const next = Decay.toward(coreK, ambientK, sliceSec, tau);
       this.setCore(next);
     }
 

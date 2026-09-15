@@ -183,7 +183,7 @@ export default class Dyestuff extends SingletonMixin(Idea) {
    * second dye pack (a chemical-industry one shipping synthetic
    * alizarin, say) must join the roster without this file changing.
    */
-  public static all(): Dyestuff[] {
+  private static all(): Dyestuff[] {
     return StuffApi.findByPathGlob<Dyestuff>('/**/idea/dyestuff/*').filter(
       (d): d is Dyestuff => d instanceof Dyestuff,
     );

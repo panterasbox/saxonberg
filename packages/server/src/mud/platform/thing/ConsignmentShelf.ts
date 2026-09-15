@@ -35,23 +35,6 @@ const ConsignmentShelfBase = PersistableMixin(
 export default class ConsignmentShelf extends ConsignmentShelfBase {
   static fieldMeta: FieldMeta = {};
 
-  /**
-   * Resolve the brokerage shelf a `consign`/`reclaim`/`buy` works off —
-   * by MIXIN, not class: a `Stock` counter composes the shelf too (one
-   * counter is both), so the verbs resolve whichever fixture is here.
-   */
-  static resolveIn(context: CommandContext): ShelfStuff | null {
-    const source = context.commandSource;
-    if (source && MixinApi.isConsignmentShelf(source)) return source as ShelfStuff;
-    const peers = MqlApi.resolveMany("peers", {
-      commandGiver: context.commandGiver,
-      scope: "reachable",
-    });
-    return (
-      (peers.stuff.find((s) => MixinApi.isConsignmentShelf(s)) as ShelfStuff | undefined) ??
-      null
-    );
-  }
 
   static commandContributions: CommandContributions = {
     self: [],

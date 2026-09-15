@@ -81,6 +81,10 @@ interface Cell {
   readonly noun: MagicNoun;
 }
 
+/**
+ * @internal every caller of this class sits in the `residency` subsystem
+ * — it is that subsystem's private collaborator, not author surface.
+ */
 export class PriceList {
   /**
    * **The stored labour in one cell** — the abstract cost of getting a

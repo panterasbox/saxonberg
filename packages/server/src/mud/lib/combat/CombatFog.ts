@@ -49,6 +49,10 @@ export interface FogReading {
   tell?: "feint";
 }
 
+/**
+ * @internal every caller of this class sits in the `combat` subsystem —
+ * it is that subsystem's private collaborator, not author surface.
+ */
 export class CombatFog {
   private constructor() {}
 

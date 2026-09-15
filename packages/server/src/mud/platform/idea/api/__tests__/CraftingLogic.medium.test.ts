@@ -548,7 +548,7 @@ describe('the working resets the spoilage load (P4)', () => {
     expect(outcome.ok).toBe(true);
     if (!outcome.ok) return;
     const slot = BulkableApi.slotFor(outcome.output, undefined)!;
-    expect(Freshness.loadOf(slot)).toBe(0);
+    expect(new Freshness(slot).load()).toBe(0);
   });
 
   it('⭐⭐ the kill leaves the FORMED TOXIN behind — cooked rot is still rot', async () => {
@@ -569,7 +569,7 @@ describe('the working resets the spoilage load (P4)', () => {
     if (!outcome.ok) return;
     const slot = BulkableApi.slotFor(outcome.output, undefined)!;
     // Sterile — it will keep as long as anything cooked keeps…
-    expect(Freshness.loadOf(slot)).toBe(0);
+    expect(new Freshness(slot).load()).toBe(0);
     // …and poisonous, because it was rotten when it went in.
     const dose = BlendLabel.toxicityOf(slot.getPayload()!, null).find((t) => t.type === 'ptomaine');
     expect(dose).toBeTruthy();
@@ -588,7 +588,7 @@ describe('the working resets the spoilage load (P4)', () => {
     expect(outcome.ok).toBe(true);
     if (!outcome.ok) return;
     const slot = BulkableApi.slotFor(outcome.output, undefined)!;
-    expect(Freshness.loadOf(slot)).toBe(0);
+    expect(new Freshness(slot).load()).toBe(0);
     expect(
       BlendLabel.toxicityOf(slot.getPayload()!, null).some((t) => t.type === 'ptomaine'),
     ).toBe(false);
@@ -603,6 +603,6 @@ describe('the working resets the spoilage load (P4)', () => {
     expect(outcome.ok).toBe(true);
     if (!outcome.ok) return;
     const slot = BulkableApi.slotFor(outcome.output, undefined)!;
-    expect(Freshness.loadOf(slot)).toBeCloseTo(0.7, 4);
+    expect(new Freshness(slot).load()).toBeCloseTo(0.7, 4);
   });
 });

@@ -41,6 +41,7 @@ import {
   type TraitBandCutoffs,
   DEFAULT_BAND_CUTOFFS,
 } from "./TraitBand";
+import { Decay } from "../Decay";
 
 /** The clamp bound on a signed position (matches regard's `-100..+100`). */
 export const POSITION_LIMIT = 100;
@@ -83,13 +84,6 @@ export interface AxisEstimate {
   band: TraitBandName;
 }
 
-/** Exponential decay of an evidence weight over a game-time gap. */
-function decayFactor(ageSeconds: number, halfLifeSeconds: number): number {
-  if (!(halfLifeSeconds > 0) || !Number.isFinite(halfLifeSeconds)) return 1;
-  if (ageSeconds <= 0) return 1;
-  return Math.pow(2, -ageSeconds / halfLifeSeconds);
-}
-
 export class TraitPosition {
   /**
    * Fold one axis's evidence (already filtered to a single axis) into a
@@ -105,7 +99,7 @@ export class TraitPosition {
     let mass = 0;
     for (const e of evidence) {
       const age = now - (e.when ?? now);
-      const w = decayFactor(age, dials.halfLifeSeconds);
+      const w = Decay.byHalfLife(age, dials.halfLifeSeconds);
       sum += e.valence * w;
       mass += Math.abs(e.valence) * w;
     }

@@ -18,10 +18,16 @@ import { MessageApi } from "../../../../api/message";
 import { Mml } from "../../../../api/mml";
 import { ChattelApi } from "../../../../api/chattel";
 import type { Stuff } from "../../../../lib/stuff/Stuff";
+import { MqlApi } from '../../../../api/mql';
+import type { RackStuff } from "../../../thing/CheckRack";
+import type { ShelfStuff } from "../../../thing/ConsignmentShelf";
+import type { MqlOneResult } from "../../../../api/mql";
 
 const TOPIC = "act.deed";
 
 interface ReclaimModel extends CommandModel {
+  /** Bound by the view; addressable, defaulted to what is in reach. */
+  shelf?: MqlOneResult;
   thing: string;
 }
 
@@ -31,7 +37,8 @@ export default class ReclaimController extends CommandController<ReclaimModel> {
     // Reclaim serves any held-goods fixture — a store's consignment
     // shelf or a house's check rack — over the shared custody surface.
     const shelf =
-      ConsignmentShelf.resolveIn(context) ?? CheckRack.resolveIn(context);
+      // ⭐ Bound by the view, not hunted for here.
+      (model.shelf?.stuff ?? null) as ShelfStuff | RackStuff | null;
     if (!shelf) {
       this.reject(giver, context, Mml.compose`There's nowhere to reclaim from here.`, {
         kind: "empty-result",

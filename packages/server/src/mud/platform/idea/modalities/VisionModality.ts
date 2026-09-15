@@ -79,7 +79,7 @@ export class VisionModality extends Modality {
     const scale = readSizeScale(loc);
     const lux = scale > 0 ? acc.flux / scale : acc.flux;
     const sources = finalizeSources(acc.sources);
-    const colorTemperature = mixColorTemperature(sources);
+    const colorTemperature = Light.mixColorTemperature(sources);
     return Light.from({
       intensity: Quantity.of(lux, 'lux'),
       colorTemperature,
@@ -99,7 +99,7 @@ export class VisionModality extends Modality {
     signal: Light,
   ): VisionPercept {
     const raw = Light.bandFor(signal.intensity.rawValue());
-    const profile = VisionModality.viewerVisionProfile(viewer);
+    const profile = this.viewerVisionProfile(viewer);
     const shifted = Light.applyBandShift(raw, profile.bandShift);
     const final = isPerception(viewer)
       ? viewer.perceivedBandModifier(shifted, loc)
@@ -116,7 +116,7 @@ export class VisionModality extends Modality {
    * it has the viewer in hand and the modality singleton at most as
    * a witness. Kept on the class for discoverability.
    */
-  public static viewerVisionProfile(viewer: Stuff): VisionProfile {
+  public viewerVisionProfile(viewer: Stuff): VisionProfile {
     if (!isPerception(viewer)) return DEFAULT_VISION_PROFILE;
     return viewer.getVisionProfile() ?? DEFAULT_VISION_PROFILE;
   }
@@ -126,13 +126,12 @@ export class VisionModality extends Modality {
    * resolve the vision singleton, computes the signal, then applies
    * the band-shift + shadow seam.
    */
-  public static perceivedBand(
+  public perceivedBand(
     viewer: Stuff & Sensor & Perception,
     loc: Stuff & Container,
   ): LightBand {
-    const inst = vision();
-    const signal = inst.signalAt(loc);
-    return inst.perceiveFor(viewer, loc, signal).band;
+    const signal = this.signalAt(loc);
+    return this.perceiveFor(viewer, loc, signal).band;
   }
 
   /**
@@ -143,7 +142,7 @@ export class VisionModality extends Modality {
    *   3. Dispatch `viewer.canSeeOverride(target, detail, raw)` so
    *      shadows can override (X-ray, blindfold).
    */
-  public static canSee(
+  public canSee(
     viewer: Stuff & Sensor & Perception,
     target: Stuff,
     detail: VisibilityDetail = 'figure',
@@ -172,7 +171,7 @@ export class VisionModality extends Modality {
     ) {
       env = env.getContainer() ?? env;
     }
-    const band = VisionModality.perceivedBand(viewer, env);
+    const band = this.perceivedBand(viewer, env);
     const required = REQUIRED_BAND_FOR_DETAIL[detail];
     const raw = Light.compareBand(band, required) >= 0;
     return viewer.canSeeOverride(target, detail, raw);
@@ -187,24 +186,24 @@ export class VisionModality extends Modality {
    * `PerceptionApi` so the template surface stays the single
    * source of truth.
    */
-  public static lightAt(loc: Stuff & Container): Light {
-    return vision().signalAt(loc);
+  public lightAt(loc: Stuff & Container): Light {
+    return this.signalAt(loc);
   }
 
   /**
    * Derive the lux band at `loc` from the vision signal. Skips the
    * per-viewer band-shift — for that, call `perceivedBand`.
    */
-  public static bandAt(loc: Stuff & Container): LightBand {
-    return Light.bandFor(VisionModality.lightAt(loc).intensity.rawValue());
+  public bandAt(loc: Stuff & Container): LightBand {
+    return Light.bandFor(this.lightAt(loc).intensity.rawValue());
   }
 
   /**
    * Concealment surface for Hidden / Stealthing. Maps the band at
    * `loc` into one of five tiers — darker rooms shadow more.
    */
-  public static shadowsAt(loc: Stuff & Container): ShadowQuality {
-    const signal = vision().signalAt(loc);
+  public shadowsAt(loc: Stuff & Container): ShadowQuality {
+    const signal = this.signalAt(loc);
     const band = Light.bandFor(signal.intensity.rawValue());
     switch (band) {
       case 'pitch-black':
@@ -219,16 +218,6 @@ export class VisionModality extends Modality {
         return 'none';
     }
   }
-}
-
-/**
- * Internal singleton lookup. Routes through `PerceptionApi` rather
- * than accessing the backing class directly — modalities are
- * template-loaded Ideas; consumers (including this file's own
- * static helpers) discover them via the substrate's surface.
- */
-function vision(): VisionModality {
-  return PerceptionApi.modalityByName('vision') as VisionModality;
 }
 
 function isPerception(viewer: Stuff): viewer is Stuff & Sensor & Perception {
@@ -260,23 +249,6 @@ function finalizeSources(sources: LightSourceRef[]): LightSourceRef[] {
   return [...sources].sort((a, b) => b.flux - a.flux).slice(0, 3);
 }
 
-/**
- * Compute the flux-weighted color temperature across the source list.
- * Returns null when no source carries a color temperature.
- */
-function mixColorTemperature(
-  sources: readonly LightSourceRef[],
-): Quantity<'K'> | null {
-  let weightedSum = 0;
-  let weight = 0;
-  for (const s of sources) {
-    if (s.colorTemperature === null) continue;
-    weightedSum += s.colorTemperature * s.flux;
-    weight += s.flux;
-  }
-  if (weight === 0) return null;
-  return Quantity.of(weightedSum / weight, 'K');
-}
 
 /**
  * Internal recursive walk. Returns a flux accumulator (lumens +

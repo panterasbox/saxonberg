@@ -154,6 +154,7 @@ export class MqlApi {
   ): (Stuff & T) | null {
     return logic().effectiveTarget(value, predicate);
   }
+
 }
 
 SecurityApi.decorateApiClass(MqlApi);

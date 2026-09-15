@@ -41,7 +41,7 @@ interface RecipeLookup {
 
 export class BlendIdentity {
   /** The recipe that made this blend, or `null` — most bulk has none. */
-  public static recipeOf(payload: BulkPayload | null): Recipe | null {
+  private static recipeOf(payload: BulkPayload | null): Recipe | null {
     const id = payload?.recipeId;
     if (!id) return null;
     const catalogue = StuffApi.findByTemplatePath<Stuff>(CATALOGUE_PATH);
@@ -49,7 +49,20 @@ export class BlendIdentity {
     return (catalogue as unknown as RecipeLookup).getRecipe(id) ?? null;
   }
 
-  /** Display name — the recipe's, else the Material's. */
+  /**
+   * Display name — the recipe's, else the Material's.
+   *
+   * @internal the callable door is `CraftingApi.blendName` — the body
+   * stays here beside the module-private `recipeOf` walk it shares with
+   * the other three.
+   *
+   * ⚠⚠ **The MQL scope-walk calls THIS, not the Api, and must keep doing
+   * so.** `api/mql/**` is imported by nearly everything low in the graph;
+   * an edge from there into `CraftingApi` pulls `CraftingLogic`'s whole
+   * import graph in behind it and closes a load-time cycle back onto the
+   * mixin factories — `TypeError: ContainableMixin is not a function`,
+   * at import, in four validator suites. Found by bisection, 2026-09-14.
+   */
   public static nameOf(
     payload: BulkPayload | null,
     material: Material | null,
@@ -57,7 +70,11 @@ export class BlendIdentity {
     return BlendIdentity.recipeOf(payload)?.getName() ?? material?.getName() ?? '';
   }
 
-  /** Appearance prose — the recipe's, else the Material's. */
+  /**
+   * Appearance prose — the recipe's, else the Material's.
+   *
+   * @internal the callable door is `CraftingApi.blendAppearance`.
+   */
   public static appearanceOf(
     payload: BulkPayload | null,
     material: Material | null,
@@ -74,6 +91,9 @@ export class BlendIdentity {
   }
 
   /** Resolution keywords (`look stew`) — the recipe's, else the Material's. */
+  /**
+   * @internal its only caller is the MQL scope-walk; inlining would have to export `BlendIdentity.recipeOf` with it, trading one static for a wider surface — not author surface.
+   */
   public static keywordsOf(
     payload: BulkPayload | null,
     material: Material | null,
@@ -92,6 +112,7 @@ export class BlendIdentity {
    * reads at the floor, which is honest: an off-spec lump of food teaches
    * you nothing about its making.
    */
+  /** @internal the callable door is `CraftingApi.blendDiscipline`. */
   public static disciplineOf(payload: BulkPayload | null): string {
     return BlendIdentity.recipeOf(payload)?.getDiscipline() ?? '';
   }

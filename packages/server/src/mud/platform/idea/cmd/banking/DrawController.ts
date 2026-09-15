@@ -53,7 +53,7 @@ export default class DrawController extends CommandController<DrawModel> {
       );
     }
     try {
-      await BankingApi.payDraw(account, giverKey, Money.of(minor, Currency.compact()));
+      await BankingApi.payDraw(account, giverKey, Money.of(minor, BankingApi.compactCurrency()));
     } catch (err) {
       return this.fail(
         context,
@@ -66,7 +66,7 @@ export default class DrawController extends CommandController<DrawModel> {
     MessageApi.scene(giver)
       .topic(TOPIC)
       .toSelf(
-        Mml.compose`You draw ${Money.of(minor, Currency.compact()).render()} from the business into your own account — the owner's take, on the books as exactly that.`,
+        Mml.compose`You draw ${Money.of(minor, BankingApi.compactCurrency()).render()} from the business into your own account — the owner's take, on the books as exactly that.`,
       )
       .send();
   }

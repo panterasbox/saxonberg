@@ -188,7 +188,29 @@ declare module '../bulk/Bulkable' {
  * for the same reason.
  */
 export class Contamination {
-  /** The authored behavior for a pathogen key, or `null` if none is warmed. */
+  /**
+   * A gauge bound to the slot it measures. ⭐ The model lives in this
+   * class's statics (pure, shared); the READS and WRITES of one slot's
+   * payload live on an instance of it — the `Lock` shape, where
+   * `opensFor`/`issueKeyTo` are instance methods beside the type-level
+   * `mintKeyway`.
+   *
+   * ⚠ Deliberately NOT methods on `BulkSlot`: `bulk.md` has the bulk
+   * substrate carry only what subsystems declare onto `BulkPayload`, so
+   * the slot must not learn what spoilage is. Spoilage holding a
+   * reference to a slot keeps that direction intact while putting the
+   * verb on an object.
+   */
+  constructor(private readonly slot: BulkSlot) {}
+
+  /**
+   * The authored behavior for a pathogen key, or `null` if none is warmed.
+   *
+   * @internal the callable door is `MaterialApi.pathogenBehaviorOf` — this
+   * stays here because four of its callers are in this file, reaching it
+   * through the Api would be a cycle, and it is the spoilage substrate's
+   * own read.
+   */
   public static behaviorOf(key: string): PathogenBehavior | null {
     if (!key) return null;
     const row = StuffApi.findByTemplatePath<Condition>(
@@ -264,7 +286,7 @@ export class Contamination {
   }
 
   /** Integrate every population in a map over one span. */
-  public static advanceAll(
+  static advanceAll(
     loads: PathogenLoads,
     elapsedS: number,
     tempK: number,
@@ -454,7 +476,10 @@ export class Contamination {
   }
 
   /** The temperature a gauge on this host reads (the spoilage rule). */
-  public static hostTemperatureK(host: Stuff): number {
+  /**
+   * @internal one caller outside this file, plus this module — not author surface.
+   */
+  static hostTemperatureK(host: Stuff): number {
     if (MixinApi.isThermal(host)) {
       try {
         return host.getTemperature().rawValue();
@@ -466,7 +491,8 @@ export class Contamination {
   }
 
   /** The effective water activity of a host's matter (material × cure). */
-  public static hostWaterActivity(host: Stuff): number {
+  /** @internal read by this module only — the host water-activity lookup behind the pathogen clock. */
+  static hostWaterActivity(host: Stuff): number {
     const material: Material | null = MixinApi.isTangible(host)
       ? host.getMaterial()
       : null;
@@ -487,39 +513,39 @@ export class Contamination {
    * `Freshness.loadOf` lazily seeds a gauge because spoilage IS a clock;
    * this one must not, because contamination is an event.
    */
-  public static loadsFor(slot: BulkSlot): PathogenLoads {
-    const payload = slot.getPayload();
+  loads(): PathogenLoads {
+    const payload = this.slot.getPayload();
     const loads = payload?.pathogens;
     if (!loads || !payload || Contamination.isClean(loads)) return {};
     const nowS = Freshness.nowSeconds();
     if (nowS === null) return { ...loads };
     const stamp = payload.pathogenStamp ?? 0;
     if (stamp === 0 || nowS <= stamp) {
-      slot.setPayload({ ...payload, pathogenStamp: nowS });
+      this.slot.setPayload({ ...payload, pathogenStamp: nowS });
       return { ...loads };
     }
-    const holder = slot.getHolder();
+    const holder = this.slot.getHolder();
     const next = Contamination.advanceAll(
       loads,
       nowS - stamp,
       Contamination.hostTemperatureK(holder),
-      Contamination.slotWaterActivity(slot),
+      Contamination.slotWaterActivity(this.slot),
     );
-    slot.setPayload({ ...payload, pathogens: next, pathogenStamp: nowS });
+    this.slot.setPayload({ ...payload, pathogens: next, pathogenStamp: nowS });
     return next;
   }
 
   /** Stamp a blend's loads outright — the craft's kill, the pour's blend. */
-  public static stampLoads(slot: BulkSlot, loads: PathogenLoads): void {
-    if (slot.getMaterial() === null) return;
-    const payload = slot.getPayload() ?? {};
+  stampLoads(loads: PathogenLoads): void {
+    if (this.slot.getMaterial() === null) return;
+    const payload = this.slot.getPayload() ?? {};
     if (Contamination.isClean(loads)) {
       if (payload.pathogens === undefined) return;
       const { pathogens: _p, pathogenStamp: _s, ...rest } = payload;
-      slot.setPayload(rest);
+      this.slot.setPayload(rest);
       return;
     }
-    slot.setPayload({
+    this.slot.setPayload({
       ...payload,
       pathogens: { ...loads },
       pathogenStamp: Freshness.nowSeconds() ?? 0,
@@ -527,7 +553,7 @@ export class Contamination {
   }
 
   /** The effective water activity of what a slot holds. */
-  public static slotWaterActivity(slot: BulkSlot): number {
+  private static slotWaterActivity(slot: BulkSlot): number {
     const material = slot.getMaterial();
     if (!material) return 1;
     const payload = slot.getPayload();

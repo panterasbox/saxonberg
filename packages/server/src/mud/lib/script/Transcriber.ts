@@ -70,6 +70,10 @@ function homeScriptsPath(ownerPath: string, name: string): string {
   return `/home/${key}/scripts/${name}`;
 }
 
+/**
+ * @internal every caller of this class sits in the `script` subsystem —
+ * it is that subsystem's private collaborator, not author surface.
+ */
 export class Transcriber {
   /**
    * Transcribe a manual build into a banked recipe-script. Returns the

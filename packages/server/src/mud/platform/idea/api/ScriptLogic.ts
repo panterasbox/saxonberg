@@ -318,8 +318,16 @@ async function captureManualBuildImpl(
 ): Promise<string | null> {
   const builder = currentAuthor();
   if (builder === null) return null;
-  if (await RecipeKnowledge.canMake(builder, recipeId)) return null;
-  await RecipeKnowledge.noteMade(builder, recipeId, name);
+  // ⚠ The chronicle half is guarded, the transcription is NOT: a builder
+  // with no chronicle still gets the recipe-script banked. Folding the
+  // guard around both would silently stop transcribing for them.
+  if (MixinApi.isPersona(builder)) {
+    if (await builder.hasDone(RecipeKnowledge.madeKey(recipeId))) return null;
+    await builder.recordChronicleOnce(
+      RecipeKnowledge.madeKey(recipeId),
+      RecipeKnowledge.madeEntry(name),
+    );
+  }
   return Transcriber.transcribe(recipeId, sources);
 }
 

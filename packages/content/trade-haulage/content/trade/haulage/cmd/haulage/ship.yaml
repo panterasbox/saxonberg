@@ -51,6 +51,24 @@ args:
     required: true
     greedy: true
     prepositions: [to]
+  # ⭐ The desk is DECLARED, not hunted for in the controller.
+  #
+  # It could not be until 2026-09-14: a `type: object` arg must name a
+  # capability mixin, and `ShipmentDeskMixin` is this PACK's — which the
+  # kernel's `Mixins` const could never contain and a pack may not edit.
+  # `requires:` is federated now (content-packs-slate § RESOLVED), so the
+  # declaration the controller's comment promised finally exists.
+  #
+  # `default:` resolves as if the player typed it, so `ship crate to
+  # Rejection` still finds the one desk in the room; `at <desk>` names a
+  # particular one when there are two.
+  - name: desk
+    type: object
+    required: false
+    prepositions: [at]
+    default: "reachable:[mixin.ShipmentDeskMixin]"
+    scope: [reachable]
+    requires: [ShipmentDeskMixin]
 options:
   worth:
     short: w

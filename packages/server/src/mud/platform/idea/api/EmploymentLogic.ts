@@ -725,7 +725,7 @@ async function operatingAccountOfImpl(
     business.getAccountPath(),
     banksAt,
     '',
-    Currency.compact(),
+    BankingApi.compactCurrency(),
     business.getOpeningCapital(),
   );
 }
@@ -756,7 +756,7 @@ async function ensurePayableWorker(
     employeeKey,
     banksAt,
     '',
-    Currency.compact(),
+    BankingApi.compactCurrency(),
     0,
   );
   return true;
@@ -810,7 +810,7 @@ async function settleShiftWageImpl(
     );
     return;
   }
-  await BankingApi.payWage(account, employeeKey, Money.of(amount, Currency.compact()));
+  await BankingApi.payWage(account, employeeKey, Money.of(amount, BankingApi.compactCurrency()));
 }
 
 /**
@@ -859,7 +859,7 @@ async function settlePieceworkImpl(
   await BankingApi.payWage(
     account,
     employeeKey,
-    Money.of(amount, Currency.compact()),
+    Money.of(amount, BankingApi.compactCurrency()),
     'piecework',
     'piecework',
   );
@@ -904,7 +904,7 @@ async function flowSplitsForImpl(
     if (!account) continue;
     splits.push({
       accountId: account,
-      amount: Money.of(cut, Currency.compact()),
+      amount: Money.of(cut, BankingApi.compactCurrency()),
       category: 'commission',
     });
     total += cut;

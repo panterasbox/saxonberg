@@ -41,7 +41,7 @@ import {
 } from '../../../../lib/husbandry/Cultivable';
 import type { Soil } from '../../../../lib/husbandry/Soil';
 import type { Reserved } from '../../../../lib/reserve';
-import { BlendIdentity } from '../../../../lib/craft/BlendIdentity';
+import { CraftingApi } from '../../../../api/crafting';
 
 const TOPIC = 'act.deed';
 
@@ -203,7 +203,7 @@ export default class FeedController extends CommandController<FeedModel> {
     }
 
     const appearance =
-      BlendIdentity.appearanceOf(payload, material) || 'compost';
+      CraftingApi.blendAppearance(payload, material) || 'compost';
     MessageApi.scene(giver)
       .topic(TOPIC)
       .toSelf(

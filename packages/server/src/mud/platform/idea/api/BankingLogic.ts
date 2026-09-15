@@ -56,6 +56,7 @@ import type { Container } from "../../../lib/spatial/Container";
 import type { Containable } from "../../../lib/spatial/Containable";
 import type { Stackable } from "../../../lib/stuff/Stackable";
 import { Currency } from "../../../lib/banking/Currency";
+import { SecurityApi } from '../../../api/security';
 
 const BankingApiCallers = SecurityPolicies.FromModule("/api/banking#BankingApi",
 );
@@ -195,13 +196,6 @@ function isCashLike(stuff: unknown): stuff is Stuff & Stackable & CashLike {
   );
 }
 
-/** The face value (minor units) of a coin stack. */
-function stackValue(stack: CashLike): number {
-  return (
-    Currency.faceValueOf(stack.getCurrency(), stack.getDenomination()) *
-    stack.getQuantity()
-  );
-}
 
 /** Find every account owned by `ownerKey`. */
 async function accountsOfImpl(ownerKey: string): Promise<AccountBalance[]> {
@@ -262,7 +256,7 @@ async function openAccountImpl(
   }
 
   const row = new AccountBalance();
-  row.accountId = Account.newId();
+  row.accountId = SecurityApi.uuid();
   row.owner = owner;
   row.bank = bank;
   row.corpoKey = corpoKey;
@@ -282,7 +276,7 @@ async function openAccountImpl(
   const floatMinor = openingFloatMinor();
   const branch = findBranchOf(bank);
   if (floatMinor > 0 && branch) {
-    await seedFloatImpl(branch, Money.of(floatMinor, Currency.compact())).catch(() => {
+    await seedFloatImpl(branch, Money.of(floatMinor, BankingApi.compactCurrency())).catch(() => {
       /* best-effort — a float failure never blocks opening an account */
     });
   }
@@ -388,7 +382,7 @@ async function ensureVenueAccountImpl(
   const existing = owned.find((a) => a.bank === bank) ?? owned[0];
   if (existing) return existing.accountId;
   const row = new AccountBalance();
-  row.accountId = Account.newId();
+  row.accountId = SecurityApi.uuid();
   row.owner = ownerPath;
   row.bank = bank;
   row.corpoKey = corpoKey;
@@ -499,7 +493,7 @@ async function moveCoins(
 function cashOnHand(holder: Stuff & Container): number {
   let total = 0;
   for (const item of holder.getContents()) {
-    if (isCashLike(item)) total += stackValue(item);
+    if (isCashLike(item)) total += Currency.stackValue(item.getCurrency(), item.getDenomination(), item.getQuantity());
   }
   return total;
 }
@@ -1233,9 +1227,9 @@ async function remitDemoTaxImpl(
   saleAmount: Money,
 ): Promise<Money> {
   const { rate, treasury } = demoTaxConfig();
-  if (rate <= 0) return Money.zero(Currency.compact());
+  if (rate <= 0) return Money.zero(BankingApi.compactCurrency());
   const tax = Math.floor(saleAmount.minor * rate);
-  if (tax <= 0) return Money.zero(Currency.compact());
+  if (tax <= 0) return Money.zero(BankingApi.compactCurrency());
   await postTransaction("tax", [
     {
     currency: saleAmount.currency,
@@ -1246,7 +1240,7 @@ async function remitDemoTaxImpl(
       memo: "sales tax",
     },
   ]);
-  return Money.of(tax, Currency.compact());
+  return Money.of(tax, BankingApi.compactCurrency());
 }
 
 /**
@@ -1308,8 +1302,8 @@ function liveCoinOf(currency: string): {
     const container = (
       coin as unknown as { getContainer?(): Stuff | null }
     ).getContainer?.();
-    if (container && MixinApi.isBank(container)) vault += stackValue(coin);
-    else circulating += stackValue(coin);
+    if (container && MixinApi.isBank(container)) vault += Currency.stackValue(coin.getCurrency(), coin.getDenomination(), coin.getQuantity());
+    else circulating += Currency.stackValue(coin.getCurrency(), coin.getDenomination(), coin.getQuantity());
   }
   return { circulating, vault };
 }
@@ -1850,7 +1844,7 @@ export class BankingLogic extends ApiLogic {
   /** See {@link BankingApi.balanceOf}. Sync warm read. */
   @CallSecurity(BankingApiCallers)
   public balanceOf(accountId: string): Money {
-    return Money.of(balanceMinor(accountId), Currency.compact());
+    return Money.of(balanceMinor(accountId), BankingApi.compactCurrency());
   }
 
   /** See {@link BankingApi.discardScopeOverlay}. */
@@ -1874,7 +1868,7 @@ export class BankingLogic extends ApiLogic {
   /** See {@link BankingApi.rebuildBalance}. */
   @CallSecurity(BankingApiCallers)
   public async rebuildBalance(accountId: string): Promise<Money> {
-    return Money.of(await rebuildBalanceImpl(accountId), Currency.compact());
+    return Money.of(await rebuildBalanceImpl(accountId), BankingApi.compactCurrency());
   }
 
   /** See {@link BankingApi.recomputeSupply}. */
@@ -1959,7 +1953,7 @@ export class BankingLogic extends ApiLogic {
     if (!account) {
       throw new Error("BankingLogic.deposit: no account here — open one first");
     }
-    const value = stackValue(coinStack);
+    const value = Currency.stackValue(coinStack.getCurrency(), coinStack.getDenomination(), coinStack.getQuantity());
     // Coin physically enters the vault (merges with any resting stack); the
     // balance is credited — the two cancel (supply-neutral cash bridge).
     ContainmentApi.move(
@@ -2211,7 +2205,7 @@ export class BankingLogic extends ApiLogic {
   public escrowBalanceOf(contractId: string): Money {
     return Money.of(
       balanceMinor(Account.escrowAccountFor(contractId)),
-      Currency.compact()
+      BankingApi.compactCurrency()
     );
   }
 

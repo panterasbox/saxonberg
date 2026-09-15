@@ -96,7 +96,7 @@ export default class StreamRelay extends StreamRelayBase {
   private globalBucket: Bucket = { tokens: GLOBAL_BURST, last: Date.now() };
 
   /** Composite table key for a `(service, key)` channel. */
-  static channelKey(service: Service, key: string): string {
+  private static channelKey(service: Service, key: string): string {
     return `${service}:${key}`;
   }
 

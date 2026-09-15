@@ -74,7 +74,7 @@ export class GoogleProfile extends Document implements IGoogleProfile {
    * Find profile by Google ID.
    * Convenience method for common query.
    */
-  public static async findByGoogleId(
+  private static async findByGoogleId(
     googleId: string
   ): Promise<GoogleProfile | null> {
     const results = await this.find({ googleId });

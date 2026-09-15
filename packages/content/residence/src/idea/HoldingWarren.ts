@@ -204,7 +204,7 @@ export default class HoldingWarren extends ProgrammeBase {
 
   /** The floorplan LEAFS of a programme row (for revert bookkeeping
    *  without waking the holding). */
-  public static async floorplanLeafsOf(
+  private static async floorplanLeafsOf(
     programmePath: string,
   ): Promise<Array<string | undefined>> {
     const { Template } = await import(

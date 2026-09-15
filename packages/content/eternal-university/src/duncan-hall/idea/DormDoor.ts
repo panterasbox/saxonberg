@@ -32,6 +32,7 @@ import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import type { Container } from '@saxonberg/server/mud/lib/spatial/Container';
 import type { Containable } from '@saxonberg/server/mud/lib/spatial/Containable';
 import { Lock } from '@saxonberg/server/mud/lib/lock/Lock';
+import { StuffApi } from '@saxonberg/server/mud/api/stuff';
 import DormWarren from './DormWarren';
 
 export default class DormDoor extends DeferredDestinationExit {
@@ -55,7 +56,7 @@ export default class DormDoor extends DeferredDestinationExit {
 
   /** Materialize (or re-materialize) the unit's room. */
   protected override async computeDestination(): Promise<Stuff & Container> {
-    const warren = await DormWarren.resolve();
+    const warren = await StuffApi.singleton<DormWarren>(DormWarren.WARREN_PATH);
     return warren.admit(this.unitKey);
   }
 
@@ -71,7 +72,7 @@ export default class DormDoor extends DeferredDestinationExit {
     mover: Stuff & Containable,
     mode?: string,
   ): TraversalGuard {
-    const keyway = DormWarren.peek()?.keywayOf(this.unitKey) ?? '';
+    const keyway = StuffApi.findByTemplatePath<DormWarren>(DormWarren.WARREN_PATH)?.keywayOf(this.unitKey) ?? '';
     if (!keyway) {
       return { ok: false, gate: 'door', reason: 'The door is locked.' };
     }

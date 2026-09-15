@@ -3146,3 +3146,178 @@ whose `class:` resolves into its own namespace is lying about its
 rung (checked at install); `lint:imports` grows a pack profile (own
 tree + declared pack deps + the kernel's projected author surface +
 `@saxonberg/types`).
+
+---
+
+# ⛔ The pack exposure gap — one cause, three symptoms (2026-09-14)
+
+A capability pack may hold **no Api, no logic singleton, and no free
+exported function** (`CLAUDE.md § Module Categories`). Its only ways to
+expose anything outside a single file are a **public `static`** or an
+**instance method on a Stuff**. The `lib/` statics sweep hit that wall
+three separate times:
+
+1. **5 statics cannot be swept.** `DormThemes.applyTo`,
+   `DormWarren.resolve`/`peek`, `GroundCharacter.resolve`/`forZone` each
+   have 2–4 callers across their pack. The sweep's disposition for a
+   shared world-reaching static is "move it to the owning Api" — and the
+   owner is a pack, so there is no Api to move it to.
+2. **`requires:` cannot name a pack mixin.** `parseRequirement` validates
+   against the **kernel** `Mixins` registry, so `trade-haulage`'s
+   `ShipmentDeskMixin` is unnameable — which means **no pack verb can
+   declare an object arg**, because `lint:arg-kinds` requires one.
+3. **`ship.yaml` therefore keeps an in-controller MQL query** where the
+   kernel's `buy`/`consign`/`reclaim`/`check` now declare theirs.
+
+⚠ Each was routed around individually before the pattern was visible.
+The question is not "how do we unblock these five" — it is **what a pack's
+sanctioned export surface is**, given that
+[the statics ruling](./value-object-statics-slate.md) says a public
+static is not one.
+
+## The axes a design has to answer
+
+- **Discoverability** — ⭐ the governing concern. Every additional
+  "where does logic come from" pattern is a thing a content author must
+  learn, and the lint family exists largely to stop that creep.
+- **Internal vs external** — does a pack-internal helper (one file to
+  another *inside* the pack) need the same ceremony as something a second
+  pack consumes? They may not deserve the same answer.
+- **Security** — secondary. A pack that exposes anything most likely
+  exposes it to everyone; *which* packs may interoperate reads like a
+  choice of whoever installs them, not something a pack asserts on its
+  own authority.
+- **The kernel-edit rule** — ⭐⭐ whatever the answer, a pack must never
+  need a kernel list edit to ship
+  ([capability-packs](../../subsystems/content-packs.md)). Any design
+  requiring registration in `lib/mixin.ts` or an `api/` file fails on
+  that alone.
+
+*(Options, strengths and weaknesses: to be worked. This section records
+the gap and the constraints so the conversation does not restart from
+the symptoms.)*
+
+## ⭐⭐⭐ RESOLVED (2026-09-14) — federate the VALIDATION, not the addressing
+
+**Decision: let `requires:` accept any mixin a pack declares. Do not
+path-address mixins.** Agreed with the user; implement next.
+
+### The evidence that shrank this
+
+⭐ **The runtime already works for pack mixins.** `MixinApi.queryMixins`
+walks the prototype chain reading `_mixinName` statics — it **never
+consults the `Mixins` const**. MQL proves it: `hasMixinByLowercaseName`
+string-matches against that walk, so `reachable:[mixin.ShipmentDeskMixin]`
+resolves a pack mixin *today*.
+
+Only two things are kernel-bound, and neither is the mechanism:
+
+1. `MixinName` — a TypeScript type derived from the const. **Compile-time
+   only.**
+2. `parseRequirement`'s `const known = new Set(Object.values(Mixins))` in
+   `CommandLogic.ts`. **Validation only.**
+
+So what blocks a pack verb from declaring an object arg is **one `Set` in
+one function**, not the architecture.
+
+### The work
+
+1. `parseRequirement` accepts any `_mixinName` reachable from installed
+   packs, not only `Object.values(Mixins)`. Source it from the same place
+   `queryMixins` reads, so there is one truth.
+2. `MixinRefusals` must take a pack-supplied phrase — the gate refuses a
+   required mixin with no refusal sentence, and a pack cannot edit the
+   kernel's map. Likely a `static _mixinRefusal` beside `_mixinName`.
+3. ⭐ **`lint:mixin-names`** — census-then-ratchet: refuse a duplicate
+   `_mixinName` across packs. A flat namespace's collision becomes a build
+   error naming both files, instead of a runtime mystery.
+4. Then unblock the three symptoms: `ship.yaml` declares its `desk` arg;
+   `DormThemes`/`DormWarren`/`GroundCharacter`'s 5 statics become instance
+   methods on their pack singletons (declared with `SingletonMixin`, which
+   the user wants used explicitly for the creation pattern).
+
+### ⚠ Why NOT path-addressed mixins — the option held in reserve
+
+The user's original design intent was a path lookup
+(`/trade/haulage/lib/ShipmentDesk`) rather than a reserved name in one
+namespace, consistent with how template paths, module ids and
+`classFileOf` already work. The diagnosis is right — **mixins are the
+last flat reserved namespace in a codebase that path-normalised
+everything else** — but the rewrite is declined for one specific reason:
+
+⭐⭐ **A type predicate cannot be path-addressed.** `isContainer(o): o is
+Stuff & Container` must NAME its type; a TS predicate cannot be generic.
+There are 156 such predicates and they are irreducible (same wall as
+`MixinApi`'s 175 statics). `hasMixinAtPath('/x/y')` returns `boolean`,
+not a narrowing — so you either lose compile-time narrowing, which is the
+best property of this mixin system, or you run predicates AND paths,
+which is two systems for one concept: exactly the complexity creep the
+lint family exists to prevent.
+
+Secondary: discoverability inverts. `MixinApi.isCon⇥` finds
+`isContainer`; `/platform/lib/spatial/Container` requires already knowing
+the tree.
+
+⭐ **The trigger to revisit, written down so it is not re-argued from
+scratch: two packs collide on a `_mixinName`.** At that point the flat
+namespace has actually broken and paths are right. `lint:mixin-names`
+(step 3) is what will tell us the day it happens.
+
+### ✅ BUILT (2026-09-14) — and the one place the plan was wrong
+
+Shipped on `build/lib-statics` as `784268db1` + `c7bf52e0c`. All four work
+items landed, plus a fifth the census turned up.
+
+| item | what shipped |
+|---|---|
+| 1 · `parseRequirement` federated | `MixinApi.isDeclaredMixin` — the kernel const OR a discovered pack's `src/` |
+| 2 · pack-supplied refusal | `static _mixinRefusal` beside `_mixinName`; `MixinApi.refusalFor` reads whichever half has it |
+| 3 · `lint:mixin-names` | gate 38. 179 declarations, 10 from packs, **0 collisions** |
+| 4 · the three symptoms | `ship.yaml` declares its `desk` arg; `DormThemes` is a `SingletonMixin` Idea; `DormWarren`'s two accessors deleted |
+| 5 · *unplanned* | `hasMixin` takes `AnyMixinName` — see below |
+
+#### ⚠⚠ Where the recorded plan was wrong: **discovery, not install**
+
+The plan said to source the known-set from *"the same place `queryMixins`
+reads"* — i.e. walk the prototype chain of each class a pack's rows name,
+at `PackApi.install`. That was built, and it **failed**: the offline
+command preload (a unit test, a stripped boot) parses every pack's
+command views with **nothing installed**, so `ship.yaml`'s honest
+`requires: [ShipmentDeskMixin]` threw before any registration had
+happened.
+
+⭐ The fix is **pack DISCOVERY**, which runs first in both paths, reading
+the `_mixinName` declaration as text out of the pack's `src/`. The
+declaration site is the truth; `PackLogic.registerPackMixins` and
+`scripts/pack-roots.ts § declaredMixins` are its two readers, and
+`lint:mixin-names` **fails on any declaration a reader cannot resolve** —
+which is what stops the pair drifting or silently undercounting.
+
+⭐ Discovery is also *more* complete than the walk: it sees every
+declaration, where `queryMixins` sees only the mixins that some row's
+class happens to compose.
+
+#### ⭐ The fifth item: `MixinName` was lying
+
+`MixinApi.hasMixin(host, name: MixinName)` made a pack's question about
+its **own** mixin a compile error — `MixinName` derives from the kernel
+const, so as a *vocabulary* it is structurally incomplete. The evidence
+was sitting in the tree: `IMPROVABLE_MIXIN`, `MANA_POWERED_MIXIN` and
+`WORKING_MIXIN` are each declared, documented with the sentence *"a pack
+mixin owns its own constant and consumers narrow with
+`MixinApi.hasMixin(cls, X)`"* — and **never once called**, because the
+call would not compile.
+
+The parameter is `AnyMixinName = MixinName | (string & {})` now: editor
+completion keeps the kernel's 169 names, and the typo check moves to
+`lint:mixin-names`, which reads every declaration on disk and so can see
+what the type system never will. ⭐ **Same move as `requires:`: when the
+type system cannot see packs, the gate owns the namespace.**
+
+#### What the census found on the way
+
+**`BodyPlanSlotsMixin` and `SeatedDrivableMixin` were not in the `Mixins`
+const.** CLAUDE.md has always said that const is the single source of
+truth for mixin names; nothing verified it, and two real kernel mixins
+had drifted out of it far enough that **no `requires:` could name
+either**. Both registered; the gate holds it now.

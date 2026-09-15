@@ -120,7 +120,7 @@ export default class ReactController extends CommandController<ReactModel> {
     //     (add-only) tally / suppression / renown.
     const emote = await SoulApi.resolve(verb);
     if (emote) {
-      const bound = await EmoteGrammarRunner.bind(emote, words.slice(1), reactor);
+      const bound = new EmoteGrammarRunner(emote).bind(words.slice(1), reactor);
       const opts: EmoteOptions = {
         fills: bound.fills,
         inReactionTo: commandId,

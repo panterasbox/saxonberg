@@ -14,6 +14,11 @@ import { StuffApi } from '../../api/stuff';
 import { MixinApi } from '../../api/mixin';
 import { makeStuff } from '../../lib/security/__tests__/test-setup';
 import type { LightConduit, LineOfSight, MovementConduit } from '../../lib/boundary/Conduit';
+import { PerceptionApi } from '../../api/perception';
+
+/** The vision modality singleton — these are instance methods on it. */
+const vision = (): VisionModality =>
+  PerceptionApi.modalityByName('vision') as VisionModality;
 
 class Candle extends LightSourceMixin(Thing) {}
 
@@ -137,11 +142,11 @@ describe('Door retrofit — closed door blocks light propagation', () => {
     candle.setEmittedFlux(40);
     ContainmentApi.move(candle, a);
 
-    expect(VisionModality.lightAt(a).intensity.rawValue()).toBe(40);
-    expect(VisionModality.lightAt(b)).toBe(Light.ZERO);
+    expect(vision().lightAt(a).intensity.rawValue()).toBe(40);
+    expect(vision().lightAt(b)).toBe(Light.ZERO);
 
     door.open();
-    expect(VisionModality.lightAt(b).intensity.rawValue()).toBe(40);
+    expect(vision().lightAt(b).intensity.rawValue()).toBe(40);
   });
 
   it('an exit with no door still leaks light fully', async () => {
@@ -150,7 +155,7 @@ describe('Door retrofit — closed door blocks light propagation', () => {
     const candle = makeStuff(() => new Candle());
     candle.setEmittedFlux(40);
     ContainmentApi.move(candle, a);
-    expect(VisionModality.lightAt(b).intensity.rawValue()).toBe(40);
+    expect(vision().lightAt(b).intensity.rawValue()).toBe(40);
   });
 
   it('shares neighbor across two paths only when no double-counting', async () => {
@@ -174,6 +179,6 @@ describe('Door retrofit — closed door blocks light propagation', () => {
     ContainmentApi.move(candle, b);
 
     // Single contribution through the door — not 2×.
-    expect(VisionModality.lightAt(a).intensity.rawValue()).toBe(20);
+    expect(vision().lightAt(a).intensity.rawValue()).toBe(20);
   });
 });

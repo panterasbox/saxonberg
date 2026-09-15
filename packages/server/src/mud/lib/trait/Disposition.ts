@@ -65,7 +65,7 @@ export interface DispositionAxis {
  *     answer suffering; warmth is how you treat the person in front of
  *     you when neither is in play.
  */
-export const DISPOSITION_AXES: readonly DispositionAxis[] = [
+export const DISPOSITION_AXES = [
   // ── direct keepers ──
   { key: "composure", positive: "Calm", negative: "Wrathful" },
   { key: "ambition", positive: "Ambitious", negative: "Content" },
@@ -90,15 +90,26 @@ export const DISPOSITION_AXES: readonly DispositionAxis[] = [
   // (authored by content before the roster admitted them — see above)
   { key: "candor", positive: "Candid", negative: "Guarded" },
   { key: "warmth", positive: "Warm", negative: "Aloof" },
-];
+] as const satisfies readonly DispositionAxis[];
+
+/**
+ * ⭐ **An axis key — the closed union the roster above already was.**
+ *
+ * The roster is nineteen authored entries and has never been open; it
+ * was simply typed `readonly DispositionAxis[]`, which widened every
+ * `key` to `string`. So {@link Disposition.isAxis} could only promise
+ * `value is string` — a real narrowing from `unknown`, but one that told
+ * a caller nothing it did not already intend. `as const` makes the type
+ * say what the file says.
+ */
+export type DispositionAxisKey = (typeof DISPOSITION_AXES)[number]["key"];
 
 /** The validation array — every recognized axis key, in roster order. */
-export const DISPOSITION_KEYS: readonly string[] = DISPOSITION_AXES.map(
-  (a) => a.key
-);
+export const DISPOSITION_KEYS: readonly DispositionAxisKey[] =
+  DISPOSITION_AXES.map((a) => a.key);
 
 const BY_KEY: ReadonlyMap<string, DispositionAxis> = new Map(
-  DISPOSITION_AXES.map((a) => [a.key, a])
+  DISPOSITION_AXES.map((a) => [a.key, a] as const)
 );
 
 /**
@@ -111,8 +122,15 @@ export class Disposition {
     return BY_KEY.get(key) ?? null;
   }
 
-  /** Whether a value is a recognized axis key. */
-  public static isAxis(value: unknown): value is string {
+  /**
+   * Whether a value is a recognized axis key.
+   *
+   * ⭐ Narrows to {@link DispositionAxisKey}, not to `string`. It used to
+   * say `value is string` — true, and useless: a caller who has checked
+   * against a nineteen-entry roster learns nothing from being told the
+   * result is a string. Found by the 2026-09-14 vocabulary-guard audit.
+   */
+  public static isAxis(value: unknown): value is DispositionAxisKey {
     return typeof value === "string" && BY_KEY.has(value);
   }
 

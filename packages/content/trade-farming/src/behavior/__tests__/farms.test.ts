@@ -341,7 +341,13 @@ describe('the farms beat — tend, pick, sell, home', () => {
           const ask = rest[rest.length - 1]!;
           await asPrincipal(who, () =>
             makeStuff(() => new ConsignController()).execute(
-              { thing: kw, ask },
+              // ⚠ `shelf` is BOUND BY THE VIEW since `consign` declared it
+              // (`retail/consign.yaml` § shelf, defaulting through MQL).
+              // A hand-built model skips the binder, so the test has to
+              // carry what the view would have put there — the standing
+              // warning in the lib-statics slate, hit by a BRAIN suite
+              // this time rather than a controller one.
+              { thing: kw, ask, shelf: { stuff: stall, raw: 'stall' } },
               ctx(who, here, stall, text),
             ),
           );

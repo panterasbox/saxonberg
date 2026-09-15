@@ -469,6 +469,32 @@ export interface EmptyResultNote {
   query: string;
 }
 
+/**
+ * ⭐⭐ **Candidates matched the player's word and were discarded for being
+ * the wrong KIND** — the missing half of the ambiguity story.
+ *
+ * Two questions arise at exactly the same moment, when a word matches
+ * more than one thing: *how many matched* (the count axis —
+ * `cardinality` / `onExcess`, declared and configurable since the
+ * affordance build) and *how many are the right kind* (`requires:`,
+ * which was silent). An author could say **"two matched — ask which"**
+ * and could not say **"two matched, I discarded one — say so"**.
+ *
+ * ⚠ This note is that sentence. `open box` in a room with a chest and a
+ * painting has always opened the chest; now it can SAY it did, which is
+ * what teaches a player that `second box` exists.
+ */
+export interface CandidatesFilteredNote {
+  kind: 'candidates-filtered';
+  field: string;
+  /** The player's word, verbatim. */
+  query: string;
+  /** How many survived the slot's `requires:`. */
+  kept: number;
+  /** What matched the word and was not the right kind. */
+  discarded: StuffRef[];
+}
+
 export interface TargetDeclinedNote {
   kind: 'target-declined';
   target: StuffRef;
@@ -832,6 +858,7 @@ export type Note =
   | QuantityClampedRejectedNote
   | MatchAmbiguousNote
   | EmptyResultNote
+  | CandidatesFilteredNote
   | TargetDeclinedNote
   | ControllerRejectedNote
   | MixinMissingNote

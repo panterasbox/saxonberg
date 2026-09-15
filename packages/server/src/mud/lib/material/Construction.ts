@@ -328,12 +328,21 @@ export class Construction {
   }
 
   /**
-   * Narrowing predicate against the full form vocabulary — **both
-   * covering sources plus the weapon forms.** A fabric registered by a
-   * pack answers `true` here with no kernel edit, which is the whole
-   * point of the second source.
+   * Whether `s` is in the full form vocabulary — **both covering sources
+   * plus the weapon forms.** A fabric registered by a pack answers `true`
+   * here with no kernel edit, which is the whole point of the second
+   * source.
+   *
+   * ⚠⚠ **It returns `boolean`, and it used to claim `s is
+   * ConstructionForm`.** That was a no-op wearing a guarantee:
+   * `ConstructionForm` IS `string` (the covering side is open — a pack
+   * registers a fabric), so the predicate narrowed `string` to `string`
+   * and every reader of the signature believed a check had been threaded
+   * that never was. No call site lost anything — all three use it as a
+   * validator (`if (!isForm(x)) throw`), never to narrow. Found by the
+   * 2026-09-14 vocabulary-guard audit.
    */
-  public static isForm(s: string): s is ConstructionForm {
+  public static isForm(s: string): boolean {
     return isCoveringForm(s) || isDeliveryForm(s);
   }
 
@@ -357,6 +366,15 @@ export class Construction {
    * method is called unconditionally in three hot paths, so a bad band
    * must fail at hydration, not at the moment somebody swings.
    * Re-registering the same key overwrites (a pack go-live re-warms).
+   *
+   * @internal **and deliberately given no Api door.** Its two callers are
+   * `Fabric.postRegister` and `FabricCatalogue.warm` — the textile
+   * subsystem populating its own vocabulary at boot. Putting
+   * `MaterialApi.registerFabric` in the generated docs would advertise a
+   * boot seam as author surface, which is the *opposite* of what
+   * `callable == visible == cared-about` asks for: the fix for an
+   * invisible callable is not always to make it callable by everyone.
+   * The `FABRICS` map it writes is module-private and stays so.
    */
   public static registerFabric(spec: FabricSpec): void {
     if (!spec.key || !/^[a-z][a-z0-9-]*$/.test(spec.key)) {
@@ -407,17 +425,29 @@ export class Construction {
     FABRICS.set(spec.key, { ...spec });
   }
 
-  /** The registered spec for a fabric form, or `null`. */
-  public static fabric(key: string): FabricSpec | null {
+  /**
+   * The registered spec for a fabric form, or `null`.
+   *
+   * @internal the registry `registerFabric` fills — same ruling, same
+   * reason: `FabricCatalogue` and `Constructed` are its only readers.
+   */
+  static fabric(key: string): FabricSpec | null {
     return FABRICS.get(key) ?? null;
   }
 
-  /** Every registered fabric key (HMR / test introspection). */
+  /**
+   * Every registered fabric key (HMR / test introspection).
+   *
+   * @internal read by `FabricCatalogue` alone.
+   */
   public static fabricKeys(): readonly string[] {
     return [...FABRICS.keys()];
   }
 
   /** Drop the whole textile registry — the HMR / go-live re-warm seam. */
+  /**
+   * @internal one production caller plus the tests that white-box it — not author surface.
+   */
   public static clearFabrics(): void {
     FABRICS.clear();
   }

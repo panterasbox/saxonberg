@@ -52,6 +52,11 @@ interface Categorized {
   getCategory?(): string;
 }
 
+/**
+ * @internal every caller of this class sits in the `employment`
+ * subsystem — it is that subsystem's private collaborator, not author
+ * surface.
+ */
 export class CategoryMeasure {
   /**
    * Whether `item` counts against `category` at all — the discrete
@@ -68,7 +73,7 @@ export class CategoryMeasure {
   }
 
   /** Whether `item` HOLDS the category as interior bulk (a bottle of gin). */
-  public static holds(item: Stuff, category: string): boolean {
+  private static holds(item: Stuff, category: string): boolean {
     if (!MixinApi.isBulkable(item) || !item.hasInteriorBulk()) return false;
     return item.getBulkMaterial('interior')?.hasTag(category) ?? false;
   }

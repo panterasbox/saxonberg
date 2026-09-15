@@ -106,6 +106,10 @@ export class Appearance {
    *
    * Degrades to generation 0 / progress 0 with no world clock (unit
    * fixtures), keeping appearance deterministic and testable.
+   *
+   * @internal the callable door is `MagicApi.appearanceGeneration` — the
+   * body stays beside `GENERATION_DEFAULTS` and the sibling statics that
+   * read it.
    */
   public static currentGeneration(): GenerationNow {
     let nowS = 0;
@@ -149,6 +153,8 @@ export class Appearance {
    * for a window position, and above all **deterministic across
    * processes**, which a JS `Map` iteration order or an object hash
    * would not be.
+   * @internal the seed hash behind descriptorFor; not a surface anyone should depend on
+   *
    */
   public static hash(input: string): number {
     let h = 0x811c9dc5;
@@ -166,6 +172,8 @@ export class Appearance {
    * Two items of the same class with different seeds sit at different
    * points, so they cross at different moments — which is the whole of
    * "nothing flips at once".
+   * @internal where a seed falls in the reuse window
+   *
    */
   public static windowPositionOf(seed: string): number {
     return Appearance.hash(seed) / 0x100000000;
@@ -184,7 +192,7 @@ export class Appearance {
    * it is a gentle onramp: you learn the new descriptor while the old is
    * still around.
    */
-  public static effectiveGeneration(
+  private static effectiveGeneration(
     generation: number,
     progress: number,
     seed: string,
@@ -248,6 +256,9 @@ export class Appearance {
   static #descriptorMemo = new Map<string, string>();
 
   /** Drop the memo — `PackApi.sync` after a bank write, and a test seam. */
+  /**
+   * @internal one production caller plus the tests that white-box it — not author surface.
+   */
   public static clearMemo(): void {
     Appearance.#descriptorMemo.clear();
   }

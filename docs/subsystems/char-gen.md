@@ -497,7 +497,7 @@ choices, write the picks).
 `documents` row of `kind: 'name-bank'` (content-packs wave 2 collapsed the
 former `name_banks` collection) — **not** inlined on the `Species` template (a
 shared "common human" bank can back several species). It holds `given`,
-`surname`, and `style` pools. `NameBank.resolve(keys)` unions the pools
+`surname`, and `style` pools. `SpeciesApi.resolveNamePools(keys)` unions the pools
 for the species' `nameBankKeys`. Banks are installed from the
 `@saxonberg/content-species-and-names` content pack
 (`content/name-banks/<key>.yaml`, file name = bank key) by the `PackApi`

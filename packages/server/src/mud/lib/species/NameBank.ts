@@ -67,6 +67,8 @@ export class NameBank {
    * Drop the resolution cache. Called by the installer after a content
    * pack writes any name-bank change (so the edit reaches the next
    * char-gen suggest), and a test seam.
+   * @internal one production caller plus the tests that white-box it — not author surface.
+   *
    */
   static clearCache(): void {
     NameBank.#cache = null;
@@ -76,7 +78,7 @@ export class NameBank {
    * Resolve one bank by key (cached). Returns null if the bank is not
    * installed (a content gap; the suggester degrades to other banks).
    */
-  static async byKey(key: string): Promise<NameBank | null> {
+  private static async byKey(key: string): Promise<NameBank | null> {
     if (NameBank.#cache === null) {
       const docs = await DocumentApi.listOfKind('name-bank');
       const map = new Map<string, NameBank>();
@@ -92,6 +94,9 @@ export class NameBank {
   /**
    * Resolve a list of bank keys into merged pools. Order-preserving
    * union; duplicates collapse. Missing banks are skipped silently.
+   *
+   * @internal the callable door is `SpeciesApi.resolveNamePools` — the
+   * body stays here beside the hard-private `#cache` it fills.
    */
   static async resolve(keys: readonly string[]): Promise<NamePools> {
     const given = new Set<string>();

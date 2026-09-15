@@ -25,20 +25,6 @@ const JobBoardBase = DetailedMixin(Thing);
 export default class JobBoard extends JobBoardBase {
   static fieldMeta: FieldMeta = {};
 
-  /** Resolve the board a `job` command works off (the `Stock.resolveIn`
-   * precedent): the affording `commandSource` fast-path, else the first
-   * board among the giver's reachable peers. */
-  static resolveIn(context: CommandContext): JobBoard | null {
-    const source = context.commandSource;
-    if (source instanceof JobBoard) return source;
-    const peers = MqlApi.resolveMany("peers", {
-      commandGiver: context.commandGiver,
-      scope: "reachable",
-    });
-    return (
-      peers.stuff.find((s): s is JobBoard => s instanceof JobBoard) ?? null
-    );
-  }
 
   static commandContributions: CommandContributions = {
     self: [],

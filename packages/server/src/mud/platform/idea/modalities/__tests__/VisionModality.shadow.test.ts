@@ -21,6 +21,11 @@ import type { Sensor } from '../../../../lib/message/Sensor';
 import type { Perception } from '../../../../lib/perception/Perception';
 import { makeStuff } from '../../../../lib/security/__tests__/test-setup';
 import { buildAllModalities } from '../../../../lib/perception/modalities/__tests__/test-helpers';
+import { PerceptionApi } from '../../../../api/perception';
+
+/** The vision modality singleton — these are instance methods on it. */
+const vision = (): VisionModality =>
+  PerceptionApi.modalityByName('vision') as VisionModality;
 
 class AmbientCartesianLocation extends AmbientLitMixin(CartesianLocation) {}
 class TestObserver extends PerceptionMixin(
@@ -57,10 +62,10 @@ class XRayShadow extends Shadow {
 
 describe('VisionModality — type-level viewer constraint', () => {
   it('viewer parameters require Stuff & Sensor & Perception', () => {
-    expectTypeOf(VisionModality.perceivedBand)
+    expectTypeOf<VisionModality['perceivedBand']>()
       .parameter(0)
       .toEqualTypeOf<Stuff & Sensor & Perception>();
-    expectTypeOf(VisionModality.canSee)
+    expectTypeOf<VisionModality['canSee']>()
       .parameter(0)
       .toEqualTypeOf<Stuff & Sensor & Perception>();
 
@@ -88,7 +93,7 @@ describe('VisionModality.perceivedBand — viewer-aware overrides', () => {
     room.setAmbientFlux(40);
     const viewer = await StuffApi.create(() => new TestObserver());
 
-    expect(VisionModality.perceivedBand(viewer, room)).toBe('lit');
+    expect(vision().perceivedBand(viewer, room)).toBe('lit');
   });
 
   it('BlindfoldShadow makes every room read pitch-black', async () => {
@@ -103,8 +108,8 @@ describe('VisionModality.perceivedBand — viewer-aware overrides', () => {
     const blindfold = await StuffApi.create(() => new BlindfoldShadow());
     ShadowApi.attach(viewer, blindfold);
 
-    expect(VisionModality.perceivedBand(viewer, room)).toBe('pitch-black');
-    expect(VisionModality.canSee(viewer, target, 'figure')).toBe(false);
+    expect(vision().perceivedBand(viewer, room)).toBe('pitch-black');
+    expect(vision().canSee(viewer, target, 'figure')).toBe(false);
   });
 
   it('NightVisionShadow shifts the band up via getVisionProfile', async () => {
@@ -115,13 +120,13 @@ describe('VisionModality.perceivedBand — viewer-aware overrides', () => {
     room.setAmbientFlux(2);
 
     const viewer = await StuffApi.create(() => new TestObserver());
-    expect(VisionModality.perceivedBand(viewer, room)).toBe('very-dim');
+    expect(vision().perceivedBand(viewer, room)).toBe('very-dim');
 
     const nightVision = await StuffApi.create(() => new NightVisionShadow());
     ShadowApi.attach(viewer, nightVision);
 
-    expect(VisionModality.perceivedBand(viewer, room)).toBe('dim');
-    expect(VisionModality.viewerVisionProfile(viewer).bandShift).toBe(1);
+    expect(vision().perceivedBand(viewer, room)).toBe('dim');
+    expect(vision().viewerVisionProfile(viewer).bandShift).toBe(1);
   });
 
   it('multiple shadows compose via callDown — chain order respected', async () => {
@@ -160,7 +165,7 @@ describe('VisionModality.perceivedBand — viewer-aware overrides', () => {
     ShadowApi.attach(viewer, boost1);
     ShadowApi.attach(viewer, boost2);
 
-    expect(VisionModality.perceivedBand(viewer, room)).toBe('blinding');
+    expect(vision().perceivedBand(viewer, room)).toBe('blinding');
   });
 
   it('per-viewer specialization: two viewers, two answers', async () => {
@@ -175,8 +180,8 @@ describe('VisionModality.perceivedBand — viewer-aware overrides', () => {
     const blindfold = await StuffApi.create(() => new BlindfoldShadow());
     ShadowApi.attach(a, blindfold);
 
-    expect(VisionModality.perceivedBand(a, room)).toBe('pitch-black');
-    expect(VisionModality.perceivedBand(b, room)).toBe('lit');
+    expect(vision().perceivedBand(a, room)).toBe('pitch-black');
+    expect(vision().perceivedBand(b, room)).toBe('lit');
   });
 });
 
@@ -198,23 +203,23 @@ describe('VisionModality.canSee — detail levels and overrides', () => {
     const target = makeStuff(() => new Candle());
     ContainmentApi.move(target, room);
 
-    expect(VisionModality.canSee(viewer, target, 'shape')).toBe(false);
-    expect(VisionModality.canSee(viewer, target, 'fine')).toBe(false);
+    expect(vision().canSee(viewer, target, 'shape')).toBe(false);
+    expect(vision().canSee(viewer, target, 'fine')).toBe(false);
 
     room.setAmbientFlux(2);
-    expect(VisionModality.canSee(viewer, target, 'shape')).toBe(true);
-    expect(VisionModality.canSee(viewer, target, 'figure')).toBe(false);
+    expect(vision().canSee(viewer, target, 'shape')).toBe(true);
+    expect(vision().canSee(viewer, target, 'figure')).toBe(false);
 
     room.setAmbientFlux(10);
-    expect(VisionModality.canSee(viewer, target, 'figure')).toBe(true);
-    expect(VisionModality.canSee(viewer, target, 'detail')).toBe(false);
+    expect(vision().canSee(viewer, target, 'figure')).toBe(true);
+    expect(vision().canSee(viewer, target, 'detail')).toBe(false);
 
     room.setAmbientFlux(40);
-    expect(VisionModality.canSee(viewer, target, 'detail')).toBe(true);
-    expect(VisionModality.canSee(viewer, target, 'fine')).toBe(false);
+    expect(vision().canSee(viewer, target, 'detail')).toBe(true);
+    expect(vision().canSee(viewer, target, 'fine')).toBe(false);
 
     room.setAmbientFlux(100);
-    expect(VisionModality.canSee(viewer, target, 'fine')).toBe(true);
+    expect(vision().canSee(viewer, target, 'fine')).toBe(true);
   });
 
   it('XRayShadow override forces canSee to true', async () => {
@@ -226,11 +231,11 @@ describe('VisionModality.canSee — detail levels and overrides', () => {
     const target = makeStuff(() => new Candle());
     ContainmentApi.move(target, room);
 
-    expect(VisionModality.canSee(viewer, target, 'fine')).toBe(false);
+    expect(vision().canSee(viewer, target, 'fine')).toBe(false);
 
     const xray = await StuffApi.create(() => new XRayShadow());
     ShadowApi.attach(viewer, xray);
 
-    expect(VisionModality.canSee(viewer, target, 'fine')).toBe(true);
+    expect(vision().canSee(viewer, target, 'fine')).toBe(true);
   });
 });

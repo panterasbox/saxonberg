@@ -34,6 +34,11 @@ import type { MixinSlice, HostPlacement } from "./PersistenceSlice";
 import type { FieldMeta } from "../mixin";
 import { Collections } from './Collections';
 
+/**
+ * @internal every caller of this class sits in the `persistable`
+ * subsystem — it is that subsystem's private collaborator, not author
+ * surface.
+ */
 export class PersistedRecord extends Document {
   static collectionName = Collections.HolderSnapshots;
   static fieldMeta: FieldMeta = {
@@ -93,7 +98,7 @@ export class PersistedRecord extends Document {
   }
 
   /** Every record a principal owns (the account-deletion cascade input). */
-  static async findByOwner(owner: string): Promise<PersistedRecord[]> {
+  private static async findByOwner(owner: string): Promise<PersistedRecord[]> {
     return PersistedRecord.find<PersistedRecord>({ owner });
   }
 

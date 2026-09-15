@@ -69,6 +69,9 @@ export interface CapabilitySpec {
 /**
  * The capability contract holder — a thin static surface (the concept
  * this module owns) rather than a free-floating predicate function.
+  *
+ * @internal every caller of this class sits in the `craft` subsystem —
+ * it is that subsystem's private collaborator, not author surface.
  */
 export class ToolCapabilities {
   /** The work-rate clamp band — data can never zero a duration. */
@@ -76,7 +79,7 @@ export class ToolCapabilities {
   public static readonly RATE_MAX = 10;
 
   /** A well-formed capability name: a non-empty kebab token. */
-  public static isCapabilityName(s: unknown): s is string {
+  static isCapabilityName(s: unknown): s is string {
     return typeof s === 'string' && /^[a-z][a-z0-9-]*$/.test(s);
   }
 

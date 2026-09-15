@@ -221,6 +221,9 @@ function walkOutward(
  * The discrete-event outward sound walk — the push-side inversion of
  * `SoundModality.walkAt`. A namespace class (the module's one concept);
  * the walk is a pure computation with no instance state.
+  *
+ * @internal every caller of this class sits in the `message` subsystem —
+ * it is that subsystem's private collaborator, not author surface.
  */
 export class AudienceGather {
   /**

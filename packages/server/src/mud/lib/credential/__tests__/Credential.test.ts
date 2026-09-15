@@ -21,6 +21,7 @@ import { AppApi } from "../../../api/app";
 import { AppSettingKeys } from "../../config/AppSettings";
 import { Money } from "../../banking/Money";
 import { Currency } from "../../banking/Currency";
+import { BankingApi } from '../../../api/banking';
 
 /** The floor this suite authors — the shape, not the realm's values. */
 const FLOOR = ["/world/one/node", "/world/two/node", "/world/three/node"];
@@ -106,12 +107,12 @@ describe("PaymentCredential record", () => {
   it("authorize: uncapped admits anything; cap and freeze refuse", () => {
     const c = new PaymentCredential();
     expect(c.getSpendCap()).toBe(UNCAPPED);
-    expect(c.authorize(Money.of(10_000, Currency.compact()))).toBe(true);
+    expect(c.authorize(Money.of(10_000, BankingApi.compactCurrency()))).toBe(true);
     c.setSpendCap(100);
-    expect(c.authorize(Money.of(100, Currency.compact()))).toBe(true);
-    expect(c.authorize(Money.of(101, Currency.compact()))).toBe(false); // over cap
+    expect(c.authorize(Money.of(100, BankingApi.compactCurrency()))).toBe(true);
+    expect(c.authorize(Money.of(101, BankingApi.compactCurrency()))).toBe(false); // over cap
     c.setFrozen(true);
-    expect(c.authorize(Money.of(1, Currency.compact()))).toBe(false); // frozen refuses all
+    expect(c.authorize(Money.of(1, BankingApi.compactCurrency()))).toBe(false); // frozen refuses all
   });
 
   it("survives a serialize round-trip (links, active, cap, frozen)", () => {

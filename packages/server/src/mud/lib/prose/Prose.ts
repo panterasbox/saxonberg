@@ -43,6 +43,9 @@ export class Prose {
   ) {}
 
   /** Compile a template once for repeated rendering. */
+  /**
+   * @internal one production caller plus the tests that white-box it — not author surface.
+   */
   static parse(source: string): Prose {
     return new Prose(source, ProseApi.compile(source));
   }

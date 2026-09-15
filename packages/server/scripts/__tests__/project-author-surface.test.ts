@@ -545,3 +545,128 @@ describe("projectAuthorableFields", () => {
     expect(artifact.coverage.unclassified).toEqual(["DemoMixin.leftover"]);
   });
 });
+
+/**
+ * ⭐ W1 of the `lib/` statics sweep: the two tier rules used to drop
+ * whatever satisfied neither, in silence. An invisible surface cannot be
+ * audited, and 564 statics accumulated behind that silence.
+ */
+describe("projectAuthorSurface — the unclassified report", () => {
+  const MODEL: Refl = {
+    name: "PROJECT",
+    kind: 1,
+    children: [
+      {
+        name: "mud/lib/value/Thing",
+        kind: Kind.Module,
+        children: [
+          {
+            name: "Thing",
+            kind: Kind.Class,
+            children: [
+              method("render", { isStatic: false }),
+              method("of", { isStatic: true }),
+              method("parse", { isStatic: true }),
+              method("hidden", { isStatic: true, isPrivate: true }),
+            ],
+          },
+        ],
+      },
+      {
+        name: "mud/api/thing",
+        kind: Kind.Module,
+        children: [
+          {
+            name: "ThingApi",
+            kind: Kind.Class,
+            children: [
+              method("build", { isStatic: true }),
+              method("stray", { isStatic: false }),
+            ],
+          },
+        ],
+      },
+    ],
+  };
+  const { surface, unclassifiedReport } = projectAuthorSurface(MODEL);
+
+  it("⭐ admits a public static on a value class as its own kind", () => {
+    const vs = surface.consumer.filter((c) => c.kind === "value-static");
+    expect(vs.map((c) => c.name).sort()).toEqual(["of", "parse"]);
+  });
+
+  it("no longer drops a value-class static in silence", () => {
+    expect(unclassifiedReport.map((u) => u.reason)).not.toContain(
+      "static-on-non-api"
+    );
+  });
+
+  it("names an instance method on an Api face — unreachable by design", () => {
+    const instance = unclassifiedReport.filter(
+      (u) => u.reason === "instance-method-on-api"
+    );
+    expect(instance.map((u) => u.name)).toEqual(["stray"]);
+  });
+
+  it("does not admit a private static — already invisible by intent", () => {
+    expect(surface.consumer.map((c) => c.name)).not.toContain("hidden");
+    expect(unclassifiedReport.map((u) => u.name)).not.toContain("hidden");
+  });
+
+  it("leaves the Api-static and Stuff-method rules themselves unchanged", () => {
+    const byKind = (k: string): string[] =>
+      surface.consumer.filter((c) => c.kind === k).map((c) => c.qualified);
+    expect(byKind("api-static")).toEqual(["mud/api/thing#ThingApi.build"]);
+    expect(byKind("stuff-method")).toEqual([
+      "mud/lib/value/Thing#Thing.render",
+    ]);
+  });
+});
+
+/**
+ * ⭐ An Api face is decided by WHERE it is declared, not by what it is
+ * spelled. `Mml` (`mud/api/mml`) is an Api by every functional measure
+ * and is not called `MmlApi`; keying on the name hid all 41 of its
+ * statics — `Mml.compose`, `Mml.actor`, `Mml.ref` — from every doc.
+ */
+describe("projectAuthorSurface — what counts as an Api face", () => {
+  const MODEL: Refl = {
+    name: "PROJECT",
+    kind: 1,
+    children: [
+      {
+        name: "mud/api/mml",
+        kind: Kind.Module,
+        children: [
+          {
+            name: "Mml",
+            kind: Kind.Class,
+            children: [method("compose", { isStatic: true })],
+          },
+        ],
+      },
+      {
+        name: "mud/api/mml/pipeline",
+        kind: Kind.Module,
+        children: [
+          {
+            name: "Tokenizer",
+            kind: Kind.Class,
+            children: [method("run", { isStatic: true })],
+          },
+        ],
+      },
+    ],
+  };
+  const { surface, unclassifiedReport } = projectAuthorSurface(MODEL);
+
+  it("takes a face that is not spelled *Api", () => {
+    const mml = surface.consumer.find((c) => c.face === "Mml");
+    expect(mml?.kind).toBe("api-static");
+  });
+
+  it("⚠ keeps a sealed-subdir internal off the surface entirely", () => {
+    expect(surface.consumer.map((c) => c.face)).not.toContain("Tokenizer");
+    expect(unclassifiedReport.map((u) => u.face)).toEqual(["Tokenizer"]);
+  });
+});

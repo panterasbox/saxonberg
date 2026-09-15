@@ -781,7 +781,7 @@ export default class EnrollController extends CommandController<EnrollModel> {
       const stipend =
         Number(AppApi.setting(AppSettingKeys.bankingOnboardingStipend)) || 0;
       if (stipend > 0) {
-        await BankingApi.issueCash(avatar, Money.of(stipend, Currency.compact()), "onboarding");
+        await BankingApi.issueCash(avatar, Money.of(stipend, BankingApi.compactCurrency()), "onboarding");
       }
     }
 
@@ -791,6 +791,9 @@ export default class EnrollController extends CommandController<EnrollModel> {
     StuffApi.destruct(login);
   }
 
+  /**
+   * @internal one caller outside this file, plus this module — not author surface.
+   */
   static loadConfig(): CharGenConfig {
     if (EnrollController.#config) return EnrollController.#config;
     const parsed = SourceTreeApi.readYamlResource<CharGenConfig>(
@@ -810,7 +813,7 @@ export default class EnrollController extends CommandController<EnrollModel> {
    * off the Species). Idempotent. Tolerant — an unresolved species just
    * gets no card.
    */
-  static async ensureSpeciesCards(cfg: CharGenConfig): Promise<void> {
+  private static async ensureSpeciesCards(cfg: CharGenConfig): Promise<void> {
     if (EnrollController.#speciesCards) return;
     const cards = new Map<
       string,
@@ -838,6 +841,7 @@ export default class EnrollController extends CommandController<EnrollModel> {
     return EnrollController.#speciesCards?.get(path);
   }
 
+  /** @internal a test seam: drops the cached enroll config so the next read re-loads it */
   static resetConfigCache(): void {
     EnrollController.#config = null;
     EnrollController.#speciesCards = null;

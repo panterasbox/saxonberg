@@ -58,10 +58,11 @@ import { AppApi } from '../../api/app';
 import { AppSettingKeys } from '../config/AppSettings';
 import type { Energized } from '../electricity/Energized';
 import { TemplatePaths, TemplatePathPrefixes } from '../paths';
-import { Contamination } from '../material/Contaminable';
 import type { VetoResult } from '../errors';
 import { Suppressions } from '../magic/Suppression';
 import { MagicGrid } from '../magic/Grid';
+import { MaterialApi } from '../../api/material';
+import { MagicApi } from '../../api/magic';
 
 /** Alias for readability at the magic arm's call sites. */
 function magicDial(key: string, fallback: number): number {
@@ -1225,7 +1226,7 @@ export function VitalsMixin<TBase extends MixinConstructor>(Base: TBase) {
             TemplatePathPrefixes.pathogenCondition.length,
           )
         : '';
-      const behavior = key ? Contamination.behaviorOf(key) : null;
+      const behavior = key ? MaterialApi.pathogenBehaviorOf(key) : null;
       if (!behavior) return; // an unwarmed row leaves the load alone
 
       const hours = elapsedSec / VITALS_DEFAULTS.SECONDS_PER_HOUR;
@@ -1648,7 +1649,7 @@ export function VitalsMixin<TBase extends MixinConstructor>(Base: TBase) {
       const place = MixinApi.isContainable(self)
         ? (self.getContainer() ?? null)
         : null;
-      const field = Suppressions.fieldAt(place);
+      const field = MagicApi.suppressionAt(place);
       s.dormant = Suppressions.suppresses(
         field,
         s.magicOrigin.verb,

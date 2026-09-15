@@ -13,3 +13,22 @@ args:
   - name: thing
     type: string
     required: true
+  # ⭐ WHERE you are buying from, DECLARED rather than re-derived. The
+  # controller used to hunt for a counter itself; now the binder resolves
+  # it like any other object and the controller just reads it.
+  #
+  # `from` keeps the existing grammar intact — `buy torch` is unchanged —
+  # while making the counter addressable when it matters (`buy torch from
+  # second counter`), which a controller-side default never was.
+  #
+  # ⚠ The query is the SHELF mixin, not `[class.Stock]`: `Stock` composes
+  # `ConsignmentShelfMixin`, so one arg finds a house counter, a
+  # standalone consignment shelf, or a counter being both — and the
+  # controller narrows into the two roles it actually uses.
+  - name: counter
+    type: object
+    required: false
+    prepositions: [from]
+    default: "reachable:[mixin.ConsignmentShelfMixin]"
+    scope: [reachable]
+    requires: [ConsignmentShelfMixin]

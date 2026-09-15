@@ -45,27 +45,6 @@ export default class CommerceMenu extends CommerceMenuBase {
     environment: ['platform/cmd/retail/menu.yaml', 'platform/cmd/retail/order.yaml'],
   };
 
-  /**
-   * Resolve the menu an `order` / `menu` command works off: the affording
-   * menu (an affordance click sets it as `commandSource`), else the menu
-   * among the room's occupants. Object enumeration goes through MQL (the
-   * `peers` seed), not a hand-rolled containment scan; the `instanceof`
-   * check is the interim type filter (matches any venue subclass). Callers
-   * with an explicit `named` target resolve that first (already MQL-bound)
-   * before falling back here.
-   */
-  static resolveIn(context: CommandContext): CommerceMenu | null {
-    const source = context.commandSource;
-    if (source instanceof CommerceMenu) return source;
-    const peers = MqlApi.resolveMany('peers', {
-      commandGiver: context.commandGiver,
-      scope: 'reachable',
-    });
-    return (
-      peers.stuff.find((s): s is CommerceMenu => s instanceof CommerceMenu) ??
-      null
-    );
-  }
 
   /** Recipe ids this menu offers (references the `recipes` collection). */
   public offeredRecipes: string[] = [];

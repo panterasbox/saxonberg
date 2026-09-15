@@ -156,7 +156,19 @@ adding.
 - **Named value-object / vocabulary / registry modules** — the
   sanctioned home for a substrate primitive that isn't an instanceable
   `Stuff` but is still *the concept the module exists for*: a value
-  class (`Light`, `Quantity`, `Reserve`, `lib/description/NounPhrase.ts`'s
+  class (`Light`, `Quantity`, `Reserve`, and the three the 2026-09
+  statics sweep added — `lib/Seeded.ts`'s `Seeded` (the mixer and the
+  0..1 draw the whole procedural world is seeded from, which had been
+  written out **four times**, kernel plus three packs, so a drift in one
+  would have made two subsystems disagree about the same address);
+  `lib/Decay.ts`'s `Decay` (exponential relaxation — half-life decay and
+  Newton relaxation, **six copies across three tiers**, two of them
+  anonymous expressions inside a method that no index could ever have
+  found); `lib/persistence/WarmedIndex.ts`'s `WarmedIndex` (the
+  boot-warmed, synchronously-read index seven record classes had grown
+  by hand — ⚠ it owns the STORAGE and deliberately not the WARM, because
+  each warm carries the invariant that is the point of its subsystem);
+  `lib/description/NounPhrase.ts`'s
   `NounPhrase` — a stem, a register and a count, from which the article,
   the definite form, the possessive and the plural all derive;
   `lib/persistence/SchemaDoc.ts`'s
@@ -179,10 +191,12 @@ adding.
   supply reports `null`, so "fine" can never be mistaken for a named
   state. ⭐ `lib/travel/TravelNode.ts` (the TPA reform) is the same
   argument one step further: an `interface` naming the two methods a
-  travel network answers (`ride` · `renderDepartures`) plus a
-  `TravelNodes.of()` probe, so the kernel's `teleport` verb can hand a
-  ride to the `tpa` pack's terminal **without either side importing the
-  other**. A kernel verb may not import a pack; it may declare the shape
+  travel network answers (`ride` · `renderDepartures`), probed
+  structurally at the one place that asks — so the kernel's `teleport`
+  verb can hand a ride to the `tpa` pack's terminal **without either
+  side importing the other**. (The probe was `TravelNodes.of` until the
+  2026-09 statics sweep found it had exactly one caller and inlined it
+  there; the SHAPE is the contract, not the helper.) A kernel verb may not import a pack; it may declare the shape
   it will talk to. See [content-packs.md](./subsystems/content-packs.md)
   § How a kernel VERB reaches pack behaviour. This is the fourth
   category named so that an orphan type/constant has a home other than

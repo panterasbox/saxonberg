@@ -114,6 +114,7 @@ import { MANA_RESERVE_KEY, OVERCHANNEL_STRAIN_PATH } from '../../../lib/magic/Ca
 import type { Reserved } from '../../../lib/reserve';
 import type { Container } from '../../../lib/spatial/Container';
 import type { Combatant } from '../../../lib/combat/Combatant';
+import type { GenerationNow } from '../../../lib/identification/Appearance';
 
 const MagicApiCallers = SecurityPolicies.FromModule('/api/magic#MagicApi');
 /** The F3 object faces forward here as the subject instance. */
@@ -401,6 +402,12 @@ export class MagicLogic extends ApiLogic {
     place: Stuff | null,
   ): Promise<MagicSuppression | null> {
     return suppressionAtDeepImpl(place);
+  }
+
+  /** See {@link MagicApi.appearanceGeneration}. */
+  @CallSecurity(MagicApiCallers)
+  public appearanceGeneration(): GenerationNow {
+    return Appearance.currentGeneration();
   }
 }
 

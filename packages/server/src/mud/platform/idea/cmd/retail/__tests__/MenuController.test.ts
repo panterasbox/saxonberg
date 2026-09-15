@@ -24,7 +24,6 @@ import { CraftingApi } from "../../../../../api/crafting";
 import { MessageApi } from "../../../../../api/message";
 import { MqlApi } from "../../../../../api/mql";
 import { StuffApi } from "../../../../../api/stuff";
-import { RecipeKnowledge } from "../../../../../lib/script/RecipeKnowledge";
 import {
   makeStuff,
   stampTemplatePathForTest,
@@ -55,6 +54,21 @@ function stubScene(): void {
 /** The room's occupants, as the `peers` seed both resolvers read. */
 function stubPeers(stuff: Stuff[]): void {
   vi.spyOn(MqlApi, "resolveMany").mockReturnValue({ stuff } as never);
+  // ⭐ The tariff/menu lookups ask `resolveOne('reachable:[class.X]')` —
+  // the type test is in the QUERY now, not a TypeScript predicate — so
+  // the stub answers the one-thing form, filtered as the resolver would.
+  vi.spyOn(MqlApi, "resolveOne").mockImplementation(
+    ((q: string) => ({
+      stuff:
+        stuff.find((x) =>
+          q.includes("Tariff")
+            ? x instanceof Tariff
+            : q.includes("CommerceMenu")
+              ? x instanceof CommerceMenu
+              : false,
+        ) ?? null,
+    })) as never,
+  );
 }
 
 function ctx(giver: unknown): CommandContext {
@@ -65,6 +79,22 @@ function ctx(giver: unknown): CommandContext {
     location: null,
     note,
   } as unknown as CommandContext;
+}
+
+/**
+ * ⚠ A controller test skips the BINDER, so the model carries what
+ * `menu.yaml` would have bound — the tariff and the menu are declared
+ * args now, not things the controller hunts for.
+ */
+function boundModel(peers: Stuff[]): Record<string, unknown> {
+  const find = (p: (x: Stuff) => boolean): Record<string, unknown> | undefined => {
+    const hit = peers.find(p);
+    return hit ? { stuff: hit, raw: "x" } : undefined;
+  };
+  return {
+    counter: find((x) => x instanceof Tariff),
+    menu: find((x) => x instanceof CommerceMenu),
+  };
 }
 
 function slate(opts: { tariff: boolean; menu: boolean }): {
@@ -95,7 +125,9 @@ beforeEach(() => {
   installV1QuantityMarshallers();
   said = [];
   stubScene();
-  vi.spyOn(RecipeKnowledge, "noteKnown").mockResolvedValue(undefined as never);
+  // ⭐ No claim stub needed: the mint is now the OWNER's
+  // `recordChronicleOnce`, guarded by `MixinApi.isPersona`, and this
+  // test's giver is a room — so nothing is minted and nothing to stub.
   vi.spyOn(CraftingApi, "offeredRecipes").mockResolvedValue([
     { recipeId: "recipe/belt-knife", name: "Belt Knife" },
   ] as never);
@@ -107,8 +139,8 @@ afterEach(() => {
 
 describe("`menu` reads every slate the house hangs", () => {
   it("⭐⭐ a venue carrying BOTH shows both — the drive's finding", async () => {
-    const { giver } = slate({ tariff: true, menu: true });
-    await makeStuff(() => new MenuController()).execute({}, ctx(giver));
+    const { giver, peers } = slate({ tariff: true, menu: true });
+    await makeStuff(() => new MenuController()).execute(boundModel(peers) as never, ctx(giver));
     const out = said.join("\n");
     expect(out, "the services").toMatch(/The house does/);
     expect(out, "and the recipes — this is the regression").toMatch(
@@ -117,24 +149,24 @@ describe("`menu` reads every slate the house hangs", () => {
   });
 
   it("a tariff alone shows only the services, with no blank menu heading", async () => {
-    const { giver } = slate({ tariff: true, menu: false });
-    await makeStuff(() => new MenuController()).execute({}, ctx(giver));
+    const { giver, peers } = slate({ tariff: true, menu: false });
+    await makeStuff(() => new MenuController()).execute(boundModel(peers) as never, ctx(giver));
     const out = said.join("\n");
     expect(out).toMatch(/The house does/);
     expect(out).not.toMatch(/On the menu/);
   });
 
   it("a menu alone shows only the recipes", async () => {
-    const { giver } = slate({ tariff: false, menu: true });
-    await makeStuff(() => new MenuController()).execute({}, ctx(giver));
+    const { giver, peers } = slate({ tariff: false, menu: true });
+    await makeStuff(() => new MenuController()).execute(boundModel(peers) as never, ctx(giver));
     const out = said.join("\n");
     expect(out).toMatch(/Belt Knife/);
     expect(out).not.toMatch(/The house does/);
   });
 
   it("⚠ neither is still an honest refusal, with the note", async () => {
-    const { giver } = slate({ tariff: false, menu: false });
-    await makeStuff(() => new MenuController()).execute({}, ctx(giver));
+    const { giver, peers } = slate({ tariff: false, menu: false });
+    await makeStuff(() => new MenuController()).execute(boundModel(peers) as never, ctx(giver));
     expect(said.join("\n")).toMatch(/no menu here/i);
     expect(note).toHaveBeenCalledWith(
       expect.objectContaining({ kind: "empty-result" }),

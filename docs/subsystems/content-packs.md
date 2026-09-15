@@ -550,6 +550,40 @@ tpa's terminal do — tpa depends on arcana anyway, it is magic — so
 *without* depending on arcana is the signal to promote it, and that is a
 review question, not a lint.
 
+### ⭐⭐ How a pack EXPOSES something — the singleton, and the federated mixin
+
+A pack holds no Api, no logic singleton and no free exported function, so
+for a long time the only way a pack class could offer anything to a
+caller outside itself was a **public static** — which reaches no
+generated doc, and so breaks `callable == visible == cared-about` by
+construction. Two mechanisms close that, decided 2026-09-14:
+
+- ⭐ **A singleton `Idea`, declared with `SingletonMixin`, reached by
+  `StuffApi.singleton(path)`.** The house catalogue shape
+  (`SoulCatalogue`, `MaterialCatalogue`), applied inside a pack: the
+  logic is instance methods on a seeded row, and the way in is an Api
+  call a reader can find. `eternal-university`'s `DormThemes` is the
+  exemplar — it was a class of five statics.
+  ⚠ A **singleton accessor** (`X.resolve()` / `X.peek()` forwarding to
+  `StuffApi.singleton` / `findByTemplatePath`) is not converted, it is
+  **deleted**: it cannot be an instance method, because it is how you get
+  the instance, and the wrapper only made the discoverable call less
+  discoverable.
+
+- ⭐⭐ **The mixin namespace is FEDERATED.** A pack's `requires:` may name
+  the pack's own mixin. `PackApi` registers every `static _mixinName`
+  under a discovered pack's `src/` (at **discovery**, not install — the
+  offline command preload parses pack views with nothing installed), and
+  the pack carries its refusal sentence as `static _mixinRefusal` beside
+  the name, because `MixinRefusals` is a kernel const it cannot edit.
+  `MixinApi.hasMixin` takes `AnyMixinName`, so a pack can narrow on its
+  own mixin with its own name constant.
+  ⚠ The namespace is still flat. `pnpm lint:mixin-names` refuses a
+  duplicate `_mixinName` anywhere, and **a real collision is the recorded
+  trigger to reopen path-addressed mixins**, declined today only because
+  a TypeScript type predicate cannot be path-addressed. See
+  `docs/slates/builds/content-packs-slate.md` § RESOLVED.
+
 ### ⭐⭐ How a kernel VERB reaches pack behaviour — the declared shape
 
 > **A kernel verb may not import a pack. It may declare the SHAPE it

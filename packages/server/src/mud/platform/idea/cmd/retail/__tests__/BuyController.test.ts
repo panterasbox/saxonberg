@@ -212,9 +212,9 @@ describe("BuyController — buy that stamps", () => {
     }, BANK);
 
     // Fund the patron.
-    await asOwner(giver, () => BankingApi.openAccount("goodkin", "goodkin", Currency.compact()));
+    await asOwner(giver, () => BankingApi.openAccount("goodkin", "goodkin", BankingApi.compactCurrency()));
     const cash = await asOwner(giver, () =>
-      BankingApi.issueCash(giver as never, Money.of(300, Currency.compact())),
+      BankingApi.issueCash(giver as never, Money.of(300, BankingApi.compactCurrency())),
     );
     await asOwner(giver, () => bank.deposit(cash as never));
     const storeAcct = await makeStoreBusiness();
@@ -227,7 +227,12 @@ describe("BuyController — buy that stamps", () => {
 
     const controller = makeStuff(() => new BuyController());
     await asOwner(giver, () =>
-      controller.execute({ thing: "torch" }, makeContext(giver, loc, stock)),
+      controller.execute(
+        // ⚠ A controller test skips the BINDER, so the model carries what
+        // `buy.yaml` would have bound — the counter is a declared arg now.
+        { thing: "torch", counter: { stuff: stock as never, raw: "counter" } },
+        makeContext(giver, loc, stock),
+      ),
     );
 
     expect(torch.getContainer()).toBe(giver);
@@ -235,7 +240,7 @@ describe("BuyController — buy that stamps", () => {
     expect(owner).toEqual({ kind: "player", templatePath: "/platform/agent/Avatar/pat" });
     expect(BankingApi.balanceOf(storeAcct).minor).toBe(5);
     expect(stock.onHand(TORCH)).toBe(0);
-    expect(BankingApi.reconcile(Currency.compact()).balanced).toBe(true);
+    expect(BankingApi.reconcile(BankingApi.compactCurrency()).balanced).toBe(true);
   });
 
   it("buy by cash: coin-holder settles across the bridge to the store", async () => {
@@ -244,7 +249,7 @@ describe("BuyController — buy that stamps", () => {
     ContainmentApi.move(giver as never, loc as never);
     // Coin on hand, no card.
     const coins = await asOwner(giver, () =>
-      BankingApi.issueCash(giver as never, Money.of(20, Currency.compact())),
+      BankingApi.issueCash(giver as never, Money.of(20, BankingApi.compactCurrency())),
     );
     void coins;
     const storeAcct = await makeStoreBusiness();
@@ -257,7 +262,12 @@ describe("BuyController — buy that stamps", () => {
 
     const controller = makeStuff(() => new BuyController());
     await asOwner(giver, () =>
-      controller.execute({ thing: "torch" }, makeContext(giver, loc, stock)),
+      controller.execute(
+        // ⚠ A controller test skips the BINDER, so the model carries what
+        // `buy.yaml` would have bound — the counter is a declared arg now.
+        { thing: "torch", counter: { stuff: stock as never, raw: "counter" } },
+        makeContext(giver, loc, stock),
+      ),
     );
 
     expect(torch.getContainer()).toBe(giver);
@@ -266,7 +276,7 @@ describe("BuyController — buy that stamps", () => {
       templatePath: "/platform/agent/Avatar/cash",
     });
     expect(BankingApi.balanceOf(storeAcct).minor).toBe(5);
-    expect(BankingApi.reconcile(Currency.compact()).balanced).toBe(true);
+    expect(BankingApi.reconcile(BankingApi.compactCurrency()).balanced).toBe(true);
   });
 
   it("the gardening line buys like any other good — a pot changes hands, stamped", async () => {
@@ -285,9 +295,9 @@ describe("BuyController — buy that stamps", () => {
       b.setCorpoKey("goodkin");
       return b;
     }, BANK);
-    await asOwner(giver, () => BankingApi.openAccount("goodkin", "goodkin", Currency.compact()));
+    await asOwner(giver, () => BankingApi.openAccount("goodkin", "goodkin", BankingApi.compactCurrency()));
     const cash = await asOwner(giver, () =>
-      BankingApi.issueCash(giver as never, Money.of(300, Currency.compact())),
+      BankingApi.issueCash(giver as never, Money.of(300, BankingApi.compactCurrency())),
     );
     await asOwner(giver, () => bank.deposit(cash as never));
     const storeAcct = await makeStoreBusiness();
@@ -298,7 +308,12 @@ describe("BuyController — buy that stamps", () => {
 
     const controller = makeStuff(() => new BuyController());
     await asOwner(giver, () =>
-      controller.execute({ thing: "pot" }, makeContext(giver, loc, stock)),
+      controller.execute(
+        // ⚠ A controller test skips the BINDER, so the model carries what
+        // `buy.yaml` would have bound — the counter is a declared arg now.
+        { thing: "pot", counter: { stuff: stock as never, raw: "counter" } },
+        makeContext(giver, loc, stock),
+      ),
     );
 
     expect(pot.getContainer()).toBe(giver);
@@ -306,7 +321,7 @@ describe("BuyController — buy that stamps", () => {
     expect(owner).toEqual({ kind: "player", templatePath: "/platform/agent/Avatar/gardener" });
     expect(BankingApi.balanceOf(storeAcct).minor).toBe(8);
     expect(stock.onHand(POT)).toBe(0);
-    expect(BankingApi.reconcile(Currency.compact()).balanced).toBe(true);
+    expect(BankingApi.reconcile(BankingApi.compactCurrency()).balanced).toBe(true);
     // …and it is a working pot, not a prop: empty of soil, one plant slot.
     expect(pot.hasSoil()).toBe(false);
     expect(pot.getSlotNames()).toContain(PLANT_SLOT);
@@ -325,7 +340,12 @@ describe("BuyController — buy that stamps", () => {
 
     const controller = makeStuff(() => new BuyController());
     await asOwner(giver, () =>
-      controller.execute({ thing: "torch" }, makeContext(giver, loc, stock)),
+      controller.execute(
+        // ⚠ A controller test skips the BINDER, so the model carries what
+        // `buy.yaml` would have bound — the counter is a declared arg now.
+        { thing: "torch", counter: { stuff: stock as never, raw: "counter" } },
+        makeContext(giver, loc, stock),
+      ),
     );
 
     expect(torch.getContainer()).toBe(stock); // still on the shelf

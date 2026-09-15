@@ -41,6 +41,7 @@ import { StuffApi } from "../../api/stuff";
 import type { Stackable } from "../stuff/Stackable";
 // eslint-disable-next-line no-restricted-imports -- the F4 branch face: a bank's deposit()/withdraw() forward into the banking logic singleton exactly as the api/banking facade does (the Combustible/Energized precedent)
 import { BankingLogic } from "../../platform/idea/api/BankingLogic";
+import { BankingApi } from '../../api/banking';
 
 /**
  * The banking subsystem's own gate — admits the `BankingApi` face and the
@@ -103,13 +104,6 @@ function isCashLike(stuff: unknown): stuff is CashLike {
   );
 }
 
-/** The face value (minor units) of a coin stack resting in the vault. */
-function stackValue(stuff: CashLike): number {
-  return (
-    Currency.faceValueOf(stuff.getCurrency(), stuff.getDenomination()) *
-    stuff.getQuantity()
-  );
-}
 
 export function BankMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
   class BankMixin extends Base implements Bank {
@@ -182,9 +176,9 @@ export function BankMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase) {
     public getTillLiquidity(): Money {
       let total = 0;
       for (const item of (this as unknown as Stuff & Container).getContents()) {
-        if (isCashLike(item)) total += stackValue(item);
+        if (isCashLike(item)) total += Currency.stackValue(item.getCurrency(), item.getDenomination(), item.getQuantity());
       }
-      return Money.of(total, Currency.compact());
+      return Money.of(total, BankingApi.compactCurrency());
     }
 
     /**

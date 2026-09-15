@@ -46,6 +46,7 @@ import type {
 
 export type { RelocationSpec };
 import { SecurityApi } from './security';
+import type { GenerationNow } from '../lib/identification/Appearance';
 
 export type { PrepareOutcome, CastOutcome, SpellsView, DischargeOptions };
 export type { SpellDescriptor };
@@ -123,6 +124,25 @@ export class MagicApi {
    */
   public static decoyNameFor(signature: string): string {
     return logic().decoyNameFor(signature);
+  }
+
+  /**
+   * ⭐ **The appearance generation, derived on read** — which cohort of
+   * randomised descriptors the world is currently showing, and how far
+   * through the changeover it is.
+   *
+   * Outside the transition window `progress` is 0 and every item of a
+   * class reads identically. Inside it, `progress` climbs to 1 and each
+   * item crosses at its OWN persisted window position, so **nothing
+   * flips at once**: each changes at its moment across weeks, and
+   * classes stagger against each other because each hashes its own key
+   * into the draw. There is never a day the world visibly turns over.
+   *
+   * Degrades to generation 0 / progress 0 with no world clock, keeping
+   * appearance deterministic under unit fixtures.
+   */
+  public static appearanceGeneration(): GenerationNow {
+    return logic().appearanceGeneration();
   }
 }
 

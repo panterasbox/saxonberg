@@ -15,16 +15,25 @@
  * spine carries it: on a later wake each fixture respawns from its current
  * template (function always current) and the captured prose overlays it.
  *
- * A named value-object/registry (the `EmoteGrammar`/`RecipeCatalogue`
- * precedent), NOT a subsystem or Api. The model generalizes: crafted goods
- * personalize at the craft moment; rooms/shell — not crafted — personalize at
- * the move-in commit. Apartments reuse this same core one rung up.
+ * ⭐⭐ **A singleton `Idea`, reached with `StuffApi.singleton`** — the
+ * house catalogue shape (`SoulCatalogue`, `MaterialCatalogue`), and the
+ * answer to *how does a content pack expose logic to callers outside the
+ * class*. It used to be a class of public statics, which a pack has no
+ * better option for; a static on a pack class reaches no generated doc,
+ * so `callable == visible == cared-about` failed here by construction.
+ * `SingletonMixin` declares the creation pattern rather than leaving it
+ * to a convention nobody can check. The model generalizes: crafted goods
+ * personalize at the craft moment; rooms/shell — not crafted —
+ * personalize at the move-in commit. Apartments reuse this same core one
+ * rung up.
  */
 
 import { PersistableApi } from '@saxonberg/server/mud/api/persistable';
-import Bed from './thing/Bed';
-import Desk from './thing/Desk';
-import Footlocker from './thing/Footlocker';
+import { Idea } from '@saxonberg/server/mud/lib/stuff/Idea';
+import { SingletonMixin } from '@saxonberg/server/mud/lib/stuff/Singleton';
+import Bed from '../thing/Bed';
+import Desk from '../thing/Desk';
+import Footlocker from '../thing/Footlocker';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import type { Container } from '@saxonberg/server/mud/lib/spatial/Container';
 import type { Visible } from '@saxonberg/server/mud/lib/description/Visible';
@@ -51,21 +60,27 @@ interface Theme {
  *  field (the whole commit is refused; nothing is written). */
 export class DormThemeError extends Error {}
 
-export default class DormThemes {
+const DormThemesBase = SingletonMixin(Idea);
+
+export default class DormThemes extends DormThemesBase {
+  /** The seeded row every caller resolves the catalogue through. */
+  static readonly CATALOGUE_PATH =
+    '/world/eternal/duncan-hall/idea/dorm-themes';
+
   /** Test seam: raw catalogue YAML standing in for the shipped
    *  `dorm-themes.yaml`. `null` (the default) reads the real file. Source
    *  text rather than a path, so a fixture needs no temp file — and so the
    *  read stays inside the source tree (the import boundary). */
-  static themesSource: string | null = null;
+  public themesSource: string | null = null;
 
   /** The authored theme ids (the move-in / remodel menu). */
-  static ids(): string[] {
-    return Object.keys(DormThemes.load());
+  public ids(): string[] {
+    return Object.keys(this.load());
   }
 
   /** The display label for a theme id (falls back to the id). */
-  static labelOf(themeId: string): string {
-    return DormThemes.load()[themeId]?.label ?? themeId;
+  public labelOf(themeId: string): string {
+    return this.load()[themeId]?.label ?? themeId;
   }
 
   /**
@@ -74,16 +89,16 @@ export default class DormThemes {
    * = its unit parcel). Throws {@link DormThemeError} on an unknown theme or a
    * non-prose field — refused whole, nothing written (function-fixed).
    */
-  static async applyTo(room: Stuff & Container, themeId: string): Promise<void> {
-    const theme = DormThemes.load()[themeId];
+  public async applyTo(room: Stuff & Container, themeId: string): Promise<void> {
+    const theme = this.load()[themeId];
     if (!theme) {
       throw new DormThemeError(
-        `There's no "${themeId}" style. Try: ${DormThemes.ids().join(', ')}.`,
+        `There's no "${themeId}" style. Try: ${this.ids().join(', ')}.`,
       );
     }
     // Validate the WHOLE theme before writing anything — a non-prose field
     // refuses the commit atomically.
-    const offending = DormThemes.firstNonProseField(theme);
+    const offending = this.firstNonProseField(theme);
     if (offending) {
       throw new DormThemeError(
         `The "${themeId}" style can't set "${offending}" — only room ` +
@@ -91,11 +106,11 @@ export default class DormThemes {
       );
     }
 
-    if (theme.room) DormThemes.applyBundle(room, theme.room);
+    if (theme.room) this.applyBundle(room, theme.room);
     for (const item of room.getContents()) {
-      const role = DormThemes.roleOf(item);
+      const role = this.roleOf(item);
       const bundle = role ? theme[role] : undefined;
-      if (bundle) DormThemes.applyBundle(item, bundle);
+      if (bundle) this.applyBundle(item, bundle);
     }
 
     // Seal: the record now carries the personalized prose overlay.
@@ -106,14 +121,14 @@ export default class DormThemes {
   }
 
   /** Read + parse the theme catalogue fresh (infrequent, small file). */
-  private static load(): Record<string, Theme> {
+  private load(): Record<string, Theme> {
     try {
       const parsed = (
-        DormThemes.themesSource !== null
-          ? SourceTreeApi.parseYaml(DormThemes.themesSource)
+        this.themesSource !== null
+          ? SourceTreeApi.parseYaml(this.themesSource)
           : SourceTreeApi.readYamlResource(
               import.meta.url,
-              'dorm-themes.yaml',
+              '../dorm-themes.yaml',
             )
       ) as { themes?: Record<string, Theme> } | null;
       return parsed?.themes ?? {};
@@ -123,7 +138,7 @@ export default class DormThemes {
   }
 
   /** The theme role a fixture fills, or null (not a themed fixture). */
-  private static roleOf(item: Stuff): 'bed' | 'desk' | 'footlocker' | null {
+  private roleOf(item: Stuff): 'bed' | 'desk' | 'footlocker' | null {
     if (item instanceof Bed) return 'bed';
     if (item instanceof Desk) return 'desk';
     if (item instanceof Footlocker) return 'footlocker';
@@ -132,7 +147,7 @@ export default class DormThemes {
 
   /** The first field across the whole theme that isn't a prose field, or
    *  null when every field is writable (the function-fixed pre-check). */
-  private static firstNonProseField(theme: Theme): string | null {
+  private firstNonProseField(theme: Theme): string | null {
     const bundles: (ProseBundle | undefined)[] = [
       theme.room,
       theme.bed,
@@ -149,7 +164,7 @@ export default class DormThemes {
   }
 
   /** Write a validated prose bundle through the gated setters. */
-  private static applyBundle(target: Stuff, bundle: ProseBundle): void {
+  private applyBundle(target: Stuff, bundle: ProseBundle): void {
     for (const [field, value] of Object.entries(bundle)) {
       const setter = PROSE_SETTERS[field];
       if (!setter) continue; // pre-validated, but stay defensive

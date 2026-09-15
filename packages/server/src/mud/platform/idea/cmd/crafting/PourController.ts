@@ -110,8 +110,8 @@ export default class PourController extends ManualBuildController<PourModel> {
       onComplete: () => {
         // ⚠ Read the spoilage BEFORE the draw — a full drain clears the
         // source's payload, and the gauge rides the payload.
-        const freshnessLoad = Freshness.loadOf(slot);
-        const pathogenLoads = Contamination.loadsFor(slot);
+        const freshnessLoad = new Freshness(slot).load();
+        const pathogenLoads = new Contamination(slot).loads();
         const result = BulkableApi.transfer(slot, null, {
           kind: "measure",
           litres: STANDARD_POUR_L,

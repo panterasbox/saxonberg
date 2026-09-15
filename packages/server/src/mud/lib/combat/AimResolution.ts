@@ -138,6 +138,8 @@ export class AimResolution {
    * the coup-de-grâce case and it resolves at `precise`: honest, grim,
    * and the reason the incapacitation rung on the consent ladder is
    * load-bearing rather than decorative.
+   * @internal one production caller plus the tests that white-box it — not author surface.
+   *
    */
   static resolve(
     aim: AimState,

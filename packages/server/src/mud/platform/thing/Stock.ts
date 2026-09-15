@@ -79,20 +79,6 @@ export default class Stock extends StockBase {
   /** The authored stock lines (what the store carries). */
   public stockLines: StockLine[] = [];
 
-  /**
-   * Resolve the store counter a `buy` command works off: the affording
-   * fixture itself, or a `Stock` reachable from the giver (the `Menu`
-   * precedent).
-   */
-  static resolveIn(context: CommandContext): Stock | null {
-    const source = context.commandSource;
-    if (source instanceof Stock) return source;
-    const peers = MqlApi.resolveMany("peers", {
-      commandGiver: context.commandGiver,
-      scope: "reachable",
-    });
-    return peers.stuff.find((s): s is Stock => s instanceof Stock) ?? null;
-  }
 
   // A Stock counter is a consignment shelf too (libations 3a: one counter
   // is both), so it affords the shelf's verbs — a floor hand at the

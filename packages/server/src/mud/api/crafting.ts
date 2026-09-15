@@ -30,6 +30,8 @@ import { HotReloadApi } from './hot-reload';
 import { CraftingLogic } from '../platform/idea/api/CraftingLogic';
 import { fileURLToPath } from 'url';
 import { SecurityApi } from './security';
+import type { BulkPayload } from '../lib/bulk/Bulkable';
+import type Material from '../lib/material/Material';
 
 /**
  * How the output's maker is resolved — an enum, never a principal:
@@ -293,6 +295,49 @@ export class CraftingApi {
   /** The display views for a `Menu`'s offered recipes. */
   public static async offeredRecipes(menu: Stuff): Promise<RecipeView[]> {
     return logic().offeredRecipes(menu);
+  }
+
+  // ---------- what a blend IS ----------
+  //
+  // ⭐⭐ A blend's name, look and discipline are **not** functions of its
+  // ingredients — you cannot get *"hearty stew"* out of root-vegetable
+  // plus stew-meat — and they are not its Material's either, because the
+  // craft sets a blend's material to a generic base. They come from the
+  // RECIPE, which is why they are crafting's to answer. Every one falls
+  // back to the Material, because most bulk is not a blend at all: water
+  // in a butt, a puddle on a floor.
+
+  /** A blend's display name — its recipe's, else its Material's. */
+  public static blendName(
+    payload: BulkPayload | null,
+    material: Material | null,
+  ): string {
+    return logic().blendName(payload, material);
+  }
+
+  /**
+   * A blend's appearance prose — the string the vessel CARRIES first,
+   * then its recipe's, then its Material's.
+   *
+   * ⚠ The carried string wins deliberately: it is what the substrate
+   * renders, so reading the recipe ahead of it could disagree with the
+   * vessel's own prose after a recipe edit.
+   */
+  public static blendAppearance(
+    payload: BulkPayload | null,
+    material: Material | null,
+  ): string {
+    return logic().blendAppearance(payload, material);
+  }
+
+  /**
+   * ⭐ The Discipline whose recipe made this — the skill a taster's
+   * palate is read through. A blend nobody's recipe made records none and
+   * reads at the floor, which is honest: an off-spec lump of food teaches
+   * you nothing about its making.
+   */
+  public static blendDiscipline(payload: BulkPayload | null): string {
+    return logic().blendDiscipline(payload);
   }
 }
 

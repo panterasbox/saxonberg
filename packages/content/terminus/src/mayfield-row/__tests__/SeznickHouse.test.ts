@@ -41,6 +41,7 @@ import {
 } from '@saxonberg/server/mud/lib/security/__tests__/test-setup';
 import { installV1QuantityMarshallers } from '@saxonberg/server/mud/lib/persistence/__tests__/quantity-marshaller-test-helpers';
 import type { Chattel } from '@saxonberg/server/mud/lib/chattel/Chattel';
+import { BoundaryApi } from '@saxonberg/server/mud/api/boundary';
 
 type MemberStuff = Stuff & Container;
 
@@ -314,12 +315,12 @@ describe('Seznick House — the lease loop', () => {
     const w = await building();
     const tenant = makeAvatar('iris');
     const issued: string[] = [];
-    vi.spyOn(Lock, 'issueKey').mockImplementation((async (
-      _who: Stuff,
-      keyway: string,
-    ) => {
-      issued.push(keyway);
-    }) as unknown as typeof Lock.issueKey);
+    // ⭐ The keyway is the LOCK's now — read it off the receiver.
+    vi.spyOn(Lock.prototype, 'issueKeyTo').mockImplementation(async function (
+      this: Lock,
+    ): Promise<void> {
+      issued.push(this.keyway);
+    });
 
     const ctx = await run(makeStuff(() => new LeaseController()), walter, tenant, 'lease');
     expect(reasons(ctx)).toEqual([]);

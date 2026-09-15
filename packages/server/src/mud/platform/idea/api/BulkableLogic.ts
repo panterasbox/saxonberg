@@ -304,20 +304,20 @@ export class BulkableLogic extends ApiLogic {
     // (identity, riding into an EMPTY destination only), blends by mass on
     // EVERY pour. Otherwise decanting a spoiled pot into a fresh one would
     // launder it: the pour-to-reset exploit.
-    const fromLoad = Freshness.loadOf(from);
-    const toLoadBefore = to !== null ? Freshness.loadOf(to) : 0;
+    const fromLoad = new Freshness(from).load();
+    const toLoadBefore = to !== null ? new Freshness(to).load() : 0;
     // ⭐ The water state rides the matter exactly as the load does, and
     // for the same reason: tipping brine into fresh stock partly cures
     // the stock, and tipping fresh stock into brine dilutes it. Reading
     // both BEFORE the debit matters — a full drain clears the payload.
-    const fromCure = Cure.stateFor(from);
-    const toCureBefore = to !== null ? Cure.stateFor(to) : null;
+    const fromCure = new Cure(from).state();
+    const toCureBefore = to !== null ? new Cure(to).state() : null;
     // ⚠⚠ And the silent population, by the same mass-weighted rule. A
     // pathogen that did not blend on the pour would make decanting a
     // laundry: tip the bad stew into a clean pot and it comes out safe.
-    const fromPathogens = Contamination.loadsFor(from);
+    const fromPathogens = new Contamination(from).loads();
     const toPathogensBefore =
-      to !== null ? Contamination.loadsFor(to) : {};
+      to !== null ? new Contamination(to).loads() : {};
     const fromPayload = from.getPayload();
     const toWasEmpty = to !== null && to.isEmpty();
     from.debit(applied);
@@ -341,15 +341,13 @@ export class BulkableLogic extends ApiLogic {
       // slot just carries the source's load across (the arithmetic degrades
       // to that on its own when `toAmountBefore` is 0).
       if (to.getPayload()?.freshness || fromLoad > 0) {
-        Freshness.stampLoad(
-          to,
-          Freshness.blendLoads(fromLoad, applied, toLoadBefore, toAmountBefore),
+        new Freshness(
+          to).stampLoad(Freshness.blendLoads(fromLoad, applied, toLoadBefore, toAmountBefore),
         );
       }
       if (fromCure !== null || toCureBefore !== null) {
-        Cure.stampState(
-          to,
-          Cure.blend(fromCure, applied, toCureBefore, toAmountBefore),
+        new Cure(
+          to).stampState(Cure.blend(fromCure, applied, toCureBefore, toAmountBefore),
         );
       }
       // ⭐⭐ **A dirty vessel contaminates what you fill it with**, and its
@@ -387,7 +385,7 @@ export class BulkableLogic extends ApiLogic {
         !Contamination.isClean(toPathogensBefore) ||
         !Contamination.isClean(surface)
       ) {
-        Contamination.stampLoads(to, withSurface);
+        new Contamination(to).stampLoads(withSurface);
       }
     }
 

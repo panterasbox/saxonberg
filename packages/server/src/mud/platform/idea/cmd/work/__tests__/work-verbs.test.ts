@@ -40,6 +40,7 @@ import {
   withRootContext,
 } from "../../../../../lib/security/__tests__/test-setup";
 import { installV1QuantityMarshallers } from "../../../../../lib/persistence/__tests__/quantity-marshaller-test-helpers";
+import { MqlApi } from "../../../../../api/mql";
 import {
   installBankingHarness,
   teardownBankingHarness,
@@ -152,15 +153,15 @@ describe("work verbs", () => {
       BankingApi.ensureVenueAccount(
         POSTER,
         BankingApi.defaultCustodianBank(),
-        "", Currency.compact()),
+        "", BankingApi.compactCurrency()),
     );
-    await BankingApi.mint(acct, Money.of(100, Currency.compact()));
+    await BankingApi.mint(acct, Money.of(100, BankingApi.compactCurrency()));
     // The courier is a player (the /platform/agent/Avatar/ namespace): players hold
     // their own accounts (never silently signed up at settle).
     await BankingApi.ensureVenueAccount(
       COURIER,
       BankingApi.defaultCustodianBank(),
-      "", Currency.compact());
+      "", BankingApi.compactCurrency());
   });
   afterEach(() => {
     vi.restoreAllMocks();
@@ -492,8 +493,12 @@ describe("work verbs", () => {
     expect(CredentialWalletUpdate.commandContributions.self).toContain(
       "platform/cmd/work/fulfill.yaml",
     );
-    // resolveIn: reachable-peers path (no commandSource in the context).
-    const found = JobBoard.resolveIn(ctx(courier) as never);
+    // ⭐ The board is what `job.yaml`'s `board` arg DEFAULTS to — the
+    // query the view declares, asked here directly.
+    const found = MqlApi.resolveOne('reachable:[class.JobBoard]', {
+      commandGiver: courier as never,
+      scope: 'reachable',
+    }).stuff;
     expect(found).toBe(board);
   });
 

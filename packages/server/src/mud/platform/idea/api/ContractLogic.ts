@@ -49,6 +49,7 @@ import type {
   CompleteResult,
 } from "../../../api/contract";
 import type { Stuff } from "../../../lib/stuff/Stuff";
+import { CategoryMeasure } from '../../../lib/employment/CategoryMeasure';
 
 const ContractApiCallers = SecurityPolicies.FromModule(
   "/api/contract#ContractApi",
@@ -205,10 +206,10 @@ function countDeliveredItemsAt(
   if (MixinApi.isSurfaced(dest)) {
     for (const item of dest.getResting()) {
       if (
-        Condition.matchesItem(condition, item) &&
-        Condition.holdsFor(condition, item)
+        new Condition(condition).matchesItem(item) &&
+        new Condition(condition).holdsFor(item)
       ) {
-        found += Condition.contributionOf(condition, item);
+        found += contributionOf(condition, item);
       }
     }
   }
@@ -216,10 +217,10 @@ function countDeliveredItemsAt(
   for (const item of dest.getContents()) {
     if (item instanceof Creature) continue;
     if (
-      Condition.matchesItem(condition, item) &&
-      Condition.holdsFor(condition, item)
+      new Condition(condition).matchesItem(item) &&
+      new Condition(condition).holdsFor(item)
     ) {
-      found += Condition.contributionOf(condition, item);
+      found += contributionOf(condition, item);
     }
     found += countDeliveredItemsAt(item, condition, depth + 1);
   }
@@ -330,7 +331,7 @@ function claimantStuff(record: ContractRecord): Stuff | null {
 function conditionHoldsAt(dest: Stuff, condition: ConditionData): boolean {
   if (condition.template === 'supply') {
     return (
-      countDeliveredItemsAt(dest, condition) >= Condition.countOf(condition)
+      countDeliveredItemsAt(dest, condition) >= new Condition(condition).countOf()
     );
   }
   return findDeliveredItemAt(dest, condition) !== null;
@@ -344,8 +345,8 @@ function findDeliveredItemAt(
   if (MixinApi.isSurfaced(dest)) {
     for (const item of dest.getResting()) {
       if (
-        Condition.matchesItem(condition, item) &&
-        Condition.holdsFor(condition, item)
+        new Condition(condition).matchesItem(item) &&
+        new Condition(condition).holdsFor(item)
       ) {
         return item;
       }
@@ -355,8 +356,8 @@ function findDeliveredItemAt(
   for (const item of dest.getContents()) {
     if (item instanceof Creature) continue;
     if (
-      Condition.matchesItem(condition, item) &&
-      Condition.holdsFor(condition, item)
+      new Condition(condition).matchesItem(item) &&
+      new Condition(condition).holdsFor(item)
     ) {
       return item;
     }
@@ -419,7 +420,7 @@ async function breachClaim(
     txId = await BankingApi.escrowRevert(
       record.contractId,
       record.issuerAccountId,
-      Money.of(record.rewardMinor, Currency.compact()),
+      Money.of(record.rewardMinor, BankingApi.compactCurrency()),
     );
   }
   await appendEvent(record.contractId, "breached", {
@@ -474,7 +475,7 @@ async function expireStale(record: ContractRecord): Promise<ContractRecord> {
       txId = await BankingApi.escrowRevert(
         record.contractId,
         record.issuerAccountId,
-        Money.of(record.rewardMinor, Currency.compact()),
+        Money.of(record.rewardMinor, BankingApi.compactCurrency()),
       );
     }
     record.state = "expired";
@@ -642,7 +643,7 @@ async function postImpl(spec: GigSpec): Promise<PostGigResult> {
     const held = await BankingApi.escrowHold(
       issuer.accountId,
       contractId,
-      Money.of(spec.rewardMinor, Currency.compact()),
+      Money.of(spec.rewardMinor, BankingApi.compactCurrency()),
     );
     if (!held.ok) {
       return { ok: false, reason: "you can't fund that reward" };
@@ -685,7 +686,7 @@ async function claimImpl(contractId: string): Promise<ClaimResult> {
   const held = await BankingApi.escrowHold(
     record.issuerAccountId,
     contractId,
-    Money.of(record.rewardMinor, Currency.compact()),
+    Money.of(record.rewardMinor, BankingApi.compactCurrency()),
   );
   if (!held.ok) {
     // Funds moved since posting — the board never advertises a check the
@@ -803,7 +804,7 @@ async function completeImpl(contractId: string): Promise<CompleteResult> {
   // ⭐ A `watch` clause verifies against the ACCRUED WATCH on the record,
   // not against anything at a destination — there is no item to find.
   if (condition.template === "watch") {
-    verified = Condition.watchHolds(condition, record.watchedSec ?? 0);
+    verified = new Condition(condition).watchHolds(record.watchedSec ?? 0);
     if (!verified) {
       return { ok: false, reason: "the watch isn't served out" };
     }
@@ -848,7 +849,7 @@ async function completeImpl(contractId: string): Promise<CompleteResult> {
       key,
       custodian,
       "",
-      Currency.compact(),
+      BankingApi.compactCurrency(),
       0,
     );
   }
@@ -866,7 +867,7 @@ async function completeImpl(contractId: string): Promise<CompleteResult> {
   const txId = await BankingApi.escrowRelease(
     contractId,
     payee,
-    Money.of(record.rewardMinor, Currency.compact()),
+    Money.of(record.rewardMinor, BankingApi.compactCurrency()),
   );
   await appendEvent(contractId, "settled", {
     actor: key,
@@ -1055,4 +1056,12 @@ async function buysForOf(
       | (Stuff & BusinessShape)
       | undefined) ?? null
   );
+}
+
+/** One item's contribution toward a condition's count — inlined from
+ *  `Condition` when this file turned out to be its only caller. A
+ *  non-category condition counts the item once. */
+function contributionOf(data: ConditionData, item: Stuff): number {
+  if (data.item.kind !== 'category') return 1;
+  return CategoryMeasure.contribution(item, data.item.category, data.item.unit);
 }

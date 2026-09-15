@@ -68,6 +68,7 @@ import { AppApi } from '../../../../api/app';
 import { Lock } from '../../../../lib/lock/Lock';
 import { OuterWarren } from '../../../../lib/location/OuterWarren';
 import { Currency } from "../../../../lib/banking/Currency";
+import { BoundaryApi } from '../../../../api/boundary';
 
 const TOPIC = 'act.deed';
 
@@ -220,7 +221,7 @@ export default class TitleController extends CommandController<TitleModel> {
 
     const lines: string[] = [];
     for (const book of await this.books()) {
-      const price = Money.of(book.getPriceMinor(), Currency.compact());
+      const price = Money.of(book.getPriceMinor(), BankingApi.compactCurrency());
       const area = Quantity.of(book.getAreaM2(), 'm²');
       const use = book.getLandUse();
       lines.push(`${book.getLabel()}:`);
@@ -348,7 +349,7 @@ export default class TitleController extends CommandController<TitleModel> {
       this.reject(
         context,
         giver,
-        Mml.compose`You can't cover ${Money.of(price, Currency.compact()).render()} for that lot.`,
+        Mml.compose`You can't cover ${Money.of(price, BankingApi.compactCurrency()).render()} for that lot.`,
         'insufficient-funds',
         `could not settle ${price} for ${extent}`,
       );
@@ -376,10 +377,10 @@ export default class TitleController extends CommandController<TitleModel> {
     // keyway on the lot's parcel row, a physical brass key in hand plus
     // an implant-keychain entry. The house door checks the KEY, never
     // identity; a resale-less re-provision re-keys.
-    const keyway = Lock.mintKeyway();
+    const keyway = BoundaryApi.mintKeyway();
     await ParcelApi.setKeyway(extent, keyway);
     try {
-      await Lock.issueKey(giver, keyway, 'pin-tumbler');
+      await new Lock(keyway, 'pin-tumbler').issueKeyTo(giver);
     } catch (err) {
       console.warn(`TitleController: key issue failed for ${extent}:`, err);
     }
@@ -527,7 +528,7 @@ export default class TitleController extends CommandController<TitleModel> {
       return false;
     }
     const charge: Charge = {
-      amount: Money.of(amount, Currency.compact()),
+      amount: Money.of(amount, BankingApi.compactCurrency()),
       reason: `title to ${extent}`,
       presented: true,
       payeeAccountId: account,

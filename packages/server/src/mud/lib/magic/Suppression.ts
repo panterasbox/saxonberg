@@ -49,6 +49,11 @@ export class Suppressions {
    * effect dormancy check runs inside the (sync) conditions reconcile.
    * The async zone tier folds in one layer up (`MagicApi.
    * suppressionAtDeep`) for cast-time reads.
+   *
+   * @internal the callable door is `MagicApi.suppressionAt`, which has
+   * forwarded here since P7 — this static was the second, undocumented
+   * way in. The body stays beside the walk cap and the carrier shape it
+   * reads.
    */
   public static fieldAt(place: Stuff | null | undefined): MagicSuppression | null {
     let cursor: Stuff | null = place ?? null;

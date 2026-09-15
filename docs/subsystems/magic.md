@@ -222,7 +222,7 @@ Every effect is one of two **families**, derived from its kind:
   and **detect** (`sense` — arcane sight reads the tags);
 - **the anti-magic field**: `Location.suppressesMagic`
   (`{all:true}` or a `verbs`/`nouns` grid filter), resolved by the
-  **sync** outward containment walk (`Suppressions.fieldAt`, the biome
+  **sync** outward containment walk (`MagicApi.suppressionAt`, the biome
   chain shape) + an **async zone tier**
   (`Zone.lookupField('suppressesMagic')`) folded in at cast time
   (`suppressionAtDeep`). Casting inside is vetoed in `prepareCast`

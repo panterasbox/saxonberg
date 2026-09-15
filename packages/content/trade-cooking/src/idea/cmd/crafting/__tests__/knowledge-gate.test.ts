@@ -82,7 +82,10 @@ describe('the knowledge gate at the hearth', () => {
     // With the deed minted (the by-hand mint's act), the gate opens —
     // the craft then resolves on its own merits (declines on matter, not
     // knowledge).
-    await RecipeKnowledge.noteMade(builder, 'hearty-stew', 'Hearty Stew');
+    await builder.recordChronicleOnce(
+      RecipeKnowledge.madeKey('hearty-stew'),
+      RecipeKnowledge.madeEntry('Hearty Stew'),
+    );
     const open = makeContext(builder, room, 'cook stew');
     await executeAs(builder, () =>
       makeStuff(() => new CookController()).execute(

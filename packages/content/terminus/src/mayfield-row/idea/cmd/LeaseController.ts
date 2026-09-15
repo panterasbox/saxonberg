@@ -26,6 +26,7 @@ import { OuterWarren } from '@saxonberg/server/mud/lib/location/OuterWarren';
 import { Character } from '@saxonberg/server/mud/lib/character/Character';
 import type { ParcelOwner } from '@saxonberg/server/mud/lib/parcel/ParcelRecord';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
+import { BoundaryApi } from '@saxonberg/server/mud/api/boundary';
 
 const TOPIC = 'act.deed';
 
@@ -61,7 +62,7 @@ export default class LeaseController extends CommandController<LeaseModel> {
         'no-building-parcel',
       );
     }
-    if (!(await LeaseController.isBuildingAgent(actor, owner))) {
+    if (!(await AccessApi.isAgentOf(actor, owner))) {
       return this.fail(
         context,
         "You're not authorized to let Seznick House's rooms.",
@@ -127,9 +128,9 @@ export default class LeaseController extends CommandController<LeaseModel> {
     }
 
     // Key the unit fresh and hand the tenant the key (D7).
-    const keyway = Lock.mintKeyway();
+    const keyway = BoundaryApi.mintKeyway();
     await ParcelApi.setKeyway(unitExtent, keyway);
-    await Lock.issueKey(target, keyway, LOCK_TECH);
+    await new Lock(keyway, LOCK_TECH).issueKeyTo(target);
 
     // Reflect into the (possibly-live) building now.
     await view.refreshProvisioned();
@@ -142,22 +143,10 @@ export default class LeaseController extends CommandController<LeaseModel> {
     );
   }
 
-  /** A wizard, or an agent of the building's owner (Walter's authority —
-   *  owner-conferred group membership; the isDormsAgent shape). */
-  public static async isBuildingAgent(
-    actor: Stuff,
-    owner: ParcelOwner,
-  ): Promise<boolean> {
-    if (await AccessApi.isWizard(actor)) return true;
-    const ref = await ParcelApi.resolveOwnerRef(owner);
-    if (!ref) return false;
-    const key = actor.getIdentityPath();
-    return key ? GroupApi.isMember(key, ref) : false;
-  }
 
   /** The ascent gate's read (P10) — shared with the sale chokepoint's
    *  shape: any held residential unit below the threshold refuses. */
-  public static async ascentRefusal(holder: string): Promise<string | null> {
+  private static async ascentRefusal(holder: string): Promise<string | null> {
     let min = 0.5;
     try {
       const raw = Number.parseFloat(

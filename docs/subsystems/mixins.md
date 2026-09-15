@@ -181,9 +181,33 @@ contributes fields/methods, but no introspection notices it, no
 persistence aggregator picks up its `fieldMeta`'s persistent entries, no command
 discovery picks up its `commandProvider`.
 
-The string value MUST appear in the `Mixins` registry in
-`mixin.ts`. Two sources of truth would drift; the registry is
-single source.
+A **kernel** mixin's string value MUST appear in the `Mixins` registry
+in `mixin.ts`. Two sources of truth would drift; the registry is single
+source, and `pnpm lint:mixin-names` is what verifies the claim —
+`BodyPlanSlotsMixin` and `SeatedDrivableMixin` had been missing from it
+for months, so no `requires:` could name either.
+
+⭐⭐ **A capability pack's mixin does NOT go there, and cannot.** The
+const is kernel source; a pack may not edit it, and for a long time that
+meant a pack could ship a mixin, compose it, match it from MQL — and
+still not be able to NAME it in its own command view, because
+`requires:` validated against `Object.values(Mixins)`. Since 2026-09-14
+the namespace is **federated**: `PackApi` reads every `_mixinName` under
+a discovered pack's `src/` and registers it with
+`MixinApi.registerPackMixin`, and `MixinApi.isDeclaredMixin` answers for
+both halves. A pack owns its own name constant instead
+(`export const SHIPMENT_DESK_MIXIN = 'ShipmentDeskMixin'`), and
+`MixinApi.hasMixin` accepts it — its parameter is `AnyMixinName`,
+because typing it `MixinName` made a pack's question about its own mixin
+a compile error.
+
+⚠ The namespace is still **flat**, and the typo check the compiler used
+to give is now `lint:mixin-names`' job: it refuses a duplicate
+`_mixinName` anywhere, and refuses a declaration its reader cannot
+resolve. **Two packs colliding on a name is the recorded trigger to
+reopen path-addressed mixins** — declined today because a TypeScript
+type predicate cannot be path-addressed
+(`docs/slates/builds/content-packs-slate.md` § RESOLVED).
 
 ### 3. Public-shape interface, same name, colocated
 
@@ -226,6 +250,7 @@ specific static. Three are recognized today:
 | `static fieldMeta: FieldMeta` | `PersistentHydrator`, `Document.toDocument`, `StudioLogic` | Everything a field declares about itself — `persistent` / `marshaller` / `instruction` / `stackIdentity` / `authorable` / `runtimeState`, plus the `ref` + `lifetime` reference axes |
 | `static commandProvider: CommandProviderRegistry` | `CommandGiverMixin.getAvailableCommands` | YAML command files exposed when this mixin is in scope |
 | `static _mixinName: string` | `MixinApi.queryMixins` | Identity (above) |
+| `static _mixinRefusal?: string` | `MixinApi.refusalFor` | ⭐ A PACK mixin's player-facing refusal sentence, for a `requires:` that names it (`"{} isn't a shipping desk"`; `{}` is the target's presentation). A kernel mixin's phrase lives in `MixinRefusals` instead — a pack cannot edit that const, which is the whole reason this static exists. `lint:arg-kinds` fails on a required mixin with neither. |
 | `static cleanupOnDestruct(stuff: Stuff): void` | `StuffApi.destruct` dispatcher | Substrate-invariant cleanup when an instance of this mixin destructs (see below) |
 
 Subsystems extend this list by reading additional statics on the same
@@ -938,10 +963,14 @@ pattern (see test fixtures) catches it.
 
 ### Forgetting to add to the `Mixins` registry
 
-The marker string and the registry constant must agree. If
-`_mixinName = 'FooMixin'` and `Mixins.Foo` doesn't exist, `MixinApi`
-calls become `string`-typed instead of `MixinName`-typed and the
-`isFoo` predicate is missing.
+For a **kernel** mixin the marker string and the registry constant must
+agree. If `_mixinName = 'FooMixin'` and `Mixins.Foo` doesn't exist,
+`MixinApi` calls become `string`-typed instead of `MixinName`-typed and
+the `isFoo` predicate is missing. `lint:mixin-names` fails on it.
+
+⚠ A **pack** mixin is the opposite case: it must NOT be there, and its
+registration happens at pack discovery from source. See § *The
+`_mixinName` static marker* above.
 
 ### Forgetting `MixinApi.isFoo`
 

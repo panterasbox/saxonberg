@@ -58,6 +58,10 @@ export const DEFAULT_TEMPO_CONFIG: TempoConfig = {
   maxRate: 3,
 };
 
+/**
+ * @internal every caller of this class sits in the `combat` subsystem —
+ * it is that subsystem's private collaborator, not author surface.
+ */
 export class Tempo {
   /** Fractional exchanges carried between beats. */
   private carry = 0;

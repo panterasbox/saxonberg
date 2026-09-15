@@ -17,6 +17,7 @@ import { Document } from "../persistence/Document";
 import { Collections } from "../persistence/Collections";
 import { SecurityApi } from "../../api/security";
 import type { FieldMeta } from "../mixin";
+import { WarmedIndex } from "../persistence/WarmedIndex";
 
 export default class SupplyAggregate extends Document {
   static collectionName = Collections.BankSupply;
@@ -41,13 +42,21 @@ export default class SupplyAggregate extends Document {
   drained = 0;
 
   /** Warmed mirror, keyed by currency — keeps the supply read sync. */
-  private static _cache = new Map<string, { minted: number; drained: number }>();
+  /**
+   * The warmed read index: `currency → {minted, drained}`.
+   *
+   * Storage is {@link WarmedIndex}; the WARM below stays here, because
+   * the SUM it performs is the invariant that matters (see it).
+   */
+  static #index = new WarmedIndex<{ minted: number; drained: number }>();
 
   /**
    * Load every row into the warmed mirror. Called at boot + rebuild.
    *
    * ⚠ **Throws on a currency-less row** — see {@link AccountBalance.warm};
    * booting on an unmigrated database is a failure, not a degraded mode.
+   *
+   * @internal the callable doors are `BankingApi`'s supply + audit reads; the warm is boot's. Not author surface.
    */
   static async warm(): Promise<void> {
     const rows = await SupplyAggregate.find<SupplyAggregate>({});
@@ -73,33 +82,45 @@ export default class SupplyAggregate extends Document {
         drained: (seen?.drained ?? 0) + row.drained,
       });
     }
-    SupplyAggregate._cache = next;
+    SupplyAggregate.#index.replaceWith(next);
   }
 
-  /** Sync read of net supply (minted − drained) for one currency. */
+  /**
+   * Sync read of net supply (minted − drained) for one currency.
+   *
+   * @internal the callable doors are `BankingApi`'s supply + audit reads. Not author surface.
+   */
   static cachedSupply(currency: string): number {
-    const row = SupplyAggregate._cache.get(currency);
+    const row = SupplyAggregate.#index.get(currency);
     return row ? row.minted - row.drained : 0;
   }
 
-  /** The warmed mirror for one currency (minted / drained). */
+  /**
+   * The warmed mirror for one currency (minted / drained).
+   *
+   * @internal the callable doors are `BankingApi`'s supply + audit reads. Not author surface.
+   */
   static cached(currency: string): { minted: number; drained: number } {
-    return { ...(SupplyAggregate._cache.get(currency) ?? { minted: 0, drained: 0 }) };
+    return { ...(SupplyAggregate.#index.get(currency) ?? { minted: 0, drained: 0 }) };
   }
 
   /** Every warmed row, by currency — what per-currency reports iterate. */
-  static allCached(): Map<string, { minted: number; drained: number }> {
-    return new Map(SupplyAggregate._cache);
+  private static allCached(): Map<string, { minted: number; drained: number }> {
+    return new Map(SupplyAggregate.#index.entries());
   }
 
-  /** Keep the warmed mirror in step after a posting / rebuild. */
+  /**
+   * Keep the warmed mirror in step after a posting / rebuild.
+   *
+   * @internal the callable doors are `BankingApi`'s supply + audit reads. Not author surface.
+   */
   static putCached(currency: string, minted: number, drained: number): void {
-    SupplyAggregate._cache.set(currency, { minted, drained });
+    SupplyAggregate.#index.put(currency, { minted, drained });
   }
 
   /** Test seam — reset the warmed mirror. */
   static _resetForTesting(): void {
     SecurityApi.assertTestOnly("SupplyAggregate._resetForTesting");
-    SupplyAggregate._cache = new Map();
+    SupplyAggregate.#index.clear();
   }
 }

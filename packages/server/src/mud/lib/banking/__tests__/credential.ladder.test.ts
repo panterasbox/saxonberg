@@ -50,7 +50,7 @@ async function asOwner<T>(owner: Stuff, fn: () => Promise<T>): Promise<T> {
 
 function charge(amount: number): Charge {
   return {
-    amount: Money.of(amount, Currency.compact()),
+    amount: Money.of(amount, BankingApi.compactCurrency()),
     reason: "a purchase",
     presented: true,
     payeeAccountId: MERCHANT,
@@ -67,9 +67,9 @@ async function pocket(
   const card = makeStuffAtPath(() => new PaymentCard(), "/stuff/thing/PaymentCard");
   ContainmentApi.move(card, alice as never);
   const accountId = await asOwner(alice, () =>
-    BankingApi.openAccount(BANK_A, "goodkin", Currency.compact())
+    BankingApi.openAccount(BANK_A, "goodkin", BankingApi.compactCurrency())
   ); // auto-links + active on the carried card
-  await BankingApi.mint(accountId, Money.of(funds, Currency.compact()));
+  await BankingApi.mint(accountId, Money.of(funds, BankingApi.compactCurrency()));
   card.getCredential("payment")!.setSpendCap(cap);
   return { alice, card, accountId };
 }

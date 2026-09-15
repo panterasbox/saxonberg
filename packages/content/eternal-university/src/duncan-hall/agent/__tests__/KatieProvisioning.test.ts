@@ -218,12 +218,12 @@ describe('Katie — the dorms-agent authorization boundary', () => {
     // Katie is an agent of the dorms owner → authorized (not via a wizard
     // bit — an NPC has no playerId, so isWizard is false; the group is why).
     expect(await AccessApi.isWizard(katie)).toBe(false);
-    expect(await ProvisionController.isDormsAgent(katie, DORMS_OWNER)).toBe(true);
+    expect(await AccessApi.isAgentOf(katie, DORMS_OWNER)).toBe(true);
 
     // A random online player, neither wizard nor dorms staff → refused.
     const stranger = makeStuffAtPath(() => new Avatar(), '/platform/agent/Avatar/stranger');
     stranger.setPlayerId('stranger');
-    expect(await ProvisionController.isDormsAgent(stranger, DORMS_OWNER)).toBe(false);
+    expect(await AccessApi.isAgentOf(stranger, DORMS_OWNER)).toBe(false);
   });
 });
 

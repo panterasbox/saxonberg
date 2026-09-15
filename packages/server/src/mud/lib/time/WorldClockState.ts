@@ -20,6 +20,10 @@ import { Document } from '../persistence/Document';
 import { Collections } from '../persistence/Collections';
 import type { FieldMeta } from '../mixin';
 
+/**
+ * @internal only the world clock reads it — it is the timekeeping
+ * substrate's private collaborator, not author surface.
+ */
 export class WorldClockState extends Document {
   static collectionName = Collections.WorldState;
   static fieldMeta: FieldMeta = {

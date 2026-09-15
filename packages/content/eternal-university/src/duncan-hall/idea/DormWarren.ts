@@ -67,15 +67,17 @@ export default class DormWarren extends DormWarrenBase {
    *  roster; the operator's `dorm.roomCap` dial can lower or raise it). */
   public override defaultCapacity = 240;
 
-  /** Resolve the singleton (async — clones on first access). */
-  static async resolve(): Promise<DormWarren> {
-    return StuffApi.singleton<DormWarren>(DormWarren.WARREN_PATH);
-  }
-
-  /** Peek at the live singleton without forcing a clone (sync). */
-  static peek(): DormWarren | null {
-    return StuffApi.findByTemplatePath<DormWarren>(DormWarren.WARREN_PATH) ?? null;
-  }
+  /*
+   * ⚠ **`resolve()` and `peek()` were statics here and are gone.**
+   *
+   * They forwarded, verbatim, to `StuffApi.singleton(WARREN_PATH)` and
+   * `StuffApi.findByTemplatePath(WARREN_PATH)` — the sanctioned way to
+   * reach a singleton, on the Api that a generated-doc reader can
+   * actually find. A static on a pack class cannot be found there
+   * (`callable == visible == cared-about`), so the wrapper made the
+   * discoverable call less discoverable. Callers say it directly; the
+   * path is `WARREN_PATH`, still public beside them.
+   */
 
   /** The per-floor room count: the operator's dial, else the authored
    *  default (`ROOMS_PER_FLOOR` — the graduated `static readonly`). */

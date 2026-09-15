@@ -88,7 +88,7 @@ export default class RateBoard extends RateBoardBase {
   }
 
   /** The tariff, as a table. */
-  public static renderCard(card: RateCard): string {
+  private static renderCard(card: RateCard): string {
     const lines = card.lines.map((l) => {
       const where =
         l.from === '' && l.to === ''

@@ -1158,4 +1158,10 @@ See [persistence.md § Collections](./docs/subsystems/persistence.md).
   `SecurityApi`, `ProxyApi`) deliberately don't self-decorate — see
   [docs/subsystems/call-security.md](./docs/subsystems/call-security.md).
 - The `Mixins` constants object is the single source of truth for
-  mixin names. Add new mixins there.
+  **kernel** mixin names. Add new kernel mixins there — `lint:mixin-names`
+  refuses one that is missing. ⚠ A **capability pack's** mixin does NOT
+  go there and cannot: the const is kernel source. Since the 2026-09-14
+  federation a pack's `static _mixinName` is registered at pack discovery
+  and is nameable by `requires:` like any other; the pack owns its name
+  constant and its `static _mixinRefusal`. See
+  [mixins.md](./docs/subsystems/mixins.md).

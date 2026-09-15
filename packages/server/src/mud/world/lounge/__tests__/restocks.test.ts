@@ -297,7 +297,11 @@ describe("the keeper's back loop — Mara orders Dave's Bar's rail in, and recei
       const b = ginBottle();
       ContainmentApi.move(b as never, hand as never);
       const cc = ctx(hand, cashAndCarry, counter, `consign gin --ask ${ask}`);
-      await asPrincipal(hand, () => makeStuff(() => new ConsignController()).execute({ thing: 'gin', ask: String(ask) }, cc));
+      await asPrincipal(hand, () => makeStuff(() => new ConsignController()).execute(
+        // ⚠ `shelf` is bound by the view; a hand-built model must carry it.
+        { thing: 'gin', ask: String(ask), shelf: { stuff: shelf, raw: 'shelf' } },
+        cc,
+      ));
       expect(rejections(cc)).toEqual([]);
       out.push(b);
     }
@@ -406,7 +410,7 @@ describe("the keeper's back loop — Mara orders Dave's Bar's rail in, and recei
   }
 
   it('⭐⭐ one beat with a funded house: the short line is POSTED as a kind-bound carriage bounty, collected at the supplier and dropped on the bench; the house escrows it', async () => {
-    await BankingApi.float(barAccount, Money.of(200, Currency.compact()));
+    await BankingApi.float(barAccount, Money.of(200, BankingApi.compactCurrency()));
     // One bottle on the rail against a 1.5 L par: short, and with an
     // exemplar to point at. ⚠ It is CHATTEL-MARKED, like every bottle a
     // bar actually owns — which is the whole reason `--kind` exists.
@@ -443,7 +447,7 @@ describe("the keeper's back loop — Mara orders Dave's Bar's rail in, and recei
     // A bounty escrows at post, out of the HOUSE's account.
     expect(BankingApi.escrowBalanceOf(open[0]!.contractId).minor).toBe(REWARD);
     expect(BankingApi.balanceOf(barAccount).minor).toBe(200 - REWARD);
-    expect(BankingApi.reconcile(Currency.compact()).balanced).toBe(true);
+    expect(BankingApi.reconcile(BankingApi.compactCurrency()).balanced).toBe(true);
 
     // ⚠⚠ The second beat posts NOTHING. The line is still short (nobody
     // has carried anything yet) and the bounty never expires, so without
@@ -469,7 +473,7 @@ describe("the keeper's back loop — Mara orders Dave's Bar's rail in, and recei
      * KIND (`--of`). Which gin this bar buys is the proprietor's
      * decision anyway, so it is authored where the level is.
      */
-    await BankingApi.float(barAccount, Money.of(200, Currency.compact()));
+    await BankingApi.float(barAccount, Money.of(200, BankingApi.compactCurrency()));
     barBiz.setParLine({
       category: 'gin',
       level: 1.5,
@@ -515,7 +519,7 @@ describe("the keeper's back loop — Mara orders Dave's Bar's rail in, and recei
      * (The guard against ordering a kind that is NOTHING still exists —
      * it lives where kinds are still named, in the work-verbs suite.)
      */
-    await BankingApi.float(barAccount, Money.of(200, Currency.compact()));
+    await BankingApi.float(barAccount, Money.of(200, BankingApi.compactCurrency()));
     barBiz.setParLine({
       category: 'gin',
       level: 1.5,

@@ -24,7 +24,8 @@ import type { Stuff } from "../stuff/Stuff";
 import type { MarkupAugmenter } from "../../api/mml";
 import { MixinApi } from "../../api/mixin";
 import type Material from "../material/Material";
-import { BlendLabel } from "./BlendLabel";
+import { BlendLabel } from './BlendLabel';
+import { MaterialApi } from '../../api/material';
 
 /**
  * Render the nutrition label lines from the given face (a Material's
@@ -95,11 +96,11 @@ function labelFaceOf(host: Stuff): LabelFace | null {
     // figures" and "the bare material's" — are the same call.
     const payload = host.getBulkPayload(aff);
     const held = host.getBulkMaterial(aff);
-    if (BlendLabel.isEdible(payload, held)) {
+    if (MaterialApi.blendEdibility(payload, held)) {
       return {
         edible: true,
         nutrientAmounts: BlendLabel.amountsOf(payload, held),
-        toxicity: BlendLabel.toxicityOf(payload, held),
+        toxicity: MaterialApi.blendToxicity(payload, held),
       };
     }
   }

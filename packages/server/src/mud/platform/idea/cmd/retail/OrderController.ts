@@ -23,7 +23,7 @@ import type { Stuff } from '../../../../lib/stuff/Stuff';
 import type { Container } from '../../../../lib/spatial/Container';
 import { Currency } from "../../../../lib/banking/Currency";
 import Tariff, { type ServiceKind } from '../../../thing/Tariff';
-import { MqlApi } from '../../../../api/mql';
+import { MqlApi, type MqlOneResult } from '../../../../api/mql';
 import { ConditionApi } from '../../../../api/condition';
 import { TemplatePaths } from '../../../../lib/paths';
 import { TRAUMA_BEHAVIOR } from '../../Condition';
@@ -33,6 +33,10 @@ import type { Vitals } from '../../../../lib/vitals/Vitals';
 const TOPIC = 'act.deed';
 
 interface OrderModel extends CommandModel {
+  /** The tariff board — bound by the view, `from`-addressable. */
+  counter?: MqlOneResult;
+  /** The recipe menu — bound by the view, `off`-addressable. */
+  menu?: MqlOneResult;
   cocktail: string;
   brand?: string;
 }
@@ -53,7 +57,9 @@ export default class OrderController extends CraftController<OrderModel> {
     // (items) can express. Before this no shipped priced key resolved to
     // anything but a recipe or a stock line, so the wreckage a fight
     // leaves could not become anybody's paid work.
-    const tariff = Tariff.resolveIn(context);
+    // ⭐ Bound by the view, not hunted for here.
+    // ⭐ Bound by the view, not hunted for here.
+    const tariff = (model.counter?.stuff ?? null) as Tariff | null;
     if (tariff) {
       // ⚠ The service key is the FIRST word and the subject is the rest.
       // `cocktail` is greedy (menu names are multi-word — "Old
@@ -70,7 +76,7 @@ export default class OrderController extends CraftController<OrderModel> {
       // through to the menu path, so a venue can carry both.
     }
 
-    const menu = Menu.resolveIn(context);
+    const menu = (model.menu?.stuff ?? null) as Menu | null;
     if (!menu) {
       MessageApi.scene(giver)
         .topic(TOPIC)
@@ -388,7 +394,7 @@ export default class OrderController extends CraftController<OrderModel> {
       return null; // no authored bank → the venue can't take payment
     }
     const charge: Charge = {
-      amount: Money.of(price, Currency.compact()),
+      amount: Money.of(price, BankingApi.compactCurrency()),
       reason: 'a drink',
       presented: true,
       payeeAccountId: venueAccount,
@@ -415,9 +421,9 @@ export default class OrderController extends CraftController<OrderModel> {
         return null; // no funds at all — the bar floats it
       }
     }
-    await BankingApi.remitDemoTax(venueAccount, Money.of(price, Currency.compact()));
+    await BankingApi.remitDemoTax(venueAccount, Money.of(price, BankingApi.compactCurrency()));
     return receipt.corpoKey
-      ? `(${Money.of(price, Currency.compact()).render()}, ${receipt.corpoKey})`
-      : `(${Money.of(price, Currency.compact()).render()})`;
+      ? `(${Money.of(price, BankingApi.compactCurrency()).render()}, ${receipt.corpoKey})`
+      : `(${Money.of(price, BankingApi.compactCurrency()).render()})`;
   }
 }

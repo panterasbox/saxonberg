@@ -100,7 +100,7 @@ describe('standing splits by level', () => {
 
   /** Seed a character's producer scalar directly into the warmed cache. */
   function seedProducer(host: Avatar, scalar: number): void {
-    ProducerStanding.cached().set(
+    ProducerStanding._putForTesting(
       ProducerStanding.key(host.getTemplatePath()!, PRODUCER_WIDE),
       scalar,
     );
@@ -262,7 +262,7 @@ describe('standing splits by level', () => {
     // projects as absent, never as a neutral zero. Seeding alice's
     // alone is what makes this an assertion about KEYING — bob shares
     // the account and still reads nothing.
-    RenownStanding.cached().set(
+    RenownStanding._putForTesting(
       RenownStanding.key(alice.getTemplatePath()!, COMPACT_WIDE),
       5
     );

@@ -23,6 +23,7 @@ import { Document } from '../persistence/Document';
 import { Collections } from '../persistence/Collections';
 import { SecurityApi } from '../../api/security';
 import type { FieldMeta } from '../mixin';
+import { WarmedIndex } from '../persistence/WarmedIndex';
 
 /** The stored `scope` sentinel — producer is Compact-wide only. */
 export const PRODUCER_WIDE = '*';
@@ -49,35 +50,58 @@ export default class ProducerStanding extends Document {
   recomputedRealAt = 0;
 
   /**
-   * The warmed read cache: `key(subject, scope) → value`. Always a Map
-   * (starts empty) so a cold read returns the neutral 0, never throws.
-   * `warm()` and `recompute()` replace it.
+   * The warmed read index — `{subject}|{scope}` → the signed standing.
+   *
+   * ⭐ The storage is {@link WarmedIndex}; the WARM below is this
+   * subsystem's, because what a row means is. See that class for why a
+   * cold read is neutral rather than an error, and for why this cannot
+   * live on the logic singleton.
    */
-  private static _cache = new Map<string, number>();
+  static #index = new WarmedIndex<number>();
 
   /** The composite cache key (pipe-joined; neither part contains a pipe). */
   static key(subject: string, scope: string): string {
     return `${subject}|${scope}`;
   }
 
-  /** Load all standings into the read cache. Called at boot + post-recompute. */
+  /**
+   * Load all standings into the read index. Called at boot + post-recompute.
+   *
+   * @internal the callable door is `ProducerApi.producerOf`; the warm is
+   * `ProducerStandings.postRegister`'s. Not author surface.
+   */
   static async warm(): Promise<void> {
     const rows = await ProducerStanding.find({});
-    const next = new Map<string, number>();
-    for (const r of rows) {
-      next.set(ProducerStanding.key(r.subject, r.scope), r.value);
-    }
-    ProducerStanding._cache = next;
+    ProducerStanding.#index.replaceWith(
+      rows.map((r) => [ProducerStanding.key(r.subject, r.scope), r.value] as const),
+    );
   }
 
-  /** The warmed read cache (empty until first warm → neutral 0 reads). */
-  static cached(): Map<string, number> {
-    return ProducerStanding._cache;
+  /**
+   * The warmed read index (empty until first warm → neutral 0 reads).
+   *
+   * @internal the callable door is `ProducerApi.producerOf`.
+   */
+  static cached(): ReadonlyMap<string, number> {
+    return ProducerStanding.#index.entries();
   }
 
-  /** Test seam — drop the cache so each test warms a fresh instance. */
+  /**
+   * Seed one entry — the test seam.
+   *
+   * ⭐ It exists because `cached()` now hands back a `ReadonlyMap`, and
+   * four tests were writing standings straight through that read
+   * accessor. A read surface a caller can mutate is not a read surface;
+   * the write is honest here, named, and test-gated.
+   */
+  static _putForTesting(key: string, value: number): void {
+    SecurityApi.assertTestOnly('ProducerStanding._putForTesting');
+    ProducerStanding.#index.put(key, value);
+  }
+
+  /** Test seam — drop the index so each test warms a fresh instance. */
   static _resetForTesting(): void {
     SecurityApi.assertTestOnly('ProducerStanding._resetForTesting');
-    ProducerStanding._cache = new Map();
+    ProducerStanding.#index.clear();
   }
 }

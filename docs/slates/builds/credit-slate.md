@@ -2,7 +2,7 @@
 
 > **Status: PARTIAL** — the money substrate shipped (two-tier money, the
 > conservation chokepoint, per-currency ledgers, `reserve` mint/issue,
-> `Currency.compact()`) → [banking.md](../../subsystems/banking.md); no
+> `BankingApi.compactCurrency()`) → [banking.md](../../subsystems/banking.md); no
 > lending exists — no application, rule, rate, term or repayment.
 > **Left:** splitting `reserve mint` into issuance + appropriation ·
 > naming the perpetual · chartering the `treasurer` seat and retiring the
@@ -80,7 +80,7 @@ things changed and one of them is a gift.
 | **`reserve mint` still fuses issuance + appropriation** | ✅ unchanged — Part 0's headline finding stands |
 | ⭐⭐ **`credit` was RETIRED as the money noun** | the currency is the **ZORKMID** |
 | **Conservation is now per-currency** | `LedgerEntry.currency`; **a leg may never cross currencies** |
-| **`Money.of()` takes a required currency** | `Money.of(n, Currency.compact())` — build-order step 1 must thread it |
+| **`Money.of()` takes a required currency** | `Money.of(n, BankingApi.compactCurrency())` — build-order step 1 must thread it |
 | ⭐ **`fullReconcile(currency)`** | richer than assumed — supply vs. accounts, circulation, **vault float** and **coin held offline** in `holder_snapshots` |
 
 > ⭐⭐⭐ **The gift: the rename freed the word `credit` FOR THIS BUILD.**
@@ -94,7 +94,7 @@ things changed and one of them is a gift.
 Three consequences worth carrying:
 
 - ⭐⭐ **Reserve-by-construction now SHIPS.** `banking.compactCurrency` (an
-  AppSetting, read only through `Currency.compact()`) names what the Compact
+  AppSetting, read only through `BankingApi.compactCurrency()`) names what the Compact
   transacts in — *"policy data, not a property of the money."* ⇒ **state
   obligations are denominated by construction**, which is exactly the
   mechanism Part 4's state lane assumed and no longer has to argue for.

@@ -60,6 +60,7 @@ import { AppSettingKeys } from '../../../lib/config/AppSettings';
 import Scrap from '../../thing/Scrap';
 import CommerceMenu from '../../../lib/commerce/Menu';
 import type { BuildContribution } from '../../../lib/craft/ManualBuild';
+import { BlendIdentity } from '../../../lib/craft/BlendIdentity';
 
 const CraftingApiCallers = SecurityPolicies.FromModule('/api/crafting#CraftingApi',
 );
@@ -685,7 +686,7 @@ function contaminateTools(
   const parts: { loads: PathogenLoads; weight: number }[] = [];
   for (const m of matched) {
     if (m.measureL > 0) {
-      parts.push({ loads: Contamination.loadsFor(m.slot), weight: m.measureL });
+      parts.push({ loads: new Contamination(m.slot).loads(), weight: m.measureL });
     }
   }
   for (const m of matchedItems) {
@@ -705,11 +706,11 @@ function contaminateTools(
 
 /** Stamp a working's spoilage outcome onto the output slot. */
 function applySpoilage(outSlot: BulkSlot, outcome: SpoilageOutcome): void {
-  Freshness.stampLoad(outSlot, outcome.load);
+  new Freshness(outSlot).stampLoad(outcome.load);
   // ⚠⚠ The silent half, and it must ride the SAME stamp. A dish that
   // carried the flora through and dropped the pathogens would be a build
   // whose unit tests all pass and whose contaminated stew is harmless.
-  Contamination.stampLoads(outSlot, outcome.pathogens);
+  new Contamination(outSlot).stampLoads(outcome.pathogens);
   const formed = outcome.formed;
   if (!formed) return;
   const payload = outSlot.getPayload();
@@ -765,8 +766,8 @@ function outputMicrobialLoad(
   for (const m of matched) {
     const w = m.measureL;
     if (w <= 0) continue;
-    weighted += Freshness.loadOf(m.slot) * w;
-    parts.push({ loads: Contamination.loadsFor(m.slot), weight: w });
+    weighted += new Freshness(m.slot).load() * w;
+    parts.push({ loads: new Contamination(m.slot).loads(), weight: w });
     total += w;
   }
   for (const m of matchedItems) {
@@ -1460,10 +1461,10 @@ async function recordCraftEvidence(
     if (witness === maker) continue;
     if (!MixinApi.isCommandGiver(witness)) continue;
     if (!witness.getIdentityPath()) continue;
-    await RecipeKnowledge.noteKnown(
-      witness,
-      recipe.getRecipeId(),
-      recipe.getName(),
+    if (!MixinApi.isPersona(witness)) continue;
+    await witness.recordChronicleOnce(
+      RecipeKnowledge.knownKey(recipe.getRecipeId()),
+      RecipeKnowledge.knownEntry(recipe.getName()),
     );
   }
 }
@@ -2350,5 +2351,37 @@ export class CraftingLogic extends ApiLogic {
   @CallSecurity(CraftingApiCallers)
   public async offeredRecipes(menu: Stuff): Promise<RecipeView[]> {
     return offeredImpl(menu);
+  }
+
+  // ---------- what a blend IS, read back off the recipe ----------
+  //
+  // ⭐ The three doors onto `BlendIdentity`, which was a class of public
+  // statics on a `lib/` value holder — callable and invisible. The bodies
+  // stay there beside the module-private `recipeOf` walk they share; what
+  // moves is the callable surface, and it lands on CRAFTING because the
+  // answer is the recipe's. A blend has no Material of its own.
+
+  /** See {@link CraftingApi.blendName}. */
+  @CallSecurity(CraftingApiCallers)
+  public blendName(
+    payload: BulkPayload | null,
+    material: Material | null,
+  ): string {
+    return BlendIdentity.nameOf(payload, material);
+  }
+
+  /** See {@link CraftingApi.blendAppearance}. */
+  @CallSecurity(CraftingApiCallers)
+  public blendAppearance(
+    payload: BulkPayload | null,
+    material: Material | null,
+  ): string {
+    return BlendIdentity.appearanceOf(payload, material);
+  }
+
+  /** See {@link CraftingApi.blendDiscipline}. */
+  @CallSecurity(CraftingApiCallers)
+  public blendDiscipline(payload: BulkPayload | null): string {
+    return BlendIdentity.disciplineOf(payload);
   }
 }

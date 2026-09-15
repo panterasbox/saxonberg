@@ -84,11 +84,11 @@ export default class HouseController extends BankingControllerBase<HouseModel> {
     }
     const pnl = await BankingApi.profitAndLoss(account);
     const lines = Object.entries(pnl.lines)
-      .map(([cat, net]) => `  ${cat}: ${Money.of(net as number, Currency.compact()).render()}`)
+      .map(([cat, net]) => `  ${cat}: ${Money.of(net as number, BankingApi.compactCurrency()).render()}`)
       .join("\n");
     const body =
       `P&L:\n${lines || "  (no activity)"}\n` +
-      `  running balance: ${Money.of(pnl.balance, Currency.compact()).render()}`;
+      `  running balance: ${Money.of(pnl.balance, BankingApi.compactCurrency()).render()}`;
     MessageApi.scene(giver).topic(TOPIC).toSelf(Mml.compose`${body}`).send();
   }
 
@@ -119,7 +119,7 @@ export default class HouseController extends BankingControllerBase<HouseModel> {
       return;
     }
     try {
-      await BankingApi.payWage(employerAccount, workerKey, Money.of(minor, Currency.compact()));
+      await BankingApi.payWage(employerAccount, workerKey, Money.of(minor, BankingApi.compactCurrency()));
     } catch (err) {
       MessageApi.scene(giver)
         .topic(TOPIC)
@@ -130,7 +130,7 @@ export default class HouseController extends BankingControllerBase<HouseModel> {
     }
     MessageApi.scene(giver)
       .topic(TOPIC)
-      .toSelf(Mml.compose`You pay ${Mml.actor(worker!)} a wage of ${Money.of(minor, Currency.compact()).render()}.`)
+      .toSelf(Mml.compose`You pay ${Mml.actor(worker!)} a wage of ${Money.of(minor, BankingApi.compactCurrency()).render()}.`)
       .send();
   }
 
@@ -253,7 +253,7 @@ export default class HouseController extends BankingControllerBase<HouseModel> {
     return screen;
   }
 
-  static renderSheet(house: string, sheet: readonly StockSheetLine[]): string {
+  private static renderSheet(house: string, sheet: readonly StockSheetLine[]): string {
     if (sheet.length === 0) return `${house} keeps no par sheet yet — \`house par <category> <level>\` starts one.`;
     const lines = sheet.map(({ line, onHand, shortfall }) => {
       const short = shortfall > 0 ? ` — short ${String(shortfall)}` : "";

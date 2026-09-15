@@ -120,7 +120,7 @@ export function PricedOfferMixin<TBase extends MixinConstructor>(Base: TBase) {
       } catch {
         return { paid: false, note: null };
       }
-      const money = Money.of(price, Currency.compact());
+      const money = Money.of(price, BankingApi.compactCurrency());
       const charge: Charge = {
         amount: money,
         reason,

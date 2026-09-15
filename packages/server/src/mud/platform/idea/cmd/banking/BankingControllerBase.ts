@@ -45,14 +45,6 @@ export abstract class BankingControllerBase<
     );
   }
 
-  /**
-   * The presentation of the Business whose account key is `ownerKey`, or
-   * null when the key names no live business (a player's own key).
-   */
-  static businessNamed(ownerKey: string): string | null {
-    const live = StuffApi.findByTemplatePath(ownerKey);
-    return live && MixinApi.isBusiness(live) ? live.getPresentation() : null;
-  }
 
   /**
    * ⭐ The house the giver acts for: the Business operating **here** when

@@ -60,10 +60,10 @@ export default class ReserveController extends BankingControllerBase<ReserveMode
       context.note({ kind: "controller-rejected", reason: "no-venue-account", detail: "mint" });
       return;
     }
-    await BankingApi.mint(account, Money.of(minor, Currency.compact()), "operator subsidy", "subsidy");
+    await BankingApi.mint(account, Money.of(minor, BankingApi.compactCurrency()), "operator subsidy", "subsidy");
     MessageApi.scene(giver)
       .topic(TOPIC)
-      .toSelf(Mml.compose`The reserve mints ${Money.of(minor, Currency.compact()).render()} of subsidy into the house account.`)
+      .toSelf(Mml.compose`The reserve mints ${Money.of(minor, BankingApi.compactCurrency()).render()} of subsidy into the house account.`)
       .send();
   }
 
@@ -103,11 +103,11 @@ export default class ReserveController extends BankingControllerBase<ReserveMode
       context.note({ kind: "controller-rejected", reason: "no-hands", detail: "issue" });
       return;
     }
-    await BankingApi.issueCash(giver, Money.of(minor, Currency.compact()), "float");
+    await BankingApi.issueCash(giver, Money.of(minor, BankingApi.compactCurrency()), "float");
     MessageApi.scene(giver)
       .topic(TOPIC)
       .toSelf(
-        Mml.compose`The reserve issues ${Money.of(minor, Currency.compact()).render()} in fresh currency into your hands.`,
+        Mml.compose`The reserve issues ${Money.of(minor, BankingApi.compactCurrency()).render()} in fresh currency into your hands.`,
       )
       .toPeers(
         Mml.compose`${Mml.actor(giver)} draws fresh currency from the reserve.`,

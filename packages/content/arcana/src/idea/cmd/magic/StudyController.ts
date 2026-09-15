@@ -158,9 +158,14 @@ export default class StudyController extends CommandController<StudyModel> {
         // The CLAIM, never a deed — competence is untouched, and a
         // Transcript entry here would be evidence of practice that did
         // not happen.
-        void SpellKnowledge.noteKnown(actor, spellPath, spell.name).catch(
-          () => {},
-        );
+        if (MixinApi.isPersona(actor)) {
+          void actor
+            .recordChronicleOnce(
+              SpellKnowledge.knownKey(spellPath),
+              SpellKnowledge.knownEntry(spell.name),
+            )
+            .catch(() => {});
+        }
         MessageApi.scene(actor)
           .topic(TOPIC)
           .toSelf(

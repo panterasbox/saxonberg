@@ -182,7 +182,7 @@ export class Impression {
    * for that band (an unmodelled band contributes nothing rather than
    * throwing — the fold's totality rule).
    */
-  public static phrasingFor(
+  private static phrasingFor(
     clause: ImpressionClause,
     seed: number,
   ): string | null {

@@ -54,6 +54,9 @@ function resolveController(rawController: string, specFilePath: string): string 
 
 /**
  * Parsed command definition.
+  *
+ * @internal every caller of this class sits in the `command` subsystem —
+ * it is that subsystem's private collaborator, not author surface.
  */
 export class CommandDefinition {
   public readonly verbs: string[];
@@ -720,7 +723,7 @@ function validateArgOrdering(
  * field. Throws at YAML-load time on invalid combos.
  */
 function validateCardinality(
-  field: { type?: string; name?: string; cardinality?: { min?: number; max?: number; exactly?: number }; onExcess?: string; onShortage?: string },
+  field: { type?: string; name?: string; cardinality?: { min?: number; max?: number; exactly?: number }; onExcess?: string; onShortage?: string; onFiltered?: string },
   filePath: string,
   scope: string,
 ): void {
@@ -758,13 +761,35 @@ function validateCardinality(
   // Cardinality / onExcess policies are only meaningful for MQL
   // fields; reject on non-MQL types.
   if (
-    (field.cardinality !== undefined || field.onExcess !== undefined || field.onShortage !== undefined) &&
+    (field.cardinality !== undefined ||
+      field.onExcess !== undefined ||
+      field.onShortage !== undefined ||
+      field.onFiltered !== undefined) &&
     field.type !== 'object' &&
     field.type !== 'objects'
   ) {
     throw new Error(
-      `${filePath} (${scope}.${fname}): cardinality / onExcess / onShortage are only valid on object / objects fields (got type=${field.type ?? 'undefined'})`
+      `${filePath} (${scope}.${fname}): cardinality / onExcess / onShortage / onFiltered are only valid on object / objects fields (got type=${field.type ?? 'undefined'})`
     );
+  }
+
+  // ⚠ `onFiltered` is meaningless without a `requires:` — there is
+  // nothing to discard — so declaring one without the other is an
+  // authoring mistake, caught here rather than shipping a policy that
+  // can never fire.
+  //
+  // ⚠ The VALUE is not re-checked here: the command schema's enum already
+  // refuses anything outside `take | warn | error`, on both load paths
+  // (`fromYaml` and `fromView` both run it). A second copy would be a
+  // check that can never fire — the `lint:does-nothing` category.
+  if (field.onFiltered !== undefined) {
+    const requires = (field as { requires?: unknown }).requires;
+    if (requires === undefined || requires === 'any') {
+      throw new Error(
+        `${filePath} (${scope}.${fname}): onFiltered needs a \`requires:\` to filter by — ` +
+          `without one nothing is ever discarded and the policy can never fire`
+      );
+    }
   }
 
   // Per-type onExcess policy enums.

@@ -1,3 +1,4 @@
+import { Seeded } from '@saxonberg/server/mud/lib/Seeded';
 /**
  * HeadSeed — ⭐⭐ **head *n* is a deterministic function of the herd's
  * identity and its index** (D21).
@@ -60,6 +61,8 @@ export interface HerdShape {
  * The module's one concept, as a holder class rather than loose
  * functions — the `LandUses` / `Grade` shape, which is the sanctioned
  * form for a substrate primitive that is not an instanceable Stuff.
+  *
+ * @internal every caller of this class sits in the `trade-ranching` subsystem — it is that subsystem's private collaborator, not author surface.
  */
 export class HeadSeed {
   /**
@@ -81,14 +84,14 @@ export class HeadSeed {
       // Around "in good flesh", with real spread: some of them are
       // always doing better than others, which is the whole management
       // game.
-      flesh: round1(35 + roll01(h, 0x1) * 45),
+      flesh: round1(35 + Seeded.unit(h, 0x1) * 45),
       // Most farm animals are wary; a few are quiet and a few are not.
-      handling: round2(0.2 + roll01(h, 0x2) * 0.5),
+      handling: round2(0.2 + Seeded.unit(h, 0x2) * 0.5),
       ageDays: round1(
-        Math.max(0, shape.meanAgeDays * (0.55 + roll01(h, 0x3) * 0.9)),
+        Math.max(0, shape.meanAgeDays * (0.55 + Seeded.unit(h, 0x3) * 0.9)),
       ),
-      sex: roll01(h, 0x4) < shape.femaleFraction ? 'female' : 'male',
-      frame: round2(roll01(h, 0x5) * 2 - 1),
+      sex: Seeded.unit(h, 0x4) < shape.femaleFraction ? 'female' : 'male',
+      frame: round2(Seeded.unit(h, 0x5) * 2 - 1),
     };
     if (!overlay) return seeded;
     return {
@@ -108,21 +111,6 @@ function hashString(s: string): number {
     v = Math.imul(v, 0x01000193);
   }
   return v >>> 0;
-}
-
-/** Integer avalanche mix of two 32-bit words → a 32-bit hash. */
-function mix2(a: number, b: number): number {
-  let h = (a ^ 0x9e3779b9) >>> 0;
-  h = Math.imul(h ^ (b >>> 0), 0x85ebca6b) >>> 0;
-  h ^= h >>> 13;
-  h = Math.imul(h, 0xc2b2ae35) >>> 0;
-  h ^= h >>> 16;
-  return h >>> 0;
-}
-
-/** Deterministic value in `[0, 1)` from two seed words. */
-function roll01(a: number, b: number): number {
-  return mix2(a >>> 0, b >>> 0) / 0x1_0000_0000;
 }
 
 function round1(v: number): number {

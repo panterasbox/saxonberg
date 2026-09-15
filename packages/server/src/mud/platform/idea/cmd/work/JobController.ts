@@ -21,7 +21,7 @@ import type { CommandContext, CommandModel } from "../../../../api/command";
 import { MessageApi } from "../../../../api/message";
 import { MixinApi } from "../../../../api/mixin";
 import { AddressApi } from "../../../../api/address";
-import { MqlApi } from "../../../../api/mql";
+import { MqlApi, type MqlOneResult } from "../../../../api/mql";
 import { Mml } from "../../../../api/mml";
 import { ContractApi } from "../../../../api/contract";
 import type { ConditionData } from "../../../../lib/employment/Condition";
@@ -77,7 +77,15 @@ interface JobModel extends CommandModel {
 
 export default class JobController extends CommandController<JobModel> {
   async execute(model: JobModel, context: CommandContext): Promise<void> {
-    const board = JobBoard.resolveIn(context);
+    // ⭐ Bound by the view, not hunted for here.
+    // ⚠ Resolved here, not declared in the view, because a `type: object`
+    // arg must name a capability mixin (`lint:arg-kinds`) and this
+    // class has none — only `DetailedMixin`, which would offer the verb
+    // on every detailed thing. Becomes a declared arg the day it gets one.
+    const board = (MqlApi.resolveOne('reachable:[class.JobBoard]', {
+      commandGiver: context.commandGiver,
+      scope: 'reachable',
+    }).stuff as JobBoard | null);
     if (!board) {
       return this.fail(context, "There's no job board here.", "no-board");
     }

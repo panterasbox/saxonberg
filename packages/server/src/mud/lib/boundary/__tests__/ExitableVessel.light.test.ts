@@ -11,6 +11,11 @@ import { AmbientLitMixin } from '../../perception/AmbientLit';
 import { ContainmentApi } from '../../../api/containment';
 import { StuffApi } from '../../../api/stuff';
 import { makeStuff } from '../../security/__tests__/test-setup';
+import { PerceptionApi } from '../../../api/perception';
+
+/** The vision modality singleton — these are instance methods on it. */
+const vision = (): VisionModality =>
+  PerceptionApi.modalityByName('vision') as VisionModality;
 
 class AmbientCartesianLocation extends AmbientLitMixin(CartesianLocation) {}
 
@@ -40,7 +45,7 @@ describe('ExitableVessel — door boundary on (vessel, environment)', () => {
     // The (vessel, env) anchor pair is now wired on `wardrobe` and
     // `room`. With the door open and base transmissivity 1, the
     // wardrobe interior reads the room's ambient.
-    expect(VisionModality.lightAt(wardrobe).intensity.rawValue()).toBe(60);
+    expect(vision().lightAt(wardrobe).intensity.rawValue()).toBe(60);
   });
 
   it('a wardrobe with a closed door reads ZERO inside even when the room is bright', () => {
@@ -58,10 +63,10 @@ describe('ExitableVessel — door boundary on (vessel, environment)', () => {
 
     ContainmentApi.move(wardrobe, room);
 
-    expect(VisionModality.lightAt(wardrobe)).toBe(Light.ZERO);
+    expect(vision().lightAt(wardrobe)).toBe(Light.ZERO);
 
     door.open();
-    expect(VisionModality.lightAt(wardrobe).intensity.rawValue()).toBe(60);
+    expect(vision().lightAt(wardrobe).intensity.rawValue()).toBe(60);
   });
 
   it('moving the wardrobe migrates the door anchor to the new environment', () => {
@@ -84,10 +89,10 @@ describe('ExitableVessel — door boundary on (vessel, environment)', () => {
     wardrobe.setDoor(door);
 
     ContainmentApi.move(wardrobe, dim);
-    expect(VisionModality.lightAt(wardrobe)).toBe(Light.ZERO);
+    expect(vision().lightAt(wardrobe)).toBe(Light.ZERO);
 
     ContainmentApi.move(wardrobe, bright);
-    expect(VisionModality.lightAt(wardrobe).intensity.rawValue()).toBe(80);
+    expect(vision().lightAt(wardrobe).intensity.rawValue()).toBe(80);
   });
 
   it('setDoor swaps the boundary anchor from old door to new', () => {
@@ -104,7 +109,7 @@ describe('ExitableVessel — door boundary on (vessel, environment)', () => {
     wardrobe.setDoor(oldDoor);
 
     ContainmentApi.move(wardrobe, room);
-    expect(VisionModality.lightAt(wardrobe).intensity.rawValue()).toBe(60);
+    expect(vision().lightAt(wardrobe).intensity.rawValue()).toBe(60);
 
     // Swap to a closed door — interior should go dark.
     const newDoor = makeStuff(() => new Door());
@@ -112,7 +117,7 @@ describe('ExitableVessel — door boundary on (vessel, environment)', () => {
     // newDoor closed
     wardrobe.setDoor(newDoor);
 
-    expect(VisionModality.lightAt(wardrobe)).toBe(Light.ZERO);
+    expect(vision().lightAt(wardrobe)).toBe(Light.ZERO);
     // Old door is no longer wired to the wardrobe boundary.
     expect(oldDoor.getAnchorA()).toBeNull();
     expect(oldDoor.getAnchorB()).toBeNull();

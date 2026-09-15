@@ -128,7 +128,7 @@ describe("Till security — vault coin leaves only via the banking verbs", () =>
     const alice = makeAvatar(ALICE);
     const coins = makeCoinsIn(alice, 100);
     await asOwner(alice, async () => {
-      await BankingApi.openAccount(bank.getBank(), bank.getCorpoKey(), Currency.compact());
+      await BankingApi.openAccount(bank.getBank(), bank.getCorpoKey(), BankingApi.compactCurrency());
       await bank.deposit(coins);
     });
     // The vault now holds the coin. A loose grab is vetoed by till security.
@@ -140,7 +140,7 @@ describe("Till security — vault coin leaves only via the banking verbs", () =>
     // The coin stayed in the vault.
     expect(bank.getTillLiquidity().minor).toBe(100);
     // But the banking verb opens the disbursement window and dispenses it.
-    await asOwner(alice, () => bank.withdraw(Money.of(100, Currency.compact())));
+    await asOwner(alice, () => bank.withdraw(Money.of(100, BankingApi.compactCurrency())));
     expect(bank.getTillLiquidity().minor).toBe(0);
   });
 });
@@ -162,17 +162,17 @@ describe("Withdrawal quota — the common-pool till guard", () => {
     const alice = makeAvatar(ALICE);
     const coins = makeCoinsIn(alice, 100);
     const acct = await asOwner(alice, async () => {
-      const id = await BankingApi.openAccount(bank.getBank(), bank.getCorpoKey(), Currency.compact());
+      const id = await BankingApi.openAccount(bank.getBank(), bank.getCorpoKey(), BankingApi.compactCurrency());
       await bank.deposit(coins);
       return id;
     });
     // First 50 is under the 60 cap.
-    await asOwner(alice, () => bank.withdraw(Money.of(50, Currency.compact())));
+    await asOwner(alice, () => bank.withdraw(Money.of(50, BankingApi.compactCurrency())));
     expect(BankingApi.balanceOf(acct).minor).toBe(50);
     // A further 25 would breach the cap (50 already drawn + 25 > 60) → refused
     // (the quota derives the day's withdrawals over the ledger).
     await expect(
-      asOwner(alice, () => bank.withdraw(Money.of(25, Currency.compact()))),
+      asOwner(alice, () => bank.withdraw(Money.of(25, BankingApi.compactCurrency()))),
     ).rejects.toThrow(/limit/);
     // The balance is untouched by the refusal.
     expect(BankingApi.balanceOf(acct).minor).toBe(50);
@@ -188,14 +188,14 @@ describe("Withdrawal quota — the common-pool till guard", () => {
     const alice = makeAvatar(ALICE);
     const coins = makeCoinsIn(alice, 100);
     const acct = await asOwner(alice, async () => {
-      const id = await BankingApi.openAccount(bank.getBank(), bank.getCorpoKey(), Currency.compact());
+      const id = await BankingApi.openAccount(bank.getBank(), bank.getCorpoKey(), BankingApi.compactCurrency());
       await bank.deposit(coins);
       return id;
     });
     // Enrol Alice into the Circle (the real enrollment write) → raised cap.
     expect(await BankingApi.enrollCircle(ALICE, "goodkin")).toBe(true);
     // 90 would breach the stranger cap (60) but is under the Circle cap (500).
-    await asOwner(alice, () => bank.withdraw(Money.of(90, Currency.compact())));
+    await asOwner(alice, () => bank.withdraw(Money.of(90, BankingApi.compactCurrency())));
     expect(BankingApi.balanceOf(acct).minor).toBe(10);
   });
 });
@@ -216,15 +216,15 @@ describe("Fees + corpo royalty — conserved, split to the treasury", () => {
     const alice = makeAvatar(ALICE);
     const coins = makeCoinsIn(alice, 100);
     const acct = await asOwner(alice, async () => {
-      const id = await BankingApi.openAccount(bank.getBank(), bank.getCorpoKey(), Currency.compact());
+      const id = await BankingApi.openAccount(bank.getBank(), bank.getCorpoKey(), BankingApi.compactCurrency());
       await bank.deposit(coins); // credits 100, then a 10 fee
       return id;
     });
     // Customer paid the 10 fee out of the 100 deposited.
     expect(BankingApi.balanceOf(acct).minor).toBe(90);
     // 50% royalty → the Goodkin treasury; the rest → the branch account.
-    const treasury = await BankingApi.ensureCorpoTreasury("goodkin", "goodkin", Currency.compact());
-    const branch = await BankingApi.ensureVenueAccount(BANK_PATH, "goodkin", "goodkin", Currency.compact());
+    const treasury = await BankingApi.ensureCorpoTreasury("goodkin", "goodkin", BankingApi.compactCurrency());
+    const branch = await BankingApi.ensureVenueAccount(BANK_PATH, "goodkin", "goodkin", BankingApi.compactCurrency());
     expect(BankingApi.balanceOf(treasury).minor).toBe(5);
     expect(BankingApi.balanceOf(branch).minor).toBe(5);
     // The fee split conserves: customer −10, branch +5, treasury +5.

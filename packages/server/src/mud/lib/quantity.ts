@@ -689,6 +689,12 @@ export class Quantity<U extends Unit> {
    * single-vocabulary units like `kg` or `lux`. Units with
    * multiple vocabularies (`K`'s color vs thermal) register each
    * scale by an explicit name.
+   * @internal one production caller plus the tests that white-box it — not author surface.
+   *
+   *
+   * @internal the callable door is `QuantityApi.loadTagTables`; the only
+   * other callers are this module's own boot-time tables. Not author
+   * surface — a registration seam, not a question anybody asks.
    */
   public static registerTagTable(
     unit: Unit,
@@ -723,7 +729,7 @@ export class Quantity<U extends Unit> {
    * `unit` when no `scaleName` is passed. Throws if the scale
    * isn't registered for that unit.
    */
-  public static setDefaultScale(
+  private static setDefaultScale(
     unit: Unit,
     scaleName: ScaleName
   ): void {

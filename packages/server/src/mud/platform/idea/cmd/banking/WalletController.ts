@@ -22,6 +22,7 @@ import { MessageApi } from "../../../../api/message";
 import { MixinApi } from "../../../../api/mixin";
 import { Mml } from "../../../../api/mml";
 import { EmploymentApi } from "../../../../api/employment";
+import { StuffApi } from '../../../../api/stuff';
 
 const TOPIC = "act.deed";
 
@@ -61,7 +62,7 @@ export default class WalletController extends BankingControllerBase<WalletModel>
     const ownerKey = active ? await BankingApi.ownerKeyOf(active) : null;
     const house =
       ownerKey && ownerKey !== giver.getIdentityPath()
-        ? BankingControllerBase.businessNamed(ownerKey)
+        ? businessNamed(ownerKey)
         : null;
     MessageApi.scene(giver)
       .topic(TOPIC)
@@ -187,4 +188,12 @@ export default class WalletController extends BankingControllerBase<WalletModel>
       .toSelf(Mml.compose`You report ${Mml.thing(card)} lost. It's frozen; a fresh card is issued.`)
       .send();
   }
+}
+
+/** The live business at `ownerKey`, by its presentation — inlined from
+ *  `BankingControllerBase` when that static's only caller turned out to
+ *  be this file. */
+function businessNamed(ownerKey: string): string | null {
+  const live = StuffApi.findByTemplatePath(ownerKey);
+  return live && MixinApi.isBusiness(live) ? live.getPresentation() : null;
 }

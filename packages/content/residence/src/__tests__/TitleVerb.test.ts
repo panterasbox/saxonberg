@@ -54,6 +54,7 @@ import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import type { Container } from '@saxonberg/server/mud/lib/spatial/Container';
 import { PersistenceManager } from '@saxonberg/server/mud/lib/persistence/__tests__/backend-store';
 import { CommandDefinition } from '@saxonberg/server/mud/lib/command/CommandDefinition';
+import { BoundaryApi } from '@saxonberg/server/mud/api/boundary';
 import {
   CommandApi,
   type CommandContext,
@@ -404,13 +405,13 @@ describe('title', () => {
 
   it('⭐ the sale KEYS the house and hands the buyer the key (D7)', async () => {
     const issued: Array<[string, string]> = [];
-    vi.spyOn(Lock, 'issueKey').mockImplementation((async (
-      _who: Stuff,
-      keyway: string,
-      tech: string,
-    ) => {
-      issued.push([keyway, tech]);
-    }) as unknown as typeof Lock.issueKey);
+    // ⭐ The keyway + technology are the LOCK's now, not loose arguments
+    // — so the spy reads them off the receiver.
+    vi.spyOn(Lock.prototype, 'issueKeyTo').mockImplementation(async function (
+      this: Lock,
+    ): Promise<void> {
+      issued.push([this.keyway, this.technology]);
+    });
 
     const room = registryRoom();
     const buyer = buyerIn(room);

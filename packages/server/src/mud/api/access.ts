@@ -30,6 +30,7 @@ import type { Stuff } from '../lib/stuff/Stuff';
 import { AccessLogic } from '../platform/idea/api/AccessLogic';
 import { fileURLToPath } from 'url';
 import { SecurityApi } from './security';
+import type { ParcelOwner } from '../lib/parcel/ParcelRecord';
 
 const LOGIC_PATH = '/platform/idea/api/access';
 const LOGIC_CLASS_FILE = fileURLToPath(
@@ -161,6 +162,18 @@ export class AccessApi {
    */
   public static async isWizard(subject: Stuff | null): Promise<boolean> {
     return logic().isWizard(subject);
+  }
+
+  /**
+   * Is `actor` an **agent of** `owner` — a member of the group the parcel
+   * owner resolves to? The owner-conferred authority a landlord's staff
+   * act under.
+   */
+  public static async isAgentOf(
+    actor: Stuff,
+    owner: ParcelOwner,
+  ): Promise<boolean> {
+    return logic().isAgentOf(actor, owner);
   }
 
   /**

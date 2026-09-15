@@ -25,6 +25,15 @@
  * `@internal` reflections are already dropped by TypeDoc
  * (`excludeInternal: true`); the projection drops any stragglers.
  *
+ * ⭐ It also emits the **unclassified report**: every public method that
+ * falls through BOTH tier rules — overwhelmingly a public `static` on a
+ * non-`Api` class, which is *callable by anyone and visible to nobody*.
+ * Those used to be dropped in silence, which is the failure class the
+ * projection exists to prevent: an invisible surface cannot be audited.
+ * Marking a member `@internal` is how you declare it deliberately off
+ * the surface; everything else that falls through is named here and
+ * counted by `lint:lib-statics`.
+ *
  * It also emits the **re-export report** (lint #2): faces (Api/mixin
  * modules) that speak a named type in a signature but do not re-export
  * it from the face. Advisory (WARN): the residual gaps are
@@ -103,7 +112,17 @@ type TdType = {
 };
 
 export interface ConsumerMember {
-  kind: "api-static" | "stuff-method";
+  /**
+   * `api-static` — a public static on an Api face.
+   * `stuff-method` — a public instance method on a Stuff/mixin class.
+   * ⭐ `value-static` — a public static on a `lib/` **value class**: the
+   *   type's own surface (`Quantity.of`, `Currency.has`), which stays on
+   *   the type and is therefore VISIBLE. The line is *does this answer a
+   *   question about the TYPE, or about the WORLD* — world-level logic
+   *   belongs on a logic singleton and is ratcheted out by
+   *   `lint:lib-statics`.
+   */
+  kind: "api-static" | "stuff-method" | "value-static";
   module: string;
   face: string; // the class the method lives on
   name: string;
@@ -172,9 +191,28 @@ export interface AuthorSurface {
   types: TypeEntry[];
 }
 
+/**
+ * A public method that satisfies neither tier rule, so it reaches no
+ * author-facing doc. ⚠ Not a bug in the projection — a finding about
+ * the code it read.
+ */
+export interface UnclassifiedMember {
+  module: string;
+  face: string;
+  name: string;
+  qualified: string;
+  /**
+   * `static-on-non-api` — the antipattern `lint:lib-statics` ratchets.
+   * `instance-method-on-api` — an Api is a static forwarding shell, so
+   * an instance method on one is unreachable by design.
+   */
+  reason: "static-on-non-api" | "instance-method-on-api";
+}
+
 export interface ProjectionResult {
   surface: AuthorSurface;
   reexportReport: ReexportIssue[];
+  unclassifiedReport: UnclassifiedMember[];
 }
 
 // ── @authorable projector (Studio / composition surface) ────────────
@@ -436,12 +474,31 @@ function hookContract(refl: Refl): string | null {
   return null;
 }
 
+/**
+ * Is this class an **Api face** — the tier whose STATICS are the author
+ * surface?
+ *
+ * ⚠ The test is **where the class is declared**, not what it is called.
+ * `CLAUDE.md § Module Categories` admits exactly one thing into a
+ * top-level `api/<feature>.ts`: the Api class plus its call-shape types.
+ * So a class declared there IS the face.
+ *
+ * ⭐ Keying on the *name* instead cost the projection 41 members: `Mml`
+ * (`mud/api/mml`) is an Api by every functional measure — it is
+ * `SecurityApi.decorateApiClass`'d like every other face, and
+ * `Mml.compose` / `Mml.actor` / `Mml.ref` are among the most-called
+ * author surface in the tree — but it is not spelled `MmlApi`, so every
+ * one of its statics fell through both tier rules and reached no doc.
+ * A convention enforced by spelling is a convention with a hole in it.
+ *
+ * Sealed-subdir pipeline internals (`api/mml/**`, `api/mql/**` — a
+ * module name with a further `/`) are explicitly NOT faces; only the
+ * sealing module is.
+ */
 function isApiClass(cls: Refl, module: string): boolean {
-  return (
-    cls.kind === Kind.Class &&
-    cls.name.endsWith("Api") &&
-    module.startsWith("mud/api/")
-  );
+  if (cls.kind !== Kind.Class) return false;
+  if (!module.startsWith("mud/api/")) return false;
+  return !module.slice("mud/api/".length).includes("/");
 }
 
 /** Collect every project-internal named-type id referenced by a type. */
@@ -597,6 +654,7 @@ function extractTsdoc(member: Refl): MemberTsdoc {
  */
 export function projectAuthorSurface(project: Refl): ProjectionResult {
   const consumer: ConsumerMember[] = [];
+  const unclassifiedReport: UnclassifiedMember[] = [];
   // hook name → { contract, faces } accumulated across the codebase.
   const extensionByName = new Map<string, { contract: string; faces: string[] }>();
   const referencedTypeIds = new Set<number>();
@@ -674,6 +732,10 @@ export function projectAuthorSurface(project: Refl): ProjectionResult {
     for (const cls of mod.children ?? []) {
       if (cls.kind !== Kind.Class && cls.kind !== Kind.Interface) continue;
       const apiClass = isApiClass(cls, mod.name);
+      // `mud/api/mml/**`, `mud/api/mql/**` — internals of a sealing face.
+      const sealedSubdir =
+        mod.name.startsWith("mud/api/") &&
+        mod.name.slice("mud/api/".length).includes("/");
       for (const member of cls.children ?? []) {
         if (member.kind === Kind.Constructor) continue;
         if (member.flags?.isPrivate) continue;
@@ -702,7 +764,44 @@ export function projectAuthorSurface(project: Refl): ProjectionResult {
 
         const isStaticApi = apiClass && member.flags?.isStatic === true;
         const isStuffMethod = !apiClass && member.flags?.isStatic !== true;
-        if (!isStaticApi && !isStuffMethod) continue;
+        // An instance method on an Api face is unreachable by design —
+        // an Api is a static forwarding shell. Nothing to admit.
+        if (apiClass && member.flags?.isStatic !== true) {
+          unclassifiedReport.push({
+            module: mod.name,
+            face: cls.name,
+            name: member.name,
+            qualified,
+            reason: "instance-method-on-api",
+          });
+          continue;
+        }
+        // ⭐ A public static on a non-Api class is a VALUE-CLASS static.
+        // It used to fall through both rules and reach no doc at all,
+        // which is how 564 of them accumulated unseen. They are admitted
+        // as their own kind rather than hidden: `callable == visible` is
+        // satisfied by making them visible, and the ones that are world-
+        // level logic rather than type-level surface are moved out by
+        // `lint:lib-statics`, not by this filter.
+        //
+        // ⚠ Two populations are NOT admitted, and neither is an
+        // oversight:
+        //   - `backend/` + `services/` — the mediator layers, which
+        //     CLAUDE.md puts outside the author surface by LAYER;
+        //   - `api/<x>/**` sealed-subdir pipeline internals, which the
+        //     module category declares internal to their sealing face.
+        const isValueStatic =
+          !isStaticApi && !isStuffMethod && mod.name.startsWith("mud/") && !sealedSubdir;
+        if (!isStaticApi && !isStuffMethod && !isValueStatic) {
+          unclassifiedReport.push({
+            module: mod.name,
+            face: cls.name,
+            name: member.name,
+            qualified,
+            reason: "static-on-non-api",
+          });
+          continue;
+        }
 
         const ids = new Set<number>();
         signatureTypeRefs(member, ids);
@@ -732,7 +831,11 @@ export function projectAuthorSurface(project: Refl): ProjectionResult {
 
         const tsdoc = extractTsdoc(member);
         const entry: ConsumerMember = {
-          kind: isStaticApi ? "api-static" : "stuff-method",
+          kind: isStaticApi
+            ? "api-static"
+            : isValueStatic
+              ? "value-static"
+              : "stuff-method",
           module: mod.name,
           face: cls.name,
           name: member.name,
@@ -819,8 +922,13 @@ export function projectAuthorSurface(project: Refl): ProjectionResult {
 
   consumer.sort((a, b) => a.qualified.localeCompare(b.qualified));
   reexportReport.sort((a, b) => a.face.localeCompare(b.face));
+  unclassifiedReport.sort((a, b) => a.qualified.localeCompare(b.qualified));
 
-  return { surface: { consumer, extension, types }, reexportReport };
+  return {
+    surface: { consumer, extension, types },
+    reexportReport,
+    unclassifiedReport,
+  };
 }
 
 // ── CLI ─────────────────────────────────────────────────────────────
@@ -833,7 +941,8 @@ function main(): void {
     process.argv[3] ?? join(dirname(modelPath), "author-surface.json");
 
   const project = JSON.parse(readFileSync(modelPath, "utf8")) as Refl;
-  const { surface, reexportReport } = projectAuthorSurface(project);
+  const { surface, reexportReport, unclassifiedReport } =
+    projectAuthorSurface(project);
 
   writeFileSync(outPath, JSON.stringify(surface, null, 2));
 
@@ -858,6 +967,46 @@ function main(): void {
       `doubleClassified=${authorable.coverage.doubleClassified.length} ` +
       `→ ${authorablePath}`
   );
+
+  if (unclassifiedReport.length > 0) {
+    // ⭐ Group by TREE, because the finding is not uniform: a static on
+    // a `mud/lib` value class is the antipattern, while `backend/` and
+    // `services/` are the mediator layers CLAUDE.md puts outside the
+    // author surface by design. Reporting one number for both buries
+    // the actionable half.
+    const byTree = new Map<string, number>();
+    for (const u of unclassifiedReport) {
+      const tree = u.module.startsWith("mud/")
+        ? u.module.split("/").slice(0, 2).join("/")
+        : u.module.split("/")[0]!;
+      byTree.set(tree, (byTree.get(tree) ?? 0) + 1);
+    }
+    const mudlib = unclassifiedReport.filter((u) => u.module.startsWith("mud/"));
+    console.warn(
+      `\n[unclassified — WARN] ${unclassifiedReport.length} public ` +
+        `method(s) reach NO tier — callable by anyone, visible to ` +
+        `nobody; ${mudlib.length} of them in the mudlib:\n` +
+        [...byTree]
+          .sort((a, b) => b[1] - a[1])
+          .map(([t, n]) => `  ${String(n).padStart(4)} ${t}`)
+          .join("\n")
+    );
+    for (const u of mudlib.slice(0, 30)) {
+      console.warn(`  ${u.qualified}  (${u.reason})`);
+    }
+    if (mudlib.length > 30) {
+      console.warn(`  … and ${mudlib.length - 30} more in the mudlib`);
+    }
+    console.warn(
+      `[unclassified] The home is the subsystem's Api (construction, ` +
+        `guards, lookups) or a platform/idea/api/<X>Logic.ts logic ` +
+        `singleton (domain logic); \`@internal\` is how a member declares ` +
+        `itself deliberately off the surface. The mudlib half is counted ` +
+        `and ratcheted by \`pnpm -C packages/server lint:lib-statics\`. ` +
+        `\`backend/\` and \`services/\` are the mediator layers — outside ` +
+        `the author surface by layer, not by oversight.`
+    );
+  }
 
   if (reexportReport.length > 0) {
     console.warn(

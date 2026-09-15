@@ -47,6 +47,10 @@ export interface ContractParty {
   templatePath: string;
 }
 
+/**
+ * @internal every caller of this class sits in the `contract` subsystem
+ * — it is that subsystem's private collaborator, not author surface.
+ */
 export class ContractRecord extends Document {
   static collectionName = Collections.Contracts;
   static fieldMeta: FieldMeta = {

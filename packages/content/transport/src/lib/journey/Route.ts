@@ -23,6 +23,10 @@
 /** Which factory built a route. Reportable; never a branch. */
 export type RouteProvenance = 'authored' | 'computed';
 
+/**
+ * @internal every caller of this class sits in the `transport` subsystem
+ * — it is that subsystem's private collaborator, not author surface.
+ */
 export class Route {
   private constructor(
     /** The lane this route runs over. */

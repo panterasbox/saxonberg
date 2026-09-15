@@ -20,6 +20,10 @@ import { Document } from '../persistence/Document';
 import { Collections } from '../persistence/Collections';
 import type { FieldMeta } from '../mixin';
 
+/**
+ * @internal only the office registry reads it — it is the governance
+ * substrate's private collaborator, not author surface.
+ */
 export class OfficeHolder extends Document {
   static collectionName = Collections.OfficeHolders;
   static fieldMeta: FieldMeta = {

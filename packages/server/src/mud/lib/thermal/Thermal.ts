@@ -50,6 +50,7 @@ import { StuffApi } from "../../api/stuff";
 import { BiomeApi } from "../../api/biome";
 import { WorldClockApi } from "../../api/worldclock";
 import { TemplatePaths } from "../paths";
+import { Decay } from "../Decay";
 
 /**
  * Every thermal dial as a module const-object (the `METABOLIC_DEFAULTS`
@@ -472,16 +473,15 @@ export function ThermalMixin<TBase extends MixinConstructor>(Base: TBase) {
       try {
         const tau = this.getTau().rawValue();
         const ambient = this.lastAmbientK;
-        if (tau <= 0) {
-          // Massless / heat-capacity-less marker — instantly ambient.
-          this.stampedTemperatureK = ambient;
-        } else {
-          // Closed-form Newton's cooling — exact for a constant ambient,
-          // so no sub-stepping is needed for passive drift.
-          const t0 = this.stampedTemperatureK;
-          this.stampedTemperatureK =
-            ambient + (t0 - ambient) * Math.exp(-elapsed / tau);
-        }
+        // Closed-form Newton relaxation — exact for a constant ambient,
+        // so no sub-stepping is needed for passive drift. A non-positive
+        // tau is a massless marker and lands on ambient immediately.
+        this.stampedTemperatureK = Decay.toward(
+          this.stampedTemperatureK,
+          ambient,
+          elapsed,
+          tau,
+        );
         this.thermalClockStamp = nowS;
       } finally {
         this._thermalReconciling = false;

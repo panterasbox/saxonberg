@@ -45,6 +45,7 @@ import { Money } from "@saxonberg/server/mud/lib/banking/Money";
 import { Currency } from "@saxonberg/server/mud/lib/banking/Currency";
 import { Quantity } from "@saxonberg/server/mud/lib/quantity";
 import type { Stuff } from "@saxonberg/server/mud/lib/stuff/Stuff";
+import { BankingApi } from '@saxonberg/server/mud/api/banking';
 import ResidenceCatalogue, {
   RESIDENCE_CATALOGUE_PATH,
 } from "@saxonberg/content-residence/src/idea/ResidenceCatalogue";
@@ -75,6 +76,9 @@ export default class Realtor extends CastMixin(PopulatesMixin(NPC)) {
   }
 
   /** Every unsold lot in every live plat book, cheapest first. */
+  /**
+   * @internal the realtor’s live offer list — read by this module and its tests.
+   */
   static async offers(): Promise<Offer[]> {
     // The residence system's own roster — the same read `title list`
     // does, and the reason a new subdivision needs no code here.
@@ -102,8 +106,8 @@ export default class Realtor extends CastMixin(PopulatesMixin(NPC)) {
   }
 
   /** One offer, said the way a realtor says it. */
-  static describe(offer: Offer): string {
-    const price = Money.of(offer.priceMinor, Currency.compact()).render();
+  private static describe(offer: Offer): string {
+    const price = Money.of(offer.priceMinor, BankingApi.compactCurrency()).render();
     const area = Quantity.of(offer.areaM2, "m²").tag("lot");
     return `${offer.book} ${offer.leaf} — ${area}, zoned ${offer.use}, ${price}`;
   }
@@ -137,6 +141,11 @@ export default class Realtor extends CastMixin(PopulatesMixin(NPC)) {
    * `realty-buy` — pick a lot, confirm the price, and buy it AS
    * YOURSELF. Every gate the typed verb has still fires; the realtor
    * only saved you the walk to the plat book.
+   *
+   * ⚠ `private`, not `@internal`: both callers are in this file, so the
+   * compiler can hold the line rather than a docs tag. The rule is that
+   * `private` needs ZERO callers outside the declaring file — it has
+   * them, including no test.
    */
   static BUY_EFFECT: DialogueEffectHandler = {
     async apply({ npc, player }) {
@@ -170,7 +179,7 @@ export default class Realtor extends CastMixin(PopulatesMixin(NPC)) {
       const offer = offers.find((o) => o.extent === picked);
       if (!offer) return;
 
-      const price = Money.of(offer.priceMinor, Currency.compact()).render();
+      const price = Money.of(offer.priceMinor, BankingApi.compactCurrency()).render();
       const yes = await interactive.promptConfirm(
         `Buy ${offer.book} ${offer.leaf} for ${price}?`,
         "no",

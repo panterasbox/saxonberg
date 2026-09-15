@@ -20,13 +20,16 @@ import type { Container } from '../../../../lib/spatial/Container';
 import TipJar from '../../../thing/TipJar';
 import Coin from '../../../thing/Coin';
 import { Currency } from "../../../../lib/banking/Currency";
+import { MqlApi } from '../../../../api/mql';
+import { BankingApi } from '../../../../api/banking';
 
 const TOPIC = 'act.deed';
 
-type CollectModel = CommandModel;
+interface CollectModel extends CommandModel {
+}
 
 export default class CollectController extends CommandController<CollectModel> {
-  async execute(_model: CollectModel, context: CommandContext): Promise<void> {
+  async execute(model: CollectModel, context: CommandContext): Promise<void> {
     const giver = context.commandGiver;
 
     // Only the on-shift bartender (an active maker) may collect.
@@ -44,7 +47,15 @@ export default class CollectController extends CommandController<CollectModel> {
     }
     if (!MixinApi.isContainer(giver)) return;
 
-    const jar = TipJar.resolveIn(context);
+    // ⭐ Bound by the view, not hunted for here.
+    // ⚠ Resolved here, not declared in the view, because a `type: object`
+    // arg must name a capability mixin (`lint:arg-kinds`) and this
+    // class has none — only `DetailedMixin`, which would offer the verb
+    // on every detailed thing. Becomes a declared arg the day it gets one.
+    const jar = (MqlApi.resolveOne('reachable:[class.TipJar]', {
+      commandGiver: context.commandGiver,
+      scope: 'reachable',
+    }).stuff as TipJar | null);
     if (!jar) {
       MessageApi.scene(giver)
         .topic(TOPIC)
@@ -76,7 +87,7 @@ export default class CollectController extends CommandController<CollectModel> {
 
     MessageApi.scene(giver)
       .topic(TOPIC)
-      .toSelf(Mml.compose`You scoop ${Money.of(took, Currency.compact()).render()} out of the tip jar.`)
+      .toSelf(Mml.compose`You scoop ${Money.of(took, BankingApi.compactCurrency()).render()} out of the tip jar.`)
       .toPeers(Mml.compose`${Mml.actor(giver)} empties the tip jar.`)
       .send();
   }

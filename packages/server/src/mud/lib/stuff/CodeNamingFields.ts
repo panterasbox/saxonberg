@@ -16,6 +16,9 @@
  * (`__tests__/codeNamingDriftGuard.test.ts`), which fails if a new
  * module-resolving call site appears without being classified against
  * this set.
+  *
+ * @internal every caller of this class sits in the `template` subsystem
+ * — it is that subsystem's private collaborator, not author surface.
  */
 export class CodeNamingFields {
   /**

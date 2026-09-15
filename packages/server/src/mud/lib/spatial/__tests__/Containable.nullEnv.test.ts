@@ -23,6 +23,11 @@ import { ContainmentApi } from '../../../api/containment';
 import { StuffApi } from '../../../api/stuff';
 import { MqlApi } from '../../../api/mql';
 import { makeStuff } from '../../security/__tests__/test-setup';
+import { PerceptionApi } from '../../../api/perception';
+
+/** The vision modality singleton — these are instance methods on it. */
+const vision = (): VisionModality =>
+  PerceptionApi.modalityByName('vision') as VisionModality;
 
 class TestCharacter extends Character {}
 
@@ -43,7 +48,7 @@ describe('null-environment regressions', () => {
     expect(detached.getContainer()).toBeNull();
     // Short-circuits on the env-null branch via canSeeOverride; the
     // default override returns the raw value (`false`).
-    expect(VisionModality.canSee(viewer as never, detached as never)).toBe(false);
+    expect(vision().canSee(viewer as never, detached as never)).toBe(false);
   });
 
   it('MessageApi.messageContainer warns and returns for a detached source', () => {

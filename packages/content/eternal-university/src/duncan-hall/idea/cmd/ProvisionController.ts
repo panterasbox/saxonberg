@@ -42,8 +42,10 @@ import { type ParcelOwner } from '@saxonberg/server/mud/lib/parcel/ParcelRecord'
 import DormWarren from '../DormWarren';
 import DormRoom from '../../location/DormRoom';
 import { Character } from '@saxonberg/server/mud/lib/character/Character';
-import DormThemes from '../../DormThemes';
+import DormThemes from '../DormThemes';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
+import { BoundaryApi } from '@saxonberg/server/mud/api/boundary';
+import { StuffApi } from '@saxonberg/server/mud/api/stuff';
 
 const TOPIC = 'act.deed';
 
@@ -69,7 +71,7 @@ export default class ProvisionController extends CommandController<ProvisionMode
 
     // The real authorization boundary (execute-level, so a forced dispatch
     // can't skip it): a wizard, or an agent of the dorms owner (Katie).
-    if (!(await ProvisionController.isDormsAgent(actor, owner))) {
+    if (!(await AccessApi.isAgentOf(actor, owner))) {
       return this.fail(
         context,
         "You're not authorized to lease out Duncan Hall's dorms.",
@@ -98,7 +100,7 @@ export default class ProvisionController extends CommandController<ProvisionMode
     // D10/D13: the per-floor count is the `dorm.roomsPerFloor` dial, the
     // total the institution's capacity — refused at cap with the reason).
     const children = await ParcelApi.childParcelsOf(DormWarren.DORMS_EXTENT);
-    const planWarren = await DormWarren.resolve();
+    const planWarren = await StuffApi.singleton<DormWarren>(DormWarren.WARREN_PATH);
     if (children.length >= planWarren.capacity()) {
       return this.fail(
         context,
@@ -141,14 +143,14 @@ export default class ProvisionController extends CommandController<ProvisionMode
     // dead metal) and issue the tenant their key — a physical brass key in
     // hand plus an implant-keychain entry. The door checks the KEY, not
     // identity, so this is what actually lets them in.
-    const keyway = Lock.mintKeyway();
+    const keyway = BoundaryApi.mintKeyway();
     await ParcelApi.setKeyway(unitExtent, keyway);
-    await Lock.issueKey(target, keyway, DormWarren.DORM_LOCK_TECH);
+    await new Lock(keyway, DormWarren.DORM_LOCK_TECH).issueKeyTo(target);
 
     // Reflect the new unit into the (possibly-live) building now: hang the
     // door if its floor is already materialized, and refresh reachability +
     // the keyway cache.
-    const warren = DormWarren.peek();
+    const warren = StuffApi.findByTemplatePath<DormWarren>(DormWarren.WARREN_PATH);
     if (warren) {
       await warren.ensureUnitDoor(unitExtent);
       await warren.refreshProvisioned();
@@ -161,8 +163,14 @@ export default class ProvisionController extends CommandController<ProvisionMode
     const themeId = (model.theme ?? '').trim();
     if (themeId) {
       try {
-        const room = await (await DormWarren.resolve()).admit(unitExtent);
-        await DormThemes.applyTo(room, themeId);
+        const warren = await StuffApi.singleton<DormWarren>(
+          DormWarren.WARREN_PATH,
+        );
+        const room = await warren.admit(unitExtent);
+        const themes = await StuffApi.singleton<DormThemes>(
+          DormThemes.CATALOGUE_PATH,
+        );
+        await themes.applyTo(room, themeId);
       } catch (err) {
         console.warn(
           `ProvisionController: move-in theme "${themeId}" failed for ` +
@@ -191,24 +199,4 @@ export default class ProvisionController extends CommandController<ProvisionMode
     context.note({ kind: 'controller-rejected', reason, detail });
   }
 
-  /**
-   * Whether `actor` may administer the dorms: a wizard (operator), or an
-   * **agent of the dorms owner** — a member of the owner group (the
-   * landlord's staff; how Katie is authorized). NOT via `AccessApi.can`,
-   * which fails closed for NPCs (no `playerId`); membership keys on the
-   * actor's **templatePath** — the uniform member key (a player as
-   * `/platform/agent/Avatar/<id>`, an NPC like Katie as its own path), so this call site
-   * carries no player-vs-NPC branching. Shared with `UnprovisionController`
-   * (a class static, not a free helper).
-   */
-  public static async isDormsAgent(
-    actor: Stuff,
-    owner: ParcelOwner,
-  ): Promise<boolean> {
-    if (await AccessApi.isWizard(actor)) return true;
-    const ref = await ParcelApi.resolveOwnerRef(owner);
-    if (!ref) return false;
-    const key = actor.getIdentityPath();
-    return key ? GroupApi.isMember(key, ref) : false;
-  }
 }

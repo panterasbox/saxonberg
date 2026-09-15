@@ -174,19 +174,34 @@ function cureAugmenter(
  * carry the `cure` field the way it carries `freshness`, as data.
  */
 export class Cure {
+  /**
+   * A gauge bound to the slot it measures. ⭐ The model lives in this
+   * class's statics (pure, shared); the READS and WRITES of one slot's
+   * payload live on an instance of it — the `Lock` shape, where
+   * `opensFor`/`issueKeyTo` are instance methods beside the type-level
+   * `mintKeyway`.
+   *
+   * ⚠ Deliberately NOT methods on `BulkSlot`: `bulk.md` has the bulk
+   * substrate carry only what subsystems declare onto `BulkPayload`, so
+   * the slot must not learn what spoilage is. Spoilage holding a
+   * reference to a slot keeps that direction intact while putting the
+   * verb on an object.
+   */
+  constructor(private readonly slot: BulkSlot) {}
+
   /** The untreated state — the identity of the water-activity derivation. */
   public static untreated(): CureState {
     return { moisture: 1, solute: 0 };
   }
 
   /** Whether a state is the untreated identity (nothing to say, nothing to store). */
-  public static isUntreated(cure: CureState | null | undefined): boolean {
+  static isUntreated(cure: CureState | null | undefined): boolean {
     if (!cure) return true;
     return cure.moisture >= 1 && cure.solute <= 0;
   }
 
   /** A payload's water state, or `null` when it carries none. */
-  public static stateOf(payload: BulkPayload | null | undefined): CureState | null {
+  private static stateOf(payload: BulkPayload | null | undefined): CureState | null {
     const cure = payload?.cure;
     if (!cure) return null;
     return {
@@ -267,15 +282,20 @@ export class Cure {
     moisture: number,
     elapsedS: number,
     humidityPct: number,
+    /**
+     * ⭐ The rehydration rate, **as a parameter with the dial as its
+     * default** — so the body is a function of its arguments and the
+     * signature names the setting the answer moves with.
+     */
+    rate = dial(
+      AppSettingKeys.cureRehydrationPerHour,
+      CURE_DEFAULTS.REHYDRATION_PER_HOUR,
+    ),
   ): number {
     const from = clamp01(moisture);
     if (!(elapsedS > 0)) return from;
     const target = Cure.equilibriumMoisture(humidityPct);
     if (target <= from) return from; // one-way: nothing dries by itself
-    const rate = dial(
-      AppSettingKeys.cureRehydrationPerHour,
-      CURE_DEFAULTS.REHYDRATION_PER_HOUR,
-    );
     if (!(rate > 0)) return from;
     const hours = elapsedS / CURE_DEFAULTS.SECONDS_PER_HOUR;
     const closed = 1 - Math.exp(-rate * hours);
@@ -288,8 +308,10 @@ export class Cure {
    * runs off a getter and cannot await. It walks the containment chain's
    * authored overrides and biome defaults exactly as the full resolve
    * does, and skips only the zone tier and the weather deviation.
+   * @internal read by this module only — ambient humidity behind the cure clock.
+   *
    */
-  public static ambientHumidityOf(host: Stuff): number {
+  static ambientHumidityOf(host: Stuff): number {
     if (MixinApi.isContainable(host)) {
       const where = host.getContainer();
       if (where !== null && MixinApi.isContainer(where)) {
@@ -308,18 +330,38 @@ export class Cure {
    * number anywhere. `null` for untreated matter, which says nothing at
    * all rather than saying "fresh".
    */
-  public static phraseFor(cure: CureState | null): string | null {
+  public static phraseFor(
+    cure: CureState | null,
+    /**
+     * ⭐ The four band edges, **as one parameter defaulting to the
+     * dials.** An object rather than four positional numbers because
+     * four bare numbers at a call site say nothing about which is which —
+     * and the point of the change is that the dependency be READABLE, not
+     * merely present.
+     */
+    bands: {
+      driedAt: number;
+      dryingAt: number;
+      curedAt: number;
+      curingAt: number;
+    } = {
+      driedAt: dial(AppSettingKeys.cureBandDriedAt, CURE_DEFAULTS.BAND_DRIED_AT),
+      dryingAt: dial(AppSettingKeys.cureBandDryingAt, CURE_DEFAULTS.BAND_DRYING_AT),
+      curedAt: dial(AppSettingKeys.cureBandCuredAt, CURE_DEFAULTS.BAND_CURED_AT),
+      curingAt: dial(AppSettingKeys.cureBandCuringAt, CURE_DEFAULTS.BAND_CURING_AT),
+    },
+  ): string | null {
     if (!cure) return null;
     const dried =
-      cure.moisture <= dial(AppSettingKeys.cureBandDriedAt, CURE_DEFAULTS.BAND_DRIED_AT)
+      cure.moisture <= bands.driedAt
         ? 'thoroughly dried'
-        : cure.moisture < dial(AppSettingKeys.cureBandDryingAt, CURE_DEFAULTS.BAND_DRYING_AT)
+        : cure.moisture < bands.dryingAt
           ? 'partly dried'
           : null;
     const cured =
-      cure.solute >= dial(AppSettingKeys.cureBandCuredAt, CURE_DEFAULTS.BAND_CURED_AT)
+      cure.solute >= bands.curedAt
         ? 'heavily salted'
-        : cure.solute > dial(AppSettingKeys.cureBandCuringAt, CURE_DEFAULTS.BAND_CURING_AT)
+        : cure.solute > bands.curingAt
           ? 'lightly salted'
           : null;
     if (dried && cured) return `It has been ${dried} and ${cured}.`;
@@ -339,24 +381,24 @@ export class Cure {
    * nothing is written. Only a treated blend (which something had to
    * treat) carries the two scalars and the stamp.
    */
-  public static stateFor(slot: BulkSlot): CureState | null {
-    const payload = slot.getPayload();
+  state(): CureState | null {
+    const payload = this.slot.getPayload();
     const cure = Cure.stateOf(payload);
     if (!cure || !payload) return null;
     const nowS = nowSeconds();
     if (nowS === null) return cure;
     const stamp = payload.cureStamp ?? 0;
     if (stamp === 0 || nowS <= stamp) {
-      slot.setPayload({ ...payload, cureStamp: nowS });
+      this.slot.setPayload({ ...payload, cureStamp: nowS });
       return cure;
     }
     const moisture = Cure.advanceMoisture(
       cure.moisture,
       nowS - stamp,
-      Cure.ambientHumidityOf(slot.getHolder()),
+      Cure.ambientHumidityOf(this.slot.getHolder()),
     );
     const next: CureState = { moisture, solute: cure.solute };
-    slot.setPayload({ ...payload, cure: next, cureStamp: nowS });
+    this.slot.setPayload({ ...payload, cure: next, cureStamp: nowS });
     return next;
   }
 
@@ -366,17 +408,17 @@ export class Cure {
    * OF, so that is a no-op; and stamping the untreated identity clears the
    * record rather than storing two default scalars forever.
    */
-  public static stampState(slot: BulkSlot, cure: CureState | null): void {
-    if (slot.getMaterial() === null) return;
-    const payload = slot.getPayload() ?? {};
+  stampState(cure: CureState | null): void {
+    if (this.slot.getMaterial() === null) return;
+    const payload = this.slot.getPayload() ?? {};
     if (Cure.isUntreated(cure)) {
       if (payload.cure === undefined) return;
       const { cure: _drop, cureStamp: _drops, ...rest } = payload;
-      slot.setPayload(rest);
+      this.slot.setPayload(rest);
       return;
     }
     const nowS = nowSeconds() ?? 0;
-    slot.setPayload({
+    this.slot.setPayload({
       ...payload,
       cure: { moisture: clamp01(cure!.moisture), solute: clamp01(cure!.solute) },
       cureStamp: nowS,

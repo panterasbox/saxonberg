@@ -45,7 +45,14 @@ export class Lock {
     readonly technology: LockType,
   ) {}
 
-  /** Mint a fresh, opaque keyway token (a re-key is simply a new keyway). */
+  /**
+   * Mint a fresh, opaque keyway token (a re-key is simply a new keyway).
+   *
+   * @internal the callable door is `BoundaryApi.mintKeyway`. ⭐ The line:
+   * MINTING is an act on the world (it reaches `SecurityApi.uuid`), so it
+   * belongs to the Api; ISSUING is the lock answering about itself, so
+   * `issueKeyTo` / `opensFor` stay instance methods here.
+   */
   static mintKeyway(): string {
     return `kw-${SecurityApi.uuid()}`;
   }
@@ -73,34 +80,35 @@ export class Lock {
     return holder !== null;
   }
 
+
+
   /**
-   * Issue a bearer key for `keyway`+`technology` to `holder`: an entry
-   * in their implant keychain (if they have one) AND a physical `Key`
-   * Thing in their inventory. Either opens the lock; the physical key
-   * is the durable form. Ungated (parity with the retired Public
-   * static): issuers span kernel + pack controllers (title, lease,
-   * dorm provisioning), a set no kernel gate can enumerate.
+   * Issue a bearer key for **this lock** to `holder`: an entry in their
+   * implant keychain (if they have one) AND a physical `Key` Thing in
+   * their inventory. Either opens the lock; the physical key is the
+   * durable form.
+   *
+   * ⭐ The symmetric twin of {@link opensFor}. The lock owns the keyway
+   * and the technology, so it is the object that can hand one out — a
+   * static taking `(holder, keyway, technology)` was asking the caller to
+   * carry this object's own two fields around as loose arguments.
+   *
+   * ⚠ Ungated by design: issuers span kernel + pack controllers (title,
+   * lease, dorm provisioning), a set no kernel gate can enumerate.
    */
-  static async issueKey(
-    holder: Stuff,
-    keyway: string,
-    technology: LockType,
-  ): Promise<void> {
-    addToKeychain(holder, keyway, technology, false);
-    await mintPhysical(holder, keyway, technology, false);
+  async issueKeyTo(holder: Stuff): Promise<void> {
+    addToKeychain(holder, this.keyway, this.technology, false);
+    await mintPhysical(holder, this.keyway, this.technology, false);
   }
 
   /**
-   * Issue a **master** key for a whole lock technology (a super's ring)
-   * to `holder` — keychain master (if any) + a physical master `Key`.
-   * Opens every lock of that technology.
+   * Issue a **master** key for this lock's whole technology (a super's
+   * ring) to `holder` — keychain master (if any) + a physical master
+   * `Key`. Opens every lock of that technology, so the keyway is ignored.
    */
-  static async issueMasterKey(
-    holder: Stuff,
-    technology: LockType,
-  ): Promise<void> {
-    addToKeychain(holder, "", technology, true);
-    await mintPhysical(holder, "", technology, true);
+  async issueMasterKeyTo(holder: Stuff): Promise<void> {
+    addToKeychain(holder, '', this.technology, true);
+    await mintPhysical(holder, '', this.technology, true);
   }
 
   /**

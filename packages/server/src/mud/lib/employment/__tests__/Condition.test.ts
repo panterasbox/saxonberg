@@ -84,34 +84,30 @@ describe("Condition.matchesItem / holdsFor", () => {
   it("matches by template path and refuses a fungible stack", () => {
     const crate = makeStuffAtPath(() => new TestCrate(), CRATE);
     const stack = makeStuffAtPath(() => new TestStack(), CRATE);
-    expect(Condition.matchesItem(delivery(), crate)).toBe(true);
-    expect(Condition.matchesItem(delivery(), stack)).toBe(false);
+    expect(new Condition(delivery()).matchesItem(crate)).toBe(true);
+    expect(new Condition(delivery()).matchesItem(stack)).toBe(false);
   });
 
   it("matches a chattel-bound item by its durable id", () => {
     const parcel = makeStuffAtPath(() => new TestParcel(), "/obj/test/parcel");
     (parcel as unknown as { _chattelId: string })._chattelId = "ch-1";
     const bound = delivery({ item: { kind: "chattel", chattelId: "ch-1" } });
-    expect(Condition.matchesItem(bound, parcel)).toBe(true);
-    expect(
-      Condition.matchesItem(
-        delivery({ item: { kind: "chattel", chattelId: "ch-2" } }),
-        parcel,
-      ),
-    ).toBe(false);
+    expect(new Condition(bound).matchesItem(parcel)).toBe(true);
+    const other = delivery({ item: { kind: "chattel", chattelId: "ch-2" } });
+    expect(new Condition(other).matchesItem(parcel)).toBe(false);
   });
 
   it("holds when the item rests in the destination (and nested in a chest there)", () => {
     const room = makeStuffAtPath(() => new TestRoom(), ROOM);
     const crate = makeStuffAtPath(() => new TestCrate(), CRATE);
-    expect(Condition.holdsFor(delivery(), crate)).toBe(false); // nowhere yet
+    expect(new Condition(delivery()).holdsFor(crate)).toBe(false); // nowhere yet
     ContainmentApi.move(crate, room);
-    expect(Condition.holdsFor(delivery(), crate)).toBe(true);
+    expect(new Condition(delivery()).holdsFor(crate)).toBe(true);
 
     const chest = makeStuffAtPath(() => new TestChest(), "/obj/test/chest");
     ContainmentApi.move(chest, room);
     ContainmentApi.move(crate, chest);
-    expect(Condition.holdsFor(delivery(), crate)).toBe(true); // chest-in-bar
+    expect(new Condition(delivery()).holdsFor(crate)).toBe(true); // chest-in-bar
   });
 
   it("refuses a creature ancestor — still carried is not delivered", () => {
@@ -124,7 +120,7 @@ describe("Condition.matchesItem / holdsFor", () => {
     ContainmentApi.move(courier, room);
     ContainmentApi.move(crate, courier as never);
     // The courier stands IN the bar, crate in hand — not delivered.
-    expect(Condition.holdsFor(delivery(), crate)).toBe(false);
+    expect(new Condition(delivery()).holdsFor(crate)).toBe(false);
   });
 
   it("accepts the restingOn surface leg — deliver to the counter", () => {
@@ -137,9 +133,9 @@ describe("Condition.matchesItem / holdsFor", () => {
     const crate = makeStuffAtPath(() => new TestCrate(), CRATE);
     ContainmentApi.placeOn(crate, counter);
     const toCounter = delivery({ destinationPath: "/world/test/counter" });
-    expect(Condition.holdsFor(toCounter, crate)).toBe(true);
+    expect(new Condition(toCounter).holdsFor(crate)).toBe(true);
     // …and to the room: the crate is in the room's contents via placeOn.
-    expect(Condition.holdsFor(delivery(), crate)).toBe(true);
+    expect(new Condition(delivery()).holdsFor(crate)).toBe(true);
   });
 });
 
@@ -170,9 +166,9 @@ describe('the watch clause', () => {
     // while", which `holdsFor(data, item)` cannot express however it is
     // squeezed — so the predicate is a different one.
     const c = watch(4);
-    expect(Condition.watchHolds(c, 3 * 3600)).toBe(false);
-    expect(Condition.watchHolds(c, 4 * 3600)).toBe(true);
-    expect(Condition.watchHolds(c, 9 * 3600)).toBe(true);
+    expect(new Condition(c).watchHolds(3 * 3600)).toBe(false);
+    expect(new Condition(c).watchHolds(4 * 3600)).toBe(true);
+    expect(new Condition(c).watchHolds(9 * 3600)).toBe(true);
   });
 
   it('⚠ a delivery clause never satisfies a watch predicate', () => {
@@ -181,6 +177,6 @@ describe('the watch clause', () => {
       item: { kind: 'template', path: '/stuff/thing/crate' },
       destinationPath: '/somewhere',
     };
-    expect(Condition.watchHolds(delivery, 999 * 3600)).toBe(false);
+    expect(new Condition(delivery).watchHolds(999 * 3600)).toBe(false);
   });
 });

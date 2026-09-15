@@ -64,7 +64,7 @@ export class BlendLabel {
    * puddle, a material shadow — which is what makes the `blend` fallback
    * on every reader below the honest answer rather than a guard.
    */
-  public static ingredientsOf(payload: BulkPayload | null): Material[] {
+  private static ingredientsOf(payload: BulkPayload | null): Material[] {
     const composition: readonly BlendPart[] = payload?.composition ?? [];
     const out: Material[] = [];
     for (const part of composition) {
@@ -75,6 +75,9 @@ export class BlendLabel {
   }
 
   /** The nutrient routing tags — the union of the ingredients'. */
+  /**
+   * @internal one production caller plus the tests that white-box it — not author surface.
+   */
   public static nutrientsOf(
     payload: BulkPayload | null,
     blend: Material | null,
@@ -93,6 +96,8 @@ export class BlendLabel {
    * scaled by its **servings** — which is why the composition carries
    * shares and not just an ordered list. A blend that is nine parts water
    * and one part stock is not a bowl of stock.
+   * @internal one production caller plus the tests that white-box it — not author surface.
+   *
    */
   public static amountsOf(
     payload: BulkPayload | null,
@@ -122,6 +127,8 @@ export class BlendLabel {
    * here only because this is the class that already walks the
    * composition. If a third composition-derived reading appears that is
    * neither label nor tag, the walk wants its own home.
+   * @internal one production caller plus the tests that white-box it — not author surface.
+   *
    */
   public static tagsOf(
     payload: BulkPayload | null,
@@ -136,7 +143,13 @@ export class BlendLabel {
     return out;
   }
 
-  /** Edible iff anything that went in was. */
+  /**
+   * Edible iff anything that went in was.
+   *
+   * @internal the callable door is `MaterialApi.blendEdibility` — the body
+   * stays here because `ingredientsOf` is module-private, and moving it
+   * would trade one hidden static for a wider module surface.
+   */
   public static isEdible(
     payload: BulkPayload | null,
     blend: Material | null,
@@ -156,6 +169,9 @@ export class BlendLabel {
    * actually reached its temperature. Alcohol marks none and rides into
    * the pot honestly; so does a formed ptomaine, which is not an
    * ingredient's dose at all.
+   *
+   * @internal the callable door is `MaterialApi.blendToxicity` — the
+   * body stays here beside the ingredient walk it shares.
    */
   public static toxicityOf(
     payload: BulkPayload | null,

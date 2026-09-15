@@ -255,8 +255,10 @@ export default class LaneCatalogue extends Idea {
    * the Journey re-validates before each leg (D4's transaction boundary
    * per leg), and a cached exit would let a journey walk through a door
    * that has since been blocked.
+   * @internal one caller outside this file, plus this module — not author surface.
+   *
    */
-  public static async exitBetween(
+  static async exitBetween(
     fromPath: string,
     toPath: string,
   ): Promise<Exit | null> {

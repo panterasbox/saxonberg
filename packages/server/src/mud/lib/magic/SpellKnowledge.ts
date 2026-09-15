@@ -1,6 +1,11 @@
 /**
- * SpellKnowledge — the per-character spell-learning ladder, derived on
- * read from the chronicle ledger.
+ * SpellKnowledge — the **vocabulary** of the per-character spell-learning
+ * ladder: the chronicle key it files under and the prose the entry
+ * carries. Derived on read from the chronicle ledger.
+ *
+ * ⭐ **The verbs are on the character, not here** — `persona.hasClaimed(key)`
+ * and `recordChronicleOnce(key, entry)` on `PersonaMixin`, which is
+ * key-agnostic so the kernel learns no content word.
  *
  * The `RecipeKnowledge` sibling, verbatim, and that is the whole design:
  *
@@ -40,40 +45,21 @@
  * a no-op on the claim's row.
  */
 
-import { MixinApi } from '../../api/mixin';
-import type { Stuff } from '../stuff/Stuff';
-
-function knownKey(spellPath: string): string {
-  return `spell-known:${spellPath}`;
-}
+import type { ChronicleEntryFields } from '../chronicle/ChronicleEntry';
 
 export class SpellKnowledge {
-  /** True iff the actor has read of `spellPath` (a claim). */
-  static async knowsOf(actor: Stuff, spellPath: string): Promise<boolean> {
-    const key = knownKey(spellPath);
-    if (!MixinApi.isPersona(actor)) return false;
-    const entries = await actor.chronicleEntries();
-    return entries.some((e) => e.kind === 'claim' && e.key === key);
+  /** The key a *known-of* claim is filed under. */
+  static knownKey(spellPath: string): string {
+    return `spell-known:${spellPath}`;
   }
 
   /**
-   * Mint the *known-of* claim (idempotent) — on reading a spellbook.
+   * The ledger line for reading of a spell.
    *
-   * **Never a deed.** Writing one here would be writing evidence of
-   * practice that did not happen, and competence derives from exactly
-   * that evidence.
+   * ⚠ **Never a deed.** Writing one would be writing evidence of practice
+   * that did not happen, and competence derives from exactly that evidence.
    */
-  static async noteKnown(
-    actor: Stuff,
-    spellPath: string,
-    name: string,
-  ): Promise<void> {
-    if (!MixinApi.isPersona(actor)) return;
-    await actor.recordChronicleOnce(knownKey(spellPath), {
-      kind: 'claim',
-      text: `Read of ${name}.`,
-      tags: ['spell'],
-    });
+  static knownEntry(name: string): ChronicleEntryFields {
+    return { kind: 'claim', text: `Read of ${name}.`, tags: ['spell'] };
   }
-
 }

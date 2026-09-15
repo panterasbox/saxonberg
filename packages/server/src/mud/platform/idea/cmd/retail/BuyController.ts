@@ -42,18 +42,28 @@ import { AppApi } from "../../../../api/app";
 import { AppSettingKeys } from "../../../../lib/config/AppSettings";
 import type { Stuff } from "../../../../lib/stuff/Stuff";
 import type { Containable } from "../../../../lib/spatial/Containable";
+import type { MqlOneResult } from '../../../../api/mql';
 
 const TOPIC = "act.deed";
 
 interface BuyModel extends CommandModel {
+  /** Where you are buying from — bound by the view, `from`-addressable. */
+  counter?: MqlOneResult;
   thing: string;
 }
 
 export default class BuyController extends CommandController<BuyModel> {
   async execute(model: BuyModel, context: CommandContext): Promise<void> {
     const giver = context.commandGiver;
-    const stock = Stock.resolveIn(context);
-    const shelf = ConsignmentShelf.resolveIn(context);
+    // ⭐ Bound by the view (`buy.yaml` § counter), not hunted for here.
+    // One counter can be both the house's shelf and a brokerage, so the
+    // single resolved object is narrowed into the two roles it plays.
+    const counter = model.counter?.stuff ?? null;
+    const stock = counter instanceof Stock ? counter : null;
+    const shelf =
+      counter && MixinApi.isConsignmentShelf(counter)
+        ? (counter as ShelfStuff)
+        : null;
     if (!stock && !shelf) {
       this.reject(giver, context, Mml.compose`There's nothing to buy here.`, {
         kind: "empty-result",
@@ -204,7 +214,7 @@ export default class BuyController extends CommandController<BuyModel> {
         ? [
             {
               accountId: consignorPrimary,
-              amount: Money.of(remainder, Currency.compact()),
+              amount: Money.of(remainder, BankingApi.compactCurrency()),
               category: "consignment",
             },
           ]
@@ -253,7 +263,7 @@ export default class BuyController extends CommandController<BuyModel> {
       return null;
     }
     const charge: Charge = {
-      amount: Money.of(amount, Currency.compact()),
+      amount: Money.of(amount, BankingApi.compactCurrency()),
       reason,
       presented: true,
       payeeAccountId: account,
@@ -270,10 +280,10 @@ export default class BuyController extends CommandController<BuyModel> {
         return null;
       }
     }
-    if (taxable > 0) await BankingApi.remitDemoTax(account, Money.of(taxable, Currency.compact()));
+    if (taxable > 0) await BankingApi.remitDemoTax(account, Money.of(taxable, BankingApi.compactCurrency()));
     const tail = receipt.corpoKey
-      ? `(${Money.of(amount, Currency.compact()).render()}, ${receipt.corpoKey})`
-      : `(${Money.of(amount, Currency.compact()).render()})`;
+      ? `(${Money.of(amount, BankingApi.compactCurrency()).render()}, ${receipt.corpoKey})`
+      : `(${Money.of(amount, BankingApi.compactCurrency()).render()})`;
     return { tail, receipt };
   }
 

@@ -217,15 +217,42 @@ declare module '../bulk/Bulkable' {
   }
 }
 
+/** The kill model's three dials — see {@link Freshness.killTuning}. */
+interface KillTuning {
+  /** The temperature at which the population starts dying, in K. */
+  killK: number;
+  /** The kill rate at exactly `killK`, per hour. */
+  ratePerHour: number;
+  /** The Arrhenius activation energy steepening the kill above `killK`. */
+  activationEnergy: number;
+}
+
 export class Freshness {
+  /**
+   * A gauge bound to the slot it measures. ⭐ The model lives in this
+   * class's statics (pure, shared); the READS and WRITES of one slot's
+   * payload live on an instance of it — the `Lock` shape, where
+   * `opensFor`/`issueKeyTo` are instance methods beside the type-level
+   * `mintKeyway`.
+   *
+   * ⚠ Deliberately NOT methods on `BulkSlot`: `bulk.md` has the bulk
+   * substrate carry only what subsystems declare onto `BulkPayload`, so
+   * the slot must not learn what spoilage is. Spoilage holding a
+   * reference to a slot keeps that direction intact while putting the
+   * verb on an object.
+   */
+  constructor(private readonly slot: BulkSlot) {}
+
   /**
    * The specific growth rate (per game-hour) at a temperature, for a
    * material. Returns `0` for an inert material (no tabulated activation
    * energy), for a frozen one, and for one below the water-activity
    * floor. Returns a NEGATIVE rate above the kill temperature — the
    * population is dying, and the caller integrates that as decay.
+   * @internal the microbial growth rate — read by this module and its tests.
+   *
    */
-  public static growthRate(
+  static growthRate(
     material: Material | null,
     tempK: number,
     cure: CureState | null = null,
@@ -234,8 +261,11 @@ export class Freshness {
     const ea = material.getSpoilActivationEnergy().rawValue();
     if (!(ea > 0)) return 0; // inert: nothing tabulated, nothing rots
 
-    if (tempK >= dial(AppSettingKeys.freshnessKillK, FRESHNESS_DEFAULTS.KILL_K)) {
-      return -Freshness.killRatePerHourAt(tempK);
+    // ⭐ One read of the kill model, used for both the threshold and the
+    // rate — `killOver` takes the same bundle, for the same reason.
+    const kill = Freshness.killTuning();
+    if (tempK >= kill.killK) {
+      return -Freshness.killRatePerHourAt(tempK, kill);
     }
     if (
       tempK <= dial(AppSettingKeys.freshnessFreezingK, FRESHNESS_DEFAULTS.FREEZING_K)
@@ -278,6 +308,8 @@ export class Freshness {
    * ⭐ `moisture: 1, solute: 0` is the **identity**. That is why every row
    * already in the world reads exactly as it did before the cure axis
    * existed, and it is pinned by a test rather than assumed.
+   * @internal one production caller plus the tests that white-box it — not author surface.
+   *
    */
   public static waterActivityOf(
     material: Material,
@@ -299,6 +331,12 @@ export class Freshness {
    * the pasteurization floor, and the number a working has to reach for a
    * cook to have *killed* anything. Read by the crafting output step as
    * well as by the gauge, so "hot enough to cook" is one fact.
+   *
+   * ⚠ **Not parameterised, and that is the finding.** This does not READ a
+   * dial on its way to an answer — it IS the dial read. Giving it a
+   * `value = dial(…)` parameter would produce `(x) => x`. A settings
+   * accessor is a different thing from a formula that answers to a
+   * setting, and only the second one was the problem.
    */
   public static killTemperatureK(): number {
     return dial(AppSettingKeys.freshnessKillK, FRESHNESS_DEFAULTS.KILL_K);
@@ -318,18 +356,45 @@ export class Freshness {
    * ⚠ It used to be a flat dial, so every temperature above 60 °C killed
    * at exactly the same speed and boiling was no better than warming.
    */
-  public static killRatePerHourAt(tempK: number): number {
-    const killK = dial(AppSettingKeys.freshnessKillK, FRESHNESS_DEFAULTS.KILL_K);
-    const base = dial(
-      AppSettingKeys.freshnessKillRatePerHour,
-      FRESHNESS_DEFAULTS.KILL_RATE_PER_HOUR,
+  /**
+   * ⭐⭐ **The kill model's three dials, read once.**
+   *
+   * ⚠ They travel together because **purity is transitive**:
+   * {@link killOver} reads `killK` directly and then calls
+   * {@link killRatePerHourAt}, which reads all three. Parameterising only
+   * the direct read would have produced a signature that LOOKS complete
+   * and is not — worse than saying nothing, because a reader would trust
+   * it.
+   *
+   * @internal the tuning bundle, not author surface; the formulas take it.
+   */
+  private static killTuning(): KillTuning {
+    return {
+      killK: dial(AppSettingKeys.freshnessKillK, FRESHNESS_DEFAULTS.KILL_K),
+      ratePerHour: dial(
+        AppSettingKeys.freshnessKillRatePerHour,
+        FRESHNESS_DEFAULTS.KILL_RATE_PER_HOUR,
+      ),
+      activationEnergy: dial(
+        AppSettingKeys.freshnessKillActivationEnergy,
+        FRESHNESS_DEFAULTS.KILL_ACTIVATION_ENERGY,
+      ),
+    };
+  }
+
+  /**
+   * `k(T) = k₀ · e^(Eₐ/R · (1/T_kill − 1/T))` above the kill temperature,
+   * and `k₀` at or below it — the Arrhenius kill rate.
+   */
+  private static killRatePerHourAt(tempK: number, t: KillTuning): number {
+    if (tempK <= t.killK) return t.ratePerHour;
+    return (
+      t.ratePerHour *
+      Math.exp(
+        (t.activationEnergy / FRESHNESS_DEFAULTS.GAS_CONSTANT) *
+          (1 / t.killK - 1 / tempK),
+      )
     );
-    if (tempK <= killK) return base;
-    const ea = dial(
-      AppSettingKeys.freshnessKillActivationEnergy,
-      FRESHNESS_DEFAULTS.KILL_ACTIVATION_ENERGY,
-    );
-    return base * Math.exp((ea / FRESHNESS_DEFAULTS.GAS_CONSTANT) * (1 / killK - 1 / tempK));
   }
 
   /**
@@ -341,17 +406,35 @@ export class Freshness {
    * ⭐ One function, two callers, deliberately: two kill curves that drift
    * apart is the bug this avoids.
    */
-  public static killOver(load: number, holdS: number, tempK: number): number {
+  public static killOver(
+    load: number,
+    holdS: number,
+    tempK: number,
+    /**
+     * ⭐ The kill model, **as a parameter defaulting to the dials.** All
+     * three travel together — see {@link killTuning} for why splitting
+     * them would be dishonest.
+     */
+    t: KillTuning = Freshness.killTuning(),
+  ): number {
     const l0 = clamp01(load);
     if (l0 <= 0 || !(holdS > 0)) return l0;
-    const killK = dial(AppSettingKeys.freshnessKillK, FRESHNESS_DEFAULTS.KILL_K);
-    if (tempK < killK) return l0;
+    if (tempK < t.killK) return l0;
     const hours = holdS / FRESHNESS_DEFAULTS.SECONDS_PER_HOUR;
-    const survived = l0 * Math.exp(-Freshness.killRatePerHourAt(tempK) * hours);
+    const survived =
+      l0 * Math.exp(-Freshness.killRatePerHourAt(tempK, t) * hours);
     return survived < 1e-6 ? 0 : survived;
   }
 
-  /** The seed population a perishable starts from (fraction of capacity). */
+  /**
+   * The seed population a perishable starts from (fraction of capacity).
+   *
+   * ⚠ **Not parameterised, and that is the finding.** This does not READ a
+   * dial on its way to an answer — it IS the dial read. Giving it a
+   * `value = dial(…)` parameter would produce `(x) => x`. A settings
+   * accessor is a different thing from a formula that answers to a
+   * setting, and only the second one was the problem.
+   */
   public static inoculum(): number {
     return dial(AppSettingKeys.freshnessInoculum, FRESHNESS_DEFAULTS.INOCULUM);
   }
@@ -361,6 +444,8 @@ export class Freshness {
    * rate for `tempK`. Closed-form, so a week-long gap costs the same as a
    * minute — logistic growth while the rate is positive, exponential death
    * while it is negative.
+   * @internal one production caller plus the tests that white-box it — not author surface.
+   *
    */
   public static advance(
     load: number,
@@ -389,14 +474,28 @@ export class Freshness {
   }
 
   /** Band a load for presentation. */
-  public static bandFor(load: number): FreshnessBand {
+  public static bandFor(
+    load: number,
+    /** ⭐ The three band edges, as one parameter defaulting to the dials. */
+    bands: { rottenAt: number; spoiledAt: number; taintedAt: number } = {
+      rottenAt: dial(
+        AppSettingKeys.freshnessBandRottenAt,
+        FRESHNESS_DEFAULTS.BAND_ROTTEN_AT,
+      ),
+      spoiledAt: dial(
+        AppSettingKeys.freshnessBandSpoiledAt,
+        FRESHNESS_DEFAULTS.BAND_SPOILED_AT,
+      ),
+      taintedAt: dial(
+        AppSettingKeys.freshnessBandTaintedAt,
+        FRESHNESS_DEFAULTS.BAND_TAINTED_AT,
+      ),
+    },
+  ): FreshnessBand {
     const l = clamp01(load);
-    if (l >= dial(AppSettingKeys.freshnessBandRottenAt, FRESHNESS_DEFAULTS.BAND_ROTTEN_AT))
-      return 'rotten';
-    if (l >= dial(AppSettingKeys.freshnessBandSpoiledAt, FRESHNESS_DEFAULTS.BAND_SPOILED_AT))
-      return 'spoiled';
-    if (l >= dial(AppSettingKeys.freshnessBandTaintedAt, FRESHNESS_DEFAULTS.BAND_TAINTED_AT))
-      return 'tainted';
+    if (l >= bands.rottenAt) return 'rotten';
+    if (l >= bands.spoiledAt) return 'spoiled';
+    if (l >= bands.taintedAt) return 'tainted';
     return 'fresh';
   }
 
@@ -410,18 +509,22 @@ export class Freshness {
    * absorption / clearance / severity bands live on that seed, never here
    * (the same amount-vs-rate split as every other {@link ToxinTag}).
    */
-  public static doseFor(load: number): ToxinTag | null {
-    const onset = dial(
+  public static doseFor(
+    load: number,
+    /** ⭐ The load the dose starts at — the dial, as a parameter. */
+    onset = dial(
       AppSettingKeys.freshnessDoseOnsetLoad,
       FRESHNESS_DEFAULTS.DOSE_ONSET_LOAD,
-    );
+    ),
+    /** ⭐ Its milligram scale — likewise. */
+    scale = dial(
+      AppSettingKeys.freshnessDoseScaleMg,
+      FRESHNESS_DEFAULTS.DOSE_SCALE_MG,
+    ),
+  ): ToxinTag | null {
     const l = clamp01(load);
     if (l <= onset || onset >= 1) return null;
     const t = (l - onset) / (1 - onset);
-    const scale = dial(
-      AppSettingKeys.freshnessDoseScaleMg,
-      FRESHNESS_DEFAULTS.DOSE_SCALE_MG,
-    );
     const amount = scale * t * t;
     if (amount <= 0) return null;
     return { type: SPOILAGE_TOXIN, amount };
@@ -440,7 +543,7 @@ export class Freshness {
    * Writing a faithful shadow is therefore a no-op in meaning and the one
    * honest way to say "*this* batch has been out since Tuesday".
    */
-  public static materialShadow(_material: Material | null): BulkPayload {
+  private static materialShadow(_material: Material | null): BulkPayload {
     // ⭐⭐ **Empty, now — and that is the whole decomposition in one
     // function.** This used to copy the Material's name, appearance,
     // keywords, tags, nutrition, amounts, toxins and edibility, because a
@@ -453,7 +556,10 @@ export class Freshness {
   }
 
   /** Whether a material's own constants let it spoil at all. */
-  public static isPerishable(material: Material | null): boolean {
+  /**
+   * @internal whether a material spoils at all — read by this module.
+   */
+  static isPerishable(material: Material | null): boolean {
     return !!material && material.getSpoilActivationEnergy().rawValue() > 0;
   }
 
@@ -473,6 +579,8 @@ export class Freshness {
    * payload carrying only the ptomaine would silently drop the food's real
    * nutrition. Returns the payload unchanged (possibly `null`) when the
    * load has earned no dose at all.
+   * @internal one production caller plus the tests that white-box it — not author surface.
+   *
    */
   public static withDose(
     payload: BulkPayload | null,
@@ -516,8 +624,10 @@ export class Freshness {
    * temperature when it has one, else the neutral ambient. A food class
    * composes `ThermalMixin` precisely so the fridge, the fire and the
    * cellar are all one answer.
+   * @internal the host thermal read behind the spoilage clock.
+   *
    */
-  public static hostTemperatureK(host: Stuff): number {
+  static hostTemperatureK(host: Stuff): number {
     if (MixinApi.isThermal(host)) {
       try {
         return host.getTemperature().rawValue();
@@ -549,16 +659,16 @@ export class Freshness {
    * the discrete one, and a stew nobody looks at for a week integrates
    * the whole week the moment somebody does.
    */
-  public static loadOf(slot: BulkSlot): number {
-    const payload = slot.getPayload();
+  load(): number {
+    const payload = this.slot.getPayload();
     const gauge = payload?.freshness;
     if (!gauge) {
-      if (slot.isEmpty()) return 0;
-      const mat = slot.getMaterial();
+      if (this.slot.isEmpty()) return 0;
+      const mat = this.slot.getMaterial();
       if (!Freshness.isPerishable(mat)) return 0;
       const seedAt = Freshness.nowSeconds();
       if (seedAt === null) return 0;
-      slot.setPayload({
+      this.slot.setPayload({
         ...(payload ?? Freshness.materialShadow(mat)),
         freshness: { load: 0, stamp: seedAt },
       });
@@ -567,22 +677,25 @@ export class Freshness {
     const nowS = Freshness.nowSeconds();
     if (nowS === null) return gauge.load;
     if (gauge.stamp === 0 || nowS <= gauge.stamp) {
-      slot.setPayload({ ...payload, freshness: { ...gauge, stamp: nowS } });
+      this.slot.setPayload({ ...payload, freshness: { ...gauge, stamp: nowS } });
       return gauge.load;
     }
     // ⚠ The water state FIRST, and reconciled: a blend that has been
     // rehydrating in a damp cellar spoils at the a_w it has NOW, and
     // `Cure.stateFor` may rewrite the payload — so read it before the
     // freshness write, or the write below stamps over it.
-    const cure = Cure.stateFor(slot);
+    const cure = new Cure(this.slot).state();
     const load = Freshness.advance(
       gauge.load,
       nowS - gauge.stamp,
-      slot.getMaterial(),
-      Freshness.hostTemperatureK(slot.getHolder()),
+      this.slot.getMaterial(),
+      Freshness.hostTemperatureK(this.slot.getHolder()),
       cure,
     );
-    slot.setPayload({ ...slot.getPayload(), freshness: { load, stamp: nowS } });
+    this.slot.setPayload({
+      ...this.slot.getPayload(),
+      freshness: { load, stamp: nowS },
+    });
     return load;
   }
 
@@ -592,13 +705,13 @@ export class Freshness {
    * a fill can say "this came out of the pot sterile" in one call. A slot
    * holding nothing has no matter to be a gauge OF, so that is a no-op.
    */
-  public static stampLoad(slot: BulkSlot, load: number): void {
-    const material = slot.getMaterial();
+  stampLoad(load: number): void {
+    const material = this.slot.getMaterial();
     if (material === null) return;
-    const payload = slot.getPayload() ?? Freshness.materialShadow(material);
+    const payload = this.slot.getPayload() ?? Freshness.materialShadow(material);
     const nowS = Freshness.nowSeconds() ?? 0;
     const clamped = load < 0 ? 0 : load > 1 ? 1 : load;
-    slot.setPayload({ ...payload, freshness: { load: clamped, stamp: nowS } });
+    this.slot.setPayload({ ...payload, freshness: { load: clamped, stamp: nowS } });
   }
 
   /**
@@ -607,25 +720,28 @@ export class Freshness {
    * The one seam `drink` / `sip` / `eat` read, so a spoiled pot poisons
    * through every route into a mouth without any of them knowing the word.
    */
-  public static ingestPayloadOf(slot: BulkSlot): BulkPayload | null {
+  ingestPayload(): BulkPayload | null {
     // ⚠ The load FIRST: reading it reconciles (and may seed) the payload,
     // so reading the payload before it would hand back a stale copy.
-    const load = Freshness.loadOf(slot);
+    const load = new Freshness(this.slot).load();
     // ⚠⚠ The silent half, reconciled the same way and folded the same
     // way. `Contamination.withLoads` also deposits any formed toxin an
     // intoxicating population has made, which is the arm that needs no
     // in-host machinery at all.
-    const pathogens = Contamination.loadsFor(slot);
+    const pathogens = new Contamination(this.slot).loads();
     const withDose = Freshness.withDose(
-      slot.getPayload(),
-      slot.getMaterial(),
+      this.slot.getPayload(),
+      this.slot.getMaterial(),
       load,
     );
     return Contamination.withLoads(withDose, pathogens);
   }
 
   /** Game-seconds now, or `null` when no world clock (pre-boot / tests). */
-  public static nowSeconds(): number | null {
+  /**
+   * @internal one caller outside this file, plus this module — not author surface.
+   */
+  static nowSeconds(): number | null {
     if (!StuffApi.findByTemplatePath(TemplatePaths.worldClockRegistry)) {
       return null;
     }
