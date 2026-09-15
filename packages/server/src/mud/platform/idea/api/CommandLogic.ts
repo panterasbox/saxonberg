@@ -96,6 +96,8 @@ import {
   type AssembleSuccess,
   type AssembleResult,
 } from '../../../api/command';
+import type { OnFilteredPolicy } from '../../../api/command';
+import { MessageApi } from '../../../api/message';
 
 const CommandApiCallers = SecurityPolicies.AnyOf(
   SecurityPolicies.FromModule('/api/command#CommandApi'),
@@ -391,6 +393,94 @@ async function worldRetry(
     });
   }
   return out;
+}
+
+/**
+ * ⭐⭐ **One `requires:`-aware scope walk, and the policy on what it
+ * discards.**
+ *
+ * This was written FOUR times — the positional loop and the option loop,
+ * each with an `objects` branch and a singular branch, the last of them
+ * carrying the comment *"Same `requires:`-aware scan as the positional
+ * loop."* Four copies of a control-flow rule is how one of them acquires
+ * a different opinion; extracting it is most of why this change is safe.
+ *
+ * ## What the walk does, and why the chain survives
+ *
+ * A scope's answer counts only if something in it satisfies the slot's
+ * `requires:`; otherwise the scan moves to the next scope. That is what
+ * makes `talk dave` reach the barkeep when `$focus` is the room *"Dave's
+ * Bar"* — the room matches the word, fails the kind, and the chain falls
+ * through.
+ *
+ * ⚠⚠ **The chain is NOT replaced by one pool, and that is deliberate.**
+ * The chain does two jobs: it ORDERS by preference (`$focus` first —
+ * look at what I am attending to) and it FILTERS by kind. Only the
+ * second was ever the complaint. Collapsing to one pool would have made
+ * the focused object just another candidate, which is a silent
+ * regression in the exact place the player is most likely to notice —
+ * so ordering stays, and the DISCARD becomes counted and declared.
+ *
+ * ## What it now says
+ *
+ * Every candidate that matched the player's word and failed the kind is
+ * counted, across every scope tried. `onFiltered` then decides whether
+ * that is silent (`take`, the default and today's behaviour), spoken
+ * (`warn`), or refused (`error`).
+ *
+ * ⚠ The `firstRaw` fallback is unchanged: when NOTHING anywhere is
+ * admissible, the first raw match binds anyway so the field's validator
+ * can say why — *"a rock doesn't open"* — rather than the scan
+ * pretending it saw nothing. That is the 0-of-N cell, and it was already
+ * honest.
+ */
+async function walkScopes(
+  raw: string,
+  giver: Stuff & CommandGiver,
+  tries: readonly string[],
+  field: string,
+  context: CommandContext,
+  admissible: (s: Stuff) => boolean,
+): Promise<{ result: MqlMany; discarded: Stuff[] }> {
+  let firstRaw: MqlMany | null = null;
+  const discarded: Stuff[] = [];
+  for (const scope of tries) {
+    const got = await scopedMany(raw, giver, scope, field, context);
+    if (got.stuff.length > 0 && !firstRaw) firstRaw = got;
+    const kept = got.stuff.filter(admissible);
+    for (const s of got.stuff) if (!kept.includes(s)) discarded.push(s);
+    if (kept.length > 0) return { result: { ...got, stuff: kept }, discarded };
+  }
+  if (firstRaw) return { result: firstRaw, discarded: [] };
+  return { result: { stuff: [] }, discarded };
+}
+
+/**
+ * Apply a slot's {@link OnFilteredPolicy} to what {@link walkScopes}
+ * threw away. Returns `false` when the policy refuses the command.
+ *
+ * ⭐ Silent by default, so declaring the policy changes nothing until an
+ * author asks it to — 183 slots declare `requires:` today and none of
+ * them asked for a new voice.
+ */
+function applyFilteredPolicy(
+  def: { onFiltered?: OnFilteredPolicy },
+  discarded: readonly Stuff[],
+  kept: number,
+  field: string,
+  raw: string,
+  context: CommandContext,
+): boolean {
+  const policy = def.onFiltered ?? 'take';
+  if (discarded.length === 0 || policy === 'take') return true;
+  context.note({
+    kind: 'candidates-filtered',
+    field,
+    query: raw,
+    kept,
+    discarded: discarded.map((s) => MessageApi.refOf(s)),
+  });
+  return policy !== 'error';
 }
 
 /** `resolveMany` for one scope, with the seat arm behind it. */
@@ -1215,22 +1305,27 @@ export class CommandLogic extends ApiLogic {
       if (def.type === 'objects') {
         let r: MqlMany;
         try {
-          r = { stuff: [] };
-          // The first raw match is kept as the fallback: when NOTHING in
-          // any scope is admissible, bind it anyway so the field's
-          // validator can say why ("that has no mass") rather than the
-          // scan pretending it saw nothing.
-          let firstRaw: MqlMany | null = null;
-          for (const scope of tries) {
-            const got = await scopedMany(raw, giver, scope, fname, context);
-            if (got.stuff.length > 0 && !firstRaw) firstRaw = got;
-            const kept = got.stuff.filter(admissible);
-            if (kept.length > 0) {
-              r = { ...got, stuff: kept };
-              break;
-            }
+          const walked = await walkScopes(
+            raw,
+            giver,
+            tries,
+            fname,
+            context,
+            admissible,
+          );
+          r = walked.result;
+          if (
+            !applyFilteredPolicy(
+              def,
+              walked.discarded,
+              r.stuff.length,
+              fname,
+              raw,
+              context,
+            )
+          ) {
+            return { result: 'failed' };
           }
-          if (r.stuff.length === 0 && firstRaw) r = firstRaw;
         } catch (err) {
           context.note({
             kind: 'mql-error',
@@ -1263,9 +1358,10 @@ export class CommandLogic extends ApiLogic {
         let via: MqlMany['via'] | undefined;
         let quantity: MqlMany['quantity'] | undefined;
         try {
-          let firstRaw: MqlMany | null = null;
-          for (const scope of tries) {
-            if (useTop && terms.length === 0) {
+          if (useTop && terms.length === 0) {
+            // ⭐ The cheap path, unchanged: with no `requires:` there is
+            // nothing to discard, so nothing to have a policy about.
+            for (const scope of tries) {
               const r: MqlOne = await scopedOne(raw, giver, scope, fname, context);
               if (r.stuff !== null) {
                 stuff = [r.stuff];
@@ -1273,27 +1369,37 @@ export class CommandLogic extends ApiLogic {
                 quantity = r.quantity;
                 break;
               }
-            } else {
-              // With `requires:` the cheap top-one path can't be used —
-              // the top match may be the inadmissible one — so the
-              // scope is resolved in full and the first admissible
-              // match is the top. The first raw match is the fallback
-              // when nothing anywhere is admissible (see above).
-              const r: MqlMany = await scopedMany(raw, giver, scope, fname, context);
-              if (r.stuff.length > 0 && !firstRaw) firstRaw = r;
-              const kept = r.stuff.filter(admissible);
-              if (kept.length > 0) {
-                stuff = useTop ? [kept[0] as Stuff] : kept;
-                via = r.via;
-                quantity = r.quantity;
-                break;
-              }
             }
-          }
-          if (stuff.length === 0 && firstRaw) {
-            stuff = useTop ? [firstRaw.stuff[0] as Stuff] : firstRaw.stuff;
-            via = firstRaw.via;
-            quantity = firstRaw.quantity;
+          } else {
+            // ⚠ With `requires:` the cheap top-one path can't be used —
+            // the top match may be the inadmissible one — so each scope
+            // resolves in full and the first admissible match is the top.
+            const walked = await walkScopes(
+              raw,
+              giver,
+              tries,
+              fname,
+              context,
+              admissible,
+            );
+            const got = walked.result;
+            if (got.stuff.length > 0) {
+              stuff = useTop ? [got.stuff[0] as Stuff] : got.stuff;
+              via = got.via;
+              quantity = got.quantity;
+            }
+            if (
+              !applyFilteredPolicy(
+                def,
+                walked.discarded,
+                stuff.length,
+                fname,
+                raw,
+                context,
+              )
+            ) {
+              return { result: 'failed' };
+            }
           }
         } catch (err) {
           context.note({
@@ -1371,22 +1477,27 @@ export class CommandLogic extends ApiLogic {
       if (def.type === 'objects') {
         let r: MqlMany;
         try {
-          r = { stuff: [] };
-          // The first raw match is kept as the fallback: when NOTHING in
-          // any scope is admissible, bind it anyway so the field's
-          // validator can say why ("that has no mass") rather than the
-          // scan pretending it saw nothing.
-          let firstRaw: MqlMany | null = null;
-          for (const scope of tries) {
-            const got = await scopedMany(raw, giver, scope, fname, context);
-            if (got.stuff.length > 0 && !firstRaw) firstRaw = got;
-            const kept = got.stuff.filter(admissible);
-            if (kept.length > 0) {
-              r = { ...got, stuff: kept };
-              break;
-            }
+          const walked = await walkScopes(
+            raw,
+            giver,
+            tries,
+            fname,
+            context,
+            admissible,
+          );
+          r = walked.result;
+          if (
+            !applyFilteredPolicy(
+              def,
+              walked.discarded,
+              r.stuff.length,
+              fname,
+              raw,
+              context,
+            )
+          ) {
+            return { result: 'failed' };
           }
-          if (r.stuff.length === 0 && firstRaw) r = firstRaw;
         } catch (err) {
           context.note({
             kind: 'mql-error',
@@ -1411,9 +1522,10 @@ export class CommandLogic extends ApiLogic {
         let via: MqlMany['via'] | undefined;
         let quantity: MqlMany['quantity'] | undefined;
         try {
-          let firstRaw: MqlMany | null = null;
-          for (const scope of tries) {
-            if (useTop && terms.length === 0) {
+          if (useTop && terms.length === 0) {
+            // ⭐ The cheap path, unchanged: with no `requires:` there is
+            // nothing to discard, so nothing to have a policy about.
+            for (const scope of tries) {
               const r: MqlOne = await scopedOne(raw, giver, scope, fname, context);
               if (r.stuff !== null) {
                 stuff = [r.stuff];
@@ -1421,27 +1533,37 @@ export class CommandLogic extends ApiLogic {
                 quantity = r.quantity;
                 break;
               }
-            } else {
-              // With `requires:` the cheap top-one path can't be used —
-              // the top match may be the inadmissible one — so the
-              // scope is resolved in full and the first admissible
-              // match is the top. The first raw match is the fallback
-              // when nothing anywhere is admissible (see above).
-              const r: MqlMany = await scopedMany(raw, giver, scope, fname, context);
-              if (r.stuff.length > 0 && !firstRaw) firstRaw = r;
-              const kept = r.stuff.filter(admissible);
-              if (kept.length > 0) {
-                stuff = useTop ? [kept[0] as Stuff] : kept;
-                via = r.via;
-                quantity = r.quantity;
-                break;
-              }
             }
-          }
-          if (stuff.length === 0 && firstRaw) {
-            stuff = useTop ? [firstRaw.stuff[0] as Stuff] : firstRaw.stuff;
-            via = firstRaw.via;
-            quantity = firstRaw.quantity;
+          } else {
+            // ⚠ With `requires:` the cheap top-one path can't be used —
+            // the top match may be the inadmissible one — so each scope
+            // resolves in full and the first admissible match is the top.
+            const walked = await walkScopes(
+              raw,
+              giver,
+              tries,
+              fname,
+              context,
+              admissible,
+            );
+            const got = walked.result;
+            if (got.stuff.length > 0) {
+              stuff = useTop ? [got.stuff[0] as Stuff] : got.stuff;
+              via = got.via;
+              quantity = got.quantity;
+            }
+            if (
+              !applyFilteredPolicy(
+                def,
+                walked.discarded,
+                stuff.length,
+                fname,
+                raw,
+                context,
+              )
+            ) {
+              return { result: 'failed' };
+            }
           }
         } catch (err) {
           context.note({

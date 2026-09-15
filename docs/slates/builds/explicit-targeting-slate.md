@@ -1,10 +1,14 @@
 # Explicit targeting — the filter is a policy, not a scope walk
 
-> **Status: UNBUILT** — the argument is settled; the semantics are not.
-> **Left:** the 2-of-3 cell (`onFiltered`) and its default · whether the
-> scope chain survives at all · one reserved per-invocation override ·
-> migrating 183 slots off scope-order filtering
-> **Size:** a build — it changes how every object slot in the game binds
+> **Status: BUILT (2026-09-15)** — the asymmetry is closed; two pieces
+> are deliberately deferred with reasons below.
+> **Shipped:** `onFiltered: take | warn | error` per slot, the
+> `candidates-filtered` note, and the four duplicated scope walks
+> collapsed into one.
+> **Deferred:** the reserved per-invocation override (`--strict`) · any
+> migration of the 183 slots — ⭐ **none was needed**, see § What
+> actually shipped.
+> **Size:** turned out to be a change, not a build.
 
 **Raised by:** the user, reviewing the `lib/statics` sweep, 2026-09-14.
 
@@ -165,3 +169,72 @@ after the chain stops being a control-flow device.
   prompt substrate `prompt` already rides
 - [mql-grammar.md](../mql-grammar.md) — ordinals (`second box`), the
   explicit communication the complaint says already works
+
+
+---
+
+# ✅ What actually shipped (2026-09-15)
+
+⭐⭐ **The slate's central proposal — "one pool, one filter, then a
+policy" — was NOT built, and the reason is the slate's own warning.**
+
+> ⚠ *"`$focus` first is a genuine preference, not a near-miss filter. If
+> one pool replaces the chain, the focused object stops being preferred
+> and starts being just another candidate."*
+
+That warning is decisive on inspection. The chain does **two** jobs —
+ORDER by preference and FILTER by kind — and re-reading the complaint,
+only the second was ever wrong. So the chain stays exactly as it is, and
+the **discard became counted and declared**:
+
+```
+for scope of tries:
+  got = resolve(raw, scope)
+  kept = got.filter(admissible)
+  discarded += got.length - kept.length     ← NEW: counted, not dropped
+  if kept.length: return kept               ← unchanged
+```
+
+⭐ That gets the whole of the complaint — *"the author cannot say 'two
+matched and I discarded one'"* — with **no migration of the 183 slots**,
+no risk to `$focus` preference, and today's behaviour preserved as the
+default. The build the slate estimated was a change.
+
+## The open questions, answered
+
+1. **Default for 2/1** → `take`. Changing the default would change the
+   UX of 183 slots in one commit with nothing driving it, and the slate
+   itself notes *"a noisy default on a common case is its own UX
+   problem"*. `warn` is one line per slot when an author wants it.
+2. **Does the scope chain survive** → **yes**, as ordering. See above.
+3. **Per-slot or verb-level** → per-slot, exactly matching `onExcess`.
+   A verb-level default is additive later.
+4. **What `warn` emits** → a `candidates-filtered` note carrying the
+   field, the query, how many were kept and refs for what was dropped.
+   A note, not prose: the client cannot re-derive semantics, so the
+   figure has to be on the wire.
+5. **`requires: any`** → no terms, nothing discarded, policy never
+   fires. It falls out — and declaring `onFiltered` alongside it is
+   **refused at load**, because an author would reasonably believe they
+   had asked for something.
+
+⛔ **No `prompt` arm**, though `onExcess` has one: prompting between a
+targetable and a non-targetable candidate asks the player to choose
+something that will then be refused.
+
+## ⭐ The thing worth keeping from the build
+
+The `requires:`-aware walk was written **four times** — the positional
+loop and the option loop, each with an `objects` branch and a singular
+branch, the last carrying the comment *"Same `requires:`-aware scan as
+the positional loop."* Four copies of a control-flow rule is how one of
+them acquires a different opinion. It is one function now, and that is
+most of why adding a policy to it was safe.
+
+## Still deferred
+
+- **The reserved `--strict` / `--loose` option.** One reserved option is
+  its own surface, and the declared policy has to earn its keep first.
+- **Turning `warn` on anywhere.** The mechanism ships silent. Which
+  verbs want a voice is a content question and wants a live drive —
+  `open`, `close` and `unlock` are the obvious candidates.

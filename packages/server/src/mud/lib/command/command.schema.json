@@ -276,6 +276,14 @@
             "error"
           ],
           "description": "Policy when MQL resolves fewer results than cardinality.min. v1 only value: 'error'."
+        },
+        "onFiltered": {
+          "enum": [
+            "take",
+            "warn",
+            "error"
+          ],
+          "description": "Policy when a match was discarded for failing this slot's `requires:`. Default 'take' (silent, today's behaviour). See command-spec.md."
         }
       }
     },
@@ -380,6 +388,14 @@
           "enum": [
             "error"
           ]
+        },
+        "onFiltered": {
+          "enum": [
+            "take",
+            "warn",
+            "error"
+          ],
+          "description": "Policy when a match was discarded for failing this slot's `requires:`. Default 'take'."
         },
         "effects": {
           "type": "array",

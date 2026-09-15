@@ -722,6 +722,58 @@ it cannot act on — and the client cannot filter that out, because it is
 forbidden from re-deriving semantics. A wrong figure on the wire is a
 wrong figure on screen.
 
+##### ⭐⭐ `onFiltered:` — what to do about a match you discarded
+
+`requires:` decides **what a slot accepts**. `onFiltered:` decides
+**whether the engine says anything when it throws something away.**
+
+```yaml
+  - name: target
+    type: object
+    requires: SealableMixin
+    onFiltered: warn        # take (default) · warn · error
+```
+
+⭐ **The defect this closed was an asymmetry, not the scope walk.** Two
+questions arise at exactly the same moment, when a player's word matches
+more than one thing:
+
+| axis | question | mechanism |
+|---|---|---|
+| **count** | how many matched? | `cardinality` / `onExcess` — declared, configurable, honest |
+| **kind** | how many are the right KIND? | `requires:` + **`onFiltered:`** |
+
+Before this, an author could say *"two matched — ask which"* and could
+**not** say *"two matched and I discarded one — say so"*. `open box` in a
+room holding a chest and a painting has always opened the chest and never
+mentioned the painting — which is exactly how a player fails to learn
+that `second box` exists.
+
+- `take` — **the default**, and exactly today's behaviour. Declaring the
+  policy changes nothing until an author asks it to; 183 slots declare
+  `requires:` and none of them asked for a new voice.
+- `warn` — bind the admissible one AND emit a `candidates-filtered` note
+  naming what was dropped.
+- `error` — refuse, with the same note.
+
+⛔ **There is no `prompt`, deliberately**, though `onExcess` has one.
+Prompting between a targetable and a non-targetable candidate asks the
+player to choose something that will then be refused. The count axis can
+prompt because every candidate there is a legal answer.
+
+⚠ **`onFiltered` without a `requires:` is refused at load** — including
+against `requires: any`. Nothing would ever be discarded, so the policy
+could never fire, and an author would reasonably believe they had asked
+for something.
+
+⚠⚠ **The scope chain is untouched, and that is deliberate.** The chain
+does two jobs: it ORDERS by preference (`$focus` first — look at what I
+am attending to) and it FILTERS by kind. Only the second was ever the
+complaint. Collapsing the chain into one pool — the first design
+considered — would have made the focused object just another candidate:
+a silent regression exactly where a player would most notice. So the
+ordering stays and the DISCARD became counted and declared.
+
 ##### The three axes — `requires:` is only the first
 
 | Axis | Constrains | Where it lives |
