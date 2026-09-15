@@ -57,6 +57,14 @@ import type { Stuff } from '../stuff/Stuff';
 import { Stuff as StuffBase } from '../stuff/Stuff';
 import { StuffApi } from '../../api/stuff';
 import { PersistApi } from '../../api/persist';
+import { MixinApi } from '../../api/mixin';
+import { Mixins } from '../mixin';
+import type {
+  BeliefSlice,
+  CaptureContext,
+  MixinSlice,
+  RestoreContext,
+} from '../persistence/PersistenceSlice';
 import BeliefDocument from './BeliefDocument';
 import {
   CallSecurity,
@@ -268,6 +276,7 @@ export interface BeliefStore {
   allBeliefs(): readonly BeliefRecord[];
   hydrateBeliefs(): Promise<void>;
   evictAndFlushBeliefs(): Promise<void>;
+  keepsPersonalRegard(): boolean;
   regardFor(subject: Stuff): number;
   adjustRegard(subject: Stuff, delta: number): void;
   setRegard(subject: Stuff, value: number): void;
@@ -282,6 +291,8 @@ export interface BeliefStore {
    * is the stored truth. NOT for consumer use; consumers go through
    * {@link know}.
    */
+  /** Only the records worth persisting — the owner's own narrowing. */
+  learnedBeliefs(): readonly BeliefRecord[];
   loadBelief(record: BeliefRecord): void;
   /** Drop the whole in-memory working set (persistence evict). */
   clearBeliefs(): void;
@@ -311,9 +322,47 @@ function persistenceActive(): boolean {
   return PersistApi.isConnected();
 }
 
-/** The durable per-viewer key, or null for a session-ephemeral viewer. */
+/**
+ * The durable per-viewer key into the `beliefs` collection, or `null`
+ * for a viewer whose memory does not belong there.
+ *
+ * ⭐⭐ **Identity and durability arrive together, or neither.** The rule
+ * this replaced — `getIdentityPath()`, unconditionally — was true only
+ * while every belief-holding NPC happened to be a singleton. It is not:
+ * an `Extra`'s identity path IS its template path, so **two sentries
+ * cloned from one row would share one Mongo record** and overwrite each
+ * other's opinion of you. The key must be unique *by itself* before it
+ * may be durable.
+ *
+ * Four viewers, three answers:
+ *
+ * | viewer | key | where its memory lives |
+ * |---|---|---|
+ * | a keyed persistable host (a named pet) | `null` | ⭐ its OWN `holder_snapshots` record, via {@link BeliefStoreMixin.captureSlice} — a host that persists itself must not also write here, or the same beliefs land twice and diverge |
+ * | a minted identity (an Avatar) | `getIdentityPath()` | the `beliefs` collection |
+ * | a singleton (every `Cast`) | `getIdentityPath()` | the `beliefs` collection |
+ * | anything else — an `Extra`, an unnamed stray, a generic clone | `null` | **memory only**, discarded at reboot |
+ *
+ * ⭐ The last row is a feature, not a shortfall: a stray's regard for
+ * you accumulates in memory — which is what makes winning it over
+ * possible at all — and is forgotten on restart. An unnamed animal is
+ * free. Naming it is what buys it a record (the promotion), and from
+ * that moment its beliefs ride its own capture, which is row one.
+ */
 function viewerKey(viewer: Stuff): string | null {
-  return viewer.getIdentityPath();
+  // Row 1 — it keeps its own record; see captureSlice.
+  if (MixinApi.isPersistable(viewer) && viewer.isPersistenceKeyExplicit()) {
+    return null;
+  }
+  const identity = viewer.getIdentityPath();
+  if (!identity) return null;
+  // Row 2 — a minted identity is unique by construction.
+  if (identity !== viewer.getTemplatePath()) return identity;
+  // Row 3 — one live instance per row, so the row path IS unique.
+  const ctor = (viewer as unknown as { constructor: unknown }).constructor;
+  if (MixinApi.hasMixin(ctor as never, Mixins.Singleton)) return identity;
+  // Row 4 — shared lineage, no minted identity: session-local.
+  return null;
 }
 
 /**
@@ -373,6 +422,46 @@ export function BeliefStoreMixin<TBase extends MixinConstructor>(Base: TBase) {
   // are legal — a class EXPRESSION cannot carry them.
   class BeliefStoreMixin extends Base implements BeliefStore {
     static _mixinName = 'BeliefStoreMixin';
+
+    /**
+     * ⭐ A keyed host's memory rides its own record.
+     *
+     * Contributes the learned records for a host whose beliefs the
+     * `beliefs` collection deliberately does not hold — see `viewerKey`.
+     * For every other host (an Avatar, a `Cast`) `viewerKey` is non-null,
+     * those records are already durable in their own collection, and this
+     * emits an **empty** slice: their `holder_snapshots` records do not
+     * change shape.
+     *
+     * The two conditions are the same predicate read from opposite ends,
+     * which is why they sit in one file: if `viewerKey` returns a key,
+     * this must not capture, or the same belief is written twice and the
+     * copies diverge the moment either is touched.
+     */
+    static captureSlice(host: Stuff, _ctx: CaptureContext): MixinSlice {
+      const self = host as unknown as BeliefStore;
+      if (viewerKey(host) !== null) return { beliefs: [] } satisfies BeliefSlice;
+      return { beliefs: [...self.learnedBeliefs()] } satisfies BeliefSlice;
+    }
+
+    /**
+     * Install a captured memory back onto the host. An ungated direct
+     * install, deliberately **not** `hydrateBeliefs()`: that method is
+     * `SelfOnly`, and a restore runs in a frame whose executing principal
+     * is the owner rather than the host, so the self-call would be denied
+     * exactly when the owner happens to be online.
+     */
+    static async restoreSlice(
+      host: Stuff,
+      slice: MixinSlice,
+      _ctx: RestoreContext,
+    ): Promise<void> {
+      if (!('beliefs' in slice)) return;
+      const self = host as unknown as BeliefStore;
+      for (const record of (slice as BeliefSlice).beliefs) {
+        self.loadBelief(record);
+      }
+    }
 
     /**
      * The session working set. TS `private` (not `#`) — the host is
@@ -505,6 +594,17 @@ export function BeliefStoreMixin<TBase extends MixinConstructor>(Base: TBase) {
       return [...this._beliefs.values()];
     }
 
+    /**
+     * The records that have learned something — a name, a type, or a
+     * non-zero opinion. ⭐ The owner answers the question rather than
+     * handing back its table for a caller to filter: the predicate for
+     * "worth keeping" is the store's, and an index can later live here
+     * without any caller moving.
+     */
+    learnedBeliefs(): readonly BeliefRecord[] {
+      return [...this._beliefs.values()].filter(isLearned);
+    }
+
     loadBelief(record: BeliefRecord): void {
       this._beliefs.set(keyOf(record.realm, record.referent), record);
     }
@@ -628,10 +728,44 @@ export function BeliefStoreMixin<TBase extends MixinConstructor>(Base: TBase) {
       this.setRegard(subject, this.regardFor(subject) + delta);
     }
 
-    /** Set an absolute (clamped) regard value. Sealed; see {@link adjustRegard}. */
+    /**
+     * ⭐⭐ Whether this host holds a **personal** opinion of anybody.
+     *
+     * Default `true`; `platform/agent/Extra` overrides it to `false`.
+     *
+     * The distinction is between a **person** and a **role**. A sentry,
+     * a hewer, a generic wolf — an `Extra` is *the* sentry, not somebody
+     * called anything, and the same row stands up any number of them. A
+     * role has no private opinion of you to hold: what the watch thinks
+     * of you belongs to the watch, not to whichever body is on the gate
+     * tonight (that institution-held opinion is designed and deferred).
+     *
+     * ⚠ Why a declared hook and not "not `Cast` ⇒ no regard": a kept
+     * animal is also neither a `Cast` nor a singleton, and it *must*
+     * hold regard — that regard is the whole mechanism of the bond. The
+     * mask is a fact about the RUNG, and `Extra` is the rung, so the
+     * rung is what declares it.
+     *
+     * A `false` host no-ops in {@link setRegard}, so nothing accumulates
+     * even in memory — there is no record to write, flush or hydrate.
+     * Recognition is untouched: an Extra may still learn who you are for
+     * the session and greet you, which is role behaviour, not an opinion.
+     *
+     * @hook
+     */
+    public keepsPersonalRegard(): boolean {
+      return true;
+    }
+
+    /**
+     * Set an absolute (clamped) regard value. Sealed; see {@link adjustRegard}.
+     * No-ops on a host that {@link keepsPersonalRegard} says holds none —
+     * and `adjustRegard` routes through here, so gating it once is enough.
+     */
     @Final
     @Unshadowable
     public setRegard(subject: Stuff, value: number): void {
+      if (!this.keepsPersonalRegard()) return;
       const referent = subject.getIdentityPath();
       if (!referent) return;
       this.know(REGARD, referent, { regard: clampRegard(value) });

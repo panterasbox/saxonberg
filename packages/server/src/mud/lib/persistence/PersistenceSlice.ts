@@ -6,7 +6,7 @@
  * concern that layer owns. This module is the single concept the persistence
  * spine's type surface defines — it kills the `types.ts` reflex.
  *
- * Three slice shapes exist:
+ * Four slice shapes exist:
  *
  *   - **default** (`FieldsSlice`) — every ordinary mixin (`Graded`,
  *     `Propertied`, `Named`, …): that layer's declared `persistentFields`,
@@ -19,12 +19,17 @@
  *   - **slotted** (`SlottedSlice`) — `SlottedMixin`'s worn/equipped
  *     occupancy, recorded by *position* (indices into the container slice),
  *     never by instance id.
+ *   - **belief** (`BeliefSlice`) — `BeliefStoreMixin`'s memory, but only
+ *     for a host with an explicit persistence key. See {@link BeliefSlice}.
  *
  * The recursion seam ({@link CaptureContext} / {@link RestoreContext}) lets a
  * mixin's `captureSlice` / `restoreSlice` hook recurse into item state
  * without importing `PersistableLogic` (breaking the lib → obj/api cycle):
  * `PersistableLogic` implements the seam and passes it into every hook.
  */
+
+// Type-only: erased at compile time, so no runtime edge and no cycle.
+import type { BeliefRecord } from '../belief/BeliefStore';
 
 /**
  * Where a captured content item sits relative to its host. Worn/equipped
@@ -133,12 +138,28 @@ export interface EstateSlice {
   entries: EstateEntry[];
 }
 
+/**
+ * A belief-holding host's own memory, when that host persists itself.
+ *
+ * ⭐ Only a host with an **explicit persistence key** contributes one. An
+ * Avatar's beliefs live in the `beliefs` collection keyed by its minted
+ * identity, so its slice is empty and its record is byte-identical to
+ * what it was; a named animal has no minted identity, so its opinion of
+ * you is part of *its* state and rides *its* record. The split is
+ * decided in exactly one place — `viewerKey` in
+ * `lib/belief/BeliefStore.ts` — so no host can ever write to both.
+ */
+export interface BeliefSlice {
+  beliefs: BeliefRecord[];
+}
+
 /** The tagged union stored under each layer key in a record's `state`. */
 export type MixinSlice =
   | FieldsSlice
   | ContainerSlice
   | SlottedSlice
-  | EstateSlice;
+  | EstateSlice
+  | BeliefSlice;
 
 /**
  * A Containable top-level host's own durable spawn/recall location — the

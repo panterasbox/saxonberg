@@ -313,7 +313,7 @@ A reserved predicate name keeps members where the predicate holds:
 |---|---|
 | `living` | object is a Mobile (or has the appropriate "alive" mixin) |
 | `online` | object is connected |
-| `mine` | object is owned by the giver (owner-tracking is stub today) |
+| `mine` | object is yours — stamped to you as chattel, or standing on an extent you hold title to. ⚠ Not things you *wrote* (authorship is not ownership) and not things your *group* holds; `mine` is first person singular. ⭐ It says **what** is yours, never **where** it is. |
 | `here` | object is in (or is) the giver's location |
 | `visible` | object is perceivable to the giver |
 

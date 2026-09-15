@@ -87,6 +87,20 @@ export class ParcelApi {
   }
 
   /**
+   * {@link ParcelApi.coveringParcelOf}, synchronously. The registry is an
+   * in-memory longest-prefix index warmed at boot, so the lookup never
+   * needed to await anything; the `async` twin above predates any sync
+   * caller and keeps its signature because ~all of its callers await it.
+   *
+   * ⭐ Exists for the MQL `:mine` predicate, which runs inside a filter
+   * and therefore cannot await. ⚠ Returns `null` before the registry
+   * warms, exactly as `landUseOf` does.
+   */
+  public static coveringParcelOfSync(path: string): ParcelRecord | null {
+    return logic().coveringParcelOf(path);
+  }
+
+  /**
    * Resolve a `group`-kind owner to a real `managed:<id>` ref (explicit
    * ref wins; else mint-or-find by name). Null for a `player` owner. The
    * data-driven group resolution that moved out of `AccessRegistry`.

@@ -161,6 +161,16 @@ export function CastMixin<TBase extends MixinConstructor>(Base: TBase) {
         }
       ).postRegister;
       if (typeof sup === 'function') await sup.call(this, context);
+      // ⭐⭐ Read this rung's memory back. A `Cast` is a singleton, so its
+      // template path IS a unique durable key (`viewerKey`, row 3) and its
+      // regard has been WRITTEN through on every change since the belief
+      // store shipped — but nothing ever read it back, so an NPC's
+      // opinion of you reset to nothing on every restart while the
+      // records piled up unread in Mongo. The self-call is what
+      // `SelfOnly` admits (the `Avatar.enter` shape); it runs before the
+      // dossier seed so a hydrated history is visible to it.
+      const self = this as unknown as Stuff;
+      if (MixinApi.isBeliefStore(self)) await self.hydrateBeliefs();
       await this._seedDossier();
     }
 
