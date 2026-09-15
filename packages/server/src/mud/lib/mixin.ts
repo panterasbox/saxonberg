@@ -375,6 +375,13 @@ export const Mixins = {
   // neglect, and a SAFETY mechanic before it is an efficiency one. In
   // the kernel because pets will want it and pets is not ranching.
   Handling: 'HandlingMixin',
+  // ⭐ An animal that can be won over: regard × handling, plus where home
+  // is and how home moves. NOT on Creature — a wolf must be able to not
+  // apply, which is what the nullable species dials are for.
+  Bonded: 'BondedMixin',
+  // A vessel an animal feeds from. A pure carrier over the shipped
+  // vessel shape: the concept a brain can look for and a gate can name.
+  Feeder: 'FeederMixin',
   // Ground that holds plants: soil + N plant slots. A pot is this at N = 1;
   // a garden bed is the same surface with a bigger N.
   Cultivable: 'CultivableMixin',
@@ -612,6 +619,8 @@ export const MixinRefusals: Partial<Record<MixinName, string>> = {
   SlottableMixin: "{} doesn't sit in anything",
   SoilMixin: "{} has no soil in it",
   HandlingMixin: "{} isn't an animal you can work with",
+  BondedMixin: "{} isn't an animal that can be kept",
+  FeederMixin: "{} isn't something an animal can feed from",
   CultivableMixin: "{} isn't ground you can plant in",
   GrowingMixin: "{} isn't growing",
   PlantableMixin: "{} isn't something you can plant",

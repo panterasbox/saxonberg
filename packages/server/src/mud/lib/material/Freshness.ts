@@ -758,6 +758,8 @@ export interface Fresh {
   isPerishable(): boolean;
   /** Reconcile the elapsed growth / die-off (sync). */
   reconcileFreshness(): void;
+  /** Everything about this item that must reach a mouth. See the impl. */
+  ingestPayload(): BulkPayload | null;
   /**
    * Set the load outright and re-stamp — the cook's kill step, and the
    * test seam. Not the growth path: growth only ever happens in the
@@ -798,6 +800,43 @@ export function FreshnessMixin<TBase extends MixinConstructor<Stuff>>(
     public getMicrobialLoad(): number {
       if (!this._reconcilingFreshness) this.reconcileFreshness();
       return clamp01(this._microbialLoad);
+    }
+
+    /**
+     * ⚠⚠ **The discrete arm of the ingest bridge — every route from a
+     * solid item into a body passes through here.**
+     *
+     * A dish carries its per-instance facts on a stored `BulkPayload`
+     * and {@link Freshness.ingestPayloadOf} hands them over whole. A
+     * discrete item has no payload at all: its facts live on its own
+     * mixins, and the payload is SYNTHESIZED here so that a bowl of stew
+     * and the roast it came from poison — and attribute — by identical
+     * arithmetic.
+     *
+     * ⚠ Anything a discrete item knows that must reach the mouth has to
+     * be copied across this line, and a fact that isn't fails **silently
+     * and completely**: the suite stays green, the food is bad, the
+     * eater is fine. Three are carried today — the spoilage dose the
+     * microbial load has earned, the pathogen loads (with any formed
+     * toxin they have already made), and the maker, without which harm
+     * from a meal can name nobody.
+     *
+     * ⭐ It lives on the FOOD rather than in a controller because there
+     * is now more than one mouth: a person eats, and an animal is fed.
+     * Two copies of this would diverge in exactly the way the warning
+     * above describes, and nothing would notice.
+     */
+    public ingestPayload(): BulkPayload | null {
+      const self = this as unknown as Stuff;
+      const material = MixinApi.isTangible(self) ? self.getMaterial() : null;
+      if (!material) return null;
+      let payload = Freshness.withDose(null, material, this.getMicrobialLoad());
+      const maker = MixinApi.isCrafted(self) ? self.getMaker() : '';
+      if (maker) payload = { ...(payload ?? {}), maker };
+      const pathogens = MixinApi.isContaminable(self)
+        ? self.getPathogenLoads()
+        : {};
+      return Contamination.withLoads(payload, pathogens);
     }
 
     public getFreshnessBand(): FreshnessBand {

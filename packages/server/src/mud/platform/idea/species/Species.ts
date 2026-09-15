@@ -161,6 +161,32 @@ export interface AgeCurveSpec {
 }
 
 /**
+ * ⭐⭐ **How far this species can be won over, and how far it slides back.**
+ *
+ * The handling axis (`HandlingMixin`) has always decayed to one module
+ * constant and clamped to one ceiling, for every animal alike. Those two
+ * numbers are the species' business: a farm collie ends up biddable and
+ * stays that way; a cat can be won a long way and *slides back further*
+ * when you stop; a wolf is not in this conversation at all.
+ *
+ * ⭐ Three states, and the third is the point of making it nullable:
+ *
+ *   - **absent** — the species does not participate. A wolf.
+ *   - `{ floor: 0, ceiling: 0.2 }` — declared **unwinnable**, out loud.
+ *     An author said so; nobody has to guess from a missing field.
+ *   - a real range — **winnable**, this far, sliding back to here.
+ *
+ * ⚠ `floor` is where neglect stops, not zero: an animal that has known
+ * people does not become a wild one. *It becomes harder, not feral.*
+ */
+export interface HandlingRange {
+  /** Handling never decays below this. The species' memory of people. */
+  floor: number;
+  /** Handling never rises above this, however much you work at it. */
+  ceiling: number;
+}
+
+/**
  * ⭐⭐ **One tap — a renewable product, and how it FAILS** (farmstead
  * D25, D93).
  *
@@ -223,7 +249,18 @@ export interface BreedingSpec {
 }
 
 /** The life stages the curve resolves into, young to old. */
-export const LIFE_STAGES = ['newborn', 'juvenile', 'adult', 'aged'] as const;
+export const LIFE_STAGES = [
+  'newborn',
+  'juvenile',
+  'adult',
+  'aged',
+  // ⭐ `senescent` closes a curve that has always had four points and
+  // only ever reported three: `AgeCurveSpec.senescentAt` shipped with
+  // the curve, five species rows author it, and nothing in the tree ever
+  // read it. An animal past this point is at the end of its life — which
+  // is a thing a keeper can SEE before it is a thing that happens.
+  'senescent',
+] as const;
 
 export type LifeStage = (typeof LIFE_STAGES)[number];
 
@@ -424,6 +461,25 @@ export default class Species extends SingletonMixin(
   protected sentient: boolean = false;
 
   /**
+   * How far this species can be handled, and how far it slides back.
+   * `null` — the default — means *not in the conversation*: a wolf.
+   * See {@link HandlingRange}.
+   */
+  protected handlingRange: HandlingRange | null = null;
+
+  /**
+   * ⭐ How readily a member of this species does what it is ASKED —
+   * `0..1`, `null` for a species nobody asks anything of.
+   *
+   * Read by the bond's `wouldComply`, multiplied by how well this
+   * particular animal knows you. ⚠ It is a *ceiling on askability*, not
+   * intelligence and not affection: a cat at `0.1` can be devoted to you
+   * and still not come when called, which is the whole point — *the word
+   * is for the dog, the door is for the cat.*
+   */
+  protected biddability: number | null = null;
+
+  /**
    * ⭐ **What a carcass of this species yields to a knife** — a list of
    * `{ cut, units }`, where `cut` is the template path of the Provision a
    * clean butchering produces and `units` is how many a clean one gives.
@@ -531,8 +587,13 @@ export default class Species extends SingletonMixin(
     lifecycleStates: { persistent: true },
     sexDeterminationSystem: { persistent: true },
     reproductiveMode: { persistent: true },
-    lifespanMin: { persistent: true },
-    lifespanMax: { persistent: true },
+    // ⚠ Rows have always authored these and the Hydrator has always
+    // written them — `authorable` gates the STUDIO schema, not YAML
+    // hydration. Declaring it only makes the schema honest.
+    lifespanMin: { persistent: true, authorable: true },
+    lifespanMax: { persistent: true, authorable: true },
+    handlingRange: { persistent: true, authorable: true },
+    biddability: { persistent: true, authorable: true },
     adultMass: { persistent: true, authorable: true },
     ageCurve: { persistent: true, authorable: true },
     production: { persistent: true, authorable: true },
@@ -748,7 +809,38 @@ export default class Species extends SingletonMixin(
     if (ageDays < curve.weanedAt) return 'newborn';
     if (ageDays < curve.matureAt) return 'juvenile';
     if (ageDays < curve.agedAt) return 'adult';
-    return 'aged';
+    if (ageDays < curve.senescentAt) return 'aged';
+    return 'senescent';
+  }
+
+  /** See {@link HandlingRange}. `null` — the species does not participate. */
+  public getHandlingRange(): HandlingRange | null {
+    return this.handlingRange;
+  }
+
+  /**
+   * Declare the handling range. ⚠ Clamped into `0..1` and ordered, so a
+   * transposed or out-of-range authoring cannot produce a range that
+   * silently never applies.
+   */
+  public setHandlingRange(value: HandlingRange | null): void {
+    if (!value) {
+      this.handlingRange = null;
+      return;
+    }
+    const lo = Math.max(0, Math.min(1, value.floor));
+    const hi = Math.max(0, Math.min(1, value.ceiling));
+    this.handlingRange = { floor: Math.min(lo, hi), ceiling: Math.max(lo, hi) };
+  }
+
+  /** How readily this species does what it is asked, `0..1`, else `null`. */
+  public getBiddability(): number | null {
+    return this.biddability;
+  }
+
+  /** Declare biddability; clamped into `0..1`. */
+  public setBiddability(value: number | null): void {
+    this.biddability = value === null ? null : Math.max(0, Math.min(1, value));
   }
 
   public getLifespanMin(): number { return this.lifespanMin; }

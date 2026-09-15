@@ -95,6 +95,8 @@ import type { Maturing } from '../lib/maturation/Maturing';
 import type { Plantable } from '../lib/husbandry/Plantable';
 import type { Soil } from '../lib/husbandry/Soil';
 import type { Handling } from '../lib/husbandry/Handling';
+import type { Bonded } from "../lib/husbandry/Bonded";
+import type { Feeder } from "../lib/husbandry/Feeder";
 import type { Cultivable } from '../lib/husbandry/Cultivable';
 import type { Combustible } from '../lib/fire/Combustible';
 import type { Meltable } from '../lib/thermal/Meltable';
@@ -1285,6 +1287,21 @@ export class MixinApi {
    */
   public static isHandling(obj: Stuff): obj is Stuff & Handling {
     return this.hasMixin(obj, Mixins.Handling);
+  }
+
+  /**
+   * An animal that can be **kept** — won over, asked things, named, and
+   * given somewhere to come back to. ⚠ Strictly narrower than
+   * {@link isHandling}: a head of stock can be worked with and is not a
+   * companion, which is the distinction the two mixins exist to hold.
+   */
+  public static isBonded(obj: Stuff): obj is Stuff & Bonded {
+    return this.hasMixin(obj, Mixins.Bonded);
+  }
+
+  /** A vessel an animal feeds from — a bowl, a saucer, a trough. */
+  public static isFeeder(obj: Stuff): obj is Stuff & Feeder {
+    return this.hasMixin(obj, Mixins.Feeder);
   }
 
   /**

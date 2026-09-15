@@ -1008,6 +1008,51 @@ the five verbs.
 
 **Commit.** `build(pets W1a): KeptAnimal, the bond over regard × handling, the feeder, five verbs, the species dials`.
 
+> ✅ **DONE 2026-09-15.** All 40 gates pass — `lint:kept-animals` joined
+> the roster **by existing**, which is the derived-roster property doing
+> its job.
+>
+> **Decisions the build made that the plan did not:**
+>
+> 1. ⭐⭐ **`ingestPayload()` moved onto the FOOD.** `OfferController` and
+>    the `feeds` brain both need the discrete-item ingest payload, and
+>    `EatController`'s private `ingestPayloadFor` carried a docstring
+>    warning that a fact not copied across that line "fails silently and
+>    completely: the suite stays green, the food is bad, the eater is
+>    fine." A second copy was exactly that failure, so the synthesis
+>    became `Fresh.ingestPayload()` — a verb on the object, read entirely
+>    from the food's own mixins — and `EatController` now calls it. ⭐ The
+>    reason it was ever private is that there was only one mouth; there
+>    are two now.
+> 2. **`wouldEat` / `eatFood` live on the animal**, not in the
+>    controller, for the same reason: the verb and the beat must reach an
+>    identical answer or a player learns to launder food through a dish.
+> 3. **The name-collision defence is partial and says so.** It refuses a
+>    connected player's name; the live-`Cast` half needs a name index
+>    nobody has built, and the naming slate owns Defence B. Recorded
+>    rather than faked.
+> 4. **`offer`'s food arg takes `requires: VisibleMixin` +
+>    `mustBeEdible`** — the pair `eat` already uses. `lint:arg-kinds`
+>    caught the missing `requires:`; edibility is a fact about the
+>    MATERIAL, so no mixin can gate it and the validator is what reads it.
+> 5. `SURPLUS_SATIATION = 70` mirrors `METABOLIC_DEFAULTS.FLESH_SURPLUS_AT`
+>    — an animal in *maintenance* still takes a scrap; refusing at
+>    anything less would make a well-kept animal untreatable.
+>
+> ⚠ **A second fixture that modelled the shape instead of composing it.**
+> Eight recognition tests failed on D10. None was a regression: `Being`
+> in `describeFor`/`describeForm` is a fixture named *Bob* standing in
+> for a person, composing `Organism + Named` and **not** `Persona` — so
+> the moment recognition became a person-only gate it read as an animal
+> and published its name. Composing `PersonaMixin` fixed all eight. That
+> is now twice in one build (the belief fixtures in W0), which is a
+> pattern worth naming in the sweep.
+>
+> ⚠ The senescence tests assert **the decision, not the choreography**:
+> `ConditionApi.die` owns the dying arc and is tested where it lives, and
+> a bare `OrganismMixin(Thing)` has none of the body a real death needs.
+> What this file proves is the three conditions.
+
 ### W1b — naming is the promotion (kernel persistence)
 
 **Goal.** AC 3, 4, 25's durability half. Decisions D5, D11, D12, and D2's

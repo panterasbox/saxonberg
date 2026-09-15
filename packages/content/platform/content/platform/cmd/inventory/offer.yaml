@@ -1,0 +1,40 @@
+verbs: [offer]
+controller: /platform/idea/cmd/inventory/OfferController
+description: "Hold food out to an animal — and let it decide"
+help: |
+  `offer <food> to <animal>` holds it out.
+
+  ⭐ Food from your hand is the strongest ordinary thing you can do for a
+  bond — worth more than petting, and the one thing a full bowl can never
+  substitute for. An animal knows the difference between food and *you*.
+
+  ⚠ An animal that does not trust your hand yet will not take from it.
+  The food is set down instead and left; it waits until you step back.
+  That is how you feed something that does not know you, and it is the
+  first rung of the ladder that ends with it following you home.
+
+  ⚠⚠ It may sniff and turn away. It might not be hungry, the food might
+  have turned, or its nose might have found something yours cannot. You
+  are never told which — and that is deliberate. An animal is not a
+  contamination detector you can read off; it is an animal that sometimes
+  will not eat.
+validators:
+  - /lib/command/validators/requiresAnimate
+  - /lib/command/validators/requiresConscious
+args:
+  - name: food
+    type: object
+    required: true
+    scope: ["inventory", "reachable"]
+    # ⚠ The same pair `eat` uses: the mixin gate is only that you can SEE
+    # it, because edibility is a fact about the material rather than a
+    # composition, and the validator is what actually reads it.
+    requires: VisibleMixin
+    validators:
+      - /lib/command/validators/mustBeEdible
+  - name: recipient
+    type: object
+    required: true
+    prepositions: [to]
+    scope: ["reachable"]
+    requires: BondedMixin

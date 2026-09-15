@@ -53,6 +53,7 @@
     "lint:dossiers": "tsx scripts/check-dossiers.ts",
     "lint:inert-weapon": "tsx scripts/check-inert-weapon.ts",
     "lint:combat-dynamics": "tsx scripts/check-combat-dynamics.ts",
+    "lint:kept-animals": "tsx scripts/check-kept-animals.ts",
     "lint:instanceable": "tsx scripts/check-instanceable-placement.ts",
     "lint:locations": "tsx scripts/check-location-classes.ts",
     "lint:census": "tsx scripts/check-template-census.ts",

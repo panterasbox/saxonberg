@@ -21,6 +21,7 @@ import { ContainerMixin } from '../../../../../lib/spatial/Container';
 import { NamedMixin } from '../../../../../lib/description/Named';
 import { VisibleMixin } from '../../../../../lib/description/Visible';
 import { OrganismMixin } from '../../../../../lib/species/Organism';
+import { PersonaMixin } from '../../../../../lib/character/Persona';
 import { Idea } from '../../../../../lib/stuff/Idea';
 import { ContainmentApi } from '../../../../../api/containment';
 import {
@@ -37,11 +38,17 @@ import type { MqlOneResult } from '../../../../../api/mql';
 
 // A speaker / introducee: can speak, perceive, hold beliefs, and is a
 // recognizable being (Organism + Named + Visible).
-class Person extends VocalMixin(
-  BeliefStoreMixin(
-    PerceptionMixin(
-      SensorMixin(
-        OrganismMixin(VisibleMixin(NamedMixin(ContainableMixin(Idea)))),
+// ⚠ **PersonaMixin is what makes it a PERSON.** Recognition is a
+// person-only gate — an animal cannot be a stranger, disguised, or
+// impersonated, so a non-person organism publishes its name. A fixture
+// that stands in for somebody must compose the thing that makes one.
+class Person extends PersonaMixin(
+  VocalMixin(
+    BeliefStoreMixin(
+      PerceptionMixin(
+        SensorMixin(
+          OrganismMixin(VisibleMixin(NamedMixin(ContainableMixin(Idea)))),
+        ),
       ),
     ),
   ),
