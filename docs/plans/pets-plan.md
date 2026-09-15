@@ -1546,5 +1546,46 @@ Read first, in this order:
 
 ## Drive record
 
+✅ **Run 2026-09-15** against a freshly reset `saxonberg_build2`, a full
+36-pack install and a live socket. **14/14.**
+
+⭐⭐ **The drive is a wire file now**, not a one-off script:
+`packages/wire/tests/pets.dirty.wire.test.ts`. It is `.dirty.` because it
+consumes — it stamps the lane's only stray (the `cast:` will not re-mint
+one while a live instance exists), names into `holder_snapshots`, and
+butchers a carcass for the offal; none of that is produced again.
+
+What it settles, over the socket, in one run:
+
+| step | claim |
+|---|---|
+| 6–7 | a thin cat is on the lane, and looking at it reports how it is holding itself with **no number anywhere** |
+| 8 | `pet` refuses — *it moves off* — and names no threshold, no band and no figure |
+| 12 | `name` refuses: *it has not chosen you*; the cat is still "a cat" to everybody |
+| 14, 16 | ⭐⭐ `call` and `stay` both get *it looks at you*, and **neither reads as a shortfall** — no "not enough", no "yet", no number. This is a cat, and the game does not apologise for it |
+| ⚠⚠ 21 | `find world:mine` matches none of `in the · at the · located · room · lane · coords`. **If this ever fails, do not fix the test** |
+| — | all five verbs resolve (a verb nothing affords answers "I don't understand" — the four-link check), and `stay` no longer answers with combat's prose |
+
+⚠ **What the drive found, and it is not this build's:** two shipped
+`terminus` rows — the infirmary physician (*Merrick Sault*) and the
+necropolis undertaker (*Aldis Verrow*) — declare
+`brain: /lib/behavior/shifts` with **no `trigger:` and no `config:`**, so
+the boot log reads `bad trigger 'undefined'` and neither has ever
+migrated on or off shift. ⭐ It is the collie's defect exactly, in two
+more rows, found because this build was already looking at trigger
+parsing. **Deliberately not fixed here:** `shifts` needs
+`{ behindBar, offstage }` to have anywhere to go, and adding a cadence
+alone would make a brain run with nowhere to migrate — which is worse
+than not running. Where an undertaker stands when off shift is a terminus
+content decision. Offered to that pack as a finding.
+
+⚠ Steps needing game-days or a second player (10–11, 13, 15, 17–20,
+22–31) stay manual: they are the same mechanisms these assertions
+exercise, run for longer. The requirements say so themselves.
+
+---
+
+## Drive record — original placeholder
+
 *(appended at build time — the output of running the requirements doc's
 thirty-step drive against the running game, and what it found.)*
