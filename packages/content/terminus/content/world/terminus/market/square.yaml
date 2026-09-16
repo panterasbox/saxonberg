@@ -38,6 +38,11 @@ data:
     # this build there was nowhere in it you could stand and see one.
     south:
       destination: /world/terminus/wharfside/bank
+    # ⭐ West to the bakery — the first of the four the general store
+    # fragments into (`settlement-model.md`'s specialization gradient).
+    # `west` was free.
+    west:
+      destination: /world/terminus/market/bakery
   props:
     - /world/terminus/market/stalls
   details:

@@ -1,0 +1,32 @@
+# The millrace — ⭐ a `ControlStructure` from the WATER pack, authored in
+# the valley's content, with no code anywhere and no roster edit.
+#
+# `WatercourseCatalogue` finds its water works by CLASS
+# (`Template.findByClass`), so a row of this class anywhere in any pack
+# is a water work. That is what makes a second mill, in a second valley,
+# cost zero pack code.
+#
+# ⚠⚠ `passFraction: 1` is the load-bearing number. A control's withdrawal
+# is `arriving * (1 - passFraction)`, so a pass fraction of 1 withdraws
+# NOTHING: every drop that comes down the race goes back into the river
+# below the wheel. The mill borrows the water's fall and returns the
+# water. A weir that HELD water would be a diversion everybody
+# downstream felt, which is an entirely different and much more political
+# object.
+#
+# `headM: 6` — twenty feet, which is what the ledge gives. `generates:
+# true` is what makes `generationW` answer at all.
+class: /system/water/thing/ControlStructure
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: millrace
+  keywords: [race, millrace, weir, channel, leat]
+  register: definite
+  longDescription: |
+    A stone-lined channel taken off the head of the weir, running level along the bank for forty yards to bring the water out over the top of the wheel. There is a hatch at the head of it to shut the water off.
+  controlKind: weir
+  reachRef: delight:flats
+  passFraction: 1
+  headM: 6
+  generates: true
+  ownerRef: "group:hearts-delight"
