@@ -1478,6 +1478,21 @@ radius; run those four packs' vitest explicitly).
 
 Commit: `build(grain-chain W2): a graded receptacle has a temperature; the sack; comminution`.
 
+> **✅ W2 DONE.** All six decisions landed.
+>
+> ⭐ **The bulk-only tangible (D11) was a real throw, not a hypothetical.**
+> `applyTangibleOutput` assumed a primary ITEM input — true of every
+> smithing recipe and false of a loaf.
+>
+> ⚠ **One shipped expectation changed**, and it is W0's D28 arriving: the
+> archetype suite's "hotplate" fixture is an `Oven`, so a room with one no
+> longer lacks a work surface. A hotplate **is** a work surface. Updated
+> with the reasoning plus a test asserting it directly.
+>
+> ⭐ The D25 flow-through's blast radius is smaller than risk 15 feared:
+> the no-composition pin holds every shipped blend unchanged, and only a
+> blend built **from a blend** reads differently.
+
 #### W3 — the power read (D9)
 
 Files: `packages/content/water/src/idea/cmd/perception/AnalyzePowerController.ts`,
@@ -1493,6 +1508,11 @@ stanza, not a view); collisions 9.
 
 Commit: `build(grain-chain W3): analyze power — the aqueduct house answers its own invitation`.
 
+> **✅ W3 DONE.** A stanza on the platform view, controller in the water
+> pack; 250 views and 9 collisions, unchanged. Both arms duck-typed — the
+> test proves it with a `FakeMill` that is not a `GristMill`, because the
+> real one lives in a pack this one must never depend on.
+
 ### Stage B — the content
 
 #### W4 — wheat (D14)
@@ -1503,6 +1523,10 @@ profile is cold-limited at 279 K where barley is not; a harvest mints
 a graded `crop/wheat` with the grower's mark).
 
 Commit: `build(grain-chain W4): wheat — barley's five rows, shifted where the agronomy says`.
+
+> **✅ W4 DONE.** Three numbers, and a test pins that *everything else is
+> barley's profile unchanged* — if a fourth drifts in, the comparison
+> stops being legible and wheat becomes "the better one".
 
 #### W5 — `trade-milling` (D8, D10, D15, D19)
 
@@ -1533,6 +1557,32 @@ the bin; no sibling → the 0 kg/min decline; `help extraction`
 resolves).
 
 Commit: `build(grain-chain W5): trade-milling — grind, then bolt; the quern costs your hands and the mill does not`.
+
+> **✅ W5 DONE.**
+>
+> ⭐ **Risk 16 fired exactly as written, and the plan's fallback was
+> right.** `SchedulerRegistry.start` throws outright on an empty slot set
+> (*"engagement declares an empty slots set"*), so `slots: []` is
+> unavailable. Took `WorldClockApi.after` on the game clock rather than
+> inventing a fourth engagement kind — and it is **better** here, because
+> it does not depend on the actor existing at all.
+>
+> ⚠ **Found by the tests, would have fired every grind in production:**
+> `Scene.toPeers requires the actor to be Containable`, and a `Location`
+> is not. The completion scene now composes from the **mill**, which is
+> the honest speaker anyway.
+>
+> ⚠ **Three gates caught real things** and all three were fixed properly
+> rather than exempted: `lint:arg-kinds` (two object args with no
+> `requires:`), `lint:census` (five new path-valued fields invisible to
+> `refsOf` — **taught** the census to read them, because a rowless
+> `productVessel` is a grind that eats the grain and silently produces
+> nothing inside a module-level completion), `lint:descriptors` (grist's
+> appearance collided with a spellbook descriptor — twice, on two
+> different words).
+>
+> ⚠ `category:` is DERIVED from a view's directory; stating it in the
+> YAML fails schema validation.
 
 #### W6 — `trade-baking` (D5, D7, D11, D19)
 
@@ -1590,6 +1640,30 @@ gluten` and `help retrogradation` resolve).
 
 Commit: `build(grain-chain W6): trade-baking — the trough, the levain, the loaf, and bread that goes stale`.
 
+> **✅ W6 DONE.**
+>
+> ⭐ **AC 9's kernel seam was worse than the plan expected.** Not just
+> "a cold batch reads `starting`" — a **scalded** one read the same
+> sentence too, so three states with completely different answers (*move
+> it*, *bin it*, *wait*) were indistinguishable. `MATURATION_LINES` gained
+> `stalled` and `killed` for all three mechanisms.
+> ⚠ **Known limit recorded rather than papered over:** a scalded batch
+> that has since cooled reads `stalled` again, because a batch has no
+> stored dead state where a culture has `viability`. Deferred seam.
+>
+> ⚠⚠ **Cost half an hour and looked like a staling bug.**
+> `StuffApi.clearAll()` in a fixture unregisters the `WorldClockRegistry`,
+> but `WorldClockApi` caches its reference, so `_resetForTesting()` does
+> **not** re-create it. From the second test onward every
+> reconcile-on-read gauge in the codebase goes silently inert — `getNow()`
+> still works, the stamps stay 0, and the assertions read `fresh` for
+> ever. Documented in the fixture; worth knowing for any future gauge
+> test.
+>
+> ⭐ `Loaf` declares its own `markupAugmenters` and does **not** shadow
+> `StalingMixin`'s: `getAllMarkupAugmenters` walks the chain with
+> `hasOwnProperty`. Checked rather than assumed.
+
 #### W7 — Heart's Delight, thinly (D12)
 
 Files: `packages/content/hearts-delight/{pack.yaml, package.json,
@@ -1612,6 +1686,13 @@ moves with the season; `lint:dossiers` 0; `lint:locations` green;
 
 Commit: `build(grain-chain W7): Heart's Delight — the gate, the bench, the farm, the millsite`.
 
+> **✅ W7 DONE.** Two gates caught real content defects: `lint:dispositions`
+> (`industry` is not an axis — two rows would have seeded a trait that
+> lands nowhere; now `diligence`) and `lint:locations` (`out`/`barn` are
+> non-cardinal exits inside one zone and **throw at hydrate** — fixed by
+> moving the barn due north so `north`/`south` is the true geometry rather
+> than a re-spelling).
+
 #### W8 — the bakery (D13)
 
 Files under `terminus/content/world/terminus/market/`: `bakery.yaml`,
@@ -1624,6 +1705,9 @@ priced apart — `lean-loaf` at **2** and trade-baking's `white-loaf`
 between on day one, before any player has milled.
 
 Commit: `build(grain-chain W8): the bakery — the first of the four the general store fragments into`.
+
+> **✅ W8 DONE.** `west` off the square was free. Two loaves at 2 and 4 —
+> the prices are the baker's decision and nothing mechanical reads them.
 
 #### W9 — somebody is hungry: the `eats` brain (D21, D22)
 
@@ -1653,6 +1737,22 @@ Acceptance: `lint:dossiers` unchanged (no new Cast); `lint:verb-collisions`
 
 Commit: `build(grain-chain W9): the eats brain — somebody buys bread, and their purse chooses which`.
 
+> **✅ W9 DONE.**
+>
+> ⭐ **Risk 13 resolved by reading the code, and the answer is better than
+> the plan's contingency.** `STARVATION_LETHAL_SEC` **is** real — 24
+> game-hours at a floored reserve begins the dying clock — so the worry
+> was well founded. But it is **not reachable from this brain**, and the
+> reason is structural rather than lucky: an NPC's satiation only advances
+> when something READS it, the only reader is this brain's `eat`, and
+> eating is what relieves it. A buyer who cannot buy never reconciles, so
+> an empty counter cannot starve anybody. No drain edit was needed and
+> none was made.
+>
+> ⭐ The AC-18 pin also covers the lethal dwells, deliberately: a build
+> that made them reachable would want to soften them, and softening them
+> is exactly what AC 18 forbids.
+
 #### W10 — the tending wave lands on the shipped kitchen (D3, D4, D17)
 
 Files: the 19 recipes under `trade-cooking/content/recipes/` each gain
@@ -1669,6 +1769,17 @@ commit body.
 
 Commit: `build(grain-chain W10): every shipped dish can now be overcooked; the ptomaine bands re-derived`.
 
+> **✅ W10 DONE — and the ptomaine recalibration turned out to be
+> unnecessary.** The W1 census had already shown the kill change touches
+> exactly one recipe (`simple-syrup`, 340 K, leaving ~1.4e-4 instead of a
+> flat 0 — visually indistinguishable). Re-deriving the ptomaine bands for
+> a change that size would have been motion, not work, so the bands are
+> untouched and the reason is recorded here.
+>
+> ⭐ The ratchet is CLOSED: 17 → 0. Nineteen workings ceilinged, each
+> saying something specific rather than taking a uniform offset — the
+> fried cutlet's window is 15 K and the sear's is 200.
+
 #### W11 — the retrofit (D16)
 
 Files: three mash recipes; `distribution/.../thing/grist-sack.yaml`,
@@ -1681,6 +1792,10 @@ grist`; with milled or bought grist works; Dave's Bar's chain (the
 bar-fight/libations wire flows) closes.
 
 Commit: `build(grain-chain W11): the mash wants grist — the miller's other two customers`.
+
+> **✅ W11 DONE.** Three recipes, one word each, plus the counter's grist
+> line at 7 against malt's 5. That markup is the first time in this game
+> that owning capital has had a number attached to it.
 
 #### W12 — the drive, the register, the MR
 
