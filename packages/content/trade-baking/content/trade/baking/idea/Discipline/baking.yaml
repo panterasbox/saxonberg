@@ -1,0 +1,24 @@
+# The baking Discipline — ⭐ a SPECIALIZATION of cooking, and the
+# relationship is the honest one: a cook who has never baked can follow a
+# recipe; a baker knows what the dough is telling them.
+#
+# What it is competence AT is TIMING under a clock you do not control.
+# Everything else in a kitchen happens when you do it. A proof happens at
+# its own rate, faster in a warm room and slower in a cold one, and the
+# whole skill is knowing when it is ready rather than when the recipe
+# said it would be.
+class: /platform/idea/Discipline
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  key: baking
+  channel: skill
+  label: Baking
+  description: >-
+    Bread, and the judgment of a ferment you cannot hurry. Reading a
+    dough for whether the gluten is developed and the proof is ready,
+    and knowing a hot oven from a fierce one.
+  iscedf: "0721"
+  requires: [recipe-knowledge]
+  specializes: cooking
+  synergizes: [milling, fermenting]
+  conferrals: []

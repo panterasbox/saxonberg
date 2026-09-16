@@ -1,0 +1,36 @@
+# Dough — ⭐ the BY-HAND build's terminal. Flour, water, salt, worked.
+#
+# The measures are the baker's ratio and not a arbitrary set: two parts
+# flour to a bit over one of water is roughly 60% hydration, which is
+# what a lean bread dough is. Salt by the item because salt is by the
+# item everywhere in this game.
+#
+# ⚠ `category: flour` matches EITHER cereal's flour by tag, so a barley
+# dough is buildable — and what comes out of it is flat, because barley
+# flour has no `gluten` tag and there is no sheet to hold the gas.
+# Nothing refuses it; the physics is the refusal.
+recipeId: dough
+name: Dough
+keywords:
+- dough
+inputSlots:
+- slot: flour
+  category: flour
+  minGrade: poor
+  measureL: 1
+- slot: water
+  category: water
+  minGrade: poor
+  measureL: 0.6
+- slot: salt
+  category: salt
+  minGrade: poor
+  kind: item
+  count: 1
+toolCapabilities: []
+outputTemplate: /trade/baking/thing/dough-trough
+outputAppearance: a slack pale dough, tacky and smooth-worked
+outputApplication: bulk
+outputMaterial: /stuff/idea/material/food/dough
+difficulty: standard
+discipline: baking

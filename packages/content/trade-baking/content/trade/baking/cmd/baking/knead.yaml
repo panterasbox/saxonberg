@@ -1,0 +1,30 @@
+verbs: [knead]
+controller: /trade/baking/idea/cmd/baking/KneadController
+description: "Work a dough together in the trough"
+help: |
+  Pour flour and water into a trough, add salt, then `knead` it. That is
+  where the dough becomes a dough.
+
+  ⭐ What you are doing is **developing the gluten**. Wheat flour has two
+  proteins that, worked with water, link up into an elastic sheet — and
+  that sheet is what traps the gas a leaven makes. Without it the gas
+  escapes and the bread is flat. This is the baker's whole frontier, and
+  it is why bread is a wheat food: barley has the proteins and does not
+  make the sheet, so barley flour kneads into something perfectly
+  edible and perfectly flat.
+
+  ⚠ Both hands are in it. Kneading is work.
+
+  Then leave it alone. The trough is where it proofs, and what happens
+  next depends on the cloth: **leave it off** and wild flora settle out
+  of the air and take it in a day; **put it on** and nothing gets in, so
+  pitch from a starter crock instead.
+validators:
+  - /lib/command/validators/requiresAnimate
+  - /lib/command/validators/requiresConscious
+args:
+  - name: trough
+    type: object
+    required: false
+    scope: ["reachable"]
+    requires: ManualBuildMixin

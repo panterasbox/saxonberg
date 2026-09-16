@@ -20,7 +20,7 @@ hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: grist
   keywords: [grist, grits, malt]
-  appearance: split pale malt, husk and meal together
+  appearance: husk and meal together, pale from the kiln
   density: 580
   specificHeat: 1850
   thermalConductivity: 0.15

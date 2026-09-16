@@ -1,0 +1,24 @@
+verbs: [bake]
+controller: /trade/baking/idea/cmd/baking/BakeController
+description: "Put a proofed dough into the oven"
+help: |
+  `bake` makes a lean loaf from a proofed dough in reach. `bake
+  flatbread` makes the unleavened kind, which takes raw dough and five
+  minutes and wants no culture at all.
+
+  ⭐⭐ **The loaf goes INTO the oven, and it does not come out by
+  itself.** Everything else you make is handed to you finished. Bread is
+  not: it is minted done and then it keeps taking heat, and an oven at
+  500 K will carry it from done to overdone to burnt while you are doing
+  something else. Taking it out is a thing you do.
+
+  ⚠ Too fierce a fire does not refuse to bake — it scorches the outside
+  while the middle is still raw. You are allowed to ruin bread, and a
+  ruined loaf is a loaf you are holding rather than an error message.
+validators:
+  - /lib/command/validators/requiresAnimate
+  - /lib/command/validators/requiresConscious
+args:
+  - name: loaf
+    type: string
+    required: false

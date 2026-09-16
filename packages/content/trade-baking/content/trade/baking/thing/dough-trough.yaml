@@ -1,0 +1,14 @@
+# The trough — where dough is made and where it proofs.
+#
+# ⭐ The cloth is the seal, and the seal is the decision: off, and wild
+# flora take it in a day; on, and you must pitch from the crock.
+class: /trade/baking/thing/DoughTrough
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: dough trough
+  keywords: [trough, dough, kneading, board]
+  register: indefinite
+  longDescription: A long shallow elm trough worn pale and smooth inside, with a linen cloth folded over the end of it.
+  mass: 22
+  interiorBulk: true
+  interiorCapacity: 20

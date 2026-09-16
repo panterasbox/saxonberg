@@ -54,6 +54,20 @@ export interface MaturationLines {
   working: string;
   finished: string;
   turned: string;
+  /**
+   * ⭐⭐ **Held, not working** — the temperature is outside the band the
+   * transform needs, so nothing is happening and nothing is ruined
+   * either. Distinct from `starting`, which says *it has not got going
+   * yet* and is a lie when what is true is *it cannot get going here*.
+   */
+  stalled: string;
+  /**
+   * ⚠ **Killed** — the flora is dead and the batch is not coming back.
+   * A scald is not a stall: one is a pause you can undo by moving the
+   * vessel, the other is a batch you have thrown away. Reading the same
+   * sentence for both is what made the mistake unlearnable.
+   */
+  killed: string;
 }
 
 /**
@@ -82,6 +96,8 @@ export const MATURATION_LINES: Record<
     working: 'It bubbles steadily, a yeasty breath rising off it.',
     finished: 'It lies still — the work is done, and the air over it is clean.',
     turned: 'A sharp vinegar edge cuts the air over it.',
+    stalled: 'It sits cold and sluggish. Nothing is moving in it.',
+    killed: 'It is slack and lifeless, and smells of nothing but wet flour.',
   },
   photochemical: {
     // ⚠ No bubbles, no breath, no smell. Light is doing this.
@@ -92,12 +108,16 @@ export const MATURATION_LINES: Record<
     // `turnedMaterial` — kept so the record is total rather than
     // relying on a `null` that a later row could quietly falsify.
     turned: 'It has gone past pale into a thin, chalky grey.',
+    stalled: 'Nothing is reaching it. The colour sits exactly where it was.',
+    killed: 'It has scorched rather than bleached, and will not come back.',
   },
   chemical: {
     starting: 'Nothing shows yet, but it is beginning to take.',
     working: 'It is working steadily, with a faint sharpness in the air.',
     finished: 'It has stopped moving — whatever was going to happen has.',
     turned: 'It has gone too far, and gone wrong with it.',
+    stalled: 'It has gone quite inert. Whatever it needs, it is not getting.',
+    killed: 'It has broken, and separated, and there is no fixing it.',
   },
 };
 

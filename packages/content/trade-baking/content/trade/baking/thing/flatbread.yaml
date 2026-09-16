@@ -1,0 +1,19 @@
+# A flatbread — ⭐ the honest unleavened fork.
+#
+# Dough straight into the oven with no proof at all. It takes five
+# minutes instead of half an hour, it needs no culture and no waiting,
+# and what you get is flat — because nothing made any gas and there was
+# no sheet to hold it if anything had.
+#
+# That is the row that makes barley bread possible. Barley flour has no
+# `gluten` tag, so a barley loaf would be a lie; a barley FLATBREAD is
+# exactly right, and is what people actually ate.
+class: /trade/baking/thing/Loaf
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: flatbread
+  keywords: [flatbread, bread, bannock, round]
+  register: indefinite
+  longDescription: A thin round of bread blistered dark where it lay against the oven floor, flexible enough to fold.
+  material: /stuff/idea/material/food/bread
+  mass: 0.3

@@ -1,0 +1,16 @@
+# A lean loaf — flour, water, salt and time. The bread most people eat.
+#
+# ⚠ NO authored composition. A player's loaf comes out of the chain
+# carrying whatever the miller's extraction put in it, and this row does
+# not presume to say. A loaf minted from this row with nothing behind it
+# reads as plain bread rather than as white bread, which is honest:
+# not knowing what it is made of is not the same as being pale.
+class: /trade/baking/thing/Loaf
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: loaf of bread
+  keywords: [loaf, bread]
+  register: indefinite
+  longDescription: A round loaf with a good open cut across the top, the crust gone deep brown where the oven caught it.
+  material: /stuff/idea/material/food/bread
+  mass: 0.8

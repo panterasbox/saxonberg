@@ -9,7 +9,7 @@ data:
   keywords: [grist, sack, malt]
   register: indefinite
   longDescription: |
-    A sack of split malt, husk and meal together, smelling faintly of the kiln.
+    A sack of ground malt, husk and meal together, smelling faintly of the kiln.
   mass: 0.4
   interiorBulk: true
   interiorMaterial: /stuff/idea/material/food/grist
