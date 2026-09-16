@@ -290,6 +290,52 @@ query (the owners on the pair list). Every pair is resolved by
 `lint:gates` — including that the class really declares a method of that
 name, because a mistyped method denies forever while looking correct.
 
+## Hunting for an Instrument Instead of Declaring It
+
+**ANTIPATTERN**: A controller resolving the thing its verb acts *with* by
+walking the actor's surroundings and narrowing by type.
+
+```typescript
+// BAD — the controller re-deriving what the binder already resolves
+const mill = room.getContents().find((c) => c instanceof GristMill);
+const oven = room.getContents().find((c) => MixinApi.isFurnace(c));
+```
+
+**INSTEAD** — declare it on the view and read it off the model:
+
+```yaml
+- name: mill
+  type: object
+  required: false
+  prepositions: [at, with]
+  default: "reachable:[mixin.ComminutingMixin]"
+  scope: ["reachable"]
+  requires: [ComminutingMixin]
+```
+
+```typescript
+const mill = model.mill ?? null;
+if (mill === null || !MixinApi.isComminuting(mill)) { /* decline */ }
+```
+
+⭐ **Two costs.** The instrument becomes **unaddressable** — a room with
+two sets of stones hands you whichever the walk hits first, and nothing a
+player can type changes it. And ⚠⚠ the walk almost always narrows on a
+**class**, which silently refuses every other implementation of the
+capability: `instanceof GristMill` cannot see the metal chain's stamp
+mill, which is the entire reason `ComminutingMixin` is kernel substrate.
+
+⚠ **The query is the MIXIN, never the class** — `buy.yaml` says the same
+thing about `[mixin.ConsignmentShelfMixin]` over `[class.Stock]`.
+
+⚠ It is fine for the controller to narrow further on **state** the
+predicate cannot express: `bake` resolves on `FurnaceMixin` and then
+checks *lit, fuelled, and a chamber*, because no mixin means "lit".
+
+Asking an object you already hold for its own contents is a different
+thing and is always fine (`pit.getContents()` for the charge in the
+clamp). Enforced by `pnpm lint:instrument-args` (census-then-ratchet).
+
 ## An Api May Not Hand Back Its Table
 
 **ANTIPATTERN**: A public read that returns a whole collection, which

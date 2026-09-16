@@ -354,6 +354,72 @@ complete, documented, and spoken by nobody. `KNOWN_EXTENSION_ONLY` is
 **empty on purpose**, so the first allowlisting is a diff somebody has to
 defend.
 
+### `lint:instrument-args` — an instrument is an ARGUMENT, not a search (2026-09)
+
+⭐⭐ **Found in review, not by a gate — which is why it became one.** A
+controller needed the thing its verb acts *with* (the stones, the
+furnace, the clamp) and hunted for it: walk the room's contents, narrow
+by type, take the first hit.
+
+```typescript
+// BAD — the controller re-deriving what the binder already resolves
+const mill = room.getContents().find((c) => c instanceof GristMill);
+```
+
+`buy.yaml` already carried the fix, in a comment left by whoever made it
+there: *"WHERE you are buying from, DECLARED rather than re-derived. The
+controller used to hunt for a counter itself; now the binder resolves it
+like any other object and the controller just reads it."* The shape had
+been removed once and grew back, which is the definition of something a
+gate should hold.
+
+**Two costs, and the second is silent:**
+
+1. **The instrument becomes unaddressable.** A room with a hand quern
+   *and* a water mill hands you whichever the walk hits first, and no
+   sentence a player can type changes it. A declared arg gets `mill the
+   wheat at the quern` for free.
+2. ⚠⚠ **The walk almost always narrows on a CLASS.** `ComminutingMixin`
+   is kernel substrate for exactly one reason — the metal chain's stamp
+   mill is its second consumer, in a pack with no ancestor in common —
+   so `instanceof GristMill` silently refuses to find the very thing the
+   mixin was lifted to the kernel *for*. The mixin query finds both.
+
+⚠ **Why `lint:world-scan` did not catch it, and is right not to.** These
+walks are **bounded** — one room, one inventory — so there is nothing for
+that gate to fire on. This is a different rule: not *"you may not be
+handed the world"* but ***"resolution belongs to the binder."***
+
+**The gate is deliberately narrow.** It fires only where both hold: the
+receiver is the actor or their surroundings (never an object the
+controller was already handed), **and** the type test is applied to the
+**candidate** rather than to the receiver.
+
+⭐ That second condition is the whole difference between a gate and a
+nuisance. The first cut matched anywhere in a three-line window, so the
+near-universal guard
+
+```typescript
+if (!MixinApi.isContainer(giver)) return null;
+for (const item of giver.getContents()) { /* …read its contents… */ }
+```
+
+read as a type-narrowed search and produced **a third of the census as
+false positives** (25 findings, of which 11 were noise). A gate that
+cries wolf teaches people to ignore it, which is the mirror image of the
+failure this family already knows — gates that ship broken and silently
+pass.
+
+Asking an object you already hold for its own contents is the
+`ask-the-owner` rung and is always fine: `pit.getContents()` for the
+charge inside the clamp, `counter.getContents()` for what is on the
+shelf.
+
+**Census 14, ceiling 14.** Every one is the same sentence — *find the
+tool in my hands or the room* — written fourteen times across eight
+packs. Driving it to zero is a build of its own; stopping the growth
+costs one constant today, which is exactly what the pattern is for.
+
 ### `lint:verb-collisions` — two views, one verb, and one of them is gone (2026-09)
 
 ⭐⭐ **The failure it exists for shipped, and nothing noticed.** The
