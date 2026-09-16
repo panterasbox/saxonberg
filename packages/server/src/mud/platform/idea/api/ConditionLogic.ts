@@ -933,6 +933,7 @@ function inflictThroughStack(
         layer.grade,
         layer.condition,
         agent,
+        'penetration' in spec ? (spec.penetration ?? 1) : 1,
       ).residualEnergy;
       // Wear-on-use (Law 2): a covering layer that attenuated a
       // mechanical blow wears — armor degrades by taking hits, never by

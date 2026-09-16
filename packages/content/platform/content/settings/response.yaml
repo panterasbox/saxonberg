@@ -116,6 +116,19 @@ settings:
   - key: response.corrosion.previewCorrosiveTo
     value: "organic"
 
+  # ── penetration ──────────────────────────────────────────────────────
+  # ⭐⭐ The pressure (J/m²) an ordinary blow arrives at. `penetration` is
+  # `energy / cross-section` against this, and it DIVIDES the covering's
+  # mechanical attenuation — which is the whole of what makes a firearm
+  # different from a sword here.
+  #
+  # Worked: a sword thrust is ~200 J over a broad tip — well under this,
+  # so penetration 1 and armour answers exactly as it always has. A
+  # 16 mm musket ball at ~1.5 kJ is 1500 / (π·0.008²) ≈ 7.5 MJ/m², so
+  # penetration ≈ 3.7 and plate's `resist` falls toward `fail`.
+  - key: response.penetration.referenceJPerM2
+    value: "2000000"
+
   - key: response.noWoundThreshold
     value: "0.25"
 

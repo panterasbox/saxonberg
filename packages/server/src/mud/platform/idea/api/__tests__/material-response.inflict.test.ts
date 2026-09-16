@@ -178,6 +178,56 @@ describe('materials-response — inflict through the covering stack', () => {
     expect(trauma(plated)?.type).not.toBe('avulsion');
   });
 
+  it('⭐⭐ AC 11 — a ROUND defeats the plate that turns a thrust', () => {
+    // The whole of what makes a firearm different here, in one pair. Both
+    // blows are `point`; both meet the same breastplate. What differs is
+    // the PRESSURE — the same joules over a tenth the area — and armour
+    // answers pressure rather than energy.
+    //
+    // ⚠ No "armour-piercing" flag anywhere, and no second resist table: a
+    // divisor on the attenuation the plate already had.
+    const thrust = bodied();
+    wearTorso(thrust, steel(), 'plate');
+    ConditionApi.inflict(thrust, {
+      mechanism: 'point',
+      site: 'body.torso',
+      energy: 2,
+    });
+
+    const shot = bodied();
+    wearTorso(shot, steel(), 'plate');
+    ConditionApi.inflict(shot, {
+      mechanism: 'point',
+      site: 'body.torso',
+      energy: 2,
+      penetration: 4,
+    });
+
+    const turned = trauma(thrust);
+    const through = trauma(shot);
+    expect(through, 'the round got through').toBeDefined();
+    expect(
+      through!.severity,
+      'and it is honestly worse than the thrust the plate turned',
+    ).toBeGreaterThan(turned?.severity ?? 0);
+  });
+
+  it('⚠ …and penetration 1 leaves every shipped blow byte-identical', () => {
+    const a = bodied();
+    wearTorso(a, steel(), 'plate');
+    ConditionApi.inflict(a, { mechanism: 'point', site: 'body.torso', energy: 2 });
+
+    const b = bodied();
+    wearTorso(b, steel(), 'plate');
+    ConditionApi.inflict(b, {
+      mechanism: 'point',
+      site: 'body.torso',
+      energy: 2,
+      penetration: 1,
+    });
+    expect(trauma(b)?.severity ?? 0).toBeCloseTo(trauma(a)?.severity ?? 0, 6);
+  });
+
   it('blunt contuses bare flesh but transmits through plate to a fracture', () => {
     const bare = bodied();
     ConditionApi.inflict(bare, {

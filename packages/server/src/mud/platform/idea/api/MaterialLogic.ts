@@ -113,6 +113,7 @@ export class MaterialLogic extends ApiLogic {
     grade?: Grade,
     condition?: number,
     agent?: readonly string[],
+    penetration?: number,
   ): AttenuationResult {
     return attenuateImpl(
       channel,
@@ -122,6 +123,7 @@ export class MaterialLogic extends ApiLogic {
       grade,
       condition,
       agent ?? [],
+      penetration ?? 1,
     );
   }
 
@@ -443,6 +445,7 @@ function attenuateImpl(
   grade?: Grade,
   condition?: number,
   agent: readonly string[] = [],
+  penetration = 1,
 ): AttenuationResult {
   const e = Math.max(0, energy);
   // A non-armor (weapon) construction attenuates nothing — energy passes.
@@ -492,7 +495,15 @@ function attenuateImpl(
   const base = baseAttenuationFor(token);
   const height = materialHeight(material, channel);
   const scale = gradeConditionScale(grade, condition);
-  const atten = clamp01(base * height * scale);
+  // ⭐⭐ **Penetration divides the attenuation**, and that one line is the
+  // whole of what makes a firearm different from a sword in this engine.
+  //
+  // Armour answers PRESSURE, not energy: the same joules arriving over a
+  // tenth the area go through. So mail that turns a thrust fails against
+  // a round, and plate that turns a round fails against a bigger one —
+  // with no "armour-piercing" flag anywhere, and with a sword's
+  // penetration of 1 leaving every shipped blow byte-identical.
+  const atten = clamp01((base * height * scale) / Math.max(1, penetration));
   return { residualEnergy: e * (1 - atten), channel };
 }
 

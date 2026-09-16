@@ -102,6 +102,21 @@ export interface EnergyInflictSpec {
    * held shield joins the covering stack. Worn armor is unaffected either way.
    */
   shieldFacing?: boolean;
+  /**
+   * ⭐⭐ **How concentrated the arrival is** — a multiple of an ordinary
+   * blow's pressure, dividing the covering's mechanical attenuation.
+   *
+   * This is the whole of what makes a firearm different from a sword in
+   * this engine. A sword thrust and a musket ball can carry comparable
+   * energy; what differs is the area it arrives over, and armour answers
+   * pressure rather than energy. So mail that turns a thrust fails
+   * against a round, and plate that turns a round outright fails against
+   * a bigger one — without a single "armour-piercing" flag anywhere.
+   *
+   * ⚠ Absent means `1`, so every shipped producer is byte-identical.
+   * Derived by `DeliveryProfile`, never authored.
+   */
+  penetration?: number;
 }
 
 /**

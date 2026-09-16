@@ -1191,7 +1191,20 @@ where the build runs `pnpm test`, pushes and opens the MR.**
 
 ### Stage C — past the medieval (the cut line)
 
-**W-C0 — `penetration`.** *(D20 first bullet)* `DeliveryProfile.penetration`
+**W-C0 — `penetration`.** ✅ **DONE** *(D20 first bullet)*
+> **Build note.** The ranged build's own comment said `penetration` was
+> held back because it *"only earns its keep against armor, and armor is a
+> later wave — adding it now would mean authoring a number with no
+> consumer to keep it honest."* That wait was right, and W-A5 made armour
+> buyable, so the consumer exists.
+> - ⭐ It is **derived, never authored**: an author writes a `calibre`,
+>   which is a fact about the projectile they would write anyway. Nobody
+>   maintains an "armour-piercing: 3" by hand.
+> - ⭐⭐ **An arrow reads barely penetrative, and that is the honest
+>   answer.** ~50 J over a broad head is nowhere near a round's pressure.
+>   An arrow beats mail by being a POINT — the channel — not by arriving
+>   at firearm pressure, and conflating the two would have made every bow
+>   a gun. Pinned by a test. `DeliveryProfile.penetration`
 + `calibre`; `EnergyInflictSpec.penetration`; the divisor in
 `attenuateImpl`; `response.penetration.referenceJPerM2`. Tests:
 `DeliveryProfile.penetration.test.ts`, the inflict test (a 1.5 kJ 16 mm

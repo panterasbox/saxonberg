@@ -690,6 +690,12 @@ export const AppSettingKeys = {
   /** The reference agent the legibility preview shows a corrosion column for. */
   responseCorrosionPreviewCorrosiveTo:
     "response.corrosion.previewCorrosiveTo",
+  /**
+   * ⭐ The pressure (J/m²) an ordinary blow arrives at — what a
+   * `penetration` of 1 means. A firearm round is several times it, which
+   * is why mail that turns a thrust fails against one.
+   */
+  responsePenetrationReferenceJPerM2: "response.penetration.referenceJPerM2",
   /** Response — residual energy below which no meaningful wound lands
    * (deflected). */
   responseNoWoundThreshold: "response.noWoundThreshold",

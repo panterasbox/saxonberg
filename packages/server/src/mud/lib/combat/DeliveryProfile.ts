@@ -27,10 +27,13 @@
  * speed (½mv²); what that energy *does* is the response grid's business,
  * not this module's.
  *
- * ⚠ `penetration` is deliberately absent in Wave 1. It is a
- * sectional-behaviour axis that only earns its keep against armor, and
- * armor is a later wave — adding it now would mean authoring a number
- * with no consumer to keep it honest.
+ * ⭐⭐ `penetration` **has its consumer now** (the injury build), and the
+ * wait was the right call: it is a sectional-behaviour axis that only
+ * earns its keep against armour, and until armour was reachable there
+ * was nothing to keep the number honest. It is **derived, never
+ * authored** — `energyJ / area` against a reference — so an author
+ * writes a calibre, which is a fact about the projectile they would
+ * write anyway.
  */
 
 import type { Channel } from "../material/Channel";
@@ -76,6 +79,16 @@ export interface DeliveryInputs {
   toughness?: number;
   /** Projectile material hardness (MPa) — low deforms. */
   hardness?: number;
+  /**
+   * ⭐⭐ **Projectile calibre (m)** — the diameter of what actually meets
+   * the armour, and the whole of what makes a bullet different from a
+   * sword thrust.
+   *
+   * Absent for anything that is not a projectile shaped to concentrate
+   * its energy (a thrown rock, a chair leg), which reads as penetration
+   * 1 — i.e. the shipped behaviour exactly.
+   */
+  calibreM?: number;
   /** True when the projectile is purpose-made to fly (a thrown blade,
    * fletched arrow) rather than merely thrown (a flask, a chair leg). */
   balancedForFlight?: boolean;
@@ -90,12 +103,19 @@ export interface DeliveryProfileConfig {
   deformHardness: number;
   /** Energy (J) below which arrival is too weak to wound at all. */
   inertEnergyJ: number;
+  /**
+   * The pressure (J/m²) a `penetration` of 1 corresponds to — the
+   * ordinary blow the ladder is measured against. Seeded so a sword
+   * thrust sits at 1 and a firearm round is several times it.
+   */
+  referenceJPerM2: number;
 }
 
 export const DEFAULT_DELIVERY_PROFILE_CONFIG: DeliveryProfileConfig = {
   shatterToughness: 1.0,
   deformHardness: 80,
   inertEnergyJ: 1.0,
+  referenceJPerM2: 2e6,
 };
 
 export class DeliveryProfile {
@@ -106,6 +126,12 @@ export class DeliveryProfile {
     readonly integrity: Integrity,
     readonly payload: unknown,
     readonly beyondEnvelope: boolean,
+    /**
+     * ⭐⭐ **How concentrated the arrival is**, as a multiple of the
+     * reference. `1` is an ordinary blow; above that the armour's
+     * attenuation is divided by it.
+     */
+    readonly penetration: number,
   ) {}
 
   /**
@@ -129,7 +155,38 @@ export class DeliveryProfile {
       DeliveryProfile.deriveIntegrity(inputs, config),
       inputs.payload ?? null,
       beyond,
+      DeliveryProfile.derivePenetration(energyJ, inputs, config),
     );
+  }
+
+  /**
+   * ⭐⭐ **Energy per unit of cross-section, against a reference.**
+   *
+   * `E / (π·(d/2)²)`, normalised by `response.penetration.referenceJPerM2`
+   * — which is to say **pressure**, and pressure is the entire reason a
+   * musket ball goes through a breastplate that turns a sword. A sword
+   * thrust is a few hundred joules over a broad tip; a 16 mm ball is one
+   * and a half kilojoules over two square centimetres, and the second
+   * number is two orders of magnitude larger.
+   *
+   * ⚠ **Derived, never authored.** An author writes a `calibre`, which is
+   * a fact about the projectile they would write anyway; nobody writes an
+   * "armour-piercing: 3" that has to be kept honest by hand. And a thing
+   * with no calibre — a rock, a chair leg — reads exactly `1`, so every
+   * shipped thrown object is byte-identical.
+   */
+  private static derivePenetration(
+    energyJ: number,
+    inputs: DeliveryInputs,
+    config: DeliveryProfileConfig,
+  ): number {
+    const d = inputs.calibreM ?? 0;
+    if (!(d > 0) || !(energyJ > 0)) return 1;
+    const areaM2 = Math.PI * (d / 2) * (d / 2);
+    if (!(areaM2 > 0)) return 1;
+    const reference = config.referenceJPerM2;
+    if (!(reference > 0)) return 1;
+    return Math.max(1, energyJ / areaM2 / reference);
   }
 
   /**
@@ -228,7 +285,12 @@ export class DeliveryProfile {
     // real thing to want and it needs the vial's material, which means it
     // is a producer that knows about materials, not this one.
     if (this.channel === "corrosion") return null;
-    return { mechanism: this.channel, site, energy: this.energyJ };
+    return {
+      mechanism: this.channel,
+      site,
+      energy: this.energyJ,
+      penetration: this.penetration,
+    };
   }
 
 }

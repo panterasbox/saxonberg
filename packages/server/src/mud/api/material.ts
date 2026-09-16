@@ -172,6 +172,13 @@ export class MaterialApi {
      * that does not know about corrosion is byte-identical.
      */
     agent?: readonly string[],
+    /**
+     * ⭐ The MECHANICAL channels only: how concentrated the arrival is,
+     * as a multiple of an ordinary blow's pressure. Divides the
+     * attenuation, because armour answers pressure rather than energy.
+     * Absent means 1 — every shipped caller is byte-identical.
+     */
+    penetration?: number,
   ): AttenuationResult {
     return logic().attenuate(
       channel,
@@ -181,6 +188,7 @@ export class MaterialApi {
       grade,
       condition,
       agent,
+      penetration,
     );
   }
 
