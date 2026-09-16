@@ -1,0 +1,33 @@
+# Barley flour — wheat flour's row with the one tag missing, and that
+# missing tag is the whole of it.
+#
+# ⭐ No `gluten`. Barley has the storage proteins, but they do not form
+# the elastic sheet that traps the gas a leaven makes, so a barley loaf
+# is flat and close however long you knead it. That is not a penalty
+# authored to make wheat better — it is the real reason bread is a wheat
+# food, and it makes the baker's frontier legible: gluten is the thing
+# you are developing, and here there is none to develop.
+#
+# It still mills, still keeps, still feeds you, and a flatbread made of
+# it is a perfectly good flatbread.
+class: /platform/idea/material/Material
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  name: barley flour
+  keywords: [flour, barley, meal]
+  appearance: soft grey-brown, a little coarse
+  density: 560
+  specificHeat: 1800
+  thermalConductivity: 0.14
+  electricalConductivity: 1.0e-9
+  waterAbsorptionCapacity: 60
+  hardness: 1
+  toughness: 1
+  edibility: true
+  waterActivity: 0.66
+  spoilActivationEnergy: 45000
+  nutrients: ["carb", "protein"]
+  nutrientAmounts: { carb: 795000, protein: 78000 }
+  toxicity: []
+  tags: ["food", "flour", "barley-flour", "baking"]
+  composition: []

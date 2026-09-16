@@ -1,0 +1,18 @@
+# A sack of grist — a `Sack`: bulk inside, with the maker's
+# mark and the grade on the HOLDER. Grade rides the sack, never the
+# matter: a quantity of flour has no identity to be graded, and a marked
+# sack does. The same convention a bottle of graded gin follows.
+class: /platform/thing/Sack
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: grist sack
+  keywords: [grist, sack, malt]
+  register: indefinite
+  longDescription: |
+    A sack of split malt, husk and meal together, smelling faintly of the kiln.
+  mass: 0.4
+  interiorBulk: true
+  interiorMaterial: /stuff/idea/material/food/grist
+  interiorCapacityValue: 25
+  interiorCapacityUnit: L
+  category: sack

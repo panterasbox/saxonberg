@@ -108,9 +108,9 @@ describe("⭐ the grain is INERT — a dry sack does not rot", () => {
     const barley = data(join(MATERIALS, "barley-grain.yaml")) as {
       nutrientAmounts: Record<string, number>;
     };
-    expect(wheat.nutrientAmounts.carb).toBeGreaterThan(500000);
+    expect(wheat.nutrientAmounts.carb!).toBeGreaterThan(500000);
     expect(
-      Math.abs(wheat.nutrientAmounts.carb - barley.nutrientAmounts.carb),
+      Math.abs(wheat.nutrientAmounts.carb! - barley.nutrientAmounts.carb!),
     ).toBeLessThan(100000);
   });
 
@@ -124,8 +124,8 @@ describe("⭐ the grain is INERT — a dry sack does not rot", () => {
     const barleyM = data(join(MATERIALS, "barley-grain.yaml")) as {
       nutrientAmounts: Record<string, number>;
     };
-    expect(wheatM.nutrientAmounts.protein).toBeGreaterThan(
-      barleyM.nutrientAmounts.protein,
+    expect(wheatM.nutrientAmounts.protein!).toBeGreaterThan(
+      barleyM.nutrientAmounts.protein!,
     );
     expect(wheatPlant().nutrientDraw as number).toBeGreaterThan(
       barleyPlant().nutrientDraw as number,

@@ -1,0 +1,24 @@
+# The milling Discipline — ⭐ and what it is competence AT is the
+# JUDGMENT, not the cranking.
+#
+# Anybody can turn a handle. What a miller knows is how fine to set the
+# stones for this grain in this weather, what extraction this batch will
+# bear before the flour starts to taste of the germ, and when the cloth
+# needs changing. That is why the mill's control floor raises the FLOOR
+# of the flour's grade and never its ceiling: capital embeds somebody
+# else's skill, and it cannot make poor grain good.
+class: /platform/idea/Discipline
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  key: milling
+  channel: skill
+  label: Milling
+  description: >-
+    Reducing grain to meal and separating what you keep from what you do
+    not. The stones, the cloth, and the judgment of how much of the berry
+    is worth keeping for the flour you want.
+  iscedf: "0721"
+  requires: [recipe-knowledge]
+  specializes: ""
+  synergizes: [agriculture, baking]
+  conferrals: []

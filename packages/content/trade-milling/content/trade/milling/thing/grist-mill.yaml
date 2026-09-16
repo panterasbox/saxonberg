@@ -1,0 +1,44 @@
+# A water mill — ⭐ the top rung, and what it BUYS you is your time back.
+#
+# `throughputKgPerMin: 0` and `kgPerMinPerKw: 0.5`: this thing has no
+# rate of its own at all. It grinds at whatever the river gives it, so a
+# mill with no wheel beside it is a building — and it says so rather than
+# quietly falling back to hand speed.
+#
+# ⚠⚠ Which also means the rate is SEASONAL, and nobody authored that. The
+# power is `rho*g*dh*Q*eta` and `Q` is the flow passing this week; a mill
+# that grinds ten sacks in spring grinds fewer in a dry August. The
+# miller's year is a real thing the physics produces for free.
+#
+# ⭐ `control: fine` — the mill FLOORS the flour at `fine`. Trued stones
+# and a good cloth embed a millwright's skill in the capital, and that
+# raises the floor of what comes out. It never raises the ceiling:
+# exceptional grain still makes exceptional flour, and poor grain still
+# makes poor flour at best.
+#
+# The toll is a tenth, in kind. That is a multure — the mill's pay is a
+# share of the flour, which pays the premises with no coin changing hands.
+class: /trade/milling/thing/GristMill
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: millstones
+  keywords: [millstones, stones, mill, grist]
+  register: definite
+  longDescription: |
+    A pair of stones four feet across, the runner turning slow and steady over the bedstone with the shaft coming up through the floor from the wheel below. Flour comes off warm and the whole room smells of it.
+  mass: 900
+  capabilities:
+    - { kind: millstone, control: fine }
+  throughputKgPerMin: 0
+  kgPerMinPerKw: 0.5
+  maxThroughputKgPerMin: 10
+  extractionMin: 0.55
+  extractionMax: 1
+  extractionDefault: 0.75
+  residueFraction: 0.25
+  productMaterial: /stuff/idea/material/food/wheat-flour
+  residueMaterial: /stuff/idea/material/food/bran
+  productVessel: /trade/milling/thing/flour-sack
+  residueVessel: /trade/milling/thing/bran-sack
+  tollFraction: 0.1
+  tollBinPath: /trade/milling/thing/toll-bin

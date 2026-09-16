@@ -277,6 +277,12 @@ subcommands:
         type: object
         required: false
         scope: ["reachable"]
+        # A weir, a millstone, an aqueduct house — all physical. The
+        # two readings are duck-typed beyond this (a generator answers
+        # `generationW`, a machine answers `availablePowerW`), because
+        # the things that answer them live in packs this one has never
+        # heard of.
+        requires: TangibleMixin
   water:
     description: "Read the water where you stand — the reach, what is passing, how much is snowmelt, what is still lying as snow — or a waterworks' whole working"
     help: |
