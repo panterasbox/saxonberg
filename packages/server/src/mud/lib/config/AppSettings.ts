@@ -657,6 +657,12 @@ export const AppSettingKeys = {
   /** Response — residual energy at/above which a blunt blow to a boned part
    * fractures (vs contuses). */
   responseBluntFractureThreshold: "response.blunt.fractureThreshold",
+  /**
+   * The edge ladder's upper rung — residual at or above this tears rather
+   * than cuts. The sibling of the blunt channel's fracture threshold, and
+   * the reason `avulsion` is reachable from a weapon at all.
+   */
+  responseEdgeAvulsionThreshold: "response.edge.avulsionThreshold",
   /** Response — residual energy below which no meaningful wound lands
    * (deflected). */
   responseNoWoundThreshold: "response.noWoundThreshold",

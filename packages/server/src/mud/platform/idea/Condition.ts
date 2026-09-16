@@ -220,6 +220,26 @@ export const HARM_DEFAULTS = {
   FRACTURE_IMPAIR_SEVERITY: 0.5,
   /** Avulsion severity floor — "a severe laceration". */
   AVULSION_SEVERITY_FLOOR: 2,
+  /**
+   * ⭐⭐ **The sever threshold** — an avulsion at or above this severity,
+   * on a part the body plan marks `severable`, takes the part off.
+   *
+   * Deliberately above the `open`-band blow (4.5 × the weapon's delivery
+   * scale): losing a hand wants a real blade against a foe who is already
+   * finished, not an unlucky exchange. It is the AVULSION severity that is
+   * read, so `AVULSION_SEVERITY_FLOOR` is the floor and this is the gate —
+   * a wound has to be much worse than "severe" to be terminal for the part.
+   */
+  SEVER_SEVERITY: 4.0,
+  /**
+   * What a MISSING locomotor part costs the limp, expressed as the wound
+   * severity it stands in for. A severed foot is not a wound that heals,
+   * so it has no severity of its own to sum — this is the equivalent.
+   *
+   * ⚠ Interim: W-A2 rewires `drainForLimp` onto the function axis, where a
+   * missing part is `f = 0` and this constant retires.
+   */
+  LIMP_MISSING_SEVERITY: 2,
   /** Below this severity a wound has healed and is cleared from the body. */
   CLEARED_SEVERITY: 0.01,
   /** Limp: endurance %-drained per traverse per unit locomotor-wound severity. */
@@ -695,15 +715,32 @@ export const BURN_BEHAVIOR: TraumaBehavior = {
 
 /**
  * avulsion — behaves as a **severe laceration** (floors severity, bleeds,
- * shares the clot gate). The deferred **limb-sever / part-promotion**
- * (mark the `BodyPart` missing, cascade slot-disable + presentation) lands
- * HERE — at `onset` — when the sever build arrives; v1 stops at the severe
- * bleed. See harm.md § deferred seams.
+ * shares the clot gate) and, past {@link HARM_DEFAULTS.SEVER_SEVERITY},
+ * **takes the part off**.
+ *
+ * ⭐⭐ The sever is the documented seam finally landed: `onset` is where it
+ * belongs because severing is what the insult DID, not something that
+ * develops afterwards. Two gates, both honest:
+ *
+ * - the wound must be at or past `SEVER_SEVERITY` (a floor of 2 makes an
+ *   avulsion "severe"; 4 makes it terminal for the part);
+ * - the body plan must mark the part `severable` — authored on every limb
+ *   and the head, absent on organs. **This is that field's first
+ *   production reader.** A torso avulsion is a terrible wound and stays a
+ *   wound; you cannot lop off somebody's chest.
+ *
+ * ⚠ Ordering matters and is load-bearing (D1): `onset` now runs AFTER
+ * `Vitals.afflict` has accepted the wound, so a conferred immunity that
+ * vetoes the trauma also prevents the sever. A sever that happened to a
+ * wound the body refused would be the worst kind of ghost.
  */
 export const AVULSION_BEHAVIOR: TraumaBehavior = {
   onset(host: Vitals, t: Trauma): void {
     t.severity = Math.max(t.severity, HARM_DEFAULTS.AVULSION_SEVERITY_FLOOR);
     LACERATION_BEHAVIOR.onset(host, t);
+    if (t.severity < HARM_DEFAULTS.SEVER_SEVERITY) return;
+    if (!host.getPart(t.site)?.severable) return;
+    host.severPart(t.site);
   },
   tick: LACERATION_BEHAVIOR.tick,
   resolve: LACERATION_BEHAVIOR.resolve,

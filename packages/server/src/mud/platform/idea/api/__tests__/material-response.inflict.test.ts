@@ -144,6 +144,40 @@ describe('materials-response — inflict through the covering stack', () => {
     expect(trauma(plated)).toBeUndefined();
   });
 
+  it('⭐ the edge LADDER — a deep enough cut avulses rather than lacerates', () => {
+    // The blunt channel's fracture rung, given to the edge channel. Before
+    // this, `avulsion` was reachable only from the `'tearing'` passthrough,
+    // which nothing in the game produced — a trauma type with no deliverer.
+    const cut = bodied();
+    ConditionApi.inflict(cut, {
+      mechanism: 'edge',
+      site: 'body.torso',
+      energy: 2,
+    });
+    expect(trauma(cut)!.type).toBe('laceration');
+
+    const torn = bodied();
+    ConditionApi.inflict(torn, {
+      mechanism: 'edge',
+      site: 'body.torso',
+      energy: 6,
+    });
+    expect(trauma(torn)!.type).toBe('avulsion');
+  });
+
+  it('⚠ armour is what stops the ladder — a plated torso still only bruises', () => {
+    // The threshold is read on the RESIDUAL, so the fold has already had
+    // its say. The same blow that tears a bare body is turned by plate.
+    const plated = bodied();
+    wearTorso(plated, steel(), 'plate');
+    ConditionApi.inflict(plated, {
+      mechanism: 'edge',
+      site: 'body.torso',
+      energy: 6,
+    });
+    expect(trauma(plated)?.type).not.toBe('avulsion');
+  });
+
   it('blunt contuses bare flesh but transmits through plate to a fracture', () => {
     const bare = bodied();
     ConditionApi.inflict(bare, {

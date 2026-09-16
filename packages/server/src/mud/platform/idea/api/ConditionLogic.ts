@@ -965,12 +965,20 @@ function inflictThroughStack(
 
   const nowS = conditionNowSeconds();
   if (nowS !== null) trauma.tickedAt = nowS;
-  TRAUMA_BEHAVIOR[trauma.type].onset(target, trauma);
-  // The veto layer (magic-items D14) sits HERE — after the covering-stack
-  // fold, before the write. Armor still attenuates; a conferred immunity
-  // simply refuses what is left, and the outcome says so honestly rather
-  // than reporting a hit that never landed.
+  // ⭐⭐ **Veto first, then onset** (D1). The veto layer (magic-items D14)
+  // sits HERE — after the covering-stack fold, before anything happens.
+  // Armor still attenuates; a conferred immunity simply refuses what is
+  // left, and the outcome says so honestly rather than reporting a hit that
+  // never landed.
+  //
+  // ⚠ The order was onset-then-afflict, which was harmless only while every
+  // `onset` mutated the trauma VALUE and nothing else. It stopped being
+  // harmless the moment an onset could act on the BODY: an avulsion's onset
+  // now severs a limb, and a wound the body refused must not take an arm
+  // with it. The pushed record is the same object either way, so a landed
+  // wound is byte-identical to before.
   const landed = target.afflict(trauma);
+  if (landed) TRAUMA_BEHAVIOR[trauma.type].onset(target, trauma);
   return { trauma, afflicted: landed };
 }
 
@@ -1002,10 +1010,11 @@ function inflictPassthrough(
   }
   const nowS = conditionNowSeconds();
   if (nowS !== null) trauma.tickedAt = nowS;
-  TRAUMA_BEHAVIOR[type].onset(target, trauma);
   // Same veto seam as the stack path — a passthrough insult is no less
-  // refusable by a conferred immunity.
+  // refusable by a conferred immunity — and the same veto-then-onset order
+  // (D1), so a refused avulsion severs nothing.
   const landed = target.afflict(trauma);
+  if (landed) TRAUMA_BEHAVIOR[type].onset(target, trauma);
   return { trauma, afflicted: landed };
 }
 
@@ -1043,12 +1052,11 @@ function inflictShock(
   }
   const nowS = conditionNowSeconds();
   if (nowS !== null) trauma.tickedAt = nowS;
-  TRAUMA_BEHAVIOR[trauma.type].onset(target, trauma);
-  // The veto layer (magic-items D14) sits HERE — after the covering-stack
-  // fold, before the write. Armor still attenuates; a conferred immunity
-  // simply refuses what is left, and the outcome says so honestly rather
-  // than reporting a hit that never landed.
+  // The veto layer (magic-items D14), and the same veto-then-onset order
+  // as the other two terminal paths (D1) — a conferred immunity refuses
+  // what the circuit delivered, and nothing develops from a refused wound.
   const landed = target.afflict(trauma);
+  if (landed) TRAUMA_BEHAVIOR[trauma.type].onset(target, trauma);
   return { trauma, afflicted: landed };
 }
 

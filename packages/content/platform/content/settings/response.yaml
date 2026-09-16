@@ -58,6 +58,12 @@ settings:
   - key: response.blunt.fractureThreshold
     value: "1.5"
 
+  # The edge ladder's upper rung — past this the cut tears the part away.
+  # Well above the fracture threshold: an avulsion is the worst thing an
+  # edge does, and past SEVER_SEVERITY (4) it takes the part off.
+  - key: response.edge.avulsionThreshold
+    value: "3"
+
   - key: response.noWoundThreshold
     value: "0.25"
 

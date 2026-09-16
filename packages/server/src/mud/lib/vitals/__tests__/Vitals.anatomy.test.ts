@@ -93,13 +93,13 @@ describe('VitalsMixin — anatomy resolver', () => {
 
   it('an instance delta marks a part missing → injured + slot disabled', () => {
     const creature = anatomicalCreature();
-    expect(creature.getInjuredParts()).toEqual([]);
+    expect(creature.getMissingParts()).toEqual([]);
     expect(creature.isSlotDisabledByAnatomy('grip')).toBe(false);
 
     creature.bodyPartDeltas['body.arm.left.hand'] = { missing: true };
 
     expect(creature.getPart('body.arm.left.hand')?.missing).toBe(true);
-    expect(creature.getInjuredParts().map((p) => p.key)).toEqual([
+    expect(creature.getMissingParts().map((p) => p.key)).toEqual([
       'body.arm.left.hand',
     ]);
     expect(creature.isSlotDisabledByAnatomy('grip')).toBe(true);

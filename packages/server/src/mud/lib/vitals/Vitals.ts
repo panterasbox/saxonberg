@@ -54,6 +54,8 @@ import type Condition from '../../platform/idea/Condition';
 import { StuffApi } from '../../api/stuff';
 import { WorldClockApi } from '../../api/worldclock';
 import { ConditionApi } from '../../api/condition';
+import { ContainmentApi } from '../../api/containment';
+import type { MarkupAugmenter } from '../../api/mml';
 import { AppApi } from '../../api/app';
 import { AppSettingKeys } from '../config/AppSettings';
 import type { Energized } from '../electricity/Energized';
@@ -374,7 +376,17 @@ export interface Vitals {
   // ---------- anatomy — resolves instance-delta → BodyPlan ----------
   getParts(): ResolvedBodyPart[];
   getPart(key: string): ResolvedBodyPart | null;
-  getInjuredParts(): ResolvedBodyPart[];
+  /**
+   * The parts this body no longer has. (Was `getInjuredParts`, which named
+   * the wrong thing — it never returned wounded parts, only absent ones.)
+   */
+  getMissingParts(): ResolvedBodyPart[];
+  /**
+   * ⭐⭐ **Take a part off**, permanently — the sever. Marks the part and
+   * **every descendant** missing (sever the arm and the hand goes with it),
+   * then releases whatever was held or worn on the slots that part carried.
+   */
+  severPart(key: string): void;
   /** Coarse part→slot coupling: a missing part disables its slots. */
   isSlotDisabledByAnatomy(slot: string): boolean;
   /**
@@ -461,12 +473,72 @@ function intensityOf(record: AfflictionRecord): number {
   return Math.max(0, record.stage);
 }
 
+/**
+ * A body part key rendered as prose — `body.arm.left.hand` → *"left hand"*.
+ *
+ * The noun is the last segment; a `left`/`right` segment anywhere in the
+ * path is the side. Keys are authored, stable and lowercase, so this is a
+ * rendering rule and not a lookup table — a body plan that adds a part gets
+ * readable prose without touching the engine.
+ */
+function partPhrase(key: string): string {
+  const segments = key.split('.').filter((seg) => seg !== 'body');
+  const noun = segments[segments.length - 1] ?? key;
+  const side = segments.find((seg) => seg === 'left' || seg === 'right');
+  // `body.arm.left` — the side IS the last segment; the noun is what it
+  // qualifies.
+  if (noun === side) {
+    const stem = segments[segments.length - 2] ?? noun;
+    return `${side} ${stem}`;
+  }
+  return side !== undefined ? `${side} ${noun}` : noun;
+}
+
+/**
+ * ⭐⭐ **A body that has lost something says so when you look at it.**
+ *
+ * Appends *"Missing the left hand."* to a body's long description, listing
+ * only the parts whose loss is not already implied by a larger one: a
+ * severed arm marks its hand missing too, and *"missing the left arm and
+ * the left hand"* reads as two injuries instead of one. The topmost missing
+ * part in each severed subtree is the honest unit.
+ *
+ * ⚠ Perception-neutral by construction — this is the LONG description,
+ * which a viewer only reaches by looking at the body. Whether that body is
+ * recognizable, disguised or in the dark is the presentation layer's
+ * question, and this does not second-guess it.
+ */
+function missingPartsAugmenter(
+  text: string,
+  host: Stuff,
+  _viewer: Stuff,
+): string {
+  if (!MixinApi.isVitals(host)) return text;
+  const missing = host.getMissingParts();
+  if (missing.length === 0) return text;
+  const topmost = missing.filter(
+    (p) =>
+      p.parent === null || !missing.some((other) => other.key === p.parent),
+  );
+  if (topmost.length === 0) return text;
+  const phrases = topmost.map((p) => `the ${partPhrase(p.key)}`);
+  const list =
+    phrases.length === 1
+      ? phrases[0]
+      : `${phrases.slice(0, -1).join(', ')} and ${phrases[phrases.length - 1]}`;
+  const line = `Missing ${list}.`;
+  return text && text.length > 0 ? `${text}\n\n${line}` : line;
+}
+
 export function VitalsMixin<TBase extends MixinConstructor>(Base: TBase) {
   // A class DECLARATION, not an expression: legacy decorators are only
   // valid on declarations, and `adoptMaterialState` carries a security
   // gate. Same shape as the shipped `ChattelMixin`.
   class VitalsMixin extends Base implements Vitals {
     static _mixinName = 'VitalsMixin';
+
+    /** A lost part is visible on the body — see `missingPartsAugmenter`. */
+    static markupAugmenters: MarkupAugmenter[] = [missingPartsAugmenter];
 
     static fieldMeta: FieldMeta = {
       _coreTemperature: { persistent: true, marshaller: QuantityMarshaller.pathFor('K'), runtimeState: true },
@@ -839,6 +911,24 @@ export function VitalsMixin<TBase extends MixinConstructor>(Base: TBase) {
         if (!c.site.startsWith('body.leg')) continue;
         severity += Math.max(0, c.severity);
       }
+      // ⭐ **A leg you no longer have costs you too.** The sum above is over
+      // WOUNDS, and a severed part carries none — the avulsion that took it
+      // heals and clears, and the body would walk as if nothing happened.
+      // A missing locomotor part stands in at a fixed severity-equivalent.
+      // ⚠ Interim: W-A2 replaces the whole sum with the function axis,
+      // where missing is simply `f = 0` and no equivalence is needed.
+      for (const part of this.getMissingParts()) {
+        if (!part.key.startsWith('body.leg')) continue;
+        // Only the topmost missing part in a severed subtree counts — a
+        // severed leg marks its foot missing too, and that is one loss.
+        if (
+          part.parent !== null &&
+          this.bodyPartDeltas[part.parent]?.missing === true
+        ) {
+          continue;
+        }
+        severity += HARM_DEFAULTS.LIMP_MISSING_SEVERITY;
+      }
       if (severity <= 0) return;
       const cost = HARM_DEFAULTS.LIMP_DRAIN_PER_SEVERITY * severity;
       self.adjustReserve('endurance', Quantity.of(-cost, '%'));
@@ -881,8 +971,79 @@ export function VitalsMixin<TBase extends MixinConstructor>(Base: TBase) {
       return this.getParts().find((p) => p.key === key) ?? null;
     }
 
-    public getInjuredParts(): ResolvedBodyPart[] {
+    public getMissingParts(): ResolvedBodyPart[] {
       return this.getParts().filter((p) => p.missing);
+    }
+
+    /**
+     * ⭐⭐ **The sever** — the one writer of `BodyPartDelta.missing`, which
+     * shipped as a persisted field nothing ever set.
+     *
+     * Three things happen, in order:
+     *
+     * 1. **The subtree goes, not the part.** Severing `body.arm.left` marks
+     *    `body.arm.left.hand` missing too — anatomy is a tree and a hand
+     *    with no arm is not a thing a body can have. The walk is transitive
+     *    over `BodyPart.parent`.
+     * 2. **What the part held falls.** Every slot whose `SlotSpec.bodyPart`
+     *    lies in the severed subtree is vacated and its occupants moved to
+     *    wherever the body is — a severed hand drops its sword, it does not
+     *    keep gripping it. `Slotted.canOccupy` already refuses *new*
+     *    occupancy of a missing part's slots; nothing until now evicted the
+     *    occupancy that was already there.
+     * 3. **It persists for free.** `bodyPartDeltas` is already
+     *    `{persistent, runtimeState}`, so the loss rides
+     *    `PersistableApi.capture` through a logout and into a corpse with
+     *    no new storage and no migration.
+     *
+     * Idempotent: severing an already-missing part is a no-op. Unknown keys
+     * are ignored — a body plan that does not have the part cannot lose it.
+     */
+    public severPart(key: string): void {
+      const self = this as unknown as Stuff;
+      if (!MixinApi.isOrganism(self)) return;
+      const plan = self.getSpecies()?.getBodyPlan();
+      if (!plan) return;
+      const parts = plan.getBodyParts();
+      if (!parts.some((p) => p.key === key)) return;
+
+      // (1) the part and every descendant — a fixpoint over `parent`, so
+      // depth is irrelevant and the authored order does not matter.
+      const severed = new Set<string>([key]);
+      let grew = true;
+      while (grew) {
+        grew = false;
+        for (const p of parts) {
+          if (severed.has(p.key)) continue;
+          if (p.parent !== null && severed.has(p.parent)) {
+            severed.add(p.key);
+            grew = true;
+          }
+        }
+      }
+      for (const k of severed) {
+        const delta = this.bodyPartDeltas[k] ?? {};
+        delta.missing = true;
+        this.bodyPartDeltas[k] = delta;
+      }
+
+      // (2) release what the lost slots were carrying.
+      if (!MixinApi.isSlotted(self)) return;
+      const destination = MixinApi.isContainable(self)
+        ? self.getContainer()
+        : null;
+      for (const spec of plan.getSlots()) {
+        if (spec.bodyPart === undefined) continue;
+        if (!severed.has(spec.bodyPart)) continue;
+        for (const occupant of [...self.getOccupants(spec.name)]) {
+          self.vacate(spec.name, occupant);
+          // A body with nowhere to be (mid-construction, a test fixture)
+          // simply drops the reference — the slot is still released.
+          if (destination !== null && MixinApi.isContainable(occupant)) {
+            ContainmentApi.move(occupant, destination);
+          }
+        }
+      }
     }
 
     public isSlotDisabledByAnatomy(slot: string): boolean {

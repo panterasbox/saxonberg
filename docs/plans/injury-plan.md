@@ -884,7 +884,24 @@ vitest + `lint:family` gate each. `pnpm test` runs once before each MR.
 
 ### Stage A — a wound means something
 
-**W-A0 — a limb can be lost.** *(D1, D2, D3, D13, D19-wolf)*
+**W-A0 — a limb can be lost.** ✅ **DONE** *(D1, D2, D3, D13, D19-wolf)*
+> **Build note.** Landed as planned; no premise moved. Three things worth
+> the next reader's time:
+> - ⚠ **`pnpm install` was required before anything ran.** Every suite
+>   failed at collection with `Cannot find module
+>   '@saxonberg/content-trade-medicine/package.json'` — the stale-
+>   `node_modules` symptom, which reads like a repo defect and is not one.
+> - **`severable` is not tracked by `lint:unconsumed-seams`** — it is a
+>   field on the `BodyPart` *interface*, and that gate walks class fields.
+>   So the census does not fall at this wave; the reader it gained is real
+>   (`AVULSION_BEHAVIOR.onset`), the gate just never counted it.
+> - **The limp needed a missing-part term of its own.** `drainForLimp`
+>   sums WOUND severity, and a severed part carries none — the avulsion
+>   that took the leg heals and clears, and the body would then walk off a
+>   missing leg. `LIMP_MISSING_SEVERITY` stands in, counting only the
+>   topmost missing part of a severed subtree (a leg and its foot are one
+>   loss). W-A2 replaces the whole sum with the function axis and retires
+>   the constant.
 - Reorder afflict/onset at `ConditionLogic.ts:968/:1005/:1046`.
 - `resolveTraumaImpl`: the edge → avulsion ladder; `response.edge.avulsionThreshold`
   in `response.yaml` + `AppSettingKeys`.

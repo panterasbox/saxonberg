@@ -455,9 +455,23 @@ function resolveTraumaImpl(
   const severity = e * dial(AppSettingKeys.responseSeverityPerResidual, 1);
   let type: TraumaType;
   switch (channel) {
-    case 'edge':
-      type = 'laceration';
+    case 'edge': {
+      // ⭐⭐ **The edge ladder** — the blunt channel's fracture rung, given
+      // to the edge channel. A cut that keeps going stops being a cut: past
+      // the threshold the tissue tears away rather than parting, which is
+      // an `avulsion`. Before this, `avulsion` was reachable only from the
+      // `'tearing'` passthrough, which nothing in the game produced — a
+      // trauma type with no deliverer.
+      //
+      // ⚠ No bone gate, unlike the blunt rung: what stops a blade taking
+      // your hand off is armour and the arm behind it, both of which the
+      // fold has already priced into this residual. Bone resists a break;
+      // it does not resist being cut through by 3× the energy that opened
+      // the skin.
+      const avulsion = dial(AppSettingKeys.responseEdgeAvulsionThreshold, 3);
+      type = e >= avulsion ? 'avulsion' : 'laceration';
       break;
+    }
     case 'point':
       type = 'puncture';
       break;
