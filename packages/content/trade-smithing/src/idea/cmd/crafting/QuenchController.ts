@@ -68,9 +68,7 @@ export default class QuenchController extends ManualBuildController<QuenchModel>
   private treat(context: CommandContext, piece: Stuff & Alloyed): void {
     const giver = context.commandGiver;
     const carbon = piece.fractionOf(CARBON);
-    const brittle = MixinApi.isTangible(piece)
-      ? (piece.getMaterial()?.getTags() ?? []).includes('brittle')
-      : false;
+    const brittle = MixinApi.isTangible(piece) && piece.hasMaterialTag('brittle');
     const anvil = this.findCapability(giver, 'anvil');
     this.engageStep(context, {
       durationMs: this.paceMs(QUENCH_MS, anvil, ['anvil']),

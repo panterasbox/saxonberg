@@ -145,10 +145,7 @@ export default class HammerController extends ManualBuildController<HammerModel>
  * the band carries even before anybody gave it a new material row.
  */
 function isUnforgeable(target: Stuff): boolean {
-  const tags = MixinApi.isTangible(target)
-    ? target.getMaterial()?.getTags() ?? []
-    : [];
-  if (tags.includes('brittle')) return true;
+  if (MixinApi.isTangible(target) && target.hasMaterialTag('brittle')) return true;
   return MixinApi.isAlloyed(target) && target.fractionOf(CARBON) >= C_CAST_FLOOR;
 }
 

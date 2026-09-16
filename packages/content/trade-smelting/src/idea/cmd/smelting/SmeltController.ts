@@ -260,7 +260,7 @@ export default class SmeltController extends CommandController<CommandModel> {
       return;
     }
 
-    const ferrous = (metal.getTags() ?? []).includes('ferrous');
+    const ferrous = metal.hasTag('ferrous');
     const wanted = ferrous ? T_REDUCE : meltingPointKOf(metal);
     if (held < wanted) {
       this.decline(
@@ -385,7 +385,7 @@ async function runCharge(
     return;
   }
 
-  const ferrous = (metal.getTags() ?? []).includes('ferrous');
+  const ferrous = metal.hasTag('ferrous');
   // ⭐⭐ The one branch that decides everything, and it is a comparison
   // between two temperatures rather than a choice between three names.
   const liquid = !ferrous || heldK >= meltingPointOf(carbon);
@@ -489,13 +489,13 @@ function lotsOf(items: Stuff[]): ChargeLot[] {
       if (composition.length > 0) {
         for (const entry of composition) {
           const metal = StuffApi.findByTemplatePath<Material>(entry.materialPath);
-          if (!metal || !(metal.getTags() ?? []).includes('metal')) continue;
+          if (!metal || !metal.hasTag('metal')) continue;
           // ⭐ `metalFractionOf` already folds the lump's GRADE in. A bar
           // has no grade and is simply itself.
           const fraction = lump.metalFractionOf?.(entry.materialPath) ?? entry.fraction;
           metals.push({ materialPath: entry.materialPath, fraction });
         }
-      } else if ((material.getTags() ?? []).includes('metal')) {
+      } else if (material.hasTag('metal')) {
         // A pure metal bar: it IS the metal, whole.
         metals.push({ materialPath: material.getTemplatePath() ?? '', fraction: 1 });
       }

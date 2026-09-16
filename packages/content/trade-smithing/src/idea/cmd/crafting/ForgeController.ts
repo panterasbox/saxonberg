@@ -52,9 +52,7 @@ export default class ForgeController extends CraftController<ForgeModel> {
   private castInReach(context: CommandContext): Stuff | null {
     return (
       this.reachableMarks(context.commandGiver).find(
-        (c) =>
-          MixinApi.isTangible(c) &&
-          (c.getMaterial()?.getTags() ?? []).includes('brittle'),
+        (c) => MixinApi.isTangible(c) && c.hasMaterialTag('brittle'),
       ) ?? null
     );
   }
