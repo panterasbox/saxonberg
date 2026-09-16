@@ -14,6 +14,59 @@ cadence + perception triggers, engagement-slot contention, the thin
 `scripted-behavior` brain, the LLM brain, and traits are later waves —
 this doc notes the seams they plug into.
 
+## ⭐⭐⭐ The `eats` brain — and NPC hunger begins existing here
+
+The grain chain shipped a grower, a miller and a baker and **nobody who
+needed bread**. Thirty-two brains existed and not one of them ate: the
+chain terminated in a shop, and the only demand in the world was a player
+deciding to be hungry. A trade whose product nobody requires is a
+crafting minigame with a price tag on the end.
+
+⭐⭐ **The purse chooses the loaf.** Hunger alone gives the baker a
+customer; it does not give extraction a *meaning*. The buyer reads the
+counter's prices, reads their own balance, and buys the dearest loaf
+within `spendFraction` of it — so two people on two wage rates walk in on
+the same morning and walk out with different bread. Which loaf is dear is
+the **baker's** pricing decision, not a fact about either person.
+
+⚠⚠ **The engine measures the purse, never the person.** One number
+against prices, at the moment of a purchase. Nothing is written back — no
+band, no label, no trait, no ledger entry says "poor". The pattern exists
+only in what a bystander sees two mornings running, and a test asserts
+the brain's own scratch bag holds nothing but `lastAteDay` and
+`hungryDays`.
+
+Anno 1800, Victoria 3 and Against the Storm all reach for differentiated
+demand and all of them do it in **aggregate**. Per-person is the thing we
+can do that they cannot.
+
+### ⚠ NPC hunger begins existing in this build
+
+Satiation is reconcile-on-read and **nothing had ever read an NPC's**.
+The brain's `eat` is the first read, so the elapsed drain is billed at
+that moment — a long-running world's first morning reads a very hungry
+clerk, which is honest rather than a bug. Only the two rows that gain the
+brain move; every other NPC is exactly as inert as before.
+
+⭐ **Starvation cannot be reached from here, and the reason is structural
+rather than lucky.** `STARVATION_LETHAL_SEC` is real (24 game-hours at a
+floored reserve begins the dying clock) — but an NPC's satiation only
+advances when something *reads* it, the only reader is this brain's
+`eat`, and eating is what relieves it. A buyer who cannot buy never
+reconciles, so an empty counter cannot starve anybody. It says the hungry
+line and counts the morning instead.
+
+### The beat
+
+`cadence` is **real** time (a jittered timer) and there is no clock-hour
+trigger anywhere, so the morning window is read inside `act` off
+`CelestialApi` and keyed on `ctx.state.lastAteDay`. Every act is a
+literal verb through `forceCommand` — `teleport`, `buy`, `eat`, home
+again in `finally` — gated exactly as a typed line is. A forced command
+reports no outcome, so the brain checks whether a loaf is actually in
+hand rather than assuming.
+
+
 ## The model
 
 ```yaml
