@@ -314,6 +314,68 @@ channel with **its own physics** (a covering attenuates by its material's
 *worse* than a bare hand. **A passthrough retires by acquiring a
 mechanism, never by being promoted.**
 
+## ⭐⭐ The seven channels, and the THREE folds
+
+The vocabulary is `edge · point · blunt · shock · heat · cold ·
+corrosion`, and what matters is that they do not all resolve the same
+way. There are **three distinct architectures**, and each is the honest
+physics of its own thing rather than one damage formula with different
+labels:
+
+| fold | channels | how a covering answers |
+|---|---|---|
+| **mechanical** | `edge` `point` `blunt` | a shape token × material property height (hardness/toughness) × grade/condition |
+| **thermal** | `heat` `cold` | inverted `thermalConductivity` × layer depth — insulation |
+| **corrosion** | `corrosion` | ⭐ **material MATCH.** No hardness, no thickness. |
+| *(no fold)* | `shock` | resolves by **circuit** upstream — see below |
+
+**`Channels.FOLDED`** is everything but `shock` — the set that walks the
+covering stack, and the set the legibility surfaces iterate. ⚠ They used
+to iterate `MECHANICAL_CHANNELS`, so a player examining a gambeson was
+told how it answers a sword and never that it is the best thing in the
+game against a burn: a column that exists in the model and not in the
+readout is the same class of defect as one that does not exist.
+
+### ⭐ `cold` — the heat fold run the other way
+
+One fold, two wounds. The insulation arithmetic is **identical** for heat
+and cold, because what a garment does is resist a temperature
+*difference*; the direction is read exactly once, at the end, to name the
+wound (`burn` vs `frostbite`). So leather turns a freeze for the same
+reason it turns a burn, and steel betrays you either way.
+
+⚠ Cold has **one dial of its own** (`response.cold.severityPerResidual`)
+and shares `response.heat.*`, because those describe the **covering**.
+Giving cold its own copy would be two numbers for one fact, and they
+would drift.
+
+### ⭐⭐ `corrosion` — the channel where thickness is irrelevant
+
+Three outcomes, decided by two reads of the layer and no hardness
+anywhere:
+
+- **consumed** — the layer's tags intersect the agent's
+  `Material.corrosiveTo`. It is being eaten, so it stops nothing: the
+  full contact passes, and the layer **wears** for having taken it.
+  (⚠ The inverse of the mechanical wear rule: a mechanical layer wears
+  because it *stopped* something.)
+- **wicks** — not attacked, but absorbent past
+  `response.corrosion.shedAbsorptionMax`. It carries the agent through to
+  the skin. A linen shirt is worse than nothing.
+- **sheds** — not attacked, not absorbent. It runs off.
+
+The claim in one pair: **a steel breastplate sheds lye and is eaten by an
+acid whose row says `corrosiveTo: [metal]`**, and no amount of steel
+changes either answer. For corrosion the armour question is not *how much
+is there* but *what is it made of* — which is why it needed its own
+`InflictSpec` variant: the agent's chemistry cannot ride an energy
+scalar.
+
+⚠ A preview has to assume an agent, because *"how does this answer
+corrosion"* is not a well-formed question without saying against what.
+`response.corrosion.previewCorrosiveTo` names the reference (seeded
+`organic`).
+
 ## The `shock` channel — resolves by circuit, not the fold
 
 The [electricity](./electricity.md) build added **`shock`** to the `Channel`

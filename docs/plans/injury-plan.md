@@ -1182,7 +1182,7 @@ spec, `RinseController` test, `Hazard` integration (stepping onto the seep
 lands a growing caustic wound; rinsing stops it). Acceptance: drive steps
 15–16.
 
-**W-B4 — Stage B docs + drive.** `materials-response.md` (five channels,
+**W-B4 — Stage B docs + drive.** ✅ **DONE** `materials-response.md` (five channels,
 three fold branches), `magic.md` (the second cost model, the caster's
 heat, the cost gate), `thermal.md` (the heat load, the onset), `harm.md`
 (nine types), `lint-family.md` (the new gate's rationale). Wire steps
@@ -1428,6 +1428,19 @@ session opens with `startLocation: SHOP`. A test defect, but exactly the
 kind that would have been written up as "armour is unreachable".
 
 **Second run — 10 of 10 green**, in 157 s over an owned boot.
+
+**Stage B appended (steps 12–16) — 15 of 15 green, first run.** What it
+proves that no unit test can: `frost` **reached the catalogue** (which
+DROPS a row naming an unknown cost model and only *warns* — a `heat-pump`
+the union had not grown to accept would have produced a spell that simply
+was not there, with no error anywhere), `rinse` is a verb a booted world
+knows (four links: view, controller seed row, `WaterFixture` peers
+contribution, authored topic key), and the crossroads has water — so the
+seep's answer exists rather than being a consequence with no response.
+
+⚠ One assertion was replaced before the run counted: a
+`expect(true).toBe(true)` placeholder I left while wiring the suite.
+It asserted nothing and would have read as a passing check forever.
 
 What it proves that no unit test can:
 

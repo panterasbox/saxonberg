@@ -218,6 +218,72 @@ suite('⭐⭐ AC 8 — a player can buy armour and wear three layers', () => {
   }, 120_000);
 });
 
+/* ───────────── Stage B: two new ways to be hurt ───────────── */
+
+suite('⭐⭐ steps 12-14 — frost is a spell the world knows', () => {
+  it('⭐⭐ `spells` lists frost — so the catalogue accepted a NEW cost model', async () => {
+    // ⚠ `SpellCatalogue` DROPS a row naming an unknown cost model, and it
+    // WARNS rather than throwing — so a `heat-pump` the catalogue did not
+    // recognise would produce a spell that simply is not there, with no
+    // error anywhere. The row appearing in `spells` is the proof that the
+    // union grew correctly, and only a booted world can give it.
+    const out = await player.cmd('spells');
+    expectOk(out);
+    const said = (await out.said()).toLowerCase();
+    expect(said, `frost is in the book — got: ${said}`).toContain('frost');
+    // …and the shipped spells are still there — a catalogue that dropped
+    // rows wholesale would also "pass" a bare contains-frost check.
+    expect(said, 'the rest of the book survived').toContain('firebolt');
+  }, 60_000);
+
+  it('⭐⭐ …and it is a DESTROY working, not a create one', async () => {
+    // The science's own cell: destroying fire means taking heat OUT of
+    // something. If this ever reads `create`, the spell has stopped being
+    // a heat pump and become an ice gun, which is the whole thing the
+    // design refuses.
+    const out = await player.cmd('spells');
+    const said = (await out.said()).toLowerCase();
+    expect(said).toMatch(/destroy/);
+  }, 60_000);
+});
+
+suite('⭐⭐ steps 15-16 — the caustic and the verb that stops it', () => {
+  it('`rinse` is a verb the world knows', async () => {
+    // FOUR links, each failing closed and silent: the view on disk, the
+    // controller's SEED TEMPLATE row (the near-suite caught its absence,
+    // not me), the `WaterFixture` peers contribution, and an authored
+    // topic key. A unit test proves the controller; only this proves the
+    // VERB exists in a booted world.
+    const help = await player.cmd('help rinse');
+    expectOk(help);
+    const said = (await help.said()).toLowerCase();
+    expect(said, 'the help explains what it is FOR').toMatch(/caustic|burn/);
+  }, 60_000);
+
+  it('⭐ …and it answers a body with nothing on it, rather than erroring', async () => {
+    const out = await player.cmd('rinse');
+    const said = (await out.said()).toLowerCase();
+    expect(
+      /nothing|water would help/.test(said),
+      `an honest refusal, not a crash — got: ${said}`,
+    ).toBe(true);
+  }, 60_000);
+
+  it('⭐⭐ the crossroads has WATER — the seep’s answer exists', async () => {
+    // A consequence with no available response is a punishment, not a
+    // system. There was no water source anywhere in newbie-wilds before
+    // this build, so a caustic could not have been rinsed off at all.
+    const here = await player.query('reachable', { fields: ['displayName'] });
+    const names = here
+      .map((r) => String((r as { displayName?: string }).displayName ?? ''))
+      .join(' | ')
+      .toLowerCase();
+    expect(names, `a water source at the hub — saw: ${names}`).toMatch(
+      /water butt|butt|barrel/,
+    );
+  }, 60_000);
+});
+
 /* ───────────── step 11: the flagship loop is untouched ───────────── */
 
 suite('step 11 — the shipped bare-foot loop is a REGRESSION check', () => {

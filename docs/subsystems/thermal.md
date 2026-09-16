@@ -208,6 +208,52 @@ or **torpor** (ectotherm — alive but immobile, read by
 10)` (dials in `METABOLIC_DEFAULTS`). An endotherm pinned at setpoint ≈ 1;
 an ectotherm whose core floats cold burns far less fuel.
 
+## ⭐⭐ The internal heat load — heat that is not the weather's
+
+**The regulation model was ambient-only, and that was a hole.** A body
+inside its comfort band was pinned to the setpoint **at zero cost on
+every slice**, which meant heat put INTO it was erased on the next read.
+`ThermalMixin.depositHeat` worked on objects and did nothing at all to a
+person — so the η < 1 losses `arcane-science.md` places squarely in the
+caster had nowhere to land, and its published claim that *"Destroy·Fire
+is limited by thermoregulation, not by mana"* could not be true of the
+engine.
+
+- **`heatLoadJ`** (persistent, runtime state) — joules absorbed by an
+  internal source and not yet shed. **`absorbHeatLoad(j)`** is the one
+  writer.
+- **`shedAndOffset(slice, ambient)`** runs in **every regulated branch**
+  (within-band, cold-stress and heat-stress — a caster working in a cold
+  room is still carrying what they absorbed). It sheds up to
+  `HEAT_SHED_W` (400 W), charges the shedding to hydration on the shipped
+  `HEAT_SPEND_PER_DEGREE` scale, and returns what is left as a real
+  temperature: `ΔT = Q / (m·c)`. A 70 kg body is ≈ 293 kJ/K, so 1 MJ
+  unshed is **+3.4 K**.
+- ⭐ **This makes over-working a PACE problem, not a total one.** Space
+  the load and you shed between and never warm; chain it and you
+  accumulate faster than 400 W can carry away.
+- ⚠ **Shedding is sweating**, so it stops entirely past the wet-bulb
+  ceiling and with no hydration left. You cannot cool yourself in a
+  sauna, and that is the honest failure rather than a special case.
+
+⭐ Its first consumer is magic (a frost caster absorbs `Q + W`), but the
+seam is **not magic's** — it is a plain joule load precisely so that
+exertion, which wants it next, does not have to invent a second one.
+
+### Hyperthermia starts at `setpoint + 2.5 K`
+
+The row used to spawn at `survivableMax` — **315 K, which is heat
+STROKE.** Clinical hyperthermia is a core above ~38.3 °C, so the shipped
+constant named the condition at the wrong temperature, and a player who
+knows physiology would have been surprised *wrongly*.
+
+⭐ Keying it to the setpoint also separates two facts an author should be
+able to write independently: *when does this species get sick* and *when
+does it die*. Keyed to `survivableMax`, tuning survivability silently
+moved a different condition's onset. **The lethal dwell still reads
+`survivableMax`** — being ill is not the same as dying of it, and a body
+that sits at 313 K is miserable rather than doomed.
+
 ## Dials
 
 All tuning constants live in `THERMAL_DEFAULTS` (`lib/thermal/Thermal.ts`)
@@ -221,11 +267,18 @@ is `basalDrain`). **Rates are playtest-tuned, not plan decisions.**
 Object-to-object conduction (a hot pot doesn't warm the table),
 ventilation (no inter-room air mixing — weather-adjacent), installed
 thermal gear (augment cooling), temperature-blending glob merge, heated
-vehicle cabins, phase change / latent heat, per-region frostbite, sauna
+vehicle cabins, phase change / latent heat, sauna
 rooms (the heat-index/wet-bulb *model* is in; rooms are not), campfire
-fidelity tiers (smoke/cooking/spread), behavioral AI, fever/magic content
+fidelity tiers (smoke/cooking/spread), behavioral AI, fever content
 (the movable `setpoint` is the structure only). Each rides an existing
 seam when wanted.
+
+⭐ **Two of these came off the list.** *Per-region frostbite* is now the
+`cold` channel resolving at a `body.*` site through the covering fold
+(see materials-response.md), and *magic content* is the frost spell —
+both arrived by an existing seam, as this section predicted. **Exertion
+as a heat load** joins the list in their place: `absorbHeatLoad` is the
+attach point and nothing calls it from the body's own work yet.
 
 The Wave-2 indoor convection room-bump and a standalone
 radiant-from-nearby-Thermals helper (Steps 2.1 / 2.4 indoor) are partial:
