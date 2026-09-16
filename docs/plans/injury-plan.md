@@ -1011,7 +1011,30 @@ vitest + `lint:family` gate each. `pnpm test` runs once before each MR.
   lines.
 - Acceptance: drive steps 7–8.
 
-**W-A4 — blood loss reaches shock.** *(D11)*
+**W-A4 — blood loss reaches shock.** ✅ **DONE** *(D11)*
+> **Build note.** The derive is right where D11 said in spirit and NOT
+> where it said in code, and it exposed a shipped hole.
+> - ⭐⭐ **The derive runs ABOVE the clock guard**, beside
+>   `reconcileBurdenStages`, not in the bleed-floor tail. The tail sits
+>   behind the world-clock guard AND the all-empty guard, so a body that
+>   had just been bled would have read a textbook 120/80 until enough
+>   game-time passed. Blood pressure is a live read of present volume, not
+>   an integration — the burden law's comment says exactly this about
+>   drunkenness, and it is the same case.
+> - ⚠⚠ **It has to arm `_reconcilingConditions` by hand.** That flag is not
+>   set until far below, so everything above it runs unguarded — and this
+>   derive WRITES where the burden law only reads.
+> - ⭐⭐⭐ **The bleed→dying floor was UNREACHABLE for a body whose only
+>   problem was lost blood.** It sits under the all-empty guard, so with no
+>   wound record, no affliction and no trauma — just a low volume — the
+>   reconcile returned before it. A shipped characterization test bled a
+>   body to **50 %** (past the 36 % survivable floor) and then had it walk
+>   the loss back by drinking, which only worked because nothing was
+>   processing it. Spawning shock at 30 % puts an affliction in the list
+>   whenever the loss is anywhere near lethal, so the floor is now
+>   reachable in exactly the cases that matter; the fixture moved to 30 %
+>   loss, which is what that test was always about.
+> - `check-condition-arms` still reads **5** — a derived write, not an arm.
 - The circulation derive + the `hypovolemic-shock` row; `check-condition-arms
   --list` before and after (5 → 5).
 - Tests: `Vitals.circulation.test.ts` (systolic holds and diastolic rises

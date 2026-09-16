@@ -368,7 +368,9 @@ describe('plasma restoration — the ceiling is a SHAPE decision', () => {
     // never undo one.
     const body = makeStuff(() => new Creature());
     const baseline = body.getVitalBand('bloodVolume').baseline;
-    body.setVitalSign('bloodVolume', Quantity.of(baseline * 0.5, 'L'));
+    // ⚠ 0.7, not 0.5 — see the sibling test: 50 % loss is past the
+    // survivable floor, and a dying body does not metabolize.
+    body.setVitalSign('bloodVolume', Quantity.of(baseline * 0.7, 'L'));
     const before = body.getVitalSign('bloodVolume').rawValue();
 
     liveWatered(body, 6 * HOUR);
@@ -383,11 +385,24 @@ describe('plasma restoration — the ceiling is a SHAPE decision', () => {
     // convenience and leaves that build with nothing to be for.
     const body = makeStuff(() => new Creature());
     const baseline = body.getVitalBand('bloodVolume').baseline;
-    body.setVitalSign('bloodVolume', Quantity.of(baseline * 0.5, 'L'));
+    // ⚠⚠ **0.5 was BELOW THE SURVIVABLE FLOOR, and nothing noticed.** The
+    // bleed→dying floor sits below `reconcileConditions`' all-empty guard,
+    // so a body whose only problem was lost blood — no wound record, just
+    // the volume — never reached it: it sat at 50 % loss indefinitely,
+    // metabolizing happily. The circulation derive spawns shock at 30 %,
+    // which puts an affliction in the list and makes the floor reachable,
+    // so this fixture now correctly describes a DYING body (and a dying
+    // body does not metabolize, so it restores nothing).
+    //
+    // 0.3 is the honest fixture for what this test is about: seriously
+    // bled, in shock, not yet dying — the interval the whole build exists
+    // to open. The premise it guards is untouched.
+    body.setVitalSign('bloodVolume', Quantity.of(baseline * 0.7, 'L'));
 
     liveWatered(body, 48 * HOUR);
 
     const after = body.getVitalSign('bloodVolume').rawValue();
+    // eslint-disable-next-line no-console
     expect(after).toBeLessThan(baseline);
     expect(after).toBeCloseTo(
       baseline * METABOLIC_DEFAULTS.PLASMA_RESTORE_CEILING_FRAC,

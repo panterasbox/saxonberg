@@ -1171,6 +1171,95 @@ export function VitalsMixin<TBase extends MixinConstructor>(Base: TBase) {
       return spec?.bodyPart ?? null;
     }
 
+    // ---------- ⭐⭐ circulation (D11) ----------
+
+    /**
+     * ⭐⭐ **Blood pressure, derived from blood volume** — and the shape of
+     * the curve is the teaching.
+     *
+     * **Systolic holds, then falls.** Nothing moves until
+     * `SHOCK_COMPENSATED_LOSS` (15 %) is gone; past that it falls on
+     * `SHOCK_BP_SLOPE`. That plateau is ATLS class II, and it is the single
+     * most important fact about haemorrhage: *a patient can be seriously
+     * bled with a normal blood pressure right up until they are not.* A
+     * model that slid the pressure down smoothly would teach the opposite,
+     * and the opposite is what gets people killed.
+     *
+     * **Diastolic rises first, then falls with it.** Through the
+     * compensated phase vasoconstriction pushes the diastolic UP while the
+     * systolic holds, so the gap between them closes — a **narrowing pulse
+     * pressure**, which is the earliest sign there is and the first thing a
+     * clinician actually reads. Past the plateau both fall on the same
+     * slope. Dropping them together from the start would have been one
+     * line shorter and would have taught a simpler, false thing.
+     *
+     * **Shock spawns at 30 % and relieves at 25 %** (a hysteresis band, the
+     * thermal cascade's shape). The dying window opens at 36 %, so shock
+     * always precedes death by a real interval — about 75 seconds at an
+     * open bleed — which is what makes a medic able to matter.
+     *
+     * ⚠ Bloodless clades (no `bloodVolume` sign) fall through untouched.
+     */
+    private deriveCirculation(): void {
+      if (!this.hasVitalSign('bloodVolume')) return;
+      const D = HARM_DEFAULTS;
+      const bvBand = this.getVitalBand('bloodVolume');
+      if (!(bvBand.baseline > 0)) return;
+      const loss = Math.max(
+        0,
+        1 - this._bloodVolume.rawValue() / bvBand.baseline,
+      );
+      const past = Math.max(0, loss - D.SHOCK_COMPENSATED_LOSS);
+      const decompensation = D.SHOCK_BP_SLOPE * past;
+      // The compensated rise saturates at the plateau's edge and then
+      // stops climbing — vasoconstriction is already maximal.
+      const compensation =
+        D.SHOCK_DIASTOLIC_RISE *
+        (Math.min(loss, D.SHOCK_COMPENSATED_LOSS) / D.SHOCK_COMPENSATED_LOSS);
+
+      if (this.hasVitalSign('bloodPressureSystolic')) {
+        const base = this.getVitalBand('bloodPressureSystolic').baseline;
+        this.setVitalSign(
+          'bloodPressureSystolic',
+          Quantity.of(Math.max(0, base * (1 - decompensation)), 'mmHg'),
+        );
+      }
+      if (this.hasVitalSign('bloodPressureDiastolic')) {
+        const base = this.getVitalBand('bloodPressureDiastolic').baseline;
+        this.setVitalSign(
+          'bloodPressureDiastolic',
+          Quantity.of(
+            Math.max(0, base * (1 + compensation - decompensation)),
+            'mmHg',
+          ),
+        );
+      }
+
+      const shock = this.findAfflictionAt(
+        TemplatePaths.circulationHypovolemicShock,
+      );
+      if (loss >= D.SHOCK_LOSS_FRACTION) {
+        if (!shock) {
+          this.afflict({
+            kind: 'affliction',
+            templatePath: TemplatePaths.circulationHypovolemicShock,
+            stage: 0,
+            elapsed: 0,
+          });
+        }
+      } else if (shock && loss < D.SHOCK_RELIEF_FRACTION) {
+        this.relieve(shock);
+      }
+    }
+
+    /** The active affliction record at `path`, or `null`. */
+    private findAfflictionAt(path: string): AfflictionRecord | null {
+      for (const c of this.conditions) {
+        if (c.kind === 'affliction' && c.templatePath === path) return c;
+      }
+      return null;
+    }
+
     // ---------- locomotion coupling (the limp) ----------
 
     public drainForLimp(): void {
@@ -1726,6 +1815,38 @@ export function VitalsMixin<TBase extends MixinConstructor>(Base: TBase) {
       // ⚠ It is still the condition's OWN arm doing it, which is the
       // whole point of W8b: one owner for `stage`, not two.
       this.reconcileBurdenStages();
+
+      // ⭐⭐ **Circulation runs here too, and for the SAME reason** —
+      // above the clock guard, because it needs no clock.
+      //
+      // Blood pressure is a live READ of how much blood is in the body
+      // right now, not a counter integrating over elapsed time. The plan
+      // put this in the bleed-floor tail; the tail sits behind the clock
+      // guard AND the all-empty guard, so a body that had just been bled
+      // would have read a textbook 120/80 until enough game-time passed —
+      // the exact trap the burden-law comment above was written about.
+      //
+      // ⚠ It is a derived WRITE, not a new arm: nothing is stored that
+      // could fall out of sync, and there is nothing to re-arm after an
+      // absence. `check-condition-arms` still reads 5.
+      //
+      // ⚠⚠ **The reentrancy guard is armed by hand here, and it has to
+      // be.** `_reconcilingConditions` is not set until well below this
+      // point, so everything above it runs unguarded — and this derive
+      // WRITES (two vital signs, and an affliction at the threshold),
+      // where the burden law beside it only reads. Each of those writes
+      // re-entered `reconcileConditions`, and the inner pass advanced
+      // every `tickedAt` stamp to now; the outer pass then found zero
+      // elapsed everywhere and integrated nothing. Symptom: 22 game-hours
+      // of a watered body restoring 6 ml of plasma and a shock row
+      // draining no endurance at all — every time-integrating arm in the
+      // body silently doing nothing, with no error.
+      this._reconcilingConditions = true;
+      try {
+        this.deriveCirculation();
+      } finally {
+        this._reconcilingConditions = false;
+      }
 
       // In-session game-time; `null` when no world clock is running
       // (pre-boot / a unit test that hasn't bootstrapped one) → idle.

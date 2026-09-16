@@ -298,6 +298,31 @@ export const HARM_DEFAULTS = {
   /** Function at or above this (and below full) reads `impaired`. */
   FUNCTION_BAND_IMPAIRED: 0.4,
 
+  /* ── circulation: what losing blood does to the pressure ─────────────
+   * ⭐⭐ **The compensated plateau is the single most important fact about
+   * haemorrhage, and it is modelled on purpose.** A patient can be
+   * seriously bled and still have a normal blood pressure, right up until
+   * they are not — ATLS class II holds, class III drops. A model where
+   * pressure slides smoothly down with blood lost would teach the
+   * opposite, and the opposite is what gets people killed.
+   */
+  /** Fraction of blood volume lost before systolic pressure moves at all. */
+  SHOCK_COMPENSATED_LOSS: 0.15,
+  /** Pressure lost per unit of loss PAST the compensated plateau. */
+  SHOCK_BP_SLOPE: 1.5,
+  /**
+   * ⭐ **The narrowing pulse pressure.** Through the compensated phase the
+   * diastolic RISES while the systolic holds — vasoconstriction — so the
+   * gap between them closes. That narrowing is the EARLIEST sign and the
+   * first thing a clinician reads; dropping both on one slope would teach
+   * a simpler, false thing.
+   */
+  SHOCK_DIASTOLIC_RISE: 0.08,
+  /** Loss fraction at which hypovolemic shock spawns. */
+  SHOCK_LOSS_FRACTION: 0.3,
+  /** …and below which it is relieved (the hysteresis margin). */
+  SHOCK_RELIEF_FRACTION: 0.25,
+
   /* ── dying windows (game-seconds) ────────────────────────────────────
    * How long the body has once a lethal threshold is crossed. Each driver
    * owns the number for its own physics; these two are harm's. The
