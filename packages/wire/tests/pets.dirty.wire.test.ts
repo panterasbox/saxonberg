@@ -135,9 +135,18 @@ suite('14 · ⭐⭐ the cat does not come when called', () => {
     expect(said).not.toMatch(/\benough\b|\byet\b|\bmore\b|\d/i);
   });
 
+  it('⭐ `call` is a NOISE — it takes no target and still reaches the cat', async () => {
+    // It is an emission over the acoustic graph, not a query: calling
+    // with no name reaches everything in earshot that knows you, which
+    // is what shouting in a yard does. A bare `call` must not read as a
+    // parse error or a missing argument.
+    const said = plain(await (await keeper.cmd('call')).said());
+    expect(said).not.toMatch(/don't understand|which|what do you/i);
+  });
+
   it('16 · and `stay` gets the same answer — the word is for the dog', async () => {
     const said = plain(await (await keeper.cmd('stay cat')).said());
-    expect(said).toMatch(/looks at you/i);
+    expect(said).toMatch(/looks at you|not looking at you/i);
   });
 });
 

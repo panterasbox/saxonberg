@@ -1,12 +1,19 @@
 verbs: [call]
 controller: /platform/idea/cmd/social/CallController
-description: "Call an animal to you"
+description: "Call an animal — a noise, not a command aimed at something"
 help: |
-  `call <animal>` asks it to come over. Being called releases a `stay`.
+  `call` calls out. `call <name>` calls for one animal by name, or by a
+  word it answers to.
 
-  ⚠ You can only call an animal you can see. Calling through a wall is
-  not a thing this verb does — if it has wandered off, it is off, and
-  finding it is the point.
+  ⭐ It is a **sound**. It carries out of the room you are standing in
+  and into the ones next to it, fainter, the way a shout does — and
+  whatever hears it decides for itself. You are not reaching out and
+  picking an animal; you are making a noise, and the dog that can hear
+  you comes.
+
+  So it works through an open door and fails through a shut one, and
+  calling with no name reaches every animal in earshot that knows you,
+  because that is what shouting in a yard does.
 
   ⚠ An animal that is *attending to something* — a dog watching the
   stock — says so and does not come. That is not disobedience, and it is
@@ -15,12 +22,13 @@ help: |
   Everything else is the same answer: it looks at you. It may not know
   you well enough, or it may not be the kind of animal that comes when
   called. You are not told which.
+
+  Compare `stay`, which is a hand signal: that one needs to be *seen*,
+  not heard.
 validators:
   - /lib/command/validators/requiresAnimate
   - /lib/command/validators/requiresConscious
 args:
-  - name: target
-    type: object
-    required: true
-    scope: ["reachable"]
-    requires: BondedMixin
+  - name: animalName
+    type: string
+    required: false
