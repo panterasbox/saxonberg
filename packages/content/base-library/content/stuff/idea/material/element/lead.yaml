@@ -1,0 +1,42 @@
+# Lead — Pb, atomic number 82. The heavy one.
+#
+# ⭐ It is here because **density is the whole point of a bullet**. A ball
+# you can carry twenty of has to concentrate a great deal of mass into a
+# very small face, and lead does that better than anything else a
+# pre-industrial world can cast: 11.3 g/cm³ against iron's 7.9, at a
+# melting point (600 K) low enough for a campfire and a ladle. That
+# combination — dense, cheap, and castable over a cooking fire — is the
+# actual reason bullets were lead for five hundred years.
+#
+# ⚠⚠ **And it is genuinely poisonous**, which is not flavour text here:
+# the toxicity list is read by metabolism, so a world that later has
+# people casting shot in a closed room has the machinery to make that
+# matter. Soft (hardness 38) and not much use for anything you would hit
+# with.
+class: /platform/idea/material/Material
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  name: lead
+  keywords: [lead]
+  density: 11340
+  specificHeat: 128
+  thermalConductivity: 35
+  electricalConductivity: 4.55e6
+  # Mechanical response: softer than tin is hard, and no use for an edge.
+  hardness: 38
+  toughness: 45
+  # Melts at 600 K — a campfire and a ladle, which is why shot was cast
+  # at home and arrowheads were not.
+  meltingPoint: 600
+  latentHeatOfFusion: 23000
+  boilingPoint: 2022
+  latentHeatOfVaporization: 858000
+  edibility: false
+  nutrients: []
+  toxicity: [lead]
+  tags: ["element", "metal", "non-ferrous", "crystalline", "conductor", "toxic"]
+  composition: []
+  symbol: Pb
+  atomicNumber: 82
+  molarMass: 207.2
+  biologicalSource: null

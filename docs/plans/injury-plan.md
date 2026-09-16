@@ -1210,7 +1210,34 @@ where the build runs `pnpm test`, pushes and opens the MR.**
 `DeliveryProfile.penetration.test.ts`, the inflict test (a 1.5 kJ 16 mm
 `point` defeats plate; a 200 J thrust does not).
 
-**W-C1 — a launcher and `shoot`.** *(D20 bullets 2–4)* `LauncherMixin`,
+**W-C1 — a launcher and `shoot`.** ✅ **DONE** *(D20 bullets 2–4)*
+> **Build note.** The heaviest wave, and one design decision changed.
+> - ⭐⭐ **Readiness is a CLOCK READ, not an engagement.** D20 said "a
+>   readiness engagement of `readySeconds`", and `SchedulerApi.start`
+>   wants a fully built `Engagement` — a great deal of machinery for one
+>   number, and it would have made readiness a thing that can be
+>   interrupted, cancelled and lost. Instead the launcher stamps
+>   `readyAtS` and `shoot` reads it against the world clock: the same
+>   reconcile-on-read discipline as every other clock in the engine, and
+>   a body that logs out mid-reload comes back ready because time passed.
+>   `readySeconds` gets a real reader either way, which was the point.
+> - `CombatLogic.resolveShot` is `resolveThrown`'s sibling rather than a
+>   generalisation of it: a throw derives speed from a dial (an arm is an
+>   arm) while a shot reads the launcher's muzzle speed and the
+>   projectile's mass and calibre. Merging them would be one function
+>   with two disjoint halves and a flag.
+> - ⭐ **Two more reachability links caught by gates, not by me:**
+>   `lint:arg-kinds` refused `LauncherMixin` for having no refusal phrase
+>   (the arg would have declined with a generic sentence), and
+>   `lint:census` refused `projectileTemplate` for holding a template path
+>   `refsOf` did not read — a rowless or misspelt one is a bow that can
+>   never be loaded, refusing forever and naming no cause. Taught `refsOf`
+>   to read it rather than listing it, because that list only shrinks.
+> - ⚠ No `yew`/`ash`/`walnut`/`lead` materials existed. The wooden parts
+>   use `oak` rather than inventing three rows; **lead is worth its own
+>   row** and got one — density is the entire point of a bullet, and its
+>   castability over a cooking fire is the real reason shot was lead for
+>   five hundred years. `LauncherMixin`,
 `Launcher`, `Projectile`, `shoot.yaml` + `ShootController`, `Mixins.Launcher`.
 Tests: `Launcher.test.ts`, `ShootController` test (consumes one arrow;
 refuses with none; refuses `far` in a 3 m room; readiness engagement per

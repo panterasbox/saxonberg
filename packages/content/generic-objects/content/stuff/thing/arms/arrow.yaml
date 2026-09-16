@@ -1,0 +1,23 @@
+# Arrows — a stackable, because that is what ammunition is.
+#
+# ⭐ `calibre: 0.008` is the whole of what this row contributes to the
+# armour question: `DeliveryProfile` derives penetration from energy over
+# cross-section, so an author writes the diameter of the head and the
+# fold does the rest. Nobody maintains an "armour-piercing" number.
+#
+# ⚠ At ~50 J an arrow's penetration is barely above 1 — it beats mail by
+# being a POINT (the channel), not by arriving at firearm pressure. That
+# is the honest answer and it is what keeps a bow from being a gun.
+class: /platform/thing/equipment/Projectile
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: arrow
+  keywords: [arrow, arrows, shaft]
+  register: indefinite
+  longDescription: >
+    A straight ash shaft, goose-fletched in three, with a narrow bodkin
+    head filed to a point.
+  _materialPath: /stuff/idea/material/wood/oak
+  mass: 0.03
+  calibre: 0.008
+  quantity: 20

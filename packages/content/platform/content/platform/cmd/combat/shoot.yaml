@@ -1,0 +1,47 @@
+verbs: [shoot]
+controller: /platform/idea/cmd/combat/ShootController
+description: "Shoot at something with a launcher you are wielding"
+help: |
+  Shoot at somebody — `shoot the wolf`, or `shoot the wolf with the
+  hunting bow` if you are carrying more than one launcher.
+
+  You need a launcher in hand (a bow, a crossbow, a musket) and its
+  ammunition somewhere on you. Shooting spends one.
+
+  ⭐ **How far you can shoot depends on the ROOM.** A corridor affords
+  arm's length; the long meadow affords the whole of it. The same bow
+  reaches further in the meadow because the meadow is longer, not
+  because the bow changed — so where you choose to fight is a decision.
+
+  ⚠ **It takes time to be ready again**, and the number is the whole
+  difference between the families: a bow looses again in a few seconds, a
+  musket takes the better part of a minute. That is why armies carried
+  both for two hundred years.
+
+  Shooting at a person starts a fight, exactly the way `attack` does —
+  same terms, same consent, same record.
+examples:
+  - cmd: shoot the wolf
+    note: With whatever launcher you are holding
+  - cmd: shoot the bandit with the flintlock musket
+    note: Naming the launcher when you carry two
+validators:
+  - /lib/command/validators/requiresAnimate
+  - /lib/command/validators/requiresConscious
+  - /lib/command/validators/requiresEmbodied
+args:
+  - name: target
+    type: object
+    required: true
+    scope: "reachable"
+    requires: VisibleMixin
+  - name: launcher
+    type: object
+    required: false
+    # Deliberately `reachable` rather than `inventory`, the `throw`
+    # precedent: a bow on the ground must RESOLVE so the refusal can say
+    # "you are not holding it" instead of the parser claiming there is no
+    # bow.
+    scope: "reachable"
+    prepositions: [with]
+    requires: LauncherMixin

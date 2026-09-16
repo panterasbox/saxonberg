@@ -79,6 +79,16 @@ export interface Combatant {
     contents: Parameters<CombatLogic["resolveThrown"]>[2],
     splash: readonly Stuff[],
   ): ReturnType<CombatLogic["resolveThrown"]>;
+  /**
+   * Resolve a SHOT's arrival — the launcher's twin of
+   * {@link resolveThrown}. Separate because a throw derives its speed
+   * from a dial (an arm is an arm) while a shot reads the launcher's
+   * muzzle speed and the projectile's mass and calibre.
+   */
+  resolveShot(
+    target: Stuff,
+    shot: Parameters<CombatLogic["resolveShot"]>[2],
+  ): ReturnType<CombatLogic["resolveShot"]>;
   orderCoup(): { ok: boolean; reason?: string };
   influenceCombat(instruction: CombatInfluence): InfluenceResult;
   assessCombat(target: Stuff): CombatAssessResult;
@@ -512,6 +522,13 @@ export function CombatantMixin<TBase extends MixinConstructor>(Base: TBase) {
     }
 
     /** Resolve a thrown delivery at `target` (aim × answer placement). */
+    public resolveShot(
+      target: Stuff,
+      shot: Parameters<CombatLogic["resolveShot"]>[2],
+    ): ReturnType<CombatLogic["resolveShot"]> {
+      return combatLogic().resolveShot(this as unknown as Stuff, target, shot);
+    }
+
     public resolveThrown(
       target: Stuff,
       contents: Parameters<CombatLogic["resolveThrown"]>[2],

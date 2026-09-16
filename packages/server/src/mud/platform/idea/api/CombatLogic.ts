@@ -90,6 +90,7 @@ import type { RangeState } from "../../../lib/combat/CombatGraph";
 import type { CombatGraph } from "../../../lib/combat/CombatGraph";
 import { RangeBand, RANGE_BANDS } from "../../../lib/combat/RangeBand";
 import { DeliveryProfile } from "../../../lib/combat/DeliveryProfile";
+import type { EnergySourceKind } from "../../../lib/combat/EnergySource";
 import { AimResolution, type Placement } from "../../../lib/combat/AimResolution";
 import type { RangeBandConfig } from "../../../lib/combat/RangeBand";
 import Location from "../../../lib/stuff/Location";
@@ -276,6 +277,16 @@ export class CombatLogic extends ApiLogic {
     splash: readonly Stuff[],
   ): ThrownDelivery {
     return resolveThrownImpl(thrower, target, contents, splash);
+  }
+
+  /** See {@link resolveShotImpl}. */
+  @CallSecurity(CombatantCallers)
+  public resolveShot(
+    shooter: Stuff,
+    target: Stuff,
+    shot: Parameters<typeof resolveShotImpl>[2],
+  ): ReturnType<typeof resolveShotImpl> {
+    return resolveShotImpl(shooter, target, shot);
   }
 
   @CallSecurity(CombatantCallers)
@@ -4482,6 +4493,62 @@ export interface ThrownDelivery {
  * on one at all. That is why there is no splash-magnitude rule here to
  * invent or to get wrong.
  */
+/**
+ * ⭐⭐ Resolve a SHOT's arrival — the launcher's twin of
+ * {@link resolveThrownImpl}.
+ *
+ * The two are deliberately separate rather than one generalized
+ * "ballistic arrival", because what they read is genuinely different: a
+ * throw derives its speed from a dial (an arm is an arm), while a shot
+ * reads the **launcher's** muzzle speed and energy source and the
+ * **projectile's** mass, channel and calibre. Merging them would produce
+ * one function with two disjoint halves and a flag.
+ *
+ * ⚠ **No splash and no shares.** A bullet carries no contents; the
+ * carrier-and-payload machinery is `throw`'s, and the whole of a shot's
+ * arrival is a wound.
+ */
+function resolveShotImpl(
+  shooter: Stuff,
+  target: Stuff,
+  shot: {
+    energySource: EnergySourceKind;
+    speedMs: number;
+    massKg: number;
+    channel: Channel;
+    calibreM?: number;
+    toughness?: number;
+    hardness?: number;
+  },
+): { placement: Placement; profile: DeliveryProfile } {
+  const band = bandBetweenImpl(shooter, target) ?? "close";
+  // ⭐ A launcher's envelope is the ARENA's — what the room affords. That
+  // is what makes the long meadow worth walking to: the same bow reaches
+  // further there than in a corridor, because the corridor is short, not
+  // because the bow changed.
+  const envelope = arenaMaxBandFor(shooter);
+  const profile = DeliveryProfile.derive({
+    energySource: shot.energySource,
+    massKg: shot.massKg,
+    speedMs: shot.speedMs,
+    channel: shot.channel,
+    band,
+    envelope,
+    toughness: shot.toughness,
+    hardness: shot.hardness,
+    calibreM: shot.calibreM,
+    // ⭐ Ammunition is purpose-made to fly — that is the difference
+    // between an arrow and a thrown chair leg, and it is why a shot
+    // places better than a throw at the same range.
+    balancedForFlight: true,
+  });
+  const placement = AimResolution.resolve("snap", "stand", {
+    poorStability: profile.stabilityIsPoor(),
+    beyondEffective: profile.beyondEnvelope,
+  });
+  return { placement, profile };
+}
+
 function resolveThrownImpl(
   thrower: Stuff,
   target: Stuff,

@@ -125,6 +125,13 @@ export function refsOf(data: Record<string, unknown>): Array<{ field: string; pa
     // does not exist: `lint:identity` proves the field is *present*, and
     // this proves it *resolves*. The two gates are halves of one claim.
     'institution',
+    // ⭐ `projectileTemplate` (the injury build) — the ammunition a
+    // launcher takes. `ShootController` matches a carried stack against
+    // it by template path, so a rowless or misspelt one is a bow that
+    // can never be loaded, refusing with "you have nothing to load it
+    // with" forever and naming no cause. Read here rather than added to
+    // `UNREAD_PATH_FIELDS`, because that list only ever shrinks.
+    'projectileTemplate',
   ] as const) {
     push(f, data[f]);
   }
