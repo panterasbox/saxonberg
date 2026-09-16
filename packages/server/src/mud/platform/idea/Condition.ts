@@ -106,7 +106,15 @@ export type TraumaType =
   | 'fracture'
   | 'contusion'
   | 'avulsion'
-  | 'burn';
+  | 'burn'
+  /**
+   * ⭐ An **interior** bleed — a torn organ. Bleeds exactly as a
+   * laceration does, and cannot be dressed, because the wound is in a
+   * cavity you cannot reach. `resolution: 'surgery'`, which nothing in
+   * the game offers yet: the honest answer is that you are bleeding into
+   * yourself and there is nothing to hand that will stop it.
+   */
+  | 'rupture';
 
 // The mechanism vocabulary is unified into the materials-response
 // **channel** set (edge / point / blunt) — the single interface a weapon's
@@ -877,6 +885,44 @@ export const PUNCTURE_BEHAVIOR: TraumaBehavior = {
  * behavior (the NOOP exemplar remains the fallback shape). `avulsion` and
  * `puncture` delegate to the laceration bleed family.
  */
+/**
+ * rupture — a **torn organ**, and the first wound in the game you cannot
+ * treat.
+ *
+ * It is the laceration bleed family, with one thing removed and one thing
+ * changed:
+ *
+ * - `resolve` is a **no-op**. Dressing is pressure on a wound you can
+ *   reach, and this one is inside a cavity. `TreatController` refuses it
+ *   before it ever gets here, but the behaviour has to be honest on its
+ *   own — a no-op `resolve` means nothing can accidentally arrest it.
+ * - `resolution: 'surgery'`, a token **nothing offers**. That is
+ *   deliberate and it is the charter for the treatment build:
+ *   `mismatchLine` already renders an unknown token as *"It wants
+ *   surgery."*, so the game says exactly what is wrong and exactly why
+ *   your bandage is no use.
+ *
+ * ⚠ The blood drains from `bloodVolume` like any other bleed. The cavity
+ * is the floor you cannot see, not a different accounting.
+ */
+export const RUPTURE_BEHAVIOR: TraumaBehavior = {
+  onset: LACERATION_BEHAVIOR.onset,
+  tick: LACERATION_BEHAVIOR.tick,
+  // ⭐ NOT laceration's. You cannot put pressure on a liver.
+  resolve: noop,
+  reopen: noop,
+  describe(t: Trauma): string {
+    return `a rupture of ${t.site}`;
+  },
+  resolution: 'surgery',
+  signature: [
+    {
+      kind: 'function',
+      lossPerSeverity: HARM_DEFAULTS.FUNCTION_LOSS_PER_SEVERITY.rupture!,
+    },
+  ],
+};
+
 export const TRAUMA_BEHAVIOR: Record<TraumaType, TraumaBehavior> = {
   laceration: LACERATION_BEHAVIOR,
   puncture: PUNCTURE_BEHAVIOR,
@@ -884,6 +930,7 @@ export const TRAUMA_BEHAVIOR: Record<TraumaType, TraumaBehavior> = {
   contusion: CONTUSION_BEHAVIOR,
   avulsion: AVULSION_BEHAVIOR,
   burn: BURN_BEHAVIOR,
+  rupture: RUPTURE_BEHAVIOR,
 };
 
 // ---------- Kind-A: the Condition Idea template ----------

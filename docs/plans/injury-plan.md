@@ -987,7 +987,20 @@ vitest + `lint:family` gate each. `pnpm test` runs once before each MR.
   for the reason prose.
 - Acceptance: drive steps 5–6.
 
-**W-A3 — interiority.** *(D9, D10)*
+**W-A3 — interiority.** ✅ **DONE** *(D9, D10)*
+> **Build note.** One gap the plan did not see, and one interface widened.
+> - ⭐⭐ **`treat` had to gate on the SITE, not the trauma type.** D10 said
+>   `pickWound` excludes interior sites; the reason turned out to be
+>   sharper than "tidiness". A `rupture` announces itself (it resolves by
+>   `surgery`, which nothing offers, so `treat` already refused it) — but
+>   an interior **puncture** or **laceration** resolves by `dressing` like
+>   any other bleed, so without the gate a player could bandage a punctured
+>   liver. What makes a wound undressable is WHERE it is.
+> - `BodyPlan` gained `partArea(key)` **and** `interiorChildrenOf(key)` —
+>   the ladder wanted the ordering, and putting the sort on the plan (which
+>   owns the anatomy) kept `ConditionLogic` free of a second walk.
+> - `InflictOutcome.reached?: Trauma[]` is populated only when something
+>   landed, so every existing caller reads identically.
 - Depth ladder in `inflictThroughStack`; `rupture`; `response.depth.*`,
   `response.blunt.ruptureThreshold`; `InflictOutcome.reached`.
 - `assess` interior clause; `treat` interior refusal.

@@ -64,6 +64,25 @@ settings:
   - key: response.edge.avulsionThreshold
     value: "3"
 
+  # ── the depth ladder ────────────────────────────────────────────────
+  # How deep a blow has to be before it reaches past the site into what
+  # the site contains. Below this, a torso wound is a torso wound.
+  - key: response.depth.reachThreshold
+    value: "2"
+
+  # What each organ takes out of what is left. The first organ under the
+  # site gets the whole excess, the second gets one step less, and so on
+  # until there is nothing past the no-wound floor — so a deeper blow
+  # reaches MORE organs, not just a worse first one.
+  - key: response.depth.stepPerOrgan
+    value: "1"
+
+  # Inside you, a blunt blow past this tears the organ; below it, it
+  # bruises. (A concussion and a bruised liver are the same wound as a
+  # ruptured spleen, one band down.)
+  - key: response.blunt.ruptureThreshold
+    value: "1"
+
   - key: response.noWoundThreshold
     value: "0.25"
 

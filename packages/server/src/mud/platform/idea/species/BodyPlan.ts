@@ -599,15 +599,54 @@ export default class BodyPlan extends SingletonMixin(PropertiedMixin(Idea)) {
       // inline `governs?.length`; the predicate is now one method, and it
       // knows about conduits too.)
       if (this.isInterior(part.key)) continue;
-      let mass = 0;
-      for (const t of part.tissues ?? []) mass += t.mass;
-      if (!(mass > 0)) continue;
-      const area = Math.pow(mass, 2 / 3);
+      const area = this.partArea(part.key);
+      if (!(area > 0)) continue;
       total += area;
       if (part.key === partKey) own = area;
     }
     if (!(total > 0)) return 0;
     return own / total;
+  }
+
+  /**
+   * ⭐⭐ **A part's cross-sectional area**, by Meeh's law — `mass^(2/3)`
+   * over its authored tissue masses. `0` for an unknown or massless part.
+   *
+   * Two readers, and they want the same number for different reasons:
+   * {@link getPartSurfaceFraction} normalises it across the exterior to
+   * answer *"how much of the skin is this"*, and the depth ladder orders
+   * organs by it to answer *"what does a blow through here meet first"* —
+   * a bigger organ presents more cross-section to whatever is coming
+   * through, which is **why** it is reached first.
+   *
+   * ⚠⚠ **An organ must call THIS, never `getPartSurfaceFraction`.** That
+   * walk skips interior parts by construction (it is exterior-only on
+   * purpose), so it returns 0 for every organ — a caller reaching for the
+   * fraction would get a silently empty ladder.
+   *
+   * ⚠ There is no authored `area` field and there is not going to be one:
+   * it would be a second copy of a fact the tissue masses already carry,
+   * and the two would drift.
+   */
+  public partArea(partKey: string): number {
+    const part = this.bodyParts.find((p) => p.key === partKey);
+    if (!part) return 0;
+    let mass = 0;
+    for (const t of part.tissues ?? []) mass += t.mass;
+    if (!(mass > 0)) return 0;
+    return Math.pow(mass, 2 / 3);
+  }
+
+  /**
+   * The interior parts sitting immediately under `partKey` — what a blow
+   * through that site can reach. Ordered **largest cross-section first**,
+   * which is the depth ladder's order.
+   */
+  public interiorChildrenOf(partKey: string): readonly BodyPart[] {
+    return this.bodyParts
+      .filter((p) => p.parent === partKey && this.isInterior(p.key))
+      .slice()
+      .sort((a, b) => this.partArea(b.key) - this.partArea(a.key));
   }
 
   /**

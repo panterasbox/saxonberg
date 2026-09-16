@@ -663,6 +663,14 @@ export const AppSettingKeys = {
    * the reason `avulsion` is reachable from a weapon at all.
    */
   responseEdgeAvulsionThreshold: "response.edge.avulsionThreshold",
+  /**
+   * ⭐ The depth ladder — how deep a blow has to go before it reaches what
+   * is under the site, how much of it each organ absorbs, and how hard a
+   * blunt blow must be inside you before it tears rather than bruises.
+   */
+  responseDepthReachThreshold: "response.depth.reachThreshold",
+  responseDepthStepPerOrgan: "response.depth.stepPerOrgan",
+  responseBluntRuptureThreshold: "response.blunt.ruptureThreshold",
   /** Response — residual energy below which no meaningful wound lands
    * (deflected). */
   responseNoWoundThreshold: "response.noWoundThreshold",

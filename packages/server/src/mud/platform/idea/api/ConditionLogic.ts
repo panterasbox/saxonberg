@@ -979,7 +979,102 @@ function inflictThroughStack(
   // wound is byte-identical to before.
   const landed = target.afflict(trauma);
   if (landed) TRAUMA_BEHAVIOR[trauma.type].onset(target, trauma);
-  return { trauma, afflicted: landed };
+  if (!landed) return { trauma, afflicted: false };
+
+  const reached = reachInterior(target, channel, trauma, inflicter, nowS);
+  return reached.length > 0
+    ? { trauma, afflicted: true, reached }
+    : { trauma, afflicted: true };
+}
+
+/**
+ * ⭐⭐ **The depth ladder** — what a blow that got through the skin meets
+ * underneath it.
+ *
+ * A wound past `response.depth.reachThreshold` has excess left over, and
+ * the excess reaches the interior parts sitting under the site **largest
+ * cross-section first** — a bigger organ presents more of itself to
+ * whatever is coming through. Each organ takes `stepPerOrgan` out of what
+ * remains, so a deeper blow reaches **more** organs rather than merely
+ * hurting the first one worse. It stops when there is not enough left to
+ * make a wound.
+ *
+ * ⚠⚠ **No roll anywhere.** The biggest organ under a site is hit first,
+ * every time; a deeper wound reaches further, every time. A student can
+ * derive both from `assess`, which is the whole difference between a model
+ * and a slot machine — and a weighted site pick would be a roll deciding
+ * what your action DID, which `docs/uncertainty.md` bans outright.
+ *
+ * Each interior trauma lands through the same `afflict` door as the
+ * exterior wound, so a conferred immunity refuses it too.
+ */
+function reachInterior(
+  target: Stuff & Vitals,
+  channel: Channel,
+  exterior: Trauma,
+  inflicter: string | undefined,
+  nowS: number | null,
+): Trauma[] {
+  if (!MixinApi.isOrganism(target)) return [];
+  const plan = target.getSpecies()?.getBodyPlan();
+  if (!plan) return [];
+  const organs = plan.interiorChildrenOf(exterior.site);
+  if (organs.length === 0) return [];
+
+  const threshold = dial(AppSettingKeys.responseDepthReachThreshold, 2);
+  const excess = exterior.severity - threshold;
+  if (!(excess > 0)) return [];
+
+  const step = dial(AppSettingKeys.responseDepthStepPerOrgan, 1);
+  const floor = dial(AppSettingKeys.responseNoWoundThreshold, 0.25);
+  const ruptureAt = dial(AppSettingKeys.responseBluntRuptureThreshold, 1);
+
+  const reached: Trauma[] = [];
+  for (let k = 0; k < organs.length; k++) {
+    const severity = excess - k * step;
+    if (!(severity > floor)) break;
+    const organ = organs[k]!;
+    const inner: Trauma = {
+      kind: 'trauma',
+      type: interiorTypeFor(channel, severity, ruptureAt),
+      site: organ.key,
+      severity,
+      mechanism: channel,
+    };
+    if (inflicter !== undefined) inner.inflictedBy = inflicter;
+    if (exterior.magicOrigin !== undefined) {
+      inner.magicOrigin = exterior.magicOrigin;
+    }
+    if (nowS !== null) inner.tickedAt = nowS;
+    if (target.afflict(inner)) {
+      TRAUMA_BEHAVIOR[inner.type].onset(target, inner);
+      reached.push(inner);
+    }
+  }
+  return reached;
+}
+
+/**
+ * What the channel does to an organ. A point punctures it and an edge
+ * lacerates it exactly as they would skin; a blunt blow is the interesting
+ * one — hard enough and the organ **tears** (`rupture`), otherwise it is
+ * bruised (`contusion`: a concussion, a bruised liver).
+ *
+ * ⚠ Non-mechanical channels never reach here: heat and cold are stopped by
+ * the insulation fold at the surface, and shock does not resolve through
+ * the stack at all.
+ */
+function interiorTypeFor(
+  channel: Channel,
+  severity: number,
+  ruptureAt: number,
+): TraumaType {
+  if (channel === 'point') return 'puncture';
+  if (channel === 'edge') return 'laceration';
+  if (channel === 'blunt') {
+    return severity >= ruptureAt ? 'rupture' : 'contusion';
+  }
+  return channelDefaultType(channel);
 }
 
 /**

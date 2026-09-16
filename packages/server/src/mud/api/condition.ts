@@ -127,6 +127,16 @@ export interface InflictOutcome {
   trauma: Trauma;
   /** True iff the target was a wound-able body and the trauma was afflicted. */
   afflicted: boolean;
+  /**
+   * ⭐ **What the blow reached UNDER the skin** — the interior traumas the
+   * depth ladder landed, outermost-organ-first, or absent when it reached
+   * nothing. Each went through the same `afflict` door as the exterior
+   * wound and is separately vetoable, so this lists what actually landed.
+   *
+   * ⚠ A caller that only wants "did I wound them" still reads `afflicted`;
+   * this is for a narrator that wants to say what a deep blow did.
+   */
+  reached?: Trauma[];
 }
 
 const LOGIC_PATH = '/platform/idea/api/condition';

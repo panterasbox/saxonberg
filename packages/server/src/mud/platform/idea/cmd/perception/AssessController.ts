@@ -193,22 +193,67 @@ export default class AssessController extends CommandController<AssessModel> {
       }
     }
 
-    if (wounds.length === 0) {
+    // ⭐⭐ **Interior wounds read differently, and that is the point** (D10).
+    //
+    // A wound inside a cavity is not visible and cannot be judged by
+    // looking. The shipped competence rule already says a novice reads
+    // *"bleeding badly"* and a practised eye reads the site; this is that
+    // rule one clause wider:
+    //
+    //   - **untrained / novice on someone else** — nothing at all. There
+    //     is no outward sign of a torn liver.
+    //   - **yourself** — one line, and it names nothing: *"Something is
+    //     wrong inside; you cannot tell what."* ⭐ This is the honest
+    //     asymmetry the build wants: you know less about your own body
+    //     than a competent stranger does.
+    //   - **competent** — names the organ.
+    //   - **precise** — adds the severity, like any other wound.
+    const plan = MixinApi.isOrganism(target)
+      ? target.getSpecies()?.getBodyPlan()
+      : null;
+    const isInterior = (w: Trauma): boolean =>
+      plan?.isInterior(w.site) ?? false;
+    const named = medBand === 'competent' || precise;
+    const visible = wounds.filter((w) => !isInterior(w));
+    const hidden = wounds.filter(isInterior);
+
+    if (visible.length === 0 && hidden.length === 0) {
       blocks.push(Mml.escape('No visible wounds.'));
     } else {
-      blocks.push(
-        Mml.unorderedList(
-          wounds.map((w) => {
-            let line = TRAUMA_BEHAVIOR[w.type].describe(w);
-            // A dressed wound gates precise severity behind the dressing:
-            // only self / an expert can judge through it.
-            const canJudge =
-              precise && (!w.dressed || isSelf || medBand === 'expert');
-            if (canJudge) line += ` (severity ${w.severity.toFixed(1)})`;
-            return Mml.fromMarkup(Mml.escape(line));
-          })
-        ).toString()
-      );
+      const lines = visible.map((w) => {
+        let line = TRAUMA_BEHAVIOR[w.type].describe(w);
+        // A dressed wound gates precise severity behind the dressing:
+        // only self / an expert can judge through it.
+        const canJudge =
+          precise && (!w.dressed || isSelf || medBand === 'expert');
+        if (canJudge) line += ` (severity ${w.severity.toFixed(1)})`;
+        return line;
+      });
+      if (named) {
+        for (const w of hidden) {
+          let line = TRAUMA_BEHAVIOR[w.type].describe(w);
+          if (precise) line += ` (severity ${w.severity.toFixed(1)})`;
+          lines.push(line);
+        }
+      }
+      if (lines.length === 0) {
+        blocks.push(Mml.escape('No visible wounds.'));
+      } else {
+        blocks.push(
+          Mml.unorderedList(
+            lines.map((l) => Mml.fromMarkup(Mml.escape(l)))
+          ).toString()
+        );
+      }
+      if (hidden.length > 0 && !named) {
+        blocks.push(
+          Mml.escape(
+            isSelf
+              ? 'Something is wrong inside; you cannot tell what.'
+              : `${target.getPresentation()} is hurt in some way you cannot read.`,
+          ),
+        );
+      }
     }
 
     const body = Mml.fromMarkup(blocks.join('\n\n'));
