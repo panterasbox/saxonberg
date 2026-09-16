@@ -1,12 +1,17 @@
 # Physiology slate — the body's second half: function, time, intervention
 
-> **Status: PARTIAL** — only wave 1 shipped: the condition catalogue is
-> live (`ConditionCatalogue`, self-warming) and `ConditionApi.inflict` is
-> the single seam → [harm.md](../../subsystems/harm.md). The function
-> half is untouched — `governsVital` has not become `governs`, and there
-> is still no pain, no perfusion or innervation reader.
-> **Left:** the capacity vocabulary + the `governs` rename (waves 2–3
-> block the rest) · the organ roster (brain · spine · liver) · the
+> **Status: PARTIAL** — wave 1 shipped (the condition catalogue is live
+> and self-warming; `ConditionApi.inflict` is the single seam), and ⭐ **the
+> `governs` rename shipped too** — verified 2026-09-16: zero occurrences
+> of `governsVital` remain in any `.ts` or `.yaml`, the field is
+> `governs?: string[]` on `BodyPart`, and all three animate body plans
+> author it. → [harm.md](../../subsystems/harm.md).
+> ⚠ **What is still untouched is the part that matters**: every one of
+> the five readers of `governs` is an *organ-exclusion filter* — nothing
+> reads the value. And `innervatedBy` / `suppliedBy` are declared on
+> `BodyPart` with **zero authored rows and zero readers**, so there is no
+> perfusion or innervation reader, and no pain.
+> **Left:** the capacity vocabulary (waves 2–3 block the rest) · the organ roster (brain · spine · liver) · the
 > function axis (trauma × tissue × perfusion × innervation) · the alarm
 > clock off `reconcileConditions` · pain as a derived reader · substances
 > (the topical route, inhalation, the liver multiplier) · chems and meds
