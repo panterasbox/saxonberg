@@ -154,14 +154,10 @@ export abstract class ManualBuildController<
     giver: Stuff,
     cap: string,
   ): (Stuff & Tooled) | null {
-    const candidates: Stuff[] = [];
-    if (MixinApi.isContainer(giver)) candidates.push(...giver.getContents());
-    if (MixinApi.isContainable(giver)) {
-      const loc = giver.getContainer();
-      if (loc && MixinApi.isContainer(loc)) {
-        candidates.push(...loc.getContents());
-      }
-    }
+    // ⭐ The two-leg reach is `reachableMarks`' — held kit first, then
+    // the room, minus yourself. Rebuilding it here is how ten copies of
+    // one walk happened.
+    const candidates = this.reachableMarks(giver);
     let best: (Stuff & Tooled) | null = null;
     let bestRate = -Infinity;
     for (const c of candidates) {

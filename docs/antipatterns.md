@@ -4254,6 +4254,67 @@ ordinary and fine. This is about optional chaining on a **method the
 type system was told to stop checking for**.
 
 
+## Rebuilding the two-leg reach by hand
+
+**ANTIPATTERN**: walking *what the actor carries, plus what shares their
+environment* inline, because the predicate you want is local.
+
+```typescript
+// BAD — and there were ELEVEN of these
+const candidates: Stuff[] = [];
+if (MixinApi.isContainer(giver)) candidates.push(...giver.getContents());
+if (MixinApi.isContainable(giver)) {
+  const loc = giver.getContainer();
+  if (loc && MixinApi.isContainer(loc)) candidates.push(...loc.getContents());
+}
+for (const c of candidates) { /* …the predicate… */ }
+```
+
+**INSTEAD**, by where you are standing:
+
+| you are | use |
+|---|---|
+| a **controller** | `this.reachableMarks(giver)` — inherited from `CommandController` |
+| anything else (a brain, a logic singleton) | `MqlApi.resolveMany('reachable', …)` + narrow locally |
+
+```typescript
+// GOOD — the reach is inherited; only the predicate is yours
+return this.reachableMarks(giver).find(
+  (c) => MixinApi.isTangible(c) && (c.getMaterial()?.getTags() ?? []).includes('brittle'),
+) ?? null;
+```
+
+⭐ **The ordering is the reason it must not be rebuilt.** The reach is
+**held kit before floor**, so a first-match consumer prefers your own
+gear over whatever is lying about — the same on-person-first contract
+MQL's `reachable` seed keeps (`api/mql/scope-walk.ts`, which absorbed
+the deleted `ContainmentApi.findReachable`). A hand-rolled copy gets
+that right by accident or not at all, and nothing tells you which.
+
+⚠ It also **excludes the actor**. Several hand-rolled copies did not,
+which let an actor match their own predicate — a Bulkable creature
+reading as *"water to wash with"*.
+
+### ⚠⚠ Why eleven copies existed, because it was not carelessness
+
+`reachableMarks` took a **`CommandContext`** and every would-be caller
+had a **`Stuff`**. So the cheapest correct thing any author could do was
+write the seven lines again — and eleven did, often under a name that
+described the *predicate* rather than the reach (`reachOf`, `findBath`,
+`findWater`, `findBook`, `castInReach`), which is what kept the
+duplication invisible to everyone including the people writing it.
+
+⭐ **A helper with three callers sitting beside ten re-implementations
+is a seam that is wrong, not ten careless authors.** The fix was to
+widen the parameter to the thing callers actually hold; the sweep then
+fell out. When you find yourself rebuilding something the base class
+offers, check the signature before you blame the author — and one more
+module function is one more caller that *cannot* reach an inherited
+method, which is why `MeasureFigureController.findBook` had to become a
+method before it could collapse.
+
+---
+
 ## A resident pre-check in front of `StuffApi.singleton()`
 
 ⭐ **`StuffApi.singleton(path)` IS the get-or-create.** Its first act is

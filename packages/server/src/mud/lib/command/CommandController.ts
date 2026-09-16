@@ -138,13 +138,33 @@ export abstract class CommandController<
   }
 
   /**
-   * **Everything the actor could plausibly aim something at** — what
-   * they carry, plus what shares their environment, minus themselves.
-   * The candidate pool for {@link promptForObject}; the working's own
-   * targeting rules still judge whatever comes back.
+   * ⭐⭐ **Everything the actor could plausibly aim something at** — what
+   * they carry, plus what shares their environment, minus themselves,
+   * **held kit first**. The candidate pool for {@link promptForObject};
+   * the caller's own rules still judge whatever comes back.
+   *
+   * ⚠⚠ **This is the two-leg reach, and it is the only copy.** Ten
+   * controllers and helpers had hand-rolled the identical walk — often
+   * under a name that described the predicate rather than the reach
+   * (`reachOf`, `findBath`, `findWater`, `castInReach`) — while this
+   * method had three callers. A helper nobody calls sitting beside ten
+   * re-implementations is a seam that is wrong, not ten careless
+   * authors: it took a `CommandContext` where every one of them had a
+   * `Stuff`, so the cheapest correct thing to do was write the walk
+   * again. Taking the giver directly is what made the sweep possible.
+   *
+   * ⭐ The ordering is load-bearing and is why callers must not rebuild
+   * it: **held before floor**, so a first-match consumer prefers your
+   * own gear over what happens to be lying about. That is the same
+   * on-person-first contract MQL's `reachable` seed keeps
+   * (`api/mql/scope-walk.ts`), which is the other home of this walk —
+   * use that one from anything that is not a controller.
+   *
+   * ⚠ And it EXCLUDES the actor. Several of the hand-rolled copies did
+   * not, which let an actor match their own predicate (a Bulkable
+   * creature reading as "water to wash with"); none relied on it.
    */
-  protected reachableMarks(context: CommandContext): Stuff[] {
-    const giver = context.commandGiver;
+  protected reachableMarks(giver: Stuff): Stuff[] {
     const out: Stuff[] = [];
     if (MixinApi.isContainer(giver)) out.push(...giver.getContents());
     if (MixinApi.isContainable(giver)) {

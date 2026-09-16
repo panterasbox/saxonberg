@@ -279,6 +279,14 @@ export class ContainmentApi {
 
   // The old `findReachable` / `findHostedUpdate` finders were removed:
   // the reachable walk now lives in MQL's `reachable` seed
+  //
+  // ⚠⚠ …and removing it without leaving a signposted replacement cost
+  // ELEVEN hand-rolled copies of the two-leg walk (see
+  // docs/antipatterns.md § Rebuilding the two-leg reach by hand). A
+  // controller uses `CommandController.reachableMarks(giver)`; anything
+  // else resolves the pool through MQL, below. Deleting a finder is only
+  // half the job — the other half is making the replacement findable
+  // from where the callers are.
   // (api/mql/scope-walk.ts `candidatesForReachable` — self → own hosted
   // updates → slot occupants → carried → location → peers, on-person
   // first). Callers resolve the pool via `MqlApi.resolveMany('reachable',
