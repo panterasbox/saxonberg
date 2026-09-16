@@ -1,3 +1,15 @@
+# ⭐⭐ **The mash wants GRIST, not whole malt** (the grain chain, D16).
+#
+# Whole malt does not mash. The husk has to be cracked for the water to
+# reach the starch, and until this build there was no grinding step
+# anywhere in the tree — both this trade and the distiller were quietly
+# drawing milled malt out of nothing. `wash-mash.yaml`'s own comment has
+# called its input *"the distiller's grist"* since the day it shipped.
+#
+# ⚠ Existing play is untouched: the distribution counter stocks a grist
+# sack beside the malt sack, so a brewer who has never heard of a mill
+# buys grist at a markup and carries on. Milling your own is cheaper —
+# which is the whole of what the retrofit adds.
 # Wash mash — bought malt and liquor to the still-house's rough wort
 # (fermentation W6; the brewer's shape, the distiller's grist).
 recipeId: wash-mash
@@ -7,7 +19,7 @@ discipline: fermenting
 difficulty: easy
 inputSlots:
 - slot: malt
-  category: malt
+  category: grist
   minGrade: poor
   measureL: 4
 - slot: water

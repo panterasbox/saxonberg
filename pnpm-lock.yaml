@@ -366,6 +366,9 @@ importers:
       '@saxonberg/content-platform':
         specifier: workspace:*
         version: link:../platform
+      '@saxonberg/content-trade-milling':
+        specifier: workspace:*
+        version: link:../trade-milling
       '@saxonberg/server':
         specifier: workspace:*
         version: link:../../server
@@ -682,6 +685,9 @@ importers:
       '@saxonberg/content-tpa':
         specifier: workspace:*
         version: link:../tpa
+      '@saxonberg/content-trade-baking':
+        specifier: workspace:*
+        version: link:../trade-baking
       '@saxonberg/content-trade-brewing':
         specifier: workspace:*
         version: link:../trade-brewing
@@ -694,6 +700,9 @@ importers:
       '@saxonberg/content-trade-haulage':
         specifier: workspace:*
         version: link:../trade-haulage
+      '@saxonberg/content-trade-milling':
+        specifier: workspace:*
+        version: link:../trade-milling
       '@saxonberg/content-trade-smithing':
         specifier: workspace:*
         version: link:../trade-smithing
@@ -808,6 +817,9 @@ importers:
       '@saxonberg/content-platform':
         specifier: workspace:*
         version: link:../platform
+      '@saxonberg/content-trade-milling':
+        specifier: workspace:*
+        version: link:../trade-milling
       '@saxonberg/server':
         specifier: workspace:*
         version: link:../../server
@@ -869,6 +881,9 @@ importers:
       '@saxonberg/content-platform':
         specifier: workspace:*
         version: link:../platform
+      '@saxonberg/content-trade-milling':
+        specifier: workspace:*
+        version: link:../trade-milling
       '@saxonberg/server':
         specifier: workspace:*
         version: link:../../server

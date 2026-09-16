@@ -28,4 +28,7 @@ outputAppearance: a cut warmed through, grey and unbrowned
 outputApplication: edible
 outputPortionL: 0.4
 requiresHeatK: 335
+# A warm-through has no browning in it at all: the moment the
+# surface goes past boiling it has stopped being this dish.
+maxHeatK: 373
 holdS: 120

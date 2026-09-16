@@ -41,11 +41,16 @@ const MUD = join(SERVER_ROOT, 'src', 'mud');
 const SKIP = new Set(['node_modules', '.git', 'dist', 'build', 'coverage']);
 
 /**
- * ⭐ The ceiling for half (a): shipped cookable workings that state no
- * `maxHeatK`. **It may fall and must never rise.** W10 authors the
- * ceilings on `trade-cooking`'s roster and drives this to 0.
+ * ⭐⭐ **Zero, and the ratchet is closed.** This landed at 17 — the census
+ * — and the same build drove it down: every shipped working that cooks
+ * something edible now states the heat it must not exceed.
+ *
+ * It may fall and must never rise. A new cookable recipe that states no
+ * ceiling fails here, which is the point: a dish that can never be
+ * ruined by too fierce a fire is unfinished, and unfinished is exactly
+ * what a census-then-ratchet gate is for.
  */
-const UNCEILINGED_RECIPE_CEILING = 17;
+const UNCEILINGED_RECIPE_CEILING = 0;
 
 /** The mixin a bread row's class must reach (half b). */
 const STALING_MIXIN = 'StalingMixin';

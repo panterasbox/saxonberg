@@ -13,6 +13,9 @@ inputSlots:
   measureL: 6
 toolCapabilities: [still]
 requiresHeatK: 351
+# ⚠ A still run too hot scorches the wash. Past this you are boiling
+# water over a burnt bottom rather than taking spirit off it.
+maxHeatK: 365
 outputApplication: bulk
 outputTemplate: /trade/distilling/thing/spirit-bottle
 outputMaterial: /trade/distilling/idea/material/neutral-spirit

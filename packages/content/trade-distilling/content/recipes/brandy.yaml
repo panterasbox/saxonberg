@@ -11,6 +11,10 @@ inputSlots:
   measureL: 3
 toolCapabilities: [still]
 requiresHeatK: 351
+# ⚠ A still run too hot SCORCHES the wash — the solids on the bottom
+# catch and the whole run tastes of it. A famous and unrecoverable
+# fault, and now a thing you can commit.
+maxHeatK: 365
 outputApplication: bulk
 outputTemplate: /trade/distilling/thing/spirit-bottle
 outputMaterial: /trade/distilling/idea/material/brandy
