@@ -112,6 +112,7 @@ export class MaterialLogic extends ApiLogic {
     construction: Construction,
     grade?: Grade,
     condition?: number,
+    agent?: readonly string[],
   ): AttenuationResult {
     return attenuateImpl(
       channel,
@@ -120,6 +121,7 @@ export class MaterialLogic extends ApiLogic {
       construction,
       grade,
       condition,
+      agent ?? [],
     );
   }
 
@@ -273,6 +275,22 @@ function dial(key: string, fallback: number): number {
   }
 }
 
+/**
+ * `dial`'s sibling for a setting whose value is a WORD rather than a
+ * number — today only `response.corrosion.previewCorrosiveTo`, a material
+ * tag. Same shape and the same swallow-and-default behaviour; kept
+ * separate rather than making `dial` generic, because a numeric dial
+ * returning a string silently would be the worse failure.
+ */
+function textDial(key: string, fallback: string): string {
+  try {
+    const raw = AppApi.setting(key);
+    return raw === '' || raw == null ? fallback : String(raw);
+  } catch {
+    return fallback;
+  }
+}
+
 /** Per-token base attenuation fraction (the magnitude the qualitative shape
  * token resolves to). */
 function baseAttenuationFor(token: ResistToken): number {
@@ -391,6 +409,32 @@ function heatAttenuationFraction(
   return clamp01(base * insulation * depthBonus * scale);
 }
 
+/**
+ * The fraction of a corrosive contact one covering layer blocks. See the
+ * three-outcome ladder in {@link attenuateImpl}. `agent` is the attacking
+ * material's `corrosiveTo` list; an empty one attacks nothing, so every
+ * layer sheds.
+ */
+function corrosionAttenuationFraction(
+  material: Material | null,
+  agent: readonly string[],
+): number {
+  // A materialless covering has nothing to be eaten and nothing to wick.
+  if (!material) return dial(AppSettingKeys.responseCorrosionShedAttenuation, 0.95);
+  const tags = material.getTags();
+  if (agent.some((t) => tags.includes(t))) {
+    // Consumed — it is being eaten, so it stops nothing.
+    return 0;
+  }
+  const absorption = material.getWaterAbsorptionCapacity().rawValue();
+  const shedMax = dial(AppSettingKeys.responseCorrosionShedAbsorptionMax, 5);
+  if (absorption > shedMax) {
+    // Wicks it through — worse than a shed, better than being eaten.
+    return dial(AppSettingKeys.responseCorrosionWickAttenuation, 0.3);
+  }
+  return dial(AppSettingKeys.responseCorrosionShedAttenuation, 0.95);
+}
+
 function attenuateImpl(
   channel: Channel,
   energy: number,
@@ -398,6 +442,7 @@ function attenuateImpl(
   construction: Construction,
   grade?: Grade,
   condition?: number,
+  agent: readonly string[] = [],
 ): AttenuationResult {
   const e = Math.max(0, energy);
   // A non-armor (weapon) construction attenuates nothing — energy passes.
@@ -414,6 +459,29 @@ function attenuateImpl(
       condition,
     );
     return { residualEnergy: e * (1 - blocked), channel };
+  }
+  // ⭐⭐ **Corrosion — the fold where THICKNESS is irrelevant and the
+  // right material is everything.** Three outcomes, decided by two reads
+  // of the layer and nothing else:
+  //
+  //   - **consumed** — the layer's tags intersect the agent's
+  //     `corrosiveTo`. It is being eaten, so it stops nothing: the full
+  //     energy passes, and the layer WEARS for having taken it.
+  //   - **wicks** — the layer is not attacked but is absorbent, so it
+  //     carries the agent through to the skin. A linen shirt is worse
+  //     than nothing.
+  //   - **sheds** — not attacked, not absorbent. It runs off.
+  //
+  // ⚠ No hardness anywhere, and that is the claim: a steel breastplate
+  // sheds lye and is EATEN by an acid whose row says `corrosiveTo:
+  // [metal]`, and no amount of steel changes either answer. The one
+  // channel where the armour question is *what is it made of* rather
+  // than *how much of it is there*.
+  if (channel === 'corrosion') {
+    return {
+      residualEnergy: e * (1 - corrosionAttenuationFraction(material, agent)),
+      channel,
+    };
   }
   // A remaining non-mechanical channel (shock) doesn't fold through the
   // covering stack — it resolves by circuit upstream. Passes through untouched.
@@ -441,8 +509,24 @@ function resolveTraumaImpl(
   // no-wound floor the heat was fully insulated → no burn.
   if (Channels.isThermalChannel(channel)) {
     if (e < dial(AppSettingKeys.responseNoWoundThreshold, 0.25)) return null;
+    // ⭐ One fold, two wounds. The insulation arithmetic above is
+    // identical for heat and cold — what a garment does is resist a
+    // temperature DIFFERENCE — and the direction of flow is read exactly
+    // once, here, to name the wound.
     return {
-      type: 'burn',
+      type: channel === 'cold' ? 'frostbite' : 'burn',
+      severity:
+        e *
+        (channel === 'cold'
+          ? dial(AppSettingKeys.responseColdSeverityPerResidual, 1)
+          : dial(AppSettingKeys.responseSeverityPerResidual, 1)),
+    };
+  }
+  // Corrosion that survived the covering reaches skin still active.
+  if (channel === 'corrosion') {
+    if (e < dial(AppSettingKeys.responseNoWoundThreshold, 0.25)) return null;
+    return {
+      type: 'caustic',
       severity: e * dial(AppSettingKeys.responseSeverityPerResidual, 1),
     };
   }
@@ -500,6 +584,22 @@ function previewBandImpl(
 ): OutcomeBand {
   const refEnergy = dial(AppSettingKeys.responsePreviewReferenceEnergy, 2);
   if (construction.isCovering()) {
+    // ⭐ **A corrosion preview has to assume an AGENT.** Corrosion is the
+    // one channel whose answer is not a property of the covering alone —
+    // the same plate sheds lye and is eaten by acid — so "how does this
+    // garment do against corrosion" is not a well-formed question without
+    // saying against WHAT. The preview names a reference agent
+    // (`response.corrosion.previewCorrosiveTo`, seeded `organic`, the
+    // commonest caustic there is) and says so in the readout's own words.
+    const agent =
+      channel === 'corrosion'
+        ? [
+            textDial(
+              AppSettingKeys.responseCorrosionPreviewCorrosiveTo,
+              'organic',
+            ),
+          ]
+        : [];
     const { residualEnergy } = attenuateImpl(
       channel,
       refEnergy,
@@ -507,11 +607,16 @@ function previewBandImpl(
       construction,
       grade,
       condition,
+      agent,
     );
     const trauma = resolveTraumaImpl(channel, residualEnergy, null, false);
     return severityToBand(trauma ? trauma.severity : null);
   }
-  // weapon-delivery: the blow it delivers on this channel.
+  // ⚠ Weapon-delivery is the MECHANICAL shape table and `deliveryFor`
+  // throws on anything else. A sword has no thermal or corrosive delivery
+  // profile — it is not cold and it does not dissolve you — so a
+  // non-mechanical channel on a weapon is honestly `turned`.
+  if (!Channels.isMechanicalChannel(channel)) return 'turned';
   const token = construction.deliveryFor(channel);
   if (token === 'none') return 'turned';
   const factor =

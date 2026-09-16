@@ -2432,6 +2432,23 @@ function commitInflict(
       shieldFacing,
     );
   }
+  // ⚠ And a corrosive primary lands nothing — a corrosive insult carries
+  // the AGENT'S chemistry (`CorrosionInflictSpec.corrosiveTo`), which a
+  // blow's energy-and-site cannot supply. No shipped weapon or natural
+  // attack authors the channel; a spitting beast would need its species
+  // to say what it spits, which is content this build does not ship. It
+  // returns a truthful DEFLECTED report rather than being coerced into a
+  // mechanical spec, so nothing pretends a wound landed.
+  if (channel === "corrosion") {
+    return {
+      attacker: actorState.combatant,
+      target: targetState.combatant,
+      channel,
+      site,
+      band: "turned",
+      deflected: true,
+    };
+  }
 
   const energy =
     energyFor(bandForEnergy) *
@@ -2439,7 +2456,10 @@ function commitInflict(
     instrumentDeliveryScale(weapon, channel) *
     naturalMassScale(attacker, innateSpec);
   let spec: EnergyInflictSpec = {
-    mechanism: channel,
+    // ⚠ `channel` is narrowed above: `shock` takes its own path and
+    // `corrosion` is refused, because neither can be described by an
+    // energy and a site alone.
+    mechanism: channel as EnergyInflictSpec['mechanism'],
     site,
     energy,
     // The target's wielded shield fronts a faced attacker; a flanking blow
@@ -5210,6 +5230,11 @@ function partingShot(
   // drain (DECISION K), not an energy spec, and the fleer is breaking
   // contact. A parting shock is a deferred seam.
   if (channel === "shock") return;
+  // ⚠ Nor a parting corrosive one, for a different reason: a corrosive
+  // insult carries the agent's chemistry, and no shipped weapon or
+  // natural attack authors any. A corrosive bite is a real thing to want
+  // (a spitter) and it needs the species to say what it spits.
+  if (channel === "corrosion") return;
   const site = siteFor(fleerState.combatant, false);
   ConditionApi.inflict(fleerState.combatant, {
     mechanism: channel,

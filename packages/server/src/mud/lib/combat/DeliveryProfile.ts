@@ -34,6 +34,7 @@
  */
 
 import type { Channel } from "../material/Channel";
+import { Channels } from "../material/Channel";
 import type { InflictSpec } from "../../api/condition";
 import { RangeBand, type RangeState } from "./RangeBand";
 import { EnergySource, type EnergySourceKind } from "./EnergySource";
@@ -214,8 +215,19 @@ export class DeliveryProfile {
     if (this.channel === "shock") {
       return { mechanism: "shock", site, current: Quantity.of(this.energyJ, "A") };
     }
-    // Heat is the fire substrate's business, not a mechanical insult.
-    if (this.channel === "heat") return null;
+    // ⚠ **By PREDICATE, never by name.** Heat is the fire substrate's
+    // business and cold is the same fold run the other way; a thrown
+    // object delivers neither, and naming only `heat` here is how `cold`
+    // would have silently become a mechanical insult the day it landed.
+    if (Channels.isThermalChannel(this.channel)) return null;
+    // ⭐ A thrown thing cannot deliver corrosion, and the reason is
+    // structural rather than a policy: a corrosive insult carries the
+    // AGENT'S chemistry (`CorrosionInflictSpec.corrosiveTo`), and a
+    // delivery profile is magnitude and geometry — it has no idea what
+    // the thing it is describing is made of. A thrown vial of acid is a
+    // real thing to want and it needs the vial's material, which means it
+    // is a producer that knows about materials, not this one.
+    if (this.channel === "corrosion") return null;
     return { mechanism: this.channel, site, energy: this.energyJ };
   }
 

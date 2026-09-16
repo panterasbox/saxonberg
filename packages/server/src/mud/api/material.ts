@@ -165,6 +165,13 @@ export class MaterialApi {
     construction: Construction,
     grade?: Grade,
     condition?: number,
+    /**
+     * ⭐ The **corrosion** channel only: the material tags the attacking
+     * agent eats through (`Material.getCorrosiveTo()`). Every other
+     * channel ignores it, and an empty list attacks nothing — so a caller
+     * that does not know about corrosion is byte-identical.
+     */
+    agent?: readonly string[],
   ): AttenuationResult {
     return logic().attenuate(
       channel,
@@ -173,6 +180,7 @@ export class MaterialApi {
       construction,
       grade,
       condition,
+      agent,
     );
   }
 

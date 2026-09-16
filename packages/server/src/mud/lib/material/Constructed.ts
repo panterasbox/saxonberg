@@ -19,8 +19,8 @@
 
 import type { MixinConstructor, FieldMeta } from '../mixin';
 import { Construction } from './Construction';
-import { MECHANICAL_CHANNELS } from './Channel';
-import type { MechanicalChannel } from './Channel';
+import { Channels } from './Channel';
+import type { Channel } from './Channel';
 import { MixinApi } from '../../api/mixin';
 import { MaterialApi, OUTCOME_BANDS } from '../../api/material';
 import type { MarkupAugmenter } from '../../api/mml';
@@ -111,7 +111,11 @@ function responsePipsAugmenter(
     : undefined;
 
   const armor = construction.isCovering();
-  const cells = MECHANICAL_CHANNELS.map((channel: MechanicalChannel) => {
+  // ⭐⭐ Every folded channel — see `Channels.FOLDED`. The pip line showed
+  // three columns while the model had five, so a leather jerkin's real
+  // selling point (it turns a burn AND a freeze, which plate does not)
+  // was invisible on the object itself.
+  const cells = Channels.FOLDED.map((channel: Channel) => {
     const band = MaterialApi.previewBand(
       channel,
       material,
@@ -124,8 +128,14 @@ function responsePipsAugmenter(
     if (armor) {
       intensity = 4 - bandIndex; // turned → best protection
     } else {
-      intensity =
-        construction.deliveryFor(channel) === 'none' ? 0 : bandIndex + 1;
+      // ⚠ `deliveryFor` is the MECHANICAL shape table and throws on
+      // anything else. A weapon has no thermal or corrosive delivery
+      // profile — a sword is not cold — so those columns read empty.
+      intensity = !Channels.isMechanicalChannel(channel)
+        ? 0
+        : construction.deliveryFor(channel) === 'none'
+          ? 0
+          : bandIndex + 1;
     }
     return `${channel} ${pipBar(intensity)}`;
   });

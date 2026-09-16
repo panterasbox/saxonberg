@@ -1365,7 +1365,15 @@ function execInjectChannel(
   if (MixinApi.isOrganism(target)) {
     return deliverAt(ctx, target, () => {
       const outcome = ConditionApi.inflict(target, {
-        mechanism: e.channel as Exclude<typeof e.channel, 'shock'>,
+        // ⚠ Narrowed past `shock` (handled above) AND `corrosion`: a
+        // corrosive insult carries the agent's chemistry, and a spell has
+        // no material to source it from. A corrosive spell is a real
+        // thing to want and would be a `conjure`-shaped effect that puts
+        // a caustic SUBSTANCE on someone, not an `inject-channel`.
+        mechanism: e.channel as Exclude<
+          typeof e.channel,
+          'shock' | 'corrosion'
+        >,
         site: e.site ?? MAGIC_DEFAULTS.DEFAULT_SITE,
         energy: (e.energy ?? 1) * potency,
       });

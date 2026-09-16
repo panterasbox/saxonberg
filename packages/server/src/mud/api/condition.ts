@@ -78,8 +78,14 @@ export { CHANNELS, Channels } from '../platform/idea/Condition';
  * (magnitude-only → avulsion). The magnitude is an `energy` scalar.
  */
 export interface EnergyInflictSpec {
-  /** The insult kind — any non-`shock` {@link InsultKind}. Recorded raw. */
-  mechanism: Exclude<InsultKind, 'shock'>;
+  /**
+   * The insult kind. ⚠ `shock` AND `corrosion` are excluded: each has a
+   * variant of its own because each carries something an energy scalar
+   * cannot say — a current, and a chemistry. Leaving `corrosion` in this
+   * union would let a producer describe a corrosive contact with no agent
+   * at all, which would silently shed off every layer in the game.
+   */
+  mechanism: Exclude<InsultKind, 'shock' | 'corrosion'>;
   /** A `body.*` part key (anatomy) the wound sits at. */
   site: string;
   /**
@@ -115,11 +121,42 @@ export interface ShockInflictSpec {
 }
 
 /**
+ * ⭐⭐ A **corrosive** insult — the third variant, and it carries its own
+ * CHEMISTRY.
+ *
+ * The other two are magnitude-only: how hard, and where. Corrosion cannot
+ * be, because how well a covering answers it depends entirely on **what
+ * the agent attacks** — the same lye that a steel breastplate sheds goes
+ * straight through a linen shirt, and an acid that says `corrosiveTo:
+ * [metal]` eats the breastplate. So the agent's list rides the spec,
+ * sourced from the attacking `Material.getCorrosiveTo()`.
+ *
+ * ⚠ An empty list attacks nothing and every layer sheds — which is the
+ * right answer for a material nobody has authored as caustic, and is
+ * every shipped material.
+ */
+export interface CorrosionInflictSpec {
+  mechanism: 'corrosion';
+  /** A `body.*` part key (anatomy) the contact sits at. */
+  site: string;
+  /** Magnitude of the contact, on the covering-fold scale. */
+  energy: number;
+  /** The material tags this agent eats through. */
+  corrosiveTo: readonly string[];
+  /** As `EnergyInflictSpec` — a held shield covers a facing attacker. */
+  shieldFacing?: boolean;
+}
+
+/**
  * The insult a producer describes: what kind, where, and how hard. A
  * discriminated union on `mechanism` — energy-carrying (mechanical /
- * passthrough) vs current-carrying (shock).
+ * passthrough), current-carrying (shock), or chemically-specific
+ * (corrosion).
  */
-export type InflictSpec = EnergyInflictSpec | ShockInflictSpec;
+export type InflictSpec =
+  | EnergyInflictSpec
+  | ShockInflictSpec
+  | CorrosionInflictSpec;
 
 /** The result of an `inflict` call — the built trauma and whether it landed. */
 export interface InflictOutcome {

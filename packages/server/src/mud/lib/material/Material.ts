@@ -604,6 +604,12 @@ export default class Material extends SingletonMixin(
   protected tags: string[] = [];
 
   /**
+   * The material tags this material corrodes — see {@link getCorrosiveTo}.
+   * Empty on every shipped row: a material that names nothing is inert.
+   */
+  protected corrosiveTo: string[] = [];
+
+  /**
    * Constituent breakdown for mixtures / alloys / composite materials.
    * Pure elements have an empty list. Each entry's `materialPath`
    * resolves lazily through `StuffApi.findByTemplatePath` at query
@@ -706,6 +712,7 @@ export default class Material extends SingletonMixin(
     name: { persistent: true },
     appearance: { persistent: true },
     tags: { persistent: true },
+    corrosiveTo: { persistent: true },
     tastes: { persistent: true, spoiler: 1, spoilerName: 0 },
     composition: { persistent: true },
     symbol: { persistent: true },
@@ -1045,6 +1052,26 @@ export default class Material extends SingletonMixin(
   }
 
   public getTags(): readonly string[] { return this.tags; }
+
+  /**
+   * ⭐⭐ **What this material ATTACKS** — the material tags it eats
+   * through, as the corrosion channel's agent side.
+   *
+   * Absent (every shipped row) means inert, which is the right default:
+   * a material that says nothing about what it corrodes corrodes nothing.
+   * A caustic row is content — quicklime says
+   * `corrosiveTo: [organic, tissue, leather, textile]`, an acid says
+   * `[metal]` — and the whole of the corrosion fold is *does this layer's
+   * tag set intersect the agent's list*.
+   *
+   * ⚠ It reads the **closed tag vocabulary already authored on every
+   * row** (`metal`, `organic`, `leather`, `textile`, `tissue`…) rather
+   * than a second classification of its own. The alternative — a
+   * per-material hardness-against-acid number — would be a new axis
+   * nobody could author honestly, and it would make thickness matter,
+   * which for corrosion it does not.
+   */
+  public getCorrosiveTo(): readonly string[] { return this.corrosiveTo; }
   public setTags(value: string[]): void { this.tags = value; }
   public hasTag(tag: string): boolean { return this.tags.includes(tag); }
 

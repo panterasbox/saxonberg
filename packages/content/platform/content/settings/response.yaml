@@ -83,6 +83,39 @@ settings:
   - key: response.blunt.ruptureThreshold
     value: "1"
 
+  # ── cold ─────────────────────────────────────────────────────────────
+  # ⚠ Cold has ONE key of its own. The insulation fold is `response.heat.*`
+  # for both directions, because those dials describe the COVERING — what
+  # a garment does is resist a temperature difference, and giving cold a
+  # second copy of them would be two numbers for one fact.
+  - key: response.cold.severityPerResidual
+    value: "1"
+
+  # ── corrosion ────────────────────────────────────────────────────────
+  # ⭐ The one channel where thickness is irrelevant. A layer the agent
+  # attacks is CONSUMED (passes everything, and wears for having taken
+  # it); a layer it does not attack either WICKS it through (absorbent) or
+  # SHEDS it. A steel breastplate sheds lye and is eaten by acid.
+  - key: response.corrosion.wearPerContact
+    value: "0.2"
+
+  # Above this water-absorption capacity (%) a layer wicks rather than
+  # sheds. Wool and linen are well above it; waxed hide and plate are not.
+  - key: response.corrosion.shedAbsorptionMax
+    value: "5"
+
+  - key: response.corrosion.wickAttenuation
+    value: "0.3"
+
+  - key: response.corrosion.shedAttenuation
+    value: "0.95"
+
+  # The reference agent the `analyze` preview shows a corrosion column
+  # against — a preview has to assume SOMETHING, and "attacks organic
+  # matter" is the commonest caustic in the world.
+  - key: response.corrosion.previewCorrosiveTo
+    value: "organic"
+
   - key: response.noWoundThreshold
     value: "0.25"
 

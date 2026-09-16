@@ -1058,8 +1058,29 @@ vitest + `lint:family` gate each. `pnpm test` runs once before each MR.
 
 ### Stage B — two new ways to be hurt, and honest spell costs
 
-**W-B0 — channel plumbing + legibility.** *(D14 vocabulary half, D17
-vocabulary half, D18)* `cold` + `corrosion` in `Channel.ts`; `FOLDED`;
+**W-B0 — channel plumbing + legibility.** ✅ **DONE** *(D14 vocabulary
+half, D17 vocabulary half, D18)*
+> **Build note.** The exhaustive `switch` did its job: adding two channels
+> produced exactly one compile error, and widening `CHANNELS` then produced
+> **four more** at the places that built an `InflictSpec` from a bare
+> `Channel`. Every one was a real hole — `DeliveryProfile`, `HazardDelivery`
+> and two `CombatLogic` sites would all have coerced a corrosive contact
+> into a mechanical spec with no agent, which sheds off every layer in the
+> game. Each now refuses it in its own words, with the reason: **a
+> corrosive insult carries the AGENT'S chemistry, and an energy-and-site
+> producer has none to give.** `DeliveryProfile` also stopped naming
+> `heat` and started asking `Channels.isThermalChannel`, which is how
+> `cold` would otherwise have silently become a mechanical insult.
+> - ⚠ **No `Channels.isCorrosionChannel`** — `lint:lib-statics` again (the
+>   ratchet counts static METHODS; `FOLDED` is a field and is free). With
+>   one member the predicate is `channel === 'corrosion'`, and the file
+>   says so and says to add both together when a second one lands.
+> - `previewBandImpl` needed two fixes the plan did not foresee: a
+>   **reference agent** for the corrosion column (*"how does this answer
+>   corrosion"* is not well-formed without saying against what), and a
+>   guard because `deliveryFor` is the mechanical shape table and **throws**
+>   on anything else. `textDial` is `dial`'s sibling for a word-valued
+>   setting. `cold` + `corrosion` in `Channel.ts`; `FOLDED`;
 `channelDefaultType` arms; `resolveTraumaImpl` branches; `toInflictSpec`
 by predicate; the two loops iterate `FOLDED`; `frostbite`/`caustic` types
 + behaviours; `CorrosionInflictSpec`; `Material.corrosiveTo`; dials.

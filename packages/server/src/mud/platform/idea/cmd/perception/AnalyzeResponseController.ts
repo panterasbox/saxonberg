@@ -20,7 +20,7 @@ import { MixinApi } from '../../../../api/mixin';
 import { MessageApi } from '../../../../api/message';
 import { Mml } from '../../../../api/mml';
 import { MaterialApi } from '../../../../api/material';
-import { MECHANICAL_CHANNELS } from '../../../../lib/material/Channel';
+import { Channels } from '../../../../lib/material/Channel';
 
 interface AnalyzeResponseModel extends CommandModel {
   target?: MqlOneResult;
@@ -126,8 +126,21 @@ export default class AnalyzeResponseController extends CommandController<Analyze
         lines.push(Mml.compose`  control: ${bands[0]!}`);
       }
     }
-    for (const channel of MECHANICAL_CHANNELS) {
-      if (!armor && construction.deliveryFor(channel) === 'none') {
+    // ⭐⭐ **Every folded channel, not just the mechanical three.** A
+    // player examining a gambeson was told how it answers a sword and
+    // never that it is the best thing in the game against a burn — heat
+    // has been in the model since the fire build and in no readout.
+    // `Channels.FOLDED` is the honest set: everything that resolves
+    // through the covering stack, which is everything but `shock`.
+    for (const channel of Channels.FOLDED) {
+      // ⚠ `deliveryFor` is the MECHANICAL shape table and throws on
+      // anything else — a weapon has no thermal or corrosive delivery
+      // profile, so the not-delivered line is a mechanical question only.
+      if (
+        !armor &&
+        Channels.isMechanicalChannel(channel) &&
+        construction.deliveryFor(channel) === 'none'
+      ) {
         lines.push(Mml.compose`  ${channel}: — (not delivered)`);
         continue;
       }

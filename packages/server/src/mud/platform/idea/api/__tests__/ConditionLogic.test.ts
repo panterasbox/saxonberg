@@ -9,6 +9,7 @@
 
 import "../../../../../test-bootstrap";
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
+import type { EnergyInflictSpec } from '../../../../api/condition';
 import { ConditionApi } from '../../../../api/condition';
 import { ConditionLogic } from '../ConditionLogic';
 import { Creature } from '../../../../lib/creature/Creature';
@@ -64,13 +65,15 @@ describe('ConditionLogic.inflict — producer spine', () => {
     // no authored body plan, so blunt contuses (no bone → no fracture); the
     // blunt-through-plate → fracture path is exercised in the acceptance
     // test with a boned body plan.
-    const cases: Array<
-      [Exclude<Parameters<typeof ConditionApi.inflict>[1]['mechanism'], 'shock'>, string]
-    > = [
+    // ⚠ `shock` and `corrosion` are excluded because each has an
+    // InflictSpec variant of its own — a current, and a chemistry.
+    const cases: Array<[EnergyInflictSpec['mechanism'], string]> = [
       ['edge', 'laceration'],
       ['point', 'puncture'],
       ['blunt', 'contusion'],
       ['heat', 'burn'],
+      // ⭐ The same insulation fold as heat, named the other way.
+      ['cold', 'frostbite'],
       ['tearing', 'avulsion'],
     ];
     for (const [mechanism, type] of cases) {

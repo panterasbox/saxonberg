@@ -671,6 +671,25 @@ export const AppSettingKeys = {
   responseDepthReachThreshold: "response.depth.reachThreshold",
   responseDepthStepPerOrgan: "response.depth.stepPerOrgan",
   responseBluntRuptureThreshold: "response.blunt.ruptureThreshold",
+  /**
+   * Cold's residual→severity tail. ⚠ Its own key and NOT its own
+   * insulation dials: `response.heat.*` describes the COVERING, not the
+   * direction of flow, so heat and cold share the fold and differ only
+   * here.
+   */
+  responseColdSeverityPerResidual: "response.cold.severityPerResidual",
+  /**
+   * The corrosion ladder — a layer the agent attacks is CONSUMED (passes
+   * everything, and wears for it); one it does not attack either WICKS
+   * (absorbent) or SHEDS. No hardness, no thickness.
+   */
+  responseCorrosionWearPerContact: "response.corrosion.wearPerContact",
+  responseCorrosionShedAbsorptionMax: "response.corrosion.shedAbsorptionMax",
+  responseCorrosionWickAttenuation: "response.corrosion.wickAttenuation",
+  responseCorrosionShedAttenuation: "response.corrosion.shedAttenuation",
+  /** The reference agent the legibility preview shows a corrosion column for. */
+  responseCorrosionPreviewCorrosiveTo:
+    "response.corrosion.previewCorrosiveTo",
   /** Response — residual energy below which no meaningful wound lands
    * (deflected). */
   responseNoWoundThreshold: "response.noWoundThreshold",

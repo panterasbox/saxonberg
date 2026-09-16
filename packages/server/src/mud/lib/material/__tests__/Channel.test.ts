@@ -1,10 +1,53 @@
 import { describe, it, expect } from 'vitest';
-import { CHANNELS, MECHANICAL_CHANNELS, Channels } from '../Channel';
+import {
+  CHANNELS,
+  MECHANICAL_CHANNELS,
+  THERMAL_CHANNELS,
+  Channels,
+} from '../Channel';
 import type { Channel } from '../Channel';
 
 describe('Channel vocabulary', () => {
-  it('ships edge / point / blunt (mechanical) + shock (electrical)', () => {
-    expect([...CHANNELS]).toEqual(['edge', 'point', 'blunt', 'shock', 'heat']);
+  it('ships seven — three mechanical, two thermal, one electrical, one chemical', () => {
+    expect([...CHANNELS]).toEqual([
+      'edge',
+      'point',
+      'blunt',
+      'shock',
+      'heat',
+      'cold',
+      'corrosion',
+    ]);
+  });
+
+  it('⭐⭐ THERMAL is both directions — one fold, two wounds', () => {
+    // An insulator resists a temperature DIFFERENCE, so heat and cold
+    // share the insulation arithmetic exactly and differ only in the
+    // wound they name (`burn` vs `frostbite`). Two folds would drift.
+    expect([...THERMAL_CHANNELS]).toEqual(['heat', 'cold']);
+    expect(Channels.isThermalChannel('cold')).toBe(true);
+  });
+
+  it('⭐⭐ FOLDED is everything that walks the covering stack — and not shock', () => {
+    // The set the legibility surfaces iterate. `shock` is excluded
+    // because it resolves by CIRCUIT: the conduction walk divides current
+    // toward ground upstream, so it never consults the stack at all —
+    // which is the whole reason this set exists rather than CHANNELS.
+    expect([...Channels.FOLDED]).toEqual([
+      'edge',
+      'point',
+      'blunt',
+      'heat',
+      'cold',
+      'corrosion',
+    ]);
+    expect(Channels.FOLDED).not.toContain('shock');
+  });
+
+  it('corrosion is its own fold — neither mechanical nor thermal', () => {
+    expect(Channels.isChannel('corrosion')).toBe(true);
+    expect(Channels.isMechanicalChannel('corrosion')).toBe(false);
+    expect(Channels.isThermalChannel('corrosion')).toBe(false);
   });
 
   it('the mechanical subset is edge / point / blunt (shock excluded)', () => {

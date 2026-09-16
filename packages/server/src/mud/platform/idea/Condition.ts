@@ -114,7 +114,23 @@ export type TraumaType =
    * the game offers yet: the honest answer is that you are bleeding into
    * yourself and there is nothing to hand that will stop it.
    */
-  | 'rupture';
+  | 'rupture'
+  /**
+   * ⭐ **Frostbite** — the cold channel's wound. Not a burn: it NUMBS the
+   * part (a numb hand cannot grip) and what it wants is warmth, not
+   * fluid. It heals slowly on its own, which is the honest difference —
+   * a burn weeps and gets worse, a freeze is done happening the moment
+   * you are warm again.
+   */
+  | 'frostbite'
+  /**
+   * ⭐⭐ **Caustic** — the corrosion channel's wound, and the only one in
+   * the game that **keeps working after the blow**. The agent is still on
+   * you: severity GROWS while it is active, and the only thing that stops
+   * it is washing it off. Every other wound in this table is a record of
+   * something that already finished happening.
+   */
+  | 'caustic';
 
 // The mechanism vocabulary is unified into the materials-response
 // **channel** set (edge / point / blunt) — the single interface a weapon's
@@ -166,6 +182,16 @@ export interface Trauma {
    * tag serves detect + attribution only.
    */
   magicOrigin?: MagicProvenance;
+  /**
+   * ⭐⭐ **The agent is still on you** — set by `CAUSTIC_BEHAVIOR.onset`
+   * and cleared by a rinse. While it is true the wound GROWS instead of
+   * healing, which is what makes a caustic different in kind from
+   * everything else in this table rather than merely in flavour.
+   *
+   * ⚠ A runtime process flag on the value, exactly like `bleeding` — not
+   * a second condition and not a stored timer. What stops it is an act.
+   */
+  agentActive?: boolean;
   /**
    * The game-time (seconds) this trauma was last integrated — the
    * reconcile-on-read anchor. Stamped at `inflict` and advanced on every
@@ -281,6 +307,11 @@ export const HARM_DEFAULTS = {
     puncture: 0.25,
     laceration: 0.2,
     contusion: 0.1,
+    // A freeze and a chemical burn both destroy tissue in place without
+    // breaking the structure — the same claim as a thermal burn, and the
+    // same weight.
+    frostbite: 0.6,
+    caustic: 0.6,
   } as Record<string, number>,
   /**
    * ⭐ **A conduit tolerates a scratch.** How badly a part something else's
@@ -297,6 +328,17 @@ export const HARM_DEFAULTS = {
   FUNCTION_BAND_FULL: 0.75,
   /** Function at or above this (and below full) reads `impaired`. */
   FUNCTION_BAND_IMPAIRED: 0.4,
+  /** Frostbite's own decay — slower than a burn; cold damage lingers. */
+  FROSTBITE_HEAL_PER_SEC: 0.004,
+  /** Caustic severity gained per game-second while the agent is active. */
+  CAUSTIC_GROWTH_PER_SEC: 0.01,
+  /**
+   * …and the ceiling it grows to. ⚠ A cap is what keeps "wash it off" a
+   * real decision rather than a formality: unbounded growth would make an
+   * unrinsed caustic lethal on a clock nobody can read, which is the
+   * punishment-without-information shape this game avoids.
+   */
+  CAUSTIC_MAX_SEVERITY: 4,
 
   /* ── circulation: what losing blood does to the pressure ─────────────
    * ⭐⭐ **The compensated plateau is the single most important fact about
@@ -948,6 +990,96 @@ export const RUPTURE_BEHAVIOR: TraumaBehavior = {
   ],
 };
 
+/**
+ * ⭐ **frostbite — the cold channel's wound, and it is NOT a burn.**
+ *
+ * Three differences, each of them a real fact about cold injury and each
+ * of them something a player can act on:
+ *
+ * - **It numbs.** A frozen hand cannot grip — the same function cost a
+ *   burn carries, for a different reason.
+ * - **It wants WARMTH, not fluid.** `resolution: 'warmth'` is already in
+ *   `mismatchLine`'s word table, so `treat` says *"It wants warmth."* with
+ *   no code at all. Pouring water on frostbite is exactly as useless as
+ *   bandaging a burn, and the game now says so.
+ * - **It does not weep.** A burn loses plasma through the wound and
+ *   slides toward the exsanguination window on its own clock; a freeze
+ *   does not. It is done happening the moment you are warm again.
+ */
+export const FROSTBITE_BEHAVIOR: TraumaBehavior = {
+  ...decayingBehavior(
+    HARM_DEFAULTS.FROSTBITE_HEAL_PER_SEC,
+    (t) => `frostbite of ${t.site}`
+  ),
+  resolution: 'warmth',
+  signature: [
+    {
+      kind: 'function',
+      lossPerSeverity: HARM_DEFAULTS.FUNCTION_LOSS_PER_SEVERITY.frostbite!,
+    },
+  ],
+};
+
+/**
+ * ⭐⭐ **caustic — the wound that is still happening.**
+ *
+ * Everything else in this table is a record of something that already
+ * finished: a cut was cut, a bone broke, a burn burned. A caustic is the
+ * agent sitting on your skin *right now*, and while it is there the wound
+ * GROWS — `CAUSTIC_GROWTH_PER_SEC` per game-second, to a cap.
+ *
+ * ⚠ That makes `resolve` mean something different here than anywhere
+ * else. A dressing ARRESTS a bleed; a rinse **removes the cause**, after
+ * which the wound decays like any other burn. `resolution: 'wash'` — and
+ * the verb that does it is `wash`, which the world already affords from
+ * any water source.
+ *
+ * ⭐ The cap is what keeps the rinse a decision rather than a formality:
+ * unbounded growth would make an unrinsed caustic lethal on a clock
+ * nobody can read.
+ */
+export const CAUSTIC_BEHAVIOR: TraumaBehavior = {
+  onset(_host: Vitals, t: Trauma): void {
+    t.agentActive = true;
+  },
+  tick(host: Vitals, t: Trauma, elapsedSec: number): void {
+    const D = HARM_DEFAULTS;
+    if (t.agentActive) {
+      t.severity = Math.min(
+        D.CAUSTIC_MAX_SEVERITY,
+        t.severity + D.CAUSTIC_GROWTH_PER_SEC * elapsedSec,
+      );
+      return;
+    }
+    // Rinsed — now it is an ordinary chemical burn, healing at burn's
+    // own rate.
+    t.severity = Math.max(0, t.severity - D.BURN_HEAL_PER_SEC * elapsedSec);
+  },
+  resolve(_host: Vitals, t: Trauma): void {
+    t.agentActive = false;
+  },
+  reopen: noop,
+  describe(t: Trauma): string {
+    return t.agentActive
+      ? `a caustic burn of ${t.site}, still eating`
+      : `a caustic burn of ${t.site}`;
+  },
+  resolution: 'wash',
+  signature: [
+    {
+      kind: 'function',
+      lossPerSeverity: HARM_DEFAULTS.FUNCTION_LOSS_PER_SEVERITY.caustic!,
+    },
+    // ⭐ A chemical burn weeps like a thermal one — the tissue is
+    // destroyed the same way, whatever destroyed it.
+    {
+      kind: 'vital',
+      sign: 'bloodVolume',
+      perHour: -HARM_DEFAULTS.BURN_WEEP_L_PER_HOUR_PER_SEVERITY,
+    },
+  ],
+};
+
 export const TRAUMA_BEHAVIOR: Record<TraumaType, TraumaBehavior> = {
   laceration: LACERATION_BEHAVIOR,
   puncture: PUNCTURE_BEHAVIOR,
@@ -956,6 +1088,8 @@ export const TRAUMA_BEHAVIOR: Record<TraumaType, TraumaBehavior> = {
   avulsion: AVULSION_BEHAVIOR,
   burn: BURN_BEHAVIOR,
   rupture: RUPTURE_BEHAVIOR,
+  frostbite: FROSTBITE_BEHAVIOR,
+  caustic: CAUSTIC_BEHAVIOR,
 };
 
 // ---------- Kind-A: the Condition Idea template ----------

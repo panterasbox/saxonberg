@@ -41,6 +41,7 @@ import type {
 import type {
   InflictSpec,
   InflictOutcome,
+  CorrosionInflictSpec,
   EnergyInflictSpec,
   ShockInflictSpec,
 } from '../../../api/condition';
@@ -70,6 +71,13 @@ function channelDefaultType(channel: Channel): TraumaType {
     case 'heat':
       // Heat that survives the insulation stack burns the tissue.
       return 'burn';
+    case 'cold':
+      // The same insulation stack, run the other way.
+      return 'frostbite';
+    case 'corrosion':
+      // What got past the covering is still chemically active when it
+      // reaches skin — that is what makes it different from a burn.
+      return 'caustic';
   }
 }
 
@@ -228,7 +236,18 @@ export class ConditionLogic extends ApiLogic {
     if (spec.mechanism === 'shock') {
       return inflictShock(target, spec, inflicter);
     }
-    // `spec` is now the energy-carrying variant (shock excluded).
+    // `spec` is now the energy-carrying variant (shock excluded). A
+    // corrosive one carries the agent's chemistry; everything else has
+    // none, and an empty list attacks nothing.
+    if (spec.mechanism === 'corrosion') {
+      return inflictThroughStack(
+        target,
+        spec,
+        'corrosion',
+        inflicter,
+        spec.corrosiveTo,
+      );
+    }
     return Channels.isChannel(spec.mechanism)
       ? inflictThroughStack(target, spec, spec.mechanism, inflicter)
       : inflictPassthrough(target, spec, inflicter);
@@ -889,9 +908,10 @@ function environmentalRow(host: Stuff): AccountabilityFields {
  */
 function inflictThroughStack(
   target: Stuff,
-  spec: EnergyInflictSpec,
+  spec: EnergyInflictSpec | CorrosionInflictSpec,
   channel: Channel,
   inflicter: string | undefined,
+  agent: readonly string[] = [],
 ): InflictOutcome {
   const isBody = MixinApi.isVitals(target);
   let residual = Math.max(0, spec.energy);
@@ -912,10 +932,25 @@ function inflictThroughStack(
         layer.construction,
         layer.grade,
         layer.condition,
+        agent,
       ).residualEnergy;
       // Wear-on-use (Law 2): a covering layer that attenuated a
       // mechanical blow wears — armor degrades by taking hits, never by
       // the clock. Heat/shock leave no structural wear here.
+      // ⭐ **A layer that was EATEN wears for it.** Corrosion's wear is
+      // the inverse of the mechanical rule: a mechanical layer wears
+      // because it stopped something, and a corroded one wears precisely
+      // because it did NOT — the agent went through, and took some of the
+      // layer with it. `residual === incident` is the tell.
+      if (
+        channel === 'corrosion' &&
+        residual >= incident &&
+        MixinApi.isDurable(layer.occ)
+      ) {
+        layer.occ.wear(
+          dial(AppSettingKeys.responseCorrosionWearPerContact, 0.2),
+        );
+      }
       if (
         Channels.isMechanicalChannel(channel) &&
         residual < incident &&
