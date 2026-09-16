@@ -1467,6 +1467,13 @@ export const AppSettingKeys = {
    * is what lets a cooling wand crack and makes a spark wand safer than
    * the equivalent cast. *Calibrate at launch.* */
   magicWasteHeatFraction: "magic.wasteHeatFraction",
+  /**
+   * ⭐ How close a caster's heat pump gets to the Carnot bound. A real
+   * device manages ~40 % of it; the science's worked examples assume the
+   * same, which is what makes cooling *cheap near ambient and divergent
+   * at depth* rather than free.
+   */
+  magicHeatPumpCarnotFraction: "magic.heatPump.carnotFraction",
   /** Magic — a charged item's idle self-discharge, per GAME second. The
    * `d` in `S* = inflow/d`: with no decay, stock grows without bound at
    * any inflow throttle and no dial can save it. HALF the answer — the

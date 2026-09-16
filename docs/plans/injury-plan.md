@@ -1120,7 +1120,32 @@ burning; tinder burning; cursed band leaves the tinder unlit);
 Acceptance: `lint:spell-cost` green at 0; in the Practicum an uncursed
 firebolt lights the tinder and chars the dummy without lighting it.
 
-**W-B2 — the frost spell cooks its caster.** *(D15, D16)* `heatLoadJ` +
+**W-B2 — the frost spell cooks its caster.** ✅ **DONE** *(D15, D16)*
+> **Build note.** Four seams, three of which were declared-and-dead:
+> - ⭐⭐ **`absorbWasteHeat` had no body arm and no caller on the cast
+>   path.** It early-returned unless the endpoint was `Charged`, and
+>   `resolveCastImpl` never called it — so the η < 1 losses arcane-science
+>   puts squarely IN THE CASTER had nowhere to land and never landed
+>   anywhere. Both fixed; a firebolt now warms its caster by ≈ 0.02 K
+>   (invisible and honest) and frost hands them the whole load.
+> - ⭐⭐ **The regulation model erased internal heat.** A body inside its
+>   comfort band was pinned to the setpoint at ZERO cost on every slice,
+>   so `depositHeat` worked on objects and did nothing at all to a person.
+>   `shedAndOffset` had to go in **all three** regulated branches, not the
+>   two the plan named — the cold branch pins too, and a caster working in
+>   a cold room is still carrying what they absorbed.
+> - **The object arm moved inside `deliverAt`** (the reachability fix):
+>   heating a thing with a spell needed no reachability check, no band
+>   gate, and left no provenance. Cooling is the same call with the sign
+>   reversed — `depositHeat` has always taken negative joules, so *ice is
+>   dear* needed no second path.
+> - `Effect.ts` needed **no edit at all** for `cold`: it validates against
+>   `CHANNELS`, so widening the vocabulary was the whole change. The
+>   plan's "author-legality is one edit" claim was right, and the edit
+>   turned out to be zero.
+> - ⚠ `MixinApi.isThermalRegulation` is a new predicate (a static METHOD
+>   on an *Api* class, which `lint:lib-statics` does not count — that
+>   ratchet is non-Api classes only). `heatLoadJ` +
 `absorbHeatLoad` + shedding; `'heat-pump'`; `costOf` arm; `absorbWasteHeat`
 body endpoint + the `resolveCastImpl` call; object arm inside `deliverAt`;
 hyperthermia onset dial; `frost.yaml`. Tests: `ThermalRegulation.heat-load.test.ts`
