@@ -25,6 +25,7 @@ import type { Trauma } from '../../Condition';
 import type Condition from '../../Condition';
 import { StuffApi } from '../../../../api/stuff';
 import type { Combatant } from '../../../../lib/combat/Combatant';
+import type BodyPlan from '../../species/BodyPlan';
 
 const TOPIC = 'act.deed';
 
@@ -213,7 +214,23 @@ export default class AssessController extends CommandController<AssessModel> {
       : null;
     const isInterior = (w: Trauma): boolean =>
       plan?.isInterior(w.site) ?? false;
-    const named = medBand === 'competent' || precise;
+    // ⭐⭐ **Naming an interior wound reads REAL competence, not the self
+    // shortcut.** `medBand` is forced to `expert` for a self-assess — the
+    // shipped fidelity rule, and right for everything you can SEE. It is
+    // wrong here: what your own liver is doing is not visible to you
+    // because it is you, and a body that could name its own internal
+    // injuries would delete the asymmetry this clause exists for.
+    //
+    // So a trained medic examining themselves still names it (they know
+    // the signs) and an ordinary player does not — and learns more from a
+    // competent stranger than from looking, which is the drive's step 7.
+    const realMedBand = MixinApi.isAdvancing(giver)
+      ? await giver.competenceBandFor('medicine')
+      : 'untrained';
+    const named =
+      realMedBand === 'competent' ||
+      realMedBand === 'proficient' ||
+      realMedBand === 'expert';
     const visible = wounds.filter((w) => !isInterior(w));
     const hidden = wounds.filter(isInterior);
 
@@ -256,8 +273,85 @@ export default class AssessController extends CommandController<AssessModel> {
       }
     }
 
+    // ⭐⭐ **The anatomy block** (D12) — one line per part: what it is,
+    // how well it still works, and what is over it, outside-in.
+    //
+    // `assess` listed wounds and never listed PARTS, so a player had no
+    // way to see that they now have a brain, a spine and a liver, no way
+    // to read a function band, and — the reachability gap AC 8 names — no
+    // way to confirm that three layers of armour are all being counted.
+    // The covering stack is `coveringAt`, which is already the one
+    // outside-in walk the resist fold uses, so what is printed here is
+    // literally what a blow will go through.
+    const anatomy = this.renderAnatomy(target, plan, named, isSelf);
+    if (anatomy.length > 0) {
+      blocks.push(Mml.unorderedList(anatomy).toString());
+    }
+
     const body = Mml.fromMarkup(blocks.join('\n\n'));
     MessageApi.scene(giver).topic(TOPIC).toSelf(body).send();
+  }
+
+  /**
+   * One line per body part — `torso — full — steel breastplate over mail
+   * hauberk over padded gambeson`.
+   *
+   * ⚠ **Interior parts are listed only to a reader who could name them**
+   * (the same competence rule the wound list uses). A missing part says so
+   * instead of showing a band, because *"left hand — lost"* reads as an
+   * injury and the hand is not there at all.
+   */
+  private renderAnatomy(
+    target: Stuff,
+    plan: BodyPlan | null | undefined,
+    named: boolean,
+    isSelf: boolean,
+  ): Mml[] {
+    if (!plan || !MixinApi.isVitals(target)) return [];
+    const out: Mml[] = [];
+    for (const part of target.getParts()) {
+      const interior = plan.isInterior(part.key);
+      // ⭐⭐ **You know your own anatomy; you cannot read it.** The drive
+      // caught this: an untrained self-assess showed ten exterior parts
+      // and no brain, spine or liver, because naming an interior part was
+      // gated on medicine competence. But *"do I have a liver"* is not a
+      // diagnosis — everybody has one, and drive step 2 asks to SEE the
+      // organs that were not there before.
+      //
+      // ⚠ What stays gated is the BAND. Showing an untrained player
+      // `liver — failing` would hand them exactly the diagnosis D10 says
+      // they cannot make about themselves. So on yourself an organ is
+      // listed as present and nothing more; a competent reader gets the
+      // band; a stranger with no training gets no organ at all, because
+      // they cannot see inside you.
+      if (interior && !named && !isSelf) continue;
+      const label = part.key.replace(/^body\./, '').replace(/\./g, ' ');
+      if (part.missing) {
+        out.push(Mml.fromMarkup(Mml.escape(`${label} — gone`)));
+        continue;
+      }
+      if (interior && !named) {
+        out.push(Mml.fromMarkup(Mml.escape(label)));
+        continue;
+      }
+      let line = `${label} — ${target.functionAt(part.key)}`;
+      if (!interior && MixinApi.isAttired(target)) {
+        const stack = target
+          .coveringAt(part.key)
+          .map((layer) => (layer as unknown as Stuff).getPresentation());
+        if (stack.length > 0) line += ` — ${stack.join(' over ')}`;
+      }
+      out.push(Mml.fromMarkup(Mml.escape(line)));
+    }
+    // A body with no anatomy authored (no species/bodyplan) says nothing
+    // rather than printing an empty list.
+    if (out.length === 0) return [];
+    return [
+      Mml.fromMarkup(
+        Mml.escape(isSelf ? 'Your body:' : 'Their body:'),
+      ),
+      ...out,
+    ];
   }
 
   /** The mid-fight tactical read — bands only, never a number. */

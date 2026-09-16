@@ -1044,7 +1044,9 @@ vitest + `lint:family` gate each. `pnpm test` runs once before each MR.
   fixture's heart drive is untouched).
 - Acceptance: drive step 9.
 
-**W-A5 — reachable and legible.** *(D12, D19-store/pit)*
+**W-A5 — reachable and legible.** ✅ **DONE** *(D12, D19-store/pit)*
+> **Build note.** The drive found two things, and one of them was a real
+> gameplay defect nothing else could have caught — see *Drive record*.
 - `assess` anatomy + covering listing; Terminus armour stock lines +
   prices; spike-pit site selector; `docs/subsystems/harm.md` +
   `vitals.md` sections for the axis (the doc grows, the CLAUDE.md blurb
@@ -1317,8 +1319,56 @@ Read these first, in this order.
 
 ## Drive record
 
-*(appended at build time, not at plan time)* — the output of running
-`packages/wire/tests/injury.dirty.wire.test.ts` against a fresh boot,
-step by step against the requirements' drive script, and what it found —
-steps 1–19, or 1–16 with a line saying Stage C was cut. Precedent:
-`farming-plan.md § Checkpoint A`.
+`packages/wire/tests/injury.dirty.wire.test.ts`, `WIRE_BOOT=1` (an owned
+world on 2012), run at the end of Stage A.
+
+**First run — 3 of 10 failed. Both findings were real.**
+
+⭐⭐ **1. An untrained body could not see its own organs.** The headline
+surface of the whole build — *"`assess` yourself and see a head, a spine
+and a liver that were not there before"*, drive step 2 — rendered ten
+exterior parts and stopped. The cause was mine and one line long:
+`renderAnatomy` gated interior parts on `named`, and W-A3 had just
+(correctly) made `named` read the observer's REAL medicine competence
+rather than the self→expert shortcut. So the D10 rule *"you cannot
+diagnose your own insides"* had quietly swallowed *"you know you have a
+liver"*, which is not a diagnosis at all.
+
+The fix keeps both: on yourself an organ is **listed and not banded** —
+present, with nothing said about how it is doing. A competent reader gets
+the band; a stranger with no training gets no organ, because they cannot
+see inside you. ⚠ Every unit test passed through this: they asserted the
+strings and the competence rule separately, and neither could see that
+together they hid the roster.
+
+**2. `goto <path>` is not a verb.** The drive tried to walk to the
+Terminus counter with one, the refusal was swallowed by a `.catch`, and
+both armour assertions then failed at the crossroads for a reason that
+had nothing to do with armour. Placement is the harness's job: a second
+session opens with `startLocation: SHOP`. A test defect, but exactly the
+kind that would have been written up as "armour is unreachable".
+
+**Second run — 10 of 10 green**, in 157 s over an owned boot.
+
+What it proves that no unit test can:
+
+- both body plans **stand up in a booted world** after `governs` became
+  validated-at-registration — a plan that throws takes every species
+  wearing it down with it;
+- `assess` **renders** the anatomy to the card (textiles found three
+  defects at exactly this seam), with bands and no raw scalar;
+- ⭐⭐ **the armour is BUYABLE.** Six rows had shipped months ago named by
+  no `props:`, `cast:` or stock line, so the entire outside-in covering
+  model had nothing a player could reach. The counter now sells the
+  padded → mail → plate ladder, and the content-hash reconcile carried the
+  edit into a booted world with no DB reset.
+
+⚠ **Not driveable, and deliberately not faked:** steps 3–10 need a fought
+wound — two wolf bites, a torso blow deep enough to reach an organ, a
+bleed carried to 30 % of volume, an avulsion past the sever threshold.
+None is deterministic against a brain-driven animal inside a test, and
+driving them would mean a wizard turning a dial, which proves something
+no player can do. They are pinned exactly by `Vitals.sever.test.ts`,
+`Vitals.function.test.ts`, `ConditionLogic.interior.test.ts`,
+`Vitals.circulation.test.ts` and the two controller suites. The file's
+header names each one against the step it stands in for.

@@ -29,6 +29,22 @@ data:
     - { itemTemplatePath: /world/terminus/general-store/thing/clasp-knife, par: 2 }
     - { itemTemplatePath: /world/terminus/general-store/thing/lantern, par: 2 }
     - { itemTemplatePath: /world/terminus/general-store/thing/whetstone, par: 2 }
+    # ⭐⭐ **Armour, finally BUYABLE.** Six armour rows shipped months ago
+    # and not one was referenced by any `props:`, `cast:` or stock line —
+    # so the whole outside-in covering model (the resist fold, the layer
+    # ladder, per-part insulation) had nothing a player could reach. The
+    # torso slot already carries `capacity: 4`, so layering has always been
+    # possible; this is the reachability it was missing.
+    #
+    # The five are a real ladder in BOTH price and physics: padded soaks a
+    # blunt blow and does nothing against a point, mail is the reverse,
+    # plate turns an edge outright. Wearing all three of the torso pieces
+    # at once is the historical stack and the game now permits it.
+    - { itemTemplatePath: /stuff/thing/armor/padded-gambeson, par: 2 }
+    - { itemTemplatePath: /stuff/thing/armor/hide-jerkin, par: 2 }
+    - { itemTemplatePath: /stuff/thing/armor/mail-hauberk, par: 1 }
+    - { itemTemplatePath: /stuff/thing/armor/steel-breastplate, par: 1 }
+    - { itemTemplatePath: /stuff/thing/armor/leather-boots, par: 2 }
     - { itemTemplatePath: /world/terminus/general-store/thing/iron-ingot, par: 3 }
     - { itemTemplatePath: /world/terminus/general-store/thing/sewing-kit, par: 2 }
     - { itemTemplatePath: /world/terminus/general-store/thing/sewing-machine, par: 1 }
@@ -126,6 +142,16 @@ data:
     /world/terminus/general-store/thing/clasp-knife: 6
     /world/terminus/general-store/thing/lantern: 10
     /world/terminus/general-store/thing/whetstone: 3
+    # ⚠ Priced against the shipped ladder (stipend 20, wages 4-6 per
+    # game-hour, bed 45, wagon 95), not as a balance claim. The shape is
+    # the claim: boots are an afternoon's wages and a breastplate is a
+    # season's — armour is the most expensive thing a new player wants,
+    # which is why the gambeson exists at 14.
+    /stuff/thing/armor/leather-boots: 8
+    /stuff/thing/armor/hide-jerkin: 12
+    /stuff/thing/armor/padded-gambeson: 14
+    /stuff/thing/armor/mail-hauberk: 40
+    /stuff/thing/armor/steel-breastplate: 55
     /world/terminus/general-store/thing/iron-ingot: 5
     /world/terminus/general-store/thing/sewing-kit: 5
     /world/terminus/general-store/thing/sewing-machine: 18

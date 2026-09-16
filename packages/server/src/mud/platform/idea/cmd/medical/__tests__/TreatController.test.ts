@@ -35,6 +35,8 @@ import { installV1QuantityMarshallers } from '../../../../../lib/persistence/__t
 import { Quantity } from '../../../../../lib/quantity';
 import type { CommandContext } from '../../../../../api/command';
 import type { Trauma } from '../../../Condition';
+import BodyPlan from '../../../species/BodyPlan';
+import Species from '../../../species/Species';
 import { OUTCOMES, type Outcome } from '../../../../../lib/advancement/ActSignature';
 
 // A dressing-capable item that is NOT a Bandage — proves the gate is
@@ -422,6 +424,51 @@ describe('TreatController — the treatment matches the condition', () => {
     // Nothing happened to the burn, and the bandage is still there.
     expect(burn.dressed).toBeFalsy();
     expect(StuffApi.findById(bandage.stuffId)).toBeTruthy();
+  });
+
+  it('⭐⭐ a bandage on an INTERIOR wound is refused — there is nothing to dress', async () => {
+    // ⚠ The wound TYPE here is a `puncture`, which resolves by `dressing`
+    // like any other bleed — so without the site gate a player could
+    // bandage a punctured liver. What makes a wound undressable is WHERE
+    // it is, and that fact lives on the body plan, not on the trauma.
+    const plan = makeStuff(() => new BodyPlan());
+    plan.setName('treat-biped');
+    plan.setBodyParts([
+      { key: 'body.torso', parent: null, tissues: [] },
+      {
+        key: 'body.torso.liver',
+        parent: 'body.torso',
+        governs: ['clearance'],
+        tissues: [{ tissuePath: '/stuff/idea/material/tissue/flesh', mass: 1.5 }],
+      },
+    ]);
+    stampTemplatePathForTest(plan, '/stuff/idea/species/BodyPlan/treat-interior');
+    const species = makeStuff(() => new Species());
+    species.setBodyPlan(plan);
+    stampTemplatePathForTest(species, '/stuff/idea/species/test/treat-interior');
+
+    const bandage = makeStuff(() => new Bandage());
+    const inside: Trauma = {
+      kind: 'trauma',
+      type: 'puncture',
+      site: 'body.torso.liver',
+      severity: 2,
+      bleeding: true,
+    };
+    const { medic, room } = medicWithWound(
+      bandage,
+      inside,
+      '/platform/agent/Avatar/medic-interior',
+    );
+    medic.setSpecies(species);
+    const ctrl = makeStuff(() => new TreatController());
+    await ctrl.execute({}, ctxFor(medic, room));
+
+    expect(note).toHaveBeenCalledWith(
+      expect.objectContaining({ reason: 'wound-interior' }),
+    );
+    expect(inside.dressed).toBeFalsy();
+    expect(inside.bleeding).toBe(true);
   });
 
   it('a bandage on a CUT still works, exactly as before', async () => {
