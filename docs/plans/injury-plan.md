@@ -24,7 +24,10 @@ not two. just give me one thing to review."*). Recorded as their call.
 ⭐ **With one MR, the cut line is the only release valve left:** if the
 build runs hot the MR ships **A + B** and Stage C (W-C0…W-C2) is cut —
 a build-scope decision, never a second MR. Nothing in B is cut before C;
-the frost spell is the falsifiable-prediction content and stays.
+the frost spell is the falsifiable-prediction content and stays. *Why C
+is the cut and not B:* C is the lens-5 stage — the mechanism holds across
+epochs and only the delivery changes — while A + B carry lenses 1–4.
+Cutting C loses the **demonstration** of lens 5, never the property.
 
 ---
 
@@ -338,7 +341,12 @@ passthrough retires by acquiring a mechanism; nothing here needs it to).
 HARM_DEFAULTS.SEVER_SEVERITY` (seed 4.0) **and** the plan marks the part
 `severable` (the first production reader of that field). Reachable in
 combat: a bladed weapon at the `open` band (4.5) or the wolf's `worry`
-(D19) — the drive tunes the two dials.
+(D19) — the drive tunes the two dials. *Why not a `tearing` channel
+(confirmed by both deciding lenses, do not re-litigate):* it would ship
+with **no deliverer** — nothing a person wields tears; that is what a bear
+or a machine does — which is the dead-feature pattern this repo keeps
+paying for; and the edge ladder mirrors the blunt→fracture shape players
+already understand.
 
 **D3 — The sever is a Vitals verb: `severPart(key)`.** Writes
 `bodyPartDeltas[k].missing = true` for the part **and every descendant**
@@ -430,14 +438,31 @@ it diverges from the tree.** biped + quadruped gain
 an `assess` line this build; the toxin-clearance multiplier is pharma's
 (deferred seam). Head/limb `severable` stays; organs are not severable.
 
-**D9 — Interior reach (Q10): a depth ladder by tissue mass, and `rupture`
-is the seventh trauma type.** In `inflictThroughStack`, after the exterior
-trauma resolves with severity `s`: if the site has interior children
-(`plan.isInterior` ∧ `parent === site`) and `s ≥
+**D9 — Interior reach (Q10): a depth ladder by cross-section, and
+`rupture` is the seventh trauma type.** In `inflictThroughStack`, after
+the exterior trauma resolves with severity `s`: if the site has interior
+children (`plan.isInterior` ∧ `parent === site`) and `s ≥
 response.depth.reachThreshold` (seed 2.0), the excess `s − threshold`
-reaches them **largest tissue mass first**, one per
+reaches them **largest cross-section first**, one per
 `response.depth.stepPerOrgan` (seed 1.0): organ k (0-based) is reached
 with severity `excess − k·step` while that is `> response.noWoundThreshold`.
+⭐ **The principle is cross-sectional area, not mass:** a bigger organ
+presents more cross-section to whatever is coming through, which is *why*
+it is reached first. Area is Meeh's `mass^(2/3)` — the formula
+`BodyPlan.getPartSurfaceFraction` (`BodyPlan.ts:473-487`) already
+computes — so factor it into one `BodyPlan.partArea(key)` that the
+surface-fraction walk and the ladder both call, rather than a second
+expression of the same idea. ⚠ **Call `partArea`, never
+`getPartSurfaceFraction`, for an organ:** that walk opens with
+`if (part.governs?.length) continue;` — the interiority predicate — so it
+returns **0 for every interior part** by construction. The fraction is
+exterior-only on purpose (it answers *"how much of the skin is bare"*);
+the ladder wants the raw area. ⚠ The resulting order is **identical** to
+raw-mass order (the map is monotonic): this is justification and one
+shared method, not a behaviour change — nobody should "optimise" it back
+to mass. *Lens 2 is the real win:* an author tunes which organ is reached
+first by authoring its **mass**, a physical fact they author anyway — no
+list, no enumeration, no code.
 Interior type: `point → puncture`, `edge → laceration`, `blunt → rupture`
 when the interior severity `≥ response.blunt.ruptureThreshold` (seed 1.0)
 else `contusion` (a concussion, a bruised liver). `rupture` = an interior
@@ -462,9 +487,19 @@ exterior one (the cavity is the floor you cannot see).
 **D11 — Circulation (Q8): a derived write in the existing bleed-floor
 tail, not a new arm.** In `reconcileConditions` immediately before the
 `bv ≤ survivableMin` check: `loss = 1 − bv/baseline`; systolic =
-`baseline × (1 − SHOCK_BP_SLOPE × max(0, loss − SHOCK_COMPENSATED_LOSS))`,
-diastolic likewise (ATLS class II is compensated, class III drops
-pressure); spawn the affliction `/platform/idea/Condition/circulation/hypovolemic-shock`
+`baseline × (1 − SHOCK_BP_SLOPE × max(0, loss − SHOCK_COMPENSATED_LOSS))`
+— ⭐ the compensated plateau is the single most important fact about
+haemorrhage and it is modelled on purpose: *a patient can be seriously
+bled with a normal blood pressure right up until they are not* (ATLS
+class II holds, class III drops). **Diastolic gets its own term, not
+"likewise":** `baseline × (1 + SHOCK_DIASTOLIC_RISE × min(loss,
+SHOCK_COMPENSATED_LOSS) / SHOCK_COMPENSATED_LOSS − SHOCK_BP_SLOPE ×
+max(0, loss − SHOCK_COMPENSATED_LOSS))` (seed rise 0.08) — in class II
+the diastolic *rises* while the systolic holds, so the **pulse pressure
+narrows**; that narrowing is the earliest sign and the first thing a
+clinician reads, and falling both by one slope would teach a simpler,
+false thing. Then both fall together. (`SHOCK_COMPENSATED_LOSS 0.15`,
+`SHOCK_BP_SLOPE 1.5`, all in `HARM_DEFAULTS`.) Spawn the affliction `/platform/idea/Condition/circulation/hypovolemic-shock`
 when `loss ≥ SHOCK_LOSS_FRACTION` (0.30), relieve below `0.25` (the
 thermal `ensureAffliction`/`clearAffliction` hysteresis shape, written as
 two private Vitals methods). Dying opens at 36 % loss, so shock precedes
@@ -533,24 +568,28 @@ returns `null` for any `Channels.isThermalChannel` (both), never by name.
   effect `{kind: inject-channel, channel: cold, energy: [1, 2, 4], joules:
   [60000, 120000, 240000]}`, `requiredBand: novice`. Disciplines
   `magic-destroy` / `magic-fire` already exist in arcana.
-- ⚠ **D16 — the arithmetic, and the hyperthermia onset.** Per τ of mana a
-  near-ambient pump puts `COP + 1 ≈ 8 kJ` into the caster; a mid-depth pool
-  (120 τ) therefore absorbs ≈ 1 MJ ≈ **+3.3 K** on a 70 kg body — heat
-  stress, sweating, hydration draining — but **not** the shipped
-  hyperthermia onset at `survivableMax` (315 K, +5 K). The published
-  science predicts *"dangerous to the caster rather than to the reserve"*
-  and the shipped constants say *"uncomfortable, not yet dangerous, on one
-  pool."* Two honest readings, and the plan picks the medical one:
-  clinically hyperthermia **is** a core above ~38.3 °C, and the shipped
-  row spawns at heat-stroke. So `reconcileThermalCascade` spawns
-  `hyperthermia` at `setpoint + THERMAL_DEFAULTS.HYPERTHERMIA_ONSET_K`
-  (seed 2.5) while the **lethal dwell stays keyed to `survivableMax`** (the
-  build must verify in `reconcileThermalCascade` that the dwell reads the
+- **D16 — the hyperthermia onset moves to `setpoint + 2.5 K`. Settled by
+  the lenses, not escalated.** The arithmetic: per τ of mana a
+  near-ambient pump puts `COP + 1 ≈ 8 kJ` into the caster, so a mid-depth
+  pool (120 τ) absorbs ≈ 1 MJ ≈ **+3.3 K** on a 70 kg body — never the
+  shipped onset at `survivableMax` (315 K, +5 K). But the shipped constant
+  names the condition at the wrong temperature: **315 K (42 °C) is heat
+  *stroke*; clinical hyperthermia is a core above ~38.3 °C.** *Lens 1
+  decides:* a player who knows physiology predicts onset near 38.5 °C and
+  the shipped model would surprise them *wrongly* — the exact failure
+  mode. *Lens 2 agrees independently:* keyed to `setpoint + ONSET_K`, a
+  species authors its setpoint and gets a correct onset free, whereas
+  keyed to `survivableMax` an author tuning **survivability** silently
+  moves the onset of a **different condition**; the fix separates "when
+  do I get sick" from "when do I die" into two independently authorable
+  facts. Both limbs point the same way, so there was never a fork. So:
+  `reconcileThermalCascade` spawns `hyperthermia` at `setpoint +
+  THERMAL_DEFAULTS.HYPERTHERMIA_ONSET_K` (seed 2.5); the **lethal dwell
+  stays keyed to `survivableMax`** (the build verifies the dwell reads the
   temperature, not the condition's presence; if it reads presence, split
-  it). With that, ~92 τ of a 120 pool reaches the row with 28 left — step
-  13 as written. This is a thermal-subsystem change; Hearthworks' sealed
-  cellar and the thermal tests are the collision. ⚠ Flagged for the
-  user's eye in the once-over.
+  it). With that, ~92 τ of a 120 pool reaches the row with 28 left —
+  drive step 13 as written. Thermal tests and Hearthworks' sealed cellar
+  are the collision to re-run, not a decision to revisit.
 
 **D17 — `corrosion` is a third fold branch keyed on what the covering IS,
 and `caustic` is the ninth trauma type (Q6, Q9).** `CHANNELS` +=
@@ -692,9 +731,14 @@ gate.
   hotspot ignition model is the actual fix, it is a fire-subsystem
   build, and it is deferred (see Deferred seams). Nothing below is that
   fix; it is content the shipped model can represent honestly.**
-- **Decision:** `cost: 30` (a real raise, under the science's 35.2 τ
-  worked example) with `joules: [15000, 25500, 30000]`; **the dummy stays
-  1.5 kg and stays a dummy** — a firebolt scorches and chars it (real
+- **Decision — and it is a compromise, not a clean result:** this build
+  is **authoring content around a known model error** — choosing a 40 g
+  ignition target because that is what a bulk-temperature check can
+  light. Better than an absurd dummy mass, recorded with its arithmetic
+  in Deferred seams, and not to be read as the answer. `cost: 30` (a real
+  raise, under the science's 35.2 τ worked example) with
+  `joules: [15000, 25500, 30000]`; **the dummy stays 1.5 kg and stays a
+  dummy** — a firebolt scorches and chars it (real
   `heat` → `depositHeat`, the fuel reserve intact) and does **not** set it
   alight, which is correct under both the physics and the shipped model
   and a better demonstrator: *hit the target* and *set it alight* are
@@ -894,9 +938,11 @@ vitest + `lint:family` gate each. `pnpm test` runs once before each MR.
 **W-A4 — blood loss reaches shock.** *(D11)*
 - The circulation derive + the `hypovolemic-shock` row; `check-condition-arms
   --list` before and after (5 → 5).
-- Tests: `Vitals.circulation.test.ts` (BP falls past 15 % loss; shock at
-  30 % before dying at 36 %; hysteresis; `getConditionBand` reads the
-  out-of-band pressure; an electrocution fixture's heart drive is untouched).
+- Tests: `Vitals.circulation.test.ts` (systolic holds and diastolic rises
+  through 15 % loss — pulse pressure narrows, the earliest sign; both fall
+  past it; shock at 30 % before dying at 36 %; hysteresis;
+  `getConditionBand` reads the out-of-band pressure; an electrocution
+  fixture's heart drive is untouched).
 - Acceptance: drive step 9.
 
 **W-A5 — reachable and legible.** *(D12, D19-store/pit)*
@@ -1015,7 +1061,7 @@ booted world (the once-guard) — the drive runs against a **fresh** DB.
 | 4 — shock before death, with a window | W-A4 |
 | 5 — lose a limb, keep playing, do most things | W-A0 + W-A2 (one hand still grips; locomotion `impaired`, not `lost`) |
 | 6 — frozen and caustic-burned, each unlike fire | W-B0/B2/B3 (`frostbite` numbs and wants warmth; `caustic` grows until washed) |
-| 7 — an over-caster injures themselves, and can tell it was heat | W-B2 (`assess`/`measure temperature` show the rising core; the sweat cue fires; the mana bar is not empty) — ⚠ contingent on D16 |
+| 7 — an over-caster injures themselves, and can tell it was heat | W-B2 (`assess`/`measure temperature` show the rising core; the sweat cue fires; the `hyperthermia` row lands at +2.5 K with mana to spare — D16) |
 | *(added scope, D22 — not a requirements AC)* a firebolt's authored cost and delivery obey the price list, and a gate holds it | W-B1 (`lint:spell-cost` at 0; the uncursed bolt lights the tinder and chars the dummy without lighting it; the cursed one lights neither) |
 | 8 — buy armour, wear three layers, see the layers matter | W-A5 (stock + the outside-in listing) |
 | 9 — bare-foot-on-glass unchanged | W-A0 regression assertion; W-A2 keeps the 0.5 laceration limp equivalent |
@@ -1057,19 +1103,23 @@ Unmapped: none. Drive steps 17–19 are Stage C's and go with the cut; AC
 
 ## Risks & opens
 
-1. ⚠ **D16 — the hyperthermia onset (needs the user's eye).** Lowering
-   the `hyperthermia` spawn to +2.5 K touches the thermal subsystem and
-   Hearthworks' sealed-cellar heat tests. The alternative — leave 315 K —
-   makes drive step 13 read *"sweating, dizzy, hydration falling"* rather
-   than the row's name. Either is honest; the plan picks the medical
-   threshold. If the user prefers the science's answer be reported as
-   found, delete the onset dial from W-B2 and rewrite step 13's
-   expectation in the drive record.
-2. **Combat's site vocabulary is two words.** `siteFor` returns
-   torso/head; every interior reach in a fight starts there. The wolf
-   never bites a leg. Acceptable this build (the requirements never ask
-   for hit-location breadth) — a called-shot/surface-fraction site pick is
-   a combat slate item, recorded below.
+1. **D16 is settled (lenses 1 + 2), but it is a thermal-subsystem
+   change.** Lowering the `hyperthermia` onset to `setpoint + 2.5 K`
+   touches `reconcileThermalCascade`, `ThermalRegulation.test.ts` and
+   Hearthworks' sealed-cellar heat tests. Any test asserting onset at
+   `survivableMax` was asserting heat-stroke under hyperthermia's name —
+   fix the test. The lethal dwell must keep reading `survivableMax`; if
+   it turns out to ride the condition's presence, split it in W-B2.
+2. **Combat's site vocabulary is two words — and that is honest by
+   omission, not an unexamined gap.** `siteFor` returns torso/head; every
+   interior reach in a fight starts there; the wolf never bites a leg.
+   ⭐ *Lens 1 forbids the obvious fix:* a surface-fraction-**weighted**
+   site pick is a roll deciding what your action *did*, which
+   `uncertainty.md` bans outright (resolutional randomness). The honest
+   fix is **aim-derived and deterministic** (a called shot the attacker
+   chooses, priced in poise/tempo), and that is a combat build — recorded
+   below. A weighted roll would be strictly worse than the current
+   simplification.
 3. **Balance of the two sever dials.** `avulsionThreshold 3.0` and
    `SEVER_SEVERITY 4.0` against band energies (open = 4.5 × delivery
    scale) mean severing needs an `open` foe and a real blade — the drive
@@ -1107,6 +1157,10 @@ Clean attach points, each leaving as a slate line — never a plan section.
 
 - **Heart-rate compensation + the electrocution writer** → `blood-slate`
   (one owner per sign; the shock arm holds `heartRate` today).
+- **Pulse-pressure narrowing as a cue-without-a-name** — D11 models it;
+  nothing yet *reads* it back to a medic as the sign it is (a novice sees
+  "pale", a clinician should see a thready pulse before the pressure
+  falls) → `medic-judgment-slate`.
 - **Clearance × toxin clearance** (`Metabolic.reconcileToxinConditions`
   scaled by `capacity('clearance')`) → `pharma-slate`.
 - **Called shots / surface-fraction site selection** in `siteFor` →
