@@ -691,19 +691,45 @@ thing the clock drives can be restored by playing. **An NPC cannot be
 un-aged.** That asymmetry, not the shutdown question, is what earns age
 more caution than soil.
 
-### ⭐ DECIDED — curves without lifespans
+### ⭐ DECIDED — curves without lifespans, for PERSONS
 
 `ageCurve` is live: it gives life stages, and a life stage may confer
-ability. **`lifespanMin` / `lifespanMax` deliberately do NOT bite.**
-Nothing dies of old age.
+ability. **`lifespanMin` / `lifespanMax` do not bite for anything
+sentient.** No person dies of old age.
 
 That is a decision, not an omission, and it should not be quietly
-"finished" by a later build wiring `lifespanMax` into mortality. The
-reason is the table above: under 12× compression, lifespans that bite
-mean a named NPC reliably dies inside the game's ordinary operational
-life, and *"does the innkeeper die, and who replaces her?"* is a
-succession problem nobody has solved. **Ability from age, yes; death from
-age, not yet.**
+"finished" by a later build wiring `lifespanMax` into mortality for
+people. The reason is the table above: under 12× compression, lifespans
+that bite mean a named NPC reliably dies inside the game's ordinary
+operational life, and *"does the innkeeper die, and who replaces her?"*
+is a succession problem nobody has solved. **Ability from age, yes; death
+from age, not for persons.**
+
+⚠⚠ **Amended by the pets build (2026-09-16, MR !257): it bites for
+NON-SENTIENT animals.** `OrganismMixin.reconcileSenescence()` calls
+`ConditionApi.die(host, 'old age')` when three things hold — the body
+reads the new `senescent` life stage, its species is **not** sentient,
+and it is past `lifespanMax`.
+
+⭐ The reservation above is untouched by that, and the sentience test is
+exactly why. What this section reserved is the **succession problem**:
+offices, titles, contracts, a chronicle, and who answers for them when
+the holder dies. *None of that is a question about a cat.* So a companion
+dying of old age is the requirement this section's caution was never
+about, and the boundary is drawn by a structural fact rather than by
+anyone remembering to check.
+
+⚠ Two further guards, both asserted: a body with an `Interactive` reads
+`getLifeStage() === null`, so a **played** body is excluded before the
+sentience test is reached; and nothing drives the reconcile on a
+schedule — it rides a beat the host already runs (the `feeds` brain), so
+an animal nothing is paying attention to does not age out.
+
+⭐ `senescent` also closes a loop this file left open: `AgeCurveSpec.
+senescentAt` shipped with the curve, five species rows author it, and
+**nothing read it** until now. An old animal reads old — *grey about the
+muzzle and slow to rise* — well before the span ends, so the warning
+arrives long before the consequence.
 
 ⭐ The lifespan numbers are not inert, though — they are *informational*.
 `SpeciesLogic` prints `~120 years` on the char-gen species dossier: a
