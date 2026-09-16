@@ -143,7 +143,7 @@ beforeEach(async () => {
 
   vi.spyOn(BankingApi, 'primaryAccountIdOf').mockResolvedValue('acct-1');
   vi.spyOn(BankingApi, 'balanceOf').mockImplementation(
-    () => new Money(balanceMinor, 'crown' as never),
+    () => Money.of(balanceMinor, 'crown' as never),
   );
 
   shop = makeStuffAtPath(() => new Location(), '/test/eats/location/shop');

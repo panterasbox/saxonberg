@@ -2,8 +2,10 @@ verbs: [mill]
 controller: /trade/milling/idea/cmd/milling/MillController
 description: "Grind grain or malt, and choose how much of it you keep"
 help: |
-  `mill the sack of wheat` grinds it at the stones' usual setting.
-  `mill the sack of wheat 0.9` sets the extraction first.
+  `mill the sack of wheat` grinds it at whatever stones are in reach, at
+  their usual setting. `mill the sack of wheat 0.9` sets the extraction
+  first. Where there is more than one — a quern in your hands and a mill
+  in the room — say which: `mill the wheat at the quern`.
 
   ⭐ **The extraction is the decision.** It is how much of the grain you
   keep as flour, and it is not a choice between three options — every
@@ -45,6 +47,27 @@ args:
     # decides which by reading the MATERIAL's tags, never by class — so
     # the arg constrains to physical matter and no further.
     requires: TangibleMixin
+  # ⭐⭐ WHICH STONES, declared rather than re-derived — the `buy … from
+  # <counter>` shape, and for its stated reasons.
+  #
+  # The controller used to hunt for a mill itself. Declaring it makes the
+  # binder resolve it like any other object, keeps `mill wheat` unchanged,
+  # and makes a second set of stones ADDRESSABLE (`mill wheat at the hand
+  # quern` in a room that has both) — which a controller-side default
+  # never was.
+  #
+  # ⚠⚠ And the query is the MIXIN, not `[class.GristMill]`. That is not
+  # style: `ComminutingMixin` is kernel substrate precisely because the
+  # metal chain's stamp mill is its second consumer, in a pack with no
+  # ancestor in common — so a class check would silently refuse to find
+  # the very thing the mixin was lifted to the kernel for.
+  - name: mill
+    type: object
+    required: false
+    prepositions: [at, with, on]
+    default: "reachable:[mixin.ComminutingMixin]"
+    scope: ["reachable"]
+    requires: [ComminutingMixin]
   - name: extraction
     type: number
     required: false

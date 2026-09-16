@@ -48,7 +48,10 @@ import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import type { Container } from '@saxonberg/server/mud/lib/spatial/Container';
 import type { Containable } from '@saxonberg/server/mud/lib/spatial/Containable';
 import type Material from '@saxonberg/server/mud/lib/material/Material';
-import type { ComminutionPlan } from '@saxonberg/server/mud/lib/craft/Comminuting';
+import type {
+  Comminuting,
+  ComminutionPlan,
+} from '@saxonberg/server/mud/lib/craft/Comminuting';
 import { MixinApi } from '@saxonberg/server/mud/api/mixin';
 import { MessageApi } from '@saxonberg/server/mud/api/message';
 import { Mml } from '@saxonberg/server/mud/api/mml';
@@ -59,7 +62,6 @@ import { SchedulerApi } from '@saxonberg/server/mud/api/scheduler';
 import { WorldClockApi } from '@saxonberg/server/mud/api/worldclock';
 import { Quantity } from '@saxonberg/server/mud/lib/quantity';
 import { ManualBuildStep } from '@saxonberg/server/mud/lib/craft/ManualBuildStep';
-import GristMill from '../../../thing/GristMill';
 
 const TOPIC = 'act.deed';
 
@@ -68,6 +70,8 @@ const GRINDABLE = ['grain', 'malt'];
 
 interface MillModel extends CommandModel {
   grain?: Stuff;
+  /** ⭐ The stones, resolved by the BINDER off the view's arg. */
+  mill?: Stuff;
   extraction?: number;
 }
 
@@ -83,8 +87,12 @@ interface Charge {
 export default class MillController extends CommandController<MillModel> {
   async execute(model: MillModel, context: CommandContext): Promise<void> {
     const giver = context.commandGiver;
-    const mill = this.reachableMill(giver);
-    if (!mill) {
+    // ⭐⭐ Read, never hunted. The view declares `mill` with an MQL
+    // default (`reachable:[mixin.ComminutingMixin]`), so the binder
+    // resolves it exactly as it resolves the grain — and a room with two
+    // sets of stones becomes addressable for free.
+    const mill = model.mill ?? null;
+    if (mill === null || !MixinApi.isComminuting(mill)) {
       this.decline(
         context,
         Mml.compose`There are no stones here to grind with.`,
@@ -207,20 +215,6 @@ export default class MillController extends CommandController<MillModel> {
       .send();
   }
 
-  /** A mill in your hands or standing in the room. */
-  private reachableMill(giver: Stuff): GristMill | null {
-    const held = MixinApi.isContainer(giver)
-      ? giver.getContents().find((c) => c instanceof GristMill)
-      : undefined;
-    if (held) return held as GristMill;
-    const room = (
-      giver as unknown as { getContainer(): Stuff | null }
-    ).getContainer();
-    if (room === null || !MixinApi.isContainer(room)) return null;
-    const found = room.getContents().find((c) => c instanceof GristMill);
-    return (found as GristMill | undefined) ?? null;
-  }
-
   /**
    * What is going in. Two shapes, because grain arrives both ways: a
    * discrete `Crop` sack off a field, and bulk in a holder (the malt
@@ -283,7 +277,7 @@ function hasAnyTag(material: Material, tags: readonly string[]): boolean {
  * whole point of the rung — so the flour waits where the mill is.
  */
 async function finishGrind(
-  mill: GristMill,
+  mill: Stuff & Comminuting,
   source: Stuff,
   charge: Charge,
   plan: ComminutionPlan,

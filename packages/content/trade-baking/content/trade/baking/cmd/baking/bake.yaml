@@ -12,6 +12,9 @@ help: |
   500 K will carry it from done to overdone to burnt while you are doing
   something else. Taking it out is a thing you do.
 
+  Where there is more than one fire in reach, say which: `bake at the
+  brick oven`.
+
   ⚠ Too fierce a fire does not refuse to bake — it scorches the outside
   while the middle is still raw. You are allowed to ruin bread, and a
   ruined loaf is a loaf you are holding rather than an error message.
@@ -22,3 +25,21 @@ args:
   - name: loaf
     type: string
     required: false
+  # ⭐⭐ WHICH OVEN, declared rather than re-derived — the `buy … from
+  # <counter>` shape. `bake` alone is unchanged; a bakehouse with two
+  # ovens becomes addressable (`bake at the big oven`), which a
+  # controller-side default never was.
+  #
+  # ⚠ The query is `FurnaceMixin`, and the controller narrows from there
+  # into the state it actually needs: lit, fuelled, and a CHAMBER you can
+  # put something in. That split is deliberate and follows `buy`'s own
+  # note — one arg finds every fire, and the controller decides which of
+  # them is an oven rather than a campfire. A predicate cannot express
+  # "lit", so pretending the arg could would be worse than honest.
+  - name: oven
+    type: object
+    required: false
+    prepositions: [at, in, on]
+    default: "reachable:[mixin.FurnaceMixin]"
+    scope: ["reachable"]
+    requires: [FurnaceMixin]

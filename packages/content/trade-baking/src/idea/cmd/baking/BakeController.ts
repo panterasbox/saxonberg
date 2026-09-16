@@ -41,6 +41,8 @@ const TOPIC = 'act.deed';
 
 interface BakeModel extends CommandModel {
   loaf?: string;
+  /** ⭐ The fire, resolved by the BINDER off the view's arg. */
+  oven?: Stuff;
 }
 
 export default class BakeController extends CraftController<BakeModel> {
@@ -58,9 +60,15 @@ export default class BakeController extends CraftController<BakeModel> {
     const output = outcome.output;
     if (output === null) return;
 
-    // ⭐ Into the oven, if the fire in reach is a chamber you can put
-    // something in. A campfire is not, and then the loaf comes to hand.
-    const oven = this.reachableChamber(giver);
+    // ⭐ Into the oven, if the fire is a chamber you can put something
+    // in. A campfire is not, and then the loaf comes to hand.
+    //
+    // ⚠ The FIRE is read off the model — the binder resolved it, so a
+    // bakehouse with two ovens is addressable. What is still decided
+    // here is whether that fire is usable: `lit`, fuelled, and a
+    // Container. A mixin predicate cannot express "lit", and pretending
+    // the arg could would be a worse lie than this narrowing.
+    const oven = this.usableChamber(model.oven ?? null);
     if (oven !== null) {
       await ContainmentApi.move(output as Stuff & Containable, oven);
       MessageApi.scene(giver)
@@ -87,18 +95,14 @@ export default class BakeController extends CraftController<BakeModel> {
       .send();
   }
 
-  /** A lit furnace in the room that is also a container — an oven. */
-  private reachableChamber(giver: Stuff): (Stuff & Container) | null {
-    const room = (
-      giver as unknown as { getContainer(): Stuff | null }
-    ).getContainer();
-    if (room === null || !MixinApi.isContainer(room)) return null;
-    for (const occ of room.getContents()) {
-      const s = occ as unknown as Stuff;
-      if (!MixinApi.isFurnace(s) || !MixinApi.isContainer(s)) continue;
-      if (!s.isLit() || s.fuelRemaining() <= 0) continue;
-      return s as Stuff & Container;
-    }
-    return null;
+  /**
+   * Is this fire an oven you can put a loaf in — lit, fuelled, and a
+   * chamber? `null` for a campfire, a dead grate, or nothing at all.
+   */
+  private usableChamber(fire: Stuff | null): (Stuff & Container) | null {
+    if (fire === null) return null;
+    if (!MixinApi.isFurnace(fire) || !MixinApi.isContainer(fire)) return null;
+    if (!fire.isLit() || fire.fuelRemaining() <= 0) return null;
+    return fire as Stuff & Container;
   }
 }

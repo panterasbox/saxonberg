@@ -595,6 +595,9 @@ export const MixinRefusals: Partial<Record<MixinName, string>> = {
   HeldGoodsMixin: "{} isn't a shelf goods are held on",
   ConsignmentShelfMixin: "{} isn't a shelf you can trade from",
 
+  // Reduction & separation — a mill, a stamp battery.
+  ComminutingMixin: "{} isn't something that grinds",
+
   // Boundaries & mechanisms.
   SealableMixin: "{} doesn't open and close",
   BulkableMixin: "{} doesn't hold liquid to read",

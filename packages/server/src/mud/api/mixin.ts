@@ -90,6 +90,7 @@ import type { Wet } from '../lib/wetness/Wet';
 import type { Fresh } from '../lib/material/Freshness';
 import type { Dosed } from '../lib/thermal/ThermalDose';
 import type { Composed } from '../lib/metabolism/Composed';
+import type { Comminuting } from '../lib/craft/Comminuting';
 import type { Cured } from '../lib/material/Cured';
 import type { Contaminable } from '../lib/material/Contaminable';
 import type { Growing } from '../lib/husbandry/Growing';
@@ -1238,6 +1239,20 @@ export class MixinApi {
    */
   public static isFresh(obj: Stuff): obj is Stuff & Fresh {
     return this.hasMixin(obj, Mixins.Fresh);
+  }
+
+  /**
+   * A host that **reduces and separates matter** — a mill, a stamp
+   * battery, anything that turns a quantity of one thing into a finer
+   * product plus a coarser residue.
+   *
+   * ⚠ Narrow on THIS, never on a concrete class. The mixin is kernel
+   * substrate precisely because its second consumer (the metal chain's
+   * stamp mill) lives in a different pack with no ancestor in common —
+   * so an `instanceof GristMill` check would silently fail to find it.
+   */
+  public static isComminuting(obj: Stuff): obj is Stuff & Comminuting {
+    return this.hasMixin(obj, Mixins.Comminuting);
   }
 
   /**

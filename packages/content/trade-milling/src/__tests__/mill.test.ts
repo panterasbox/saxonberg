@@ -25,6 +25,8 @@ import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
 import YAML from 'yaml';
 import GristMill from '../thing/GristMill';
+import { ComminutingMixin } from '@saxonberg/server/mud/lib/craft/Comminuting';
+import { ToolMixin } from '@saxonberg/server/mud/lib/craft/Tooled';
 import MillController from '../idea/cmd/milling/MillController';
 import Material from '@saxonberg/server/mud/lib/material/Material';
 import Sack from '@saxonberg/server/mud/platform/thing/Sack';
@@ -186,14 +188,39 @@ function ctx(): CommandContext {
   });
 }
 
+/**
+ * ⚠⚠ **The model carries the MILL, because the view does.**
+ *
+ * The controller used to hunt for one itself — a hand-rolled walk over
+ * the giver's contents and the room's, matching `instanceof GristMill`.
+ * Two things were wrong with it and the second is the serious one:
+ *
+ *   1. it re-derived what the binder already resolves declaratively
+ *      (the `buy … from <counter>` shape), so a room with a quern AND a
+ *      mill gave you whichever the walk hit first, unaddressably;
+ *   2. ⭐⭐ it matched a CLASS. `ComminutingMixin` is kernel substrate
+ *      precisely because the metal chain's stamp mill is its second
+ *      consumer, in a pack with no ancestor in common — so the check
+ *      would have silently refused to find the very thing the mixin was
+ *      lifted to the kernel for.
+ *
+ * So these fixtures pass the mill the way the binder will, and the
+ * `instanceof`-free narrowing is what the last test in this group
+ * proves.
+ */
 async function mill(
   grain: Stuff | null,
   extraction?: number,
+  stones?: Stuff,
 ): Promise<CommandContext> {
   const c = ctx();
   const ctrl = makeStuff(() => new MillController());
   await ctrl.execute(
-    { ...(grain ? { grain } : {}), ...(extraction !== undefined ? { extraction } : {}) } as never,
+    {
+      ...(grain ? { grain } : {}),
+      ...(stones ? { mill: stones } : {}),
+      ...(extraction !== undefined ? { extraction } : {}),
+    } as never,
     c,
   );
   return c;
@@ -349,7 +376,7 @@ describe('⭐⭐ the rung buys back TIME (D27)', () => {
     const sack = cropSack(WHEAT, 5, 'fine');
     await ContainmentApi.move(sack as never, room as never);
 
-    const c = await mill(sack, 0.8);
+    const c = await mill(sack, 0.8, q);
     expect(refusal(c)).toBeNull();
     // ⭐ The shipped slot rule, not new code: every other hands act is
     // refused until this finishes.
@@ -370,7 +397,7 @@ describe('⭐⭐ the rung buys back TIME (D27)', () => {
     const sack = cropSack(WHEAT, 5, 'fine');
     await ContainmentApi.move(sack as never, room as never);
 
-    const c = await mill(sack, 0.75);
+    const c = await mill(sack, 0.75, m);
     expect(refusal(c)).toBeNull();
     // No engagement at all. The driver may leave, log out, or start
     // something else — the river does not need them.
@@ -384,7 +411,7 @@ describe('⭐⭐ the rung buys back TIME (D27)', () => {
     await ContainmentApi.move(m as never, room as never);
     const sack = cropSack(WHEAT, 5);
     await ContainmentApi.move(sack as never, room as never);
-    expect(refusal(await mill(sack, 0.75))).toBe('no-power');
+    expect(refusal(await mill(sack, 0.75, m))).toBe('no-power');
   });
 
   it('a wheel in the room drives the stones', async () => {
@@ -405,7 +432,7 @@ describe('the grind itself', () => {
     const sack = cropSack(WHEAT, 25, 'fine');
     await ContainmentApi.move(sack as never, room as never);
 
-    await mill(sack, 0.72);
+    await mill(sack, 0.72, q);
     // Complete the engagement the quern started.
     const e = actor.getEngagements()[0]!;
     SchedulerApi.complete(e);
@@ -427,7 +454,7 @@ describe('the grind itself', () => {
     await ContainmentApi.move(q as never, room as never);
     const sack = cropSack(WHEAT, 5, 'poor');
     await ContainmentApi.move(sack as never, room as never);
-    await mill(sack, 0.8);
+    await mill(sack, 0.8, q);
     SchedulerApi.complete(actor.getEngagements()[0]!);
     await new Promise((r) => setTimeout(r, 0));
 
@@ -456,13 +483,41 @@ describe('the grind itself', () => {
       return t;
     });
     await ContainmentApi.move(rock as never, room as never);
-    expect(refusal(await mill(rock))).toBe('not-grindable');
+    expect(refusal(await mill(rock, undefined, q))).toBe('not-grindable');
   });
 
   it('no stones in reach declines rather than doing nothing', async () => {
+    // ⚠ No mill in the model is exactly what the binder's default
+    // resolving nothing looks like — so this is the real empty-room
+    // case rather than a synthetic one.
     const sack = cropSack(WHEAT, 5);
     await ContainmentApi.move(sack as never, room as never);
     expect(refusal(await mill(sack))).toBe('no-mill');
+  });
+
+  it('⭐⭐ a mill it has never heard of still works — the mixin, not the class', async () => {
+    // THE point of the fix. `ComminutingMixin` is kernel substrate
+    // because the metal chain's stamp mill is its second consumer, in a
+    // pack with no ancestor in common. A controller matching
+    // `instanceof GristMill` would silently refuse it.
+    class StampBattery extends ComminutingMixin(ToolMixin(Thing)) {
+      static _mixinName = 'TestStampBattery';
+    }
+    const battery = makeStuff(() => new StampBattery());
+    battery.setCapabilities(['millstone']);
+    battery.throughputKgPerMin = 2;
+    battery.productMaterial = FLOUR;
+    battery.residueMaterial = BRAN;
+    battery.productVessel = FLOUR_SACK;
+    battery.residueVessel = BRAN_SACK;
+    await ContainmentApi.move(battery as never, room as never);
+
+    const sack = cropSack(WHEAT, 5, 'fine');
+    await ContainmentApi.move(sack as never, room as never);
+
+    // Not a `GristMill`, and it grinds.
+    expect(battery instanceof GristMill).toBe(false);
+    expect(refusal(await mill(sack, 0.8, battery as never))).toBeNull();
   });
 
   it('a mill already turning refuses a second grind', async () => {
@@ -471,7 +526,7 @@ describe('the grind itself', () => {
     q.setGrinding(true);
     const sack = cropSack(WHEAT, 5);
     await ContainmentApi.move(sack as never, room as never);
-    expect(refusal(await mill(sack))).toBe('already-milling');
+    expect(refusal(await mill(sack, undefined, q))).toBe('already-milling');
   });
 });
 
@@ -484,7 +539,7 @@ describe('⭐⭐⭐ the extraction is continuous, and that is the whole design',
     for (const e of [0.61, 0.62]) {
       const sack = cropSack(WHEAT, 25, 'fine');
       await ContainmentApi.move(sack as never, room as never);
-      await mill(sack, e);
+      await mill(sack, e, q);
       SchedulerApi.complete(actor.getEngagements()[0]!);
       await new Promise((r) => setTimeout(r, 0));
       const flour = sacksIn(room).find(
