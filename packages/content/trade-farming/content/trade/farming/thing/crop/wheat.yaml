@@ -1,0 +1,12 @@
+# A sack of wheat — the head of the grain chain. Everything the miller
+# and the baker do starts here.
+class: /platform/thing/Crop
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: sack of wheat
+  keywords: [wheat, corn, crop, sack]
+  register: indefinite
+  longDescription: |
+    Threshed wheat, hard amber grain that rattles when the sack is moved, with the dust of the flail still on it.
+  material: /stuff/idea/material/food/wheat-grain
+  mass: 25

@@ -1,0 +1,44 @@
+# Wheat in the ground — ⭐ and THREE NUMBERS are the whole design.
+#
+# Barley's profile with `coldStopK` 278 -> 280, `moistureWiltAt` 0.05 ->
+# 0.08, and `daysToStage.mature` 100 -> 110. That is it, and it is
+# enough: wheat stops growing two kelvin sooner, wilts at nearly twice
+# the moisture, and takes ten days longer to come. On thin ground in a
+# cold season barley carries and wheat does not.
+#
+# ⚠ Nobody authors that comparison anywhere. It is three numbers in a
+# profile, read by the same min-of-four limiting-factor law both crops
+# already use, and a player who sows both on the upper bench finds it out
+# by looking at the field. That is what "the world is derivable" means
+# here — the lesson is a consequence, not a lesson.
+#
+# ⚠ It authors `coldStopK`, which every crop in this build does and no
+# houseplant does: an outdoor cereal stops in winter because it is cold,
+# and the same plant under glass does not. Winter is not a mode.
+class: /platform/thing/Plant
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: stand of wheat
+  keywords: [wheat, corn, crop, stand]
+  register: indefinite
+  longDescription: |
+    Wheat standing stiff in the ear, beardless and square-shouldered, going gold from the foot of the stem upward.
+  _speciesPath: /stuff/idea/species/plantae/tracheophyta/liliopsida/poales/poaceae/triticum/aestivum
+  material: /stuff/idea/material/tissue/plant-tissue
+  lifecycleState: alive
+  seedTemplatePath: /trade/farming/thing/seed/wheat
+  harvestTemplatePath: /trade/farming/thing/crop/wheat
+  # ⭐ More protein carried off the field means more nitrogen carried off
+  # it — crude protein is nitrogen x 6.25, so the draw and the grain's
+  # own figures are the same fact seen twice.
+  nutrientDraw: 22
+  profile:
+    moistureHappyAt: 0.35
+    moistureWiltAt: 0.08
+    litresPerGameDay: 0.16
+    luxHappyAt: 200
+    luxDarkAt: 20
+    coldStopK: 280
+    warmHappyK: 291
+    rootDemand: { seedling: 0.2, young: 1.0, established: 2.0, mature: 3.0 }
+    daysToStage: { young: 18, established: 55, mature: 110 }
