@@ -44,10 +44,18 @@ import {
 } from '../../security/__tests__/test-setup';
 import { installV1QuantityMarshallers } from '../../persistence/__tests__/quantity-marshaller-test-helpers';
 
-const BREAD = '/stuff/idea/material/food/eats-bread';
-const LEAN = '/trade/baking/thing/eats-lean';
-const WHITE = '/trade/baking/thing/eats-white';
-const COUNTER = '/world/terminus/market/thing/eats-counter';
+/*
+ * ⚠ SYNTHETIC fixtures under `/test/**`, never the shipped bakery's
+ * paths. A kernel test proves the KERNEL; a test of real content lives
+ * beside the content. `lint:test-content` caught this file naming the
+ * shipped bakery's own rows and it was right to: the brain works on any
+ * counter with priced bread on it, and pinning it to one pack's paths
+ * would quietly have made a kernel test depend on that pack.
+ */
+const BREAD = '/test/eats/material/bread';
+const LEAN = '/test/eats/thing/lean';
+const WHITE = '/test/eats/thing/white';
+const COUNTER = '/test/eats/thing/counter';
 
 class TestBuyer extends CommandGiverMixin(
   SensorMixin(MobileMixin(ContainerMixin(ContainableMixin(Idea)))),
@@ -60,7 +68,7 @@ class TestBuyer extends CommandGiverMixin(
   protected handleMessage(): void {}
   protected handleEnvelope(): void {}
   getIdentityPath(): string {
-    return '/platform/agent/Avatar/eats-buyer';
+    return '/test/eats/agent/buyer';
   }
   async forceCommand(line: string): Promise<void> {
     this.typed.push(line);
@@ -138,8 +146,8 @@ beforeEach(async () => {
     () => new Money(balanceMinor, 'crown' as never),
   );
 
-  shop = makeStuffAtPath(() => new Location(), '/world/eats-shop');
-  home = makeStuffAtPath(() => new Location(), '/world/eats-home');
+  shop = makeStuffAtPath(() => new Location(), '/test/eats/location/shop');
+  home = makeStuffAtPath(() => new Location(), '/test/eats/location/home');
   counter = makeStuffAtPath(() => new Stock(), COUNTER);
   counter.stockLines = [
     { itemTemplatePath: LEAN, par: 4 },
@@ -232,14 +240,14 @@ describe('every act is a verb a player could type', () => {
     // ⚠ `eat` is absent because the forced `buy` is a no-op in this
     // fixture, so no loaf is in hand — and the brain checks rather than
     // assuming. A forced command reports no outcome.
-    expect(buyer.typed[0]).toContain('/world/eats-shop');
-    expect(buyer.typed[buyer.typed.length - 1]).toContain('/world/eats-home');
+    expect(buyer.typed[0]).toContain('/test/eats/location/shop');
+    expect(buyer.typed[buyer.typed.length - 1]).toContain('/test/eats/location/home');
   });
 
   it('⭐ home is re-taken even when nothing is bought', async () => {
     balanceMinor = 0;
     await eats.act(ctxFor(buyer));
-    expect(buyer.typed[buyer.typed.length - 1]).toContain('/world/eats-home');
+    expect(buyer.typed[buyer.typed.length - 1]).toContain('/test/eats/location/home');
   });
 });
 
