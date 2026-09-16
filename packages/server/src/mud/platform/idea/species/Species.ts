@@ -179,6 +179,44 @@ export interface AgeCurveSpec {
  * ⚠ `floor` is where neglect stops, not zero: an animal that has known
  * people does not become a wild one. *It becomes harder, not feral.*
  */
+/**
+ * ⭐⭐ **How food reaches this animal** — the rungs its species has, and
+ * the ones it simply does not.
+ *
+ * Three of these are ways food arrives with no vessel at all, and three
+ * name a KIND of feeding vessel. An animal eats by the ways its species
+ * lists and by no others:
+ *
+ * | rung | what it means |
+ * |---|---|
+ * | `hand` | it will take food from an offered hand. ⭐ The rung that earns REGARD, and the only one that does |
+ * | `ground` | it will eat what is lying on the floor |
+ * | `graze` | it feeds off the land itself — declared, and nothing reads it yet |
+ * | `bowl` · `trough` · `hopper` | it eats from a feeding vessel **of that kind** |
+ *
+ * ⚠⚠ **A canary has no `hand` rung, and that is not a shortfall.** It is
+ * why the axis exists: a cat can be hand-fed and a canary cannot, ever,
+ * however devoted. Before this, every animal fed identically and the
+ * difference between a bird and a cat was nothing at all.
+ *
+ * ⚠ Absent means **not in this conversation**, exactly as the other two
+ * species dials do — not "eats everything". A wolf declares none.
+ */
+export const FEEDING_STYLES = [
+  'hand',
+  'ground',
+  'graze',
+  'bowl',
+  'trough',
+  'hopper',
+] as const;
+
+export type FeedingStyle = (typeof FEEDING_STYLES)[number];
+
+/** The vessel kinds — the subset of {@link FEEDING_STYLES} a `Feeder` is. */
+export const FEEDER_KINDS = ['bowl', 'trough', 'hopper'] as const;
+export type FeederKind = (typeof FEEDER_KINDS)[number];
+
 export interface HandlingRange {
   /** Handling never decays below this. The species' memory of people. */
   floor: number;
@@ -480,6 +518,13 @@ export default class Species extends SingletonMixin(
   protected biddability: number | null = null;
 
   /**
+   * The ways food reaches a member of this species. `null` — the default
+   * — means the species does not feed in any modelled way (a wolf).
+   * See {@link FEEDING_STYLES}.
+   */
+  protected feedingStyle: FeedingStyle[] | null = null;
+
+  /**
    * ⭐ **What a carcass of this species yields to a knife** — a list of
    * `{ cut, units }`, where `cut` is the template path of the Provision a
    * clean butchering produces and `units` is how many a clean one gives.
@@ -605,6 +650,11 @@ export default class Species extends SingletonMixin(
     // value is what has to be earned.
     handlingRange: { persistent: true, authorable: true, spoiler: 1, spoilerName: 0 },
     biddability: { persistent: true, authorable: true, spoiler: 1, spoilerName: 0 },
+    // ⭐ Level 0, unlike the two dials above: *cats eat from bowls and
+    // birds from hoppers* is ordinary natural history, not something you
+    // earn by keeping one. It is also the thing a would-be keeper most
+    // needs to look up.
+    feedingStyle: { persistent: true, authorable: true },
     adultMass: { persistent: true, authorable: true },
     ageCurve: { persistent: true, authorable: true },
     production: { persistent: true, authorable: true },
@@ -852,6 +902,38 @@ export default class Species extends SingletonMixin(
   /** Declare biddability; clamped into `0..1`. */
   public setBiddability(value: number | null): void {
     this.biddability = value === null ? null : Math.max(0, Math.min(1, value));
+  }
+
+  /** The ways food reaches this animal, or `null`. See {@link FEEDING_STYLES}. */
+  public getFeedingStyles(): readonly FeedingStyle[] | null {
+    return this.feedingStyle;
+  }
+
+  /** Whether this species feeds by `style`. `false` for a silent species. */
+  public feedsBy(style: FeedingStyle): boolean {
+    return this.feedingStyle?.includes(style) ?? false;
+  }
+
+  /**
+   * Declare the feeding rungs. ⚠ Refuses an unknown word rather than
+   * silently dropping it: a typo'd rung would read as "this animal does
+   * not eat that way", which is indistinguishable from a deliberate
+   * omission and would be found only by an animal quietly starving.
+   */
+  public setFeedingStyle(value: FeedingStyle[] | null): void {
+    if (value === null) {
+      this.feedingStyle = null;
+      return;
+    }
+    for (const style of value) {
+      if (!(FEEDING_STYLES as readonly string[]).includes(style)) {
+        throw new Error(
+          `Species.setFeedingStyle: '${String(style)}' is not a feeding ` +
+            `style. One of: ${FEEDING_STYLES.join(', ')}.`,
+        );
+      }
+    }
+    this.feedingStyle = [...value];
   }
 
   public getLifespanMin(): number { return this.lifespanMin; }

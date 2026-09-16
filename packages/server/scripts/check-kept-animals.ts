@@ -213,6 +213,41 @@ function main(): void {
     );
   }
 
+  /*
+   * ⭐⭐ **Direction 3 — a feeding rung no vessel in the game satisfies.**
+   *
+   * A species naming `hopper` when nothing ships a hopper is an animal
+   * that refuses every bowl in the world and starves, silently, with
+   * nothing anywhere to say why. It is the same triangle as the other
+   * two — a declaration on one side, the thing that answers it on the
+   * other — and it is the shape this build kept finding in shipped
+   * content: `cadenceMs` the parser did not know, a `behaviors:` block
+   * no composed class could hold, `primaryKeyword` authored into a void.
+   *
+   * ⚠ Only the VESSEL rungs are checked. `hand`, `ground` and `graze`
+   * are answered by the world rather than by a row.
+   */
+  const VESSEL_RUNGS = new Set(['bowl', 'trough', 'hopper']);
+  const kindsShipped = new Set<string>();
+  for (const row of rows) {
+    const kind = row.data.feederKind;
+    if (typeof kind === 'string') kindsShipped.add(kind);
+  }
+  for (const row of rows) {
+    const styles = row.data.feedingStyle;
+    if (!Array.isArray(styles)) continue;
+    const missing = styles.filter(
+      (v) => typeof v === 'string' && VESSEL_RUNGS.has(v) && !kindsShipped.has(v),
+    );
+    if (!missing.length) continue;
+    failures.push(
+      `  ${row.path} feeds by ${missing.join(' + ')}, but no shipped row\n` +
+        `    declares a feeder of that kind — the animal would refuse every\n` +
+        `    vessel in the game and starve without a word.\n` +
+        `    row: ${row.file}`,
+    );
+  }
+
   // Direction 2 — a bondable animal nobody can ask anything.
   for (const [speciesPath, users] of bySpecies) {
     const bondedUsers = users.filter((r) => isBonded(r.klass));

@@ -16,5 +16,6 @@ data:
     A long wooden trough, worn pale and smooth along its inner edge where
     a great many animals have leaned into it.
   mass: 14
+  feederKind: trough
   interiorBulk: true
   interiorCapacity: 40

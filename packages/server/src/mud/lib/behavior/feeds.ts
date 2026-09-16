@@ -30,6 +30,7 @@
 import type { EngagementSlot } from '../activity/Engaged';
 import type { BrainContext, BrainStatics } from './brain';
 import type { Stuff } from '../stuff/Stuff';
+import type { Bonded } from '../husbandry/Bonded';
 import { MixinApi } from '../../api/mixin';
 import { MessageApi } from '../../api/message';
 import { Mml } from '../../api/mml';
@@ -51,12 +52,19 @@ export const brain = class {
     if (!room || !MixinApi.isContainer(room)) return;
 
     // ── what is within reach, before anything reads a clock ──
+    //
+    // ⭐⭐ **By the ways its species eats, and no others.** A canary feeds
+    // at a hopper and will not hop down for a scrap on the floor; a
+    // collie eats anything anywhere. Before the feeding-style axis every
+    // animal fed identically and the difference between a bird and an ox
+    // was nothing at all.
     const here = [...room.getContents()];
-    const fromBowl = brainFoodInFeeder(here);
-    const loose = here.find(
-      (t) => t !== (host as unknown as Stuff) && edible(t),
-    );
-    const food = fromBowl ?? loose ?? null;
+    const fromVessel = foodInVessel(here, host);
+    const loose = host.feedsBy('ground')
+      ? (here.find((t) => t !== (host as unknown as Stuff) && edible(t)) ??
+        null)
+      : null;
+    const food = fromVessel ?? loose ?? null;
 
     // ⚠⚠ THE GUARD. Nothing to eat and nobody owns it: leave without
     // reading metabolism at all. See the class doc.
@@ -85,7 +93,7 @@ export const brain = class {
         .send();
       // ⭐ A meal here is a day toward this being home. Only from a
       // FEEDER: scraps on the floor are not keeping an animal.
-      if (fromBowl) {
+      if (fromVessel) {
         const day = Math.floor(
           WorldClockApi.getNow().rawValue() / SECONDS_PER_GAME_DAY,
         );
@@ -102,13 +110,20 @@ function edible(thing: Stuff): boolean {
   return thing.getMaterial()?.getEdibility() === true;
 }
 
-/** The first edible thing sitting in a feeding vessel in this room. */
-function brainFoodInFeeder(here: readonly Stuff[]): Stuff | null {
+/**
+ * The first edible thing in a vessel of a kind this animal eats from.
+ *
+ * ⭐ The vessel answers what is in it (`offerings()`) rather than the
+ * brain rummaging through its contents — a read that belongs to one
+ * object lives on that object. ⚠ And the KIND is checked: a canary at a
+ * horse trough is not a fed canary.
+ */
+function foodInVessel(here: readonly Stuff[], host: Stuff & Bonded): Stuff | null {
   for (const thing of here) {
-    if (!MixinApi.isFeeder(thing) || !MixinApi.isContainer(thing)) continue;
-    for (const inner of thing.getContents()) {
-      if (edible(inner)) return inner;
-    }
+    if (!MixinApi.isFeeder(thing)) continue;
+    if (!host.feedsBy(thing.getFeederKind())) continue;
+    const offered = thing.offerings();
+    if (offered.length > 0) return offered[0]!;
   }
   return null;
 }

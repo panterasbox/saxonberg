@@ -9,5 +9,6 @@ data:
   register: indefinite
   longDescription: |
     A shallow tin saucer, stacked with a dozen of its fellows. Nobody sells it as anything in particular — it holds about a cup of water, and that is the whole of its ambition.
+  feederKind: bowl
   interiorBulk: true
   interiorCapacity: 0.3

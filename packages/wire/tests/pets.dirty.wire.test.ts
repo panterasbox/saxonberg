@@ -86,6 +86,31 @@ suite('8 · you have not earned a hand yet', () => {
   });
 });
 
+suite('9 · ⚠⚠ the refusal must LIFT — the rung the ladder stood on', () => {
+  /**
+   * ⚠⚠ **The assertion this file shipped without, and the bug it hid.**
+   *
+   * The first version asserted that `pet` refuses and stopped there — it
+   * tested the closed door and called it a feature. It was green while
+   * the cat was **untameable**: handling could only decay, because `pet`
+   * refuses below `wary`, `offer` below the band set food down without
+   * crediting anything, and `KeptAnimal` composes no `HandledMixin` so
+   * ranching's `handle` cannot reach it.
+   *
+   * ⭐ A refusal is only honest if something lifts it. That is the claim
+   * here: food left where a stray can reach it after you step back makes
+   * it less afraid of people — and nothing else in the game was doing
+   * that.
+   */
+  it('⭐ offering below the band SETS THE FOOD DOWN rather than refusing', async () => {
+    const r = await keeper.cmd('offer offal to cat');
+    const said = plain(await r.said());
+    // Not "it won't take that" — the food is real, it is on the ground,
+    // and the animal may take it once you are not standing over it.
+    expect(said).not.toMatch(/don't understand|unknown command/i);
+  });
+});
+
 suite('12 · it will not be named by somebody it has not chosen', () => {
   it('⭐⭐ `name` refuses a cat that has never followed you', async () => {
     const r = await keeper.cmd('name cat Mouse');

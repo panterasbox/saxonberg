@@ -49,6 +49,11 @@ data:
   # exactly the same words it uses when it simply is not hungry.
   olfactoryProfile:
     acuity: keen
+  # ⭐ A cat eats from a bowl and will take food from a hand once it
+  # trusts one — and it will absolutely eat a scrap off the floor, which
+  # is the rung that gets a stray from flighty to a hand in the first
+  # place. Feeding buys tractability; only the hand buys affection.
+  feedingStyle: [bowl, ground, hand]
   handlingRange: { floor: 0.15, ceiling: 0.9 }
   biddability: 0.1
   longDescription: >-

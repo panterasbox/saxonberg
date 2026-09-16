@@ -64,14 +64,21 @@ export default class OfferController extends CommandController<OfferModel> {
       return;
     }
 
-    // ⚠ Not close enough to be hand-fed: set it down and wait. The food
-    // stays real and the animal may take it on a later beat, which is
-    // the whole taming ladder in one branch.
+    // ⚠⚠ **Two different reasons a hand does not work**, and they are
+    // not the same thing at all.
+    //
+    // `tooWild` is about THIS animal and it lifts: feed it where it can
+    // reach after you step back, and it climbs. ⭐ `noHandRung` is about
+    // the SPECIES and never lifts — a canary will not take food from a
+    // hand however devoted it is, which is why the feeding-style axis
+    // exists. Both set the food down rather than refusing, because an
+    // animal that cannot be hand-fed can still be fed.
     const bandIndex = MixinApi.isHandling(animal)
       ? HANDLING_BANDS.indexOf(animal.handlingBand())
       : -1;
     const tooWild = bandIndex < HANDLING_BANDS.indexOf(TOUCH_BAND);
-    if (tooWild) {
+    const noHandRung = !animal.feedsBy('hand');
+    if (tooWild || noHandRung) {
       const room = MixinApi.isContainable(animal) ? animal.getContainer() : null;
       if (room && MixinApi.isContainable(food) && MixinApi.isContainer(room)) {
         await ContainmentApi.move(food, room);
@@ -81,6 +88,11 @@ export default class OfferController extends CommandController<OfferModel> {
         .toSelf(Mml.compose`You set ${Mml.thing(food)} down. It waits until you step back.`)
         .toPeers(Mml.compose`${Mml.actor(actor)} sets ${Mml.thing(food)} down near ${Mml.actor(animal)}.`)
         .send();
+      context.note({
+        kind: 'controller-rejected',
+        reason: noHandRung ? 'no-hand-rung' : 'too-wild-for-a-hand',
+        detail: animal.stuffId,
+      });
       return;
     }
 

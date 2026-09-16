@@ -72,6 +72,8 @@ function R(r: FakeRoom): Stuff {
 }
 
 interface AnimalOpts {
+  /** The rungs its species feeds by. Default: everything but the hopper. */
+  styles?: string[];
   bond?: number;
   waiting?: boolean;
   home?: string;
@@ -93,6 +95,8 @@ function animal(o: AnimalOpts = {}) {
     getHome: () => o.home ?? '',
     isStamped: () => o.stamped ?? false,
     wouldEat: () => o.refusal ?? null,
+    feedsBy: (style: string) =>
+      (o.styles ?? ['bowl', 'ground', 'hand']).includes(style),
     eatFood: async (food: Stuff, offerer: Stuff | null) => {
       ate.push({ food, offerer });
       return true;
@@ -266,8 +270,12 @@ describe('feeds', () => {
     const bowl = {
       stuffId: 'bowl',
       getContents: () => [food],
-      // ⚠ The bowl is scanned for edibility too — it is a thing in the
-      // room like any other, and nothing eats crockery.
+      // ⭐ The vessel answers what is in it and what KIND it is; the
+      // brain no longer rummages through its contents.
+      getFeederKind: () => 'bowl',
+      offerings: () => [food],
+      // ⚠ Scanned for edibility too — it is a thing in the room like any
+      // other, and nothing eats crockery.
       getMaterial: () => null,
     } as unknown as Stuff;
     vi.spyOn(MixinApi, 'isFeeder').mockImplementation(
@@ -338,5 +346,53 @@ describe('homes', () => {
     link(a1, c);
     await homes.act(ctx(animal({ home: 'home', waiting: true, in: a1 })));
     expect(LocomotionApi.traverseWithDefault).not.toHaveBeenCalled();
+  });
+});
+
+describe('feeding style — an animal eats the ways its species does', () => {
+  it('⭐⭐ a hopper-only bird ignores a bowl', async () => {
+    const seed = edibleThing('seed');
+    const bowl = {
+      stuffId: 'bowl',
+      getFeederKind: () => 'bowl',
+      offerings: () => [seed],
+      getMaterial: () => null,
+    } as unknown as Stuff;
+    vi.spyOn(MixinApi, 'isFeeder').mockImplementation(
+      (s: Stuff) => (s as unknown as { stuffId: string }).stuffId === 'bowl',
+    );
+    const bird = animal({ styles: ['hopper'], in: room('cage', [bowl]) });
+
+    await feeds.act(ctx(bird));
+    // Not its kind of vessel. A canary at a horse trough is not a fed
+    // canary, and before the style axis every vessel fed every animal.
+    expect((bird as never as { _ate: unknown[] })._ate).toHaveLength(0);
+  });
+
+  it('and eats from its own hopper', async () => {
+    const seed = edibleThing('seed');
+    const hopper = {
+      stuffId: 'hopper',
+      getFeederKind: () => 'hopper',
+      offerings: () => [seed],
+      getMaterial: () => null,
+    } as unknown as Stuff;
+    vi.spyOn(MixinApi, 'isFeeder').mockImplementation(
+      (s: Stuff) => (s as unknown as { stuffId: string }).stuffId === 'hopper',
+    );
+    const bird = animal({ styles: ['hopper'], in: room('cage', [hopper]) });
+
+    await feeds.act(ctx(bird));
+    expect((bird as never as { _ate: unknown[] })._ate).toHaveLength(1);
+  });
+
+  it('⚠ a bird does not come down for a scrap on the floor', async () => {
+    vi.spyOn(MixinApi, 'isTangible').mockReturnValue(true);
+    const bird = animal({
+      styles: ['hopper'],
+      in: room('cage', [edibleThing('scrap')]),
+    });
+    await feeds.act(ctx(bird));
+    expect((bird as never as { _ate: unknown[] })._ate).toHaveLength(0);
   });
 });

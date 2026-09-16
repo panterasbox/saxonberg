@@ -759,6 +759,62 @@ build's job**; dropping the alias is.
   skill) and reconciling them is ranching's D28 follow-on. AC 11 holds by
   either verb without it.
 
+### D17 — Feeding is a LADDER, and the rungs are a species fact
+
+⚠⚠ **Added 2026-09-16, in review, after the user asked why `FeederMixin`
+conferred nothing.** Chasing that question found a dead loop.
+
+**The bug.** The cat ships at `handling 0.25` — *flighty*. `TOUCH_BAND`
+is `wary` (0.40). `pet` refuses below the band; `offer` below the band
+set the food down and returned *before* `eatFood`; the `feeds` brain ate
+with `offerer: null`, which credited nothing; and `KeptAnimal` composes
+no `HandledMixin`, so ranching's `handle` verb cannot reach a cat.
+**Handling could only decay.** The cat was untameable — the one thing the
+build exists for — and every suite was green, because the collie ships at
+0.55 and was already over the line. ⭐ The drive asserted that `pet`
+refuses and never that the refusal **lifts**: it tested the closed door
+and called it a feature.
+
+**The rule, chosen by the user.** A meal nobody handed over raises
+**handling** and **no regard at all** (`FEED_HANDLING_QUALITY = 0.25`, a
+quarter of a hand). Feeding an animal makes it less *afraid* of you; it
+does not make it *fond* of you. Those are the bond's two factors and they
+are earned differently — proximity and routine buy tractability, only a
+hand buys affection. ⭐ So *the floor stays delegable and the bond does
+not*: a friend who keeps the dish filled keeps your cat alive and
+approachable and wins none of it. Drive step 15, preserved exactly, and
+now with a bottom rung under it.
+
+**The rungs.** `Species.feedingStyle: FeedingStyle[] | null` over
+`hand · ground · graze · bowl · trough · hopper`. Absent means *not in
+this conversation*, the same rule the other two dials follow.
+
+| | rungs |
+|---|---|
+| cat | `bowl · ground · hand` |
+| collie | `bowl · ground · hand` |
+| canary | `hopper` — ⭐⭐ **no hand rung, ever**, and no ground |
+
+⚠ **Stock is deliberately left absent.** The illustration that opened
+this conversation had `stock → [graze, trough]`, but nothing reads
+`graze` in this build, and authoring a rung no code consumes is the exact
+dead-declaration shape this build kept finding in shipped content. It
+goes in when a grazer reads it.
+
+**`FeederMixin` confers the other half** — `feederKind`
+(`bowl · trough · hopper`), `offerings()`, `lastFilledBy` and a
+markup augmenter. ⚠ It was a bare marker, the only mixin in the tree that
+conferred nothing, and the file justified itself by citing `HandledMixin`
+as a "pure carrier" — which carries `commandContributions` and confers a
+verb. There was no such category; I invented one.
+
+**The gate grew a third direction:** a species naming a vessel kind no
+shipped row provides. That is the same triangle as the other two, and
+without it the canary's `hopper` would have been a rung nothing could
+satisfy — a bird refusing every bowl in the game and starving silently.
+
+---
+
 ### D16 — `[mine]` is the explicit stamp, plus title over an extent
 
 `isMine(target, giver)`: true when `ChattelLogic.stampedOwnerOf(target)`

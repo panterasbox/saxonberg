@@ -9,7 +9,7 @@
  */
 
 import '../../../../test-bootstrap';
-import { describe, it, expect, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { BondedMixin, FOLLOW_BOND, NAME_BOND } from '../Bonded';
 import { HandlingMixin } from '../Handling';
 import { BeliefStoreMixin } from '../../belief/BeliefStore';
@@ -20,6 +20,9 @@ import { Idea } from '../../stuff/Idea';
 import WorldClockRegistry from '../../../platform/idea/WorldClockRegistry';
 import { StuffApi } from '../../../api/stuff';
 import { MixinApi } from '../../../api/mixin';
+import { BulkableApi } from '../../../api/bulk';
+import { StuffApi as StuffApiForDestruct } from '../../../api/stuff';
+import type { Stuff } from '../../stuff/Stuff';
 import { makeStuff, makeStuffAtPath } from '../../security/__tests__/test-setup';
 
 /** The kept-animal shape, in the composition order `KeptAnimal` uses. */
@@ -43,6 +46,21 @@ function species(dials: {
     sp.setHandlingRange({ floor: dials.floor, ceiling: dials.ceiling });
   }
   return sp;
+}
+
+/** A species with only its feeding rungs declared. */
+function speciesFeeding(styles: string[]): Species {
+  const sp = species({});
+  sp.setFeedingStyle(styles as never);
+  return sp;
+}
+
+/** A scrap of something edible. */
+function scrap(): Stuff {
+  return {
+    stuffId: 'scrap',
+    getMaterial: () => ({ getEdibility: () => true }),
+  } as unknown as Stuff;
 }
 
 function animal(sp?: Species): Animal {
@@ -189,5 +207,104 @@ describe('composition', () => {
   it('is Bonded, and a bare Thing is not', () => {
     expect(MixinApi.isBonded(animal())).toBe(true);
     expect(MixinApi.isBonded(makeStuff(() => new Thing()))).toBe(false);
+  });
+});
+
+/* ────────────────────────────────────────────────────────────────────
+ * ⚠⚠ THE LADDER — and the test that would have caught the dead loop.
+ * ──────────────────────────────────────────────────────────────────── */
+
+describe('⚠⚠ the ladder has a bottom rung', () => {
+  /**
+   * ⭐ The credit correctly happens only AFTER a real meal — an animal
+   * that did not eat must not get more tractable. So the swallow itself
+   * is stubbed (digestion has its own suite) and what is under test is
+   * the CREDIT SPLIT: which factor a meal moves, and whose.
+   */
+  beforeEach(() => {
+    // The scrap is a stub, not a composed Tangible; `eatFood` reads its
+    // material through the narrow.
+    vi.spyOn(MixinApi, 'isTangible').mockReturnValue(true as never);
+    vi.spyOn(BulkableApi, 'ingestSolid').mockReturnValue(999);
+    vi.spyOn(StuffApiForDestruct, 'destruct').mockResolvedValue(undefined as never);
+  });
+  afterEach(() => vi.restoreAllMocks());
+
+  /**
+   * **The bug this exists for.** The cat ships at `handling 0.25`
+   * (flighty). `pet` refuses below `wary` (0.40). `offer` below the band
+   * set the food down and returned before crediting anything. And
+   * `KeptAnimal` composes no `HandledMixin`, so ranching's `handle` verb
+   * cannot reach it.
+   *
+   * ⭐ So handling could only DECAY, and **the cat was untameable** — the
+   * one thing the build exists for. Every suite was green, because the
+   * collie ships at 0.55 and was already over the line. The drive
+   * asserted that `pet` refuses and never that the refusal can LIFT: it
+   * tested the closed door and called it a feature.
+   */
+  it('⭐ a meal nobody handed over raises handling', async () => {
+    const a = animal(species({ biddability: 0.1, floor: 0.15, ceiling: 0.9 }));
+    a.handling = 0.25;
+    await a.eatFood(scrap(), null);
+    expect(a.getHandling()).toBeGreaterThan(0.25);
+  });
+
+  it('⚠ and earns NOBODY any regard — the floor is delegable', async () => {
+    const a = animal();
+    const friend = person('/platform/agent/Avatar/friend');
+    a.handling = 0.25;
+    await a.eatFood(scrap(), null);
+    // Somebody kept it alive and approachable and won none of it.
+    expect(a.regardFor(friend)).toBe(0);
+  });
+
+  it('⭐⭐ a stray fed from the ground REACHES the band a hand needs', () => {
+    // The whole loop, closed: enough meals and the refusal lifts. Before
+    // the bottom rung existed this number never moved.
+    const a = animal(species({ biddability: 0.1, floor: 0.15, ceiling: 0.9 }));
+    a.handling = 0.25;
+    for (let i = 0; i < 40; i++) a.handle(0.25);
+    expect(a.getHandling()).toBeGreaterThanOrEqual(0.4);
+  });
+
+  it('a hand feeds it AND wins it — both factors, one act', async () => {
+    const a = animal();
+    const me = person('/platform/agent/Avatar/me2');
+    a.handling = 0.5;
+    const before = a.getHandling();
+    await a.eatFood(scrap(), me);
+    expect(a.getHandling()).toBeGreaterThan(before);
+    expect(a.regardFor(me)).toBeGreaterThan(0);
+  });
+});
+
+describe('feeding style — the rungs a species has', () => {
+  it('⭐⭐ a canary has no hand rung, and it never lifts', () => {
+    const bird = animal(speciesFeeding(['hopper']));
+    expect(bird.feedsBy('hopper')).toBe(true);
+    expect(bird.feedsBy('hand')).toBe(false);
+    expect(bird.feedsBy('ground')).toBe(false);
+  });
+
+  it('a cat has bowl, ground and hand', () => {
+    const cat = animal(speciesFeeding(['bowl', 'ground', 'hand']));
+    for (const s of ['bowl', 'ground', 'hand'] as const) {
+      expect(cat.feedsBy(s)).toBe(true);
+    }
+    expect(cat.feedsBy('trough')).toBe(false);
+  });
+
+  it('⚠ a species declaring none feeds by no modelled way', () => {
+    // Absent is "not in this conversation", the same rule as the dials.
+    const wolf = animal(species({}));
+    expect(wolf.feedsBy('ground')).toBe(false);
+  });
+
+  it('refuses an unknown rung rather than dropping it silently', () => {
+    const sp = species({});
+    expect(() =>
+      sp.setFeedingStyle(['nibble' as never]),
+    ).toThrow(/not a feeding style/);
   });
 });

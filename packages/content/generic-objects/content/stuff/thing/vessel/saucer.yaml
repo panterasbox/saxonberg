@@ -17,5 +17,6 @@ data:
     A shallow tin saucer, a little dented on one side, the sort of thing
     that stops being crockery the first time something drinks out of it.
   mass: 0.1
+  feederKind: bowl
   interiorBulk: true
   interiorCapacity: 0.3

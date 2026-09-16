@@ -45,6 +45,12 @@ data:
   # out loud is what the third state of the dial is for. Leaving it absent
   # would mean "not in this conversation", and a canary very much is —
   # somebody has named this bird.
+  # ⭐⭐ **A hopper, and nothing else.** No `hand` rung — a canary will
+  # not take seed from a hand however long you have kept it — and no
+  # `ground`, because it does not come down off its perch for scraps.
+  # This is the axis earning its keep: before it, a canary fed exactly
+  # like a dog.
+  feedingStyle: [hopper]
   handlingRange: { floor: 0.3, ceiling: 0.8 }
   biddability: 0
   circadianBand: diurnal

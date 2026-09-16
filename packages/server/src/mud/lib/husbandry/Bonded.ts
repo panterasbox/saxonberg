@@ -40,6 +40,7 @@
 import type { MixinConstructor, FieldMeta } from '../mixin';
 import type { Stuff } from '../stuff/Stuff';
 import { MixinApi } from '../../api/mixin';
+import type { FeedingStyle } from '../../platform/idea/species/Species';
 import type { MarkupAugmenter } from '../../api/mml';
 import type { CommandContributions } from '../../api/command';
 import { BulkableApi } from '../../api/bulk';
@@ -86,6 +87,30 @@ export const HOME_DAYS = 3;
  * which intake is genuinely surplus rather than maintenance.
  */
 export const SURPLUS_SATIATION = 70;
+
+/**
+ * ⭐⭐ **What a meal you did not hand over is worth.**
+ *
+ * Quality for the `handle` curve when an animal eats from a bowl or off
+ * the ground — a quarter of what a hand is worth, and **no regard at
+ * all**.
+ *
+ * The asymmetry IS the design. Feeding an animal makes it less **afraid**
+ * of you; it does not make it **fond** of you. Those are the bond's two
+ * factors and they are earned differently: proximity and routine buy
+ * tractability, only a hand buys affection. So *the floor stays delegable
+ * and the bond does not* — a friend who keeps the dish filled while you
+ * are away keeps your cat alive and approachable and wins none of it.
+ *
+ * ⚠⚠ **Without this rung the ladder had no bottom.** The cat ships at
+ * `handling 0.25` (flighty); `pet` refuses below `wary` (0.40); `offer`
+ * below the band set the food down and returned before crediting
+ * anything; and `KeptAnimal` composes no `HandledMixin`, so ranching's
+ * `handle` verb cannot reach it. Handling could only DECAY. **The cat was
+ * untameable** — the one thing the build exists for — and every suite was
+ * green, because the collie ships at 0.55 and was already over the line.
+ */
+export const FEED_HANDLING_QUALITY = 0.25;
 /** One mouthful, shared with the `eat` verb so a meal is a meal. */
 const EAT_PORTION_LITRES = METABOLIC_DEFAULTS.EAT_PORTION_LITRES;
 
@@ -169,6 +194,8 @@ export interface Bonded {
   wouldEat(food: Stuff): FoodRefusal | null;
   /** Eat it. Credits `offerer` when it came from a hand. */
   eatFood(food: Stuff, offerer: Stuff | null): Promise<boolean>;
+  /** Does this animal's species feed by `style`? */
+  feedsBy(style: FeedingStyle): boolean;
 }
 
 export function BondedMixin<TBase extends MixinConstructor>(Base: TBase) {
@@ -270,6 +297,18 @@ export function BondedMixin<TBase extends MixinConstructor>(Base: TBase) {
       const room = self.getContainer();
       if (!room) return;
       this.home = PersistableApi.placeIdOf(room);
+    }
+
+    /**
+     * ⭐ Whether this animal's species has a given feeding rung — the
+     * hand, the ground, or a kind of vessel. ⚠ `false` for a species
+     * declaring none: absent is *not in this conversation*, the same
+     * rule the other two dials follow.
+     */
+    public feedsBy(style: FeedingStyle): boolean {
+      const self = this as unknown as Stuff;
+      if (!MixinApi.isOrganism(self)) return false;
+      return self.getSpecies()?.feedsBy(style) ?? false;
     }
 
     public getHome(): string {
@@ -412,6 +451,11 @@ export function BondedMixin<TBase extends MixinConstructor>(Base: TBase) {
           harmful ? ILL_FROM_HAND_REGARD : HAND_FEED_REGARD,
         );
         if (MixinApi.isHandling(self)) self.handle(0.5);
+      } else if (MixinApi.isHandling(self)) {
+        // ⭐ A meal nobody handed over: it gets a little less afraid of
+        // people and no fonder of anybody. The ladder's bottom rung —
+        // without it nothing ever climbs from `flighty` to a hand.
+        self.handle(FEED_HANDLING_QUALITY);
       }
       await StuffApi.destruct(food);
       return true;
