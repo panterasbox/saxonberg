@@ -156,7 +156,7 @@ repo-relative; `mud/` means `packages/server/src/mud/`; `content/` means
   **`if (!material) return 0`** (before the floor); else
   `floor + (1 − floor) × ratio` with `ratio` = `hn` (edge) / `tn` (blunt)
   / mean (point), each `clamp(x / ref, 0, scaleMax)`; dials
-  `response.material.{hardnessRef 600, toughnessRef 200, scaleMax 1.5, heightFloor 0.6}`
+  `response.material.{hardnessRef 600, toughnessRef 200, scaleMax 1.5, scaleFloor 0.6}`
   (`content/platform/content/settings/response.yaml`). So **steel lends
   exactly 1.0 on every channel**, iron 0.83 (edge) / 0.84 (blunt), bronze
   0.77, a material with no toughness 0.6 (blunt), and a material that is
@@ -1389,7 +1389,7 @@ retire the asymmetry sentences.
   authored in W2 for exactly this); any shift in a mixed-material
   matchup is listed with its factor. If the whip's edge lash or the
   waster's bruise falls below the wound threshold at the reference
-  energy, the knob is `response.material.heightFloor`, and that is a
+  energy, the knob is `response.material.scaleFloor`, and that is a
   finding for the MR, not a code change.
 - `lint:combat-dynamics` green.
 
@@ -1431,7 +1431,7 @@ retire the asymmetry sentences.
 > Oak's toughness was authored in W2 for exactly this; without it the
 > waster would have delivered at the 0.6 floor on blunt and its blows
 > might have fallen under the wound threshold. It did not, so the
-> `heightFloor` dial was not touched.
+> `scaleFloor` dial was not touched.
 >
 > Other notes:
 >
@@ -1477,6 +1477,28 @@ retire the asymmetry sentences.
 > caller. That also makes the fold's blast radius the smallest honest
 > one: every weapon nobody authored a material for behaves exactly as it
 > did before, because before the fold material was ignored entirely.
+>
+> ### ⚠ W5 follow-up 2 — `materialHeight` is `materialScale` (2026-09-16)
+>
+> Raised in review: *"height" doesn't mean spatial height?* It did not —
+> it was the height of the response CURVE, which is a good picture in
+> prose and a **bad identifier** in a file where `Tangible` has a `mass`
+> and `Weapon` has a `length`. It read as a third physical dimension.
+>
+> ⭐ The codebase had already disagreed with itself: the dial that clamps
+> this very return value is **`response.material.scaleMax`**, so its own
+> ceiling called it a scale while the function called it a height. And
+> its sibling — the other factor multiplied into the same fold — is
+> `gradeConditionScale`. Renaming collapses three names for one idea into
+> one.
+>
+> `materialHeight` → **`materialScale`**; `response.material.heightFloor`
+> → **`scaleFloor`** (pairing with `scaleMax`); the local `height`/`scale`
+> pair in `attenuate` → `fromMaterial`/`fromQuality`, which says what
+> each factor IS. ⚠ The docs keep the curve picture — it is what makes
+> the shape-vs-scale split teachable — but stop using *height* as a term
+> of art. The rule now reads **"quality scales the response, never its
+> shape."**
 >
 > ⚠ **D11's justification shifts and D11 still stands.** The arms rows
 > keep a default `_materialPath` not because a material-less prop would
@@ -1677,7 +1699,7 @@ not, in order of consequence):**
 
 **Numeric risk.** W5's gym may show a mixed-material matchup crossing a
 wound threshold (the whip's lash at ×0.61, the waster at ≈×0.7). The
-plan's position: report it; the knob is the `heightFloor` dial; do not
+plan's position: report it; the knob is the `scaleFloor` dial; do not
 retune material rows to rescue a bench.
 
 **Build-time checks the plan cannot settle from here:**

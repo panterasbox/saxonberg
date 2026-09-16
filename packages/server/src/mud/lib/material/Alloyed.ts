@@ -63,7 +63,7 @@ import type { CompositionEntry } from './Material';
  * ⚠ Recorded and reported, with no mechanical consumer yet — `analyze
  * chemistry` prints it and the next `heat` anneals it back to `none`,
  * because heating past the critical temperature is what annealing IS.
- * The honest larger version (temper into `materialHeight`, and onto the
+ * The honest larger version (temper into `materialScale`, and onto the
  * made thing rather than the stock) is the crafting-stamp seam.
  */
 export type Temper = 'none' | 'hardened';

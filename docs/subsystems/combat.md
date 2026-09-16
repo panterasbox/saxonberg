@@ -317,18 +317,19 @@ the blow (an open window earns the hardest hit — a `combat.energy.*` dial),
 scaled by the **bounded instrument-delivery scale** (the crafting-branches
 coupling): a weapon strike's energy is multiplied by
 `MaterialApi.gradeConditionScale(grade, condition)` (the ONE quality
-formula the covering stack already folds — Settled-4: quality scales
-height, never shape), × the weapon's `keennessDeliveryFactor()` on
+formula the covering stack already folds — Settled-4: quality scales the
+response, never its shape), × the weapon's `keennessDeliveryFactor()` on
 edge/point channels (the working-surface axis — see
-[crafting.md](./crafting.md)), × `MaterialApi.materialHeight(material,
+[crafting.md](./crafting.md)), × `MaterialApi.materialScale(material,
 channel)` — **what it is made of, on the channel it is used on** —
 clamped down to `crafting.brokenDeliveryFloor` when the weapon
 `isBroken()`.
 
 ⭐⭐ The material term is new with the metallurgy build, and it retires a
-documented asymmetry: height used to be analyze-only, so `analyze
-response` told a player a bronze blade was worse than a steel one and
-the exchange disagreed. Steel is the reference (height exactly 1.0), so
+documented asymmetry: the material's scale used to be analyze-only, so
+`analyze response` told a player a bronze blade was worse than a steel
+one and the exchange disagreed. Steel is the reference (scale exactly
+1.0), so
 every shipped matchup is byte-identical and the gym is unchanged either
 side of the fold; iron ×0.83 on an edge, bronze ×0.77, copper ×0.70.
 

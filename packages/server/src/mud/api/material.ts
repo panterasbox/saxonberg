@@ -148,8 +148,8 @@ export class MaterialApi {
    * the outside-in covering-stack fold.
    */
   /**
-   * The `grade × condition` height scalar (Settled-4: quality scales
-   * height, never shape) — the ONE formula both the covering-stack fold
+   * The `grade × condition` scalar (Settled-4: quality scales the
+   * response, never its shape) — the ONE formula both the covering fold
    * and combat's instrument-delivery scale consume. Grade lerps within
    * the `response.grade.*` bounds across the five bands; condition lerps
    * within `[response.condition.min, 1]`.
@@ -159,11 +159,17 @@ export class MaterialApi {
   }
 
   /**
-   * ⭐⭐ The *height* a material lends the response curve on a channel —
-   * the normalized ratio against the reference (steel) magnitudes,
+   * ⭐⭐ How far a material scales the response on a channel — the
+   * normalized ratio against the reference (steel) magnitudes,
    * per-channel weighted. Steel is 1.0 everywhere by construction; iron
    * ~0.83 on an edge, bronze ~0.77, copper ~0.70, a `null` material
    * **zero**.
+   *
+   * ⚠ **It scales; it never reshapes.** WHICH channels a thing is good
+   * against belongs to the construction (mail resists a cut and a mace
+   * goes straight through it). Material and quality move the whole
+   * profile together — the shape-vs-magnitude split, and the reason a
+   * masterwork hauberk is still hauberk-shaped.
    *
    * ⚠⚠ **Both ends of a blow read it, and that is new.** It has always
    * priced what a blow lands ON — the covering stack's attenuation — and
@@ -175,8 +181,8 @@ export class MaterialApi {
    * WHICH METAL YOU MADE has to be answerable in the one place metal is
    * used in anger.
    */
-  public static materialHeight(material: Material | null, channel: Channel): number {
-    return logic().materialHeight(material, channel);
+  public static materialScale(material: Material | null, channel: Channel): number {
+    return logic().materialScale(material, channel);
   }
 
   public static attenuate(

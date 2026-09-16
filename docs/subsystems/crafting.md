@@ -956,7 +956,7 @@ the named antipattern):
   `crafting.wear.weaponPerStrike`; each covering layer that attenuates
   a mechanical blow wears `crafting.wear.armorPerBlow` — see
   [combat.md](./combat.md) / [materials-response.md](./materials-response.md));
-  scales the response height as shipped; restored by **`repair`**.
+  scales the response as shipped; restored by **`repair`**.
 - **`keenness`** (`KeenMixin`, `lib/material/Keen.ts` — `Mixins.Keen`,
   `MixinApi.isKeen`; composed on `Weapon`, blades only this build) —
   the working surface; decays fast (landed edge/point strikes `dull()`)
@@ -977,7 +977,7 @@ broken tool's `hasCapability` goes dark (it fails recipe tool-matching
 until repaired); a broken weapon's delivery is clamped to
 `crafting.brokenDeliveryFloor` (combat's bounded
 `instrumentDeliveryScale` — the shared
-`MaterialApi.gradeConditionScale` × `MaterialApi.materialHeight` × the
+`MaterialApi.gradeConditionScale` × `MaterialApi.materialScale` × the
 keenness factor, broken-floored, folded into strike energy). ⭐ The
 material term joined with the metallurgy build: an iron blade delivers
 about 83 % of a steel one on an edge, which is what makes the metal

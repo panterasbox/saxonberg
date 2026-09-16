@@ -2233,7 +2233,7 @@ interface InflictReport {
  * unarmed/innate strikes.
  *
  * ⭐⭐ **And the material's own height**, which is the whole of what the
- * metal chain buys. `MaterialApi.materialHeight` has always priced what
+ * metal chain buys. `MaterialApi.materialScale` has always priced what
  * a blow lands ON — the covering stack reads it on every attenuation —
  * and `previewBandImpl` has always folded it for weapons too, so
  * `analyze response` was already telling players that a bronze blade is
@@ -2249,7 +2249,7 @@ interface InflictReport {
  * build is for — and it makes the preview and the exchange agree by
  * construction rather than by anybody keeping two formulas in step.
  *
- * ⭐ **Steel is the reference**, so `materialHeight(steel) === 1.0` on
+ * ⭐ **Steel is the reference**, so `materialScale(steel) === 1.0` on
  * every channel and every shipped gym matchup is byte-identical. What
  * moves is non-steel: iron ×0.83, bronze ×0.77, copper ≈×0.70, oak
  * ≈×0.70 blunt, leather ≈×0.61 edge. ⚠ A weapon with no material at all
@@ -2270,7 +2270,7 @@ function instrumentDeliveryScale(
   // iron blade and a steel blade differ by the metal and nothing else.
   //
   // ⚠⚠ **An unauthored material is NEUTRAL here, not zero**, and the
-  // asymmetry with the attenuation side is deliberate. `materialHeight`
+  // asymmetry with the attenuation side is deliberate. `materialScale`
   // returns 0 for a null material and is right to: on the covering side
   // a null material is *no covering*, and no covering protects nothing.
   // On this side the weapon is PRESENT — what is missing is our
@@ -2283,7 +2283,7 @@ function instrumentDeliveryScale(
   // every weapon nobody authored a material for behaves exactly as it
   // did before, because before the fold material was ignored entirely.
   const metal = MixinApi.isTangible(weapon) ? weapon.getMaterial() : null;
-  if (metal) scale *= MaterialApi.materialHeight(metal, channel);
+  if (metal) scale *= MaterialApi.materialScale(metal, channel);
   // The working-surface factor — the edge only matters on the edge.
   if (
     (channel === "edge" || channel === "point") &&

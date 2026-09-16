@@ -14,7 +14,7 @@ data:
   # Water absorption capacity (% of dry mass, ASTM D570): metal wets only as a surface film.
   waterAbsorptionCapacity: 0.2
   # ⚠ Mechanical response (materials-response): MPa / MJ·m⁻³. Copper
-  # authored NEITHER until this build, which meant `materialHeight` read
+  # authored NEITHER until this build, which meant `materialScale` read
   # it at the floor — and once material enters a blow, an unauthored
   # metal is a metal that delivers like a rock. Soft (Mohs ~3, well
   # under iron's 350) and notably TOUGH — copper bends where cast iron

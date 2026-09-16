@@ -1,7 +1,7 @@
 /**
  * ⭐⭐ **Material enters the blow**, and the preview and the fight agree.
  *
- * `MaterialApi.materialHeight` has always priced what a blow lands ON —
+ * `MaterialApi.materialScale` has always priced what a blow lands ON —
  * the covering stack reads it on every attenuation — and
  * `previewBandImpl` has always folded it for weapons too, so `analyze
  * response` was already telling players that a bronze blade is worse
@@ -15,7 +15,7 @@
  * METAL YOU MADE is a decision worth making.
  *
  * ⭐ **Steel is the reference**, which is what makes the change safe:
- * `materialHeight(steel) === 1` on every channel, so every shipped gym
+ * `materialScale(steel) === 1` on every channel, so every shipped gym
  * matchup is byte-identical and only non-steel implements move. The gym
  * was run either side of the fold and its results are unchanged.
  */
@@ -57,13 +57,13 @@ describe('the material a weapon is made of', () => {
     // the gym benches is steel, so nothing shipped moved. Asserted, not
     // assumed.
     for (const channel of CHANNELS) {
-      expect(MaterialApi.materialHeight(steel(), channel), channel).toBeCloseTo(1, 9);
+      expect(MaterialApi.materialScale(steel(), channel), channel).toBeCloseTo(1, 9);
     }
   });
 
   it('⭐⭐ an iron blade is honestly worse than a steel one, and by how much', () => {
-    const ironEdge = MaterialApi.materialHeight(iron(), 'edge');
-    const steelEdge = MaterialApi.materialHeight(steel(), 'edge');
+    const ironEdge = MaterialApi.materialScale(iron(), 'edge');
+    const steelEdge = MaterialApi.materialScale(steel(), 'edge');
     expect(ironEdge).toBeLessThan(steelEdge);
     // ⭐ The requirement the whole build exists for, as a number: iron
     // delivers about 83 % of steel on an edge. Enough to feel, not
@@ -73,7 +73,7 @@ describe('the material a weapon is made of', () => {
   });
 
   it('⭐ …and the ladder runs the way the metallurgy says it does', () => {
-    const edge = (m: Material): number => MaterialApi.materialHeight(m, 'edge');
+    const edge = (m: Material): number => MaterialApi.materialScale(m, 'edge');
     // Steel over iron over bronze over copper: the chain's own order,
     // falling out of hardness against the reference and nothing else.
     expect(edge(steel())).toBeGreaterThan(edge(iron()));
@@ -86,10 +86,10 @@ describe('the material a weapon is made of', () => {
     // the refusal to forge a pig is a refusal about WORKING it rather
     // than about how it would perform. Hardness is not the whole of a
     // weapon.
-    expect(MaterialApi.materialHeight(castIron(), 'edge'))
-      .toBeGreaterThan(MaterialApi.materialHeight(steel(), 'edge'));
-    expect(MaterialApi.materialHeight(castIron(), 'blunt'))
-      .toBeLessThan(MaterialApi.materialHeight(steel(), 'blunt'));
+    expect(MaterialApi.materialScale(castIron(), 'edge'))
+      .toBeGreaterThan(MaterialApi.materialScale(steel(), 'edge'));
+    expect(MaterialApi.materialScale(castIron(), 'blunt'))
+      .toBeLessThan(MaterialApi.materialScale(steel(), 'blunt'));
   });
 
   it('⚠⚠ a NULL material is zero here — and the delivery fold must not use it', () => {
@@ -112,7 +112,7 @@ describe('the material a weapon is made of', () => {
      * ignored entirely.
      */
     for (const channel of CHANNELS) {
-      expect(MaterialApi.materialHeight(null, channel), channel).toBe(0);
+      expect(MaterialApi.materialScale(null, channel), channel).toBe(0);
     }
   });
 
@@ -132,11 +132,11 @@ describe('the material a weapon is made of', () => {
       join(dirname(fileURLToPath(import.meta.url)), '..', '..', 'platform', 'idea', 'api', 'CombatLogic.ts'),
       'utf8',
     );
-    expect(engine).toMatch(/MaterialApi\.materialHeight\(/);
+    expect(engine).toMatch(/MaterialApi\.materialScale\(/);
     // …and the docblock that named the asymmetry is gone with it.
     expect(engine).not.toMatch(/Material \*height\* stays analyze-only/);
     // ⚠ …and the null guard is there, because without it an unauthored
     // material scales the blow to nothing. See the case above.
-    expect(engine).toMatch(/if \(metal\) scale \*= MaterialApi\.materialHeight/);
+    expect(engine).toMatch(/if \(metal\) scale \*= MaterialApi\.materialScale/);
   });
 });

@@ -20,9 +20,10 @@ coverage), [quantities.md](./quantities.md), and
 
 ## The three axes
 
-A blow is decomposed into three orthogonal axes — the channel selects the
-*point* on the curve, the material scales its *height*, the construction
-picks its *shape*:
+A blow is decomposed into three orthogonal axes. Picture the response as
+a curve with the channel across the bottom: the **channel** selects the
+*point* on it, the **construction** picks its *shape*, and the
+**material** (with quality) scales it *up or down*:
 
 - **Channel** (`lib/material/Channel.ts`) — the closed, additively-growable
   mechanism vocabulary, v1 **`edge` / `point` / `blunt`**. The single shared
@@ -35,8 +36,8 @@ picks its *shape*:
   `hardness` (`Quantity<'MPa'>`, indentation hardness) and `toughness`
   (`Quantity<'MJ/m³'>`, energy absorbed before fracture), siblings of the
   existing `density`/`specificHeat` (strict-unit accessors, marshaller
-  binding, `fieldMeta`'s persistent entries). The *height* a material lends the response
-  curve. Materials stay content (packs supply the roster + values); this is
+  binding, `fieldMeta`'s persistent entries). How far a material scales the
+  response. Materials stay content (packs supply the roster + values); this is
   their mechanism-response face. **Not** the old 0–1 `resistance.<type>`
   scalars (that convention is dead).
 - **Construction** (`lib/material/Construction.ts`) — a per-domain
@@ -148,7 +149,7 @@ consumers"):
 
 - **`attenuate(channel, energy, material, construction, grade, condition)`**
   — one armor layer. `token = construction.responseFor(channel)` (SHAPE) →
-  an AppSettings base fraction (MAGNITUDE) × `materialHeight` × grade×condition
+  an AppSettings base fraction (MAGNITUDE) × `materialScale` × grade×condition
   → clamped attenuation; residual energy passes inward.
 - **`resolveTrauma(channel, energy, tissueMaterial, partHasBone)`** — the
   residual meeting tissue: `edge → laceration`, `point → puncture`, `blunt →
@@ -159,25 +160,25 @@ consumers"):
 - **`deliverableChannels(construction)` / `primaryChannel(construction)`** —
   the weapon-delivery derivation (a dagger delivers edge, a mace blunt).
 
-`materialHeight` is a small documented pure function: `edge` is
+`materialScale` is a small documented pure function: `edge` is
 hardness-driven, `blunt` toughness-driven, `point` mixes both; each
 normalized against a reference (steel) magnitude and lifted by a structural
 **floor** so a construction's token sets the protection ceiling and material
 modulates within `[floor, 1]` (a hide boot still turns a shallow cut, a
-soft absorber still absorbs). `grade × condition` scales *height only*
-(Settled-4), tuned so a masterwork at ~50% condition ≈ a common piece
-pristine. The scalar is exposed as **`MaterialApi.gradeConditionScale`**
+soft absorber still absorbs). `grade × condition` scales the response and
+**never its shape** (Settled-4), tuned so a masterwork at ~50% condition
+≈ a common piece pristine. The scalar is exposed as **`MaterialApi.gradeConditionScale`**
 so combat's instrument-delivery fold reads the SAME formula (the
 crafting-branches coupling — see [combat.md](./combat.md)).
 
-⭐⭐ **Both ends of a blow read `materialHeight` now** (metallurgy,
+⭐⭐ **Both ends of a blow read `materialScale` now** (metallurgy,
 2026-09-15). It always priced what a blow lands ON; combat's delivery
-deliberately folded quality only, leaving material *height* analyze-only
+deliberately folded quality only, leaving the material's scale analyze-only
 — which meant `analyze response` told a player a bronze blade was worse
 than a steel one and the exchange disagreed. That asymmetry was
 defensible while every shipped weapon was steel and material was
 decoration, and it is not defensible in a game whose metal chain exists
-so that **which metal you made** is a decision. `MaterialApi.materialHeight`
+so that **which metal you made** is a decision. `MaterialApi.materialScale`
 is exposed and `instrumentDeliveryScale` multiplies by it, so the
 preview and the fight agree by construction rather than by anybody
 keeping two formulas in step. ⚠ Steel is the reference, so a steel
@@ -291,7 +292,7 @@ site (Settled: no auto-pick).
 ⭐⭐ **What a weapon is MADE OF now reaches the blow** (metallurgy,
 2026-09). `CombatLogic.instrumentDeliveryScale` multiplies its
 `grade × condition × keenness` scalar by
-`MaterialApi.materialHeight(weapon.getMaterial(), channel)` — the same
+`MaterialApi.materialScale(weapon.getMaterial(), channel)` — the same
 function the covering stack reads from the other side, so the preview and
 the exchange agree by construction rather than by two formulas being kept
 in step. Steel is the reference (1.0 everywhere), iron ~0.83 on an edge,
@@ -345,7 +346,7 @@ The [electricity](./electricity.md) build added **`shock`** to the `Channel`
 vocabulary — but it does **not** resolve through the energy-attenuate covering
 fold. The three mechanical channels (edge/point/blunt) are now their own
 closed subtype **`MECHANICAL_CHANNELS`**: `Construction`'s shape tables, the
-`materialHeight`/`attenuate`/`resolveTrauma` fold, and the `analyze response` /
+`materialScale`/`attenuate`/`resolveTrauma` fold, and the `analyze response` /
 pip loops all key on *that*, so `Construction` stays honestly mechanical
 (`responseFor('shock')` throws — a shock is not a construction-shape axis).
 `shock` resolves by **circuit** (`I = V/R`, reading conductivity not hardness)
