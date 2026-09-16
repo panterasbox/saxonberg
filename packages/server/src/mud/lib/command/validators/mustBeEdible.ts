@@ -27,8 +27,7 @@ import { MaterialApi } from '../../../api/material';
 
 /** Made of edible matter — a ration, an apple, a cut of meat. */
 function isEdibleMatter(s: Stuff): boolean {
-  const material = MixinApi.isTangible(s) ? s.getMaterial() : null;
-  return material?.getEdibility() === true;
+  return MixinApi.isTangible(s) && s.isEdible();
 }
 
 /** Holding edible matter — a bowl of stew, a plate of roast. */

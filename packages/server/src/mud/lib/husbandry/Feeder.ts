@@ -102,8 +102,7 @@ export function FeederMixin<TBase extends MixinConstructor<Stuff>>(
       if (!MixinApi.isContainer(self)) return [];
       const out: Stuff[] = [];
       for (const thing of self.getContents()) {
-        if (!MixinApi.isTangible(thing)) continue;
-        if (thing.getMaterial()?.getEdibility() === true) out.push(thing);
+        if (MixinApi.isTangible(thing) && thing.isEdible()) out.push(thing);
       }
       return out;
     }

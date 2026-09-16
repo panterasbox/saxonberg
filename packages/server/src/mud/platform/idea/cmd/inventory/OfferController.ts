@@ -33,7 +33,6 @@ import { MessageApi } from '../../../../api/message';
 import { MixinApi } from '../../../../api/mixin';
 import { Mml } from '../../../../api/mml';
 import { ContainmentApi } from '../../../../api/containment';
-import { HANDLING_BANDS } from '../../../../lib/husbandry/Handling';
 import { TOUCH_BAND } from '../../../../lib/husbandry/Bonded';
 
 const TOPIC = 'act.deed';
@@ -73,10 +72,8 @@ export default class OfferController extends CommandController<OfferModel> {
     // hand however devoted it is, which is why the feeding-style axis
     // exists. Both set the food down rather than refusing, because an
     // animal that cannot be hand-fed can still be fed.
-    const bandIndex = MixinApi.isHandling(animal)
-      ? HANDLING_BANDS.indexOf(animal.handlingBand())
-      : -1;
-    const tooWild = bandIndex < HANDLING_BANDS.indexOf(TOUCH_BAND);
+    const tooWild =
+      !MixinApi.isHandling(animal) || !animal.handlingAtLeast(TOUCH_BAND);
     const noHandRung = !animal.feedsBy('hand');
     if (tooWild || noHandRung) {
       const room = MixinApi.isContainable(animal) ? animal.getContainer() : null;

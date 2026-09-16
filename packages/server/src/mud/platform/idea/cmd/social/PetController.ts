@@ -23,7 +23,6 @@ import type { MqlOneResult } from '../../../../api/mql';
 import { MessageApi } from '../../../../api/message';
 import { MixinApi } from '../../../../api/mixin';
 import { Mml } from '../../../../api/mml';
-import { HANDLING_BANDS } from '../../../../lib/husbandry/Handling';
 import { PET_REGARD, TOUCH_BAND } from '../../../../lib/husbandry/Bonded';
 
 /** Diegetic world-action topic — an act, not speech. */
@@ -56,9 +55,7 @@ export default class PetController extends CommandController<PetModel> {
     // ⚠ ONE refusal sentence for both gates. A player learns what to do
     // by watching the animal, not by being told which threshold they
     // missed — and an animal has no way to explain itself.
-    const bandIndex = HANDLING_BANDS.indexOf(animal.handlingBand());
-    const touchIndex = HANDLING_BANDS.indexOf(TOUCH_BAND);
-    const tooWild = bandIndex < touchIndex;
+    const tooWild = !animal.handlingAtLeast(TOUCH_BAND);
     const tooCold = animal.bondWith(actor) < TOUCH_BOND;
     if (tooWild || tooCold) {
       MessageApi.scene(actor)

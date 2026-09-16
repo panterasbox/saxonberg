@@ -74,6 +74,8 @@ function R(r: FakeRoom): Stuff {
 interface AnimalOpts {
   /** The rungs its species feeds by. Default: everything but the hopper. */
   styles?: string[];
+  /** Whether a way home exists. `false` = every path is shut. */
+  stepHome?: boolean;
   bond?: number;
   waiting?: boolean;
   home?: string;
@@ -102,6 +104,11 @@ function animal(o: AnimalOpts = {}) {
       return true;
     },
     rememberFollowed: (p: Stuff) => followed.push(p),
+    // ⭐ The BFS moved to `Mobile.firstStepToward` (it is a question
+    // about a body that moves, and a second brain would have minted a
+    // second copy). What this file asserts is that `homes` ASKS and
+    // acts; the search itself is tested on Mobile.
+    firstStepToward: () => (o.stepHome === false ? null : {}),
     creditHomeCandidate: (place: string, day: number) =>
       credited.push({ place, day }),
     reconcileSenescence: () => {
@@ -115,10 +122,11 @@ function animal(o: AnimalOpts = {}) {
   } as unknown as Stuff & Record<string, never>;
 }
 
-/** A thing made of something an animal would eat. */
+/** A thing made of something an animal would eat. ⭐ It answers itself. */
 function edibleThing(id: string): Stuff {
   return {
     stuffId: id,
+    isEdible: () => true,
     getMaterial: () => ({ getEdibility: () => true }),
   } as unknown as Stuff;
 }
@@ -276,6 +284,7 @@ describe('feeds', () => {
       offerings: () => [food],
       // ⚠ Scanned for edibility too — it is a thing in the room like any
       // other, and nothing eats crockery.
+      isEdible: () => false,
       getMaterial: () => null,
     } as unknown as Stuff;
     vi.spyOn(MixinApi, 'isFeeder').mockImplementation(
@@ -304,47 +313,37 @@ describe('feeds', () => {
 
 /* ────────────────────────────── homes ────────────────────────────── */
 
-describe('homes', () => {
-  it('takes ONE step along an open path', async () => {
-    const a1 = room('a');
-    const b = room('b');
-    const c = room('home');
-    link(a1, b);
-    link(b, c);
-    await homes.act(ctx(animal({ home: 'home', in: a1 })));
+describe('homes — the decision, not the search', () => {
+  it('takes the step its body works out', async () => {
+    await homes.act(ctx(animal({ home: 'home', in: room('a') })));
     expect(LocomotionApi.traverseWithDefault).toHaveBeenCalledTimes(1);
   });
 
   it('⭐ no open path = it stays. That is the whole of "lost".', async () => {
-    const a1 = room('a');
-    const b = room('b');
-    const c = room('home');
-    link(a1, b, false); // a closed door
-    link(b, c);
-    await homes.act(ctx(animal({ home: 'home', in: a1 })));
+    // No flag, no timer, no announcement — the body finds no step and
+    // the animal simply does not move. Somebody has to notice.
+    await homes.act(
+      ctx(animal({ home: 'home', stepHome: false, in: room('a') })),
+    );
     expect(LocomotionApi.traverseWithDefault).not.toHaveBeenCalled();
   });
 
   it('⚠ does not set off while its person is standing here', async () => {
     const here = room('a');
-    const c = room('home');
-    link(here, c);
     here.contents.push({ stuffId: 'me' } as unknown as Stuff);
     await homes.act(ctx(animal({ home: 'home', bond: 0.9, in: here })));
     expect(LocomotionApi.traverseWithDefault).not.toHaveBeenCalled();
   });
 
   it('does nothing when it is already home', async () => {
-    const h = room('home');
-    await homes.act(ctx(animal({ home: 'home', in: h })));
+    await homes.act(ctx(animal({ home: 'home', in: room('home') })));
     expect(LocomotionApi.traverseWithDefault).not.toHaveBeenCalled();
   });
 
   it('`waiting` holds it', async () => {
-    const a1 = room('a');
-    const c = room('home');
-    link(a1, c);
-    await homes.act(ctx(animal({ home: 'home', waiting: true, in: a1 })));
+    await homes.act(
+      ctx(animal({ home: 'home', waiting: true, in: room('a') })),
+    );
     expect(LocomotionApi.traverseWithDefault).not.toHaveBeenCalled();
   });
 });
@@ -356,6 +355,7 @@ describe('feeding style — an animal eats the ways its species does', () => {
       stuffId: 'bowl',
       getFeederKind: () => 'bowl',
       offerings: () => [seed],
+      isEdible: () => false,
       getMaterial: () => null,
     } as unknown as Stuff;
     vi.spyOn(MixinApi, 'isFeeder').mockImplementation(
@@ -375,6 +375,7 @@ describe('feeding style — an animal eats the ways its species does', () => {
       stuffId: 'hopper',
       getFeederKind: () => 'hopper',
       offerings: () => [seed],
+      isEdible: () => false,
       getMaterial: () => null,
     } as unknown as Stuff;
     vi.spyOn(MixinApi, 'isFeeder').mockImplementation(

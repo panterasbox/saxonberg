@@ -57,17 +57,17 @@ export default class NameController extends CommandController<NameModel> {
     const wanted = (model.animalName ?? '').trim();
 
     if (!animal || !MixinApi.isBonded(animal) || !MixinApi.isNamed(animal)) {
-      this.refuse(context, actor, `That isn't an animal you can name.`, 'not-nameable');
+      this.refuse(context, TOPIC, `That isn't an animal you can name.`, 'not-nameable');
       return;
     }
     if (!wanted) {
-      this.refuse(context, actor, `Name it what?`, 'no-name-given');
+      this.refuse(context, TOPIC, `Name it what?`, 'no-name-given');
       return;
     }
     if (animal.getName()) {
       this.refuse(
         context,
-        actor,
+        TOPIC,
         `It already has a name.`,
         'already-named',
       );
@@ -83,7 +83,7 @@ export default class NameController extends CommandController<NameModel> {
     if (animal.bondWith(actor) < NAME_BOND || !followed) {
       this.refuse(
         context,
-        actor,
+        TOPIC,
         `It has not chosen you.`,
         'not-chosen',
       );
@@ -99,7 +99,7 @@ export default class NameController extends CommandController<NameModel> {
     if (clash) {
       this.refuse(
         context,
-        actor,
+        TOPIC,
         `Somebody already goes by that name.`,
         'name-taken',
       );
@@ -118,10 +118,22 @@ export default class NameController extends CommandController<NameModel> {
       await PersistableApi.capture(animal);
     }
 
-    // ⭐ Witnessed: everybody present learns the name, so a neighbour can
-    // return it to you later. This is the second route home.
-    for (const witness of this.witnesses(animal)) {
-      if (MixinApi.isBeliefStore(witness)) witness.learnIdentityOf(animal, wanted);
+    // ⭐ Witnessed: everybody who can PERCEIVE it learns the name, so a
+    // neighbour can return it to you later. This is the second route home.
+    //
+    // ⚠ `MessageApi.getSensors` is the same set the scene below reaches —
+    // the `introduce` shape exactly. This was a private `witnesses()`
+    // walking `room.getContents()`, which is both bespoke and wrong: the
+    // room's contents include the saucer and the food, and it would have
+    // called `learnIdentityOf` on the crockery.
+    const room = MixinApi.isContainable(animal) ? animal.getContainer() : null;
+    if (room) {
+      for (const witness of MessageApi.getSensors(room)) {
+        if (witness.stuffId === animal.stuffId) continue;
+        if (MixinApi.isBeliefStore(witness)) {
+          witness.learnIdentityOf(animal, wanted);
+        }
+      }
     }
 
     MessageApi.scene(actor)
@@ -131,21 +143,4 @@ export default class NameController extends CommandController<NameModel> {
       .send();
   }
 
-  /** Everyone in the room with the animal, including the namer. */
-  private witnesses(animal: Stuff): Stuff[] {
-    if (!MixinApi.isContainable(animal)) return [];
-    const room = animal.getContainer();
-    if (!room || !MixinApi.isContainer(room)) return [];
-    return [...room.getContents()];
-  }
-
-  private refuse(
-    context: CommandContext,
-    actor: Stuff,
-    line: string,
-    reason: string,
-  ): void {
-    MessageApi.scene(actor).topic(TOPIC).toSelf(Mml.compose`${line}`).send();
-    context.note({ kind: 'controller-rejected', reason, detail: '' });
-  }
 }

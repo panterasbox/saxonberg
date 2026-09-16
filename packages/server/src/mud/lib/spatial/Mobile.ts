@@ -40,6 +40,7 @@ import type { Slotted } from '../slot/Slotted';
 import type { LocomotionMode } from '../../platform/idea/LocomotionMode';
 import { MixinApi } from '../../api/mixin';
 import { PerceptionApi } from '../../api/perception';
+import { PersistableApi } from '../../api/persistable';
 import { ContainmentApi, ContainmentError } from '../../api/containment';
 import { MessageApi } from '../../api/message';
 import type { Soul } from '../social/Soul';
@@ -66,6 +67,8 @@ import { ShellApi } from '../../api/shell';
  */
 export interface Mobile {
   traverse(exit: Exit, mode: string): Promise<void>;
+  /** The first exit of a shortest open path to `placeId`, or null. */
+  firstStepToward(placeId: string, hops?: number): Exit | null;
   teleport(destination: Stuff & Container, opts?: TeleportOptions): void;
   announceDeparture(from: Stuff & Container, exit?: Exit): void;
   announceArrival(to: Stuff & Container, exit?: Exit): void;
@@ -370,6 +373,55 @@ export function MobileMixin<TBase extends MixinConstructor<Stuff & Containable>>
      * "is this passable?" gate. The new Witness hooks layer
      * additional pre-move vetos, not a replacement.
      */
+    /**
+     * ⭐⭐ **The first step of a shortest OPEN path to a place** —
+     * breadth-first over exits this body can actually traverse right
+     * now, out to `hops` rooms.
+     *
+     * Returns one exit, never a route: a thing that walks somewhere
+     * re-asks each beat, so a door closing mid-journey is answered by
+     * the next step rather than by an invalidated plan.
+     *
+     * ⚠ **A closed door is not a longer way round — it is not a way at
+     * all**, which is what makes "lost" mean something: no open path
+     * returns null, and the animal simply stays.
+     *
+     * It lives on `Mobile` because it is a question about a body that
+     * moves, and the alternative was a private BFS inside one brain —
+     * which is how the next brain that needs one ends up with a second
+     * copy. ⚠ There is no other pathfinding in the kernel; `shifts`
+     * teleports precisely because this did not exist.
+     */
+    firstStepToward(
+      this: Stuff & Containable & Mobile,
+      placeId: string,
+      hops = 8,
+    ): Exit | null {
+      const from = this.getContainer();
+      if (!from) return null;
+      const seen = new Set<Stuff>([from]);
+      let frontier: { room: Stuff; first: Exit | null }[] = [
+        { room: from, first: null },
+      ];
+      for (let depth = 0; depth < hops && frontier.length; depth++) {
+        const next: { room: Stuff; first: Exit | null }[] = [];
+        for (const { room, first } of frontier) {
+          if (!MixinApi.isExitable(room)) continue;
+          for (const exit of room.getExits().values()) {
+            if (!exit.canTraverse(this, 'walk').ok) continue;
+            const dest = exit.getDestination();
+            if (!dest || seen.has(dest)) continue;
+            seen.add(dest);
+            const step = first ?? exit;
+            if (PersistableApi.placeIdOf(dest) === placeId) return step;
+            next.push({ room: dest, first: step });
+          }
+        }
+        frontier = next;
+      }
+      return null;
+    }
+
     async traverse(
       this: Stuff & Containable & Mobile,
       exit: Exit,

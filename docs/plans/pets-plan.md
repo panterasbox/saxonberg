@@ -759,6 +759,48 @@ build's job**; dropping the alias is.
   skill) and reconciling them is ranching's D28 follow-on. AC 11 holds by
   either verb without it.
 
+### D18 — Five bespoke helpers, and where each of them belonged
+
+⚠⚠ **Added 2026-09-16, in review.** The user asked why `NameController`
+minted a `witnesses()` function for something the codebase has several
+solutions for, and asked what else in the MR was doing that. Five things
+were. Each already had a home, and one of them was **wrong** as well as
+bespoke.
+
+| minted | the home it belonged in |
+|---|---|
+| `NameController.witnesses()` | **`MessageApi.getSensors(env)`** — what `IntroduceController` uses three files away. ⚠ The private version walked `room.getContents()`, so it would have called `learnIdentityOf` on the saucer and the food |
+| `NameController.refuse()` + `OfferController.say()` | **`CommandController.refuse()`** |
+| the handling-band comparison, verbatim in `Pet` + `Offer` | **`HandlingMixin.handlingAtLeast(band)`** — the band ORDER is that file's fact |
+| `edible(thing)`, in the brain and again in `Feeder.offerings()` | **`Tangible.isEdible()`** — the thing knows what it is made of |
+| `firstStepHome()` BFS in `homes.ts` | **`Mobile.firstStepToward()`** — a question about a body that MOVES. `homes.ts` 118 → 72 lines |
+
+⭐ **The `refuse` collision was diagnostic.** Adding it to the base broke
+the build: *"Property 'refuse' is private in `AnalyzePostmortemController`
+but not in `CommandController`"* — a **fourth** controller had minted the
+same helper. A subclass shadowing a concept the base should own is the
+signal. Folded (3 call sites, its suite green).
+
+⚠ **Not done here, deliberately: the tree-wide migration.** 164
+controllers do the scene+note pair by hand; the base method is used by
+six. The seam now exists and nothing is forced through it, which is an
+honest half-measure rather than a finished one. It wants a census and a
+ratchet of its own — `docs/lint-family.md`'s pattern — not a sweep buried
+inside a pets MR.
+
+⚠ **`Mobile.firstStepToward` widens a common surface** — every Character
+and Creature composes `Mobile`. It earns it (there is no other
+pathfinding in the kernel, which is *why* `shifts` teleports), but it is
+a larger claim than the other four and was flagged for the user.
+
+⭐ Moving the BFS also fixed the test shape: the brain test had been
+standing up rooms and exits to exercise a search it merely CALLS. It now
+asserts the decision — asks, acts, holds when waiting — and `Mobile` owns
+six tests for the search, including *a closed door is not a longer way
+round, it is no way at all*.
+
+---
+
 ### D17 — Feeding is a LADDER, and the rungs are a species fact
 
 ⚠⚠ **Added 2026-09-16, in review, after the user asked why `FeederMixin`

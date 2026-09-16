@@ -93,6 +93,8 @@ export interface Handling {
   getHandling(): number;
   /** The band — what a person watching would say. */
   handlingBand(): HandlingBand;
+  /** Is it at least this tractable? The band comparison, done once. */
+  handlingAtLeast(band: HandlingBand): boolean;
   /** What that looks like. */
   handlingPhrase(): string;
   /**
@@ -166,6 +168,22 @@ export function HandlingMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase
       if (h < 0.62) return 'wary';
       if (h < 0.85) return 'steady';
       return 'quiet';
+    }
+
+    /**
+     * ⭐ Whether this animal is at or above a band.
+     *
+     * ⚠ Lives here because the comparison is `HANDLING_BANDS.indexOf(a) >=
+     * HANDLING_BANDS.indexOf(b)` — an ordinal read of a vocabulary array,
+     * which every caller was writing out by hand. Two controllers had
+     * identical copies, and a third would have made a third. The ORDER of
+     * the bands is this file's fact; nobody else should have to know it.
+     */
+    public handlingAtLeast(band: HandlingBand): boolean {
+      return (
+        HANDLING_BANDS.indexOf(this.handlingBand()) >=
+        HANDLING_BANDS.indexOf(band)
+      );
     }
 
     public handlingPhrase(): string {

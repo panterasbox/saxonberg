@@ -28,6 +28,8 @@ import type {
 } from '../../api/command';
 import { Idea } from '../stuff/Idea';
 import { MixinApi } from '../../api/mixin';
+import { MessageApi } from '../../api/message';
+import { Mml } from '../../api/mml';
 import { MqlApi } from '../../api/mql';
 import { StuffApi } from '../../api/stuff';
 import type { Display } from '../display/Display';
@@ -135,6 +137,37 @@ export abstract class CommandController<
       // Cancelled, timed out, or the host dropped — all "no target".
       return null;
     }
+  }
+
+  /**
+   * ⭐ **Say no, diegetically, and record why** — the two halves of a
+   * refusal in one call.
+   *
+   * Every controller that declines does the same two things: puts a
+   * sentence in front of the actor, and drops a `controller-rejected`
+   * note so the envelope carries a machine-readable reason. The prose is
+   * what the player gets; the note is what a test and the client get.
+   *
+   * ⚠ It lives here because **164 controllers do this pair by hand**,
+   * and at least three had minted a private helper for it —
+   * ranching's `HandleController`, and two in the pets build before this
+   * replaced them. A pattern that common with no shared home is how
+   * every new controller ends up inventing its own slightly-different
+   * version. The tree-wide migration is a census-and-ratchet job and is
+   * NOT done here; this is the home it migrates to.
+   */
+  protected refuse(
+    context: CommandContext,
+    topic: string,
+    line: string,
+    reason: string,
+    detail = '',
+  ): void {
+    MessageApi.scene(context.commandGiver)
+      .topic(topic)
+      .toSelf(Mml.compose`${line}`)
+      .send();
+    context.note({ kind: 'controller-rejected', reason, detail });
   }
 
   /**

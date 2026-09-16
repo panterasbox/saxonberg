@@ -104,10 +104,9 @@ export const brain = class {
   }
 } satisfies BrainStatics;
 
-/** Whether a thing is made of something anything would eat. */
+/** ⭐ The thing answers. See `Tangible.isEdible`. */
 function edible(thing: Stuff): boolean {
-  if (!MixinApi.isTangible(thing)) return false;
-  return thing.getMaterial()?.getEdibility() === true;
+  return MixinApi.isTangible(thing) && thing.isEdible();
 }
 
 /**

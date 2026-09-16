@@ -75,6 +75,8 @@ export interface Tangible {
    * read the bulk default directly.
    */
   getMaterial(detailKey?: string): Material | null;
+  /** Is this made of something anything would eat? */
+  isEdible(): boolean;
 
   /**
    * Set the Material at `detailKey`, or the bulk default when
@@ -232,6 +234,21 @@ export function TangibleMixin<TBase extends MixinConstructor>(Base: TBase) {
      * marshaller.
      */
     public _detailMaterialPaths: Record<string, string> = {};
+
+    /**
+     * ⭐ **Is this made of something anything would eat?**
+     *
+     * ⚠ Edibility is a fact about the MATERIAL, not the class — the same
+     * class is an anvil or a cut of stew meat depending on its
+     * `_materialPath`. So every caller was writing
+     * `MixinApi.isTangible(s) ? s.getMaterial()?.getEdibility() === true
+     * : false` by hand: the `eat` validator, the feeding brain, the
+     * feeding vessel. Three spellings of one question. The thing knows
+     * what it is made of; it can answer.
+     */
+    public isEdible(): boolean {
+      return this.getMaterial()?.getEdibility() === true;
+    }
 
     public getMaterial(detailKey?: string): Material | null {
       if (detailKey !== undefined) {
