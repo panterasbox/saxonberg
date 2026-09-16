@@ -47,6 +47,13 @@ export default class WaterFixture extends UnboundedReceptacle {
 
   /** Sideways: anyone in the room with the basin can wash at it. */
   static commandContributions: CommandContributions = {
-    peers: ['platform/cmd/crafting/wash.yaml'],
+    peers: [
+      'platform/cmd/crafting/wash.yaml',
+      // ⭐ You learn `rinse` the same way you learn `wash`: by standing
+      // at water. A separate verb rather than a second `wash` stanza —
+      // `wash`'s arg is a CRAFTED thing, and widening it to also accept a
+      // body would delete a check (see `RinseController`'s header).
+      'platform/cmd/medical/rinse.yaml',
+    ],
   };
 }

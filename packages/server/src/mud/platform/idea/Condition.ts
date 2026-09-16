@@ -1064,7 +1064,10 @@ export const CAUSTIC_BEHAVIOR: TraumaBehavior = {
       ? `a caustic burn of ${t.site}, still eating`
       : `a caustic burn of ${t.site}`;
   },
-  resolution: 'wash',
+  // ⚠ `rinsing`, not `wash`. The token is rendered raw by `treat`'s
+  // mismatch line ("It wants ___"), and *"It wants wash"* is not a
+  // sentence. The VERB is `rinse`; this is what the wound asks for.
+  resolution: 'rinsing',
   signature: [
     {
       kind: 'function',

@@ -17,6 +17,13 @@ data:
     x: 0
     y: 2
     z: -1
+  # ⭐⭐ The lime seep. Runoff pools at the bottom of a pit and lime
+  # leaches out of the mortar, so this is where a caustic honestly
+  # belongs — and it is the one hazard in the delve that is NOT hidden.
+  # You can see it perfectly well and it will still take the skin off
+  # your feet, which teaches that not all danger is somebody's trap.
+  props:
+    - /stuff/thing/traps/lime-seep
   exits:
     up:
       destination: /world/newbie-wilds/delve/corridor-2

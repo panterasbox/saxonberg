@@ -1154,7 +1154,28 @@ wet-bulb), `MagicLogic.heat-pump.test.ts` (COP arithmetic pins the
 arcane-science numbers: 100 kJ at 17 K lift ≈ 14 τ; `dispel` still costs
 20), the catalogue accepts the model. Acceptance: drive steps 12–14.
 
-**W-B3 — the caustic.** *(D17 content half)* quicklime row, the seep,
+**W-B3 — the caustic.** ✅ **DONE** *(D17 content half)*
+> **Build note.** ⚠⚠ **D17's `wash`-second-stanza plan does not work, and
+> Risk 7 named the fallback correctly.** Three separate rules forbid it:
+> `wash`'s arg is `requires: CraftedMixin` and widening it to also accept
+> a body would DELETE a check (the arg-alternation antipattern); a second
+> view claiming the `wash` verb shadows the first silently, which
+> `lint:verb-collisions` exists to catch; and the `analyze` precedent
+> D17 cited is **subcommands**, which would change the phrasing anyway.
+> So: **`rinse`, its own verb in `medical/`**, afforded by the same
+> `WaterFixture` in the same `peers` bucket — you learn it by standing at
+> water exactly as you learn `wash`.
+> - `CAUSTIC_BEHAVIOR.resolution` is `'rinsing'`, not `'wash'`: the token
+>   is rendered raw by `treat`'s mismatch line, and *"It wants wash"* is
+>   not a sentence. `mismatchLine`'s table names it properly.
+> - ⭐ **Two reachability links the plan did not list**, both caught by
+>   gates rather than by me: a controller needs a **seed template row** on
+>   disk (`controller-seeds.integrity`), and a controller's `TOPIC` must
+>   be an **authored topic key** (`lint:topics` refuses one nothing
+>   authored — which is how a muted-by-default channel gets caught).
+> - The seep ships **unconcealed**, deliberately: every other hazard in
+>   the pack is something somebody hid, and a world where all danger is a
+>   trap teaches that danger is always somebody's fault. quicklime row, the seep,
 `HazardDelivery.corrosiveTo`, the `wash` stanza + `RinseController`, the
 water butt at the hub, pit-below props. Tests: `HazardDelivery` corrosion
 spec, `RinseController` test, `Hazard` integration (stepping onto the seep

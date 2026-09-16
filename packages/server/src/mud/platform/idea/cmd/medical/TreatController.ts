@@ -160,6 +160,10 @@ function mismatchLine(offered: string, wanted: string | null): string {
     warmth: 'warmth',
     cooling: 'cooling',
     air: 'air',
+    // ⭐ A caustic is still eating. What it wants is not a treatment you
+    // apply but the REMOVAL of the cause — which is why `rinse` is a verb
+    // of its own rather than another thing to carry.
+    rinsing: 'rinsing off, with water',
   };
   const o = words[offered] ?? offered;
   const w = words[wanted] ?? wanted;
