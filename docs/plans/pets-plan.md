@@ -759,6 +759,64 @@ build's job**; dropping the alias is.
   skill) and reconciling them is ranching's D28 follow-on. AC 11 holds by
   either verb without it.
 
+### D20 — `call` is a sound; `stay` is a sign
+
+⚠⚠ **Added 2026-09-16, in review.** The user asked whether calling and
+staying a pet *"actually exercise audibly"*, whether anything sets how far
+you can call from, whether this wants a shared `shout` instead of its own
+verb, and — the sharpest of the four —
+
+> **"what about the 'stay' command some dogs that's not even an audible
+> command its a gesture that they're trained with"**
+
+**The answer to the first was no.** Both verbs emitted
+`MessageApi.scene(...).topic('act.deed')` — a modality-neutral frame,
+same room only. A mute player could call a dog, a deaf one heard it, a
+shut door meant nothing, and the dog next door heard nothing. ⚠ The
+engine has a full acoustic model none of it used: `Scene.toAudible` →
+`AudienceGather`, with a dB source level, per-recipient hearing
+threshold, per-hop attenuation and a directional line in farther rooms.
+**A whistle was modelled better than calling your dog.**
+
+⭐⭐ **Making `call` an emission dissolved a problem D14 could not solve.**
+It had been narrowed to `scope: [reachable]` because MQL has no adjacency
+scope, so an animal next door could not be *named* by the player — which
+killed the plan's "it comes from next door". A sound has no targeting
+problem: **you call, and whatever hears you decides.** `animalName` is a
+`string` now — a word you shout, matched against a name or a keyword —
+and omitting it reaches everything in earshot that knows you, because
+that is what shouting in a yard does. `CALL_DB = 85`; the walk takes
+~20 dB per room, so it carries next door and not much further.
+
+⭐⭐ **`stay` is a gesture, so it needs line of sight.** The two verbs now
+fail in different places, which is the honest difference between a word
+and a sign rather than a cosmetic one:
+
+| | channel | stopped by |
+|---|---|---|
+| `call` | earshot | a shut door · distance |
+| `stay` | line of sight | a corner · the dark · its back turned |
+
+⚠ **And the check runs the other way**: `PerceptionApi.perceives(animal,
+actor)` — *the animal seeing YOU*, not you seeing it. Those come apart
+exactly where it matters: in an unlit room you can know perfectly well
+where your dog is and still have no way to signal it. The refusal names
+what you observe — *it is not looking at you* — so a missed sign and an
+ignored one read alike, which is this build's standing rule about never
+explaining an animal.
+
+**Kept as its own verb, not folded into `shout`.** A dog answers to a
+SIGNAL, not to language; `shout` is free-form prose, and folding them
+would mean parsing intent out of words an animal does not understand.
+They share the acoustic path without sharing a verb.
+
+⚠ **No voice vitals.** `emit` takes its level per call and no body carries
+a loudness attribute, so range is a constant on the verb rather than
+something a character modulates. Whether a body should have one is real
+and wider than pets; not opened here.
+
+---
+
 ### D19 — An animal knows the way home; it does not solve a graph
 
 ⚠⚠ **Added 2026-09-16, in review.** D18 moved the `homes` BFS onto
