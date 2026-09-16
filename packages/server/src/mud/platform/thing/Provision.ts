@@ -20,6 +20,7 @@ import { FreshnessMixin } from '../../lib/material/Freshness';
 import { CuredMixin } from '../../lib/material/Cured';
 import { ContaminableMixin } from '../../lib/material/Contaminable';
 import { CraftedMixin } from '../../lib/craft/Crafted';
+import { ComposedMixin } from '../../lib/metabolism/Composed';
 import type { Crafted } from '../../lib/craft/Crafted';
 
 // Thermal AND Freshness, because a Provision IS food by construction —
@@ -42,10 +43,17 @@ import type { Crafted } from '../../lib/craft/Crafted';
 // would even mean (so Crafted must be above it). **Every food can be
 // cooked** — true of this class by name, which is the whole reason the
 // gauge is here and not on `Thing`.
+// ⭐ And Composed: **every food can be made of parts** — a loaf, a
+// sausage, a cutlet in batter. A chain that ends in something you HOLD
+// used to lose everything a chain ending in something you POUR keeps,
+// because only a bulk payload carried a composition. An empty list is
+// the default and costs nothing.
 const ProvisionBase = CraftedMixin(
-  ContaminableMixin(
-    CuredMixin(
-      ThermalDoseMixin(FreshnessMixin(ThermalMixin(DetailedMixin(Thing)))),
+  ComposedMixin(
+    ContaminableMixin(
+      CuredMixin(
+        ThermalDoseMixin(FreshnessMixin(ThermalMixin(DetailedMixin(Thing)))),
+      ),
     ),
   ),
 );

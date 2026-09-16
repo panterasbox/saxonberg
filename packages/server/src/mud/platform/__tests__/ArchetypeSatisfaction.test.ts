@@ -259,7 +259,28 @@ describe('archetype satisfaction', () => {
     const v = verdict('kitchen', r as unknown as Stuff & Container);
     expect(v.satisfied).toBe(false);
     const short = v.rows.filter((row) => !row.satisfied).map((row) => row.key);
-    expect(short.sort()).toEqual(['cold', 'surface']);
+    // ⭐ `surface` used to be short here too. The grain-chain build gave
+    // `Oven` a `SurfacedMixin` (D28) — a range is a firebox you put a
+    // loaf in AND a plate you stand a pot on, which the shipped
+    // kitchen-range row's own prose already promised. So the hotplate
+    // this fixture stands up now satisfies the work surface, exactly as a
+    // real hotplate does, and the only thing this corner still lacks is
+    // somewhere cold.
+    expect(short.sort()).toEqual(['cold']);
+  });
+
+  it('⭐ a hotplate IS a work surface — a range is both (grain-chain D28)', () => {
+    const r = room();
+    const plate = hotplate();
+    put(plate, r);
+    const by = new Map(
+      verdict('kitchen', r as unknown as Stuff & Container).rows.map((row) => [
+        row.key,
+        row.by,
+      ]),
+    );
+    expect(by.get('surface')).toContain('hotplate');
+    expect(by.get('heat')).toContain('hotplate');
   });
 
   it('a bathroom needs water AND the fixture everybody looks for', () => {

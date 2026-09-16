@@ -89,6 +89,7 @@ import type { Thermal } from '../lib/thermal/Thermal';
 import type { Wet } from '../lib/wetness/Wet';
 import type { Fresh } from '../lib/material/Freshness';
 import type { Dosed } from '../lib/thermal/ThermalDose';
+import type { Composed } from '../lib/metabolism/Composed';
 import type { Cured } from '../lib/material/Cured';
 import type { Contaminable } from '../lib/material/Contaminable';
 import type { Growing } from '../lib/husbandry/Growing';
@@ -1237,6 +1238,16 @@ export class MixinApi {
    */
   public static isFresh(obj: Stuff): obj is Stuff & Fresh {
     return this.hasMixin(obj, Mixins.Fresh);
+  }
+
+  /**
+   * A host that can be **made of parts** — a discrete food carrying the
+   * ingredient list a blend carries on its payload. Composed on
+   * `Provision`; an empty list is the sparse default, and readers fall
+   * back to the host's own Material exactly as they do for a blend.
+   */
+  public static isComposed(obj: Stuff): obj is Stuff & Composed {
+    return this.hasMixin(obj, Mixins.Composed);
   }
 
   /**

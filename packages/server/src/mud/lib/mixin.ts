@@ -355,6 +355,18 @@ export const Mixins = {
   // The cross-cutting spoilage gauge — any Thing can go off (inert until
   // its Material tabulates a spoilage activation energy).
   Fresh: 'FreshnessMixin',
+  // ⭐ Reduce matter, then separate it — the grinding primitive. A mill
+  // takes grain and yields flour plus bran; a stamp mill takes ore and
+  // yields concentrate plus tailings, on the same three fields. Isn't a
+  // recipe (there is no residue COUNT — the split is continuous) and
+  // isn't a tool capability (it is what the instrument DOES with one).
+  Comminuting: 'ComminutingMixin',
+  // ⭐ What a discrete food is MADE OF — the same `BlendPart[]` a blend
+  // carries on its payload, so a chain that ends in something you hold
+  // does not lose what a chain ending in something you pour keeps. Isn't
+  // a recipe (that is `Crafted.recipe`) and isn't nutrition (that is read
+  // off these parts); it is the ingredient list itself.
+  Composed: 'ComposedMixin',
   // ⭐ The DONENESS gauge — how much cooking a food has had, integrated
   // over time and temperature. Not the spoilage gauge and not re-based on
   // it: the kill's Arrhenius and browning's decade interval are different

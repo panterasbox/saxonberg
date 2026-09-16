@@ -42,7 +42,8 @@ import {
 import { ContainmentApi } from '../../../api/containment';
 import { StackableApi } from '../../../api/stackable';
 import type RecipeCatalogue from '../RecipeCatalogue';
-import type { BulkSlot, BulkPayload } from '../../../lib/bulk/Bulkable';
+import type { BulkSlot, BlendPart,
+  BulkPayload } from '../../../lib/bulk/Bulkable';
 import type { Tooled } from '../../../lib/craft/Tooled';
 import type {
   CraftRequest,
@@ -949,7 +950,15 @@ function deriveBlendPayload(
   recipeId: string,
   appearance: string,
   keywords: readonly string[],
-  parts: { material: Material; servings: number }[],
+  parts: {
+    material: Material;
+    servings: number;
+    /**
+     * ⭐⭐ **What this input was itself made of**, when it was already a
+     * blend. See the expansion below — this is the whole of D25.
+     */
+    composition?: readonly BlendPart[];
+  }[],
   effectiveHeatK = 0,
   makerPath = '',
 ): BulkPayload {
@@ -960,6 +969,35 @@ function deriveBlendPayload(
   // instead of being handed the answer. See the bulk-decomposition plan.
   const composition = new Map<string, number>();
   for (const part of parts) {
+    // ⭐⭐ **A consumed input's PARTS, not its identity** (grain-chain
+    // D25). "Macros in = macros out" applied to what the input was
+    // actually made of: an input that is itself a blend contributes the
+    // things it was made from, scaled to the amount consumed, rather than
+    // collapsing to its own blend name.
+    //
+    // ⚠ Without this the whole chain has a hole in the middle. Flour
+    // whose payload says *72 % endosperm, 28 % bran* becomes, at the
+    // kneading trough, simply "flour" — and the loaf that comes out the
+    // far end is white however dark the flour was, silently, with nothing
+    // anywhere to say so. Five links carry the extraction from the mill
+    // to the plate and this is the one that used to drop it.
+    //
+    // A parts-less input behaves exactly as before: one part, its own
+    // material, its own servings.
+    const inner = part.composition ?? [];
+    if (inner.length > 0) {
+      const innerTotal = inner.reduce((a, b) => a + b.servings, 0);
+      if (innerTotal > 0) {
+        for (const sub of inner) {
+          const share = (sub.servings / innerTotal) * part.servings;
+          composition.set(
+            sub.materialPath,
+            (composition.get(sub.materialPath) ?? 0) + share,
+          );
+        }
+        continue;
+      }
+    }
     const partPath = part.material.getTemplatePath();
     if (partPath) {
       composition.set(partPath, (composition.get(partPath) ?? 0) + part.servings);
@@ -1142,9 +1180,23 @@ async function applyBulkOutput(
       recipe.getKeywords(),
       [
         ...matched.flatMap((m) =>
-          m.material ? [{ material: m.material, servings: 1 }] : [],
+          m.material
+            ? [
+                {
+                  material: m.material,
+                  servings: 1,
+                  composition: m.slot.getPayload()?.composition,
+                },
+              ]
+            : [],
         ),
-        ...matchedItems.map((m) => ({ material: m.material, servings: m.count })),
+        ...matchedItems.map((m) => ({
+          material: m.material,
+          servings: m.count,
+          composition: MixinApi.isComposed(m.stuff)
+            ? m.stuff.getComposition()
+            : undefined,
+        })),
       ],
       effectiveHeatK,
       makerPath,
@@ -1166,19 +1218,31 @@ async function applyBulkOutput(
  * onto the cloned output (the `ThermalLogic` casting-stamp surface).
  * Mass-conserving: the output weighs what the consumed matter weighed.
  */
-function applyTangibleOutput(
+async function applyTangibleOutput(
   output: Stuff,
   recipe: Recipe,
   matched: MatchedInput[],
   matchedItems: MatchedItemInput[],
   effectiveHeatK: number,
   deliveredHeatK: number = effectiveHeatK,
-): void {
+): Promise<void> {
   const primary = matchedItems[0];
-  if (!primary) {
+  const authoredMaterial = recipe.getOutputMaterial();
+  // ⭐⭐ **A tangible made entirely of BULK** (grain-chain D11). This used
+  // to throw: the transform arm assumed a primary ITEM input whose
+  // material and mass flow onto the output, which is true of every
+  // smithing recipe and false of a loaf. A loaf is baked from dough, and
+  // dough is a liquid-ish thing in a trough.
+  //
+  // So when the recipe authors its own `outputMaterial` and no item
+  // matched, the material is the authored one and the mass is the summed
+  // bulk (litres x each source material's density) — conservation exactly
+  // as the item arm does it, over the other kind of matter.
+  const bulkOnly = !primary && authoredMaterial.length > 0;
+  if (!primary && !bulkOnly) {
     throw new Error(
       `CraftingLogic: tangible output '${recipe.getOutputTemplate()}' ` +
-        `resolved with no matched item input`,
+        `resolved with no matched item input and no 'outputMaterial'`,
     );
   }
   if (!MixinApi.isTangible(output)) {
@@ -1193,8 +1257,61 @@ function applyTangibleOutput(
     // A stack's mass is per-unit (the stack is `quantity` instances).
     totalKg += m.stack ? unitKg * m.count : unitKg;
   }
-  output.setMaterial(primary.material);
+  if (bulkOnly) {
+    output.setMaterial(
+      await StuffApi.singleton<Material>(authoredMaterial),
+    );
+    for (const m of matched) {
+      const density = m.material?.getDensity().rawValue() ?? 1000;
+      totalKg += m.measureL * ((density > 0 ? density : 1000) / 1000);
+    }
+  } else {
+    output.setMaterial(primary!.material);
+  }
   if (totalKg > 0) output.setMass(Quantity.of(totalKg, 'kg'));
+
+  // ⭐ …and what it is MADE OF (D26). The bulk inputs' parts, merged and
+  // scaled, land on the output's `ComposedMixin` face — the fifth and
+  // last link of the chain that carries an extraction from the mill to
+  // the plate. A parts-less input contributes its own material, exactly
+  // as `derivePayload` does for a blend.
+  if (MixinApi.isComposed(output)) {
+    const merged = new Map<string, number>();
+    const contribute = (path: string, servings: number): void => {
+      if (!path || !(servings > 0)) return;
+      merged.set(path, (merged.get(path) ?? 0) + servings);
+    };
+    for (const m of matched) {
+      const inner = m.slot.getPayload()?.composition ?? [];
+      const innerTotal = inner.reduce((a, b) => a + b.servings, 0);
+      if (innerTotal > 0) {
+        for (const sub of inner) {
+          contribute(sub.materialPath, (sub.servings / innerTotal) * m.measureL);
+        }
+      } else if (m.material) {
+        contribute(m.material.getTemplatePath() ?? '', m.measureL);
+      }
+    }
+    for (const m of matchedItems) {
+      const inner = MixinApi.isComposed(m.stuff) ? m.stuff.getComposition() : [];
+      const innerTotal = inner.reduce((a, b) => a + b.servings, 0);
+      if (innerTotal > 0) {
+        for (const sub of inner) {
+          contribute(sub.materialPath, (sub.servings / innerTotal) * m.count);
+        }
+      } else {
+        contribute(m.material.getTemplatePath() ?? '', m.count);
+      }
+    }
+    if (merged.size > 0) {
+      output.setComposition(
+        [...merged].map(([materialPath, servings]) => ({
+          materialPath,
+          servings,
+        })),
+      );
+    }
+  }
 
   // ⭐⭐ **The matter's own state rides the transform.** A tangible output
   // used to start blank, which was invisible while every such recipe made
@@ -1224,9 +1341,10 @@ function applyTangibleOutput(
   if (MixinApi.isCured(output)) {
     // The input's own water state first — a dried cut smoked is still a
     // dried cut — then the recipe's treatment, stronger-axis-wins.
-    const inherited = MixinApi.isCured(primary.stuff)
-      ? primary.stuff.getCureState()
-      : Cure.untreated();
+    const inherited =
+      primary && MixinApi.isCured(primary.stuff)
+        ? primary.stuff.getCureState()
+        : Cure.untreated();
     const treatment = recipe.getCure();
     output.setCureState(
       treatment ? Cure.applyTreatment(inherited, treatment) : inherited,
@@ -1303,7 +1421,13 @@ async function applyEdibleOutput(
       recipe.getRecipeId(),
       recipe.getOutputAppearance(),
       recipe.getKeywords(),
-      matchedItems.map((m) => ({ material: m.material, servings: m.count })),
+      matchedItems.map((m) => ({
+        material: m.material,
+        servings: m.count,
+        composition: MixinApi.isComposed(m.stuff)
+          ? m.stuff.getComposition()
+          : undefined,
+      })),
       effectiveHeatK,
       makerPath,
     ),
@@ -1765,13 +1889,19 @@ async function mintVessel(
   outSlot.setMaterial(material);
   outSlot.setAmount(Quantity.of(amountL, 'L'));
   if (!authored) {
-    const parts: { material: Material; servings: number }[] = [];
+    const parts: {
+      material: Material;
+      servings: number;
+      composition?: readonly BlendPart[];
+    }[] = [];
     for (const c of req.contributions) {
       if (!c.materialPath) continue;
       const m = await StuffApi.singleton<Material>(c.materialPath);
       parts.push({
         material: m,
         servings: c.kind === 'item' ? (c.count ?? 1) : 1,
+        // The banked pour remembers what its source was made of (D25).
+        composition: c.composition,
       });
     }
     outSlot.setPayload(
@@ -2029,7 +2159,7 @@ async function craftImpl(req: CraftRequest): Promise<CraftOutcome> {
     output = await StuffApi.clone<Stuff>(recipe.getOutputTemplate());
   }
   if (application === 'tangible') {
-    applyTangibleOutput(
+    await applyTangibleOutput(
       output,
       recipe,
       matched,
