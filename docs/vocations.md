@@ -123,7 +123,9 @@ Per entry: **what gates it**, **who pays**, **which subsystem it rides**.
 | **mana refiner** | designed ([mana economy](./slates/builds/mana-economy-design-pack.md)) | premises (industrial zoning) + cheap power | trade — ⭐ *concentration, never creation; needs the energy economy as its input* |
 | **salvager** | designed | **assay** + yard | materials buyers |
 | **smelter** | **shipped** ([mining](./subsystems/mining.md)) | premises (industrial zoning) + charcoal | ingot buyers — ⭐ *buys its ore out of REVENUE, which is what removed the deferred CB-lending dependency* |
-| miller / tanner | **GAP** | premises (industrial zoning) | trade |
+| **miller** | **shipped** ([crafting](./subsystems/crafting.md) · `trade-milling`) | premises + a FALL of water | trade — ⭐⭐ *the capital ladder that buys back your TIME rather than a rate: a quern holds your `hands` for the whole grind and a water mill holds nothing of yours. Paid in KIND (the multure), which is how a mill pays for premises with no coin changing hands* |
+| **baker** | **shipped** ([crafting](./subsystems/crafting.md) · `trade-baking`) | premises + an oven + a leaven | ⭐ *the first shopfront to come off the general store — and the first trade with a modelled CUSTOMER: the `eats` brain buys bread every morning and its purse chooses which loaf* |
+| tanner | **GAP** | premises (industrial zoning) | trade |
 
 ### Tertiary — move, store, sell
 
@@ -255,7 +257,7 @@ right per row is most of the civic design.
 | **cooper** | **GAP** | Discipline | barrels — the bulk-goods container |
 | **stevedore / docker** | **GAP** | employment | ⭐ **Wharfside already has a dockers' hall**; the labour half of the depot |
 | **icehouse keeper / ice cutter** | **GAP** | premises + thermal read | ⭐⭐ **THIS IS THERMAL'S MISSING VOCATION** — and it is what makes the refrigeration arc possible before machines |
-| miller · tanner | **GAP** | premises (industrial zoning) | the classic nuisance trades (⭐ the smelter SHIPPED — see § Secondary) |
+| tanner | **GAP** | premises (industrial zoning) | the classic nuisance trade (⭐ the smelter and the **miller** both SHIPPED — see § Secondary) |
 | **charcoal burner / collier** | **shipped** ([mining](./subsystems/mining.md)) | skill | ⭐⭐ *a judgment craft with a real downside — too much air and the charge goes to ash, too little and you draw half-burnt brands, and you can lose a whole burn.* Fuel for everything above, and the mine's timber comes off the same stand |
 | **gunsmith · powder maker** | designed ([ranged](./slates/builds/ranged-slate.md)) | licence | credential-gated |
 | **shipwright · ship-breaker** | **GAP** | premises | the breaker is a LULU |
