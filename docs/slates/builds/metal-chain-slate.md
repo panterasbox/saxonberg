@@ -158,6 +158,27 @@ shipped.
 ⭐ It gives the trade a **real failure mode**, which most crafting lacks:
 you can lose a whole burn.
 
+### ⚠ What the metallurgy build left here (2026-09-16)
+
+Salvaged from the retired metallurgy plan — two concrete things this
+trade owes, both found by driving rather than by testing:
+
+- **Nobody makes charcoal while you sleep.** The fuel yard's charcoal is
+  authored props, never restocked, and `char` is a **three-day burn** —
+  so the only supply in the realm is a basket somebody put there. The
+  metallurgy drive is `.dirty.` precisely because it **burns that
+  basket** and nothing replaces it. The seam is a `chars` producer brain
+  on the collier, over the existing `char` engagement — the same shape
+  the fringe producer (`delves`) already takes for ore. ⭐ *A dirty
+  reason is a question for the owning trade: this one says the fuel trade
+  has a demand surface and no supply.*
+- **The clamp is a furnace and declines for its own reason.** A charcoal
+  clamp composes `FurnaceMixin` + `ContainerMixin`, so `smelt` now
+  reaches it from the fuel yard and refuses with a sentence about what a
+  clamp is — a heap kept deliberately starving of air. That is correct
+  and is worth keeping when pyrolysis grows: **the refusal is the
+  teaching**, not an error path.
+
 ### The coppice is the fuel trade's own capital **[DECIDED]**
 
 A managed stand on a parcel, cut on a rotation, regrowing on a clock —
@@ -934,6 +955,19 @@ doom:
 ---
 
 ## ⭐⭐⭐ The deposit is zoned — where tin lives **[DECIDED — closes Open 6]**
+
+> ⚠ **What Stage C concretely needs, now that the iron rung has shipped**
+> (salvaged from the retired metallurgy plan): a deeper `toZ` band on the
+> Ferrow row (`alongTo` for the heart, the existing depth axis for the
+> granite contact); a `cassiterite.yaml` mineral row and a
+> `tin-ingot.yaml` product — the latter discovered by `smelt`'s existing
+> product scan, so no code; and an **alloy regime** in `smelt` (two
+> metals in one liquid charge → `AlloyedMixin.setFractionOf(tin, …)` on a
+> bronze ingot). The carbon machinery the iron rung built is the same
+> machinery bronze needs — a second dissolved constituent, one threshold
+> fewer. **The bronze breastplate is already authored and unmakeable**,
+> like the nine arms were.
+
 
 **Tin's home is the bottom of the Ferrow.** Nothing needs a second
 locality: the deposit already has a vertical structure, and this adds one

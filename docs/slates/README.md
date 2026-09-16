@@ -143,7 +143,7 @@ Pick from here to deepen something that already works. Cheaper to start
 | [mana-economy](./builds/mana-economy-slate.md) | the SOURCE — sited mana nodes on the terminus-condition × access-mode grid (a `ManaMain` just refills today) · the CHARGER as a trade … |
 | [mana-economy (pack)](./builds/mana-economy-design-pack.md) | mana deposits + prospecting/refining · magic water as a traded bulk good · the piped-mana utility tier · the Confluence in Terminus canon · the three vocations |
 | [medic-judgment](./builds/medic-judgment-slate.md) | stop auto-selecting (player picks target + modality) · cues without names on `assess`/`analyze` · triage under the deterioration clocks … |
-| [metal-chain](./builds/metal-chain-slate.md) | Stage B, below the water table — shaft/hoist/pump · the drainage commons + the hoist toll · sulfides and roasting · collapse, entrapment, rescue … |
+| [metal-chain](./builds/metal-chain-slate.md) | Stage B, below the water table — shaft/hoist/pump · the drainage commons + the hoist toll · sulfides and roasting · collapse, entrapment, rescue · **Stage C: tin at the granite contact, bronze as a second dissolved constituent** · a charcoal producer for the fuel yard … |
 | [mining](./builds/mining-slate.md) | everything below the water table — shaft/hoist/pump · the drainage commons + hoist toll · sulfides and roasting · collapse entrapment + the rescue clock … |
 | [money-integrity](./builds/money-integrity-slate.md) | pass 1 the census over surfaces A–E (create · mutate · persist/restore · sandbox cash crossing · destroy) · pass 2 the gates … |
 | [mortal-vessel](./builds/mortal-vessel-slate.md) | Thesis 4, moderation as diegetic capability-state · Thesis 5, the prison ↔ Hades unification · the law-enforcement half of Thesis 3 |

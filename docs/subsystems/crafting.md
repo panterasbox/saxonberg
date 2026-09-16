@@ -1270,6 +1270,22 @@ at rest); glassmaking/brewing/alchemy (later branch consumers of the
 same seams); corpos/brands at corporate scale; viewer-relative
 appraisal + congener→hangover.
 
+⭐ **The metal-stamp seam (metallurgy, 2026-09-16)** — two deferred
+pieces that attach at the same place and should land together:
+
+- **`temper` as mechanics.** `quench` records a temper word on metal
+  stock and `analyze chemistry` reports it; nothing reads it. It wants to
+  reach a made thing's `materialScale` in
+  [materials-response.md](./materials-response.md), which is the stamp
+  seam that doc already names.
+- **Carbon on the blade.** `AlloyedMixin` stops at STOCK (`Ingot` ·
+  `Casting` · `Bloom`) deliberately — a blade's metal is its Material
+  ROW, and carbon on a blade would make every mint guard for it. The day
+  something reads per-instance carbon on a finished piece, the mixin
+  composes onto `Weapon`/`Garment` and the fraction flows through **both**
+  mint paths (the recipe mint and the manual build). ⚠ Not before: a
+  field nothing reads is a field every author has to think about.
+
 
 > ⭐ **A recipe's requirements and outputs carry a reveal level.** Inputs, tools, heat, difficulty, grade band and every output field. `name`/`keywords`/`discipline` stay open — a search index nobody can read indexes nothing. `spoiler: 1` with
 > `spoilerName: 0`, so a reader sees which properties exist with the

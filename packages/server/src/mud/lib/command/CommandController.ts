@@ -154,11 +154,15 @@ export abstract class CommandController<
    * again. Taking the giver directly is what made the sweep possible.
    *
    * ⭐ The ordering is load-bearing and is why callers must not rebuild
-   * it: **held before floor**, so a first-match consumer prefers your
+   * it: **carried before floor**, so a first-match consumer prefers your
    * own gear over what happens to be lying about. That is the same
    * on-person-first contract MQL's `reachable` seed keeps
    * (`api/mql/scope-walk.ts`), which is the other home of this walk —
    * use that one from anything that is not a controller.
+   *
+   * ⚠ It stops at what you CARRY: slot occupants (what you wear, what
+   * you wield) are not in a targeting pool. A caller that needs those
+   * wants `ContainmentApi.reachableFrom(actor)`.
    *
    * ⚠ And it EXCLUDES the actor. Several of the hand-rolled copies did
    * not, which let an actor match their own predicate (a Bulkable

@@ -715,6 +715,31 @@ cannot set that (`AUTH_MODE=test` is refused in production), so the cost
 stands. Recorded here as a finding; nothing in this build changes the
 engine to avoid it.
 
+### ⚠ The clock ceiling — what a wire file cannot drive
+
+`WorldClockApi.DEFAULT_SCALE` is 12, so **one real minute is twelve game
+minutes** and there is no per-file override. That puts a hard ceiling on
+what a drive can reach through the socket:
+
+| the world's clock | real time | drivable? |
+|---|---|---|
+| a smelt (two game minutes) | 10s | ✅ |
+| a forge working (four game hours) | **20 min** | ⚠ only by asserting the *start*, not the finish |
+| a charcoal burn (three game days) | ~6 hours | ❌ |
+| a growth arc, a maturation, a coppice rotation | days | ❌ |
+
+⭐ So a wire drive proves the act **begins** honestly and a unit test
+proves the completion does the right thing — which is the same split the
+two tiers already draw, and the reason `metallurgy.dirty` consumes
+authored charcoal rather than making its own.
+
+⚠ **The missing piece is a compressed-clock boot group** — a declared
+`packs`-style knob that boots the world at a much larger scale so a
+durative arc is drivable end to end. Nothing has it today, and until
+something does, *every* durative subsystem's finish is unit-tested only.
+Recorded as the ceiling, not as a plan — the group itself is tracked in
+`docs/slates/tails/wire-suite-growth-slate.md`.
+
 ## Adding a test
 
 Nothing to do, unless your test touches the wired runtime — the Stuff

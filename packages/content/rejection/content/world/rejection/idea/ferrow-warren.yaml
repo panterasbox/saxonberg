@@ -46,8 +46,18 @@ data:
     # ⭐ The independent's ground, centred on the fringe claim at (5,7,0)
     # — three cells each way, one up and one down, which is exactly what
     # `stake` writes. He walked out here when nobody else thought it was
-    # worth the boots, and a player who wants iron of their own walks
-    # another forty metres and stakes (9,11,0).
+    # worth the boots, and a player who wants iron of their own walks on
+    # to the far fringe and stakes (10,14,0).
+    #
+    # ⚠⚠ Two blocks clear each other only when they are disjoint on SOME
+    # axis — seven cells of separation on that one, not four. This block
+    # is y 4..10; the far fringe's is y 11..17, so they miss by one cell
+    # on y and it does not matter that they overlap on x and z. The room
+    # sat at (9,11,0) until `stake` learned to test the whole prospective
+    # block (`MineWarren.overlappingClaim`) — that block was y 8..14 and
+    # x 6..12, overlapping this one on all three axes, and both claims
+    # were being registered. An author who now places a room too close
+    # gets a refusal instead.
     - parcelExtent: /world/rejection/ferrow/claims/2
       from: [2, 4, -1]
       to: [8, 10, 1]

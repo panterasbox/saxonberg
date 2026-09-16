@@ -300,6 +300,19 @@ never derived from geometry: parcels are titled over PATHS and a claim is
 a region of coordinate space. ⭐ A static mine needs none of it — authored
 rooms have real paths and longest-prefix resolution answers directly.
 
+⚠⚠ **First come is a test against the BLOCK, not the centre.** `stake`
+records a 7×7×3 block around the cell you named, and its refusal asked
+only whether that *centre cell* sat inside a recorded claim — so two
+claims four cells apart overlapped by three and both were registered, and
+`claimFor` then answered with whichever block it found first. The
+question a register has to answer is *does the parcel I am about to write
+run into one already written*, and `MineWarren.overlappingClaim(from,
+to)` is it: an AABB test of the whole prospective block against every
+recorded one, returning the block it hit so the refusal can say which.
+⭐ The general shape, and it is worth carrying: **a first-come register
+compares extents, and a check that compares a point to an extent is the
+same bug wearing the right words.**
+
 **The split estate falls out of the path split**: the surface pithead and
 the mine are different zones, therefore different paths, and parcel
 ownership resolves by longest prefix. No parcel at the mine's path ⇒ the

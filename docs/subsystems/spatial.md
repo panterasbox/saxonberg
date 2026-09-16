@@ -400,6 +400,33 @@ A concrete **`Surface`** class (`lib/spatial/Surface.ts`,
 set things on — a shelf, counter, table, or the bar's back-bar —
 the first authored consumer of the surface substrate.
 
+### ⭐ `ContainmentApi.reachableFrom(actor)`
+
+Everything `actor` can act on, **on-person first**: what they wear or
+wield (`Slotted` occupants), then what they carry (`Container` contents),
+then what shares their location, minus the actor. Deduped by `stuffId`;
+held-before-floor ordering is part of the contract, so a first-match
+consumer prefers your own gear over what happens to be lying about.
+
+⚠⚠ **It applies NO perception**, deliberately. This is engine
+bookkeeping, the same licence system mode takes. A *player* asking what
+they can reach must be answered by the `reachable:[…]` MQL query, which
+applies honest fog, recognition-relative naming and via-attribution.
+Prefer the query whenever a viewer is involved.
+
+⚠ **It is not `CommandController.reachableMarks(giver)`**, which is *what
+you could aim something at* and therefore excludes the actor themselves.
+The two differ by exactly one member, and the difference is the point.
+
+⭐ **Why it exists:** the old `ContainmentApi.findReachable` was deleted
+into MQL's `reachable` seed, which lives behind a sealed subdir only
+`api/mql.ts` may import from. That left non-controller callers — a brain,
+a logic singleton — with no sanctioned route, and **eleven** of them
+wrote the two hops by hand. Deleting a finder is only half the job; the
+other half is leaving the replacement findable from where the callers
+are. See [antipatterns.md § Rebuilding the two-leg reach by
+hand](../antipatterns.md).
+
 ### Verbs: `put`, `give`
 
 `put X in Y` calls `ContainmentApi.move`. `put X on Y` calls

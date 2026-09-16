@@ -314,9 +314,14 @@ export class ContainmentApi {
    * none of that — it is engine bookkeeping, the same license
    * `system mode` takes. Prefer the query whenever a viewer is involved.
    *
-   * ⭐ **Held before floor**, so a first-match consumer prefers your own
-   * gear over what happens to be lying about — the same contract the
+   * ⭐ **On-person before floor**, so a first-match consumer prefers your
+   * own gear over what happens to be lying about — the same contract the
    * seed keeps, and the reason a hand-rolled copy is never equivalent.
+   *
+   * ⚠ **Excludes the actor**, like `CommandController.reachableMarks`.
+   * Only the `reachable:[…]` seed includes self, and only it reaches
+   * through a passable exit — see docs/antipatterns.md
+   * § Rebuilding the two-leg reach by hand for the three-way table.
    */
   static reachableFrom(actor: Stuff): Stuff[] {
     const out: Stuff[] = [];

@@ -187,7 +187,7 @@ interface ChargeLot {
 export default class SmeltController extends CommandController<CommandModel> {
   async execute(_model: CommandModel, context: CommandContext): Promise<void> {
     const giver = context.commandGiver;
-    const room = (giver as unknown as { getContainer(): Stuff | null }).getContainer();
+    const room = MixinApi.isContainable(giver) ? giver.getContainer() : null;
     const furnace = room && MixinApi.isContainer(room)
       ? room.getContents().find((c) => MixinApi.isFurnace(c) && MixinApi.isContainer(c))
       : undefined;

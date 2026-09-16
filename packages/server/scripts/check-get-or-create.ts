@@ -79,7 +79,7 @@ export interface GetOrCreateFinding {
  * `return <thatvar>;`, because then the branch adds nothing at all.
  */
 const SHAPE =
-  /const\s+(\w+)\s*=\s*[\s\S]{0,40}?findByTemplatePath<[^>]*>\(\s*([A-Za-z0-9_.$\[\]'"/-]+)\s*\)\s*;?\s*if\s*\(\s*\1\s*\)\s*return\s+\1\s*;[\s\S]{0,240}?singleton<[^>]*>\(\s*\2\s*\)/g;
+  /const\s+(\w+)\s*=\s*[\s\S]{0,40}?findByTemplatePath<[^>]*>\(\s*([A-Za-z0-9_.$[\]'"/-]+)\s*\)\s*;?\s*if\s*\(\s*\1\s*\)\s*return\s+\1\s*;[\s\S]{0,240}?singleton<[^>]*>\(\s*\2\s*\)/g;
 
 /** Source with `//` and block comments blanked, newlines preserved. */
 function stripComments(source: string): string {

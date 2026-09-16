@@ -4282,12 +4282,26 @@ asking "what can I reach" must not be told about what they cannot see, so
 anything viewer-facing takes the query. `reachableFrom` is engine
 bookkeeping and takes the same license `system mode` does.
 
-⚠⚠ **`reachableMarks` and `reachableFrom` are two questions, not one**,
-and they differ by exactly one member. `reachableFrom` is *what you can
-act on* — it INCLUDES the actor, their hosted updates and their slot
-occupants, because `look me` and `sharpen my sword` are both legitimate.
-`reachableMarks` is *what you could aim something at*, and excludes the
-actor for the same reason. Do not merge them.
+⚠⚠ **`reachableMarks` and `reachableFrom` are two questions, not one.**
+`reachableFrom` is *what you can act on*, so it adds **slot occupants** —
+what you wear and what you wield — because `sharpen my sword` is
+legitimate and the sword is in a slot, not in your pack. `reachableMarks`
+is *what you could aim something at*, and a controller's targeting pool
+stops at what you carry. **Both exclude the actor**; a query that must
+include self (`look me`) is the `reachable:[…]` seed, which is the only
+one of the three that does. Do not merge them.
+
+| | slot occupants | carried | co-located | adjacent rooms | the actor | perception |
+|---|---|---|---|---|---|---|
+| `reachableMarks(giver)` | — | ✅ | ✅ | — | — | — |
+| `ContainmentApi.reachableFrom(actor)` | ✅ | ✅ | ✅ | — | — | — |
+| `reachable:[…]` (MQL, viewer-gated) | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+
+⚠ The seed also reaches **through a passable exit** (`candidatesForPeers`)
+and carries hosted updates; the two code-side pools stop at the room. So
+the query is not merely the same set with fog applied — it is a wider
+question, and that is another reason not to treat any of the three as a
+drop-in for another.
 
 ```typescript
 // GOOD — the reach is inherited; only the predicate is yours
@@ -4297,7 +4311,7 @@ return this.reachableMarks(giver).find(
 ```
 
 ⭐ **The ordering is the reason it must not be rebuilt.** The reach is
-**held kit before floor**, so a first-match consumer prefers your own
+**on-person before floor**, so a first-match consumer prefers your own
 gear over whatever is lying about — the same on-person-first contract
 MQL's `reachable` seed keeps (`api/mql/scope-walk.ts`, which absorbed
 the deleted `ContainmentApi.findReachable`). A hand-rolled copy gets
