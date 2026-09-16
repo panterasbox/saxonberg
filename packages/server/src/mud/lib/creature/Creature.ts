@@ -376,7 +376,21 @@ export class Creature extends CreatureBase {
       this.setMass(seeded);
       return seeded;
     }
-    const baseMass = species?.getBodyPlan()?.getBaseMass();
+    // ⚠⚠ `Species.getBaseMass()`, NOT the body plan's. The species
+    // accessor is *own, else the plan's* — it is documented as "the one
+    // accessor every reader goes through" and names this function as one
+    // of exactly three. Reaching past it to the PLAN skipped the species
+    // layer, so every playable species fell back to `biped`'s 70 kg:
+    // a halfling and a dragonborn massed the same, carried the same,
+    // cooled at the same rate and punched with the same energy.
+    //
+    // It went unseen because `massAt` (the husbandry build's maturation
+    // curve) answers first and is right for ANIMALS — every ranched
+    // species authors `adultMass` — while no playable hominid does, so
+    // `massAt` returns 0 for exactly the rows whose `baseMass` this then
+    // failed to read. The bench that catches it lives in `test:gym`,
+    // outside `pnpm test`, which is how it stayed red.
+    const baseMass = species?.getBaseMass();
     if (baseMass !== undefined && baseMass > 0) {
       const seeded = Quantity.of(baseMass, 'kg');
       this.setMass(seeded);

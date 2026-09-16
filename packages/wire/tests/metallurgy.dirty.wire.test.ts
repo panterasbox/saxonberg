@@ -115,7 +115,7 @@ suite('⭐⭐ the ground under your feet is somebody’s, or it is nobody’s', 
   }, 60_000);
 
   it('⭐⭐ forty metres further on, nobody has spoken for it', async () => {
-    const staked = await p.cmd('stake 9,11,0');
+    const staked = await p.cmd('stake 10,14,0');
     expect(
       staked.notes.find((n) => n.kind === 'command-rejected'),
       'the far fringe is open ground and should stake',

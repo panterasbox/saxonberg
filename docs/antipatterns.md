@@ -4274,8 +4274,20 @@ for (const c of candidates) { /* …the predicate… */ }
 
 | you are | use |
 |---|---|
-| a **controller** | `this.reachableMarks(giver)` — inherited from `CommandController` |
-| anything else (a brain, a logic singleton) | `MqlApi.resolveMany('reachable', …)` + narrow locally |
+| a **controller**, aiming at something | `this.reachableMarks(giver)` — inherited from `CommandController` |
+| anything else (a brain, a logic singleton) | `ContainmentApi.reachableFrom(actor)` + narrow, or a `reachable:[…]` query when a VIEWER is involved |
+
+⚠ **A query applies perception; `reachableFrom` does not.** A *player*
+asking "what can I reach" must not be told about what they cannot see, so
+anything viewer-facing takes the query. `reachableFrom` is engine
+bookkeeping and takes the same license `system mode` does.
+
+⚠⚠ **`reachableMarks` and `reachableFrom` are two questions, not one**,
+and they differ by exactly one member. `reachableFrom` is *what you can
+act on* — it INCLUDES the actor, their hosted updates and their slot
+occupants, because `look me` and `sharpen my sword` are both legitimate.
+`reachableMarks` is *what you could aim something at*, and excludes the
+actor for the same reason. Do not merge them.
 
 ```typescript
 // GOOD — the reach is inherited; only the predicate is yours
@@ -4303,6 +4315,15 @@ write the seven lines again — and eleven did, often under a name that
 described the *predicate* rather than the reach (`reachOf`, `findBath`,
 `findWater`, `findBook`, `castInReach`), which is what kept the
 duplication invisible to everyone including the people writing it.
+
+⚠ **And for a non-controller there was no sanctioned option at all.**
+`ContainmentApi.findReachable` had been deleted into `mql/scope-walk.ts`
+— a sealed subdir only `api/mql.ts` may import from — so a brain or a
+logic singleton that needed the pool could not reach it by any legal
+route, and wrote the two hops by hand because that was the only thing
+available. `ContainmentApi.reachableFrom` is the missing door — put back
+where the finder used to live, which is also the only Api tier
+`lint:object-verbs` lets a subject-first containment verb sit in.
 
 ⭐ **A helper with three callers sitting beside ten re-implementations
 is a seam that is wrong, not ten careless authors.** The fix was to

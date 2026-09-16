@@ -100,16 +100,23 @@ export default class StakeController extends CommandController<StakeModel> {
       return;
     }
 
-    // ⚠ Already held? The register says so, and says by whom. First come
-    // is the whole rule, so the refusal is the rule working.
-    const existing = warren.claimFor(centre);
+    // ⚠⚠ Does the BLOCK overlap one already recorded? Not *is my centre
+    // inside one* — a block is `BLOCK_HALF` cells each way, so two
+    // centres four apart pass a centre test while sharing nine columns
+    // of ground, and the register would then hold two claims over the
+    // same rock. *First come is the whole rule* only survives if the
+    // whole block is clear.
+    const existing = warren.overlappingClaim(
+      [centre[0] - BLOCK_HALF, centre[1] - BLOCK_HALF, centre[2] - 1],
+      [centre[0] + BLOCK_HALF, centre[1] + BLOCK_HALF, centre[2] + 1],
+    );
     if (existing) {
       const owner = await ParcelApi.ownerOf(existing.parcelExtent);
       this.decline(
         context,
         owner
-          ? Mml.compose`That ground is already recorded, and it is not yours to record again.`
-          : Mml.compose`That ground is already in the register.`,
+          ? Mml.compose`A block already recorded runs into that one, and it is not yours to record over. Stand further off and try again.`
+          : Mml.compose`A block already in the register runs into that one. Stand further off and try again.`,
         'already-claimed',
       );
       return;

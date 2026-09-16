@@ -157,17 +157,42 @@ describe('Species size — own, else the plan, else zero', () => {
     expect(creature.getMass().rawValue()).toBe(125);
   });
 
-  it("⚠ Species.baseMass no longer drives a creature's mass", () => {
-    // It is still live for combat's structural read
-    // (`CombatLogic` → `NaturalBodyRead`), so it is not dead — it just
-    // stopped being the mass answer. Stating the narrowing explicitly so
-    // the next person does not have to infer it from a merge.
+  it("⚠⚠ Species.baseMass drives mass again when no adultMass is authored", () => {
+    /*
+     * ⚠⚠ **This assertion was inverted, and the inversion shipped a real
+     * bug for every player character in the game.**
+     *
+     * It used to assert `creature.getMass() === 70` — the PLAN's — while
+     * the species plainly said 125, pinning a narrowing the farmstead
+     * merge introduced. The stated rationale was that `baseMass` is "a
+     * body-SHAPE default, so it cannot tell a cow from a collie", but
+     * that is true of **`BodyPlan.baseMass`** and not of
+     * **`Species.baseMass`**, which is per-species and documented on its
+     * own field as *"this species' typical adult mass, overriding the
+     * body plan's"*. Two fields for one fact, and the read started
+     * preferring the newer one.
+     *
+     * The consequence: every playable species authors `baseMass` and
+     * none authors `adultMass`, so `massAt` returned 0 for all ten and
+     * they fell through to `biped`'s 70 kg. A halfling and a dragonborn
+     * massed the same, carried the same, cooled at the same rate and
+     * punched with the same energy — `test:gym`'s species table has been
+     * red on master ever since, and `test:gym` is not in `pnpm test`.
+     *
+     * ⭐ The fix does not disturb the animal path: `adultMass` still wins
+     * wherever it is authored (see the case above), and the fallback is
+     * now `Species.getBaseMass()` — *own, else the plan's* — instead of
+     * reaching past the species straight to the plan.
+     *
+     * ⓘ Two fields still describe one fact. Collapsing them is the
+     * follow-up; this restores the behaviour in the meantime.
+     */
     const { species, creature } = sized(
       { baseMass: 125, stature: 2.0 },
       { baseMass: 70, baseStature: 1.75 },
     );
     expect(species.getBaseMass()).toBe(125);
-    expect(creature.getMass().rawValue()).toBe(70); // the PLAN's
+    expect(creature.getMass().rawValue()).toBe(125);
   });
 
   it("an absent override inherits the plan", () => {

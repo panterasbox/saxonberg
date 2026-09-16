@@ -7,11 +7,14 @@
 # ground, you post a notice, the recorder writes it down — arriving as
 # ground somebody actually wants rather than as a worked example.
 #
-# ⚠ Its centre is four cells from the fringe claim's, which is what makes
-# it stakeable at all: `MineWarren.claimFor` tests the CENTRE cell
-# against existing blocks, and a block is three cells each way, so two
-# claims whose centres are four apart on one axis coexist. That is a
-# geometry fact the rooms were placed to satisfy, not a coincidence.
+# ⚠⚠ Its centre is placed so a staked block here does NOT RUN INTO the
+# independent's. A block is three cells each way, so two claims need
+# seven cells of clearance on an axis, not four — and this room sat four
+# out until `stake` learned to test the whole block instead of its centre
+# cell. At (10,14,0) it is 171 m along strike: still inside the lode's
+# 180 m half-extent, still above the water table, still outside the old
+# men's box, and clear of every recorded claim. That is a geometry fact
+# the room was placed to satisfy, not a coincidence.
 #
 # It is thinner here than at the claim — the body is running out of
 # itself this far along — and that is the honest price of the ground
@@ -27,7 +30,7 @@ data:
     The hill has flattened out and the wind has the whole of it. The rusty band is still here, narrower now and broken into lenses with barren slate between them, going on northeast towards the skyline and thinning as it goes.
 
     There are no posts. There is no cut. There is nobody up here at all, and from this far out the pithead is a smudge of smoke and a roof.
-  coords: { x: 9, y: 11, z: 0 }
+  coords: { x: 10, y: 14, z: 0 }
   exits:
     southwest:
       destination: /world/rejection/location/fringe-claim

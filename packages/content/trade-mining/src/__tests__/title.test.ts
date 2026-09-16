@@ -235,6 +235,40 @@ describe('⚠⚠ a staked claim is owned by a PERSON, not by a lineage', () => {
     expect(personKey(owners[0])).not.toBe(personKey(owners[1]));
   });
 
+  it('⚠⚠ a block that RUNS INTO a recorded one is refused — extents, not centres', async () => {
+    const iris = staker('/platform/agent/Avatar/iris');
+    await stake(iris, '20,20,0');
+    expect(owners).toHaveLength(1);
+
+    // Four cells away: the CENTRE is outside iris's block, but the two
+    // blocks share nine columns of ground. `stake` used to admit this,
+    // so the register held two claims over the same rock and `holderOf`
+    // answered with whichever was written first.
+    const pat = staker('/platform/agent/Avatar/pat');
+    const context = makeContext(pat, room, 'stake 24,20,0');
+    await ExecutionContextApi.runRoot(null, 'test', async () => {
+      ExecutionContextApi.tagActingAuthor(pat);
+      await makeStuff(() => new StakeController()).execute(
+        { block: '24,20,0' } as never,
+        context,
+      );
+    });
+    expect(
+      context.getNotes().find((n) => n.kind === 'controller-rejected')?.reason,
+    ).toBe('already-claimed');
+    // …and nothing was recorded.
+    expect(owners).toHaveLength(1);
+  });
+
+  it('⭐ seven cells of clearance IS enough — the rule is not "never near"', async () => {
+    const iris = staker('/platform/agent/Avatar/iris');
+    await stake(iris, '20,20,0');
+    // A block is 3 cells each way, so 7 apart on an axis is the first
+    // clear gap. First come is the whole rule, not a keep-out radius.
+    await stake(staker('/platform/agent/Avatar/pat'), '27,20,0');
+    expect(owners).toHaveLength(2);
+  });
+
   it('⭐ the owner written is the IDENTITY path, which is what the register means', async () => {
     const iris = staker('/platform/agent/Avatar/iris');
     await stake(iris, '20,20,0');

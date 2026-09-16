@@ -1584,13 +1584,12 @@ function applyControlFloor(
  */
 function reachableTools(maker: Stuff | null): (Stuff & Tooled)[] {
   if (!maker) return [];
-  const candidates: Stuff[] = [];
-  if (MixinApi.isContainer(maker)) candidates.push(...maker.getContents());
-  if (MixinApi.isContainable(maker)) {
-    const loc = maker.getContainer();
-    if (loc && MixinApi.isContainer(loc)) candidates.push(...loc.getContents());
-  }
-  return candidates.filter((c): c is Stuff & Tooled => MixinApi.isTool(c));
+  // ⭐ The reach pool, on-person-first. This hand-rolled the two hops,
+  // which also MISSED a tool in a slot — a wielded hammer is reachable
+  // by any reading of the word, and the pool includes slot occupants.
+  return ContainmentApi.reachableFrom(maker).filter(
+    (c): c is Stuff & Tooled => MixinApi.isTool(c),
+  );
 }
 
 /** The smithing terminal mint: the workpiece's matter becomes the form. */

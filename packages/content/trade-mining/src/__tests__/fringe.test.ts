@@ -206,19 +206,24 @@ describe('the claim geometry the fringe rooms were placed to satisfy', () => {
     // The independent walked out here first, and first come is the rule.
     expect(claimFor(cellOf('location/fringe-claim.yaml'))?.parcelExtent)
       .toBe('/world/rejection/ferrow/claims/2');
-    // Forty metres further on, nobody has spoken for it.
+    // Further on, nobody has spoken for it.
     expect(claimFor(cellOf('location/far-fringe.yaml'))).toBeNull();
   });
 
-  it('⚠ their centres are ≥ 4 cells apart, which is WHY the second stake lands', () => {
+  it('⭐⭐ the two blocks do not RUN INTO each other — extents, not centres', () => {
     const a = (row('location/fringe-claim.yaml').data as { coords: { x: number; y: number } }).coords;
     const b = (row('location/far-fringe.yaml').data as { coords: { x: number; y: number } }).coords;
-    // A block is BLOCK_HALF each way and `claimFor` tests the centre, so
-    // two centres more than BLOCK_HALF apart on any one axis coexist.
-    // ⚠ Their EXTENTS still overlap — recorded, and see the plan's
-    // findings: overlapping claims are what a claim dispute IS, and the
-    // register holding both is the honest model of one.
-    const apart = Math.max(Math.abs(a.x - b.x), Math.abs(a.y - b.y));
-    expect(apart).toBeGreaterThan(BLOCK_HALF);
+    // ⚠ Seven cells of clearance on an axis, not four. A block is
+    // BLOCK_HALF each way, so two centres four apart still SHARE nine
+    // columns of ground — which `stake` used to admit, because it tested
+    // the centre cell instead of the block. The far fringe moved out to
+    // (10,14,0) when that was fixed.
+    const clear =
+      Math.abs(a.x - b.x) > BLOCK_HALF * 2 || Math.abs(a.y - b.y) > BLOCK_HALF * 2;
+    expect(
+      clear,
+      `blocks centred ${JSON.stringify(a)} and ${JSON.stringify(b)} overlap — ` +
+        `a staked claim there would be refused and the drive would break`,
+    ).toBe(true);
   });
 });
