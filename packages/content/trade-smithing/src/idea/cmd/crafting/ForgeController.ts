@@ -34,6 +34,31 @@ interface ForgeModel extends CommandModel {
 }
 
 export default class ForgeController extends CraftController<ForgeModel> {
+  /**
+   * A cast piece the smith could plausibly have meant — carried, or
+   * lying in the room.
+   *
+   * ⚠ A read for the PROSE only; nothing here decides whether the craft
+   * succeeds, which the material's own missing `forgeable` tag already
+   * did.
+   *
+   * ⭐ The reach is **`reachableMarks`**, inherited from
+   * `CommandController` — *what they carry, plus what shares their
+   * environment, minus themselves*. This once walked the two hops by
+   * hand, which is a re-implementation of a method every controller
+   * already has and the `findReachable`-shaped antipattern
+   * `docs/antipatterns.md` names.
+   */
+  private castInReach(context: CommandContext): Stuff | null {
+    return (
+      this.reachableMarks(context).find(
+        (c) =>
+          MixinApi.isTangible(c) &&
+          (c.getMaterial()?.getTags() ?? []).includes('brittle'),
+      ) ?? null
+    );
+  }
+
   async execute(model: ForgeModel, context: CommandContext): Promise<void> {
     const giver = context.commandGiver;
 
@@ -47,7 +72,7 @@ export default class ForgeController extends CraftController<ForgeModel> {
       brand: model.brand,
     });
     if (!outcome.ok) {
-      const pig = castInReach(giver);
+      const pig = this.castInReach(context);
       if (pig) {
         MessageApi.scene(giver)
           .topic(TOPIC)
@@ -72,23 +97,4 @@ export default class ForgeController extends CraftController<ForgeModel> {
       .toPeers(Mml.compose`${Mml.actor(giver)} forges ${Mml.thing(output)}.`)
       .send();
   }
-}
-
-/**
- * A cast piece the smith could plausibly have meant — carried, or lying
- * in the room. ⚠ A read for the PROSE only; nothing here decides whether
- * the craft succeeds, which the material's own tags already did.
- */
-function castInReach(giver: Stuff): Stuff | null {
-  const near: Stuff[] = [];
-  if (MixinApi.isContainer(giver)) near.push(...giver.getContents());
-  if (MixinApi.isContainable(giver)) {
-    const room = giver.getContainer();
-    if (room && MixinApi.isContainer(room)) near.push(...room.getContents());
-  }
-  return (
-    near.find(
-      (c) => MixinApi.isTangible(c) && (c.getMaterial()?.getTags() ?? []).includes('brittle'),
-    ) ?? null
-  );
 }
