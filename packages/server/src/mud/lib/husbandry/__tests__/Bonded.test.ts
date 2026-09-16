@@ -10,7 +10,12 @@
 
 import '../../../../test-bootstrap';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import { BondedMixin, FOLLOW_BOND, NAME_BOND } from '../Bonded';
+import {
+  BondedMixin,
+  FOLLOW_BOND,
+  NAME_BOND,
+  TRAIL_LENGTH,
+} from '../Bonded';
 import { HandlingMixin } from '../Handling';
 import { BeliefStoreMixin } from '../../belief/BeliefStore';
 import { OrganismMixin } from '../../species/Organism';
@@ -306,5 +311,46 @@ describe('feeding style — the rungs a species has', () => {
     expect(() =>
       sp.setFeedingStyle(['nibble' as never]),
     ).toThrow(/not a feeding style/);
+  });
+});
+
+describe('the trail — how it knows the way back', () => {
+  it('remembers where it has been, oldest first', () => {
+    const a = animal();
+    a.rememberPlace('/test/a');
+    a.rememberPlace('/test/b');
+    expect(a.getTrail()).toEqual(['/test/a', '/test/b']);
+  });
+
+  it('does not repeat the place it is already standing in', () => {
+    const a = animal();
+    a.rememberPlace('/test/a');
+    a.rememberPlace('/test/a');
+    expect(a.getTrail()).toEqual(['/test/a']);
+  });
+
+  it('⭐ walking in a circle FORGETS the circle', () => {
+    // Revisiting a remembered place rewinds to it: you did not really
+    // go anywhere, so there is nothing extra to find your way back from.
+    const a = animal();
+    for (const p of ['/test/a', '/test/b', '/test/c']) a.rememberPlace(p);
+    a.rememberPlace('/test/a');
+    expect(a.getTrail()).toEqual(['/test/a']);
+  });
+
+  it('⭐ arriving home clears it outright', () => {
+    const a = animal();
+    a.setHome('/test/home');
+    a.rememberPlace('/test/a');
+    a.rememberPlace('/test/home');
+    expect(a.getTrail()).toEqual([]);
+  });
+
+  it('⚠ is capped — a week lost must not beat stepping out this morning', () => {
+    const a = animal();
+    for (let i = 0; i < TRAIL_LENGTH + 10; i++) a.rememberPlace(`/test/r${i}`);
+    expect(a.getTrail()).toHaveLength(TRAIL_LENGTH);
+    // The OLDEST are dropped: it forgets the far end, not the near one.
+    expect(a.getTrail()[0]).not.toBe('/test/r0');
   });
 });

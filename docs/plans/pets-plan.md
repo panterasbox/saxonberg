@@ -759,6 +759,57 @@ build's job**; dropping the alias is.
   skill) and reconciling them is ranching's D28 follow-on. AC 11 holds by
   either verb without it.
 
+### D19 — An animal knows the way home; it does not solve a graph
+
+⚠⚠ **Added 2026-09-16, in review.** D18 moved the `homes` BFS onto
+`MobileMixin` and flagged it as the shakiest change in the cleanup. The
+user stopped it:
+
+> **"is this pathfinding? Because if we're going to introduce pathfinding
+> into the game let's do it in one place for every consumer to share."**
+
+It was. And the tree already had **three independent graph searches** —
+`FireLogic` (rooms, flood fill), transport's `LaneCatalogue.planRoute`
+(a compiled lane network, shortest in legs), and this one — over three
+different graphs with three different admission rules.
+
+⭐⭐ **But the better finding is that `homes` did not need one.** The BFS
+worked and was wrong: a cat carried across the city computed an optimal
+route home through streets it had never seen. That is a satnav, not a
+cat — and it quietly made **lost impossible**, since any animal within
+eight hops always solved it.
+
+**The replacement is memory.** `BondedMixin.trail` holds the places the
+animal has been since it was last home; `homes` steps toward the earliest
+one reachable from where it stands. `rememberPlace` runs **before every
+early return**, so a room it was merely carried through is recorded —
+without which an animal set down would have no way back at all.
+
+The rules fall out rather than being specified:
+
+- revisiting a remembered place **rewinds** the trail to it, so walking
+  in a circle forgets the circle;
+- arriving home **clears** it — there is nothing to find your way back
+  from;
+- the earliest reachable entry is taken, so it uses any shortcut it
+  recognises and never walks away from home;
+- the trail is **capped** at 16, because a week-lost animal must not be
+  better at getting home than one that stepped out this morning.
+
+⭐ And *lost* is now real rather than nominal: **an animal carried
+somewhere it has never been cannot get back**, and nothing announces it.
+⚠ This narrows drive step 24 honestly — a carried-off animal returns if
+it recognises ground along the way, and if it was carried far and fast it
+is lost. That is better drama than the guarantee the search gave, but it
+is a change to what the step asserts and the sweep must say so.
+
+The general question is slated: `pathfinding-slate` carries the
+three-walk census and, as its first acceptance test, *do the two shipped
+walks actually migrate?* — because a shared primitive with one consumer
+should not exist.
+
+---
+
 ### D18 — Five bespoke helpers, and where each of them belonged
 
 ⚠⚠ **Added 2026-09-16, in review.** The user asked why `NameController`
@@ -773,7 +824,7 @@ bespoke.
 | `NameController.refuse()` + `OfferController.say()` | **`CommandController.refuse()`** |
 | the handling-band comparison, verbatim in `Pet` + `Offer` | **`HandlingMixin.handlingAtLeast(band)`** — the band ORDER is that file's fact |
 | `edible(thing)`, in the brain and again in `Feeder.offerings()` | **`Tangible.isEdible()`** — the thing knows what it is made of |
-| `firstStepHome()` BFS in `homes.ts` | **`Mobile.firstStepToward()`** — a question about a body that MOVES. `homes.ts` 118 → 72 lines |
+| `firstStepHome()` BFS in `homes.ts` | ⚠ first `Mobile.firstStepToward()` — then **reverted entirely**; see D19 |
 
 ⭐ **The `refuse` collision was diagnostic.** Adding it to the base broke
 the build: *"Property 'refuse' is private in `AnalyzePostmortemController`
@@ -788,10 +839,8 @@ honest half-measure rather than a finished one. It wants a census and a
 ratchet of its own — `docs/lint-family.md`'s pattern — not a sweep buried
 inside a pets MR.
 
-⚠ **`Mobile.firstStepToward` widens a common surface** — every Character
-and Creature composes `Mobile`. It earns it (there is no other
-pathfinding in the kernel, which is *why* `shifts` teleports), but it is
-a larger claim than the other four and was flagged for the user.
+⚠ **`Mobile.firstStepToward` was flagged for the user and the user
+rejected it.** See D19 — it was pathfinding, and it is gone.
 
 ⭐ Moving the BFS also fixed the test shape: the brain test had been
 standing up rooms and exits to exercise a search it merely CALLS. It now

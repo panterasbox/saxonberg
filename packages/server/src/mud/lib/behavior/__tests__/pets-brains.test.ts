@@ -74,8 +74,8 @@ function R(r: FakeRoom): Stuff {
 interface AnimalOpts {
   /** The rungs its species feeds by. Default: everything but the hopper. */
   styles?: string[];
-  /** Whether a way home exists. `false` = every path is shut. */
-  stepHome?: boolean;
+  /** The places it remembers, oldest (nearest home) first. */
+  trail?: string[];
   bond?: number;
   waiting?: boolean;
   home?: string;
@@ -88,6 +88,7 @@ function animal(o: AnimalOpts = {}) {
   const followed: Stuff[] = [];
   const ate: { food: Stuff; offerer: Stuff | null }[] = [];
   const credited: { place: string; day: number }[] = [];
+  const remembered: string[] = [];
   let senescenceChecked = 0;
   return {
     stuffId: 'beast',
@@ -104,11 +105,10 @@ function animal(o: AnimalOpts = {}) {
       return true;
     },
     rememberFollowed: (p: Stuff) => followed.push(p),
-    // ⭐ The BFS moved to `Mobile.firstStepToward` (it is a question
-    // about a body that moves, and a second brain would have minted a
-    // second copy). What this file asserts is that `homes` ASKS and
-    // acts; the search itself is tested on Mobile.
-    firstStepToward: () => (o.stepHome === false ? null : {}),
+    // ⭐ Memory, not navigation: the animal walks toward the earliest
+    // place it still recognises. See `BondedMixin.rememberPlace`.
+    getTrail: () => o.trail ?? [],
+    rememberPlace: (p: string) => remembered.push(p),
     creditHomeCandidate: (place: string, day: number) =>
       credited.push({ place, day }),
     reconcileSenescence: () => {
@@ -118,6 +118,7 @@ function animal(o: AnimalOpts = {}) {
     _followed: followed,
     _ate: ate,
     _credited: credited,
+    _remembered: remembered,
     _senescence: () => senescenceChecked,
   } as unknown as Stuff & Record<string, never>;
 }
@@ -313,23 +314,62 @@ describe('feeds', () => {
 
 /* ────────────────────────────── homes ────────────────────────────── */
 
-describe('homes — the decision, not the search', () => {
-  it('takes the step its body works out', async () => {
-    await homes.act(ctx(animal({ home: 'home', in: room('a') })));
+describe('homes — it knows the way, it does not solve a graph', () => {
+  it('⭐ steps toward home when home is next door', async () => {
+    const here = room('here');
+    const home = room('home');
+    link(here, home);
+    await homes.act(ctx(animal({ home: 'home', in: here })));
     expect(LocomotionApi.traverseWithDefault).toHaveBeenCalledTimes(1);
   });
 
-  it('⭐ no open path = it stays. That is the whole of "lost".', async () => {
-    // No flag, no timer, no announcement — the body finds no step and
-    // the animal simply does not move. Somebody has to notice.
+  it('⭐⭐ steps toward the earliest place it REMEMBERS', async () => {
+    // Home is three rooms off and not adjacent. It heads for the oldest
+    // thing it recognises, which is the one nearest home — so it never
+    // walks away from home, and takes any shortcut it knows.
+    const here = room('here');
+    const known = room('known');
+    link(here, known);
     await homes.act(
-      ctx(animal({ home: 'home', stepHome: false, in: room('a') })),
+      ctx(animal({ home: 'home', trail: ['known', 'other'], in: here })),
+    );
+    expect(LocomotionApi.traverseWithDefault).toHaveBeenCalledTimes(1);
+  });
+
+  it('⚠⚠ carried somewhere it has never been, it is LOST', async () => {
+    // The property a graph search destroyed: a cat set down among
+    // streets it does not know has no way back, and nothing announces
+    // it. No flag, no timer. Somebody has to notice.
+    const strange = room('strange');
+    link(strange, room('also-strange'));
+    await homes.act(
+      ctx(animal({ home: 'home', trail: ['known'], in: strange })),
     );
     expect(LocomotionApi.traverseWithDefault).not.toHaveBeenCalled();
   });
 
+  it('⭐ a closed door across its route leaves it where it is', async () => {
+    const here = room('here');
+    const home = room('home');
+    link(here, home, false);
+    await homes.act(ctx(animal({ home: 'home', in: here })));
+    expect(LocomotionApi.traverseWithDefault).not.toHaveBeenCalled();
+  });
+
+  it('notes where it is BEFORE any early return', async () => {
+    // A room it was merely carried through has to be recorded, or an
+    // animal set down would have no way back at all.
+    const a = animal({ home: 'home', waiting: true, in: room('carried-to') });
+    await homes.act(ctx(a));
+    expect((a as never as { _remembered: string[] })._remembered).toContain(
+      'carried-to',
+    );
+  });
+
   it('⚠ does not set off while its person is standing here', async () => {
-    const here = room('a');
+    const here = room('here');
+    const home = room('home');
+    link(here, home);
     here.contents.push({ stuffId: 'me' } as unknown as Stuff);
     await homes.act(ctx(animal({ home: 'home', bond: 0.9, in: here })));
     expect(LocomotionApi.traverseWithDefault).not.toHaveBeenCalled();
@@ -341,8 +381,10 @@ describe('homes — the decision, not the search', () => {
   });
 
   it('`waiting` holds it', async () => {
+    const here = room('here');
+    link(here, room('home'));
     await homes.act(
-      ctx(animal({ home: 'home', waiting: true, in: room('a') })),
+      ctx(animal({ home: 'home', waiting: true, in: here })),
     );
     expect(LocomotionApi.traverseWithDefault).not.toHaveBeenCalled();
   });

@@ -87,6 +87,12 @@ export const HOME_DAYS = 3;
  * which intake is genuinely surplus rather than maintenance.
  */
 export const SURPLUS_SATIATION = 70;
+/**
+ * How many places back an animal remembers. ⚠ A cap, not a tuning knob:
+ * unbounded memory would make a week-lost animal better at getting home
+ * than one that stepped out this morning.
+ */
+export const TRAIL_LENGTH = 16;
 
 /**
  * ⭐⭐ **What a meal you did not hand over is worth.**
@@ -190,6 +196,10 @@ export interface Bonded {
   rememberFollowed(person: Stuff): void;
   /** Credit a meal eaten in `placeId` toward moving home there. */
   creditHomeCandidate(placeId: string, gameDay: number): void;
+  /** The places it has been since it was last home, oldest first. */
+  getTrail(): readonly string[];
+  /** Note where it is now. Revisiting a remembered place rewinds to it. */
+  rememberPlace(placeId: string): void;
   /** Why it would not eat `food`, or `null` if it would. */
   wouldEat(food: Stuff): FoodRefusal | null;
   /** Eat it. Credits `offerer` when it came from a hand. */
@@ -224,6 +234,7 @@ export function BondedMixin<TBase extends MixinConstructor>(Base: TBase) {
 
     static fieldMeta: FieldMeta = {
       home: { persistent: true, authorable: true },
+      trail: { persistent: true },
       waiting: { persistent: true },
       followedKeys: { persistent: true },
       homeCandidate: { persistent: true },
@@ -233,6 +244,18 @@ export function BondedMixin<TBase extends MixinConstructor>(Base: TBase) {
 
     /** Where it returns to. A `PersistableApi.placeIdOf` string. */
     public home = '';
+    /**
+     * ⭐⭐ **How it knows the way back** — the places it has been since it
+     * was last home, oldest first, so `trail[0]` is the closest thing to
+     * home it remembers.
+     *
+     * This is memory, not navigation, and the difference is the whole
+     * point: **an animal finds its way home because it knows the way.**
+     * A graph search would hand a cat carried across the city an optimal
+     * route through streets it has never seen, which is a satnav rather
+     * than a cat — and it would quietly make *lost* impossible.
+     */
+    public trail: string[] = [];
     /** Told to stay: `follows` and `homes` both honour it. */
     public waiting = false;
     /** Who it has followed home — the gate on being allowed to name it. */
@@ -309,6 +332,36 @@ export function BondedMixin<TBase extends MixinConstructor>(Base: TBase) {
       const self = this as unknown as Stuff;
       if (!MixinApi.isOrganism(self)) return false;
       return self.getSpecies()?.feedsBy(style) ?? false;
+    }
+
+    public getTrail(): readonly string[] {
+      return this.trail;
+    }
+
+    /**
+     * Note where it is standing.
+     *
+     * ⭐ Revisiting a remembered place **rewinds** the trail to it rather
+     * than appending — walk in a circle and the loop is forgotten,
+     * because you did not really go anywhere. Arriving home clears it
+     * outright: there is nothing to find your way back from.
+     *
+     * ⚠ Capped. A memory that grew without bound would make an animal
+     * that has wandered for a week better at getting home than one that
+     * stepped out this morning, which is backwards.
+     */
+    public rememberPlace(placeId: string): void {
+      if (!placeId) return;
+      if (placeId === this.home) {
+        this.trail = [];
+        return;
+      }
+      const seen = this.trail.indexOf(placeId);
+      if (seen >= 0) {
+        this.trail = this.trail.slice(0, seen + 1);
+        return;
+      }
+      this.trail = [...this.trail, placeId].slice(-TRAIL_LENGTH);
     }
 
     public getHome(): string {
