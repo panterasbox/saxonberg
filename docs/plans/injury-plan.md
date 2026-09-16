@@ -1051,7 +1051,7 @@ vitest + `lint:family` gate each. `pnpm test` runs once before each MR.
   prices; spike-pit site selector; `docs/subsystems/harm.md` +
   `vitals.md` sections for the axis (the doc grows, the CLAUDE.md blurb
   does not).
-- The drive file is started here: `packages/wire/tests/injury.dirty.wire.test.ts`
+- The drive file is started here: `packages/wire/tests/injury.wire.test.ts`
   steps 1–11 (dirty: it buys stock). Run it green; do **not** open the
   MR — Stage B continues on the same branch.
 - Acceptance: drive steps 1–11 green; AC 1–5, 8, 9, 10.
@@ -1243,7 +1243,7 @@ Tests: `Launcher.test.ts`, `ShootController` test (consumes one arrow;
 refuses with none; refuses `far` in a 3 m room; readiness engagement per
 family). ⚠ The heaviest single wave in the build.
 
-**W-C2 — content + drive.** Bow, arrows, musket, balls; Terminus stock;
+**W-C2 — content + drive.** ✅ **DONE** Bow, arrows, musket, balls; Terminus stock;
 `ranged.md` W2/W3/W4 table updated to what shipped; wire steps 17–19;
 `pnpm test`; push; open **the** MR.
 
@@ -1305,7 +1305,7 @@ Unmapped: none. Drive steps 17–19 are Stage C's and go with the cut; AC
   (`shoot`, the `wash` stanza), that a `props:` edit landed in a fresh
   boot, that `assess` *renders* the anatomy on the card, that the caster's
   core visibly rises on the client, that the store sells what the counter
-  says. The drive is `packages/wire/tests/injury.dirty.wire.test.ts`
+  says. The drive is `packages/wire/tests/injury.wire.test.ts`
   (started at W-A5 with steps 1–11; W-B4 appends 12–16; W-C2 appends
   17–19), the `consequence.dirty.wire.test.ts` shape. Steps needing
   game-hours (a fracture healing) are pinned by unit tests, not faked with
@@ -1340,7 +1340,18 @@ Unmapped: none. Drive steps 17–19 are Stage C's and go with the cut; AC
    chooses, priced in poise/tempo), and that is a combat build — recorded
    below. A weighted roll would be strictly worse than the current
    simplification.
-3. **Balance of the two sever dials.** `avulsionThreshold 3.0` and
+3. ⚠⚠ **A new character cannot afford any of the new goods, and the
+   drive cannot prove they ever could.** The onboarding stipend is **20**;
+   the cheapest new item is the leather boots at 8, the gambeson is 14,
+   the bow 18, a breastplate 55 and a musket 70. So the armour ladder and
+   the tech curve are **aspirational purchases**, reachable only through
+   wages (4–6 per game-hour) — which is arguably the right design and is
+   certainly not what AC 8 ("a player can buy armour") assumes on day one.
+   ⭐ **This wants your eye**, and it is a pricing decision rather than a
+   code one: either the bottom of the ladder comes down to stipend range,
+   or AC 8 is understood as "after a day's work". Nothing in the build
+   depends on the answer.
+4. **Balance of the two sever dials.** `avulsionThreshold 3.0` and
    `SEVER_SEVERITY 4.0` against band energies (open = 4.5 × delivery
    scale) mean severing needs an `open` foe and a real blade — the drive
    tunes them; the plan fixes only the *order* (avulsion before sever).
@@ -1438,7 +1449,7 @@ Read these first, in this order.
 
 ## Drive record
 
-`packages/wire/tests/injury.dirty.wire.test.ts`, `WIRE_BOOT=1` (an owned
+`packages/wire/tests/injury.wire.test.ts`, `WIRE_BOOT=1` (an owned
 world on 2012), run at the end of Stage A.
 
 **First run — 3 of 10 failed. Both findings were real.**
@@ -1481,6 +1492,40 @@ seep's answer exists rather than being a consequence with no response.
 ⚠ One assertion was replaced before the run counted: a
 `expect(true).toBe(true)` placeholder I left while wiring the suite.
 It asserted nothing and would have read as a passing check forever.
+
+---
+
+**Stage C appended (steps 17–19) — and it found the build's worst
+defect and one of my own.**
+
+⭐⭐⭐ **1. `shoot` was afforded to NOBODY.** `help shoot` answered
+perfectly. `ShootController`'s unit tests passed. The view was on disk,
+the seed row existed, the class resolved, `lint:arg-kinds` and
+`lint:census` were green — and typing `shoot` returned *"I don't
+understand 'shoot'."* `Launcher` had no `commandContributions`, so the
+verb was conferred on no one, anywhere. **Every other check in the build
+read green straight through it.** This is precisely the *verb nothing
+affords* link, and precisely why the drive is the build's exit criterion
+rather than the suite.
+
+⭐⭐ **2. Nothing in this drive could ever buy anything — and my own
+assertion hid it.** A wire session is a **guest**, and the onboarding
+stipend is issued at char-gen *commit*, so these characters have no money
+at all. The AC-8 check asserted that the reply to `buy padded gambeson`
+contained the word *"gambeson"* — which the refusal *"you can't cover a
+padded gambeson just now"* satisfies. A green check over an unbuyable
+item: the exact failure this file exists to catch, committed by the file
+itself. The file also carried a `dirtyReason` about spending coin it
+never spent, so it is now `injury.wire.test.ts` and **clean**.
+
+What the drive can honestly prove about armour and arms is the
+reachability that was actually missing — the row on disk, the stock line
+resolving, the par stocked at standup, the price listed, and `buy`
+reaching the retail branch and naming the item. ⚠ **What it cannot prove
+is the purchase**, and that is the one thing in this build that still
+wants the user's eye: see *Risks & opens*.
+
+**Final run — 20 of 20 green**, on a freshly reset database.
 
 What it proves that no unit test can:
 

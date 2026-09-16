@@ -45,6 +45,15 @@ data:
     - { itemTemplatePath: /stuff/thing/armor/mail-hauberk, par: 1 }
     - { itemTemplatePath: /stuff/thing/armor/steel-breastplate, par: 1 }
     - { itemTemplatePath: /stuff/thing/armor/leather-boots, par: 2 }
+    # ⭐⭐ **Past the medieval.** A bow and a musket on the same shelf,
+    # priced so the choice between them is a real one rather than a
+    # ladder you climb: the musket carries thirty times the energy and
+    # takes four times as long to make ready, and it costs four times as
+    # much. A new player can afford the bow.
+    - { itemTemplatePath: /stuff/thing/arms/hunting-bow, par: 2 }
+    - { itemTemplatePath: /stuff/thing/arms/arrow, par: 3 }
+    - { itemTemplatePath: /stuff/thing/arms/flintlock-musket, par: 1 }
+    - { itemTemplatePath: /stuff/thing/arms/musket-ball, par: 2 }
     - { itemTemplatePath: /world/terminus/general-store/thing/iron-ingot, par: 3 }
     - { itemTemplatePath: /world/terminus/general-store/thing/sewing-kit, par: 2 }
     - { itemTemplatePath: /world/terminus/general-store/thing/sewing-machine, par: 1 }
@@ -152,6 +161,12 @@ data:
     /stuff/thing/armor/padded-gambeson: 14
     /stuff/thing/armor/mail-hauberk: 40
     /stuff/thing/armor/steel-breastplate: 55
+    # ⚠ Ammunition is cheap and the launcher is not, which is the shape
+    # that makes running out annoying rather than ruinous.
+    /stuff/thing/arms/hunting-bow: 18
+    /stuff/thing/arms/arrow: 4
+    /stuff/thing/arms/flintlock-musket: 70
+    /stuff/thing/arms/musket-ball: 6
     /world/terminus/general-store/thing/iron-ingot: 5
     /world/terminus/general-store/thing/sewing-kit: 5
     /world/terminus/general-store/thing/sewing-machine: 18

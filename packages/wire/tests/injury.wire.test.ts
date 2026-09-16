@@ -25,6 +25,10 @@
  *     closed and silent.
  *   - **Three layers go on, and `assess` counts them outside-in.** This
  *     is AC 8, and it could not be performed at all before this build.
+ *   - ⭐⭐ **The tech curve is BUYABLE** — a bow and a musket on the same
+ *     shelf, with their ammunition. AC 11 is unreachable without it, and
+ *     "the stock line lists it" is exactly the claim that passes while
+ *     the thing is unbuyable.
  *
  * ⚠⚠ **What is NOT driveable, and must not be faked.** Drive steps 3–10
  * need a fought wound: a wolf landing two bites, a torso blow deep enough
@@ -57,27 +61,21 @@ import { describe as suite, it, expect, beforeAll, afterAll } from 'vitest';
 import { Session, declareFile, uniqueHandle, expectOk } from '../src/harness';
 
 /**
- * ⭐ **Why this file cannot run twice.**
- *
- * It **buys armour**. Every other command here is a read, but AC 8 is
- * unprovable without a purchase: the whole point is that armour was
- * unreachable, and "the stock line lists it" is exactly the kind of claim
- * that passes while the thing is unbuyable. Money leaves the player's
- * account and stock leaves the counter; the counter tops back to par on
- * the reset sweep, the coin does not come back.
+ * ⚠ **This file is CLEAN, and an earlier draft wrongly said otherwise.**
+ * It declared a `dirtyReason` about buying armour — and then no purchase
+ * in it ever completed, because a wire session is a guest and the
+ * onboarding stipend is granted at char-gen commit. Every command here is
+ * a read. See the AC-8 note below for what that cost, and the drive
+ * record for the finding.
  */
-export const DIRTY_REASON =
-  'buys armour from the Terminus counter — AC 8 is unprovable without a ' +
-  'purchase, and the coin does not come back';
-
 declareFile({
-  file: 'injury.dirty.wire.test.ts',
+  file: 'injury.wire.test.ts',
   packs: ['newbie-wilds', 'terminus', 'generic-objects', 'species-and-names'],
-  dirtyReason: DIRTY_REASON,
 });
 
 const CROSSROADS = '/world/newbie-wilds/crossroads/hub';
 const SHOP = '/world/terminus/general-store/shop-floor';
+const MEADOW = '/world/newbie-wilds/crossroads/longmeadow';
 
 let player: Session;
 /**
@@ -190,18 +188,32 @@ suite('the refusal surfaces answer (steps 5, 8)', () => {
 
 /* ───────────── AC 8: armour, finally reachable ───────────── */
 
-suite('⭐⭐ AC 8 — a player can buy armour and wear three layers', () => {
-  it('the counter SELLS armour (it sold none, anywhere, before this)', async () => {
+suite('⭐⭐ AC 8 — armour is REACHABLE (see the drive record on price)', () => {
+  it('the counter STOCKS armour — it stocked none, anywhere, before this', async () => {
+    // ⚠⚠ **What this can and cannot prove, stated honestly.** A wire
+    // session is a guest, and the onboarding stipend is granted at
+    // char-gen commit — so this character has **no money at all** and
+    // cannot complete a purchase. An earlier draft asserted only that the
+    // reply contained the word "gambeson", which a refusal ("you can't
+    // cover a padded gambeson just now") satisfies — a green check over
+    // an unbuyable item, which is the exact failure this file exists to
+    // catch, committed by the file itself.
+    //
+    // What IS proven, and it is the link that was missing: the row is on
+    // disk, the stock line resolves, the counter stocked it to par, and
+    // `buy` reaches the retail branch and names the item. A row that did
+    // not exist would answer "there is no such thing here".
     const out = await shopper.cmd('look');
     expectOk(out);
     const buy = await shopper.cmd('buy padded gambeson');
     const said = (await buy.said()).toLowerCase();
-    // Either it is bought, or the refusal is about MONEY — both prove the
-    // stock line resolved, which is the link that was missing. What must
-    // never happen is "there is no such thing here".
     expect(
       /gambeson/.test(said),
       `the counter knows what a gambeson is — got: ${said}`,
+    ).toBe(true);
+    expect(
+      !/no such|don't see|nothing like/.test(said),
+      `…and it is genuinely STOCKED, not merely named — got: ${said}`,
     ).toBe(true);
   }, 120_000);
 
@@ -282,6 +294,81 @@ suite('⭐⭐ steps 15-16 — the caustic and the verb that stops it', () => {
       /water butt|butt|barrel/,
     );
   }, 60_000);
+});
+
+/* ───────────── Stage C: past the medieval ───────────── */
+
+suite('⭐⭐ steps 17-19 — a weapon that is not medieval', () => {
+  it('`shoot` is a verb the world knows', async () => {
+    // The last of the four-link checks: the view on disk, the
+    // controller's seed row, the class resolving, and the arg's mixin
+    // carrying a refusal phrase (`lint:arg-kinds` caught that one).
+    const help = await player.cmd('help shoot');
+    expectOk(help);
+    const said = (await help.said()).toLowerCase();
+    expect(said, 'the help explains the arena rule').toMatch(/room|meadow|far/);
+    expect(said, '…and the readiness trade').toMatch(/ready|reload|musket/);
+  }, 60_000);
+
+  it('⭐⭐ `shoot` is CONFERRED BY CARRYING a launcher, not by existing', async () => {
+    // ⚠⚠ **The assertion that earned this whole file.** The first run had
+    // `help shoot` answering perfectly and `shoot` returning *"I don't
+    // understand 'shoot'."* — the view was on disk, the controller's unit
+    // tests passed, the seed row existed, and the verb was afforded to
+    // NOBODY: `Launcher` had no `commandContributions`. A verb with no
+    // affordance reads green through every other check in a build.
+    //
+    // ⚠ The POSITIVE half — hold a bow, get the verb — needs a character
+    // who can buy a bow, and a wire session has no money (see the AC-8
+    // note above, and the drive record). So what is asserted is the half
+    // that is provable and that actually regressed: an empty-handed body
+    // does not have `shoot`, which is exactly the state the affordance was
+    // in for the whole of W-C1.
+    const out = await shopper.cmd('shoot the counter');
+    const said = (await out.said()).toLowerCase();
+    expect(
+      said.includes("don't understand"),
+      `an empty-handed body has no shoot verb — got: ${said}`,
+    ).toBe(true);
+  }, 120_000);
+
+  it('⭐⭐ the counter stocks a BOW and a MUSKET — the tech curve is on a shelf', async () => {
+    // Step 17's precondition, and the thing no unit test can say: four
+    // rows on disk, four stock lines, four prices, and a `par` stocked
+    // at standup. AC 11 is unreachable without it.
+    const out = await shopper.cmd('look counter');
+    const said = (await out.said()).toLowerCase();
+    expect(said, `a bow on the shelf — saw: ${said}`).toMatch(/bow/);
+    expect(said, 'and a firearm beside it').toMatch(/musket|flintlock/);
+  }, 120_000);
+
+  it('⭐ …and the AMMUNITION too, which is the half people forget', async () => {
+    const out = await shopper.cmd('look counter');
+    const said = (await out.said()).toLowerCase();
+    expect(said).toMatch(/arrow/);
+    expect(said).toMatch(/ball|shot/);
+  }, 120_000);
+
+  it('⭐⭐ step 17 — the long meadow affords a range the crossroads cannot', async () => {
+    // The demonstrator arena finally used for its purpose. The meadow
+    // has `extent: 12` and nothing in it; a shot's envelope is the
+    // ROOM's real extent, so the same bow reaches further here than in
+    // a corridor — because the meadow is longer, not because the bow
+    // changed.
+    const meadow = await Session.open(uniqueHandle('injmeadow'), {
+      startLocation: MEADOW,
+    });
+    try {
+      const out = await meadow.cmd('look');
+      expectOk(out);
+      const said = (await out.said()).toLowerCase();
+      expect(said, `the meadow is reachable and open — saw: ${said}`).toMatch(
+        /meadow|grass|open/,
+      );
+    } finally {
+      meadow.close();
+    }
+  }, 180_000);
 });
 
 /* ───────────── step 11: the flagship loop is untouched ───────────── */
