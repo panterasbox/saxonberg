@@ -13,6 +13,40 @@ One relation supplies all of it: **every place has a position on a
 watershed.** Flow, rights, diversion, storage, pollution and hydro power
 are readings of that single fact, and the organising primitive
 underneath is **gravity** — `mgh`.
+## ⭐⭐ `analyze power` — the equation finally has a consumer
+
+`ρ·g·Δh·Q·η` had **three appearances and no reader**: a pump reads it as
+a bill, a water tower as a deferred bill, and a turbine as income — and
+the third had nowhere to go. `ControlStructure.generationW` shipped,
+computed real watts, and nothing in the tree ever called it. The
+Wharfside aqueduct house has carried `generates: true` since the water
+build with no way for anybody to find out what it makes.
+
+`analyze power` is that reader. Two arms, by what the target is:
+
+| target | reading |
+|---|---|
+| a **generator** (answers `generationW`) | its reach, the flow passing now, its head, and the watts |
+| a **consumer** (answers `availablePowerW`) | the watts reaching it and what that buys in throughput |
+| bare, where you stand | the reach, what is passing, and what a fall of one metre would make — the honest answer to *could I put a mill here* |
+
+⭐ **Both arms are duck-typed, and that is the design.** A grist mill
+lives in `trade-milling`; this pack has never heard of it and must not.
+The question is *does this thing answer*, not *is this thing a class I
+know* — the `FordExit` rule, which is how two packs meet over a shape
+with neither depending on the other.
+
+⚠ The stanza rides the platform's shipped `analyze` view and the
+controller lives here: the instrumentation split, exactly as
+`analyze ground` (mining) and `analyze water` do it. A second `analyze`
+view in this pack would **shadow** the platform's silently.
+
+⭐ And the consequence worth saying out loud: **power rises and falls
+with the river.** A mill that grinds ten sacks in spring grinds fewer in
+a dry August, and nobody authored that — it is the equation with a
+seasonal `Q`.
+
+
 ## ⭐ `SupplyState`'s second speaker
 
 The six-word vocabulary (`dry` · `cut` · `frozen` · `fouled` · `off` ·
