@@ -712,7 +712,22 @@ export default class Material extends SingletonMixin(
     name: { persistent: true },
     appearance: { persistent: true },
     tags: { persistent: true },
-    corrosiveTo: { persistent: true },
+    // ⭐⭐ **Spoiler 1, with the NAME visible** — the enumerating wiki
+    // audit (`wiki-spoiler-fields.snapshot`) asked the question it exists
+    // to ask, and the answer is yes.
+    //
+    // It looked like `tags` (level 0, a classification), and it is not:
+    // it is a RESPONSE property, the same kind of fact as `hardness` and
+    // `autoignitionTemperature` beside it — something you find out by
+    // testing. More sharply, it is the list of *what this defeats*, which
+    // is the audit's own example of a spoiler ("a creature's weakness
+    // is"). The corrosion channel's whole teaching is that you must learn
+    // which agent eats which material; handing that out free on the wiki
+    // would delete the discovery.
+    //
+    // `spoilerName: 0` so the FIELD still shows: you can see that
+    // quicklime has a corrosive list without being told what is on it.
+    corrosiveTo: { persistent: true, spoiler: 1, spoilerName: 0 },
     tastes: { persistent: true, spoiler: 1, spoilerName: 0 },
     composition: { persistent: true },
     symbol: { persistent: true },

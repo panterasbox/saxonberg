@@ -1527,6 +1527,38 @@ wants the user's eye: see *Risks & opens*.
 
 **Final run — 20 of 20 green**, on a freshly reset database.
 
+---
+
+### The full suite, and the one thing it caught
+
+**10,789 passed, 1 failed** — and the failure was
+`wiki-spoiler-fields.snapshot`, the **enumerating wiki audit**, doing
+precisely the job its header describes: *"adding one shows up as a diff a
+reviewer has to look at, rather than as a leak in production that nobody
+notices."*
+
+Eight new fields appeared. Seven were correctly level 0 — the launcher's
+numbers and the projectile's calibre are a weapon's **dimensions**, and
+`Weapon.length` / `mass` / `balanceFactor` are all 0 for the same reason.
+The bow-versus-musket trade is *meant* to be legible.
+
+⭐⭐ **One was wrong: `Material.corrosiveTo` is a spoiler**, now
+`spoiler: 1, spoilerName: 0`. It looked like `tags` (a level-0
+classification) and it is not — it is a **response property**, the same
+kind of fact as `hardness` and `autoignitionTemperature` sitting beside
+it, and more sharply it is *the list of what this defeats*, which is the
+audit's own worked example of a spoiler ("a creature's weakness is").
+The corrosion channel's whole teaching is that you must learn which agent
+eats which material; publishing it free on the wiki would have deleted
+the discovery on the day it shipped. The name still shows, so you can see
+that quicklime *has* a corrosive list without being told what is on it.
+
+⚠ **A machine note, not a code one.** The first two attempts at the full
+suite were killed by heavy swap — vitest's default fan-out put 13 workers
+at ~400 MB on a 16 GB box, and the run slowed to 3 KB of output in nine
+minutes. Capped at four workers it completed in 618 s. Worth knowing
+before anyone reads a hung suite as a broken one.
+
 What it proves that no unit test can:
 
 - both body plans **stand up in a booted world** after `governs` became
