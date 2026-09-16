@@ -415,10 +415,22 @@ Asking an object you already hold for its own contents is the
 charge inside the clamp, `counter.getContents()` for what is on the
 shelf.
 
-**Census 14, ceiling 14.** Every one is the same sentence — *find the
-tool in my hands or the room* — written fourteen times across eight
-packs. Driving it to zero is a build of its own; stopping the growth
-costs one constant today, which is exactly what the pattern is for.
+**Census 14 → 2, in the build that wrote the gate.**
+
+Five fell to things MQL could already say (a good by keyword, a fixture
+by class or mixin). ⭐ Seven more fell to a thing it could *not* say
+until the same build taught it — **`[capability.X]`**. Every one of
+those asked *"which thing here can do job Y"* (the digging spade, the
+surveying instrument, the whetstone, the timber set, the upkeep kit) and
+the bracket vocabulary had only *kinds of thing*; `[mixin.ToolMixin]`
+would have bound any tool and then failed the verb's own check, which is
+why declaring an arg was not available before the atom existed.
+
+⚠ **The two that remain are not the same defect.** Both are `scry`'s
+`canScryFor(target).ok` — a question about a **pairing**, not about the
+instrument, so no filter atom helps. Closing them means changing scry's
+grammar (`with` is an option, and options carry no `default:`), which is
+a design decision rather than a refactor.
 
 ### `lint:verb-collisions` — two views, one verb, and one of them is gone (2026-09)
 

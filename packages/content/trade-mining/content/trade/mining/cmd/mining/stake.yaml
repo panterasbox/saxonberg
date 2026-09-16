@@ -17,6 +17,20 @@ validators:
   - /lib/command/validators/requiresAnimate
   - /lib/command/validators/requiresConscious
 args:
+  # ⭐ WHICH REGISTER, declared rather than hunted for.
+  #
+  # ⚠ The default narrows by CLASS and `requires:` carries only the
+  # refusal phrase, because `ClaimsRegister` is `DetailedMixin(Thing)` —
+  # it composes nothing that distinguishes it, and `requires:
+  # DetailedMixin` would be a constraint satisfied by every object in
+  # the game. The class is where the narrowing honestly lives.
+  - name: register
+    type: object
+    required: false
+    prepositions: [at]
+    default: "reachable:[class.ClaimsRegister]"
+    scope: ["reachable"]
+    requires: [TangibleMixin]
   - name: block
     type: string
     required: false

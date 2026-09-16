@@ -598,6 +598,12 @@ export const MixinRefusals: Partial<Record<MixinName, string>> = {
   // Reduction & separation — a mill, a stamp battery.
   ComminutingMixin: "{} isn't something that grinds",
 
+  // ⚠ Per-instance ownership. The refusal is about the THING, not about
+  // whose it is: a fungible stack is owned by possession and has no
+  // chattel id to check in or consign, which is a fact about the object
+  // rather than a permission being denied.
+  ChattelMixin: "{} isn't something that can be owned individually",
+
   // Boundaries & mechanisms.
   SealableMixin: "{} doesn't open and close",
   BulkableMixin: "{} doesn't hold liquid to read",

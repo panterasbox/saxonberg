@@ -153,11 +153,15 @@ describe('the crafting lifecycle — craft → wield → wear → sharpen → re
     expect(knife.getKeennessBand()).toBe('dulled');
 
     // 5. Sharpen restores keenness ONLY (the ritual, not the smith).
-    ContainmentApi.move(makeStuff(() => new Whetstone()), smith);
+    // ⚠ The stone is a declared arg now (defaulting through
+    // `[capability.whetstone]`), so a hand-built model has to carry what
+    // the binder would have put there.
+    const stone = makeStuff(() => new Whetstone());
+    ContainmentApi.move(stone, smith);
     const sharpenCtx = makeContext(smith, room, 'sharpen knife');
     await executeAs(smith, () =>
       makeStuff(() => new SharpenController()).execute(
-        { blade: ref(knife, 'knife') } as never,
+        { blade: ref(knife, 'knife'), stone } as never,
         sharpenCtx,
       ),
     );

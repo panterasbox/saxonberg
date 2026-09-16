@@ -39,15 +39,18 @@ const BLOCK_HALF = 3;
 
 interface StakeModel extends CommandModel {
   block?: string;
+  /** ⭐ The register, resolved by the BINDER off the view's arg. */
+  register?: Stuff;
 }
 
 export default class StakeController extends CommandController<StakeModel> {
   async execute(model: StakeModel, context: CommandContext): Promise<void> {
     const giver = context.commandGiver;
-    const room = (giver as unknown as { getContainer(): Stuff | null }).getContainer();
-    const counter = room && MixinApi.isContainer(room)
-      ? room.getContents().find((c) => isRegister(c))
-      : undefined;
+    // ⭐ Read, never hunted. ⚠ The duck-type check stays: a register is
+    // recognised by answering `getWarrenPath`, which no mixin declares
+    // and therefore no predicate can express.
+    const bound = model.register ?? null;
+    const counter = bound && isRegister(bound) ? bound : undefined;
     if (!counter) {
       this.decline(
         context,

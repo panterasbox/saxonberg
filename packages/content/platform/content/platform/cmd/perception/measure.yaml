@@ -161,6 +161,16 @@ subcommands:
         note: Take a bearing on the outcrop where you stand
     controller: /trade/mining/idea/cmd/perception/MeasureStrikeController
     args:
+      # ⭐ WHICH INSTRUMENT, declared rather than hunted for by the
+      # trade's controller. `[capability.surveying]` asks for the thing
+      # that can take this reading, which `[mixin.ToolMixin]` cannot.
+      - name: tool
+        type: object
+        required: false
+        prepositions: [with, using]
+        default: "reachable:[capability.surveying]"
+        scope: ["reachable"]
+        requires: [ToolMixin]
       - name: detail
         type: string
         required: false
@@ -190,6 +200,16 @@ subcommands:
         note: Take a spadeful where you stand and read it
     controller: /trade/farming/idea/cmd/perception/MeasureTextureController
     args:
+      # ⭐ WHICH INSTRUMENT, declared rather than hunted for by the
+      # trade's controller. `[capability.digging]` asks for the thing
+      # that can take this reading, which `[mixin.ToolMixin]` cannot.
+      - name: tool
+        type: object
+        required: false
+        prepositions: [with, using]
+        default: "reachable:[capability.digging]"
+        scope: ["reachable"]
+        requires: [ToolMixin]
       - name: detail
         type: string
         required: false
@@ -213,6 +233,17 @@ subcommands:
   # ⭐ The haulage readout, on the same instrumentation split and with
   # the same ⚠: without `trade-haulage` installed it dies on dispatch
   # with a legible `controller-error`, never a crash.
+    args:
+      # ⭐ WHICH INSTRUMENT, declared rather than hunted for by the
+      # trade's controller. `[capability.soil-testing]` asks for the thing
+      # that can take this reading, which `[mixin.ToolMixin]` cannot.
+      - name: tool
+        type: object
+        required: false
+        prepositions: [with, using]
+        default: "reachable:[capability.soil-testing]"
+        scope: ["reachable"]
+        requires: [ToolMixin]
   passage:
     description: "Judge whether a rig gets through the ways out of here (teamstering)"
     help: |
@@ -298,6 +329,16 @@ subcommands:
       line has no fall in it. Dip is why you drive a heading.
     controller: /trade/mining/idea/cmd/perception/MeasureDipController
     args:
+      # ⭐ WHICH INSTRUMENT, declared rather than hunted for by the
+      # trade's controller. `[capability.surveying]` asks for the thing
+      # that can take this reading, which `[mixin.ToolMixin]` cannot.
+      - name: tool
+        type: object
+        required: false
+        prepositions: [with, using]
+        default: "reachable:[capability.surveying]"
+        scope: ["reachable"]
+        requires: [ToolMixin]
       - name: detail
         type: string
         required: false

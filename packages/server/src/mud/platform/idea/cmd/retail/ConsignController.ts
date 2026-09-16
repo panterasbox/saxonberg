@@ -52,7 +52,8 @@ const TOPIC = "act.deed";
 interface ConsignModel extends CommandModel {
   /** Bound by the view; addressable, defaulted to what is in reach. */
   shelf?: MqlOneResult;
-  thing: string;
+  /** ⭐ The good, bound by the view from your inventory. */
+  thing: MqlOneResult;
   ask?: string;
 }
 
@@ -65,7 +66,7 @@ export default class ConsignController extends CommandController<ConsignModel> {
       this.reject(giver, context, Mml.compose`There's nowhere to consign here.`, {
         kind: "empty-result",
         field: "thing",
-        query: model.thing,
+        query: model.thing?.raw ?? "",
       });
       return;
     }
@@ -80,12 +81,16 @@ export default class ConsignController extends CommandController<ConsignModel> {
       return;
     }
 
-    const item = this.resolveHeld(giver, model.thing);
+    // ⭐ Read, never hunted. `scope: [inventory]` on the view is what
+    // "you must be carrying it" means, and the binder enforces it.
+    const item = (model.thing?.stuff ?? null) as
+      | (Stuff & Containable & { getChattelId(): string })
+      | null;
     if (!item) {
-      this.reject(giver, context, Mml.compose`You aren't carrying "${model.thing}".`, {
+      this.reject(giver, context, Mml.compose`You aren't carrying "${model.thing?.raw ?? ""}".`, {
         kind: "controller-rejected",
         reason: "not-held",
-        detail: model.thing,
+        detail: model.thing?.raw ?? "",
       });
       return;
     }
@@ -117,7 +122,7 @@ export default class ConsignController extends CommandController<ConsignModel> {
         giver,
         context,
         Mml.compose`${Mml.thing(item)} won't divide into lots.`,
-        { kind: "controller-rejected", reason: "unsplittable", detail: model.thing },
+        { kind: "controller-rejected", reason: "unsplittable", detail: model.thing?.raw ?? "" },
       );
       return;
     }
@@ -167,7 +172,7 @@ export default class ConsignController extends CommandController<ConsignModel> {
       this.reject(giver, context, Mml.compose`${Mml.thing(item)} isn't yours to sell.`, {
         kind: "controller-rejected",
         reason: "not-owner",
-        detail: model.thing,
+        detail: model.thing?.raw ?? "",
       });
       return;
     }
@@ -244,23 +249,6 @@ export default class ConsignController extends CommandController<ConsignModel> {
     return mine.includes(live) ? live : null;
   }
 
-  /** Resolve a good the giver is carrying, by keyword. */
-  private resolveHeld(
-    giver: Stuff,
-    keyword: string,
-  ): (Stuff & Containable & { getChattelId(): string }) | null {
-    if (!MixinApi.isContainer(giver)) return null;
-    for (const item of giver.getContents()) {
-      if (
-        MixinApi.isPerceptible(item) &&
-        item.hasKeyword(keyword) &&
-        MixinApi.isChattel(item)
-      ) {
-        return item as Stuff & Containable & { getChattelId(): string };
-      }
-    }
-    return null;
-  }
 
   private listingCap(): number {
     try {

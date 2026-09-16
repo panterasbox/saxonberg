@@ -66,6 +66,23 @@ import {
   withRootContext,
 } from '@saxonberg/server/mud/lib/security/__tests__/test-setup';
 import { installV1QuantityMarshallers } from '@saxonberg/server/mud/lib/persistence/__tests__/quantity-marshaller-test-helpers';
+
+/**
+ * ⚠ **Stand in for the BINDER.** `consign`'s `thing` is a declared
+ * `type: object` arg with `scope: [inventory]` — the binder resolves the
+ * keyword against what you are carrying, and the controller just reads
+ * it. A hand-built model skips the binder, so this harness has to do the
+ * one thing the binder would have done.
+ */
+function bindHeld(giver: unknown, kw: string): { stuff: never; raw: string } {
+  const held = (giver as { getContents?(): unknown[] }).getContents?.() ?? [];
+  const found = held.find((i) => {
+    const p = i as { hasKeyword?(k: string): boolean };
+    return typeof p.hasKeyword === 'function' && p.hasKeyword(kw);
+  });
+  return { stuff: (found ?? null) as never, raw: kw };
+}
+
 import {
   installBankingHarness,
   teardownBankingHarness,
@@ -347,7 +364,7 @@ describe('the farms beat — tend, pick, sell, home', () => {
               // carry what the view would have put there — the standing
               // warning in the lib-statics slate, hit by a BRAIN suite
               // this time rather than a controller one.
-              { thing: kw, ask, shelf: { stuff: stall, raw: 'stall' } },
+              { thing: bindHeld(who, kw), ask, shelf: { stuff: stall, raw: 'stall' } },
               ctx(who, here, stall, text),
             ),
           );

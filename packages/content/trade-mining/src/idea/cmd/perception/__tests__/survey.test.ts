@@ -108,7 +108,20 @@ async function run(
 ): Promise<CommandContext> {
   ContainmentApi.move(who as unknown as Stuff & Containable, where as unknown as Stuff & Container);
   const ctx = makeContext(who as unknown as Stuff, where, text);
-  await makeStuff<Runnable>(() => new Controller()).execute({} as never, ctx);
+  // ⚠ Stand in for the BINDER: `measure strike` / `measure dip` declare
+  // a `tool` arg defaulting to `reachable:[capability.surveying]`, so
+  // the binder finds the instrument and the controller reads it. A
+  // hand-built model skips the binder.
+  const held =
+    (who as unknown as { getContents?(): unknown[] }).getContents?.() ?? [];
+  const tool = held.find((i) => {
+    const t = i as { hasCapability?(c: string): boolean };
+    return typeof t.hasCapability === 'function' && t.hasCapability('surveying');
+  });
+  await makeStuff<Runnable>(() => new Controller()).execute(
+    (tool === undefined ? {} : { tool }) as never,
+    ctx,
+  );
   return ctx;
 }
 

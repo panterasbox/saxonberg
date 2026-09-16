@@ -37,6 +37,12 @@ import { ContainmentApi } from '@saxonberg/server/mud/api/containment';
 import { Quantity } from '@saxonberg/server/mud/lib/quantity';
 import { SWARD_RESIDUAL_FRACTION } from '../../../lib/Sward';
 
+/** ⭐ The instrument is bound by the view, never hunted for here. */
+interface MowModel extends CommandModel {
+  tool?: Stuff;
+}
+
+
 /** What a cut of hay comes off the field as. */
 const HAY_ROW = '/trade/farming/thing/hay';
 
@@ -68,14 +74,14 @@ const NITROGEN_PER_PROTEIN = 1 / 6.25;
 const RESERVE_POINTS_PER_G_N = 0.0004;
 
 export default class MowController extends FieldWorkController {
-  async execute(_model: CommandModel, context: CommandContext): Promise<void> {
+  async execute(model: MowModel, context: CommandContext): Promise<void> {
     const giver = context.commandGiver;
     const reading = await this.fieldOf(giver);
     if (!reading) {
       this.decline(context, Mml.compose`There is no sward here to cut.`, 'no-field');
       return;
     }
-    const scythe = this.toolOf(giver, 'mowing');
+    const scythe = this.toolOf(model.tool, 'mowing');
     if (!scythe) {
       this.decline(
         context,

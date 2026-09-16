@@ -433,6 +433,7 @@ Inside `[…]`, atoms read object facts via `namespace.key`:
 | `class.X` | boolean: instanceof X |
 | `keyword.X` | boolean: has keyword X |
 | `template.X` | boolean: cloned from template path X (glob-aware) |
+| `capability.X` | boolean: offers tool capability X (`ToolMixin`) |
 
 Plus the bare atoms `name` (display name, string), `id` (stuff id,
 string), `key` (the object's explicit **persistence key** — the keyed-
@@ -446,6 +447,7 @@ Comparisons, boolean composition, existence:
 ```
 [hp > 50]                   prop.hp > 50
 [mixin.Burnable]            composes Burnable
+[capability.digging]        a tool you can dig with
 [name = 'rusty sword']      exact display name
 [hp > 50 and prop.locked]   composed
 [has prop.gold]             existence (gold property is set)
@@ -455,6 +457,15 @@ Comparisons, boolean composition, existence:
 Comparisons against a missing property yield `false` — `[prop.gold > 0]`
 excludes objects without a `gold` property, which is usually what you
 want.
+
+> ⭐ **`mixin.X` asks what a thing IS; `capability.X` asks what it
+> OFFERS.** `[mixin.ToolMixin]` finds every tool in the room —
+> `[capability.digging]` finds the one you can dig with. Reach for the
+> second whenever you mean *the thing that can do this job*, which is
+> almost always what you mean when you are looking for a tool.
+>
+> ⚠ A capability is not a property: `[prop.digging]` reads
+> `PropertiedMixin` storage and will never see it.
 
 > **`has` only earns its keep on `prop.K`.** `mixin.X`, `class.X`,
 > `keyword.X`, and `template.X` always return a strict boolean; `has`

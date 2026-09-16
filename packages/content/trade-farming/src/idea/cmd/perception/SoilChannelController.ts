@@ -134,11 +134,18 @@ export abstract class SoilChannelController<
    * the whole `measure` view and each channel's controller checks for
    * the one it actually needs.
    */
-  protected toolOf(giver: Stuff, capability: string): Stuff | null {
-    if (!MixinApi.isContainer(giver)) return null;
-    return (
-      giver.getContents().find((i) => MixinApi.isTool(i) && i.hasCapability(capability)) ?? null
-    );
+/**
+   * ⭐ The bound tool, if it can do this job.
+   *
+   * The view declares the instrument with an MQL default asking
+   * `[capability.<x>]`, so the BINDER resolves it — this only confirms
+   * the thing it handed back offers what this particular act needs.
+   * It used to walk the giver's contents itself, which meant no player
+   * could ever say WHICH spade (`lint:instrument-args`).
+   */
+  protected toolOf(bound: Stuff | null | undefined, capability: string): Stuff | null {
+    if (!bound || !MixinApi.isTool(bound)) return null;
+    return bound.hasCapability(capability) ? bound : null;
   }
 
   /**

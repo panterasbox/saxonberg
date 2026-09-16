@@ -328,6 +328,18 @@ mill, which is the entire reason `ComminutingMixin` is kernel substrate.
 ⚠ **The query is the MIXIN, never the class** — `buy.yaml` says the same
 thing about `[mixin.ConsignmentShelfMixin]` over `[class.Stock]`.
 
+⭐⭐ **And for a TOOL it is the capability, not the mixin.**
+`[mixin.ToolMixin]` binds any tool at all and then fails the verb's own
+check; `[capability.digging]` binds the one that can do the job. That
+atom exists for exactly this — see
+[mql-grammar.md](./mql-grammar.md) § Filter expressions.
+
+```yaml
+- name: tool
+  default: "reachable:[capability.digging]"
+  requires: [ToolMixin]
+```
+
 ⚠ It is fine for the controller to narrow further on **state** the
 predicate cannot express: `bake` resolves on `FurnaceMixin` and then
 checks *lit, fuelled, and a chamber*, because no mixin means "lit".

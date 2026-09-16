@@ -42,6 +42,12 @@ import { Mml } from '@saxonberg/server/mud/api/mml';
 import { StuffApi } from '@saxonberg/server/mud/api/stuff';
 import { ContainmentApi } from '@saxonberg/server/mud/api/containment';
 
+/** ⭐ The instrument is bound by the view, never hunted for here. */
+interface GrubModel extends CommandModel {
+  tool?: Stuff;
+}
+
+
 /** What a spadeful of a stony headland leaves standing at the edge. */
 const STONE_ROW = '/trade/farming/thing/field-stone';
 /** Calcareous clay, dug out of the corner of a sweet field. */
@@ -53,14 +59,14 @@ const STONE_THRESHOLD = 0.35;
 const MARL_PH = 7.2;
 
 export default class GrubController extends FieldWorkController {
-  async execute(_model: CommandModel, context: CommandContext): Promise<void> {
+  async execute(model: GrubModel, context: CommandContext): Promise<void> {
     const giver = context.commandGiver;
     const reading = await this.fieldOf(giver);
     if (!reading) {
       this.decline(context, Mml.compose`There is no field here to grub out.`, 'no-field');
       return;
     }
-    const tool = this.toolOf(giver, 'digging');
+    const tool = this.toolOf(model.tool, 'digging');
     if (!tool) {
       this.decline(context, Mml.compose`Not with your bare hands. You want a spade.`, 'no-tool');
       return;

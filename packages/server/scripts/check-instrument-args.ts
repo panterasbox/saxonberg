@@ -84,24 +84,40 @@ const MUD = join(SERVER_ROOT, 'src', 'mud');
 const SKIP = new Set(['node_modules', '.git', 'dist', 'build', 'coverage']);
 
 /**
- * ⭐ The ceiling: bespoke instrument resolutions in shipped controllers.
- * **It may fall and must never rise.** Each is a verb whose view wants
- * an `object` arg with an MQL default instead.
+ * ⭐⭐ The ceiling: bespoke instrument resolutions in shipped
+ * controllers. **It may fall and must never rise.**
  *
- * ⚠⚠ **14 is the census, not an endorsement.** Every one is the same
- * sentence — *find the tool in my hands or the room* — written fourteen
- * times, which is exactly the shape the census-then-ratchet pattern
- * exists for: stop the growth today, at a cost of one constant, and let
- * a later sweep drive it to zero. Fixing fourteen controllers across
- * eight packs is a build of its own and emphatically not a review
- * round's work.
+ * **14 → 2**, in the build that wrote this gate.
  *
- * ⭐ `CharController`'s `instanceof CharcoalPit` is on the list and is
- * the exact shape this gate was written for — which is the evidence the
- * rule points at something real rather than at a style I happen to
- * prefer.
+ * Five fell to things MQL could already say: `check` and `consign` (a
+ * carried good by keyword — the binder's own job, hand-rolled three
+ * lines below a comment saying the *rack* was "bound by the view, not
+ * hunted for here"), `char` and `stake` (a fixture by class), `smelt`
+ * (a fixture by mixin).
+ *
+ * ⭐ Seven more fell to a thing MQL could NOT say until the same build
+ * taught it: **`[capability.X]`**. Every one of them asked *"which
+ * thing here can do job Y"* — the digging spade, the surveying
+ * instrument, the whetstone, the timber set, the upkeep kit — and the
+ * bracket vocabulary had only *kinds of thing*. `[mixin.ToolMixin]`
+ * would have resolved any tool at all and then failed the verb's own
+ * check, which is why declaring an arg was not available before the
+ * atom existed.
+ *
+ * ## ⚠ The two that remain are NOT the same defect
+ *
+ * Both are `scry`'s, and both ask `canScryFor(target).ok` — a question
+ * about a **pairing** rather than about the instrument. A crystal ball
+ * that can reach one person cannot reach another, so there is no
+ * property of the ball to filter on, and no filter atom would help.
+ *
+ * What would close them is a different kind of change: `with` is an
+ * OPTION rather than an arg (options carry no `default:`), and turning
+ * it into one loses the "try each until one can reach" behaviour that a
+ * single-object bind cannot express. That is a design decision about
+ * scry's grammar, not a refactor — recorded rather than taken.
  */
-const BESPOKE_RESOLUTION_CEILING = 14;
+const BESPOKE_RESOLUTION_CEILING = 2;
 
 /**
  * Receivers that mean *the actor, or the world around them*. A walk over

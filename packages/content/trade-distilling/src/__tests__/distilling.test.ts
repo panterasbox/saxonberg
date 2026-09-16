@@ -96,6 +96,23 @@ import BuyController from '@saxonberg/server/mud/platform/idea/cmd/retail/BuyCon
 import SpiritBottle from '../thing/SpiritBottle';
 import Still from '../thing/Still';
 
+/**
+ * ⚠ **Stand in for the BINDER.** `consign`'s `thing` is a declared
+ * `type: object` arg with `scope: [inventory]` — the binder resolves the
+ * keyword against what you are carrying, and the controller just reads
+ * it. A hand-built model skips the binder, so this harness has to do the
+ * one thing the binder would have done.
+ */
+function bindHeld(giver: unknown, kw: string): { stuff: never; raw: string } {
+  const held = (giver as { getContents?(): unknown[] }).getContents?.() ?? [];
+  const found = held.find((i) => {
+    const p = i as { hasKeyword?(k: string): boolean };
+    return typeof p.hasKeyword === 'function' && p.hasKeyword(kw);
+  });
+  return { stuff: (found ?? null) as never, raw: kw };
+}
+
+
 const ROOT = '/trade/distilling';
 const CONTENT = fileURLToPath(new URL('../../content/trade/distilling/', import.meta.url));
 
@@ -493,7 +510,7 @@ describe('trade-distilling — the outfit consigns as itself, and the house card
         const c = ctx(giver, here, counter, text);
         await asPrincipal(giver, () => makeStuff(() => new ConsignController()).execute(
           // ⚠ Skips the BINDER: the shelf is a declared arg in `consign.yaml`.
-          { thing, ask, shelf: { stuff: counter as never, raw: 'shelf' } },
+          { thing: bindHeld(giver, thing), ask, shelf: { stuff: counter as never, raw: 'shelf' } },
           c,
         ));
         expect(rejections(c)).toEqual([]);

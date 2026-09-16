@@ -24,3 +24,16 @@ validators:
   - /lib/command/validators/requiresAnimate
   - /lib/command/validators/requiresConscious
   - /lib/command/validators/requiresEmbodied
+args:
+  # ⭐ WHICH TOOL, declared rather than hunted for. The default asks
+  # `[capability.upkeep]` — *the thing that can do this job* — rather than
+  # `[mixin.ToolMixin]`, which would resolve any tool at all and then
+  # fail this verb's own check. That atom is what let this stop being a
+  # walk (see `lint:instrument-args`).
+  - name: kit
+    type: object
+    required: false
+    prepositions: [with, using]
+    default: "reachable:[capability.upkeep]"
+    scope: ["reachable"]
+    requires: [ToolMixin]

@@ -37,6 +37,12 @@ import { MixinApi } from '@saxonberg/server/mud/api/mixin';
 import { MessageApi } from '@saxonberg/server/mud/api/message';
 import { Mml } from '@saxonberg/server/mud/api/mml';
 
+/** ⭐ The instrument is bound by the view, never hunted for here. */
+interface PloughModel extends CommandModel {
+  tool?: Stuff;
+}
+
+
 /**
  * Body mass, in kilograms, that one unit of draught represents.
  *
@@ -49,14 +55,14 @@ import { Mml } from '@saxonberg/server/mud/api/mml';
 const KG_PER_DRAUGHT = 70;
 
 export default class PloughController extends FieldWorkController {
-  async execute(_model: CommandModel, context: CommandContext): Promise<void> {
+  async execute(model: PloughModel, context: CommandContext): Promise<void> {
     const giver = context.commandGiver;
     const reading = await this.fieldOf(giver);
     if (!reading) {
       this.decline(context, Mml.compose`There is no ground here to turn.`, 'no-field');
       return;
     }
-    const plough = this.toolOf(giver, 'ploughing');
+    const plough = this.toolOf(model.tool, 'ploughing');
     if (!plough) {
       this.decline(
         context,

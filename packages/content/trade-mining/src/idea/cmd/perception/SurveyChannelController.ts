@@ -119,11 +119,9 @@ export abstract class SurveyChannelController<
    * controller checks for the instrument it actually needs. Without one,
    * `no-instrument`, which is the same refusal `measure altitude` gives.
    */
-  protected instrumentOf(giver: Stuff): Stuff | null {
-    if (!MixinApi.isContainer(giver)) return null;
-    return (
-      giver.getContents().find((i) => MixinApi.isTool(i) && i.hasCapability(SURVEYING)) ?? null
-    );
+  protected instrumentOf(bound: Stuff | null | undefined): Stuff | null {
+    if (!bound || !MixinApi.isTool(bound)) return null;
+    return bound.hasCapability(SURVEYING) ? bound : null;
   }
 
   /** The deposit governing where the actor stands, through the zone chain. */

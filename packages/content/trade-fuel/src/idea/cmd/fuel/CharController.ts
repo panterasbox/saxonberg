@@ -38,16 +38,18 @@ const COLLIERY = 'colliery';
 const BURN_MS = 3 * 24 * 60 * 60 * 1000;
 
 interface CharModel extends CommandModel {
+  /** ⭐ The clamp, resolved by the BINDER off the view's arg. */
+  clamp?: Stuff;
   draught?: number;
 }
 
 export default class CharController extends CommandController<CharModel> {
   async execute(model: CharModel, context: CommandContext): Promise<void> {
     const giver = context.commandGiver;
-    const room = (giver as unknown as { getContainer(): Stuff | null }).getContainer();
-    const pit = room && MixinApi.isContainer(room)
-      ? (room.getContents().find((c) => c instanceof CharcoalPit) as CharcoalPit | undefined)
-      : undefined;
+    // ⭐ Read, never hunted — the view declares `clamp` with an MQL
+    // default, so the binder resolves it like any other object.
+    const bound = model.clamp ?? null;
+    const pit = bound instanceof CharcoalPit ? bound : undefined;
     if (!pit) {
       this.decline(context, Mml.compose`There is no clamp here to burn.`, 'no-clamp');
       return;

@@ -18,8 +18,13 @@ validators:
   - /lib/command/validators/requiresConscious
   - /lib/command/validators/requiresEmbodied
 args:
+  # ⭐ The DEFAULT is what was missing: the arg existed, and the
+  # controller still fell back to a walk when nobody named a set.
+  # `[capability.timber-set]` is that fallback, said declaratively.
   - name: timber
     type: object
     required: false
-    scope: "reachable"
-    requires: ToolMixin
+    prepositions: [with, using]
+    default: "reachable:[capability.timber-set]"
+    scope: ["reachable"]
+    requires: [ToolMixin]

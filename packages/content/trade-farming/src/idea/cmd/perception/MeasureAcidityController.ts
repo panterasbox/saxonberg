@@ -16,20 +16,27 @@
  */
 
 import { SoilChannelController, READING_TOPIC, SOIL_SCIENCE, SOIL_TESTING } from './SoilChannelController';
+import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import type { CommandContext, CommandModel } from '@saxonberg/server/mud/api/command';
 import { MixinApi } from '@saxonberg/server/mud/api/mixin';
 import { MessageApi } from '@saxonberg/server/mud/api/message';
 import { Mml } from '@saxonberg/server/mud/api/mml';
 
+/** ⭐ The instrument is bound by the view, never hunted for here. */
+interface MeasureAcidityModel extends CommandModel {
+  tool?: Stuff;
+}
+
+
 export default class MeasureAcidityController extends SoilChannelController {
-  async execute(_model: CommandModel, context: CommandContext): Promise<void> {
+  async execute(model: MeasureAcidityModel, context: CommandContext): Promise<void> {
     const giver = context.commandGiver;
     const place = this.placeOf(giver);
     if (!place) {
       this.decline(context, Mml.compose`You are nowhere to take a sample from.`, 'no-place');
       return;
     }
-    const kit = this.toolOf(giver, SOIL_TESTING);
+    const kit = this.toolOf(model.tool, SOIL_TESTING);
     if (!kit) {
       this.decline(
         context,

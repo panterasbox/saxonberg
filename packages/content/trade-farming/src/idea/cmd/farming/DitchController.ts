@@ -14,19 +14,26 @@
  */
 
 import { FieldWorkController, FIELD_TOPIC, LABOUR_PER_ACT } from './FieldWorkController';
+import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import type { CommandContext, CommandModel } from '@saxonberg/server/mud/api/command';
 import { MessageApi } from '@saxonberg/server/mud/api/message';
 import { Mml } from '@saxonberg/server/mud/api/mml';
 
+/** ⭐ The instrument is bound by the view, never hunted for here. */
+interface DitchModel extends CommandModel {
+  tool?: Stuff;
+}
+
+
 export default class DitchController extends FieldWorkController {
-  async execute(_model: CommandModel, context: CommandContext): Promise<void> {
+  async execute(model: DitchModel, context: CommandContext): Promise<void> {
     const giver = context.commandGiver;
     const reading = await this.fieldOf(giver);
     if (!reading) {
       this.decline(context, Mml.compose`There is no field here to drain.`, 'no-field');
       return;
     }
-    const tool = this.toolOf(giver, 'digging');
+    const tool = this.toolOf(model.tool, 'digging');
     if (!tool) {
       this.decline(context, Mml.compose`You would want a spade for that.`, 'no-tool');
       return;

@@ -44,7 +44,8 @@ const TOPIC = "act.deed";
 interface CheckModel extends CommandModel {
   /** Bound by the view; addressable, defaulted to what is in reach. */
   rack?: MqlOneResult;
-  thing: string;
+  /** ⭐ The good, bound by the view from your inventory. */
+  thing: MqlOneResult;
 }
 
 export default class CheckController extends CommandController<CheckModel> {
@@ -57,17 +58,21 @@ export default class CheckController extends CommandController<CheckModel> {
         giver,
         context,
         Mml.compose`There's nowhere to check a weapon here.`,
-        { kind: "empty-result", field: "thing", query: model.thing },
+        { kind: "empty-result", field: "thing", query: model.thing?.raw ?? "" },
       );
     }
 
-    const item = this.resolveHeld(giver, model.thing);
+    // ⭐ Read, never hunted. `scope: [inventory]` on the view is what
+    // "you must be carrying it" means, and the binder enforces it.
+    const item = (model.thing?.stuff ?? null) as
+      | (Stuff & Containable & { getChattelId(): string })
+      | null;
     if (!item) {
       return this.reject(
         giver,
         context,
-        Mml.compose`You aren't carrying "${model.thing}".`,
-        { kind: "controller-rejected", reason: "not-held", detail: model.thing },
+        Mml.compose`You aren't carrying "${model.thing?.raw ?? ""}".`,
+        { kind: "controller-rejected", reason: "not-held", detail: model.thing?.raw ?? "" },
       );
     }
 
@@ -78,7 +83,7 @@ export default class CheckController extends CommandController<CheckModel> {
         giver,
         context,
         Mml.compose`${Mml.thing(item)} isn't a weapon to check.`,
-        { kind: "controller-rejected", reason: "not-a-weapon", detail: model.thing },
+        { kind: "controller-rejected", reason: "not-a-weapon", detail: model.thing?.raw ?? "" },
       );
     }
     if (MixinApi.isStackable(item)) {
@@ -86,7 +91,7 @@ export default class CheckController extends CommandController<CheckModel> {
         giver,
         context,
         Mml.compose`You can't check a loose stack.`,
-        { kind: "controller-rejected", reason: "fungible", detail: model.thing },
+        { kind: "controller-rejected", reason: "fungible", detail: model.thing?.raw ?? "" },
       );
     }
 
@@ -123,23 +128,6 @@ export default class CheckController extends CommandController<CheckModel> {
       .send();
   }
 
-  /** Resolve a chattel good the giver is carrying, by keyword. */
-  private resolveHeld(
-    giver: Stuff,
-    keyword: string,
-  ): (Stuff & Containable & { getChattelId(): string }) | null {
-    if (!MixinApi.isContainer(giver)) return null;
-    for (const item of giver.getContents()) {
-      if (
-        MixinApi.isPerceptible(item) &&
-        item.hasKeyword(keyword) &&
-        MixinApi.isChattel(item)
-      ) {
-        return item as Stuff & Containable & { getChattelId(): string };
-      }
-    }
-    return null;
-  }
 
   private reject(
     giver: Stuff,
