@@ -919,7 +919,25 @@ vitest + `lint:family` gate each. `pnpm test` runs once before each MR.
 - Acceptance: a severe edge blow severs; the hand's sword is on the floor;
   the arm's slots refuse; a relog still shows the part missing.
 
-**W-A1 — the anatomy stops being decorative.** *(D4, D5, D8)*
+**W-A1 — the anatomy stops being decorative.** ✅ **DONE** *(D4, D5, D8)*
+> **Build note.** Two decisions the plan did not make:
+> - ⚠⚠ **No `BodyCapacities` static holder.** D5 specified the `Channel.ts`
+>   shape — tuples plus a thin static holder — and `lint:lib-statics`
+>   refused it: the non-Api static census is a census-then-ratchet at 337
+>   and my four statics made it 341. The gate's own rule is *"the ceiling
+>   may fall; it may never rise."* All four were honest type-level
+>   value-statics and that is **still** the right answer — the compliant
+>   path is to fold, not to raise. Validation is one `includes` inline in
+>   `BodyPlan.setBodyParts`; band ordering is `indexOf` on `VitalsMixin`
+>   where the axis lives. `BodyCapacity.ts` carries the reasoning so nobody
+>   re-adds the holder.
+> - **Heart and lungs now govern a CAPACITY as well as their rate**
+>   (`[heartRate, circulation]`, `[respiratoryRate, respiration]`). The
+>   plan left them "unchanged", but a capacity nothing governs reads `full`
+>   forever, so `circulation` and `respiration` would have been two dead
+>   vocabulary entries. The `governs` validation vocabulary is the UNION of
+>   `VITAL_SIGNS` and `BODY_CAPACITIES` precisely because a lung honestly
+>   does both.
 - `lib/vitals/BodyCapacity.ts`; `BodyPart.serves`; `BodyPlan.isInterior`,
   conduit set, `governs`/`serves` validation in `setBodyParts`.
 - Replace the five inline readers (`BodyPlan.ts:477`, `Attired.ts:646/660/685/705`).

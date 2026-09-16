@@ -73,10 +73,21 @@ data:
     # Skin is `circumferential` (all around); the tongue is `forward`.
     - { modality: touch, count: 1, position: circumferential }
     - { modality: taste, count: 1, position: forward }
-  # Typed anatomy (Vitals substrate). Coarse v1 roster: limbs / head /
-  # torso + heart / lungs. Tissue masses (kg) are the strength substrate;
-  # enablesSlots gates wear/wield; governs is the organ→vital
-  # coupling. Stable body.* keys are the trauma-site anchor.
+  # Typed anatomy (Vitals substrate). Sixteen parts: limbs / head / torso,
+  # plus brain / spine ×2 / heart / lungs / liver. Tissue masses (kg) are
+  # the strength substrate AND the depth ladder's ordering; stable body.*
+  # keys are the trauma-site anchor.
+  #
+  # ⭐⭐ Two relations point at the capacity vocabulary and they are NOT
+  # interchangeable:
+  #   `governs` — this organ RUNS the thing. One brain, so consciousness is
+  #     the MIN over what governs it: lose the brain, lose the capacity.
+  #     Also makes the part INTERIOR.
+  #   `serves`  — this limb is FOR the thing. Two legs, so locomotion is
+  #     the MEAN over what serves it: one leg gone is a hobble, not a halt.
+  #     Does NOT make the part interior — a hand has to be coverable.
+  # Plus `innervatedBy` / `suppliedBy`, authored only where the supply path
+  # DIVERGES from the tree (for a limb, the parent chain already is it).
   bodyParts:
     - key: body.torso
       parent: null
@@ -93,6 +104,10 @@ data:
     - key: body.arm.left
       parent: body.torso
       severable: true
+      # The arm hangs off the torso structurally, but its CONTROL comes
+      # down the upper spine — cut the spine and the arm is dead without
+      # anything touching the arm.
+      innervatedBy: [body.torso.spine.upper]
       tissues:
         - { tissuePath: /stuff/idea/material/tissue/bone, mass: 1.5 }
         - { tissuePath: /stuff/idea/material/tissue/muscle, mass: 3 }
@@ -100,6 +115,11 @@ data:
     - key: body.arm.left.hand
       parent: body.arm.left
       severable: true
+      # ⭐ What the hand is FOR. `serves`, not `governs`: a hand that
+      # GOVERNED manipulation would be an internal organ, silently dropped
+      # from every covering and insulation walk. Two hands, so the capacity
+      # is their MEAN — losing one costs you half, not all.
+      serves: [manipulation]
       tissues:
         - { tissuePath: /stuff/idea/material/tissue/bone, mass: 0.4 }
         - { tissuePath: /stuff/idea/material/tissue/muscle, mass: 0.3 }
@@ -107,6 +127,7 @@ data:
     - key: body.arm.right
       parent: body.torso
       severable: true
+      innervatedBy: [body.torso.spine.upper]
       tissues:
         - { tissuePath: /stuff/idea/material/tissue/bone, mass: 1.5 }
         - { tissuePath: /stuff/idea/material/tissue/muscle, mass: 3 }
@@ -114,6 +135,7 @@ data:
     - key: body.arm.right.hand
       parent: body.arm.right
       severable: true
+      serves: [manipulation]
       tissues:
         - { tissuePath: /stuff/idea/material/tissue/bone, mass: 0.4 }
         - { tissuePath: /stuff/idea/material/tissue/muscle, mass: 0.3 }
@@ -121,6 +143,8 @@ data:
     - key: body.leg.left
       parent: body.torso
       severable: true
+      serves: [locomotion]
+      innervatedBy: [body.torso.spine.lower]
       tissues:
         - { tissuePath: /stuff/idea/material/tissue/bone, mass: 4 }
         - { tissuePath: /stuff/idea/material/tissue/muscle, mass: 8 }
@@ -135,6 +159,8 @@ data:
     - key: body.leg.right
       parent: body.torso
       severable: true
+      serves: [locomotion]
+      innervatedBy: [body.torso.spine.lower]
       tissues:
         - { tissuePath: /stuff/idea/material/tissue/bone, mass: 4 }
         - { tissuePath: /stuff/idea/material/tissue/muscle, mass: 8 }
@@ -148,11 +174,43 @@ data:
         - { tissuePath: /stuff/idea/material/tissue/flesh, mass: 0.5 }
     - key: body.torso.heart
       parent: body.torso
-      governs: [heartRate]
+      governs: [heartRate, circulation]
       tissues:
         - { tissuePath: /stuff/idea/material/tissue/muscle, mass: 0.3 }
     - key: body.torso.lungs
       parent: body.torso
-      governs: [respiratoryRate]
+      governs: [respiratoryRate, respiration]
       tissues:
         - { tissuePath: /stuff/idea/material/tissue/flesh, mass: 1 }
+    # ⭐⭐ The four organs that make anatomy mean something. Each is
+    # INTERIOR (it governs, or something's supply runs through it), so none
+    # is covered by a garment, none appears in the surface-fraction walk,
+    # and none can be dressed with a bandage — which is exactly the point.
+    #
+    # ⚠ Masses are real and load-bearing: the depth ladder reaches the
+    # largest CROSS-SECTION first (Meeh's `mass^(2/3)`), so a torso wound
+    # deep enough to reach something finds the liver before the heart.
+    # These are the numbers an author tunes to change that.
+    - key: body.head.brain
+      parent: body.head
+      governs: [consciousness]
+      tissues:
+        - { tissuePath: /stuff/idea/material/tissue/flesh, mass: 1.3 }
+    # ⭐ The spine governs NOTHING and is interior anyway — the arms and
+    # legs name it in `innervatedBy`, and a conduit is inside you. This is
+    # the case that made interiority a method instead of a field read.
+    - key: body.torso.spine.upper
+      parent: body.torso
+      tissues:
+        - { tissuePath: /stuff/idea/material/tissue/bone, mass: 0.6 }
+    - key: body.torso.spine.lower
+      parent: body.torso.spine.upper
+      tissues:
+        - { tissuePath: /stuff/idea/material/tissue/bone, mass: 0.5 }
+    # The pharma seam: `clearance` has a read and an `assess` line this
+    # build; scaling toxin clearance by it is the next one's.
+    - key: body.torso.liver
+      parent: body.torso
+      governs: [clearance]
+      tissues:
+        - { tissuePath: /stuff/idea/material/tissue/flesh, mass: 1.5 }

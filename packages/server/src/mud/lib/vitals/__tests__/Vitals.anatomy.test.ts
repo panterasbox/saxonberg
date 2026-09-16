@@ -105,6 +105,103 @@ describe('VitalsMixin — anatomy resolver', () => {
     expect(creature.isSlotDisabledByAnatomy('grip')).toBe(true);
   });
 
+  it('⭐ interiority is a PREDICATE — a governing organ is inside you', () => {
+    const creature = anatomicalCreature();
+    const plan = creature.getSpecies()!.getBodyPlan()!;
+    expect(plan.isInterior('body.torso.heart')).toBe(true);
+    expect(plan.isInterior('body.arm.left.hand')).toBe(false);
+    expect(plan.isInterior('body.torso')).toBe(false);
+  });
+
+  it('⭐⭐ a CONDUIT is interior even though it governs nothing — the spine', () => {
+    // The case that made interiority a method instead of an inline field
+    // read. The spine governs no sign and no capacity; it is inside you
+    // because the arm's control runs through it. Without this it would be
+    // an exterior part — counted in the surface-fraction walk, expected to
+    // be covered by a garment, and colder for having no sleeve.
+    const plan = makeStuff(() => new BodyPlan());
+    plan.setName('test-spined');
+    plan.setBodyParts([
+      { key: 'body.torso', parent: null, tissues: [] },
+      { key: 'body.torso.spine', parent: 'body.torso', tissues: [] },
+      {
+        key: 'body.arm.left',
+        parent: 'body.torso',
+        innervatedBy: ['body.torso.spine'],
+        tissues: [],
+      },
+    ]);
+    expect(plan.isInterior('body.torso.spine')).toBe(true);
+    expect(plan.isInterior('body.arm.left')).toBe(false);
+  });
+
+  it('⚠ a typo in `governs` THROWS at registration — never an inert organ', () => {
+    const plan = makeStuff(() => new BodyPlan());
+    expect(() =>
+      plan.setBodyParts([
+        { key: 'body.torso', parent: null, tissues: [] },
+        {
+          key: 'body.torso.heart',
+          parent: 'body.torso',
+          governs: ['hartRate'],
+          tissues: [],
+        },
+      ]),
+    ).toThrow(/governs unknown key 'hartRate'/);
+  });
+
+  it('`governs` accepts a CAPACITY as well as a vital sign', () => {
+    const plan = makeStuff(() => new BodyPlan());
+    expect(() =>
+      plan.setBodyParts([
+        { key: 'body.torso', parent: null, tissues: [] },
+        {
+          key: 'body.torso.lungs',
+          parent: 'body.torso',
+          governs: ['respiratoryRate', 'respiration'],
+          tissues: [],
+        },
+      ]),
+    ).not.toThrow();
+  });
+
+  it('⚠ `serves` is capacities ONLY — a vital sign is not a thing a limb is for', () => {
+    const plan = makeStuff(() => new BodyPlan());
+    expect(() =>
+      plan.setBodyParts([
+        { key: 'body.torso', parent: null, tissues: [] },
+        {
+          key: 'body.leg.left',
+          parent: 'body.torso',
+          serves: ['heartRate'],
+          tissues: [],
+        },
+      ]),
+    ).toThrow(/serves unknown capacity 'heartRate'/);
+  });
+
+  it('⭐ `serves` does NOT make a part interior — a hand must stay coverable', () => {
+    const plan = makeStuff(() => new BodyPlan());
+    plan.setBodyParts([
+      { key: 'body.torso', parent: null, tissues: [] },
+      {
+        key: 'body.arm.left.hand',
+        parent: 'body.torso',
+        serves: ['manipulation'],
+        tissues: [{ tissuePath: '/stuff/idea/material/tissue/bone', mass: 0.4 }],
+      },
+    ]);
+    expect(plan.isInterior('body.arm.left.hand')).toBe(false);
+    // …and therefore it still carries a share of the external surface.
+    expect(plan.getPartSurfaceFraction('body.arm.left.hand')).toBeGreaterThan(0);
+  });
+
+  it('interior parts carry NO share of the external surface', () => {
+    const creature = anatomicalCreature();
+    const plan = creature.getSpecies()!.getBodyPlan()!;
+    expect(plan.getPartSurfaceFraction('body.torso.heart')).toBe(0);
+  });
+
   it('canOccupy honours the anatomy gate (coarse part→slot coupling)', () => {
     const creature = anatomicalCreature();
     const item = makeStuff(() => new SlottableThing());
