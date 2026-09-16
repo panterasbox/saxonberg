@@ -16,15 +16,15 @@ off) — each a real channel through the same door everything else uses;
 and, in Stage C, delivery past the medieval (a bow, a firearm) with
 `penetration` finally given its armour consumer.
 
-⭐ **D21 — this plan is two MRs, not one.** Stage A is six waves, above
-the ~4-wave ceiling the requirements warned about, and it is the gate on
-five other builds. So: **MR 1 = Stage A (W-A0…W-A5)**, opened and driven
-on its own; **MR 2 = Stages B + C (W-B0…W-B3, W-C0…W-C2)** on a fresh
-branch off master once MR 1 lands. The requirements doc stays until MR 2
-retires it; the drive script's steps 1–11 are MR 1's exit criterion and
-12–19 are MR 2's. If the cycle runs hot, Stage C goes first (the
-requirements' own cut), and the caustic (W-B3) second — the frost spell
-stays because it is the falsifiable-prediction content.
+⭐ **D21 — ONE MR.** All fourteen waves (A0–A5, B0–B4, C0–C2) land on one
+branch and open one MR. Stage A alone is six waves — above the ~4-wave
+ceiling the requirements warned about — and the planner proposed two
+MRs on that ground; **the user heard it and chose one review** (*"one MR,
+not two. just give me one thing to review."*). Recorded as their call.
+⭐ **With one MR, the cut line is the only release valve left:** if the
+build runs hot the MR ships **A + B** and Stage C (W-C0…W-C2) is cut —
+a build-scope decision, never a second MR. Nothing in B is cut before C;
+the frost spell is the falsifiable-prediction content and stays.
 
 ---
 
@@ -655,7 +655,100 @@ projectiles as stackables.**
   Terminus counter stocks bow (18), arrows ×20 (4), musket (70), balls ×10
   (6); the sentry gains a bow? **No** — content behaviour is out of scope.
 
-**D21 — The split.** See the header. Stage A = MR 1; B + C = MR 2.
+**D21 — One MR (reversed 2026-09-16).** The header has the decision and
+its provenance: the size concern was raised and overruled by the user.
+The only remaining lever is the requirements' own cut line — Stage C
+leaves the MR's scope if the cycle runs hot; the MR count never changes.
+
+**D22 — Spell costs become honest, and a gate keeps them so.** The
+grounding found firebolt authoring `cost: 20` (20 kJ committed) against
+`joules: [300000, 900000, 1800000]` (J delivered) — η ≈ 45 at the
+uncursed band, against `arcane-science.md` rules 1 and 6 (η ≤ 1). The
+census (run by the coordinator, verified here): **firebolt is the only
+one of the thirteen spells that declares `joules`**; the other twelve
+declare no real-unit delivery. So the fix is one row, one target, and one
+gate.
+- ⭐ **Why it is cheap:** `joules` feeds the **object arm only**
+  (`MagicLogic.execInjectChannel :1391-1396` → `depositHeat` +
+  `tryAutoignite`); the **body arm** uses `energy: [1,2,4]`, an abstract
+  channel token on the covering-fold scale. Correcting `joules` changes
+  what a firebolt does to *things*, not to *people*.
+- **The band ladder expresses efficiency** (magic-items: *"blessed means
+  EFFICIENT, not benevolent"*): cursed η 0.5 · uncursed η 0.85 (the price
+  list's heat row; the science's own worked firebolt is 35.2 τ → 29.9 kJ)
+  · blessed η 1.0.
+- ⚠ **Verified against the fire substrate — and the real culprit is the
+  ignition model, which this build is NOT fixing.** The casting-yard
+  dummy (`packages/content/world-seed/content/world/practicum/practice-dummy.yaml`)
+  is **1.5 kg of oak** (C = 1.5 × 2000 = 3000 J/K; 293 → 570 K needs
+  ≈ **831 kJ**) — its own comment says the mass was chosen so *"one
+  competent firebolt's deposit carries it past oak's 570 K"*, i.e. the
+  content was tuned to the violation. No `cost` rescues it (831 τ
+  against a 120-pt pool) and no mass rescues it either: bulk-heating
+  1.5 kg of *anything* to autoignition is hundreds of kJ (straw ≈ 520 kJ).
+  **The error is `tryAutoignite`'s model** — it asks whether the whole
+  mass reached autoignition (`FireLogic.ts:176-178` + the threshold), and
+  real fire ignites a *spot*: a match lights a bonfire. **The local-
+  hotspot ignition model is the actual fix, it is a fire-subsystem
+  build, and it is deferred (see Deferred seams). Nothing below is that
+  fix; it is content the shipped model can represent honestly.**
+- **Decision:** `cost: 30` (a real raise, under the science's 35.2 τ
+  worked example) with `joules: [15000, 25500, 30000]`; **the dummy stays
+  1.5 kg and stays a dummy** — a firebolt scorches and chars it (real
+  `heat` → `depositHeat`, the fuel reserve intact) and does **not** set it
+  alight, which is correct under both the physics and the shipped model
+  and a better demonstrator: *hit the target* and *set it alight* are
+  now different things, which is exactly the distinction the price list
+  draws. **One new content row:** a **tinder bundle** ≈ 0.04 kg
+  (`world-seed/content/world/practicum/tinder-bundle.yaml`, class
+  `/platform/thing/Firewood`, `_materialPath` oak — the one row with an
+  `autoignitionTemperature`; C = 80 J/K → 22 kJ to 570 K) added to the
+  casting yard's `props:` beside the dummy. The band ladder reads in
+  play: a cursed bolt (15 kJ) fails to light it, an uncursed one
+  (25.5 kJ) lights it, a blessed one (30 kJ) lights it with margin.
+  Forty grams of tinder is correct; forty grams of man-shaped dummy is
+  not (a reader would "fix" the mass back and silently restore the bug —
+  a number that has to stay wrong-looking to keep a test green is not a
+  fix).
+- **Second-instance proof:** the tinder is a row of an existing class
+  (`Firewood`, the `dry-log`/`wet-log`/dummy class) with a mass and a
+  material — a second flammable target is another row, zero code.
+- The dummy's stale comment (it explains the violation as a design
+  choice) is rewritten to the arithmetic above; its `_materialPath`
+  (oak) vs prose (straw) mismatch stays, noted in the comment — a straw
+  `Material` row is base-library content nobody has needed yet.
+- **Tests that pin the violation, fixed not preserved:**
+  `packages/server/src/mud/world/practicum/__tests__/practicum.integration.test.ts:198`
+  (*"firebolt ignites the dummy"*, comment *"900 kJ into 1 kg of oak"*)
+  becomes two assertions — the dummy is scorched and **not** burning; the
+  tinder **is** burning — and the fixture gains `tinderIn(yard)`. No other
+  test pins it (`Combustible.test.ts` and `fermentation-distilling.test.ts`
+  only mention the words).
+- **The gate — `lint:spell-cost`**, `packages/server/scripts/check-spell-cost.ts`,
+  the census-then-ratchet shape (`check-does-nothing` precedent: a
+  standalone WARN/ERROR script walking every `Spell`-class row across
+  every pack root; joins `lint:family` by being a `lint:*` script, no
+  list to edit). ⚠⚠ **Channel-aware, never a flat η ≤ 1:**
+  - **delivery** (`inject-channel` with `joules` on a channel that
+    *deposits* — `heat`, and any future depositing channel): require
+    `joules ≤ cost × 1000 × η(channel)` at the blessed band, η from the
+    price list (heat 1.0 as the ceiling; the script carries the table
+    with the doc section cited beside it).
+  - **cooling** (`channel: cold`): **not an η check** — a COP above 1 is
+    what a heat pump *means*. Require instead that the row **declares a
+    lift**: `costModel: {kind: heat-pump}` present (rule 4: *"cooling has
+    no fixed price"* — a flat-cost cold spell is itself the physics
+    error). The binding constraint is the caster's thermal budget, which
+    W-B2 builds.
+  - rows with no `joules` (twelve today) are out of the gate's
+    jurisdiction — nothing dimensional to check; `energy` tokens are not
+    joules and are not checked.
+  - **Ceiling today = 1** (firebolt); the same wave drives it to **0**
+    and pins the ceiling at 0.
+- Sequenced **before** the frost spell (W-B1 before W-B2) so frost is
+  authored under a live gate rather than retrofitted into one.
+- Wave references elsewhere in this plan: the frost spell is **W-B2**,
+  the caustic **W-B3**, Stage B docs + drive **W-B4**.
 
 ---
 
@@ -733,7 +826,9 @@ lines + props resolve), `lint:field-meta` (`heatLoadJ`, `corrosiveTo`,
 launcher fields declared), `lint:instanceable` (`Launcher`, `Projectile`
 under `platform/thing/`), `lint:verb-collisions` (`shoot`; the `wash`
 stanza), `lint:test-content`, `lint:object-verbs` (0), `lint:module-scope`,
-`lint:imports`, `lint:drive-scripts` (the drive is a wire file).
+`lint:imports`, `lint:drive-scripts` (the drive is a wire file), and the
+**new `lint:spell-cost`** (D22 — born at W-B1 with ceiling 1, driven to 0
+in the same wave; channel-aware, never a flat η check).
 
 ---
 
@@ -743,7 +838,7 @@ Each wave is independently landable and ends at one commit
 `build(injury W-<id>): <what>`; `pnpm test:near` + every touched pack's
 vitest + `lint:family` gate each. `pnpm test` runs once before each MR.
 
-### Stage A — a wound means something (MR 1)
+### Stage A — a wound means something
 
 **W-A0 — a limb can be lost.** *(D1, D2, D3, D13, D19-wolf)*
 - Reorder afflict/onset at `ConditionLogic.ts:968/:1005/:1046`.
@@ -809,11 +904,12 @@ vitest + `lint:family` gate each. `pnpm test` runs once before each MR.
   prices; spike-pit site selector; `docs/subsystems/harm.md` +
   `vitals.md` sections for the axis (the doc grows, the CLAUDE.md blurb
   does not).
-- The drive: `packages/wire/tests/injury.dirty.wire.test.ts` steps 1–11
-  (dirty: it buys stock). Then `pnpm test`, push, open MR 1.
+- The drive file is started here: `packages/wire/tests/injury.dirty.wire.test.ts`
+  steps 1–11 (dirty: it buys stock). Run it green; do **not** open the
+  MR — Stage B continues on the same branch.
 - Acceptance: drive steps 1–11 green; AC 1–5, 8, 9, 10.
 
-### Stage B — two new ways to be hurt (MR 2)
+### Stage B — two new ways to be hurt, and honest spell costs
 
 **W-B0 — channel plumbing + legibility.** *(D14 vocabulary half, D17
 vocabulary half, D18)* `cold` + `corrosion` in `Channel.ts`; `FOLDED`;
@@ -825,7 +921,26 @@ insulates heat; plate does not), `MaterialLogic.corrosion.test.ts` (the
 three layer outcomes), `Construction.test.ts` (`responseFor('cold')` still
 throws), `AnalyzeResponseController` test shows five columns.
 
-**W-B1 — the frost spell cooks its caster.** *(D15, D16)* `heatLoadJ` +
+**W-B1 — spell costs, and the gate that keeps them honest.** *(D22)*
+`scripts/check-spell-cost.ts` + the `lint:spell-cost` script entry in
+`packages/server/package.json` (it joins `lint:family` by existing);
+firebolt → `cost: 30`, `joules: [15000, 25500, 30000]`; the practice
+dummy keeps `mass: 1.5` and gets its comment rewritten to the arithmetic
+in D22; new row `world-seed/.../practicum/tinder-bundle.yaml` (0.04 kg
+`Firewood`, oak) added to `casting-yard.yaml` `props:`; `magic.md`'s
+demonstrator prose (`:280-281`) names the tinder as the ignition target
+and the dummy as the burn target; `docs/arcane-science.md` rules 1/4/6
+gain a one-line *"enforced by `lint:spell-cost`"* note. Ceiling 1 → 0 in
+the same commit. Tests: the gate's fixture test (a delivering row over η
+fails; a cooling row with a flat cost fails; a cooling row declaring
+`heat-pump` passes; a row with no `joules` is ignored);
+`practicum.integration.test.ts:198` rewritten (dummy scorched, not
+burning; tinder burning; cursed band leaves the tinder unlit);
+`MagicLogic` body-arm tests unchanged (the `energy` token did not move).
+Acceptance: `lint:spell-cost` green at 0; in the Practicum an uncursed
+firebolt lights the tinder and chars the dummy without lighting it.
+
+**W-B2 — the frost spell cooks its caster.** *(D15, D16)* `heatLoadJ` +
 `absorbHeatLoad` + shedding; `'heat-pump'`; `costOf` arm; `absorbWasteHeat`
 body endpoint + the `resolveCastImpl` call; object arm inside `deliverAt`;
 hyperthermia onset dial; `frost.yaml`. Tests: `ThermalRegulation.heat-load.test.ts`
@@ -834,19 +949,21 @@ wet-bulb), `MagicLogic.heat-pump.test.ts` (COP arithmetic pins the
 arcane-science numbers: 100 kJ at 17 K lift ≈ 14 τ; `dispel` still costs
 20), the catalogue accepts the model. Acceptance: drive steps 12–14.
 
-**W-B2 — the caustic.** *(D17 content half)* quicklime row, the seep,
+**W-B3 — the caustic.** *(D17 content half)* quicklime row, the seep,
 `HazardDelivery.corrosiveTo`, the `wash` stanza + `RinseController`, the
 water butt at the hub, pit-below props. Tests: `HazardDelivery` corrosion
 spec, `RinseController` test, `Hazard` integration (stepping onto the seep
 lands a growing caustic wound; rinsing stops it). Acceptance: drive steps
 15–16.
 
-**W-B3 — Stage B docs + drive.** `materials-response.md` (five channels,
+**W-B4 — Stage B docs + drive.** `materials-response.md` (five channels,
 three fold branches), `magic.md` (the second cost model, the caster's
-heat), `thermal.md` (the heat load, the onset), `harm.md` (nine types).
-Wire steps 12–16 appended to the drive file.
+heat, the cost gate), `thermal.md` (the heat load, the onset), `harm.md`
+(nine types), `lint-family.md` (the new gate's rationale). Wire steps
+12–16 appended to the drive file. ⭐ **If Stage C is being cut, this is
+where the build runs `pnpm test`, pushes and opens the MR.**
 
-### Stage C — past the medieval (the cut line; MR 2)
+### Stage C — past the medieval (the cut line)
 
 **W-C0 — `penetration`.** *(D20 first bullet)* `DeliveryProfile.penetration`
 + `calibre`; `EnergyInflictSpec.penetration`; the divisor in
@@ -862,7 +979,7 @@ family). ⚠ The heaviest single wave in the build.
 
 **W-C2 — content + drive.** Bow, arrows, musket, balls; Terminus stock;
 `ranged.md` W2/W3/W4 table updated to what shipped; wire steps 17–19;
-`pnpm test`; push; open MR 2.
+`pnpm test`; push; open **the** MR.
 
 ---
 
@@ -897,14 +1014,16 @@ booted world (the once-guard) — the drive runs against a **fresh** DB.
 | 3 — hurt in a way you cannot see; a stranger reads more | W-A3 |
 | 4 — shock before death, with a window | W-A4 |
 | 5 — lose a limb, keep playing, do most things | W-A0 + W-A2 (one hand still grips; locomotion `impaired`, not `lost`) |
-| 6 — frozen and caustic-burned, each unlike fire | W-B0/B1/B2 (`frostbite` numbs and wants warmth; `caustic` grows until washed) |
-| 7 — an over-caster injures themselves, and can tell it was heat | W-B1 (`assess`/`measure temperature` show the rising core; the sweat cue fires; the mana bar is not empty) — ⚠ contingent on D16 |
+| 6 — frozen and caustic-burned, each unlike fire | W-B0/B2/B3 (`frostbite` numbs and wants warmth; `caustic` grows until washed) |
+| 7 — an over-caster injures themselves, and can tell it was heat | W-B2 (`assess`/`measure temperature` show the rising core; the sweat cue fires; the mana bar is not empty) — ⚠ contingent on D16 |
+| *(added scope, D22 — not a requirements AC)* a firebolt's authored cost and delivery obey the price list, and a gate holds it | W-B1 (`lint:spell-cost` at 0; the uncursed bolt lights the tinder and chars the dummy without lighting it; the cursed one lights neither) |
 | 8 — buy armour, wear three layers, see the layers matter | W-A5 (stock + the outside-in listing) |
 | 9 — bare-foot-on-glass unchanged | W-A0 regression assertion; W-A2 keeps the 0.5 laceration limp equivalent |
 | 10 — nothing in the lounge can hurt anyone | untouched; the wire drive asserts no hazard/combat affordance in the lounge rooms |
 | 11 — fight with a non-medieval weapon; armour answers differently | W-C0–C2 |
 
-Unmapped: none. Drive steps 17–19 are Stage C's and go with the cut.
+Unmapped: none. Drive steps 17–19 are Stage C's and go with the cut; AC
+11 goes with them, and the MR description must say so if it does.
 
 ---
 
@@ -921,15 +1040,18 @@ Unmapped: none. Drive steps 17–19 are Stage C's and go with the cut.
   boot, that `assess` *renders* the anatomy on the card, that the caster's
   core visibly rises on the client, that the store sells what the counter
   says. The drive is `packages/wire/tests/injury.dirty.wire.test.ts`
-  (MR 1: steps 1–11; MR 2 appends 12–19), the `consequence.dirty.wire.test.ts`
-  shape. Steps needing game-hours (a fracture healing) are pinned by unit
-  tests, not faked with a wizard clock.
+  (started at W-A5 with steps 1–11; W-B4 appends 12–16; W-C2 appends
+  17–19), the `consequence.dirty.wire.test.ts` shape. Steps needing
+  game-hours (a fracture healing) are pinned by unit tests, not faked with
+  a wizard clock.
 - **Gates:** `pnpm -C packages/server lint:family` every wave;
   `pnpm test:near` + touched packs' vitest every wave; `pnpm test` exactly
-  twice per MR (before it opens, at `/finalize`). Never backgrounded.
+  twice (before the MR opens, at `/finalize`). Never backgrounded.
 - **Ratchets to read before and after every wave:**
   `check-condition-arms.ts --list` (5), `check-unconsumed-seams.ts --list`
-  (must fall at W-A1/A2, B0, C0).
+  (must fall at W-A1/A2, B0, C0), and from W-B1 on
+  `check-spell-cost.ts --list` (1 → 0 inside W-B1, then 0; the frost row
+  in W-B2 must pass it by declaring `heat-pump`).
 
 ---
 
@@ -941,7 +1063,7 @@ Unmapped: none. Drive steps 17–19 are Stage C's and go with the cut.
    makes drive step 13 read *"sweating, dizzy, hydration falling"* rather
    than the row's name. Either is honest; the plan picks the medical
    threshold. If the user prefers the science's answer be reported as
-   found, delete the onset dial from W-B1 and rewrite step 13's
+   found, delete the onset dial from W-B2 and rewrite step 13's
    expectation in the drive record.
 2. **Combat's site vocabulary is two words.** `siteFor` returns
    torso/head; every interior reach in a fight starts there. The wolf
@@ -953,8 +1075,14 @@ Unmapped: none. Drive steps 17–19 are Stage C's and go with the cut.
    scale) mean severing needs an `open` foe and a real blade — the drive
    tunes them; the plan fixes only the *order* (avulsion before sever).
 4. **`reconcileThermalCascade`'s dwell keying** (verify — see D16).
-5. **Firebolt's 45× cost violation** stands. Out of scope; recorded as a
-   deferred `lint:spell-cost` seam (below).
+5. **Firebolt's correction changes what the Practicum demonstrates
+   (D22).** The dummy no longer catches fire — it chars — and a new
+   tinder row is what ignites. `practicum.integration.test.ts:198` is the
+   one test pinning the old 900 kJ ignition and is rewritten, not
+   preserved. ⚠ The workaround is content the shipped bulk-temperature
+   `tryAutoignite` can represent honestly; **the actual fix is a local-
+   hotspot ignition model in the fire subsystem, deferred** — do not
+   mistake the tinder row for it.
 6. **Corrosion's tag matching** depends on rows carrying honest tags;
    the base-library census shows `metal`/`organic`/`textile`/`tissue`
    present on the rows that matter. A row with no tags sheds everything —
@@ -985,9 +1113,17 @@ Clean attach points, each leaving as a slate line — never a plan section.
   `combat-slate`.
 - **`CombatantMixin.naturalAttackChannel` retirement** (zero content users
   after W-A0) → the antipattern-sweeps branch.
-- **`lint:spell-cost`** — a gate that derives a floor from the price list
-  and flags firebolt → `capability-magic-slate` (the plan found it; it is
-  not this build's).
+- ⭐ **A local-hotspot ignition model — the ACTUAL fix behind D22, and a
+  fire-subsystem build, not this one.** `tryAutoignite` asks whether the
+  whole mass reached autoignition; real fire ignites a spot, and a match
+  lights a bonfire. Until it exists, an honest ~25 kJ pulse can light
+  tinder and only char a log, which is what D22's content says →
+  `fire.md`'s deferred list (with this plan's arithmetic: 831 kJ for a
+  1.5 kg oak dummy, 22 kJ for 40 g of tinder).
+- **The price list as data** — `check-spell-cost.ts` carries the η table
+  in code beside the doc citation; a later build may lift it into an
+  authored row so the wiki and the gate read one source →
+  `capability-magic-slate`.
 - **Readiness as committed actions, dry-fire, the bow's hold window,
   reliability, pattern keys, NPC archers** → `ranged-slate` W3/W4 (W-C1
   ships one `readySeconds` per family and nothing else).
@@ -1019,7 +1155,8 @@ Read these first, in this order.
 12. `mud/lib/combat/DeliveryProfile.ts`, `EnergySource.ts`, `NaturalAttack.ts`; `mud/platform/idea/cmd/inventory/ThrowController.ts`
 13. `mud/lib/hazard/HazardDelivery.ts`; `packages/content/generic-objects/content/stuff/thing/traps/spike-pit.yaml`
 14. `packages/content/terminus/content/world/terminus/general-store/counter.yaml`
-15. `packages/server/scripts/check-condition-arms.ts`, `check-unconsumed-seams.ts`, `check-conditions.ts`
+15. `packages/server/scripts/check-condition-arms.ts`, `check-unconsumed-seams.ts`, `check-conditions.ts`, `check-does-nothing.ts` (the shape `check-spell-cost.ts` copies), `pack-roots.ts`
+15a. `packages/content/arcane-library/content/stuff/idea/magic/Spell/firebolt.yaml`, `packages/content/world-seed/content/world/practicum/{practice-dummy,casting-yard}.yaml`, `packages/server/src/mud/world/practicum/__tests__/practicum.integration.test.ts:198`, `packages/content/generic-objects/content/stuff/thing/items/dry-log.yaml` (the `Firewood` row shape the tinder copies), `docs/arcane-science.md` (the 8 content rules + `:425-485`), `docs/subsystems/magic-items.md` (the band-means-efficiency rule), `docs/subsystems/magic.md:280-281`
 16. `packages/wire/tests/consequence.dirty.wire.test.ts` — the drive shape
 17. `docs/subsystems/harm.md`, `vitals.md`, `materials-response.md`, `magic.md`, `thermal.md`, `ranged.md`, `command-spec.md`, `docs/arcane-science.md:425-485`
 
@@ -1029,6 +1166,6 @@ Read these first, in this order.
 
 *(appended at build time, not at plan time)* — the output of running
 `packages/wire/tests/injury.dirty.wire.test.ts` against a fresh boot,
-step by step against the requirements' drive script, and what it found.
-MR 1 records steps 1–11; MR 2 appends 12–19. Precedent:
+step by step against the requirements' drive script, and what it found —
+steps 1–19, or 1–16 with a line saying Stage C was cut. Precedent:
 `farming-plan.md § Checkpoint A`.
