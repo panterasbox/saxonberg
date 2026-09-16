@@ -1751,8 +1751,21 @@ Read first, in this order:
 
 ## Drive record
 
-✅ **Run 2026-09-15** against a freshly reset `saxonberg_build2`, a full
-36-pack install and a live socket. **14/14.**
+✅ **Re-run 2026-09-16** after review changed the world underneath it —
+freshly reset `saxonberg_build2`, a full **43-pack** install, a live
+socket. **16/16.**
+
+⭐ Three of the sixteen did not exist at the first run, and each is a
+review round made permanent: `call` reaching the cat with **no target at
+all** (the acoustic emission), `stay`'s refusal admitting *not looking at
+you* (the gesture channel), and — the one that matters — **step 9, that
+the refusal LIFTS.** Its absence is what let an untameable cat ship.
+
+⚠ Two known warnings in the boot log, both pre-existing `terminus`
+content and both documented below: `Aldis Verrow` and `Merrick Sault`
+declare `shifts` with no trigger and no config.
+
+**First run 2026-09-15** — 36-pack install, **14/14**.
 
 ⭐⭐ **The drive is a wire file now**, not a one-off script:
 `packages/wire/tests/pets.dirty.wire.test.ts`. It is `.dirty.` because it
