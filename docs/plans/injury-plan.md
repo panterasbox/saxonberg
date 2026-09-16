@@ -948,7 +948,35 @@ vitest + `lint:family` gate each. `pnpm test` runs once before each MR.
 - Acceptance: `getParts()` lists 16 parts on a biped; the spine is interior;
   a typo in `governs` throws at registration.
 
-**W-A2 — a wound costs a capacity.** *(D6, D7)*
+**W-A2 — a wound costs a capacity.** ✅ **DONE** *(D6, D7)*
+> **Build note.** The wave landed as designed, plus one correction to D6's
+> formula and two consequences worth knowing about.
+> - ⭐⭐ **D6's conduit walk had to become TRANSITIVE**, and the plan's own
+>   acceptance is what caught it. As written, `f(p) = min(own(p),
+>   conduit(parent-chain…), conduit(innervatedBy…))` reads only `p`'s own
+>   edges — and the **arm** names the spine, the hand names nothing. So a
+>   severed spine left the hand gripping happily, which is the one case the
+>   axis exists to model. `upstreamFunction` now recurses (with a visited
+>   set), which is also what makes D8's *"author innervation only where it
+>   diverges from the tree"* actually true.
+> - ⭐⭐ **Quadriplegia and paraplegia fell out for free.** The lower spine
+>   hangs off the upper, so a HIGH cut takes the arms and the legs and a LOW
+>   cut takes only the legs. Nobody authored that; it is two `parent` edges
+>   and a `min`. Pinned by a test.
+> - ⚠ **The band comparison needs an epsilon.** `1 − 3 × 0.2` is
+>   `0.3999999999999999`, which lands a hair under the `impaired` edge — so
+>   a wound would band differently depending on whether its severity arrived
+>   as one number or as a sum. `bandOf` compares with `1e-9`.
+> - ⚠ **The limp changed shape and the avian plan nearly lost it silently.**
+>   `drainForLimp` was a sum over `laceration|avulsion` at sites matching the
+>   string `body.leg*`, which missed a FRACTURED leg, a MISSING leg and a
+>   spine wound that paralysed both. It is now `1 − capacityScalar
+>   ('locomotion')`, which catches all three — but it reads `serves`, so the
+>   **avian** plan (which has legs) needed `serves: [locomotion]` authored or
+>   it would have silently stopped limping. Authored on its wings too: a bird
+>   gets about on those.
+> - `LIMP_MISSING_SEVERITY` (the W-A0 interim) retired, replaced by
+>   `LIMP_SHORTFALL_SCALE`.
 - `functionAt` / `capacity` / `canGrip` / `canBearWeight` /
   `slotRefusalReason`; `{kind:'function'}` replaces `capability` on the
   table and in `check-conditions.ts`; `isSlotImpairedByCondition`,

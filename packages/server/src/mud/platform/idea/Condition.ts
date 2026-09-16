@@ -232,18 +232,63 @@ export const HARM_DEFAULTS = {
    */
   SEVER_SEVERITY: 4.0,
   /**
-   * What a MISSING locomotor part costs the limp, expressed as the wound
-   * severity it stands in for. A severed foot is not a wound that heals,
-   * so it has no severity of its own to sum — this is the equivalent.
+   * ⭐ **What a total loss of locomotion costs a traverse**, in units of
+   * `LIMP_DRAIN_PER_SEVERITY`. The limp is now a shortfall in the
+   * `locomotion` capacity (`1 − scalar`) rather than a sum of wound
+   * severities, and the scalar is bounded by 1 where a severity sum was
+   * not — so this restores the magnitude the old sum reached.
    *
-   * ⚠ Interim: W-A2 rewires `drainForLimp` onto the function axis, where a
-   * missing part is `f = 0` and this constant retires.
+   * Two legs and one of them gone is a shortfall of 0.5, which at
+   * `4 × 2 × 0.5` costs 4 % endurance a traverse: a real hobble that does
+   * not strand you. (Was `LIMP_MISSING_SEVERITY: 2`, the W-A0 interim.)
    */
-  LIMP_MISSING_SEVERITY: 2,
+  LIMP_SHORTFALL_SCALE: 2,
   /** Below this severity a wound has healed and is cleared from the body. */
   CLEARED_SEVERITY: 0.01,
   /** Limp: endurance %-drained per traverse per unit locomotor-wound severity. */
   LIMP_DRAIN_PER_SEVERITY: 4,
+  /**
+   * ⭐⭐ **What each kind of wound costs the part it sits on**, per unit of
+   * severity. `1 − Σ(severity × weight)` is the part's own function.
+   *
+   * The ordering is the claim, and it is a physiological one: a **fracture**
+   * is the worst thing short of losing the part (1.2, so the shipped 0.5
+   * impair threshold still lands exactly on `impaired` — byte-parity with
+   * the boolean rule it replaced), an **avulsion** takes tissue away (1.0),
+   * a **burn** or a freeze or a caustic destroys tissue in place but does
+   * not break the structure (0.6), a **rupture** is interior and grave but
+   * costs the ORGAN not the limb (0.3), and a cut is mostly a bleed — a
+   * **laceration** (0.2) or a **puncture** (0.25) hurts and leaks and does
+   * not stop the hand closing. A **contusion** is 0.1: a bruise is a fee,
+   * not an injury.
+   *
+   * ⚠ Keyed by `TraumaType`, declared here rather than authored, because
+   * the trauma vocabulary IS closed — a burn is a burn everywhere.
+   */
+  FUNCTION_LOSS_PER_SEVERITY: {
+    fracture: 1.2,
+    avulsion: 1.0,
+    burn: 0.6,
+    rupture: 0.3,
+    puncture: 0.25,
+    laceration: 0.2,
+    contusion: 0.1,
+  } as Record<string, number>,
+  /**
+   * ⭐ **A conduit tolerates a scratch.** How badly a part something else's
+   * control or supply runs THROUGH must be hurt before it starts costing
+   * that other part anything, and over what range it goes to nothing.
+   *
+   * A graze on the spine does not paralyse the arm; a severe spine wound
+   * does. Without the tolerance every torso scratch would dim every limb,
+   * which is both wrong and miserable.
+   */
+  CONDUIT_TOLERANCE: 1.0,
+  CONDUIT_RANGE: 2.0,
+  /** Function at or above this reads `full`. */
+  FUNCTION_BAND_FULL: 0.75,
+  /** Function at or above this (and below full) reads `impaired`. */
+  FUNCTION_BAND_IMPAIRED: 0.4,
 
   /* ── dying windows (game-seconds) ────────────────────────────────────
    * How long the body has once a lethal threshold is crossed. Each driver
@@ -445,14 +490,25 @@ export type VitalEffect =
     }
   | {
       /**
-       * A derived slot impairment — READ, never integrated. The fracture
-       * rule, generalized: a condition at a body part can take the
-       * affordances that part carries.
+       * ⭐⭐ **What this wound costs the PART it sits on** — READ, never
+       * integrated. The number is how much function one unit of severity
+       * takes away, so a part's own function is
+       * `1 − Σ(severity × lossPerSeverity)` over the wounds on it.
+       *
+       * ⚠ This **replaced** `{kind:'capability', disables:'slots-at-site',
+       * aboveSeverity}`, which was a boolean cliff: below the threshold a
+       * fracture cost nothing at all, above it the slot vanished, and
+       * there was no third thing a wound could take. Two wounds that each
+       * sat just under the line were free. A rate composes — two
+       * half-wounds add up, a big wound on a limb reaches past it to
+       * whatever the limb carries, and the slot gate falls out of the
+       * function read instead of being its own rule.
+       *
+       * Weights live in `HARM_DEFAULTS.FUNCTION_LOSS_PER_SEVERITY`.
        */
-      kind: 'capability';
-      disables: 'slots-at-site';
-      /** Only bites above this intensity impair. */
-      aboveSeverity: number;
+      kind: 'function';
+      /** Function lost per unit of severity, at the wound's own site. */
+      lossPerSeverity: number;
     }
   | {
       /**
@@ -605,6 +661,15 @@ export const LACERATION_BEHAVIOR: TraumaBehavior = {
   },
   // The bleed family: what arrests it is a dressing.
   resolution: 'dressing',
+  // ⭐ A cut is mostly a BLEED. It costs the part a little — deep enough
+  // and a gashed hand does start to lose its grip — but the thing that
+  // kills you is the blood, not the loss of function. Low on purpose.
+  signature: [
+    {
+      kind: 'function',
+      lossPerSeverity: HARM_DEFAULTS.FUNCTION_LOSS_PER_SEVERITY.laceration!,
+    },
+  ],
 };
 
 /**
@@ -646,6 +711,13 @@ export const CONTUSION_BEHAVIOR: TraumaBehavior = {
       reserve: 'endurance',
       pctPerHour: -HARM_DEFAULTS.CONTUSION_STIFFNESS_PCT_PER_HOUR,
     },
+    // A bruise is a fee, not an injury — but a badly bruised hand IS a
+    // little clumsier, and at 0.1 it takes a severity of 2.5 to reach
+    // `impaired`, which is a beating rather than a knock.
+    {
+      kind: 'function',
+      lossPerSeverity: HARM_DEFAULTS.FUNCTION_LOSS_PER_SEVERITY.contusion!,
+    },
   ],
 };
 
@@ -666,16 +738,19 @@ export const FRACTURE_BEHAVIOR: TraumaBehavior = {
   // instrument this build does not ship, and pretending a bandage does it
   // would be worse than saying so. → physiology-slate.
   resolution: 'rest',
-  // ⭐⭐ **The impairment, DECLARED.** A broken hand cannot hold a shield,
-  // and `Vitals.isSlotImpairedByCondition` used to know that by naming
-  // `fracture` in code. It is now a term on the table beside the decay
-  // law, which is what makes the rule available to every wound type
-  // instead of hard-coded for one.
+  // ⭐⭐ **The impairment, DECLARED — and now a RATE.** A broken hand
+  // cannot hold a shield, and `Vitals.isSlotImpairedByCondition` used to
+  // know that by naming `fracture` in code, then by a boolean threshold
+  // on this table. It is now what the wound costs the part per unit of
+  // severity, and the slot gate falls out of the function read.
+  //
+  // ⚠ 1.2 is chosen so the shipped `FRACTURE_IMPAIR_SEVERITY` (0.5) lands
+  // exactly on the `impaired` band edge (1 − 0.5 × 1.2 = 0.4) — the
+  // boolean rule this replaced, preserved at its own threshold.
   signature: [
     {
-      kind: 'capability',
-      disables: 'slots-at-site',
-      aboveSeverity: HARM_DEFAULTS.FRACTURE_IMPAIR_SEVERITY,
+      kind: 'function',
+      lossPerSeverity: HARM_DEFAULTS.FUNCTION_LOSS_PER_SEVERITY.fracture!,
     },
   ],
 };
@@ -704,7 +779,10 @@ export const BURN_BEHAVIOR: TraumaBehavior = {
   // the burn itself owns. ⚠ A bloodless clade absorbs this silently
   // (D22) — a construct that takes a fire blow has a burn, and no weep.
   signature: [
-    { kind: 'capability', disables: 'slots-at-site', aboveSeverity: 1 },
+    {
+      kind: 'function',
+      lossPerSeverity: HARM_DEFAULTS.FUNCTION_LOSS_PER_SEVERITY.burn!,
+    },
     {
       kind: 'vital',
       sign: 'bloodVolume',
@@ -752,6 +830,15 @@ export const AVULSION_BEHAVIOR: TraumaBehavior = {
   },
   // The bleed family: what arrests it is a dressing.
   resolution: 'dressing',
+  // ⭐ Tissue is GONE, not merely opened — at the sever threshold the
+  // part's function is zero twice over (the weight takes it there, and
+  // `missing` floors it anyway).
+  signature: [
+    {
+      kind: 'function',
+      lossPerSeverity: HARM_DEFAULTS.FUNCTION_LOSS_PER_SEVERITY.avulsion!,
+    },
+  ],
 };
 
 /**
@@ -775,6 +862,14 @@ export const PUNCTURE_BEHAVIOR: TraumaBehavior = {
   },
   // The bleed family: what arrests it is a dressing.
   resolution: 'dressing',
+  // A narrow deep wound — slightly worse for the part than a cut of the
+  // same severity, because it goes further in.
+  signature: [
+    {
+      kind: 'function',
+      lossPerSeverity: HARM_DEFAULTS.FUNCTION_LOSS_PER_SEVERITY.puncture!,
+    },
+  ],
 };
 
 /**

@@ -118,7 +118,14 @@ type SkipReason =
   | 'layer'
   | 'slot-full'
   | 'no-slots'
-  | 'busy';
+  | 'busy'
+  /**
+   * ⭐ The body cannot work the slot — a wounded, burned or missing part.
+   * Distinct from `no-slots` (the body never had one there) because a
+   * player needs to know the difference between *"you have no tail"* and
+   * *"your hand is broken"*.
+   */
+  | 'cannot-grip';
 
 const SKIP_PHRASE: Record<SkipReason, string> = {
   fit: 'not cut for you',
@@ -126,6 +133,7 @@ const SKIP_PHRASE: Record<SkipReason, string> = {
   'slot-full': 'nowhere left to put it',
   'no-slots': "doesn't fit your body",
   busy: 'your hands are full',
+  'cannot-grip': 'your body cannot work it',
 };
 
 /**
@@ -510,6 +518,17 @@ export default class EquipController extends CommandController<EquipModel> {
       if (giver.wouldLayerViolate(item)) return 'layer';
     }
     for (const slot of slots) if (giver.isSlotFull(slot)) return 'slot-full';
+    // ⭐⭐ **The body's own refusal, and it is the LAST gate** — after fit,
+    // after the ladder, after occupancy, because those are facts about the
+    // garment and this is a fact about you. `occupyAll` already refused a
+    // broken hand by throwing, inside a `try` whose `catch` discarded the
+    // reason; the player got a bare failure with no cause. Asking first is
+    // what lets the refusal name the wound.
+    if (MixinApi.isVitals(giver)) {
+      for (const slot of slots) {
+        if (!giver.canGrip(slot)) return 'cannot-grip';
+      }
+    }
     return null;
   }
 
@@ -572,6 +591,34 @@ export default class EquipController extends CommandController<EquipModel> {
         kind: 'slot-occupied',
         host: MessageApi.refOf(giver),
         slot: full,
+      });
+      return;
+    }
+    if (reason === 'cannot-grip') {
+      // ⭐ Name the part AND the wound. *"You can't do that"* is the answer
+      // that makes a player stop trusting the model; *"your left hand
+      // cannot grip — a fracture of body.arm.left.hand"* is one they can
+      // act on, and it tells them the refusal will lift when it heals.
+      const plan = SpeciesApi.tryGetBodyPlanPath(giver) ?? '';
+      const as = this.claimAs(item, mode);
+      const slots = as === null ? [] : this.slotsFor(item, plan, as);
+      const why = MixinApi.isVitals(giver)
+        ? slots
+            .map((sl) => giver.slotRefusalReason(sl))
+            .find((r): r is string => r !== null)
+        : undefined;
+      MessageApi.scene(giver)
+        .topic(TOPIC)
+        .toSelf(
+          why !== undefined
+            ? Mml.compose`You cannot take up ${Mml.thing(item)} — ${why}.`
+            : Mml.compose`You cannot take up ${Mml.thing(item)}.`,
+        )
+        .send();
+      context.note({
+        kind: 'controller-rejected',
+        reason: 'cannot-grip',
+        detail: why ?? item.getPresentation(),
       });
       return;
     }

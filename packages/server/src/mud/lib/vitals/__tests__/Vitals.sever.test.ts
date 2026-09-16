@@ -178,6 +178,7 @@ describe('VitalsMixin — severPart', () => {
         key: 'body.leg.left',
         parent: 'body.torso',
         severable: true,
+        serves: ['locomotion'],
         tissues: [{ tissuePath: '/stuff/idea/material/tissue/muscle', mass: 9 }],
       },
       {
@@ -199,10 +200,11 @@ describe('VitalsMixin — severPart', () => {
     creature.drainForLimp();
     const after = creature.getReserve('endurance')?.current.rawValue() ?? 0;
 
-    // One loss, not two — the foot went with the leg and is not counted
-    // again.
+    // ⭐ The ONLY leg is gone, so the `locomotion` capacity is zero and the
+    // shortfall is total. (The plan below authors one leg; a biped losing
+    // one of two would cost half this.)
     expect(before - after).toBeCloseTo(
-      HARM_DEFAULTS.LIMP_DRAIN_PER_SEVERITY * HARM_DEFAULTS.LIMP_MISSING_SEVERITY,
+      HARM_DEFAULTS.LIMP_DRAIN_PER_SEVERITY * HARM_DEFAULTS.LIMP_SHORTFALL_SCALE,
       5,
     );
   });
