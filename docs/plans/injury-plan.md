@@ -1089,7 +1089,19 @@ insulates heat; plate does not), `MaterialLogic.corrosion.test.ts` (the
 three layer outcomes), `Construction.test.ts` (`responseFor('cold')` still
 throws), `AnalyzeResponseController` test shows five columns.
 
-**W-B1 — spell costs, and the gate that keeps them honest.** *(D22)*
+**W-B1 — spell costs, and the gate that keeps them honest.** ✅ **DONE**
+*(D22)*
+> **Build note.** Landed exactly as D22 designed it, arithmetic confirmed
+> by the test: an honest bolt **chars** the 1.5 kg dummy (ΔT ≈ 8.5 K
+> against the 277 K it would need) and **lights** the 40 g tinder. The
+> gate joined `lint:family` by existing — the roster went 39 → 40 with no
+> list edited, which is the derived-roster claim working.
+> - The cursed backfire's `joules` needed correcting too (250 kJ → 15 kJ);
+>   the plan named the main effect and the self-effect is the same row.
+> - `lint:spell-cost`'s own test pins the DESIGN, not just the arithmetic:
+>   a flat-cost cold spell fails, one declaring `heat-pump` passes however
+>   much it moves, and a row with no `joules` is out of jurisdiction.
+>   Gates ship broken and silently pass; this one is provably not.
 `scripts/check-spell-cost.ts` + the `lint:spell-cost` script entry in
 `packages/server/package.json` (it joins `lint:family` by existing);
 firebolt → `cost: 30`, `joules: [15000, 25500, 30000]`; the practice

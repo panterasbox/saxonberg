@@ -70,6 +70,7 @@
     "lint:topics": "tsx scripts/check-topic-keys.ts --lint",
     "lint:test-bootstrap": "tsx scripts/check-test-bootstrap.ts --lint",
     "lint:test-content": "tsx scripts/check-test-content.ts --lint",
+    "lint:spell-cost": "tsx scripts/check-spell-cost.ts",
     "lint:schema": "tsx scripts/check-schema-docs.ts --lint",
     "lint:untitled": "tsx scripts/check-untitled-paths.ts --lint",
     "lint:test-bootstrap:verify": "tsx scripts/check-test-bootstrap.ts --verify"

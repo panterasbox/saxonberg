@@ -125,10 +125,15 @@ function saltWater(): Material {
   return m;
 }
 
+/**
+ * ⚠ The dummy's mass matters and is the point: 1.5 kg of oak is
+ * C = 3000 J/K, so 293 → 570 K (autoignition) needs ≈ **831 kJ**. An
+ * honest firebolt carries 25.5 kJ. It chars; it does not catch.
+ */
 function dummyIn(room: CartesianLocation): Firewood {
   const d = makeStuff(() => {
     const f = new Firewood();
-    f.setMass(Quantity.of(1, "kg"));
+    f.setMass(Quantity.of(1.5, "kg"));
     f.setMaterial(oak());
     f.setReserve(
       new Reserve("fuel", Quantity.of(100, "%"), Quantity.of(100, "%"), "combustion", null),
@@ -182,6 +187,27 @@ function casterIn(room: CartesianLocation): MagicTester {
   return c;
 }
 
+/**
+ * ⭐ The tinder bundle — 40 g, so ≈ 22 kJ from ambient to oak's 570 K
+ * autoignition. An honest firebolt has that; the dummy needs thirty times
+ * as much. The two objects are the demonstration.
+ */
+function tinderIn(room: CartesianLocation): Firewood {
+  const t = makeStuff(() => {
+    const f = new Firewood();
+    f.setMass(Quantity.of(0.04, "kg"));
+    f.setMaterial(oak());
+    f.setReserve(
+      new Reserve("fuel", Quantity.of(100, "%"), Quantity.of(100, "%"), "combustion", null),
+    );
+    return f;
+  });
+  ContainmentApi.move(t, room);
+  t.setStampedTemperatureK(295);
+  t.setLastAmbientK(295);
+  return t;
+}
+
 describe("The Practicum — the magic demonstrators", () => {
   beforeEach(async () => {
     installV1QuantityMarshallers();
@@ -195,7 +221,20 @@ describe("The Practicum — the magic demonstrators", () => {
     vi.restoreAllMocks();
   });
 
-  it("the casting yard: firebolt ignites the dummy and real combustion takes over", async () => {
+  it("⭐⭐ the casting yard: firebolt CHARS the dummy and does not light it", async () => {
+    // ⚠⚠ **This assertion was inverted, and the inversion is the fix.**
+    //
+    // It used to read *"firebolt ignites the dummy"*, justified in a
+    // comment as *"900 kJ into 1 kg of oak"* — and 900 kJ was the
+    // violation: the row committed 20 τ (20 kJ) and delivered 900 kJ,
+    // η ≈ 45. The content had been tuned to the broken number, and this
+    // test was what held it in place.
+    //
+    // An honest firebolt is 25.5 kJ uncursed. Into 1.5 kg of oak
+    // (C = 3000 J/K) that is ΔT ≈ 8.5 K — a scorch. Which is correct
+    // under BOTH the physics and the shipped ignition model, and a
+    // better demonstrator: *hit the target* and *set it alight* are
+    // different acts, and the yard now shows both.
     const zone = makeStuff(() => new CartesianZone());
     const yard = makeStuff(() => new CartesianLocation());
     zone.addLocation(yard, 0, 0, 0);
@@ -205,9 +244,26 @@ describe("The Practicum — the magic demonstrators", () => {
     expect(dummy.isBurning()).toBe(false);
     const out = await caster.resolveCast("firebolt", dummy);
     expect(out.ok).toBe(true);
-    // 900 kJ into 1 kg of oak: ΔT = Q/C = 450 K → past the 570 K
-    // autoignition point → REAL fire (spread/char are fire's job now).
-    expect(dummy.isBurning()).toBe(true);
+    expect(dummy.isBurning()).toBe(false);
+    // …and it DID land — real joules went in, which is what makes this a
+    // scorch rather than a miss.
+    expect(dummy.getTemperature().rawValue()).toBeGreaterThan(295);
+  });
+
+  it("⭐⭐ …and LIGHTS the tinder bundle beside it", async () => {
+    // Forty grams: C = 80 J/K, so 293 → 570 K needs ≈ 22 kJ, which an
+    // uncursed bolt (25.5 kJ) has. This is the pair that makes the yard
+    // teach something true.
+    const zone = makeStuff(() => new CartesianZone());
+    const yard = makeStuff(() => new CartesianLocation());
+    zone.addLocation(yard, 0, 0, 0);
+    const tinder = tinderIn(yard);
+    const caster = casterIn(yard);
+
+    expect(tinder.isBurning()).toBe(false);
+    const out = await caster.resolveCast("firebolt", tinder);
+    expect(out.ok).toBe(true);
+    expect(tinder.isBurning()).toBe(true);
   });
 
   it("the conductive gallery: spark through the brine shocks the wading caster", async () => {

@@ -1,6 +1,8 @@
 # The practice dummy — a Combustible target (the Firewood chassis, straw
-# prose): firebolt deposits real joules, tryAutoignite fires, and real
-# combustion (spread / smoke / char) takes over. Cloned fresh each standup.
+# prose): firebolt deposits REAL joules and the dummy scorches and chars.
+# ⚠ It does NOT catch fire, and that is correct under both the physics and
+# the shipped ignition model — see the note on `mass` below. The thing in
+# the yard that DOES catch is the tinder bundle. Cloned fresh each standup.
 class: /platform/thing/Firewood
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
@@ -10,9 +12,30 @@ data:
   longDescription: >
     A man-shaped bundle of straw lashed to a post, singed in a dozen old
     places and freshly repaired in two.
+  # ⚠ The prose says straw and the material says oak. That mismatch is
+  # known and deliberate for now: a straw `Material` row is base-library
+  # content nobody has needed yet, and oak's thermal numbers are the ones
+  # the fire substrate actually reads.
   _materialPath: /stuff/idea/material/wood/oak
-  # Light — a bundle of straw (~1.5 kg), so one competent firebolt's
-  # deposit carries it past oak's 570 K autoignition point.
+  # ⭐⭐ **1.5 kg, and it no longer catches fire — that is the fix, not a
+  # regression.**
+  #
+  # This mass used to be justified as *"light enough that one competent
+  # firebolt's deposit carries it past oak's 570 K autoignition point"* —
+  # i.e. the content was tuned to a violation. The arithmetic never
+  # supported it: C = 1.5 × 2000 = 3000 J/K, and 293 → 570 K needs
+  # ≈ **831 kJ**. Against an honest firebolt (25.5 kJ uncursed) that is
+  # thirty times short, and no `cost` rescues it — 831 τ against a 120-τ
+  # pool. Nor does any mass: bulk-heating 1.5 kg of *anything* to
+  # autoignition is hundreds of kJ.
+  #
+  # ⚠⚠ **The real error is `tryAutoignite`'s model**, which asks whether
+  # the WHOLE MASS reached autoignition. Real fire ignites a spot — a
+  # match lights a bonfire. The local-hotspot model is the actual fix and
+  # it is a fire-subsystem build (see fire.md's deferred list). Until it
+  # exists, an honest bolt **chars** a dummy and **lights** the tinder
+  # bundle beside it, which is a better demonstrator anyway: *hit the
+  # target* and *set it alight* are now different things.
   mass: 1.5
   charMaterialPath: /stuff/idea/material/element/carbon
   reserves:

@@ -276,6 +276,35 @@ driving it lower would mean unifying mechanisms that really are distinct.
 `KNOWN_PARALLEL_STORES` is enumerated in the script so a second parallel
 store is a visible diff.
 
+### `lint:spell-cost` — a published science with no reader (2026-09)
+
+⭐⭐ **The rules were binding, and the flagship spell broke them by a
+factor of forty-five.** `docs/arcane-science.md` rule 1 says magic *moves
+and rearranges* and does not manufacture energy; rule 6 caps efficiency at
+`η ≤ 1`. Neither had a reader anywhere in the tree, and `firebolt`
+authored `cost: 20` — 20 kJ committed — against `joules: 900000`
+delivered. Worse, the **content had been tuned to the violation**: the
+practice dummy's mass carried a comment explaining that it was chosen so
+one firebolt's deposit would carry it past oak's autoignition point, and a
+test held that in place.
+
+The gate walks every `Spell`-class row in every pack and holds the
+violation count at **zero**, on the census-then-ratchet shape.
+
+⚠⚠ **Channel-aware, and a flat `η ≤ 1` would have been worse than no gate
+at all** — it would make a heat pump illegal, and rule 4 explicitly
+requires one:
+
+| shape | the check |
+|---|---|
+| **delivery** — `joules` on a depositing channel (`heat`) | `joules ≤ cost × 1000 × η(channel)`, η from the price list |
+| **cooling** — `channel: cold` | ⚠ **not** an η check (a COP above 1 is what a heat pump *means*). The row must declare `costModel: {kind: heat-pump}` — the machine-readable form of rule 4's *"cooling has no fixed price"*. A flat-cost cold spell is itself the physics error. |
+| **no `joules`** — twelve of thirteen shipped spells | outside its jurisdiction. `energy` is an abstract covering-fold token, not a quantity of anything, and checking it against joules would be the dimensional mistake the gate exists to prevent. |
+
+⭐ The η table lives in the script beside its doc citation rather than in a
+row, which is a known duplication — a later build may lift it so the wiki
+and the gate read one source (`capability-magic-slate`).
+
 ### `lint:conditions` — the value gate the effect channel needed (2026-09)
 
 ⭐ **The third of the trio, and it exists because the consequence build's

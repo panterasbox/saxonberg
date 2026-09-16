@@ -1,0 +1,47 @@
+# ⭐⭐ The tinder bundle — the thing in the casting yard that actually
+# CATCHES.
+#
+# A forty-gram wisp of dry shavings on a stone, beside the practice dummy.
+# The arithmetic is the whole reason it exists: C = 0.04 × 2000 = 80 J/K,
+# and 293 → 570 K (oak's autoignition) needs ≈ **22 kJ** — which an honest
+# firebolt has. The dummy next to it is 1.5 kg and needs ≈ 831 kJ, which
+# nothing in the game can deliver and nothing should.
+#
+# So the yard now demonstrates two different things, and that is better
+# teaching than one thing that was quietly wrong:
+#   - *hit the target* — the bolt chars the dummy, fuel intact;
+#   - *set it alight* — the bolt lights the tinder.
+# And the band ladder reads in play: a cursed bolt (15 kJ) fails to light
+# it, an uncursed one (25.5 kJ) lights it, a blessed one (30 kJ) lights it
+# with margin.
+#
+# ⚠⚠ **This is content authored around a known model error, not a fix.**
+# `tryAutoignite` asks whether the WHOLE MASS reached autoignition; real
+# fire ignites a spot, and a match lights a bonfire. The local-hotspot
+# model is the actual fix and it is a fire-subsystem build. Forty grams of
+# tinder is a correct object; forty grams of man-shaped dummy would have
+# been a number that has to stay wrong-looking to keep a test green.
+#
+# ⭐ Second-instance proof: this is a row of an existing class with a mass
+# and a material. A second flammable target is another row, zero code.
+class: /platform/thing/Firewood
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: bundle of tinder
+  keywords: [tinder, bundle, shavings, kindling]
+  register: indefinite
+  longDescription: >
+    A loose twist of dry shavings and birch bark, no heavier than a letter,
+    set on a flat stone a little apart from the dummy. It is there to be
+    burned, and it does not take much.
+  _materialPath: /stuff/idea/material/wood/oak
+  # 40 g → 80 J/K → ≈ 22 kJ from ambient to oak's 570 K autoignition.
+  mass: 0.04
+  charMaterialPath: /stuff/idea/material/element/carbon
+  reserves:
+    fuel:
+      capacityValue: 100
+      currentValue: 100
+      unit: "%"
+      theme: combustion
+      floorEffect: null

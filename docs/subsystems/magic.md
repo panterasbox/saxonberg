@@ -278,10 +278,51 @@ back).
 
 `world-seed/content/world/practicum*`: a teleport-reachable `CartesianZone` (the
 hearthworks precedent, no inbound exit) — the **casting yard** (a
-combustible straw dummy + a stone basin), the **conductive gallery**
+combustible straw dummy, a **tinder bundle**, and a stone basin), the
+**conductive gallery**
 (a brine-pooled floor: MIND WHERE YOU STAND), and the **warded cell**
 (`suppressesMagic: {all: true}` + a mundane brazier that keeps burning
 — the lesson in one room).
+
+⭐⭐ **The yard demonstrates two different things, and that is the point.**
+A firebolt **chars** the 1.5 kg dummy and **lights** the 40 g tinder —
+*hit the target* and *set it alight* are not the same act, and the
+arithmetic says which is which: 293 → 570 K is ≈ 831 kJ for the dummy and
+≈ 22 kJ for the tinder, against an honest bolt's 25.5 kJ. The band ladder
+reads in play, too: a cursed bolt (15 kJ) fails to light the tinder, an
+uncursed one lights it, a blessed one lights it with margin.
+
+⚠ The dummy used to catch fire, and it was the flagship spell's η ≈ 45
+violation that let it — the content had been tuned to the broken number
+and a test held it there. See **The cost gate** below.
+
+## ⭐⭐ The cost gate — `lint:spell-cost`
+
+`docs/arcane-science.md` rule 1 (*magic moves and rearranges; it does not
+manufacture energy*) and rule 6 (*η ≤ 1*) had **no reader anywhere**, and
+the flagship spell violated both by a factor of forty-five: firebolt
+authored `cost: 20` — 20 kJ committed — against `joules: 900000`
+delivered. `packages/server/scripts/check-spell-cost.ts` walks every
+`Spell`-class row in every pack and holds the violation count at zero.
+
+⚠⚠ **It is channel-aware, and a flat `η ≤ 1` would have been worse than no
+gate:**
+
+- **delivery** (`joules` on a depositing channel — `heat` today) is
+  checked against `cost × 1000 × η(channel)`, η from the price list,
+  carried in the script beside its doc citation;
+- **cooling** (`channel: cold`) is **not** an η check. A COP above 1 is
+  what a heat pump *means*. What is required instead is that the row
+  declare a lift — `costModel: {kind: heat-pump}` — because rule 4 says
+  cooling has no fixed price, and a flat-cost cold spell is itself the
+  physics error;
+- rows with **no `joules`** (twelve of thirteen) are outside its
+  jurisdiction: `energy` is an abstract covering-fold token, not a
+  quantity of anything.
+
+⭐ The correction touched what a firebolt does to **things**, not to
+people: `joules` feeds the object arm only, and the body arm's abstract
+`energy` token did not move.
 
 ## Dials
 
