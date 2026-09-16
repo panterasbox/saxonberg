@@ -4254,6 +4254,96 @@ ordinary and fine. This is about optional chaining on a **method the
 type system was told to stop checking for**.
 
 
+## A resident pre-check in front of `StuffApi.singleton()`
+
+⭐ **`StuffApi.singleton(path)` IS the get-or-create.** Its first act is
+an index read on `byTemplatePath`: if an instance for the path is
+resident it returns that instance, and it clones only on a miss. So a
+`findByTemplatePath` guard in front of it, on the same path, is the
+identical lookup written twice.
+
+```ts
+// WRONG — the pre-check is `singleton`'s own first line, inlined
+const cat = StuffApi.findByTemplatePath<C>(CATALOGUE_PATH);
+if (cat) return cat;
+return StuffApi.singleton<C>(CATALOGUE_PATH);
+
+// RIGHT
+return StuffApi.singleton<C>(CATALOGUE_PATH);
+```
+
+### ⚠⚠ It is not merely redundant
+
+Both helpers **throw** when the bucket holds more than one instance. In
+the wrong form above, wrapped in the `try` it usually comes with, the
+pre-check's throw escapes while the `try` catches only the second call —
+so the duplicate-row fault, the one a reader most needs to see, takes
+the path that is *not* handled, and the tolerable case takes the one
+that is. Exactly backwards.
+
+And the catch that usually accompanies it is the real hazard:
+
+```ts
+try {
+  return await StuffApi.singleton<D>(path);
+} catch {
+  return null;          // ⚠ a row that will not resolve now looks
+}                       //   identical to "there is nothing here"
+```
+
+⭐ **Tolerate, but never silently.** Returning `null` is often the right
+*behaviour* — a zone with no deposit really does read barren. What is
+never right is making an authoring fault indistinguishable from the
+ordinary empty answer, because then the symptom is a plausible sentence
+and the cause is unfindable. Log it, or decline with a reason of its
+own:
+
+```ts
+} catch (err) {
+  console.error(`Working: deposit '${path}' did not resolve`, err);
+  return null;
+}
+```
+
+### How it spread, because the spread is the lesson
+
+One site wrote it believing the sync lookup was an optimisation
+`singleton` did not do — *"the cheap synchronous hit covers every read
+after the first"* (`Working.resolveDeposit`). It was then copied into
+**twelve more** across the kernel and five packs, several citing the
+previous site as precedent in their own comments. Nothing was wrong
+enough to fail a test, so nothing stopped it.
+
+⚠ **A mistaken comment is the most portable thing in a codebase.** It
+travels further than the code it explains, because the next author reads
+the *reason* and trusts it.
+
+`pnpm -C packages/server lint:get-or-create` holds the shape at zero
+(`scripts/check-get-or-create.ts`, a ratchet — all thirteen were swept
+in the commit that added it).
+
+### ⚠ What is NOT this antipattern
+
+A **memoized** module ref whose lookup does real cache-invalidation work
+— *the live registered instance supersedes my cached handle* — is a
+different thing, and eight of them in the kernel are correct:
+
+```ts
+let catalogueRef: C | null = null;
+const found = StuffApi.findByTemplatePath<C>(CATALOGUE_PATH);
+if (found) { catalogueRef = found; return found; }   // ← assigns first
+```
+
+So is a **synchronous** accessor beside an async ensure:
+`findByTemplatePath` is sync and `singleton` is not, so a class that
+needs a sync read (a render path, a `describeFor`) legitimately keeps
+both. Two call shapes is not one lookup written twice.
+
+The tell is whether the `if` body is *exactly* `return <thatvar>;`. If
+it is, the branch adds nothing and the whole thing collapses.
+
+---
+
 ## Keying a PERSON on `getTemplatePath()`
 
 **Every player Avatar shares one `templatePath`.** Since D17 split

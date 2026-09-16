@@ -188,11 +188,14 @@ export class SubjectLogic extends ApiLogic {
 // Helpers (module-private, off-class, not part of the public surface).
 // ---------------------------------------------------------------------------
 
-// No module-level memo: the registry lookup is a cheap sync map hit, and
-// memoizing would pin a stale catalogue across an HMR reseed (and break
-// test isolation, where each case registers a fresh singleton).
+// No module-level memo: memoizing would pin a stale catalogue across an
+// HMR reseed (and break test isolation, where each case registers a
+// fresh singleton).
+//
+// ⭐ `singleton` IS the get-or-create — it reads the registry first and
+// clones only on a miss — so it needs no sync pre-check in front of it.
+// (This once had one, "because the registry lookup is a cheap sync map
+// hit"; that hit is `singleton`'s own first line.)
 async function requireCatalogue(): Promise<SubjectCatalogue> {
-  const cat = StuffApi.findByTemplatePath<SubjectCatalogue>(CATALOGUE_PATH);
-  if (cat) return cat;
   return StuffApi.singleton<SubjectCatalogue>(CATALOGUE_PATH);
 }

@@ -205,11 +205,15 @@ export default class GroundCharacter extends Idea {
     if (!zone) return null;
     const path = await zone.lookupField<string>('groundCharacter');
     if (!path) return null;
-    const resident = StuffApi.findByTemplatePath<GroundCharacter>(path);
-    if (resident) return resident;
+    // ⭐ `singleton` IS the get-or-create: its first act is this exact
+    // index read, and it clones only on a miss.
     try {
       return await StuffApi.singleton<GroundCharacter>(path);
-    } catch {
+    } catch (err) {
+      // ⚠ Tolerated, never silent: a zone naming a ground-character row
+      // that does not exist is an authoring fault, and "no character
+      // authored" is a plausible-looking answer that hides it.
+      console.error(`GroundCharacter: '${path}' did not resolve`, err);
       return null;
     }
   }

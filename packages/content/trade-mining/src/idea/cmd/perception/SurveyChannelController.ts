@@ -139,11 +139,17 @@ export abstract class SurveyChannelController<
     // ⚠ Get-or-create: `Deposit` is a reference Idea and nothing boots a
     // roster of them, so a bare `findByTemplatePath` reads null forever
     // on a fresh process. See `Working`'s `resolveDeposit`.
-    const resident = StuffApi.findByTemplatePath<Deposit>(path);
-    if (resident) return resident;
+    //
+    // ⭐ And `singleton` IS the get-or-create — its first act is that
+    // same index read, clone only on a miss — so a resident pre-check in
+    // front of it is the lookup written twice.
     try {
       return await StuffApi.singleton<Deposit>(path);
-    } catch {
+    } catch (err) {
+      // ⚠ Tolerated, never silent: a zone naming a deposit row that does
+      // not exist is an authoring fault, and barren ground is a
+      // plausible-looking answer that hides it.
+      console.error(`SurveyChannelController: deposit '${path}' did not resolve`, err);
       return null;
     }
   }

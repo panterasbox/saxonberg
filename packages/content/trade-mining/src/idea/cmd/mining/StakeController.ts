@@ -57,9 +57,36 @@ export default class StakeController extends CommandController<StakeModel> {
       return;
     }
     const warrenPath = (counter as unknown as { getWarrenPath?(): string }).getWarrenPath?.() ?? '';
-    const warren = warrenPath ? await resolveWarren(warrenPath) : null;
-    if (!warren) {
+    if (!warrenPath) {
+      // The register names nothing — a real, diegetic answer.
       this.decline(context, Mml.compose`The register names no diggings.`, 'no-diggings');
+      return;
+    }
+    // ⚠⚠ **Get-or-create, and `singleton` IS the get-or-create.** A
+    // `MineWarren` is a reference Idea and nothing warms a roster of
+    // them, so on a fresh process the index is empty and a bare
+    // `findByTemplatePath` reads null forever — which is why `stake`
+    // answered *"the register names no diggings"* to every claim ever
+    // attempted in a booted world. `singleton` reads the same index
+    // bucket first and clones only on a miss.
+    let warren: MineWarren;
+    try {
+      warren = await StuffApi.singleton<MineWarren>(warrenPath);
+    } catch (err) {
+      // ⚠ A register that names diggings which will not resolve is an
+      // AUTHORING fault, and it must not borrow the refusal above. That
+      // sentence is what a player sees when nobody has recorded a mine
+      // here; reusing it for a broken row is how the original bug hid —
+      // the message was true-sounding and the cause was unfindable.
+      // ⚠ `decline` files the `controller-rejected` note itself, so the
+      // cause goes to the log rather than to a second note (the
+      // `QuenchController` mint-failure precedent).
+      console.error(`StakeController: warren '${warrenPath}' did not resolve`, err);
+      this.decline(
+        context,
+        Mml.compose`The register names diggings the recorder cannot find — ${warrenPath}. That is a fault in the books, not in your claim; nobody can stake here until somebody fixes it.`,
+        'warren-unresolvable',
+      );
       return;
     }
 
@@ -152,29 +179,6 @@ function parseBlock(raw?: string): [number, number, number] | null {
   const parts = raw.split(',').map((n) => Number(n.trim()));
   if (parts.length !== 3 || parts.some((n) => !Number.isFinite(n))) return null;
   return [parts[0]!, parts[1]!, parts[2]!];
-}
-
-/**
- * The diggings the register records for.
- *
- * ⚠⚠ **Get-or-create, and it is not belt-and-braces.** A `MineWarren` is
- * a reference Idea and **nothing warms a roster of them**, so on a fresh
- * process `findByTemplatePath` reads null forever — and `stake` answered
- * *"The register names no diggings"* to every claim ever attempted in a
- * booted world. Found by driving; the same hole `SurveyChannelController`
- * had already patched for `Deposit` and `Working.resolveDeposit` for its
- * own. ⭐ That is three separate sites of one bug, which is what makes it
- * a pattern rather than an oversight: a reference Idea that nothing
- * instantiates at boot must be resolved by the reader.
- */
-async function resolveWarren(path: string): Promise<MineWarren | null> {
-  const resident = StuffApi.findByTemplatePath<MineWarren>(path);
-  if (resident) return resident;
-  try {
-    return await StuffApi.singleton<MineWarren>(path);
-  } catch {
-    return null;
-  }
 }
 
 /** The claims register: a fixture that names the diggings it records for. */

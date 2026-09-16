@@ -442,6 +442,42 @@ nothing at all if it cannot reach the band.
 the family's shared reader — because both new gates need to answer *does
 this class compose X?* from the class file.
 
+### `lint:get-or-create` — `singleton` already does it (2026-09)
+
+⭐ **`StuffApi.singleton(path)` IS the get-or-create** — index read
+first, clone only on a miss — so a `findByTemplatePath` guard in front
+of it on the same path is the same lookup written twice, and collapses
+to one line.
+
+⚠⚠ Worth a gate rather than a note because it is not merely redundant.
+Both helpers throw on a duplicate row, so in the `try`-wrapped form the
+pre-check's throw ESCAPES while the `try` catches only the second call:
+the fault a reader most needs to see takes the unhandled path. And the
+accompanying `catch { return null }` makes an unresolvable row
+indistinguishable from the ordinary empty answer — *tolerate, but never
+silently*.
+
+⭐⭐ **The spread is the lesson.** One site wrote it believing the sync
+hit was an optimisation `singleton` did not do; twelve more copied it
+across the kernel and five packs, several citing the previous site as
+precedent *in their own comments*. A mistaken comment is the most
+portable thing in a codebase — it travels further than the code it
+explains, because the next author reads the reason and trusts it.
+Thirteen sites, no test ever failed.
+
+⚠ **Its own first run over-matched, and that is recorded here on
+purpose.** It flagged eight kernel sites that are NOT defects —
+memoized module refs whose lookup does real cache-invalidation work, and
+sync accessors beside async ensures. A gate that cries wolf is a gate
+somebody disables, so the rule was narrowed to the form whose `if` body
+is exactly `return <thatvar>;`, and
+`scripts/__tests__/check-get-or-create.test.ts` pins the boundary in
+**both** directions — four cases that must flag, five that must not.
+
+Ratchet at zero; all thirteen swept in the commit that added it. Full
+rationale: [antipatterns.md § A resident pre-check in front of
+`StuffApi.singleton()`](./antipatterns.md).
+
 ### `lint:person-keys` — a PERSON keys on `getIdentityPath()` (2026-09)
 
 ⚠⚠ **Every player Avatar shares one `templatePath`.** D17 stamps lineage

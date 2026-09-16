@@ -176,8 +176,8 @@ export default class ChannelCatalogue extends ChannelCatalogueBase {
    * is not registered yet. Also uncached, for the same reason.
    */
   private async requireSubjects(): Promise<SubjectCatalogue> {
-    const sync = StuffApi.findByTemplatePath<SubjectCatalogue>(SUBJECTS_PATH);
-    if (sync) return sync;
+    // ⭐ "Faults the singleton in when it is not registered yet" is
+    // precisely what `singleton` does: index read first, clone on a miss.
     return StuffApi.singleton<SubjectCatalogue>(SUBJECTS_PATH);
   }
 

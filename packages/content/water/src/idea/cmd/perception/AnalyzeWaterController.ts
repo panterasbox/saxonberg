@@ -175,12 +175,15 @@ export default class AnalyzeWaterController extends CommandController<AnalyzeWat
    * about water" is then TRUE rather than an artifact.
    */
   private async drainage(): Promise<WatercourseCatalogue | null> {
-    const resident =
-      StuffApi.findByTemplatePath<WatercourseCatalogue>(CATALOGUE_PATH);
-    if (resident) return resident;
+    // ⭐ `singleton` IS the get-or-create: its first act is this exact
+    // index read, and it clones only on a miss.
     try {
       return await StuffApi.singleton<WatercourseCatalogue>(CATALOGUE_PATH);
-    } catch {
+    } catch (err) {
+      // ⚠ The docblock above is right that "nothing here knows about
+      // water" is then TRUE — but the fault still goes to the log, so a
+      // missing catalogue and a dry region are not indistinguishable.
+      console.error(`AnalyzeWaterController: watercourse catalogue did not resolve`, err);
       return null;
     }
   }
