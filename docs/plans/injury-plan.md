@@ -1,0 +1,1034 @@
+# Injury — implementation plan
+
+Executes [injury-requirements.md](../requirements/injury-requirements.md).
+**Kind:** feature. **Leads from:** kernel (Stages A + B), content (Stage C).
+**First consumer:** the newbie-wilds crossroads + the Sunken Delve (shipped
+content that wounds people today). **Stage C is the declared cut line.**
+
+What is being built: a wound that costs a **capacity** rather than a
+number, over an anatomy that finally has a brain, a spine and a liver;
+wounds that are **interior** (invisible, undressable, bleeding into a
+cavity); blood loss that produces **falling pressure and shock** before
+the dying window; a limb that can be **severed** and stays severed across
+a login; two new ways to be hurt — **cold** (a heat pump that cooks the
+caster) and a **caustic** (burns without heat, keeps working until washed
+off) — each a real channel through the same door everything else uses;
+and, in Stage C, delivery past the medieval (a bow, a firearm) with
+`penetration` finally given its armour consumer.
+
+⭐ **D21 — this plan is two MRs, not one.** Stage A is six waves, above
+the ~4-wave ceiling the requirements warned about, and it is the gate on
+five other builds. So: **MR 1 = Stage A (W-A0…W-A5)**, opened and driven
+on its own; **MR 2 = Stages B + C (W-B0…W-B3, W-C0…W-C2)** on a fresh
+branch off master once MR 1 lands. The requirements doc stays until MR 2
+retires it; the drive script's steps 1–11 are MR 1's exit criterion and
+12–19 are MR 2's. If the cycle runs hot, Stage C goes first (the
+requirements' own cut), and the caustic (W-B3) second — the frost spell
+stays because it is the falsifiable-prediction content.
+
+---
+
+## Grounding
+
+Every fact below was verified by opening the file this cycle on
+`design/harm-survey`. Paths are repo-relative; `mud/` means
+`packages/server/src/mud/`. Line numbers are current at plan time.
+
+### The pipeline (what an insult goes through today)
+
+- **`InflictSpec`** — `mud/api/condition.ts`. Two variants only:
+  `EnergyInflictSpec { mechanism: Exclude<InsultKind,'shock'>, site,
+  energy, shieldFacing? }` and `ShockInflictSpec { mechanism:'shock',
+  site, current: Quantity<'A'> }`. `InflictOutcome = { trauma, afflicted }`
+  — no layer trace, no residual.
+- **`ConditionLogic.inflict`** — `mud/platform/idea/api/ConditionLogic.ts:221-235`
+  forks three ways: `shock` first (`inflictShock`, skips the fold), else
+  `Channels.isChannel` → `inflictThroughStack` (`:890-975`), else
+  `inflictPassthrough` (`:984-1010`, `'tearing'` only, hard-codes
+  `avulsion`).
+- **`resolveCoveringStack`** is a module-private function at
+  `ConditionLogic.ts:116-142`, over `Attired.coveringAt`
+  (`mud/lib/slot/Attired.ts:578-612`, outside-in by `LAYER_DEPTH`).
+- ⚠⚠ **`onset()` runs BEFORE `canAfflict`/`afflict`** at all three sites:
+  `ConditionLogic.ts:968`, `:1005`, `:1046` call
+  `TRAUMA_BEHAVIOR[t].onset(target, trauma)` then `target.afflict(trauma)`.
+  The veto lives inside `Vitals.afflict` (`mud/lib/vitals/Vitals.ts:1804-1809`)
+  immediately before `conditions.push` (`:1830`). Every shipped `onset`
+  mutates only the `Trauma` value (`t.bleeding = true`;
+  `t.severity = max(…)`) — none touches the host — so reordering to
+  afflict-then-onset is behaviour-preserving for a landed wound.
+- **`channelDefaultType`** — `ConditionLogic.ts:58-74`, an exhaustive
+  `switch` with no default: **adding a channel is exactly one compile
+  error**. Everything else is silent: `materialHeight`'s `default:` arm
+  (`mud/platform/idea/api/MaterialLogic.ts:333`, ratio 0 → floor 0.6),
+  `attenuateImpl`'s non-mechanical passthrough (`:420`),
+  `resolveTraumaImpl`'s `return null` (`:451`), and
+  `DeliveryProfile.toInflictSpec` (`mud/lib/combat/DeliveryProfile.ts:218`,
+  `heat → null`; anything else falls to the mechanical arm).
+- **`Construction.responseFor`** throws for any non-mechanical channel
+  (`mud/lib/material/Construction.ts:507-522`); `attenuateImpl` intercepts
+  thermal channels first (`MaterialLogic.ts:403-412`).
+- **The fold has three architectures:** mechanical = token table × property
+  height × grade/condition (`attenuateImpl :394-429`); thermal = inverted
+  conductivity × layer depth (`heatAttenuationFraction :370-392`, keyed on
+  `Channels.isThermalChannel`); electrical = series resistance upstream,
+  bypasses the fold. Dials: `packages/content/platform/content/settings/response.yaml`
+  (24 keys, `response.*`; heat's are `response.heat.baseAttenuation` /
+  `insulationRefConductivity` / `depthFactor`); shock's live in
+  `settings/electricity.yaml`. Keys are declared by hand in
+  `mud/lib/config/AppSettings.ts` (`AppSettingKeys`, e.g. `:676`, `:728`).
+- **Legibility precedent gap:** `AnalyzeResponseController.ts:129`
+  (`mud/platform/idea/cmd/perception/`) and the pip line
+  (`mud/lib/material/Constructed.ts:114`) both iterate
+  `MECHANICAL_CHANNELS` only. `previewBandImpl` (`MaterialLogic.ts:480-495`)
+  itself calls `attenuateImpl`/`resolveTraumaImpl`, which already handle
+  thermal channels — the omission is in the two loops, not the chokepoint.
+- **`Channel.ts`** (`mud/lib/material/`): `CHANNELS = ['edge','point','blunt','shock','heat']`,
+  `MECHANICAL_CHANNELS`, `THERMAL_CHANNELS = ['heat']`, static holder
+  `Channels` with `isChannel` / `isMechanicalChannel` / `isThermalChannel`.
+
+### Trauma + the body
+
+- **`TraumaType`** — `mud/platform/idea/Condition.ts:103-109`:
+  `laceration | puncture | fracture | contusion | avulsion | burn`.
+  `InsultKind = Channel | 'tearing'` (`:127`). `Trauma` (`:130-169`): nine
+  fields, **no severed/missing field**.
+- **`TraumaBehavior`** (`:493-518`): `onset/tick/resolve/reopen/describe` +
+  `signature?: readonly VitalEffect[]` + `resolution?: string`.
+- **`VitalEffect`** (`:406-445`) is a four-kind union: `vital` (perHour on a
+  sign), `reserve` (pctPerHour), **`capability { disables:'slots-at-site',
+  aboveSeverity }`** (read by `Vitals.isSlotImpairedByCondition`
+  `:1005-1035`, table-driven), `expression { bands }`. Used by
+  `FRACTURE_BEHAVIOR` (`:656`, `aboveSeverity: FRACTURE_IMPAIR_SEVERITY`)
+  and `BURN_BEHAVIOR` (`:687`, `aboveSeverity: 1`). **No Kind-A `Condition`
+  row authors a `capability` effect** (grep of `packages/content`), so the
+  kind has exactly two engine-table users.
+- **`HARM_DEFAULTS`** (`:179-242`): `BLEED_PER_SEC 0.002`, `CLOT_SEVERITY
+  0.5`, `FRACTURE_IMPAIR_SEVERITY 0.5`, `AVULSION_SEVERITY_FLOOR 2`,
+  `LIMP_DRAIN_PER_SEVERITY 4`, `EXSANGUINATION_DYING_WINDOW_SEC 120`,
+  `MAX_REASONABLE_GAP_SEC 4h`. **No sever threshold exists.**
+- **`LACERATION_BEHAVIOR`** (`:552-585`): an open bleed holds severity and
+  drains `BLEED_PER_SEC · severity · s`; it does **not** self-clot;
+  `resolve` (dress) arrests it; `reopen` re-arms above `CLOT_SEVERITY`.
+  `AVULSION_BEHAVIOR` (`:702-718`) floors severity then delegates to
+  laceration; the documented sever seam is its `onset`.
+- ⚠ **`avulsion` is unreachable from `resolveTraumaImpl`** — the edge
+  channel always yields `laceration` (`MaterialLogic.ts:453-455`); avulsion
+  arrives only via `'tearing'`, which no combat, trap, spell or natural
+  attack produces (`NaturalAttackSpec.channel: Channel`,
+  `mud/lib/combat/NaturalAttack.ts`; `HazardDelivery.channel: Channel`,
+  `mud/lib/hazard/HazardDelivery.ts:56`).
+- **`VitalsMixin`** (`mud/lib/vitals/Vitals.ts`): `bodyPartDeltas:
+  Record<string, BodyPartDelta>` (`:515`, `fieldMeta` `{persistent,
+  runtimeState}` `:480` — so it rides `PersistableApi.capture` and survives a
+  login). **`BodyPartDelta` has one field, `missing?: boolean`**
+  (`:156-159`). `getParts()` (`:869-878`) re-resolves the plan per call;
+  `getPart(key)` (`:880-882`) is a linear find, called once per blow
+  (`ConditionLogic.ts:938`). **Nothing writes `missing: true`.** Readers:
+  `getInjuredParts()` (`:885`, misnamed — returns *missing* parts),
+  `isSlotDisabledByAnatomy` (`:899`), and the one downstream consumer
+  `Slotted.canOccupy` (`mud/lib/slot/Slotted.ts:337`) — which gates only
+  **new** occupancy: a severed hand keeps its sword. `Slotted.occupy`
+  throws a bare `Error` on `!canOccupy` (`Slotted.ts:383`).
+- **`drainForLimp`** (`:830-845`) sums leg laceration/avulsion severity
+  and never consults `missing`; called from
+  `mud/platform/idea/api/LocomotionLogic.ts:402`.
+- **`getConditionBand()`** (`:736-783`) loops every `VITAL_SIGNS` entry
+  and adds +1 severity per out-of-band sign — driving a currently-dead
+  sign counts immediately. **`getConsciousness()`** (`:790-826`) reads
+  `bvFraction < 0.7`, `spo2 ≤ min`, and a hard-coded
+  `site.startsWith('body.head') && severity ≥ 0.5`.
+- **`reconcileConditions()`** (`:1302-1600`), in order: burden stages;
+  clock gate; partition; trauma arm (`:1373`, presence-freeze); shock arm
+  (`:1421`); sustained arm (`:1480`); affliction arm (`:1512`); trauma sweep
+  (`:1530`); dying clock (`:1552`, no freeze/gap guard); **bleed → dying
+  floor** (`:1567`, `bv ≤ survivableMin → beginDying('exsanguination')`);
+  electrocution floor (`:1584`). `applyEffects` (`:923-963`) integrates
+  `vital`/`reserve` rates; `capability`/`expression` are no-ops there.
+- **`Vitals.afflict`** (`:1804-1832`): `canAfflict` veto → stamp
+  `inflictedBy` for afflictions → `conditions.push`.
+- **`VITAL_SIGNS`** (`:91-101`): seven. **Confirmed undriven:
+  `respiratoryRate`, `bloodPressureSystolic`, `bloodPressureDiastolic`** —
+  every `setVitalSign` writer enumerated (`Condition.ts:538` bloodVolume,
+  `ThermalRegulation.ts:558` coreTemperature, `Respiration.ts:453/:504`
+  spo2, `Metabolic.ts:932`, `Vitals.ts:1462` heartRate). Defaults
+  (`UNIVERSE_DEFAULT_VITAL_PROFILE :202-210`): BP 120/80 with
+  survivableMin 70/40; bloodVolume baseline 5 L, survivableMin 3.2 L —
+  i.e. the dying window opens at **36 % loss**.
+- `check-condition-arms.ts` gates the arm count at **5** (`ARM_CEILING`,
+  `packages/server/scripts/check-condition-arms.ts:84`) — an arm is a
+  bound subset of the collection advanced over time (`:220-228`).
+
+### Anatomy
+
+- **`BodyPart`** — `mud/platform/idea/species/BodyPlan.ts:82-111`
+  (NOT `lib/`): `{ key, parent, tissues, governs?: string[], severable?,
+  innervatedBy?, suppliedBy? }`. ⭐ **The `governs` rename already
+  shipped** (zero `governsVital` anywhere); its own comment says *"Vital-
+  sign keys today; capacity keys later, which is physiology's axis."*
+- ⭐ **`governs` is already the interiority predicate and nothing reads
+  its value.** All five production readers are
+  `if (part.governs?.length) continue;` — `BodyPlan.getPartSurfaceFraction:477`
+  and `Attired.ts:646/660/685/705` (`bodyInsulation`, `windproofing`,
+  `concealmentOffset`, `attentionFactor`).
+- `innervatedBy` / `suppliedBy`: **zero authored rows, zero readers.**
+  `severable`: authored on every limb + head in `biped.yaml`, **zero
+  production readers.** `setBodyParts` (`BodyPlan.ts:374-405`) validates
+  key/duplicate/tissues/parent only — it does **not** validate `governs`
+  values.
+- **`biped.yaml`** — `packages/content/species-and-names/content/stuff/idea/species/BodyPlan/biped.yaml`:
+  12 parts; organs `body.torso.heart governs:[heartRate]` (muscle 0.3 kg),
+  `body.torso.lungs governs:[respiratoryRate]` (flesh 1 kg). Covering slots
+  head/torso/legs/feet/hands all `capacity: 4`; `hand:left`/`hand:right`
+  (Wieldable) attach at `body.arm.*.hand`; `cranial` at `body.head`.
+  ⚠ `body.arm.left`/`right` are covered by nothing (no sleeves).
+  **`quadruped.yaml`** (`:45-92`): torso, head, four legs, heart, lungs.
+- `SlotSpec` (`mud/lib/slot/Slotted.ts:86-94`); its `:84` comment claims
+  `covers` has "no consumer this build" — **false**, four live consumers
+  via `getSlotsCovering` (`BodyPlan.ts:447`).
+- Tissue materials ARE authored with the mechanical pair
+  (`packages/content/base-library/content/stuff/idea/material/tissue/bone.yaml`:
+  hardness 100 MPa, toughness 6; muscle 2/3; flesh 1/1) and nothing in the
+  body model reads them; `_tissueMaterial` is threaded to
+  `resolveTraumaImpl` and dropped (`MaterialLogic.ts:434`).
+- **Combat's site choice** — `CombatLogic.siteFor` (`mud/platform/idea/api/CombatLogic.ts:2606-2611`):
+  `body.torso` by default, `body.head` on an `open` band. The blow's energy
+  (`:2436-2440`) is `energyFor(band) × energyScale × instrumentDeliveryScale
+  × naturalMassScale`; band energies (`settings/combat.yaml:110-123`):
+  steady 1.2 · pressed 1.6 · reeling 2.2 · broken 3 · open 4.5.
+  `naturalAttacksFor` (`:574-583`) prefers `Species.naturalAttacks`, else
+  the legacy `CombatantMixin.naturalAttackChannel`. `wieldedWeapon`
+  (`:4082-4102`) skips a grip slot `isSlotImpairedByCondition` reports.
+- **Natural attacks:** 16 `homo/*` species author `[{key: fist, channel:
+  blunt, massScaled: true}]`; **the wolf species row authors none** —
+  `newbie-wilds/.../agent/wolf.yaml` carries the legacy
+  `naturalAttackChannel: point`.
+- **Traps** (`packages/content/generic-objects/content/stuff/thing/traps/`):
+  spike-pit `point 3` at the feet (placed `delve/corridor-2.yaml` props),
+  step-dart `point 2` + venom (corridor-1), pressure-blade `edge 2`
+  (corridor-3). **No water source exists anywhere in newbie-wilds**
+  (`UnboundedReceptacle` rows: `fixture/basin`, `fixture/water-butt`,
+  `vessel/urn`, hospitality's `water-tap`, Duncan Hall's `tap`).
+
+### Surfaces
+
+- **`assess`** — `mud/platform/idea/cmd/perception/AssessController.ts`:
+  band phrase → dying readout → affliction readout (signs vs names by
+  competence, `:145-197`) → wound list (`TRAUMA_BEHAVIOR[t].describe`,
+  severity shown to `precise` readers, `:199-213`). **It lists no parts.**
+  `precise = isSelf || medBand ∈ {proficient, expert}`; `named =
+  competent || precise`.
+- **`treat`** — `mud/platform/idea/cmd/medical/TreatController.ts`:
+  `resolutionOf` (`:130-137`) reads `TraumaBehavior.resolution`;
+  `mismatchLine` (`:140-155`) has a word table (`dressing, fluid, medicine,
+  rest, warmth, cooling, air`) and **falls back to the raw token** for an
+  unknown one — so a new token reads "It wants surgery." with no code.
+  `pickWound` filters by `resolutionOf(t) === by` (`:492`).
+- **`wash`** — `platform/content/platform/cmd/crafting/wash.yaml` →
+  `mud/platform/idea/cmd/crafting/WashController.ts`: afforded by a
+  reachable water source (`UnboundedReceptacle` environment
+  contribution); washes anything soiled or dirty.
+- **`equip`** — `mud/platform/idea/cmd/inventory/EquipController.ts`
+  claims slots via `giver.occupyAll` (`:545`) inside a `try` whose
+  `catch` (`:149`) discards the reason; refusals are `controller-rejected`
+  notes (`:274`, `:592`, `:644`).
+- **`analyze patient`** lives in the `trade-medicine` pack
+  (`packages/content/trade-medicine/src/idea/cmd/perception/AnalyzePatientController.ts`).
+
+### Magic + thermal
+
+- **`InjectChannelEffect`** — `mud/lib/magic/Effect.ts:46-78`: `channel,
+  energy?, voltage?, locus?, joules?, site?, resist?, self?`. Author-legality
+  of a channel is one edit: `Effect.ts:424-431` validates against `CHANNELS`.
+- **`MagicLogic.execInjectChannel`** (`mud/platform/idea/api/MagicLogic.ts:1327-1397`):
+  shock arm (inside `deliverAt`); body arm (inside `deliverAt`, `inflict`
+  with `energy × potency`, stamps `magicOrigin`); ⚠ **object arm
+  (`:1391-1396`) is outside `deliverAt`** — no reachability, no band gate,
+  no provenance.
+- ⚠⚠ **No caster thermal seam runs.** `absorbWasteHeat` (`:903-919`)
+  early-returns unless `MixinApi.isCharged(endpoint)`; its only call is the
+  item-discharge path (`:880`); `resolveCastImpl` (`:628`) never calls it.
+  `magic.wasteHeatFraction` (0.1) is unused on the cast path.
+- **Thermal primitives:** `Thermal.depositHeat(joules)` accepts negative
+  joules (`mud/lib/thermal/Thermal.ts:354`). ⚠⚠ **But a deposit does not
+  reach core temperature.** `ThermalRegulationMixin` (`mud/lib/thermal/ThermalRegulation.ts`)
+  drives `coreTemperature` per 60-s slice (`integrateThermalSlice`): an
+  endotherm whose effective ambient is within `[setpoint − 8 − clo,
+  setpoint + 8]` is **pinned to the setpoint** (`setCore(setpoint)`) at
+  zero cost; heat stress spends hydration and pins; only out-of-fuel/
+  out-of-water bodies drift. The mixin has no internal heat-production
+  term, so heat put into the body is erased on the next slice.
+  `setSetpointK` (`:149`) has **zero callers** outside `lib/thermal/`.
+  `THERMAL_DEFAULTS` (`Thermal.ts:62`): `SETPOINT_K 310`, `BAND_HALF_WIDTH_K
+  8`, `HEAT_SPEND_PER_DEGREE 0.06`, `DEFAULT_SPECIFIC_HEAT 4186`,
+  `REG_STEP_SEC 60`. Hyperthermia spawns above `survivableMax` (315 K)
+  via `reconcileThermalCascade` (`docs/subsystems/thermal.md:197-203`).
+- **Cost:** `SPELL_COST_MODELS = ['potential']` (`mud/platform/idea/magic/Spell.ts:60`);
+  `costOf` (`MagicLogic.ts:594-604`) has one arm; the catalogue drops a row
+  naming an unknown model (`SpellCatalogue.ts:235-242`). Spell `cost` is
+  otherwise unvalidated (`numberOr(d.cost, 0)`, `:258`); firebolt authors
+  `cost: 20` against `joules: 900000`.
+- **Spell rows live in the `arcane-library` pack**
+  (`packages/content/arcane-library/content/stuff/idea/magic/Spell/*.yaml`,
+  root `/arcane-library`), NOT `arcana` (`/system/arcana`, whose own
+  `pack.yaml` says *"a class or row that exists for one spell is the arcane
+  library's"*). `arcana` ships the `magic.*` dials
+  (`packages/content/arcana/content/settings/magic.yaml`).
+- **The cooling prediction** — `docs/arcane-science.md:436-482`:
+  `W ≥ Q · (T_hot − T_cold) / T_cold`; realistic device at 40 % of Carnot;
+  near-ambient COP ≈ 7 (100 kJ moved ≈ 14 τ); the caster absorbs **Q + W**;
+  *"Destroy·Fire is limited by thermoregulation, not by mana."*
+
+### Stage C
+
+- `DeliveryProfile.ts:30-33`: `penetration` "deliberately absent … pending
+  an armor consumer" — satisfied now. `ENERGY_SOURCES = ['muscle',
+  'stored-elastic','chemical']` (`EnergySource.ts:33`), only `muscle` has a
+  caller (`ThrowController.ts:186` builds the profile and calls
+  `ConditionApi.inflict`; `throw … at` initiates through `CombatApi.initiate`).
+  No launcher class, no `shoot` verb, no projectile row exists
+  (`grep deliveryProfile|energySource|projectile` over content: nothing).
+- **Every torso armour piece is placed nowhere** — `generic-objects/.../armor/
+  {padded-gambeson, mail-hauberk, steel-breastplate, bronze-breastplate,
+  hide-jerkin, leather-boots}.yaml` are referenced by no `props:`, `cast:`
+  or `stockLines`. The Terminus counter
+  (`packages/content/terminus/content/world/terminus/general-store/counter.yaml`)
+  stocks the clasp knife at 6 (the only weapon sold anywhere); the fog
+  hollow's rack (`newbie-wilds/.../crossroads/hollow.yaml`) holds a spear,
+  sword, shield and whip. The long meadow (`crossroads/longmeadow.yaml`)
+  has `extent: 12` and nothing in it.
+- `COVERING_PROFILES` already says `mail × point = fail` and `plate × point
+  = resist` — so a thrust already beats mail; what a round adds over a
+  sword is the **plate** case and the *degree*, which is what
+  `penetration` scales.
+
+### Conventions checked this cycle
+
+- `props:` / `cast:` are the designations in every row read (`counter.yaml`,
+  `shop-floor.yaml`, the delve corridors); `populates:` appears nowhere.
+- Locations are `SingletonCartesianLocation` (the meadow, the hollow, the
+  corridors); no new room is created by this build.
+- The lint roster (`packages/server/package.json`) has 39 `lint:*` scripts;
+  `pnpm -C packages/server lint:family` runs them all. Gates this build
+  moves are named under *Test & gate strategy*.
+
+---
+
+## Plan-level decisions
+
+Numbered so waves and commits can cite them. Q-numbers refer to the eleven
+engineering questions the plan was asked to close.
+
+**D1 — Sever/veto ordering (Q3): afflict first, then onset.** At all three
+sites (`ConditionLogic.ts:968`, `:1005`, `:1046`) swap to
+`const landed = target.afflict(trauma); if (landed)
+TRAUMA_BEHAVIOR[type].onset(target, trauma);`. Every shipped `onset`
+mutates only the value, and the pushed record is the same object, so a
+landed wound is byte-identical; a vetoed one now sees no `onset` — and
+therefore no sever. Side effect worth a line in the commit: the veto now
+sees an avulsion's pre-floor severity. Pinned by a test that vetoes an
+avulsion and asserts the part is still present.
+
+**D2 — How an avulsion happens (Q4): the edge ladder, not a tearing
+channel.** `resolveTraumaImpl` gains the blunt ladder's sibling on `edge`:
+residual `≥ response.edge.avulsionThreshold` (seed 3.0) → `avulsion`, else
+`laceration`. The `'tearing'` passthrough stays byte-identical (a
+passthrough retires by acquiring a mechanism; nothing here needs it to).
+`AVULSION_BEHAVIOR.onset` severs when `t.severity ≥
+HARM_DEFAULTS.SEVER_SEVERITY` (seed 4.0) **and** the plan marks the part
+`severable` (the first production reader of that field). Reachable in
+combat: a bladed weapon at the `open` band (4.5) or the wolf's `worry`
+(D19) — the drive tunes the two dials.
+
+**D3 — The sever is a Vitals verb: `severPart(key)`.** Writes
+`bodyPartDeltas[k].missing = true` for the part **and every descendant**
+(finding 3 of the physiology slate: sever the arm, lose the hand), then
+releases the occupants of every slot whose `SlotSpec.bodyPart` is in the
+severed subtree — `MixinApi.isSlotted(self)` narrowing, `ContainmentApi.move`
+each occupant to the host's container (a severed hand drops its sword).
+Persistence needs nothing: `bodyPartDeltas` is already
+`{persistent, runtimeState}` and rides the Anatomy fork slice into a
+corpse. `getInjuredParts()` is renamed `getMissingParts()` (its one
+reader is itself).
+
+**D4 — Interiority (Q2): confirmed in spirit, widened by one clause,
+centralised in one method.** `BodyPlan.isInterior(key)` =
+`governs.length > 0 || key is referenced by any part's innervatedBy /
+suppliedBy` (a conduit is inside you). The five inline
+`part.governs?.length` readers become `plan.isInterior(part.key)`. This is
+what lets the spine — which governs nothing and conducts everything — be
+interior without a field nobody else needs. `BodyPlan` precomputes the
+conduit set in `setBodyParts`.
+
+**D5 — The capacity vocabulary (Q1): a new vocabulary module, not a widened
+signature entry.** `mud/lib/vitals/BodyCapacity.ts` — `BODY_CAPACITIES =
+['consciousness','locomotion','manipulation','circulation','respiration',
+'clearance'] as const`, `FUNCTION_BANDS = ['full','impaired','failing','lost']
+as const`, thin `BodyCapacities` static holder (the `Channel.ts` shape).
+Named **`BodyCapacity`**, never `Capability`/`Capacity`: `Archetype.CapabilitySlot`
+(`mud/lib/archetype/Archetype.ts:154`) and `SlotSpec.capacity` both already
+own those words. `governs` values must be `VITAL_SIGNS ∪ BODY_CAPACITIES`
+— validated in `setBodyParts` (a typo is a throw at registration, not an
+inert organ). `BodyPart` gains **`serves?: string[]`** — the exterior
+twin of `governs`: what a limb is *for* (`body.leg.* serves:[locomotion]`,
+`body.arm.*.hand serves:[manipulation]`) without making it interior. Both
+fields gain readers in the same wave (D6), so `lint:unconsumed-seams`
+falls rather than rises.
+
+**D6 — The function axis: two tiers, min along the path, bands at the
+surface.** On `VitalsMixin`:
+- `functionAt(key): FunctionBand` — internal scalar `f ∈ [0,1]`:
+  `own(p) = missing ? 0 : clamp(1 − Σ_traumas-at-p (severity ×
+  lossPerSeverity(type)), 0, 1)`; `conduit(q) = missing ? 0 : 1 −
+  clamp((worstSeverityAt(q) − CONDUIT_TOLERANCE) / CONDUIT_RANGE, 0, 1)`;
+  `f(p) = min(own(p), conduit(parent-chain…), conduit(innervatedBy…),
+  conduit(suppliedBy…))`. The parent chain is walked because *for limbs the
+  tree is the supply path* (a crushed arm cuts the hand); the root
+  contributes nothing (a chest cut does not weaken your hands). Bands:
+  `full ≥ 0.75 > impaired ≥ 0.4 > failing > 0 = lost`.
+- `capacity(k: BodyCapacity): FunctionBand` — `min(f over parts whose
+  governs ∋ k) × mean(f over parts whose serves ∋ k)`; a capacity nothing
+  governs or serves reads `full`. One brain → min; two legs → mean (one
+  leg gone is a hobble, not a halt).
+- Predicates everything else calls: `canGrip(slot)` (the slot's
+  `bodyPart` function ≥ impaired), `canBearWeight()` (locomotion ≥
+  failing), `isConscious()` is not added — `getConsciousness()` already
+  exists and is rewired (D7).
+- The per-type weight is a signature term: `{ kind:'function',
+  lossPerSeverity: number }` **replaces** `capability` (its two engine
+  users, fracture and burn, are re-authored; no content row uses it;
+  `check-conditions.ts:40` `EFFECT_KINDS` updated). Weights (in
+  `HARM_DEFAULTS`): fracture 1.2 (a 0.5 fracture crosses `impaired`, the
+  shipped threshold), avulsion 1.0, burn 0.6, frostbite 0.6, caustic 0.6,
+  laceration 0.2, puncture 0.25, contusion 0.1, rupture 0.3. Dials
+  `CONDUIT_TOLERANCE 1.0`, `CONDUIT_RANGE 2.0`.
+
+**D7 — Consumers rewired onto the axis (no new guards).**
+`isSlotImpairedByCondition(slot)` → `!canGrip(slot)` for a slot with a
+`bodyPart` (the anatomy gate `isSlotDisabledByAnatomy` folds into the same
+read since `missing → f = 0`); `Slotted.canOccupy` keeps its two calls.
+`drainForLimp` → `LIMP_DRAIN_PER_SEVERITY × (1 − locomotionScalar) ×
+LIMP_SCALE` (a missing leg finally drains; a healed one stops).
+`getConsciousness()` → `functionAt('body.head.brain') ≤ failing` when the
+plan has a part governing `consciousness`, else the shipped head-site rule
+(a plan without a brain is a data fact, not a guard). `MagicLogic.ts:445`
+and `CombatLogic.ts:4093` keep calling `isSlotImpairedByCondition`.
+**Wield refusal says why:** `Vitals.slotRefusalReason(slot): string | null`
+("your left hand cannot grip — a fracture of body.arm.left.hand");
+`EquipController` consults it before `occupyAll` and emits
+`controller-rejected reason:'cannot-grip'` + the prose.
+
+**D8 — The roster: four parts, two plans, innervation authored only where
+it diverges from the tree.** biped + quadruped gain
+`body.head.brain governs:[consciousness]` (flesh 1.3),
+`body.torso.spine.upper` (bone 0.6; parent torso),
+`body.torso.spine.lower` (bone 0.5; parent `spine.upper`),
+`body.torso.liver governs:[clearance]` (flesh 1.5). Arms
+`innervatedBy:[body.torso.spine.upper]`, legs
+`innervatedBy:[body.torso.spine.lower]` (quadruped: all four legs on
+`lower`). Heart/lungs unchanged. `clearance` has a read (`capacity`) and
+an `assess` line this build; the toxin-clearance multiplier is pharma's
+(deferred seam). Head/limb `severable` stays; organs are not severable.
+
+**D9 — Interior reach (Q10): a depth ladder by tissue mass, and `rupture`
+is the seventh trauma type.** In `inflictThroughStack`, after the exterior
+trauma resolves with severity `s`: if the site has interior children
+(`plan.isInterior` ∧ `parent === site`) and `s ≥
+response.depth.reachThreshold` (seed 2.0), the excess `s − threshold`
+reaches them **largest tissue mass first**, one per
+`response.depth.stepPerOrgan` (seed 1.0): organ k (0-based) is reached
+with severity `excess − k·step` while that is `> response.noWoundThreshold`.
+Interior type: `point → puncture`, `edge → laceration`, `blunt → rupture`
+when the interior severity `≥ response.blunt.ruptureThreshold` (seed 1.0)
+else `contusion` (a concussion, a bruised liver). `rupture` = an interior
+bleed: `RUPTURE_BEHAVIOR` delegates `onset/tick/reopen` to laceration,
+`resolve` is a no-op, `resolution: 'surgery'` (nothing offers it;
+`mismatchLine` already renders the raw token). Each interior trauma is a
+separate `Trauma` at the organ's key, landed through the same
+`afflict` door, returned on a widened `InflictOutcome.reached?: Trauma[]`.
+No roll anywhere: the biggest organ under a site is hit first, a deeper
+wound reaches more, and a student can derive both from `assess`.
+
+**D10 — Interior wounds are invisible and undressable, by read.**
+`assess`: for a wound at an interior site, an untrained/novice observer
+sees nothing; self sees one line *"Something is wrong inside; you cannot
+tell what."*; `competent` names the organ; `precise` adds severity —
+the shipped competence rule, one clause wider. `treat` with a dressing
+excludes interior sites in `pickWound` and, when only interior wounds
+remain, refuses with *"There is nothing to dress — the wound is inside."*
+Blood lost from an interior bleed drains `bloodVolume` exactly as an
+exterior one (the cavity is the floor you cannot see).
+
+**D11 — Circulation (Q8): a derived write in the existing bleed-floor
+tail, not a new arm.** In `reconcileConditions` immediately before the
+`bv ≤ survivableMin` check: `loss = 1 − bv/baseline`; systolic =
+`baseline × (1 − SHOCK_BP_SLOPE × max(0, loss − SHOCK_COMPENSATED_LOSS))`,
+diastolic likewise (ATLS class II is compensated, class III drops
+pressure); spawn the affliction `/platform/idea/Condition/circulation/hypovolemic-shock`
+when `loss ≥ SHOCK_LOSS_FRACTION` (0.30), relieve below `0.25` (the
+thermal `ensureAffliction`/`clearAffliction` hysteresis shape, written as
+two private Vitals methods). Dying opens at 36 % loss, so shock precedes
+it by ~0.3 L — at `BLEED_PER_SEC × severity 2` that is ~75 s of window.
+The row: `progression: null` (the driver is here), `signature:
+[{kind:reserve, reserve:endurance, pctPerHour:-20}]`, `observableSigns:
+[pale, clammy, faint]`, `resolution: {by: fluid}`. Heart rate is **not**
+written (the shock arm drives it toward arrest; two writers on one sign is
+the two-owners defect `lint:condition-arms` exists for) — deferred seam.
+`check-condition-arms --list` must still print 5.
+
+**D12 — `assess` lists the anatomy.** After the band line: one line per
+exterior part (and interior parts for `competent`+ observers): key,
+function band, and the covering stack outside-in (`coveringAt`), e.g.
+`torso — full — steel breastplate over mail hauberk over padded gambeson`.
+Self reads all bands; others by the shipped competence rule. This is the
+surface that closes AC 8's "see all three counted, outside-in" **in Stage
+A**, not C.
+
+**D13 — A missing part shows in the description.** A `markupAugmenters`
+contribution on `VitalsMixin` (the `ConstructedMixin` pip precedent,
+`Constructed.ts:~95-140`) appends *"missing the left hand"* to the long
+description for every missing part with no missing ancestor.
+
+**D14 — `cold` joins `THERMAL_CHANNELS`; `frostbite` is the eighth trauma
+type (Q5, Q9).** `CHANNELS` += `'cold'`, `THERMAL_CHANNELS = ['heat','cold']`;
+`channelDefaultType` gains the arm (the compile error); `resolveTraumaImpl`'s
+thermal branch returns `channel === 'cold' ? 'frostbite' : 'burn'` with
+severity `residual × response.cold.severityPerResidual` (seed 1). The
+insulation fold is one function and stays one: cold reuses
+`response.heat.*` (the dials describe the *covering*, not the direction of
+flow); `response.cold.severityPerResidual` is the only new key, in
+`response.yaml` (heat's home — electricity's separate file exists because
+electricity is its own physics home, and cold is not). `FROSTBITE_BEHAVIOR`:
+decaying at `FROSTBITE_HEAL_PER_SEC 0.004`, `signature: [{kind:'function',
+lossPerSeverity:0.6}]` (a numb hand cannot grip), `resolution: 'warmth'`
+(already in `mismatchLine`'s table). `DeliveryProfile.toInflictSpec`
+returns `null` for any `Channels.isThermalChannel` (both), never by name.
+
+**D15 — The frost spell is a heat pump, and the caster pays in heat.**
+- `SPELL_COST_MODELS` += `'heat-pump'`; `costOf` gains the arm: `Q` = the
+  `inject-channel` effect's `joules`; `T_hot` = the caster's core
+  (`getVitalSign('coreTemperature')`); `T_cold` = the target's temperature
+  minus `Q / thermalCapacity(target)` (`Thermal.thermalCapacity`), floored
+  at 1 K; `W_τ = (Q/1000) × max(0, T_hot − T_cold) / T_cold /
+  magic.heatPump.carnotFraction` (seed 0.4, in arcana's `magic.yaml`);
+  cost = authored floor + `W_τ`. Downhill pumping costs the floor only.
+- **The caster absorbs `Q + W`.** `ThermalRegulationMixin` gains
+  `heatLoadJ` (`fieldMeta {persistent, runtimeState}`) and
+  `absorbHeatLoad(joules)`; `integrateThermalSlice`'s pinned/heat-stress
+  branches shed `min(load, HEAT_SHED_W × slice)` (seed 400 W; zero past
+  the wet-bulb ceiling or with no hydration; each joule shed spends
+  hydration on the shipped `HEAT_SPEND_PER_DEGREE` scale) and set
+  `core = setpoint + heatLoadJ / (mass × cp)` instead of `setpoint`.
+  `absorbWasteHeat` (`MagicLogic.ts:903`) gains the body endpoint:
+  `isThermalRegulation(endpoint) → absorbHeatLoad(wasteJ + heatMovedJ)`,
+  and **is finally called from `resolveCastImpl`** — so a firebolt warms
+  its caster by its 10 % waste (≈ 0.02 K, invisible, honest) and a frost
+  cast by everything it moved. The body arm of `execInjectChannel` records
+  `heatMovedJ` on the context for a cold channel; the object arm moves
+  **inside `deliverAt`** (the reachability fix) and cools by
+  `depositHeat(−joules × potency)` + `reconcilePhase()` (water freezes —
+  the arcane-science's *ice is dear*).
+- The row: `arcane-library/.../Spell/frost.yaml` — `verb: destroy, noun:
+  fire` (the science's own cell), `cost: 4`, `costModel: {kind: heat-pump}`,
+  effect `{kind: inject-channel, channel: cold, energy: [1, 2, 4], joules:
+  [60000, 120000, 240000]}`, `requiredBand: novice`. Disciplines
+  `magic-destroy` / `magic-fire` already exist in arcana.
+- ⚠ **D16 — the arithmetic, and the hyperthermia onset.** Per τ of mana a
+  near-ambient pump puts `COP + 1 ≈ 8 kJ` into the caster; a mid-depth pool
+  (120 τ) therefore absorbs ≈ 1 MJ ≈ **+3.3 K** on a 70 kg body — heat
+  stress, sweating, hydration draining — but **not** the shipped
+  hyperthermia onset at `survivableMax` (315 K, +5 K). The published
+  science predicts *"dangerous to the caster rather than to the reserve"*
+  and the shipped constants say *"uncomfortable, not yet dangerous, on one
+  pool."* Two honest readings, and the plan picks the medical one:
+  clinically hyperthermia **is** a core above ~38.3 °C, and the shipped
+  row spawns at heat-stroke. So `reconcileThermalCascade` spawns
+  `hyperthermia` at `setpoint + THERMAL_DEFAULTS.HYPERTHERMIA_ONSET_K`
+  (seed 2.5) while the **lethal dwell stays keyed to `survivableMax`** (the
+  build must verify in `reconcileThermalCascade` that the dwell reads the
+  temperature, not the condition's presence; if it reads presence, split
+  it). With that, ~92 τ of a 120 pool reaches the row with 28 left — step
+  13 as written. This is a thermal-subsystem change; Hearthworks' sealed
+  cellar and the thermal tests are the collision. ⚠ Flagged for the
+  user's eye in the once-over.
+
+**D17 — `corrosion` is a third fold branch keyed on what the covering IS,
+and `caustic` is the ninth trauma type (Q6, Q9).** `CHANNELS` +=
+`'corrosion'` (neither mechanical nor thermal; `Channels.isCorrosion`).
+- The **agent** carries its chemistry: `Material` gains one authored field
+  `corrosiveTo?: string[]` (material tags it attacks — the closed tag
+  vocabulary already authored on every row: `metal`, `organic`,
+  `leather`, `textile`, `tissue`…) with `getCorrosiveTo()`. A caustic row
+  is content: `base-library/.../material/caustic/quicklime.yaml`
+  (`corrosiveTo: [organic, tissue, leather, textile]`, tags
+  `[mineral, caustic, alkali]`). The spec carries it: a third
+  `InflictSpec` variant `CorrosionInflictSpec { mechanism:'corrosion', site,
+  energy, corrosiveTo: string[] }`.
+- **A layer resolves by two reads, no hardness anywhere:** if its
+  material's tags intersect `corrosiveTo`, the layer is **consumed** —
+  `wear(response.corrosion.wearPerContact)` (seed 0.2) and the full
+  energy passes; else if `waterAbsorptionCapacity > response.corrosion.
+  shedAbsorptionMax` (seed 5 %) the layer **wicks** and passes
+  `energy × (1 − response.corrosion.wickAttenuation)` (seed 0.3); else it
+  **sheds** and passes `energy × (1 − response.corrosion.shedAttenuation)`
+  (seed 0.95). A steel breastplate sheds lye (0.2 % absorption, not
+  attacked) — *and is eaten by an acid whose row says `corrosiveTo:
+  [metal]`*; a linen shirt wicks it through; a waxed hide sheds. Thick is
+  irrelevant; the right material is everything.
+- `CAUSTIC_BEHAVIOR`: `onset` sets a new `Trauma.agentActive = true`;
+  `tick` grows severity by `CAUSTIC_GROWTH_PER_SEC × elapsed` (seed 0.01)
+  while active, capped at `CAUSTIC_MAX_SEVERITY` (4), else decays at
+  `BURN_HEAL_PER_SEC`; `resolve` clears `agentActive`; `signature`
+  = burn's (function loss 0.6 + the weep); `resolution: 'wash'`.
+- **`wash` reaches a body.** `platform/cmd/crafting/wash.yaml` gains a
+  second stanza whose target is a person/self, routed to
+  `mud/platform/idea/cmd/medical/RinseController.ts` (one view, two
+  stanzas, two controllers — the `analyze` precedent; ⚠ never widen the
+  glass arg's `requires:`, see antipatterns). Afforded by the same water
+  source. It calls `TRAUMA_BEHAVIOR.caustic.resolve` on every active
+  caustic wound on the target and says so.
+- **The source in the world:** `generic-objects/.../traps/lime-seep.yaml`
+  — a `HazardMixin` fixture, **obvious** (never concealed; it is a white
+  crust you can see), `delivery: {channel: corrosion, energy: 1.5,
+  siteSelector: [feet…], corrosiveTo: [organic, tissue, leather, textile]}`
+  (`HazardDeliveryOptions` gains `corrosiveTo?`; `toInflictSpec` emits the
+  corrosion variant). Placed in `newbie-wilds/.../delve/pit-below.yaml`
+  props (the pit floor is where runoff pools). **And water to wash it
+  off:** `/stuff/thing/fixture/water-butt` added to `crossroads/hub.yaml`
+  props — the first water in newbie-wilds, which also gives `treat … with
+  water` a supply there (a shipped-gap fix in its own right).
+- Legibility (Q7, D18 below) covers corrosion.
+
+**D18 — Legibility (Q7): yes, in scope — the loops iterate every folded
+channel.** `Channels.FOLDED = [...MECHANICAL, ...THERMAL, 'corrosion']`
+(everything that resolves through the covering fold; shock stays
+hand-rolled because it resolves by circuit). `AnalyzeResponseController`
+and the `Constructed` pip line iterate `FOLDED`; `previewBandImpl` needs
+no change (it already calls the branchy `attenuateImpl`/`resolveTraumaImpl`)
+except the corrosion preview, which reads a reference agent
+(`response.corrosion.previewCorrosiveTo`, seed `organic`). Heat's missing
+column is the precedent this breaks.
+
+**D19 — Content wiring in Stage A.** The wolf **species** row authors
+`naturalAttacks: [{key: bite, channel: point}, {key: worry, channel: edge}]`
+and the agent row drops the legacy `naturalAttackChannel` (the one
+content user; the kernel fallback stays for now — deferred cleanup). The
+spike pit's `siteSelector` becomes `[body.torso, body.leg.left.foot,
+body.leg.right.foot]` (a fall onto spikes takes the gut — the requirements'
+own collision line). The Terminus counter stocks `padded-gambeson` (14),
+`hide-jerkin` (12), `mail-hauberk` (40), `steel-breastplate` (55),
+`leather-boots` (8) — priced against the shipped ladder (bed 45, wagon 95).
+Layering is already possible (`capacity: 4` on the torso slot); this is
+the reachability that AC 8 lacks.
+
+**D20 — Stage C: `penetration`, one `Launcher` class, one `shoot` verb,
+projectiles as stackables.**
+- `DeliveryProfile.penetration` = `energyJ / (π (calibreM/2)²)` normalised
+  against `response.penetration.referenceJPerM2` (seed 2e6); the profile
+  gains `calibreM` from the projectile's `length`-sibling field `calibre`
+  (a thrown rock has none → penetration 1). `EnergyInflictSpec.penetration?`
+  (default 1) divides the mechanical attenuation fraction: `atten / max(1,
+  penetration)`. A musket ball (`point`, ~1.5 kJ, 16 mm) at plate: the
+  `resist` token's 0.7 falls toward `fail`; a sword thrust does not.
+- `mud/lib/combat/Launcher.ts` — `LauncherMixin` (fields `energySource:
+  EnergySourceKind`, `muzzleSpeed: Quantity<'m/s'>`, `projectileTemplate:
+  string`, `readySeconds: number`; `Mixins.Launcher` + `MixinApi.isLauncher`)
+  composed on **`mud/platform/thing/equipment/Launcher.ts`** = `LauncherMixin(Weapon)`
+  — a concrete instanceable class, **never on `Weapon`** (a knife does not
+  launch). A bow's melee form is `hafted` so `lint:inert-weapon` passes.
+- `mud/platform/thing/equipment/Projectile.ts` — the stackable ammunition
+  class (compose the shipped stackable exemplar — verify against `Coin`
+  / `lib/stacks` before writing); rows `generic-objects/.../arms/
+  {arrow, musket-ball}.yaml` with `mass`, `calibre`, `constructionForm:
+  pointed`.
+- `shoot <target> [with <launcher>]` — `platform/cmd/combat/shoot.yaml` →
+  `mud/platform/idea/cmd/combat/ShootController.ts`, afforded by
+  `LauncherMixin` on the wielded launcher (a verb affordance is a static on
+  a class). Initiates through `CombatApi.initiate` like `throw … at`; a
+  readiness engagement of `readySeconds` (bow 3, crossbow 9, musket 12 —
+  the family's tactical point in one number, the full W3/W4 model stays
+  slated); consumes one projectile from the shooter's inventory; builds
+  the `DeliveryProfile` from projectile mass × muzzle speed; band envelope
+  through `CombatApi.bandBetween` (`far` only where the arena affords it —
+  the meadow). No NPC shoots (out of scope).
+- Rows: `generic-objects/.../arms/{hunting-bow, flintlock-musket}.yaml`;
+  Terminus counter stocks bow (18), arrows ×20 (4), musket (70), balls ×10
+  (6); the sentry gains a bow? **No** — content behaviour is out of scope.
+
+**D21 — The split.** See the header. Stage A = MR 1; B + C = MR 2.
+
+---
+
+## ⭐⭐ Host placement
+
+| New thing | Host | What composing it claims |
+|---|---|---|
+| `BodyPart.serves`, `isInterior()`, conduit set, `governs` validation | `BodyPlan` (`platform/idea/species/BodyPlan.ts`) — data + one method | nothing about hosts; a plan without organs reads every part exterior and every capacity `full` |
+| `functionAt` / `capacity` / `canGrip` / `canBearWeight` / `severPart` / `slotRefusalReason` / `getMissingParts` / circulation derive / `markupAugmenters` | `VitalsMixin` (`lib/vitals/Vitals.ts`) | every body has a function axis — a wolf, a frog, a corpse (whose lifecycle makes it moot). Composed on `Creature` only (`lib/creature/Creature.ts:162`); no guard needed because the read degrades to `full` on a plan with no capacities |
+| `BODY_CAPACITIES`, `FUNCTION_BANDS` | `lib/vitals/BodyCapacity.ts` (vocabulary module) | — |
+| `rupture` / `frostbite` / `caustic` behaviours, `SEVER_SEVERITY`, `lossPerSeverity` weights, `Trauma.agentActive` | the closed engine table in `platform/idea/Condition.ts` | a burn is a burn everywhere; authors write Kind-A rows |
+| `hypovolemic-shock` | a `Condition` row in the platform pack (`content/platform/idea/Condition/circulation/`) | warmed by `ConditionCatalogue` like the other 23 |
+| `cold`, `corrosion`, `Channels.FOLDED` | `lib/material/Channel.ts` | closed kernel vocabulary — a pack cannot add a channel, by design |
+| `corrosiveTo` | `Material` (`lib/material/Material.ts`) | every material *may* say what it attacks; absent = inert, which is every shipped row |
+| `CorrosionInflictSpec`, `EnergyInflictSpec.penetration?`, `InflictOutcome.reached?` | `api/condition.ts` | — |
+| `heatLoadJ`, `absorbHeatLoad` | `ThermalRegulationMixin` (`lib/thermal/ThermalRegulation.ts`) | every regulating body can carry an internal heat load — true, and exertion will want it next |
+| `'heat-pump'` cost model | `platform/idea/magic/Spell.ts` + `MagicLogic.costOf` | a closed union grew by one; a third model is still a conversation |
+| `LauncherMixin` | `lib/combat/Launcher.ts`, composed on `platform/thing/equipment/Launcher.ts` **only** | a launcher is a weapon that also launches; `Weapon` itself claims nothing new |
+| `Projectile` | `platform/thing/equipment/Projectile.ts` | ammunition is a stackable tangible; nothing else changes |
+| `RinseController`, `ShootController` | `platform/idea/cmd/medical/`, `platform/idea/cmd/combat/` | kernel verbs: any water source / any launcher confers them, so they are the platform pack's |
+| the frost row, the caustic row, the seep, the launchers, the ammunition, the stock lines | `arcane-library`, `base-library`, `generic-objects`, `newbie-wilds`, `terminus` | content; each is the second-instance proof — a second frost spell / caustic / firearm / armour is a row |
+
+⭐ **The test applied:** no wave adds a guard that re-narrows a host. The
+two places that looked like they wanted one — `getConsciousness` on a
+plan without a brain, `capacity()` on a plan that authors no `serves` —
+are data facts that read as `full`/the legacy rule, not `if (isBiped)`.
+The one host deliberately refused: `LauncherMixin` on `Weapon`.
+
+---
+
+## Convention conformance
+
+- **`props:` / `cast:`** — the seep, the water butt and the wolf use the
+  designations every read row uses.
+- **Locations, not rooms** — no new location; placements are `props:` in
+  existing `SingletonCartesianLocation` rows.
+- **`<root>/<branch>/`** — kernel classes at `platform/thing/equipment/`;
+  rows at `/stuff/thing/…` (generic-objects), `/stuff/idea/material/caustic/…`
+  (base-library), `/arcane-library/…/Spell/…`, `/platform/idea/Condition/…`.
+  Controllers at `platform/idea/cmd/<category>/`, views at
+  `content/platform/cmd/<category>/`.
+- **Module scope declares; lifecycles initialize** — `BodyCapacity.ts` and
+  `Launcher.ts` are declarations + `as const` tuples; the conduit set is
+  computed in `setBodyParts` (a lifecycle), never at module scope.
+- **Import boundary** — nothing new imports outside `src/mud/`. `BodyPlan.ts`
+  imports only types from `lib/` today (`:30-35`) and its `governs` comment
+  says it is kept free of `lib/vitals` **class** imports; validating
+  `governs`/`serves` needs the two `as const` tuples, so `BodyPlan` takes a
+  **value import of `VITAL_SIGNS` and `BODY_CAPACITIES`** (vocabulary
+  tuples, no class, no cycle — `Vitals.ts:88-90` already names this exact
+  use). If a cycle appears, move both tuples into `lib/vitals/BodyCapacity.ts`
+  and have `Vitals.ts` re-export `VITAL_SIGNS` from there.
+- **Verbs on objects** — `severPart`, `functionAt`, `absorbHeatLoad`,
+  `isInterior` are instance methods; no `XApi.verb(host, …)` anywhere;
+  `lint:object-verbs` stays at zero.
+- **No new module category, no free helper** — the only new mixin is
+  `LauncherMixin`; `RinseController`/`ShootController` are controllers;
+  every helper folds into the owning class or the existing module-private
+  functions in `ConditionLogic.ts`/`MaterialLogic.ts`.
+- **No `isWizard`** anywhere in this build.
+- **No new collection, no migration** — `heatLoadJ` and the widened
+  `bodyPartDeltas` ride `holder_snapshots` through existing `fieldMeta`.
+- **Money** — prices are stock-line data on the counter, nothing else.
+
+**Lint gates this build must satisfy** — run
+`pnpm -C packages/server lint:family` at every wave (never a subset). The
+gates whose *numbers* this build moves, and the direction each must go:
+`lint:condition-arms` (stays 5), `lint:unconsumed-seams` (falls:
+`severable`, `innervatedBy`, `suppliedBy`, `serves`, `corrosiveTo`,
+`penetration` all gain readers in the wave that adds or first reads
+them), `lint:conditions` (`EFFECT_KINDS` edit + the new row),
+`lint:does-nothing` (unchanged — new channels are not covering-profile
+columns), `lint:inert-weapon` (the two launchers), `lint:census` (stock
+lines + props resolve), `lint:field-meta` (`heatLoadJ`, `corrosiveTo`,
+launcher fields declared), `lint:instanceable` (`Launcher`, `Projectile`
+under `platform/thing/`), `lint:verb-collisions` (`shoot`; the `wash`
+stanza), `lint:test-content`, `lint:object-verbs` (0), `lint:module-scope`,
+`lint:imports`, `lint:drive-scripts` (the drive is a wire file).
+
+---
+
+## Waves
+
+Each wave is independently landable and ends at one commit
+`build(injury W-<id>): <what>`; `pnpm test:near` + every touched pack's
+vitest + `lint:family` gate each. `pnpm test` runs once before each MR.
+
+### Stage A — a wound means something (MR 1)
+
+**W-A0 — a limb can be lost.** *(D1, D2, D3, D13, D19-wolf)*
+- Reorder afflict/onset at `ConditionLogic.ts:968/:1005/:1046`.
+- `resolveTraumaImpl`: the edge → avulsion ladder; `response.edge.avulsionThreshold`
+  in `response.yaml` + `AppSettingKeys`.
+- `HARM_DEFAULTS.SEVER_SEVERITY`; `AVULSION_BEHAVIOR.onset` calls
+  `host.severPart(t.site)` when severable and at/above it.
+- `Vitals.severPart` (cascade + slot release), `getMissingParts` rename,
+  `drainForLimp` counts a missing locomotor part (interim: severity-equivalent
+  `LIMP_MISSING_SEVERITY` until W-A2 rewires it), the description augmenter.
+- Wolf species `naturalAttacks` (bite/worry); agent row drops the legacy field.
+- Tests: `lib/vitals/__tests__/Vitals.sever.test.ts` (cascade, slot release,
+  persistence round-trip through `PersistableApi.capture/materialize`,
+  vetoed avulsion does not sever); `platform/idea/api/__tests__/material-response.inflict.test.ts`
+  gains the edge ladder; `GlassAlley.integration.test.ts` unchanged and green
+  (AC 9 regression).
+- Acceptance: a severe edge blow severs; the hand's sword is on the floor;
+  the arm's slots refuse; a relog still shows the part missing.
+
+**W-A1 — the anatomy stops being decorative.** *(D4, D5, D8)*
+- `lib/vitals/BodyCapacity.ts`; `BodyPart.serves`; `BodyPlan.isInterior`,
+  conduit set, `governs`/`serves` validation in `setBodyParts`.
+- Replace the five inline readers (`BodyPlan.ts:477`, `Attired.ts:646/660/685/705`).
+- biped + quadruped: brain, spine ×2, liver; `innervatedBy` on limbs;
+  `serves` on legs/hands. Fix the `SlotSpec.covers` comment (`Slotted.ts:84`).
+- Tests: `Vitals.anatomy.test.ts` (interiority incl. the spine, validation
+  throws), `Attired` surface-fraction tests still pass with organs excluded.
+- Acceptance: `getParts()` lists 16 parts on a biped; the spine is interior;
+  a typo in `governs` throws at registration.
+
+**W-A2 — a wound costs a capacity.** *(D6, D7)*
+- `functionAt` / `capacity` / `canGrip` / `canBearWeight` /
+  `slotRefusalReason`; `{kind:'function'}` replaces `capability` on the
+  table and in `check-conditions.ts`; `isSlotImpairedByCondition`,
+  `drainForLimp`, `getConsciousness` rewired; `EquipController` says why.
+- Tests: `Vitals.function.test.ts` (min-along-path: a spine wound zeroes a
+  healthy hand; one missing leg = `impaired` locomotion; a 0.5 fracture
+  greys the slot exactly as before), `Slotted` tests, `EquipController` test
+  for the reason prose.
+- Acceptance: drive steps 5–6.
+
+**W-A3 — interiority.** *(D9, D10)*
+- Depth ladder in `inflictThroughStack`; `rupture`; `response.depth.*`,
+  `response.blunt.ruptureThreshold`; `InflictOutcome.reached`.
+- `assess` interior clause; `treat` interior refusal.
+- Tests: `ConditionLogic.interior.test.ts` (a 4.5 torso point blow reaches
+  the liver with 2.5, not the heart; blunt at 3 → rib fracture + liver
+  contusion; blunt at 4.5 → rupture that bleeds; the reached trauma is
+  vetoable), `AssessController`/`TreatController` tests for the two prose
+  lines.
+- Acceptance: drive steps 7–8.
+
+**W-A4 — blood loss reaches shock.** *(D11)*
+- The circulation derive + the `hypovolemic-shock` row; `check-condition-arms
+  --list` before and after (5 → 5).
+- Tests: `Vitals.circulation.test.ts` (BP falls past 15 % loss; shock at
+  30 % before dying at 36 %; hysteresis; `getConditionBand` reads the
+  out-of-band pressure; an electrocution fixture's heart drive is untouched).
+- Acceptance: drive step 9.
+
+**W-A5 — reachable and legible.** *(D12, D19-store/pit)*
+- `assess` anatomy + covering listing; Terminus armour stock lines +
+  prices; spike-pit site selector; `docs/subsystems/harm.md` +
+  `vitals.md` sections for the axis (the doc grows, the CLAUDE.md blurb
+  does not).
+- The drive: `packages/wire/tests/injury.dirty.wire.test.ts` steps 1–11
+  (dirty: it buys stock). Then `pnpm test`, push, open MR 1.
+- Acceptance: drive steps 1–11 green; AC 1–5, 8, 9, 10.
+
+### Stage B — two new ways to be hurt (MR 2)
+
+**W-B0 — channel plumbing + legibility.** *(D14 vocabulary half, D17
+vocabulary half, D18)* `cold` + `corrosion` in `Channel.ts`; `FOLDED`;
+`channelDefaultType` arms; `resolveTraumaImpl` branches; `toInflictSpec`
+by predicate; the two loops iterate `FOLDED`; `frostbite`/`caustic` types
++ behaviours; `CorrosionInflictSpec`; `Material.corrosiveTo`; dials.
+Tests: `MaterialLogic.cold.test.ts` (leather insulates cold as it
+insulates heat; plate does not), `MaterialLogic.corrosion.test.ts` (the
+three layer outcomes), `Construction.test.ts` (`responseFor('cold')` still
+throws), `AnalyzeResponseController` test shows five columns.
+
+**W-B1 — the frost spell cooks its caster.** *(D15, D16)* `heatLoadJ` +
+`absorbHeatLoad` + shedding; `'heat-pump'`; `costOf` arm; `absorbWasteHeat`
+body endpoint + the `resolveCastImpl` call; object arm inside `deliverAt`;
+hyperthermia onset dial; `frost.yaml`. Tests: `ThermalRegulation.heat-load.test.ts`
+(a 1 MJ load raises core 3.4 K and sheds at 400 W; no shedding past
+wet-bulb), `MagicLogic.heat-pump.test.ts` (COP arithmetic pins the
+arcane-science numbers: 100 kJ at 17 K lift ≈ 14 τ; `dispel` still costs
+20), the catalogue accepts the model. Acceptance: drive steps 12–14.
+
+**W-B2 — the caustic.** *(D17 content half)* quicklime row, the seep,
+`HazardDelivery.corrosiveTo`, the `wash` stanza + `RinseController`, the
+water butt at the hub, pit-below props. Tests: `HazardDelivery` corrosion
+spec, `RinseController` test, `Hazard` integration (stepping onto the seep
+lands a growing caustic wound; rinsing stops it). Acceptance: drive steps
+15–16.
+
+**W-B3 — Stage B docs + drive.** `materials-response.md` (five channels,
+three fold branches), `magic.md` (the second cost model, the caster's
+heat), `thermal.md` (the heat load, the onset), `harm.md` (nine types).
+Wire steps 12–16 appended to the drive file.
+
+### Stage C — past the medieval (the cut line; MR 2)
+
+**W-C0 — `penetration`.** *(D20 first bullet)* `DeliveryProfile.penetration`
++ `calibre`; `EnergyInflictSpec.penetration`; the divisor in
+`attenuateImpl`; `response.penetration.referenceJPerM2`. Tests:
+`DeliveryProfile.penetration.test.ts`, the inflict test (a 1.5 kJ 16 mm
+`point` defeats plate; a 200 J thrust does not).
+
+**W-C1 — a launcher and `shoot`.** *(D20 bullets 2–4)* `LauncherMixin`,
+`Launcher`, `Projectile`, `shoot.yaml` + `ShootController`, `Mixins.Launcher`.
+Tests: `Launcher.test.ts`, `ShootController` test (consumes one arrow;
+refuses with none; refuses `far` in a 3 m room; readiness engagement per
+family). ⚠ The heaviest single wave in the build.
+
+**W-C2 — content + drive.** Bow, arrows, musket, balls; Terminus stock;
+`ranged.md` W2/W3/W4 table updated to what shipped; wire steps 17–19;
+`pnpm test`; push; open MR 2.
+
+---
+
+## Reachability wiring
+
+Each link fails closed and silent. **verb · affordance · data · boot.**
+
+| Capability | verb | affordance | data | boot |
+|---|---|---|---|---|
+| Sever | none new — combat/hazard `inflict` | `AVULSION_BEHAVIOR.onset` on the engine table | `severable: true` on biped/quadruped limbs; wolf `naturalAttacks` | nothing to warm; `bodyPartDeltas` persists via existing `fieldMeta` |
+| Function axis | `wield`/`wear` (refusal), `go` (limp), every conscious-gated verb | `Slotted.canOccupy` → `canGrip`; `LocomotionLogic:402` → `drainForLimp` | `serves`/`governs`/`innervatedBy` on the two plans | `SpeciesApi.preloadAnatomy` already stands plans up |
+| Interior reach | `assess`, `treat` | `inflictThroughStack` | organs authored with masses (the ladder's order) | — |
+| Shock | `assess` | `reconcileConditions` tail | `circulation/hypovolemic-shock.yaml` | `ConditionCatalogue.warm` (`ConditionCatalogue.ts:86-95`) walks every descendant of `TemplatePathPrefixes.condition` and keeps rows of class `Condition` — a new subfolder needs no edit |
+| Assess anatomy | `assess` (exists) | — | — | — |
+| Armour | `buy` (exists), `wear` | `Stock` stock lines | 5 `stockLines` + `prices` on the counter | the counter resets to par at standup |
+| `cold` | `cast frost` | `SpellCatalogue` warms by class from any root | `arcane-library/.../Spell/frost.yaml` | `arcane-library` in `SAXONBERG_PACKS` (it already is: firebolt lives there) |
+| Caster heat | `cast` (any spell) | `resolveCastImpl` → `absorbWasteHeat` | dial `magic.heatPump.carnotFraction` in arcana's `magic.yaml` | settings merge-missing at install |
+| `corrosion` | walking (hazard trigger); `wash` | `HazardMixin` traversal trigger; `UnboundedReceptacle` environment contribution confers `wash` | `traps/lime-seep.yaml` + `pit-below` props; `material/caustic/quicklime.yaml` (`MaterialApi.boot` warms `/stuff/idea/material/**`); `fixture/water-butt` in `hub` props | — |
+| `shoot` | `shoot` (new view) | `LauncherMixin` static contribution on `Launcher` | launcher + projectile rows; stock lines | — |
+
+⚠ The one *known* dead-affordance trap: a `props:` edit never reaches a
+booted world (the once-guard) — the drive runs against a **fresh** DB.
+
+---
+
+## Acceptance-criteria coverage
+
+| AC | Satisfied by |
+|---|---|
+| 1 — seen to be injured by somebody else | W-A5 (`assess` on another), W-A0 (description augmenter) |
+| 2 — a wound stops a specific, predictable thing | W-A2 (`canGrip`, the refusal prose names the hand and the wound) |
+| 3 — hurt in a way you cannot see; a stranger reads more | W-A3 |
+| 4 — shock before death, with a window | W-A4 |
+| 5 — lose a limb, keep playing, do most things | W-A0 + W-A2 (one hand still grips; locomotion `impaired`, not `lost`) |
+| 6 — frozen and caustic-burned, each unlike fire | W-B0/B1/B2 (`frostbite` numbs and wants warmth; `caustic` grows until washed) |
+| 7 — an over-caster injures themselves, and can tell it was heat | W-B1 (`assess`/`measure temperature` show the rising core; the sweat cue fires; the mana bar is not empty) — ⚠ contingent on D16 |
+| 8 — buy armour, wear three layers, see the layers matter | W-A5 (stock + the outside-in listing) |
+| 9 — bare-foot-on-glass unchanged | W-A0 regression assertion; W-A2 keeps the 0.5 laceration limp equivalent |
+| 10 — nothing in the lounge can hurt anyone | untouched; the wire drive asserts no hazard/combat affordance in the lounge rooms |
+| 11 — fight with a non-medieval weapon; armour answers differently | W-C0–C2 |
+
+Unmapped: none. Drive steps 17–19 are Stage C's and go with the cut.
+
+---
+
+## Test & gate strategy
+
+- **Unit (per wave, named above).** Pure value objects and the fold are
+  unit-tested in milliseconds (`MaterialLogic.*`, `DeliveryProfile.*`,
+  `BodyCapacity`, `Launcher`); the axis, the sever and circulation are
+  `lib/vitals/__tests__` fixtures with the manual clock (the
+  `Trauma.behaviors.test.ts` / `Vitals.dying-disconnect.test.ts` shapes,
+  and every wired test imports `test-bootstrap`).
+- **What only the drive can prove:** that a verb is reachable at all
+  (`shoot`, the `wash` stanza), that a `props:` edit landed in a fresh
+  boot, that `assess` *renders* the anatomy on the card, that the caster's
+  core visibly rises on the client, that the store sells what the counter
+  says. The drive is `packages/wire/tests/injury.dirty.wire.test.ts`
+  (MR 1: steps 1–11; MR 2 appends 12–19), the `consequence.dirty.wire.test.ts`
+  shape. Steps needing game-hours (a fracture healing) are pinned by unit
+  tests, not faked with a wizard clock.
+- **Gates:** `pnpm -C packages/server lint:family` every wave;
+  `pnpm test:near` + touched packs' vitest every wave; `pnpm test` exactly
+  twice per MR (before it opens, at `/finalize`). Never backgrounded.
+- **Ratchets to read before and after every wave:**
+  `check-condition-arms.ts --list` (5), `check-unconsumed-seams.ts --list`
+  (must fall at W-A1/A2, B0, C0).
+
+---
+
+## Risks & opens
+
+1. ⚠ **D16 — the hyperthermia onset (needs the user's eye).** Lowering
+   the `hyperthermia` spawn to +2.5 K touches the thermal subsystem and
+   Hearthworks' sealed-cellar heat tests. The alternative — leave 315 K —
+   makes drive step 13 read *"sweating, dizzy, hydration falling"* rather
+   than the row's name. Either is honest; the plan picks the medical
+   threshold. If the user prefers the science's answer be reported as
+   found, delete the onset dial from W-B1 and rewrite step 13's
+   expectation in the drive record.
+2. **Combat's site vocabulary is two words.** `siteFor` returns
+   torso/head; every interior reach in a fight starts there. The wolf
+   never bites a leg. Acceptable this build (the requirements never ask
+   for hit-location breadth) — a called-shot/surface-fraction site pick is
+   a combat slate item, recorded below.
+3. **Balance of the two sever dials.** `avulsionThreshold 3.0` and
+   `SEVER_SEVERITY 4.0` against band energies (open = 4.5 × delivery
+   scale) mean severing needs an `open` foe and a real blade — the drive
+   tunes them; the plan fixes only the *order* (avulsion before sever).
+4. **`reconcileThermalCascade`'s dwell keying** (verify — see D16).
+5. **Firebolt's 45× cost violation** stands. Out of scope; recorded as a
+   deferred `lint:spell-cost` seam (below).
+6. **Corrosion's tag matching** depends on rows carrying honest tags;
+   the base-library census shows `metal`/`organic`/`textile`/`tissue`
+   present on the rows that matter. A row with no tags sheds everything —
+   the closed-and-silent case; the corrosion test enumerates every shipped
+   covering material's outcome against quicklime.
+7. **The `wash` stanza mechanics.** Read `docs/subsystems/command-spec.md`
+   and the `analyze` view before writing it; if a second stanza on one
+   view cannot route to a second controller, the fallback is a `rinse`
+   verb in `medical/` — not a widened arg.
+8. **W-C1 size.** If Stage C is cut, W-C0 (`penetration`) may still land
+   alone: it has a unit-testable consumer (armour) and no verb.
+9. **Build stop conditions (real ones):** a worktree hazard; a credential
+   the drive needs and cannot get; `Projectile`'s stackable base not
+   matching the shipped exemplar (read `stacks.md`, then compose it —
+   never invent a second stack shape).
+
+---
+
+## Deferred seams
+
+Clean attach points, each leaving as a slate line — never a plan section.
+
+- **Heart-rate compensation + the electrocution writer** → `blood-slate`
+  (one owner per sign; the shock arm holds `heartRate` today).
+- **Clearance × toxin clearance** (`Metabolic.reconcileToxinConditions`
+  scaled by `capacity('clearance')`) → `pharma-slate`.
+- **Called shots / surface-fraction site selection** in `siteFor` →
+  `combat-slate`.
+- **`CombatantMixin.naturalAttackChannel` retirement** (zero content users
+  after W-A0) → the antipattern-sweeps branch.
+- **`lint:spell-cost`** — a gate that derives a floor from the price list
+  and flags firebolt → `capability-magic-slate` (the plan found it; it is
+  not this build's).
+- **Readiness as committed actions, dry-fire, the bow's hold window,
+  reliability, pattern keys, NPC archers** → `ranged-slate` W3/W4 (W-C1
+  ships one `readySeconds` per family and nothing else).
+- **Surgery** as a resolution — `rupture` names it; nothing offers it →
+  `health-vertical-slate`.
+- **Scars as recognition features; prosthetics re-enabling a slot** →
+  `physiology-slate` §7c, `augmentation-slate` (the slot read is now
+  function-based, so a prosthetic sets a part's function, not a flag).
+- **Exertion as a heat load** — `absorbHeatLoad` is the seam → `thermal`
+  doc's non-goals list.
+
+---
+
+## Critical files
+
+Read these first, in this order.
+
+1. `docs/requirements/injury-requirements.md`
+2. `mud/platform/idea/Condition.ts` — the trauma table, `VitalEffect`, `HARM_DEFAULTS`
+3. `mud/platform/idea/api/ConditionLogic.ts` — `inflict`, the covering stack, the three sites
+4. `mud/lib/vitals/Vitals.ts` — anatomy resolver, `reconcileConditions`, `afflict`, the couplings
+5. `mud/platform/idea/species/BodyPlan.ts` + `packages/content/species-and-names/.../BodyPlan/{biped,quadruped}.yaml`
+6. `mud/platform/idea/api/MaterialLogic.ts` — the three fold branches; `mud/lib/material/Channel.ts`; `mud/lib/material/Construction.ts`
+7. `mud/lib/slot/Slotted.ts` (`canOccupy`, `occupy`), `mud/lib/slot/Attired.ts` (`coveringAt`, the four readers)
+8. `mud/platform/idea/cmd/perception/AssessController.ts`, `mud/platform/idea/cmd/medical/TreatController.ts`, `mud/platform/idea/cmd/inventory/EquipController.ts`
+9. `mud/platform/idea/api/CombatLogic.ts:2395-2500, :2604` — the blow and `siteFor`
+10. `mud/lib/thermal/ThermalRegulation.ts`, `mud/lib/thermal/Thermal.ts` (`THERMAL_DEFAULTS`)
+11. `mud/platform/idea/api/MagicLogic.ts` — `costOf`, `resolveCastImpl`, `absorbWasteHeat`, `execInjectChannel`; `mud/platform/idea/magic/Spell.ts`; `mud/platform/idea/SpellCatalogue.ts`
+12. `mud/lib/combat/DeliveryProfile.ts`, `EnergySource.ts`, `NaturalAttack.ts`; `mud/platform/idea/cmd/inventory/ThrowController.ts`
+13. `mud/lib/hazard/HazardDelivery.ts`; `packages/content/generic-objects/content/stuff/thing/traps/spike-pit.yaml`
+14. `packages/content/terminus/content/world/terminus/general-store/counter.yaml`
+15. `packages/server/scripts/check-condition-arms.ts`, `check-unconsumed-seams.ts`, `check-conditions.ts`
+16. `packages/wire/tests/consequence.dirty.wire.test.ts` — the drive shape
+17. `docs/subsystems/harm.md`, `vitals.md`, `materials-response.md`, `magic.md`, `thermal.md`, `ranged.md`, `command-spec.md`, `docs/arcane-science.md:425-485`
+
+---
+
+## Drive record
+
+*(appended at build time, not at plan time)* — the output of running
+`packages/wire/tests/injury.dirty.wire.test.ts` against a fresh boot,
+step by step against the requirements' drive script, and what it found.
+MR 1 records steps 1–11; MR 2 appends 12–19. Precedent:
+`farming-plan.md § Checkpoint A`.

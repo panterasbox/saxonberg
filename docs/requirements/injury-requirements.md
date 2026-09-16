@@ -138,8 +138,12 @@ resistance profile and quietly rewrite combat balance. A new way to be
 hurt is a change to how the world works, and it is reviewed as one.
 
 **Content** for everything a player touches: the frost spell in the
-**arcana** pack, the caustic and the new arms and armour in
-**generic-objects**, placement in **newbie-wilds** and **terminus**.
+**arcane-library** pack (⚠ corrected at plan time — `arcana` ships the
+`magic.*` dials, but its own manifest says *"a class or row that exists
+for one spell is the arcane library's"*, which is where every shipped
+spell already lives), the caustic in **base-library**, the new arms and
+armour in **generic-objects**, placement in **newbie-wilds** and
+**terminus**.
 
 ⭐ **The second-instance test:** a second frost spell, a second caustic,
 a second firearm, a second suit of armour must each need **zero** kernel
