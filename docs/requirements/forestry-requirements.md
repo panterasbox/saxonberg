@@ -112,10 +112,15 @@ customers of. Everything that *consumes* wood already ships.
   correct.* The realm's charcoal rate — panels × lengths × rotation —
   is set end to end in this build and is deliberately smaller than
   what one working smelter would like.
-- **Wood is not one material.** Hazel, oak, ash and pine are distinct
-  materials with distinct properties, cordwood is finally hazel, and a
-  thing made of the wrong wood behaves differently — the
-  materials-response substrate already knows how; it just had one row.
+- **Wood is not one material — and this build mints the vocabulary.**
+  Oak is the only wood in the game today; every wooden thing is oak
+  because oak was the only word. The build ships the closed set of
+  woods the realm speaks — each a species and a material, each
+  distinguished by a number a substrate actually reads — so that
+  cordwood is finally hazel, a haft is ash, a board is pine, and a
+  thing made of the wrong wood behaves differently. The
+  materials-response, fire and thermal substrates already know how;
+  they had one row.
 - **A second wood costs no code.** Newbie-wilds' dark wood, a lord's
   chase, a farm's woodlot: a locality writes its clearings and one
   stand row and has a working forest.
@@ -149,6 +154,11 @@ Every one names where it goes.
 - **Oak bark, pannage, hurdles, withies, potash** → the farmstead
   tails that named them; the species rows here are what make them
   possible.
+- **Carpentry — the maker trade that turns boards into chairs, carts,
+  casks, looms and hafts, and the cooper / wheelwright / shipwright it
+  fragments into** → a `trade-carpentry` build after `trade-sawing`;
+  column three of the chain. The vocations register does not list it
+  and should; noted for the sweep.
 - **A wayfinding Discipline** → nowhere yet; recorded as a gap in the
   slate's lens pass.
 - **Runtime land-use conversion — a wood becoming a field, a field
@@ -207,9 +217,11 @@ is the plan's.
   firewood consumers; a felled standard yields logs of that kind, and
   they stay oak because they are.
 - **The garden bed that is made of pine** gets its material.
-- **Species rows** — hazel moves packs; oak, ash and pine are new; the
+- **Species rows** — hazel moves packs; the other woods are new; the
   cherry, olive, citrus and juniper *trees* the farming pack already
-  ships are not woods and are not touched.
+  ships are fruit, not timber, and are not touched. Oak's material row
+  has said *"biologicalSource null until an oak species is authored"*
+  since it was written; that sentence ends here.
 - **Newbie-wilds' treeline** (*"a treeline that has gone quiet"*) is
   not this build's; it is the proof that the next wood costs nothing.
 
@@ -293,6 +305,37 @@ where every object reads *"something"* is worse than either alone.
 The panels' stools are authored mature — the mechanism already
 hydrates — and the smallholding doc stops saying it cannot be done.
 The hazel stool's own comment finally becomes true.
+
+### The wood vocabulary — closed, and minted here
+
+The material library is a curated closed vocabulary: two rows only
+where a substrate reads a different number. Applied to wood that gives
+a short list, and this build ships all of it rather than the four
+things already claim to be made of, because a forestry trade with one
+timber is a contradiction and the next consumer (sawing, carpentry,
+the cooper, the bowyer) should find its word waiting:
+
+| wood | what it is for | the number that makes it so |
+|---|---|---|
+| **oak** | structure, casks, tannin, the mine's sets | dense and hard *(ships; gains its species)* |
+| **ash** | anything that takes shock — hafts, wheels, oars | the toughest common timber |
+| **hazel** | coppice: hurdles, wattle, cordwood, charcoal | light, fast, chars well |
+| **beech** | tool bodies, planes, the best firewood | dense, hard, splits clean |
+| **elm** | water pipes, wheel hubs, anything wet | does not rot wet; will not split |
+| **willow** | baskets, withies, the light bat | very light, very tough |
+| **pine** | cheap boards, resin, pitch, kindling | light, soft, hot-burning |
+| **yew** | bows | extreme toughness for its weight |
+
+Eight. Each is a species row and a material row that point at each
+other, so a stand can say *oak stands here*, a felled tree yields oak,
+and a bow made of it is a yew bow. A wood not on this list is a
+vocabulary decision for a later build, not a content row. The pack
+places only what the Hanging Wood's stand and the yard's panels
+actually grow; the rest are words the realm now has.
+
+⚠ Grain — seasoned vs green, cleft vs sawn — is a fact about a *piece*
+and stamps the instance in `trade-sawing`, the way fit stamps a garment
+rather than being a cloth. It is not a material.
 
 ### One Discipline: silviculture
 
@@ -423,8 +466,10 @@ Observable from outside the code, by a player or an author.
    wood with no code.
 10. The realm's charcoal rate is a stated number in the panel's row,
     and it is smaller than one working smelter wants.
-11. Hazel, oak, ash and pine are distinct materials; cordwood is hazel;
-    nothing in the tree references a wood that does not exist.
+11. The eight woods are distinct materials with distinct species, each
+    naming the other; cordwood is hazel; a haft is ash; a bow can be
+    yew; and nothing in the tree references a wood that does not
+    exist.
 12. Silviculture appears in a player's transcript after they fell or
     cut or plant.
 
