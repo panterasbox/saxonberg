@@ -640,6 +640,10 @@ export const MixinRefusals: Partial<Record<MixinName, string>> = {
   ManualBuildMixin: "{} isn't a vessel you can work in",
   CraftedMixin: "{} isn't a made thing",
   DurableMixin: "{} doesn't wear out",
+  // ⚠ The phrase says the MATERIAL fact, not the mixin's name: what
+  // `hammer` wants is a piece of metal stock, and "isn't metal stock
+  // you can work" tells somebody what to go and find.
+  AlloyedMixin: "{} isn't metal stock you can work",
   KeenMixin: "{} doesn't take an edge",
   WearableMixin: "{} isn't something you can wear",
   /*

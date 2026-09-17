@@ -381,6 +381,43 @@ describe('⭐⭐ the ferrous ladder — the charge decides the metal', () => {
     return null;
   }
 
+  it('⚠⚠ an UNLIT furnace is refused for being cold, not for the draught', async () => {
+    // ⚠⚠ **The refusal that sent players in a circle.**
+    // `getHeldTemperatureK()` is `burnTemperatureK × bellows` and never
+    // consults `lit`, so a stone-cold shaft reports 1420 K. The heat
+    // gate therefore answered a charged-but-unlit furnace with *"it is
+    // holding 1420 K … work the bellows"* — and working the bellows
+    // replies *"air without fire moves nothing."* Doing exactly what the
+    // game said got you nowhere, and the act that helps (`light`) was
+    // named by neither.
+    //
+    // ⚠ Every other test in this file uses `makeFurnace`, which is LIT.
+    // That is why the whole unlit branch had no coverage at all, and why
+    // it took hammering at a furnace in a browser to find.
+    furnace.douse();
+    chargeIron(3, 2);
+    const context = await smelt();
+    expect(declinedFor(context)).toBe('not-lit');
+    // ⚠ The REASON is the assertion, not the words: `declineStep` sends
+    // its prose through `MessageApi.scene(...).toSelf(...)` and notes
+    // `detail: ""`, so the sentence is not in the envelope to match on.
+    // The wording was checked by smelting in a browser; what a test can
+    // hold is that the two failures are told APART, which is the whole
+    // fix — `not-lit` and `too-cold` used to be one branch.
+    //
+    // A refusal costs nothing — the charge is untouched.
+    expect((furnace.getContents() as Stuff[]).length).toBe(3);
+  });
+
+  it('⭐ …and once it is lit, the bellows IS the answer again', async () => {
+    furnace.ignite();
+    chargeIron(3, 2);
+    const context = await smelt();
+    // ⭐ Lit but under the reduction temperature: back to `too-cold`, and
+    // NOW "work the bellows" is advice that can actually be taken.
+    expect(declinedFor(context)).toBe('too-cold');
+  });
+
   it('⚠ without the bellows it will not REDUCE, and the refusal says why', async () => {
     chargeIron(3, 2);
     const context = await smelt();

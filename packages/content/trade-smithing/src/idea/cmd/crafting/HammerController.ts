@@ -53,12 +53,8 @@ export default class HammerController extends ManualBuildController<HammerModel>
 
     const target: Stuff | null =
       model.target?.stuff ?? this.findBuildVessel(giver);
-    if (
-      !target ||
-      !MixinApi.isBuildVessel(target) ||
-      !MixinApi.isTangible(target) ||
-      !target.getMaterial()
-    ) {
+
+    if (!target) {
       this.declineStep(
         context,
         Mml.compose`Hammer what? You need a workpiece on the anvil.`,
@@ -85,14 +81,22 @@ export default class HammerController extends ManualBuildController<HammerModel>
       );
       return;
     }
-    if (target.getHeatedToK() <= 0) {
-      this.declineStep(
-        context,
-        Mml.compose`${Mml.thing(target)} is stone cold — heat it first.`,
-        'insufficient-heat',
-      );
-      return;
-    }
+
+    // ⚠⚠ **Cast iron is judged BEFORE the heat check, because telling
+    // somebody to heat a pig is advice that cannot work.** This used to
+    // sit after it, so a cold pig was answered *"stone cold — heat it
+    // first"* — sending a player off to do the one thing that changes
+    // nothing, since carbon is why it shatters and no temperature fixes
+    // that. ⭐ Cast iron is a fact about the METAL, not about the
+    // workpiece's state, so it is answered first.
+    //
+    // ⚠ It sits AFTER the hammer and anvil checks, deliberately: the
+    // prose says *"you bring the hammer down"*, so you must have one.
+    //
+    // ⚠⚠ None of this was reachable at all until the view's arg gate was
+    // fixed — it required `DurableMixin`, which no metal stock composes,
+    // so every explicit `hammer <target>` died at the binder. A
+    // controller test cannot see that: it calls `execute` directly.
     if (isUnforgeable(target)) {
       this.declineStep(
         context,
@@ -102,6 +106,26 @@ export default class HammerController extends ManualBuildController<HammerModel>
       return;
     }
 
+    if (
+      !MixinApi.isBuildVessel(target) ||
+      !MixinApi.isTangible(target) ||
+      !target.getMaterial()
+    ) {
+      this.declineStep(
+        context,
+        Mml.compose`Hammer what? You need a workpiece on the anvil.`,
+        'no-vessel',
+      );
+      return;
+    }
+    if (target.getHeatedToK() <= 0) {
+      this.declineStep(
+        context,
+        Mml.compose`${Mml.thing(target)} is stone cold — heat it first.`,
+        'insufficient-heat',
+      );
+      return;
+    }
     const build = target;
     const commandText = context.commandText;
     this.engageStep(context, {

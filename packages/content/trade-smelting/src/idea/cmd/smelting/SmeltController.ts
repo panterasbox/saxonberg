@@ -262,15 +262,44 @@ export default class SmeltController extends CommandController<CommandModel> {
 
     const ferrous = metal.hasTag('ferrous');
     const wanted = ferrous ? T_REDUCE : meltingPointKOf(metal);
+
+    // ⚠⚠ **An unlit furnace is not a cool furnace — it is a cold one,
+    // and it needs a different sentence.** `getHeldTemperatureK()` is
+    // `burnTemperatureK × bellows`: the temperature this furnace WOULD
+    // pin at, computed without reference to whether anything is burning
+    // in it. So a stone-cold shaft reports 1420 K, and the refusal below
+    // used to answer a charged-but-unlit furnace with *"it is holding
+    // 1420 K … work the bellows"* — a number it is not at, and an act
+    // that cannot help. ⭐ Working the bellows then says *"air without
+    // fire moves nothing"*, so a player who does exactly what the game
+    // told them is sent in a circle. Found by driving it in a browser;
+    // every unit test lit the furnace first.
+    if (!furnace.isLit()) {
+      this.decline(
+        context,
+        Mml.compose`The charge is in and the shaft is stone cold. Nothing reduces until something is burning — light it, and then work the bellows.`,
+        'not-lit',
+      );
+      return;
+    }
+
     if (held < wanted) {
+      // ⭐ Lit but short of the mark: NOW the bellows is the answer, and
+      // only if it is not already going. Once it is, the shortfall is
+      // the fuel's, not the draught's.
+      const bellowsLeft = !furnace.isBellowsActive();
       this.decline(
         context,
         ferrous
           // ⭐ A DIFFERENT refusal, because it is a different physics.
           // Iron does not want to be melted; it wants to be reduced, and
           // the heat that reduces it is the fuel-technology rung.
-          ? Mml.compose`The furnace is holding ${String(Math.round(held))} K and the ore will not give up its oxygen below about ${String(Math.round(wanted))} K. It is not a question of melting the rock — work the bellows.`
-          : Mml.compose`The furnace is holding ${String(Math.round(held))} K and the run wants ${String(Math.round(wanted))} K. Light it, feed it, and work the bellows.`,
+          ? bellowsLeft
+            ? Mml.compose`The furnace is holding ${String(Math.round(held))} K and the ore will not give up its oxygen below about ${String(Math.round(wanted))} K. It is not a question of melting the rock — work the bellows.`
+            : Mml.compose`The furnace is holding ${String(Math.round(held))} K with the bellows already going, and the ore will not give up its oxygen below about ${String(Math.round(wanted))} K. The draught is not the problem — this fuel does not burn hot enough.`
+          : bellowsLeft
+            ? Mml.compose`The furnace is holding ${String(Math.round(held))} K and the run wants ${String(Math.round(wanted))} K. Work the bellows.`
+            : Mml.compose`The furnace is holding ${String(Math.round(held))} K with the bellows already going, and the run wants ${String(Math.round(wanted))} K. This fuel does not burn hot enough.`,
         'too-cold',
       );
       return;

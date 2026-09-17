@@ -10,8 +10,22 @@ validators:
   - /lib/command/validators/requiresConscious
   - /lib/command/validators/requiresEmbodied
 args:
+  # ⚠⚠ Was `DurableMixin`, and NOTHING you can hammer composes it —
+  # `Ingot`, `Bloom` and `Casting` are all
+  # `AlloyedMixin(…MeltableMixin(ThermalMixin(Thing)))` with no wear
+  # axis, because raw stock does not wear out; a made thing does. So
+  # every explicit form was refused with *"{} doesn't wear out"*,
+  # including `hammer ingot` — the example three lines up in this file's
+  # own help. Only bare `hammer` worked, because that route goes through
+  # `findBuildVessel` instead of this gate. Found by driving it in a
+  # browser.
+  #
+  # ⭐ `AlloyedMixin` is the honest gate: what you hammer is METAL STOCK,
+  # and that is exactly the set the mixin marks. It also lets a pig of
+  # cast iron REACH the controller, which is the only way a player ever
+  # hears why cast iron cannot be forged.
   - name: target
     type: object
     required: false
     scope: "reachable"
-    requires: DurableMixin
+    requires: AlloyedMixin
