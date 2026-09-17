@@ -20,7 +20,18 @@
  *
  * ⭐ The controller stays more permissive than the affordance, which is
  * the shipped `WashController` rule: what makes it DISCOVERABLE is a
- * fixture, and what makes it WORK is water in reach.
+ * fixture, and what makes it WORK is **water in reach** — a basin, a tap,
+ * or a jug you are carrying. ⚠ The first cut of this file never looked
+ * for any: it said "you sluice the water over it" while checking nothing,
+ * so a carried jug let you `wash` a glass and not rinse your own foot.
+ * `findWater` is the same read `wash` makes.
+ *
+ * → What removes a caustic is a fact about the AGENT, not about this
+ * verb — quicklime wants flooding (a little water slakes it and cooks
+ * you), an acid wants a base, and spirit does nothing to either. That is
+ * `Material.neutralizedBy`, the `corrosiveTo` shape run the other way,
+ * and it is the treatment build's (pharma-slate § the right substance).
+ * Until then, water is the one thing this verb knows.
  */
 
 import { CommandController } from '../../../../lib/command/CommandController';
@@ -33,6 +44,7 @@ import type { Stuff } from '../../../../lib/stuff/Stuff';
 import type { Vitals } from '../../../../lib/vitals/Vitals';
 import { TRAUMA_BEHAVIOR } from '../../Condition';
 import type { Trauma } from '../../Condition';
+import { BulkableApi } from '../../../../api/bulk';
 
 // The same topic `treat` and `wash` speak — rinsing is a deed done to a
 // body, not a category of its own. (`lint:topics` refuses a key nothing
@@ -54,6 +66,18 @@ export default class RinseController extends CommandController<RinseModel> {
     const self = named === undefined;
     if (!MixinApi.isVitals(target)) {
       return this.fail(context, 'There is nothing there to rinse.', 'no-body');
+    }
+
+    // ⭐ Water in reach, before anything else — the refusal a player can
+    // act on ("find water") comes before the one they cannot ("you have
+    // no caustic"), and before the fight-opening side of anything.
+    const water = this.findWater(giver as unknown as Stuff);
+    if (water === null) {
+      return this.fail(
+        context,
+        'There is no water here to rinse with.',
+        'no-water',
+      );
     }
 
     const active = (target as Stuff & Vitals)
@@ -93,6 +117,30 @@ export default class RinseController extends CommandController<RinseModel> {
           : Mml.compose`${Mml.actor(giver)} sluices water over ${Mml.thing(target)}.`,
       )
       .send();
+  }
+
+  /**
+   * Any reachable bulk holder whose matter is tagged `water` — carried
+   * or in the room, a jug as good as a basin. The `WashController` read,
+   * repeated rather than shared: a `BulkableApi.findWater(giver)` would
+   * be an Api static taking a world object, which is the OO antipattern
+   * `lint:object-verbs` holds at zero.
+   */
+  private findWater(giver: Stuff): Stuff | null {
+    const candidates: Stuff[] = [];
+    if (MixinApi.isContainer(giver)) candidates.push(...giver.getContents());
+    if (MixinApi.isContainable(giver)) {
+      const loc = giver.getContainer();
+      if (loc && MixinApi.isContainer(loc)) candidates.push(...loc.getContents());
+    }
+    for (const c of candidates) {
+      if (!MixinApi.isBulkable(c) || MixinApi.isCrafted(c)) continue;
+      const slot = BulkableApi.slotFor(c, undefined);
+      if (!slot || slot.isEmpty()) continue;
+      const m = slot.getMaterial();
+      if (m?.hasTag('water')) return c;
+    }
+    return null;
   }
 
   private fail(

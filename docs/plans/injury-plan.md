@@ -1394,6 +1394,12 @@ Clean attach points, each leaving as a slate line — never a plan section.
   falls) → `medic-judgment-slate`.
 - **Clearance × toxin clearance** (`Metabolic.reconcileToxinConditions`
   scaled by `capacity('clearance')`) → `pharma-slate`.
+- ⭐ **`Material.neutralizedBy` — the right substance for the wound.**
+  `rinse` knows one substance (water); what removes a caustic is a fact
+  about the AGENT, the `corrosiveTo` shape run the other way. Quicklime
+  wants *copious* water (a little slakes it and cooks you); spirit does
+  nothing to any of them → `pharma-slate § the right substance`, written
+  in full there.
 - **Called shots / surface-fraction site selection** in `siteFor` →
   `combat-slate`.
 - **`CombatantMixin.naturalAttackChannel` retirement** (zero content users

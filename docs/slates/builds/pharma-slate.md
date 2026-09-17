@@ -266,6 +266,75 @@ in reality, for reasons a player could derive.)*
 | cultivation | the live farming build |
 | **the assay instrument** | instrumentation slate's shape, unbuilt |
 
+## ⭐⭐ The right substance for the wound — `neutralizedBy`
+
+*Handed over by the injury build (2026-09-17), which shipped the wound
+and the wrong-shaped answer to it.*
+
+The injury build shipped the **corrosion** channel: a `Material` says
+what it eats (`corrosiveTo: [organic, tissue, leather, textile]` on
+quicklime), the covering fold reads that list, and a caustic burn is the
+one wound in the game that is *still happening* — the agent sits on the
+skin and the severity grows until something removes it. The verb that
+removes it is `rinse`, and **`rinse` knows exactly one substance: water.**
+That is the wrong shape, and the reason it is wrong is the same reason
+`corrosiveTo` was right.
+
+**What removes a caustic is a fact about the AGENT.** The verb should
+read it off the material, exactly as the fold reads `corrosiveTo`:
+
+| agent | what stops it | what does nothing |
+|---|---|---|
+| quicklime (an alkali) | **copious** water; a mild acid (vinegar) | spirit / alcohol |
+| an acid | copious water; a base (bicarbonate) | spirit / alcohol |
+| an oil-borne irritant | soap | water alone — it spreads it |
+
+An alcohol sanitizer is a *disinfectant*, not a neutralizer: it does
+nothing to either an acid or an alkali, and a player who reaches for it
+should be told so in words they can learn from — *"spirit does nothing to
+lime."* That refusal is worth more than the rinse.
+
+⚠⚠ **And quicklime is wrong in an interesting way today.** CaO + H₂O is
+**exothermic** — it is slaking, it is how mortar is made — so a damp cloth
+on dry lime cooks you. Real first aid is *brush it off first, then
+flood*. "Copious" is doing real work in the table above, and `rinse` as
+shipped has no way to say it. This is precisely the kind of thing the
+project exists to teach, and the right home for it is the row.
+
+**The shape.** One authored field, the `corrosiveTo` shape run the other
+way:
+
+```yaml
+# quicklime.yaml
+corrosiveTo:   [organic, tissue, leather, textile]   # what it eats
+neutralizedBy: [water, acid]                          # what stops it
+```
+
+Then `rinse [with <substance>]` finds a reachable bulk substance (a
+basin, a jug, a bottle of vinegar, a pot of soap), reads its tags against
+the agent's `neutralizedBy`, and either stops the burn or refuses with the
+reason. Water is one row among several rather than a constant in a
+controller; a second caustic is a row, zero code; a bottle of vinegar
+becomes first aid the day somebody authors it.
+
+Three things this is **not**:
+
+- **Not a per-agent verb.** `rinse`, `neutralize`, `wash off` are one act
+  on one arg. The substance decides what happens.
+- **Not a recipe.** No process, no craft, no time — an act with a
+  substance in reach.
+- **Not the `wash` verb.** `wash` takes a crafted thing (a glass, a
+  garment); this takes a body. The arg-alternation rule keeps them apart
+  (`docs/antipatterns.md`).
+
+**Why it is pharma's and not a patch.** It is the first honest instance
+of *the right substance for the condition*, which is the whole subject of
+this build — every entry in the table is an active with a mechanism
+(dilution, neutralization, saponification), and the wiki reveal question
+(`spoiler: 1` on `corrosiveTo`, decided by the injury build's audit)
+applies to `neutralizedBy` identically. Ship it as the first row of the
+pharmacopoeia, not as a verb fix.
+
 ## Open questions (for requirements)
 
 1. **How many actives, and how distinct?** *Leans: few, strongly
