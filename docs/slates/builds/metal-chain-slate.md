@@ -163,15 +163,25 @@ you can lose a whole burn.
 Salvaged from the retired metallurgy plan — two concrete things this
 trade owes, both found by driving rather than by testing:
 
-- **Nobody makes charcoal while you sleep.** The fuel yard's charcoal is
-  authored props, never restocked, and `char` is a **three-day burn** —
-  so the only supply in the realm is a basket somebody put there. The
-  metallurgy drive is `.dirty.` precisely because it **burns that
-  basket** and nothing replaces it. The seam is a `chars` producer brain
-  on the collier, over the existing `char` engagement — the same shape
-  the fringe producer (`delves`) already takes for ore. ⭐ *A dirty
-  reason is a question for the owning trade: this one says the fuel trade
-  has a demand surface and no supply.*
+- **Nobody makes charcoal while you sleep — and the reason was not the
+  missing brain.** ⚠⚠ Diagnosed 2026-09-16 by charring in a browser: the
+  fuel yard's coppice **afforded nothing**, because `harvest` comes from
+  `CultivableMixin` and the `hazel-stool` was propped loose on the floor.
+  So cordwood was unreachable by any route and the four authored baskets
+  were the realm's whole fuel economy — one player ended iron-making for
+  that world, permanently, in ten minutes. The affordance is fixed
+  (`trade/fuel/thing/coppice-panel`); the **yield** waits on forestry's
+  rotation compression, since `daysToStage.mature: 2500` is ≈208 real
+  days. See `forestry-slate.md § What the metallurgy drive handed over`.
+  ⭐ A `chars` producer brain on the collier is still wanted — the
+  `delves` shape — but it was never the blocker, and a brain would have
+  starved exactly as a player did.
+  ⭐⭐ **And scarcity itself is not the bug.** The lens pass settled it:
+  fuel, not ore, was the rate-limiting step of pre-industrial ironmaking,
+  and `forestry-slate.md` requires that demand be able to outrun growth.
+  The realm's charcoal rate IS its iron ceiling, and that chain —
+  rotation → panel density → baskets per burn → smelts — is one piece of
+  arithmetic somebody gets to set deliberately.
 - **The clamp is a furnace and declines for its own reason.** A charcoal
   clamp composes `FurnaceMixin` + `ContainerMixin`, so `smelt` now
   reaches it from the fuel yard and refuses with a sentence about what a
