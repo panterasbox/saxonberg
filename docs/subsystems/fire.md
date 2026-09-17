@@ -128,6 +128,16 @@ Dials: `response.heat.*`.
   fuel + bellows dials — **smelting heat (iron's 1811 K) reachable only with the
   bellows**. `ignite()`/`douse()` light/extinguish a furnace (the same face rides
   `FurnaceMixin`).
+
+  ⚠⚠ **`getHeldTemperatureK()` is the PIN, not the reading.** It is
+  `burnTemperatureK × bellows` and consults neither `lit` nor fuel — the
+  temperature this furnace *would* hold, not the one it is at. A
+  stone-cold shaft answers 1420 K. Any caller that treats it as the
+  current temperature is wrong: `smelt` did, and told a player with an
+  unlit furnace to *"work the bellows"* — which then answered *"air
+  without fire moves nothing."* Check `isLit()` first; the accessor
+  will not do it for you. (Found by charging a furnace in a browser,
+  2026-09-16; every unit fixture had lit it first.)
 - **The Candle** — the convergence fixture: `LightSource + Combustible +
   Thermal + Reserved(wax)` over a `Thing`'s `Wet` wick. A dry wick lights (the
   wet-wick gate refuses a soaked one, keyed on the wick material's water

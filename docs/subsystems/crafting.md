@@ -825,6 +825,18 @@ kernel's gather never picks up what an anvil cannot work, silently and
 correctly, and the two verbs a player can still point at a pig decline
 diegetically and say what it is.
 
+⚠⚠ **That last sentence was false when it was written.** `hammer.yaml`
+gated its target on `DurableMixin`, which no metal stock composes, so
+`hammer pig` was refused at the binder with *"a pig of cast iron doesn't
+wear out"* — and so was `hammer ingot`, the example in the view's own
+help. The controller's cast-iron sentence was unreachable by any route.
+Fixed 2026-09-16 (the gate is `AlloyedMixin`; the cast-iron check also
+now sits ahead of the heat check, because *"heat it first"* is advice
+that cannot work on a pig). Pinned by
+`trade-smithing/src/__tests__/verb-gates.test.ts`, which checks the YAML
+against the classes — see [antipatterns.md § A view's `requires:` naming
+a mixin the verb's targets don't compose](../antipatterns.md).
+
 ⭐ **A tangible recipe's authored `outputMaterial` now wins**, with the
 primary stock's flowing otherwise. The field has existed since the first
 recipe schema and the edible and bulk paths read it; the tangible path

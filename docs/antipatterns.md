@@ -4350,6 +4350,92 @@ method before it could collapse.
 
 ---
 
+## A view's `requires:` naming a mixin the verb's targets don't compose
+
+**ANTIPATTERN**: gating a command arg on a mixin that reads plausibly
+but that the things the verb is *for* do not actually carry.
+
+```yaml
+# BAD — hammer.yaml, shipped this way
+args:
+  - name: target
+    scope: "reachable"
+    requires: DurableMixin     # Ingot, Bloom, Casting: none of them
+```
+
+Raw stock has no wear axis — stock does not wear out, made things do — so
+`Ingot`, `Bloom` and `Casting` are all `AlloyedMixin(…Thermal(Thing))` and
+none composes `DurableMixin`. Every explicit `hammer <target>` in the game
+was refused at the **binder** with *"{} doesn't wear out"*, including
+`hammer ingot`, the worked example in that file's own help. Only bare
+`hammer` worked, because it resolves through `findBuildVessel` and never
+meets the gate.
+
+⚠⚠ **34 green tests could not see it.** A controller test calls
+`execute()` directly, which is *downstream* of the binder. The arg gate
+is the **fifth reachability link** — beside verb · affordance · data ·
+boot — and it fails just as closed and just as silently.
+
+**INSTEAD**, gate on the mixin that names *what the verb acts on*:
+
+```yaml
+# GOOD — what you hammer is METAL STOCK, and that is what the mixin marks
+    requires: AlloyedMixin
+```
+
+…and give the refusal table a phrase that says the material fact
+(`"{} isn't metal stock you can work"`), so a wrong target still gets a
+sentence somebody can act on.
+
+⭐ **The test that catches this checks the YAML against the CLASSES and
+never touches a controller** — `trade-smithing/src/__tests__/verb-gates.test.ts`
+is the shape: read the view, resolve `requires`, assert every class the
+verb is for composes it. A `lint:` gate for *"a `requires:` no
+instanceable class composes"* would hold the whole family; it is
+proposed, not built.
+
+---
+
+## A crop propped on the floor
+
+**ANTIPATTERN**: placing a `Plant` in a room's `props:` and expecting it
+to be a crop.
+
+```yaml
+# BAD — the fuel yard, as shipped
+props:
+  - /trade/fuel/thing/hazel-stool     # a Plant with harvestTemplatePath
+```
+
+`harvest` is contributed by **`CultivableMixin`**, not by `Plant`. A
+stool standing on the ground affords nothing, so the coppice that the
+whole fuel trade rests on answered *"I don't understand 'harvest'."* to
+every player and every brain — and cordwood, *"the ONE supply two trades
+compete for,"* was unreachable by any route. Four authored charcoal
+baskets were the realm's entire fuel economy as a result.
+
+**INSTEAD**, put the crop in GROUND — a `Cultivable` host whose own
+`props:` seat the plants into its slots (`CultivableMixin.applyProps`,
+the starter pot's shipped shape):
+
+```yaml
+# GOOD — /trade/fuel/thing/coppice-panel, a GardenBed with six slots
+props:
+  - /trade/fuel/thing/hazel-stool
+  - /trade/fuel/thing/hazel-stool
+  …
+```
+
+and prop the *panel* in the room. The growth model only reaches a plant
+through ground; a plant on the floor is scenery that lies.
+
+⚠ Two things this does NOT fix, and where they live: nothing in the game
+authors a **grown** plant (`growthStage` is persistent, not authorable,
+and zero rows set it), and the hazel rotation is uncompressed. Both are
+`forestry-slate.md § What the metallurgy drive handed over`.
+
+---
+
 ## A resident pre-check in front of `StuffApi.singleton()`
 
 ⭐ **`StuffApi.singleton(path)` IS the get-or-create.** Its first act is
