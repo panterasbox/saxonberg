@@ -24,6 +24,17 @@ args:
     required: true
     scope: [inventory, reachable]
     requires: StackableMixin
+  # ⭐ WHICH LOOM — DECLARED, not hunted for (`lint:instrument-args`).
+  # Bare, the binder hands over every reachable thing offering
+  # `weaving` and the controller takes the best-rated; `weave the yarn on the broad
+  # loom` names one.
+  - name: loom
+    type: objects
+    required: false
+    prepositions: [on, at, with]
+    default: "reachable:[capability.weaving]"
+    scope: ["reachable"]
+    requires: [ToolMixin]
 options:
   close:
     type: boolean

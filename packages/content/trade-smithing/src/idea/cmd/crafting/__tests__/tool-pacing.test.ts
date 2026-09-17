@@ -31,6 +31,7 @@ import {
   standUpBranchHarness,
   makeContext,
   ref,
+  many,
   completeStep,
   makeLitForge,
   makeTool,
@@ -86,12 +87,17 @@ afterEach(() => {
 });
 
 async function hammerWith(anvil: ToolItem, ingot: Ingot): Promise<void> {
-  ContainmentApi.move(makeTool('striking'), actor);
+  const striker = makeTool('striking');
+  ContainmentApi.move(striker, actor);
   ContainmentApi.move(anvil, room);
   ContainmentApi.move(ingot, room);
   await executeAs(actor, () =>
     makeStuff(() => new HammerController()).execute(
-      { target: ref(ingot, 'ingot') } as never,
+      {
+        target: ref(ingot, 'ingot'),
+        striker: many(striker),
+        anvil: many(anvil),
+      } as never,
       makeContext(actor, room, 'hammer ingot'),
     ),
   );
@@ -186,7 +192,7 @@ describe('the engaged repair', () => {
     ContainmentApi.move(makeStock(LEATHER, 0.5), room);
     await executeAs(actor, () =>
       makeStuff(() => new RepairController()).execute(
-        { item: ref(jerkin, 'jerkin') } as never,
+        { item: ref(jerkin, 'jerkin'), kit: many(mender) } as never,
         makeContext(actor, room, 'repair jerkin'),
       ),
     );
@@ -226,7 +232,10 @@ describe('the engaged repair', () => {
     const controller = makeStuff(() => new RepairController());
     const ctx = makeContext(actor, room, 'repair jerkin');
     await executeAs(actor, () =>
-      controller.execute({ item: ref(jerkin, 'jerkin') } as never, ctx),
+      controller.execute(
+        { item: ref(jerkin, 'jerkin'), kit: many(kit) } as never,
+        ctx,
+      ),
     );
     // The dispatcher destructs the per-dispatch clone when execute
     // returns — a `this.<method>()` in onComplete would [inert] no-op

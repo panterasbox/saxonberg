@@ -13,7 +13,7 @@
 
 import { ManualBuildController } from '@saxonberg/server/mud/platform/idea/cmd/crafting/ManualBuildController';
 import type { CommandContext, CommandModel } from '@saxonberg/server/mud/api/command';
-import type { MqlOneResult } from '@saxonberg/server/mud/api/mql';
+import type { MqlManyResult, MqlOneResult } from '@saxonberg/server/mud/api/mql';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import type { Builds } from '@saxonberg/server/mud/lib/craft/ManualBuild';
 import { MixinApi } from '@saxonberg/server/mud/api/mixin';
@@ -28,6 +28,7 @@ const TOPIC = 'act.deed';
 const QUENCH_MS = 2500;
 
 interface QuenchModel extends CommandModel {
+  anvil?: MqlManyResult;
   target?: MqlOneResult;
 }
 
@@ -36,7 +37,7 @@ export default class QuenchController extends ManualBuildController<QuenchModel>
     const giver = context.commandGiver;
 
     const workpiece: Stuff | null =
-      model.target?.stuff ?? this.findBuildVessel(giver);
+      model.target?.stuff ?? null;
     if (!workpiece || !MixinApi.isBuildVessel(workpiece)) {
       this.declineStep(
         context,
@@ -63,7 +64,7 @@ export default class QuenchController extends ManualBuildController<QuenchModel>
 
     // The anvil paces the terminal quench too. Quench is deliberately
     // not GATED on an anvil — pacing must not add a gate; rate 1 absent.
-    const anvil = this.findCapability(giver, 'anvil');
+    const anvil = this.bestInstrument(model.anvil, 'anvil');
     this.engageStep(context, {
       durationMs: this.paceMs(QUENCH_MS, anvil, ['anvil']),
       beginSelf: Mml.compose`You plunge ${Mml.thing(workpiece)} into the slack tub with a hiss of steam.`,

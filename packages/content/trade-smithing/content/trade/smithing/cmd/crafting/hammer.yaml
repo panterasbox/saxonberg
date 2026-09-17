@@ -14,4 +14,35 @@ args:
     type: object
     required: false
     scope: "reachable"
-    requires: DurableMixin
+    # ⭐ Bare `hammer` works the piece you are at — DECLARED, so the binder
+    # resolves it instead of the controller walking for it
+    # (`lint:instrument-args`).
+    default: "reachable:[mixin.ManualBuildMixin]"
+    # ⚠⚠ Was `DurableMixin`, and an Ingot is not one — so NAMING the
+    # workpiece was always refused ("a cold iron ingot doesn't wear out")
+    # and the verb only ever ran through the controller's silent fallback
+    # walk, which a word matching NOTHING would trigger. Declaring the
+    # default is what exposed it (`lint:instrument-args`).
+    requires: ManualBuildMixin
+  # ⭐ WHICH STRIKER — DECLARED, not hunted for (`lint:instrument-args`).
+  # Bare, the binder hands over every reachable thing offering
+  # `striking` and the controller takes the best-rated (a requirement, never
+  # a pacer).
+  - name: striker
+    type: objects
+    required: false
+    prepositions: [with, using]
+    default: "reachable:[capability.striking]"
+    scope: ["reachable"]
+    requires: [ToolMixin]
+  # ⭐ WHICH ANVIL — DECLARED, not hunted for (`lint:instrument-args`).
+  # Bare, the binder hands over every reachable thing offering
+  # `anvil` and the controller takes the best-rated (the anvil paces the
+  # work).
+  - name: anvil
+    type: objects
+    required: false
+    prepositions: [on, at, against]
+    default: "reachable:[capability.anvil]"
+    scope: ["reachable"]
+    requires: [ToolMixin]

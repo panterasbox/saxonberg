@@ -109,10 +109,32 @@ const SKIP = new Set(['node_modules', '.git', 'dist', 'build', 'coverage']);
  *      resolves every candidate, the controller asks each about the
  *      pair.
  *
+ *   4. ⭐⭐⭐ **Twenty-six more were hiding behind a base class.** The day
+ *      after the ratchet closed at zero, a design conversation about the
+ *      capability vocabulary found `ManualBuildController.findCapability`
+ *      and `findBuildVessel`: the same walk, hoisted into the shared
+ *      base so that 24 controllers across seven packs hunted through a
+ *      method call the census could not see — plus five more that had
+ *      spread the surroundings into an accumulator instead of looping
+ *      (`eat`'s cutlery, `wash`'s water, `dye`'s bath, `butcher`'s
+ *      blade and block, `measure figure`'s book). The gate learned the
+ *      accumulator shape, the count went 0 → 13 → 0, and the fix was
+ *      the same each time: a plural arg with a default, and the
+ *      controller narrowing on the one thing no predicate asks (best
+ *      rate, clean, holds water, holds dyestuff, bladed).
+ *
+ *      ⚠⚠ And it found a shipped defect the walk had been covering:
+ *      `hammer ingot` had ALWAYS been refused (`requires: DurableMixin`,
+ *      which no Ingot satisfies) — the verb only ever ran through the
+ *      fallback walk, which the wire suite triggered by naming a word
+ *      that matched nothing. A hunt is not just unaddressable; it hides
+ *      the view being wrong.
+ *
  * ⭐ Which is the general lesson this file would offer the next reader:
  * when resolution looks like it has to live in a controller, the honest
  * question is usually *what can the view not say yet* — a missing atom,
- * or a plural — rather than *this one is special*.
+ * or a plural — rather than *this one is special*. And a ratchet at zero
+ * is only as honest as the shapes it knows.
  *
  * ⚠ A controller may still narrow on STATE after the binder resolves
  * identity: `bake` checks lit + fuelled, `sharpen` checks unbroken,
@@ -170,6 +192,24 @@ const FOR_WALK =
 
 /** `<recv>.getContents().find(…)` / `.filter(…)` — the inline form. */
 const CHAIN_WALK = /\.getContents\(\)\s*(?:as[^;]*?)?\.(find|filter|some)\(/;
+
+/**
+ * `candidates.push(...<recv>.getContents())` — the ACCUMULATOR form.
+ *
+ * ⚠⚠ The first cut of this gate did not know this shape, and it hid the
+ * biggest offender in the tree: `ManualBuildController.findCapability`
+ * gathered the actor's kit and the room into one array, then ranked it
+ * by type test and rate — a walk in every respect, hoisted into a base
+ * class so that **fourteen** controllers across six packs hunted for
+ * their instrument through one method the census could not see. The
+ * ratchet read zero while the pattern was at its widest.
+ *
+ * The lesson is the one `lint:family` already carries: a gate that
+ * reads zero is only as honest as the shapes it knows. A spread of
+ * surroundings into a list is a walk; what the list is then filtered by
+ * is read from the lines that follow.
+ */
+const SPREAD_WALK = /\.\.\.\s*([^)]*?)\.getContents\(\)/;
 
 interface Finding {
   file: string;
@@ -232,6 +272,41 @@ function receiverOf(window: string): string {
   return '';
 }
 
+/**
+ * The list a spread lands in — `NAME.push(...x.getContents())` or
+ * `const NAME: Stuff[] = [...x.getContents()]`.
+ */
+function accumulatorOf(statement: string): string {
+  const push = /([A-Za-z_$][\w$]*)\.push\(\s*\.\.\./.exec(statement);
+  if (push) return push[1]!;
+  const lit = /(?:const|let)\s+([A-Za-z_$][\w$]*)[^=]*=\s*\[\s*\.\.\./.exec(
+    statement,
+  );
+  return lit ? lit[1]! : '';
+}
+
+/**
+ * Whether the gathered list is then hunted through for a KIND — a loop
+ * whose variable is type-tested, an inline find/filter with a type test,
+ * or the list returned bare for a caller to do the same.
+ */
+function searchesAccumulator(after: string, acc: string): boolean {
+  const loop = new RegExp(`for\\s*\\(\\s*const\\s+([A-Za-z_$][\\w$]*)\\s+of\\s+${acc}\\b`).exec(
+    after,
+  );
+  if (loop) {
+    const v = loop[1]!;
+    const aboutVar = new RegExp(
+      `(instanceof\\s+[A-Z]|MixinApi\\.is[A-Z]\\w*|\\bis[A-Z]\\w*)` +
+        `\\s*\\(?\\s*${v}\\b|${v}\\s+instanceof\\s+[A-Z]`,
+    );
+    if (aboutVar.test(after)) return true;
+  }
+  const chain = new RegExp(`${acc}\\.(find|filter|some)\\(`).exec(after);
+  if (chain && TYPE_TEST.test(after.slice(chain.index))) return true;
+  return new RegExp(`return\\s+${acc}\\s*;`).test(after);
+}
+
 /** The last identifier in an expression — the thing being walked. */
 function tailIdentifier(expr: string): string {
   const ids = expr.match(/[A-Za-z_$][\w$]*/g);
@@ -255,9 +330,23 @@ function main(): void {
       const statement = lines.slice(i, i + 3).join(' ');
       const forMatch = FOR_WALK.exec(statement);
 
+      const spreadMatch = forMatch ? null : SPREAD_WALK.exec(statement);
+
       let receiver: string;
       let predicate: string;
-      if (forMatch) {
+      if (spreadMatch) {
+        // What is gathered is then SEARCHED — or handed back for someone
+        // else to search (`reachOf()`), which is the same act one call
+        // away. A perception verb that gathers the room because the room
+        // is its SUBJECT and passes the set on whole (`look`'s hints,
+        // `search`'s scope) is not hunting for anything and must not
+        // fire — that was the false positive the first spread cut had.
+        const acc = accumulatorOf(statement);
+        receiver = tailIdentifier(spreadMatch[1]!);
+        const after = lines.slice(i + 1, i + 24).join(' ');
+        if (!acc || !searchesAccumulator(after, acc)) continue;
+        predicate = after;
+      } else if (forMatch) {
         // ⭐ The loop VARIABLE is what a type test has to be about. A
         // body that only reads each item's contents, tags or slots is
         // asking the owner, not hunting for a kind.

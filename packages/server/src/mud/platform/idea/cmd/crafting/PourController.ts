@@ -53,7 +53,7 @@ export default class PourController extends ManualBuildController<PourModel> {
       return;
     }
     const vessel: Stuff | null =
-      model.vessel?.stuff ?? this.findBuildVessel(giver);
+      model.vessel?.stuff ?? null;
     if (!vessel || !MixinApi.isBuildVessel(vessel)) {
       this.declineStep(
         context,

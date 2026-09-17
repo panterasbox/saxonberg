@@ -383,6 +383,21 @@ error, it completes and produces the right goods, and the only symptom
 is a number nobody sees. It now picks the best rate, held-first on ties,
 so no equal-rung arrangement moves.
 
+⭐⭐ **And it no longer walks.** `findCapability` was the reachability
+hunt `lint:instrument-args` exists to remove, hoisted into the base so
+that 24 step controllers hunted through one method the census could not
+see. Each step's view now **declares** its instrument as a plural arg —
+`weave.yaml`: `loom`, `default: "reachable:[capability.weaving]"`,
+`type: objects` — and the base offers `bestInstrument(bound, kind)`,
+which ranks what the binder bound. The binder resolves *identity* (every
+reachable thing offering the kind, held gear first); the controller
+narrows on the one thing no predicate asks (*which is best*). The same
+move retired `findBuildVessel`: bare `stir`/`heat`/`pour`/`muddle`/
+`strain`/`plate`/`knead`/`hammer`/`quench`/`boil` work the build you are
+at because the view's `default:` says so, not because the controller
+looked. `hammer the ingot with the sledge on the big anvil` is now a
+sentence; it was not before.
+
 ⚠ Ranked on **rate only**. `control` is a separate axis a step may read
 for quality — `cut` charges a unit of cloth for a `coarse` instrument,
 which is what makes a bench worth walking to — and folding the two into

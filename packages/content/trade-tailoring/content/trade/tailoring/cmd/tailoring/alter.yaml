@@ -24,6 +24,16 @@ args:
     required: true
     scope: [inventory, reachable]
     requires: WearableMixin
+  # ⭐ WHICH KIT — DECLARED, not hunted for (`lint:instrument-args`).
+  # Bare, the binder hands over every reachable thing offering
+  # `mending` and the controller takes the best-rated — the machine over the kit.
+  - name: kit
+    type: objects
+    required: false
+    prepositions: [with, at, on]
+    default: "reachable:[capability.mending]"
+    scope: ["reachable"]
+    requires: [ToolMixin]
 options:
   for:
     type: object

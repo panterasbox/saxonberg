@@ -59,7 +59,7 @@ export default class KneadController extends ManualBuildController<KneadModel> {
     const giver = context.commandGiver;
 
     const vessel: Stuff | null =
-      model.trough?.stuff ?? this.findBuildVessel(giver);
+      model.trough?.stuff ?? null;
     if (!vessel || !MixinApi.isBuildVessel(vessel)) {
       this.declineStep(
         context,

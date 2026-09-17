@@ -365,6 +365,22 @@ thing and is always fine (`pit.getContents()` for the charge in the
 clamp). Enforced by `pnpm lint:instrument-args`, **at zero**: no shipped
 controller hunts for an instrument.
 
+⚠⚠ **Nor through a helper.** The widest instance of this was not in any
+controller's `execute` — it was `findCapability(giver, kind)` on the
+shared `ManualBuildController` base, and 24 controllers across seven
+packs called it. The base class now offers `bestInstrument(bound, kind)`,
+which takes the **bound** plural and ranks it; the view says
+`default: "reachable:[capability.weaving]"` and the walk is gone. A
+hoisted walk is still a walk, and the gate reads the accumulator shape
+(`push(...giver.getContents())`) as one.
+
+⭐ **A capability kind is minted by a CONSUMER, never by a row.** The
+vocabulary is open (no kernel list), but a kind exists because a recipe
+slot, a view's `[capability.X]` arg, or a controller read asks for it.
+`pnpm lint:capabilities` holds both directions — a required kind
+nothing offers is a dead dish (ceiling 0); an offered kind nothing wants
+is ratcheted. `--list` is the derived catalogue.
+
 ## An Api May Not Hand Back Its Table
 
 **ANTIPATTERN**: A public read that returns a whole collection, which

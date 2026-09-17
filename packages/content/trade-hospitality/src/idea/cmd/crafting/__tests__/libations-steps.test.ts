@@ -31,6 +31,7 @@ import {
   TestActor,
   makeContext,
   ref,
+  many,
   completeStep,
   standUpBranchHarness,
 } from '@saxonberg/server/mud/platform/idea/cmd/crafting/__tests__/branch-fixtures';
@@ -126,11 +127,12 @@ describe('wash', () => {
     const olive = makeStuff(() => new Thing());
     olive.setMaterial(StuffApi.findByTemplatePath<Material>(OLIVE)!);
     ContainmentApi.move(olive, coupe);
-    ContainmentApi.move(makeWaterSource(), room);
+    const water = makeWaterSource();
+    ContainmentApi.move(water, room);
 
     await executeAs(actor, () =>
       makeStuff(() => new WashController()).execute(
-        { glass: ref(coupe, 'coupe') } as never,
+        { glass: ref(coupe, 'coupe'), water: many(water) } as never,
         makeContext(actor, room, 'wash coupe'),
       ),
     );
@@ -177,7 +179,7 @@ describe('muddle', () => {
     ContainmentApi.move(muddler, actor);
     await executeAs(actor, () =>
       makeStuff(() => new MuddleController()).execute(
-        { vessel: ref(shaker, 'shaker') } as never,
+        { vessel: ref(shaker, 'shaker'), muddler: many(muddler) } as never,
         makeContext(actor, room, 'muddle'),
       ),
     );

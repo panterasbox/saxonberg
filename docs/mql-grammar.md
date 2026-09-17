@@ -466,6 +466,13 @@ want.
 >
 > ⚠ A capability is not a property: `[prop.digging]` reads
 > `PropertiedMixin` storage and will never see it.
+>
+> **Which kinds exist?** The vocabulary is open — any tool row may
+> declare one — so there is no list to consult, but there is a
+> catalogue: `pnpm -C packages/server lint:capabilities --list` prints
+> every kind with who offers it and who wants it, derived from the
+> content itself. Look there before minting a new one; `slicing` beside
+> an existing `cutting` is two words for one job.
 
 > **`has` only earns its keep on `prop.K`.** `mixin.X`, `class.X`,
 > `keyword.X`, and `template.X` always return a strict boolean; `has`

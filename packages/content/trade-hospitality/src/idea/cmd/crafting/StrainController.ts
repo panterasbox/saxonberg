@@ -37,7 +37,7 @@ export default class StrainController extends ManualBuildController<StrainModel>
     const giver = context.commandGiver;
 
     const vessel: Stuff | null =
-      model.vessel?.stuff ?? this.findBuildVessel(giver);
+      model.vessel?.stuff ?? null;
     if (!vessel || !MixinApi.isBuildVessel(vessel)) {
       this.declineStep(
         context,

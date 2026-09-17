@@ -318,6 +318,16 @@ subcommands:
         # anything that is not an organism. Declaring it here is what
         # turns "nothing happens" into a sentence.
         requires: OrganismMixin
+      # ⭐ WHICH BOOK — DECLARED, not hunted for (`lint:instrument-args`).
+      # By CLASS, honestly: a measure book is a kind of thing, not a role
+      # something else could offer (the `char`/`stake` reading).
+      - name: book
+        type: object
+        required: false
+        prepositions: [in, at]
+        default: "reachable:[class.MeasureBook]"
+        scope: ["reachable"]
+        requires: any
   dip:
     description: "Read how steeply an ore body falls, off an exposed vein (needs a surveyor's instrument)"
     help: |

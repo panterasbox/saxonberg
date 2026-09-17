@@ -33,7 +33,7 @@ import { MessageApi } from "../../../../../api/message";
 import { Mml } from "../../../../../api/mml";
 import { CommandApi, type CommandContext } from "../../../../../api/command";
 import { CommandDefinition } from "../../../../../lib/command/CommandDefinition";
-import type { MqlOneResult } from "../../../../../api/mql";
+import type { MqlManyResult, MqlOneResult } from "../../../../../api/mql";
 import { METABOLIC_DEFAULTS } from "../../../../../lib/metabolism/Metabolic";
 import { UTENSIL_KINDS } from "../../../../../lib/bulk/Utensil";
 import { MetabolicMixin } from "../../../../../lib/metabolism/Metabolic";
@@ -125,6 +125,22 @@ function ctxFor(actor: Stuff, loc: Stuff): CommandContext {
 const one = (stuff: Stuff | null, raw: string): MqlOneResult =>
   ({ stuff, raw }) as MqlOneResult;
 
+/**
+ * What the binder binds for `eat.yaml`'s `with` arg — every reachable
+ * piece of cutlery, held gear first. ⚠ A controller test SKIPS the
+ * binder, so the walk that used to live in `EatController` is
+ * reproduced here, once, as the fixture; the controller only narrows
+ * (`lint:instrument-args`).
+ */
+const cutleryReachableBy = (eater: Stuff, loc: Stuff): MqlManyResult => {
+  const stuff: Stuff[] = [];
+  for (const holder of [eater, loc]) {
+    if (!MixinApi.isContainer(holder)) continue;
+    for (const c of holder.getContents()) if (MixinApi.isCutlery(c)) stuff.push(c);
+  }
+  return { stuff, raw: "" } as unknown as MqlManyResult;
+};
+
 describe("eating with cutlery (AC11a)", () => {
   let eater: TestEater;
   let loc: Stuff;
@@ -152,9 +168,10 @@ describe("eating with cutlery (AC11a)", () => {
   });
 
   async function eat(target: Stuff): Promise<void> {
+    const self = eater as unknown as Stuff;
     await makeStuff(() => new EatController()).execute(
-      { target: one(target, "apple") } as never,
-      ctxFor(eater as unknown as Stuff, loc),
+      { target: one(target, "apple"), with: cutleryReachableBy(self, loc) } as never,
+      ctxFor(self, loc),
     );
   }
 
@@ -312,9 +329,13 @@ describe('⭐ eating a MEAL out of the dish it came in', () => {
 
   it('and cutlery narrates on this arm too', async () => {
     utensil('spoon', loc2);
+    const self2 = eater2 as unknown as Stuff;
     await makeStuff(() => new EatController()).execute(
-      { target: one(servedDish(loc2) as unknown as Stuff, 'stew') } as never,
-      ctxFor(eater2 as unknown as Stuff, loc2),
+      {
+        target: one(servedDish(loc2) as unknown as Stuff, 'stew'),
+        with: cutleryReachableBy(self2, loc2),
+      } as never,
+      ctxFor(self2, loc2),
     );
     expect(self!).toContain('with a spoon');
   });

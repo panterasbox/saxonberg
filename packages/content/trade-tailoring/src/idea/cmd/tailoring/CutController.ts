@@ -30,7 +30,7 @@
 
 import { ManualBuildController } from '@saxonberg/server/mud/platform/idea/cmd/crafting/ManualBuildController';
 import type { CommandContext, CommandModel } from '@saxonberg/server/mud/api/command';
-import type { MqlOneResult } from '@saxonberg/server/mud/api/mql';
+import type { MqlManyResult, MqlOneResult } from '@saxonberg/server/mud/api/mql';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import type { Container } from '@saxonberg/server/mud/lib/spatial/Container';
 import type { Containable } from '@saxonberg/server/mud/lib/spatial/Containable';
@@ -47,6 +47,7 @@ const PIECES_ROW = '/trade/tailoring/thing/pieces';
 const OFFCUT_ROW = '/trade/tailoring/thing/offcuts';
 
 interface CutModel extends CommandModel {
+  shears?: MqlManyResult;
   cloth: MqlOneResult;
   for?: MqlOneResult;
   tight?: boolean;
@@ -78,7 +79,7 @@ export default class CutController extends ManualBuildController<CutModel> {
     const pattern = model.tight ? 2 : model.generous ? 4 : 3;
     const allowance = model.tight ? 0 : model.generous ? 2 : 1;
 
-    const instrument = this.findCapability(giver, 'cutting');
+    const instrument = this.bestInstrument(model.shears, 'cutting');
     /*
      * ⭐⭐ **Coarse cutting costs CLOTH, and that is what the table is
      * for.** `cut` used to be afforded by the cutting table, so cutting

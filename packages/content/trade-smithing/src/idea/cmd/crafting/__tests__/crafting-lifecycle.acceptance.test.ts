@@ -41,6 +41,7 @@ import {
   standUpBranchHarness,
   makeContext,
   ref,
+  many,
   completeStep,
   makeLitForge,
   makeTool,
@@ -99,7 +100,8 @@ describe('the crafting lifecycle — craft → wield → wear → sharpen → re
       RecipeKnowledge.madeEntry('Belt Knife'),
     );
     ContainmentApi.move(makeTool('striking'), room);
-    ContainmentApi.move(makeTool('anvil'), room);
+    const anvil = makeTool('anvil');
+    ContainmentApi.move(anvil, room);
     const ingot = makeStuff(() => new Ingot());
     ingot.setMass(Quantity.of(0.5, 'kg'));
     ingot.setMaterial(
@@ -182,7 +184,7 @@ describe('the crafting lifecycle — craft → wield → wear → sharpen → re
     const repairCtx = makeContext(smith, room, 'repair knife');
     await executeAs(smith, () =>
       makeStuff(() => new RepairController()).execute(
-        { item: ref(knife, 'knife') } as never,
+        { item: ref(knife, 'knife'), kit: many(anvil) } as never,
         repairCtx,
       ),
     );

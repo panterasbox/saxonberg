@@ -18,6 +18,10 @@ args:
     type: object
     required: false
     scope: "reachable"
+    # ⭐ Bare `strain` works the build you are at — DECLARED, so the binder
+    # resolves it (held first) instead of the controller walking for it
+    # (`lint:instrument-args`).
+    default: "reachable:[mixin.ManualBuildMixin]"
     requires: ManualBuildMixin
   - name: glass
     type: object

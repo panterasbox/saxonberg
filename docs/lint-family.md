@@ -444,6 +444,76 @@ yet* — a missing atom, or a plural — rather than *this one is special*.
 could would be the worse lie. The gate watches for the walk, not the
 check.
 
+4. ⭐⭐⭐ **Twenty-six more were hiding behind a base class — the day
+   after the ratchet closed at zero.** A design conversation about the
+   capability vocabulary traced its consumers and found
+   `ManualBuildController.findCapability` and `findBuildVessel`: the
+   same walk, hoisted into the shared base so that **24 controllers
+   across seven packs** hunted through a method call the census could
+   not see. The walk had a shape the gate did not know — spread the
+   surroundings into an accumulator, then loop — and five more
+   controllers had written it directly (`eat`'s cutlery, `wash`'s water,
+   `dye`'s bath, `butcher`'s blade and block, `measure figure`'s book).
+   The gate learned the shape, the count went **0 → 13 → 0**, and every
+   fix was the same: a plural arg with a default, and the controller
+   narrowing on the one thing no predicate asks — best rate, clean,
+   holds water, holds dyestuff, bladed.
+
+   ⚠⚠ **And it found a shipped defect the walk had been covering.**
+   `hammer ingot` had *always* been refused — the arg said `requires:
+   DurableMixin`, which no `Ingot` satisfies — and the verb only ever
+   ran through the fallback walk, which the wire suite triggered by
+   naming a word (`glowing`) that matched nothing at all. A hunt is not
+   merely unaddressable; it hides the view being wrong, because the
+   view is never exercised.
+
+   ⭐ **A ratchet at zero is only as honest as the shapes it knows.** The
+   number had been reported as closed for a day while the pattern was at
+   its widest. The lesson is not "gates lie" — it is that a new gate's
+   first census is a hypothesis about what the antipattern looks like,
+   and the second reader should go looking for the shape it missed.
+
+### `lint:capabilities` — a capability kind is minted by a CONSUMER (2026-09)
+
+⭐ **The open vocabulary has a contract, and this is it.** A capability
+(`digging`, `anvil`, `shaker`) is the third axis of what a thing is —
+a mixin says what it IS, `commandContributions` says what it AFFORDS,
+`capabilities:` on a tool row says what it OFFERS, a role in somebody
+else's work. It is the only one of the three that is **row data**, which
+is the point: a realm's bespoke bone saw writes `capabilities: [cutting]`
+and the tailor's `cut` finds it, with no class and no kernel list edit.
+So the kernel keeps no list, and neither does this gate.
+
+What it keeps is the rule the openness rests on: **a kind exists because
+something consumes it** — a recipe slot (`toolCapabilities:`), a view's
+instrument arg (`[capability.X]`), or a controller's read
+(`hasCapability('X')`, `paceMs(…, ['X'])`). Instruments *declare* kinds;
+they never *mint* them. Two directions:
+
+1. **required-never-declared — ceiling 0, forever.** A recipe or verb
+   wants a kind no row and no class offers: a dish nobody can ever make.
+   It is the **data** link of the four reachability links and it fails
+   silently. The first run found one — `boil` paced on `['pot',
+   'cauldron']` and nothing anywhere offers `cauldron`, because a
+   cauldron row would declare `pot` (the *role*), which is the doctrine.
+2. **declared-never-consumed — census, then ratchet.** A row offers a
+   kind nothing asks for: a verb nobody has written yet, or a tag that
+   should come off. Shipped at **4** (`assay-scale`, `prying`, `winning`
+   in trade-mining; `watering` on the generic watering can). It may
+   fall, never rise.
+
+⭐ **The listing is the catalogue.** `pnpm -C packages/server
+lint:capabilities --list` prints every kind with who offers it and who
+wants it — the derived catalogue an author reads before minting
+`slicing` beside an existing `cutting`. It is generated from the census
+and never hand-maintained, so it cannot drift; the vocabulary stays open
+and stops being undiscoverable.
+
+⚠ Tests count for neither side. A fixture minting `blender` proves the
+mixin, not the vocabulary. And a consumer's argument must be a literal
+or a same-file `const` — a kind computed at runtime is not a kind the
+catalogue can show anyone.
+
 ### `lint:verb-collisions` — two views, one verb, and one of them is gone (2026-09)
 
 ⭐⭐ **The failure it exists for shipped, and nothing noticed.** The

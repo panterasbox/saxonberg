@@ -44,7 +44,7 @@
 
 import { ManualBuildController } from '@saxonberg/server/mud/platform/idea/cmd/crafting/ManualBuildController';
 import type { CommandContext, CommandModel } from '@saxonberg/server/mud/api/command';
-import type { MqlOneResult } from '@saxonberg/server/mud/api/mql';
+import type { MqlManyResult, MqlOneResult } from '@saxonberg/server/mud/api/mql';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import type Material from '@saxonberg/server/mud/lib/material/Material';
 import type { DyeApplication } from '@saxonberg/server/mud/lib/material/Dyed';
@@ -61,7 +61,7 @@ const TOPIC = 'act.deed';
 
 interface DyeModel extends CommandModel {
   target: MqlOneResult;
-  bath?: MqlOneResult;
+  bath?: MqlManyResult;
 }
 
 export default class DyeController extends ManualBuildController<DyeModel> {
@@ -81,7 +81,7 @@ export default class DyeController extends ManualBuildController<DyeModel> {
       this.declineStep(context, Mml.compose`Dye what?`, 'no-target');
       return;
     }
-    const bath = model.bath?.stuff ?? this.findBath(giver);
+    const bath = this.findBath(model.bath);
     if (!bath || !MixinApi.isBulkable(bath)) {
       this.declineStep(context, Mml.compose`There is no bath here to dip it in.`, 'no-bath');
       return;
@@ -212,14 +212,17 @@ export default class DyeController extends ManualBuildController<DyeModel> {
     });
   }
 
-  /** A reachable bath — held first, then the room. */
-  private findBath(giver: Stuff): Stuff | null {
-    const candidates: Stuff[] = [];
-    if (MixinApi.isContainer(giver)) candidates.push(...giver.getContents());
-    if (MixinApi.isContainable(giver)) {
-      const loc = giver.getContainer();
-      if (loc && MixinApi.isContainer(loc)) candidates.push(...loc.getContents());
-    }
+  /**
+   * The bath — a NARROWING over what the binder bound, not a search.
+   * `dye.yaml` declares `bath` with a `[mixin.BulkableMixin]` default, so
+   * bare `dye` arrives with every reachable vessel and the only question
+   * left is what is IN it (`lint:instrument-args`). A NAMED bath is taken
+   * as named, so the decline below can say what is wrong with it.
+   */
+  private findBath(bound: MqlManyResult | undefined): Stuff | null {
+    const candidates = (bound?.stuff ?? []).filter((c) => MixinApi.isBulkable(c));
+    if (candidates.length === 0) return null;
+    if (bound?.prep !== undefined) return candidates[0]!;
     for (const c of candidates) {
       if (!MixinApi.isBulkable(c)) continue;
       const slot = BulkableApi.slotFor(c, undefined);
