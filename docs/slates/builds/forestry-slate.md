@@ -477,6 +477,79 @@ three-pack chain). The law left the build (lens 2, the covenant). The
 stand-as-the-one-moving-thing entered it (lenses 1 and 2), and runtime
 land-use conversion was ruled out by the user. Nothing else moved.
 
+## Dimensions of a tree — what the design expresses, and what it leaves (2026-09-17)
+
+Run after the plan, when the user asked what *bigness* forces and
+whether every dimension of a tree has a home. The answers, and the
+gaps, so nobody re-derives them.
+
+### ⭐ A tree has three representations, and each answers different questions
+
+| representation | what it is | use it for |
+|---|---|---|
+| **a record** | a number in a stand — *twenty-four oaks* | inherited stock; anything never looked at singly |
+| **a slot-plant** | a real `Plant` in a bed slot, on the growth model | anything tended, cut or planted — *yours* |
+| **a prop** | a `Plant` (or a detail) propped in a room | the landmark oak, the hanging tree — scenery **by design**; never harvested, never a record |
+
+Every later question — can it burn, can I climb it, can a deer eat it,
+does it seed — has a different answer per representation. The forestry
+doc opens with this table.
+
+### Bigness — a tree is the first `Thing` whose product exceeds a body
+
+| what size forces | state |
+|---|---|
+| a standing tree cannot be carried, moved or contained; its slot is the ground | ✅ the panel's mass; the slot |
+| ⭐⭐ **felling leaves something on the floor nobody can lift** | ✅ **the bole** (decided 2026-09-17): the trunk lies where it fell, ~675 kg of oak; cross-cutting takes lengths off it one act at a time; it is the seam sawing attaches to and the sledge's first real load |
+| its lifetime exceeds the player's | ✅ inherit |
+| its number exceeds instancing | ✅ the record |
+| it is a *place* — things nest in it, hang from it, shelter under it | ⏸ the prop representation grows into this (a surface, a posture slot); a landmark must never be a record |
+| it changes the room — canopy light, late rain, sound | ✅ authored on the room/biome; the room *is* the canopy |
+| **it burns as a whole** | ❌ a forest fire is an operation on the record; nothing does it → fire-combustion |
+| **it has several products over a year** — bark (spring, the tanner), mast (autumn, the pigs), poles (winter), sap, resin | ❌ one harvest product per plant; the consumers are farmstead's and the tanner's |
+
+### The axes, and where each lives
+
+- **Leaf habit — deciduous · evergreen · marcescent** (oak and beech
+  hold dead leaves through winter). Lands on the growth profile's
+  `coldStopK`: deciduous stops cold, evergreen crawls. Winter light
+  under a bare canopy is a light-model tail, not a tree question.
+- **Conifer vs broadleaf** is a different axis and lands on the
+  *material* (softwood/hardwood = density + hardness; resin = heat of
+  combustion) and the species' `reproductiveMode` (cones vs flowers).
+- **Fruiting · flowering · fruitless · and dioecious.** The polycarp
+  latch covers *sets seed at maturity*. **Masting** (oak and beech seed
+  heavily some years and not others — why pannage was a gamble) is the
+  profile's own deferred *alternate bearing* dial. ⭐ **Willow and yew
+  are dioecious** — only the female seeds — and `Species.sexDeterminationSystem`
+  already says so; nothing reads it. A planted willow that never sets
+  seed is a derivable fact the engine has the data for and no mechanism.
+- **Seed vs sapling.** Real forestry plants two-year transplants from
+  a nursery. The pieces exist — a pot is a bed of one; `transplantDifficulty`
+  is on the growth model — so *acorn → pot → transplant → panel* is the
+  nursery ladder with no new engine **if** a seedling can be moved bed
+  to bed (verify; the plan plants seed directly for v1).
+- **Form — coppice · pollard · standard** are management states of an
+  *individual*, not species (a hazel can be a standard; pollarding is
+  the wood-pasture answer to grazing). A row per shipped form today
+  (`hazel-stool`, `oak-standard`); a **stamp on the instance** later,
+  the way fit stamps a garment. ⚠ Do not add `oak-stool.yaml` as the
+  third row — that is the signal to build the stamp.
+
+### Gaps the plan carries knowingly
+
+- **No age structure in the record** — standing, capacity and an
+  increment per species; *how old* is prose and the plantings list.
+- **Shade is asserted, not modelled** — *every standard you leave
+  shades the coppice beneath it* is the slate's sharpest sentence and a
+  standard in a panel lowers nobody's lux. v1 does not claim it in
+  prose; later, a standard in a panel lowers the panel's sampled light.
+- **Browse** — *grazing a wood stops it being a wood* wants a sixth
+  limiting factor that hunting and ranching drive.
+- **The bole is not persisted** and no act hauls it — a felled trunk
+  left in the wood is the wood's again after a restart, and moving one
+  is the transport pack's day.
+
 ## Scope guardrails
 
 - **Reuse the growth model.** `GrowingMixin` and `CultivableMixin` already run

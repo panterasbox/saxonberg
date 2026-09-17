@@ -407,9 +407,12 @@ starting in the fuel yard. Expect it to find things.
    species standing, how much timber is standing, and that the
    standards are old — planted by nobody alive.
 7. **Fell.** With the axe, `fell oak` (or `fell` and let the stand
-   answer). An engaged act over game time. It ends with **timber in
-   hand, made of oak**, and logs. Read the stand again — it is smaller
-   by one tree's worth.
+   answer). An engaged act over game time. It ends with **the trunk on
+   the ground** — a bole, made of oak, far too heavy to lift — logs
+   from the crown beside it, and an acorn in hand. Read the stand
+   again — it is smaller by one tree's worth. Then **cross-cut**: `fell
+   bole`, again over game time, and a length of green timber is in
+   your hands; the bole says how many lengths are left in it.
 8. **Shore with it.** Carry the timber down to the mine, `make timber
    set` (the shipped recipe), `shore`. The set is made of oak. The
    mine is a customer.
@@ -446,9 +449,10 @@ Observable from outside the code, by a player or an author.
 2. A player can read the stand and be told what species stand there,
    how much timber, how old, and — after a planting — who planted
    what and when.
-3. A player with the axe can fell a standard and end with timber and
-   logs made of the wood the stand said was standing; the stand reads
-   smaller afterward.
+3. A player with the axe can fell a standard, and what comes down is
+   too big to carry: a trunk on the ground, logs, a seed. Cross-cutting
+   the trunk, length by length, yields timber made of the wood the
+   stand said was standing; the stand reads smaller afterward.
 4. A player with the billhook can cut the yard's panel and any panel
    in the wood and end with cordwood made of hazel; the panel is
    ready again one game year after it was cut, and yields less if cut

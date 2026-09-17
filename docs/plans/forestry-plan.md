@@ -592,11 +592,10 @@ controller: /trade/forestry/idea/cmd/forestry/FellController
 description: "Fell a standard with an axe"
 validators: [requiresAnimate, requiresConscious, requiresEmbodied]   # the three /lib/command/validators paths
 args:
-  - name: target            # a planted standard you can see, OR a species word
-    type: object
-    required: false
-    scope: [reachable]
-    requires: GrowingMixin
+  - name: target            # the stand (by keyword), a bole, a planted
+    type: object            # standard, or a bare species word — polymorphic,
+    required: false         # so NO `requires:` here; the controller narrows
+    scope: [reachable]      # (revised 2026-09-17 — the bole)
   - name: axe
     type: object
     required: false
@@ -605,17 +604,22 @@ args:
     requires: ToolMixin
 ```
 
-`fell` — the room's stand, its most-standing species. `fell oak` — the
-word cannot bind (`oak` matches no Growing thing; the scan filters the
-Stand fixture out because it does not compose `GrowingMixin`,
-`CommandLogic.ts:2989`), so the controller reads `model.target.raw` as
-a species word against the stand's `mix[].name`. `fell sapling` — binds
-the planted `Plant` (D6) when it is mature. `with <axe>` names the
-instrument; when absent the controller takes the first reachable tool
-the giver *holds* with the `felling` capability (the `shore` shape,
-held first). ⚠ Not `requires: GrowingMixin|<something>` — an alternation
-deletes a check (project memory), and the fixture is reached as the
-room's environment, not as a target.
+**The target is polymorphic, so the view gates nothing on it and the
+controller narrows** (revised 2026-09-17 when the bole entered). Four
+things can stand in that slot and they share no mixin: the `Stand`
+fixture (bound by its keywords — `fell trees`, `fell oak` binds the
+fixture through its `oak` keyword and the controller reads
+`model.target.raw` for the species), a **`Bole`** on the floor (D4 —
+`fell bole` cross-cuts a length off it), a mature planted `Plant`
+(D6 — `fell sapling`), or a bare word that binds nothing (the binder
+lands `{stuff: null, raw}` on the model — `api/mql/types.ts:225-255`
+— and the controller treats `raw` as a species word). A `requires:`
+on this arg would refuse three of the four at the binder, and an
+alternation deletes a check (project memory), so there is none; the
+arg-gate test asserts the view declares **no** `requires` on `target`
+and `ToolMixin` on `axe`. `with <axe>` names the instrument; when
+absent the controller takes the first reachable tool the giver *holds*
+with the `felling` capability (the `shore` shape, held first).
 
 **The capability.** The felling-axe row gains `felling`:
 `capabilities: ["felling", "cutting", "striking"]`. `fell` narrows to
@@ -637,8 +641,29 @@ remaining seam — `MiningActController.engageAct` is `engageStep` plus a
 spend — leaves as a tail (§ Deferred seams).
 
 Constants: `FELL_MS = 30_000` game-ms (a cut takes longer than a
-pick-swing; 2.5 real seconds at 12×), `FELL_COST = 10` endurance points;
-`TIMBER_PER_STANDARD = 2`, `LOGS_PER_STANDARD = 4`, one seed.
+pick-swing; 2.5 real seconds at 12×), `FELL_COST = 10` endurance
+points; `CROSSCUT_MS = 15_000`, `CROSSCUT_COST = 5`;
+`LOGS_PER_STANDARD = 4` (the crown), one seed, and **one bole**
+carrying `BOLE_LENGTHS = 6` cross-cuts of timber.
+
+⭐⭐ **The bole — bigness, decided (user, 2026-09-17).** A standard oak
+is tonnes, and a tree is the first `Thing` whose product exceeds a
+body. Felling therefore does NOT collapse the tree into pocketable
+pieces: it drops **one bole** on the room floor — the felled trunk as a
+single loose object, mass = the species' wood density × `BOLE_M3 = 0.9`
+(oak ≈ 675 kg; can't-budge is emergent from mass, never a flag) — and
+**cross-cutting is a second act** on that object: `fell bole` takes one
+length of timber off it per engagement until its `lengthsLeft` reaches
+zero, at which point the butt and brash are destructed with prose
+(*"what is left is a knotted butt and a heap of brash, and the wood can
+have it back"*). The bole's mass drops by each length taken. What a
+forester with an axe gets from a tree is six mine-grade lengths; what a
+sawyer gets from the same bole is boards — the bole on the ground IS
+the seam `trade-sawing` attaches to, and it is what the transport
+pack's sledge and dray exist to move (no haulage act ships here; a bole
+where it fell is honest). ⚠ A bole is not persistable: left on a
+non-persistable room floor it is lost at restart, like every loose
+thing in such a room; the drive's restart step does not depend on one.
 
 Flow (`execute`): resolve the axe (arg, else held-first) → the target:
 (a) `model.target.stuff` is a `Growing` plant → it must be `mature`, and
@@ -657,35 +682,57 @@ with the spend before it.
 `fellStandard` (module-level, opens with `isDestroyed()` check): re-read
 the record; `registry.cut(standId, speciesPath, nowS)` (which re-derives
 and refuses if it derived to `< 1` meanwhile — a concurrent cut — with
-the same *nothing left* line); mint `TIMBER_PER_STANDARD` clones of
-`/trade/forestry/thing/timber` and `LOGS_PER_STANDARD` of
-`/trade/forestry/thing/log`, `setMaterial(woodMaterial)` on each
-(`Tangible.setMaterial`, the material resolved through
-`StuffApi.singleton<Material>(sp.woodMaterialPath)`), one clone of
-`sp.seedPath` when non-null; move timber + seed into the giver, logs
-onto the room floor (four logs exceed what a person carries beside two
-lengths of green oak — the encumbrance gauge decides, not the verb);
-`stampChattel(giver)` on each; scene *"The oak goes over with a crack
-you feel in your feet. You cross-cut it where it lies: two lengths of
-timber, four logs, and an acorn out of the crown."*; credit
-`silviculture` `standard` (a felling is one act of judgment; the ground
-does not grade it). `fellPlanted`: `StuffApi.destruct(plant)` (vacating
-its slot through `Cultivable.vacate`), the same mint with the material
-from the plant's species → the stand's `mix` entry (or, for a planted
-tree outside any stand, the plant's own `standardMaterialPath`, D6),
-`registry.removePlanting(plantKey)`, capture the panel.
+the same *nothing left* line); mint **one** `/trade/forestry/thing/bole`
+(`setMaterial(woodMaterial)`, `setMass(density × BOLE_M3)`,
+`lengthsLeft = BOLE_LENGTHS`) onto the room floor, `LOGS_PER_STANDARD`
+clones of `/trade/forestry/thing/log` with the same material onto the
+floor, and one clone of `sp.seedPath` into the giver's hands
+(`Tangible.setMaterial`; the material resolved through
+`StuffApi.singleton<Material>(sp.woodMaterialPath)`); `stampChattel(giver)`
+on each; scene *"The oak goes over with a crack you feel in your feet
+and lies there, the whole length of it, too much for any one back. Four
+logs come off the crown, and an acorn."*; credit `silviculture`
+`standard` (a felling is one act of judgment; the ground does not grade
+it). `crosscut` (module-level, the bole form): `engageStep` at
+`CROSSCUT_MS`; on complete, if the bole is destroyed return; mint one
+`/trade/forestry/thing/timber` with the bole's material into the giver,
+`bole.takeLength()` (decrements `lengthsLeft`, reduces mass by the
+timber's mass); at zero, `StuffApi.destruct(bole)` with the brash line;
+credit `silviculture` `easy`. `fellPlanted`: `StuffApi.destruct(plant)`
+(vacating its slot through `Cultivable.vacate`), the same bole + logs +
+seed mint with the material from the plant's species → the stand's
+`mix` entry (or, for a planted tree outside any stand, the plant's own
+`standardMaterialPath`, D6), `registry.removePlanting(plantKey)`,
+capture the panel.
 
 Refusals are diegetic and noted (`controller-rejected` with the reasons
 above). No deed gate — felling is labour (`MiningActController`'s own
 ruling).
 
-### D4 — timber, log, seed: three product rows, material stamped at the mint
+### D4 — bole, timber, log, seed: four product rows, material stamped at the mint
+
+- `/trade/forestry/thing/bole` — `class: /trade/forestry/thing/Bole`,
+  a pack class `trade-forestry/src/thing/Bole.ts` =
+  `DetailedMixin(Thing)` with one own field (`fieldMeta`, persistent +
+  authorable) `lengthsLeft: number` and one mutator `takeLength(): number`
+  (`@Final`; decrements, drops the mass by `TIMBER_MASS`, returns what
+  is left). `shortDescription: felled trunk`, `keywords: [bole, trunk,
+  tree, log, felled]`, `register: indefinite`, `_materialPath: …/wood/oak`
+  (restamped at the mint), `mass: 675` (restamped), `lengthsLeft: 6`.
+  ⭐ `static commandContributions = { self: ['trade/forestry/cmd/forestry/fell.yaml'], environment: [], peers: [] }`
+  — **the bole affords its own cross-cut**, so a bole dragged to the
+  yard one day is still cross-cuttable there without the stand fixture
+  in the room. `markupAugmenter`: *"six lengths in it yet"* / *"one
+  length left"*. What composing it claims: a bole is a Thing (Tangible,
+  Containable — it can in principle be loaded, which is the haulage
+  seam; Chattel — it is somebody's), and nothing else.
 
 - `/trade/forestry/thing/timber` — `class: /platform/thing/Thing`
   (`packages/server/src/mud/platform/thing/Thing.ts` — the concrete
   twin; Tangible carries material + mass), `shortDescription: length of green timber`,
-  `keywords: [timber, length, log, wood, round]`, `_materialPath: …/wood/oak`
-  (the default; the mint restamps), `mass: 24`. Satisfies
+  `keywords: [timber, length, wood, round]`, `_materialPath: …/wood/oak`
+  (the default; the mint restamps), `mass: 24` (`TIMBER_MASS`; six of
+  them come off a bole, one per cross-cut). Satisfies
   `timber-set`'s `category: wood, minGrade: poor` through the material's
   tag and the ungraded-reads-`fair` rule. Not `Crop` — nothing grew it in
   a bed; not `Provision` — wood does not spoil.
@@ -1187,8 +1234,17 @@ boot.
 
 ### D20 — docs
 
-`docs/subsystems/forestry.md` (new): the stand (record, memo, derive on
-read, the cut, the increment from zero), `fell`, the panel (persistable
+`docs/subsystems/forestry.md` (new): ⭐ **opens with the three
+representations of a tree** — a *record* (inherited stock, never
+looked at singly), a *slot-plant* (tended, cut, planted, yours), a
+*prop* (a landmark; scenery by design) — and which of the tree's axes
+lives where (leaf habit → the growth profile's `coldStopK`; conifer vs
+broadleaf → the material's numbers + the species' `reproductiveMode`;
+form — coppice · pollard · standard — a row per shipped form today, a
+stamp on the instance later); then the stand (record, memo, derive on
+read, the cut, the increment from zero), `fell` and the bole (bigness:
+a tree's product exceeds a body, so the trunk lies where it fell and
+cross-cutting is labour), the panel (persistable
 singleton, ready-on-boot authoring, the ready line), coppice with
 standards (the slot arithmetic, the deed written by the ground), the
 wood vocabulary table with its numbers, the charcoal arithmetic, the
@@ -1243,6 +1299,7 @@ the light tail. § Deferred seams has the pointers.
 | `standardMaterialPath` | `Plant` (kernel class) | a plant may name the wood a felled one is made of; `null` = not a standard | not on `GrowingMixin` (a felled thing is a Plant-shaped question — `seedTemplatePath`'s host) |
 | `tool` arg | `harvest.yaml` (kernel view) | the cut may name its instrument | the instrument-is-an-argument rule |
 | `epoch` | `ToolMixin` (kernel) | every tool has an epoch (`''` = unstated) | not a tag (no tool tag vocabulary); not on `CapabilitySpec` (closed, and per-capability is wrong) |
+| `Bole` (`DetailedMixin(Thing)`) + `lengthsLeft` | `trade-forestry/src/thing/`; the row in `trade-forestry/content/` | a felled trunk is a Thing that knows how many lengths are left in it, and affords its own cross-cut | not a `Firewood` (a bole is not fuel until it is logs); not a `Crop` (nothing grew it in a bed); not a counter on the room (a bole moves, in principle) |
 | `felling` capability | the felling-axe **row** | a felling axe fells; a billhook does not | not `cutting` (a knife would fell an oak) |
 | `fell` view + `FellController extends ManualBuildController` | `trade-forestry/content/…/cmd/forestry/` + `src/idea/cmd/forestry/` | the trade's act, on the kernel's engaged-act base | not a `ForestryActController` copy (the seam is the kernel base that already exists); not a stanza (it is a verb, not a channel) |
 | `timber`, `log`, `cordwood`, seeds, `hazel-stool`, tools, recipes, `silviculture` | `trade-forestry/content/` | the producer trade owns its products, its stool, its instruments and its Discipline | not `trade-fuel` (a customer); not `rejection` (a second wood grows the same hazel) |
@@ -1439,20 +1496,31 @@ moved path; `lint:verb-collisions` unchanged; `lint:perishable` green.
   `content/trade/forestry/idea/cmd/forestry/FellController.yaml`,
   `src/idea/cmd/forestry/FellController.ts` (D3) + `FellController.test.ts`
   (refusals `no-stand`, `no-axe`, `wrong-tool`, `stand-empty`,
-  `not-a-standard`; a cut mints 2 timber + 4 logs + 1 seed with the
-  species' material and draws the record down by one; the completion
-  survives a destroyed giver; the credit) and an arg-gate test
-  (`fell.yaml`'s `target` requires `GrowingMixin` — `Plant` composes it;
-  `axe` requires `ToolMixin` — `ToolItem` composes it).
-- Rows: `thing/timber.yaml`, `thing/log.yaml`, `thing/seed/{acorn,ash-key}.yaml`
-  (D4), `idea/Discipline/silviculture.yaml` (D17).
+  `not-a-standard`; a felling drops ONE bole of the species' material
+  and mass + 4 logs on the floor and a seed in hand, and draws the
+  record down by one; `fell bole` ×6 yields six timber and destructs
+  the bole, its mass falling each time; the completion survives a
+  destroyed giver and a destroyed bole; the credits) and an arg-gate
+  test (`fell.yaml`'s `target` declares NO `requires` — the slot is
+  polymorphic; `axe` requires `ToolMixin` — `ToolItem` composes it;
+  and the four things that may stand in `target` are each reachable
+  through the view: the fixture by keyword, a `Bole`, a `Plant`, a raw
+  word).
+- `src/thing/Bole.ts` (D4) + `Bole.test.ts` (`takeLength` to zero; the
+  augmenter's count; the self-affordance of `fell`).
+- Rows: `thing/bole.yaml`, `thing/timber.yaml`, `thing/log.yaml`,
+  `thing/seed/{acorn,ash-key}.yaml` (D4), `idea/Discipline/silviculture.yaml`
+  (D17).
 - A temporary in-test stand row only; the Hanging Wood's row is W5.
 
 **Acceptance.** Under `test-bootstrap`, a room propping a Stand: `fell`
-is in the afforded verbs; `fell` → 30 game-s → products; twenty-four
-cuts later `fell oak` refuses in words about the wood; the log lights
-(`Firewood` over `wood/oak` — `ignite` in a unit test); the timber
-matches `timber-set` (`CraftingApi` match test over the recipe).
+is in the afforded verbs; `fell` → 30 game-s → a bole of ~675 kg on the
+floor, four logs, an acorn in hand; `fell bole` → 15 game-s → one
+timber, six times, then the bole is gone; twenty-four fellings later
+`fell oak` refuses in words about the wood; the log lights (`Firewood`
+over `wood/oak` — `ignite` in a unit test); the timber matches
+`timber-set` (`CraftingApi` match test over the recipe); `fell` is
+afforded standing beside a bole with no stand fixture in the room.
 
 **Commit.** `build(forestry W3): the stand is a filed record you can read and cut to nothing; fell`
 
@@ -1544,7 +1612,8 @@ MR.
 |---|---|---|---|---|---|
 | the stand record | none (a record) | — | the `stand` kind in `DocumentKinds` (W0); the registry row `/trade/forestry/idea/StandRegistry`; the `/trade/forestry` title claim (else `saveToRegister` throws on owner) | the registry is minted by the first `Stand.postRegister` through `StuffApi.singleton` — nothing warms it earlier, and nothing needs to (every fixture warms the memo) | — |
 | reading the stand | `look` (platform) | the fixture is in the room's contents; its keywords | the venue stand row's `mix` | each fixture `postRegister` awaits `read(standId)` — a cold memo renders the authored line and nothing else; the W5 test asserts the derived line is present after boot | — |
-| `fell` a standard | `trade/forestry/cmd/forestry/fell.yaml` | `Stand.commandContributions` (environment + peers) and `Panel.commandContributions` (peers) — **a class static; a row's `commandContributions:` is dead silently** | the `FellController.yaml` registration row; the felling-axe row's `felling` capability; the `timber`/`log`/seed rows; the stand row's `woodMaterialPath` + `seedPath` | the pack in the root manifest + `pnpm install`; the DB dropped after W2 | `target` requires `GrowingMixin` (a `Plant` composes it; the fixture is filtered out at scan and the word falls through as `raw`); `axe` requires `ToolMixin` (`ToolItem` composes it). The arg-gate test in W3 pins both |
+| `fell` a standard | `trade/forestry/cmd/forestry/fell.yaml` | `Stand.commandContributions` (environment + peers) and `Panel.commandContributions` (peers) — **a class static; a row's `commandContributions:` is dead silently** | the `FellController.yaml` registration row; the felling-axe row's `felling` capability; the `timber`/`log`/seed rows; the stand row's `woodMaterialPath` + `seedPath` | the pack in the root manifest + `pnpm install`; the DB dropped after W2 | `target` declares NO `requires` (polymorphic: the fixture binds by keyword, a bole, a plant, or a bare word landing as `raw`); `axe` requires `ToolMixin` (`ToolItem` composes it). The arg-gate test in W3 pins both |
+| cross-cutting a bole | same view | `Bole.commandContributions.self` — the bole affords its own cut, wherever it lies | the bole row; `lengthsLeft` | — | the bole binds to `target` by keyword |
 | `fell` a planted standard | same view | same | the `oak-standard` row (`harvestTemplatePath: null`, `discipline: silviculture`, `standardMaterialPath`) | — | the plant binds to `target` |
 | the coppice cut | `harvest`/`pick` (platform) | `CultivableMixin.commandContributions.peers` — inherited by `GardenBed`, **re-declared on `Panel`** (an own static shadows the composed list) | the stool row's `harvestTool: cutting` + `discipline` + D9's ready fields; the billhook row's `cutting`; `cordwood` (`Crop`, hazel) | the panel row is minted through `singleton()` because `Panel` composes `SingletonMixin` — restore-or-seed; a `Panel` that lost `SingletonMixin` would clone fresh every boot and the W2 round-trip test would not see it (it materializes by hand) — the W6 drive's step 13 is the only witness | `harvest.yaml`'s `tool` requires `ToolMixin`; `target` requires `GrowingMixin|CultivableMixin` (unchanged; a `Panel` composes `CultivableMixin`) |
 | planting a standard | `plant`/`sow` (platform, unchanged) | Cultivable's `plant.yaml` via `Panel`'s static | the acorn row (`growsIntoPath`); the panel's free slots (capacity 8, six seated); soil in the panel (`interiorBulk` + reserves as the yard's); **the title's `landUse` admitting cultivation (D13)** | the register + memo as above | `seed` requires `PlantableMixin` (`Seed` composes it); `pot` requires `CultivableMixin` (`Panel` does) — **not widened** |
@@ -1613,8 +1682,11 @@ Steps, each an `it`:
    the smoke detail.
 6. `look trees`: oak twenty-four, ash twelve, *planted by nobody alive*.
 7. `get axe` (back in the yard first, or the drive carries it up);
-   `fell oak with axe`; `awaitActivity`; timber ×2 in hand made of oak,
-   an acorn, logs on the floor; `look trees`: twenty-three.
+   `fell oak with axe`; `awaitActivity`; a bole on the floor made of
+   oak (`queryOne` mass ≈ 675), four logs on the floor, an acorn in
+   hand; `look trees`: twenty-three. Then `fell bole` ×2;
+   `awaitActivity` each; two timber in hand made of oak; `look bole`:
+   *four lengths in it yet*.
 8. Carry the timber down; `make timber set` at the provisioning shed's
    bench (the shipped recipe; the tool with `cutting` is the billhook in
    hand); `queryOne` the set's material = oak; `shore` in the timbered
@@ -1671,7 +1743,11 @@ waves; **`pnpm test` exactly once before the MR opens**, and once at
    boots once per run). W2's materialize round-trip is the unit proof;
    the drive record must carry a hand-run restart between two runs.
    AC 8 is otherwise unwitnessed by the suite.
-4. **`Stock` is persistable but not singleton**, so a Stock counter in
+4. **A bole is lost at restart** (a loose thing on a non-persistable
+   floor) and can be left anywhere; neither is a defect — a felled
+   trunk nobody cross-cut is the wood's again — but the drive's restart
+   step must not depend on one, and `forestry.md` says so.
+4b. **`Stock` is persistable but not singleton**, so a Stock counter in
    a non-persistable room does not restore — the same shape the panel
    had. Not this build's; recorded for whoever finds a shop that
    forgets its consignments after a bounce.
@@ -1747,6 +1823,18 @@ Clean attach points; each leaves as a slate line, never a plan section.
   `trade-fuel`'s README seam, unchanged.
 - **Cordwood as a stack** (`Stackable`) → bulk/stacks tail; eight
   discrete `Crop`s today, as the yard already had.
+- **What the tree-dimensions pass (2026-09-17) left for later** — each
+  a slate line in forestry-slate § Dimensions of a tree: fire on the
+  record (a wood's second way to die); multi-product plants (bark ·
+  mast · sap · resin — one harvest product per plant today); masting
+  (the profile's own deferred *alternate bearing* dial); a reader for
+  `Species.sexDeterminationSystem` (a dioecious willow that never
+  seeds — the data ships, nothing reads it); shade (a standard in a
+  panel lowering the stools' lux — asserted in the slate, not
+  modelled); browse (a sixth limiting factor, hunting's/ranching's);
+  form as an instance stamp; the nursery ladder (acorn → pot →
+  transplant — `transplantDifficulty` exists; verify a seedling moves
+  bed to bed); hauling the bole (the sledge's first real load).
 - **Planted standards joining the stand's count at maturity** — today
   a planted tree is felled as itself (`fellPlanted`) and the record
   carries it as a planting; folding a mature planting into `mix[].standing`
