@@ -181,15 +181,20 @@ function capturePlacement(host: Stuff): HostPlacement | null {
   // A nested host — one sitting anywhere inside another persistable host's
   // tree — is placed by its REFERRER (the ancestor whose container slice
   // holds its `{ref, key}` entry), so its own `place` would fight that
-  // (and could phantom-clone a stale container template on restore). A
-  // HasInteractive host (an avatar) is exempt: the container slice filters
-  // it out, so nothing refs it and its own `place` stays load-bearing.
-  if (
+  // (and could phantom-clone a stale container template on restore).
+  // ⚠ The exemption is exactly the container slice's own SKIP LIST
+  // (`ContainerMixin.captureSlice`): a HasInteractive host (an avatar) and
+  // an owner-persisted chattel (a named animal — it persists with its
+  // owner's estate, never in the room's slice) are filtered out of every
+  // ancestor's slice, so nothing refers to them and their own `place` is
+  // the only record of where they stand. Before the chattel arm, a pinned
+  // cat in a bedroom captured NO placement and the pin roll stood it up
+  // nowhere (found by the pets build's D22 test, not live).
+  const referredByAncestor =
     !MixinApi.isHasInteractive(host) &&
-    nearestPersistableHost(env) !== null
-  ) {
-    return null;
-  }
+    !(MixinApi.isChattel(host) && host.isOwnerPersisted()) &&
+    nearestPersistableHost(env) !== null;
+  if (referredByAncestor) return null;
   // A KEYED host container (a holding's room — residences D16): record
   // `(scope, key)` so restore re-enters the exact room through the
   // owning institution, never a fresh clone of the shared row.

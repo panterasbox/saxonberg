@@ -36,6 +36,8 @@ import { ChattelMixin } from "../Chattel";
 import { EstateMixin } from "../Estate";
 import { ContainerMixin } from "../../spatial/Container";
 import { ContainableMixin } from "../../spatial/Containable";
+import { ContainmentApi } from "../../../api/containment";
+import { PersistedRecord } from "../../persistence/PersistedRecord";
 import { PostRegistrationMixin } from "../../stuff/PostRegistration";
 import { Idea } from "../../stuff/Idea";
 import PersistentHydrator from "../../../platform/idea/persistence/PersistentHydrator";
@@ -48,6 +50,7 @@ import {
   ESTATE_STORAGE,
 } from "../../persistence/PersistenceSlice";
 import type { Stuff } from "../../stuff/Stuff";
+import type { Container } from "../../spatial/Container";
 import type { FieldMeta } from "../../mixin";
 
 const TORCH_PATH = "/obj/test/Torch";
@@ -73,6 +76,16 @@ class Heirloom extends PersistableMixin(
 ) {
   static fieldMeta: FieldMeta = {};
 }
+
+/** A room that persists ITSELF — a bedroom, a leased unit. */
+class PersistentRoom extends PersistableMixin(
+  ContainerMixin(PostRegistrationMixin(Idea)),
+) {
+  static fieldMeta: FieldMeta = {};
+}
+
+/** A room that does not — a public lane. */
+class PlainRoom extends ContainerMixin(Idea) {}
 
 /** An owner: a persistable container that carries an estate. */
 class Owner extends PersistableMixin(
@@ -350,5 +363,46 @@ describe("⭐ the owner's login is the other ask — and it resolves first", () 
     expect(
       MixinApi.isPersistable(live[0]!) && live[0]!.getPersistenceKey(),
     ).toBe("k-mouse");
+  });
+});
+
+describe("⭐ a pinned good remembers its room even when the ROOM persists itself", () => {
+  // `capturePlacement` nulls a nested host's own placement because the
+  // ancestor's container slice carries a `{ref, key}` for it — but a
+  // chattel is SKIPPED from that slice (it persists with its owner), so
+  // nothing refers to it and its own `place` is the only record of where
+  // it stands. Without this the pin roll stood a bedroom cat up NOWHERE.
+  async function placeOf(room: Stuff): Promise<unknown> {
+    const alice = makeOwner();
+    const pet = makeStuffAtPath(() => new Pet(), PET_PATH);
+    ContainmentApi.move(pet, room as Stuff & Container);
+    await pet.stampChattel(alice);
+    pet.setPersistenceKey("k-mouse", true);
+    await pet.setChattelPlace(PersistableApi.placeIdOf(pet as Stuff));
+    await PersistableApi.capture(pet);
+    const recs = await PersistedRecord.findByScope(PET_PATH);
+    return recs[0]?.getPlace() ?? null;
+  }
+
+  it("in a public room: the room's identity", async () => {
+    const lane = makeStuffAtPath(() => new PlainRoom(), LANE_ID);
+    expect(await placeOf(lane)).toEqual({ container: LANE_ID });
+  });
+
+  it("in a self-persisting room: still the room's identity, not null", async () => {
+    const bedroom = makeStuffAtPath(
+      () => new PersistentRoom(),
+      "/test/world/Bedroom",
+    );
+    expect(await placeOf(bedroom)).toEqual({ container: "/test/world/Bedroom" });
+  });
+
+  it("in a KEYED room (a leased unit): scope + key, so restore re-enters the exact unit", async () => {
+    const unit = makeStuffAtPath(() => new PersistentRoom(), "/test/world/Unit");
+    unit.setPersistenceKey("unit-9", true);
+    expect(await placeOf(unit)).toEqual({
+      container: "/test/world/Unit",
+      containerKey: "unit-9",
+    });
   });
 });
