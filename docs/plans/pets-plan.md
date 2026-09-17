@@ -792,6 +792,45 @@ deletion of `KeptAnimalRegistry` and `findWithLayer`, and the
 
 ---
 
+### D23 — The offer is a moment: the animal asks, decides, and steps back
+
+⚠⚠ **Added 2026-09-17, review round 8.** The user asked how offering food
+plays out — *"the other end of it is the animal brain having needs,
+recognizing food satisfies that need, and balancing reward with risk based
+on the level of trust you have with it"* — and whether the build captured
+it, run through the lenses.
+
+**Verdict (lens pass).** Pedagogy held (derivable, no roll). Immersion
+**failed the doc's own failing pattern**: *"the fiction asserted in prose
+that the model doesn't back"* — "it waits until you step back" over a brain
+that ate on cadence with you standing there. Gamification: the ledger held
+real lessons (need paces the bond; naming is a commitment; home follows
+care; title without care is a word) and **none were choices the player
+met** — a better gamer optimises the ladder, a better owner has been made
+to choose. The MR was owner-centred: five verbs done TO a passive animal.
+
+**The user's thesis, refined:** *owning a pet is about its needs, not the
+owner's* — as a lesson you cannot ship, only force. The choice to force is
+where its needs and your convenience conflict. So: **the animal presents
+its needs, and the verbs become responses.**
+
+**Built, and no reptilian brain:** the appraisal is a deterministic
+function of three measured things — need, trust (regard + handling, per
+person), species — with a closed vocabulary of things it DOES:
+
+- `Bonded.offerRung(person)` → `hand` · `approach` · `after-you-go`.
+- `OfferEngagement` — the `approach` rung is the taming scene (hold still
+  `APPROACH_MS`; it comes and takes it; move and it does not).
+- `feeds` **steps back** (`feelsSafeToEatAmong`) and **asks** (goes to
+  whoever is present — the one it likes best; says so once; `look` shows
+  it at your feet). ⚠ Only a stamped animal asks (the guard).
+- Need paces the bond: a hand-feed's regard scales with the deficit.
+- The user decided: **begs from whoever is present** — a cat that begs
+  from strangers is honest about cats and slightly changes what `mine`
+  means.
+
+---
+
 ### D22 — The residency pin: the load half, on the object, rolled once at boot
 
 ⚠⚠ **Added 2026-09-17, in review.** The user: *"the cat loads whenever
@@ -1857,6 +1896,52 @@ Read first, in this order:
 ---
 
 ## Drive record
+
+✅ **Round 8, 2026-09-17 — the offer as a moment (D23), driven live and
+graduated: `packages/wire/tests/pets-offer.dirty.wire.test.ts`, 7/7 on
+a world the suite booted.** Real rations bought at the general store with
+founder-issued coin, banked; a real cat on the lane.
+
+| beat | seen |
+|---|---|
+| born hungry (satiation **30**), flighty, stranger's hand | *"You set a wrapped ration pack down. It waits until you step back."* — **still there** after a cadence with me present; I step out and back: **gone**; handling 0.25 → 0.26 |
+| wary, stranger | `engagement-started` — *"You hold a wrapped ration pack out and keep still. a thin cat watches your hand."* — 7s later regard **+5**, need-paced (it was half-full) |
+| wary, walk out mid-beat | the ration is still in my hand; regard unchanged |
+| named, starved | `look Mouse` → *"It is at your feet, looking up at you."*; `look cat` still reaches her |
+
+⚠⚠ **What the drive found — three shipped defects and a modelling lie**,
+none visible to a refusal-shaped assertion:
+
+1. **`Bonded.postRegister` never ran on a live animal.** `PostRegistrationMixin`
+   sat between `Behaved` and `Bonded` in `KeptAnimal`, and its
+   `postRegister` is a terminal no-op that never calls `super`. No home was
+   ever seeded; the `homes` brain had nowhere to go. Moved innermost;
+   `KeptAnimal.postRegister.test` walks the shipped stack.
+2. **No animal's species was ever warmed.** `requiresAnimate` warms the
+   ACTOR's; `getSpecies()` is a live-only lookup; so `feedingStyle`,
+   `biddability` and `handlingRange` all read as ABSENT live — `offer`
+   answered `no-hand-rung` to a cat. A bonded animal warms its own at birth.
+3. **A named animal lost its keywords** — `look cat` found nothing the
+   moment she was Mouse. An organism's targeting handles were only what
+   the viewer perceived; an animal keeps its authored keywords, a person
+   (a hood) still does not.
+4. **The "thin" stray was born at satiation 100** and, under the `feeds`
+   guard, never got hungry — the bottom rung was unreachable on the lane
+   for a second reason. `reserves` is engine-written, so the class seeds
+   an UNKEPT animal at `BORN_HUNGRY_SATIATION`.
+
+⚠ **Not this build's, found on the way:** every test-login character
+**leaves its aether implant in the room it walks out of** — on every
+traversal, in every room, and on this branch's HEAD *before* today's
+changes (the movement path is byte-identical to master). Likely chain:
+the cranial `occupy` fails silently at login (the species not warm — the
+same trap as #2, on the avatar), the implant stays loose in inventory,
+and traversal leaves a not-portable thing behind. Offered as a finding.
+
+⚠ **A census for the sweep:** eleven other stacks compose
+`PostRegistrationMixin` above a layer — `FixtureMixin`, `Character` —
+that may define its own `postRegister`. Defect #1's shape is a lint:
+*`PostRegistrationMixin` must never wrap a base that already has one.*
 
 ✅ **Re-run 2026-09-17 (fourth) — the restart half, driven for the first
 time.** Every earlier run was one boot; step 25's restart had stayed in
