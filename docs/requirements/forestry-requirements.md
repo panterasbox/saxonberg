@@ -90,11 +90,15 @@ customers of. Everything that *consumes* wood already ships.
   under the canopy at noon, dark at night, birdsong and leaf-litter,
   the collier's smoke visible from its edge), with a handful of
   authored clearings and rides and nothing generated.
-- **The wood has one stand**, a filed record a player can read: which
-  species stand there, how much timber is standing, how old the
-  standards are, and — after somebody plants one — who planted it and
-  when. The record is common land of the settlement, so what is taken
-  from it is taken from everybody.
+- **Each clearing of the wood is ground, and its standing timber is a
+  stand on it** — readable by anyone standing there: which species
+  stand here, how much timber, how old the standards are, and — after
+  somebody plants one — who planted it and when. The wood is the sum
+  of its clearings (revised 2026-09-17: roots go *into* the ground, so
+  the ground carries the stand — the field's shape, not a filed
+  record; nothing reports the wood's total in this build). The wood is
+  common land of the settlement, so what is taken from any clearing is
+  taken from everybody.
 - **A player can fell a standard** with an axe, over game time,
   exercising a Discipline, and walk away with timber the mine can shore
   with and logs a hearth can burn — and the stand is smaller for it.

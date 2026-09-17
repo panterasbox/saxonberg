@@ -4,8 +4,9 @@
 > 2026-09-17** (§ below) and the open questions decided; the
 > `trade-fuel` coppice panel is the accidental head start.
 > **Left:** the `trade-forestry` pack (column one of the chain — growing
-> and felling only) · the authored wood over ONE stand record ·
-> the stand-as-record · grown-plant authoring ·
+> and felling only) · each clearing IS ground and its stand is a
+> cover on it (the field's shape, decided 2026-09-17) · felling and
+> the bole · grown-plant authoring ·
 > the compressed rotations, set end to end · the wood species rows · the
 > silviculture Discipline · the wood above Rejection · instrument
 > `epoch` stamps
@@ -370,10 +371,14 @@ So:
   nothing carves rooms at runtime, and nothing turns a wood into a field
   or a field into anything else. If authors ever want conversion of land
   use at runtime, that is a system built then, on request — not here.
-- **The stand record is the one dynamic thing** — species mix and
-  standing volume over the wood, drawn down by felling and restored by
-  the increment, persisted the way the platform already persists a
-  holder. Its terminal state is **an empty forest**: the prose still
+- **The stand is the one dynamic thing** — species mix and standing
+  timber, drawn down by felling and restored by the increment. ⭐
+  Revised 2026-09-17: it is not a filed record but **a cover on the
+  ground**, the way a field's sward is — each clearing is a persistable
+  location that IS soil (a sky edge, a moisture ledger), and its stand
+  is a mixin on the room, so rain and drought reach the trees and
+  `look` reads it as the room's own prose. A wood is the sum of its
+  clearings. Its terminal state is **an empty forest**: the prose still
   says trees, the record says there is nothing left to cut, and the
   collier's baskets stop filling. That is the whole deforestation lesson
   and it needs no conversion — a depleted seam is still a mine, and the
