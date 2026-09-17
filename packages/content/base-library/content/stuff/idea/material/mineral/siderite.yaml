@@ -1,0 +1,35 @@
+# Siderite — FeCO3. The iron carbonate that lies BELOW the water table
+# where goethite's weathered cap gives out.
+#
+# ⚠ It ships for the same reason chalcopyrite does, and nothing this
+# build mines it: so the survey's honest inference — that the fringe
+# keeps going down into unweathered carbonate — has a real referent in
+# the deposit rather than a promise in the prose. Reaching it wants a
+# shaft, a pump and a drainage commons, which is Stage B.
+#
+# One iron in a 115.854 g/mol formula unit is 0.4820 by mass: leaner
+# than the gossan above it, which is the ordinary shape of a weathered
+# cap — the rain took the rock away and left the metal behind.
+class: /platform/idea/material/Material
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  name: siderite
+  keywords: [siderite, spathic-iron]
+  appearance: pale brown spar
+  density: 3900
+  specificHeat: 680
+  thermalConductivity: 3.0
+  electricalConductivity: 1.0e-8
+  waterAbsorptionCapacity: 0.3
+  # Mohs 3.5-4.5 — softer than the gossan it underlies.
+  hardness: 250
+  toughness: 12
+  edibility: false
+  nutrients: ["iron"]
+  toxicity: []
+  tags: ["mineral", "carbonate", "ore", "iron", "primary", "below-water-table"]
+  composition:
+    - { materialPath: /stuff/idea/material/element/iron, fraction: 0.4820 }
+  formula: FeCO3
+  molarMass: 115.854
+  biologicalSource: null

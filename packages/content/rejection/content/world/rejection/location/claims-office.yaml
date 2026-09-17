@@ -19,6 +19,11 @@ data:
   exits:
     south:
       destination: /world/rejection/location/pithead-yard
+    # ⭐ The way out onto the outcrop, and it is deliberately THROUGH the
+    # claims office. You pass the register on your way to the ground and
+    # on your way back from it, which is the shape a claim actually has.
+    north:
+      destination: /world/rejection/location/hillside
   props:
     - /world/rejection/thing/claims-counter
   cast:

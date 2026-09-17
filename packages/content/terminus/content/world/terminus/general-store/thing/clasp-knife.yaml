@@ -1,5 +1,5 @@
 # A clasp knife — the store's "a basic tool", a real bladed Weapon (the
-# steel-dagger pattern). It carries a Material + a bladed Construction + a
+# dagger pattern). It carries a Material + a bladed Construction + a
 # Grade + a wear-on-use condition, derives which channel it delivers
 # (`bladed` → a cutting edge) and its playstyle from its shape, and is
 # Wieldable (claims a hand slot — you can `wield` and fight with it). A

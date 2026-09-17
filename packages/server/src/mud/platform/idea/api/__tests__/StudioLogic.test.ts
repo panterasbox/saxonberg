@@ -167,7 +167,18 @@ describe('StudioLogic.describeClass — composition reads are everyone\'s', () =
 
 // ---- publishBlueprint (catalog write) -----------------------------------
 
-/** A minimal in-memory catalogue standing in for the singleton. */
+/**
+ * A minimal in-memory catalogue standing in for the singleton.
+ *
+ * ⚠ Injected by spying on **`StuffApi.singleton`** — the call
+ * `requireCatalogue` actually makes. It used to spy `findByTemplatePath`,
+ * which worked only because the production code carried a redundant
+ * resident pre-check in front of the singleton; when that pre-check was
+ * swept (`lint:get-or-create`) the seam vanished and these cases fell
+ * through to a real clone against a Mongo that is not there. ⭐ A test
+ * that mocks an implementation detail pins it in place — mock the
+ * dependency the code declares.
+ */
 function makeFakeCatalogue(): BlueprintCatalogue {
   const byId = new Map<string, Blueprint>();
   const bySig = new Map<string, string>();
@@ -197,7 +208,7 @@ describe('StudioLogic.publishBlueprint — signature dedup + durable id', () => 
   it('writes the curated document at /blueprints/<id> and never a second provenance row', async () => {
     stubAuthorGateOpen();
     const catalogue = makeFakeCatalogue();
-    vi.spyOn(StuffApi, 'findByTemplatePath').mockReturnValue(catalogue as unknown as never);
+    vi.spyOn(StuffApi, 'singleton').mockResolvedValue(catalogue as unknown as never);
     const r = await StudioApi.publishBlueprint({
       name: 'Coin',
       kind: 'concrete',
@@ -215,7 +226,7 @@ describe('StudioLogic.publishBlueprint — signature dedup + durable id', () => 
   it('reuses the existing blueprintId on a signature collision (rename)', async () => {
     stubAuthorGateOpen();
     const catalogue = makeFakeCatalogue();
-    vi.spyOn(StuffApi, 'findByTemplatePath').mockReturnValue(
+    vi.spyOn(StuffApi, 'singleton').mockResolvedValue(
       catalogue as unknown as never
     );
 
@@ -252,7 +263,7 @@ describe('StudioLogic.publishBlueprint — signature dedup + durable id', () => 
   it('mixin-order-independent: the same set collides regardless of order', async () => {
     stubAuthorGateOpen();
     const catalogue = makeFakeCatalogue();
-    vi.spyOn(StuffApi, 'findByTemplatePath').mockReturnValue(
+    vi.spyOn(StuffApi, 'singleton').mockResolvedValue(
       catalogue as unknown as never
     );
 
@@ -282,7 +293,7 @@ describe('StudioLogic.publishBlueprint — trust + attribution', () => {
     // The curated blueprint lands under /blueprints (the platform's claim):
     // the document store's title gate refuses a non-holder.
     vi.spyOn(ExecutionContextApi, 'getActingAuthor').mockReturnValue(null);
-    vi.spyOn(StuffApi, 'findByTemplatePath').mockReturnValue(
+    vi.spyOn(StuffApi, 'singleton').mockResolvedValue(
       makeFakeCatalogue() as unknown as never
     );
     vi.spyOn(DocumentApi, 'save').mockRejectedValue(new SecurityError('no title'));
@@ -305,7 +316,7 @@ describe('StudioLogic.publishBlueprint — trust + attribution', () => {
   it('attributes the naming act through the document store, keyed on the document path', async () => {
     stubAuthorGateOpen();
     const catalogue = makeFakeCatalogue();
-    vi.spyOn(StuffApi, 'findByTemplatePath').mockReturnValue(
+    vi.spyOn(StuffApi, 'singleton').mockResolvedValue(
       catalogue as unknown as never
     );
     const record = vi

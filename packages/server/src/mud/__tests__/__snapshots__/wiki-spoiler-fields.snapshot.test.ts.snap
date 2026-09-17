@@ -34,6 +34,8 @@ AdornableMixin.adornments = 0
 AdornableMixin.fixtureSlots = 0
 AdornmentMixin.adornedTo = 0
 AetherMixin._hostedUpdates = 0
+AlloyedMixin.alloying = 1 (name 0)
+AlloyedMixin.temper = 1 (name 0)
 AmbientLitMixin.ambientColorTemperature = 0
 AmbientLitMixin.ambientIntensity = 0
 AppSettings.values = 0
@@ -977,7 +979,9 @@ s.persistentStore = 0"
 `;
 
 exports[`⭐ the composition panel’s surfaceable fields (28) > SNAPSHOT: the fields deliberately declared as spoilers 1`] = `
-"ArcaneMixin.deliveryEfficiency = 1
+"AlloyedMixin.alloying = 1 (name 0)
+AlloyedMixin.temper = 1 (name 0)
+ArcaneMixin.deliveryEfficiency = 1
 Biome._defaultAmbientSoundLevel = 1 (name 0)
 Biome._defaultGravity = 1 (name 0)
 Biome._defaultHumidity = 1 (name 0)

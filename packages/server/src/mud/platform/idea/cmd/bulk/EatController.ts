@@ -200,13 +200,10 @@ export default class EatController extends CommandController<EatModel> {
   private claimUtensil(
     eater: CommandContext["commandGiver"],
   ): { kind: UtensilKind } | null {
-    const self = eater as unknown as Stuff;
-    const reach: Stuff[] = [];
-    if (MixinApi.isContainer(self)) reach.push(...self.getContents());
-    if (MixinApi.isContainable(self)) {
-      const here = self.getContainer();
-      if (here && MixinApi.isContainer(here)) reach.push(...here.getContents());
-    }
+    // ⭐ The two-leg reach is `reachableMarks`' — held kit first, then
+    // the table, minus yourself. Rebuilding it here is how ten copies of
+    // one walk happened.
+    const reach = this.reachableMarks(eater as unknown as Stuff);
     // ⭐ Found by what it IS. This asked `isBulkable` and then matched
     // the vessel `category`, because the utensil kind used to live on the
     // bulk mixin — which is the whole reason a spoon had to be a vessel.

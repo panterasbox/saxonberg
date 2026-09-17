@@ -279,11 +279,77 @@ export class ContainmentApi {
 
   // The old `findReachable` / `findHostedUpdate` finders were removed:
   // the reachable walk now lives in MQL's `reachable` seed
+  //
+  // ⚠⚠ …and removing it without leaving a signposted replacement cost
+  // ELEVEN hand-rolled copies of the two-leg walk (see
+  // docs/antipatterns.md § Rebuilding the two-leg reach by hand). A
+  // controller uses `CommandController.reachableMarks(giver)`; anything
+  // else calls `reachableFrom` below, which is the door this deletion
+  // should have left open in the first place. Deleting a finder is only
+  // half the job — the other half is making the replacement findable
+  // from where the callers are.
   // (api/mql/scope-walk.ts `candidatesForReachable` — self → own hosted
   // updates → slot occupants → carried → location → peers, on-person
   // first). Callers resolve the pool via `MqlApi.resolveMany('reachable',
   // …)` and narrow locally; identity-bound (own-attunement) reads scan
   // `actor.getHostedUpdates()` directly.
+
+  /**
+   * ⭐⭐ **Everything `actor` can act on**, on-person-first: what they
+   * wear or wield, what they carry, then what shares their location.
+   *
+   * ⚠⚠ **Restoring a door that was closed without one.** The old
+   * `findReachable` was deleted into MQL's `reachable` seed, which lives
+   * behind a sealed subdir only `api/mql.ts` may import from and is
+   * reachable only as a **viewer-gated query**. So a brain or a logic
+   * singleton that wanted the plain pool had no sanctioned route and
+   * wrote the two hops by hand — eleven did (docs/antipatterns.md
+   * § Rebuilding the two-leg reach by hand). This is the code-side
+   * answer; the seed is the query-side one.
+   *
+   * ⚠ The two are NOT interchangeable and the difference is the point:
+   * the seed applies perception (honest fog), recognition-relative
+   * naming and via-attribution, because a *player* asking "what can I
+   * reach" must not be told about what they cannot see. This applies
+   * none of that — it is engine bookkeeping, the same license
+   * `system mode` takes. Prefer the query whenever a viewer is involved.
+   *
+   * ⭐ **On-person before floor**, so a first-match consumer prefers your
+   * own gear over what happens to be lying about — the same contract the
+   * seed keeps, and the reason a hand-rolled copy is never equivalent.
+   *
+   * ⚠ **Excludes the actor**, like `CommandController.reachableMarks`.
+   * Only the `reachable:[…]` seed includes self, and only it reaches
+   * through a passable exit — see docs/antipatterns.md
+   * § Rebuilding the two-leg reach by hand for the three-way table.
+   */
+  static reachableFrom(actor: Stuff): Stuff[] {
+    const out: Stuff[] = [];
+    const seen = new Set<string>();
+    const push = (s: Stuff): void => {
+      if (seen.has(s.stuffId)) return;
+      seen.add(s.stuffId);
+      out.push(s);
+    };
+    // Worn and wielded first — the closest thing to hand.
+    if (MixinApi.isSlotted(actor)) {
+      for (const occupants of actor.getAllOccupants().values()) {
+        for (const occ of occupants) push(occ);
+      }
+    }
+    if (MixinApi.isContainer(actor)) {
+      for (const c of actor.getContents()) push(c);
+    }
+    if (MixinApi.isContainable(actor)) {
+      const env = actor.getContainer();
+      if (env && MixinApi.isContainer(env)) {
+        for (const c of env.getContents()) {
+          if (c.stuffId !== actor.stuffId) push(c);
+        }
+      }
+    }
+    return out;
+  }
 
   /**
    * Resolve a spawn/landing reference into the live Container to place

@@ -564,6 +564,19 @@ linear half of a fit measurement: with mass it yields a ponderal index,
 `girth = √(mass / stature)`, and those two numbers are what a garment is
 cut to.
 
+⚠⚠ **And it came back.** `Creature.seedMassFromBodyPlan` read
+`species.getBodyPlan().getBaseMass()` — reaching *past* the species
+accessor to the plan — so every playable species was 70 kg again, and
+stayed that way through the whole textiles/combat/metallurgy run. It went
+unseen because the husbandry build's `Species.massAt(ageDays)` answers
+first and is correct for **animals** (every ranched species authors
+`adultMass`) while no playable hominid does, so `massAt` returns `0` for
+exactly the rows whose `baseMass` the next line then failed to read. The
+only instrument that saw it is `test:gym`, which is outside `pnpm test`.
+⭐ **The rule the relapse teaches: read `Species.getBaseMass()`, never
+`getBodyPlan().getBaseMass()`** — the species accessor IS the own→plan→0
+resolution, and going around it is going around the species.
+
 | species | fiction | stature (m) | baseMass (kg) | girth |
 |---|---|---|---|---|
 | gnome | *small, wiry* | 1.00 | 30 | **5.48** |

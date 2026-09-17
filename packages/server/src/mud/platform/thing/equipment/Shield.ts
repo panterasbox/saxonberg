@@ -16,22 +16,31 @@
  * shield parries well). It composes {@link DurableMixin}, so a shield-bash or
  * a sunder wears its `condition` down and it can be broken.
  *
- * Seeded as content (e.g. `/stuff/thing/arms/steel-shield`) with
+ * Seeded as content (e.g. `/stuff/thing/arms/shield`) with
  * `_materialPath`, an armor `constructionForm` (`plate` / `hide`), a `grade`,
  * and `slotClaims` (the off-hand).
+ *
+ * ⚠ It composes {@link CraftedMixin} rather than {@link GradedMixin}, and
+ * `Crafted` composes `Graded` — so the grade surface is unchanged and the
+ * shield gains the maker's mark it always should have had. Found by
+ * making one makeable: `CraftingLogic.mintWorkpiece` requires a recipe's
+ * output to be Crafted (it stamps a mark on it), so a shield recipe
+ * threw. `Weapon` and `Garment` already composed it; the shield was the
+ * odd one out among the three things a smith makes, for no reason
+ * anybody had recorded.
  */
 
 import Thing from '../../../lib/stuff/Thing';
 import { DetailedMixin } from '../../../lib/description/Detailed';
 import { ConstructedMixin } from '../../../lib/material/Constructed';
 import { DurableMixin } from '../../../lib/material/Durable';
-import { GradedMixin } from '../../../lib/craft/Graded';
+import { CraftedMixin } from '../../../lib/craft/Crafted';
 import { SlottableMixin } from '../../../lib/slot/Slottable';
 import { WieldableMixin } from '../../../lib/slot/Wieldable';
 
 const ShieldBase = WieldableMixin(
   SlottableMixin(
-    GradedMixin(DurableMixin(ConstructedMixin(DetailedMixin(Thing)))),
+    CraftedMixin(DurableMixin(ConstructedMixin(DetailedMixin(Thing)))),
   ),
 );
 

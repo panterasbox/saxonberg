@@ -9,6 +9,25 @@
  * lump). The first faithful hand build mints the can-make deed +
  * transcribes the personal recipe-script (the StrainController capture
  * tail, verbatim).
+ *
+ * ⭐⭐ **And on an UN-worked hot piece it is a heat treatment**, which is
+ * what quenching actually is. Heat a bar and drop it in the tub without
+ * shaping it and you have not made anything — you have changed the
+ * metal. What happens depends entirely on what is dissolved in it:
+ *
+ *  - **wrought iron** — nothing. There is no carbon to trap, so the
+ *    steel does not harden, and the scene says so. That negative is the
+ *    lesson: quenching is not a ritual that improves metal.
+ *  - **steel** — it hardens. Carbon frozen in place where it had no time
+ *    to leave, which is the entire reason the band matters.
+ *  - **cast iron** — it CRACKS, and you have two halves. Brittle metal
+ *    and a thermal shock is exactly this, and the pig was never going to
+ *    be forged anyway.
+ *
+ * ⚠ `temper` is recorded and reported (`analyze chemistry`) with no
+ * mechanical consumer in this build, and the next `heat` anneals it back
+ * — because heating past the critical temperature is what annealing IS,
+ * and it is why a smith quenches LAST.
  */
 
 import { ManualBuildController } from '@saxonberg/server/mud/platform/idea/cmd/crafting/ManualBuildController';
@@ -23,15 +42,65 @@ import { CraftingApi } from '@saxonberg/server/mud/api/crafting';
 import { ContainmentApi } from '@saxonberg/server/mud/api/containment';
 import { ExecutionContextApi } from '@saxonberg/server/mud/api/execution-context';
 import { ScriptApi } from '@saxonberg/server/mud/api/script';
+import { StuffApi } from '@saxonberg/server/mud/api/stuff';
+import { Quantity } from '@saxonberg/server/mud/lib/quantity';
+import type { Alloyed } from '@saxonberg/server/mud/lib/material/Alloyed';
 
 const TOPIC = 'act.deed';
 const QUENCH_MS = 2500;
+
+const CARBON = '/stuff/idea/material/element/carbon';
+/** The bottom of the steel band — below it there is nothing to harden. */
+const C_STEEL_FLOOR = 0.002;
+/** Austenite's limit — above it the metal is cast, and it shatters. */
+const C_CAST_FLOOR = 0.021;
 
 interface QuenchModel extends CommandModel {
   target?: MqlOneResult;
 }
 
 export default class QuenchController extends ManualBuildController<QuenchModel> {
+  /**
+   * The heat treatment: the piece's own carbon decides what a quench
+   * does to it. ⚠ No recipe, no mint, no build — nothing is being MADE
+   * here, and that is the point.
+   */
+  private treat(context: CommandContext, piece: Stuff & Alloyed): void {
+    const giver = context.commandGiver;
+    const carbon = piece.fractionOf(CARBON);
+    const brittle = MixinApi.isTangible(piece) && piece.hasMaterialTag('brittle');
+    const anvil = this.findCapability(giver, 'anvil');
+    this.engageStep(context, {
+      durationMs: this.paceMs(QUENCH_MS, anvil, ['anvil']),
+      beginSelf: Mml.compose`You bring ${Mml.thing(piece)} up to colour and hold it over the slack tub.`,
+      beginPeers: Mml.compose`${Mml.actor(giver)} holds ${Mml.thing(piece)} over the slack tub.`,
+      onComplete: () => {
+        if (brittle || carbon >= C_CAST_FLOOR) {
+          void crack(giver, piece);
+          return;
+        }
+        if (carbon < C_STEEL_FLOOR) {
+          // ⭐ The honest nothing. Quenching is not a ritual.
+          MessageApi.scene(giver)
+            .topic(TOPIC)
+            .toSelf(
+              Mml.compose`Steam, and then nothing. ${Mml.thing(piece)} comes out of the tub exactly as soft as it went in — there is no carbon in it to trap, and quenching iron with nothing in it changes nothing at all.`,
+            )
+            .send();
+          return;
+        }
+        piece.setTemper('hardened');
+        MessageApi.scene(giver)
+          .topic(TOPIC)
+          .toSelf(
+            Mml.compose`The tub boils and goes quiet. ${Mml.thing(piece)} comes out grey and dead-looking, and a file skates off it where it bit before — the carbon has been caught where it stood. It is hard now, and it will stay hard until the fire takes it back.`,
+          )
+          .toPeers(Mml.compose`${Mml.actor(giver)} quenches ${Mml.thing(piece)}; the tub boils.`)
+          .send();
+      },
+    });
+  }
+
   execute(model: QuenchModel, context: CommandContext): void {
     const giver = context.commandGiver;
 
@@ -46,6 +115,13 @@ export default class QuenchController extends ManualBuildController<QuenchModel>
       return;
     }
     if (workpiece.isBuildEmpty()) {
+      // ⭐ An un-worked piece that has been in the fire is not a mistake
+      // — it is the other thing quenching does. Only a COLD one has
+      // nothing to say.
+      if (MixinApi.isAlloyed(workpiece) && workpiece.getHeatedToK() > 0) {
+        this.treat(context, workpiece);
+        return;
+      }
       this.declineStep(
         context,
         Mml.compose`${Mml.thing(workpiece)} hasn't been worked — there's nothing to quench.`,
@@ -124,4 +200,35 @@ export default class QuenchController extends ManualBuildController<QuenchModel>
       },
     });
   }
+}
+
+/**
+ * ⚠ A thermal shock through brittle metal, and it does what a thermal
+ * shock through brittle metal does. The pig is replaced by two halves of
+ * it — the mass is conserved, because nothing was lost, only broken.
+ */
+async function crack(giver: Stuff, piece: Stuff & Alloyed): Promise<void> {
+  const row = piece.getTemplatePath() ?? '';
+  const wholeKg = MixinApi.isTangible(piece) ? piece.getMass().rawValue() : 0;
+  const where = MixinApi.isContainable(piece) ? piece.getContainer() : null;
+  if (!row || wholeKg <= 0 || !where || !MixinApi.isContainer(where)) return;
+
+  const carbon = piece.getAlloying();
+  StuffApi.destruct(piece);
+  for (let i = 0; i < 2; i++) {
+    const half = await StuffApi.clone<Stuff>(row);
+    if (MixinApi.isTangible(half)) {
+      half.setMass(Quantity.of(Number((wholeKg / 2).toFixed(3)), 'kg'));
+    }
+    if (MixinApi.isAlloyed(half)) half.setAlloying(carbon);
+    if (MixinApi.isContainable(half)) ContainmentApi.move(half, where);
+  }
+  if (giver.isDestroyed()) return;
+  MessageApi.scene(giver)
+    .topic(TOPIC)
+    .toSelf(
+      Mml.compose`It goes into the water and comes apart in your tongs with a sound like a dropped plate. Two pieces, a clean grey fracture down the middle, and both of them exactly as useless as the whole one was. Cast iron does not take a quench; it takes offence.`,
+    )
+    .toPeers(Mml.compose`Something cracks in ${Mml.actor(giver)}'s slack tub, loudly.`)
+    .send();
 }

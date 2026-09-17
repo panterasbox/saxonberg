@@ -203,11 +203,15 @@ export default class DraftController extends CommandController<DraftModel> {
    */
   private async speciesOf(path: string): Promise<Species | null> {
     if (!path) return null;
-    const resident = StuffApi.findByTemplatePath<Species>(path);
-    if (resident) return resident;
+    // ⭐ `singleton` IS the get-or-create: its first act is this exact
+    // index read, and it clones only on a miss.
     try {
       return await StuffApi.singleton<Species>(path);
-    } catch {
+    } catch (err) {
+      // ⚠ Tolerated, never silent: a row that is named and will not
+      // resolve is an authoring fault, and a bare `return null` makes it
+      // indistinguishable from "this animal has no species authored".
+      console.error(`DraftController: species '${path}' did not resolve`, err);
       return null;
     }
   }
@@ -333,8 +337,9 @@ export default class DraftController extends CommandController<DraftModel> {
   }
 
   protected async registry(): Promise<HerdRegistry> {
-    const resident = StuffApi.findByTemplatePath<HerdRegistry>(HERD_REGISTRY_PATH);
-    if (resident) return resident;
+    // ⭐ `singleton` IS the get-or-create: its first act is this exact
+    // index read, and it clones only on a miss. A resident pre-check in
+    // front of it is the same lookup written twice.
     return StuffApi.singleton<HerdRegistry>(HERD_REGISTRY_PATH);
   }
 

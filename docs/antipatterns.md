@@ -4254,6 +4254,278 @@ ordinary and fine. This is about optional chaining on a **method the
 type system was told to stop checking for**.
 
 
+## Rebuilding the two-leg reach by hand
+
+**ANTIPATTERN**: walking *what the actor carries, plus what shares their
+environment* inline, because the predicate you want is local.
+
+```typescript
+// BAD — and there were ELEVEN of these
+const candidates: Stuff[] = [];
+if (MixinApi.isContainer(giver)) candidates.push(...giver.getContents());
+if (MixinApi.isContainable(giver)) {
+  const loc = giver.getContainer();
+  if (loc && MixinApi.isContainer(loc)) candidates.push(...loc.getContents());
+}
+for (const c of candidates) { /* …the predicate… */ }
+```
+
+**INSTEAD**, by where you are standing:
+
+| you are | use |
+|---|---|
+| a **controller**, aiming at something | `this.reachableMarks(giver)` — inherited from `CommandController` |
+| anything else (a brain, a logic singleton) | `ContainmentApi.reachableFrom(actor)` + narrow, or a `reachable:[…]` query when a VIEWER is involved |
+
+⚠ **A query applies perception; `reachableFrom` does not.** A *player*
+asking "what can I reach" must not be told about what they cannot see, so
+anything viewer-facing takes the query. `reachableFrom` is engine
+bookkeeping and takes the same license `system mode` does.
+
+⚠⚠ **`reachableMarks` and `reachableFrom` are two questions, not one.**
+`reachableFrom` is *what you can act on*, so it adds **slot occupants** —
+what you wear and what you wield — because `sharpen my sword` is
+legitimate and the sword is in a slot, not in your pack. `reachableMarks`
+is *what you could aim something at*, and a controller's targeting pool
+stops at what you carry. **Both exclude the actor**; a query that must
+include self (`look me`) is the `reachable:[…]` seed, which is the only
+one of the three that does. Do not merge them.
+
+| | slot occupants | carried | co-located | adjacent rooms | the actor | perception |
+|---|---|---|---|---|---|---|
+| `reachableMarks(giver)` | — | ✅ | ✅ | — | — | — |
+| `ContainmentApi.reachableFrom(actor)` | ✅ | ✅ | ✅ | — | — | — |
+| `reachable:[…]` (MQL, viewer-gated) | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+
+⚠ The seed also reaches **through a passable exit** (`candidatesForPeers`)
+and carries hosted updates; the two code-side pools stop at the room. So
+the query is not merely the same set with fog applied — it is a wider
+question, and that is another reason not to treat any of the three as a
+drop-in for another.
+
+```typescript
+// GOOD — the reach is inherited; only the predicate is yours
+return this.reachableMarks(giver).find(
+  (c) => MixinApi.isTangible(c) && (c.getMaterial()?.getTags() ?? []).includes('brittle'),
+) ?? null;
+```
+
+⭐ **The ordering is the reason it must not be rebuilt.** The reach is
+**on-person before floor**, so a first-match consumer prefers your own
+gear over whatever is lying about — the same on-person-first contract
+MQL's `reachable` seed keeps (`api/mql/scope-walk.ts`, which absorbed
+the deleted `ContainmentApi.findReachable`). A hand-rolled copy gets
+that right by accident or not at all, and nothing tells you which.
+
+⚠ It also **excludes the actor**. Several hand-rolled copies did not,
+which let an actor match their own predicate — a Bulkable creature
+reading as *"water to wash with"*.
+
+### ⚠⚠ Why eleven copies existed, because it was not carelessness
+
+`reachableMarks` took a **`CommandContext`** and every would-be caller
+had a **`Stuff`**. So the cheapest correct thing any author could do was
+write the seven lines again — and eleven did, often under a name that
+described the *predicate* rather than the reach (`reachOf`, `findBath`,
+`findWater`, `findBook`, `castInReach`), which is what kept the
+duplication invisible to everyone including the people writing it.
+
+⚠ **And for a non-controller there was no sanctioned option at all.**
+`ContainmentApi.findReachable` had been deleted into `mql/scope-walk.ts`
+— a sealed subdir only `api/mql.ts` may import from — so a brain or a
+logic singleton that needed the pool could not reach it by any legal
+route, and wrote the two hops by hand because that was the only thing
+available. `ContainmentApi.reachableFrom` is the missing door — put back
+where the finder used to live, which is also the only Api tier
+`lint:object-verbs` lets a subject-first containment verb sit in.
+
+⭐ **A helper with three callers sitting beside ten re-implementations
+is a seam that is wrong, not ten careless authors.** The fix was to
+widen the parameter to the thing callers actually hold; the sweep then
+fell out. When you find yourself rebuilding something the base class
+offers, check the signature before you blame the author — and one more
+module function is one more caller that *cannot* reach an inherited
+method, which is why `MeasureFigureController.findBook` had to become a
+method before it could collapse.
+
+---
+
+## A view's `requires:` naming a mixin the verb's targets don't compose
+
+**ANTIPATTERN**: gating a command arg on a mixin that reads plausibly
+but that the things the verb is *for* do not actually carry.
+
+```yaml
+# BAD — hammer.yaml, shipped this way
+args:
+  - name: target
+    scope: "reachable"
+    requires: DurableMixin     # Ingot, Bloom, Casting: none of them
+```
+
+Raw stock has no wear axis — stock does not wear out, made things do — so
+`Ingot`, `Bloom` and `Casting` are all `AlloyedMixin(…Thermal(Thing))` and
+none composes `DurableMixin`. Every explicit `hammer <target>` in the game
+was refused at the **binder** with *"{} doesn't wear out"*, including
+`hammer ingot`, the worked example in that file's own help. Only bare
+`hammer` worked, because it resolves through `findBuildVessel` and never
+meets the gate.
+
+⚠⚠ **34 green tests could not see it.** A controller test calls
+`execute()` directly, which is *downstream* of the binder. The arg gate
+is the **fifth reachability link** — beside verb · affordance · data ·
+boot — and it fails just as closed and just as silently.
+
+**INSTEAD**, gate on the mixin that names *what the verb acts on*:
+
+```yaml
+# GOOD — what you hammer is METAL STOCK, and that is what the mixin marks
+    requires: AlloyedMixin
+```
+
+…and give the refusal table a phrase that says the material fact
+(`"{} isn't metal stock you can work"`), so a wrong target still gets a
+sentence somebody can act on.
+
+⭐ **The test that catches this checks the YAML against the CLASSES and
+never touches a controller** — `trade-smithing/src/__tests__/verb-gates.test.ts`
+is the shape: read the view, resolve `requires`, assert every class the
+verb is for composes it. A `lint:` gate for *"a `requires:` no
+instanceable class composes"* would hold the whole family; it is
+proposed, not built.
+
+---
+
+## A crop propped on the floor
+
+**ANTIPATTERN**: placing a `Plant` in a room's `props:` and expecting it
+to be a crop.
+
+```yaml
+# BAD — the fuel yard, as shipped
+props:
+  - /trade/fuel/thing/hazel-stool     # a Plant with harvestTemplatePath
+```
+
+`harvest` is contributed by **`CultivableMixin`**, not by `Plant`. A
+stool standing on the ground affords nothing, so the coppice that the
+whole fuel trade rests on answered *"I don't understand 'harvest'."* to
+every player and every brain — and cordwood, *"the ONE supply two trades
+compete for,"* was unreachable by any route. Four authored charcoal
+baskets were the realm's entire fuel economy as a result.
+
+**INSTEAD**, put the crop in GROUND — a `Cultivable` host whose own
+`props:` seat the plants into its slots (`CultivableMixin.applyProps`,
+the starter pot's shipped shape):
+
+```yaml
+# GOOD — /trade/fuel/thing/coppice-panel, a GardenBed with six slots
+props:
+  - /trade/fuel/thing/hazel-stool
+  - /trade/fuel/thing/hazel-stool
+  …
+```
+
+and prop the *panel* in the room. The growth model only reaches a plant
+through ground; a plant on the floor is scenery that lies.
+
+⚠ Two things this does NOT fix, and where they live: nothing in the game
+authors a **grown** plant (`growthStage` is persistent, not authorable,
+and zero rows set it), and the hazel rotation is uncompressed. Both are
+`forestry-slate.md § What the metallurgy drive handed over`.
+
+---
+
+## A resident pre-check in front of `StuffApi.singleton()`
+
+⭐ **`StuffApi.singleton(path)` IS the get-or-create.** Its first act is
+an index read on `byTemplatePath`: if an instance for the path is
+resident it returns that instance, and it clones only on a miss. So a
+`findByTemplatePath` guard in front of it, on the same path, is the
+identical lookup written twice.
+
+```ts
+// WRONG — the pre-check is `singleton`'s own first line, inlined
+const cat = StuffApi.findByTemplatePath<C>(CATALOGUE_PATH);
+if (cat) return cat;
+return StuffApi.singleton<C>(CATALOGUE_PATH);
+
+// RIGHT
+return StuffApi.singleton<C>(CATALOGUE_PATH);
+```
+
+### ⚠⚠ It is not merely redundant
+
+Both helpers **throw** when the bucket holds more than one instance. In
+the wrong form above, wrapped in the `try` it usually comes with, the
+pre-check's throw escapes while the `try` catches only the second call —
+so the duplicate-row fault, the one a reader most needs to see, takes
+the path that is *not* handled, and the tolerable case takes the one
+that is. Exactly backwards.
+
+And the catch that usually accompanies it is the real hazard:
+
+```ts
+try {
+  return await StuffApi.singleton<D>(path);
+} catch {
+  return null;          // ⚠ a row that will not resolve now looks
+}                       //   identical to "there is nothing here"
+```
+
+⭐ **Tolerate, but never silently.** Returning `null` is often the right
+*behaviour* — a zone with no deposit really does read barren. What is
+never right is making an authoring fault indistinguishable from the
+ordinary empty answer, because then the symptom is a plausible sentence
+and the cause is unfindable. Log it, or decline with a reason of its
+own:
+
+```ts
+} catch (err) {
+  console.error(`Working: deposit '${path}' did not resolve`, err);
+  return null;
+}
+```
+
+### How it spread, because the spread is the lesson
+
+One site wrote it believing the sync lookup was an optimisation
+`singleton` did not do — *"the cheap synchronous hit covers every read
+after the first"* (`Working.resolveDeposit`). It was then copied into
+**twelve more** across the kernel and five packs, several citing the
+previous site as precedent in their own comments. Nothing was wrong
+enough to fail a test, so nothing stopped it.
+
+⚠ **A mistaken comment is the most portable thing in a codebase.** It
+travels further than the code it explains, because the next author reads
+the *reason* and trusts it.
+
+`pnpm -C packages/server lint:get-or-create` holds the shape at zero
+(`scripts/check-get-or-create.ts`, a ratchet — all thirteen were swept
+in the commit that added it).
+
+### ⚠ What is NOT this antipattern
+
+A **memoized** module ref whose lookup does real cache-invalidation work
+— *the live registered instance supersedes my cached handle* — is a
+different thing, and eight of them in the kernel are correct:
+
+```ts
+let catalogueRef: C | null = null;
+const found = StuffApi.findByTemplatePath<C>(CATALOGUE_PATH);
+if (found) { catalogueRef = found; return found; }   // ← assigns first
+```
+
+So is a **synchronous** accessor beside an async ensure:
+`findByTemplatePath` is sync and `singleton` is not, so a class that
+needs a sync read (a render path, a `describeFor`) legitimately keeps
+both. Two call shapes is not one lookup written twice.
+
+The tell is whether the `if` body is *exactly* `return <thatvar>;`. If
+it is, the branch adds nothing and the whole thing collapses.
+
+---
+
 ## Keying a PERSON on `getTemplatePath()`
 
 **Every player Avatar shares one `templatePath`.** Since D17 split
@@ -4302,6 +4574,35 @@ green suite means self-consistent, not working.
 ⚠ `Stuff.getPlayerId()`'s docblock *said* `getTemplatePath()` until this
 was found, and that is what every call site followed. When a convention
 turns out wrong, fix the doc that taught it — not only the callers.
+
+### The third site, and the gate (2026-09-15)
+
+The metallurgy build's grounding found a fourth cost in a pack the
+kernel sweep never reached: **every mining claim in the game was owned
+by every player.** `StakeController` passed
+`{ kind: 'player', templatePath: giver.getTemplatePath() }` into
+`ParcelApi.subdivide`, while every kernel site writing that same
+`ParcelOwner.templatePath` field — `TitleController`,
+`TransferController`, `ChattelLogic`, `EmploymentLogic` — passes an
+identity path. The field's meaning was never in doubt; one pack simply
+had not been swept. Invisible to the suite for the usual reason: the
+stake fixtures author distinct owner paths per avatar.
+
+⭐ **`pnpm -C packages/server lint:person-keys` now holds the written
+shape at zero** across the kernel and every pack `src/`
+(`scripts/check-person-keys.ts`, a ratchet not a census — the one
+offender was fixed in the commit that added it). It matches one
+literal, deliberately: a gate that tried to decide in general whether a
+given `getTemplatePath()` names a person would be wrong in both
+directions.
+
+⚠ **Still open, and outside the gate's literal:** the maker's-mark
+fallback `makerPath` in `QuenchController`, `PlateController`,
+`StrainController`, `RepairController` and `SewController` is a
+`getTemplatePath()`. It is dead today — `CraftingLogic` prefers the
+live actor's identity path — but `CraftedMixin.resolveMakerName`
+resolves a mark with `findByTemplatePath`, which cannot resolve an
+identity path at all. A follow-up sweep owns both halves.
 
 ---
 

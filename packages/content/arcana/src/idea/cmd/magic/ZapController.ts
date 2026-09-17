@@ -63,7 +63,7 @@ export default class ZapController extends CommandController<ZapModel> {
       const picked = await this.promptForObject(
         context,
         'What do you want to point it at?',
-        this.reachableMarks(context),
+        this.reachableMarks(context.commandGiver),
       );
       if (!picked) {
         MessageApi.scene(actor)

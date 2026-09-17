@@ -455,6 +455,15 @@ narrow. Both read `undefined` off an unkeyed/unaddressed object, so a
 comparison never false-matches (`docs/mql-grammar.md` § Filter
 expressions).
 
+⭐ **`material.X`** is the fifth namespaced atom, beside `prop.` /
+`mixin.` / `class.` / `keyword.` / `template.`. It narrows with
+`MixinApi.isTangible` and delegates to `Tangible.hasMaterialTag(tag)` —
+the walk belongs to the host, not the resolver, because it spans the
+bulk `_materialPath` **and** every per-Detail override (an axe is both
+`wood` and `metal`). ⚠ Made of, never CONTAINS: a waterskin is leather,
+and its bulk slot is `BulkableApi`'s question. Being **viewer-free** it
+is legal in system mode, unlike the bareword predicates.
+
 #### Set operations
 
 | Form | Means |

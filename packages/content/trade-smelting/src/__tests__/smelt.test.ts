@@ -104,16 +104,33 @@ describe('the smelt', () => {
     expect(o.metalFractionOf('/stuff/idea/material/element/iron')).toBe(0);
   });
 
-  it('the heat gate is the METAL’s own melting point, and the ladder falls out of it', () => {
+  it('⭐⭐ the furnace’s two heats are pinned by FOUR physical facts at once', () => {
     const furnace = (
       YAML.parse(readFileSync(`${PACK}content/trade/smelting/thing/furnace.yaml`, 'utf8')) as {
         data: Record<string, number>;
       }
     ).data;
-    // Charcoal alone (1420 K) clears copper's 1358 K — the EASY rung.
-    expect(furnace.burnTemperatureK).toBeGreaterThan(1358);
-    // …and the bellows reaches iron's 1811 K, which is a later stage's.
-    expect(furnace.burnTemperatureK! * furnace.bellowsMultiplier!).toBeGreaterThan(1811);
+    const bare = furnace.burnTemperatureK!;
+    const bellowsed = bare * furnace.bellowsMultiplier!;
+
+    // 1. Charcoal alone clears copper's 1358 K — the EASY rung, no
+    //    bellows, and the whole of Stage A.
+    expect(bare).toBeGreaterThan(1358);
+    // 2. …and does NOT reach 1470 K, where iron oxide gives up its
+    //    oxygen. Iron is a fuel-technology rung: without the bellows you
+    //    cannot reduce it at all.
+    expect(bare).toBeLessThan(1470);
+    // 3. With the bellows you can, and you are still BELOW pure iron's
+    //    1811 K — so the charge reduces in the SOLID state and you rake
+    //    out a bloom. ⚠ The multiplier was 1.5 (≈2130 K), past iron's
+    //    melting point outright: every bellows run would have poured,
+    //    and the bloom the whole rung is about was unreachable.
+    expect(bellowsed).toBeGreaterThan(1470);
+    expect(bellowsed).toBeLessThan(1811);
+    // 4. …but above the eutectic's 1420 K, so a charge that takes up
+    //    enough carbon melts anyway and pours something unforgeable.
+    //    The trap has to be REACHABLE or the carbon decision is not one.
+    expect(bellowsed).toBeGreaterThan(1420);
   });
 
   it('⭐ the ingot re-melts — the phase change is honest in BOTH directions', () => {
@@ -132,7 +149,25 @@ describe('the smelt', () => {
   });
 });
 
-describe('⭐ the copper faucet is closed', () => {
+/**
+ * Every shipped row that would put a good matching `what` into the world
+ * from nothing — the three fields a census / spawn / storefront row uses.
+ * ⚠ A PROP is not a faucet: it is bounded and authored and does not come
+ * back. A `stockLines` entry restocks to par forever.
+ */
+function stockedFrom(what: RegExp): string[] {
+  const offenders: string[] = [];
+  for (const { file, doc } of shippedRows()) {
+    if (!what.test(JSON.stringify(doc))) continue;
+    const data = (doc.data ?? {}) as Record<string, unknown>;
+    const spawns = data.stockLines ?? data.offers ?? doc.stockLines ?? doc.offers;
+    if (!spawns) continue;
+    if (what.test(JSON.stringify(spawns))) offenders.push(file);
+  }
+  return offenders;
+}
+
+describe('⭐ the metal faucets are closed', () => {
   /**
    * ⚠ The acceptance criterion is a TEST rather than an edit, and that is
    * the finding: nothing in the shipped world ever sold or spawned copper
@@ -142,18 +177,23 @@ describe('⭐ the copper faucet is closed', () => {
    * wanted for an off-take buyer is not needed at all.
    */
   it('no shipped row spawns or stocks copper from nowhere', () => {
-    const offenders: string[] = [];
-    for (const { file, doc } of shippedRows()) {
-      const text = JSON.stringify(doc);
-      if (!/copper/i.test(text)) continue;
-      // A row that STOCKS or SPAWNS: the three fields a census/spawn/
-      // storefront row uses to put goods in the world from nothing.
-      const data = (doc.data ?? {}) as Record<string, unknown>;
-      const spawns = data.stockLines ?? data.offers ?? doc.stockLines ?? doc.offers;
-      if (!spawns) continue;
-      if (/copper/i.test(JSON.stringify(spawns))) offenders.push(file);
-    }
-    expect(offenders).toEqual([]);
+    expect(stockedFrom(/copper/i)).toEqual([]);
+  });
+
+  /**
+   * ⚠⚠ **And iron, which was NOT already shut.** The Terminus general
+   * store stocked `iron-ingot` at 5 apiece, to par, forever — a faucet
+   * for the exact good the whole iron rung exists to produce. Every bar
+   * in the world is somebody's afternoon now: walk out to the fringe,
+   * stake ground, cut ore, reduce it, beat the slag out of it. A shelf
+   * that sells metal from nowhere makes all of that optional.
+   *
+   * ⭐ Hearthworks' two props stay, and they are not a faucet: they are
+   * bounded (two bars, authored, never restocked) and they are the
+   * teaching smithy's, which is what a teaching smithy is for.
+   */
+  it('⭐⭐ and no shipped row STOCKS iron or steel from nowhere either', () => {
+    expect(stockedFrom(/\b(iron|steel)\b/i)).toEqual([]);
   });
 
   it('every copper-composed product row is downstream of a PRODUCER this build ships', () => {

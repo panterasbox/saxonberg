@@ -1168,6 +1168,12 @@ function SurveyBody({ survey }: { survey: SurveyFrame }): React.ReactElement {
           </SurveyTable>
         </>
       )}
+      {survey.ground ? (
+        <>
+          <Label>Underfoot</Label>
+          <Prose>{survey.ground}</Prose>
+        </>
+      ) : null}
       {survey.note ? <Prose>{survey.note}</Prose> : null}
     </div>
   );

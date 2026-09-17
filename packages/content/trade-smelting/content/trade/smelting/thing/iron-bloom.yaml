@@ -1,0 +1,30 @@
+# ⭐⭐ An iron bloom — **and it is not a bar.**
+#
+# What a bloomery makes. The ore was REDUCED, not melted: at ~1470 K the
+# oxygen leaves the iron and the iron never becomes liquid, so what forms
+# at the bottom of the shaft is a spongy mass of iron particles welded
+# together with the slag that was in the rock still trapped between them.
+#
+# ⚠ Its MASS and its `slagFraction` are stamped per smelt from the charge
+# that actually ran, never authored: a bloom off a lean charge carries
+# more glass, and the mass a player loses at the anvil is the ore's grade
+# arriving one hop further down the chain. So is its carbon.
+#
+# ⭐ It is not `forgeable` (its material is not tagged so), which is why
+# no anvil recipe can take one and the kernel's gather never picks one
+# up. Beat it at an anvil and it becomes a bar; that is the one thing it
+# is for.
+class: /trade/smelting/thing/Bloom
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: iron bloom
+  keywords: [bloom, iron, sponge, mass]
+  register: indefinite
+  longDescription: >-
+    A lump the size of a loaf and the wrong weight for it, grey where it
+    is iron and glassy black where it is not, pocked all over with holes
+    you can see daylight through in places. It rings dead when you tap
+    it.
+  _materialPath: /stuff/idea/material/alloy/bloom-iron
+  slagFraction: 0.3
+  mass: 1.0

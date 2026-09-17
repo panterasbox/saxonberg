@@ -1,5 +1,7 @@
 # A second iron ingot — forge stock (the first is the melt demonstrator's;
-# this one feeds the recipe ladder). More at the general store.
+# this one feeds the recipe ladder). ⚠ There is no third: the general
+# store's ingot was deleted with the import faucet, so these two and a
+# consolidated bloom are the only wrought bars the world has.
 class: /platform/thing/Ingot
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:

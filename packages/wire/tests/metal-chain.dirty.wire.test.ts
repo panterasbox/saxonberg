@@ -142,31 +142,29 @@ suite('the chain — the fuel yard and the smelter are PLACES', () => {
   afterAll(() => f?.close());
 
   /*
-   * ⚠⚠ **`char` and `smelt` are unafforded to an empty-handed arrival**,
-   * exactly as `measure` is at the pithead — the trade verbs come off
-   * the trade's instruments. The original spec asserted the REFUSALS
-   * ("an empty clamp declines and says what it wants", "a cold furnace
-   * names the temperature"), which its own shopping leg had made
-   * reachable. Those refusals are worth testing and this file cannot
-   * reach them yet: buying the kit needs the funding walk that
-   * `work.dirty` does, from a different city.
+   * ⚠⚠ **This assertion changed with the metallurgy build, and the
+   * change is the finding.** It used to assert that `smelt` was an
+   * `unknown-verb` here — and it passed, for the wrong reason: `smelt`
+   * was afforded by NOTHING ANYWHERE. No class named its view, so the
+   * verb was unreachable in every room in the world and the whole metal
+   * chain's centrepiece had never run in a booted game.
    *
-   * ⭐ So what is asserted is the half that is true of the world as it
-   * stands and still says something: **the two ends of the chain are
-   * different PLACES**, one room apart, and neither lends the other its
-   * verbs. The refusal checkpoints move to the growth slate with the
-   * provisioning leg they depend on.
+   * ⭐ Now a `SmeltingFurnace` affords it, and the fuel yard is one
+   * passable exit from the smelter — which is exactly the reach `peers`
+   * has and the reach the anvil has always had. So the verb arrives,
+   * finds the charcoal clamp (a Furnace AND a Container, like any
+   * chargeable furnace), and declines for a reason about what a clamp
+   * IS: a heap kept deliberately starving of air. That is a better
+   * answer than "I don't understand 'smelt'", and it is the
+   * *afford statically, decline diegetically* rule doing its job.
    */
-  it('the fuel yard does not lend the smelter its verbs', async () => {
+  it('⭐⭐ `smelt` REACHES the fuel yard, and the clamp refuses it by what it is', async () => {
     const smelt = await f.cmd('smelt');
     expect(
-      smelt.notes.find(
-        (n) =>
-          n.kind === 'command-rejected' &&
-          (n as { reason?: string }).reason === 'unknown-verb'
-      ),
-      'smelting happens at the furnace, not the clamp'
-    ).toBeDefined();
+      smelt.notes.find((n) => n.kind === 'command-rejected'),
+      'the verb exists now — it used to be afforded by nothing anywhere'
+    ).toBeUndefined();
+    expect(await smelt.said()).toMatch(/clamp|air|tuy|draught/i);
   }, 60_000);
 
   it('the smelter is one room east, and it is a real place', async () => {

@@ -1,11 +1,26 @@
-# A cold iron ingot — a Meltable the forge melts. Iron's melting point
-# (1811 K) is reachable only by a bellows-fed forge; heated past it the ingot
-# runs to a molten pool on the floor.
+# ⭐⭐ **A wrought bar** — what a consolidated bloom becomes, and the one
+# piece of stock every anvil recipe in the game is written against.
+#
+# It is called *wrought* because it was WORKED: a bloomery's product came
+# out of the shaft as a spongy, slag-shot mass, and somebody beat the
+# glass out of it and welded the iron to itself under a hammer. The mass
+# of a real one is stamped from what was left after that, so a bar off a
+# poor bloom is a lighter bar. The figure here is the row's default for a
+# bar that arrives from nowhere — which, since Hearthworks is the
+# teaching smithy and props two of them, is exactly two bars in the world.
+#
+# ⚠ It is a Meltable, so heating it past iron's 1811 K runs it back to a
+# pool on the floor. That is a bellows-fed forge's heat and a mistake you
+# can make.
 class: /platform/thing/Ingot
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  shortDescription: cold iron ingot
-  keywords: [cold, ingot, iron, bar, billet]
+  shortDescription: wrought iron bar
+  keywords: [bar, ingot, iron, wrought, billet]
   register: indefinite
+  longDescription: >-
+    A plain bar of grey metal, its faces still faintly rippled where the
+    hammer drew it out. It is soft enough to bend if you lean on it and
+    it breaks, when it breaks, with a long grey silky fracture.
   _materialPath: /stuff/idea/material/element/iron
   mass: 0.5

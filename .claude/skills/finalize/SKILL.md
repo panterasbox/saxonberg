@@ -146,7 +146,7 @@ A drive nobody runs decays silently.
   because it always has.
 
 Then check the **reachability chain** for each capability the build
-added — the four links, each of which fails closed and *silent*:
+added — the five links, each of which fails closed and *silent*:
 
 | link | the failure it prevents |
 |---|---|
@@ -154,6 +154,13 @@ added — the four links, each of which fails closed and *silent*:
 | **affordance** | a verb nothing confers (⚠ an affordance is a static on a class; a row's `commandContributions:` is dead silently) |
 | **data** | the enabling rows absent — `feel`/`taste` shipped and had never run |
 | **boot** | nothing warms the roster — the reference-Idea trap, three times now |
+| **arg gate** | a view's `args[].requires` names a mixin the verb's real targets don't compose — `hammer` required `DurableMixin` and no metal stock has one, so every `hammer <target>` died at the binder while 34 controller tests stayed green |
+
+⚠ The last one is why a wire drive is not the whole exit criterion: it
+asserts the envelope, and the binder sits upstream of it only for
+targets the harness happens to name. **Walk it in a browser** — the
+metallurgy build's browser walk found six things its 13-checkpoint wire
+drive could not, including that the drive had never actually smelted.
 
 ### 3. Doc sweep pass
 

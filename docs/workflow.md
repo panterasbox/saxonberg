@@ -245,8 +245,11 @@ comment-thread loop that this project does not use.
 
 0. **The drive check.** Confirm the drive record is in the plan and
    every step was run. If the build skipped its exit criterion, run
-   the drive now — and check the four reachability links (verb ·
-   affordance · data · boot), each of which fails closed and silent.
+   the drive now — and check the five reachability links (verb ·
+   affordance · data · boot · **arg gate**), each of which fails closed
+   and silent. ⚠ The fifth is the binder: a view's `args[].requires`
+   names a mixin, and a target that does not compose it is refused
+   before any controller runs — invisible to every controller test.
 1. **Code pass.** Diff the whole branch against `main`. Look for
    bad smells, missed requirements, regressions, casts that crept
    in during MR iteration, stale doc references. Fix in place.

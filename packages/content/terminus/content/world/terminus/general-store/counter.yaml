@@ -5,6 +5,12 @@
 # reset sweep (Resettable). It stocks itself to par on standup (postRegister →
 # reset). The Business stands up lazily off `operatingLocations` (this path).
 #
+# ⭐ The store sells INPUTS and conveniences — a torch, rations, a
+# waterskin, a pot. It does not sell the outputs of a trade, and since
+# the metallurgy build it does not sell metal at all: what a general
+# store stocks is what somebody hauled here, and metal is made by the
+# people who make it.
+#
 # Prices are the store's authored stance, calibrated to the shipped anchors
 # (stipend 20 / wages 4-6 per game-hour / coinage 1/5/25): a relative ladder a
 # fresh arrival on the 20-credit stipend can shop against. The goods are all
@@ -29,7 +35,12 @@ data:
     - { itemTemplatePath: /world/terminus/general-store/thing/clasp-knife, par: 2 }
     - { itemTemplatePath: /world/terminus/general-store/thing/lantern, par: 2 }
     - { itemTemplatePath: /world/terminus/general-store/thing/whetstone, par: 2 }
-    - { itemTemplatePath: /world/terminus/general-store/thing/iron-ingot, par: 3 }
+    # ⚠⚠ **The iron ingot is gone, row and all.** The store stocked bars
+    # at 5 apiece, out of nowhere, forever — a faucet the whole metal
+    # chain exists to replace. Iron is made now: you walk out to the
+    # fringe, stake ground, cut ore, reduce it and beat the slag out of
+    # it, and every bar in the world is somebody's afternoon. A shelf
+    # that sells metal from nowhere makes the entire chain optional.
     - { itemTemplatePath: /world/terminus/general-store/thing/sewing-kit, par: 2 }
     - { itemTemplatePath: /world/terminus/general-store/thing/sewing-machine, par: 1 }
     # The gardening line. These are ordinary `/obj/` templates, NOT
@@ -126,7 +137,6 @@ data:
     /world/terminus/general-store/thing/clasp-knife: 6
     /world/terminus/general-store/thing/lantern: 10
     /world/terminus/general-store/thing/whetstone: 3
-    /world/terminus/general-store/thing/iron-ingot: 5
     /world/terminus/general-store/thing/sewing-kit: 5
     /world/terminus/general-store/thing/sewing-machine: 18
     # Against the shipped ladder (stipend 20; torch 2, rations 3, waterskin
