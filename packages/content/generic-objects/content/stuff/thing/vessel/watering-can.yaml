@@ -1,7 +1,11 @@
-# A watering can — the instrument that confers `water`. The row's own
-# The `watering` capability is what the can IS; the `water` verb is
-# declared once on the WateringCan class (environment bucket only, so it
-# lights just while the can is in your pack).
+# A watering can — the instrument that confers `water`. The `water` verb
+# is declared once on the WateringCan class (environment bucket only, so
+# it lights just while the can is in your pack).
+#
+# ⚠ No `capabilities:`. It used to offer `watering`, which nothing asked
+# for — `water` binds ANY carried vessel with water in it, a bucket as
+# well as the can (`water.yaml`'s `source` default), and what the can
+# IS is its class. A kind is minted by a CONSUMER (`lint:capabilities`).
 class: /platform/thing/WateringCan
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
@@ -13,5 +17,3 @@ data:
   material: /stuff/idea/material/alloy/steel
   interiorBulk: true
   interiorCapacity: 2
-  capabilities:
-    - { kind: watering }

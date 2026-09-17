@@ -43,8 +43,10 @@
  * `{ kind }`), and a literal `capabilities = […]` / `setCapabilities([…])`
  * in non-test source — a pack's class may stamp its own (`Tap.ts`).
  *
- * Consumers: `toolCapabilities:` on any row; `[capability.X]` anywhere in
- * a view; and in non-test source `hasCapability(X)`,
+ * Consumers: `toolCapabilities:` on any row; an archetype slot's
+ * `needs: { tool: X }` (the mine wants `winning`; `Archetype.ts` reads
+ * it with `hasCapability`); `[capability.X]` anywhere in a view; and in
+ * non-test source `hasCapability(X)`,
  * `capabilityRate(X)`, `capabilityControl(X)`, `bestInstrument(_, X)`,
  * a `paceMs(_, _, [X…])` list, and `capability.X` inside a string — where
  * X is a literal or an identifier a `const X = '…'` in the same file
@@ -64,11 +66,15 @@ const MUD = join(SERVER_ROOT, 'src', 'mud');
 const SKIP = new Set(['node_modules', '.git', 'dist', 'build', 'coverage']);
 
 /**
- * ⭐⭐ Census, then ratchet. Declared kinds nothing consumes, the day this
- * gate landed. Each one names a verb nobody has written yet or a tag
- * that should come off the row; either way the number only falls.
+ * ⭐⭐ Census, then ratchet — and the ratchet closed the same day. The
+ * first census reported four: two were the SCANNER's miss (the mine
+ * archetype's `needs: { tool: winning }` is a consumer), one was a role
+ * with no verb yet (`prying` on the pinch bar — the tag came off; it
+ * returns with the verb), and one was a kind standing in for a class
+ * (`watering` on the can — `water` binds any carried vessel with water
+ * in it, and what the can IS is its class). Zero, and it stays there.
  */
-const DECLARED_NEVER_CONSUMED_CEILING = 4;
+const DECLARED_NEVER_CONSUMED_CEILING = 0;
 
 /** A recipe or verb wanting a kind no instrument offers: a dead dish. */
 const REQUIRED_NEVER_DECLARED_CEILING = 0;
@@ -111,6 +117,13 @@ function scanYaml(doc: unknown, site: string, declared: Sites, consumed: Sites):
       const kind = typeof c === 'string' ? c : (c as { kind?: string })?.kind;
       if (kind) add(consumed, kind, site);
     }
+  }
+  // An archetype slot that wants a tool by capability — the third
+  // consumer, and the one the first census forgot (it reported the
+  // mine's `assay-scale` and `winning` as inert).
+  const needs = o['needs'] as { tool?: unknown } | undefined;
+  if (needs && typeof needs === 'object' && typeof needs.tool === 'string') {
+    add(consumed, needs.tool, site);
   }
   for (const v of Object.values(o)) if (v && typeof v === 'object') scanYaml(v, site, declared, consumed);
 }
@@ -185,7 +198,10 @@ function main(): void {
       continue;
     }
     scanYaml(doc, site, declared, consumed);
-    for (const m of readFileSync(file, 'utf8').matchAll(ATOM)) add(consumed, m[1]!, site);
+    // Atoms in a view's `default:` — with YAML comments stripped, so a
+    // row explaining why it no longer offers a kind is not its consumer.
+    const uncommented = readFileSync(file, 'utf8').replace(/(^|\s)#[^\n]*/g, ' ');
+    for (const m of uncommented.matchAll(ATOM)) add(consumed, m[1]!, site);
   }
   // Source: the kernel's and every pack's, tests excluded.
   const sources = walk(MUD, '.ts');

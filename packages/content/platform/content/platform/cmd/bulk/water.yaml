@@ -27,11 +27,18 @@ args:
     required: true
     scope: "reachable"
     requires: [VisibleMixin, CultivableMixin]
+  # ⭐ WHAT WITH — DECLARED, not hunted for (`lint:instrument-args`).
+  # Bare, the binder hands over every vessel you are CARRYING and the
+  # controller takes the first with water in it — a question about the
+  # contents, which no predicate asks. `water the lily with the bucket`
+  # names one; a named vessel is taken as named, so "it is empty" can be
+  # said about it.
   - name: source
-    type: object
+    type: objects
     required: false
-    scope: "reachable"
+    # Named: anything in reach (a can on the floor). Bare: only what you
+    # CARRY — the default's seed is `me:i`, not `reachable`.
+    scope: ["reachable"]
     prepositions: [with, from]
-    requires: VisibleMixin
-    validators:
-      - /lib/command/validators/mustHaveBulkSlot
+    default: "me:i:[mixin.BulkableMixin]"
+    requires: [BulkableMixin]

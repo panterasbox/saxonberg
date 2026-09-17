@@ -496,11 +496,27 @@ they never *mint* them. Two directions:
    silently. The first run found one — `boil` paced on `['pot',
    'cauldron']` and nothing anywhere offers `cauldron`, because a
    cauldron row would declare `pot` (the *role*), which is the doctrine.
-2. **declared-never-consumed — census, then ratchet.** A row offers a
-   kind nothing asks for: a verb nobody has written yet, or a tag that
-   should come off. Shipped at **4** (`assay-scale`, `prying`, `winning`
-   in trade-mining; `watering` on the generic watering can). It may
-   fall, never rise.
+2. **declared-never-consumed — census, then ratchet, and the ratchet
+   closed the same day.** A row offers a kind nothing asks for. The
+   first census said **4**, and the four were three different things —
+   which is the useful part:
+   - `assay-scale` and `winning` were the **scanner's** miss: the mine
+     archetype's `needs: { tool: winning }` is a consumer
+     (`Archetype.ts` reads it with `hasCapability`) and the census had
+     not counted archetype slots. A gate's first census is a hypothesis
+     about who consumes; the fix was to the gate.
+   - `prying` on the pinch bar was a **role with no verb** — nothing
+     bars down loose ground yet. The tag came off; the row says why and
+     that the kind returns with the verb.
+   - `watering` on the watering can was a **kind standing in for a
+     class** — the row's own comment said *"what the can IS"*. `water`
+     binds any carried vessel with water in it (a bucket too), so the
+     can's role is its class's affordance, not a capability. The tag
+     came off, and `water`'s source became a declared arg with a `me:i`
+     default while it was open (the last `for … of giver.getContents()`
+     hunt in the tree, which `lint:instrument-args` had not fired on
+     because it type-tested nothing — it read the contents).
+   Ceiling **0**.
 
 ⭐ **The listing is the catalogue.** `pnpm -C packages/server
 lint:capabilities --list` prints every kind with who offers it and who
