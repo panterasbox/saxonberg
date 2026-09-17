@@ -708,12 +708,13 @@ args:
     type: object            # bare species word — polymorphic, so NO
     required: false         # `requires:` here; the controller narrows
     scope: [reachable]      # (revised 2026-09-17 — the bole; the stand is the ROOM)
-  - name: axe
-    type: object
-    required: false
-    prepositions: [with]
-    scope: [reachable]
-    requires: ToolMixin
+  - name: axe               # DECLARED, never hunted (grain-chain's
+    type: object            # `lint:instrument-args`, ceiling 0, and the
+    required: false         # `[capability.X]` atom it added — see
+    prepositions: [with, using]   # § Pending branches)
+    default: "reachable:[capability.felling]"
+    scope: ["reachable"]
+    requires: [ToolMixin]
 ```
 
 **The target is polymorphic, so the view gates nothing on it and the
@@ -731,9 +732,19 @@ and `ToolMixin` on `axe`. ⚠ A controller test cannot see the binder —
 so a **dispatcher-level** unit test (`test-bootstrap`, a room composing
 `StandMixin`, `CommandApi.dispatch('fell oak')`) asserts the raw word
 reaches `execute` with `stuff === null` and is read as the species.
-`with <axe>` names the instrument; when absent the controller takes the
-first reachable tool the giver *holds* with the `felling` capability
-(the `shore` shape, held first).
+`with <axe>` names the instrument; when absent the view's `default:`
+binds the first reachable thing offering `felling` — **the controller
+never hunts**. `design/grain-chain` (unmerged, 2026-09-17) retired the
+held-first walk from `shore` itself and ships `lint:instrument-args`
+at a ceiling of ZERO: a `giver.getContents().find(MixinApi.isTool…)`
+in this controller fails that gate the day grain merges. The
+controller reads `model.axe?.stuff`, checks `hasCapability('felling')`
+(a bound billhook → `wrong-tool`), and null → `no-axe`. ⚠ The same
+gate fires on *"the receiver is the actor's surroundings + a type
+test"* — so the stand lookup `MixinApi.isActive(giver.getContainer(), STAND_MIXIN)`
+must be checked against the gate's rule text at build time; if it
+fires, declare the room too (`- name: stand`, `default: "here:[mixin.StandMixin]"`
+— verify the `here` seed takes a bracket filter) rather than exempt.
 
 **The capability.** The felling-axe row gains `felling`:
 `capabilities: ["felling", "cutting", "striking"]`. `fell` narrows to
@@ -779,7 +790,7 @@ rides the container slice (revised from the first draft's *"a bole is
 lost at restart"*; a bole dragged into a non-persistable room is still
 lost there, as any loose thing is).
 
-Flow (`execute`): resolve the axe (arg, else held-first) → the stand:
+Flow (`execute`): read the bound axe (never hunt) → the stand:
 `const room = giver.getContainer(); const stand = room && MixinApi.isActive(room, STAND_MIXIN) ? room : null`
 (the `workingOf` shape, `MiningActController.ts:66–70`; no fixture
 lookup) → the target: (a) `model.target.stuff` is a `Bole` → cross-cut;
@@ -988,10 +999,10 @@ room is not a Wood — the fuel yard). Read only by
 case is real.
 
 `HarvestController`: after resolving the plant and before the
-`isHarvestable` refusal, `const need = plant.getHarvestTool(); if (need) { const tool = toolFor(giver, model.tool?.stuff ?? null, need); if (!tool) → refuse *"You need something that cuts to take that — a billhook, or an axe."* (`needs-tool`) }`
-where `toolFor` = the named tool if `isTool && hasCapability(need)`,
-else the first `isTool` in `giver.getContents()` with the capability
-(held first — the `shore` shape). The credit becomes
+`isHarvestable` refusal, `const need = plant.getHarvestTool(); if (need) { const tool = model.tool?.stuff ?? null; if (!tool || !MixinApi.isTool(tool) || !tool.hasCapability(need)) → refuse *"You need something that cuts to take that — a billhook, or an axe."* (`needs-tool`) }`
+— **no `toolFor` hunt** (revised 2026-09-17: `lint:instrument-args` on
+`design/grain-chain`). The view's `default:` does the finding: a plant
+that authors no `harvestTool` ignores whatever bound. The credit becomes
 `discipline: plant.getDiscipline()`. `PlantController` credits
 `plant.getDiscipline()` too (the minted plant is in scope at L237).
 `harvest.yaml` gains:
@@ -1000,12 +1011,18 @@ else the first `isTool` in `giver.getContents()` with the capability
   - name: tool
     type: object
     required: false
-    prepositions: [with]
-    scope: [reachable]
-    requires: ToolMixin
+    prepositions: [with, using]
+    default: "reachable:[capability.cutting]"   # the one kind any plant asks for today
+    scope: ["reachable"]
+    requires: [ToolMixin]
 ```
 
 and `HarvestModel` gains `tool?: MqlOneResult` (`lint:binder-models`).
+⚠ The default names `cutting` because it is the only `harvestTool`
+any shipped row authors; a future plant wanting another kind adds a
+second default or the arg is named. `lint:capabilities` (also grain's)
+wants every kind CONSUMED — `felling` is consumed by `fell.yaml`'s
+default and `hasCapability('felling')`, `cutting` already is.
 The hazel-stool row authors `harvestTool: cutting`,
 `discipline: silviculture`. Every other plant row authors neither and
 behaves exactly as today — the phase-1 suite is the proof.
@@ -1743,6 +1760,48 @@ background.
 
 ---
 
+## ⚠ Pending branches (read 2026-09-17) — what changes when they merge
+
+Three sibling worktrees hold unmerged work; the impls are done and the
+MRs are iterating. Checked by diffing each against `origin/master`
+over every path this plan touches.
+
+- **`design/grain-chain`** (28 ahead, 23 behind). ⭐⭐ Ships
+  `lint:instrument-args` (ceiling **0**) and the MQL atom
+  **`[capability.X]`**, and retired the held-first walk from the very
+  `shore` controller this plan had copied. D3 and D7 are revised above
+  to the declared shape (`default: "reachable:[capability.felling]"`).
+  Also `lint:capabilities` (a kind must be consumed — `felling` is).
+  `char.yaml` gains a declared `clamp` arg (no conflict with W2's row
+  moves; `CharController` still finds cordwood by keyword). Root
+  `package.json` gains three pack lines beside W1's one — a trivial
+  conflict. `analyze.yaml`/`measure.yaml` stanzas now declare their
+  instruments — irrelevant while `analyze wood` is deferred.
+- **`build/pets`** (27 ahead, current). ⭐⭐ Three persistence-spine
+  fixes that are EXACTLY this build's seams: a self-persisting good in
+  a room that persists itself keeps its own `place`; a placement names
+  the nearest addressable ancestor and the way down; two records that
+  could disagree about where a keyed host is now resolve first instead
+  of throwing (which used to abort a room's whole restore). The
+  `Panel`-in-the-yard (a persistable singleton in a non-persistable
+  room), the `Panel`-in-a-`Wood` (a persistable host inside a
+  persistable room) and the stools as nested keyed hosts all sit on
+  those seams. ⚠ **And it changes Risk 4:** an owner-persisted CHATTEL
+  keeps its own `place` and restores into a public room — so a bole
+  `stampChattel`ed to the feller is expected to survive a restart on
+  the wood floor via its owner's estate, not be lost. W2's round-trip
+  test must run against the post-pets spine, not master's.
+- **`design/harm-survey`** (21 ahead, 23 behind). `Material` gains an
+  optional `corrosiveTo` (a spoiler-tagged field); nothing a wood row
+  must author. `check-template-census` learns `projectileTemplate`.
+  No overlap.
+
+**Sequencing.** Start the build branch off master **after `build/pets`
+merges** (W2 depends on its spine), and merge master again when
+`grain-chain` lands (the two lints; the plan already conforms). If the
+build must start first, merge `origin/build/pets` into the build branch
+before W2 — catching a branch up is the sanctioned act.
+
 ## Risks & opens
 
 1. **Three stands, not one (D13) — a requirements deviation the user
@@ -1793,8 +1852,9 @@ background.
     the bare word.
 11. **The `discipline` field name on `GrowingMixin`** — `husbandryDiscipline`
     if it clashes.
-12. **`HarvestController`'s held-first tool fallback** is a small hunt
-    (the `shore` shape). Kept optional.
+12. **No tool hunt anywhere** (revised): both instrument reads are
+    view defaults. If `lint:instrument-args` fires on the stand
+    lookup, declare the room as an arg (D3) — never exempt.
 13. **Kestrel road at 24000 lm** is the arithmetic; a `cellSize: 10`
     zone edit is the alternative.
 14. **The `forestry` command category** is new; the sweep adds the word.
