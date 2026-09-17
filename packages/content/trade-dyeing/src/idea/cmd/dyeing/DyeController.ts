@@ -214,12 +214,10 @@ export default class DyeController extends ManualBuildController<DyeModel> {
 
   /** A reachable bath — held first, then the room. */
   private findBath(giver: Stuff): Stuff | null {
-    const candidates: Stuff[] = [];
-    if (MixinApi.isContainer(giver)) candidates.push(...giver.getContents());
-    if (MixinApi.isContainable(giver)) {
-      const loc = giver.getContainer();
-      if (loc && MixinApi.isContainer(loc)) candidates.push(...loc.getContents());
-    }
+    // ⭐ The two-leg reach is `reachableMarks`' — held kit first, then
+    // the room, minus yourself. Rebuilding it here is how ten copies of
+    // one walk happened.
+    const candidates = this.reachableMarks(giver);
     for (const c of candidates) {
       if (!MixinApi.isBulkable(c)) continue;
       const slot = BulkableApi.slotFor(c, undefined);

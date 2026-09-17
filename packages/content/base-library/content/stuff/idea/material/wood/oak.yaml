@@ -23,6 +23,16 @@ data:
   # Wood chars rather than melts — no melting/boiling point.
   autoignitionTemperature: 570
   heatOfCombustion: 16
+  # ⚠⚠ Mechanical response (materials-response): MPa / MJ·m⁻³. Oak
+  # authored NEITHER until this build, and it is the oak WASTER's
+  # material — the practice sword the combat gym benches bruises with.
+  # Once material height enters delivery, an unauthored waster delivers
+  # at the floor on every channel, and `waster-spar.test.ts` asserts its
+  # blows still raise contusions. Soft (it is wood) but genuinely tough:
+  # a hardwood bends and splinters where a casting shatters, which is
+  # the whole reason a waster is made of it.
+  hardness: 40
+  toughness: 60
   edibility: false
   nutrients: ["cellulose"]
   toxicity: []

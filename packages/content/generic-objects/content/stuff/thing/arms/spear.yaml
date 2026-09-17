@@ -1,0 +1,36 @@
+# ⚠⚠ **The row's `_materialPath` is a DEFAULT, not a claim.** Both mint
+# paths override a crafted output's material from the stock it was made
+# of, unconditionally — so a blade forged out of a wrought-iron bar IS
+# iron and reads as iron on the card and under `analyze`. What the
+# default is for is a clone nobody forged: the newbie wilds prop five of
+# these rows, and after material height entered delivery a weapon with
+# NO material delivers zero. A material-less prop would be a stick.
+#
+# ⭐ Which is why the NAME no longer says steel. The row cannot know what
+# metal a particular one is made of, so it does not say — the shape is
+# the row's and the metal is the instance's, and `analyze weapon` is
+# where you find out.
+class: /platform/thing/equipment/Weapon
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: spear
+  keywords: [spear]
+  register: indefinite
+  longDescription: >
+    A long ash shaft crowned with a leaf-shaped head. It keeps a foe
+    at the end of its reach — and finds the gaps a shorter blade never
+    could — but a man who gets inside it turns all that length into a
+    liability.
+  _materialPath: /stuff/idea/material/alloy/steel
+  _detailMaterialPaths:
+    haft: /stuff/idea/material/wood/oak
+  constructionForm: pointed
+  gradeBand: fine
+  # A long reach weapon — the authored length is what makes it out-reach a
+  # blade (it controls until you close the gap). Two-handed.
+  mass: 1.8
+  length: 2.4
+  slotClaims:
+    "/stuff/idea/species/BodyPlan/biped": ["hand:left", "hand:right"]
+  # ⭐ The spear is the reach argument, and reach is its own practice.
+  exercises: [polearms]

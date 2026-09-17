@@ -148,8 +148,9 @@ export default class BreedController extends CommandController<BreedModel> {
   }
 
   protected async registry(): Promise<HerdRegistry> {
-    const resident = StuffApi.findByTemplatePath<HerdRegistry>(HERD_REGISTRY_PATH);
-    if (resident) return resident;
+    // ⭐ `singleton` IS the get-or-create: its first act is this exact
+    // index read, and it clones only on a miss. A resident pre-check in
+    // front of it is the same lookup written twice.
     return StuffApi.singleton<HerdRegistry>(HERD_REGISTRY_PATH);
   }
 

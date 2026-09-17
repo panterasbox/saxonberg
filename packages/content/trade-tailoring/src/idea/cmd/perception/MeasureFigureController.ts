@@ -93,7 +93,7 @@ export default class MeasureFigureController extends CommandController<MeasureMo
       return;
     }
     const subject = named?.stuff ?? giver;
-    const book = findBook(giver);
+    const book = this.findBook(giver);
     if (!book) {
       this.decline(
         context,
@@ -147,6 +147,21 @@ export default class MeasureFigureController extends CommandController<MeasureMo
       .send();
   }
 
+  /**
+   * The book on the counter here — held first, then the room.
+   *
+   * ⭐ A METHOD now, not a module function: the two-leg reach belongs to
+   * `reachableMarks` on the controller base, and a free function cannot
+   * reach it. That is most of why this walk was rebuilt by hand.
+   */
+  private findBook(giver: Stuff): MeasureBook | null {
+    return (
+      this.reachableMarks(giver).find(
+        (c): c is MeasureBook => c instanceof MeasureBook,
+      ) ?? null
+    );
+  }
+
   private decline(
     context: CommandContext,
     prose: ReturnType<typeof Mml.compose>,
@@ -157,14 +172,3 @@ export default class MeasureFigureController extends CommandController<MeasureMo
   }
 }
 
-/** The book on the counter here — held first, then the room. */
-function findBook(giver: Stuff): MeasureBook | null {
-  const candidates: Stuff[] = [];
-  if (MixinApi.isContainer(giver)) candidates.push(...giver.getContents());
-  if (MixinApi.isContainable(giver)) {
-    const loc = giver.getContainer();
-    if (loc && MixinApi.isContainer(loc)) candidates.push(...loc.getContents());
-  }
-  for (const c of candidates) if (c instanceof MeasureBook) return c;
-  return null;
-}

@@ -241,6 +241,38 @@ export default class MineWarren extends MineWarrenBase {
     return ParcelApi.ownerOf(block.parcelExtent);
   }
 
+  /**
+   * ⭐⭐ The claim a proposed block would **overlap**, or `null` when the
+   * ground is clear — the question `stake` has to ask, and a different
+   * one from {@link MineWarren.claimFor}.
+   *
+   * ⚠⚠ `claimFor` answers *"which claim is this CELL in"*, which is the
+   * right question for `holderOf` and the wrong one for staking: a block
+   * is three cells each way, so two centres four cells apart pass a
+   * centre test while their extents share nine columns of ground. The
+   * register then holds two claims over the same rock and `holderOf`
+   * answers with whichever was written first — *first come is the whole
+   * rule* quietly becoming *first come, and then whoever overlaps you*.
+   *
+   * It went unnoticed because the shipped world had exactly ONE block in
+   * it, and one block cannot overlap anything.
+   */
+  public overlappingClaim(from: Cell, to: Cell): ClaimBlock | null {
+    const lo = (a: number, b: number): number => Math.min(a, b);
+    const hi = (a: number, b: number): number => Math.max(a, b);
+    for (const b of this.claimBlocks) {
+      const clear =
+        hi(from[0], to[0]) < lo(b.from[0], b.to[0]) ||
+        lo(from[0], to[0]) > hi(b.from[0], b.to[0]) ||
+        hi(from[1], to[1]) < lo(b.from[1], b.to[1]) ||
+        lo(from[1], to[1]) > hi(b.from[1], b.to[1]) ||
+        hi(from[2], to[2]) < lo(b.from[2], b.to[2]) ||
+        lo(from[2], to[2]) > hi(b.from[2], b.to[2]);
+      if (!clear) return b;
+    }
+    return null;
+  }
+
   /** Register a freshly staked claim's block. The `stake` act's write. */
   public addClaimBlock(block: ClaimBlock): void {
     this.claimBlocks = [...this.claimBlocks, block];

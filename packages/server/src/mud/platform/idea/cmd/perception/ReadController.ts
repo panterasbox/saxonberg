@@ -191,7 +191,7 @@ export default class ReadController extends CommandController<ReadModel> {
       const picked = await this.promptForObject(
         context,
         'What do you want to use it on?',
-        this.reachableMarks(context),
+        this.reachableMarks(context.commandGiver),
       );
       if (!picked) {
         MessageApi.scene(giver)

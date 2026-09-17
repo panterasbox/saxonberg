@@ -1,0 +1,29 @@
+# ⭐ The ore the FRINGE yields — goethite in a slate host, and a very
+# different rock from the green stuff under the yard.
+#
+# ⚠ Its `grade` is authored at zero and that is CORRECT: `hew` stamps the
+# real figure from the deposit at the moment the lump comes out of the
+# face. A row that authored a grade would be a second source of truth for
+# a number the ground already knows.
+#
+# ⚠⚠ A separate ROW, not a variant of the copper one, and that is
+# load-bearing rather than tidy: `StackableMixin.canMergeWith` refuses
+# unless two lots share a `templatePath`, so iron and copper can never
+# pool into one heap with an averaged grade. Two ores, two piles, two
+# prices at the counter.
+class: /trade/mining/thing/Ore
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: lump of rusty ironstone
+  keywords: [ore, ironstone, rock, lump, goethite, rusty]
+  register: indefinite
+  longDescription: >-
+    Slate gone rotten and rust-brown right through, with a boxwork of
+    harder ribs standing proud where the softer stuff has weathered out
+    from between them. It is heavier in the hand than it has any right to
+    be, and it leaves your palms orange.
+  _materialPath: /stuff/idea/material/mineral/goethite
+  gangueMaterialPath: /stuff/idea/material/mineral/quartz
+  grade: 0
+  quantity: 1
+  mass: 1.4

@@ -3,12 +3,18 @@ version: 0.1.0
 root: /trade/smelting
 description: >-
   The smelting trade — ground into metal. The furnace, the smelt act,
-  and the cast. ⭐ Yield is CHEMISTRY, never a recipe constant: metal out
-  is the charge's mass times each lump's grade times the mineral's metal
-  fraction by formula and molar mass, so a lean lump honestly makes less
-  copper and the gangue fluxes off as slag. Stage A ships the easy rung
-  — oxide copper — and the ladder above it (roasting, bronze, the
-  bloomery, steel) is later stages.
+  the bloomery and the cast. ⭐ Yield is CHEMISTRY, never a recipe
+  constant: metal out is the charge's mass times each lump's grade times
+  the mineral's metal fraction by formula and molar mass, so a lean lump
+  honestly makes less copper and the gangue fluxes off as slag.
+  ⭐⭐ And above copper the KIND is thermodynamics: the fuel-to-ore ratio
+  and the heat decide whether a ferrous charge reduces in the solid
+  state (a bloom), takes up enough carbon to be steel, or saturates and
+  RUNS (a cast pig you cannot forge) — because carbon lowers iron's
+  melting point, and that one fact is the whole ladder. `smelt` selects
+  nothing; the charge decides, and the product row is discovered by
+  material so an author adds tin by authoring a row. Roasting the
+  sulfides and bronze are later stages.
 requires:
   groups:
     - name: smelting

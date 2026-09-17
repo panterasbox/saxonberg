@@ -265,6 +265,124 @@ describe('Deposit — the geology field', () => {
     expect(d.surfaceReadingAt(s[0]! * 400, s[1]! * 400, 3, SEED)).toBeNull();
   });
 
+  /**
+   * ⭐⭐ **Zonation has two axes, and they are orthogonal.** Depth is the
+   * supergene one (oxide cap over sulfide) and `toZ` has always carried
+   * it; distance along strike is the magmatic one — a copper heart with
+   * an iron-rich distal fringe, because the metals dropped out of the
+   * same fluid at different distances from the source.
+   *
+   * Everything below defaults to the shipped behaviour when the new
+   * numbers are absent, which is asserted first and is why the fifteen
+   * cases above did not move.
+   */
+  describe('the lateral term', () => {
+    const GOETHITE = '/stuff/idea/material/mineral/goethite';
+
+    /** A cell in the lode at `along` metres along strike from `through`. */
+    function cellAlong(d: Deposit, along: number, z: number): Point {
+      const f = 40 * Math.PI / 180;
+      const at: Point = [
+        Math.round(Math.sin(f) * along),
+        Math.round(Math.cos(f) * along),
+        z,
+      ];
+      // Nudge onto the plane: the rounding to whole metres can push a
+      // cell out of an 8 m thickness at a long lever arm.
+      for (let dx = -4; dx <= 4; dx++) {
+        for (let dy = -4; dy <= 4; dy++) {
+          const c: Point = [at[0] + dx, at[1] + dy, z];
+          if (d.isInLode(c)) return c;
+        }
+      }
+      throw new Error(`no lode cell at along=${along}`);
+    }
+
+    it('⚠ with no window authored, every band is admitted exactly as before', () => {
+      const d = fixture();
+      const near = cellAlong(d, 20, -30);
+      const far = cellAlong(d, 100, -30);
+      expect(d.bandAt(-30)).toBe(d.bandAt(-30, d.alongStrike(near)));
+      expect(d.sampleAt(near, SEED).mineralPath).toBe(MALACHITE);
+      expect(d.sampleAt(far, SEED).mineralPath).toBe(MALACHITE);
+    });
+
+    it('⭐⭐ a window switches the MINERAL along strike at one depth', () => {
+      const d = fixture();
+      d.setZones([
+        { toZ: -45, mineral: MALACHITE, meanGrade: 0.08, spread: 0.02, alongTo: 60 },
+        { toZ: -45, mineral: GOETHITE, meanGrade: 0.12, spread: 0.02, alongFrom: 60 },
+        { toZ: -400, mineral: CHALCOPYRITE, meanGrade: 0.03, spread: 0.02 },
+      ]);
+      const heart = cellAlong(d, 20, -30);
+      const fringe = cellAlong(d, 100, -30);
+      // One depth, one lode, two minerals — decided by where along it you
+      // are standing and nothing else.
+      expect(d.sampleAt(heart, SEED).mineralPath).toBe(MALACHITE);
+      expect(d.sampleAt(fringe, SEED).mineralPath).toBe(GOETHITE);
+      // …and the depth axis still works underneath it.
+      expect(d.bandAt(-100, 100)!.mineral).toBe(CHALCOPYRITE);
+    });
+
+    it('⭐ the window is SYMMETRIC — a body is lean at both ends', () => {
+      const d = fixture();
+      d.setZones([
+        { toZ: -45, mineral: MALACHITE, meanGrade: 0.08, spread: 0.02, alongTo: 60 },
+        { toZ: -45, mineral: GOETHITE, meanGrade: 0.12, spread: 0.02, alongFrom: 60 },
+      ]);
+      expect(d.bandAt(-30, 100)!.mineral).toBe(GOETHITE);
+      expect(d.bandAt(-30, -100)!.mineral).toBe(GOETHITE);
+    });
+
+    it('⭐ the halo tapers to zero outside the plane, and is barren at halo 0', () => {
+      const d = fixture();
+      const inside = anOreCell(d, -30);
+      const n = [
+        -Math.cos(40 * Math.PI / 180) * Math.sin(60 * Math.PI / 180),
+        Math.sin(40 * Math.PI / 180) * Math.sin(60 * Math.PI / 180),
+        -Math.cos(60 * Math.PI / 180),
+      ];
+      /** A point `m` metres off the plane along its own normal. */
+      const off = (m: number): Point => [
+        inside[0] + n[0]! * m,
+        inside[1] + n[1]! * m,
+        inside[2] + n[2]! * m,
+      ];
+
+      // No halo: the lode's edge is a knife edge, as it shipped.
+      expect(d.lodeProximity(off(8))).toBe(0);
+      expect(d.sampleAt(off(8), SEED).grade).toBe(0);
+
+      d.setLode({ ...d.getLode()!, halo: 20 });
+      // Inside is untouched — the halo widens nothing.
+      expect(d.lodeProximity(inside)).toBe(1);
+      // …and outside tapers monotonically to nothing at the halo's edge.
+      const near = d.lodeProximity(off(8));
+      const mid = d.lodeProximity(off(16));
+      expect(near).toBeGreaterThan(mid);
+      expect(mid).toBeGreaterThan(0);
+      expect(d.lodeProximity(off(30))).toBe(0);
+      // The grade the taper yields is the band's, scaled — thin, not empty.
+      const thin = d.sampleAt(off(8), SEED);
+      expect(thin.grade).toBeGreaterThan(0);
+      expect(thin.grade).toBeLessThan(d.sampleAt(inside, SEED).grade);
+      expect(thin.mineralPath).toBe(MALACHITE);
+    });
+
+    it('⚠⚠ the ground stops at the collar — a cell in the AIR is barren', () => {
+      const d = fixture();
+      // The lode's plane continues upward forever; the rock does not.
+      // Nothing bounded z before this, so a surface working sampling its
+      // `up` face could hew a seam out of the sky.
+      const sky = anOreCell(d, 10);
+      expect(d.isInLode(sky)).toBe(true);
+      const sample = d.sampleAt(sky, SEED);
+      expect(sample.inLode).toBe(false);
+      expect(sample.grade).toBe(0);
+      expect(sample.mineralPath).toBeNull();
+    });
+  });
+
   it('a seeded feature is a fact about the place, not a draw', () => {
     const d = fixture();
     d.setFeatures({ seeded: [{ feature: 'vug', chance: 0.15 }] });

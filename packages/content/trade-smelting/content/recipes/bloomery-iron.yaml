@@ -1,0 +1,24 @@
+# ⭐ The rung, not the mechanism. The smelt itself is `smelt` — a furnace
+# act whose product is derived from the charge — and this row exists so
+# it sits on the ladder where a learner can find it and the discipline
+# can derive its floor from it.
+#
+# ⚠ Nothing selects this recipe. What you get out of a furnace is decided
+# by the charge and the heat; charging to this row's shape is what makes
+# a bloom, and charging heavier makes something else.
+recipeId: bloomery-iron
+name: Run a Bloomery
+keywords: [bloom, bloomery, iron, smelt]
+inputSlots:
+  - { slot: ore, category: ore, minGrade: poor, kind: item, count: 3 }
+  - { slot: fuel, category: fuel, minGrade: poor, kind: item, count: 2 }
+toolCapabilities: []
+outputTemplate: /trade/smelting/thing/iron-bloom
+outputMaterial: ''
+outputApplication: tangible
+# ⭐ Not iron's melting point — the temperature at which iron oxide gives
+# up its oxygen. A bloomery never melts anything, which is the whole
+# lesson of the rung.
+requiresHeatK: 1470
+difficulty: hard
+discipline: smelting

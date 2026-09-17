@@ -29,6 +29,9 @@ import { SurveyChannelController, READING_TOPIC, GEOLOGY } from './SurveyChannel
 import { MixinApi } from "@saxonberg/server/mud/api/mixin";
 import type { CommandContext, CommandModel } from '@saxonberg/server/mud/api/command';
 import type { SurveyFrame, SurveyPoint } from '@saxonberg/types';
+import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
+import type { Container } from '@saxonberg/server/mud/lib/spatial/Container';
+import type { CompetenceBandName } from '@saxonberg/server/mud/lib/advancement/CompetenceBand';
 import { MessageApi } from '@saxonberg/server/mud/api/message';
 import { Mml } from '@saxonberg/server/mud/api/mml';
 import { CardApi } from '@saxonberg/server/mud/api/card';
@@ -99,6 +102,7 @@ export default class AnalyzeGroundController extends SurveyChannelController {
       deposit: deposit.getName() || 'the ground',
       points,
       solved,
+      ground: await this.groundLine(place, band),
       note,
     };
 
@@ -121,6 +125,38 @@ export default class AnalyzeGroundController extends SurveyChannelController {
       });
     }
   }
+
+  /**
+   * ⭐ **What you are standing on**, and what this reader can say about
+   * it. Everyone with eyes gets the colour and a lean/fair/rich word;
+   * the mineral's NAME needs a band that can solve at all — the same
+   * `SOLVE_FROM` rung that turns three bearings into a plane, asked as a
+   * predicate rather than re-listed, because naming the species of a
+   * weathered oxide off a hand specimen is exactly as much geology.
+   *
+   * ⚠ **The card does not lie to a novice and does not hide from one.**
+   * A novice reads *"rust-brown ironstone, and it looks rich"* — which
+   * is true, useful, and not the word "goethite". That is competence
+   * buying resolution rather than access, the rule the error band on a
+   * bearing already follows.
+   */
+  private async groundLine(
+    place: Stuff & Container,
+    band: CompetenceBandName,
+  ): Promise<string | null> {
+    const ground = await this.groundAt(place);
+    if (!ground || ground.sample.grade <= 0) return null;
+    const colour = ground.mineral?.getAppearance() || 'ore';
+    const named = this.solvesGround(band) ? ground.mineral?.getName() : null;
+    const richness = ground.sample.grade < 0.06
+      ? 'lean'
+      : ground.sample.grade < 0.12
+        ? 'fair'
+        : 'rich';
+    return named
+      ? `${colour} — ${named}, and it runs ${richness}.`
+      : `${colour}, and it looks ${richness}.`;
+  }
 }
 
 /** The terminal rendering of the same frame the card carries. */
@@ -132,6 +168,7 @@ function renderText(frame: SurveyFrame): string {
   for (const s of frame.solved) {
     lines.push(`  ${s.parameter}: ${s.value}  (from ${s.from})`);
   }
+  if (frame.ground) lines.push(`  underfoot: ${frame.ground}`);
   if (frame.note) lines.push(`  ${frame.note}`);
   return lines.join('\n');
 }

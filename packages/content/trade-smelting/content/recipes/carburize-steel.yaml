@@ -1,0 +1,23 @@
+# ⭐⭐ The hardest rung on the ladder, and it is gated by KNOWLEDGE rather
+# than by heat or by supply.
+#
+# Steel is iron with between about 0.2 % and 2 % carbon in it. Nobody in
+# the ancient world could measure carbon, so hitting that band was a
+# matter of knowing your fuel, your heat and your time — and the way you
+# did it was to put a finished bar back in the fire and do it again.
+#
+# ⚠ Nothing selects this recipe either. Charging a BAR rather than ore is
+# what carburizes; the row is where the act sits on the ladder.
+recipeId: carburize-steel
+name: Carburize a Bar
+keywords: [steel, carburize, case, bar]
+inputSlots:
+  - { slot: stock, category: forgeable, minGrade: fair, kind: item, count: 1 }
+  - { slot: fuel, category: fuel, minGrade: poor, kind: item, count: 2 }
+toolCapabilities: []
+outputTemplate: /trade/smelting/thing/steel-ingot
+outputMaterial: ''
+outputApplication: tangible
+requiresHeatK: 1470
+difficulty: hard
+discipline: smelting

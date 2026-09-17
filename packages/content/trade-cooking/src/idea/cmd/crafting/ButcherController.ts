@@ -276,7 +276,7 @@ export default class ButcherController extends CraftController<ButcherModel> {
    * does, because both are an edge.
    */
   private findBlade(giver: Stuff): Stuff | null {
-    for (const candidate of this.reachOf(giver)) {
+    for (const candidate of this.reachableMarks(giver)) {
       if (!MixinApi.isConstructed(candidate)) continue;
       if (candidate.getConstructionForm() !== 'bladed') continue;
       return candidate;
@@ -291,23 +291,12 @@ export default class ButcherController extends CraftController<ButcherModel> {
    * bench answers the same way without this file learning its name.
    */
   private findBlock(giver: Stuff): Stuff | null {
-    for (const candidate of this.reachOf(giver)) {
+    for (const candidate of this.reachableMarks(giver)) {
       if (!MixinApi.isContaminable(candidate)) continue;
       if (!MixinApi.isSurfaced(candidate)) continue;
       return candidate;
     }
     return null;
-  }
-
-  /** Held kit first, then the room — the two-leg reach the trade uses. */
-  private reachOf(giver: Stuff): Stuff[] {
-    const reach: Stuff[] = [];
-    if (MixinApi.isContainer(giver)) reach.push(...giver.getContents());
-    if (MixinApi.isContainable(giver)) {
-      const here = giver.getContainer();
-      if (here && MixinApi.isContainer(here)) reach.push(...here.getContents());
-    }
-    return reach;
   }
 
   private decline(

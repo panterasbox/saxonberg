@@ -1233,7 +1233,8 @@ function filterByKeywordsOrPredicate(
     const predicate = MQL_PREDICATES[name]!;
     // Bareword predicates are viewer-shaped (`visible`, `mine`,
     // `here` all read the giver) — a system query filters by the
-    // viewer-free namespaces (`mixin.` / `class.` / `template.`)
+    // viewer-free namespaces (`mixin.` / `class.` / `material.` /
+    // `template.`)
     // instead.
     const giver = requireGiver(ctx, `the '${name}' predicate`);
     const out: MqlMatch[] = [];
@@ -1451,9 +1452,20 @@ function readAtom(
       return keywordsOf(stuff).includes(atom.key.toLowerCase());
     case 'template':
       return matchesTemplate(stuff, atom.key);
+    case 'material':
+      // ⭐ What the thing is MADE OF, by the material's authored tag —
+      // the vocabulary recipes already match on (`forgeable`, `ferrous`,
+      // `brittle`, `food`, `flammable`). Strict boolean membership, the
+      // `keyword.X` shape, and the walk belongs to the host: it spans
+      // the bulk default AND every per-Detail override, so an axe is
+      // both `wood` and `metal`.
+      //
+      // ⚠ Made of, never CONTAINS — a waterskin is leather, and what is
+      // in its bulk slot is a different question with a different owner.
+      return MixinApi.isTangible(stuff) && stuff.hasMaterialTag(atom.key);
     default:
       throw new MqlResolveError(
-        `unknown filter namespace '${atom.namespace}' (expected prop, mixin, class, keyword, or template)`
+        `unknown filter namespace '${atom.namespace}' (expected prop, mixin, class, keyword, material, or template)`
       );
   }
 }

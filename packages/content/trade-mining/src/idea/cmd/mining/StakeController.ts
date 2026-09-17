@@ -29,7 +29,7 @@ import { MessageApi } from '@saxonberg/server/mud/api/message';
 import { Mml } from '@saxonberg/server/mud/api/mml';
 import { StuffApi } from '@saxonberg/server/mud/api/stuff';
 import { ParcelApi } from '@saxonberg/server/mud/api/parcel';
-import type MineWarren from '../../MineWarren';
+import MineWarren from '../../MineWarren';
 import type { ClaimBlock } from '../../MineWarren';
 
 const TOPIC = 'act.deed';
@@ -57,9 +57,36 @@ export default class StakeController extends CommandController<StakeModel> {
       return;
     }
     const warrenPath = (counter as unknown as { getWarrenPath?(): string }).getWarrenPath?.() ?? '';
-    const warren = warrenPath ? StuffApi.findByTemplatePath<MineWarren>(warrenPath) : null;
-    if (!warren) {
+    if (!warrenPath) {
+      // The register names nothing — a real, diegetic answer.
       this.decline(context, Mml.compose`The register names no diggings.`, 'no-diggings');
+      return;
+    }
+    // ⚠⚠ **Get-or-create, and `singleton` IS the get-or-create.** A
+    // `MineWarren` is a reference Idea and nothing warms a roster of
+    // them, so on a fresh process the index is empty and a bare
+    // `findByTemplatePath` reads null forever — which is why `stake`
+    // answered *"the register names no diggings"* to every claim ever
+    // attempted in a booted world. `singleton` reads the same index
+    // bucket first and clones only on a miss.
+    let warren: MineWarren;
+    try {
+      warren = await StuffApi.singleton<MineWarren>(warrenPath);
+    } catch (err) {
+      // ⚠ A register that names diggings which will not resolve is an
+      // AUTHORING fault, and it must not borrow the refusal above. That
+      // sentence is what a player sees when nobody has recorded a mine
+      // here; reusing it for a broken row is how the original bug hid —
+      // the message was true-sounding and the cause was unfindable.
+      // ⚠ `decline` files the `controller-rejected` note itself, so the
+      // cause goes to the log rather than to a second note (the
+      // `QuenchController` mint-failure precedent).
+      console.error(`StakeController: warren '${warrenPath}' did not resolve`, err);
+      this.decline(
+        context,
+        Mml.compose`The register names diggings the recorder cannot find — ${warrenPath}. That is a fault in the books, not in your claim; nobody can stake here until somebody fixes it.`,
+        'warren-unresolvable',
+      );
       return;
     }
 
@@ -73,16 +100,23 @@ export default class StakeController extends CommandController<StakeModel> {
       return;
     }
 
-    // ⚠ Already held? The register says so, and says by whom. First come
-    // is the whole rule, so the refusal is the rule working.
-    const existing = warren.claimFor(centre);
+    // ⚠⚠ Does the BLOCK overlap one already recorded? Not *is my centre
+    // inside one* — a block is `BLOCK_HALF` cells each way, so two
+    // centres four apart pass a centre test while sharing nine columns
+    // of ground, and the register would then hold two claims over the
+    // same rock. *First come is the whole rule* only survives if the
+    // whole block is clear.
+    const existing = warren.overlappingClaim(
+      [centre[0] - BLOCK_HALF, centre[1] - BLOCK_HALF, centre[2] - 1],
+      [centre[0] + BLOCK_HALF, centre[1] + BLOCK_HALF, centre[2] + 1],
+    );
     if (existing) {
       const owner = await ParcelApi.ownerOf(existing.parcelExtent);
       this.decline(
         context,
         owner
-          ? Mml.compose`That ground is already recorded, and it is not yours to record again.`
-          : Mml.compose`That ground is already in the register.`,
+          ? Mml.compose`A block already recorded runs into that one, and it is not yours to record over. Stand further off and try again.`
+          : Mml.compose`A block already in the register runs into that one. Stand further off and try again.`,
         'already-claimed',
       );
       return;
@@ -97,7 +131,16 @@ export default class StakeController extends CommandController<StakeModel> {
     const record = await ParcelApi.subdivide(
       extent,
       mine,
-      { kind: 'player', templatePath: giver.getTemplatePath() ?? '' },
+      // ⚠⚠ The IDENTITY path, never the template path. Every player
+      // Avatar shares one `templatePath`, so keying the title on it
+      // made every claim in the mine owned by every player at once —
+      // invisibly, because every fixture authors a distinct owner path.
+      // `ParcelOwner.templatePath` is an identity path by the kernel's
+      // own convention (`TitleController`, `TransferController`,
+      // `ChattelLogic`, `EmploymentLogic` all write one); this pack
+      // simply never got the MR !251 sweep. `lint:person-keys` holds
+      // the shape at zero now.
+      { kind: 'player', templatePath: giver.getIdentityPath() ?? '' },
       0,
       1,
       'industrial',

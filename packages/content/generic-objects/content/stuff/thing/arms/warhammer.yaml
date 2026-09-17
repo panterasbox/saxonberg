@@ -1,0 +1,35 @@
+# ⚠⚠ **The row's `_materialPath` is a DEFAULT, not a claim.** Both mint
+# paths override a crafted output's material from the stock it was made
+# of, unconditionally — so a blade forged out of a wrought-iron bar IS
+# iron and reads as iron on the card and under `analyze`. What the
+# default is for is a clone nobody forged: the newbie wilds prop five of
+# these rows, and after material height entered delivery a weapon with
+# NO material delivers zero. A material-less prop would be a stick.
+#
+# ⭐ Which is why the NAME no longer says steel. The row cannot know what
+# metal a particular one is made of, so it does not say — the shape is
+# the row's and the metal is the instance's, and `analyze weapon` is
+# where you find out.
+class: /platform/thing/equipment/Weapon
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: war-hammer
+  keywords: [war-hammer]
+  register: indefinite
+  longDescription: >
+    A brutal wedge of metal on a long two-handed haft. It is all commitment
+    — slow to bring round, punishing to answer, and it breaks a guard by
+    main force where a lighter weapon would only be turned.
+  _materialPath: /stuff/idea/material/alloy/steel
+  _detailMaterialPaths:
+    haft: /stuff/idea/material/wood/oak
+  constructionForm: hafted
+  gradeBand: fine
+  # The heavy guard-breaker archetype — heavy mass drives high poise damage,
+  # slow tempo, and an expensive commit. Two-handed.
+  mass: 3.2
+  length: 1.1
+  slotClaims:
+    "/stuff/idea/species/BodyPlan/biped": ["hand:left", "hand:right"]
+  # ⭐ A hammer is a mace that has committed further.
+  exercises: [bludgeons]

@@ -1093,9 +1093,9 @@ export class StudioLogic extends ApiLogic {
    * live registered instance (HMR/test-reset supersede a stale handle).
    */
   private async requireCatalogue(): Promise<BlueprintCatalogue> {
-    const found =
-      StuffApi.findByTemplatePath<BlueprintCatalogue>(CATALOGUE_PATH);
-    if (found) return found;
+    // ⭐ `singleton` IS the get-or-create, and it prefers the registered
+    // instance by construction: its first act is the index read, and it
+    // clones only on a miss.
     return StuffApi.singleton<BlueprintCatalogue>(CATALOGUE_PATH);
   }
 

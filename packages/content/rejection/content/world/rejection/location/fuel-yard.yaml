@@ -22,8 +22,33 @@ data:
       destination: /world/rejection/location/smelter
   props:
     - /trade/fuel/thing/clamp
-    - /trade/fuel/thing/hazel-stool
+    # ⚠⚠ Was a loose `/trade/fuel/thing/hazel-stool`, which afforded
+    # NOTHING: `harvest` is contributed by `CultivableMixin`, so a stool
+    # standing on the floor answered *"I don't understand 'harvest'."*
+    # The coppice shipped as scenery and its cordwood — the ONE supply
+    # the collier and the mine compete for — was unreachable by any
+    # route, which is why the yard's four charcoal baskets were the
+    # realm's entire fuel economy. The panel is ground, so the stools in
+    # it can be cut. See the panel row for why it is deliberately small.
+    - /trade/fuel/thing/coppice-panel
     - /trade/mining/thing/billhook
     - /trade/mining/thing/felling-axe
+    # ⚠⚠ **Four baskets of finished charcoal, and they are a PROP, not a
+    # supply.** A burn takes three game days (`BURN_MS`), which is six
+    # real hours at the default clock — so nobody can char their own fuel
+    # inside a session, and the collier has an `idles` brain rather than
+    # a producer one. Without these the iron rung is unreachable in
+    # practice: you would be standing at a furnace you cannot light a
+    # charge in.
+    #
+    # ⭐ They are BOUNDED and that is what keeps them honest — four
+    # baskets, authored, never restocked, the Hearthworks-ingots shape.
+    # A `stockLines` entry would be a faucet; a prop is a starting
+    # condition. ⓘ Charcoal on a quiet night is still nobody's, and the
+    # collier's producer brain is tracked as a deferred seam.
+    - /trade/fuel/thing/charcoal
+    - /trade/fuel/thing/charcoal
+    - /trade/fuel/thing/charcoal
+    - /trade/fuel/thing/charcoal
   cast:
     - /world/rejection/agent/collier

@@ -112,20 +112,19 @@ export abstract class ManualBuildController<
    * (`add`, `stir`, bare `strain`).
    */
   protected findBuildVessel(giver: Stuff): (Stuff & Builds) | null {
-    const candidates: Stuff[] = [];
-    if (MixinApi.isContainer(giver)) {
-      candidates.push(...giver.getContents());
-    }
-    if (MixinApi.isContainable(giver)) {
-      const loc = giver.getContainer();
-      if (loc && MixinApi.isContainer(loc)) {
-        candidates.push(...loc.getContents());
-      }
-    }
-    for (const c of candidates) {
-      if (MixinApi.isBuildVessel(c)) return c;
-    }
-    return null;
+    // ⚠ The reach is inherited; only the predicate is ours. `carried
+    // before floor` is the contract, and `.find` over the pool is what
+    // spends it — see docs/antipatterns.md § Rebuilding the two-leg
+    // reach by hand.
+    //
+    // ⚠⚠ The predicate is WRAPPED, never passed bare: every `MixinApi.isX`
+    // is a static that calls `this.hasMixin`, so `.find(MixinApi.isX)`
+    // arrives with `this` undefined and throws at the first candidate.
+    return (
+      this.reachableMarks(giver).find((c): c is Stuff & Builds =>
+        MixinApi.isBuildVessel(c),
+      ) ?? null
+    );
   }
 
   /**
@@ -154,14 +153,10 @@ export abstract class ManualBuildController<
     giver: Stuff,
     cap: string,
   ): (Stuff & Tooled) | null {
-    const candidates: Stuff[] = [];
-    if (MixinApi.isContainer(giver)) candidates.push(...giver.getContents());
-    if (MixinApi.isContainable(giver)) {
-      const loc = giver.getContainer();
-      if (loc && MixinApi.isContainer(loc)) {
-        candidates.push(...loc.getContents());
-      }
-    }
+    // ⭐ The two-leg reach is `reachableMarks`' — held kit first, then
+    // the room, minus yourself. Rebuilding it here is how ten copies of
+    // one walk happened.
+    const candidates = this.reachableMarks(giver);
     let best: (Stuff & Tooled) | null = null;
     let bestRate = -Infinity;
     for (const c of candidates) {
