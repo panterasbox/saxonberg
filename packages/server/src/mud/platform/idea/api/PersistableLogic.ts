@@ -199,7 +199,12 @@ function capturePlacement(host: Stuff): HostPlacement | null {
   // way down. A host in a chest in a room must not record the chest: a
   // chest's template path is every chest in the world. See
   // {@link HostPlacement.via}.
-  const { anchor, via } = placementAnchorOf(env);
+  const { anchor, via, carried } = placementAnchorOf(env);
+  // ⚠ Carried by somebody (an avatar anywhere up the chain): no placement.
+  // Every avatar shares one template path, so a `via` hop naming one
+  // could land the good in a stranger's pockets; and a good in hand is
+  // the owner's estate's to put back (`Estate.restoreSlice`, inventory).
+  if (carried) return null;
   const nested = via.length > 0 ? { via } : {};
   // A KEYED host container (a holding's room — residences D16): record
   // `(scope, key)` so restore re-enters the exact room through the
@@ -242,10 +247,16 @@ function isPlacementAnchor(stuff: Stuff): boolean {
  * outermost container is the anchor when nothing above it qualifies —
  * today's behaviour, and the best a rootless chain can do.
  */
-function placementAnchorOf(env: Stuff): { anchor: Stuff; via: string[] } {
+function placementAnchorOf(env: Stuff): {
+  anchor: Stuff;
+  via: string[];
+  /** True when a HasInteractive (somebody's pockets) is on the way up. */
+  carried: boolean;
+} {
   const via: string[] = [];
   let anchor: Stuff = env;
   for (let hops = 0; hops <= MAX_ANCESTOR_HOPS; hops++) {
+    if (MixinApi.isHasInteractive(anchor)) return { anchor, via, carried: true };
     if (isPlacementAnchor(anchor)) break;
     const up = MixinApi.isContainable(anchor) ? anchor.getContainer() : null;
     const path = anchor.getTemplatePath();
@@ -253,7 +264,7 @@ function placementAnchorOf(env: Stuff): { anchor: Stuff; via: string[] } {
     via.unshift(path);
     anchor = up;
   }
-  return { anchor, via };
+  return { anchor, via, carried: false };
 }
 
 /**
@@ -753,8 +764,7 @@ async function restoreState(
   const ctx: RestoreContext = {
     restoreItem: (entry, host) =>
       restoreItem(entry as ContentEntry, host as Stuff, principal),
-    standUpKeyed: async (scope, key) =>
-      liveKeyed(scope, key) ?? (await cloneHost(scope, key)),
+    standUpKeyed: (scope, key) => cloneHost(scope, key),
   };
   for (const c of MixinApi.getPersistenceContributors(
     target.constructor as AnyConstructor,
@@ -853,6 +863,16 @@ async function restoreItem(
 async function cloneHost(scope: string, key?: string): Promise<Stuff | null> {
   if (!scope) return null;
   if (key !== undefined) {
+    // ⭐⭐ RESOLVE FIRST. A keyed host's identity is the pair, and two
+    // records can both refer to one (a chest carried between two
+    // persistable rooms, one record stale): minting unconditionally made
+    // the second `assertUniqueKey` THROW and abort that whole room's
+    // restore mid-tree. Resolving returns the standing instance, and the
+    // caller that holds a `{ref, key}` moves it in — so the last record
+    // to materialize wins the stale-vs-fresh argument, which is arbitrary
+    // but never fatal, and the stale record heals on its next capture.
+    const live = liveKeyed(scope, key);
+    if (live) return live;
     const nested = await StuffApi.clone<Stuff>(scope);
     if (nested && MixinApi.isPersistable(nested)) {
       nested.setPersistenceKey(key);
@@ -1235,7 +1255,7 @@ export class PersistableLogic extends ApiLogic {
   /** See {@link PersistableApi.standUpKeyed}. */
   @CallSecurity(PersistableApiCallers)
   public async standUpKeyed(scope: string, key: string): Promise<Stuff | null> {
-    return liveKeyed(scope, key) ?? (await cloneHost(scope, key));
+    return cloneHost(scope, key);
   }
 
   /** See {@link PersistableApi.placeIdOf}. */

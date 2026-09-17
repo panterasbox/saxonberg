@@ -487,6 +487,23 @@ not (maturation reconciles); a named animal is.
   so nothing else refers to it), and a plain non-singleton room clone
   has no address to name — a good left in one comes back in *a* room
   of that kind, which is the honest limit of a transient place.
+- ⭐ **One record owns each placement fact, and the skip list decides
+  which.** A room's container slice skips avatars, cast and
+  owner-persisted chattel; exactly those keep their own `HostPlacement`.
+  Everything else is placed by its referrer's `{ref, key}` and records
+  nothing of its own. So no two records claim the same good's position
+  in steady state. Where they *can* disagree is time skew, and each case
+  has a rule: **two rooms both referring to one keyed host** (carried
+  between them, one record stale) — `cloneHost` resolves first, the
+  second record moves the standing instance, last-to-materialize wins,
+  the stale record heals on its next capture (before: a second mint,
+  `assertUniqueKey` threw, that room's whole restore aborted);
+  **the good's own record vs the `chattel` index** — a self-persisting
+  good is re-captured on every `place` write, so they are one act;
+  **a good carried by somebody** — records no placement at all (a `via`
+  hop naming an avatar could land it in a stranger's pockets: every
+  avatar shares one template path), and the owner's estate stands it up
+  and puts it back in hand.
 
 ⭐ **Pinning, not swap.** Page-in happens at boot and at login — a
 process start or a human act, never an *access*. Page-out is only the

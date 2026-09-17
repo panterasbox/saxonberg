@@ -58,6 +58,7 @@
 import type { MixinConstructor, FieldMeta } from "../mixin";
 import type { Stuff } from "../stuff/Stuff";
 import { MixinApi } from "../../api/mixin";
+import { ContainmentApi } from "../../api/containment";
 import { CallSecurity, Final, Unshadowable } from "../security/decorators";
 import { SecurityPolicies } from "../security/SecurityPolicies";
 import {
@@ -243,6 +244,22 @@ export function EstateMixin<TBase extends MixinConstructor<Stuff>>(
           // overlays it (D4) if the room persists itself; the entry is
           // kept and no instance is minted here.
           self._putEstateEntry(entry, null);
+          continue;
+        }
+        if (entry.key) {
+          // ⭐ In the owner's hands, and it persists ITSELF: stood up from
+          // its own record (a keyed entry's `state` is `{}` — restoring
+          // that as a clone gave back a BLANK animal), then put back in
+          // the owner's hands. Its own record carries no placement while
+          // it is carried, so this move is the only one it gets.
+          const live = (await ctx.standUpKeyed(
+            entry.templatePath,
+            entry.key,
+          )) as Stuff | null;
+          if (live && MixinApi.isContainable(live) && MixinApi.isContainer(host)) {
+            ContainmentApi.move(live, host);
+          }
+          self._putEstateEntry(entry, live);
           continue;
         }
         const item = (await ctx.restoreItem(

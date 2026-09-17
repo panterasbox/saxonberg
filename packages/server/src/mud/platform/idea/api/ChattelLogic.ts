@@ -221,6 +221,16 @@ export class ChattelLogic extends ApiLogic {
     const reg = lookupRegistry();
     if (reg) await reg.setPlace(id, place, this.pinOf(good, place));
     await this.syncEstate(good, place);
+    // ⭐ A good that persists ITSELF writes its record on the same act. Its
+    // record is otherwise captured only at naming, at the shutdown sweep
+    // and at eviction — and the pin roll trusts the record's placement, so
+    // a crash between `drop` and any of those would stand it up one room
+    // stale while the index said otherwise. One write per custody act on
+    // a pinned good; there are few of them, and this is what makes the
+    // index and the record one fact.
+    if (MixinApi.isPersistable(good) && good.isPersistenceKeyExplicit()) {
+      await PersistableApi.capture(good as Stuff);
+    }
   }
 
   /**

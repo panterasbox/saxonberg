@@ -36,6 +36,7 @@ import { ChattelMixin } from "../Chattel";
 import { EstateMixin } from "../Estate";
 import { ContainerMixin } from "../../spatial/Container";
 import { ContainableMixin } from "../../spatial/Containable";
+import { HasInteractiveMixin } from "../../connection/HasInteractive";
 import { ContainmentApi } from "../../../api/containment";
 import { PersistedRecord } from "../../persistence/PersistedRecord";
 import { PostRegistrationMixin } from "../../stuff/PostRegistration";
@@ -97,6 +98,24 @@ class Owner extends PersistableMixin(
 ) {
   static fieldMeta: FieldMeta = {};
 }
+
+/** Somebody with pockets — HasInteractive, like an avatar. */
+class Carrier extends HasInteractiveMixin(
+  ContainerMixin(ContainableMixin(Idea)),
+) {}
+
+/** A good with one persisted field, so a blank clone is tellable. */
+class NamedPet extends Pet {
+  static fieldMeta: FieldMeta = { label: { persistent: true } };
+  label = "";
+  getLabel(): string {
+    return this.label;
+  }
+  setLabel(v: string): void {
+    this.label = v;
+  }
+}
+const NAMED_PET_PATH = "/obj/test/NamedPet";
 
 interface Doc extends Record<string, unknown> {
   _id?: string;
@@ -180,6 +199,7 @@ function installStore(): void {
 const factories: Record<string, () => Stuff> = {
   [TORCH_PATH]: () => new Torch(),
   [PET_PATH]: () => new Pet(),
+  [NAMED_PET_PATH]: () => new NamedPet(),
 };
 
 async function boot(): Promise<void> {
@@ -489,5 +509,73 @@ describe("⭐⭐ a good in a CHEST names the room and the way down, never the ch
     const live = StuffApi.findAllByTemplatePath<Stuff>(PET_PATH);
     const inside = MixinApi.isContainable(live[0]!) ? live[0]!.getContainer() : null;
     expect(inside).toBe(lane2);
+  });
+});
+
+describe("⭐⭐ when two records could disagree about where a good is", () => {
+  it("a custody change re-captures a self-persisting good, so its own record never lags the index", async () => {
+    // The cat's own record is otherwise written only at naming, at the
+    // shutdown sweep and at eviction. A crash between `drop` and any of
+    // those would leave its placement one room stale — and the pin roll
+    // trusts the record. So the place write IS a capture for a keyed good.
+    const lane = makeStuffAtPath(() => new PlainRoom(), LANE_ID);
+    const yard = makeStuffAtPath(() => new PlainRoom(), "/test/world/Yard");
+    const alice = makeOwner();
+    const pet = makeStuffAtPath(() => new Pet(), PET_PATH);
+    ContainmentApi.move(pet, lane as Stuff & Container);
+    await pet.stampChattel(alice);
+    pet.setPersistenceKey("k-mouse", true);
+    await pet.setChattelPlace(PersistableApi.placeIdOf(pet as Stuff));
+    await PersistableApi.capture(pet);
+
+    // Carried to the yard and set down: the index moves — no capture called.
+    ContainmentApi.move(pet, yard as Stuff & Container);
+    await pet.setChattelPlace(PersistableApi.placeIdOf(pet as Stuff));
+
+    const recs = await PersistedRecord.findByScope(PET_PATH);
+    expect(recs.length).toBe(1);
+    expect(recs[0]?.getPlace()).toEqual({ container: "/test/world/Yard" });
+  });
+
+  it("a good CARRIED by somebody records no placement of its own — the estate owns that", async () => {
+    // `via` must never descend into an avatar: every avatar shares one
+    // template path, so a hop naming it could land the good in a
+    // stranger's pockets. In hand, the owner's estate is the record.
+    const lane = makeStuffAtPath(() => new PlainRoom(), LANE_ID);
+    const alice = makeOwner();
+    const bob = makeStuffAtPath(() => new Carrier(), "/test/agent/Carrier");
+    ContainmentApi.move(bob, lane as Stuff & Container);
+    const pet = makeStuffAtPath(() => new Pet(), PET_PATH);
+    ContainmentApi.move(pet, bob as Stuff & Container);
+    await pet.stampChattel(alice);
+    pet.setPersistenceKey("k-mouse", true);
+    await pet.setChattelPlace(ESTATE_INVENTORY);
+    await PersistableApi.capture(pet);
+    const recs = await PersistedRecord.findByScope(PET_PATH);
+    expect(recs[0]?.getPlace() ?? null).toBeNull();
+  });
+
+  it("a keyed good in the owner's INVENTORY comes back as ITSELF, not a blank clone", async () => {
+    const alice = makeOwner();
+    const pet = makeStuffAtPath(() => new NamedPet(), NAMED_PET_PATH);
+    ContainmentApi.move(pet, alice as unknown as Stuff & Container);
+    await pet.stampChattel(alice);
+    pet.setPersistenceKey("k-mouse", true);
+    pet.setLabel("Mouse");
+    await pet.setChattelPlace(ESTATE_INVENTORY);
+    const id = pet.getChattelId();
+    await PersistableApi.capture(pet);
+    await PersistableApi.capture(alice);
+
+    StuffApi.clearAll();
+    await boot();
+    const restored = makeOwner();
+    await PersistableApi.materialize(restored);
+
+    const live = StuffApi.findAllByTemplatePath<Stuff>(NAMED_PET_PATH);
+    expect(live.length).toBe(1);
+    expect((live[0] as NamedPet).getLabel()).toBe("Mouse");
+    expect(MixinApi.isContainable(live[0]!) && live[0]!.getContainer()).toBe(restored);
+    expect(restored.getEstateLive(id)).toBe(live[0]);
   });
 });
