@@ -17,6 +17,7 @@
 
 import { SurveyChannelController, READING_TOPIC, GEOLOGY } from './SurveyChannelController';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
+import type { MqlOneResult } from '@saxonberg/server/mud/api/mql';
 import { MixinApi } from "@saxonberg/server/mud/api/mixin";
 import type { CommandContext, CommandModel } from '@saxonberg/server/mud/api/command';
 import { MessageApi } from '@saxonberg/server/mud/api/message';
@@ -24,7 +25,7 @@ import { Mml } from '@saxonberg/server/mud/api/mml';
 
 /** ⭐ The instrument is bound by the view, never hunted for here. */
 interface MeasureDipModel extends CommandModel {
-  tool?: Stuff;
+  tool?: MqlOneResult;
 }
 
 
@@ -36,7 +37,7 @@ export default class MeasureDipController extends SurveyChannelController {
       this.decline(context, Mml.compose`You are nowhere to take a bearing from.`, 'no-place');
       return;
     }
-    if (!this.instrumentOf(model.tool)) {
+    if (!this.instrumentOf(model.tool?.stuff)) {
       this.decline(
         context,
         Mml.compose`You need a surveyor's instrument in hand — a compass or a miner's dial — to read a dip.`,

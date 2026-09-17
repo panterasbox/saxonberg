@@ -163,7 +163,7 @@ describe('the crafting lifecycle — craft → wield → wear → sharpen → re
     const sharpenCtx = makeContext(smith, room, 'sharpen knife');
     await executeAs(smith, () =>
       makeStuff(() => new SharpenController()).execute(
-        { blade: ref(knife, 'knife'), stone } as never,
+        { blade: ref(knife, 'knife'), stone: ref(stone, 'stone') } as never,
         sharpenCtx,
       ),
     );

@@ -13,7 +13,7 @@ data:
   longDescription: |
     Barley standing in the ear, the awns catching the light, and the whole field going over together when the wind crosses it.
   _speciesPath: /stuff/idea/species/plantae/tracheophyta/liliopsida/poales/poaceae/hordeum/vulgare
-  material: /stuff/idea/material/tissue/plant-tissue
+  _materialPath: /stuff/idea/material/tissue/plant-tissue
   lifecycleState: alive
   seedTemplatePath: /trade/farming/thing/seed/barley
   harvestTemplatePath: /trade/farming/thing/crop/barley

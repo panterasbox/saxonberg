@@ -618,6 +618,71 @@ nothing at all if it cannot reach the band.
 the family's shared reader — because both new gates need to answer *does
 this class compose X?* from the class file.
 
+### `lint:get-or-create` — `singleton` already does it (2026-09)
+
+⭐ **`StuffApi.singleton(path)` IS the get-or-create** — index read
+first, clone only on a miss — so a `findByTemplatePath` guard in front
+of it on the same path is the same lookup written twice, and collapses
+to one line.
+
+⚠⚠ Worth a gate rather than a note because it is not merely redundant.
+Both helpers throw on a duplicate row, so in the `try`-wrapped form the
+pre-check's throw ESCAPES while the `try` catches only the second call:
+the fault a reader most needs to see takes the unhandled path. And the
+accompanying `catch { return null }` makes an unresolvable row
+indistinguishable from the ordinary empty answer — *tolerate, but never
+silently*.
+
+⭐⭐ **The spread is the lesson.** One site wrote it believing the sync
+hit was an optimisation `singleton` did not do; twelve more copied it
+across the kernel and five packs, several citing the previous site as
+precedent *in their own comments*. A mistaken comment is the most
+portable thing in a codebase — it travels further than the code it
+explains, because the next author reads the reason and trusts it.
+Thirteen sites, no test ever failed.
+
+⚠ **Its own first run over-matched, and that is recorded here on
+purpose.** It flagged eight kernel sites that are NOT defects —
+memoized module refs whose lookup does real cache-invalidation work, and
+sync accessors beside async ensures. A gate that cries wolf is a gate
+somebody disables, so the rule was narrowed to the form whose `if` body
+is exactly `return <thatvar>;`, and
+`scripts/__tests__/check-get-or-create.test.ts` pins the boundary in
+**both** directions — four cases that must flag, five that must not.
+
+Ratchet at zero; all thirteen swept in the commit that added it. Full
+rationale: [antipatterns.md § A resident pre-check in front of
+`StuffApi.singleton()`](./antipatterns.md).
+
+### `lint:person-keys` — a PERSON keys on `getIdentityPath()` (2026-09)
+
+⚠⚠ **Every player Avatar shares one `templatePath`.** D17 stamps lineage
+and identity separately, so a durable record keyed on the template path
+does not identify one player — it identifies **every player at once**,
+and the collapse is invisible to a suite because fixtures author distinct
+template paths per avatar. It has cost a shared bank account and a dead
+labor market (MR !251), and the metallurgy build's grounding found a
+fourth: **every mining claim in the game was owned by everybody**,
+because `StakeController` passed `giver.getTemplatePath()` into the
+parcel register while every kernel site writing that same field passes an
+identity path. The field's meaning was never in doubt; one pack simply
+never got the sweep.
+
+⭐ **A ratchet at zero, not a census** — the one offender was fixed in the
+commit that added the gate, so there is no backlog and the ceiling starts
+where it ends (the `check-drive-scripts` precedent).
+
+⭐⭐ **Deliberately a literal, not a classifier.** It matches one written
+shape — a `kind: 'player'` owner whose `templatePath` is fed by
+`getTemplatePath()`, in either key order, comments stripped — across the
+kernel and every pack `src/`. A gate that tried to decide in general
+whether a given `getTemplatePath()` names a person would be wrong in both
+directions and teach nobody anything; see *Three ways a census lies*
+above. The broader disease, and the one open half the literal cannot see
+(the maker's-mark `makerPath` fallbacks in five controllers), are
+documented at
+[antipatterns.md § Keying a PERSON](./antipatterns.md).
+
 ## Domain honesty — the gates that buy a narrowing
 
 These exist because the failure they prevent is **silent and looks
@@ -648,6 +713,21 @@ configured**.
   and it matched the mixin name inside COMMENTS, so every bare `Thing`
   row passed on a comment saying the mixin is deliberately NOT there. See
   [spoilage.md](./subsystems/spoilage.md).
+  ⚠⚠ **And blind a third way until 2026-09-17: it could not read a PACK
+  class.** A pack names its kernel base by package specifier
+  (`import Provision from '@saxonberg/server/mud/platform/thing/Provision'`),
+  and the walk resolved that against the file's directory — a path that
+  exists nowhere — so `Loaf` read as unable to rot. It went unseen for a
+  different reason: **49 rows across eight packs authored `material:`,
+  a key the Hydrator never writes** (`_materialPath` is the field), so
+  the loaves, the crops, the plants and the watering can had NO
+  material, and a gate that reads `_materialPath` had nothing to read.
+  Fixing the key is what let the gate speak, and it said three true
+  things at once: the pack walk was broken; a `Crop` (root vegetables)
+  was not a `Provision`; and 23 `Plant` rows are made of tissue that
+  rots — which is right, and is not spoilage: a LIVING thing's tissue is
+  not yet dead matter, so a class composing `GrowingMixin` is exempt by
+  rule, not by list. The clock starts at the harvest, which is a `Crop`.
 - **`lint:world-scan`** — **you may not be handed the world.** Two
   patterns: a raw `StuffApi.getAllObjects()` enumeration (three
   sanctioned homes) and a `world:` query or `scope: world` (the owners

@@ -59,6 +59,23 @@ const MILLSITE = '/world/hearts-delight/location/millsite';
 const BAKERY = '/world/terminus/market/bakery';
 const WHARFSIDE = '/world/terminus/wharfside/bank';
 
+
+/**
+ * The verb is AFFORDED here — the parser knew it. A bare verb with a
+ * required arg answers with a SHAPE note that names the verb; an
+ * unafforded one answers `unknown-verb`. ⚠ The weakest honest claim
+ * about a bare verb: "status is defined" is true of a typo, and the
+ * first cut of this file asserted exactly that.
+ */
+function reachedItsGate(result: { notes: { kind: string }[]; text: string }): void {
+  const unknown = result.notes.find(
+    (n) =>
+      n.kind === 'command-rejected' &&
+      (n as { reason?: string }).reason === 'unknown-verb',
+  );
+  expect(unknown, `'${result.text}' is not afforded here`).toBeUndefined();
+}
+
 let p: Session;
 
 async function carried(): Promise<string> {
@@ -133,7 +150,11 @@ suite('the farm is somebody’s, and it is finite', () => {
   }, 120_000);
 
   it('you can pick up a sack of wheat', async () => {
-    expectOk(await p.cmd('get wheat'));
+    // ⚠ `first`, not bare `wheat`: `get` is greedy over everything that
+    // matches, and eight 25 kg sacks against a 70 kg lift ceiling means
+    // bare `get wheat` picks up two and declines the rest — a decline,
+    // honestly, and this checkpoint is about ONE sack.
+    expectOk(await p.cmd('get first wheat'));
     expect(await carried()).toMatch(/wheat/i);
   }, 120_000);
 });
@@ -151,7 +172,9 @@ suite('the mill', () => {
   }, 120_000);
 
   it('⭐⭐ the millrace reports its head, its flow and its WATTS', async () => {
-    const text = await (await p.cmd('analyze power the millrace')).said();
+    // ⚠ No article: a non-greedy object arg binds one token (the
+    // parsing defect identity.dirty.wire records).
+    const text = await (await p.cmd('analyze power millrace')).said();
     const lower = text.toLowerCase();
     expect(lower).toMatch(/head/);
     expect(lower).toMatch(/m³\/s|m3\/s|passing/);
@@ -161,20 +184,22 @@ suite('the mill', () => {
   it('the verb is AFFORDED where the stones are', async () => {
     // A verb nothing confers is dead silently. The instrument is what
     // makes `mill` sayable, and the affordance is a static on the class.
-    const result = await p.cmd('mill');
-    // Either it asks what to mill or it declines for a reason — both
-    // mean the verb dispatched. A verb nothing affords is not found.
-    expect(result.status).toBeDefined();
-    expect(
-      result.notes.some((n) => n.kind === 'controller-rejected') ||
-        result.status !== 'error',
-    ).toBe(true);
+    // Bare `mill` with nothing to mill declines in the CONTROLLER's
+    // words — which is the proof the verb is afforded here. A verb
+    // nothing affords is refused by the parser as unknown.
+    reachedItsGate(await p.cmd('mill'));
   }, 120_000);
 
   it('⭐⭐⭐ milling produces FLOUR and BRAN, and the input is gone', async () => {
     expectOk(await p.cmd('drop wheat'));
     const before = await p.query('here:i', { fields: ['displayName'] });
-    await p.cmd('mill the sack of wheat 0.72');
+    // ⚠⚠ `expectOk`, not "the status is defined". The first cut of this
+    // checkpoint accepted any dispatch, and it sat green for two review
+    // rounds over a `mill` that DECLINED every time — the controller read
+    // its bound arg as a `Stuff` when the binder hands an `MqlOneResult`,
+    // and nothing a player could type reached the stones. A drive that
+    // cannot fail is not a drive.
+    expectOk(await p.cmd('mill wheat 0.72'));
     // The water mill claims no slot, so the grind is on the game clock;
     // what this asserts is that the command was accepted and the world
     // is different, not the timing.
@@ -201,41 +226,49 @@ suite('the mill', () => {
 /* ───────────────────── Part 4 — the bakery ─────────────────────────── */
 
 suite('the bakery', () => {
+  // ⚠ A second person, born at the wharf: `teleport` is a wizard's verb
+  // and a drive has no wizard (the `logistics`/`farming` rule —
+  // `startLocation` is the only teleport a test gets). The first cut
+  // typed `teleport` from the valley, it declined silently, and every
+  // bakery checkpoint below ran in the farmstead yard.
+  let b: Session;
+  beforeAll(async () => {
+    b = await Session.open(uniqueHandle('baker'), { startLocation: WHARFSIDE });
+  }, 180_000);
+  afterAll(() => b?.close());
+
   it('is a west door off the market square', async () => {
-    await p.cmd(`teleport ${WHARFSIDE}`);
-    expectOk(await p.cmd('go north'));
-    const square = (await here()).toLowerCase();
+    expectOk(await b.cmd('go north'));
+    const square = (await (await b.cmd('look')).said()).toLowerCase();
     expect(square).toContain('west');
-    expectOk(await p.cmd('go west'));
-    expect((await here()).toLowerCase()).toMatch(/oven|bread|flour/);
+    expectOk(await b.cmd('go west'));
+    expect((await (await b.cmd('look')).said()).toLowerCase()).toMatch(/oven|bread|flour/);
   }, 120_000);
 
   it('⭐⭐ TWO loaves, priced APART — which is what makes demand a choice', async () => {
-    const text = (await here()).toLowerCase();
-    expect(text).toMatch(/2/);
-    expect(text).toMatch(/4/);
+    // The counter, not the room: `look counter` renders the shelf with
+    // its prices (the general store's `look counter` reads the same way).
+    const text = (await (await b.cmd('look counter')).said()).toLowerCase();
+    expect(text).toMatch(/loaf|bread/);
+    expect(text).toMatch(/\(2\)|\b2\b/);
+    expect(text).toMatch(/\(4\)|\b4\b/);
   }, 120_000);
 
   it('the trough affords `knead` where you are standing', async () => {
-    const result = await p.cmd('knead');
-    expect(
-      result.notes.some((n) => n.kind === 'controller-rejected') ||
-        result.status !== 'error',
-    ).toBe(true);
+    reachedItsGate(await b.cmd('knead'));
   }, 120_000);
 
   it('⭐ you can BUY a loaf, and the counter takes the money', async () => {
-    const result = await p.cmd('buy loaf');
     // Either it sells or it says why — both prove the counter resolves
-    // and `buy`'s default arg finds it.
-    expect(result.status).toBeDefined();
+    // and `buy`'s default arg finds it; a typo would not.
+    reachedItsGate(await b.cmd('buy loaf'));
   }, 120_000);
 
   it('⭐⭐ `help retrogradation` predicts the bread box', async () => {
     // AC 19: a reader must be able to predict the storage table BEFORE
     // putting a loaf anywhere. All three conditions, in one body.
     const text = (
-      await (await p.cmd('help retrogradation')).said()
+      await (await b.cmd('help retrogradation')).said()
     ).toLowerCase();
     expect(text).toMatch(/counter|room/);
     expect(text).toMatch(/cold/);
@@ -246,7 +279,7 @@ suite('the bakery', () => {
   }, 120_000);
 
   it('⭐ `help gluten` says why barley cannot make a loaf', async () => {
-    const text = (await (await p.cmd('help gluten')).said()).toLowerCase();
+    const text = (await (await b.cmd('help gluten')).said()).toLowerCase();
     expect(text).toMatch(/barley/);
     expect(text).toMatch(/flat|sheet/);
   }, 120_000);

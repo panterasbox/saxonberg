@@ -17,6 +17,13 @@ validators:
   - /lib/command/validators/requiresAnimate
   - /lib/command/validators/requiresConscious
 args:
+  # ⚠ `block` FIRST: positionals bind in declared order, and `stake 5,7,0`
+  # with `register` declared first handed the block to the register
+  # ("bare integer '5' is not valid at the head of a chain"). Found by the
+  # metallurgy wire flow on merge.
+  - name: block
+    type: string
+    required: false
   # ⭐ WHICH REGISTER, declared rather than hunted for.
   #
   # ⚠ The default narrows by CLASS and `requires:` carries only the
@@ -31,6 +38,3 @@ args:
     default: "reachable:[class.ClaimsRegister]"
     scope: ["reachable"]
     requires: [TangibleMixin]
-  - name: block
-    type: string
-    required: false

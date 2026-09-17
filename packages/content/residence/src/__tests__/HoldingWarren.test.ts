@@ -502,7 +502,7 @@ describe('the maintenance act (D4/D5)', () => {
       return typeof t.hasCapability === 'function' && t.hasCapability('upkeep');
     });
     await controller.execute(
-      (kit === undefined ? {} : { kit }) as CommandModel,
+      (kit === undefined ? {} : { kit: { stuff: kit, raw: 'kit' } }) as CommandModel,
       ctx,
     );
     return ctx;

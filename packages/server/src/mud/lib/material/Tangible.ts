@@ -86,6 +86,16 @@ export interface Tangible {
   setMaterial(value: Material | null, detailKey?: string): void;
 
   /**
+   * ⭐ Whether anything this thing is MADE OF carries `tag` — the bulk
+   * default and every per-Detail override, so an axe answers `true` to
+   * both `wood` and `metal`.
+   *
+   * ⚠ Made of, never CONTAINS: a waterskin is leather. The backing read
+   * for MQL's `[material.X]` filter.
+   */
+  hasMaterialTag(tag: string): boolean;
+
+  /**
    * Read the Stuff's mass as a `Quantity<'kg'>`. Strict on the
    * runtime type — the marshaller absorbs persistence-shape
    * coercion at the hydration boundary.
@@ -252,6 +262,37 @@ export function TangibleMixin<TBase extends MixinConstructor>(Base: TBase) {
       }
       if (!this._materialPath) return null;
       return StuffApi.findByTemplatePath<Material>(this._materialPath) ?? null;
+    }
+
+    /**
+     * ⭐ Whether **anything this thing is made of** carries `tag` — the
+     * bulk default and every per-Detail override.
+     *
+     * An axe is oak at the haft, iron at the head and steel at the
+     * edge, and *"is there anything metal in reach"* should find it. So
+     * this asks across all of them rather than the bulk default alone,
+     * which would answer "wood" for an axe and be useless to every
+     * caller that has ever wanted this.
+     *
+     * ⚠ **What a thing is made OF, never what it CONTAINS.** A waterskin
+     * is leather; the water is in a bulk slot and is a different
+     * question with a different owner (`BulkableApi.slotFor`). Folding
+     * the two together here would make `hasMaterialTag('water')` true of
+     * the skin, which is a lie that reads like a convenience.
+     *
+     * The backing read for MQL's `[material.X]` filter.
+     */
+    public hasMaterialTag(tag: string): boolean {
+      const wanted = tag.toLowerCase();
+      if (this._materialPath) {
+        const bulk = StuffApi.findByTemplatePath<Material>(this._materialPath);
+        if (bulk?.hasTag(wanted)) return true;
+      }
+      for (const path of Object.values(this._detailMaterialPaths)) {
+        const part = StuffApi.findByTemplatePath<Material>(path);
+        if (part?.hasTag(wanted)) return true;
+      }
+      return false;
     }
 
     public setMaterial(value: Material | null, detailKey?: string): void {

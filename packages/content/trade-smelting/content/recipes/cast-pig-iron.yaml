@@ -1,0 +1,25 @@
+# ⚠⚠ The rung that is a WARNING, and it is on the ladder for exactly that
+# reason: a learner should be able to find out what happens when you
+# over-charge a bloomery before it happens to them.
+#
+# Too much charcoal and the iron takes up carbon until it saturates.
+# Carbon lowers iron's melting point — 1811 K down to about 1420 K — so
+# past a point the charge stops being reduced and simply RUNS. What pours
+# is hard, grey and unforgeable.
+#
+# ⭐ It is a real product and not a failure state. Cast iron is what a
+# pot, a stove plate and a cannon are made of; the station that casts
+# them is a later rung, and a pig is the stock waiting for it.
+recipeId: cast-pig-iron
+name: Overcharge a Bloomery
+keywords: [pig, cast-iron, "cast iron", overcharge]
+inputSlots:
+  - { slot: ore, category: ore, minGrade: poor, kind: item, count: 3 }
+  - { slot: fuel, category: fuel, minGrade: poor, kind: item, count: 4 }
+toolCapabilities: []
+outputTemplate: /trade/smelting/thing/cast-iron-pig
+outputMaterial: ''
+outputApplication: tangible
+requiresHeatK: 1470
+difficulty: standard
+discipline: smelting

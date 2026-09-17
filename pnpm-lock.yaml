@@ -564,6 +564,9 @@ importers:
       '@saxonberg/content-base-library':
         specifier: workspace:*
         version: link:../base-library
+      '@saxonberg/content-generic-objects':
+        specifier: workspace:*
+        version: link:../generic-objects
       '@saxonberg/content-platform':
         specifier: workspace:*
         version: link:../platform
@@ -576,6 +579,9 @@ importers:
       '@saxonberg/content-trade-smelting':
         specifier: workspace:*
         version: link:../trade-smelting
+      '@saxonberg/content-trade-smithing':
+        specifier: workspace:*
+        version: link:../trade-smithing
       '@saxonberg/content-transport':
         specifier: workspace:*
         version: link:../transport
@@ -1197,6 +1203,9 @@ importers:
       '@saxonberg/content-trade-mining':
         specifier: workspace:*
         version: link:../trade-mining
+      '@saxonberg/content-trade-smithing':
+        specifier: workspace:*
+        version: link:../trade-smithing
       '@saxonberg/server':
         specifier: workspace:*
         version: link:../../server
@@ -1232,6 +1241,9 @@ importers:
         specifier: workspace:*
         version: link:../../types
     devDependencies:
+      '@saxonberg/content-trade-smelting':
+        specifier: workspace:*
+        version: link:../trade-smelting
       typescript:
         specifier: ^5.4.0
         version: 5.9.3

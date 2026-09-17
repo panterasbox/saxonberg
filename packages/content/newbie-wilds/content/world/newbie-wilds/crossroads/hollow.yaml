@@ -47,14 +47,14 @@ data:
   # challenger to arm themselves before they call him out. All cloned
   # fresh at standup.
   props:
-    - /stuff/thing/arms/steel-dagger
-    - /stuff/thing/arms/steel-dagger
+    - /stuff/thing/arms/dagger
+    - /stuff/thing/arms/dagger
     # A rack of longer arms for the reach / shield demo — the spear
     # out-reaches the duelist's knife until he closes; the sword + shield
     # show the wielded-armor covering path. All cloned fresh at standup.
-    - /stuff/thing/arms/steel-spear
-    - /stuff/thing/arms/steel-sword
-    - /stuff/thing/arms/steel-shield
+    - /stuff/thing/arms/spear
+    - /stuff/thing/arms/sword
+    - /stuff/thing/arms/shield
     - /stuff/thing/arms/leather-whip
   cast:
     - /world/newbie-wilds/agent/duelist

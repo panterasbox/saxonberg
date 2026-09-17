@@ -17,7 +17,7 @@ data:
   # a small pot is a pot; the two-armed planter is the planter.
   longDescription: |
     A squat unglazed pot the size of two cupped hands, with a chipped rim and a drainage hole worn smooth.
-  material: /stuff/idea/material/ceramic/ceramic
+  _materialPath: /stuff/idea/material/ceramic/ceramic
   interiorBulk: true
   interiorCapacity: 0.5
   # `liquidTight` (the default), NOT `open`: an `open` interior does not

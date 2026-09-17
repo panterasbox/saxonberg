@@ -132,10 +132,11 @@ wave independently landable.
 
 ## Reachability wiring
 
-For each new capability, the four links — **verb · affordance ·
-data · boot**. Each fails closed and silent, and each has cost this
-repo a shipped-but-dead feature: a verb nothing affords, a row
-nothing warms, a mixin nothing reaches.
+For each new capability, the five links — **verb · affordance ·
+data · boot · arg gate**. Each fails closed and silent, and each has
+cost this repo a shipped-but-dead feature: a verb nothing affords, a
+row nothing warms, a mixin nothing reaches, a `requires:` nothing
+composes.
 
 ## Acceptance-criteria coverage
 

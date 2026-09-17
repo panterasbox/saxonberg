@@ -73,6 +73,18 @@ export default class GristMill extends GristMillBase {
   private _cachedAtS = -1;
   private _refreshing = false;
 
+  /**
+   * Await the river read so the next `availablePowerW()` is current. ⚠
+   * Without this a FRESH mill's first `mill` answered "nothing is driving
+   * it" — the cache was cold, the refresh was fire-and-forget, and the
+   * grain-chain wire flow's one `mill` hit exactly that.
+   */
+  public override async settlePower(): Promise<void> {
+    const take = this.powerTake();
+    if (take === null) return;
+    await this.refreshPower(take);
+  }
+
   /** Watts reaching the stones right now. 0 = nothing is driving them. */
   public availablePowerW(): number {
     const take = this.powerTake();

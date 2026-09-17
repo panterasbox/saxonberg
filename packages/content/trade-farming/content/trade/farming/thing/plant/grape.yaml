@@ -11,7 +11,7 @@ data:
   longDescription: |
     A grapevine trained along a rough trellis of poles and twine, tendrils reaching for more.
   _speciesPath: /stuff/idea/species/plantae/tracheophyta/magnoliopsida/vitales/vitaceae/vitis/vinifera
-  material: /stuff/idea/material/tissue/plant-tissue
+  _materialPath: /stuff/idea/material/tissue/plant-tissue
   lifecycleState: alive
   seedTemplatePath: /trade/farming/thing/seed/grape
   harvestTemplatePath: /trade/farming/thing/grape

@@ -217,8 +217,9 @@ async function mill(
   const ctrl = makeStuff(() => new MillController());
   await ctrl.execute(
     {
-      ...(grain ? { grain } : {}),
-      ...(stones ? { mill: stones } : {}),
+      // The binder's shape — a controller test skips the binder.
+      ...(grain ? { grain: { stuff: grain, raw: 'grain' } } : {}),
+      ...(stones ? { mill: { stuff: stones, raw: 'mill' } } : {}),
       ...(extraction !== undefined ? { extraction } : {}),
     } as never,
     c,

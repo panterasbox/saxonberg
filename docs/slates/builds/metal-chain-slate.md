@@ -158,6 +158,37 @@ shipped.
 ⭐ It gives the trade a **real failure mode**, which most crafting lacks:
 you can lose a whole burn.
 
+### ⚠ What the metallurgy build left here (2026-09-16)
+
+Salvaged from the retired metallurgy plan — two concrete things this
+trade owes, both found by driving rather than by testing:
+
+- **Nobody makes charcoal while you sleep — and the reason was not the
+  missing brain.** ⚠⚠ Diagnosed 2026-09-16 by charring in a browser: the
+  fuel yard's coppice **afforded nothing**, because `harvest` comes from
+  `CultivableMixin` and the `hazel-stool` was propped loose on the floor.
+  So cordwood was unreachable by any route and the four authored baskets
+  were the realm's whole fuel economy — one player ended iron-making for
+  that world, permanently, in ten minutes. The affordance is fixed
+  (`trade/fuel/thing/coppice-panel`); the **yield** waits on forestry's
+  rotation compression, since `daysToStage.mature: 2500` is ≈208 real
+  days. See `forestry-slate.md § What the metallurgy drive handed over`.
+  ⭐ A `chars` producer brain on the collier is still wanted — the
+  `delves` shape — but it was never the blocker, and a brain would have
+  starved exactly as a player did.
+  ⭐⭐ **And scarcity itself is not the bug.** The lens pass settled it:
+  fuel, not ore, was the rate-limiting step of pre-industrial ironmaking,
+  and `forestry-slate.md` requires that demand be able to outrun growth.
+  The realm's charcoal rate IS its iron ceiling, and that chain —
+  rotation → panel density → baskets per burn → smelts — is one piece of
+  arithmetic somebody gets to set deliberately.
+- **The clamp is a furnace and declines for its own reason.** A charcoal
+  clamp composes `FurnaceMixin` + `ContainerMixin`, so `smelt` now
+  reaches it from the fuel yard and refuses with a sentence about what a
+  clamp is — a heap kept deliberately starving of air. That is correct
+  and is worth keeping when pyrolysis grows: **the refusal is the
+  teaching**, not an error path.
+
 ### The coppice is the fuel trade's own capital **[DECIDED]**
 
 A managed stand on a parcel, cut on a rotation, regrowing on a clock —
@@ -934,6 +965,19 @@ doom:
 ---
 
 ## ⭐⭐⭐ The deposit is zoned — where tin lives **[DECIDED — closes Open 6]**
+
+> ⚠ **What Stage C concretely needs, now that the iron rung has shipped**
+> (salvaged from the retired metallurgy plan): a deeper `toZ` band on the
+> Ferrow row (`alongTo` for the heart, the existing depth axis for the
+> granite contact); a `cassiterite.yaml` mineral row and a
+> `tin-ingot.yaml` product — the latter discovered by `smelt`'s existing
+> product scan, so no code; and an **alloy regime** in `smelt` (two
+> metals in one liquid charge → `AlloyedMixin.setFractionOf(tin, …)` on a
+> bronze ingot). The carbon machinery the iron rung built is the same
+> machinery bronze needs — a second dissolved constituent, one threshold
+> fewer. **The bronze breastplate is already authored and unmakeable**,
+> like the nine arms were.
+
 
 **Tin's home is the bottom of the Ferrow.** Nothing needs a second
 locality: the deposit already has a vertical structure, and this adds one

@@ -45,6 +45,7 @@ import type {
   CommandModel,
 } from '@saxonberg/server/mud/api/command';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
+import type { MqlOneResult } from '@saxonberg/server/mud/api/mql';
 import type { Container } from '@saxonberg/server/mud/lib/spatial/Container';
 import type { Containable } from '@saxonberg/server/mud/lib/spatial/Containable';
 import type Material from '@saxonberg/server/mud/lib/material/Material';
@@ -69,9 +70,9 @@ const TOPIC = 'act.deed';
 const GRINDABLE = ['grain', 'malt'];
 
 interface MillModel extends CommandModel {
-  grain?: Stuff;
+  grain?: MqlOneResult;
   /** ⭐ The stones, resolved by the BINDER off the view's arg. */
-  mill?: Stuff;
+  mill?: MqlOneResult;
   extraction?: number;
 }
 
@@ -91,7 +92,7 @@ export default class MillController extends CommandController<MillModel> {
     // default (`reachable:[mixin.ComminutingMixin]`), so the binder
     // resolves it exactly as it resolves the grain — and a room with two
     // sets of stones becomes addressable for free.
-    const mill = model.mill ?? null;
+    const mill = model.mill?.stuff ?? null;
     if (mill === null || !MixinApi.isComminuting(mill)) {
       this.decline(
         context,
@@ -109,7 +110,7 @@ export default class MillController extends CommandController<MillModel> {
       return;
     }
 
-    const source = model.grain ?? null;
+    const source = model.grain?.stuff ?? null;
     if (source === null) {
       this.decline(context, Mml.compose`Mill what?`, 'no-input');
       return;
@@ -127,6 +128,9 @@ export default class MillController extends CommandController<MillModel> {
     // ⭐ A mill with no water. It has no rate of its own, so there is
     // nothing to fall back to — and saying so is the honest failure,
     // because "it ground very slowly" would be a lie about a building.
+    // ⚠ Settle the power read first: a cold water-mill answers 0 until
+    // its river has been read once, and "will not turn" must be true.
+    await mill.settlePower();
     const rate = mill.throughputNow();
     if (!(rate > 0)) {
       this.decline(

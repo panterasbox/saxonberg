@@ -21,14 +21,16 @@
 
 import { SurveyChannelController, READING_TOPIC, GEOLOGY } from './SurveyChannelController';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
+import type { MqlOneResult } from '@saxonberg/server/mud/api/mql';
 import { MixinApi } from "@saxonberg/server/mud/api/mixin";
 import type { CommandContext, CommandModel } from '@saxonberg/server/mud/api/command';
+import type { Container } from '@saxonberg/server/mud/lib/spatial/Container';
 import { MessageApi } from '@saxonberg/server/mud/api/message';
 import { Mml } from '@saxonberg/server/mud/api/mml';
 
 /** ⭐ The instrument is bound by the view, never hunted for here. */
 interface MeasureStrikeModel extends CommandModel {
-  tool?: Stuff;
+  tool?: MqlOneResult;
 }
 
 
@@ -40,7 +42,7 @@ export default class MeasureStrikeController extends SurveyChannelController {
       this.decline(context, Mml.compose`You are nowhere to take a bearing from.`, 'no-place');
       return;
     }
-    if (!this.instrumentOf(model.tool)) {
+    if (!this.instrumentOf(model.tool?.stuff)) {
       this.decline(
         context,
         Mml.compose`You need a surveyor's instrument in hand — a compass or a miner's dial — to take a bearing.`,
@@ -58,13 +60,7 @@ export default class MeasureStrikeController extends SurveyChannelController {
       return;
     }
 
-    const coords = (place as unknown as { getCoordinates?(): [number, number, number] })
-      .getCoordinates?.() ?? [0, 0, 0];
-    const cellSize =
-      (place as unknown as { getZone?(): { getCellSize?(): number } | null }).getZone?.()
-        ?.getCellSize?.() ?? 1;
-    const x = coords[0] * cellSize;
-    const y = coords[1] * cellSize;
+    const [x, y] = this.metresAt(place);
 
     const { band, errorDeg } = await this.bandOf(giver);
     const seed = await this.seedAt(place);
@@ -96,7 +92,7 @@ export default class MeasureStrikeController extends SurveyChannelController {
       .topic(READING_TOPIC)
       .toSelf(
         reading.staining > 0.5
-          ? Mml.compose`The ground here is stained green in a band you can follow with your eye. Strike ${bearing(reading.readingDeg)} ± ${String(Math.round(errorDeg))}°, by your ${band} reckoning.`
+          ? Mml.compose`The ground here is stained ${await this.stainOf(place)} in a band you can follow with your eye. Strike ${bearing(reading.readingDeg)} ± ${String(Math.round(errorDeg))}°, by your ${band} reckoning.`
           : Mml.compose`Faint float, and a suggestion of a line. Strike ${bearing(reading.readingDeg)} ± ${String(Math.round(errorDeg))}°, by your ${band} reckoning.`,
       )
       .send();
@@ -109,6 +105,18 @@ export default class MeasureStrikeController extends SurveyChannelController {
       difficulty: reading.staining > 0.5 ? 'easy' : 'hard',
       outcome: 'success',
     });
+  }
+
+  /**
+   * ⚠ The colour of the stain, off the mineral rather than off this
+   * file. It said "green" for as long as there was one ore; two minerals
+   * makes that a lie, and the `Material.appearance` phrase is where the
+   * word already belonged.
+   */
+  private async stainOf(place: Stuff & Container): Promise<string> {
+    const ground = await this.groundAt(place);
+    const phrase = ground?.mineral?.getAppearance() ?? '';
+    return phrase || 'a colour the country rock is not';
   }
 }
 

@@ -203,9 +203,9 @@ describe('the rows', () => {
     // row's keywords are how a person says it; the mechanism is
     // continuous underneath.
     const white = row(join(BAKING, 'thing', 'white-loaf.yaml'));
-    expect(white.material).toBe('/stuff/idea/material/food/bread');
-    expect(row(join(BAKING, 'thing', 'lean-loaf.yaml')).material).toBe(
-      white.material,
+    expect(white._materialPath).toBe('/stuff/idea/material/food/bread');
+    expect(row(join(BAKING, 'thing', 'lean-loaf.yaml'))._materialPath).toBe(
+      white._materialPath,
     );
   });
 

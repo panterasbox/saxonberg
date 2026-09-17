@@ -106,7 +106,10 @@ function ctx(): CommandContext {
 async function analyze(target: Stuff | null): Promise<CommandContext> {
   const c = ctx();
   const ctrl = makeStuff(() => new AnalyzePowerController());
-  await ctrl.execute(target === null ? ({} as never) : ({ target } as never), c);
+  await ctrl.execute(
+    target === null ? ({} as never) : ({ target: { stuff: target, raw: 'it' } } as never),
+    c,
+  );
   return c;
 }
 

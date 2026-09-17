@@ -35,6 +35,7 @@
 import { FieldWorkController, FIELD_TOPIC, LABOUR_PER_ACT } from './FieldWorkController';
 import type { CommandContext, CommandModel } from '@saxonberg/server/mud/api/command';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
+import type { MqlOneResult } from '@saxonberg/server/mud/api/mql';
 import type { Containable } from '@saxonberg/server/mud/lib/spatial/Containable';
 import type { Container } from '@saxonberg/server/mud/lib/spatial/Container';
 import { MessageApi } from '@saxonberg/server/mud/api/message';
@@ -44,7 +45,7 @@ import { ContainmentApi } from '@saxonberg/server/mud/api/containment';
 
 /** ⭐ The instrument is bound by the view, never hunted for here. */
 interface GrubModel extends CommandModel {
-  tool?: Stuff;
+  tool?: MqlOneResult;
 }
 
 
@@ -66,7 +67,7 @@ export default class GrubController extends FieldWorkController {
       this.decline(context, Mml.compose`There is no field here to grub out.`, 'no-field');
       return;
     }
-    const tool = this.toolOf(model.tool, 'digging');
+    const tool = this.toolOf(model.tool?.stuff, 'digging');
     if (!tool) {
       this.decline(context, Mml.compose`Not with your bare hands. You want a spade.`, 'no-tool');
       return;

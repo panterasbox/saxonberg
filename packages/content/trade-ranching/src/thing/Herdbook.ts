@@ -176,11 +176,16 @@ export default class Herdbook extends HerdbookBase {
 
   /** The register, or `null` when there is no world to file into yet. */
   private async registry(): Promise<HerdRegistry | null> {
-    const resident = StuffApi.findByTemplatePath<HerdRegistry>(HERD_REGISTRY_PATH);
-    if (resident) return resident;
+    // ⭐ `singleton` IS the get-or-create; a resident pre-check in front
+    // of it is the same index read written twice.
     try {
       return await StuffApi.singleton<HerdRegistry>(HERD_REGISTRY_PATH);
-    } catch {
+    } catch (err) {
+      // ⚠ Tolerated — there may be no world to file into yet — but never
+      // SILENT: a register that exists and will not resolve is an
+      // authoring fault, and a bare `return null` makes it look like the
+      // ordinary pre-boot case.
+      console.error(`Herdbook: herd registry did not resolve`, err);
       return null;
     }
   }

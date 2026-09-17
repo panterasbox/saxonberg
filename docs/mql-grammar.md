@@ -432,6 +432,7 @@ Inside `[…]`, atoms read object facts via `namespace.key`:
 | `mixin.X` | boolean: composes mixin X |
 | `class.X` | boolean: instanceof X |
 | `keyword.X` | boolean: has keyword X |
+| `material.X` | boolean: **made of** something tagged X |
 | `template.X` | boolean: cloned from template path X (glob-aware) |
 | `capability.X` | boolean: offers tool capability X (`ToolMixin`) |
 
@@ -441,6 +442,27 @@ instance axis a holding's rooms are recorded under; `undefined` for an
 unkeyed object, so `[key = …]` never false-matches), and `address` (the
 declared **Locality address**, e.g. `terminus/hinkley-hills/lot-1` —
 the human per-place identity; `undefined` when undeclared).
+
+⭐ **`material.X` asks what a thing is MADE OF**, by the material's
+authored tag — the same vocabulary recipes match stock on
+(`category: forgeable`) and the covering stack reads (`metal`,
+`ferrous`, `brittle`, `food`, `flammable`).
+
+```
+peers:[material.metal]                    what here is metal
+reachable:[material.brittle]              …and what would shatter
+peers:[material.ferrous and not material.brittle]
+```
+
+It spans **every part**, not the bulk default: an axe is oak at the haft
+and iron at the head, so it answers `true` to both `wood` and `metal`.
+
+⚠ **Made of, never CONTAINS.** A waterskin is leather —
+`[material.water]` does not match it. What is in a bulk slot is a
+different question with a different owner (`BulkableApi.slotFor`), and
+folding the two together would be a lie that reads like a convenience.
+A thing with no material, or with no material *concept* at all, is
+`false` rather than an error.
 
 Comparisons, boolean composition, existence:
 

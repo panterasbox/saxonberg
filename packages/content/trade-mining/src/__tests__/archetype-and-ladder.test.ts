@@ -123,11 +123,19 @@ describe('the recipe ladder', () => {
     expect([...bands].sort()).toEqual(['easy', 'formidable', 'hard', 'standard']);
   });
 
-  it('⭐⭐ the chain closes on itself: the pick head is made of METAL and the pick of the head', () => {
+  it('⭐⭐ the chain closes on itself: the pick head is FORGED and the pick is assembled from it', () => {
     const rows = recipes();
     const head = rows.find((r) => r.recipeId === 'pick-head')!;
-    expect(head.inputSlots!.some((s) => s.category === 'metal')).toBe(true);
+    // ⚠ `forgeable`, not `metal`: the head is beaten out on an anvil, and
+    // an anvil recipe takes stock an anvil can work. `metal` would have
+    // admitted a pig of cast iron (it shatters) and a bloom (a quarter
+    // glass) — both honestly metal, neither of them stock.
+    expect(head.inputSlots!.some((s) => s.category === 'forgeable')).toBe(true);
     const pick = rows.find((r) => r.recipeId === 'pick')!;
+    // ⭐ The pick itself is ASSEMBLED rather than forged — a head and a
+    // haft fitted together — so it asks for `metal` and is right to: what
+    // it wants is a head, and a head is made of whatever you forged it
+    // from.
     expect(pick.inputSlots!.map((s) => s.category).sort()).toEqual(['metal', 'wood']);
     // The tool a miner swings is forged from metal somebody dug — and
     // picks wear out, which is the real sink that makes it a cycle.

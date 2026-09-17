@@ -64,7 +64,7 @@ async function sharpen(blade: Weapon): Promise<CommandContext> {
   makeStuff(() => new SharpenController()).execute(
     {
       blade: ref(blade, 'knife'),
-      ...(stone ? { stone: stone.stuff } : {}),
+      ...(stone ? { stone } : {}),
     } as never,
     ctx,
   );

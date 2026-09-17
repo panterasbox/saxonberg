@@ -47,6 +47,14 @@ args:
     # decides which by reading the MATERIAL's tags, never by class — so
     # the arg constrains to physical matter and no further.
     requires: TangibleMixin
+  # ⚠ `extraction` BEFORE `mill`: positionals bind in declared order, so
+  # with the instrument declared second `mill wheat 0.72` handed the
+  # number to the instrument ("bare integer '0' is not valid at the head
+  # of a chain"). A later field's PREPOSITION still wins the lookahead —
+  # `mill wheat at quern` skips the number. Found by the drive.
+  - name: extraction
+    type: number
+    required: false
   # ⭐⭐ WHICH STONES, declared rather than re-derived — the `buy … from
   # <counter>` shape, and for its stated reasons.
   #
@@ -68,6 +76,3 @@ args:
     default: "reachable:[mixin.ComminutingMixin]"
     scope: ["reachable"]
     requires: [ComminutingMixin]
-  - name: extraction
-    type: number
-    required: false

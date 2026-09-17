@@ -32,6 +32,7 @@
 import { FieldWorkController, FIELD_TOPIC, LABOUR_PER_ACT } from './FieldWorkController';
 import type { CommandContext, CommandModel } from '@saxonberg/server/mud/api/command';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
+import type { MqlOneResult } from '@saxonberg/server/mud/api/mql';
 import type { Container } from '@saxonberg/server/mud/lib/spatial/Container';
 import { MixinApi } from '@saxonberg/server/mud/api/mixin';
 import { MessageApi } from '@saxonberg/server/mud/api/message';
@@ -39,7 +40,7 @@ import { Mml } from '@saxonberg/server/mud/api/mml';
 
 /** ⭐ The instrument is bound by the view, never hunted for here. */
 interface PloughModel extends CommandModel {
-  tool?: Stuff;
+  tool?: MqlOneResult;
 }
 
 
@@ -62,7 +63,7 @@ export default class PloughController extends FieldWorkController {
       this.decline(context, Mml.compose`There is no ground here to turn.`, 'no-field');
       return;
     }
-    const plough = this.toolOf(model.tool, 'ploughing');
+    const plough = this.toolOf(model.tool?.stuff, 'ploughing');
     if (!plough) {
       this.decline(
         context,

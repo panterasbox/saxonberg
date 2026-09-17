@@ -1,0 +1,29 @@
+# F1 · The Hillside — the way out of the yard and onto the outcrop.
+#
+# ⭐ **This room is the whole argument for the fringe being a WALK.** The
+# lode's plane crosses the surface along its entire strike, so the seam
+# the co-op chases underground comes up out of the ground here and runs
+# away northeast over open hill. You do not need the adit, the cage, a
+# lamp, a permit, or anybody's good opinion to follow it — you need
+# boots, and the willingness to go further than the last man did.
+#
+# The ground under this room is still the old men's: inside the depletion
+# box, and still in the copper heart of the body. It is the first step of
+# a gradient, not a destination.
+class: /platform/location/SingletonCartesianLocation
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: hillside above the yard
+  keywords: [hillside, hill, slope, outcrop, above]
+  register: definite
+  longDescription: |
+    The ground climbs away from the back of the claims office in a long shallow slope of tussock and broken slate, and the slate is stained. Not everywhere — in a band, two paces wide, running up and away to the northeast as straight as a drawn line, green where it is bare.
+
+    It is the same seam. It has simply run out of hill to be under.
+  coords: { x: 0, y: 2, z: 0 }
+  exits:
+    southwest:
+      destination: /world/rejection/location/claims-office
+    northeast:
+      destination: /world/rejection/location/old-workings
+      edgeMinutes: 3

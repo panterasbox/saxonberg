@@ -1,0 +1,24 @@
+# ⭐⭐ A steel bar — **the top of the ladder, and the hardest rung to hit
+# on purpose.**
+#
+# Steel is iron with between about 0.2 % and 2 % carbon in it, and that
+# band is narrow. Below it you have wrought iron, which bends; above it
+# you have cast iron, which shatters. Nobody in the ancient world could
+# measure carbon, so hitting the band was a matter of knowing your fuel,
+# your heat and your time — which is exactly the knowledge rung the metal
+# chain's design says steel is gated by.
+#
+# ⚠ Its MASS and its exact carbon are stamped per run, never authored.
+# Two steel bars off two different carburizing runs are both steel and
+# are not the same; `analyze chemistry` is how you tell.
+class: /platform/thing/Ingot
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: steel bar
+  keywords: [bar, steel, ingot, billet]
+  register: indefinite
+  longDescription: >-
+    A bar of grey metal with a close, even grain where it has been cut,
+    heavier in the hand than it looks and hard enough to turn a file.
+  _materialPath: /stuff/idea/material/alloy/steel
+  mass: 0.5

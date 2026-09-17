@@ -77,6 +77,29 @@ export interface GradeBand {
   meanGrade: number;
   /** Half-width of the procedural spread around the mean, 0–1. */
   spread: number;
+  /**
+   * ⭐⭐ The band's **lateral window**: metres of |distance along strike
+   * from `lode.through`| within which this band applies. Both absent —
+   * the shipped case — means unbounded, and a deposit authored before
+   * this existed behaves identically.
+   *
+   * Depth is not the only axis a body is zoned on. Supergene zonation
+   * (oxide cap over sulfide over primary) is the VERTICAL answer and the
+   * `toZ` axis already carries it; **magmatic zonation is the lateral
+   * one** — a copper-rich heart with an iron-rich distal fringe, because
+   * the metals dropped out of the same fluid at different distances from
+   * the source. The two are orthogonal facts about one orebody, which is
+   * why this is a second axis on the same band list rather than a second
+   * list.
+   *
+   * A band is admitted when the cell's |along| is `>= alongFrom` (if
+   * stated) and `<= alongTo` (if stated); {@link Deposit.bandAt} then
+   * picks by depth among the admitted bands exactly as it always has.
+   * Symmetric about `through`, so both ends of a strike are fringe —
+   * which is what a body being lean at both ends actually means.
+   */
+  alongFrom?: number;
+  alongTo?: number;
 }
 
 /**
@@ -105,6 +128,19 @@ export interface Lode {
   dipExtent: number;
   /** The worthless mineral that comes up with the ore. */
   gangue: string;
+  /**
+   * ⭐ The **disseminated margin**, metres. Ground this far outside the
+   * plane's thickness and extents still carries the band's mineral, at a
+   * grade tapering linearly to zero across the halo. Absent or `0` — the
+   * shipped case — means the lode's edge is a knife edge, as it was.
+   *
+   * ⚠ This is not a wider lode. The wall rock around a real orebody is
+   * weakly mineralized, and modelling that is what makes prospecting
+   * forgiving in the honest way: a heading that misses by ten metres
+   * comes back thin rather than empty, and thin tells you which way to
+   * turn. Widening `thickness` instead would make the miss free.
+   */
+  halo?: number;
 }
 
 /**
@@ -307,19 +343,30 @@ export default class Deposit extends Idea {
     const hostPath = pin?.host ?? this.hostAt(at[2]);
     const water = this.waterAt(at[2]);
 
-    const inLode = this.isInLode(at);
-    const band = this.bandAt(at[2]);
+    // ⭐ The ground stops at the collar. Nothing used to bound `z`, so a
+    // cell above the surface that satisfied the plane test read as ore —
+    // which a surface working's `up` face samples, and which would have
+    // let you hew a seam out of the sky the moment the lode outcropped.
+    const air = at[2] > 0;
+
+    const along = this.alongStrike(at);
+    const inLode = !air && this.isInLode(at);
+    // ⭐ How much of the band this cell gets: 1 inside the plane, tapering
+    // across the halo, 0 beyond it. The lode's edge is where the ORE
+    // stops, not where the mineralization does.
+    const proximity = air ? 0 : this.lodeProximity(at);
+    const band = air ? null : this.bandAt(at[2], along);
 
     // The procedural grade: the band's mean, spread by the cell's own
     // seeded roll. Barren ground is the default and the common case.
     let grade = 0;
     let mineralPath: string | null = null;
     let ganguePath: string | null = null;
-    if (inLode && band !== null) {
+    if (proximity > 0 && band !== null) {
       mineralPath = band.mineral;
       ganguePath = this.lode?.gangue ?? null;
       const r = Seeded.unit(seed, hashString(key));
-      grade = clamp01(band.meanGrade + band.spread * (2 * r - 1));
+      grade = clamp01(band.meanGrade + band.spread * (2 * r - 1)) * proximity;
       grade *= this.depletionScaleAt(at);
     }
 
@@ -442,12 +489,75 @@ export default class Deposit extends Idea {
     return last?.host ?? DEFAULT_HOST;
   }
 
-  /** The mineralization band at depth `z`, or `null` below the deepest. */
-  public bandAt(z: number): GradeBand | null {
-    for (const band of this.zones) {
+  /**
+   * The mineralization band at depth `z`, or `null` below the deepest.
+   *
+   * ⭐⭐ Two axes, applied in order: the **lateral window** admits a
+   * subset of the bands (see {@link GradeBand.alongFrom}), and then the
+   * shipped depth rule picks among the admitted ones. So the heart of a
+   * body and its distal fringe are two overlapping depth ladders, not a
+   * second mechanism — and a mineral that is deep AND distal is simply a
+   * band that states both.
+   *
+   * ⚠ `along` is optional and the one-argument form is unchanged: with
+   * no windows authored the filter is the identity, so every caller and
+   * every shipped row behaves exactly as before.
+   *
+   * @param z depth in zone metres
+   * @param along signed metres along strike from `lode.through`
+   */
+  public bandAt(z: number, along?: number): GradeBand | null {
+    const admitted = along === undefined
+      ? this.zones
+      : this.zones.filter((b) => admitsAlong(b, along));
+    for (const band of admitted) {
       if (z >= band.toZ) return band;
     }
-    return this.zones[this.zones.length - 1] ?? null;
+    return admitted[admitted.length - 1] ?? null;
+  }
+
+  /**
+   * Signed metres along the strike line from `lode.through` — the
+   * coordinate the lateral window is read in. `0` where there is no lode.
+   */
+  public alongStrike(at: Point): number {
+    const lode = this.lode;
+    if (lode === null) return 0;
+    const p0 = lode.through;
+    const s = strikeVector(lode);
+    return (at[0] - p0[0]) * s[0] + (at[1] - p0[1]) * s[1];
+  }
+
+  /**
+   * How strongly this cell carries the lode, 0–1: `1` inside the plane's
+   * thickness and extents, tapering linearly to `0` across `lode.halo`
+   * outside it, `0` beyond.
+   *
+   * ⭐ The three tests {@link Deposit.isInLode} makes are along three
+   * ORTHOGONAL axes — the plane's normal, its strike and its dip — so
+   * the amount by which a cell fails them is a genuine distance, and the
+   * taper is that distance over the halo. No new geometry: the same
+   * three dot products, read as a magnitude instead of a yes/no.
+   */
+  public lodeProximity(at: Point): number {
+    const lode = this.lode;
+    if (lode === null) return 0;
+    if (this.isInLode(at)) return 1;
+    const halo = lode.halo ?? 0;
+    if (halo <= 0) return 0;
+
+    const p0 = lode.through;
+    const d: [number, number, number] = [at[0] - p0[0], at[1] - p0[1], at[2] - p0[2]];
+    const n = normalOf(lode);
+    const s = strikeVector(lode);
+    const dv = dipVector(lode);
+    const over = (value: number, limit: number): number => Math.max(0, Math.abs(value) - limit);
+
+    const outNormal = over(d[0] * n[0] + d[1] * n[1] + d[2] * n[2], lode.thickness / 2);
+    const outStrike = over(d[0] * s[0] + d[1] * s[1], lode.strikeExtent);
+    const outDip = over(d[0] * dv[0] + d[1] * dv[1] + d[2] * dv[2], lode.dipExtent);
+    const distance = Math.sqrt(outNormal ** 2 + outStrike ** 2 + outDip ** 2);
+    return clamp01(1 - distance / halo);
   }
 
   /**
@@ -539,6 +649,17 @@ function norm360(deg: number): number {
 
 function clampDip(deg: number): number {
   return deg < 0 ? 0 : deg > 90 ? 90 : deg;
+}
+
+/**
+ * Whether a band's lateral window admits a cell at `along` metres along
+ * strike. Symmetric about `through`: a body is lean at both ends.
+ */
+function admitsAlong(band: GradeBand, along: number): boolean {
+  const d = Math.abs(along);
+  if (band.alongFrom !== undefined && d < band.alongFrom) return false;
+  if (band.alongTo !== undefined && d > band.alongTo) return false;
+  return true;
 }
 
 /** The unit vector along the strike line: horizontal, in the plane. */

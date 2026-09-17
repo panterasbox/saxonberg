@@ -37,6 +37,7 @@ import type {
   CommandModel,
 } from '@saxonberg/server/mud/api/command';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
+import type { MqlOneResult } from '@saxonberg/server/mud/api/mql';
 import type { Container } from '@saxonberg/server/mud/lib/spatial/Container';
 import { MixinApi } from '@saxonberg/server/mud/api/mixin';
 import { MessageApi } from '@saxonberg/server/mud/api/message';
@@ -50,7 +51,7 @@ const TOPIC = 'sense.reading';
 const CATALOGUE_PATH = '/system/water/idea/WatercourseCatalogue';
 
 interface AnalyzePowerModel extends CommandModel {
-  target?: Stuff;
+  target?: MqlOneResult;
 }
 
 /** Anything that turns a flow into watts. */
@@ -93,7 +94,7 @@ export default class AnalyzePowerController extends CommandController<AnalyzePow
     ctx: CommandContext,
   ): Promise<void> {
     const giver = ctx.commandGiver;
-    const target = model.target ?? null;
+    const target = model.target?.stuff ?? null;
 
     if (target === null) {
       await this.reportHere(ctx);

@@ -12,6 +12,13 @@ data:
   density: 2200
   specificHeat: 710
   thermalConductivity: 130
+  # ⚠ Mechanical response (materials-response): MPa / MJ·m⁻³. Unauthored
+  # until this build, and carbon is now a constituent something asks
+  # about (`Alloyed.getEffectiveComposition`). Mid-range between the
+  # allotropes and deliberately BRITTLE — graphite crumbles, diamond
+  # shatters, and neither of them bends.
+  hardness: 50
+  toughness: 5
   edibility: false
   nutrients: []
   toxicity: []

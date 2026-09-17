@@ -168,7 +168,10 @@ subcommands:
         type: object
         required: false
         prepositions: [with, using]
-        default: "reachable:[capability.surveying]"
+        # ⚠ `me:i` — IN HAND, as the controller walked before the default was
+        # declared; a scythe on the ground is picked up first. (`reachable` for a
+        # day widened every hand tool to the room. Naming one still reaches it.)
+        default: "me:i:[capability.surveying]"
         scope: ["reachable"]
         requires: [ToolMixin]
       - name: detail
@@ -207,7 +210,7 @@ subcommands:
         type: object
         required: false
         prepositions: [with, using]
-        default: "reachable:[capability.digging]"
+        default: "me:i:[capability.digging]"
         scope: ["reachable"]
         requires: [ToolMixin]
       - name: detail
@@ -241,7 +244,7 @@ subcommands:
         type: object
         required: false
         prepositions: [with, using]
-        default: "reachable:[capability.soil-testing]"
+        default: "me:i:[capability.soil-testing]"
         scope: ["reachable"]
         requires: [ToolMixin]
   passage:
@@ -346,7 +349,7 @@ subcommands:
         type: object
         required: false
         prepositions: [with, using]
-        default: "reachable:[capability.surveying]"
+        default: "me:i:[capability.surveying]"
         scope: ["reachable"]
         requires: [ToolMixin]
       - name: detail

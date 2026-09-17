@@ -15,5 +15,5 @@ data:
   keywords: [flatbread, bread, bannock, round]
   register: indefinite
   longDescription: A thin round of bread blistered dark where it lay against the oven floor, flexible enough to fold.
-  material: /stuff/idea/material/food/bread
+  _materialPath: /stuff/idea/material/food/bread
   mass: 0.3

@@ -32,6 +32,7 @@ import type {
   CommandModel,
 } from "@saxonberg/server/mud/api/command";
 import type { Stuff } from "@saxonberg/server/mud/lib/stuff/Stuff";
+import type { MqlOneResult } from '@saxonberg/server/mud/api/mql';
 import type { Tooled } from "@saxonberg/server/mud/lib/craft/Tooled";
 import type { Durable } from "@saxonberg/server/mud/lib/material/Durable";
 import { MessageApi } from "@saxonberg/server/mud/api/message";
@@ -41,7 +42,7 @@ import HoldingWarren from "../../HoldingWarren";
 
 /** ⭐ The instrument is bound by the view, never hunted for here. */
 interface MaintainModel extends CommandModel {
-  kit?: Stuff;
+  kit?: MqlOneResult;
 }
 
 
@@ -72,7 +73,7 @@ export default class MaintainController extends CommandController {
       return;
     }
 
-    const kit = this.kitOf(model.kit);
+    const kit = this.kitOf(model.kit?.stuff);
     if (!kit) {
       context.note({
         kind: "controller-rejected",

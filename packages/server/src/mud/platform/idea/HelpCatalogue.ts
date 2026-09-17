@@ -299,6 +299,22 @@ export default class HelpCatalogue extends HelpCatalogueBase {
     );
   }
 
+  /**
+   * Resolve a concept topic by its authored key (`extraction`,
+   * `nitrogen`), or `null`.
+   *
+   * ⚠⚠ Concepts were indexed and searchable from the farmstead build on,
+   * and `help <key>` could not reach one: the fallthrough tried verb →
+   * collection → api and stopped. Four packs shipped concept rows whose
+   * only readers were `help search`; the grain-chain drive was the first
+   * to type `help extraction` and hear "no help topic".
+   */
+  public findConceptTopic(key: string): HelpTopic | null {
+    this.ensureWarm();
+    const lower = key.trim().toLowerCase();
+    return this.topics!.get(`concept.${lower}`) ?? null;
+  }
+
   public findApiTopic(target: string): HelpTopic | null {
     this.ensureWarm();
     // Already-prefixed id, then face.member / bare-name resolution.

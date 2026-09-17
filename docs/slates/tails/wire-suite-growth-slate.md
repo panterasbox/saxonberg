@@ -98,6 +98,8 @@ suite REPORTS these; fixing them was an explicit non-goal.
 | `measure strike` without an instrument is `unknown-verb`, not a refusal naming the instrument — two defensible designs | trade-mining |
 | a standing MQL subscription has no teardown a flow can reach, so a wire file that opens one leaks it for the rest of the run (`world-scan.dirty` is the first to do it) | mql-subscription / the harness |
 | `office assign` answers "No such player." over the raw socket, so no wire flow can move a seat — `world-scan.dirty` step 14 warns instead of proving the handoff | governance ⭐ two builds have routed around this |
+| the fuel yard's charcoal is authored props that nothing restocks, and `char` is a **three-day burn** — so `metallurgy.dirty` burning a basket is unrepeatable and the realm has a demand surface with no supply | trade-fuel ⭐ wants a `chars` producer brain |
+| a mined face stays worked and a staked claim is a permanent `ParcelRecord` — `metallurgy.dirty` consumes ground, which nothing anywhere regenerates | trade-mining (by design; the note is that the dirty set will only grow) |
 
 ## What this slate is NOT
 

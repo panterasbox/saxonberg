@@ -29,6 +29,7 @@ import type {
   CommandModel,
 } from '@saxonberg/server/mud/api/command';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
+import type { MqlOneResult } from '@saxonberg/server/mud/api/mql';
 import type { Container } from '@saxonberg/server/mud/lib/spatial/Container';
 import type { Containable } from '@saxonberg/server/mud/lib/spatial/Containable';
 import { MixinApi } from '@saxonberg/server/mud/api/mixin';
@@ -42,7 +43,7 @@ const TOPIC = 'act.deed';
 interface BakeModel extends CommandModel {
   loaf?: string;
   /** ⭐ The fire, resolved by the BINDER off the view's arg. */
-  oven?: Stuff;
+  oven?: MqlOneResult;
 }
 
 export default class BakeController extends CraftController<BakeModel> {
@@ -68,7 +69,7 @@ export default class BakeController extends CraftController<BakeModel> {
     // here is whether that fire is usable: `lit`, fuelled, and a
     // Container. A mixin predicate cannot express "lit", and pretending
     // the arg could would be a worse lie than this narrowing.
-    const oven = this.usableChamber(model.oven ?? null);
+    const oven = this.usableChamber(model.oven?.stuff ?? null);
     if (oven !== null) {
       await ContainmentApi.move(output as Stuff & Containable, oven);
       MessageApi.scene(giver)

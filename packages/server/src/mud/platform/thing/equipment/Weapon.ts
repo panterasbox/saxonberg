@@ -23,7 +23,7 @@
  * gauge (a blade dulls with use) — a *durable good*, NOT a crafting tool, so
  * it carries no inert capability list.
  *
- * Seeded as content (e.g. `/stuff/thing/arms/steel-dagger`) with
+ * Seeded as content (e.g. `/stuff/thing/arms/dagger`) with
  * `_materialPath`, `constructionForm: bladed`, a `grade`, `slotClaims`,
  * `mass`, and `length`.
  */

@@ -12,5 +12,5 @@ data:
   keywords: [loaf, bread]
   register: indefinite
   longDescription: A round loaf with a good open cut across the top, the crust gone deep brown where the oven caught it.
-  material: /stuff/idea/material/food/bread
+  _materialPath: /stuff/idea/material/food/bread
   mass: 0.8

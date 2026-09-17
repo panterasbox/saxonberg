@@ -14,6 +14,6 @@ data:
   register: indefinite
   longDescription: |
     A dented tin can with a long spout and a wire handle, sized for reaching over a windowsill without soaking the sill.
-  material: /stuff/idea/material/alloy/steel
+  _materialPath: /stuff/idea/material/alloy/steel
   interiorBulk: true
   interiorCapacity: 2

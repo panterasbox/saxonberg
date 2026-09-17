@@ -119,7 +119,7 @@ async function run(
     return typeof t.hasCapability === 'function' && t.hasCapability('surveying');
   });
   await makeStuff<Runnable>(() => new Controller()).execute(
-    (tool === undefined ? {} : { tool }) as never,
+    (tool === undefined ? {} : { tool: { stuff: tool, raw: 'tool' } }) as never,
     ctx,
   );
   return ctx;

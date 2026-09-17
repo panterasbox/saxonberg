@@ -328,7 +328,13 @@ describe('the farms beat — tend, pick, sell, home', () => {
           const target = reach(rest.join(' '));
           await asPrincipal(who, () =>
             makeStuff(() => new WaterController()).execute(
-              { target: { stuff: target, raw: rest.join(' ') } } as never,
+              // ⚠ `source` is BOUND BY THE VIEW (`water.yaml`, defaulting
+              // through `me:i:[mixin.BulkableMixin]`) — the same standing
+              // warning `consign`'s shelf carries below.
+              {
+                target: { stuff: target, raw: rest.join(' ') },
+                source: { stuff: [can], raw: '' },
+              } as never,
               ctx(who, here, null, text),
             ),
           );

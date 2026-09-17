@@ -43,6 +43,7 @@
 import { CommandController } from '@saxonberg/server/mud/lib/command/CommandController';
 import type { CommandContext, CommandModel } from '@saxonberg/server/mud/api/command';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
+import type { MqlOneResult } from '@saxonberg/server/mud/api/mql';
 import type { Container } from '@saxonberg/server/mud/lib/spatial/Container';
 import { MixinApi } from '@saxonberg/server/mud/api/mixin';
 import { MessageApi } from '@saxonberg/server/mud/api/message';
@@ -89,7 +90,7 @@ interface PlotHost {
 
 interface PlotModel extends CommandModel {
   /** ⭐ The instrument, resolved by the BINDER off the view's arg. */
-  tool?: Stuff;
+  tool?: MqlOneResult;
   name?: string;
 }
 
@@ -101,7 +102,7 @@ export default class PlotController extends CommandController<PlotModel> {
       this.decline(context, Mml.compose`You are nowhere to plot anything out of.`, 'no-place');
       return;
     }
-    if (!this.spadeOf(model.tool)) {
+    if (!this.spadeOf(model.tool?.stuff)) {
       this.decline(
         context,
         Mml.compose`You do not plot a field by looking at it. You would want a spade.`,

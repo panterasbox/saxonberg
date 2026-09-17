@@ -2,8 +2,14 @@
 recipeId: assay-kit
 name: Assayer's Kit
 keywords: [assay, assay-kit]
+# ⭐⭐ The stock slot asks for `forgeable`, and that one tag is the whole
+# rule: **an anvil recipe takes stock an anvil can work.** `ferrous`
+# would admit a pig of cast iron, which shatters under a hammer;
+# `metal` would admit a pig AND a bloom, which is a quarter glass.
+# Hot iron, steel and copper are what an anvil actually works, and they
+# are what carries the tag.
 inputSlots:
-  - { slot: balance, category: metal, minGrade: good, kind: item, count: 1 }
+  - { slot: balance, category: forgeable, minGrade: good, kind: item, count: 1 }
   - { slot: case, category: wood, minGrade: fair, kind: item, count: 1 }
 toolCapabilities: [striking, anvil]
 outputTemplate: /trade/mining/thing/assay-kit

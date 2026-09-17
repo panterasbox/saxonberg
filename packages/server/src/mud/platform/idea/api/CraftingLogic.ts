@@ -1257,6 +1257,18 @@ async function applyTangibleOutput(
     // A stack's mass is per-unit (the stack is `quantity` instances).
     totalKg += m.stack ? unitKg * m.count : unitKg;
   }
+  // ⭐⭐ **An authored `outputMaterial` wins; otherwise the stock's flows.**
+  // The field existed and the edible and bulk paths already read it; the
+  // tangible path did not, so a transform that genuinely CHANGES what
+  // the matter is had no way to say so and every smithing output was
+  // made of whatever went in. That is right for a knife (a steel bar
+  // makes a steel knife) and wrong for the one act that is a chemical
+  // change rather than a shaping: hammering a BLOOM squeezes the slag
+  // out of it, and what is left is iron, not bloom iron.
+  //
+  // The bulk-only arm (a loaf from dough) is the same rule with no item
+  // to fall back on: the authored material, and the mass summed over the
+  // bulk by each source material's density.
   if (bulkOnly) {
     output.setMaterial(
       await StuffApi.singleton<Material>(authoredMaterial),
@@ -1266,9 +1278,27 @@ async function applyTangibleOutput(
       totalKg += m.measureL * ((density > 0 ? density : 1000) / 1000);
     }
   } else {
-    output.setMaterial(primary!.material);
+    output.setMaterial(
+      authoredMaterial
+        ? await StuffApi.singleton<Material>(authoredMaterial)
+        : primary!.material,
+    );
   }
   if (totalKg > 0) output.setMass(Quantity.of(totalKg, 'kg'));
+
+  // ⭐ The per-instance minor constituents ride the transform when both
+  // ends can carry them. That is what keeps a carburized bar's carbon
+  // through consolidation: the MATERIAL becomes iron (the kind changed)
+  // and the carbon figure is still this piece's own.
+  //
+  // ⚠ Local narrowing on an output this function is already stamping —
+  // not a guard re-narrowing a host set. A knife is not Alloyed and
+  // silently takes nothing, which is the intended answer: a blade's
+  // metal is its Material row.
+  if (primary && MixinApi.isAlloyed(output) && MixinApi.isAlloyed(primary.stuff)) {
+    output.setAlloying(primary.stuff.getAlloying());
+    output.setTemper(primary.stuff.getTemper());
+  }
 
   // ⭐ …and what it is MADE OF (D26). The bulk inputs' parts, merged and
   // scaled, land on the output's `ComposedMixin` face — the fifth and
@@ -1753,13 +1783,12 @@ function applyControlFloor(
  */
 function reachableTools(maker: Stuff | null): (Stuff & Tooled)[] {
   if (!maker) return [];
-  const candidates: Stuff[] = [];
-  if (MixinApi.isContainer(maker)) candidates.push(...maker.getContents());
-  if (MixinApi.isContainable(maker)) {
-    const loc = maker.getContainer();
-    if (loc && MixinApi.isContainer(loc)) candidates.push(...loc.getContents());
-  }
-  return candidates.filter((c): c is Stuff & Tooled => MixinApi.isTool(c));
+  // ⭐ The reach pool, on-person-first. This hand-rolled the two hops,
+  // which also MISSED a tool in a slot — a wielded hammer is reachable
+  // by any reading of the word, and the pool includes slot occupants.
+  return ContainmentApi.reachableFrom(maker).filter(
+    (c): c is Stuff & Tooled => MixinApi.isTool(c),
+  );
 }
 
 /** The smithing terminal mint: the workpiece's matter becomes the form. */
@@ -1791,8 +1820,23 @@ async function mintWorkpiece(
         `CraftingLogic: output '${recipe.getOutputTemplate()}' is not Tangible`,
       );
     }
-    if (material) output.setMaterial(material);
+    // ⭐⭐ The same rule as the one-shot path: an authored `outputMaterial`
+    // wins, and the stock's material flows otherwise. The consolidate
+    // recipe is the one that needs it — a bloom worked into a bar stops
+    // being bloom iron, because the slag is on the floor.
+    const authoredMaterial = recipe.getOutputMaterial();
+    const outMaterial = authoredMaterial
+      ? await StuffApi.singleton<Material>(authoredMaterial)
+      : material;
+    if (outMaterial) output.setMaterial(outMaterial);
     if (massKg > 0) output.setMass(Quantity.of(massKg, 'kg'));
+    // ⭐ …and the piece's own carbon rides through, when the output can
+    // hold it. A bar minted from a carburized bar is still steel by the
+    // number as well as by the row.
+    if (MixinApi.isAlloyed(output) && MixinApi.isAlloyed(workpiece)) {
+      output.setAlloying(workpiece.getAlloying());
+      output.setTemper(workpiece.getTemper());
+    }
     if (!MixinApi.isCrafted(output)) {
       throw new Error(
         `CraftingLogic: output '${recipe.getOutputTemplate()}' does not ` +
@@ -1829,6 +1873,15 @@ async function mintWorkpiece(
   l.setKeywords(['lump', 'worked', ...(material?.getName() ?? 'metal').split(/\s+/)]);
   if (material) l.setMaterial(material);
   if (massKg > 0) l.setMass(Quantity.of(massKg, 'kg'));
+  // ⚠ The off-spec lump keeps the carbon too. A player who spent three
+  // smelts carburizing a bar and then quenched it at the wrong heat has
+  // made a mistake about the FORM; losing the chemistry as well would
+  // be the engine punishing them twice for one error, and the `Casting`
+  // is re-meltable precisely so the work is recoverable.
+  if (MixinApi.isAlloyed(lump) && MixinApi.isAlloyed(workpiece)) {
+    lump.setAlloying(workpiece.getAlloying());
+    lump.setTemper(workpiece.getTemper());
+  }
   StuffApi.destruct(workpiece);
   return { ok: true, output: lump, grade, recipeId: '' };
 }

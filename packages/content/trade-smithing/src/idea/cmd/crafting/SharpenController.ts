@@ -27,7 +27,7 @@ const RASP_DB = 55;
 
 interface SharpenModel extends CommandModel {
   /** ⭐ The instrument, resolved by the BINDER off the view's arg. */
-  stone?: Stuff;
+  stone?: MqlOneResult;
   blade?: MqlOneResult;
 }
 
@@ -72,7 +72,7 @@ export default class SharpenController extends ManualBuildController<SharpenMode
     }
 
     // A carried, un-broken whetstone (hasCapability goes dark broken).
-    const stone = this.carriedWhetstone(model.stone);
+    const stone = this.carriedWhetstone(model.stone?.stuff);
     if (!stone) {
       this.declineStep(
         context,

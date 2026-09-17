@@ -24,7 +24,7 @@ data:
   longDescription: |
     Wheat standing stiff in the ear, beardless and square-shouldered, going gold from the foot of the stem upward.
   _speciesPath: /stuff/idea/species/plantae/tracheophyta/liliopsida/poales/poaceae/triticum/aestivum
-  material: /stuff/idea/material/tissue/plant-tissue
+  _materialPath: /stuff/idea/material/tissue/plant-tissue
   lifecycleState: alive
   seedTemplatePath: /trade/farming/thing/seed/wheat
   harvestTemplatePath: /trade/farming/thing/crop/wheat

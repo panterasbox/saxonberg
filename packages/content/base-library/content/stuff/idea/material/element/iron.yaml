@@ -24,7 +24,12 @@ data:
   edibility: false
   nutrients: ["iron"]
   toxicity: [{ type: iron-poisoning, amount: 0 }]
-  tags: ["element", "metal", "ferrous", "magnetic", "crystalline", "conductor"]
+  # ⭐ `forgeable` is the ANVIL's tag, and it is a stock slot's whole
+  # test: an anvil recipe takes `forgeable` stock, and hot iron, steel
+  # and copper are exactly what an anvil can work. `ferrous` would admit
+  # a cast pig (brittle, and it shatters); `metal` would admit a pig and
+  # a bloom. One tag, one rule.
+  tags: ["element", "metal", "ferrous", "forgeable", "magnetic", "crystalline", "conductor"]
   composition: []
   symbol: Fe
   atomicNumber: 26

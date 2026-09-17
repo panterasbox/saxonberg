@@ -28,6 +28,7 @@
 import { FieldWorkController, FIELD_TOPIC } from './FieldWorkController';
 import type { CommandContext, CommandModel } from '@saxonberg/server/mud/api/command';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
+import type { MqlOneResult } from '@saxonberg/server/mud/api/mql';
 import type { Containable } from '@saxonberg/server/mud/lib/spatial/Containable';
 import type { Container } from '@saxonberg/server/mud/lib/spatial/Container';
 import { MessageApi } from '@saxonberg/server/mud/api/message';
@@ -39,7 +40,7 @@ import { SWARD_RESIDUAL_FRACTION } from '../../../lib/Sward';
 
 /** ⭐ The instrument is bound by the view, never hunted for here. */
 interface MowModel extends CommandModel {
-  tool?: Stuff;
+  tool?: MqlOneResult;
 }
 
 
@@ -81,7 +82,7 @@ export default class MowController extends FieldWorkController {
       this.decline(context, Mml.compose`There is no sward here to cut.`, 'no-field');
       return;
     }
-    const scythe = this.toolOf(model.tool, 'mowing');
+    const scythe = this.toolOf(model.tool?.stuff, 'mowing');
     if (!scythe) {
       this.decline(
         context,

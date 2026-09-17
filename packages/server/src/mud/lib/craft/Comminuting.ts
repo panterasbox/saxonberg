@@ -124,6 +124,14 @@ export interface Comminuting {
    * mixin** — the power read belongs to whatever pack has a river.
    */
   availablePowerW(): number;
+  /**
+   * Bring the power read UP TO DATE before a sync read of it. A pack's
+   * read may be a cached figure refreshed asynchronously (a water mill
+   * reads a river that is memoised per six game-hours), and the FIRST
+   * read of a cold cache answers 0 — which the verb would then report
+   * as "nothing is driving it", a lie. No-op on the kernel mixin.
+   */
+  settlePower(): Promise<void>;
   /** Is a grind running right now? (Runtime only; a reload wakes idle.) */
   isGrinding(): boolean;
   setGrinding(value: boolean): void;
@@ -215,6 +223,10 @@ export function ComminutingMixin<TBase extends MixinConstructor<Stuff>>(
 
     public availablePowerW(): number {
       return 0;
+    }
+
+    public async settlePower(): Promise<void> {
+      /* the kernel mixin has no power to settle */
     }
 
     public throughputNow(): number {

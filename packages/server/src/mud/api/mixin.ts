@@ -92,6 +92,7 @@ import type { Dosed } from '../lib/thermal/ThermalDose';
 import type { Composed } from '../lib/metabolism/Composed';
 import type { Comminuting } from '../lib/craft/Comminuting';
 import type { Cured } from '../lib/material/Cured';
+import type { Alloyed } from '../lib/material/Alloyed';
 import type { Contaminable } from '../lib/material/Contaminable';
 import type { Growing } from '../lib/husbandry/Growing';
 import type { Maturing } from '../lib/maturation/Maturing';
@@ -1287,6 +1288,15 @@ export class MixinApi {
    */
   public static isCured(obj: Stuff): obj is Stuff & Cured {
     return this.hasMixin(obj, Mixins.Cured);
+  }
+
+  /**
+   * Metal stock that can say what is dissolved in it — an `Ingot`, a
+   * `Casting`, a bloom. ⭐ Carbon is `fractionOf(carbon)`, and the whole
+   * ferrous ladder is that one scalar against two thresholds.
+   */
+  public static isAlloyed(obj: Stuff): obj is Stuff & Alloyed {
+    return this.hasMixin(obj, Mixins.Alloyed);
   }
 
   /**

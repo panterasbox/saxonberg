@@ -2137,5 +2137,38 @@ and the satiation before/after — filled by W9)*
 
 ### The drive
 
-*(the 55 steps, run against the booted game, with what each found;
-Part 9's two mornings recorded verbatim)*
+⚠⚠ **This section was a placeholder for four review rounds, and the MR
+description claimed the drive.** `grain-chain.dirty.wire.test.ts` was
+written but its first green run was 2026-09-17, on the master catch-up —
+9 of its 17 checkpoints failed the first time it was actually run on a
+fresh, harness-owned world (`WIRE_BOOT=1`). Recorded here as run, with
+what each failure was, because that list is the build's real finding.
+
+**Run:** whole wire suite, fresh `saxonberg_build3`, world up in 211 s —
+**16 files, 171 passed, 3 skipped.** Five runs to get there.
+
+| # | checkpoint | first answer | what it was |
+|---|---|---|---|
+| 1 | `get wheat` | `too-heavy-to-lift` ×6 | `get` is greedy over every match; eight 25 kg sacks against a 70 kg lift ceiling. Drive says `get first wheat`. |
+| 2 | `analyze power the millrace` | shape fall-through | the article: a non-greedy object arg binds ONE token (the parsing defect `identity.dirty.wire` records). Drive drops articles. |
+| 3 | `analyze power millrace` | **controller-error** | `BiomeApi.getRootBiome`: the universe biome was never cloned by anything in any world; `Conduit` reads gravity from it. `base-library` now boots it. |
+| 4 | bare `mill` | "status is defined" | the checkpoint could not fail. Now asserts the verb is afforded (no `unknown-verb`). |
+| 5 | `mill the sack of wheat 0.72` | shape fall-through | articles again; and with `mill` declared before `extraction`, the number bound to the instrument ("bare integer '0'…"). Args reordered. |
+| 6 | `mill wheat 0.72` | **`not-grindable`** | the sack had NO material: `material:` is a key the Hydrator never writes (`_materialPath`). 49 rows across eight packs. |
+| 7 | `mill wheat 0.72` | **`no-power`** | a fresh water mill's first read answers 0 — the river read was fire-and-forget. `settlePower()` awaited before the throughput read. |
+| 8 | `mill wheat 0.72` (earlier) | would have declined | `MillModel.mill?: Stuff` — the binder hands an `MqlOneResult`. Eighteen controllers. |
+| 9 | `help extraction` etc. | "no help topic" | concepts were indexed but `help <key>` never looked them up (verb → collection → api). `conceptTopic` added; four packs' concepts reachable for the first time. |
+| 10 | the bakery | "the farmstead yard" | the drive typed `teleport` from the valley; a drive has no wizard; every bakery checkpoint ran in the wrong room. Second session born at the wharf. |
+| 11 | two loaves priced apart | no digit in `look` | prices are on the counter: `look counter`. |
+
+And the gate that woke up when #6 was fixed: `lint:perishable` reported
+28 rows it had never been able to see — the loaves (its pack-import
+walk was broken), two `Crop` rows (a crop is a `Provision` now), and 23
+`Plant` rows (a living thing's tissue is not dead matter; `GrowingMixin`
+hosts are exempt by rule).
+
+⭐ The lesson this record exists for: **a drive that was never run is a
+drive that claims.** Every one of the eleven is the kind of thing tests
+build state for and never use; the two that mattered most (#6, #8) were
+green in every unit suite because the suites hand the controller a
+shape the binder never produces.

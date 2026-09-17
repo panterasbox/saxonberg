@@ -91,6 +91,27 @@ describe('a hand-authored working', () => {
     expect((await room.sampleHere())!.hostPath).toBe(SLATE);
   });
 
+  it('⭐⭐ a SURFACE working has no seam overhead — the ground stops at the collar', async () => {
+    // The fringe is worked in the open air, which is only coherent if a
+    // room at z = 0 has rock beside it and sky above it. ⚠ Nothing used
+    // to bound z, so the lode's plane continued upward forever and the
+    // `up` face read as ore: you could have hewn a seam out of the sky.
+    const surface = makeStuff(() => new AuthoredWorking());
+    zone.addLocation(surface as unknown as never, 0, 0, 0);
+    const faces = await surface.facesOf();
+    const up = faces.find((f) => f.direction === 'up');
+    expect(up, 'a surface working reported no `up` face at all').toBeDefined();
+    expect(up!.kind).toBe('carve-face');
+    expect(up!.grade).toBe(0);
+    // …and there is still ore to cut beside and below it, so it is a
+    // working in the open air and not a field.
+    expect(faces.some((f) => f.kind === 'seam')).toBe(true);
+
+    // ⭐ And it declines `drive`, which is right: you do not drive a
+    // heading in the open air. The acts are afforded; the ground refuses.
+    expect(surface.getTier()).toBe('spine');
+  });
+
   it('⚠ it is NOT persistable — an authored room re-props itself each boot', () => {
     // The record belongs to a HELD CARVED cell, which is what shoring
     // buys. An authored gallery's fixtures come from its own `props:`,

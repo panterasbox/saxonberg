@@ -196,7 +196,10 @@ async function run(ctx: CommandContext, name?: string): Promise<void> {
     const t = i as { hasCapability?(c: string): boolean };
     return typeof t.hasCapability === 'function' && t.hasCapability('digging');
   });
-  await c.execute({ name, ...(tool ? { tool } : {}) } as never, ctx);
+  await c.execute(
+    { name, ...(tool ? { tool: { stuff: tool, raw: 'tool' } } : {}) } as never,
+    ctx,
+  );
 }
 
 describe('plot — breaking a field out of ground you hold', () => {

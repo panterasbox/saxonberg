@@ -19,7 +19,7 @@ data:
   keywords: [loaf, bread, white, manchet]
   register: indefinite
   longDescription: A high pale loaf, the crust thin and even, cut square across the top. It is the sort of bread people who can afford it buy.
-  material: /stuff/idea/material/food/bread
+  _materialPath: /stuff/idea/material/food/bread
   mass: 0.8
   composition:
     - { materialPath: /stuff/idea/material/food/wheat-flour, servings: 7.8 }

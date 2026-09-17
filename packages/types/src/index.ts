@@ -1233,6 +1233,21 @@ export interface SurveyFrame {
    * answer: three green rocks under a novice are three green rocks.
    */
   solved: Array<{ parameter: string; value: string; from: number }>;
+  /**
+   * ⭐ **The rock you are standing on**, as this reader sees it — a
+   * colour word for anyone with eyes, the mineral's NAME only from
+   * `competent` up (the same band that makes three points a plane), and
+   * a lean/fair/rich word for the grade.
+   *
+   * `null` where the ground under this cell is barren, which is the
+   * common case and an informative one.
+   *
+   * ⚠ **Optional**, because this frame is shared: `analyze soil` renders
+   * through it too, and the soil channel has no mineral underfoot to
+   * name. A required field would have made the other subsystem invent
+   * an answer.
+   */
+  ground?: string | null;
   /** Why an inference is unavailable, when it is. Never a bare blank. */
   note: string | null;
 }

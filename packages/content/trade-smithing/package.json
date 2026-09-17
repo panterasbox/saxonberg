@@ -17,6 +17,7 @@
     "test:watch": "vitest"
   },
   "devDependencies": {
+    "@saxonberg/content-trade-smelting": "workspace:*",
     "typescript": "^5.4.0",
     "vitest": "^2.0.0",
     "yaml": "^2.8.2"
