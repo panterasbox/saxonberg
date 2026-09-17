@@ -155,6 +155,32 @@ export class PersistableApi {
    * route that stands a keyed host up — an owner logging in, a room
    * materializing, a boot roll — has to ask this one question.
    */
+  /**
+   * ⭐⭐ **Put back the owned goods recorded as standing in `place`.**
+   *
+   * The chattel index knows where every owned good is — *the containable
+   * remembers where it spawns into* — so a place does not need a record
+   * of its own to get its goods back. It asks.
+   *
+   * ⚠⚠ **This exists because a public room has no materialize step.**
+   * Owned goods used to come back only inside `restoreRecord`, which
+   * runs for hosts that persist themselves — so a lantern left on a
+   * street, or a cat asleep on a lane, was carried in its owner's estate
+   * with a `place` **nothing ever looked up**. The good was not lost; it
+   * was simply never put back.
+   *
+   * ⭐ And the fix is deliberately NOT "make the street persistable".
+   * Persisting a CONTAINER means preserving its whole contents tree
+   * top-down and is expensive; it belongs to the few places that need it
+   * (four location classes do). Persisting on the CONTAINABLE — the good
+   * remembering its own place — costs one row and needs nothing from the
+   * container at all. Both models exist; this is the cheap one, and it
+   * should be the common one.
+   */
+  static reclaimOwnedGoods(place: Stuff): Promise<void> {
+    return logic().reclaimOwnedGoods(place);
+  }
+
   static standUpKeyed(scope: string, key: string): Promise<Stuff | null> {
     return logic().standUpKeyed(scope, key);
   }

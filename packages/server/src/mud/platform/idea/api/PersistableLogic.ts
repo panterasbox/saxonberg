@@ -1158,6 +1158,12 @@ export class PersistableLogic extends ApiLogic {
     return restoreOrSeedImpl(host, key);
   }
 
+  /** See {@link PersistableApi.reclaimOwnedGoods}. */
+  @CallSecurity(PersistableApiCallers)
+  public async reclaimOwnedGoods(place: Stuff): Promise<void> {
+    return overlayOwnedGoods(place);
+  }
+
   /** See {@link PersistableApi.standUpKeyed}. */
   @CallSecurity(PersistableApiCallers)
   public async standUpKeyed(scope: string, key: string): Promise<Stuff | null> {

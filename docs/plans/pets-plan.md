@@ -759,6 +759,59 @@ build's job**; dropping the alias is.
   skill) and reconciling them is ranching's D28 follow-on. AC 11 holds by
   either verb without it.
 
+### D21 — A place asks for its goods; it does not persist to get them
+
+⚠⚠ **Added 2026-09-16, in review**, when the user asked which collection
+persistence uses and pushed on `findWithLayer`.
+
+**What was wrong.** D12 stood named animals up with a boot roll —
+`KeptAnimalRegistry` scanning `holder_snapshots` for
+`{'state.BondedMixin': {$exists: true}}`. ⚠ That collection is indexed on
+`scope`, `owner` and `(scope, owner)` — **identity lookups** — so the roll
+was an unindexed scan at every boot, asking an identity-keyed store *"give
+me every record of a KIND"*. A query shape against the grain is the tell
+of a special case, and this was one.
+
+⭐⭐ **What it was designing around: a public room has no materialize
+step.** Owned goods came back only inside `restoreRecord`, which runs for
+hosts that persist themselves — so a lantern on a street was carried in
+its owner's estate with a `place` **nothing ever looked up**. W1b's
+grounding found that and called it *"a pre-existing gap for lanterns; for
+a pet it is fatal"*, then routed around it instead of fixing it. This
+fixes it: `CartesianLocation.postRegister` calls
+`PersistableApi.reclaimOwnedGoods(this)`, so **every** room reclaims what
+is recorded as standing in it. The lantern comes back too.
+
+⭐⭐ **And it is deliberately NOT "make the street persistable."** The
+user's rule, and it is the right one:
+
+> **Persisting a CONTAINER preserves its whole contents tree top-down and
+> is expensive — it belongs to the few places that genuinely need it.
+> Persisting on the CONTAINABLE, which remembers where it spawns into,
+> costs one row and needs nothing from the container. Both models exist;
+> the second should be the common one.**
+
+The chattel row IS the containable-side model already: `ChattelRecord.place`
+is *where this good belongs*. The overlay reads it. ⚠ Only **four**
+location classes compose `Persistable` — `PersistentCartesianLocation`,
+`FurnishableRoom`, `MineRoom`, `Field` — and this change adds none.
+
+⭐ **Lazy is correct, not merely cheap.** A room nobody has walked into
+does not need its animals standing up, and a stamped animal integrates
+its whole absence on the first read of its metabolism when it does
+materialize. The boot roll was doing work for rooms nobody was in.
+
+**Deleted:** `KeptAnimalRegistry`, its template row, its `boot:` entry,
+its test, and `PersistedRecord.findWithLayer`.
+
+⚠ The **estate nesting** the same question surfaced — an owner's record
+carrying every owned good's full state, uncapped, against a 16 MB
+ceiling — is a real and pre-existing unbounded vector, slated as
+`estate-nesting-slate`. `EstateEntry.key` (D12) is its first mitigation
+and the worked example it generalises from.
+
+---
+
 ### D20 — `call` is a sound; `stay` is a sign
 
 ⚠⚠ **Added 2026-09-16, in review.** The user asked whether calling and

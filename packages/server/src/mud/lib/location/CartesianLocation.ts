@@ -34,6 +34,7 @@ import type CartesianZone from '../../platform/idea/location/CartesianZone';
 import type Exit from '../boundary/Exit';
 import type { Stuff } from '../stuff/Stuff';
 import type { FieldMeta } from '../mixin';
+import { PersistableApi } from '../../api/persistable';
 
 // ⭐ NOT singleton-shaped — and the asymmetry is the whole reason this
 // class holds the unmarked name.
@@ -129,6 +130,25 @@ export default class CartesianLocation extends CartesianLocationBase {
    */
   public override async postRegister(_context?: unknown): Promise<void> {
     this.verifyOutboundExits();
+    // ⭐⭐ **Put back whatever is recorded as standing here.**
+    //
+    // Rooms are lazy — they clone on first resolve — and a room that
+    // persists itself gets its owned goods back inside its own restore.
+    // A PUBLIC room has no record and so had no such step: a lantern
+    // left on a street, or a cat asleep on a lane, was carried in its
+    // owner's estate with a `place` nothing ever looked up.
+    //
+    // ⚠ It asks the CHATTEL index, which is the containable's own record
+    // of where it belongs. Nothing about this room is persisted to make
+    // it work, which is the point — persisting a container preserves its
+    // whole contents tree and is expensive, and belongs to the few
+    // places that genuinely need it.
+    //
+    // ⭐ Lazy is also correct rather than merely cheap: a room nobody has
+    // walked into does not need its animals standing up, and a stamped
+    // animal integrates its whole absence on the first read of its
+    // metabolism when it does materialize.
+    await PersistableApi.reclaimOwnedGoods(this as unknown as Stuff);
   }
 
   // onDestruct is inherited from ExitableMixin (exit teardown) and
