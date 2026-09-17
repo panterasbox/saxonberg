@@ -1,11 +1,16 @@
 # Forestry slate — the crop you inherit
 
-> **Status: UNBUILT** — design surface only, no phase gate passed; the
-> `trade-fuel` coppice is the accidental head start.
-> **Left:** the forestry trade pack · felling + conversion verbs ·
-> seasoning · the stand-as-record · the silviculture Discipline ·
-> estovers + forest law · deforestation as a reachable consequence
-> **Size:** a build
+> **Status: UNBUILT** — design surface only; ⭐ **lens pass run
+> 2026-09-17** (§ below) and the open questions decided; the
+> `trade-fuel` coppice panel is the accidental head start.
+> **Left:** the `trade-forestry` pack (column one of the chain — growing
+> and felling only) · the wood as a FIELD with clearings as rooms and
+> felling as the carve · the stand-as-record · grown-plant authoring ·
+> the compressed rotations, set end to end · the wood species rows · the
+> silviculture Discipline · the wood above Rejection · instrument
+> `epoch` stamps
+> **Size:** a build — conversion (`trade-sawing`) and forest law (the
+> [covenant](./land-use-covenant-slate.md)) are their own
 
 > **Status: design surface, unbuilt, no phase gate passed.** Written
 > 2026-09-03 out of the farmstead *(retired artifact)*
@@ -286,22 +291,178 @@ this slate's to answer; the first is already fixed.
   density and the realm's iron ceiling are ONE arithmetic chain this
   slate gets to set end to end.
 
-## Open questions
+## Open questions — decided by the lens pass (2026-09-17)
 
-- **How compressed are the rotations?** Lean: coppice ≈ one game year, so a
-  player can complete one; standards over many, so they are inherited. Ratios
-  preserved per farmstead D23.
-- Is standing timber a **seeded** field (like a `Deposit`) or a **derived** stock
-  (like foraging)? *Lean: both, composed — species from site, volume from
-  history.*
-- Does planting a standard need any mechanism beyond an act with an absurdly
-  distant payoff, and **is that payoff to the chronicle rather than the player?**
-- Where does the **sawmill** sit — its own trade, or the carpenter's premises?
-  And does water power make it a `watershed` consumer in v1?
-- Do forest law and game law share one enforcement design, per *vert and
-  venison*? *Lean: yes, and it should be settled once across both slates.*
-- Does the **hazel/oak `cordwood` mismatch** get fixed here or in a farmstead
-  wave? *(It is one line either way.)*
+Each carries the limb that chose it. Sequencing and content calls that
+the lenses do not decide are marked *(user)*.
+
+- **How compressed are the rotations?** ⭐ **Coppice = one game year;
+  a standard = fifteen.** Real hazel is 7 years, real oak 80–120, a
+  ratio near 1:15 — *preserve the ratio* (farmstead D23) is what lens 1
+  requires, and one game year (30 real days) is what makes a coppice a
+  crop a player can complete. Fifteen game years is 450 real days, which
+  is *inherited* in every sense that matters and still reachable by a
+  realm that lasts. The shipped `hazel-stool` row (`mature: 2500`
+  game-days ≈ 208 real days) is replaced, not tuned. **Lens 1.**
+- **Seeded field or derived stock?** ⭐ **Both, composed** — species
+  and site quality from the seeded field (the mine's `Deposit` shape,
+  derived from the address, nothing stored); volume and age structure
+  from the record of what was cut and planted. This is the only model
+  under which *cut rate vs growth rate* is a real inequality rather than
+  a timer, and it is what the mine already does. **Lens 1**, and it
+  answers field-substrate's open *"do seeded and derived compose?"* with
+  yes.
+- **Does planting a standard need a mechanism?** ⭐ **No. It is a deed.**
+  The stand's record carries the planting with the planter's identity
+  (`getIdentityPath()`), the chronicle records the deed, and the payoff
+  is to the chronicle and to whoever holds the wood fifteen game years
+  on. Any reward machinery here would be a gauge on faith. **Lens 4.**
+- **Where does the sawmill sit?** ⭐ **In `trade-sawing`, a separate
+  conversion trade, and NOT in this build.** The chain generalizes the
+  metal chain's three packs — *RGO trade → conversion trade → maker
+  trade*: `mining → smelting → smithing`, `farming → milling → baking`,
+  **`forestry → sawing → carpentry`**. The saw frame is the water pack's
+  `generationW` sibling with a different working head (the grain chain's
+  `GristMill` shape), and the second-venue test settles the pack: a
+  sawmill in a valley with no forester needs no forestry code. Cleaving
+  by hand ships here as the conversion floor (the quern rung). **Lens
+  2.** Water power is therefore sawing's v1, not forestry's.
+- **One enforcement design for forest law and game law?** ⭐ **Yes, and
+  it is the [land-use covenant](./land-use-covenant-slate.md)** — one
+  predicate over the bound instrument, act or clock; estovers, the close
+  season and *no chainsaws* are rows of it. This build ships only the
+  cheap half: instruments declared as arguments and stamped with an
+  `epoch`. The law itself waits for the covenant build. **Lens 2.**
+- **The hazel/oak `cordwood` mismatch** — ⭐ **fixed here**, because the
+  wood species rows are this build's and `wood/hazel` is one of them.
+- **Where is the first forest?** *(user, decided 2026-09-17)* ⭐ **The
+  hill above Rejection**, from `hillside.yaml` up — no new town. Both
+  shipped consumers (the collier, the mine's timber sets) are in the
+  fuel yard, and the Forest of Dean is the exact historical precedent:
+  iron, charcoal, coal and a royal forest on one hill, with its own
+  miners' law and its own verderers' court. The wood is **common land**
+  of the settlement (`landUse: wild`, group-titled), which is what makes
+  the deforestation arc a commons problem and not a landlord's. Newbie-
+  wilds' dark wood is the *second* forest — the zero-code test.
+- **The Discipline.** *Lean:* one, **silviculture** — the management of
+  a stand is the skill; felling is the craft it exercises, the way
+  `geology` is exercised by `hew`. A second (felling / conversion craft)
+  is `trade-sawing`'s to name if it needs one.
+
+---
+
+## ⭐⭐ The structural bet — the forest is the field, the clearing is the room
+
+Decided 2026-09-17 in the forests-as-venue conversation, before any
+industry: **a forest is not instanced.** It is the mine's inversion
+brought to the surface — a zone with a field is *matter*, and rooms are
+*subtractions* from it.
+
+- **The wood between places is a field** — a total function under a
+  sparse graph: species-by-site and canopy from the seeded half; volume,
+  age structure and what has been cut from the derived half. Darkness
+  under canopy, concealment, lostness and succession all **derive from
+  the field's values**; nothing is asserted in prose.
+- **A clearing is a room** — positive space carved from it. The
+  campfire, the duel at dawn, the collier's hut, the witch's cottage,
+  the coppice cant: every scene the forest hosts happens in a clearing,
+  and the whole social and combat stack works there because it is a
+  real Location.
+- **Felling is the carve.** A ride, a cant, a clearing, an assart and a
+  farm are one act at five sizes: cutting positive space out of the
+  field. The industry's *product* is the venue's *unit*. An author's
+  clearing is a pre-cut patch; a forester's cant is a player-made one; a
+  settlement is what happens when somebody assarts far enough — which is
+  how settlements actually grew, and a word players should leave
+  knowing.
+- **Off the path is into the field.** Walking off an authored exit
+  materializes wood the way the mine's `carve` does, transient and
+  un-mapped: *"somewhere in the wood."* Getting un-lost is derivable
+  (downhill finds the stream; the stream finds the road — the watershed
+  is built) and the corollary from field-substrate holds: *a field-backed
+  space has no map, only a survey.*
+
+**Why lenses 1 and 2 chose it.** It is the only shape under which the
+forest is honest (lens 1) and the only one that gives an author the
+dial they actually want (lens 2): **an author writes clearings and
+paths; the engine fills the wood around them.** A fixed-map author
+writes many; a wilderness author writes one and a field; the author in
+between writes three and a witch. And the bespoke case falls out — a
+sacred grove is a clearing with an arcana field pinned over it; a
+lost-woods is a field with a lean that defeats the address walk. ⚠ The
+antipattern it exists to make unwriteable is the MUD forest: forty rooms
+of *"You are in a forest. Exits: n s e w."*
+
+⚠ **Cost it honestly.** This is the mine's `MineWarren` shape reused —
+carve, the keyed members, the derived reads — not new engine. But the
+mine carves *permanently* and a wanderer's transient rooms must not
+persist; and `hillside.yaml` today is a hand-authored path, so the
+first wood is the *in-between* author's case: a few clearings, a field
+around them.
+
+---
+
+## Lens pass (2026-09-17)
+
+1. **Pedagogy** — **silviculture** (new Discipline: rotation, thinning,
+   species by site, regeneration, *grazing a wood stops it being a
+   wood*), riding `soil-science`'s survey and `geology`'s site reads;
+   **ecology** (succession after a cut, canopy → understory, the edge
+   effect); **wayfinding** (sun, slope, water downhill — celestial and
+   watershed are built); **legal history** (*forest* as a jurisdiction,
+   estovers, assarting). Derivable throughout: a player who understands
+   canopy predicts the dark; one who understands the increment predicts
+   the year the wood fails. ⚠ **Gap:** wayfinding as a *Discipline* has
+   no home — `awareness` is close; decide at requirements.
+2. **Expression** — the ordinary case with no code: a biome row
+   (`outdoor/forest`, canopy attenuation, humidity, the sound/smell
+   MML), a Locality with a handful of clearings that have coords, a
+   stand field over the zone, a `stocks:` table, a collier with a brain.
+   The bespoke case: the grove over a mana field, the talking oak as a
+   `Cast`, the wood that won't let you leave. ⭐ The test passes twice: a
+   second forest (newbie-wilds' dark wood) needs zero pack code, and a
+   second *use* of the same wood (a hunt, a coven, a smuggler's route)
+   needs no forestry code at all.
+3. **Immersion** — the sim's existing honesty pays out hardest here
+   without a line of script: ⭐ **darkness under canopy is the light
+   model working**, so the metallurgy drive's *"every object reads
+   'something'"* finding is now load-bearing for a whole venue, not a
+   polish item; rain arrives late under canopy (a biome pin);
+   concealment bands are high by default so ambush and the deer that saw
+   you first fall out of `stealth.md`; cold + wet + night are thermal +
+   weather + celestial; the campfire in the clearing is a shipped
+   thermal precedent; the collier — historically a man who lived in the
+   wood for the days a burn takes — is the resident NPC and a shipped
+   trade. ⚠ **Gap:** the room/object light disagreement must be fixed
+   before the first wood ships, or the venue is unreadable.
+4. **Values** — the choices forced: cut past the increment or not (the
+   deforestation arc, *why coal*); take the last cordwood from the
+   shared panel; plant a standard for somebody unborn; extend the count
+   into the woods or leave them outside (newbie-wilds' *counted vs
+   uncounted* geography already lives here); what *reasonable* estovers
+   means when the wood is visibly running out. Who confers standing: the
+   **woodward** (the Wardens; *vert and venison* being one office), the
+   settlement that holds the common, and — for the standard — **the
+   chronicle**. ⚠ **Gap:** Rejection has no woodward seat; the co-op's
+   `office` substrate is where one goes, and that is content, not code.
+5. **Epochs** — holds by construction: prehistory (the forest *is* the
+   world), medieval (the royal forest, coppice, the charcoal economy —
+   **where this ships**), industrial (the timber boom, clear-cut, Muir
+   vs Pinchot), modern (the managed forest, wildfire, the campsite),
+   future (the last forest; the wood that grew over the ruins — a
+   pre-Fallow wood is the most this-game forest imaginable). Mechanism
+   constant: light, increment vs cut, concealment, jurisdiction. Only
+   the axe changes — so the axe, billhook and framed saw ship with
+   `epoch: medieval` and the chainsaw is one row away, gated by the
+   covenant, not by code.
+
+**What the pass changed.** The slate leaned toward building the
+industry first and letting the forest be its venue; the pass inverts
+that — *the forest is the venue and forestry is the mechanism by which
+it becomes anything else*. Conversion left the build (lens 2, the
+three-pack chain). The law left the build (lens 2, the covenant). The
+field-and-clearing structure entered it (lenses 1 and 2). Nothing else
+moved.
 
 ## Scope guardrails
 
