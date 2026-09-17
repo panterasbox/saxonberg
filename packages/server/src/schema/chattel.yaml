@@ -21,4 +21,24 @@ invariants:
     ownership.
 sandbox: refuse
 reset: wipe
-indexes: []
+indexes:
+  - keys: { place: 1 }
+    why: |
+      ⭐⭐ **Where a good belongs is a read axis, and it had no index.**
+
+      `ChattelApi.placedIn(place)` is how a room gets back the owned goods
+      recorded as standing in it, and `evictToStorage(placePrefix)` sweeps
+      by the same field. Both were collection scans.
+
+      ⚠ It became load-bearing when the pets build made **every** room
+      reclaim its goods at `postRegister` rather than only the four
+      location classes that persist themselves — a boot places hundreds of
+      rooms, and hundreds of unindexed scans is a boot-time problem
+      waiting for the first busy world. The alternative was a second
+      in-memory map in `ChattelRegistry`; an index is smaller, and the
+      field was always a query axis that should have had one.
+  # ⚠ A unique index on `chattelId` would enforce the invariant above
+  # rather than merely stating it — but a unique index that fails to
+  # build takes the BOOT down, and that is a decision about existing data
+  # rather than a fix for this build's regression. Left for its own call.
+
