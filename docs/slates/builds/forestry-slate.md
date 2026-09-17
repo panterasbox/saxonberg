@@ -490,10 +490,73 @@ gaps, so nobody re-derives them.
 | **a record** | a number in a stand — *twenty-four oaks* | inherited stock; anything never looked at singly |
 | **a slot-plant** | a real `Plant` in a bed slot, on the growth model | anything tended, cut or planted — *yours* |
 | **a prop** | a `Plant` (or a detail) propped in a room | the landmark oak, the hanging tree — scenery **by design**; never harvested, never a record |
+| ⭐ **a place** | a **column of Locations** sharing the tree's `x, y` at `z: 0, 1, 2…`, joined by `climb` exits | the treehouse — see § Anatomy below; the tree at its foot is a *prop*, so nobody can fell a tree with a house in it |
 
 Every later question — can it burn, can I climb it, can a deer eat it,
 does it seed — has a different answer per representation. The forestry
 doc opens with this table.
+
+### ⭐ Anatomy — a tree's parts are five primitives, not one class
+
+Asked 2026-09-17 with two inverse cases: *a tree in a house* (the
+Christmas tree, end to end) and *a house in a tree* (the Swiss Family
+Robinson treehouse). Both work on shipped primitives once the parts
+are placed where they belong:
+
+| part | what it is to the engine | exists |
+|---|---|---|
+| **roots** | the interface to the ground — the bed or field, the `root` limiting factor, the nutrient draw | ✅ |
+| **trunk** | a **detail** to look at; an **exit** to climb (`ClimbableMixin`, the `climb` mode, an `Adornable` ladder); a **bole** once felled | ✅ |
+| **branches** | **slots** — where things hang, sit, nest (`SlottedMixin`: `accepts`, `capacity`, `postures`) | ✅ (⚠ no `hanging` posture word) |
+| **leaves / canopy** | not on the tree: the **room's** light and biome, and litter → the soil ledger | ✅ authored |
+| **bark · mast · sap · resin** | products | ❌ the multi-product gap |
+| **the stool / stump** | the part that persists a cut — why coppice regrows | ✅ the stool row |
+| **the crown** | logs when it falls | ✅ |
+
+⚠ The tempting wrong answer: the `sessile` `BodyPlan` is **empty on
+purpose** (zero slots, zero ports). A tree's anatomy is details and
+slots, not body parts; felling is labour, not harm.
+
+**The tree in the house** — a Christmas tree walked end to end: a
+panel of spruce on an eight-year rotation → *a good one* is the
+harvest **grade** and its appearance → `fell` a small tree yields **the
+tree itself**, one carryable object (⭐ *the felling product is sized by
+the tree* — plan D3/D4, in) → carried home → stood in a **stand that is
+a pot with water and no soil** (a slotted thing with a moisture reserve
+you `pour` into; a rootless tree's vigor declines by the model that
+exists, dries, and is `Combustible` in a lit room — the Hearthworks
+fire) → decorated (ornaments are `Slottable`; the branches are a slot)
+→ presents **on the skirt** (a surface — literally true) → taken down →
+firewood, or the tip. A Plant that died is still a Plant, made of wood;
+nothing changed class. Three gaps it exposes: **`hanging`** as a slot
+posture (one vocabulary word, whoever hangs the first thing); **there
+is no *under*** — the spatial model has *in* and *on* only, and that is
+a spatial-substrate question (under the bed, under the floorboards),
+filed there, not forestry's; and the **tree-in-a-stand** as a seam for
+whichever pack wants a solstice.
+
+**The house in the tree** — the fourth representation, and the rule
+that makes it work without nesting containers is the engine's own:
+*Locations, not rooms; every location plots.* Roots = the clearing at
+`z: 0`, propping the tree as a landmark with `details: {trunk, roots}`
+and `ClimbableMixin`. Trunk = the exit `up`, mode `climb`, adorned
+with the rope ladder — sealable, so pulling the ladder up seals the
+house, which is the whole point of that book. Limbs = Locations at
+`z: 1, 2, 3…` on the clearing's `x, y` — **in the tree's column, not in
+the tree**; the tree is not a `Container`. The platforms are
+`SkyExposed` (rain gets in). Canopy = the biome above. ⭐ *What the
+outside looks like from inside* is **built**: a `Window` is a shipped
+`Boundary` implementing `LineOfSight` + `LightConduit` + `SoundConduit`,
+and an open exit already leaks light and sound both ways — a person on
+the platform hears the clearing. Subdividing the tree into rooms = the
+residence ladder (*a holding is a warren one level down*): a treehouse
+is a holding whose spine is a climb, in a sub-zone with a **small
+cell** (a platform is 4 m across and lux is lumens ÷ cell², so a
+lantern on it reads *bright* only if the zone says so — the Ferrow
+warren nested in Rejection is the precedent). And the doctrine pays at
+the seam: **a tree with a house in it is a prop, and a prop is never
+fellable** — if an author wants the Robinsons' fig to come down, that
+is their storm, not a verb.
 
 ### Bigness — a tree is the first `Thing` whose product exceeds a body
 

@@ -698,18 +698,37 @@ it). `crosscut` (module-level, the bole form): `engageStep` at
 `/trade/forestry/thing/timber` with the bole's material into the giver,
 `bole.takeLength()` (decrements `lengthsLeft`, reduces mass by the
 timber's mass); at zero, `StuffApi.destruct(bole)` with the brash line;
-credit `silviculture` `easy`. `fellPlanted`: `StuffApi.destruct(plant)`
-(vacating its slot through `Cultivable.vacate`), the same bole + logs +
-seed mint with the material from the plant's species → the stand's
-`mix` entry (or, for a planted tree outside any stand, the plant's own
-`standardMaterialPath`, D6), `registry.removePlanting(plantKey)`,
-capture the panel.
+credit `silviculture` `easy`. `fellPlanted`: **the product is sized by
+the tree** (decided 2026-09-17 in the anatomy pass — a young tree IS
+the product, a standard drops a bole). `StuffApi.destruct(plant)`
+(vacating its slot through `Cultivable.vacate`); then by stage: a
+`mature` tree → the same bole + logs + seed mint with the material from
+the plant's species → the stand's `mix` entry (or, for a planted tree
+outside any stand, the plant's own `standardMaterialPath`, D6); a
+`young` or `established` tree → **one whole felled tree**
+(`/trade/forestry/thing/felled-tree`, `class: /platform/thing/Thing`,
+`keywords: [tree, felled, sapling, pole]`, material the species' wood,
+mass by stage — `young` 8 kg, `established` 30 kg — carryable, the
+Christmas-tree case) and no seed; a `seedling` refuses *"that is a
+seedling — pull it up if you must, but there is nothing to fell"*
+(`not-yet-a-tree`). Either way `registry.removePlanting(plantKey)`,
+capture the panel. The `not-mature` refusal of an earlier draft is
+gone: an established tree is worth felling, it is just not worth a
+bole.
 
 Refusals are diegetic and noted (`controller-rejected` with the reasons
 above). No deed gate — felling is labour (`MiningActController`'s own
 ruling).
 
-### D4 — bole, timber, log, seed: four product rows, material stamped at the mint
+### D4 — bole, timber, log, seed, and the whole small tree: five product rows, material stamped at the mint
+
+- `/trade/forestry/thing/felled-tree` — `class: /platform/thing/Thing`,
+  what a `young` or `established` slot-plant becomes when felled
+  (D3's `fellPlanted`): one carryable object, the species' wood,
+  mass by stage. A tree small enough to carry is carried whole — the
+  Christmas-tree case, and the honest inverse of the bole. Combustible
+  only once it is logs (`fell felled-tree` is not a form; a small tree
+  is split by hand later or burned as brash — nothing here).
 
 - `/trade/forestry/thing/bole` — `class: /trade/forestry/thing/Bole`,
   a pack class `trade-forestry/src/thing/Bole.ts` =
@@ -1539,9 +1558,12 @@ the rest of D7.
   stool arrival records nothing; `standId: ''` records the deed and no
   planting.
 - `FellController.ts` — `fellPlanted` (D3); test: a mature
-  `oak-standard` in a panel is felled to the same products; an
-  `established` one refuses *"not yet a tree worth felling"*
-  (`not-mature`); a stool refuses `not-a-standard`.
+  `oak-standard` in a panel is felled to a bole + logs + seed; an
+  `established` one yields one whole `felled-tree` of 30 kg made of oak
+  and no seed; a `young` one 8 kg; a `seedling` refuses
+  `not-yet-a-tree`; a stool refuses `not-a-standard`.
+- Row `thing/felled-tree.yaml` (D4's fifth product; the one a small
+  tree becomes).
 - `Stand.test.ts` gains the planting line.
 
 **Acceptance.** `plant acorn in panel` (kernel verb, unchanged) seats an
