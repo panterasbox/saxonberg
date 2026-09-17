@@ -1804,6 +1804,13 @@ Read first, in this order:
 
 ## Drive record
 
+✅ **Re-run 2026-09-16 (third)** after the persistence rework — fresh DB,
+**92 indexes** (the new `chattel.place` builds clean), 439 rooms placed by
+the spawn sweep with the owned-goods overlay now on **every** room's
+`postRegister`, zero boot errors. **16/16.** ⭐ This is the run that
+matters for D21: the overlay is on a hot path and a full boot exercises
+it far harder than any unit test.
+
 ✅ **Re-run 2026-09-16** after review changed the world underneath it —
 freshly reset `saxonberg_build2`, a full **43-pack** install, a live
 socket. **16/16.**
