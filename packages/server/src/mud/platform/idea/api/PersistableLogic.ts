@@ -195,20 +195,84 @@ function capturePlacement(host: Stuff): HostPlacement | null {
     !(MixinApi.isChattel(host) && host.isOwnerPersisted()) &&
     nearestPersistableHost(env) !== null;
   if (referredByAncestor) return null;
+  // ⭐ Anchor on the nearest ancestor with an ADDRESS, and remember the
+  // way down. A host in a chest in a room must not record the chest: a
+  // chest's template path is every chest in the world. See
+  // {@link HostPlacement.via}.
+  const { anchor, via } = placementAnchorOf(env);
+  const nested = via.length > 0 ? { via } : {};
   // A KEYED host container (a holding's room — residences D16): record
   // `(scope, key)` so restore re-enters the exact room through the
   // owning institution, never a fresh clone of the shared row.
-  if (MixinApi.isPersistable(env) && env.isPersistenceKeyExplicit()) {
-    const scope = env.getIdentityPath();
-    const key = env.getPersistenceKey();
-    if (scope && key) return { container: scope, containerKey: key };
+  if (MixinApi.isPersistable(anchor) && anchor.isPersistenceKeyExplicit()) {
+    const scope = anchor.getIdentityPath();
+    const key = anchor.getPersistenceKey();
+    if (scope && key) return { container: scope, containerKey: key, ...nested };
   }
-  if (MixinApi.isWarrenMember(env)) {
-    const warren = env.getWarren()?.getTemplatePath();
-    if (warren) return { startLocation: warren };
+  if (MixinApi.isWarrenMember(anchor)) {
+    const warren = anchor.getWarren()?.getTemplatePath();
+    if (warren) return { startLocation: warren, ...nested };
   }
-  const container = env.getIdentityPath();
-  return container ? { container } : null;
+  const container = anchor.getIdentityPath();
+  return container ? { container, ...nested } : null;
+}
+
+/**
+ * Does this container have an address a placement can name exactly? A
+ * keyed persistable host (one of many, told apart by its key), a
+ * `Location` (the addressable unit of the world — singleton, or a warren
+ * member whose warren re-lands it; read as `Addressable`), or a singleton. Anything else — a
+ * chest, a cage, a crate — is one of an unbounded many that share a
+ * template path, and is only ever named RELATIVE to an anchor.
+ */
+function isPlacementAnchor(stuff: Stuff): boolean {
+  if (MixinApi.isPersistable(stuff) && stuff.isPersistenceKeyExplicit()) {
+    return true;
+  }
+  // `Addressable` is composed by `Location` and nothing else — it IS the
+  // "has an address" property, and reading it as a mixin keeps this file
+  // off the Location class (an import cycle through the boundary tree).
+  if (MixinApi.isAddressable(stuff)) return true;
+  return MixinApi.isSingleton(stuff) || MixinApi.isWarrenMember(stuff);
+}
+
+/**
+ * Walk outward from `env` to the nearest anchor, collecting the template
+ * paths of the containers passed on the way (outermost first). The
+ * outermost container is the anchor when nothing above it qualifies —
+ * today's behaviour, and the best a rootless chain can do.
+ */
+function placementAnchorOf(env: Stuff): { anchor: Stuff; via: string[] } {
+  const via: string[] = [];
+  let anchor: Stuff = env;
+  for (let hops = 0; hops <= MAX_ANCESTOR_HOPS; hops++) {
+    if (isPlacementAnchor(anchor)) break;
+    const up = MixinApi.isContainable(anchor) ? anchor.getContainer() : null;
+    const path = anchor.getTemplatePath();
+    if (!up || !path) break;
+    via.unshift(path);
+    anchor = up;
+  }
+  return { anchor, via };
+}
+
+/**
+ * Descend from a resolved anchor along `via`, matching each hop by
+ * template path among the CURRENT container's contents only — never a
+ * world-wide lookup. Stops at the deepest hop that resolves: a missing
+ * cage leaves the bird in the room, which is honest, rather than in the
+ * first cage anywhere, which is not.
+ */
+function descendVia(anchor: Stuff & Container, via: string[] | undefined): Stuff & Container {
+  let cur: Stuff & Container = anchor;
+  for (const hop of via ?? []) {
+    const next = cur
+      .getContents()
+      .find((item) => MixinApi.isContainer(item) && item.getTemplatePath() === hop);
+    if (!next || !MixinApi.isContainer(next)) break;
+    cur = next as Stuff & Container;
+  }
+  return cur;
 }
 
 /**
@@ -223,12 +287,22 @@ async function restorePlacement(
   place: HostPlacement | null,
 ): Promise<void> {
   if (!place || !MixinApi.isContainable(host)) return;
+  const anchor = await resolvePlacementAnchor(place);
+  if (!anchor) return;
+  // The anchor is exact; the way down is matched WITHIN it (see
+  // `HostPlacement.via`).
+  ContainmentApi.move(host as Stuff & Containable, descendVia(anchor, place.via));
+}
+
+/** Resolve a placement's anchor container, or null (logged) if it cannot be. */
+async function resolvePlacementAnchor(
+  place: HostPlacement,
+): Promise<(Stuff & Container) | null> {
   if (place.startLocation) {
     const { container } = await ContainmentApi.resolveLanding(
       place.startLocation,
     );
-    ContainmentApi.move(host as Stuff & Containable, container);
-    return;
+    return container;
   }
   if (place.container && place.containerKey) {
     // A keyed room: re-enter through the owning institution's admit
@@ -238,16 +312,13 @@ async function restorePlacement(
       '../../../lib/location/OuterWarren'
     );
     const room = await OuterWarren.admitFor(place.containerKey);
-    if (room && MixinApi.isContainer(room)) {
-      ContainmentApi.move(host as Stuff & Containable, room);
-      return;
-    }
+    if (room && MixinApi.isContainer(room)) return room as Stuff & Container;
     console.warn(
       `PersistableLogic.restorePlacement: keyed container ` +
         `'${place.container}#${place.containerKey}' unresolvable — ` +
         `host left where cloned`,
     );
-    return;
+    return null;
   }
   if (place.container) {
     // Live instance first, else MATERIALIZE the room — after a server
@@ -268,13 +339,9 @@ async function restorePlacement(
         );
       }
     }
-    if (target && MixinApi.isContainer(target)) {
-      ContainmentApi.move(
-        host as Stuff & Containable,
-        target as Stuff & Container,
-      );
-    }
+    if (target && MixinApi.isContainer(target)) return target as Stuff & Container;
   }
+  return null;
 }
 
 /** Containment hops the persistable-ancestor walks tolerate (cycle guard). */

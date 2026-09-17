@@ -472,6 +472,21 @@ not (maturation reconciles); a named animal is.
 - The owner's login is the other ask: `Estate.restoreSlice` stands a
   **keyed** room-placed entry up through `RestoreContext.standUpKeyed`,
   resolving first — usually a hit, because the roll got there.
+- ⭐ **Where it lands is the good's own record**, not the pin: the roll
+  says *which*, `HostPlacement` says *where*. And where is **anchored**
+  — `container` names the nearest ancestor with an address (a keyed
+  host → `admitFor`, the exact unit; a `Location` → the singleton, or the
+  warren re-lands a member; a singleton), never an intermediate
+  container, because a chest's template path is every chest in the
+  world. The way down is `via` — the intermediate containers' template
+  paths — matched hop by hop **within** the anchor and stopping at the
+  deepest hop that resolves: a missing cage leaves the bird in the room,
+  never in the first cage anywhere. ⚠ Two rules the pets build found by
+  test, not live: an owner-persisted chattel keeps its own placement
+  even inside a room that persists itself (the room's slice skips it,
+  so nothing else refers to it), and a plain non-singleton room clone
+  has no address to name — a good left in one comes back in *a* room
+  of that kind, which is the honest limit of a transient place.
 
 ⭐ **Pinning, not swap.** Page-in happens at boot and at login — a
 process start or a human act, never an *access*. Page-out is only the

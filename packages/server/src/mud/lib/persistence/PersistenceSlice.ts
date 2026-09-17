@@ -193,6 +193,20 @@ export interface HostPlacement {
    */
   containerKey?: string;
   startLocation?: string;
+  /**
+   * The way DOWN from the anchor to where the host actually stood, as the
+   * template paths of the intermediate containers, outermost first — a
+   * cage on a table in a room is `[table, cage]` under `container: room`.
+   *
+   * ⭐ `container` names the nearest ancestor with an ADDRESS (a keyed
+   * host, a Location, a singleton), never an intermediate container: a
+   * chest's template path is every chest in the world, so "find the
+   * first live chest" could land the host anywhere. Restore resolves the
+   * anchor exactly, then descends hop by hop **within it** — matching each
+   * hop among that container's contents only — and stops at the deepest
+   * hop it can find. Absent when the host stood directly in the anchor.
+   */
+  via?: string[];
 }
 
 /**

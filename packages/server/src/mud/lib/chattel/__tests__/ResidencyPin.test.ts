@@ -87,6 +87,10 @@ class PersistentRoom extends PersistableMixin(
 /** A room that does not — a public lane. */
 class PlainRoom extends ContainerMixin(Idea) {}
 
+/** One of an unbounded many — a chest, a cage. Never an anchor. */
+class Chest extends ContainerMixin(ContainableMixin(Idea)) {}
+const CHEST_PATH = "/test/thing/Chest";
+
 /** An owner: a persistable container that carries an estate. */
 class Owner extends PersistableMixin(
   EstateMixin(ContainerMixin(PostRegistrationMixin(Idea))),
@@ -404,5 +408,86 @@ describe("⭐ a pinned good remembers its room even when the ROOM persists itsel
       container: "/test/world/Unit",
       containerKey: "unit-9",
     });
+  });
+});
+
+describe("⭐⭐ a good in a CHEST names the room and the way down, never the chest", () => {
+  // A chest's template path is every chest in the world. `container` must
+  // be the nearest ancestor with an address; the chest is `via`.
+  it("captures the anchor + via, through a keyed room", async () => {
+    const unit = makeStuffAtPath(() => new PersistentRoom(), "/test/world/Unit");
+    unit.setPersistenceKey("unit-9", true);
+    const chest = makeStuffAtPath(() => new Chest(), CHEST_PATH);
+    ContainmentApi.move(chest, unit as Stuff & Container);
+    const alice = makeOwner();
+    const pet = makeStuffAtPath(() => new Pet(), PET_PATH);
+    ContainmentApi.move(pet, chest as Stuff & Container);
+    await pet.stampChattel(alice);
+    pet.setPersistenceKey("k-mouse", true);
+    await PersistableApi.capture(pet);
+
+    const recs = await PersistedRecord.findByScope(PET_PATH);
+    expect(recs[0]?.getPlace()).toEqual({
+      container: "/test/world/Unit",
+      containerKey: "unit-9",
+      via: [CHEST_PATH],
+    });
+  });
+
+  it("restores into THAT room's chest, not the first chest anywhere", async () => {
+    const lane = makeStuffAtPath(() => new PlainRoom(), LANE_ID);
+    const chest = makeStuffAtPath(() => new Chest(), CHEST_PATH);
+    ContainmentApi.move(chest, lane as Stuff & Container);
+    const alice = makeOwner();
+    const pet = makeStuffAtPath(() => new Pet(), PET_PATH);
+    ContainmentApi.move(pet, chest as Stuff & Container);
+    await pet.stampChattel(alice);
+    pet.setPersistenceKey("k-mouse", true);
+    await pet.setChattelPlace(PersistableApi.placeIdOf(pet as Stuff));
+    await PersistableApi.capture(pet);
+
+    StuffApi.clearAll();
+    await boot();
+    // Another room with an identical chest, registered FIRST — the
+    // world-wide lookup would have found this one.
+    const elsewhere = makeStuffAtPath(() => new PlainRoom(), "/test/world/Elsewhere");
+    const decoy = makeStuffAtPath(() => new Chest(), CHEST_PATH);
+    ContainmentApi.move(decoy, elsewhere as Stuff & Container);
+    const lane2 = makeStuffAtPath(() => new PlainRoom(), LANE_ID);
+    const chest2 = makeStuffAtPath(() => new Chest(), CHEST_PATH);
+    ContainmentApi.move(chest2, lane2 as Stuff & Container);
+
+    const report = await ResidencyApi.pinNow();
+    expect(report).toEqual({ pinned: 1, stoodUp: 1, failed: 0 });
+    const live = StuffApi.findAllByTemplatePath<Stuff>(PET_PATH);
+    expect(live.length).toBe(1);
+    const inside = MixinApi.isContainable(live[0]!) ? live[0]!.getContainer() : null;
+    expect(inside).toBe(chest2);
+    expect((decoy as Stuff & Container).getContents().length).toBe(0);
+  });
+
+  it("a missing hop lands in the deepest one that resolves — the room, not a chest elsewhere", async () => {
+    const lane = makeStuffAtPath(() => new PlainRoom(), LANE_ID);
+    const chest = makeStuffAtPath(() => new Chest(), CHEST_PATH);
+    ContainmentApi.move(chest, lane as Stuff & Container);
+    const alice = makeOwner();
+    const pet = makeStuffAtPath(() => new Pet(), PET_PATH);
+    ContainmentApi.move(pet, chest as Stuff & Container);
+    await pet.stampChattel(alice);
+    pet.setPersistenceKey("k-mouse", true);
+    await pet.setChattelPlace(PersistableApi.placeIdOf(pet as Stuff));
+    await PersistableApi.capture(pet);
+
+    StuffApi.clearAll();
+    await boot();
+    const elsewhere = makeStuffAtPath(() => new PlainRoom(), "/test/world/Elsewhere");
+    const decoy = makeStuffAtPath(() => new Chest(), CHEST_PATH);
+    ContainmentApi.move(decoy, elsewhere as Stuff & Container);
+    const lane2 = makeStuffAtPath(() => new PlainRoom(), LANE_ID); // no chest
+
+    await ResidencyApi.pinNow();
+    const live = StuffApi.findAllByTemplatePath<Stuff>(PET_PATH);
+    const inside = MixinApi.isContainable(live[0]!) ? live[0]!.getContainer() : null;
+    expect(inside).toBe(lane2);
   });
 });
