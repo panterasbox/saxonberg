@@ -22,11 +22,21 @@
  * they were finally migrated **two had been failing on master for weeks
  * with nobody able to know.**
  *
- * ⚠⚠ **Reset the dev DB before running this.** A named-animal record
- * from a previous world restores onto a lane that has since re-minted a
- * stray, so the lane holds two cats and the assertions read as failures
- * in a build where nothing is broken. That is the stale-world forgery
- * the food-safety file documents, in this build's shape.
+ * ⭐ **Clean, and that is a finding.** This file was shipped as `.dirty.`
+ * with a reason claiming it stamped, named and butchered — it does none
+ * of those: `name` refuses (step 12 asserts exactly that), and `offer`
+ * asks *what* because the keeper holds no food. Every act here is a
+ * refusal or a read, so the world after a run is the world before it.
+ * ⚠ The reason it cannot feed the cat is a **producer gap**: nothing on
+ * the lane, or reachable from it without a butcher, yields the offal a
+ * stray would take. Offered to `hinkley-hills` as a finding. The lift
+ * itself — a ground feed raising handling — is `Bonded.test`'s; it needs
+ * the feeds cadence and cannot settle on one socket.
+ *
+ * ⚠ The restart half of the drive — a named cat stood back up at boot
+ * with her owner offline, seen by a stranger, resolved (not duplicated)
+ * by her owner's login — is a two-boot run and lives in the plan's drive
+ * record, not here: a wire file is one boot.
  */
 
 import { describe as suite, it, expect, beforeAll, afterAll } from 'vitest';
@@ -36,17 +46,12 @@ import {
   uniqueHandle,
   plain,
   expectRefused,
+  expectNote,
 } from '../src/harness';
 
-export const DIRTY_REASON =
-  'stamps the lane’s only stray — the cast will not re-mint one while it ' +
-  'is live — names it into holder_snapshots, and butchers a carcass for ' +
-  'the offal; none of it is produced again';
-
 declareFile({
-  file: 'pets.dirty.wire.test.ts',
+  file: 'pets.wire.test.ts',
   packs: ['hinkley-hills', 'terminus', 'generic-objects', 'trade-ranching'],
-  dirtyReason: DIRTY_REASON,
 });
 
 const LANE = '/world/terminus/hinkley-hills/location/lane';
@@ -86,7 +91,7 @@ suite('8 · you have not earned a hand yet', () => {
   });
 });
 
-suite('9 · ⚠⚠ the refusal must LIFT — the rung the ladder stood on', () => {
+suite('9 · the rung the ladder stood on — and what a socket can see of it', () => {
   /**
    * ⚠⚠ **The assertion this file shipped without, and the bug it hid.**
    *
@@ -97,17 +102,30 @@ suite('9 · ⚠⚠ the refusal must LIFT — the rung the ladder stood on', () =
    * crediting anything, and `KeptAnimal` composes no `HandledMixin` so
    * ranching's `handle` cannot reach it.
    *
-   * ⭐ A refusal is only honest if something lifts it. That is the claim
-   * here: food left where a stray can reach it after you step back makes
-   * it less afraid of people — and nothing else in the game was doing
-   * that.
+   * ⭐ A refusal is only honest if something lifts it. The lift — a ground
+   * feed raising handling once you step back — is `Bonded.test`'s: it
+   * needs the feeds cadence and a second beat, which one socket cannot
+   * settle. ⚠ And this file was shipped claiming this suite proved it,
+   * when its one assertion only checked that `offer` was a word: the
+   * keeper holds no food, so the verb asks *what*. What a socket CAN see
+   * is asserted below, exactly; what it cannot is named, not implied.
    */
-  it('⭐ offering below the band SETS THE FOOD DOWN rather than refusing', async () => {
+  it('`offer` with nothing in hand asks WHAT — a refusal by shape, not by the animal', async () => {
     const r = await keeper.cmd('offer offal to cat');
+    expectRefused(r);
+    expectNote(r, 'controller-rejected', { reason: 'no-food' });
     const said = plain(await r.said());
-    // Not "it won't take that" — the food is real, it is on the ground,
-    // and the animal may take it once you are not standing over it.
-    expect(said).not.toMatch(/don't understand|unknown command/i);
+    // Never "it won't take that": the animal has not been asked anything.
+    expect(said).not.toMatch(/won't|refuses|moves off/i);
+  });
+
+  it('⚠ producer gap: nothing on the lane yields food a stray would take', async () => {
+    // The stray's ladder starts with food on the ground. A keeper arriving
+    // on the lane can reach none: offal comes from a butcher, and there
+    // is no butcher on Hinkley Lane. This is the drive's finding for the
+    // `hinkley-hills` pack, kept green so it stays visible.
+    const said = plain(await (await keeper.cmd('look')).said());
+    expect(said).not.toMatch(/\boffal\b|\bscraps\b|\bmeat\b/i);
   });
 });
 

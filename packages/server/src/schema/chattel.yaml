@@ -24,19 +24,37 @@ reset: wipe
 indexes:
   - keys: { place: 1 }
     why: |
-      ⭐⭐ **Where a good belongs is a read axis, and it had no index.**
+      ⭐ **Where a good belongs is a read axis, and it had no index.**
 
-      `ChattelApi.placedIn(place)` is how a room gets back the owned goods
-      recorded as standing in it, and `evictToStorage(placePrefix)` sweeps
-      by the same field. Both were collection scans.
+      `ChattelApi.placedIn(place)` is how a room that persists itself gets
+      back the owned goods recorded as standing in it (the furnishing
+      build's D4 overlay, inside its own materialize), and
+      `evictToStorage(placePrefix)` sweeps by the same field. Both were
+      collection scans. ⚠ Only the four self-persisting location classes
+      ask — a public room never does; that is the containable-side model,
+      and the pets build's `pin` index below is how a good that has to be
+      standing in a public room gets there.
+  - keys: { pin.key: 1 }
+    partialFilterExpression: { pin.key: { $exists: true } }
+    why: |
+      ⭐⭐ **The residency pin roll reads the index and never the rows.**
 
-      ⚠ It became load-bearing when the pets build made **every** room
-      reclaim its goods at `postRegister` rather than only the four
-      location classes that persist themselves — a boot places hundreds of
-      rooms, and hundreds of unindexed scans is a boot-time problem
-      waiting for the first busy world. The alternative was a second
-      in-memory map in `ChattelRegistry`; an index is smaller, and the
-      field was always a query axis that should have had one.
+      A good whose class opts in (`pinsResidency()` — a named animal) and
+      that persists itself records `pin: {scope, key}` on the same gated
+      write as `place`. At boot the `ResidencyWarden` stands every pinned
+      good back up where it was (`ResidencyApi.pinNow`) — the one thing
+      in the game that is loaded without anybody asking for it, because
+      a pet has to *emit* while nobody is looking. Partial, so the index
+      is exactly the pinned set: its size is the number of pins, not the
+      number of owned goods, and a world with no pets pays nothing.
+
+      ⚠ This replaced two wrong instruments in one build: a by-KIND scan
+      of `holder_snapshots` (an identity-keyed store asked for every
+      record of a kind), and then a per-room `placedIn` at every
+      `CartesianLocation.postRegister` — hundreds of point queries at
+      boot, the room-scan the user had ruled out wearing another face.
+      Who may honour a pin (the owner's activity tier, the parcel's
+      allowance) is the eager-residency slate's.
   # ⚠ A unique index on `chattelId` would enforce the invariant above
   # rather than merely stating it — but a unique index that fails to
   # build takes the BOOT down, and that is a decision about existing data

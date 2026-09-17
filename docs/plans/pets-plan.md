@@ -759,10 +759,11 @@ build's job**; dropping the alias is.
   skill) and reconciling them is ranching's D28 follow-on. AC 11 holds by
   either verb without it.
 
-### D21 — A place asks for its goods; it does not persist to get them
+### D21 — A place asks for its goods; it does not persist to get them — ⚠ REVERSED by D22
 
 ⚠⚠ **Added 2026-09-16, in review**, when the user asked which collection
-persistence uses and pushed on `findWithLayer`.
+persistence uses and pushed on `findWithLayer`; **reversed 2026-09-17**
+(D22) when the user asked what actually loads a pet.
 
 **What was wrong.** D12 stood named animals up with a boot roll —
 `KeptAnimalRegistry` scanning `holder_snapshots` for
@@ -772,43 +773,96 @@ was an unindexed scan at every boot, asking an identity-keyed store *"give
 me every record of a KIND"*. A query shape against the grain is the tell
 of a special case, and this was one.
 
-⭐⭐ **What it was designing around: a public room has no materialize
-step.** Owned goods came back only inside `restoreRecord`, which runs for
-hosts that persist themselves — so a lantern on a street was carried in
-its owner's estate with a `place` **nothing ever looked up**. W1b's
-grounding found that and called it *"a pre-existing gap for lanterns; for
-a pet it is fatal"*, then routed around it instead of fixing it. This
-fixes it: `CartesianLocation.postRegister` calls
-`PersistableApi.reclaimOwnedGoods(this)`, so **every** room reclaims what
-is recorded as standing in it. The lantern comes back too.
+**What D21 did, and why it was the same problem again.** It put
+`PersistableApi.reclaimOwnedGoods(this)` on `CartesianLocation.postRegister`
+— **every** room, on load, asking the `chattel` index *"who is recorded as
+standing in me"*. Indexed, so cheap per call; but 439 point queries at boot
+and one on every lazy room load, which is the room doing work to find
+things that are not its own state — *the room scan wearing a different
+face*, in the user's words. The user's rule (persist on the CONTAINABLE,
+which remembers where it spawns; the container manages nothing but its
+own hydration) was right, and D21 honoured it on the wrong side: the
+containable remembered, and then the container went looking anyway.
 
-⭐⭐ **And it is deliberately NOT "make the street persistable."** The
-user's rule, and it is the right one:
+**Kept from D21:** the `chattel.place` index (the D4 overlay inside the
+four self-persisting location classes and `evictToStorage` read it), the
+deletion of `KeptAnimalRegistry` and `findWithLayer`, and the
+`EstateEntry.key` reference shape. **Deleted:** the `postRegister` hook,
+`PersistableApi.reclaimOwnedGoods`, its allowlist row.
 
-> **Persisting a CONTAINER preserves its whole contents tree top-down and
-> is expensive — it belongs to the few places that genuinely need it.
-> Persisting on the CONTAINABLE, which remembers where it spawns into,
-> costs one row and needs nothing from the container. Both models exist;
-> the second should be the common one.**
+---
 
-The chattel row IS the containable-side model already: `ChattelRecord.place`
-is *where this good belongs*. The overlay reads it. ⚠ Only **four**
-location classes compose `Persistable` — `PersistentCartesianLocation`,
-`FurnishableRoom`, `MineRoom`, `Field` — and this change adds none.
+### D22 — The residency pin: the load half, on the object, rolled once at boot
 
-⭐ **Lazy is correct, not merely cheap.** A room nobody has walked into
-does not need its animals standing up, and a stamped animal integrates
-its whole absence on the first read of its metabolism when it does
-materialize. The boot roll was doing work for rooms nobody was in.
+⚠⚠ **Added 2026-09-17, in review.** The user: *"the cat loads whenever
+something needs to load it. the room doesn't need to load it — if it did
+we would have made the room persistable not the cat."* Then: *"something
+needs to load before the pet in order for the pet to load… if the game
+reboots, your pets don't get created until you log in. if we're trying to
+simulate care then that's a hole."*
 
-**Deleted:** `KeptAnimalRegistry`, its template row, its `boot:` entry,
-its test, and `PersistedRecord.findWithLayer`.
+**The reframing that decided it.** *What loads X* already has one answer
+in this game: whatever needs to observe X — and nearly everything
+reconciles on read, so an unloaded thing still ages; what it cannot do is
+**emit**. The care hole is exactly the set of objects with a brain whose
+events must happen while nobody is looking: the cat wandering, coming to
+a door, being fed by a neighbour, dying in front of somebody. A chair is
+never in that set; a cask is not (maturation reconciles); a named animal
+is. So the opt-in is not "eager with the estate" — it is **the load half
+of residency**, the mirror of `canEvict`.
 
-⚠ The **estate nesting** the same question surfaced — an owner's record
-carrying every owned good's full state, uncapped, against a 16 MB
-ceiling — is a real and pre-existing unbounded vector, slated as
-`estate-nesting-slate`. `EstateEntry.key` (D12) is its first mitigation
-and the worked example it generalises from.
+**The mechanism (this MR):**
+
+- `Persistable.pinsResidency()` — a `@hook`, default false; `KeptAnimal`
+  answers true (on the class, because `Persistable` is the outermost
+  layer and a mixin further in could not override its default).
+- `ChattelRecord.pin: {scope, key} | null` — stamped on the **same gated
+  write as `place`** (`ChattelLogic.applyPlace`), when the class opts in,
+  the good persists itself, and it has an explicit key; cleared when the
+  good goes to `storage` or `inventory`. So a pinned good carried off and
+  dropped elsewhere is re-pinned where it now stands, and the index can
+  never drift from the field.
+- A **partial index** `{pin.key: 1}` on `chattel` — exactly the pinned
+  set; a world with no pets pays nothing.
+- `ResidencyLogic.pinNow()` — the roll, armed once by `ResidencyWarden`
+  at boot beside the eviction/reset/spawn sweeps (the manifest's
+  `dependsOn` now names the chattel and parcel registries, because
+  standing a good up resolves its place, which reads title). Reads the
+  index, `standUpKeyed` per pin (resolve-or-mint), counts, and a pin whose
+  place cannot resolve logs and skips — the animal reads as *lost*, which
+  is a thing that can happen to an animal, rather than a boot failure.
+- `Estate.restoreSlice` — a **keyed** room-placed entry is stood up by the
+  owner's login through `RestoreContext.standUpKeyed`, resolving first;
+  usually a resolve, because the roll got there. A keyless one (a chair)
+  stays deferred to its room's D4 overlay as before.
+- `NameController` sets the persistence key **before** the place, so the
+  pin lands on the row at the promotion.
+
+⭐ **What it is, said honestly: pinning, not swap.** Page-in at boot and
+at login (a process start or a human act — never an *access*); page-out
+only through the ordinary cold-tail sweep once the pin lapses;
+**no fault** — nothing in the game can trigger a load by touching a
+good, and no room asks for what stands in it. The day a fault is wanted
+("the neighbour walks onto the lane, so load the lane's cats"), that is a
+pager, and the room scan wearing a third face; the design says so in
+writing so nobody builds it by accident.
+
+**What is slated, not built** (`eager-residency-slate`): the roll admits
+**every** pin today. Who may honour one — the owner's activity tier (two
+tiers of account, with what membership may and may not mean), the
+parcel's compute allowance (the committee's say over its own ground), the
+degradation order under pressure — is governance the user named and the
+property slate already has the vocabulary for.
+
+**Driven live, twice, on the final code** (drive record below). ⚠ It also
+found that this plan's **drive record overclaimed**: the wire file was
+`.dirty.` with a reason naming three acts it never performs, and its
+suite 9 ("the refusal must LIFT") asserted only that `offer` was a word
+— the keeper holds no food, so the verb asks *what*. Corrected: the file
+is `pets.wire.test.ts` (clean), suite 9 asserts the `no-food` refusal by
+note and records the **producer gap** (nothing on the lane yields food a
+stray would take — a finding for `hinkley-hills`), and the lift stays
+`Bonded.test`'s.
 
 ---
 
@@ -1804,12 +1858,36 @@ Read first, in this order:
 
 ## Drive record
 
+✅ **Re-run 2026-09-17 (fourth) — the restart half, driven for the first
+time.** Every earlier run was one boot; step 25's restart had stayed in
+the "manual" list. Two boots on the final code, over the socket, on a
+freshly dropped `saxonberg_build2` (93 indexes — the `chattel.pin.key`
+partial builds clean):
+
+| beat | seen |
+|---|---|
+| prime the stray by wizard `eval --parcel /world/terminus/hinkley-hills --on cat` (regard +100, forty handles, one remembered follow — the game-days the ladder needs, skipped; nothing else) | `[0.937, 1]` |
+| `name cat Mouse` through the real verb | ok — *"You name a cat Mouse."* (was *"You name Mouse Mouse"*: the late-bound ref rendered the animal by its new name; now the `handle` form, which is keyword → species and never the name) |
+| **restart** | boot log: `[residency] pin roll: 1/1 stood up` — before any socket opens |
+| a **stranger** walks onto the lane, owner offline | *"You also see: a thin cat and Mouse"*; `look Mouse` renders her |
+| the **owner** logs in | one Mouse on the lane (resolve-first held); `find reachable:mine` → *Mouse* |
+
+⚠ **Two cats on the lane** — *"a thin cat and Mouse"*. Not the pin: the
+lane's own YAML predicts it (*"after Mouse is adopted a second cat may
+appear on the lane, which is unauthored rather than wrong — Risks 7"*).
+A plain room's `applyCast` mints its cast at every load and Mouse is no
+longer the lane's stray, she is somebody's cat who stands there. Left as
+decided; observed for the record.
+
+⚠ **The wire file's own record was wrong** — see D22. It is clean, it
+never named or stamped or butchered, and suite 9 proved nothing about
+the lift. 17/17 after the correction, on a world the suite booted.
+
 ✅ **Re-run 2026-09-16 (third)** after the persistence rework — fresh DB,
 **92 indexes** (the new `chattel.place` builds clean), 439 rooms placed by
-the spawn sweep with the owned-goods overlay now on **every** room's
-`postRegister`, zero boot errors. **16/16.** ⭐ This is the run that
-matters for D21: the overlay is on a hot path and a full boot exercises
-it far harder than any unit test.
+the spawn sweep with the owned-goods overlay then on **every** room's
+`postRegister`, zero boot errors. **16/16.** ⚠ That overlay was reversed
+the next day (D21 → D22); this run's number stands for the rest.
 
 ✅ **Re-run 2026-09-16** after review changed the world underneath it —
 freshly reset `saxonberg_build2`, a full **43-pack** install, a live
@@ -1820,6 +1898,9 @@ review round made permanent: `call` reaching the cat with **no target at
 all** (the acoustic emission), `stay`'s refusal admitting *not looking at
 you* (the gesture channel), and — the one that matters — **step 9, that
 the refusal LIFTS.** Its absence is what let an untameable cat ship.
+⚠ Corrected 2026-09-17: the wire assertion never proved the lift (see
+the fourth run); the lift is `Bonded.test`'s, and the wire's step 9 now
+says exactly what a socket can see.
 
 ⚠ Two known warnings in the boot log, both pre-existing `terminus`
 content and both documented below: `Aldis Verrow` and `Merrick Sault`
@@ -1828,10 +1909,9 @@ declare `shifts` with no trigger and no config.
 **First run 2026-09-15** — 36-pack install, **14/14**.
 
 ⭐⭐ **The drive is a wire file now**, not a one-off script:
-`packages/wire/tests/pets.dirty.wire.test.ts`. It is `.dirty.` because it
-consumes — it stamps the lane's only stray (the `cast:` will not re-mint
-one while a live instance exists), names into `holder_snapshots`, and
-butchers a carcass for the offal; none of that is produced again.
+`packages/wire/tests/pets.wire.test.ts`. ⚠ It shipped as `.dirty.` with a
+reason claiming it stamped, named and butchered; it does none of those
+(see D22 and the fourth run) and is clean.
 
 What it settles, over the socket, in one run:
 
@@ -1839,6 +1919,7 @@ What it settles, over the socket, in one run:
 |---|---|
 | 6–7 | a thin cat is on the lane, and looking at it reports how it is holding itself with **no number anywhere** |
 | 8 | `pet` refuses — *it moves off* — and names no threshold, no band and no figure |
+| 9 | `offer` with nothing in hand is refused **by shape** (`no-food`), never by the animal; and the **producer gap** is recorded green — nothing on the lane yields food a stray would take |
 | 12 | `name` refuses: *it has not chosen you*; the cat is still "a cat" to everybody |
 | 14, 16 | ⭐⭐ `call` and `stay` both get *it looks at you*, and **neither reads as a shortfall** — no "not enough", no "yet", no number. This is a cat, and the game does not apologise for it |
 | ⚠⚠ 21 | `find world:mine` matches none of `in the · at the · located · room · lane · coords`. **If this ever fails, do not fix the test** |

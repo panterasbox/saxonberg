@@ -600,21 +600,15 @@ describe("security (AC #8)", () => {
     // the owner's record, written by the same gated `capture` as everything
     // else. So the invariant this test guards (no raw record write on the
     // Api) is unchanged.
-    // `reclaimOwnedGoods` (pets build) is a READ of the chattel index
-    // plus the same restore path an owned good already took inside a
-    // persistable room's materialize — it writes no record. ⭐ It is on
-    // the Api because a PUBLIC room has no materialize step, so a lantern
-    // on a street (or a cat on a lane) was carried in its owner's estate
-    // with a `place` nothing ever looked up. The room asks; nothing
-    // about the room is persisted to make it work.
     // `standUpKeyed` (pets build) is a RESOLVE-or-materialize: it returns
     // the instance already keyed `(scope, key)` if one is live, and
     // otherwise clones a shell and runs the same gated `materialize`. It
     // reads a record and reconstitutes; it writes none. It is on the Api
     // because three unrelated callers need the same question answered —
-    // an owner logging in, a room materializing, and the kept-animal boot
-    // roll — and every one of them must RESOLVE FIRST or the world gets
-    // two of the same animal sharing one record.
+    // an owner logging in (the estate's keyed entries), a persistable room
+    // materializing (the D4 overlay), and the residency pin roll at boot —
+    // and every one of them must RESOLVE FIRST or the world gets two of
+    // the same animal sharing one record.
     // `captureAtShutdown` (world-scan build) is the shutdown SWEEP: it
     // asks the registry which hosts want a capture and calls the same
     // gated `capture` on each. It lives on the Api rather than in the
@@ -634,7 +628,6 @@ describe("security (AC #8)", () => {
         "materialize",
         "restoreOrSeed",
         "standUpKeyed",
-        "reclaimOwnedGoods",
         "forkRuntimeState",
         "mergeRuntimeState",
       ].sort(),

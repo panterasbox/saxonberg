@@ -111,10 +111,16 @@ export default class NameController extends CommandController<NameModel> {
 
     if (MixinApi.isChattel(animal)) {
       await animal.stampChattel(actor);
+    }
+    if (MixinApi.isPersistable(animal)) {
+      // The key BEFORE the place: the place write stamps the residency
+      // pin onto the chattel row, and the pin is `(scope, key)`.
+      animal.setPersistenceKey(SecurityApi.uuid(), true);
+    }
+    if (MixinApi.isChattel(animal)) {
       await animal.setChattelPlace(PersistableApi.placeIdOf(animal));
     }
     if (MixinApi.isPersistable(animal)) {
-      animal.setPersistenceKey(SecurityApi.uuid(), true);
       await PersistableApi.capture(animal);
     }
 
@@ -136,10 +142,16 @@ export default class NameController extends CommandController<NameModel> {
       }
     }
 
+    // ⚠ The `handle` form, not the default `concise`: the ref is late-bound
+    // and the animal is ALREADY named by the time the scene renders, so the
+    // ordinary identity read "You name Mouse Mouse" (found live). The handle
+    // chain is keyword → job → species and never the name, so this is "the
+    // cat" both before and after — which is what the sentence means.
+    const it = Mml.actor(animal, { form: 'handle' });
     MessageApi.scene(actor)
       .topic(TOPIC)
-      .toSelf(Mml.compose`You name ${Mml.actor(animal)} ${wanted}.`)
-      .toPeers(Mml.compose`${Mml.actor(actor)} names ${Mml.actor(animal)} ${wanted}.`)
+      .toSelf(Mml.compose`You name ${it} ${wanted}.`)
+      .toPeers(Mml.compose`${Mml.actor(actor)} names ${it} ${wanted}.`)
       .send();
   }
 

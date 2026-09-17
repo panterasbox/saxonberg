@@ -15,7 +15,7 @@ import { StuffApi } from "./stuff";
 import { MixinApi } from "./mixin";
 import { HotReloadApi } from "./hot-reload";
 import { ChattelLogic } from "../platform/idea/api/ChattelLogic";
-import type { ChattelOwner } from "../lib/chattel/ChattelRecord";
+import type { ChattelOwner, ChattelPin } from "../lib/chattel/ChattelRecord";
 import type { Stuff } from "../lib/stuff/Stuff";
 import { fileURLToPath } from "url";
 import { SecurityApi } from './security';
@@ -27,7 +27,7 @@ const LOGIC_CLASS_FILE = fileURLToPath(
 
 export type { ChattelStampResult } from "../lib/chattel/Chattel";
 
-export type { ChattelOwner } from "../lib/chattel/ChattelRecord";
+export type { ChattelOwner, ChattelPin } from "../lib/chattel/ChattelRecord";
 
 /** Resolve the HMR-able ChattelLogic singleton (sync). */
 function logic(): ChattelLogic {
@@ -62,6 +62,18 @@ export class ChattelApi {
     place: string,
   ): Promise<Array<{ chattelId: string; owner: ChattelOwner | null }>> {
     return logic().placedIn(place);
+  }
+
+  /**
+   * Every **pinned** good — the ones whose class asked to be stood up at
+   * boot without anybody needing them (`pinsResidency`), with where each
+   * stands. The residency pin roll's one read: a partial index over the
+   * `chattel` collection, sized by the number of pins and nothing else.
+   */
+  public static async pinned(): Promise<
+    Array<{ pin: ChattelPin; place: string }>
+  > {
+    return logic().pinned();
   }
 
   /**

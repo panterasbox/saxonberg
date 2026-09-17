@@ -87,6 +87,22 @@ const KeptAnimalBase = PersistableMixin(
   ),
 );
 
-export class KeptAnimal extends KeptAnimalBase {}
+export class KeptAnimal extends KeptAnimalBase {
+  /**
+   * ⭐ A kept animal **pins**: once named, it is stood up at boot and at
+   * its owner's login without anybody asking for it, because everything
+   * that makes it a pet rather than a chair is something it *does* while
+   * nobody is looking — wanders, comes to a door, gets fed by a
+   * neighbour, starves in front of somebody instead of retroactively.
+   * Reconcile-on-read keeps its clocks honest; only residency lets it
+   * emit. The unnamed animal never reaches the roll (no row, no key).
+   *
+   * On the class, not on `Bonded`: `Persistable` is the outermost layer,
+   * so a mixin further in could not override its default.
+   */
+  public override pinsResidency(): boolean {
+    return true;
+  }
+}
 
 export default KeptAnimal;

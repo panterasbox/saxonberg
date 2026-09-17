@@ -241,4 +241,13 @@ export interface RestoreContext {
     entry: ContentEntry,
     host: unknown,
   ): Promise<unknown | null>;
+
+  /**
+   * Resolve-or-mint the host keyed `(scope, key)` — a good that persists
+   * **itself** and so is not rebuilt from a nested `state` but stood up
+   * from its own record, which restores its own placement. The estate's
+   * keyed entries use it: an owner arriving stands its animals up, and
+   * finds them already standing when the boot roll got there first.
+   */
+  standUpKeyed(scope: string, key: string): Promise<unknown | null>;
 }

@@ -26,6 +26,7 @@ import { SecurityApi } from "../../api/security";
 import {
   ChattelRecord,
   type ChattelOwner,
+  type ChattelPin,
 } from "../../lib/chattel/ChattelRecord";
 import { ChattelEvent, type ChattelEventKind } from "../../lib/chattel/ChattelEvent";
 import type { VetoResult } from "../../lib/errors";
@@ -69,14 +70,35 @@ export default class ChattelRegistry extends ChattelRegistryBase {
    * half of a `place` write (the good's own field is the other half, and
    * `ChattelLogic.setPlace` writes both in one call). A no-op for a good
    * with no title on file: an unstamped good has no owner to keep it.
+   *
+   * The residency **pin** rides the same write: a good that persists
+   * itself and opts in (`pinsResidency`) records how to stand itself up,
+   * and the pin roll at boot reads exactly those rows. One call for both
+   * because they change on the same acts — a pinned good that is carried
+   * off and dropped is re-pinned where it now stands.
    */
   @CallSecurity(ChattelApiCallers)
-  public async setPlace(chattelId: string, place: string): Promise<void> {
+  public async setPlace(
+    chattelId: string,
+    place: string,
+    pin: ChattelPin | null = null,
+  ): Promise<void> {
     if (!this.index.has(chattelId)) return;
     const record = await ChattelRecord.findByChattelId(chattelId);
     if (!record) return;
     record.place = place;
+    record.pin = pin;
     await record.save();
+  }
+
+  /**
+   * Every pinned row — the residency pin roll's input. The predicate is
+   * the partial index's own (`schema/chattel.yaml`), so this reads the
+   * index and never the collection.
+   */
+  @CallSecurity(ChattelApiCallers)
+  public async pinned(): Promise<ChattelRecord[]> {
+    return ChattelRecord.find<ChattelRecord>({ "pin.key": { $exists: true } });
   }
 
   /** Every titled good the index says is placed in `place`. */

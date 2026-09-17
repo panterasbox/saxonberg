@@ -24,9 +24,15 @@
  *                     registry and in this record and has no presence in
  *                     the world. This is what makes storage free: it is the
  *                     absence of a placement, not a place.
- *   - a room identity — **deferred to that room's materialize**, not done
+ *   - a room identity — for a good carried as **state** (a chair),
+ *                     **deferred to that room's materialize**, not done
  *                     here. That is what makes "my chair is in my living
- *                     room while I am at work" true.
+ *                     room while I am at work" true. For a good that
+ *                     persists **itself** (a `key` entry — a named animal),
+ *                     stood up here from its own record, which restores its
+ *                     own placement: the owner arriving is the ask, and the
+ *                     room does nothing. Usually a resolve, because the
+ *                     residency pin roll stood it up at boot.
  *
  * ## Capture is synchronous, which shapes everything
  *
@@ -220,8 +226,22 @@ export function EstateMixin<TBase extends MixinConstructor<Stuff>>(
           continue;
         }
         if (entry.place !== ESTATE_INVENTORY) {
-          // Placed in a room. That room's materialize overlays it (D4), so
-          // the entry is kept and no instance is minted here.
+          if (entry.key) {
+            // ⭐ A good that persists ITSELF, standing in a room: its owner
+            // arriving is the ask. Stood up from its own record, which
+            // restores its own placement — the room is lazy-loaded if
+            // nothing is there yet, and the room does nothing. Resolve
+            // first: the boot pin roll usually got here already.
+            const live = (await ctx.standUpKeyed(
+              entry.templatePath,
+              entry.key,
+            )) as Stuff | null;
+            self._putEstateEntry(entry, live);
+            continue;
+          }
+          // Placed in a room, carried as state. That room's materialize
+          // overlays it (D4) if the room persists itself; the entry is
+          // kept and no instance is minted here.
           self._putEstateEntry(entry, null);
           continue;
         }

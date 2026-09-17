@@ -681,6 +681,8 @@ async function restoreState(
   const ctx: RestoreContext = {
     restoreItem: (entry, host) =>
       restoreItem(entry as ContentEntry, host as Stuff, principal),
+    standUpKeyed: async (scope, key) =>
+      liveKeyed(scope, key) ?? (await cloneHost(scope, key)),
   };
   for (const c of MixinApi.getPersistenceContributors(
     target.constructor as AnyConstructor,
@@ -1156,12 +1158,6 @@ export class PersistableLogic extends ApiLogic {
   @CallSecurity(PersistableApiCallers)
   public async restoreOrSeed(host: Stuff, key: string): Promise<boolean> {
     return restoreOrSeedImpl(host, key);
-  }
-
-  /** See {@link PersistableApi.reclaimOwnedGoods}. */
-  @CallSecurity(PersistableApiCallers)
-  public async reclaimOwnedGoods(place: Stuff): Promise<void> {
-    return overlayOwnedGoods(place);
   }
 
   /** See {@link PersistableApi.standUpKeyed}. */
