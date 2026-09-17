@@ -4,8 +4,8 @@
 > 2026-09-17** (§ below) and the open questions decided; the
 > `trade-fuel` coppice panel is the accidental head start.
 > **Left:** the `trade-forestry` pack (column one of the chain — growing
-> and felling only) · the wood as a FIELD with clearings as rooms and
-> felling as the carve · the stand-as-record · grown-plant authoring ·
+> and felling only) · the authored wood over ONE stand record ·
+> the stand-as-record · grown-plant authoring ·
 > the compressed rotations, set end to end · the wood species rows · the
 > silviculture Discipline · the wood above Rejection · instrument
 > `epoch` stamps
@@ -351,54 +351,66 @@ the lenses do not decide are marked *(user)*.
 
 ---
 
-## ⭐⭐ The structural bet — the forest is the field, the clearing is the room
+## ⭐⭐ The structural bet — an authored forest is a forest; the stand is the one thing that moves
 
-Decided 2026-09-17 in the forests-as-venue conversation, before any
-industry: **a forest is not instanced.** It is the mine's inversion
-brought to the surface — a zone with a field is *matter*, and rooms are
-*subtractions* from it.
+Decided 2026-09-17 in the forests-as-venue conversation, and then
+**cut back the same day** when the first draft reached for runtime
+land-use conversion. The user's constraint, standing:
 
-- **The wood between places is a field** — a total function under a
-  sparse graph: species-by-site and canopy from the seeded half; volume,
-  age structure and what has been cut from the derived half. Darkness
-  under canopy, concealment, lostness and succession all **derive from
-  the field's values**; nothing is asserted in prose.
-- **A clearing is a room** — positive space carved from it. The
-  campfire, the duel at dawn, the collier's hut, the witch's cottage,
-  the coppice cant: every scene the forest hosts happens in a clearing,
-  and the whole social and combat stack works there because it is a
-  real Location.
-- **Felling is the carve.** A ride, a cant, a clearing, an assart and a
-  farm are one act at five sizes: cutting positive space out of the
-  field. The industry's *product* is the venue's *unit*. An author's
-  clearing is a pre-cut patch; a forester's cant is a player-made one; a
-  settlement is what happens when somebody assarts far enough — which is
-  how settlements actually grew, and a word players should leave
-  knowing.
-- **Off the path is into the field.** Walking off an authored exit
-  materializes wood the way the mine's `carve` does, transient and
-  un-mapped: *"somewhere in the wood."* Getting un-lost is derivable
-  (downhill finds the stream; the stream finds the road — the watershed
-  is built) and the corollary from field-substrate holds: *a field-backed
-  space has no map, only a survey.*
+> *"if someone authors a forest, it's always going to be a forest … I
+> don't want to try to program something that simulates the biology of
+> every living organism in the game … we pick and choose where we want
+> to spend our expressiveness."*
 
-**Why lenses 1 and 2 chose it.** It is the only shape under which the
-forest is honest (lens 1) and the only one that gives an author the
-dial they actually want (lens 2): **an author writes clearings and
-paths; the engine fills the wood around them.** A fixed-map author
-writes many; a wilderness author writes one and a field; the author in
-between writes three and a witch. And the bespoke case falls out — a
-sacred grove is a clearing with an arcana field pinned over it; a
-lost-woods is a field with a lean that defeats the address walk. ⚠ The
-antipattern it exists to make unwriteable is the MUD forest: forty rooms
-of *"You are in a forest. Exits: n s e w."*
+So:
 
-⚠ **Cost it honestly.** This is the mine's `MineWarren` shape reused —
-carve, the keyed members, the derived reads — not new engine. But the
-mine carves *permanently* and a wanderer's transient rooms must not
-persist; and `hillside.yaml` today is a hand-authored path, so the
-first wood is the *in-between* author's case: a few clearings, a field
-around them.
+- **The forest is authored, and invariant.** Its Locality, its rooms,
+  its clearings and paths are written by an author and are the same
+  after every reboot. A clearing is a room because an author wrote one;
+  nothing carves rooms at runtime, and nothing turns a wood into a field
+  or a field into anything else. If authors ever want conversion of land
+  use at runtime, that is a system built then, on request — not here.
+- **The stand record is the one dynamic thing** — species mix and
+  standing volume over the wood, drawn down by felling and restored by
+  the increment, persisted the way the platform already persists a
+  holder. Its terminal state is **an empty forest**: the prose still
+  says trees, the record says there is nothing left to cut, and the
+  collier's baskets stop filling. That is the whole deforestation lesson
+  and it needs no conversion — a depleted seam is still a mine, and the
+  mine already works exactly this way.
+- **The lifecycle is abstracted to what a player can act on.** A
+  coppice is *cut → regrowing → ready* on a one-game-year rotation; a
+  standard is *sapling → mature* over fifteen, plus the deed of having
+  planted it. Two stages and an increment. Nothing per tree, no
+  succession model, no biome drift.
+- **The forest-as-field survives only as numbers rooms READ** — canopy
+  for the light model, species-by-site for what grows there, the
+  stand's volume — the way rooms already read a biome. It never creates
+  a room. *Getting lost* is a venue outcome an author writes (a lean on
+  the address walk, a room with no landmark), not an engine that
+  materializes wood off the path.
+- **Assarting** — the medieval clearing of woodland for farmland — is a
+  word the pedagogy teaches and a thing an *author* does when they write
+  a farm where the wood used to be. It is not a verb.
+
+**Why lenses 1 and 2 still choose this.** Honest (lens 1): darkness,
+concealment and the year the wood fails all derive from values the
+stand and the biome carry, nothing asserted in prose. Expressive (lens
+2): the ordinary case is a biome row, a stand row and a handful of
+clearings, no code; a second forest is a second Locality; and the
+bespoke case — the grove, the talking oak, the wood that will not let
+you leave — is an author's room, not an engine feature. ⚠ The
+antipattern it exists to make unwriteable is still the MUD forest —
+forty rooms of *"You are in a forest. Exits: n s e w."* — and the
+answer is fewer, better clearings over one stand, not a generator.
+
+⭐ **The doctrine underneath, worth carrying to every RGO:** expression
+is an **inelastic resource** — NetHack, Dwarf Fortress and the board
+games spend a fixed alphabet with great care — and the game's dynamism
+comes from *everyone being an author*, so the code is always changing,
+not from one codebase simulating every outcome. Abstract the parts of a
+lifecycle that are meaningful to the player and that the platform can
+persist and compute; leave the rest to the next author.
 
 ---
 
@@ -413,7 +425,8 @@ around them.
    estovers, assarting). Derivable throughout: a player who understands
    canopy predicts the dark; one who understands the increment predicts
    the year the wood fails. ⚠ **Gap:** wayfinding as a *Discipline* has
-   no home — `awareness` is close; decide at requirements.
+   no home — `awareness` is close; decide at requirements. Being lost
+   is authored, not generated.
 2. **Expression** — the ordinary case with no code: a biome row
    (`outdoor/forest`, canopy attenuation, humidity, the sound/smell
    MML), a Locality with a handful of clearings that have coords, a
@@ -461,8 +474,8 @@ industry first and letting the forest be its venue; the pass inverts
 that — *the forest is the venue and forestry is the mechanism by which
 it becomes anything else*. Conversion left the build (lens 2, the
 three-pack chain). The law left the build (lens 2, the covenant). The
-field-and-clearing structure entered it (lenses 1 and 2). Nothing else
-moved.
+stand-as-the-one-moving-thing entered it (lenses 1 and 2), and runtime
+land-use conversion was ruled out by the user. Nothing else moved.
 
 ## Scope guardrails
 
