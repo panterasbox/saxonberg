@@ -1930,13 +1930,16 @@ none visible to a refusal-shaped assertion:
    for a second reason. `reserves` is engine-written, so the class seeds
    an UNKEPT animal at `BORN_HUNGRY_SATIATION`.
 
-⚠ **Not this build's, found on the way:** every test-login character
-**leaves its aether implant in the room it walks out of** — on every
-traversal, in every room, and on this branch's HEAD *before* today's
-changes (the movement path is byte-identical to master). Likely chain:
-the cranial `occupy` fails silently at login (the species not warm — the
-same trap as #2, on the avatar), the implant stays loose in inventory,
-and traversal leaves a not-portable thing behind. Offered as a finding.
+✅ **Not this build's, found on the way, and FIXED here because it blocked
+the drive:** every character **left its aether implant on the floor of
+every room it walked INTO** — the `Mobile.traverse` / `teleport`
+*conveyance ripple* moved every slot occupant of the mover into the
+destination room. Right for a rider standing in the room on a mount's
+slot; wrong for anything worn or wielded, which is in the mover's own
+contents and had already moved. The ripple now skips an occupant whose
+container is the mover. On master (the movement path was byte-identical);
+found only because the drive walked a character around and looked at the
+floor. `Mobile.teleport-ripple.test` carries the worn-gear case.
 
 ⚠ **A census for the sweep:** eleven other stacks compose
 `PostRegistrationMixin` above a layer — `FixtureMixin`, `Character` —
