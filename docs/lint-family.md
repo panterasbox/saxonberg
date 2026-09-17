@@ -415,22 +415,34 @@ Asking an object you already hold for its own contents is the
 charge inside the clamp, `counter.getContents()` for what is on the
 shelf.
 
-**Census 14 → 2, in the build that wrote the gate.**
+**Census 14 → 0, in the build that wrote the gate**, in three kinds of
+fix — and each names a different thing that was missing:
 
-Five fell to things MQL could already say (a good by keyword, a fixture
-by class or mixin). ⭐ Seven more fell to a thing it could *not* say
-until the same build taught it — **`[capability.X]`**. Every one of
-those asked *"which thing here can do job Y"* (the digging spade, the
-surveying instrument, the whetstone, the timber set, the upkeep kit) and
-the bracket vocabulary had only *kinds of thing*; `[mixin.ToolMixin]`
-would have bound any tool and then failed the verb's own check, which is
-why declaring an arg was not available before the atom existed.
+1. **Five were expressible all along.** `check` and `consign` hand-rolled
+   a keyword match against inventory — the binder's own job — three lines
+   below a comment saying the *rack* was "bound by the view, not hunted
+   for here". `char`, `stake` and `smelt` wanted a fixture by class or
+   mixin.
+2. ⭐ **Seven needed a word the query language did not have.** Every one
+   asked *"which thing here can do job Y"* and the bracket vocabulary had
+   only kinds of thing, so **`[capability.X]`** was added to close them.
+   Before it, declaring an arg would have bound any tool at all and then
+   failed the verb's own check — the "fix" would have been a regression.
+3. ⭐⭐ **Two needed a different SHAPE of arg.** `scry`'s instrument was
+   an *option* (options carry no `default:`), and its walk did something
+   a singular arg could not survive: **try each candidate until one can
+   reach *this* target**. `type: objects` keeps both — the binder
+   resolves every candidate, the controller asks each about the pair.
 
-⚠ **The two that remain are not the same defect.** Both are `scry`'s
-`canScryFor(target).ok` — a question about a **pairing**, not about the
-instrument, so no filter atom helps. Closing them means changing scry's
-grammar (`with` is an option, and options carry no `default:`), which is
-a design decision rather than a refactor.
+⭐ **The general lesson.** When resolution looks like it has to live in a
+controller, the honest question is usually *what can the view not say
+yet* — a missing atom, or a plural — rather than *this one is special*.
+
+⚠ A controller may still narrow on **state** after the binder resolves
+**identity**: `bake` checks lit + fuelled, `sharpen` checks unbroken,
+`scry` checks reach. No predicate expresses those, and pretending one
+could would be the worse lie. The gate watches for the walk, not the
+check.
 
 ### `lint:verb-collisions` — two views, one verb, and one of them is gone (2026-09)
 

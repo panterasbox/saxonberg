@@ -344,9 +344,26 @@ atom exists for exactly this — see
 predicate cannot express: `bake` resolves on `FurnaceMixin` and then
 checks *lit, fuelled, and a chamber*, because no mixin means "lit".
 
+⭐⭐ **And when one arg cannot carry it, reach for a PLURAL — not a
+walk.** `scry` needs *the instrument that can reach this target*, which
+is a question about the pair; a singular bind would pick one and lose the
+trying. `type: objects` with the same MQL default hands the controller
+every candidate, and it asks each:
+
+```yaml
+- name: with
+  type: objects
+  default: "reachable:[mixin.ScryableMixin]"
+```
+
+⚠ A controller may still narrow on **state** after the binder resolves
+**identity** — `bake` checks lit + fuelled, `sharpen` checks unbroken,
+`scry` checks reach. No predicate expresses those.
+
 Asking an object you already hold for its own contents is a different
 thing and is always fine (`pit.getContents()` for the charge in the
-clamp). Enforced by `pnpm lint:instrument-args` (census-then-ratchet).
+clamp). Enforced by `pnpm lint:instrument-args`, **at zero**: no shipped
+controller hunts for an instrument.
 
 ## An Api May Not Hand Back Its Table
 
