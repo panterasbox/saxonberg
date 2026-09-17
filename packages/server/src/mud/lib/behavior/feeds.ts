@@ -24,6 +24,24 @@
  * HAND credits the hand. That asymmetry is the design: the one thing you
  * cannot delegate is attention.
  *
+ * ⭐⭐ **Two things the animal does, not the keeper (review round 8).**
+ *
+ * **It steps back.** Below `steady` it eats off the ground or from a bowl
+ * only when every person in the room is one it knows
+ * (`Bonded.feelsSafeToEatAmong`). "It waits until you step back" was a
+ * sentence over a brain that ate on cadence with you standing over it;
+ * now the sentence is true, and the loop it promises — set it down, walk
+ * away, come back, it is gone — exists.
+ *
+ * **It asks.** Hungry, nothing to eat, somebody here: it goes to whoever
+ * is present — the one it likes best if there are several, a stranger if
+ * that is who there is — and makes it known, once, on the transition.
+ * This is the flip from a pet you act ON to an animal with needs you
+ * RESPOND to: the verbs answer the ask. ⚠ Only a STAMPED animal asks,
+ * because asking reads hunger and a hunger read reconciles — the guard
+ * above. The lane's stray does not beg because, by the same guard, it
+ * does not get hungry; when the lane has a food source, both go together.
+ *
  * config: none.
  */
 
@@ -59,20 +77,58 @@ export const brain = class {
     // animal fed identically and the difference between a bird and an ox
     // was nothing at all.
     const here = [...room.getContents()];
+    const people = here.filter(
+      (t) =>
+        t !== (host as unknown as Stuff) &&
+        (MixinApi.isHasInteractive(t) || MixinApi.isPersona(t)),
+    );
     const fromVessel = foodInVessel(here, host);
     const loose = host.feedsBy('ground')
       ? (here.find((t) => t !== (host as unknown as Stuff) && edible(t)) ??
         null)
       : null;
-    const food = fromVessel ?? loose ?? null;
+    const found = fromVessel ?? loose ?? null;
+    // The step-back rule: food it will not go to with these people here
+    // is, for this beat, no food.
+    const food = found && host.feelsSafeToEatAmong(people) ? found : null;
 
     // ⚠⚠ THE GUARD. Nothing to eat and nobody owns it: leave without
     // reading metabolism at all. See the class doc.
     if (!food) {
       if (!(MixinApi.isChattel(host) && host.isStamped())) return;
       if (MixinApi.isOrganism(host)) host.reconcileSenescence();
+      // The ask — hungry, nothing it can get at, somebody here. Never while
+      // food it is only WAITING on lies there: it waits, it does not beg.
+      if (found || !host.isHungry() || people.length === 0) {
+        host.setAskingOf(null);
+        return;
+      }
+      const target = people.reduce((best, p) =>
+        MixinApi.isBeliefStore(host) &&
+        host.regardFor(p) > host.regardFor(best)
+          ? p
+          : best,
+      );
+      if (host.setAskingOf(target)) {
+        const feeder = emptyFeeder(here, host);
+        MessageApi.scene(host)
+          .topic('act.deed')
+          .toTarget(
+            target,
+            feeder
+              ? Mml.compose`${Mml.actor(host)} goes to the empty ${Mml.thing(feeder)} and looks up at you.`
+              : Mml.compose`${Mml.actor(host)} comes and sits at your feet, looking up at you.`,
+          )
+          .toPeers(
+            feeder
+              ? Mml.compose`${Mml.actor(host)} goes to the empty ${Mml.thing(feeder)} and looks up at ${Mml.actor(target)}.`
+              : Mml.compose`${Mml.actor(host)} goes to ${Mml.actor(target)} and sits at their feet, looking up.`,
+          )
+          .send();
+      }
       return;
     }
+    host.setAskingOf(null);
 
     const refusal = host.wouldEat(food);
     if (refusal) {
@@ -107,6 +163,16 @@ export const brain = class {
 /** ⭐ The thing answers. See `Tangible.isEdible`. */
 function edible(thing: Stuff): boolean {
   return MixinApi.isTangible(thing) && thing.isEdible();
+}
+
+/** A feeder of this animal's rung with nothing in it — where it goes to ask. */
+function emptyFeeder(here: readonly Stuff[], host: Stuff & Bonded): Stuff | null {
+  for (const thing of here) {
+    if (!MixinApi.isFeeder(thing)) continue;
+    if (!host.feedsBy(thing.getFeederKind())) continue;
+    if (thing.offerings().length === 0) return thing;
+  }
+  return null;
 }
 
 /**

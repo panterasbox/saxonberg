@@ -18,6 +18,7 @@ import { PersonaMixin } from '../../character/Persona';
 import { OrganismMixin } from '../../species/Organism';
 import { NamedMixin } from '../../description/Named';
 import { VisibleMixin } from '../../description/Visible';
+import { PerceptibleMixin } from '../../description/Perceptible';
 import { PerceptionMixin } from '../../perception/Perception';
 import { SensorMixin } from '../../message/Sensor';
 import { ContainableMixin } from '../../spatial/Containable';
@@ -30,13 +31,15 @@ class Stranger extends BeliefStoreMixin(
 ) {}
 
 /** An animal: a body with a name, and no persona. */
-class Animal extends VisibleMixin(
-  OrganismMixin(NamedMixin(ContainableMixin(Idea))),
+class Animal extends PerceptibleMixin(
+  VisibleMixin(OrganismMixin(NamedMixin(ContainableMixin(Idea)))),
 ) {}
 
 /** A person: the same, plus the thing that makes somebody a somebody. */
 class Person extends PersonaMixin(
-  VisibleMixin(OrganismMixin(NamedMixin(ContainableMixin(Idea)))),
+  PerceptibleMixin(
+    VisibleMixin(OrganismMixin(NamedMixin(ContainableMixin(Idea)))),
+  ),
 ) {}
 
 let n = 0;
@@ -68,5 +71,35 @@ describe('a stranger reading a name', () => {
     stray.setShortDescription('thin cat');
     expect(stray.describeFor(viewer)).not.toBe('Mouse');
     expect(stray.describeFor(viewer)).toContain('thin cat');
+  });
+});
+
+describe('⭐ a named animal is still targetable as what it is', () => {
+  it('`cat` still reaches Mouse — the authored keywords survive the name', () => {
+    // Found live: the moment she was named, `look cat` found nothing. An
+    // organism's targeting handles are the tokens of what the viewer
+    // perceives — right for a person in a hood, wrong for an animal.
+    const viewer = makeStuffAtPath(() => new Stranger(), `/v/${n++}`);
+    const mouse = makeStuffAtPath(() => new Animal(), `/stuff/agent/cat-${n++}`);
+    mouse.setName('Mouse');
+    mouse.setShortDescription('thin cat');
+    mouse.addKeyword('cat');
+    mouse.addKeyword('stray');
+    const kws = mouse.perceivedKeywordsFor(viewer);
+    expect(kws).toContain('mouse');
+    expect(kws).toContain('cat');
+  });
+
+  it('⚠ a PERSON is targetable only by what you perceive them as', () => {
+    const viewer = makeStuffAtPath(() => new Stranger(), `/v/${n++}`);
+    const bob = makeStuffAtPath(() => new Person(), `/obj/npc/bob-${n++}`);
+    bob.setName('Bob');
+    bob.setShortDescription('tall stranger');
+    bob.addKeyword('bob');
+    bob.addKeyword('smuggler');
+    const kws = bob.perceivedKeywordsFor(viewer);
+    expect(kws).not.toContain('bob');
+    expect(kws).not.toContain('smuggler');
+    expect(kws).toContain('stranger');
   });
 });

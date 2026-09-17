@@ -82,6 +82,11 @@ interface AnimalOpts {
   stamped?: boolean;
   refusal?: string | null;
   in?: FakeRoom;
+  /** Would it eat off the ground with these people here? Default yes. */
+  safe?: boolean;
+  hungry?: boolean;
+  /** Regard by person stuffId; unknown people are 0. */
+  regard?: Record<string, number>;
 }
 
 function animal(o: AnimalOpts = {}) {
@@ -90,6 +95,7 @@ function animal(o: AnimalOpts = {}) {
   const credited: { place: string; day: number }[] = [];
   const remembered: string[] = [];
   let senescenceChecked = 0;
+  let asking: Stuff | null = null;
   return {
     stuffId: 'beast',
     getContainer: () => (o.in ? R(o.in) : null),
@@ -114,13 +120,36 @@ function animal(o: AnimalOpts = {}) {
     reconcileSenescence: () => {
       senescenceChecked += 1;
     },
+    feelsSafeToEatAmong: () => o.safe ?? true,
+    isHungry: () => o.hungry ?? false,
+    regardFor: (p: Stuff) => o.regard?.[p.stuffId] ?? 0,
+    askingOf: () => asking,
+    setAskingOf: (p: Stuff | null) => {
+      if (asking === p) return false;
+      asking = p;
+      return true;
+    },
     // test probes
+    _asking: () => asking,
     _followed: followed,
     _ate: ate,
     _credited: credited,
     _remembered: remembered,
     _senescence: () => senescenceChecked,
   } as unknown as Stuff & Record<string, never>;
+}
+
+/** The fake's probes, typed. */
+type Probe = {
+  _asking: () => Stuff | null;
+  _ate: unknown[];
+  _senescence: () => number;
+};
+const probe = (a: unknown): Probe => a as Probe;
+
+/** Somebody standing in the room. */
+function person(id: string): Stuff {
+  return { stuffId: id, __person: true, isEdible: () => false } as unknown as Stuff;
 }
 
 /** A thing made of something an animal would eat. ⭐ It answers itself. */
@@ -143,8 +172,10 @@ function ctx(host: Stuff, subject?: Stuff, config = {}): BrainContext {
 }
 
 let sent: string[] = [];
+let told: { to: string; line: string }[] = [];
 beforeEach(() => {
   sent = [];
+  told = [];
   cache.clear();
   for (const p of [
     'isBonded',
@@ -158,6 +189,11 @@ beforeEach(() => {
     vi.spyOn(MixinApi, p).mockReturnValue(true as never);
   }
   vi.spyOn(MixinApi, 'isHazard').mockReturnValue(false);
+  vi.spyOn(MixinApi, 'isHasInteractive').mockImplementation(
+    ((s: Stuff) => !!(s as unknown as { __person?: boolean }).__person) as never,
+  );
+  vi.spyOn(MixinApi, 'isPersona').mockReturnValue(false as never);
+  vi.spyOn(MixinApi, 'isBeliefStore').mockReturnValue(true as never);
   vi.spyOn(MixinApi, 'isFeeder').mockReturnValue(false);
   vi.spyOn(MixinApi, 'isTangible').mockReturnValue(false);
   vi.spyOn(LocomotionApi, 'traverseWithDefault').mockResolvedValue(
@@ -172,19 +208,22 @@ beforeEach(() => {
   vi.spyOn(Mml, 'compose').mockImplementation(
     ((strings: TemplateStringsArray) => strings.raw.join(' ')) as never,
   );
-  vi.spyOn(MessageApi, 'scene').mockImplementation(
-    () =>
-      ({
-        topic: () => ({
-          toPeers: (b: unknown) => {
-            sent.push(String(b));
-            return { send: () => {} };
-          },
-          toSelf: () => ({ send: () => {} }),
-          send: () => {},
-        }),
-      }) as never,
-  );
+  vi.spyOn(MessageApi, 'scene').mockImplementation(() => {
+    const chain = {
+      topic: () => chain,
+      toPeers: (b: unknown) => {
+        sent.push(String(b));
+        return chain;
+      },
+      toTarget: (t: Stuff, b: unknown) => {
+        told.push({ to: t.stuffId, line: String(b) });
+        return chain;
+      },
+      toSelf: () => chain,
+      send: () => {},
+    };
+    return chain as never;
+  });
 });
 afterEach(() => vi.restoreAllMocks());
 
@@ -313,6 +352,92 @@ describe('feeds', () => {
 });
 
 /* ────────────────────────────── homes ────────────────────────────── */
+
+describe('feeds — ⭐⭐ the step-back rule is a mechanism', () => {
+  it('⚠ does not eat off the ground with somebody it distrusts standing over it', async () => {
+    vi.spyOn(MixinApi, 'isTangible').mockReturnValue(true);
+    const here = room('lane', [edibleThing('scrap'), person('stranger')]);
+    const a = animal({ in: here, stamped: true, safe: false });
+    await feeds.act(ctx(a));
+    expect(probe(a)._ate).toHaveLength(0);
+  });
+
+  it('eats once the room is one it feels safe in', async () => {
+    vi.spyOn(MixinApi, 'isTangible').mockReturnValue(true);
+    const here = room('lane', [edibleThing('scrap')]);
+    const a = animal({ in: here, stamped: true, safe: true });
+    await feeds.act(ctx(a));
+    expect(probe(a)._ate).toHaveLength(1);
+  });
+
+  it('⚠ waiting on food is not begging — food it will not go to is left, nobody is asked', async () => {
+    vi.spyOn(MixinApi, 'isTangible').mockReturnValue(true);
+    const here = room('lane', [edibleThing('scrap'), person('stranger')]);
+    const a = animal({ in: here, stamped: true, safe: false, hungry: true });
+    await feeds.act(ctx(a));
+    expect(probe(a)._asking()).toBeNull();
+    expect(told).toHaveLength(0);
+  });
+});
+
+describe('feeds — ⭐⭐ it asks', () => {
+  it('hungry, nothing to eat, somebody here: it goes to them, and says so ONCE', async () => {
+    const bob = person('bob');
+    const here = room('lane', [bob]);
+    const a = animal({ in: here, stamped: true, hungry: true });
+    await feeds.act(ctx(a));
+    expect(probe(a)._asking()).toBe(bob);
+    expect(told).toEqual([
+      { to: 'bob', line: expect.stringContaining('at your feet') },
+    ]);
+    await feeds.act(ctx(a));
+    expect(told).toHaveLength(1); // the transition, not the cadence
+  });
+
+  it('⭐ begs from WHOEVER is present — a stranger, if that is who there is', async () => {
+    const stranger = person('stranger');
+    const here = room('lane', [stranger]);
+    const a = animal({ in: here, stamped: true, hungry: true, regard: {} });
+    await feeds.act(ctx(a));
+    expect(probe(a)._asking()).toBe(stranger);
+  });
+
+  it('and the one it likes best, when there are several', async () => {
+    const stranger = person('stranger');
+    const friend = person('friend');
+    const here = room('lane', [stranger, friend]);
+    const a = animal({
+      in: here,
+      stamped: true,
+      hungry: true,
+      regard: { friend: 30 },
+    });
+    await feeds.act(ctx(a));
+    expect(probe(a)._asking()).toBe(friend);
+  });
+
+  it('stops asking when it is not hungry, or nobody is here, or it eats', async () => {
+    vi.spyOn(MixinApi, 'isTangible').mockReturnValue(true);
+    const bob = person('bob');
+    const here = room('lane', [bob]);
+    const a = animal({ in: here, stamped: true, hungry: true });
+    await feeds.act(ctx(a));
+    expect(probe(a)._asking()).toBe(bob);
+    here.contents.push(edibleThing('scrap'));
+    await feeds.act(ctx(a));
+    expect(probe(a)._ate).toHaveLength(1);
+    expect(probe(a)._asking()).toBeNull();
+  });
+
+  it('⚠⚠ an UNSTAMPED animal never asks — asking reads hunger, and the guard comes first', async () => {
+    const bob = person('bob');
+    const here = room('lane', [bob]);
+    const a = animal({ in: here, stamped: false, hungry: true });
+    await feeds.act(ctx(a));
+    expect(probe(a)._asking()).toBeNull();
+    expect(probe(a)._senescence()).toBe(0);
+  });
+});
 
 describe('homes — it knows the way, it does not solve a graph', () => {
   it('⭐ steps toward home when home is next door', async () => {

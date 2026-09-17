@@ -12,11 +12,17 @@
  * a bowl can never substitute for, because the animal knows the
  * difference between food and *you*.
  *
- * ⚠ Below the touch band it will not take from a hand at all. The food
- * is set down instead and left as a pending offer for the next beat —
- * *it waits until you step back* — which is exactly how you feed
- * something that does not trust you yet, and is the first rung of the
- * ladder that ends in it following you home.
+ * ⭐⭐ **The animal answers on one of three rungs** (`Bonded.offerRung`),
+ * deterministic from how it is with people and how it is with YOU:
+ *
+ * - `hand` — it takes it, now.
+ * - `approach` — you hold still for `APPROACH_MS` (an engagement on your
+ *   hands, `OfferEngagement`) and it comes to you. Move, and it doesn't.
+ *   ⭐ This is the taming scene; before it existed the offer resolved in
+ *   zero time and there was no moment in which the animal decided.
+ * - `after-you-go` — the food is set down and it eats once nobody it
+ *   distrusts is standing over it (`feeds`' step-back rule, which is a
+ *   mechanism now and not a sentence).
  *
  * ⚠⚠ **Every refusal is the same shape on purpose.** Not hungry, turned,
  * or something only its nose can find — the animal sniffs and declines,
@@ -33,7 +39,8 @@ import { MessageApi } from '../../../../api/message';
 import { MixinApi } from '../../../../api/mixin';
 import { Mml } from '../../../../api/mml';
 import { ContainmentApi } from '../../../../api/containment';
-import { TOUCH_BAND } from '../../../../lib/husbandry/Bonded';
+import { SchedulerApi } from '../../../../api/scheduler';
+import { OfferEngagement } from '../../../../lib/husbandry/OfferEngagement';
 
 const TOPIC = 'act.deed';
 
@@ -63,19 +70,14 @@ export default class OfferController extends CommandController<OfferModel> {
       return;
     }
 
-    // ⚠⚠ **Two different reasons a hand does not work**, and they are
-    // not the same thing at all.
-    //
-    // `tooWild` is about THIS animal and it lifts: feed it where it can
-    // reach after you step back, and it climbs. ⭐ `noHandRung` is about
-    // the SPECIES and never lifts — a canary will not take food from a
-    // hand however devoted it is, which is why the feeding-style axis
-    // exists. Both set the food down rather than refusing, because an
-    // animal that cannot be hand-fed can still be fed.
-    const tooWild =
-      !MixinApi.isHandling(animal) || !animal.handlingAtLeast(TOUCH_BAND);
-    const noHandRung = !animal.feedsBy('hand');
-    if (tooWild || noHandRung) {
+    const rung = animal.offerRung(actor);
+
+    if (rung === 'after-you-go') {
+      // Set down rather than refused — an animal that will not take from
+      // a hand can still be fed, and for a wild one this is the bottom
+      // rung of the whole ladder. ⚠ Two reasons land here and only one
+      // lifts: THIS animal not trusting you (feed it, and it climbs), or
+      // its SPECIES having no `hand` rung (a canary never will).
       const room = MixinApi.isContainable(animal) ? animal.getContainer() : null;
       if (room && MixinApi.isContainable(food) && MixinApi.isContainer(room)) {
         await ContainmentApi.move(food, room);
@@ -87,13 +89,16 @@ export default class OfferController extends CommandController<OfferModel> {
         .send();
       context.note({
         kind: 'controller-rejected',
-        reason: noHandRung ? 'no-hand-rung' : 'too-wild-for-a-hand',
+        reason: animal.feedsBy('hand') ? 'too-wild-for-a-hand' : 'no-hand-rung',
         detail: animal.stuffId,
       });
       return;
     }
 
-    // ⭐ ONE sentence for every remaining refusal. See the class doc.
+    // ⭐ ONE sentence for every refusal of the FOOD, and only from an
+    // animal close enough to sniff it — a wild one is not, so its food
+    // went on the floor above and the brain decides later. See the class
+    // doc.
     if (refusal) {
       MessageApi.scene(actor)
         .topic(TOPIC)
@@ -101,6 +106,39 @@ export default class OfferController extends CommandController<OfferModel> {
         .toPeers(Mml.compose`${Mml.actor(animal)} sniffs at what ${Mml.actor(actor)} offers and turns away.`)
         .send();
       context.note({ kind: 'controller-rejected', reason: refusal, detail: '' });
+      return;
+    }
+
+    if (rung === 'approach') {
+      // ⭐⭐ The taming scene. Your hands are busy for `APPROACH_MS`; keep
+      // still and it comes. What happens at the end is the engagement's.
+      if (!MixinApi.isEngaged(actor)) {
+        this.say(context, actor, `You cannot hold anything out.`, 'not-engaged');
+        return;
+      }
+      const result = SchedulerApi.start(
+        new OfferEngagement({ actor, animal, food }),
+      );
+      if (result.ok && (result.status === 'started' || result.status === 'replaced')) {
+        context.note(result.note);
+        MessageApi.scene(actor)
+          .topic(TOPIC)
+          .toSelf(Mml.compose`You hold ${Mml.thing(food)} out and keep still. ${Mml.actor(animal)} watches your hand.`)
+          .toPeers(Mml.compose`${Mml.actor(actor)} holds ${Mml.thing(food)} out toward ${Mml.actor(animal)} and keeps still.`)
+          .send();
+        return;
+      }
+      if (result.ok && result.status === 'completed-sync') return;
+      if (!result.ok && result.reason === 'engagement-conflict') {
+        this.say(context, actor, `Your hands are busy with something else.`, 'engagement-conflict');
+        return;
+      }
+      this.say(
+        context,
+        actor,
+        `You can't hold it out just now.`,
+        'start-rejected',
+      );
       return;
     }
 

@@ -468,7 +468,18 @@ function perceivedKeywordsImpl(viewer: Stuff, target: Stuff): string[] {
     // form) even though the prose (`describe`) drops them, so `look vest`
     // resolves a stranger the roll-call prose names only "a crossing
     // guard". Status is not a targeting handle, so `withStatus` stays off.
-    return GrammarApi.tokenize(describeCore(viewer, target, 'distinguishing'));
+    const perceived = GrammarApi.tokenize(
+      describeCore(viewer, target, 'distinguishing'),
+    );
+    // ⭐ An ANIMAL keeps its authored keywords too: a named cat is still a
+    // cat, and `pet cat` must reach Mouse. A person does not — what you
+    // may target somebody by is exactly what you perceive them as, which
+    // is the whole of disguise (found live: `look cat` found nothing the
+    // moment she had a name).
+    if (!MixinApi.isPersona(target) && MixinApi.isPerceptible(target)) {
+      return [...new Set([...perceived, ...target.getKeywords()])];
+    }
+    return perceived;
   }
   return MixinApi.isPerceptible(target) ? target.getKeywords() : [];
 }

@@ -46,6 +46,7 @@ import type { CommandContributions } from '../../api/command';
 import { BulkableApi } from '../../api/bulk';
 import { StuffApi } from '../../api/stuff';
 import { PersistableApi } from '../../api/persistable';
+import { SpeciesApi } from '../../api/species';
 import { METABOLIC_DEFAULTS } from '../metabolism/Metabolic';
 
 /**
@@ -117,6 +118,35 @@ export const TRAIL_LENGTH = 16;
  * green, because the collie ships at 0.55 and was already over the line.
  */
 export const FEED_HANDLING_QUALITY = 0.25;
+/**
+ * Satiation below which an animal is HUNGRY enough to ask — to go to
+ * whoever is present and make it known. Below `SURPLUS_SATIATION` it
+ * will eat; below this it will beg.
+ */
+export const HUNGRY_SATIATION = 40;
+/**
+ * The regard at which an animal treats a person as KNOWN — a wary one will
+ * eat with them in the room, take from their hand, come to them. One
+ * hand-feed while hungry, or two while half-full.
+ */
+export const TRUSTED_REGARD = 10;
+/**
+ * How long a held-out hand takes before a cautious animal comes to it. The
+ * offer is an engagement on the OFFERER for this long: keep still, and it
+ * comes; move, and it does not.
+ */
+export const APPROACH_MS = 6_000;
+/**
+ * ⭐ Satiation an UNKEPT animal is born at. A stray is thin because it is
+ * hungry; a body seeded at full and then guarded from ever reconciling
+ * (the `feeds` brain's guard — an unstamped animal reads no metabolism
+ * while nothing is there to eat) would be a thin cat that never wants a
+ * meal, and the ladder's bottom rung — leave food, step back, it eats —
+ * would never be reachable on the lane. `reserves` is engine-written, so
+ * the row cannot say this; the class does. A kept animal restores its
+ * own reserves from its record over this.
+ */
+export const BORN_HUNGRY_SATIATION = 30;
 /** One mouthful, shared with the `eat` verb so a meal is a meal. */
 const EAT_PORTION_LITRES = METABOLIC_DEFAULTS.EAT_PORTION_LITRES;
 
@@ -147,6 +177,24 @@ const NOSE_THRESHOLD: Record<string, number | null> = {
  */
 export type FoodRefusal = 'not-edible' | 'not-hungry' | 'turned' | 'sensed-bad';
 
+/**
+ * ⭐⭐ **How an animal answers a held-out hand** — the appraisal, and it is
+ * a closed vocabulary of things it DOES, not a number. Deterministic from
+ * two things the engine already measures (its handling band, its regard
+ * for this person) and the species' feeding rungs; never a roll.
+ *
+ * - `hand` — takes it from your hand, now.
+ * - `approach` — comes to you if you hold still (`APPROACH_MS`); the
+ *   taming scene, and the rung every kept animal was tamed on.
+ * - `after-you-go` — you set it down; it eats when nobody it distrusts
+ *   is standing over it.
+ *
+ * Whether it would eat the food AT ALL is `wouldEat`'s — a separate
+ * question with a separate one-sentence answer, so a refusal never
+ * says which.
+ */
+export type OfferRung = 'hand' | 'approach' | 'after-you-go';
+
 /** The three sentences an animal's bearing says toward the viewer. */
 const BOND_PHRASE = {
   off: 'It moves off as you look at it.',
@@ -164,6 +212,14 @@ function bondAugmenter(text: string, host: Stuff, viewer: Stuff): string {
   if (!MixinApi.isBonded(host) || host.isDestroyed()) return text;
   const lines: string[] = [];
   if (MixinApi.isHandling(host)) lines.push(host.handlingPhrase());
+  const asking = host.askingOf();
+  if (asking && !asking.isDestroyed()) {
+    lines.push(
+      asking === viewer
+        ? 'It is at your feet, looking up at you.'
+        : `It is at ${asking.getPresentation()}'s feet, looking up.`,
+    );
+  }
   if (viewer) {
     const bond = host.bondWith(viewer);
     lines.push(
@@ -206,6 +262,19 @@ export interface Bonded {
   eatFood(food: Stuff, offerer: Stuff | null): Promise<boolean>;
   /** Does this animal's species feed by `style`? */
   feedsBy(style: FeedingStyle): boolean;
+  /** How it answers `person`'s held-out hand. See {@link OfferRung}. */
+  offerRung(person: Stuff): OfferRung;
+  /** Is it hungry enough to ask? (`HUNGRY_SATIATION`) */
+  isHungry(): boolean;
+  /**
+   * Would it eat off the ground with these people in the room? A steady
+   * animal eats in front of anyone; a wary one only among people it knows.
+   */
+  feelsSafeToEatAmong(present: readonly Stuff[]): boolean;
+  /** Who it is currently asking for food, if anyone. Transient. */
+  askingOf(): Stuff | null;
+  /** Set (or clear) who it is asking. Returns true if that CHANGED. */
+  setAskingOf(person: Stuff | null): boolean;
 }
 
 export function BondedMixin<TBase extends MixinConstructor>(Base: TBase) {
@@ -260,6 +329,8 @@ export function BondedMixin<TBase extends MixinConstructor>(Base: TBase) {
     public waiting = false;
     /** Who it has followed home — the gate on being allowed to name it. */
     public followedKeys: string[] = [];
+    /** Who it is asking for food. Transient — a live ref, never persisted. */
+    private _askingOf: Stuff | null = null;
     /** The room it is being fed in, and how many distinct days so far. */
     public homeCandidate = '';
     public homeCandidateDays = 0;
@@ -314,8 +385,41 @@ export function BondedMixin<TBase extends MixinConstructor>(Base: TBase) {
         }
       ).postRegister;
       if (typeof sup === 'function') await sup.call(this, context);
-      if (this.home) return;
       const self = this as unknown as Stuff;
+      // ⭐⭐ Warm its own species. Every dial the bond reads — `feedingStyle`,
+      // `biddability`, `handlingRange` — is on a lazy-loaded Species row,
+      // and `getSpecies()` is a live-only lookup. `requiresAnimate` warms
+      // the ACTOR's species, never the animal's, so in the live game every
+      // dial read as ABSENT: no hand rung, not askable, the default range
+      // — and every refusal-shaped assertion passed anyway (found live:
+      // `offer` to a cat answered `no-hand-rung`). Self-warming at birth,
+      // once, rather than a preload at every one of eight read sites.
+      if (MixinApi.isOrganism(self)) {
+        try {
+          await SpeciesApi.preloadAnatomy(self);
+        } catch (err) {
+          console.warn(`BondedMixin: species preload failed for ${self.getTemplatePath()}:`, err);
+        }
+      }
+      // Born hungry, if nobody keeps it yet (`BORN_HUNGRY_SATIATION`). A
+      // restore overwrites this from the record, so a kept animal comes
+      // back as fed as it was.
+      if (
+        MixinApi.isReserved(self) &&
+        !(MixinApi.isChattel(self) && self.isStamped())
+      ) {
+        const satiation = self.getReserve('satiation');
+        if (satiation) {
+          const level = satiation.current.rawValue();
+          if (level > BORN_HUNGRY_SATIATION) {
+            self.adjustReserve(
+              'satiation',
+              satiation.current.scale((BORN_HUNGRY_SATIATION - level) / level),
+            );
+          }
+        }
+      }
+      if (this.home) return;
       if (!MixinApi.isContainable(self)) return;
       const room = self.getContainer();
       if (!room) return;
@@ -332,6 +436,74 @@ export function BondedMixin<TBase extends MixinConstructor>(Base: TBase) {
       const self = this as unknown as Stuff;
       if (!MixinApi.isOrganism(self)) return false;
       return self.getSpecies()?.feedsBy(style) ?? false;
+    }
+
+    /**
+     * See {@link OfferRung}. The two factors are the bond's two factors:
+     * handling says how it is with PEOPLE, regard says how it is with
+     * YOU — and each can stand in for the other one rung. A steady animal
+     * takes from any hand; a wary one from a hand it knows; a flighty one
+     * comes to a hand it knows if that hand keeps still. Somebody who has
+     * made it ill (regard below zero) is a stranger again, whatever the
+     * band. Species-shaped through `handlingRange`: a canary's ceiling
+     * never reaches `steady`, and a species with no `hand` rung answers
+     * `after-you-go` to everyone — a hopper bird does not eat from hands.
+     */
+    public offerRung(person: Stuff): OfferRung {
+      const self = this as unknown as Stuff;
+      if (!this.feedsBy('hand')) return 'after-you-go';
+      if (!MixinApi.isHandling(self)) return 'after-you-go';
+      const regard = MixinApi.isBeliefStore(self) ? self.regardFor(person) : 0;
+      if (regard < 0) return 'after-you-go';
+      const known = regard >= TRUSTED_REGARD;
+      if (self.handlingAtLeast('steady')) return 'hand';
+      if (self.handlingAtLeast('wary')) return known ? 'hand' : 'approach';
+      if (self.handlingAtLeast('flighty') && known) return 'approach';
+      return 'after-you-go';
+    }
+
+    public isHungry(): boolean {
+      const self = this as unknown as Stuff;
+      if (!MixinApi.isReserved(self)) return false;
+      const satiation = self.getReserve('satiation');
+      return !!satiation && satiation.current.rawValue() < HUNGRY_SATIATION;
+    }
+
+    /** `[0,1]` — how far below surplus it is, read BEFORE a meal lands. */
+    private needDeficit(): number {
+      const self = this as unknown as Stuff;
+      if (!MixinApi.isReserved(self)) return 1;
+      const satiation = self.getReserve('satiation');
+      if (!satiation) return 1;
+      const level = satiation.current.rawValue();
+      return Math.max(0, Math.min(1, (SURPLUS_SATIATION - level) / SURPLUS_SATIATION));
+    }
+
+    /**
+     * ⭐ The step-back rule, as a mechanism rather than a sentence. "It
+     * waits until you step back" was prose over a brain that ate on
+     * cadence with you standing over it. Now: below `steady`, it eats off
+     * the ground only when every person in the room is one it knows.
+     */
+    public feelsSafeToEatAmong(present: readonly Stuff[]): boolean {
+      const self = this as unknown as Stuff;
+      if (!MixinApi.isHandling(self) || self.handlingAtLeast('steady')) {
+        return true;
+      }
+      if (!MixinApi.isBeliefStore(self)) return present.length === 0;
+      return present.every((p) => self.regardFor(p) >= TRUSTED_REGARD);
+    }
+
+    public askingOf(): Stuff | null {
+      if (this._askingOf?.isDestroyed()) this._askingOf = null;
+      return this._askingOf;
+    }
+
+    public setAskingOf(person: Stuff | null): boolean {
+      const before = this.askingOf();
+      if (before === person) return false;
+      this._askingOf = person;
+      return true;
     }
 
     public getTrail(): readonly string[] {
@@ -486,6 +658,9 @@ export function BondedMixin<TBase extends MixinConstructor>(Base: TBase) {
       const material = MixinApi.isTangible(food) ? food.getMaterial() : null;
       if (!material) return false;
       const payload = MixinApi.isFresh(food) ? food.ingestPayload() : null;
+      // Read the need BEFORE the meal lands — what it was worth, not what
+      // is left.
+      const deficit = this.needDeficit();
       const accepted = BulkableApi.ingestSolid(
         self,
         material,
@@ -494,6 +669,12 @@ export function BondedMixin<TBase extends MixinConstructor>(Base: TBase) {
       );
       if (accepted < EAT_PORTION_LITRES - 1e-9) return false;
 
+      // ⭐ Need paces the bond. What a meal from your hand is worth is how
+      // much it was NEEDED: a starving animal gives the whole of
+      // `HAND_FEED_REGARD`, one nearly full gives almost nothing — so
+      // affection cannot be farmed faster than the animal gets hungry,
+      // which is the relationship running at ITS pace. Being made ill is
+      // not hunger-weighted; that costs the same however hungry it was.
       if (offerer && MixinApi.isBeliefStore(self)) {
         // ⚠ Whether it HARMS is read from the food, before it is gone.
         const harmful =
@@ -501,7 +682,7 @@ export function BondedMixin<TBase extends MixinConstructor>(Base: TBase) {
           Object.values(food.getPathogenLoads()).some((v) => (v ?? 0) > 0);
         self.adjustRegard(
           offerer,
-          harmful ? ILL_FROM_HAND_REGARD : HAND_FEED_REGARD,
+          harmful ? ILL_FROM_HAND_REGARD : Math.round(HAND_FEED_REGARD * deficit),
         );
         if (MixinApi.isHandling(self)) self.handle(0.5);
       } else if (MixinApi.isHandling(self)) {

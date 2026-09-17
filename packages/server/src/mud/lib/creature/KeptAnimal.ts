@@ -21,9 +21,10 @@
  * ```
  * Persistable   it can be promoted to something the world remembers
  *   Behaved     it decides things: follows · feeds · homes
- *   PostRegistration  the clone-pipeline marker the brains wire under
  *     Bonded    the bond, the home, the verbs           ⟵ the point
  *       Status  legible attention ("watching the stock")
+ *       PostRegistration  the clone-pipeline marker — INNERMOST, its
+ *                         postRegister is a terminal no-op (see below)
  *       BeliefStore  its opinion of you — the bond's first factor
  *       Handling     how tractable it is — the second       ⟵ SIBLINGS
  *         Engaged    brain slot contention
@@ -81,10 +82,14 @@ const KeptAnimalBody = HandlingMixin(
   BeliefStoreMixin(EngagedMixin(MobileMixin(SensorMixin(NamedMixin(Creature))))),
 );
 
+// ⚠⚠ `PostRegistrationMixin` INNERMOST. Its `postRegister` is a terminal
+// no-op that never calls `super`, so every layer inside it is shadowed:
+// composed between `Behaved` and `Bonded`, as it shipped, `Bonded.postRegister`
+// never ran on a live animal — no home seeded, no species warmed — and
+// nothing above the fixtures could see it. `Creature` carries no
+// `postRegister`, so the chain terminates here harmlessly.
 const KeptAnimalBase = PersistableMixin(
-  BehavedMixin(
-    PostRegistrationMixin(BondedMixin(StatusMixin(KeptAnimalBody))),
-  ),
+  BehavedMixin(BondedMixin(StatusMixin(PostRegistrationMixin(KeptAnimalBody)))),
 );
 
 export class KeptAnimal extends KeptAnimalBase {

@@ -284,6 +284,134 @@ describe('⚠⚠ the ladder has a bottom rung', () => {
   });
 });
 
+describe('⭐⭐ offerRung — how it answers a held-out hand', () => {
+  const cat = () => species({ biddability: 0.1, floor: 0.15, ceiling: 0.9 });
+  const known = (a: Animal, p: Stuff) => a.adjustRegard(p, 10);
+
+  it('a steady animal takes from any hand', () => {
+    const a = animal(speciesFeeding(['hand', 'ground']));
+    a.handling = 0.7;
+    expect(a.offerRung(person('/platform/agent/Avatar/x'))).toBe('hand');
+  });
+
+  it('a wary one takes from a hand it KNOWS, and comes to one it does not', () => {
+    const a = animal(speciesFeeding(['hand', 'ground']));
+    a.handling = 0.5;
+    const stranger = person('/platform/agent/Avatar/s');
+    const friend = person('/platform/agent/Avatar/f');
+    known(a, friend);
+    expect(a.offerRung(stranger)).toBe('approach');
+    expect(a.offerRung(friend)).toBe('hand');
+  });
+
+  it('a flighty one comes to a hand it knows if it keeps still; a stranger sets it down', () => {
+    const a = animal(speciesFeeding(['hand', 'ground']));
+    a.handling = 0.3;
+    const stranger = person('/platform/agent/Avatar/s');
+    const friend = person('/platform/agent/Avatar/f');
+    known(a, friend);
+    expect(a.offerRung(stranger)).toBe('after-you-go');
+    expect(a.offerRung(friend)).toBe('approach');
+  });
+
+  it('a wild one: on the floor, whoever you are', () => {
+    const a = animal(speciesFeeding(['hand', 'ground']));
+    a.handling = 0.1;
+    const friend = person('/platform/agent/Avatar/f');
+    known(a, friend);
+    expect(a.offerRung(friend)).toBe('after-you-go');
+  });
+
+  it('⚠ somebody who made it ill is a stranger again, whatever the band', () => {
+    const a = animal(speciesFeeding(['hand', 'ground']));
+    a.handling = 0.9;
+    const poisoner = person('/platform/agent/Avatar/p');
+    a.adjustRegard(poisoner, -25);
+    expect(a.offerRung(poisoner)).toBe('after-you-go');
+  });
+
+  it('⭐ a species with no hand rung never takes from one — a hopper bird', () => {
+    const a = animal(speciesFeeding(['hopper']));
+    a.handling = 0.8;
+    expect(a.offerRung(person('/platform/agent/Avatar/x'))).toBe('after-you-go');
+  });
+
+  it('is a pure function of the dials — never a roll', () => {
+    const a = animal(cat());
+    a.handling = 0.5;
+    const p = person('/platform/agent/Avatar/x');
+    const first = a.offerRung(p);
+    for (let i = 0; i < 20; i++) expect(a.offerRung(p)).toBe(first);
+  });
+});
+
+describe('⭐ feelsSafeToEatAmong — the step-back rule', () => {
+  it('a steady animal eats in front of anyone', () => {
+    const a = animal();
+    a.handling = 0.7;
+    expect(a.feelsSafeToEatAmong([person('/platform/agent/Avatar/s')])).toBe(true);
+  });
+
+  it('a wary one waits while a stranger is in the room, and eats among people it knows', () => {
+    const a = animal();
+    a.handling = 0.5;
+    const stranger = person('/platform/agent/Avatar/s');
+    const friend = person('/platform/agent/Avatar/f');
+    a.adjustRegard(friend, 10);
+    expect(a.feelsSafeToEatAmong([stranger])).toBe(false);
+    expect(a.feelsSafeToEatAmong([friend])).toBe(true);
+    expect(a.feelsSafeToEatAmong([friend, stranger])).toBe(false);
+    expect(a.feelsSafeToEatAmong([])).toBe(true);
+  });
+});
+
+describe('⭐⭐ need paces the bond', () => {
+  beforeEach(() => {
+    vi.spyOn(MixinApi, 'isTangible').mockReturnValue(true as never);
+    vi.spyOn(BulkableApi, 'ingestSolid').mockReturnValue(999);
+    vi.spyOn(StuffApiForDestruct, 'destruct').mockResolvedValue(undefined as never);
+  });
+  afterEach(() => vi.restoreAllMocks());
+
+  function withSatiation(a: Animal, level: number): void {
+    vi.spyOn(MixinApi, 'isReserved').mockReturnValue(true as never);
+    (a as unknown as { getReserve: unknown }).getReserve = () => ({
+      current: { rawValue: () => level },
+    });
+  }
+
+  it.each([
+    [0, 10, 'starving: the whole of it'],
+    [35, 5, 'half: half'],
+    [69, 0, 'nearly full: nothing'],
+  ])('satiation %i → +%i regard (%s)', async (level, gain) => {
+    const a = animal();
+    const me = person('/platform/agent/Avatar/me');
+    withSatiation(a, level);
+    await a.eatFood(scrap(), me);
+    expect(a.regardFor(me)).toBe(gain);
+  });
+
+  it('⚠ being made ill costs the same however hungry it was', async () => {
+    const a = animal();
+    const me = person('/platform/agent/Avatar/me');
+    withSatiation(a, 69);
+    vi.spyOn(MixinApi, 'isContaminable').mockReturnValue(true as never);
+    const bad = Object.assign(scrap(), { getPathogenLoads: () => ({ x: 1 }) });
+    await a.eatFood(bad, me);
+    expect(a.regardFor(me)).toBe(-25);
+  });
+
+  it('isHungry is below HUNGRY_SATIATION, and never for an animal with no reserve', () => {
+    const a = animal();
+    expect(a.isHungry()).toBe(false);
+    withSatiation(a, 39);
+    expect(a.isHungry()).toBe(true);
+    withSatiation(a, 40);
+    expect(a.isHungry()).toBe(false);
+  });
+});
+
 describe('feeding style — the rungs a species has', () => {
   it('⭐⭐ a canary has no hand rung, and it never lifts', () => {
     const bird = animal(speciesFeeding(['hopper']));
