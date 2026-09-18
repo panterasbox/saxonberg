@@ -1,0 +1,27 @@
+# A wholemeal loaf — ⭐ the same wheat as the white loaf beside it, and a
+# different label, and no row authored a number.
+#
+# The white loaf is almost entirely endosperm; this one keeps most of the
+# bran the miller sifted out. Both are `composition:` over the same two
+# materials (`wheat-flour`, `bran`) in different proportions, and the
+# nutrition label DERIVES from the parts (`BlendLabel.amountsOf` — mg ×
+# servings over the composition): this loaf shows more fibre and more
+# protein than the white one and neither row says so anywhere. That is
+# the whole of what "wholemeal" means in this game, and it is the
+# metabolism slate's *healthy diet is variety over kinds* stated in two
+# rows a player can `look` at side by side.
+#
+# ⚠ Cheaper than white, on the counter — not here. The bakery prices it;
+# the extraction is why: nothing was thrown away to make it.
+class: /trade/baking/thing/Loaf
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: wholemeal loaf
+  keywords: [loaf, bread, wholemeal, brown]
+  register: indefinite
+  longDescription: A dense brown loaf, the crust dark and the crumb flecked all through with bran. It is the bread most people eat.
+  _materialPath: /stuff/idea/material/food/bread
+  mass: 0.8
+  composition:
+    - { materialPath: /stuff/idea/material/food/wheat-flour, servings: 6.5 }
+    - { materialPath: /stuff/idea/material/food/bran, servings: 1.5 }

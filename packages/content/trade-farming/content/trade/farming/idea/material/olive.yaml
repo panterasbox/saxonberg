@@ -21,7 +21,9 @@ data:
   # to it, and that is a different material's job).
   spoilActivationEnergy: 60000
   waterActivity: 0.95
-  nutrients: ["water", "fat"]
+  # No vitamin C to speak of; an olive is oil and fibre (mg per kg).
+  nutrients: ["water", "fat", "fibre"]
+  nutrientAmounts: {water: 750000, fat: 110000, fibre: 32000}
   toxicity:
     []
   tags: ["solid", "food", "produce", "olive", "fruit"]

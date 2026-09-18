@@ -66,6 +66,14 @@ data:
     - { itemTemplatePath: /trade/farming/thing/seed/cranberry, par: 2 }
     - { itemTemplatePath: /trade/farming/thing/seed/grape, par: 2 }
     - { itemTemplatePath: /trade/farming/thing/seed/juniper, par: 2 }
+    # ⭐ And an orange you can EAT (nutrition-and-fitness W4, D25). The
+    # years clock — a body on bread alone for a month gets scurvy — needs
+    # something a person can go and buy that is not bread. The
+    # distributor at Wharfside gets the farm's citrus by CONSIGNMENT (the
+    # hand carries the crates), which is the real chain and not a par; a
+    # general store selling a piece of fruit is what a general store is
+    # until the grocer fragments off it.
+    - { itemTemplatePath: /trade/farming/thing/orange, par: 6 }
     # ⭐ The fibre and dye line (textiles B1). Flax is the chain's whole
     # left edge; the three dyestuffs are what makes cloth worth
     # recolouring. Deliberately on the SAME counter as the pots and the
@@ -161,6 +169,7 @@ data:
     /trade/farming/thing/seed/cranberry: 5
     /trade/farming/thing/seed/grape: 6
     /trade/farming/thing/seed/juniper: 5
+    /trade/farming/thing/orange: 1
     # The homebrew kit: all of it reachable on the stipend across a
     # week's wages (D15) — the still the dearest thing on the shelf.
     /stuff/thing/vessel/carboy: 7

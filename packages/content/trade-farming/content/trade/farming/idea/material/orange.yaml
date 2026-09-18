@@ -19,7 +19,13 @@ data:
   # water a microbe can actually use. Under the 0.60 floor nothing grows.
   spoilActivationEnergy: 65000
   waterActivity: 0.98
-  nutrients: ["water", "sugar"]
+  # ⭐ The years clock. `vitamin-c` is a routing tag the body's
+  # `vitamin-c` reserve fills (nutrition-and-fitness W4); the amounts are
+  # mg per kg (the bran/flour convention — 530 mg/kg is 53 mg per 100 g,
+  # the real figure). One orange portion restores about a third of the
+  # store, which is what clears scurvy. The label derives from these.
+  nutrients: ["water", "sugar", "vitamin-c"]
+  nutrientAmounts: {water: 870000, sugar: 90000, vitamin-c: 530}
   toxicity:
     []
   tags: ["solid", "food", "produce", "orange", "fruit", "citrus"]
