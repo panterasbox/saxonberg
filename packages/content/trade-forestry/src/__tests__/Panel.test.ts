@@ -41,6 +41,12 @@ import {
   installV1QuantityTagTables,
 } from '@saxonberg/server/mud/lib/persistence/__tests__/quantity-marshaller-test-helpers';
 import '@saxonberg/server/mud/platform/idea/WorldClockRegistry';
+import Wood from '../location/Wood';
+import { Idea } from '@saxonberg/server/mud/lib/stuff/Idea';
+import { NamedMixin } from '@saxonberg/server/mud/lib/description/Named';
+import { ContainerMixin } from '@saxonberg/server/mud/lib/spatial/Container';
+import { PersonaMixin } from '@saxonberg/server/mud/lib/character/Persona';
+import { ExecutionContextApi } from '@saxonberg/server/mud/api/execution-context';
 
 const PANEL_PATH = '/world/_test/thing/panel';
 const STOOL_PATH = '/trade/forestry/thing/_stool';
@@ -267,5 +273,122 @@ describe('Panel — ⭐ the materialize round-trip (AC 8 at unit scale)', () => 
     const cut = back.find((p) => !p.isHarvestable())!;
     expect(cut.getFruitFill()).toBe(0);
     expect(cut.getGrowthStage()).toBe('mature');
+  });
+});
+
+/* ─────────────── ⭐ the deed — written by the ground, told to its room (W4) ─────────────── */
+
+class Planter extends PersonaMixin(NamedMixin(Idea)) {
+  static _mixinName = 'TestPlanter';
+}
+
+const OAK = '/stuff/idea/species/plantae/tracheophyta/magnoliopsida/fagales/fagaceae/quercus/robur';
+
+function newStandard(opts: { stool?: boolean } = {}): Plant {
+  const p = new Plant();
+  p.setShortDescription(opts.stool ? 'hazel stool' : 'oak sapling');
+  p.setMaterial(tissue());
+  p.setMass(Quantity.of(2, 'kg'));
+  p.setLastAmbientK(290);
+  p.setLifecycleState('alive');
+  p.setDiscipline('silviculture');
+  p.setHarvestTemplatePath(opts.stool ? '/trade/forestry/thing/cordwood' : null);
+  p.setProfile({
+    moistureHappyAt: 0.25, moistureWiltAt: 0.05, litresPerGameDay: 0.3, luxHappyAt: 20, luxDarkAt: 3,
+    rootDemand: { seedling: 0.5, young: 3, established: 10, mature: 20 },
+    daysToStage: { young: 360, established: 1800, mature: 5400 },
+  });
+  return p;
+}
+
+describe('Panel — the planting deed', () => {
+  let planter: Planter;
+  let deeds: Array<{ key: string; fields: Record<string, unknown> }>;
+
+  beforeEach(() => {
+    planter = makeStuffAtPath(() => {
+      const a = new Planter();
+      a.setName('Tam Ferrier');
+      return a;
+    }, '/platform/agent/Avatar/_tam');
+    deeds = [];
+    vi.spyOn(planter, 'recordChronicleOnce').mockImplementation(async (key, fields) => {
+      deeds.push({ key, fields: fields as Record<string, unknown> });
+    });
+    vi.spyOn(ExecutionContextApi, 'getActingAuthor').mockReturnValue(planter);
+  });
+
+  function woodWithPanel(): { wood: Wood; panel: Panel } {
+    const wood = makeStuffAtPath(() => {
+      const w = new Wood();
+      w.setShortDescription('the oak clearing');
+      w.setMix([{ speciesPath: OAK, name: 'oak', woodMaterialPath: '/stuff/idea/material/wood/oak', seedPath: null, standing: 12, capacity: 14, incrementPerYear: 1 }]);
+      return w;
+    }, '/world/_test/hanging-wood/oak-clearing');
+    const panel = makeStuffAtPath(newPanel, '/world/_test/hanging-wood/thing/panel-north');
+    ContainmentApi.move(panel, wood);
+    return { wood, panel };
+  }
+
+  it('⭐ a standard arriving in a Wood’s panel: the ROOM records the planting, the planter’s chronicle takes one deed keyed on the tree', () => {
+    const { wood, panel } = woodWithPanel();
+    const tree = makeStuffAtPath(newStandard, '/trade/forestry/thing/plant/oak-standard');
+    ContainmentApi.move(tree, panel);
+    panel.occupy(tree, PLANT_SLOT);
+
+    const plantings = wood.getPlantings();
+    expect(plantings).toHaveLength(1);
+    expect(plantings[0]).toMatchObject({
+      plantKey: tree.getPersistenceKey(),
+      name: 'an oak sapling',
+      planter: planter.getIdentityPath(),
+      planterName: 'Tam Ferrier',
+      gameDay: Math.floor(WorldClockApi.getNow().rawValue() / 86_400),
+    });
+    expect(deeds).toHaveLength(1);
+    expect(deeds[0]!.key).toBe(`forestry:planting:${tree.getPersistenceKey()}`);
+    expect(deeds[0]!.fields.tags).toEqual(['forestry', 'planting']);
+    // …and the room's reading names them.
+    expect(wood.standPhrase()).toMatch(/An oak sapling, planted by Tam Ferrier on the/);
+  });
+
+  it('a RE-SEAT inside somebody’s frame does not plant it twice (idempotent on the key)', () => {
+    const { wood, panel } = woodWithPanel();
+    const tree = makeStuffAtPath(newStandard, '/trade/forestry/thing/plant/oak-standard');
+    ContainmentApi.move(tree, panel);
+    panel.occupy(tree, PLANT_SLOT);
+    panel.vacate(PLANT_SLOT, tree);
+    panel.occupy(tree, PLANT_SLOT);
+    expect(wood.getPlantings()).toHaveLength(1);
+  });
+
+  it('a stool arriving records nothing', () => {
+    const { wood, panel } = woodWithPanel();
+    const stool = makeStuffAtPath(() => newStandard({ stool: true }), STOOL_PATH);
+    ContainmentApi.move(stool, panel);
+    panel.occupy(stool, PLANT_SLOT);
+    expect(wood.getPlantings()).toHaveLength(0);
+    expect(deeds).toHaveLength(0);
+  });
+
+  it('no acting author (a restore at boot): nothing', () => {
+    vi.spyOn(ExecutionContextApi, 'getActingAuthor').mockReturnValue(null);
+    const { wood, panel } = woodWithPanel();
+    const tree = makeStuffAtPath(newStandard, '/trade/forestry/thing/plant/oak-standard');
+    ContainmentApi.move(tree, panel);
+    panel.occupy(tree, PLANT_SLOT);
+    expect(wood.getPlantings()).toHaveLength(0);
+    expect(deeds).toHaveLength(0);
+  });
+
+  it('in a room that is NOT a wood (the fuel yard): the deed, and no planting anywhere', () => {
+    const yard = makeStuffAtPath(() => new (ContainerMixin(NamedMixin(Idea)))(), '/world/_test/fuel-yard');
+    const panel = makeStuffAtPath(newPanel, PANEL_PATH);
+    ContainmentApi.move(panel, yard as never);
+    const tree = makeStuffAtPath(newStandard, '/trade/forestry/thing/plant/oak-standard');
+    ContainmentApi.move(tree, panel);
+    panel.occupy(tree, PLANT_SLOT);
+    expect(deeds).toHaveLength(1);
+    expect(String(deeds[0]!.fields.vars && (deeds[0]!.fields.vars as { where: string }).where)).toMatch(/panel/);
   });
 });

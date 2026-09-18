@@ -322,7 +322,7 @@ describe('fell', () => {
         await settle();
         expect(reasons(c)).not.toContain('bole-spent');
       }
-      const timber = giver.getContents().filter((s) => s.getShortDescription?.() === 'length of green timber');
+      const timber = giver.getContents().filter((s) => (s as unknown as { getShortDescription?(): string }).getShortDescription?.() === 'length of green timber');
       expect(timber).toHaveLength(BOLE_LENGTHS);
       expect((timber[0] as Thing).getMaterial()?.getName()).toBe('oak');
       expect(bole.isDestroyed()).toBe(true);
@@ -425,7 +425,7 @@ describe('fell', () => {
         const tree = standardIn(panelIn(room), stage);
         await makeStuff(() => new FellController()).execute(model(one(tree, 'sapling'), one(axe, 'axe')), ctx(giver, room));
         await settle();
-        const felled = giver.getContents().find((s) => s.getShortDescription?.() === 'felled sapling') as Thing;
+        const felled = giver.getContents().find((s) => (s as unknown as { getShortDescription?(): string }).getShortDescription?.() === 'felled sapling') as unknown as Thing;
         expect(felled, stage).toBeDefined();
         expect(felled.getMass().rawValue()).toBe(kg);
         expect(room.getContents().some((s) => s instanceof Bole)).toBe(false);

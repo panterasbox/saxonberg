@@ -1671,6 +1671,12 @@ the credit is `silviculture`.
 
 **Commit.** `build(forestry W4): planting a standard — the kernel plant into a panel, the deed written by the ground and told to its room`
 
+> ✅ **W4 done (2026-09-17).** As planned, with the discriminator
+> change recorded under W3 (acting author + idempotency, not the reseat
+> test). The chronicle line is `planted {{name}} in {{where}}` with the
+> tree's own presentation. The live `plant acorn in panel` is the
+> drive's step 11 (W6).
+
 ### W5 — the Hanging Wood, and daylight over Rejection
 
 **Goal.** The wood exists, is lit, is titled, and is three stands on
