@@ -58,8 +58,10 @@ quarter-load drains a little. The vitals and reserve docs both list
 `drive`. `run` is faster and louder and **costs nothing and never
 tires** — every pace mode authors a `costMultiplier` that nobody reads.
 `climb` and `swim` are real substrate gated on a `swimming`/`climbing`
-figure nothing ever sets; one exit in the world is climbable (the Ferrow
-winze ladder) and **no location in any pack can be swum** — the estuary
+figure nothing ever sets; ⚠ **nothing composes climbing either** — the
+winze at Ferrow *describes* a ladder and has no `down` exit, so `climb`
+has never been reachable (corrected at plan time; the survey had
+counted it) — and **no location in any pack can be swum** — the estuary
 declares water and nothing composes swimming.
 
 **Advancement.** A Discipline is `skill`, `knowledge` or `conditioning`
@@ -357,19 +359,23 @@ out. Felt costs are preserved: a hew still costs what a hew cost.
 **Question.** Is fitness a conditioning Discipline, or just the stocks?
 **Answer.** Both — stocks are what the body IS, `wind` is what it can
 DO. Lens 4 chose: the reward must be a thing you can now do, spent on
-choices; a Discipline's band-gated conferrals are exactly that, and a
-badge for time is the named failure.
+choices — and a badge for time is the named failure. Where a rung is a
+verb the body already has (`run`, `climb`, a shift), reach is the body
+deciding whether you can sustain it; where it is a verb you did not
+have (the swim), it is the Discipline's band-gated conferral. Same
+reward, two doors.
 **The first ladder** (content on the row; chosen so the drive can prove
 each): **the sustained `run`** — a fresh body's run breaks to a walk
 after a few exits, winded, and a conditioned one holds; **the climb
 without the rest** — the winze ladder; **the double shift** — a second
 durative act back-to-back without the endurance floor refusing. The swim
 is authored when there is water.
-**Decay.** `wind` folds with a half-life on the **active-play clock** —
-advancement's Law 2 (*never tax absence*) and metabolism's deficiency
-precedent. Lay off while playing and the band falls; log off for a month
-and nothing moves. The Transcript stays append-only; nothing is stored.
-`alcohol-tolerance` folds the same way and becomes true.
+**Decay.** `wind` fades on the **active-play clock** — advancement's
+Law 2 (*never tax absence*) and metabolism's deficiency precedent. Lay
+off while playing and the band falls; log off for a month and nothing
+moves. `alcohol-tolerance` fades the same way and becomes true. *(How
+the band is derived — a fold over the ledger or a read over a body
+stock — is the plan's; the plan chose the stock, 2026-09-18.)*
 **Who says so.** Nobody. Fitness is private; sport confers standing and
 is another build's.
 
