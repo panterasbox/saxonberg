@@ -414,6 +414,20 @@ current with `origin/master`), 2026-09-17. Line numbers are approximate.
 
 ---
 
+**Read at the handoff (2026-09-18) — the two in-flight branches:**
+`build/forestry` (W0–W6 + drive, 15/15, full suite green — expect it on
+master before this build starts) and `design/nutrition-fitness` (a slate
+only; cites the underwater design; touches nothing here). Forestry's
+facts this plan leans on: its `Tooled.epoch` hunk is the one A3 pastes
+verbatim (Risks 1); its stand is a *location* carrying a cover, NOT the
+herdbook's consumer — ranching.md now says why (*a herd MOVES; a stand
+does not*), and fish move, so D1's record is the consistent answer;
+`check-template-census.ts` learned to walk array entries
+(`mix[].speciesPath`) — B1 extends it the same way for `stocks[].species`;
+`GrammarApi.inWords` exists for any count the prose must say;
+⚠ and its last drive commit found the race this build's drive will hit
+(B7).
+
 ## Plan-level decisions
 
 Numbered so waves and commits can cite them. Each: the question, the
@@ -1235,7 +1249,9 @@ the MR.
   `stocks?`), `WatercourseCatalogue.ts` (parse + `CompiledReach.stocks`; the `water:`
   course block, node `meanDepthM`, `waterStateAt` — D22), the four
   Watercourse rows in `world-seed` (`water:` blocks),
-  new `src/idea/FisheryRegistry.ts` (+ `readFor`, D7), new
+  `packages/server/scripts/check-template-census.ts` (push `stocks[].species`
+  per entry, forestry's `mix[]` shape — a rowless stocked species is a
+  fish of nothing), new `src/idea/FisheryRegistry.ts` (+ `readFor`, D7), new
   `content/system/water/idea/FisheryRegistry.yaml`, new `src/thing/Shore.ts`
   + `content/system/water/thing/Shore.yaml` (D15), `content/settings/water.yaml`
   (`water.fishery.*` incl. `readDiscipline` and `read.emptyBelow`, with
@@ -1357,7 +1373,12 @@ the MR.
 
 #### B7 — the drive, the record, the subsystem doc
 - **Implements** D21.
-- **Creates** `packages/wire/tests/fishing.dirty.wire.test.ts`;
+- **Creates** `packages/wire/tests/fishing.dirty.wire.test.ts` — ⚠ its
+  `act()` waits for the EFFECT, not the frame (forestry's `7fa3d70cb`:
+  the `engagement-completed` frame lands when the timer does; a landed
+  fish is a mint + a registry `draw` + a chattel stamp that finish a beat
+  later — poll a landed predicate, 10 s bound, as `forestry.dirty.wire.test.ts`
+  does);
   `docs/subsystems/fishing.md` (the doc the sweep expands; the CLAUDE.md
   one-line pointer is left to the sweep — index files get swept, not
   raced); append the drive record below.
