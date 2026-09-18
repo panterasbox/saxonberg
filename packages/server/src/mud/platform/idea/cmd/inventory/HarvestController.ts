@@ -69,6 +69,12 @@ function dial(key: string, fallback: number): number {
 
 interface HarvestModel extends CommandModel {
   target: MqlOneResult;
+  /**
+   * The instrument, when the plant asks for one (`harvestTool`). The
+   * view's `default:` binds the first reachable thing with the
+   * capability; the controller never hunts.
+   */
+  tool?: MqlOneResult;
 }
 
 export default class HarvestController extends CommandController<HarvestModel> {
@@ -141,6 +147,28 @@ export default class HarvestController extends CommandController<HarvestModel> {
       return;
     }
 
+    // A plant that names its tool is cut with it — a coppice stool comes
+    // off with a billhook, not by hand. The plant says WHICH capability;
+    // the view's default found the candidate; this only checks it.
+    const need = plant.getHarvestTool();
+    if (need) {
+      const tool = model.tool?.stuff ?? null;
+      if (!tool || !MixinApi.isTool(tool) || !tool.hasCapability(need)) {
+        MessageApi.scene(giver)
+          .topic(TOPIC)
+          .toSelf(
+            Mml.compose`You need something that cuts to take ${Mml.thing(plant)} — a billhook, or an axe.`,
+          )
+          .send();
+        context.note({
+          kind: 'controller-rejected',
+          reason: 'needs-tool',
+          detail: `${plant.getPresentation()} is cut with a '${need}' tool`,
+        });
+        return;
+      }
+    }
+
     // Refuse an unready plant NAMING what it is waiting for: the stage
     // for an immature one, the ripening for a mature polycarp between
     // cycles, and the plain fact for a dead one.
@@ -171,8 +199,11 @@ export default class HarvestController extends CommandController<HarvestModel> {
     }
 
     // (1) Read the verdict BEFORE anything changes — the window closes
-    // with the pick, and an ended annual takes its reading with it.
+    // with the pick, and an ended annual takes its reading with it. The
+    // Discipline is read here for the same reason: an annual is gone by
+    // the time the deed is credited.
     const band = this.bandFor(plant.getWorstLimiting());
+    const discipline = plant.getDiscipline();
     const bed = plant.getBed();
     const polycarp = plant.isPolycarp();
     const count = polycarp
@@ -252,10 +283,10 @@ export default class HarvestController extends CommandController<HarvestModel> {
     try {
       if (MixinApi.isAdvancing(giver))
         await giver.creditDeed({
-        discipline: 'horticulture',
-        difficulty,
-        outcome: 'success',
-      });
+          discipline,
+          difficulty,
+          outcome: 'success',
+        });
     } catch (err) {
       console.warn('HarvestController: recording the deed failed:', err);
     }

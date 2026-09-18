@@ -24,6 +24,12 @@ data:
   shortDescription: staked ground on the fringe
   keywords: [claim, "fringe claim", ground, staked, fringe, outcrop]
   register: definite
+  # Daylight, authored against THIS room's cell: lux = lumens / cellSize²,
+  # and at Rejection's 10 m cells `dim` needs 500 lm, `lit` 2000, `bright`
+  # 6000 — open fell. No row here authored a value before the forestry build,
+  # and every object read "something".
+  ambientIntensity: 8000
+  ambientColorTemperature: 5800
   oreRow: /world/rejection/thing/iron-ore
   longDescription: |
     The band of stain has changed colour. It came up the hill green and it goes on from here the colour of a wet roof in autumn — rust-brown, standing a little proud of the slate around it because whatever it is has weathered harder than the country rock.

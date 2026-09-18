@@ -1,0 +1,48 @@
+# An oak standard — what an acorn planted in a panel grows into: a tree
+# kept for its timber, not its crop, so it yields nothing to `harvest`
+# (`harvestTemplatePath: null`) and is FELLED where it stands instead
+# (`fell sapling`). `discipline: silviculture` is what `plant` credits
+# for setting it and what `fell` credits for taking it.
+#
+# ⭐ **Fifteen game years to a standard** (`daysToStage.mature: 5400` —
+# 450 real days at the default clock), the requirements' number, stated
+# here and promised nowhere: nothing in the game can observe it yet. A
+# young tree is felled whole and carried (8 kg); an established one the
+# same (30 kg); a mature one comes down as a bole. In a wood the felled
+# one is made of what the room's stand says that species is made of; in
+# a panel outside any wood, of `standardMaterialPath`.
+#
+# A mature standard sets acorns into its panel once a flowering
+# episode (the shipped monocarp latch) — a wood that seeds itself.
+class: /platform/thing/Plant
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: oak sapling
+  keywords: [sapling, oak, tree, standard, "oak sapling"]
+  register: indefinite
+  longDescription: |
+    An oak sapling, straight and whippy, staked against the wind.
+  _speciesPath: /stuff/idea/species/plantae/tracheophyta/magnoliopsida/fagales/fagaceae/quercus/robur
+  _materialPath: /stuff/idea/material/tissue/plant-tissue
+  mass: 2
+  lifecycleState: alive
+  harvestTemplatePath: null
+  discipline: silviculture
+  standardMaterialPath: /stuff/idea/material/wood/oak
+  seedTemplatePath: /trade/forestry/thing/seed/acorn
+  nutrientDraw: 0
+  profile:
+    moistureHappyAt: 0.25
+    moistureWiltAt: 0.05
+    litresPerGameDay: 0.3
+    luxHappyAt: 20
+    luxDarkAt: 3
+    rootDemand:
+      seedling: 0.5
+      young: 3
+      established: 10
+      mature: 20
+    daysToStage:
+      young: 360
+      established: 1800
+      mature: 5400

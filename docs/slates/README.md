@@ -30,7 +30,7 @@ materials-response all shipped, which made the name actively misleading.
 
 ---
 
-## ⭐ Greenfield — nothing shipped yet (57)
+## ⭐ Greenfield — nothing shipped yet (56)
 
 Pick from here for a clean cycle with no existing substrate to respect.
 
@@ -62,7 +62,6 @@ Pick from here for a clean cycle with no existing substrate to respect.
 | [faith](./builds/faith-slate.md) | the deed-tag vocabulary + the four tags Part 1 needs (`aid.treat`, `aid.attend-dying`, `harm.nonconsented`, `ritual.attend`, honouring `since`) … |
 | [fishing](./builds/fishing-slate.md) | the catch-distribution field · the landing contest · the fish and aquatic-harvest roster · the method ladder (rod · trap · net · spear) · the three water regimes … |
 | [flowers](./builds/flowers-slate.md) | the act record (who gave what, to whom, publicly) · the wiki floriography with NO shipped meanings table … |
-| [forestry](./builds/forestry-slate.md) | the forestry trade pack · felling + conversion verbs · seasoning · the stand-as-record · the silviculture Discipline · estovers + forest law … |
 | [grid](./builds/grid-slate.md) | the service declaration on `ParcelRecord` (default connected, author disconnection) · connection-not-consumption metering … |
 | [guild](./builds/guild-slate.md) | the `Guild` Idea + charter schema · the `guild:` GroupProvider + ranks · focus-tagged `TranscriptEntry` + charter-weighted `Competence` · contract claim gates … |
 | [hydration-framework](./builds/hydration-framework-slate.md) | a `Hydrator` that is mixin-composed like `PersistenceContributor` — one framework for every hydration source (the `data:` block, a record, another collection) · `postRegister` for work AFTER a thing is filled in, not "finish hydrating" (63 of 109 break that) … |
@@ -244,7 +243,7 @@ Not a cycle of its own. Pull one in when its host build is in flight.
 | [weather](./tails/weather-slate.md) | fog → visibility · snow depth · vector wind · moving fronts · a weather-pin write Api (it blocks the `storm` Discipline) … |
 | [youtube-relay](./tails/youtube-relay-slate.md) | outbound `liveChatMessages.insert` · the quota accountant + coalescing and drop policy · per-player `youtube.force-ssl` OAuth … |
 
-## Tails — small and opportunistic (36)
+## Tails — small and opportunistic (37)
 
 | slate | left to build |
 |---|---|
@@ -264,6 +263,7 @@ Not a cycle of its own. Pull one in when its host build is in flight.
 | [electricity](./tails/electricity-slate.md) | AC vs DC · full Kirchhoff current division · hand-chains, damp-not-pooled floors and humidity · Joule→fire · magic `Create·Lightning` · power as a grid |
 | [encumbrance](./tails/encumbrance-slate.md) | per-item placement refinement (a frame pack beating the worn floor) · augment-conferred capacity · gravity/environmental margins · tissue-derived mass · numeric tuning |
 | [external-chat-relay](./tails/external-chat-relay-slate.md) | YouTube outbound |
+| [forestry](./tails/forestry-slate.md) | `analyze wood` + a per-wood roll-up · partial yield below ripe · the Cover seam (Sward + Stand) · a planted standard joining the stand at maturity · the tree-dimension axes · the seeded site character for a Wood … |
 | [host-slot-activities](./tails/host-slot-activities-slate.md) | sit/lie/mount/drive as interruptible durative engagements · `SlotApi.claimPending` · the decode half of `read` as a duration |
 | [incapacity](./tails/incapacity-slate.md) | impound-on-a-claim · the preserving (never improving) receiver · return and reclaim · the docket entry … |
 | [kick-relay](./tails/kick-relay-slate.md) | phase-2 posting (`kick-reauth` + `chat:write` through the existing throttle/echo-suppress) · boot-time webhook-subscription reconciliation · `kick.com/video/…` URL forms |

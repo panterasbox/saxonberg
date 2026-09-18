@@ -1140,7 +1140,10 @@ hospitality a capability pack; the TPA reform added **tpa**, the first pack
 to ship a `src/lib/`; textiles added trade-textiles, trade-dyeing and
 trade-tailoring; the world-scan build gave **residence** a
 `ResidenceCatalogue` and the `maintains` brain in its own
-`src/behavior/`). **A stub trade** ships everything
+`src/behavior/`; forestry added **trade-forestry** — a capability pack
+whose `src/lib/Stand.ts` is a pack-owned mixin composed by a pack-owned
+LOCATION class, `Wood`, that a venue's rows name with no code of their
+own — see [forestry.md](./forestry.md)). **A stub trade** ships everything
 downstream of production and nothing of production — materials, vessel
 presets, brands, the floor product on an authored consignor, the serving
 recipe — so the bar's demand is met today while the ferment/still is the

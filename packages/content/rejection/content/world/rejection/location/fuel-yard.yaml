@@ -10,8 +10,16 @@ data:
   shortDescription: fuel yard
   keywords: [yard, "fuel yard", coppice, clamp, fuel]
   register: definite
+  # Daylight, authored against THIS room's cell: lux = lumens / cellSize²,
+  # and at Rejection's 10 m cells `dim` needs 500 lm, `lit` 2000, `bright`
+  # 6000 — open hill under the sun. No row here authored a value before the forestry build,
+  # and every object read "something".
+  ambientIntensity: 8000
+  ambientColorTemperature: 5800
   longDescription: |
     A wide flat of beaten earth with the coppice standing behind it — hazel, all of an age, cut to the ground in one panel and eight feet high in the next. Cordwood is stacked in ricks to season, and in the middle of the flat is a turfed dome the height of a man with thin blue smoke coming out of a dozen holes in it.
+
+    Above the yard the hill goes up into trees — the Hanging Wood, which is where all of this comes from.
 
     Nobody is asleep here. Somebody is always awake here.
   coords: { x: 1, y: 1, z: 0 }
@@ -22,17 +30,17 @@ data:
       destination: /world/rejection/location/smelter
   props:
     - /trade/fuel/thing/clamp
-    # ⚠⚠ Was a loose `/trade/fuel/thing/hazel-stool`, which afforded
-    # NOTHING: `harvest` is contributed by `CultivableMixin`, so a stool
-    # standing on the floor answered *"I don't understand 'harvest'."*
-    # The coppice shipped as scenery and its cordwood — the ONE supply
-    # the collier and the mine compete for — was unreachable by any
-    # route, which is why the yard's four charcoal baskets were the
-    # realm's entire fuel economy. The panel is ground, so the stools in
-    # it can be cut. See the panel row for why it is deliberately small.
-    - /trade/fuel/thing/coppice-panel
-    - /trade/mining/thing/billhook
-    - /trade/mining/thing/felling-axe
+    # ⚠⚠ Was a loose `hazel-stool`, which afforded NOTHING: `harvest` is
+    # contributed by `CultivableMixin`, so a stool standing on the floor
+    # answered *"I don't understand 'harvest'."* The panel is ground, so
+    # the stools in it can be cut — and since forestry it is the yard's
+    # OWN row on the forestry `Panel`, a persistable singleton: a room's
+    # `props:` mints it through `StuffApi.singleton`, which restores it
+    # from its record when one exists, so a cut panel stays cut across a
+    # restart. See the panel row for the arithmetic and why it is small.
+    - /world/rejection/thing/fuel-yard-panel
+    - /trade/forestry/thing/billhook
+    - /trade/forestry/thing/felling-axe
     # ⚠⚠ **Four baskets of finished charcoal, and they are a PROP, not a
     # supply.** A burn takes three game days (`BURN_MS`), which is six
     # real hours at the default clock — so nobody can char their own fuel

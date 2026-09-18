@@ -39,7 +39,7 @@ export const DIRTY_REASON =
 
 declareFile({
   file: 'metal-chain.dirty.wire.test.ts',
-  packs: ['trade-mining', 'trade-fuel', 'trade-smelting', 'rejection'],
+  packs: ['trade-mining', 'trade-fuel', 'trade-forestry', 'trade-smelting', 'rejection'],
   dirtyReason: DIRTY_REASON,
 });
 

@@ -12,7 +12,11 @@ data:
   alternateNames: [road, hill, zigzag]
   _address: terminus/rejection/road/lower-climb
   _biomePath: /stuff/idea/biome/outdoor/baseline
-  ambientIntensity: 600
+  # ⚠ Lux is lumens over the cell's AREA, and this zone's cells are 20 m:
+  # the shipped 520–700 lm read as 1.5 lux — very-dim, by the light
+  # model's own arithmetic, on an open road in daylight. 24000 lm is 60
+  # lux over 400 m²: bright, which is what a road under the sun is.
+  ambientIntensity: 24000
   ambientColorTemperature: 5800
   longDescription: |
     The road leaves the flat within a hundred paces and starts to work. Two long zigzags take it up the face of the hill, cut into the slope with the spoil thrown out on the downhill side and revetted with dry stone that is failing in three places.

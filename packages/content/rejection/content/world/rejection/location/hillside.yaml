@@ -16,10 +16,18 @@ data:
   shortDescription: hillside above the yard
   keywords: [hillside, hill, slope, outcrop, above]
   register: definite
+  # Daylight, authored against THIS room's cell: lux = lumens / cellSize²,
+  # and at Rejection's 10 m cells `dim` needs 500 lm, `lit` 2000, `bright`
+  # 6000 — open hill under the sun. No row here authored a value before the forestry build,
+  # and every object read "something".
+  ambientIntensity: 8000
+  ambientColorTemperature: 5800
   longDescription: |
     The ground climbs away from the back of the claims office in a long shallow slope of tussock and broken slate, and the slate is stained. Not everywhere — in a band, two paces wide, running up and away to the northeast as straight as a drawn line, green where it is bare.
 
     It is the same seam. It has simply run out of hill to be under.
+
+    Above, to the north, the slope goes on up into trees.
   coords: { x: 0, y: 2, z: 0 }
   exits:
     southwest:
@@ -27,3 +35,8 @@ data:
     northeast:
       destination: /world/rejection/location/old-workings
       edgeMinutes: 3
+    # Up into the Hanging Wood (forestry) — a cross-zone cardinal exit,
+    # like the road's.
+    north:
+      destination: /world/rejection/hanging-wood/treeline
+      edgeMinutes: 4
