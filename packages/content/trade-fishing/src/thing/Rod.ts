@@ -17,12 +17,14 @@ import type { FieldMeta } from '@saxonberg/server/mud/lib/mixin';
 export default class Rod extends ToolItem {
   static commandContributions: CommandContributions = {
     self: [],
-    peers: [
+    // `environment` = whoever HOLDS it (the container chain outward); a
+    // rod lying on the bank affords nothing until it is picked up.
+    environment: [
       'trade/fishing/cmd/fishing/fish.yaml',
       'trade/fishing/cmd/fishing/reel.yaml',
       'trade/fishing/cmd/fishing/slack.yaml',
     ],
-    environment: ['trade/fishing/cmd/fishing/fish.yaml'],
+    peers: [],
   };
 
   static fieldMeta: FieldMeta = {

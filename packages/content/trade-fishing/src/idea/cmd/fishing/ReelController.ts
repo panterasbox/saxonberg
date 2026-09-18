@@ -24,6 +24,6 @@ export default class ReelController extends FishingController<CommandModel> {
     }
     const event = await live.reel();
     if (event) live.narrate(event);
-    else MessageApi.scene(giver).topic(FISHING_TOPIC).toSelf(Mml.compose`You gain a little line. The rod is still bent.`).send();
+    else MessageApi.scene(giver).topic(FISHING_TOPIC).toSelf(Mml.compose`You gain a little line. ${live.lineWords()}`).send();
   }
 }

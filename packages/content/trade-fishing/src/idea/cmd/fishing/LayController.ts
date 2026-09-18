@@ -1,6 +1,9 @@
 /**
- * SetController — `set <trap> [at <shore>]`: the trap goes from your
+ * LayController — `lay <trap> [at <shore>]`: the trap goes from your
  * hand into the water, stamped with when, where and by whom.
+ *
+ * ⚠ `lay`, not `set`: `set` is the scripting interpreter's builtin and
+ * never reaches dispatch (the drive found it by getting silence).
  */
 
 import type { CommandContext, CommandModel } from '@saxonberg/server/mud/api/command';
@@ -16,13 +19,13 @@ import { WorldClockApi } from '@saxonberg/server/mud/api/worldclock';
 import { FishingController, FISHING_TOPIC } from './FishingController';
 import Trap from '../../../thing/Trap';
 
-interface SetModel extends CommandModel {
+interface LayModel extends CommandModel {
   trap: MqlOneResult;
   shore?: MqlOneResult;
 }
 
-export default class SetController extends FishingController<SetModel> {
-  async execute(model: SetModel, context: CommandContext): Promise<void> {
+export default class LayController extends FishingController<LayModel> {
+  async execute(model: LayModel, context: CommandContext): Promise<void> {
     const giver = context.commandGiver;
     const trap = model.trap?.stuff as Stuff | undefined;
     if (!trap || !(trap instanceof Trap)) {
@@ -30,7 +33,7 @@ export default class SetController extends FishingController<SetModel> {
       return;
     }
     if (trap.isSet()) {
-      this.decline(context, 'It is already set.', 'already-set');
+      this.decline(context, 'It is already laid.', 'already-set');
       return;
     }
     if (!MixinApi.isContainable(trap) || (trap.getContainer() as Stuff | null) !== (giver as Stuff)) {
@@ -47,8 +50,8 @@ export default class SetController extends FishingController<SetModel> {
     trap.markSet(WorldClockApi.getNow().rawValue(), reach, giver.getIdentityPath() ?? '');
     MessageApi.scene(giver)
       .topic(FISHING_TOPIC)
-      .toSelf(Mml.compose`You set ${Mml.thing(trap)} in the water and mark the spot.`)
-      .toPeers(Mml.compose`${Mml.actor(giver)} sets ${Mml.thing(trap)} in the water.`)
+      .toSelf(Mml.compose`You lay ${Mml.thing(trap)} in the water and mark the spot.`)
+      .toPeers(Mml.compose`${Mml.actor(giver)} lays ${Mml.thing(trap)} in the water.`)
       .send();
   }
 }

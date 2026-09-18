@@ -48,8 +48,9 @@ export default class Fish extends FishBase {
    */
   static commandContributions: CommandContributions = {
     self: [],
-    peers: ['trade/fishing/cmd/fishing/release.yaml'],
-    environment: [],
+    peers: [],
+    // `environment` = whoever holds it: you release what is in your hands.
+    environment: ['trade/fishing/cmd/fishing/release.yaml'],
   };
 
   static markupAugmenters: MarkupAugmenter[] = [sizeLine, turnedLine];

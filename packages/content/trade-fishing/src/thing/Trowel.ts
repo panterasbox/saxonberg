@@ -10,7 +10,8 @@ import type { CommandContributions } from '@saxonberg/server/mud/api/command';
 export default class Trowel extends ToolItem {
   static commandContributions: CommandContributions = {
     self: [],
-    peers: ['trade/fishing/cmd/fishing/dig.yaml'],
+    peers: [],
+    // `environment` = whoever holds it.
     environment: ['trade/fishing/cmd/fishing/dig.yaml'],
   };
 

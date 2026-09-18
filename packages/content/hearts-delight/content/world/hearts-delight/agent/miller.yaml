@@ -27,7 +27,7 @@ data:
     - { disposition: composure, valence: 50 }
   behaviors:
     - brain: /lib/behavior/introduces
-      trigger: witness:arrival
+      trigger: arrival
     - brain: /lib/behavior/idles
       trigger: cadence:45s
       config:

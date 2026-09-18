@@ -43,6 +43,7 @@ function species(over: Partial<SpeciesStanding>): SpeciesStanding {
     speciesPath: '/stuff/idea/species/grey-mullet',
     name: 'grey mullet',
     capacity: 100,
+    full: 100,
     level: 100,
     fit: 1,
     limiting: null,
@@ -190,6 +191,8 @@ describe('the bite', () => {
     expect(held.some((t) => t instanceof Fish)).toBe(true);
     expect(bait.isDestroyed()).toBe(true); // the bait is gone
     expect(e.isFighting()).toBe(false);
+    // The wait ends at a landing.
+    expect(SchedulerApi.complete).toHaveBeenCalled();
   });
 
   it('the species draw is stable for a seed', async () => {

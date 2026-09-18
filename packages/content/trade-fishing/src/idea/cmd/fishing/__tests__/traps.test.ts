@@ -21,7 +21,7 @@ import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import type { CommandContext } from '@saxonberg/server/mud/api/command';
 import { makeStuff, makeStuffAtPath } from '@saxonberg/server/mud/lib/security/__tests__/test-setup';
 import { TestActor, makeContext, completeStep, standUpBranchHarness } from '@saxonberg/server/mud/platform/idea/cmd/crafting/__tests__/branch-fixtures';
-import SetController from '../SetController';
+import LayController from '../LayController';
 import LiftController from '../LiftController';
 import DigController from '../DigController';
 import Waters, { WATERS_PATH } from '../../../Waters';
@@ -49,7 +49,7 @@ let drawn: string[];
 let standing: SpeciesStanding[];
 
 function crab(level = 360): SpeciesStanding {
-  return { speciesPath: '/stuff/idea/species/shore-crab', name: 'shore crab', capacity: 360, level, fit: 1, limiting: null, stocked: false, role: 'bait', fightRating: 0.1 };
+  return { speciesPath: '/stuff/idea/species/shore-crab', name: 'shore crab', capacity: 360, full: 360, level, fit: 1, limiting: null, stocked: false, role: 'bait', fightRating: 0.1 };
 }
 
 beforeEach(async () => {
@@ -104,10 +104,10 @@ function heldPot(): Trap {
   return t;
 }
 
-describe('set and lift', () => {
-  it('⭐ set puts the pot in the water, stamped; lift after a night brings crabs, drawn from the record', async () => {
+describe('lay and lift', () => {
+  it('⭐ lay puts the pot in the water, stamped; lift after a night brings crabs, drawn from the record', async () => {
     const pot = heldPot();
-    const ctx = await run(SetController as never, { trap: { stuff: pot, raw: 'pot' } }, angler, room, 'set pot');
+    const ctx = await run(LayController as never, { trap: { stuff: pot, raw: 'pot' } }, angler, room, 'lay pot');
     expect(rejected(ctx)).toBeNull();
     expect(pot.getContainer()).toBe(room);
     expect(pot.isSet()).toBe(true);
@@ -130,7 +130,7 @@ describe('set and lift', () => {
   it('an empty reach lifts an empty pot, and nothing says which was luck', async () => {
     standing = [crab(0)];
     const pot = heldPot();
-    await run(SetController as never, { trap: { stuff: pot, raw: 'pot' } }, angler, room, 'set pot');
+    await run(LayController as never, { trap: { stuff: pot, raw: 'pot' } }, angler, room, 'lay pot');
     await completeStep(8 * 3600 * 1000);
     await run(LiftController as never, { trap: { stuff: pot, raw: 'pot' } }, angler, room, 'lift pot');
     expect(drawn).toEqual([]);
@@ -138,15 +138,15 @@ describe('set and lift', () => {
     expect(pot.getContainer()).toBe(angler);
   });
 
-  it('a pot not held cannot be set; a pot not set cannot be lifted; set twice is refused', async () => {
+  it('a pot not held cannot be laid; a pot not set cannot be lifted; laid twice is refused', async () => {
     const pot = makeStuff(() => new Trap());
     ContainmentApi.move(pot as never, room as never);
-    expect(rejected(await run(SetController as never, { trap: { stuff: pot, raw: 'pot' } }, angler, room, 'set pot'))).toBe('not-held');
+    expect(rejected(await run(LayController as never, { trap: { stuff: pot, raw: 'pot' } }, angler, room, 'lay pot'))).toBe('not-held');
     expect(rejected(await run(LiftController as never, { trap: { stuff: pot, raw: 'pot' } }, angler, room, 'lift pot'))).toBe('not-set');
     const held = heldPot();
-    await run(SetController as never, { trap: { stuff: held, raw: 'pot' } }, angler, room, 'set pot');
+    await run(LayController as never, { trap: { stuff: held, raw: 'pot' } }, angler, room, 'lay pot');
     ContainmentApi.move(held as never, angler as never); // somebody picked it up somehow
-    expect(rejected(await run(SetController as never, { trap: { stuff: held, raw: 'pot' } }, angler, room, 'set pot'))).toBe('already-set');
+    expect(rejected(await run(LayController as never, { trap: { stuff: held, raw: 'pot' } }, angler, room, 'lay pot'))).toBe('already-set');
   });
 });
 

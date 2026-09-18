@@ -23,6 +23,6 @@ export default class SlackController extends FishingController<CommandModel> {
     }
     const event = await live.slack();
     if (event) live.narrate(event);
-    else MessageApi.scene(giver).topic(FISHING_TOPIC).toSelf(Mml.compose`You give it line. It runs, and the pull eases.`).send();
+    else MessageApi.scene(giver).topic(FISHING_TOPIC).toSelf(Mml.compose`You give it line. ${live.lineWords()}`).send();
   }
 }

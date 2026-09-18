@@ -106,6 +106,13 @@ export interface SpeciesStanding {
   name: string;
   /** Individuals the reach holds at full. */
   capacity: number;
+  /**
+   * Individuals it WOULD hold at a perfect fit — the species' abundance
+   * over the reach. The band words read `level / full`, so a species the
+   * water barely suits reads *a few* even at capacity, and the limiter
+   * line beside it says why.
+   */
+  full: number;
   /** Individuals it holds now — capacity less what is drawn. */
   level: number;
   /** `0..1` — the species' fit in this water. */
@@ -164,7 +171,7 @@ export default class FisheryRegistry extends RegistrarMixin(Idea) {
     const flow = await cat.flowAt(reachRef, nowS, await cat.liveDraws(nowS));
     const contamination = await cat.contaminationAt(reachRef, nowS);
     const season = CelestialApi.seasonFor(EARTH_LIKE, nowS);
-    const lengthKm = dial('water.fishery.reachLengthKm', 3);
+    const lengthKm = dial('water.fishery.reachLengthKm', 1);
     const record = await this.read(reachRef);
     const drawn = record === null ? {} : recovered(record, nowS).drawn;
 
@@ -180,10 +187,12 @@ export default class FisheryRegistry extends RegistrarMixin(Idea) {
           ? stock.capacity
           : Math.round(fit * habitat.abundance * lengthKm);
       const level = Math.max(0, capacity - Math.round(drawn[path] ?? 0));
+      const full = stock !== undefined ? stock.capacity : Math.max(1, Math.round(habitat.abundance * lengthKm));
       species.push({
         speciesPath: path,
         name: sp.getCommonNames()[0] ?? nameOf(path),
         capacity,
+        full,
         level,
         fit: stock !== undefined ? 1 : fit,
         limiting: stock !== undefined ? null : limiting,
@@ -230,7 +239,7 @@ export default class FisheryRegistry extends RegistrarMixin(Idea) {
     if (!fishedOut && named.length > 0) {
       const parts = named
         .sort((a, b) => b.level - a.level)
-        .map((s) => `${bandWord(s.level / Math.max(1, s.capacity))} ${plural(s.name)}`);
+        .map((s) => `${bandWord(s.level / Math.max(1, s.full))} ${plural(s.name)}`);
       lines.push(`${capitalise(joinList(parts))} in this water.`);
       for (const s of named) {
         if (s.stocked) lines.push(`The water is stocked with ${plural(s.name)}.`);

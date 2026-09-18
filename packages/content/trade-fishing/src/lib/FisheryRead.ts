@@ -16,6 +16,8 @@ export interface SpeciesStanding {
   speciesPath: string;
   name: string;
   capacity: number;
+  /** What it would hold at a perfect fit. */
+  full: number;
   level: number;
   fit: number;
   limiting: string | null;

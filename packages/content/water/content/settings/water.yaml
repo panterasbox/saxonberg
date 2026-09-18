@@ -144,8 +144,11 @@ settings:
   # Kilometres of river a reach stands for, for capacity:
   # `round(fit × abundance × reachLengthKm)`. Abundance is authored per
   # species per km; this is the one number that scales every reach.
+  # ⭐ ONE kilometre — the stretch you can fish from where you stand, not
+  # the whole reach between two nodes: at 3 the confluence held eight
+  # hundred fish and no net could empty it in an afternoon (the drive).
   - key: water.fishery.reachLengthKm
-    value: "3"
+    value: "1"
 
   # Recovery: what has been drawn down decays toward nothing with this
   # half-life in game DAYS. A net empties a reach in an afternoon; the

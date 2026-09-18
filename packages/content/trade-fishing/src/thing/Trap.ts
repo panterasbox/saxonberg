@@ -3,9 +3,9 @@
  * They differ by numbers only: how fast each draws, which roles it
  * takes, and how much it holds. There is no `trapKind` branch anywhere.
  *
- * ## Set, then lift — reconcile at the lift
+ * ## Lay, then lift — reconcile at the lift
  *
- * `set` moves the trap from your hand into the water (the room), stamps
+ * `lay` moves the trap from your hand into the water (the room), stamps
  * when, where and by whom, fixes it in place and vetoes its eviction: a
  * set trap survives a bounce. `lift` integrates the elapsed game-hours
  * against the reach's record — `Σ min(level, drawPerHour × hours ×
@@ -25,8 +25,12 @@ import { HABITAT_ROLES } from '@saxonberg/server/mud/platform/idea/species/Speci
 export default class Trap extends ToolItem {
   static commandContributions: CommandContributions = {
     self: [],
-    peers: ['trade/fishing/cmd/fishing/set.yaml', 'trade/fishing/cmd/fishing/lift.yaml'],
-    environment: ['trade/fishing/cmd/fishing/set.yaml', 'trade/fishing/cmd/fishing/lift.yaml'],
+    // `peers` = whoever stands where it lies (a set trap in the water);
+    // `environment` = whoever holds it. `lay` needs it held; `lift` needs
+    // it set; both views are offered either way and the controllers
+    // narrow on state.
+    peers: ['trade/fishing/cmd/fishing/lay.yaml', 'trade/fishing/cmd/fishing/lift.yaml'],
+    environment: ['trade/fishing/cmd/fishing/lay.yaml', 'trade/fishing/cmd/fishing/lift.yaml'],
   };
 
   static fieldMeta: FieldMeta = {

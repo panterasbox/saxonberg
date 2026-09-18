@@ -37,7 +37,10 @@ data:
   olfactoryProfile:
     acuity: dull
   feedingStyle: [surface]
-  handlingRange: { floor: 0.1, ceiling: 0.6 }
+  # ⭐ The ceiling is what lets a carp be NAMED at all: the bond is regard
+  # × handling and naming wants 0.6 of it, so a ceiling of 0.6 needed a
+  # perfect regard (the drive). 0.75 is a carp that knows the hand.
+  handlingRange: { floor: 0.1, ceiling: 0.75 }
   # ⚠ `lint:kept-animals`: a Bonded class's species must declare one.
   # A fish is not askable at all.
   biddability: 0

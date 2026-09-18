@@ -17,15 +17,16 @@ const pot = (): Trap => {
 };
 const net = (): Trap => {
   const t = makeStuff(() => new Trap());
-  t.setDrawPerHour(6);
+  t.setDrawPerHour(40);
   t.setTakesRoles(['bait', 'forage', 'predator', 'apex']);
-  t.setCapacity(12);
+  t.setCapacity(60);
   return t;
 };
+/** The confluence at one kilometre: crab 120, forage 140 (mullet + eel), sturgeon 2. */
 const REACH = [
-  { role: 'bait' as const, level: 360, capacity: 360 },
-  { role: 'forage' as const, level: 420, capacity: 420 },
-  { role: 'apex' as const, level: 6, capacity: 6 },
+  { role: 'bait' as const, level: 120, capacity: 120 },
+  { role: 'forage' as const, level: 140, capacity: 140 },
+  { role: 'apex' as const, level: 2, capacity: 2 },
 ];
 
 beforeEach(() => StuffApi.clearAll());
@@ -37,17 +38,19 @@ describe('the expectation', () => {
     expect(pot().expectedTake(8, REACH)).toBe(2); // capped by what it holds
   });
 
-  it('⭐ a net takes twelve in an afternoon — and only what the water still holds', () => {
-    expect(net().expectedTake(3, REACH)).toBe(12);
-    const thin = [{ role: 'forage' as const, level: 3, capacity: 420 }];
-    // 6/h × 3 h × (3/420) = 0.13 — the record is nearly empty and the net knows it.
-    expect(net().expectedTake(3, thin)).toBeCloseTo(0.1286, 3);
+  it('⭐ a net takes sixty in an afternoon — and only what the water still holds', () => {
+    expect(net().expectedTake(3, REACH)).toBe(60);
+    // Five lifts of sixty empty the confluence's 262: the fourth is
+    // thin, the fifth is empty — the requirements' afternoon.
+    const thin = [{ role: 'forage' as const, level: 3, capacity: 140 }];
+    // 40/h × 3 h × (3/140) = 2.57 — the record is nearly empty and the net knows it.
+    expect(net().expectedTake(3, thin)).toBeCloseTo(2.571, 2);
   });
 
   it('a pot takes nothing of an apex; a net takes it', () => {
-    const apexOnly = [{ role: 'apex' as const, level: 6, capacity: 6 }];
+    const apexOnly = [{ role: 'apex' as const, level: 2, capacity: 2 }];
     expect(pot().expectedTake(24, apexOnly)).toBe(0);
-    expect(net().expectedTake(24, apexOnly)).toBe(6);
+    expect(net().expectedTake(24, apexOnly)).toBe(2);
   });
 
   it('no time, no take; a set trap is fixed and vetoes eviction, a lifted one is neither', () => {

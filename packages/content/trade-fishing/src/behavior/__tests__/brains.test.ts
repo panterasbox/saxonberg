@@ -37,7 +37,7 @@ let room: Location;
 let fisher: Fisher;
 let standing: SpeciesStanding[];
 const sp = (over: Partial<SpeciesStanding>): SpeciesStanding => ({
-  speciesPath: '/stuff/idea/species/eel', name: 'eel', capacity: 180, level: 180, fit: 1, limiting: null, stocked: false, role: 'forage', fightRating: 0.35, ...over,
+  speciesPath: '/stuff/idea/species/eel', name: 'eel', capacity: 180, full: 180, level: 180, fit: 1, limiting: null, stocked: false, role: 'forage', fightRating: 0.35, ...over,
 });
 
 function ctx(config: Record<string, unknown> = {}): BrainContext {
@@ -111,7 +111,7 @@ describe('reads-water', () => {
   it('thin water gets the thin line; an apex in the water gets the apex line', async () => {
     standing = [sp({ level: 30 })];
     expect(await readsWater.lineFor(fisher as unknown as Stuff, { lines: { thin: 'Thin.' } })).toBe('Thin.');
-    standing = [sp({}), sp({ speciesPath: '/stuff/idea/species/sturgeon', name: 'sturgeon', role: 'apex', capacity: 6, level: 6 })];
+    standing = [sp({}), sp({ speciesPath: '/stuff/idea/species/sturgeon', name: 'sturgeon', role: 'apex', capacity: 6, full: 6, level: 6 })];
     expect(await readsWater.lineFor(fisher as unknown as Stuff, { lines: { apex: 'The big one lies under the far bank.' } })).toBe('The big one lies under the far bank.');
   });
 

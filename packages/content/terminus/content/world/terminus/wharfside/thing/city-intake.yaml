@@ -23,6 +23,9 @@ data:
   conduitKey: terminus-intake
   direction: supply
   reachRef: kestrel:confluence
+  # ⚠ RUNNING — `Switchable` defaults off, and an intake that is off draws
+  # nothing for the city (the outfall's twin finding, the fishing drive).
+  on: true
   extent: /world/terminus
   capacityM3S: 1.2
   treatmentFactor: 0

@@ -35,7 +35,7 @@ data:
     - /trade/fishing/thing/rod
   behaviors:
     - brain: /lib/behavior/introduces
-      trigger: witness:arrival
+      trigger: arrival
     - brain: /trade/fishing/behavior/fishes
       trigger: cadence:90s
       config:

@@ -3356,10 +3356,34 @@ function applyContainmentDeltaImpl(
   // Ungated by CommandGiver on the CONTRIBUTOR side: a job board is not a
   // command giver and still posts its verb to everyone in the room. Only
   // the RECEIVER has to be able to hold a command.
+  //
+  // ⭐ **One level into an OPEN container standing in the room, both
+  // ways** — the reach the `peers` SCOPE already offers (`scope-walk.ts`:
+  // the glass rack's coupes, a crate's limes) and this walk did not,
+  // so a carp in a bowl on the floor could be NAMED by `name carp` and
+  // afforded nothing to name it with: every pet verb is a `peers`
+  // contribution of the animal, and the animal's only siblings were
+  // the crumbs beside it. Reach matches what the parser can address
+  // (the rule this function already states for `inventory` and
+  // `environment`). Found by the fishing drive.
   const scopes = peerScopesOf(to);
+  if (
+    MixinApi.isOpenContainer(to) &&
+    MixinApi.isContainable(to) &&
+    to.getContainer() !== null
+  ) {
+    for (const s of peerScopesOf(to.getContainer()!)) if (!scopes.includes(s)) scopes.push(s);
+  }
   for (const scope of scopes) {
     if (!MixinApi.isContainer(scope)) continue;
-    for (const sibling of (scope as Stuff & Container).getContents()) {
+    const siblings: Stuff[] = [];
+    for (const direct of (scope as Stuff & Container).getContents()) {
+      siblings.push(direct);
+      if (MixinApi.isOpenContainer(direct) && !moved.includes(direct)) {
+        for (const inner of direct.getContents()) siblings.push(inner);
+      }
+    }
+    for (const sibling of siblings) {
       if (moved.includes(sibling)) continue;
 
       const theirs = collectBucketDefs(sibling.constructor, 'peers');

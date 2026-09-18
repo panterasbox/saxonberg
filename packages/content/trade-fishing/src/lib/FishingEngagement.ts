@@ -150,6 +150,20 @@ export class FishingEngagement implements SustainedEngagement {
     return this.contest !== null;
   }
 
+  /**
+   * ⭐ What the line tells your hands — the one reading a contest gives,
+   * in words. *Give when it runs, gain when it rests* is only learnable
+   * if you can feel which it is doing.
+   */
+  public lineWords(): string {
+    const c = this.contest;
+    if (c === null) return '';
+    if (c.strain >= 0.7) return 'The line is singing; it will not take much more.';
+    if (c.strain >= 0.4) return 'The rod is bent hard and the line is tight.';
+    if (c.line <= 0.3) return 'It is close in now, and tiring.';
+    return 'The rod nods. It is resting.';
+  }
+
   /* ─────────────────────────── the verbs ─────────────────────────── */
 
   /** `reel` — take line in. `null` when nothing is on the line. */
@@ -198,12 +212,15 @@ export class FishingEngagement implements SustainedEngagement {
 
     // ⭐ The one draw: which species — epistemic, seeded on the reach,
     // this wait and this minute. It says what was under the hook, never
-    // whether the act worked.
+    // whether the act worked. Weighted by how MANY of each are there
+    // (the level), not by fullness: a water with a hundred crabs and
+    // two sturgeon mostly bites crab.
+    const weights = terms.reduce((sum, t) => sum + t.weight, 0);
     const u = Seeded.unit(hashString(`${this.reachRef}|${this.engagementId}`), this.tickIndex);
     let pick = terms[terms.length - 1]!.species;
     let acc = 0;
     for (const t of terms) {
-      acc += t.term / total;
+      acc += t.weight / weights;
       if (u < acc) {
         pick = t.species;
         break;
@@ -212,17 +229,24 @@ export class FishingEngagement implements SustainedEngagement {
     return this.take(pick, nowS);
   }
 
-  /** Each species' share of the bite this minute. */
-  private terms(standing: FisheryStanding, factors: FeedFactors): Array<{ species: SpeciesStanding; term: number }> {
+  /**
+   * Each species' share of the bite this minute: `term` is the
+   * pressure it adds (its FULLNESS — a reach at capacity bites at the
+   * seeded rate, a fished-out one hardly at all), `weight` its share of
+   * the draw (its LEVEL — how many of them are there).
+   */
+  private terms(standing: FisheryStanding, factors: FeedFactors): Array<{ species: SpeciesStanding; term: number; weight: number }> {
     const showing = this.rod instanceof Rod ? this.rod.getShowing() : 1;
-    const out: Array<{ species: SpeciesStanding; term: number }> = [];
+    const out: Array<{ species: SpeciesStanding; term: number; weight: number }> = [];
     for (const s of standing.species) {
       if (s.capacity <= 0 || s.level <= 0) continue;
       const match = this.baitMatch(s.role);
       if (match <= 0) continue;
+      const factor = factors.twilight * factors.weather * match * showing;
       out.push({
         species: s,
-        term: (s.level / s.capacity) * factors.twilight * factors.weather * match * showing,
+        term: (s.level / s.capacity) * factor,
+        weight: s.level * factor,
       });
     }
     return out;
@@ -300,6 +324,10 @@ export class FishingEngagement implements SustainedEngagement {
 
     const fish = await this.mint(species);
     if (fish === null) return null;
+    // ⭐ The wait ends at a landing: the line is in, the fish is in your
+    // hand, and the next cast is a decision. (An NPC's wait goes on —
+    // he sits there all day.)
+    this.finish();
     if (species.role === 'apex') {
       void this.actor
         .recordDeed({
@@ -395,7 +423,7 @@ export class FishingEngagement implements SustainedEngagement {
       }
       case 'fighter':
         scene
-          .toSelf(Mml.compose`Something big takes it and runs — the rod bends double. Give it line when it runs; take it in when it rests.`)
+          .toSelf(Mml.compose`Something big takes it and runs — the rod bends double. Give it line when it runs; take it in when it rests. ${this.lineWords()}`)
           .toPeers(Mml.compose`${Mml.actor(actor)}'s rod bends double.`);
         break;
       case 'snapped':

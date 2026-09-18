@@ -28,6 +28,11 @@ data:
   dischargeKind: organic
   ownerRef: "group:terminus"
   fixedInPlace: true
+  # ⚠ RUNNING. `Switchable` is off by default and a conduit that is off
+  # discharges nothing — so until the fishing drive looked, the city's
+  # outfall had never fouled its river: a fish landed below it carried
+  # nothing. The row's own prose says it runs steadily; now it does.
+  on: true
   details:
     arch:
       keywords: [arch, brick, brickwork, mouth]

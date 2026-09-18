@@ -4,7 +4,7 @@
 class: /trade/fishing/thing/Trap
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
-  keywords: [pot, crab-pot, creel, trap]
+  keywords: [pot, crab-pot, trap]
   shortDescription: crab pot
   register: indefinite
   longDescription: >-

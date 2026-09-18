@@ -52,8 +52,8 @@ function standing(over: Partial<FisheryStanding> = {}): FisheryStanding {
   return {
     reachRef: REACH.ref,
     species: [
-      { speciesPath: '/stuff/idea/species/eel', name: 'eel', capacity: 100, level: 90, fit: 1, limiting: null, stocked: false, role: 'forage', fightRating: 0.3 },
-      { speciesPath: '/stuff/idea/species/sturgeon', name: 'sturgeon', capacity: 4, level: 4, fit: 1, limiting: null, stocked: false, role: 'apex', fightRating: 1 },
+      { speciesPath: '/stuff/idea/species/eel', name: 'eel', capacity: 100, full: 100, level: 90, fit: 1, limiting: null, stocked: false, role: 'forage', fightRating: 0.3 },
+      { speciesPath: '/stuff/idea/species/sturgeon', name: 'sturgeon', capacity: 4, full: 4, level: 4, fit: 1, limiting: null, stocked: false, role: 'apex', fightRating: 1 },
     ],
     water: {
       temperatureK: 292,
