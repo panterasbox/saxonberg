@@ -1,10 +1,14 @@
 # Rendering slate — the knacker, the tanner, the chandler
 
-> **Status: UNBUILT** — leather ships as a sink with no source; no
-> tallow, soap or candle exists.
-> **Left:** the knacker · the tanner · the chandler · `tallow` / `soap` /
-> `candle` · the carcass → named-materials seam in ranching · the
-> one-pack-or-three cut
+> **Status: UNBUILT** — leather ships as a sink with no source; no soap
+> or candle exists. **Shipped since capture:** `tallow` (ranching's row +
+> cooking's `render-tallow`), `ash` (trade-fuel's material), the caustic
+> harm channel + `rinse` (build-4, unmerged) — the chandler's inputs and
+> his occupational injury now exist; only his products do not.
+> **Left:** the knacker · the tanner · the chandler · `soap` / `candle` ·
+> the lye chain off ash · the carcass → named-materials seam in ranching
+> · the one-pack-or-three cut · ⚠ soap's CONSUMER (`Soilable`, the
+> room-condition pack) — the producer waits on it
 > **Size:** a build
 
 > **Captured 2026-09-03**, out of the settlement-model pass, in answer to
@@ -42,7 +46,9 @@ and this fires it exactly:
 - **Nothing makes leather.**
 - `tissue/bone`, `tissue/flesh`, `tissue/muscle` all ship — so a carcass
   already decomposes materially.
-- ⚠ There is **no `tallow`, no `soap`, no `candle`.**
+- ⚠ There is **no `soap`, no `candle`.** *(`tallow` ships since the
+  farmstead build — ranching's row and cooking's `render-tallow` — so the
+  chandler's input is now real and unconsumed.)*
 
 And the candle gap is worse than a missing item: **Rejection's entire
 culture section is built on it** — *"a two-candle job"*, *"he's short of
@@ -144,13 +150,160 @@ grade of the leather). Chandling probably does not.
 | **cooper** | **GAP** | barrels — fermentation, brewing and distilling all need vessels |
 | **monument mason** | **GAP** | the necropolis — ⚠ **too small to charter**; ride the necropolis locality pack |
 
-## 8. Open
+
+## 8. Soap — the chandler's second product (captured 2026-09-18)
+
+Came out of the nutrition & fitness planning: *"an adjacent system we
+should have talked about — hygiene."* Soap is where four designed-but-
+unbuilt systems meet, and none of them had claimed it.
+
+### ⭐⭐ Every input exists except one, and the one is a verb over a bulk
+
+Soap is **fat + alkali + water, boiled, salted to harden, cured.** In the
+tree today: `tallow` (ranching + `render-tallow`) and olive oil
+(`press-olive-oil`) — the tallow bar and the Castile bar; `salt`; water
+with chemistry; **`ash`** as a trade-fuel material (a spoiled clamp
+yields it; fire's `charMaterialPath` is ash). The missing link is
+**lye** — potash lye (KOH) leached from ash, which is `strain` over a
+bulk, a shipped verb. Boiling is `boil`. The four-to-six-week cure is
+**`MaturingMixin`'s third customer** after the cask and the dough (a
+`MaturationProfile` row: a soft bar hardens as water leaves and the
+last of the lye reacts out; a bar cured too short is harsh — the row
+carries that as a grade term, exactly as the dough's does). Scent is
+mint and whatever the orchard grows.
+
+**So the trade is rows over shipped verbs:** two or three recipes, a
+`soap` material, a maturation profile, a bar row. The only kernel edit
+soap itself wants is in the consumer (below).
+
+### The chemistry is the lesson, and it is real
+
+**Saponification**: a triglyceride and an alkali give three fatty-acid
+salts and a glycerol. Potash lye makes *soft* soap; salting it out
+(sodium displacing potassium) makes the *hard* bar — which is why the
+bar needs the salt trade and the soft soap does not. The byproduct,
+**glycerin**, is a second product with its own customer
+([cosmetics](./cosmetics-slate.md) — soap is a chain cosmetics is a
+second customer of, as dye already is).
+
+**Surfactants**: water does not cut grease; a soap molecule has a head
+that loves water and a tail that loves fat, and *that* is what a wash
+does. It is why `wash` with water only should leave a greasy pan greasy
+— and today it does not, because nothing is greasy (§ the consumer).
+
+**The hazard**: lye is caustic, and build-4 has just shipped the caustic
+channel and `rinse` — *"the caustic, and the verb that stops it."* The
+soap-boiler's occupational injury lands in the harm model before the
+trade does. ⭐ The abstraction law holds without effort: the activity
+costs the boiler a burn if he is careless, and time in every case.
+
+### ⭐⭐ The consumer is the unbuilt half — designed three times
+
+`wash` today is free and water-only, and it comes from libations (a
+glass). What soap acts *on* has been decided in three places and built
+in none:
+
+- [room-condition](./room-condition-design-pack.md) — **`Soilable`**:
+  grease, grime, dirty hands, on items, surfaces *and bodies*; an
+  act-deposited band (`clean / soiled / filthy`) that **freezes in
+  absence**, cleared by `wash` / `wipe` / `bathe`.
+- [bathroom](./bathroom-slate.md) — washing **decided as state,
+  "enabling, never a decay meter"**: filth never nags; washing opens
+  doors (the physician's *wash your hands*, scent and the stealth
+  systems, food service). The bathhouse as a venue.
+- [disease](./disease-design-pack.md) — hygiene as the fomite route: *a
+  dirty hand from room-condition is a fomite*. [Food safety](./food-safety-slate.md)
+  explicitly declined to put hands on `Creature` (*"every meal a hygiene
+  chore for no new mechanism"*) and named the disease build the consumer.
+
+**Soap is the consumable that makes `wash` do what water cannot.** The
+one kernel change soap needs is in `wash`: with soap in reach it clears
+grease; without, it clears only what water clears. And one honest
+extension to the contamination model: washing **removes** microbes
+mechanically, it does not kill them — a *removal fraction* on the
+second population, a different curve from the Arrhenius kill spoilage.md
+already runs. Semmelweis is the pedagogy.
+
+⚠⚠ **Never an obligation.** The bathroom slate's rule stands and this
+section inherits it: no filth meter, no penalty for not washing, no
+"hygiene need." Soap is bought because it *opens* something — the
+physician's competence, the kitchen's cross-contamination gate, the
+launder that actually launders. That is the demand test passing without
+anyone inventing a need.
+
+### Where it touches nutrition & fitness — three seams
+
+1. **Fat is a fork.** Tallow and olive oil go to the plate *or* the pot;
+   soap was dear when fat was food. The trained body's protein/fat
+   demand and the chandler's fat demand compete for the butcher's
+   output — a lens-6 fact, nothing to build.
+2. ⭐ **Exertion is the body-soiling producer room-condition lacks.** Its
+   pack says *"nothing in this build soils anything."* Sweat does:
+   build-4's heat load sheds by sweating, and the nutrition plan's
+   `exert()` is the act that should deposit on a `Soilable` body. The
+   gym makes you dirty; the bathhouse is the gym's neighbour — the
+   workout has a destination, and the destination has a bar *and a
+   bath*. Recorded in the nutrition plan as a deferred seam at
+   `depositWorkHeat`.
+3. **Lye is also food chemistry.** Nixtamalization (alkali-treated
+   maize) is what frees niacin; pellagra is the deficiency that *needs
+   an alkali* — and lye cures olives. The deficiency roster and the
+   alkali chain meet again there.
+
+### The trade cut — decided here, lens 2
+
+**Chandler**, not "soap-boiler": one fat, two products, and the candle
+is the light need this slate already closes. A soap-only trade would be
+a pack whose one output waits on another pack's consumer; the chandler
+ships candles the day he lands and soap the day `Soilable` does. The
+station test (§ 6) holds: a rendering kettle, a mould, a wick, a curing
+rack — one station family. Soap adds the **lye hopper** (the leaching
+barrel — a `Vat` row over ash) and that is all.
+
+**Zoning**: soap-boiling is a nuisance trade — the stench — and it
+lands in the same industrial class as the tanner; § 3 already said the
+industrial land use gets its teeth from exactly this cluster. ⭐ The
+honest register entry is not "soap-boiler": it is that **the butcher's
+outputs fan into three nuisance trades** — tanner (hide), chandler
+(fat), the glue boiler (bone) — and [vocations.md](../../vocations.md)
+carries all three under the one knacker · chandler row.
+
+**The bathhouse** rides hospitality as a venue archetype (a second
+venue needs zero pack code): hot water is a `heatK` slot, the tubs are
+vessels, the soap is stock on the par sheet. The bathroom slate keeps
+the *room* (privacy, the mirror, the restroom set); the bathhouse is a
+business.
+
+### Other trades it touches
+
+- **Textiles** — the launder branch of `wash` already fades dye per
+  wash; soap belongs in that formula (soap launders; water rinses).
+  **Fulling** (`full`, which textiles' slate lists and does not ship —
+  wool-only) is done *with soap or fuller's earth*; the chandler is the
+  fuller's supplier the day wool arrives.
+- **Cosmetics** — glycerin; scented soap is the first cosmetic that is
+  also a commodity.
+- **Medicine** — the physician's hand-washing as a competence read,
+  not a chore; the infirmary's basin is the first fixture that wants
+  soap on it.
+- **Distilling / brewing** — nothing; the `wash` they name is a mash,
+  a word collision to keep out of the material's keywords.
+
+### Sequencing
+
+Soap's *producer* is a content wave on this pack; its *consumer* is
+room-condition's `Soilable`. Build the consumer first or together —
+the scurvy precedent: the metabolism slate designed the deficiency in
+June and it sat unshipped for three months because the consumer never
+appeared. Candles do not wait; soap does.
+
+## 9. Open
 
 - **The cut** (§ 6).
-- **Where does soap go?** It is a rendering output and a hygiene input —
-  which touches [disease](./disease-slate.md) and the *care* need, and
-  could easily become fabricated demand if hygiene is made an obligation
-  rather than an advantage.
+- ~~**Where does soap go?**~~ **Answered, § 8 (2026-09-18):** a
+  rendering output, a hygiene *consumable* — never an obligation. The
+  bathroom slate already decided washing is *enabling, never a decay
+  meter*; soap is what makes `wash` do what water cannot.
 - **Is leather textiles' business or this pack's?** ⚠ Leather is **not**
   fibre — different process, different substrate — but a player will
   expect one place to buy both. Probably: this pack makes it, textiles'
