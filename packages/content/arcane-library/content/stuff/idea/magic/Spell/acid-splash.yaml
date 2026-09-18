@@ -1,0 +1,30 @@
+# ⭐⭐ Acid Splash — create·water, and it reaches CORROSION the only honest
+# way: it does not mint "acid damage". It CONJURES a caustic (collects real
+# vitriol from an unbounded source, exactly as Conjure Water collects
+# water) onto the mark, and the substance's OWN chemistry does the rest
+# through the substance-contact seam — the same `caustic` wound the
+# lime-seep leaves, that `rinse` resolves, that eats a steel breastplate
+# where a linen shirt wicks it straight through.
+#
+# This is why corrosion was excluded from `inject-channel` and is right to
+# be: a channel token cannot carry the agent's chemistry, but a real
+# material can, and does.
+class: /platform/idea/magic/Spell
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  spellId: acid-splash
+  name: Acid Splash
+  verb: create
+  noun: water
+  cost: 15
+  castingProfile:
+    requiredBand: novice
+    castSeconds: 3
+  targeting: any
+  effects:
+    - kind: conjure
+      bulkMaterial: vitriol
+  description: >-
+    Oil of vitriol, called out of nowhere and flung over the mark. It is
+    real acid: it clings, it fumes, and it does not stop eating until it is
+    washed away.

@@ -1,0 +1,23 @@
+# ⭐ Windrazor — create·air, a shearing EDGE of compressed air. The Air
+# school actuates gases and pressure; wound tight enough, moving air cuts.
+# It proves the last mechanical channel `edge` — the slashing seam — and
+# it is the lightest of the force workings, because air is cheap to move.
+class: /platform/idea/magic/Spell
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  spellId: windrazor
+  name: Windrazor
+  verb: create
+  noun: air
+  cost: 10
+  castingProfile:
+    requiredBand: novice
+    castSeconds: 2
+  targeting: creature
+  effects:
+    - kind: inject-channel
+      channel: edge
+      energy: [1, 2, 4]
+  description: >-
+    A blade of air, wound to a razor and loosed. It slashes where it
+    passes — a leather jerkin blunts it, bare skin does not.
