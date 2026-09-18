@@ -6,7 +6,7 @@
  * concern that layer owns. This module is the single concept the persistence
  * spine's type surface defines — it kills the `types.ts` reflex.
  *
- * Three slice shapes exist:
+ * Four slice shapes exist:
  *
  *   - **default** (`FieldsSlice`) — every ordinary mixin (`Graded`,
  *     `Propertied`, `Named`, …): that layer's declared `persistentFields`,
@@ -19,12 +19,17 @@
  *   - **slotted** (`SlottedSlice`) — `SlottedMixin`'s worn/equipped
  *     occupancy, recorded by *position* (indices into the container slice),
  *     never by instance id.
+ *   - **belief** (`BeliefSlice`) — `BeliefStoreMixin`'s memory, but only
+ *     for a host with an explicit persistence key. See {@link BeliefSlice}.
  *
  * The recursion seam ({@link CaptureContext} / {@link RestoreContext}) lets a
  * mixin's `captureSlice` / `restoreSlice` hook recurse into item state
  * without importing `PersistableLogic` (breaking the lib → obj/api cycle):
  * `PersistableLogic` implements the seam and passes it into every hook.
  */
+
+// Type-only: erased at compile time, so no runtime edge and no cycle.
+import type { BeliefRecord } from '../belief/BeliefStore';
 
 /**
  * Where a captured content item sits relative to its host. Worn/equipped
@@ -113,6 +118,22 @@ export interface EstateEntry {
   state: Record<string, MixinSlice>;
   place: string;
   /**
+   * ⭐⭐ Present iff the good **persists itself** — a host with an explicit
+   * persistence key of its own (a named animal).
+   *
+   * When it is set the entry is a **reference, not a copy**: `state` is
+   * empty and the good's own `holder_snapshots` record is authoritative
+   * for everything about it, including where it stands. The owner's
+   * estate says only *you have title to this, and here is how to find
+   * it* — which is right, because a pet's regard, hunger, handling and
+   * home are the PET's state, not its owner's inventory listing.
+   *
+   * ⚠ Without the split, capturing an owner would snapshot the animal
+   * into the owner's record and the animal would also be writing its
+   * own — two copies of one creature, diverging from the first meal.
+   */
+  key?: string;
+  /**
    * Present iff the good is **mounted** on the place rather than standing
    * in it — hung on the room's `Adornable` fixture map (residences D11).
    * `slot` is the fixture slot name to re-attach under, so a wall lamp
@@ -133,12 +154,28 @@ export interface EstateSlice {
   entries: EstateEntry[];
 }
 
+/**
+ * A belief-holding host's own memory, when that host persists itself.
+ *
+ * ⭐ Only a host with an **explicit persistence key** contributes one. An
+ * Avatar's beliefs live in the `beliefs` collection keyed by its minted
+ * identity, so its slice is empty and its record is byte-identical to
+ * what it was; a named animal has no minted identity, so its opinion of
+ * you is part of *its* state and rides *its* record. The split is
+ * decided in exactly one place — `viewerKey` in
+ * `lib/belief/BeliefStore.ts` — so no host can ever write to both.
+ */
+export interface BeliefSlice {
+  beliefs: BeliefRecord[];
+}
+
 /** The tagged union stored under each layer key in a record's `state`. */
 export type MixinSlice =
   | FieldsSlice
   | ContainerSlice
   | SlottedSlice
-  | EstateSlice;
+  | EstateSlice
+  | BeliefSlice;
 
 /**
  * A Containable top-level host's own durable spawn/recall location — the
@@ -156,6 +193,20 @@ export interface HostPlacement {
    */
   containerKey?: string;
   startLocation?: string;
+  /**
+   * The way DOWN from the anchor to where the host actually stood, as the
+   * template paths of the intermediate containers, outermost first — a
+   * cage on a table in a room is `[table, cage]` under `container: room`.
+   *
+   * ⭐ `container` names the nearest ancestor with an ADDRESS (a keyed
+   * host, a Location, a singleton), never an intermediate container: a
+   * chest's template path is every chest in the world, so "find the
+   * first live chest" could land the host anywhere. Restore resolves the
+   * anchor exactly, then descends hop by hop **within it** — matching each
+   * hop among that container's contents only — and stops at the deepest
+   * hop it can find. Absent when the host stood directly in the anchor.
+   */
+  via?: string[];
 }
 
 /**
@@ -204,4 +255,13 @@ export interface RestoreContext {
     entry: ContentEntry,
     host: unknown,
   ): Promise<unknown | null>;
+
+  /**
+   * Resolve-or-mint the host keyed `(scope, key)` — a good that persists
+   * **itself** and so is not rebuilt from a nested `state` but stood up
+   * from its own record, which restores its own placement. The estate's
+   * keyed entries use it: an owner arriving stands its animals up, and
+   * finds them already standing when the boot roll got there first.
+   */
+  standUpKeyed(scope: string, key: string): Promise<unknown | null>;
 }

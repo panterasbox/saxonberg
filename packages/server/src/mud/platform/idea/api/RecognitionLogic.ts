@@ -341,8 +341,26 @@ function describeCore(
   // The type-axis name, if the viewer has identified this type.
   const typeName = identificationName(viewer, target);
 
-  // Recognition (instance axis) — living beings only.
-  if (MixinApi.isOrganism(target)) {
+  // ⭐⭐ Recognition (instance axis) — **persons only.**
+  //
+  // Recognition exists so that a PERSON can be a stranger to you, wear a
+  // hood, or be impersonated. An animal can be none of those things. So
+  // the gate narrows from every organism to every *persona*: a
+  // non-person organism renders its presentation — its name if it has
+  // one, its stem if it does not — to everybody alike.
+  //
+  // ⭐ Which is what makes a named animal findable at all. An unnamed
+  // stray is "a thin cat" to the whole street; the moment somebody names
+  // it, it is "Mouse" to the whole street, including to a neighbour who
+  // has never met it. *It has a name, and names are public.* That is the
+  // second route by which a lost animal gets home, and it costs nothing
+  // but this narrowing.
+  //
+  // ⚠ `isPersona` and not `isSentient`: the former is structural (a
+  // composition fact, true before anything warms), the latter reads a
+  // species Idea that answers `false` for an un-warmed species — which
+  // would make a person briefly nameless at boot.
+  if (MixinApi.isPersona(target)) {
     const referent = target.getIdentityPath();
     const instanceName =
       referent && MixinApi.isBeliefStore(viewer)
@@ -450,7 +468,18 @@ function perceivedKeywordsImpl(viewer: Stuff, target: Stuff): string[] {
     // form) even though the prose (`describe`) drops them, so `look vest`
     // resolves a stranger the roll-call prose names only "a crossing
     // guard". Status is not a targeting handle, so `withStatus` stays off.
-    return GrammarApi.tokenize(describeCore(viewer, target, 'distinguishing'));
+    const perceived = GrammarApi.tokenize(
+      describeCore(viewer, target, 'distinguishing'),
+    );
+    // ⭐ An ANIMAL keeps its authored keywords too: a named cat is still a
+    // cat, and `pet cat` must reach Mouse. A person does not — what you
+    // may target somebody by is exactly what you perceive them as, which
+    // is the whole of disguise (found live: `look cat` found nothing the
+    // moment she had a name).
+    if (!MixinApi.isPersona(target) && MixinApi.isPerceptible(target)) {
+      return [...new Set([...perceived, ...target.getKeywords()])];
+    }
+    return perceived;
   }
   return MixinApi.isPerceptible(target) ? target.getKeywords() : [];
 }

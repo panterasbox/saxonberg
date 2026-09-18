@@ -19,6 +19,7 @@ import { SensorMixin } from '../../message/Sensor';
 import { NamedMixin } from '../../description/Named';
 import { VisibleMixin } from '../../description/Visible';
 import { OrganismMixin } from '../../species/Organism';
+import { PersonaMixin } from '../../character/Persona';
 import { ContainableMixin } from '../../spatial/Containable';
 import { Idea } from '../../stuff/Idea';
 import {
@@ -27,8 +28,17 @@ import {
 } from '../../security/__tests__/test-setup';
 
 // A being with status (mirrors a Character: Status + Organism + naming).
-class Gus extends StatusMixin(
-  OrganismMixin(VisibleMixin(NamedMixin(ContainableMixin(Idea)))),
+// ⚠ **PersonaMixin is what makes it a PERSON.** Recognition is a
+// person-only gate now — an animal cannot be a stranger, disguised or
+// impersonated, so a non-person organism publishes its name to everyone.
+// A fixture standing in for somebody must compose the thing that makes
+// one; faking the shape passes only until the rule gets stricter.
+// ⭐ And "mirrors a Character" is exactly the claim: a Character composes
+// PersonaMixin, so this now composes what it always said it was.
+class Gus extends PersonaMixin(
+  StatusMixin(
+    OrganismMixin(VisibleMixin(NamedMixin(ContainableMixin(Idea)))),
+  ),
 ) {}
 
 class Viewer extends BeliefStoreMixin(PerceptionMixin(SensorMixin(Idea))) {}

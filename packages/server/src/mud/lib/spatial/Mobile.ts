@@ -458,12 +458,26 @@ export function MobileMixin<TBase extends MixinConstructor<Stuff & Containable>>
       //
       // Walk only the immediate level of the mover's slots; nested
       // ripple lives inside the occupant's own traverse() call.
+      //
+      // ⚠⚠ Only an occupant that stands OUTSIDE the mover rides the
+      // ripple. Worn and wielded gear — a cranial implant, a coat, a
+      // sword — is in the mover's own contents AND its slot (the
+      // worn/wielded contract), and came along with the move itself;
+      // rippling it too moved it out of the wearer and into the
+      // destination ROOM. Found live: every character left its aether
+      // implant on the floor of every room it walked into.
       if (MixinApi.isSlotted(mover)) {
         const seen = new Set<Stuff>();
         for (const [, occupants] of mover.getAllOccupants().entries()) {
           for (const occupant of occupants) {
             if (seen.has(occupant)) continue;
             seen.add(occupant);
+            if (
+              MixinApi.isContainable(occupant) &&
+              occupant.getContainer() === (mover as unknown as Stuff)
+            ) {
+              continue; // carried, not ridden
+            }
             if (MixinApi.isMobile(occupant) && MixinApi.isContainable(occupant)) {
               try {
                 await occupant.traverse(exit, mode);
@@ -636,7 +650,12 @@ export function MobileMixin<TBase extends MixinConstructor<Stuff & Containable>>
           for (const occupant of occupants) {
             if (seen.has(occupant)) continue;
             seen.add(occupant);
-            if (MixinApi.isContainable(occupant)) {
+            // ⚠ Same rule as `traverse`: an occupant already INSIDE the
+            // mover is worn or wielded and has moved already.
+            if (
+              MixinApi.isContainable(occupant) &&
+              occupant.getContainer() !== (self as unknown as Stuff)
+            ) {
               ContainmentApi.move(occupant, destination);
             }
           }

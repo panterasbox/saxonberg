@@ -1,0 +1,34 @@
+# ⭐⭐ A stray cat — the first animal in the game that exists to be liked.
+#
+# It is a `KeptAnimal` **before anybody has kept it**, and that is the
+# point: the rung is *an animal that could become somebody's*, not *an
+# animal that is*. Unnamed it has no title, no record, no persistence and
+# a regard for you that lives only until the server restarts. Naming it
+# is what changes all four at once, and it will not let you name it until
+# it has followed you home.
+#
+# ⚠ `handling: 0.25` puts it at `flighty` — below the touch band. You
+# cannot pet this cat yet. You get there by leaving food where it can
+# reach it after you step back, which is the ladder: food on the ground,
+# then food from the hand, then a hand, then it follows you.
+class: /platform/agent/KeptAnimal
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  _speciesPath: /stuff/idea/species/cat
+  lifecycleState: alive
+  shortDescription: thin cat
+  register: indefinite
+  primaryKeyword: cat
+  keywords: [cat, thin, stray, moggy]
+  longDescription: >-
+    A thin cat, grey where it is not dust-coloured, with the particular
+    economy of movement of something that has been feeding itself for a
+    while. It watches you without any especial concern.
+  handling: 0.25
+  behaviors:
+    - brain: /lib/behavior/follows
+      trigger: departure
+    - brain: /lib/behavior/feeds
+      trigger: cadence:60s
+    - brain: /lib/behavior/homes
+      trigger: cadence:90s

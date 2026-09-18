@@ -40,6 +40,13 @@ that shapes every slate.
 > ⚠ Cut and recorded rather than half-shipped: **bees/pollination** and
 > **foraging**; breeding writes *served* and gestation is a follow-on. See [towns-slate](./slates/builds/towns-slate.md) D27 +
 > [venue-and-supply-slate](./slates/builds/venue-and-supply-slate.md) V11.
+> ⭐⭐ **Phase 5's first half — PETS — shipped 2026-09-17** (MR !257): the
+> kept animal as a rung, the bond as regard × handling, feeding as a
+> ladder, the offer as a moment the animal decides, naming as the
+> promotion, and the residency pin (what loads a pet) — see
+> [pets.md](./subsystems/pets.md). Its tail (the off-screen digest, home
+> range, pet combat, breeding) stays in the pets slate; the load half of
+> residency's *policy* is [eager-residency-slate](./slates/builds/eager-residency-slate.md).
 
 ---
 

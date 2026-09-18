@@ -49,6 +49,8 @@ import { WorldClockApi } from '../../api/worldclock';
 import { TemplatePaths } from '../paths';
 import type Species from '../../platform/idea/species/Species';
 import type { LifeStage } from '../../platform/idea/species/Species';
+import type { MarkupAugmenter } from '../../api/mml';
+import { ConditionApi } from '../../api/condition';
 
 const SECONDS_PER_GAME_DAY = 86_400;
 
@@ -73,6 +75,8 @@ export interface Organism {
   getLifeStage(): LifeStage | null;
   /** Has it reached breeding age? `false` when unmodelled or played. */
   isMature(): boolean;
+  /** Kill it if it is past its span — non-sentient animals only. */
+  reconcileSenescence(): void;
   getLifecycleState(): string;
   setLifecycleState(value: string): void;
   /** Lifecycle predicates — the organism answers for its own state. */
@@ -104,9 +108,41 @@ const VALID_SEX_BY_SYSTEM: Record<string, readonly string[]> = {
   none: [],
 };
 
+/**
+ * ⭐⭐ **An old animal LOOKS old**, and that is the whole warning system.
+ *
+ * Band words, never a number and never a countdown: a keeper who is
+ * paying attention sees the grey muzzle and has time to feel something
+ * about it. ⚠ The stage is authored per species (`ageCurve.senescentAt`)
+ * rather than derived from the span, so a species can be visibly old for
+ * a long while, or barely at all.
+ *
+ * Players never reach this: `getLifeStage()` is `null` for a body with an
+ * Interactive, because a birthday is worth having and a death clock is
+ * not. ⚠ This DOES apply to every curved organism — the farm stock, not
+ * only companions. That is the honest scope; narrowing it to pets would
+ * be a guard re-narrowing the host, and an old ewe looks old too.
+ */
+const AGE_PHRASE: Partial<Record<LifeStage, string>> = {
+  aged: 'It is grey about the muzzle and slow to rise.',
+  senescent: 'It is very old.',
+};
+
+function ageAugmenter(text: string, host: Stuff, _viewer: Stuff): string {
+  if (!MixinApi.isOrganism(host)) return text;
+  if (host.isDestroyed()) return text;
+  const stage = host.getLifeStage();
+  const line = stage ? AGE_PHRASE[stage] : undefined;
+  if (!line) return text;
+  return text && text.length > 0 ? `${text}\n\n${line}` : line;
+}
+
 export function OrganismMixin<TBase extends MixinConstructor>(Base: TBase) {
   return class OrganismMixin extends Base {
     static _mixinName = 'OrganismMixin';
+
+    /** The age line an old body shows on `look`. See {@link ageAugmenter}. */
+    static markupAugmenters: MarkupAugmenter[] = [ageAugmenter];
     static fieldMeta: FieldMeta = {
       _speciesPath: { persistent: true, authorable: true, authorPicker: 'Species' },
       bornAt: { persistent: true, authorable: true },
@@ -262,9 +298,45 @@ export function OrganismMixin<TBase extends MixinConstructor>(Base: TBase) {
       return species.lifeStageAt(this.getAgeDays());
     }
 
+    /**
+     * Past breeding age onset. ⚠ Includes `senescent`: an animal at the
+     * end of its life is still mature — the stage says it is old, not
+     * that it has reverted to a juvenile.
+     */
     public isMature(): boolean {
       const stage = this.getLifeStage();
-      return stage === 'adult' || stage === 'aged';
+      return stage === 'adult' || stage === 'aged' || stage === 'senescent';
+    }
+
+    /**
+     * ⭐⭐ **Death of old age — for non-sentient animals only.**
+     *
+     * Three conditions, all of which must hold: the body reads
+     * `senescent`, its species is **not sentient**, and it has passed
+     * `lifespanMax`. ⚠ The sentience test is not decoration — it is
+     * precisely the boundary `race.md` drew when it decided lifespans
+     * would not bite. The reservation was about the **succession
+     * problem** for named *persons*: what happens to a character's
+     * offices, titles, contracts and chronicle when the clock kills
+     * them. None of that is a question about a cat. So this satisfies
+     * the requirement inside the boundary rather than against it, and
+     * persons stay exactly as reserved as they were.
+     *
+     * ⚠ Nothing calls this on a schedule. It is driven by a beat that
+     * already runs for the host (the `feeds` brain in this build), which
+     * keeps the cost with whatever is already paying attention — and
+     * means an animal nobody has any beat for simply does not age out.
+     */
+    public reconcileSenescence(): void {
+      const self = this as unknown as Stuff;
+      if (this.getLifecycleState() === 'dead') return;
+      if (this.getLifeStage() !== 'senescent') return;
+      const species = this.getSpecies();
+      if (!species || species.isSentient()) return;
+      const span = species.getLifespanMax();
+      if (span <= 0) return;
+      if (this.getAgeDays() < span * 365) return;
+      void ConditionApi.die(self, 'old age');
     }
 
     public getLifecycleState(): string { return this.lifecycleState; }

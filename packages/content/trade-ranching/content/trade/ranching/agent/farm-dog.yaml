@@ -18,7 +18,21 @@ data:
   _speciesPath: /stuff/idea/species/animalia/chordata/mammalia/carnivora/canidae/canis/familiaris
   lifecycleState: alive
   handling: 0.55
+  # ⚠⚠ `cadenceMs:` was never a key `Behaved._parseTrigger` understood —
+  # it wants `trigger: cadence:<N>s`. Between that and the class composing
+  # no `BehavedMixin`, this dog has been standing in the yard doing
+  # nothing since the ranching build shipped, with nothing anywhere to
+  # say so. Both halves are fixed now.
   behaviors:
     - brain: /trade/ranching/behavior/herds
-      cadenceMs: 300000
+      trigger: cadence:300s
       config: {}
+    # ⭐ And the collie is a companion as well as a worker: it follows the
+    # person it is bonded to, eats what it is given, and makes its own way
+    # back to the farm.
+    - brain: /lib/behavior/follows
+      trigger: departure
+    - brain: /lib/behavior/feeds
+      trigger: cadence:60s
+    - brain: /lib/behavior/homes
+      trigger: cadence:90s

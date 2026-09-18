@@ -234,6 +234,10 @@ budding field-rooms, the tend loop, weather-driven growth.
 
 ## Phase 5 — Animals
 
+> ✅ **Ranching shipped with the farmstead (2026-09-06); pets shipped
+> 2026-09-17** — [pets.md](./subsystems/pets.md). The enablers below are
+> paid for; what is left of pets is its tail in the slate.
+
 **Ships:** **pets first** (smaller, more legible, and adoption is the on-ramp),
 then **ranching** scaling to the aggregate herd.
 

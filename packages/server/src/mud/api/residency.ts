@@ -8,10 +8,13 @@ import { HotReloadApi } from './hot-reload';
 import { ResidencyLogic } from '../platform/idea/api/ResidencyLogic';
 import { fileURLToPath } from 'url';
 import { SecurityApi } from './security';
-import type { SpawnSweepReport } from '../platform/idea/api/ResidencyLogic';
+import type {
+  SpawnSweepReport,
+  PinRollReport,
+} from '../platform/idea/api/ResidencyLogic';
 import type { WorldCensus } from '../lib/residency/Census';
 
-export type { SpawnSweepReport, WorldCensus };
+export type { SpawnSweepReport, PinRollReport, WorldCensus };
 
 const LOGIC_PATH = '/platform/idea/api/residency';
 const LOGIC_CLASS_FILE = fileURLToPath(
@@ -59,6 +62,16 @@ export class ResidencyApi {
    */
   public static spawnNow(): Promise<SpawnSweepReport> {
     return logic().spawnNow();
+  }
+
+  /**
+   * Run the **pin roll** now (test / manual seam): stand every pinned good
+   * back up wherever it was standing. Resolve-or-mint, so re-running it
+   * mints nothing that is already live. The boot arm is the
+   * `ResidencyWarden`'s.
+   */
+  public static pinNow(): Promise<PinRollReport> {
+    return logic().pinNow();
   }
 
   /**

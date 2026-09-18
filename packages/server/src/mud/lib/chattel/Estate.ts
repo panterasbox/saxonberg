@@ -24,9 +24,15 @@
  *                     registry and in this record and has no presence in
  *                     the world. This is what makes storage free: it is the
  *                     absence of a placement, not a place.
- *   - a room identity — **deferred to that room's materialize**, not done
+ *   - a room identity — for a good carried as **state** (a chair),
+ *                     **deferred to that room's materialize**, not done
  *                     here. That is what makes "my chair is in my living
- *                     room while I am at work" true.
+ *                     room while I am at work" true. For a good that
+ *                     persists **itself** (a `key` entry — a named animal),
+ *                     stood up here from its own record, which restores its
+ *                     own placement: the owner arriving is the ask, and the
+ *                     room does nothing. Usually a resolve, because the
+ *                     residency pin roll stood it up at boot.
  *
  * ## Capture is synchronous, which shapes everything
  *
@@ -51,6 +57,8 @@
 
 import type { MixinConstructor, FieldMeta } from "../mixin";
 import type { Stuff } from "../stuff/Stuff";
+import { MixinApi } from "../../api/mixin";
+import { ContainmentApi } from "../../api/containment";
 import { CallSecurity, Final, Unshadowable } from "../security/decorators";
 import { SecurityPolicies } from "../security/SecurityPolicies";
 import {
@@ -168,14 +176,31 @@ export function EstateMixin<TBase extends MixinConstructor<Stuff>>(
       const entries: EstateEntry[] = [];
       for (const entry of self.getEstateEntries()) {
         const live = self.getEstateLive(entry.chattelId);
+        if (!live) {
+          entries.push(entry);
+          continue;
+        }
+        // ⭐⭐ A good that persists ITSELF is carried as a reference.
+        // Snapshotting it here would make a second copy of a creature
+        // that is also writing its own record, and the two would diverge
+        // from its first meal. The key is how the owner finds it again.
+        const key =
+          MixinApi.isPersistable(live) && live.isPersistenceKeyExplicit()
+            ? (live.getPersistenceKey() ?? undefined)
+            : undefined;
         entries.push(
-          live
+          key
             ? {
                 ...entry,
                 templatePath: live.getTemplatePath() ?? entry.templatePath,
-                state: ctx.captureState(live),
+                key,
+                state: {},
               }
-            : entry,
+            : {
+                ...entry,
+                templatePath: live.getTemplatePath() ?? entry.templatePath,
+                state: ctx.captureState(live),
+              },
         );
       }
       return { entries } satisfies EstateSlice;
@@ -202,9 +227,39 @@ export function EstateMixin<TBase extends MixinConstructor<Stuff>>(
           continue;
         }
         if (entry.place !== ESTATE_INVENTORY) {
-          // Placed in a room. That room's materialize overlays it (D4), so
-          // the entry is kept and no instance is minted here.
+          if (entry.key) {
+            // ⭐ A good that persists ITSELF, standing in a room: its owner
+            // arriving is the ask. Stood up from its own record, which
+            // restores its own placement — the room is lazy-loaded if
+            // nothing is there yet, and the room does nothing. Resolve
+            // first: the boot pin roll usually got here already.
+            const live = (await ctx.standUpKeyed(
+              entry.templatePath,
+              entry.key,
+            )) as Stuff | null;
+            self._putEstateEntry(entry, live);
+            continue;
+          }
+          // Placed in a room, carried as state. That room's materialize
+          // overlays it (D4) if the room persists itself; the entry is
+          // kept and no instance is minted here.
           self._putEstateEntry(entry, null);
+          continue;
+        }
+        if (entry.key) {
+          // ⭐ In the owner's hands, and it persists ITSELF: stood up from
+          // its own record (a keyed entry's `state` is `{}` — restoring
+          // that as a clone gave back a BLANK animal), then put back in
+          // the owner's hands. Its own record carries no placement while
+          // it is carried, so this move is the only one it gets.
+          const live = (await ctx.standUpKeyed(
+            entry.templatePath,
+            entry.key,
+          )) as Stuff | null;
+          if (live && MixinApi.isContainable(live) && MixinApi.isContainer(host)) {
+            ContainmentApi.move(live, host);
+          }
+          self._putEstateEntry(entry, live);
           continue;
         }
         const item = (await ctx.restoreItem(

@@ -321,5 +321,5 @@ Observable from outside the code, by a person playing.
   (the pit, which must not change)
 - **Adjacent, deliberately not consumed:**
   [disease-slate](../slates/builds/disease-slate.md) (foul housing earns
-  its consequences there) · [pets requirements](./pets-requirements.md)
+  its consequences there) · [pets.md](../subsystems/pets.md)
   (which named this gap and handed it here)

@@ -4925,3 +4925,41 @@ same-file string union, and factories. See the slate for the ladder.
 Sweep tracked at
 [value-object-statics-slate.md](./slates/builds/value-object-statics-slate.md);
 worked example in [presentation.md](./subsystems/presentation.md).
+
+## `PostRegistrationMixin` composed OUTSIDE a layer that has its own `postRegister`
+
+⭐⭐ **Its `postRegister` is a terminal no-op that never calls `super`, so
+everything inside it is silently dead.**
+
+`PostRegistrationMixin` exists to *mark* a class as supporting the hook
+(`MixinApi.isPostRegistration`); its default body is empty and does not
+chain. Every real layer that overrides `postRegister` chains
+`Base.prototype.postRegister` — so the chain runs outer → inner and stops
+at the first override that does not chain. Put the marker in the middle
+of a stack and it is that override.
+
+```ts
+// WRONG — Bonded.postRegister never runs on a live animal
+PersistableMixin(BehavedMixin(PostRegistrationMixin(BondedMixin(Status(...)))))
+
+// RIGHT — the marker innermost, where the chain terminates harmlessly
+PersistableMixin(BehavedMixin(BondedMixin(Status(PostRegistrationMixin(...)))))
+```
+
+**What it cost (pets build, 2026-09-17).** `KeptAnimal` shipped with the
+marker between `Behaved` and `Bonded`. `Bonded.postRegister` seeds the
+animal's home and (from round 8) warms its species; neither ever
+happened on a live animal — the `homes` brain had nowhere to go, and
+every species dial read as absent. Nothing above the fixtures could see
+it: every unit test called `Bonded.postRegister` on a fixture that
+composed no marker above it. Found live, by `offer` answering
+`no-hand-rung` to a cat whose species declares `hand`.
+
+**The rule:** the marker goes **innermost** — directly on the base
+(`PostRegistrationMixin(Idea)`, `…(Vessel)`) or below every layer with a
+hook of its own. A test that composes the *shipped* class and walks the
+chain is the proof (`KeptAnimal.postRegister.test`). ⚠ Eleven other
+stacks compose the marker above `FixtureMixin` / `Character` / a
+`Detailed` layer; whether any of those has a `postRegister` beneath the
+marker is a census worth running before a lint ratchets it —
+[lint-family.md](./lint-family.md).

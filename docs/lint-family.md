@@ -728,6 +728,18 @@ configured**.
   rots — which is right, and is not spoilage: a LIVING thing's tissue is
   not yet dead matter, so a class composing `GrowingMixin` is exempt by
   rule, not by list. The clock starts at the harvest, which is a `Crop`.
+- **`lint:kept-animals`** — the kept-animal triangle closes (pets build,
+  2026-09): a species dial the kernel cannot read (`handlingRange`,
+  `biddability`, `feedingStyle` on a row whose class is not `Species`);
+  a species a `Bonded` class is cloned with that declares no
+  `biddability` (*not askable at all* — the silent default the
+  cat-versus-collie difference rides on); a `feedingStyle` vessel rung
+  no `Feeder` row provides (a canary that eats only from a hopper, and
+  no hopper). ⚠ It follows a pack's local `const Base = Mixin(X)` and
+  `@saxonberg/server/mud/…` specifiers — it first reported the collie as
+  unable to bond *on the commit that gave it its bond*, because it read
+  only the `extends` clause. All three directions were proved by
+  breaking them.
 - **`lint:world-scan`** — **you may not be handed the world.** Two
   patterns: a raw `StuffApi.getAllObjects()` enumeration (three
   sanctioned homes) and a `world:` query or `scope: world` (the owners

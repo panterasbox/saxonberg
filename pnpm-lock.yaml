@@ -430,6 +430,9 @@ importers:
       '@saxonberg/content-platform':
         specifier: workspace:*
         version: link:../platform
+      '@saxonberg/content-species-and-names':
+        specifier: workspace:*
+        version: link:../species-and-names
       '@saxonberg/server':
         specifier: workspace:*
         version: link:../../server

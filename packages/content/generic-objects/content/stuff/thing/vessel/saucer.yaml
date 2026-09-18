@@ -1,0 +1,22 @@
+# A shallow dish an animal feeds from. ⭐ AC 26 in one row: everything it
+# can do it inherits — interior bulk for water and milk (`fill`, `pour`,
+# `drink`), contents for scraps (`put`), chattel title so a bought one
+# persists with its owner. `FeederMixin` adds the single claim on top.
+#
+# ⚠ And food left in it turns on the shipped spoilage clock with no code
+# at all. That is the neglect signal, arriving free — and it reads
+# identically whether or not you meant it.
+class: /platform/thing/Feeder
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: shallow tin saucer
+  register: indefinite
+  primaryKeyword: saucer
+  keywords: [saucer, dish, tin]
+  longDescription: >-
+    A shallow tin saucer, a little dented on one side, the sort of thing
+    that stops being crockery the first time something drinks out of it.
+  mass: 0.1
+  feederKind: bowl
+  interiorBulk: true
+  interiorCapacity: 0.3

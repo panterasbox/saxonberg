@@ -134,6 +134,24 @@ function optedOutOfPersistence(host: Stuff): boolean {
  * clobber — not merely because two shells exist. Freshly-cloned, not-yet-keyed
  * siblings (`getPersistenceKey() === null`) own no record and don't collide.
  */
+/**
+ * The live instance of `(scope, key)`, or null.
+ *
+ * ⭐ The read half of {@link assertUniqueKey}'s scan: that function
+ * throws when it finds a second one, this returns the first. Both exist
+ * because a keyed host's identity IS the pair, so "is it already
+ * standing up" and "would this collide" are one question asked from two
+ * directions.
+ */
+function liveKeyed(scope: string, key: string): Stuff | null {
+  for (const other of StuffApi.findAllByTemplatePath<Stuff>(scope)) {
+    if (MixinApi.isPersistable(other) && other.getPersistenceKey() === key) {
+      return other;
+    }
+  }
+  return null;
+}
+
 function assertUniqueKey(scope: string, key: string, host: Stuff): void {
   for (const other of StuffApi.findAllByTemplatePath(scope)) {
     if ((other as unknown) === (host as unknown)) continue;
@@ -163,29 +181,109 @@ function capturePlacement(host: Stuff): HostPlacement | null {
   // A nested host — one sitting anywhere inside another persistable host's
   // tree — is placed by its REFERRER (the ancestor whose container slice
   // holds its `{ref, key}` entry), so its own `place` would fight that
-  // (and could phantom-clone a stale container template on restore). A
-  // HasInteractive host (an avatar) is exempt: the container slice filters
-  // it out, so nothing refs it and its own `place` stays load-bearing.
-  if (
+  // (and could phantom-clone a stale container template on restore).
+  // ⚠ The exemption is exactly the container slice's own SKIP LIST
+  // (`ContainerMixin.captureSlice`): a HasInteractive host (an avatar) and
+  // an owner-persisted chattel (a named animal — it persists with its
+  // owner's estate, never in the room's slice) are filtered out of every
+  // ancestor's slice, so nothing refers to them and their own `place` is
+  // the only record of where they stand. Before the chattel arm, a pinned
+  // cat in a bedroom captured NO placement and the pin roll stood it up
+  // nowhere (found by `ResidencyPin.test`, not live).
+  const referredByAncestor =
     !MixinApi.isHasInteractive(host) &&
-    nearestPersistableHost(env) !== null
-  ) {
-    return null;
-  }
+    !(MixinApi.isChattel(host) && host.isOwnerPersisted()) &&
+    nearestPersistableHost(env) !== null;
+  if (referredByAncestor) return null;
+  // ⭐ Anchor on the nearest ancestor with an ADDRESS, and remember the
+  // way down. A host in a chest in a room must not record the chest: a
+  // chest's template path is every chest in the world. See
+  // {@link HostPlacement.via}.
+  const { anchor, via, carried } = placementAnchorOf(env);
+  // ⚠ Carried by somebody (an avatar anywhere up the chain): no placement.
+  // Every avatar shares one template path, so a `via` hop naming one
+  // could land the good in a stranger's pockets; and a good in hand is
+  // the owner's estate's to put back (`Estate.restoreSlice`, inventory).
+  if (carried) return null;
+  const nested = via.length > 0 ? { via } : {};
   // A KEYED host container (a holding's room — residences D16): record
   // `(scope, key)` so restore re-enters the exact room through the
   // owning institution, never a fresh clone of the shared row.
-  if (MixinApi.isPersistable(env) && env.isPersistenceKeyExplicit()) {
-    const scope = env.getIdentityPath();
-    const key = env.getPersistenceKey();
-    if (scope && key) return { container: scope, containerKey: key };
+  if (MixinApi.isPersistable(anchor) && anchor.isPersistenceKeyExplicit()) {
+    const scope = anchor.getIdentityPath();
+    const key = anchor.getPersistenceKey();
+    if (scope && key) return { container: scope, containerKey: key, ...nested };
   }
-  if (MixinApi.isWarrenMember(env)) {
-    const warren = env.getWarren()?.getTemplatePath();
-    if (warren) return { startLocation: warren };
+  if (MixinApi.isWarrenMember(anchor)) {
+    const warren = anchor.getWarren()?.getTemplatePath();
+    if (warren) return { startLocation: warren, ...nested };
   }
-  const container = env.getIdentityPath();
-  return container ? { container } : null;
+  const container = anchor.getIdentityPath();
+  return container ? { container, ...nested } : null;
+}
+
+/**
+ * Does this container have an address a placement can name exactly? A
+ * keyed persistable host (one of many, told apart by its key), a
+ * `Location` (the addressable unit of the world — singleton, or a warren
+ * member whose warren re-lands it; read as `Addressable`), or a singleton. Anything else — a
+ * chest, a cage, a crate — is one of an unbounded many that share a
+ * template path, and is only ever named RELATIVE to an anchor.
+ */
+function isPlacementAnchor(stuff: Stuff): boolean {
+  if (MixinApi.isPersistable(stuff) && stuff.isPersistenceKeyExplicit()) {
+    return true;
+  }
+  // `Addressable` is composed by `Location` and nothing else — it IS the
+  // "has an address" property, and reading it as a mixin keeps this file
+  // off the Location class (an import cycle through the boundary tree).
+  if (MixinApi.isAddressable(stuff)) return true;
+  return MixinApi.isSingleton(stuff) || MixinApi.isWarrenMember(stuff);
+}
+
+/**
+ * Walk outward from `env` to the nearest anchor, collecting the template
+ * paths of the containers passed on the way (outermost first). The
+ * outermost container is the anchor when nothing above it qualifies —
+ * today's behaviour, and the best a rootless chain can do.
+ */
+function placementAnchorOf(env: Stuff): {
+  anchor: Stuff;
+  via: string[];
+  /** True when a HasInteractive (somebody's pockets) is on the way up. */
+  carried: boolean;
+} {
+  const via: string[] = [];
+  let anchor: Stuff = env;
+  for (let hops = 0; hops <= MAX_ANCESTOR_HOPS; hops++) {
+    if (MixinApi.isHasInteractive(anchor)) return { anchor, via, carried: true };
+    if (isPlacementAnchor(anchor)) break;
+    const up = MixinApi.isContainable(anchor) ? anchor.getContainer() : null;
+    const path = anchor.getTemplatePath();
+    if (!up || !path) break;
+    via.unshift(path);
+    anchor = up;
+  }
+  return { anchor, via, carried: false };
+}
+
+/**
+ * Descend from a resolved anchor along `via`, matching each hop by
+ * template path among the CURRENT container's contents only — never a
+ * world-wide lookup. Stops at the deepest hop that resolves: a missing
+ * cage leaves the bird in the room, which is honest, rather than in the
+ * first cage anywhere, which is not.
+ */
+function descendVia(anchor: Stuff & Container, via: string[] | undefined): Stuff & Container {
+  let cur: Stuff & Container = anchor;
+  for (const hop of via ?? []) {
+    const next = cur
+      .getContents()
+      .find((item) => MixinApi.isContainer(item) && item.getTemplatePath() === hop);
+    if (!next || !MixinApi.isContainer(next)) break;
+    cur = next as Stuff & Container;
+  }
+  return cur;
 }
 
 /**
@@ -200,12 +298,22 @@ async function restorePlacement(
   place: HostPlacement | null,
 ): Promise<void> {
   if (!place || !MixinApi.isContainable(host)) return;
+  const anchor = await resolvePlacementAnchor(place);
+  if (!anchor) return;
+  // The anchor is exact; the way down is matched WITHIN it (see
+  // `HostPlacement.via`).
+  ContainmentApi.move(host as Stuff & Containable, descendVia(anchor, place.via));
+}
+
+/** Resolve a placement's anchor container, or null (logged) if it cannot be. */
+async function resolvePlacementAnchor(
+  place: HostPlacement,
+): Promise<(Stuff & Container) | null> {
   if (place.startLocation) {
     const { container } = await ContainmentApi.resolveLanding(
       place.startLocation,
     );
-    ContainmentApi.move(host as Stuff & Containable, container);
-    return;
+    return container;
   }
   if (place.container && place.containerKey) {
     // A keyed room: re-enter through the owning institution's admit
@@ -215,16 +323,13 @@ async function restorePlacement(
       '../../../lib/location/OuterWarren'
     );
     const room = await OuterWarren.admitFor(place.containerKey);
-    if (room && MixinApi.isContainer(room)) {
-      ContainmentApi.move(host as Stuff & Containable, room);
-      return;
-    }
+    if (room && MixinApi.isContainer(room)) return room as Stuff & Container;
     console.warn(
       `PersistableLogic.restorePlacement: keyed container ` +
         `'${place.container}#${place.containerKey}' unresolvable — ` +
         `host left where cloned`,
     );
-    return;
+    return null;
   }
   if (place.container) {
     // Live instance first, else MATERIALIZE the room — after a server
@@ -245,13 +350,9 @@ async function restorePlacement(
         );
       }
     }
-    if (target && MixinApi.isContainer(target)) {
-      ContainmentApi.move(
-        host as Stuff & Containable,
-        target as Stuff & Container,
-      );
-    }
+    if (target && MixinApi.isContainer(target)) return target as Stuff & Container;
   }
+  return null;
 }
 
 /** Containment hops the persistable-ancestor walks tolerate (cycle guard). */
@@ -402,11 +503,19 @@ async function flushSkippedOwnedGoods(goods: Iterable<Stuff>): Promise<void> {
     // A hung good keeps its wall: the mount slot rides the entry so the
     // room's next overlay re-attaches it as a fixture (residences D11).
     const mountSlot = MixinApi.isAdornment(good) ? good.getMountSlot() : null;
+    // ⭐ A good that persists ITSELF rides as a reference: its own record
+    // is authoritative, and copying its state here would make a second
+    // copy of a live creature that is still writing the first.
+    const ownKey =
+      MixinApi.isPersistable(good) && good.isPersistenceKeyExplicit()
+        ? (good.getPersistenceKey() ?? undefined)
+        : undefined;
     const entry: EstateEntry = {
       chattelId,
       templatePath: good.getTemplatePath() ?? "",
-      state: captureState(good),
+      state: ownKey ? {} : captureState(good),
       place: good.getPlace(),
+      ...(ownKey ? { key: ownKey } : {}),
       ...(mountSlot ? { mounted: { slot: mountSlot } } : {}),
     };
     const live = StuffApi.findByTemplatePath<Stuff>(owner.templatePath);
@@ -655,6 +764,7 @@ async function restoreState(
   const ctx: RestoreContext = {
     restoreItem: (entry, host) =>
       restoreItem(entry as ContentEntry, host as Stuff, principal),
+    standUpKeyed: (scope, key) => cloneHost(scope, key),
   };
   for (const c of MixinApi.getPersistenceContributors(
     target.constructor as AnyConstructor,
@@ -753,6 +863,16 @@ async function restoreItem(
 async function cloneHost(scope: string, key?: string): Promise<Stuff | null> {
   if (!scope) return null;
   if (key !== undefined) {
+    // ⭐⭐ RESOLVE FIRST. A keyed host's identity is the pair, and two
+    // records can both refer to one (a chest carried between two
+    // persistable rooms, one record stale): minting unconditionally made
+    // the second `assertUniqueKey` THROW and abort that whole room's
+    // restore mid-tree. Resolving returns the standing instance, and the
+    // caller that holds a `{ref, key}` moves it in — so the last record
+    // to materialize wins the stale-vs-fresh argument, which is arbitrary
+    // but never fatal, and the stale record heals on its next capture.
+    const live = liveKeyed(scope, key);
+    if (live) return live;
     const nested = await StuffApi.clone<Stuff>(scope);
     if (nested && MixinApi.isPersistable(nested)) {
       nested.setPersistenceKey(key);
@@ -881,6 +1001,7 @@ async function overlayOwnedGoods(host: Stuff): Promise<void> {
     if (!entry) entry = await storedEstateEntry(owner.templatePath, chattelId);
     if (!entry || entry.place !== placeId) continue;
     const principal = ownerHost ?? host;
+    const keyed = entry;
     const good = await ExecutionContextApi.run(
       host,
       principal,
@@ -888,6 +1009,16 @@ async function overlayOwnedGoods(host: Stuff): Promise<void> {
       undefined,
       async () => {
         ExecutionContextApi.tagActingAuthor(principal);
+        // ⭐⭐ A good that persists itself is RESOLVED, not rebuilt: if it
+        // is already standing here (the registry warmed it at boot, or it
+        // simply never left) that instance IS the animal, and minting a
+        // second one from the same record would put two identical cats on
+        // the lane sharing one key. `cloneHost` is a resolve-or-mint.
+        if (keyed.key) {
+          const live = liveKeyed(keyed.templatePath, keyed.key);
+          if (live) return live;
+          return cloneHost(keyed.templatePath, keyed.key);
+        }
         return PersistableLogicRestoreDetached(entry, host, principal);
       },
     );
@@ -1119,6 +1250,12 @@ export class PersistableLogic extends ApiLogic {
   @CallSecurity(PersistableApiCallers)
   public async restoreOrSeed(host: Stuff, key: string): Promise<boolean> {
     return restoreOrSeedImpl(host, key);
+  }
+
+  /** See {@link PersistableApi.standUpKeyed}. */
+  @CallSecurity(PersistableApiCallers)
+  public async standUpKeyed(scope: string, key: string): Promise<Stuff | null> {
+    return cloneHost(scope, key);
   }
 
   /** See {@link PersistableApi.placeIdOf}. */

@@ -203,7 +203,21 @@ describe('plannedIndexes', () => {
   it('a doc with no indexes contributes none', () => {
     pm.loadSchemaDocs(SCHEMA_DIR);
     const plan = pm.plannedIndexes();
-    // `chattel` declares no index today, and is not STAMP, so nothing.
-    expect(plan.filter((i) => i.collection === Collections.Chattel)).toEqual([]);
+    // ⚠ The example was `chattel` until 2026-09-16, when `place` gained
+    // the index it had always needed — it is a read axis for both
+    // `placedIn` and `evictToStorage`. The PROPERTY under test is
+    // unchanged; only the collection that illustrates it moved.
+    expect(
+      plan.filter((i) => i.collection === Collections.AppSettings),
+    ).toEqual([]);
+  });
+
+  it('⭐ and a doc that DOES declare one contributes it', () => {
+    // The other half, which the file did not assert: the pairing is what
+    // makes the first test mean something.
+    pm.loadSchemaDocs(SCHEMA_DIR);
+    const plan = pm.plannedIndexes();
+    const chattel = plan.filter((i) => i.collection === Collections.Chattel);
+    expect(chattel.map((i) => i.keys)).toContainEqual({ place: 1 });
   });
 });

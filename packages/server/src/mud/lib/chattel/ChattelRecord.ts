@@ -42,6 +42,18 @@ export type ChattelOwner =
   | { kind: "player"; templatePath: string }
   | { kind: "organization"; templatePath: string };
 
+/**
+ * How to stand a good up that persists **itself**: the `(scope, key)` of
+ * its own record. Present only on a good whose class answers
+ * `pinsResidency()` — the residency pin roll's input, and nothing else's.
+ */
+export interface ChattelPin {
+  /** The template path the good is cloned from (`standUpKeyed`'s scope). */
+  scope: string;
+  /** Its explicit persistence key. */
+  key: string;
+}
+
 export class ChattelRecord extends Document {
   static collectionName = Collections.Chattel;
   static fieldMeta: FieldMeta = {
@@ -49,6 +61,7 @@ export class ChattelRecord extends Document {
     owner: { persistent: true },
     titledAt: { persistent: true },
     place: { persistent: true },
+    pin: { persistent: true },
   };
 
   /** The durable per-instance id this title is keyed on. */
@@ -66,6 +79,13 @@ export class ChattelRecord extends Document {
    * keeps them from diverging. See D1 + the plan's `Resolved`.
    */
   place: string = ESTATE_STORAGE;
+  /**
+   * The residency **pin** — set when the good's class opts in and it has
+   * a record of its own to be stood up from; null for everything else.
+   * Written on the same gated call as `place`, so a pinned good that
+   * moves is re-pinned where it now stands. See {@link ChattelPin}.
+   */
+  pin: ChattelPin | null = null;
 
   getChattelId(): string {
     return this.chattelId;
@@ -73,6 +93,14 @@ export class ChattelRecord extends Document {
 
   getOwner(): ChattelOwner | null {
     return this.owner;
+  }
+
+  getPlace(): string {
+    return this.place;
+  }
+
+  getPin(): ChattelPin | null {
+    return this.pin;
   }
 
   /** The current-state row for `chattelId`, or null. */

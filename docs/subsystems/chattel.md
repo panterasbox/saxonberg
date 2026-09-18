@@ -54,6 +54,25 @@ it is standing in. That is the [furnishing](./furnishing.md) subsystem —
 on this same facade, the `place` column on the `chattel` row as a by-room
 index, and the estate slice that carries the goods themselves.
 
+⭐ **The `chattel` row is the containable-side record of where a good
+belongs** (pets build, 2026-09-17), and two things ride the same gated
+`place` write (`ChattelLogic.applyPlace` — the good's field, the row, a
+live owner's estate, all in one call so nothing drifts):
+
+- **`pin: {scope, key} | null`** — how to stand a good up that persists
+  *itself*, stamped when its class answers `pinsResidency()`, it has an
+  explicit persistence key, and it is placed in a room (cleared for
+  `storage` / `inventory`). A partial index `{pin.key}` holds exactly
+  the pinned set; `ChattelApi.pinned()` is the residency pin roll's one
+  read — [residency.md § the load half](./residency.md). The `place`
+  column is indexed too: `placedIn` and `evictToStorage` were scans.
+- **A self-persisting good is re-captured on every `place` write**, so
+  its own record's placement and the row are one fact — the pin roll
+  trusts the record, and a crash between `drop` and the shutdown sweep
+  would otherwise stand it up one room stale.
+
+`stampedOwner()` on the good (sync) is the object-side read of the stamp.
+
 ## ⭐ What identity means for a vessel — the row is provenance, the instance is the thing
 
 ⚠ **Added 2026-08-29** (the aluminium-can review; slate
@@ -174,7 +193,8 @@ See `ConsignController`.
 ## Storage
 
 - **`chattel`** (`ChattelRecord`, `lib/chattel/ChattelRecord.ts`) — the
-  rebuildable current-state row: `{ chattelId, owner: ChattelOwner, titledAt }`.
+  rebuildable current-state row: `{ chattelId, owner: ChattelOwner,
+  titledAt, place, pin }`.
 - **`chattel_events`** (`ChattelEvent`, `lib/chattel/ChattelEvent.ts`) —
   the append-only chain-of-title: `mint` | `transfer` | `released`, one
   row per act, `from`/`to`/`actor`/`at`. A transfer never overwrites

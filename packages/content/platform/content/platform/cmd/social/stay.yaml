@@ -1,0 +1,31 @@
+verbs: [stay]
+controller: /platform/idea/cmd/social/StayController
+description: "Tell an animal to hold where it is"
+help: |
+  `stay <animal>` signals it to hold position — a hand held out, not a
+  word said. It will not follow you out of the room and will not wander
+  off home. Call it, or greet it, and it is released.
+
+  ⭐ Because it is a **sign**, the animal has to be able to see you. Around
+  a corner, or in the dark, the gesture goes nowhere — and what you are
+  told is what you could observe: it is not looking at you. Whether it
+  missed the sign or ignored it is yours to work out.
+
+  ⚠ Note which way that runs: it must see **you**. Knowing where your dog
+  is in an unlit room does not mean you can signal it.
+
+  ⚠ And it may simply not do it even having seen you. Every asked act
+  runs through how biddable the species is and how well this animal
+  knows you — and a cat's
+  biddability is very low, so a cat will not hold however devoted it is.
+  *The word is for the dog; the door is for the cat.* If you need a cat
+  to stay somewhere, the honest tool is a closed door.
+validators:
+  - /lib/command/validators/requiresAnimate
+  - /lib/command/validators/requiresConscious
+args:
+  - name: target
+    type: object
+    required: true
+    scope: ["reachable"]
+    requires: BondedMixin
