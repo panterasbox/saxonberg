@@ -502,7 +502,7 @@ exception noted.
 | `mayfield-holdings` | seznick-house | ⚠ **Walter, an NPC, is a member** |
 | each **trade** group | `/trade/<x>` | ⚠ **real premises** — Crowsfoot, the Hollis floor, Veshko's yard, the Wharfside mill and dyehouse, the tailor's shop, the farm outfit, the pantry / brewing / bottling floors, the cash-and-carry counter |
 | each **corpo's organization** | `/corpo/<key>` | ⚠ the corpo itself — *being hired makes you an author of the bank* |
-| the executive (`/world` fallback) | everything unclaimed | ⚠ the infirmary, the necropolis, the university farm |
+| the executive (`/world` fallback) | everything unclaimed | ⚠ the infirmary, the necropolis, Wharfside, the goods yards, the university farm |
 
 Two more facts. **Every one of the 33 businesses banks at Goodkin** —
 one lender, so "rates are the lender's standing offer" has one offer at
@@ -632,14 +632,16 @@ Content and two gates, in the order they unblock each other:
    tree is the situs tree (`rejection`, `hearts-delight`, `hearthworks`,
    `eternal`); `/world/lounge` stays a root; `/world/saxonberg` is
    declared and left for the Compact.
-2. **Move the trade premises into the world** as rows under Terminus
-   districts — Crowsfoot, the Hollis floor, Veshko's yard, the Wharfside
-   mill and dyehouse, the tailor's shop, the farm outfit, the pantry /
-   brewing / bottling floors, the cash-and-carry. Trade packs keep
-   classes, recipes, materials and instrument rows. Districts need names
-   (*Wharfside* is used twice and does not exist).
-3. **Claim the orphans** — the infirmary and the necropolis under the
-   city; the campus farm under the University.
+2. **Move the trade premises into the world** — to where the shipped
+   exits already say they are (`terminus-city.md` §§ 2–3d is the map):
+   the mill and the dyehouse off Wharfside bank, the workshop district;
+   Crowsfoot, the Hollis floor, Veshko's distillery, the bottling,
+   pantry and brewing floors and the farm outfit off the goods yards;
+   the tailor's shop off Mayfield Row; the cash-and-carry is already at
+   the Counting-Houses and only its business row moves. Trade packs keep
+   classes, recipes, materials and instrument rows.
+3. **Claim the orphans** — the infirmary, the necropolis, Wharfside and
+   the goods yards under the city; the campus farm under the University.
 4. **The three seats** — treasurer, Board of Trade, Registrar of
    Corporations.
 5. **The corpo committees** — five `<key>-committee` groups minted and
@@ -658,8 +660,7 @@ Content and two gates, in the order they unblock each other:
 What this section deliberately does **not** do: subdivide `terminus`
 (one committee for the bank hall, the store, the market and the
 registry is the city's showrunner, and that is fine at dozens of
-players); decide newbie-wilds; or name the districts — those are the
-plan's and the Compact's respectively.
+players), or decide newbie-wilds — those are the Compact's.
 
 ## Lens pass
 
