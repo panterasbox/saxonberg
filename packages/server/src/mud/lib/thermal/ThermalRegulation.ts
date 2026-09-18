@@ -389,7 +389,8 @@ export function ThermalRegulationMixin<TBase extends MixinConstructor>(
         const clo = MixinApi.isAttired(host)
           ? host.bodyInsulation().rawValue()
           : 0;
-        const damping = D.SHED_BODY_CLO / (D.SHED_BODY_CLO + Math.max(0, clo));
+        const body = D.SHED_BODY_CLO;
+        const damping = body / (body + Math.max(0, clo));
         const shed = Math.min(
           this.heatLoadJ,
           D.HEAT_SHED_W * damping * sliceSec,

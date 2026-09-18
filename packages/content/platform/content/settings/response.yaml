@@ -148,14 +148,27 @@ settings:
   - key: response.band.biteMax
     value: "1.5"
 
-  # Heat channel (fire) — a covering attenuates heat by insulation:
-  # leather/padding turns a burn, plate conducts it. See docs/subsystems/
-  # materials-response.md + fire.md.
-  - key: response.heat.baseAttenuation
-    value: "0.9"
+  # ⭐⭐ Thermal channels (heat AND cold) — a covering blocks by its REAL
+  # insulation: the garment's own `clo` (thickness over conductivity,
+  # loft and wetness included), in series with the body's own resistance.
+  # The same number thermoregulation uses to widen the comfort band and
+  # damp shedding — one insulation model, not two. Leather/padding turns
+  # a burn or a freeze; plate conducts either; a SOAKED cloak barely
+  # helps. See docs/subsystems/materials-response.md + thermal.md.
+  #
+  # The one dial left: a layer with no derived clo (a held shield, a
+  # preview from material alone) is scored as a slab of its material at
+  # this thickness. 5 mm — a plank, a thick hide. The old heuristic's
+  # three dials (`baseAttenuation`, `insulationRefConductivity`,
+  # `depthFactor`) are retired.
+  - key: response.heat.referenceThicknessM
+    value: "0.005"
 
-  - key: response.heat.insulationRefConductivity
-    value: "2.0"
-
-  - key: response.heat.depthFactor
+  # The clo at which a layer stops 1 − 1/e ≈ 63 % of a thermal blow. A
+  # blow is a PULSE, and a thin layer stops a flash disproportionately —
+  # `1 − exp(−clo / ref)`. 0.1 clo is a t-shirt; a hide jerkin (~0.23)
+  # stops nine-tenths, a wool coat everything, plate almost nothing, and a
+  # soaked wool coat about half — wetness needs no special case, it is in
+  # the clo already.
+  - key: response.heat.referenceClo
     value: "0.1"

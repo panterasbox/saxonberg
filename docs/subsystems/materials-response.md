@@ -325,7 +325,7 @@ labels:
 | fold | channels | how a covering answers |
 |---|---|---|
 | **mechanical** | `edge` `point` `blunt` | a shape token × material property height (hardness/toughness) × grade/condition |
-| **thermal** | `heat` `cold` | inverted `thermalConductivity` × layer depth — insulation |
+| **thermal** | `heat` `cold` | ⭐ the layer's **real `clo`** (`Wearable.getClo()` — thickness / k_eff, loft and wetness included), as a pulse: `1 − exp(−clo / ref)` |
 | **corrosion** | `corrosion` | ⭐ **material MATCH.** No hardness, no thickness. |
 | *(no fold)* | `shock` | resolves by **circuit** upstream — see below |
 
@@ -348,6 +348,46 @@ reason it turns a burn, and steel betrays you either way.
 and shares `response.heat.*`, because those describe the **covering**.
 Giving cold its own copy would be two numbers for one fact, and they
 would drift.
+
+### ⭐⭐ One insulation number — the thermal fold reads the garment's `clo`
+
+The thermal fold used to score a layer by a heuristic of its own —
+`refCond / (refCond + thermalConductivity)` × an ordinal "layer depth" —
+while thermoregulation read the garment's derived **`clo`**. Two
+insulation models for one physical fact, from different inputs, and
+nothing asserted they agreed: a wool glove and a wool greatcoat were the
+same number to a firebolt, and a soaked cloak insulated exactly like a
+dry one.
+
+Now the fold reads **`Wearable.getClo()`** — `thickness / k_eff` over the
+garment's actual mass, density, covered area, loft and wetness — the same
+number that widens its wearer's comfort band and damps how fast they shed
+work-heat. **Three readers, one derivation.** So:
+
+- a **thicker** coat of the same cloth stops more of a blow, by exactly
+  the physics (`thickness` is in the number);
+- a **soaked** coat stops *less* — water at 23× air's conductivity floods
+  the loft and the clo collapses. No special case; it fell out of reading
+  the real number;
+- a **worn-through** coat stops less — grade and condition scale the
+  block as they scale the mechanical fold.
+
+⭐ **The reconciliation is the input, not the formula.** Each reader keeps
+its own physics: shedding is *steady-state loss*, a resistance in series
+with the body's own (`THERMAL_DEFAULTS.SHED_BODY_CLO`); a blow is a
+**pulse**, and a thin layer stops a flash disproportionately — which is
+why firefighters wear layers — so the fold is `1 − exp(−clo /
+response.heat.referenceClo)`. At the seeded reference (0.1 clo, a
+t-shirt) a hide jerkin stops ~90 %, a wool coat everything, plate almost
+nothing, a soaked wool coat about half.
+
+⚠ A layer with **no derived clo** — a held shield (Wieldable, not
+Wearable), a preview from material alone, or a Wearable a term was
+missing from (no mass, no density → `getClo()` is honestly `0`) — is
+scored as a **slab** of its material at `response.heat.referenceThicknessM`
+(5 mm), `R = t / k`. "We do not know how thick; assume a typical slab" —
+and it keeps a wooden shield opaque to fire and a steel one transparent.
+The old heuristic's three dials are retired.
 
 ### ⭐⭐ `corrosion` — the channel where thickness is irrelevant
 

@@ -934,6 +934,11 @@ function inflictThroughStack(
         layer.condition,
         agent,
         'penetration' in spec ? (spec.penetration ?? 1) : 1,
+        // ⭐ The layer's REAL insulation for the thermal channels — the
+        // same clo that widens its wearer's comfort band. A held shield
+        // is Wieldable, not Wearable, and derives none; the fold scores
+        // it as a slab instead.
+        MixinApi.isWearable(layer.occ) ? layer.occ.getClo().rawValue() : null,
       ).residualEnergy;
       // Wear-on-use (Law 2): a covering layer that attenuated a
       // mechanical blow wears — armor degrades by taking hits, never by

@@ -288,9 +288,15 @@ body's own work yet.
 ⭐ **Worn insulation damps the shed rate** (injury build): `HEAT_SHED_W ·
 SHED_BODY_CLO / (SHED_BODY_CLO + clo)`, one resistance in series with
 another, so the parka that keeps you warm standing still is what cooks
-you working hard in it. ⚠ That `clo` and the covering fold's
-`thermalConductivity` read are **two insulation models that do not
-talk** — `thermal-slate § Open questions 7`.
+you working hard in it.
+
+⭐⭐ **And that `clo` is now the ONE insulation number.** The covering fold
+used to score a thermal blow by a conductivity heuristic of its own; it
+now reads `Wearable.getClo()` — the same derivation that widens the
+comfort band and damps shedding. Three readers, one number; each keeps
+its own physics (steady-state loss here, a pulse in the fold). See
+materials-response.md § One insulation number, and thermal-slate § Open
+questions 7 (resolved).
 
 The Wave-2 indoor convection room-bump and a standalone
 radiant-from-nearby-Thermals helper (Steps 2.1 / 2.4 indoor) are partial:

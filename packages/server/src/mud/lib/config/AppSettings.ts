@@ -709,18 +709,24 @@ export const AppSettingKeys = {
    * biteMax → bites; ≥ → bites-deep). */
   responseBandGrazeMax: "response.band.grazeMax",
   responseBandBiteMax: "response.band.biteMax",
-  /** Response (heat channel) — the fraction a single fully-insulating layer
-   * blocks; scaled by material insulation height + layer depth. A conductive
-   * layer (metal) blocks near-zero, an insulator (leather/padding) near this. */
-  responseHeatBaseAttenuation: "response.heat.baseAttenuation",
-  /** Response (heat channel) — the reference thermal conductivity (W/(m·K))
-   * where a material is half-insulating; below it insulates hard, above it
-   * conducts. Insulation height = ref / (ref + conductivity). */
-  responseHeatInsulationRefConductivity:
-    "response.heat.insulationRefConductivity",
-  /** Response (heat channel) — extra insulation per outside-in layer depth
-   * (padded 0 … plate 3); the covering stack's depth amplifies the block. */
-  responseHeatDepthFactor: "response.heat.depthFactor",
+  /**
+   * ⭐ The thermal fold reads a covering's REAL insulation (`getClo()` —
+   * thickness over conductivity). A layer with no derived clo — a held
+   * shield, a preview from material alone — is scored as a slab of its
+   * material at this thickness (m). The one dial the thermal fold has
+   * left: the three that shaped the old conductivity heuristic
+   * (`baseAttenuation`, `insulationRefConductivity`, `depthFactor`) are
+   * retired with it.
+   */
+  responseHeatReferenceThicknessM: "response.heat.referenceThicknessM",
+  /**
+   * ⭐ The clo at which a layer stops `1 − 1/e` ≈ 63 % of a thermal blow.
+   * A pulse, not steady-state loss: `1 − exp(−clo / ref)`, so a thin layer
+   * stops a flash disproportionately (why firefighters wear layers). 0.1
+   * clo — a t-shirt — is the reference, and a hide jerkin at ~0.23 stops
+   * nine-tenths.
+   */
+  responseHeatReferenceClo: "response.heat.referenceClo",
 
   /* ────────────────────────── electricity ────────────────────────── */
   /**

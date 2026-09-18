@@ -150,6 +150,7 @@ export default class AnalyzeResponseController extends CommandController<Analyze
         construction,
         grade,
         condition,
+        MixinApi.isWearable(stuff) ? stuff.getClo().rawValue() : null,
       );
       lines.push(Mml.compose`  ${channel}: ${band}`);
     }

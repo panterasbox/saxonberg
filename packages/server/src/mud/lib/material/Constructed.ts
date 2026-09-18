@@ -122,6 +122,9 @@ function responsePipsAugmenter(
       construction,
       grade,
       condition,
+      // The thermal columns read the garment's own clo — the same number
+      // the thermal pips on the description already show.
+      MixinApi.isWearable(host) ? host.getClo().rawValue() : null,
     );
     const bandIndex = OUTCOME_BANDS.indexOf(band); // 0 turned … 3 bites-deep
     let intensity: number;

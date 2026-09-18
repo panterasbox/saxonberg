@@ -657,8 +657,12 @@ standard first-order model); the **parameters are tuned**:
    from core hypothermia) and reuses the body-plan regions / surface fractions;
    lean body-wide v1, per-region a fidelity tier.
 
-7. ⭐⭐ **Two insulation models, and they do not talk** *(raised by the
-   injury build, 2026-09-18)*. A garment answers **cold weather** through
+7. ⭐⭐ **Two insulation models, and they do not talk — RESOLVED** *(raised
+   and closed by the injury build, 2026-09-18)*. The fold now reads
+   `Wearable.getClo()`; the reconciliation is the INPUT, each reader
+   keeps its own physics (steady-state loss vs a pulse), and a layer with
+   no derived clo falls back to a slab of its material. The remaining
+   *leans* below are what the fix did; kept for the record. A garment answers **cold weather** through
    thermoregulation — `bodyInsulation()` in `clo`, derived from fabric
    loft and coverage, widening the comfort band and (since the injury
    build) damping how fast an internal heat load sheds. The same garment

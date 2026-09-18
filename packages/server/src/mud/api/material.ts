@@ -179,6 +179,13 @@ export class MaterialApi {
      * Absent means 1 — every shipped caller is byte-identical.
      */
     penetration?: number,
+    /**
+     * ⭐ The THERMAL channels: the layer's own insulation in clo
+     * (`Wearable.getClo()`), read by the fold as a series resistance
+     * against the body's. `null`/absent means "nothing derived it" and
+     * the fold scores a slab of the material at a reference thickness.
+     */
+    layerClo?: number | null,
   ): AttenuationResult {
     return logic().attenuate(
       channel,
@@ -189,6 +196,7 @@ export class MaterialApi {
       condition,
       agent,
       penetration,
+      layerClo,
     );
   }
 
@@ -224,6 +232,8 @@ export class MaterialApi {
     construction: Construction,
     grade?: Grade,
     condition?: number,
+    /** As `attenuate` — the previewed layer's own clo, when there is one. */
+    layerClo?: number | null,
   ): OutcomeBand {
     return logic().previewBand(
       channel,
@@ -231,6 +241,7 @@ export class MaterialApi {
       construction,
       grade,
       condition,
+      layerClo,
     );
   }
 

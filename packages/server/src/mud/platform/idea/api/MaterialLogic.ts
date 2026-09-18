@@ -22,7 +22,7 @@ import type {
   Construction,
   ResistToken,
 } from '../../../lib/material/Construction';
-import { Quantity } from '../../../lib/quantity';
+import { Quantity, M2K_PER_W_PER_CLO } from '../../../lib/quantity';
 import type { Grade } from '../../../lib/craft/Grade';
 import type { TraumaType } from '../Condition';
 import {
@@ -114,6 +114,7 @@ export class MaterialLogic extends ApiLogic {
     condition?: number,
     agent?: readonly string[],
     penetration?: number,
+    layerClo?: number | null,
   ): AttenuationResult {
     return attenuateImpl(
       channel,
@@ -124,6 +125,7 @@ export class MaterialLogic extends ApiLogic {
       condition,
       agent ?? [],
       penetration ?? 1,
+      layerClo ?? null,
     );
   }
 
@@ -146,6 +148,7 @@ export class MaterialLogic extends ApiLogic {
     construction: Construction,
     grade?: Grade,
     condition?: number,
+    layerClo?: number | null,
   ): OutcomeBand {
     return previewBandImpl(channel, material, construction, grade, condition);
   }
@@ -377,38 +380,69 @@ function gradeConditionScale(grade?: Grade, condition?: number): number {
 }
 
 /**
- * The heat *insulation* one covering layer contributes — the fraction of
- * incident heat it blocks. Reads the layer material's `thermalConductivity`
- * (inverted: a low-conductivity insulator like leather/wool blocks hard, a
- * high-conductivity conductor like steel/iron barely blocks) and the
- * construction's outside-in layer depth (a deeper stack blocks more). This is
- * the heat sibling of the mechanical `baseAttenuationFor × materialHeight`
- * fold — same shape (base × height × depth × quality), thermal-property
- * driven. The armor inversion is emergent: no `isThermal` special case, just
- * conductivity. Returns a 0..1 blocked fraction.
+ * ⭐⭐ **The thermal block one covering layer contributes — read off the
+ * layer's REAL insulation, not a heuristic about its material.**
+ *
+ * A garment's `getClo()` is already the honest number: `thickness / k_eff`
+ * over the actual mass, density, covered area, loft and wetness — an
+ * R-value, which is what "clo" means. This used to ignore all of that and
+ * score a layer by `refCond / (refCond + conductivity)` times an ordinal
+ * "layer depth", so leather scored the same whether it was a glove or a
+ * coat and a soaked cloak insulated exactly like a dry one. Two insulation
+ * models for one physical fact, computed from different inputs, and
+ * nothing asserted they agreed (thermal-slate § Open questions 7).
+ *
+ * ⭐ **The reconciliation is the INPUT, not the formula.** Thermoregulation
+ * and this fold now read the same `clo` per garment — so a parka that
+ * halves how fast you shed work-heat is, by that same number, a parka that
+ * stops most of a frost bolt. What each does with it is its own physics:
+ * shedding is steady-state loss, a resistance in series with the body's
+ * own (`SHED_BODY_CLO`); a blow is a **pulse** hitting a layer, and a thin
+ * layer stops a flash disproportionately — which is why firefighters wear
+ * layers. That is `1 − exp(−clo / ref)`: a t-shirt (0.1 clo) stops about
+ * two-thirds of a firebolt, a hide jerkin nine-tenths, a wool coat all of
+ * it, plate almost none — and a **soaked** wool coat, its loft flooded
+ * with water at 23× the conductivity of air, back to about half. Nothing
+ * here is a special case for wetness; it fell out of reading the real
+ * number.
+ *
+ * ⚠ `layerClo` is `null` for a layer that has no derived clo — a held
+ * shield (Wieldable, not Wearable) or a preview from material alone — and
+ * `0` for a Wearable a term was missing from (no mass, no density). Both
+ * fall back to a **slab estimate**: a sheet of the material at
+ * `response.heat.referenceThicknessM`, `R = t / k`. Honest rather than a
+ * guess — "we do not know how thick, assume a typical slab" — and it keeps
+ * a wooden shield opaque to fire and a steel one transparent, the ordering
+ * everything downstream relies on.
+ *
+ * Grade and condition scale the block exactly as they scale the mechanical
+ * fold: a worn-through coat insulates less.
  */
-function heatAttenuationFraction(
+function thermalBlockFraction(
+  layerClo: number | null,
   material: Material | null,
-  construction: Construction,
   grade?: Grade,
   condition?: number,
 ): number {
-  const base = dial(AppSettingKeys.responseHeatBaseAttenuation, 0.9);
-  const refCond = dial(
-    AppSettingKeys.responseHeatInsulationRefConductivity,
-    2.0,
-  );
-  // A materialless / unknown covering conducts freely (no insulation).
-  const cond = material
-    ? material.getThermalConductivity().rawValue()
-    : Number.POSITIVE_INFINITY;
-  // insulation height: ref / (ref + conductivity) — 1 at zero conductivity,
-  // →0 for a good conductor. leather (~0.14) → ~0.78, iron (~80) → ~0.006.
-  const insulation = refCond / (refCond + Math.max(0, cond));
-  const depth = construction.getLayerDepth();
-  const depthBonus = 1 + depth * dial(AppSettingKeys.responseHeatDepthFactor, 0.1);
-  const scale = gradeConditionScale(grade, condition);
-  return clamp01(base * insulation * depthBonus * scale);
+  const clo =
+    layerClo !== null && layerClo > 0 ? layerClo : slabClo(material);
+  if (!(clo > 0)) return 0;
+  const ref = dial(AppSettingKeys.responseHeatReferenceClo, 0.1);
+  const block = 1 - Math.exp(-clo / Math.max(1e-6, ref));
+  return clamp01(block * gradeConditionScale(grade, condition));
+}
+
+/**
+ * A layer's insulation when nothing derived it: a slab of its material at
+ * the reference thickness. `0` for no material — an unmodelled covering
+ * insulates nothing, which is honest rather than a guess.
+ */
+function slabClo(material: Material | null): number {
+  if (!material) return 0;
+  const k = material.getThermalConductivity().rawValue();
+  if (!(k > 0)) return 0;
+  const t = dial(AppSettingKeys.responseHeatReferenceThicknessM, 0.005);
+  return t / k / M2K_PER_W_PER_CLO;
 }
 
 /**
@@ -446,6 +480,7 @@ function attenuateImpl(
   condition?: number,
   agent: readonly string[] = [],
   penetration = 1,
+  layerClo: number | null = null,
 ): AttenuationResult {
   const e = Math.max(0, energy);
   // A non-armor (weapon) construction attenuates nothing — energy passes.
@@ -455,12 +490,7 @@ function attenuateImpl(
   // The thermal channel (heat) folds through the covering stack by
   // *insulation*, not the hardness/toughness mechanical fold.
   if (Channels.isThermalChannel(channel)) {
-    const blocked = heatAttenuationFraction(
-      material,
-      construction,
-      grade,
-      condition,
-    );
+    const blocked = thermalBlockFraction(layerClo, material, grade, condition);
     return { residualEnergy: e * (1 - blocked), channel };
   }
   // ⭐⭐ **Corrosion — the fold where THICKNESS is irrelevant and the
@@ -592,6 +622,7 @@ function previewBandImpl(
   construction: Construction,
   grade?: Grade,
   condition?: number,
+  layerClo: number | null = null,
 ): OutcomeBand {
   const refEnergy = dial(AppSettingKeys.responsePreviewReferenceEnergy, 2);
   if (construction.isCovering()) {
@@ -619,6 +650,8 @@ function previewBandImpl(
       grade,
       condition,
       agent,
+      1,
+      layerClo,
     );
     const trauma = resolveTraumaImpl(channel, residualEnergy, null, false);
     return severityToBand(trauma ? trauma.severity : null);

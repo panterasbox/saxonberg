@@ -1430,10 +1430,10 @@ Clean attach points, each leaving as a slate line — never a plan section.
   touching a hand, the wrong order for a real cold day →
   `physiology-slate § Part 7g` (together with an honest hypothermia
   onset, the cold-side twin of D16).
-- **Two insulation models that do not talk** — `clo` (thermoregulation)
-  vs `thermalConductivity` (the covering fold); a garment answers cold
-  weather and a cold blow by different numbers → `thermal-slate § Open
-  questions 7`.
+- ~~**Two insulation models that do not talk**~~ — **closed in review**
+  at the user's call: the covering fold now reads `Wearable.getClo()`,
+  the same number thermoregulation reads. See the review commits and
+  `materials-response.md § One insulation number`.
 
 ---
 

@@ -138,6 +138,11 @@ export const THERMAL_DEFAULTS = {
    * BOTH directions, and the parka that keeps you warm standing still is
    * precisely what cooks you when you work hard in it. One resistance in
    * series with another; the arithmetic is nothing more than that.
+   *
+   * ⚠ Steady-state LOSS only. The covering fold reads the same garment
+   * `clo` but scores a thermal BLOW as a pulse (`1 − exp(−clo/ref)`, its
+   * own `response.heat.referenceClo`) — one insulation number per
+   * garment, two formulas each honest to its own physics.
    */
   SHED_BODY_CLO: 1.0,
   /**

@@ -53,6 +53,39 @@ function chemMat(tags: string[], absorptionPct: number): Material {
   return m;
 }
 
+/**
+ * A garment with everything `getClo()` needs to derive a real number —
+ * density, mass, a fabric form with loft, and slot claims that resolve to
+ * a covered area on the wearer's plan. The channel tests above wear
+ * under-authored garments on purpose (no mass, no density) so their clo
+ * is 0 and the fold falls back to the slab; these are the opposite.
+ */
+function realGarment(
+  c: Creature,
+  material: Material,
+  massKg: number,
+): Garment {
+  const g = makeStuff(() => new Garment());
+  g.setMaterial(material);
+  g.setMass(Quantity.of(massKg, 'kg'));
+  g.setConstruction(Construction.of('woven'));
+  stampTemplatePathForTest(g, `/stuff/thing/test/ch-real-${seq++}`);
+  const plan = c.getSpecies()!.getBodyPlan()!.getTemplatePath()!;
+  g.setSlotClaims({ [plan]: ['torso'] });
+  c.occupy(g, 'torso');
+  return g;
+}
+
+/** Wool: light, lofty, a poor conductor, and thirsty. */
+function wool(): Material {
+  const m = makeStuff(() => new Material());
+  m.setDensity(Quantity.of(300, 'kg/m³'));
+  m.setThermalConductivity(Quantity.of(0.04, 'W/(m·K)'));
+  m.setWaterAbsorptionCapacity(Quantity.of(30, '%'));
+  stampTemplatePathForTest(m, `/stuff/idea/material/test/ch-wool-${seq++}`);
+  return m;
+}
+
 function bodied(): Creature {
   const id = seq++;
   const plan = makeStuff(() => new BodyPlan());
@@ -167,6 +200,93 @@ describe('cold — the heat fold, run the other way', () => {
     });
     expect(woundOf(steelPlate)!.severity).toBeGreaterThan(
       woundOf(leatherClad)?.severity ?? 0,
+    );
+  });
+});
+
+describe('⭐⭐ ONE insulation number — the fold reads the garment\u2019s real clo', () => {
+  beforeEach(() => {
+    installV1QuantityMarshallers();
+    Construction.registerFabric({
+      key: 'woven',
+      layerBand: 0,
+      loft: 0.6,
+      weaveDensity: 0.75,
+      drape: 0.6,
+    });
+  });
+  afterEach(() => StuffApi.clearAll());
+
+  it('a real garment derives a clo, and it is what the fold sees', () => {
+    const c = bodied();
+    const g = realGarment(c, wool(), 1.5);
+    expect(g.getClo().rawValue()).toBeGreaterThan(0);
+  });
+
+  it('⭐⭐ a THICKER coat of the same cloth stops more of a blow — thickness was invisible before', () => {
+    // The old heuristic scored a layer by its material's conductivity and
+    // an ordinal "depth". A wool glove and a wool greatcoat were the same
+    // number. Now the fold reads `getClo()`, which is thickness / k, so
+    // the coat wins by exactly the physics.
+    const thin = bodied();
+    realGarment(thin, wool(), 0.3);
+    ConditionApi.inflict(thin, { mechanism: 'heat', site: 'body.torso', energy: 3 });
+
+    const thick = bodied();
+    realGarment(thick, wool(), 3.0);
+    ConditionApi.inflict(thick, { mechanism: 'heat', site: 'body.torso', energy: 3 });
+
+    expect(woundOf(thick)?.severity ?? 0).toBeLessThan(
+      woundOf(thin)?.severity ?? 0,
+    );
+  });
+
+  it('⭐⭐ a SOAKED coat stops LESS — wetness needed no special case', () => {
+    // Water conducts 23× better than the air in the loft it displaces, so
+    // a wet coat's k_eff jumps and its clo collapses. `getClo()` already
+    // knew this; the fold simply reads the number now. A firebolt through
+    // a wet cloak is worse than through a dry one, which is correct, and
+    // was inexpressible.
+    const dry = bodied();
+    realGarment(dry, wool(), 1.5);
+    ConditionApi.inflict(dry, { mechanism: 'heat', site: 'body.torso', energy: 3 });
+
+    const soaked = bodied();
+    const g = realGarment(soaked, wool(), 1.5);
+    g.wet(1);
+    ConditionApi.inflict(soaked, { mechanism: 'heat', site: 'body.torso', energy: 3 });
+
+    expect(woundOf(soaked)?.severity ?? 0).toBeGreaterThan(
+      woundOf(dry)?.severity ?? 0,
+    );
+  });
+
+  it('⭐ …and the same number is what thermoregulation reads', () => {
+    // The reconciliation is the INPUT. This is the garment's clo; the
+    // covering fold reads it per blow, `bodyInsulation` sums it per body,
+    // and the shed damping divides by it. Three readers, one derivation.
+    const c = bodied();
+    const g = realGarment(c, wool(), 1.5);
+    expect(c.bodyInsulation().rawValue()).toBeCloseTo(
+      g.getClo().rawValue() * c.getSpecies()!.getBodyPlan()!.getPartSurfaceFraction('body.torso'),
+      3,
+    );
+  });
+
+  it('⚠ an under-authored garment (clo 0) falls back to the SLAB, not to transparent', () => {
+    // A Wearable with no mass or density derives 0 clo — "unmodelled".
+    // The honest fold reads that as "assume a typical slab of the
+    // material", so a test garment of leather still turns a burn and a
+    // test garment of steel still does not. The alternative — treating
+    // 0 as transparent — made steel and leather identical.
+    const leather = bodied();
+    wearTorso(leather, thermalMat(0.14), 'plate');
+    ConditionApi.inflict(leather, { mechanism: 'heat', site: 'body.torso', energy: 3 });
+    const steel = bodied();
+    wearTorso(steel, thermalMat(50), 'plate');
+    ConditionApi.inflict(steel, { mechanism: 'heat', site: 'body.torso', energy: 3 });
+    expect(woundOf(steel)!.severity).toBeGreaterThan(
+      woundOf(leather)?.severity ?? 0,
     );
   });
 });
