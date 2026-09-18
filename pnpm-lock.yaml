@@ -576,6 +576,9 @@ importers:
       '@saxonberg/content-platform':
         specifier: workspace:*
         version: link:../platform
+      '@saxonberg/content-trade-forestry':
+        specifier: workspace:*
+        version: link:../trade-forestry
       '@saxonberg/content-trade-fuel':
         specifier: workspace:*
         version: link:../trade-fuel

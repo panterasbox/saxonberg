@@ -153,7 +153,10 @@ describe('the recipe ladder', () => {
   it('every recipe an act of this build demands has a row, and none is speculative', () => {
     const ids = recipes().map((r) => r.recipeId).sort();
     expect(ids).toEqual([
-      'assay-kit', 'billhook', 'felling-axe', 'miners-dial', 'pick',
+      // (the billhook and the felling axe are the FORESTRY trade's since
+      // the forestry build — the instruments ship with the trade that
+      // affords the act, and the coppice is forestry's)
+      'assay-kit', 'miners-dial', 'pick',
       'pick-haft', 'pick-head', 'pinch-bar', 'shovel', 'sledge',
       'timber-set', 'tongs',
     ]);

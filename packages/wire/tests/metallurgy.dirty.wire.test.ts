@@ -39,6 +39,7 @@ declareFile({
   packs: [
     'trade-mining',
     'trade-fuel',
+    'trade-forestry',
     'trade-smelting',
     'trade-smithing',
     'generic-objects',

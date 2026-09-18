@@ -1,6 +1,7 @@
-# A billhook — the coppicer's tool, and it is in the MINING pack because
-# the mine is the coppice's other customer: the same stand that makes
-# charcoal makes the timber a working is shored with.
+# A billhook — the coppicer's tool. It ships with the FORESTRY trade
+# because the coppice is forestry's: the stool row names `cutting` as its
+# harvest tool, and this is what offers it. It will take a stool off at
+# the ankle and it will not take an oak — `fell` asks for `felling`.
 class: /platform/thing/ToolItem
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
@@ -12,4 +13,5 @@ data:
     One stroke takes a stool of hazel off at the ankle.
   mass: 1.1
   capabilities: ["cutting"]
+  epoch: medieval
   _materialPath: /stuff/idea/material/element/iron

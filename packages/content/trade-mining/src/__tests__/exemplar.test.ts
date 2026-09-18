@@ -74,7 +74,9 @@ describe('⭐⭐ a second mining town needs zero pack code', () => {
         cls.startsWith('/platform/') ||
           cls.startsWith('/trade/mining/') ||
           cls.startsWith('/trade/fuel/') ||
-          cls.startsWith('/trade/smelting/'),
+          cls.startsWith('/trade/smelting/') ||
+          // the coppice panel and the wood above the yard (forestry)
+          cls.startsWith('/trade/forestry/'),
       ).toBe(true);
     }
     // ⭐ And it names NONE of its own — there is no `/world/rejection/...`

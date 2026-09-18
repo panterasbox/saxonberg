@@ -81,7 +81,10 @@ describe('the shipped packs (real discovery, no install)', () => {
     // ⭐ `rejection` ships no `src/` at all — the exemplar claim is that a
     // second mining town is a locality pack over the same trades, and the
     // ordering here is what makes that installable.
-    for (const trade of ['trade-mining', 'trade-fuel', 'trade-smelting']) {
+    // (forestry: the wood above the yard is rows on forestry's classes,
+    // so the venue orders after that trade too — and the fuel trade does
+    // NOT, a customer of wood being installable without a forester.)
+    for (const trade of ['trade-mining', 'trade-fuel', 'trade-smelting', 'trade-forestry']) {
       expect(ids.indexOf('rejection')).toBeGreaterThan(ids.indexOf(trade));
     }
     expect(ids.indexOf('trade-smelting')).toBeGreaterThan(ids.indexOf('trade-mining'));

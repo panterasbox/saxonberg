@@ -1,0 +1,84 @@
+# ⭐⭐ **The fuel yard's coppice panel — the realm's standing charcoal
+# capital, and the one thing that makes charcoal a CROP rather than a
+# prop.**
+#
+# A `/trade/forestry/thing/Panel`: a bed of hazel stools that PERSISTS —
+# one row, one panel, restored from its own record on every boot, so a
+# cut panel comes back cut and its game-year rotation runs across a
+# restart (the shipped `GardenBed` in this transient room rebuilt full
+# every boot, a faucet through `restart`). The stools arrive through the
+# panel's own `props:`, which `CultivableMixin.applyProps` seats into the
+# plant slots, exactly once, through the persistence gate.
+#
+# ⚠⚠ **The charcoal arithmetic, stated here because this row IS the
+# rate.** Six stools × eight lengths a cut = 48 lengths a game year. A
+# burn takes eight lengths at `yieldRatio: 0.35` and a draught of 0.45
+# → two baskets; a smelt takes two baskets. So: **six burns, twelve
+# baskets, SIX SMELTS per panel per game year** (thirty real days), and
+# three panels in the realm make eighteen. One working smelter wants
+# more than that, and *this is not a number to raise when somebody runs
+# out*: the rate-limiting step of pre-industrial ironmaking was FUEL,
+# not ore — charcoal iron was bounded by woodland, ironworks ate forests
+# across Europe, and that constraint is precisely why coke happened in
+# 1709. A coppice that comfortably supplies everybody would teach the
+# opposite of the true thing.
+#
+# ⭐ Eight slots, six stools: coppice-with-standards is one panel doing
+# both, and the two free slots are where an acorn goes (`plant acorn in
+# panel`). In THIS yard a planted standard joins no stand — the yard is
+# not a wood — and is felled for what the sapling row says it is made of.
+class: /trade/forestry/thing/Panel
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: panel of coppiced hazel
+  keywords: [panel, coppice, hazel, stand, stools, cant]
+  register: indefinite
+  longDescription: |
+    A block of hazel stools set out in rough rows, all cut to the same knuckle in the same year and all standing at the same height because of it. The ground between them is a litter of old chips and last season's tops.
+  _materialPath: /stuff/idea/material/wood/hazel
+  # Ground, not a frame: the panel IS the plot, so the mass is the earth
+  # it stands on and nobody is carrying it anywhere. Can't-budge is
+  # emergent from mass, never a type flag.
+  mass: 2400
+  fixedGround: true
+  # A working panel in a coppice rotation, not a garden: 120 m² of a
+  # cant, which is what six stools at proper spacing actually take.
+  landRequirementM2: 120
+  interiorBulk: true
+  interiorCapacity: 180
+  # Rain-fed woodland ground, and deep: a coppice is not watered by
+  # anybody and its nitrogen comes back as leaf litter. The reserves are
+  # generous because the LIMIT here is meant to be the rotation, not
+  # husbandry — a player who runs the panel dry has cut it too hard.
+  reserves:
+    moisture:
+      capacityValue: 90
+      currentValue: 90
+      unit: "L"
+      theme: cultivation
+      floorEffect: wilting
+    nitrogen:
+      capacityValue: 100
+      currentValue: 100
+      unit: "%"
+      theme: cultivation
+      floorEffect: spent
+  staticSlots:
+    - name: plant
+      accepts: SlottableMixin
+      # ⚠ Six stools and two standards. The SIX is the realm's charcoal
+      # rate and therefore its iron ceiling — see above before changing it.
+      capacity: 8
+      userFacingDetail: planting
+  props:
+    - /trade/forestry/thing/hazel-stool
+    - /trade/forestry/thing/hazel-stool
+    - /trade/forestry/thing/hazel-stool
+    - /trade/forestry/thing/hazel-stool
+    - /trade/forestry/thing/hazel-stool
+    - /trade/forestry/thing/hazel-stool
+  details:
+    planting:
+      keywords: [ground, litter, chips, stools, rows]
+      description: |
+        Old chips and rotted tops underfoot, and the stools standing out of it in rows a cart could just get between.

@@ -1,0 +1,21 @@
+# A length of cordwood — what comes off a coppice stool, and ⭐ the ONE
+# supply two trades compete for: the collier chars it and the mine shores
+# with it. That contest is the whole reason the fuel yard is a business
+# rather than a prop.
+#
+# A `Crop`, because that is what it is: `harvest` takes it off a stool
+# and stamps it with the maker and the grade of the cycle. It used to be
+# a `Provision`, which hung a freshness clock, a cure state and a
+# pathogen population on a stick. Hazel, because a coppice is hazel —
+# the material is what the charcoal recipe (`category: wood`) and the
+# timber-set recipe match through, by the `wood` tag.
+class: /platform/thing/Crop
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: length of cordwood
+  keywords: [cordwood, wood, pole, billet, length, hazel]
+  register: indefinite
+  longDescription: "A straight length of hazel, barked and cut to an arm's length."
+  _materialPath: /stuff/idea/material/wood/hazel
+  gradeBand: fair
+  mass: 3.2

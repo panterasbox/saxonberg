@@ -1539,6 +1539,29 @@ resolves every moved path; `lint:perishable` green.
 
 **Commit.** `build(forestry W2): cordwood, the stool, the axe and the billhook move to forestry; the panel persists and is ready on a fresh boot`
 
+> ✅ **W2 done (2026-09-17).** Decisions the build made:
+> - **`GrammarApi.inWords(n)`** (kernel, `api/grammar.ts`) — no
+>   number-in-words helper existed; a pack may not ship a free helper,
+>   and `joinList`/`pluralize` are the precedent for a prose static on
+>   GrammarApi. Used by the panel's ready line (W2) and the stand (W3).
+> - **`felling` waits for its consumer (W3)** — `lint:capabilities`
+>   refuses a kind offered and never consumed, so the axe row gains it
+>   in the same wave as `fell.yaml`.
+> - **`lint:untitled` DID fire** → `pack.yaml` claims
+>   `{ extent: /trade/forestry, holder: { group: forestry } }` (D10's
+>   "add only if it fires").
+> - The stool row authors `mass: 12` (it read as weighing nothing).
+> - `PackLogic.discover.test.ts`: rejection orders after forestry;
+>   `exemplar.test.ts` admits `/trade/forestry/` classes in the venue.
+> Driven: the yard slice of `forestry.dirty.wire.test.ts` (steps 1–4)
+> is green on a fresh owned world; a dev boot on the cut DB read *"Some
+> of the stools are cut to the stool and regrowing"* — AC 8 for the
+> yard, by hand. Two findings for the sweep, not this build: `look
+> first <x>` / `look 1st <x>` are not a `look` shape though
+> `mql-grammar.md` lists the ordinal words (the `x:[1]` form works);
+> and `look <x>` with several matches PROMPTS, which the wire `cmd()`
+> cannot see (it times out).
+
 ### W3 — the Wood, the stand, and `fell`
 
 **Goal.** A place that is a stand can be read and felled to nothing, and
