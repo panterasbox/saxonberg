@@ -33,8 +33,46 @@ import {
   makeStuffAtPath,
 } from '../../security/__tests__/test-setup';
 import { installV1QuantityMarshallers } from '../../persistence/__tests__/quantity-marshaller-test-helpers';
+import { BulkableMixin } from '../../bulk/Bulkable';
+import { ContainerMixin } from '../../spatial/Container';
+import { ContainableMixin } from '../../spatial/Containable';
+import { NamedMixin } from '../../description/Named';
+import { Idea } from '../../stuff/Idea';
+import Material from '../../material/Material';
+import { Quantity } from '../../quantity';
 
 class TestLocation extends Location {}
+/** A bowl: holds a bulk interior AND things (the fish). */
+class TestBowl extends BulkableMixin(
+  ContainerMixin(ContainableMixin(NamedMixin(Idea))),
+) {
+  static _mixinName = 'TestBowl';
+}
+
+let materialSeq = 0;
+function liquid(name: string): Material {
+  materialSeq += 1;
+  return makeStuffAtPath(() => {
+    const m = new Material();
+    m.setName(name);
+    m.setKeywords([name]);
+    return m;
+  }, `/test/respiration/material-${materialSeq}`) as unknown as Material;
+}
+
+function bowlOf(material: Material | null, litres = 2): TestBowl {
+  return makeStuff(() => {
+    const b = new TestBowl();
+    b.setName('bowl');
+    b.interiorBulk = true;
+    b.setInteriorCapacity(Quantity.of(4, 'L'));
+    if (material) {
+      b.setBulkMaterial('interior', material);
+      b.setBulkAmount('interior', Quantity.of(litres, 'L'));
+    }
+    return b;
+  });
+}
 // Character is abstract — a concrete body for the harness.
 class TestCharacter extends Character {}
 
@@ -191,6 +229,51 @@ describe('RespirationMixin — the crisis core', () => {
     // Submerged, it is fine — the drain cancels, recovery runs.
     ContainmentApi.move(fish, room('water'));
     await fish.reassess();
+    expect(fish.getEngagementByType('respiration-drain')).toBeUndefined();
+  });
+
+  it('⭐ immersion (fishing D8): a body in a vessel of liquid breathes the liquid', async () => {
+    const fish = bodyWith({ breathableMedia: ['water'] });
+    const bowl = bowlOf(liquid('water'));
+    ContainmentApi.move(bowl, room('air'));
+    // In the room's air: drowning.
+    ContainmentApi.move(fish, room('air'));
+    await fish.reassess();
+    expect(fish.getEngagementByType('respiration-drain')).toBeDefined();
+    // In a bowl of water inside that same air: fine.
+    ContainmentApi.move(fish, bowl);
+    await fish.reassess();
+    expect(fish.getEngagementByType('respiration-drain')).toBeUndefined();
+  });
+
+  it('⚠ the vessel\'s MATERIAL is what is breathed — a man in a vat of ale does not breathe', async () => {
+    const man = bodyWith({ breathableMedia: ['air'] });
+    const vat = bowlOf(liquid('ale'));
+    ContainmentApi.move(vat, room('air'));
+    ContainmentApi.move(man, vat);
+    await man.reassess();
+    expect(man.getEngagementByType('respiration-drain')).toBeDefined();
+  });
+
+  it('an EMPTY vessel is no immersion — the atmosphere answers', async () => {
+    const man = bodyWith({ breathableMedia: ['air'] });
+    const dry = bowlOf(null);
+    ContainmentApi.move(dry, room('air'));
+    ContainmentApi.move(man, dry);
+    await man.reassess();
+    expect(man.getEngagementByType('respiration-drain')).toBeUndefined();
+  });
+
+  it('⭐ a containment move re-checks the medium without anyone calling reassess', async () => {
+    const fish = bodyWith({ breathableMedia: ['water'] });
+    const bowl = bowlOf(liquid('water'));
+    ContainmentApi.move(bowl, room('air'));
+    ContainmentApi.move(fish, room('air'));
+    // `onMoved` fires `reassess` fire-and-forget; let it settle.
+    await new Promise((r) => setTimeout(r, 0));
+    expect(fish.getEngagementByType('respiration-drain')).toBeDefined();
+    ContainmentApi.move(fish, bowl);
+    await new Promise((r) => setTimeout(r, 0));
     expect(fish.getEngagementByType('respiration-drain')).toBeUndefined();
   });
 

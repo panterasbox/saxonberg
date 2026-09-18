@@ -64,7 +64,7 @@
  *     point: *that a working has a ceiling* is public, and *what the
  *     number is* is recipe knowledge you earn.
  *
- * **Fishing (2 fields).** Both level 0:
+ * **Fishing (3 fields).** All level 0:
  *
  *   - `Species.habitat` — what a species needs of a water and where in
  *     its food web it sits. ⭐ This is the natural history a player is
@@ -77,6 +77,9 @@
  *   - `BondedMixin.homeEarnedDay` — a clock, beside its siblings
  *     `homeCandidateDays` and `homeCandidateLastDay`, all level 0: when
  *     an animal's home last moved is not a secret about the species.
+ *   - `ToolMixin.epoch` — which era an instrument is from (forestry's
+ *     hunk, pasted verbatim here so the two branches meet on it). A
+ *     stamp you can read off the tool by looking at it.
  */
 
 import { describe, it, expect } from 'vitest';

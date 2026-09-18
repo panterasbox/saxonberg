@@ -883,6 +883,7 @@ ThermalRegulationMixin.thermalRegStamp = 0
 Ticket.number = 0
 Ticket.pointPath = 0
 ToolMixin.capabilities = 0
+ToolMixin.epoch = 0
 Topic.description = 0
 Topic.family = 0
 Topic.label = 0
