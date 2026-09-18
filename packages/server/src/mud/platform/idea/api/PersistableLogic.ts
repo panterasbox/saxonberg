@@ -189,7 +189,7 @@ function capturePlacement(host: Stuff): HostPlacement | null {
   // ancestor's slice, so nothing refers to them and their own `place` is
   // the only record of where they stand. Before the chattel arm, a pinned
   // cat in a bedroom captured NO placement and the pin roll stood it up
-  // nowhere (found by the pets build's D22 test, not live).
+  // nowhere (found by `ResidencyPin.test`, not live).
   const referredByAncestor =
     !MixinApi.isHasInteractive(host) &&
     !(MixinApi.isChattel(host) && host.isOwnerPersisted()) &&

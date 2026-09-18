@@ -108,7 +108,7 @@ answers for it), and the reclaim fee.
 
 ⭐ **And the output side is a shelter.** An unclaimed animal is
 *adoptable*, and adoption is already the acquisition model in
-[pets-requirements](../../requirements/pets-requirements.md) — you win an
+[pets.md](../../subsystems/pets.md) — you win an
 animal over and name it. **The institutional and un-institutional paths
 are the same act**, so a shelter costs this slate its intake rule and
 nothing else.

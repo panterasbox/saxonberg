@@ -24,7 +24,7 @@
  * HAND credits the hand. That asymmetry is the design: the one thing you
  * cannot delegate is attention.
  *
- * ⭐⭐ **Two things the animal does, not the keeper (review round 8).**
+ * ⭐⭐ **Two things the animal does, not the keeper.**
  *
  * **It steps back.** Below `steady` it eats off the ground or from a bowl
  * only when every person in the room is one it knows

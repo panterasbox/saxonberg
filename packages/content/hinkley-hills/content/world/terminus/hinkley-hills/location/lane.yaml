@@ -47,7 +47,8 @@ data:
   # boot where no live instance of the row exists, which is the cheapest
   # supply while spawn-distribution is unbuilt; after Mouse is adopted a
   # second cat may appear on the lane, which is unauthored rather than
-  # wrong (see the plan's Risks 7).
+  # wrong — a plain room's `applyCast` mints at every load, and a named
+  # cat is no longer the lane's stray but somebody's cat who stands there.
   cast:
     - /stuff/agent/cat
   details:

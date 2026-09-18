@@ -10,7 +10,8 @@
  * ⭐ **Identity and durability arrive together**, and that is literally
  * four statements in one method rather than a doctrine:
  *
- *  1. `setName` — and from here its name is public to everybody (D10);
+ *  1. `setName` — and from here its name is public to everybody (an
+ *     animal's name is public knowledge; see `belief.md`);
  *  2. `stampChattel` — title and chain of title, and ⚠ the moment its
  *     metabolic clock starts integrating your absences, because
  *     `integratesLongAbsence()` is *"yes iff somebody owns it"*. Naming

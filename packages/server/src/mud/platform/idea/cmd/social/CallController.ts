@@ -13,7 +13,7 @@
  * frame with no acoustic content at all, so a mute player could call, a
  * deaf one heard it, and a shut door meant nothing. And because MQL has
  * no adjacency scope, an animal in the next room could not be NAMED by
- * the player, so the plan's "it comes from next door" was unreachable.
+ * the player, so "it comes from next door" was unreachable.
  * ⭐ Making it an emission dissolves both: the physics already knows who
  * can hear you, and the targeting problem simply stops existing.
  *

@@ -824,6 +824,33 @@ Three generic substrate capabilities support it:
   (the Warren, not the transient room clone), and restored via
   `ContainmentApi.resolveLanding` / `move`, overriding the clone-time template
   spawn. Null for a room (not Containable) or a host placed by its referrer.
+  ⭐ **Anchored, with the way down** (pets build, 2026-09-17): `container`
+  names the nearest ancestor with an ADDRESS — a keyed host (`containerKey`
+  → `admitFor`, the exact unit), a `Location` (read as `Addressable`), or a
+  singleton — never an intermediate container, because a chest's template
+  path is every chest in the world; the intermediate containers' template
+  paths are `via`, matched hop by hop **within** the anchor at restore and
+  stopping at the deepest hop that resolves (a missing cage leaves the bird
+  in the room, never in the first cage anywhere). A plain non-singleton
+  room clone has no address to name — a good left in one comes back in *a*
+  room of that kind, the honest limit of a transient place.
+  ⚠ **Who holds a placement is decided by the container slice's skip
+  list**: the slice skips avatars, cast and owner-persisted chattel, and
+  exactly those keep their own placement — a named animal in a bedroom
+  that persists itself is not referred to by the room (its slice skips
+  it), so its own `place` is the only record. A good **carried** by
+  somebody records no placement at all (a `via` hop naming an avatar could
+  land it in a stranger's pockets — every avatar shares one template path);
+  the owner's estate puts it back in hand.
+- **Resolve-or-mint is every route's first question.** `cloneHost(scope,
+  key)` resolves a live keyed instance before minting: two records can
+  both refer to one keyed host (a chest carried between two persistable
+  rooms, one record stale), and minting unconditionally made the second
+  `assertUniqueKey` throw and abort that room's whole restore mid-tree.
+  The later record moves the standing instance — last-to-materialize
+  wins, never fatal, and the stale record heals on its next capture.
+  `PersistableApi.standUpKeyed` and `RestoreContext.standUpKeyed` are the
+  same question from the Api and from a slice.
 - **Self-owner** — a `HasInteractive` host owns its own record
   (`owner = scope`), so the account-deletion cascade `deleteAllFor(<avatar
   path>)` is a keyed match; and `ContainerMixin.captureSlice` **skips**

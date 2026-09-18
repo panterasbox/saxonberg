@@ -1,6 +1,6 @@
 # Eager residency slate — who may keep a thing loaded while nobody is looking
 
-> **Status: MECHANISM SHIPPED, POLICY UNBUILT** — the pin (`pinsResidency`
+> **Status: PARTIAL** — the mechanism shipped, the policy did not: the pin (`pinsResidency`
 > → the `chattel` row → one roll at boot, the owner's login as the other
 > ask) landed in the pets build (MR !257, D22). It admits **every** pin.
 > **Left:** ⭐⭐ the **two tiers of account** and the may/may-not table ·
