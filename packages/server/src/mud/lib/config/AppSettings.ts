@@ -1714,6 +1714,99 @@ export const AppSettingKeys = {
   /** Textiles — application strength below which a colour no longer
    * reads at all, and the thing is undyed again. */
   textilesDyeLegibleAt: "textiles.dye.legibleAt",
+
+  /* ────────────────────────── body (the stocks) ────────────────────────── */
+  /**
+   * The body's slow stocks — muscle (`lean`), the amino pool (`protein`),
+   * conditioning (`wind`), the years clock (`vitamin-c`) and
+   * `alcohol-tolerance` — and the rates they move at. Every one is a
+   * per-read dial (`Metabolic.ts` / `Exerting.ts` read `AppApi.setting`
+   * on each use) so a wizard can turn a season up inside one session
+   * with `config` and turn it back. Values ship in
+   * `platform/content/settings/body.yaml`; the rates are playtest, the
+   * STRUCTURE is the deliverable. See the nutrition-and-fitness plan.
+   */
+  /** Body — muscle gained (`%`-points) per hour of exertion at the
+   * overload ceiling; scaled down by how far under the ceiling the work is. */
+  bodyLeanGainPerHour: "body.leanGainPerHour",
+  /** Body — the time constant (active game-days) muscle relaxes back
+   * toward its seed with no overload. Idleness detrains; absence does not. */
+  bodyLeanDetrainDays: "body.leanDetrainDays",
+  /** Body — muscle catabolised (`%`-points per active game-day) while
+   * satiation sits at or below the flesh-deficit line: a starving body
+   * burns its lean too. */
+  bodyLeanCatabolismPerDay: "body.leanCatabolismPerDay",
+  /** Body — protein (`%`-points) spent per `%`-point of muscle gained.
+   * No protein, no muscle, however hard the work. */
+  bodyProteinPerLeanPct: "body.proteinPerLeanPct",
+  /** Body — the amino pool's basal turnover (`%`-points per active game-day). */
+  bodyProteinTurnoverPerDay: "body.proteinTurnoverPerDay",
+  /** Body — the fraction of the body's peak power an act must reach to
+   * train muscle at all. Below it the work tires you and builds nothing:
+   * the mill stops making you stronger once you have outgrown the sack. */
+  bodyOverloadFraction: "body.overloadFraction",
+  /** Body — peak metabolic power (W per kg of body mass) a body of
+   * ordinary muscle can put out; the `lean` margin scales it. */
+  bodyPeakWPerKg: "body.peakWPerKg",
+  /** Body — wind gained (`%`-points) per hour of work at a sustainable pace. */
+  bodyWindGainPerHour: "body.windGainPerHour",
+  /** Body — wind's half-life (active game-days). Fades while you play
+   * and not while you are away. */
+  bodyWindHalfLifeDays: "body.windHalfLifeDays",
+  /** Body — how much a full wind raises the sustainable power: at 1.5, a
+   * body at wind 100 sustains 2.5× the base. */
+  bodyWindSustainGain: "body.windSustainGain",
+  /** Body — the fraction of sustainable power an act must reach to count
+   * toward wind. A stroll is not training. */
+  bodyWindFloorFraction: "body.windFloorFraction",
+  /** Body — active game-days for a full vitamin C store to empty on a
+   * diet with none. The expedition timescale; scurvy at the floor. */
+  bodyVitaminCDrainDays: "body.vitaminCDrainDays",
+  /** Body — tolerance gained (`%`-points) per gram of alcohol absorbed. */
+  bodyToleranceGainPerGram: "body.toleranceGainPerGram",
+  /** Body — alcohol tolerance's half-life (active game-days). */
+  bodyToleranceHalfLifeDays: "body.toleranceHalfLifeDays",
+  /** Body — kg of body mass per `%`-point of `flesh` above or below its
+   * seed. The stocks reach `getMass()`, so the tailor's tape moves. */
+  bodyMassPerFleshPct: "body.massPerFleshPct",
+  /** Body — kg of body mass per `%`-point of `lean` above or below its seed. */
+  bodyMassPerLeanPct: "body.massPerLeanPct",
+
+  /* ────────────────────────── exertion (work → the body) ────────────────────────── */
+  /**
+   * One exertion event `{durationS, powerW}` — the scheduler's completed
+   * step, the self-powered traverse and the combat exchange all emit it
+   * — and what it costs. Effort BELOW what the body can sustain costs
+   * no endurance (the aerobic threshold); only the excess debits.
+   */
+  /** Exertion — metabolic watts a fresh body (wind 0) can sustain
+   * indefinitely. A walk sits at it; a run is double. */
+  exertionBaseSustainableW: "exertion.baseSustainableW",
+  /** Exertion — joules of excess work per `%`-point of endurance. Sets
+   * the felt cost of every step verb; the felt-cost test pins it. */
+  exertionJoulesPerEndurancePct: "exertion.joulesPerEndurancePct",
+  /** Exertion — the nominal duration (game-seconds) of one traverse, for
+   * the locomotion emit. */
+  exertionTraverseNominalS: "exertion.traverseNominalS",
+  /** Exertion — metabolic watts of a walk; a mode's `costMultiplier`
+   * scales it. */
+  exertionWalkW: "exertion.walkW",
+  /** Exertion — extra power per unit of load ratio above the light-load
+   * floor, as a fraction of the walk. Reproduces the old traversal drain. */
+  exertionLoadPowerPerRatio: "exertion.loadPowerPerRatio",
+  /** Exertion — endurance `%` under which a body cannot hold a pace
+   * faster than a walk: the run breaks. */
+  exertionPaceFloorPct: "exertion.paceFloorPct",
+  /** Exertion — endurance `%` a projected step may not leave the body
+   * under; the double-shift refusal. */
+  exertionExhaustionFloorPct: "exertion.exhaustionFloorPct",
+  /** Exertion — mechanical efficiency; `1 − η` of the work is heat the
+   * body must shed. */
+  exertionEfficiency: "exertion.efficiency",
+  /** Exertion — metabolic watts of one combat exchange. */
+  exertionCombatExchangeW: "exertion.combatExchangeW",
+  /** Exertion — game-seconds one combat exchange lasts, for the emit. */
+  exertionCombatExchangeS: "exertion.combatExchangeS",
 } as const;
 
 export type AppSettingKey =

@@ -37,6 +37,11 @@
  * | `satiation` | `%` | Creature + `MetabolicMixin` | `Creature.getSatiation()`; spent internally by ThermalRegulation (setpoint defense) |
  * | `hydration` | `%` | Creature + `MetabolicMixin` | `Creature.getHydration()` (the tighter recovery leash) |
  * | `flesh` | `%` | Creature + `MetabolicMixin` (the partition leg) | `Creature.getFlesh()`; ⭐ **the STOCK the flow deposits into** — `satiation` is hours, flesh is months. Read as a BAND (`Creature.bodyConditionBand`), never as a number, unless somebody lays hands on the animal |
+ * | `lean` | `%` | Creature + `MetabolicMixin` (relaxation to the seed) + `ExertingMixin` (overload gain) | `Creature.getLean()`; ⭐ **the second stock — muscle.** Fat is what you ate; lean is what you did. Read as a band (`Creature.leanBand`) inside the build phrase, never as a number; no floor effect — a body at 0 is *gaunt* in the mirror, not sick |
+ * | `protein` | `%` | Creature + `MetabolicMixin` (routing + turnover) | `Creature.getProtein()`; the amino pool the `protein` tag fills and muscle gain spends. Nothing floors it |
+ * | `wind` | `%` | Creature + `MetabolicMixin` (half-life decay) + `ExertingMixin` (duration at pace) | `Creature.getWind()`; conditioning — the stock the `wind` Discipline's band is a threshold over. Seeded at 0 (untrained); fades while you PLAY, never while you are away |
+ * | `vitamin-c` | `%` | Creature + `MetabolicMixin` (basal drain, the `vitamin-c` tag) | `Creature.getVitaminC()`; the years clock — full to empty over `body.vitaminCDrainDays` of active play; floor effect `scurvy` off the shipped cascade |
+ * | `alcohol-tolerance` | `%` | Creature + `MetabolicMixin` (fed at alcohol absorption; half-life decay) | keyed read inside `lib/metabolism` only; the `alcohol-tolerance` Discipline's band is a threshold over it |
  * | `fuel` | `%` | `CombustibleMixin` / `FurnaceMixin` (theme `combustion`) | `getFuelRemaining()` |
  * | `air` | `%` | an enclosed scope's Location (fire chemistry) | `FireLogic`-internal (no external reader) |
  * | `mana` | `pt` | `CasterMixin` (theme `arcane`; capacity from the depth band) | `getMana()` / `getManaFraction()` — raw keyed reads SKIP the recovery reconcile, never use them outside `lib/magic` |
@@ -67,6 +72,11 @@ export const BIOLOGICAL_RESERVE_KEYS = [
   'satiation',
   'hydration',
   'flesh',
+  'lean',
+  'protein',
+  'wind',
+  'vitamin-c',
+  'alcohol-tolerance',
 ] as const;
 
 /**
@@ -127,13 +137,18 @@ export class Reserve {
    * degrades the body).
    */
   static defaultBiological(): Record<string, ReserveStored> {
-    const full = (floorEffect: string): ReserveStored => ({
+    const seeded = (
+      currentValue: number,
+      floorEffect: string | null,
+    ): ReserveStored => ({
       capacityValue: 100,
-      currentValue: 100,
+      currentValue,
       unit: '%',
       theme: 'biological',
       floorEffect,
     });
+    const full = (floorEffect: string): ReserveStored =>
+      seeded(100, floorEffect);
     return {
       endurance: full('collapse'),
       satiation: full('starvation'),
@@ -156,6 +171,32 @@ export class Reserve {
         theme: 'biological',
         floorEffect: 'emaciation',
       },
+      // ⭐⭐ **The second stock — muscle.** Fat is what you ate; lean is
+      // what you did. Seeded at the ordinary middle so the mirror reads
+      // *in good flesh* and nothing more on a fresh body, and so both
+      // directions have room: overload trains it up, idleness relaxes it
+      // back. ⚠ No floor effect — a body at 0 is *gaunt* in the mirror,
+      // and starvation/emaciation already own the lethal and the chronic
+      // floors; a third condition here would be a gauge in a costume.
+      lean: seeded(50, null),
+      // The amino pool: the `protein` tag used to drain into nothing.
+      // Now it lands here, muscle gain spends it, and turnover drains it
+      // slowly — so a body that never eats protein cannot build muscle
+      // however hard it works. Healing may read the same pool later.
+      protein: seeded(50, null),
+      // ⭐ Conditioning — the stock the `wind` Discipline's band is a
+      // threshold over. Starts EMPTY: a fresh body is untrained, which is
+      // the honest baseline and what makes the first run break.
+      wind: seeded(0, null),
+      // ⭐ The years clock. Full on a fresh body (the enrol diet was
+      // varied), drained by the metabolism slice over `body.vitaminCDrainDays`
+      // of ACTIVE play, refilled by the `vitamin-c` tag. Its floor is the
+      // one new condition this build ships, and it rides the shipped
+      // cascade exactly as emaciation does.
+      'vitamin-c': seeded(100, 'scurvy'),
+      // Fed where alcohol is absorbed; fades on the active clock. The
+      // `alcohol-tolerance` Discipline's band reads it.
+      'alcohol-tolerance': seeded(0, null),
     };
   }
 }

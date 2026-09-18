@@ -55,6 +55,8 @@ import AccountabilityEvent from '../accountability/AccountabilityEvent';
 import { SpeciesApi } from '../../api/species';
 import { MaterialApi } from '../../api/material';
 import { CraftingApi } from '../../api/crafting';
+import { AppApi } from '../../api/app';
+import { AppSettingKeys } from '../config/AppSettings';
 
 /* ─────────────────────────── toxin model (types) ─────────────────────────── */
 //
@@ -168,12 +170,14 @@ type MetabolicHost = Stuff &
  */
 interface NutrientRoute {
   /**
-   * The reserve the tag refills, or `null` for a **tracked-but-inert**
-   * tag (protein → the tissue-repair seam): its pool still drains over
-   * time (so it doesn't accumulate forever), but the absorbed amount
-   * goes nowhere — it lights up when vitals healing is driven.
+   * The reserve the tag refills — any biological reserve key the body
+   * installs (`satiation`, `hydration`, `protein`, `vitamin-c`) — or
+   * `null` for a **tracked-but-inert** tag: its pool still drains over
+   * time (so it doesn't accumulate forever) but the absorbed amount goes
+   * nowhere. ⭐ Open string, not a closed union: a new stock on the body
+   * gets a route by adding a row here, never by widening a type.
    */
-  reserve: "satiation" | "hydration" | null;
+  reserve: string | null;
   /** Pool drain rate toward the reserve, in `%`-points per game-minute. */
   absorbPerMin: number;
   /** `%`-fill contributed to the pool per litre ingested. */
@@ -325,6 +329,7 @@ const CONDITION_PATHS: Record<string, string> = {
   dehydration: TemplatePaths.metabolismDehydration,
   collapse: TemplatePaths.metabolismCollapse,
   emaciation: TemplatePaths.metabolismEmaciation,
+  scurvy: TemplatePaths.metabolismScurvy,
 };
 
 /** Lethal accrual per floor-effect (game-seconds); absent = non-lethal. */
@@ -339,11 +344,31 @@ const NUTRIENT_ROUTING: Record<string, NutrientRoute> = {
   carb: { reserve: "satiation", absorbPerMin: 1.0, yieldPerLitre: 60 },
   sugar: { reserve: "satiation", absorbPerMin: 1.5, yieldPerLitre: 60 },
   fat: { reserve: "satiation", absorbPerMin: 0.3, yieldPerLitre: 90 },
-  // Protein → the tissue-repair seam: tracked-but-inert. It absorbs out
-  // of the pool over time but delivers nowhere until vitals healing is
-  // driven (a later wave).
-  protein: { reserve: null, absorbPerMin: 0.5, yieldPerLitre: 70 },
+  // ⭐ Protein has a home: the `protein` reserve — the amino pool muscle
+  // gain spends and turnover drains. (It was tracked-but-inert until the
+  // nutrition build; healing may read the same pool later.)
+  protein: { reserve: "protein", absorbPerMin: 0.5, yieldPerLitre: 70 },
+  // ⭐ The years clock. One orange portion (0.4 L) restores ~30 %, which
+  // clears scurvy at the cascade's shipped 15 % hysteresis.
+  "vitamin-c": { reserve: "vitamin-c", absorbPerMin: 2.0, yieldPerLitre: 75 },
 };
+
+/** Numeric AppSetting read, falling back to the seeded literal (the
+ * `Freshness.ts` shape). Per-read, so a `config` change is seen by the
+ * next slice — what lets a wizard turn a season up inside one session. */
+function dial(key: string, fallback: number): number {
+  try {
+    const raw = AppApi.setting(key);
+    if (raw === '' || raw == null) return fallback;
+    const n = Number.parseFloat(raw);
+    return Number.isFinite(n) ? n : fallback;
+  } catch {
+    return fallback;
+  }
+}
+
+/** Game-minutes in a game-day — the unit the stock dials are quoted in. */
+const MIN_PER_DAY = 24 * 60;
 
 /** The phase a unit of intake fills — the verb decides, not the Material. */
 export type IngestPhase = "solid" | "liquid";
@@ -711,6 +736,114 @@ export function MetabolicMixin<TBase extends MixinConstructor>(Base: TBase) {
       this.coupledRecovery(stepMin);
       this.clearBurdens(stepMin);
       this.partitionFlesh(stepMin);
+      // Steps 6–9: the slow stocks. Each is a no-op on a host lacking its
+      // reserve (the `partitionFlesh` rule), and each rides THIS clock —
+      // so the linkdead freeze and the far-past guard make "never tax
+      // absence" true for all of them with no wiring of their own.
+      this.partitionLean(stepMin);
+      this.decayWind(stepMin);
+      this.decayTolerance(stepMin);
+      this.drainMicronutrients(stepMin);
+    }
+
+    /**
+     * Step 6 — ⭐ **muscle relaxes toward its seed, and a starving body
+     * burns it.** Newton relaxation with time constant
+     * `body.leanDetrainDays`: what overload built, idleness slowly
+     * unbuilds — but only toward the ordinary middle, never below it,
+     * because a body that never trained is not "detrained". Catabolism is
+     * the other leg: at or below the flesh-deficit line the body is
+     * drawing on itself, and it draws on lean as well as fat.
+     * The GAIN lives in `ExertingMixin.exert` (the producer); this is
+     * the sink.
+     */
+    protected partitionLean(stepMin: number): void {
+      const self = this as unknown as MetabolicHost;
+      if (!self.hasReserve("lean")) return;
+      const D = METABOLIC_DEFAULTS;
+      const lean = this.reserveCurrent("lean");
+      const seed = Reserve.defaultBiological().lean!.currentValue;
+      let delta = 0;
+      if (lean > seed) {
+        // Exact exponential relaxation, not the linear slope: the
+        // reconcile collapses a long gap's remainder into ONE step, and
+        // a linear step longer than the time constant would overshoot
+        // the seed.
+        const tauMin = dial(AppSettingKeys.bodyLeanDetrainDays, 45) * MIN_PER_DAY;
+        if (tauMin > 0) delta += (lean - seed) * (Math.exp(-stepMin / tauMin) - 1);
+      }
+      if (this.reserveCurrent("satiation") <= D.FLESH_DEFICIT_AT) {
+        delta -=
+          (dial(AppSettingKeys.bodyLeanCatabolismPerDay, 1) * stepMin) /
+          MIN_PER_DAY;
+      }
+      if (delta !== 0) self.adjustReserve("lean", Quantity.of(delta, "%"));
+    }
+
+    /**
+     * Step 7 — wind fades by half-life while you play. Absence is not
+     * taxed: the slice never runs across a logout (the far-past guard) or
+     * a linkdead body (the freeze). The gain is `ExertingMixin`'s.
+     */
+    protected decayWind(stepMin: number): void {
+      this.decayByHalfLife("wind", AppSettingKeys.bodyWindHalfLifeDays, 30, stepMin);
+    }
+
+    /** Step 8 — alcohol tolerance fades the same way; fed in `absorbToxin`. */
+    protected decayTolerance(stepMin: number): void {
+      this.decayByHalfLife(
+        "alcohol-tolerance",
+        AppSettingKeys.bodyToleranceHalfLifeDays,
+        20,
+        stepMin,
+      );
+    }
+
+    /**
+     * Step 9 — the years clock and the amino pool. `vitamin-c` drains
+     * linearly, full to empty over `body.vitaminCDrainDays` of active
+     * play; its floor is scurvy, spawned by the cascade like any other
+     * floored reserve. `protein` turns over at a basal rate — a body that
+     * eats none runs the pool down and then cannot build muscle.
+     */
+    protected drainMicronutrients(stepMin: number): void {
+      const self = this as unknown as MetabolicHost;
+      if (self.hasReserve("vitamin-c")) {
+        const days = dial(AppSettingKeys.bodyVitaminCDrainDays, 30);
+        if (days > 0) {
+          self.adjustReserve(
+            "vitamin-c",
+            Quantity.of((-100 * stepMin) / (days * MIN_PER_DAY), "%"),
+          );
+        }
+      }
+      if (self.hasReserve("protein")) {
+        self.adjustReserve(
+          "protein",
+          Quantity.of(
+            (-dial(AppSettingKeys.bodyProteinTurnoverPerDay, 8) * stepMin) /
+              MIN_PER_DAY,
+            "%",
+          ),
+        );
+      }
+    }
+
+    /** Exponential decay of a stock by a dialled half-life (game-days). */
+    protected decayByHalfLife(
+      key: string,
+      dialKey: string,
+      fallbackDays: number,
+      stepMin: number,
+    ): void {
+      const self = this as unknown as MetabolicHost;
+      if (!self.hasReserve(key)) return;
+      const current = this.reserveCurrent(key);
+      if (current <= 0) return;
+      const halfLifeMin = dial(dialKey, fallbackDays) * MIN_PER_DAY;
+      if (halfLifeMin <= 0) return;
+      const kept = Math.pow(0.5, stepMin / halfLifeMin);
+      self.adjustReserve(key, Quantity.of(current * (kept - 1), "%"));
     }
 
     /**
@@ -797,9 +930,10 @@ export function MetabolicMixin<TBase extends MixinConstructor>(Base: TBase) {
           const delta = Math.min(pool, route.absorbPerMin * stepMin);
           pools[tag] = pool - delta;
           nutrientDrained += delta;
-          // A null-reserve tag (protein) drains but delivers nowhere —
-          // the inert tissue-repair seam.
-          if (route.reserve !== null) {
+          // A null-reserve tag drains but delivers nowhere (tracked-but-
+          // inert); a routed tag lands on its reserve when the body has
+          // one (a body predating a stock simply does not fill it).
+          if (route.reserve !== null && self.hasReserve(route.reserve)) {
             self.adjustReserve(route.reserve, Quantity.of(delta, "%"));
           }
         } else {
@@ -844,6 +978,20 @@ export function MetabolicMixin<TBase extends MixinConstructor>(Base: TBase) {
         ? absorbed
         : (absorbed * behavior.potency) / massKg;
       this.toxinBurdens[type] = (this.toxinBurdens[type] ?? 0) + gain;
+      // ⭐ Tolerance is fed where alcohol is absorbed — a stock on the
+      // body, banded by the `alcohol-tolerance` Discipline, fading on the
+      // active clock (step 8). Its consumer (widening the `bac` bands) is
+      // a metabolism-tail seam; the requirement here is that it exists
+      // and fades honestly.
+      if (type === "alcohol" && self.hasReserve("alcohol-tolerance")) {
+        self.adjustReserve(
+          "alcohol-tolerance",
+          Quantity.of(
+            dial(AppSettingKeys.bodyToleranceGainPerGram, 0.5) * absorbed,
+            "%",
+          ),
+        );
+      }
     }
 
     /**
