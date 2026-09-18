@@ -1709,6 +1709,26 @@ object. `lint:census`, `lint:untitled`, `lint:locations` green.
 
 **Commit.** `build(forestry W5): the Hanging Wood above Rejection — a treeline, a ride and two clearings that are stands, and daylight on every room`
 
+> ✅ **W5 done (2026-09-17).** As planned; `lint:locations` green with
+> no roster edit. Driven by hand on a fresh DB: hillside → `north` →
+> treeline (no stand line) → `north` → the ride reads *"Oak stands here
+> — about eight trees' worth, old, planted by nobody alive. Ash — about
+> four trees' worth."*; `fell oak` → 30 game-s → a 675 kg oak bole + 4
+> logs on the floor + an acorn in hand, the ride reads seven; the cut
+> SURVIVED a `tsx watch` restart (the record wins); `fell bole` → a
+> 24 kg oak timber, *"Five lengths in it yet."*; `plant acorn in panel`
+> → the clearing reads *"An oak sapling, planted by <name> on the 1st
+> day of the 1st year."*, `chronicle` shows *planted an oak sapling in
+> the oak clearing*; `fell sapling` → `not-yet-a-tree`.
+> ⭐ **What driving found:** the shipped coppice panel authored
+> `interiorCapacity` and no `interiorAmount`, so `plant` answered *"has
+> no soil in it. Pour some in first."* — a PRE-EXISTING defect on the
+> yard's panel that nothing could reach until an acorn existed. All
+> three panel rows now ship full of earth (`interiorMaterial` +
+> `interiorAmount: 180`). Also: `look` renders no band word — "dim" is
+> what perception does, not what prose says; the drive asserts every
+> object named instead.
+
 ### W6 — the drive, and the docs
 
 **Goal.** The requirements' drive runs over the wire and keeps running;

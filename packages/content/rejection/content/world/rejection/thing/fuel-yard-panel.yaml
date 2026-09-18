@@ -46,6 +46,13 @@ data:
   landRequirementM2: 120
   interiorBulk: true
   interiorCapacity: 180
+  # ⚠ The EARTH — the bulk soil the roots go into (the root ceiling), a
+  # different axis from the reserves below (what the earth holds). The
+  # shipped coppice panel authored the capacity and no amount, so `plant`
+  # answered *"has no soil in it. Pour some in first."* — found by
+  # planting an acorn in a browser. A panel is ground: it ships full.
+  interiorMaterial: /stuff/idea/material/bulk/potting-soil
+  interiorAmount: 180
   # Rain-fed woodland ground, and deep: a coppice is not watered by
   # anybody and its nitrogen comes back as leaf litter. The reserves are
   # generous because the LIMIT here is meant to be the rotation, not

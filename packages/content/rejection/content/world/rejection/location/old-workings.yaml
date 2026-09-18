@@ -16,6 +16,12 @@ data:
   shortDescription: old workings on the outcrop
   keywords: [workings, "old workings", scrapes, spoil, diggings]
   register: definite
+  # Daylight, authored against THIS room's cell: lux = lumens / cellSize²,
+  # and at Rejection's 10 m cells `dim` needs 500 lm, `lit` 2000, `bright`
+  # 6000 — open hill under the sun. No row here authored a value before the forestry build,
+  # and every object read "something".
+  ambientIntensity: 8000
+  ambientColorTemperature: 5800
   longDescription: |
     A quarter-acre of hillside that has been turned over and left. Shallow scrapes follow the band of stain, each one a few feet deep and none of them going anywhere, with the spoil thrown out downhill and grassed over. Somebody built a wall out of the bigger pieces and then stopped building it.
 

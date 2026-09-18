@@ -11,6 +11,12 @@ data:
   shortDescription: claims office
   keywords: [office, "claims office", claims]
   register: definite
+  # Daylight, authored against THIS room's cell: lux = lumens / cellSize²,
+  # and at Rejection's 10 m cells `dim` needs 500 lm, `lit` 2000, `bright`
+  # 6000 — open hill under the sun. No row here authored a value before the forestry build,
+  # and every object read "something".
+  ambientIntensity: 8000
+  ambientColorTemperature: 5800
   longDescription: |
     One room, one counter, and a stove that has not been lit this month. Behind the counter the whole of the wall is a map: the diggings in plan, claims inked in and numbered, the untitled ground left white. More of it is white than is not.
 

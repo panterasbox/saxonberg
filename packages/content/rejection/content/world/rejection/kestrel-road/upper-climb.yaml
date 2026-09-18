@@ -13,7 +13,11 @@ data:
   alternateNames: [climb, road, water, trough]
   _address: terminus/rejection/road/upper-climb
   _biomePath: /stuff/idea/biome/outdoor/baseline
-  ambientIntensity: 580
+  # ⚠ Lux is lumens over the cell's AREA, and this zone's cells are 20 m:
+  # the shipped 520–700 lm read as 1.5 lux — very-dim, by the light
+  # model's own arithmetic, on an open road in daylight. 24000 lm is 60
+  # lux over 400 m²: bright, which is what a road under the sun is.
+  ambientIntensity: 24000
   ambientColorTemperature: 5700
   longDescription: |
     The zigzags end and the road runs along a shelf under the crags with the wind coming down it. A spring comes out of the rock at head height and falls into a stone trough set into the bank, and the overflow goes under the road in a culvert somebody cut properly.

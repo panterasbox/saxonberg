@@ -152,7 +152,7 @@ export default class FellController extends ManualBuildController<FellModel> {
     const sp = word ? stand.speciesNamed(word) : stand.thickestSpecies();
     if (!sp) {
       if (word) {
-        this.decline(context, 'no-such-species', Mml.compose`No ${word} stands here.`);
+        this.decline(context, 'no-such-species', Mml.compose`Nothing called '${word}' stands here.`);
       } else {
         this.decline(
           context,
