@@ -54,6 +54,10 @@ data:
     - { itemTemplatePath: /stuff/thing/arms/arrow, par: 3 }
     - { itemTemplatePath: /stuff/thing/arms/flintlock-musket, par: 1 }
     - { itemTemplatePath: /stuff/thing/arms/musket-ball, par: 2 }
+    # ⭐ The corrosion channel's first WEAPON — a thrown glass flask that
+    # shatters and splashes vitriol over the mark. It rides no combat
+    # code: the `throw` splash + the substance-contact seam do the work.
+    - { itemTemplatePath: /stuff/thing/items/flask-of-vitriol, par: 2 }
     - { itemTemplatePath: /world/terminus/general-store/thing/iron-ingot, par: 3 }
     - { itemTemplatePath: /world/terminus/general-store/thing/sewing-kit, par: 2 }
     - { itemTemplatePath: /world/terminus/general-store/thing/sewing-machine, par: 1 }

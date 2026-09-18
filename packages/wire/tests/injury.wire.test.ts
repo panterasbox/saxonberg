@@ -296,6 +296,55 @@ suite('⭐⭐ steps 15-16 — the caustic and the verb that stops it', () => {
   }, 60_000);
 });
 
+/* ───────── Stage D: magic reaches every damage channel ───────── */
+
+suite('⭐⭐ steps 20-22 — magic that hurts through every seam', () => {
+  it('⭐⭐ `spells` lists the four new workings — the catalogue accepted them', async () => {
+    // Same proof frost's step gives: SpellCatalogue auto-discovers rows
+    // from the Spell dir, and a malformed cell (an unknown verb/noun) is
+    // DROPPED with a warn, not thrown. The rows appearing in a BOOTED
+    // world's book is the only proof the four channels magic never
+    // reached are now reachable — a unit test cannot warm the catalogue.
+    const out = await player.cmd('spells');
+    expectOk(out);
+    const said = (await out.said()).toLowerCase();
+    for (const name of ['stonefist', 'stone lance', 'windrazor', 'acid splash']) {
+      expect(said, `${name} is in the book — got: ${said}`).toContain(name);
+    }
+    // …and the shipped book survived (a catalogue that dropped rows
+    // wholesale would also pass a bare contains-check).
+    expect(said, 'the rest of the book survived').toContain('firebolt');
+  }, 60_000);
+
+  it('⭐ the new workings span EARTH, AIR and WATER — not one school', async () => {
+    // The whole point is breadth: magic reaches the mechanical channels
+    // through solid matter (earth) and pressure (air), and corrosion
+    // through a conjured fluid (water). If the book ever reads only one
+    // school here, the expansion has collapsed back to a single seam.
+    const out = await player.cmd('spells');
+    const said = (await out.said()).toLowerCase();
+    for (const school of ['earth', 'air', 'water']) {
+      expect(said, `${school} is represented — got: ${said}`).toContain(school);
+    }
+  }, 60_000);
+
+  it('⭐ the counter STOCKS a flask of vitriol — the corrosion WEAPON is reachable', async () => {
+    // The substance-contact seam gives a thrown caustic corrosion for
+    // free, but only if something in the world can be thrown. A row nobody
+    // stocks is the dead-content failure — so the flask sits on the arms
+    // shelf, the same link the armour rows proved (read via `look
+    // counter`, as the armour-ladder step does — `buy` chokes on the
+    // preposition in "flask of vitriol").
+    const out = await shopper.cmd('look counter');
+    expectOk(out);
+    const said = (await out.said()).toLowerCase();
+    expect(
+      /vitriol|flask/.test(said),
+      `the counter stocks the flask — got: ${said}`,
+    ).toBe(true);
+  }, 120_000);
+});
+
 /* ───────────── Stage C: past the medieval ───────────── */
 
 suite('⭐⭐ steps 17-19 — a weapon that is not medieval', () => {

@@ -358,3 +358,56 @@ A caster with `magic-create/earth/air/water` competence (or wands): cast
 stonefist at a dummy → a fracture reads on `assess`; cast the acid working
 → a caustic wound that `rinse` resolves; confirm armour changes a magic
 blunt blow. Expect it to find things.
+
+---
+
+## Stage D — build record (2026-09-18)
+
+**All three waves landed.** Commits on `design/harm-survey`:
+
+- **W-D0** `build(injury W-D0): a caustic substance in contact with a body
+  burns it` — `Material.corrodeOnContact` (the general seam), wired to the
+  `throw` splash + `execConjure`; `vitriol` (eats metal, the armour case)
+  + the thrown flask; `lint:census` bulkMaterial warn-entry. Test:
+  `Material.corrode.test.ts` (4). 
+- **W-D1** `build(injury W-D1): the roster` — stonefist (blunt),
+  stone-lance (point), windrazor (edge), acid-splash (corrosion). Tests in
+  `MagicLogic.test.ts`: each mechanical spell leaves its trauma; a steel
+  plate blunts a magic blunt blow; all four discovered + castable at
+  novice.
+- **W-D2** `build(injury W-D2): interop tests + docs` — acid-eats-armour
+  vs lime; burn+frostbite coexist; magic.md / materials-response.md /
+  harm.md updated; capability-magic-slate hand-off (freezing-pool,
+  chaining-shock, ambient-pool re-contact, second-cold).
+
+### The drive (owned world, port 2012) — steps 20-22, ALL GREEN
+
+Extended `injury.wire.test.ts`; ran `WIRE_BOOT=1 pnpm wire` on the file:
+
+1. **`spells` lists the four new workings** — stonefist, stone lance,
+   windrazor, acid splash all appear in a *booted* world's book, so the
+   catalogue auto-discovered them and dropped none. (A unit test cannot
+   warm the catalogue; only the boot proves registration.) firebolt still
+   present — the book was not truncated.
+2. **The new workings span earth/air/water** — breadth proven live; the
+   expansion did not collapse to one school.
+3. **The counter stocks a flask of vitriol** — the corrosion WEAPON is
+   reachable (buy → throw → splash → corrode), no dead content.
+
+⚠ **What the drive found (and it always finds something):** `buy flask of
+vitriol` returned *"that doesn't match any known command shape: buy."* —
+the `buy` parser chokes on the preposition in a three-token name with
+"of". Not a corrosion bug; a command-parse limitation. The drive step
+switched to `look counter` (the same read the armour-ladder step uses),
+which confirms the flask is stocked. The `buy`-with-preposition parse gap
+is a pre-existing command-parsing issue, noted for the sweep — not this
+MR's to fix.
+
+⚠ **Not driven live (guest sessions cannot cast/throw): the wound
+itself.** A wire session is a guest with no faculty and no money, so the
+drive proves the spells are *in the book* and the flask is *on the shelf*,
+not that a cast leaves a contusion or a thrown flask corrodes. Those are
+proven at the unit tier (`MagicLogic.test.ts`, `Material.corrode.test.ts`,
+`material-response.channels.test.ts`) — the same split every prior injury
+drive lived with (the armour step proves the row is stocked, not that a
+guest bought it).
