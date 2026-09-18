@@ -463,7 +463,10 @@ export function RespirationMixin<TBase extends MixinConstructor>(Base: TBase) {
         ) => void;
       }).onMoved;
       if (typeof sup === 'function') sup.call(this, from, to);
-      void this.reassess();
+      // Fire-and-forget, and a failed re-check (no biome loaded, a
+      // torn-down room) must not surface as an unhandled rejection from
+      // inside a containment move.
+      void this.reassess().catch(() => {});
     }
 
     /* ──────────────────── engagement tick bodies ──────────────────── */

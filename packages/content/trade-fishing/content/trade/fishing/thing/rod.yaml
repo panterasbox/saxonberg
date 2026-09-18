@@ -1,0 +1,18 @@
+# A cane rod — the tackle. `capabilities: [angling]` is what the `fish`
+# view's rod argument finds; `epoch: medieval` is a stamp the land-use
+# covenant will read. `showing: 1` is an ordinary rod; a finer one
+# shows the bait better and bites more.
+class: /trade/fishing/thing/Rod
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  keywords: [rod, cane, fishing-rod, tackle]
+  shortDescription: cane rod
+  register: indefinite
+  longDescription: >-
+    A cane rod, taped at the joints, with a horsehair line wound on a
+    wooden reel and a hook at the end of it. It has caught fish before.
+  mass: 0.9
+  capabilities: [angling]
+  epoch: medieval
+  showing: 1
+  _materialPath: /stuff/idea/material/wood/oak

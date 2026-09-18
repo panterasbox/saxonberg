@@ -1,0 +1,50 @@
+verbs: [fish, angle]
+controller: /trade/fishing/idea/cmd/fishing/FishController
+description: "Cast a line and wait"
+help: |
+  `fish` casts out with the rod in your hands, bare-hooked. `fish with
+  worm` baits the hook first — and what you put on it decides what comes
+  to it: a worm for the small fish that feed on the bottom, a baitfish
+  for the ones that hunt them. Where there is more than one water in
+  reach, `fish at the bank` says which.
+
+  Then you wait. The line stays slack for a while and nothing tells you
+  why. A small fish comes in on its own; a big one runs, and the rod
+  bends — `reel` when it rests, `slack` when it runs, and you learn the
+  difference by losing a few. `cancel fishing` brings the line in.
+
+  ⚠ What you land is alive, and it is in your hand. A fish out of water
+  is a fish that is drowning; a bowl of water is the only thing that
+  stops it.
+validators:
+  - /lib/command/validators/requiresAnimate
+  - /lib/command/validators/requiresConscious
+  - /lib/command/validators/requiresEmbodied
+args:
+  # ⭐ WHICH ROD — declared, not hunted for. `[capability.angling]` asks
+  # for the thing you can fish with; `me:i` is in hand, as a rod must be.
+  - name: rod
+    type: object
+    required: false
+    prepositions: [using]
+    default: "me:i:[capability.angling]"
+    scope: ["inventory"]
+    requires: [ToolMixin]
+  # Anything you are carrying can go on a hook. The engagement decides
+  # what a species makes of it — a worm, a scrap, or nothing.
+  - name: bait
+    type: object
+    required: false
+    prepositions: [with]
+    scope: ["inventory"]
+    requires: any
+  # ⭐ WHICH WATER — a Shore in reach, or none: then the Locality's own
+  # reach is fished, which is how a valley nobody wrote fishing for has
+  # fish.
+  - name: shore
+    type: object
+    required: false
+    prepositions: [at, in, from]
+    default: "reachable:[class.Shore]"
+    scope: ["reachable"]
+    requires: any

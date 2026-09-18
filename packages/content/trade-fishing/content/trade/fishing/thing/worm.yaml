@@ -1,0 +1,11 @@
+# A worm — bait for the small fish that feed on the bottom, and for the
+# crab. Dug from any ground you can cultivate (`dig`), or bought.
+class: /trade/fishing/thing/Bait
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  keywords: [worm, bait, lobworm]
+  shortDescription: worm
+  register: indefinite
+  longDescription: A fat worm, still working.
+  mass: 0.005
+  baitKind: worm

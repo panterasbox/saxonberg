@@ -32,17 +32,17 @@ settings:
   # reels inside one tick at full stamina SNAP a fighter and a patient
   # alternation lands one in four to eight ticks.
   - key: fishing.contest.reelGain
-    value: "0.2"
+    value: "0.25"
   - key: fishing.contest.reelStrain
-    value: "0.45"
+    value: "0.4"
   - key: fishing.contest.slackRelief
-    value: "0.35"
+    value: "0.4"
   - key: fishing.contest.slackRun
-    value: "0.1"
+    value: "0.08"
   # Per tick: how fast a straining fish tires, and how hard a fresh one
   # pulls.
   - key: fishing.contest.tire
-    value: "0.25"
+    value: "0.35"
   - key: fishing.contest.pull
     value: "0.2"
   # The line snaps at this strain; the fish lands once the line is in
