@@ -266,6 +266,42 @@ in reality, for reasons a player could derive.)*
 | cultivation | the live farming build |
 | **the assay instrument** | instrumentation slate's shape, unbuilt |
 
+## ⭐ A modern substance the model can already say: GLP-1 (noted 2026-09-18, deliberately WAITING)
+
+The nutrition & fitness planning asked whether the GLP-1 agonists — a
+genuine game-changer in the real world, and very new — belong in the
+world now. The answer is *the model can express them and should not
+yet*, and both halves are worth recording.
+
+**The mechanism maps onto hooks that exist.** One substance system, the
+band decides help or harm: GLP-1's pharmacology is slowed gastric
+emptying and raised satiety per intake — in metabolism's terms a
+substance whose active band scales `absorbPerMin` **down** and
+satiation's yield **up**, so you are full longer and eat less. No new
+machinery; a `Condition` seed with a `toxinBehavior`, like every active.
+
+**What emerges without a special case** — and this is the pedagogy
+worth waiting for: the nutrition build's two body stocks make weight
+loss *without exertion* draw down **both** fat and lean — which is the
+lean-mass loss the real-world data shows — and stopping the drug
+returns absorption to baseline while the appetite it never modelled
+returns with it, so the **rebound** falls out of the months clock. The
+model would say the true things unprompted.
+
+**What it cannot say** is the thing the drug is most discussed for:
+*appetite* — "food noise." The nutrition requirements deliberately
+cannot express appetite, mood or the psychology of eating, and a GLP-1
+whose headline effect is faked is worse than none.
+
+**So: wait.** Three reasons, in order of weight — the real-world picture
+(lean loss, rebound, the cardiovascular and long-term data) is still
+moving and this world should not canonise a 2020s drug's outcomes before
+they are known; the epoch lens (trades ship medieval and advance by
+discipline — a peptide agonist arrives with the discipline that makes
+it, not before); and the appetite gap. Author it into the pharmacopoeia
+as a substance when it is wanted, with the hook mapping above so nobody
+thinks it needs machinery.
+
 ## Open questions (for requirements)
 
 1. **How many actives, and how distinct?** *Leans: few, strongly

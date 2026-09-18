@@ -586,6 +586,21 @@ content workstream.
 
 ---
 
+## Diets — no mechanism, on purpose (noted 2026-09-18)
+
+A diet is a *pattern of choices*, and the nutrition & fitness build's
+months clock renders patterns onto bodies; the engine is honest, so a
+fad diet does exactly what it does in reality. Two things are content,
+neither is machinery: **a healthy diet is derivable** — it is *variety*,
+covering the micronutrient kinds (the towns slate's *"a monotonous diet
+sickens"* finally has its mechanism); **a fad diet is a claim** — a
+knowledge product (the dietician beside the trainer) or a *belief* (the
+belief substrate handles misinformation natively), whose label is
+honest and whose marketing is not — the supplement lesson. ⚠ The macro
+model is thin (fat = slow satiation, carb = fast, protein → lean); a
+keto pattern and a high-carb one differ mostly in the lean stock. More
+macro physiology waits for a lesson that needs it.
+
 ## Open questions
 
 - **Basal ∝ body mass exponent.** Structurally basal scales with body size

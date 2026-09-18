@@ -625,6 +625,30 @@ content one.
   revocation, and whether measurement is withheld).
 - **Lab staff** — technicians; and the assayer question of Part 3.
 - **Athletic grounds** — the `sports` discipline's only possible home.
+  ⭐ *(2026-09-18)* **There is no football field — and `vision.md`
+  promises "Athletic Fields & Arts Complex."** Two things, not one:
+  - **Recreation needs nothing.** A field is a location; a ball is a
+    thing; `throw` ships (ranged); people gather. A pickup game
+    *emerges* — lens 3 — and the field belongs here as content: a
+    `FurnishableRoom`-free open location with a ball and a goal, beside
+    the combat facilities of Part 7. Ship it with the grounds.
+  - **Sport is a build of its own** — a match with rules, a winner, and
+    standing conferred by peers or a polity — and the engine already
+    knows its shape: **a match is a combat session with different
+    terms** (the multi-party graph, gambits, tempo × endurance ×
+    competence, beat by beat). It must be *played*, because the
+    uncertainty doctrine bans resolving what your action *did* with a
+    roll. It is also where fitness finally gets *public*: the wind and
+    the lean the gym built, judged — the nutrition & fitness build's
+    "fitness is private; sport is where others say so." Spectacle rides
+    the streaming/display substrate (a match on the tavern's screen —
+    the press ticker, the cup, eventually a book). Sporting goods are
+    crafted things (leather — the ball, the glove — is the saddler's;
+    wood the bat) and the sporting-goods store is retail; lens 6: the
+    sport is the demand, the goods are the fan-out, the venue is the
+    business. → a **sport slate**, unwritten; `sports` stays the
+    ISCED knowledge node it is until that build gives it a skill leaf
+    per game.
 - **A refectory** — ⭐ promoted to its own **Part 9**; it turned out to be
   a finding about the trades, not a campus bullet.
 - **Lecture hall / exam hall / office hours** — already specified by the
