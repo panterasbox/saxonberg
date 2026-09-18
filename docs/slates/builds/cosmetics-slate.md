@@ -4,6 +4,8 @@
 > overdyeing as arithmetic) shipped with textiles →
 > [textiles.md](../../subsystems/textiles.md)
 > **Left:** the appearance-mark carrier on a body (the `Looks` cell) ·
+> **glycerin + scented soap** (the chandler's byproduct —
+> [rendering-slate § 8](./rendering-slate.md)) ·
 > the personal-services vocation + graded cuts · tattoos · the dye-plant
 > crop rows
 > **Size:** a build

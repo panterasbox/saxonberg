@@ -50,7 +50,7 @@ Five pieces, and only two are new gauges:
 
 | Piece | Lives on | Shape | Cleared by |
 |---|---|---|---|
-| ⭐ **`Soilable`** (grease, grime, soiled bedding, dirty hands) | **items / surfaces / bodies** | act-deposited band (`clean/soiled/filthy`) | `wash` / `wipe` / `bathe` |
+| ⭐ **`Soilable`** (grease, grime, soiled bedding, dirty hands) | **items / surfaces / bodies** | act-deposited band (`clean/soiled/filthy`) | `wash` / `wipe` / `bathe` — ⭐ with **soap** clearing grease and water alone not ([rendering-slate § 8](./rendering-slate.md)); **sweat from exertion** is the body's first depositor (the nutrition & fitness build's `exert()`) |
 | ⭐ **Debris** (crumbs, offcuts, litter) | **the room** (room-level field) | act-deposited band | `sweep` / `clean` → a bin |
 | **Pests** | emergent | a **threshold consequence** of debris + exposed food | remove the cause |
 | **Tidiness** | emergent | derived from item **placement** (`place`d vs scattered) | `tidy` (put things away) |

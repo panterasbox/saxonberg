@@ -534,6 +534,7 @@ Clean attach points, and the slate each leaves as (written at the sweep, not her
 - **Conferrals on the `wind` row** — the swim, when there is water; the `refreshConferrals`-on-crossing hook is already wired. → fishing/underwater design.
 - **Casting effort as a dial** — `CastActivity` carries a const 300 W; arcana's own `settings/magic.yaml` (on build-4) is where it moves once build-4 lands.
 - **A per-part muscle read** — a derived share of `lean` over the plan's `muscle` tissue masses, for the capability-magic strength read. → capability-magic-slate.
+- **Sweat as body soiling** — `depositWorkHeat` is where an exertion deposits on a `Soilable` body the day room-condition ships one; the gym makes you dirty and the bathhouse is its neighbour. → [rendering-slate § 8 (soap)](../slates/builds/rendering-slate.md) + room-condition.
 
 ---
 
