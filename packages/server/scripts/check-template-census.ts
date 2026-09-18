@@ -464,6 +464,13 @@ const IGNORED_PATH_FIELDS: readonly string[] = [
  * real template path nothing currently proves resolves.
  */
 const UNREAD_PATH_FIELDS: readonly string[] = [
+  // A Tangible body-material descriptor (a flask's glass wall), a real
+  // template path, sibling to `material`/`interiorMaterial`/
+  // `surfaceMaterial` below and unread for the same reason. ⚠ It cannot
+  // be taught to `refsOf` by field name: the conjure spell effect also
+  // carries a `bulkMaterial` field holding a BARE name (`water`), not a
+  // path, so a name-keyed read would choke on the effect. Warn-only.
+  'bulkMaterial',
   'businessPath', 'carriedSpellPath', 'charMaterialPath', 'charter',
   'container', 'departments', 'dropDestination', 'effects',
   'feedPath', 'growsIntoPath', 'harvestTemplatePath', 'interiorMaterial',

@@ -1726,11 +1726,24 @@ async function execConjure(
     const litres =
       (e.litres ?? dial(AppSettingKeys.magicConjureWaterLitres, 1)) *
       ctx.potency;
+    // ⭐⭐ **The acid working.** A conjured caustic AT a body burns it on
+    // contact — the substance-contact corrosion seam, honest per the
+    // arcane-science: the working COLLECTS an existing caustic (it does
+    // not manufacture "acid damage"), and the substance's own
+    // `corrosiveTo` does the corroding through the normal fold. The
+    // runoff still pools below; the wound lands here. A conjured water
+    // (or any non-caustic) answers `false` and this is a no-op.
+    const burned =
+      target !== undefined &&
+      material.corrodeOnContact(target, { energy: Math.min(4, 1 + litres) });
     const result = BulkableApi.transfer(from, to, {
       kind: 'measure',
       litres,
       mode: 'lenient',
     });
+    if (burned) {
+      return `${material.getName()} sheets over them and begins to eat; the rest spatters down.`;
+    }
     return result.status === 'declined'
       ? 'It will not pour there.'
       : target && MixinApi.isBulkable(target)

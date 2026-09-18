@@ -58,9 +58,11 @@ import { Quantity } from '../quantity';
 import { QuantityMarshaller } from '../../platform/idea/persistence/QuantityMarshaller';
 import type { ToxinTag } from '../metabolism/Metabolic';
 import type { VetoResult } from '../errors';
-import type { EvictionContext } from '../stuff/Stuff';
+import type { EvictionContext, Stuff } from '../stuff/Stuff';
 import type { FieldMeta } from '../mixin';
 import { StuffApi } from '../../api/stuff';
+import { ConditionApi } from '../../api/condition';
+import { MixinApi } from '../../api/mixin';
 import type { MaterialComposition } from '../../api/material';
 // eslint-disable-next-line no-restricted-imports -- the F4 material face: a material's composition()/containsElement() forward into the material logic singleton exactly as the api/material facade does (the Combustible/Energized precedent)
 import { MaterialLogic } from '../../platform/idea/api/MaterialLogic';
@@ -133,6 +135,13 @@ export interface BiologicalSource {
 export default class Material extends SingletonMixin(
   PerceptibleMixin(PropertiedMixin(Idea)),
 ) {
+  /**
+   * The body site a substance-contact corrosion lands at when the caller
+   * names none — a splash or a spill reaches the exposed front. A caller
+   * that knows better (a hazard's siteSelector) passes its own.
+   */
+  private static readonly CONTACT_SITE = 'body.torso';
+
   /**
    * Residency veto — a Material is reference data resolved by SYNC
    * reads (`Tangible.getMaterial`, bulk slots, autoignition); the only
@@ -1087,6 +1096,46 @@ export default class Material extends SingletonMixin(
    * which for corrosion it does not.
    */
   public getCorrosiveTo(): readonly string[] { return this.corrosiveTo; }
+
+  /**
+   * ⭐⭐ **A caustic substance in contact with a body burns it** — the
+   * general substance-contact corrosion seam.
+   *
+   * The corrosion channel was reachable by exactly one thing before this:
+   * the lime-seep hazard on traversal. A spilled vial, a thrown flask, a
+   * conjured acid — none delivered, because contact with a caustic
+   * material had no path to `ConditionApi.inflict`. This is that path, and
+   * it lives on the material because `corrosiveTo` does: a caustic is the
+   * one that knows what it eats.
+   *
+   * The whole gate is `corrosiveTo` non-empty — a material nobody
+   * authored as caustic answers `false` and nothing happens, which is
+   * every shipped material but the two caustics. It mirrors
+   * `Potable.dischargeInto(victim, …)` (a material delivering to a
+   * victim), routes through the ONE injury door, and the wound it leaves
+   * is an ordinary `caustic` trauma that grows on its own clock and
+   * `rinse` resolves — no second code path.
+   *
+   * @returns true iff this material is caustic (a corrosion attempt was
+   *   made); false for any inert material, so the call is safe to make
+   *   unconditionally at a contact site.
+   */
+  public corrodeOnContact(
+    victim: Stuff,
+    opts?: { readonly energy?: number; readonly site?: string; readonly shieldFacing?: boolean },
+  ): boolean {
+    if (this.corrosiveTo.length === 0) return false;
+    if (!MixinApi.isOrganism(victim)) return false;
+    ConditionApi.inflict(victim, {
+      mechanism: 'corrosion',
+      site: opts?.site ?? Material.CONTACT_SITE,
+      energy: opts?.energy ?? 1,
+      corrosiveTo: this.getCorrosiveTo(),
+      shieldFacing: opts?.shieldFacing,
+    });
+    return true;
+  }
+
   public setTags(value: string[]): void { this.tags = value; }
   public hasTag(tag: string): boolean { return this.tags.includes(tag); }
 
