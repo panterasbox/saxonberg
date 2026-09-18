@@ -41,7 +41,11 @@ At the level a player would recognize:
   built; fishing *from* a moving barge is a follow-on (§ Non-goals).
 - **Two waters a player can stand beside today:** wharfside's *bank at
   the confluence*, next to the city's intake and its outfall; and the
-  Weeping Moor's cave pool.
+  Weeping Moor's storm-lashed heath, which *"pools the rain into shallow
+  meres"* and sits on the **Holloway** — a second, unrelated basin the
+  water pack authored precisely to be unrelated. (⚠ The moor's *weeping
+  chamber* is the indoor-rain demonstrator, reachable only by teleport —
+  not a pool anyone fishes.)
 - **Everything downstream.** `butcher` with a yield table (cleaning a
   fish is butchery), the kitchen, `cure` / `dry` / `smoke`, spoilage as a
   clock with contamination as an event, the pathogens, the market with
@@ -82,8 +86,8 @@ can keep.
   quality, and a clock running on it.
 - **The water holds what belongs in it, unauthored.** The confluence's
   fish are the confluence's because it is wide, brackish and slow; the
-  moor pool's are the pool's because it is cold, still and dark. No one
-  writes a table for either. A third water is a row naming a reach.
+  moor's are the Holloway head's because it is cold, high and thin. No
+  one writes a table for either. A third water is a room citing a reach.
 - **Every authored watercourse holds fish, unasked.** The Delight past
   Heart's Delight's millsite, the Holloway through Rejection, Cold Fell
   above the aqueduct — each has reaches, and each reach has a record the
@@ -151,10 +155,10 @@ can keep.
   **fish-flesh material** is one row in the closed material vocabulary
   (lean protein and oil — its properties differ from stew-meat; species
   differ by grade and prose, never by material).
-- **The waters** are the localities' — wharfside's bank and the moor's
-  pool cite their reaches; the moor pool becomes a one-reach watercourse
-  row of its own. The Delight, the Holloway and Cold Fell are already
-  rows and need nothing.
+- **The waters** are the localities' — wharfside's bank cites the
+  Kestrel's confluence, the moor's heath cites the Holloway's head. No
+  new watercourse row is needed for v1; a still pond, when one is
+  authored, is a one-reach watercourse row of its own.
 - **The people** are terminus's: the **fishmonger** is a market
   business on the baker's shape (appointed by the market's committee,
   one position, banks at Goodkin, a keeper on a shift with a trigger);
@@ -168,7 +172,7 @@ can keep.
 - **The record on a reach** and the fishable feature are substrate two
   trades read (fishing now, hunting later) with no common pack ancestor
   — kernel-shaped; the plan decides where the state sits.
-- ⭐ **The test: a second instance needs no code.** The moor pool *is*
+- ⭐ **The test: a second instance needs no code.** The moor heath *is*
   the second instance, and the build fails if it needs one.
 
 ## Collisions
@@ -187,9 +191,9 @@ can keep.
 - **The estuary's three rooms** — the barge lane. The build touches
   none of them; the estuary reach's record exists whether or not anybody
   fishes from a room that cites it.
-- **The Weeping Moor's cave pool** — a wet-flagstone floor in a chamber
-  in the newbie moor. It gains a reach and a fishable feature; nothing
-  else there changes.
+- **The Weeping Moor's stormy heath** — the newbie moor's outdoor room,
+  on the Holloway. It gains a fishable feature citing the head reach;
+  nothing else there changes.
 - **The general store** — sells a rod, a pot, a net, bait, and a bowl.
   The counter is already there; these are rows.
 - **The market** — the fishmonger's stall and its keeper, a business.
@@ -218,10 +222,11 @@ because it is computed from the principles a player can learn.
 
 Fish move; ground does not. The stock keys on the reach the river
 already names, so the commons is natural (a reach nobody owns) and the
-farm is the same record on a reach somebody holds. The moor pool gets a
-watercourse row with a name and an elevation and no flow. *Alternative
-considered:* the bordering ground (forestry's answer for the stand) —
-rejected because a fish is not rooted.
+farm is the same record on a reach somebody holds. A still pond, when
+one is authored, is a watercourse row with a name and an elevation and no
+flow; v1 authors none. *Alternative considered:* the bordering ground
+(forestry's answer for the stand) — rejected because a fish is not
+rooted.
 
 ### The verb is `fish`; `cast` stays with the mages
 
@@ -329,8 +334,9 @@ having fish, any more than it can opt out of having flow.
 ### Where v1 lives
 
 The confluence bank at wharfside (brackish, slow, wide, beside the
-outfall — the rich water) and the moor's cave pool (cold, still, dark —
-the second instance). Six species by habitat: brown trout (the pool),
+outfall — the rich water) and the moor's stormy heath on the Holloway's
+head (cold, high, thin — the second instance, on a basin authored to be
+unrelated). Six species by habitat: brown trout (the moor),
 eel (the estuary's trap fish), grey mullet (the confluence's rod fish),
 carp (slow water — and the one you keep), shore crab (the pot), the
 sturgeon.
@@ -347,7 +353,7 @@ sturgeon.
    tide is not built, so the estuary's richest lesson (salt water running
    up on the flood) waits.
 2. **Creative expression.** The ordinary case is one line — a room
-   cites a reach — and the moor pool proves it. The bespoke case is a
+   cites a reach — and the moor heath proves it. The bespoke case is a
    `stocks:` override, visible in the prose. Nobody generates water.
 3. **Immersion.** The wait you chat through; a bite that is the fish's;
    a fight you can lose; a fillet that turns by morning; the outfall's
@@ -409,10 +415,10 @@ sessions; a wizard may skip game-days where a step says so.
     `sell` → refused; `butcher` it anyway → fillet, offal; `smoke` the
     fillet → it keeps.
 
-**At the moor pool** (second session, started there)
-13. `look` — a cold dark pool; `fish with worm` → a brown trout, and
-    **no mullet, no crab, no eel**: the pool's record is the pool's, and
-    no table was written for it.
+**At the moor's heath** (second session, started there)
+13. `look` — the meres on the heath, the Holloway's head; `fish with
+    worm` → a brown trout, and **no mullet, no crab, no eel**: the
+    Holloway's record is the Holloway's, and no table was written for it.
 
 **At Heart's Delight's millsite** (a third session, started there)
 13b. Nobody authored fishing here. `fish with worm` from the millrace's
@@ -450,7 +456,7 @@ Observable from outside the code.
   land a fighter through `reel` / `give`.
 - No number is ever shown for a fish's size, a reach's stock, a fisher's
   competence or a rod's condition — bands and words only.
-- The confluence and the moor pool hold **different species with no
+- The confluence and the moor's heath hold **different species with no
   table authored for either**; Heart's Delight's millrace, whose pack
   was not touched, yields fish from the Delight's own reach.
 - The fisher at the bank fishes the confluence on his own, reads the
