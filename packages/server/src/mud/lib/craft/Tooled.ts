@@ -20,6 +20,7 @@ import type { MixinConstructor, FieldMeta } from '../mixin';
 import type { Stuff } from '../stuff/Stuff';
 import { MixinApi } from '../../api/mixin';
 import { ToolCapabilities, type CapabilitySpec } from './ToolCapability';
+import { EPOCHS, type Epoch } from './Epoch';
 import type { ConferredTechnique } from './Technique';
 
 export interface Tooled {
@@ -37,14 +38,15 @@ export interface Tooled {
    */
   capabilityTechniques(): readonly ConferredTechnique[];
   /**
-   * The technological epoch this instrument belongs to — `prehistory` ·
-   * `medieval` · `industrial` · `modern` · `future` — or `''` when the
-   * row does not say. A stamp, not a mechanism: its reader is the
-   * land-use covenant's predicate (a parcel that admits handsaws and
-   * refuses chainsaws asks the INSTRUMENT, not the act).
+   * The technological epoch this instrument belongs to — one of the
+   * closed {@link EPOCHS} — or `null` when the row does not say. A
+   * stamp, not a mechanism: its reader is the land-use covenant's
+   * predicate (a parcel that admits handsaws and refuses chainsaws asks
+   * the INSTRUMENT, not the act). The setter refuses any other word, so
+   * a mis-typed row fails at hydrate.
    */
-  getEpoch(): string;
-  setEpoch(value: string): void;
+  getEpoch(): Epoch | null;
+  setEpoch(value: Epoch | null): void;
 }
 
 export function ToolMixin<TBase extends MixinConstructor>(Base: TBase) {
@@ -65,15 +67,25 @@ export function ToolMixin<TBase extends MixinConstructor>(Base: TBase) {
      */
     public capabilities: (string | CapabilitySpec)[] = [];
 
-    /** The epoch stamp; `''` = unstated. */
-    public epoch: string = '';
+    /** The epoch stamp; `null` = unstated. */
+    public epoch: Epoch | null = null;
 
-    getEpoch(): string {
+    getEpoch(): Epoch | null {
       return this.epoch;
     }
 
-    setEpoch(value: string): void {
-      this.epoch = value ?? '';
+    setEpoch(value: Epoch | null): void {
+      // `''` too: the hydrator hands a row's empty string straight here.
+      if (value == null || (value as string) === '') {
+        this.epoch = null;
+        return;
+      }
+      if (!(EPOCHS as readonly string[]).includes(value)) {
+        throw new RangeError(
+          `ToolMixin.setEpoch: unknown epoch '${String(value)}' — one of ${EPOCHS.join(', ')}`,
+        );
+      }
+      this.epoch = value;
     }
 
     getCapabilities(): readonly string[] {

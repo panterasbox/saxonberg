@@ -3,6 +3,7 @@ import { describe, it, expect } from 'vitest';
 import { Idea } from '../../stuff/Idea';
 import { GradedMixin } from '../Graded';
 import { ToolMixin } from '../Tooled';
+import { EPOCHS } from '../Epoch';
 import { DurableMixin } from '../../material/Durable';
 import { CraftedMixin } from '../Crafted';
 import { MakerMixin } from '../Maker';
@@ -121,16 +122,21 @@ describe('ToolMixin', () => {
       expect(t.capabilities).toEqual(authored);
     });
 
-    it('carries an EPOCH stamp — unstated by default, hydrated from the row', async () => {
+    it('carries an EPOCH stamp — unstated by default, hydrated from the row, and a CLOSED vocabulary', async () => {
       const t = makeStuff(() => new ToolHost());
-      expect(t.getEpoch()).toBe('');
+      expect(t.getEpoch()).toBeNull();
       await makeStuff(() => new PersistentHydrator()).hydrate(t, {
         capabilities: ['felling'],
         epoch: 'medieval',
       });
       expect(t.getEpoch()).toBe('medieval');
-      t.setEpoch('');
-      expect(t.getEpoch()).toBe('');
+      t.setEpoch(null);
+      expect(t.getEpoch()).toBeNull();
+      // A sixth era is a mis-typed row, not a new era.
+      expect(() => t.setEpoch('steampunk' as never)).toThrow(/unknown epoch/);
+      expect(EPOCHS).toEqual(['prehistory', 'medieval', 'industrial', 'modern', 'future']);
+      // Ordered earliest → latest, so "nothing later than X" is an indexOf.
+      expect(EPOCHS.indexOf('medieval')).toBeLessThan(EPOCHS.indexOf('industrial'));
     });
   });
 });

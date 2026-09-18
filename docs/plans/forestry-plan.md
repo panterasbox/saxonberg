@@ -1469,7 +1469,11 @@ changes behaviour yet.
 
 **Commit.** `build(forestry W0): the kernel seams — the plant names its tool and its Discipline, the tool its epoch`
 
-> ✅ **W0 done (2026-09-17).** As planned. One thing the build found:
+> ✅ **W0 done (2026-09-17).** As planned — except that `epoch` first
+> shipped as a bare `string` (review, 2026-09-18): it is now the closed
+> vocabulary D16 named, `lib/craft/Epoch.ts` (`EPOCHS` tuple + `Epoch`
+> type, the `LAND_USES` shape), `null` = unstated, the setter refusing
+> any other word. No value-statics — `lint:lib-statics` is a ratchet. One thing the build found:
 > the harvest credit reads the plant's Discipline AFTER an annual is
 > destructed — a destroyed proxy reads `undefined` — so the Discipline
 > is read up front beside the grade (the same reason the grade is read

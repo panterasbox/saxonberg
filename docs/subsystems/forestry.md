@@ -357,9 +357,13 @@ tuned block is a drop, never a migration.
   browse; form as a stamp; the nursery ladder; hauling the bole; a
   planted standard folding into `mix[].standing` at maturity — each a
   line in `forestry-slate.md`.
-- **`ToolMixin.epoch`** (`prehistory · medieval · industrial · modern ·
-  future`; the axe and the billhook say `medieval`) is knowingly unread:
-  its first reader is the land-use covenant's predicate.
+- **`ToolMixin.epoch`** — a CLOSED vocabulary (`lib/craft/Epoch.ts`:
+  `EPOCHS = prehistory · medieval · industrial · modern · future`, the
+  `LAND_USES` shape; the setter refuses a sixth word, so a mis-typed row
+  fails at hydrate; `null` = unstated; ordered earliest → latest so
+  *"nothing later than X"* is an `indexOf`). The axe and the billhook
+  say `medieval`. Knowingly unread: its first reader is the land-use
+  covenant's predicate.
 
 ## Files
 
