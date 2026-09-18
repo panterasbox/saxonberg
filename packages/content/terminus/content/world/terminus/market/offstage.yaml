@@ -1,0 +1,11 @@
+# Offstage — the market's no-exit holding room where the `shifts` brain
+# parks off-duty cast (the lounge's back office, for the square).
+# Materialized on demand by shifts; players cannot reach it.
+class: /platform/location/Offstage
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: Farmers Market — behind the stalls
+  keywords: [behind, stalls, yard, market, back]
+  register: proper
+  longDescription: |
+    The yard behind the canvas: stacked crates, a standpipe, a barrow with one wheel, and the stallholders' coats on a rail. Where the market's people are when the market is shut.

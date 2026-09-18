@@ -706,6 +706,9 @@ importers:
       '@saxonberg/content-trade-farming':
         specifier: workspace:*
         version: link:../trade-farming
+      '@saxonberg/content-trade-fishing':
+        specifier: workspace:*
+        version: link:../trade-fishing
       '@saxonberg/content-trade-haulage':
         specifier: workspace:*
         version: link:../trade-haulage

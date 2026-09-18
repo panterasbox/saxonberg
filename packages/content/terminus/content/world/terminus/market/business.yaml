@@ -16,10 +16,24 @@ data:
   appointingAuthority:
     kind: committee
     parcel: /world/terminus/market
-  positions: []
-  rosterSlots: []
+  # ⭐ The fishmonger — the market's first hire (fishing D17): a rostered
+  # position under the committee, on a shift, replaceable through
+  # `appoint`. The stall is self-service, so the shift decides who is
+  # keeping it and never whether it works.
+  positions:
+    - key: monger
+      noun: fishmonger
+      label: keeping the fish stall
+      wageRate: 4
+      confers: []
+  rosterSlots:
+    - positionKey: monger
+      assignee: /world/terminus/market/agent/fishmonger
+      schedule:
+        - { days: [0, 1, 2, 3, 4, 5, 6], hours: [5, 14] }
   # Where the municipality banks (the budget.yaml precedent): city
   # governance is content — a commercial account like anyone's.
   banksAt: goodkin
   operatingLocations:
     - /world/terminus/market/stalls
+    - /world/terminus/market/thing/fish-stall

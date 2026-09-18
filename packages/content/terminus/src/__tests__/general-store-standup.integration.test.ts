@@ -52,6 +52,10 @@ const DIST_DIR = fileURLToPath(new URL("../../../trade-distilling/content/trade/
 // The small still's CLASS ships in the distilling pack's src/ — the
 // menu.test precedent: register the pack source so the clone resolves.
 const DIST_SRC = fileURLToPath(new URL("../../../trade-distilling/src", import.meta.url));
+// The tackle line (fishing B6): the fishing pack's rows and its Rod /
+// Trap / Trowel / Bait classes, stocked cross-pack.
+const FISHING_DIR = fileURLToPath(new URL("../../../trade-fishing/content/trade/fishing/", import.meta.url));
+const FISHING_SRC = fileURLToPath(new URL("../../../trade-fishing/src", import.meta.url));
 const COUNTER = "/world/terminus/general-store/counter";
 const TORCH = "/world/terminus/general-store/thing/torch";
 
@@ -133,6 +137,18 @@ const HAULAGE_LINES = [
   "/system/transport/thing/wagon",
 ] as const;
 
+// ⭐ The tackle line (fishing B6): inputs, which is what a general store
+// sells — what comes out of the river is consigned at the market.
+const TACKLE_LINES = [
+  "/trade/fishing/thing/rod",
+  "/trade/fishing/thing/worm",
+  "/trade/fishing/thing/pot",
+  "/trade/fishing/thing/net",
+  "/trade/fishing/thing/trowel",
+  "/trade/fishing/thing/fish-bowl",
+  "/trade/fishing/thing/fish-food",
+] as const;
+
 /**
  * ⭐ Where a shipped row lives, by the prefix of its template path —
  * longest prefix wins, the commons is the fallback. A table rather than
@@ -147,6 +163,7 @@ const ROW_HOMES: { prefix: string; dir: () => string }[] = [
   { prefix: "/trade/winemaking/", dir: () => WINE_DIR },
   { prefix: "/trade/brewing/", dir: () => BREW_DIR },
   { prefix: "/trade/distilling/", dir: () => DIST_DIR },
+  { prefix: "/trade/fishing/", dir: () => FISHING_DIR },
   { prefix: "/stuff/", dir: () => OBJ_DIR },
 ];
 
@@ -196,8 +213,10 @@ describe("general-store standup (real seeds)", () => {
       ...HOMEBREW_LINES.map(objDoc),
       ...MANA_LINES.map(objDoc),
       ...HAULAGE_LINES.map(objDoc),
+      ...TACKLE_LINES.map(objDoc),
     ]);
     ModuleApi.registerPackSource(DIST_SRC, "/trade/distilling");
+    ModuleApi.registerPackSource(FISHING_SRC, "/trade/fishing");
     ModuleApi.registerPackSource(ARCANA_SRC, "/system/arcana");
     ModuleApi.registerPackSource(TRANSPORT_SRC, "/system/transport");
     installV1QuantityMarshallers();
