@@ -120,6 +120,18 @@ describe('ToolMixin', () => {
       // Persisted field stays the authored plain-record shape.
       expect(t.capabilities).toEqual(authored);
     });
+
+    it('carries an EPOCH stamp — unstated by default, hydrated from the row', async () => {
+      const t = makeStuff(() => new ToolHost());
+      expect(t.getEpoch()).toBe('');
+      await makeStuff(() => new PersistentHydrator()).hydrate(t, {
+        capabilities: ['felling'],
+        epoch: 'medieval',
+      });
+      expect(t.getEpoch()).toBe('medieval');
+      t.setEpoch('');
+      expect(t.getEpoch()).toBe('');
+    });
   });
 });
 

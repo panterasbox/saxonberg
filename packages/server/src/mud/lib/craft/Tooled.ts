@@ -36,6 +36,15 @@ export interface Tooled {
    * is what knows; the kernel keeps no technique table.
    */
   capabilityTechniques(): readonly ConferredTechnique[];
+  /**
+   * The technological epoch this instrument belongs to — `prehistory` ·
+   * `medieval` · `industrial` · `modern` · `future` — or `''` when the
+   * row does not say. A stamp, not a mechanism: its reader is the
+   * land-use covenant's predicate (a parcel that admits handsaws and
+   * refuses chainsaws asks the INSTRUMENT, not the act).
+   */
+  getEpoch(): string;
+  setEpoch(value: string): void;
 }
 
 export function ToolMixin<TBase extends MixinConstructor>(Base: TBase) {
@@ -44,6 +53,7 @@ export function ToolMixin<TBase extends MixinConstructor>(Base: TBase) {
 
     static fieldMeta: FieldMeta = {
       capabilities: { persistent: true, authorable: true },
+      epoch: { persistent: true, authorable: true },
     };
 
     /**
@@ -54,6 +64,17 @@ export function ToolMixin<TBase extends MixinConstructor>(Base: TBase) {
      * on read (`entryFor`), so seeds stay byte-stable.
      */
     public capabilities: (string | CapabilitySpec)[] = [];
+
+    /** The epoch stamp; `''` = unstated. */
+    public epoch: string = '';
+
+    getEpoch(): string {
+      return this.epoch;
+    }
+
+    setEpoch(value: string): void {
+      this.epoch = value ?? '';
+    }
 
     getCapabilities(): readonly string[] {
       return this.capabilities.map((e) =>

@@ -1469,6 +1469,13 @@ changes behaviour yet.
 
 **Commit.** `build(forestry W0): the kernel seams — the plant names its tool and its Discipline, the tool its epoch`
 
+> ✅ **W0 done (2026-09-17).** As planned. One thing the build found:
+> the harvest credit reads the plant's Discipline AFTER an annual is
+> destructed — a destroyed proxy reads `undefined` — so the Discipline
+> is read up front beside the grade (the same reason the grade is read
+> first). The `harvest.yaml` arg-gate test lives at
+> `cmd/inventory/__tests__/harvest-view.test.ts` (the `verb-gates` shape).
+
 ### W1 — the pack, the woods and their species
 
 **Goal.** `trade-forestry` exists and installs empty of acts; the realm

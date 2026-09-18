@@ -431,6 +431,29 @@ describe('plant / repot', () => {
     expect(captured).toHaveLength(0);
   });
 
+  it('⭐ plant credits the PLANT\'s Discipline — an acorn set as a standard is silviculture', async () => {
+    const { giver, room } = scene();
+    const pot = makePot(0.5);
+    ContainmentApi.move(pot, room);
+    const seed = makeSeed();
+    ContainmentApi.move(seed, giver);
+    // The minted plant says what its keeping exercises; the verb reads it.
+    vi.spyOn(StuffApi, 'clone').mockImplementation((async (path: string) => {
+      if (path !== PLANT_TEMPLATE) throw new Error(`unexpected clone of ${path}`);
+      const p = makeStuffAtPath(newPlant, path);
+      p.setDiscipline('silviculture');
+      return p;
+    }) as unknown as typeof StuffApi.clone);
+
+    await makeStuff(() => new PlantController()).execute(
+      plantModel(one(seed, 'seed'), one(pot, 'pot', 'in')),
+      makeContext(giver, room),
+    );
+    expect(deeds).toHaveLength(1);
+    expect(deeds[0]!.discipline).toBe('silviculture');
+    expect(deeds[0]!.difficulty).toBe('trivial');
+  });
+
   it('both verbs credit horticulture; repot grades by root disturbance', async () => {
     const { giver, room } = scene();
     const pot = makePot(0.5);
