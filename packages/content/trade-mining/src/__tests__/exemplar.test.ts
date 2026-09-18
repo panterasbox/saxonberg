@@ -345,10 +345,17 @@ describe('the venue itself', () => {
      * of the valley to the pithead is authored ground like everything
      * else here, five rooms in a zone of its own, and it is the reason
      * a wagon can reach this town at all.
+     *
+     * The sixth is the **Hanging Wood** (forestry): the town's common
+     * wood above the yard, four authored rooms in a zone of its own —
+     * three of them stands on the forestry trade's `Wood`, which is
+     * the whole of where the yard's cordwood and the mine's timber come
+     * from. Still authored ground, still no minted zone.
      */
     expect(zones.sort()).toEqual([
       'content/world/rejection.yaml',
       'content/world/rejection/ferrow.yaml',
+      'content/world/rejection/hanging-wood.yaml',
       'content/world/rejection/hush.yaml',
       'content/world/rejection/kestrel-road.yaml',
       'content/world/rejection/location.yaml',

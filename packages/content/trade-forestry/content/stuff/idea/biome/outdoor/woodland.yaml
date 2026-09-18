@@ -1,5 +1,8 @@
-# Outdoor woodland — under the canopy. Extends outdoor/baseline (the
-# meadow's sibling): sky-exposed, so rain reaches the ground and the
+# Outdoor woodland — under the canopy. Ships with the FORESTRY trade at
+# the commons path (the base library's biome directory is a curated
+# demonstrative set, pinned by its roster test; a trade ships the biome
+# it stands under, as it ships the species it fells). Extends
+# outdoor/baseline (the meadow's sibling): sky-exposed, so rain reaches the ground and the
 # panels' soil (`SoilMixin`'s rain edge is gated on `isSkyExposed`; a
 # canopy that DELAYS it is the light tail's), still air, damp, and the
 # sound and smell of a wood. Light is not the biome's — each room says
