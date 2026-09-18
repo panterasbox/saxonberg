@@ -209,7 +209,12 @@ downstream consumer of this substrate); fire as a combat weapon /
 burning-DoT; map-scale wildfire / arson-as-crime / a fire brigade;
 vision-obscuring smoke (the fog→visibility seam); cross-room smoke drift;
 flammability limits (LEL/UEL); the magic Fire school (actuates this channel);
-electricity `Joule → fire`; the candle wax-pool phase-change.
+electricity `Joule → fire`; the candle wax-pool phase-change. **The
+oven's own warm-up** — a furnace with thermal mass: today a lit furnace
+holds its temperature instantly and what climbs is what is IN it (the
+furnace couple, [thermal.md](./thermal.md)); a bread oven that takes an
+hour to come to heat is a `ThermalMixin` on the furnace itself, and the
+grain chain left it.
 
 ## Cross-references
 

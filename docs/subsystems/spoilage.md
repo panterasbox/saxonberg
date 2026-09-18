@@ -353,6 +353,47 @@ states no ceiling (census-then-ratchet, 17 today, driven to 0 when the
 kitchen's roster is ceilinged), and a bread row on a class that cannot
 stale.
 
+## ⭐⭐ Staling — the THIRD clock, and it runs the other way
+
+Bread goes stale, and **staling is not spoilage.** Spoilage is microbial:
+warm and wet is where things grow, so the freshness gauge runs faster as
+it gets hotter and pauses at freezing. Staling is not alive at all. It is
+**retrogradation** — the starch that gelatinised in the oven slowly
+re-crystallising — and its rate **peaks a few degrees above freezing**,
+falls away as it warms, and stops when actually frozen.
+
+| where you put the loaf | spoils | stales |
+|---|---|---|
+| the bread box (293 K) | slowly | slowly |
+| the cold larder (277 K) | hardly at all | **fastest** |
+| frozen (270 K) | stopped | **stopped** |
+| the oven (330 K+) | killed | **reversed** |
+
+⭐ That table is the one piece of real kitchen knowledge the grain chain
+exists to make discoverable: **the icebox is the worst place for bread.**
+It keeps a loaf from going mouldy by making it go hard faster, and most
+people have it exactly backwards. Nobody is told; two loaves in two
+rooms overnight say it (`help retrogradation` predicts the table before
+a loaf is put anywhere).
+
+Heat reverses it: a stale loaf back in the oven **comes back** — not all
+the way (`refreshFloor`), and only so many times before it is a rusk.
+
+**Where it lives.** `StalingMixin` is the baking pack's
+(`trade-baking/src/lib/Staling.ts`), composed on `Loaf` over
+`Provision` — so a loaf spoils AND stales, on two gauges that share no
+band word. One composer in one pack is the kernel's own test for *not
+yet substrate*; cooked rice and a boiled potato are the same chemistry,
+and the third pack wanting it is the signal to promote it to
+`lib/material/`. Like `Freshness`, it has **no far-past guard**: it is
+the point that bread stales while you are away. Unlike `ThermalDose`,
+the rate is a single sample per reconcile rather than an integral — a
+loaf's thermal time constant is minutes and staling runs over days, so
+the rectangle rule is exact at that ratio.
+
+`lint:doneness` gates the second silent failure this clock could have: a
+bread row on a class that cannot stale.
+
 ## The water state — what drying and curing actually change
 
 `CuredMixin` (`lib/material/Cured.ts`) carries two scalars that describe

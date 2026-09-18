@@ -81,6 +81,16 @@ what you have already thought about.
 Start from **"what does a player need that no vocation provides?"**
 This is what surfaced the **appraiser**.
 
+⭐ **Demand is now MODELLED, for one good.** The grain chain's `eats`
+brain (`lib/behavior/eats.ts`) is the first NPC customer: two named
+people buy bread every morning and their purse chooses the loaf — a
+demand curve you can watch. What it leaves for this register: **the
+wider roster** (every other Cast stays inert; the Lounge's bar staff,
+the Wharfside hands, Odo are a `behaviors:` line each once the two-buyer
+market has been watched) and **demand beyond bread** (a basket — cheese,
+ale — per person is the Anno/Victoria shape, and is config on the same
+brain when the goods exist). Neither is a new mechanism.
+
 ### ⭐⭐⭐⭐ And the disposal technique: DECOMPOSE, never accept or reject wholesale
 
 > **When a real-world vocation does not fit, decompose it — the parts
