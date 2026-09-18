@@ -23,7 +23,13 @@
 > exists per body part** (`vitals.md` tissue masses) — `lean` is one
 > figure the parts and the stock cannot disagree on, never a second
 > representation. Scurvy's shape is [metabolism-slate](../tails/metabolism-slate.md)'s,
-> consumed not re-decided.
+> consumed not re-decided. **Widened the same day:** the gym is IN — one
+> `gym` archetype (home/office/apartment/public/dojo/studio are which
+> slots a room fills), devices as rows over the one exertion producer
+> (a load you choose · a pace you sustain), one exemplar made by a
+> shipped trade; and a **sixth lens, Economy**, added to
+> design-lenses.md with this build as its worked example. Part 9's
+> deferred "gym as a place" is superseded by the requirements.
 
 > **Status: design captured 2026-09-18.** Came out of the grain-chain
 > merge: *"we haven't really talked about what place we want food to have

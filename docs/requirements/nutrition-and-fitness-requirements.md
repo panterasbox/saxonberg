@@ -16,6 +16,11 @@ everywhere and adds up to something you can now *do* — and cashes the
 Seeding slate: [nutrition-and-fitness-slate](../slates/builds/nutrition-and-fitness-slate.md).
 ⭐ The decision that decides the rest: **the reward for fitness is reach —
 where you can go and what you can do — never a number or a rank.**
+⭐ Widened 2026-09-18 after the pedagogy pass: **the gym is in scope as
+an archetype** — one set of semantics a home gym, an office gym, an
+apartment gym and a public one all share — with devices as rows over
+the one exertion producer. Fitness is *active*, and that changes the
+player surface; nutrition stays mostly passive.
 
 ---
 
@@ -141,6 +146,24 @@ and rates you can turn.
   scurvy. A loaf's composition decides what it feeds you, so wholemeal
   and white from one wheat nourish measurably differently, with nothing
   authored per loaf.
+- **A routine trains what its shape trains.** Exertion has two numbers
+  — effort and duration — and the two things a body can train read them
+  differently: muscle grows only when the load exceeds what the body
+  can already produce (overload); wind grows on duration at a pace you
+  can hold. A haul is short and heavy; a run is long and light; rowing
+  is both. Nothing is authored per routine; the physiology is the
+  routine table.
+- **A gym is a place where you choose the load.** The world's work sets
+  its own load — a sack weighs what it weighs, and once you outgrow it
+  the mill stops making you stronger. A gym device is a row whose one
+  affordance is a load or a pace *in the player's hands*. There is one
+  `gym` archetype, and a room is a gym to the degree it meets its needs:
+  a bar in a dorm room, a rack in an office, a hall full of machines
+  are the same semantics with different slots filled — zero code per
+  variant.
+- **Gym devices are made things.** A bar is a smith's iron; a bench is
+  carpentry. Equipment enters the crafting economy on day one — one
+  exemplar shipped by a trade that already exists.
 - **A season can be compressed honestly.** The rates that decide how
   fast a body changes are operator dials, so a wizard, a demo or the
   drive can watch a season in an hour and turn it back.
@@ -162,8 +185,29 @@ and rates you can turn.
   [campus-grounds-slate](../slates/builds/campus-grounds-slate.md) (the
   athletic grounds) and the `sports` Discipline's own build. Fitness is
   private; sport is where others say so.
-- **A gym as a place, and train/spar/lift verbs** → the same; a gym is
-  fixtures that afford exertion for its own sake, once exertion exists.
+- **The gym as a business past the door** — membership as a standing
+  term, the trainer as a service vocation, the group class → the
+  business ladder / [credential](../subsystems/credential.md) (a
+  membership is a credential kind), [vocations.md](../vocations.md) (the
+  trainer sells *which load* — knowledge, which is why `sports` sits on
+  that channel), and the scripting seam (a written routine is a script
+  over device verbs — the trainer's product, later). Charging at the
+  door rides the shipped room tariff and needs nothing.
+- **Supplements and the diet-plan industry** → content over the shipped
+  kind vocabulary: a protein shake is a bulk with amounts; a snake-oil
+  powder is a branded thing whose label says less than its mark claims
+  — the honest-label lesson, the corpo/brand substrate's, not this
+  build's.
+- **A third body axis (flexibility, mobility)** → nowhere, deliberately
+  — expression is inelastic; two stocks and one conditioning Discipline
+  are what the engine honestly measures. Yoga is authorable as a
+  low-load, long-duration routine today; what it distinctively trains
+  is either unmodelled (flexibility) or the mind slate's (composure).
+- **Martial arts as a discipline** → combat's: a dojo is the gym
+  archetype with a mat and a bag in its slots, and a bout on the mat
+  credits `melee-combat` (skill) the way any exchange does, plus wind
+  and muscle like any exertion. No new mechanism; the consequence
+  slate's "contusion as sparring currency" already prices the bout.
 - **Swimming as reach** → the underwater/fishing build; nothing is
   swimmable today. The swim conferral is authored when there is water.
 - **The wider deficiency roster (anaemia, rickets…)** → content against
@@ -191,9 +235,18 @@ its conferrals are platform content (`/platform/idea/Discipline/`)
 beside `alcohol-tolerance`. The nutrient amounts are rows in the packs
 that own the foods (`trade-farming` for the fruit, `trade-milling` for
 the parts of a loaf). Scurvy is a platform condition row beside
-`starvation` and `emaciation`.
+`starvation` and `emaciation`. The **`gym` archetype** is a platform
+archetype document (the byre/hospitality shape: needs stated as
+capabilities a fixture can meet, reported never enforced); its two
+device families — something you **load** and something you **sustain**
+— are the capability kinds it mints, and a device row declares which it
+offers and the range it allows. The exemplar device and its recipe ship
+with the trade that makes it.
 
-⭐ **The second-instance test:** a second trade whose work should tire
+⭐ **The second-instance test:** a second gym — a home gym, an office
+gym — is a room whose fixtures meet the archetype's slots, zero code; a
+second device is a row with a load profile and the verb it confers; a
+second trade whose work should tire
 you needs zero code — its durative verbs already ride the one step
 mechanism, and the effort figure is a number on the row. A second
 conferral (the swim, when there is water) is a line on the `wind` row. A
@@ -232,6 +285,13 @@ drives the per-part tissue or aggregates it — is the plan's.
 - **`look`** — gains a body line for a person in the same slot the age
   line and the attire impression already occupy. Recognition rules
   apply: the line describes a body, never names a person.
+- **The residences and the furnishing rules** — a bar `place`d in a
+  dorm room is the home gym; the estate slice persists it, the room
+  overlay shows it, and the archetype reads the room as meeting its
+  load slot. The four furnishing archetypes and the room class are
+  untouched; `gym` is one more archetype document. **Campus grounds**
+  (unbuilt) still owns the athletic field as `sports`' venue; a hall of
+  machines is a gym, a running track is not.
 - **The Lounge bar** stocks the citrus as garnish; the distribution
   counter at Wharfside prices what the trades ship. **A person must be
   able to buy an orange** — today the fruit exists only behind a bar.
@@ -313,6 +373,46 @@ and nothing moves. The Transcript stays append-only; nothing is stored.
 **Who says so.** Nobody. Fitness is private; sport confers standing and
 is another build's.
 
+### A routine is its shape; a device is a load you choose
+
+**Question.** Cardio vs weights — do different routines train at
+different rates, and does the game need a routine table?
+**Answer.** Two readers over one event, no table. Muscle reads
+**intensity against the body's own ceiling** (overload — a load that no
+longer exceeds what you can produce stops training you); wind reads
+**duration at a sustainable pace**. So routines differ because their
+shapes differ, and the *only* thing a gym adds to the world's work is
+that the load and the pace are the player's to set.
+**Devices.** Two families, matching the two readers: something you
+**load** (a bar: `lift <load>`, the load an argument within the row's
+range) and something you **sustain** (a rower, a wheel — and the
+treadmill, which is honestly the run that goes nowhere, and says so).
+Each row confers its verb, as every instrument does. The infomercial
+machine is welcome: it is a row claiming a profile, and the cooking
+slate's **unitasker test** decides whether the profile is one nothing
+else gives — and a machine whose profile equals a walk is content too,
+because it teaches what the advert hides.
+**Reasoning.** Lens 1: overload and aerobic threshold are the two real
+principles of exercise physiology, and both are derivable from numbers
+the event already carries. Lens 2: the maze of machinery is rows over
+one producer, and a joke machine costs nothing to author. Lens 6: the
+gym's price is the wage foregone; its device is a crafted good.
+
+### One archetype, every gym
+
+**Question.** Home gym, office gym, apartment gym, public gym, dojo,
+studio — how many kinds?
+**Answer.** One archetype, `gym`, whose slots are the two device
+families (and a surface to do it on); a room is a gym to the degree it
+fills them. The variants are *which slots a room fills and who owns the
+room*, never a second archetype. A dojo is the same archetype with a
+mat and a bag; a studio is one with a mat and nothing to load.
+**Reasoning.** The byre precedent — needs stated as capabilities,
+reported never enforced, a mixed holding satisfying two archetypes at
+once. Practices (martial arts, yoga) are *routines* — a shape and the
+Disciplines it credits — not places, and the Disciplines they credit
+already exist or are deliberately absent (non-goals).
+
 ### The mirror is a line in `look`, and only that
 
 **Question.** How does a person see what their life wrote on them?
@@ -383,6 +483,19 @@ classroom), not a test convenience.
    (the heat pump deposits into the same load) and cannot make a body; a
    working that "grants strength" is priced like every other working and
    fades like conditioning.
+6. **Economy.** *Produces:* labour capacity — the double shift is more
+   output, fitness is the labourer's capital; and crafted goods (the
+   bar, the bench). *Consumes:* time above all — the gym's price is the
+   wage foregone, the miner never pays it, the clerk does; and food,
+   **differentiated** — muscle eats protein, wind eats carbohydrate, so
+   the hauler's basket is not the clerk's, which is the demand the
+   butcher and the dairy were waiting on. *Who pays:* time, or money at
+   a gym's door (the shipped tariff), never standing. *Was the demand
+   there:* yes — reach is a want nobody is obliged to have, and the
+   sedentary vocations (banker, clerk, author, wizard) already exist.
+   **Gap recorded:** the trained body's protein demand has no dairy to
+   meet it until ranching's next phase; bread and eggs carry it until
+   then.
 
 ---
 
@@ -411,6 +524,13 @@ enrolled fresh. Dials are turned up at step 5 and back at the end.
    `mow`, `plough`; each act costs endurance in proportion (the plough
    still costs what it cost), and between acts H rests to recover.
    L sits in the Lounge and does nothing but `eat` and `drink`.
+6b. **The load you choose.** After the season, H `mill`s again: the
+   physician's band does not move — the sack no longer overloads a
+   body that has outgrown it. H `place`s a bar (one the smithy made —
+   the drive `forge`s it, or buys it at the counter) in their dorm
+   room; the room reports itself as meeting the gym's load slot.
+   `lift 60`: the muscle figure moves again. `lift 200`: refused as
+   beyond the row's range or beyond the body, with an honest line.
 7. **Heat.** H, wearing a coat, does one more shift at the smithy: a
    sweat line arrives during the work and hydration falls faster than
    the same shift without the coat; `remove coat` and repeat: no sweat
@@ -469,6 +589,14 @@ Observable from outside the code.
   physician can see; an orange resolves it.
 - A wholemeal and a white loaf from one wheat show different nutrient
   amounts, and no loaf row authored an amount.
+- A bar placed in any room makes that room meet the `gym` archetype's
+  load slot, with no code and no second archetype; a room with a mat
+  and a bag reads the same way.
+- A body that has outgrown the world's load stops gaining muscle from
+  it and gains again on a device at a chosen heavier load; a body on a
+  sustained device gains wind and not muscle.
+- The exemplar device is made by a shipped trade and priced at the
+  counter.
 - The body-rate dials are visible in `config`, and turning them back
   restores the pre-drive figures.
 - Alcohol tolerance fades on the active-play clock and not with absence.
@@ -486,7 +614,13 @@ Observable from outside the code.
   (Law 2; the conditioning channel) · [physiology-slate](../slates/builds/physiology-slate.md)
   (tiers; the exertion read; the tissue-sum bug) · [cooking-slate](../slates/builds/cooking-slate.md)
   (keeps the galley; scurvy lands here).
-- Subsystems: [metabolism](../subsystems/metabolism.md) ·
+- Lens 6 (economy) added to [design-lenses.md](../design-lenses.md)
+  with this build as its worked example.
+- Subsystems: [furnishing](../subsystems/furnishing.md) (archetypes,
+  `place`, the room overlay) ·
+  [content-packs](../subsystems/content-packs.md) (the `archetype`
+  document kind) · [crafting](../subsystems/crafting.md) (the exemplar
+  device's recipe) · [metabolism](../subsystems/metabolism.md) ·
   [vitals](../subsystems/vitals.md) · [reserve](../subsystems/reserve.md)
   · [encumbrance](../subsystems/encumbrance.md) ·
   [locomotion](../subsystems/locomotion.md) ·
