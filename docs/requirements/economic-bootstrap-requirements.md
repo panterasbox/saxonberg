@@ -456,6 +456,211 @@ business branch. Exercised by borrowing, lending, presenting paper, and
 reading a book; `appraisal` (valuing collateral) and
 `business-administration` (running one) already ship beside it.
 
+## Retrofit — districting the 1.0 content
+
+The design above is a framework; the world it lands on was authored
+before it. This section is the survey the doc was light on — **who holds
+what today, where the fault lines for control and liability sit, and the
+redistricting the bootstrap does on its way in.** Decided in
+conversation 2026-09-18; the items are content moves, two seats and two
+gates, not new design.
+
+### The doctrine it applies
+
+Three sentences, each already the polity's:
+
+1. **The committee is the ultimate authority over its extent, bound by
+   the same economics as everyone on it — and therefore where fault lies
+   when an institution on it fails.** It was that committee that should
+   have moved the price, the rate or the stocking rule. It cuts both
+   ways, and it is what makes *"they're not gods"* true.
+2. **A committee assignment is governance; a position is a job.**
+   Committees are **players only** — never an NPC, never conferred by
+   being hired. A teller at Goodkin works for Goodkin; they do not author
+   it.
+3. **Standing follows liability.** Producer influence goes to whoever
+   the failure would land on; the customer who buys out the shelf can
+   never be blamed for the shop closing.
+
+### Who holds what today
+
+A committee is whoever holds parcel title; title is claimed in pack
+manifests; every group is minted empty at boot and falls back to the
+founder. So every committee below is the founder today, with one
+exception noted.
+
+| committee | extent(s) | institutions on it |
+|---|---|---|
+| `terminus` | terminal, counting-houses, general-store, market, registry, realty, university-avenue, mayfield-row, estuary, delight-road | the bank hall, the general store, the market + bakery, the Registry, the land agents, the haulage depot, the city budget |
+| `rejection` | rejection, hanging-wood, kestrel-road | the whole metal chain — mine co-op, fringe outfit, fuel yard, provisioning, smelter |
+| `hearts-delight` | hearts-delight | the farm, the mill |
+| `hearthworks` | hearthworks | smithy, cookhouse |
+| `lounge` | `/world/lounge` | Dave's Bar |
+| `duncan-hall` | duncan-hall, dorms | intake, the dorm |
+| `hinkley-hills` | the district, lot-1 | — |
+| `newbie-wilds` | newbie-wilds | its budget, the watch, the long road |
+| `mayfield-holdings` | seznick-house | ⚠ **Walter, an NPC, is a member** |
+| each **trade** group | `/trade/<x>` | ⚠ **real premises** — Crowsfoot, the Hollis floor, Veshko's yard, the Wharfside mill and dyehouse, the tailor's shop, the farm outfit, the pantry / brewing / bottling floors, the cash-and-carry counter |
+| each **corpo's organization** | `/corpo/<key>` | ⚠ the corpo itself — *being hired makes you an author of the bank* |
+| the executive (`/world` fallback) | everything unclaimed | ⚠ the infirmary, the necropolis, the university farm |
+
+Two more facts. **Every one of the 33 businesses banks at Goodkin** —
+one lender, so "rates are the lender's standing offer" has one offer at
+launch, which is fine and stated. And the fiction's four Governments
+(realm, city, university, Hinkley) have one treasury among them; Heart's
+Delight, Rejection, the Lounge and Hearthworks have Localities and no
+government. **Situs therefore rides the title tree, never the fiction's
+governments**: property escheats *up* to the parent extent's committee
+(the institutions slate's rule), money goes to the state. "The locality"
+in the situs table above means *the parent committee*.
+
+### The fault lines
+
+Where doctrine 1 is false on master, because the people who could have
+turned the dial are not the people the failure lands on:
+
+- **Trade groups are landlords.** The `distilling` committee answers for
+  Crowsfoot *and* Hollis *and* Veshko — three rival marks on one
+  mechanism-owner's ground, with no address, no locality, and nowhere for
+  a dead floor to escheat to. The people who maintain the recipe
+  substrate are the wrong people to be liable for a shop.
+- **Goodkin's committee is Goodkin's staff.** The institutions slate's
+  finding; decided there, not built.
+- **Three institutions belong to nobody** and so fall to the executive
+  — exactly what doctrine 1 exists to prevent.
+- **An NPC sits on a committee** (Walter) — doctrine 2.
+
+### The roots at launch
+
+Three world roots, each a committee whose parent is the PM. Nothing
+below them is subdivided further than it already is: **the Compact,
+once seated, advises the PM on districting** — getting ahead of that is
+the thing this section refuses to do.
+
+| root | holds | committee |
+|---|---|---|
+| `/world/terminus` | **the realm — all 1.0 shipped content**: the city (`/world/terminus/terminus`), Hinkley Hills, Heart's Delight, Rejection, Hearthworks, the University, and the districts the trade premises move into | `terminus` (the realm); the existing locality committees stay as its children |
+| `/world/saxonberg` | the second city | a parcel **to be seated by the Compact** — empty at launch |
+| `/world/lounge` | Dave's Bar and the social front door | `lounge` |
+| `/world/newbie-wilds` | parked — its future is undecided | as today |
+
+The title tree *is* the situs tree: the bootstrap's escheat walks it,
+which is why the world packs that sit beside Terminus today
+(`/world/rejection`, `/world/hearts-delight`, `/world/hearthworks`,
+`/world/eternal`) re-root under it. Pack root renames; the DB drops.
+
+### The trades and the commons are physics, and get an officer
+
+A recipe yield, a material density, a tool's epoch — changing one changes
+the world for everyone, the way the window rate does. So `/trade/*` and
+the commons (`/stuff/*` — the torches and chests) do **not** belong to
+committees the way a locality does; they belong to a **seat**: one
+officer, rules published, discretion recorded — the reserve's shape
+applied to the economy's physics. **Trades are placeless.** Their
+premises move into the world under locality committees, where they can
+be liable; the trade itself is nobody's property.
+
+The same shape for the corpos: **the concept gets an officer, the
+instances get committees.** A seat over `/corpo` mints a
+`<key>-committee` group for each of the five and seats it (the PM by
+default, through the seat); the committee holds `/corpo/<key>`; the
+corpo's organization is the show. A hired clerk is staff; the showrunner
+may also play the CEO.
+
+Three executive seats, then, beside the Governor: **the treasurer** (the
+issuance design above), **the Board of Trade** over `/trade` + `/stuff`,
+and **the Registrar of Corporations** over `/corpo`. Founder-established,
+founder-default, like the Governor; names are the plan's to confirm
+against the vocabulary.
+
+### The three claims on a business
+
+Every "who is liable / who gets paid / who has standing" question about a
+business resolves by asking which of three separable claims is meant.
+Stated once here because the bootstrap creates the first two on purpose
+and had been carrying them unnamed:
+
+| claim | what it is | what it earns | standing |
+|---|---|---|---|
+| **title** — or a lease, which is title for a term | control of the ground | the extent's engagement | producer |
+| **equity** — the cap table | the residual: profits, and the estate at wind-up | dividends, in zorkmids | ⚠ **none** |
+| **position** | a job | a wage | consumer, for the shifts |
+
+⭐ **In-game capital stops at the ledger.** A partner who puts a thousand
+zorkmids into Crowsfoot owns a share of its residual and nothing else —
+no vote anywhere, no seat, no producer credit for the floor's
+engagement. The Capital House is *funding the platform*; a distillery's
+cap table never touches it. This is the firewall between *who owns the
+zorkmids* and *who runs the polity*, and without it the first player with
+a pile of money argues that financing shops is producing.
+
+Corollaries: a player who **leases** a market stall holds it for the
+term — producer for what it earns, liable when it fails — and their
+hired hand is consumer. A player who merely **bankrolls** that stall is a
+creditor (rung 3, the auction slate): interest in, no standing out. And
+`openingCapital` was an equity stake by the treasury with no cap table
+to record it on; the treasury's advance is a **loan** precisely so the
+state never owns the residual of every business in the world.
+
+### The labor line — a reading of Art. III, not an amendment
+
+Players will argue that participating in the economy is labor, because
+the economy is core to the engine. The answer is not that it doesn't
+count — it is counted, in the Consumer House, at co-equal weight — but
+that the three kinds are non-fungible by construction (Art. III §2), and
+which house a contribution lands in is doctrine 3, a query over title:
+
+| what you did | house | why |
+|---|---|---|
+| fixed a bug, kept the box up | producer, by **merit award** (Art. III §7) | work the instrumentation cannot see |
+| held a committee | producer | the extent's content is yours; its engagement is the §1 measure |
+| managed a business **for** an extent | a job — consumer for the shifts | the committee could have hired anyone; the committee holds the standing and the wage is the pay |
+| a hired hand in a discipline | consumer | no title |
+| bought, banked, borrowed | consumer | no title |
+| kept the game fun with no code, bills or title | consumer × **regard** | the community's recognition is the multiplier that exists for exactly this; if it is not enough standing, the Compact seats them on an extent — which converts recognition into the only real power |
+
+Managing an economy and participating in one differ in exactly one
+testable way: **can you be at fault for it.** Nothing here measures
+"kept it fun" directly; that would be a gauge, and it would be gamed by
+morning.
+
+### The retrofit list
+
+Content and two gates, in the order they unblock each other:
+
+1. **Re-root the world packs** under `/world/terminus/…` so the title
+   tree is the situs tree (`rejection`, `hearts-delight`, `hearthworks`,
+   `eternal`); `/world/lounge` stays a root; `/world/saxonberg` is
+   declared and left for the Compact.
+2. **Move the trade premises into the world** as rows under Terminus
+   districts — Crowsfoot, the Hollis floor, Veshko's yard, the Wharfside
+   mill and dyehouse, the tailor's shop, the farm outfit, the pantry /
+   brewing / bottling floors, the cash-and-carry. Trade packs keep
+   classes, recipes, materials and instrument rows. Districts need names
+   (*Wharfside* is used twice and does not exist).
+3. **Claim the orphans** — the infirmary and the necropolis under the
+   city; the campus farm under the University.
+4. **The three seats** — treasurer, Board of Trade, Registrar of
+   Corporations.
+5. **The corpo committees** — five `<key>-committee` groups minted and
+   seated through the Registrar's seat; `/corpo/<key>` moves to them;
+   each org's appointing authority becomes its committee. The bank
+   ladder's *who could have moved the rate* is unanswerable until this
+   lands.
+6. **Walter off the committee** — `mayfield-holdings` becomes an
+   Organization he is staff of; the title sits with a player group.
+7. **Every Business row loses `openingCapital`** (the treasury's advance
+   instead) and gains its stocking and ask rows.
+8. **Two gates**, census-then-ratchet: *no group that holds title lists
+   an agent path as a member*; *no authored field creates money* (the
+   institutions slate's rule, held by the lint family).
+
+What this section deliberately does **not** do: subdivide `terminus`
+(one committee for the bank hall, the store, the market and the
+registry is the city's showrunner, and that is fine at dozens of
+players); decide newbie-wilds; or name the districts — those are the
+plan's and the Compact's respectively.
+
 ## Lens pass
 
 **1 · Pedagogy.** The Disciplines are `finance` (new), `appraisal` and
@@ -584,6 +789,15 @@ Observable from outside the code.
   and their balance is paid back on return.
 - An NPC shop keeps stocking, selling and repaying with no player online.
 - The `finance` Discipline records the acts that exercise it.
+- Every business's premises sit on an extent under `/world/terminus`,
+  `/world/lounge` or `/world/newbie-wilds` whose committee is a group of
+  players; no trade group and no corpo organization holds ground.
+- `committee` at any corpo's extent names a `<key>-committee` group, and
+  a newly hired teller is not on it.
+- No group that holds title has an NPC member; no authored row carries a
+  number that becomes money.
+- The roster shows the treasurer, the Board of Trade and the Registrar
+  of Corporations beside the Governor, founder-held.
 
 ## Cross-references
 
@@ -597,7 +811,16 @@ Observable from outside the code.
   the ledger, the custodial bank, terms, the opening float, the
   overdraft this build retires.
 - [governance.md](../subsystems/governance.md) — the Office substrate
-  the reserve's officer and the treasurer sit in.
+  the reserve's officer, the treasurer, the Board of Trade and the
+  Registrar sit in.
+- [institutions-slate](../slates/builds/institutions-slate.md) — the
+  committee/show separation, title escheats up, the cap table, the
+  no-authored-faucet rule; the retrofit section applies its Stage A.
+- [access.md § The committee](../subsystems/access.md) /
+  [civics.md](../subsystems/civics.md) — a committee is title, derived;
+  the fiction's governments are the show and hold no situs.
+- [draft-constitution.md Art. III](../governance/draft-constitution.md)
+  — the three non-fungible kinds the labor line reads.
 - [retail.md](../subsystems/retail.md) — consignment, the shape rung 0
   grows out of.
 - [contract.md](../subsystems/contract.md) — per-contract escrow, the
