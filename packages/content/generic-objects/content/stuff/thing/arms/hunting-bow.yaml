@@ -1,0 +1,29 @@
+# A hunting bow — the first launcher, and the cheap end of the ladder.
+#
+# ⭐ Three seconds to be ready again, which is the number that matters:
+# a bow is the fastest thing in the game to loose twice, and it is why
+# armies carried them for two hundred years after firearms arrived.
+# What it gives up is energy — ~50 J against a musket's 1500 — so it
+# beats mail by being a POINT, not by arriving at firearm pressure.
+class: /platform/thing/equipment/Launcher
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: hunting bow
+  keywords: [bow, hunting, shortbow]
+  register: indefinite
+  longDescription: >
+    A plain stave of yew, horn-nocked and waxed against the damp, with a
+    linen string wound at the loops. Light enough to carry all day.
+  _materialPath: /stuff/idea/material/wood/oak
+  # ⚠ `hafted` — a bowstave is a club when it has to be, which is both
+  # true and what keeps `lint:inert-weapon` satisfied without a special
+  # case for launchers.
+  constructionForm: hafted
+  gradeBand: fair
+  mass: 0.9
+  energySource: stored-elastic
+  muzzleSpeed: 55
+  projectileTemplate: /stuff/thing/arms/arrow
+  readySeconds: 3
+  slotClaims:
+    "/stuff/idea/species/BodyPlan/biped": ["hand:right"]

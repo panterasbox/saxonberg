@@ -53,6 +53,20 @@ interface TreatModel extends CommandModel {
 /** How much a single treatment pours into someone. */
 const TREAT_FLUID_LITRES = 0.25;
 
+/**
+ * ⭐⭐ **Is this wound inside a cavity?** (D10)
+ *
+ * `rupture` announces itself — it resolves by `surgery`, which nothing
+ * offers, so `treat` already refuses it with *"It wants surgery."* But an
+ * interior **puncture** or **laceration** resolves by `dressing` like any
+ * other bleed, and without this a player could bandage a punctured liver.
+ * What makes a wound undressable is WHERE it is, not what type it is.
+ */
+function isInteriorWound(target: Stuff & Vitals, w: Trauma): boolean {
+  if (!MixinApi.isOrganism(target)) return false;
+  return target.getSpecies()?.getBodyPlan()?.isInterior(w.site) ?? false;
+}
+
 /** Pick the most-pressing dressable wound: bleeding first, then severity. */
 function pickWound(target: Stuff & Vitals): Trauma | null {
   const traumas = target
@@ -146,6 +160,10 @@ function mismatchLine(offered: string, wanted: string | null): string {
     warmth: 'warmth',
     cooling: 'cooling',
     air: 'air',
+    // ⭐ A caustic is still eating. What it wants is not a treatment you
+    // apply but the REMOVAL of the cause — which is why `rinse` is a verb
+    // of its own rather than another thing to carry.
+    rinsing: 'rinsing off, with water',
   };
   const o = words[offered] ?? offered;
   const w = words[wanted] ?? wanted;
@@ -205,6 +223,29 @@ export default class TreatController extends CommandController<TreatModel> {
       if (!worst) {
         const who = isSelf ? 'You have' : `${target.getPresentation()} has`;
         return this.fail(context, `${who} nothing to treat.`, 'no-wound');
+      }
+      // ⭐⭐ **The wound is inside** — say that, rather than the generic
+      // mismatch. The player is holding the right thing for the type of
+      // wound it is and it is still no use, which is a different fact and
+      // the one worth teaching.
+      if (
+        treatment.by === 'dressing' &&
+        target
+          .getConditions()
+          .some(
+            (c): c is Trauma =>
+              c.kind === 'trauma' &&
+              !c.dressed &&
+              c.severity > 0 &&
+              resolutionOf(c) === 'dressing' &&
+              isInteriorWound(target, c),
+          )
+      ) {
+        return this.fail(
+          context,
+          'There is nothing to dress — the wound is inside.',
+          'wound-interior',
+        );
       }
       // Something IS wrong — this is just not what it wants. That
       // refusal is the teaching.
@@ -489,7 +530,11 @@ export default class TreatController extends CommandController<TreatModel> {
     const traumas = conditions
       .filter((c): c is Trauma => c.kind === 'trauma')
       .filter((t) => !t.dressed && t.severity > 0)
-      .filter((t) => resolutionOf(t) === by);
+      .filter((t) => resolutionOf(t) === by)
+      // ⭐ You cannot put pressure on something you cannot reach. A
+      // dressing is the only treatment this gate applies to: fluid and
+      // rest reach the whole body and do not care where the wound is.
+      .filter((t) => by !== 'dressing' || !isInteriorWound(target, t));
     if (traumas.length > 0) {
       const bleeding = traumas.filter((t) => t.bleeding);
       const pool = bleeding.length ? bleeding : traumas;

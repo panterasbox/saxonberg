@@ -10,7 +10,16 @@ data:
   name: Firebolt
   verb: create
   noun: fire
-  cost: 20
+  # ⭐⭐ **The cost the price list actually implies.** This row authored
+  # `cost: 20` (20 kJ committed) against `joules: 900000` delivered —
+  # η ≈ 45, against arcane-science.md rules 1 and 6, which cap η at 1.
+  # Magic in this world moves and rearranges; it does not manufacture
+  # energy, and a spell that returns 45× what it costs is a free power
+  # plant with a wand attached.
+  #
+  # 30 τ is under the science's own worked firebolt (35.2 τ) and buys
+  # 30 kJ at the blessed band. `lint:spell-cost` holds it.
+  cost: 30
   castingProfile:
     requiredBand: novice
     castSeconds: 3
@@ -22,7 +31,16 @@ data:
     - kind: inject-channel
       channel: heat
       energy: [1, 2, 4]
-      joules: [300000, 900000, 1800000]
+      # ⭐ **The band ladder is EFFICIENCY, not magnitude** (magic-items:
+      # *"blessed means EFFICIENT, not benevolent"*). Against 30 τ =
+      # 30 kJ committed: cursed η 0.5 · uncursed η 0.85 (the price list's
+      # heat row) · blessed η 1.0, the ceiling.
+      #
+      # ⚠ `energy` (the abstract covering-fold token) is UNCHANGED. What
+      # a firebolt does to a PERSON runs through the body arm and did not
+      # move; `joules` feeds the object arm only, so this correction
+      # changes what a firebolt does to things.
+      joules: [15000, 25500, 30000]
     # ── and firebolt's OWN answer to being cursed ──
     #
     # ⚠ This is firebolt's expression, NOT a rule about cursed wands. A
@@ -40,7 +58,9 @@ data:
       self: true
       channel: heat
       energy: 3
-      joules: 250000
+      # The backfire is the bolt that did not go out — the cursed band's
+      # own committed energy, landing on the hand instead of the target.
+      joules: 15000
       site: body.arm.right.hand
       resist: { axis: channel, intensity: 2 }
   description: >-

@@ -27,6 +27,15 @@ data:
     - { modality: vision, count: 2, position: lateral }
     - { modality: hearing, count: 2, position: lateral }
     - { modality: touch, count: 1, position: circumferential }
+  # ⭐ `serves: [locomotion]` on BOTH pairs, and it is not decorative: a
+  # bird gets about on its wings as much as its legs, so the locomotion
+  # capacity is the MEAN over all four. A broken wing costs a bird a
+  # quarter of its ability to get anywhere, which is about right.
+  #
+  # ⚠ Without this the avian plan would have silently lost the limp
+  # entirely when the limp moved off a `body.leg.*` string match and onto
+  # the capacity — the exact closed-and-silent failure this build exists
+  # to stop shipping.
   bodyParts:
     - key: body.torso
       parent: null
@@ -43,23 +52,27 @@ data:
     - key: body.wing.left
       parent: body.torso
       severable: true
+      serves: [locomotion]
       tissues:
         - { tissuePath: /stuff/idea/material/tissue/bone, mass: 0.001 }
         - { tissuePath: /stuff/idea/material/tissue/muscle, mass: 0.002 }
     - key: body.wing.right
       parent: body.torso
       severable: true
+      serves: [locomotion]
       tissues:
         - { tissuePath: /stuff/idea/material/tissue/bone, mass: 0.001 }
         - { tissuePath: /stuff/idea/material/tissue/muscle, mass: 0.002 }
     - key: body.leg.left
       parent: body.torso
       severable: true
+      serves: [locomotion]
       tissues:
         - { tissuePath: /stuff/idea/material/tissue/bone, mass: 0.0008 }
     - key: body.leg.right
       parent: body.torso
       severable: true
+      serves: [locomotion]
       tissues:
         - { tissuePath: /stuff/idea/material/tissue/bone, mass: 0.0008 }
     - key: body.torso.heart

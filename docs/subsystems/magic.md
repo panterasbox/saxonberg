@@ -261,7 +261,8 @@ owns the encounter's rows (no double-booking).
 ## The v1 roster (authored data, one cell per primitive)
 
 firebolt (create·fire, impulse heat — body burn / object
-joules+autoignite) · spark (create·lightning — a transient
+joules+autoignite) · frost (destroy·fire, cold — a HEAT PUMP: the caster
+absorbs Q+W, `costModel: heat-pump`) · spark (create·lightning — a transient
 `SparkLocus` (the row's `locus:`) + the real conduction walk, faction-blind,
 caster-in-the-graph) · shove (control·body — the posture surface) ·
 dread (destroy·mind — the mental axis vs live Composure) · glowlight
@@ -274,14 +275,90 @@ backing Api — polymorph's own build); storm has a Discipline leaf but
 no spell (no gated weather-write Api yet — the invariant holds it
 back).
 
+### ⭐⭐ Magic reaches every damage channel (the magic-expression pass)
+
+The injury build shipped seven channels; the roster now exercises all of
+them. **Fire → heat** (firebolt), **ice → cold** (frost), **lightning →
+shock** (spark) were the proven three; the magic-expression pass added the
+four the roster never touched, each through the SAME `ConditionApi.inflict`
+door and the same fold a weapon uses:
+
+stonefist (create·earth, **blunt** — a fist of gathered stone; a cursed
+cast takes the unbraced recoil, arcane-science's *every push shoves both
+ways*) · stone-lance (create·earth, **point** — the same school shaped to
+a spike; Earth is a family) · windrazor (create·air, **edge** — a shearing
+edge of compressed air) · acid-splash (create·water, **corrosion**).
+
+⭐ **Corrosion is NOT reached by `inject-channel`** — a channel token
+cannot carry the agent's chemistry (its `corrosiveTo`). It is reached by
+**substance in contact with a body**: `Material.corrodeOnContact(victim,
+…)` reads a caustic material's own `corrosiveTo` and routes a corrosion
+insult through the one door. acid-splash **conjures** a caustic (`vitriol`)
+onto the mark — honest per arcane-science: the working COLLECTS an existing
+caustic, it does not mint "acid damage"; the substance's own chemistry
+corrodes. The same seam gives a thrown flask of vitriol (the `throw`
+splash) and a spilled vial corrosion for free. No new disciplines —
+`magic-create/earth/air/water` all shipped; the channels were unreached
+purely for lack of spell rows.
+
+⭐ **A wand for each, so a non-caster can wield them** (the `firebolt`
+wand precedent) — `zap` spends the maker's stored labour, not competence,
+which is the whole point of the item class. The mechanical wands
+band-vary through the working's own `energy: [1,2,4]`; `acid-splash`,
+being a `conjure`, had no band axis, so it gained a band-varying
+`litres: [0.5,1,2]` (a cursed working musters half a measure, blessed
+twice it, and the substance-contact seam scales the burn by the litres —
+`lint:blessed-bands` holds the axis honest).
+
 ## The demonstrator — the Practicum
 
 `world-seed/content/world/practicum*`: a teleport-reachable `CartesianZone` (the
 hearthworks precedent, no inbound exit) — the **casting yard** (a
-combustible straw dummy + a stone basin), the **conductive gallery**
+combustible straw dummy, a **tinder bundle**, and a stone basin), the
+**conductive gallery**
 (a brine-pooled floor: MIND WHERE YOU STAND), and the **warded cell**
 (`suppressesMagic: {all: true}` + a mundane brazier that keeps burning
 — the lesson in one room).
+
+⭐⭐ **The yard demonstrates two different things, and that is the point.**
+A firebolt **chars** the 1.5 kg dummy and **lights** the 40 g tinder —
+*hit the target* and *set it alight* are not the same act, and the
+arithmetic says which is which: 293 → 570 K is ≈ 831 kJ for the dummy and
+≈ 22 kJ for the tinder, against an honest bolt's 25.5 kJ. The band ladder
+reads in play, too: a cursed bolt (15 kJ) fails to light the tinder, an
+uncursed one lights it, a blessed one lights it with margin.
+
+⚠ The dummy used to catch fire, and it was the flagship spell's η ≈ 45
+violation that let it — the content had been tuned to the broken number
+and a test held it there. See **The cost gate** below.
+
+## ⭐⭐ The cost gate — `lint:spell-cost`
+
+`docs/arcane-science.md` rule 1 (*magic moves and rearranges; it does not
+manufacture energy*) and rule 6 (*η ≤ 1*) had **no reader anywhere**, and
+the flagship spell violated both by a factor of forty-five: firebolt
+authored `cost: 20` — 20 kJ committed — against `joules: 900000`
+delivered. `packages/server/scripts/check-spell-cost.ts` walks every
+`Spell`-class row in every pack and holds the violation count at zero.
+
+⚠⚠ **It is channel-aware, and a flat `η ≤ 1` would have been worse than no
+gate:**
+
+- **delivery** (`joules` on a depositing channel — `heat` today) is
+  checked against `cost × 1000 × η(channel)`, η from the price list,
+  carried in the script beside its doc citation;
+- **cooling** (`channel: cold`) is **not** an η check. A COP above 1 is
+  what a heat pump *means*. What is required instead is that the row
+  declare a lift — `costModel: {kind: heat-pump}` — because rule 4 says
+  cooling has no fixed price, and a flat-cost cold spell is itself the
+  physics error;
+- rows with **no `joules`** (twelve of thirteen) are outside its
+  jurisdiction: `energy` is an abstract covering-fold token, not a
+  quantity of anything.
+
+⭐ The correction touched what a firebolt does to **things**, not to
+people: `joules` feeds the object arm only, and the body arm's abstract
+`energy` token did not move.
 
 ## Dials
 

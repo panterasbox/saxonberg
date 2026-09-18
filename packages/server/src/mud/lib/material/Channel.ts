@@ -43,7 +43,30 @@
  * whether it also folds through the mechanical response tables is the
  * separate {@link MECHANICAL_CHANNELS} question.
  */
-export const CHANNELS = ['edge', 'point', 'blunt', 'shock', 'heat'] as const;
+export const CHANNELS = [
+  'edge',
+  'point',
+  'blunt',
+  'shock',
+  'heat',
+  /**
+   * ⭐ **Cold** — the second thermal channel, and it is the SAME fold as
+   * heat run the other way. A covering attenuates it by the same inverted
+   * conductivity and layer depth, because what an insulator does is
+   * resist a temperature *difference*; the dials describe the covering,
+   * not the direction of flow. Resolves into `frostbite`.
+   */
+  'cold',
+  /**
+   * ⭐⭐ **Corrosion** — neither mechanical nor thermal, and the first
+   * channel where **thickness is irrelevant and the right material is
+   * everything.** A layer is eaten, wicks, or sheds depending on what it
+   * IS: a steel breastplate sheds lye and is eaten by acid, a linen shirt
+   * wicks either through to the skin, a waxed hide sheds both. Resolves
+   * into `caustic`, the wound that keeps working until it is washed off.
+   */
+  'corrosion',
+] as const;
 
 /** A mechanism channel — one of {@link CHANNELS}. */
 export type Channel = (typeof CHANNELS)[number];
@@ -62,16 +85,47 @@ export type MechanicalChannel = (typeof MECHANICAL_CHANNELS)[number];
 
 /**
  * The **thermal** channels — the ones whose blow resolves through the
- * heat-*insulation* branch on `MaterialApi` (a covering attenuates heat by
- * its material's `thermalConductivity` inverted + layer depth) into a tissue
- * `burn`, NOT the hardness/toughness mechanical fold. v1 is just `heat`;
- * `cold` joins here when its consumer lands. The gate the heat-resolution
- * code uses to prove a channel takes the insulation branch.
+ * heat-*insulation* branch on `MaterialApi` (a covering attenuates by its
+ * material's `thermalConductivity` inverted + layer depth), NOT the
+ * hardness/toughness mechanical fold.
+ *
+ * ⭐ **Both directions share one fold, deliberately.** `heat` resolves
+ * into a `burn` and `cold` into `frostbite`, and the only thing that
+ * differs between them is that last step: the insulation arithmetic is
+ * identical because what a garment does is resist a temperature
+ * DIFFERENCE. `response.heat.*` therefore serves both — the dials
+ * describe the covering, not the direction of flow — and giving cold its
+ * own copy of them would be two numbers for one fact.
  */
-export const THERMAL_CHANNELS = ['heat'] as const;
+export const THERMAL_CHANNELS = ['heat', 'cold'] as const;
 
 /** A thermal channel — one of {@link THERMAL_CHANNELS}. */
 export type ThermalChannel = (typeof THERMAL_CHANNELS)[number];
+
+/**
+ * ⭐⭐ **The channels that resolve through the COVERING FOLD** — every
+ * channel whose blow walks outside-in through what you are wearing,
+ * whatever arithmetic it uses once it gets there (mechanical tokens ×
+ * property height, thermal inverted conductivity × depth, corrosion's
+ * material-match ladder).
+ *
+ * ⚠ `shock` is deliberately absent, and is the reason this set exists
+ * rather than `CHANNELS`: electricity resolves by **circuit** — the
+ * conduction walk divides current toward ground upstream — so it never
+ * consults the stack at all.
+ *
+ * The legibility surfaces iterate THIS. `AnalyzeResponseController` and
+ * the `Constructed` pip line both walked `MECHANICAL_CHANNELS` only, so a
+ * player examining a gambeson was told how it answers a sword and never
+ * that it is the best thing in the game against a burn. A column that
+ * exists in the model and not in the readout is the same class of defect
+ * as one that does not exist.
+ */
+export const FOLDED_CHANNELS = [
+  ...MECHANICAL_CHANNELS,
+  ...THERMAL_CHANNELS,
+  'corrosion',
+] as const satisfies readonly Channel[];
 
 /**
  * The channel vocabulary holder — a thin static surface (the concept this
@@ -88,6 +142,12 @@ export class Channels {
 
   /** The thermal-only subset (the heat-insulation domain). */
   public static readonly THERMAL: readonly ThermalChannel[] = THERMAL_CHANNELS;
+
+  /**
+   * Every channel that resolves through the covering fold — see
+   * {@link FOLDED_CHANNELS}. What the legibility surfaces iterate.
+   */
+  public static readonly FOLDED: readonly Channel[] = FOLDED_CHANNELS;
 
   /** Narrowing predicate for a string against the full vocabulary. */
   public static isChannel(s: string): s is Channel {
@@ -111,4 +171,14 @@ export class Channels {
   public static isThermalChannel(s: string): s is ThermalChannel {
     return (THERMAL_CHANNELS as readonly string[]).includes(s);
   }
+
+  // ⚠ **There is deliberately no `isCorrosionChannel`.** The sibling
+  // predicates exist because their subsets have several members and the
+  // membership test is a real question; corrosion has exactly one, so
+  // `channel === 'corrosion'` is the same test with less indirection and
+  // the compiler checks it against the union either way. (It is also
+  // what `lint:lib-statics` requires: the non-Api static-METHOD census is
+  // a ratchet whose ceiling may fall and never rise. `FOLDED` above is a
+  // field, which the gate does not count.) When a second corrosive
+  // channel lands, add the subset and the predicate together.
 }

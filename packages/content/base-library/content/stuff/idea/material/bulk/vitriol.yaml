@@ -1,0 +1,30 @@
+# ⭐ Vitriol — the corrosion channel's second agent, and its first LIQUID.
+#
+# Oil of vitriol: what an alchemist distils and what will strip the skin
+# from a hand and the temper from a blade. Where quicklime is the dry
+# industrial caustic a medieval world has lying about, vitriol is the
+# wet one an alchemist keeps in a stoppered flask — which is exactly what
+# the magic-expansion needs: a caustic that pours, splashes and conjures.
+#
+# ⭐⭐ **Its `corrosiveTo` eats METAL as well as flesh** — the deliberate
+# contrast with lime, which spares metal entirely. That single difference
+# is the whole "acid eats the breastplate AND burns the arm under it"
+# interop case: a steel layer is armour against lime and NO armour against
+# vitriol, and the covering fold reads exactly that off this one list.
+class: /platform/idea/material/Material
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  name: vitriol
+  keywords: [vitriol, acid]
+  appearance: oily, faintly fuming acid
+  description: >-
+    A dense, oily liquid that fumes where the air is damp. It eats what it
+    touches — cloth, hide, skin, and even iron, given time — and the
+    eating does not stop until it is washed away.
+  density: 1840
+  thermalConductivity: 0.4
+  specificHeat: 1380
+  tags: [liquid, caustic, acid]
+  corrosiveTo: [metal, organic, tissue, leather, textile]
+  composition: []
+  biologicalSource: null

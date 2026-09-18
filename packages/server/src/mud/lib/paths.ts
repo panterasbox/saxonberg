@@ -97,6 +97,9 @@ export const TemplatePaths = {
 
   // Thermal cascade conditions — spawned/cleared by the thermoregulation
   // reconcile when driven `coreTemperature` crosses the survivable band.
+  /** Hypovolemic shock — the circulation derive's affliction (harm). */
+  circulationHypovolemicShock:
+    "/platform/idea/Condition/circulation/hypovolemic-shock",
   thermalHypothermia: "/platform/idea/Condition/thermal/hypothermia",
   thermalHyperthermia: "/platform/idea/Condition/thermal/hyperthermia",
   thermalTorpor: "/platform/idea/Condition/thermal/torpor",

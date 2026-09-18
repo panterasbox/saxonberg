@@ -305,3 +305,22 @@ Not a cycle of its own. Pull one in when its host build is in flight.
   discovery · argument-map ↔ forums · supply (pack) ↔ power-utility ·
   college ↔ education-integration ↔ eternal-university-narrative.
   Merge on contact rather than letting a third appear.
+
+  ⭐ **The medicine cluster — reconciled 2026-09-15.** Six slates covered
+  one subject and the index did not name them, which is how they drifted.
+  Recorded here so the next reader inherits the boundaries rather than
+  rediscovering them:
+
+  | pair | resolution |
+  |---|---|
+  | physiology § 7e ↔ blood | ✅ **merged into blood** — physiology keeps the blood-loss *axis* (it is a vital sign); blood owns the substance, the compatibility graph and the donation economy |
+  | health-vertical ↔ medic-judgment | ✅ **split by subject** — they gave *opposite* answers to "what is the diagnosis surface." medic-judgment owns the graded act (cues without names, the deed is the decision); health-vertical owns the world it is practised in (institutions, outbreaks, prevention, the vet track) |
+  | physiology § 7b ↔ pharma | ✅ **already declared** — pharma cites physiology for the substance model and owns the industry (extraction, vessels, assay, vocations). No action; recorded so it is not "merged" by someone reading the two titles |
+  | disease ↔ disease (pack) | ⏳ still open, listed above |
+
+  ⚠ **The lesson worth keeping.** The health-vertical/medic-judgment pair
+  was not two documents saying the same thing — it was one asking a
+  question it called *"the vertical's defining design problem"* and the
+  other having already answered it, six weeks apart, with neither citing
+  the other. **A duplicate pair's real cost is not wasted words; it is
+  that one half can be solved while the other half keeps paying for it.**

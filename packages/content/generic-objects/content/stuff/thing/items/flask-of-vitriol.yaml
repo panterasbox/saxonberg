@@ -1,0 +1,29 @@
+# ⭐ A flask of vitriol — the corrosion channel's first WEAPON, and it
+# rides no new combat code.
+#
+# A thrown glass flask shatters on arrival (glass toughness 0.5 < the
+# shatter threshold) and splashes its contents over the mark and anyone
+# clinched with them — the shipped `throw` splash path. Because the
+# contents are `vitriol` (a caustic bulk, `corrosiveTo` non-empty), the
+# splash now delivers CORROSION through the substance-contact seam: no
+# melee channel is involved, so combat's standing refusal of a corrosive
+# blow is untouched. The vessel breaks by ITS OWN material (glass), not
+# the acid it holds.
+class: /platform/thing/Receptacle
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: flask of vitriol
+  keywords: [flask, vitriol, acid, glass]
+  register: indefinite
+  longDescription: >-
+    A heavy glass flask, waxed at the stopper, holding an oily liquid that
+    fumes faintly against the glass. It is not meant to be opened — it is
+    meant to be thrown.
+  # The VESSEL's own material — glass, so it shatters when it lands.
+  bulkMaterial: /stuff/idea/material/glass/glass
+  mass: 0.6
+  interiorBulk: true
+  interiorCapacity: 0.5
+  # Pre-filled with the caustic. The interior material is what splashes.
+  interiorMaterial: /stuff/idea/material/bulk/vitriol
+  interiorAmount: 0.5

@@ -86,6 +86,8 @@ import type { Reserved } from '../lib/reserve';
 import type { LoadBearing } from '../lib/encumbrance/LoadBearing';
 import type { Metabolic } from '../lib/metabolism/Metabolic';
 import type { Thermal } from '../lib/thermal/Thermal';
+import type { Launcher } from '../lib/combat/Launcher';
+import type { ThermalRegulation } from '../lib/thermal/ThermalRegulation';
 import type { Wet } from '../lib/wetness/Wet';
 import type { Fresh } from '../lib/material/Freshness';
 import type { Dosed } from '../lib/thermal/ThermalDose';
@@ -1226,8 +1228,25 @@ export class MixinApi {
     return this.hasMixin(obj, Mixins.Metabolic);
   }
 
+  /** A weapon that stores its energy somewhere other than your arm. */
+  public static isLauncher(obj: Stuff): obj is Stuff & Launcher {
+    return this.hasMixin(obj, Mixins.Launcher);
+  }
+
   public static isThermal(obj: Stuff): obj is Stuff & Thermal {
     return this.hasMixin(obj, Mixins.Thermal);
+  }
+
+  /**
+   * A body that REGULATES its temperature rather than merely having one.
+   * The narrowing the caster-heat seam needed: `absorbHeatLoad` is a fact
+   * about a regulating body, and an object that is merely `Thermal` takes
+   * joules through `depositHeat` instead.
+   */
+  public static isThermalRegulation(
+    obj: Stuff,
+  ): obj is Stuff & ThermalRegulation {
+    return this.hasMixin(obj, Mixins.ThermalRegulation);
   }
 
   public static isWet(obj: Stuff): obj is Stuff & Wet {

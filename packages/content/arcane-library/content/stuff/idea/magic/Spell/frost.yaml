@@ -1,0 +1,54 @@
+# ⭐⭐ Frost — destroy·fire, and it is a HEAT PUMP, not an ice gun.
+#
+# The science's own cell: *destroying* fire means taking heat OUT of
+# something, which is what a refrigerator does. That single reading is
+# what makes this spell teach three real things at once:
+#
+#   1. **Cooling has no fixed price** (arcane-science rule 4). The cost is
+#      `W ≥ Q · (T_hot − T_cold) / T_cold` at 40 % of Carnot — cheap
+#      near ambient and divergent as the target approaches absolute zero.
+#      `cost: 4` is the FLOOR; the lift is computed at cast time.
+#   2. **A COP above 1 is not free energy.** Moving 100 kJ out of
+#      something near ambient costs about 14 τ of work, which looks like
+#      η = 7 and is not: the heat was already there, and the working only
+#      moved it.
+#   3. ⭐⭐ **The caster absorbs Q + W.** They are always an endpoint (the
+#      one postulate), so everything the pump moved arrives in them,
+#      plus the work to move it. A mid-depth pool of frost gives its
+#      caster hyperthermia with mana to spare — *the mana bar is not the
+#      danger meter*, which is the lesson the reserve alone can never
+#      teach.
+#
+# At a BODY it folds through the same insulation stack a burn does — a
+# hide jerkin helps and a steel breastplate does not, for exactly the
+# reason a steel gauntlet makes a burn worse — and resolves to
+# `frostbite`: it numbs rather than weeps, and it wants warmth.
+class: /platform/idea/magic/Spell
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  spellId: frost
+  name: Frost
+  verb: destroy
+  noun: fire
+  # The FLOOR, not the price — see `costModel`.
+  cost: 4
+  costModel:
+    kind: heat-pump
+  castingProfile:
+    requiredBand: novice
+    castSeconds: 3
+  targeting: any
+  effects:
+    - kind: inject-channel
+      channel: cold
+      # The abstract covering-fold token (what it does to a PERSON) and
+      # the real joules (what it does to a THING) — the same split every
+      # channel effect carries.
+      energy: [1, 2, 4]
+      joules: [60000, 120000, 240000]
+  description: >-
+    A working that takes the fire out of a thing. Nothing is added: the
+    heat is simply moved, out of the mark and into the one doing the
+    moving. Cheap on a warm day and ruinous against something already
+    cold — and the price is paid twice, once in mana and once in the
+    caster's own blood heat.
