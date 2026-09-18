@@ -27,6 +27,7 @@ import type { CommandContext } from '../../../../../api/command';
 import type { MqlOneResult } from '../../../../../api/mql';
 import type { Trauma } from '../../../Condition';
 import Condition from '../../../Condition';
+import { AppApi } from '../../../../../api/app';
 
 let captured: string;
 function captureBody(): void {
@@ -75,6 +76,7 @@ const footWound = (dressed = false): Trauma => ({
 beforeEach(() => {
   installV1QuantityMarshallers();
   fakeMongo();
+  vi.spyOn(AppApi, 'setting').mockReturnValue('');
   WorldClockApi._setNowProviderForTesting(() => 100);
   captureBody();
 });
@@ -237,5 +239,38 @@ describe('AssessController — the affliction readout', () => {
     );
     expect(captured.toLowerCase()).toContain('unwell');
     expect(captured.toLowerCase()).not.toContain('recovering');
+  });
+});
+
+describe('AssessController — the weight in words (nutrition-and-fitness W3)', () => {
+  const bodyOf = (stature: number, kg: number, path: string): Creature => {
+    const c = makeStuff(() => new Creature());
+    stampTemplatePathForTest(c, path);
+    // The controller reads the species for the vital profile and the
+    // body plan too; only the stature is what this block needs.
+    vi.spyOn(c, 'bodyMassIndex').mockReturnValue(kg / (stature * stature));
+    return c;
+  };
+
+  it('self sees the band in words, and no digits anywhere in it', async () => {
+    const me = bodyOf(1.75, 95, '/platform/agent/Avatar/heavy');
+    await makeStuff(() => new AssessController()).execute({}, ctxFor(me, null));
+    expect(captured).toContain('You are heavily overweight.');
+    expect(captured).not.toMatch(/\d/);
+  });
+
+  it('an untrained looker gets no weight line on another body', async () => {
+    const me = makeStuff(() => new Creature());
+    stampTemplatePathForTest(me, '/platform/agent/Avatar/looker');
+    const them = bodyOf(1.75, 95, '/platform/agent/Avatar/heavy2');
+    await makeStuff(() => new AssessController()).execute(targetArg(them), ctxFor(me, null));
+    expect(captured).not.toContain('overweight');
+    expect(captured).not.toContain('healthy weight');
+  });
+
+  it('a healthy frame reads healthy', async () => {
+    const me = bodyOf(1.75, 70, '/platform/agent/Avatar/fine');
+    await makeStuff(() => new AssessController()).execute({}, ctxFor(me, null));
+    expect(captured).toContain('of a healthy weight');
   });
 });

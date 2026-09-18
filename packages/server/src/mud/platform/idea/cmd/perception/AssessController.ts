@@ -25,6 +25,7 @@ import type { Trauma } from '../../Condition';
 import type Condition from '../../Condition';
 import { StuffApi } from '../../../../api/stuff';
 import type { Combatant } from '../../../../lib/combat/Combatant';
+import { Creature, type BmiBand } from '../../../../lib/creature/Creature';
 
 const TOPIC = 'act.deed';
 
@@ -50,6 +51,14 @@ const BAND_PHRASE_SELF: Record<ConditionBand, string> = {
   critical: 'are in critical condition',
   dying: 'are dying',
   dead: 'are dead',
+};
+
+/** The weight band in the physician's words — a percept, never a figure. */
+const BMI_PHRASE: Readonly<Record<BmiBand, string>> = {
+  underweight: 'underweight for the frame',
+  healthy: 'of a healthy weight',
+  overweight: 'carrying more weight than is good for the frame',
+  obese: 'heavily overweight',
 };
 
 export default class AssessController extends CommandController<AssessModel> {
@@ -118,6 +127,20 @@ export default class AssessController extends CommandController<AssessModel> {
         )}.`
       ).toString(),
     ];
+
+    // ⭐ The weight, in the physician's words and never a number. A
+    // competent medic (or yourself) can say which band a body sits in;
+    // a novice sees the body-condition line above and nothing more. The
+    // BMI itself is derived on the body (`Creature.bodyMassIndexBand`)
+    // and rendered nowhere.
+    if ((medBand === 'competent' || precise) && target instanceof Creature) {
+      const who = isSelf ? 'You are' : `${target.getPresentation()} is`;
+      blocks.push(
+        Mml.fromMarkup(
+          `${Mml.escape(who)} ${Mml.escape(BMI_PHRASE[target.bodyMassIndexBand()])}.`
+        ).toString(),
+      );
+    }
 
     // The dying readout. Competence buys INFORMATION, never outcomes: a
     // novice can tell that someone is going, a competent one can name what

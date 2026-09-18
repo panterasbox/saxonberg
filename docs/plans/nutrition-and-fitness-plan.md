@@ -380,6 +380,8 @@ The build phrase table (person register; the reviewer's test is that adjacent ce
 
 **Commit.** `build(nutrition-fitness W3): the mirror — a body line on look, the band in words on assess, the stockman's read untouched`
 
+**✅ Done** (`build(nutrition-fitness W3)`). Notes: (1) the augmenter narrows `host instanceof Creature` (the file already imports it) for the `bodyBuildPhrase` type, not to re-narrow the host set — the class static only ever reaches a `Character`; (2) the assess line reads *"You are of a healthy weight."* / *"<name> is heavily overweight."* — the four phrases are in `BMI_PHRASE` above the class; (3) the stockman golden lives in the ranching pack (`trade-ranching/src/__tests__/stockman-read.test.ts`) as a permanent contract and pins the ACTUAL shipped string (the handling half reads *"it gives ground as you come up…"*, not the *"difficult to handle"* the plan guessed); (4) the five-room `look` regression is the drive's job (W7) — a unit test proves the host set, not the world.
+
 ### W4 — the fruit, the loaves, the counter
 
 **Goal.** The citrus carries its vitamin; wholemeal and white read differently on the label; a person can buy an orange.

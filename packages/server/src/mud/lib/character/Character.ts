@@ -56,7 +56,9 @@ import { CombatantMixin } from '../combat/Combatant';
 import { HidingMixin } from '../concealment/Hiding';
 import type { FieldMeta } from '../mixin';
 import type { CombatHookContext } from '../combat/CombatHookContext';
+import type { Stuff } from '../stuff/Stuff';
 import { MixinApi } from '../../api/mixin';
+import type { MarkupAugmenter } from '../../api/mml';
 
 // Compose the agency mixins on top of the Creature body layer.
 // Order matters:
@@ -131,6 +133,32 @@ const CharacterBase = AdvancementMixin(
 );
 
 /**
+ * ⭐⭐ **The mirror** — the body line `look <person>` prints.
+ *
+ * `Creature.bodyBuildPhrase()` is flesh × lean in the person register
+ * (*wiry*, *in good flesh*, *running to fat*); this appends it as one
+ * sentence about a body, naming nobody. It is a static on the
+ * `Character` CLASS, not on a Creature-level mixin, because
+ * `getAllMarkupAugmenters` walks constructors with `hasOwnProperty` —
+ * so it reaches every person (PC and NPC) and **no animal**
+ * (`Livestock`, `KeptAnimal` extend `Creature`), which is exactly the
+ * host set: the stockman's read on an animal is byte-identical to what
+ * it was. No guard re-narrows anything.
+ *
+ * ⚠ One culture's vocabulary today. The cosmetics slate's *Beauty*
+ * section names this as the attach point a per-culture canon replaces;
+ * the shape (facts in, a described line out) does not change.
+ */
+function bodyAugmenter(text: string, host: Stuff, _viewer: Stuff): string {
+  if (!(host instanceof Creature)) return text;
+  if (host.isDestroyed()) return text;
+  if (!host.hasReserve('flesh')) return text;
+  const phrase = host.bodyBuildPhrase();
+  const line = `${phrase.charAt(0).toUpperCase()}${phrase.slice(1)}.`;
+  return text && text.length > 0 ? `${text}\n\n${line}` : line;
+}
+
+/**
  * Character abstract class - base for all sentient beings.
  *
  * Type checking should use TypeScript's type system:
@@ -139,6 +167,9 @@ const CharacterBase = AdvancementMixin(
  * - `npc instanceof NPC` - check if NPC (when we implement NPCs)
  */
 export abstract class Character extends CharacterBase {
+  /** The body line on `look` — see {@link bodyAugmenter}. People only. */
+  static markupAugmenters: MarkupAugmenter[] = [bodyAugmenter];
+
   /**
    * Domicile — the address-namespace string (an identity ref) of this
    * character's home, or `null` when none was ever established. The
