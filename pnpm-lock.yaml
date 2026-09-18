@@ -98,6 +98,9 @@ importers:
       '@saxonberg/content-trade-farming':
         specifier: workspace:*
         version: link:packages/content/trade-farming
+      '@saxonberg/content-trade-fishing':
+        specifier: workspace:*
+        version: link:packages/content/trade-fishing
       '@saxonberg/content-trade-fuel':
         specifier: workspace:*
         version: link:packages/content/trade-fuel
