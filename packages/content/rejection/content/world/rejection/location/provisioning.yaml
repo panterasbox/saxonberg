@@ -12,6 +12,12 @@ data:
   shortDescription: provisioning shed
   keywords: [provisioning, stores, shop, shed]
   register: definite
+  # Daylight, authored against THIS room's cell: lux = lumens / cellSize²,
+  # and at Rejection's 10 m cells `dim` needs 500 lm, `lit` 2000, `bright`
+  # 6000 — an interior with the door open and a lamp. No row here authored a value before the forestry build,
+  # and every object read "something".
+  ambientIntensity: 2500
+  ambientColorTemperature: 3200
   longDescription: |
     Tool wall on the left — picks, bars, shovels, sledges, all hung by the eye and all second-hand. Timber stacked to the roof on the right, cut to length and smelling of sap. Between them a counter, and on the counter a rank of stoppered jars with a soft green light in them.
 

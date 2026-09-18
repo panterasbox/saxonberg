@@ -17,7 +17,11 @@ data:
   alternateNames: [entrance, road, weighbridge, lodge]
   _address: terminus/rejection/road/yard-gate
   _biomePath: /stuff/idea/biome/outdoor/baseline
-  ambientIntensity: 540
+  # ⚠ Lux is lumens over the cell's AREA, and this zone's cells are 20 m:
+  # the shipped 520–700 lm read as 1.5 lux — very-dim, by the light
+  # model's own arithmetic, on an open road in daylight. 24000 lm is 60
+  # lux over 400 m²: bright, which is what a road under the sun is.
+  ambientIntensity: 24000
   ambientColorTemperature: 5700
   longDescription: |
     A gateway in a wall of dressed spoil-stone, wide enough for two carts abreast and standing open. There is a lodge beside it with a window at cart-driver height and a slate in the window, and set into the ground under the gateway is an iron plate the size of a door with a slot round it.

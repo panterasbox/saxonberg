@@ -1,0 +1,40 @@
+# Hazel — the coppice wood. Light, fast-grown, and it chars well.
+#
+# What makes it so is not one number but the tree: cut to the ground it
+# throws a dozen straight poles from the stool and is cuttable again a
+# year later. Cordwood is hazel; charcoal is hazel; a hurdle is hazel.
+# Lower density than oak (`FireApi` reads `heatOfCombustion` per kg, so a
+# length of hazel gives what a length of oak gives, and there are more
+# of them), a little easier to light.
+#
+# Which substrate reads which number: `density` → the mass a bole and a
+# length of timber are minted at (forestry's `fell`); `hardness` /
+# `toughness` → materials-response (a haft, a waster, a bow);
+# `waterAbsorptionCapacity` → wetness; `autoignitionTemperature` +
+# `heatOfCombustion` → the fire driver (a log in a hearth, a charge in a
+# clamp); `thermalConductivity` / `specificHeat` → thermal.
+# `biologicalSource` names the tree; the species row names its LIVING
+# material (plant tissue) — the wood is what is left when it is felled.
+class: /platform/idea/material/Material
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  name: hazel
+  keywords: [hazel]
+  density: 620
+  specificHeat: 2000
+  thermalConductivity: 0.15
+  electricalConductivity: 1.0e-4
+  waterAbsorptionCapacity: 32
+  autoignitionTemperature: 560
+  heatOfCombustion: 16
+  hardness: 26
+  toughness: 55
+  edibility: false
+  nutrients: ["cellulose"]
+  toxicity: []
+  tags: ["wood", "mixture", "organic", "flammable", "once-living"]
+  composition: []
+  chemistry: null
+  biologicalSource:
+    speciesPath: /stuff/idea/species/plantae/tracheophyta/magnoliopsida/fagales/betulaceae/corylus/avellana
+    tissueType: wood

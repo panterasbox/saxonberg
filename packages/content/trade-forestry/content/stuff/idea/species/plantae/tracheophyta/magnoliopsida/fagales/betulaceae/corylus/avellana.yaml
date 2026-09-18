@@ -1,0 +1,27 @@
+# Corylus avellana — hazel, and the coppice species.
+#
+# ⭐ It ships in the FORESTRY trade because coppicing is what the
+# coppice IS: a hazel cut to the ground does not die, it throws a dozen
+# new poles from the stool and is cuttable again. That is the whole
+# economics of charcoal before coal — a renewable crop of wood on a
+# rotation, worked by people who never planted a tree. The rotation
+# itself is on the stool row (`/trade/forestry/thing/hazel-stool` —
+# one game year, the shipped polycarp cycle); cordwood is hazel, and
+# `/stuff/idea/material/wood/hazel` is what a length of it is made of.
+class: /platform/idea/species/Species
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  binomial: Corylus avellana
+  commonNames: ["hazel", "coppice hazel", "nut tree"]
+  _bodyPlanPath: /stuff/idea/species/BodyPlan/sessile
+  _parentCladePath: /stuff/idea/species/plantae
+  # The LIVING organism's material; the wood is the material row's fact
+  # (`/stuff/idea/material/wood/hazel` → `biologicalSource` → this row).
+  _defaultMaterialPath: /stuff/idea/material/tissue/plant-tissue
+  lifecycleStates: ["alive", "dead"]
+  sexDeterminationSystem: monoecious
+  reproductiveMode: sexual
+  lifespanMin: 0
+  lifespanMax: 80
+  circadianBand: aperiodic
+  diet: photosynthesis

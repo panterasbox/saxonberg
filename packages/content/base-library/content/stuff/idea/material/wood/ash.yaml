@@ -1,0 +1,39 @@
+# Ash — the toughest common timber. Flammable, opaque, organic.
+#
+# The number that makes it so is TOUGHNESS: ash absorbs a blow without
+# splitting, which is why every axe haft, every hammer handle and every
+# cart shaft is ash. The materials-response grid reads `toughness` on
+# delivery — an ash haft bends where oak splinters. The same tree
+# coppices well and burns green.
+#
+# Which substrate reads which number: `density` → the mass a bole and a
+# length of timber are minted at (forestry's `fell`); `hardness` /
+# `toughness` → materials-response (a haft, a waster, a bow);
+# `waterAbsorptionCapacity` → wetness; `autoignitionTemperature` +
+# `heatOfCombustion` → the fire driver (a log in a hearth, a charge in a
+# clamp); `thermalConductivity` / `specificHeat` → thermal.
+# `biologicalSource` names the tree; the species row names its LIVING
+# material (plant tissue) — the wood is what is left when it is felled.
+class: /platform/idea/material/Material
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  name: ash
+  keywords: [ash]
+  density: 690
+  specificHeat: 2000
+  thermalConductivity: 0.16
+  electricalConductivity: 1.0e-4
+  waterAbsorptionCapacity: 30
+  autoignitionTemperature: 570
+  heatOfCombustion: 16
+  hardness: 36
+  toughness: 95
+  edibility: false
+  nutrients: ["cellulose"]
+  toxicity: []
+  tags: ["wood", "mixture", "organic", "flammable", "once-living"]
+  composition: []
+  chemistry: null
+  biologicalSource:
+    speciesPath: /stuff/idea/species/plantae/tracheophyta/magnoliopsida/lamiales/oleaceae/fraxinus/excelsior
+    tissueType: wood

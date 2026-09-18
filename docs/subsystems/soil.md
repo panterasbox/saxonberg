@@ -31,7 +31,7 @@ whole placement decision:**
 
 | | consumers | home |
 |---|---|---|
-| **derived** — moisture, nitrogen, organic matter, structure; the reconcile; the sky edge | `GardenBed`, `PlantPot` **and** `Field` | **kernel** |
+| **derived** — moisture, nitrogen, organic matter, structure; the reconcile; the sky edge | `GardenBed`, `PlantPot`, `Field` **and** the forestry `Wood` (a location that is ground: reserves installed from its area, the stand as its drinker — [forestry.md](./forestry.md)) | **kernel** |
 | **seeded** — texture, drainage, aspect, depth, stoniness, native pH | **only `Field`** | **`trade-farming`** |
 
 A bed's soil is *imported* (D65), so a bed has no ground character; a pot

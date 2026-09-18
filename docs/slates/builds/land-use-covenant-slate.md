@@ -25,7 +25,7 @@ as content — the designation tier lives there),
 [enforcement-slate](./enforcement-slate.md) +
 [policing-slate](./policing-slate.md) (who writes the breach up),
 [instrumentation-slate](./instrumentation-slate.md) (*you are as good as
-your toolkit* — the instrument as the unit), [forestry-slate](./forestry-slate.md)
+your toolkit* — the instrument as the unit), [forestry-slate](../tails/forestry-slate.md)
 (the forcing case: one wood by hand, another by engine),
 [hunting-slate](./hunting-slate.md) (close seasons are a covenant on
 TIME — the same shape), [logistics-slate](./logistics-slate.md) (wheels

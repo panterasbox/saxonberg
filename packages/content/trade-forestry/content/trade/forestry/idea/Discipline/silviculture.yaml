@@ -1,0 +1,27 @@
+# Silviculture — growing and cutting trees, and the Discipline the
+# forestry trade's three acts exercise: `fell` (a standard, or a
+# cross-cut off the bole), `harvest` of a coppice stool (the stool row
+# says so), and `plant` of a standard (the sapling row says so).
+#
+# ⭐ A Discipline is a FIELD OF STUDY, not a job title. ISCED-F 0821
+# (forestry) sits under 08 agriculture, forestry and fisheries, which is
+# why it specializes `agriculture` — the same parent horticulture has.
+# A sibling of `colliery` (0722 — the collier CHARS wood) and of `mining`
+# (0724 — the hewer cuts rock): different fields, different codes.
+class: /platform/idea/Discipline
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  key: silviculture
+  channel: skill
+  label: Silviculture
+  iscedf: "0821"  # ISCED-F 2013: forestry
+  specializes:
+    - agriculture
+  description: >-
+    Growing and cutting trees. Reading a stand for what it will carry
+    and what it will give, felling a standard so it comes down where
+    you meant it to, cross-cutting a bole into lengths a mine can use,
+    cutting a coppice on its rotation and not before, and planting the
+    tree that somebody else will fell. Improves by doing, and a wood is
+    a slow and unforgiving marker.
+  requires: []

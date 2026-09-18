@@ -1,0 +1,22 @@
+# Taxus baccata — the yew. The longbow's wood and nothing else's; the
+# churchyard tree; two thousand years old and still setting arils.
+# Dioecious. ⚠ Every part but the aril is poisonous (taxine) — that is a
+# fact for the physiology build and the ranching pack's browse, not for
+# the wood. In the vocabulary for the wood it yields.
+class: /platform/idea/species/Species
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  binomial: Taxus baccata
+  commonNames: ["yew", "English yew"]
+  _bodyPlanPath: /stuff/idea/species/BodyPlan/sessile
+  _parentCladePath: /stuff/idea/species/plantae
+  # The LIVING organism's material; the wood is the material row's fact
+  # (`/stuff/idea/material/wood/yew` → `biologicalSource` → this row).
+  _defaultMaterialPath: /stuff/idea/material/tissue/plant-tissue
+  lifecycleStates: ["alive", "dead"]
+  sexDeterminationSystem: dioecious
+  reproductiveMode: sexual
+  lifespanMin: 0
+  lifespanMax: 2000
+  circadianBand: aperiodic
+  diet: photosynthesis

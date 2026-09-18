@@ -200,7 +200,11 @@ itself up whatever it is cut in); the hardness term above it says *granite
 is better than slate*. Support is a **sum over the timber sets actually
 standing in the room**, condition-weighted — so ground support rides the
 shipped repair economy rather than a flag, and a mine that runs out of
-timber has a supply problem.
+timber has a supply problem. ⭐ Since the forestry build the supply has a
+source: a felled standard's bole is cross-cut into lengths of green
+timber that satisfy the `timber-set` recipe's `wood` slot
+([forestry.md](./forestry.md)) — though the recipe still has no by-hand
+path (no vessel, no anvil), so the set itself is bought until sawing.
 
 ⭐ **`shore` is the mine's provisioning act.** It promotes a cell from
 Provisional to Held and writes the record in the same breath, so *"a

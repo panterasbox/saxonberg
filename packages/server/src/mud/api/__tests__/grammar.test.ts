@@ -225,3 +225,24 @@ describe('GrammarApi.tokenize', () => {
     expect(GrammarApi.tokenize('  a an the ')).toEqual([]);
   });
 });
+
+describe('GrammarApi.inWords — a count a player reads, never a gauge', () => {
+  it('spells whole numbers', () => {
+    expect(GrammarApi.inWords(0)).toBe('zero');
+    expect(GrammarApi.inWords(8)).toBe('eight');
+    expect(GrammarApi.inWords(12)).toBe('twelve');
+    expect(GrammarApi.inWords(20)).toBe('twenty');
+    expect(GrammarApi.inWords(24)).toBe('twenty-four');
+    expect(GrammarApi.inWords(100)).toBe('one hundred');
+    expect(GrammarApi.inWords(340)).toBe('three hundred and forty');
+    expect(GrammarApi.inWords(360)).toBe('three hundred and sixty');
+    expect(GrammarApi.inWords(1000)).toBe('one thousand');
+    expect(GrammarApi.inWords(1024)).toBe('one thousand and twenty-four');
+    expect(GrammarApi.inWords(5400)).toBe('five thousand, four hundred');
+  });
+  it('falls back to digits for what it will not invent words for', () => {
+    expect(GrammarApi.inWords(2.5)).toBe('2.5');
+    expect(GrammarApi.inWords(-3)).toBe('-3');
+    expect(GrammarApi.inWords(1_000_000)).toBe('1000000');
+  });
+});

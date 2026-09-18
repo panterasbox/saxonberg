@@ -63,6 +63,7 @@ const PlantBase = PersistableMixin(
 export default class Plant extends PlantBase {
   static fieldMeta: FieldMeta = {
     seedTemplatePath: { persistent: true, authorable: true },
+    standardMaterialPath: { persistent: true, authorable: true },
   };
 
   /**
@@ -77,6 +78,23 @@ export default class Plant extends PlantBase {
 
   public setSeedTemplatePath(value: string | null): void {
     this.seedTemplatePath = value;
+  }
+
+  /**
+   * The wood a FELLED one of these is made of — `/stuff/idea/material/wood/…`
+   * — when no stand answers for it (a standard planted in a panel whose
+   * room is not a wood). Null for anything that is not a standard: a
+   * carrot is harvested, never felled. Read by the forestry trade's
+   * `fell`; the plant's own `_materialPath` stays the living tissue.
+   */
+  public standardMaterialPath: string | null = null;
+
+  public getStandardMaterialPath(): string | null {
+    return this.standardMaterialPath;
+  }
+
+  public setStandardMaterialPath(value: string | null): void {
+    this.standardMaterialPath = value;
   }
 
   /**
