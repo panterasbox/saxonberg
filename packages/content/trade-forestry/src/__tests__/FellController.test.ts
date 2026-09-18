@@ -285,6 +285,31 @@ describe('fell', () => {
       expect(JSON.stringify(giver.received)).toMatch(/too much for any one back/);
     });
 
+    it('⭐ `fell oak` with an oak LOG bound off the floor still fells the TREE (the word wins when the stand knows it)', async () => {
+      // Found by the drive: after the first felling, the binder matched
+      // `oak` to a log lying in the clearing (materials match), and the
+      // second `fell oak` refused `not-a-tree`.
+      const { giver, room } = scene();
+      const axe = makeAxe();
+      ContainmentApi.move(axe, giver);
+      const log = makeStuffAtPath(() => {
+        const l = new Firewood();
+        l.setShortDescription('log');
+        l.setMaterial(wood);
+        return l;
+      }, fresh('/trade/forestry/thing/log'));
+      ContainmentApi.move(log, room);
+      const c = ctx(giver, room);
+      await makeStuff(() => new FellController()).execute(model(one(log, 'oak'), one(axe, 'axe')), c);
+      await settle();
+      expect(reasons(c)).not.toContain('not-a-tree');
+      expect(room.standingNow(room.getMix()[0]!)).toBe(7);
+      // …but a bound thing with a word the stand does NOT know is refused.
+      const c2 = ctx(giver, room);
+      await makeStuff(() => new FellController()).execute(model(one(log, 'log'), one(axe, 'axe')), c2);
+      expect(reasons(c2)).toContain('not-a-tree');
+    });
+
     it('bare `fell` takes the thickest species', async () => {
       const { giver, room } = scene();
       const axe = makeAxe();

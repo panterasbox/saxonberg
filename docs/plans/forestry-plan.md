@@ -1744,6 +1744,15 @@ report; then **`pnpm test` once**; push; open the MR.
 **Commit.** `build(forestry W6): the wire drive, and forestry.md` then
 `drive(forestry): <what driving found>`.
 
+> ✅ **W6 done (2026-09-17).** `forestry.dirty.wire.test.ts` walks the
+> requirements' drive 1–13 as two sessions (the coppicer in the yard,
+> the forester in the wood) — 15/15 on a fresh owned world; the true
+> restart hand-run (§ Drive record). `forestry.md` opens with the four
+> representations. Step 8's `make timber set` is recorded as a
+> pre-existing gap (no by-hand path for a tangible recipe with no vessel
+> and no anvil — the mine has always BOUGHT its sets); the timber →
+> slot claim is pinned structurally in `wood-vocabulary.test.ts`.
+
 ---
 
 ## Reachability wiring
@@ -2057,4 +2066,68 @@ Read first, in this order:
 
 ## Drive record
 
-*(appended at build time, not at plan time)*
+**2026-09-17, `packages/wire/tests/forestry.dirty.wire.test.ts`, owned
+world on 2012 against a freshly dropped `saxonberg_build1` (cold boot
+~250 s). Final run: 15/15.** Three runs to get there; what each found:
+
+| run | result | what it found |
+|---|---|---|
+| W2 (yard slice, steps 1–4) | 1/5 → 5/5 | `look cordwood` with eight in hand PROMPTS which one and the wire `cmd()` times out; `look first cordwood` is not a `look` shape though `mql-grammar.md` lists the ordinal words — the `x:[1]` form works (both for the sweep, not this build). `panel:i:[keyword.stool]` as a bareword seed binds nothing; `here:i:panel:i` does. |
+| W6 run 1 (all 13) | 9/13 | **(a)** step 9: two lengths of timber (48 kg) + a log exceeded the carry ceiling — `get log` refused `too-heavy-to-lift` ×4; the drive now drops the timber at the mine (the point). **(b)** step 12: after the first felling the binder matched `oak` to an oak LOG on the floor (materials match) and the second `fell oak` refused `not-a-tree` → `FellController` lets the species word win when the stand knows it (unit case added). (c) step 13 cascaded. |
+| W6 run 2 | 13/15 | step 12 asserted the "nothing stands" line while the ASH still stood — the stands are per species; the drive now fells the ash out too (4 more) before reading the empty line. |
+| W6 run 3 | **15/15** | — |
+
+**Found by hand between runs (all fixed, all with a unit case or a row):**
+- `plant acorn in panel` → *"has no soil in it. Pour some in first."* —
+  the shipped coppice panel authored `interiorCapacity` and no
+  `interiorAmount`; a PRE-EXISTING defect nothing could reach until an
+  acorn existed. All three panels ship full of earth.
+- **A bole and its logs did NOT survive a cold restart** though the
+  stand's cut did: a stamped good minted onto a floor had no `place`
+  (only `drop`/`put`/`get` call `followCustody`), so the room's capture
+  skipped it (a player's good is the owner's to persist) and the room's
+  overlay found no row for it. `stamp()` now follows custody. Verified:
+  a felled ash's trunk and four logs are on the ride after `dev:clean`
+  + a fresh process.
+- `fell trees` → *"No trees stands here."* → *"Nothing called 'trees'
+  stands here."*
+- The bole's keywords included `log` and `timber`, so `get log` strained
+  at the trunk (correctly refusing by mass, but noisily). Dropped.
+
+**The true restart (Risk 3), by hand, 2026-09-17 22:5x:** after run 3
+(the wire world shut down), `pnpm dev:server` on the same DB, a fresh
+character: the ride reads *seven* oaks (the drive felled one) — the oak
+clearing reads *"Nothing stands here that is worth the axe — stumps,
+brash, and the saplings somebody planted. An oak sapling, planted by
+wire-forester-… on the 1st day of the 1st year."* — the hazel cant's
+panel reads *"Some of the stools are cut to the stool and regrowing… a
+year, near enough"* — the yard's panel reads *"The stools are cut to the
+stool and regrowing…"* with six stools in it. Nothing reset, nothing
+converted. (Before the `followCustody` fix the driven boles were gone
+after this restart; after it a freshly felled ash's bole and logs
+survived a second cold restart on the ride floor.)
+
+**Pre-existing findings for the sweep / the owning trades (not this
+build's):** `make timber set` — *"work it by hand first"* and no by-hand
+path exists for a tangible recipe with no vessel and no anvil (the metal
+chain's; the set was always bought); `look` renders no light band word
+(perception's, not prose's); *"You're shivering."* on every outdoor
+arrival in Rejection (the baseline biome's temperature, seen in the yard
+before this build); every pack `lib/` file is reported *"dead code in a
+pack"* at boot (`reportUnreferencedClasses` counts `src/lib/`, so
+`ManaPowered`, `FastTravel`, `Staling`, `Vehicular`, `Working`,
+`Handled` and now `Stand` all warn — a reporter finding).
+
+**The five reachability links, checked by hand after W5:** `fell` in
+the afforded commands on the ride (the `inventory` bucket — the unit
+test) and NOT on the treeline (`unknown-verb` on the wire); the stand
+line on `look`; `harvest panel` afforded in the cant; `plant acorn in
+panel` not refused by the land-use gate (`agricultural`); the restart
+above. Arg gates: `target` `requires: any`, `axe` `ToolMixin`,
+`harvest.yaml` `tool` `ToolMixin` — the binder tests.
+
+Requirements deviations, stated: AC 3/7 per CLEARING (three stands, the
+wood their sum); AC 4 *less if cut sooner* = refused until ripe; AC 5
+*the set can be made* = the timber satisfies the recipe's slot and
+`shore` works with a bought set (the by-hand path is the seam); AC 6
+fifteen game years stated, not observed.

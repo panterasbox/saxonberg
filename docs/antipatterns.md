@@ -4563,9 +4563,9 @@ proposed, not built.
 to be a crop.
 
 ```yaml
-# BAD — the fuel yard, as shipped
+# BAD — the fuel yard, as first shipped
 props:
-  - /trade/fuel/thing/hazel-stool     # a Plant with harvestTemplatePath
+  - /trade/forestry/thing/hazel-stool     # a Plant with harvestTemplatePath
 ```
 
 `harvest` is contributed by **`CultivableMixin`**, not by `Plant`. A
@@ -4580,20 +4580,25 @@ baskets were the realm's entire fuel economy as a result.
 the starter pot's shipped shape):
 
 ```yaml
-# GOOD — /trade/fuel/thing/coppice-panel, a GardenBed with six slots
+# GOOD — /world/rejection/thing/fuel-yard-panel, a forestry Panel with eight slots
 props:
-  - /trade/fuel/thing/hazel-stool
-  - /trade/fuel/thing/hazel-stool
+  - /trade/forestry/thing/hazel-stool
+  - /trade/forestry/thing/hazel-stool
   …
 ```
 
 and prop the *panel* in the room. The growth model only reaches a plant
 through ground; a plant on the floor is scenery that lies.
 
-⚠ Two things this does NOT fix, and where they live: nothing in the game
-authors a **grown** plant (`growthStage` is persistent, not authorable,
-and zero rows set it), and the hazel rotation is uncompressed. Both are
-`forestry-slate.md § What the metallurgy drive handed over`.
+⚠ And the ground must SHIP FULL: a bed row that authors
+`interiorCapacity` and no `interiorAmount` refuses `plant` with *"has no
+soil in it. Pour some in first."* — the coppice panel shipped that way
+and nothing could reach it until an acorn existed (forestry, found by
+planting one live). The two things the first version left open — a
+**grown** plant is authored by hydrating `growthStage` and the ripe
+cycle fields (persistent, and the hydrator applies every persistent
+field a row carries), and the rotation is `fruitFillDays: 360` — are
+settled in [forestry.md](./subsystems/forestry.md).
 
 ---
 

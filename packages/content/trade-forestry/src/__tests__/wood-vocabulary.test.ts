@@ -103,4 +103,27 @@ describe('the wood vocabulary — eight woods, eight trees, each naming the othe
     }
     expect(bad).toEqual([]);
   });
+
+  it('⭐ a length of forestry timber is what the mine’s timber-set recipe asks for — by the wood TAG', () => {
+    // The recipe slot says `category: wood, minGrade: poor`; craft-resolve
+    // matches a slot's category against the input material's `category`
+    // OR its `tags` (CraftingLogic), and an ungraded item reads `fair`.
+    // So a plain Thing made of any wood in this vocabulary satisfies it —
+    // no Crafted stamp, no grade, no forestry-specific rule anywhere.
+    const timber = YAML.parse(
+      readFileSync(join(CONTENT, 'trade-forestry', 'content', 'trade', 'forestry', 'thing', 'timber.yaml'), 'utf8'),
+    ) as { class: string; data: { _materialPath: string; gradeBand?: string } };
+    expect(timber.class).toBe('/platform/thing/Thing');
+    expect(timber.data._materialPath).toMatch(/^\/stuff\/idea\/material\/wood\//);
+    expect(timber.data.gradeBand).toBeUndefined();
+    const recipe = YAML.parse(
+      readFileSync(join(CONTENT, 'trade-mining', 'content', 'recipes', 'timber-set.yaml'), 'utf8'),
+    ) as { inputSlots: Array<{ category: string; minGrade: string; count: number }>; toolCapabilities: string[] };
+    expect(recipe.inputSlots[0]).toMatchObject({ category: 'wood', minGrade: 'poor', count: 2 });
+    expect(recipe.toolCapabilities).toEqual(['cutting']); // the felling axe offers it
+    for (const wood of EIGHT) {
+      const doc = YAML.parse(readFileSync(join(WOOD_DIR, `${wood}.yaml`), 'utf8')) as { data: { tags: string[] } };
+      expect(doc.data.tags, wood).toContain('wood');
+    }
+  });
 });

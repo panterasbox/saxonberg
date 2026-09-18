@@ -21,6 +21,7 @@ import {
   declareFile,
   uniqueHandle,
   expectOk,
+  expectOkOr,
   expectNote,
   engagementIdOf,
 } from '../src/harness';
@@ -56,6 +57,39 @@ declareFile({
 
 const FUEL_YARD = '/world/rejection/location/fuel-yard';
 const HAZEL = '/stuff/idea/material/wood/hazel';
+const OAK = '/stuff/idea/material/wood/oak';
+const RIDE = '/world/rejection/hanging-wood/ride';
+
+/** Walk a route, failing loudly on the step that does not exist. */
+async function walk(s: Session, route: readonly string[]): Promise<void> {
+  for (const dir of route) {
+    const moved = await s.cmd(dir);
+    expect(
+      moved.notes.find((n) => n.kind === 'command-rejected'),
+      `'${dir}' is not a way out of here`,
+    ).toBeUndefined();
+  }
+  await s.drainProse();
+}
+
+/** Run an engaged act to its completion frame. */
+async function act(s: Session, line: string): Promise<void> {
+  const started = await s.cmd(line);
+  expectOk(started);
+  await s.awaitActivity(engagementIdOf(started), 60_000);
+  await s.drainProse();
+}
+
+/** The whole-number count a stand line reads for `species`, in words → number. */
+function standCount(prose: string, species: string): number | null {
+  const m = prose.match(new RegExp(`${species}[^.]*?about ([a-z-]+) trees' worth`, 'i'));
+  if (!m) return prose.match(new RegExp(`${species}[^.]*?one tree's worth`, 'i')) ? 1 : null;
+  return WORDS[m[1]!] ?? null;
+}
+const WORDS: Record<string, number> = {
+  one: 1, two: 2, three: 3, four: 4, five: 5, six: 6, seven: 7, eight: 8, nine: 9, ten: 10,
+  eleven: 11, twelve: 12, thirteen: 13, fourteen: 14,
+};
 
 type MaterialSummary = { templatePath?: string; name?: string } | null;
 async function materialOf(s: Session, query: string): Promise<MaterialSummary> {
@@ -128,4 +162,182 @@ suite('⭐ the fuel yard — the coppice is ready, and it is hazel', () => {
     expectOk(burn);
     expect(engagementIdOf(burn)).toBeTruthy();
   }, 120_000);
+});
+
+/* ────────────────────── 5–13: the Hanging Wood ────────────────────── */
+
+suite('⭐⭐ the Hanging Wood — a place that is a stand', () => {
+  let f: Session;
+  let clearingProse = '';
+  beforeAll(async () => {
+    f = await Session.open(uniqueHandle('forester'), { startLocation: FUEL_YARD });
+    // The instruments come up from the yard. (The coppicer took the
+    // billhook; the axe is still on the ground.)
+    expectOk(await f.cmd('get axe'));
+  }, 120_000);
+  afterAll(() => f?.close());
+
+  it('5. up from the hillside: a new exit leads into the wood; the treeline names its objects and has NO stand line', async () => {
+    await walk(f, ['southwest', 'north', 'north', 'north']);
+    const said = await f.prose('look');
+    expect(said).toMatch(/treeline/i);
+    expect(said).not.toMatch(/\bsomething\b/i);
+    expect(said).toMatch(/smoke/i);
+    // ⚠ The treeline is NOT a Wood — nothing stands here worth the axe,
+    // and the class says so: no reading, and no `fell`.
+    expect(said).not.toMatch(/stands here/);
+    const bare = await f.cmd('fell oak');
+    expectNote(bare, 'command-rejected', { reason: 'unknown-verb' });
+  }, 120_000);
+
+  it('6. the ride: the stand reads species, how much, and that they are old — planted by nobody alive', async () => {
+    await walk(f, ['north']);
+    const said = await f.prose('look');
+    expect(said).toMatch(/main ride/i);
+    expect(said).not.toMatch(/\bsomething\b/i);
+    expect(said).toMatch(/Oak stands here — about eight trees' worth, old, planted by nobody alive\. Ash — about four trees' worth\./);
+    expect(said).not.toMatch(/\b\d+\b trees/);
+    await walk(f, ['north']);
+    const clearing = await f.prose('look');
+    expect(clearing).toMatch(/oak clearing/i);
+    expect(clearing).toMatch(/about twelve trees' worth/);
+    expect(clearing).toMatch(/Ash — about four trees' worth/);
+    // Remember the authored paragraph — step 12 asserts it never changes.
+    clearingProse = clearing.split('Oak stands here')[0]!;
+    expect(clearingProse.length).toBeGreaterThan(200);
+    await walk(f, ['south']);
+  }, 120_000);
+
+  it('7. ⭐⭐ `fell oak` — an engaged act; the TRUNK on the ground, too heavy to lift; logs; an acorn in hand; the stand smaller by one', async () => {
+    await act(f, 'fell oak with axe');
+    const bole = await f.queryOne('here:i:[keyword.bole]', ['bulkMaterial', 'mass']);
+    expect(bole, 'no bole on the floor').not.toBeNull();
+    expect((bole as { bulkMaterial?: { templatePath?: string } }).bulkMaterial?.templatePath).toBe(OAK);
+    expect((bole as { mass?: { value: number } }).mass?.value).toBe(675);
+    const logs = await f.query('here:i:[keyword.log]');
+    expect(logs).toHaveLength(4);
+    const acorn = await f.query('me:i:[keyword.acorn]');
+    expect(acorn).toHaveLength(1);
+    const said = await f.prose('look');
+    expect(standCount(said, 'Oak')).toBe(7);
+    // Too much for any one back — a mass gate, never a flag.
+    const lift = await f.cmd('get bole');
+    expectNote(lift, 'controller-rejected', { reason: 'too-heavy-to-lift' });
+  }, 180_000);
+
+  it('…and cross-cutting: `fell bole` yields a length of green oak timber and the bole says what is left', async () => {
+    await act(f, 'fell bole');
+    await act(f, 'fell bole');
+    const timber = await f.query('me:i:[keyword.timber]', { fields: ['bulkMaterial', 'mass'] });
+    expect(timber).toHaveLength(2);
+    expect((timber[0] as { bulkMaterial?: { templatePath?: string } }).bulkMaterial?.templatePath).toBe(OAK);
+    expect((timber[0] as { mass?: { value: number } }).mass?.value).toBe(24);
+    const said = await f.prose('look bole');
+    expect(said).toMatch(/Four lengths in it yet\./);
+  }, 180_000);
+
+  it('8. carry the timber down to the mine and `shore` — the mine is a customer', async () => {
+    /*
+     * ⚠ FINDING (pre-existing, the metal chain's): the timber-set RECIPE
+     * exists and this timber satisfies its slot (`wood`, ungraded reads
+     * fair — pinned in wood-vocabulary.test.ts), but no by-hand path
+     * mints a tangible recipe with no vessel and no anvil: `make timber
+     * set` answers *"work it by hand first"* and there is nothing to
+     * work it with. The mine has always BOUGHT its sets. So what is
+     * driven is the carry and the mine's own act; the set-from-timber is
+     * the sawing build's seam.
+     */
+    await walk(f, ['south', 'south', 'southwest', 'south', 'south', 'south', 'west']);
+    const here = await f.queryOne('here', ['displayName']);
+    expect(String((here as { displayName?: string })?.displayName)).toMatch(/drift/i);
+    const carried = await f.query('me:i:[keyword.timber]');
+    expect(carried).toHaveLength(2);
+    const shored = await f.cmd('shore');
+    expect(await shored.said()).toMatch(/timber/i);
+    // The timber stays at the mine — and two lengths plus a log is more
+    // than a body carries (the load ceiling is real, and it bit here).
+    expectOk(await f.cmd('drop timber'));
+  }, 180_000);
+
+  it('9. a log from the same tree LIGHTS beside a fire — the smelter’s furnace affords it', async () => {
+    // Back up for a log (the crown's are on the ride floor), then to the
+    // smelter: `ignite` is afforded by a fire appliance, and a Firewood
+    // reads its ignition off its Material, which the mint stamped oak.
+    await walk(f, ['east', 'north', 'north', 'north', 'north', 'north', 'north']);
+    expectOk(await f.cmd('get log'));
+    await walk(f, ['south', 'south', 'southwest', 'south', 'northeast', 'east']);
+    const here = await f.queryOne('here', ['displayName']);
+    expect(String((here as { displayName?: string })?.displayName)).toMatch(/smelter/i);
+    const lit = await f.cmd('ignite log');
+    expectOkOr(lit, 'already-burning');
+  }, 240_000);
+
+  it('10. a panel in the wood: cut it too, with the billhook off the yard floor… which is gone — the coppicer has it', async () => {
+    // ⚠ One billhook in the realm, and the coppicer carried it off in
+    // step 3 — which is the honest state of the yard, not a test gap.
+    // The wood's OWN panel is cut with the felling axe (`cutting` is
+    // one of its capabilities: it takes a stool off, badly).
+    await walk(f, ['west', 'southwest', 'north', 'north', 'north', 'north', 'west']);
+    const said = await f.prose('look');
+    expect(said).toMatch(/hazel cant/i);
+    expect(standCount(said, 'Oak')).toBe(4);
+    expect(standCount(said, 'Ash')).toBe(4);
+    expect(await f.prose('look panel')).toMatch(/The stools are ready to cut\./);
+    expectOk(await f.cmd('harvest panel with axe'));
+    const lengths = await f.query('me:i:[keyword.cordwood]');
+    expect(lengths).toHaveLength(8);
+    expect(await f.prose('look panel')).toMatch(/cut to the stool and regrowing/);
+  }, 180_000);
+
+  it('11. ⭐ `plant acorn in panel`: the stand records the sapling, your name and the game day; the chronicle shows the deed', async () => {
+    await walk(f, ['east', 'north']);
+    expectOk(await f.cmd('plant acorn in panel'));
+    const said = await f.prose('look');
+    expect(said).toMatch(new RegExp(`An oak sapling, planted by ${f.handle} on the \\d+(st|nd|rd|th) day of the \\d+(st|nd|rd|th) year\\.`));
+    const chronicle = await f.prose('chronicle');
+    expect(chronicle).toMatch(/planted an oak sapling in the oak clearing/);
+    // Fifteen game years is stated, not promised: a seedling is not a tree.
+    const early = await f.cmd('fell sapling');
+    expectNote(early, 'controller-rejected', { reason: 'not-yet-a-tree' });
+  }, 120_000);
+
+  it('12. ⭐⭐ run it out: fell until the clearing refuses in words about the wood; the prose is byte-identical; the ride is untouched', async () => {
+    for (let i = 0; i < 12; i += 1) await act(f, 'fell oak with axe');
+    const refused = await f.cmd('fell oak with axe');
+    expectNote(refused, 'controller-rejected', { reason: 'stand-empty' });
+    expect(await refused.said()).toMatch(/nothing left here that is worth the axe/i);
+    // The ash still stands — the stands are per SPECIES…
+    let said = await f.prose('look');
+    expect(said).not.toMatch(/Oak stands here/);
+    expect(standCount(said, 'Ash')).toBe(4);
+    // …until it does not.
+    for (let i = 0; i < 4; i += 1) await act(f, 'fell ash with axe');
+    expectNote(await f.cmd('fell ash'), 'controller-rejected', { reason: 'stand-empty' });
+    expectNote(await f.cmd('fell'), 'controller-rejected', { reason: 'stand-empty' });
+    said = await f.prose('look');
+    expect(said).toMatch(/Nothing stands here that is worth the axe — stumps, brash, and the saplings somebody planted\./);
+    expect(said).toMatch(/An oak sapling, planted by/);
+    // …the wood is still the wood: the authored paragraph did not move…
+    expect(said.split(/Nothing stands here/)[0]).toBe(clearingProse);
+    // …and the stands are per CLEARING: the ride's oaks are untouched.
+    await walk(f, ['south']);
+    expect(standCount(await f.prose('look'), 'Oak')).toBe(7);
+  }, 300_000);
+
+  it('13. re-login in the same boot: the clearing is still empty, the sapling still there, the yard panel still regrowing', async () => {
+    /*
+     * ⚠ The harness boots ONE world per run, so the true restart is
+     * asserted by HAND in the plan's drive record (a server restart
+     * between two runs of this file's steps 12→13). What a re-login
+     * proves is that nothing here lived in the session.
+     */
+    f.close();
+    f = await Session.open(uniqueHandle('forester-again'), { startLocation: RIDE });
+    await walk(f, ['north']);
+    const said = await f.prose('look');
+    expect(said).toMatch(/Nothing stands here that is worth the axe/);
+    expect(said).toMatch(/An oak sapling, planted by/);
+    await walk(f, ['south', 'south', 'south', 'southwest', 'south', 'northeast']);
+    expect(await f.prose('look panel')).toMatch(/cut to the stool and regrowing/);
+  }, 180_000);
 });

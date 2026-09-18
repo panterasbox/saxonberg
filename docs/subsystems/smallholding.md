@@ -52,17 +52,18 @@ stays `Containable` — which it must be, because containment is how a thing
 is in a room, and a bed that could not be placed would leave the land-use
 gate nothing to gate.
 
-⭐ **The same class, one more number, is a coppice.**
-`/trade/fuel/thing/coppice-panel` is a `GardenBed` with `capacity: 6`
-and six hazel stools arriving through its own `props:` — the starter
-pot's shape, stretched. It exists because a `Plant` propped on a room's
-floor **affords nothing**: `harvest` is `CultivableMixin`'s, so a crop
-the growth model cannot reach through ground is scenery. Two things the
-panel exposes and does not settle, both filed on `forestry-slate.md`:
-**nothing in the game authors a grown plant** (`growthStage` is
-persistent, not authorable, and zero shipped rows set it — every
-authored plant starts `seedling`, the starter pot's peace lily included),
-and the hazel rotation's `daysToStage.mature: 2500` is ≈208 real days.
+⭐ **The same class, one more number, is a coppice.** The forestry
+trade's `Panel` (`/trade/forestry/thing/Panel` — a `GardenBed` made a
+persistable singleton, so a cut panel stays cut across a restart) has
+`capacity: 8` and six hazel stools arriving through its own `props:` —
+the starter pot's shape, stretched. It exists because a `Plant` propped
+on a room's floor **affords nothing**: `harvest` is `CultivableMixin`'s,
+so a crop the growth model cannot reach through ground is scenery. The
+two things the panel used to expose are settled by the forestry build:
+a grown plant IS authored (the stool row hydrates `growthStage: mature`
+and a ripe cycle — `growthStage` is persistent, and the hydrator applies
+every persistent field a row carries), and the rotation is one game year
+(`fruitFillDays: 360`). See [forestry.md](./forestry.md).
 
 ---
 

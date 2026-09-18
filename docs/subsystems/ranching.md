@@ -29,6 +29,11 @@ barren cow), never the mean.
 
 ## ⭐⭐ The herdbook — you file; you do not hold the pen (D20, D79, P4)
 
+> ⓘ The herdbook is a record filed elsewhere because a herd MOVES. A
+> stand of trees does not, so forestry's stand is NOT the herdbook's
+> fourth consumer — it is `Field`'s second: a cover carried by the
+> place ([forestry.md](./forestry.md)).
+
 A herd is a **record**, not an object in a room: *these head, this
 composition, this age structure, on this ground*. There is no herd-object
 to `look` at, and there never will be.

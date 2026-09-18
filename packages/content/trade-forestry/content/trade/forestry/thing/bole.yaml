@@ -19,7 +19,7 @@ class: /trade/forestry/thing/Bole
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   shortDescription: felled trunk
-  keywords: [bole, trunk, tree, log, felled, timber]
+  keywords: [bole, trunk, tree, felled]
   register: indefinite
   longDescription: |
     The whole length of a tree, lying where it came down, the crown lopped and the butt still white where the axe went through. Far too much for any one back.

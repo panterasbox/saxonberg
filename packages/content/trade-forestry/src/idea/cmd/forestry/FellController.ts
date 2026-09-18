@@ -138,17 +138,21 @@ export default class FellController extends ManualBuildController<FellModel> {
       return;
     }
 
-    if (named) {
+    // (c) A species word, or nothing — the room's stand. ⚠ The WORD comes
+    // first when the stand knows it: in a clearing where an oak has
+    // already come down, `fell oak` binds an oak LOG off the floor (the
+    // binder matches materials), and the player meant the tree. So a
+    // bound thing that is neither a bole nor a plant is noise if the raw
+    // word names a species standing here.
+    const word = (model.target?.raw ?? '').trim();
+    if (named && !(stand && word && stand.speciesNamed(word))) {
       this.decline(context, 'not-a-tree', Mml.compose`${Mml.thing(named)} is not a tree.`);
       return;
     }
-
-    // (c) A bare word, or nothing — the room's stand.
     if (!stand) {
       this.decline(context, 'no-stand', Mml.compose`There is nothing here to fell.`);
       return;
     }
-    const word = (model.target?.raw ?? '').trim();
     const sp = word ? stand.speciesNamed(word) : stand.thickestSpecies();
     if (!sp) {
       if (word) {
@@ -302,10 +306,19 @@ async function dropStandard(
   return bole;
 }
 
+/**
+ * Stamp the good to its owner AND record where it is. ⚠ A stamp alone
+ * records no place: `drop`/`put`/`get` call `followCustody` after every
+ * move, and a good minted onto a floor has been moved by nobody — so
+ * without this a bole on the ride was skipped by the room's capture (a
+ * player's good is the owner's to persist) and never found by the room's
+ * overlay (`placedIn` had no row for it). Found by restarting the server.
+ */
 async function stamp(thing: Stuff, owner: Stuff): Promise<void> {
   if (MixinApi.isChattel(thing)) {
     try {
       await (thing as unknown as Stuff & Chattel).stampChattel(owner);
+      await (thing as unknown as Stuff & Chattel).followCustody();
     } catch (err) {
       console.warn('FellController: chattel stamp failed:', err);
     }
