@@ -749,10 +749,8 @@ session.
     everything is reclaimable.
 11. **A player escheats.** Past the long threshold, on the next touch:
     the note (if undischarged) is recovered; their balance sits in the
-    treasury as unclaimed property; their house is the locality's; their
-    dog is at the locality's pound; their bespoke pack is in the state's
-    custody, still credited to them. Log back in as them: the balance is
-    reclaimed and **the treasury pays**.
+    treasury as unclaimed property; their house is the locality's. Log
+    back in as them: the balance is reclaimed and **the treasury pays**.
 12. **The Gazette prints the index.** Buy out a shelf; the next edition's
     number moves.
 
