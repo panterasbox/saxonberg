@@ -275,6 +275,27 @@ export function refsOf(data: Record<string, unknown>): Array<{ field: string; pa
     }
   }
   /*
+   * ⭐ A Watercourse node's `stocks[].species` — the aquaculture seam
+   * (fishing D3): a stocked species' capacity is the authored number
+   * regardless of fit, and the fishery registry resolves the species row
+   * live at every read. A rowless one is a fish of nothing, stocked at a
+   * count nobody could ever draw. No shipped row authors one; this is
+   * the gate for the first that does.
+   */
+  const nodes = data.nodes;
+  if (Array.isArray(nodes)) {
+    for (const node of nodes) {
+      if (!node || typeof node !== 'object') continue;
+      const stocks = (node as Record<string, unknown>).stocks;
+      if (!Array.isArray(stocks)) continue;
+      for (const stock of stocks) {
+        if (stock && typeof stock === 'object') {
+          push('nodes.stocks.species', (stock as Record<string, unknown>).species);
+        }
+      }
+    }
+  }
+  /*
    * ⭐ The deposit's MATERIAL citations. A `Deposit` is a pure-data Idea
    * whose whole content is references: each stratum names its host rock,
    * each zone its ore mineral, and the lode its gangue. They are the

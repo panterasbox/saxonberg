@@ -66,7 +66,13 @@ import {
   WATERCOURSE_PATH_PREFIX,
   type WatercourseDescriptor,
   type WatercourseNode,
+  type WatercourseStock,
+  type WatercourseWater,
 } from './Watercourse';
+import {
+  WATER_PARAMETERS,
+  type WaterState,
+} from '@saxonberg/server/mud/platform/idea/species/Species';
 
 /**
  * The catalogue singleton's own template path. Its row ships with this
@@ -118,6 +124,8 @@ export interface CompiledReach {
   /** `"<courseKey>:<nodeName>"`. */
   ref: ReachRef;
   courseKey: string;
+  /** The course's display name ("the Kestrel") — what prose calls the water. */
+  courseName: string;
   nodeName: string;
   basin: string;
   /** Position on its own course, source-first. */
@@ -146,6 +154,10 @@ export interface CompiledReach {
    * than to no weather at all.
    */
   climateLocalityPath: string | null;
+  /** Authored mean depth, or `null` (the `water.reach.meanDepthM` dial stands in). */
+  meanDepthM: number | null;
+  /** Authored stocking — the aquaculture seam (fishing D3). Empty for every shipped row. */
+  stocks: WatercourseStock[];
 }
 
 /**
@@ -293,6 +305,10 @@ interface CompiledIndex {
   successors: Map<ReachRef, ReachRef[]>;
   /** Course key → its reaches, source-first. */
   byCourse: Map<string, ReachRef[]>;
+  /** Immediate upstream neighbours — the inverse of `successors`, for the chemistry mix. */
+  predecessors: Map<ReachRef, ReachRef[]>;
+  /** Course key → its authored water chemistry seed (fishing D22). */
+  waterByCourse: Map<string, WatercourseWater>;
 }
 
 export default class WatercourseCatalogue extends Idea {
@@ -500,6 +516,116 @@ export default class WatercourseCatalogue extends Idea {
     const seg = sample[sample.length - 1];
     if (seg === undefined) return null;
     return airTemperatureK(seg.season, seg.type, reach.elevation);
+  }
+
+  /**
+   * ⭐⭐ **Everything a body of water reports** (fishing D22) — every word
+   * of `WATER_PARAMETERS`, derived where it can be and seeded on the
+   * course row where it cannot, so a species' tolerances and, one day,
+   * a tank's ledger are read against one vocabulary:
+   *
+   * | parameter | derivation |
+   * |---|---|
+   * | `temperatureK` | the catchment's air ({@link airTemperatureKAt}; no thermocline — the underwater slate's depth) |
+   * | `currentMps` | `flow / (width × depth)`; an unauthored width or depth from the flow by hydraulic geometry |
+   * | `salinityPpt` | 33 at sea level; brackish (the dial) one hop above the sea below the brackish elevation; 0.3 fresh — the one function a tide clock replaces |
+   * | `oxygenMgL` | saturation at temperature (14.6 at 273 K → 7.5 at 303 K) × turbulence by current band |
+   * | `pH` · `hardnessDgh` · `nitrateMgL` | the course row's `water:` seed, **flow-weighted where a tributary joins** |
+   * | `ammoniaMgL` · `nitriteMgL` | 0 in a flowing river |
+   * | `contamination` | {@link contaminationAt}'s level |
+   *
+   * Nothing consumes oxygen or nitrate in a river; they are reads.
+   * `null` when the citation names no reach.
+   */
+  public async waterStateAt(
+    ref: ReachRef,
+    nowS: number,
+  ): Promise<WaterState | null> {
+    const index = await this.index();
+    const reach = index.reaches.get(ref);
+    if (reach === undefined) return null;
+
+    const temperatureK =
+      (await this.airTemperatureKAt(ref, nowS)) ?? seasonMeanK('spring');
+    const flow = await this.flowAt(ref, nowS, await this.liveDraws(nowS));
+    const m3s = flow?.m3s ?? 0;
+    // Hydraulic geometry where the row is silent (Leopold & Maddock's
+    // at-a-station relations, `w ∝ Q^0.5`, `d ∝ Q^0.4`): a channel is as
+    // wide and as deep as the water it carries has cut it. An authored
+    // width or depth wins.
+    const widthM = Math.max(1, reach.channelWidthM ?? 5 * Math.sqrt(Math.max(m3s, 0.04)));
+    const depthM = Math.max(0.1, reach.meanDepthM ?? 0.4 * Math.pow(Math.max(m3s, 0.04), 0.4));
+    const currentMps = m3s / (widthM * depthM);
+
+    const brackishBelowM = dial('water.fishery.brackishBelowM', 50);
+    let salinityPpt = 0.3;
+    if (reach.elevation <= 0) salinityPpt = dial('water.fishery.salinity.sea', 33);
+    else if (reach.depthToSea <= 1 && reach.elevation < brackishBelowM) {
+      salinityPpt = dial('water.fishery.salinity.brackish', 15);
+    }
+
+    // Oxygen: a two-point saturation table, then turbulence — a fast
+    // reach is at saturation, a still one holds less.
+    const t = Math.max(0, Math.min(1, (temperatureK - 273) / 30));
+    const saturation = 14.6 + (7.5 - 14.6) * t;
+    const turbulence = currentMps >= 0.5 ? 1 : currentMps >= 0.2 ? 0.9 : 0.8;
+    const oxygenMgL = saturation * turbulence;
+
+    const chemistry = this.chemistryAt(index, reach, nowS, new Map());
+    const contamination = (await this.contaminationAt(ref, nowS))?.level ?? 0;
+
+    const state: WaterState = {
+      temperatureK,
+      currentMps,
+      salinityPpt,
+      oxygenMgL,
+      pH: chemistry.pH,
+      hardnessDgh: chemistry.hardnessDgh,
+      nitrateMgL: chemistry.nitrateMgL,
+      ammoniaMgL: 0,
+      nitriteMgL: 0,
+      contamination,
+    };
+    for (const word of WATER_PARAMETERS) {
+      if (!Number.isFinite(state[word])) state[word] = 0;
+    }
+    return state;
+  }
+
+  /**
+   * The course seed, **flow-weighted at every join**: a reach's
+   * chemistry is its predecessors' mixed by their natural flow, plus its
+   * own course's seed carrying the water that arrived between. Where
+   * nothing flows the course's own seed answers.
+   */
+  private chemistryAt(
+    index: CompiledIndex,
+    reach: CompiledReach,
+    nowS: number,
+    memo: Map<ReachRef, Required<WatercourseWater>>,
+  ): Required<WatercourseWater> {
+    const done = memo.get(reach.ref);
+    if (done !== undefined) return done;
+    const own = seedOf(index.waterByCourse.get(reach.courseKey));
+    const total = this.naturalFlowOf(reach, nowS).total;
+    const preds = (index.predecessors.get(reach.ref) ?? [])
+      .map((p) => index.reaches.get(p))
+      .filter((p): p is CompiledReach => p !== undefined);
+    let mixed: Required<WatercourseWater> = { pH: 0, hardnessDgh: 0, nitrateMgL: 0 };
+    let weight = 0;
+    for (const pred of preds) {
+      const w = this.naturalFlowOf(pred, nowS).total;
+      if (w <= 0) continue;
+      const c = this.chemistryAt(index, pred, nowS, memo);
+      mixed = add(mixed, c, w);
+      weight += w;
+    }
+    const arrived = Math.max(0, total - weight);
+    mixed = add(mixed, own, arrived);
+    weight += arrived;
+    const out = weight > 0 ? scale(mixed, 1 / weight) : own;
+    memo.set(reach.ref, out);
+    return out;
   }
 
   /**
@@ -762,6 +888,7 @@ async function loadIndex(): Promise<CompiledIndex> {
       reaches.set(ref, {
         ref,
         courseKey: course.key,
+        courseName: course.name,
         nodeName: node.name,
         basin: course.basin,
         index: i,
@@ -772,6 +899,8 @@ async function loadIndex(): Promise<CompiledIndex> {
         // localities add theirs in `accumulateCatchments`.
         catchmentKm2: node.catchmentKm2 ?? 0,
         climateLocalityPath: null, // filled below
+        meanDepthM: node.meanDepthM ?? null,
+        stocks: node.stocks ?? [],
       });
     });
     byCourse.set(course.key, refs);
@@ -795,7 +924,27 @@ async function loadIndex(): Promise<CompiledIndex> {
   assignDepths(reaches, successors);
   cascadeWildCatchments(reaches, downstream);
   await accumulateCatchments(reaches, downstream);
-  return { reaches, downstream, successors, byCourse, works: await loadWorks() };
+  const predecessors = new Map<ReachRef, ReachRef[]>();
+  for (const [from, tos] of successors) {
+    for (const to of tos) {
+      const bucket = predecessors.get(to) ?? [];
+      bucket.push(from);
+      predecessors.set(to, bucket);
+    }
+  }
+  const waterByCourse = new Map<string, WatercourseWater>();
+  for (const course of courses.values()) {
+    if (course.water) waterByCourse.set(course.key, course.water);
+  }
+  return {
+    reaches,
+    downstream,
+    successors,
+    byCourse,
+    predecessors,
+    waterByCourse,
+    works: await loadWorks(),
+  };
 }
 
 /**
@@ -1304,9 +1453,69 @@ function nodesOf(value: unknown): WatercourseNode[] {
     if (typeof r.catchmentKm2 === 'number' && Number.isFinite(r.catchmentKm2)) {
       node.catchmentKm2 = r.catchmentKm2;
     }
+    if (typeof r.meanDepthM === 'number' && Number.isFinite(r.meanDepthM)) {
+      node.meanDepthM = r.meanDepthM;
+    }
+    const stocks = stocksOf(r.stocks);
+    if (stocks.length > 0) node.stocks = stocks;
     out.push(node);
   }
   return out;
+}
+
+/** The authored stocking on a node — a species path and a count each. */
+function stocksOf(value: unknown): WatercourseStock[] {
+  if (!Array.isArray(value)) return [];
+  const out: WatercourseStock[] = [];
+  for (const raw of value) {
+    if (raw === null || typeof raw !== 'object') continue;
+    const r = raw as Record<string, unknown>;
+    const species = str(r.species);
+    if (species === '') continue;
+    const capacity =
+      typeof r.capacity === 'number' && Number.isFinite(r.capacity)
+        ? Math.max(0, Math.round(r.capacity))
+        : 0;
+    out.push({ species, capacity });
+  }
+  return out;
+}
+
+/** The course row's `water:` block, or `undefined` when it authors none. */
+function waterOf(value: unknown): WatercourseWater | undefined {
+  if (value === null || typeof value !== 'object') return undefined;
+  const r = value as Record<string, unknown>;
+  const out: WatercourseWater = {};
+  for (const word of ['pH', 'hardnessDgh', 'nitrateMgL'] as const) {
+    const n = r[word];
+    if (typeof n === 'number' && Number.isFinite(n)) out[word] = n;
+  }
+  return Object.keys(out).length > 0 ? out : undefined;
+}
+
+/** The chemistry seed, every word filled from the dials where the row is silent. */
+function seedOf(water: WatercourseWater | undefined): Required<WatercourseWater> {
+  return {
+    pH: water?.pH ?? dial('water.chemistry.pH', 7.2),
+    hardnessDgh: water?.hardnessDgh ?? dial('water.chemistry.hardnessDgh', 8),
+    nitrateMgL: water?.nitrateMgL ?? dial('water.chemistry.nitrateMgL', 1),
+  };
+}
+
+function add(
+  a: Required<WatercourseWater>,
+  b: Required<WatercourseWater>,
+  w: number,
+): Required<WatercourseWater> {
+  return {
+    pH: a.pH + b.pH * w,
+    hardnessDgh: a.hardnessDgh + b.hardnessDgh * w,
+    nitrateMgL: a.nitrateMgL + b.nitrateMgL * w,
+  };
+}
+
+function scale(a: Required<WatercourseWater>, k: number): Required<WatercourseWater> {
+  return { pH: a.pH * k, hardnessDgh: a.hardnessDgh * k, nitrateMgL: a.nitrateMgL * k };
 }
 
 /** Build a descriptor from a template's `data`, or `null` if it is not one. */
@@ -1315,14 +1524,16 @@ function descriptorOf(
 ): WatercourseDescriptor | null {
   const key = str(data.key) || str(data.name);
   if (key === '') return null;
+  const water = waterOf(data.water);
   return {
     key,
     name: str(data.name) || key,
     basin: str(data.basin),
     nodes: nodesOf(data.nodes),
     branchesFrom: str(data.branchesFrom) === '' ? null : str(data.branchesFrom),
+    ...(water ? { water } : {}),
   };
 }
 
 /** The authored shapes this catalogue speaks, re-exported for callers. */
-export type { WatercourseDescriptor, WatercourseNode };
+export type { WatercourseDescriptor, WatercourseNode, WatercourseStock, WatercourseWater };

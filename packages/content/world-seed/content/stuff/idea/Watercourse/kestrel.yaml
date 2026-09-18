@@ -25,6 +25,10 @@ data:
   key: kestrel
   name: the Kestrel
   basin: kestrel
+  # Hard and alkaline — the ore country's limestone above the falls; a
+  # little fed by the city. The join to the catchment's GroundCharacter
+  # is the RGO unification pass's; this is the authored stance.
+  water: { pH: 7.8, hardnessDgh: 12, nitrateMgL: 2 }
   nodes:
     # Rejection's ground. High, cold, and where the ore is — so this is
     # simultaneously the realm's snowpack and its worst pollution risk.
