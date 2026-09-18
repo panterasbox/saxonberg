@@ -104,6 +104,9 @@ export default class Panel extends PanelBase {
       'platform/cmd/inventory/repot.yaml',
       'platform/cmd/inventory/harvest.yaml',
       'platform/cmd/bulk/feed.yaml',
+      // …plus the trade's own: a mature standard in a panel is felled
+      // where it stands.
+      'trade/forestry/cmd/forestry/fell.yaml',
     ],
     environment: [],
   };

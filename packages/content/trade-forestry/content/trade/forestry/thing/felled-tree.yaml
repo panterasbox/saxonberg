@@ -1,0 +1,16 @@
+# A whole small tree — what a `young` or `established` planted standard
+# becomes when it is felled: one carryable object, the species' wood,
+# mass by stage (8 kg young, 30 kg established — restamped at the mint).
+# A tree small enough to carry is carried whole: the Christmas-tree
+# case, and the honest inverse of the bole. Not fuel until somebody
+# splits it; nothing here does.
+class: /platform/thing/Thing
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: felled sapling
+  keywords: [sapling, tree, felled, "felled tree", "young tree"]
+  register: indefinite
+  longDescription: |
+    A whole young tree, felled at the ankle, the crown still on it.
+  _materialPath: /stuff/idea/material/wood/oak
+  mass: 8

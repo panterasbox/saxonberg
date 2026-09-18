@@ -1616,6 +1616,35 @@ matches `timber-set`; `fell` is afforded beside a bole with no stand.
 
 **Commit.** `build(forestry W3): the Wood — a place that is a stand, drunk from its own soil; fell`
 
+> ✅ **W3 done (2026-09-17).** Decisions the build made:
+> - **Risk 10 fired**: `lint:arg-kinds` refuses an object arg with no
+>   `requires`. The gate's own exemption shape is **`requires: any`** —
+>   declared, gating nothing (the `boil.yaml` precedent) — so `target`
+>   declares it. The binder test pins that `fell oak` still lands as
+>   `{ stuff: null, raw: 'oak' }` with the axe bound by the atom.
+> - **A Wood installs its reserves itself** at `postRegister`
+>   (`installWoodReserves`, idempotent, from `areaM2`: moisture
+>   `areaM2 × 45 L` half full; nitrogen 100 %/60 %) — so a second wood's
+>   rows author NO `reserves:` block; an authored block still wins
+>   (idempotent). D1 said "authored on the row"; this is less to author
+>   for the same numbers.
+> - **`StandPlanting.name`** — the planting line reads the tree's own
+>   presentation (`an oak sapling`) recorded at planting, not a
+>   genus→word table in code (a content word in code).
+> - **`StandMixin` is declared-then-returned** (the Slotted/Meltable
+>   shape) so `@Final @Unshadowable` can sit on `cut`.
+> - **`recordPlanting` is idempotent on the tree's key**: a restore that
+>   re-seats a planted standard inside somebody's `go` frame (the room
+>   `singleton()`s on first arrival, INSIDE a command frame) must not
+>   plant it twice. Cultivable's reseat test reads true on a real
+>   planting too (contents first, then the slot), so it cannot be the
+>   discriminator; the acting author + idempotency are.
+> - No `stand` arg; the room is `giver.getContainer()` narrowed by
+>   `isActive(room, STAND_MIXIN)`. `lint:instrument-args` stays at 0.
+> Proven under `test-bootstrap`: the singleton round-trip restores a cut
+> (7, not the authored 8); a felling drops one 675 kg oak bole + 4 logs +
+> an acorn; `fell bole` ×6; the refusals; the planted tree by stage.
+
 ### W4 — planting a standard
 
 **Goal.** A player plants an acorn in a panel; the room's stand and the

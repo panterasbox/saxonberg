@@ -13,6 +13,6 @@ data:
     A wide thin bit on a long haft, ground for cutting across the grain
     rather than splitting along it.
   mass: 2.8
-  capabilities: ["cutting", "striking"]
+  capabilities: ["felling", "cutting", "striking"]
   epoch: medieval
   _materialPath: /stuff/idea/material/element/iron
