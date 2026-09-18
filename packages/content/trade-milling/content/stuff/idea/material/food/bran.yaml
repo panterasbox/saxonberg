@@ -1,0 +1,34 @@
+# Bran — ⭐ the residue, and it is NOT waste.
+#
+# What the bolting cloth takes out: the outer coat and the germ. It
+# carries the fibre, most of the protein, the minerals and the oil —
+# which is exactly why flour that keeps it is more nourishing AND goes
+# off faster. Both facts, one cause.
+#
+# It is a real good with its own market: feed for pigs and hens (the
+# ranching trade already eats), and the poor man's bread. A mill that
+# threw it away would be throwing away its second income.
+class: /platform/idea/material/Material
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  name: bran
+  keywords: [bran, offal, sharps]
+  appearance: coarse red-brown flakes, dusty
+  density: 250
+  specificHeat: 1850
+  thermalConductivity: 0.13
+  electricalConductivity: 1.0e-9
+  waterAbsorptionCapacity: 90
+  hardness: 2
+  toughness: 1
+  edibility: true
+  # ⭐ The oil is why bran keeps badly, and why flour carrying more of it
+  # keeps badly too. A higher base water activity and a lower activation
+  # energy: it goes off sooner and the cold helps it less.
+  waterActivity: 0.72
+  spoilActivationEnergy: 38000
+  nutrients: ["carb", "protein", "fibre"]
+  nutrientAmounts: { carb: 210000, protein: 155000, fibre: 430000 }
+  toxicity: []
+  tags: ["food", "bran", "feed", "fibre"]
+  composition: []

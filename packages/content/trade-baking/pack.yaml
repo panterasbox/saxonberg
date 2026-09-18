@@ -1,0 +1,20 @@
+id: trade-baking
+version: 0.1.0
+root: /trade/baking
+description: >-
+  The baking trade — flour, water, salt, time and heat. ⭐ The dough is a
+  FERMENT: it rides the shipped maturation substrate in a trough, catches
+  wild flora from the air if you leave the cloth off, or takes a pitched
+  culture from a crock. Cold stalls it, a scald kills it, and a forgotten
+  one over-proofs and collapses. ⭐⭐ And bread runs TWO CLOCKS that point
+  opposite ways: it spoils faster where it is warm, and it goes STALE
+  faster where it is cold — so the icebox is the worst place for a loaf,
+  and the oven revives one. Staling is not spoilage, and the shipped
+  freshness gauge models it backwards on purpose.
+requires:
+  groups:
+    - name: baking
+      purpose: the baking trade's own body
+      owner: { office: prime-minister }
+  title:
+    - { extent: /trade/baking, holder: { group: baking } }

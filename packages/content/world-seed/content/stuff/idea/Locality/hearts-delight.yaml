@@ -1,0 +1,43 @@
+# Heart's Delight — ⭐ **the valley that feeds the city**, and the first
+# stop on the supply chain to be authored as real content.
+#
+# A LOCALITY tier under the realm, beside the city: `terminus/hearts-delight`,
+# not `terminus/city/hearts-delight`. Every other town is a sibling of
+# the city, not a district inside it.
+#
+# ⚠⚠ **It lives here, in `world-seed`, and not in the `hearts-delight`
+# pack** — which differs from the requirements' letter and is deliberate.
+# `AddressRegistry.postRegister` walks `TemplatePathRosters.locality`,
+# which is `['/platform/idea/Locality/', '/stuff/idea/Locality/']`. A
+# Locality row anywhere else is **silently absent**: the registry never
+# sees it, `resolveLocalityFor` answers null for every room in the
+# valley, and everything keyed on the covering locality (the ground seed,
+# the reach, the address walk) quietly reads from nothing. All eleven
+# shipped Localities live here, and a locality is the realm's in any case
+# — the same split as `Government` and `Watercourse`, where the class is
+# a system's and the instance is somebody's world.
+#
+# ⭐⭐ **It sits on the flats of the Delight**, which is what makes the
+# mill possible. The watercourse row already says the ground here falls
+# from 180 m at the flats to 35 m at the mouth — 145 metres of head
+# between the valley and the city — and a weir in the valley turns a few
+# of them into power. Nobody chose that; it was in the water build's
+# numbers before this build existed.
+#
+# ⚠ The hydrological order is Rejection → Heart's Delight → Terminus:
+# this valley is DOWNSTREAM of the mining town and UPSTREAM of the city,
+# which is the whole of its water politics and none of this build's
+# business.
+#
+# ⚠ No `_governmentKey`. Who governs the valley is a live question the
+# valley's own build should answer, and `null` is a normal state of the
+# world rather than a gap.
+class: /platform/idea/Locality
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  name: Heart's Delight
+  _address: terminus/hearts-delight
+  _reach: delight:flats
+  # The worked ground the valley itself sheds: orchards on the flats,
+  # thin arable on the bench, and the yards between them.
+  _catchmentKm2: 40

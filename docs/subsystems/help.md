@@ -231,9 +231,16 @@ the uniform fields.
 the existing `shell.result` topic:
 
 - bare `help` → the landing/index (categories + counts + a hint line);
-- `help <verb>` → that command's topic (**bare fallthrough** — the YAML
-  gained `fallthrough: true` + a top-level optional `topic` positional, so
-  the common case no longer needs the `verb` subcommand word);
+- `help <word>` → the **bare fallthrough** (the YAML gained
+  `fallthrough: true` + a top-level optional `topic` positional, so the
+  common case no longer needs the `verb` subcommand word), resolved in
+  the order a player means the word: **verb → concept → collection →
+  api**. ⚠⚠ The concept rung was missing until 2026-09-17: authored
+  `HelpConcept` rows were indexed and searchable from the farmstead
+  build on, and `help extraction` answered *"no help topic"* — four
+  packs' concepts were reachable only through `help search`. The
+  grain-chain drive was the first to type one (`HelpApi.conceptTopic`,
+  `HelpCatalogue.findConceptTopic`);
 - `help verb <name>` → the **legacy** form, still works;
 - `help api <target>` → the API topic by id / `Type.member` (real
   signature + summary), or the api-kind landing;

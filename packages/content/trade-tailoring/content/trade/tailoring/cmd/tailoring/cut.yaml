@@ -29,6 +29,17 @@ args:
     required: true
     scope: [inventory, reachable]
     requires: StackableMixin
+  # ⭐ WHICH SHEARS — DECLARED, not hunted for (`lint:instrument-args`).
+  # Bare, the binder hands over every reachable thing offering
+  # `cutting` and the controller takes the best-rated — the table over the
+  # shears in your pack.
+  - name: shears
+    type: objects
+    required: false
+    prepositions: [with, at, on]
+    default: "reachable:[capability.cutting]"
+    scope: ["reachable"]
+    requires: [ToolMixin]
 options:
   for:
     type: object

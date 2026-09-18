@@ -1,0 +1,57 @@
+# The bakery — ⭐ **the first of the four the general store fragments
+# into.**
+#
+# `settlement-model.md`'s specialization gradient: *a city is where the
+# general store fragments*. Terminus has been buying its bread from
+# nowhere; this is the first shopfront to come off the counter and be its
+# own trade, and the reason it can is that there is now a chain behind it
+# — a field, a mill, a miller's toll and a baker's oven.
+#
+# West off the square, which was a free exit.
+class: /platform/location/SingletonCartesianLocation
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: bakery
+  keywords: [bakery, baker, bakehouse, shop]
+  register: definite
+  alternateNames: [bakehouse, "baker's"]
+  _address: terminus/city/market/bakery
+  _biomePath: /stuff/idea/biome/indoor/baseline
+  ambientIntensity: 400
+  ambientColorTemperature: 3000
+  longDescription: |
+    Hot, low-ceilinged and entirely full of the smell. The oven takes up the whole back wall — a brick barrel with an iron door and a peel leaning beside it — and the heat off it reaches the doorway.
+
+    A counter across the front with the day's bread on it. A trough down the side under a window, a crock beside that with a cloth tied over its mouth, and two sacks of flour on a pallet off the floor because the floor is stone and the stone is damp.
+
+    Behind the counter somebody has chalked the two prices on the wall and not rubbed them out in a long time.
+  coords: { x: -2, y: 0, z: 0 }
+  exits:
+    east:
+      destination: /world/terminus/market/square
+      media: [ground]
+      edgeMinutes: 1
+  props:
+    - /stuff/thing/Oven
+    - /trade/baking/thing/dough-trough
+    - /trade/baking/thing/starter-crock
+    - /trade/milling/thing/flour-sack
+    - /trade/milling/thing/flour-sack
+    - /world/terminus/market/thing/bread-counter
+    - /world/terminus/market/thing/bakery-shelf
+  cast:
+    - /world/terminus/market/agent/baker
+  details:
+    prices:
+      keywords: [prices, chalk, wall, board]
+      description: |
+        Two lines, in a hand that has written them a thousand times.
+
+        > loaf ......... 2
+        > white ........ 4
+
+        ⭐ Nothing in the world made the second number twice the first. The baker did. White flour costs a third of the grain's weight to make — you throw the bran away to get it — and that is why it was worth charging for, and why it was what people bought when they could.
+    oven:
+      keywords: [oven, brick, barrel, door, peel]
+      description: |
+        A brick barrel four feet deep with an iron door on a counterweight and a long-handled peel beside it. It holds its heat for hours after the fire is drawn, which is what the whole shape is for.

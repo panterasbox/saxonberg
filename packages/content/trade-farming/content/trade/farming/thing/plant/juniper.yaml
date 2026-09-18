@@ -11,7 +11,7 @@ data:
   longDescription: |
     A dense, prickly juniper bush, dusted with berries that take two seasons to decide to ripen.
   _speciesPath: /stuff/idea/species/plantae/tracheophyta/pinopsida/pinales/cupressaceae/juniperus/communis
-  material: /stuff/idea/material/tissue/plant-tissue
+  _materialPath: /stuff/idea/material/tissue/plant-tissue
   lifecycleState: alive
   seedTemplatePath: /trade/farming/thing/seed/juniper
   harvestTemplatePath: /trade/farming/thing/juniper-berries

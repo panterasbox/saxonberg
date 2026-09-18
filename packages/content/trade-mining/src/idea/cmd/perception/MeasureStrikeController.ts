@@ -20,22 +20,29 @@
  */
 
 import { SurveyChannelController, READING_TOPIC, GEOLOGY } from './SurveyChannelController';
+import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
+import type { MqlOneResult } from '@saxonberg/server/mud/api/mql';
 import { MixinApi } from "@saxonberg/server/mud/api/mixin";
 import type { CommandContext, CommandModel } from '@saxonberg/server/mud/api/command';
-import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import type { Container } from '@saxonberg/server/mud/lib/spatial/Container';
 import { MessageApi } from '@saxonberg/server/mud/api/message';
 import { Mml } from '@saxonberg/server/mud/api/mml';
 
+/** ⭐ The instrument is bound by the view, never hunted for here. */
+interface MeasureStrikeModel extends CommandModel {
+  tool?: MqlOneResult;
+}
+
+
 export default class MeasureStrikeController extends SurveyChannelController {
-  async execute(_model: CommandModel, context: CommandContext): Promise<void> {
+  async execute(model: MeasureStrikeModel, context: CommandContext): Promise<void> {
     const giver = context.commandGiver;
     const place = this.placeOf(giver);
     if (!place) {
       this.decline(context, Mml.compose`You are nowhere to take a bearing from.`, 'no-place');
       return;
     }
-    if (!this.instrumentOf(giver)) {
+    if (!this.instrumentOf(model.tool?.stuff)) {
       this.decline(
         context,
         Mml.compose`You need a surveyor's instrument in hand — a compass or a miner's dial — to take a bearing.`,

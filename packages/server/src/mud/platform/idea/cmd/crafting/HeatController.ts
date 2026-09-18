@@ -30,7 +30,7 @@ export default class HeatController extends ManualBuildController<HeatModel> {
     const giver = context.commandGiver;
 
     const target: Stuff | null =
-      model.target?.stuff ?? this.findBuildVessel(giver);
+      model.target?.stuff ?? null;
     if (!target || !MixinApi.isBuildVessel(target)) {
       this.declineStep(
         context,

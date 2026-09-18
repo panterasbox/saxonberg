@@ -1,0 +1,66 @@
+# ⭐⭐⭐ The one fact that makes the miller's decision a decision, stated
+# so a reader can PREDICT the bread box rather than be told about it.
+class: /platform/idea/HelpConcept
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  key: extraction
+  title: Extraction
+  summary: Why white flour keeps and brown flour does not, and why brown feeds you better.
+  keywords: [extraction, flour, bran, germ, endosperm, wholemeal, white, bolting, milling]
+  seeAlso: [head-and-flow, retrogradation, gluten, nitrogen]
+  body: |
+    A grain of wheat is three things in one coat.
+
+      the endosperm   the big starchy middle. Almost pure carbohydrate,
+                      a little protein, almost no fat and almost no
+                      water. This is what "white flour" is.
+      the bran        the outer coat. Fibre, minerals, and a good share
+                      of the protein.
+      the germ        the embryo, tucked in one end. Protein, vitamins —
+                      and OIL.
+
+    Milling smashes the lot. **Bolting** is what happens next: you sift
+    the meal through a cloth, and the fine endosperm goes through while
+    the coarse bran and germ stay behind. **Extraction** is how much of
+    the original grain you decide to keep.
+
+    ⭐ Low extraction (around 0.6) means you kept only what fell through:
+    nearly pure endosperm. High extraction (0.9 and up) means you kept
+    most of the coat and the germ with it. There is no third option and
+    no fourth — it is a dial, and every setting is a different flour.
+
+    ## What you are trading
+
+    The bran and the germ carry **the nourishment and the trouble in the
+    same parcel**, which is why this is a real choice and not an obvious
+    one.
+
+    **Nourishment.** The protein, the fibre and the minerals are mostly
+    in the parts white flour throws away. Bread from high-extraction
+    flour feeds you better, measurably, and that is not a matter of
+    opinion — it is where the protein physically is.
+
+    **Keeping.** Two reasons brown flour spoils and white flour does not:
+
+      water   the bran holds far more of it than the endosperm does.
+              Mould and bacteria cannot grow below a certain amount of
+              available water, and near-pure endosperm sits just under
+              that line. Flour with the bran in it sits just over.
+      oil     the germ's fat goes rancid on its own, with no help from
+              anything living. Nothing stops that; it only goes slower
+              when it is cold.
+
+    So: **white flour will sit in a sack for a year. Wholemeal will not
+    see out a warm month.** A miller who takes the high extraction has
+    made more flour, worth more per sack, that he has less time to sell.
+
+    ⚠ And none of this is a grade. Poor grain makes poor flour at any
+    extraction, and good stones cannot make poor grain good — they only
+    stop a careless hand making good grain worse.
+
+    ## The bran is not waste
+
+    Whatever the cloth keeps back comes off as bran, and it is a good in
+    its own right: feed for pigs and hens, and bread for people who
+    cannot afford the other kind. A mill that threw it away would be
+    throwing away its second income.

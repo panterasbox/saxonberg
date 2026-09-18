@@ -28,6 +28,10 @@ outputAppearance: a cutlet fried hard and crackling, spitting as it lands
 outputApplication: edible
 outputPortionL: 0.35
 requiresHeatK: 470
+# ⚠ The tightest window on the roster: fifteen kelvin between a crisp
+# cutlet and a black one. Frying is the least forgiving thing in a
+# kitchen and now it reads that way.
+maxHeatK: 485
 medium: fat
 difficulty: hard
 discipline: cooking

@@ -13,7 +13,7 @@ data:
   # The VESSEL KIND — the tie between this row and every product
   # that is this vessel filled (an emptied one counts and reads as this).
   category: cask
-  material: /stuff/idea/material/wood/oak
+  _materialPath: /stuff/idea/material/wood/oak
   interiorBulk: true
   interiorCapacity: 50
   closure: liquidTight

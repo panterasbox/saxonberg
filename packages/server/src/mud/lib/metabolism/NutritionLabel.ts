@@ -105,7 +105,23 @@ function labelFaceOf(host: Stuff): LabelFace | null {
     }
   }
   const own = MixinApi.isTangible(host) ? host.getMaterial() : null;
-  return own ? faceOfMaterial(own) : null;
+  if (!own) return null;
+  // ⭐ A discrete food that knows what it is MADE OF reads its label off
+  // those parts, exactly as a blend does — the tangible half of
+  // `BlendLabel.amountsOf`. Without this a wholemeal loaf and a white one
+  // are both "bread" and feed you identically. An empty composition falls
+  // straight through to the material's own figures.
+  if (MixinApi.isComposed(host)) {
+    const composition = host.getComposition();
+    if (composition.length > 0) {
+      return {
+        edible: own.getEdibility() === true,
+        nutrientAmounts: BlendLabel.amountsOf({ composition: [...composition] }, own),
+        toxicity: own.getToxicity(),
+      };
+    }
+  }
+  return faceOfMaterial(own);
 }
 
 function faceOfMaterial(material: Material): LabelFace {

@@ -30,3 +30,15 @@ args:
     requires: VisibleMixin
     validators:
       - /lib/command/validators/mustBeEdible
+  # ⭐ WHAT WITH — DECLARED, not hunted for (`lint:instrument-args`).
+  # Bare, the binder hands over every reachable piece of cutlery and the
+  # controller takes the first CLEAN one in its preference order; there
+  # being none is a perfectly good way to eat. `eat the stew with the
+  # spoon` names one.
+  - name: with
+    type: objects
+    required: false
+    prepositions: [with, using]
+    default: "reachable:[mixin.CutleryMixin]"
+    scope: ["reachable"]
+    requires: [CutleryMixin]

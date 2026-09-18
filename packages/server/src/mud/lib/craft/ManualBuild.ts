@@ -27,6 +27,7 @@
  */
 
 import type { CommandContributions } from "../../api/command";
+import type { BlendPart } from '../bulk/Bulkable';
 import type { PathogenLoads } from '../material/Contaminable';
 import type { MixinConstructor } from "../mixin";
 import type { Stuff } from "../stuff/Stuff";
@@ -87,6 +88,19 @@ export interface BuildContribution {
   /** The source Material's template path — feeds the terminal mint's
    * derived blend payload (macros in = macros out). */
   materialPath?: string;
+  /**
+   * ⭐ **What the source was itself made of**, when it was already a
+   * blend — banked with the matter for exactly the reason the loads are
+   * (above): the bottle it was poured from may be drained and gone by the
+   * time the mint runs.
+   *
+   * Without it the by-hand route launders the composition the way it
+   * would otherwise launder spoilage: flour that knows it is 28 % bran
+   * arrives at the trough as plain "flour", and the loaf comes out white
+   * however dark the flour was. Absent ⇒ the source was not a blend, and
+   * the mint reads its material identity exactly as before.
+   */
+  composition?: readonly BlendPart[];
 }
 
 /** Public method surface contributed by {@link ManualBuildMixin}. */

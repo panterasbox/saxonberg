@@ -1,0 +1,9 @@
+# Heart's Delight — the valley's zone.
+#
+# Cells are 20 m, the road convention: a valley room is a stretch of
+# country rather than a parlour.
+class: /platform/idea/location/CartesianZone
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  name: Heart's Delight
+  cellSize: 20.0

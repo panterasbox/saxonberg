@@ -111,7 +111,7 @@ Pick from here to deepen something that already works. Cheaper to start
 | [combat](./builds/combat-slate.md) | pursuit / the chase · rout & rally retreat · the morale + de-escalation suite · the `guards` intervention brain · the client `CombatCard` · NPC-vs-NPC crews … |
 | [combat-experience](./builds/combat-experience-slate.md) | T5 composure/luck (`traits-stress`; `g(composure)` is inert) · T7/T8 loadout-as-chemistry · T11 aftermath · T12 de-escalation · T13 morale & surrender … |
 | [content-packs](./builds/content-packs-slate.md) | the unbuilt trades (butchery · milling · forestry · fishing · medicine · sanitation · funerary · repair · papermaking · insurance) · localities-as-compositions … |
-| [cooking](./builds/cooking-slate.md) | the tending wave (durative cook · doneness · braise) · cold storage/icebox · compost · preservation + the victualler · the baker pack |
+| [cooking](./builds/cooking-slate.md) | the tending wave (durative cook · braise) · cold storage/icebox · compost · preservation + the victualler · slices (a food that yields N portions) · staling promoted to the kernel on the third-pack signal |
 | [cooperative](./builds/cooperative-slate.md) | the capital faucet / stake ledger · Twitch identity binding · the three chambers + the ballot · delegation guardrails · the in-world reserve + the budget process … |
 | [corpos](./builds/corpos-slate.md) | the multipolar approval vector · competition + rival-tanking · sponsorship · approval→access gates · player-founded corpos · portfolios beyond booze |
 | [cosmetics](./builds/cosmetics-slate.md) | the appearance-mark carrier on a body (the `Looks` cell) · the personal-services vocation + graded cuts · tattoos · the dye-plant crop rows |

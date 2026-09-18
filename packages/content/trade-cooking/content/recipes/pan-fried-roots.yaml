@@ -25,6 +25,10 @@ outputAppearance: roots fried crisp and glossy at the edges
 outputApplication: edible
 outputPortionL: 0.35
 requiresHeatK: 440
+# The fire may be fiercer than the working wants — and then the
+# outside burns while the middle is still coming. Not a decline: a
+# scorched dish is a dish you are holding.
+maxHeatK: 460
 medium: fat
 difficulty: standard
 discipline: cooking

@@ -1,0 +1,45 @@
+# The bread ferment — ⭐ and the whole of the baker's frontier is in four
+# numbers on this row.
+#
+#   stallBelowK 288   a cold kitchen HOLDS the dough. Nothing happens, and
+#                     nothing is ruined; carry the trough to the hearth
+#                     and it starts. This is the recoverable failure.
+#   happyK      300   the warm shelf over the oven. Where a baker puts it.
+#   damageAboveK 308  too warm: it runs away from you and goes sour.
+#   killK       323   ⚠ a SCALD. Pour warm water in and the flora die and
+#                     do not come back. This is the unrecoverable failure,
+#                     and it must never read like the first one — which
+#                     is why `MATURATION_LINES` gained `stalled` and
+#                     `killed` in this build.
+#
+# ⭐⭐ `spontaneousLagDays: 1` is the design's best single line. Leave the
+# cloth OFF and wild flora settle out of the air and take the dough in a
+# day — a sourdough you caught rather than bought. Put the cloth ON and
+# nothing gets in, so you must pitch from a crock. The choice between the
+# slow free one and the fast bought one is made by whether you covered
+# the bowl, and nobody has to explain that.
+#
+# `turnDays: 0.5` is the over-proof: half a day past finished and the
+# gluten sheet has stretched past what it can hold, the gas goes out of
+# it, and what you have is `collapsed-dough` — flat and sour, still
+# bakeable, just worse. The honest outcome of forgetting.
+#
+# `leesFraction: 0` — bread throws no lees. There is no sediment to rack
+# off a dough.
+class: /platform/idea/maturation/MaturationProfile
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  key: bread-dough
+  mechanism: microbial
+  inputCategory: dough
+  spontaneousLagDays: 1
+  wildStrain: sourdough
+  stallBelowK: 288
+  happyK: 300
+  damageAboveK: 308
+  killK: 323
+  ratePerDay: 6
+  productMaterial: /stuff/idea/material/food/proofed-dough
+  turnedMaterial: /stuff/idea/material/food/collapsed-dough
+  turnDays: 0.5
+  leesFraction: 0

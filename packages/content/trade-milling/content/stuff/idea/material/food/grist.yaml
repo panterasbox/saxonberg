@@ -1,0 +1,40 @@
+# Grist — ⭐ malt that has been through a mill, and the reason milling
+# ships with two customers it did not have to find.
+#
+# The brewer's mash and the distiller's wash both consume `malt` as a
+# bulk measure with no grinding step anywhere — and `wash-mash.yaml`'s
+# own comment already calls its input "the distiller's grist". Whole malt
+# does not mash: the husk has to be cracked for the water to reach the
+# starch. The step was missing, and both trades were quietly assuming it.
+#
+# ⚠ Coarser than flour on purpose. A mash wants the husk broken and the
+# endosperm loose, not powdered — powder sets into a bed nothing drains
+# through, which is a real and famous way to ruin a brew. So this is its
+# own material rather than "malt flour".
+#
+# Its figures follow `base-library`'s malt row rather than the cereals'
+# (the two packs disagree on the unit — a finding for whoever owns
+# base-library, not this build's to fix).
+class: /platform/idea/material/Material
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  name: grist
+  keywords: [grist, grits, malt]
+  appearance: husk and meal together, pale from the kiln
+  density: 580
+  specificHeat: 1850
+  thermalConductivity: 0.15
+  electricalConductivity: 1.0e-9
+  waterAbsorptionCapacity: 50
+  hardness: 5
+  toughness: 1
+  edibility: true
+  # Drier than flour: malt is kilned before it is ground, which is what
+  # makes it keep in a sack at all.
+  waterActivity: 0.45
+  spoilActivationEnergy: 45000
+  nutrients: ["carb", "sugar"]
+  nutrientAmounts: { carb: 14000, sugar: 80 }
+  toxicity: []
+  tags: ["food", "grist", "brewing", "feed"]
+  composition: []

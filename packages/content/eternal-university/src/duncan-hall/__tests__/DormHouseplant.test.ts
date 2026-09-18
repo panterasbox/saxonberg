@@ -585,12 +585,17 @@ describe('the dorm houseplant — content and placement', () => {
     );
     expect(can.getBulkAmount('interior').rawValue()).toBeGreaterThan(0);
 
-    // `water` the plant.
+    // `water` the plant. ⚠ The source is what the binder would bind for
+    // bare `water` — the carried vessels (`water.yaml`'s `me:i` default);
+    // a controller test skips the binder (`lint:instrument-args`).
     const ctx = ctxFor(tenant, 'water');
     await run(
       makeStuff(() => new WaterController()),
       tenant,
-      { target: { stuff: plant, raw: 'lily' } } as unknown as CommandModel,
+      {
+        target: { stuff: plant, raw: 'lily' },
+        source: { stuff: [can], raw: '' },
+      } as unknown as CommandModel,
       ctx,
     );
     expect(rejection(ctx)).toBeNull();

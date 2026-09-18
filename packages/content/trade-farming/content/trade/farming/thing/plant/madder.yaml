@@ -13,7 +13,7 @@ data:
   longDescription: |
     Sprawling whorled leaves on square prickly stems, flopping over each other. Nothing about the top of it explains why anyone bothers; the answer is a metre down.
   _speciesPath: /stuff/idea/species/plantae/tracheophyta/magnoliopsida/gentianales/rubiaceae/rubia/tinctorum
-  material: /stuff/idea/material/tissue/plant-tissue
+  _materialPath: /stuff/idea/material/tissue/plant-tissue
   lifecycleState: alive
   seedTemplatePath: /trade/farming/thing/seed/madder
   harvestTemplatePath: /trade/farming/thing/crop/madder-root

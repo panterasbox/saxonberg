@@ -1,0 +1,36 @@
+# Marn Ottoway — the baker.
+class: /platform/agent/Cast
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  _speciesPath: /stuff/idea/species/animalia/chordata/mammalia/primates/hominidae/homo/sensitivus
+  lifecycleState: alive
+  name: Marn Ottoway
+  keywords: [marn, ottoway, baker]
+  shortDescription: baker
+  register: definite
+  longDescription: >-
+    A heavy-shouldered person with forearms scorched pink to the elbow
+    and flour worked so far into their knuckles it has stopped coming
+    out, who has been awake since three and is perfectly cheerful about
+    it.
+  archetype: baker
+  prologue:
+    - "Up at three, in front of the oven by four, sold out by noon."
+    - "Buys flour by the sack and complains about the price of it."
+  competence:
+    - { discipline: baking, asserting: proficient }
+    - { discipline: cooking, asserting: competent }
+  dispositions:
+    - { disposition: sociability, valence: 60 }
+    - { disposition: diligence, valence: 85 }
+    - { disposition: composure, valence: 40 }
+  behaviors:
+    - brain: /lib/behavior/introduces
+      trigger: witness:arrival
+    - brain: /lib/behavior/idles
+      trigger: cadence:38s
+      config:
+        pool:
+          - { kind: free, value: "knocks the bottom of a loaf and listens to it." }
+          - { kind: free, value: "moves a loaf two inches along the counter for no visible reason." }
+          - { kind: free, value: "says \"Whole thing's the flour. Everything else is just waiting.\"" }

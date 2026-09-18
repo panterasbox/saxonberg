@@ -14,7 +14,7 @@
 import { CommandController } from "../../../../lib/command/CommandController";
 import type { Stuff } from "../../../../lib/stuff/Stuff";
 import type { CommandContext, CommandModel } from "../../../../api/command";
-import type { MqlOneResult } from "../../../../api/mql";
+import type { MqlManyResult, MqlOneResult } from "../../../../api/mql";
 import type Material from "../../../../lib/material/Material";
 import type { BulkPayload } from "../../../../lib/bulk/Bulkable";
 import { BulkableApi } from "../../../../api/bulk";
@@ -37,6 +37,7 @@ const TOPIC = "act.deed";
 
 interface EatModel extends CommandModel {
   target: MqlOneResult;
+  with?: MqlManyResult;
 }
 
 export default class EatController extends CommandController<EatModel> {
@@ -61,7 +62,7 @@ export default class EatController extends CommandController<EatModel> {
     // targets the BOWL. Serve from the slot rather than swallowing the
     // crockery — the two arms of the verb, one act.
     if (this.isServedDish(target)) {
-      return this.eatFromDish(target, context);
+      return this.eatFromDish(target, model.with, context);
     }
 
     const material = MixinApi.isTangible(target) ? target.getMaterial() : null;
@@ -100,7 +101,7 @@ export default class EatController extends CommandController<EatModel> {
     // ⭐ Cutlery READS, it never gates. A clean utensil in reach is used
     // and dirtied — which is what puts it in the same wash loop as the
     // crockery — and its absence changes the sentence, not the outcome.
-    const utensil = this.claimUtensil(giver);
+    const utensil = this.claimUtensil(model.with);
     const withIt = utensil ? ` ${UTENSIL_PHRASE[utensil.kind]}` : "";
     // Emit the scene while the item still exists, then consume it.
     MessageApi.scene(giver)
@@ -132,10 +133,18 @@ export default class EatController extends CommandController<EatModel> {
    * ⚠ Anything a discrete item knows that must reach the mouth has to be
    * copied across this line, and a fact that isn't fails **silently and
    * completely**: the suite stays green, the food is bad, the eater is
-   * fine. Three are carried today — the spoilage dose the microbial load
+   * fine. FOUR are carried today — the spoilage dose the microbial load
    * has earned, the pathogen loads (with any formed toxin they have
-   * already made), and the maker, without which harm from a meal can name
-   * nobody.
+   * already made), the maker (without which harm from a meal can name
+   * nobody), and ⭐ the **composition**: what the food was actually made
+   * of.
+   *
+   * ⚠ The fourth is new, and its absence was exactly the failure this
+   * comment warns about. `BlendLabel.amountsOf` falls back to the host's
+   * own Material when the composition is empty — so a wholemeal loaf and
+   * a white one, both made of `bread`, fed you identically. A chain that
+   * carries an extraction all the way from a millstone would have
+   * evaporated at the last inch, silently.
    */
   private ingestPayloadFor(
     target: Stuff,
@@ -145,6 +154,12 @@ export default class EatController extends CommandController<EatModel> {
     let payload = Freshness.withDose(null, material, load);
     const maker = MixinApi.isCrafted(target) ? target.getMaker() : "";
     if (maker) payload = { ...(payload ?? {}), maker };
+    const composition = MixinApi.isComposed(target)
+      ? target.getComposition()
+      : [];
+    if (composition.length > 0) {
+      payload = { ...(payload ?? {}), composition: [...composition] };
+    }
     const pathogens = MixinApi.isContaminable(target)
       ? target.getPathogenLoads()
       : {};
@@ -170,6 +185,7 @@ export default class EatController extends CommandController<EatModel> {
    */
   private async eatFromDish(
     target: Stuff,
+    cutlery: MqlManyResult | undefined,
     context: CommandContext,
   ): Promise<void> {
     const giver = context.commandGiver;
@@ -196,7 +212,7 @@ export default class EatController extends CommandController<EatModel> {
       });
       return;
     }
-    const utensil = this.claimUtensil(giver);
+    const utensil = this.claimUtensil(cutlery);
     const withIt = utensil ? ` ${UTENSIL_PHRASE[utensil.kind]}` : "";
     MessageApi.scene(giver)
       .topic(TOPIC)
@@ -223,22 +239,20 @@ export default class EatController extends CommandController<EatModel> {
   }
 
   /**
-   * The first clean utensil in reach — held kit first, then the table.
+   * The first clean utensil among those the binder bound — in kind
+   * preference order, held gear first within a kind (binder order).
    * Soils it on the way out (a used spoon is washed like a used bowl).
    * `null` when there is none, which is a perfectly good way to eat.
+   *
+   * ⭐ A NARROWING, not a search: `eat.yaml` declares `with` with a
+   * `[mixin.CutleryMixin]` default, so what arrives is every reachable
+   * piece of cutlery and the only question left is which is clean —
+   * state, which no predicate asks (`lint:instrument-args`).
    */
   private claimUtensil(
-    eater: CommandContext["commandGiver"],
+    bound: MqlManyResult | undefined,
   ): { kind: UtensilKind } | null {
-    // ⭐ The two-leg reach is `reachableMarks`' — held kit first, then
-    // the table, minus yourself. Rebuilding it here is how ten copies of
-    // one walk happened.
-    const reach = this.reachableMarks(eater as unknown as Stuff);
-    // ⭐ Found by what it IS. This asked `isBulkable` and then matched
-    // the vessel `category`, because the utensil kind used to live on the
-    // bulk mixin — which is the whole reason a spoon had to be a vessel.
-    // It also duck-typed `isClaimable`/`soil` off a `Partial<{…}>`, which
-    // is the same tell one level down: a concept with no home.
+    const reach = bound?.stuff ?? [];
     for (const kind of UTENSIL_KINDS) {
       for (const candidate of reach) {
         if (!MixinApi.isCutlery(candidate)) continue;

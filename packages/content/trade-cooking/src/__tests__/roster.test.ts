@@ -320,22 +320,46 @@ describe('trade-cooking — the roster resolves (AC12)', () => {
   }, 120_000);
 });
 
-describe('⭐⭐ requirement 19 — a recipe with no hold behaves as it always did', () => {
-  it('every recipe that shipped before holds existed authors NO hold', () => {
+describe('⭐⭐ requirement 19 — the unauthored hold, and what the grain chain changed about it', () => {
+  it('every recipe that shipped before holds existed still AUTHORS no hold', () => {
     const cat = StuffApi.findByTemplatePath<RecipeCatalogue>(
       '/platform/idea/RecipeCatalogue',
     )!;
-    // ⚠ `holdS: 0` is not "held for no time" — it is "the working was as
-    // long as it needed", the threshold semantics this replaced. Every one
-    // of the fourteen rows that predate the change must still say it, or
-    // the whole Hearthworks pantry starts cooking differently on day one.
+    // The ROWS are untouched: none of the fourteen that predate holds has
+    // gained one, so nothing about what these recipes CLAIM has changed.
     const preExisting = ROSTER.filter(
       (id) => id !== 'seared-cut' && id !== 'warmed-through',
     );
     expect(preExisting.length).toBe(14);
     for (const id of preExisting) {
       const r = cat.allRecipes().find((x) => x.getRecipeId() === id)!;
-      expect(r.getHoldS(), id).toBe(0);
+      expect(r.getAuthoredHoldS(), id).toBe(0);
+    }
+  });
+
+  it('⭐⭐ …but an unauthored hold is now the DIAL, not zero (grain-chain D3)', () => {
+    const cat = StuffApi.findByTemplatePath<RecipeCatalogue>(
+      '/platform/idea/RecipeCatalogue',
+    )!;
+    // ⚠⚠ **This test's old claim was retired deliberately.** It asserted
+    // `getHoldS() === 0` and called that "behaves as it always did" — but
+    // what it was actually pinning was a short-circuit: a zero hold sent
+    // the microbial kill straight to a flat sterile, so a recipe that
+    // merely forgot to mention a hold sterilised perfectly, and a sear and
+    // a lazy warm-through came out identical.
+    //
+    // `holdS: 0` means *the author did not say*, never *instantaneously*.
+    // It now reads the dial, and the kill is integrated as a rate over a
+    // real time. Below the flora's kill temperature nothing changes at all
+    // (`killOver` returns the load untouched), and above ~345 K the result
+    // is still indistinguishable from sterile — so the visible change is
+    // confined to the lazy band, which is the point.
+    const preExisting = ROSTER.filter(
+      (id) => id !== 'seared-cut' && id !== 'warmed-through',
+    );
+    for (const id of preExisting) {
+      const r = cat.allRecipes().find((x) => x.getRecipeId() === id)!;
+      expect(r.getHoldS(), id).toBeGreaterThan(0);
     }
   });
 

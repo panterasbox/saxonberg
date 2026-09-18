@@ -11,7 +11,7 @@ data:
   interiorCapacity: 20
   interiorMaterial: /trade/cooking/idea/material/coffee
   interiorAmount: 5
-  material: /stuff/idea/material/textile/jute
+  _materialPath: /stuff/idea/material/textile/jute
   closure: liquidTight
   gradeBand: fair
   censusKey: pantry:coffee

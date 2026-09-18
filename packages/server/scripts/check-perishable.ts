@@ -53,6 +53,8 @@ const SKIP = new Set(['node_modules', '.git', 'dist', 'build', 'coverage']);
 
 /** The mixin a perishable row's class must reach. */
 const REQUIRED_MIXIN = 'FreshnessMixin';
+/** …unless it is alive: a growing plant's tissue is not yet dead matter. */
+const ALIVE_MIXIN = 'GrowingMixin';
 
 interface Row {
   path: string;
@@ -136,6 +138,13 @@ function reachesFreshness(
   if (!existsSync(file)) return false;
   const src = stripComments(readFileSync(file, 'utf8'));
   if (src.includes(REQUIRED_MIXIN)) return true;
+  // ⭐ A LIVING thing does not spoil — spoilage is the microbial clock on
+  // dead matter (spoilage.md), and a growing plant's tissue is not yet
+  // dead matter. Its rows author `plant-tissue` because that is what a
+  // plant is MADE OF; the clock starts when the plant becomes a harvest
+  // (a `Crop`, which is a `Provision`). So a class that composes the
+  // growth gauge is answering a different question than this gate asks.
+  if (src.includes(ALIVE_MIXIN)) return true;
   /*
    * Follow the base this module extends, wherever it lives.
    *
@@ -153,8 +162,16 @@ function reachesFreshness(
       `import\\s+(?:\\{[^}]*\\b${base}\\b[^}]*\\}|${base})\\s+from\\s+['"]([^'"]+)['"]`,
     ).exec(src);
     if (!imp) continue;
-    const resolved = resolve(dirname(file), imp[1]!);
-    const rel = '/' + relative(MUD, resolved).split('\\').join('/');
+    // ⚠ A PACK names its base by package specifier, not relative path —
+    // `import Provision from '@saxonberg/server/mud/platform/thing/Provision'`
+    // — and resolving that against the file's directory produced a path
+    // that exists nowhere, so every pack class over a kernel base read
+    // as unable to rot. It went unseen while the loaf rows' material was
+    // a dead key (`material:` — see the wheat sack row).
+    const spec = imp[1]!;
+    const rel = spec.startsWith('@saxonberg/server/mud/')
+      ? spec.slice('@saxonberg/server/mud'.length)
+      : '/' + relative(MUD, resolve(dirname(file), spec)).split('\\').join('/');
     if (reachesFreshness(rel, sources, seen)) return true;
   }
   return false;

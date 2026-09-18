@@ -17,7 +17,7 @@ data:
   register: indefinite
   longDescription: |
     A squat unglazed pot with a chipped rim, filled to within a thumb's width of the top with dark soil.
-  material: /stuff/idea/material/ceramic/ceramic
+  _materialPath: /stuff/idea/material/ceramic/ceramic
   interiorBulk: true
   interiorCapacity: 0.5
   interiorMaterial: /stuff/idea/material/bulk/potting-soil

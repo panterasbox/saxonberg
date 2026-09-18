@@ -27,7 +27,7 @@
 
 import { ManualBuildController } from '@saxonberg/server/mud/platform/idea/cmd/crafting/ManualBuildController';
 import type { CommandContext, CommandModel } from '@saxonberg/server/mud/api/command';
-import type { MqlOneResult } from '@saxonberg/server/mud/api/mql';
+import type { MqlManyResult, MqlOneResult } from '@saxonberg/server/mud/api/mql';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import { MixinApi } from '@saxonberg/server/mud/api/mixin';
 import { MessageApi } from '@saxonberg/server/mud/api/message';
@@ -38,6 +38,7 @@ import { measurementsOf } from './CutController';
 const TOPIC = 'act.deed';
 
 interface AlterModel extends CommandModel {
+  kit?: MqlManyResult;
   garment: MqlOneResult;
   for?: MqlOneResult;
 }
@@ -92,7 +93,7 @@ export default class AlterController extends ManualBuildController<AlterModel> {
       return;
     }
 
-    const instrument = this.findCapability(giver, 'mending');
+    const instrument = this.bestInstrument(model.kit, 'mending');
     const durationMs = this.paceMs(
       dial(AlterController.BASE_MS_KEY, AlterController.BASE_MS),
       instrument as Stuff | null,

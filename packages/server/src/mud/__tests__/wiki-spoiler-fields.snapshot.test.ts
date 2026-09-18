@@ -33,6 +33,36 @@
  *
  * Reviewing the diff IS the control. Skipping it and blessing the
  * snapshot is the one way this file stops working.
+ *
+ * ## The review log
+ *
+ * ⭐ Each entry below is the answer this file demands, recorded so the
+ * next reader can see the question was actually asked rather than the
+ * snapshot blessed.
+ *
+ * **The grain chain (20 fields).** Every one level 0 except the recipe
+ * ceiling, and here is why:
+ *
+ *   - `ComminutingMixin` ×13 — a mill's throughput, its extraction
+ *     range, what it makes and into what. All **observable by using
+ *     it**, and `analyze power` reports the rate outright.
+ *     ⭐ `tollFraction` is the one worth pausing on, because a miller's
+ *     cut is the most suspected number in pre-industrial economics. It
+ *     is **not** a spoiler: a multure was fixed by custom or charter and
+ *     published. What millers were suspected of was the honesty of the
+ *     SCOOP, not the secrecy of the rate — so the rate is public and
+ *     the bin is in full view, which is exactly the shipped content.
+ *   - `ComposedMixin.composition` — what a food is made of. This **is**
+ *     the nutrition label, which the game deliberately shows. Tagging
+ *     it a spoiler would hide the one reading that makes the whole
+ *     extraction chain legible.
+ *   - `ThermalDoseMixin` ×4 — how cooked a thing is, plus the gauge's
+ *     clock stamps. The dose is already read out as a **band** on
+ *     `look`; a panel showing the same fact is not a leak.
+ *   - `Recipe.maxHeatK` — tagged `spoiler: 1, spoilerName: 0`, matching
+ *     its siblings `requiresHeatK` and `holdS`. ⭐ The split is the
+ *     point: *that a working has a ceiling* is public, and *what the
+ *     number is* is recipe knowledge you earn.
  */
 
 import { describe, it, expect } from 'vitest';

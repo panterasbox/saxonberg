@@ -141,7 +141,11 @@ async function smelt(): Promise<ReturnType<typeof makeContext>> {
   const context = makeContext(actor, room, 'smelt');
   await ExecutionContextApi.runRoot(null, 'test', async () => {
     ExecutionContextApi.tagActingAuthor(actor);
-    await makeStuff(() => new SmeltController()).execute({} as never, context);
+    // `smelt.yaml` binds the furnace; a controller test skips the binder.
+    await makeStuff(() => new SmeltController()).execute(
+      { furnace: { stuff: furnace, raw: 'furnace' } } as never,
+      context,
+    );
   });
   return context;
 }

@@ -158,6 +158,9 @@ describe('⚠⚠ a staked claim is owned by a PERSON, not by a lineage', () => {
   const WARREN = '/world/fx/idea/fx-warren';
 
   let room: TestActor;
+  // `stake.yaml` binds the register (`[class.ClaimsRegister]`); a controller
+  // test skips the binder and hands it in the binder's shape.
+  let register: ClaimsRegister;
   let owners: ParcelOwner[];
 
   /**
@@ -182,7 +185,7 @@ describe('⚠⚠ a staked claim is owned by a PERSON, not by a lineage', () => {
     await ExecutionContextApi.runRoot(null, 'test', async () => {
       ExecutionContextApi.tagActingAuthor(who);
       await makeStuff(() => new StakeController()).execute(
-        { block } as never,
+        { block, register: { stuff: register, raw: 'register' } } as never,
         context,
       );
     });
@@ -199,7 +202,7 @@ describe('⚠⚠ a staked claim is owned by a PERSON, not by a lineage', () => {
     const warren = makeStuffAtPath(() => new MineWarren(), WARREN);
     warren.setMineExtent('/world/fx/mine');
     room = makeStuff(() => new TestActor());
-    const register = makeStuff(() => new ClaimsRegister());
+    register = makeStuff(() => new ClaimsRegister());
     register.setWarrenPath(WARREN);
     ContainmentApi.move(register, room);
 
@@ -249,7 +252,7 @@ describe('⚠⚠ a staked claim is owned by a PERSON, not by a lineage', () => {
     await ExecutionContextApi.runRoot(null, 'test', async () => {
       ExecutionContextApi.tagActingAuthor(pat);
       await makeStuff(() => new StakeController()).execute(
-        { block: '24,20,0' } as never,
+        { block: '24,20,0', register: { stuff: register, raw: 'register' } } as never,
         context,
       );
     });

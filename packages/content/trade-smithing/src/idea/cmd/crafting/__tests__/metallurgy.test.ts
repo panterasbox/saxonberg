@@ -39,6 +39,7 @@ import {
   completeStep,
   makeLitForge,
   makeTool,
+  many,
 } from '@saxonberg/server/mud/platform/idea/cmd/crafting/__tests__/branch-fixtures';
 import {
   makeStuff,
@@ -59,6 +60,10 @@ const PIG = '/trade/smelting/thing/cast-iron-pig';
 let seq = 0;
 let room: TestActor;
 let actor: TestActor;
+// The smithy's instruments, handed to each step the way the binder would
+// (`hammer.yaml`/`quench.yaml` declare them; a controller test skips it).
+let striker: ReturnType<typeof makeTool>;
+let anvil: ReturnType<typeof makeTool>;
 
 type StepController = Stuff & { execute(m: never, c: never): unknown };
 
@@ -70,7 +75,11 @@ async function step(
   await ExecutionContextApi.runRoot(null, 'test', async () => {
     ExecutionContextApi.tagActingAuthor(actor);
     await makeStuff(() => new Ctor()).execute(
-      { target: ref(target, 'it') } as never,
+      {
+        target: ref(target, 'it'),
+        striker: many(striker),
+        anvil: many(anvil),
+      } as never,
       makeContext(actor, room, 'step') as never,
     );
   });
@@ -151,8 +160,10 @@ beforeEach(async () => {
   actor = makeStuffAtPath(() => new TestActor(), `/platform/agent/Avatar/smith-${seq++}`);
   ContainmentApi.move(actor, room);
   ContainmentApi.move(makeLitForge(true), room);
-  ContainmentApi.move(makeTool('striking'), room);
-  ContainmentApi.move(makeTool('anvil'), room);
+  striker = makeTool('striking');
+  anvil = makeTool('anvil');
+  ContainmentApi.move(striker, room);
+  ContainmentApi.move(anvil, room);
 });
 
 afterEach(() => {
@@ -236,7 +247,7 @@ describe('⚠⚠ cast iron refuses, and the refusal says what it is', () => {
     await ExecutionContextApi.runRoot(null, 'test', async () => {
       ExecutionContextApi.tagActingAuthor(actor);
       await makeStuff(() => new HammerController()).execute(
-        { target: ref(p, 'pig') } as never,
+        { target: ref(p, 'pig'), striker: many(striker), anvil: many(anvil) } as never,
         context,
       );
     });

@@ -27,5 +27,9 @@ outputAppearance: a cut seared hard on the outside, barely rested
 outputApplication: edible
 outputPortionL: 0.4
 requiresHeatK: 500
+# ⭐ The widest ceiling on the roster, and deliberately: a sear WANTS
+# the fiercest fire you can find, and the skill is the timing rather
+# than the restraint.
+maxHeatK: 700
 # Ten seconds. At this heat that is a complete kill — which is the point.
 holdS: 10

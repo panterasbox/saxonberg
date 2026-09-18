@@ -30,11 +30,16 @@ args:
     required: true
     scope: [inventory, reachable]
     requires: DyedMixin
-options:
-  bath:
-    type: object
-    scope: [reachable]
-    description: "Which bath (defaults to the one you are standing at)"
-    # A bath is read as a liquid volume — the controller narrows to
-    # Bulkable before it looks at a single drop.
-    requires: BulkableMixin
+  # ⭐ WHICH BATH — DECLARED, not hunted for (`lint:instrument-args`). It
+  # was `--bath`, and an option carries no `default:`, so the fallback
+  # lived as a walk. Bare, the binder hands over every reachable vessel
+  # and the controller takes the first with dyestuff in it — a question
+  # about the CONTENTS, which no predicate asks. `dye the shirt in the
+  # vat` names one.
+  - name: bath
+    type: objects
+    required: false
+    prepositions: [in, at]
+    default: "reachable:[mixin.BulkableMixin]"
+    scope: ["reachable"]
+    requires: [BulkableMixin]

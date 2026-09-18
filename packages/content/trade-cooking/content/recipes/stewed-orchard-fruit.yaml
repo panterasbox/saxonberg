@@ -24,6 +24,11 @@ outputAppearance: dark stewed fruit collapsed into its own syrup
 outputApplication: edible
 outputPortionL: 0.35
 requiresHeatK: 373
+# ⚠ The ceiling IS the boiling point, and that is not inert: the medium
+# caps the delivered heat at 373 whatever the fire does, so this says
+# **a wet dish cannot scorch while there is water in it** — which is
+# true, and is the honest reason boiling is the safe method.
+maxHeatK: 373
 medium: water
 difficulty: easy
 discipline: cooking

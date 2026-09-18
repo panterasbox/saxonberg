@@ -41,6 +41,7 @@ import {
   standUpBranchHarness,
   makeContext,
   ref,
+  many,
   completeStep,
   makeLitForge,
   makeTool,
@@ -99,7 +100,8 @@ describe('the crafting lifecycle — craft → wield → wear → sharpen → re
       RecipeKnowledge.madeEntry('Belt Knife'),
     );
     ContainmentApi.move(makeTool('striking'), room);
-    ContainmentApi.move(makeTool('anvil'), room);
+    const anvil = makeTool('anvil');
+    ContainmentApi.move(anvil, room);
     const ingot = makeStuff(() => new Ingot());
     ingot.setMass(Quantity.of(0.5, 'kg'));
     ingot.setMaterial(
@@ -153,11 +155,15 @@ describe('the crafting lifecycle — craft → wield → wear → sharpen → re
     expect(knife.getKeennessBand()).toBe('dulled');
 
     // 5. Sharpen restores keenness ONLY (the ritual, not the smith).
-    ContainmentApi.move(makeStuff(() => new Whetstone()), smith);
+    // ⚠ The stone is a declared arg now (defaulting through
+    // `[capability.whetstone]`), so a hand-built model has to carry what
+    // the binder would have put there.
+    const stone = makeStuff(() => new Whetstone());
+    ContainmentApi.move(stone, smith);
     const sharpenCtx = makeContext(smith, room, 'sharpen knife');
     await executeAs(smith, () =>
       makeStuff(() => new SharpenController()).execute(
-        { blade: ref(knife, 'knife') } as never,
+        { blade: ref(knife, 'knife'), stone: ref(stone, 'stone') } as never,
         sharpenCtx,
       ),
     );
@@ -178,7 +184,7 @@ describe('the crafting lifecycle — craft → wield → wear → sharpen → re
     const repairCtx = makeContext(smith, room, 'repair knife');
     await executeAs(smith, () =>
       makeStuff(() => new RepairController()).execute(
-        { item: ref(knife, 'knife') } as never,
+        { item: ref(knife, 'knife'), kit: many(anvil) } as never,
         repairCtx,
       ),
     );

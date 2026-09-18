@@ -1,0 +1,36 @@
+# Wheat grain — barley's row with the numbers that make it wheat.
+#
+# ⭐ The tag `wheat` is what the mill's product resolves on: one flour per
+# CEREAL, because a cereal is a kind. There is no `wholemeal` tag and no
+# `white` tag — extraction is continuous and lives on the flour's
+# payload, not in the vocabulary.
+#
+# ⚠ Deliberately INERT: no `waterActivity`, no `spoilActivationEnergy`.
+# Grain in a dry sack does not rot, and the sparse-storage rule says a
+# gauge that would read zero forever should not exist. Its FLOUR is
+# perishable — milling is what breaks the seed coat and lets the oil out,
+# which is the honest reason flour keeps worse than the grain it came
+# from.
+class: /platform/idea/material/Material
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  name: wheat grain
+  keywords: [corn, wheat, grain]
+  appearance: hard amber, blunt-ended and beardless
+  density: 780
+  specificHeat: 1900
+  thermalConductivity: 0.16
+  electricalConductivity: 1.0e-9
+  waterAbsorptionCapacity: 14
+  hardness: 22
+  toughness: 2
+  edibility: true
+  nutrients: ["carb", "protein"]
+  # ⭐ On BARLEY'S SCALE deliberately (per-tonne figures), so the two
+  # cereals are comparable and the nitrogen ledger reads one unit.
+  # Wheat carries more protein and correspondingly more nitrogen off the
+  # field — which is why its `nutrientDraw` is higher.
+  nutrientAmounts: { carb: 715000, protein: 127000 }
+  toxicity: []
+  tags: ["food", "grain", "cereal", "wheat", "feed"]
+  composition: []

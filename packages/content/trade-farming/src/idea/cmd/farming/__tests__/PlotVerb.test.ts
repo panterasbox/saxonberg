@@ -187,7 +187,19 @@ function reasons(ctx: CommandContext): string[] {
 
 async function run(ctx: CommandContext, name?: string): Promise<void> {
   const c = makeStuff(() => new PlotController());
-  await c.execute({ name } as never, ctx);
+  // ⚠ Stand in for the BINDER: `plot`'s `tool` is a declared arg
+  // defaulting to `reachable:[capability.digging]`, so the binder finds
+  // the spade and the controller reads it. A hand-built model skips the
+  // binder and must carry what the view would have put there.
+  const giver = ctx.commandGiver as unknown as { getContents?(): unknown[] };
+  const tool = (giver.getContents?.() ?? []).find((i) => {
+    const t = i as { hasCapability?(c: string): boolean };
+    return typeof t.hasCapability === 'function' && t.hasCapability('digging');
+  });
+  await c.execute(
+    { name, ...(tool ? { tool: { stuff: tool, raw: 'tool' } } : {}) } as never,
+    ctx,
+  );
 }
 
 describe('plot — breaking a field out of ground you hold', () => {

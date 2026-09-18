@@ -50,6 +50,7 @@
 import { CommandController } from '@saxonberg/server/mud/lib/command/CommandController';
 import type { CommandContext, CommandModel } from '@saxonberg/server/mud/api/command';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
+import type { MqlOneResult } from '@saxonberg/server/mud/api/mql';
 import type { Container } from '@saxonberg/server/mud/lib/spatial/Container';
 import type { Containable } from '@saxonberg/server/mud/lib/spatial/Containable';
 import type Material from '@saxonberg/server/mud/lib/material/Material';
@@ -184,13 +185,18 @@ interface ChargeLot {
   metals: CompositionEntry[];
 }
 
-export default class SmeltController extends CommandController<CommandModel> {
-  async execute(_model: CommandModel, context: CommandContext): Promise<void> {
+/** The fire, bound by the view. */
+interface SmeltModel extends CommandModel {
+  furnace?: MqlOneResult;
+}
+
+export default class SmeltController extends CommandController<SmeltModel> {
+  async execute(model: SmeltModel, context: CommandContext): Promise<void> {
     const giver = context.commandGiver;
-    const room = MixinApi.isContainable(giver) ? giver.getContainer() : null;
-    const furnace = room && MixinApi.isContainer(room)
-      ? room.getContents().find((c) => MixinApi.isFurnace(c) && MixinApi.isContainer(c))
-      : undefined;
+    // ⭐ Read, never hunted. The binder resolves the fire; whether it is
+    // a fire you can CHARGE — a container, not a forge — stays here,
+    // because no mixin says "you can put ore in this".
+    const furnace = model.furnace?.stuff ?? null;
     if (!furnace || !MixinApi.isFurnace(furnace) || !MixinApi.isContainer(furnace)) {
       this.decline(context, Mml.compose`There is no furnace here to charge.`, 'no-furnace');
       return;

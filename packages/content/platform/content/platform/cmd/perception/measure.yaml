@@ -161,6 +161,19 @@ subcommands:
         note: Take a bearing on the outcrop where you stand
     controller: /trade/mining/idea/cmd/perception/MeasureStrikeController
     args:
+      # ⭐ WHICH INSTRUMENT, declared rather than hunted for by the
+      # trade's controller. `[capability.surveying]` asks for the thing
+      # that can take this reading, which `[mixin.ToolMixin]` cannot.
+      - name: tool
+        type: object
+        required: false
+        prepositions: [with, using]
+        # ⚠ `me:i` — IN HAND, as the controller walked before the default was
+        # declared; a scythe on the ground is picked up first. (`reachable` for a
+        # day widened every hand tool to the room. Naming one still reaches it.)
+        default: "me:i:[capability.surveying]"
+        scope: ["reachable"]
+        requires: [ToolMixin]
       - name: detail
         type: string
         required: false
@@ -190,6 +203,16 @@ subcommands:
         note: Take a spadeful where you stand and read it
     controller: /trade/farming/idea/cmd/perception/MeasureTextureController
     args:
+      # ⭐ WHICH INSTRUMENT, declared rather than hunted for by the
+      # trade's controller. `[capability.digging]` asks for the thing
+      # that can take this reading, which `[mixin.ToolMixin]` cannot.
+      - name: tool
+        type: object
+        required: false
+        prepositions: [with, using]
+        default: "me:i:[capability.digging]"
+        scope: ["reachable"]
+        requires: [ToolMixin]
       - name: detail
         type: string
         required: false
@@ -213,6 +236,17 @@ subcommands:
   # ⭐ The haulage readout, on the same instrumentation split and with
   # the same ⚠: without `trade-haulage` installed it dies on dispatch
   # with a legible `controller-error`, never a crash.
+    args:
+      # ⭐ WHICH INSTRUMENT, declared rather than hunted for by the
+      # trade's controller. `[capability.soil-testing]` asks for the thing
+      # that can take this reading, which `[mixin.ToolMixin]` cannot.
+      - name: tool
+        type: object
+        required: false
+        prepositions: [with, using]
+        default: "me:i:[capability.soil-testing]"
+        scope: ["reachable"]
+        requires: [ToolMixin]
   passage:
     description: "Judge whether a rig gets through the ways out of here (teamstering)"
     help: |
@@ -287,6 +321,16 @@ subcommands:
         # anything that is not an organism. Declaring it here is what
         # turns "nothing happens" into a sentence.
         requires: OrganismMixin
+      # ⭐ WHICH BOOK — DECLARED, not hunted for (`lint:instrument-args`).
+      # By CLASS, honestly: a measure book is a kind of thing, not a role
+      # something else could offer (the `char`/`stake` reading).
+      - name: book
+        type: object
+        required: false
+        prepositions: [in, at]
+        default: "reachable:[class.MeasureBook]"
+        scope: ["reachable"]
+        requires: any
   dip:
     description: "Read how steeply an ore body falls, off an exposed vein (needs a surveyor's instrument)"
     help: |
@@ -298,6 +342,16 @@ subcommands:
       line has no fall in it. Dip is why you drive a heading.
     controller: /trade/mining/idea/cmd/perception/MeasureDipController
     args:
+      # ⭐ WHICH INSTRUMENT, declared rather than hunted for by the
+      # trade's controller. `[capability.surveying]` asks for the thing
+      # that can take this reading, which `[mixin.ToolMixin]` cannot.
+      - name: tool
+        type: object
+        required: false
+        prepositions: [with, using]
+        default: "me:i:[capability.surveying]"
+        scope: ["reachable"]
+        requires: [ToolMixin]
       - name: detail
         type: string
         required: false

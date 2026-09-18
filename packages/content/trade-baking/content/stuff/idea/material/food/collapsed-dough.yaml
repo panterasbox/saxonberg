@@ -1,0 +1,30 @@
+# Collapsed dough — ⭐ what happens to a proof you FORGOT.
+#
+# The `bread-dough` profile's `turnedMaterial`: a batch left open past
+# its `turnDays` goes over. The gluten sheet has stretched past what it
+# can hold, the gas has gone out of it, and it will not rise again.
+#
+# ⚠ It is not poison and it is not waste — you can still bake it, and
+# what you get is a flat, sour, close-grained loaf. That is the honest
+# outcome of the mistake: a worse loaf, not a lost one.
+class: /platform/idea/material/Material
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  name: collapsed dough
+  keywords: [dough, collapsed, fallen, over-proofed]
+  appearance: fallen and slack, smelling sharply of drink
+  density: 1050
+  specificHeat: 2800
+  thermalConductivity: 0.45
+  electricalConductivity: 0.01
+  waterAbsorptionCapacity: 5
+  hardness: 1
+  toughness: 1
+  edibility: true
+  waterActivity: 0.96
+  spoilActivationEnergy: 55000
+  nutrients: ["carb", "protein"]
+  nutrientAmounts: { carb: 465000, protein: 54000 }
+  toxicity: []
+  tags: ["food", "dough", "collapsed-dough", "baking"]
+  composition: []

@@ -20,5 +20,9 @@ outputAppearance: a plain hearth roast, brown outside and honest within
 outputApplication: edible
 outputPortionL: 0.4
 requiresHeatK: 450
+# The fire may be fiercer than the working wants — and then the
+# outside burns while the middle is still coming. Not a decline: a
+# scorched dish is a dish you are holding.
+maxHeatK: 500
 difficulty: standard
 discipline: cooking

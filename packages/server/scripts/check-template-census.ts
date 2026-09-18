@@ -125,6 +125,20 @@ export function refsOf(data: Record<string, unknown>): Array<{ field: string; pa
     // does not exist: `lint:identity` proves the field is *present*, and
     // this proves it *resolves*. The two gates are halves of one claim.
     'institution',
+    // ⭐ The comminution citations (the grain chain). A mill row names
+    // the matter it makes (`productMaterial` / `residueMaterial`), the
+    // sacks it fills (`productVessel` / `residueVessel`) and the bin its
+    // toll goes into (`tollBinPath`) — every one resolved live at the
+    // completion of a grind, long after the verb returned.
+    //
+    // ⚠ Which is exactly why they are READ here rather than ignored: a
+    // rowless `productVessel` is a grind that consumes the grain, runs
+    // its whole duration, and then quietly produces nothing at all —
+    // inside a module-level completion where no player and no test is
+    // watching. `UNREAD_PATH_FIELDS` only ever shrinks; this list is
+    // where a new live-resolved citation belongs.
+    'productMaterial', 'residueMaterial',
+    'productVessel', 'residueVessel', 'tollBinPath',
   ] as const) {
     push(f, data[f]);
   }

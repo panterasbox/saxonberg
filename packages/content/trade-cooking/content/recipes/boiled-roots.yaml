@@ -26,6 +26,11 @@ outputAppearance: pale boiled roots in their own thin liquor
 outputApplication: edible
 outputPortionL: 0.4
 requiresHeatK: 373
+# ⚠ The ceiling IS the boiling point, and that is not inert: the medium
+# caps the delivered heat at 373 whatever the fire does, so this says
+# **a wet dish cannot scorch while there is water in it** — which is
+# true, and is the honest reason boiling is the safe method.
+maxHeatK: 373
 medium: water
 difficulty: trivial
 discipline: cooking

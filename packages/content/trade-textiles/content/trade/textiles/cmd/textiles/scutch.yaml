@@ -29,6 +29,16 @@ args:
     required: true
     scope: [inventory, reachable]
     requires: BulkableMixin
+  # ⭐ WHICH BOARD — DECLARED, not hunted for (`lint:instrument-args`).
+  # Bare, the binder hands over every reachable thing offering
+  # `scutching` and the controller takes the best-rated.
+  - name: board
+    type: objects
+    required: false
+    prepositions: [on, at, with]
+    default: "reachable:[capability.scutching]"
+    scope: ["reachable"]
+    requires: [ToolMixin]
 options:
   hard:
     type: boolean

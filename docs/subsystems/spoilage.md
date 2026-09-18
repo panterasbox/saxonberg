@@ -231,14 +231,30 @@ genuinely different acts rather than one boolean.
 
 A recipe expresses that as the pair `(requiresHeatK, holdS)`.
 
-⭐ **`holdS` absent means "the working was as long as it needed"** —
-byte-identical to the threshold this replaced, which is what keeps every
-recipe authored before holds existed cooking exactly as it did. A number
-is a claim that the hold was *not* sufficient, and is therefore always a
-deliberate authoring act. `seared-cut` (500 K / 10 s) and
-`warmed-through` (335 K / 120 s) are the shipped pair; the second is
-authored as a trap, and it is the row that makes the lesson a thing a
-player can be wrong about.
+⭐⭐ **`holdS` absent means "the author did not say" — NEVER
+"instantaneously", and the difference was a real bug** (the grain-chain
+build, D3). It used to short-circuit the kill to a flat `0`: a recipe
+that merely forgot to mention a hold sterilised *perfectly*, so the sear
+and the lazy warm-through this section is about came out identical
+whenever neither authored a number. An unauthored hold now reads
+`thermal.dose.defaultHoldS` (1200 game-seconds) and is integrated like
+any other.
+
+The threshold still exists — it lives in **one** place, inside
+`Freshness.killOver`, which returns the load untouched below `killK`. So
+nothing under the kill changed at all. Above it, the census says the
+visible change is confined to a narrow band: at 345 K and up a 20-minute
+hold leaves a survival fraction under 1e-11 (indistinguishable from the
+old flat zero), and exactly **one shipped recipe** sits in the band where
+it differs — `simple-syrup` at 340 K, which now leaves ~1.4e-4 of its
+load instead of nothing. A syrup warmed to 67 °C *is* a lazy
+warm-through, and it should not sterilise.
+
+`seared-cut` (500 K / 10 s) and `warmed-through` (335 K / 120 s) are the
+shipped authored pair; the second is a trap, and it is the row that makes
+the lesson a thing a player can be wrong about. `Recipe.getHoldS()` is
+the effective hold; `getAuthoredHoldS()` is the raw field, for anything
+that needs to know whether a number was written down.
 
 Then, two different facts, and keeping them apart is the design:
 
@@ -274,6 +290,109 @@ asks whether the setup can supply the recipe's demand; what the food was
 held at is the recipe's own demand. A stew simmered beside a roaring
 forge was simmered, not forged, and conflating the two would have every
 dish in a kitchen cooked at the hottest thing in the room.
+
+⚠ **…and there is a SECOND figure, which the resolve used to throw
+away.** The pinning above is right for the kill and exactly wrong for the
+ceiling (below): *"was the fire fiercer than this working wanted?"*
+cannot be answered by a number pinned to what the working wanted, so it
+answered *no* for every recipe ever. `deliveredHeatK` is what the setup
+actually put on the food — medium cap included, so a wet recipe beside a
+roaring forge still cannot scorch, because the water stops at 373 K. The
+kill reads `workingHeatK`; the ceiling reads `deliveredHeatK`.
+
+## ⭐⭐ Doneness — the OTHER thing heat does, and it is not this gauge
+
+`lib/thermal/ThermalDose.ts`. Spoilage models the *microbial* consequence
+of heat; nothing modelled the *culinary* one. A loaf was done because
+`bake` said so, and then stayed done forever inside a 500 K oven.
+
+Doneness is a **dose**, accumulated while the food is hot and — this is
+the point — **still accumulating after the working ends**:
+
+```
+doseS   += INTEGRAL 10^((T(s) - Tref) / z) ds     for T >= floorK
+scorchS += INTEGRAL 1 ds                          for T >  ceilingK
+```
+
+⚠⚠ **It is not re-based onto the kill and must not be.** `z = 33 K` is a
+*browning* decade interval; the kill's Arrhenius (`Ea = 200 kJ/mol`) is
+roughly `z ≈ 7 K` near 333 K. They are different physics, and one
+integrator serving both would make one of them a lie. Twelve integrators
+is the right number.
+
+- **The gauge** rides `ThermalDoseMixin` on `Provision` (every food can
+  be cooked — true of the class by name) and `BulkPayload.dose` for a
+  dish in a pot. ⚠ **No far-past guard and no linkdead freeze**, for
+  `Freshness`'s reason exactly: a loaf left in an oven overnight burns.
+- **It integrates, it does not sample.** A body in an oven is on a Newton
+  trajectory and the rate is exponential in T, so the gauge stores the
+  temperature at its last reconcile and runs Simpson along
+  `Decay.toward` between the two samples. A rectangle from the start
+  reads zero; from the end, half again too much.
+- **Doneness is a RATIO** — `doseS` against what the recipe asked for
+  (`holdS` at `requiresHeatK`, in the same reference-seconds). So a sear
+  and a braise are both `done` at 1, and a recipe is its own yardstick.
+  Bands: `raw < 0.5 ≤ underdone < 1 ≤ done < 1.5 ≤ overdone < 3 ≤ burnt`.
+- **Scorch is separate**, and a thing can be both: an outside burnt black
+  by too fierce a fire while the middle is still underdone is exactly
+  what a too-hot oven does. `Recipe.maxHeatK` is the working's ceiling
+  (sentinel `0` = states none, the char point applies).
+- ⭐ **A fire over the ceiling still MINTS.** Never a decline — the bread
+  came out, it came out black. Declining would protect the player from a
+  mistake worth being able to make. **Burnt is the object with the
+  band**: no burnt template, no second terminal.
+- ⭐ **Ruined writes the Grade down to `poor`**, monotone, the
+  `Maturing.applyBatchGrade` shape. It only ever lowers, so nothing can
+  be nursed back by cooling it — a grade that can be recovered is a grade
+  worth grinding.
+- **A working stamps the dose it earned**, so every dish comes out of its
+  own working `done` and only physics afterwards takes it past.
+
+`lint:doneness` gates both silent failures: a cookable working that
+states no ceiling (census-then-ratchet, 17 today, driven to 0 when the
+kitchen's roster is ceilinged), and a bread row on a class that cannot
+stale.
+
+## ⭐⭐ Staling — the THIRD clock, and it runs the other way
+
+Bread goes stale, and **staling is not spoilage.** Spoilage is microbial:
+warm and wet is where things grow, so the freshness gauge runs faster as
+it gets hotter and pauses at freezing. Staling is not alive at all. It is
+**retrogradation** — the starch that gelatinised in the oven slowly
+re-crystallising — and its rate **peaks a few degrees above freezing**,
+falls away as it warms, and stops when actually frozen.
+
+| where you put the loaf | spoils | stales |
+|---|---|---|
+| the bread box (293 K) | slowly | slowly |
+| the cold larder (277 K) | hardly at all | **fastest** |
+| frozen (270 K) | stopped | **stopped** |
+| the oven (330 K+) | killed | **reversed** |
+
+⭐ That table is the one piece of real kitchen knowledge the grain chain
+exists to make discoverable: **the icebox is the worst place for bread.**
+It keeps a loaf from going mouldy by making it go hard faster, and most
+people have it exactly backwards. Nobody is told; two loaves in two
+rooms overnight say it (`help retrogradation` predicts the table before
+a loaf is put anywhere).
+
+Heat reverses it: a stale loaf back in the oven **comes back** — not all
+the way (`refreshFloor`), and only so many times before it is a rusk.
+
+**Where it lives.** `StalingMixin` is the baking pack's
+(`trade-baking/src/lib/Staling.ts`), composed on `Loaf` over
+`Provision` — so a loaf spoils AND stales, on two gauges that share no
+band word. One composer in one pack is the kernel's own test for *not
+yet substrate*; cooked rice and a boiled potato are the same chemistry,
+and the third pack wanting it is the signal to promote it to
+`lib/material/`. Like `Freshness`, it has **no far-past guard**: it is
+the point that bread stales while you are away. Unlike `ThermalDose`,
+the rate is a single sample per reconcile rather than an integral — a
+loaf's thermal time constant is minutes and staling runs over days, so
+the rectangle rule is exact at that ratio.
+
+`lint:doneness` gates the second silent failure this clock could have: a
+bread row on a class that cannot stale.
 
 ## The water state — what drying and curing actually change
 
@@ -527,6 +646,24 @@ dialled here — a global "meat spoils faster" knob would erase the point.
 | `cure.rehydrationPerHour` | 0.02 | fraction of the moisture gap a dried thing closes per game-hour |
 | `cure.ambientHumidity` | 60 | the relative humidity (%) assumed where nothing authors one |
 | `cure.band.{dried,drying,cured,curing}At` | 0.5 / 0.85 / 0.35 / 0.05 | presentation cutoffs for the cured-state line |
+
+### The doneness dials (`thermal.dose.*`)
+
+⚠⚠ **Deliberately NOT `freshness.dose.*`** — those keys already exist and
+mean the **ptomaine** dose a spoiled serving carries. Same word, two
+subsystems.
+
+| key | default | what it is |
+|---|---|---|
+| `thermal.dose.referenceK` | 373 | what the dose is denominated in — one dose-second = one second of simmering |
+| `thermal.dose.zK` | 33 | the **browning** decade interval; not the kill's |
+| `thermal.dose.floorK` | 323 | below this nothing cooks, however long |
+| `thermal.dose.defaultCeilingK` | 470 | the char point for a working stating no `maxHeatK` |
+| `thermal.dose.scorchedAtS` | 60 | seconds above the ceiling that read as scorched |
+| `thermal.dose.defaultHoldS` | 1200 | the hold an unauthored recipe gets — the D3 zero that used to sterilise |
+
+`z` and the band ratios are playtest numbers by design; they set how
+sharply a fierce fire beats a patient one.
 
 ## Calibration (what a player actually feels)
 

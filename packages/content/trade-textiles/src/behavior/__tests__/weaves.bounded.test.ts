@@ -160,7 +160,7 @@ describe('the mill has an input, and it is at the RAW end', () => {
     // `scutch` wants a `fibre` material; flax-straw is what goes into a
     // pit, and the refusal for it is one of the trade's better lines.
     expect(BALE.data.interiorMaterial).toBe('/stuff/idea/material/textile/linen');
-    expect(BALE.data.material).toBe('/stuff/idea/material/textile/linen');
+    expect(BALE.data._materialPath).toBe('/stuff/idea/material/textile/linen');
     expect(Number(BALE.data.interiorAmount)).toBeGreaterThan(0);
   });
 

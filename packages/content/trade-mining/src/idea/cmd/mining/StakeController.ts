@@ -24,6 +24,7 @@
 import { CommandController } from '@saxonberg/server/mud/lib/command/CommandController';
 import type { CommandContext, CommandModel } from '@saxonberg/server/mud/api/command';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
+import type { MqlOneResult } from '@saxonberg/server/mud/api/mql';
 import { MixinApi } from '@saxonberg/server/mud/api/mixin';
 import { MessageApi } from '@saxonberg/server/mud/api/message';
 import { Mml } from '@saxonberg/server/mud/api/mml';
@@ -39,15 +40,18 @@ const BLOCK_HALF = 3;
 
 interface StakeModel extends CommandModel {
   block?: string;
+  /** ⭐ The register, resolved by the BINDER off the view's arg. */
+  register?: MqlOneResult;
 }
 
 export default class StakeController extends CommandController<StakeModel> {
   async execute(model: StakeModel, context: CommandContext): Promise<void> {
     const giver = context.commandGiver;
-    const room = (giver as unknown as { getContainer(): Stuff | null }).getContainer();
-    const counter = room && MixinApi.isContainer(room)
-      ? room.getContents().find((c) => isRegister(c))
-      : undefined;
+    // ⭐ Read, never hunted. ⚠ The duck-type check stays: a register is
+    // recognised by answering `getWarrenPath`, which no mixin declares
+    // and therefore no predicate can express.
+    const bound = model.register?.stuff ?? null;
+    const counter = bound && isRegister(bound) ? bound : undefined;
     if (!counter) {
       this.decline(
         context,
