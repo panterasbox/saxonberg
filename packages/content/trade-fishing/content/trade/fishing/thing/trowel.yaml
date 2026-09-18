@@ -1,0 +1,13 @@
+# A trowel — what you dig bait with. `capabilities: [digging]` is what
+# the `dig` view's trowel argument finds.
+class: /trade/fishing/thing/Trowel
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  keywords: [trowel, spade, hand-trowel]
+  shortDescription: hand trowel
+  register: indefinite
+  longDescription: A short iron trowel with a wooden grip, the blade worn bright.
+  mass: 0.4
+  capabilities: [digging]
+  epoch: medieval
+  _materialPath: /stuff/idea/material/element/iron

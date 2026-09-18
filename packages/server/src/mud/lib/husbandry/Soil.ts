@@ -176,6 +176,13 @@ export interface Soil {
   feedSoil(fraction: number): number;
   /** Draw nutrient out — what a harvested crop exports. */
   drawNutrient(fraction: number): number;
+  /**
+   * Draw organic matter out — what digging for worms takes (fishing
+   * D12). ⭐ The soil's own ledger is the cooldown: a bed dug over for
+   * bait every morning has less in it, and a worked-out bed gives no
+   * worms. Returns the fraction actually taken.
+   */
+  drawOrganicMatter(fraction: number): number;
   /** Organic matter as a fraction `[0, 1]`, or `null` when unmodelled. */
   organicMatterFraction(): number | null;
   /** Structure as a fraction `[0, 1]`, or `null` when unmodelled. */
@@ -804,6 +811,22 @@ export function SoilMixin<TBase extends MixinConstructor<Stuff & Reserved>>(
       if (taken <= 0) return 0;
       reserved.adjustReserve(
         SOIL_NITROGEN_RESERVE_KEY,
+        Quantity.of(-taken, reserve.current.unit),
+      );
+      return taken;
+    }
+
+    /** See {@link Soil.drawOrganicMatter} — the twin of `drawNutrient`. */
+    public drawOrganicMatter(fraction: number): number {
+      if (!Number.isFinite(fraction) || fraction <= 0) return 0;
+      this.reconcileSoil();
+      const reserved = this.soilHost;
+      const reserve = reserved.getReserve(SOIL_ORGANIC_MATTER_RESERVE_KEY);
+      if (!reserve) return 0;
+      const taken = Math.min(fraction, reserve.current.rawValue());
+      if (taken <= 0) return 0;
+      reserved.adjustReserve(
+        SOIL_ORGANIC_MATTER_RESERVE_KEY,
         Quantity.of(-taken, reserve.current.unit),
       );
       return taken;

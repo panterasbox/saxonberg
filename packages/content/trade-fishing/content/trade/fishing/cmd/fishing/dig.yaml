@@ -1,0 +1,31 @@
+verbs: [dig]
+controller: /trade/fishing/idea/cmd/fishing/DigController
+description: "Dig for worms"
+help: |
+  `dig` turns over the nearest ground you could grow something in and,
+  a couple of minutes later, comes up with a worm. `dig bed` says which
+  ground; `dig with trowel` says what with.
+
+  ⚠ It costs the ground something. A bed dug over for bait every morning
+  has less in it, and a worked-out one gives nothing and says so.
+validators:
+  - /lib/command/validators/requiresAnimate
+  - /lib/command/validators/requiresConscious
+  - /lib/command/validators/requiresEmbodied
+args:
+  # ⭐ WHICH GROUND — anything cultivable in reach: a bed, a pot, a
+  # field. The arg gate is the mixin; the controller reads its ledger.
+  - name: ground
+    type: object
+    required: false
+    default: "reachable:[mixin.CultivableMixin]"
+    scope: ["reachable"]
+    requires: [CultivableMixin]
+  # ⭐ WHICH TROWEL — `[capability.digging]`, consumed here.
+  - name: trowel
+    type: object
+    required: false
+    prepositions: [with, using]
+    default: "me:i:[capability.digging]"
+    scope: ["inventory"]
+    requires: [ToolMixin]

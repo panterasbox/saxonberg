@@ -19,7 +19,7 @@ import '../../../../test-bootstrap';
 import { describe, it, expect } from 'vitest';
 import { Idea } from '../../stuff/Idea';
 import { ReservedMixin, Reserve } from '../../reserve';
-import { SoilMixin, SOIL_MOISTURE_RESERVE_KEY, SOIL_NITROGEN_RESERVE_KEY, SOIL_RESERVE_THEME } from '../Soil';
+import { SoilMixin, SOIL_MOISTURE_RESERVE_KEY, SOIL_NITROGEN_RESERVE_KEY, SOIL_ORGANIC_MATTER_RESERVE_KEY, SOIL_RESERVE_THEME } from '../Soil';
 import { MixinApi } from '../../../api/mixin';
 import { Quantity } from '../../quantity';
 import { makeStuff } from '../../security/__tests__/test-setup';
@@ -90,6 +90,27 @@ describe('SoilMixin — the ground half, on its own', () => {
     expect(ground.drawNutrient(-1)).toBe(0);
     expect(ground.soilMoistureFraction()).toBeCloseTo(0.25, 6);
     expect(ground.nutrientFraction()).toBeCloseTo(0.5, 6);
+  });
+
+  it('⭐ drawOrganicMatter — what a worm-dig takes, and the soil is the cooldown (fishing D12)', () => {
+    const ground = makeGround();
+    // No organic reserve authored: unmodelled, nothing to take.
+    expect(ground.drawOrganicMatter(0.05)).toBe(0);
+    ground.setReserve(
+      new Reserve(
+        SOIL_ORGANIC_MATTER_RESERVE_KEY,
+        Quantity.of(100, '%'),
+        Quantity.of(0.12, '%'),
+        SOIL_RESERVE_THEME,
+        null,
+      ),
+    );
+    expect(ground.drawOrganicMatter(0.05)).toBeCloseTo(0.05, 6);
+    expect(ground.drawOrganicMatter(0.05)).toBeCloseTo(0.05, 6);
+    // The floor: only what is left, then nothing.
+    expect(ground.drawOrganicMatter(0.05)).toBeCloseTo(0.02, 6);
+    expect(ground.drawOrganicMatter(0.05)).toBe(0);
+    expect(ground.drawOrganicMatter(-1)).toBe(0);
   });
 
   it('⭐ the two host hooks default to zero — nobody drinks, no sky is caught', () => {

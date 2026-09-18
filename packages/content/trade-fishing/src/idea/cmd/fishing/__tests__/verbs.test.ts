@@ -102,7 +102,7 @@ describe('fish', () => {
     expect(rejected(ctx)).toBeNull();
     const live = angler.getEngagementByType(FISHING_TYPE);
     expect(live).toBeDefined();
-    expect((live as { reachRef: string }).reachRef).toBe('delight:flats');
+    expect((live as unknown as { reachRef: string }).reachRef).toBe('delight:flats');
     expect(sent.join(' ')).toMatch(/cast out/);
   });
 
@@ -110,7 +110,7 @@ describe('fish', () => {
     localityWith('delight:flats');
     const shore = { getReachRef: () => 'kestrel:confluence' } as unknown as Stuff;
     await run(FishController as never, { rod: { stuff: rod, raw: 'rod' }, shore: { stuff: shore, raw: 'bank' } }, angler, room, 'fish at bank');
-    expect((angler.getEngagementByType(FISHING_TYPE) as { reachRef: string }).reachRef).toBe('kestrel:confluence');
+    expect((angler.getEngagementByType(FISHING_TYPE) as unknown as { reachRef: string }).reachRef).toBe('kestrel:confluence');
   });
 
   it('⚠ no reach anywhere: "there is no water here", and nothing starts', async () => {
