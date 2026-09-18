@@ -20,12 +20,14 @@
  *  3. an explicit persistence key and a recorded place;
  *  4. its first capture.
  *
- * ⚠ **You may not name an animal that has not chosen you.** Two gates:
- * a bond at or above `NAME_BOND`, and *it has followed you home at least
- * once*. The second is the one that matters — it cannot be bought with
- * food, only with the animal deciding to come with you. That is what
- * makes naming feel earned rather than administrative, and it is why
- * adoption is inverted here: the animal adopts you.
+ * ⚠ **You may not name an animal that has not chosen you.** A bond at
+ * or above `NAME_BOND`, and one of two routes home: *it has followed you
+ * home at least once*, or *its home was earned* — fed in one place for
+ * three distinct days, and it is there now (the only route an animal
+ * that cannot walk has — `Bonded.hasChosen`). Neither can be bought
+ * with a single meal; both are the animal deciding to stay. That is
+ * what makes naming feel earned rather than administrative, and it is
+ * why adoption is inverted here: the animal adopts you.
  *
  * ⭐ The naming is a **witnessed act**: everyone present learns the name,
  * the `introduce` shape exactly. A name nobody heard given is a private
@@ -42,7 +44,6 @@ import { Mml } from '../../../../api/mml';
 import { SecurityApi } from '../../../../api/security';
 import { PersistableApi } from '../../../../api/persistable';
 import { PlayerApi } from '../../../../api/player';
-import { NAME_BOND } from '../../../../lib/husbandry/Bonded';
 
 const TOPIC = 'act.deed';
 
@@ -75,13 +76,11 @@ export default class NameController extends CommandController<NameModel> {
       return;
     }
 
-    // ⚠ Both gates, one sentence. "It has not chosen you" is the honest
-    // description of either failure, and the player's remedy for both is
-    // the same: spend more time with it.
-    const followed = animal
-      .getFollowedKeys()
-      .includes(actor.getIdentityPath() ?? '');
-    if (animal.bondWith(actor) < NAME_BOND || !followed) {
+    // ⚠ Every gate, one sentence. "It has not chosen you" is the honest
+    // description of any failure — the bond, the following, the earned
+    // home — and the player's remedy for all of them is the same: spend
+    // more time with it. The animal answers (`Bonded.hasChosen`).
+    if (!animal.hasChosen(actor)) {
       this.refuse(
         context,
         TOPIC,
