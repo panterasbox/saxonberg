@@ -5,8 +5,9 @@
 > the single seam → [harm.md](../../subsystems/harm.md). The function
 > half is untouched — `governsVital` has not become `governs`, and there
 > is still no pain, no perfusion or innervation reader.
-> **Left:** the capacity vocabulary + the `governs` rename (waves 2–3
-> block the rest) · the organ roster (brain · spine · liver) · the
+> **Left:** per-individual stature + BMI as a banded derived read (its
+> first consumer is body density for buoyancy) · the capacity vocabulary
+> + the `governs` rename (waves 2–3 block the rest) · the organ roster (brain · spine · liver) · the
 > function axis (trauma × tissue × perfusion × innervation) · the alarm
 > clock off `reconcileConditions` · pain as a derived reader · substances
 > (the topical route, inhalation, the liver multiplier) · chems and meds
@@ -2141,6 +2142,35 @@ business problem.
     (`control·sense`), `wake` (`control·mind`), `diagnose`
     (`perceive·body`). **`transfuse` cut — the postulate moves energy,
     not matter.** No new verbs: **a second payment method.**
+
+## ⭐ Anthropometrics — stature and BMI (2026-09-18)
+
+> **User:** *"I think we need BMI on a person's vitals. don't think we
+> have that anywhere and it's gonna be important for some experiences to
+> land right."*
+
+**State (verified):** `flesh` is a reserve with `bodyConditionBand()`
+(emaciated → thin → good → fleshy → fat) on `Creature`; `getMass()` is
+real; `Species.stature` exists — but **no individual has a height**, so
+BMI (mass ÷ height²) cannot be computed for a person.
+
+**Shape:**
+
+- **per-individual stature** — set at char-gen (the dossier carries it;
+  the species' `stature` is the prior), persistent on `Creature`;
+- **BMI as a derived read** on `Creature`, **banded** on the vitals card
+  and in a physician's `analyze patient` — a measurement an instrument
+  makes, never a gauge the player watches (measurement.md);
+- ⭐ **the first mechanical consumer is body density** — fat floats,
+  muscle sinks — the buoyancy term in the underwater slate's ascent
+  Journey. BMI is the honest proxy for body composition the game already
+  tracks as `flesh`, and body density falls out of it with no second
+  number.
+
+Which experiences it is for beyond the water: the char-gen card as a
+stat block, a physician reading a body, the `thin`/`fat` prose finally
+having a height behind it, and clothing fit (textiles already models fit
+as two numbers and a stamp — stature is one of them, unnamed).
 
 ## Open questions (for requirements)
 
