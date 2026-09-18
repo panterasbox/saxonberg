@@ -26,6 +26,9 @@ here, the rest of its tail stands) ·
 [physiology-slate](./physiology-slate.md) (⭐FAST-TRACK; *"what can you do
 and why not"* — this slate's stocks are tier-1 state and its reads are
 tier-2, by that slate's rules) · [vitals.md](../../subsystems/vitals.md) ·
+[harm.md](../../subsystems/harm.md) + [thermal.md](../../subsystems/thermal.md)
+(⚠ read off build-4's `design/harm-survey` until it merges: `BodyCapacity`
++ function bands, `heatLoadJ` — the two seams Parts 3–4 compose on) ·
 [reserve.md](../../subsystems/reserve.md) (a stock is a `Reserve`) ·
 [advancement.md](../../subsystems/advancement.md) (the `conditioning`
 channel, band-gated conferrals, the derive-on-read fold) ·
@@ -157,8 +160,45 @@ person feels about them is theirs.
 
 An `exertion` is `{ durationS, effort }` — effort in real units the
 engine already has (a power over a duration is joules, and `Quantity<U>`
-carries both). It feeds two things and only two: the `lean` stock (with
-protein, Part 2) and the `wind` Discipline's transcript (Part 4).
+carries both). It feeds three things and only three: the `lean` stock
+(with protein, Part 2), the `wind` Discipline's transcript (Part 4), and
+**the body's internal heat load** (below).
+
+### ⭐⭐ Exertion is heat — and the seam is already being cut
+
+The injury build (build-4, `design/harm-survey`, unmerged at capture)
+adds `heatLoadJ` + `absorbHeatLoad(joules)` to `ThermalRegulation`:
+*"heat the body is carrying that did not come from the weather"*, with
+the note that its first consumer is magic (a frost caster absorbs what
+the heat pump moved) but *"the field is not magic's: it is the seam
+exertion wants next."* So it is: muscle is ~20–25 % efficient, and the
+rest of every joule of effort is heat the body must shed. An `exertion`
+deposits `effortJ × (1 − η)` through that one call and nothing else —
+**no second thermal model**.
+
+What falls out, with no wiring of its own:
+
+- Shedding is sweating and costs **hydration** on the shipped
+  `HEAT_SPEND_PER_DEGREE` scale — so hard work costs water *through the
+  thermal path*, one scale, not a separate exertion drain.
+- **Worn insulation damps shedding** — clo sits in series with the
+  body's own resistance (`SHED_BODY_CLO`), so the coat that holds warmth
+  in is the coat that stops work-heat getting out. Haul in a parka and
+  you overheat; strip and you don't. ⭐ This is the garment ↔ thermal
+  interop, and build-4 made the two insulation models agree (a layer's
+  thermal block reads the garment's real `getClo()`).
+- Past the **wet-bulb ceiling** or with no water left, nothing sheds:
+  the labourer in a steam-filled cellar has nowhere to put the heat.
+- Unshed load is a real core offset (`ΔT = Q / m·c`) and hyperthermia
+  now spawns at **setpoint + 2.5 K** — heat stroke on the haul is a
+  consequence the model reaches honestly, and the physician's `assess`
+  reads it.
+
+⚠ The efficiency `η` and the producers' effort figures are the dials
+that decide whether ordinary work in ordinary clothes cooks people: a
+400 W nude shed ceiling against a labourer's ~500 W of heat means a
+working body in a coat *must* sweat harder or strip. Plausible, and
+exactly what the drive has to prove rather than the suite.
 
 ### The in-game producers — all of them already exist
 
@@ -208,6 +248,26 @@ nothing reads. **This build makes the channel true.**
 - The **stocks are what the body IS; `wind` is what it can DO** —
   physiology's own split. A strong body with no wind, and a runner with
   no strength, are both expressible, which is the point of two things.
+
+### Reach composes with FUNCTION — two axes, one read
+
+The injury build ships the physiology slate's function half:
+`BodyCapacity` (`consciousness · locomotion · manipulation · circulation
+· respiration · clearance`) read in four `FUNCTION_BANDS` (`full ·
+impaired · failing · lost`), *function is the minimum along the path*.
+That is a different axis from conditioning and must stay one:
+
+- **Function** is what injury takes away — derived over the parts,
+  tier 2, worst-band-wins.
+- **Conditioning** is what training adds — derived over the transcript,
+  half-life fold.
+
+**Reach reads both.** The sustained `run` a `wind` band confers is still
+gated by `locomotion` at `full`; the swim across needs `respiration`.
+The hauler with a broken leg has the wind and not the leg. ⚠ Naming:
+build-4 reserves *capability* (`Archetype.CapabilitySlot`) and
+*capacity* (`SlotSpec.capacity`, `BodyCapacity`) — this slate says
+**reach** and nothing else for what conditioning confers.
 
 ### Conditioning decays — as a fold rule, not a ledger change
 
@@ -389,6 +449,17 @@ makes it not premature: the producers exist and are running.
   vocabulary); the gym as a *place* (a locality archetype whose fixtures
   afford exertion for its own sake — ⚠ combat's "gym" is the balance
   bench, `test:gym`, not a room; no precedent exists).
+
+### Risks
+
+- **Build-4 is unmerged.** `heatLoadJ` / `absorbHeatLoad` and
+  `BodyCapacity` are read off `design/harm-survey` at capture; the
+  requirements pass re-reads them off master. If that build lands first
+  (it should — it is the substrate this one composes on), W1's heat
+  consumer and W2's function gate are one call each. If it does not,
+  the heat consumer waits; nothing else here depends on it.
+- **The heat dial.** η and the producers' effort figures decide whether
+  a shift in a coat is sweat or heat stroke (Part 3). Drive it.
 
 ### Open questions
 
