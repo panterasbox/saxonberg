@@ -33,7 +33,7 @@ data:
   latentHeatOfVaporization: 858000
   edibility: false
   nutrients: []
-  toxicity: [lead]
+  toxicity: [{ type: lead-poisoning, amount: 0 }]
   tags: ["element", "metal", "non-ferrous", "crystalline", "conductor", "toxic"]
   composition: []
   symbol: Pb
