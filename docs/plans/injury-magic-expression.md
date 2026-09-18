@@ -253,3 +253,108 @@ work is NOT yet started — this document is the plan for it.
 - `docs/subsystems/electricity.md` — the shock conduction walk (the
   chaining synergy)
 - `docs/subsystems/watershed.md`, `FloodedCell` — the pooled-water synergies
+
+---
+
+# Stage D — the executable plan (added 2026-09-18)
+
+Grounded against the code (survey 2026-09-18). This is the wave plan the
+build runs. Scope decided per the user's charter — *"make sure magic
+handles everything"* — bounded to a tractable, landable target: **the four
+channels magic does not reach today** (`blunt`, `point`, `edge`,
+`corrosion`), each given a spell, plus the one engine seam that unblocks
+corrosion, plus the interop tests the synergies need.
+
+## D-decisions (cited by waves/commits)
+
+- **D-M1 — the corrosion seam is a verb on the material.**
+  `Material.corrodeOnContact(victim, {energy?, site?})` reads the
+  material's own `corrosiveTo` (base field, `Material.ts:610`), and when
+  non-empty routes through the ONE door `ConditionApi.inflict({mechanism:
+  'corrosion', corrosiveTo, energy, site})`. It mirrors
+  `Potable.dischargeInto(victim, litres, opts)` exactly (a material
+  delivering to a victim). Verbs-on-objects; no new Api; one door. A no-op
+  (returns false) for any non-caustic material, so the call is safe
+  everywhere.
+- **D-M2 — corrosion reaches a body through SUBSTANCE, never
+  inject-channel.** The body arm's exclusion of `corrosion`
+  (`MagicLogic.ts:1483`) STANDS — the code comment there already
+  prescribes the conjure-substance route. Honest per arcane-science: magic
+  *collects/relocates* matter (conjuration is collection); the caustic's
+  own chemistry does the corroding through the normal fold.
+- **D-M3 — mechanical spells use the body arm's abstract `energy` token,
+  no `joules`.** They are outside `lint:spell-cost`'s jurisdiction (which
+  only judges `joules` on depositing channels), exactly like `shove` and
+  the other eleven token spells — `energy` is the covering-fold scalar,
+  not a quantity. Recoil (arcane-science's *every push shoves both ways*)
+  is expressed via the cursed-band self-backfire, the `firebolt`
+  precedent, where it fits the working's identity.
+- **D-M4 — school→channel, no new disciplines.**
+  `create·earth → blunt` and `create·earth → point` (solid matter shaped
+  to crush or to pierce — a two-spell family, the "more than one frost"
+  the user asked for); `create·air → edge` (a shearing edge of compressed
+  air); `create·water → corrosion` (a conjured caustic fluid, the
+  `conjure-water` arm reused). `magic-create/earth/air/water` all already
+  ship as Discipline leaves.
+- **D-M5 — scope boundary.** The acid FLASK (a thrown vial of the caustic
+  bulk) rides the W-D0 splash wiring for free → weapon-side corrosion, no
+  combat-refusal change (a thrown vial splashes; it is not a melee
+  channel). Deferred to a slate: **standing in a pooled caustic** (needs a
+  `Floor.onEntered` re-contact hook like `FloodedCell`), and a **second
+  cold spell** (frost already covers `cold` and drives the freezing-pool
+  synergy).
+
+## Host placement
+
+| new surface | host | claims |
+|---|---|---|
+| `corrodeOnContact(victim, opts)` | base `Material` | corrosion delivery is a caustic material's own capability; `corrosiveTo` already lives on base Material, so the method sits with its data. No new mixin — a non-caustic Material answers false. |
+| caustic bulk material(s) (`vitriol`) | content row at `/stuff/idea/material/bulk/` (base-library) | no new class — base Material carries `corrosiveTo`; it is a data row like `quicklime`. |
+| the four spells | content YAML in arcane-library `Spell/` | no new class — `/platform/idea/magic/Spell` + auto-discovery. |
+| acid flask | vessel template (generic-objects) filled with `vitriol` | no new class — a `Vessel` with a bulk fill. |
+
+## Waves
+
+**W-D0 — the substance-contact corrosion seam.** `Material.corrodeOnContact`
+(+ interface decl, doc); wire the two active contact events —
+`ThrowController` splash loop (`ThrowController.ts:200-218`, caustic vials
+now corrode the splash set) and `execConjure`'s bulk arm
+(`MagicLogic.ts:1709-1741`, a caustic conjured AT an organism corrodes it
+on contact); author the `vitriol` bulk caustic (`corrosiveTo: [metal,
+organic, tissue, leather, textile]` — it eats steel, the armour-interop
+case) and a thrown acid flask. Unit tests: a caustic splash leaves a
+`caustic` trauma; a non-caustic splash does not; conjure-at-body corrodes;
+`corrosiveTo` empty ⇒ no-op. Commit `build(injury W-D0)`.
+
+**W-D1 — the spell roster.** Author `stonefist` (create·earth, blunt),
+`stone-lance` (create·earth, point), `windrazor` (create·air, edge),
+`vitriol` (create·water, corrosion via conjure). Tests: each spell leaves
+its channel's trauma on a body (fracture/puncture/laceration/caustic); a
+worn layer answers a magic blunt blow (armour matters); the acid spell
+corrodes through the W-D0 seam. Commit `build(injury W-D1)`.
+
+**W-D2 — interop + docs + drive.** Interop tests: frost a `Bulkable &
+Thermal` floor pool → it freezes (`reconcileBulkPhase`) and the shock
+conduction path changes; `spark` into a conjured pool chains via the same
+`conduct()` walk a mundane shock uses; a burn and a frostbite coexist on
+one body; `vitriol` degrades a steel layer then burns the body under
+linen. Docs: `magic.md` (the roster now spans every channel; the
+substance-corrosion route), `materials-response.md` (corrosion reachable
+by substance-contact, not just the hazard). Extend the wire drive
+(`injury.wire.test.ts`) with a cast-and-wound sequence. Commit
+`build(injury W-D2)`.
+
+## Reachability wiring
+
+| capability | verb | affordance | data | boot |
+|---|---|---|---|---|
+| the four spells | `cast` (exists) | caster faculty (exists) | Spell YAML rows | auto-discovered from `/stuff/idea/magic/Spell/` — no manifest |
+| `corrodeOnContact` | — (internal) | called from ThrowController + execConjure | `vitriol.corrosiveTo` | material row warmed by `MaterialCatalogue` (template-path infix) |
+| acid flask | `throw` (exists) | thrown item | flask template + vitriol fill | template row |
+
+## Drive extension (appended to `injury.wire.test.ts`)
+
+A caster with `magic-create/earth/air/water` competence (or wands): cast
+stonefist at a dummy → a fracture reads on `assess`; cast the acid working
+→ a caustic wound that `rinse` resolves; confirm armour changes a magic
+blunt blow. Expect it to find things.
