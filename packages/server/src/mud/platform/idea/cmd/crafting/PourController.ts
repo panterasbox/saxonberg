@@ -53,7 +53,7 @@ export default class PourController extends ManualBuildController<PourModel> {
       return;
     }
     const vessel: Stuff | null =
-      model.vessel?.stuff ?? this.findBuildVessel(giver);
+      model.vessel?.stuff ?? null;
     if (!vessel || !MixinApi.isBuildVessel(vessel)) {
       this.declineStep(
         context,
@@ -112,6 +112,11 @@ export default class PourController extends ManualBuildController<PourModel> {
         // source's payload, and the gauge rides the payload.
         const freshnessLoad = new Freshness(slot).load();
         const pathogenLoads = new Contamination(slot).loads();
+        // ⭐ …and what the source was MADE OF, for the same reason and at
+        // the same moment: a blend poured from a blend must arrive at the
+        // mint knowing its ingredients, or the by-hand route silently
+        // flattens them into the source's own name.
+        const sourceComposition = slot.getPayload()?.composition;
         const result = BulkableApi.transfer(slot, null, {
           kind: "measure",
           litres: STANDARD_POUR_L,
@@ -133,6 +138,7 @@ export default class PourController extends ManualBuildController<PourModel> {
           materialPath: material?.getTemplatePath() ?? undefined,
           freshnessLoad,
           pathogenLoads,
+          composition: sourceComposition,
         });
         vessel.recordCommand(commandText);
         MessageApi.scene(giver)

@@ -90,7 +90,7 @@ export default class BoilController extends ManualBuildController<BoilModel> {
     // Bare `boil` falls back to the build you are working, exactly as
     // `heat` and `stir` do.
     const target: Stuff | null =
-      (model.target?.stuff as Stuff | null) ?? this.findBuildVessel(giver);
+      (model.target?.stuff as Stuff | null) ?? null;
 
     const build =
       target !== null && MixinApi.isBuildVessel(target)
@@ -148,8 +148,10 @@ export default class BoilController extends ManualBuildController<BoilModel> {
     const commandText = ctx.commandText;
 
     this.engageStep(ctx, {
-      // The pot paces its own boil, like every other step.
-      durationMs: this.paceMs(BOIL_MS, target, ['pot', 'cauldron']),
+      // The pot paces its own boil, like every other step. ⚠ `pot` is the
+      // ROLE — a cauldron row declares `pot` too; naming a second kind
+      // here would be a kind nothing offers (`lint:capabilities`).
+      durationMs: this.paceMs(BOIL_MS, target, ['pot']),
       beginSelf: Mml.compose`You set ${Mml.thing(target)} over the fire and bring it up to a boil.`,
       beginPeers: Mml.compose`${Mml.actor(giver)} sets ${Mml.thing(target)} over the fire.`,
       onComplete: () => {

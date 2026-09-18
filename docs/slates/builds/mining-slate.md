@@ -1722,5 +1722,22 @@ decipherment engine is deferred and v1 is a taste.
   standard the CB moved to fiat (a hard-money-vs-fiat political fault line), or has
   money always been abstract?
 
+- ⚠ **A business cannot hold title [OPEN, from metallurgy 2026-09-16]** —
+  the fringe outfit's claim (`claims/2`) is in the warren's register but
+  has **no `ParcelRecord`**, because `ParcelApi.transfer` wants a person
+  and the holder is a `BusinessEntity`. So an NPC outfit's ground is
+  registered against a holder the title layer cannot name, and
+  `AccessApi.ownerOf` answers null there. The seam is a `requires.title`
+  holder shape for an organization — the same question
+  [holding.md](../../subsystems/holding.md) asks about tenure, and it
+  should be answered once for both.
+- ⭐ **A first-come register compares EXTENTS** — `stake` tested the
+  centre cell against recorded claims, so blocks four cells apart
+  overlapped by three and both registered. Fixed by
+  `MineWarren.overlappingClaim(from, to)` (an AABB test of the whole
+  prospective block). The general shape is worth carrying to any other
+  register this slate grows: *a check that compares a point to an extent
+  is the same bug wearing the right words.*
+
 *(Retire when: the mechanic promotes to formal requirements, or folds into a
 crafting/livelihood build that adopts extraction.)*

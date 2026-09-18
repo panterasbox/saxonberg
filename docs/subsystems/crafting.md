@@ -383,6 +383,21 @@ error, it completes and produces the right goods, and the only symptom
 is a number nobody sees. It now picks the best rate, held-first on ties,
 so no equal-rung arrangement moves.
 
+⭐⭐ **And it no longer walks.** `findCapability` was the reachability
+hunt `lint:instrument-args` exists to remove, hoisted into the base so
+that 24 step controllers hunted through one method the census could not
+see. Each step's view now **declares** its instrument as a plural arg —
+`weave.yaml`: `loom`, `default: "reachable:[capability.weaving]"`,
+`type: objects` — and the base offers `bestInstrument(bound, kind)`,
+which ranks what the binder bound. The binder resolves *identity* (every
+reachable thing offering the kind, held gear first); the controller
+narrows on the one thing no predicate asks (*which is best*). The same
+move retired `findBuildVessel`: bare `stir`/`heat`/`pour`/`muddle`/
+`strain`/`plate`/`knead`/`hammer`/`quench`/`boil` work the build you are
+at because the view's `default:` says so, not because the controller
+looked. `hammer the ingot with the sledge on the big anvil` is now a
+sentence; it was not before.
+
 ⚠ Ranked on **rate only**. `control` is a separate axis a step may read
 for quality — `cut` charges a unit of cloth for a `coarse` instrument,
 which is what makes a bench worth walking to — and folding the two into
@@ -713,6 +728,32 @@ The kernel's two generic materials moved to the **platform pack** —
 `/platform/idea/material/cooked` (`GENERIC_COOKED_MATERIAL`) — because a
 kernel module may not name a trade pack's row.
 
+## The doneness seam (the grain-chain build)
+
+`Recipe` gained `maxHeatK` — the heat a working must **not** exceed
+(sentinel `0` = states none). Enforced twice and never as a decline:
+
+1. **At the mint.** `donenessAtMint` stamps the dose the recipe asked for
+   onto the output (so every dish comes out of its own working `done`),
+   plus scorch time when the delivered heat was over the ceiling.
+2. **After the mint.** `ThermalDoseMixin` keeps integrating on the object
+   — the loaf you left in the oven.
+
+A fire over the ceiling still **mints**: the bread came out, it came out
+black. Burnt is the object with the band; there is no burnt template and
+no second terminal.
+
+⚠ The heat the ceiling reads is **`deliveredHeatK`**, not `workingHeatK`.
+The resolve pins `workingHeatK = requiresHeatK` on purpose (*a stew
+simmered beside a roaring forge was simmered*), which is right for the
+kill and makes the ceiling unanswerable — so the delivered figure, medium
+cap included, is threaded alongside it into the three output seams.
+
+`Recipe.getHoldS()` **never returns zero**: an unauthored hold reads
+`thermal.dose.defaultHoldS`. `getAuthoredHoldS()` is the raw field. See
+[spoilage.md § Doneness](./spoilage.md).
+
+
 ## The manual build (the by-hand path)
 
 Alongside the one-shot served path, a drink can be **built by hand**, one
@@ -783,6 +824,66 @@ against it at the mint; reset by `clearBuild`).
 (`ScriptApi.captureManualBuild`) — the first faithful hand build mints
 the can-make **deed** + transcribes the personal recipe-script, the
 same act.
+
+### ⭐⭐ Smithing's two extra acts (metallurgy, 2026-09)
+
+Neither is a recipe, and that is the point: they are things that happen
+to metal rather than forms a smith chooses.
+
+- **Consolidation.** A bloomery's product is a spongy, slag-shot mass
+  with about a quarter of its weight in trapped glass. The **first**
+  `hammer` on one — fired by `bankWorkpiece()` returning `true`, so
+  exactly once — squeezes the slag out, leaves it on the floor, and puts
+  a **bar** in the smith's hands carrying the bloom's carbon. The bloom
+  stops existing. ⚠ The mass loss is visible and it is the lesson.
+  ⭐ A bloom rich enough in carbon consolidates into a STEEL bar rather
+  than a wrought one — *natural steel*, which is how most pre-modern
+  steel was actually made.
+
+  ⚠⚠ **Why a transform and not a recipe**, because it is a kernel
+  constraint worth knowing: `mintWorkpiece` REQUIRES a recipe's output
+  to compose `CraftedMixin` (it stamps a maker's mark), and
+  `isItemCandidate` EXCLUDES a Crafted non-food from the one-shot
+  `forge` gather (a made form is not raw matter). Those two are a pincer
+  on **any recipe whose output is meant to be STOCK for the next
+  recipe**: a plain `Ingot` output throws, and a Crafted bar can never be
+  forged. Consolidation at the hammer is also simply truer — quenching a
+  bloom would be actively wrong.
+
+- **Heat treatment.** `quench` on a heated but **un-worked** piece (an
+  empty build) is not a mistake — it is the other thing quenching does,
+  and the piece's own carbon decides what happens: wrought iron takes
+  nothing (*quenching is not a ritual*), steel **hardens**, cast iron
+  **cracks** into two halves. The next `heat` anneals it back, which is
+  why a smith quenches last. ⚠ `temper` is recorded and reported by
+  `analyze chemistry` with no mechanical consumer yet.
+
+⭐ **`forgeable` is the anvil's tag.** Every `[striking, anvil]` recipe's
+stock slot asks for it, and hot iron, steel and copper carry it.
+`ferrous` would admit a pig of cast iron (it shatters); `metal` would
+admit a pig and a bloom (a quarter glass). One tag, one rule — so the
+kernel's gather never picks up what an anvil cannot work, silently and
+correctly, and the two verbs a player can still point at a pig decline
+diegetically and say what it is.
+
+⚠⚠ **That last sentence was false when it was written.** `hammer.yaml`
+gated its target on `DurableMixin`, which no metal stock composes, so
+`hammer pig` was refused at the binder with *"a pig of cast iron doesn't
+wear out"* — and so was `hammer ingot`, the example in the view's own
+help. The controller's cast-iron sentence was unreachable by any route.
+Fixed 2026-09-16 (the gate is `AlloyedMixin`; the cast-iron check also
+now sits ahead of the heat check, because *"heat it first"* is advice
+that cannot work on a pig). Pinned by
+`trade-smithing/src/__tests__/verb-gates.test.ts`, which checks the YAML
+against the classes — see [antipatterns.md § A view's `requires:` naming
+a mixin the verb's targets don't compose](../antipatterns.md).
+
+⭐ **A tangible recipe's authored `outputMaterial` now wins**, with the
+primary stock's flowing otherwise. The field has existed since the first
+recipe schema and the edible and bulk paths read it; the tangible path
+did not, so a transform that genuinely CHANGES what the matter is had no
+way to say so. Both mint paths also flow a piece's `alloying` onto an
+Alloyed output, which is what keeps a carburized bar's carbon.
 
 ## Drink → metabolism (honest alcohol)
 
@@ -908,7 +1009,7 @@ the named antipattern):
   `crafting.wear.weaponPerStrike`; each covering layer that attenuates
   a mechanical blow wears `crafting.wear.armorPerBlow` — see
   [combat.md](./combat.md) / [materials-response.md](./materials-response.md));
-  scales the response height as shipped; restored by **`repair`**.
+  scales the response as shipped; restored by **`repair`**.
 - **`keenness`** (`KeenMixin`, `lib/material/Keen.ts` — `Mixins.Keen`,
   `MixinApi.isKeen`; composed on `Weapon`, blades only this build) —
   the working surface; decays fast (landed edge/point strikes `dull()`)
@@ -929,9 +1030,12 @@ broken tool's `hasCapability` goes dark (it fails recipe tool-matching
 until repaired); a broken weapon's delivery is clamped to
 `crafting.brokenDeliveryFloor` (combat's bounded
 `instrumentDeliveryScale` — the shared
-`MaterialApi.gradeConditionScale` × the keenness factor, broken-floored,
-folded into strike energy; material *height* stays analyze-only, a
-deliberate combat-balance asymmetry).
+`MaterialApi.gradeConditionScale` × `MaterialApi.materialScale` × the
+keenness factor, broken-floored, folded into strike energy). ⭐ The
+material term joined with the metallurgy build: an iron blade delivers
+about 83 % of a steel one on an edge, which is what makes the metal
+chain's whole question worth asking. See
+[materials-response.md](./materials-response.md).
 
 **`repair <item>`** (`CraftingApi.repair` — deficit-priced
 reverse-craft): cost mass = `item mass × (1 − condition) ×
@@ -1218,6 +1322,22 @@ yield; working-surface maintenance beyond edges (seasoning/tuning —
 at rest); glassmaking/brewing/alchemy (later branch consumers of the
 same seams); corpos/brands at corporate scale; viewer-relative
 appraisal + congener→hangover.
+
+⭐ **The metal-stamp seam (metallurgy, 2026-09-16)** — two deferred
+pieces that attach at the same place and should land together:
+
+- **`temper` as mechanics.** `quench` records a temper word on metal
+  stock and `analyze chemistry` reports it; nothing reads it. It wants to
+  reach a made thing's `materialScale` in
+  [materials-response.md](./materials-response.md), which is the stamp
+  seam that doc already names.
+- **Carbon on the blade.** `AlloyedMixin` stops at STOCK (`Ingot` ·
+  `Casting` · `Bloom`) deliberately — a blade's metal is its Material
+  ROW, and carbon on a blade would make every mint guard for it. The day
+  something reads per-instance carbon on a finished piece, the mixin
+  composes onto `Weapon`/`Garment` and the fraction flows through **both**
+  mint paths (the recipe mint and the manual build). ⚠ Not before: a
+  field nothing reads is a field every author has to think about.
 
 
 > ⭐ **A recipe's requirements and outputs carry a reveal level.** Inputs, tools, heat, difficulty, grade band and every output field. `name`/`keywords`/`discipline` stay open — a search index nobody can read indexes nothing. `spoiler: 1` with

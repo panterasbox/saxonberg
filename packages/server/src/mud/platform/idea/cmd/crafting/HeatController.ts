@@ -30,7 +30,7 @@ export default class HeatController extends ManualBuildController<HeatModel> {
     const giver = context.commandGiver;
 
     const target: Stuff | null =
-      model.target?.stuff ?? this.findBuildVessel(giver);
+      model.target?.stuff ?? null;
     if (!target || !MixinApi.isBuildVessel(target)) {
       this.declineStep(
         context,
@@ -62,6 +62,20 @@ export default class HeatController extends ManualBuildController<HeatModel> {
         const finalK = (MixinApi.isThermal(giver) ? giver.reachableHeatK() : 0);
         if (finalK > 0) build.noteHeat(finalK);
         build.recordCommand(commandText);
+        // ⭐ Heat ANNEALS. A hardened piece taken back above the critical
+        // temperature loses its temper, and that is not a penalty the
+        // engine chose — it is what happens, and it is why a smith
+        // quenches LAST. ⚠ Local narrowing on the workpiece this handler
+        // is already holding, not a guard re-narrowing a host set.
+        if (MixinApi.isAlloyed(target) && target.getTemper() !== 'none') {
+          target.setTemper('none');
+          MessageApi.scene(giver)
+            .topic(TOPIC)
+            .toSelf(
+              Mml.compose`The hardness goes out of ${Mml.thing(target)} as it comes up to colour. Whatever the quench put in, the fire has taken back out.`,
+            )
+            .send();
+        }
         MessageApi.scene(giver)
           .topic(TOPIC)
           .toSelf(Mml.compose`${Mml.thing(target)} takes the heat, glowing with it.`)

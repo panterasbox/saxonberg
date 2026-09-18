@@ -54,7 +54,7 @@ import type {
   CommandContext,
   CommandModel,
 } from '@saxonberg/server/mud/api/command';
-import type { MqlOneResult } from '@saxonberg/server/mud/api/mql';
+import type { MqlManyResult, MqlOneResult } from '@saxonberg/server/mud/api/mql';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import { MixinApi } from '@saxonberg/server/mud/api/mixin';
 import { MessageApi } from '@saxonberg/server/mud/api/message';
@@ -87,6 +87,8 @@ const GUT_FLORA: readonly string[] = [
 
 interface ButcherModel extends CommandModel {
   body: MqlOneResult;
+  blade?: MqlManyResult;
+  block?: MqlManyResult;
 }
 
 export default class ButcherController extends CraftController<ButcherModel> {
@@ -148,7 +150,7 @@ export default class ButcherController extends CraftController<ButcherModel> {
       );
     }
 
-    const blade = this.findBlade(giver);
+    const blade = this.findBlade(model.blade);
     if (!blade) {
       return this.decline(
         context,
@@ -213,7 +215,7 @@ export default class ButcherController extends CraftController<ButcherModel> {
     // one, but the controller stays more permissive than its affordance
     // (the `wash` rule), so a butchering done somewhere else still yields
     // meat — it just leaves nothing behind to contaminate the next job.
-    const block = this.findBlock(giver);
+    const block = this.findBlock(model.block);
     if (block) this.spillGut(block, mess);
     // ⭐ …and the blade, **if it is a blade that can hold it.** A cook's
     // boning knife remembers what it cut; a clasp knife out of a pocket
@@ -270,13 +272,15 @@ export default class ButcherController extends CraftController<ButcherModel> {
   }
 
   /**
-   * The first bladed thing in reach — held first, then the room. ⭐ The
-   * gate is the CONSTRUCTION, not the class: a clasp knife off the general
-   * store's shelf opens a carcass exactly as the kitchen's boning knife
-   * does, because both are an edge.
+   * The blade — a NARROWING over what the binder bound, not a search.
+   * `butcher.yaml` declares `blade` with a `[mixin.ConstructedMixin]`
+   * default; the gate is then the CONSTRUCTION, not the class: a clasp
+   * knife off the general store's shelf opens a carcass exactly as the
+   * kitchen's boning knife does, because both are an edge — and no
+   * predicate reads a form (`lint:instrument-args`).
    */
-  private findBlade(giver: Stuff): Stuff | null {
-    for (const candidate of this.reachOf(giver)) {
+  private findBlade(bound: MqlManyResult | undefined): Stuff | null {
+    for (const candidate of bound?.stuff ?? []) {
       if (!MixinApi.isConstructed(candidate)) continue;
       if (candidate.getConstructionForm() !== 'bladed') continue;
       return candidate;
@@ -285,29 +289,20 @@ export default class ButcherController extends CraftController<ButcherModel> {
   }
 
   /**
-   * The work surface in reach that can hold what the gut spills — the
-   * butcher's block. ⚠ Found by what it CAN DO (`Contaminable` + a
-   * surface), never by class name: a second venue's slab or a shambles
-   * bench answers the same way without this file learning its name.
+   * The work surface that can hold what the gut spills — the butcher's
+   * block. ⚠ Bound by what it CAN DO (`butcher.yaml`: surfaced AND
+   * contaminable), never by class name: a second venue's slab or a
+   * shambles bench answers the same way without this file learning its
+   * name. The binder's query already says both; the check here is the
+   * type narrowing, not a second search.
    */
-  private findBlock(giver: Stuff): Stuff | null {
-    for (const candidate of this.reachOf(giver)) {
+  private findBlock(bound: MqlManyResult | undefined): Stuff | null {
+    for (const candidate of bound?.stuff ?? []) {
       if (!MixinApi.isContaminable(candidate)) continue;
       if (!MixinApi.isSurfaced(candidate)) continue;
       return candidate;
     }
     return null;
-  }
-
-  /** Held kit first, then the room — the two-leg reach the trade uses. */
-  private reachOf(giver: Stuff): Stuff[] {
-    const reach: Stuff[] = [];
-    if (MixinApi.isContainer(giver)) reach.push(...giver.getContents());
-    if (MixinApi.isContainable(giver)) {
-      const here = giver.getContainer();
-      if (here && MixinApi.isContainer(here)) reach.push(...here.getContents());
-    }
-    return reach;
   }
 
   private decline(

@@ -11,7 +11,7 @@
 
 import { ManualBuildController } from "@saxonberg/server/mud/platform/idea/cmd/crafting/ManualBuildController";
 import type { CommandContext, CommandModel } from "@saxonberg/server/mud/api/command";
-import type { MqlOneResult } from "@saxonberg/server/mud/api/mql";
+import type { MqlManyResult, MqlOneResult } from "@saxonberg/server/mud/api/mql";
 import type { Stuff } from "@saxonberg/server/mud/lib/stuff/Stuff";
 import type { Builds } from "@saxonberg/server/mud/lib/craft/ManualBuild";
 import { MixinApi } from "@saxonberg/server/mud/api/mixin";
@@ -23,6 +23,7 @@ const MUDDLE_MS = 5000;
 const MUDDLER = "muddler";
 
 interface MuddleModel extends CommandModel {
+  muddler?: MqlManyResult;
   vessel?: MqlOneResult;
 }
 
@@ -31,7 +32,7 @@ export default class MuddleController extends ManualBuildController<MuddleModel>
     const giver = context.commandGiver;
 
     const vessel: Stuff | null =
-      model.vessel?.stuff ?? this.findBuildVessel(giver);
+      model.vessel?.stuff ?? null;
     if (!vessel || !MixinApi.isBuildVessel(vessel)) {
       this.declineStep(context, Mml.compose`There's nothing here to muddle.`, "no-vessel");
       return;
@@ -44,7 +45,7 @@ export default class MuddleController extends ManualBuildController<MuddleModel>
       );
       return;
     }
-    const muddler = this.findCapability(giver, MUDDLER);
+    const muddler = this.bestInstrument(model.muddler, MUDDLER);
     if (!muddler) {
       this.declineStep(
         context,

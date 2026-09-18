@@ -1,9 +1,10 @@
 /**
  * Crop — a harvested edible, carrying the **grower's mark and a grade**.
  *
- * It is a plain `Thing` plus {@link CraftedMixin}, which is the whole
- * point: crafting already models "a made thing whose quality is a verdict
- * and whose maker is recorded", and a harvest is a making. Reusing that
+ * It is a `Provision` (which composes {@link CraftedMixin}), and that is
+ * the whole point: crafting already models "a made thing whose quality
+ * is a verdict and whose maker is recorded", and a harvest is a making;
+ * a provision already models matter that spoils. Reusing both
  * wholesale rather than inventing a parallel stamp means a crop shows up
  * in the same `renderVerdict()` prose, bands on the same five-rung
  * `Grade`, and is attributable through the same maker's mark as a knife
@@ -27,13 +28,18 @@
  * See [docs/subsystems/husbandry.md] and [docs/subsystems/crafting.md].
  */
 
-import Thing from "../../lib/stuff/Thing";
-import { DetailedMixin } from "../../lib/description/Detailed";
-import { CraftedMixin } from "../../lib/craft/Crafted";
+import Provision from "./Provision";
 import type { FieldMeta } from "../../lib/mixin";
 
-const CropBase = CraftedMixin(DetailedMixin(Thing));
-
-export default class Crop extends CropBase {
+/**
+ * ⭐⭐ A crop is a **`Provision`** — harvested matter that spoils, cures,
+ * carries the gauge and the mark. It was `CraftedMixin(DetailedMixin(
+ * Thing))` while its rows authored `material:` — a key the Hydrator
+ * never wrote — so no crop had a material, none could be eaten, and
+ * `lint:perishable` had nothing to read. The day the key was fixed the
+ * gate said what a sack of carrots is: matter that rots, on a class that
+ * could not. Narrow the HOST, never drop the material.
+ */
+export default class Crop extends Provision {
   static fieldMeta: FieldMeta = {};
 }

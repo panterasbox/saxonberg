@@ -1,0 +1,48 @@
+# ⭐⭐ Why bread is a WHEAT food, and what kneading is actually for.
+class: /platform/idea/HelpConcept
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  key: gluten
+  title: Gluten
+  summary: The elastic sheet that traps the gas, and why barley cannot make it.
+  keywords: [gluten, kneading, knead, dough, elastic, wheat, barley, rise, flat]
+  seeAlso: [extraction, retrogradation]
+  body: |
+    A leaven makes gas. That is all it does — it eats sugar and breathes
+    out carbon dioxide, and the same thing happens in a dough, in a vat
+    of ale and in a jar of starter.
+
+    What makes bread **bread** is not the gas. It is that the dough can
+    HOLD the gas.
+
+    Wheat flour carries two storage proteins, glutenin and gliadin. Dry,
+    they do nothing. Wet them and work them, and they link up into a
+    single continuous elastic sheet running through the whole dough.
+    That sheet is what a bubble of gas pushes against instead of escaping
+    through — and **that** is what kneading is for. You are not mixing.
+    Mixing takes a moment. You are building a structure.
+
+    ⭐ **Barley has the proteins and does not make the sheet.** Its
+    storage proteins are a different shape and will not link. So a barley
+    dough kneads perfectly happily, ferments perfectly happily, produces
+    exactly as much gas — and every bit of it escapes. What comes out is
+    flat and close and perfectly good to eat, and it is not a loaf.
+
+    That is not a penalty anybody applied to barley. It is the reason
+    that, everywhere wheat would grow, people grew wheat for bread and
+    barley for beer and the animals.
+
+    ## What it means for you
+
+      - a **wheat** flour will make a risen loaf, and the better you
+        knead it the better it rises;
+      - a **barley** flour will make a flatbread, and no amount of
+        kneading changes that. Make a flatbread deliberately and it is a
+        good flatbread;
+      - a dough under-worked rises poorly even from wheat, because the
+        sheet is not continuous yet.
+
+    ⚠ And you can over-work the other way round: a dough left to proof
+    too long stretches the sheet past what it can hold, the gas goes out
+    of it, and it falls. That is not under-kneading. That is having
+    forgotten it.

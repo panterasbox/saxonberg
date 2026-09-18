@@ -11,17 +11,17 @@
  * leaves partial matter standing. Extends {@link CraftController} so the
  * step verbs share the family's decline rendering (and `repair` — an
  * engaged act since the capability-table build — its deed-free gates).
- * Also holds the shared capability-instrument helpers: `findCapability`
- * (reachable tool by kind, held first) and `paceMs` (the conferring
- * kind's work-rate divides the step's base duration). Not referenced by
- * any YAML — a base class only.
+ * Also holds the shared capability-instrument helpers: `bestInstrument`
+ * (the best-rated of the tools the binder bound for a kind) and `paceMs`
+ * (the conferring kind's work-rate divides the step's base duration).
+ * Not referenced by any YAML — a base class only.
  */
 
 import { CraftController } from "./CraftController";
 import type { CommandContext, CommandModel } from "../../../../api/command";
+import type { MqlManyResult } from "../../../../api/mql";
 import type { AbortReason } from "@saxonberg/types";
 import type { Stuff } from "../../../../lib/stuff/Stuff";
-import type { Builds } from "../../../../lib/craft/ManualBuild";
 import type { Tooled } from "../../../../lib/craft/Tooled";
 import { MixinApi } from "../../../../api/mixin";
 import { MessageApi } from "../../../../api/message";
@@ -107,64 +107,43 @@ export abstract class ManualBuildController<
   }
 
   /**
-   * Find a reachable build vessel (the shaker/mixing glass) — held first,
-   * then in the room — for the verbs that don't name one explicitly
-   * (`add`, `stir`, bare `strain`).
-   */
-  protected findBuildVessel(giver: Stuff): (Stuff & Builds) | null {
-    const candidates: Stuff[] = [];
-    if (MixinApi.isContainer(giver)) {
-      candidates.push(...giver.getContents());
-    }
-    if (MixinApi.isContainable(giver)) {
-      const loc = giver.getContainer();
-      if (loc && MixinApi.isContainer(loc)) {
-        candidates.push(...loc.getContents());
-      }
-    }
-    for (const c of candidates) {
-      if (MixinApi.isBuildVessel(c)) return c;
-    }
-    return null;
-  }
-
-  /**
-   * The BEST reachable tool offering `cap` — held kit and the room
-   * together (the emergent-reachability model; mirrors the craft gather
-   * walk's two legs, deliberately NOT the opened-container descent).
+   * The BEST of the instruments the binder bound for `cap` — the one
+   * with the highest work-rate; first wins a tie.
+   *
+   * ⭐⭐ This is a NARROWING, not a search. The view declares the arg
+   * (`default: "reachable:[capability.weaving]"`, `type: objects`) and
+   * the binder resolves every reachable thing offering the kind; what
+   * is left for the controller is the question no predicate can ask —
+   * *which of these is best* — and that is all this does. It used to be
+   * `findCapability(giver, cap)`: a walk over the actor's kit and the
+   * room, hoisted into this base class so that fourteen controllers
+   * across six packs hunted for their instrument through one method
+   * `lint:instrument-args` could not see. See that gate's header.
    *
    * ⚠⚠ **Best by rate, not first found, and the difference was a bug in
-   * every trade.** This used to return the first candidate with held
-   * kit scanned first — so carrying a drop spindle into a room with a
-   * spinning wheel picked the SPINDLE, and the same for a sewing kit
-   * beside a sewing machine, or shears at a cutting table. The whole
-   * build's tool ladder is "rung zero is portable and bad; rung one is
-   * fixed and good", and first-found inverted it: **carrying your cheap
-   * tool made you worse off than leaving it at home.** Nothing said so,
-   * because a slower step is not an error.
+   * every trade.** First-found with held kit scanned first picked a
+   * carried drop spindle over the room's spinning wheel, a sewing kit
+   * over the machine, shears over the cutting table: the whole build's
+   * tool ladder is "rung zero is portable and bad; rung one is fixed
+   * and good", and first-found inverted it — **carrying your cheap tool
+   * made you worse off than leaving it at home**, silently, because a
+   * slower step is not an error.
    *
-   * ⭐ Ties keep held-first, so nothing changes where the rungs are
-   * equal — the fix is strictly "pick the better one when they differ".
+   * ⭐ Ties keep binder order, and `reachable` emits held gear first —
+   * so held-first survives where the rungs are equal, and nothing moves
+   * that the rate does not move.
    *
    * ⚠ Ranked on RATE only. `control` is a separate axis a step may read
    * for quality (see `cut`'s waste), and folding the two into one score
    * would silently trade somebody's cloth for their time.
    */
-  protected findCapability(
-    giver: Stuff,
+  protected bestInstrument(
+    bound: MqlManyResult | undefined,
     cap: string,
   ): (Stuff & Tooled) | null {
-    const candidates: Stuff[] = [];
-    if (MixinApi.isContainer(giver)) candidates.push(...giver.getContents());
-    if (MixinApi.isContainable(giver)) {
-      const loc = giver.getContainer();
-      if (loc && MixinApi.isContainer(loc)) {
-        candidates.push(...loc.getContents());
-      }
-    }
     let best: (Stuff & Tooled) | null = null;
     let bestRate = -Infinity;
-    for (const c of candidates) {
+    for (const c of bound?.stuff ?? []) {
       if (!MixinApi.isTool(c) || !c.hasCapability(cap)) continue;
       const rate = c.capabilityRate(cap);
       if (rate > bestRate) {

@@ -14,4 +14,18 @@ args:
     type: object
     required: false
     scope: "reachable"
+    # ⭐ Bare `muddle` works the build you are at — DECLARED, so the binder
+    # resolves it (held first) instead of the controller walking for it
+    # (`lint:instrument-args`).
+    default: "reachable:[mixin.ManualBuildMixin]"
     requires: ManualBuildMixin
+  # ⭐ WHICH MUDDLER — DECLARED, not hunted for (`lint:instrument-args`).
+  # Bare, the binder hands over every reachable thing offering
+  # `muddler` and the controller takes the best-rated.
+  - name: muddler
+    type: objects
+    required: false
+    prepositions: [with, using]
+    default: "reachable:[capability.muddler]"
+    scope: ["reachable"]
+    requires: [ToolMixin]

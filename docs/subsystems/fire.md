@@ -133,6 +133,16 @@ Dials: `response.heat.referenceClo` (the pulse reference) and `response.heat.ref
   fuel + bellows dials — **smelting heat (iron's 1811 K) reachable only with the
   bellows**. `ignite()`/`douse()` light/extinguish a furnace (the same face rides
   `FurnaceMixin`).
+
+  ⚠⚠ **`getHeldTemperatureK()` is the PIN, not the reading.** It is
+  `burnTemperatureK × bellows` and consults neither `lit` nor fuel — the
+  temperature this furnace *would* hold, not the one it is at. A
+  stone-cold shaft answers 1420 K. Any caller that treats it as the
+  current temperature is wrong: `smelt` did, and told a player with an
+  unlit furnace to *"work the bellows"* — which then answered *"air
+  without fire moves nothing."* Check `isLit()` first; the accessor
+  will not do it for you. (Found by charging a furnace in a browser,
+  2026-09-16; every unit fixture had lit it first.)
 - **The Candle** — the convergence fixture: `LightSource + Combustible +
   Thermal + Reserved(wax)` over a `Thing`'s `Wet` wick. A dry wick lights (the
   wet-wick gate refuses a soaked one, keyed on the wick material's water
@@ -152,6 +162,23 @@ designed: `CraftingLogic`'s heat gate declines any recipe whose
 `requiresHeatK` exceeds it (`insufficient-heat`, diegetic — "the forge is
 cold"), and the by-hand `heat` step latches it onto the build buffer. See
 [crafting.md](./crafting.md).
+
+
+### The heat scope (the grain-chain build)
+
+A furnace has **two** scopes and they are different mechanisms:
+
+| scope | what it is | what it does | for what |
+|---|---|---|---|
+| `heatContents()` | the furnace's **room siblings** | deposits joules toward the held temperature, reconciles phase | `Meltable` workpieces only — the forge melting an ingot beside it |
+| `restampHeated()` | what the furnace **holds** (`Container`) and what **rests on** it (`Surfaced`) | re-stamps each body so it re-resolves its ambient | every `Thermal` body — the loaf in the oven, the pot on the fire |
+
+The second is the **furnace couple**: the reading lives on the body
+(`ThermalMixin.heatSourceK`, see thermal.md), and the furnace's job is
+only to tell its heat scope that its lit state changed — from
+`_setLit()` and from the burnout edge. ⚠ A furnace is deliberately not
+`Atmospheric`, so neither scope warms the room.
+
 
 ## Constraints honored
 
@@ -187,7 +214,12 @@ downstream consumer of this substrate); fire as a combat weapon /
 burning-DoT; map-scale wildfire / arson-as-crime / a fire brigade;
 vision-obscuring smoke (the fog→visibility seam); cross-room smoke drift;
 flammability limits (LEL/UEL); the magic Fire school (actuates this channel);
-electricity `Joule → fire`; the candle wax-pool phase-change.
+electricity `Joule → fire`; the candle wax-pool phase-change. **The
+oven's own warm-up** — a furnace with thermal mass: today a lit furnace
+holds its temperature instantly and what climbs is what is IN it (the
+furnace couple, [thermal.md](./thermal.md)); a bread oven that takes an
+hour to come to heat is a `ThermalMixin` on the furnace itself, and the
+grain chain left it.
 
 ## Cross-references
 

@@ -1,0 +1,29 @@
+# Levain — the starter. A living culture of wild yeast and lactobacilli
+# kept in a crock and fed.
+#
+# ⭐ It rides the shipped CULTURE half of the maturation substrate, the
+# same one `jar-of-barm` uses for ale: a culture has `viability` that
+# falls when it is not fed (`starveDays`), and a dead one is dead. A
+# baker's starter is a thing you keep alive, and forgetting it for a
+# fortnight is a real loss.
+class: /platform/idea/material/Material
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  name: levain
+  keywords: [levain, starter, leaven, sourdough, barm]
+  appearance: bubbled and creamy, smelling of apples and sourness
+  density: 1000
+  specificHeat: 3200
+  thermalConductivity: 0.5
+  electricalConductivity: 0.02
+  waterAbsorptionCapacity: 5
+  hardness: 0
+  toughness: 0
+  edibility: true
+  waterActivity: 0.97
+  spoilActivationEnergy: 55000
+  nutrients: ["carb", "protein"]
+  nutrientAmounts: { carb: 320000, protein: 60000 }
+  toxicity: []
+  tags: ["food", "levain", "culture", "baking"]
+  composition: []

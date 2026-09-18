@@ -1,0 +1,14 @@
+# The bakery's consignment shelf — where a player's own loaves go.
+#
+# ⭐ The whole chain ends somewhere a stranger can buy from you. A player
+# who grew the wheat, milled it at their own extraction and baked it can
+# put the result here beside the baker's own two lines, and what they get
+# for it is whatever somebody will pay.
+class: /platform/thing/ConsignmentShelf
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: bakery shelf
+  keywords: [shelf, consignment, board, basket]
+  register: definite
+  longDescription: |
+    A shallow basket-lined shelf at the end of the counter under a card that says WE'LL SELL YOURS TOO — SMALL CUT. Somebody else's bread sits in it, waiting.

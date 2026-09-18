@@ -1,0 +1,33 @@
+verbs: [name]
+controller: /platform/idea/cmd/social/NameController
+description: "Give an animal a name — and take responsibility for it"
+help: |
+  `name <animal> <name>` names it, and that is the moment everything
+  changes.
+
+  ⭐ Before: it is real, it is there, you can feed it and pet it, and the
+  world keeps no record of it at all. Its regard for you lives only until
+  the server restarts. An unnamed animal is free.
+
+  After: it is yours. It has title, it has a name every passer-by can
+  read, it persists, and it comes back as itself. ⚠ And its clock starts
+  running while you are away — an owned animal gets hungry and thirsty
+  whether or not you are logged in. Naming an animal is taking
+  responsibility for it.
+
+  ⚠⚠ **You cannot name an animal that has not chosen you.** It must know
+  you well, and it must have followed you home at least once. That second
+  part cannot be bought with food. The animal adopts you, not the other
+  way round.
+validators:
+  - /lib/command/validators/requiresAnimate
+  - /lib/command/validators/requiresConscious
+args:
+  - name: target
+    type: object
+    required: true
+    scope: ["reachable"]
+    requires: BondedMixin
+  - name: animalName
+    type: string
+    required: true

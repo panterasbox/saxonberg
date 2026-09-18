@@ -61,12 +61,14 @@ export default class AnalyzePostmortemController extends CommandController<Postm
     const giver = context.commandGiver;
     const body = model.target?.stuff ?? null;
     if (!body || !MixinApi.isPostmortem(body) || !MixinApi.isVitals(body)) {
-      return this.refuse(context, 'There is no body there to examine.');
+      return this.refuse(context, TOPIC, 'There is no body there to examine.', 'no-subject');
     }
     if (!MixinApi.isOrganism(body) || !body.isDead()) {
       return this.refuse(
         context,
+        TOPIC,
         'They are still alive. Try `analyze patient`.',
+        'no-subject',
       );
     }
 
@@ -74,7 +76,9 @@ export default class AnalyzePostmortemController extends CommandController<Postm
     if (readability <= 0) {
       return this.refuse(
         context,
+        TOPIC,
         'There is nothing left in them to read.',
+        'no-subject',
       );
     }
 
@@ -165,15 +169,4 @@ export default class AnalyzePostmortemController extends CommandController<Postm
     return 'formidable';
   }
 
-  private refuse(context: CommandContext, detail: string): void {
-    context.note({
-      kind: 'controller-rejected',
-      reason: 'no-subject',
-      detail,
-    });
-    MessageApi.scene(context.commandGiver as Stuff)
-      .topic(TOPIC)
-      .toSelf(Mml.fromMarkup(Mml.escape(detail)))
-      .send();
-  }
 }

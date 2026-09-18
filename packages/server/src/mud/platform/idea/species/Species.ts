@@ -161,6 +161,70 @@ export interface AgeCurveSpec {
 }
 
 /**
+ * ⭐⭐ **How far this species can be won over, and how far it slides back.**
+ *
+ * The handling axis (`HandlingMixin`) has always decayed to one module
+ * constant and clamped to one ceiling, for every animal alike. Those two
+ * numbers are the species' business: a farm collie ends up biddable and
+ * stays that way; a cat can be won a long way and *slides back further*
+ * when you stop; a wolf is not in this conversation at all.
+ *
+ * ⭐ Three states, and the third is the point of making it nullable:
+ *
+ *   - **absent** — the species does not participate. A wolf.
+ *   - `{ floor: 0, ceiling: 0.2 }` — declared **unwinnable**, out loud.
+ *     An author said so; nobody has to guess from a missing field.
+ *   - a real range — **winnable**, this far, sliding back to here.
+ *
+ * ⚠ `floor` is where neglect stops, not zero: an animal that has known
+ * people does not become a wild one. *It becomes harder, not feral.*
+ */
+/**
+ * ⭐⭐ **How food reaches this animal** — the rungs its species has, and
+ * the ones it simply does not.
+ *
+ * Three of these are ways food arrives with no vessel at all, and three
+ * name a KIND of feeding vessel. An animal eats by the ways its species
+ * lists and by no others:
+ *
+ * | rung | what it means |
+ * |---|---|
+ * | `hand` | it will take food from an offered hand. ⭐ The rung that earns REGARD, and the only one that does |
+ * | `ground` | it will eat what is lying on the floor |
+ * | `graze` | it feeds off the land itself — declared, and nothing reads it yet |
+ * | `bowl` · `trough` · `hopper` | it eats from a feeding vessel **of that kind** |
+ *
+ * ⚠⚠ **A canary has no `hand` rung, and that is not a shortfall.** It is
+ * why the axis exists: a cat can be hand-fed and a canary cannot, ever,
+ * however devoted. Before this, every animal fed identically and the
+ * difference between a bird and a cat was nothing at all.
+ *
+ * ⚠ Absent means **not in this conversation**, exactly as the other two
+ * species dials do — not "eats everything". A wolf declares none.
+ */
+export const FEEDING_STYLES = [
+  'hand',
+  'ground',
+  'graze',
+  'bowl',
+  'trough',
+  'hopper',
+] as const;
+
+export type FeedingStyle = (typeof FEEDING_STYLES)[number];
+
+/** The vessel kinds — the subset of {@link FEEDING_STYLES} a `Feeder` is. */
+export const FEEDER_KINDS = ['bowl', 'trough', 'hopper'] as const;
+export type FeederKind = (typeof FEEDER_KINDS)[number];
+
+export interface HandlingRange {
+  /** Handling never decays below this. The species' memory of people. */
+  floor: number;
+  /** Handling never rises above this, however much you work at it. */
+  ceiling: number;
+}
+
+/**
  * ⭐⭐ **One tap — a renewable product, and how it FAILS** (farmstead
  * D25, D93).
  *
@@ -223,7 +287,18 @@ export interface BreedingSpec {
 }
 
 /** The life stages the curve resolves into, young to old. */
-export const LIFE_STAGES = ['newborn', 'juvenile', 'adult', 'aged'] as const;
+export const LIFE_STAGES = [
+  'newborn',
+  'juvenile',
+  'adult',
+  'aged',
+  // ⭐ `senescent` closes a curve that has always had four points and
+  // only ever reported three: `AgeCurveSpec.senescentAt` shipped with
+  // the curve, five species rows author it, and nothing in the tree ever
+  // read it. An animal past this point is at the end of its life — which
+  // is a thing a keeper can SEE before it is a thing that happens.
+  'senescent',
+] as const;
 
 export type LifeStage = (typeof LIFE_STAGES)[number];
 
@@ -424,6 +499,32 @@ export default class Species extends SingletonMixin(
   protected sentient: boolean = false;
 
   /**
+   * How far this species can be handled, and how far it slides back.
+   * `null` — the default — means *not in the conversation*: a wolf.
+   * See {@link HandlingRange}.
+   */
+  protected handlingRange: HandlingRange | null = null;
+
+  /**
+   * ⭐ How readily a member of this species does what it is ASKED —
+   * `0..1`, `null` for a species nobody asks anything of.
+   *
+   * Read by the bond's `wouldComply`, multiplied by how well this
+   * particular animal knows you. ⚠ It is a *ceiling on askability*, not
+   * intelligence and not affection: a cat at `0.1` can be devoted to you
+   * and still not come when called, which is the whole point — *the word
+   * is for the dog, the door is for the cat.*
+   */
+  protected biddability: number | null = null;
+
+  /**
+   * The ways food reaches a member of this species. `null` — the default
+   * — means the species does not feed in any modelled way (a wolf).
+   * See {@link FEEDING_STYLES}.
+   */
+  protected feedingStyle: FeedingStyle[] | null = null;
+
+  /**
    * ⭐ **What a carcass of this species yields to a knife** — a list of
    * `{ cut, units }`, where `cut` is the template path of the Provision a
    * clean butchering produces and `units` is how many a clean one gives.
@@ -531,8 +632,29 @@ export default class Species extends SingletonMixin(
     lifecycleStates: { persistent: true },
     sexDeterminationSystem: { persistent: true },
     reproductiveMode: { persistent: true },
-    lifespanMin: { persistent: true },
-    lifespanMax: { persistent: true },
+    // ⚠ Rows have always authored these and the Hydrator has always
+    // written them — `authorable` gates the STUDIO schema, not YAML
+    // hydration. Declaring it only makes the schema honest.
+    lifespanMin: { persistent: true, authorable: true },
+    lifespanMax: { persistent: true, authorable: true },
+    // ⭐⭐ **Spoiler 1 — what you learn by MEETING it**, beside
+    // `vitalProfile` and `facultyProfile`, and for the reason this whole
+    // build is built on: *you find out a cat will not come when called
+    // by calling it.* The game shows band words and never a figure —
+    // `handlingPhrase()`, three bond sentences, no number anywhere —
+    // and a wiki panel printing `biddability: 0.1` at level 0 would hand
+    // back exactly the number the in-game surface refuses to show, so a
+    // player reads the stat instead of the animal.
+    // ⚠ `spoilerName: 0` because the FIELD is not the secret: that a
+    // species has a biddability at all is ordinary natural history. The
+    // value is what has to be earned.
+    handlingRange: { persistent: true, authorable: true, spoiler: 1, spoilerName: 0 },
+    biddability: { persistent: true, authorable: true, spoiler: 1, spoilerName: 0 },
+    // ⭐ Level 0, unlike the two dials above: *cats eat from bowls and
+    // birds from hoppers* is ordinary natural history, not something you
+    // earn by keeping one. It is also the thing a would-be keeper most
+    // needs to look up.
+    feedingStyle: { persistent: true, authorable: true },
     adultMass: { persistent: true, authorable: true },
     ageCurve: { persistent: true, authorable: true },
     production: { persistent: true, authorable: true },
@@ -748,7 +870,70 @@ export default class Species extends SingletonMixin(
     if (ageDays < curve.weanedAt) return 'newborn';
     if (ageDays < curve.matureAt) return 'juvenile';
     if (ageDays < curve.agedAt) return 'adult';
-    return 'aged';
+    if (ageDays < curve.senescentAt) return 'aged';
+    return 'senescent';
+  }
+
+  /** See {@link HandlingRange}. `null` — the species does not participate. */
+  public getHandlingRange(): HandlingRange | null {
+    return this.handlingRange;
+  }
+
+  /**
+   * Declare the handling range. ⚠ Clamped into `0..1` and ordered, so a
+   * transposed or out-of-range authoring cannot produce a range that
+   * silently never applies.
+   */
+  public setHandlingRange(value: HandlingRange | null): void {
+    if (!value) {
+      this.handlingRange = null;
+      return;
+    }
+    const lo = Math.max(0, Math.min(1, value.floor));
+    const hi = Math.max(0, Math.min(1, value.ceiling));
+    this.handlingRange = { floor: Math.min(lo, hi), ceiling: Math.max(lo, hi) };
+  }
+
+  /** How readily this species does what it is asked, `0..1`, else `null`. */
+  public getBiddability(): number | null {
+    return this.biddability;
+  }
+
+  /** Declare biddability; clamped into `0..1`. */
+  public setBiddability(value: number | null): void {
+    this.biddability = value === null ? null : Math.max(0, Math.min(1, value));
+  }
+
+  /** The ways food reaches this animal, or `null`. See {@link FEEDING_STYLES}. */
+  public getFeedingStyles(): readonly FeedingStyle[] | null {
+    return this.feedingStyle;
+  }
+
+  /** Whether this species feeds by `style`. `false` for a silent species. */
+  public feedsBy(style: FeedingStyle): boolean {
+    return this.feedingStyle?.includes(style) ?? false;
+  }
+
+  /**
+   * Declare the feeding rungs. ⚠ Refuses an unknown word rather than
+   * silently dropping it: a typo'd rung would read as "this animal does
+   * not eat that way", which is indistinguishable from a deliberate
+   * omission and would be found only by an animal quietly starving.
+   */
+  public setFeedingStyle(value: FeedingStyle[] | null): void {
+    if (value === null) {
+      this.feedingStyle = null;
+      return;
+    }
+    for (const style of value) {
+      if (!(FEEDING_STYLES as readonly string[]).includes(style)) {
+        throw new Error(
+          `Species.setFeedingStyle: '${String(style)}' is not a feeding ` +
+            `style. One of: ${FEEDING_STYLES.join(', ')}.`,
+        );
+      }
+    }
+    this.feedingStyle = [...value];
   }
 
   public getLifespanMin(): number { return this.lifespanMin; }

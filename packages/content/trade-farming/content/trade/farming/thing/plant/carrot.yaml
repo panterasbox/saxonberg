@@ -20,7 +20,7 @@ data:
   longDescription: |
     Feathery green tops stand up in a close row, the soil around them cracked where something is swelling underneath.
   _speciesPath: /stuff/idea/species/plantae/tracheophyta/magnoliopsida/apiales/apiaceae/daucus/carota
-  material: /stuff/idea/material/tissue/plant-tissue
+  _materialPath: /stuff/idea/material/tissue/plant-tissue
   lifecycleState: alive
   seedTemplatePath: /trade/farming/thing/seed/carrot
   harvestTemplatePath: /trade/farming/thing/crop/carrot

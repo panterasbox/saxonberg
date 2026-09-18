@@ -63,3 +63,6 @@ data:
   # hand wastes the carcass and gets less, and dirties what it does get.
   butcheryYield:
     - { cut: /stuff/thing/items/stew-meat, units: 3 }
+    # ⭐ Offal — 10–15% of live weight in the real world, and the cut
+    # that will not keep. It is what you feed an animal today.
+    - { cut: /stuff/thing/items/offal, units: 1 }

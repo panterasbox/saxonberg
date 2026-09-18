@@ -1,0 +1,52 @@
+# Bloom iron — ⭐⭐ **what comes out of a bloomery, and it is not a bar.**
+#
+# A bloomery never melts its charge. The ore is REDUCED in the solid
+# state at around 1470 K — below iron's 1811 K melting point — so what
+# forms is not a pour but a mass: a spongy lump of iron particles welded
+# together with the slag that was in the rock still trapped between them.
+# Roughly a quarter of it, by mass, is quartz.
+#
+# ⚠ **It is not `forgeable`, and that is not a refusal but a sequence.**
+# You cannot make a knife out of a bloom because a bloom is full of
+# holes and glass; what you do is beat it, hot, until the slag is squeezed
+# out and the iron has welded to itself. THAT is what the `hammer` verb
+# has always been for, and it is the reason `consolidate-bloom` is the
+# one recipe in the game whose stock slot asks for `bloom`.
+#
+# ⭐ The mass loss is visible and it is the point: what goes onto the
+# anvil is heavier than what comes off it, and the difference is lying on
+# the floor as slag. A player who has done it once knows why a bar costs
+# what it costs.
+#
+# Filed with the ferrous alloys because that is where they live and that
+# is where somebody will look for it, though a composite is what it
+# honestly is.
+class: /platform/idea/material/Material
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  name: bloom iron
+  keywords: [bloom, "bloom iron", sponge]
+  appearance: grey spongy bloom iron, black with slag
+  density: 6000
+  specificHeat: 470
+  thermalConductivity: 40
+  electricalConductivity: 1.0e6
+  waterAbsorptionCapacity: 0.5
+  # Mechanical response: soft and only moderately tough — it is iron with
+  # glass and voids through it, and it performs like it. Nothing should
+  # ever be made of this; it is an intermediate.
+  hardness: 250
+  toughness: 40
+  # It melts where iron melts, because it is iron — but a bloomery never
+  # gets there, which is exactly why a bloom exists at all.
+  meltingPoint: 1811
+  latentHeatOfFusion: 247000
+  edibility: false
+  nutrients: ["iron"]
+  toxicity: [{ type: iron-poisoning, amount: 0 }]
+  tags: ["metal", "ferrous", "bloom", "spongy", "magnetic"]
+  composition:
+    - { materialPath: /stuff/idea/material/element/iron, fraction: 0.75 }
+    - { materialPath: /stuff/idea/material/mineral/quartz, fraction: 0.25 }
+  chemistry: null
+  biologicalSource: null

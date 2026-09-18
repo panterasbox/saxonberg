@@ -89,6 +89,9 @@ if (MixinApi.isSlotted(mover)) {
     for (const occupant of occupants) {
       if (seen.has(occupant)) continue;
       seen.add(occupant);
+      if (MixinApi.isContainable(occupant) && occupant.getContainer() === mover) {
+        continue; // carried, not ridden — it moved with the mover already
+      }
       if (MixinApi.isMobile(occupant) && MixinApi.isContainable(occupant)) {
         try {
           await occupant.traverse(exit, mode);
@@ -112,6 +115,18 @@ backpack chain just works without an explicit recursion here).
 Inert occupants (a saddlebag fixture, a crash-test dummy strapped
 to a bicycle) fall back to `ContainmentApi.move` so they ride
 along silently — the container model.
+
+⚠⚠ **Carried, not ridden (fixed 2026-09-17).** An occupant that stands
+OUTSIDE the mover rides the ripple; an occupant INSIDE it — worn or
+wielded gear, which is in the mover's own contents AND a slot (the
+worn/wielded contract) — moved with the mover already and is skipped.
+Before the skip, both ripples moved every occupant into the destination
+*room*: every character left its cranial aether implant on the floor of
+every room it walked into, and a worn coat or a wielded sword would have
+gone the same way. The existing "worn gear comes along" test used a pack
+that was contents but no slot occupant, so it never saw it; the pets
+drive did, by walking a character around and looking at the floor.
+`teleport`'s ripple carries the same rule.
 
 **Veto handling.** If a rider's `canTraverse` veto throws, the
 ripple swallows the error and the rider stays behind. The host's

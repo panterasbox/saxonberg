@@ -75,6 +75,8 @@ export interface Tangible {
    * read the bulk default directly.
    */
   getMaterial(detailKey?: string): Material | null;
+  /** Is this made of something anything would eat? */
+  isEdible(): boolean;
 
   /**
    * Set the Material at `detailKey`, or the bulk default when
@@ -84,6 +86,16 @@ export interface Tangible {
    * AND every per-Detail override.
    */
   setMaterial(value: Material | null, detailKey?: string): void;
+
+  /**
+   * ⭐ Whether anything this thing is MADE OF carries `tag` — the bulk
+   * default and every per-Detail override, so an axe answers `true` to
+   * both `wood` and `metal`.
+   *
+   * ⚠ Made of, never CONTAINS: a waterskin is leather. The backing read
+   * for MQL's `[material.X]` filter.
+   */
+  hasMaterialTag(tag: string): boolean;
 
   /**
    * Read the Stuff's mass as a `Quantity<'kg'>`. Strict on the
@@ -233,6 +245,21 @@ export function TangibleMixin<TBase extends MixinConstructor>(Base: TBase) {
      */
     public _detailMaterialPaths: Record<string, string> = {};
 
+    /**
+     * ⭐ **Is this made of something anything would eat?**
+     *
+     * ⚠ Edibility is a fact about the MATERIAL, not the class — the same
+     * class is an anvil or a cut of stew meat depending on its
+     * `_materialPath`. So every caller was writing
+     * `MixinApi.isTangible(s) ? s.getMaterial()?.getEdibility() === true
+     * : false` by hand: the `eat` validator, the feeding brain, the
+     * feeding vessel. Three spellings of one question. The thing knows
+     * what it is made of; it can answer.
+     */
+    public isEdible(): boolean {
+      return this.getMaterial()?.getEdibility() === true;
+    }
+
     public getMaterial(detailKey?: string): Material | null {
       if (detailKey !== undefined) {
         // Walk dotted prefixes from longest to shortest; first match
@@ -252,6 +279,37 @@ export function TangibleMixin<TBase extends MixinConstructor>(Base: TBase) {
       }
       if (!this._materialPath) return null;
       return StuffApi.findByTemplatePath<Material>(this._materialPath) ?? null;
+    }
+
+    /**
+     * ⭐ Whether **anything this thing is made of** carries `tag` — the
+     * bulk default and every per-Detail override.
+     *
+     * An axe is oak at the haft, iron at the head and steel at the
+     * edge, and *"is there anything metal in reach"* should find it. So
+     * this asks across all of them rather than the bulk default alone,
+     * which would answer "wood" for an axe and be useless to every
+     * caller that has ever wanted this.
+     *
+     * ⚠ **What a thing is made OF, never what it CONTAINS.** A waterskin
+     * is leather; the water is in a bulk slot and is a different
+     * question with a different owner (`BulkableApi.slotFor`). Folding
+     * the two together here would make `hasMaterialTag('water')` true of
+     * the skin, which is a lie that reads like a convenience.
+     *
+     * The backing read for MQL's `[material.X]` filter.
+     */
+    public hasMaterialTag(tag: string): boolean {
+      const wanted = tag.toLowerCase();
+      if (this._materialPath) {
+        const bulk = StuffApi.findByTemplatePath<Material>(this._materialPath);
+        if (bulk?.hasTag(wanted)) return true;
+      }
+      for (const path of Object.values(this._detailMaterialPaths)) {
+        const part = StuffApi.findByTemplatePath<Material>(path);
+        if (part?.hasTag(wanted)) return true;
+      }
+      return false;
     }
 
     public setMaterial(value: Material | null, detailKey?: string): void {

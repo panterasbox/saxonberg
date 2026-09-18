@@ -1,0 +1,25 @@
+# The mill — the Business entity behind the stones.
+#
+# ⚠ The miller's income is not this wage. It is the TOLL, in kind, in the
+# bin — which is why a mill could pay for itself in a world with almost
+# no coin in it.
+class: /platform/idea/Business
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  appointingAuthority:
+    kind: entity
+    path: /world/hearts-delight/agent/miller
+  positions:
+    - key: miller
+      noun: miller
+      label: minding the stones
+      wageRate: 4
+      confers: [MakerMixin]
+  rosterSlots:
+    - positionKey: miller
+      assignee: /world/hearts-delight/agent/miller
+      schedule:
+        - { days: [0, 1, 2, 3, 4, 5, 6], hours: [0, 24] }
+  banksAt: goodkin
+  operatingLocations:
+    - /world/hearts-delight/location/millsite

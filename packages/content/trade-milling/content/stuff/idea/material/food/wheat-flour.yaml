@@ -1,0 +1,48 @@
+# Wheat flour — ⭐ ONE row for the cereal, and none for the extraction.
+#
+# The obvious shape is a material per band: white flour, brown flour,
+# wholemeal flour. It is wrong, and it is wrong in a way that matters:
+# with three rows, 0.61 and 0.62 mint the same object, and the miller's
+# decision stops being a decision and becomes a menu with three items.
+#
+# So a cereal is a KIND and earns a row; a band is not and gets none. The
+# extraction lives on each sack's own payload — a composition (this much
+# endosperm, this much bran) and a water state — which is machinery that
+# already existed and which the nutrition label, the tags and the
+# spoilage gauge already read.
+#
+# ⚠ These figures are therefore the PURE ENDOSPERM reading: starch-heavy,
+# low protein, no fibre. The bran's own row adds on top, in proportion,
+# through `BlendLabel.amountsOf`. A sack milled at 0.9 is not this row
+# plus a flag; it is this row's parts and bran's parts summed.
+#
+# ⭐ And unlike the grain it came from, flour IS perishable — milling is
+# what breaks the seed coat and lets the oil out. `waterActivity: 0.66`
+# is the base; the payload's `cure.moisture` scales it, so pure-inner
+# flour lands just under the 0.6 growth floor and keeps indefinitely,
+# while wholemeal sits above it and does not. Nothing flags that; it is
+# `a_w = base * moisture * (1 - solute)`.
+class: /platform/idea/material/Material
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  name: wheat flour
+  keywords: [flour, wheat, meal]
+  appearance: fine and pale, soft to the hand
+  density: 570
+  specificHeat: 1800
+  thermalConductivity: 0.14
+  electricalConductivity: 1.0e-9
+  waterAbsorptionCapacity: 60
+  hardness: 1
+  toughness: 1
+  edibility: true
+  waterActivity: 0.66
+  spoilActivationEnergy: 45000
+  nutrients: ["carb", "protein"]
+  nutrientAmounts: { carb: 810000, protein: 92000 }
+  toxicity: []
+  # ⭐ `gluten` is the tag that makes this flour a BREAD flour. Barley's
+  # does not carry it, and that is the honest reason barley bread is
+  # flat: the proteins are there, the elastic sheet is not.
+  tags: ["food", "flour", "wheat-flour", "gluten", "baking"]
+  composition: []

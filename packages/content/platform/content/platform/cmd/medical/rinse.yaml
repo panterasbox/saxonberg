@@ -22,3 +22,13 @@ args:
     required: false
     scope: "reachable"
     requires: VitalsMixin
+  # Bare, the binder hands over every reachable vessel and the controller
+  # takes the first holding water — a question about the CONTENTS, which
+  # no predicate can ask (`lint:instrument-args`). Mirrors `wash`.
+  - name: water
+    type: object
+    required: false
+    prepositions: [in, under, with]
+    default: "reachable:[mixin.BulkableMixin]"
+    scope: ["reachable"]
+    requires: [BulkableMixin]

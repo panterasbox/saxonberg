@@ -97,6 +97,12 @@ export class MaterialLogic extends ApiLogic {
 
   // ---------- materials-response ----------
 
+  /** See {@link MaterialApi.materialScale}. */
+  @CallSecurity(MaterialApiCallers)
+  public materialScale(material: Material | null, channel: Channel): number {
+    return materialScale(material, channel);
+  }
+
   /** See {@link MaterialApi.gradeConditionScale}. */
   @CallSecurity(MaterialApiCallers)
   public gradeConditionScale(grade?: Grade, condition?: number): number {
@@ -319,15 +325,41 @@ function baseAttenuationFor(token: ResistToken): number {
 }
 
 /**
- * The *height* a material lends the response curve on a channel — the
- * normalized ratio vs the reference (steel) magnitudes, per-channel weighted.
+ * How far a material scales the response on a channel — the normalized
+ * ratio vs the reference (steel) magnitudes, per-channel weighted.
  * `edge` is hardness-driven (a hard surface turns a cut); `blunt` is
  * toughness-driven with a structural floor (a construction's blunt response
  * is largely give/loft, so a soft absorber still works); `point` mixes both
  * (resist the tip AND resist punch-through). Unauthored material (zero
- * props) lends zero height on the cutting channels.
+ * props) scales the cutting channels to nothing.
+ *
+ * ⚠ **It scales; it never reshapes.** Which channels a thing is good
+ * against is the CONSTRUCTION's (`responseFor` — mail resists a cut and
+ * a mace goes straight through it). What the material and the quality
+ * do is move the whole profile up or down together, so a masterwork
+ * hauberk is still hauberk-shaped. That is the shape-vs-magnitude split,
+ * and it is why this returns one scalar per channel rather than a
+ * profile.
+ *
+ * ⚠ It was called `materialHeight` until 2026-09-16 — the "height" of
+ * the response CURVE, which is a real and useful picture in prose and a
+ * bad identifier in a file where `Tangible` has a `mass` and `Weapon`
+ * has a `length`. It read as a third physical dimension. Its own ceiling
+ * dial had said `scaleMax` all along.
+ *
+ * ⭐⭐ **Both ends of a blow read this now.** It always priced what a blow
+ * lands ON (the covering stack's attenuation); since the metallurgy
+ * build it also prices what the blow is DELIVERED WITH
+ * (`instrumentDeliveryScale`), which is the same physics asked from the
+ * other side and was previously analyze-only. Steel is the reference, so
+ * a steel weapon scales by exactly 1.0 on every channel and nothing
+ * shipped moved; iron ~0.83 on an edge, bronze ~0.77, copper ~0.70.
+ *
+ * ⚠ And a `null` material scales to **zero**, which is right on the
+ * covering side (no covering protects nothing) and is guarded on the
+ * delivery side (see `instrumentDeliveryScale`).
  */
-function materialHeight(material: Material | null, channel: Channel): number {
+function materialScale(material: Material | null, channel: Channel): number {
   const scaleMax = dial(AppSettingKeys.responseMaterialScaleMax, 1.5);
   if (!material) return 0;
   const hardnessRef = dial(AppSettingKeys.responseMaterialHardnessRef, 600);
@@ -353,17 +385,17 @@ function materialHeight(material: Material | null, channel: Channel): number {
       ratio = tn;
       break;
     default:
-      // Non-mechanical channel (shock) — no mechanical height. Never
+      // Non-mechanical channel (shock) — nothing mechanical to scale. Never
       // reached in practice (shock skips the fold); guards exhaustiveness.
       ratio = 0;
       break;
   }
-  const floor = dial(AppSettingKeys.responseMaterialHeightFloor, 0.6);
+  const floor = dial(AppSettingKeys.responseMaterialScaleFloor, 0.6);
   return clamp(floor + (1 - floor) * ratio, 0, scaleMax);
 }
 
 /**
- * The `grade × condition` height scalar (Settled-4: quality scales height,
+ * The `grade × condition` scalar (Settled-4: quality scales the response,
  * never shape). Grade lerps within [min, max] across the five bands;
  * condition lerps within [conditionMin, 1]. Tuned so a masterwork at ~50%
  * condition lands in the same band as a common (fair) piece at 100%.
@@ -523,7 +555,7 @@ function attenuateImpl(
   }
   const token = construction.responseFor(channel);
   const base = baseAttenuationFor(token);
-  const height = materialHeight(material, channel);
+  const height = materialScale(material, channel);
   const scale = gradeConditionScale(grade, condition);
   // ⭐⭐ **Penetration divides the attenuation**, and that one line is the
   // whole of what makes a firearm different from a sword in this engine.
@@ -670,7 +702,7 @@ function previewBandImpl(
   const eff =
     refEnergy *
     factor *
-    materialHeight(material, channel) *
+    materialScale(material, channel) *
     gradeConditionScale(grade, condition);
   const trauma = resolveTraumaImpl(channel, eff, null, false);
   return severityToBand(trauma ? trauma.severity : null);

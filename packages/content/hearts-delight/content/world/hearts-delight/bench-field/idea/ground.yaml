@@ -1,0 +1,30 @@
+# The bench ground — ⭐ and it is the college ground's argument in
+# reverse.
+#
+# The campus row teaches infield-and-outfield: two centuries of muck made
+# the near field deep and sweet, and the making is legible in the dirt.
+# This row teaches the other half of the same lesson. **Nobody ever
+# carried muck up here**, because it is four acres of thin stuff at the
+# top of a lane, and the cost of the carting is the whole reason.
+#
+# So: a `band` over the lot and no pins at all. Nothing here was ever
+# improved, so there is nothing to record except the neglect — and the
+# neglect is not authored either. It is the ground the seed dealt,
+# wearing what two hundred years of taking crops off it and putting
+# nothing back has done.
+#
+# ⚠ Indistinguishable downstream from a computed cell. Somebody who walks
+# up here with a spade and reads it against the flats learns the
+# difference by measuring it, which is the only way it is worth learning.
+class: /trade/farming/idea/GroundCharacter
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  name: the bench ground
+  pins: {}
+  bands:
+    - from: [6, 0]
+      to: [14, 8]
+      stoninessScale: 1.8
+      depthScale: 0.55
+      phOffset: -0.4
+      note: "above the last ditch; no water, no muck, and it never had either"

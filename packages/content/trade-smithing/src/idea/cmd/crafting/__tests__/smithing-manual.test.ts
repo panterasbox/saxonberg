@@ -34,6 +34,7 @@ import {
   type BranchHarness,
   makeContext,
   ref,
+  many,
   completeStep,
   makeLitForge,
   makeTool,
@@ -138,12 +139,18 @@ describe('the by-hand smithing path', () => {
     expect(ingot.isBuildEmpty()).toBe(true);
 
     // Hammer + anvil in reach → the forming work banks the workpiece once.
-    ContainmentApi.move(makeTool('striking'), room);
-    ContainmentApi.move(makeTool('anvil'), room);
+    const striker = makeTool('striking');
+    const anvil = makeTool('anvil');
+    ContainmentApi.move(striker, room);
+    ContainmentApi.move(anvil, room);
     for (let i = 0; i < 2; i++) {
       await executeAs(actor, () =>
         makeStuff(() => new HammerController()).execute(
-          { target: ref(ingot, 'ingot') } as never,
+          {
+            target: ref(ingot, 'ingot'),
+            striker: many(striker),
+            anvil: many(anvil),
+          } as never,
           makeContext(actor, room, 'hammer ingot'),
         ),
       );
@@ -159,8 +166,10 @@ describe('the by-hand smithing path', () => {
     const ingot = makeIngot(0.5);
     ContainmentApi.move(ingot, room);
     ContainmentApi.move(makeLitForge(true), room); // 2080 K ≥ the 1400 gate
-    ContainmentApi.move(makeTool('striking'), room);
-    ContainmentApi.move(makeTool('anvil'), room);
+    const striker = makeTool('striking');
+    const anvil = makeTool('anvil');
+    ContainmentApi.move(striker, room);
+    ContainmentApi.move(anvil, room);
 
     for (const [Ctor, ms] of [
       [HeatController, 4000],
@@ -169,7 +178,11 @@ describe('the by-hand smithing path', () => {
     ] as const) {
       await executeAs(actor, () =>
         makeStuff(() => new Ctor()).execute(
-          { target: ref(ingot, 'ingot') } as never,
+          {
+            target: ref(ingot, 'ingot'),
+            striker: many(striker),
+            anvil: many(anvil),
+          } as never,
           makeContext(actor, room, 'step'),
         ),
       );
@@ -192,8 +205,10 @@ describe('the by-hand smithing path', () => {
     const ingot = makeIngot(0.5);
     ContainmentApi.move(ingot, room);
     ContainmentApi.move(makeLitForge(false), room); // 1300 K < the 1400 gate
-    ContainmentApi.move(makeTool('striking'), room);
-    ContainmentApi.move(makeTool('anvil'), room);
+    const striker = makeTool('striking');
+    const anvil = makeTool('anvil');
+    ContainmentApi.move(striker, room);
+    ContainmentApi.move(anvil, room);
 
     for (const [Ctor, ms] of [
       [HeatController, 4000],
@@ -202,7 +217,11 @@ describe('the by-hand smithing path', () => {
     ] as const) {
       await executeAs(actor, () =>
         makeStuff(() => new Ctor()).execute(
-          { target: ref(ingot, 'ingot') } as never,
+          {
+            target: ref(ingot, 'ingot'),
+            striker: many(striker),
+            anvil: many(anvil),
+          } as never,
           makeContext(actor, room, 'step'),
         ),
       );
@@ -241,8 +260,10 @@ describe('the by-hand smithing path', () => {
       '/platform/idea/RecipeCatalogue',
     )!.warm();
 
-    ContainmentApi.move(makeTool('striking'), room);
-    ContainmentApi.move(makeTool('anvil'), room);
+    const striker = makeTool('striking');
+    const anvil = makeTool('anvil');
+    ContainmentApi.move(striker, room);
+    ContainmentApi.move(anvil, room);
 
     // Worked at knife heat (bellowsed, 2080 K) → the knife, not the poker.
     ContainmentApi.move(makeLitForge(true), room);
@@ -255,7 +276,11 @@ describe('the by-hand smithing path', () => {
     ] as const) {
       await executeAs(actor, () =>
         makeStuff(() => new Ctor()).execute(
-          { target: ref(hot, 'ingot') } as never,
+          {
+            target: ref(hot, 'ingot'),
+            striker: many(striker),
+            anvil: many(anvil),
+          } as never,
           makeContext(actor, room, 'step'),
         ),
       );
@@ -272,8 +297,10 @@ describe('the by-hand smithing path', () => {
     const room2 = makeStuff(() => new TestActor());
     ContainmentApi.move(actor, room2);
     ContainmentApi.move(makeLitForge(false), room2);
-    ContainmentApi.move(makeTool('striking'), room2);
-    ContainmentApi.move(makeTool('anvil'), room2);
+    const striker2 = makeTool('striking');
+    const anvil2 = makeTool('anvil');
+    ContainmentApi.move(striker2, room2);
+    ContainmentApi.move(anvil2, room2);
     const cool = makeIngot();
     ContainmentApi.move(cool, room2);
     for (const [Ctor, ms] of [
@@ -283,7 +310,11 @@ describe('the by-hand smithing path', () => {
     ] as const) {
       await executeAs(actor, () =>
         makeStuff(() => new Ctor()).execute(
-          { target: ref(cool, 'ingot') } as never,
+          {
+            target: ref(cool, 'ingot'),
+            striker: many(striker2),
+            anvil: many(anvil2),
+          } as never,
           makeContext(actor, room2, 'step'),
         ),
       );

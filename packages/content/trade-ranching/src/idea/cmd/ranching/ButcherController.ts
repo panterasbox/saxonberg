@@ -58,6 +58,11 @@ const YIELDS: ReadonlyArray<{ row: string; fraction: number; what: string }> = [
   // arrives carrying Freshness, Cured and Contaminable, so the clock the
   // cooking chain starts at the kill is the same clock.
   { row: '/stuff/thing/items/stew-meat', fraction: 0.42, what: 'meat' },
+  // ⭐ Offal — 10–15% of live weight, and the piece every carcass has
+  // always produced while nothing in the game yielded it. The word
+  // appeared only in this file's own help text. The rest of the missing
+  // third is blood and gut contents, which stay unmodelled.
+  { row: '/stuff/thing/items/offal', fraction: 0.12, what: 'offal' },
   { row: '/trade/ranching/thing/tallow', fraction: 0.05, what: 'tallow' },
   { row: '/trade/ranching/thing/hide', fraction: 0.07, what: 'a hide' },
   { row: '/trade/ranching/thing/bone', fraction: 0.12, what: 'bone' },
@@ -157,8 +162,9 @@ export default class ButcherController extends CommandController<ButcherModel> {
   }
 
   protected async registry(): Promise<HerdRegistry> {
-    const resident = StuffApi.findByTemplatePath<HerdRegistry>(HERD_REGISTRY_PATH);
-    if (resident) return resident;
+    // ⭐ `singleton` IS the get-or-create: its first act is this exact
+    // index read, and it clones only on a miss. A resident pre-check in
+    // front of it is the same lookup written twice.
     return StuffApi.singleton<HerdRegistry>(HERD_REGISTRY_PATH);
   }
 

@@ -36,7 +36,7 @@ export default class PlateController extends ManualBuildController<PlateModel> {
     const giver = context.commandGiver;
 
     const vessel: Stuff | null =
-      model.vessel?.stuff ?? this.findBuildVessel(giver);
+      model.vessel?.stuff ?? null;
     if (!vessel || !MixinApi.isBuildVessel(vessel)) {
       this.declineStep(
         context,

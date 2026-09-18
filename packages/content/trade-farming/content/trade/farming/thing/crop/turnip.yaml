@@ -10,5 +10,5 @@ data:
   register: indefinite
   longDescription: |
     Roots with the leaf twisted off, muddy and cold, the size of two fists.
-  material: /stuff/idea/material/food/root-vegetable
+  _materialPath: /stuff/idea/material/food/root-vegetable
   mass: 40

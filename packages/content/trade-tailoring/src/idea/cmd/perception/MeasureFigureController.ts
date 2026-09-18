@@ -51,8 +51,6 @@
 import { CommandController } from '@saxonberg/server/mud/lib/command/CommandController';
 import type { CommandContext, CommandModel } from '@saxonberg/server/mud/api/command';
 import type { MqlOneResult } from '@saxonberg/server/mud/api/mql';
-import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
-import { MixinApi } from '@saxonberg/server/mud/api/mixin';
 import { MessageApi } from '@saxonberg/server/mud/api/message';
 import { Mml } from '@saxonberg/server/mud/api/mml';
 import MeasureBook from '../../../thing/MeasureBook';
@@ -63,6 +61,8 @@ const TOPIC = 'act.deed';
 interface MeasureModel extends CommandModel {
   detail?: string;
   subject?: MqlOneResult;
+  /** The book — bound by the view (`[class.MeasureBook]`), never hunted for. */
+  book?: MqlOneResult;
 }
 
 export default class MeasureFigureController extends CommandController<MeasureModel> {
@@ -93,7 +93,8 @@ export default class MeasureFigureController extends CommandController<MeasureMo
       return;
     }
     const subject = named?.stuff ?? giver;
-    const book = findBook(giver);
+    const bookStuff = model.book?.stuff ?? null;
+    const book = bookStuff instanceof MeasureBook ? bookStuff : null;
     if (!book) {
       this.decline(
         context,
@@ -155,16 +156,4 @@ export default class MeasureFigureController extends CommandController<MeasureMo
     MessageApi.scene(context.commandGiver).topic(TOPIC).toSelf(prose).send();
     context.note({ kind: 'controller-rejected', reason, detail: reason });
   }
-}
-
-/** The book on the counter here — held first, then the room. */
-function findBook(giver: Stuff): MeasureBook | null {
-  const candidates: Stuff[] = [];
-  if (MixinApi.isContainer(giver)) candidates.push(...giver.getContents());
-  if (MixinApi.isContainable(giver)) {
-    const loc = giver.getContainer();
-    if (loc && MixinApi.isContainer(loc)) candidates.push(...loc.getContents());
-  }
-  for (const c of candidates) if (c instanceof MeasureBook) return c;
-  return null;
 }

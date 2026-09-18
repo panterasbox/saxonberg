@@ -28,6 +28,8 @@ import type {
 } from '../../api/command';
 import { Idea } from '../stuff/Idea';
 import { MixinApi } from '../../api/mixin';
+import { MessageApi } from '../../api/message';
+import { Mml } from '../../api/mml';
 import { MqlApi } from '../../api/mql';
 import { StuffApi } from '../../api/stuff';
 import type { Display } from '../display/Display';
@@ -138,13 +140,68 @@ export abstract class CommandController<
   }
 
   /**
-   * **Everything the actor could plausibly aim something at** — what
-   * they carry, plus what shares their environment, minus themselves.
-   * The candidate pool for {@link promptForObject}; the working's own
-   * targeting rules still judge whatever comes back.
+   * ⭐ **Say no, diegetically, and record why** — the two halves of a
+   * refusal in one call.
+   *
+   * Every controller that declines does the same two things: puts a
+   * sentence in front of the actor, and drops a `controller-rejected`
+   * note so the envelope carries a machine-readable reason. The prose is
+   * what the player gets; the note is what a test and the client get.
+   *
+   * ⚠ It lives here because **164 controllers do this pair by hand**,
+   * and at least three had minted a private helper for it —
+   * ranching's `HandleController`, and two in the pets build before this
+   * replaced them. A pattern that common with no shared home is how
+   * every new controller ends up inventing its own slightly-different
+   * version. The tree-wide migration is a census-and-ratchet job and is
+   * NOT done here; this is the home it migrates to.
    */
-  protected reachableMarks(context: CommandContext): Stuff[] {
-    const giver = context.commandGiver;
+  protected refuse(
+    context: CommandContext,
+    topic: string,
+    line: string,
+    reason: string,
+    detail = '',
+  ): void {
+    MessageApi.scene(context.commandGiver)
+      .topic(topic)
+      .toSelf(Mml.compose`${line}`)
+      .send();
+    context.note({ kind: 'controller-rejected', reason, detail });
+  }
+
+  /**
+   * ⭐⭐ **Everything the actor could plausibly aim something at** — what
+   * they carry, plus what shares their environment, minus themselves,
+   * **held kit first**. The candidate pool for {@link promptForObject};
+   * the caller's own rules still judge whatever comes back.
+   *
+   * ⚠⚠ **This is the two-leg reach, and it is the only copy.** Ten
+   * controllers and helpers had hand-rolled the identical walk — often
+   * under a name that described the predicate rather than the reach
+   * (`reachOf`, `findBath`, `findWater`, `castInReach`) — while this
+   * method had three callers. A helper nobody calls sitting beside ten
+   * re-implementations is a seam that is wrong, not ten careless
+   * authors: it took a `CommandContext` where every one of them had a
+   * `Stuff`, so the cheapest correct thing to do was write the walk
+   * again. Taking the giver directly is what made the sweep possible.
+   *
+   * ⭐ The ordering is load-bearing and is why callers must not rebuild
+   * it: **carried before floor**, so a first-match consumer prefers your
+   * own gear over what happens to be lying about. That is the same
+   * on-person-first contract MQL's `reachable` seed keeps
+   * (`api/mql/scope-walk.ts`), which is the other home of this walk —
+   * use that one from anything that is not a controller.
+   *
+   * ⚠ It stops at what you CARRY: slot occupants (what you wear, what
+   * you wield) are not in a targeting pool. A caller that needs those
+   * wants `ContainmentApi.reachableFrom(actor)`.
+   *
+   * ⚠ And it EXCLUDES the actor. Several of the hand-rolled copies did
+   * not, which let an actor match their own predicate (a Bulkable
+   * creature reading as "water to wash with"); none relied on it.
+   */
+  protected reachableMarks(giver: Stuff): Stuff[] {
     const out: Stuff[] = [];
     if (MixinApi.isContainer(giver)) out.push(...giver.getContents());
     if (MixinApi.isContainable(giver)) {

@@ -38,6 +38,7 @@ import {
   type BranchHarness,
   makeContext,
   ref,
+  many,
   completeStep,
   makeLitForge,
   makeTool,
@@ -80,11 +81,16 @@ function makeIngot(): Ingot {
   return i;
 }
 
-/** Stand the smithy up: hot forge, hammer, anvil. */
-function standUpSmithy(): void {
+/** Stand the smithy up: hot forge, hammer, anvil — the last two also
+ * handed back, because the by-hand steps declare them as args and a
+ * controller test skips the binder. */
+function standUpSmithy(): { striker: Stuff; anvil: Stuff } {
+  const striker = makeTool('striking');
+  const anvil = makeTool('anvil');
   ContainmentApi.move(makeLitForge(true), room);
-  ContainmentApi.move(makeTool('striking'), room);
-  ContainmentApi.move(makeTool('anvil'), room);
+  ContainmentApi.move(striker, room);
+  ContainmentApi.move(anvil, room);
+  return { striker, anvil };
 }
 
 async function tryForge(who: Stuff): Promise<CommandContext> {
@@ -125,7 +131,7 @@ afterEach(() => {
 
 describe('the knowledge ladder, generalized (wiki parity)', () => {
   it('the long way is open; the shorthand is earned; watching grants only the claim; order is ungated', async () => {
-    standUpSmithy();
+    const smithy = standUpSmithy();
 
     // Zero chronicle rows: the one-shot declines — the book (or wiki)
     // isn't enough.
@@ -156,7 +162,11 @@ describe('the knowledge ladder, generalized (wiki parity)', () => {
     ] as const) {
       await executeAs(builder, () =>
         makeStuff(() => new Ctor()).execute(
-          { target: ref(workpiece, 'ingot') } as never,
+          {
+            target: ref(workpiece, 'ingot'),
+            striker: many(smithy.striker),
+            anvil: many(smithy.anvil),
+          } as never,
           makeContext(builder, room, 'step'),
         ),
       );

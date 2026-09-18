@@ -40,10 +40,10 @@ settings:
   - key: response.material.scaleMax
     value: "1.5"
 
-  - key: response.material.heightFloor
+  - key: response.material.scaleFloor
     value: "0.6"
 
-  # Grade / condition height-scale bounds (poor..masterful → min..max;
+  # Grade / condition scale bounds (poor..masterful → min..max;
   # condition floors at conditionMin so a wrecked item still does something).
   - key: response.grade.min
     value: "0.85"

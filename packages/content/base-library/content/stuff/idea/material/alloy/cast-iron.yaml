@@ -1,0 +1,53 @@
+# Cast iron — iron saturated with carbon, and ⭐⭐ **the ladder's most
+# instructive failure.**
+#
+# Carbon LOWERS iron's melting point. At ~4 % by mass it comes down from
+# 1811 K to around 1420 K, which is a heat a charcoal furnace reaches
+# without trying — so a bloomery charged too rich with fuel does not make
+# better iron, it makes iron that RUNS. The metal pours, which looks like
+# success, and it comes out of the mould hard, grey and completely
+# unworkable.
+#
+# ⚠ **It is not `forgeable`, and that absence is the entire mechanic.**
+# Cast iron has no plastic range at all: hit it hot and it shatters
+# instead of spreading. Every anvil recipe asks for `forgeable` stock, so
+# the kernel's own gather never picks a pig up — silently and correctly —
+# and the two verbs that could still be pointed at one (`hammer`,
+# `forge`) decline by name and say what it is.
+#
+# ⭐ What it IS good for is casting: run it into a mould and you have a
+# pot, a stove plate, a cannon. That is a later rung with its own
+# station, and the pig is the stock waiting for it — which is why the
+# refusal is a signpost rather than a dead end.
+#
+# `brittle` is the tag the refusals read, and it is honest about more
+# than iron: anything that shatters rather than spreading wants it.
+class: /platform/idea/material/Material
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  name: cast iron
+  keywords: [cast-iron, "cast iron", pig, pig-iron]
+  appearance: hard grey cast iron
+  density: 7200
+  specificHeat: 460
+  thermalConductivity: 55
+  electricalConductivity: 1.0e6
+  waterAbsorptionCapacity: 0.2
+  # Mechanical response: HARDER than steel and barely tough at all, which
+  # is the shape of brittleness in two numbers. A cast-iron edge would
+  # take a keen edge and then chip out of it on the first parry.
+  hardness: 700
+  toughness: 15
+  # ⭐ The eutectic-ish melting point, and the whole reason it ran: 1420 K
+  # against pure iron's 1811 K, bought with carbon.
+  meltingPoint: 1420
+  latentHeatOfFusion: 240000
+  edibility: false
+  nutrients: ["iron"]
+  toxicity: [{ type: iron-poisoning, amount: 0 }]
+  tags: ["alloy", "metal", "ferrous", "magnetic", "brittle"]
+  composition:
+    - { materialPath: /stuff/idea/material/element/iron, fraction: 0.96 }
+    - { materialPath: /stuff/idea/material/element/carbon, fraction: 0.04 }
+  chemistry: null
+  biologicalSource: null

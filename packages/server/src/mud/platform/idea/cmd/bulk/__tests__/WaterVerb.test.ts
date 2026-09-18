@@ -30,6 +30,7 @@ import { Idea } from '../../../../../lib/stuff/Idea';
 import Location from '../../../../../lib/stuff/Location';
 import type { Stuff } from '../../../../../lib/stuff/Stuff';
 import { ShadowApi } from '../../../../../api/shadow';
+import { MixinApi } from '../../../../../api/mixin';
 import { ContainmentApi } from '../../../../../api/containment';
 import { PersistableApi } from '../../../../../api/persistable';
 import { WorldClockApi } from '../../../../../api/worldclock';
@@ -39,7 +40,7 @@ import {
   type CommandContext,
   type ModelData,
 } from '../../../../../api/command';
-import type { MqlOneResult } from '../../../../../api/mql';
+import type { MqlManyResult, MqlOneResult } from '../../../../../api/mql';
 import {
   makeStuff,
   makeStuffAtPath,
@@ -152,7 +153,6 @@ function makeCan(litres: number): WateringCan {
     can.setShortDescription('a tin watering can');
     can.interiorBulk = true;
     can.setInteriorCapacity(Quantity.of(2, 'L'));
-    can.setCapabilities([{ kind: 'watering' }]);
     if (litres > 0) {
       can.setBulkMaterial('interior', water());
       can.setBulkAmount('interior', Quantity.of(litres, 'L'));
@@ -187,8 +187,33 @@ function one(stuff: Stuff | null, raw: string, prep?: string): MqlOneResult {
 }
 
 type WaterExecModel = Parameters<WaterController['execute']>[0];
-function model(target: MqlOneResult, source?: MqlOneResult): WaterExecModel {
-  return { target, source } as ModelData as unknown as WaterExecModel;
+
+/**
+ * What the binder binds for `water.yaml`'s `source`: the NAMED vessel
+ * when one was named, else every vessel the giver carries (the view's
+ * `me:i:[mixin.BulkableMixin]` default). ⚠ A controller test SKIPS the
+ * binder, so the carried walk that used to live in the controller is
+ * reproduced here, once, as the fixture (`lint:instrument-args`).
+ */
+function model(
+  target: MqlOneResult,
+  source?: MqlOneResult,
+  holder?: Stuff,
+): WaterExecModel {
+  let bound: MqlManyResult | undefined;
+  if (source) {
+    bound = {
+      stuff: source.stuff ? [source.stuff] : [],
+      raw: source.raw,
+      prep: source.prep,
+    } as unknown as MqlManyResult;
+  } else if (holder && MixinApi.isContainer(holder)) {
+    bound = {
+      stuff: holder.getContents().filter((c) => MixinApi.isBulkable(c)),
+      raw: '',
+    } as unknown as MqlManyResult;
+  }
+  return { target, source: bound } as ModelData as unknown as WaterExecModel;
 }
 
 function noteReasons(ctx: CommandContext): string[] {
@@ -289,7 +314,7 @@ describe('water <plant>', () => {
 
     const before = plant.getSoilMoisture();
     const ctrl = makeStuff(() => new WaterController());
-    await ctrl.execute(model(one(plant, 'lily')), makeContext(giver, room));
+    await ctrl.execute(model(one(plant, 'lily'), undefined, giver), makeContext(giver, room));
 
     expect(plant.getSoilMoisture()).toBeGreaterThan(before);
     expect(plant.getSoilMoisture()).toBeCloseTo(1, 3);
@@ -311,7 +336,7 @@ describe('water <plant>', () => {
     const before = plant.getSoilMoisture();
 
     const ctrl = makeStuff(() => new WaterController());
-    await ctrl.execute(model(one(pot, 'pot')), makeContext(giver, room));
+    await ctrl.execute(model(one(pot, 'pot'), undefined, giver), makeContext(giver, room));
 
     expect(plant.getSoilMoisture()).toBeGreaterThan(before);
     expect(captured).toContain(pot);
@@ -347,7 +372,7 @@ describe('water <plant>', () => {
 
     const ctrl = makeStuff(() => new WaterController());
     const ctx = makeContext(giver, room);
-    await ctrl.execute(model(one(pot, 'pot')), ctx);
+    await ctrl.execute(model(one(pot, 'pot'), undefined, giver), ctx);
 
     expect(noteReasons(ctx)).toContain('nothing-planted');
     expect(can.getBulkAmount('interior').rawValue()).toBeCloseTo(2, 6);
@@ -363,7 +388,7 @@ describe('water <plant>', () => {
 
     const ctrl = makeStuff(() => new WaterController());
     const ctx = makeContext(giver, room);
-    await ctrl.execute(model(one(plant, 'lily')), ctx);
+    await ctrl.execute(model(one(plant, 'lily'), undefined, giver), ctx);
 
     expect(noteReasons(ctx)).toContain('already-wet');
     expect(can.getBulkAmount('interior').rawValue()).toBeCloseTo(2, 6);
@@ -382,14 +407,14 @@ describe('water <plant>', () => {
     // Not a plant.
     const ctrl = makeStuff(() => new WaterController());
     const ctx1 = makeContext(giver, room);
-    await ctrl.execute(model(one(rock, 'rock')), ctx1);
+    await ctrl.execute(model(one(rock, 'rock'), undefined, giver), ctx1);
     expect(noteReasons(ctx1)).toContain('not-a-plant');
 
     // No source at all (nothing carried).
     dryOut(plant, 6);
     const before = plant.getSoilMoisture();
     const ctx2 = makeContext(giver, room);
-    await ctrl.execute(model(one(plant, 'lily')), ctx2);
+    await ctrl.execute(model(one(plant, 'lily'), undefined, giver), ctx2);
     expect(noteReasons(ctx2)).toContain('no-water-source');
     expect(plant.getSoilMoisture()).toBeCloseTo(before, 6);
     expect(captured).toHaveLength(0);
@@ -419,7 +444,7 @@ describe('water <plant>', () => {
 
     const ctrl = makeStuff(() => new WaterController());
     const ctx = makeContext(giver, room);
-    await ctrl.execute(model(one(plant, 'lily')), ctx);
+    await ctrl.execute(model(one(plant, 'lily'), undefined, giver), ctx);
 
     expect(noteReasons(ctx)).toContain('no-water-source');
     // …but naming it explicitly still works (it is reachable).
@@ -443,7 +468,7 @@ describe('water <plant>', () => {
     expect(plant.getConditionBand()).toBe('healthy');
 
     const ctrl = makeStuff(() => new WaterController());
-    await ctrl.execute(model(one(plant, 'lily')), makeContext(giver, room));
+    await ctrl.execute(model(one(plant, 'lily'), undefined, giver), makeContext(giver, room));
     expect(deeds).toHaveLength(1);
     expect(deeds[0]!.discipline).toBe('horticulture');
     expect(deeds[0]!.difficulty).toBe('easy');
@@ -460,7 +485,7 @@ describe('water <plant>', () => {
     expect(plant.getConditionBand()).toBe('failing');
 
     const ctrl = makeStuff(() => new WaterController());
-    await ctrl.execute(model(one(plant, 'lily')), makeContext(giver, room));
+    await ctrl.execute(model(one(plant, 'lily'), undefined, giver), makeContext(giver, room));
     expect(deeds).toHaveLength(1);
     expect(deeds[0]!.difficulty).toBe('hard');
   });
@@ -472,7 +497,7 @@ describe('water <plant>', () => {
     plant.getVigor(); // full root zone, no elapsed time
 
     const ctrl = makeStuff(() => new WaterController());
-    await ctrl.execute(model(one(plant, 'lily')), makeContext(giver, room));
+    await ctrl.execute(model(one(plant, 'lily'), undefined, giver), makeContext(giver, room));
     expect(deeds).toHaveLength(0);
   });
 
@@ -485,7 +510,7 @@ describe('water <plant>', () => {
     expect(plant.getConditionBand()).toBe('dead');
 
     const ctrl = makeStuff(() => new WaterController());
-    await ctrl.execute(model(one(plant, 'lily')), makeContext(giver, room));
+    await ctrl.execute(model(one(plant, 'lily'), undefined, giver), makeContext(giver, room));
 
     expect(plant.getConditionBand()).toBe('dead');
     expect(plant.getVigor()).toBe(0);

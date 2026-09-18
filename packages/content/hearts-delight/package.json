@@ -1,0 +1,17 @@
+{
+  "name": "@saxonberg/content-hearts-delight",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Heart's Delight — the valley: the gate, the bench, the farmstead, the millsite.",
+  "dependencies": {
+    "@saxonberg/content-base-library": "workspace:*",
+    "@saxonberg/content-generic-objects": "workspace:*",
+    "@saxonberg/content-platform": "workspace:*",
+    "@saxonberg/content-terminus": "workspace:*",
+    "@saxonberg/content-trade-farming": "workspace:*",
+    "@saxonberg/content-trade-milling": "workspace:*",
+    "@saxonberg/content-water": "workspace:*",
+    "@saxonberg/content-world-seed": "workspace:*"
+  }
+}

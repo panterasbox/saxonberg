@@ -74,6 +74,38 @@ rests on every ambient change firing one:
 2. **In-place ambient shift** — `AtmosphericMixin.setTemperature` fans
    out `restamp()` over the scope's Thermal contents.
 3. **Seal toggle** / **bulk transfer** — see the thermos.
+4. **A furnace's lit state changes** — `FurnaceMixin.restampHeated()`
+   fans out over the furnace's **heat scope** from `_setLit()` and from
+   the burnout branch of `reconcileFurnaceFuel()`. The same shape as (2).
+
+### ⭐⭐ The furnace couple — a heat source that HOLDS you outranks the biome
+
+`restamp()` asks `heatSourceK()` before it walks the biome chain: if the
+host's container is a lit, fuelled `Furnace`, or the host **rests on**
+one, that furnace's `getHeldTemperatureK()` **is** the ambient.
+
+The couple is read here, on the body being heated, rather than added as
+a furnace term to `BiomeLogic` — because `resolveTemperatureFor` walks
+`Atmospheric` ancestors and a `Furnace` deliberately is not one: **a lit
+forge must not warm the room it stands in.** The distinction the couple
+preserves is exactly that one — *inside the fire* is not *near the
+fire*, and near-the-fire already has its own mechanism
+(`Furnace.heatContents`, a radiant walk over the furnace's room
+SIBLINGS, for Meltables only).
+
+⭐ **The firebox stays pinned; what climbs is what is in it.**
+`FurnaceMixin.getTemperature()` is unchanged — a lit furnace is hot
+instantly, with no warm-up. The body inside drifts toward that held
+temperature over **its own** `τ = R·C`, so a loaf takes loaf-time and a
+pot of water takes pot-time, and `reconcilePhase` still pins boiling
+water at 373 K inside a 500 K oven. An oven's own thermal mass is a
+deferred seam, not an omission.
+
+`Oven` composes **both** `ContainerMixin` and `SurfacedMixin` (a range is
+a firebox you put a loaf in *and* a plate you stand a pot on — the
+shipped kitchen-range row's prose already said so); `Campfire` composes
+`SurfacedMixin`. `Forge` and `Kiln` compose neither: a forge is not a
+chamber, and its Meltable path is the radiant one.
 
 ### τ = R·C
 

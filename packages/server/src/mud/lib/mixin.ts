@@ -357,11 +357,37 @@ export const Mixins = {
   // The cross-cutting spoilage gauge — any Thing can go off (inert until
   // its Material tabulates a spoilage activation energy).
   Fresh: 'FreshnessMixin',
+  // ⭐ Reduce matter, then separate it — the grinding primitive. A mill
+  // takes grain and yields flour plus bran; a stamp mill takes ore and
+  // yields concentrate plus tailings, on the same three fields. Isn't a
+  // recipe (there is no residue COUNT — the split is continuous) and
+  // isn't a tool capability (it is what the instrument DOES with one).
+  Comminuting: 'ComminutingMixin',
+  // ⭐ What a discrete food is MADE OF — the same `BlendPart[]` a blend
+  // carries on its payload, so a chain that ends in something you hold
+  // does not lose what a chain ending in something you pour keeps. Isn't
+  // a recipe (that is `Crafted.recipe`) and isn't nutrition (that is read
+  // off these parts); it is the ingredient list itself.
+  Composed: 'ComposedMixin',
+  // ⭐ The DONENESS gauge — how much cooking a food has had, integrated
+  // over time and temperature. Not the spoilage gauge and not re-based on
+  // it: the kill's Arrhenius and browning's decade interval are different
+  // physics. Isn't a "cooked" flag, and isn't the fire — it is what the
+  // food accumulated, including after the working ended.
+  ThermalDose: 'ThermalDoseMixin',
   // The per-instance water state — drying and curing, the levers that
   // move a thing's effective water activity off its Material's tabulated
   // base. NOT the spoilage gauge: this is the matter, that is the
   // population living in it.
   Cured: 'CuredMixin',
+  // ⭐ The per-instance MINOR CONSTITUENTS of a piece of metal — what is
+  // dissolved in THIS bar, in the same {materialPath, fraction}
+  // vocabulary Material.composition speaks. A Material is a singleton,
+  // so it can say what steel IS and cannot say how yours came out; this
+  // is the half that can. Metal stock only (Ingot, Casting, Bloom) — a
+  // blade's metal is its Material ROW, and carbon on a blade would make
+  // every mint guard for it.
+  Alloyed: 'AlloyedMixin',
   // The SECOND population — event-seeded, silent, and carried between
   // objects rather than grown from nothing. Not the spoilage gauge: that
   // is a clock, this is a consequence.
@@ -377,6 +403,13 @@ export const Mixins = {
   // neglect, and a SAFETY mechanic before it is an efficiency one. In
   // the kernel because pets will want it and pets is not ranching.
   Handling: 'HandlingMixin',
+  // ⭐ An animal that can be won over: regard × handling, plus where home
+  // is and how home moves. NOT on Creature — a wolf must be able to not
+  // apply, which is what the nullable species dials are for.
+  Bonded: 'BondedMixin',
+  // A vessel an animal feeds from. A pure carrier over the shipped
+  // vessel shape: the concept a brain can look for and a gate can name.
+  Feeder: 'FeederMixin',
   // Ground that holds plants: soil + N plant slots. A pot is this at N = 1;
   // a garden bed is the same surface with a bigger N.
   Cultivable: 'CultivableMixin',
@@ -584,6 +617,20 @@ export const MixinRefusals: Partial<Record<MixinName, string>> = {
   HeldGoodsMixin: "{} isn't a shelf goods are held on",
   ConsignmentShelfMixin: "{} isn't a shelf you can trade from",
 
+  // Reduction & separation — a mill, a stamp battery.
+  ComminutingMixin: "{} isn't something that grinds",
+
+  // Construction & table — a butcher's blade is any EDGE, and cutlery is
+  // what you eat with.
+  ConstructedMixin: "{} isn't a made thing",
+  CutleryMixin: "{} isn't something you eat with",
+
+  // ⚠ Per-instance ownership. The refusal is about the THING, not about
+  // whose it is: a fungible stack is owned by possession and has no
+  // chattel id to check in or consign, which is a fact about the object
+  // rather than a permission being denied.
+  ChattelMixin: "{} isn't something that can be owned individually",
+
   // Boundaries & mechanisms.
   SealableMixin: "{} doesn't open and close",
   BulkableMixin: "{} doesn't hold liquid to read",
@@ -619,6 +666,8 @@ export const MixinRefusals: Partial<Record<MixinName, string>> = {
   SlottableMixin: "{} doesn't sit in anything",
   SoilMixin: "{} has no soil in it",
   HandlingMixin: "{} isn't an animal you can work with",
+  BondedMixin: "{} isn't an animal that can be kept",
+  FeederMixin: "{} isn't something an animal can feed from",
   CultivableMixin: "{} isn't ground you can plant in",
   GrowingMixin: "{} isn't growing",
   PlantableMixin: "{} isn't something you can plant",
@@ -639,6 +688,10 @@ export const MixinRefusals: Partial<Record<MixinName, string>> = {
   ManualBuildMixin: "{} isn't a vessel you can work in",
   CraftedMixin: "{} isn't a made thing",
   DurableMixin: "{} doesn't wear out",
+  // ⚠ The phrase says the MATERIAL fact, not the mixin's name: what
+  // `hammer` wants is a piece of metal stock, and "isn't metal stock
+  // you can work" tells somebody what to go and find.
+  AlloyedMixin: "{} isn't metal stock you can work",
   KeenMixin: "{} doesn't take an edge",
   WearableMixin: "{} isn't something you can wear",
   /*

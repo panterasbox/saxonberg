@@ -262,16 +262,56 @@ stalemating"*), then erodes both sides, then `decideOutcome` re-reads the
 band. A fighter fit to strike at beat-top can therefore be refused a few
 lines later for overextension **caused by their own strike** — the beat is
 wasted, the whiff penalty opens them further, and the next beat is refused
-for the same reason. Passing the beat-top band into `decideOutcome` is a
-two-line change that measurably reduces the stalling; it was not taken in
-the consequence build because, once the wound spend was dropped, it bought
-nothing and shipping a combat-balance change that buys nothing is worse
-than recording it.
+for the same reason.
 
-⚠ Relatedly: **three `test:gym` cells are RED on master** and have been for
-some time — the two species size-table cells and `combat-gym — the parry
-seam is dead (rock-paper-scissors)`, whose name is the finding. `test:gym`
-is its own CI job and is not part of `pnpm test`.
+⚠⚠ **The named two-line fix was tried in 2026-09-16 and MEASURED. Do not
+try it again without reading this.** Passing the beat-top band into
+`decideOutcome` does **not** clear the stall — `feinter-vs-turtle@untrained`
+still draws at exactly 201 beats — and it **breaks** a formations cell
+(*"MA emergent: with the master, the apprentice survives a foe they cannot
+beat alone"*). It was reverted. The earlier note that it "measurably
+reduces the stalling" is not borne out; the consequence build's instinct
+that it bought nothing was right.
+
+⭐⭐ **And defect 1's mechanism is sharper than recorded above.** The
+recovery path that is supposed to break the cycle —
+
+```ts
+actorState.queuedGambit ?? (overextended ? "defend" : "strike")
+```
+
+— fires **only for autocombat**. A QUEUED gambit wins outright, so a
+fighter who intends something every beat never covers up and never
+catches their breath. The gym's feinter policy queues `feint` on every
+beat, so neither side ever recovers and both stay under the break floor
+until the session expires. That is the whole of the 201-beat draw, and it
+means the limit cycle is not really about the whiff penalty: **it is
+about intent overriding recovery.**
+
+⚠ Whether a queued gambit *should* be deferred when its owner is
+overextended is a real design question with a wide blast radius — every
+pin, the whole balance matrix, and the question of whether a player who
+typed a gambit may be told "you are too winded, you cover up instead".
+It is not a bug fix, and it is deliberately not taken here.
+
+⚠ Relatedly: **`test:gym` cells have been RED on master** for some time.
+`test:gym` is its own CI job and is not part of `pnpm test`, which is how
+they stayed red.
+
+- ✅ **The two species size-table cells are FIXED** (2026-09-16). Not a
+  balance drift at all: `Creature.seedMassFromBodyPlan` reached past
+  `Species.getBaseMass()` — documented as *"the one accessor every reader
+  goes through"* and naming that function as one of exactly three — to the
+  BODY PLAN's accessor, skipping the species layer. Every playable species
+  therefore massed `biped`'s 70 kg: a halfling and a dragonborn carried the
+  same, cooled at the same rate and punched with the same energy. It hid
+  because `massAt` (husbandry's maturation curve) answers first and is
+  right for animals, which all author `adultMass`, while no playable
+  hominid does — so `massAt` returned 0 for exactly the rows whose
+  `baseMass` was then dropped. The pinned snapshot was the correct
+  pre-regression table and passes untouched.
+- ⚠ **`combat-gym — the parry seam is dead` is still red**, and its name
+  remains the finding. See defect 1 above for the mechanism.
 
 ## Tempo — emergent cadence
 
@@ -317,13 +357,29 @@ the blow (an open window earns the hardest hit — a `combat.energy.*` dial),
 scaled by the **bounded instrument-delivery scale** (the crafting-branches
 coupling): a weapon strike's energy is multiplied by
 `MaterialApi.gradeConditionScale(grade, condition)` (the ONE quality
-formula the covering stack already folds — Settled-4: quality scales
-height, never shape), × the weapon's `keennessDeliveryFactor()` on
+formula the covering stack already folds — Settled-4: quality scales the
+response, never its shape), × the weapon's `keennessDeliveryFactor()` on
 edge/point channels (the working-surface axis — see
-[crafting.md](./crafting.md)), clamped down to
-`crafting.brokenDeliveryFloor` when the weapon `isBroken()`. Material
-*height* is deliberately left analyze-only (a combat-balance question —
-the delivery fold reads quality, not hardness). It computes **no damage**;
+[crafting.md](./crafting.md)), × `MaterialApi.materialScale(material,
+channel)` — **what it is made of, on the channel it is used on** —
+clamped down to `crafting.brokenDeliveryFloor` when the weapon
+`isBroken()`.
+
+⭐⭐ The material term is new with the metallurgy build, and it retires a
+documented asymmetry: the material's scale used to be analyze-only, so
+`analyze response` told a player a bronze blade was worse than a steel
+one and the exchange disagreed. Steel is the reference (scale exactly
+1.0), so
+every shipped matchup is byte-identical and the gym is unchanged either
+side of the fold; iron ×0.83 on an edge, bronze ×0.77, copper ×0.70.
+
+⚠⚠ A weapon with **no material at all is neutral here, not zero**, and
+the asymmetry with the covering side is deliberate: there a null
+material is *no covering* and zero is right, here the weapon is present
+and only our knowledge of it is missing. Scaling by zero would let one
+unauthored content field silently delete combat.
+
+It computes **no damage**;
 `inflict` resolves the covering stack outside-in
 and returns the trauma type + severity, or `null` (deflected). Armor
 coverage measurably changes the outcome (a plated torso turns an edge a

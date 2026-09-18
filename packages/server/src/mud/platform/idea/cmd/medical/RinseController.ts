@@ -36,7 +36,7 @@
 
 import { CommandController } from '../../../../lib/command/CommandController';
 import type { CommandContext, CommandModel } from '../../../../api/command';
-import type { MqlOneResult } from '../../../../api/mql';
+import type { MqlOneResult, MqlManyResult } from '../../../../api/mql';
 import { MessageApi } from '../../../../api/message';
 import { MixinApi } from '../../../../api/mixin';
 import { Mml } from '../../../../api/mml';
@@ -53,6 +53,7 @@ const TOPIC = 'act.deed';
 
 interface RinseModel extends CommandModel {
   patient?: MqlOneResult;
+  water?: MqlManyResult;
 }
 
 export default class RinseController extends CommandController<RinseModel> {
@@ -71,7 +72,7 @@ export default class RinseController extends CommandController<RinseModel> {
     // ⭐ Water in reach, before anything else — the refusal a player can
     // act on ("find water") comes before the one they cannot ("you have
     // no caustic"), and before the fight-opening side of anything.
-    const water = this.findWater(giver as unknown as Stuff);
+    const water = this.findWater(model.water);
     if (water === null) {
       return this.fail(
         context,
@@ -120,20 +121,18 @@ export default class RinseController extends CommandController<RinseModel> {
   }
 
   /**
-   * Any reachable bulk holder whose matter is tagged `water` — carried
-   * or in the room, a jug as good as a basin. The `WashController` read,
-   * repeated rather than shared: a `BulkableApi.findWater(giver)` would
-   * be an Api static taking a world object, which is the OO antipattern
+   * The first of the binder-resolved reachable vessels whose matter is
+   * tagged `water` — a jug as good as a basin. The `WashController` read,
+   * repeated rather than shared: a `BulkableApi.findWater(bound)` would
+   * be an Api static taking a world object, the OO antipattern
    * `lint:object-verbs` holds at zero.
    */
-  private findWater(giver: Stuff): Stuff | null {
-    const candidates: Stuff[] = [];
-    if (MixinApi.isContainer(giver)) candidates.push(...giver.getContents());
-    if (MixinApi.isContainable(giver)) {
-      const loc = giver.getContainer();
-      if (loc && MixinApi.isContainer(loc)) candidates.push(...loc.getContents());
-    }
-    for (const c of candidates) {
+  private findWater(bound: MqlManyResult | undefined): Stuff | null {
+    // ⭐ A NARROWING, not a search — `rinse.yaml` declares `water` with a
+    // `[mixin.BulkableMixin]` default, so what arrives is every reachable
+    // vessel and the only question left is what is IN it, which no
+    // predicate asks (`lint:instrument-args`). The same read `wash` makes.
+    for (const c of bound?.stuff ?? []) {
       if (!MixinApi.isBulkable(c) || MixinApi.isCrafted(c)) continue;
       const slot = BulkableApi.slotFor(c, undefined);
       if (!slot || slot.isEmpty()) continue;

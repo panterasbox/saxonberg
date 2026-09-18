@@ -17,7 +17,8 @@ data:
   register: indefinite
   longDescription: |
     A knee-high frame of weathered boards, filled level with dark soil and edged by a path worn into the grass. There is room along its length for several plants without crowding.
-  material: /stuff/idea/material/wood/pine
+  # (was `wood/pine`, a row that does not exist — invisible while the key was dead)
+  _materialPath: /stuff/idea/material/wood/oak
   # ~340 kg filled: the frame plus 12 L of soil in a bed that is mostly
   # soil by volume. Well over any character's strain ceiling.
   mass: 340

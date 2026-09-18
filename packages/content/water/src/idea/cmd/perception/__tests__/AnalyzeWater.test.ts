@@ -88,7 +88,7 @@ async function analyze(target: Stuff | null): Promise<CommandContext> {
   await ctrl.execute(
     target === null
       ? ({} as never)
-      : ({ target } as never),
+      : ({ target: { stuff: target, raw: 'it' } } as never),
     c,
   );
   return c;

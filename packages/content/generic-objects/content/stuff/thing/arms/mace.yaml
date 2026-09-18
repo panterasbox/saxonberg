@@ -1,0 +1,35 @@
+# ⚠⚠ **The row's `_materialPath` is a DEFAULT, not a claim.** Both mint
+# paths override a crafted output's material from the stock it was made
+# of, unconditionally — so a blade forged out of a wrought-iron bar IS
+# iron and reads as iron on the card and under `analyze`. What the
+# default is for is a clone nobody forged: the newbie wilds prop five of
+# these rows, and after material height entered delivery a weapon with
+# NO material delivers zero. A material-less prop would be a stick.
+#
+# ⭐ Which is why the NAME no longer says steel. The row cannot know what
+# metal a particular one is made of, so it does not say — the shape is
+# the row's and the metal is the instance's, and `analyze weapon` is
+# where you find out.
+class: /platform/thing/equipment/Weapon
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: mace
+  keywords: [mace]
+  register: indefinite
+  longDescription: >
+    A flanged head on a stout oak haft. It delivers nothing but blunt
+    force — and blunt force is exactly what shrugs off a plated foe.
+  _materialPath: /stuff/idea/material/alloy/steel
+  _detailMaterialPaths:
+    haft: /stuff/idea/material/wood/oak
+  constructionForm: hafted
+  gradeBand: fine
+  # A heavy, medium-length bar of metal — playstyle derives: heavy mass ->
+  # a guard-breaker (high poise damage, slow tempo, costly to commit).
+  mass: 1.6
+  length: 0.7
+  # One-handed — claims a single hand slot.
+  slotClaims:
+    "/stuff/idea/species/BodyPlan/biped": ["hand:right"]
+  # ⭐ Mass at the end of a haft — the guard-breaking practice.
+  exercises: [bludgeons]

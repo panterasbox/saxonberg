@@ -26,6 +26,32 @@
 
 import { NPC } from '../../lib/npc/NPC';
 
-export class Extra extends NPC {}
+export class Extra extends NPC {
+  /**
+   * ⭐⭐ A role holds no personal opinion of you — the rung declaring the
+   * fact that names it.
+   *
+   * What the watch thinks of you belongs to the watch, not to whichever
+   * body is on the gate tonight, and an Extra is exactly "whichever
+   * body": the same row stands up any number of them, so there is no
+   * *somebody* for an opinion to belong to. ⚠ Two sentries would also
+   * have shared one belief record before `viewerKey` was fixed — but
+   * that was the symptom. This is the cause, and it is why the fix is a
+   * declared hook rather than a key trick: a kept animal is also neither
+   * `Cast` nor singleton and it MUST hold regard, so "not Cast ⇒ no
+   * regard" is simply false.
+   *
+   * Recognition is untouched: an Extra still learns who you are for the
+   * session and can greet you by name. Knowing you is a role behaviour;
+   * having a view about you is not.
+   *
+   * The institution-held opinion this leaves room for
+   * (`EmployedMixin.institutionPath()` as the viewer) is designed and
+   * deferred to the pets slate's Wave 2 — it attaches at this hook.
+   */
+  public override keepsPersonalRegard(): boolean {
+    return false;
+  }
+}
 
 export default Extra;

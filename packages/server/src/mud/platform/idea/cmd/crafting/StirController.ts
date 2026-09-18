@@ -30,7 +30,7 @@ export default class StirController extends ManualBuildController<StirModel> {
     const method: BuildMethod = verb === "shake" ? "shaken" : "stirred";
 
     const vessel: Stuff | null =
-      model.vessel?.stuff ?? this.findBuildVessel(giver);
+      model.vessel?.stuff ?? null;
     if (!vessel || !MixinApi.isBuildVessel(vessel)) {
       this.declineStep(
         context,

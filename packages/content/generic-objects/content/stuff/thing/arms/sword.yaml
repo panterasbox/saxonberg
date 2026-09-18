@@ -1,0 +1,35 @@
+# ⚠⚠ **The row's `_materialPath` is a DEFAULT, not a claim.** Both mint
+# paths override a crafted output's material from the stock it was made
+# of, unconditionally — so a blade forged out of a wrought-iron bar IS
+# iron and reads as iron on the card and under `analyze`. What the
+# default is for is a clone nobody forged: the newbie wilds prop five of
+# these rows, and after material height entered delivery a weapon with
+# NO material delivers zero. A material-less prop would be a stick.
+#
+# ⭐ Which is why the NAME no longer says steel. The row cannot know what
+# metal a particular one is made of, so it does not say — the shape is
+# the row's and the metal is the instance's, and `analyze weapon` is
+# where you find out.
+class: /platform/thing/equipment/Weapon
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: arming sword
+  keywords: [sword, arming]
+  register: indefinite
+  longDescription: >
+    A plain, well-balanced single-handed sword, a straight
+    double edge and an honest crossguard. It neither reaches like a spear nor
+    breaks a guard like a hammer — it parries, ripostes, and rewards a
+    fighter who reads the exchange.
+  _materialPath: /stuff/idea/material/alloy/steel
+  constructionForm: bladed
+  gradeBand: fine
+  # The balanced generalist — near-neutral mass (medium tempo/poise), medium
+  # reach, and a good crossguard (parries + ripostes). One-handed, so it
+  # pairs with a shield, a sidearm, or an off-hand dagger.
+  mass: 1.0
+  length: 0.9
+  slotClaims:
+    "/stuff/idea/species/BodyPlan/biped": ["hand:right"]
+  # ⭐ An arming sword is the blades practice itself.
+  exercises: [blades]

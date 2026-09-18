@@ -1,0 +1,37 @@
+# The bread counter — ⭐⭐ **TWO lines, priced apart, and that is what
+# makes the `eats` brain a demand model rather than a faucet.**
+#
+# A counter with one line gives a hungry NPC a thing to buy. A counter
+# with two priced apart gives them a CHOICE, and the choice is made by
+# what is in their purse — so two people on two wage rates walk in on the
+# same morning and walk out with different bread, and nobody anywhere
+# labelled either of them.
+#
+# ⚠ The prices are the BAKER'S decision and nothing else's. No mechanism
+# says white bread is worth more; the baker charges more because the
+# extraction cost them a third of the grain's weight. White was status
+# because somebody priced it so.
+#
+# ⚠ `par` mints fresh clones on the sweep, which makes this counter a
+# faucet — deliberately, and it is the honest kind: a shop that never
+# runs out is a simplification everybody can see. The FARM is the source
+# node that can run out.
+class: /platform/thing/Stock
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: bread counter
+  keywords: [counter, bread, loaves, till, shelf]
+  register: definite
+  longDescription: |
+    A scrubbed plank counter across the front of the shop with the day's bread standing on end in a rack behind it, and a cloth over the ones that have been there since morning.
+  discipline: scrum
+  attendDurationMs: 0
+  staffingPolicy: self-service
+  serverPositionKeys: [baker]
+  businessPath: /world/terminus/market/idea/bakery-business
+  stockLines:
+    - { itemTemplatePath: /trade/baking/thing/lean-loaf, par: 4 }
+    - { itemTemplatePath: /trade/baking/thing/white-loaf, par: 4 }
+  prices:
+    /trade/baking/thing/lean-loaf: 2
+    /trade/baking/thing/white-loaf: 4

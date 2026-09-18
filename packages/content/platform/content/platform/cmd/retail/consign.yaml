@@ -18,9 +18,20 @@ validators:
   - /lib/command/validators/requiresConscious
   - /lib/command/validators/requiresEmbodied
 args:
+  # ⭐⭐ The GOOD, bound by the view too — and it used to be a bare string
+  # the controller matched against your inventory by hand, which is the
+  # binder's own job reimplemented three feet below a comment saying the
+  # rack is "bound by the view, not hunted for here".
+  #
+  # `scope: [inventory]` is what "you must be carrying it" means, said
+  # once, declaratively — so the refusal for a thing you do not have is
+  # the same `empty-result` every other object arg gives, instead of a
+  # bespoke sentence quoting raw input back at you.
   - name: thing
-    type: string
+    type: object
     required: true
+    scope: [inventory]
+    requires: [ChattelMixin]
   # ⭐ The shelf you are listing on — DECLARED, so the binder resolves it like
   # any other object and the controller just reads it. `on` keeps the
   # existing grammar intact while making it addressable when it matters.

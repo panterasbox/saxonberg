@@ -1,4 +1,4 @@
-verbs: [intervene, stay]
+verbs: [intervene]
 controller: /platform/idea/cmd/combat/InterveneController
 description: "Stay a killing stroke — stop a coup in progress"
 help: |
@@ -10,7 +10,7 @@ help: |
 examples:
   - cmd: intervene the duelist
     note: Stop the fighter about to finish a downed foe
-  - cmd: stay the stroke
+  - cmd: intervene the fallen scholar
     note: A downed friend is about to be executed — step in
 validators:
   - /lib/command/validators/requiresEmbodied

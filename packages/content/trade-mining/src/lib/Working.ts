@@ -654,17 +654,23 @@ export function WorkingMixin<TBase extends MixinConstructor<Stuff & Container>>(
  * reference Idea that reads `null` forever because nothing warms it. The
  * fix is get-or-create at the point of use rather than a boot list
  * somebody has to remember to add to: `StuffApi.singleton` IS the
- * establishing context for a keyless reference row, and the cheap
- * synchronous hit covers every read after the first.
+ * establishing context for a keyless reference row.
+ *
+ * ⚠ This once read `findByTemplatePath` first "for the cheap synchronous
+ * hit after the first read". That was a misreading of `singleton`, whose
+ * FIRST ACT is that same index read — it returns the resident instance
+ * and clones only on a miss. The pre-check was the lookup written twice,
+ * and it spread to nine other sites by copying.
  */
 async function resolveDeposit(path: string): Promise<Deposit | null> {
-  const resident = StuffApi.findByTemplatePath<Deposit>(path);
-  if (resident) return resident;
   try {
     return await StuffApi.singleton<Deposit>(path);
-  } catch {
+  } catch (err) {
     // A zone naming a deposit row that does not exist is an authoring
-    // error, and barren ground is the honest reading of it.
+    // error, and barren ground is the honest reading of it — but the
+    // fault goes to the log, because "barren" is exactly what a real
+    // barren cell says and the two must not be indistinguishable.
+    console.error(`Working: deposit '${path}' did not resolve`, err);
     return null;
   }
 }

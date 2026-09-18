@@ -148,9 +148,11 @@ textiles 3, and metal-chain's drive surfaced five *pre-existing*
 boot-breaking defects. **What it finds becomes more waves, not a
 stop.** Fix, commit, re-drive.
 
-Then check the four reachability links for each new capability —
-**verb · affordance · data · boot** — each of which fails closed and
-silent.
+Then check the five reachability links for each new capability —
+**verb · affordance · data · boot · arg gate** — each of which fails
+closed and silent. The fifth is a view's `args[].requires`: a target
+that does not compose the named mixin is refused at the binder, which
+no controller test can see.
 
 ### 5. Push and open the MR
 

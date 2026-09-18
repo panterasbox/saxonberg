@@ -553,6 +553,30 @@ export function ThermalMixin<TBase extends MixinConstructor>(Base: TBase) {
     }
 
     /**
+     * The held temperature (K) of a lit, fuelled `Furnace` that is
+     * heating this body — the furnace **holding** it (a loaf in an
+     * oven) or the furnace it **rests on** (a pot on a campfire) — or
+     * `null` when nothing does. Read only by {@link restamp}: the
+     * furnace supplies the ambient, and the body's own `tau = R*C`
+     * supplies the warm-up. The firebox is hot instantly; what climbs
+     * is what is in it.
+     */
+    private heatSourceK(): number | null {
+      const self = this.thermalHost;
+      // A lit, fuelled furnace the body is IN or ON — `isFurnace` narrows
+      // the one cast to the container type, and everything after reads
+      // through the narrowing.
+      const litFurnaceK = (candidate: Stuff | null): number | null => {
+        if (candidate === null || !MixinApi.isFurnace(candidate)) return null;
+        if (!candidate.isLit() || candidate.fuelRemaining() <= 0) return null;
+        return candidate.getHeldTemperatureK();
+      };
+      const inside = litFurnaceK(self.getContainer() as unknown as Stuff | null);
+      if (inside !== null) return inside;
+      return litFurnaceK(self.getRestingOn() as unknown as Stuff | null);
+    }
+
+    /**
      * Resolve the current scope's ambient, freeze the current
      * temperature under the *old* cached ambient, then adopt the new
      * ambient and re-stamp. The single async mutation every re-stamp
@@ -564,17 +588,27 @@ export function ThermalMixin<TBase extends MixinConstructor>(Base: TBase) {
       // Freeze current T under the OLD ambient first (drift up to now).
       this.reconcileThermal();
 
-      // Resolve the new scope's ambient. The host is `Containable`, and
-      // `getContainer()` already returns `(Stuff & Container) | null`.
+      // ⭐ A heat source that HOLDS this body outranks the biome chain:
+      // the inside of a lit oven is not the room. `BiomeLogic` walks
+      // `Atmospheric` ancestors and a `Furnace` is not `Atmospheric`
+      // (deliberately — a lit forge must not warm the room it stands
+      // in), so the couple is read here, on the body being heated.
       let ambientK = this.lastAmbientK;
-      const container = this.thermalHost.getContainer();
-      if (container !== null) {
-        try {
-          ambientK = (
-            await BiomeApi.resolveTemperatureFor(container)
-          ).rawValue();
-        } catch {
-          // keep the cached ambient on any resolution failure
+      const sourceK = this.heatSourceK();
+      if (sourceK !== null) {
+        ambientK = sourceK;
+      } else {
+        // Resolve the new scope's ambient. The host is `Containable`, and
+        // `getContainer()` already returns `(Stuff & Container) | null`.
+        const container = this.thermalHost.getContainer();
+        if (container !== null) {
+          try {
+            ambientK = (
+              await BiomeApi.resolveTemperatureFor(container)
+            ).rawValue();
+          } catch {
+            // keep the cached ambient on any resolution failure
+          }
         }
       }
       this.lastAmbientK = ambientK;

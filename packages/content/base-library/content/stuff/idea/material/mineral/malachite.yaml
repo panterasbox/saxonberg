@@ -15,6 +15,11 @@ hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
   name: malachite
   keywords: [malachite]
+  # ⭐ The colour word the SURVEY reads. `measure strike` used to hardcode
+  # "the ground here is stained green"; it now asks the mineral it is
+  # standing on, so the fringe says rust and the heart says verdigris
+  # without the instrument knowing either word.
+  appearance: verdigris-green staining
   density: 4000
   specificHeat: 800
   thermalConductivity: 1.2

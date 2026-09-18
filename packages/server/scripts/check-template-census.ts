@@ -132,6 +132,20 @@ export function refsOf(data: Record<string, unknown>): Array<{ field: string; pa
     // with" forever and naming no cause. Read here rather than added to
     // `UNREAD_PATH_FIELDS`, because that list only ever shrinks.
     'projectileTemplate',
+    // ⭐ The comminution citations (the grain chain). A mill row names
+    // the matter it makes (`productMaterial` / `residueMaterial`), the
+    // sacks it fills (`productVessel` / `residueVessel`) and the bin its
+    // toll goes into (`tollBinPath`) — every one resolved live at the
+    // completion of a grind, long after the verb returned.
+    //
+    // ⚠ Which is exactly why they are READ here rather than ignored: a
+    // rowless `productVessel` is a grind that consumes the grain, runs
+    // its whole duration, and then quietly produces nothing at all —
+    // inside a module-level completion where no player and no test is
+    // watching. `UNREAD_PATH_FIELDS` only ever shrinks; this list is
+    // where a new live-resolved citation belongs.
+    'productMaterial', 'residueMaterial',
+    'productVessel', 'residueVessel', 'tollBinPath',
   ] as const) {
     push(f, data[f]);
   }
@@ -246,6 +260,24 @@ export function refsOf(data: Record<string, unknown>): Array<{ field: string; pa
     for (const part of composition) {
       if (part && typeof part === 'object') {
         push('composition.materialPath', (part as Record<string, unknown>).materialPath);
+      }
+    }
+  }
+  /*
+   * ⭐ `alloying[].materialPath` — the PER-INSTANCE half of the same
+   * fact, and the same vocabulary. `AlloyedMixin` says what is dissolved
+   * in one particular bar; `composition` says what the kind is. An
+   * authored row that seeds a starting carbon (the smithy's props, a
+   * fixture) names the constituent by path exactly as a composition
+   * does, and an unresolvable one would make `getEffectiveComposition`
+   * and `analyze chemistry` quietly wrong about what the metal IS —
+   * which is precisely why the composition walk above exists.
+   */
+  const alloying = data.alloying;
+  if (Array.isArray(alloying)) {
+    for (const part of alloying) {
+      if (part && typeof part === 'object') {
+        push('alloying.materialPath', (part as Record<string, unknown>).materialPath);
       }
     }
   }

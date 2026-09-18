@@ -1,0 +1,51 @@
+# thermal-dose — application settings shipped by the platform pack (the
+# `settings` kind: merge-missing — a key the app_settings singleton lacks is
+# merged in; a value the operator changed via `config` is never touched).
+settings:
+  # ⭐⭐ Doneness — how much cooking a thing has had, as an integral over
+  # time and temperature rather than a flag the verb set. The model is the
+  # thermal-death-time (F-value) form used for browning:
+  #
+  #   doseS += INTEGRAL 10^((T - Tref)/z) ds     for T >= floorK
+  #
+  # ⚠ These are the BROWNING curve's numbers and must not be confused with
+  # the kill's (`freshness.killActivationEnergy`). They are different
+  # physics: a z of 33 K and an Arrhenius Ea of 200 kJ/mol cannot be the
+  # same curve, and re-basing one onto the other would make either the
+  # kill or the browning a lie. See docs/subsystems/spoilage.md.
+  #
+  # ⚠⚠ NOT `freshness.dose.*` — those keys already exist and mean the
+  # PTOMAINE dose (how much poison a spoiled serving carries). Same word,
+  # different subsystem.
+
+  # 373 K — water's boiling point, so one second of dose is one second of
+  # simmering. The unit the whole gauge is denominated in.
+  - key: thermal.dose.referenceK
+    value: "373"
+
+  # The decade interval: every 33 K above the reference multiplies the
+  # browning rate by ten. A playtest number by design — it sets how sharply
+  # a fierce fire beats a patient one.
+  - key: thermal.dose.zK
+    value: "33"
+
+  # 323 K (50 °C) — below this nothing cooks, however long you wait. Without
+  # a floor a stew on a warm windowsill would slowly come to doneness.
+  - key: thermal.dose.floorK
+    value: "323"
+
+  # 470 K — where sugars char, for matter whose working states no ceiling
+  # of its own (`Recipe.maxHeatK: 0`).
+  - key: thermal.dose.defaultCeilingK
+    value: "470"
+
+  # Seconds above the ceiling that read as scorched.
+  - key: thermal.dose.scorchedAtS
+    value: "60"
+
+  # ⭐ The hold a recipe that authors none is taken to have (game-seconds;
+  # 1200 = 20 game-minutes). `holdS: 0` means "the author did not say", NOT
+  # "instantaneously" — and the difference matters, because a zero used to
+  # short-circuit the microbial kill to a flat sterile.
+  - key: thermal.dose.defaultHoldS
+    value: "1200"

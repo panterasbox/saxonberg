@@ -11,7 +11,7 @@ data:
   longDescription: |
     A low, wiry cranberry shrub, runners spreading flat over the soil.
   _speciesPath: /stuff/idea/species/plantae/tracheophyta/magnoliopsida/ericales/ericaceae/vaccinium/macrocarpon
-  material: /stuff/idea/material/tissue/plant-tissue
+  _materialPath: /stuff/idea/material/tissue/plant-tissue
   lifecycleState: alive
   seedTemplatePath: /trade/farming/thing/seed/cranberry
   harvestTemplatePath: /trade/farming/thing/cranberry

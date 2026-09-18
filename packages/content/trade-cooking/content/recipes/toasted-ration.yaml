@@ -15,5 +15,9 @@ outputAppearance: toasted biscuit and crisped sausage, still steaming
 outputApplication: edible
 outputPortionL: 0.3
 requiresHeatK: 450
+# The fire may be fiercer than the working wants — and then the
+# outside burns while the middle is still coming. Not a decline: a
+# scorched dish is a dish you are holding.
+maxHeatK: 490
 difficulty: trivial
 discipline: cooking

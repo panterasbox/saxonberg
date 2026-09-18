@@ -25,6 +25,17 @@ args:
     required: true
     scope: [inventory, reachable]
     requires: StackableMixin
+  # ⭐ WHICH WHEEL — DECLARED, not hunted for (`lint:instrument-args`).
+  # Bare, the binder hands over every reachable thing offering
+  # `spinning` and the controller takes the best-rated — so a carried spindle no
+  # longer beats the wheel in the room.
+  - name: wheel
+    type: objects
+    required: false
+    prepositions: [on, at, with]
+    default: "reachable:[capability.spinning]"
+    scope: ["reachable"]
+    requires: [ToolMixin]
 options:
   count:
     type: number

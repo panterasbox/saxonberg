@@ -19,6 +19,7 @@ import HelpCatalogue from '../idea/HelpCatalogue';
 import { StuffApi } from '../../api/stuff';
 import { makeStuffAtPath } from '../../lib/security/__tests__/test-setup';
 import type { HelpTopic } from '@saxonberg/types';
+import { HelpApi } from '../../api/help';
 
 const CATALOGUE = '/platform/idea/HelpCatalogue';
 
@@ -63,6 +64,20 @@ describe('the concept projector', () => {
     expect(c.listByKind('concept').map((t) => t.id)).toContain('concept.nitrogen');
     const entry = c.listByKind('concept')[0]!;
     expect(entry.keywords).toContain('muck');
+  });
+
+  it('⭐⭐ and `help nitrogen` REACHES it — by key, the way a player types it', async () => {
+    /*
+     * Indexed and searchable is not reachable. The `help <word>`
+     * fallthrough tried verb → collection → api and stopped, so every
+     * concept four packs shipped answered "no help topic" to the one
+     * sentence its author expected. The grain-chain drive found it.
+     */
+    const c = await catalogue([concept()]);
+    expect(c.findConceptTopic('nitrogen')?.id).toBe('concept.nitrogen');
+    expect(c.findConceptTopic('Nitrogen')?.id).toBe('concept.nitrogen');
+    expect(c.findConceptTopic('rotation')).toBeNull();
+    expect(HelpApi.conceptTopic('nitrogen')?.title).toBe('Nitrogen');
   });
 
   it('⚠ NONE ships by default — the projector is inert with no rows', async () => {

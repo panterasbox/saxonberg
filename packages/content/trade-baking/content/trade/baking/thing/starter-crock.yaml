@@ -1,0 +1,16 @@
+# The starter crock — a kept levain, the `jar-of-barm` shape.
+#
+# Pitching is `pour`: the strain-transfer seam is the shipped one, so a
+# baker feeds and pitches a starter with verbs that already existed.
+class: /platform/thing/Vat
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: starter crock
+  keywords: [crock, starter, levain, leaven, sourdough]
+  register: indefinite
+  longDescription: A squat stoneware crock with a cloth tied over its mouth, the levain inside creamed and bubbling and smelling of apples.
+  category: culture-jar
+  interiorBulk: true
+  interiorCapacity: 2
+  interiorMaterial: /stuff/idea/material/food/levain
+  interiorAmount: 1

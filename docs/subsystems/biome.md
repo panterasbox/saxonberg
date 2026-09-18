@@ -48,6 +48,14 @@ admin tree (FolderZones — ownership/write-access):
     cafeteria-atrium.yaml          SkyExposedBiome ← scenario C
 ```
 
+> ⚠⚠ **The root is a `boot:` entry of `base-library`** — nothing else
+> clones it. `BiomeApi.getRootBiome()` is a synchronous read of a
+> resident singleton, and until 2026-09-17 no pack booted it: every
+> field resolve that fell through to step 6, and the water pack's
+> `Conduit` (which takes gravity from it), threw *"root universe biome
+> is not loaded"* in every fresh world. The chain's own tests stand in
+> "the root universe biome that boot would seed" — and boot did not.
+
 ```
 inheritance tree (Biome._extendsBiomePath — independent of paths):
 

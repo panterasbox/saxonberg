@@ -11,7 +11,7 @@ data:
   register: indefinite
   longDescription: |
     A deep unglazed pot you would need both arms for, broad enough at the mouth to get a full root ball into without wrecking it.
-  material: /stuff/idea/material/ceramic/ceramic
+  _materialPath: /stuff/idea/material/ceramic/ceramic
   interiorBulk: true
   interiorCapacity: 3
   # `liquidTight` (the default), NOT `open`: an `open` interior does not

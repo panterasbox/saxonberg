@@ -248,8 +248,8 @@ function resolveChain(node: ChainNode, ctx: MqlContext): MqlMatch[] {
  * meant, it merely stops costing the size of the realm.
  *
  * ⚠ `[mixin.X]` in any other position, and every other bracket
- * namespace (`class.`, `prop.`, `template.`, `keyword.`) is NOT
- * index-answerable and returns null here. `class.` in particular looks
+ * namespace (`class.`, `prop.`, `template.`, `keyword.`,
+ * `capability.`) is NOT index-answerable and returns null here. `class.` in particular looks
  * similar and is not: it matches subclasses by a prototype walk, which
  * is a different question about a different axis.
  *
@@ -1233,8 +1233,8 @@ function filterByKeywordsOrPredicate(
     const predicate = MQL_PREDICATES[name]!;
     // Bareword predicates are viewer-shaped (`visible`, `mine`,
     // `here` all read the giver) — a system query filters by the
-    // viewer-free namespaces (`mixin.` / `class.` / `template.`)
-    // instead.
+    // viewer-free namespaces (`mixin.` / `class.` / `material.` /
+    // `template.` / `capability.`) instead.
     const giver = requireGiver(ctx, `the '${name}' predicate`);
     const out: MqlMatch[] = [];
     for (const m of input) {
@@ -1451,9 +1451,22 @@ function readAtom(
       return keywordsOf(stuff).includes(atom.key.toLowerCase());
     case 'template':
       return matchesTemplate(stuff, atom.key);
+    case 'material':
+      // ⭐ What the thing is MADE OF, by the material's authored tag —
+      // the vocabulary recipes already match on (`forgeable`, `ferrous`,
+      // `brittle`, `food`, `flammable`). Strict boolean membership, the
+      // `keyword.X` shape, and the walk belongs to the host: it spans
+      // the bulk default AND every per-Detail override, so an axe is
+      // both `wood` and `metal`.
+      //
+      // ⚠ Made of, never CONTAINS — a waterskin is leather, and what is
+      // in its bulk slot is a different question with a different owner.
+      return MixinApi.isTangible(stuff) && stuff.hasMaterialTag(atom.key);
+    case 'capability':
+      return hasCapabilityByLowercaseName(stuff, atom.key);
     default:
       throw new MqlResolveError(
-        `unknown filter namespace '${atom.namespace}' (expected prop, mixin, class, keyword, or template)`
+        `unknown filter namespace '${atom.namespace}' (expected prop, mixin, class, keyword, material, or template)`
       );
   }
 }
@@ -1524,6 +1537,40 @@ function matchesClass(stuff: Stuff, className: string): boolean {
     const name = proto.constructor.name;
     if (typeof name === 'string' && name.toLowerCase() === target) return true;
     proto = Object.getPrototypeOf(proto);
+  }
+  return false;
+}
+
+/**
+ * ⭐⭐ **What a tool OFFERS, as against what it IS.**
+ *
+ * `[mixin.ToolMixin]` finds every tool; `[capability.digging]` finds the
+ * one you can dig with. That distinction is the whole reason this atom
+ * exists: a controller resolving an instrument wants *the thing that can
+ * do job Y*, and until this landed the only vocabulary MQL had was
+ * *kinds of thing* — so every such verb hand-rolled a walk over the
+ * room and the inventory instead of declaring an arg
+ * (`lint:instrument-args`, whose census this atom exists to let fall).
+ *
+ * ⚠ A capability is a **mixin field**, not a `PropertiedMixin` property,
+ * so `[prop.digging]` cannot reach it and never could — the two
+ * namespaces read different storage.
+ *
+ * Viewer-free, like `mixin.` / `class.` / `template.`: whether a spade
+ * digs is a fact about the spade. A non-tool answers `false` rather than
+ * throwing, so `[capability.X]` is safe to run over a mixed set.
+ *
+ * ⚠ NOT index-answerable: capabilities have no registry behind them, so
+ * this narrows a set somebody already anchored. It is a filter, never a
+ * seed.
+ */
+function hasCapabilityByLowercaseName(stuff: Stuff, name: string): boolean {
+  if (!MixinApi.isTool(stuff)) return false;
+  const target = name.toLowerCase();
+  // The lexer lowercases barewords, so compare that way rather than
+  // through `hasCapability`'s exact match (the `mixin.` precedent).
+  for (const cap of stuff.getCapabilities()) {
+    if (typeof cap === 'string' && cap.toLowerCase() === target) return true;
   }
   return false;
 }

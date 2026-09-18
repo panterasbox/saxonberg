@@ -127,9 +127,25 @@ export function stampIdentityPathForTest(
  *
  * @internal
  */
+/**
+ * Register a Stuff at `path`.
+ *
+ * ⭐ `identityPath` models the D17 split — a **shared template row plus a
+ * minted per-instance identity**, which is what a player Avatar actually
+ * is. Pass it whenever the fixture stands in for something whose
+ * identity is not its lineage; leaving it off makes a fixture whose
+ * identity path IS its template path, which is what an `Extra`, a
+ * generic clone or an unnamed animal genuinely looks like.
+ *
+ * ⚠ The distinction became load-bearing when belief persistence started
+ * demanding a **durable-unique** viewer key: a fixture that fakes an
+ * Avatar by registering at an Avatar-shaped path is, structurally, a
+ * generic clone, and now behaves like one.
+ */
 export function makeStuffAtPath<T extends Stuff>(
   factory: () => T,
-  path: string
+  path: string,
+  identityPath?: string
 ): T {
   const prevSentinel = StuffClass._beginConstruction();
   let raw: T;
@@ -143,6 +159,7 @@ export function makeStuffAtPath<T extends Stuff>(
     MixinApi.getWeakRefFields(raw.constructor as AnyConstructor)
   );
   StuffClass._stampTemplatePath(proxy, path);
+  if (identityPath) StuffClass._stampIdentityPath(proxy, identityPath);
   StuffApi.register(proxy);
   return proxy;
 }

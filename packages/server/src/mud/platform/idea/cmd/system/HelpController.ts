@@ -78,14 +78,19 @@ export default class HelpController extends CommandController<HelpModel> {
    * surface.
    *
    * The order is what a player means by the word: a verb is what most
-   * people are asking about, and a collection name (`bank_ledger`) cannot
-   * collide with one. `help verb <name>` stays strict — asking for a verb
+   * people are asking about, then a concept (`extraction`, `nitrogen` —
+   * the rulebook's own words), and a collection name (`bank_ledger`)
+   * cannot collide with either. `help verb <name>` stays strict — asking for a verb
    * by that name should say the verb does not exist, not wander off into
    * the persistence layer.
    */
   private showFallthrough(target: string, context: CommandContext): void {
+    // A concept (`help extraction`) sits after the verb and before the
+    // collection: a rulebook word a player asks about is more often a
+    // concept than a table, and a concept key cannot collide with a verb.
     const topic =
       HelpApi.commandTopic(target) ??
+      HelpApi.conceptTopic(target) ??
       HelpApi.collectionTopic(target) ??
       HelpApi.apiTopic(target);
     if (!topic) {

@@ -10,7 +10,7 @@ data:
   longDescription: |
     A lemon tree with pale, sharp-scented leaves and thorns you find the hard way.
   _speciesPath: /stuff/idea/species/plantae/tracheophyta/magnoliopsida/sapindales/rutaceae/citrus/limon
-  material: /stuff/idea/material/tissue/plant-tissue
+  _materialPath: /stuff/idea/material/tissue/plant-tissue
   lifecycleState: alive
   seedTemplatePath: /trade/farming/thing/seed/lemon
   harvestTemplatePath: /trade/farming/thing/lemon

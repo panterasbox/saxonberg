@@ -24,7 +24,9 @@ import { WorldClockApi } from '../../../../../api/worldclock';
 import { makeStuff } from '../../../../../lib/security/__tests__/test-setup';
 import { installV1QuantityMarshallers } from '../../../../../lib/persistence/__tests__/quantity-marshaller-test-helpers';
 import type { CommandContext } from '../../../../../api/command';
-import type { MqlOneResult } from '../../../../../api/mql';
+import type { MqlOneResult, MqlManyResult } from '../../../../../api/mql';
+import { MixinApi } from '../../../../../api/mixin';
+import type { Stuff } from '../../../../../lib/stuff/Stuff';
 import { HARM_DEFAULTS, TRAUMA_BEHAVIOR } from '../../../Condition';
 import type { Trauma } from '../../../Condition';
 
@@ -81,6 +83,21 @@ function waterJug(): Receptacle {
   jug.setInteriorCapacity(Quantity.of(2, 'L'));
   jug.setInteriorAmount(Quantity.of(1, 'L'));
   return jug;
+}
+
+/**
+ * What the binder would hand the `water` arg: every reachable bulk vessel
+ * (carried, then in the room). Controller tests skip the binder, so this
+ * stands in for `reachable:[mixin.BulkableMixin]` — the controller then
+ * narrows it to the one holding water, exactly as in production.
+ */
+function reachableWater(c: Creature): MqlManyResult {
+  const out: Stuff[] = [];
+  const self = c as unknown as Stuff;
+  if (MixinApi.isContainer(self)) out.push(...self.getContents());
+  const loc = self.getContainer();
+  if (loc && MixinApi.isContainer(loc)) out.push(...loc.getContents());
+  return { stuff: out, raw: '' } as unknown as MqlManyResult;
 }
 
 /** A body standing in a room with a jug of water in it. */
@@ -168,7 +185,12 @@ describe('RinseController', () => {
     // the one a player can act on: go and find water.
     const me = dry();
     const burn = causticOn(me, 1);
-    await makeStuff(() => new RinseController()).execute({}, ctxFor(me));
+    // The view always binds `water` (it has a default); a dry room just
+    // resolves it to nothing, and the controller reads no water there.
+    await makeStuff(() => new RinseController()).execute(
+      { water: reachableWater(me) },
+      ctxFor(me),
+    );
     expect(note).toHaveBeenCalledWith(
       expect.objectContaining({ reason: 'no-water' }),
     );
@@ -184,7 +206,10 @@ describe('RinseController', () => {
     const jug = waterJug();
     ContainmentApi.move(jug, me);
     const burn = causticOn(me, 1);
-    await makeStuff(() => new RinseController()).execute({}, ctxFor(me));
+    await makeStuff(() => new RinseController()).execute(
+      { water: reachableWater(me) },
+      ctxFor(me),
+    );
     expect(burn.agentActive).toBe(false);
   });
 
@@ -192,7 +217,10 @@ describe('RinseController', () => {
     const me = atWater();
     const a = causticOn(me, 1);
     const b = causticOn(me, 2);
-    await makeStuff(() => new RinseController()).execute({}, ctxFor(me));
+    await makeStuff(() => new RinseController()).execute(
+      { water: reachableWater(me) },
+      ctxFor(me),
+    );
     expect(a.agentActive).toBe(false);
     expect(b.agentActive).toBe(false);
     expect(captured).toContain('stopped getting worse');
@@ -204,7 +232,7 @@ describe('RinseController', () => {
     ContainmentApi.move(them, me.getContainer()!);
     const burn = causticOn(them, 1);
     await makeStuff(() => new RinseController()).execute(
-      patientArg(them),
+      { ...patientArg(them), water: reachableWater(me) },
       ctxFor(me),
     );
     expect(burn.agentActive).toBe(false);
@@ -219,7 +247,10 @@ describe('RinseController', () => {
       severity: 1,
       bleeding: true,
     });
-    await makeStuff(() => new RinseController()).execute({}, ctxFor(me));
+    await makeStuff(() => new RinseController()).execute(
+      { water: reachableWater(me) },
+      ctxFor(me),
+    );
     expect(note).toHaveBeenCalledWith(
       expect.objectContaining({ reason: 'nothing-to-rinse' }),
     );
@@ -231,7 +262,10 @@ describe('RinseController', () => {
     const me = atWater();
     const burn = causticOn(me, 1);
     TRAUMA_BEHAVIOR.caustic.resolve(me, burn);
-    await makeStuff(() => new RinseController()).execute({}, ctxFor(me));
+    await makeStuff(() => new RinseController()).execute(
+      { water: reachableWater(me) },
+      ctxFor(me),
+    );
     expect(note).toHaveBeenCalledWith(
       expect.objectContaining({ reason: 'nothing-to-rinse' }),
     );

@@ -247,6 +247,45 @@ test passes on the consumer table above without needing a single new customer.
 - **No single "wood" material.** Species differ, and `materials-response` is
   already built to express that.
 
+## ⚠ What the metallurgy drive handed over (2026-09-16)
+
+Found by charring in a live browser, not by a test. Two of the three are
+this slate's to answer; the first is already fixed.
+
+- ✅ **The coppice afforded nothing.** `harvest` is contributed by
+  `CultivableMixin`, not by `Plant`, so the fuel yard's loose-propped
+  `hazel-stool` answered *"I don't understand 'harvest'."* to everybody.
+  Cordwood — *"the ONE supply two trades compete for"* — was unreachable
+  by any route, which is why four authored charcoal baskets were the
+  realm's entire fuel economy and one player could end iron-making for
+  that world permanently. Fixed with `trade/fuel/thing/coppice-panel`, a
+  six-slot `GardenBed` whose own `props:` seat the stools. ⭐ The lesson
+  to carry: **a crop propped on the floor is scenery** — the growth model
+  only reaches it through ground.
+
+- ⚠⚠ **Nothing in the game authors a GROWN plant, and this slate needs
+  it.** `growthStage` is `persistent` but not `authorable`, and **zero
+  shipped rows set it** — so every authored plant begins at `seedling`,
+  the starter pot's peace lily included. `hazel-stool.yaml` carries a
+  comment saying it is *"authored ALREADY GROWN under the
+  model-consistency rule"*; nothing implements that. ⭐ This is load-
+  bearing for *"timber is a crop you inherit"*: an inherited stand is
+  **exactly** a plant somebody must be able to author mature. Whatever
+  the mechanism is (an authorable stage, a `plantedAtGameDay`, a seeded
+  age from the site), it is this build's to design — and it is the
+  difference between a coppice you inherit and one you plant and outlive.
+
+- ⚠ **The rotation is uncompressed, so the panel cannot yield.**
+  `daysToStage.mature: 2500` is ≈208 REAL days at
+  `WorldClockApi.DEFAULT_SCALE = 12`, and `fruitFillDays: 120` is ten
+  more on top. That is the § Open questions lean — *"coppice ≈ one game
+  year, so a player can complete one"* — meeting a shipped row that
+  predates it. ⭐ The numbers are now concrete rather than hypothetical:
+  **a smelt wants ≥2 baskets, a burn is 3 game days (6 real hours), and
+  `yieldFor` turns cordwood into baskets** — so the rotation, the panel
+  density and the realm's iron ceiling are ONE arithmetic chain this
+  slate gets to set end to end.
+
 ## Open questions
 
 - **How compressed are the rotations?** Lean: coppice ≈ one game year, so a

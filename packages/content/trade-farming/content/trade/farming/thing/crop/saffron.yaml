@@ -11,5 +11,5 @@ data:
   register: indefinite
   longDescription: |
     A folded paper holding a pinch of crimson threads. It weighs almost nothing and it took a morning on your knees.
-  material: /stuff/idea/material/food/saffron
+  _materialPath: /stuff/idea/material/food/saffron
   mass: 0.01

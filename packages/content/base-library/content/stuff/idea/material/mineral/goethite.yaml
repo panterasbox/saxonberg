@@ -1,0 +1,47 @@
+# Goethite — FeO(OH). The rust-brown iron hydroxide of a gossan, and the
+# ore the DISTAL FRINGE of a copper lode carries.
+#
+# ⭐⭐ Why iron is out at the edge and not down at the bottom: the two
+# kinds of zonation are orthogonal facts. SUPERGENE zonation is vertical
+# — an oxide cap weathered over the sulfides beneath it — and that is the
+# axis malachite and chalcopyrite are already on. MAGMATIC zonation is
+# lateral: the metals dropped out of one fluid at different distances
+# from its source, so a copper heart grades outward into an iron-rich
+# fringe. Both are true of the Ferrow body at once.
+#
+# ⭐ The metal fraction is CHEMISTRY: one iron in an 88.851 g/mol formula
+# unit is 0.6285 by mass — richer than malachite's copper, which is one
+# reason a poor man's metal is iron.
+#
+# ⚠ It is HARD, harder than the slate around it: Mohs 5-5.5 against
+# slate's 3. A gossan stands up as a ridge for exactly that reason, and
+# a hewer feels it in his arms — ore is not automatically the easy
+# cutting, malachite just happens to be soft.
+#
+# And it reduces, it does not melt: solid-state reduction at ~1470 K is
+# the bloomery, and the fuel technology to hold that heat is the rung
+# above copper.
+class: /platform/idea/material/Material
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  name: goethite
+  keywords: [goethite, ironstone, gossan]
+  appearance: rust-brown ironstone
+  density: 3800
+  specificHeat: 650
+  thermalConductivity: 2.9
+  electricalConductivity: 1.0e-6
+  waterAbsorptionCapacity: 0.6
+  # Mohs 5-5.5, on this library's own scale (malachite 4 -> 200,
+  # quartz 7 -> 1100).
+  hardness: 450
+  toughness: 10
+  edibility: false
+  nutrients: ["iron"]
+  toxicity: []
+  tags: ["mineral", "oxide", "hydroxide", "ore", "iron", "oxide-zone"]
+  composition:
+    - { materialPath: /stuff/idea/material/element/iron, fraction: 0.6285 }
+  formula: FeO(OH)
+  molarMass: 88.851
+  biologicalSource: null

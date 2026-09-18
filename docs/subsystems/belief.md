@@ -202,6 +202,12 @@ features if not, the disguise's descriptors if masked; items keep their
 ordinary keywords). The true name is never a keyword unless revealed, so
 `look bob` resolves iff the room view shows the viewer "Bob".
 
+- ⭐ **An ANIMAL keeps its authored keywords too** (pets build): a named
+  cat is still a cat, so `pet cat` reaches Mouse. The gate is
+  `isPersona`, not `isOrganism` — the same line as the naming step, where
+  an animal's name is public and a person's is withheld. Found live: the
+  moment she had a name, `look cat` found nothing.
+
 - **Boundary**: the engine closes **direct** leaks (keyword resolution).
   It does NOT close **inferential** leaks (elimination, watching someone
   don a hood) — legitimate player reasoning.
@@ -370,9 +376,24 @@ holds; sequential single-viewer commands keep the race benign).
   strangers stay session-local.
 - **No Mongo read on the naming path** — `recall` is pure in-memory; Mongo
   is touched only on hydrate + write-through.
-- **NPC viewers**: durable-`templatePath` NPCs (named / singleton) persist;
-  generic clones are session-ephemeral by construction (no durable key) —
-  falls out of the keying.
+- **⭐ `viewerKey` — the four-viewer table (pets build, 2026-09-15).** A
+  belief record is keyed under a **durable unique** key, or not at all:
+  a keyed `Persistable` viewer → its own `(scope, key)` record, carried
+  as a `BeliefSlice` in `holder_snapshots` (a named animal); a minted
+  identity (`getIdentityPath()` ≠ template — an Avatar, a `Cast`) → the
+  `beliefs` collection under that identity; a singleton → `beliefs` under
+  its template path; anything else → session-local. ⚠ Before this,
+  `viewerKey` was `getIdentityPath()` unconditionally, which was correct
+  only while every belief-holding NPC happened to be a singleton — two
+  sentries from one row **shared one record**. And `hydrateBeliefs()` had
+  exactly one caller (`Avatar.enter`), so an NPC's opinion of you was
+  written and never read: `Cast.postRegister` hydrates now.
+- **A role holds no opinion.** `keepsPersonalRegard()` is a `@hook`,
+  false on `platform/agent/Extra` (a role-filler) and true on `Cast`
+  (a person): the shopkeeper-as-role remembers nobody, the named
+  shopkeeper remembers you.
+- **`learnedBeliefs()`** is the capture surface (never
+  `allBeliefs().filter(...)` — `lint:whole-table`).
 - **Cascade-ready, not cascade-owning**: owner-keyed + `viewerId`-indexed
   so a future account-deletion cleanup cascade (`deleteMany({viewerId})`
   on an account `aroundDelete`, plus a liveness-GC backstop — GDPR/erasure)

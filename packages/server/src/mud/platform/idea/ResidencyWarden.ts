@@ -1,5 +1,5 @@
 /**
- * ResidencyWarden — the self-warming home of the residency sweeps — cold-tail self-eviction, the game-time reset (repop) sweep, and the census spawn sweep
+ * ResidencyWarden — the self-warming home of the residency sweeps — cold-tail self-eviction, the game-time reset (repop) sweep, the census spawn sweep, and the boot-time pin roll (the load half)
  * (the MaturationProfileCatalogue shape; the boot()-retirement direction:
  * an operator-shaped sweep install does not belong on a consumer Api).
  *
@@ -51,5 +51,9 @@ export default class ResidencyWarden extends ResidencyWardenBase {
     logic.installEvictionSweep();
     logic.installResetSweep();
     logic.installSpawnSweep();
+    // The load half, once: every pinned good back on its feet. After the
+    // chattel + parcel registries (the manifest's dependsOn), because
+    // standing a good up resolves its place, which reads title.
+    await logic.pinNow();
   }
 }

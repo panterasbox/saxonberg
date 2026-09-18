@@ -90,13 +90,19 @@ import type { Launcher } from '../lib/combat/Launcher';
 import type { ThermalRegulation } from '../lib/thermal/ThermalRegulation';
 import type { Wet } from '../lib/wetness/Wet';
 import type { Fresh } from '../lib/material/Freshness';
+import type { Dosed } from '../lib/thermal/ThermalDose';
+import type { Composed } from '../lib/metabolism/Composed';
+import type { Comminuting } from '../lib/craft/Comminuting';
 import type { Cured } from '../lib/material/Cured';
+import type { Alloyed } from '../lib/material/Alloyed';
 import type { Contaminable } from '../lib/material/Contaminable';
 import type { Growing } from '../lib/husbandry/Growing';
 import type { Maturing } from '../lib/maturation/Maturing';
 import type { Plantable } from '../lib/husbandry/Plantable';
 import type { Soil } from '../lib/husbandry/Soil';
 import type { Handling } from '../lib/husbandry/Handling';
+import type { Bonded } from "../lib/husbandry/Bonded";
+import type { Feeder } from "../lib/husbandry/Feeder";
 import type { Cultivable } from '../lib/husbandry/Cultivable';
 import type { Combustible } from '../lib/fire/Combustible';
 import type { Meltable } from '../lib/thermal/Meltable';
@@ -1258,12 +1264,60 @@ export class MixinApi {
   }
 
   /**
+   * A host that **reduces and separates matter** — a mill, a stamp
+   * battery, anything that turns a quantity of one thing into a finer
+   * product plus a coarser residue.
+   *
+   * ⚠ Narrow on THIS, never on a concrete class. The mixin is kernel
+   * substrate precisely because its second consumer (the metal chain's
+   * stamp mill) lives in a different pack with no ancestor in common —
+   * so an `instanceof GristMill` check would silently fail to find it.
+   */
+  public static isComminuting(obj: Stuff): obj is Stuff & Comminuting {
+    return this.hasMixin(obj, Mixins.Comminuting);
+  }
+
+  /**
+   * A host that can be **made of parts** — a discrete food carrying the
+   * ingredient list a blend carries on its payload. Composed on
+   * `Provision`; an empty list is the sparse default, and readers fall
+   * back to the host's own Material exactly as they do for a blend.
+   */
+  public static isComposed(obj: Stuff): obj is Stuff & Composed {
+    return this.hasMixin(obj, Mixins.Composed);
+  }
+
+  /**
+   * A host carrying the **doneness** gauge — how much cooking it has had.
+   * Composed on `Provision` (every food can be cooked), so the predicate
+   * is true of all food; what decides whether it reads as anything is
+   * whether it has been near heat.
+   *
+   * ⚠ Distinct from {@link isFresh} in both direction and physics: that
+   * integrates a population under a growth law with a water-activity
+   * term, this integrates browning under a decade interval. They must
+   * not be re-based onto one integrator.
+   */
+  public static isDosed(obj: Stuff): obj is Stuff & Dosed {
+    return this.hasMixin(obj, Mixins.ThermalDose);
+  }
+
+  /**
    * A host carrying the per-instance **water state** — the drying /
    * curing axis. Distinct from {@link isFresh}: that is the population
    * living in the matter, this is the matter's own available water.
    */
   public static isCured(obj: Stuff): obj is Stuff & Cured {
     return this.hasMixin(obj, Mixins.Cured);
+  }
+
+  /**
+   * Metal stock that can say what is dissolved in it — an `Ingot`, a
+   * `Casting`, a bloom. ⭐ Carbon is `fractionOf(carbon)`, and the whole
+   * ferrous ladder is that one scalar against two thresholds.
+   */
+  public static isAlloyed(obj: Stuff): obj is Stuff & Alloyed {
+    return this.hasMixin(obj, Mixins.Alloyed);
   }
 
   /**
@@ -1304,6 +1358,21 @@ export class MixinApi {
    */
   public static isHandling(obj: Stuff): obj is Stuff & Handling {
     return this.hasMixin(obj, Mixins.Handling);
+  }
+
+  /**
+   * An animal that can be **kept** — won over, asked things, named, and
+   * given somewhere to come back to. ⚠ Strictly narrower than
+   * {@link isHandling}: a head of stock can be worked with and is not a
+   * companion, which is the distinction the two mixins exist to hold.
+   */
+  public static isBonded(obj: Stuff): obj is Stuff & Bonded {
+    return this.hasMixin(obj, Mixins.Bonded);
+  }
+
+  /** A vessel an animal feeds from — a bowl, a saucer, a trough. */
+  public static isFeeder(obj: Stuff): obj is Stuff & Feeder {
+    return this.hasMixin(obj, Mixins.Feeder);
   }
 
   /**

@@ -359,7 +359,7 @@ describe("the house account in the wallet (D6)", () => {
     await asOwner(hand, () =>
       makeStuff(() => new ConsignController()).execute(
         // ⚠ Skips the BINDER: the shelf is a declared arg in `consign.yaml`.
-        { thing: "torch", ask: "20", shelf: { stuff: shelf as never, raw: "shelf" } },
+        { thing: { stuff: torch as never, raw: "torch" }, ask: "20", shelf: { stuff: shelf as never, raw: "shelf" } },
         c,
       ),
     );

@@ -17,7 +17,7 @@ data:
   longDescription: |
     Broad dark leaves fan out of the soil on slender stalks, each one tapering to a point. A peace lily — the plant every hall porter hands out and nobody quite manages to kill on purpose.
   _speciesPath: /stuff/idea/species/plantae/tracheophyta/liliopsida/alismatales/araceae/spathiphyllum/wallisii
-  material: /stuff/idea/material/tissue/plant-tissue
+  _materialPath: /stuff/idea/material/tissue/plant-tissue
   lifecycleState: alive
   seedTemplatePath: /trade/farming/thing/seed/peace-lily
   # NO moisture reserve. Phase 2 moved the water out of the plant and into

@@ -31,14 +31,11 @@ export const brain = class {
     const bodyPlanPath = SpeciesApi.tryGetBodyPlanPath(host);
     if (!bodyPlanPath) return;
 
-    // Candidates: what's already carried, then what's on the ground here.
-    const candidates: Stuff[] = [...host.getContents()];
-    if (MixinApi.isContainable(host)) {
-      const room = host.getContainer();
-      if (room && MixinApi.isContainer(room)) {
-        candidates.push(...room.getContents());
-      }
-    }
+    // ⭐ The reach pool, on-person-first: carried before the floor, so a
+    // brain arms itself from its own kit before it stoops. This walked
+    // the two hops by hand — one of eleven copies (see
+    // docs/antipatterns.md § Rebuilding the two-leg reach by hand).
+    const candidates = ContainmentApi.reachableFrom(host as unknown as Stuff);
 
     for (const item of candidates) {
       if (!MixinApi.isWieldable(item)) continue;

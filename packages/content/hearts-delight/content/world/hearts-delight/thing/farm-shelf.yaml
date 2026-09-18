@@ -1,0 +1,18 @@
+# The farm shelf — a roadside stall under the barn eaves.
+#
+# ⭐ A `ConsignmentShelf`, which is the same class the general store uses
+# and the same one the `farms` brain knows how to `consign` onto. What is
+# on it belongs to the farmer until somebody buys it; a player who turns
+# up with money buys from a person, not from a shop.
+#
+# ⚠ NO `stockLines` and no par. A par line mints fresh clones on the
+# sweep, which is a faucet — and a static authored farm is a source NODE,
+# never a faucet. What is on this shelf came off that field.
+class: /platform/thing/ConsignmentShelf
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: farm shelf
+  keywords: [shelf, stall, sacks, board, slate]
+  register: definite
+  longDescription: |
+    A plank shelf under the barn eaves with a slate propped on it, out of the rain and in sight of the kitchen window. Sacks stand on it in a row. There is a tin with a slot in the lid nailed to the post.

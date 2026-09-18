@@ -98,7 +98,24 @@ async function run(
   text: string,
 ): Promise<CommandContext> {
   const ctx = makeContext(actor as unknown as Stuff, where, text);
-  await makeStuff<Runnable>(() => new Controller()).execute(model as never, ctx);
+  // ⚠ Stand in for the BINDER: `shore`'s `timber` arg now DEFAULTS
+  // through `reachable:[capability.timber-set]` — the arg always
+  // existed, and what was missing was the default, so the controller
+  // fell back to a walk. A hand-built model that names no timber has to
+  // supply what the view would have found.
+  const filled = { ...model };
+  if (filled.timber === undefined) {
+    const held =
+      (actor as unknown as { getContents?(): unknown[] }).getContents?.() ?? [];
+    const set = held.find((i) => {
+      const t = i as { hasCapability?(c: string): boolean };
+      return (
+        typeof t.hasCapability === 'function' && t.hasCapability('timber-set')
+      );
+    });
+    if (set !== undefined) filled.timber = { stuff: set, raw: 'timber' };
+  }
+  await makeStuff<Runnable>(() => new Controller()).execute(filled as never, ctx);
   return ctx;
 }
 

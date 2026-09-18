@@ -313,7 +313,7 @@ A reserved predicate name keeps members where the predicate holds:
 |---|---|
 | `living` | object is a Mobile (or has the appropriate "alive" mixin) |
 | `online` | object is connected |
-| `mine` | object is owned by the giver (owner-tracking is stub today) |
+| `mine` | object is yours — stamped to you as chattel, or standing on an extent you hold title to. ⚠ Not things you *wrote* (authorship is not ownership) and not things your *group* holds; `mine` is first person singular. ⭐ It says **what** is yours, never **where** it is. |
 | `here` | object is in (or is) the giver's location |
 | `visible` | object is perceivable to the giver |
 
@@ -432,7 +432,9 @@ Inside `[…]`, atoms read object facts via `namespace.key`:
 | `mixin.X` | boolean: composes mixin X |
 | `class.X` | boolean: instanceof X |
 | `keyword.X` | boolean: has keyword X |
+| `material.X` | boolean: **made of** something tagged X |
 | `template.X` | boolean: cloned from template path X (glob-aware) |
+| `capability.X` | boolean: offers tool capability X (`ToolMixin`) |
 
 Plus the bare atoms `name` (display name, string), `id` (stuff id,
 string), `key` (the object's explicit **persistence key** — the keyed-
@@ -441,11 +443,33 @@ unkeyed object, so `[key = …]` never false-matches), and `address` (the
 declared **Locality address**, e.g. `terminus/hinkley-hills/lot-1` —
 the human per-place identity; `undefined` when undeclared).
 
+⭐ **`material.X` asks what a thing is MADE OF**, by the material's
+authored tag — the same vocabulary recipes match stock on
+(`category: forgeable`) and the covering stack reads (`metal`,
+`ferrous`, `brittle`, `food`, `flammable`).
+
+```
+peers:[material.metal]                    what here is metal
+reachable:[material.brittle]              …and what would shatter
+peers:[material.ferrous and not material.brittle]
+```
+
+It spans **every part**, not the bulk default: an axe is oak at the haft
+and iron at the head, so it answers `true` to both `wood` and `metal`.
+
+⚠ **Made of, never CONTAINS.** A waterskin is leather —
+`[material.water]` does not match it. What is in a bulk slot is a
+different question with a different owner (`BulkableApi.slotFor`), and
+folding the two together would be a lie that reads like a convenience.
+A thing with no material, or with no material *concept* at all, is
+`false` rather than an error.
+
 Comparisons, boolean composition, existence:
 
 ```
 [hp > 50]                   prop.hp > 50
 [mixin.Burnable]            composes Burnable
+[capability.digging]        a tool you can dig with
 [name = 'rusty sword']      exact display name
 [hp > 50 and prop.locked]   composed
 [has prop.gold]             existence (gold property is set)
@@ -455,6 +479,22 @@ Comparisons, boolean composition, existence:
 Comparisons against a missing property yield `false` — `[prop.gold > 0]`
 excludes objects without a `gold` property, which is usually what you
 want.
+
+> ⭐ **`mixin.X` asks what a thing IS; `capability.X` asks what it
+> OFFERS.** `[mixin.ToolMixin]` finds every tool in the room —
+> `[capability.digging]` finds the one you can dig with. Reach for the
+> second whenever you mean *the thing that can do this job*, which is
+> almost always what you mean when you are looking for a tool.
+>
+> ⚠ A capability is not a property: `[prop.digging]` reads
+> `PropertiedMixin` storage and will never see it.
+>
+> **Which kinds exist?** The vocabulary is open — any tool row may
+> declare one — so there is no list to consult, but there is a
+> catalogue: `pnpm -C packages/server lint:capabilities --list` prints
+> every kind with who offers it and who wants it, derived from the
+> content itself. Look there before minting a new one; `slicing` beside
+> an existing `cutting` is two words for one job.
 
 > **`has` only earns its keep on `prop.K`.** `mixin.X`, `class.X`,
 > `keyword.X`, and `template.X` always return a strict boolean; `has`

@@ -18,5 +18,5 @@ data:
   register: indefinite
   longDescription: |
     A bunch of carrots with the tops still on, tied at the neck with twine and smelling of cold earth.
-  material: /stuff/idea/material/food/root-vegetable
+  _materialPath: /stuff/idea/material/food/root-vegetable
   mass: 0.6

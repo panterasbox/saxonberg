@@ -12,7 +12,7 @@ data:
   longDescription: |
     A glossy-leaved lime tree, no taller than a person, its branches wired low the way orchard stock is trained.
   _speciesPath: /stuff/idea/species/plantae/tracheophyta/magnoliopsida/sapindales/rutaceae/citrus/latifolia
-  material: /stuff/idea/material/tissue/plant-tissue
+  _materialPath: /stuff/idea/material/tissue/plant-tissue
   lifecycleState: alive
   seedTemplatePath: /trade/farming/thing/seed/lime
   harvestTemplatePath: /trade/farming/thing/lime

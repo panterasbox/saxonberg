@@ -1,0 +1,22 @@
+# ⭐ A seed hopper — the vessel a cage bird feeds from, and the reason
+# the canary's `feedingStyle: [hopper]` is a live rung rather than a
+# declaration nobody can satisfy.
+#
+# ⚠ It exists because the species names it. A rung with no vessel to
+# satisfy it is exactly the dead-link shape this build keeps finding:
+# the bird would refuse every bowl in the game and starve, silently,
+# with nothing anywhere to say why.
+class: /platform/thing/Feeder
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: small seed hopper
+  register: indefinite
+  primaryKeyword: hopper
+  keywords: [hopper, seed, feeder]
+  longDescription: >-
+    A small tin hopper that clips to the bars of a cage, with a lip
+    worn bright where a beak has worked at it.
+  mass: 0.15
+  feederKind: hopper
+  interiorBulk: true
+  interiorCapacity: 0.15

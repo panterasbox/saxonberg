@@ -51,7 +51,7 @@ export default class ShoreController extends MiningActController<ShoreModel> {
       this.decline(context, Mml.compose`There is nothing here to shore.`, 'not-a-working');
       return;
     }
-    const set = this.findTimber(giver, model.timber?.stuff ?? null);
+    const set = this.findTimber(model.timber?.stuff ?? null);
     if (!set) {
       this.decline(
         context,
@@ -79,11 +79,14 @@ export default class ShoreController extends MiningActController<ShoreModel> {
     });
   }
 
-  /** The named set, else the first `timber-set` tool the actor is carrying. */
-  private findTimber(giver: Stuff, named: Stuff | null): Stuff | null {
-    if (named) return isTimberSet(named) ? named : null;
-    if (!MixinApi.isContainer(giver)) return null;
-    return giver.getContents().find((i) => isTimberSet(i)) ?? null;
+  /**
+   * ⭐ The bound set, if it is one. The arg always carries something
+   * now — named by the player, or found by the view's
+   * `[capability.timber-set]` default — so there is nothing left to
+   * hunt for.
+   */
+  private findTimber(bound: Stuff | null): Stuff | null {
+    return bound && isTimberSet(bound) ? bound : null;
   }
 }
 

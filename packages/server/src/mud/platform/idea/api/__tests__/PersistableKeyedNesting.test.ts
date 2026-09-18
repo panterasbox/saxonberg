@@ -213,6 +213,37 @@ describe("keyed nested hosts — the collapse this wave prevents", () => {
     ]);
   });
 
+  it("⭐⭐ two rooms' records both referring to one keyed host: the second RESOLVES it and moves it — never a second mint, never a throw", async () => {
+    // A chest carried from the parlour to the study between the parlour's
+    // capture and its next one: both records hold `{ref, key}` for it.
+    // Before, the second materialize minted a second shell and
+    // `assertUniqueKey` threw, aborting that room's whole restore.
+    cloneFactories = { "/obj/keyedchest": () => new KeyedChest() };
+    const parlour = makeStuffAtPath(() => new Room(), "/world/parlour");
+    const study = makeStuffAtPath(() => new Room(), "/world/study");
+    const chest = makeStuffAtPath(() => new KeyedChest(), "/obj/keyedchest");
+    chest.setLabel("heirloom");
+    ContainmentApi.move(chest, parlour);
+    await PersistableApi.capture(chest, "key-h");
+    await PersistableApi.capture(parlour); // parlour's record: has the chest
+    ContainmentApi.move(chest, study);
+    await PersistableApi.capture(study); // study's record: has the chest too
+
+    evict(parlour);
+    evict(study);
+    const parlour2 = makeStuffAtPath(() => new Room(), "/world/parlour");
+    await PersistableApi.materialize(parlour2);
+    const study2 = makeStuffAtPath(() => new Room(), "/world/study");
+    await expect(PersistableApi.materialize(study2)).resolves.not.toThrow();
+
+    const live = StuffApi.findAllByTemplatePath<KeyedChest>("/obj/keyedchest");
+    expect(live).toHaveLength(1);
+    expect(live[0]!.getLabel()).toBe("heirloom");
+    // Last record to materialize wins the argument; the other heals on capture.
+    expect(live[0]!.getContainer()).toBe(study2);
+    expect(parlour2.getContents()).toHaveLength(0);
+  });
+
   it("a keyless ref still resolves to the single live instance (no regression)", async () => {
     cloneFactories = { "/obj/keyedchest": () => new KeyedChest() };
     const room = makeStuffAtPath(() => new Room(), "/world/room");

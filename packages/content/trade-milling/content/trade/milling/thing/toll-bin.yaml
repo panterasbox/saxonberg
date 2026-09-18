@@ -1,0 +1,26 @@
+# The toll bin — ⭐ where the mill's PAY accumulates, in kind.
+#
+# A tenth of everything ground here stays in this bin and the miller
+# sells it. That is a multure, and it is how a mill paid for itself for a
+# thousand years: no coin changes hands at the grinding, the premises are
+# paid for out of the flour, and a miller's honesty is famously a
+# question about this bin.
+#
+# ⚠ Deliberately NOT a `Tariff` service: adding a `mill` kind to the
+# kernel's closed service vocabulary would be a kernel edit for one
+# venue, and payment in kind is both the historical answer and the one
+# that needs no banking code at all.
+class: /platform/thing/Sack
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: toll bin
+  keywords: [bin, toll, multure, chest]
+  register: definite
+  longDescription: |
+    A deep oak bin by the stairs with a worn scoop hanging on a nail beside it. The miller's tenth goes in here, and the level in it is the most closely watched thing in the valley.
+  mass: 30
+  interiorBulk: true
+  interiorMaterial: /stuff/idea/material/food/wheat-flour
+  interiorCapacityValue: 200
+  interiorCapacityUnit: L
+  category: bin

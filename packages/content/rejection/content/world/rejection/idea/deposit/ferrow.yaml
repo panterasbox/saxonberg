@@ -52,17 +52,49 @@ data:
     strikeExtent: 180
     dipExtent: 90
     gangue: /stuff/idea/material/mineral/quartz
-  # ⭐ The oxide cap above the water table, and the sulfides below it.
+    # ⭐ The disseminated margin. The wall rock around a real orebody is
+    # weakly mineralized, and fifteen metres of taper is what makes a
+    # heading that misses come back THIN rather than empty — thin tells
+    # you which way to turn, and empty tells you nothing. ⚠ Widening
+    # `thickness` instead would have made the miss free.
+    halo: 15
+  # ⭐⭐ **The body is zoned on TWO axes, and they are orthogonal facts.**
   #
-  # ⚠ The chalcopyrite band is authored and Stage A CANNOT REACH IT: a
-  # sulfide wants roasting before reduction, and the ground it sits in
-  # wants a pump. It is here so the survey's honest inference —
-  # *"sulfides below, if it holds"* — has a real referent rather than a
-  # promise in the prose. The grade is higher, which is exactly the pull
-  # a later stage needs.
+  # DOWN — supergene zonation: rain weathered the top of the lode into an
+  # oxide cap and left the sulfides below the water table. That is the
+  # `toZ` axis, and it is the one that has always been here.
+  #
+  # ALONG — magmatic zonation: the metals dropped out of one fluid at
+  # different distances from its source, so the body has a COPPER HEART
+  # and an IRON-RICH DISTAL FRINGE. That is the `alongFrom`/`alongTo`
+  # window, measured in metres of |distance along strike| from the lode's
+  # `through` point, and symmetric — a body is lean at both ends, so both
+  # ends of this strike are fringe.
+  #
+  # ⭐ Which is why iron is a walk and not a shaft. The fringe outcrops
+  # at the surface seventy-five metres out along the strike, ABOVE the
+  # water table, OUTSIDE the old men's depletion box — so the whole iron
+  # rung is reachable without the co-op's adit, without a pump, and
+  # without anybody's permission. *Iron is the metal you can get on your
+  # own* is a fact about this geology, not a rule somebody wrote.
+  #
+  # ⚠ The chalcopyrite and siderite bands are authored and Stage A CANNOT
+  # REACH THEM: a sulfide wants roasting before reduction, a carbonate
+  # sits under the water table, and the ground both are in wants a pump.
+  # They are here so the survey's honest inference — *"it keeps going
+  # down, if it holds"* — has a real referent rather than a promise in
+  # the prose. The grades are higher, which is exactly the pull a later
+  # stage needs.
   zones:
-    - { toZ: -45, mineral: /stuff/idea/material/mineral/malachite, meanGrade: 0.07, spread: 0.05 }
-    - { toZ: -400, mineral: /stuff/idea/material/mineral/chalcopyrite, meanGrade: 0.11, spread: 0.04 }
+    # The heart: copper, oxide over sulfide, out to 75 m along strike.
+    - { toZ: -45, mineral: /stuff/idea/material/mineral/malachite, meanGrade: 0.07, spread: 0.05, alongTo: 75 }
+    - { toZ: -400, mineral: /stuff/idea/material/mineral/chalcopyrite, meanGrade: 0.11, spread: 0.04, alongTo: 75 }
+    # The fringe: iron, gossan over carbonate, from 75 m out to the ends.
+    # ⭐ Richer than the copper it grades out of — goethite is 0.6285
+    # iron by formula against malachite's 0.5748 copper, and the cap is
+    # what the rain left behind after it took the rock away.
+    - { toZ: -45, mineral: /stuff/idea/material/mineral/goethite, meanGrade: 0.12, spread: 0.05, alongFrom: 75 }
+    - { toZ: -400, mineral: /stuff/idea/material/mineral/siderite, meanGrade: 0.10, spread: 0.04, alongFrom: 75 }
   # ⭐ The old men's workings. Everything within reach of the adit has
   # been picked over once already — the lean SCALES the computed grade
   # rather than replacing it, so the ground under the yard is still the
