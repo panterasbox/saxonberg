@@ -1499,6 +1499,13 @@ still passes; `lint:untitled` green.
 
 **Commit.** `build(forestry W1): the trade-forestry pack, and eight woods with their species`
 
+> ✅ **W1 done (2026-09-17).** As planned; `lint:untitled` did not fire
+> without a `requires.title`, so the pack ships none. The hazel species
+> row moved here in W1 (not W2) because the species rows are this
+> wave's; `burn.test.ts`'s *"cut-and-regrow ROTATION"* paragraph
+> assertion is retired with it (the seam is now taken, on the stool
+> row). `PackLogic.discover.test.ts` counts 47 packs.
+
 ### W2 — the rows move; the panel becomes a Panel; the stool is ready
 
 **Goal.** The producer owns its products, its stool and its tools; the

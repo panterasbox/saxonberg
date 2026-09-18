@@ -1,0 +1,25 @@
+# Quercus robur — the oak, and the standard of the Hanging Wood.
+#
+# The tree the forestry trade is built around: slow (fifteen game years
+# to a standard on the sapling row), dense, and the timber the mine
+# shores with. A mature standard sets acorns; an acorn planted in a
+# panel grows into `/trade/forestry/thing/plant/oak-standard`. The
+# living tree is plant tissue; what is felled is `/stuff/idea/material/wood/oak`,
+# and the two rows name each other.
+class: /platform/idea/species/Species
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  binomial: Quercus robur
+  commonNames: ["oak", "English oak", "pedunculate oak"]
+  _bodyPlanPath: /stuff/idea/species/BodyPlan/sessile
+  _parentCladePath: /stuff/idea/species/plantae
+  # The LIVING organism's material; the wood is the material row's fact
+  # (`/stuff/idea/material/wood/oak` → `biologicalSource` → this row).
+  _defaultMaterialPath: /stuff/idea/material/tissue/plant-tissue
+  lifecycleStates: ["alive", "dead"]
+  sexDeterminationSystem: monoecious
+  reproductiveMode: sexual
+  lifespanMin: 0
+  lifespanMax: 600
+  circadianBand: aperiodic
+  diet: photosynthesis

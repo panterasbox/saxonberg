@@ -1,0 +1,23 @@
+# Pinus sylvestris — the Scots pine. The one softwood in the vocabulary:
+# straight, fast, resinous; the plank, the mast, the pit prop, and the
+# kindling that lights a beech fire. Evergreen — the forestry slate's
+# leaf-habit axis (`coldStopK`) is where that becomes a number. In the
+# vocabulary for the wood it yields (the garden bed is made of it); no
+# venue stands it yet.
+class: /platform/idea/species/Species
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  binomial: Pinus sylvestris
+  commonNames: ["pine", "Scots pine"]
+  _bodyPlanPath: /stuff/idea/species/BodyPlan/sessile
+  _parentCladePath: /stuff/idea/species/plantae
+  # The LIVING organism's material; the wood is the material row's fact
+  # (`/stuff/idea/material/wood/pine` → `biologicalSource` → this row).
+  _defaultMaterialPath: /stuff/idea/material/tissue/plant-tissue
+  lifecycleStates: ["alive", "dead"]
+  sexDeterminationSystem: monoecious
+  reproductiveMode: sexual
+  lifespanMin: 0
+  lifespanMax: 300
+  circadianBand: aperiodic
+  diet: photosynthesis

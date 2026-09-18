@@ -1,0 +1,19 @@
+id: trade-forestry
+version: 0.1.0
+root: /trade/forestry
+description: >-
+  The forestry trade — the wood, the stand, the axe and the coppice. A
+  wood is a place whose ground carries a standing cover of trees (a Wood
+  location, on the Field/sward shape) that is read by `look`, felled
+  with an axe (`fell` — one engaged act, and what comes down is a bole
+  on the ground too big for any one back), cross-cut into timber, and
+  refilled only by the increment and by planting. The coppice panel is a
+  persistable bed of hazel stools cut with a billhook on a game-year
+  rotation. ⭐ An authored wood is always a wood: nothing converts land
+  use at runtime; only the record on the place changes. Two customers
+  ship already — the collier's clamp and the mine's timber set.
+requires:
+  groups:
+    - name: forestry
+      purpose: the forestry trade's own body
+      owner: { office: prime-minister }

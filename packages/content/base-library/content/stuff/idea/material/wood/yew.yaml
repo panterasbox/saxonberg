@@ -1,0 +1,41 @@
+# Yew — extreme toughness for its weight. The bow.
+#
+# The number that makes it so is TOUGHNESS, the highest in the
+# vocabulary by a distance: a yew stave stores and returns energy like
+# nothing else that grows in this climate, which is why the longbow is
+# yew and nothing else, and why a yew hedge is cut with a saw and not a
+# hook. Dense, close-grained, and it takes a polish. ⚠ Every part of the
+# tree but the aril is poisonous (taxine) — a fact for the species row
+# and the physiology build, not for the wood, which nobody eats.
+#
+# Which substrate reads which number: `density` → the mass a bole and a
+# length of timber are minted at (forestry's `fell`); `hardness` /
+# `toughness` → materials-response (a haft, a waster, a bow);
+# `waterAbsorptionCapacity` → wetness; `autoignitionTemperature` +
+# `heatOfCombustion` → the fire driver (a log in a hearth, a charge in a
+# clamp); `thermalConductivity` / `specificHeat` → thermal.
+# `biologicalSource` names the tree; the species row names its LIVING
+# material (plant tissue) — the wood is what is left when it is felled.
+class: /platform/idea/material/Material
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  name: yew
+  keywords: [yew]
+  density: 670
+  specificHeat: 2000
+  thermalConductivity: 0.15
+  electricalConductivity: 1.0e-4
+  waterAbsorptionCapacity: 25
+  autoignitionTemperature: 580
+  heatOfCombustion: 16
+  hardness: 38
+  toughness: 110
+  edibility: false
+  nutrients: ["cellulose"]
+  toxicity: []
+  tags: ["wood", "mixture", "organic", "flammable", "once-living"]
+  composition: []
+  chemistry: null
+  biologicalSource:
+    speciesPath: /stuff/idea/species/plantae/tracheophyta/pinopsida/pinales/taxaceae/taxus/baccata
+    tissueType: wood

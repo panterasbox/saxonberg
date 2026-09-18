@@ -177,13 +177,4 @@ describe('the coppice', () => {
     expect(profile.daysToStage.mature).toBeGreaterThan(2000);
     expect(stool.lifecycleState).toBe('alive');
   });
-
-  it('⚠ NOTHING under the kernel’s husbandry is modified — the seam is named, not taken', () => {
-    // The rotation a coppice really wants (the stool survives the cut and
-    // regrows from the same root) is a growth-model change
-    // `lib/husbandry/` does not have. A mining build must not quietly
-    // rewrite farming's substrate; the species row says so out loud.
-    const speciesFile = `${PACK}content/stuff/idea/species/plantae/tracheophyta/magnoliopsida/fagales/betulaceae/corylus/avellana.yaml`;
-    expect(readFileSync(speciesFile, 'utf8')).toMatch(/cut-and-regrow ROTATION/);
-  });
 });
