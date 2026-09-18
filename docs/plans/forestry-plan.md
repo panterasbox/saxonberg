@@ -1999,6 +1999,15 @@ Clean attach points; each leaves as a slate line, never a plan section.
 - **The engaged-act base** — `MiningActController.engageAct` =
   `ManualBuildController.engageStep` + an endurance spend → a kernel
   tail; the third copy is the trigger.
+- **The timber set has no by-hand path → `trade-sawing` (decided in
+  review, 2026-09-18).** A tangible recipe with no vessel and no anvil
+  (`timber-set`: two `wood` + a `cutting` tool, no heat) can never be
+  learned, so `make` refuses it forever and the mine buys its sets. The
+  fix, when sawing takes it: a recipe with no build steps IS its own
+  hand path — `make` runs craft-resolve directly for such a recipe and
+  the tail mints the deed as `quench`/`plate` do (`CraftController.
+  requireDeed` / `MakeController`). That closes every assembly recipe at
+  once (a haft on a pick-head is the same shape), not just this one.
 - **Partial yield below ripe** → forestry-slate (Risk 6).
 - **Night / time-of-day ambient; canopy as a light model; rain delayed
   under canopy** → the light tail / biome.

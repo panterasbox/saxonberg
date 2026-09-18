@@ -350,7 +350,10 @@ tuned block is a drop, never a migration.
 - **The engaged-act base** — `MiningActController.engageAct` =
   `ManualBuildController.engageStep` + a spend; the third copy triggers.
 - **A by-hand path for a tangible recipe with no vessel** (the timber
-  set); **sawing, boards, seasoning** → `trade-sawing`, off the bole.
+  set — decided for `trade-sawing`: a recipe with no build steps is its
+  own hand path, so `make` runs craft-resolve directly and the tail
+  mints the deed); **sawing, boards, seasoning** → `trade-sawing`, off
+  the bole.
 - **Partial yield below ripe**; **night**; **canopy as a light model**;
   **rain delayed under canopy**; **fire on the stand**; multi-product
   plants; masting; a reader for `Species.sexDeterminationSystem`; shade;
