@@ -361,7 +361,7 @@ moves is the stand.
   `_materialPath: …/wood/oak`, `gradeBand: fair`, `mass: 3.2`.
   `Provision` = `CraftedMixin(ContaminableMixin(CuredMixin(FreshnessMixin(ThermalMixin(DetailedMixin(Thing))))))`.
 - `…/hazel-stool.yaml` — `/platform/thing/Plant`, `_speciesPath` corylus
-  avellana, `material: …/tissue/plant-tissue`, `harvestTemplatePath: /trade/fuel/thing/cordwood`,
+  avellana, `_materialPath: …/tissue/plant-tissue` (⚠ the row key is `_materialPath`, never `material:` — 186 shipped rows, zero the other way; an undeclared key is dropped silently), `harvestTemplatePath: /trade/fuel/thing/cordwood`,
   `nutrientDraw: 6`, profile `luxHappyAt: 100`, `luxDarkAt: 10`,
   `daysToStage {200, 900, 2500}`, `fruitSetCount: 8`, `fruitFillDays: 120`;
   the header claims *"Authored ALREADY GROWN"* and sets no stage.
@@ -369,7 +369,7 @@ moves is the stand.
   `fixedGround: true`, `landRequirementM2: 120`, `interiorBulk: true`,
   `interiorCapacity: 180`, reserves moisture 90 L / nitrogen 100 %,
   `staticSlots: [{name: plant, accepts: SlottableMixin, capacity: 6, userFacingDetail: planting}]`,
-  six `props:` stools, `material: …/wood/oak`.
+  six `props:` stools, `_materialPath: …/wood/oak`.
 - `trade-mining/content/trade/mining/thing/felling-axe.yaml`
   (`ToolItem`, `capabilities: ["cutting", "striking"]`, iron, mass 2.8)
   and `billhook.yaml` (`capabilities: ["cutting"]`, mass 1.1);
@@ -739,12 +739,13 @@ held-first walk from `shore` itself and ships `lint:instrument-args`
 at a ceiling of ZERO: a `giver.getContents().find(MixinApi.isTool…)`
 in this controller fails that gate the day grain merges. The
 controller reads `model.axe?.stuff`, checks `hasCapability('felling')`
-(a bound billhook → `wrong-tool`), and null → `no-axe`. ⚠ The same
-gate fires on *"the receiver is the actor's surroundings + a type
-test"* — so the stand lookup `MixinApi.isActive(giver.getContainer(), STAND_MIXIN)`
-must be checked against the gate's rule text at build time; if it
-fires, declare the room too (`- name: stand`, `default: "here:[mixin.StandMixin]"`
-— verify the `here` seed takes a bracket filter) rather than exempt.
+(a bound billhook → `wrong-tool`), and null → `no-axe`. ✅ Verified on the
+merged tree (2026-09-17): the gate fires only on a **`.getContents()`
+walk searched by a type test** (`check-instrument-args.ts:255-320` —
+`receiverOf` keys on `.getContents()`; `searchesAccumulator` on a
+find/filter/loop with `instanceof`/`MixinApi.isX`). The stand lookup
+`MixinApi.isActive(giver.getContainer(), STAND_MIXIN)` walks no
+contents and does not fire. No `stand` arg needed.
 
 **The capability.** The felling-axe row gains `felling`:
 `capabilities: ["felling", "cutting", "striking"]`. `fell` narrows to
@@ -940,7 +941,7 @@ the plant's `discipline` (D7).
 
 **The sapling rows** (`trade-forestry/content/trade/forestry/thing/plant/oak-standard.yaml`,
 `ash-standard.yaml`): `class: /platform/thing/Plant`, `_speciesPath` the
-tree, `material: …/tissue/plant-tissue`, `lifecycleState: alive`,
+tree, `_materialPath: …/tissue/plant-tissue`, `lifecycleState: alive`,
 `harvestTemplatePath: null` (a standard is not harvested — it is felled),
 `discipline: silviculture`, `standardMaterialPath: …/wood/oak` (D7's
 third field — what a felled one is made of when no stand answers for
@@ -1760,11 +1761,19 @@ background.
 
 ---
 
-## ⚠ Pending branches (read 2026-09-17) — what changes when they merge
+## ⚠ Pending branches (read 2026-09-17) — what changed when they merged
 
-Three sibling worktrees hold unmerged work; the impls are done and the
-MRs are iterating. Checked by diffing each against `origin/master`
-over every path this plan touches.
+✅ **`build/pets` and `design/grain-chain` MERGED to master the same
+day (`f47a2600f`, `583a79c46`); `design/forestry` carries the merge
+(`2e160156b`).** Everything below was verified on the merged tree:
+`lint:instrument-args` and `lint:capabilities` are in `package.json`;
+the `[capability.X]` atom is in `api/mql/resolver.ts`; the persistence
+fixes are in; `harm-survey` is still open and still does not overlap.
+⭐ One more change the merge brought: **every row's material key is
+`_materialPath:`** — the plan's row specs are corrected; `material:`
+would be dropped silently. ⚠ `pnpm install` is required after this
+merge (three new packs in the root manifest — stale `node_modules`
+fails every pack suite at collection).
 
 - **`design/grain-chain`** (28 ahead, 23 behind). ⭐⭐ Ships
   `lint:instrument-args` (ceiling **0**) and the MQL atom
@@ -1796,11 +1805,8 @@ over every path this plan touches.
   must author. `check-template-census` learns `projectileTemplate`.
   No overlap.
 
-**Sequencing.** Start the build branch off master **after `build/pets`
-merges** (W2 depends on its spine), and merge master again when
-`grain-chain` lands (the two lints; the plan already conforms). If the
-build must start first, merge `origin/build/pets` into the build branch
-before W2 — catching a branch up is the sanctioned act.
+**Sequencing.** Both are in; branch off master and go. `harm-survey`
+lands whenever; nothing here waits on it.
 
 ## Risks & opens
 
@@ -1853,8 +1859,7 @@ before W2 — catching a branch up is the sanctioned act.
 11. **The `discipline` field name on `GrowingMixin`** — `husbandryDiscipline`
     if it clashes.
 12. **No tool hunt anywhere** (revised): both instrument reads are
-    view defaults. If `lint:instrument-args` fires on the stand
-    lookup, declare the room as an arg (D3) — never exempt.
+    view defaults; the stand lookup verified not to fire the gate (D3).
 13. **Kestrel road at 24000 lm** is the arithmetic; a `cellSize: 10`
     zone edit is the alternative.
 14. **The `forestry` command category** is new; the sweep adds the word.
