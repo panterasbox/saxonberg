@@ -277,6 +277,17 @@ describe('RespirationMixin — the crisis core', () => {
     expect(fish.getEngagementByType('respiration-drain')).toBeUndefined();
   });
 
+  it('⚠ a body destructed mid-drain reassesses to nothing — never an unhandled rejection', async () => {
+    const fish = bodyWith({ breathableMedia: ['water'] });
+    ContainmentApi.move(fish, room('air'));
+    await fish.reassess();
+    expect(fish.getEngagementByType('respiration-drain')).toBeDefined();
+    // The re-check is in flight when the body goes: it must settle quietly.
+    const inFlight = fish.reassess();
+    StuffApi.destruct(fish);
+    await expect(inFlight).resolves.toBeUndefined();
+  });
+
   it('inhale extends the breath-hold so a prepared dive outlasts an unprepared one', async () => {
     const prepared = makeStuff(() => new TestCharacter());
     const unprepared = makeStuff(() => new TestCharacter());

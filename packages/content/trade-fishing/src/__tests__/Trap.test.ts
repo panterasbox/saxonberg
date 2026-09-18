@@ -17,15 +17,15 @@ const pot = (): Trap => {
 };
 const net = (): Trap => {
   const t = makeStuff(() => new Trap());
-  t.setDrawPerHour(40);
+  t.setDrawPerHour(20);
   t.setTakesRoles(['bait', 'forage', 'predator', 'apex']);
-  t.setCapacity(60);
+  t.setCapacity(30);
   return t;
 };
-/** The confluence at one kilometre: crab 120, forage 140 (mullet + eel), sturgeon 2. */
+/** The confluence at one kilometre: crab 60, forage ~100 (mullet, eel, a few carp), sturgeon 2. */
 const REACH = [
-  { role: 'bait' as const, level: 120, capacity: 120 },
-  { role: 'forage' as const, level: 140, capacity: 140 },
+  { role: 'bait' as const, level: 60, capacity: 60 },
+  { role: 'forage' as const, level: 100, capacity: 100 },
   { role: 'apex' as const, level: 2, capacity: 2 },
 ];
 
@@ -38,13 +38,13 @@ describe('the expectation', () => {
     expect(pot().expectedTake(8, REACH)).toBe(2); // capped by what it holds
   });
 
-  it('⭐ a net takes sixty in an afternoon — and only what the water still holds', () => {
-    expect(net().expectedTake(3, REACH)).toBe(60);
-    // Five lifts of sixty empty the confluence's 262: the fourth is
+  it('⭐ a net takes thirty in an afternoon — and only what the water still holds', () => {
+    expect(net().expectedTake(3, REACH)).toBe(30);
+    // Five lifts of thirty empty the confluence's ~160: the fourth is
     // thin, the fifth is empty — the requirements' afternoon.
-    const thin = [{ role: 'forage' as const, level: 3, capacity: 140 }];
-    // 40/h × 3 h × (3/140) = 2.57 — the record is nearly empty and the net knows it.
-    expect(net().expectedTake(3, thin)).toBeCloseTo(2.571, 2);
+    const thin = [{ role: 'forage' as const, level: 3, capacity: 100 }];
+    // 20/h × 3 h × (3/100) = 1.8 — the record is nearly empty and the net knows it.
+    expect(net().expectedTake(3, thin)).toBeCloseTo(1.8, 2);
   });
 
   it('a pot takes nothing of an apex; a net takes it', () => {

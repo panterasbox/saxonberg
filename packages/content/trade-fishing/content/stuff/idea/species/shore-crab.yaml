@@ -54,7 +54,7 @@ data:
       ammoniaMgL: { max: 0.02, margin: 0.5 }
       nitriteMgL: { max: 0.1, margin: 1 }
     role: bait
-    abundance: 120
+    abundance: 60
     fightRating: 0.1
   butcheryYield:
     - { cut: /stuff/thing/items/offal, units: 1 }

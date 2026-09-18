@@ -315,8 +315,10 @@ export function RespirationMixin<TBase extends MixinConstructor>(Base: TBase) {
       cause: RespirationCause | null;
     }> {
       const { medium, immersed } = await this.resolveCurrentMedium();
-      const set = this.getBreathableMedia();
-      if (set.includes(medium)) return { exchanging: true, cause: null };
+      // ⚠ Destructed during the await above (a released fish, mid-drain):
+      // the proxy is inert now and every read answers `undefined`.
+      const set = this.getBreathableMedia() as readonly string[] | undefined;
+      if (!set || set.includes(medium)) return { exchanging: true, cause: null };
 
       // Medium not in this body's set. Confirm it is a *known* atmosphere
       // (`breathableOf` throws on unknown) — an unmodeled medium raises no
@@ -375,6 +377,11 @@ export function RespirationMixin<TBase extends MixinConstructor>(Base: TBase) {
 
     public async reassess(): Promise<void> {
       const self = this as unknown as Stuff;
+      // ⚠ A body destructed mid-drain (a released fish) still has a tick
+      // or a move hook in flight; an inert proxy answers every read with
+      // `undefined`, and `undefined.includes` was an unhandled rejection
+      // that took the server down (found by the fishing drive).
+      if (self.isDestroyed()) return;
 
       // Constructs never engage; a corpse never drowns again — tear down
       // any active engagement in both cases.
@@ -409,6 +416,7 @@ export function RespirationMixin<TBase extends MixinConstructor>(Base: TBase) {
       // `replaceableBy` respiration (or this start would no-op on
       // conflict, silently suppressing the crisis).
       const { exchanging, cause } = await this.assessExchange();
+      if (self.isDestroyed()) return;
       // Inhaled-contaminant fold (the fire driver's first consumer of the
       // biome `contaminant` seam): a body breathing a contaminated medium
       // (smoke → carbon monoxide) takes on the toxin as a metabolism burden,
@@ -443,7 +451,7 @@ export function RespirationMixin<TBase extends MixinConstructor>(Base: TBase) {
     public onTraversed(via: Exit): void {
       void via;
       // Fire-and-forget — the move reassess seam (#7, Risk #1).
-      void this.reassess();
+      void this.reassess().catch(() => {});
     }
 
     /**

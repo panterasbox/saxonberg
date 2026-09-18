@@ -58,7 +58,7 @@ data:
       ammoniaMgL: { max: 0.02, margin: 0.5 }
       nitriteMgL: { max: 0.1, margin: 1 }
     role: predator
-    abundance: 40
+    abundance: 30
     fightRating: 0.5
   butcheryYield:
     - { cut: /trade/fishing/thing/fillet, units: 2 }

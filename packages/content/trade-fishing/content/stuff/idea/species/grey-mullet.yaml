@@ -54,7 +54,7 @@ data:
       nitriteMgL: { max: 0.1, margin: 1 }
     seasons: [spring, summer, fall]
     role: forage
-    abundance: 80
+    abundance: 50
     fightRating: 0.4
   butcheryYield:
     - { cut: /trade/fishing/thing/fillet, units: 2 }
