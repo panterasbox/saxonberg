@@ -231,17 +231,19 @@ export default class PlantController extends CommandController<PlantModel> {
       console.warn('PlantController: capture after planting failed:', err);
     }
 
-    // Credit `horticulture`. Pressing a seed into soil is the entry act and
-    // reads `trivial`, which is the honest grade AND self-limiting: the
-    // estimator treats a trivial success as unsurprising, so no amount of
-    // planting substitutes for keeping something alive.
+    // Credit the plant's own Discipline (`horticulture` unless the row says
+    // otherwise — an acorn planted as a standard is `silviculture`).
+    // Pressing a seed into soil is the entry act and reads `trivial`,
+    // which is the honest grade AND self-limiting: the estimator treats a
+    // trivial success as unsurprising, so no amount of planting
+    // substitutes for keeping something alive.
     try {
       if (MixinApi.isAdvancing(giver))
         await giver.creditDeed({
-        discipline: 'horticulture',
-        difficulty: 'trivial',
-        outcome: 'success',
-      });
+          discipline: plant.getDiscipline(),
+          difficulty: 'trivial',
+          outcome: 'success',
+        });
     } catch (err) {
       console.warn('PlantController: recording the deed failed:', err);
     }

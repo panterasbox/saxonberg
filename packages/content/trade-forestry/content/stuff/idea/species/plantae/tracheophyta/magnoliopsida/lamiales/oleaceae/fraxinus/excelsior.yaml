@@ -1,0 +1,24 @@
+# Fraxinus excelsior — the ash. The second standard of the Hanging Wood.
+#
+# Fast for a hardwood, coppices as well as hazel, and its timber is the
+# toughest that grows here — the haft, the shaft, the rung. Dioecious:
+# a tree is male or female (`sexDeterminationSystem` — a fact the
+# species carries and nothing reads yet; the forestry slate names the
+# reader). An ash key is its seed.
+class: /platform/idea/species/Species
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  binomial: Fraxinus excelsior
+  commonNames: ["ash", "common ash"]
+  _bodyPlanPath: /stuff/idea/species/BodyPlan/sessile
+  _parentCladePath: /stuff/idea/species/plantae
+  # The LIVING organism's material; the wood is the material row's fact
+  # (`/stuff/idea/material/wood/ash` → `biologicalSource` → this row).
+  _defaultMaterialPath: /stuff/idea/material/tissue/plant-tissue
+  lifecycleStates: ["alive", "dead"]
+  sexDeterminationSystem: dioecious
+  reproductiveMode: sexual
+  lifespanMin: 0
+  lifespanMax: 250
+  circadianBand: aperiodic
+  diet: photosynthesis

@@ -19,6 +19,7 @@ import Plant from '../../../../thing/Plant';
 import Crop from '../../../../thing/Crop';
 import type { Crafted } from '../../../../../lib/craft/Crafted';
 import GardenBed from '../../../../thing/GardenBed';
+import ToolItem from '../../../../thing/ToolItem';
 import Material from '../../../../../lib/material/Material';
 import { Reserve } from '../../../../../lib/reserve';
 import { type GrowthProfileData } from '../../../../../lib/husbandry/Growing';
@@ -188,8 +189,11 @@ function one(stuff: Stuff | null, raw: string): MqlOneResult {
   return { stuff, raw };
 }
 type HarvestExecModel = Parameters<HarvestController['execute']>[0];
-function model(target: MqlOneResult): HarvestExecModel {
-  return { target } as ModelData as unknown as HarvestExecModel;
+function model(
+  target: MqlOneResult,
+  tool?: MqlOneResult,
+): HarvestExecModel {
+  return { target, tool } as ModelData as unknown as HarvestExecModel;
 }
 function noteReasons(ctx: CommandContext): string[] {
   return ctx.getNotes().map((n) => (n as { reason?: string }).reason ?? '');
@@ -572,5 +576,82 @@ describe('harvest <plant>', () => {
     expect(noteReasons(ctx)).toContain('nothing-ripe');
     expect(tree.isDestroyed()).toBe(false);
     expect(bed.nutrientFraction()).toBe(1); // nothing exported
+  });
+
+  /* ───────── the plant names its tool and its Discipline (forestry.md — `harvestTool` / `discipline`) ───────── */
+
+  function billhook(): ToolItem {
+    return makeStuffAtPath(() => {
+      const t = new ToolItem();
+      t.setShortDescription('a billhook');
+      t.setCapabilities(['cutting']);
+      return t;
+    }, freshPath('/trade/forestry/thing/_billhook'));
+  }
+
+  /** A ripe stool: a polycarp that says it is cut, and by silviculture. */
+  function ripeStool(bed: GardenBed): Plant {
+    const stool = ripeTree(bed);
+    stool.setHarvestTool('cutting');
+    stool.setDiscipline('silviculture');
+    return stool;
+  }
+
+  it('⭐ a plant that names a harvestTool REFUSES the bare hand (needs-tool)', async () => {
+    const { giver, room, bed } = scene();
+    const stool = ripeStool(bed);
+    const ctrl = makeStuff(() => new HarvestController());
+    const ctx = makeContext(giver, room);
+    await ctrl.execute(model(one(stool, 'stool')), ctx);
+    expect(noteReasons(ctx)).toContain('needs-tool');
+    expect(stool.isDestroyed()).toBe(false);
+    expect(giver.getContents().some((s) => s instanceof Crop)).toBe(false);
+  });
+
+  it('…and a bound tool WITHOUT the capability is refused the same way', async () => {
+    const { giver, room, bed } = scene();
+    const stool = ripeStool(bed);
+    const trowel = makeStuffAtPath(() => {
+      const t = new ToolItem();
+      t.setShortDescription('a trowel');
+      t.setCapabilities(['digging']);
+      return t;
+    }, freshPath('/trade/forestry/thing/_trowel'));
+    ContainmentApi.move(trowel, giver);
+    const ctrl = makeStuff(() => new HarvestController());
+    const ctx = makeContext(giver, room);
+    await ctrl.execute(model(one(stool, 'stool'), one(trowel, 'trowel')), ctx);
+    expect(noteReasons(ctx)).toContain('needs-tool');
+  });
+
+  it('⭐ with the BOUND tool the cut proceeds and credits the PLANT\'s Discipline', async () => {
+    const { giver, room, bed } = scene();
+    const stool = ripeStool(bed);
+    const hook = billhook();
+    ContainmentApi.move(hook, giver);
+    const ctrl = makeStuff(() => new HarvestController());
+    const ctx = makeContext(giver, room);
+    await ctrl.execute(model(one(stool, 'stool'), one(hook, 'billhook')), ctx);
+    expect(noteReasons(ctx)).not.toContain('needs-tool');
+    expect(giver.getContents().filter((s) => s instanceof Crop)).toHaveLength(3);
+    expect(stool.isDestroyed()).toBe(false);
+    expect(deeds).toHaveLength(1);
+    expect(deeds[0]!.discipline).toBe('silviculture');
+  });
+
+  it('a plant that names NO tool ignores whatever bound — the carrot is pulled', async () => {
+    const { giver, room, bed } = scene();
+    const plant = ripe(bed);
+    const trowel = makeStuffAtPath(() => {
+      const t = new ToolItem();
+      t.setCapabilities(['digging']);
+      return t;
+    }, freshPath('/trade/forestry/thing/_trowel2'));
+    const ctrl = makeStuff(() => new HarvestController());
+    const ctx = makeContext(giver, room);
+    await ctrl.execute(model(one(plant, 'carrots'), one(trowel, 'trowel')), ctx);
+    expect(noteReasons(ctx)).not.toContain('needs-tool');
+    expect(plant.isDestroyed()).toBe(true);
+    expect(deeds[0]!.discipline).toBe('horticulture');
   });
 });

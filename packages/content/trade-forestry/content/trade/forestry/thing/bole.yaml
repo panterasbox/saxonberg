@@ -1,0 +1,28 @@
+# ⭐⭐ A bole — the felled trunk, on the ground where it fell, and the
+# first Thing in the game whose product exceeds a body.
+#
+# A standard oak is tonnes. Felling therefore does NOT collapse the tree
+# into pocketable pieces: it drops ONE bole on the room floor — mass =
+# the species' wood density × 0.9 m³ (oak ≈ 675 kg; can't-budge is
+# emergent from mass, never a flag) — and cross-cutting is a SECOND act
+# on that object: `fell bole` takes one length of green timber off it
+# per engagement until `lengthsLeft` reaches zero, at which point the
+# butt and brash are the wood's again. What a forester with an axe gets
+# from a tree is six mine-grade lengths; what a sawyer will get from the
+# same bole is boards — the bole on the ground IS the seam `trade-sawing`
+# attaches to, and it is what the transport pack's sledge and dray exist
+# to move. A bole where it fell is honest.
+#
+# The material and the mass are RESTAMPED at the mint from the stand's
+# species; the row's oak is the default a bole authored loose reads as.
+class: /trade/forestry/thing/Bole
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: felled trunk
+  keywords: [bole, trunk, tree, felled]
+  register: indefinite
+  longDescription: |
+    The whole length of a tree, lying where it came down, the crown lopped and the butt still white where the axe went through. Far too much for any one back.
+  _materialPath: /stuff/idea/material/wood/oak
+  mass: 675
+  lengthsLeft: 6

@@ -1,0 +1,21 @@
+# Fagus sylvatica — the beech. Shade so deep nothing grows under it;
+# mast every few years that a whole wood's pigs are turned out on. Dense,
+# hard timber that splits clean — the best firewood, and never a post.
+# In the vocabulary for the wood it yields; no venue stands it yet.
+class: /platform/idea/species/Species
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  binomial: Fagus sylvatica
+  commonNames: ["beech", "common beech"]
+  _bodyPlanPath: /stuff/idea/species/BodyPlan/sessile
+  _parentCladePath: /stuff/idea/species/plantae
+  # The LIVING organism's material; the wood is the material row's fact
+  # (`/stuff/idea/material/wood/beech` → `biologicalSource` → this row).
+  _defaultMaterialPath: /stuff/idea/material/tissue/plant-tissue
+  lifecycleStates: ["alive", "dead"]
+  sexDeterminationSystem: monoecious
+  reproductiveMode: sexual
+  lifespanMin: 0
+  lifespanMax: 300
+  circadianBand: aperiodic
+  diet: photosynthesis

@@ -1,0 +1,21 @@
+# A log off the crown — what comes off a felled standard beside the bole:
+# firewood, and a hearth lights it (the `dry-log.yaml` shape: `Firewood`
+# reads its ignition off its Material, which the mint stamps per species).
+class: /platform/thing/Firewood
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: log
+  keywords: [log, firewood, wood, crown]
+  register: indefinite
+  longDescription: |
+    A log off the crown of a felled tree, an arm thick and a stride long, green yet.
+  _materialPath: /stuff/idea/material/wood/oak
+  charMaterialPath: /stuff/idea/material/element/carbon
+  mass: 4
+  reserves:
+    fuel:
+      capacityValue: 100
+      currentValue: 100
+      unit: "%"
+      theme: combustion
+      floorEffect: null

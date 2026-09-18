@@ -142,6 +142,17 @@ owner is live, read-modify-write of their stored record when not.
 > that matters and is enforced by test: **the host's own record never
 > carries somebody else's goods.**
 
+⚠ **And a good MINTED onto a floor has no `place` until something says
+so.** Only the custody verbs (`drop`/`put`/`get`) call `followCustody`;
+a verb's completion that clones a good into a persistable room and
+stamps it has placed it nowhere — the room's capture skips it and the
+overlay never finds it. Forestry's `fell` was the first such verb (a
+bole on the wood floor) and calls `followCustody` at the mint; it also
+captures the OWNER, because a live owner's estate is otherwise written
+only on the residency cadence or at logout, and a hard stop inside the
+window loses what they dropped. See
+[antipatterns.md § A good minted onto the floor](../antipatterns.md).
+
 ## The room overlay
 
 A host, on materialize, does two things in order:

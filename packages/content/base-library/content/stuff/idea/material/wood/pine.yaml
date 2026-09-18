@@ -1,0 +1,41 @@
+# Pine — light, soft, resinous. Lights first and burns hottest.
+#
+# The numbers that make it so: the LOWEST `autoignitionTemperature` of
+# the eight and the HIGHEST `heatOfCombustion` — the resin. A pine
+# kindles a fire that a beech then holds. Soft (`hardness` 22: it marks
+# under a fingernail, and a pine floor shows every chair), low toughness
+# (it splits straight and easily — the plank, the mast, the pit prop),
+# and cheap, because a conifer is straight and fast. The one softwood in
+# the vocabulary, and the garden bed is made of it.
+#
+# Which substrate reads which number: `density` → the mass a bole and a
+# length of timber are minted at (forestry's `fell`); `hardness` /
+# `toughness` → materials-response (a haft, a waster, a bow);
+# `waterAbsorptionCapacity` → wetness; `autoignitionTemperature` +
+# `heatOfCombustion` → the fire driver (a log in a hearth, a charge in a
+# clamp); `thermalConductivity` / `specificHeat` → thermal.
+# `biologicalSource` names the tree; the species row names its LIVING
+# material (plant tissue) — the wood is what is left when it is felled.
+class: /platform/idea/material/Material
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  name: pine
+  keywords: [pine, deal, softwood]
+  density: 510
+  specificHeat: 2000
+  thermalConductivity: 0.12
+  electricalConductivity: 1.0e-4
+  waterAbsorptionCapacity: 35
+  autoignitionTemperature: 540
+  heatOfCombustion: 18
+  hardness: 22
+  toughness: 30
+  edibility: false
+  nutrients: ["cellulose"]
+  toxicity: []
+  tags: ["wood", "mixture", "organic", "flammable", "once-living"]
+  composition: []
+  chemistry: null
+  biologicalSource:
+    speciesPath: /stuff/idea/species/plantae/tracheophyta/pinopsida/pinales/pinaceae/pinus/sylvestris
+    tissueType: wood

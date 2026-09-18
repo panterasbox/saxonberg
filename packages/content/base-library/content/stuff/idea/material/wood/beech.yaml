@@ -1,0 +1,40 @@
+# Beech — dense, hard, and it splits clean. The best firewood.
+#
+# The numbers that make it so: `density` and `hardness` near oak's
+# (a workbench top, a mallet head, a chair leg) and the highest
+# `heatOfCombustion` of the broadleaves — a beech log burns long and
+# hot, which is what a hearth wants and a smelt cannot use (a smelt wants
+# charcoal). It does not last outdoors: it rots wet, so it is never a
+# post.
+#
+# Which substrate reads which number: `density` → the mass a bole and a
+# length of timber are minted at (forestry's `fell`); `hardness` /
+# `toughness` → materials-response (a haft, a waster, a bow);
+# `waterAbsorptionCapacity` → wetness; `autoignitionTemperature` +
+# `heatOfCombustion` → the fire driver (a log in a hearth, a charge in a
+# clamp); `thermalConductivity` / `specificHeat` → thermal.
+# `biologicalSource` names the tree; the species row names its LIVING
+# material (plant tissue) — the wood is what is left when it is felled.
+class: /platform/idea/material/Material
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  name: beech
+  keywords: [beech]
+  density: 720
+  specificHeat: 2000
+  thermalConductivity: 0.17
+  electricalConductivity: 1.0e-4
+  waterAbsorptionCapacity: 30
+  autoignitionTemperature: 570
+  heatOfCombustion: 17
+  hardness: 42
+  toughness: 65
+  edibility: false
+  nutrients: ["cellulose"]
+  toxicity: []
+  tags: ["wood", "mixture", "organic", "flammable", "once-living"]
+  composition: []
+  chemistry: null
+  biologicalSource:
+    speciesPath: /stuff/idea/species/plantae/tracheophyta/magnoliopsida/fagales/fagaceae/fagus/sylvatica
+    tissueType: wood

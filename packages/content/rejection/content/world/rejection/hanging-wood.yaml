@@ -1,0 +1,23 @@
+# The Hanging Wood — the sub-zone above the fuel yard, and where all of
+# the yard's wood comes from.
+#
+# A `CartesianZone` of its own under the region (the Kestrel road's
+# shape): its own grid, so the wood's rooms plot at their own coordinates
+# and its exits stay cardinal in-zone; the region's `deposit:` is
+# inherited by the outward walk (the Ferrow runs under the hill, and
+# `analyze ground` here says so — a claim cannot be staked on this grid).
+# `address:` resolves every clearing to the Locality at
+# `terminus/rejection/hanging-wood`.
+#
+# ⭐ **Three of its four rooms are STANDS** — `/trade/forestry/location/Wood`,
+# a place that is ground with a standing cover of trees on it, read by
+# `look`, felled with an axe, refilled only by the increment and by
+# planting. The wood is their sum; each clearing reads and depletes its
+# own. The rows are all this venue ships: no code, which is the claim a
+# second wood in a second locality rests on.
+class: /platform/idea/location/CartesianZone
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  name: the Hanging Wood
+  cellSize: 10.0
+  address: terminus/rejection/hanging-wood

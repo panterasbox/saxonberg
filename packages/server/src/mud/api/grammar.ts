@@ -266,6 +266,43 @@ export class GrammarApi {
     if (items.length === 2) return `${items[0]} and ${items[1]}`;
     return `${items.slice(0, -1).join(', ')}, and ${items[items.length - 1]}`;
   }
+
+  /**
+   * A whole number in words — `24` → `'twenty-four'`, `360` → `'three
+   * hundred and sixty'`. The no-gauge rule for a count a player READS
+   * (a stand's trees, a panel's days): prose says *about twenty-four
+   * trees' worth*, never `24`. Whole numbers below a million; anything
+   * else (a fraction, a negative, a huge count) falls back to the digits,
+   * because inventing words for it would be the wrong kind of honest.
+   */
+  static inWords(n: number): string {
+    if (!Number.isInteger(n) || n < 0 || n >= 1_000_000) return String(n);
+    if (n < 20) return NUMBER_WORDS_SMALL[n]!;
+    if (n < 100) {
+      const tens = NUMBER_WORDS_TENS[Math.floor(n / 10)]!;
+      return n % 10 === 0 ? tens : `${tens}-${NUMBER_WORDS_SMALL[n % 10]}`;
+    }
+    if (n < 1000) {
+      const head = `${NUMBER_WORDS_SMALL[Math.floor(n / 100)]} hundred`;
+      return n % 100 === 0 ? head : `${head} and ${GrammarApi.inWords(n % 100)}`;
+    }
+    const head = `${GrammarApi.inWords(Math.floor(n / 1000))} thousand`;
+    const rest = n % 1000;
+    if (rest === 0) return head;
+    return rest < 100
+      ? `${head} and ${GrammarApi.inWords(rest)}`
+      : `${head}, ${GrammarApi.inWords(rest)}`;
+  }
 }
+
+const NUMBER_WORDS_SMALL = [
+  'zero', 'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight',
+  'nine', 'ten', 'eleven', 'twelve', 'thirteen', 'fourteen', 'fifteen',
+  'sixteen', 'seventeen', 'eighteen', 'nineteen',
+] as const;
+const NUMBER_WORDS_TENS = [
+  '', '', 'twenty', 'thirty', 'forty', 'fifty', 'sixty', 'seventy',
+  'eighty', 'ninety',
+] as const;
 
 SecurityApi.decorateApiClass(GrammarApi);

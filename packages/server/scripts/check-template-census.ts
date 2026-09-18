@@ -146,8 +146,26 @@ export function refsOf(data: Record<string, unknown>): Array<{ field: string; pa
     // where a new live-resolved citation belongs.
     'productMaterial', 'residueMaterial',
     'productVessel', 'residueVessel', 'tollBinPath',
+    // ⭐ The forestry citations. `standardMaterialPath` is what a felled
+    // standard is made of when no stand answers for it — resolved live
+    // at the completion of a felling, and a rowless one is a bole of
+    // nothing. The stand's own `mix[].woodMaterialPath` / `seedPath` /
+    // `speciesPath` are read below, the `props:` way.
+    'standardMaterialPath',
   ] as const) {
     push(f, data[f]);
+  }
+  // ⭐ A Wood row's `mix:` — the species standing on a clearing, each
+  // naming its Species row, the wood a felled one is made of and the seed
+  // it drops. All three resolve live at a felling; a rowless one is a
+  // tree that comes down as nothing.
+  if (Array.isArray(data.mix)) {
+    for (const sp of data.mix as Array<Record<string, unknown>>) {
+      if (!sp || typeof sp !== 'object') continue;
+      push('mix.speciesPath', sp.speciesPath);
+      push('mix.woodMaterialPath', sp.woodMaterialPath);
+      push('mix.seedPath', sp.seedPath);
+    }
   }
 
   // ⚠ `props:` and `cast:` — the born-with fields. They were ONE field

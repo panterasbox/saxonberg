@@ -249,6 +249,21 @@ export interface Growing {
   getNutrientDraw(): number;
   setNutrientDraw(value: number): void;
   /**
+   * The tool CAPABILITY kind a harvest of this plant needs (`'cutting'`
+   * for a coppice stool), or `''` when it is taken by hand — a carrot is
+   * pulled. Authored per species: *what it is cut with* is a fact about
+   * the plant, not about the verb.
+   */
+  getHarvestTool(): string;
+  setHarvestTool(value: string): void;
+  /**
+   * The Discipline this plant's keeping exercises — what `plant` and
+   * `harvest` credit. `horticulture` unless the row says otherwise
+   * (`silviculture` for a stool or a standard).
+   */
+  getDiscipline(): string;
+  setDiscipline(value: string): void;
+  /**
    * Whether this can be harvested right now: it must yield something, be
    * mature, and be alive. Reconciles on read (through `getGrowthStage`),
    * so an absence that ripened it counts.
@@ -409,6 +424,8 @@ export function GrowingMixin<TBase extends MixinConstructor<Stuff>>(
       // content is untouched by the move.
       harvestTemplatePath: { persistent: true, authorable: true },
       nutrientDraw: { persistent: true, authorable: true },
+      harvestTool: { persistent: true, authorable: true },
+      discipline: { persistent: true, authorable: true },
     };
 
     /** Derived condition + cause lines appended to the long description. */
@@ -560,6 +577,28 @@ export function GrowingMixin<TBase extends MixinConstructor<Stuff>>(
 
     public setNutrientDraw(value: number): void {
       this.nutrientDraw = Math.max(0, value);
+    }
+
+    /** The capability kind the cut needs; `''` = by hand. */
+    public harvestTool: string = '';
+
+    public getHarvestTool(): string {
+      return this.harvestTool;
+    }
+
+    public setHarvestTool(value: string): void {
+      this.harvestTool = value ?? '';
+    }
+
+    /** The Discipline this plant's keeping exercises. */
+    public discipline: string = 'horticulture';
+
+    public getDiscipline(): string {
+      return this.discipline;
+    }
+
+    public setDiscipline(value: string): void {
+      this.discipline = value || 'horticulture';
     }
 
     public isHarvestable(): boolean {

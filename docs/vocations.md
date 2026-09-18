@@ -120,6 +120,8 @@ Per entry: **what gates it**, **who pays**, **which subsystem it rides**.
 | farmer | **in build** | land + skill | produce buyers |
 | rancher | **in build** | land + stock | livestock buyers |
 | fisher | designed ([fishing](./slates/builds/fishing-slate.md)) | tackle + skill | market |
+| **forester / woodcutter** | **shipped** ([forestry](./subsystems/forestry.md)) | a felling axe + common land | the collier (cordwood) and the mine (timber) — ⭐ *the stand is the PLACE: a clearing that is ground with a standing cover on it, felled to nothing and refilled only by the years and by planting; what comes down is a bole too heavy to lift, and the sawyer's seam is that trunk on the floor* |
+| **coppicer** | **shipped** ([forestry](./subsystems/forestry.md)) | a billhook + a panel | the collier — *a one-game-year rotation on a persistable panel; six smelts a panel a year, and that number is the lesson, not a dial* |
 | **prospector** | **shipped** ([mining](./subsystems/mining.md)) | **assay** (instrument + competence) | speculative — ⭐⭐ *and the survey record itself is the asset: a per-viewer DISCOVERY belief you can trade, which is why negative knowledge still sells* |
 
 ### Secondary — process
@@ -265,10 +267,12 @@ right per row is most of the civic design.
 |---|---|---|---|
 | **wainwright / wheelwright** | **GAP** | Discipline | named by freight; makes the rigs |
 | **cooper** | **GAP** | Discipline | barrels — the bulk-goods container |
+| **sawyer** | **GAP** — the forestry build's named next | premises + a FALL of water (the grist mill's shape) | ⭐ boards, seasoning, the timber set's by-hand path — the bole on the wood floor is the attach point ([forestry.md § Deferred seams](./subsystems/forestry.md)) |
+| **carpenter · joiner** | **GAP** — after sawing | Discipline + tools | ⭐⭐ *the trade most of the world's furniture, doors and rigs are waiting on: a haft on a pick-head is the same assembly shape as a chair* — column three of `forestry → sawing → carpentry`, and the `wood` tag is what every one of its recipes matches on |
 | **stevedore / docker** | **GAP** | employment | ⭐ **Wharfside already has a dockers' hall**; the labour half of the depot |
 | **icehouse keeper / ice cutter** | **GAP** | premises + thermal read | ⭐⭐ **THIS IS THERMAL'S MISSING VOCATION** — and it is what makes the refrigeration arc possible before machines |
 | tanner | **GAP** | premises (industrial zoning) | the classic nuisance trade (⭐ the smelter and the **miller** both SHIPPED — see § Secondary) |
-| **charcoal burner / collier** | **shipped** ([mining](./subsystems/mining.md)) | skill | ⭐⭐ *a judgment craft with a real downside — too much air and the charge goes to ash, too little and you draw half-burnt brands, and you can lose a whole burn.* Fuel for everything above, and the mine's timber comes off the same stand |
+| **charcoal burner / collier** | **shipped** ([mining](./subsystems/mining.md)) | skill | ⭐⭐ *a judgment craft with a real downside — too much air and the charge goes to ash, too little and you draw half-burnt brands, and you can lose a whole burn.* Fuel for everything above, and the mine's timber comes off the same stand — *which is the FORESTER's since the forestry build; the collier is its customer* |
 | **gunsmith · powder maker** | designed ([ranged](./slates/builds/ranged-slate.md)) | licence | credential-gated |
 | **shipwright · ship-breaker** | **GAP** | premises | the breaker is a LULU |
 | **quarrier** | **GAP** | land + tools | mining's sibling |

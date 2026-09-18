@@ -5,8 +5,10 @@
 # (~10%), with hemicelluloses, extractives, and ash making up the
 # rest. v1 leaves `composition` empty pending compound templates
 # (`/stuff/idea/material/compound/cellulose`, `.../lignin`); the `wood` and
-# `mixture` tags carry the gist meanwhile. `biologicalSource` is null
-# until an oak-tree species template is authored.
+# `mixture` tags carry the gist meanwhile. `biologicalSource` names the
+# tree (the forestry trade's Quercus robur); the species row names its
+# LIVING material (plant tissue) — the wood is what is left when it is
+# felled, and `density` is what a bole is minted at.
 class: /platform/idea/material/Material
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
@@ -39,4 +41,6 @@ data:
   tags: ["wood", "mixture", "organic", "flammable", "once-living"]
   composition: []
   chemistry: null
-  biologicalSource: null
+  biologicalSource:
+    speciesPath: /stuff/idea/species/plantae/tracheophyta/magnoliopsida/fagales/fagaceae/quercus/robur
+    tissueType: wood
