@@ -3,13 +3,27 @@
 > **Status: UNBUILT** — the acute clock (satiation · hydration ·
 > endurance) and the fat stock (`flesh`) shipped with metabolism; nothing
 > here has.
-> **Left:** per-individual stature · the `lean` stock + the derived BMI /
-> body-density reads · the one `exertion` event and its in-game producers
-> · the `wind` conditioning Discipline + the time-weighted conditioning
-> fold (decay) · micronutrient kinds carried through composition + the
-> curated deficiencies (scurvy) · the real-world exertion adapter (seam
-> now, adapter later)
-> **Size:** a build
+> **Left:** the mirror for PEOPLE (`look` says what a body is) · one
+> muscle figure + the derived BMI / body-density reads · the one
+> `exertion` event as THE endurance producer (unifying three packs' flat
+> debits) · the `wind` conditioning Discipline + the active-play
+> conditioning fold (decay) · micronutrient kinds carried through
+> composition + scurvy as the consumer of the fruit already on the shelf ·
+> the rates as operator dials
+> **Size:** a build · requirements: [nutrition-and-fitness-requirements](../../requirements/nutrition-and-fitness-requirements.md)
+
+> ⚠ **Amended 2026-09-18 after the requirements survey.** Three things
+> below were re-homed, not re-decided: **stature is [lineage's](./lineage-slate.md)**
+> (an endowment dealt at char-gen; `race.md` sealed species-level stature
+> and BMI needs only the mass that already varies) — Part 2's stature
+> section is superseded; **the real-world bridge is the
+> [mirror slate's](./mirror-slate.md)** (density-not-verification,
+> *recognition not advantage*, never the raw feed) — Part 5 is a seam and
+> the advantage question is left THERE, explicitly; and **muscle already
+> exists per body part** (`vitals.md` tissue masses) — `lean` is one
+> figure the parts and the stock cannot disagree on, never a second
+> representation. Scurvy's shape is [metabolism-slate](../tails/metabolism-slate.md)'s,
+> consumed not re-decided.
 
 > **Status: design captured 2026-09-18.** Came out of the grain-chain
 > merge: *"we haven't really talked about what place we want food to have
@@ -117,14 +131,17 @@ cannot teach the canonical lesson about the number it computes. So:
 Both are `Reserve`s on `Creature`, tier-1 stored state. A body that
 predates them (or is not alive) is a no-op, the shipped `flesh` rule.
 
-### Stature is per individual
+### Stature — SUPERSEDED: lineage's, not this build's
 
-`Species.stature` is the species figure; nobody has a height of their
-own, and the tailor's `measure figure` reads girth as `√(mass / stature)`
-off the *species* stature. Stature becomes a field on the person —
-char-gen sets it from the species dossier's spread, the dossier carries
-it, Cast rows may author it. The tailor's read moves from species to
-person with no other change.
+*(As captured: stature becomes a per-person field set at char-gen.)*
+The survey found `race.md`/textiles sealed stature at species level
+(*"individual variance arrives through `getMass()` alone"*) and
+[lineage-slate](./lineage-slate.md) owns it as an endowment axis. BMI is
+mass / stature² and mass already varies per person; buoyancy reads
+fat/lean; the tailor's girth already moves with mass. Stature buys only
+*"a tall man"* — lineage's. **Dropped here**; BMI reads the species
+stature until lineage deals a personal one. ⚠ Revisit with lineage in
+char-gen.
 
 ### The reads are derived and stored nowhere
 
