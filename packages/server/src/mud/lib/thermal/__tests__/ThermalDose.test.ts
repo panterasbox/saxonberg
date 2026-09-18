@@ -1,5 +1,5 @@
 /**
- * ThermalDose (grain-chain W1, plan D2/D4) — the doneness gauge.
+ * ThermalDose (docs/subsystems/thermal.md § doneness) — the doneness gauge.
  *
  * The three things worth pinning, because each is a place the gauge could
  * be quietly wrong and still look right:

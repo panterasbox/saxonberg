@@ -1,5 +1,5 @@
 /**
- * ComminutingMixin (grain-chain W2, plan D8/D24) — grind, then bolt.
+ * ComminutingMixin (docs/subsystems/crafting.md § comminution) — grind, then bolt.
  *
  * The assertion that carries the whole design is the LAST one:
  * **0.61 and 0.62 must not produce the same matter.** A band ladder

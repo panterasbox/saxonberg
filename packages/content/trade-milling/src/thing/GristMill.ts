@@ -96,8 +96,7 @@ export default class GristMill extends GristMillBase {
   /** The room sibling that makes the power, if there is one. */
   private powerTake(): PowerTake | null {
     const self = this as unknown as Stuff;
-    const room = (self as unknown as { getContainer(): Stuff | null })
-      .getContainer();
+    const room = MixinApi.isContainable(self) ? self.getContainer() : null;
     if (room === null || !MixinApi.isContainer(room)) return null;
     for (const occ of room.getContents()) {
       const duck = occ as unknown as Partial<PowerTake>;

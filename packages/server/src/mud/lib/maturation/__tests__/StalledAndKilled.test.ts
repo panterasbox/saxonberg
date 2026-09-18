@@ -1,5 +1,5 @@
 /**
- * ⭐⭐ **Which failure is it?** (grain-chain W6, AC 9.)
+ * ⭐⭐ **Which failure is it?** (docs/subsystems/maturation.md § stalled vs killed.)
  *
  * A ferment can fail in three ways that feel completely different to
  * whoever owns it:

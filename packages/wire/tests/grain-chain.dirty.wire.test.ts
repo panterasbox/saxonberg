@@ -258,6 +258,22 @@ suite('the bakery', () => {
     reachedItsGate(await b.cmd('knead'));
   }, 120_000);
 
+  it('…and `bake`, whose oven arg binds the bakery\'s own oven', async () => {
+    // Bare `bake` with nothing proved in the trough declines in the
+    // controller's words — which is the arg gate (`[mixin.FurnaceMixin]`)
+    // and the affordance both proven, since the parser knew the verb and
+    // the binder found the oven. The header used to CLAIM `bake`
+    // dispatched and never typed it.
+    const result = await b.cmd('bake');
+    reachedItsGate(result);
+    expect(
+      result.notes.some(
+        (n) => n.kind === 'controller-rejected' || n.kind === 'engagement-started',
+      ),
+      'bake reached its controller and answered',
+    ).toBe(true);
+  }, 120_000);
+
   it('⭐ you can BUY a loaf, and the counter takes the money', async () => {
     // Either it sells or it says why — both prove the counter resolves
     // and `buy`'s default arg finds it; a typo would not.

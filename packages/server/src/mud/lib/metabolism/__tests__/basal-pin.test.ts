@@ -1,5 +1,5 @@
 /**
- * ⚠⚠ **AC 18 — nothing is sharpened at the player.** (grain-chain W9.)
+ * ⚠⚠ **AC 18 — nothing is sharpened at the player.** (docs/subsystems/behavior.md § the `eats` brain.)
  *
  * The `eats` brain makes NPC hunger exist for the first time: satiation
  * is reconcile-on-read and nothing has ever read an NPC's. The obvious

@@ -1,5 +1,5 @@
 /**
- * The furnace couple (grain-chain W0, plan D1) — **a furnace heats what it
+ * The furnace couple (docs/subsystems/fire.md § the furnace couple) — **a furnace heats what it
  * HOLDS and what RESTS on it**.
  *
  * Before this build a lit oven was hot and its contents were not: nothing in

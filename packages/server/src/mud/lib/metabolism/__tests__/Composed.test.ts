@@ -1,5 +1,5 @@
 /**
- * ComposedMixin (grain-chain W2, plan D26) — what a discrete food is
+ * ComposedMixin (docs/subsystems/spoilage.md § composition) — what a discrete food is
  * made of.
  *
  * The point is the LABEL: `BlendLabel.amountsOf` already sums a blend's

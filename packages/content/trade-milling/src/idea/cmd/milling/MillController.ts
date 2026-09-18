@@ -288,12 +288,9 @@ async function finishGrind(
   makerPath: string,
 ): Promise<void> {
   try {
-    const room = (mill as unknown as { getContainer(): Stuff | null })
-      .getContainer();
+    const room = MixinApi.isContainable(mill) ? mill.getContainer() : null;
     const landing =
-      room !== null && MixinApi.isContainer(room)
-        ? (room as Stuff & Container)
-        : null;
+      room !== null && MixinApi.isContainer(room) ? room : null;
 
     // Consume the input first — conservation before creation, so a
     // failure leaves the grain rather than doubling it.
@@ -335,10 +332,7 @@ async function finishGrind(
     if (plan.tollL > 0 && mill.tollBinPath && landing) {
       const bin = landing
         .getContents()
-        .find(
-          (c) =>
-            (c as unknown as Stuff).getTemplatePath() === mill.tollBinPath,
-        ) as Stuff | undefined;
+        .find((c) => c.getTemplatePath() === mill.tollBinPath);
       if (bin && MixinApi.isBulkable(bin)) {
         const slot = BulkableApi.slotFor(bin, undefined);
         if (slot) {

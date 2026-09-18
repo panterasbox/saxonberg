@@ -1,5 +1,5 @@
 /**
- * The `eats` brain (grain-chain W9, D21/D22).
+ * The `eats` brain (docs/subsystems/behavior.md § the `eats` brain).
  *
  * ⭐⭐⭐ **The purse chooses the loaf.** Three balances, three outcomes,
  * one counter — and nothing anywhere labels anybody. That is the whole

@@ -1,5 +1,5 @@
 /**
- * Composition flows THROUGH a blend (grain-chain W2, plan D25/D11/D26).
+ * Composition flows THROUGH a blend (docs/subsystems/crafting.md § composition/D11/D26).
  *
  * ⚠⚠ **Five links carry an extraction from a millstone to a plate, and
  * every one of them fails closed and silent.** A composition dropped at

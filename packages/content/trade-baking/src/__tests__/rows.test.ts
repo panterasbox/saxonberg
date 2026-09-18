@@ -1,5 +1,5 @@
 /**
- * The baking trade's rows and the chain they sit in (grain-chain W6).
+ * The baking trade's rows and the chain they sit in (docs/vocations.md § baker).
  *
  * Reads the YAML rather than cloning: what regresses here is the
  * authoring contract, and a clone wants a live DB and a hydrator.

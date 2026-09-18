@@ -37,7 +37,6 @@ import { Final, Unshadowable } from '../security/decorators';
 import type Material from '../material/Material';
 import type { BulkAffordance } from '../bulk/Bulkable';
 import type { Meltable } from './Meltable';
-import type { Furnace } from '../fire/Furnace';
 import { ContainmentApi } from '../../api/containment';
 import type { MixinConstructor, FieldMeta } from "../mixin";
 import type { Stuff } from "../stuff/Stuff";
@@ -500,25 +499,17 @@ export function ThermalMixin<TBase extends MixinConstructor>(Base: TBase) {
      */
     private heatSourceK(): number | null {
       const self = this.thermalHost;
-      const container = self.getContainer();
-      if (
-        container !== null &&
-        MixinApi.isFurnace(container as unknown as Stuff) &&
-        (container as unknown as Furnace).isLit() &&
-        (container as unknown as Furnace).fuelRemaining() > 0
-      ) {
-        return (container as unknown as Furnace).getHeldTemperatureK();
-      }
-      const support = self.getRestingOn();
-      if (
-        support !== null &&
-        MixinApi.isFurnace(support as unknown as Stuff) &&
-        (support as unknown as Furnace).isLit() &&
-        (support as unknown as Furnace).fuelRemaining() > 0
-      ) {
-        return (support as unknown as Furnace).getHeldTemperatureK();
-      }
-      return null;
+      // A lit, fuelled furnace the body is IN or ON — `isFurnace` narrows
+      // the one cast to the container type, and everything after reads
+      // through the narrowing.
+      const litFurnaceK = (candidate: Stuff | null): number | null => {
+        if (candidate === null || !MixinApi.isFurnace(candidate)) return null;
+        if (!candidate.isLit() || candidate.fuelRemaining() <= 0) return null;
+        return candidate.getHeldTemperatureK();
+      };
+      const inside = litFurnaceK(self.getContainer() as unknown as Stuff | null);
+      if (inside !== null) return inside;
+      return litFurnaceK(self.getRestingOn() as unknown as Stuff | null);
     }
 
     /**

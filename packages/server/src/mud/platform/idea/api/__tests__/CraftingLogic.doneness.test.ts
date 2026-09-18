@@ -1,5 +1,5 @@
 /**
- * Doneness and the hold (grain-chain W1, plan D3/D4).
+ * Doneness and the hold (docs/subsystems/thermal.md § doneness).
  *
  * Two behaviour changes, both in the direction of "the physics decides":
  *

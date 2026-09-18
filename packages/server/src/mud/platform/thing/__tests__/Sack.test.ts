@@ -1,5 +1,5 @@
 /**
- * Sack + the temperature on GradedReceptacle (grain-chain W2, plan D6).
+ * Sack + the temperature on GradedReceptacle (docs/subsystems/bulk.md).
  *
  * ⚠ The blast radius of the second is every `Bottle` in the game. That is
  * the point: a bottled ale's freshness gauge has been reading a default

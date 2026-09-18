@@ -1,5 +1,5 @@
 /**
- * The milling trade (grain-chain W5).
+ * The milling trade (docs/vocations.md § miller).
  *
  * Three things are under test, and the second and third are the design:
  *

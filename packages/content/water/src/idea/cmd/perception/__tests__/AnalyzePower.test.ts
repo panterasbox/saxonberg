@@ -1,5 +1,5 @@
 /**
- * `analyze power` (grain-chain W3) — **the equation finally has a
+ * `analyze power` (docs/subsystems/watershed.md § power) — **the equation finally has a
  * consumer.**
  *
  * `ρ·g·Δh·Q·η` had three appearances in the tree and no reader:

@@ -1,5 +1,5 @@
 /**
- * Staling (grain-chain W6, plan D5) — ⭐⭐⭐ **the two clocks point
+ * Staling (docs/subsystems/spoilage.md § staling is not spoilage) — ⭐⭐⭐ **the two clocks point
  * opposite ways, and that is the whole design.**
  *
  * Spoilage is microbial: warm and wet is where things grow. Staling is

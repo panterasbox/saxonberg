@@ -1,5 +1,5 @@
 /**
- * Wheat (grain-chain W4, plan D14) — barley's five rows, shifted where
+ * Wheat (docs/subsystems/husbandry.md § wheat) — barley's five rows, shifted where
  * the agronomy says.
  *
  * ⭐⭐ **A second cereal has to earn its rows.** Barley already closed the
