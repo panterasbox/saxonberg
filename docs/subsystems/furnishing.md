@@ -159,6 +159,20 @@ plus its per-instance key **only when that key is explicit**. A keyless
 host's stashed key is scope-derived, so folding it in would give one room
 two identities either side of its first capture.
 
+⚠⚠ **Only a host that persists ITSELF overlays** — the four location
+classes that compose `Persistable`. A public room never asks. The pets
+build tried putting the overlay on every `CartesianLocation.postRegister`
+(hundreds of indexed point queries at boot) and reversed it the next day:
+a room doing work to find things that are not its own state is the room
+scan wearing another face. What a good in a public room needs is the
+**residency pin** on the good — [residency.md § the load half](./residency.md).
+
+⭐ **A good that persists itself is a REFERENCE in the estate** (pets
+build): `EstateEntry.key` with `state: {}` — a named animal writes its own
+record, and a second copy of a creature in its owner's estate would diverge
+from its first meal. The overlay and the owner's login both **resolve
+first** (`standUpKeyed`), so the world never holds two of the same animal.
+
 ### Goods on the WALL (residences, 2026-08-31)
 
 A good can be *in* a room or *on* it. `hang` moves an
@@ -185,9 +199,10 @@ room — the bar's neon stays on the bar's wall.
 
 | `place` | on materialize |
 |---|---|
-| `inventory` | cloned into the owner's own container |
+| `inventory` | cloned into the owner's own container — a **keyed** entry is stood up from its own record and put back in hand (it restored as a blank clone from `state: {}` before the pets build) |
 | `storage` | **nothing at all** — the good is live in the registry and the record, with no presence in the world |
-| a room identity | deferred to that room's materialize (mounted goods re-attach as fixtures) |
+| a room identity, carried as state (a chair) | deferred to that room's materialize (mounted goods re-attach as fixtures); ⚠ a room that does not persist itself never materializes a record, so a chair left on a public lane is not put back — [eager-residency-slate § 7](../slates/builds/eager-residency-slate.md) |
+| a room identity, **keyed** (a named animal) | stood up by the owner's login through `RestoreContext.standUpKeyed`, resolving first; its own record restores its placement; usually already standing (the pin roll) |
 
 Storage is what makes "move house" work: it is the *absence* of a
 placement, not a place. `ChattelApi.evictToStorage(prefix)` (key-based, still Api) is the

@@ -84,6 +84,8 @@ export interface Chattel {
   // The title face (F1) — forwards into ChattelLogic.
   /** The owner — `stamp ?? parcel-extent ?? authorOf`; null when nobody. */
   chattelOwner(): Promise<ChattelOwner | null>;
+  /** Who is STAMPED on this good, synchronously — the title rung only. */
+  stampedOwner(): ChattelOwner | null;
   /** Has someone been stamped as owning this good? (sync — capture walk). */
   isStamped(): boolean;
   /** Persisted by its owner rather than its host? (player-stamped only). */
@@ -187,6 +189,20 @@ export function ChattelMixin<TBase extends MixinConstructor<Stuff>>(
     /** See {@link Chattel.chattelOwner} — the three-rung total resolve. */
     public chattelOwner(): Promise<ChattelOwner | null> {
       return chattelLogic().ownerOf(this as unknown as Stuff);
+    }
+
+    /**
+     * Who is stamped on this good, from the in-memory title index —
+     * **synchronously**, which is the whole reason it exists beside the
+     * async {@link chattelOwner}: a caller inside a filter (the MQL
+     * `:mine` predicate) cannot await.
+     *
+     * ⚠ The *stamp* rung only. `chattelOwner()` resolves all three rungs
+     * (stamp → parcel → author); this answers the narrow question "whose
+     * name is on it", and answers `null` before the registry warms.
+     */
+    public stampedOwner(): ChattelOwner | null {
+      return chattelLogic().stampedOwnerOf(this as unknown as Stuff);
     }
 
     /**

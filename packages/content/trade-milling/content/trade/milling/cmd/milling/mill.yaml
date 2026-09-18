@@ -1,0 +1,78 @@
+verbs: [mill]
+controller: /trade/milling/idea/cmd/milling/MillController
+description: "Grind grain or malt, and choose how much of it you keep"
+help: |
+  `mill the sack of wheat` grinds it at whatever stones are in reach, at
+  their usual setting. `mill the sack of wheat 0.9` sets the extraction
+  first. Where there is more than one — a quern in your hands and a mill
+  in the room — say which: `mill the wheat at the quern`.
+
+  ⭐ **The extraction is the decision.** It is how much of the grain you
+  keep as flour, and it is not a choice between three options — every
+  setting is its own answer.
+
+  Take LESS (0.6) and the bolting cloth throws away all the outer coat.
+  What you keep is the pure inner stock: white, fine, and it keeps almost
+  indefinitely, because there is not enough water in it for anything to
+  grow. You also threw away a third of the weight.
+
+  Take MORE (0.9) and you keep the outer coat with it. Darker flour, more
+  of it, and more nourishing — the bran carries the fibre, most of the
+  protein and the minerals. It also carries the oil and the water, so it
+  goes off. A wholemeal sack in a warm room is a spoiled sack by the end
+  of the month.
+
+  Whatever the cloth takes out comes off as bran, in its own sack, and
+  bran is not waste: it feeds pigs and hens, and it is the poor man's
+  bread.
+
+  ⭐⭐ **What the mill buys you is your TIME.** At a hand quern you are
+  cranking — your hands are on the handle for the whole grind and you can
+  do nothing else until it is done. At a water mill you set it going and
+  walk away; the river turns the stones whether you are in the room or
+  not. That is what the capital is for.
+
+  Malt grinds too, and what comes off is grist — which is what a mash
+  actually wants, since whole malt does not mash at all.
+validators:
+  - /lib/command/validators/requiresAnimate
+  - /lib/command/validators/requiresConscious
+args:
+  - name: grain
+    type: object
+    required: true
+    scope: ["reachable"]
+    # ⭐ Both shapes grain arrives in are Tangible: a discrete `Crop`
+    # sack off a field, and a `Sack` of bulk off a counter. The mill
+    # decides which by reading the MATERIAL's tags, never by class — so
+    # the arg constrains to physical matter and no further.
+    requires: TangibleMixin
+  # ⚠ `extraction` BEFORE `mill`: positionals bind in declared order, so
+  # with the instrument declared second `mill wheat 0.72` handed the
+  # number to the instrument ("bare integer '0' is not valid at the head
+  # of a chain"). A later field's PREPOSITION still wins the lookahead —
+  # `mill wheat at quern` skips the number. Found by the drive.
+  - name: extraction
+    type: number
+    required: false
+  # ⭐⭐ WHICH STONES, declared rather than re-derived — the `buy … from
+  # <counter>` shape, and for its stated reasons.
+  #
+  # The controller used to hunt for a mill itself. Declaring it makes the
+  # binder resolve it like any other object, keeps `mill wheat` unchanged,
+  # and makes a second set of stones ADDRESSABLE (`mill wheat at the hand
+  # quern` in a room that has both) — which a controller-side default
+  # never was.
+  #
+  # ⚠⚠ And the query is the MIXIN, not `[class.GristMill]`. That is not
+  # style: `ComminutingMixin` is kernel substrate precisely because the
+  # metal chain's stamp mill is its second consumer, in a pack with no
+  # ancestor in common — so a class check would silently refuse to find
+  # the very thing the mixin was lifted to the kernel for.
+  - name: mill
+    type: object
+    required: false
+    prepositions: [at, with, on]
+    default: "reachable:[mixin.ComminutingMixin]"
+    scope: ["reachable"]
+    requires: [ComminutingMixin]

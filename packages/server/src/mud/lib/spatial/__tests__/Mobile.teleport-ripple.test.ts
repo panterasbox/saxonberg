@@ -17,6 +17,7 @@ import { HaulerMixin } from '../../slot/Hauler';
 import { Idea } from '../../stuff/Idea';
 import CartesianZone from '../../../platform/idea/location/CartesianZone';
 import CartesianLocation from '../../location/CartesianLocation';
+import Exit from '../../boundary/Exit';
 import { StuffApi } from '../../../api/stuff';
 import { ContainmentApi } from '../../../api/containment';
 import { installV1QuantityMarshallers } from '../../persistence/__tests__/quantity-marshaller-test-helpers';
@@ -42,6 +43,18 @@ class Mount extends SlottedMixin(MobileMixin(ContainableMixin(Idea))) {
 /** A rider: mobile, and can occupy somebody else's slot. */
 class Rider extends SlottableMixin(MobileMixin(ContainableMixin(Idea))) {
   static _mixinName = 'TestRider';
+}
+
+/** A wearer: mobile, has slots, and holds what it wears (an avatar). */
+class Wearer extends SlottedMixin(
+  ContainerMixin(MobileMixin(ContainableMixin(Idea))),
+) {
+  static _mixinName = 'TestWearer';
+}
+
+/** Something worn: in the wearer's contents AND its slot. */
+class Worn extends SlottableMixin(ContainableMixin(Idea)) {
+  static _mixinName = 'TestWorn';
 }
 
 function tworoom(): { locA: CartesianLocation; locB: CartesianLocation } {
@@ -131,6 +144,32 @@ describe('Mobile.teleport — D14', () => {
 
     expect(mover.getContainer()).toBe(locB);
     expect(pack.getContainer()).toBe(mover);
+  });
+
+  it('⚠⚠ WORN gear — in the contents AND a slot — stays on the wearer', async () => {
+    // Found live: the ripple moved every slot occupant into the
+    // destination ROOM, so a character left its aether implant on the
+    // floor of every room it walked into. Worn gear is contents; it
+    // already moved with the wearer, and must not be rippled.
+    const { locA, locB } = tworoom();
+    const wearer = makeStuff(() => new Wearer());
+    wearer.setStaticSlots([{ name: 'cranial', accepts: 'SlottableMixin' }]);
+    ContainmentApi.move(wearer, locA);
+    const implant = makeStuff(() => new Worn());
+    ContainmentApi.move(implant, wearer);
+    wearer.occupy(implant, 'cranial');
+
+    wearer.teleport(locB);
+    expect(implant.getContainer()).toBe(wearer);
+    expect(implant.getOccupiedHost()).toBe(wearer);
+
+    const exit = makeStuff(
+      () => new Exit({ direction: 'south', source: locB, destination: locA }),
+    );
+    await wearer.traverse(exit, 'walk');
+    expect(wearer.getContainer()).toBe(locA);
+    expect(implant.getContainer()).toBe(wearer);
+    expect(locA.getContents()).not.toContain(implant);
   });
 
   it('a silent spawn is unaffected — a fresh avatar is never hitched', () => {

@@ -123,7 +123,7 @@ describe("CheckRack — custody-not-title over the consignment substrate", () =>
     const knife = weapon(patron);
     await asOwner(patron, () =>
       makeStuff(() => new CheckController()).execute(
-        { thing: "knife" , rack: { stuff: rack as never, raw: "rack" } },
+        { thing: { stuff: knife as never, raw: "knife" }, rack: { stuff: rack as never, raw: "rack" } },
         ctx(patron, loc, rack, "check"),
       ),
     );
@@ -149,7 +149,7 @@ describe("CheckRack — custody-not-title over the consignment substrate", () =>
     const knife = weapon(patron);
     await asOwner(patron, () =>
       makeStuff(() => new CheckController()).execute(
-        { thing: "knife" , rack: { stuff: rack as never, raw: "rack" } },
+        { thing: { stuff: knife as never, raw: "knife" }, rack: { stuff: rack as never, raw: "rack" } },
         ctx(patron, loc, rack, "check"),
       ),
     );
@@ -182,7 +182,7 @@ describe("CheckRack — custody-not-title over the consignment substrate", () =>
     const knife = weapon(patron);
     await asOwner(patron, () =>
       makeStuff(() => new CheckController()).execute(
-        { thing: "knife" , rack: { stuff: rack as never, raw: "rack" } },
+        { thing: { stuff: knife as never, raw: "knife" }, rack: { stuff: rack as never, raw: "rack" } },
         ctx(patron, loc, rack, "check"),
       ),
     );
@@ -194,7 +194,7 @@ describe("CheckRack — custody-not-title over the consignment substrate", () =>
     ContainmentApi.move(stranger as never, loc as never);
     await asOwner(stranger, () =>
       makeStuff(() => new ReclaimController()).execute(
-        { thing: "knife" , shelf: { stuff: rack as never, raw: "shelf" } },
+        { thing: "knife", shelf: { stuff: rack as never, raw: "shelf" } },
         ctx(stranger, loc, rack, "reclaim"),
       ),
     );
@@ -203,7 +203,7 @@ describe("CheckRack — custody-not-title over the consignment substrate", () =>
     // The owner reclaims it — ownership unchanged.
     await asOwner(patron, () =>
       makeStuff(() => new ReclaimController()).execute(
-        { thing: "knife" , shelf: { stuff: rack as never, raw: "shelf" } },
+        { thing: "knife", shelf: { stuff: rack as never, raw: "shelf" } },
         ctx(patron, loc, rack, "reclaim"),
       ),
     );
@@ -225,7 +225,7 @@ describe("CheckRack — custody-not-title over the consignment substrate", () =>
     (c as unknown as { note: unknown }).note = note;
     await asOwner(patron, () =>
       makeStuff(() => new CheckController()).execute(
-        { thing: "shield", rack: { stuff: rack as never, raw: "rack" } },
+        { thing: { stuff: shield as never, raw: "shield" }, rack: { stuff: rack as never, raw: "rack" } },
         c,
       ),
     );

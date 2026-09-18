@@ -454,3 +454,9 @@ trade geography that follows.
   a good reason for cooking to matter past nutrition.)
 - **Does sealing do physics**, or stay binary? `SealableMixin` has none today.
 - **Numeric calibration** — every rate. Deferred to a running game.
+- **The kill re-based onto a shared integrator (one z).** Deliberately
+  NOT done by the grain chain: doneness integrates browning at z ≈ 33 K
+  (`ThermalDoseMixin`), the kill is an Arrhenius rate at Ea ≈ 200 kJ/mol
+  (z ≈ 7 K), and one integrator would have to lie about one of them. The
+  passive kill's rectangle rule is the seam if a preservation build wants
+  to integrate it too.

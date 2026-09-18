@@ -29,7 +29,10 @@ import {
   ESTATE_INVENTORY,
   ESTATE_STORAGE,
 } from "../../../lib/persistence/PersistenceSlice";
-import type { ChattelOwner } from "../../../lib/chattel/ChattelRecord";
+import type {
+  ChattelOwner,
+  ChattelPin,
+} from "../../../lib/chattel/ChattelRecord";
 import type { Chattel } from "../../../lib/chattel/Chattel";
 import type { Adornment } from "../../../lib/boundary/Adornment";
 import type { ChattelStampResult } from "../../../api/chattel";
@@ -216,8 +219,34 @@ export class ChattelLogic extends ApiLogic {
     const id = good.getChattelId();
     if (!id) return; // unstamped: nothing owns it, so nothing keeps it
     const reg = lookupRegistry();
-    if (reg) await reg.setPlace(id, place);
+    if (reg) await reg.setPlace(id, place, this.pinOf(good, place));
     await this.syncEstate(good, place);
+    // ⭐ A good that persists ITSELF writes its record on the same act. Its
+    // record is otherwise captured only at naming, at the shutdown sweep
+    // and at eviction — and the pin roll trusts the record's placement, so
+    // a crash between `drop` and any of those would stand it up one room
+    // stale while the index said otherwise. One write per custody act on
+    // a pinned good; there are few of them, and this is what makes the
+    // index and the record one fact.
+    if (MixinApi.isPersistable(good) && good.isPersistenceKeyExplicit()) {
+      await PersistableApi.capture(good as Stuff);
+    }
+  }
+
+  /**
+   * The residency pin for a good, or null: how to stand it up at boot
+   * without anybody asking. Three things have to be true — the class opts
+   * in, the good persists itself, and it has an explicit key to be stood
+   * up by — and a good that is kept in `storage` or `inventory` is not
+   * standing anywhere, so it has no pin either.
+   */
+  private pinOf(good: Stuff & Chattel, place: string): ChattelPin | null {
+    if (place === ESTATE_STORAGE || place === ESTATE_INVENTORY) return null;
+    if (!MixinApi.isPersistable(good)) return null;
+    if (!good.pinsResidency() || !good.isPersistenceKeyExplicit()) return null;
+    const scope = good.getTemplatePath();
+    const key = good.getPersistenceKey();
+    return scope && key ? { scope, key } : null;
   }
 
   /**
@@ -273,6 +302,20 @@ export class ChattelLogic extends ApiLogic {
       }
     }
     return rows.length;
+  }
+
+  /** See {@link ChattelApi.pinned}. */
+  @CallSecurity(ChattelApiCallers)
+  public async pinned(): Promise<Array<{ pin: ChattelPin; place: string }>> {
+    const reg = lookupRegistry();
+    if (!reg) return [];
+    const rows = await reg.pinned();
+    const out: Array<{ pin: ChattelPin; place: string }> = [];
+    for (const r of rows) {
+      const pin = r.getPin();
+      if (pin) out.push({ pin, place: r.getPlace() });
+    }
+    return out;
   }
 
   /** See {@link ChattelApi.placedIn}. */

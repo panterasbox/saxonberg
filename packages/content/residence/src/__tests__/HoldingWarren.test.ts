@@ -491,7 +491,20 @@ describe('the maintenance act (D4/D5)', () => {
       () => new MaintainController(),
       '/system/residence/idea/cmd/crafting/MaintainController',
     );
-    await controller.execute({} as CommandModel, ctx);
+    // ⚠ Stand in for the BINDER: `maintain`'s `kit` is a declared arg
+    // defaulting to `reachable:[capability.upkeep]`, so the binder finds
+    // the kit and the controller reads it. A hand-built model skips the
+    // binder and must carry what the view would have put there.
+    const held =
+      (actor as unknown as { getContents?(): unknown[] }).getContents?.() ?? [];
+    const kit = held.find((i) => {
+      const t = i as { hasCapability?(c: string): boolean };
+      return typeof t.hasCapability === 'function' && t.hasCapability('upkeep');
+    });
+    await controller.execute(
+      (kit === undefined ? {} : { kit: { stuff: kit, raw: 'kit' } }) as CommandModel,
+      ctx,
+    );
     return ctx;
   }
 

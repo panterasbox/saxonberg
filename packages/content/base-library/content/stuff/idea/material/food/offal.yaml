@@ -1,0 +1,28 @@
+# ⭐ Offal — the organ meat every butchered carcass has always produced
+# and nothing has ever yielded. The word appeared only in a controller's
+# comment and its help text; there was no row and no material.
+#
+# ⚠ It spoils FASTER than muscle, which is the honest fact and also the
+# one that makes it interesting: offal is what you feed an animal today
+# because it will not keep until tomorrow. A higher activation energy
+# means it answers more steeply to warmth.
+class: /platform/idea/material/ConsumableMaterial
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  name: offal
+  keywords: [offal, organ, liver, lights, pluck]
+  appearance: dark wet offal
+  density: 1060
+  thermalConductivity: 0.47
+  specificHeat: 3300
+  edibility: true
+  tastes: [umami, bitter]
+  # Faster than muscle: more available water, more enzyme, less structure.
+  spoilActivationEnergy: 92000
+  waterActivity: 0.99
+  nutrients: [protein]
+  nutrientAmounts:
+    protein: 21000
+  tags: [food, meat, offal, raw]
+  composition: []
+  biologicalSource: null

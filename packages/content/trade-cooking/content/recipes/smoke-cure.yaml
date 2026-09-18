@@ -21,5 +21,9 @@ toolCapabilities: []
 outputApplication: tangible
 outputTemplate: /trade/cooking/thing/treated-cut
 requiresHeatK: 320
+# ⚠ The whole of smoking is heat low enough to dry and not cook. Over
+# this you have roasted the cut instead of curing it, and it will not
+# keep.
+maxHeatK: 350
 cure:
   moisture: 0.55

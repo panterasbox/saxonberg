@@ -11,7 +11,7 @@ data:
   longDescription: |
     A silver-leaved olive, trunk already going gnarled the way olives do from the start.
   _speciesPath: /stuff/idea/species/plantae/tracheophyta/magnoliopsida/lamiales/oleaceae/olea/europaea
-  material: /stuff/idea/material/tissue/plant-tissue
+  _materialPath: /stuff/idea/material/tissue/plant-tissue
   lifecycleState: alive
   seedTemplatePath: /trade/farming/thing/seed/olive
   harvestTemplatePath: /trade/farming/thing/olive

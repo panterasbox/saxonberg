@@ -50,3 +50,6 @@ data:
   # only refusal this build hard-codes is a sentient one (D14).
   butcheryYield:
     - { cut: /stuff/thing/items/stew-meat, units: 12 }
+    # ⭐ Offal — 10–15% of live weight in the real world, and the cut
+    # that will not keep. It is what you feed an animal today.
+    - { cut: /stuff/thing/items/offal, units: 3 }

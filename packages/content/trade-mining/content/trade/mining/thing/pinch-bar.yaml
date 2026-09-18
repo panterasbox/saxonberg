@@ -12,5 +12,9 @@ data:
     to a claw. You bar down the loose before you work under it, and you
     do it from where the loose is not going to land.
   mass: 5.4
-  capabilities: ["prying"]
+  # ⚠ No `capabilities:` — it used to offer `prying`, and nothing asked
+  # for it: there is no verb that bars down loose ground yet, and a kind
+  # is minted by a CONSUMER, never by a row (`lint:capabilities`). The
+  # act this tool is for is real and undesigned — when it lands, the verb
+  # declares `[capability.prying]` and this row offers it again.
   _materialPath: /stuff/idea/material/element/iron

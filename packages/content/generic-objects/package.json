@@ -2,10 +2,11 @@
   "name": "@saxonberg/content-generic-objects",
   "version": "0.1.0",
   "private": true,
-  "description": "Generic objects — the object clusters and loose rows every locality names, plus the small classes those rows need (the pack ships a src/: SconceLamp, the wall-mounted light the residences build hangs).",
+  "description": "Generic objects \u2014 the object clusters and loose rows every locality names, plus the small classes those rows need (the pack ships a src/: SconceLamp, the wall-mounted light the residences build hangs).",
   "type": "module",
   "dependencies": {
     "@saxonberg/content-platform": "workspace:*",
+    "@saxonberg/content-species-and-names": "workspace:*",
     "@saxonberg/server": "workspace:*",
     "@saxonberg/types": "workspace:*"
   },

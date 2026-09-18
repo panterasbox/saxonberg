@@ -28,6 +28,7 @@ import { VisibleMixin } from '../../description/Visible';
 import { PerceptibleMixin } from '../../description/Perceptible';
 import { StatusMixin } from '../../status/Status';
 import { OrganismMixin } from '../../species/Organism';
+import { PersonaMixin } from '../../character/Persona';
 import { Idea } from '../../stuff/Idea';
 import { StuffApi } from '../../../api/stuff';
 import { makeStuff, makeStuffAtPath } from '../../security/__tests__/test-setup';
@@ -36,9 +37,16 @@ class Viewer extends BeliefStoreMixin(
   PerceptionMixin(SensorMixin(ContainableMixin(NamedMixin(Idea)))),
 ) {}
 
-class Being extends StatusMixin(
-  PerceptibleMixin(
-    VisibleMixin(OrganismMixin(NamedMixin(ContainableMixin(Idea)))),
+// ⚠ **PersonaMixin is what makes it a PERSON**, and recognition is now a
+// person-only gate: an animal cannot be a stranger, wear a hood, or be
+// impersonated, so a non-person organism renders its name to everybody.
+// A fixture called Bob that models a person must compose the thing that
+// makes one — faking the shape passes only until the rule gets stricter.
+class Being extends PersonaMixin(
+  StatusMixin(
+    PerceptibleMixin(
+      VisibleMixin(OrganismMixin(NamedMixin(ContainableMixin(Idea)))),
+    ),
   ),
 ) {}
 

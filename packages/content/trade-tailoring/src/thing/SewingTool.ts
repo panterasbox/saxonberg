@@ -22,7 +22,7 @@
  * DEPENDS ON `terminus` — a terminus row naming a tailoring class is
  * the dependency backwards. That is the right answer anyway: a general
  * soft-goods kit mends anything, and the trade sells its own
- * instrument. Both still pace the step, because `findCapability` ranks
+ * instrument. Both still pace the step, because `bestInstrument` ranks
  * on the `mending` capability and does not care which class carries it.
  *
  * ⚠ The verb affordance is a STATIC ON THE CLASS; a row's

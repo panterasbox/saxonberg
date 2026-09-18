@@ -1,0 +1,26 @@
+# A flatbread — ⭐ RAW dough, no proof, five minutes.
+#
+# `category: dough` rather than `proofed-dough`: this is the fork that
+# needs no culture, no waiting and no gluten. It is what you make when
+# you have no starter, or no time, or barley flour — and it is a real
+# food rather than a failure state.
+recipeId: flatbread
+name: Flatbread
+keywords:
+- flatbread
+- bannock
+inputSlots:
+- slot: dough
+  category: dough
+  minGrade: poor
+  measureL: 0.5
+toolCapabilities: []
+outputTemplate: /trade/baking/thing/flatbread
+outputAppearance: a thin round blistered dark where it lay on the oven floor
+outputApplication: tangible
+outputMaterial: /stuff/idea/material/food/bread
+requiresHeatK: 480
+maxHeatK: 560
+holdS: 300
+difficulty: simple
+discipline: baking

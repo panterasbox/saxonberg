@@ -44,3 +44,6 @@ data:
   butcheryYield:
     - { cut: /stuff/thing/items/stew-meat, units: 6 }
     - { cut: /stuff/thing/items/prime-cut, units: 2 }
+    # ⭐ Offal — 10–15% of live weight in the real world, and the cut
+    # that will not keep. It is what you feed an animal today.
+    - { cut: /stuff/thing/items/offal, units: 2 }

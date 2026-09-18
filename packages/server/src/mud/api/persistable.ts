@@ -142,6 +142,24 @@ export class PersistableApi {
   }
 
   /**
+   * ⭐⭐ **Resolve-or-mint the host keyed `(scope, key)`.**
+   *
+   * Returns the instance already standing if there is one, and otherwise
+   * clones a fresh shell and materializes its record — which restores its
+   * own placement, so it comes back **where it was**, not where the
+   * caller is.
+   *
+   * ⚠ Resolve-FIRST is the load-bearing half. A keyed host's identity is
+   * the pair, so minting unconditionally would put two identical animals
+   * in the world sharing one record and clobbering each other. Every
+   * route that stands a keyed host up — an owner logging in, a room
+   * materializing, a boot roll — has to ask this one question.
+   */
+  static standUpKeyed(scope: string, key: string): Promise<Stuff | null> {
+    return logic().standUpKeyed(scope, key);
+  }
+
+  /**
    * Capture one **non-host** Stuff's composed state, detached from any
    * record — the shape a {@link ContentEntry} nests and an
    * {@link EstateEntry} carries. Synchronous, because the capture walk is.

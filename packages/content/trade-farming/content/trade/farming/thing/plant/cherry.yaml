@@ -10,7 +10,7 @@ data:
   longDescription: |
     A young sweet cherry on dwarfing stock, its bark banded and shining.
   _speciesPath: /stuff/idea/species/plantae/tracheophyta/magnoliopsida/rosales/rosaceae/prunus/avium
-  material: /stuff/idea/material/tissue/plant-tissue
+  _materialPath: /stuff/idea/material/tissue/plant-tissue
   lifecycleState: alive
   seedTemplatePath: /trade/farming/thing/seed/cherry
   harvestTemplatePath: /trade/farming/thing/cherry

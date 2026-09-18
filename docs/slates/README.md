@@ -1,6 +1,6 @@
 # Slates — the design backlog, sorted by what is left
 
-224 slates. Every one carries a **status block** under its title:
+228 slates. Every one carries a **status block** under its title:
 
 ```
 > **Status: PARTIAL** — what shipped → [subsystem.md](…)
@@ -30,7 +30,7 @@ materials-response all shipped, which made the name actively misleading.
 
 ---
 
-## ⭐ Greenfield — nothing shipped yet (54)
+## ⭐ Greenfield — nothing shipped yet (57)
 
 Pick from here for a clean cycle with no existing substrate to respect.
 
@@ -57,6 +57,7 @@ Pick from here for a clean cycle with no existing substrate to respect.
 | [discovery](./builds/discovery-slate.md) | the forage verb + the patch Stuff · biome-authored tables with derived, depleting stock · the NetHack consumable distribution … |
 | [education-integration](./builds/education-integration-slate.md) | earn-by-learning (the vocational lab as a crafting venue) · the student → TA → instructor ladder · the corpo sponsor funding a cohort against outcomes … |
 | [enforcement](./builds/enforcement-slate.md) | the enforcement-mode vocabulary (wall · camera · witness · norm) as a committee-picked field · the evidence firewall … |
+| [estate-nesting](./builds/estate-nesting-slate.md) | ⭐⭐ decide what an estate entry should CARRY — a reference, a copy, or a copy under a cap · the 16 MB document ceiling and what happens at it · whether a good's state belongs in the owner's record at all now that `EstateEntry.key` proves it need not … |
 | [eternal-university-narrative](./builds/eternal-university-narrative-slate.md) | the whole arc — the three-tier serial crime, Dunny and Wren, the killer + the panic · the census mechanic (roll · enumerator · count → conviction-voting) … |
 | [faith](./builds/faith-slate.md) | the deed-tag vocabulary + the four tags Part 1 needs (`aid.treat`, `aid.attend-dying`, `harm.nonconsented`, `ritual.attend`, honouring `since`) … |
 | [fishing](./builds/fishing-slate.md) | the catch-distribution field · the landing contest · the fish and aquatic-harvest roster · the method ladder (rod · trap · net · spear) · the three water regimes … |
@@ -64,6 +65,7 @@ Pick from here for a clean cycle with no existing substrate to respect.
 | [forestry](./builds/forestry-slate.md) | the forestry trade pack · felling + conversion verbs · seasoning · the stand-as-record · the silviculture Discipline · estovers + forest law … |
 | [grid](./builds/grid-slate.md) | the service declaration on `ParcelRecord` (default connected, author disconnection) · connection-not-consumption metering … |
 | [guild](./builds/guild-slate.md) | the `Guild` Idea + charter schema · the `guild:` GroupProvider + ranks · focus-tagged `TranscriptEntry` + charter-weighted `Competence` · contract claim gates … |
+| [hydration-framework](./builds/hydration-framework-slate.md) | a `Hydrator` that is mixin-composed like `PersistenceContributor` — one framework for every hydration source (the `data:` block, a record, another collection) · `postRegister` for work AFTER a thing is filled in, not "finish hydrating" (63 of 109 break that) … |
 | [hunting](./builds/hunting-slate.md) | the wild population as a record materialized on encounter · `track` + the method ladder · *ferae naturae* + game law + close seasons · poaching enforcement … |
 | [implements](./builds/implements-slate.md) | the implement class itself · choosing what it modifies (magnitude / cost / band-reach) · BUC on the effect axis · the stacking rule, before content exists … |
 | [instrumentation](./builds/instrumentation-slate.md) | the `analyze`/`measure` channel → capability + competence table · the instrument-declared dial (so a pack contributes a subcommand) · the readout ladder … |
@@ -75,6 +77,7 @@ Pick from here for a clean cycle with no existing substrate to respect.
 | [mirror](./builds/mirror-slate.md) | the inbound assertion channel · the density threshold · the never-see-the-raw-feed privacy invariant · sensor-silence as neutral · calibration/trust tiers … |
 | [notification](./builds/notification-slate.md) | the subject-keyed event · the durable subscription · derive-on-read delivery · coalescing + digest · the both-ends spoiler gate … |
 | [odometer](./builds/odometer-slate.md) | the counter roster (editorial, chosen against observed play) · the subject-scoped derive over chronicle/participation/advancement · milestones … |
+| [pathfinding](./builds/pathfinding-slate.md) | ⭐ ONE graph walk for every consumer — the three-walk census (`findRoute`, the warren walk, the animal's trail) · its acceptance test is *do the two shipped walks actually migrate?* … |
 | [pharma](./builds/pharma-slate.md) | the actives/pharmacopoeia content · extraction as a process · glass vessels · the assay instrument · the apothecary + assayer vocations · the illicit branch … |
 | [presence-hollowing](./builds/presence-hollowing-slate.md) | presence-vs-hollow as a physical state on an agent · who perceives it (ESP · the attuned reader dial · sacred instruments) · binary or degree … |
 | [prison](./builds/prison-slate.md) | `PrisonMixin` (a locality you cannot leave) · the three enforcement tiers in content · the federal facility on its reserved Saxonberg site · terms and the appeal path |
@@ -91,7 +94,7 @@ Pick from here for a clean cycle with no existing substrate to respect.
 | [wizard-bar](./builds/wizard-bar-slate.md) | ⭐ the conspicuous record of wizard reads/impersonations (the one non-retrofittable piece) · the safe-harbour standard text · admit (exam + archwizard flip) … |
 | [wizard-duty](./builds/wizard-duty-slate.md) | re-gating those four off the code-trust axis · break-glass declared-purpose logging for reads and impersonation · `su` as an agency consumer … |
 
-## ⭐ Continuations — substrate shipped, a build's worth remains (78)
+## ⭐ Continuations — substrate shipped, a build's worth remains (79)
 
 Pick from here to deepen something that already works. Cheaper to start
 (the ground is proven) and the slate says exactly where the edge is.
@@ -111,7 +114,7 @@ Pick from here to deepen something that already works. Cheaper to start
 | [combat](./builds/combat-slate.md) | pursuit / the chase · rout & rally retreat · the morale + de-escalation suite · the `guards` intervention brain · the client `CombatCard` · NPC-vs-NPC crews … |
 | [combat-experience](./builds/combat-experience-slate.md) | T5 composure/luck (`traits-stress`; `g(composure)` is inert) · T7/T8 loadout-as-chemistry · T11 aftermath · T12 de-escalation · T13 morale & surrender … |
 | [content-packs](./builds/content-packs-slate.md) | the unbuilt trades (butchery · milling · forestry · fishing · medicine · sanitation · funerary · repair · papermaking · insurance) · localities-as-compositions … |
-| [cooking](./builds/cooking-slate.md) | the tending wave (durative cook · doneness · braise) · cold storage/icebox · compost · preservation + the victualler · the baker pack |
+| [cooking](./builds/cooking-slate.md) | the tending wave (durative cook · braise) · cold storage/icebox · compost · preservation + the victualler · slices (a food that yields N portions) · staling promoted to the kernel on the third-pack signal |
 | [cooperative](./builds/cooperative-slate.md) | the capital faucet / stake ledger · Twitch identity binding · the three chambers + the ballot · delegation guardrails · the in-world reserve + the budget process … |
 | [corpos](./builds/corpos-slate.md) | the multipolar approval vector · competition + rival-tanking · sponsorship · approval→access gates · player-founded corpos · portfolios beyond booze |
 | [cosmetics](./builds/cosmetics-slate.md) | the appearance-mark carrier on a body (the `Looks` cell) · the personal-services vocation + graded cuts · tattoos · the dye-plant crop rows |
@@ -122,6 +125,7 @@ Pick from here to deepen something that already works. Cheaper to start
 | [delivery](./builds/delivery-slate.md) | providers + coverage + metering (power, aether) · the aether-line ↔ comms unification · post/mail to an address · the broadcast/field carry |
 | [disease](./builds/disease-slate.md) | `ContagionSpec` (routes · host range · reservoir) — `Condition.contagion` is still `null` with no consumer · the husbandry-is-immunity coupling · quarantine … |
 | [disease (pack)](./builds/disease-design-pack.md) | `ContagionSpec` itself · the two unifications (one burden engine · one hygiene read) · the room-condition half of immunity, which is also unbuilt … |
+| [eager-residency](./builds/eager-residency-slate.md) | the pin's governance: ⭐⭐ two tiers of account and the may/may-not table (player · maker · funder) · three-party admission (object · owner · parcel) over the allowance · the degradation order · the lapse · the never-fault gate · the keyless good in a public room … |
 | [economy](./builds/economy-slate.md) | faucet/sink + inflation balance · the bazaar · market aggregation · the currency-reset event … |
 | [eternal-university](./builds/eternal-university-slate.md) | the arrival gate · the Quad + the walkway spine · Student Services (registrar + housing office) · the Health Center clinic · the Campus Store · the academic hall … |
 | [fire-combustion](./builds/fire-combustion-slate.md) | the fire service (§ below) — the brigade, prevention, and fire insurance · arson-as-crime · map-scale wildfire · burning-DoT as a combat weapon … |
@@ -153,7 +157,7 @@ Pick from here to deepen something that already works. Cheaper to start
 | [npc-behavior](./builds/npc-behavior-slate.md) | the upper rungs of the ladder — intent-match, the code-tier `scripted-behavior` brain, the LLM brain · the `addressed` and `given` triggers … |
 | [onboarding](./builds/onboarding-slate.md) | the `onboarded` flag + lounge-exit routing · Dr. Limen (seat, model-backed brain, the reply contract) · the onboarding-progress flags and their subscription … |
 | [persistence-architecture](./builds/persistence-architecture-slate.md) | Wave 3 — un-Stuff `PersistentHydrator`, the marshallers and `obj/hooks/` (`DomainHook` + `hooks.yaml`) into path-resolved, lazy, re-resolved modules on the shipped bra … |
-| [pets](./builds/pets-slate.md) | the taming encounter · the bond + four-needs care loop · the accept/refuse hook · the off-screen resolution + digest · home range … |
+| [pets](./builds/pets-slate.md) | Wave 2 — the accept/refuse hook for the other verbs (the appraisal feeding `pet` / `call` / `stay`) · the off-screen resolution + digest · home range · pet combat staging · breeding … |
 | [physiology](./builds/physiology-slate.md) | the capacity vocabulary + the `governs` rename (waves 2–3 block the rest) · the organ roster (brain · spine · liver) … |
 | [policing](./builds/policing-slate.md) | the three enforcement tiers · the closed policy vocabulary + resolve-on-read enforcement · arrest and custody · the constable kit bundle as a budget line … |
 | [power-utility](./builds/power-utility-slate.md) | the supply reference on `Energized` fixtures · outage propagation + directional network failure over exit edges · gas as the second conduit commodity … |

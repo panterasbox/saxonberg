@@ -70,7 +70,7 @@ describe('the four courses, as authored', () => {
   });
 
   it('⭐ barley is what MALT is made from, and the row now exists', () => {
-    expect(row('thing/crop/barley.yaml').material).toBe(
+    expect(row('thing/crop/barley.yaml')._materialPath).toBe(
       '/stuff/idea/material/food/barley-grain',
     );
   });

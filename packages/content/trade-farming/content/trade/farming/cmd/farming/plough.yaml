@@ -19,6 +19,21 @@ validators:
   - /lib/command/validators/requiresAnimate
   - /lib/command/validators/requiresConscious
 args:
+  # ⭐ WHICH TOOL, declared rather than hunted for. The default asks
+  # `[capability.ploughing]` — *the thing that can do this job* — rather than
+  # `[mixin.ToolMixin]`, which would resolve any tool at all and then
+  # fail this verb's own check. That atom is what let this stop being a
+  # walk (see `lint:instrument-args`).
+  - name: tool
+    type: object
+    required: false
+    prepositions: [with, using]
+    # ⚠ `me:i` — IN HAND, as the controller walked before the default was
+    # declared; a scythe on the ground is picked up first. (`reachable` for a
+    # day widened every hand tool to the room. Naming one still reaches it.)
+    default: "me:i:[capability.ploughing]"
+    scope: ["reachable"]
+    requires: [ToolMixin]
   - name: detail
     type: string
     required: false

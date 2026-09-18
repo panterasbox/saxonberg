@@ -7,18 +7,41 @@ help: |
   you were present. Reach for it when you want to check on
   something far away without travelling there.
 
-  Scrying usually needs an instrument that grants the sight. Pass
-  `--with` an MQL expression naming the focus or device that
-  powers the vision when one is required.
+  Scrying needs an instrument that grants the sight, and `scry alice`
+  will find one you can reach. Say which when it matters:
+  `scry alice with the dark mirror`.
+
+  ⭐ An instrument does not reach everywhere. Whether a particular one
+  can find a particular target is a question about the PAIR, not about
+  the instrument — so a glass that shows you the harbour may refuse a
+  person on the far side of the world, and it will say why.
 args:
   - name: target
     type: object
     required: true
     scope: ["online", "/stuff/**", "/platform/**"]
     requires: any
-options:
-  with:
-    type: object
-    scope: [reachable]
-    description: "MQL expression for an instrument that grants the scry"
-    requires: ScryableMixin
+  # ⭐⭐ WHICH INSTRUMENT, declared rather than hunted for — and PLURAL,
+  # which is the whole reason this could move off the controller.
+  #
+  # It was an `option` (`--with`), and options carry no `default:`, so
+  # the fallback lived as a walk over the room and the inventory. A
+  # singular arg could have carried a default but would have bound ONE
+  # instrument — losing the thing that walk did that matters: try each
+  # until one can actually reach this target.
+  #
+  # `type: objects` keeps both. The binder resolves every Scryable in
+  # reach; the controller picks the first that can reach THIS target,
+  # which is a question about the pair that no predicate can express.
+  #
+  # ⚠ `reachable` emits your own gear first, so a carried focus is now
+  # preferred over a room fixture. The old walk checked the room first.
+  # Preferring the thing in your hands is the better reading, and it is
+  # a deliberate change rather than an accident of ordering.
+  - name: with
+    type: objects
+    required: false
+    prepositions: [with, using, through]
+    default: "reachable:[mixin.ScryableMixin]"
+    scope: ["reachable"]
+    requires: [ScryableMixin]

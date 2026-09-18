@@ -232,7 +232,8 @@ occupant is present, so presence + dispatch touch already keep them warm.
 ## Module homes
 
 - `api/residency.ts` — `ResidencyApi` gated forwarding shell (`boot`
-  installs the residency sweeps; `evictNow` for test/manual).
+  installs the residency sweeps; `evictNow` / `spawnNow` / `pinNow` for
+  test/manual).
 - `platform/idea/api/ResidencyLogic.ts` — the `@internal` logic singleton, home to
   the scheduled sweeps: `installEvictionSweep()` + `runEvictionSweep` +
   the presence walk today, one retained handle per sweep (the reset
@@ -432,6 +433,95 @@ placement is a kernel follow-up, not a content dial.
 The BUC roll fires on the freshly cloned object at the mint site inside
 the sweep — deliberately **not** in `StuffApi.clone`, so an author's
 clone, a crafted output and a restocked consignment never roll.
+
+## ⭐ The load half — the residency pin (pets build, 2026-09-17)
+
+Everything above is the **unload** half: what may be culled, and when.
+The pin is its mirror, and it is deliberately small.
+
+**The question it answers.** *What loads X* has one answer in this game:
+whatever needs to observe X. Nearly everything reconciles on read, so an
+unloaded thing still *ages* — a cat gets hungry, thinner, dead of it,
+all correct the moment anything looks. What an unloaded thing cannot do
+is **emit**: wander, come to a door, get fed by a neighbour, die in
+front of somebody instead of retroactively. So the set that needs to be
+resident while unobserved is exactly *objects with a brain whose events
+must happen while nobody is looking*. A chair is never in it; a cask is
+not (maturation reconciles); a named animal is.
+
+**The mechanism.**
+
+- `Persistable.pinsResidency()` — a `@hook`, default false. A class
+  answers true to say *I emit while unobserved*. `KeptAnimal` does
+  (on the class body — `Persistable` is the outermost layer, so a mixin
+  further in cannot override its default).
+- The pin is **stamped on the good's `chattel` row** (`pin: {scope,
+  key}`) on the same gated write as `place` — `ChattelLogic.applyPlace`
+  — when the class opts in, the good persists itself, and it has an
+  explicit key. Cleared when the good goes to `storage` or `inventory`
+  (it stands nowhere). A partial index `{pin.key: 1}` holds exactly the
+  pinned set, so a world with no pets pays nothing.
+- `ResidencyLogic.pinNow()` — **the roll**, armed once by
+  `ResidencyWarden.warm()` beside the three sweeps (after the chattel
+  and parcel registries: standing a good up resolves its place, which
+  reads title). It reads the index, `PersistableApi.standUpKeyed` per pin
+  (resolve-or-mint, so an owner who logged in first does not get a
+  second cat), and a pin whose place cannot resolve is logged and
+  skipped — the animal reads as *lost*, which is a thing that can happen
+  to an animal, rather than a boot failure.
+- The owner's login is the other ask: `Estate.restoreSlice` stands a
+  **keyed** room-placed entry up through `RestoreContext.standUpKeyed`,
+  resolving first — usually a hit, because the roll got there.
+- ⭐ **Where it lands is the good's own record**, not the pin: the roll
+  says *which*, `HostPlacement` says *where*. And where is **anchored**
+  — `container` names the nearest ancestor with an address (a keyed
+  host → `admitFor`, the exact unit; a `Location` → the singleton, or the
+  warren re-lands a member; a singleton), never an intermediate
+  container, because a chest's template path is every chest in the
+  world. The way down is `via` — the intermediate containers' template
+  paths — matched hop by hop **within** the anchor and stopping at the
+  deepest hop that resolves: a missing cage leaves the bird in the room,
+  never in the first cage anywhere. ⚠ Two rules the pets build found by
+  test, not live: an owner-persisted chattel keeps its own placement
+  even inside a room that persists itself (the room's slice skips it,
+  so nothing else refers to it), and a plain non-singleton room clone
+  has no address to name — a good left in one comes back in *a* room
+  of that kind, which is the honest limit of a transient place.
+- ⭐ **One record owns each placement fact, and the skip list decides
+  which.** A room's container slice skips avatars, cast and
+  owner-persisted chattel; exactly those keep their own `HostPlacement`.
+  Everything else is placed by its referrer's `{ref, key}` and records
+  nothing of its own. So no two records claim the same good's position
+  in steady state. Where they *can* disagree is time skew, and each case
+  has a rule: **two rooms both referring to one keyed host** (carried
+  between them, one record stale) — `cloneHost` resolves first, the
+  second record moves the standing instance, last-to-materialize wins,
+  the stale record heals on its next capture (before: a second mint,
+  `assertUniqueKey` threw, that room's whole restore aborted);
+  **the good's own record vs the `chattel` index** — a self-persisting
+  good is re-captured on every `place` write, so they are one act;
+  **a good carried by somebody** — records no placement at all (a `via`
+  hop naming an avatar could land it in a stranger's pockets: every
+  avatar shares one template path), and the owner's estate stands it up
+  and puts it back in hand.
+
+⭐ **Pinning, not swap.** Page-in happens at boot and at login — a
+process start or a human act, never an *access*. Page-out is only the
+cold-tail sweep above, once the pin lapses (a stamped, living animal
+vetoes eviction today; the slate below is where the veto learns to
+lapse). And there is **no fault**: nothing in the game can trigger a
+load by touching a good, and no room asks for what is recorded as
+standing in it. ⚠ That last one was tried and reversed in the same
+build — `reclaimOwnedGoods` on every `CartesianLocation.postRegister`,
+439 indexed point queries at boot — and it is the room scan wearing a
+different face. The day a fault is wanted ("a neighbour walks onto the
+lane, so load the lane's cats") the design has become a pager, and this
+section is the place that says so.
+
+**What is slated, not built** — `eager-residency-slate`: the roll admits
+every pin today. Who may honour a pin — the owner's activity tier, the
+parcel's compute allowance, the degradation order under pressure — is
+governance, and the property slate already holds the vocabulary.
 
 ## ⚠ A second installed sweep
 

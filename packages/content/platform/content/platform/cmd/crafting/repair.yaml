@@ -17,3 +17,14 @@ args:
     required: true
     scope: "reachable"
     requires: DurableMixin
+  # ⭐ WHICH KIT — DECLARED, not hunted for (`lint:instrument-args`).
+  # Mending kit or an anvil both serve; bare, the binder hands over every
+  # reachable thing offering either and the controller takes the
+  # best-rated, kit before anvil.
+  - name: kit
+    type: objects
+    required: false
+    prepositions: [with, at, on]
+    default: "reachable:[capability.mending or capability.anvil]"
+    scope: ["reachable"]
+    requires: [ToolMixin]

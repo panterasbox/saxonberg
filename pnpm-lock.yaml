@@ -47,6 +47,9 @@ importers:
       '@saxonberg/content-hearthworks':
         specifier: workspace:*
         version: link:packages/content/hearthworks
+      '@saxonberg/content-hearts-delight':
+        specifier: workspace:*
+        version: link:packages/content/hearts-delight
       '@saxonberg/content-hinkley-hills':
         specifier: workspace:*
         version: link:packages/content/hinkley-hills
@@ -74,6 +77,9 @@ importers:
       '@saxonberg/content-tpa':
         specifier: workspace:*
         version: link:packages/content/tpa
+      '@saxonberg/content-trade-baking':
+        specifier: workspace:*
+        version: link:packages/content/trade-baking
       '@saxonberg/content-trade-bottling':
         specifier: workspace:*
         version: link:packages/content/trade-bottling
@@ -104,6 +110,9 @@ importers:
       '@saxonberg/content-trade-medicine':
         specifier: workspace:*
         version: link:packages/content/trade-medicine
+      '@saxonberg/content-trade-milling':
+        specifier: workspace:*
+        version: link:packages/content/trade-milling
       '@saxonberg/content-trade-mining':
         specifier: workspace:*
         version: link:packages/content/trade-mining
@@ -357,6 +366,9 @@ importers:
       '@saxonberg/content-platform':
         specifier: workspace:*
         version: link:../platform
+      '@saxonberg/content-trade-milling':
+        specifier: workspace:*
+        version: link:../trade-milling
       '@saxonberg/server':
         specifier: workspace:*
         version: link:../../server
@@ -418,6 +430,9 @@ importers:
       '@saxonberg/content-platform':
         specifier: workspace:*
         version: link:../platform
+      '@saxonberg/content-species-and-names':
+        specifier: workspace:*
+        version: link:../species-and-names
       '@saxonberg/server':
         specifier: workspace:*
         version: link:../../server
@@ -455,6 +470,33 @@ importers:
       '@saxonberg/types':
         specifier: workspace:*
         version: link:../../types
+
+  packages/content/hearts-delight:
+    dependencies:
+      '@saxonberg/content-base-library':
+        specifier: workspace:*
+        version: link:../base-library
+      '@saxonberg/content-generic-objects':
+        specifier: workspace:*
+        version: link:../generic-objects
+      '@saxonberg/content-platform':
+        specifier: workspace:*
+        version: link:../platform
+      '@saxonberg/content-terminus':
+        specifier: workspace:*
+        version: link:../terminus
+      '@saxonberg/content-trade-farming':
+        specifier: workspace:*
+        version: link:../trade-farming
+      '@saxonberg/content-trade-milling':
+        specifier: workspace:*
+        version: link:../trade-milling
+      '@saxonberg/content-water':
+        specifier: workspace:*
+        version: link:../water
+      '@saxonberg/content-world-seed':
+        specifier: workspace:*
+        version: link:../world-seed
 
   packages/content/hinkley-hills:
     dependencies:
@@ -652,6 +694,9 @@ importers:
       '@saxonberg/content-tpa':
         specifier: workspace:*
         version: link:../tpa
+      '@saxonberg/content-trade-baking':
+        specifier: workspace:*
+        version: link:../trade-baking
       '@saxonberg/content-trade-brewing':
         specifier: workspace:*
         version: link:../trade-brewing
@@ -664,6 +709,9 @@ importers:
       '@saxonberg/content-trade-haulage':
         specifier: workspace:*
         version: link:../trade-haulage
+      '@saxonberg/content-trade-milling':
+        specifier: workspace:*
+        version: link:../trade-milling
       '@saxonberg/content-trade-smithing':
         specifier: workspace:*
         version: link:../trade-smithing
@@ -718,6 +766,37 @@ importers:
         specifier: ^2.8.2
         version: 2.9.0
 
+  packages/content/trade-baking:
+    dependencies:
+      '@saxonberg/content-base-library':
+        specifier: workspace:*
+        version: link:../base-library
+      '@saxonberg/content-generic-objects':
+        specifier: workspace:*
+        version: link:../generic-objects
+      '@saxonberg/content-platform':
+        specifier: workspace:*
+        version: link:../platform
+      '@saxonberg/content-trade-milling':
+        specifier: workspace:*
+        version: link:../trade-milling
+      '@saxonberg/server':
+        specifier: workspace:*
+        version: link:../../server
+      '@saxonberg/types':
+        specifier: workspace:*
+        version: link:../../types
+    devDependencies:
+      typescript:
+        specifier: ^5.4.0
+        version: 5.9.3
+      vitest:
+        specifier: ^2.0.0
+        version: 2.1.9(@types/node@20.19.28)(jsdom@25.0.1)
+      yaml:
+        specifier: ^2.8.2
+        version: 2.9.0
+
   packages/content/trade-bottling:
     dependencies:
       '@saxonberg/content-base-library':
@@ -747,6 +826,9 @@ importers:
       '@saxonberg/content-platform':
         specifier: workspace:*
         version: link:../platform
+      '@saxonberg/content-trade-milling':
+        specifier: workspace:*
+        version: link:../trade-milling
       '@saxonberg/server':
         specifier: workspace:*
         version: link:../../server
@@ -808,6 +890,9 @@ importers:
       '@saxonberg/content-platform':
         specifier: workspace:*
         version: link:../platform
+      '@saxonberg/content-trade-milling':
+        specifier: workspace:*
+        version: link:../trade-milling
       '@saxonberg/server':
         specifier: workspace:*
         version: link:../../server
@@ -994,6 +1079,34 @@ importers:
 
   packages/content/trade-medicine:
     dependencies:
+      '@saxonberg/content-platform':
+        specifier: workspace:*
+        version: link:../platform
+      '@saxonberg/server':
+        specifier: workspace:*
+        version: link:../../server
+      '@saxonberg/types':
+        specifier: workspace:*
+        version: link:../../types
+    devDependencies:
+      typescript:
+        specifier: ^5.4.0
+        version: 5.9.3
+      vitest:
+        specifier: ^2.0.0
+        version: 2.1.9(@types/node@20.19.28)(jsdom@25.0.1)
+      yaml:
+        specifier: ^2.8.2
+        version: 2.9.0
+
+  packages/content/trade-milling:
+    dependencies:
+      '@saxonberg/content-base-library':
+        specifier: workspace:*
+        version: link:../base-library
+      '@saxonberg/content-generic-objects':
+        specifier: workspace:*
+        version: link:../generic-objects
       '@saxonberg/content-platform':
         specifier: workspace:*
         version: link:../platform

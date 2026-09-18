@@ -1,0 +1,35 @@
+# A hand quern — ⭐ the bottom rung, and what it costs you is your HANDS.
+#
+# Two stones and a handle. It grinds a quarter-kilo a minute, which for a
+# 25 kg sack is a hundred game-minutes of turning — and for every one of
+# them your hands are on the handle. You cannot carry anything, cannot
+# work, cannot fight. That is not a throughput penalty dressed up; it is
+# the actual cost of the bottom rung, and it is what makes a mill worth
+# walking to.
+#
+# ⚠ No toll: nobody takes a share of what you grind in your own kitchen.
+# And no control band — a quern floors nothing, so what you get out is
+# exactly as good as what went in and no better.
+class: /trade/milling/thing/GristMill
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: hand quern
+  keywords: [quern, handmill, mill, stones]
+  register: indefinite
+  longDescription: |
+    Two flat stones the size of dinner plates, the upper one pierced for the grain and pegged with a worn wooden handle. Meal works its way out all round the rim and onto the cloth beneath.
+  mass: 14
+  capabilities: [millstone]
+  throughputKgPerMin: 0.25
+  kgPerMinPerKw: 0
+  maxThroughputKgPerMin: 0
+  extractionMin: 0.55
+  extractionMax: 1
+  extractionDefault: 0.8
+  residueFraction: 0.25
+  productMaterial: /stuff/idea/material/food/wheat-flour
+  residueMaterial: /stuff/idea/material/food/bran
+  productVessel: /trade/milling/thing/flour-sack
+  residueVessel: /trade/milling/thing/bran-sack
+  tollFraction: 0
+  tollBinPath: ""

@@ -20,8 +20,20 @@ data:
   businessPath: /trade/distribution/idea/business
   stockLines:
     - { itemTemplatePath: /trade/distribution/thing/malt-sack, par: 6 }
+    # ⭐⭐ Grist beside the malt, at a MARKUP — the retrofit's whole
+    # compatibility story in one line. The mash wants milled malt now
+    # (the grain chain, D16), and a brewer who has never heard of a mill
+    # buys it here and carries on exactly as before.
+    #
+    # ⭐ And the markup is what makes the mill worth walking to: whole
+    # malt at 5 plus your own time at a quern, against grist at 7 with
+    # no time at all. That is a real arithmetic a player can do, and it
+    # is the first time in this game that owning capital has had a
+    # number attached to it.
+    - { itemTemplatePath: /trade/milling/thing/grist-sack, par: 6 }
   prices:
     # Against the shipped ladder (stipend 20; soil-sack 2, small pot 3):
     # a brew day's grain, reachable on the stipend with change left for
     # the carboy.
     /trade/distribution/thing/malt-sack: 5
+    /trade/milling/thing/grist-sack: 7

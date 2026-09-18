@@ -188,6 +188,19 @@ that predated the build. Nine builds have shipped with one `drive(`
 commit between them, and the gaps that escaped are the ones that later
 cost rewrites in review.
 
+⚠⚠ **And a drive that was written but never RUN is a drive that
+claims.** The grain chain's wire file existed for four review rounds
+while the plan's drive record said *"appended at build time"* and the
+MR description claimed the drive; its first real run, on the master
+catch-up, failed **9 of 17**. Eleven findings, five of which reached
+past the build: a `data:` key the Hydrator never writes (49 rows),
+eighteen controllers reading a bound arg as a `Stuff`, a help rung that
+never existed, a biome nothing booted, a mill whose first read lied.
+Two of the eleven were the drive's OWN checkpoints being unable to fail
+(*"the status is defined"* is true of a typo). The record must show the
+run — the output, the count, what each failure was — or the exit
+criterion has not been met, whatever the doc says.
+
 When the drive passes, **push the branch and open the MR** against
 `master` — no need to ask first. Pushing and MR creation are not gated
 on the user; only the merge is.

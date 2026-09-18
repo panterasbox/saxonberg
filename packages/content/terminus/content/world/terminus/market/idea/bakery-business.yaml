@@ -1,0 +1,21 @@
+# The bakery — the Business entity behind the counter.
+class: /platform/idea/Business
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  appointingAuthority:
+    kind: entity
+    path: /world/terminus/market/agent/baker
+  positions:
+    - key: baker
+      noun: baker
+      label: at the oven
+      wageRate: 4
+      confers: [MakerMixin]
+  rosterSlots:
+    - positionKey: baker
+      assignee: /world/terminus/market/agent/baker
+      schedule:
+        - { days: [0, 1, 2, 3, 4, 5, 6], hours: [0, 24] }
+  banksAt: goodkin
+  operatingLocations:
+    - /world/terminus/market/bakery

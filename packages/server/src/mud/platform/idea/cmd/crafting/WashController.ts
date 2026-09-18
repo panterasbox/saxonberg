@@ -14,7 +14,7 @@
 
 import { ManualBuildController } from "./ManualBuildController";
 import type { CommandContext, CommandModel } from "../../../../api/command";
-import type { MqlOneResult } from "../../../../api/mql";
+import type { MqlManyResult, MqlOneResult } from "../../../../api/mql";
 import type { Stuff } from "../../../../lib/stuff/Stuff";
 import { MixinApi } from "../../../../api/mixin";
 import { MessageApi } from "../../../../api/message";
@@ -26,6 +26,7 @@ const WASH_MS = 3000;
 
 interface WashModel extends CommandModel {
   glass: MqlOneResult;
+  water?: MqlManyResult;
 }
 
 export default class WashController extends ManualBuildController<WashModel> {
@@ -51,13 +52,13 @@ export default class WashController extends ManualBuildController<WashModel> {
     // nor a contamination carrier is a garment, and takes that path.
     const dyed = glass !== null && MixinApi.isDyed(glass) ? glass : null;
     if (dyed !== null && serviceable === null && contaminable === null) {
-      return this.launderGarment(dyed, context);
+      return this.launderGarment(dyed, model.water, context);
     }
     if (glass === null || (serviceable === null && contaminable === null)) {
       this.declineStep(context, Mml.compose`Wash what?`, "no-glass");
       return;
     }
-    const water = this.findWater(giver);
+    const water = this.findWater(model.water);
     if (!water) {
       this.declineStep(
         context,
@@ -109,9 +110,13 @@ export default class WashController extends ManualBuildController<WashModel> {
    * the vessel branch follows, and the reason there is no laundry
    * vocation: the care loop is not an errand per wash.
    */
-  private launderGarment(garment: Stuff, context: CommandContext): void {
+  private launderGarment(
+    garment: Stuff,
+    bound: MqlManyResult | undefined,
+    context: CommandContext,
+  ): void {
     const giver = context.commandGiver;
-    const water = this.findWater(giver);
+    const water = this.findWater(bound);
     if (!water) {
       this.declineStep(
         context,
@@ -155,12 +160,12 @@ export default class WashController extends ManualBuildController<WashModel> {
    * are the command line's tokens and say nothing about what a thing IS
    * — see docs/antipatterns.md § Keywords Where You Mean Identity.
    */
-  private findWater(giver: Stuff): Stuff | null {
-    // ⭐ The two-leg reach is `reachableMarks`' — held kit first, then
-    // the room, minus yourself. Rebuilding it here is how ten copies of
-    // one walk happened.
-    const candidates = this.reachableMarks(giver);
-    for (const c of candidates) {
+  private findWater(bound: MqlManyResult | undefined): Stuff | null {
+    // ⭐ A NARROWING, not a search: `wash.yaml` declares `water` with a
+    // `[mixin.BulkableMixin]` default, so what arrives is every reachable
+    // vessel and the only question left is what is IN it — contents,
+    // which no predicate asks (`lint:instrument-args`).
+    for (const c of bound?.stuff ?? []) {
       if (!MixinApi.isBulkable(c) || MixinApi.isCrafted(c)) continue;
       const slot = BulkableApi.slotFor(c, undefined);
       if (!slot || slot.isEmpty()) continue;

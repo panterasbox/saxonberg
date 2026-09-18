@@ -154,6 +154,21 @@ export class HelpApi {
     )[0] ?? null;
   }
 
+  /** Resolve a concept topic by its authored key (`extraction`), or `null`. */
+  static conceptTopic(
+    key: string,
+    viewer: HelpViewer = FLOOR
+  ): HelpTopic | null {
+    const cat = catalogue();
+    if (!cat) return null;
+    const topic = cat.findConceptTopic(key);
+    return HelpApi.applyFilter(
+      topic ? [topic] : [],
+      (t) => t.spoiler,
+      viewer
+    )[0] ?? null;
+  }
+
   /** Resolve an api/mixin/type topic by id / `Type.member` / bare name. */
   static apiTopic(
     target: string,

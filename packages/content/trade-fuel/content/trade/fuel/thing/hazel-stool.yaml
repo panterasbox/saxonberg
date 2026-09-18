@@ -14,7 +14,7 @@ data:
   longDescription: |
     A low knuckle of old root with a dozen straight poles standing out of it, all of an age. Cut it to the ground and it will do the same again.
   _speciesPath: /stuff/idea/species/plantae/tracheophyta/magnoliopsida/fagales/betulaceae/corylus/avellana
-  material: /stuff/idea/material/tissue/plant-tissue
+  _materialPath: /stuff/idea/material/tissue/plant-tissue
   lifecycleState: alive
   harvestTemplatePath: /trade/fuel/thing/cordwood
   nutrientDraw: 6

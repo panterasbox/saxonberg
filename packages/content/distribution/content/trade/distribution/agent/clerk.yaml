@@ -30,6 +30,28 @@ data:
     - { discipline: business-administration, asserting: competent }
     - { discipline: appraisal, asserting: novice }
   behaviors:
+    # ⭐⭐ Somebody who is not the player buys bread, every morning.
+    #
+    # The grain chain shipped a grower, a miller and a baker and NOBODY
+    # WHO NEEDED BREAD — 32 brains and not one of them ate, so the whole
+    # chain ended in a shop and the only demand in the world was a player
+    # choosing to be hungry.
+    #
+    # ⚠ Wired on an EXISTING person rather than a new one on purpose: the
+    # demand should come from people already in the city, doing their
+    # jobs, whose outfits bank so they have a purse of their own.
+    #
+    # ⭐ The purse chooses the loaf. Nothing here says what this person
+    # can afford — the brain compares one balance to the counter's
+    # prices, and two people on two wage rates buy different bread on the
+    # same morning with nothing anywhere labelling either of them.
+    - brain: /lib/behavior/eats
+      trigger: cadence:90s
+      config:
+        counter: /world/terminus/market/thing/bread-counter
+        fromHour: 6
+        toHour: 10
+        spendFraction: 0.25
     - brain: /lib/behavior/introduces
       trigger: arrival
     - brain: /lib/behavior/greets

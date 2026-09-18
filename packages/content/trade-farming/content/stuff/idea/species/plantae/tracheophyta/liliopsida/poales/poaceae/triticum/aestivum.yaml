@@ -1,0 +1,33 @@
+# Bread wheat — ⭐ and the reason it exists is ONE PROTEIN PAIR.
+#
+# Barley already closed the cereal faucet: it malts, it feeds pigs, it is
+# the arable half of the four-course. So a second cereal has to earn its
+# rows by being different in a way a player can act on, not by being a
+# second green rectangle.
+#
+# It is. Barley's proteins do not form the elastic sheet that traps gas,
+# so barley bread is flat and close no matter how well you knead it.
+# Wheat's do. **Gluten is the baker's whole frontier**, and without a
+# wheat there is nothing to develop.
+#
+# ⚠ And the trade is real rather than a free upgrade: wheat is fussier
+# about cold and thirstier, and it takes longer to come. Barley carries
+# where wheat struggles — which is why the poor ground on Heart's
+# Delight's upper bench grows one of them and the flats grow fruit.
+# Nobody authors that comparison; it falls out of three numbers.
+class: /platform/idea/species/Species
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  binomial: Triticum aestivum
+  commonNames: ["wheat", "bread wheat", "corn"]
+  _parentCladePath: /stuff/idea/species/plantae
+  _defaultMaterialPath: /stuff/idea/material/tissue/plant-tissue
+  lifecycleStates: ["alive", "dead"]
+  reproductiveMode: sexual
+  lifespanMin: 0
+  lifespanMax: 1
+  diet: none
+  longDescription: >-
+    Wheat in the ear, beardless and squarer than barley, standing stiff
+    and going from green to gold from the bottom of the stem upward.
+  nameBankKeys: []

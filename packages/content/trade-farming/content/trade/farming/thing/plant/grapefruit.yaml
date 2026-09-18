@@ -10,7 +10,7 @@ data:
   longDescription: |
     A grapefruit tree, broad-leaved, its fruit hanging in heavy pairs.
   _speciesPath: /stuff/idea/species/plantae/tracheophyta/magnoliopsida/sapindales/rutaceae/citrus/paradisi
-  material: /stuff/idea/material/tissue/plant-tissue
+  _materialPath: /stuff/idea/material/tissue/plant-tissue
   lifecycleState: alive
   seedTemplatePath: /trade/farming/thing/seed/grapefruit
   harvestTemplatePath: /trade/farming/thing/grapefruit

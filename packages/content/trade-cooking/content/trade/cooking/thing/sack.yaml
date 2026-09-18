@@ -19,7 +19,7 @@ data:
   # The VESSEL KIND — the tie between this row and every product
   # that is this vessel filled (an emptied one counts and reads as this).
   category: sack
-  material: /stuff/idea/material/textile/jute
+  _materialPath: /stuff/idea/material/textile/jute
   interiorBulk: true
   interiorCapacity: 20
   closure: liquidTight

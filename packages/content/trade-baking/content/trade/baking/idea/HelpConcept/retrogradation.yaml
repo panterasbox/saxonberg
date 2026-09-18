@@ -1,0 +1,60 @@
+# ⭐⭐⭐ The two clocks, stated so a reader can predict the bread box
+# before ever putting a loaf in one.
+class: /platform/idea/HelpConcept
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  key: retrogradation
+  title: Retrogradation
+  summary: Why the icebox is the worst place for bread, and why the oven revives it.
+  keywords: [stale, staling, retrogradation, bread, box, icebox, cold, frozen, refresh, hard]
+  seeAlso: [gluten, extraction]
+  body: |
+    Bread goes wrong in **two different ways at once**, and they are not
+    the same thing, and they do not answer to the same conditions. Almost
+    everybody gets this backwards.
+
+    ## Going off
+
+    That is living. Mould and bacteria grow in the bread, and like
+    everything alive they go faster when it is warm and damp, slow down
+    when it is cold, and stop when it is frozen. Nothing surprising.
+
+    ## Going stale
+
+    That is **not** living, and nothing is growing. In the oven, the
+    starch granules swell and burst and go to a kind of gel — that is
+    what makes crumb crumb. Left alone, that gel slowly re-crystallises
+    back toward the ordered arrangement it came from, squeezing water out
+    as it goes. The crumb tightens, the bread goes dry and close, the
+    crust goes leathery.
+
+    ⭐ **And that happens FASTEST just above freezing.** Not at room
+    temperature — just above freezing, at about the temperature of a cold
+    larder. It slows down as it warms, and it stops entirely when the
+    bread is actually frozen, because the water is ice and nothing can
+    move.
+
+    ## So, the bread box
+
+    Put the two together and you get a table that surprises people:
+
+      on the counter     goes off slowly, goes stale slowly
+      in the cold room   hardly goes off at all — and goes stale FASTEST
+      frozen             goes off not at all, goes stale not at all
+      back in the oven   ⭐ goes BACKWARDS
+
+    **The cold larder is the worst place for a loaf.** It buys you a
+    little against mould and it costs you a great deal in staleness, and
+    the trade is a bad one. If you are keeping bread for a day, leave it
+    out. If you are keeping it for a week, freeze it — freezing stops
+    both clocks, which nothing else does.
+
+    ## Why the oven brings it back
+
+    Heat un-crystallises the starch. A stale loaf put back into a hot
+    oven comes out soft again — genuinely, not as a trick, because you
+    have undone the thing that made it hard.
+
+    ⚠ But not all the way, and not for ever. Each pass drives off more
+    water and each pass leaves a little more behind, so a loaf you have
+    revived four times is a rusk. Reviving buys you a meal, not a week.

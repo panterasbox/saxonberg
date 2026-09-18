@@ -14,6 +14,59 @@ cadence + perception triggers, engagement-slot contention, the thin
 `scripted-behavior` brain, the LLM brain, and traits are later waves —
 this doc notes the seams they plug into.
 
+## ⭐⭐⭐ The `eats` brain — and NPC hunger begins existing here
+
+The grain chain shipped a grower, a miller and a baker and **nobody who
+needed bread**. Thirty-two brains existed and not one of them ate: the
+chain terminated in a shop, and the only demand in the world was a player
+deciding to be hungry. A trade whose product nobody requires is a
+crafting minigame with a price tag on the end.
+
+⭐⭐ **The purse chooses the loaf.** Hunger alone gives the baker a
+customer; it does not give extraction a *meaning*. The buyer reads the
+counter's prices, reads their own balance, and buys the dearest loaf
+within `spendFraction` of it — so two people on two wage rates walk in on
+the same morning and walk out with different bread. Which loaf is dear is
+the **baker's** pricing decision, not a fact about either person.
+
+⚠⚠ **The engine measures the purse, never the person.** One number
+against prices, at the moment of a purchase. Nothing is written back — no
+band, no label, no trait, no ledger entry says "poor". The pattern exists
+only in what a bystander sees two mornings running, and a test asserts
+the brain's own scratch bag holds nothing but `lastAteDay` and
+`hungryDays`.
+
+Anno 1800, Victoria 3 and Against the Storm all reach for differentiated
+demand and all of them do it in **aggregate**. Per-person is the thing we
+can do that they cannot.
+
+### ⚠ NPC hunger begins existing in this build
+
+Satiation is reconcile-on-read and **nothing had ever read an NPC's**.
+The brain's `eat` is the first read, so the elapsed drain is billed at
+that moment — a long-running world's first morning reads a very hungry
+clerk, which is honest rather than a bug. Only the two rows that gain the
+brain move; every other NPC is exactly as inert as before.
+
+⭐ **Starvation cannot be reached from here, and the reason is structural
+rather than lucky.** `STARVATION_LETHAL_SEC` is real (24 game-hours at a
+floored reserve begins the dying clock) — but an NPC's satiation only
+advances when something *reads* it, the only reader is this brain's
+`eat`, and eating is what relieves it. A buyer who cannot buy never
+reconciles, so an empty counter cannot starve anybody. It says the hungry
+line and counts the morning instead.
+
+### The beat
+
+`cadence` is **real** time (a jittered timer) and there is no clock-hour
+trigger anywhere, so the morning window is read inside `act` off
+`CelestialApi` and keyed on `ctx.state.lastAteDay`. Every act is a
+literal verb through `forceCommand` — `teleport`, `buy`, `eat`, home
+again in `finally` — gated exactly as a typed line is. A forced command
+reports no outcome, so the brain checks whether a loaf is actually in
+hand rather than assuming.
+
+
 ## The model
 
 ```yaml
@@ -357,6 +410,9 @@ the seen-set) is runtime-only and re-installed from the persisted
 | `shifts` | cadence | — | — | migrate by employment shift state (teleport) | `{ behindBar, offstage, railStool? }` |
 | `covers` | cadence | — | — | proprietor covers when no on-shift maker is present (`beginCover`/`endCover`) | `{}` |
 | `enforces` | cadence (not ambient, not presence-gated) | — | — | the house's own peace, kept by hand (bar-fight build; kernel commons — any barkeep reuses it): a fight gets the shout, then hands-first (`subdue` the **believed** aggressor — the read-the-room heuristic, the one *winning*, never the ledger — so he can be wrong), then the office taser only under real threat (a weapon out, or 3+ parties; a real fetch round-trip); a visibly-armed patron (`CombatApi.visibleArms`) gets a warning, then the 86 (a `DocumentApi` record in the venue's document-tree slice) + ordered out + bum-rushed. The cadence scan IS the witnessing; the belief lives in `ctx.state` for the episode | `{ alertness?, shoutLine?, warnLine?, orderLine?, ejectDirection?, officeDirection?, officeReturn?, taserKeyword?, recordsPath? }` |
+| `follows` | `departure` | `body` | — | goes with a person it is bonded to (`bondWith ≥ 0.5`), and **records that it did** — following somebody home is what earns the right to name it. ⚠ At a threshold whose room holds an armed `Hazard` it balks with one fixed line that names the ACT and never the cause: an animal that says *why* is a trap detector, one that just balks is an animal. `waiting` holds it | — |
+| `feeds` | cadence (not ambient, not presence-gated) | `body` | — | eats from a `Feeder` or off the floor, through the same ingest bridge a person's meal uses. ⚠⚠ **Returns before reading metabolism** when there is nothing in reach and nobody owns the animal — a metabolism read reconciles, and for a stamped animal it integrates the whole absence, so the beat itself would starve an unowned stray. ⭐ One refusal sentence for four reasons (not hungry · turned · a nose finding what yours cannot); a bowl meal credits **nobody** and advances where home is, a hand meal credits the hand | — |
+| `homes` | cadence (not ambient, not presence-gated) | `body` | — | one visible step per beat toward `home`, breadth-first through exits it can actually traverse. ⭐ **Finding no path is the entire implementation of "lost"** — no flag, no timer, no announcement; a closed door is the whole of containment. Does not set off while a bonded person is present | `{ hops?: number }` |
 | `tree-dialogue` | `engage` | `voice,attention` | — | none — reached via `open`, opens a `DialogueConversation` ([npc-dialogue.md](./npc-dialogue.md)) | the dialogue tree |
 | `introduces` | `arrival` | `attention` | — | introduces the host to a newcomer (`learnIdentity`) unless already known | — |
 | `consigns` | cadence (not ambient, not presence-gated) | — | — | a producer's hand carries floor stock to the host shelf and consigns it **as the business** — literal verbs via `forceCommand` (`get`, `wallet use house`, `consign … --ask`), `teleport` between floor and counter | `{ stock, shelf, ask: {censusKey: minor}, defaultAsk?, batch? }` |
@@ -450,7 +506,7 @@ dangling brain path is caught at author time, not silently at spawn.
 | `BehavedMixin` + `Behaved` | `lib/behavior/Behaved.ts` | Reads `behaviors:`, wires triggers, re-resolves brains, runs slot contention |
 | `BehaviorSpec` / `BrainContext` / `BrainStatics` / `parseTrigger` vocab | `lib/behavior/brain.ts` | The brain category contract + trigger alias table |
 | `BehaviorBeat` | `lib/behavior/BehaviorBeat.ts` | Generic short `DurativeActivity` that holds a slot for the contention window |
-| The canned brains | `lib/behavior/{idles,random-chatter,wanders,patrols,greets,reacts,shifts,covers,enforces}.ts` | Path-resolved strategy modules (`covers` = the proprietor cover-driver; see [employment.md](./employment.md)) |
+| The canned brains | `lib/behavior/{idles,random-chatter,wanders,patrols,greets,reacts,shifts,covers,enforces,follows,feeds,homes}.ts` | Path-resolved strategy modules (`covers` = the proprietor cover-driver; see [employment.md](./employment.md)) |
 | `NPC` | `lib/npc/NPC.ts` | `Character` + `Behaved` archetype — **substrate**; rows name a rung, not this |
 | `CastMixin` / `Cast` / `Extra` | `lib/npc/Cast.ts`, `platform/agent/` | The identity rungs ([identity.md](./identity.md)) |
 | `StuffApi.resolveExport` / `resolveExportSync` | `api/stuff.ts` | Path → fs → hot-reload registry brain-export seam |

@@ -1,0 +1,26 @@
+verbs: [pet]
+controller: /platform/idea/cmd/social/PetController
+description: "Put a hand on an animal — the smallest act of attention there is"
+help: |
+  `pet <animal>` runs a hand over it.
+
+  ⭐ Two things move at once, and they are the two halves of a bond: the
+  animal gets a little easier to handle, and it thinks a little better of
+  *you* specifically. That is why petting is how a stray becomes yours,
+  and why no amount of filling a bowl does the same work.
+
+  It refuses on the animal's terms. A wild thing will not be touched at
+  all — you have to earn the reach before you can use it — and an animal
+  that does not know you will move off whatever its temperament. Either
+  way it just moves off; it does not explain itself.
+
+  Greeting an animal you told to stay releases it.
+validators:
+  - /lib/command/validators/requiresAnimate
+  - /lib/command/validators/requiresConscious
+args:
+  - name: target
+    type: object
+    required: true
+    scope: ["reachable"]
+    requires: BondedMixin

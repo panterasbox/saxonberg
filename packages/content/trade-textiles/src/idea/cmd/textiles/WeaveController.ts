@@ -23,7 +23,7 @@
 
 import { ManualBuildController } from '@saxonberg/server/mud/platform/idea/cmd/crafting/ManualBuildController';
 import type { CommandContext, CommandModel } from '@saxonberg/server/mud/api/command';
-import type { MqlOneResult } from '@saxonberg/server/mud/api/mql';
+import type { MqlManyResult, MqlOneResult } from '@saxonberg/server/mud/api/mql';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import type { Container } from '@saxonberg/server/mud/lib/spatial/Container';
 import type { Containable } from '@saxonberg/server/mud/lib/spatial/Containable';
@@ -46,6 +46,7 @@ const PLAIN = 'woven';
 const CLOSE = 'fine-woven';
 
 interface WeaveModel extends CommandModel {
+  loom?: MqlManyResult;
   yarn: MqlOneResult;
   close?: boolean;
   open?: boolean;
@@ -98,7 +99,7 @@ export default class WeaveController extends ManualBuildController<WeaveModel> {
     const units = model.close ? 1 : model.open ? 3 : 2;
 
     const band = await outcomeBand(giver, yarn, form);
-    const instrument = this.findCapability(giver, 'weaving');
+    const instrument = this.bestInstrument(model.loom, 'weaving');
     const durationMs = this.paceMs(
       dial(WeaveController.BASE_MS_KEY, WeaveController.BASE_MS),
       instrument as Stuff | null,

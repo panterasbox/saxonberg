@@ -43,6 +43,7 @@
 import { CommandController } from '@saxonberg/server/mud/lib/command/CommandController';
 import type { CommandContext, CommandModel } from '@saxonberg/server/mud/api/command';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
+import type { MqlOneResult } from '@saxonberg/server/mud/api/mql';
 import type { Container } from '@saxonberg/server/mud/lib/spatial/Container';
 import { MixinApi } from '@saxonberg/server/mud/api/mixin';
 import { MessageApi } from '@saxonberg/server/mud/api/message';
@@ -88,6 +89,8 @@ interface PlotHost {
 }
 
 interface PlotModel extends CommandModel {
+  /** ⭐ The instrument, resolved by the BINDER off the view's arg. */
+  tool?: MqlOneResult;
   name?: string;
 }
 
@@ -99,7 +102,7 @@ export default class PlotController extends CommandController<PlotModel> {
       this.decline(context, Mml.compose`You are nowhere to plot anything out of.`, 'no-place');
       return;
     }
-    if (!this.spadeOf(giver)) {
+    if (!this.spadeOf(model.tool?.stuff)) {
       this.decline(
         context,
         Mml.compose`You do not plot a field by looking at it. You would want a spade.`,
@@ -223,12 +226,10 @@ export default class PlotController extends CommandController<PlotModel> {
     return room && MixinApi.isContainer(room) ? (room as Stuff & Container) : null;
   }
 
-  /** A digging tool in hand. */
-  private spadeOf(giver: Stuff): Stuff | null {
-    if (!MixinApi.isContainer(giver)) return null;
-    return (
-      giver.getContents().find((i) => MixinApi.isTool(i) && i.hasCapability('digging')) ?? null
-    );
+  /** ⭐ The bound spade, if it digs. Resolved by the binder. */
+  private spadeOf(bound: Stuff | null | undefined): Stuff | null {
+    if (!bound || !MixinApi.isTool(bound)) return null;
+    return bound.hasCapability('digging') ? bound : null;
   }
 
   /**

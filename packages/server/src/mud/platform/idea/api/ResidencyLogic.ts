@@ -44,6 +44,7 @@ import { ConnectionApi } from '../../../api/connection';
 import { MixinApi } from '../../../api/mixin';
 import type { BlessingOdds } from '../../../lib/magic/Blessing';
 import { PersistableApi } from '../../../api/persistable';
+import { ChattelApi } from '../../../api/chattel';
 import type { Stuff } from '../../../lib/stuff/Stuff';
 import type { Container } from '../../../lib/spatial/Container';
 import type { Containable } from '../../../lib/spatial/Containable';
@@ -225,6 +226,16 @@ export interface SpawnSweepReport {
   declined: number;
   /** Items actually placed (0 in `observe` mode). */
   placed: number;
+}
+
+/** What one pin roll did — boot-log legibility and the test seam. */
+export interface PinRollReport {
+  /** Pinned rows the index returned. */
+  pinned: number;
+  /** Goods now standing (resolved or minted). */
+  stoodUp: number;
+  /** Pins whose place could not resolve; logged, never fatal. */
+  failed: number;
 }
 
 /**
@@ -761,6 +772,66 @@ export class ResidencyLogic extends ApiLogic {
   @CallSecurity(ResidencyApiCallers)
   public async spawnNow(): Promise<SpawnSweepReport> {
     return runSpawnSweep();
+  }
+
+  /**
+   * ⭐⭐ **The pin roll — the load half of residency.**
+   *
+   * Nearly everything in the game is stood up by somebody asking for it:
+   * an avatar when its player logs in, a room when someone walks into it,
+   * a shelf when its shop materializes — and everything else reconciles
+   * on read, so being unloaded costs nothing but the ability to *emit*.
+   * A named animal has nobody to ask and has to emit — wander, come to a
+   * door, be fed by a neighbour — so its class **pins** (`pinsResidency`),
+   * the pin is stamped on its `chattel` row, and this roll stands every
+   * pinned good back up once at boot, wherever it was standing.
+   *
+   * ⚠ What this is and is not. It is **pinning**: page-in at boot and at
+   * login (a process start or a human act), page-out only through the
+   * ordinary cold-tail sweep once the pin lapses, and **no fault** — nothing
+   * in the game can trigger a load by touching a good, and no room asks
+   * for what is recorded as standing in it. The day a fault is wanted,
+   * that is a pager, and the room scan wearing another face. See the
+   * eager-residency slate for who may honour a pin (the owner's activity
+   * tier, the parcel's allowance); the roll admits every pin today.
+   *
+   * `standUpKeyed` is resolve-or-mint, so the roll is safe to run when
+   * some pinned goods are already standing — an owner who logged in
+   * before the roll finished does not get a second cat. A pin whose
+   * place no longer resolves (a deleted lot) logs and skips: the record
+   * survives and the animal reads as *lost*, which is a thing that can
+   * happen to an animal, rather than a boot failure.
+   */
+  @CallSecurity(ResidencyBootCallers)
+  public async pinNow(): Promise<PinRollReport> {
+    const report: PinRollReport = { pinned: 0, stoodUp: 0, failed: 0 };
+    let pins: Array<{ pin: { scope: string; key: string }; place: string }>;
+    try {
+      pins = await ChattelApi.pinned();
+    } catch (err) {
+      console.warn('[residency] pin roll could not read the chattel index', err);
+      return report;
+    }
+    report.pinned = pins.length;
+    for (const { pin } of pins) {
+      try {
+        const live = await PersistableApi.standUpKeyed(pin.scope, pin.key);
+        if (live) report.stoodUp += 1;
+      } catch (err) {
+        report.failed += 1;
+        console.warn(
+          `[residency] pin '${pin.scope}' keyed '${pin.key}' could not stand up:`,
+          err,
+        );
+      }
+    }
+    if (report.pinned > 0) {
+      console.info(
+        `[residency] pin roll: ${report.stoodUp}/${report.pinned} stood up` +
+          (report.failed ? `, ${report.failed} failed` : ''),
+      );
+    }
+    return report;
   }
 
   /** See {@link ResidencyApi.takeCensus}. */

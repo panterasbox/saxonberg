@@ -44,6 +44,7 @@ import { StuffApi } from '../../api/stuff';
 import { WorldClockApi } from '../../api/worldclock';
 import { TemplatePaths } from '../paths';
 import type { Stuff } from '../stuff/Stuff';
+import { MixinApi } from '../../api/mixin';
 
 const SECONDS_PER_GAME_DAY = 86_400;
 
@@ -92,6 +93,8 @@ export interface Handling {
   getHandling(): number;
   /** The band — what a person watching would say. */
   handlingBand(): HandlingBand;
+  /** Is it at least this tractable? The band comparison, done once. */
+  handlingAtLeast(band: HandlingBand): boolean;
   /** What that looks like. */
   handlingPhrase(): string;
   /**
@@ -167,8 +170,39 @@ export function HandlingMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase
       return 'quiet';
     }
 
+    /**
+     * ⭐ Whether this animal is at or above a band.
+     *
+     * ⚠ Lives here because the comparison is `HANDLING_BANDS.indexOf(a) >=
+     * HANDLING_BANDS.indexOf(b)` — an ordinal read of a vocabulary array,
+     * which every caller was writing out by hand. Two controllers had
+     * identical copies, and a third would have made a third. The ORDER of
+     * the bands is this file's fact; nobody else should have to know it.
+     */
+    public handlingAtLeast(band: HandlingBand): boolean {
+      return (
+        HANDLING_BANDS.indexOf(this.handlingBand()) >=
+        HANDLING_BANDS.indexOf(band)
+      );
+    }
+
     public handlingPhrase(): string {
       return HANDLING_PHRASE[this.handlingBand()];
+    }
+
+    /**
+     * ⭐ This animal's species' handling range, or `null`.
+     *
+     * ⚠ Narrows through `isOrganism` because the factory's base
+     * constraint is a bare `Stuff` — a handling host is not obliged to
+     * be a living thing, and a rack that can be "handled" has no
+     * species. A silent species keeps the module constants, so nothing
+     * about shipped stock changes until somebody authors a range.
+     */
+    private speciesHandlingRange(): { floor: number; ceiling: number } | null {
+      const self = this as unknown as Stuff;
+      if (!MixinApi.isOrganism(self)) return null;
+      return self.getSpecies()?.getHandlingRange() ?? null;
     }
 
     public handle(quality = 1): number {
@@ -178,7 +212,10 @@ export function HandlingMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase
       // animal a long way and a quiet one hardly at all, which is both
       // true and the reason nobody grinds this to 1.
       const gain = HANDLING_PER_ACT * q * (1 - this.handling);
-      this.handling = clamp01(this.handling + gain);
+      // ⭐ The species says how far this animal can be brought. Absent a
+      // declared ceiling the old behaviour stands (anything reaches 1).
+      const ceiling = this.speciesHandlingRange()?.ceiling ?? 1;
+      this.handling = Math.min(ceiling, clamp01(this.handling + gain));
       return this.handling;
     }
 
@@ -223,7 +260,11 @@ export function HandlingMixin<TBase extends MixinConstructor<Stuff>>(Base: TBase
       try {
         const days = elapsed / SECONDS_PER_GAME_DAY;
         const decayed = this.handling - DECAY_PER_GAME_DAY * days;
-        this.handling = clamp01(Math.max(DECAY_FLOOR, decayed));
+        // ⭐ Where neglect STOPS is the species' business: a cat slides
+        // back further than a collie does. The module constant is the
+        // fallback for a species that declares nothing.
+        const floor = this.speciesHandlingRange()?.floor ?? DECAY_FLOOR;
+        this.handling = clamp01(Math.max(floor, decayed));
         this.handlingStamp = nowS;
       } finally {
         this._reconcilingHandling = false;

@@ -1,0 +1,19 @@
+# The levain — a kept culture, the `ale-culture` shape exactly.
+#
+# ⭐ `starveDays: 7`, which is shorter than the brewer's twelve on
+# purpose: a sourdough starter is famously needier than a barm, and a
+# baker who goes away for a week comes back to a dead crock. That is a
+# real cost of the free leaven — you did not buy it, so you keep it.
+class: /platform/idea/maturation/MaturationProfile
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  key: levain-culture
+  mechanism: microbial
+  kind: culture
+  strain: sourdough
+  inputCategory: levain
+  stallBelowK: 283
+  happyK: 295
+  damageAboveK: 305
+  killK: 323
+  starveDays: 7

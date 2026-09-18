@@ -15,3 +15,14 @@ args:
     required: true
     scope: "reachable"
     requires: CraftedMixin
+  # ⭐ WHAT IN — DECLARED, not hunted for (`lint:instrument-args`).
+  # Bare, the binder hands over every reachable vessel and the controller
+  # takes the first holding water — a question about the CONTENTS, which
+  # no predicate asks. `wash the glass in the basin` names one.
+  - name: water
+    type: objects
+    required: false
+    prepositions: [in, under, with]
+    default: "reachable:[mixin.BulkableMixin]"
+    scope: ["reachable"]
+    requires: [BulkableMixin]

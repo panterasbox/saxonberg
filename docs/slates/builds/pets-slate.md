@@ -1,16 +1,17 @@
 # Pets slate (working doc) — the creature you won over
 
-> **Status: PARTIAL, and the storage question is SETTLED (2026-09-08).**
-> The substrate landed under husbandry/ranching: the individual as base
-> case, `Handling` in the kernel *because pets will want it*, chattel
-> ownership, brains, traits, advancement →
-> [ranching.md](../../subsystems/ranching.md). ⭐ `ChattelMixin` **is now
-> on the Creature stack** — it shipped with farmstead, so the enabler
-> Wave 1 was built around is already paid for.
-> **Left:** ⚠ **Wave 0 (clear the ground — three found defects)** · the
-> taming encounter · the bond + four-needs care loop · the accept/refuse
-> hook · the off-screen resolution + digest · home range · pet combat
-> staging · breeding
+> **Status: PARTIAL** — ⭐⭐ **W0 + W1 shipped 2026-09-17** (MR !257) →
+> [pets.md](../../subsystems/pets.md): `KeptAnimal`, the bond as
+> regard × handling, feeding as a species-declared ladder, the offer as
+> a moment the animal decides, the ask, naming as the promotion, the
+> residency pin. The substrate under it landed with ranching →
+> [ranching.md](../../subsystems/ranching.md).
+> **Left (Wave 2):** the accept/refuse hook for the OTHER verbs (the
+> appraisal feeding `pet` / `call` / `stay`, not only `offer`) · the
+> off-screen resolution + digest · home range · pet combat staging ·
+> breeding (gestation; ranching writes *served* only) · the producer gap
+> (nothing on Hinkley Lane yields food a stray would take) · a plain
+> room's `cast:` re-minting its stray once the first is named
 > **Size:** a build
 >
 > ⭐⭐ **Read [§ Reconciliation

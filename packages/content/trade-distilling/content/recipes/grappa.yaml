@@ -11,6 +11,9 @@ inputSlots:
   measureL: 4
 toolCapabilities: [still]
 requiresHeatK: 351
+# ⚠ Pomace is solids and nothing but, so it catches sooner than a wash
+# does. The same ceiling, and a better reason for it.
+maxHeatK: 365
 outputApplication: bulk
 outputTemplate: /trade/distilling/thing/spirit-bottle
 outputMaterial: /trade/distilling/idea/material/grappa

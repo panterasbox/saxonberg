@@ -19,6 +19,7 @@ import { DisguisableMixin } from '../../../lib/disguise/Disguisable';
 import { NamedMixin } from '../../../lib/description/Named';
 import { VisibleMixin } from '../../../lib/description/Visible';
 import { OrganismMixin } from '../../../lib/species/Organism';
+import { PersonaMixin } from '../../../lib/character/Persona';
 import { ContainableMixin } from '../../../lib/spatial/Containable';
 import { ContainerMixin } from '../../../lib/spatial/Container';
 import { Idea } from '../../../lib/stuff/Idea';
@@ -33,8 +34,14 @@ class Viewer extends BeliefStoreMixin(
   PerceptionMixin(SensorMixin(ContainableMixin(Idea))),
 ) {}
 
-class Figure extends DisguisableMixin(
-  OrganismMixin(VisibleMixin(NamedMixin(ContainableMixin(Idea)))),
+// ⚠ **PersonaMixin is what makes it a PERSON.** Recognition is a
+// person-only gate — an animal cannot be a stranger, disguised, or
+// impersonated, so a non-person organism publishes its name. A fixture
+// that stands in for somebody must compose the thing that makes one.
+class Figure extends PersonaMixin(
+  DisguisableMixin(
+    OrganismMixin(VisibleMixin(NamedMixin(ContainableMixin(Idea)))),
+  ),
 ) {}
 
 class Room extends ContainerMixin(Idea) {}

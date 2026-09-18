@@ -24,6 +24,9 @@ outputTemplate: /trade/cooking/thing/syrup-bottle
 outputAppearance: clear simple syrup, still warm
 outputPortionL: 0.5
 requiresHeatK: 340
+# ⭐ Sugar CARAMELISES, and this recipe does not want it to. Past this
+# you have made something else, and something darker.
+maxHeatK: 400
 # Worked through water like any wet recipe — 340 K is well under the cap,
 # so this declares its medium for honesty rather than for the gate.
 medium: water

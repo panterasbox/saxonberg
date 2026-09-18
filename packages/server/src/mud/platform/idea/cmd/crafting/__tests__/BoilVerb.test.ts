@@ -264,13 +264,19 @@ describe('⭐ the COOKING case — a build remembers that it was boiled', () => 
     expect(refusal(await boil(pot))).toBeNull();
   });
 
-  it('bare `boil` falls back to the build you are working, like `heat`', async () => {
+  it('bare `boil` with nothing bound DECLINES — the fallback is the VIEW\'s, not a walk', async () => {
+    // ⭐ "Bare `boil` works the build you are at" is still true, and it
+    // is `boil.yaml`'s claim now: `default: "reachable:[mixin.ManualBuildMixin]"`.
+    // The controller used to reproduce it as a walk over the actor and
+    // the room (`lint:instrument-args`); a controller test skips the
+    // binder, so what it can prove is the half that is the controller's —
+    // nothing bound means a sentence, never a guess.
     await stand(true);
     const pot = makePot();
     await ContainmentApi.move(pot as never, actor as never);
     const ctx = await boil(null);
-    expect(refusal(ctx)).toBeNull();
-    expect(pot.getBuildMethod()).toBe('boiled');
+    expect(refusal(ctx)).toBe('no-vessel');
+    expect(pot.getBuildMethod()).not.toBe('boiled');
   });
 });
 

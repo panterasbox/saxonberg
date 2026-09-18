@@ -74,6 +74,30 @@ export interface Persistable {
   shouldPersist(): boolean;
 
   /**
+   * Does this host ask to be **stood up without being asked for** — at
+   * boot, and when its owner logs in — rather than the moment something
+   * first needs it?
+   *
+   * The load half of residency (`canEvict` is the unload half). Nearly
+   * everything in the game is lazy and reconciles on read, so an unloaded
+   * thing still *ages*; what it cannot do is **emit** — wander, come to a
+   * door, be fed by a neighbour, die in front of somebody. A host whose
+   * brain must produce events while nobody is looking answers true, and
+   * that is the only reason to.
+   *
+   * ⚠ Meaningful only on a good that is **stamped chattel with an explicit
+   * persistence key** — the pin is stamped onto its `chattel` row at every
+   * `place` write, and the residency pin roll reads that row, never a
+   * kind scan. Default false: a chair does not pin; a named animal does.
+   * Who may honour the pin (the owner's activity tier, the parcel's
+   * allowance) is the eager-residency slate's; the roll admits every pin
+   * today.
+   *
+   * @hook Override to opt a host into the residency pin roll.
+   */
+  pinsResidency(): boolean;
+
+  /**
    * The explicit per-instance persistence key stashed at
    * materialize/capture. `null` for a host that has never been keyed (a
    * singleton whose owner derives from its scope). Reused by
@@ -210,6 +234,10 @@ export function PersistableMixin<
 
     isPersistenceKeyExplicit(): boolean {
       return this._persistenceKeyExplicit;
+    }
+
+    pinsResidency(): boolean {
+      return false;
     }
 
     markForRevert(): void {

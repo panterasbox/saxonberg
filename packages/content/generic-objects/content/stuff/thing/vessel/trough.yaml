@@ -1,0 +1,21 @@
+# ⭐ The second feeding vessel, and the proof of AC 26: it differs from the
+# saucer by capacity and description and **nothing else**. A second one is
+# a row, not code.
+#
+# ⚠ Not every trough is one of these. The campus farm's scenery trough
+# stays a bare `Thing` — composing Feeder would claim an animal feeds from
+# it, and nothing does.
+class: /platform/thing/Feeder
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: long wooden trough
+  register: indefinite
+  primaryKeyword: trough
+  keywords: [trough, wooden]
+  longDescription: >-
+    A long wooden trough, worn pale and smooth along its inner edge where
+    a great many animals have leaned into it.
+  mass: 14
+  feederKind: trough
+  interiorBulk: true
+  interiorCapacity: 40

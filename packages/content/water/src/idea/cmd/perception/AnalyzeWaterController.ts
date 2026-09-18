@@ -39,6 +39,7 @@
 import { CommandController } from '@saxonberg/server/mud/lib/command/CommandController';
 import type { CommandContext, CommandModel } from '@saxonberg/server/mud/api/command';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
+import type { MqlOneResult } from '@saxonberg/server/mud/api/mql';
 import type { Container } from '@saxonberg/server/mud/lib/spatial/Container';
 import { MixinApi } from '@saxonberg/server/mud/api/mixin';
 import { MessageApi } from '@saxonberg/server/mud/api/message';
@@ -50,7 +51,7 @@ import type { SupplyReporting } from '@saxonberg/server/mud/lib/supply/SupplySta
 import WatercourseCatalogue from '../../WatercourseCatalogue';
 
 interface AnalyzeWaterModel extends CommandModel {
-  target?: Stuff;
+  target?: MqlOneResult;
 }
 
 /** The catalogue's identity path — the pack's own, in the pack. */
@@ -62,7 +63,7 @@ export default class AnalyzeWaterController extends CommandController<AnalyzeWat
     ctx: CommandContext,
   ): Promise<void> {
     const giver = ctx.commandGiver;
-    const target = model.target ?? null;
+    const target = model.target?.stuff ?? null;
 
     if (target !== null) {
       await this.reportOn(target, ctx);

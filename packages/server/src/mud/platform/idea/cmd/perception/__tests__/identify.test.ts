@@ -25,6 +25,7 @@ import { IdentifiableMixin } from '../../../../../lib/identification/Identifiabl
 import { NamedMixin } from '../../../../../lib/description/Named';
 import { VisibleMixin } from '../../../../../lib/description/Visible';
 import { OrganismMixin } from '../../../../../lib/species/Organism';
+import { PersonaMixin } from '../../../../../lib/character/Persona';
 import { ContainableMixin } from '../../../../../lib/spatial/Containable';
 import { Idea } from '../../../../../lib/stuff/Idea';
 import {
@@ -40,9 +41,16 @@ class Vial extends IdentifiableMixin(VisibleMixin(ContainableMixin(Idea))) {}
 
 // A creature that is also type-identifiable (composes IDENTIFICATION) —
 // for the both-axes compose case.
-class Guard extends BeliefStoreMixin(
-  IdentifiableMixin(
-    OrganismMixin(VisibleMixin(NamedMixin(ContainableMixin(Idea)))),
+// ⚠ **PersonaMixin is what makes it a PERSON.** Recognition is a
+// person-only gate now — an animal cannot be a stranger, disguised or
+// impersonated, so a non-person organism publishes its name to everyone.
+// A fixture standing in for somebody must compose the thing that makes
+// one; faking the shape passes only until the rule gets stricter.
+class Guard extends PersonaMixin(
+  BeliefStoreMixin(
+    IdentifiableMixin(
+      OrganismMixin(VisibleMixin(NamedMixin(ContainableMixin(Idea)))),
+    ),
   ),
 ) {}
 

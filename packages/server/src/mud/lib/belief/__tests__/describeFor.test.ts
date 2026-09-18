@@ -26,6 +26,7 @@ import { ContainerMixin } from '../../spatial/Container';
 import { NamedMixin } from '../../description/Named';
 import { VisibleMixin } from '../../description/Visible';
 import { OrganismMixin } from '../../species/Organism';
+import { PersonaMixin } from '../../character/Persona';
 import { Idea } from '../../stuff/Idea';
 import { StuffApi } from '../../../api/stuff';
 import { ContainmentApi } from '../../../api/containment';
@@ -48,10 +49,15 @@ class Viewer extends BeliefStoreMixin(
   }
 }
 
-// A being you can recognize: Organism + a proper name + a generic
+// A being you can recognize: a PERSON + a proper name + a generic
 // appearance (the salient-feature fallback for strangers).
-class Being extends VisibleMixin(
-  OrganismMixin(NamedMixin(ContainableMixin(Idea))),
+// ⚠ **PersonaMixin is what makes it a PERSON**, and recognition is now a
+// person-only gate: an animal cannot be a stranger, wear a hood, or be
+// impersonated, so a non-person organism renders its name to everybody.
+// A fixture called Bob that models a person must compose the thing that
+// makes one — faking the shape passes only until the rule gets stricter.
+class Being extends PersonaMixin(
+  VisibleMixin(OrganismMixin(NamedMixin(ContainableMixin(Idea)))),
 ) {}
 
 // An inert item — not an Organism, so recognition doesn't apply.

@@ -126,26 +126,21 @@ suite('the smithy — the knowledge ladder is real', () => {
     await s.awaitActivity(engagementIdOf(heating), 240_000);
 
     /*
-     * ⚠⚠ **`hammer ingot` hammers the WRONG ingot.** The smithy ships
-     * two — `a cold iron ingot` and `an iron ingot` — and the bareword
-     * matches the cold one, which refuses on a durability validator:
-     * *"a cold iron ingot doesn't wear out"*. That reads as the forge
-     * being broken when it is a decoy being picked.
-     *
-     * ⓘ Reported, not judged: two ingots sharing a keyword where one
-     * fails the validator is an ambiguity a player hits too, and the
-     * original spec passed only because it named the bareword when the
-     * floor had fewer things on it. `glowing` names the heated one.
+     * ⚠⚠ **`hammer glowing` never named anything.** Nothing in the smithy
+     * answers to `glowing`; the word matched NOTHING, the optional arg
+     * bound empty, and the controller's fallback walk picked the first
+     * build vessel in reach — which happened to be the ingot `heat` had
+     * just picked by the same walk. The earlier note here blamed a decoy
+     * ingot; the real refusal on `hammer ingot` was the arg's own
+     * `requires: DurableMixin`, which no Ingot satisfies. The view now
+     * declares the workpiece (`lint:instrument-args`) and requires what
+     * the controller actually reads, so naming it works and bare works.
      */
-    // ⭐ Hammering is an engagement too — quenching before the metal has
-    // finished moving finds no build to quench (`empty-build`). Every
-    // step of a by-hand craft is WORK that takes time, and the harness
-    // waits on the work rather than on a clock.
-    const hammering = await s.cmd('hammer glowing');
+    const hammering = await s.cmd('hammer ingot');
     expectOk(hammering);
     await s.awaitActivity(engagementIdOf(hammering), 240_000);
 
-    const quenched = await s.cmd('quench glowing');
+    const quenched = await s.cmd('quench ingot');
     expectOk(quenched);
 
     /*

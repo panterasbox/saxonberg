@@ -17,6 +17,12 @@ sack row and its par live here. It is the honestly-labelled
 imported-input faucet (a stub upstream inside de-stubbed trades) the
 mash tun and the wash draw from until a malting trade earns its pack.
 
+⚠ The grain chain (2026-09) shipped `Sack` — a graded bulk holder for
+dry goods — and the mash now wants GRIST, not malt: the brewer buys grist
+here at a markup or mills malt at the millsite. The malt sack row is
+still the older receptacle shape; migrating it to `Sack` is this pack's
+own tidy-up, owed and not urgent.
+
 Venue: the hall (`location/cash-and-carry`) off the Counting-Houses
 avenue, Tam Ferrier at the counter, the independent Business
 (`idea/business`) the Prime Minister's office appoints until the trade

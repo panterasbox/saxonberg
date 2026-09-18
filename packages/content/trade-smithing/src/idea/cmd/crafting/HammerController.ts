@@ -27,7 +27,7 @@
 
 import { ManualBuildController } from '@saxonberg/server/mud/platform/idea/cmd/crafting/ManualBuildController';
 import type { CommandContext, CommandModel } from '@saxonberg/server/mud/api/command';
-import type { MqlOneResult } from '@saxonberg/server/mud/api/mql';
+import type { MqlManyResult, MqlOneResult } from '@saxonberg/server/mud/api/mql';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import { MixinApi } from '@saxonberg/server/mud/api/mixin';
 import { MessageApi } from '@saxonberg/server/mud/api/message';
@@ -44,6 +44,8 @@ const CARBON = '/stuff/idea/material/element/carbon';
 const C_CAST_FLOOR = 0.021;
 
 interface HammerModel extends CommandModel {
+  striker?: MqlManyResult;
+  anvil?: MqlManyResult;
   target?: MqlOneResult;
 }
 
@@ -52,7 +54,7 @@ export default class HammerController extends ManualBuildController<HammerModel>
     const giver = context.commandGiver;
 
     const target: Stuff | null =
-      model.target?.stuff ?? this.findBuildVessel(giver);
+      model.target?.stuff ?? null;
 
     if (!target) {
       this.declineStep(
@@ -63,7 +65,7 @@ export default class HammerController extends ManualBuildController<HammerModel>
       return;
     }
 
-    const striker = this.findCapability(giver, 'striking');
+    const striker = this.bestInstrument(model.striker, 'striking');
     if (!striker) {
       this.declineStep(
         context,
@@ -72,7 +74,7 @@ export default class HammerController extends ManualBuildController<HammerModel>
       );
       return;
     }
-    const anvil = this.findCapability(giver, 'anvil');
+    const anvil = this.bestInstrument(model.anvil, 'anvil');
     if (!anvil) {
       this.declineStep(
         context,
