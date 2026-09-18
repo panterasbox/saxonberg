@@ -50,7 +50,8 @@ const SEED: Loose[] = [
   },
   { key: "appraisal", channel: "skill", label: "Appraisal", synergizes: ["mixology"] },
   { key: "darts", channel: "skill", label: "Darts" },
-  { key: "alcohol-tolerance", channel: "conditioning", label: "Alcohol Tolerance" },
+  { key: "alcohol-tolerance", channel: "conditioning", label: "Alcohol Tolerance", stock: " alcohol-tolerance " },
+  { key: "wind", channel: "conditioning", label: "Wind", stock: "wind", conferrals: [] },
 ];
 
 describe("DisciplineCatalogue", () => {
@@ -101,6 +102,14 @@ describe("DisciplineCatalogue", () => {
       { band: "competent", verbs: ["flourish"] },
     ]);
     expect(cat.getConferrals("darts")).toEqual([]);
+  });
+
+  it("⭐ reads the body STOCK a conditioning Discipline names (trimmed; '' for the rest)", async () => {
+    const cat = await warmCatalogue(SEED);
+    expect(cat.getStock("wind")).toBe("wind");
+    expect(cat.getStock("alcohol-tolerance")).toBe("alcohol-tolerance");
+    expect(cat.getStock("mixology")).toBe("");
+    expect(cat.getDiscipline("wind")?.stock).toBe("wind");
   });
 
   it("has() reflects catalog membership", async () => {

@@ -95,6 +95,11 @@ export default class DisciplineCatalogue extends DisciplineCatalogueBase {
     return [...(this.getDiscipline(key)?.synergizes ?? [])];
   }
 
+  /** The body stock a conditioning Discipline's band reads (`''` if none). */
+  public getStock(key: string): string {
+    return this.getDiscipline(key)?.stock ?? "";
+  }
+
   /** The band-gated conferral rules authored on `key`. */
   public getConferrals(key: string): ConferralRule[] {
     return (this.getDiscipline(key)?.conferrals ?? []).map((c) => ({
@@ -187,6 +192,7 @@ function buildDescriptor(data: unknown): DisciplineDescriptor | null {
     specializes?: unknown;
     synergizes?: unknown;
     conferrals?: unknown;
+    stock?: unknown;
   };
   if (typeof d.key !== "string" || d.key.length === 0) return null;
   if (!DISCIPLINE_CHANNELS.includes(d.channel as DisciplineChannel)) {
@@ -203,6 +209,7 @@ function buildDescriptor(data: unknown): DisciplineDescriptor | null {
     specializes: stringArray(d.specializes),
     synergizes: stringArray(d.synergizes),
     conferrals: conferralRules(d.conferrals),
+    stock: typeof d.stock === "string" ? d.stock.trim() : "",
   };
 }
 

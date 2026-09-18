@@ -1,0 +1,27 @@
+# Wind — ⭐ conditioning as a BODY STOCK, and the first Discipline whose
+# band is read off the body rather than the Transcript.
+#
+# `stock: wind` names the biological reserve this band is a threshold
+# over (untrained < 20 % ≤ novice < 40 % ≤ competent < 60 % ≤ proficient
+# < 80 % ≤ expert). The reserve is earned by duration at a pace the body
+# can hold — the quern, the lane, the anvil — and it fades by half-life
+# WHILE YOU PLAY, never while you are away (it rides the metabolism
+# clock, which freezes on absence). No gauge shows it: what a person
+# gets is `competence`, and what they FEEL is reach — the run that holds
+# past where it broke, the climb without the rest, the second shift.
+#
+# ⚠ `conferrals: []` on purpose (plan D9). Every rung of the first
+# ladder is a verb a fresh body already has (`run`, `climb`, every step
+# verb), read through the body at the verb layer — a conferral rule
+# here would be a no-op push. The mechanism is wired
+# (`refreshConferrals` fires when the band crosses in either direction),
+# and the first real conferral is the swim, when there is water.
+class: /platform/idea/Discipline
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  key: wind
+  channel: conditioning
+  label: Wind
+  stock: wind
+  description: The body's capacity for sustained effort — what lets you hold a run, take a ladder without stopping for breath, and work a second shift. Earned by hours at a pace you can hold; fades while you play and never while you are away. Bounded and bidirectional, like every conditioning channel.
+  conferrals: []

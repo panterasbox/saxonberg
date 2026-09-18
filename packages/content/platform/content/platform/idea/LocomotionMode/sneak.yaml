@@ -17,7 +17,12 @@ data:
   groundContact: full
   requiresBodyPlanMode: [walk]
   requiresPosture: []
-  costMultiplier: 1.5
+  # ⚠ 1.0, not more: `costMultiplier` scales the WALK'S metabolic watts
+  # (`ExertingMixin.traversePowerW`), and a crouch at half speed over the
+  # nominal traverse is walking's power, not more. The 1.5 that used to
+  # sit here was a movement-point guess nobody read; as watts it would
+  # have made a fresh body's sneak exceed what it can sustain.
+  costMultiplier: 1.0
   passthrough: false
   conveyanceMixin: null
   enablementMixin: null

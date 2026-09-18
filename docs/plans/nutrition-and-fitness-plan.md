@@ -361,6 +361,8 @@ The build phrase table (person register; the reviewer's test is that adjacent ce
 
 **Commit.** `build(nutrition-fitness W2): reach — the wind band off the body, the run that breaks, and a ladder somebody can climb`
 
+**✅ Done** (`build(nutrition-fitness W2)`). Notes: (1) the conditioning overlay (`withConditioning`) is applied inside `bandsForImpl` AND re-applied at the sync `competenceDigestCached` read — the fold caches are invalidated by the ledger's notify, and a stock band moves with the body, so the cached digest re-reads it; (2) a fresh body lists `wind` as *untrained* rather than absent — the stock exists, which is the point; (3) `pace-broken` auto-escalates to `partial` (the traverse happened, under a slower mode — the clamped-quantity shape), added to `CommandLogic.autoEscalationFor` and the envelope doc; (4) the winze foot is an `AuthoredWorking` at `z: -2` with `up` back, the ladder under `props:` in both rooms (one clone each — the enablement walk reads the room you stand in); (5) the pace test's fixture is an Idea-based mover (no Organism, so the body-plan gate passes) with `Exerting(Reserved(...))` composed — a Creature with no species fails the body-plan gate for `run`.
+
 ### W3 — the mirror
 
 **Goal.** `look <person>` prints the body line; `assess` says the BMI band; livestock reads are untouched.

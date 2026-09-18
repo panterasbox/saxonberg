@@ -120,6 +120,9 @@ forwarded by controllers via `ctx.note`):
   mode is the short LocomotionMode name (`'walk'`, `'climb'`, …).
 - `slot-occupied { host: StuffRef, slot, occupant?: StuffRef }` —
   required slot is taken (wear/wield/mount).
+- `pace-broken { from, to }` — the body could not hold the pace asked
+  and the traverse went under a slower mode (`run` → `walk`); emitted by
+  `LocomotionControllerBase` before the gates (nutrition-and-fitness W2).
 
 **Pre-controller dispatcher-emitted** (from `CommandGiverMixin._runChain` and `_executeOne`):
 
@@ -202,6 +205,7 @@ internally in `api/command.ts` (`autoEscalationFor`):
 |--------------------------------|----------------|
 | `quantity-clamped`             | `partial`      |
 | `target-declined`              | `partial`      |
+| `pace-broken`                  | `partial`      |
 | `quantity-clamped-rejected`    | `declined`     |
 | `empty-result`                 | `declined`     |
 | `controller-rejected`          | `declined`     |

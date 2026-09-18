@@ -517,6 +517,17 @@ export interface MixinMissingNote {
   mixin: string;
 }
 
+/**
+ * The body could not hold the pace it was asked for and dropped to a
+ * slower mode — a fresh body's `run` breaking to a walk. The traverse
+ * still happens, under `to`. Nutrition-and-fitness W2.
+ */
+export interface PaceBrokenNote {
+  kind: 'pace-broken';
+  from: string;
+  to: string;
+}
+
 export interface LocomotionGateFailedNote {
   kind: 'locomotion-gate-failed';
   gate:
@@ -863,6 +874,7 @@ export type Note =
   | ControllerRejectedNote
   | MixinMissingNote
   | LocomotionGateFailedNote
+  | PaceBrokenNote
   | SlotOccupiedNote
   | CommandRejectedNote
   | MqlErrorNote
