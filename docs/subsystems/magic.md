@@ -301,6 +301,15 @@ splash) and a spilled vial corrosion for free. No new disciplines —
 `magic-create/earth/air/water` all shipped; the channels were unreached
 purely for lack of spell rows.
 
+⭐ **A wand for each, so a non-caster can wield them** (the `firebolt`
+wand precedent) — `zap` spends the maker's stored labour, not competence,
+which is the whole point of the item class. The mechanical wands
+band-vary through the working's own `energy: [1,2,4]`; `acid-splash`,
+being a `conjure`, had no band axis, so it gained a band-varying
+`litres: [0.5,1,2]` (a cursed working musters half a measure, blessed
+twice it, and the substance-contact seam scales the burn by the litres —
+`lint:blessed-bands` holds the axis honest).
+
 ## The demonstrator — the Practicum
 
 `world-seed/content/world/practicum*`: a teleport-reachable `CartesianZone` (the

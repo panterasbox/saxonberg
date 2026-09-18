@@ -95,8 +95,10 @@ function reachableWater(c: Creature): MqlManyResult {
   const out: Stuff[] = [];
   const self = c as unknown as Stuff;
   if (MixinApi.isContainer(self)) out.push(...self.getContents());
-  const loc = self.getContainer();
-  if (loc && MixinApi.isContainer(loc)) out.push(...loc.getContents());
+  if (MixinApi.isContainable(self)) {
+    const loc = self.getContainer();
+    if (loc && MixinApi.isContainer(loc)) out.push(...loc.getContents());
+  }
   return { stuff: out, raw: '' } as unknown as MqlManyResult;
 }
 

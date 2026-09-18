@@ -144,6 +144,14 @@ describe("general-store content integrity", () => {
     "/platform/thing/Provision",
     "/platform/thing/equipment/PortableLight",
     "/platform/thing/equipment/Weapon",
+    // ⭐ The injury build's armour + arms line (W-A5 / W-C1). A `Garment`
+    // is the covering class (padded gambeson → steel breastplate, one
+    // class differing by row data and material); a `Launcher` is the bow
+    // and the musket (a `Weapon` that fires a projectile). Both discrete,
+    // neither Stackable — you own a breastplate, you do not carry it as a
+    // quantity. The AMMUNITION they fire is the one exception, below.
+    "/platform/thing/equipment/Garment",
+    "/platform/thing/equipment/Launcher",
     "/platform/thing/Receptacle",
     // A `Feeder` is a `Receptacle` that an animal eats from — the same
     // Bulkable/Container/Thing stack with one marker mixin on top, and no
@@ -202,7 +210,15 @@ describe("general-store content integrity", () => {
     "/system/residence/thing/HouseholdersKit",
   ]);
 
-  it("every priced/stocked good is a real, discrete item (never Stackable)", () => {
+  // ⭐ Ammunition is the ONE stackable good the store sells, and rightly:
+  // a Projectile is `StackableMixin(Thing)` (the Coin shape — one row, one
+  // quantity), because you buy arrows and musket-balls by the sheaf, not
+  // one chattel-stamped stick at a time. The injury build (W-C2) put them
+  // on the shelf. Every OTHER good stays discrete; this is the exception,
+  // named so a second stackable staple can't sneak in unnoticed.
+  const AMMUNITION_CLASSES = new Set(["/platform/thing/equipment/Projectile"]);
+
+  it("every priced/stocked good is a real item — discrete, or stackable ammo", () => {
     const counter = load(STORE_DIR, "counter.yaml");
     const lines = counter.data?.stockLines as { itemTemplatePath: string; par: number }[];
     const prices = counter.data?.prices as Record<string, number>;
@@ -222,8 +238,13 @@ describe("general-store content integrity", () => {
       const rel = line.itemTemplatePath.slice(home!.prefix.length);
       expect(existsSync(`${dir}${rel}.yaml`), line.itemTemplatePath).toBe(true);
       const good = load(dir, `${rel}.yaml`);
-      // A real, discrete item class (backed by a shipped system, not a prop).
-      expect(DISCRETE_ITEM_CLASSES.has(good.class ?? "")).toBe(true);
+      // A real item class (backed by a shipped system, not a prop):
+      // discrete chattel, or the one stackable exception, ammunition.
+      const cls = good.class ?? "";
+      expect(
+        DISCRETE_ITEM_CLASSES.has(cls) || AMMUNITION_CLASSES.has(cls),
+        `${line.itemTemplatePath} class ${cls}`,
+      ).toBe(true);
       // Priced, coinage-clean (a positive integer minor amount).
       const price = prices[line.itemTemplatePath];
       expect(Number.isInteger(price)).toBe(true);

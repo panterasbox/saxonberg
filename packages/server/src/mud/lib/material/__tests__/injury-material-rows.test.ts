@@ -53,9 +53,9 @@ function installMaterialMarshallers(): void {
 const CONTENT = fileURLToPath(new URL('../../../../../../content', import.meta.url));
 
 /**
- * The material rows THIS MR introduced (`git diff --name-status
- * origin/master...HEAD -- '*​/idea/material/*.yaml'`). A new material row
- * added by a later wave belongs on this list.
+ * The material rows THIS MR introduced (a `git diff --name-status`
+ * against `origin/master`, filtered to the `idea/material` YAML rows). A
+ * new material row added by a later wave belongs on this list.
  */
 const INJURY_MATERIAL_ROWS = [
   'base-library/content/stuff/idea/material/bulk/vitriol.yaml',
