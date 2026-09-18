@@ -20,7 +20,7 @@
 
 import { ManualBuildController } from '@saxonberg/server/mud/platform/idea/cmd/crafting/ManualBuildController';
 import type { CommandContext, CommandModel } from '@saxonberg/server/mud/api/command';
-import type { MqlOneResult } from '@saxonberg/server/mud/api/mql';
+import type { MqlManyResult, MqlOneResult } from '@saxonberg/server/mud/api/mql';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import type { Container } from '@saxonberg/server/mud/lib/spatial/Container';
 import type { Containable } from '@saxonberg/server/mud/lib/spatial/Containable';
@@ -45,6 +45,7 @@ const PATTERNS: ReadonlyMap<string, string> = new Map([
 ]);
 
 interface SewModel extends CommandModel {
+  kit?: MqlManyResult;
   pieces: MqlOneResult;
   pattern?: string;
 }
@@ -71,7 +72,7 @@ export default class SewController extends ManualBuildController<SewModel> {
       return;
     }
 
-    const instrument = this.findCapability(giver, 'mending');
+    const instrument = this.bestInstrument(model.kit, 'mending');
     const durationMs = this.paceMs(
       dial(SewController.BASE_MS_KEY, SewController.BASE_MS),
       instrument as Stuff | null,

@@ -1,0 +1,51 @@
+# ⭐⭐ Why a mill is where it is — the one equation, in words, with the
+# conclusion a player can act on.
+class: /platform/idea/HelpConcept
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  key: head-and-flow
+  title: Head and flow
+  summary: Why a mill sits at a fall rather than on the biggest river.
+  keywords: [head, flow, water, power, mill, wheel, weir, fall, watts]
+  seeAlso: [extraction]
+  body: |
+    Water makes power by **falling**. Not by moving — by falling. The
+    power you can take out of it is:
+
+        power  =  density x gravity x the DROP x the FLOW x efficiency
+
+    Four of those five you cannot change. The two you can are the drop
+    and the flow, and they multiply — so **either one at zero gives you
+    nothing at all**.
+
+    ⭐ This is why the biggest river is not the best mill site. A great
+    slow river across flat country has enormous flow and no drop
+    whatever, and it will not turn a wheel. A thin stream coming off a
+    hillside has little flow and a great deal of drop, and it will.
+
+    A city on a confluence has all the water in the world and no power.
+    A mill is at the **fall**.
+
+    ## The weir is the drop you build
+
+    Where the river does not fall enough on its own, you make it: throw a
+    weir across, back the water up behind it, and take it out at the top
+    to run down onto the wheel. A weir six feet high is six feet of head
+    that was not there yesterday. That is the whole of what a millrace is
+    for.
+
+    ⚠ And a weir that HOLDS water is different from one that merely
+    drops it. Water you send through the wheel and back into the river is
+    borrowed; water you divert away is gone, and everybody below you
+    feels it. A mill takes the first kind.
+
+    ## The flow is seasonal, and so is the mill
+
+    The drop stays where you built it. The flow does not: it rises with
+    the rain and the snowmelt and it falls away in a dry summer. So a
+    mill that grinds ten sacks a day in spring grinds five in August,
+    and the miller's year has a shape to it that nobody chose.
+
+    ⭐ You can read both numbers where you stand. `analyze power` tells
+    you the flow passing and what a fall of one metre would make of it —
+    which is the honest answer to *could I put a mill here*.

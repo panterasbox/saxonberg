@@ -3,8 +3,15 @@
 > **Status: PARTIAL** — W0-W3 shipped (spoilage core, `/trade/cooking`,
 > the recipe roster, the drive) →
 > [crafting.md](../../subsystems/crafting.md)
-> **Left:** the tending wave (durative cook · doneness · braise) · cold
-> storage/icebox · compost · preservation + the victualler · the baker pack
+> **Left:** the tending wave (durative cook · braise) · cold
+> storage/icebox · compost · preservation + the victualler · **slices —
+> a tangible food that yields N portions** (a loaf is one portion today,
+> all-or-nothing) · **staling promoted to the kernel** on the third-pack
+> signal (cooked rice, potatoes — the same retrogradation; it is the
+> baking pack's `lib/` until a pack with no common ancestor wants it)
+> **Shipped since:** doneness (`ThermalDoseMixin`) and the baker pack
+> (`trade-milling` + `trade-baking`, the grain chain, 2026-09) →
+> [spoilage.md § doneness / § staling](../../subsystems/spoilage.md)
 > **Size:** a build
 
 > **Status: design, captured 2026-09-02.** The forks below were settled in

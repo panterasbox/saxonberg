@@ -28,6 +28,7 @@
 import { FieldWorkController, FIELD_TOPIC } from './FieldWorkController';
 import type { CommandContext, CommandModel } from '@saxonberg/server/mud/api/command';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
+import type { MqlOneResult } from '@saxonberg/server/mud/api/mql';
 import type { Containable } from '@saxonberg/server/mud/lib/spatial/Containable';
 import type { Container } from '@saxonberg/server/mud/lib/spatial/Container';
 import { MessageApi } from '@saxonberg/server/mud/api/message';
@@ -36,6 +37,12 @@ import { StuffApi } from '@saxonberg/server/mud/api/stuff';
 import { ContainmentApi } from '@saxonberg/server/mud/api/containment';
 import { Quantity } from '@saxonberg/server/mud/lib/quantity';
 import { SWARD_RESIDUAL_FRACTION } from '../../../lib/Sward';
+
+/** ⭐ The instrument is bound by the view, never hunted for here. */
+interface MowModel extends CommandModel {
+  tool?: MqlOneResult;
+}
+
 
 /** What a cut of hay comes off the field as. */
 const HAY_ROW = '/trade/farming/thing/hay';
@@ -68,14 +75,14 @@ const NITROGEN_PER_PROTEIN = 1 / 6.25;
 const RESERVE_POINTS_PER_G_N = 0.0004;
 
 export default class MowController extends FieldWorkController {
-  async execute(_model: CommandModel, context: CommandContext): Promise<void> {
+  async execute(model: MowModel, context: CommandContext): Promise<void> {
     const giver = context.commandGiver;
     const reading = await this.fieldOf(giver);
     if (!reading) {
       this.decline(context, Mml.compose`There is no sward here to cut.`, 'no-field');
       return;
     }
-    const scythe = this.toolOf(giver, 'mowing');
+    const scythe = this.toolOf(model.tool?.stuff, 'mowing');
     if (!scythe) {
       this.decline(
         context,

@@ -15,7 +15,7 @@ data:
   longDescription: |
     Stiff upright leaves stand in a blade-straight cluster, banded pale and dark like something that would rather not be touched. A snake plant, entirely indifferent to whether anyone remembers it exists.
   _speciesPath: /stuff/idea/species/plantae/tracheophyta/liliopsida/asparagales/asparagaceae/dracaena/trifasciata
-  material: /stuff/idea/material/tissue/plant-tissue
+  _materialPath: /stuff/idea/material/tissue/plant-tissue
   lifecycleState: alive
   seedTemplatePath: /trade/farming/thing/seed/snake-plant
   # No moisture reserve — the water lives in the ground (see peace-lily).

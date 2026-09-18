@@ -32,7 +32,7 @@
 
 import { ManualBuildController } from '@saxonberg/server/mud/platform/idea/cmd/crafting/ManualBuildController';
 import type { CommandContext, CommandModel } from '@saxonberg/server/mud/api/command';
-import type { MqlOneResult } from '@saxonberg/server/mud/api/mql';
+import type { MqlManyResult, MqlOneResult } from '@saxonberg/server/mud/api/mql';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import type { Container } from '@saxonberg/server/mud/lib/spatial/Container';
 import type { Containable } from '@saxonberg/server/mud/lib/spatial/Containable';
@@ -51,6 +51,7 @@ const TOPIC = 'act.deed';
 const YARN_ROW = '/trade/textiles/thing/yarn';
 
 interface SpinModel extends CommandModel {
+  wheel?: MqlManyResult;
   stock: MqlOneResult;
   count?: number;
 }
@@ -121,7 +122,7 @@ export default class SpinController extends ManualBuildController<SpinModel> {
       Math.round(charge * Math.max(0, 1 - overreach / Math.max(1, ceiling))),
     );
 
-    const instrument = this.findCapability(giver, 'spinning');
+    const instrument = this.bestInstrument(model.wheel, 'spinning');
     const durationMs = this.paceMs(
       dial(SpinController.BASE_MS_KEY, SpinController.BASE_MS),
       instrument as Stuff | null,

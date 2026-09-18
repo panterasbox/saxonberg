@@ -1,0 +1,22 @@
+id: hearts-delight
+version: 0.1.0
+root: /world/hearts-delight
+description: >-
+  Heart's Delight — the valley that feeds the city. ⭐ A STATIC AUTHORED
+  farm rather than a managed one: it runs no framework, it is content
+  whose job is to feed the supply chain, and it is a source NODE rather
+  than a faucet — located, so it costs the journey; seasonal, so it costs
+  the wait; and finite, so it can run out. The flats grow fruit on deep
+  alluvium with senior water rights; the upper bench is thin soil and
+  junior rights, which is why it grows the low-value dryland crop and why
+  the grain is the poor relation of the peaches. The mill is at the fall,
+  because that is where a mill is.
+requires:
+  groups:
+    - name: hearts-delight
+      purpose: the valley's own body
+      owner: { office: prime-minister }
+  title:
+    - extent: /world/hearts-delight
+      holder: { group: hearts-delight }
+      landUse: agricultural

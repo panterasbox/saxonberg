@@ -26,6 +26,8 @@ const SHARPEN_MS_FALLBACK = 12000;
 const RASP_DB = 55;
 
 interface SharpenModel extends CommandModel {
+  /** ⭐ The instrument, resolved by the BINDER off the view's arg. */
+  stone?: MqlOneResult;
   blade?: MqlOneResult;
 }
 
@@ -70,7 +72,7 @@ export default class SharpenController extends ManualBuildController<SharpenMode
     }
 
     // A carried, un-broken whetstone (hasCapability goes dark broken).
-    const stone = this.carriedWhetstone(giver);
+    const stone = this.carriedWhetstone(model.stone?.stuff);
     if (!stone) {
       this.declineStep(
         context,
@@ -102,12 +104,13 @@ export default class SharpenController extends ManualBuildController<SharpenMode
     }
   }
 
-  /** The giver's carried, working whetstone (broken offers nothing). */
-  private carriedWhetstone(giver: Stuff): (Stuff & Tooled) | null {
-    if (!MixinApi.isContainer(giver)) return null;
-    for (const c of giver.getContents()) {
-      if (MixinApi.isTool(c) && c.hasCapability('whetstone')) return c;
-    }
-    return null;
+  /**
+   * ⭐ The bound stone, if it is a working whetstone. Resolved by the
+   * binder; a broken one still offers nothing, which is state no
+   * predicate expresses.
+   */
+  private carriedWhetstone(bound: Stuff | null | undefined): (Stuff & Tooled) | null {
+    if (!bound || !MixinApi.isTool(bound)) return null;
+    return bound.hasCapability('whetstone') ? bound : null;
   }
 }

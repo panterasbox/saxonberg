@@ -12,7 +12,7 @@ data:
   longDescription: |
     A dense clump of spearmint, spreading exactly as far as it is allowed to and then somewhat further.
   _speciesPath: /stuff/idea/species/plantae/tracheophyta/magnoliopsida/lamiales/lamiaceae/mentha/spicata
-  material: /stuff/idea/material/tissue/plant-tissue
+  _materialPath: /stuff/idea/material/tissue/plant-tissue
   lifecycleState: alive
   seedTemplatePath: /trade/farming/thing/seed/mint
   harvestTemplatePath: /trade/farming/thing/mint

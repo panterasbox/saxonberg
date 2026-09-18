@@ -1,0 +1,28 @@
+# Proofed dough — risen, full of gas, and ready for the oven.
+#
+# ⭐ What the ferment PRODUCED. The `bread-dough` profile's
+# `productMaterial`: when the batch finishes, the trough's interior is
+# rewritten to this, and the loaf recipe wants this and not the raw kind.
+# So a baker who skips the proof has nothing to bake — the step is not
+# enforced by a check, it is enforced by the recipe's input not existing.
+class: /platform/idea/material/Material
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  name: proofed dough
+  keywords: [dough, proofed, risen, sponge]
+  appearance: risen and domed, webbed with gas when you cut it
+  density: 620
+  specificHeat: 2800
+  thermalConductivity: 0.35
+  electricalConductivity: 0.01
+  waterAbsorptionCapacity: 5
+  hardness: 1
+  toughness: 3
+  edibility: true
+  waterActivity: 0.96
+  spoilActivationEnergy: 55000
+  nutrients: ["carb", "protein"]
+  nutrientAmounts: { carb: 470000, protein: 55000 }
+  toxicity: []
+  tags: ["food", "dough", "proofed-dough", "baking"]
+  composition: []

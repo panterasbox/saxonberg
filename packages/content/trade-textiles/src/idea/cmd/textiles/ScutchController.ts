@@ -24,7 +24,7 @@
 
 import { ManualBuildController } from '@saxonberg/server/mud/platform/idea/cmd/crafting/ManualBuildController';
 import type { CommandContext, CommandModel } from '@saxonberg/server/mud/api/command';
-import type { MqlOneResult } from '@saxonberg/server/mud/api/mql';
+import type { MqlManyResult, MqlOneResult } from '@saxonberg/server/mud/api/mql';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import type { Container } from '@saxonberg/server/mud/lib/spatial/Container';
 import type { Containable } from '@saxonberg/server/mud/lib/spatial/Containable';
@@ -44,6 +44,7 @@ const TOW_ROW = '/trade/textiles/thing/tow';
 const SHIVE_ROW = '/trade/textiles/thing/shive';
 
 interface ScutchModel extends CommandModel {
+  board?: MqlManyResult;
   source: MqlOneResult;
   hard?: boolean;
 }
@@ -130,7 +131,7 @@ export default class ScutchController extends ManualBuildController<ScutchModel>
     // you grew, and the minority is worth more than the crop.
     const shiveUnits = Math.max(1, Math.round(charge * 0.75));
 
-    const instrument = this.findCapability(giver, 'scutching');
+    const instrument = this.bestInstrument(model.board, 'scutching');
     const durationMs = this.paceMs(
       dial(ScutchController.BASE_MS_KEY, ScutchController.BASE_MS),
       instrument as Stuff | null,

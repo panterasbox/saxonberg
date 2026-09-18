@@ -31,3 +31,22 @@ args:
     requires: any
     validators:
       - /lib/command/validators/canReach
+  # ⭐ WHICH BLADE and WHICH BLOCK — DECLARED, not hunted for
+  # (`lint:instrument-args`). A blade is a CONSTRUCTION (`bladed`), not a
+  # capability, so the binder hands over every constructed thing in reach
+  # and the controller reads the form; the block is what is both surfaced
+  # and able to carry what a carcass leaves on it.
+  - name: blade
+    type: objects
+    required: false
+    prepositions: [with, using]
+    default: "reachable:[mixin.ConstructedMixin]"
+    scope: ["reachable"]
+    requires: [ConstructedMixin]
+  - name: block
+    type: objects
+    required: false
+    prepositions: [on, at]
+    default: "reachable:[mixin.SurfacedMixin and mixin.ContaminableMixin]"
+    scope: ["reachable"]
+    requires: [SurfacedMixin]

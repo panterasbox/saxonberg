@@ -17,7 +17,7 @@
 import { ManualBuildController } from './ManualBuildController';
 import { CraftController } from './CraftController';
 import type { CommandContext, CommandModel } from '../../../../api/command';
-import type { MqlOneResult } from '../../../../api/mql';
+import type { MqlManyResult, MqlOneResult } from '../../../../api/mql';
 import type { Stuff } from '../../../../lib/stuff/Stuff';
 import { CraftingApi } from '../../../../api/crafting';
 import { ExecutionContextApi } from '../../../../api/execution-context';
@@ -29,6 +29,7 @@ const TOPIC = 'act.deed';
 const REPAIR_MS = 6000;
 
 interface RepairModel extends CommandModel {
+  kit?: MqlManyResult;
   item?: MqlOneResult;
 }
 
@@ -53,8 +54,8 @@ export default class RepairController extends ManualBuildController<RepairModel>
     // gate here (rate 1 — the Api declines diegetically if the domain
     // tool is genuinely missing).
     const pacer =
-      this.findCapability(giver, 'mending') ??
-      this.findCapability(giver, 'anvil');
+      this.bestInstrument(model.kit, 'mending') ??
+      this.bestInstrument(model.kit, 'anvil');
 
     // Capture the maker from the live command frame; the repair runs at
     // engaged-completion, where no frame exists (the strain pattern).

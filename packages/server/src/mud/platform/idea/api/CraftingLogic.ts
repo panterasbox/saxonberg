@@ -20,6 +20,7 @@ import {
 } from '../../../lib/advancement/ActSignature';
 import type Material from '../../../lib/material/Material';
 import { Freshness } from '../../../lib/material/Freshness';
+import { ThermalDose } from '../../../lib/thermal/ThermalDose';
 import { Cure } from '../../../lib/material/Cured';
 import {
   Contamination,
@@ -41,7 +42,8 @@ import {
 import { ContainmentApi } from '../../../api/containment';
 import { StackableApi } from '../../../api/stackable';
 import type RecipeCatalogue from '../RecipeCatalogue';
-import type { BulkSlot, BulkPayload } from '../../../lib/bulk/Bulkable';
+import type { BulkSlot, BlendPart,
+  BulkPayload } from '../../../lib/bulk/Bulkable';
 import type { Tooled } from '../../../lib/craft/Tooled';
 import type {
   CraftRequest,
@@ -727,6 +729,57 @@ function applySpoilage(outSlot: BulkSlot, outcome: SpoilageOutcome): void {
 }
 
 /**
+ * ⭐⭐ **What the working itself put on the doneness gauge.**
+ *
+ * A one-shot working "was as long as it needed": the mint stamps exactly
+ * the dose the recipe asked for, so every dish comes out of its own
+ * working **done**, and only physics after the mint takes it past. That is
+ * what keeps the gauge from re-litigating a craft that already succeeded,
+ * while still letting the loaf you forgot in the oven burn.
+ *
+ * ⚠ And the ceiling breach is stamped here, not declined at the gate: a
+ * fire too fierce for the working still produces the thing, it produces a
+ * **scorched** one. Declining would protect the player from a mistake
+ * worth being able to make.
+ */
+function donenessAtMint(
+  recipe: Recipe,
+  effectiveHeatK: number,
+): { doseS: number; scorchS: number } {
+  const requires = recipe.getRequiresHeatK();
+  // A working that asks for no heat cooks nothing — a shaken cocktail is
+  // not underdone, it is a cocktail.
+  if (requires <= 0) return { doseS: 0, scorchS: 0 };
+  const doseS = ThermalDose.wantedDoseS(requires, recipe.getHoldS());
+  const ceiling = recipe.getMaxHeatK();
+  const scorchS =
+    ceiling > 0 && effectiveHeatK > ceiling ? ThermalDose.scorchedAtS() : 0;
+  return { doseS, scorchS };
+}
+
+/**
+ * Stamp a working's doneness outcome onto a bulk output slot.
+ *
+ * ⚠ `deliveredHeatK` is **the heat the setup actually put on the food**,
+ * NOT `workingHeatK` (which the resolve deliberately pins to the recipe's
+ * own demand, because *a stew simmered beside a roaring forge was
+ * simmered*). That pinning is right for the kill and exactly wrong for the
+ * ceiling: the ceiling's whole question is whether the fire was FIERCER
+ * than the working wanted, and pinning makes the answer permanently no.
+ * The medium cap still applies to the delivered figure, so a wet recipe
+ * beside a forge genuinely cannot scorch — the water stops at 373 K.
+ */
+function applyDoneness(
+  outSlot: BulkSlot,
+  recipe: Recipe,
+  deliveredHeatK: number,
+): void {
+  const { doseS, scorchS } = donenessAtMint(recipe, deliveredHeatK);
+  if (doseS <= 0 && scorchS <= 0) return;
+  new ThermalDose(outSlot).stampDose(doseS, scorchS);
+}
+
+/**
  * What a working did to the spoilage its inputs brought: the load the
  * output starts from, and the formed toxin the killed population left.
  */
@@ -859,20 +912,27 @@ function resolveSpoilage(
     // anyway (only growth does).
     1,
   );
-  if (effectiveHeatK < Freshness.killTemperatureK()) {
-    // A lazy warm-through launders nothing: the load rides straight
-    // through and the dose stays derived from it at the ingest.
-    return { load: blended, formed: null, pathogens: survivors };
-  }
-  // ⭐⭐ **The kill is a rate held for a time.** `holdS === 0` is a recipe
-  // that authors no hold, which means the working was as long as it needed
-  // — byte-identical to the threshold this replaced, and what keeps every
-  // shipped recipe cooking exactly as it did. A hold that IS authored is a
-  // claim that the working was brief, and is integrated.
-  const load = holdS > 0 ? Freshness.killOver(blended, holdS, effectiveHeatK) : 0;
+  // ⭐⭐ **The kill is a rate held for a time, and the hold is never
+  // zero.** This used to short-circuit twice — once below the flora's
+  // kill temperature, and again when a recipe authored no hold, which
+  // sent the load to a flat `0`. Both were thresholds wearing a rate's
+  // clothes: a sear and a lazy warm-through came out identical, and a
+  // recipe that simply did not mention a hold sterilised perfectly.
+  //
+  // `killOver` is now always called, and it is the ONE place the
+  // threshold lives: it returns the load untouched below `killK`, so
+  // nothing under the kill changes. What changes is that every working
+  // ABOVE it is integrated as a rate over a real time (`getHoldS()`
+  // never returns zero — an unauthored hold reads the dial).
+  const load = Freshness.killOver(blended, holdS, effectiveHeatK);
   // ⚠ And what the killed population already MADE stays in the dish,
   // derived from the load that was there before the heat touched it.
-  return { load, formed: Freshness.doseFor(blended), pathogens: survivors };
+  // Only a working that actually reached the kill forms anything.
+  const formed =
+    effectiveHeatK >= Freshness.killTemperatureK()
+      ? Freshness.doseFor(blended)
+      : null;
+  return { load, formed, pathogens: survivors };
 }
 
 /**
@@ -890,7 +950,15 @@ function deriveBlendPayload(
   recipeId: string,
   appearance: string,
   keywords: readonly string[],
-  parts: { material: Material; servings: number }[],
+  parts: {
+    material: Material;
+    servings: number;
+    /**
+     * ⭐⭐ **What this input was itself made of**, when it was already a
+     * blend. See the expansion below — this is the whole of D25.
+     */
+    composition?: readonly BlendPart[];
+  }[],
   effectiveHeatK = 0,
   makerPath = '',
 ): BulkPayload {
@@ -901,6 +969,35 @@ function deriveBlendPayload(
   // instead of being handed the answer. See the bulk-decomposition plan.
   const composition = new Map<string, number>();
   for (const part of parts) {
+    // ⭐⭐ **A consumed input's PARTS, not its identity** (grain-chain
+    // D25). "Macros in = macros out" applied to what the input was
+    // actually made of: an input that is itself a blend contributes the
+    // things it was made from, scaled to the amount consumed, rather than
+    // collapsing to its own blend name.
+    //
+    // ⚠ Without this the whole chain has a hole in the middle. Flour
+    // whose payload says *72 % endosperm, 28 % bran* becomes, at the
+    // kneading trough, simply "flour" — and the loaf that comes out the
+    // far end is white however dark the flour was, silently, with nothing
+    // anywhere to say so. Five links carry the extraction from the mill
+    // to the plate and this is the one that used to drop it.
+    //
+    // A parts-less input behaves exactly as before: one part, its own
+    // material, its own servings.
+    const inner = part.composition ?? [];
+    if (inner.length > 0) {
+      const innerTotal = inner.reduce((a, b) => a + b.servings, 0);
+      if (innerTotal > 0) {
+        for (const sub of inner) {
+          const share = (sub.servings / innerTotal) * part.servings;
+          composition.set(
+            sub.materialPath,
+            (composition.get(sub.materialPath) ?? 0) + share,
+          );
+        }
+        continue;
+      }
+    }
     const partPath = part.material.getTemplatePath();
     if (partPath) {
       composition.set(partPath, (composition.get(partPath) ?? 0) + part.servings);
@@ -1046,6 +1143,7 @@ async function applyBulkOutput(
   matchedItems: MatchedItemInput[] = [],
   effectiveHeatK = 0,
   makerPath = '',
+  deliveredHeatK: number = effectiveHeatK,
 ): Promise<void> {
   const outSlot = BulkableApi.slotFor(output, undefined);
   if (!outSlot) {
@@ -1082,9 +1180,23 @@ async function applyBulkOutput(
       recipe.getKeywords(),
       [
         ...matched.flatMap((m) =>
-          m.material ? [{ material: m.material, servings: 1 }] : [],
+          m.material
+            ? [
+                {
+                  material: m.material,
+                  servings: 1,
+                  composition: m.slot.getPayload()?.composition,
+                },
+              ]
+            : [],
         ),
-        ...matchedItems.map((m) => ({ material: m.material, servings: m.count })),
+        ...matchedItems.map((m) => ({
+          material: m.material,
+          servings: m.count,
+          composition: MixinApi.isComposed(m.stuff)
+            ? m.stuff.getComposition()
+            : undefined,
+        })),
       ],
       effectiveHeatK,
       makerPath,
@@ -1097,6 +1209,7 @@ async function applyBulkOutput(
     outSlot,
     outputMicrobialLoad(effectiveHeatK, recipe.getHoldS(), matched, matchedItems),
   );
+  applyDoneness(outSlot, recipe, deliveredHeatK);
 }
 
 /**
@@ -1111,12 +1224,25 @@ async function applyTangibleOutput(
   matched: MatchedInput[],
   matchedItems: MatchedItemInput[],
   effectiveHeatK: number,
+  deliveredHeatK: number = effectiveHeatK,
 ): Promise<void> {
   const primary = matchedItems[0];
-  if (!primary) {
+  const authoredMaterial = recipe.getOutputMaterial();
+  // ⭐⭐ **A tangible made entirely of BULK** (grain-chain D11). This used
+  // to throw: the transform arm assumed a primary ITEM input whose
+  // material and mass flow onto the output, which is true of every
+  // smithing recipe and false of a loaf. A loaf is baked from dough, and
+  // dough is a liquid-ish thing in a trough.
+  //
+  // So when the recipe authors its own `outputMaterial` and no item
+  // matched, the material is the authored one and the mass is the summed
+  // bulk (litres x each source material's density) — conservation exactly
+  // as the item arm does it, over the other kind of matter.
+  const bulkOnly = !primary && authoredMaterial.length > 0;
+  if (!primary && !bulkOnly) {
     throw new Error(
       `CraftingLogic: tangible output '${recipe.getOutputTemplate()}' ` +
-        `resolved with no matched item input`,
+        `resolved with no matched item input and no 'outputMaterial'`,
     );
   }
   if (!MixinApi.isTangible(output)) {
@@ -1139,12 +1265,25 @@ async function applyTangibleOutput(
   // makes a steel knife) and wrong for the one act that is a chemical
   // change rather than a shaping: hammering a BLOOM squeezes the slag
   // out of it, and what is left is iron, not bloom iron.
-  const authoredMaterial = recipe.getOutputMaterial();
-  output.setMaterial(
-    authoredMaterial
-      ? await StuffApi.singleton<Material>(authoredMaterial)
-      : primary.material,
-  );
+  //
+  // The bulk-only arm (a loaf from dough) is the same rule with no item
+  // to fall back on: the authored material, and the mass summed over the
+  // bulk by each source material's density.
+  if (bulkOnly) {
+    output.setMaterial(
+      await StuffApi.singleton<Material>(authoredMaterial),
+    );
+    for (const m of matched) {
+      const density = m.material?.getDensity().rawValue() ?? 1000;
+      totalKg += m.measureL * ((density > 0 ? density : 1000) / 1000);
+    }
+  } else {
+    output.setMaterial(
+      authoredMaterial
+        ? await StuffApi.singleton<Material>(authoredMaterial)
+        : primary!.material,
+    );
+  }
   if (totalKg > 0) output.setMass(Quantity.of(totalKg, 'kg'));
 
   // ⭐ The per-instance minor constituents ride the transform when both
@@ -1156,9 +1295,52 @@ async function applyTangibleOutput(
   // not a guard re-narrowing a host set. A knife is not Alloyed and
   // silently takes nothing, which is the intended answer: a blade's
   // metal is its Material row.
-  if (MixinApi.isAlloyed(output) && MixinApi.isAlloyed(primary.stuff)) {
+  if (primary && MixinApi.isAlloyed(output) && MixinApi.isAlloyed(primary.stuff)) {
     output.setAlloying(primary.stuff.getAlloying());
     output.setTemper(primary.stuff.getTemper());
+  }
+
+  // ⭐ …and what it is MADE OF (D26). The bulk inputs' parts, merged and
+  // scaled, land on the output's `ComposedMixin` face — the fifth and
+  // last link of the chain that carries an extraction from the mill to
+  // the plate. A parts-less input contributes its own material, exactly
+  // as `derivePayload` does for a blend.
+  if (MixinApi.isComposed(output)) {
+    const merged = new Map<string, number>();
+    const contribute = (path: string, servings: number): void => {
+      if (!path || !(servings > 0)) return;
+      merged.set(path, (merged.get(path) ?? 0) + servings);
+    };
+    for (const m of matched) {
+      const inner = m.slot.getPayload()?.composition ?? [];
+      const innerTotal = inner.reduce((a, b) => a + b.servings, 0);
+      if (innerTotal > 0) {
+        for (const sub of inner) {
+          contribute(sub.materialPath, (sub.servings / innerTotal) * m.measureL);
+        }
+      } else if (m.material) {
+        contribute(m.material.getTemplatePath() ?? '', m.measureL);
+      }
+    }
+    for (const m of matchedItems) {
+      const inner = MixinApi.isComposed(m.stuff) ? m.stuff.getComposition() : [];
+      const innerTotal = inner.reduce((a, b) => a + b.servings, 0);
+      if (innerTotal > 0) {
+        for (const sub of inner) {
+          contribute(sub.materialPath, (sub.servings / innerTotal) * m.count);
+        }
+      } else {
+        contribute(m.material.getTemplatePath() ?? '', m.count);
+      }
+    }
+    if (merged.size > 0) {
+      output.setComposition(
+        [...merged].map(([materialPath, servings]) => ({
+          materialPath,
+          servings,
+        })),
+      );
+    }
   }
 
   // ⭐⭐ **The matter's own state rides the transform.** A tangible output
@@ -1189,13 +1371,21 @@ async function applyTangibleOutput(
   if (MixinApi.isCured(output)) {
     // The input's own water state first — a dried cut smoked is still a
     // dried cut — then the recipe's treatment, stronger-axis-wins.
-    const inherited = MixinApi.isCured(primary.stuff)
-      ? primary.stuff.getCureState()
-      : Cure.untreated();
+    const inherited =
+      primary && MixinApi.isCured(primary.stuff)
+        ? primary.stuff.getCureState()
+        : Cure.untreated();
     const treatment = recipe.getCure();
     output.setCureState(
       treatment ? Cure.applyTreatment(inherited, treatment) : inherited,
     );
+  }
+  // ⭐ And the doneness the working put on it — the discrete twin of
+  // `applyDoneness`. A roast comes out of its working done; what happens
+  // to it in the oven afterwards is the gauge's business, not the craft's.
+  if (MixinApi.isDosed(output)) {
+    const { doseS, scorchS } = donenessAtMint(recipe, deliveredHeatK);
+    if (doseS > 0 || scorchS > 0) output.stampThermalDose(doseS, scorchS);
   }
 }
 
@@ -1213,6 +1403,7 @@ async function applyEdibleOutput(
   matchedItems: MatchedItemInput[],
   effectiveHeatK: number,
   makerPath = '',
+  deliveredHeatK: number = effectiveHeatK,
 ): Promise<void> {
   const outSlot = BulkableApi.slotFor(output, undefined);
   if (!outSlot) {
@@ -1247,6 +1438,7 @@ async function applyEdibleOutput(
       outSlot,
       outputMicrobialLoad(effectiveHeatK, recipe.getHoldS(), matched, matchedItems),
     );
+    applyDoneness(outSlot, recipe, deliveredHeatK);
     return;
   }
   // The derived default: the generic cooked base + macros summed from
@@ -1259,7 +1451,13 @@ async function applyEdibleOutput(
       recipe.getRecipeId(),
       recipe.getOutputAppearance(),
       recipe.getKeywords(),
-      matchedItems.map((m) => ({ material: m.material, servings: m.count })),
+      matchedItems.map((m) => ({
+        material: m.material,
+        servings: m.count,
+        composition: MixinApi.isComposed(m.stuff)
+          ? m.stuff.getComposition()
+          : undefined,
+      })),
       effectiveHeatK,
       makerPath,
     ),
@@ -1268,6 +1466,7 @@ async function applyEdibleOutput(
     outSlot,
     outputMicrobialLoad(effectiveHeatK, recipe.getHoldS(), matched, matchedItems),
   );
+  applyDoneness(outSlot, recipe, deliveredHeatK);
 }
 
 /**
@@ -1743,13 +1942,19 @@ async function mintVessel(
   outSlot.setMaterial(material);
   outSlot.setAmount(Quantity.of(amountL, 'L'));
   if (!authored) {
-    const parts: { material: Material; servings: number }[] = [];
+    const parts: {
+      material: Material;
+      servings: number;
+      composition?: readonly BlendPart[];
+    }[] = [];
     for (const c of req.contributions) {
       if (!c.materialPath) continue;
       const m = await StuffApi.singleton<Material>(c.materialPath);
       parts.push({
         material: m,
         servings: c.kind === 'item' ? (c.count ?? 1) : 1,
+        // The banked pour remembers what its source was made of (D25).
+        composition: c.composition,
       });
     }
     outSlot.setPayload(
@@ -1777,7 +1982,7 @@ async function mintVessel(
     outSlot,
     buildMicrobialLoad(
       effectiveHeatK,
-      recipe?.getHoldS() ?? 0,
+      recipe?.getHoldS() ?? ThermalDose.defaultHoldS(),
       req.contributions,
     ),
   );
@@ -1928,6 +2133,13 @@ async function craftImpl(req: CraftRequest): Promise<CraftOutcome> {
   // heat-labile doses, so conflating the two would have every dish cooked
   // at the hottest thing in the room.
   const workingHeatK = requiresHeatK;
+  // ⭐ …and the OTHER figure, which the resolve used to throw away. The
+  // pinning above is right for the kill and exactly wrong for the ceiling:
+  // "was the fire fiercer than this working wanted?" cannot be answered by
+  // a number pinned to what the working wanted. This is what the setup
+  // actually delivered, medium cap included — so a wet recipe beside a
+  // roaring forge still cannot scorch, because the water stops at 373 K.
+  const deliveredHeatK = effectiveHeatK;
 
   // Derive grade (weakest-link, floored at the recipe base if any,
   // then at any used control-bearing instrument's band — skill embedded
@@ -2000,7 +2212,14 @@ async function craftImpl(req: CraftRequest): Promise<CraftOutcome> {
     output = await StuffApi.clone<Stuff>(recipe.getOutputTemplate());
   }
   if (application === 'tangible') {
-    await applyTangibleOutput(output, recipe, matched, matchedItems, workingHeatK);
+    await applyTangibleOutput(
+      output,
+      recipe,
+      matched,
+      matchedItems,
+      workingHeatK,
+      deliveredHeatK,
+    );
   } else if (application === 'edible') {
     await applyEdibleOutput(
       output,
@@ -2009,6 +2228,7 @@ async function craftImpl(req: CraftRequest): Promise<CraftOutcome> {
       matchedItems,
       workingHeatK,
       maker.getTemplatePath() ?? '',
+      deliveredHeatK,
     );
   } else {
     await applyBulkOutput(
@@ -2018,6 +2238,7 @@ async function craftImpl(req: CraftRequest): Promise<CraftOutcome> {
       matchedItems,
       workingHeatK,
       maker.getTemplatePath() ?? '',
+      deliveredHeatK,
     );
     const outSlot = BulkableApi.slotFor(output, undefined)!;
     await finishGlass(

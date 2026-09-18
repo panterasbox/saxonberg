@@ -40,7 +40,7 @@ data:
   register: indefinite
   longDescription: |
     A block of hazel stools set out in rough rows, all cut to the same knuckle in the same year and all standing at the same height because of it. The ground between them is a litter of old chips and last season's tops. This is the panel that is ready; the one beyond it was cut and is still in rods.
-  material: /stuff/idea/material/wood/oak
+  _materialPath: /stuff/idea/material/wood/oak
   # Ground, not a frame: the panel IS the plot, so the mass is the earth
   # it stands on and nobody is carrying it anywhere. Same doctrine as the
   # bed — can't-budge is emergent from mass, never a type flag.

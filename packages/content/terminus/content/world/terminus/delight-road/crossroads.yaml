@@ -44,6 +44,18 @@ data:
       destination: /world/rejection/kestrel-road/lower-climb
       media: [ground]
       edgeMinutes: 10
+    # ⭐ The road south, which this row's own prose has promised since it
+    # shipped — *"the one you came up runs on south into the farming
+    # valley"* — with no exit behind it. Prose that promises an
+    # affordance the world does not have is a recorded bug of this
+    # codebase, and this is that bug being closed rather than a new
+    # exit being invented. ⚠ Authored on BOTH sides: the far half is in
+    # the `hearts-delight` pack and neither pack reaches into the other.
+    south:
+      destination: /world/hearts-delight/location/valley-gate
+      media: [ground]
+      edgeMinutes: 10
+      wheelPassable: true
   details:
     stone:
       keywords: [stone, inscription, marker, slab]

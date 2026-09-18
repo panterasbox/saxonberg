@@ -40,7 +40,7 @@ data:
   # INTO a pit, and the scutch refusal for it is one of the better lines
   # in the trade ("It wants a pit and a fortnight before it wants a
   # knife").
-  material: /stuff/idea/material/textile/linen
+  _materialPath: /stuff/idea/material/textile/linen
   mass: 6
   interiorBulk: true
   interiorCapacity: 14

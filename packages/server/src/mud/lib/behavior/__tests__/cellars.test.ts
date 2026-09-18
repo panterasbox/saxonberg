@@ -65,6 +65,23 @@ import WorldClockRegistry from '../../../platform/idea/WorldClockRegistry';
 import { TemplatePaths } from '../../paths';
 import { EmploymentLogic } from '../../../platform/idea/api/EmploymentLogic';
 
+/**
+ * ⚠ **Stand in for the BINDER.** `consign`'s `thing` is a declared
+ * `type: object` arg with `scope: [inventory]` — the binder resolves the
+ * keyword against what you are carrying, and the controller just reads
+ * it. A hand-built model skips the binder, so this harness has to do the
+ * one thing the binder would have done.
+ */
+function bindHeld(giver: unknown, kw: string): { stuff: never; raw: string } {
+  const held = (giver as { getContents?(): unknown[] }).getContents?.() ?? [];
+  const found = held.find((i) => {
+    const p = i as { hasKeyword?(k: string): boolean };
+    return typeof p.hasKeyword === 'function' && p.hasKeyword(kw);
+  });
+  return { stuff: (found ?? null) as never, raw: kw };
+}
+
+
 const FLOOR = '/trade/winemaking/location/_cellars-test-floor';
 const COUNTER_ROOM = '/trade/distribution/location/_cellars-test-counter';
 const SHELF = '/trade/distribution/thing/_cellars-test-shelf';
@@ -309,7 +326,7 @@ describe('the cellars beat — rack, cork, consign, home', () => {
               // ⚠ `shelf` is BOUND BY THE VIEW since `consign` declared
               // it; a hand-built model skips the binder and must carry
               // what the view would have put there.
-              { thing: kw, ask, shelf: { stuff: shelf, raw: 'shelf' } },
+              { thing: bindHeld(who, kw), ask, shelf: { stuff: shelf, raw: 'shelf' } },
               ctx(who, here, shelf, text),
             ),
           );

@@ -1,0 +1,21 @@
+id: trade-milling
+version: 0.1.0
+root: /trade/milling
+description: >-
+  The milling trade — grind, then bolt. ⭐ The miller's decision is the
+  EXTRACTION: how much of the grain you keep. Take less and you keep the
+  pure inner stock, white and keeping; take more and you keep the outer
+  matter with it — darker, more nourishing, and quicker to go off,
+  because the bran carries the oil and the water. The split is continuous,
+  so no two settings make the same flour. ⭐⭐ And the capital ladder buys
+  back your TIME rather than a number: a hand quern holds your hands for
+  the whole grind, while a water mill runs on the river and you walk away.
+  The mill takes its pay in kind — a share of the flour, which is what a
+  multure is.
+requires:
+  groups:
+    - name: milling
+      purpose: the milling trade's own body
+      owner: { office: prime-minister }
+  title:
+    - { extent: /trade/milling, holder: { group: milling } }

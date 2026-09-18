@@ -472,3 +472,7 @@ a timepiece), **#3** (attunement vs. mount capacity), **#4**
 (instrument crafting — and note the metal-chain build ships two
 instruments, so this one is arriving whether or not it is answered).
 
+**From the grain chain (2026-09):** the legibility of head-and-flow. Ours
+is a reading off `ρ·g·Δh·Q·η` (`analyze power`); Timberborn's is a wheel
+you watch turn. `analyze power` is the honest minimum; a wheel speed on
+`look` at a working mill is a presentation wave for this slate.

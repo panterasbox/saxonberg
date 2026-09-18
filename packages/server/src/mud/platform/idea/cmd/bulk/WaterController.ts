@@ -22,7 +22,7 @@
 
 import { CommandController } from '../../../../lib/command/CommandController';
 import type { CommandContext, CommandModel } from '../../../../api/command';
-import type { MqlOneResult } from '../../../../api/mql';
+import type { MqlManyResult, MqlOneResult } from '../../../../api/mql';
 import { BulkableApi } from '../../../../api/bulk';
 import { MessageApi } from '../../../../api/message';
 import { MixinApi } from '../../../../api/mixin';
@@ -45,7 +45,7 @@ const WATER_TAG = 'liquid';
 
 interface WaterModel extends CommandModel {
   target: MqlOneResult;
-  source?: MqlOneResult;
+  source?: MqlManyResult;
 }
 
 export default class WaterController extends CommandController<WaterModel> {
@@ -91,9 +91,9 @@ export default class WaterController extends CommandController<WaterModel> {
     }
     const plant = target as Stuff & Growing;
 
-    // Resolve the source: the named one, else the first carried holder
-    // with water in it.
-    const source = model.source?.stuff ?? this.carriedWaterSource(giver);
+    // The source: the named one, else the first carried holder with
+    // water in it — a NARROWING over what the binder bound.
+    const source = this.waterSource(model.source);
     if (!source) {
       MessageApi.scene(giver)
         .topic(TOPIC)
@@ -245,10 +245,18 @@ export default class WaterController extends CommandController<WaterModel> {
     return host;
   }
 
-  /** The first carried holder with a liquid in it, or null. */
-  private carriedWaterSource(giver: Stuff): Stuff | null {
-    if (!MixinApi.isContainer(giver)) return null;
-    for (const item of giver.getContents()) {
+  /**
+   * The vessel to water from. `water.yaml` declares `source` with a
+   * `me:i:[mixin.BulkableMixin]` default, so bare `water` arrives with
+   * every carried vessel and the only question left is what is IN it —
+   * contents, which no predicate asks (`lint:instrument-args`). A NAMED
+   * vessel is taken as named, so "it is empty" can be said about it.
+   */
+  private waterSource(bound: MqlManyResult | undefined): Stuff | null {
+    const carried = bound?.stuff ?? [];
+    if (carried.length === 0) return null;
+    if (bound?.prep !== undefined) return carried[0]!;
+    for (const item of carried) {
       const slot = BulkableApi.slotFor(item, undefined);
       if (!slot || slot.isEmpty()) continue;
       const tags = slot.getMaterial()?.getTags() ?? [];

@@ -64,7 +64,7 @@ import {
   type CommandContext,
   type ModelData,
 } from '@saxonberg/server/mud/api/command';
-import type { MqlOneResult } from '@saxonberg/server/mud/api/mql';
+import type { MqlManyResult, MqlOneResult } from '@saxonberg/server/mud/api/mql';
 import {
   makeStuff,
   makeStuffAtPath,
@@ -358,8 +358,11 @@ function makeWalkSack(litres: number): Receptacle {
 }
 
 type WaterExec = Parameters<WaterController['execute']>[0];
-function waterModel(target: MqlOneResult): WaterExec {
-  return { target } as ModelData as unknown as WaterExec;
+// `water.yaml` binds the carried source (`me:i:[mixin.BulkableMixin]`); a
+// controller test skips the binder and hands the can in its shape.
+function waterModel(target: MqlOneResult, can: Stuff): WaterExec {
+  const source = { stuff: [can], raw: '' } as unknown as MqlManyResult;
+  return { target, source } as ModelData as unknown as WaterExec;
 }
 type FeedExec = Parameters<FeedController['execute']>[0];
 function feedModel(target: MqlOneResult): FeedExec {
@@ -677,7 +680,7 @@ describe('⭐ the acceptance walk: plant → tend → harvest → feed → again
         walkNow = WALK_BASE + d * DAY;
         refillCan(can, 4);
         await makeStuff(() => new WaterController()).execute(
-          waterModel(one(crop, 'carrots')),
+          waterModel(one(crop, 'carrots'), can as unknown as Stuff),
           ctxFor(me, yard),
         );
       }

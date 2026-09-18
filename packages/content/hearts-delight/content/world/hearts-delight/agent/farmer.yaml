@@ -1,0 +1,41 @@
+# Odell Quist — ⭐ the farmstead is SOMEBODY'S, and that is the whole
+# reason to author a farm rather than a crate that emits wheat.
+#
+# The requirements' AC 2 is *"buy grain at a farm that is somebody's"*.
+# A named person on thin ground with eight sacks and no credit is a
+# different transaction from a counter with a par level, and the
+# difference is the point: you can run him out of wheat.
+class: /platform/agent/Cast
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  _speciesPath: /stuff/idea/species/animalia/chordata/mammalia/primates/hominidae/homo/sensitivus
+  lifecycleState: alive
+  name: Odell Quist
+  keywords: [odell, quist, farmer]
+  shortDescription: weathered farmer
+  register: definite
+  longDescription: >-
+    A spare, sun-cured man with a flat cap and forearms like rope, who
+    looks at the sky about every four minutes without appearing to know
+    he is doing it.
+  archetype: farmer
+  prologue:
+    - "Farms four acres of the worst ground in a valley famous for its fruit."
+    - "Has watched the ditch line creep down the hill his whole life."
+  competence:
+    - { discipline: agriculture, asserting: proficient }
+    - { discipline: soil-science, asserting: competent }
+  dispositions:
+    - { disposition: sociability, valence: -20 }
+    - { disposition: composure, valence: 60 }
+    - { disposition: diligence, valence: 80 }
+  behaviors:
+    - brain: /lib/behavior/introduces
+      trigger: witness:arrival
+    - brain: /lib/behavior/idles
+      trigger: cadence:40s
+      config:
+        pool:
+          - { kind: free, value: "looks at the sky, then at the bench, then at the sky again." }
+          - { kind: free, value: "says, to nobody, \"Rain'd be nice.\"" }
+          - { kind: free, value: "kicks a stone off the yard and watches where it goes." }

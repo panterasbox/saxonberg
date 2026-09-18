@@ -78,6 +78,10 @@ export interface Furnace {
   /** Heat the Meltables in the furnace's scope toward the held temperature and
    * reconcile their phase — the forge-melts-an-ingot driver. */
   heatContents(): void;
+  /** Re-stamp every Thermal body in the furnace's **heat scope** (what it
+   * holds, what rests on it) so each re-resolves its ambient against the
+   * furnace's new lit state. */
+  restampHeated(): void;
 
   // Authorable configuration.
   setBurnTemperatureK(value: number): void;
@@ -207,6 +211,7 @@ export function FurnaceMixin<TBase extends MixinConstructor<Stuff>>(
           // Burnout edge — release the pin at the held temperature, go dark.
           this.furnaceHost.setContentsTemperature(this.getHeldTemperatureK());
           this.lit = false;
+          this.restampHeated();
         }
       }
       this.furnaceFuelClockStamp = now;
@@ -237,11 +242,46 @@ export function FurnaceMixin<TBase extends MixinConstructor<Stuff>>(
       }
     }
 
+    /**
+     * The furnace's **heat scope** — what it holds (a `Container`
+     * furnace: an oven chamber) and what rests on it (a `Surfaced`
+     * furnace: a pot on a campfire). Distinct from `heatContents`'
+     * scope, which is the furnace's room SIBLINGS: that is radiant
+     * transfer to a workpiece brought near a forge, and it is a
+     * different mechanism from being inside the fire.
+     */
+    public restampHeated(): void {
+      const self = this as unknown as Stuff;
+      const heated: (Stuff & Thermal)[] = [];
+      if (MixinApi.isContainer(self)) {
+        for (const occ of self.getContents()) {
+          const s = occ as unknown as Stuff;
+          if (s !== self && !s.isDestroyed() && MixinApi.isThermal(s)) {
+            heated.push(s);
+          }
+        }
+      }
+      if (MixinApi.isSurfaced(self)) {
+        for (const occ of self.getResting()) {
+          const s = occ as unknown as Stuff;
+          if (s !== self && !s.isDestroyed() && MixinApi.isThermal(s)) {
+            heated.push(s);
+          }
+        }
+      }
+      for (const body of heated) void body.restamp();
+    }
+
     @CallSecurity(SecurityPolicies.ApiOnly)
     @Final
     @Unshadowable
     public _setLit(value: boolean): void {
       this.lit = value === true;
+      // ⭐ The eighth re-stamp trigger class (the `Atmospheric
+      // .setTemperature` fan-out shape): lighting or dousing changes
+      // the ambient of everything the furnace heats, and the cached
+      // ambient has no lazy re-resolve.
+      this.restampHeated();
     }
 
     // -------- the combustion face (forwards into FireLogic) --------

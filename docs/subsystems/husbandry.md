@@ -530,6 +530,26 @@ pot` as readily as `water the lily`.
   authored values: lobby `bright`, dorm room `lit`, corridor `dim`, front
   steps outdoor daylight, cistern unauthored (dark).
 
+- **A second cereal — wheat (the grain chain).** `trade-farming` ships
+  wheat as **barley's five rows, shifted where the agronomy says**: the
+  species (`…/poaceae/triticum/aestivum`), the grain material
+  (`food/wheat-grain` — inert; grain in a dry sack does not rot), the
+  seed, the plant (`coldStopK: 280`, `warmHappyK: 291`, `moistureWiltAt:
+  0.08`, `moistureHappyAt: 0.35`, `daysToStage {18, 55, 110}`,
+  `nutrientDraw: 22`) and the crop (a 25 kg sack). Three shifted numbers
+  are why barley carries where wheat struggles; nobody authors the
+  comparison. ⭐ The reason a second cereal exists at all is downstream
+  of this doc: barley's flour carries no `gluten` tag and cannot make a
+  loaf ([spoilage.md § staling](./spoilage.md), `help gluten`).
+- ⚠ **A harvested crop is a `Provision`.** `Crop` composes the spoilage
+  gauge, the water state and the maker's mark, because a sack of carrots
+  rots — it was a bare `Thing` while its rows authored `material:`, a
+  key the Hydrator never writes, so no crop had a material and nothing
+  could say so ([antipatterns.md § A Row Key the Hydrator Never
+  Writes](../antipatterns.md)). A living `Plant` is NOT: its tissue is
+  not yet dead matter, and `lint:perishable` exempts a growing host by
+  rule.
+
 > ⚠ **A pot must retain its soil.** `closure: open` does not mean "has a
 > drainage hole" — an open interior does not **retain** bulk at all, and a
 > transfer into it drains straight through to the floor. Pots and the soil

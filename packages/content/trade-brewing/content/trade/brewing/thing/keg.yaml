@@ -11,7 +11,7 @@ data:
   # The VESSEL KIND — the tie between this row and every product
   # that is this vessel filled (an emptied one counts and reads as this).
   category: keg
-  material: /stuff/idea/material/alloy/steel
+  _materialPath: /stuff/idea/material/alloy/steel
   interiorBulk: true
   interiorCapacity: 30
   closure: sealed

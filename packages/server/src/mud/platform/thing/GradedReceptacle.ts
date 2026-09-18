@@ -27,6 +27,7 @@ import Thing from '../../lib/stuff/Thing';
 import { BulkableMixin } from '../../lib/bulk/Bulkable';
 import { CraftedMixin } from '../../lib/craft/Crafted';
 import { BrandedMixin } from '../../lib/corpo/Branded';
+import { ThermalMixin } from '../../lib/thermal/Thermal';
 import type { Grade } from '../../lib/craft/Grade';
 import type { Stuff } from '../../lib/stuff/Stuff';
 import type { MarkupAugmenter } from '../../api/mml';
@@ -45,7 +46,20 @@ function verdictAugmenter(text: string, host: Stuff, _viewer: Stuff): string {
   return text && text.length > 0 ? `${text}\n\n${verdict}` : verdict;
 }
 
-const GradedReceptacleBase = BrandedMixin(CraftedMixin(BulkableMixin(Thing)));
+// ⭐ ThermalMixin OUTER of Bulkable — the `Receptacle` rule: a holder's
+// heat capacity derives from its contents, so more in it means slower
+// cooling. What composing it CLAIMS is that a graded receptacle has a
+// temperature, and every one of them should: a bottle in a cellar is
+// cold, and a bottled ale's freshness gauge has been reading a default
+// holder temperature until now. `Bottle` composes `SealableMixin`, so a
+// corked one also picks up the `vacuum` barrier and its hours-long tau —
+// the Flask rule, and correct.
+//
+// ⚠ `VesselKindMixin` is deliberately NOT added here: `Bottle` already
+// wraps it, and a double composition is the bug.
+const GradedReceptacleBase = ThermalMixin(
+  BrandedMixin(CraftedMixin(BulkableMixin(Thing))),
+);
 
 export default class GradedReceptacle extends GradedReceptacleBase {
   static markupAugmenters: MarkupAugmenter[] = [verdictAugmenter];

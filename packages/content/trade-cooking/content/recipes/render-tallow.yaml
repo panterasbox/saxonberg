@@ -28,5 +28,8 @@ outputMaterial: /trade/cooking/idea/material/tallow
 outputApplication: bulk
 outputPortionL: 0.4
 requiresHeatK: 373
+# Fat rendered too hot goes brown and tastes of it. The window is wide
+# — you are melting, not cooking — but it is not unbounded.
+maxHeatK: 420
 difficulty: easy
 discipline: cooking

@@ -264,6 +264,35 @@ export interface Maturing {
  * State-derived prose through the reconcile-on-read getters, so an
  * absent owner's vat reads truthfully — and never a number.
  */
+/**
+ * Is this batch **held** by its surroundings, **killed** by them, or
+ * neither? Read at look-time off the host's current temperature against
+ * the profile's own bands — a fact about where the vessel is standing
+ * now, not state anybody stored.
+ *
+ * ⭐ Which is what makes it a thing a player can act on: carry the trough
+ * to the hearth and the next `look` says something different.
+ */
+function stallReason(
+  host: Stuff & Maturing,
+  profile: MaturationProfile | null,
+): 'stalled' | 'killed' | null {
+  if (profile === null) return null;
+  // A culture that has starved is dead whatever the temperature is.
+  if (profile.getKind() === 'culture' && host.getViability() <= 0) {
+    return 'killed';
+  }
+  if (!MixinApi.isThermal(host)) return null;
+  const tempK = host.getTemperature().rawValue();
+  const killK = profile.getKillK() ?? 0;
+  if (killK > 0 && tempK >= killK) return 'killed';
+  const below = profile.getStallBelowK() ?? 0;
+  if (below > 0 && tempK < below) return 'stalled';
+  const above = profile.getStallAboveK() ?? 0;
+  if (above > 0 && tempK > above) return 'stalled';
+  return null;
+}
+
 function maturationAugmenter(text: string, host: Stuff, _viewer: Stuff): string {
   if (!MixinApi.isMaturing(host)) return text;
   const phase = host.getMaturationPhase();
@@ -277,7 +306,23 @@ function maturationAugmenter(text: string, host: Stuff, _viewer: Stuff): string 
   const lines = MATURATION_LINES[profile?.getMechanism() ?? 'microbial'];
   let line: string | null = null;
   if (phase === 'active') {
-    if (profile?.getKind() === 'culture') {
+    // ⭐⭐ **Which failure is it?** Before the grain chain a batch sitting
+    // in a cold larder reported `starting` — *"a first few beads track up
+    // through it"* — which is a sentence about a batch that is about to
+    // work, said over one that never will. And a scalded batch said the
+    // same thing. Three different states with one sentence between them
+    // is a lesson nobody can learn: you cannot tell *move it somewhere
+    // warmer* from *throw it away* from *wait*.
+    //
+    // ⚠ Order matters. Killed is checked first because a dead batch in a
+    // cold room is dead, not stalled — the recoverable reading must
+    // never shadow the unrecoverable one.
+    const stall = stallReason(host, profile);
+    if (stall === 'killed') {
+      line = lines.killed;
+    } else if (stall === 'stalled') {
+      line = lines.stalled;
+    } else if (profile?.getKind() === 'culture') {
       // ⭐ A culture is alive by definition, so it keeps the biological
       // wording whatever the host's mechanism says — there is no such
       // thing as a photochemical culture.

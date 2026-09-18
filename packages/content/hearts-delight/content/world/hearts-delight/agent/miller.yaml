@@ -1,0 +1,37 @@
+# Sennet Aubry — the miller, and the most watched person in the valley.
+#
+# ⭐ A miller takes their pay in kind: a tenth of everything that goes
+# through the stones stays in the bin. That arrangement has made millers
+# structurally suspect for a thousand years, in every language that has a
+# word for one, and it is entirely because nobody can see the scoop.
+class: /platform/agent/Cast
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  _speciesPath: /stuff/idea/species/animalia/chordata/mammalia/primates/hominidae/homo/sensitivus
+  lifecycleState: alive
+  name: Sennet Aubry
+  keywords: [sennet, aubry, miller]
+  shortDescription: dusty miller
+  register: definite
+  longDescription: >-
+    A broad, unhurried woman with flour in her eyebrows and in the weave
+    of everything she is wearing, who talks at the volume the mill
+    requires whether or not it is running.
+  archetype: miller
+  prologue:
+    - "Keeps the stones trued and the cloth clean, and takes a tenth."
+  competence:
+    - { discipline: milling, asserting: proficient }
+  dispositions:
+    - { disposition: sociability, valence: 40 }
+    - { disposition: composure, valence: 50 }
+  behaviors:
+    - brain: /lib/behavior/introduces
+      trigger: witness:arrival
+    - brain: /lib/behavior/idles
+      trigger: cadence:45s
+      config:
+        pool:
+          - { kind: free, value: "puts a hand flat on the bedstone, listening to it through her palm." }
+          - { kind: free, value: "levels off the toll bin with the scoop, unhurried, in full view." }
+          - { kind: free, value: "shouts something about the weather that is mostly lost in the noise." }

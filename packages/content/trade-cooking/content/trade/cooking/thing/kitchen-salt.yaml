@@ -23,7 +23,7 @@ data:
   interiorCapacity: 20
   interiorMaterial: /trade/cooking/idea/material/salt
   interiorAmount: 4
-  material: /stuff/idea/material/textile/jute
+  _materialPath: /stuff/idea/material/textile/jute
   closure: liquidTight
   gradeBand: fair
   materialTags: ["food", "salt"]

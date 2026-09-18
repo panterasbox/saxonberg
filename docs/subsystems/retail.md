@@ -256,3 +256,10 @@ producer/mine (retail S3); player-owned shops / franchising / the market
 arena (retail S4); Branded-independent marks on the goods (cosmetic
 follow-up); fungible-goods retail (with the broader glob-ownership
 question).
+
+A **coin toll for a service** (a `mill` service kind on `Tariff`): the
+grain chain rejected it for the miller — a mill is paid in KIND (the
+multure, a tenth of the grist into the toll bin), which is how it pays
+for premises with no coin changing hands. If a venue ever wants coin for
+a working, the `Tariff` vocabulary is the seam; nothing else needs
+inventing.

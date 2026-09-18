@@ -243,6 +243,46 @@ subcommands:
         default: "here"
         scope: ["reachable"]
         requires: ContainerMixin
+  power:
+    description: "Read mechanical power — what a fall of water makes, or what reaches a machine that runs on it"
+    help: |
+      Read power. Bare, it reports the ground you stand on: the reach it
+      drains to, what is passing, and what a fall of one metre there
+      would make — which is the honest answer to *could I put a mill
+      here*, because the flow is only half of it and the DROP is the
+      other half.
+
+      Point it at a weir, a dam or an aqueduct house and it reports what
+      that structure is making right now: its reach, the flow, its head,
+      and the watts. Point it at a machine that runs on power — a mill —
+      and it reports what reaches it and what that buys in throughput.
+
+      ⭐ Power rises and falls with the river. A mill that grinds ten
+      sacks in spring grinds fewer in a dry August, and nobody authored
+      that: it is `P = ρ·g·Δh·Q·η` with a seasonal `Q`.
+    examples:
+      - cmd: analyze power
+        note: Could a mill be put on this ground?
+      - cmd: analyze power the aqueduct house
+        note: Read a structure's head, flow and output
+      - cmd: analyze power the mill
+        note: Read what reaches a machine and what it grinds
+    # ⭐ The controller is the WATER pack's — the instrumentation split,
+    # exactly as `analyze ground` (mining) and `analyze water` (water).
+    # Both readings are DUCK-TYPED, so a grist mill in `trade-milling`
+    # answers without this pack having heard of it.
+    controller: /system/water/idea/cmd/perception/AnalyzePowerController
+    args:
+      - name: target
+        type: object
+        required: false
+        scope: ["reachable"]
+        # A weir, a millstone, an aqueduct house — all physical. The
+        # two readings are duck-typed beyond this (a generator answers
+        # `generationW`, a machine answers `availablePowerW`), because
+        # the things that answer them live in packs this one has never
+        # heard of.
+        requires: TangibleMixin
   water:
     description: "Read the water where you stand — the reach, what is passing, how much is snowmelt, what is still lying as snow — or a waterworks' whole working"
     help: |

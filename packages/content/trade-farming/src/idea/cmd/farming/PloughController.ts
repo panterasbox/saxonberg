@@ -32,10 +32,17 @@
 import { FieldWorkController, FIELD_TOPIC, LABOUR_PER_ACT } from './FieldWorkController';
 import type { CommandContext, CommandModel } from '@saxonberg/server/mud/api/command';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
+import type { MqlOneResult } from '@saxonberg/server/mud/api/mql';
 import type { Container } from '@saxonberg/server/mud/lib/spatial/Container';
 import { MixinApi } from '@saxonberg/server/mud/api/mixin';
 import { MessageApi } from '@saxonberg/server/mud/api/message';
 import { Mml } from '@saxonberg/server/mud/api/mml';
+
+/** ⭐ The instrument is bound by the view, never hunted for here. */
+interface PloughModel extends CommandModel {
+  tool?: MqlOneResult;
+}
+
 
 /**
  * Body mass, in kilograms, that one unit of draught represents.
@@ -49,14 +56,14 @@ import { Mml } from '@saxonberg/server/mud/api/mml';
 const KG_PER_DRAUGHT = 70;
 
 export default class PloughController extends FieldWorkController {
-  async execute(_model: CommandModel, context: CommandContext): Promise<void> {
+  async execute(model: PloughModel, context: CommandContext): Promise<void> {
     const giver = context.commandGiver;
     const reading = await this.fieldOf(giver);
     if (!reading) {
       this.decline(context, Mml.compose`There is no ground here to turn.`, 'no-field');
       return;
     }
-    const plough = this.toolOf(giver, 'ploughing');
+    const plough = this.toolOf(model.tool?.stuff, 'ploughing');
     if (!plough) {
       this.decline(
         context,

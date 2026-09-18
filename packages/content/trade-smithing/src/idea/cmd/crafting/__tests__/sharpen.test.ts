@@ -42,10 +42,30 @@ function makeStone(): Whetstone {
   return makeStuff(() => new Whetstone());
 }
 
+/**
+ * ⚠ **Stand in for the BINDER.** `sharpen`'s `stone` is a declared arg
+ * defaulting to `reachable:[capability.whetstone]`, so the binder finds
+ * the stone and the controller just reads it. A hand-built model skips
+ * the binder, so the harness resolves it the same way the view would —
+ * the first carried thing offering `whetstone`.
+ */
+function boundStone(): { stuff: unknown; raw: string } | undefined {
+  const held = (actor as unknown as { getContents(): unknown[] }).getContents();
+  const found = held.find((i) => {
+    const t = i as { hasCapability?(c: string): boolean };
+    return typeof t.hasCapability === 'function' && t.hasCapability('whetstone');
+  });
+  return found === undefined ? undefined : { stuff: found, raw: 'whetstone' };
+}
+
 async function sharpen(blade: Weapon): Promise<CommandContext> {
   const ctx = makeContext(actor, room, 'sharpen knife');
+  const stone = boundStone();
   makeStuff(() => new SharpenController()).execute(
-    { blade: ref(blade, 'knife') } as never,
+    {
+      blade: ref(blade, 'knife'),
+      ...(stone ? { stone } : {}),
+    } as never,
     ctx,
   );
   return ctx;

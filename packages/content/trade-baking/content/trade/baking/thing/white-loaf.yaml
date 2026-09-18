@@ -1,0 +1,26 @@
+# A white loaf — ⭐ and the authored composition is the WHOLE POINT of
+# this row existing.
+#
+# An NPC counter has to be able to stock two loaves priced apart on day
+# one, before any player has ever milled anything. So this row states
+# what it is made of: almost entirely endosperm, barely any bran. That
+# is a baker's line, not a band — there is no `white` in any vocabulary
+# the engine reads, and a player's own pale loaf comes out of the chain
+# with no row at all and is not this object.
+#
+# ⚠ What makes it dearer is the BAKER'S PRICING, on the counter. Nothing
+# here says it is worth more. White was status because somebody charged
+# more for it, and the extraction is the reason they could: at 0.62 you
+# threw away a third of the grain's weight to get it.
+class: /trade/baking/thing/Loaf
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: white loaf
+  keywords: [loaf, bread, white, manchet]
+  register: indefinite
+  longDescription: A high pale loaf, the crust thin and even, cut square across the top. It is the sort of bread people who can afford it buy.
+  _materialPath: /stuff/idea/material/food/bread
+  mass: 0.8
+  composition:
+    - { materialPath: /stuff/idea/material/food/wheat-flour, servings: 7.8 }
+    - { materialPath: /stuff/idea/material/food/bran, servings: 0.2 }

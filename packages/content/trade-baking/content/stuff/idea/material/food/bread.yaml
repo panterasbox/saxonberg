@@ -1,0 +1,39 @@
+# Bread — ⭐ and there is exactly ONE row, which is the point.
+#
+# A tangible needs a material for its mass, its thermal constants and its
+# spoilage figures, and bread is bread. What makes one loaf different
+# from another is not its material — it is its COMPOSITION, the parts the
+# miller's extraction decided on, carried all the way here.
+#
+# ⚠ So these `nutrientAmounts` are the FALLBACK, read only by a loaf that
+# knows nothing about what went into it. Any loaf that came out of the
+# chain reads its own parts instead, and two loaves of this same material
+# feed you measurably differently.
+#
+# ⭐ `bread` is also the tag `lint:doneness` reads: any row made of matter
+# tagged `bread` must be on a class that can STALE. A loaf on bare
+# `Provision` would spoil and never go hard — silently, which is exactly
+# the failure `lint:perishable` cannot see, because such a row passes it.
+class: /platform/idea/material/Material
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  name: bread
+  keywords: [bread, loaf, crumb]
+  appearance: risen and browned, hollow when you knock it
+  density: 280
+  specificHeat: 2500
+  thermalConductivity: 0.05
+  electricalConductivity: 0.001
+  waterAbsorptionCapacity: 40
+  hardness: 2
+  toughness: 2
+  edibility: true
+  # Drier than the dough it came from — the oven drove a lot off. Still
+  # damp enough to mould in a warm room, which is what a bread box is for.
+  waterActivity: 0.94
+  spoilActivationEnergy: 50000
+  nutrients: ["carb", "protein"]
+  nutrientAmounts: { carb: 500000, protein: 85000 }
+  toxicity: []
+  tags: ["food", "bread", "baking"]
+  composition: []

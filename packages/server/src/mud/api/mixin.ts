@@ -88,6 +88,9 @@ import type { Metabolic } from '../lib/metabolism/Metabolic';
 import type { Thermal } from '../lib/thermal/Thermal';
 import type { Wet } from '../lib/wetness/Wet';
 import type { Fresh } from '../lib/material/Freshness';
+import type { Dosed } from '../lib/thermal/ThermalDose';
+import type { Composed } from '../lib/metabolism/Composed';
+import type { Comminuting } from '../lib/craft/Comminuting';
 import type { Cured } from '../lib/material/Cured';
 import type { Alloyed } from '../lib/material/Alloyed';
 import type { Contaminable } from '../lib/material/Contaminable';
@@ -1239,6 +1242,45 @@ export class MixinApi {
    */
   public static isFresh(obj: Stuff): obj is Stuff & Fresh {
     return this.hasMixin(obj, Mixins.Fresh);
+  }
+
+  /**
+   * A host that **reduces and separates matter** — a mill, a stamp
+   * battery, anything that turns a quantity of one thing into a finer
+   * product plus a coarser residue.
+   *
+   * ⚠ Narrow on THIS, never on a concrete class. The mixin is kernel
+   * substrate precisely because its second consumer (the metal chain's
+   * stamp mill) lives in a different pack with no ancestor in common —
+   * so an `instanceof GristMill` check would silently fail to find it.
+   */
+  public static isComminuting(obj: Stuff): obj is Stuff & Comminuting {
+    return this.hasMixin(obj, Mixins.Comminuting);
+  }
+
+  /**
+   * A host that can be **made of parts** — a discrete food carrying the
+   * ingredient list a blend carries on its payload. Composed on
+   * `Provision`; an empty list is the sparse default, and readers fall
+   * back to the host's own Material exactly as they do for a blend.
+   */
+  public static isComposed(obj: Stuff): obj is Stuff & Composed {
+    return this.hasMixin(obj, Mixins.Composed);
+  }
+
+  /**
+   * A host carrying the **doneness** gauge — how much cooking it has had.
+   * Composed on `Provision` (every food can be cooked), so the predicate
+   * is true of all food; what decides whether it reads as anything is
+   * whether it has been near heat.
+   *
+   * ⚠ Distinct from {@link isFresh} in both direction and physics: that
+   * integrates a population under a growth law with a water-activity
+   * term, this integrates browning under a decade interval. They must
+   * not be re-based onto one integrator.
+   */
+  public static isDosed(obj: Stuff): obj is Stuff & Dosed {
+    return this.hasMixin(obj, Mixins.ThermalDose);
   }
 
   /**

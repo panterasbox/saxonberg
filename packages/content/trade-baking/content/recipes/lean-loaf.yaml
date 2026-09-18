@@ -1,0 +1,37 @@
+# A lean loaf — ⭐ and this is the BULK-ONLY TANGIBLE the kernel used to
+# throw on.
+#
+# Every tangible recipe before this one transformed a discrete item (ore
+# into a knife), so `applyTangibleOutput` assumed a primary item input
+# whose material and mass flow onto the output. A loaf has no item input
+# at all: it is baked out of dough, and dough is a wet thing in a trough.
+# W2 taught the kernel that a recipe authoring its own `outputMaterial`
+# with only bulk inputs mints, with mass conserved off the litres.
+#
+# ⭐ `requiresHeatK: 480 / maxHeatK: 560` — a real bread oven and a real
+# ceiling. Under 480 it declines for want of heat; over 560 it still
+# BAKES, and what comes out is scorched. You are allowed to burn bread.
+#
+# `holdS: 1800` is half a game-hour: long enough that a loaf pulled early
+# is underdone and one forgotten is not.
+recipeId: lean-loaf
+name: Lean Loaf
+keywords:
+- lean-loaf
+- loaf
+- bread
+inputSlots:
+- slot: dough
+  category: proofed-dough
+  minGrade: poor
+  measureL: 1
+toolCapabilities: []
+outputTemplate: /trade/baking/thing/lean-loaf
+outputAppearance: a round loaf, well risen, the crust deep brown
+outputApplication: tangible
+outputMaterial: /stuff/idea/material/food/bread
+requiresHeatK: 480
+maxHeatK: 560
+holdS: 1800
+difficulty: standard
+discipline: baking

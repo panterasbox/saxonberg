@@ -21,21 +21,29 @@
  */
 
 import { SoilChannelController, READING_TOPIC, SOIL_SCIENCE, DIGGING } from './SoilChannelController';
+import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
+import type { MqlOneResult } from '@saxonberg/server/mud/api/mql';
 import type { CommandContext, CommandModel } from '@saxonberg/server/mud/api/command';
 import { MixinApi } from '@saxonberg/server/mud/api/mixin';
 import { MessageApi } from '@saxonberg/server/mud/api/message';
 import { Mml } from '@saxonberg/server/mud/api/mml';
 import GroundCharacter from '../../GroundCharacter';
 
+/** ⭐ The instrument is bound by the view, never hunted for here. */
+interface MeasureTextureModel extends CommandModel {
+  tool?: MqlOneResult;
+}
+
+
 export default class MeasureTextureController extends SoilChannelController {
-  async execute(_model: CommandModel, context: CommandContext): Promise<void> {
+  async execute(model: MeasureTextureModel, context: CommandContext): Promise<void> {
     const giver = context.commandGiver;
     const place = this.placeOf(giver);
     if (!place) {
       this.decline(context, Mml.compose`You are nowhere to take a sample from.`, 'no-place');
       return;
     }
-    const spade = this.toolOf(giver, DIGGING);
+    const spade = this.toolOf(model.tool?.stuff, DIGGING);
     if (!spade) {
       this.decline(
         context,

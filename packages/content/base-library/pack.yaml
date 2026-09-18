@@ -1,3 +1,13 @@
 id: base-library
 version: 0.3.0          # reserved; nothing reads/enforces it (non-goal: version machinery)
 description: Foundational substrate — materials, biomes, units.
+
+boot:
+  # ⭐ The root of the biome inheritance chain — step 6 of every field
+  # resolve, and the one biome `BiomeApi.getRootBiome()` reads directly
+  # (the water pack's Conduit takes gravity from it). ⚠ It was never
+  # cloned by anything: `biome.rootBiome.test` stands in "the root
+  # universe biome that boot would seed", and boot did not — so
+  # `analyze power <thing>` threw "root universe biome is not loaded" in
+  # every fresh world, found by the grain-chain wire flow.
+  - { template: /stuff/idea/biome/universe, role: sync-read, reason: "BiomeApi.getRootBiome and chain step 6 resolve it synchronously (the reference-Ideas-inert-at-boot rule)" }

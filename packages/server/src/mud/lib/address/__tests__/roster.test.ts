@@ -138,6 +138,18 @@ describe('Address roster — slim demonstrative inventory', () => {
       // none and seeding the orebody off the EMPTY STRING — a constant,
       // under a doc comment promising an address-derived one.
       'rejection.yaml',
+      // ⭐ Heart's Delight (the grain chain) — the valley that feeds the
+      // city, and a SIBLING of the city like Hinkley and Rejection:
+      // `terminus/hearts-delight`.
+      //
+      // ⚠⚠ It lives in `world-seed` rather than in its own pack, and
+      // that is the whole reason it is in this roster at all.
+      // `AddressRegistry.postRegister` walks
+      // `TemplatePathRosters.locality`, so a Locality row anywhere else
+      // is SILENTLY ABSENT — `resolveLocalityFor` answers null for every
+      // room in the valley, and the ground seed, the reach and the
+      // address walk all quietly read from nothing.
+      'hearts-delight.yaml',
     ]);
     const actual = new Set(ROOTS.flatMap((r) => listYamlsRelative(r)));
     expect(actual).toEqual(expected);

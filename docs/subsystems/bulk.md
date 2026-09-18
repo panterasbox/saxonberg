@@ -16,6 +16,68 @@ holds-as-attribute reframe, the per-affordance model, the deferred
 tails). This doc is the operational reference for what shipped — the
 thermos slice.
 
+## `Sack` — a graded bulk holder for dry goods (the grain chain)
+
+`VesselKindMixin(DetailedMixin(GradedReceptacle))`. Four things and where
+each comes from: **bulk** (`BulkableMixin`), **a grade and a maker's
+mark** (`CraftedMixin`), **a kind** (so an empty one says *"an empty
+flour sack"* rather than reciting its description — the defect the
+shipped malt sack still has), and **a temperature**.
+
+⭐ **The grade rides the HOLDER, never the payload.** Bulk matter has no
+identity to be graded; a quantity of it in a marked sack does. Same
+convention a bottle of graded gin follows.
+
+⭐ `GradedReceptacle` gained `ThermalMixin` (outer of Bulkable, the
+`Receptacle` rule) in the same build — which reaches **every `Bottle`**.
+That is the point rather than a side effect: a bottled ale's freshness
+gauge had been reading a default holder temperature, so a cellar and a
+hearth kept identically. A corked bottle also picks up the `vacuum`
+barrier and its hours-long τ, which is the Flask rule and correct.
+
+⚠ Granular bulk still does not exist — `requiredClosureFor` answers
+`liquidTight` for everything, and a sack of flour is nominal litres. See
+the deferred tail.
+
+## ⭐⭐ Composition flows THROUGH a blend
+
+`BulkPayload.composition` is a `BlendPart[]` — what went in, by Material
+path and servings. Until the grain chain, `derivePayload` made **one part
+per consumed input MATERIAL**, so an input that was *itself* a blend
+contributed its blend identity and its own parts were lost.
+
+That is a hole in the middle of any chain more than two steps long.
+Flour whose payload says *72 % endosperm, 28 % bran* became, at a
+kneading trough, simply "flour" — and the loaf out the far end was white
+however dark the flour was, silently, with nothing anywhere to say so.
+
+The rule is now **macros in = macros out, applied to what the input was
+actually made of**: a consumed input carrying a composition expands into
+its parts, scaled by the fraction consumed. A parts-less input behaves
+exactly as before (one part, its own material) — pinned by a test,
+because every cocktail shipped before this build depends on it.
+
+⚠ The visible consequence: a blend built from a blend reads its inner
+ingredients rather than the intermediate's name. A cocktail from a
+pressed juice now lists the fruit. More honest, and a real change.
+
+**Five links carry a composition end to end, and every one fails closed
+and silent:**
+
+| # | link | where |
+|---|---|---|
+| 1 | the working stamps the product payload | `ComminutingMixin.planComminution` |
+| 2 | a pour banks the source's parts | `BuildContribution.composition` |
+| 3 | `derivePayload` expands a consumed input's parts | `CraftingLogic` |
+| 4 | a product swap keeps the payload | `Bulkable.setBulkMaterial` |
+| 5 | a tangible mint writes the merged parts | `ComposedMixin` on `Provision` |
+
+`ComposedMixin` is link 5's home: **every food can be made of parts** — a
+loaf, a sausage, a cutlet in batter — so it composes on `Provision`, and
+an empty list costs nothing. `EatController` carries it to the mouth and
+`NutritionLabel` reads it, or the chain would evaporate at the last inch.
+
+
 ## ⭐ `category` — the vessel kind, and the tie between an empty and a product
 
 A vessel declares **what kind it is**: `coupe`, `can`, `keg`, `sack`,

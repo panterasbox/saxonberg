@@ -13,7 +13,7 @@ import { AdvancementMixin } from '../../../../../lib/advancement/Advancement';
 import { PersonaMixin } from '../../../../../lib/character/Persona';
 import { CommandApi } from '../../../../../api/command';
 import type { CommandContext } from '../../../../../api/command';
-import type { MqlOneResult } from '../../../../../api/mql';
+import type { MqlManyResult, MqlOneResult } from '../../../../../api/mql';
 import { CommandDefinition } from '../../../../../lib/command/CommandDefinition';
 import { StuffApi } from '../../../../../api/stuff';
 import { WorldClockApi } from '../../../../../api/worldclock';
@@ -93,6 +93,19 @@ export function makeContext(
 
 export function ref(stuff: Stuff | null, raw: string): MqlOneResult {
   return { stuff, raw } as unknown as MqlOneResult;
+}
+
+/**
+ * A plural binding — what the binder hands a `type: objects` arg whose
+ * `default:` resolved these, in its order (held gear first).
+ *
+ * ⚠ Controller tests SKIP the binder, so an instrument the view now
+ * declares (`default: "reachable:[capability.anvil]"`) has to be handed
+ * in here the way the binder would — the test that forgets gets the
+ * "no anvil" decline, which reads exactly like a controller defect.
+ */
+export function many(...stuff: Stuff[]): MqlManyResult {
+  return { stuff, raw: '' } as unknown as MqlManyResult;
 }
 
 /** Advance the game clock past an engaged step + drain the microtasks. */

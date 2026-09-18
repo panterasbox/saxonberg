@@ -290,6 +290,155 @@ query (the owners on the pair list). Every pair is resolved by
 `lint:gates` — including that the class really declares a method of that
 name, because a mistyped method denies forever while looking correct.
 
+## Hunting for an Instrument Instead of Declaring It
+
+**ANTIPATTERN**: A controller resolving the thing its verb acts *with* by
+walking the actor's surroundings and narrowing by type.
+
+```typescript
+// BAD — the controller re-deriving what the binder already resolves
+const mill = room.getContents().find((c) => c instanceof GristMill);
+const oven = room.getContents().find((c) => MixinApi.isFurnace(c));
+```
+
+**INSTEAD** — declare it on the view and read it off the model:
+
+```yaml
+- name: mill
+  type: object
+  required: false
+  prepositions: [at, with]
+  default: "reachable:[mixin.ComminutingMixin]"
+  scope: ["reachable"]
+  requires: [ComminutingMixin]
+```
+
+```typescript
+const mill = model.mill ?? null;
+if (mill === null || !MixinApi.isComminuting(mill)) { /* decline */ }
+```
+
+⭐ **Two costs.** The instrument becomes **unaddressable** — a room with
+two sets of stones hands you whichever the walk hits first, and nothing a
+player can type changes it. And ⚠⚠ the walk almost always narrows on a
+**class**, which silently refuses every other implementation of the
+capability: `instanceof GristMill` cannot see the metal chain's stamp
+mill, which is the entire reason `ComminutingMixin` is kernel substrate.
+
+⚠ **The query is the MIXIN, never the class** — `buy.yaml` says the same
+thing about `[mixin.ConsignmentShelfMixin]` over `[class.Stock]`.
+
+⭐⭐ **And for a TOOL it is the capability, not the mixin.**
+`[mixin.ToolMixin]` binds any tool at all and then fails the verb's own
+check; `[capability.digging]` binds the one that can do the job. That
+atom exists for exactly this — see
+[mql-grammar.md](./mql-grammar.md) § Filter expressions.
+
+```yaml
+- name: tool
+  default: "reachable:[capability.digging]"
+  requires: [ToolMixin]
+```
+
+⚠ It is fine for the controller to narrow further on **state** the
+predicate cannot express: `bake` resolves on `FurnaceMixin` and then
+checks *lit, fuelled, and a chamber*, because no mixin means "lit".
+
+⭐⭐ **And when one arg cannot carry it, reach for a PLURAL — not a
+walk.** `scry` needs *the instrument that can reach this target*, which
+is a question about the pair; a singular bind would pick one and lose the
+trying. `type: objects` with the same MQL default hands the controller
+every candidate, and it asks each:
+
+```yaml
+- name: with
+  type: objects
+  default: "reachable:[mixin.ScryableMixin]"
+```
+
+⚠ A controller may still narrow on **state** after the binder resolves
+**identity** — `bake` checks lit + fuelled, `sharpen` checks unbroken,
+`scry` checks reach. No predicate expresses those.
+
+Asking an object you already hold for its own contents is a different
+thing and is always fine (`pit.getContents()` for the charge in the
+clamp). Enforced by `pnpm lint:instrument-args`, **at zero**: no shipped
+controller hunts for an instrument.
+
+⚠⚠ **Nor through a helper.** The widest instance of this was not in any
+controller's `execute` — it was `findCapability(giver, kind)` on the
+shared `ManualBuildController` base, and 24 controllers across seven
+packs called it. The base class now offers `bestInstrument(bound, kind)`,
+which takes the **bound** plural and ranks it; the view says
+`default: "reachable:[capability.weaving]"` and the walk is gone. A
+hoisted walk is still a walk, and the gate reads the accumulator shape
+(`push(...giver.getContents())`) as one.
+
+⭐ **A capability kind is minted by a CONSUMER, never by a row.** The
+vocabulary is open (no kernel list), but a kind exists because a recipe
+slot, a view's `[capability.X]` arg, or a controller read asks for it.
+`pnpm lint:capabilities` holds both directions — a required kind
+nothing offers is a dead dish (ceiling 0); an offered kind nothing wants
+is ratcheted. `--list` is the derived catalogue.
+
+## Typing a Bound Object Field as `Stuff`
+
+**ANTIPATTERN**: a controller model that declares a `type: object` arg
+as the thing itself.
+
+```typescript
+// BAD — and eighteen controllers shipped this way
+interface MillModel extends CommandModel {
+  mill?: Stuff;
+}
+const mill = model.mill ?? null;          // an MqlOneResult, not a Stuff
+if (!MixinApi.isComminuting(mill)) …      // always false
+```
+
+The binder stores an **`MqlOneResult`** — `{ stuff, raw, prep }` — for
+every `type: object` field, and an `MqlManyResult` for `type: objects`
+(`CommandLogic.ts`, the resolve step). A field typed `Stuff` compiles,
+reads the result object, fails every narrowing, and the verb declines
+in its own honest words ("there is no mill here") to a player standing
+at one. ⚠⚠ **A controller test cannot see it**: the test builds the
+model by hand and hands the `Stuff` straight in, so the suite is green
+on a shape the binder never produces. Eighteen verbs (`mill`, `bake`,
+`char`, `stake`, `smelt`, the five farming acts, four `measure`
+channels, `sharpen`, `maintain`, two `analyze` channels) shipped this
+way and two review rounds sat on green tests; the metallurgy wire flow
+caught `stake` and `smelt` on merge, and a drive that asserted `expectOk`
+instead of "the status is defined" caught `mill`.
+
+```typescript
+// GOOD
+interface MillModel extends CommandModel {
+  mill?: MqlOneResult;
+}
+const mill = model.mill?.stuff ?? null;
+```
+
+And the fixture follows the binder: `{ mill: { stuff: stones, raw: 'mill' } }`
+(the `ref()` / `many()` helpers in `crafting/__tests__/branch-fixtures.ts`).
+
+## A Row Key the Hydrator Never Writes
+
+**ANTIPATTERN**: authoring a `data:` key that names no persistent field
+of the row's class — `material:` where the field is `_materialPath`.
+
+The Hydrator iterates the class's `fieldMeta` and reads `data[field]`
+for each; a key it does not iterate is not an error, not a warning, and
+not a field. **49 rows across eight packs** authored `material:` and had
+no material: the barn's wheat was "not grain" at the mill, a loaf had
+nothing to eat, a plant was made of nothing, and `lint:perishable` —
+which reads `_materialPath` — had 28 fewer rows to look at than the
+world contained. Found the day a drive typed `mill wheat` at a sack.
+
+⚠ There is no gate for this yet — a key is only wrong relative to a
+class's composed `fieldMeta`, which is a runtime fact the textual gates
+cannot see. The install step could validate `data:` keys against
+`describeClass`; until it does, **`_materialPath`** is the field, and a
+row test that pins `.material` is pinning a dead key.
+
 ## An Api May Not Hand Back Its Table
 
 **ANTIPATTERN**: A public read that returns a whole collection, which
@@ -4270,12 +4419,24 @@ if (MixinApi.isContainable(giver)) {
 for (const c of candidates) { /* …the predicate… */ }
 ```
 
-**INSTEAD**, by where you are standing:
+**INSTEAD**, by where you are standing — and ⭐⭐ **by what the walk is
+FOR**, which comes first:
 
 | you are | use |
 |---|---|
-| a **controller**, aiming at something | `this.reachableMarks(giver)` — inherited from `CommandController` |
+| a **controller** resolving what the verb acts WITH or ON — an instrument, a vessel, a bath, a book | ⭐ **not a walk at all**: declare it on the VIEW (`default: "reachable:[capability.X]"`, plural when the controller must pick) and narrow the BOUND set — [§ Hunting for an Instrument Instead of Declaring It](#hunting-for-an-instrument-instead-of-declaring-it), `lint:instrument-args` |
+| a **controller** building a PROMPT POOL, or reading the surroundings to EXPLAIN a refusal (`forge`'s cast pig) | `this.reachableMarks(giver)` — inherited from `CommandController` |
 | anything else (a brain, a logic singleton) | `ContainmentApi.reachableFrom(actor)` + narrow, or a `reachable:[…]` query when a VIEWER is involved |
+
+⚠⚠ The first row is the one that matters, and it postdates the sweep
+below: seven of the eleven copies that sweep collapsed into
+`reachableMarks` (`findCapability`, `findBuildVessel`, `findBath`,
+`findWater`, `findBook`, `reachOf`, `claimUtensil`) were **instrument
+resolutions**, and collapsing a walk into a shared helper leaves it a
+walk — unaddressable by the player, and hiding the view (`hammer ingot`
+had never worked). Those seven are args now. `reachableMarks` keeps the
+callers whose question is genuinely "everything here": the prompt pool
+(`read`, `zap`) and a diagnostic read (`forge`).
 
 ⚠ **A query applies perception; `reachableFrom` does not.** A *player*
 asking "what can I reach" must not be told about what they cannot see, so

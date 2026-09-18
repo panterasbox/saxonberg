@@ -10,7 +10,7 @@ data:
   longDescription: |
     A round-headed orange tree, dark leaves over fruit that goes from green to lantern-bright.
   _speciesPath: /stuff/idea/species/plantae/tracheophyta/magnoliopsida/sapindales/rutaceae/citrus/sinensis
-  material: /stuff/idea/material/tissue/plant-tissue
+  _materialPath: /stuff/idea/material/tissue/plant-tissue
   lifecycleState: alive
   seedTemplatePath: /trade/farming/thing/seed/orange
   harvestTemplatePath: /trade/farming/thing/orange

@@ -32,12 +32,19 @@ import type {
   CommandModel,
 } from "@saxonberg/server/mud/api/command";
 import type { Stuff } from "@saxonberg/server/mud/lib/stuff/Stuff";
+import type { MqlOneResult } from '@saxonberg/server/mud/api/mql';
 import type { Tooled } from "@saxonberg/server/mud/lib/craft/Tooled";
 import type { Durable } from "@saxonberg/server/mud/lib/material/Durable";
 import { MessageApi } from "@saxonberg/server/mud/api/message";
 import { MixinApi } from "@saxonberg/server/mud/api/mixin";
 import { Mml } from "@saxonberg/server/mud/api/mml";
 import HoldingWarren from "../../HoldingWarren";
+
+/** ⭐ The instrument is bound by the view, never hunted for here. */
+interface MaintainModel extends CommandModel {
+  kit?: MqlOneResult;
+}
+
 
 /** The capability a tool must offer to count as a householder's kit. */
 const UPKEEP = "upkeep";
@@ -46,7 +53,7 @@ const UPKEEP = "upkeep";
 const KIT_WEAR = 0.08;
 
 export default class MaintainController extends CommandController {
-  execute(_model: CommandModel, context: CommandContext): void {
+  execute(model: MaintainModel, context: CommandContext): void {
     const actor = context.commandGiver;
     const room = context.location;
 
@@ -66,7 +73,7 @@ export default class MaintainController extends CommandController {
       return;
     }
 
-    const kit = this.kitOf(actor);
+    const kit = this.kitOf(model.kit?.stuff);
     if (!kit) {
       context.note({
         kind: "controller-rejected",
@@ -123,14 +130,9 @@ export default class MaintainController extends CommandController {
       : null;
   }
 
-  /** A carried tool offering `upkeep`. */
-  private kitOf(actor: Stuff): (Stuff & Tooled) | null {
-    if (!MixinApi.isContainer(actor)) return null;
-    for (const item of actor.getContents()) {
-      if (MixinApi.isTool(item) && item.hasCapability(UPKEEP)) {
-        return item as Stuff & Tooled;
-      }
-    }
-    return null;
+  /** ⭐ The bound kit, if it offers `upkeep`. Resolved by the binder. */
+  private kitOf(bound: Stuff | null | undefined): (Stuff & Tooled) | null {
+    if (!bound || !MixinApi.isTool(bound)) return null;
+    return bound.hasCapability(UPKEEP) ? (bound as Stuff & Tooled) : null;
   }
 }

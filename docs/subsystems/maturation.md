@@ -6,6 +6,43 @@ converts* — the husbandry SHAPE (reconcile lazily on read, staged, no
 far-past guard, no linkdead freeze) with a different equation: the mass
 is already present and what changes is what it IS.
 
+## ⭐⭐ Which failure is it? (`stalled` / `killed`)
+
+A ferment fails in three ways that feel completely different to whoever
+owns it — and until the grain chain the augmenter said **the same
+sentence for all three**:
+
+| what happened | what you should do | what it used to say |
+|---|---|---|
+| too cold — **held** | carry it somewhere warmer | *"A first few beads track up through it."* |
+| scalded — **killed** | throw it away | *"A first few beads track up through it."* |
+| genuinely just started | wait | *"A first few beads track up through it."* |
+
+That is not cosmetic. It makes the lesson **unlearnable**: you cannot
+tell *move it* from *bin it* from *wait*, so the mistake teaches nothing
+and the same person makes it again next week.
+
+`MATURATION_LINES` now carries `stalled` and `killed` for all three
+mechanisms, and the augmenter branches on the host's temperature **now**
+against the profile's own `stallBelowK` / `stallAboveK` / `killK`.
+
+⭐ **Read at look-time, never stored** — so it is a fact about where the
+vessel is standing, and carrying the trough to the hearth changes what
+the next `look` says. That is what makes the recoverable failure
+*actually* recoverable rather than merely described as such.
+
+⚠ **Killed is checked before stalled**, deliberately: the recoverable
+reading must never shadow the unrecoverable one, or somebody carries a
+dead vat to the fire and waits.
+
+⚠ **Known limit, recorded rather than claimed correct:** a batch is
+"killed" by *being hot now*, so a scalded batch that has since cooled
+reads `stalled` again. A culture carries real `viability` and does not
+have this problem; a batch has no stored dead state. The honest fix is a
+`killed` flag on the batch, and it is a deferred seam rather than a thing
+this build pretended to do.
+
+
 ## ⭐⭐ It is MATURATION, and fermentation is one mechanism of it
 
 It shipped as `FermentingMixin` and was renamed once the substrate

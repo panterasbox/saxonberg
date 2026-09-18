@@ -816,10 +816,18 @@ export function FreshnessMixin<TBase extends MixinConstructor<Stuff>>(
      * ⚠ Anything a discrete item knows that must reach the mouth has to
      * be copied across this line, and a fact that isn't fails **silently
      * and completely**: the suite stays green, the food is bad, the
-     * eater is fine. Three are carried today — the spoilage dose the
+     * eater is fine. FOUR are carried today — the spoilage dose the
      * microbial load has earned, the pathogen loads (with any formed
-     * toxin they have already made), and the maker, without which harm
-     * from a meal can name nobody.
+     * toxin they have already made), the maker (without which harm from
+     * a meal can name nobody), and ⭐ the **composition**: what the food
+     * was actually made of.
+     *
+     * ⚠ The fourth arrived with the grain chain, and its absence was
+     * exactly the failure this comment warns about. `BlendLabel.amountsOf`
+     * falls back to the host's own Material when the composition is
+     * empty — so a wholemeal loaf and a white one, both made of `bread`,
+     * fed you identically. A chain that carries an extraction all the way
+     * from a millstone would have evaporated at the last inch, silently.
      *
      * ⭐ It lives on the FOOD rather than in a controller because there
      * is now more than one mouth: a person eats, and an animal is fed.
@@ -833,6 +841,12 @@ export function FreshnessMixin<TBase extends MixinConstructor<Stuff>>(
       let payload = Freshness.withDose(null, material, this.getMicrobialLoad());
       const maker = MixinApi.isCrafted(self) ? self.getMaker() : '';
       if (maker) payload = { ...(payload ?? {}), maker };
+      const composition = MixinApi.isComposed(self)
+        ? self.getComposition()
+        : [];
+      if (composition.length > 0) {
+        payload = { ...(payload ?? {}), composition: [...composition] };
+      }
       const pathogens = MixinApi.isContaminable(self)
         ? self.getPathogenLoads()
         : {};
