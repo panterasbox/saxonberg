@@ -222,7 +222,9 @@ suite('⭐⭐ the Hanging Wood — a place that is a stand', () => {
   }, 120_000);
 
   it('7. ⭐⭐ `fell oak` — an engaged act; the TRUNK on the ground, too heavy to lift; logs; an acorn in hand; the stand smaller by one', async () => {
-    await act(f, 'fell oak with axe', async () => (await f.query('here:i:[keyword.log]')).length >= 4);
+    // The acorn is the LAST thing the felling mints, so it is the landed
+    // predicate — the logs land before it.
+    await act(f, 'fell oak with axe', async () => (await f.query('me:i:[keyword.acorn]')).length >= 1);
     const bole = await f.queryOne('here:i:[keyword.bole]', ['bulkMaterial', 'mass']);
     expect(bole, 'no bole on the floor').not.toBeNull();
     expect((bole as { bulkMaterial?: { templatePath?: string } }).bulkMaterial?.templatePath).toBe(OAK);
@@ -265,11 +267,18 @@ suite('⭐⭐ the Hanging Wood — a place that is a stand', () => {
     expect(String((here as { displayName?: string })?.displayName)).toMatch(/drift/i);
     const carried = await f.query('me:i:[keyword.timber]');
     expect(carried).toHaveLength(2);
-    const shored = await f.cmd('shore');
-    expect(await shored.said()).toMatch(/timber/i);
-    // The timber stays at the mine — and two lengths plus a log is more
-    // than a body carries (the load ceiling is real, and it bit here).
+    // The timber stays at the mine — and two lengths plus a 40 kg set is
+    // more than a body carries (the load ceiling is real, and it bit
+    // here twice: once with a log, once with the set).
     expectOk(await f.cmd('drop timber'));
+    // ⚠ `shore` wants a SET in hand (the drift stacks them). The first cut
+    // of this step matched `/timber/i` and passed on the refusal *"You
+    // have no timber to set"* — found by driving it in a browser.
+    expectOk(await f.cmd('get set'));
+    // …and `shore` is an ENGAGED act: the set is consumed at completion,
+    // and walking out mid-engagement leaves 40 kg in your hands (which
+    // is how the log up the hill would not lift on the next step).
+    await act(f, 'shore', async () => (await f.query('me:i:[keyword.set]')).length === 0);
   }, 180_000);
 
   it('9. a log from the same tree LIGHTS beside a fire — the smelter’s furnace affords it', async () => {
@@ -308,7 +317,7 @@ suite('⭐⭐ the Hanging Wood — a place that is a stand', () => {
     const said = await f.prose('look');
     expect(said).toMatch(new RegExp(`An oak sapling, planted by ${f.handle} on the \\d+(st|nd|rd|th) day of the \\d+(st|nd|rd|th) year\\.`));
     const chronicle = await f.prose('chronicle');
-    expect(chronicle).toMatch(/planted an oak sapling in the oak clearing/);
+    expect(chronicle).toMatch(/Planted an oak sapling in the oak clearing\./);
     // Fifteen game years is stated, not promised: a seedling is not a tree.
     const early = await f.cmd('fell sapling');
     expectNote(early, 'controller-rejected', { reason: 'not-yet-a-tree' });

@@ -174,7 +174,7 @@ export default class Panel extends PanelBase {
     if (MixinApi.isPersona(author)) {
       author
         .recordChronicleOnce(`forestry:planting:${plantKey}`, {
-          template: 'planted {{name}} in {{where}}',
+          template: 'Planted {{name}} in {{where}}.',
           vars: {
             name,
             where: wood ? (room as unknown as Stuff).getPresentation() : this.getPresentation(),

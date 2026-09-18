@@ -65,6 +65,7 @@ import { ContainmentApi } from '@saxonberg/server/mud/api/containment';
 import { PersistableApi } from '@saxonberg/server/mud/api/persistable';
 import { MixinApi } from '@saxonberg/server/mud/api/mixin';
 import { WorldClockApi } from '@saxonberg/server/mud/api/worldclock';
+import { GrammarApi } from '@saxonberg/server/mud/api/grammar';
 import { Quantity } from '@saxonberg/server/mud/lib/quantity';
 import { STAND_MIXIN, type Stand, type StandSpecies } from '../../../lib/Stand';
 import Bole, { BOLE_M3, BOLE_LENGTHS } from '../../../thing/Bole';
@@ -364,12 +365,18 @@ async function fellStandard(
   }
   const bole = await dropStandard(giver, room, sp.woodMaterialPath, sp.seedPath);
   await capture(stand as unknown as Stuff);
+  // ⚠ And the FELLER. The room's record never carries a player's goods
+  // (the skip rule); they ride the owner's estate, which a live player
+  // writes only on the residency cadence or at logout. A felling puts
+  // tonnes on the floor, so it writes the owner's record now — a hard
+  // stop inside the window lost a whole clearing's trunks in the browser.
+  await capture(giver);
 
   const seedWord = sp.seedPath ? sp.seedPath.split('/').pop()?.replace(/-/g, ' ') ?? 'a seed' : null;
   MessageApi.scene(giver)
     .topic(FORESTRY_TOPIC)
     .toSelf(
-      Mml.compose`The ${sp.name} goes over with a crack you feel in your feet and lies there, the whole length of it, too much for any one back. ${String(LOGS_PER_STANDARD)} logs come off the crown${seedWord ? `, and ${withArticle(seedWord)}` : ''}.`,
+      Mml.compose`The ${sp.name} goes over with a crack you feel in your feet and lies there, the whole length of it, too much for any one back. ${GrammarApi.cap(GrammarApi.inWords(LOGS_PER_STANDARD))} logs come off the crown${seedWord ? `, and ${withArticle(seedWord)}` : ''}.`,
     )
     .toPeers(
       Mml.compose`${Mml.actor(giver)} brings ${withArticle(sp.name)} down; ${bole ? Mml.thing(bole as unknown as Stuff) : 'the trunk'} lies where it fell.`,
@@ -404,12 +411,13 @@ async function takeLength(context: CommandContext, bole: Bole): Promise<void> {
     MessageApi.scene(giver)
       .topic(FORESTRY_TOPIC)
       .toSelf(
-        Mml.compose`You cut ${Mml.thing(timber)} off ${Mml.thing(bole as unknown as Stuff)}. ${left === 1 ? 'One length left in it.' : `${String(left)} lengths in it yet.`}`,
+        Mml.compose`You cut ${Mml.thing(timber)} off ${Mml.thing(bole as unknown as Stuff)}. ${left === 1 ? 'One length left in it.' : `${GrammarApi.cap(GrammarApi.inWords(left))} lengths in it yet.`}`,
       )
       .toPeers(Mml.compose`${Mml.actor(giver)} cuts a length off ${Mml.thing(bole as unknown as Stuff)}.`)
       .send();
   }
   if (room) await capture(room as unknown as Stuff);
+  await capture(giver);
   await credit(giver, 'easy');
 }
 
@@ -442,7 +450,7 @@ async function fellPlantedTree(
     MessageApi.scene(giver)
       .topic(FORESTRY_TOPIC)
       .toSelf(
-        Mml.compose`${name} goes over with a crack you feel in your feet and lies there, the whole length of it. ${String(LOGS_PER_STANDARD)} logs come off the crown.`,
+        Mml.compose`${name} goes over with a crack you feel in your feet and lies there, the whole length of it. ${GrammarApi.cap(GrammarApi.inWords(LOGS_PER_STANDARD))} logs come off the crown.`,
       )
       .toPeers(Mml.compose`${Mml.actor(giver)} brings ${name} down.`)
       .send();
@@ -466,6 +474,7 @@ async function fellPlantedTree(
   if (stand && plantKey) stand.removePlanting(plantKey);
   if (panel) await capture(panel as unknown as Stuff);
   await capture(room as unknown as Stuff);
+  await capture(giver);
   await credit(giver, stage === 'mature' ? 'standard' : 'easy');
 }
 
