@@ -1,0 +1,19 @@
+# A brown trout — an individual drawn out of a reach's record by a hook, a
+# pot or a net. Alive until it is not: in a hand it drowns on the shipped
+# clock; in a bowl of water it lives. Nothing about it says what water
+# it came from or what it carries.
+class: /trade/fishing/agent/Fish
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  _speciesPath: /stuff/idea/species/brown-trout
+  lifecycleState: alive
+  shortDescription: brown trout
+  register: indefinite
+  primaryKeyword: trout
+  keywords: [trout, brown, fish]
+  longDescription: >-
+    A brown trout, spotted along its flanks, gill covers working.
+  handling: 0.05
+  behaviors:
+    - brain: /lib/behavior/feeds
+      trigger: cadence:60s

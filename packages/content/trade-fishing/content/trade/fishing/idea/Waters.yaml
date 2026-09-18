@@ -1,0 +1,6 @@
+# /trade/fishing/idea/Waters — the trade's world-level arithmetic in one
+# place: which reach a room fishes (a bound Shore, else the Locality's),
+# the feed factors of the hour, the reader's band. Pure data; lazily
+# cloned on first use, no boot step to forget.
+class: /trade/fishing/idea/Waters
+data: {}

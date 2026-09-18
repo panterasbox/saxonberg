@@ -1,0 +1,70 @@
+# Sturgeon — the royal fish. Two to a reach at the best of times, in the
+# deep slow water of the confluence in the warm months, and the one
+# whose landing is a chronicle deed. Wants a little salt (the confluence
+# has it; the moor's head does not), room to move, and clean water.
+#
+# ⭐ `role: apex` is what the read calls *something large* until a
+# practised eye names it. Nothing else makes it special — its fight
+# does.
+class: /platform/idea/species/Species
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  binomial: Acipenser sturio
+  commonNames: ["sturgeon", "royal fish"]
+  _bodyPlanPath: /stuff/idea/species/BodyPlan/fish
+  _parentCladePath: /stuff/idea/species/animalia
+  _defaultMaterialPath: /stuff/idea/material/food/fish-flesh
+  vitalProfile:
+    coreTemperature: { baseline: 285, survivableMin: 274, survivableMax: 303 }
+    heartRate: { baseline: 40, survivableMin: 10, survivableMax: 120 }
+    respiratoryRate: { baseline: 60, survivableMin: 20, survivableMax: 150 }
+    bloodPressureSystolic: { baseline: 40, survivableMin: 20, survivableMax: 80 }
+    bloodPressureDiastolic: { baseline: 25, survivableMin: 10, survivableMax: 60 }
+    spo2: { baseline: 97, survivableMin: 68, survivableMax: 100 }
+    bloodVolume: { baseline: 1.5, survivableMin: 1.0, survivableMax: 1.5 }
+  lifecycleStates: ["alive", "dead"]
+  sexDeterminationSystem: xy
+  reproductiveMode: sexual
+  adultMass: 40
+  stature: 2.0
+  lifespanMin: 0
+  lifespanMax: 60
+  ageCurve: { weanedAt: 60, matureAt: 5000, agedAt: 15000, senescentAt: 20000 }
+  circadianBand: crepuscular
+  diet: carnivore
+  visionProfile:
+    scotopicMin: pitch-black
+    photopicMax: blinding
+    bandShift: 0
+  olfactoryProfile:
+    acuity: dull
+  handlingRange: { floor: 0, ceiling: 0.15 }
+  # ⚠ `lint:kept-animals`: a Bonded class's species must declare one.
+  # A fish is not askable at all.
+  biddability: 0
+  # ⭐ What it needs of a water (fishing D4) — the whole distribution
+  # derives from this and the catalogue's water; no table anywhere.
+  habitat:
+    tolerances:
+      temperatureK: { min: 280, max: 294, margin: 4 }
+      oxygenMgL: { min: 5, margin: 2 }
+      currentMps: { max: 0.5, margin: 0.5 }
+      salinityPpt: { min: 2, margin: 1.5 }
+      contamination: { max: 0.2, margin: 1 }
+      # ⭐ The tank's numbers, inert in a river (fishing D22): every fish
+      # authors what ammonia and nitrite it can stand, so the home aquarium
+      # build reads the same tolerance a reach does and never reopens
+      # this row.
+      ammoniaMgL: { max: 0.02, margin: 0.5 }
+      nitriteMgL: { max: 0.1, margin: 1 }
+    seasons: [spring, summer, fall]
+    role: apex
+    abundance: 2
+    fightRating: 1.0
+  butcheryYield:
+    - { cut: /trade/fishing/thing/fillet, units: 8 }
+    - { cut: /trade/fishing/thing/roe, units: 3 }
+    - { cut: /stuff/thing/items/offal, units: 2 }
+  longDescription: >-
+    A sturgeon, long as a man and armoured in bony plates along its back, a fish out of an older river than this one.
+  nameBankKeys: []

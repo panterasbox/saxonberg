@@ -1,0 +1,63 @@
+# Eel — the forage fish of every lowland water, and the one that runs
+# on the ebb. Tolerates warmth, mud and thin air; will not sit in a cold
+# fast upland reach, which is why the moor's mere holds none.
+class: /platform/idea/species/Species
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  binomial: Anguilla anguilla
+  commonNames: ["eel"]
+  _bodyPlanPath: /stuff/idea/species/BodyPlan/fish
+  _parentCladePath: /stuff/idea/species/animalia
+  _defaultMaterialPath: /stuff/idea/material/food/fish-flesh
+  vitalProfile:
+    coreTemperature: { baseline: 285, survivableMin: 274, survivableMax: 303 }
+    heartRate: { baseline: 40, survivableMin: 10, survivableMax: 120 }
+    respiratoryRate: { baseline: 60, survivableMin: 20, survivableMax: 150 }
+    bloodPressureSystolic: { baseline: 40, survivableMin: 20, survivableMax: 80 }
+    bloodPressureDiastolic: { baseline: 25, survivableMin: 10, survivableMax: 60 }
+    spo2: { baseline: 97, survivableMin: 68, survivableMax: 100 }
+    bloodVolume: { baseline: 0.04, survivableMin: 0.025, survivableMax: 0.04 }
+  lifecycleStates: ["alive", "dead"]
+  sexDeterminationSystem: xy
+  reproductiveMode: sexual
+  adultMass: 0.8
+  stature: 0.6
+  lifespanMin: 0
+  lifespanMax: 20
+  ageCurve: { weanedAt: 60, matureAt: 1500, agedAt: 5000, senescentAt: 6500 }
+  circadianBand: crepuscular
+  diet: carnivore
+  visionProfile:
+    scotopicMin: pitch-black
+    photopicMax: blinding
+    bandShift: 0
+  olfactoryProfile:
+    acuity: dull
+  handlingRange: { floor: 0, ceiling: 0.15 }
+  # ⚠ `lint:kept-animals`: a Bonded class's species must declare one.
+  # A fish is not askable at all.
+  biddability: 0
+  # ⭐ What it needs of a water (fishing D4) — the whole distribution
+  # derives from this and the catalogue's water; no table anywhere.
+  habitat:
+    tolerances:
+      temperatureK: { min: 276, max: 295, margin: 3 }
+      oxygenMgL: { min: 3, margin: 2 }
+      currentMps: { max: 0.4, margin: 0.2 }
+      contamination: { max: 0.5, margin: 2 }
+      # ⭐ The tank's numbers, inert in a river (fishing D22): every fish
+      # authors what ammonia and nitrite it can stand, so the home aquarium
+      # build reads the same tolerance a reach does and never reopens
+      # this row.
+      ammoniaMgL: { max: 0.02, margin: 0.5 }
+      nitriteMgL: { max: 0.1, margin: 1 }
+    seasons: [spring, summer, fall]
+    role: forage
+    abundance: 60
+    fightRating: 0.35
+  butcheryYield:
+    - { cut: /trade/fishing/thing/fillet, units: 2 }
+    - { cut: /stuff/thing/items/offal, units: 1 }
+  longDescription: >-
+    An eel, dark above and pale beneath, all muscle and no obvious beginning or end.
+  nameBankKeys: []

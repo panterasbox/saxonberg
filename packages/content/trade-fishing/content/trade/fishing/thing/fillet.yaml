@@ -1,0 +1,12 @@
+# A fillet — what a knife takes off a fish. A Provision over fish flesh,
+# so it spoils on the shipped clock, cures and smokes on the shipped
+# recipes, and carries whatever the fish carried (the butcher hands the
+# carcass's own load onto every cut).
+class: /platform/thing/Provision
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: fillet of fish
+  keywords: [fillet, fish, flesh, meat]
+  register: indefinite
+  _materialPath: /stuff/idea/material/food/fish-flesh
+  mass: 0.3

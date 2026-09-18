@@ -1,0 +1,63 @@
+# Shore crab — the `bait` of the fishery: what a pot takes, what a
+# predator eats. Brackish and salt water, still or slow; breathes air
+# for an hour on the bank, which is why a lifted pot is full of live
+# crabs and not dead ones.
+class: /platform/idea/species/Species
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  binomial: Carcinus maenas
+  commonNames: ["shore crab", "crab"]
+  _bodyPlanPath: /stuff/idea/species/BodyPlan/crustacean
+  _parentCladePath: /stuff/idea/species/animalia
+  _defaultMaterialPath: /stuff/idea/material/food/fish-flesh
+  vitalProfile:
+    coreTemperature: { baseline: 285, survivableMin: 274, survivableMax: 303 }
+    heartRate: { baseline: 40, survivableMin: 10, survivableMax: 120 }
+    respiratoryRate: { baseline: 60, survivableMin: 20, survivableMax: 150 }
+    bloodPressureSystolic: { baseline: 40, survivableMin: 20, survivableMax: 80 }
+    bloodPressureDiastolic: { baseline: 25, survivableMin: 10, survivableMax: 60 }
+    spo2: { baseline: 97, survivableMin: 68, survivableMax: 100 }
+    bloodVolume: { baseline: 0.01, survivableMin: 0.005, survivableMax: 0.01 }
+  lifecycleStates: ["alive", "dead"]
+  sexDeterminationSystem: xy
+  reproductiveMode: sexual
+  adultMass: 0.1
+  stature: 0.08
+  lifespanMin: 0
+  lifespanMax: 5
+  ageCurve: { weanedAt: 10, matureAt: 400, agedAt: 1400, senescentAt: 1700 }
+  circadianBand: crepuscular
+  diet: omnivore
+  visionProfile:
+    scotopicMin: pitch-black
+    photopicMax: blinding
+    bandShift: 0
+  olfactoryProfile:
+    acuity: dull
+  handlingRange: { floor: 0, ceiling: 0.15 }
+  # ⚠ `lint:kept-animals`: a Bonded class's species must declare one.
+  # A fish is not askable at all.
+  biddability: 0
+  # ⭐ What it needs of a water (fishing D4) — the whole distribution
+  # derives from this and the catalogue's water; no table anywhere.
+  habitat:
+    tolerances:
+      temperatureK: { min: 275, max: 298, margin: 3 }
+      oxygenMgL: { min: 3, margin: 2 }
+      currentMps: { max: 0.5, margin: 0.3 }
+      salinityPpt: { min: 5, margin: 4 }
+      contamination: { max: 1, margin: 3 }
+      # ⭐ The tank's numbers, inert in a river (fishing D22): every fish
+      # authors what ammonia and nitrite it can stand, so the home aquarium
+      # build reads the same tolerance a reach does and never reopens
+      # this row.
+      ammoniaMgL: { max: 0.02, margin: 0.5 }
+      nitriteMgL: { max: 0.1, margin: 1 }
+    role: bait
+    abundance: 120
+    fightRating: 0.1
+  butcheryYield:
+    - { cut: /stuff/thing/items/offal, units: 1 }
+  longDescription: >-
+    A shore crab, green-brown and sideways, with claws it holds up at you as if that settled anything.
+  nameBankKeys: []

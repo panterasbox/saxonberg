@@ -545,8 +545,13 @@ export default class WatercourseCatalogue extends Idea {
     const reach = index.reaches.get(ref);
     if (reach === undefined) return null;
 
-    const temperatureK =
-      (await this.airTemperatureKAt(ref, nowS)) ?? seasonMeanK('spring');
+    // The catchment's air, floored at the temperature of water under
+    // ice: a river does not go below freezing, it freezes over, and the
+    // fish are in the liquid beneath.
+    const temperatureK = Math.max(
+      UNDER_ICE_K,
+      (await this.airTemperatureKAt(ref, nowS)) ?? seasonMeanK('spring'),
+    );
     const flow = await this.flowAt(ref, nowS, await this.liveDraws(nowS));
     const m3s = flow?.m3s ?? 0;
     // Hydraulic geometry where the row is silent (Leopold & Maddock's
@@ -1233,6 +1238,8 @@ function assignDepths(
 
 const SECONDS_PER_DAY = 86_400;
 const FREEZING_K = 273.15;
+/** Liquid water under a frozen surface — the floor a river's temperature reads. */
+const UNDER_ICE_K = 274;
 
 /** Numeric AppSetting read with a seeded-literal fallback. */
 function dial(key: string, fallback: number): number {

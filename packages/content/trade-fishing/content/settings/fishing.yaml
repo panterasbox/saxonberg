@@ -1,0 +1,66 @@
+# fishing — the trade's dials (the `settings` kind: merge-missing). Every
+# key here has a seeded literal at its call site, so the trade works with
+# this file absent and these only ever RETUNE it.
+settings:
+  # ── the bite (D5) ────────────────────────────────────────────────
+  # Bite pressure accumulated per game minute of waiting, per unit of
+  # (level/capacity × factors). At 0.12 a full reach with matched bait
+  # bites about every eight game minutes; a bare hook every hour.
+  - key: fishing.bite.ratePerMinute
+    value: "0.12"
+  # Dawn and dusk (the sun within ±10° of the horizon) multiply the rate.
+  - key: fishing.bite.twilight
+    value: "1.8"
+  # Rain or a storm on the water multiplies the rate — the pressure drop
+  # every angler swears by.
+  - key: fishing.bite.preStorm
+    value: "1.5"
+  # Bait matched to the species' role (a worm for forage, a baitfish for
+  # a predator) — the matched factor, and what a bare hook takes.
+  - key: fishing.bite.match
+    value: "1.0"
+  - key: fishing.bite.bareHook
+    value: "0.15"
+
+  # ── the contest (D5) ─────────────────────────────────────────────
+  # Below this fight a fish lands itself; at or above it the contest
+  # opens.
+  - key: fishing.contest.fighterAt
+    value: "0.45"
+  # What a reel takes off the line, and puts onto the strain, at full
+  # stamina; what a slack relieves and gives back. Seeded so that two
+  # reels inside one tick at full stamina SNAP a fighter and a patient
+  # alternation lands one in four to eight ticks.
+  - key: fishing.contest.reelGain
+    value: "0.2"
+  - key: fishing.contest.reelStrain
+    value: "0.45"
+  - key: fishing.contest.slackRelief
+    value: "0.35"
+  - key: fishing.contest.slackRun
+    value: "0.1"
+  # Per tick: how fast a straining fish tires, and how hard a fresh one
+  # pulls.
+  - key: fishing.contest.tire
+    value: "0.25"
+  - key: fishing.contest.pull
+    value: "0.2"
+  # The line snaps at this strain; the fish lands once the line is in
+  # and its stamina is under this.
+  - key: fishing.contest.breakStrain
+    value: "0.9"
+  - key: fishing.contest.landAt
+    value: "0.35"
+
+  # ── the catch ────────────────────────────────────────────────────
+  # `e-coli` load a fish is stamped with at landing, per unit of the
+  # reach's organic contamination level — tuned so the drive's confluence
+  # fish meets the roster's infectious dose raw and not after a sear.
+  - key: fishing.contamination.loadPerUnit
+    value: "2.0"
+
+  # ── bait (D12) ───────────────────────────────────────────────────
+  # Organic matter one worm costs the ground, in the soil reserve's
+  # units. The soil's own ledger is the cooldown.
+  - key: fishing.dig.organicPerWorm
+    value: "0.05"

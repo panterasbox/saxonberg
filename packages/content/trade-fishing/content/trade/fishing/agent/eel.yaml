@@ -1,0 +1,19 @@
+# A eel — an individual drawn out of a reach's record by a hook, a
+# pot or a net. Alive until it is not: in a hand it drowns on the shipped
+# clock; in a bowl of water it lives. Nothing about it says what water
+# it came from or what it carries.
+class: /trade/fishing/agent/Fish
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  _speciesPath: /stuff/idea/species/eel
+  lifecycleState: alive
+  shortDescription: eel
+  register: indefinite
+  primaryKeyword: eel
+  keywords: [eel, fish]
+  longDescription: >-
+    An eel, dark and glistening, coiling and uncoiling in a way that makes it hard to say which end you are holding.
+  handling: 0.0
+  behaviors:
+    - brain: /lib/behavior/feeds
+      trigger: cadence:60s

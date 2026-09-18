@@ -1,0 +1,19 @@
+# A grey mullet — an individual drawn out of a reach's record by a hook, a
+# pot or a net. Alive until it is not: in a hand it drowns on the shipped
+# clock; in a bowl of water it lives. Nothing about it says what water
+# it came from or what it carries.
+class: /trade/fishing/agent/Fish
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  _speciesPath: /stuff/idea/species/grey-mullet
+  lifecycleState: alive
+  shortDescription: grey mullet
+  register: indefinite
+  primaryKeyword: mullet
+  keywords: [mullet, grey, fish]
+  longDescription: >-
+    A grey mullet, silver-grey and thick-lipped, tail slapping.
+  handling: 0.05
+  behaviors:
+    - brain: /lib/behavior/feeds
+      trigger: cadence:60s
