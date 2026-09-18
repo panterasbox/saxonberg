@@ -489,27 +489,27 @@ happened to a reach. No pack ships one. No collection, no index
 
 ### D3 — capacity derives from habitat × composition; `stocks:` on the NODE overrides it
 
-**Habitat** is a kernel `Species` field (D4). For each species row that
-authors one, and each reach, the registry computes:
+**Habitat** is a kernel `Species` field (D4): tolerances over the
+closed water-parameter vocabulary. For each species row that authors
+one, and each reach, the registry asks the species — `species.fitIn(
+waterStateAt(reach, now))` — and the species answers by **the one law
+every RGO shares** (decided with the user at the handoff; D22 says why):
 
 ```
-f_T    = 1 inside [temperatureK.min, temperatureK.max]; linear to 0 over ±toleranceK (seed 4)
-f_sal  = 1 if habitat.salinity ∈ {any, salinityOf(reach)}; else 0.15 (seed)
-f_cur  = 1 if habitat.current ∈ {any, currentOf(reach)}; else 0.35 (seed)
-f_seas = 1 if habitat.seasons absent or includes season(now); else 0.3 (seed)
-f_con  = max(0, 1 − contamination.level × habitat.contaminationSensitivity)
-fit    = f_T × f_sal × f_cur × f_seas × f_con
-capacity = round(fit × habitat.abundance × water.fishery.reachLengthKm (seed 3))
+f_p(x)   = 1 inside [min, max]; linear to 0 across `margin` beyond either bound
+           (a toxin is a `max` with a margin — that IS a dose response; no second shape)
+f_seas   = 1 in an authored season, 0 out (a window is a tolerance with no margin)
+fit      = min over every parameter the habitat authors   — Liebig's minimum
+limiting = the parameter at the minimum (null when fit = 1)
+capacity = round(fit × abundance × water.fishery.reachLengthKm (seed 3))
 ```
 
-where `salinityOf(reach)` is `salt` at elevation 0, `brackish` below
-`water.fishery.brackishBelowM` (seed 40) with `depthToSea ≤ 1`, else
-`fresh`; `currentOf(reach)` bands `flow.m3s / max(width, seed 4)` at
-`still < 0.05 < slow < 0.5 < moderate < 3 < fast` (m²/s); water
-temperature is the catchment's `airTemperatureKAt` (no thermocline in
-v1); the season comes from `WeatherApi.segmentsBetween` as the
-catalogue already reads it. Every number is a seeded literal at the
-call site, retuned by `water.yaml` (`water.fishery.*`).
+An unauthored tolerance is factor 1 — soil's rule, *unmodelled is not
+zero*. **Interactions live in the derivation of the state, never in the
+combining rule** (warm water holds less oxygen: `oxygenMgL` is derived
+from temperature, and the trout's oxygen tolerance does the rest). The
+words the read uses — *fresh / brackish / salt*, *still / slow / fast* —
+are presentation bands over the numbers, not a second vocabulary.
 
 **The override.** `WatercourseNode` gains an optional
 `stocks: Array<{ species: string; capacity: number }>` (water pack,
@@ -527,25 +527,39 @@ this is a population that never exists as objects until drawn.
 `Species.ts` gains:
 
 ```ts
-export const HABITAT_SALINITIES = ['fresh', 'brackish', 'salt', 'any'] as const;
-export const HABITAT_CURRENTS   = ['still', 'slow', 'moderate', 'fast', 'any'] as const;
-export const HABITAT_ROLES      = ['bait', 'forage', 'predator', 'apex'] as const;
+/** ⭐ The closed vocabulary of what a body of water REPORTS — a reach derives
+ *  it (D22), a tank will ledger it. Adding a word here is a kernel MR. */
+export const WATER_PARAMETERS = ['temperatureK', 'currentMps', 'salinityPpt',
+  'oxygenMgL', 'pH', 'hardnessDgh', 'nitrateMgL', 'ammoniaMgL', 'nitriteMgL',
+  'contamination'] as const;
+export type WaterParameter = (typeof WATER_PARAMETERS)[number];
+export type WaterState = Record<WaterParameter, number>;   // contamination = the shipped level
+export interface Tolerance { min?: number; max?: number; margin?: number }  // an absent bound is unbounded
+export const HABITAT_ROLES = ['bait', 'forage', 'predator', 'apex'] as const;
 export interface Habitat {
-  temperatureK: { min: number; max: number };
-  salinity: HabitatSalinity;
-  current: HabitatCurrent;
+  /** absent parameter = factor 1 (unmodelled is not zero) */
+  tolerances: Partial<Record<WaterParameter, Tolerance>>;
   seasons?: Season[];                 // absent = all year
   role: HabitatRole;
   /** individuals per km of reach at perfect fit */
   abundance: number;
-  /** 0 = indifferent; 1 = a unit concentration empties the water */
-  contaminationSensitivity: number;
   /** 0..1 — what a hooked one does; drives the contest and the size band */
   fightRating: number;
 }
 protected habitat: Habitat | null = null;   // fieldMeta: persistent, authorable
-getHabitat(); setHabitat(value)  // validates every closed word; throws like setFeedingStyle
+getHabitat(); setHabitat(value)  // validates every parameter word and role; throws like setFeedingStyle
+fitIn(state: WaterState): { fit: number; limiting: WaterParameter | null }  // D3's law; null habitat → fit 0
 ```
+
+A species authors only what distinguishes it: the trout `temperatureK:
+{ max: 291, margin: 4 }, oxygenMgL: { min: 7, margin: 2 }, currentMps:
+{ min: 0.3, margin: 0.2 }`; the carp `temperatureK: { min: 283, margin:
+5 }, oxygenMgL: { min: 3, margin: 2 }, currentMps: { max: 0.2, margin:
+0.3 }`; the mullet and the crab `salinityPpt: { min: 5, margin: 5 }`; the
+eel nothing but `contamination`. Every fish authors `ammoniaMgL: { max:
+0.02, margin: 0.5 }` and `nitriteMgL` (the numbers a tank will one day
+move); the contamination sensitivity of the first draft is `contamination:
+{ max: 0, margin: 1 / sensitivity }`.
 
 and `FEEDING_STYLES` gains `'surface'` (an animal in water that comes up
 for the hand — not a vessel kind, so `FEEDER_KINDS` and
@@ -906,19 +920,25 @@ in any pack, so those two cuts are the noun wave's and the yield stops
 at three), `adultMass`, `stature`,
 `olfactoryProfile: { acuity: dull }`. Habitats:
 
-| species | temp K | salinity | current | seasons | role | abundance | fight |
-|---|---|---|---|---|---|---|---|
-| brown-trout | 275–288 | fresh | moderate·fast (author `fast`; `moderate` reads 0.35) | all | predator | 40 | 0.5 |
-| eel | 278–295 | any | slow | spring·summer·fall | forage | 60 | 0.35 |
-| grey-mullet | 283–298 | brackish | slow | spring·summer·fall | forage | 80 | 0.4 |
-| carp | 285–300 | fresh (any current `still·slow`) | slow | all | forage | 50 | 0.3 |
-| shore-crab | 278–298 | brackish | slow | all | bait | 120 | 0.1 |
-| sturgeon | 280–294 | brackish | slow | spring·summer | apex | 2 | 1.0 |
+| species | temperatureK | oxygenMgL | currentMps | salinityPpt | seasons | role | abundance | fight |
+|---|---|---|---|---|---|---|---|---|
+| brown-trout | 275–288 m4 | min 7 m2 | min 0.3 m0.2 | max 0.5 m2 | all | predator | 40 | 0.5 |
+| eel | 278–295 m4 | min 3 m2 | — | — | spring·summer·fall | forage | 60 | 0.35 |
+| grey-mullet | 283–298 m4 | min 4 m2 | max 0.5 m0.3 | min 5 m5 | spring·summer·fall | forage | 80 | 0.4 |
+| carp | 285–300 m5 | min 3 m2 | max 0.2 m0.3 | max 2 m3 | all | forage | 50 | 0.3 |
+| shore-crab | 278–298 m4 | min 3 m2 | max 0.5 m0.3 | min 5 m5 | all | bait | 120 | 0.1 |
+| sturgeon | 280–294 m4 | min 5 m2 | max 0.5 m0.5 | min 2 m3 | spring·summer | apex | 2 | 1.0 |
 
-so the confluence (30 m, brackish, 90 m wide, slow) holds mullet, eel,
-crab, carp and the sturgeon; the Holloway head (1100 m, fresh, fast,
-cold) holds trout and nothing else; the Delight flats (180 m, fresh,
-22 m, moderate-to-slow) holds trout and carp. Two `BodyPlan` rows
+(`m` = margin; every row also authors `ammoniaMgL: { max: 0.02, margin:
+0.5 }`, `nitriteMgL: { max: 0.1, margin: 1 }` and `contamination` as D4
+says — the tank's numbers, inert in a river.) Read against D22's
+derivations:
+the confluence (30 m, brackish, 90 m wide, slow, hard) holds mullet,
+eel, crab, carp and the sturgeon; the Holloway head (1100 m, fresh,
+fast, cold, soft and acid) holds trout and nothing else; the Delight
+flats (180 m, fresh, 22 m, moderate-to-slow, the highest nitrate) holds
+trout and carp. The species test asserts these three outcomes from the
+rows and the law, never from a table. Two `BodyPlan` rows
 (`fish`: `breathableMedia: [water]`, `locomotionModes: [swim]`,
 minimal slots, copied from `avian.yaml`'s shape; `crustacean`:
 `breathableMedia: [water, air]`). One material
@@ -964,6 +984,67 @@ after `butcher`, because a whole fish is a body, not food.
 
 ---
 
+### D22 — the reach reports every parameter a tank will ever hold (water pack)
+
+⭐ **Decided with the user at the handoff.** After the RGOs are all built
+they get unified along whatever fault lines emerge; the fault lines are
+already visible — a field's medium is *seeded* (`GroundCharacter`), a
+reach's is *derived* (topology + weather), a tank's will be *made* (a
+ledger the keeper moves) — and the plan does not pre-unify them. What it
+does is refuse to let the aquarium build reopen the wild water: **every
+parameter a tank will ledger is reported by a reach now**, the species
+tolerances are authored against the same words now, and the fit and its
+limiting factor are the species' own method now. The tank build's kernel
+work is then the *vessel's* ledger producing a `WaterState` and
+respiration reading it — no reach, no species row, no law is touched.
+
+**Why one law, and why Liebig.** Three candidates: the product of factors
+(the first draft), Liebig's minimum, and an unweighted mean. The minimum
+wins on the ground every RGO shares:
+
+1. it is the law husbandry already teaches (`satWater/satLight/satRoot` →
+   the minimum), so a farmer, an angler and an aquarist learn one rule;
+2. ⭐ it always **names** the limiter — *the water is too warm for trout
+   this month* — and that sentence is the whole pedagogy of both the
+   field and the tank (find the worst thing, fix it; the mirror shows
+   you). A product cannot say which factor, a mean hides it;
+3. stacked mild stresses do not compound to death (five factors at 0.8
+   are 0.33 under a product and 0.8 under the minimum); organisms mostly
+   die of one thing;
+4. fixing the limiter always moves the number — the improvement is
+   legible;
+5. the mine's binary breathability is the same rule at 0/1, so the
+   respiration read of a foul tank later is the same law again.
+
+Where the minimum is honestly wrong — independent mortality *events*
+(disease, predation) — those are events, not fit, exactly as spoilage
+is a clock and contamination an event.
+
+**The reach's side.** `WatercourseCatalogue` gains `waterStateAt(reachRef,
+nowS): WaterState`, pure derive:
+
+| parameter | v1 derivation | the seam it leaves |
+|---|---|---|
+| `temperatureK` | `airTemperatureKAt` (no thermocline) | the underwater slate's depth |
+| `currentMps` | `flow.m3s / (channelWidthM × meanDepthM)`, `meanDepthM` authorable on the node, seed `water.reach.meanDepthM` 1.0 | — |
+| `salinityPpt` | 33 at elevation 0; seed 15 where `depthToSea ≤ 1` below `water.fishery.brackishBelowM`; else 0.3 | the tide clock replaces this one function |
+| `oxygenMgL` | saturation at temperature (seeded two-point table, 14.6 at 273 K → 7.5 at 303 K) × a turbulence factor by current band (still 0.8 … fast 1.0) | — |
+| `pH`, `hardnessDgh` | **seeded on the course row** — `water: { pH, hardnessDgh, nitrateMgL }` on `Watercourse`, every node inherits; **flow-weighted at a confluence** where the catalogue already sums flow | the join to the catchment's `GroundCharacter` (the moor's peat is soft and acid; the ore country's limestone hard and alkaline) |
+| `nitrateMgL` | the course seed, flow-weighted; the Delight (the farming valley) authors the highest | soil's `out: leaching` → the river (the reserve table already names it and it goes nowhere today) |
+| `ammoniaMgL`, `nitriteMgL` | 0 in a flowing river | the outfall's kind, if a later build makes it sewage rather than `contamination` |
+| `contamination` | the shipped `contaminationAt(...).level` | — |
+
+The four Watercourse rows gain a `water:` block (world-seed, commons
+rows; Kestrel 7.8 / 12 / 2, Holloway 6.0 / 3 / 0.5, Delight 7.4 / 9 / 8,
+Cold Fell 6.8 / 5 / 0.5 — authored stances, retuned in the row).
+`standingAt` returns `water: WaterState` and, per species, `{ fit,
+limiting }`; `readFor` at *practised* names the limiter for a species the
+reader can name (*too warm for trout this month · not enough salt for
+mullet this far up*) — the same sentence a test kit will one day give at
+a tank. Nothing consumes oxygen or nitrate in a river; they are reads.
+
+---
+
 ## ⭐⭐ Host placement
 
 For every new field, mixin and class: the host, and what composing it
@@ -975,7 +1056,9 @@ re-narrows the host set means the host is wrong.
 | `fishery` document kind | kernel `DocumentKinds` | the store can hold a runtime-written, path-keyed, kept record — same as `herd` | none |
 | `FisheryRegistry` (+ its `fisheries` documents) | water pack `/system/water/idea/`, `RegistrarMixin(Idea)` | the water system keeps a population book for every reach it compiles — true whether or not anyone fishes | none; reads verify prefix + kind |
 | `WatercourseNode.stocks` | water pack `Watercourse` node (data) | any reach may be stocked by an author — the aquaculture seam | none |
-| `Species.habitat` | kernel `Species` | every species *may* declare where it lives; `null` = not in any water (the cat, the pig) | none — an absent habitat is zero fit, not a guard |
+| `WATER_PARAMETERS` / `WaterState` / `Tolerance` | kernel `Species.ts` types | one vocabulary for what water reports, spoken by a reach today and a tank later | none |
+| `Species.habitat` + `fitIn()` | kernel `Species` | every species *may* declare tolerances and answer its fit in a water; `null` = not in any water (the cat, the pig) → fit 0 | none — an absent habitat is zero fit, not a guard |
+| `WatercourseCatalogue.waterStateAt` + the `water:` course block + node `meanDepthM` | water pack | every reach reports the whole vocabulary, seeded where it cannot derive | none |
 | `'surface'` in `FEEDING_STYLES` | kernel `Species` vocabulary | a feeding rung an animal in water has; not a vessel kind | none |
 | `Bonded.takesFromHand()` / `hasChosen()` / `homeEarnedDay` | kernel `BondedMixin` (every kept animal) | every bonded animal remembers whether its home was earned; `hasChosen` is the naming gate for all of them | none — the cat's gate widens honestly (Risks) |
 | `feeds` reads the host's own container | kernel brain | an animal inside a feeder of its rung eats from it | none |
@@ -1104,7 +1187,8 @@ the MR.
   `__tests__/wiki-spoiler-fields.snapshot.test.ts` (bless `habitat` at
   0 with the reason, and `homeEarnedDay` at 0 — it is a clock, not a
   secret); tests: `Species.test.ts` (setHabitat validates; unknown words
-  throw), `Bonded.test.ts` (a seeded home does not satisfy `hasChosen`;
+  throw; `fitIn` is the minimum and names the limiter; an unauthored
+  parameter is factor 1; a null habitat is 0), `Bonded.test.ts` (a seeded home does not satisfy `hasChosen`;
   three distinct fed days do; a follower still does), `feeds.test.ts`
   (an animal inside a bowl-kind feeder eats from it), `NameController`
   tests keep passing.
@@ -1148,7 +1232,9 @@ the MR.
 #### B1 — the fishery record in the water pack
 - **Implements** D1, D3.
 - **Touches** `packages/content/water/src/idea/Watercourse.ts` (node
-  `stocks?`), `WatercourseCatalogue.ts` (parse + `CompiledReach.stocks`),
+  `stocks?`), `WatercourseCatalogue.ts` (parse + `CompiledReach.stocks`; the `water:`
+  course block, node `meanDepthM`, `waterStateAt` — D22), the four
+  Watercourse rows in `world-seed` (`water:` blocks),
   new `src/idea/FisheryRegistry.ts` (+ `readFor`, D7), new
   `content/system/water/idea/FisheryRegistry.yaml`, new `src/thing/Shore.ts`
   + `content/system/water/thing/Shore.yaml` (D15), `content/settings/water.yaml`
@@ -1157,7 +1243,9 @@ the MR.
   (against a synthetic `/test/…` species template authoring a habitat
   and the shipped Kestrel/Holloway rows: the confluence's capacity for
   a brackish-slow species is > 0 and the Holloway head's is 0; a cold
-  fast species is the reverse; `draw` then `standingAt` shows the level
+  fast species is the reverse; `waterStateAt` reports every word of
+  `WATER_PARAMETERS`, the Holloway soft and acid, the Kestrel hard, the
+  confluence flow-weighted between them; the limiter is named; `draw` then `standingAt` shows the level
   down; recovery after a half-life; a `stocks:` node overrides fit;
   reads verify prefix + kind; no document is written by a read;
   `readFor` names an apex only at practised+), `Shore.test.ts` (a Shore
@@ -1314,6 +1402,7 @@ rod goes on the *fisher's* row, the Shore on the *room's*).
 | wait, silent refusal, small fish lands itself, lose or land a fighter through `reel`/`slack` | A2 (surface/hand not needed here), B2, B3, drive 3–6 |
 | no number ever shown — size, stock, competence, rod condition | B1 (`readFor` bands), B2 (`sizeWords`), B3 (contest prose), shipped Durable bands; drive 1, 4 |
 | confluence and heath hold different species with no table; the millsite yields from the Delight's reach with its pack untouched | B1 (fit), B2 (habitats), B6 (rows), D15 fallback; drive 13, 13b |
+| a practised reader is told the one factor that limits a species, in words | A2 (`fitIn`), B1 (`waterStateAt`, `readFor`); drive 2, 13 |
 | the fisher fishes, reads aloud, reports empty without naming who | B5, B6; drive 9 |
 | the fishmonger is committee-appointed, keeps a shift, replaceable by `appoint` | B6 (D17); drive 11 + an `appoint` step added to the wire file |
 | a net empties a reach in an afternoon and it recovers over days; a practised `look` reads both | B1 (recovery, `readFor`, `Shore`), B4 (net numbers); drive 9 |
@@ -1474,7 +1563,7 @@ lives in this plan after the sweep.
 - **`ToolMixin.epoch`** and `Trap.takesRoles` — the covenant's predicate
   (*no nets above the falls*) → forestry's land-use covenant; the fishery
   right rides `water-right` → `fishing-slate` § 7.
-- **The tide** — `salinityOf(reach)` is the one function a tide clock
+- **The tide** — `waterStateAt`'s `salinityPpt` line (D22) is the one function a tide clock
   replaces → `fishing-slate` § 9.
 - **The named apex** — the sturgeon as an individual with a chronicle →
   `fishing-slate` (the user's wanted tail).
@@ -1485,6 +1574,14 @@ lives in this plan after the sweep.
   crab** → `fishing-slate`'s noun wave.
 - **The fisher's creel and a consignment beat** → the commercial wave.
 - **A river you can fill a bowl from** → a finding for the water slate.
+- **The home tank** (D22) — the vessel's ledger of the same `WaterState`
+  (oxygen drawn, ammonia → nitrite → nitrate, a water change, the
+  filter's culture as a living material), respiration reading it (the
+  mine's write-through pattern), the test kit (the instrumentation
+  slate), the maintenance service (a contract clause over a reading),
+  disease → `fishing-slate` § 12. Touches no reach, no species row, no
+  law.
+- **The catchment's geology → `pH`/`hardnessDgh`; soil leaching → `nitrateMgL`** — the joins D22 seeds around → the RGO unification pass.
 
 ---
 

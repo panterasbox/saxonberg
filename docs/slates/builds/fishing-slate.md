@@ -278,3 +278,52 @@ derived from the authored `Watercourse`, never budded); the fishery right
 
 *(Retire when: the fishery record and the shore regime ship, and
 fishing's tail is the boat and the stew pond.)*
+
+## 12. The tank — the follow-on build, and what v1 owes it
+
+Keeping a fish is the opposite game from catching one: fishing reads a
+medium you cannot control; keeping **controls** one, to a fine degree,
+with measuring and treatments and water changes and a service trade
+(people hire aquarium maintenance the way they hire gardeners). The
+pedagogy is real chemistry — and every bit of it is also true of the
+wild reach, which just has a watershed and the weather doing the
+controlling.
+
+**The invariant v1 ships (plan D22): everything a tank will ledger, a
+reach already reports.** One closed vocabulary of water parameters
+(temperature · current · salinity · oxygen · pH · hardness · nitrate ·
+ammonia · nitrite · contamination), derived on every reach — seeded
+per course where it cannot derive (pH/hardness from the geology, a
+nitrate baseline from the land use) — with every species' tolerances
+authored against the same words, **one law** (Liebig's minimum over
+Shelford tolerances, the limiter named — the law husbandry already
+teaches) as the species' own method, and a read that says *too warm for
+trout this month*. The tank build touches none of it.
+
+**The tank's own surface, each on shipped substrate:**
+
+- **The water is a ledger, not a flow — it is soil.** A bowl is a bed
+  with one slot (the pot pattern); its reserves are the hobby's actual
+  chemistry: oxygen drawn by fish mass, ammonia → nitrite → nitrate by
+  the filter's bacterial colony (a **living material**, fermentation's
+  rule — a tank must be cycled before it is safe, taught by killing your
+  first fish), a water change as the manure of the fish world,
+  temperature by a heater. The reserves produce the same `WaterState`
+  the reach derives.
+- **Consequence enters through the mine's pattern.** The tank derives
+  its water's state and writes a medium tag through; respiration never
+  learns what a tank is. A fish gasping at the surface is the canary —
+  the free tell before anyone owns a test kit.
+- **Measurement is the instrumentation slate** — the test kit is a
+  `measure` stanza with epochs (watch the fish → a dip strip), and the
+  honest gap that a novice cannot read what a strip can.
+- **The maintenance service is the contract subsystem, literally** —
+  *nitrate below X on inspection* is a clause over a verifiable
+  condition; the aquarium maid is the first gig verified by a reading.
+- **Disease and treatments** ride the disease design (good husbandry is
+  immunity): ich, salt baths, quarantine.
+- **The garden pond** is the same object outdoors, and the smallest
+  aquaculture at once (§ 3).
+
+Deferred with the seams named: the geology → hardness join and the
+soil-leaching → nitrate join land in the RGO unification pass, not here.

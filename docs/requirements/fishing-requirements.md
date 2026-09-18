@@ -128,6 +128,14 @@ can keep.
   tide clock the water pack has not built.
 - **Aquaculture** — the stocked pond, the override with ownership → the
   fishing slate's tail (and the pets seam for a garden pond).
+- **The home aquarium** — the tank whose water the keeper must control:
+  the nitrogen cycle, water changes, the test kit, the maintenance
+  service, disease → the fishing slate § 12, a follow-on build. ⭐ What
+  THIS build owes it: every parameter a tank will one day hold is
+  already reported by a wild reach, every species already declares its
+  tolerances against the same words, and the read names the one factor
+  that limits a fish — so the aquarium build never reopens the wild
+  water.
 - **The food web** — bait fish feeding predators within the record → the
   fishing slate's later wave; v1's record is flat.
 - **The fishery right and the covenant rows** — *no nets above the
@@ -462,6 +470,10 @@ Observable from outside the code.
   land a fighter through `reel` / `slack`.
 - No number is ever shown for a fish's size, a reach's stock, a fisher's
   competence or a rod's condition — bands and words only.
+- A practised reader at a water is told the one factor that limits a
+  species there, in words (*too warm for trout this month*), and it is
+  the same factor a keeper will one day read off a tank; the moor's
+  water reads soft and cold, the confluence's hard and slow.
 - The confluence and the moor's heath hold **different species with no
   table authored for either**; Heart's Delight's millrace, whose pack
   was not touched, yields fish from the Delight's own reach.
