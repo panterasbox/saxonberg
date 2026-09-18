@@ -62,6 +62,19 @@ describe('the freight paper kinds', () => {
     for (const kind of PAPER) expect(keep).toContain(kind);
   });
 
+  it('the fishery kind (fishing A1) is path-keyed and kept, and not flat-keyed', () => {
+    const spec = DOCUMENT_KINDS.fishery;
+    expect(spec.kind).toBe('fishery');
+    expect(spec.naturalKey).toBeNull();
+    expect(spec.onVanish).toBe('keep');
+    expect(spec.contentDir).toBe('fisheries');
+    expect(DECLARED_DOCUMENT_KINDS).toContain('fishery');
+    expect(FLAT_KEY_DOCUMENT_KINDS).not.toContain('fishery');
+    const names = Object.values(Collections) as string[];
+    expect(names).not.toContain('fishery');
+    expect(names).not.toContain('fisheries');
+  });
+
   it('each has its own content dir, and none collides', () => {
     const dirs = DECLARED_DOCUMENT_KINDS.map((k) => DOCUMENT_KINDS[k].contentDir);
     expect(new Set(dirs).size).toBe(dirs.length);
