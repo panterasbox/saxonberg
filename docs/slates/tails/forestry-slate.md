@@ -1,19 +1,27 @@
 # Forestry slate — the crop you inherit
 
-> **Status: UNBUILT** — design surface only; ⭐ **lens pass run
-> 2026-09-17** (§ below) and the open questions decided; the
-> `trade-fuel` coppice panel is the accidental head start.
-> **Left:** the `trade-forestry` pack (column one of the chain — growing
-> and felling only) · each clearing IS ground and its stand is a
-> cover on it (the field's shape, decided 2026-09-17) · felling and
-> the bole · grown-plant authoring ·
-> the compressed rotations, set end to end · the wood species rows · the
-> silviculture Discipline · the wood above Rejection · instrument
-> `epoch` stamps
-> **Size:** a build — conversion (`trade-sawing`) and forest law (the
-> [covenant](./land-use-covenant-slate.md)) are their own
+> **Status: PARTIAL** — the `trade-forestry` pack shipped (MR !262,
+> 2026-09-18) → [forestry.md](../../subsystems/forestry.md): a `Wood`
+> location that IS ground with a `StandMixin` cover, `fell` and the
+> bole, the persistable coppice `Panel` on a one-game-year rotation,
+> planting a standard with the deed written by the ground, eight woods
+> + eight trees, `silviculture`, the Hanging Wood above Rejection as rows
+> only, `ToolMixin.epoch` (a closed vocabulary, unread).
+> **Left:** `analyze wood` + a per-wood roll-up · partial yield below
+> ripe · the Cover seam (Sward + Stand → a kernel `lib/husbandry/Cover`
+> on the third instance; the stand's moisture factor integrated
+> stepwise) · a planted standard folding into `mix[].standing` at
+> maturity · the tree-dimension axes in § Dimensions of a tree (leaf
+> habit → `coldStopK`, masting, a reader for `sexDeterminationSystem`,
+> shade, browse, form as a stamp, the nursery ladder, hauling the bole,
+> fire on the stand) · the seeded site character for a Wood (soil.md's
+> third-consumer rule). Conversion (`trade-sawing` — the bole is its
+> attach point; the timber set's by-hand path goes with it), forest law
+> (the [covenant](../builds/land-use-covenant-slate.md)) and carpentry
+> are their own builds.
+> **Size:** a tail — several small ones, none blocking the next trade
 
-> **Status: design surface, unbuilt, no phase gate passed.** Written
+> *(the original framing, kept for the record)* Written
 > 2026-09-03 out of the farmstead *(retired artifact)*
 > land-use pass, which found that **wood has more consumers than any other
 > material in the game and no producer designed for it.**
@@ -329,7 +337,7 @@ the lenses do not decide are marked *(user)*.
   by hand ships here as the conversion floor (the quern rung). **Lens
   2.** Water power is therefore sawing's v1, not forestry's.
 - **One enforcement design for forest law and game law?** ⭐ **Yes, and
-  it is the [land-use covenant](./land-use-covenant-slate.md)** — one
+  it is the [land-use covenant](../builds/land-use-covenant-slate.md)** — one
   predicate over the bound instrument, act or clock; estovers, the close
   season and *no chainsaws* are rows of it. This build ships only the
   cheap half: instruments declared as arguments and stamped with an

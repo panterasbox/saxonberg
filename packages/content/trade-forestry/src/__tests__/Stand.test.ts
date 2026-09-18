@@ -1,5 +1,5 @@
 /**
- * The stand (forestry D2) — **the standing timber as a cover over a
+ * The stand (forestry.md § The stand) — **the standing timber as a cover over a
  * place, derived on read and stamped only by the axe.**
  *
  * The claims: the authored `mix:` reads as authored with no clock; the

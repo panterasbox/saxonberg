@@ -1,5 +1,5 @@
 /**
- * The Hanging Wood (forestry D13/D14) — the rejection venue's rows, read
+ * The Hanging Wood (forestry.md § The second instance · § Daylight) — the rejection venue's rows, read
  * off disk: three clearings on `Wood` whose `mix:` resolves, every exit
  * resolving, every room plotted and lit above `dim` for its own cell,
  * no two rooms on one cell, no two rooms propping one panel, and the

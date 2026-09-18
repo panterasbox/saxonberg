@@ -177,10 +177,10 @@ export default class Panel extends PanelBase {
           template: 'Planted {{name}} in {{where}}.',
           vars: {
             name,
-            where: wood ? (room as unknown as Stuff).getPresentation() : this.getPresentation(),
+            where: wood ? wood.getPresentation() : this.getPresentation(),
           },
           tags: ['forestry', 'planting'],
-          where: (room as unknown as Stuff | null)?.getTemplatePath() ?? null,
+          where: room?.getTemplatePath() ?? null,
         })
         .catch((err) => console.warn('Panel: recording the planting deed failed:', err));
     }

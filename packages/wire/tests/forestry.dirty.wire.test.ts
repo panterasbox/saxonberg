@@ -355,7 +355,7 @@ suite('⭐⭐ the Hanging Wood — a place that is a stand', () => {
   it('13. re-login in the same boot: the clearing is still empty, the sapling still there, the yard panel still regrowing', async () => {
     /*
      * ⚠ The harness boots ONE world per run, so the true restart is
-     * asserted by HAND in the plan's drive record (a server restart
+     * asserted by HAND (forestry.md § The second instance — the restart procedure; a server restart
      * between two runs of this file's steps 12→13). What a re-login
      * proves is that nothing here lived in the session.
      */

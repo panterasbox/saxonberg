@@ -1,5 +1,5 @@
 /**
- * The bole (forestry D4) — a felled trunk that knows how many lengths
+ * The bole (forestry.md § fell — the bole) — a felled trunk that knows how many lengths
  * are left in it, and affords its own cross-cut wherever it lies.
  */
 

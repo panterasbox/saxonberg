@@ -1,5 +1,5 @@
 /**
- * ⭐ The second instance (forestry D19 / AC 9) — **a second locality's
+ * ⭐ The second instance (forestry.md § The second instance) — **a second locality's
  * wood is rows and nothing else.**
  *
  * Two clearings authored as a second locality would author them —

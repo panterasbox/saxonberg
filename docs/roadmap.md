@@ -47,6 +47,18 @@ that shapes every slate.
 > [pets.md](./subsystems/pets.md). Its tail (the off-screen digest, home
 > range, pet combat, breeding) stays in the pets slate; the load half of
 > residency's *policy* is [eager-residency-slate](./slates/builds/eager-residency-slate.md).
+> ⭐⭐ **FORESTRY shipped 2026-09-18** (MR !262) — the family's first
+> wood: a `Wood` location that IS ground with a `StandMixin` cover (the
+> field's shape, on the singleton cell), `fell` and the bole (a trunk
+> too heavy to lift; cross-cut into lengths), the persistable coppice
+> `Panel` on a one-game-year rotation, planting a standard with the deed
+> written by the ground, eight woods + eight trees, the Hanging Wood
+> above Rejection as rows only — see
+> [forestry.md](./subsystems/forestry.md). ⚠ An authored wood is always
+> a wood: no runtime land-use conversion, nothing simulates a tree. Its
+> tail (`analyze wood`, partial yield, the Cover seam, the tree axes)
+> stays in [forestry-slate](./slates/tails/forestry-slate.md); sawing
+> and carpentry are their own trades.
 
 ---
 

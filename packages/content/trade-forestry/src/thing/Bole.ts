@@ -46,8 +46,8 @@ const BoleBase = DetailedMixin(Thing);
 
 /** *"six lengths in it yet"* / *"one length left"* — appended on `look`. */
 function lengthsAugmenter(text: string, host: Stuff, _viewer: Stuff): string {
-  const left = (host as unknown as Bole).getLengthsLeft?.();
-  if (typeof left !== 'number') return text;
+  if (!(host instanceof Bole)) return text;
+  const left = host.getLengthsLeft();
   const line =
     left <= 0
       ? 'There is nothing left in it but the butt.'

@@ -4602,6 +4602,48 @@ settled in [forestry.md](./subsystems/forestry.md).
 
 ---
 
+## A good minted onto the floor, stamped but never PLACED
+
+**ANTIPATTERN**: a verb's completion clones a thing into a room and
+stamps it to the actor — and stops there.
+
+```ts
+// BAD — forestry's first cut of `fell`
+ContainmentApi.move(bole, room);
+await bole.stampChattel(giver);
+await PersistableApi.captureHostOf(room);   // the room skips it: a player's good
+```
+
+A stamp records WHO; it records no WHERE. `followCustody` is what writes
+the `place` — and only `drop`/`put`/`get` call it, after a move. A good
+minted onto a floor has been moved by nobody, so it has no `place`; the
+room's capture skips it (a player's good is the owner's to persist), and
+the room's overlay on materialize finds no row for it. The bole was
+gone after every restart while the stand's cut count, on the same room,
+survived — found by restarting the server.
+
+**INSTEAD**, the mint places it, and — when a live player is the owner —
+captures the owner too, because the owner's estate is written only on
+the residency cadence or at logout, and a hard stop inside that window
+loses the goods (a kill after a run-out lost a clearing's sixteen trunks
+in a browser):
+
+```ts
+// GOOD — forestry's `stamp()`
+await bole.stampChattel(giver);
+await bole.followCustody();                  // the WHERE: the chattel row's place index + the estate
+await PersistableApi.captureHostOf(room);
+await PersistableApi.captureHostOf(giver);   // the act that puts tonnes on the floor writes the owner now
+```
+
+⚠ The tell is a verb whose product is a *player's good on the floor of a
+persistable room* — everything else (a good in the actor's hands, a
+transient room, an organization's stock) already behaves. See
+[furnishing.md § The skip rule](./subsystems/furnishing.md) and
+[forestry.md § fell](./subsystems/forestry.md).
+
+---
+
 ## A resident pre-check in front of `StuffApi.singleton()`
 
 ⭐ **`StuffApi.singleton(path)` IS the get-or-create.** Its first act is

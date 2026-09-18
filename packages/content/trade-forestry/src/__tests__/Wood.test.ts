@@ -1,5 +1,5 @@
 /**
- * The Wood (forestry D1) — **a place that is ground with a stand on it,
+ * The Wood (forestry.md § The Wood) — **a place that is ground with a stand on it,
  * and `StuffApi.singleton` as its establishing context.**
  *
  * Three claims: the STACK (persistable + singleton + soil + stand +

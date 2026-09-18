@@ -6,7 +6,7 @@
  * from there — ONE supply, TWO consumers; the authored state is one the
  * reconcile could have produced — and one is new: the panel row's
  * header states the realm's charcoal rate, and this pins the number to
- * the rows it is computed from (D18).
+ * the rows it is computed from (forestry.md § The panel — the charcoal arithmetic).
  */
 
 import { describe, it, expect } from 'vitest';

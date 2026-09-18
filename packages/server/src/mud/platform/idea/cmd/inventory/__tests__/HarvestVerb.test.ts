@@ -578,7 +578,7 @@ describe('harvest <plant>', () => {
     expect(bed.nutrientFraction()).toBe(1); // nothing exported
   });
 
-  /* ───────── the plant names its tool and its Discipline (forestry W0) ───────── */
+  /* ───────── the plant names its tool and its Discipline (forestry.md — `harvestTool` / `discipline`) ───────── */
 
   function billhook(): ToolItem {
     return makeStuffAtPath(() => {

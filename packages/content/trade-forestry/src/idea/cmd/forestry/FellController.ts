@@ -55,9 +55,8 @@ import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import type { Container } from '@saxonberg/server/mud/lib/spatial/Container';
 import type { Containable } from '@saxonberg/server/mud/lib/spatial/Containable';
 import type { Growing } from '@saxonberg/server/mud/lib/husbandry/Growing';
-import type { Chattel } from '@saxonberg/server/mud/lib/chattel/Chattel';
 import type Material from '@saxonberg/server/mud/lib/material/Material';
-import type Plant from '@saxonberg/server/mud/platform/thing/Plant';
+import Plant from '@saxonberg/server/mud/platform/thing/Plant';
 import { MessageApi } from '@saxonberg/server/mud/api/message';
 import { Mml } from '@saxonberg/server/mud/api/mml';
 import { StuffApi } from '@saxonberg/server/mud/api/stuff';
@@ -177,7 +176,7 @@ export default class FellController extends ManualBuildController<FellModel> {
     }
 
     this.spend(giver, FELL_COST);
-    const room2 = stand as unknown as Stuff & Container;
+    const room2: Stuff & Container = stand;
     this.engageStep(context, {
       durationMs: FELL_MS,
       beginSelf: Mml.compose`You set your feet, sight the ${sp.name}, and swing.`,
@@ -281,12 +280,12 @@ async function dropStandard(
   const wood = await materialAt(woodMaterialPath);
   const density = wood ? wood.getDensity().rawValue() : 750;
 
-  const bole = (await StuffApi.clone(BOLE_PATH)) as unknown as Bole;
+  const bole = await StuffApi.clone<Bole>(BOLE_PATH);
   if (wood) bole.setMaterial(wood);
   bole.setMass(Quantity.of(Math.round(density * BOLE_M3), 'kg'));
   bole.setLengthsLeft(BOLE_LENGTHS);
-  ContainmentApi.move(bole as unknown as Stuff & Containable, room);
-  await stamp(bole as unknown as Stuff, giver);
+  ContainmentApi.move(bole, room);
+  await stamp(bole, giver);
 
   for (let i = 0; i < LOGS_PER_STANDARD; i += 1) {
     const log = await StuffApi.clone<Stuff & Containable>(LOG_PATH);
@@ -318,8 +317,8 @@ async function dropStandard(
 async function stamp(thing: Stuff, owner: Stuff): Promise<void> {
   if (MixinApi.isChattel(thing)) {
     try {
-      await (thing as unknown as Stuff & Chattel).stampChattel(owner);
-      await (thing as unknown as Stuff & Chattel).followCustody();
+      await thing.stampChattel(owner);
+      await thing.followCustody();
     } catch (err) {
       console.warn('FellController: chattel stamp failed:', err);
     }
@@ -354,7 +353,7 @@ async function fellStandard(
   // ⚠⚠ The actor may be GONE — an engaged act completes long after
   // dispatch. Returning is the honest answer, not narrating to nobody.
   const giver = context.commandGiver;
-  if (giver.isDestroyed() || (stand as unknown as Stuff).isDestroyed()) return;
+  if (giver.isDestroyed() || stand.isDestroyed()) return;
   const nowS = WorldClockApi.getNow().rawValue();
   if (!stand.cut(sp.speciesPath, nowS, giver.getIdentityPath() ?? '')) {
     MessageApi.scene(giver)
@@ -364,7 +363,7 @@ async function fellStandard(
     return;
   }
   const bole = await dropStandard(giver, room, sp.woodMaterialPath, sp.seedPath);
-  await capture(stand as unknown as Stuff);
+  await capture(stand);
   // ⚠ And the FELLER. The room's record never carries a player's goods
   // (the skip rule); they ride the owner's estate, which a live player
   // writes only on the residency cadence or at logout. A felling puts
@@ -379,7 +378,7 @@ async function fellStandard(
       Mml.compose`The ${sp.name} goes over with a crack you feel in your feet and lies there, the whole length of it, too much for any one back. ${GrammarApi.cap(GrammarApi.inWords(LOGS_PER_STANDARD))} logs come off the crown${seedWord ? `, and ${withArticle(seedWord)}` : ''}.`,
     )
     .toPeers(
-      Mml.compose`${Mml.actor(giver)} brings ${withArticle(sp.name)} down; ${bole ? Mml.thing(bole as unknown as Stuff) : 'the trunk'} lies where it fell.`,
+      Mml.compose`${Mml.actor(giver)} brings ${withArticle(sp.name)} down; ${bole ? Mml.thing(bole) : 'the trunk'} lies where it fell.`,
     )
     .send();
   await credit(giver, 'standard');
@@ -389,7 +388,7 @@ async function fellStandard(
 async function takeLength(context: CommandContext, bole: Bole): Promise<void> {
   const giver = context.commandGiver;
   if (giver.isDestroyed() || bole.isDestroyed()) return;
-  const room = (bole as unknown as Stuff & Containable).getContainer();
+  const room = bole.getContainer();
   const wood = bole.getMaterial();
   const timber = await StuffApi.clone<Stuff & Containable>(TIMBER_PATH);
   if (wood && MixinApi.isTangible(timber)) timber.setMaterial(wood);
@@ -402,21 +401,21 @@ async function takeLength(context: CommandContext, bole: Bole): Promise<void> {
     MessageApi.scene(giver)
       .topic(FORESTRY_TOPIC)
       .toSelf(
-        Mml.compose`You cut the last length off ${Mml.thing(bole as unknown as Stuff)}. What is left is a knotted butt and a heap of brash, and the wood can have it back.`,
+        Mml.compose`You cut the last length off ${Mml.thing(bole)}. What is left is a knotted butt and a heap of brash, and the wood can have it back.`,
       )
-      .toPeers(Mml.compose`${Mml.actor(giver)} cuts the last length off ${Mml.thing(bole as unknown as Stuff)}.`)
+      .toPeers(Mml.compose`${Mml.actor(giver)} cuts the last length off ${Mml.thing(bole)}.`)
       .send();
-    await StuffApi.destruct(bole as unknown as Stuff);
+    await StuffApi.destruct(bole);
   } else {
     MessageApi.scene(giver)
       .topic(FORESTRY_TOPIC)
       .toSelf(
-        Mml.compose`You cut ${Mml.thing(timber)} off ${Mml.thing(bole as unknown as Stuff)}. ${left === 1 ? 'One length left in it.' : `${GrammarApi.cap(GrammarApi.inWords(left))} lengths in it yet.`}`,
+        Mml.compose`You cut ${Mml.thing(timber)} off ${Mml.thing(bole)}. ${left === 1 ? 'One length left in it.' : `${GrammarApi.cap(GrammarApi.inWords(left))} lengths in it yet.`}`,
       )
-      .toPeers(Mml.compose`${Mml.actor(giver)} cuts a length off ${Mml.thing(bole as unknown as Stuff)}.`)
+      .toPeers(Mml.compose`${Mml.actor(giver)} cuts a length off ${Mml.thing(bole)}.`)
       .send();
   }
-  if (room) await capture(room as unknown as Stuff);
+  if (room) await capture(room);
   await capture(giver);
   await credit(giver, 'easy');
 }
@@ -438,8 +437,10 @@ async function fellPlantedTree(
   // when there is one, else the plant's own `standardMaterialPath`.
   const speciesPath = MixinApi.isOrganism(plant) ? plant.getSpecies()?.getTemplatePath() ?? '' : '';
   const entry = stand ? stand.getMix().find((sp) => sp.speciesPath === speciesPath) ?? null : null;
-  const woodPath = entry?.woodMaterialPath ?? (plant as unknown as Plant).getStandardMaterialPath?.() ?? '';
-  const seedPath = entry?.seedPath ?? (plant as unknown as Plant).getSeedTemplatePath?.() ?? null;
+  const woodPath =
+    entry?.woodMaterialPath ?? (plant instanceof Plant ? plant.getStandardMaterialPath() : null) ?? '';
+  const seedPath =
+    entry?.seedPath ?? (plant instanceof Plant ? plant.getSeedTemplatePath() : null);
   const plantKey = MixinApi.isPersistable(plant) ? plant.getPersistenceKey() : null;
   const name = plant.getPresentation();
 
@@ -472,8 +473,8 @@ async function fellPlantedTree(
   }
 
   if (stand && plantKey) stand.removePlanting(plantKey);
-  if (panel) await capture(panel as unknown as Stuff);
-  await capture(room as unknown as Stuff);
+  if (panel) await capture(panel);
+  await capture(room);
   await capture(giver);
   await credit(giver, stage === 'mature' ? 'standard' : 'easy');
 }

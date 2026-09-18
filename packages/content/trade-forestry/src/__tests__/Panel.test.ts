@@ -1,5 +1,5 @@
 /**
- * Panel — the coppice panel that remembers being cut (forestry D5).
+ * Panel — the coppice panel that remembers being cut (forestry.md § The panel).
  *
  * Three claims: the STACK (persistable + singleton + bed, each omission
  * silent); the READY LINE (a cut panel says when it is ready again, in
@@ -241,7 +241,7 @@ describe('Panel — the ready line', () => {
   });
 });
 
-describe('Panel — ⭐ the materialize round-trip (AC 8 at unit scale)', () => {
+describe('Panel — ⭐ the materialize round-trip (the restart claim at unit scale)', () => {
   it('a cut stool comes back cut; the others come back ripe', async () => {
     const panel = makeStuffAtPath(newPanel, PANEL_PATH);
     const stools = seatSix(panel);

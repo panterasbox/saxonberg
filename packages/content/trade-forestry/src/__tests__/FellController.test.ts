@@ -1,5 +1,5 @@
 /**
- * `fell` (forestry D3) — the refusals, the felling, the cross-cut, the
+ * `fell` (forestry.md § fell) — the refusals, the felling, the cross-cut, the
  * planted tree, and the credits.
  *
  * ⚠ A controller test starts AFTER the binder. The view's arg gates

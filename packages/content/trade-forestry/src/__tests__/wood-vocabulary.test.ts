@@ -1,5 +1,5 @@
 /**
- * The wood vocabulary — closed, and minted here (forestry D11/D12).
+ * The wood vocabulary — closed, and minted here (forestry.md § The wood vocabulary).
  *
  * Eight woods in the commons (`/stuff/idea/material/wood/…`), eight
  * tree species in this pack, each naming the other: the material's
