@@ -7,6 +7,15 @@
 > portfolios beyond booze
 > **Size:** a build
 
+> ⭐ **2026-09-18 — the roster's LORE is superseded by
+> [institutions-slate](./institutions-slate.md) Part 6**: each corpo is
+> now an entity FORM with a charter (Goodkin a credit union, Veshko the
+> shareholder bank across the avenue, Vionne a partnership, Hollis a
+> public company holding an unexercised charter, Aevex a sole trader),
+> and `/corpo/<key>` title moves from the organization to a
+> `<key>-committee` group. The mark substrate and the faction axis below
+> stand.
+
 > **Status: the model is settled; the roster is authored (v1, booze slice);
 > the player-facing faction gameplay is now DESIGNED (Phase 2, below) but
 > unbuilt.** Corpos are a handful of
