@@ -250,7 +250,11 @@ the moor pool, the Kestrel banks), the species rows with habitats, `cast`
 clean and cook and salt, the fishmonger, the *Angling* Discipline, the pet
 fish as the noun's first individual. **No boat, no dive, no sea.**
 
-**Waves:** aquaculture (the stew pond — the override with ownership);
+**Waves:** ⭐ **the named apex** — the sturgeon as an individual in the
+record with a chronicle (who hooked him, who lost him; the fisher talks
+about *him*; the one that got away is the same fish, older — the hook
+nothing in the genre has; wanted by the user, not v1); aquaculture (the
+stew pond — the override with ownership);
 noun breadth (crustaceans, mollusks, cephalopods, eels, weed — data);
 the boat regime (a reach materializes as a room when a boat is on it —
 derived from the authored `Watercourse`, never budded); the fishery right

@@ -130,6 +130,11 @@ can keep.
   falls*, the royal fish as law → the land-use covenant build (forestry's
   first customer; fishing its second). Until then **the water polices
   itself by running out**, the wood's rule.
+- ⭐ **The named apex** — the sturgeon as an *individual* in the record
+  with a chronicle of his own: who hooked him, who lost him, the fisher
+  talking about *him*. The one that got away as the same fish, older.
+  Wanted; not this build → the fishing slate's tail. v1's sturgeon is a
+  species slot in the record and a deed when landed.
 - **The open sea** — one abstract reach, nowhere, deliberately.
 - **Crustaceans beyond the crab, mollusks, cephalopods, eels beyond the
   one, weed** — data over the shipped engine → the slate's noun wave.
