@@ -92,6 +92,14 @@ recovery rebuilding endurance) and, when one floors, spawns the
 `collapse`) — clearing it on recovery. Encumbrance drains `endurance`;
 metabolism replenishes it; both layer on the one reserve.
 
+Nine keys since the nutrition-and-fitness build (`flesh` from the
+farmstead; `lean`, `protein`, `wind`, `vitamin-c`, `alcohol-tolerance`
+from nutrition-and-fitness), and ⭐ not all seeded full: `flesh` at 55,
+`lean`/`protein` at 50, `wind`/tolerance at **0** — an untrained body is
+the honest baseline. ⚠ Only a reserve with a `floorEffect` has a floor:
+`Vitals.getConditionBand` skips a floorEffect-less reserve at zero. The
+five stocks and what moves them are in [exertion.md](./exertion.md).
+
 The "what's biological" set is a substrate constant in `Reserve.ts`, not
 auto-installed by `ReservedMixin` itself — so a future non-biological
 reserve host (a magic-only entity) can compose `ReservedMixin` without

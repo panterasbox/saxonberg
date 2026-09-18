@@ -12,7 +12,7 @@ mixins (`Climbable` / `Swimmable` / `Flyable`), the
 |---|---|---|
 | `LocomotionMode` | `lib/locomotion/LocomotionMode.ts` | Singleton Idea — one per mode. Author-data: speed / noise / body-profile / ground-contact / cost / passthrough / conveyance + enablement mixin names / medium |
 | `Enablement` | `lib/locomotion/Enablement.ts` | Shared interface (axes + difficulty + capability gate) implemented by all three per-mode enablement mixins |
-| `Climbable` / `Swimmable` / `Flyable` | `lib/locomotion/{Climbable,Swimmable,Flyable}.ts` | Host capability mixins. Each exports its own `*_CAPABILITY_PROP` for the per-mode skill gate |
+| `Climbable` / `Swimmable` / `Flyable` | `lib/locomotion/{Climbable,Swimmable,Flyable}.ts` | Host capability mixins. Each exports its own `*_CAPABILITY_PROP` for the per-mode skill gate. ⚠ Nothing composed `Climbable` until the nutrition-and-fitness build shipped `platform/thing/Ladder` (`ClimbableMixin(DetailedMixin(Thing))`) and rejection's winze ladder — the first climb in the game's history |
 | `LocomotionApi` | `api/locomotion.ts` | Mode resolution, eligibility, engagement lifecycle, passthrough chain, emission walk, default-mode resolution |
 | `LocomotionControllerBase` | `platform/idea/cmd/movement/LocomotionControllerBase.ts` | Abstract base for the six per-mode verbs and refactored `go` |
 | `Walk` / `Climb` / `Swim` / `Fly` / `Ride` / `DriveController` | `platform/idea/cmd/*.ts` | Concrete controllers — override `modeName()` and (optionally) `composeRejection()` for verb-templated prose |

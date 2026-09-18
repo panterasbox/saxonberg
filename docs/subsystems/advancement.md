@@ -155,6 +155,14 @@ relabeling.
 
 ## Competence — derive-on-read, bands only
 
+⭐ **Except a conditioning Discipline, whose band is a body read.** A row
+with `stock: <reserve>` (`wind`, `alcohol-tolerance`) has its band
+derived as a threshold over that biological reserve
+(`ExertingMixin.conditioningBand`), overlaid on the transcript fold at
+every read surface (`withConditioning` in `Advancement.ts`) — no
+Transcript rows, no fold. It fades while you play and not while you are
+away because the STOCK does. See [exertion.md](./exertion.md).
+
 `Competence` (`lib/advancement/Competence.ts`) is a **pure, stateless
 value-object**: `Competence.derive(evidence)` folds a Discipline's
 Transcript rows (in `when` order) into `{theta, band}`. **Nothing is

@@ -17,7 +17,6 @@ import { CommandGiverMixin } from '../../../lib/command/CommandGiver';
 import { ContainmentApi } from '../../../api/containment';
 import { LocomotionApi } from '../../../api/locomotion';
 import { MqlApi, type MqlOneResult } from '../../../api/mql';
-import type { Stuff } from '../../../lib/stuff/Stuff';
 import { SensorMixin } from '../../../lib/message/Sensor';
 import { ContainableMixin } from '../../../lib/spatial/Containable';
 import { NamedMixin } from '../../../lib/description/Named';
