@@ -473,6 +473,11 @@ async function divideBody(avatar: PlayerBody, cause: string): Promise<void> {
 
   // (d) — a clean, living baseline. NOT dead.
   body.resetVitalsToSpeciesBaseline();
+  // ⭐⭐ …and a WHOLE body. A severed limb is cleared here with everything
+  // else, so a reembodied player is not headless-and-re-dying on arrival
+  // (the anatomy death floor would otherwise brick them). Resurrection
+  // restores the body; a living limb-restore is the slated content path.
+  body.resetAnatomyToSpeciesBaseline();
   for (const condition of [...body.getConditions()]) body.relieve(condition);
   body.setCauseOfDeath(null);
 
@@ -997,6 +1002,12 @@ function inflictThroughStack(
     mechanism: channel,
   };
   if (inflicter !== undefined) trauma.inflictedBy = inflicter;
+  // Whether this blow may maim — only a mechanical/tearing avulsion ever
+  // reads it, but stamp it here for every wound so provenance is uniform.
+  // `spec` here is `EnergyInflictSpec | CorrosionInflictSpec`; a corrosion
+  // spec carries no `maim` (`in` guards it) and its wound is never an
+  // avulsion regardless.
+  if ('maim' in spec && spec.maim === false) trauma.maimAllowed = false;
 
   // Non-body target, or the stack turned the blow → nothing afflicted, but
   // the outcome carries the (severity-0 / deflected) record.
@@ -1140,6 +1151,10 @@ function inflictPassthrough(
     mechanism: spec.mechanism,
   };
   if (inflicter !== undefined) trauma.inflictedBy = inflicter;
+  // The `'tearing'` passthrough is the OTHER avulsion producer; it honours
+  // the same maim gate. (No shipped combat producer uses it, but a future
+  // deliverer would inherit the consent rule for free.)
+  if (spec.maim === false) trauma.maimAllowed = false;
 
   if (!MixinApi.isVitals(target)) {
     return { trauma, afflicted: false };

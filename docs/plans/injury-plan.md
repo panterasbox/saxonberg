@@ -1423,6 +1423,13 @@ Clean attach points, each leaving as a slate line — never a plan section.
 - **Scars as recognition features; prosthetics re-enabling a slot** →
   `physiology-slate` §7c, `augmentation-slate` (the slot read is now
   function-based, so a prosthetic sets a part's function, not a flag).
+- ⭐⭐ **Dismemberment as GAMEPLAY** — severing shipped as substrate; the
+  design around it (the called shot that makes limb loss reachable at all,
+  the content-facing `restorePart` living recovery, what a stump means,
+  the player/NPC asymmetry) was never worked → `physiology-slate § Part
+  7h`, gated on the called shot (`combat-slate`). Two defensive fixes
+  landed in review: a missing vital organ is lethal, and a maiming needs
+  the fight's lethal terms.
 - **Exertion as a heat load** — `absorbHeatLoad` is the seam → `thermal`
   doc's non-goals list.
 - ⭐ **Frostbite from WEATHER** — the injury build shipped the wound and

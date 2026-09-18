@@ -168,6 +168,20 @@ export interface ResolvedBodyPart extends BodyPart {
 }
 
 /** Canonical unit per vital sign. */
+/**
+ * ⭐⭐ The capacities whose GOVERNING organ, once missing, is fatal — the
+ * anatomy death floor (`hasMissingVitalGovernor`). Losing the brain,
+ * the heart or the lungs stops life; losing a hand (`manipulation`) or a
+ * leg (`locomotion`) does not. A body-capacity string set, deliberately
+ * not the `serves` capacities: you die without a heart, not without a
+ * grip.
+ */
+const VITAL_GOVERNED_CAPACITIES: ReadonlySet<string> = new Set([
+  'consciousness',
+  'circulation',
+  'respiration',
+]);
+
 const VITAL_UNITS: Record<VitalSign, Unit> = {
   coreTemperature: 'K',
   heartRate: 'bpm',
@@ -367,6 +381,18 @@ export interface Vitals {
    * destructed, so nothing dead ever reaches `holder_snapshots`).
    */
   resetVitalsToSpeciesBaseline(): void;
+  /**
+   * ⭐⭐ Restore the anatomy to the species baseline — every part present,
+   * no severed limbs. The corpse/revival counterpart of
+   * {@link resetVitalsToSpeciesBaseline}: a body that comes back from the
+   * passage comes back WHOLE, exactly as it comes back with full blood and
+   * no conditions. ⚠ Without this a decapitated player would reembody
+   * headless and the anatomy death floor would re-kill them on arrival —
+   * the bricking failure `mortality.md` forbids. NOT a living recovery
+   * mechanic (that is the content-facing restore path, slated); this is
+   * what resurrection already means.
+   */
+  resetAnatomyToSpeciesBaseline(): void;
   /**
    * Postmortem-progression seam. Death is living-stop + postmortem-start:
    * living processes freeze and postmortem changes (algor / rigor / livor
@@ -783,6 +809,10 @@ export function VitalsMixin<TBase extends MixinConstructor>(Base: TBase) {
       }
     }
 
+    public resetAnatomyToSpeciesBaseline(): void {
+      this.bodyPartDeltas = {};
+    }
+
     /**
      * The survivable band for a sign — from the host's species
      * `vitalProfile`, or the universe default. Requires `OrganismMixin`
@@ -1151,6 +1181,29 @@ export function VitalsMixin<TBase extends MixinConstructor>(Base: TBase) {
      * honest test for "does this body have one of those" — a plan with no
      * brain is a data fact about that species, never a guard.
      */
+    /**
+     * ⭐⭐ Does this body have a MISSING part that governs a life-critical
+     * capacity? A severed head takes the brain (`consciousness`); a future
+     * mangle could take the chest (`circulation` / `respiration`). The
+     * anatomy death floor. ⚠ `missing`, not `functionAt === lost`: a
+     * badly WOUNDED brain is the consciousness surface's job (it reads
+     * `unconscious`), and making a wound lethal here would double-count
+     * it. Losing the organ outright is the thing this catches.
+     */
+    private hasMissingVitalGovernor(): boolean {
+      const self = this as unknown as Stuff;
+      if (!MixinApi.isOrganism(self)) return false;
+      const plan = self.getSpecies()?.getBodyPlan();
+      if (!plan) return false;
+      for (const part of plan.getBodyParts()) {
+        if (this.bodyPartDeltas[part.key]?.missing !== true) continue;
+        for (const cap of part.governs ?? []) {
+          if (VITAL_GOVERNED_CAPACITIES.has(cap)) return true;
+        }
+      }
+      return false;
+    }
+
     private hasGovernorFor(key: BodyCapacity): boolean {
       const self = this as unknown as Stuff;
       if (!MixinApi.isOrganism(self)) return false;
@@ -1855,6 +1908,39 @@ export function VitalsMixin<TBase extends MixinConstructor>(Base: TBase) {
       }
       const nowS = WorldClockApi.getNow().rawValue();
 
+      // ⭐⭐ **Anatomy → death floor**, and it sits ABOVE the all-empty
+      // guard on purpose. A severed part writes no vital sign and its
+      // wound may have clotted to nothing, so a body whose only problem is
+      // a missing head would otherwise reach the guard, find no active
+      // condition, and return whole-signed and immortal — the exact
+      // W-A4 trap (the bleed floor was unreachable the same way).
+      //
+      // A part that GOVERNS a life-critical capacity (consciousness /
+      // circulation / respiration) and is now MISSING ends the body: brain
+      // gone means no breathing drive and no airway, not merely
+      // unconscious. `beginDying`, not instant death, so the two-stage
+      // discipline holds — a bystander's stroke can still be stayed.
+      //
+      // ⚠ Gated on having ANY delta first, so an untouched body (which is
+      // almost every body, almost every read) pays a single map-size
+      // check and skips the plan walk entirely.
+      if (
+        Object.keys(this.bodyPartDeltas).length > 0 &&
+        MixinApi.isOrganism(self) &&
+        !self.isDead() &&
+        this.hasMissingVitalGovernor()
+      ) {
+        this._reconcilingConditions = true;
+        try {
+          this.beginDying(
+            'decerebration',
+            HARM_DEFAULTS.VITAL_ORGAN_LOSS_DYING_WINDOW_SEC,
+          );
+        } finally {
+          this._reconcilingConditions = false;
+        }
+      }
+
       const traumas = this.conditions.filter(
         (c): c is Trauma => c.kind === 'trauma',
       );
@@ -2119,6 +2205,7 @@ export function VitalsMixin<TBase extends MixinConstructor>(Base: TBase) {
             );
           }
         }
+
       } finally {
         this._reconcilingConditions = false;
       }

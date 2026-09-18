@@ -117,6 +117,22 @@ export interface EnergyInflictSpec {
    * Derived by `DeliveryProfile`, never authored.
    */
   penetration?: number;
+  /**
+   * ⭐⭐ **Whether this blow is authorized to take a part off** (an
+   * avulsion severe enough, on a `severable` part, severs).
+   *
+   * ⚠ **Undefined means YES**, deliberately: environmental harm maims
+   * regardless of anyone's feelings — a fall onto spikes, a mine cave-in,
+   * a beast's cull all take a limb if they are severe enough, and none of
+   * them has "terms". The one producer that suppresses it is **combat
+   * between sentients**, which sets `maim: false` when the fight's terms
+   * do not authorize lethal harm — a maiming is at least as grave as a
+   * kill, and the two-stage defeat/coup exists precisely so that ending
+   * someone is a consented, interruptible act rather than a side effect
+   * of an exchange. A non-lethal duel leaves a severe avulsion, never a
+   * severed head.
+   */
+  maim?: boolean;
 }
 
 /**

@@ -193,6 +193,13 @@ export interface Trauma {
    */
   agentActive?: boolean;
   /**
+   * ⭐ Whether this wound may take the part off — copied from the
+   * insult's `maim` (undefined → true; combat sets false for a non-lethal
+   * fight). Read by `AVULSION_BEHAVIOR.onset`. Absent on the overwhelming
+   * majority of wounds, which are not avulsions and never consult it.
+   */
+  maimAllowed?: boolean;
+  /**
    * The game-time (seconds) this trauma was last integrated — the
    * reconcile-on-read anchor. Stamped at `inflict` and advanced on every
    * `VitalsMixin.reconcileConditions`. Persisted (rides the `conditions`
@@ -379,6 +386,15 @@ export const HARM_DEFAULTS = {
   EXSANGUINATION_DYING_WINDOW_SEC: 120,
   /** Cardiac arrest from a fibrillating current — faster still. */
   ELECTROCUTION_DYING_WINDOW_SEC: 90,
+  /**
+   * ⭐⭐ **A vital organ is GONE** — a missing part that governs
+   * consciousness, circulation or respiration (a severed head; a future
+   * mangle that takes the chest). Fast: there is nothing to compress and
+   * no volume to top up, so the window is short — but non-zero, because
+   * the whole dying-clock discipline is that death is a clock a bystander
+   * can still act against, even when the only act left is a decision.
+   */
+  VITAL_ORGAN_LOSS_DYING_WINDOW_SEC: 30,
 } as const;
 
 /**
@@ -893,6 +909,13 @@ export const AVULSION_BEHAVIOR: TraumaBehavior = {
     LACERATION_BEHAVIOR.onset(host, t);
     if (t.severity < HARM_DEFAULTS.SEVER_SEVERITY) return;
     if (!host.getPart(t.site)?.severable) return;
+    // ⭐⭐ **A maiming respects the fight's terms.** `maimAllowed` is set
+    // false only by combat between sentients under non-lethal or
+    // unconsented terms; everything environmental leaves it undefined
+    // (→ allowed), because nature does not ask consent. So a wolf's cull
+    // and a fall onto spikes still take the part; a sparring bout does
+    // not. The severe avulsion stays — grievously wounded, not maimed.
+    if (t.maimAllowed === false) return;
     host.severPart(t.site);
   },
   tick: LACERATION_BEHAVIOR.tick,

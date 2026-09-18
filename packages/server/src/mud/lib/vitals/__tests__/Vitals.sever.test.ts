@@ -246,4 +246,166 @@ describe('AVULSION_BEHAVIOR — the sever gate', () => {
     expect(t.severity).toBe(HARM_DEFAULTS.AVULSION_SEVERITY_FLOOR);
     expect(creature.getPart('body.arm.left.hand')?.missing).toBe(false);
   });
+
+  it('⭐⭐ does NOT sever when the blow was not authorized to maim', () => {
+    // A non-lethal fight sets `maimAllowed: false`. The wound is exactly
+    // as severe; it simply does not take the part. The severe avulsion
+    // stays — grievously wounded, not maimed.
+    const creature = armedCreature();
+    const t = avulsionAt('body.arm.left.hand', HARM_DEFAULTS.SEVER_SEVERITY);
+    t.maimAllowed = false;
+    AVULSION_BEHAVIOR.onset(creature, t);
+    expect(creature.getPart('body.arm.left.hand')?.missing).toBe(false);
+    expect(t.bleeding).toBe(true);
+  });
+
+  it('⭐ severs when maiming IS authorized (a cull, a hazard, a lethal fight)', () => {
+    const creature = armedCreature();
+    const t = avulsionAt('body.arm.left.hand', HARM_DEFAULTS.SEVER_SEVERITY);
+    t.maimAllowed = true;
+    AVULSION_BEHAVIOR.onset(creature, t);
+    expect(creature.getPart('body.arm.left.hand')?.missing).toBe(true);
+  });
+
+  it('⚠ undefined maimAllowed severs — the environmental default is YES', () => {
+    // A fall onto spikes, a mine cave-in: nature does not ask consent.
+    // Only combat sets the flag; everything else leaves it unset.
+    const creature = armedCreature();
+    const t = avulsionAt('body.arm.left.hand', HARM_DEFAULTS.SEVER_SEVERITY);
+    expect(t.maimAllowed).toBeUndefined();
+    AVULSION_BEHAVIOR.onset(creature, t);
+    expect(creature.getPart('body.arm.left.hand')?.missing).toBe(true);
+  });
+});
+
+/* ─────────── the anatomy death floor (a severed head is lethal) ─────────── */
+
+import { WorldClockApi } from '../../../api/worldclock';
+import '../../../platform/idea/WorldClockRegistry';
+
+let headedSeq = 0;
+/** A body whose head is severable and whose brain governs consciousness. */
+function headedCreature(): Creature {
+  const plan = makeStuff(() => new BodyPlan());
+  plan.setName('test-headed');
+  plan.setBodyParts([
+    {
+      key: 'body.torso',
+      parent: null,
+      tissues: [{ tissuePath: '/stuff/idea/material/tissue/bone', mass: 8 }],
+    },
+    {
+      key: 'body.head',
+      parent: 'body.torso',
+      severable: true,
+      tissues: [{ tissuePath: '/stuff/idea/material/tissue/bone', mass: 1 }],
+    },
+    {
+      key: 'body.head.brain',
+      parent: 'body.head',
+      governs: ['consciousness'],
+      tissues: [{ tissuePath: '/stuff/idea/material/tissue/flesh', mass: 1.3 }],
+    },
+    {
+      key: 'body.arm.left',
+      parent: 'body.torso',
+      severable: true,
+      serves: ['manipulation'],
+      tissues: [{ tissuePath: '/stuff/idea/material/tissue/muscle', mass: 3 }],
+    },
+  ]);
+  const id = headedSeq++;
+  stampTemplatePathForTest(plan, `/stuff/idea/species/BodyPlan/test-headed-${id}`);
+  const species = makeStuff(() => new Species());
+  species.setBodyPlan(plan);
+  stampTemplatePathForTest(species, `/stuff/idea/species/test/headed-${id}`);
+  const c = makeStuff(() => new Creature());
+  c.setSpecies(species);
+  c.setLifecycleState('alive');
+  return c;
+}
+
+describe('the anatomy death floor', () => {
+  // The clock idiom from Vitals.dying-disconnect: the provider returns a
+  // wall-ms `real`, and the shipped 12× scale turns it into game-seconds.
+  const SCALE = 12;
+  let real = 100000;
+  const advance = (c: Creature, gameSec: number): void => {
+    real += (gameSec / SCALE) * 1000;
+    c.getConditions();
+  };
+  beforeEach(() => {
+    installV1QuantityMarshallers();
+    WorldClockApi._resetForTesting();
+    real = 100000;
+    WorldClockApi._setNowProviderForTesting(() => real);
+  });
+  afterEach(() => {
+    // ⚠ NOT `StuffApi.clearAll()` — that wipes the WorldClockRegistry
+    // singleton the import registered, and the reconcile's clock guard
+    // then early-returns before the anatomy floor. The disconnect test
+    // avoids clearAll for the same reason; unique fixture paths keep the
+    // few leaked creatures from colliding.
+    WorldClockApi._resetForTesting();
+  });
+
+  it('⭐⭐ a severed head is LETHAL — the body dies, of decerebration', () => {
+    // Brain gone means no breathing drive and no airway; "unconscious"
+    // was the shipped answer and it left a decapitated body beating away
+    // forever. And it fires with NO other wound — the head clotted, no
+    // active condition — which is why the floor sits above the all-empty
+    // guard.
+    const c = headedCreature();
+    c.severPart('body.head');
+    c.getConditions(); // reconcile-on-read → the floor opens the window
+    expect(c.isDying()).toBe(true);
+
+    advance(c, 1); // seed the dying tick
+    advance(c, HARM_DEFAULTS.VITAL_ORGAN_LOSS_DYING_WINDOW_SEC + 5);
+    expect(c.getLifecycleState()).toBe('dead');
+    expect(c.getCauseOfDeath()).toBe('decerebration');
+  });
+
+  it('⭐ …but the window is real — inside it, the body is dying, not dead', () => {
+    // The two-stage discipline: a bystander could still act in the beat.
+    const c = headedCreature();
+    c.severPart('body.head');
+    c.getConditions();
+    expect(c.isDying()).toBe(true);
+
+    advance(c, 1);
+    advance(c, HARM_DEFAULTS.VITAL_ORGAN_LOSS_DYING_WINDOW_SEC - 10);
+    expect(c.getLifecycleState()).not.toBe('dead');
+    expect(c.getDyingRemainingSec() ?? 0).toBeGreaterThan(0);
+  });
+
+  it('⚠ losing a non-vital part is NOT lethal — a hand governs nothing vital', () => {
+    const c = headedCreature();
+    c.severPart('body.arm.left');
+    c.getConditions();
+    expect(c.isDying()).toBe(false);
+  });
+
+  it('⭐⭐ death clears the anatomy → a revived body is not re-killed', () => {
+    // The bricking guard. Without `resetAnatomyToSpeciesBaseline`, a
+    // reembodied player would arrive headless and the floor would fire
+    // again on the first read — dead on arrival, forever.
+    const c = headedCreature();
+    c.severPart('body.head');
+    expect(c.getMissingParts().length).toBeGreaterThan(0);
+
+    c.resetAnatomyToSpeciesBaseline();
+    expect(c.getMissingParts()).toEqual([]);
+    c.getConditions();
+    expect(c.isDying()).toBe(false);
+  });
+
+  it('⚠ an untouched body never walks the plan for this — the delta guard', () => {
+    // A body with no deltas reads whole and never begins dying from
+    // anatomy, however many times it reconciles.
+    const c = headedCreature();
+    c.getConditions();
+    c.getConditions();
+    expect(c.isDying()).toBe(false);
+  });
 });

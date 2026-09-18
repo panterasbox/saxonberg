@@ -2111,3 +2111,91 @@ heat moves; this is what the *body* does about it, region by region, and
 it is the cold-side twin of Part 4b's exposure ladder. The wound, the
 channel and the door all exist; what is missing is one producer and one
 honest onset.
+
+## Part 7h — ⭐⭐ Dismemberment as GAMEPLAY (2026-09-18)
+
+*The injury build shipped severing as substrate. This is the design it
+never had — raised when the user asked "under what conditions does that
+happen, and how do we come back from it."*
+
+### What shipped, and its one honest reachable outcome
+
+An avulsion at or past `SEVER_SEVERITY` (4.0), on a `severable` part, when
+the blow is authorized to maim (lethal combat, or any environmental
+source), takes the part off — the subtree with it, what it held dropped,
+the function axis reading `lost`, persisted across login and into the
+corpse. A missing vital governor (the head) is lethal through the dying
+clock; death restores the body whole.
+
+⚠⚠ **But combat's `siteFor` returns torso/head only.** Torso is not
+severable. So the *only* sever a fight can reach today is **decapitation**
+— and every hazard targets feet or torso. The "lose a hand, keep playing,
+still do most things" arc (the requirements' AC 5) is **not reachable in
+the shipped world**: the unit tests prove `severPart`, but no producer can
+target a hand. This slate exists because that gap is a design hole, not a
+tuning one.
+
+### The three pieces, in dependency order
+
+**1. Reachability — the called shot.** Limb-severing needs a way to aim
+below torso/head, and it must be **deterministic**, not a weighted roll (a
+roll deciding what your action *did* is banned by `uncertainty.md`; the
+injury plan's Risk 2 established this). The honest form is an
+attacker-chosen called shot priced in poise/tempo — you *commit* to the
+arm, paying for the opening it costs you. This is a **combat build**
+(`combat-slate`), and severing gameplay is gated on it. Until it lands,
+limb loss is hazard-and-cull only and decapitation is the whole story.
+
+**2. The living way back — `restorePart`.** Mirrors `reembody` exactly:
+one content-facing engine call (`restorePart(body, key)`), no route
+registry, no terms vocabulary. A temple, a clinic, a prosthetist, a quest
+calls it when *its* terms are met; the caller decides the cost (banking
+charge, a rare reagent, a Discipline gate) and who can. ⭐ Rare by
+construction — somebody has to author a place that does it. ⚠ NOT death:
+death already restores the body (resurrection is whole-body), and "die to
+regrow a hand" must not be the only path, because for a *non-lethal* loss
+(a hand) it would force self-destruction.
+
+The **prosthetic** is the other half: `augmentation-slate` already has
+"augment re-enables a slot," and a wooden hand that sets a part's function
+above `lost` (rather than clearing `missing`) is that shape — a limb you
+work *around*, not a limb restored.
+
+**3. What a stump MEANS — the reason any of this matters.** A mechanic
+nobody feels is decoration. The economy of a one-handed character (which
+verbs refuse, what a maimed labourer earns), the visible mark
+(`describeFor` already appends "missing the left hand"; does it change how
+you are *regarded*), whether an NPC is ever authored already-maimed (a
+one-eyed mercenary, a beggar with no legs) as a piece of the world's
+history you can read. This is where the pedagogy lands: injury has
+**consequences that persist and cost**, and a world where the wounded are
+visible is a truer one than a world of pristine bodies.
+
+### Players vs NPCs — the accidental asymmetry to decide
+
+There is **no code distinction** — a wolf and a player both lose limbs by
+the same door. But most NPCs re-clone fresh each standup, so a maimed wolf
+is whole tomorrow while a player carries it forever. That asymmetry is
+accidental, not designed. Decide deliberately: is a maimed NPC a
+persistent fact (the mercenary who lost an arm to you *stays* one-armed,
+which is a strong memory mechanic), or does re-cloning wash it? Leans:
+persistence for **named** NPCs (Cast rung), re-clone for **Extras** — the
+same line identity already draws.
+
+### Lenses
+
+- **1 (pedagogy):** consequence and permanence — a wound that costs you
+  something you keep. Strong.
+- **2 (expression):** the content-facing restore is the second-instance
+  win — a second clinic is a row and a call, zero engine.
+- **4 (values):** a maiming is grave; gating it behind lethal consent (the
+  shipped fix) is the same "ending someone is a chosen act" value the coup
+  carries. The restore's cost is where a polity can express mercy.
+
+### Prerequisite
+
+⭐ **The called shot (`combat-slate`) is a hard prerequisite for the
+gameplay.** Without it, this slate can build `restorePart` and the
+prosthetic and the stump-economy, but the *loss* stays decapitation-and-
+hazard only — half a system. Sequence: combat's called shot first, then
+this.

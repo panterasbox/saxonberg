@@ -2466,6 +2466,15 @@ function commitInflict(
     (energyScale > 0 ? energyScale : 1) *
     instrumentDeliveryScale(weapon, channel) *
     naturalMassScale(attacker, innateSpec);
+  // ⭐⭐ **A maiming needs the fight's authority.** An exchange blow may
+  // take a limb only under terms that authorize lethal harm; a non-lethal
+  // or unconsented bout leaves a severe avulsion, never a severed part —
+  // the same consent structure the two-stage defeat/coup enforces for
+  // killing. A cull (a beast) IS lethal by nature and passes this. ⚠ An
+  // environmental source sets no `maim`, so it defaults to true; only
+  // this producer, which has terms to read, ever suppresses it.
+  const terms = session.getTerms();
+  const mayMaim = terms.lethality === "lethal";
   let spec: EnergyInflictSpec = {
     // ⚠ `channel` is narrowed above: `shock` takes its own path and
     // `corrosion` is refused, because neither can be described by an
@@ -2476,6 +2485,7 @@ function commitInflict(
     // The target's wielded shield fronts a faced attacker; a flanking blow
     // under focus-fire bypasses it (directional coverage).
     shieldFacing,
+    maim: mayMaim,
   };
   let augmentCtx: CombatHookContext | null = null;
   if (carrier) {

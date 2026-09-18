@@ -147,10 +147,21 @@ in the `HARM_DEFAULTS` const-object (the driver `*_DEFAULTS` convention).
 `BodyPartDelta.missing` shipped persistent, cascaded through
 `isSlotDisabledByAnatomy`, and **was written by nothing**. Its one writer
 is now `VitalsMixin.severPart(key)`, called from `AVULSION_BEHAVIOR.onset`
-when two things are true: the wound is at or past
-`HARM_DEFAULTS.SEVER_SEVERITY`, and the body plan marks the part
-`severable` (that field's first production reader — you cannot lop off
-somebody's chest).
+when **three** things are true: the wound is at or past
+`HARM_DEFAULTS.SEVER_SEVERITY`; the body plan marks the part `severable`
+(that field's first production reader — you cannot lop off somebody's
+chest); and the blow was **authorized to maim** (`Trauma.maimAllowed !==
+false`).
+
+⭐⭐ **Maiming respects the fight's terms.** `maimAllowed` is undefined
+for every environmental source — a fall onto spikes, a hazard, a beast's
+cull all take a limb if severe enough, because nature does not ask
+consent. The one producer that suppresses it is **combat between
+sentients**, which sets `maim: false` when the session's terms are not
+`lethal`: a sparring bout leaves a severe avulsion, never a severed part.
+This is the same consent structure the two-stage defeat/coup enforces for
+killing — a maiming is at least as grave as a kill, and must not fall out
+of a non-lethal exchange.
 
 Three things happen, in order:
 
@@ -169,6 +180,57 @@ Three things happen, in order:
 old order was harmless only while every `onset` mutated the trauma *value*;
 it stopped being harmless the moment one could act on the *body*. A wound
 a conferred immunity refused must not take an arm with it.
+
+### ⭐⭐ A missing vital organ is lethal — the anatomy death floor
+
+Losing a part that **governs** a life-critical capacity (consciousness,
+circulation, respiration) begins the dying clock:
+`reconcileConditions` calls `beginDying('decerebration',
+VITAL_ORGAN_LOSS_DYING_WINDOW_SEC)` when `hasMissingVitalGovernor()`. A
+severed head is the reachable case today — brain gone means no breathing
+drive and no airway, not merely unconscious, which was the shipped answer
+(it left a decapitated body beating away forever).
+
+⚠ It sits **above the all-empty guard** — a severed part writes no vital
+sign and its wound may have clotted to nothing, so a body whose only
+problem is a missing head would otherwise reach the guard, find no active
+condition, and return whole-signed and immortal (the same trap the bleed
+floor fell into pre-W-A4). Gated on `bodyPartDeltas` being non-empty first,
+so an untouched body — almost every body, almost every read — pays a single
+map-size check.
+
+⚠⚠ **Death clears the anatomy** (`resetAnatomyToSpeciesBaseline`, in
+`divideBody` beside the vital reset). Without it a decapitated player
+reembodies headless and the floor re-kills them on the first read — dead
+on arrival, forever. A body that comes back from the passage comes back
+**whole**, exactly as it comes back with full blood and no conditions;
+resurrection restores the body. A **living** limb-restore — a surgeon, a
+shrine, a prosthetist — is a separate content-facing path, deliberately
+unbuilt (see below).
+
+### ⚠⚠ What this is NOT, and what the next build owes it
+
+Severing shipped as **substrate, not gameplay** — the mechanic is sound
+and the persistence is right, but the design space around it was never
+worked. What exists: a severe enough authorized edge blow to a severable
+part takes it; the function axis reads the loss; it is lethal for the
+head, survivable for a limb; death restores it. What does **not** exist,
+and is the sever-gameplay slate's charter:
+
+- **Reachability.** Combat's `siteFor` returns torso/head only, so the
+  one severable outcome a fight can reach today is **decapitation**. A
+  hand or a leg cannot be targeted — the aim-derived called shot
+  (`combat-slate`) is its prerequisite. Until then, limb loss is
+  effectively hazard-and-cull only.
+- **The living way back.** A content-facing `restorePart(part)` a temple,
+  clinic or prosthetist calls on its own terms — the `reembody` shape, on
+  anatomy. The engine does the part; the world decides the cost and who
+  can. Rare by construction, because someone must author the place.
+- **What a stump MEANS.** A one-handed character's economy, the prosthetic
+  as an augment that re-enables a slot (`augmentation-slate` already has
+  the shape), whether an NPC ever comes at you already maimed.
+
+→ `physiology-slate § Part 7h`.
 
 ## ⭐⭐ The depth ladder — what a blow reaches under the skin
 
