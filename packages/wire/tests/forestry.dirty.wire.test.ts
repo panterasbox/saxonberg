@@ -72,12 +72,25 @@ async function walk(s: Session, route: readonly string[]): Promise<void> {
   await s.drainProse();
 }
 
-/** Run an engaged act to its completion frame. */
-async function act(s: Session, line: string): Promise<void> {
+/**
+ * Run an engaged act to its completion frame — and then to its EFFECT.
+ * ⚠ The `engagement-completed` frame fires when the timer lands; the
+ * effect (the mint, four chattel stamps with their registry writes) is
+ * an async completion that finishes a beat later. The drive queried the
+ * floor between the two once and counted three logs.
+ */
+async function act(s: Session, line: string, landed?: () => Promise<boolean>): Promise<void> {
   const started = await s.cmd(line);
   expectOk(started);
   await s.awaitActivity(engagementIdOf(started), 60_000);
   await s.drainProse();
+  if (landed) {
+    const deadline = Date.now() + 10_000;
+    while (!(await landed())) {
+      if (Date.now() > deadline) throw new Error(`the effect of '${line}' never landed`);
+      await new Promise((r) => setTimeout(r, 250));
+    }
+  }
 }
 
 /** The whole-number count a stand line reads for `species`, in words → number. */
@@ -209,7 +222,7 @@ suite('⭐⭐ the Hanging Wood — a place that is a stand', () => {
   }, 120_000);
 
   it('7. ⭐⭐ `fell oak` — an engaged act; the TRUNK on the ground, too heavy to lift; logs; an acorn in hand; the stand smaller by one', async () => {
-    await act(f, 'fell oak with axe');
+    await act(f, 'fell oak with axe', async () => (await f.query('here:i:[keyword.log]')).length >= 4);
     const bole = await f.queryOne('here:i:[keyword.bole]', ['bulkMaterial', 'mass']);
     expect(bole, 'no bole on the floor').not.toBeNull();
     expect((bole as { bulkMaterial?: { templatePath?: string } }).bulkMaterial?.templatePath).toBe(OAK);
@@ -226,8 +239,8 @@ suite('⭐⭐ the Hanging Wood — a place that is a stand', () => {
   }, 180_000);
 
   it('…and cross-cutting: `fell bole` yields a length of green oak timber and the bole says what is left', async () => {
-    await act(f, 'fell bole');
-    await act(f, 'fell bole');
+    await act(f, 'fell bole', async () => (await f.query('me:i:[keyword.timber]')).length >= 1);
+    await act(f, 'fell bole', async () => (await f.query('me:i:[keyword.timber]')).length >= 2);
     const timber = await f.query('me:i:[keyword.timber]', { fields: ['bulkMaterial', 'mass'] });
     expect(timber).toHaveLength(2);
     expect((timber[0] as { bulkMaterial?: { templatePath?: string } }).bulkMaterial?.templatePath).toBe(OAK);
@@ -302,7 +315,10 @@ suite('⭐⭐ the Hanging Wood — a place that is a stand', () => {
   }, 120_000);
 
   it('12. ⭐⭐ run it out: fell until the clearing refuses in words about the wood; the prose is byte-identical; the ride is untouched', async () => {
-    for (let i = 0; i < 12; i += 1) await act(f, 'fell oak with axe');
+    for (let i = 0; i < 12; i += 1) {
+      const before = (await f.query('here:i:[keyword.bole]')).length;
+      await act(f, 'fell oak with axe', async () => (await f.query('here:i:[keyword.bole]')).length > before);
+    }
     const refused = await f.cmd('fell oak with axe');
     expectNote(refused, 'controller-rejected', { reason: 'stand-empty' });
     expect(await refused.said()).toMatch(/nothing left here that is worth the axe/i);
@@ -311,7 +327,10 @@ suite('⭐⭐ the Hanging Wood — a place that is a stand', () => {
     expect(said).not.toMatch(/Oak stands here/);
     expect(standCount(said, 'Ash')).toBe(4);
     // …until it does not.
-    for (let i = 0; i < 4; i += 1) await act(f, 'fell ash with axe');
+    for (let i = 0; i < 4; i += 1) {
+      const before = (await f.query('here:i:[keyword.bole]')).length;
+      await act(f, 'fell ash with axe', async () => (await f.query('here:i:[keyword.bole]')).length > before);
+    }
     expectNote(await f.cmd('fell ash'), 'controller-rejected', { reason: 'stand-empty' });
     expectNote(await f.cmd('fell'), 'controller-rejected', { reason: 'stand-empty' });
     said = await f.prose('look');

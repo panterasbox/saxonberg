@@ -2066,16 +2066,18 @@ Read first, in this order:
 
 ## Drive record
 
-**2026-09-17, `packages/wire/tests/forestry.dirty.wire.test.ts`, owned
-world on 2012 against a freshly dropped `saxonberg_build1` (cold boot
-~250 s). Final run: 15/15.** Three runs to get there; what each found:
+**2026-09-17/18, `packages/wire/tests/forestry.dirty.wire.test.ts`,
+owned world on 2012 against a freshly dropped `saxonberg_build1` (cold
+boot ~250 s). Final run on the final tree (`9f24d72b7`+): 15/15.** Four
+runs to get there; what each found:
 
 | run | result | what it found |
 |---|---|---|
 | W2 (yard slice, steps 1–4) | 1/5 → 5/5 | `look cordwood` with eight in hand PROMPTS which one and the wire `cmd()` times out; `look first cordwood` is not a `look` shape though `mql-grammar.md` lists the ordinal words — the `x:[1]` form works (both for the sweep, not this build). `panel:i:[keyword.stool]` as a bareword seed binds nothing; `here:i:panel:i` does. |
 | W6 run 1 (all 13) | 9/13 | **(a)** step 9: two lengths of timber (48 kg) + a log exceeded the carry ceiling — `get log` refused `too-heavy-to-lift` ×4; the drive now drops the timber at the mine (the point). **(b)** step 12: after the first felling the binder matched `oak` to an oak LOG on the floor (materials match) and the second `fell oak` refused `not-a-tree` → `FellController` lets the species word win when the stand knows it (unit case added). (c) step 13 cascaded. |
 | W6 run 2 | 13/15 | step 12 asserted the "nothing stands" line while the ASH still stood — the stands are per species; the drive now fells the ash out too (4 more) before reading the empty line. |
-| W6 run 3 | **15/15** | — |
+| W6 run 3 | 15/15 | — |
+| final tree (after `followCustody` + the biome move) | 14/15 → **15/15** | step 7 counted THREE logs: the `engagement-completed` frame fires when the timer lands and the effect (the mint, four chattel stamps each with a registry write) is an async completion that finishes a beat later. The wire's `act()` now waits for the EFFECT (a landed-predicate poll, 10 s bound), not just the frame. |
 
 **Found by hand between runs (all fixed, all with a unit case or a row):**
 - `plant acorn in panel` → *"has no soil in it. Pour some in first."* —
