@@ -445,6 +445,8 @@ The build phrase table (person register; the reviewer's test is that adjacent ce
 
 **Commit.** `build(nutrition-fitness W6): exertion is heat — one guarded call into build-4's heat load, and reach reads function`
 
+**⏭ Skipped** (2026-09-18, as D20 allows): `origin/master` at `87c9832e2` carries neither `ThermalRegulation.absorbHeatLoad` nor `MixinApi.isThermalRegulation` — `design/harm-survey` is unmerged. `depositWorkHeat` stays the no-op seam; the drive records step 7 as skipped with this reason. When harm-survey lands: merge master, make `depositWorkHeat` forward to `absorbHeatLoad` under `isThermalRegulation`, AND `canSustainPace` with `capacity('locomotion') === 'full'`, write `Exerting.heat.test.ts`, re-drive step 7.
+
 ### W7 — the drive
 
 **Goal.** The requirements' drive as a wire file, run against the live game; the record appended below; `pnpm test` once; push; MR.
