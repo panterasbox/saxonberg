@@ -36,7 +36,7 @@ describe('the mirror — the body line on look', () => {
     StuffApi.clearAll();
   });
 
-  const look = (target: Stuff): string => {
+  const look = (target: Creature): string => {
     const viewer = makeStuff(() => new Person()) as unknown as Stuff;
     return target.getMarkupLong(viewer);
   };

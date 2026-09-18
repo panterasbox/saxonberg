@@ -1,0 +1,27 @@
+# A barbell — ⭐ the exemplar LOAD DEVICE, made by a smith, priced at the
+# counter, and dropped on any floor to make the room a gym.
+#
+# The world's work comes at the weight the world set; the bar is where a
+# person chooses a heavier one. `class: /platform/thing/LoadDevice` (a
+# kernel class — a sandbag or a mason's stone is the same thing with no
+# smithing in it), `capabilities: [load]` is what satisfies the gym
+# archetype's slot, and the four figures say what it takes and what a
+# set costs: 20 to 160 kg, 15 W per kg (a 60 kg set is 900 W — over a
+# fresh body's overload line, which is the point), 30 s a set.
+class: /platform/thing/LoadDevice
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: iron barbell
+  keywords: [barbell, bar, weights, iron]
+  register: indefinite
+  longDescription: |
+    A long iron bar with a knurled grip and a stack of cast plates that slide on at either end. The whole thing is exactly as heavy as you make it.
+  capabilities:
+    - { kind: load }
+  _materialPath: /stuff/idea/material/element/iron
+  mass: 20
+  gradeBand: fair
+  loadMinKg: 20
+  loadMaxKg: 160
+  wattsPerKg: 15
+  setDurationS: 30

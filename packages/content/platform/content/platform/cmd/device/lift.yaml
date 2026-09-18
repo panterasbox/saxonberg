@@ -1,0 +1,33 @@
+verbs: [lift]
+controller: /platform/idea/cmd/device/LiftController
+description: "Lift a chosen load on a load device — a set at the bar"
+help: |
+  Load a bar to a weight and lift it — `lift 60`, or `lift 60 with bar`
+  when there is more than one thing here you could load. A set holds
+  your hands for a while and costs what it costs; the weight you choose
+  is the whole of the choice. Too little for your body and it is
+  exercise; enough and it is training; more than you can get off the
+  floor and you will be told so, honestly.
+
+  You need a load device in reach — a barbell a smith made, say, on the
+  floor of any room. The bar says what it can be loaded to.
+validators:
+  - /lib/command/validators/requiresAnimate
+  - /lib/command/validators/requiresConscious
+  - /lib/command/validators/requiresEmbodied
+args:
+  - name: load
+    type: number
+    required: true
+    validators:
+      - /lib/command/validators/mustBeNumber
+  # ⭐ WHICH DEVICE — DECLARED, not hunted for (`lint:instrument-args`).
+  # Bare, the binder hands over every reachable thing offering `load`;
+  # a thing that is not a tool is refused before the controller runs.
+  - name: device
+    type: objects
+    required: false
+    prepositions: [with, on, at]
+    default: "reachable:[capability.load]"
+    scope: ["reachable"]
+    requires: [ToolMixin]

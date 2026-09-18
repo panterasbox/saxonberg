@@ -117,6 +117,16 @@ describe('the anvil ladder', () => {
     ).toEqual([]);
   });
 
+  it('⭐ the barbell — a load device the smith makes, two bars of stock, at the anvil', () => {
+    const r = recipes.find((x) => x.recipeId === 'barbell');
+    expect(r).toBeDefined();
+    expect(r?.outputTemplate).toBe('/trade/smithing/thing/barbell');
+    expect(r?.toolCapabilities).toEqual(['striking', 'anvil']);
+    const stock = (r?.inputSlots as Array<{ category: string; count: number }>)[0];
+    expect(stock?.category).toBe('forgeable');
+    expect(stock?.count).toBe(2);
+  });
+
   it('⭐⭐ the nine arms are all makeable, and more metal is more work', () => {
     const arms = [
       'dagger', 'spear', 'flail', 'warhammer', 'mace',
