@@ -1179,6 +1179,37 @@ the MR.
 
 ### Stage A — the kernel seams
 
+✅ **A1–A5 landed** (`544f42d25` · `c4393944b` · `7a271139c` · `70568c6fc`
+· `431624a7f`). Build notes, for whoever reconstructs the review:
+
+- **A2.** `fitIn(state, season?)` — the season is an optional second
+  argument so the species stays pure over its inputs (the registry
+  derives the season from the celestial profile); `limiting` widened to
+  `WaterParameter | 'season' | null`. `homeKeyOf(container)` was added
+  to `Bonded` (Risks 6): `placeIdOf` answers for a Thing but with its
+  **template path**, so every fish bowl was one home — a stamped chattel
+  is keyed `chattel:<id>`; a room is still its place id. The `feeds`
+  brain looks at the vessel the animal is *inside* (`vesselsAround`).
+- **A3.** Immersion returned a shape, not a name: `resolveCurrentMedium`
+  → `{ medium, immersed }`, because the shipped rule *an unmodelled
+  medium raises no crisis* would have let a man breathe ale — an
+  immersion is a liquid whether or not the biome table names it, so it
+  is exempt from that exemption. Forestry's epoch became a **closed
+  vocabulary** in its review (`b1177185d`, `lib/craft/Epoch.ts`), so A3
+  took all three of its files byte-identical (`Epoch.ts`, `Tooled.ts`,
+  `CraftMixins.test.ts`) — verified with `diff` against
+  `origin/build/forestry`. The spoiler snapshot gained `habitat`,
+  `homeEarnedDay`, `epoch`, each answered in the review log.
+- **A4.** The shipped band vocabulary is `fresh · tainted · spoiled ·
+  rotten` — there is no `turned` band. *Turned* = past `fresh`, which is
+  `Bonded.wouldEat`'s rule, so an animal and a shelf refuse the same
+  thing. The Consignment suite's shape is direct `execute` (not the
+  binder); the new tests match it.
+- **A5.** The butchery suite asserts arithmetic, not the controller; the
+  transfer test uses `setPathogenLoads` (the landing stamp's shape)
+  because `contaminate` is inoculum-scaled off a roster the test does
+  not load `e-coli` into.
+
 #### A1 — the `fishery` document kind
 - **Implements** D2.
 - **Touches** `packages/server/src/mud/lib/document/DocumentKinds.ts`;
