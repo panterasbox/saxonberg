@@ -1425,6 +1425,15 @@ Clean attach points, each leaving as a slate line — never a plan section.
   function-based, so a prosthetic sets a part's function, not a flag).
 - **Exertion as a heat load** — `absorbHeatLoad` is the seam → `thermal`
   doc's non-goals list.
+- ⭐ **Frostbite from WEATHER** — the injury build shipped the wound and
+  one of its two causes; cold weather still spawns hypothermia without
+  touching a hand, the wrong order for a real cold day →
+  `physiology-slate § Part 7g` (together with an honest hypothermia
+  onset, the cold-side twin of D16).
+- **Two insulation models that do not talk** — `clo` (thermoregulation)
+  vs `thermalConductivity` (the covering fold); a garment answers cold
+  weather and a cold blow by different numbers → `thermal-slate § Open
+  questions 7`.
 
 ---
 

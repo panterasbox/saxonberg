@@ -383,7 +383,17 @@ export function ThermalRegulationMixin<TBase extends MixinConstructor>(
         wetBulb <= D.WET_BULB_CEILING_K &&
         this.reserveCurrent("hydration") > 0;
       if (canSweat) {
-        const shed = Math.min(this.heatLoadJ, D.HEAT_SHED_W * sliceSec);
+        // ⭐ Insulation impedes loss both ways. Worn clo sits in series
+        // with the body's own resistance, and flux goes as 1/R — so the
+        // parka that holds warmth in is what stops work-heat getting out.
+        const clo = MixinApi.isAttired(host)
+          ? host.bodyInsulation().rawValue()
+          : 0;
+        const damping = D.SHED_BODY_CLO / (D.SHED_BODY_CLO + Math.max(0, clo));
+        const shed = Math.min(
+          this.heatLoadJ,
+          D.HEAT_SHED_W * damping * sliceSec,
+        );
         if (shed > 0) {
           this.heatLoadJ -= shed;
           // Each degree's worth of shedding costs what holding a degree

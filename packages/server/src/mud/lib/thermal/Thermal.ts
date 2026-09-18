@@ -127,6 +127,20 @@ export const THERMAL_DEFAULTS = {
    */
   HEAT_SHED_W: 400,
   /**
+   * ⭐⭐ **Clothing slows shedding.** The body's own resistance to heat
+   * loss — tissue plus the boundary layer of air on bare skin — in clo,
+   * so that worn insulation scales the shed rate as
+   * `HEAT_SHED_W · REF / (REF + clo)`: a business suit (1 clo) halves it,
+   * arctic kit (3 clo) quarters it.
+   *
+   * Without this a caster in a parka shed heat exactly like a naked one,
+   * which is backwards twice over — insulation impedes heat loss in
+   * BOTH directions, and the parka that keeps you warm standing still is
+   * precisely what cooks you when you work hard in it. One resistance in
+   * series with another; the arithmetic is nothing more than that.
+   */
+  SHED_BODY_CLO: 1.0,
+  /**
    * ⭐⭐ **Where hyperthermia actually starts** — above the setpoint, not
    * at `survivableMax`.
    *

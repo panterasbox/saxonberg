@@ -2061,3 +2061,53 @@ Three attach points the build left clean rather than filled.
   [instrumentation-slate](./instrumentation-slate.md) owns the general
   shape (⚠ check it first — it is the *"check before any
   measure/analyze/instrument design"* slate).
+
+## Part 7g — ⭐⭐ Frostbite from WEATHER (2026-09-18)
+
+*Handed over by the injury build, which shipped the wound and only one of
+its two causes — and whose `thermal.md` edit overclaimed the other.*
+
+The injury build added `frostbite` as a trauma type and the `cold`
+channel that produces it — but **only a delivered cold blow makes one**.
+A frost spell, a splash of something cryogenic, a hazard authored as
+`channel: cold`: those reach the covering fold at a `body.*` site and
+land frostbite there. **Cold weather does not.** The weather path drives
+`coreTemperature` down and spawns `hypothermia` — a whole-body
+affliction — and never touches a part.
+
+That is backwards from the physiology, and legibly so: on a real cold day
+**your fingers and toes go before your core does.** Frostbite of the
+extremities is the *first* cold injury, hypothermia the last; a body can
+lose a finger to the cold and never have been hypothermic at all. The
+engine currently teaches the opposite.
+
+**What the model wants**, and why it is this slate's:
+
+- **Per-region cold exposure**, read from what thermoregulation already
+  computes. The effective ambient, the wind chill, and — crucially — the
+  **per-part insulation** (`insulationAt(part)`, which already exists for
+  the surface-fraction walk) together say which parts are exposed. Bare
+  hands in a wind at −20 °C are the whole story, and every input is
+  already on the body.
+- **A per-part cold "dose"** that becomes a `frostbite` trauma at that
+  part through `ConditionApi.inflict` on the `cold` channel — the same
+  door a frost spell uses, so the fold and the function axis (a numb
+  hand cannot grip) apply for free. No new trauma, no new behaviour: a
+  new **producer** of an existing wound.
+- **The extremity order falls out of the anatomy**: hands and feet have
+  the smallest mass and therefore the least thermal inertia and the
+  highest surface-to-volume, and they are what a plan covers last. An
+  author who wants a species that loses its ears first authors small,
+  poorly-covered ears.
+- ⚠ **Not before hypothermia is honest.** Today hypothermia spawns at
+  `survivableMin` on the core — the same wrong-temperature problem the
+  injury build fixed for hyperthermia (D16). Mild hypothermia is a core
+  below ~35 °C; `survivableMin` is well past that. Do the onset and the
+  frostbite producer together, so that a cold day teaches the true
+  sequence: extremities → shivering → the row → the dwell.
+
+**Why it is physiology's and not thermal's:** the thermal slate owns how
+heat moves; this is what the *body* does about it, region by region, and
+it is the cold-side twin of Part 4b's exposure ladder. The wound, the
+channel and the door all exist; what is missing is one producer and one
+honest onset.

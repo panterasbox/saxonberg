@@ -39,6 +39,22 @@ function advance(c: Creature, gameSec: number, chunkSec = 60): void {
   }
 }
 
+/**
+ * ⚠ Advance several bodies on ONE clock. `real` is module-level, so
+ * `advance(a, t); advance(b, t)` hands `b` twice the elapsed time — the
+ * first draft of the clo test "passed" with a 1.0 ratio for exactly that
+ * reason.
+ */
+function advanceAll(bodies: Creature[], gameSec: number, chunkSec = 60): void {
+  let remaining = gameSec;
+  while (remaining > 0) {
+    const s = Math.min(chunkSec, remaining);
+    real += (s / SCALE) * 1000;
+    for (const c of bodies) c.getVitalSign("coreTemperature");
+    remaining -= s;
+  }
+}
+
 const core = (c: Creature): number =>
   c.getVitalSign("coreTemperature").rawValue();
 
@@ -48,6 +64,28 @@ type RegBody = Creature & {
   absorbHeatLoad(j: number): void;
   heatLoadJ: number;
 };
+
+/**
+ * A body wearing `clo` of insulation — the read `shedAndOffset` makes,
+ * overridden on a test subclass rather than assembled from a body plan,
+ * fabric registry and garment (that chain is `Slotted.covering.test.ts`'s
+ * job; this file's claim is about what the number DOES).
+ */
+function dressed(clo: number, ambientK = 295): RegBody {
+  class Dressed extends Creature {
+    static _mixinName: string = 'DressedTestCreature';
+    override bodyInsulation(): Quantity<'clo'> {
+      return Quantity.of(clo, 'clo');
+    }
+  }
+  return makeStuff(() => {
+    const c = new Dressed() as unknown as RegBody;
+    c.setMass(Quantity.of(70, 'kg'));
+    c.setEffectiveAmbientK(ambientK);
+    c.setCachedHumidity(30);
+    return c;
+  }) as RegBody;
+}
 
 /** A 70 kg body in a comfortable room — C ≈ 293 kJ/K. */
 function person(ambientK = 295): RegBody {
@@ -98,16 +136,16 @@ describe("the internal heat load", () => {
     // work never warms, and one who chains it accumulates faster than
     // 400 W can carry away.
     const paced = person();
+    const chained = person();
     core(paced);
+    core(chained);
+    // Same five loads, same wall-clock — one spaces them, one does not.
     for (let i = 0; i < 5; i++) {
       paced.absorbHeatLoad(200_000);
-      advance(paced, 900); // plenty of time to shed between
+      advanceAll([paced, chained], 900);
     }
-
-    const chained = person();
-    core(chained);
     for (let i = 0; i < 5; i++) chained.absorbHeatLoad(200_000);
-    advance(chained, 1);
+    advanceAll([paced, chained], 1);
 
     expect(core(chained)).toBeGreaterThan(core(paced));
   });
@@ -125,6 +163,39 @@ describe("the internal heat load", () => {
     const before = steamy.heatLoadJ;
     advance(steamy, 1200);
     expect(steamy.heatLoadJ).toBeGreaterThanOrEqual(before - 1);
+  });
+
+  it("⭐⭐ CLOTHING slows shedding — the parka that warms you is what cooks you", () => {
+    // Insulation impedes heat loss in BOTH directions. Worn clo sits in
+    // series with the body's own resistance and flux goes as 1/R, so a
+    // caster in arctic kit carries a load three times longer than a
+    // naked one. Before this they shed identically, which was the
+    // garment system and the thermal system not talking to each other.
+    const naked = dressed(0);
+    const parka = dressed(3);
+    core(naked);
+    core(parka);
+    naked.absorbHeatLoad(600_000);
+    parka.absorbHeatLoad(600_000);
+    advanceAll([naked, parka], 600);
+    expect(parka.heatLoadJ).toBeGreaterThan(naked.heatLoadJ);
+    // …and the parka's core reads hotter for it.
+    expect(core(parka)).toBeGreaterThan(core(naked));
+  });
+
+  it("the damping is 1/(1 + clo) against the body's own resistance", () => {
+    // 1 clo halves the rate — one slice, no cap reached, so the shed is
+    // the rate exactly.
+    const naked = dressed(0);
+    const suit = dressed(1);
+    core(naked);
+    core(suit);
+    naked.absorbHeatLoad(1_000_000);
+    suit.absorbHeatLoad(1_000_000);
+    advanceAll([naked, suit], 60);
+    const shedNaked = 1_000_000 - naked.heatLoadJ;
+    const shedSuit = 1_000_000 - suit.heatLoadJ;
+    expect(shedSuit / shedNaked).toBeCloseTo(0.5, 2);
   });
 
   it("a body carrying nothing is byte-identical — pinned at setpoint, free", () => {
@@ -182,6 +253,34 @@ describe("⭐⭐ the hyperthermia onset moved to setpoint + 2.5 K", () => {
     c.absorbHeatLoad(500_000);
     advance(c, 1);
     expect(hasHyperthermia(c)).toBe(false);
+  });
+
+  it("⭐⭐ …and under WEATHER too — the ambient path was never pinned", () => {
+    // No internal load at all: a hot day and an empty waterskin. The body
+    // sweats to hold setpoint until hydration is gone, then drifts toward
+    // the ambient. It used to have to reach 315 K — heat STROKE — before
+    // the row appeared, so a 40 °C day with no water was misery forever
+    // and never a condition. Nothing anywhere asserted when hyperthermia
+    // spawned under weather, before or after the onset moved; this does.
+    const c = makeStuff(() => {
+      const b = new Creature() as RegBody;
+      b.setMass(Quantity.of(1, "kg")); // small → fast drift τ
+      b.setEffectiveAmbientK(320);
+      b.setCachedHumidity(30);
+      return b;
+    }) as RegBody;
+    c.adjustReserve("hydration", Quantity.of(-100, "%")); // nothing to sweat
+    core(c);
+    // Walk it up in small steps and catch the onset on the way through.
+    let spawnedAt: number | null = null;
+    for (let i = 0; i < 120 && spawnedAt === null; i++) {
+      advance(c, 30);
+      if (hasHyperthermia(c)) spawnedAt = core(c);
+    }
+    expect(spawnedAt, "hyperthermia spawned under weather alone").not.toBeNull();
+    // Past the onset, and BEFORE the old threshold.
+    expect(spawnedAt!).toBeGreaterThan(THERMAL_DEFAULTS.SETPOINT_K + 2);
+    expect(spawnedAt!).toBeLessThan(315);
   });
 
   it("⭐ being ill is not the same as dying of it — the lethal dwell still reads survivableMax", () => {

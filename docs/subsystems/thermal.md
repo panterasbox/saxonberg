@@ -273,12 +273,24 @@ fidelity tiers (smoke/cooking/spread), behavioral AI, fever content
 (the movable `setpoint` is the structure only). Each rides an existing
 seam when wanted.
 
-⭐ **Two of these came off the list.** *Per-region frostbite* is now the
-`cold` channel resolving at a `body.*` site through the covering fold
-(see materials-response.md), and *magic content* is the frost spell —
-both arrived by an existing seam, as this section predicted. **Exertion
-as a heat load** joins the list in their place: `absorbHeatLoad` is the
-attach point and nothing calls it from the body's own work yet.
+⭐ **One of these came off the list, and one HALF of another.** *Magic
+content* is the frost spell, arrived by an existing seam as this section
+predicted. *Per-region frostbite* is now a **wound the engine can
+express** — the `cold` channel resolving at a `body.*` site through the
+covering fold (materials-response.md) — but ⚠ **only a delivered cold
+blow produces it.** Cold *weather* still drives the core alone and spawns
+hypothermia without ever touching a hand, which is the wrong order for a
+real cold day (fingers go first). The producer is
+`physiology-slate § Part 7g`. **Exertion as a heat load** joins the
+list: `absorbHeatLoad` is the attach point and nothing calls it from the
+body's own work yet.
+
+⭐ **Worn insulation damps the shed rate** (injury build): `HEAT_SHED_W ·
+SHED_BODY_CLO / (SHED_BODY_CLO + clo)`, one resistance in series with
+another, so the parka that keeps you warm standing still is what cooks
+you working hard in it. ⚠ That `clo` and the covering fold's
+`thermalConductivity` read are **two insulation models that do not
+talk** — `thermal-slate § Open questions 7`.
 
 The Wave-2 indoor convection room-bump and a standalone
 radiant-from-nearby-Thermals helper (Steps 2.1 / 2.4 indoor) are partial:
