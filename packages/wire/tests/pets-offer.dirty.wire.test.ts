@@ -93,6 +93,16 @@ beforeAll(async () => {
   for (let i = 0; i < 3; i++) expectOk(await me.cmd('buy rations'));
   me.close();
   keeper = await Session.open(handle, { startLocation: LANE, wizard: true });
+  // ⚠ Other files' keepers stand on this lane too, linkdead, and to the
+  // cat a body is a body: it will not eat off the ground with a stranger
+  // over it, and an animal waiting on food does not beg. So every
+  // bystander but me is somebody the cat already KNOWS — which is what
+  // makes "a stranger's hand" below mean MY hand and nobody else's.
+  await cat(
+    'return (me => this.getContainer().getContents().filter(x => x !== this && x.getName && x.getName() !== "' +
+      handle +
+      '" && x.getIdentityPath && x.getIdentityPath() !== this.getIdentityPath()).map(x => (this.adjustRegard(x, 10), x.getName())))(this)',
+  );
 }, 300_000);
 
 afterAll(() => {

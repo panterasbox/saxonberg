@@ -1897,6 +1897,19 @@ Read first, in this order:
 
 ## Drive record
 
+✅ **End to end, 2026-09-17, after merging master at `583a79c46` (grain
+chain + metallurgy + their refactors).** One fresh boot the suite owned:
+`pets.wire.test.ts` **17/17** + `pets-offer.dirty.wire.test.ts` **7/7** in
+one run. Then the restart half by hand on the dev server: named the cat;
+restarted; boot log `[residency] pin roll: 1/1 stood up`; a stranger sees
+*"a thin cat and Mouse"* with her owner offline; the owner logs in to
+**one** Mouse, `mine`. ⚠ The one thing running the two files TOGETHER
+found: the first file's keeper stands on the lane linkdead, and to the
+cat a body is a body — it would not eat with a stranger over it, so the
+ration stayed and an animal waiting on food does not beg. The mechanism
+was right; the file now states its world assumption (every bystander but
+the keeper is somebody the cat knows).
+
 ✅ **Round 8, 2026-09-17 — the offer as a moment (D23), driven live and
 graduated: `packages/wire/tests/pets-offer.dirty.wire.test.ts`, 7/7 on
 a world the suite booted.** Real rations bought at the general store with
