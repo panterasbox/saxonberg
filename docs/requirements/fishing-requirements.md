@@ -101,8 +101,8 @@ can keep.
 - **What you take has four fates** — keep, eat, sell, release — and
   each is real: a kept fish is a kept animal in a bowl; an eaten one is
   food that spoils and, taken from the wrong water, sickens; a sold one
-  is coin from a fishmonger who pays what demand pays; a released one
-  is back in the record.
+  is coin when a buyer takes it off the fishmonger's shelf; a released
+  one is back in the record.
 - **Reading the water is competence.** A novice sees water; a
   practised fisher reads what a reach holds, in bands and words, never a
   number — the *fishing* Discipline, credited by what you land.
@@ -231,7 +231,8 @@ rooted.
 ### The verb is `fish`; `cast` stays with the mages
 
 `fish` at a fishable feature, optionally naming the bait. `set` and
-`lift` for a pot and a net. `reel` and `give` inside the contest. `look`
+`lift` for a pot and a net. `reel` and `slack` inside the contest
+(`give` is the inventory verb). `look`
 at the water is the read.
 
 ### The bite is the fish's decision
@@ -246,7 +247,7 @@ does not explain.
 ### The landing contest is small, and fires only on a fighter
 
 A hooked fish worth the beat fights: `reel` gains line and raises
-strain, `give` bleeds strain and cedes line; it lands when it tires and
+strain, `slack` bleeds strain and cedes line; it lands when it tires and
 is lost if the strain snaps the tackle or slack throws the hook. Small
 fish land themselves. Losing a big one is a story — you keep your tackle
 and learn what the reach holds. Deterministic per seed.
@@ -290,8 +291,11 @@ considered:* mining's finite-deplete — rejected as the wrong friction.
 - **Eat** — clean it (`butcher`: fillet, roe, offal, bone, skin), cook
   it, or eat it raw and take the dose. A fillet spoils on the shipped
   clock; salt and smoke arrest it.
-- **Sell** — the fishmonger buys at what demand pays and refuses what
-  has turned. Coin circulates; there is no faucet.
+- **Sell** — the fishmonger's stall takes a fresh fish on consignment
+  at your ask, as the general store takes anything, and refuses what
+  has turned; when a buyer takes it the coin reaches you less the
+  stall's commission. Nobody is paid until somebody buys: coin
+  circulates; there is no faucet.
 - **Release** — `release` puts it back in the record. A released
   sturgeon is a deed.
 
@@ -392,7 +396,7 @@ sessions; a wizard may skip game-days where a step says so.
 5. `fish` again until a fighter takes: the contest opens; `reel` twice
    fast → the line **snaps** — the fish is gone, the rod is not, and the
    message says what the reach holds, not what you did wrong.
-6. `fish` again; this time `reel` / `give` patiently → landed.
+6. `fish` again; this time `reel` / `slack` patiently → landed.
 7. `release mullet` — it is gone from hand; `look` at the water reads
    the same.
 8. `set pot` — the pot is in the water; walk to the market and back
@@ -410,10 +414,12 @@ sessions; a wizard may skip game-days where a step says so.
     signs and no line naming the water.
 
 **At the market**
-11. `sell mullet` to the fishmonger → coin, banked or in hand.
+11. `consign mullet --ask 4` at the fish stall → listed; a second
+    character `buy mullet` → the consignor's balance rises by the ask
+    less the commission (`bank` shows both legs).
 12. Hold a second fish a game-day (skipped) → `look` reads it turned;
-    `sell` → refused; `butcher` it anyway → fillet, offal; `smoke` the
-    fillet → it keeps.
+    `consign` → refused as turned; `butcher` it anyway → fillet, offal;
+    `smoke` the fillet → it keeps.
 
 **At the moor's heath** (second session, started there)
 13. `look` — the meres on the heath, the Holloway's head; `fish with
@@ -441,7 +447,7 @@ sessions; a wizard may skip game-days where a step says so.
     holds the deed; nothing stops you keeping it.
 
 **The four links**, walked for each of `fish`, `set`, `lift`, `reel`,
-`give`, `release`: the verb exists; the feature or tool affords it; the
+`slack`, `release`: the verb exists; the feature or tool affords it; the
 species and material rows are present; the fishery record is live at
 boot with nobody having fished.
 
@@ -453,7 +459,7 @@ Observable from outside the code.
 
 - A person with a rod and bait at the confluence bank can wait, be
   refused in silence, land a small fish without a contest, and lose or
-  land a fighter through `reel` / `give`.
+  land a fighter through `reel` / `slack`.
 - No number is ever shown for a fish's size, a reach's stock, a fisher's
   competence or a rod's condition — bands and words only.
 - The confluence and the moor's heath hold **different species with no
@@ -468,7 +474,8 @@ Observable from outside the code.
   recovers over game days; `look` by a practised fisher reads both.
 - A fish taken below the outfall carries the city's contamination; eaten
   raw it sickens the eater; nothing on the fish or in the water says so.
-- The fishmonger pays for a fresh fish and refuses a turned one; a
+- The fish stall lists a fresh fish on consignment and refuses a turned
+  one; a buyer's coin reaches the consignor less the commission; a
   fillet spoils on the shipped clock and keeps when smoked or salted.
 - A small carp kept and fed in a bowl for three game days can be named,
   is listed by `find … mine` without a place, and is in its bowl after a

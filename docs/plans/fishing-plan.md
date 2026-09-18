@@ -1,0 +1,1521 @@
+# Fishing — implementation plan
+
+Executes [fishing-requirements.md](../requirements/fishing-requirements.md)
+(**kind: feature · leads from: content**). What is built: a **fishery
+record on every reach** the water pack already compiles, derived from
+species habitats and never tabled; a `trade-fishing` capability pack
+carrying the tackle, the `fish` act with its wait / bite / landing
+contest, `set` / `lift` for a pot and a net, `dig` for bait, `release`,
+the `fishing` Discipline and two brains; a fish stall that takes your
+catch on consignment (the shipped counter, no new verb); six aquatic species; a fish you can keep in a bowl;
+and the content at two waters (wharfside's bank, the moor's heath) with
+the third — Heart's Delight's millsite — proving the zero-code claim
+from a pack this build does not touch.
+
+Content-led, so it lands as **Stage A** (the kernel seams, five commits)
+and **Stage B** (the water pack's record, the trade pack, the content,
+the drive — seven commits). Every wave is independently landable.
+
+---
+
+## Grounding
+
+Facts verified by opening files on `design/fishing` (at `0841b66d6`,
+current with `origin/master`), 2026-09-17. Line numbers are approximate.
+
+### The water pack's reading surface
+
+- `packages/content/water/src/idea/WatercourseCatalogue.ts` (1328 lines)
+  — the singleton at `/system/water/idea/WatercourseCatalogue`
+  (`WATERCOURSE_CATALOGUE_PATH`, l.76; row
+  `packages/content/water/content/system/water/idea/WatercourseCatalogue.yaml`,
+  `data: {}`, no hydrator, lazily cloned). Public, all async and
+  self-loading: `reachOf(ref)`, `reachesOf(courseKey)`, `allReaches()`,
+  `compare(a,b)`, `isUpstreamOf`, `downstreamOf`, `successorsOf`,
+  `hopsDownstream`, `flowAt(ref, nowS, draws) → FlowReading | null`
+  (`{ref, m3s, naturalM3S, meltM3S, drawnM3S, snowpackMm, navigable}`),
+  `airTemperatureKAt(ref, nowS)` (the CATCHMENT's air by season and
+  elevation — a reach has no biome chain), `liveDraws(nowS)`,
+  `contaminationAt(ref, nowS) → {reachRef, level, byKind}` (l.525).
+  `CompiledReach` (l.117): `ref, courseKey, nodeName, basin, index,
+  elevation, channelWidthM | null, depthToSea, catchmentKm2,
+  climateLocalityPath`.
+- ⚠ **`contaminationAt` counts an outfall AT the reach** (`hops = at ===
+  ref ? 0 : …`, l.541). The Wharfside outfall discharges into
+  `kestrel:confluence`, the same reach as the bank and the intake, so
+  **the confluence's own reading carries the city's load**, and the
+  estuary reach carries 55 % of it (`CONTAMINANT_SURVIVAL_PER_HOP.organic
+  = 0.55`). One reach cannot tell above-the-outfall from below it.
+- The exemplar of a pack reading the catalogue without importing it:
+  `packages/content/trade-milling/src/thing/GristMill.ts` l.39–60 — a
+  path constant, a duck-typed `FlowSource` interface, `StuffApi.singleton`
+  by path, and a sync memo refreshed off-band (`_cachedW`, `settlePower()`)
+  because the read is async and the consumer is sync.
+- Watercourse rows (commons, `packages/content/world-seed/content/stuff/idea/Watercourse/`):
+  `kestrel.yaml` — `headwaters(1400) → gorge → falls(500, w18) →
+  confluence(30, w90) → estuary(0, w160)`; `holloway.yaml` — `head(1100)
+  → vale(300, w14) → mouth(0, w70)`; `delight.yaml` — `spring(720) →
+  flats(180, w22) → mouth(35, w30)`, `branchesFrom: kestrel:confluence`.
+  A node is `{ name, elevation?, channelWidthM?, catchmentKm2? }` and
+  is parsed in the catalogue (`WatercourseNode`, exported at l.1328).
+- The catalogue finds its rows by class (`Template.findByClass(cls)`,
+  l.816) — the pattern the fishery record uses to find species.
+- `packages/content/water/src/idea/WaterRightRegistry.ts` — a register
+  in the water pack (`WATER_RIGHTS_PREFIX = '/system/water/rights'`,
+  `WATER_RIGHT_KIND`), the in-pack precedent for a second one.
+- Dials: `packages/content/water/content/settings/water.yaml` (the
+  `settings` kind, merge-missing), read through kernel `AppSettingKeys`
+  consts; ⭐ a pack may also read a raw key — precedent
+  `packages/content/terminus/src/mayfield-row/idea/cmd/LeaseController.ts`
+  l.153 `AppApi.setting('residence.ascent.minCondition')`. So `fishing.*`
+  keys need **no kernel const**: seeded literal at the call site, retuned
+  by the pack's own `content/settings/fishing.yaml`.
+- Manifests: `packages/content/water/pack.yaml` (`root: /system/water`,
+  group `water`, title `/system/water`);
+  `packages/content/trade-ranching/pack.yaml` + `package.json` (the
+  trade-pack shape: `dependsOn` derived from `@saxonberg/content-*`
+  dependencies; ships commons species rows into `/stuff/idea/species/…`
+  under species-and-names' host claim); `vitest.config.ts` with
+  `callSecPlugin()`.
+- Consumers' dependency lines: `packages/content/terminus/package.json`
+  already depends on `water`, `transport`, `trade-*`;
+  `packages/content/world-seed/package.json` depends on `platform`,
+  `transport`, `water`. ⚠ A pack rename or a new pack ⇒ `pnpm install`
+  (memory: stale `node_modules` fails every pack suite at collection).
+
+### Where a reach is cited today
+
+- `Locality._reach` / `_catchmentKm2` (`packages/server/src/mud/platform/idea/Locality.ts`
+  l.112–197, `getReach()`); `AddressApi.resolveLocalityFor(scope)`
+  (`packages/server/src/mud/api/address.ts` l.87) resolves the covering
+  Locality of a room.
+- Localities citing a reach (`packages/content/world-seed/content/stuff/idea/Locality/`):
+  `hearts-delight.yaml` → `delight:flats`; `moor.yaml` (`_address: moor`)
+  → **`holloway:vale`**; `counting-houses`, `university-avenue`,
+  `eternal-campus`, `hinkley-hills` → `kestrel:confluence`; `rejection` →
+  `kestrel:headwaters`.
+- ⚠⚠ **Wharfside has no reach by locality.** The bank is `_address:
+  terminus/city/wharfside` (`packages/content/terminus/content/world/terminus/wharfside/bank.yaml`)
+  and the estuary rooms are `terminus/city/wharfside/{reach,lower-towpath,estuary-mouth}`;
+  the covering Locality is the platform's `terminus-city.yaml`
+  (`packages/content/platform/content/platform/idea/Locality/terminus-city.yaml`,
+  `_address: terminus/city`) which declares **no `_reach`**. The
+  fishable feature at the bank is therefore load-bearing, not
+  decorative.
+- The water pack's own works cite a reach as **`reachRef`**
+  (`packages/content/hearts-delight/content/world/hearts-delight/thing/millrace.yaml`
+  — `reachRef: delight:flats`; `GristMill` reads `getReachRef()`). The
+  feature this build adds uses the same key.
+- The heath: `packages/content/world-seed/content/world/moor/stormy-heath.yaml`
+  — `SingletonCartesianLocation`, `address: moor/heath` (⚠ the row key is
+  `address`, not `_address`, and it resolves today), `_biomePath
+  outdoor/baseline`, `adornments: [/world/moor/heath-floor]`
+  (`heath-floor.yaml` is a `/platform/thing/Floor` with surface bulk).
+  No exits; reachable by teleport (`startLocation` in a wire session).
+- The millsite (`packages/content/hearts-delight/content/world/hearts-delight/location/millsite.yaml`)
+  — `_address: terminus/hearts-delight`, `props:` the millrace, the
+  grist mill, the toll bin; `cast:` the miller. **Not edited by this
+  build.** Its reach resolves through its Locality.
+
+### The record pattern
+
+- `packages/content/trade-ranching/src/idea/HerdRegistry.ts` —
+  `RegistrarMixin(Idea)`; constructor sets `registerPrefix`,
+  `registerOwner`, `registerKind`; `file()` and `update()` write through
+  `DocumentApi.saveToRegister(this, path, data)`; `read()` re-verifies
+  the prefix (`isRegistryPath`, separator included) AND the kind;
+  `all()` is private; module-private `pathOf`, `isRegistryPath`,
+  `herdOf` (parse-or-null) live in the same file. `canEvict` vetoes.
+- `packages/server/src/mud/lib/document/Register.ts` — the kernel
+  `Registrar` shape; the invariant: owner is a prefix of the register's
+  own template path, and the prefix lies under the owner.
+- `packages/server/src/mud/lib/document/DocumentKinds.ts` — closed;
+  `'water-right'` and `'herd'` are path-keyed, `onVanish: 'keep'`,
+  `naturalKey: null`; `bill-of-lading`, `warehouse-receipt`, `rate-card`
+  the same. **A `fishery` entry is the same shape.**
+- `DocumentApi` (`packages/server/src/mud/api/document.ts`): `read`,
+  `list(prefix)`, `listOfKind`, `saveToRegister`, `save`, `delete`.
+- The register row: `packages/content/trade-ranching/content/trade/ranching/idea/HerdRegistry.yaml`
+  shape (class + `data: {}`), and `StuffApi.singleton(path)` is the
+  get-or-create (`lint:get-or-create`: never a `findByTemplatePath`
+  pre-check in front of it).
+
+### Species, body plans, kept animals
+
+- `packages/server/src/mud/platform/idea/species/Species.ts` —
+  `FEEDING_STYLES = ['hand','ground','graze','bowl','trough','hopper']`
+  (l.205), `FEEDER_KINDS = ['bowl','trough','hopper']` (l.217, the
+  vessel subset — a new non-vessel style does not touch it);
+  `setFeedingStyle` throws on an unknown rung (l.929); `fieldMeta`
+  (l.623): `handlingRange` and `biddability` are `spoiler: 1,
+  spoilerName: 0`; `feedingStyle`, `adultMass`, `lifespanMin/Max`,
+  `stature`, `butcheryYield` (`{cut, units}`, l.44) authorable;
+  `_bodyPlanPath`, `olfactoryProfile` persistent. `getBodyPlan()` is a
+  live lookup (`StuffApi.findByTemplatePath`).
+- ⚠ **`breathableMedia` is on the BodyPlan, not the species**
+  (`packages/server/src/mud/platform/idea/species/BodyPlan.ts` l.221,
+  `['air']` default; `respires` l.231). Shipped plans:
+  `species-and-names/content/stuff/idea/species/BodyPlan/{biped,quadruped,sessile}.yaml`,
+  `trade-mining/…/BodyPlan/avian.yaml`. **No aquatic plan exists.** The
+  build authors one by copying `avian.yaml`'s shape.
+- Species exemplars: `packages/content/species-and-names/content/stuff/idea/species/cat.yaml`
+  (the full dial set: `vitalProfile`, `adultMass: 4`, `lifespanMax`,
+  `ageCurve`, `diet`, `olfactoryProfile`, `feedingStyle: [bowl, ground,
+  hand]`, `handlingRange`, `biddability: 0.1`, `_defaultMaterialPath:
+  /stuff/idea/material/tissue/flesh`); `hog.yaml` l.44 `butcheryYield:
+  [{cut: /stuff/thing/items/stew-meat, units: 6}, {cut:
+  /stuff/thing/items/prime-cut, units: 2}, {cut: /stuff/thing/items/offal,
+  units: 2}]`. ⚠ The task brief's `suidae/sus/domesticus.yaml` is in
+  **trade-ranching** and carries no yield; `hog.yaml` is the exemplar.
+- The kept animal: `packages/server/src/mud/lib/creature/KeptAnimal.ts`
+  (`PostRegistrationMixin` innermost — `docs/antipatterns.md` l.4929;
+  `pinsResidency() → true`); the pack subclass precedent
+  `packages/content/trade-ranching/src/agent/WorkingAnimal.ts` (`import {
+  KeptAnimal } from '@saxonberg/server/mud/lib/creature/KeptAnimal'`;
+  `HandledMixin(KeptAnimal)`). Agent row exemplar
+  `packages/content/generic-objects/content/stuff/agent/cat.yaml`
+  (`class: /platform/agent/KeptAnimal`, `handling: 0.25`, three
+  `behaviors`).
+- `packages/server/src/mud/lib/husbandry/Bonded.ts` — `FOLLOW_BOND 0.5`,
+  `NAME_BOND 0.6`, `HOME_DAYS 3`; `offerRung(person)` (l.452) gates on
+  `feedsBy('hand')`; `creditHomeCandidate(placeId, gameDay)` (l.567)
+  sets `home` after `HOME_DAYS` distinct days; `postRegister` (l.381)
+  warms the species and **seeds `home` to the birthplace** (l.423) — so
+  `home !== ''` alone cannot mean "earned"; `getFollowedKeys()`;
+  `commandContributions.peers` = pet/call/stay/name/offer (a static on
+  the mixin). `feedsBy(style)` is `false` for a species declaring none.
+- `packages/server/src/mud/platform/idea/cmd/social/NameController.ts`
+  l.78–90 — the two gates in one sentence: `animal.bondWith(actor) <
+  NAME_BOND || !followed` → `not-chosen`, *"It has not chosen you."*
+- `packages/server/src/mud/platform/idea/cmd/inventory/OfferController.ts`
+  l.73–120 — `offerRung`; `after-you-go` reason is `feedsBy('hand') ?
+  'too-wild-for-a-hand' : 'no-hand-rung'`; `approach` starts
+  `OfferEngagement` (`lib/husbandry/OfferEngagement.ts`, a
+  `DurativeActivity` on `hands`, `getHost()` = the animal).
+- `packages/server/src/mud/lib/behavior/feeds.ts` — `foodInVessel(here,
+  host)` / `emptyFeeder(here, host)` scan `here` (the room's contents)
+  for `isFeeder` of a kind the host `feedsBy`; a meal from a vessel
+  credits `creditHomeCandidate(PersistableApi.placeIdOf(room), day)`
+  with `day = floor(now / 86_400)` (`SECONDS_PER_GAME_DAY`, l.58). ⚠ The
+  animal's own container is never considered a feeder.
+- `packages/server/src/mud/lib/husbandry/Feeder.ts` (`feederKind`,
+  `offerings()`, `lastFilledBy`, an *it is empty* augmenter) over the
+  concrete `packages/server/src/mud/platform/thing/Feeder.ts` =
+  `FeederMixin(BulkableMixin(ContainerMixin(DetailedMixin(Thing))))`.
+  Row exemplar `packages/content/generic-objects/content/stuff/thing/vessel/saucer.yaml`
+  (`feederKind: bowl`, `interiorBulk: true`, `interiorCapacity: 0.3`).
+  A fish bowl is this class, one row, a bigger interior.
+- `packages/server/scripts/check-kept-animals.ts` — three directions;
+  only VESSEL rungs are checked against Feeder rows (l.227); a `Bonded`
+  class's species must declare `biddability`.
+- `packages/server/src/mud/__tests__/wiki-spoiler-fields.snapshot.test.ts`
+  — enumerates every `fieldMeta` key with its reveal level and carries a
+  review log; a new Species field is a diff to answer.
+
+### Respiration and death
+
+- `packages/server/src/mud/lib/respiration/Respiration.ts` —
+  `resolveCurrentMedium()` (l.215): the engaged locomotion mode's
+  `medium`, else `BiomeApi.resolveAtmosphereFor(self)`; **nothing looks
+  at a vessel's interior liquid**. `getBreathableMedia()` (l.190) reads
+  the body plan. `findWornAirSupply` (l.246) already matches
+  `getBulkMaterial('interior')?.getName()` against the breathable set —
+  so a medium is a **material NAME** (`'water'`). `reassess()` is called
+  from `onTraversed` (l.394) and the drain/recovery ticks only; **a
+  containment move does not re-check the medium**.
+- `packages/server/src/mud/lib/spatial/Containable.ts` l.162 —
+  `onMoved?(from, to)` post-move hook, fired by `ContainmentLogic`
+  l.248; `lib/thermal/Thermal.ts` l.571 shows the chain-super shape.
+- `packages/server/src/mud/platform/idea/api/BiomeLogic.ts` —
+  `resolveStringFor` (l.793) → `runChainWalk` (l.964): `syncChainWalk`
+  over per-detail / room-or-vessel `Atmospheric` overrides, then the
+  zone, then the root biome; `stepOutward` (l.563) walks
+  `getContainer()` while the ancestor is a `Container`. The atmosphere
+  is a property of the AIR over a place; it is not the seam for
+  immersion.
+- Death of a non-player body: `packages/server/src/mud/platform/idea/api/ConditionLogic.ts`
+  l.360–372 — the body **stays**, `setLifecycleState('dead')`,
+  `markDeceasedAt(nowS)` (Postmortem clock). No `Corpse` is minted for
+  an NPC or beast. `lib/mortality/Postmortem.ts` — `sinceDeath()`,
+  `getDecayStage()` over `DECAY_STAGES = ['fresh','stale','decomposed','spent']`
+  (`MortalArc.ts` l.58, one game-hour a stage); no `markupAugmenters`.
+- `Creature` (`lib/creature/Creature.ts` l.134–180) composes Chattel,
+  Branded, Postmortem, Concealable, LoadBearing, Container, Containable,
+  …, Respiration, Metabolic, Vitals, Reserved, Organism. ⚠ Not
+  `Contaminable`, not `Freshness`.
+
+### Butchery, spoilage, the kitchen
+
+- `packages/content/trade-cooking/src/idea/cmd/crafting/ButcherController.ts`
+  — gates: `isOrganism && isDead()` (`not-a-carcass`, l.114),
+  `preloadAnatomy` + species (`unidentified-species`), `isSentient`
+  (`sentient-corpse`), a bladed instrument (`blade` arg, `objects`,
+  `requires: [ConstructedMixin]`), `getButcheryYield()` non-empty
+  (`no-yield`); the cuts are cloned from `line.cut` (l.198), aged from
+  `sinceDeath()` at the carcass's temperature (`ageAtKill`,
+  `Freshness.advance(Freshness.inoculum(), agedS, material, carcassK)`,
+  l.256), and gut-spilled by skill (`spillGut`); contamination lands on
+  Contaminable hosts only (`isContaminable(onto)`, l.269). **The body's
+  OWN pathogen load is never read** — a carcass cannot carry anything
+  onto its cuts today. View: `packages/content/trade-cooking/content/trade/cooking/cmd/crafting/butcher.yaml`
+  (`verbs: [butcher, dress]`, `body` arg `requires: any`).
+- `packages/server/src/mud/platform/thing/Provision.ts` =
+  `Crafted(Composed(Contaminable(Cured(ThermalDose(Freshness(Thermal(Detailed(Thing))))))))`.
+  Rows: `packages/content/terminus/content/world/terminus/general-store/thing/rations.yaml`
+  (`_materialPath: /stuff/idea/material/food/trail-ration`);
+  `/stuff/thing/items/{stew-meat,prime-cut,offal}` (cited by yields).
+- Material exemplar `packages/content/base-library/content/stuff/idea/material/food/trail-ration.yaml`
+  (`ConsumableMaterial`: `density`, `edibility`, `tastes`,
+  `spoilActivationEnergy`, `waterActivity`, `nutrients`, `tags: [food,
+  preserved]`).
+- `packages/content/trade-cooking/content/recipes/smoke-cure.yaml` —
+  `inputSlots: [{slot: meat, category: meat, …}]`, output
+  `/trade/cooking/thing/treated-cut`, `cure: {moisture: 0.55}`;
+  `salt-cure.yaml`, `air-dry.yaml` the same family. **A material tagged
+  `meat` is accepted by the shipped cure / smoke / dry rows with no new
+  recipe.**
+- `Freshness` statics (`lib/material/Freshness.ts`): `inoculum()`,
+  `advance(load, elapsedS, material, tempK)`, `bandFor(load)`,
+  `doseFor`, `isPerishable`. `lint:perishable` reads rows' `_materialPath`
+  only (`scripts/check-perishable.ts` l.194); agent rows carry
+  `_speciesPath` and are not in its scope.
+- `Contaminable` (`lib/material/Contaminable.ts`): `getPathogenLoad()`,
+  `transferContaminationTo(...)`; the roster is five `Condition` rows
+  under `/platform/idea/Condition/pathogen/` — `e-coli` is the sewage
+  organism (spoilage.md).
+
+### Retail, banking, employment, identity
+
+- `packages/server/src/mud/platform/thing/Stock.ts` — `stockLines`
+  (`{itemTemplatePath, par, brandKey?}`), `prices` via `PricedOffer`,
+  `postRegister → reset()`; `commandContributions.peers = [buy, consign,
+  reclaim]` (l.87). Views in
+  `packages/content/platform/content/platform/cmd/retail/` (`buy`,
+  `check`, `consign`, `menu`, `order`, `reclaim`); **no `sell`**.
+  `buy.yaml`'s `counter` arg (`default:
+  "reachable:[mixin.ConsignmentShelfMixin]"`) is the declared-instrument
+  shape. `BuyController` (`platform/idea/cmd/retail/BuyController.ts`).
+- The store counter `packages/content/terminus/content/world/terminus/general-store/counter.yaml`
+  (`stockLines` + `prices`, cross-pack paths are normal —
+  `/system/arcana/thing/mana-cell`, `/trade/farming/thing/pot/small`);
+  ⚠ `packages/content/terminus/src/__tests__/general-store-content.test.ts`
+  l.134–200 — a class allowlist every shelf good must be on
+  (`/platform/thing/Feeder` and `/platform/thing/Provision` are already
+  there; a new class needs a line).
+- `BankingApi` (`packages/server/src/mud/api/banking.ts`): `transfer`
+  (l.270, *only from your own account*), `settle(charge, method)` (payer
+  derived from execution context — the customer), `payWage(employerAccountId,
+  workerKey, amount, category: PnlCategory = 'wages', memo)` (l.325,
+  pays red by design), `payDraw` (solvency-checked), `ensureVenueAccount`.
+  `LEDGER_KINDS` (`lib/banking/LedgerEntry.ts` l.48) includes
+  `'payment'`; `PnlCategory` includes `'cogs'`. **No primitive pays a
+  person for goods from a business account.**
+- `EmploymentApi.ensureOperatorAt(fixturePath)`, `operatingAccountOf`,
+  `ensurePayableWorker` (employment.md); the market business
+  `packages/content/terminus/content/world/terminus/market/business.yaml`
+  (`appointingAuthority: {kind: committee, parcel: /world/terminus/market}`,
+  `positions: []`, `rosterSlots: []`, `banksAt: goodkin`,
+  `operatingLocations: [/world/terminus/market/stalls]`); the baker
+  `market/agent/baker.yaml` (`Cast`, `archetype: baker`, `prologue`,
+  `competence`, `dispositions`, `introduces` on `witness:arrival`, `idles`
+  on `cadence:38s`). Market dir: `agent/baker.yaml`, `bakery.yaml`,
+  `business.yaml`, `idea/`, `square.yaml`, `stalls.yaml`,
+  `thing/{bakery-shelf,bread-counter}.yaml`.
+- `shifts` authored right: `packages/content/saxonberg-lounge/content/world/lounge/agent/mara.yaml`
+  l.48 (`trigger: cadence:30s`, `config: {behindBar, offstage}`) with
+  `…/lounge/location/offstage.yaml` (`/platform/location/Offstage`).
+  ⚠ Authored wrong: `terminus/necropolis/agent/undertaker.yaml` l.30 and
+  `terminus/infirmary/agent/physician.yaml` l.30 ship `shifts` with no
+  `trigger:` — the defect not to repeat. **Terminus has no `Offstage`
+  row.**
+- An NPC row carries inventory through `props:` —
+  `packages/content/eternal-university/content/world/eternal/duncan-hall/agent/katie.yaml`
+  l.29 (`props: [/system/residence/thing/householders-kit]`).
+- `packages/server/src/mud/platform/agent/Cast.ts` = `CastMixin(NPC)`;
+  `lib/npc/NPC.ts` = `BehavedMixin(PostRegistrationMixin(Character))`,
+  so a Cast is `Engaged` (Character) and `Behaved`. `talk.yaml`'s target
+  `requires: BehavedMixin`; `TalkController` finds the `trigger: engage`
+  spec and calls the brain's `open` (`lib/behavior/tree-dialogue.ts`
+  l.44: validates the tree, needs both parties `Engaged`, declines a
+  busy NPC, then hands a `DialogueConversation` the tree).
+  `DialogueTree` guards are a fixed fact namespace (`regard`,
+  `position:<org>`, `time:*`; `lib/npc/tree.ts` l.83–101); a `beat` is a
+  plain string, not templated.
+- `lint:dossiers` requires a `Cast` with a dossier to carry an
+  `archetype:` — the value is an open string (`scripts/check-dossiers.ts`
+  l.173); shipped values include `baker`, `undertaker`, `physician`,
+  `teller`.
+- Chronicle: `avatar.recordDeed({ template, vars, tags })` on the persona
+  (`platform/idea/cmd/charactergen/EnrollController.ts` l.765).
+  Advancement: `giver.creditDeed({ discipline, difficulty, outcome })`
+  when `MixinApi.isAdvancing(giver)` (`trade-mining/src/idea/cmd/mining/HewController.ts`
+  l.214; `Subcheck` in `lib/advancement/ActSignature.ts` l.64);
+  `competenceBandFor(discipline)` is **async**; the **sync** read is
+  `competenceDigestCached(): DisciplineBand[] | undefined`
+  (`lib/advancement/Advancement.ts` l.548) — what a sync `look` augmenter
+  can use. Discipline row exemplar
+  `packages/content/trade-mining/content/trade/mining/idea/Discipline/mining.yaml`
+  (`key`, `channel: skill`, `label`, `iscedf`, `description`, `requires:
+  []`); the roster reserves `fishing`, ISCED 0831 (`docs/vocations.md`
+  l.122 lists the fisher as designed).
+
+### Activity, tools, seeds, verbs, gates
+
+- `docs/subsystems/activity.md` — `DurativeActivity` vs
+  `SustainedEngagement`; `emissions[{intervalMs, event}]` on game time,
+  interval fixed at start; `SchedulerApi.start/cancel/complete` (l.159,
+  165, 205 of `api/scheduler.ts`); `cancel <type>`. The sustained
+  exemplar in a pack: `packages/content/transport/src/lib/journey/Journey.ts`
+  (`implements SustainedEngagement`, `slots` = `hands`,
+  `interruptibleBy = new Set()`, `emissions` with `intervalMs =
+  TICK_GAME_MINUTES * 60 * 1000`, `getHost()`, `SchedulerApi.complete(this)`
+  at l.324).
+- `packages/server/src/mud/lib/craft/Tooled.ts` `ToolMixin` — fieldMeta
+  `capabilities` only; **no `epoch`**. `origin/build/forestry`'s copy
+  (l.40–77) adds `epoch: { persistent: true, authorable: true }`, `public
+  epoch: string = ''`, `getEpoch()` / `setEpoch(value ?? '')` and the
+  interface doc *"`prehistory · medieval · industrial · modern · future`
+  or `''`"* (forestry-plan D16, unmerged).
+- `packages/server/src/mud/lib/Seeded.ts` — the determinism primitive
+  (`Seeded.unit(hash, salt)` etc.); the pack precedent
+  `trade-ranching/src/lib/HeadSeed.ts` imports it by specifier.
+- Verbs: `fish`, `set`, `lift`, `release`, `dig`, `reel`, `slack`
+  are **unclaimed** in every `cmd/` view (checked whole-word across
+  `packages/content/*/content`); `give` is `platform/cmd/inventory/give.yaml`
+  (`verbs: [give, hand]`); `cast` is arcana's
+  (`arcana/content/system/arcana/cmd/magic/cast.yaml`); `cancel` is
+  `platform/cmd/system/cancel.yaml`; `put.yaml` target `requires:
+  [VisibleMixin, ContainerMixin|SurfacedMixin]`; `get.yaml` item
+  `requires: [VisibleMixin, ContainableMixin]`.
+- `swim` mode: `packages/content/platform/content/platform/idea/LocomotionMode/swim.yaml`
+  (`medium: water`, `requiresBodyPlanMode: [swim]`).
+- Gates (`docs/lint-family.md`; 45 in `pnpm -C packages/server
+  lint:family --list`): `lint:verb-collisions` (allowlist with reasons,
+  `scripts/check-verb-collisions.ts` l.88), `lint:lib-statics`
+  (`LIB_STATICS_CEILING = 337`, `scripts/check-lib-statics.ts` l.94,
+  counts public statics on classes across the kernel's `lib/` +
+  `platform/` **and every pack's `src/`** — ⭐ this build adds NO public
+  static anywhere), `lint:instrument-args`, `lint:capabilities`,
+  `lint:kept-animals`, `lint:perishable`, `lint:pathogens`,
+  `lint:object-verbs`, `lint:whole-table`, `lint:world-scan`,
+  `lint:test-content` (`test-content-allowlist.txt`), `lint:drive-scripts`
+  (ceiling 0 on `scripts/drive-*.ts`), `lint:arg-kinds` (a pack mixin
+  needs `static _mixinRefusal`), `lint:mixin-names`, `lint:instanceable`,
+  `lint:census`, `lint:untitled`, `lint:identity`, `lint:dossiers`,
+  `lint:unconsumed-seams`, `lint:binder-models`, `lint:gates`,
+  `lint:imports`, `lint:module-scope`, `lint:field-meta`,
+  `lint:test-bootstrap`.
+- Wire drives: `packages/wire/tests/` — `pets-offer.dirty.wire.test.ts`
+  (founder `reserve issue 500` + `drop coins` → `get coins` / `bank
+  open` / `bank deposit coins` → `buy rations` ×3 at the store; wizard
+  `eval --on cat` to skip game-days; `DIRTY_REASON` export;
+  `declareFile({file, packs, dirtyReason})`), `work.dirty.wire.test.ts`
+  (a fresh handle per run — `startLocation` is a birth setting).
+
+---
+
+## Plan-level decisions
+
+Numbered so waves and commits can cite them. Each: the question, the
+choice, the reason.
+
+### D1 — the fishery record is the WATER pack's, keyed on the reach, state-only
+
+**Question.** Where does the record live, and what does it hold?
+
+**Choice.** A `FisheryRegistry` singleton `Idea` in the water pack —
+class `packages/content/water/src/idea/FisheryRegistry.ts`
+(`RegistrarMixin(Idea)`), row
+`packages/content/water/content/system/water/idea/FisheryRegistry.yaml`
+(`class: /system/water/idea/FisheryRegistry`, `data: {}`), reached by
+`StuffApi.singleton('/system/water/idea/FisheryRegistry')`. Register
+prefix `/system/water/fisheries`, owner `/system/water`, kind `fishery`
+(the kernel `DocumentKinds` entry, D2). One document per reach at
+`/system/water/fisheries/<courseKey>/<nodeName>`, **get-or-create on
+first draw**, holding only what cannot derive:
+
+```ts
+interface FisheryRecord {
+  reachRef: string;
+  /** per species template path: fish drawn down and not yet recovered */
+  drawn: Record<string, number>;
+  /** game-seconds the drawn map was last reconciled */
+  reconciledAtS: number;
+}
+```
+
+Capacity is derived at every read (D3); `level = capacity − drawn`;
+recovery is reconcile-on-read — `drawn` decays exponentially toward 0
+with half-life `water.fishery.recoveryHalfLifeDays` (seed 2) — and is
+**written only on a draw or a release**, never on a `look`. Reads on a
+reach with no document derive against `drawn = {}` and write nothing,
+which is what makes *every reach holds fish, unasked* true at zero cost.
+
+**Why the water pack.** The record reads the catalogue, which the kernel
+cannot import; two trades (fishing now, hunting later) will read the
+record and have no common pack ancestor below `water`; and *a system is
+true whether or not anyone participates* — fish are in the river
+whether or not anybody fishes. `trade-fishing` depends on `water`; the
+water pack learns nothing about fishing. Read-side verification is
+mandatory (prefix + kind on every read, the herdbook's rule).
+
+**Surface** (instance methods, no statics — `lint:lib-statics`):
+
+- `standingAt(reachRef, nowS): Promise<FisheryStanding | null>` —
+  `{ reachRef, species: Array<{ speciesPath, capacity, level, fit,
+  stocked: boolean }>, flow: FlowReading, contamination:
+  ContaminationReading, waterTempK }`. Pure derive; no write.
+- `draw(reachRef, speciesPath, count, nowS): Promise<number>` — the
+  count actually available (min of asked and level), written.
+- `release(reachRef, speciesPath, count, nowS): Promise<void>`.
+- `canEvict()` vetoes (the register's own rule).
+
+Module-private in the same file: `pathOf`, `isRegistryPath`,
+`recordOf` (parse-or-null), the fit arithmetic (D3).
+
+### D2 — a `fishery` document kind, kernel
+
+Add to `packages/server/src/mud/lib/document/DocumentKinds.ts`:
+
+```ts
+fishery: { kind: 'fishery', naturalKey: null, contentDir: 'fisheries', ext: 'yaml', onVanish: 'keep' },
+```
+
+with a doc comment in the `herd` / `water-right` voice: runtime-written,
+path-keyed under `/system/water/fisheries/<course>/<node>` because a
+basin's book is `list(prefix)`; `keep` because the record is what
+happened to a reach. No pack ships one. No collection, no index
+(path-keyed kinds get none), no `gen:schema`.
+
+### D3 — capacity derives from habitat × composition; `stocks:` on the NODE overrides it
+
+**Habitat** is a kernel `Species` field (D4). For each species row that
+authors one, and each reach, the registry computes:
+
+```
+f_T    = 1 inside [temperatureK.min, temperatureK.max]; linear to 0 over ±toleranceK (seed 4)
+f_sal  = 1 if habitat.salinity ∈ {any, salinityOf(reach)}; else 0.15 (seed)
+f_cur  = 1 if habitat.current ∈ {any, currentOf(reach)}; else 0.35 (seed)
+f_seas = 1 if habitat.seasons absent or includes season(now); else 0.3 (seed)
+f_con  = max(0, 1 − contamination.level × habitat.contaminationSensitivity)
+fit    = f_T × f_sal × f_cur × f_seas × f_con
+capacity = round(fit × habitat.abundance × water.fishery.reachLengthKm (seed 3))
+```
+
+where `salinityOf(reach)` is `salt` at elevation 0, `brackish` below
+`water.fishery.brackishBelowM` (seed 40) with `depthToSea ≤ 1`, else
+`fresh`; `currentOf(reach)` bands `flow.m3s / max(width, seed 4)` at
+`still < 0.05 < slow < 0.5 < moderate < 3 < fast` (m²/s); water
+temperature is the catchment's `airTemperatureKAt` (no thermocline in
+v1); the season comes from `WeatherApi.segmentsBetween` as the
+catalogue already reads it. Every number is a seeded literal at the
+call site, retuned by `water.yaml` (`water.fishery.*`).
+
+**The override.** `WatercourseNode` gains an optional
+`stocks: Array<{ species: string; capacity: number }>` (water pack,
+`Watercourse.ts` + the catalogue's node parse), surfaced on
+`CompiledReach.stocks`. A stocked species' capacity is the authored
+number regardless of fit, and `standingAt` marks it `stocked: true` so
+the trade's prose can say so (*the water is stocked with pike*). No
+shipped row authors one; the field is the aquaculture seam.
+
+**Why not the zone's spawn `stocks:`** — that mints objects into rooms;
+this is a population that never exists as objects until drawn.
+
+### D4 — species habitat, and `'surface'` as a feeding rung (kernel `Species`)
+
+`Species.ts` gains:
+
+```ts
+export const HABITAT_SALINITIES = ['fresh', 'brackish', 'salt', 'any'] as const;
+export const HABITAT_CURRENTS   = ['still', 'slow', 'moderate', 'fast', 'any'] as const;
+export const HABITAT_ROLES      = ['bait', 'forage', 'predator', 'apex'] as const;
+export interface Habitat {
+  temperatureK: { min: number; max: number };
+  salinity: HabitatSalinity;
+  current: HabitatCurrent;
+  seasons?: Season[];                 // absent = all year
+  role: HabitatRole;
+  /** individuals per km of reach at perfect fit */
+  abundance: number;
+  /** 0 = indifferent; 1 = a unit concentration empties the water */
+  contaminationSensitivity: number;
+  /** 0..1 — what a hooked one does; drives the contest and the size band */
+  fightRating: number;
+}
+protected habitat: Habitat | null = null;   // fieldMeta: persistent, authorable
+getHabitat(); setHabitat(value)  // validates every closed word; throws like setFeedingStyle
+```
+
+and `FEEDING_STYLES` gains `'surface'` (an animal in water that comes up
+for the hand — not a vessel kind, so `FEEDER_KINDS` and
+`lint:kept-animals`' vessel check are untouched). `BondedMixin` gains
+`takesFromHand(): boolean` = `feedsBy('hand') || feedsBy('surface')`;
+`offerRung` and `OfferController`'s reason line use it instead of
+`feedsBy('hand')`.
+
+Reveal: `habitat` is **level 0** in the spoiler snapshot with the reason
+*natural history a player is meant to learn — the whole pedagogy claim
+is that the distribution is derivable from it*; `fightRating` rides
+inside it and is not a weakness.
+
+### D5 — the bite is the fish's decision; one epistemic draw; the contest is pure
+
+`trade-fishing/src/lib/FishingEngagement.ts` — `implements
+SustainedEngagement`, `type = 'fishing'`, slot `hands`, `interruptibleBy`
+empty, `cancelable`, `getHost()` = the rod. One emission every game
+minute (`intervalMs = 60_000` game-ms, the Journey's constant shape).
+Each tick:
+
+1. asks the singleton `Waters` (D7) for the reach's standing and the
+   feed factors — hour (dawn/dusk via `CelestialApi.solarAltitudeDeg`
+   within ±10°: ×`fishing.bite.twilight` seed 1.8), weather (a `storm`
+   or `rain` segment ×`fishing.bite.preStorm` seed 1.5, from
+   `WeatherApi.sampleFor(room).type`), season (already in fit), bait
+   match (`fishing.bite.match` seed 1.0 when the bait's kind suits the
+   species' role — worm → forage/bait, baitfish → predator/apex, bare
+   hook → 0.15 everywhere, crumbs → 0), tackle (`Rod.presentation`, a
+   row number);
+2. accumulates `pressure += Σ_species (level/capacity) × factors ×
+   fishing.bite.ratePerMinute` (seed 0.12) — **deterministic**;
+3. when `pressure ≥ 1`: **the one draw** — which species — by
+   `Seeded.unit(hash(reachRef, engagementId, tickIndex))` weighted by
+   each species' term (epistemic: what the water held under the hook was
+   always going to be something); `pressure -= 1`;
+4. the individual's `lengthM` is seeded from `(reachRef, speciesPath,
+   drawnOrdinal)` around `Species.stature` (`0.6 … 1.6 ×`), and
+   `fight = habitat.fightRating × (lengthM / stature)`;
+5. `fight < fishing.contest.fighterAt` (seed 0.45) → **lands itself**:
+   clone the species' agent row into the angler's hands, `draw(1)`,
+   `creditDeed({discipline: 'fishing', difficulty: 'easy', outcome:
+   'success'})`; the prose names the fish and its size in words, never
+   a number. Otherwise the engagement enters `fighting` with a fresh
+   `LandingContest`.
+
+A tick with no bite prints **nothing** (*every refusal is silence*).
+
+`trade-fishing/src/lib/LandingContest.ts` — a value object, **instance
+methods only**, no randomness: state `{ line ∈ [0,1] (out), strain ∈
+[0,1], stamina ∈ [0,1] }` seeded from `fight`; `reel()`: `line -= gain`,
+`strain += reelStrain × stamina`; `slack()`: `strain -= relief`, `line +=
+run × stamina`; `tick()` (each game minute): `stamina -= tire ×
+strain`, `strain += pull × stamina`, and if `strain ≤ 0` for two ticks
+the hook is **thrown**. Outcomes: `landed` when `line ≤ 0 && stamina ≤
+landAt`; `snapped` when `strain ≥ rod.breakStrain`; `thrown` as above.
+Dials `fishing.contest.*` with seeds chosen so that **two `reel`s inside
+one tick at full stamina snap a fighter** and a patient alternation
+lands it in 4–8 ticks. `reel` / `slack` verbs act on the actor's
+`fishing` engagement (`getEngagementByType`); a snap ends the
+engagement (`SchedulerApi.complete`) with the rod intact and
+`creditDeed(…, outcome: 'failure')`, and the message names what the
+reach holds in bands, not what the player did wrong. Landing a fighter
+credits `difficulty: 'standard'` (`'hard'` for an apex).
+
+An apex landed or released is a chronicle deed
+(`giver.recordDeed({ template: "Landed a {{species}} at {{reach}}.",
+tags: ['fishing', 'landmark'] })` / `"Released …"`).
+
+### D6 — the individual is a pack `Fish` class over `KeptAnimal`, alive until it is not
+
+`trade-fishing/src/agent/Fish.ts`:
+
+```ts
+const FishBase = ContaminableMixin(KeptAnimal);
+export default class Fish extends FishBase {
+  static commandContributions = { peers: ['trade/fishing/cmd/fishing/release.yaml'], self: [], environment: [] };
+  static markupAugmenters = [sizeLine, turnedLine];
+  static fieldMeta = { lengthM: { persistent: true } };
+  public lengthM = 0;  getLengthM / setLengthM
+  sizeWords(): string   // 'a finger long' … 'longer than your arm', from lengthM
+}
+```
+
+Six agent rows under `/trade/fishing/agent/{brown-trout,eel,grey-mullet,carp,shore-crab,sturgeon}`
+(`class: /trade/fishing/agent/Fish`, `_speciesPath`, `handling`, a
+`feeds` brain at `cadence:60s`; ⚠ no `follows`, no `homes` — a fish
+does not walk). The landed fish is **alive**: moving it into a hand
+re-checks its medium (D8), the crisis drain runs, and it dies in the
+shipped `DYING_WINDOW` — `lifecycleState: dead`, Postmortem clock
+started — after which `butcher` works on it (`isOrganism && isDead`).
+Killing is not a fishing verb.
+
+`turnedLine` renders, for a dead fish, the Freshness band derived from
+the Postmortem clock (D9) in the shipped band words; `sizeLine` renders
+`sizeWords()`. Neither prints a number.
+
+**Why `KeptAnimal`.** The requirement *a kept fish is a kept animal in a
+bowl* wants the Bonded / Persistable / pins-residency stack exactly; a
+`Creature` subclass would re-derive it. **What composing `Contaminable`
+here claims:** every fish can carry a pathogen load — true of a fish and
+of nothing else `KeptAnimal` instances (the cat, the collie, the canary
+stay clean). Not on `KeptAnimal`, not on `Creature` (the spoilage doc's
+`Weapon` lesson).
+
+### D7 — the trade's shared logic is a singleton `Idea`, not statics
+
+`trade-fishing/src/idea/Waters.ts` at `/trade/fishing/idea/Waters`
+(row `content/trade/fishing/idea/Waters.yaml`, `data: {}`; reached by
+`StuffApi.singleton`). Instance methods: `reachAt(room): Promise<string
+| null>` (the covering Locality's `getReach()` via
+`AddressApi.resolveLocalityFor` — the fallback when no feature is bound),
+`registry()` (the water pack's `FisheryRegistry` by path, duck-typed as
+`GristMill` types the catalogue), `standingFor(reachRef, nowS)`,
+`feedFactorsAt(room, nowS)`, `speciesFor(reachRef)`, `bandOf(viewer):
+CompetenceBandName` (sync, from `competenceDigestCached()` for the
+`fishing` Discipline, floor when undefined). ⭐ `readFor(standing, band):
+string[]` — the banded prose (*"there are eels in this water, and
+something large"*; `fished out` when every level is under
+`water.fishery.read.emptyBelow`; the apex named *a royal fish* only at
+`practised+`) — lives on the **`FisheryRegistry`** (B1), because the
+`Shore` that renders it is the water pack's (D15) and a system pack
+imports nothing of a trade. This is where the trade's
+world-level arithmetic goes so no `lib/` value class grows a static
+(`LIB_STATICS_CEILING = 337` may not rise).
+
+### D8 — immersion: a body inside a vessel of liquid breathes the liquid (kernel `Respiration`)
+
+Two changes in `lib/respiration/Respiration.ts`, no change in
+`BiomeLogic`:
+
+1. `resolveCurrentMedium()` gains an **immersion step** between the
+   engaged mode and the atmosphere: walk `getContainer()` outward from
+   the body; the first ancestor that `MixinApi.isBulkable` with
+   `getBulkAmount('interior').rawValue() > 0` answers
+   `getBulkMaterial('interior')!.getName()`. A carp in a bowl of water
+   breathes `water`; a man in a vat of ale does not breathe; a fish in a
+   bowl of *fouled water* does not breathe either (the material name is
+   `fouled water`), which is the honest answer.
+2. `onMoved(from, to)` — implemented on the mixin (chaining a base
+   `onMoved` first, the `Thermal.ts` l.571 shape) → `void
+   this.reassess()`. Every containment move re-checks the medium: the
+   landed fish starts drowning in the hand, stops in the bowl, and a
+   person carried into a flooded cell is not exempt.
+
+**Why here and not the atmosphere chain.** The atmosphere is the air
+over a place (temperature, pressure, humidity ride the same walk);
+immersion is the body's immediate medium and only respiration asks.
+Putting it in `syncChainWalk` would make `resolveTemperatureFor` read a
+vessel's water as the room's air. **What the change claims:** every
+respiring body inside a liquid-holding vessel is immersed — true.
+
+### D9 — a dead body's flesh spoils on the shipped law (kernel `Postmortem`)
+
+`lib/mortality/Postmortem.ts` gains `freshnessLoad(): number` =
+`Freshness.advance(Freshness.inoculum(), sinceDeath() ?? 0,
+<the organism's default material>, Freshness.hostTemperatureK(this))` —
+exactly the arithmetic `ButcherController.ageAtKill` runs on a cut,
+now answered by the carcass itself so the consignment refusal (D11) and
+the `Fish` augmenter read one number. No augmenter on `Postmortem` (a player's
+corpse keeps its shipped prose). **Claims:** every dead creature's
+flesh has a spoilage state — true.
+
+### D10 — the naming gate for an animal that cannot follow (kernel `Bonded` + `NameController`)
+
+`BondedMixin` gains a persistent `homeEarnedDay = -1`, written by
+`creditHomeCandidate` at the moment `home` moves (the seeded birthplace
+never sets it), and `hasChosen(person): boolean` =
+
+```
+bondWith(person) ≥ NAME_BOND
+  && ( getFollowedKeys().includes(key(person))
+       || (homeEarnedDay ≥ 0 && home === PersistableApi.placeIdOf(getContainer())) )
+```
+
+`NameController` replaces its inline two-gate check with
+`animal.hasChosen(actor)`; the refusal sentence is unchanged. ⚠ This
+**widens the cat's gate too**: a stray fed from a bowl in one room for
+three game days can be named there without ever following — which is
+the requirements' own sentence (*the other route home the pets build
+already has*) and is recorded in § Risks & opens for the user's eye.
+No species flag, no locomotion read.
+
+`feeds.ts` gains one line of scope: the host's **own container**, when
+it is a Feeder of the host's rung, is a feeder — an animal living in its
+bowl eats from it and earns its home there. (**Claims:** an animal inside
+a feeder feeds from it — a bird in a hopper does.)
+
+### D11 — the fish stall is a consignment counter, not a buyer (no `sell`)
+
+⭐ **Decided with the user at the handoff:** nobody pays anyone. The
+market's shipped pattern is consignment — `consign mullet --ask 4` moves
+**custody** to the stall's shelf while the owner-stamp stays put; a
+*buyer's* `buy` settles the ask, splits the remainder to the consignor's
+primary account and leaves the stall its commission
+(`retail.consignment.commissionRate`); `reclaim` takes an unsold fish
+back. Coin only moves when a buyer moves it — *"coin circulates; there
+is no faucet"* is literally true, and the business earns its commission
+instead of running red. `Stock` already composes `ConsignmentShelfMixin`
+(`platform/thing/Stock.ts` l.54), so the stall is a `/platform/thing/Stock`
+row with `stockLines: []` and needs **no kernel verb, no `purchaseLines`,
+no `BankingApi.payForGoods`** — the buy-side the first draft of this
+plan minted is gone.
+
+The one kernel change: **`consign` refuses a turned good.** In
+`platform/idea/cmd/retail/ConsignController.ts`, before the stack split
+(the last gate), reject with `controller-rejected` reason `turned` when
+the item is a `Provision` whose Freshness band is `turned`, or a
+`Postmortem` body whose `Freshness.bandFor(freshnessLoad())` (D9) is
+`turned`. A live fish is fresh. This is a rule of every shelf, not the
+fish stall's — no shopkeeper lists a turned loaf either — so it needs
+no hook, no subclass and no data; a *state* read, not a host narrowing.
+An unbanked consignor is already refused by the shipped controller (the
+Goodkin nudge).
+
+**What the fishmonger does:** keeps the stall (D17) — the roster, the
+shift, `appoint`. The stall authors `staffingPolicy: self-service` like
+the general-store counter so a monger's absence never blocks a
+consignment (Risks 23).
+
+**What the drive proves (steps 11–12):** a fresh mullet consigned at an
+ask is listed; a second character buys it and the consignor's balance
+rises by the ask less the commission; a fish held a game-day is refused
+`turned`.
+
+### D12 — `dig` for bait costs the soil something
+
+`trade-fishing/src/thing/Trowel.ts` (`DurableMixin(ToolMixin(DetailedMixin(Thing)))`,
+row `/trade/fishing/thing/trowel`, `capabilities: [digging]`, `epoch:
+medieval`) affords `dig` (`peers` + `environment`). `dig [<ground>]`:
+ground arg `default: "reachable:[mixin.CultivableMixin]"`, `requires:
+[CultivableMixin]`; a 2-game-minute `DurativeActivity` on `hands`; at
+completion draws `fishing.dig.organicPerWorm` (seed 0.05) from the
+ground's `organicMatter` reserve (`SOIL_ORGANIC_MATTER_RESERVE_KEY`,
+`lib/husbandry/Soil.ts`) and clones one `/trade/fishing/thing/worm`
+(class `/trade/fishing/thing/Bait`, `baitKind: worm`) into the hand;
+refuses `worked-out` when the reserve is at floor. The store also sells
+worms (`Bait` admitted to the goods allowlist). No new state anywhere:
+the soil's own ledger is the cooldown.
+
+### D13 — `set` / `lift`: one `Trap` class, two rows, reconcile at lift
+
+`trade-fishing/src/thing/Trap.ts` (`DurableMixin(ToolMixin(DetailedMixin(Thing)))`)
+with fields `drawPerHour`, `takesRoles: HabitatRole[]`, `capacity`,
+`epoch`, and runtime-state `setAtS`, `setReach`, `setBy` (persistent —
+a set trap survives a bounce). Rows `/trade/fishing/thing/{pot,net}`
+differ by numbers only: the pot `drawPerHour 0.4`, `takesRoles: [bait,
+forage]`, `capacity 2`; the net `drawPerHour 6`, every role, `capacity
+12`. `set <trap> [at <shore>]` moves it from the hand to the room,
+stamps `setAtS`/`setReach` (the bound shore's reach or `Waters.reachAt`),
+sets `fixedInPlace = true` and vetoes eviction while set (`canEvict`,
+the `Vehicular` precedent). `lift <trap>` integrates the elapsed
+game-hours against the record — `expected = Σ_species min(level,
+drawPerHour × hours × level/capacity) over takesRoles`, capped by
+`capacity`; `floor(expected)` fish, the fraction decided by one seeded
+unit — clones them into the lifter's hands, `draw`s them, clears the
+stamps. No skill credit, no engagement, no tick.
+
+### D14 — the tackle carries an epoch now
+
+`ToolMixin` gains `epoch` **byte-identical** to `origin/build/forestry`'s
+`lib/craft/Tooled.ts` (interface doc, `fieldMeta` line, field, getter,
+setter). Whichever branch merges second sees an identical hunk. Rows:
+rod, pot, net, trowel author `epoch: medieval`. Knowingly unread
+(forestry D16); its reader is the covenant.
+
+### D15 — the fishable feature is the water pack's `Shore`; the locality is the fallback
+
+⭐ **Decided with the user at the handoff: `Shore` is the water system's,
+not the trade's.** A riverbank is there whether or not anyone fishes —
+the `/system/` test — and the record it reads (D1) is already the water
+pack's. `packages/content/water/src/thing/Shore.ts` at
+`/system/water/thing/Shore` (`DetailedMixin(Thing)`, `fixedInPlace`,
+persistent+authorable `reachRef`, `getReachRef()`, a sync `waterRead`
+augmenter over a memo refreshed fire-and-forget at `postRegister` and on
+every render — the `GristMill` shape). The augmenter prints the physical
+read for everyone (the reach's name, width in words, flow band, *the
+outfall discharges into this water* when `contamination.level > 0` — a
+fact about the map, not a hazard readout) and the fishery read
+(`FisheryRegistry.readFor`, D7) at the viewer's band in **whatever
+Discipline `water.fishery.readDiscipline` names** (the water pack's
+`content/settings/water.yaml`; default `/trade/fishing/idea/Discipline/fishing`).
+The code knows *a Discipline path*, never the word fishing; when the
+row the setting names is not installed, the band is the floor and the
+read is physical only — honest for a realm with water and no fishing
+trade. Rows: `/world/terminus/wharfside/thing/river-edge` (`reachRef:
+kestrel:confluence`, `props:` on `bank.yaml`) and `/world/moor/heath-mere`
+(`reachRef: holloway:head`, `props:` on `stormy-heath.yaml`).
+
+The verbs take `shore` as a **declared arg** (`default:
+"reachable:[class.Shore]"`, optional); when unbound the controller asks
+`Waters.reachAt(room)` — the Locality's reach — which is how the
+millsite fishes with no row and no code. ⚠ Wharfside has no locality
+reach (Grounding), so its `Shore` is what makes `fish` possible there.
+
+**Cost:** none in the dependency graph — `terminus` and `world-seed`
+already depend on `@saxonberg/content-water`; only `terminus` gains
+`trade-fishing` (the fisher's rod, the store's tackle lines).
+`world-seed` stays a realm seed with no trade dependency.
+
+### D16 — the fisher fishes bare-hook, catch-and-release, on his own cadence
+
+`trade-fishing/src/behavior/fishes.ts` (`claims: ['hands']`,
+`requiresFree`, `trigger: cadence:<n>s`, config `{ shore: <path> }`):
+each beat, if no `fishing` engagement is live, starts one with the rod
+in his own inventory (`host.getContents()` is the ask-the-owner rung)
+and no bait; the engagement's landing path, when the actor is not a
+player, releases the fish at once (`registry.release`) and speaks one
+line. He draws from the same record through the same engagement, so a
+netted-out reach is a reach he sits at all day with nothing on the
+line. No creel, no faucet, no memory. Bare-hook take is honest and
+small (`fishing.bite.match` 0.15).
+
+`trade-fishing/src/behavior/reads-water.ts` — the mentor: `trigger:
+engage`, `open(args)` builds a `DialogueTree` **from the record**
+(`Waters.standingFor` + the registry's `readFor` at the *practised*
+band) and hands it
+to `DialogueConversation` exactly as `tree-dialogue.open` does (import
+`DialogueConversation`, `DIALOGUE_CONVERSATION_TYPE` from
+`@saxonberg/server/mud/lib/npc/DialogueConversation`). The config
+carries the man's **lines**, keyed by what the record says —
+`{ empty: "…nothing in it. Nothing.", thin: "…", holds: "Eels run on
+the ebb. {{read}}", apex: "The big one lies under the far bank." }` —
+and the mechanism chooses which; `{{read}}` is replaced by the banded
+species list. When the reach is empty he says so and *nothing about who
+did it* (the record holds no names).
+
+### D17 — the fishmonger is the baker's shape plus a shift
+
+`market/business.yaml` gains `positions: [{ key: monger, label:
+"keeping the fish stall", noun: fishmonger, wageRate: 4, confers: [] }]`,
+`rosterSlots: [{ positionKey: monger, assignee:
+/world/terminus/market/agent/fishmonger, schedule: [{ days:
+[0,1,2,3,4,5,6], hours: [5, 14] }] }]`, `operatingLocations` +
+`/world/terminus/market/thing/fish-stall`. `market/thing/fish-stall.yaml`
+is a `/platform/thing/Stock` with `stockLines: []`, `staffingPolicy:
+self-service`, `businessPath`, `props:` onto `stalls.yaml` — a
+consignment counter (D11). `market/agent/fishmonger.yaml` is a `Cast`
+(`archetype: fishmonger`, dossier, `introduces` on `witness:arrival`,
+`shifts` on `cadence:30s` with `{ behindBar: /world/terminus/market/stalls,
+offstage: /world/terminus/market/offstage }`) and
+`market/offstage.yaml` is the market's `Offstage` row (terminus has
+none). `appoint <player> to monger at /world/terminus/market/business`
+works through the committee authority the row already declares.
+
+### D18 — species and materials are commons rows shipped by the trade
+
+Six species under `/stuff/idea/species/` (the pig precedent: a trade
+ships commons species under species-and-names' claim): `brown-trout`,
+`eel`, `grey-mullet`, `carp`, `shore-crab`, `sturgeon`. Each authors the
+cat's dial set with `_bodyPlanPath: /stuff/idea/species/BodyPlan/fish`
+(the crab: `…/BodyPlan/crustacean`), `_defaultMaterialPath:
+/stuff/idea/material/food/fish-flesh`, `habitat`, `biddability: 0`
+(`lint:kept-animals`), `handlingRange` (carp `{0.1, 0.6}`; the rest
+`{0, 0.15}`), `feedingStyle` (carp `[surface]`; the rest none),
+`butcheryYield` (fillet, roe, offal — **no bone or skin row exists**
+in any pack, so those two cuts are the noun wave's and the yield stops
+at three), `adultMass`, `stature`,
+`olfactoryProfile: { acuity: dull }`. Habitats:
+
+| species | temp K | salinity | current | seasons | role | abundance | fight |
+|---|---|---|---|---|---|---|---|
+| brown-trout | 275–288 | fresh | moderate·fast (author `fast`; `moderate` reads 0.35) | all | predator | 40 | 0.5 |
+| eel | 278–295 | any | slow | spring·summer·fall | forage | 60 | 0.35 |
+| grey-mullet | 283–298 | brackish | slow | spring·summer·fall | forage | 80 | 0.4 |
+| carp | 285–300 | fresh (any current `still·slow`) | slow | all | forage | 50 | 0.3 |
+| shore-crab | 278–298 | brackish | slow | all | bait | 120 | 0.1 |
+| sturgeon | 280–294 | brackish | slow | spring·summer | apex | 2 | 1.0 |
+
+so the confluence (30 m, brackish, 90 m wide, slow) holds mullet, eel,
+crab, carp and the sturgeon; the Holloway head (1100 m, fresh, fast,
+cold) holds trout and nothing else; the Delight flats (180 m, fresh,
+22 m, moderate-to-slow) holds trout and carp. Two `BodyPlan` rows
+(`fish`: `breathableMedia: [water]`, `locomotionModes: [swim]`,
+minimal slots, copied from `avian.yaml`'s shape; `crustacean`:
+`breathableMedia: [water, air]`). One material
+`/stuff/idea/material/food/fish-flesh` (`ConsumableMaterial`; `tags:
+[food, meat, fish]` — `meat` is what lets the shipped cure / smoke / dry
+rows accept a fillet unchanged; `spoilActivationEnergy: 60000`,
+`waterActivity: 0.99`, `tastes: [umami, salty]`, `nutrients` protein +
+fat). Two Provision rows `/trade/fishing/thing/{fillet,roe}` over it;
+offal is the shipped `/stuff/thing/items/offal`.
+
+### D19 — the verb `give` collides; the contest verbs are `reel` and `slack`
+
+`give` is `platform/cmd/inventory/give.yaml` and `lint:verb-collisions`
+refuses a second view; the requirements' contest pair ships as `reel` /
+`slack` (`slack` is what an angler says). The requirements doc was
+edited to `slack` at the handoff, so the two agree.
+
+### D20 — what the kitchen gets: butchery carries the body's own load
+
+`ButcherController` (trade-cooking): after `ageAtKill` and before
+`spillGut`, `if (MixinApi.isContaminable(body))
+body.transferContaminationTo(cut)` — the carcass's own load rides onto
+every cut. A fish landed at the confluence is stamped at landing with
+`e-coli` at `contamination.byKind.organic × fishing.contamination.loadPerUnit`
+(seed 2.0, tuned so the drive's confluence fish meets the roster's
+`infectiousDose` raw and not after a `sear`) — `Fish.setPathogenLoad`
+through the Contaminable surface. *Look at it says nothing*: the mixin
+ships no augmenter. **What the trade-cooking edit claims:** any
+Contaminable carcass carries what it carries onto its meat — true, and
+today no carcass is Contaminable but a fish.
+
+### D21 — the drive is a dirty wire file
+
+`packages/wire/tests/fishing.dirty.wire.test.ts`, exporting
+`DIRTY_REASON` (issues coin, buys tackle, draws fish down, names a carp,
+sells a fish). Two sessions plus a wizard: the founder-coin → bank → buy
+pattern from `pets-offer`; game-day skips by `eval`; the restart step
+(Barnaby in his bowl) and the third session at the millsite are run and
+recorded in § Drive record by hand. The requirements' step 10 (*the room
+below the outfall*) is run **at the bank** — the confluence reach is the
+outfall's reach (Grounding) — and its raw meal is the raw **fillet**
+after `butcher`, because a whole fish is a body, not food.
+
+---
+
+## ⭐⭐ Host placement
+
+For every new field, mixin and class: the host, and what composing it
+claims about everything else on that host. **The test:** a guard that
+re-narrows the host set means the host is wrong.
+
+| new thing | host | what it claims about the whole host set | narrowing guard? |
+|---|---|---|---|
+| `fishery` document kind | kernel `DocumentKinds` | the store can hold a runtime-written, path-keyed, kept record — same as `herd` | none |
+| `FisheryRegistry` (+ its `fisheries` documents) | water pack `/system/water/idea/`, `RegistrarMixin(Idea)` | the water system keeps a population book for every reach it compiles — true whether or not anyone fishes | none; reads verify prefix + kind |
+| `WatercourseNode.stocks` | water pack `Watercourse` node (data) | any reach may be stocked by an author — the aquaculture seam | none |
+| `Species.habitat` | kernel `Species` | every species *may* declare where it lives; `null` = not in any water (the cat, the pig) | none — an absent habitat is zero fit, not a guard |
+| `'surface'` in `FEEDING_STYLES` | kernel `Species` vocabulary | a feeding rung an animal in water has; not a vessel kind | none |
+| `Bonded.takesFromHand()` / `hasChosen()` / `homeEarnedDay` | kernel `BondedMixin` (every kept animal) | every bonded animal remembers whether its home was earned; `hasChosen` is the naming gate for all of them | none — the cat's gate widens honestly (Risks) |
+| `feeds` reads the host's own container | kernel brain | an animal inside a feeder of its rung eats from it | none |
+| `Respiration.onMoved` + the immersion step | kernel `RespirationMixin` (every respiring body) | a move re-checks the medium; a body in a vessel of liquid breathes the liquid | none |
+| `Postmortem.freshnessLoad()` | kernel `PostmortemMixin` (every creature) | a dead body's flesh spoils on the shipped law | none |
+| `ToolMixin.epoch` | kernel `ToolMixin` | every tool has an epoch (`''` = unstated) | none |
+| the `turned` refusal in `consign` | kernel `ConsignController` | no shelf anywhere lists a turned provision or a carcass past fresh | none — a state read of the good |
+| `Fish` = `ContaminableMixin(KeptAnimal)` | trade-fishing `/trade/fishing/agent/Fish` | every fish can carry a pathogen load and can be kept; nothing else kept can carry one | none |
+| `Fish.lengthM`, `sizeWords()` | `Fish` | every fish has a length worth words | none |
+| `Shore` (`reachRef`, the water read) | **water pack** `/system/water/thing/Shore` | a room-fixed feature that cites a reach and reads the water — true whether or not anyone fishes (the `/system/` test); the fishery read is gated by whatever Discipline `water.fishery.readDiscipline` names | none |
+| `Rod`, `Trap`, `Trowel`, `Bait` | trade-fishing `/trade/fishing/thing/*` — plain classes, no new mixin | one class per instrument; the pot and the net are rows of one class (numbers, never a `trapKind` branch) | none |
+| `Trap.setAtS/setReach/setBy` + `canEvict` veto while set | `Trap` | a set trap is fixed and stays resident | none |
+| `FishingEngagement`, `LandingContest` | trade-fishing `src/lib/` (value classes, instance methods only) | substrate only ever instantiated by the trade's own controllers and brain | none |
+| `Waters` singleton | trade-fishing `/trade/fishing/idea/Waters` | the trade's world-level arithmetic (`reachAt`, `bandOf`, `feedFactorsAt`), in one place a doc can find; `readFor` lives on the registry (D7) | none |
+| `fishes`, `reads-water` brains | trade-fishing `src/behavior/` | any `Behaved` row may fish or read water | none |
+| `fishing` Discipline | trade-fishing `/trade/fishing/idea/Discipline/fishing` | — | — |
+| the fish `props`-row `/trade/fishing/thing/fish-bowl` | kernel `/platform/thing/Feeder` (a row) | nothing new — a feeder with a bigger interior | none |
+
+Two placements considered and refused, in the shape of the commits that
+haunt this repo:
+
+- **`Contaminable` on `KeptAnimal`** ("a kept animal is often food") —
+  false of the cat, the collie and the canary; the `Weapon` mistake.
+- **the immersion rule in `BiomeLogic.syncChainWalk`** — it would make
+  the room's *temperature* resolve from a bowl's water; only respiration
+  asks the immersion question.
+
+---
+
+## Convention conformance
+
+Checked at plan time, not recalled.
+
+- **`props:` / `cast:`** — the Shore rows, the fish stall and the
+  fisher's rod are `props:`; the fisher and the fishmonger are `cast:`
+  (`bank.yaml`, `stalls.yaml`, `stormy-heath.yaml`). `populates:` is
+  retired.
+- **Locations, not rooms** — no new location class; the two waters are
+  existing `SingletonCartesianLocation`s; the market `Offstage` is the
+  shipped class.
+- **The five axes / `<root>/<branch>/`** — `/system/water/idea/FisheryRegistry`
+  (mechanism, the water system's); `/trade/fishing/{thing,agent,idea,behavior,lib}/…`
+  (the trade's mechanism); species and the material under `/stuff/`
+  (the commons); `/system/water/thing/Shore` (the water system's
+  mechanism); the Shore ROWS under `/world/…` (expression).
+  Controllers at `/trade/fishing/idea/cmd/fishing/<Name>Controller`
+  (rows + `src/idea/cmd/fishing/`), views at
+  `/trade/fishing/cmd/fishing/<verb>` — a new `fishing` command
+  category, as `mining` is `trade-mining`'s.
+- **Module scope declares; lifecycles initialize** — the registry and
+  `Waters` load lazily on first read (no `boot:` entry; a warmed roster
+  is the trap); the Shore memo refreshes at `postRegister`.
+- **The import boundary** — pack code imports the kernel only by
+  `@saxonberg/server/mud/…` specifier; the trade reads the water pack's
+  registry **by path, duck-typed** (the `GristMill` rule), and the water
+  pack imports nothing of the trade. `lint:imports` pack tier.
+- **No Api, no logic singleton, no free helper in a pack** — `Waters`
+  and `FisheryRegistry` are singleton Ideas; the contest is a value
+  object; module-private functions live inside the class file that owns
+  them (the `HerdRegistry` precedent).
+- **No new public static anywhere** — `LIB_STATICS_CEILING` counts pack
+  `src/` too.
+- **Verbs live on objects** — `hasChosen`, `takesFromHand`,
+  `freshnessLoad`, `standingAt`, `readFor`, `draw`, `release`,
+  `sizeWords` are all instance methods on the thing they are about;
+  `SchedulerApi.start/complete` stay on the orchestrator.
+- **The instrument affords the verb** — `Rod` affords `fish`/`reel`/`slack`;
+  `Trap` affords `set`/`lift`; `Trowel` affords `dig`; `Fish` affords
+  `release`; `Stock` already affords `consign`/`buy`/`reclaim`. All as class statics; no row
+  `commandContributions:`.
+- **An instrument is an argument** — every verb declares its shore /
+  rod / bait / ground / trap / counter as a bound arg with a default
+  query; controllers narrow on state only.
+- **A PERSON keys on `getIdentityPath()`** — `Trap.setBy`, the fisher's
+  deeds (the consignor key is the shipped controller's).
+- **Lint gates this build must pass:** `lint:family` whole, and by name
+  the ones its shape touches — `verb-collisions`, `instrument-args`,
+  `capabilities` (`angling`, `digging` consumed by the `fish` / `dig`
+  views' instrument args), `kept-animals`, `perishable`, `pathogens`,
+  `object-verbs`, `whole-table` (the registry narrows its own table),
+  `world-scan` (no world enumeration — species by class, works by rows),
+  `lib-statics`, `test-content` (pack tests beside their content; kernel
+  tests use `/test/**` paths), `drive-scripts`, `arg-kinds` (a `requires:
+  any` on `bait` and `body`-shaped args only), `mixin-names` (no new
+  mixin), `instanceable` (`Waters`/`FisheryRegistry` rows have no
+  `hydratorClass` and `data: {}`), `census` (`butcheryYield` cuts,
+  `_bodyPlanPath`, `_speciesPath` resolve), `untitled` (every new row
+  under a claim — `/trade/fishing` claimed by the pack), `identity` +
+  `dossiers` (two new Cast rows with archetypes and dossiers),
+  `unconsumed-seams` (`habitat` is read by the water pack; `epoch` is
+  `lib/` and out of that gate's scope, as forestry recorded),
+  `binder-models` (every controller test uses the binder or the
+  factory), `gates`, `imports`, `module-scope`, `field-meta`,
+  `test-bootstrap`, `schema` (no collection change — must still read 48).
+
+---
+
+## Waves
+
+One commit per wave; the commit title is given. Each wave ends green on
+`pnpm test:near` + every touched pack's own `vitest run` +
+`pnpm -C packages/server lint:family`. `pnpm test` runs once, before
+the MR.
+
+### Stage A — the kernel seams
+
+#### A1 — the `fishery` document kind
+- **Implements** D2.
+- **Touches** `packages/server/src/mud/lib/document/DocumentKinds.ts`;
+  `packages/server/src/mud/lib/document/__tests__/` (extend the kinds
+  test: `fishery` is path-keyed and kept; `FLAT_KEY_DOCUMENT_KINDS`
+  unchanged).
+- **Acceptance** `lint:schema` still reports 48; `DECLARED_DOCUMENT_KINDS`
+  includes `fishery`.
+- **Commit** `build(fishing A1): the fishery document kind`.
+
+#### A2 — species habitat, the surface rung, the earned home
+- **Implements** D4, D10.
+- **Touches** `platform/idea/species/Species.ts` (`Habitat` + the three
+  vocab consts + `habitat` field/fieldMeta/accessors + `'surface'`);
+  `lib/husbandry/Bonded.ts` (`takesFromHand`, `homeEarnedDay`,
+  `hasChosen`, `creditHomeCandidate` writes the day, `offerRung` uses
+  `takesFromHand`); `platform/idea/cmd/inventory/OfferController.ts`
+  (the reason line); `platform/idea/cmd/social/NameController.ts`
+  (`hasChosen`); `lib/behavior/feeds.ts` (own container as feeder);
+  `__tests__/wiki-spoiler-fields.snapshot.test.ts` (bless `habitat` at
+  0 with the reason, and `homeEarnedDay` at 0 — it is a clock, not a
+  secret); tests: `Species.test.ts` (setHabitat validates; unknown words
+  throw), `Bonded.test.ts` (a seeded home does not satisfy `hasChosen`;
+  three distinct fed days do; a follower still does), `feeds.test.ts`
+  (an animal inside a bowl-kind feeder eats from it), `NameController`
+  tests keep passing.
+- **Acceptance** `lint:kept-animals` green; the pets wire suite untouched.
+- **Commit** `build(fishing A2): habitat on Species; surface rung; the earned home is the other naming gate`.
+
+#### A3 — immersion, the move re-check, the carcass's clock, the epoch
+- **Implements** D8, D9, D14.
+- **Touches** `lib/respiration/Respiration.ts`; `lib/mortality/Postmortem.ts`;
+  `lib/craft/Tooled.ts` (paste forestry's hunk verbatim); tests:
+  `Respiration.test.ts` (a water-breathing fixture in a fixture vessel
+  holding `water` reads medium `water`; in air it reads `air`; `onMoved`
+  calls `reassess`), `Postmortem.test.ts` (`freshnessLoad` grows with
+  `sinceDeath` and equals `Freshness.advance` at the same inputs),
+  `Tooled.test.ts` (`epoch` round-trips; `''` unstated).
+- **Acceptance** respiration + mortality suites green; no Corpse prose
+  changes.
+- **Commit** `build(fishing A3): a body in a vessel breathes the liquid; a carcass knows its own freshness; tools carry an epoch`.
+
+#### A4 — `consign` refuses what has turned
+- **Implements** D11.
+- **Touches** `platform/idea/cmd/retail/ConsignController.ts` (the
+  `turned` refusal before the stack split); tests: the controller's
+  existing suite through the binder (a fresh Provision lists; a
+  Provision in its `turned` band is refused `turned`; a `Postmortem`
+  fixture past fresh is refused; a live fixture lists). No view change,
+  no `Stock` change, no banking change.
+- **Acceptance** `lint:binder-models` 0; the retail wire suite untouched.
+- **Commit** `build(fishing A4): a shelf refuses a turned good`.
+
+#### A5 — the carcass carries its own load
+- **Implements** D20.
+- **Touches** `packages/content/trade-cooking/src/idea/cmd/crafting/ButcherController.ts`
+  (+ `butchery.test.ts`: a Contaminable fixture body's `e-coli` load
+  lands on every cut; a clean body changes nothing).
+- **Acceptance** trade-cooking suite green; `lint:pathogens` green.
+- **Commit** `build(fishing A5): butcher carries a carcass's own contamination onto its cuts`.
+
+### Stage B — the record, the trade, the content, the drive
+
+#### B1 — the fishery record in the water pack
+- **Implements** D1, D3.
+- **Touches** `packages/content/water/src/idea/Watercourse.ts` (node
+  `stocks?`), `WatercourseCatalogue.ts` (parse + `CompiledReach.stocks`),
+  new `src/idea/FisheryRegistry.ts` (+ `readFor`, D7), new
+  `content/system/water/idea/FisheryRegistry.yaml`, new `src/thing/Shore.ts`
+  + `content/system/water/thing/Shore.yaml` (D15), `content/settings/water.yaml`
+  (`water.fishery.*` incl. `readDiscipline` and `read.emptyBelow`, with
+  comments), `src/__tests__/FisheryRegistry.test.ts`
+  (against a synthetic `/test/…` species template authoring a habitat
+  and the shipped Kestrel/Holloway rows: the confluence's capacity for
+  a brackish-slow species is > 0 and the Holloway head's is 0; a cold
+  fast species is the reverse; `draw` then `standingAt` shows the level
+  down; recovery after a half-life; a `stocks:` node overrides fit;
+  reads verify prefix + kind; no document is written by a read;
+  `readFor` names an apex only at practised+), `Shore.test.ts` (a Shore
+  memo renders the physical read at floor and the species read at
+  practised, from a stubbed standing; with `readDiscipline` naming a
+  missing row it renders the physical read only).
+- **Acceptance** water suite green; `lint:world-scan` untouched.
+- **Commit** `build(fishing B1): the fishery record and the shore — every reach holds what belongs in it`.
+
+#### B2 — the trade pack: rows, species, material, `Fish`, `Waters`, the Discipline
+- **Implements** D6, D7, D15, D18.
+- **Creates** `packages/content/trade-fishing/` — `package.json`
+  (`@saxonberg/content-trade-fishing`; deps: platform, base-library
+  (the material root), species-and-names (the species root),
+  generic-objects (ships `/stuff/thing/items/offal`, the offal cut),
+  water, server, types — no trade-cooking dependency),
+  `pack.yaml` (`root: /trade/fishing`, group `fishing`, title
+  `/trade/fishing`), `vitest.config.ts`, `src/` (`agent/Fish.ts`,
+  `idea/Waters.ts`), `content/` (six species rows,
+  two BodyPlans, the material, `thing/{fillet,roe}.yaml`, six agent
+  rows, `idea/Waters.yaml`, `idea/Discipline/fishing.yaml`,
+  `settings/fishing.yaml`). Then `pnpm install` at the root (a new pack).
+- **Tests** `src/__tests__/rows.test.ts` (every row resolves; every
+  species' `_bodyPlanPath`, `_defaultMaterialPath`, `butcheryYield.cut`
+  resolves — the `carcass-rows` precedent), `Fish.test.ts` (`sizeWords`
+  bands; a dead fixture reads a band, never a number; a live one reads
+  nothing), `Waters.test.ts` (`reachAt` reads a Locality; `bandOf` reads
+  the floor for a viewer with no transcript).
+- **Acceptance** `lint:perishable`, `lint:pathogens`, `lint:kept-animals`,
+  `lint:census`, `lint:untitled`, `lint:instanceable` green;
+  `lint:capabilities` unchanged (no instrument yet).
+- **Commit** `build(fishing B2): trade-fishing — six species, a fish, and the Discipline`.
+
+#### B3 — the rod, the wait, the bite, the contest, `release`
+- **Implements** D5, D19.
+- **Creates** `src/thing/Rod.ts` (+ `Bait.ts`), `src/lib/FishingEngagement.ts`,
+  `src/lib/LandingContest.ts`, `src/idea/cmd/fishing/{Fish,Reel,Slack,Release}Controller.ts`,
+  the four views `content/trade/fishing/cmd/fishing/{fish,reel,slack,release}.yaml`
+  and controller rows, rows `thing/{rod,worm}.yaml` (`capabilities:
+  [angling]`, `epoch: medieval`; `worm` `baitKind: worm`). The `fish`
+  view: `rod` arg `default: "inventory:[capability.angling]"`, `requires:
+  [ToolMixin]`; `bait` optional (`with`), `scope: inventory`, `requires:
+  any`; `shore` optional (`at`), `default: "reachable:[class.Shore]"`.
+- **Tests** `LandingContest.test.ts` (pure: two quick reels snap a full
+  fighter; alternation lands one; slack twice throws), `FishingEngagement.test.ts`
+  (with a stubbed registry: no bite prints nothing; pressure crosses
+  deterministically; the species draw is stable for a seed; a small
+  fish lands into the hand and `draw` is called; a fighter opens a
+  contest; an NPC actor releases), controller tests through the binder
+  (`fish` with no rod is refused before any controller runs — the arg
+  gate; `reel` with no engagement says so; `release` returns a fish to
+  the record and destructs it; an apex release records a deed).
+- **Acceptance** `lint:capabilities` sees `angling` consumed;
+  `lint:instrument-args` 0; `lint:arg-kinds` green.
+- **Commit** `build(fishing B3): fish, reel, slack, release — the bite is the fish's decision`.
+
+#### B4 — the pot, the net, the trowel, the bowl
+- **Implements** D12, D13.
+- **Creates** `src/thing/{Trap,Trowel}.ts`, controllers + views
+  `set`/`lift`/`dig`, rows `thing/{pot,net,trowel,fish-bowl,fish-food}.yaml`
+  (`fish-bowl`: `/platform/thing/Feeder`, `feederKind: bowl`,
+  `interiorCapacity: 4`; `fish-food`: a `/platform/thing/Provision` over
+  the shipped `trail-ration` material — no new material for crumbs —
+  keywords `[crumbs, feed, fish-food]`). The pot and net rows author
+  `capabilities: [trapping]`, consumed by the `set`/`lift` views'
+  `trap` arg default.
+- **Tests** `Trap.test.ts` (`lift` after `h` hours integrates against a
+  stubbed standing; a net empties a reach in an afternoon of game time;
+  a set trap vetoes eviction and is `fixedInPlace`), `dig` through the
+  binder (draws organic matter; refuses at floor; a worm in hand).
+- **Acceptance** `lint:capabilities` sees `digging` consumed.
+- **Commit** `build(fishing B4): set and lift a pot and a net; dig for worms`.
+
+#### B5 — the brains
+- **Implements** D16.
+- **Creates** `src/behavior/fishes.ts`, `src/behavior/reads-water.ts`,
+  tests (`fishes` starts one engagement per beat and never two; the
+  released fish returns to the record; `reads-water.open` builds a tree
+  whose beat is the `empty` line when the standing is empty and the
+  `holds` line with species names at practised; a busy NPC declines).
+- **Commit** `build(fishing B5): the fisher fishes and reads the water`.
+
+#### B6 — the content: two waters, two people, the store, the stall
+- **Implements** D15 (rows), D17, the store lines.
+- **Touches** `terminus`: `wharfside/bank.yaml` (`props:` + river-edge,
+  `cast:` + fisher), new `wharfside/thing/river-edge.yaml`, new
+  `wharfside/agent/fisher.yaml` (`Cast`, `archetype: fisher`, dossier,
+  `props: [/trade/fishing/thing/rod]`, `behaviors`: `introduces`,
+  `fishes` `cadence:90s` with `shore`, `reads-water` `engage` with the
+  lines), `market/business.yaml`, new `market/thing/fish-stall.yaml`,
+  new `market/agent/fishmonger.yaml`, new `market/offstage.yaml`,
+  `market/stalls.yaml` (`props:` + stall), `general-store/counter.yaml`
+  (lines + prices: rod 9, worm 1, pot 7, net 15, trowel 3, fish-bowl 5,
+  fish-food 1 — against the shipped ladder), `src/__tests__/general-store-content.test.ts`
+  (admit `/trade/fishing/thing/{Rod,Trap,Trowel,Bait}`), `package.json`
+  (+ trade-fishing); `world-seed`: `world/moor/stormy-heath.yaml`
+  (`props:` + heath-mere), new `world/moor/heath-mere.yaml` (class
+  `/system/water/thing/Shore` — `world-seed` already depends on `water`,
+  no new line). Then `pnpm install`.
+- **Tests** content tests beside the rows (the terminus pack's shape:
+  rows resolve; the fisher's brain paths resolve through
+  `StuffApi.resolveExport`; `lint:identity`/`dossiers` green; the
+  market business's roster names a live Cast; no `shifts` without a
+  trigger — assert it).
+- **Acceptance** boot on a fresh DB: `PackApi: 'trade-fishing' installed`,
+  no `requires-kernel` failure, the fish stall stands up on the first
+  `consign`.
+- **Commit** `build(fishing B6): the confluence bank and the moor heath fish; the fisher and the fishmonger`.
+
+#### B7 — the drive, the record, the subsystem doc
+- **Implements** D21.
+- **Creates** `packages/wire/tests/fishing.dirty.wire.test.ts`;
+  `docs/subsystems/fishing.md` (the doc the sweep expands; the CLAUDE.md
+  one-line pointer is left to the sweep — index files get swept, not
+  raced); append the drive record below.
+- **Acceptance** every drive step run against the live game and
+  recorded with its output; `lint:drive-scripts` 0.
+- **Commit** `drive(fishing): <what driving found>` then `build(fishing B7): the drive as a wire file; docs/subsystems/fishing.md`.
+
+---
+
+## Reachability wiring
+
+Five links per capability — verb · affordance · data · boot · arg gate.
+Each fails closed and silent.
+
+| capability | verb (view) | affordance (a class static) | data (rows that must exist) | boot (what warms it) | arg gate (`requires:` the target composes) |
+|---|---|---|---|---|---|
+| angling | `trade/fishing/cmd/fishing/fish.yaml` | `Rod.commandContributions.peers/environment` | `/trade/fishing/thing/rod` (`capabilities: [angling]`), a bait row, the species + agent rows, a reach (Shore row or Locality `_reach`) | nothing — `Waters` and the registry load lazily; the Shore memo refreshes at `postRegister` | `rod` `ToolMixin` (default `[capability.angling]`); `bait` `any`; `shore` `class.Shore` default, optional |
+| the contest | `reel.yaml`, `slack.yaml` | `Rod` (same statics) | — | the live `fishing` engagement (`getEngagementByType`) | no object arg |
+| release | `release.yaml` | `Fish.commandContributions.peers` | a Fish in hand at a reach | — | `fish` arg `scope: inventory`, `requires: any`; the controller narrows `instanceof Fish` (the pack's own class) and refuses `not-a-fish` |
+| trapping | `set.yaml`, `lift.yaml` | `Trap.commandContributions` | `/trade/fishing/thing/{pot,net}` | — | `trap` `ToolMixin` (default `inventory:[capability.trapping]` — `Trap` rows author `capabilities: [trapping]`, consumed here) |
+| bait digging | `dig.yaml` | `Trowel.commandContributions` | `/trade/fishing/thing/{trowel,worm}`; a `CultivableMixin` ground | — | `ground` `CultivableMixin`; `trowel` default `[capability.digging]` |
+| consigning | `consign`/`buy`/`reclaim` (shipped) | `Stock`'s shipped statics | the fish-stall `Stock` row (`stockLines: []`, self-service); the consignor's bank account; the business stood up (`ensureOperatorAt`) | the business stands up lazily on the first `consign` | `counter` `reachable:[mixin.ConsignmentShelfMixin]` (shipped) |
+| the water read | `look` (shipped) | `Shore.markupAugmenters` (water pack) | the Shore row `props:`-ed on the room; `water.fishery.readDiscipline` naming an installed Discipline row for the species read | the memo's first refresh at `postRegister` — ⚠ verify the first `look` after boot is warm (Risks) | — |
+| the fishery record | — | — | `FisheryRegistry.yaml`; species rows with `habitat`; Watercourse rows | lazy on first `standingAt` | — |
+| the kept fish | `put` / `offer` / `name` (shipped) | `BondedMixin.peers` (inherited) | `/trade/fishing/thing/fish-bowl` (Feeder), `fish-food`; carp `feedingStyle: [surface]`, `biddability: 0` | `Bonded.postRegister` warms the species | `put` target `ContainerMixin` ✓ Feeder; `offer` animal arg — ⚠ its scope must reach INTO an open bowl (Risks) |
+| the fisher | `talk` (shipped) | `Cast` is `Behaved` | the fisher row with `reads-water` at `trigger: engage` and `fishes` at a cadence, `props: [rod]`, on the bank's `cast:` | the room's cast minted at boot | `talk` target `BehavedMixin` ✓ |
+| the fishmonger | `appoint` (shipped) | `Persona.self` | `business.yaml` position + roster, the stall, the Offstage row, the Cast on `stalls.yaml`'s `cast:` | the roster tick (`EmploymentApi.boot`) materializes the Employment | field validator `mustHoldAppointingAuthority` — the committee, founder passes |
+| the Discipline | — | — | `/trade/fishing/idea/Discipline/fishing` | `DisciplineCatalogue` warms by class | — |
+| the deed | — | — | — | `recordDeed` on the persona | — |
+
+⚠ Two of these were dead once before in this repo and are the ones to
+walk first at the drive: a row's `commandContributions:` (never — every
+affordance above is a class static) and `props:` on the wrong host (the
+rod goes on the *fisher's* row, the Shore on the *room's*).
+
+---
+
+## Acceptance-criteria coverage
+
+| requirement AC | waves |
+|---|---|
+| wait, silent refusal, small fish lands itself, lose or land a fighter through `reel`/`slack` | A2 (surface/hand not needed here), B2, B3, drive 3–6 |
+| no number ever shown — size, stock, competence, rod condition | B1 (`readFor` bands), B2 (`sizeWords`), B3 (contest prose), shipped Durable bands; drive 1, 4 |
+| confluence and heath hold different species with no table; the millsite yields from the Delight's reach with its pack untouched | B1 (fit), B2 (habitats), B6 (rows), D15 fallback; drive 13, 13b |
+| the fisher fishes, reads aloud, reports empty without naming who | B5, B6; drive 9 |
+| the fishmonger is committee-appointed, keeps a shift, replaceable by `appoint` | B6 (D17); drive 11 + an `appoint` step added to the wire file |
+| a net empties a reach in an afternoon and it recovers over days; a practised `look` reads both | B1 (recovery, `readFor`, `Shore`), B4 (net numbers); drive 9 |
+| a fish below the outfall carries the load; raw it sickens; nothing says so | A5, B3 (stamp at landing), D20; drive 10 (at the bank — see D21) |
+| the stall lists a fresh fish and refuses a turned one; a buyer's coin reaches the consignor less the commission; a fillet spoils; smoked or salted keeps | A3 (D9), A4, B2 (material tags), shipped consignment + cure rows; drive 11–12 |
+| a carp kept and fed three days can be named, `find … mine` lists it without a place, it is in its bowl after a restart; before three days *not chosen* | A2 (D10, feeds), A3 (D8), B4 (bowl, food); drive 14–15 |
+| the sturgeon is in the record, reads royal, catch and release are deeds | B2 (habitat apex, prose), B3 (deeds); drive 16 |
+| `cast` still casts spells | D19 (no `cast` view touched); `lint:verb-collisions` |
+| every drive step run live and recorded | B7 |
+
+Unmapped: none.
+
+---
+
+## Test & gate strategy
+
+- **Unit, in the kernel** (A1–A4): the kinds table; `Species.setHabitat`;
+  `Bonded.hasChosen` in both routes and the seeded-home negative;
+  `feeds` inside a feeder; respiration's immersion + `onMoved`;
+  `Postmortem.freshnessLoad`; `Tooled.epoch`; the `consign` `turned`
+  refusal through the binder.
+  Kernel fixtures use `/test/**` paths (`lint:test-content`).
+- **Unit, in packs** (A5, B1–B5): trade-cooking's carcass load; the
+  registry's fit table against the shipped Watercourse rows (the water
+  pack's own suite already boots them); the contest as pure arithmetic;
+  the engagement with a stubbed registry; every controller through the
+  binder (`lint:binder-models`); brains with a stubbed standing.
+- **Content tests** (B6): rows resolve, brain paths resolve, roster
+  names a Cast, `shifts` has a trigger, the store allowlist.
+- **Only the drive can prove:** that the bite arrives at all on a live
+  clock; that a landed fish dies in the hand and lives in the bowl;
+  that the record survives a restart; that the moor's read differs from
+  the confluence's; that the fisher says *empty* after a net; that a raw
+  confluence fillet sickens within the hour; that Barnaby is in his bowl
+  after a reboot.
+- **Gates:** `pnpm -C packages/server lint:family` after every wave; the
+  ones named in § Convention conformance are the ones expected to move.
+- ⚠ `pnpm test` runs at exactly two moments: before the MR opens and at
+  `/finalize`. Between, `pnpm test:near` + each touched pack's `vitest
+  run` + the family. Never in the background.
+
+---
+
+## Risks & opens
+
+What could break; what the build should decide by the recorded lean and
+what it should stop for.
+
+1. **The forestry merge (`epoch`).** A3 pastes forestry's hunk verbatim.
+   If `build/forestry` merges first, A3's `Tooled.ts` change is a no-op
+   diff — drop it from the commit and note it. If fishing merges first,
+   forestry's rebase sees an identical hunk. Do not rename, reorder or
+   reword it.
+2. **The confluence carries the outfall's load** (Grounding:
+   `contaminationAt` counts `at === ref`). Every fish landed at the
+   bank is dosed; the intake, a hundred paces up, is on the same reach.
+   The drive runs step 10 at the bank. ⭐ For the user: is a per-reach
+   granularity acceptable for v1, or does the bank want a second reach
+   (`kestrel:wharf` between confluence and estuary, a world-seed edit)?
+   **Decided at the handoff: accept for v1**; the requirements' *"the
+   reach below it carries the city's contamination"* is literally true
+   of the confluence. A `kestrel:wharf` node is a water-slate finding.
+3. **The dose must actually bite raw.** `fishing.contamination.loadPerUnit`
+   is tuned against the `e-coli` row's `infectiousDose` and the
+   confluence's live `contamination.level` at the drive; the drive step
+   is the calibration, not a doc number. If a raw fillet does not sicken
+   within the hour, the dial moves — never the roster.
+4. **The Shore's first `look` must be warm.** The memo refreshes at
+   `postRegister` and on every render; a session that arrives before the
+   first refresh lands reads *the water is hard to read yet*. Verify at
+   the drive (step 2); if it bites, kick the refresh from the room's
+   arrival witness or `settle()` it from `fish`.
+5. **`offer … to carp` inside a bowl.** The `offer` view's animal arg
+   must resolve a fish inside an open container in the room. Check
+   `platform/cmd/inventory/offer.yaml`'s scope at B4; if it is `peers`
+   only, widen to `[reachable]` (a kernel view edit, a local fix).
+6. **`PersistableApi.placeIdOf(bowl)`.** `hasChosen` and `feeds` compare a
+   *vessel's* place id. Confirm at A2 that `placeIdOf` answers for a
+   Thing (it is called with a room today); if it answers only for
+   locations, key the home on the vessel's `getIdentityPath()` instead.
+7. **Barnaby after a restart.** A keyed `Persistable` inside a bowl
+   inside a room or an inventory: `HostPlacement.via` carries nested
+   anchors (`[table, cage]`), so a bowl on a shelf should restore. The
+   drive keeps the bowl **in the player's inventory** for the restart
+   step (the snapshot captures the whole tree) and records what the
+   room case does; a failure there is a finding for the pets slate, not
+   a blocker.
+8. **A set trap in a public room.** `canEvict` vetoes while set and
+   `fixedInPlace` stops `get`; the reset sweep re-mints `props:` rows
+   but does not touch a player's dropped chattel. Verify at the drive
+   (step 8) that a pot survives a wizard game-hour skip.
+9. **The water material's name is `water`.** The immersion step matches
+   the body plan's `breathableMedia` against `getBulkMaterial('interior')
+   .getName()`. Confirm the base-library water row's `name` at A3; the
+   bowl is filled with that material.
+10. **No water source at the bank.** A bowl cannot be filled from the
+    river (the bank's river is a `details:` entry). The drive fills it at
+    a tank or standpipe (Hinkley's, or the store's waterskin → `pour`).
+    ⭐ For the user: a finding — a person standing at a river with a
+    bowl cannot fill it. Out of scope; recorded.
+11. **`lint:lib-statics` at 337.** Every new class here has instance
+    methods only; module-private functions live in the owning file. A
+    single new public static fails the family.
+12. **The store-goods allowlist** admits four pack classes (B6).
+13. **The wiki spoiler snapshot** gains `habitat` and `homeEarnedDay`
+    (A2) — answer the question in the review log; do not bless blind.
+14. **The moor Locality cites `holloway:vale`**; the heath's Shore cites
+    `holloway:head`. The feature wins over the locality by design (D15);
+    nothing on the moor row changes. The weeping chamber is untouched.
+15. **`hearts-delight` untouched** — the millsite fishes via
+    `Waters.reachAt` → `delight:flats`. If the drive finds the Delight's
+    flats holding nothing for a trout at the drive's season, the fix is a
+    habitat number, never a millsite edit.
+16. **The BodyPlan row shape** is copied from `avian.yaml`; the fish plan
+    must declare `breathableMedia: [water]` and a `swim` locomotion mode
+    or `Respiration` reads `['air']` and the fish drowns in its bowl.
+    `Species.test`'s row check pins it.
+17. **The naming gate widens for every kept animal** (D10). ⭐ For the
+    user: a stray fed from a bowl in one room for three game days can be
+    named there without following. The requirements call this *the other
+    route home*. **Decided at the handoff: accept the widening** — a
+    stray fed at one door three days running has chosen it; the gate is
+    three *distinct* fed days at one place, never three feedings.
+18. **Nobody buys the catch but a buyer** (D11, decided at the handoff).
+    In a one-player session a consigned fish sits on the shelf; the drive
+    buys it with a second character. `reclaim` is the honest exit.
+19. **Fish agent rows under `/trade/fishing/agent/`**, not `/stuff/agent/`
+    (D6). The species stay commons; the individual a trade materializes is
+    the trade's. ⭐ For the user, since the brief leaned `/stuff/agent/`.
+20. **`meat`-tagged fish-flesh** means `smoke-cure` outputs the cooking
+    pack's `treated-cut` (its composition names fish-flesh). Fish-specific
+    cure rows are the noun wave's.
+21. **The fisher fishes bare-hook and releases everything** (D16). ⭐ For
+    the user: he is a reader with a rod, not a supplier. A creel and a
+    consignment beat are the commercial wave's.
+22. **`pnpm install` after B2 and B6** — a new pack and one new
+    dependency line (terminus); forgetting it fails every pack suite at collection
+    and reads like a repo defect.
+23. **The fishmonger's roster hours** `[5, 14)` — outside them the stall
+    is unattended; the stall authors `staffingPolicy: self-service` like
+    the general store (D11), so a monger's absence never blocks a
+    consignment. Decided.
+24. **Stop and ask** only for: a worktree hazard; a `lint:mixin-names`
+    collision (none expected — no new mixin); a `requires-kernel` failure
+    naming a class this plan does not list.
+
+---
+
+## Deferred seams
+
+Clean attach points, each with the slate it leaves as. None of these
+lives in this plan after the sweep.
+
+- **`WatercourseNode.stocks`** (D3) — aquaculture and the stocked pond
+  with ownership → `fishing-slate` § 3 (the override with ownership).
+- **`Habitat.role`** — the food web (bait feeding predators inside the
+  record) → `fishing-slate` waves.
+- **`ToolMixin.epoch`** and `Trap.takesRoles` — the covenant's predicate
+  (*no nets above the falls*) → forestry's land-use covenant; the fishery
+  right rides `water-right` → `fishing-slate` § 7.
+- **The tide** — `salinityOf(reach)` is the one function a tide clock
+  replaces → `fishing-slate` § 9.
+- **The named apex** — the sturgeon as an individual with a chronicle →
+  `fishing-slate` (the user's wanted tail).
+- **Fishing from the barge** — a Shore on a vehicle → `fishing-slate`'s
+  boat follow-on; the underwater regime → `underwater-slate`; the spear →
+  `hunting-slate`.
+- **Fish-specific recipes, skin and bone cuts, crustaceans beyond the
+  crab** → `fishing-slate`'s noun wave.
+- **The fisher's creel and a consignment beat** → the commercial wave.
+- **A river you can fill a bowl from** → a finding for the water slate.
+
+---
+
+## Critical files
+
+Read first, in this order.
+
+1. `docs/requirements/fishing-requirements.md`, `docs/slates/builds/fishing-slate.md`
+2. `docs/subsystems/watershed.md` § *`Watercourse`*, § *Flow*, § *Contamination*; `packages/content/water/src/idea/WatercourseCatalogue.ts`; `packages/content/water/src/idea/WaterRightRegistry.ts`
+3. `packages/content/trade-ranching/src/idea/HerdRegistry.ts`; `packages/server/src/mud/lib/document/Register.ts`; `packages/server/src/mud/lib/document/DocumentKinds.ts`
+4. `packages/content/trade-milling/src/thing/GristMill.ts` (the duck-typed catalogue read + the sync memo)
+5. `docs/subsystems/pets.md`; `packages/server/src/mud/lib/creature/KeptAnimal.ts`; `packages/server/src/mud/lib/husbandry/Bonded.ts`; `packages/server/src/mud/lib/behavior/feeds.ts`; `packages/server/src/mud/platform/idea/cmd/social/NameController.ts`; `packages/server/src/mud/platform/idea/cmd/inventory/OfferController.ts`; `packages/content/trade-ranching/src/agent/WorkingAnimal.ts`
+6. `packages/server/src/mud/platform/idea/species/Species.ts`; `packages/server/src/mud/platform/idea/species/BodyPlan.ts`; `packages/content/species-and-names/content/stuff/idea/species/cat.yaml`, `hog.yaml`; `packages/content/trade-mining/content/stuff/idea/species/BodyPlan/avian.yaml`
+7. `packages/server/src/mud/lib/respiration/Respiration.ts`; `packages/server/src/mud/lib/mortality/Postmortem.ts`; `packages/server/src/mud/lib/thermal/Thermal.ts` l.560–590 (the `onMoved` chain)
+8. `docs/subsystems/activity.md`; `packages/content/transport/src/lib/journey/Journey.ts`; `packages/server/src/mud/lib/husbandry/OfferEngagement.ts`
+9. `packages/server/src/mud/lib/craft/Tooled.ts` and `git show origin/build/forestry:packages/server/src/mud/lib/craft/Tooled.ts`
+10. `docs/subsystems/retail.md`; `packages/server/src/mud/platform/thing/Stock.ts`; `packages/server/src/mud/platform/idea/cmd/retail/BuyController.ts`; `packages/content/platform/content/platform/cmd/retail/buy.yaml`; `packages/server/src/mud/api/banking.ts` (`payWage`, `payDraw`); `packages/server/src/mud/lib/employment/CategoryMeasure.ts`
+11. `packages/content/trade-cooking/src/idea/cmd/crafting/ButcherController.ts`; `packages/content/trade-cooking/content/recipes/smoke-cure.yaml`; `docs/subsystems/spoilage.md`
+12. `packages/server/src/mud/lib/behavior/tree-dialogue.ts`; `packages/server/src/mud/lib/npc/DialogueConversation.ts`; `packages/content/saxonberg-lounge/content/world/lounge/agent/{dave,mara}.yaml`; `docs/subsystems/behavior.md` § *Brains in packs*
+13. `packages/content/terminus/content/world/terminus/{wharfside/bank.yaml,market/business.yaml,market/agent/baker.yaml,general-store/counter.yaml}`; `packages/content/terminus/src/__tests__/general-store-content.test.ts`; `packages/content/world-seed/content/world/moor/stormy-heath.yaml`; `packages/content/eternal-university/content/world/eternal/duncan-hall/agent/katie.yaml` (`props:` on an agent)
+14. `docs/subsystems/content-packs.md` § *The capability rung*, § *How a pack EXPOSES something*; `packages/content/trade-ranching/{pack.yaml,package.json,vitest.config.ts}`
+15. `docs/lint-family.md`; `packages/server/scripts/check-lib-statics.ts` (the ceiling), `check-kept-animals.ts`, `check-verb-collisions.ts`
+16. `packages/wire/tests/pets-offer.dirty.wire.test.ts`, `work.dirty.wire.test.ts`; `docs/testing.md`
+17. `packages/server/src/mud/lib/Seeded.ts`; `packages/server/src/mud/lib/advancement/Advancement.ts` (`creditDeed`, `competenceDigestCached`); `packages/server/src/mud/lib/husbandry/Soil.ts` (the organic-matter reserve)
+
+---
+
+## Drive record
+
+*(appended at build time, not at plan time — the output of running
+`packages/wire/tests/fishing.dirty.wire.test.ts` plus the two manual
+steps (the restart, the millsite session), step by step, with the
+count and what each failure was. Precedent: `farming-plan.md § Checkpoint
+A`.)*
