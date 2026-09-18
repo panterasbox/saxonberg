@@ -413,10 +413,11 @@ describe('PackLogic — pack integration (real packs + real class resolution)', 
     // ⚠ 31 → 32: the injury build added `frost`, the first heat-pump
     // spell. 32 → 36: the magic-expression pass added stonefist,
     // stone-lance, windrazor and acid-splash — the four channels magic
-    // never reached. This count is a real assertion about what the pack
+    // never reached. 36 → 40: a wand for each, so a non-caster can wield
+    // them. This count is a real assertion about what the pack
     // ships, so it moves when the pack does.
     const arcane = results.find((r) => r.packId === 'arcane-library');
-    expect(arcane!.inserted).toHaveLength(36);
+    expect(arcane!.inserted).toHaveLength(40);
     expect(arcane!.inserted).toContain('/stuff/idea/magic/Spell/glowlight');
     expect(arcane!.inserted).toContain('/stuff/thing/magic/glowlight-mote');
     expect(arcane!.inserted).toContain('/stuff/thing/magic/ring-of-veil');

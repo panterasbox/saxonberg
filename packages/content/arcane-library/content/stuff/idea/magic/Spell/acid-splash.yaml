@@ -22,8 +22,13 @@ data:
     castSeconds: 3
   targeting: any
   effects:
+    # [cursed · uncursed · blessed] — how much caustic is collected. A
+    # cursed working musters half a measure and a blessed one twice it,
+    # and the substance-contact seam scales the burn by the litres, so
+    # the band ladder is a real difference in the wound, not just flavour.
     - kind: conjure
       bulkMaterial: vitriol
+      litres: [0.5, 1, 2]
   description: >-
     Oil of vitriol, called out of nowhere and flung over the mark. It is
     real acid: it clings, it fumes, and it does not stop eating until it is

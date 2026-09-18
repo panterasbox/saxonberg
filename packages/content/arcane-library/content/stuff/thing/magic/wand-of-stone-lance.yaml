@@ -1,0 +1,25 @@
+# A wand of stone-lance — a driven spike of stone, wielded by a non-caster. Carries the SHIPPED
+# `stone-lance` working; `zap` spends the maker's stored labour, not competence.
+class: /system/arcana/thing/Wand
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: slender basalt rod, splintered to a point
+  keywords: [wand, rod, stone-lance]
+  register: indefinite
+  longDescription: >
+    A slender rod of dark basalt, splintered at its tip to a spike that
+    looks ready to be driven through something.
+  carriedSpellPath: /stuff/idea/magic/Spell/stone-lance
+  makerId: /obj/npc/practicum/artificer
+  deliveryEfficiency: 1.4
+  capacityTau: 900
+  alwaysOn: false
+  censusKey: wand
+  materialTags: [stone, wood]
+  regionTarget: 2
+  descriptorClass: wand
+  identifiedName: a wand of stone-lance
+  selfIdentifying: true
+  slotClaims:
+    "/stuff/idea/species/BodyPlan/biped": ["hand:right"]
+  blessingOdds: { cursed: 3, uncursed: 95, blessed: 2 }
