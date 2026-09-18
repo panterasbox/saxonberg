@@ -69,7 +69,8 @@ reach and the habitat each species declares to derive it; the `fish` act
 — the wait, the bite as the fish's decision, the landing contest; `set`
 and `lift` on a pot and a net; the tackle as tools with epochs; one
 fish-flesh material; the fishable feature a room cites a reach through;
-the fishmonger; the Discipline; a fish you can keep.
+the fishmonger and the fisher at the bank; the Discipline; a fish you
+can keep.
 
 ---
 
@@ -83,6 +84,13 @@ the fishmonger; the Discipline; a fish you can keep.
   fish are the confluence's because it is wide, brackish and slow; the
   moor pool's are the pool's because it is cold, still and dark. No one
   writes a table for either. A third water is a row naming a reach.
+- **Every authored watercourse holds fish, unasked.** The Delight past
+  Heart's Delight's millsite, the Holloway through Rejection, Cold Fell
+  above the aqueduct — each has reaches, and each reach has a record the
+  moment the species declare their habitats. A locality that never
+  mentioned fishing has fish, and a room there that cites its reach can
+  fish them. That is the zero-code claim proved by a place that did not
+  opt in.
 - **The stock is finite and recovers.** A net fished hard empties a
   reach in an afternoon; left alone, it comes back over game time. The
   commons lesson is reachable by one person with one net.
@@ -94,6 +102,11 @@ the fishmonger; the Discipline; a fish you can keep.
 - **Reading the water is competence.** A novice sees water; a
   practised fisher reads what a reach holds, in bands and words, never a
   number — the *fishing* Discipline, credited by what you land.
+- **Somebody already fishes the confluence.** An old fisher stands at
+  the bank — a person, not a role — who reads the water in a mentor's
+  mouth (*eels run on the ebb; the big one lies under the far bank*) and
+  who draws from the same record you do, so a reach you net out is a
+  reach he finds empty, and he says so. The commons with a face.
 - **The sturgeon is in the confluence** — rare, deep, a fight worth the
   contest, a deed the chronicle holds, and ⭐ **a royal fish**: the
   landmark catch that, by every law this world will have, is not yours.
@@ -135,7 +148,18 @@ the fishmonger; the Discipline; a fish you can keep.
   differ by grade and prose, never by material).
 - **The waters** are the localities' — wharfside's bank and the moor's
   pool cite their reaches; the moor pool becomes a one-reach watercourse
-  row of its own.
+  row of its own. The Delight, the Holloway and Cold Fell are already
+  rows and need nothing.
+- **The people** are terminus's: the **fishmonger** is a market
+  business on the baker's shape (appointed by the market's committee,
+  one position, banks at Goodkin, a keeper on a shift with a trigger);
+  the **fisher at the bank** is a named person of wharfside with a brain
+  that fishes and a few things to say. The trade pack ships the brain
+  and the dialogue's mechanism; the locality ships the man.
+- **No corpo.** A corpo is a mark and capital; a self-employed fisher
+  and a committee-appointed stall point up at nobody. The smokehouse
+  mark, the salt-cod route and a fishers' co-op arrive with the
+  commercial wave.
 - **The record on a reach** and the fishable feature are substrate two
   trades read (fishing now, hunting later) with no common pack ancestor
   — kernel-shaped; the plan decides where the state sits.
@@ -146,10 +170,15 @@ the fishmonger; the Discipline; a fish you can keep.
 
 - **Wharfside's bank at the confluence** — the room stands, with the
   city intake, the aqueduct house and the **outfall** as neighbours. The
-  fishable feature lands here. ⭐ The outfall is a gift: the reach below
-  it carries the city's contamination, the record reads it, and a fish
-  taken there carries the dose — no author writes "the water is foul
-  here." Nobody lives in the room; the barge passes it.
+  fishable feature lands here, and so does the fisher — the first person
+  to live in the room; the barge passes both of them. ⭐ The outfall is a
+  gift: the reach below it carries the city's contamination, the record
+  reads it, and a fish taken there carries the dose — no author writes
+  "the water is foul here."
+- **Heart's Delight's millsite** — the millrace is on the Delight's
+  `flats` reach. The room gains nothing in this build; the reach holds
+  fish regardless, and the drive proves it there. If the millers want
+  their own bank, it is one line.
 - **The estuary's three rooms** — the barge lane. The build touches
   none of them; the estuary reach's record exists whether or not anybody
   fishes from a room that cites it.
@@ -276,6 +305,22 @@ ISCED 0831, the roster's reserved name. Credited by what you land and by
 reading the water; competence widens the read and steadies the contest.
 Bands only. Cooking and butchery downstream credit their own.
 
+### The fisher at the bank draws from the record
+
+He is a person (a `Cast`, not a role-filler), he fishes on his own
+cadence from the same record a player does, and he answers `talk` with
+what the water holds in the words a practised read would use. He is
+there so the commons has a face and the pedagogy has a mentor; he is not
+a quest-giver and confers nothing. When the reach is empty he says so —
+and nothing else about who emptied it.
+
+### Every watercourse's reaches hold fish
+
+The record derives wherever a reach exists, so the Delight, the Holloway
+and Cold Fell have fish from the day the species rows land. A locality
+opts *in* to fishing by citing a reach from a room; it cannot opt out of
+having fish, any more than it can opt out of having flow.
+
 ### Where v1 lives
 
 The confluence bank at wharfside (brackish, slow, wide, beside the
@@ -344,8 +389,11 @@ sessions; a wizard may skip game-days where a step says so.
    nothing, and nothing says which was luck.
 9. `set net`; `lift net` → several fish at once; repeat four times →
    the fourth lift is thin, the fifth is **empty**, and a practised
-   `look` reads *fished out*. Skip three game-days → `look` reads the
-   water recovering; `lift net` gives fish again.
+   `look` reads *fished out*. `talk fisher` → he says the water is
+   empty, and nothing about you. Skip three game-days → `look` reads
+   the water recovering; `lift net` gives fish again; `talk fisher` →
+   *eels run on the ebb* — the read, in his mouth, before yours can see
+   it.
 10. `fish` at the room **below the outfall** → a fish; `look` at it says
     nothing; `eat` it raw → within the hour, sick, with the ordinary
     signs and no line naming the water.
@@ -360,6 +408,12 @@ sessions; a wizard may skip game-days where a step says so.
 13. `look` — a cold dark pool; `fish with worm` → a brown trout, and
     **no mullet, no crab, no eel**: the pool's record is the pool's, and
     no table was written for it.
+
+**At Heart's Delight's millsite** (a third session, started there)
+13b. Nobody authored fishing here. `fish with worm` from the millrace's
+    bank → a trout or nothing, honestly drawn from the Delight's `flats`
+    reach — a locality that never mentioned fish has them, with **no
+    change to its pack**.
 
 **The kept fish**
 14. Back at the confluence: `fish` until a small carp; `put carp in
@@ -392,8 +446,13 @@ Observable from outside the code.
 - No number is ever shown for a fish's size, a reach's stock, a fisher's
   competence or a rod's condition — bands and words only.
 - The confluence and the moor pool hold **different species with no
-  table authored for either**; a third water added as a row naming a
-  reach holds fish with no code change.
+  table authored for either**; Heart's Delight's millrace, whose pack
+  was not touched, yields fish from the Delight's own reach.
+- The fisher at the bank fishes the confluence on his own, reads the
+  water aloud when asked, and reports it empty after a net has emptied
+  it — without naming who did it.
+- The fishmonger is appointed by the market's committee, keeps a shift,
+  and can be replaced through `appoint` like any other position.
 - A reach netted repeatedly empties within an afternoon of game time and
   recovers over game days; `look` by a practised fisher reads both.
 - A fish taken below the outfall carries the city's contamination; eaten
@@ -406,7 +465,7 @@ Observable from outside the code.
 - The sturgeon exists in the confluence's record, reads as a royal fish,
   and its catch and its release are chronicle deeds.
 - `cast` still casts spells.
-- Every one of the drive's sixteen steps was run against a live game and
+- Every one of the drive's steps was run against a live game and
   recorded.
 
 ## Cross-references
