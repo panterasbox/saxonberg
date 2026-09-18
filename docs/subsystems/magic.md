@@ -261,7 +261,8 @@ owns the encounter's rows (no double-booking).
 ## The v1 roster (authored data, one cell per primitive)
 
 firebolt (create·fire, impulse heat — body burn / object
-joules+autoignite) · spark (create·lightning — a transient
+joules+autoignite) · frost (destroy·fire, cold — a HEAT PUMP: the caster
+absorbs Q+W, `costModel: heat-pump`) · spark (create·lightning — a transient
 `SparkLocus` (the row's `locus:`) + the real conduction walk, faction-blind,
 caster-in-the-graph) · shove (control·body — the posture surface) ·
 dread (destroy·mind — the mental axis vs live Composure) · glowlight
@@ -273,6 +274,32 @@ dispel (destroy·arcana — tag-keyed relieve) · arcane-sight
 backing Api — polymorph's own build); storm has a Discipline leaf but
 no spell (no gated weather-write Api yet — the invariant holds it
 back).
+
+### ⭐⭐ Magic reaches every damage channel (the magic-expression pass)
+
+The injury build shipped seven channels; the roster now exercises all of
+them. **Fire → heat** (firebolt), **ice → cold** (frost), **lightning →
+shock** (spark) were the proven three; the magic-expression pass added the
+four the roster never touched, each through the SAME `ConditionApi.inflict`
+door and the same fold a weapon uses:
+
+stonefist (create·earth, **blunt** — a fist of gathered stone; a cursed
+cast takes the unbraced recoil, arcane-science's *every push shoves both
+ways*) · stone-lance (create·earth, **point** — the same school shaped to
+a spike; Earth is a family) · windrazor (create·air, **edge** — a shearing
+edge of compressed air) · acid-splash (create·water, **corrosion**).
+
+⭐ **Corrosion is NOT reached by `inject-channel`** — a channel token
+cannot carry the agent's chemistry (its `corrosiveTo`). It is reached by
+**substance in contact with a body**: `Material.corrodeOnContact(victim,
+…)` reads a caustic material's own `corrosiveTo` and routes a corrosion
+insult through the one door. acid-splash **conjures** a caustic (`vitriol`)
+onto the mark — honest per arcane-science: the working COLLECTS an existing
+caustic, it does not mint "acid damage"; the substance's own chemistry
+corrodes. The same seam gives a thrown flask of vitriol (the `throw`
+splash) and a spilled vial corrosion for free. No new disciplines —
+`magic-create/earth/air/water` all shipped; the channels were unreached
+purely for lack of spell rows.
 
 ## The demonstrator — the Practicum
 

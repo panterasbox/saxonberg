@@ -416,6 +416,26 @@ corrosion"* is not a well-formed question without saying against what.
 `response.corrosion.previewCorrosiveTo` names the reference (seeded
 `organic`).
 
+#### ⭐⭐ How corrosion reaches a body — the substance-contact seam
+
+Corrosion is the one channel a weapon blow and a spell's `inject-channel`
+cannot deliver, for the same reason: the insult carries the agent's
+chemistry (`corrosiveTo`), and neither a mechanical energy scalar nor a
+bare channel token can source it. So corrosion arrives by a caustic
+**substance in contact with a body**, not by an energy channel. Producers:
+
+- **the lime-seep hazard** — `HazardDelivery.toInflictSpec` on traversal
+  (the original, and long the only one);
+- **`Material.corrodeOnContact(victim, {energy, site})`** — a caustic
+  material's own capability: it reads *its own* `corrosiveTo` and routes a
+  `CorrosionInflictSpec` through `ConditionApi.inflict`. No-op (false) for
+  any non-caustic material. This is the general seam, and it makes three
+  events deliver corrosion with no second code path — a **thrown flask**
+  that shatters on a body (the `throw` splash), a **conjured caustic** the
+  acid-splash spell puts on the mark (`execConjure`), and a **spilled
+  vial**. Honest across all three: the substance's chemistry does the
+  work; magic only *collects* the caustic, it does not mint "acid damage".
+
 ## The `shock` channel — resolves by circuit, not the fold
 
 The [electricity](./electricity.md) build added **`shock`** to the `Channel`

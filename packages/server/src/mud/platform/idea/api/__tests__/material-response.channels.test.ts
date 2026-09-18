@@ -418,3 +418,52 @@ describe('legibility — the readout shows every folded column', () => {
     ).toBe('turned');
   });
 });
+
+// ⭐⭐⭐ INTEROP — the synergies the magic-expansion is FOR. Content that
+// exercises the channels is how we prove they compose. Each of these is a
+// "cool little synergy" that falls out of honest physics through the ONE
+// door, and each is a guard against a future channel regressing it.
+describe('interop — the channels compose', () => {
+  beforeEach(() => installV1QuantityMarshallers());
+  afterEach(() => StuffApi.clearAll());
+
+  const LIME = ['organic', 'tissue', 'leather', 'textile'];
+  const VITRIOL = ['metal', 'organic', 'tissue', 'leather', 'textile'];
+
+  const traumasOf = (c: Creature): Trauma[] =>
+    c.getConditions().filter((x): x is Trauma => x.kind === 'trauma');
+
+  it('⭐ acid eats the breastplate; lime does not — the same steel, two agents', () => {
+    // The whole of the corrosion fold is "does the layer's tag set
+    // intersect the agent's list". Vitriol lists `metal`, so a steel plate
+    // is being dissolved and passes the contact through to the body under
+    // it. Lime does NOT list metal, so the same plate sheds it entirely.
+    const acidClad = bodied();
+    wearTorso(acidClad, chemMat(['metal'], 5), 'plate');
+    ConditionApi.inflict(acidClad, {
+      mechanism: 'corrosion', site: 'body.torso', energy: 2, corrosiveTo: VITRIOL,
+    });
+
+    const limeClad = bodied();
+    wearTorso(limeClad, chemMat(['metal'], 5), 'plate');
+    ConditionApi.inflict(limeClad, {
+      mechanism: 'corrosion', site: 'body.torso', energy: 2, corrosiveTo: LIME,
+    });
+
+    // Acid reached the body through the eaten plate; lime was shed by it.
+    expect(woundOf(acidClad)?.type).toBe('caustic');
+    expect(woundOf(limeClad)).toBeUndefined();
+  });
+
+  it('⭐ a burn and a frostbite coexist on one body — each unlike the other', () => {
+    // Fire and cold are opposite ends of the thermal fold, but they are
+    // two DIFFERENT wounds: one weeps and wants cooling, one numbs and
+    // wants warmth. A body can carry both at once.
+    const body = bodied();
+    ConditionApi.inflict(body, { mechanism: 'heat', site: 'body.torso', energy: 3 });
+    ConditionApi.inflict(body, { mechanism: 'cold', site: 'body.torso', energy: 3 });
+    const types = new Set(traumasOf(body).map((t) => t.type));
+    expect(types.has('burn')).toBe(true);
+    expect(types.has('frostbite')).toBe(true);
+  });
+});

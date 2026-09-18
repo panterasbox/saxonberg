@@ -51,7 +51,18 @@ reconcile-on-read `tickedAt` anchor (see below — no arming).
 `{ mechanism, site, energy }` (mechanical channel or thermal/tearing
 passthrough) vs the shock variant `{ mechanism:'shock', site, current }` —
 whose magnitude is the *current through the victim* (`Quantity<'A'>`), not an
-energy.
+energy — vs the corrosion variant `{ mechanism:'corrosion', site, energy,
+corrosiveTo }`, which carries the **agent's chemistry** (the material tags
+it eats through) because an energy scalar cannot.
+
+⭐ **The corrosion producer is a substance in contact, not an energy
+channel.** A caustic material delivers through
+`Material.corrodeOnContact(victim, {energy, site})` — it reads its own
+`corrosiveTo` and forwards this variant through the door — which is what
+makes a thrown flask, a conjured acid (the acid-splash spell), and a
+spilled vial all corrode with no bespoke path. The lime-seep hazard is the
+original producer; see [materials-response.md](./materials-response.md) §
+*How corrosion reaches a body*.
 
 - **Gated producer.** `inflict` is a powerful primitive that must not be
   callable by arbitrary content. `ConditionLogic.inflict` carries
