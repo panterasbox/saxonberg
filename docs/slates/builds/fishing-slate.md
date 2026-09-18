@@ -9,11 +9,12 @@
 > became its own slate.
 > **Left:** the fishery record on a reach (derived from habitat ×
 > composition) · the aquatic species rows + habitat declarations · the
-> acts (`cast` / the wait / the bite as the fish's decision / the landing
-> contest / `set` + `lift` for traps and nets) · the catch's four fates ·
-> the method ladder as tools with epochs · the fishery right + the
-> covenant rows · the shore feature that cites a reach · the *Angling*
-> Discipline · the stew pond (aquaculture) as a tail
+> acts (`fish` — ⚠ `cast` is arcana's — / the wait / the bite as the
+> fish's decision / the landing contest / `set` + `lift` for traps and
+> nets) · the catch's four fates · the method ladder as tools with
+> epochs · the fishery right + the covenant rows · the shore feature that
+> cites a reach · the `fishing` Discipline (the roster's reserved name,
+> ISCED 0831) · the stew pond (aquaculture) as a tail · ⭐ the named apex
 > **Size:** a build — and [underwater](./underwater-slate.md) is a second one
 
 **Sits on:** [watershed.md](../../subsystems/watershed.md) (the reach —
@@ -142,7 +143,7 @@ lives: **keep it · eat it · sell it · release it.**
 
 Drawn **by the act, not the medium**:
 
-- **Angling** — `cast` at a feature that cites a reach; a durative
+- **Angling** — `fish` at a feature that cites a reach (⚠ `cast` is the mages' verb); a durative
   engagement you chat through; ⭐ **the bite is the fish's decision** —
   the pets lesson applied: the animal appraises bait and presentation
   against its hunger and the water, never a roll of yours. Then the
