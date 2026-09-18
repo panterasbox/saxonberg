@@ -380,18 +380,20 @@ export class LocomotionLogic extends ApiLogic {
     actor.setEngagedMode(mode);
     try {
       const result = await action();
-      // Loaded-traversal endurance drain — fires only after a *successful*
+      // ⭐ The traverse is an EXERTION — fires only after a *successful*
       // self-powered traverse (a throw skips this and falls to `finally`).
       // This is the universal self-powered chokepoint: every player
       // command, NPC brain, and follow/lead automation routes a self-
-      // powered move through here, so a loaded body tires whatever
-      // initiated the step. Conveyance riders (repositioned by the
-      // vehicle's ripple) and raw/dev/`forceMove` traverses don't reach
-      // `engageAround`, so they never drain — the walked-vs-rode exclusion
-      // is structural, not a coded check. Light loads cost nothing
-      // (guarded inside `drainForTraversal`).
-      if (MixinApi.isLoadBearing(actor)) {
-        actor.drainForTraversal();
+      // powered move through here, so a body tires whatever initiated
+      // the step — a walk costs nothing, a run or a climb costs its
+      // excess, a load raises the power (the old loaded-traversal drain,
+      // folded in). Conveyance riders (repositioned by the vehicle's
+      // ripple) and raw/dev/`forceMove` traverses don't reach
+      // `engageAround`, so they never exert — the walked-vs-rode
+      // exclusion is structural, not a coded check. The mixin owns the
+      // dials; a logic singleton holds none.
+      if (MixinApi.isExerting(actor)) {
+        actor.exertTraverse(mode);
       }
       // Wound limp — a severity-gated endurance drain from a locomotor
       // laceration/avulsion, composed at the same universal self-powered

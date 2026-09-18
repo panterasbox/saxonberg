@@ -36,6 +36,8 @@ import { CompetenceBand } from '@saxonberg/server/mud/lib/advancement/Competence
 import type Spellbook from '../../../thing/Spellbook';
 
 const TOPIC = 'act.deed';
+/** Metabolic watts of taking a working on board. */
+const STUDY_EFFORT_W = 150;
 
 /** Game-ms a full study from nothing takes, at ordinary book quality. */
 const FULL_STUDY_MS = 20 * 60 * 1000;
@@ -147,6 +149,9 @@ export default class StudyController extends CommandController<StudyModel> {
       actor,
       spellPath,
       durationMs,
+      // Study is light work — half a walk — but it is work, and a long
+      // session of it costs the body something.
+      effortW: STUDY_EFFORT_W,
       onComplete: (): void => {
         actor.memorize({
           spellPath,

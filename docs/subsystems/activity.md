@@ -126,6 +126,20 @@ every v1 activity. Authors who later need a non-cancelable
 engagement (a resolved fall, a checkmate animation) set
 `cancelable = false` on the subclass.
 
+## `effortW` — a durative activity that is work
+
+`DurativeActivity.effortW?: number` (nutrition-and-fitness W1): the
+metabolic watts an activity costs its actor for its duration. The
+registry emits `actor.exert({durationS, powerW})` once at completion
+(`completeFromTimer` / the sub-100 ms path) and pro-rata at a
+`cancelled` / `replaced` / `preconditions-changed` terminate — for an
+activity that declares one and an actor that `isExerting`. An activity
+that declares none (a search, a dressing, an offer, a three-day charcoal
+burn) is not work, by construction rather than by a type test.
+`ManualBuildStep`, `CastActivity` and `StudyActivity` carry the option;
+`BuildStepOptions.effortW` is **required**, so the compiler is the
+census of every step verb. See `lib/exertion/Exerting.ts`.
+
 ## Engagement slots — concurrency vocabulary
 
 Slots model "what part of the actor is engaged." An actor can read

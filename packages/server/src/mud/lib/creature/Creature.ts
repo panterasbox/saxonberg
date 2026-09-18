@@ -51,6 +51,7 @@ import { LoadBearingMixin } from '../encumbrance/LoadBearing';
 import { MetabolicMixin } from '../metabolism/Metabolic';
 import { ThermalMixin } from '../thermal/Thermal';
 import { ThermalRegulationMixin } from '../thermal/ThermalRegulation';
+import { ExertingMixin } from '../exertion/Exerting';
 import { RespirationMixin } from '../respiration/Respiration';
 import { DisguisableMixin } from '../disguise/Disguisable';
 import { ConcealableMixin } from '../concealment/Concealable';
@@ -157,6 +158,12 @@ const CreatureBase = ChattelMixin(
         // answer was never "these two animals" — it was "a body".
         PerceptibleMixin(
         VisibleMixin(
+        // ⭐ Every body can work and tires by working. Outer of the
+        // thermal pair (it deposits heat on ThermalRegulation) and of
+        // Metabolic (its reserve reads go through the reconciling
+        // override, so a debit lands on a fresh value); inner of
+        // LoadBearing (which reads its lean margin).
+        ExertingMixin(
           ThermalRegulationMixin(
             ThermalMixin(
               RespirationMixin(
@@ -194,6 +201,7 @@ const CreatureBase = ChattelMixin(
               )
             )
           )
+        )
         )
         )
       )

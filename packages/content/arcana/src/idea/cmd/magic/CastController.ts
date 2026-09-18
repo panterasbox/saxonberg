@@ -27,6 +27,8 @@ import type { Caster } from '@saxonberg/server/mud/lib/magic/Caster';
 import type { CommandGiver } from '@saxonberg/server/mud/lib/command/CommandGiver';
 
 const TOPIC = 'act.deed';
+/** Metabolic watts of shaping a working (arcane-science.md's ~300 W). */
+const CAST_EFFORT_W = 300;
 
 interface CastModel extends CommandModel {
   /** A `type: string` arg parses to a plain string. */
@@ -102,6 +104,10 @@ export default class CastController extends CommandController<CastModel> {
       actor,
       spellId,
       durationMs: (prep.castSeconds ?? 3) * 1000,
+      // ⭐ A cast tires you like work — arcane-science prices shaping a
+      // working at ~300 W of metabolic effort (the walk). The pack's own
+      // figure; it moves to `settings/magic.yaml` when that file lands.
+      effortW: CAST_EFFORT_W,
       onComplete,
       onAbort: (_reason: AbortReason): void => {
         // Interrupted mid-shaping — nothing spent, nothing fired.

@@ -349,6 +349,8 @@ export const Mixins = {
   Palatable: 'PalatableMixin',
   Thermal: 'ThermalMixin',
   ThermalRegulation: 'ThermalRegulationMixin',
+  // ⭐ One exertion event, every producer — what working does to a body.
+  Exerting: 'ExertingMixin',
   Respiration: 'RespirationMixin',
   // The cross-cutting wetness gauge — any Thing / body can be wet.
   Wet: 'WetMixin',

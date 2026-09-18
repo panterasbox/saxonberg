@@ -360,6 +360,25 @@ concentration), which carries the `'bac'` drunk-ladder scale (registered
 in-file after the class). Energy reserves stay `%`; `kcal` is deferred.
 See [quantities.md](./quantities.md).
 
+## The slow stocks (nutrition-and-fitness W0)
+
+Five more biological reserves ride the slice, steps 6–9 after
+`partitionFlesh`: `lean` (muscle — exact-exponential relaxation toward
+its seed over `body.leanDetrainDays`, catabolised while satiation sits at
+the deficit line; the GAIN is `ExertingMixin`'s), `wind` and
+`alcohol-tolerance` (half-life decay, `body.windHalfLifeDays` /
+`body.toleranceHalfLifeDays`; tolerance is fed in `absorbToxin` for
+alcohol), `vitamin-c` (linear drain, full to empty over
+`body.vitaminCDrainDays`; floor effect `scurvy` off the shipped cascade)
+and `protein` (now a real reserve the `protein` tag fills — the route
+table's `reserve` is an open string — with a basal turnover). Each step
+is a no-op on a host lacking its reserve, and each rides THIS clock, so
+the linkdead freeze and the far-past guard make *never tax absence* true
+for all of them for free. Every rate is a per-read `dial()` under
+`body.*` (`platform/content/settings/body.yaml`); `METABOLIC_DEFAULTS`
+is untouched. ⚠ `Vitals.getConditionBand` counts a floored reserve only
+when it HAS a `floorEffect` — `wind` and tolerance are seeded empty.
+
 ## Inert seams (wired, no driver here)
 
 - **spo2 read** (respiration): `spo2Throttle()` reads `getVitalSign('spo2')`

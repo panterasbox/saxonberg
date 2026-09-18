@@ -108,6 +108,7 @@ export default class WeaveController extends ManualBuildController<WeaveModel> {
 
     this.engageStep(context, {
       durationMs,
+      effortW: 250,
       beginSelf: Mml.compose`You warp the loom with ${Mml.thing(yarn)} and begin throwing the shuttle.`,
       beginPeers: Mml.compose`${Mml.actor(giver)} sets a web on the loom.`,
       onComplete: () => {

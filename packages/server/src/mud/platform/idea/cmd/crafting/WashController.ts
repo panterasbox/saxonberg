@@ -70,6 +70,7 @@ export default class WashController extends ManualBuildController<WashModel> {
 
     this.engageStep(context, {
       durationMs: WASH_MS,
+      effortW: 200,
       beginSelf: Mml.compose`You take ${Mml.thing(glass)} to ${Mml.thing(water)}.`,
       onComplete: () => {
         // The serviceware half: dregs out, garnish out, ice tipped, the
@@ -129,6 +130,7 @@ export default class WashController extends ManualBuildController<WashModel> {
     const before = garment.getColorTag();
     this.engageStep(context, {
       durationMs: WASH_MS,
+      effortW: 200,
       beginSelf: Mml.compose`You take ${Mml.thing(garment)} to ${Mml.thing(water)}.`,
       onComplete: () => {
         if (!MixinApi.isDyed(garment)) return;

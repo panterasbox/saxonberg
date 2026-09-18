@@ -83,10 +83,12 @@ export const LOAD_BEARING_DEFAULTS = {
    * a garment cut for you, or cut generous, adds nothing.
    */
   TIGHT_FIT_SURCHARGE: 0.5,
-  /** Load ratio below which a traverse costs no endurance. */
+  /**
+   * Load ratio below which a traverse costs nothing extra. Read by
+   * `ExertingMixin.traversePowerW` — the loaded-traversal drain that
+   * used to live here is folded into the one exertion event.
+   */
   LIGHT_LOAD_FLOOR: 0.25,
-  /** Endurance drawn per loaded traverse, scaled by overload (`%`). */
-  DRAIN_PER_TRAVERSAL: 2.0,
   /**
    * Capacity multiplier floor as endurance empties — the spiral term.
    * Exhaustion shaves capacity toward this floor, never to zero.
@@ -123,8 +125,6 @@ export interface LoadBearing {
   getLoadRatio(): number;
   /** Would lifting `candidate` (as loose carry) push burden past the ceiling? */
   wouldExceedCeiling(candidate: Stuff): boolean;
-  /** Draw down endurance for one loaded self-powered traverse. */
-  drainForTraversal(): void;
 }
 
 /**
@@ -313,7 +313,12 @@ export function LoadBearingMixin<TBase extends MixinConstructor>(Base: TBase) {
         bearer.getMass().rawValue() * LOAD_BEARING_DEFAULTS.CAPACITY_FRACTION;
       const bandMargin =
         LOAD_BEARING_DEFAULTS.CONDITION_BAND_MARGIN[bearer.getConditionBand()];
-      const margin = bandMargin * enduranceMargin(bearer);
+      // ⭐ The strength read: muscle widens what a body can carry (1.0
+      // at the seed, so every untrained body reads exactly as before).
+      // The one figure the tape, the water, the physician and the lift
+      // gate all read.
+      const lean = MixinApi.isExerting(bearer) ? bearer.leanMargin() : 1;
+      const margin = bandMargin * enduranceMargin(bearer) * lean;
       return Quantity.of(base * margin, 'kg');
     }
 
@@ -348,15 +353,5 @@ export function LoadBearingMixin<TBase extends MixinConstructor>(Base: TBase) {
       return prospective > this.getStrainCeiling().rawValue();
     }
 
-    public drainForTraversal(): void {
-      const bearer = this as unknown as Stuff & Reserved;
-      if (!bearer.hasReserve('endurance')) return;
-      const ratio = this.getLoadRatio();
-      if (ratio <= LOAD_BEARING_DEFAULTS.LIGHT_LOAD_FLOOR) return;
-      const cost =
-        LOAD_BEARING_DEFAULTS.DRAIN_PER_TRAVERSAL *
-        (ratio - LOAD_BEARING_DEFAULTS.LIGHT_LOAD_FLOOR);
-      bearer.adjustReserve('endurance', Quantity.of(-cost, '%'));
-    }
   };
 }

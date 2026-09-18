@@ -181,6 +181,15 @@ note shape and auto-escalation rule.
 
 ## Engagement lifecycle
 
+⭐ **A traverse is work** (nutrition-and-fitness W1). After a successful
+self-powered traverse `engageAround` calls `actor.exertTraverse(mode)`
+(`lib/exertion/Exerting.ts`): the walk's watts × the mode's
+`costMultiplier` (the first reader that knob has ever had — walk 1.0, run
+2.0, climb/swim 2.0, sneak 1.0) × the load factor. The body debits only
+the excess over what it can sustain, so a walk is free and a run costs a
+fresh body 12 % an exit; `canSustainPace(mode)` is what the verb layer
+asks to break a run to a walk (W2).
+
 `engageAround(actor, mode, exit, action)` sets `actor.engagedMode = mode`,
 runs the action, then conditionally clears engagedMode:
 

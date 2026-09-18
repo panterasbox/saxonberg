@@ -152,6 +152,7 @@ export default class BoilController extends ManualBuildController<BoilModel> {
       // ROLE — a cauldron row declares `pot` too; naming a second kind
       // here would be a kind nothing offers (`lint:capabilities`).
       durationMs: this.paceMs(BOIL_MS, target, ['pot']),
+      effortW: 200,
       beginSelf: Mml.compose`You set ${Mml.thing(target)} over the fire and bring it up to a boil.`,
       beginPeers: Mml.compose`${Mml.actor(giver)} sets ${Mml.thing(target)} over the fire.`,
       onComplete: () => {

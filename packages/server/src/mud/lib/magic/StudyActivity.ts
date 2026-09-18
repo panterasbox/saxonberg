@@ -47,6 +47,8 @@ export interface StudyActivityOptions {
   onAbort?: (reason: AbortReason) => void;
   /** Eager host-destruction hook target; defaults to the actor. */
   host?: Stuff | null;
+  /** Metabolic watts the work costs its actor (see `DurativeActivity.effortW`). */
+  effortW?: number;
 }
 
 export class StudyActivity implements DurativeActivity {
@@ -59,6 +61,7 @@ export class StudyActivity implements DurativeActivity {
   readonly cancelable = true;
   readonly duration: number;
   readonly replaceableBy: readonly string[] = [];
+  readonly effortW?: number;
 
   private readonly _onComplete: () => void;
   private readonly _onAbort: (reason: AbortReason) => void;
@@ -68,6 +71,7 @@ export class StudyActivity implements DurativeActivity {
     this.actor = opts.actor;
     this.type = `${STUDY_ACTIVITY_TYPE}:${opts.spellPath}`;
     this.duration = opts.durationMs;
+    this.effortW = opts.effortW;
     this._onComplete = opts.onComplete;
     this._onAbort = opts.onAbort ?? ((): void => {});
     this._host = opts.host ?? opts.actor;

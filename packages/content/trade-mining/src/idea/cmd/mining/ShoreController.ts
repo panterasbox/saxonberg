@@ -37,7 +37,8 @@ import type { Working } from '../../../lib/Working';
 /** Reference time to set one timber, in game ms. */
 const SHORE_MS = 20000;
 /** Endurance setting timber costs, in percentage points. */
-const SHORE_COST = 8;
+/** Metabolic watts of setting timber: (900 − 300) × 20 s / 1500 = the old 8 %. */
+const SHORE_EFFORT_W = 900;
 
 interface ShoreModel extends CommandModel {
   timber?: MqlOneResult;
@@ -64,7 +65,7 @@ export default class ShoreController extends MiningActController<ShoreModel> {
     const room = working as unknown as Stuff & Container;
     this.engageAct(context, {
       durationMs: SHORE_MS,
-      cost: SHORE_COST,
+      effortW: SHORE_EFFORT_W,
       beginSelf: Mml.compose`You wrestle ${Mml.thing(set)} into place under the back.`,
       beginPeers: Mml.compose`${Mml.actor(giver)} starts setting timber.`,
       // ⚠⚠ A free function, never `this.<method>`: a controller is one

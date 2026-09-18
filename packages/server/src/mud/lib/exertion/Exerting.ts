@@ -1,0 +1,357 @@
+/**
+ * ExertingMixin — ⭐⭐ **one exertion event, every producer.**
+ *
+ * The body did not know it was working. Five places debited endurance
+ * in `%` points before the nutrition-and-fitness build — mining, farming,
+ * the smelt, the loaded traverse, the limp — and the quern, the anvil,
+ * the loom and a spell cost nothing at all. This mixin is the one verb
+ * they all call instead: `exert({ durationS, powerW })` — metabolic
+ * watts over game-seconds, which is joules, which is a unit the engine
+ * already speaks.
+ *
+ * Three chokepoints emit it, one per producer family, and none of them
+ * knows what the body does with it:
+ *
+ *   - **`SchedulerRegistry`** at a durative activity's completion (and
+ *     pro-rata at a cancel), reading an optional `effortW` the activity
+ *     declares. An activity that declares none is not work — a search,
+ *     a dressing — and is excluded by construction, not by a type test.
+ *   - **`LocomotionLogic.engageAround`** after a successful self-powered
+ *     traverse, via {@link Exerting.exertTraverse}: the walk's watts
+ *     scaled by the mode's `costMultiplier` and the load. Riders and
+ *     `forceMove` never reach it — the walked-vs-rode exclusion stays
+ *     structural.
+ *   - **`Character.onExchangeResolved`** — one combat exchange, via
+ *     {@link Exerting.exertExchange}.
+ *
+ * And four things read it, in order, inside `exert` (plan D6):
+ *
+ *   1. **Endurance** (now) — only the EXCESS over what the body can
+ *      sustain debits. That is the aerobic threshold: a walk is free,
+ *      a conditioned body holds a run, and the felt cost of every
+ *      shipped act is preserved at its reference duration by the watts
+ *      each site declares (`Exerting.felt-cost.test.ts` pins them).
+ *   2. **Wind** (over sessions) — duration at a pace you can hold.
+ *   3. **Lean** (over months) — overload against the body's own ceiling,
+ *      paid for in protein. A load you have outgrown trains nothing.
+ *   4. **Heat** — `1 − η` of the work, deposited on the thermal seam
+ *      ({@link depositWorkHeat}; a no-op until build-4's heat load lands).
+ *
+ * ⭐ **Reach is a body read, not a number.** {@link Exerting.canSustainPace}
+ * is what breaks a fresh body's run to a walk; {@link Exerting.canExert}
+ * is the double-shift refusal; the climb's rest line is the same read
+ * narrated. Nothing here renders a figure.
+ *
+ * Every rate is a per-read dial (`body.*` / `exertion.*`, shipped in
+ * `platform/content/settings/body.yaml`), so `config` turns a season up
+ * inside one session. See docs/plans/nutrition-and-fitness-plan.md.
+ */
+
+import type { MixinConstructor } from '../mixin';
+import type { Stuff } from '../stuff/Stuff';
+import type { Reserved } from '../reserve';
+import type { LocomotionMode } from '../../platform/idea/LocomotionMode';
+import { Quantity } from '../quantity';
+import { AppApi } from '../../api/app';
+import { AppSettingKeys } from '../config/AppSettings';
+import { MixinApi } from '../../api/mixin';
+import { MessageApi } from '../../api/message';
+import { Mml } from '../../api/mml';
+import { LOAD_BEARING_DEFAULTS } from '../encumbrance/LoadBearing';
+import {
+  COMPETENCE_BANDS,
+  type CompetenceBandName,
+} from '../advancement/CompetenceBand';
+
+/** One exertion: metabolic watts held for game-seconds. */
+export interface Exertion {
+  /** Game-seconds the effort lasted. */
+  durationS: number;
+  /** Metabolic power (W) over that duration. */
+  powerW: number;
+}
+
+export interface Exerting {
+  /** The one verb every producer calls. See the module doc for what it does. */
+  exert(e: Exertion): void;
+  /**
+   * Would this effort leave the body under the exhaustion floor? The
+   * double-shift refusal: every step verb asks before it starts.
+   */
+  canExert(powerW: number, durationS: number): boolean;
+  /** The one refusal line, owned here so every verb says the same thing. */
+  exhaustionRefusal(): string;
+  /**
+   * Can the body hold this pace right now? True when the mode's power is
+   * within what it can sustain, or while endurance is still above the
+   * pace floor. What breaks a fresh body's run to a walk.
+   */
+  canSustainPace(mode: LocomotionMode): boolean;
+  /** Metabolic watts this body sustains indefinitely — the base, raised by wind. */
+  sustainableW(): number;
+  /** Peak metabolic watts — mass × peak W/kg × the lean margin. */
+  ceilingW(): number;
+  /** The metabolic power of one traverse in `mode`, load included. */
+  traversePowerW(mode: LocomotionMode): number;
+  /** The locomotion emit: one traverse in `mode`, narrating the climb's rest line. */
+  exertTraverse(mode: LocomotionMode): void;
+  /** The combat emit: one exchange. */
+  exertExchange(): void;
+  /**
+   * A conditioning Discipline's band — a threshold read over the named
+   * body stock (`wind`, `alcohol-tolerance`), never a Transcript fold.
+   */
+  conditioningBand(stock: string): CompetenceBandName;
+  /** The lean margin on peak power and carry capacity: 0.6 at lean 0, 1.4 at lean 100. */
+  leanMargin(): number;
+  /**
+   * The metabolic watts that cost a FRESH body `debitPct` of endurance
+   * over `durationS` — the bridge for an act authored in felt-cost
+   * terms (the farming acts, whose durations are abstractions). Body-
+   * independent by construction: it reads the base sustainable power,
+   * never this body's, so a conditioned body still feels the act as
+   * less.
+   */
+  wattsForFeltCost(debitPct: number, durationS: number): number;
+}
+
+/**
+ * The band thresholds over `current / capacity`: untrained < 20 % ≤
+ * novice < 40 % ≤ competent < 60 % ≤ proficient < 80 % ≤ expert.
+ */
+const CONDITIONING_BAND_AT: readonly number[] = [0, 0.2, 0.4, 0.6, 0.8];
+
+/** Reference mass for a body that has none (the metabolism figure). */
+const REFERENCE_MASS_KG = 70;
+
+/** Numeric AppSetting read, falling back to the seeded literal. */
+function dial(key: string, fallback: number): number {
+  try {
+    const raw = AppApi.setting(key);
+    if (raw === '' || raw == null) return fallback;
+    const n = Number.parseFloat(raw);
+    return Number.isFinite(n) ? n : fallback;
+  } catch {
+    return fallback;
+  }
+}
+
+type ExertingHost = Stuff & Reserved;
+
+export function ExertingMixin<TBase extends MixinConstructor>(Base: TBase) {
+  return class ExertingMixin extends Base implements Exerting {
+    // ⚠ Widened to `string`: a pinned literal here collapses the mixin
+    // chain's inferred type hundreds of files away.
+    static _mixinName: string = 'ExertingMixin';
+
+    public exert(e: Exertion): void {
+      const self = this as unknown as ExertingHost;
+      const durationS = Math.max(0, e.durationS);
+      const powerW = Math.max(0, e.powerW);
+      if (durationS <= 0 || powerW <= 0) return;
+      const windBefore = this.conditioningBand('wind');
+      const sustain = this.sustainableW();
+
+      // 1. Endurance — the excess only. Effort under the aerobic threshold
+      //    costs nothing; that is what keeps a walk free.
+      const excessJ = Math.max(0, powerW - sustain) * durationS;
+      if (excessJ > 0 && self.hasReserve('endurance')) {
+        const perPct = dial(AppSettingKeys.exertionJoulesPerEndurancePct, 1500);
+        if (perPct > 0) {
+          self.adjustReserve('endurance', Quantity.of(-excessJ / perPct, '%'));
+        }
+      }
+
+      // 2. Wind — duration at a pace you can hold. A heavy act counts for
+      //    its duration and no more; a stroll under the floor counts not
+      //    at all.
+      if (
+        self.hasReserve('wind') &&
+        sustain > 0 &&
+        powerW >= dial(AppSettingKeys.bodyWindFloorFraction, 0.5) * sustain
+      ) {
+        const gain =
+          dial(AppSettingKeys.bodyWindGainPerHour, 6) *
+          (durationS / 3600) *
+          Math.min(1, powerW / sustain);
+        if (gain > 0) self.adjustReserve('wind', Quantity.of(gain, '%'));
+      }
+
+      // 3. Lean — overload against the body's own ceiling, paid in
+      //    protein. A load that no longer clears the threshold trains
+      //    nothing: the mill stops making you stronger.
+      if (self.hasReserve('lean')) {
+        const ceiling = this.ceilingW();
+        if (
+          ceiling > 0 &&
+          powerW >= dial(AppSettingKeys.bodyOverloadFraction, 0.7) * ceiling
+        ) {
+          const gain =
+            dial(AppSettingKeys.bodyLeanGainPerHour, 2) *
+            (durationS / 3600) *
+            (powerW / ceiling);
+          const perLean = dial(AppSettingKeys.bodyProteinPerLeanPct, 1.5);
+          const protein = self.hasReserve('protein')
+            ? (self.getReserve('protein')?.current.rawValue() ?? 0)
+            : Infinity;
+          const affordable = perLean > 0 ? protein / perLean : gain;
+          const banked = Math.min(gain, affordable);
+          if (banked > 0) {
+            self.adjustReserve('lean', Quantity.of(banked, '%'));
+            if (self.hasReserve('protein') && perLean > 0) {
+              self.adjustReserve('protein', Quantity.of(-banked * perLean, '%'));
+            }
+          }
+        }
+      }
+
+      // 4. Heat — the work you did not get out as work.
+      const efficiency = dial(AppSettingKeys.exertionEfficiency, 0.25);
+      this.depositWorkHeat(powerW * durationS * (1 - efficiency));
+
+      if (this.conditioningBand('wind') !== windBefore) {
+        this.onConditioningBandCrossed('wind');
+      }
+    }
+
+    public canExert(powerW: number, durationS: number): boolean {
+      const self = this as unknown as ExertingHost;
+      const endurance = self.getReserve('endurance');
+      if (!endurance) return true;
+      const excessJ = Math.max(0, powerW - this.sustainableW()) * Math.max(0, durationS);
+      const perPct = dial(AppSettingKeys.exertionJoulesPerEndurancePct, 1500);
+      const debit = perPct > 0 ? excessJ / perPct : 0;
+      const floor = dial(AppSettingKeys.exertionExhaustionFloorPct, 10);
+      return endurance.current.rawValue() - debit >= floor;
+    }
+
+    public exhaustionRefusal(): string {
+      return "You're too tired for that.";
+    }
+
+    public canSustainPace(mode: LocomotionMode): boolean {
+      const self = this as unknown as ExertingHost;
+      if (this.traversePowerW(mode) <= this.sustainableW()) return true;
+      const endurance = self.getReserve('endurance');
+      if (!endurance) return true;
+      return (
+        endurance.current.rawValue() >= dial(AppSettingKeys.exertionPaceFloorPct, 50)
+      );
+    }
+
+    public sustainableW(): number {
+      const self = this as unknown as ExertingHost;
+      const wind = self.hasReserve('wind') ? this.stockFraction('wind') : 0;
+      return (
+        dial(AppSettingKeys.exertionBaseSustainableW, 300) *
+        (1 + dial(AppSettingKeys.bodyWindSustainGain, 1.5) * wind)
+      );
+    }
+
+    public ceilingW(): number {
+      const self = this as unknown as ExertingHost;
+      // Every body is Tangible; the predicate keeps a test fixture that
+      // composes only the reserves honest rather than duck-typed.
+      const mass = MixinApi.isTangible(self)
+        ? self.getMass().rawValue() || REFERENCE_MASS_KG
+        : REFERENCE_MASS_KG;
+      return mass * dial(AppSettingKeys.bodyPeakWPerKg, 12) * this.leanMargin();
+    }
+
+    public wattsForFeltCost(debitPct: number, durationS: number): number {
+      const base = dial(AppSettingKeys.exertionBaseSustainableW, 300);
+      if (durationS <= 0 || debitPct <= 0) return base;
+      return (
+        base +
+        (dial(AppSettingKeys.exertionJoulesPerEndurancePct, 1500) * debitPct) /
+          durationS
+      );
+    }
+
+    public leanMargin(): number {
+      const self = this as unknown as ExertingHost;
+      if (!self.hasReserve('lean')) return 1;
+      return 0.6 + 0.8 * this.stockFraction('lean');
+    }
+
+    public traversePowerW(mode: LocomotionMode): number {
+      const self = this as unknown as ExertingHost;
+      let loadFactor = 1;
+      if (MixinApi.isLoadBearing(self)) {
+        const ratio = self.getLoadRatio();
+        const over = Math.max(0, ratio - LOAD_BEARING_DEFAULTS.LIGHT_LOAD_FLOOR);
+        if (Number.isFinite(over)) {
+          loadFactor += dial(AppSettingKeys.exertionLoadPowerPerRatio, 1 / 6) * over;
+        }
+      }
+      return dial(AppSettingKeys.exertionWalkW, 300) * mode.getCostMultiplier() * loadFactor;
+    }
+
+    public exertTraverse(mode: LocomotionMode): void {
+      const self = this as unknown as ExertingHost;
+      const powerW = this.traversePowerW(mode);
+      // ⭐ The climb without the rest — the same read narrated. A body
+      // whose sustainable power is under the climb's stops for breath;
+      // a conditioned one pays nothing and says nothing.
+      if (mode.getName() === 'climb' && powerW > this.sustainableW()) {
+        MessageApi.scene(self)
+          .topic('act.deed')
+          .toSelf(Mml.compose`You have to stop on the way to get your breath.`)
+          .send();
+      }
+      this.exert({
+        durationS: dial(AppSettingKeys.exertionTraverseNominalS, 60),
+        powerW,
+      });
+    }
+
+    public exertExchange(): void {
+      this.exert({
+        durationS: dial(AppSettingKeys.exertionCombatExchangeS, 6),
+        powerW: dial(AppSettingKeys.exertionCombatExchangeW, 700),
+      });
+    }
+
+    public conditioningBand(stock: string): CompetenceBandName {
+      const self = this as unknown as ExertingHost;
+      if (!self.hasReserve(stock)) return 'untrained';
+      const fraction = this.stockFraction(stock);
+      let at = 0;
+      for (let i = 0; i < CONDITIONING_BAND_AT.length; i++) {
+        if (fraction >= CONDITIONING_BAND_AT[i]!) at = i;
+      }
+      return COMPETENCE_BANDS[at] ?? 'untrained';
+    }
+
+    /** `current / capacity` of a stock, in `[0, 1]`; 0 when absent. */
+    protected stockFraction(key: string): number {
+      const self = this as unknown as ExertingHost;
+      const r = self.getReserve(key);
+      if (!r) return 0;
+      const cap = r.capacity.rawValue();
+      if (cap <= 0) return 0;
+      return Math.max(0, Math.min(1, r.current.rawValue() / cap));
+    }
+
+    /**
+     * The heat seam. `1 − η` of every exertion lands here as joules the
+     * body must shed. ⚠ A no-op until build-4's `absorbHeatLoad` is on
+     * the merged tree (plan W6) — and the place an exertion will deposit
+     * sweat on a `Soilable` body the day room-condition ships one.
+     */
+    protected depositWorkHeat(_joules: number): void {
+      // no-op seam (W6 forwards to ThermalRegulation.absorbHeatLoad)
+    }
+
+    /**
+     * A conditioning stock's band crossed a threshold in either
+     * direction. Re-derive conferrals so a band-gated verb (none ship on
+     * `wind` today; the swim is the first) appears or goes without an
+     * append to the Transcript.
+     */
+    protected onConditioningBandCrossed(_stock: string): void {
+      const self = this as unknown as Stuff;
+      if (MixinApi.isAdvancing(self)) void self.refreshConferrals();
+    }
+  };
+}

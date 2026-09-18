@@ -55,6 +55,8 @@ import { EmployedMixin } from '../employment/Employed';
 import { CombatantMixin } from '../combat/Combatant';
 import { HidingMixin } from '../concealment/Hiding';
 import type { FieldMeta } from '../mixin';
+import type { CombatHookContext } from '../combat/CombatHookContext';
+import { MixinApi } from '../../api/mixin';
 
 // Compose the agency mixins on top of the Creature body layer.
 // Order matters:
@@ -167,6 +169,17 @@ export abstract class Character extends CharacterBase {
     const trimmed = value?.trim() ?? '';
     if (trimmed.length === 0) return; // never clears — persists-until-replaced
     this._domicileAddress = trimmed;
+  }
+
+  /**
+   * ⭐ A combat exchange is work. The override lives HERE, not on a
+   * Creature-level mixin: `CombatantMixin` is composed outer of the
+   * whole `Creature` body, so an override below it would lose to the
+   * mixin's own no-op terminal. The mixin owns the dials.
+   */
+  override onExchangeResolved(ctx: CombatHookContext): void {
+    super.onExchangeResolved(ctx);
+    if (MixinApi.isExerting(this)) this.exertExchange();
   }
 
   /**

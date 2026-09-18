@@ -703,8 +703,12 @@ describe("CombatLogic hooks — the consequence drain", () => {
 
     strikeBeat(session, a, b);
     expect(blade.fires.some((f) => f.startsWith("augment:"))).toBe(true);
-    expect(b.getEndurance().current.rawValue()).toBeCloseTo(90, 5);
-    expect(a.getEndurance().current.rawValue()).toBeCloseTo(70, 5);
+    // ⭐ The exchange itself is WORK (nutrition-and-fitness W1): each
+    // body exerts one combat exchange after the hook queue lands —
+    // (700 − 300) W × 6 s / 1500 J per % = 1.6 % on a fresh body.
+    const exchange = (700 - 300) * 6 / 1500;
+    expect(b.getEndurance().current.rawValue()).toBeCloseTo(90 - exchange, 5);
+    expect(a.getEndurance().current.rawValue()).toBeCloseTo(70 - exchange, 5);
   });
 
   it("wearInstrument degrades the striking weapon; inert against a bare-handed attacker", () => {

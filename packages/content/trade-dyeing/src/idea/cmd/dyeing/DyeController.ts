@@ -166,6 +166,7 @@ export default class DyeController extends ManualBuildController<DyeModel> {
 
     this.engageStep(context, {
       durationMs: dial(DyeController.BASE_MS_KEY, DyeController.BASE_MS),
+      effortW: 250,
       beginSelf: Mml.compose`You work ${Mml.thing(target)} down into ${Mml.thing(bath)}.`,
       beginPeers: Mml.compose`${Mml.actor(giver)} works something down into a dye bath.`,
       onComplete: () => {
