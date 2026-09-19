@@ -15,8 +15,6 @@
 are as good as your toolkit*; this one says **where the toolkit lives,
 what it costs, and what you carry to it.**
 
-> **Status: design conversation, captured. Not requirements.**
-
 **Provenance:**
 
 > **User: "these tools should be very expensive and player should not

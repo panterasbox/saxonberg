@@ -36,6 +36,17 @@ with the currency build — the word belongs to the deferred lending subsystem
 (tabs, interest, creditworthiness, insolvency) and to the credit/debit
 vocabulary every ledger leg already speaks.
 
+**Money is fiat, not commodity-backed** (decided in the metal chain,
+graduated 2026-09). Coin is reserve-issued and conservation-controlled,
+*never a worth on a good* — deliberately **not** gold-backed, because
+commodity-backing means *mining gold = minting money*, the gold-faucet
+the chain forbade. Gold is a commodity and a store of value, not the
+currency; mined gold is *sold* for circulated coin like any good. And
+**conservation means no unauthorized faucet, not a fixed supply**: as
+mining and crafting grow real output the reserve issues to match, by
+rule — deflation is prevented by policy, a governance lever, not by
+scarcity of metal.
+
 ### Currency — the record, and the one place it lives
 
 `lib/banking/Currency.ts` is a **registry** (not a data Idea + catalogue)
