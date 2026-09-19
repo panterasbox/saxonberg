@@ -1,12 +1,33 @@
 # Policing slate — crime and law enforcement, from both ends
 
-> **Status: PARTIAL** — the harm-consent ledger with derive-on-read
-> crime/blame ships, and civics ships the Watch as a charter seat form →
-> [accountability.md](../../subsystems/accountability.md)
-> **Left:** the three enforcement tiers · the closed policy vocabulary +
-> resolve-on-read enforcement · arrest and custody · the constable kit
-> bundle as a budget line · the Policing Discipline · the gang roster and
-> its four services
+> **Status: PARTIAL** — the substrate ships, none of the institution does.
+> Shipped: the harm-consent ledger with derive-on-read crime/blame, every
+> harm row's PERSON + PARTY (`killerFor` / `victimFor`, resolved from an
+> authored `institution:` else the employer) and `institutionRecordFor` as
+> *a body of people's record* →
+> [accountability.md](../../subsystems/accountability.md); the first
+> watch — the Watch of the Last Counted Mile, an `Organization` (not a
+> Business) with one `picket` position under a parcel committee, fielding
+> the watchpost sentry →
+> [employment.md § Who answers for you](../../subsystems/employment.md),
+> [identity.md](../../subsystems/identity.md); the `guarding` Discipline
+> (ISCED-F 1032) → [advancement.md](../../subsystems/advancement.md). The
+> civics `charter` is still a pointer nothing reads.
+> **Left:** Terminus as Peelers + the Tiebout spread of policing modes ·
+> the police bundle and the department roster (constable · sergeant ·
+> inspector · market inspector · commissioner) as a civics department ·
+> the commissioner ↔ committee policy hook — the charter's first consumer
+> · the kernel / law / policy three tiers · resolve-on-read policy + the
+> closed six-field policy vocabulary · the policy version stamped on the
+> ledger row · civilian review as an amendment module · "wanted" as
+> belief · arrest and custody — restraints + the handoff into
+> prison-slate's intake · the whistle clock (response time is geography)
+> · the constable kit (denial, not damage) + its per-locality skins + the
+> kit as a budget line · the Policing Discipline + credential-to-serve ·
+> lockcraft, the last dual-use competence · the Gray — the worked gang,
+> gated on the lending tier and landing with exclusion: its four
+> services, roster + periphery, the enforcement-dynamics table · the
+> gang's charter petition
 > **Size:** a build
 
 **Captured 2026-07-31**, from a Terminus design conversation. The

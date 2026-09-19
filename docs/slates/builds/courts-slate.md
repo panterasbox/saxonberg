@@ -13,11 +13,17 @@
 > verdict · remedy) · ⭐ the **pool** primitive — the venire, sortition at
 > the moment of need, mechanical conflict exclusion, the widening rule,
 > the founding pool of one · the **clerk** (an NPC seat executing rules)
-> · the `court` verb and its lifecycle subcommands · the closed matter
-> vocabulary, **embezzlement first** · the remedy menu + the judgment
-> debt entered on the ledger · the docket card, the case card, the panel
-> channel · the filing fee and the baseless-filing rule · the courthouse
-> in Terminus · appeal to the parent jurisdiction
+> · the `court` verb and its lifecycle subcommands · the no-clock
+> lifecycle (filed → served → answered → empanelled → decided → entered)
+> · the two-sided append-only record (facts the clerk assembles · claims
+> people add) · jurisdiction as situs, the `/compact` court on the same
+> substrate · the closed matter vocabulary, **embezzlement first**, then
+> the docket list (contested repossession · contested escheat · charter
+> breach · condemnation · disbarment · Art. VI attestation) · the remedy
+> menu + the judgment debt entered on the ledger · the docket card, the
+> case card, the panel channel · the summons as a notification · the
+> filing fee and the baseless-filing rule · the courthouse in Terminus ·
+> appeal to the parent jurisdiction
 > **Size:** a build
 
 > **Captured 2026-09-18**, out of the institutions conversation. It
