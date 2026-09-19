@@ -193,9 +193,11 @@ subcommand — the `settings set` list-type gap).
 
 `GET /api/cms/diagnostics` (on `CmsRoutes`) binds 1:1 through the
 `CmsSession.runAsSessionPlayer` attribution bridge to `DiagnosticApi.list`
-— **no new authorization surface**. The client `CmsDiagnosticsPanel` is a
-third tab in `CmsSurface`; since the CMS tab opens no WebSocket it
-**polls** the route on an interval, defaulting to the spoof-safe `mine`
+— **no new authorization surface**. ⚠ The client `CmsDiagnosticsPanel`
+exists but is **mounted nowhere** — `CmsSurface` and its tabs are gone
+(the CMS, git and studio are cards in the one feed), and no card registers
+the panel (verified 2026-09; the `errors` verb is the live reader). When it
+is re-homed it **polls** the route on an interval, defaulting to the spoof-safe `mine`
 lens (author resolved server-side) with an "all" toggle. A `cms-delta` WS
 push channel is the reserved upgrade.
 
