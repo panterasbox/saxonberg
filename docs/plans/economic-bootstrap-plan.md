@@ -78,7 +78,7 @@ NOT do.
   2. `seedFloatImpl` (:593-611): `issueCashImpl(bank, amount, "float")`
      + a `deposit` leg into the branch account; lazily from
      `openAccountImpl` (:276-282); `banking.openingFloat` = `"500"`.
-  3. `CreateController.ts:774-786` — `BankingApi.issueCash(avatar,
+  3. `EmbodyController.ts:774-786` — `BankingApi.issueCash(avatar,
      Money.of(stipend), "onboarding")` with `banking.onboardingStipend`
      = `"20"`; coin in hand, no account opened.
   4. The `reserve` verb (`packages/content/platform/content/platform/cmd/banking/reserve.yaml`,
@@ -644,7 +644,7 @@ unchanged. The `isAgentOf` wizard short-circuit is not this build's
 
 ### D10 — The Arrival Note
 
-At `CreateController.commit` (the renamed `enroll confirm`, W0) step 5c, instead of `issueCash`:
+At `EmbodyController.commit` (the renamed `enroll confirm` → `embody confirm`, W0) step 5c, instead of `issueCash`:
 `ContractApi.issueNote(avatar)` → a `note` row (issuer = the player,
 holder = `/compact/treasury`, `principalMinor =
 treasury.arrivalPrincipal`, rate 0, share 0,
@@ -986,7 +986,7 @@ settings keys `banking.openingCapital`, `banking.onboardingStipend`,
 `.float(` outside an allowlist by file+function (the perpetual rule,
 the window rule, `reserve override`, the banking test harness) — today: `ensureVenueAccountImpl`,
 `ensureCorpoTreasuryImpl`, `seedFloatImpl`, `issueCashImpl` callers
-(`CreateController`, `ReserveController` ×2), `float`, `mint` = **9**.
+(`EmbodyController`, `ReserveController` ×2), `float`, `mint` = **9**.
 Ceiling = the census at W3; W6 drives it to 0; the gate then holds 0.
 Both follow `check-lib-statics.ts` (a `CEILING` that may fall, a test
 asserting *at or below, and fires on a fixture*).
@@ -1150,12 +1150,13 @@ migration).
   Top claims gain `parentParcel: /world/terminus`.
 - `packages/content/platform/pack.yaml`: `{extent: /world/saxonberg}`
   (no holder), one comment line.
-- **The `enroll` → `create` rename** (the word was the char-gen build's,
+- **The `enroll` → `embody` rename** (the word was the char-gen build's,
   and the University has a real enrollment at Duncan Hall): the view
-  `cmd/charactergen/enroll.yaml` → `create.yaml` (`verbs: [create]`,
-  help rewritten: *create a character*), `EnrollController` →
-  `CreateController`, `EnrollmentDraft` → `CharacterDraft`, `EnrollModel`
-  → `CreateModel`, every test, the wire harness's character-creation
+  `cmd/charactergen/enroll.yaml` → `embody.yaml` (`verbs: [embody]`,
+  help rewritten: *take a body — the first embodiment; `reembody` is
+  the shade's*), `EnrollController` →
+  `EmbodyController`, `EnrollmentDraft` → `CharacterDraft`, `EnrollModel`
+  → `EmbodyModel`, every test, the wire harness's character-creation
   path, the client's char-gen phase strings, `docs/subsystems/char-gen.md`
   and every doc that names the verb (census: 40 code files, 64 docs at
   plan time; `grep -rniw 'enroll\|enrollment\|enrolls' packages docs` →
@@ -1166,7 +1167,7 @@ migration).
   no `title conflict`; `committee` at `/world/terminus/rejection/…`
   names `rejection`; at `/world/terminus/wharfside` names — nothing yet
   (W1). Wire `platform-smoke` + `world-scan` green.
-- Commit: `build(economic-bootstrap W0): /world/terminus is the realm root; four world packs re-root under it; enroll is create`.
+- Commit: `build(economic-bootstrap W0): /world/terminus is the realm root; four world packs re-root under it; enroll is embody`.
 
 ### W1 — The trade premises into the world; the orphans (D6)
 
@@ -1281,7 +1282,7 @@ migration).
 - Acceptance: `reserve` as the founder prints the dashboard; `reserve
   mint 5` → `unknown-subcommand`; `treasury appropriate 100 to <bar>`
   moves 100 and `reserve supply` is unchanged; `lint:no-authored-faucet`
-  falls to 3 (the settings keys + `CreateController`'s `issueCash`).
+  falls to 3 (the settings keys + `EmbodyController`'s `issueCash`).
 - Commit: `build(economic-bootstrap W4): four leg kinds, the floor, the treasury's account, the two rules, the reserve reshaped`.
 
 ### W5 — Credit: loans, the window, accrual, the share, default (D1, D12, D19)
@@ -1313,7 +1314,7 @@ migration).
 
 ### W6 — The Note, the standing facility, the wage refusal; the faucets to zero (D9, D10, D18, D22)
 
-- `CreateController.ts:774-786` → `issueNote` + `disburse` + the paper
+- `EmbodyController.ts:774-786` → `issueNote` + `disburse` + the paper
   (the `instrument` kind in `lib/document/DocumentKinds.ts`; written
   through `DocumentApi` at `/home/<key>/papers/arrival-note`; the
   commit frame names where it is filed);
@@ -1326,7 +1327,7 @@ migration).
 - `settleShiftWageImpl` + `HouseController.payroll` → D18;
   `Business.payrollArrears`; `house pnl` prints arrears.
 - `lint:no-authored-faucet` ceiling → 0 (the ratchet flips).
-- Tests: `create confirm` → a note row + a paper at `/home/<key>/papers/arrival-note`
+- Tests: `embody confirm` → a note row + a paper at `/home/<key>/papers/arrival-note`
   + coin in hand; a wage → discharged on the row and the paper + prose; a business's first account → an
   `advance` from the treasury and a 0% loan row; a short business with
   no line → arrears + refusal note; with M repaid loans → a draw and the
@@ -1502,7 +1503,7 @@ the rung-1 "no repossession" clause (D11) and pets at escheat (D17).
 - **The drive** — `economic-bootstrap.dirty.wire.test.ts`, one
   `describe`, the steps in order, each an `it` with an assertion that
   can fail:
-  1. Create `A` (`Session.open(uniqueHandle('note'))` runs the
+  1. Embody `A` (`Session.open(uniqueHandle('note'))` runs the
      char-gen flow the `identity.dirty` file already drives); assert
      `wallet` prose contains "Arrival Note" (residue) AND
      `query('inventory')` lists a `Note` (state); `look note` prose has
@@ -1547,7 +1548,7 @@ the rung-1 "no repossession" clause (D11) and pets at escheat (D17).
       not possible (not A's) — the dorm sleeping is already asserted by
       the residence suite; log B back in → `bank` shows the balance
       unchanged.
-  11. Create `C`, bank the principal at Goodkin, `wallet beneficiary A`,
+  11. Embody `C`, bank the principal at Goodkin, `wallet beneficiary A`,
       log out; past the escheat threshold, A `pay C 1` (a landing, the
       touch); then founder `treasury` shows unclaimed property held and
       A's `bank statement` shows nothing from C; log C in → prose "the
@@ -1680,7 +1681,7 @@ Read first, in this order:
 8. `platform/agent/Avatar.ts` :267-300, :1403-1422;
    `platform/idea/api/PlayerLogic.ts` :184-238;
    `lib/persistence/PersistedRecord.ts`; `docs/subsystems/persistence.md`
-9. `platform/idea/cmd/charactergen/CreateController.ts` :620-800;
+9. `platform/idea/cmd/charactergen/EmbodyController.ts` :620-800;
    `lib/credential/{Credential,CredentialWallet}.ts`;
    `platform/idea/cmd/banking/{Reserve,House,Bank,Wallet}Controller.ts`
    and their views under `packages/content/platform/content/platform/cmd/banking/`

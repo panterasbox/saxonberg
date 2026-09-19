@@ -714,7 +714,7 @@ Run against the live game before the MR opens, with the Schedule's
 thresholds set low enough to reach dormancy and escheat inside the
 session.
 
-1. **A new player creates a character.** At `create confirm` a frame tells them the Treasury
+1. **A new player creates a character.** At `embody confirm` a frame tells them the Treasury
    has advanced them twenty zorkmids against their note and where it is
    filed. Their wallet shows the balance **and the note**; reading the
    note in their own records gives every term in words — principal, 0%,
