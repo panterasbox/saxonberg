@@ -54,8 +54,12 @@ test.describe.serial('the Hinkley loop', () => {
     try {
       await sendUntil(
         page,
-        'reserve issue 6000',
-        page.getByText(/fresh currency into your hands/i).first(),
+        // economic bootstrap: the reserve issues no coin by hand — the
+        // founder funds their own ACCOUNT by recorded override (an open
+        // account at Goodkin is assumed; the render tier is not in the
+        // validate gate and this flow was updated by text — see the plan).
+        'reserve override 6000 to founder "e2e funding"',
+        page.getByText(/on your override/i).first(),
       );
       const lot = await availableLot(page);
       writeFileSync(LOT_FILE, lot);
@@ -251,8 +255,12 @@ test.describe.serial('the apartment loop', () => {
     try {
       await sendUntil(
         page,
-        'reserve issue 400',
-        page.getByText(/fresh currency into your hands/i).first(),
+        // economic bootstrap: the reserve issues no coin by hand — the
+        // founder funds their own ACCOUNT by recorded override (an open
+        // account at Goodkin is assumed; the render tier is not in the
+        // validate gate and this flow was updated by text — see the plan).
+        'reserve override 400 to founder "e2e funding"',
+        page.getByText(/on your override/i).first(),
       );
       await sendUntil(page, 'buy sconce', page.getByText(/sconce/i).first());
       await sendUntil(page, 'inventory', page.getByText(/sconce/i).first());
@@ -296,8 +304,12 @@ test.describe('the realty office', () => {
       // …and the whole transaction lands here, not only at the Registry.
       await sendUntil(
         page,
-        'reserve issue 6000',
-        page.getByText(/fresh currency into your hands/i).first(),
+        // economic bootstrap: the reserve issues no coin by hand — the
+        // founder funds their own ACCOUNT by recorded override (an open
+        // account at Goodkin is assumed; the render tier is not in the
+        // validate gate and this flow was updated by text — see the plan).
+        'reserve override 6000 to founder "e2e funding"',
+        page.getByText(/on your override/i).first(),
       );
       const lot = await availableLot(page);
       await sendUntil(
@@ -356,8 +368,12 @@ test.describe('the reads a home answers', () => {
     try {
       await sendUntil(
         page,
-        'reserve issue 400',
-        page.getByText(/fresh currency into your hands/i).first(),
+        // economic bootstrap: the reserve issues no coin by hand — the
+        // founder funds their own ACCOUNT by recorded override (an open
+        // account at Goodkin is assumed; the render tier is not in the
+        // validate gate and this flow was updated by text — see the plan).
+        'reserve override 400 to founder "e2e funding"',
+        page.getByText(/on your override/i).first(),
       );
       await sendUntil(page, 'buy kit', page.getByText(/kit/i).first());
       await sendUntil(page, 'inventory', page.getByText(/kit/i).first());
@@ -398,8 +414,12 @@ test.describe('the operator dial', () => {
     try {
       await sendUntil(
         page,
-        'reserve issue 6000',
-        page.getByText(/fresh currency into your hands/i).first(),
+        // economic bootstrap: the reserve issues no coin by hand — the
+        // founder funds their own ACCOUNT by recorded override (an open
+        // account at Goodkin is assumed; the render tier is not in the
+        // validate gate and this flow was updated by text — see the plan).
+        'reserve override 6000 to founder "e2e funding"',
+        page.getByText(/on your override/i).first(),
       );
       // Squeeze the plat to nothing: the next lot is now beyond the cap
       // and the book stops offering it — the refusal names the reason.
