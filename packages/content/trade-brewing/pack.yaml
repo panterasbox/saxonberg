@@ -19,7 +19,3 @@ requires:
       owner: { office: prime-minister }
   title:
     - { extent: /trade/brewing, holder: { group: brewing } }
-boot:
-  - { template: /trade/brewing/location/brewing-floor, role: producer, reason: "the outfit's yard — its Stock is the home container the floor kegs spawn into, and its hand runs the consigns brain" }
-  - { template: /trade/brewing/idea/brewing-outfit, role: producer, reason: "the hand's `purchases` position is materialized by the roster tick over a live business; the consigns beat trades as it" }
-  - { template: /trade/brewing/location/cold-store, role: producer, reason: "the lager line lives here — the cold vats, the cold culture, and the cellars beat that kegs it" }

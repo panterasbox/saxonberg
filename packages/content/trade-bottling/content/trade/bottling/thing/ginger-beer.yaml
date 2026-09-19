@@ -16,4 +16,4 @@ data:
   censusKey: mixer:ginger-beer
   regionTarget: 8
   materialTags: ["mixer", "ginger-beer"]
-  container: /trade/bottling/thing/bottling-stock
+  container: /world/terminus/goods-yards/bottling/thing/stock

@@ -24,8 +24,5 @@ requires:
       owner: { office: prime-minister }
   title:
     - { extent: /trade/distribution, holder: { group: distribution } }
-boot:
-  # ⚠ The ROOM's boot entry lives in `terminus`, with the room. A
-  # showroom on a named avenue is a place; the counter, the clerk and the
-  # racking in it are still this pack's.
-  - { template: /trade/distribution/idea/business, role: producer, reason: "the distributor's Business must be live so its clerk is rostered before the first buy" }
+# The premises' boot entries moved to `terminus` with the rows (economic
+# bootstrap D6): a trade is placeless; its floor is the city's.

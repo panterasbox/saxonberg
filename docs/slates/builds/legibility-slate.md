@@ -268,7 +268,7 @@ problem:
 
 | shape | fields | rule |
 |---|---|---|
-| single-valued, idempotent, mints nothing | `container`, `startLocation` | inherit; child wins. `container` is already compare-and-move idempotent, and every bottling product row repeats `container: /trade/bottling/thing/bottling-stock` |
+| single-valued, idempotent, mints nothing | `container`, `startLocation` | inherit; child wins. `container` is already compare-and-move idempotent, and every bottling product row repeats `container: /world/terminus/goods-yards/bottling/thing/stock` |
 | map-shaped data | `details` (both `persistent` **and** `instruction`) | merge by key, child wins per key |
 | list-shaped, mints Stuff | `props`, `cast`, `adornments`, `exits`, `routes` | the hazard — see below |
 

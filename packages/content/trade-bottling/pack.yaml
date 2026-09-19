@@ -15,6 +15,3 @@ requires:
       owner: { office: prime-minister }
   title:
     - { extent: /trade/bottling, holder: { group: bottling } }
-boot:
-  - { template: /trade/bottling/location/bottling-floor, role: producer, reason: "the outfit's yard — its Stock is the home container the mixers and ice spawn into, and its hand runs the consigns brain" }
-  - { template: /trade/bottling/idea/bottling-outfit, role: producer, reason: "the hand's `purchases` position is materialized over a live business; the consigns beat trades as it" }

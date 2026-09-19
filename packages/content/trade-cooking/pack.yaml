@@ -18,6 +18,3 @@ requires:
       owner: { office: prime-minister }
   title:
     - { extent: /trade/cooking, holder: { group: cooking } }
-boot:
-  - { template: /trade/cooking/location/pantry-floor, role: producer, reason: "the pantry outfit's storeroom — its Stock is the home container the sacks spawn into, and its hand runs the consigns brain" }
-  - { template: /trade/cooking/idea/pantry-outfit, role: producer, reason: "the hand's `purchases` position is materialized over a live business; the consigns beat trades as it" }

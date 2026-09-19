@@ -39,5 +39,10 @@ requires:
     # the city, so its parcels' parent is the realm's committee.
     - { extent: /world/terminus/eternal/duncan-hall,       parentParcel: /world/terminus, holder: { group: duncan-hall } }
     - { extent: /world/terminus/eternal/duncan-hall/dorms, parentParcel: /world/terminus/eternal/duncan-hall, holder: { group: duncan-hall }, landUse: residential }
+    # The campus farm and the home field (economic bootstrap, retrofit
+    # step 3): the University's ground, held by its one group today — a
+    # `campus` group is a rename the Compact can make.
+    - { extent: /world/terminus/eternal/campus-farm,  parentParcel: /world/terminus, holder: { group: duncan-hall }, landUse: agricultural }
+    - { extent: /world/terminus/eternal/campus-field, parentParcel: /world/terminus, holder: { group: duncan-hall }, landUse: agricultural }
 boot:
   - { template: /world/terminus/eternal/duncan-hall/idea/dorm-warren, role: producer, reason: installs the lobby stair and rebuilds the floor cache at postRegister }

@@ -152,7 +152,7 @@ data:
   open: false
   censusKey: mixer:cola-can   # derives back to `can` when drained (the census fix)
   regionTarget: 24
-  container: /trade/bottling/thing/bottling-stock
+  container: /world/terminus/goods-yards/bottling/thing/stock
 ```
 
 ## 5. The wooden pallet (the other perfect object) — one row

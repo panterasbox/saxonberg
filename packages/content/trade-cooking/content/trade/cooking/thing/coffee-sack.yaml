@@ -17,4 +17,4 @@ data:
   censusKey: pantry:coffee
   regionTarget: 4
   materialTags: ["coffee"]
-  container: /trade/cooking/thing/pantry-stock
+  container: /world/terminus/goods-yards/pantry/thing/stock

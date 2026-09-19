@@ -21,4 +21,4 @@ data:
   # brain to fill, cap and consign.
   censusKey: vessel:keg
   regionTarget: 8
-  container: /trade/brewing/thing/brewing-stock
+  container: /world/terminus/goods-yards/brewing/thing/stock

@@ -26,4 +26,4 @@ data:
   censusKey: spirit:tequila
   regionTarget: 12
   materialTags: [spirit, tequila]
-  container: /trade/distilling/location/veshko-yard/thing/stock
+  container: /world/terminus/goods-yards/veshko/thing/stock

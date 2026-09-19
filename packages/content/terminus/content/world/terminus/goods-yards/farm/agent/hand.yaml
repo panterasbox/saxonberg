@@ -1,0 +1,65 @@
+# Wen Hartley — the farm outfit's hand. Holds the outfit's `hand` position
+# (`purchases: true`): dealt the house card at hire, then the `consigns`
+# brain drives the literal verbs — `get`, `wallet use house`, `consign …
+# --ask` — carrying the stock to the cash-and-carry counter and consigning
+# it AS the outfit. The counter path is this config's, never the trade's.
+class: /platform/agent/Cast
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  name: Wen Hartley
+  keywords: [hand, wen, hartley, sun-browned, market, knife, string]
+  pronouns: they
+  _speciesPath: /stuff/idea/species/animalia/chordata/mammalia/primates/hominidae/homo/sapiens
+  lifecycleState: alive
+  alternateNames: ["wen", "hartley"]
+  shortDescription: "sun-browned market hand with a knife on a string"
+  register: indefinite
+  longDescription: |
+    A sun-browned hand with a paring knife on a string round their neck, who tastes one of everything before it goes out.
+  dispositions:
+    - { disposition: diligence, valence: 60 }
+  # ── the dossier ─────────────────────────────────────────────────
+  # Evidence, never values: each entry below expands into the same rows a
+  # lived history would have written, marked `claim`. Seeded once at
+  # postRegister and skipped if any claim already exists, so a reclone or
+  # a reboot cannot mint a second history.
+  # ⚠ A best-guess pass, explicitly provisional — the considered version
+  # is a content pass of its own before go-live.
+  archetype: hand
+  competence:
+    - { discipline: agriculture, asserting: novice }
+    - { discipline: retail-sales, asserting: novice }
+  behaviors:
+    - brain: /lib/behavior/consigns
+      trigger: cadence:4m
+      config:
+        stock: /world/terminus/goods-yards/farm/thing/stock
+        shelf: /world/terminus/counting-houses/distributor/thing/counter
+        # ⚠⚠ `board`, `crate` and `carriage` USED to sit here — the
+        # posting version of this beat, from before the hand could
+        # walk. `consigns` reads none of them, so they were three keys
+        # that looked like configuration and were configuration of
+        # nothing. Removed rather than left: a dead key in a row is the
+        # quietest lie a content tree can tell.
+        #
+        # ⚠ Retuned by logistics D11 all the same: twelve a beat, not six
+        # loose goods, because a walk to the counter and back is the same
+        # walk whatever the hand is carrying.
+        batch: 12
+        ask:
+          produce:lime: 6
+          produce:lemon: 6
+          produce:orange: 5
+          produce:grapefruit: 5
+          produce:mint: 5
+          produce:cherry: 5
+          produce:olive: 5
+          produce:cranberry: 5
+          produce:grape: 5
+          produce:juniper: 5
+    - brain: /lib/behavior/idles
+      trigger: cadence:41s
+      config:
+        pool:
+          - { kind: free, value: "halves a lime and sniffs it." }
+          - { kind: free, value: "wets the sacking down again." }

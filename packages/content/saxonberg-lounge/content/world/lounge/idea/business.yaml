@@ -126,43 +126,43 @@ data:
   # nothing in the realm for an order to deliver. They are a content gap,
   # named here rather than papered over with a wrong path.
   parLines:
-    - { category: gin, unit: L, level: 6, supplier: /trade/distribution/idea/business, exemplar: /trade/distilling/thing/gin }
-    - { category: vodka, unit: L, level: 6, supplier: /trade/distribution/idea/business, exemplar: /trade/distilling/thing/vodka }
-    - { category: whiskey, unit: L, level: 6, supplier: /trade/distribution/idea/business, exemplar: /trade/distilling/thing/whiskey }
-    - { category: light-rum, unit: L, level: 3, supplier: /trade/distribution/idea/business, exemplar: /trade/distilling/thing/rum-light }
-    - { category: dark-rum, unit: L, level: 3, supplier: /trade/distribution/idea/business, exemplar: /trade/distilling/thing/rum-dark }
-    - { category: tequila, unit: L, level: 3, supplier: /trade/distribution/idea/business, exemplar: /trade/distilling/thing/tequila }
-    - { category: orange-liqueur, unit: L, level: 1.5, supplier: /trade/distribution/idea/business, exemplar: /trade/distilling/thing/orange-liqueur }
-    - { category: bitter-liqueur, unit: L, level: 1.5, supplier: /trade/distribution/idea/business, exemplar: /trade/distilling/thing/bitter-liqueur }
-    - { category: aperitivo, unit: L, level: 1.5, supplier: /trade/distribution/idea/business, exemplar: /trade/distilling/thing/aperitivo }
-    - { category: bitters, unit: L, level: 0.4, supplier: /trade/distribution/idea/business, exemplar: /trade/distilling/thing/bitters }
-    - { category: dry-vermouth, unit: L, level: 1.5, supplier: /trade/distribution/idea/business }
-    - { category: sweet-vermouth, unit: L, level: 1.5, supplier: /trade/distribution/idea/business }
-    - { category: red, unit: L, level: 3, supplier: /trade/distribution/idea/business }
-    - { category: white, unit: L, level: 3, supplier: /trade/distribution/idea/business }
-    - { category: sparkling, unit: L, level: 3, supplier: /trade/distribution/idea/business }
-    - { category: ale, unit: L, level: 60, supplier: /trade/distribution/idea/business }
-    - { category: lager, unit: L, level: 60, supplier: /trade/distribution/idea/business }
-    - { category: soda-water, unit: L, level: 6, supplier: /trade/distribution/idea/business, exemplar: /trade/bottling/thing/soda-water }
-    - { category: tonic, unit: L, level: 6, supplier: /trade/distribution/idea/business, exemplar: /trade/bottling/thing/tonic }
-    - { category: ginger-beer, unit: L, level: 4, supplier: /trade/distribution/idea/business, exemplar: /trade/bottling/thing/ginger-beer }
-    - { category: cola, unit: L, level: 4, supplier: /trade/distribution/idea/business, exemplar: /trade/bottling/thing/cola }
-    - { category: grapefruit-soda, unit: L, level: 2, supplier: /trade/distribution/idea/business, exemplar: /trade/bottling/thing/grapefruit-soda }
-    - { category: cranberry-juice, unit: L, level: 2, supplier: /trade/distribution/idea/business, exemplar: /trade/bottling/thing/cranberry-juice }
-    - { category: orange-juice, unit: L, level: 2, supplier: /trade/distribution/idea/business, exemplar: /trade/bottling/thing/orange-juice }
-    - { category: lime, unit: count, level: 48, supplier: /trade/distribution/idea/business, exemplar: /trade/farming/thing/lime }
-    - { category: lemon, unit: count, level: 24, supplier: /trade/distribution/idea/business, exemplar: /trade/farming/thing/lemon }
-    - { category: orange, unit: count, level: 12, supplier: /trade/distribution/idea/business, exemplar: /trade/farming/thing/orange }
-    - { category: grapefruit, unit: count, level: 12, supplier: /trade/distribution/idea/business, exemplar: /trade/farming/thing/grapefruit }
-    - { category: mint, unit: count, level: 24, supplier: /trade/distribution/idea/business, exemplar: /trade/farming/thing/mint }
-    - { category: cherry, unit: count, level: 24, supplier: /trade/distribution/idea/business, exemplar: /trade/farming/thing/cherry }
-    - { category: olive, unit: count, level: 48, supplier: /trade/distribution/idea/business, exemplar: /trade/farming/thing/olive }
-    - { category: cranberry, unit: count, level: 24, supplier: /trade/distribution/idea/business, exemplar: /trade/farming/thing/cranberry }
-    - { category: sugar, unit: L, level: 4, supplier: /trade/distribution/idea/business, exemplar: /trade/cooking/thing/sugar-sack }
-    - { category: coffee, unit: L, level: 2, supplier: /trade/distribution/idea/business, exemplar: /trade/cooking/thing/coffee-sack }
-    - { category: syrup, unit: L, level: 1, supplier: /trade/distribution/idea/business, exemplar: /trade/cooking/thing/syrup-bottle }
-    - { category: vinegar, unit: L, level: 1, supplier: /trade/distribution/idea/business }
-    - { category: ice, unit: kg, level: 10, supplier: /trade/distribution/idea/business, exemplar: /trade/bottling/thing/ice-bag }
+    - { category: gin, unit: L, level: 6, supplier: /world/terminus/counting-houses/distributor/idea/business, exemplar: /trade/distilling/thing/gin }
+    - { category: vodka, unit: L, level: 6, supplier: /world/terminus/counting-houses/distributor/idea/business, exemplar: /trade/distilling/thing/vodka }
+    - { category: whiskey, unit: L, level: 6, supplier: /world/terminus/counting-houses/distributor/idea/business, exemplar: /trade/distilling/thing/whiskey }
+    - { category: light-rum, unit: L, level: 3, supplier: /world/terminus/counting-houses/distributor/idea/business, exemplar: /trade/distilling/thing/rum-light }
+    - { category: dark-rum, unit: L, level: 3, supplier: /world/terminus/counting-houses/distributor/idea/business, exemplar: /trade/distilling/thing/rum-dark }
+    - { category: tequila, unit: L, level: 3, supplier: /world/terminus/counting-houses/distributor/idea/business, exemplar: /trade/distilling/thing/tequila }
+    - { category: orange-liqueur, unit: L, level: 1.5, supplier: /world/terminus/counting-houses/distributor/idea/business, exemplar: /trade/distilling/thing/orange-liqueur }
+    - { category: bitter-liqueur, unit: L, level: 1.5, supplier: /world/terminus/counting-houses/distributor/idea/business, exemplar: /trade/distilling/thing/bitter-liqueur }
+    - { category: aperitivo, unit: L, level: 1.5, supplier: /world/terminus/counting-houses/distributor/idea/business, exemplar: /trade/distilling/thing/aperitivo }
+    - { category: bitters, unit: L, level: 0.4, supplier: /world/terminus/counting-houses/distributor/idea/business, exemplar: /trade/distilling/thing/bitters }
+    - { category: dry-vermouth, unit: L, level: 1.5, supplier: /world/terminus/counting-houses/distributor/idea/business }
+    - { category: sweet-vermouth, unit: L, level: 1.5, supplier: /world/terminus/counting-houses/distributor/idea/business }
+    - { category: red, unit: L, level: 3, supplier: /world/terminus/counting-houses/distributor/idea/business }
+    - { category: white, unit: L, level: 3, supplier: /world/terminus/counting-houses/distributor/idea/business }
+    - { category: sparkling, unit: L, level: 3, supplier: /world/terminus/counting-houses/distributor/idea/business }
+    - { category: ale, unit: L, level: 60, supplier: /world/terminus/counting-houses/distributor/idea/business }
+    - { category: lager, unit: L, level: 60, supplier: /world/terminus/counting-houses/distributor/idea/business }
+    - { category: soda-water, unit: L, level: 6, supplier: /world/terminus/counting-houses/distributor/idea/business, exemplar: /trade/bottling/thing/soda-water }
+    - { category: tonic, unit: L, level: 6, supplier: /world/terminus/counting-houses/distributor/idea/business, exemplar: /trade/bottling/thing/tonic }
+    - { category: ginger-beer, unit: L, level: 4, supplier: /world/terminus/counting-houses/distributor/idea/business, exemplar: /trade/bottling/thing/ginger-beer }
+    - { category: cola, unit: L, level: 4, supplier: /world/terminus/counting-houses/distributor/idea/business, exemplar: /trade/bottling/thing/cola }
+    - { category: grapefruit-soda, unit: L, level: 2, supplier: /world/terminus/counting-houses/distributor/idea/business, exemplar: /trade/bottling/thing/grapefruit-soda }
+    - { category: cranberry-juice, unit: L, level: 2, supplier: /world/terminus/counting-houses/distributor/idea/business, exemplar: /trade/bottling/thing/cranberry-juice }
+    - { category: orange-juice, unit: L, level: 2, supplier: /world/terminus/counting-houses/distributor/idea/business, exemplar: /trade/bottling/thing/orange-juice }
+    - { category: lime, unit: count, level: 48, supplier: /world/terminus/counting-houses/distributor/idea/business, exemplar: /trade/farming/thing/lime }
+    - { category: lemon, unit: count, level: 24, supplier: /world/terminus/counting-houses/distributor/idea/business, exemplar: /trade/farming/thing/lemon }
+    - { category: orange, unit: count, level: 12, supplier: /world/terminus/counting-houses/distributor/idea/business, exemplar: /trade/farming/thing/orange }
+    - { category: grapefruit, unit: count, level: 12, supplier: /world/terminus/counting-houses/distributor/idea/business, exemplar: /trade/farming/thing/grapefruit }
+    - { category: mint, unit: count, level: 24, supplier: /world/terminus/counting-houses/distributor/idea/business, exemplar: /trade/farming/thing/mint }
+    - { category: cherry, unit: count, level: 24, supplier: /world/terminus/counting-houses/distributor/idea/business, exemplar: /trade/farming/thing/cherry }
+    - { category: olive, unit: count, level: 48, supplier: /world/terminus/counting-houses/distributor/idea/business, exemplar: /trade/farming/thing/olive }
+    - { category: cranberry, unit: count, level: 24, supplier: /world/terminus/counting-houses/distributor/idea/business, exemplar: /trade/farming/thing/cranberry }
+    - { category: sugar, unit: L, level: 4, supplier: /world/terminus/counting-houses/distributor/idea/business, exemplar: /trade/cooking/thing/sugar-sack }
+    - { category: coffee, unit: L, level: 2, supplier: /world/terminus/counting-houses/distributor/idea/business, exemplar: /trade/cooking/thing/coffee-sack }
+    - { category: syrup, unit: L, level: 1, supplier: /world/terminus/counting-houses/distributor/idea/business, exemplar: /trade/cooking/thing/syrup-bottle }
+    - { category: vinegar, unit: L, level: 1, supplier: /world/terminus/counting-houses/distributor/idea/business }
+    - { category: ice, unit: kg, level: 10, supplier: /world/terminus/counting-houses/distributor/idea/business, exemplar: /trade/bottling/thing/ice-bag }
     - { category: coupe, unit: count, level: 12 }
     - { category: rocks, unit: count, level: 8 }
     - { category: highball, unit: count, level: 12 }

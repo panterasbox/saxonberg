@@ -123,12 +123,12 @@ describe('the content the switchover needed', () => {
     // the hand teleports". The hands still never travel; the doors are
     // for the people who come to collect.
     const floors = [
-      'trade-bottling/content/trade/bottling/location/bottling-floor.yaml',
-      'trade-cooking/content/trade/cooking/location/pantry-floor.yaml',
-      'trade-distilling/content/trade/distilling/location/crowsfoot-floor.yaml',
-      'trade-distilling/content/trade/distilling/location/hollis-floor.yaml',
-      'trade-distilling/content/trade/distilling/location/veshko-yard/location/distillery.yaml',
-      'trade-farming/content/trade/farming/location/farm.yaml',
+      'terminus/content/world/terminus/goods-yards/bottling/location/floor.yaml',
+      'terminus/content/world/terminus/goods-yards/pantry/location/floor.yaml',
+      'terminus/content/world/terminus/goods-yards/crowsfoot/location/floor.yaml',
+      'terminus/content/world/terminus/goods-yards/hollis/location/floor.yaml',
+      'terminus/content/world/terminus/goods-yards/veshko/location/distillery.yaml',
+      'terminus/content/world/terminus/goods-yards/farm/location/yard.yaml',
     ];
     for (const rel of floors) {
       const data = (yamlAt(rel).data ?? {}) as Record<string, unknown>;
@@ -155,12 +155,12 @@ describe('the content the switchover needed', () => {
      * coordination lesson.
      */
     const floors = [
-      'trade-bottling/content/trade/bottling/location/bottling-floor.yaml',
-      'trade-cooking/content/trade/cooking/location/pantry-floor.yaml',
-      'trade-distilling/content/trade/distilling/location/crowsfoot-floor.yaml',
-      'trade-distilling/content/trade/distilling/location/hollis-floor.yaml',
-      'trade-distilling/content/trade/distilling/location/veshko-yard/location/distillery.yaml',
-      'trade-farming/content/trade/farming/location/farm.yaml',
+      'terminus/content/world/terminus/goods-yards/bottling/location/floor.yaml',
+      'terminus/content/world/terminus/goods-yards/pantry/location/floor.yaml',
+      'terminus/content/world/terminus/goods-yards/crowsfoot/location/floor.yaml',
+      'terminus/content/world/terminus/goods-yards/hollis/location/floor.yaml',
+      'terminus/content/world/terminus/goods-yards/veshko/location/distillery.yaml',
+      'terminus/content/world/terminus/goods-yards/farm/location/yard.yaml',
     ];
     for (const rel of floors) {
       const data = (yamlAt(rel).data ?? {}) as Record<string, unknown>;

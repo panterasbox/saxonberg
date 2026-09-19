@@ -158,7 +158,7 @@ NOT do.
 - `stockSheetFor(viewer)` (Organization.ts :432-500) reads `parLines`
   only; the general store's counter authors `stockLines` and the
   Business no `parLines`; **only Dave's Bar authors `parLines`** (46
-  lines, `supplier: /trade/distribution/idea/business`).
+  lines, `supplier: /world/terminus/counting-houses/distributor/idea/business`).
 - **Brains** (`lib/behavior/`): cadence triggers are **REAL-TIME**
   (`Behaved.ts:280-292`, doc :399-400) and fire whether or not a player
   is present when `presenceGated` is false; but a cast NPC that is not
@@ -521,7 +521,7 @@ path (the rejection → trade-forestry precedent: terminus gains
 `parLines[].supplier`, `consigns` config, `operatingLocations`, wire
 test and doc that names an old path is re-pointed (census at build:
 `/trade/<x>/location` 57+23+11+9+8+8+4+4 refs, plus
-`/trade/distribution/idea/business` 46 in the lounge's `business.yaml`
+`/world/terminus/counting-houses/distributor/idea/business` 46 in the lounge's `business.yaml`
 alone). The orphans are claimed: `wharfside`, `goods-yards`,
 `infirmary`, `necropolis` → `terminus`; `campus-farm` → the
 eternal-university manifest (`/world/terminus/eternal/campus-farm` for
@@ -1222,6 +1222,31 @@ in the three-file run).
   `farming`, `logistics` green after path edits; `committee` at the
   Hollis floor names `terminus`.
 - Commit: `build(economic-bootstrap W1): the trade premises sit in the city; the orphans are claimed`.
+
+**W1 — DONE.** 47 rows moved by an explicit path map (the vintner floor
+came too — winemaking is a venue like the others; haulage's depot and
+carrier Business rows did NOT: they are the `props:` pattern, kinds a
+room names, and the depot already stands on the estuary — flagged for the
+MR). Each premises is a **sub-zone of its own** under its district
+(`wharfside/mill.yaml`, `goods-yards/crowsfoot.yaml`, …: the
+seznick-house / veshko shape) so every floor keeps its authored coords
+and nothing re-plots; the trade root zones stay for the trade's kinds.
+Leaf names normalised to the veshko shape (`location/floor`,
+`idea/outfit`, `agent/hand`, `thing/stock`); the distributor sits at
+`counting-houses/distributor/…`. 24 `boot:` producers moved into the
+terminus manifest with their rows. ⚠ **The dependency direction
+flipped**: textiles, dyeing and tailoring had depended on terminus (for
+their own exits back to the bank/street); with the rows in terminus the
+city now depends on every trade whose floor it hosts, and the three
+trades dropped terminus — the PackLogic cycle check would have refused
+otherwise. The trade suites that read their floor rows by file now read
+them from the terminus pack (distilling, textiles, tailoring); the kernel
+annex/discover/forcing-function tests re-state the rule (a floor's Stock
+is the CITY's). Orphans claimed: wharfside + goods-yards `industrial`,
+infirmary + necropolis `civic`; campus-farm + campus-field for
+`duncan-hall`. Wires after a dropped DB: logistics, textiles, cooking,
+grain-chain, farming green (platform-smoke 10/10 alone; one prose-timing
+miss in the six-file run).
 
 ### W2 — Three seats, the Board and the treasury organizations, corpo committees, Walter (D7, D8)
 

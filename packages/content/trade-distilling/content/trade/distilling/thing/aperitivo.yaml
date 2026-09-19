@@ -24,4 +24,4 @@ data:
   censusKey: spirit:aperitivo
   regionTarget: 12
   materialTags: [spirit, liqueur, aperitivo]
-  container: /trade/distilling/thing/crowsfoot-stock
+  container: /world/terminus/goods-yards/crowsfoot/thing/stock

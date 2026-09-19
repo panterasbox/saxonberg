@@ -12,8 +12,9 @@
  * proven once, in the distilling pack's own suite; this is the annexes'
  * half — that their rows fit it.
  *
- * Lives under `mud/world/` beside the other content-shaped tests (it
- * names no `/world/` path since the yards moved into the trade).
+ * Lives under `mud/world/` beside the other content-shaped tests. The
+ * yards' PREMISES sit in the city since the economic bootstrap (D6); the
+ * products they spawn stay at the trade's paths.
  */
 
 import '../../../test-bootstrap';
@@ -31,11 +32,17 @@ import CartesianZone from '../../platform/idea/location/CartesianZone';
 const PACKS = fileURLToPath(new URL('../../../../../content/', import.meta.url));
 const ANNEXES = ['trade-brewing', 'trade-winemaking', 'trade-bottling', 'trade-farming', 'trade-cooking'];
 /** The two corpo-owned yards: distilling's rows, owned via `parentOrganization`. */
-const VESHKO = '/trade/distilling/location/veshko-yard';
-const HOLLIS = '/trade/distilling';
-const HOLLIS_ROWS = ['agent/hollis-hand', 'idea/hollis-outfit', 'location/hollis-floor', 'thing/hollis-stock', 'thing/old-hollis', 'thing/hollis-cane'].map((r) => `${HOLLIS}/${r}`);
+const VESHKO = '/world/terminus/goods-yards/veshko';
+const HOLLIS = '/world/terminus/goods-yards/hollis';
+/** The Hollis floor's rows sit in the city (economic bootstrap D6); its two
+ *  products stay at the distilling trade's paths, homed there by `container:`. */
+const HOLLIS_ROWS = [
+  ...['agent/hand', 'idea/outfit', 'location/floor', 'thing/stock'].map((r) => `${HOLLIS}/${r}`),
+  '/trade/distilling/thing/old-hollis',
+  '/trade/distilling/thing/hollis-cane',
+];
 const VESHKO_STOCK = `${VESHKO}/thing/stock`;
-const HOLLIS_STOCK = `${HOLLIS}/thing/hollis-stock`;
+const HOLLIS_STOCK = `${HOLLIS}/thing/stock`;
 /**
  * ⭐ A yard's rows are the ones HOMED there, not the ones pathed there.
  * The unbranded rail lives at the trade's own paths — it carries no mark,
@@ -43,13 +50,18 @@ const HOLLIS_STOCK = `${HOLLIS}/thing/hollis-stock`;
  * who makes it. That gap is deliberate: the corpo is in your glass even
  * when there is no mark on the bottle.
  */
+/** Every annex's PREMISES (floor, Stock, outfit, hand) sit here — the terminus pack's rows. */
+const PREMISES = '/world/terminus/goods-yards/';
 const isYardRow = (path: string, data?: Record<string, unknown>): boolean =>
+  path.startsWith(PREMISES) ||
   path.startsWith(`${VESHKO}/`) ||
   HOLLIS_ROWS.includes(path) ||
   data?.container === VESHKO_STOCK ||
   data?.container === HOLLIS_STOCK;
 const YARDS = ['veshko', 'hollis'];
-const COUNTER = '/trade/distribution/thing/counter';
+/** Every distilling floor on the goods yards runs a consigns beat — the two corpo yards and Crowsfoot. */
+const DISTILLING_FLOORS = ['crowsfoot', ...YARDS];
+const COUNTER = '/world/terminus/counting-houses/distributor/thing/counter';
 
 interface Row {
   pack: string;
@@ -132,13 +144,17 @@ describe('libations annexes — the floor rows fit the faucet', () => {
     expect(floorRows.length).toBe(0 + 0 + 9 + 10 + 4 + 7 + 2);
   });
 
-  it('every floor row has a target and a home container that is a Stock the SAME pack ships', () => {
+  it('every floor row has a target and a home container that is a Stock on the CITY\'s premises', () => {
+    // ⭐ Economic bootstrap D6: a trade is placeless. Its floor product
+    // is homed in a Stock the TERMINUS pack ships under the goods yards,
+    // where the committee that holds the ground answers for the outfit.
     for (const r of floorRows) {
       expect(typeof r.data.regionTarget, r.path).toBe('number');
       const home = byPath.get(r.data.container as string);
       expect(home, `${r.path} container ${String(r.data.container)}`).toBeDefined();
       expect(home!.class, r.path).toBe('/platform/thing/Stock');
-      expect(home!.pack, r.path).toBe(r.pack);
+      expect(home!.pack, r.path).toBe('terminus');
+      expect(home!.path.startsWith(PREMISES), r.path).toBe(true);
       expect(home!.data.stockLines, `${home!.path} must not reset`).toEqual([]);
     }
   });
@@ -170,8 +186,8 @@ describe('libations annexes — the floor rows fit the faucet', () => {
   });
 
   it('the private-label fact: Hollis bottles hold the material Veshko\'s unbranded bottles hold', () => {
-    const old = byPath.get(`${HOLLIS}/thing/old-hollis`)!;
-    const cane = byPath.get(`${HOLLIS}/thing/hollis-cane`)!;
+    const old = byPath.get('/trade/distilling/thing/old-hollis')!;
+    const cane = byPath.get('/trade/distilling/thing/hollis-cane')!;
     // The same liquid, three positions: unbranded rail, Volk, Old Hollis.
     const rail = (n: string) => byPath.get(`/trade/distilling/thing/${n}`)!;
     expect(old.data.interiorMaterial).toBe(rail('whiskey').data.interiorMaterial);
@@ -212,14 +228,15 @@ describe('libations annexes — the hands name the host', () => {
     // Winemaking and brewing retired their consigns beats with their
     // faucets (the W8 switchover — the cellars beats consign what they
     // MAKE); the faucet annexes and the yards still run them.
-    expect(hands.length).toBe(ANNEXES.length - 2 + YARDS.length);
+    expect(hands.length).toBe(ANNEXES.length - 2 + DISTILLING_FLOORS.length);
     for (const hand of hands) {
       const spec = (hand.data.behaviors as Array<{ brain: string; config: Record<string, unknown> }>).find(
         (b) => b.brain === '/lib/behavior/consigns',
       )!;
       expect(spec.config.shelf, hand.path).toBe(COUNTER);
       const stock = byPath.get(spec.config.stock as string);
-      expect(stock?.pack, `${hand.path} stock`).toBe(hand.pack);
+      expect(stock?.pack, `${hand.path} stock`).toBe('terminus');
+      expect(hand.pack, hand.path).toBe('terminus');
       const asks = spec.config.ask as Record<string, number>;
       for (const r of floorRows.filter((r) => r.data.container === spec.config.stock)) {
         expect(asks[r.data.censusKey as string], `${hand.path} asks ${r.path}`).toBeGreaterThan(0);
@@ -236,7 +253,7 @@ describe('libations annexes — the hands name the host', () => {
 
   it('the corpo yards hang off their charts (the trade points UP at its owner); the stubs are independent', () => {
     expect(byPath.get(`${VESHKO}/idea/outfit`)!.data.parentOrganization).toBe('/corpo/veshko');
-    expect(byPath.get(`${HOLLIS}/idea/hollis-outfit`)!.data.parentOrganization).toBe('/corpo/hollis');
+    expect(byPath.get(`${HOLLIS}/idea/outfit`)!.data.parentOrganization).toBe('/corpo/hollis');
     for (const r of annexRows.filter((r) => r.class === '/platform/idea/Business' && !isYardRow(r.path))) {
       expect(r.data.parentOrganization, r.path).toBeUndefined();
     }

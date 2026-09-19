@@ -71,9 +71,47 @@ requires:
     # already: a gate on ground you hold is legitimate, a barricade on
     # the commons is not. No mechanic, no new entry, decided.
     - { extent: /world/terminus/delight-road, parentParcel: /world/terminus, holder: { group: terminus }, landUse: wild }
+    # ⭐ The orphans, claimed (economic bootstrap, retrofit step 3): these
+    # four resolved to the platform's `/world` — the executive — which is
+    # exactly what doctrine 1 exists to prevent. Wharfside is the
+    # workshop district (the mill and the dyehouse); the goods yards hold
+    # the producers' floors; the infirmary and the necropolis are the
+    # city's civic ground.
+    - { extent: /world/terminus/wharfside,   parentParcel: /world/terminus, holder: { group: terminus }, landUse: industrial }
+    - { extent: /world/terminus/goods-yards, parentParcel: /world/terminus, holder: { group: terminus }, landUse: industrial }
+    - { extent: /world/terminus/infirmary,   parentParcel: /world/terminus, holder: { group: terminus }, landUse: civic }
+    - { extent: /world/terminus/necropolis,  parentParcel: /world/terminus, holder: { group: terminus }, landUse: civic }
 boot:
   - { template: /world/terminus/mayfield-row/seznick-house/building, role: producer, reason: warms the unit caches from the durable slot set and installs the lobby stair at postRegister }
   # ⚠ Moved here with the room from `trade-distilling`: a showroom on the
   # avenue is a PLACE, so the locality holds it. Everything IN it is
   # still the distilling trade's — the racking, the counter, the clerk.
   - { template: /world/terminus/counting-houses/cash-and-carry, role: producer, reason: "the distributor's counter must be resident for the trades' hands to consign onto it and for the boot spawn sweep to have a census" }
+  # ⭐ The trade premises' producers (economic bootstrap D6): a floor's
+  # Stock is the home container its trade's rows spawn into, and an
+  # outfit's hand runs its brain over a live Business. Moved here WITH the
+  # rows — a `boot:` entry belongs to the pack that ships the template.
+  - { template: /world/terminus/wharfside/mill/location/floor, role: producer, reason: "the mill floor — its Stock is the home container bolts spawn into, and its weaver runs the consigns brain" }
+  - { template: /world/terminus/wharfside/mill/idea/outfit, role: producer, reason: "the weaver's `purchases` position is materialized over a live business; the consigns beat trades as it" }
+  - { template: /world/terminus/wharfside/dyehouse/location/floor, role: producer, reason: "the dyehouse floor — its counter is the attendance point customers queue at" }
+  - { template: /world/terminus/wharfside/dyehouse/idea/outfit, role: producer, reason: "the dyer's position is materialized over a live business" }
+  - { template: /world/terminus/goods-yards/crowsfoot/location/floor, role: producer, reason: "the Crowsfoot outfit's yard — same shape as the floor's, one small-batch label" }
+  - { template: /world/terminus/goods-yards/veshko/location/distillery, role: producer, reason: "Veshko's yard — its Stock is the home container the Volk and unbranded rows spawn into (the zone's stocks: sets the counts), and its hand runs the consigns brain" }
+  - { template: /world/terminus/goods-yards/hollis/location/floor, role: producer, reason: "Hollis's bottling floor — its Stock is the home container the private-label rows spawn into, and its hand runs the consigns brain" }
+  - { template: /world/terminus/goods-yards/crowsfoot/idea/outfit, role: producer, reason: "the Crowsfoot hand's `purchases` position likewise" }
+  - { template: /world/terminus/goods-yards/veshko/idea/outfit, role: producer, reason: "Veshko Distilling (parentOrganization /corpo/veshko) — the hand's purchases position is materialized over a live business; the consigns beat trades as it" }
+  - { template: /world/terminus/goods-yards/hollis/idea/outfit, role: producer, reason: "Hollis Bottling (parentOrganization /corpo/hollis) — likewise" }
+  - { template: /world/terminus/goods-yards/bottling/location/floor, role: producer, reason: "the outfit's yard — its Stock is the home container the mixers and ice spawn into, and its hand runs the consigns brain" }
+  - { template: /world/terminus/goods-yards/bottling/idea/outfit, role: producer, reason: "the hand's `purchases` position is materialized over a live business; the consigns beat trades as it" }
+  - { template: /world/terminus/goods-yards/pantry/location/floor, role: producer, reason: "the pantry outfit's storeroom — its Stock is the home container the sacks spawn into, and its hand runs the consigns brain" }
+  - { template: /world/terminus/goods-yards/pantry/idea/outfit, role: producer, reason: "the hand's `purchases` position is materialized over a live business; the consigns beat trades as it" }
+  - { template: /world/terminus/goods-yards/brewing/location/floor, role: producer, reason: "the outfit's yard — its Stock is the home container the floor kegs spawn into, and its hand runs the consigns brain" }
+  - { template: /world/terminus/goods-yards/brewing/idea/outfit, role: producer, reason: "the hand's `purchases` position is materialized by the roster tick over a live business; the consigns beat trades as it" }
+  - { template: /world/terminus/goods-yards/brewing/location/cold-store, role: producer, reason: "the lager line lives here — the cold vats, the cold culture, and the cellars beat that kegs it" }
+  - { template: /world/terminus/goods-yards/farm/location/yard, role: producer, reason: "the farm — its Stock is the home container the crates spawn into, and its hand runs the consigns brain" }
+  - { template: /world/terminus/goods-yards/farm/idea/outfit, role: producer, reason: "the hand's `purchases` position is materialized over a live business; the consigns beat trades as it" }
+  - { template: /world/terminus/goods-yards/vintner/location/floor, role: producer, reason: "the outfit's yard — its Stock is the home container the floor bottles spawn into, and its hand runs the consigns brain" }
+  - { template: /world/terminus/goods-yards/vintner/idea/outfit, role: producer, reason: "the hand's `purchases` position is materialized over a live business; the consigns beat trades as it" }
+  - { template: /world/terminus/mayfield-row/tailor/location/shop, role: producer, reason: "the shop floor — its counter is the appointment point, and the measurement book lives on it" }
+  - { template: /world/terminus/mayfield-row/tailor/idea/outfit, role: producer, reason: "the tailor's position is materialized over a live business" }
+  - { template: /world/terminus/counting-houses/distributor/idea/business, role: producer, reason: "the distributor's Business must be live so its clerk is rostered before the first buy" }

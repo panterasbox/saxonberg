@@ -484,7 +484,7 @@ translation is where it kept going wrong.
 `setParLine` / `removeParLine`). The lounge's `business.yaml` authors 46
 lines (the vinegar line joined with the fermentation build — the cook
 buys the failure path), every bought line
-`supplier: /trade/distribution/idea/business` (the distributor's own
+`supplier: /world/terminus/counting-houses/distributor/idea/business` (the distributor's own
 pack since fermentation D10);
 glassware lines carry no supplier (nobody consigns glasses yet, so
 breakage shows as shortfall the brain cannot buy back).

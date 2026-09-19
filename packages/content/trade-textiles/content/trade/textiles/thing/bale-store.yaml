@@ -37,7 +37,7 @@ data:
   attendDurationMs: 0
   staffingPolicy: self-service
   serverPositionKeys: []
-  businessPath: /trade/textiles/idea/mill
+  businessPath: /world/terminus/wharfside/mill/idea/outfit
   # Two bales standing — a working day's worth, not a warehouse.
   stockLines:
     - { itemTemplatePath: /trade/textiles/thing/flax-bale, par: 2 }

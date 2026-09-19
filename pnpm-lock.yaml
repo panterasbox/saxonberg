@@ -713,12 +713,21 @@ importers:
       '@saxonberg/content-trade-baking':
         specifier: workspace:*
         version: link:../trade-baking
+      '@saxonberg/content-trade-bottling':
+        specifier: workspace:*
+        version: link:../trade-bottling
       '@saxonberg/content-trade-brewing':
         specifier: workspace:*
         version: link:../trade-brewing
+      '@saxonberg/content-trade-cooking':
+        specifier: workspace:*
+        version: link:../trade-cooking
       '@saxonberg/content-trade-distilling':
         specifier: workspace:*
         version: link:../trade-distilling
+      '@saxonberg/content-trade-dyeing':
+        specifier: workspace:*
+        version: link:../trade-dyeing
       '@saxonberg/content-trade-farming':
         specifier: workspace:*
         version: link:../trade-farming
@@ -731,6 +740,12 @@ importers:
       '@saxonberg/content-trade-smithing':
         specifier: workspace:*
         version: link:../trade-smithing
+      '@saxonberg/content-trade-tailoring':
+        specifier: workspace:*
+        version: link:../trade-tailoring
+      '@saxonberg/content-trade-textiles':
+        specifier: workspace:*
+        version: link:../trade-textiles
       '@saxonberg/content-trade-winemaking':
         specifier: workspace:*
         version: link:../trade-winemaking
@@ -937,9 +952,6 @@ importers:
       '@saxonberg/content-platform':
         specifier: workspace:*
         version: link:../platform
-      '@saxonberg/content-terminus':
-        specifier: workspace:*
-        version: link:../terminus
       '@saxonberg/content-trade-farming':
         specifier: workspace:*
         version: link:../trade-farming
@@ -1312,9 +1324,6 @@ importers:
       '@saxonberg/content-platform':
         specifier: workspace:*
         version: link:../platform
-      '@saxonberg/content-terminus':
-        specifier: workspace:*
-        version: link:../terminus
       '@saxonberg/content-trade-textiles':
         specifier: workspace:*
         version: link:../trade-textiles
@@ -1349,9 +1358,6 @@ importers:
       '@saxonberg/content-platform':
         specifier: workspace:*
         version: link:../platform
-      '@saxonberg/content-terminus':
-        specifier: workspace:*
-        version: link:../terminus
       '@saxonberg/content-trade-farming':
         specifier: workspace:*
         version: link:../trade-farming

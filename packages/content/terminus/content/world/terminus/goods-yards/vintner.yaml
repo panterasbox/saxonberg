@@ -1,0 +1,12 @@
+# The Vintner Floors — a trade's premises IN THE CITY (economic bootstrap D6): the
+# rooms, the counter, the outfit and its hands sit under the `goods-yards`
+# district, where the committee that holds the ground is the one liable
+# when the outfit fails. The MECHANISM — instruments, recipes, materials,
+# classes, brains — stays with the winemaking trade; these rows name it by path.
+# A sub-zone of its own so the floor keeps its authored coords (the
+# seznick-house / veshko shape); the district zone is its parent.
+class: /platform/idea/location/CartesianZone
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  name: The Vintner Floors
+  cellSize: 3.0

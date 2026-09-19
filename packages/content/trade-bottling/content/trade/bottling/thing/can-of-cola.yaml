@@ -26,4 +26,4 @@ data:
   censusKey: mixer:cola-can
   regionTarget: 12
   materialTags: ["mixer", "cola"]
-  container: /trade/bottling/thing/bottling-stock
+  container: /world/terminus/goods-yards/bottling/thing/stock

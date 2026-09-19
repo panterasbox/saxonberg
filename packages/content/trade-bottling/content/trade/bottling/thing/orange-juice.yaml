@@ -16,4 +16,4 @@ data:
   censusKey: mixer:orange-juice
   regionTarget: 8
   materialTags: ["mixer", "orange-juice"]
-  container: /trade/bottling/thing/bottling-stock
+  container: /world/terminus/goods-yards/bottling/thing/stock

@@ -19,4 +19,4 @@ data:
   censusKey: spirit:crowsfoot-gin
   regionTarget: 3
   materialTags: [spirit, gin, small-batch]
-  container: /trade/distilling/thing/crowsfoot-stock
+  container: /world/terminus/goods-yards/crowsfoot/thing/stock

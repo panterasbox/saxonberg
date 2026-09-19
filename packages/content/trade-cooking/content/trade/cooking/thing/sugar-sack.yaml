@@ -17,4 +17,4 @@ data:
   censusKey: pantry:sugar
   regionTarget: 6
   materialTags: ["food", "sugar"]
-  container: /trade/cooking/thing/pantry-stock
+  container: /world/terminus/goods-yards/pantry/thing/stock

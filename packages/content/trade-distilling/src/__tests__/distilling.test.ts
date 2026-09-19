@@ -18,7 +18,7 @@
 
 import '@saxonberg/server/test-bootstrap';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import { readdirSync, readFileSync } from 'fs';
+import { readdirSync, readFileSync, existsSync } from 'fs';
 import { fileURLToPath } from 'url';
 import { join } from 'path';
 import YAML from 'yaml';
@@ -189,12 +189,36 @@ function rows(dir: string): Row[] {
   return out;
 }
 
-/** The trade's floor rows, the corpo-owned yards' included (Veshko's is a locality under `location/`; Hollis's rows are flat). */
-const THING_DIRS = ['thing', 'location/veshko-yard/thing'];
+/**
+ * ⭐ The three yards' PREMISES sit in the city since the economic
+ * bootstrap (D6) — `/world/terminus/goods-yards/{crowsfoot,hollis,veshko}`
+ * in the terminus pack: the floor, the Stock, the outfit, the hand (and
+ * Volk, which is homed in Veshko's Stock). The trade keeps the mechanism
+ * and the unbranded rail. A yard row is read from the terminus pack by
+ * file; nothing here imports it.
+ */
+const PREMISES = '/world/terminus/goods-yards';
+const TERMINUS = fileURLToPath(new URL('../../../terminus/content/world/terminus/goods-yards/', import.meta.url));
+const YARDS = ['crowsfoot', 'hollis', 'veshko'];
+function yardRows(branch: 'thing' | 'agent' | 'idea'): Row[] {
+  const out: Row[] = [];
+  for (const yard of YARDS) {
+    const dir = join(TERMINUS, yard, branch);
+    if (!existsSync(dir)) continue;
+    for (const f of readdirSync(dir).sort()) {
+      if (!f.endsWith('.yaml')) continue;
+      const raw = YAML.parse(readFileSync(join(dir, f), 'utf8')) as { class: string; data: Record<string, unknown> };
+      out.push({ file: `${yard}/${branch}/${f}`, path: `${PREMISES}/${yard}/${branch}/${f.replace(/\.yaml$/, '')}`, class: raw.class, data: raw.data });
+    }
+  }
+  return out;
+}
+/** The trade's floor rows plus the yards' (Volk lives in Veshko's yard). */
+const productRows = (): Row[] => [...rows('thing'), ...yardRows('thing')];
 // A `vessel:` census key is the VESSEL faucet (empty glass at target —
 // an empty is never product); the floor-product assertions skip it.
 const floorRows = (): Row[] =>
-  THING_DIRS.flatMap(rows).filter(
+  productRows().filter(
     (r) =>
       r.class === `${ROOT}/thing/SpiritBottle` &&
       !String(r.data.censusKey ?? '').startsWith('vessel:'),
@@ -257,7 +281,7 @@ describe('trade-distilling — the classes', () => {
 
 describe('trade-distilling — the floor rows', () => {
   it('every floor bottle is a drawable floor product homed in a shipped Stock, over a shipped material', () => {
-    const stocks = new Set(THING_DIRS.flatMap(rows).filter((r) => r.class === '/platform/thing/Stock').map((r) => r.path));
+    const stocks = new Set(productRows().filter((r) => r.class === '/platform/thing/Stock').map((r) => r.path));
     const materials = new Set(rows('idea/material').map((r) => r.path));
     const floor = floorRows();
     // ⭐ The roster, by producer: Veshko makes the six unbranded rail
@@ -278,13 +302,13 @@ describe('trade-distilling — the floor rows', () => {
   });
 
   it('every hand names the COUNTER as its host shelf and its own stock (the annex names the host)', () => {
-    for (const hand of rows('agent').filter((r) => r.file.endsWith('-hand.yaml'))) {
+    for (const hand of yardRows('agent').filter((r) => r.file.endsWith('/hand.yaml'))) {
       const spec = (hand.data.behaviors as Array<{ brain: string; config: Record<string, unknown> }>).find(
         (b) => b.brain === '/lib/behavior/consigns',
       );
       expect(spec, hand.file).toBeDefined();
-      expect(spec!.config.shelf).toBe('/trade/distribution/thing/counter');
-      expect(String(spec!.config.stock).startsWith(`${ROOT}/thing/`)).toBe(true);
+      expect(spec!.config.shelf).toBe('/world/terminus/counting-houses/distributor/thing/counter');
+      expect(String(spec!.config.stock)).toMatch(new RegExp(`^${PREMISES}/(crowsfoot|hollis|veshko)/thing/stock$`));
       // Every floor row homed in this hand's stock has an ask.
       const asks = spec!.config.ask as Record<string, number>;
       for (const r of floorRows().filter((r) => r.data.container === spec!.config.stock)) {

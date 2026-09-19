@@ -57,7 +57,7 @@ describe('discovery', () => {
 });
 
 describe('the shipped packs (real discovery, no install)', () => {
-  it('forty-seven ship; the trade packs order after generic-objects (wave 4a); the venues after their trades (wave 4b); the localities after residence (residences D18); every consigner after distribution (fermentation D10); the localities after water (watershed W9); the metal chain after ITS trades; every locality with a terminal after tpa (the TPA reform); ranching after farming (farmstead P9 — pasture is a field); the lanes and the haulier after transport (logistics); the textile chain after farming AND the locality it consigns into', () => {
+  it('forty-seven ship; the trade packs order after generic-objects (wave 4a); the venues after their trades (wave 4b); the localities after residence (residences D18); every consigner after distribution (fermentation D10); the localities after water (watershed W9); the metal chain after ITS trades; every locality with a terminal after tpa (the TPA reform); ranching after farming (farmstead P9 — pasture is a field); the lanes and the haulier after transport (logistics); the textile chain after farming; the city after every trade whose premises it hosts (economic bootstrap D6)', () => {
     const ids = PackApi.contentRoots().map((root) => root.split('/').slice(-2)[0]!);
     // ⭐ 43 → 46: the grain chain adds `trade-milling`, `trade-baking`
     // and `hearts-delight`; 46 → 47: forestry adds `trade-forestry`. A
@@ -96,11 +96,10 @@ describe('the shipped packs (real discovery, no install)', () => {
       expect(ids.indexOf(consigner)).toBeGreaterThan(ids.indexOf('distribution'));
     }
     // ⭐ The textile chain. `trade-textiles` names farming's flax-straw
-    // material in its retting profile, and CONSIGNS into the Terminus
-    // general store — so it orders after both. That second edge is the
-    // one that is easy to miss: a producer annex depends on the
-    // locality whose counter it sells through, not the other way round.
-    for (const upstream of ['trade-farming', 'terminus', 'distribution']) {
+    // material in its retting profile and the distributor's counter, so
+    // it orders after both. (It USED to order after terminus too, for
+    // the mill — the mill's premises are terminus's now, below.)
+    for (const upstream of ['trade-farming', 'distribution']) {
       expect(ids.indexOf('trade-textiles')).toBeGreaterThan(ids.indexOf(upstream));
     }
     // Dyeing consumes farming's dyestuff materials and colours
@@ -108,9 +107,15 @@ describe('the shipped packs (real discovery, no install)', () => {
     for (const upstream of ['trade-farming', 'trade-textiles']) {
       expect(ids.indexOf('trade-dyeing')).toBeGreaterThan(ids.indexOf(upstream));
     }
-    // Tailoring cuts textiles' cloth and hangs its shop off Terminus.
-    for (const upstream of ['trade-textiles', 'terminus']) {
+    // Tailoring cuts textiles' cloth.
+    for (const upstream of ['trade-textiles']) {
       expect(ids.indexOf('trade-tailoring')).toBeGreaterThan(ids.indexOf(upstream));
+    }
+    // ⭐ Economic bootstrap D6: the trade PREMISES sit in the city, so the
+    // dependency runs terminus → every trade whose floor it hosts, never
+    // the other way (a trade is placeless).
+    for (const trade of ['trade-textiles', 'trade-dyeing', 'trade-tailoring', 'trade-cooking', 'trade-bottling', 'trade-distilling', 'trade-brewing', 'trade-farming', 'trade-winemaking', 'distribution']) {
+      expect(ids.indexOf('terminus'), trade).toBeGreaterThan(ids.indexOf(trade));
     }
 
     // The watershed cut: the three packs whose content names the water
