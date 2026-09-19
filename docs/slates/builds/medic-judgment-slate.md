@@ -3,15 +3,16 @@
 > **Status: PARTIAL** — the honest body shipped →
 > [harm.md](../../subsystems/harm.md),
 > [mortality.md](../../subsystems/mortality.md),
-> [advancement.md](../../subsystems/advancement.md); the reasoning layer
-> did not — `treat` still auto-picks the worst bleeding wound
-> (harm.md:196) and grades outcome, not decision.
+> [advancement.md](../../subsystems/advancement.md); `Tariff` + `order
+> treatment` shipped (MR!254); the reasoning layer did not — `treat` still
+> auto-picks the worst bleeding wound (harm.md § the medic vertical) and
+> grades outcome, not decision.
 > **Left:** stop auto-selecting (player picks target + modality) · cues
 > without names on `assess`/`analyze` · triage under the deterioration
 > clocks · decision-graded `ActSignature` sub-checks · the
 > clinical-judgment competence (channel vs own Discipline) · the
-> unfolding NGN-timeline patient · the SBAR handoff · the study.com
-> claim-feed
+> unfolding NGN-timeline patient · the SBAR handoff · the NPC medic brain
+> behind `order treatment` · the study.com claim-feed
 > **Size:** a build
 
 > **Status: sketch / pre-requirements.** A design pass, not a spec. Spun

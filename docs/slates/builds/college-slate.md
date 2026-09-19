@@ -13,14 +13,13 @@
 > the seed, evaluator contract, misconception-bank distractors and the
 > discrimination invariant) · enrollment as contract + Transcript wiring ·
 > the lecture and exam halls + the watch-embed lesson card · practical
-> assessment on inquiry's `predict` gate · teaching as employment (TA
-> positions, sections, the mixed roster) · deferred: player-authored
-> courses · ⚠ blocked on study.com only for the OUTPUT format
+> assessment on inquiry's `predict` gate · the viva · teaching as
+> employment (TA positions, sections, the mixed roster) · the
+> course-cites-never-restates syllabus + contribution as coursework · Poli
+> Sci 200 (unauthored) · deferred: player-authored courses · ⚠ blocked on
+> study.com only for the OUTPUT format
 > **Size:** a build
 
-> **Status: sketch / pre-requirements.** A design pass, not a spec.
-> Written 2026-08-02.
->
 > Scope: the **academic apparatus** — what a course is, how assessment
 > works, how enrollment and teaching are modelled, and what a classroom
 > is as a place. It is deliberately *not* the campus (that's the

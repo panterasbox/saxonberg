@@ -8,10 +8,11 @@
 > **Left:** earn-by-learning (the vocational lab as a crafting venue) ·
 > the student → TA → instructor ladder · the corpo sponsor funding a
 > cohort against outcomes · the treasury lane (⚠ blocked on the fiscal
-> cycle) · deed-mode assessment off campus · the loremaster's three
-> contributions (legibility · conferral · command) · ⚠⚠ the unresolved
-> mechanic: field conferral that is a durable Transcript gain in the
-> TAUGHT character, never a buff the teacher radiates
+> cycle) · the legislature-curates-the-catalogue one-way rule · deed-mode
+> assessment off campus · the loremaster's three contributions (legibility
+> · conferral · command) · ⚠⚠ the unresolved mechanic: field conferral
+> that is a durable Transcript gain in the TAUGHT character, never a buff
+> the teacher radiates
 > **Size:** a build
 
 > **Status: design conversation, captured. Not requirements.** Written

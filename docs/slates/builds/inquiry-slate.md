@@ -5,7 +5,8 @@
 > [advancement.md](../../subsystems/advancement.md)
 > **Left:** the `Law` catalog Idea · the `predict` lab-notebook loop ·
 > knowledge banking of confirmed laws · the publish + replicate library ·
-> the evidential range and the overreach paper
+> the evidential range and the overreach paper · deferred: credibility as
+> a renown consumer, the published refutation, misinformation-as-crime
 > **Size:** a build
 
 > **Status: sketch / pre-requirements.** A design pass, not a spec. Spun
