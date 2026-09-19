@@ -1,24 +1,19 @@
 # Eternal University (campus) slate (working doc)
 
-> **Status: PARTIAL** — Duncan Hall shipped (lobby · corridor · dorm room
-> · steps · cistern · Katie · the elevator + room assignment) over the
+> **Status: PARTIAL** — Duncan Hall shipped (steps · lobby · corridors ·
+> dorm room · cistern · Katie · the stairwell + room assignment) over the
 > holding ladder → [residence.md](../../subsystems/residence.md) +
 > [holding.md](../../subsystems/holding.md); the campus farm/field landed
-> with the farmstead build.
-> **Left:** the arrival gate · the Quad + the walkway spine · Student
-> Services (registrar + housing office) · the Health Center clinic · the
-> Campus Store · the academic hall · the first-login journey · the
-> closed-choice campus-services pattern
+> with the farmstead build; the surround is Terminus, and the locked campus
+> gate on University Avenue is its boundary.
+> **Left:** the arrival gate · the Quad + the walkway spine (the EC road
+> names) · Student Services (registrar + housing office) · the Health
+> Center clinic · the Campus Store · the academic hall · the first-login
+> journey · the closed-choice campus-services pattern as campus content ·
+> the campus terminals (arrival + the lobby) · Duncan Hall's amenities, the
+> elevator, the vacancy purge + roommate pairing · the campus-grounds biome
+> leaf · the prose discipline over the EC mood-board
 > **Size:** a build
-
-> **Status: vision + v1 shape set; build it all together.** The campus —
-> the **first content a player experiences** after the lounge. A
-> **real-feeling college campus that is obviously not a real place**
-> ("except for the real part"). Spiritual successor to EotL's *Eternal
-> City*: **un-genred**, plainly fabricated, "you're in for anything." v1
-> is one walkable, decentralized drop — arrival → the Quad → campus
-> **services** → Duncan Hall — built together, because the
-> defer-your-choices model makes the services load-bearing.
 
 Working slate for **Eternal University** — the campus new players walk
 into after char-gen + the lounge. It's where the deferred char-gen
@@ -228,12 +223,10 @@ relationship (over "strange in a different register"), because:
 - it gives onboarding a graduation arc — start in the safe weird enclave,
   the bigger realer world waits past the gates.
 
-**Status: deferred, and formless for the demo.** The TPA stop drops a
-first-timer just *outside* the campus gate (transit-stop-at-the-edge, not
-a pad on the Quad); for the demo, what surrounds that stop is an
-undefined nowhere — described as such, never shown as a blank room. The
-city is a far-future content effort; this section exists only to stop a
-future author from respawning EC out there.
+*Superseded: the surround is Terminus, shipped with its streets; the
+locked campus gate on University Avenue is the boundary, and the gatehouse
+behind it is the stub the campus entry replaces →
+[holding.md § The packaging](../../subsystems/holding.md#the-packaging).*
 
 **The geography is a gradient** — worth reserving *structurally* now even
 with the city's feel deferred: the **campus enclave** (its sourceless sky)
@@ -244,33 +237,10 @@ biome terms: an `urban` baseline → { the city (deferred) ; the
 gradient gives the biome model a real three-tier consumer and reserves the
 right shape; the city's *contents* stay deferred.
 
-**The city's name — leading candidate: _Terminus_** *(penciled in, not
-final).* A real city-naming tradition (Atlanta began as "Terminus"),
-grounded with a touch of noir, and a clean deep-cut homage — not to
-*Eternal City* the place but to *End of the Line* the **mud**. That splits
-the homage cleanly: the **campus** honours the place (EC's strange
-finish); the **city** honours the game's own name. It also rhymes with the
-arrival fiction — you teleport *to* the terminus, the grounded end of the
-line, and the dreamlike campus rises out of it. Held open in case a better
-*grounded* name surfaces; the explicitly-rejected default is "Eternal
-City" itself — the mythic register belongs to the University, not to a
-grounding-contrast city. (The obscure-MUD reference won't register with
-players; this naming discipline is for *us*, so we don't quietly rebuild
-EC out there.)
-
-**Address — University Avenue.** The campus fronts **University Avenue** in
-Terminus: a deliberately on-the-nose street name (a *designed* world puts
-the university on University Ave) and a cheap, concrete way to say *you're
-in a city, not floating in space.* The TPA stop sits on University Avenue
-just outside the campus gate; for the demo the avenue fades into unrendered
-haze a block out (the rest of Terminus, deferred). Grounding the stop on a
-named street — ordinary sky and all — also makes the campus's sourceless
-sky a *reveal* the moment you cross the gate.
-
-> Naming note: "Eternal" is earned by the **University** and the
-> **teleport network** (the un-genred, everywhere-and-nowhere,
-> exists-across-all-realities quality). Whether the city shares it is the
-> open question above.
+*Resolved: the city is Terminus, and the campus fronts University Avenue
+at `/world/terminus/university-avenue` — a Terminus street, the gate the
+boundary, the campus a district at `terminus/city/campus` →
+[holding.md § The packaging](../../subsystems/holding.md#the-packaging).*
 
 ---
 
@@ -341,25 +311,16 @@ as **campus buildings**, not city-fantastical ones.
 
 ### Duncan Hall — the dorm (a roster-persistent Warren)
 
-The freshman dorm is itself a [MultiLocation](./multilocation-slate.md)
-`Warren` — but a **different mode** than the lounge. Where the lounge
-breathes with live presence (ephemeral members), Duncan Hall grows with
-**enrollment** (a persistent roster) and is **~monotonic**: it doesn't
-shrink when residents log off, because the building is there regardless of
-who's awake. It's the substrate's **roster-persistent / procedural-spatial**
-profile (the dorm is its first real consumer — see
-[multilocation-slate.md](./multilocation-slate.md)).
+*Superseded by the code: `DormWarren` is dorm-when-empty — an empty room
+captures and reaps, and the building reconstitutes from the durable slot
+set →
+[residence.md § Reap](../../subsystems/residence.md#reap-residency-dormancy).*
 
 **What persists vs. regenerates.**
 
 - **Durable singletons:** the **lobby** (the Warren host — holds the TPA
   terminal), the **amenities** (front desk, laundry, common room…), and the
   **dorm rooms** themselves (co-occupied, themed, persistent).
-- **Dynamic members:** the **connective tissue** — hallways, floors,
-  stairs, elevator-stops — *generated to fit the roster* and regenerated
-  deterministically from it on restart, re-wiring each persistent room's
-  door to its stable **address** (floor / hall / position). Rooms are the
-  durable singletons; structure is cheap derived scaffolding.
 
 **Vertical circulation.** Multi-floor, so the topology is a vertical stack
 (not the lounge's flat star): the lobby at ground, **stairs** linking
@@ -379,78 +340,28 @@ with slow GC of dead rooms.
   Roommate pairing taps the **lounge flavor tags** — matched by
   *compatibility* (you get along), with the *themes* carrying the
   genre-blend (compatible roommates still pick different themes).
-- **Assignment happens at enrollment**, via **Katie** — the dorm's
-  property-manager NPC (room assignment, rent, "all that"). The diegetic
-  housing service; a named NPC like Dave. **Rent is a deferred economy
-  hook** (comped v1).
+- *Assignment via Katie — shipped →
+  [residence.md § Provisioning](../../subsystems/residence.md#provisioning--the-stored-slot);
+  rent stays a deferred money leg →
+  [holding.md § Deferred seams](../../subsystems/holding.md#deferred-seams).*
 - **Start-loc vs. terminal.** The TPA terminal is **public** (lobby only —
   no terminals in rooms); your **start-loc is personal** and *can* be your
   private room (a persistent singleton, so a valid start-loc resolving to
   itself — no walk forced). Different systems: public travel vs. personal
   spawn.
 
-**Customization — themed, per-side, social (not permissions).** The dorm
-room is the **scoped-authoring on-ramp, but curated** — *not* freeform
-building. Each roommate applies a **pre-canned themed template** to "their
-side" (under-the-sea, space, …) and tweaks within it; the **common area is
-a combination** of both. The themes **socially signal** whose-side-is-whose
-with **no permission enforcement** (both can touch everything — trust over
-ACLs, the same stance as the bar and lounge). This makes the room a
-**genre-mashup at personal scale** — the campus's mix-and-match philosophy
-as the player's *first hands-on act*. It also **revises** the freeform
-expectation: the freshman room is *theme-a-side*, not *build-anything*; full
-freeform authoring is earned later (the upperclass homedir tier). *(The
-concrete schema is the next subsection.)*
+*Superseded by the code: the theme is picked per ROOM (one leaseholder),
+prose-only, by vocation — "curated, not freeform" held →
+[residence.md § The shell personalization](../../subsystems/residence.md#the-shell-personalization-theme-overlay);
+the per-side / roommate design lives in
+[dorm-warren-slate](../tails/dorm-warren-slate.md).*
 
 ### Dorm-room customization — the Detail schema
 
-Customization is **authoring the room's `DetailedMixin` tree** — the
-codebase already has the shape. Furniture is modeled as **Details** (named,
-nested, *per-instance* descriptions with no template inheritance — precisely
-a per-room authored store, and already inspection-card-subscribable), **not
-separate Stuff.** The customizable **fields *are* the Detail descriptions.**
-Functional affordances hang off them via `Slotted`'s **`userFacingDetail`**
-keyword (the bed is "a posture slot whose `userFacingDetail` is the `bed`
-Detail"). So no separate furniture Stuff for v1 (which is *description-
-theming*); real-Stuff furniture with full container mechanics is the
-heavier, deferrable option.
-
-No sub-room geometry needed: **relational prose** carries the layout (the
-room's main description states the arrangement; each Detail carries its own
-text). Tagged regions stay opt-in.
-
-**The schema (Detail tree):**
-
-- **Personal (×2, symmetric — one set per occupancy slot; each roommate
-  authors their own):** `bed`, `desk`, `closet` (+ likely `chair` /
-  `shelf` / `lamp`).
-- **Common (×1 — both author):** `door` (to the hallway), `window`,
-  `walls`, `floor`, `ceiling`, `light` (+ candidates: `mini-fridge` /
-  `rug` / `mirror` / `bulletin board`).
-- **Affordances** referencing them: `bed` → posture; `desk` → posture +
-  surface; `closet` → storage *(real-container fork — deferred)*; `door` →
-  boundary/exit; `window` → boundary/light.
-
-**The generic unthemed room** — the move-in baseline theming transforms:
-
-> *A standard double in Duncan Hall. Cinderblock walls the color of weak
-> tea, a scuffed tile floor, a drop ceiling with one humming fluorescent
-> panel. Two twin beds line opposite walls; a plain desk at the foot of
-> each, a narrow closet flanking the door. A single window looks out over
-> the quad. Clean, institutional, utterly impersonal — a blank slate
-> waiting for you to make it yours.*
->
-> Default Details: `bed` — *standard-issue twin, bare vinyl mattress, metal
-> frame*; `desk` — *plain wood, one drawer*; `closet` — *a rod and a few
-> wire hangers*; `window` — *institutional blinds over the quad*.
-
-**Theming** is a **preset over the personal Detail set**: `applyTheme`
-bulk-fills *that occupant's* `bed`/`desk`/`closet` (and contributes to the
-common Details); the player edits per-Detail from there. One side aquatic,
-the other space, the common Details accreting the blend — the genre-mashup
-rendered as Detail text. A **kiosk over the schema** is the welcoming
-front-end (preview/send the underlying author-shell writes), the same
-kiosk-over-commands pattern as char-gen.
+*Superseded by the code: fixtures shipped as real Stuff (`Bed`, `Desk`,
+`Footlocker` — `residence.md § History`), themes as prose bundles applied
+by fixture role, `remodel` as a prompt wheel; no Detail tree, no kiosk →
+[residence.md § The shell personalization](../../subsystems/residence.md#the-shell-personalization-theme-overlay).*
 
 ### Prose & the mood-board
 
@@ -489,8 +400,8 @@ walk was the onboarding.
 
 ## Open questions / forks
 
-1. **Slate / content-area naming.** This file is `eternal-university-slate`
-   (the named place); "campus" is the generic concept. Confirm the name.
+1. *Resolved: the pack is `eternal-university`, root `/world/eternal`,
+   locality `eternal-campus` → [content-packs.md](../../subsystems/content-packs.md).*
 2. **Services roster in v1.** registrar + housing + clinic + outfitter —
    all four, or trim? Is the **academic hall** functional or pure
    set-dressing in v1? *Lean: registrar/housing/clinic functional;
@@ -509,14 +420,11 @@ walk was the onboarding.
 8. **Tiered housing mapping** — v1 is the **freshman** tier (Duncan Hall);
    the upperclass homedir-as-room tier is later Eternal University housing
    content.
-9. **The dorm-room customization model** — *resolved: authoring the room's
-   `DetailedMixin` tree* (see the Detail-schema subsection; descriptive
-   theming, not tagged regions, v1). Remaining: **per-occupant Detail
-   keying** (`bed.a`/`bed.b` ↔ occupancy slot); **free-text vs constrained
-   per Detail** (*lean: theme-preset default + free-text override*); the
-   **storage affordance** (`closet`/`desk` as real container — deferred);
-   **common-area** auto-blend vs both-edit (*lean: both edit, it
-   accretes*); and the **theme roster** (content).
+9. *Superseded: shipped as the theme overlay over real fixture Stuff →
+   [residence.md § The shell personalization](../../subsystems/residence.md#the-shell-personalization-theme-overlay);
+   custom prose is residence.md's deferred seam; the per-occupant half is
+   [dorm-warren-slate](../tails/dorm-warren-slate.md)'s roommate item; the
+   footlocker IS a real container (`Vessel`).*
 10. **A postal / address system** *(park — its own exploration)*. Locations
     getting real addresses + mail/delivery; bigger than room numbers, which
     suffice for the dorm meanwhile.
