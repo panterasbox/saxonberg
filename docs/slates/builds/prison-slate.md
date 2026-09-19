@@ -2,10 +2,20 @@
 
 > **Status: UNBUILT** — the parcel/access exclusion machinery it inverts
 > ships, and mortality's `Incorporeal` lever is reserved for it; nothing
-> of confinement exists.
-> **Left:** `PrisonMixin` (a locality you cannot leave) · the three
-> enforcement tiers in content · the federal facility on its reserved
-> Saxonberg site · terms and the appeal path
+> of confinement exists. Code-verified 2026-09-19: no `prison` / `gaol` /
+> `PrisonMixin` / custody book anywhere under `packages/server/src/mud`,
+> any pack's `src/` or `schema/` (every `custody` hit is chattel
+> custody); no courts / venire primitive; the Saxonberg parcel is still
+> *RESERVED — not built* (`saxonberg-city-slate.md:231`).
+> **Left:** `PrisonMixin` (a locality you cannot leave — the boundary +
+> the custody book, and nothing else) · the three enforcement tiers in
+> content · cells as provisioned shelters on the residence spine ·
+> interior law as the prison's own jurisdiction (no `securityLevel`) ·
+> visitation + appeal over the courts primitive (itself unbuilt) · the
+> federal facility on its reserved Saxonberg site · terms, fines and the
+> appeal path · Q1–Q6 (diegetic prosecution of Compact crimes · what
+> confinement restricts beyond movement · interim committal authority ·
+> escape · fines-vs-terms · mixin placement)
 > **Size:** a build
 
 **Captured 2026-08-01**, out of the Saxonberg city design session

@@ -1,10 +1,15 @@
 # Lifecycle signals — the centre stops enumerating the periphery
 
 > **Status: UNBUILT** — `AppBootstrap.shutdown()` still enumerates its
-> subscribers by hand.
+> subscribers by hand (code-verified 2026-09-19: `CompileWatcher` →
+> `WorldClockApi.shutdown` → `RecordApi.flush` →
+> `PersistableApi.captureAtShutdown`, `backend/AppBootstrap.ts:286-327`;
+> no `quiesce` / lifecycle-subscription seam anywhere in
+> `packages/server/src`).
 > **Left:** the `quiesce`/`persist`/`flush`/`close` phase vocabulary ·
-> the subsystem subscription seam · per-subscriber failure isolation + a
-> per-phase deadline · retiring the hand-written list
+> the subsystem-only subscription seam (Q3: never Stuff — a predicate
+> serves those) · per-subscriber failure isolation + what is logged (Q1) ·
+> a per-phase deadline + its budget (Q2) · retiring the hand-written list
 > **Size:** a wave
 
 *Design slate, 2026-08-30, from the libations review (MR !206). The
@@ -121,34 +126,12 @@ real content:
 the record layer, and questions 1–3 are genuine design rather than
 mechanics.
 
-**What the libations MR did**, in two moves — and the second is the one
-worth carrying into this build.
-
-It first made the persistable shutdown capture **self-enrolling**: a
-`PersistableRegistry` that `PersistableMixin` enrolled into on
-`setPersistenceKey` and withdrew from on destruct, replacing a
-`getAllObjects()` loop.
-
-Then it **deleted that registry**, because the founder asked why a new
-registry was needed and the answer was that it wasn't:
-
-- It was a **third index of Stuff** beside `byId` and `byTemplatePath`,
-  caching a fact every member already held.
-- ⭐ **Its one consumer re-derived everything it cached** — `isPersistable`,
-  a null key, `isDestroyed` — which is the tell. *A cache whose reader
-  revalidates everything it caches is buying nothing.*
-- It was maintained on every key-set and every destruct, **forever**, to
-  save a single sweep at process exit.
-- Membership could go stale on a hot reload, and needed an explicit
-  withdrawal that a future caller could forget.
-
-What replaced it: `capturesAtShutdown()`, a predicate the host answers
-about itself (including the Avatar exclusion — an Avatar captures at
-logout on its own seam), and the sanctioned world search at shutdown,
-`world:[mixin.PersistableMixin]` in system mode. That is what
-`lint:world-scan` points a bespoke `getAllObjects()` loop at in the
-first place. Nothing to keep in sync; a destroyed host is simply not
-there to answer.
+**What the libations MR did** — SHIPPED · DOCUMENTED: the self-enrolling
+`PersistableRegistry` was deleted for a predicate (`capturesAtShutdown()`,
+`lib/persistence/Persistable.ts:228`) over the sanctioned world search
+(`PersistableLogic.captureAtShutdownImpl`); see `persistence.md §
+captureHostOf` and `antipatterns.md § A registry caching a fact its
+members already hold`.
 
 ⭐ **The distinction this build must respect.** *Who wants a signal* is
 derivable when the subscribers are Stuff — ask them. It is NOT derivable

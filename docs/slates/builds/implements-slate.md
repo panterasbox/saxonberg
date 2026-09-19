@@ -2,15 +2,18 @@
 
 > **Status: UNBUILT** — opened 2026-08-04 when `Focus` was cut from the
 > magic-items build; the seam it folds into (`potencyFactor` in
-> `MagicLogic`) exists and nothing else does.
+> `MagicLogic`) exists and nothing else does. Code-verified 2026-09-19:
+> no implement / lens class anywhere; `potencyFactor`
+> (`MagicLogic.ts:2230`) reads competence only. ⚠ The nearest shipped
+> kin is `ConduitMixin` (`arcana`'s `lib/magic/Conduit.ts`) — passive,
+> held, nothing to top up, *specialisation by inventory* — but it
+> modifies **recharge** coupling, not what happens when you cast.
 > **Left:** the implement class itself · choosing what it modifies
-> (magnitude / cost / band-reach) · BUC on the effect axis · the
-> stacking rule, before content exists · craftability (the lens-maker
-> vocation)
+> (magnitude / cost / band-reach — and the reach case must not become a
+> key) · wear (default none; else `Durable`, as the conduit did) · BUC on
+> the effect axis · the stacking rule, before content exists ·
+> craftability (the lens-maker vocation)
 > **Size:** a build
-
-> **Status (2026-08-04): design opened.** Extracted from the magic-items
-> build, where the `Focus` class was cut. Nothing built.
 
 ## The one sentence
 
@@ -24,37 +27,16 @@ cell you could not otherwise touch.
 
 ## Why the cut happened, because it is the whole design brief
 
-The magic-items build shipped a third item class, `Focus` — "supplies
-specification only; the user pays." A rod that held the *shape* of a
-working while you supplied the power.
-
-Three things were wrong with it, and each one is a constraint on this
-build:
-
-**1. It was a second instance of an existing decision.** A focus decayed
-(`getPatternIntegrity` 0→1) and was topped up through the *same
-`recharge` verb* a wand uses. Player-facing, "my wand is low" and "my
-rod's pattern is fading" are the same sentence — same warning, same
-verb, same trip to a mage. That is resource inflation of the worst kind:
-more bookkeeping, no new choice.
+SHIPPED · DOCUMENTED — the `Focus` cut and its three reasons (a second
+instance of an existing decision · no verb to fire it · no NetHack
+analogue) are stated in `magic-items.md` (the *`Focus` was cut before
+merge* box under *§ The three item classes*); the pattern-rot clock went
+with the class (*§ `ChargedMixin`'s second consumer*, the canon line).
+The constraint it leaves this build is:
 
 > ⭐ **The test this build must pass: does it add a thing the player has
 > to top up?** If yes, it has to earn it against everything already
 > being tracked. An implement that is passive adds nothing.
-
-**2. It had no door.** `FocusMixin` shipped with a fade model, a
-recharge path and a rod — and **no verb to fire it**. Nobody noticed for
-a whole build, because nothing in the design pulled on it.
-
-**3. Nobody recognised it.** The reference frame for this game's items
-is NetHack, and NetHack has no such thing: a wand is self-contained,
-spells cost Pw, and no item spends your Pw for you. Wand / scroll /
-potion / spellbook all map one-to-one. `Focus` was the one invented
-class, and it was the one nobody had intuitions about.
-
-**The salvage was ~nothing** — the pattern clock is the resource we do
-not want, the payer switch only matters for firing, and `Rod` was an
-empty shell. What survived is the *intuition*: mages should have gear.
 
 ---
 
