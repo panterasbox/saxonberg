@@ -599,6 +599,13 @@ same query inside the granted environment. So nothing in the binder
 knows the grammar, a new place `world` can appear is covered the day it
 exists, and an ordinary command never pays for the authority lookup.
 
+⚠ **The grant is one-shot by construction.** It lives on a frame around
+a single dispatch's retry; a subscription's re-resolve runs on no such
+frame, so `world:` is refused on every subscribing surface for everyone,
+the seat included — a standing rescan nobody would remember starting is
+worse than the query it began as (see [governance.md § What else the
+seat confers](./governance.md)).
+
 ⭐ **The engine's registry reads are not here.** `StuffApi.findByMixin`
 is where they live, gated to its own `(template, method)` pair list —
 because a wide read of the registry is the registry's business, not the
@@ -609,6 +616,22 @@ query language's, and the eleven callers never wanted a query.
 **composed-only**: a mixin granted by a shadow or conferred by an
 augment does not bucket its host, which is what `world:[mixin.X]` has
 always meant. A runtime-grant selector would be its own thing.
+
+⭐ **Why one index, and why it is composition.** A registry index is
+legitimate when it describes an axis of the *substrate* — every Stuff
+has a mixin composition, so `byMixin` describes the type system, not one
+subsystem's content. That is the test for any future one: *does this
+describe every object, or does it describe my feature?* ⛔ A
+`byClassName` index was rejected on exactly that test, so the
+`[class.X]` readers went to their owners' rosters (`residence.md §
+ResidenceCatalogue`, `antipatterns.md § Bespoke Object-Search
+Algorithms`). The index is cheap because `hasMixin` is a pure function
+of the constructor: `MixinApi` memoizes the lowercased name set per
+class (`#lowercaseMemo`, a `WeakMap` keyed on the ctor), so the bucket
+insert at `register` costs a set lookup. ⛔ A global event bus feeding
+per-cache subscribers was rejected as the alternative: it taxes every
+object creation with N predicate dispatches, and a subscriber's answer
+to *"what existed before I subscribed?"* is the scan itself.
 
 `here` deliberately does NOT include peers; that's `peers`' job. The
 split lets `get` declare the surgical scope it actually wants
@@ -781,6 +804,19 @@ then *do* with a match is decided where it always was — by the verb:
 `attack online:<name>` fails on reachability, `teleport` on title over
 the destination's extent, a mutation on the covering parcel's holder.
 Enumeration is not capability; capability is title over a resource.
+
+**Nor is resolving feasibility.** The same split holds for the physical
+question. A view's `scope:` is a search hint — the try-list is tried in
+order and the first non-empty result wins — never a guarantee: explicit
+MQL bypasses it, and `eat online:bob:i:cake` resolves the cake wherever
+it is. So the **per-verb validator is the contract**, and it must assume
+nothing about how the target was named. `canReach`
+(`lib/command/validators/canReach.ts`) is the exemplar — a membership
+predicate over `PerceptionApi.canReach`, run on whatever was bound — and
+a validator returns a *reason string*, not a boolean, because the prose
+lives there: *sealed*, *out of reach* and *not food* are different lines.
+See [perception.md § `canReach`](./perception.md) for the one
+definition of reach.
 
 What was retired: the `ctx.permission` snapshot (`isAuthor` /
 `coreMemberIds`) the dispatcher stamped, `gateAuthor`, the
