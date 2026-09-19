@@ -285,6 +285,22 @@ And the pipeline is already built: both course documents carry a
 **misconceptions bank**, so *authoring a misconception is authoring a
 distractor.* Keep them in sync and the item bank deepens for free.
 
+**A second course's items, already keyed.** The spoilage law is the
+other subject the generator can run on today, because every key is a
+reading of a shipped equation (the microbial load, Arrhenius `f_T`, the
+`a_w` floor — [spoilage.md](../../subsystems/spoilage.md)), and each hook
+carries its characteristic error (salvaged from the retired
+spoilage-design-pack, 2026-09):
+
+- *"Fish at 20 °C, `a_w` 0.99, `Ea` = X — hours to the hazard band?"*
+- *"You salt it to `a_w` 0.75 — now how long?"* (`f_aw` → 0:
+  **shelf-stable** — the distractor is "a bit longer," the misconception
+  being that salt *slows* rather than *stops*).
+- *"It's frozen for a month, then left out at 25 °C — how long until
+  unsafe?"* (freezing paused the load at its pre-freeze level; the clock
+  resumes from there, not from fresh — a characteristic error worth a
+  distractor).
+
 ### The discrimination invariant
 
 The one machine-checkable quality rule, and it has teeth:

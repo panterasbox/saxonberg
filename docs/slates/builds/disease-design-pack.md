@@ -2,20 +2,22 @@
 
 > **Status: PARTIAL** — the growth term this pack inherits shipped as
 > spoilage → [spoilage.md](../../subsystems/spoilage.md)
-> **Left:** `ContagionSpec` itself · the two unifications (one burden
-> engine · one hygiene read) · the room-condition half of immunity, which
-> is also unbuilt · the four un-misery rules · the per-object specs
+> **Left:** `ContagionSpec` itself · the push-tick spread driver + the
+> per-room contaminant map · the two unifications (one burden engine · one
+> hygiene read) · the room-condition half of immunity, which is also
+> unbuilt · the four un-misery rules · the per-object specs · the medic
+> vertical / `resolution.by` dispatcher (open Q1)
 > **Size:** a build
 
 > **Status: design, planner-ready, captured 2026-08-06. Not requirements.**
 > The **capstone** of the stewardship pillar — the system where every producer
 > connects. [disease-slate](./disease-slate.md) owns the rationale; this pack is
-> the planner-ready spec, built on the [spoilage pack](../tails/spoilage-design-pack.md)
+> the planner-ready spec, built on the [spoilage pack](../../subsystems/spoilage.md)
 > (which proves the growth term) and the [room-condition pack](./room-condition-design-pack.md)
 > (the hygiene half of immunity). Same per-object format as the rest of the pillar.
 
 See also: [disease-slate](./disease-slate.md) (rationale, the substrate audit) ·
-[spoilage-design-pack](../tails/spoilage-design-pack.md) (**the growth term this
+[spoilage.md](../../subsystems/spoilage.md) (**the growth term this
 inherits**) · [room-condition](./room-condition-design-pack.md) + husbandry
 (**"care is immunity"** across hosts) · [metabolism](../../subsystems/metabolism.md)
 (the `toxinBehavior` burden engine) · [vitals](../../subsystems/vitals.md)
@@ -189,9 +191,10 @@ and the clinical layer is the [health-vertical](./health-vertical-slate.md).
 
 ## Part 7 — Forks settled
 
-1. **Growth term → extend `ToxinBehavior`** (not a sibling `PathogenBehavior`):
-   makes toxin a strict subset, every existing seed stays valid. Shared with the
-   spoilage pack — one growth term, two consumers.
+1. ~~Growth term → extend `ToxinBehavior`~~ — **superseded by the code**: the
+   load is `pathogenLoad` on the `AfflictionRecord` under a declared
+   `progression.law: logistic`, not on `ToxinBehavior` →
+   [spoilage.md](../../subsystems/spoilage.md) § In the body.
 2. **Spread → a push-tick over rooms** (Fire's one-hop attenuated walk); promote
    `openNeighboursOf` rather than copying it a third time.
 3. **Airborne → a per-room contaminant map** (`_contaminants`), the `airReserveOf`
