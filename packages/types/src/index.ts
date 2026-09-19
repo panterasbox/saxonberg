@@ -908,6 +908,16 @@ export interface DispatchResponseEnvelope {
   frameId: number;
   dispatchId: string;
   outcome: DispatchOutcome;
+  /**
+   * ⭐ Set when the command was FORCED on the giver by the runtime (the
+   * auto-`sense` on arrival, a brain, a dialogue effect) rather than
+   * typed. Every command fires exactly one envelope, and a forced one
+   * fires INSIDE the typed command that caused it — so on the wire the
+   * auto-sense's envelope lands before `run`'s own, and a correlator
+   * that takes "the next dispatch-response" reads the wrong outcome.
+   * Absent (never `false`) for player-typed input.
+   */
+  forced?: true;
 }
 
 export interface ActivityUpdateEnvelope {

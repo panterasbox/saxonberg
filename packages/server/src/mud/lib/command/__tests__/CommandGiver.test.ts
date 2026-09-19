@@ -246,4 +246,17 @@ describe('CommandGiverMixin.executeCommand lifecycle', () => {
     // is the source of outcome truth.
     expect((giver.envelopes.at(-1) as DispatchResponseEnvelope).outcome.status).toBe('ok');
   });
+
+  it('⭐ a FORCED command’s envelope is stamped `forced`; a typed one is not', async () => {
+    // The auto-`sense` on arrival fires its own dispatch-response inside
+    // `run`'s, before `run`'s own — a correlator that takes "the next
+    // dispatch-response" read the sense's outcome as the run's (the
+    // nutrition-and-fitness drive). The stamp is what lets it tell.
+    await giver.executeCommand('ping');
+    const typed = giver.envelopes.at(-1) as DispatchResponseEnvelope;
+    expect(typed.forced).toBeUndefined();
+    await giver.forceCommand('ping');
+    const forced = giver.envelopes.at(-1) as DispatchResponseEnvelope;
+    expect(forced.forced).toBe(true);
+  });
 });

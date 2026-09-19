@@ -41,6 +41,7 @@ const KNOWN_TIES: readonly string[] = [
 
 interface Recipe {
   recipeId: string;
+  outputTemplate?: string;
   toolCapabilities?: string[];
   requiresHeatK?: number;
   inputSlots?: Array<{ category: string; count?: number; minGrade?: string }>;
@@ -122,7 +123,7 @@ describe('the anvil ladder', () => {
     expect(r).toBeDefined();
     expect(r?.outputTemplate).toBe('/trade/smithing/thing/barbell');
     expect(r?.toolCapabilities).toEqual(['striking', 'anvil']);
-    const stock = (r?.inputSlots as Array<{ category: string; count: number }>)[0];
+    const stock = r?.inputSlots?.[0];
     expect(stock?.category).toBe('forgeable');
     expect(stock?.count).toBe(2);
   });

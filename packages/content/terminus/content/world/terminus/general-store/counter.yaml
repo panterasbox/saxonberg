@@ -52,6 +52,20 @@ data:
     - { itemTemplatePath: /trade/farming/thing/pot/large, par: 2 }
     - { itemTemplatePath: /stuff/thing/vessel/soil-sack, par: 4 }
     - { itemTemplatePath: /trade/farming/thing/seed/snake-plant, par: 3 }
+    # ⭐ An orange you can EAT (nutrition-and-fitness W4, D25). The
+    # years clock — a body on bread alone for a month gets scurvy — needs
+    # something a person can go and buy that is not bread. The
+    # distributor at Wharfside gets the farm's citrus by CONSIGNMENT (the
+    # hand carries the crates), which is the real chain and not a par; a
+    # general store selling a piece of fruit is what a general store is
+    # until the grocer fragments off it.
+    #
+    # ⚠ ABOVE the seed packets, deliberately: a packet answers to the
+    # bare crop name too (`orange` is a keyword on `seed/orange`, the
+    # farming convention) and `buy` takes the FIRST match — the drive
+    # found `buy orange` handing over a packet of seed. The bare noun is
+    # the fruit; the packet still answers to `orange seed`.
+    - { itemTemplatePath: /trade/farming/thing/orange, par: 6 }
     # The produce seeds (farming A5) — one packet per bar fruit, so the
     # suburban-garden path (D0) starts here: buy a seed, grow the tree,
     # pick the fruit. Trees are dearer than the herb; all reachable on
@@ -66,14 +80,6 @@ data:
     - { itemTemplatePath: /trade/farming/thing/seed/cranberry, par: 2 }
     - { itemTemplatePath: /trade/farming/thing/seed/grape, par: 2 }
     - { itemTemplatePath: /trade/farming/thing/seed/juniper, par: 2 }
-    # ⭐ And an orange you can EAT (nutrition-and-fitness W4, D25). The
-    # years clock — a body on bread alone for a month gets scurvy — needs
-    # something a person can go and buy that is not bread. The
-    # distributor at Wharfside gets the farm's citrus by CONSIGNMENT (the
-    # hand carries the crates), which is the real chain and not a par; a
-    # general store selling a piece of fruit is what a general store is
-    # until the grocer fragments off it.
-    - { itemTemplatePath: /trade/farming/thing/orange, par: 6 }
     # ⭐ The fibre and dye line (textiles B1). Flax is the chain's whole
     # left edge; the three dyestuffs are what makes cloth worth
     # recolouring. Deliberately on the SAME counter as the pots and the

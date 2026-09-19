@@ -16,11 +16,14 @@ validators:
   - /lib/command/validators/requiresConscious
   - /lib/command/validators/requiresEmbodied
 args:
+  # ⚠ No `mustBeNumber` here: a POSITIONAL `type: number` arg reaches
+  # its validators as the raw string (the coercion runs for options), so
+  # the validator refuses every honest `lift 60` — the drive found it.
+  # The controller parses and refuses (`bad-load`). (`draw <amount>`
+  # carries the same validator and has never been driven.)
   - name: load
     type: number
     required: true
-    validators:
-      - /lib/command/validators/mustBeNumber
   # ⭐ WHICH DEVICE — DECLARED, not hunted for (`lint:instrument-args`).
   # Bare, the binder hands over every reachable thing offering `load`;
   # a thing that is not a tool is refused before the controller runs.

@@ -90,6 +90,10 @@ describe('Ladder — somebody can finally climb', () => {
     return l;
   };
 
+  it('⭐ AFFORDS `climb` from the room — the drive found the verb unknown at the winze head', () => {
+    expect(Ladder.commandContributions.environment).toContain('platform/cmd/movement/climb.yaml');
+  });
+
   it('is the first instanceable Climbable', () => {
     const l = makeStuff(() => new Ladder());
     expect(MixinApi.hasMixin(l, Mixins.Climbable)).toBe(true);
