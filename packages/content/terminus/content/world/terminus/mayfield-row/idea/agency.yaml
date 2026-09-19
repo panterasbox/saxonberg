@@ -1,0 +1,31 @@
+# Mayfield Holdings — the letting AGENCY Walter works for (economic
+# bootstrap D8; the retrofit's "Walter off the committee").
+#
+# ⭐ A committee assignment is governance; a position is a job. Walter is
+# an NPC, and an NPC is never on a committee — so the landlord's staff
+# is an Organization he holds a position at, and the TITLE to Seznick
+# House sits with the `mayfield-holdings` group (players only; the
+# founder by default until seated). The `lease`/`unlease` verbs admit
+# whoever holds the `agent` position here OR sits on the building's
+# committee — staff acts, or the owner acts; nothing else does.
+#
+# The appointing authority is the building's committee: whoever holds
+# Seznick House hires and fires the agent. `rosterSlots` is the authored
+# roster (`holdersByPosition` reads it without a tick), so Walter holds
+# the position from boot with no employment write.
+class: /platform/idea/Organization
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  name: Mayfield Holdings
+  appointingAuthority:
+    kind: committee
+    parcel: /world/terminus/mayfield-row/seznick-house
+  positions:
+    - key: agent
+      noun: letting-agent
+      label: letting Seznick House's rooms
+      wageRate: 0
+      confers: []
+  rosterSlots:
+    - positionKey: agent
+      assignee: /world/terminus/mayfield-row/agent/walter

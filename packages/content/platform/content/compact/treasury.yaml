@@ -1,0 +1,38 @@
+# The Treasury — the Compact's fisc (economic bootstrap D7, D9).
+#
+# ⭐ An ORGANIZATION, because a seat holds ground and money only through
+# one: a title holder is `group | organization`, an account owner is an
+# identity path. This row is the Arrival Note's counterparty, the
+# escheat's recipient, the owner of the treasury account at the Central
+# Bank (the perpetual lands here; `treasury appropriate` spends from
+# here) and the one body that banks at the CB besides the reserve itself.
+#
+# ⭐ STAFF FOLLOWS THE SEAT: the authority is the Minister of Finance's
+# office, so handing the seat off hands off the power to appoint here
+# with no roster record touched. The `clerk` position ships unfilled —
+# the Treasury's acts are the rule's (the perpetual, the Note, the
+# opening advance) or the Minister's own (`appropriate`); a clerk is a
+# human the Minister may hire to read the book. Wage 0: a Compact
+# position is not a job in the economy.
+#
+# Realm `ooc`: the Treasury is the meta's, not a body inside the fiction
+# (the city keeps its own Treasurer). Visibility `members`.
+class: /platform/idea/Organization
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  appointingAuthority:
+    kind: office
+    office: minister-of-finance
+  positions:
+    - key: clerk
+      noun: clerk
+      label: keeping the Treasury's book
+      wageRate: 0
+      confers: []
+  rosterSlots: []
+  label: "the Treasury"
+  realm: ooc
+  visibility: members
+  feedPath: /compact/treasury/feed
+  publishingPositions:
+    - clerk

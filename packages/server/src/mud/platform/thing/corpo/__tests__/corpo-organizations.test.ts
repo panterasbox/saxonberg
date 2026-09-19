@@ -60,7 +60,10 @@ interface Seed {
 interface Manifest {
   root: string;
   maintainers?: unknown;
-  requires?: { title?: Array<Record<string, unknown>> };
+  requires?: {
+    title?: Array<Record<string, unknown>>;
+    groups?: Array<{ name: string; owner?: unknown; members?: unknown[] }>;
+  };
   boot?: Array<{ template: string; role: string }>;
 }
 
@@ -91,27 +94,33 @@ describe('the five corpo organizations, as authored', () => {
     expect(orgs).toEqual([...KEYS]);
   });
 
-  it.each(KEYS)('%s is an Organization whose chart the PM seat fills (never its own committee)', (key) => {
+  it.each(KEYS)('%s is an Organization whose chart its COMMITTEE fills — a group the Registrar seats, never the org itself', (key) => {
     const org = readChart(key);
     expect(org.class).toBe('/platform/idea/Organization');
-    // ⚠ An authority of `{committee, parcel: /corpo/<key>}` here would be
-    // the organization appointing itself — and would recurse.
+    // ⭐ Economic bootstrap D7: the concept gets an officer (the Registrar
+    // of Corporations), the instance gets a committee. The authority is
+    // the committee over /corpo/<key> — and that committee is a GROUP
+    // (below), so this is not the organization appointing itself.
     expect(org.data?.appointingAuthority).toEqual({
-      kind: 'office',
-      office: 'prime-minister',
+      kind: 'committee',
+      parcel: `/corpo/${key}`,
     });
   });
 
-  it.each(KEYS)('%s holds title over its own branch — the pack claims it for the organization', (key) => {
+  it.each(KEYS)('%s: the `<key>-committee` group holds the branch, owned by the Registrar; the org is the show', (key) => {
     const m = readManifest(key);
     expect(m.root).toBe(`/corpo/${key}`);
+    // The pack's own chart still maintains the PACK (diagnostics).
     expect(m.maintainers).toEqual({ organization: `/corpo/${key}` });
+    const group = m.requires?.groups?.find((g) => g.name === `${key}-committee`);
+    expect(group, `${key}-committee is not declared`).toBeDefined();
+    expect(group!.owner).toEqual({ office: 'registrar-of-corporations' });
+    // ⚠ Players only: a title-holding group enrols no NPC row.
+    expect(group!.members ?? []).toEqual([]);
     const claim = m.requires?.title?.find((t) => t.extent === `/corpo/${key}`);
     expect(claim, `/corpo/${key} is not claimed`).toBeDefined();
-    // No holder of its own → the pack's maintainers: the organization.
-    expect(Object.hasOwn(claim!, 'holder')).toBe(false);
-    // ⚠ Resident from boot: an organization-held title admits nobody
-    // until the organization is resident.
+    expect(claim!.holder).toEqual({ group: `${key}-committee` });
+    // ⚠ Resident from boot: appoint and the chart reads resolve it.
     expect(m.boot?.some((b) => b.template === `/corpo/${key}` && b.role === 'producer')).toBe(true);
   });
 
@@ -167,12 +176,20 @@ describe('the Goodkin branch, now that its parent exists', () => {
 
 const TERMINUS_REF = 'managed:g-terminus';
 
-/** Title fixture mirroring the pack manifests for the two branches. */
+const GOODKIN_COMMITTEE_REF = 'managed:g-goodkin-committee';
+
+/**
+ * Title fixture mirroring the pack manifests for the two branches. ⭐
+ * `/corpo/goodkin` is held by the `goodkin-committee` GROUP (economic
+ * bootstrap D7): the concept gets an officer (the Registrar of
+ * Corporations owns the group), the instance gets a committee, and the
+ * organization is the show.
+ */
 function stubTitle(): void {
   vi.spyOn(ParcelApi, 'ownerOf').mockImplementation(
     async (path: string): Promise<ParcelOwner | null> => {
       if (path.startsWith('/corpo/goodkin')) {
-        return { kind: 'organization', templatePath: '/corpo/goodkin' };
+        return { kind: 'group', name: 'goodkin-committee', ref: GOODKIN_COMMITTEE_REF };
       }
       if (path.startsWith('/world/terminus')) {
         return { kind: 'group', name: 'terminus', ref: TERMINUS_REF };
@@ -212,30 +229,54 @@ describe('⭐ the authority actually separates the company from the city', () =>
     StuffApi.clearAll();
   });
 
-  it('admits Goodkin\'s chief executive and REFUSES a city staffer', async () => {
+  it('⭐ admits a member of the goodkin-committee GROUP; REFUSES the chief executive AND a city staffer', async () => {
     const goodkin = stand(() => new OrganizationEntity(), '/corpo/goodkin', readChart('goodkin'));
     const branch = stand(
       () => new BusinessEntity(),
       BRANCH,
       readSeed('world/terminus/counting-houses/business.yaml'),
     );
+    // Members are keyed by IDENTITY PATH — what `group add` writes.
     vi.spyOn(GroupApi, 'isMember').mockImplementation(
-      async (playerId: string, ref: string) => ref === TERMINUS_REF && playerId === 'odile',
+      async (memberKey: string, ref: string) =>
+        (ref === TERMINUS_REF && memberKey === '/platform/agent/Avatar/odile') ||
+        (ref === GOODKIN_COMMITTEE_REF && memberKey === '/platform/agent/Avatar/seated'),
     );
     const banker = makeAvatar('banker');
     const cityStaff = makeAvatar('odile');
-    // Nobody runs Goodkin yet: the committee over /corpo/goodkin is the
-    // organization, and it has no staff — and its head is the PM seat,
-    // which no office registry answers here (fails closed).
+    const seated = makeAvatar('seated');
     const authority = branch.getAppointingAuthority();
+    // The committee is the GROUP the Registrar seats — its member holds
+    // the authority over the branch.
+    await expect(EmploymentApi.holdsAuthority(seated, authority)).resolves.toBe(true);
+    // ⭐ Doctrine 2: a committee assignment is governance, a position is a
+    // job. Running Goodkin (the chief executive) confers NO seat on the
+    // committee — being hired never makes you an author of the bank.
     await expect(EmploymentApi.holdsAuthority(banker, authority)).resolves.toBe(false);
-    // Appoint the banker to run Goodkin: now the committee admits them.
     goodkin.appoint(banker as never, 'chief-executive');
-    await expect(EmploymentApi.holdsAuthority(banker, authority)).resolves.toBe(true);
+    await expect(EmploymentApi.holdsAuthority(banker, authority)).resolves.toBe(false);
     // ⚠ THE assertion. The city owns the ground this counter stands on,
     // and that buys it nothing here — which is the whole reason the corpo
     // needed a branch of its own.
     await expect(EmploymentApi.holdsAuthority(cityStaff, authority)).resolves.toBe(false);
+  });
+
+  it('an organization-held extent whose authority is its own committee fails CLOSED, never loops', async () => {
+    // The pre-bootstrap shape (the org held its own branch, and its
+    // authority named the committee over it) asked the head question of
+    // itself forever once the covering parcel was sparse. Only staff count.
+    vi.spyOn(ParcelApi, 'ownerOf').mockImplementation(
+      async (path: string): Promise<ParcelOwner | null> =>
+        path.startsWith('/corpo/goodkin')
+          ? { kind: 'organization', templatePath: '/corpo/goodkin' }
+          : null,
+    );
+    const goodkin = stand(() => new OrganizationEntity(), '/corpo/goodkin', readChart('goodkin'));
+    const banker = makeAvatar('banker');
+    const authority = goodkin.getAppointingAuthority();
+    await expect(EmploymentApi.holdsAuthority(banker, authority)).resolves.toBe(false);
+    goodkin.appoint(banker as never, 'chief-executive');
+    await expect(EmploymentApi.holdsAuthority(banker, authority)).resolves.toBe(true);
   });
 
   it('⭐ answers "who runs Veshko?" — empty now, a name once appointed', () => {

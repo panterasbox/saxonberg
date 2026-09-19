@@ -126,16 +126,24 @@ export class Office {
 }
 
 /**
- * The authored apparatus — the five singular offices. Constitutional
+ * The authored apparatus — the eight singular offices. Constitutional
  * data, authored in code (not a seedable collection, not YAML). Four
  * `constituted` seats (Art. IV legislature + House names, Art. V
- * executive/PM) plus one `founder-established` seat (the Central-Bank
- * Governor — ordinary law per Art. VIII §3).
+ * executive/PM) plus four `founder-established` seats (ordinary law per
+ * Art. VIII §3): the Central-Bank Governor, and — the economic
+ * bootstrap's three, named per `docs/governance/glossary.md` — the
+ * Minister of Finance (the Treasury: appropriation, the Arrival Note's
+ * counterparty, escheat's recipient), the Minister of Trade (the
+ * Ministry of Trade: holds `/trade` and `/stuff` — the physics of trade
+ * and the commons, a seat and never a committee) and the Registrar of
+ * Corporations (owns every corpo's `<key>-committee` group and seats it).
  *
  * The Governor's branch is `executive` (monetary policy is an executive
  * function — Art. V §9 / VIII §4) and it carries no constitutional
- * independence (that would be a legislative choice, unmade). No jury /
- * judiciary office exists in v1 (deferred).
+ * independence (that would be a legislative choice, unmade); the
+ * independence the bootstrap gives it is in code — only this seat
+ * writes the `reserve.*` Schedule rows. No jury / judiciary office
+ * exists in v1 (deferred).
  */
 export const OFFICE_APPARATUS: readonly Office[] = [
   Office.from({
@@ -165,6 +173,24 @@ export const OFFICE_APPARATUS: readonly Office[] = [
   Office.from({
     key: 'central-bank-governor',
     displayName: 'Governor of the Central Bank',
+    branch: 'executive',
+    origin: 'founder-established',
+  }),
+  Office.from({
+    key: 'minister-of-finance',
+    displayName: 'Minister of Finance',
+    branch: 'executive',
+    origin: 'founder-established',
+  }),
+  Office.from({
+    key: 'minister-of-trade',
+    displayName: 'Minister of Trade',
+    branch: 'executive',
+    origin: 'founder-established',
+  }),
+  Office.from({
+    key: 'registrar-of-corporations',
+    displayName: 'Registrar of Corporations',
     branch: 'executive',
     origin: 'founder-established',
   }),

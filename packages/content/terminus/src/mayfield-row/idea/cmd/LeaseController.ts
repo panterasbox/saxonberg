@@ -7,18 +7,19 @@
  * GATE (P10) reads the condition of what the tenant already holds.
  *
  * Authorization is at `execute()` (a dialogue `dispatch` — Walter doing
- * his job — bypasses the `requiresWizard` validator): a wizard, or an
- * agent of the building's owner (a `mayfield-holdings` member).
+ * his job — bypasses any validator): the actor holds the `agent`
+ * position at Mayfield Holdings (the letting agency — Walter's job), or
+ * sits on the building's committee (the owner acting for itself).
+ * ⭐ Staff or owner, never "a member of the landlord group": Walter is an
+ * NPC, and an NPC is never on a committee (economic bootstrap D8).
  */
 
-import { CommandController } from '@saxonberg/server/mud/lib/command/CommandController';
+import { LettingController, BUILDING_EXTENT, BUILDING_PATH, HOUSE_ADDRESS, AGENCY_PATH } from '../../../lib/LettingController';
 import type { CommandContext, CommandModel } from '@saxonberg/server/mud/api/command';
 import type { MqlOneResult } from '@saxonberg/server/mud/api/mql';
 import { MessageApi } from '@saxonberg/server/mud/api/message';
 import { Mml } from '@saxonberg/server/mud/api/mml';
-import { AccessApi } from '@saxonberg/server/mud/api/access';
 import { AppApi } from '@saxonberg/server/mud/api/app';
-import { GroupApi } from '@saxonberg/server/mud/api/group';
 import { ParcelApi } from '@saxonberg/server/mud/api/parcel';
 import { StuffApi } from '@saxonberg/server/mud/api/stuff';
 import { Lock } from '@saxonberg/server/mud/lib/lock/Lock';
@@ -30,10 +31,9 @@ import { BoundaryApi } from '@saxonberg/server/mud/api/boundary';
 
 const TOPIC = 'act.deed';
 
-/** Seznick House's authored anchors — this is a content verb. */
-export const BUILDING_EXTENT = '/world/terminus/mayfield-row/seznick-house';
-export const BUILDING_PATH = `${BUILDING_EXTENT}/building`;
-export const HOUSE_ADDRESS = 'terminus/mayfield-row/seznick-house';
+// Seznick House's authored anchors live on the shared base; re-exported
+// so the tests and the sibling verb keep one import site.
+export { BUILDING_EXTENT, BUILDING_PATH, HOUSE_ADDRESS, AGENCY_PATH };
 const LOCK_TECH = 'pin-tumbler' as const;
 
 interface LeaseModel extends CommandModel {
@@ -49,7 +49,7 @@ interface BuildingView extends Stuff {
   refreshProvisioned(): Promise<void>;
 }
 
-export default class LeaseController extends CommandController<LeaseModel> {
+export default class LeaseController extends LettingController<LeaseModel> {
   async execute(model: LeaseModel, context: CommandContext): Promise<void> {
     const actor = context.commandGiver as Stuff;
 
@@ -62,7 +62,7 @@ export default class LeaseController extends CommandController<LeaseModel> {
         'no-building-parcel',
       );
     }
-    if (!(await AccessApi.isAgentOf(actor, owner))) {
+    if (!(await LeaseController.mayLet(actor))) {
       return this.fail(
         context,
         "You're not authorized to let Seznick House's rooms.",

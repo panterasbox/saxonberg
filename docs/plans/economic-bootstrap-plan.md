@@ -1278,6 +1278,31 @@ miss in the six-file run).
   in `pets-offer` (bank open) still green.
 - Commit: `build(economic-bootstrap W2): the Ministers of Finance and Trade, the Registrar; corpo committees; Walter is staff`.
 
+**W2 — DONE.** Eight offices; `requiresFinanceMinister` beside
+`requiresGovernor`; `/compact/treasury` + `/compact/trade` (both `boot:`);
+every `/trade/<x>` claim (21) and every `/stuff` claim (platform +
+generic-objects' 12) → `{organization: /compact/trade}`, the 21 trade
+groups deleted; the five `<key>-committee` groups owned by
+`registrar-of-corporations`, each corpo org's authority now
+`{committee: /corpo/<key>}`; Mayfield Holdings is
+`mayfield-row/idea/agency` (Walter on its authored roster, the landlord
+group emptied), `lease`/`unlease` gate on a pack-`lib/` base
+(`LettingController.mayLet`: the agency employs you, or you sit on the
+building's committee — a `protected static`, because the lib-statics
+ratchet counts public ones and a controller is a non-Api class). **Two
+kernel defects found and fixed on the way:** (1) `CompactApi.isCommitteeMember`
+keyed the group read on the bare `playerId` while every writer (`group`
+create, the installer, the provider's own doc) keys on the IDENTITY path
+— a seated committee was invisible to the predicate; and `group add`
+wrote `getTemplatePath()` (every Avatar shares one). Both now the
+identity path; five test stubs updated. (2) The organization arm's
+recursion guard compared strings; the corpo suite's old fixture (org
+holds its own branch, authority = the committee over it, sparse cover)
+looped the heap out — the guard now RESOLVES the authority's parcel.
+The corpo suite's headline test flipped by design: a seated group
+member holds the authority, the chief executive does NOT (doctrine 2),
+city staff never did.
+
 ### W3 — The two lints (D22)
 
 - `scripts/check-committees-are-players.ts` + `lint:committees-are-players`

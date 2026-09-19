@@ -160,7 +160,10 @@ export default class GroupController extends CommandController<GroupModel> {
     if (!PlayerApi.isAvatarStuff(target)) {
       return this.fail(context, 'Targets must be Avatars in v1.', 'avatar-required');
     }
-    const added = g.addMember(target.getTemplatePath() ?? '');
+    // ⚠ The IDENTITY path — every player Avatar shares one templatePath,
+    // so keying on it would enrol every player at once (CLAUDE.md § A
+    // PERSON keys on getIdentityPath()). `create` and `roleOf` already do.
+    const added = g.addMember(target.getIdentityPath() ?? '');
     if (!added) {
       return this.fail(context, 'Already a member.', 'already-member');
     }

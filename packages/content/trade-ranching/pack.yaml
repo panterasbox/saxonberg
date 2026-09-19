@@ -16,10 +16,6 @@ description: >-
   species. A second ranching locality needs ZERO pack code — that is the
   falsifiable line.
 requires:
-  groups:
-    - name: ranching
-      purpose: the ranching trade's own body — and the keeper of the herdbook
-      owner: { office: prime-minister }
   title:
     # ⭐⭐ This claim is the security model, not a filing convenience.
     # Herds live at /trade/ranching/herds/… — a branch titled to the
@@ -27,4 +23,4 @@ requires:
     # subject can edit it is worthless the moment anybody sells anything
     # on the strength of it. Real herdbooks are kept by breed societies
     # for exactly this reason, and have been since 1822.
-    - { extent: /trade/ranching, holder: { group: ranching } }
+    - { extent: /trade/ranching, holder: { organization: /compact/trade } }

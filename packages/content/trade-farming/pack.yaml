@@ -21,9 +21,8 @@ description: >-
   cash-and-carry. Horticulture is farming too: the ornamental house
   plants (peace lily, snake plant) are grown here, not filed under food.
 requires:
-  groups:
-    - name: farming
-      purpose: the farming trade's own body
-      owner: { office: prime-minister }
+  # The trade is placeless (economic bootstrap D6/D7): its mechanism is
+  # held by the Ministry of Trade — a seat, never a committee. Its
+  # premises, if any, sit in the world under a locality's committee.
   title:
-    - { extent: /trade/farming, holder: { group: farming } }
+    - { extent: /trade/farming, holder: { organization: /compact/trade } }

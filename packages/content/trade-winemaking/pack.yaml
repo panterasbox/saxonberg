@@ -13,9 +13,8 @@ description: >-
   at target — the floor-bottle faucet is retired, every bottle is a
   batch the cellars beat made); and three pours.
 requires:
-  groups:
-    - name: winemaking
-      purpose: the winemaking trade's own body
-      owner: { office: prime-minister }
+  # The trade is placeless (economic bootstrap D6/D7): its mechanism is
+  # held by the Ministry of Trade — a seat, never a committee. Its
+  # premises, if any, sit in the world under a locality's committee.
   title:
-    - { extent: /trade/winemaking, holder: { group: winemaking } }
+    - { extent: /trade/winemaking, holder: { organization: /compact/trade } }

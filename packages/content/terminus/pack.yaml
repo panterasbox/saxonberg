@@ -20,13 +20,13 @@ requires:
   groups:
     - name: terminus
       purpose: the Terminus municipality
-    # The landlord's staff — Walter's membership is CONFERRED here by
-    # the owner (the Katie pattern; never self-enrolled). His row sits
-    # under the pack's own seznick-house claim, per the NPC-only fence.
+    # The landlord — the group that HOLDS Seznick House. Players only
+    # (economic bootstrap D8): Walter used to be enrolled here, and an
+    # NPC on a committee is doctrine 2 broken. He is staff of the
+    # `mayfield-row/idea/agency` Organization now; this group is empty at
+    # boot and falls to the founder until the Compact seats it.
     - name: mayfield-holdings
-      purpose: the Mayfield Holdings letting staff
-      members:
-        - { id: /world/terminus/mayfield-row/agent/walter, role: member }
+      purpose: the landlord of Seznick House
   title:
     # ⭐ The REALM root (economic bootstrap D5): Terminus the realm holds
     # every piece of 1.0 content — the city's districts below, and the
@@ -83,6 +83,7 @@ requires:
     - { extent: /world/terminus/necropolis,  parentParcel: /world/terminus, holder: { group: terminus }, landUse: civic }
 boot:
   - { template: /world/terminus/mayfield-row/seznick-house/building, role: producer, reason: warms the unit caches from the durable slot set and installs the lobby stair at postRegister }
+  - { template: /world/terminus/mayfield-row/idea/agency, role: producer, reason: "Mayfield Holdings — the letting agency; lease/unlease ask whether the actor holds its agent position, read off the authored roster" }
   # ⚠ Moved here with the room from `trade-distilling`: a showroom on the
   # avenue is a PLACE, so the locality holds it. Everything IN it is
   # still the distilling trade's — the racking, the counter, the clerk.

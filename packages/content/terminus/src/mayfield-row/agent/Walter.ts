@@ -18,9 +18,12 @@
  * real Mayfield-Holdings-agency check lives at the controllers'
  * `execute()`, and the player's path is the dialogue.
  *
- * His authority is owner-conferred, never self-claimed: the
- * `mayfield-holdings` group lists his template path as a member in the
- * terminus pack's `requires.groups`, applied by the installer.
+ * His authority is a JOB, never a seat: he holds the `agent` position at
+ * Mayfield Holdings (`mayfield-row/idea/agency`, an Organization whose
+ * appointing authority is the building's committee), read off its
+ * authored roster. He is not a member of the `mayfield-holdings` group
+ * that holds the title — an NPC is never on a committee (economic
+ * bootstrap D8).
  */
 
 import NPC from "@saxonberg/server/mud/lib/npc/NPC";

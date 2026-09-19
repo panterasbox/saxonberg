@@ -22,11 +22,10 @@ description: >-
   mark, and each yard's `parentOrganization` points up at it. The trade
   names nobody downstream; every producer names distribution's counter.
 requires:
-  groups:
-    - name: distilling
-      purpose: the distilling trade's own body
-      owner: { office: prime-minister }
+  # The trade is placeless (economic bootstrap D6/D7): its mechanism is
+  # held by the Ministry of Trade — a seat, never a committee. Its
+  # premises, if any, sit in the world under a locality's committee.
   title:
-    - { extent: /trade/distilling, holder: { group: distilling } }
+    - { extent: /trade/distilling, holder: { organization: /compact/trade } }
 # The premises' boot entries moved to `terminus` with the rows (economic
 # bootstrap D6): a trade is placeless; its floor is the city's.

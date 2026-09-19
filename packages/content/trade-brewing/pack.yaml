@@ -13,9 +13,8 @@ description: >-
   distribution counter. The floor-keg faucet stands until the W8
   switchover.
 requires:
-  groups:
-    - name: brewing
-      purpose: the brewing trade's own body
-      owner: { office: prime-minister }
+  # The trade is placeless (economic bootstrap D6/D7): its mechanism is
+  # held by the Ministry of Trade — a seat, never a committee. Its
+  # premises, if any, sit in the world under a locality's committee.
   title:
-    - { extent: /trade/brewing, holder: { group: brewing } }
+    - { extent: /trade/brewing, holder: { organization: /compact/trade } }

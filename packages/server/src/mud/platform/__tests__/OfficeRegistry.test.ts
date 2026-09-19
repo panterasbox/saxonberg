@@ -167,7 +167,7 @@ describe('OfficeRegistry', () => {
     StuffApi.clearAll();
   });
 
-  it('warms the five offices with correct branch + origin; no jury/judiciary, no cardinality', () => {
+  it('warms the eight offices with correct branch + origin; no jury/judiciary, no cardinality', () => {
     const keys = OFFICE_APPARATUS.map((o) => o.getKey());
     expect(keys).toEqual([
       'prime-minister',
@@ -175,7 +175,16 @@ describe('OfficeRegistry', () => {
       'speaker-capital-house',
       'speaker-consumer-house',
       'central-bank-governor',
+      'minister-of-finance',
+      'minister-of-trade',
+      'registrar-of-corporations',
     ]);
+    // The economic bootstrap's three executive seats, founder-established
+    // like the Governor (ordinary law, Art. VIII §3).
+    for (const key of ['minister-of-finance', 'minister-of-trade', 'registrar-of-corporations']) {
+      expect(Office.byKey(key)!.getBranch(), key).toBe('executive');
+      expect(Office.byKey(key)!.getOrigin(), key).toBe('founder-established');
+    }
     expect(Office.byKey('prime-minister')!.getBranch()).toBe('executive');
     expect(Office.byKey('prime-minister')!.getOrigin()).toBe('constituted');
     expect(Office.byKey('speaker-producer-house')!.getBranch()).toBe(

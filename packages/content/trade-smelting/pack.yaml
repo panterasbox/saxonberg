@@ -16,9 +16,8 @@ description: >-
   material so an author adds tin by authoring a row. Roasting the
   sulfides and bronze are later stages.
 requires:
-  groups:
-    - name: smelting
-      purpose: the smelting trade's own body
-      owner: { office: prime-minister }
+  # The trade is placeless (economic bootstrap D6/D7): its mechanism is
+  # held by the Ministry of Trade — a seat, never a committee. Its
+  # premises, if any, sit in the world under a locality's committee.
   title:
-    - { extent: /trade/smelting, holder: { group: smelting } }
+    - { extent: /trade/smelting, holder: { organization: /compact/trade } }
