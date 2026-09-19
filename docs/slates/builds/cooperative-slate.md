@@ -1,32 +1,32 @@
 # Cooperative slate (working doc)
 
-> **Status: PARTIAL** — the Office seats and the three-stock influence
-> substrate (producer faucet + conviction) shipped →
-> [governance.md](../../subsystems/governance.md)
-> **Left:** the capital faucet / stake ledger · Twitch identity binding ·
-> the three chambers + the ballot · delegation guardrails · the in-world
-> reserve + the budget process · mint-at-launch conversion
+> **Status: PARTIAL** — the Office seats (founder default, sparse
+> handoff, the Governor gating `reserve`, the PM's seat-held title) and
+> the three-stock influence substrate (participation + producer faucets,
+> conviction hold/flip/tally, **no pool**) shipped →
+> [governance.md](../../subsystems/governance.md),
+> [influence.md](../../subsystems/influence.md); the argument-map v1 shipped →
+> [forums.md](../../subsystems/forums.md); the provisions are consolidated in the
+> [draft constitution](../../governance/draft-constitution.md).
+> **Left:** the capital faucet (credit per patron per bucket) + the stake
+> ledger enforcing the founding charter + the dono/sub webhook +
+> mint-at-launch · the honor→chronicle / voice→standing split of the two
+> markers · the ballot over the shipped conviction substrate (passage
+> `tally / totalStanding` · quorum · the percentile-band fix · the
+> top-decile share metric) · delegation re-derived for no-pool (`follow`,
+> the conviction clock, per-topic scope) + synthetic constituents · the
+> flip notice + the docket · deliberation's scale work (version-controlled
+> proposals, convergence-detection, polling, the sync floor-bot) ·
+> investiture / no-confidence as a standing target / the
+> caretaker-may-not-veto floor / the deputy · the executive institution
+> roster + the producer merit-pay bank · (identity, matter) recusal + the
+> population ladder · abatement's open work · the in-world reserve toolkit
+> (drain / seed / bounties / appropriation) + the NPC market floor +
+> treasuries · the justice legos (advocacy, elections) with the
+> amendment-library slate
 > **Size:** a build
 
-> **Status: model settled, build the stake-ledger slice; the full
-> republic deferred until there's a population to govern.** The
-> *substrate* — what influence is, how it's earned/spent/replenished,
-> the membrane that keeps real funding and in-world governance from
-> contaminating each other — is worked out far enough to build the
-> near-term slice: a **stake ledger** that turns Twitch donations into
-> accrued influence, redeemable at launch. The *polity* — three
-> co-equal chambers, a parliamentary executive over a civil service of
-> chartered institutions, a judiciary that runs one async process —
-> scaling from an operator pool-of-one to a sortition jury (letter-
-> verification + spirit-judgment) — a tamper-evident archive whose
-> integrity is guaranteed by construction rather than by a separate
-> operator, and live legislation over the real budget and the in-world
-> reserve — is designed but explicitly parked: you can't run a
-> government with one citizen, and most of its hard questions
-> (apportionment, the dilution curve, judiciary staffing, the
-> separation-of-powers population ladder, the tamper-evident archive
-> substrate) can only be answered against a real member body. Build the honest ledger now; stand up the
-> republic when there's someone to govern.
+> Compacted 2026-09-19 — every cut is accounted for in [the ledger](../../plans/slate-compaction/governance.md).
 
 > **Consolidation:** a formal [draft constitution](../../governance/draft-constitution.md)
 > distilling this slate into normative articles now exists (status: draft,
@@ -187,19 +187,8 @@ for this subsystem, and the first one is also the legal firewall.
 
 ### Law 1 — Stake is not stock
 
-**Membership confers governance and recognition. It never confers
-financial ownership, profit, or a redeemable claim on money.**
 
-This is the single line that lets the whole cooperative exist *without a
-lawyer*. The moment a backer's contribution carries an expectation of
-financial return, it stops being a donation and becomes an unregistered
-security — the exact thing this design refuses to be. So:
-
-- What a backer **gets**: influence (voting weight over the world),
-  citizenship, recognition, in-world standing, perks. All of it is
-  fiction or honor. Nobody can sue over voting weight in a MUD.
-- What a backer **never gets**: equity, a share, a dividend, a cut of
-  surplus, or anything that converts back to cash.
+*Cut 2026-09-19 — Art. I §1 + Art. VIII §2 of the [draft constitution](../../governance/draft-constitution.md) carry the provision (the no-lawyer floor is the preamble's three-floor test). The wording discipline below is kept.*
 
 The discipline in three words an author/operator can hold: never write
 the words **investor, share, equity, return,** or **dividend** where a
@@ -211,230 +200,35 @@ not the investor house. Stake, never stock.
 
 ### Law 2 — Power is earned and spent, never owned
 
-**Influence is a spendable, regenerating resource — not a permanent
-share.** You earn it by contributing, you spend it by voting, and it
-replenishes through *continued* contribution. It is never a static
-holding that sits and rules forever.
 
-This is the same shape as the economy slate's Law 2 ("use consumes;
-never tax absence"):
+*Superseded — by the code. There is no spend: `hold` is full weight, no pool ([influence.md](../../subsystems/influence.md) § Conviction). The law itself is Art. I §3 / Art. III §3 of the [draft constitution](../../governance/draft-constitution.md).*
 
-- **Voting consumes influence** — the use that spends it. The person who
-  votes on everything spends down; the person who saves for what matters
-  keeps their weight. Power is consumed by exercise.
-- **Contribution replenishes it** — the faucet. Recurring dollars,
-  ongoing labor, continued play each refill the relevant influence.
-- **Absence is never taxed** — stop contributing and the faucet stops,
-  but the tank is never drained as a penalty. You simply don't refill.
-
-The consequence is a body that reflects who is *present and
-contributing now*, not who funded you in year one. That is what keeps
-the republic alive after any founder's personal lock has sunset.
-
-Whether that exercise is a discrete *spend* or a continuous *allocation*
-is the chamber's voting rule (see *One resource, not two* below) — the
-law is the same either way: **influence is exercised and renewed, never
-owned and hoarded.**
 
 ---
 
 ## Influence — the keystone resource
 
-Influence is the currency of governance. It is assigned to a member and
-spent via voting. Three properties make it work.
+*(The three subsections below are pointers: the three stocks, their faucets and the no-pool conviction rule shipped → [influence.md](../../subsystems/influence.md), [participation.md](../../subsystems/participation.md), [renown.md](../../subsystems/renown.md); the provisions are Art. III of the [draft constitution](../../governance/draft-constitution.md).)*
 
 ### Three types, one per chamber, non-fungible
 
-Members aren't sorted into three rival populations — **everyone holds
-influence in all three chambers to varying degrees.** The chambers are
-three *kinds of earned standing*, each with its own faucet:
-
-| Influence type | Earned by | Chamber |
-|---|---|---|
-| **Producer** | labor on the project | Producer House |
-| **Capital** | dollars contributed | Capital House |
-| **Consumer** | engaged consumption (engagement × reputation) | Consumer House |
-
-The load-bearing rule: **the three types are non-fungible.** Producer
-influence votes only on the Producer floor, capital only on the Capital
-floor, consumer only on the Consumer floor. **No cross-chamber
-conversion, ever.** Without this, there is really only one resource
-wearing three hats, "majority of chambers" collapses into a single
-weighted vote, and bicameralism is theater. Non-fungibility is the
-stake-is-not-stock membrane one level down: keep the currencies
-separate and the structure is real.
-
-A consequence worth stating: all three faucets reward *sustained
-engagement* in their own currency — labor that continues, dollars that
-recur, play that keeps happening. The republic structurally favors the
-present, engaged contributor over the one-shot backer or the absentee
-first-mover, across all three kinds of standing alike. One value, three
-faces.
+*Cut 2026-09-19 — shipped: `InfluenceStanding.stock` ∈ consumer|producer|capital, `ConvictionLogic.tally` partitioned by stock → [influence.md](../../subsystems/influence.md) § The three-stock output contract, § Conviction; Art. III §§1–2.*
 
 ### Three kinds of contribution
 
-The three faucets are three **kinds of contribution**, each earning
-standing in its own house — and all three are *meritorious*, which is the
-deepest reason the chambers are co-equal:
-
-- **Producer = creation** — you *built* valued things, **measured by the
-  engagement your content earns** (below), not by anyone's say-so.
-- **Capital = capital** — you *funded* it (measured dollars).
-- **Consumer = participation** — you *consume*, and **consumption is the
-  contribution.** Producers build *for* someone; funders fund *for*
-  someone; without the engaged audience the other two houses have **no
-  charter.** The consumer house represents the people who are the *reason*
-  — the foundational contribution, not a softer one.
-
-Most polities pick *one* basis of standing and live or die by it; holding
-three co-equal means **none dominates** (a runaway in any one still needs
-two of three to pass anything). The consumer's contribution is framed
-around consumption and measured on **two axes — quantity (engagement) ×
-quality (reputation)**: you must participate *substantially* **and** be
-*valued* for it. That product is what keeps it from collapsing into a
-**popularity contest** (reputation alone) or an **idle-farm / no-life
-grind** (engagement alone) — neither buys standing without the other. See
-*The consumer fault line* under the economy section for the substrate.
-
-**And producer standing is instrumented the same code-first way — engagement is
-the rule.** Author something — a zone, a quest, an *assassins guild* — on your
-own dime; the engine **measures the engagement it draws.** That much is code: no
-human *decides* a producer deserves standing — the engine measures how much the
-community uses what they made. But **whether that engagement *betters the world*
-— whether the content is good, not just sticky — is morality, and we don't
-pretend to measure morality in code** (maybe someday; not now). So the value
-judgment falls to the **human layer**: the bounded **merit-pay** bank (*Two
-merit channels*, below) is where competent humans reward genuine worth — both
-work the engagement-measure can't *see* (infrastructure) and worth it can't
-*judge* (the sticky-but-hollow problem, the producer's idle-farm). The split is
-the honest one, and it's code-first to the bone: **code measures the measurable
-(engagement); humans judge the unmeasurable (value)** — the human layer
-load-bearing precisely where the first can't reach. (Fully countering
-engagement-farming with a code-grade value signal is the open problem; for now
-the human call carries it.)
+*Cut 2026-09-19 — shipped: producer = engagement-only draw (`ProducerLogic`), consumer = `engagement × renown` (`ConsumerLogic`) → [influence.md](../../subsystems/influence.md) § The producer stock, [participation.md](../../subsystems/participation.md); the merit-pay exception is Art. III §7.*
 
 ### Two markers: a stock and a flow
 
-Real funding arrives two ways — **recurring** (subs; the thing you can
-write a budget against) and **one-time** (lumps; welcome but
-unbudgetable). The design encourages recurring *without* disallowing
-one-time by mapping each onto a different physical quantity instead of
-making them fight over one number:
-
-| Marker | Measures | Drives | Behavior |
-|---|---|---|---|
-| **Lifetime total** (cumulative) | everything ever given | influence **reservoir cap** + permanent **honor/standing** | only ever rises; never spent, never decays |
-| **Recurring rate** (current) | what you give *now*, per period | influence **regeneration rate** | tracks current subs; stops when you lapse |
-
-Lifetime total sets how much influence you *can* hold and your permanent
-place in the project's history; recurring rate sets how fast it *refills*
-after you spend. Power at any instant is the *filled* amount — needing
-both a reservoir (you've contributed over time) and a faucet (you're
-contributing now). The cases fall out for free:
-
-- **Steady subscriber** — modest cap, reliable refill, always topped up.
-  The engaged citizen whose voice is always present; the most powerful
-  per dollar precisely because it's *sustained*. The profile to grow.
-- **One-time whale** — a lump permanently raises cap + honor and deposits
-  a **burst** of spendable influence. But no faucet: it drains as they
-  vote and doesn't refill. A **moment in the sun, not a throne** —
-  honored forever, unable to dominate.
-- **Lapsed contributor** — keeps cap and honor (never punished), faucet
-  off. Drains down as they vote, then goes quiet until they give again.
-  *Stop the faucet; never drain the tank.*
-
-This is also *just*: the legislature can only responsibly appropriate
-against **predictable** income, so the recurring base — the people who
-make a budget possible — earn the *sustained* voice, while a one-time
-lump is **extraordinary revenue** that earns *extraordinary but
-temporary* voice. The influence model and the budgeting reality are the
-same fact twice.
+*Superseded — by no-pool — there is no reservoir cap and no regeneration rate to attach the markers to ([influence.md](../../subsystems/influence.md) § Conviction). Where the two markers landed is § The markers survive by splitting, below.*
 
 ### One resource, not two — continuity lives in the voting rule
 
-A spendable resource invites a worry: bank influence by ignoring
-everything, then dump it to swing one issue (the *ambush*). Two
-clarifications defuse it:
-
-- **Concentration isn't the bug; ambush is.** A minority that cares
-  *intensely* outvoting an indifferent majority is the *point* of
-  intensity-weighted voting. The failure is only power that's *invisible
-  until it strikes* — and the **cap already bounds it.** Influence
-  regenerates only up to a ceiling set by lifetime contribution
-  (concave-damped), so the largest possible strike is your own standing,
-  itself bounded. Hoarding is mostly solved by a mechanic already in the
-  design.
-- **So reject use-it-or-lose-it.** A per-session budget would force
-  triage (which issues to spend on, which to abstain), and triage means
-  different coalitions show up each session — *manufacturing* the very
-  volatility you wanted to avoid. It kills a problem the cap already
-  killed and births a worse one. Don't add it.
-
-The deeper instinct — "maybe influence and political capital are two
-resources" — is half right. They're *not* two resources (those words are
-synonyms; splitting them just doubles the hoardable surface). The two
-things really in play are **one resource + a voting rule**:
-
-- the **resource** — influence (a stock: cap + regen, non-fungible), and
-- the **rule that converts it to decisions** — and *continuity lives
-  here,* not in a second currency.
-
-The voting rule runs a spectrum from **discrete spend** (simple, but
-volatile and ambush-prone) to **conviction voting** (time-weighted:
-weight on a proposal *builds the longer you hold it there and decays when
-you move it*). Conviction voting dissolves all three problems at once: no
-ambush (a sudden dump is weak — weight needs *time on position*); no
-sessions, so no forced triage; continuity *by construction* (the system
-has inertia and memory). Its cost: decisions are slower, and "voting"
-becomes continuous *allocation* rather than a discrete act — which
-ripples into the two markers (under allocation you don't deplete, so
-recurring-rate would gate your current *allocatable weight* rather than a
-refill rate; to be worked out as the kernel's conviction rule is specified).
-
-The resolution, updated for the kernel-fixed voting system: **the conversion
-rule is itself kernel — a conviction-style continuity, uniform across
-chambers** (a chamber is *everyone*, with no prior method to vote a new one
-in, and the rule is engineered for stability, so a house can't swap it). What
-*is* chamber-internal is the layer *above* the tally: **representation** —
-whether members vote directly or delegate to seats. The tiny Producer and
-Capital houses can run direct; the huge, volatility-prone **Consumer House** is
-precisely the body that would go **representational** — delegation/seats
-riding on the *same* conviction tally, not a different one. You don't push the
-*rule* down to the chamber (it's kernel); you let the chamber choose its
-*representation* on top of it.
-
-**Term limits are a different layer.** They cap *tenure in an office*, so
-they belong wherever there are **offices** — the executive, and any
-representative seats the Consumer House creates — never on the directly-
-exercised resource. The temporal cap on *direct* influence is the
-regen-ceiling (and, under conviction voting, the time-to-build).
+*Superseded — the reservoir premise is gone; the resolution shipped as the kernel's uniform conviction rule → [influence.md](../../subsystems/influence.md) § Conviction; kernel-fixed method / chamber-internal representation / term limits on offices only are Art. III §4, Art. IV §6, Art. V §2 of the [draft constitution](../../governance/draft-constitution.md).*
 
 ### RESOLVED (2026-07-31): the kernel's conviction rule shipped — **no pool**
 
-The section above defers one thing: *"under allocation you don't
-deplete, so recurring-rate would gate your current allocatable weight
-rather than a refill rate; **to be worked out as the kernel's
-conviction rule is specified.**"* It is now specified, and it went
-further than allocation:
-
-> **`hold` is full weight, no pool.** Every position spends the
-> holder's **whole** standing scalar and never consults their other
-> targets. Listed in [influence.md](../../subsystems/influence.md) as
-> an **entrenched invariant** — *"code, never keys."*
-
-So there is **no reservoir, no cap, and no regeneration rate.** The
-two-markers design (lifetime total → cap; recurring rate → regen) has
-nothing left to attach to, and the draft constitution's Art. IV §2 —
-which still describes "a capped, regenerating reservoir with
-continuous allocation" — is now the stale half. (The knock-on for
-Art. IV §4's *sponsoring allocation* and *survival floor* is worked in
-[legal-code-slate § The passage rule](./legal-code-slate.md).)
-
-**The recommendation is to keep no-pool**, because a reservoir is a
-*simulated* scarcity stacked on a real one — **attention** — and a
-budget turns politics into portfolio management, which is swing-voter
-leverage moved one level up. It is also what keeps the system
-**scale-invariant** (below).
+*Shipped → [influence.md](../../subsystems/influence.md) § Conviction (`hold` is full weight, no pool — an entrenched invariant). ⚠ The [draft constitution](../../governance/draft-constitution.md) Art. IV §2 still describes a capped, regenerating reservoir — stale; the knock-on for Art. IV §4 is worked in [legal-code-slate § The passage rule](./legal-code-slate.md). The WHY of no-pool (attention is the real scarcity; a budget is portfolio politics) is in the ledger's Handoff for influence.md.*
 
 #### The markers survive by splitting, not by merging
 
@@ -470,18 +264,7 @@ reasons are worth recording because they are load-bearing.
 
 ### The faucets are decayed accumulators with **hard rate caps**
 
-| Stock | Cap mechanism | Consequence |
-|---|---|---|
-| **participation** | append is find-or-skip on `{subject, bucket}` — **one credit per time-bucket**, ever | input rate capped by the **wall clock**; steady state ≈ `halfLife / (bucket · ln2)` |
-| **renown** | **log-saturated** — `receptionValence × ln(1 + Σ decayed)` — *on top of* decay | bounded twice |
-| **consumer** | `max(0, renown) × participation` | bounded × bounded |
-| **producer** | find-or-skip on `{author, actor, bucket}` — one credit per *engaging player* per bucket; influence.md annotates the line **"(anti-inflation)"** | capped by **audience-hours** |
-
-> **Standing measures a rate, not a total.** It fills to a level set by
-> what you are doing *lately* and stops. **A five-year veteran playing
-> ten hours a week has the same participation standing as a six-month
-> player at ten hours a week** — the same property that makes every
-> chamber a chamber of the currently present, seen from another side.
+*Cut 2026-09-19 — shipped: participation one credit per `{subject, bucket}` ([participation.md](../../subsystems/participation.md)), renown log-saturated ([renown.md](../../subsystems/renown.md)), producer one credit per `{author, actor, bucket}` and “standing is a rate, not a total” ([influence.md](../../subsystems/influence.md)).*
 
 ### And passage is scale-invariant anyway
 
@@ -603,27 +386,7 @@ vectors, and the merit mechanism should match each:
   way to *source* this regard explicitly — recognition as a deliberate peer act,
   not only an inferred metric.)
 
-- **Producers earn by creation, which renown doesn't track.** Renown is a
-  *social* vector — there may be "celebrity wizards" (old MUDs had them), but
-  authoring good work isn't what earns renown, and producer influence isn't
-  measuring that vector at all. **The rule for producers is the instrumented
-  measure** (above): the engagement your content earns. **Merit pay is the
-  *exception*** — and it's where the **value judgment** lives, because whether
-  content is *good* (not just used) is morality, not a code metric. A bounded,
-  minted **bank of producer influence** recognizing creation that measure can't
-  capture — *because producers largely contribute unpaid, and
-  this is how the polity compensates good work it can't pay for in money.*
-  - **Producer influence only** — never consumer or capital.
-  - **Minted and capped by the legislature** (the central-bank pattern again).
-  - **Evaluated by competence** — judging *good work* needs people who can judge
-    it, so this is the one place a flat sortition jury is the *wrong* body and
-    competence-based evaluation (the executive that manages the work, or a
-    competence pool drawn by lot) is right. It is the conscious exception to
-    "never the implementing branch": for craft, competent evaluation *is*
-    producer-ish evaluation — the way peer review is.
-  - The leashes that replace sortition: **recusal** (no self-award —
-    load-bearing here), **sub-decisive** magnitude, **transparency** + public
-    rationale, **justiciable**.
+*(The producer merit-pay bank — producer influence only · minted and capped by the legislature · evaluated by competence · recusal · sub-decisive · public rationale · justiciable — is Art. III §7 of the [draft constitution](../../governance/draft-constitution.md); cut here 2026-09-19. Unbuilt.)*
 
 **Why the producer bank isn't a power-pump.** Minting producer influence
 redistributes power *within* the producer house (toward the meritorious) — it
@@ -644,102 +407,15 @@ legislated modules.
 
 ## The legislature — three co-equal chambers
 
-Non-negotiable design constraint from the outset: **the chambers are
-co-equal, or it doesn't work.** They may carry different
-*responsibilities*, but a bill is a bill:
-
-> A bill passes on a **majority of chambers** — both in a bicameral
-> body, two-of-three in a tricameral one.
-
-The three chambers differ in *center of gravity* — the concerns each
-constituency cares most about — but not in procedure:
-
-- **Producer House** — what gets built, production direction.
-- **Capital House** — the budget (real dollars) and reserve appropriations.
-  The "purse."
-- **Consumer House** — world/community matters: lore, events, world policy.
-
-**Bills are global and concurrent — there is no originating house.** Because
-membership is shared (everyone holds all three influence types to varying
-degrees), "which chamber introduced it" carries no weight. So there is **one
-central floor** — one pool of bills up for debate, one *global* deliberation
-per bill (a single shared argument-map) — and every bill is voted
-**concurrently** by all three houses, passing on a majority of them. (This
-resolves the old origination question: the answer is *none*.)
-
-**Voting is per-house and splittable.** A member casts their three influence
-types *independently* into the three house-tallies on the same concurrent
-bill — and they may **disagree**: yes with producer-influence, no with
-consumer-influence. That isn't a quirk; it's the three-contributions design
-paying off — you're a producer *and* a funder *and* a consumer, those roles
-have different interests, and a bill good for your maker-self may be bad for
-your player-self. Each house tallies its own type; passage is by majority of
-houses.
-
-A deliberate, permanent property of this shape: with three co-equal
-chambers and two-of-three passage, the **Consumer House — however
-enormous its population — is still only one vote of three.** The makers
-and funders can never be steamrolled by sheer player numbers. This is
-the *permanent* structural check, distinct from any founder's transient
-control (below).
+*Cut 2026-09-19 — Art. IV §§1–3 of the [draft constitution](../../governance/draft-constitution.md) (co-equal houses, majority of houses, one central floor, no originating house, per-house splittable voting); the per-stock `Position` partition that makes splitting real shipped → [influence.md](../../subsystems/influence.md) § Conviction.*
 
 ### Near-empty chambers — abstain, full-count, fall back
 
-Co-equality has a failure mode at the *bottom*: a chamber with almost no members
-(the lone-producer founding phase is the limiting case) isn't a deliberative
-body — its "vote" is one person's will, yet it counts as a full co-equal house.
-The rule that resolves it without bricking the polity:
-
-- **A house below a `vote.quorum` of active members abstains** — counting toward
-  neither passage nor blocking. Not rubber-stamped (assent would make it a
-  capture vector), not a permanent veto (dissent would freeze governance):
-  *abstain.*
-- **Passage is measured against the *full* count of houses, never a shrunken
-  one.** One sparse house → the other two must *both* assent (legislate
-  cautiously when a constituency is unrepresented). The reason not to shrink the
-  denominator: the polity can **never collapse to single-house rule** — if two
-  houses go sparse you reach *no* majority, rather than letting the last house
-  rule alone.
-- **Below viability, fall back — the population ladder in reverse.** Too few
-  quorate houses to reach a majority → ordinary law can't pass until
-  constituencies recover; sustained sub-viability reverts to the
-  **caretaker/operator floor**, the same door the polity rose through at
-  ratification. You climb into a republic at a population threshold; you descend
-  through the same one if the population craters.
-
-This also **completes the founder's self-binding** — precisely. A polity can
-cross the ratification threshold on consumers while the producer house is still
-basically the founder; under this rule that sparse house *abstains* rather than
-handing the founder a chamber, and the *granted* capital-match sunsets — so the
-founder's **control** ends. What does *not* end is the founder's **earned**
-producer influence: it reflects real work (the game awards it the same as for
-any producer), persists like any member's, and becomes a legitimate, diluting
-voice once the producer house reaches quorum. The self-binding strips the
-*unearned control*, not the earned standing — the founder steps from controller
-to large contributor, **not to zero.** The near-empty rule and the dilution
-curve are the same mechanism. (Constitution Art. IV §3; founding charter.)
+*Cut 2026-09-19 — Art. IV §3 of the [draft constitution](../../governance/draft-constitution.md) (a house below `vote.quorum` abstains; passage against the full count; sub-viability falls back to the caretaker floor) + Art. XI / the [founding charter](../../governance/founding-charter.md) for the self-binding.*
 
 ### The constitution is thin — but the voting system is kernel, not chamber-set
 
-Like the US Constitution, the document is short and the chambers are
-internally self-governing — with one sharp exception, forced by a
-chicken-and-egg: a chamber is *every member*, so there is no prior body to
-choose a voting method and no method to choose it with. The **voting system
-itself** — the spend-and-regenerating influence tally, its conviction-style
-continuity, count-not-price — is therefore **kernel-given and fixed by the
-constitution**; a chamber *cannot vote to change how voting works*. And
-because the system is engineered for the game's stability, loosening it is an
-**amendment, not a bylaw**: its **structure** changes only by constitutional
-amendment, its **tuning constants** (regen rates, caps, thresholds) flex as
-*organic law*. So the constitution fixes the **branches, the influence types,
-the voting system, passage, origination, the treasury membrane, and the
-amendment rule** — and stops. What's left to the chamber is its **internal
-organization**: whether it runs direct or representational, its rules
-committee, deliberation norms. The Consumer House in particular, with so many
-participants, will likely want something **representational** — and that's
-exactly the layer where **term limits** belong (capping tenure in a seat). All
-*that* is chamber-internal — its own bylaw, not constitutional text; the
-voting *method* is not.
+*Cut 2026-09-19 — Art. III §4, Art. IV §§6–7 of the [draft constitution](../../governance/draft-constitution.md) (the voting method is kernel-fixed; a chamber governs only its internal organization; structure by amendment, constants as organic law).*
 
 ---
 
@@ -772,32 +448,7 @@ reform per vote.
 
 ### Delegation is already built — it's allocation pointed at a person
 
-> ⚠ **Written under the reservoir. The premise no longer holds** — with
-> **no pool** there is no allocation to point. The *conclusions* below
-> (per-topic/per-chamber, instant revocability, transitivity, "this is
-> how the Consumer House goes representational") all survive; the
-> *mechanic* is re-derived in **§ Delegation, re-derived for no-pool**
-> two sections down, and it comes out better.
-
-**Liquid delegation is the same mechanic as conviction voting.**
-Conviction voting parks influence on a *proposal*; delegation parks it on
-a *person* who votes it for you — a delegate is just another thing you
-point influence at, so the substrate already supports it. Natively:
-
-- **Per-topic, per-chamber delegation** — delegate producer-influence to
-  a trusted maker, consumer-influence to a player-advocate; different
-  delegates by domain, because expertise is by domain. The delegation
-  graph is really three graphs.
-- **Instant revocability** — no fixed terms; a delegate holds your weight
-  only while you leave it parked. The archive shows exactly how it was
-  voted, so accountability is trivial; lose trust, yank it.
-- **Transitivity** — chains form, trusted hubs accumulate weight and
-  become **emergent representatives**: earned, fluid, instantly-revocable
-  — *representation without elections*, more accountable than a termed
-  seat.
-
-This is also **how the Consumer House "goes representational"** — not
-fixed-term elected reps, but a live liquid-delegation graph.
+*Superseded — by § Delegation, re-derived for no-pool below — the reservoir premise is gone; the conclusions (per-stock, instant revocability, transitivity, emergent representation) are carried there.*
 
 ### Parties are delegation brands
 
@@ -1162,25 +813,9 @@ the dishonest option.
 
 ## Pay-to-win: political voice, not gameplay advantage
 
-The funding model lets real money buy **influence** — a say in how the
-world is governed. The line that keeps that from being pay-to-win: **money
-can buy a *say in governance*; it can never buy an *advantage inside the
-game.*** Political voice and gameplay power are different axes — a
-donation buys **a vote and a name, never a sword or a pile of coin.**
 
-This seals the **stake-is-not-stock** membrane in its second direction;
-the membrane is bidirectional:
+*Cut 2026-09-19 — Art. I §2 + Art. VIII §1 of the [draft constitution](../../governance/draft-constitution.md) (money may earn a voice, never in-world currency, property or advantage; the firewall is bidirectional). The hill-not-a-wall argument below is kept.*
 
-- **Outbound — stake-is-not-stock** (Law 1): in-game stake/standing never
-  becomes real money.
-- **Inbound — no-pay-to-win**: real money never becomes in-world currency
-  or advantage.
-
-The inbound seal has a live temptation — *give people in-world currency
-for donations* — and it's **forbidden**: it's pay-to-win (buying in-world
-value severs the endogenous-value spine — value must trace to *effort*)
-and gambling/RMT (real-money-in, valuable-out — the pattern that got
-lootboxes banned and reopens the legal can stake-is-not-stock closed).
 
 ### A hill, not a wall — and the hill *is* the game
 
@@ -1358,18 +993,8 @@ surface.)
 
 ### Deliberation is an argument-map, not a forum
 
-The load-bearing surface is genuinely distinct from a conversation: the
-**bill is the spine**, and the debate hangs off it as a navigable,
-linearly-followable structure of **claims → objections → rebuttals**
-(argument-mapping; Kialo is the clean reference). You follow the *logic*, in
-coherent order — you can't sample your way through reasoning. Properties:
+*The bill-as-spine claim-graph, “no ranking to game”, reputation-blind claims and reading by structure + delegated attention shipped as the `ordered` organizer → [forums.md](../../subsystems/forums.md) § The argument organizer (cut here 2026-09-19). Still open:*
 
-- **No ranking to game.** Organization comes from the argument's own shape,
-  which is *authored*, not *voted* — so there's no popularity signal to
-  capture. The failure mode shifts from "exploit the ranking" to "make
-  bad-faith arguments," which is a **moderation/judiciary** problem (the
-  constabulary, appeals) your governance already handles — a far better
-  failure mode.
 - **Version-controlled proposals.** The bill is a document; amendment =
   branch / edit / merge (git-like); the body converges on a version, every
   change in the archive (law is versioned like code).
@@ -1378,12 +1003,6 @@ coherent order — you can't sample your way through reasoning. Properties:
   objections are answered, novelty dries up) → moves to the vote, with an
   anti-railroad minimum period (you can't close into a vacuum — the
   constructive-no-confidence instinct).
-- **Reading at scale is by structure + your delegation graph**, not a global
-  ranking: you navigate the argument tree, and personalized triage comes from
-  **delegated attention** (what the people you trust on this topic flagged —
-  per-person, revocable, not a capturable global number). **Dissent is
-  preserved by construction** — an objection is a *node in the map*, not a
-  downvoted post that disappears.
 
 ### Caucuses — slice deliberation & the bill lifecycle
 
@@ -1413,21 +1032,7 @@ Constituency power lives in *the vote* (each house decides) and *coordination*
 (caucuses), not in gatekeeping origination — cleaner and harder to abuse than
 an originating-house veto.
 
-**And bills don't live forever.** Because the vote is continuous conviction
-*allocation* (not a discrete vote-day), a bill on the floor is a *standing*
-question that **accumulates** weight — so it needs a death, or the floor fills
-with zombies. A bill is **tabled** by a minimal **sponsoring allocation** (no
-sponsor, no floor — the cost of tabling is the anti-spam gate); it **lives**
-while its support holds above a **survival floor**, and **lapses** when support
-decays below it (abandonment — mostly automatic, since conviction weight decays
-the moment people move on) or when it hits a hard **maximum lifespan** without
-carrying. To keep a still-building bill alive past the maximum, its backers pass
-a **continuing resolution** — a deliberate renewal that must carry its own
-sustained support — so the only bills that persist are ones people are actively
-willing to re-commit to. Lengths are tuning constants; the constitution fixes
-the *shape* — finite life, survival floor, renew-to-extend — in Art. IV §4.
-(Whether a *passed law* also sunsets-and-renews is a separate, looser question,
-left to legislation per statute.)
+*The bill lifecycle (sponsoring allocation · survival floor · maximum lifespan · continuing resolution) was Art. IV §4 and is superseded under no-pool by [legal-code-slate § The passage rule](./legal-code-slate.md) — bills lapse by time, not starvation; sponsorship gates on eligibility, not allocation. Cut here 2026-09-19.*
 
 ### Synchronous deliberation — the serial floor returns
 
@@ -1477,54 +1082,21 @@ move) — so sync deliberation doubles as a retention mechanism, drawing people
 
 ### The load-bearing principle: ungameable organization
 
-Why argument-structure and not a clever ranking: **in a gamified polity, any
-outcome-affecting user-signal ranking collapses to popularity/exploit over
-time** (people reverse-engineer it; the meta finds the dominant strategy).
-So **load-bearing organization must be ungameable** — *structural* (the
-argument's shape) or *chronological* — and every gameable user signal is
-confined to a **bounded** role (the vote, guarded by weight + conviction +
-quorum) or a **merely-advisory** one (polling). This is *count things, don't
-price things* applied to comms: the agree/disagree tally is a legitimate
-signal; what's banned is letting a vote-*count* masquerade as the
-authoritative *verdict* on what's true or worth reading (the price-oracle,
-in a comms costume).
+*Cut 2026-09-19 — the principle graduated verbatim → [forums.md](../../subsystems/forums.md) § The argument organizer; “no number is an authority” is Art. I §4 of the [draft constitution](../../governance/draft-constitution.md).*
 
 ### Deliberate as equals, vote by weight
 
-Across all of it: contribution and argument are **egalitarian** (everyone
-participates one-person-one-voice — where the free-expression right lives);
-influence-**weighting** enters only at the separate *vote.* Speech equal,
-decision weighted — mirroring the judiciary-egalitarian /
-legislature-weighted split.
+*Cut 2026-09-19 — Art. III §5 of the [draft constitution](../../governance/draft-constitution.md); the argument organizer is reputation-blind and the conviction tally is standing-weighted ([forums.md](../../subsystems/forums.md), [influence.md](../../subsystems/influence.md)).*
 
 ### Reputation intersects the edges, never the structure
 
-Renown / notoriety / alignment (the [reputation](./reputation-slate.md)
-system) must not *organize* deliberation or *weight* arguments — that would
-rebuild the appeal-to-authority fallacy plus a gameable rank (farm renown →
-dominate). The argument-map stays **reputation-blind**: arguments on their
-merits, not their author's fame. But reputation intersects *safely* at the
-edges:
+*Cut 2026-09-19 — Art. III §6 of the [draft constitution](../../governance/draft-constitution.md) (“reputation → bounded weight, never → authority”); the attention edge shipped as the circle highlight ([forums.md](../../subsystems/forums.md) § Delegated attention), the vote edge as `engagement × renown` ([participation.md](../../subsystems/participation.md)). Still open:*
 
-- **Attention** — renown routes *whom you read* (opt-in, per-circle,
-  domain-relevant), never an argument's place in the map.
-- **The vote** — reputation already weights it *via the consumer chamber*
-  (engaged consumption = engagement × regard), so reputation meets governance
-  at the *vote*, not in deliberation (the deliberate-as-equals /
-  vote-by-weight split).
 - **Moderation** — notoriety informs *scrutiny* of a known bad actor, never
   an auto-discount of the argument (ad hominem stays a fallacy).
 - **Alignment** is affiliation, so it intersects **parties & delegation** (who
   you coalition with), not argument-weight; filtering arguments by alignment
   is echo-chamber capture, refused.
-
-The principle that orders all of it: **the safe arrow is conduct →
-reputation, not reputation → authority.** Your governance conduct (arguments,
-votes, moderation — all archived) *feeds back into* your renown/notoriety:
-good-faith deliberation earns regard, bad-faith earns notoriety. Reputation
-is the *consequence* of political conduct (accountability — and anti-gaming:
-you can't farm renown to dominate deliberation, but conducting yourself well
-*earns* it), never an *input* to deliberative weight (capture).
 
 ### The cross-slate seam
 
@@ -1542,91 +1114,15 @@ providing only the *social* layer around it.
 
 ## Branches & separation of powers
 
-The executive is where the "we're running a community, not just shipping
-software" truth bites. The clean reference isn't a corporation — *there's
-a reason we elect prime ministers, not CEOs.* A CEO's authority comes
-from **ownership** (the board represents capital); a government's comes
-from **the consent of the governed**, bounded by **law and rights.** So
-the model is a **parliamentary executive sitting on a civil service of
-chartered institutions** — the three branches (legislative, executive,
-judicial) over a **tamper-evident record** whose integrity is guaranteed by
-construction, not by a separate operator (see *The record* below) — all
-staffed from one player pool. Two corrections to the corporate sketch
-carry the weight:
-
-- **Prime minister, not CEO.** The executive is already parliamentary —
-  "appointed by, and serving at the pleasure of, the legislature" *is*
-  "commands the confidence of parliament." Keep that wiring; drop the
-  owner-and-command connotations. The executive is a *temporary servant
-  of the governed*, justifiable to them and removable by them. (That the
-  legislature-as-board answers to three constituencies, not shareholders,
-  is itself a real if uncommon form — co-determination and
-  multi-stakeholder co-op boards are the prior art.)
-- **Institutions, not hierarchies.** The executive isn't one chief with
-  an org-chart beneath; it's a set of durable, chartered, rule-bound
-  bodies (below).
+*Cut 2026-09-19 — Art. V §§1, 4 of the [draft constitution](../../governance/draft-constitution.md) (a Prime Minister holding confidence; a civil service of chartered institutions, not hierarchies).*
 
 ### The executive — a government, not a management
 
-What to spend the reserve or budget *on* is a **legislative** function;
-*executing the transaction* is an **executive** one — hence a distinct
-branch. Its constitutional core: **the executive executes only what the
-legislature authorized.** It can move the reserve; it cannot decide
-*whether* to. The legislature **oversees but does not manage** — it sets
-policy and holds the executive to account; it does not do the executing.
-Being an **office**, the executive is the natural home for **term limits**
-*if the polity adopts them* (the temporal cap the directly-exercised
-influence resource doesn't take) — **available, not required out of the
-gate.** Confidence is the standing accountability either way; a term limit is
-an optional anti-entrenchment cap the legislature can add by law (Westminster,
-notably, has no PM term limit).
+*Cut 2026-09-19 — Art. V §§2–3 of the [draft constitution](../../governance/draft-constitution.md) (executes only what the legislature authorized; a term limit is available, not required).*
 
 ### How the prime minister is chosen
 
-A PM isn't chosen directly — that would be a **president**, carrying an
-independent mandate that fights the legislature and re-creates a rival
-strongman. The executive here *executes the legislature's will, bound*,
-so the parliamentary form fits: the PM holds office by **commanding the
-confidence of the legislature** and serves only as long as that
-confidence holds.
-
-- **Confidence = a majority of chambers.** The PM is whoever 2 of 3
-  chambers will currently back — confidence is the standing, always-on
-  form of the ordinary passage rule. A property falls out for free: to
-  hold two of three chambers the PM must **bridge at least two of the
-  three constituencies** (producers / funders / consumers), so the
-  executive can't be captured by money, makers, or players alone —
-  anti-capture by construction.
-- **Install by investiture** — a bill (majority of chambers) names the
-  PM: a clean, certified moment, not a vibe.
-- **Retain by continuous confidence** — the native upgrade: confidence is
-  *live* (full-duplex), recomputed continuously, not a periodic vote.
-- **Remove by constructive no-confidence** — the stability guard: you
-  can't topple the PM into a *vacuum*; a majority of chambers must
-  *simultaneously name a successor* (Germany's trick). That + a short
-  cooldown stops the live signal from thrashing the government.
-- **Tenure** — removable anytime (confidence is the standing accountability);
-  a **term limit** *may* additionally cap it (anti-entrenchment), but is
-  **available, not baked in** out of the gate.
-
-**Legitimacy is the PM's; competence is the institutions'.** The PM is a
-*political* office (commands confidence, sets direction, accountable);
-they *appoint* the competence-staffed institutions below that actually do
-the work. The PM doesn't personally sysadmin — the PM is who the
-legislature trusts to *direct* those who do.
-
-**The integrity branch certifies the count.** Where Westminster's monarch
-ceremonially "invites" whoever can command confidence, the
-archives/integrity branch attests *who currently commands
-majority-of-chambers confidence* — drawn from the tamper-evident record,
-certified by the one body with no political power, so no branch
-adjudicates its own claim to the office.
-
-During design the founder is PM trivially (sole Producer + 51% Capital =
-2 of 3) and holds it only while still commanding 2-of-3 confidence — note
-that 51% of *one* chamber doesn't secure it, a majority of *chambers*
-does, so even the PM-ship rides the honest 2-of-3 structure, not a
-personal clause.
+*Cut 2026-09-19 — Art. V §§1–2 (confidence = majority of chambers, investiture, constructive no-confidence, optional term limit), Art. VII §2 (the confidence count is universally verifiable) of the [draft constitution](../../governance/draft-constitution.md); the founder as default holder shipped → [governance.md](../../subsystems/governance.md) § The founder default. The cooldown is open (*Open problems*).*
 
 ### Confidence, expressed in the shipped substrate (2026-07-31)
 
@@ -1781,28 +1277,7 @@ toothbrush, the fitness band, the study tracker) — the executive could come
 to hold **real-world** behavioral data. That is real power; the three-branch
 + code-first design is what keeps it from the nightmare:
 
-- **Legislature → requirements.** The democratized body sets *what* the rule
-  is and the intent it serves — in plain **requirements, not code** (you need
-  no programming to make law, or only coders could rule). It may additionally
-  pin specific **invariants** it wants guaranteed (and may supply code for
-  those).
-- **Executive → implementation.** Programming the machine to enforce the
-  requirements is specialized work, hence an executive function. Code-first
-  enforcement is the executive *running* that implementation — uniformly and
-  automatically.
-- **Judiciary → verification + spirit.** The **verification** face checks the
-  implementation conforms to the legislated requirements — so the executive
-  can't subvert intent through implementation or smuggle in a loophole — and
-  the **spirit** face checks it serves the purpose. Code applies; humans
-  review.
-- **Human enforcement** is the **bounded exception** — only the judgment
-  cases code can't decide (harassment? good faith?), and even then recorded,
-  recusal-gated, reviewable. In a surveillance state discretion is the
-  default; here code is the default and human discretion the narrow, watched
-  exception.
-- **The archive** records every enforcement act; **separation of powers**
-  splits the chain (sense → rule → implement → enforce → judge) so no single
-  actor owns it.
+*(The five-way split — legislature → requirements · executive → implementation · judiciary → verification + spirit · human enforcement bounded · the archive — is Art. IV §5, Art. V §§6–7, Art. VI §2, Art. VII of the [draft constitution](../../governance/draft-constitution.md); cut here 2026-09-19.)*
 
 The thesis under it: **this is a blueprint for *legitimate* surveillance** —
 enormous sensing, but the rules **democratic**, the application **mechanical
@@ -1816,20 +1291,7 @@ legitimate rather than nightmarish.
 
 ### The judiciary — verification and spirit
 
-The third branch answers a single question — **does this conform to the
-law?** — and the law has a *letter* and a *spirit*, which need two
-different competences:
-
-- **Verification (the letter)** — *does it work and match the spec?*
-  Reading code, but also testing, reproducing, reading the data. Guards
-  that an implementation is correct and does what it claims.
-- **Spirit-judgment (the intent)** — *does it do the right thing?* A
-  change can be provably correct and still betray what the legislature
-  *meant* — "technically compliant" is the malicious-compliance move.
-  This is the *product* call, and it's the same judgment whether the
-  object is a **code change** (does it serve the purpose?) or a **human
-  dispute** (appeals): "intent" and "appeals" are one competence pointed
-  at different defendants.
+*(The two competences — verification of the letter, spirit-judgment of the intent — are Art. VI §2 of the [draft constitution](../../governance/draft-constitution.md); cut here 2026-09-19.)*
 
 The two are a **dual-key greenlight**: verification can't ship a correct
 thing that violates the spirit; spirit can't ship a well-meaning thing
@@ -1844,50 +1306,12 @@ verification, captured in the archive.
 
 ### One process, two knobs — the streamer is the pool of one
 
-There is **one judicial process at every scale** — not fiat below and
-machinery above, bridged by a leap. The process is the async case: a matter
-is filed with its argument, a verdict comes back by a deadline (the *Trials*
-section below). What a streamer **already does** — hearing a ban appeal
-filed through a form, weighing the argument, deciding — *is this process*,
-with two knobs turned all the way down:
-
-- **the jury pool** — *who judges.* At the floor it's a **pool of one** (the
-  operator); at the republic it's a **sortition of equals** (the staffing
-  below). The whole "How the judiciary is staffed" section is the
-  *sortition setting* of this one knob, not a separate institution.
-- **bindingness** — *whether the verdict is final.* At the floor the operator
-  may **override** their own verdict; at the republic they are **bound** by
-  it.
-
-This is the integration, and it's deliberate: **we impose no new procedure on
-a community that already hears appeals.** The autocratic streamer isn't
-*outside* the judiciary — they are the judiciary at pool-of-one, overridable.
-**Due process** (the right, switched on with the republic) is then not "start
-using a process you lacked" but simply *widen the pool to a sortition of
-equals and remove the override.* Code review is the same case with the
-verification face pointed at a change; a ban appeal the same case with the
-spirit face pointed at a person.
+*Cut 2026-09-19 — Art. VI §§1, 3, 5 of the [draft constitution](../../governance/draft-constitution.md) (one async process at every scale; the jury pool and bindingness are the only knobs; due process widens the pool and removes the override).*
 
 ### How the judiciary is staffed
 
-Start from the principle that orders everything else: **the judiciary is
-the polity's *egalitarian* branch.** The legislature is
-influence-weighted — more contribution, more say; justice must be
-*equal*, or the cross-branch membrane fails and a funder whale buys a
-friendly court. So the inverting rule: **influence buys nothing here.**
-The two competences then staff differently:
+*(The egalitarian branch — influence buys nothing; spirit-judgment by flat sortition past a tenure threshold, judging intent from the archived record — is Art. VI §4 + Art. XIII of the [draft constitution](../../governance/draft-constitution.md); cut here 2026-09-19. The verification pool's track-record mechanism, below, is design the constitution abstracts.)*
 
-- **Spirit-judgment → sortition: a jury of equals.** Draw a panel **by
-  lot** from the membership (intent reviews and appeals alike). Impartial
-  by construction — no campaigning, nothing to lobby or pack, no faction
-  in a body re-drawn each case. The pool is **flat**: eligibility is a
-  *threshold* (a real member past a minimum tenure — also the Sybil
-  floor), never a *weight*; one-member-one-lot, the whale and the
-  newcomer equally drawable. This is the chamber where the polity is a
-  pure democracy of equals. Panels are **per-case** (no standing bench to
-  capture) and judge intent from the **archived legislative history** —
-  the recorded *why* of a law — not by asking the sitting legislature,
-  which would let a transient majority reinterpret intent at will.
 - **Verification → sortition *within the qualified*.** You can't draw a
   random citizen to vet a kernel change, so draw verification panels by
   lot from a *qualified* pool. Pool membership must dodge two traps:
@@ -1902,11 +1326,6 @@ The two competences then staff differently:
   and refreshes with it**, so the body is the *currently-active*
   competent, never an entrenched priesthood (the wizard-clique failure).
 
-**The integrity branch runs the draws** — verifiable random selection,
-maintains the qualified pool computed from the record, certifies each
-panel: the same neutral-attestation role it plays for PM confidence,
-keeping selection provably honest and out of political hands.
-
 **Watching the watchmen.** Per-case panels and the decaying competence
 pool block entrenchment; the backstops are the **legislature amending the
 law** (checking the court *forward* — changing the standard, never
@@ -1918,107 +1337,11 @@ fills — the same population ladder as the rest of separation of powers.
 
 ### Trials — async-first, sync-optional
 
-A trial (the appeals/spirit face adjudicating a dispute) is **not a new
-capability — it reuses the deliberation substrate + judicial apparatus.** And
-like deliberation, it's **async-first, sync-optional**: a scheduled "court
-date" needing the parties + a random jury all present at one moment is
-exactly the synchronous-assembly friction the medium dissolves — and a recipe
-for no-shows in a game. So the default trial is **async**, reusing the
-**argument-map** substrate (not the live hearing):
-
-- **the parties file their case** as a structured adversarial argument over a
-  *window* — claims / objections / rebuttals (cross-examination becomes
-  *rebuttal rounds*) + **evidence from the archive**;
-- **the sortition jury reviews async** — jurors read the case at their own
-  pace and submit their verdict-vote by a *deadline*;
-- **no simultaneous presence required.**
-
-**Time-boxes replace the court date, and a no-show has a defined consequence,
-not a stall:**
-
-- **party no-show** → the trial proceeds on the available record (default
-  judgment, in absentia) — you gave a *window*, not a moment;
-- **juror no-show** → handled by **over-drawing the jury** (draw N + buffer;
-  verdict by those who vote within the window, against a quorum).
-
-That second point is load-bearing beyond convenience: **async is what makes
-sortition juries viable at all.** Random jury duty + *synchronous* attendance
-= no-shows and failure; random jury duty + *async* review (read when you can,
-vote by the deadline, over-drawn for buffer) is the only version that works
-for a game population. Async isn't bolted on — it keeps the egalitarian-jury
-design from collapsing on contact with real availability.
-
-What makes it a *trial* (not just async deliberation), unchanged: **it
-decides** — a **verdict** by the egalitarian sortition jury
-(one-juror-one-voice, per-case, **(identity, matter)**-recusal-gated; a third
-decision mechanism, distinct from deliberation-doesn't-decide and the
-legislature's weighted ballot); **fixed adversarial roles** (the **parties**
-with standing, the jury, a presiding facilitator); **evidence is the
-archive**; a **backward-looking standard** (*did this conform* —
-adjudication, not *what should the rule be*).
-
-**Sync earns its place as an option, not the default.** Async loses live
-*cross-examination* (rapid back-and-forth) and *spectacle* (a public trial as
-an event) — so for a high-stakes, hotly-contested case the parties may *opt
-into* a sync hearing (the floor-managed adversarial debate of *Synchronous
-deliberation*), and a notable trial can be staged live (the engagement
-bonus). The natural shape is a **hybrid**: async filing → an *optional* sync
-hearing for live cross-ex → async jury deliberation + verdict.
-
-So the deliberation principle governs trials too: **async is the respectful,
-scalable default; sync is the optional live enhancement** (engagement-optional
-/ respect-time + the population ladder, applied to the judiciary — a tiny
-community can hold a live hearing among the handful around; at scale the
-trial is async-with-a-deadline). (Scoping: this is the **appeals/spirit**
-face; the **verification/QA** face is a *review* — author + competence panel,
-conform-to-spec — not adversarial-with-a-jury, so the trial shape doesn't
-apply there.)
+*Cut 2026-09-19 — Art. VI §1 of the [draft constitution](../../governance/draft-constitution.md) (async case, verdict by deadline, no-show → judgment on the record, live hearing optional) + the Schedule (`judiciary.overdraw_factor`, `filing_window`, `verdict_deadline`).*
 
 ### Abatement — taking live content offline
 
-Putting content online is well-covered (the dual-key greenlight). **Taking it
-*offline* — someone else's live, greenlit work, because the polity later judges
-it bad — is the part we'd glossed, and it is not the greenlight's mirror.**
-Putting-online is *additive* and cheap to refuse (you just don't get the new
-thing); taking-offline is *subtractive* and dear (the producer loses live work
-and the influence it's earning; the community loses something it was using). The
-governing asymmetry: **deprivation demands more process than denial** — the
-oldest rule in procedural fairness, that taking what you *have* is graver than
-denying what you *want*. So abatement **inverts** the greenlight rather than
-copying it:
-
-- **Live content holds a presumption** it earned by passing review *and* by
-  being used — so the burden flips onto the **challenger** to show it fails a
-  standard (the greenlight put the burden on the submitter).
-- The remedy is a **cure order, not a guillotine.** A fault-based takedown runs
-  as a **case** — the same two faces asking whether the content still *verifies*
-  (broken? exploited? rotted?) and still serves the *spirit* (harmful?
-  malicious-compliance that degraded?) — and ends in **fix-it-or-lose-it**: the
-  producer is told the specific defect and given a **remediation window**
-  (`abatement.cure_window`); the area goes **dark** (code-first enforcement)
-  only if uncured. The cure window is the humane core — the structural form of
-  "this is shittier, so handle it with care."
-
-**Fault vs. taste — the line that keeps this from becoming a weapon:**
-
-- **Fault** (broken / harmful / exploitative): **judicial abatement**, requires
-  a *named standard it violates*, a cure order, and — because the standing was
-  ill-gotten — a **clawback** of the influence that content farmed (it was never
-  legitimately earned; the instrumentation knows how much it added, so it can be
-  un-credited).
-- **No-fault** (obsolete / tastes moved on / superseded): **legislative
-  deprecation** — an ordinary sunset, no producer in the dock, no punishment;
-  the earned influence simply **decays naturally** (the faucet stops), never
-  clawed back.
-
-Content is **never pulled for mere unpopularity** — that would put its very
-existence under the popularity rule we've banned everywhere else. Unpopular but
-conforming → the hard, deliberate legislative path; broken or harmful → the
-fault path with its cure. **The grounds determine the consequence: clawback on
-fault, natural decay on no-fault.** Like the rest of the judiciary it **scales**
-(one process, two knobs): below the republic the operator darkens content at
-will (their instance, their call); the cure-order-and-burden-flip machinery is
-the *republic* setting, switched on with due process.
+*(Abatement — the presumption for live content, burden on the challenger, the cure order + `abatement.cure_window`, fault → clawback vs no-fault → natural decay, never for unpopularity — is Art. VI §7 of the [draft constitution](../../governance/draft-constitution.md); cut here 2026-09-19.)*
 
 **Open work:**
 
@@ -2208,15 +1531,7 @@ into* real separation as the pool fills.
 
 ### The cross-branch membrane
 
-The non-fungibility rule that keeps the three *influence types* apart
-rises one level to keep the three *branches* apart: **legislative
-influence must not buy executive or judicial office** — else a funder
-whale simply purchases the court that reviews him. So the branches staff
-by **deliberately different mechanisms**: legislative seats are
-influence-weighted; the executive is *appointed by the board*; the
-judiciary is *sortition + a competence panel.* You cannot convert
-standing in one branch into power in another. The same membrane as
-stake-is-not-stock, one storey up.
+*Cut 2026-09-19 — Art. III §2 of the [draft constitution](../../governance/draft-constitution.md) (no kind of influence converts into another, nor into office in any branch).*
 
 ### The root-power floor
 
@@ -2234,92 +1549,7 @@ primitive as the thesis.)
 
 ### The record — integrity by construction, not by org-chart
 
-In a digital polity **the record *is* reality.** A state that loses its
-archives reconstructs truth from a thousand external sources; a digital
-polity has *no ground truth outside its own logs.* So archive integrity is
-**existential** here — the floor under the floor, because the
-**perfect-memory affordance** the whole design leans on (per-matter recusal,
-judicial review, the transparency floor) is only real if the memory is
-incorruptible.
-
-Here's the honest part, correcting a tempting overclaim: **the archive is
-*not* an independent fourth branch with its own operators.** *Operating* it —
-running the logging, holding the backups — is a *doing*, so it's an
-**executive function** (whoever has root touches the logs). You can't
-constitutionally hand a separate body enforceable operational control over
-infrastructure the executive runs; that's the **DOJ-norm trap** —
-independence by *promise*, unenforceable. So the independence isn't
-**organizational**, it's **cryptographic and epistemic**:
-
-- the record is **tamper-evident by construction** (below), so the executive
-  *operates* it but **cannot falsify it undetectably**;
-- every integrity output — the record, the verifiable draws, the vote and
-  confidence counts, the canonical text — is **universally re-derivable**, so
-  **who runs it is irrelevant to trust**: nobody need be trusted, because
-  everyone can check. *That* is the independence — **verifiability, not a
-  separate operator.**
-
-So the enforceable invariant (what the constitution actually grants) is the
-**property + a universal audit right + judicial voiding**: the record *must
-be* tamper-evident, anchored, replicated, and verifiable; every member may
-verify; and the judiciary voids any act resting on a falsified or unverifiable
-record (a non-compliant archive is itself a justiciable violation). Not "a
-neutral body we trust," but "a function that is true or detectably-false
-regardless of operator."
-
-The native upgrade replaces *trusting the archivist* with
-**tamper-evidence by construction**:
-
-- **append-only, hash-chained entries** — each commits to the prior, so
-  any retroactive edit snaps the chain and is *detectable*;
-- **signed actions** — every entry signed by the actor's key; authorship
-  can't be forged or repudiated;
-- **replication + external anchoring** — copies held by many parties
-  (even player clients; even forks carry the history), and the chain's
-  root hash periodically published *outside the operator's control*, so
-  even root can't rewrite the past without contradicting an outside
-  witness.
-
-The archivist's job shifts from *"be a trusted neutral"* to *"operate the
-tamper-evident substrate and raise the alarm when the chain breaks."* Be
-honest about the limit: tamper-*evident* is not tamper-*proof* — root can
-still delete or refuse to record, but with hash-chaining + anchoring +
-replication that is **detectable, not silent.** Same move as the
-root-power floor: you don't make the coup impossible, you make it
-*visible* — and the cryptographic archive is exactly **what makes the
-transparency floor hold against a root-holder** (without it, root tampers
-silently and "transparency" is a lie). Two further properties:
-
-- **Maximal automation** — recording is mechanical (logged by
-  construction), minimizing the human discretion there is to capture; the
-  institution is the oversight that audits integrity and sounds the
-  alarm, not a clerk choosing what to write down.
-- **Private but provably-unaltered** — commitment schemes prove a sealed
-  record *exists and is unaltered* via its hash *without revealing its
-  contents*, so integrity holds even on records that can't be public
-  (sealed disputes, secret ballots); declassification/retention is then a
-  legislative matter, integrity stays the archive's.
-
-The historical resonance is the admin-abuse case: every MUD's admin
-controlled the logs, so abuse was *deniable* — dupes erased, grants
-scrubbed, "what database edit?" Tamper-evidence + independence is the
-fix: the admin can still *act*, but can no longer make it *unprovable.*
-
-> **Build-level design → [record-integrity-slate](./record-integrity-slate.md)
-> (2026-07-31).** The guarantee above is specified and entrenched, and
-> **implemented nowhere** — every ledger is append-only *by
-> convention.* Four findings from that pass are worth carrying here:
-> **(1) a hash chain the operator can recompute is theater** — anchoring
-> is the load-bearing part, not chaining; **(2) anchoring defeats
-> revision, but only *member self-audit* defeats fabrication** — and
-> **dormant accounts being off the roll is what forces a forger onto
-> accounts with humans watching them** (a third consumer for the
-> disenfranchisement amendment); **(3) the acid test is *if the
-> verification runs on our box, it isn't verification*** — so the
-> integrity branch's attestations are **conveniences, never
-> authorities**; and **(4) tamper-evidence guarantees the record, never
-> the law** — a bad rule honestly executed and faithfully recorded is a
-> *political* failure, and the two get conflated constantly.
+*Cut 2026-09-19 — Art. VII of the [draft constitution](../../governance/draft-constitution.md) (operated by the executive, integrity independent of its operator by construction; universally verifiable; no act rests on a falsified record; detectable, not impossible); the build-level design and the four 2026-07-31 findings are [record-integrity-slate](./record-integrity-slate.md) (UNBUILT — every ledger is append-only by convention).*
 
 ---
 
@@ -2331,50 +1561,15 @@ fix: the admin can still *act*, but can no longer make it *unprovable.*
 > the AGPL-core-plus-composition-exception license regime. That doc deepens both this
 > economy section and § *How territory is held*.
 
-The real operating budget and the in-world reserve get lumped together as
-"money," but they're **different universes, not two treasuries**: one is
-*business finance*, the other a *game mechanic.* They're so distinct
-they're barely worth mentioning together — except to name the **membrane**
-that forbids bridging them, which is the one thing they have to do with
-each other.
+*(Two concerns, one firewall — Art. VIII §1 of the [draft constitution](../../governance/draft-constitution.md); cut here 2026-09-19.)*
 
 ### The budget — real dollars
 
-Real donation income pays real costs (hosting, infrastructure), then —
-once there's surplus — a **wage for real work** (the producers who build the
-world and the operating staff who run it), then whatever the legislature
-appropriates. **So the first question a prospective adopter actually asks —
-*can I contribute real work and still get paid?* — has a plain answer: yes.**
-Paying labor in cash is legitimate, and it *strengthens* the stake-isn't-stock
-wall: once work is paid in money, stake genuinely needn't be. The line the
-firewall draws is **direction, not payment**: money flowing *outward* as wages
-for work done is fine; money flowing *backward* to a contributor as a return on
-what they *donated* is the investment the lawyer-free structure forbids. The
-bedrock rule, written before there's a surplus to fight over:
-
-> Surplus may fund reserves, infrastructure, new features, the
-> producer's salary, or be given away. It may **never** be distributed
-> back to backers in proportion to their contribution.
-
-Money flows *outward* — to costs, to labor, to the world. The instant it
-can flow *back* to a contributor as a function of what they put in, the
-donation becomes an investment with an expected return and the whole
-lawyer-free structure collapses. (Honest operational note, not a legal
-one: the day real dollars pay a salary, that pool is taxable income with
-a bookkeeping reality — an *accountant's* concern, not a lawyer's, but
-real from day one.)
+*Cut 2026-09-19 — Art. VIII §§1–2 of the [draft constitution](../../governance/draft-constitution.md) (operating funds vs the in-world economy never convert; surplus may pay wages and costs, never a return to backers). The bookkeeping/tax note is in *Open problems*.*
 
 ### The reserve — a game mechanic
 
-The in-world reserve is **not a treasury sibling of the budget** — it's a
-*game system*, governed in-world monetary policy (its central-bank
-mechanics and the economy bootstrap are in *Bootstrapping the economy*
-below). The membrane: **real money and in-world value never convert** — in
-both directions (the bidirectional seal is detailed under *Pay-to-win*:
-stake-is-not-stock outbound, no-pay-to-win inbound). The legislature
-governs *both* the real budget and the reserve, but as **unrelated
-portfolios** — a studio's payroll and a game's economy-patch — never a
-shared balance.
+*Cut 2026-09-19 — Art. VIII §§1, 3 of the [draft constitution](../../governance/draft-constitution.md) (the in-world economy is ordinary law under the firewall; two portfolios, never a shared balance).*
 
 ---
 
@@ -2409,23 +1604,7 @@ Two disciplines keep it honest:
   banking as ongoing governance against the live game, not devs patching
   numbers.
 
-**The in-world fiscal cycle is code-executed end to end.** Beyond mint/drain,
-the legislature may **tax** in-world activity (the sink with a revenue face) and
-**appropriate** in-world coin to a budget — and because collection *and*
-disbursement run through the reserve, the whole cycle (tax → budget →
-appropriate → disburse) is **mechanical**: executed by code, archived,
-reviewable. This is the firewall's other half. The **real-dollar operating
-budget** (the *budget* above) is governed by the same legislature but is **real
-money** — owed to real creditors under real law. Its execution *can* be modeled
-and automated too: model accounts-payable as world objects, wire real payment
-rails, and the in-world creditor and the real one **collapse into one
-high-fidelity actor** — the fiction stops being fiction (the project's own
-thesis, pointed at its own books). So the line between the budgets was never
-*code vs. not-code* — both can be coded. It is **denomination + the firewall +
-the failure mode**: in-world coin you can crash the *economy* with; real money
-you can turn off the *lights* with; and what stays human in both is the
-*administration* — the judgment to pay — never the rails. (Constitution
-Art. VIII; the human boundary, Art. V §9.)
+*(The code-executed fiscal cycle — tax → budget → appropriate → disburse — and the real-budget contrast are Art. VIII §4 + Art. V §9 of the [draft constitution](../../governance/draft-constitution.md); cut here 2026-09-19. Shipped today: a demo sales tax that accumulates in a placeholder treasury with **no appropriation path** — `BankingApi.remitDemoTax`, [banking.md](../../subsystems/banking.md).)*
 
 ### Genesis: capital earned the way influence is
 
@@ -2508,85 +1687,11 @@ which answers *to what accounts*:
 
 ### Institutions are private actors, not a tier of government
 
-A guild, a company, a locality-as-development is **a private institution
-inside the one polity — not a sub-government.** This is the institutional
-model, not a federal one: a single sovereign (the cooperative), with
-everything else a voluntary association operating *under* its law. The
-distinction is sovereignty vs. autonomy — a federal sub-unit would hold a
-*slice of governmental power* (its own jurisdiction, citizenship tier,
-representation upward, conflict-of-law); a private institution holds only
-**autonomy under the one sovereign** (its own members, treasury, property,
-and internal bylaws — never a franchise).
-
-The substrate already encodes this. **Influence individuates** (only
-persons vote; no group holds a vote) is exactly "an institution has a
-board and assets but no franchise." The **treasuries** above are
-institutional assets — poolable, fungible, politically inert. The **zone /
-access** stack (`ownerGroup` / `accessGroups`) is *property rights
-enforced by the one polity* — "no X in my tavern" is house rules, not a
-local ordinance. And **"how the chamber wields it is its own bylaw"** is
-private internal governance.
-
-Two consequences, both small and neither structural:
-
-- **The private↔public power boundary is *legislation*, not a
-  constitutional tier.** A guild that comes to own half the map is the
-  civil-society problem (private power rivalling the state); the remedy is
-  ordinary law from the one legislature (the antitrust analogue), not a
-  new layer of government.
-- **Internal institutional governance, if wanted, is a *library*.** The
-  cooperative's own influence / delegation / voting primitives can be
-  instantiated *privately* by any institution that wants to run its own
-  votes — making the polity the **reference institution** and largest
-  tenant of a reusable governance kit, never a federal head. (This is what
-  the earlier "cooperative as the federal layer" framing was reaching for,
-  corrected.)
+*Cut 2026-09-19 — the premise is doctrine in [civics.md](../../subsystems/civics.md) (the Compact is singular; the fiction's governments are content, never a tier of it) and the resource cluster is [polity-decision-register](../../polity-decision-register.md) Tier 1; “influence individuates” shipped (standing keys on the person's identity path — [influence.md](../../subsystems/influence.md)); the library point is [amendment-library-slate](./amendment-library-slate.md).*
 
 ### How territory is held — the tenure floor (federal-by-construction)
 
-The section above rejected a **territorial executive** — a "Department of
-Narnia," the executive organizing itself around *places* instead of
-*functions*. That rejection stands: executive institutions are functional
-(publishing, enforcement, provisioning), system-wide, and reach into any
-subdivision only through those charters. But it left a real question
-dangling — *how **is** a territory held, if not by a government tier?* —
-and "its owner-group has write-access" hand-waves it, because access is
-**never exclusive** (oversight reaches everywhere).
-
-The answer is **property, not politics** (the anthropology of resource
-access, not a political franchise): a territory is **held**, not
-*governed*. A holder's authority is a **protected bundle of resource-
-rights** — author, admit/exclude, set house-rules, develop, earn the
-producer-credit, transfer, and a guaranteed share of the one real scarcity
-(compute) — and it is real not because access is exclusive but because the
-bundle **binds even the executive**: the executive may oversee, but may not
-seize or override those rights except by *due process / published
-standards / legislated reason*. **Authority is the protection, not the
-exclusivity.** Raw access with no protection is revocable permission — no
-authority at all; access plus rights-that-bind-the-executive is the real
-thing. (Just as fee-simple title was never absolute — eminent domain,
-police power, code enforcement — yet is still *yours*.)
-
-Which forces a correction to the bright line above: "autonomy vs.
-sovereignty" is not a clean binary but a **dial with a kernel floor.** A
-*non-empty, due-process-protected* core of holder authority is
-**kernel** — guaranteed in every instance — so the holder layer **is
-federal-by-construction**; *how far above that floor* the dial sits (how
-much authority, how hard to revoke) is a **module** — centralized-by-
-degree. What stays rejected is the *territorial executive*; what is now
-kernel is the *protected holder-floor*. (The floor is chosen kernel for
-**uniformity**: a common floor is the interop protocol for a future
-inter-instance — "UN" — federation; you cannot federate instances that
-don't share a basic structure. That upper layer is parked, not designed —
-see [polity-decision-register](../../polity-decision-register.md) Tier 3.)
-
-The mechanics of the holding — the two scarcities (non-rival content vs.
-the rival compute substrate), use-metered compute, the homestead / charter
-/ commons tenure regimes — are **resource-physics**, owned by the
-[economy slate](./economy-slate.md) § *The two scarcities* and packaged as
-the tenure module in the
-[amendment library](./amendment-library-slate.md); the kernel/module split
-is recorded in the register's Tier 1 *Resource & territory* cluster.
+*Cut 2026-09-19 — [polity-decision-register](../../polity-decision-register.md) Tier 1 § Resource & territory carries the tenure floor verbatim (authority is the protection, not exclusivity; the executive is functional, never territorial; a kernel floor, a module dial; the UN layer parked at Tier 3); the title that binds even the executive shipped → [access.md](../../subsystems/access.md) § Nearest title decides, [parcel.md](../../subsystems/parcel.md).*
 
 ### The authorial subdivision is the shared coordinate
 
@@ -2603,13 +1708,7 @@ contribution **measured per locality** and **attributed to the individual
 authors**). Capital injection and influence-award ride the
 zone/Locality/group/access stack — they mint no new structure.
 
-One guard on the producer metric: it can't be a raw *count* of objects
-authored (farmable — spam empty rooms). It must be **usage/quality-
-weighted** — a frequented, well-kept locality earns its authors more than
-a sprawling dead one — inheriting the economy slate's *quality is a
-verdict, not a property*, and making **consumer patronage the quality
-signal for producer contribution.** Measurement rides the archive
-(authoring record + usage telemetry).
+*(The producer metric is usage-weighted, never a count — shipped as the engagement-only `{author, actor, bucket}` faucet → [influence.md](../../subsystems/influence.md) § The producer stock; cut here 2026-09-19. Second-order quality is register D2, open.)*
 
 ### The consumer fault line — engaged consumption
 
@@ -2625,10 +1724,7 @@ on **two axes** — quantity and quality — never one alone:
   susceptibility / notoriety; scoped cooperative-wide for governance —
   see below).
 
-The **product** is the point. Reputation alone is a *popularity contest*
-(charisma wins, presence doesn't); engagement alone is an *idle-farm /
-no-life grind* (raw hours, bots, AFK); **engagement × reputation** demands
-both — substantial participation *and* regard for it. Two further
+*(The product rationale graduated to [participation.md](../../subsystems/participation.md) § Why the product, 2026-09.)* Two further
 properties fall out:
 
 - **Governance renown is cooperative-level; per-circle is a *social*
@@ -2695,126 +1791,25 @@ you can.
 
 ## Founder control — transient lock, permanent check
 
-The founder's override during design is **structural, not privileged** —
-and that distinction is the point. As sole member of the Producer House
-and holder of ~51% of Capital influence, the founder controls two of
-three chambers, which in a two-of-three system is total override (the
-necessary two for anything to pass; no lone chamber can pass anything
-alone). But this is *honest* control: it exists because the founder is
-currently almost the entire government, not because the constitution
-names them. The document stays symmetric and fair; nobody can ever say
-it was rigged, because it doesn't mention the founder at all.
-
-The self-award is normal: sweat equity (real unpaid labor) converted to
-governance **stake, not stock**. The 51% baseline is the architect
-holding the pen while the thing is still on the drafting table — *"I need
-to make sweeping changes at this stage without red tape, but that won't
-always be the case."*
-
-The dilution discipline that makes this safe to relinquish:
-
-- **Codify the co-equality, not the founder's majority.** The permanent
-  protection was never the 51% — it's that a co-equal Producer House
-  *exists*, so makers can't be outvoted by the player multitude even
-  after the founder is just one citizen. Entrench the structure; let the
-  person dilute.
-- **Pure-natural dilution.** The founder starts at majority because
-  they're the only member; every new contributor's influence dilutes
-  them arithmetically, no special minting. They drift toward an ordinary
-  citizen's weight automatically as the community grows.
-- **Devolve by seating people, not by a clock.** Recommended amendment
-  rule: **hard and symmetric** (deliberately difficult, like the US),
-  with control handed down by the founder *choosing to seat trustworthy
-  people* in the Producer House — not by a hardcoded schedule that can't
-  be stopped if the wrong people arrive first.
+*Superseded — the ~51% figure by the [founding charter](../../governance/founding-charter.md)'s published formula (sole producer · 0% consumer · capital matched plus one · sunsets at ratification); “codify the structure, not the founder” and natural dilution are Art. XI of the [draft constitution](../../governance/draft-constitution.md); co-equality is Art. I §5.*
 
 ---
 
 ## Amendment & entrenchment
 
-A constitution no harder to change than ordinary law isn't higher law at
-all. **Amendment must be harder than legislation** — that bar is the
-master entrenchment dial, with two failure modes: too easy (a transient
-majority rewrites the deal) and too hard (ossification until the only
-route left is extra-constitutional). So the dial is set *per provision*,
-in four tiers:
-
-1. **Ordinary law** — majority of chambers (2 of 3), reversible by the
-   same. Baseline, not amendment.
-2. **Organic law** — chamber bylaws, institution charters, tuning
-   constants. A raised bar (supermajority in the affected chamber) but
-   meant to evolve as the community learns.
-3. **Constitutional amendment** — the branches, influence types, passage
-   rule, treasury membrane. Three requirements *together*:
-   - **Supermajority across *all* chambers** (e.g. 2/3 within each of the
-     three, not merely 2-of-3) — no chamber steamrolled; broad
-     cross-constituency consensus.
-   - **A sustained-time element** — it must *hold* that supermajority
-     continuously through a mandatory cooling period (conviction voting
-     makes this native), so no flash passion or coordinated raid can
-     rewrite the rules.
-   - **Egalitarian ratification** — below.
-4. **Eternity clauses** — the load-bearing core, *unamendable within the
-   polity*: chamber co-equality, the cross-branch and stake-is-not-stock
-   membranes, the surplus bedrock, judicial egalitarianism, the archive's
-   independence, **and the amendment rule itself** (so capture can't make
-   capture easier). The provisions that, if amendable, would let the
-   constitution be weaponized to destroy its own protections.
+*Cut 2026-09-19 — Art. X §§1–3 of the [draft constitution](../../governance/draft-constitution.md) (ordinary · organic · amendment · eternity; the eternity set). The fractions and cooling period are open (*Open problems*).*
 
 ### Amendment is ratified by equals
 
-The deepest structural statement: **ordinary governance is
-influence-weighted, but amending the constitution requires
-one-member-one-vote ratification** — a referendum of equals, even though
-legislation is weighted. The day-to-day belongs to those who contribute
-most; the *social contract* belongs to everyone equally. It mirrors the
-egalitarian judiciary — the fundamental rules, like justice, are the one
-place money buys nothing — and it is a hard anti-capture wall: a whale
-(or the founder) can dominate weighted legislation but cannot buy a
-constitutional change past the equal consent of the governed.
+*Cut 2026-09-19 — Art. X §2 of the [draft constitution](../../governance/draft-constitution.md) (one-member-one-vote ratification).*
 
 ### Fork is the amendment of last resort
 
-The move meatspace can't make. A state makes amendment *flexible*
-precisely *because there's no exit* — a constitution that can't evolve
-internally yields revolution. **Cheap exit (forking) inverts this:**
-because an irreconcilable faction can *found a new polity* rather than
-capture this one, you can afford **stronger eternity clauses.**
-"Unamendable" honestly means *"unchangeable within this polity — to
-change it you fork a new one and people migrate."* So eternity clauses
-aren't tyranny, they're a choice of which world you live in; and
-**over-entrenchment is self-punishing** — entrench too much, the polity
-can't adapt, people fork away. Exit disciplines the eternity clauses the
-way it disciplines root power.
+*Cut 2026-09-19 — Art. X §4 + Art. VII §5 of the [draft constitution](../../governance/draft-constitution.md) (the only change to an eternity clause is to found anew; exit disciplines entrenchment).*
 
 ### Founding vs. amendment — the founder's self-binding
 
-The credible commitment that makes the stake trustworthy: **the founder
-authors the initial constitution (the drafting-table phase), ratification
-*locks* it, and amendment thereafter is hard even for the founder.** The
-2-of-3 control passes *legislation* freely but *not amendments* (those
-need all-chambers supermajority + the equal referendum, where the founder
-is one vote). The founding is a one-time architect act; after
-ratification the deal binds its author — exactly what lets an early
-backer trust the stake: *"even the founder can't quietly rewrite the
-rules after launch."* Below the ratification threshold on the population
-ladder the constitution is founder-set; crossing it triggers the
-**ratifying convention** that converts fiat into consented law.
-
-The **fiat-phase stake** is itself bound by a published, code-enforced
-formula, in force from the first dollar: the founder is the **sole producer**
-(~100% of the producer house, *diluting* as authors join — a starting state,
-not a lock), takes **0% of the consumer house** (the players' chamber is
-theirs from day one), and **matches capital influence one-for-one, plus one
-unit** for a working majority — two chambers of control that *erode on their
-own* as the community grows, then **sunset entirely at ratification**, after
-which the founder earns only a **legislated wage**. The binding before
-ratification isn't law (there is none yet) but **code + publication + exit** —
-the founder binds himself by machine, in public. The generic *shape* of this
-is constitutional (kernel, Art. XI); the specific formula is the instance's
-published commitment — [founding-charter.md](../../governance/founding-charter.md) — and it
-ships with the **stake-ledger slice**, the first real test of code-first
-self-binding.
+*Cut 2026-09-19 — Art. XI of the [draft constitution](../../governance/draft-constitution.md) + the [founding charter](../../governance/founding-charter.md) § Why bind at all (formula-fixed · code-enforced · published · auto-sunset → wage-only; the charter ships with the stake ledger). The charter cites this heading for the rationale; the rationale now lives there.*
 
 ### Where it lives
 
@@ -2827,22 +1822,7 @@ live: the highest-stakes change gets the strongest review.
 
 ### The kernel and the library — amendments as political legos
 
-The constitution that ships to every community is deliberately a
-**bare-bones kernel**: the firewall, the machine, and the executive-provided
-tools, *nothing more* (a three-floor test decides what earns kernel status —
-the firewall is the no-lawyer floor; the machine and its tools are what make
-it a polity; everything else is deferred). Communities are *not* meant to
-each reinvent due process, monetary policy, or term limits from a blank page.
-Those deferred choices are filled from a shared **library of model
-amendments** — pre-drafted, vetted, composable **"political legos"** adopted
-through the ordinary amendment path above. The keystone that makes this
-clean: **most modules are bindings on tools the kernel already built** — *due
-process* is simply "you must use the judicial machinery," *free expression*
-"you must use the deliberation surface." The kernel is common to all; the
-library is how communities differ without each re-solving the same problems.
-Full design — the catalog, the presets-as-distros, the governance package
-manager — in [amendment-library-slate.md](./amendment-library-slate.md), with
-the kernel itself consolidated in [draft-constitution.md](../../governance/draft-constitution.md).
+*Cut 2026-09-19 — [amendment-library-slate](./amendment-library-slate.md) (the kernel / library split, presets, the package manager) and the [draft constitution](../../governance/draft-constitution.md)'s three-floor test.*
 
 ---
 
@@ -2876,25 +1856,14 @@ of the macro tuning.
 The substrate is honest; the *polity* can't be finished against one
 citizen. Parked until there's a population to govern:
 
-- **The surplus bedrock — confirm and entrench.** "Never back to
-  backers" is the load-bearing legal-safety line; written here as the
-  recommendation, wants explicit sign-off before it's constitutional
-  text.
-- **One-time = spendable burst, or cap+honor only?** Whether a lump gift
-  grants an immediate burst of votable influence (a real moment of
-  voice) or only raises the reservoir cap + honor (slower, no immediate
-  say). Open.
+- *Surplus bedrock — resolved: Art. VIII §2, entrenched by Art. X §3 of the [draft constitution](../../governance/draft-constitution.md).*
+- *One-time burst vs cap+honor — superseded by no-pool: a lump credits once, spikes and decays, and is honored in the chronicle (§ The markers survive by splitting).*
 - **Loyalty/tenure bonus on recurring?** A modest, *capped* streak bonus
   rewards the backbone subscriber; uncapped, it re-creates a tenure
   aristocracy. Recommended: small and capped. Open.
 - **The dollar→influence curve.** Structurally concave (decided);
   the exact shape is macro tuning, deferred to a running game.
-- **Voting rule per chamber.** Resolved in principle — one influence
-  resource; the rule that converts it to decisions is chamber-internal;
-  conviction voting recommended for the volatility-prone Consumer House.
-  The concrete rule + its ripple into the markers (allocation vs spend,
-  what recurring-rate then gates) is undesigned until a chamber adopts
-  one.
+- *Voting rule per chamber — superseded: the rule is kernel and uniform (Art. III §4), shipped as conviction hold/flip/tally with no pool ([influence.md](../../subsystems/influence.md) § Conviction).*
 - **Delegation guardrails.** Liquid delegation rides the existing
   allocation substrate (resolved); open is the tuning that keeps it from
   ossifying into super-hubs — the per-delegate weight cap, the
@@ -3038,15 +2007,8 @@ citizen. Parked until there's a population to govern:
   supermajority fraction, the cooling-period length, the population
   threshold for the ratifying convention, and precisely where the
   eternity-clause boundary is drawn.
-- **Origination — resolved: none.** Bills are **global and concurrent** (one
-  central floor, one global deliberation, voted by all houses at once) —
-  there is no originating house, because membership is shared. Voting is
-  **per-house and splittable** (a member's three influence types may disagree
-  on the same bill). Constituency coordination lives in **caucuses**
-  (opt-in group-scoped deliberation / delegation), not in origination.
-- **Who adjudicates producer influence?** Labor is the fuzziest faucet
-  to meter (dollars and play measure themselves). The founder does it
-  now; the durable answer is open.
+- *Origination — resolved: none; Art. IV §3 of the [draft constitution](../../governance/draft-constitution.md).*
+- *Who adjudicates producer influence — resolved: the engine measures the engagement content draws ([influence.md](../../subsystems/influence.md) § The producer stock); the human layer is the merit-pay exception (Art. III §7), unbuilt.*
 - **Apportionment inside the Consumer House.** Almost certainly
   representational at scale — but that's the chamber's own bylaw, not
   constitutional, and not designable until there's a population.
