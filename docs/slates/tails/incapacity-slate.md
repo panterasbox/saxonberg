@@ -2,9 +2,14 @@
 
 > **Status: UNBUILT** — and the slate retracts its own motivating case
 > (escrowed contracts turned out already solved), so no live case stands.
-> **Left:** impound-on-a-claim · the preserving (never improving) receiver
-> · return and reclaim · the docket entry · the one honest shippable
-> remnant, contracts' optional-expiry default dial
+> **Left:** impound-on-a-claim (⚠ contradicted for a DEPARTED player by
+> `docs/requirements/economic-bootstrap-requirements.md § Three states of
+> a player` — a last-seen clock, dormant 30 / escheat 180 real days,
+> derived on read) · the harm-scoped remedy · the preserving (never improving) receiver ·
+> return and reclaim · confinement answered by the confining authority ·
+> the claim-driven escalation (the second proceeding IS a taking) · the
+> docket entry · a non-zero value for the shipped
+> `contract.postingExpiryDefaultGameHours` dial (0 = never today)
 > **Size:** a tail
 
 **Captured 2026-08-04**, from the manifesto gap hunt. What looked like
@@ -13,11 +18,6 @@ corpus — turned out on inspection to be something narrower and more
 tractable.
 
 > **User's call: "impound on a claim, not a clock."**
-
-> **Status: design conversation, captured. Not requirements.** ⚠ **No
-> live case identified** — the one this slate first named (escrowed
-> contracts) turned out to be already solved; see the retraction below.
-> This is doctrine waiting for a consumer.
 
 Related: [mortality.md](../../subsystems/mortality.md) (**`passage` and
 the floor — read it first, it decides the shape**),

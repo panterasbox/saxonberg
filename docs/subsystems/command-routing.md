@@ -983,7 +983,11 @@ checks at the call sites.
 
 Each entry runs through `ShellApi.expandVariables` (synthetic vars
 like `$focus` and stored vars expand at bind time) and is tried
-in order; first non-empty result wins. The array form is the
+in order; first non-empty result wins — **and with a `requires:` on the
+slot, first scope holding an *admissible* match wins**, not first
+non-empty: `talk dave` with `$focus` on the room *Dave's Bar* would
+otherwise bind the room, fail the validator, and never reach the barkeep
+(graduated from the explicit-targeting slate, 2026-09). The array form is the
 explicit fallback chain — a verb that wants drill-first-then-broad
 semantics declares `scope: ['$focus', 'reachable']` so a drilled
 player searches the focus first, with the room as fallback. Verbs

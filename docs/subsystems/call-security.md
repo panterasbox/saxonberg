@@ -987,7 +987,8 @@ ungated + sealed when the writers span packs.
 > invocations with full runtime args into an `audit_events` collection
 > for review) plus pack-manifest-contributed gate participants for
 > re-tightening. The full inventory, the design position, and the
-> future gate primitives (`FromTemplateMethod`, interface admission)
+> future gate primitive (interface admission — `FromTemplateMethod` has
+> since shipped, § above)
 > are captured in
 > [the call-security pass slate](../slates/builds/call-security-pass-slate.md)
 > — that pass is its own build. The planned
@@ -997,6 +998,22 @@ sibling policies of the same shape — `allows` is already
 async-capable, so relationship-derived trust needs no new machinery,
 and new code qualifies by relationship instead of by joining a module
 list.
+
+
+⭐ **What the self-subject posture actually protects: impersonation
+only.** The chain is an ungated mixin forward → gated logic that admits
+*the subject itself*, so any code **holding a reference to the object**
+can invoke its public verbs through it — possession is capability. What
+the gate prevents is calling the logic *as an object you are not*; the
+"who initiates" question is answered only where participant contracts or
+controller-side checks remain. ⚠ And `FromMixin` matches the `_mixinName`
+marker, which a pack class can simply declare — unlike `FromTemplate`,
+which reads the hard-private `#templatePath` stamp. The spoof is bounded
+by the self-subject `where` (a marker-claiming class can only act on
+ITSELF), which is the interface-openness future in embryo; the
+call-security pass should either bless it or re-anchor the widens on
+`FromTemplate`/`FromClass` where the host set is enumerable (graduated
+from the call-security-pass slate, 2026-09).
 
 ### Async `allows`
 
