@@ -182,8 +182,9 @@ Who already lives where this build goes:
   grant. It becomes the first borrower for wages: a working-capital line
   from Goodkin, or a refused wage with a reason. Its par sheet and
   `house` verbs read the same book.
-- **Duncan Hall** — Katie's intake and the stipend. The stipend becomes
-  the Note, signed at the desk.
+- **Duncan Hall** — the stipend paid at enrollment. It becomes the
+  Note, written by the machine at the same moment; Katie's intake is
+  untouched.
 - **The `reserve` verb and the Governor seat** — `reserve mint` at a
   venue goes away; the seat stays and its verb becomes the dashboard and
   the Schedule.
@@ -368,11 +369,17 @@ teaches the model:
   this line. Walk away and the worst case is the unspent balance goes
   home. **No labor is ever owed.**
 
-It is signed at the desk — Katie's intake already walks a new player
-through the real verbs — and it is visible afterward in the player's
-wallet as a thing they hold. It replaces the bare stipend and the bare
-opening capital: a business's opening capital is the treasury's advance
-on the same terms, secured by the business's account.
+It is written **by the machine at enrollment** — the Note is between a
+member and the Compact's Treasury, a meta instrument, and no character
+in the fiction hands it over (Katie is a hired hand at a college and has
+nothing to do with it). It is **not a thing you carry**: it is filed as a
+record in the player's own record store — their `/home/<self>/` branch,
+the way a water right or a bill of lading is filed under its owner's —
+where it outlives any paperwork; `wallet` lists it beside the balance,
+and reading it gives every term in words. It replaces the bare stipend
+and the bare opening capital: a business's opening capital is the
+treasury's advance on the same terms, secured by the business's account,
+filed the same way under the business's branch.
 
 ### Three states of a player, derived from last-seen
 
@@ -707,11 +714,12 @@ Run against the live game before the MR opens, with the Schedule's
 thresholds set low enough to reach dormancy and escheat inside the
 session.
 
-1. **A new player enrolls at Duncan Hall.** Katie walks them to the
-   desk. They are shown the Enrollment Note — principal, 0%, discharge
-   on first wage, secured by the balance, *no recourse beyond it* — and
-   sign. Their wallet shows the balance **and the note they hold**. `look`
-   at the note reads every term in words.
+1. **A new player enrolls.** At commit a frame tells them the Treasury
+   has advanced them twenty zorkmids against their note and where it is
+   filed. Their wallet shows the balance **and the note**; reading the
+   note in their own records gives every term in words — principal, 0%,
+   discharge on first wage, secured by the balance, *no recourse beyond
+   it*. Katie's intake proceeds exactly as today.
 2. **They walk to the cash-and-carry.** The counter's crates now carry
    the *shop's* ask, not the farm's. `look` at a crate says it is held
    on the farm outfit's terms until paid. `buy` a lime; the shop's

@@ -651,23 +651,29 @@ treasury.enrollmentPrincipal`, rate 0, share 0,
 `dischargeOnFirstWage: true`, `dischargeAfterGameDays =
 treasury.noteDischargeGameDays`, security `{kind: account}`), then
 `BankingApi.disburse(treasury, avatar, principal, 'enrollment')`, then
-a **`Note` Thing** (`/platform/thing/Note`, `DetailedMixin(Thing)`,
-persistent `contractId` + the immutable term fields copied at mint so
-`look note` reads every term in words with no DB read) is cloned into
-the avatar's inventory. `Note.postRegister` checks its contract and
-self-destructs when the row is `discharged`/`recovered` (so a note that
-discharged while its holder was offline is gone when they wake).
-Discharge fires from `payWageImpl` (the wage landing calls
-`ContractApi.onWageLanded(workerKey)`, which discharges any open note
-of that issuer, appends `discharged`, destroys the resident Note Thing
-and tells the player) or lazily from `dischargeAfterGameDays` on any
-touch. Bare `wallet` gains a line per open instrument the wallet's
+the paper is **filed, not carried**: a new closed document kind
+**`instrument`** (`lib/document/DocumentKinds.ts` — a platform edit, on
+the `water-right` pattern: path-keyed, `contentDir: 'papers'`, `ext:
+'yaml'`, `onVanish: 'keep'`) written by `ContractApi` through
+`DocumentApi` as the system at `/home/<identity key>/papers/enrollment-note`
+— the terms in words, the contract id, the date, and an appended
+`discharged`/`recovered` line when that happens. Every loan files the
+same way under the borrower's branch and the lender's (`house book` /
+`bank book` list the branch's `papers/`). The document is the readable
+record; the contract row is the live claim. No Thing, no NPC: the
+commit frame says *"The Treasury has advanced you twenty zorkmids
+against your note; it is filed in your papers."* Discharge fires from
+`payWageImpl` (the wage landing calls `ContractApi.onWageLanded(workerKey)`,
+which discharges any open note of that issuer, appends `discharged` to
+the row and the paper, and tells the player if resident) or lazily from
+`dischargeAfterGameDays` on any touch. Bare `wallet` gains a line per open instrument the wallet's
 owner issues or holds (`ContractApi.instrumentsOf(owner)`): *"You hold
 an Enrollment Note for twenty zorkmids, at no interest, to the
 treasury."* The chronicle records the signing once
 (`recordChronicleOnce('economy:note:signed', …)`) and `finance` is
-credited (D21). Katie's tree gains no beat — commit IS the desk; the
-prose says she hands it over.
+credited (D21). **Katie is untouched** — the Note is a meta instrument
+between a member and the Compact's Treasury; no character in the
+fiction hands it over.
 
 ### D11 — Rung 0 is a listing whose basis is `terms`
 
@@ -872,8 +878,8 @@ ordinary acts. The reads:
 the act — the existing roster path): (1) `ContractApi.reconcileLoans`
 for the person's businesses and their liens repossess; (2) the open
 note is **recovered**: `escheat` leg of `min(balance, principal)` from
-the primary account to the treasury, event `recovered`, the Note Thing
-destroyed; (3) player-held parcels (`ParcelApi.extentsHeldBy({kind:
+the primary account to the treasury, event `recovered`, the paper
+appended; (3) player-held parcels (`ParcelApi.extentsHeldBy({kind:
 player})`) `transfer` to the **parent parcel's owner**
 (`coveringParcelOf(parent)`; the realm root's parent is `/world` → the
 executive), event stamped `escheat`; the nightly reprovision never
@@ -1023,7 +1029,7 @@ step-by-step and what only the browser can prove.
 | `purchasing` | `Stock` (`platform/thing/Stock.ts`) | the counter's policy; the market stalls, the cash-and-carry and the general store are Stocks; `CheckRack` is not touched. |
 | `supplier?`, `pricing?` on `StockLine` | `Stock.stockLines` (data) | per line; a line without a supplier is an import. |
 | `Stock.priceFor` override | `Stock` | Menu/Tariff keep `PricedOfferMixin.priceFor` unchanged. |
-| `Note` | `/platform/thing/Note` = `DetailedMixin(Thing)` | a new instanceable Thing under `platform/thing/`; carries `contractId` + term fields; nothing else composes anything. |
+| the `instrument` document kind | `lib/document/DocumentKinds.ts` (closed vocabulary; platform edit) | path-keyed under the owner's branch, `onVanish: keep` — the `water-right` / `bill-of-lading` pattern; written only by `ContractApi` as the system. |
 | `escheatedAt`, `beneficiary` | `Avatar` | players only — the only host with an estate. |
 | `ESTATE_STATES` | `lib/character/Estate.ts` (vocabulary module) | a tuple + type; no statics (lib-statics ratchet). |
 | `EMPLOYMENT_STATUSES += vacated` | `lib/employment/Employment.ts` | an exit status; `holdersByPositionImpl` treats it as `quit`. |
@@ -1056,8 +1062,7 @@ Checked at plan time against the tree, not recalled:
 - **Locations, not rooms** — the moved premises are
   `CartesianLocation` rows (their existing classes); no `Room`.
 - **The five axes / `<root>/<branch>/`** — platform rows at
-  `/platform/<branch>/…` (`/platform/thing/Note`,
-  `/platform/idea/Business/stall`, `/compact/*` orgs on the document
+  `/platform/<branch>/…` (`/platform/idea/Business/stall`, `/compact/*` orgs on the document
   axis's existing `/compact` claim — the `/compact/press` precedent);
   terminus rows under `/world/terminus/<district>/<branch>/…`; the
   pack controller at `/world/terminus/market/idea/cmd/StallController`,
@@ -1297,8 +1302,10 @@ migration).
 
 ### W6 — The Note, the standing facility, the wage refusal; the faucets to zero (D9, D10, D18, D22)
 
-- `EnrollController.ts:774-786` → `issueNote` + `disburse` + the `Note`
-  Thing (`platform/thing/Note.ts`, `platform/thing/Note.yaml` row);
+- `EnrollController.ts:774-786` → `issueNote` + `disburse` + the paper
+  (the `instrument` kind in `lib/document/DocumentKinds.ts`; written
+  through `DocumentApi` at `/home/<key>/papers/enrollment-note`; the
+  commit frame names where it is filed);
   `banking.onboardingStipend` → `treasury.enrollmentPrincipal`;
   `wallet` lists instruments; `ContractApi.onWageLanded` from
   `payWageImpl`; the discharge scene; `recordChronicleOnce`.
@@ -1308,8 +1315,8 @@ migration).
 - `settleShiftWageImpl` + `HouseController.payroll` → D18;
   `Business.payrollArrears`; `house pnl` prints arrears.
 - `lint:no-authored-faucet` ceiling → 0 (the ratchet flips).
-- Tests: enroll → a note row + a Note Thing + coin in hand; a wage →
-  discharged + Thing gone + prose; a business's first account → an
+- Tests: enroll → a note row + a paper at `/home/<key>/papers/enrollment-note`
+  + coin in hand; a wage → discharged on the row and the paper + prose; a business's first account → an
   `advance` from the treasury and a 0% loan row; a short business with
   no line → arrears + refusal note; with M repaid loans → a draw and the
   wage.
@@ -1426,7 +1433,7 @@ For each new capability: **verb · affordance · data · boot · arg gate**.
 | the shop's book / price / roster | `house book|price|roster` | `Author.ts:118` | — | — | `price <thing> <ask>`: `thing` string resolved against the counter's lines |
 | supplier terms | `consign … --ask` at a `purchasing: terms` counter | `Stock.commandContributions` (:87-99) | counter `purchasing`; listing `basis` | the counter row's residency (boot entry for the cash-and-carry exists) | unchanged (`requires: ChattelMixin` on the thing — every consigned good composes it) |
 | stocking | the `stocks` brain running `buy`/`bank borrow`/`put` | n/a (an NPC drives literal verbs) | keeper row `behaviors:`; `StockLine.supplier` | **the keeper's `boot:` entry** — without it the brain never fires | the literal verbs' own gates |
-| the Note | `look note`, `wallet` | `Note` is a Thing (Visible/Detailed); `wallet` from the wallet update | `/platform/thing/Note` row; `note` contract | — | — |
+| the Note | `wallet`; the workspace read verbs on `/home/<self>/papers/` | `wallet` from the wallet update; the workspace verbs exist | the `instrument` kind; the `note` contract | the kind is declared in code (no warm) | — |
 | the stall | `stall rent|give-up` | `MarketStalls.commandContributions.environment` (a pack class static) | `market/cmd/stall.yaml`; `/platform/idea/Business/stall` seed | the square is content; the stalls row resident with the room | none |
 | beneficiary | `wallet beneficiary <player>` | the wallet update | `Avatar.beneficiary` | — | `player` bound `MqlOneResult`, `scope: online`, `requires: class:Agent` (the `office assign` shape) |
 | the Gazette edition | the `prints` brain running `press post --as` | n/a | gazette org + editor rows; `press.indexEditionGameHours` | **the editor's `boot:` entry** | `requiresPublisher` passes for the editor's position |
