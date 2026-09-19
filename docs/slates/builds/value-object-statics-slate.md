@@ -16,7 +16,7 @@
 > async lookups `OuterWarren.conditionOf` / `admitFor`,
 > `HoldingWarren.entryRowOf` · `Login.generateGuestName` · `readInt` ×3 →
 > `AppApi.settingInt` (a behaviour change to `SandboxLogic`) · the
-> `linearToDb` false-friend rename · `scoreEvents` ×3 (a design change)
+> `linearToDb` false-friend rename · `scoreEvents` ×3 (a design change) · `Competence.derive` / `bandOf` / `seedRunFor` + `TraitPosition.derive` / `deriveAxis` / `pronounced` — pure-but-domain, ruled *move, but not yet* (absorbed from the lib-statics dossier § 4): destination is the face the normalization pass gives advancement / trait; until then they stay
 > **Size:** a tail
 
 **Raised by:** the user, reviewing MR !255, 2026-09-11
@@ -150,3 +150,13 @@ the bodies; if pure, they are settled and the count drops.
 ## ✅ The content-pack exposure gap — CLOSED 2026-09-14
 
 *Shipped — the federated mixin namespace + `SingletonMixin` for pack logic: [content-packs.md](../../subsystems/content-packs.md), [mixins.md](../../subsystems/mixins.md).*
+
+## Pure-but-domain — `Competence.derive`, `TraitPosition.derive` — move, but not yet
+
+*(Absorbed from the retired lib-statics-homes dossier § 4, 2026-09.)*
+Purity is not the test; *where would you look* is. You look for **how
+competence is derived** in the advancement system, not on the `Competence`
+value — so these move (`lib/advancement/Competence.ts:119,192,221`,
+`lib/trait/TraitPosition.ts:92,114,137`). But their destination is one of
+the Apis the ruling declined, so they stay put for now and are on the
+list, not forgotten.

@@ -146,6 +146,13 @@ POSITIVE — a violation is found — not merely that a clean tree is clean.
   different question. See
   [value-object-statics-slate](./slates/builds/value-object-statics-slate.md).
 
+**So the ~50 world-level statics in Api-less subsystems stay where they
+are**, and the ratchet stops at ≈50 + the type-level population instead
+of at 0. That is a floor with a name and a reason, not a shortfall:
+`lint:lib-statics` records it, and the number falls to 0 when the
+normalization pass gives those systems faces (from the lib-statics
+dossier, 2026-09).
+
 ## Content, templates & vocabulary
 
 - **`lint:instanceable`** — **nothing instances `/lib/`.** Six

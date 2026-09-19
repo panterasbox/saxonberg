@@ -1,9 +1,19 @@
 # Client audio slate — a client-side player, and the Spotify jukebox that rides it
 
-> **Status: UNBUILT** — no client audio path and no jukebox exist.
-> **Left:** the client audio player (ambient emission → playback) · the
-> Spotify embed tier · the zorkmid priority queue · the bar jukebox
-> object · re-verifying the Spotify platform facts
+> **Status: UNBUILT** — no client audio path and no jukebox exist
+> (re-verified 2026-09-19: no `audio` / `jukebox` / `spotify` anywhere in
+> `packages/client/src`, `packages/server/src`, `packages/types`,
+> `packages/content`). The Spotify platform facts date from the capture
+> and **must be re-verified before any Spotify work starts** — one
+> load-bearing constraint is a *live bug* (Part 4).
+> **Left:** the client audio player (ambient emission → playback, as a
+> second modality on the `cockpit.watch` push) · the source's home
+> (Location field vs in-world device — Q1) + the autoplay gesture + mix ·
+> the Spotify embed tier · the loose-sync-or-frame-lock decision (Q6) ·
+> the zorkmid priority queue + the *are zorkmids ever purchasable* gate
+> (Q7) · the bar jukebox object · the self-hosted / licensed tier if
+> frame-lock or scale is required (Part 6) · re-verifying the Spotify
+> platform facts (Q8)
 > **Size:** a build
 
 **Captured 2026-09-01.** Two things at once: a **client audio player**
@@ -11,11 +21,6 @@
 a zorkmid-priority queue over Spotify — where the design conversation's
 real work was separating what is buildable from what Spotify's platform
 will not allow.
-
-> **Status: design conversation, captured. Not requirements.** Spotify
-> platform facts verified against the web on the capture date; they are
-> a moving target and **must be re-verified before any Spotify work
-> starts** — one of the load-bearing constraints is a *live bug*.
 
 **Provenance:**
 

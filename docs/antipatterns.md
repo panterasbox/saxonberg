@@ -4989,6 +4989,9 @@ applied *after* rung 2 instead of before. Run the ladder in order.
 
 ### ⭐⭐⭐ Therefore: not one of the 18 "homeless" subsystems needs an Api
 
+⭐ *A doc naming an Api is not evidence the Api is needed* — four of those
+five would have been minted on that evidence alone.
+
 *Held, and executed — no new Api was minted by the sweep; `trait.md` no longer names a `TraitApi` (the Api OO sweep retired it, `trait.md:12`). The one exception it predicted (`Lock` → `BoundaryApi`) shipped as `BoundaryApi.mintKeyway`.*
 
 # ⭐⭐⭐ Rung 4, and what the sweep turned out to be measuring

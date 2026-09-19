@@ -1,33 +1,22 @@
 # The odometer — honest number-go-up (working slate)
 
 > **Status: UNBUILT** — deliberately a capstone, built last over ledgers
-> that already exist.
-> **Left:** the counter roster (editorial, chosen against observed play) ·
-> the subject-scoped derive over chronicle/participation/advancement ·
-> milestones · the party and guild scopes · the readout surface
+> that already exist (sequencing decided 2026-07-28: deferral loses
+> nothing because it derives over kept ledgers, and counter selection is
+> editorial). Re-verified 2026-09-19: no counter store, projection, or
+> milestone anywhere in `packages/server/src` / `packages/content`; the
+> only `odometer` in code is the *odometer failure* term of art in the
+> haulage trade's discipline comments (`transport/src/thing/HaulageRig.ts:63`),
+> which is this slate's bright line being cited, not built.
+> **Left:** the counter roster (editorial, chosen against observed play) +
+> the authoring surface (Q1) · the subject-scoped derive over
+> chronicle/participation/advancement + the projection map (Q2) + whether
+> participation shares the store (Q5) · the aggregate headline + its
+> weighting (Q4) · milestones → recognition via belief (Q3) · the party
+> and guild scopes + double-attribution · the readout surface (personal
+> by default; a party's as history)
 > **Size:** a build
 
-> **Status: design-phase, deferred-rpg.** Born from the party-progression
-> discussion: the honest-simulation stack (no HP, no XP, no stored
-> competence — derive-don't-track) *loses* one real thing — the tight,
-> granular, dopamine-drip of **watch-number-go-up**. That's a genuine
-> engagement mechanic, not a weakness to rationalize away. This slate gives
-> it back **without the lie.** Nothing here is a build.
->
-> Not party-specific — it's a general **subject-scoped** primitive (a
-> character, a party, later maybe a guild/corp). Homed standalone because
-> several systems consume it.
->
-> **Sequencing decision (2026-07-28): the odometer is a CAPSTONE — built
-> deliberately LAST**, after the economy spine + the crafting skill seam
-> are live and a beta population has generated ledger density worth
-> summarizing. Two reasons make late-build strictly better here: (1)
-> deferral loses nothing — it derives over ledgers already kept, so a
-> launch-week build shows every player's *complete* journey
-> retroactively; (2) counter *selection* is editorial and can only be
-> done well against observed play (which acts players actually care
-> about). Guessing counters early is the only way to build it badly.
->
 > **The load-inert rule** (extends downstream-inert): *no system's
 > felt-progression story may DEPEND on the odometer.* It garnishes
 > journeys other systems already make felt; if removing it would break a
