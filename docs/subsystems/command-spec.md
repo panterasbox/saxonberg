@@ -1,5 +1,10 @@
 # Command Spec — Author Guide
 
+> **A word occupies the global verb namespace only if it is the PRIMARY
+> NAME OF A DISTINCT ACT.** Synonyms belong to the catalogue; preferences
+> belong to per-character aliases (graduated from the content-packs
+> slate, 2026-09).
+
 How to add a verb. This is the prescriptive companion to
 [command-routing.md](./command-routing.md) (the pipeline) and
 [command-parsing.md](./command-parsing.md) (the tokenizer). Read those

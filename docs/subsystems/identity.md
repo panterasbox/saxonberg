@@ -1,5 +1,12 @@
 # Identity — who a character IS, and who answers for them
 
+> **The trade ships the CROWD. The locality carves the CAST.** The trade
+> supplies a generic occupant who bakes, keeps hours and behaves like a
+> baker; a locality may *promote* that to Marchetti — named, with
+> dialogue, history, a grudge. *NPCs are expensive carves, just-in-time*;
+> *derive the crowd, simulate the cast* (graduated from the content-packs
+> slate, 2026-09).
+
 Every ledger in this game derives what it knows from an append-only
 record, and every record has to attribute its rows to **something**. This
 doc owns the question *what*: which key a row lands on, whether the thing

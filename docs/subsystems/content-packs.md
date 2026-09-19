@@ -245,6 +245,16 @@ emotes at 04:00. `wiki` is deliberately absent (a page is not a
 document: it has a revision log and a CAS edit path); `settings` and
 `subject` are contribution kinds with their own targets.
 
+**Storage is the document store; search is a catalogue over it.** A
+kind earns no collection of its own by being *searchable* —
+`SoulCatalogue`, `RecipeCatalogue`, `BlueprintCatalogue`,
+`ArchetypeCatalogue` are derived, in-memory, rebuildable projections
+shaped for their own queries, and the store underneath stays path-keyed
+with one unique partial index per flat-key kind. The honest limit is
+cardinality, not principle: hundreds of emotes in memory are free, a
+prose corpus is not, and find-by-content over the wiki and the law is the
+day a real document search is owed.
+
 The **document strategy** is one factory (`documentStrategy(spec, root)`)
 per kind: `dbKeyQuery` — `{kind, path}`, or `{kind, 'data.<naturalKey>'}`
 for a flat-key kind (its identity IS its natural key: a row with that key
@@ -550,6 +560,16 @@ tpa's terminal do — tpa depends on arcana anyway, it is magic — so
 *without* depending on arcana is the signal to promote it, and that is a
 review question, not a lint.
 
+**The YAML author's verb is clone-and-compose, never inherit.**
+Behaviour reaches a venue row by NAMING classes — clone the trade's
+station, hire the trade's position — and the acceptance test for an
+industry pack is that a second venue is *copy the shipped floor, rename,
+adjust fields: a working venue in an afternoon and zero TypeScript*.
+Subclassing is the capability tier's tool; a venue author reaching for
+`extends` means the industry pack missed a station or an authorable
+field, and that is the pack's defect to fix, not the venue's to work
+around.
+
 ### ⭐⭐ How a pack EXPOSES something — the singleton, and the federated mixin
 
 A pack holds no Api, no logic singleton and no free exported function, so
@@ -843,6 +863,17 @@ see below):
   re-compares on the next reconcile and may immediately surface the
   conflict the pin was hiding, which is correct.
 
+**There is no companion installer app, by decision (slate A10.10).**
+The authority model — office, title, staffing — lives inside the game, so
+an adjacent web app either re-implements it (two authority models, drift
+guaranteed) or phones the running server to ask, at which point it is a
+UI on the game. It would also be a second owner of the server lifecycle
+beside the deploy machinery. So the verb runs in-world, gated where the
+machinery lives; a pack panel, if one comes, is a CMS view over `pack
+status`. The separate-app instinct becomes right only at a scale this
+deployment does not have (multi-node, or operators who must not hold
+game logins), and nothing here forecloses it.
+
 This is the iteration loop: edit a pack file → `pack sync` → live, no
 restart. It is tractable for base-library because materials/biomes are
 **singletons by path** (one instance per path; `Tangible.getMaterial()`
@@ -1096,6 +1127,27 @@ One more CI gate keeps the wave's invariant: **`pnpm lint:untitled`**
 (every path the packs ship under a title root has a claim as a prefix —
 the installer's walk mirrored in a script; zero is green).
 
+**The platform ships the SOCKET; content ships the FURNITURE** (slate
+A26.1). Casting is platform, the spellbook content; the landing slot is
+platform (`/platform/location/void`, the code fallback), the lounge that
+first-login lands in is content (the `defaultStartLocation` the lounge
+pack's settings contribute — merge-missing, so an operator's override
+wins forever after); the teleport verb is platform, the network's works a
+pack. The recurring *is X platform?* argument has that razor, and the
+platform-only boot is its literal test: a login lands in an honestly
+empty shell.
+
+**Substrate vocabularies do not get a pack of their own** (slate A27):
+the baseline of a vocabulary — conditions, body plans, the casting
+disciplines — rides pack zero or the substrate's own pack, and
+extensions ride their CARRIERS (disease ships its infections, pharma its
+toxins, medicine its healing spell). A standalone vocabulary pack
+installs and nothing observable exists, which is the horizontal-pack
+failure again. And **the Compact is platform, corpos are content**: the
+Compact is the constitution, and swapping the state is forking the
+platform (the AGPL is the check), never a pack install — a pack that
+defined who reviews packs would review itself.
+
 ## The shipped packs
 
 | Pack | `dependsOn` | Maintainers | Claims (`requires.title`) | Groups | `boot` |
@@ -1173,6 +1225,17 @@ file-same / DB-changed cell *keeps* the owner's edit (a renamed bar, a
 refit room) with the baseline untouched, while a file change against an
 unedited row still lands. `PackLogic.venue-ownership.test.ts` asserts
 that cell in the venue framing; no mechanism was added for it.
+
+**A trade pack ships its own people.** *Ambient life is not a
+category*: the baker at five, the smell of the oven, the cart in the lane
+are the observable output of an industry running, not dressing sprinkled
+on a place. So every trade pack ships the outfit that works it — the
+floor, the hand and the brain that tends, picks and consigns
+(`trade-farming`'s `farms`, `trade-tailoring`'s `tailors`, the
+distributor's Tam Ferrier) — and a locality only *promotes* a generic
+occupant to a named Cast member when it has a reason to. Atmosphere is
+what an economy looks like from outside; authoring it separately would be
+authoring a second, unfunded copy of the economy.
 
 ## Reconcile policy
 
