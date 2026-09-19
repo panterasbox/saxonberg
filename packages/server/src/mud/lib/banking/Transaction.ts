@@ -113,6 +113,10 @@ export class BankTransaction {
       case "escrow-release":
       case "escrow-revert":
       case "draw":
+      case "advance":
+      case "repayment":
+      case "appropriation":
+      case "escheat":
         // Pure on-ledger movement — both sides must be real accounts, or
         // the posting would create/destroy money outside a logged mint.
         // The escrow family moves through a per-contract REAL account

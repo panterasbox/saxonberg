@@ -427,7 +427,7 @@ describe("the keeper's back loop — Mara orders Dave's Bar's rail in, and recei
   }
 
   it('⭐⭐ one beat with a funded house: the short line is POSTED as a kind-bound carriage bounty, collected at the supplier and dropped on the bench; the house escrows it', async () => {
-    await BankingApi.float(barAccount, Money.of(200, BankingApi.compactCurrency()));
+    await BankingApi.mint(barAccount, Money.of(200, BankingApi.compactCurrency()), "harness");
     // One bottle on the rail against a 1.5 L par: short, and with an
     // exemplar to point at. ⚠ It is CHATTEL-MARKED, like every bottle a
     // bar actually owns — which is the whole reason `--kind` exists.
@@ -490,7 +490,7 @@ describe("the keeper's back loop — Mara orders Dave's Bar's rail in, and recei
      * KIND (`--of`). Which gin this bar buys is the proprietor's
      * decision anyway, so it is authored where the level is.
      */
-    await BankingApi.float(barAccount, Money.of(200, BankingApi.compactCurrency()));
+    await BankingApi.mint(barAccount, Money.of(200, BankingApi.compactCurrency()), "harness");
     barBiz.setParLine({
       category: 'gin',
       level: 1.5,
@@ -536,7 +536,7 @@ describe("the keeper's back loop — Mara orders Dave's Bar's rail in, and recei
      * (The guard against ordering a kind that is NOTHING still exists —
      * it lives where kinds are still named, in the work-verbs suite.)
      */
-    await BankingApi.float(barAccount, Money.of(200, BankingApi.compactCurrency()));
+    await BankingApi.mint(barAccount, Money.of(200, BankingApi.compactCurrency()), "harness");
     barBiz.setParLine({
       category: 'gin',
       level: 1.5,

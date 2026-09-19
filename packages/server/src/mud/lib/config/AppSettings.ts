@@ -252,8 +252,6 @@ export const AppSettingKeys = {
    * docs/subsystems/banking.md.
    */
   bankingSalesTaxRate: "banking.salesTaxRate",
-  /** Banking — the placeholder treasury account that demo tax accumulates in. */
-  bankingTreasuryAccount: "banking.treasuryAccount",
   /**
    * Banking — the **demo** onboarding coin (minor units) a committed
    * non-guest char-gen player is granted via `issueCash` (the CB cash
@@ -283,21 +281,6 @@ export const AppSettingKeys = {
    */
   bankingCorpoRoyaltyRate: "banking.corpoRoyaltyRate",
   /**
-   * Banking — the opening vault float (minor units) seeded into a fresh
-   * branch's till at boot, backed 1:1 by the branch's own operating balance
-   * (founding capital). Lets early ledger-credit withdrawals work before
-   * customer cash deposits accumulate. `0` disables. See docs/subsystems/banking.md.
-   */
-  bankingOpeningFloat: "banking.openingFloat",
-  /**
-   * Banking — the **opening capital** (minor units) minted into a business's
-   * operating account the first time it is materialized. `openingFloat`'s
-   * sibling one tier down: a branch's till is capitalized for its customers,
-   * a venue's account for its trade. A business may override per-row with
-   * `openingCapital:`. `0` disables. See docs/subsystems/banking.md.
-   */
-  bankingOpeningCapital: "banking.openingCapital",
-  /**
    * Banking — the **default custodian bank** (an institution key, e.g.
    * `goodkin`) — the boot restamp's LAST RESORT for legacy rows with no
    * derivable custodian relationship (a business banks at its authored
@@ -306,6 +289,50 @@ export const AppSettingKeys = {
    * docs/subsystems/banking.md.
    */
   bankingDefaultCustodianBank: "banking.defaultCustodianBank",
+
+  // ── The Schedule of Parameters: the reserve's rows (the Governor's, via
+  // `reserve set`) and the treasury's (economic bootstrap D4). ──
+  /**
+   * Reserve — the perpetual rule's denominator: **money per active member**
+   * (minor units). The reserve buys the state's perpetual up to this ×
+   * the active member count and never redeems. See docs/subsystems/banking.md.
+   */
+  reserveMoneyPerActiveMember: "reserve.moneyPerActiveMember",
+  /**
+   * Reserve — the **window rate** per game-year (a fraction): what a
+   * chartered bank pays on a window advance. Set ABOVE the bank rate so the
+   * window is used in need rather than for profit.
+   */
+  reserveWindowRatePerYear: "reserve.windowRatePerYear",
+  /** Reserve — the window **haircut** (a fraction): the advance is `(1 − h) × principal`. */
+  reserveHaircut: "reserve.haircut",
+  /** Reserve — the ladder's rung-1 gate: completed supplier terms required (N). */
+  reserveLadderTermsRequired: "reserve.ladder.termsRequired",
+  /** Reserve — the ladder's rung-2 gate: inventory loans repaid required (M). */
+  reserveLadderLoansRequired: "reserve.ladder.loansRequired",
+  /** Reserve — the rung-2 working-capital line's cap (minor units) per borrower. */
+  reserveLadderWorkingCapitalCap: "reserve.ladder.workingCapitalCap",
+  /** Reserve — the lower bound on a bank's posted repayment share (a fraction of each inflow). */
+  reserveRepaymentShareMin: "reserve.repaymentShareMin",
+  /** Reserve — the upper bound on a bank's posted repayment share. */
+  reserveRepaymentShareMax: "reserve.repaymentShareMax",
+  /**
+   * Reserve — the **default horizon** in game-days: a loan whose borrower
+   * has had no inflows for this long while a balance is outstanding is in
+   * default (revealed on read, never scheduled).
+   */
+  reserveDefaultHorizonGameDays: "reserve.defaultHorizonGameDays",
+  /**
+   * Reserve — the **index basket**: the Stock counters (template paths,
+   * comma-separated) whose stocking asks the price index is read over.
+   */
+  reserveIndexBasket: "reserve.indexBasket",
+  /** Treasury — the Arrival Note's principal (minor units): what a newcomer is advanced against their note. */
+  treasuryArrivalPrincipal: "treasury.arrivalPrincipal",
+  /** Treasury — the Note's discharge without a wage, in game-days active. */
+  treasuryNoteDischargeGameDays: "treasury.noteDischargeGameDays",
+  /** Treasury — the standing facility: a business's opening advance (minor units), a 0% loan from the treasury. */
+  treasuryOpeningAdvance: "treasury.openingAdvance",
 
   /**
    * Contracts — how long an exclusive claim holds before it lapses back to

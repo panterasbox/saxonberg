@@ -126,6 +126,18 @@ export class PlayerApi {
   }
 
   /**
+   * ⭐ The **active member count** — the perpetual rule's denominator
+   * (economic bootstrap D9/D16): every member who is connected now or whose
+   * estate is `active` (last snapshot written within
+   * `estate.dormantAfterDays`). This wave counts the connected set; the
+   * estate read lands with the three states (W9) and widens it to the
+   * snapshot scan.
+   */
+  public static activeMemberCount(): number {
+    return logic().activeMemberCount();
+  }
+
+  /**
    * Get count of active avatars.
    */
   public static getAvatarCount(): number {

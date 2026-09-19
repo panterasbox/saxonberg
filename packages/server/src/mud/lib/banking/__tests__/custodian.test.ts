@@ -161,7 +161,7 @@ describe("the boot restamp pass (legacy → institution keys)", () => {
     // Legacy shapes: the bare treasury, a self-custodied venue, an
     // empty-bankPath worker, a customer whose bankPath names a LIVE branch
     // (maps to its institution), a corpo treasury likewise.
-    await seedRow({ accountId: "treasury", owner: "", bankPath: "", balance: 80 });
+    await seedRow({ accountId: "treasury", owner: "/compact/treasury", bankPath: "", balance: 80 });
     await seedRow({ accountId: "acct-venue", owner: VENUE, bankPath: VENUE, balance: 500 });
     await seedRow({ accountId: "acct-worker", owner: "/platform/agent/Avatar/wenna", bankPath: "", balance: 25 });
     await seedRow({ accountId: "acct-cust", owner: "/platform/agent/Avatar/alice", bankPath: LIVE_BANK_PATH, balance: 90, corpoKey: "goodkin" });

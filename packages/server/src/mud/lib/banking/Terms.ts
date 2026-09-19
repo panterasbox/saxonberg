@@ -20,6 +20,8 @@
  * All amounts are integer minor units.
  */
 
+import { GrammarApi } from "../../api/grammar";
+
 /** The authored fee/minimum schedule shape (seed `data.terms`). */
 export interface TermsData {
   /** Minimum balance to hold an account / floor a withdrawal below. */
@@ -34,6 +36,18 @@ export interface TermsData {
   crossCorpoFee?: number;
   /** Charge to reissue a lost/frozen card. */
   cardReissueFee?: number;
+  /**
+   * ⭐ The bank's **loan rate per game-year** (a fraction) — its own standing
+   * offer, posted the way it posts its fees (economic bootstrap D13). There
+   * is no benchmark object anywhere: a counter with no rate does not lend.
+   */
+  loanRatePerGameYear?: number;
+  /**
+   * The bank's **repayment share** (a fraction of each inflow to a
+   * borrower's account taken for the creditor), clamped to the reserve's
+   * bounds at the settle. Absent → the reserve's minimum.
+   */
+  repaymentShare?: number;
 }
 
 export class Terms {
@@ -54,6 +68,8 @@ export class Terms {
       wireFee: intOr(d.wireFee, 0),
       crossCorpoFee: intOr(d.crossCorpoFee, 0),
       cardReissueFee: intOr(d.cardReissueFee, 0),
+      loanRatePerGameYear: fractionOr(d.loanRatePerGameYear, 0),
+      repaymentShare: fractionOr(d.repaymentShare, 0),
     });
   }
 
@@ -79,6 +95,48 @@ export class Terms {
   }
   getCardReissueFee(): number {
     return this.data.cardReissueFee;
+  }
+
+  /** The posted loan rate per game-year, or 0 — a counter with no rate does not lend. */
+  getLoanRatePerGameYear(): number {
+    return this.data.loanRatePerGameYear;
+  }
+
+  /** Does this counter lend at all? */
+  lends(): boolean {
+    return this.data.loanRatePerGameYear > 0;
+  }
+
+  /** The posted repayment share (a fraction of each inflow), or 0 for "the reserve's minimum". */
+  getRepaymentShare(): number {
+    return this.data.repaymentShare;
+  }
+
+  /**
+   * The loan rate in WORDS with the real-time equivalent beside it — *"five
+   * per cent a game-year (a real month)"* — or an empty string when the
+   * counter does not lend. Quoted per game-year because a game-year is a
+   * real month at the 12× clock, and five per cent compounds visibly inside
+   * one; whole percentages through `GrammarApi.inWords` (the no-gauge
+   * rule), a fractional one keeps its digits, honestly.
+   */
+  describeLoanRate(): string {
+    const rate = this.data.loanRatePerGameYear;
+    if (rate <= 0) return "";
+    return `${Terms.percentInWords(rate)} per cent a game-year (a real month)`;
+  }
+
+  /** The repayment share in words, or an empty string when unposted. */
+  describeRepaymentShare(): string {
+    const share = this.data.repaymentShare;
+    if (share <= 0) return "";
+    return `${Terms.percentInWords(share)} per cent of each inflow`;
+  }
+
+  private static percentInWords(fraction: number): string {
+    const pct = fraction * 100;
+    const whole = Math.round(pct);
+    return Math.abs(pct - whole) < 1e-9 ? GrammarApi.inWords(whole) : `${pct}`;
   }
 
   /** True iff the schedule levies no fee at all (Goodkin's near-state). */
@@ -110,11 +168,20 @@ export class Terms {
       lines.push(`Cross-corpo wire: ${this.data.crossCorpoFee}`);
     if (this.data.cardReissueFee > 0)
       lines.push(`Card reissue: ${this.data.cardReissueFee}`);
+    if (this.lends()) {
+      lines.push(`Loans: ${this.describeLoanRate()}`);
+      const share = this.describeRepaymentShare();
+      if (share) lines.push(`Repaid as ${share}`);
+    }
     if (lines.length === 0) {
       return "No account fees — open, deposit, and withdraw your own money free.";
     }
     return lines.join("\n");
   }
+}
+
+function fractionOr(v: number | undefined, fallback: number): number {
+  return typeof v === "number" && Number.isFinite(v) && v >= 0 && v <= 1 ? v : fallback;
 }
 
 function intOr(v: number | undefined, fallback: number): number {

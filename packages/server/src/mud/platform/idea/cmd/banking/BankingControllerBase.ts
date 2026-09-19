@@ -13,6 +13,7 @@ import { MqlApi } from "../../../../api/mql";
 import { MixinApi } from "../../../../api/mixin";
 import { StuffApi } from "../../../../api/stuff";
 import { EmploymentApi } from "../../../../api/employment";
+import { PlayerApi } from "../../../../api/player";
 import type { Business } from "../../../../api/employment";
 import type { Stuff } from "../../../../lib/stuff/Stuff";
 import type { Bank } from "../../../../lib/banking/Bank";
@@ -33,6 +34,30 @@ export abstract class BankingControllerBase<
   }
 
   /** The affording bank counter, else the BankMixin host present in the room. */
+  /**
+   * Who a fiscal act names — `reserve override … to <target>`, `treasury
+   * appropriate … to <target>`: an online member by name, else a business
+   * or organization by keyword (the `job post --business` resolver).
+   * Returns the durable key its primary account is owned under.
+   */
+  protected static resolvePayee(asked: string): { key: string; label: string } | null {
+    const want = asked.trim();
+    if (!want) return null;
+    const avatar = PlayerApi.findAvatarByName(want);
+    if (avatar) {
+      return { key: avatar.getIdentityPath() ?? "", label: avatar.getName() ?? want };
+    }
+    const org = EmploymentApi.findOrganization(want);
+    if (org) {
+      const key =
+        (org as { getAccountPath?: () => string }).getAccountPath?.() ??
+        org.getTemplatePath() ??
+        "";
+      return key ? { key, label: EmploymentApi.organizationLabel(org) } : null;
+    }
+    return null;
+  }
+
   protected resolveBank(context: CommandContext): (Stuff & Bank) | null {
     const source = context.commandSource as Stuff | undefined;
     if (source && MixinApi.isBank(source)) return source;

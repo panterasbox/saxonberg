@@ -54,7 +54,7 @@ const KERNEL = join(HERE, "..", "src", "mud");
 const CONTENT = join(HERE, "..", "..", "content");
 
 /** The ceiling: the census this gate holds. It may fall; it may never rise. */
-export const FAUCET_CEILING = 10;
+export const FAUCET_CEILING = 2;
 
 /** The retired settings keys — an authored figure the code turned into money. */
 export const RETIRED_SETTING_KEYS = [

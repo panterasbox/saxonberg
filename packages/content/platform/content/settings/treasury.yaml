@@ -1,0 +1,24 @@
+# treasury — the Schedule of Parameters' TREASURY rows (economic bootstrap
+# D4): what the fisc advances and on what terms. Operator-set via `config`
+# this build (a `treasury set` is a seam, not a wave); the Minister of
+# Finance APPROPRIATES — they do not tune.
+settings:
+  # The Arrival Note's principal (minor units): what the Treasury advances
+  # a newcomer against the note the machine writes at `embody confirm`.
+  # Rate 0 — the Compact's rate for newcomers; discharged by the first
+  # wage or by the game-days below; secured by the balance it funded and
+  # nothing else. NO LABOR IS EVER OWED.
+  - key: treasury.arrivalPrincipal
+    value: "20"
+
+  # The Note discharges on its own after this many game-days active,
+  # wage or no wage.
+  - key: treasury.noteDischargeGameDays
+    value: "30"
+
+  # The standing facility: a business's OPENING ADVANCE (minor units) — a
+  # 0% loan from the treasury on its first account, secured by that
+  # account, repaid as a share of inflows like any loan. A loan precisely
+  # so the state never owns the residual of every business in the world.
+  - key: treasury.openingAdvance
+    value: "20000"

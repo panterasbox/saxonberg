@@ -53,12 +53,14 @@ import type { Stackable } from "../lib/stuff/Stackable";
 import { StuffApi } from "./stuff";
 import { HotReloadApi } from "./hot-reload";
 import { BankingLogic } from "../platform/idea/api/BankingLogic";
+import type { PerpetualReconcile, ReserveDashboard, PriceIndex } from "../platform/idea/api/BankingLogic";
 import { fileURLToPath } from "url";
 import { SecurityApi } from './security';
 import { AppApi } from './app';
 import { AppSettingKeys } from '../lib/config/AppSettings';
 
 export { Money, Account, Currency };
+export type { PerpetualReconcile, ReserveDashboard, PriceIndex };
 export type {
   CurrencyTag,
   CurrencyRecord,
@@ -124,7 +126,103 @@ export class BankingApi {
     return logic().drain(fromAccountId, amount, memo);
   }
 
-  /** Float liquidity into an account — convenience over {@link mint}. */
+  /**
+   * The treasury's account id — the ONE state account, `/compact/treasury`'s,
+   * custodied at the Central Bank; opened on first touch (economic
+   * bootstrap D9).
+   */
+  public static async treasuryAccountId(currency: string): Promise<string> {
+    return logic().treasuryAccountId(currency);
+  }
+
+  /**
+   * ⭐ The perpetual rule — lane two: the reserve buys the state's perpetual
+   * up to `reserve.moneyPerActiveMember × active members`, minting the
+   * shortfall into the treasury; never redeems. Runs on every treasury
+   * touch. Returns what it computed and what (if anything) it minted.
+   */
+  public static async reconcilePerpetual(currency: string): Promise<PerpetualReconcile> {
+    return logic().reconcilePerpetual(currency);
+  }
+
+  /**
+   * ⭐ The window — lane one: a chartered bank presents secured paper and
+   * receives `amount` (the principal already cut by the haircut) as a
+   * `mint` into its account, category `window`, memo the contract. The
+   * contract face is the only caller.
+   */
+  public static async windowAdvance(
+    bankAccountId: string,
+    amount: Money,
+    contractId: string,
+  ): Promise<void> {
+    return logic().windowAdvance(bankAccountId, amount, contractId);
+  }
+
+  /** The window's reversal: the bank repays the reserve and the money is extinguished (a `drain`). */
+  public static async windowRepay(
+    bankAccountId: string,
+    amount: Money,
+    contractId: string,
+  ): Promise<void> {
+    return logic().windowRepay(bankAccountId, amount, contractId);
+  }
+
+  /**
+   * The Governor's recorded emergency mint — the one hand-typed number
+   * left: `amount` into `toAccountId`, category `override`, memo the
+   * reason, actor the officer from context. Refuses an empty reason.
+   */
+  public static async override(
+    toAccountId: string,
+    amount: Money,
+    reason: string,
+  ): Promise<void> {
+    return logic().override(toAccountId, amount, reason);
+  }
+
+  /**
+   * The Minister of Finance spends: an `appropriation` leg from the
+   * treasury's account to `toOwnerKey`'s primary. The perpetual rule
+   * reconciles first; refuses below balance. Returns the transaction id.
+   */
+  public static async appropriate(
+    toOwnerKey: string,
+    amount: Money,
+    memo: string,
+  ): Promise<string> {
+    return logic().appropriate(toOwnerKey, amount, memo);
+  }
+
+  /**
+   * Cash genesis as a WITHDRAWAL: a `withdraw` leg from `accountId` to the
+   * cash bridge plus the coin into `into`. Supply-neutral, floor-checked.
+   * The Arrival Note's principal and a branch's till float ride this;
+   * {@link issueCash} — the mint — survives for the test harness only.
+   */
+  public static async disburse(
+    accountId: string,
+    into: Stuff & Container,
+    amount: Money,
+    category: PnlCategory,
+  ): Promise<Stuff> {
+    return logic().disburse(accountId, into, amount, category);
+  }
+
+  /**
+   * The price index over the basket `reserve.indexBasket` names: the mean
+   * of every priced key's ask over its authored base, as a whole percentage
+   * (one hundred is par). Journalism, never an oracle — the Gazette prints it.
+   */
+  public static priceIndex(): PriceIndex {
+    return logic().priceIndex();
+  }
+
+  /** The Governor's numbers for one currency — never a total across currencies. */
+  public static async reserveDashboard(currency: string): Promise<ReserveDashboard> {
+    return logic().reserveDashboard(currency);
+  }
+
   /**
    * The currency a bare amount is denominated in — `banking.compactCurrency`
    * when set, else the only registered currency.
@@ -153,10 +251,6 @@ export class BankingApi {
       'BankingApi.compactCurrency: banking.compactCurrency is unset and more ' +
         'than one currency is registered — the compact currency cannot be guessed',
     );
-  }
-
-  public static async float(accountId: string, amount: Money): Promise<void> {
-    return logic().float(accountId, amount);
   }
 
   /** The sync materialized balance of `accountId` (0 for an unknown id). */
@@ -506,25 +600,17 @@ export class BankingApi {
    * absent — lazily, on first banking interaction at the venue. The bar's
    * account the order/pnl/payroll flows resolve.
    *
-   * `openingCapital` (minor units) is minted in on the FIRST materialization
-   * only. Omit it to take the `banking.openingCapital` default; pass `0` to
-   * decline — which is what a worker's payer-derived account does, since a
-   * worker earns wages rather than being capitalized.
+   * ⭐ It opens on NOTHING (economic bootstrap D9): a business's capital is
+   * the treasury's advance, a loan the employment seam asks the contract
+   * face for on a history-less account — never a number minted here.
    */
   public static async ensureVenueAccount(
     ownerPath: string,
     bank: string,
     corpoKey: string,
     currency: string,
-    openingCapital?: number
   ): Promise<string> {
-    return logic().ensureVenueAccount(
-      ownerPath,
-      bank,
-      corpoKey,
-      currency,
-      openingCapital
-    );
+    return logic().ensureVenueAccount(ownerPath, bank, corpoKey, currency);
   }
 
   /**

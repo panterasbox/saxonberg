@@ -1,30 +1,56 @@
 verbs: [reserve]
 controller: /platform/idea/cmd/banking/ReserveController
-description: "Central bank — mint / supply (Governor-gated)"
+description: "The Central Bank — the Governor's dashboard, the Schedule's reserve rows, the audit, the recorded override"
 help: |
-  The central-bank surface. `reserve issue <amount>` draws fresh currency
-  into your own hands — the only authority in the world that can add to
-  the money supply. `reserve mint <amount>` mints subsidy into the
-  present venue's account — a logged, visible, accountable faucet that covers
-  the deficit-as-target P&L. `reserve supply` reads the money supply and the
-  reconciliation audit. Governor-gated: you must hold the
-  `central-bank-governor` office (the founder by default, or a handed-off
-  holder) — the monetary-authority axis, not code-trust.
+  The Central Bank's surface, Governor-gated (the `central-bank-governor`
+  office — the founder by default, or a handed-off holder).
+
+  The reserve does not issue money by hand. It runs TWO PUBLISHED RULES:
+  the window (temporary money — a chartered bank presents secured
+  inventory paper and is advanced against it, less the haircut; the money
+  is extinguished when the paper repays) and the perpetual (permanent money
+  — the reserve buys the state's perpetual up to money-per-active-member,
+  into the treasury's account, and never redeems). A member can read the
+  Schedule and predict the reserve's next act.
+
+  Bare `reserve` is the dashboard: per currency, never totalled — money
+  per active member, the two lanes outstanding, overrides on the record,
+  the default rate on window paper, the price index. `reserve supply`
+  reads the money supply and the conservation audit. `reserve set <row>
+  <value>` writes one of the Schedule's `reserve.*` rows — the Governor's
+  levers, and nobody else's. `reserve override <amount> to <target>
+  "<reason>"` is the emergency override: a mint the ledger records as
+  YOUR act, with your reason, that the dashboard prints as its own line.
+  There is no `reserve mint` and no `reserve issue`: issuance no longer
+  names a destination.
 validators:
   - /lib/command/validators/requiresAnimate
   - /lib/command/validators/requiresGovernor
 subcommands:
-  issue:
-    description: "Draw fresh physical currency into your own hands"
-    args:
-      - name: amount
-        type: string
-        required: true
-  mint:
-    description: "Mint subsidy into the present venue's account"
-    args:
-      - name: amount
-        type: string
-        required: true
   supply:
     description: "Money supply + reconciliation audit"
+  set:
+    description: "Write one of the Schedule's reserve.* rows"
+    args:
+      - name: row
+        type: string
+        required: true
+      - name: value
+        type: string
+        required: true
+  override:
+    description: "The recorded emergency mint: <amount> to <target> \"<reason>\""
+    args:
+      - name: amount
+        type: string
+        required: true
+      - name: to
+        type: string
+        required: true
+      - name: target
+        type: string
+        required: true
+      - name: reason
+        type: string
+        required: true
+        greedy: true

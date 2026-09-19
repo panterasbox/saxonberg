@@ -99,16 +99,19 @@ describe("Demo sales tax", () => {
 
     const tax = await BankingApi.remitDemoTax(barAcct, Money.of(100, BankingApi.compactCurrency()));
     expect(tax.minor).toBe(8); // floor(100 * 0.08)
-    expect(BankingApi.balanceOf("treasury").minor).toBe(8);
+    // ⭐ The treasury is `/compact/treasury`'s REAL account at the CB
+    // (economic bootstrap D9), never a raw string id nobody owns.
+    const treasury = await BankingApi.treasuryAccountId(BankingApi.compactCurrency());
+    expect(BankingApi.balanceOf(treasury).minor).toBe(8);
 
     const barPnl = await BankingApi.profitAndLoss(barAcct);
     expect(barPnl.lines.tax).toBe(-8); // visible as a P&L line on the seller
-    const treasuryPnl = await BankingApi.profitAndLoss("treasury");
+    const treasuryPnl = await BankingApi.profitAndLoss(treasury);
     expect(treasuryPnl.lines.tax).toBe(8); // accumulates
 
     // another sale accumulates more; the treasury only grows
     await BankingApi.remitDemoTax(barAcct, Money.of(50, BankingApi.compactCurrency()));
-    expect(BankingApi.balanceOf("treasury").minor).toBe(12);
+    expect(BankingApi.balanceOf(treasury).minor).toBe(12);
   });
 
   it("is inert when no rate is configured (no tax)", async () => {
@@ -118,14 +121,14 @@ describe("Demo sales tax", () => {
   });
 });
 
-describe("Deficit-as-target P&L", () => {
+describe("The floor — a house cannot run red (economic bootstrap D3)", () => {
   beforeEach(() => installBankingHarness());
   afterEach(() => {
     teardownBankingHarness();
     AppSettings._resetForTesting();
   });
 
-  it("runs red across cogs/sales/wages/tax, then a CB subsidy covers it", async () => {
+  it("posts cogs/sales/tax within its means; a wage it cannot cover is refused, and there is no subsidy", async () => {
     await seedTax("0.08");
     // The bar starts with a small float; a supplier + a worker + a patron.
     const { operator, barAcct } = await barWith(0);
@@ -161,23 +164,24 @@ describe("Deficit-as-target P&L", () => {
     await asOwner(patron, () => BankingApi.settle(sale, { kind: "credential" }));
     await BankingApi.remitDemoTax(barAcct, Money.of(60, BankingApi.compactCurrency()));
 
-    // wages: pay the worker
-    await BankingApi.payWage(barAcct, "/platform/agent/Avatar/wenna", Money.of(120, BankingApi.compactCurrency()));
+    // running balance: 200(float) − 150(cogs) + 60(sales) − 4(tax) = 106
+    expect(BankingApi.balanceOf(barAcct).minor).toBe(106);
 
-    // running balance: 200(float) − 150(cogs) + 60(sales) − 4(tax) − 120(wages)
-    expect(BankingApi.balanceOf(barAcct).minor).toBe(-14); // red by design
+    // wages: a 120 wage the house cannot cover is REFUSED — no balance is
+    // driven red against nobody; the employment seam borrows or refuses.
+    await expect(
+      BankingApi.payWage(barAcct, "/platform/agent/Avatar/wenna", Money.of(120, BankingApi.compactCurrency())),
+    ).rejects.toThrow(/holds less than/);
+    expect(BankingApi.balanceOf(barAcct).minor).toBe(106);
+    // …and one it can cover posts.
+    await BankingApi.payWage(barAcct, "/platform/agent/Avatar/wenna", Money.of(100, BankingApi.compactCurrency()));
 
     const pnl = await BankingApi.profitAndLoss(barAcct);
     expect(pnl.lines.sales).toBe(60);
     expect(pnl.lines.cogs).toBe(-150);
-    expect(pnl.lines.wages).toBe(-120);
+    expect(pnl.lines.wages).toBe(-100);
     expect(pnl.lines.tax).toBe(-4);
-    expect(pnl.balance).toBe(-14);
-
-    // the CB mints subsidy to cover the red — a logged, visible faucet
-    await BankingApi.mint(barAcct, Money.of(14, BankingApi.compactCurrency()), "deficit subsidy", "subsidy");
-    expect(BankingApi.balanceOf(barAcct).minor).toBe(0);
-    const covered = await BankingApi.profitAndLoss(barAcct);
-    expect((covered.lines.subsidy ?? 0)).toBe(214); // 200 float + 14 cover
+    expect(pnl.balance).toBe(6);
+    expect(BankingApi.reconcile(BankingApi.compactCurrency()).overdraft).toBe(0);
   });
 });

@@ -246,7 +246,7 @@ describe('tips — the tip jar', () => {
     await asGiver(bartender, () => BankingApi.openAccount('goodkin', '', BankingApi.compactCurrency()));
     giveCoin(patron, 50);
     // Deposit isn't wired here; float the patron's account directly.
-    await BankingApi.float(patronAcct, Money.of(50, BankingApi.compactCurrency()));
+    await BankingApi.mint(patronAcct, Money.of(50, BankingApi.compactCurrency()), "harness");
 
     await asGiver(patron, () =>
       makeStuff(() => new TipController()).execute(

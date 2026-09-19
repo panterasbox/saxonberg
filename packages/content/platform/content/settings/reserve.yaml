@@ -1,0 +1,62 @@
+# reserve — the Schedule of Parameters' RESERVE rows (economic bootstrap
+# D4): the levers the reserve's two rules and the credit ladder read.
+#
+# ⭐ These are the Governor's: written by `reserve set <row> <value>`
+# (Governor-gated, refuses a key outside this prefix) — the independence
+# clause in code. The Minister of Finance cannot reach them, and `config`
+# stays the operator's code-trust act. A member can read every row and
+# predict the reserve's next act, which is the test for a rule versus a
+# person.
+#
+# Rates are quoted PER GAME-YEAR — a game-year is a real month at 12×, so
+# five per cent compounds visibly inside one — and rendered with the
+# real-month equivalent beside them wherever a player reads them.
+settings:
+  # Lane two — the perpetual: money per active member (minor units). The
+  # reserve buys the state's perpetual up to this × the active member
+  # count, into the treasury's account, and never redeems. The one
+  # denominator that scales with the player base.
+  - key: reserve.moneyPerActiveMember
+    value: "2000"
+
+  # Lane one — the window rate per game-year (a fraction). The bank rate
+  # plus three: a penalty, so the window is used in need, not for profit.
+  - key: reserve.windowRatePerYear
+    value: "0.08"
+
+  # The window haircut: a bank presenting secured paper is advanced
+  # (1 − h) × principal.
+  - key: reserve.haircut
+    value: "0.20"
+
+  # The ladder's gates — each a NUMBER OF LEDGER EVENTS a refusal names.
+  # Rung 1 (inventory finance): N completed supplier terms, no repossession.
+  - key: reserve.ladder.termsRequired
+    value: "3"
+  # Rung 2 (working capital): M inventory loans repaid, none defaulted.
+  - key: reserve.ladder.loansRequired
+    value: "2"
+  # The rung-2 line's cap per borrower (minor units), from the bank's own
+  # capital — unsecured lending bounded by what the bank has earned.
+  - key: reserve.ladder.workingCapitalCap
+    value: "5000"
+
+  # A bank may post its own repayment share (the fraction of each inflow
+  # taken for the creditor) within these bounds.
+  - key: reserve.repaymentShareMin
+    value: "0.10"
+  - key: reserve.repaymentShareMax
+    value: "0.50"
+
+  # Default is REVEALED, never scheduled: a loan whose borrower has had no
+  # inflows for this many game-days while a balance is outstanding is in
+  # default on the next read, and the creditor may act.
+  - key: reserve.defaultHorizonGameDays
+    value: "30"
+
+  # The price index's basket: the NPC-shop counters (template paths,
+  # comma-separated) whose stocking asks are read against their base. An
+  # index over posted asks is journalism, never an oracle — the Gazette
+  # prints it.
+  - key: reserve.indexBasket
+    value: "/world/terminus/general-store/counter,/world/terminus/counting-houses/distributor/thing/counter"

@@ -163,6 +163,12 @@ export class PlayerLogic extends ApiLogic {
     return this.avatarsByUserId.get(userId);
   }
 
+  /** See {@link PlayerApi.activeMemberCount}. The connected set until W9's estate read widens it. */
+  @CallSecurity(PlayerApiCallers)
+  public activeMemberCount(): number {
+    return this.connectedAvatars().length;
+  }
+
   /** See {@link PlayerApi.connectedAvatars}. */
   @CallSecurity(PlayerApiCallers)
   public connectedAvatars(): Avatar[] {

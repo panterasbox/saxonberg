@@ -124,7 +124,7 @@ async function makeBarBusiness(
   biz.operatingLocations = ["/stuff/test/bar/room"];
   biz.banksAt = BankingApi.defaultCustodianBank();
   const account = await EmploymentApi.operatingAccountOf(biz);
-  if (floatMinor > 0) await BankingApi.float(account, Money.of(floatMinor, BankingApi.compactCurrency()));
+  if (floatMinor > 0) await BankingApi.mint(account, Money.of(floatMinor, BankingApi.compactCurrency()), "harness");
   return { biz, account };
 }
 

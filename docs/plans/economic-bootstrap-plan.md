@@ -1372,6 +1372,43 @@ under `/test/**` (lint:test-content). The roster is 48.
   falls to 3 (the settings keys + `EmbodyController`'s `issueCash`).
 - Commit: `build(economic-bootstrap W4): four leg kinds, the floor, the treasury's account, the two rules, the reserve reshaped`.
 
+**W4 — DONE.** As planned, with three decisions the build made: (1) **the
+till float is gone entirely, not converted.** D9's "convert
+`min(banking.tillFloat, balance)` into vault coin" breaks the conservation
+identity: vault coin is deliberately NOT in the audit's bottom-up sum
+(every coin in a vault got there by a deposit whose leg credited a
+balance 1:1 — M1 excludes vault cash), and a conversion via `withdraw`
+puts UNPAIRED coin in the vault; the old float fit the identity only
+because it minted coin AND credited the branch, i.e. was the faucet. So
+a till fills from deposits and a withdrawal past it is refused "till
+low" (the existing refusal). No `banking.tillFloat`. (2) **`reserve`
+subcommands `mint`/`issue` are refused at the BINDER** (the view no
+longer declares them — a parse refusal, not a controller note); the
+drive asserts `expectRefused`. (3) The dashboard's default-rate line
+lands with W5 (it reads loan rows), the treasury book's paper lines with
+W6. What shipped: the four kinds + twelve categories; the floor at
+`postTransaction` (per-account net projected over the cache before any
+write); `payWage` refuses like `payDraw`; `ensureVenueAccount` opens on
+nothing (the `openingCapital` param, `Business.openingCapital`, the two
+dials and the opening-capital test are gone); `treasuryAccountId`
+(`/compact/treasury`'s row at the CB; `remitDemoTax` and the restamp use
+it); `reconcilePerpetual`, `windowAdvance`/`windowRepay`, `override`,
+`appropriate`, `disburse` (withdraw + coin), `priceIndex`
+(`PricedOffer.basePriceFor` + `MixinApi.isPricedOffer`),
+`reserveDashboard`; `Terms.loanRatePerGameYear`/`repaymentShare` with
+`describeLoanRate()` in words (Goodkin 5% / a quarter); `settings/reserve.yaml`
++ `treasury.yaml` (19 keys); `reserve` (dashboard · supply · set ·
+override) and `treasury` (book · appropriate) verbs; `PlayerApi.activeMemberCount`
+(the connected set until W9). Three wire files that funded a character
+by `reserve issue` now `bank open` + `reserve override … to <handle>`;
+two e2e specs were updated by text only (the render tier is outside the
+gate). Seven kernel tests that encoded the deficit model were rewritten
+to the floor. **Pre-existing defect found by the drive:** `reserve
+supply`'s full audit threw `expected singleton, found 3` — `snapshotCoinOf`
+used the singleton read on a keyed scope (`/trade/farming/thing/plant/wheat`);
+now `findAllByTemplatePath`. Faucet census 10 → **2** (the stipend dial +
+`EmbodyController#commit`). Drive steps 4–5 green on a fresh world.
+
 ### W5 — Credit: loans, the window, accrual, the share, default (D1, D12, D19)
 
 - `ContractRecord` / `ContractEvent` / `schema/contracts.yaml` +

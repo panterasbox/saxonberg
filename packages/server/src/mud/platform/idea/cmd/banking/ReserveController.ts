@@ -1,116 +1,203 @@
 /**
- * ReserveController — the `reserve` verb (developer/operator-gated): the
- * central-bank surface. `reserve mint <amount>` mints subsidy into the
- * present venue's account (a logged, visible, accountable faucet — covers
- * the deficit-as-target P&L); `reserve issue <amount>` draws physical
- * currency into the Governor's own hands; `reserve supply` reads the
- * money supply + the reconciliation audit.
+ * ReserveController — the `reserve` verb (Governor-gated): the Central
+ * Bank's surface after the economic bootstrap.
+ *
+ * ⭐ The reserve does not issue money by hand. It runs two published rules
+ * — the window and the perpetual (`BankingLogic`'s `windowAdvanceImpl` /
+ * `reconcilePerpetualImpl`) — and the Governor GOVERNS BY TUNING: bare
+ * `reserve` is the dashboard (the three numbers, per currency, never
+ * totalled), `reserve supply` the conservation audit, `reserve set <row>
+ * <value>` the Schedule's `reserve.*` rows (refuses any other prefix — the
+ * independence clause in code: the treasury seat cannot reach these, and
+ * `config` stays the operator's code-trust act), and `reserve override
+ * <amount> to <target> "<reason>"` the ONE hand-typed number left: a mint
+ * the ledger records as the officer's act with the officer's reason.
+ *
+ * `reserve mint` and `reserve issue` are gone: issuance no longer names a
+ * destination. The treasury appropriates; a business opens on the
+ * treasury's advance; a newcomer arrives on their Note.
  */
 
 import { BankingControllerBase } from "./BankingControllerBase";
 import type { CommandContext, CommandModel } from "../../../../api/command";
 import { Currency, BankingApi, Money } from "../../../../api/banking";
-import { EmploymentApi } from "../../../../api/employment";
+import { AppApi } from "../../../../api/app";
+import { AppSettingKeys } from "../../../../lib/config/AppSettings";
+import { GrammarApi } from "../../../../api/grammar";
 import { MessageApi } from "../../../../api/message";
-import { MixinApi } from "../../../../api/mixin";
 import { Mml } from "../../../../api/mml";
 
 const TOPIC = "act.deed";
 
+/** The Schedule prefix this seat may write. */
+const RESERVE_PREFIX = "reserve.";
+
 interface ReserveModel extends CommandModel {
+  row?: string;
+  value?: string;
   amount?: string;
+  to?: string;
+  target?: string;
+  reason?: string;
 }
 
 export default class ReserveController extends BankingControllerBase<ReserveModel> {
   async execute(model: ReserveModel, context: CommandContext): Promise<void> {
     switch (model.subcommand) {
-      case "mint":
-        return this.mint(model, context);
-      case "issue":
-        return this.issue(model, context);
+      case undefined:
+      case "":
+        return this.dashboard(context);
       case "supply":
         return this.supply(context);
+      case "set":
+        return this.set(model, context);
+      case "override":
+        return this.override(model, context);
       default:
         MessageApi.scene(context.commandGiver)
           .topic(TOPIC)
-          .toSelf(Mml.compose`Usage: \`reserve mint <amount>\`, \`reserve issue <amount>\` or \`reserve supply\`.`)
+          .toSelf(
+            Mml.compose`Usage: \`reserve\`, \`reserve supply\`, \`reserve set <row> <value>\` or \`reserve override <amount> to <target> "<reason>"\`. The reserve no longer mints or issues by hand.`,
+          )
           .send();
         context.note({ kind: "controller-rejected", reason: "unknown-subcommand", detail: model.subcommand ?? "" });
     }
   }
 
-  private async mint(model: ReserveModel, context: CommandContext): Promise<void> {
+  /**
+   * The Governor's three numbers, per currency: money per active member
+   * (the perpetual rule's own input), the default rate on window paper (the
+   * inflation dial), and the price index over the basket (inflation you
+   * can see) — beside the two lanes outstanding and the overrides on the
+   * record. Rates and shares in words; never a total across currencies.
+   */
+  private async dashboard(context: CommandContext): Promise<void> {
+    const blocks: string[] = [];
+    for (const record of Currency.all()) {
+      const c = record.key;
+      const d = await BankingApi.reserveDashboard(c);
+      const index = BankingApi.priceIndex();
+      const amount = (minor: number): string => Money.of(minor, c).render();
+      const perMember = Number(AppApi.setting(AppSettingKeys.reserveMoneyPerActiveMember) || 0);
+      const windowRate = Number(AppApi.setting(AppSettingKeys.reserveWindowRatePerYear) || 0);
+      const haircut = Number(AppApi.setting(AppSettingKeys.reserveHaircut) || 0);
+      blocks.push(
+        `The reserve (${record.plural})\n` +
+          `  active members:            ${GrammarApi.inWords(d.activeMembers)}\n` +
+          `  money per active member:   ${amount(d.moneyPerActiveMember)} (the rule buys up to ${amount(perMember)} each)\n` +
+          `  the perpetual, held:       ${amount(d.perpetualOutstanding)}\n` +
+          `  window advances outstanding: ${amount(d.windowOutstanding)} at ${ReserveController.percentInWords(windowRate)} per cent a game-year (a real month), haircut ${ReserveController.percentInWords(haircut)} per cent\n` +
+          `  price index:               ${GrammarApi.inWords(index.percent)} against a base of one hundred\n` +
+          `  overrides on the record:   ${amount(d.overridesOutstanding)}\n` +
+          `  the treasury holds:        ${amount(d.treasuryBalance)}`,
+      );
+    }
+    MessageApi.scene(context.commandGiver)
+      .topic(TOPIC)
+      .toSelf(Mml.compose`${blocks.join("\n\n")}`)
+      .send();
+  }
+
+  private static percentInWords(fraction: number): string {
+    const pct = fraction * 100;
+    const whole = Math.round(pct);
+    return Math.abs(pct - whole) < 1e-9 ? GrammarApi.inWords(whole) : `${pct}`;
+  }
+
+  /**
+   * Write one Schedule row — and ONLY a `reserve.*` one. The prefix check
+   * is the independence clause: the seat that spends (the Minister of
+   * Finance) cannot tune the rules, and the seat that tunes cannot spend.
+   */
+  private async set(model: ReserveModel, context: CommandContext): Promise<void> {
     const giver = context.commandGiver;
-    const minor = Number(model.amount);
-    if (!Number.isInteger(minor) || minor <= 0) {
-      MessageApi.scene(giver).topic(TOPIC).toSelf(Mml.compose`Mint how much?`).send();
-      context.note({ kind: "controller-rejected", reason: "bad-amount", detail: model.amount ?? "" });
+    const row = (model.row ?? "").trim();
+    const value = (model.value ?? "").trim();
+    if (!row.startsWith(RESERVE_PREFIX)) {
+      MessageApi.scene(giver)
+        .topic(TOPIC)
+        .toSelf(Mml.compose`The Governor writes the reserve's rows and no others: \`${RESERVE_PREFIX}…\`.`)
+        .send();
+      context.note({ kind: "controller-rejected", reason: "not-a-reserve-row", detail: row });
       return;
     }
-    // The house account keys on the BUSINESS operating here (its
-    // `getAccountPath`), not on the room — the room path found nothing
-    // once venue accounts moved to the Business (the libations live
-    // drive: "There's no account here to float" at Dave's Bar).
-    const roomPath = context.location?.getTemplatePath() ?? "";
-    const business = roomPath ? EmploymentApi.businessAt(roomPath) : null;
-    const venuePath = business?.getAccountPath() ?? roomPath;
-    const account = await BankingApi.primaryAccountIdOf(venuePath);
-    if (!account) {
-      MessageApi.scene(giver).topic(TOPIC).toSelf(Mml.compose`There's no account here to float.`).send();
-      context.note({ kind: "controller-rejected", reason: "no-venue-account", detail: "mint" });
+    const known = Object.values(AppSettingKeys).includes(row as never);
+    if (!known) {
+      MessageApi.scene(giver)
+        .topic(TOPIC)
+        .toSelf(Mml.compose`No such row in the Schedule: \`${row}\`.`)
+        .send();
+      context.note({ kind: "controller-rejected", reason: "unknown-row", detail: row });
       return;
     }
-    await BankingApi.mint(account, Money.of(minor, BankingApi.compactCurrency()), "operator subsidy", "subsidy");
+    if (!value) {
+      MessageApi.scene(giver).topic(TOPIC).toSelf(Mml.compose`Set it to what?`).send();
+      context.note({ kind: "controller-rejected", reason: "bad-value", detail: row });
+      return;
+    }
+    const before = AppApi.setting(row);
+    await AppApi.setSetting(row, value);
     MessageApi.scene(giver)
       .topic(TOPIC)
-      .toSelf(Mml.compose`The reserve mints ${Money.of(minor, BankingApi.compactCurrency()).render()} of subsidy into the house account.`)
+      .toSelf(Mml.compose`The Schedule now reads \`${row} = ${value}\` (was \`${before || "unset"}\`).`)
       .send();
   }
 
   /**
-   * Draw physical currency into the Governor's own hands.
-   *
-   * The counterpart `reserve mint` was missing: mint credits a **venue
-   * account**, so the central bank could subsidise a business but could
-   * not put a coin in anybody's pocket. The only other production caller
-   * of `issueCash` is char-gen's 20-credit onboarding stipend, which
-   * meant currency had exactly one way into the world and no authority
-   * could add another — a hole in the monetary story, not just a gap in
-   * the verb table.
-   *
-   * Into the Governor's OWN hands, deliberately. A `--to <player>` form
-   * would be a transfer wearing a mint's clothes; issuing and then
-   * handing over is two acts, and the second one is `give`, which
-   * already exists and already leaves its own trail.
-   *
-   * Rides `BankingApi.issueCash`, the conserved supply faucet — the coins
-   * are denominated, massed, encumbrance-bearing, and the mint is logged
-   * against the central bank exactly as the audit expects.
+   * The emergency override: a mint into a named target's account, the
+   * reason on the ledger row, the officer as the actor from context. The
+   * dashboard prints overrides outstanding as its own line; the faucet
+   * lint allowlists exactly this act.
    */
-  private async issue(
-    model: ReserveModel,
-    context: CommandContext,
-  ): Promise<void> {
+  private async override(model: ReserveModel, context: CommandContext): Promise<void> {
     const giver = context.commandGiver;
     const minor = Number(model.amount);
     if (!Number.isInteger(minor) || minor <= 0) {
-      MessageApi.scene(giver).topic(TOPIC).toSelf(Mml.compose`Issue how much?`).send();
+      MessageApi.scene(giver).topic(TOPIC).toSelf(Mml.compose`Override how much?`).send();
       context.note({ kind: "controller-rejected", reason: "bad-amount", detail: model.amount ?? "" });
       return;
     }
-    if (!MixinApi.isContainer(giver)) {
-      MessageApi.scene(giver).topic(TOPIC).toSelf(Mml.compose`You have nowhere to put it.`).send();
-      context.note({ kind: "controller-rejected", reason: "no-hands", detail: "issue" });
+    if ((model.to ?? "").toLowerCase() !== "to") {
+      MessageApi.scene(giver)
+        .topic(TOPIC)
+        .toSelf(Mml.compose`Usage: \`reserve override <amount> to <target> "<reason>"\`.`)
+        .send();
+      context.note({ kind: "controller-rejected", reason: "bad-syntax", detail: model.to ?? "" });
       return;
     }
-    await BankingApi.issueCash(giver, Money.of(minor, BankingApi.compactCurrency()), "float");
+    const reason = (model.reason ?? "").trim().replace(/^["']|["']$/g, "");
+    if (!reason) {
+      MessageApi.scene(giver)
+        .topic(TOPIC)
+        .toSelf(Mml.compose`An override goes on the record with a reason. Give one.`)
+        .send();
+      context.note({ kind: "controller-rejected", reason: "no-reason", detail: "" });
+      return;
+    }
+    const target = ReserveController.resolvePayee(model.target ?? "");
+    if (!target) {
+      MessageApi.scene(giver)
+        .topic(TOPIC)
+        .toSelf(Mml.compose`No business or member answers to "${model.target ?? ""}".`)
+        .send();
+      context.note({ kind: "controller-rejected", reason: "no-target", detail: model.target ?? "" });
+      return;
+    }
+    const account = await BankingApi.primaryAccountIdOf(target.key);
+    if (!account) {
+      MessageApi.scene(giver)
+        .topic(TOPIC)
+        .toSelf(Mml.compose`${target.label} has no account to receive into.`)
+        .send();
+      context.note({ kind: "controller-rejected", reason: "no-account", detail: target.key });
+      return;
+    }
+    const money = Money.of(minor, BankingApi.compactCurrency());
+    await BankingApi.override(account, money, reason);
     MessageApi.scene(giver)
       .topic(TOPIC)
       .toSelf(
-        Mml.compose`The reserve issues ${Money.of(minor, BankingApi.compactCurrency()).render()} in fresh currency into your hands.`,
-      )
-      .toPeers(
-        Mml.compose`${Mml.actor(giver)} draws fresh currency from the reserve.`,
+        Mml.compose`The reserve mints ${money.render()} into ${target.label}'s account on your override — "${reason}" — and the record says so.`,
       )
       .send();
   }
@@ -130,15 +217,12 @@ export default class ReserveController extends BankingControllerBase<ReserveMode
       const c = record.key;
       const r = await BankingApi.fullReconcile(c);
       const amount = (minor: number): string => Money.of(minor, c).render();
-      // ⭐ The overdraft line is only printed when there IS one, and it is
-      // the Governor's most important number when there is: `accountTotal`
-      // NETS, so money paid out of an unfunded account cancels itself out of
-      // the supply figure while remaining spendable in the payee's hands.
-      // Without this line a world running entirely on unissued credit reads
-      // as a world with no money at all — and reconciles clean.
+      // ⭐ The overdraft line is only printed when there IS one — and since
+      // the floor (economic bootstrap D3) it is expected to read zero; a
+      // non-zero line is a defect report, not a policy.
       const overdraft =
         r.overdraft > 0
-          ? `\n  of which overdraft: ${amount(r.overdraft)} (unissued credit)`
+          ? `\n  of which overdraft: ${amount(r.overdraft)} (unissued credit — THE FLOOR IS BREACHED)`
           : "";
       blocks.push(
         `Money supply (${record.plural}): ${amount(r.supply)}\n` +

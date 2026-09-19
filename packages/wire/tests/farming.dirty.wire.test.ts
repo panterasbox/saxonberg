@@ -37,7 +37,7 @@ import {
  * It BUYS A LOT. Land is titled, the title is durable, and there is no
  * way to sell it back — so every run consumes one lot off the plat book
  * and leaves a stranger holding it forever. It also mints the coin to
- * pay with (`reserve issue`, the conserved faucet with no sink) and eats
+ * pay with (`reserve override`, the recorded mint with no sink) and eats
  * the seed, the sack of soil and the rations.
  *
  * ⓘ The original bought a FRESH lot each run for a different reason, and
@@ -87,17 +87,16 @@ afterAll(() => {
 
 suite('the money, and the kit', () => {
   it('a resident funds an account', async () => {
+    // The Governor's RECORDED override into the resident's account
+    // (economic bootstrap: the reserve issues no coin by hand).
+    await walk(g, ['north', 'north', 'west', 'west']);
+    expectOk(await g.cmd('bank open'));
     const gov = await Session.open('founder', { startLocation: HALL });
     try {
-      expectOk(await gov.cmd('reserve issue 500'));
-      expectOk(await gov.cmd('drop coins'));
+      expectOk(await gov.cmd(`reserve override 500 to ${g.handle} "wire: farming funding"`));
     } finally {
       gov.close();
     }
-    expectOk(await g.cmd('get coins'));
-    await walk(g, ['north', 'north', 'west', 'west']);
-    expectOk(await g.cmd('bank open'));
-    expectOk(await g.cmd('bank deposit coins'));
     const bal = /balance is (\d+)/i.exec(await g.prose('bank'));
     expect(bal, 'a funded balance').toBeTruthy();
     expect(Number(bal![1])).toBeGreaterThan(0);

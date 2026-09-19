@@ -38,3 +38,11 @@ data:
     wireFee: 0
     crossCorpoFee: 2
     cardReissueFee: 0
+    # ⭐ Goodkin LENDS (economic bootstrap D13): its rate is its own
+    # standing offer, posted beside its fees — the three-millennia anchor
+    # for safe credit, per game-year (a real month). No benchmark object
+    # exists anywhere; a counter with no rate does not lend. A quarter of
+    # each inflow to a borrower's account comes back until the balance
+    # clears — no due date, ever.
+    loanRatePerGameYear: 0.05
+    repaymentShare: 0.25

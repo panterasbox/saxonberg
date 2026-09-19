@@ -127,6 +127,11 @@ describe("the leg-kind vocabulary — no untyped legs", () => {
       "escrow-release": { from: "a", to: "b", amount: 1, currency: BankingApi.compactCurrency() },
       "escrow-revert": { from: "a", to: "b", amount: 1, currency: BankingApi.compactCurrency() },
       draw: { from: "a", to: "b", amount: 1, currency: BankingApi.compactCurrency() },
+      // The economic bootstrap's four (D2): all real→real.
+      advance: { from: "a", to: "b", amount: 1, currency: BankingApi.compactCurrency() },
+      repayment: { from: "a", to: "b", amount: 1, currency: BankingApi.compactCurrency() },
+      appropriation: { from: "a", to: "b", amount: 1, currency: BankingApi.compactCurrency() },
+      escheat: { from: "a", to: "b", amount: 1, currency: BankingApi.compactCurrency() },
     };
     for (const kind of LEDGER_KINDS) {
       expect(() =>
