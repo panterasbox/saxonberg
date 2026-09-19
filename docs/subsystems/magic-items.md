@@ -356,6 +356,34 @@ perfect blades and faded rings. (D9's pattern-rot clock was the
 `Focus` half of that and went with the class; a conduit has no pattern
 to rot, only a tool's ordinary wear.)
 
+#### Why a home has no line, and why the cell is a story
+
+(Graduated from the mana-economy design pack, 2026-09.) **Impulse vs
+binding is the battery-vs-wired distinction**, and it follows from the
+science rather than convention: an *impulse* device fires and the world
+takes over (a teleport, a trap's firebolt) — it draws per use, so a
+**battery** suits it; a *binding* device holds a state against
+equilibrium (a ward, a held glowlight, a climate vault) — it draws per
+second, so it wants a **wired** supply. The TPA is an impulse device and
+battery-shaped by nature; a busy city terminal has the throughput to
+justify a wire and a frontier terminal does not — same device, different
+supply, chosen on throughput.
+
+So **domestic devices are impulse devices** — a lock that opens, a lamp
+you light — topped up by contact from the resident's own pool, which is
+what the `mana-lamp` row's *a resident is a sufficient battery* means. A
+home needs no mana connection, and the reason is not "homes do not use
+magic" but "homes use impulses." ⚠ *Binding devices need a real supply,
+and those are institutional* — a permanent ward is a guild's problem —
+which is the unbuilt half (`DrawMode` declares `'binding'`; nothing reads
+it yet).
+
+And the cell is a **narrative primitive** before it is an economy: a
+battery decouples power from place, which is what lets an author put a
+powered thing on the frontier without lying about it — the cost is a
+clock, and the clock is the story. It also mints the *dead battery*: a
+failure that is nobody's fault and is recoverable.
+
 ### Recharging: three things, and a coupling that loses some
 
 `recharge` used to move a caster's reserve into a shell on the strength
