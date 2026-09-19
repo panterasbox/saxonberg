@@ -106,6 +106,14 @@ async function idle(s: Session, gameSeconds: number): Promise<void> {
   }
 }
 
+/** The shelf's BODY figure — the words the client renders. */
+async function bodyOf(s: Session): Promise<{ breath: string; hunger: string; thirst: string; build: string }> {
+  const rows = await s.query('me', { fields: ['bodyState'] });
+  const b = (rows[0] as { bodyState?: { breath: string; hunger: string; thirst: string; build: string } } | undefined)?.bodyState;
+  expect(b, 'bodyState is a projected field on the self card').toBeDefined();
+  return b!;
+}
+
 async function massOf(s: Session): Promise<number> {
   const rows = await s.query('me', { fields: ['mass'] });
   const m = rows[0] as { mass?: { value?: number } | number } | undefined;
@@ -120,6 +128,10 @@ async function runUntilBroken(s: Session, max = 10): Promise<number> {
     const dir = i % 2 === 0 ? 'north' : 'south';
     const r = await s.cmd(`run ${dir}`);
     const broke = r.notes.find((n) => n.kind === 'pace-broken');
+    // ⭐ The cue arrives on `self.body` at the crossing — the exit that
+    // took the body under the line says *"You're winded."* before the
+    // NEXT run breaks. Recorded when it lands; asserted on the break.
+    if (/You're winded\./.test(await r.said())) windedCueSeen = true;
     if (broke) {
       expect(broke).toMatchObject({ from: 'run', to: 'walk' });
       expect(await r.said()).toMatch(/winded/i);
@@ -141,6 +153,8 @@ let baselineMass: number;
 const snapshot: Record<string, string> = {};
 /** The sweat cue, seen anywhere in H's prose after work began. */
 let sweatSeen = false;
+/** The breath cue, seen on the lane at the crossing. */
+let windedCueSeen = false;
 
 async function bank(handle: string, amount: number): Promise<void> {
   const gov = await Session.open('founder', { startLocation: BANK, wizard: true });
@@ -200,6 +214,13 @@ suite('1–3 · two fresh bodies read the same', () => {
     expect(await massOf(L)).toBeCloseTo(baselineMass, 3);
     expect(baselineMass).toBeGreaterThan(0);
   }, 60_000);
+
+  it('⭐ the BODY figure on the self card reads in words — fresh, and the build', async () => {
+    const b = await bodyOf(H);
+    expect(b.breath).toBe('fresh');
+    expect(b.build).toBe('in good flesh');
+    expect(JSON.stringify(b)).not.toMatch(/\d/);
+  }, 60_000);
 });
 
 /* ───────────────── Part 2 — reach, fresh ───────────────── */
@@ -214,6 +235,9 @@ suite('4 · a fresh body cannot sustain a run', () => {
     const at = await runUntilBroken(L);
     expect(at, 'the run broke within ten exits').toBeGreaterThan(0);
     expect(at).toBeLessThanOrEqual(8);
+    // ⭐ Feedback: the figure turned over to the word, unasked.
+    expect((await bodyOf(L)).breath).toBe('winded');
+    expect(windedCueSeen, 'the winded cue arrived at the crossing, unasked').toBe(true);
     // …and the next run breaks too — nothing has rested.
     const again = await L.cmd('run north');
     expect(again.notes.some((n) => n.kind === 'pace-broken')).toBe(true);

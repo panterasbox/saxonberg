@@ -133,6 +133,38 @@ refuse at the same line, so a spent body cannot start what it could not
 finish; a spent body in a fight keeps exchanging at zero further cost
 with its poise and tempo already reading its endurance.
 
+## ⭐ Feedback — the body as words, at the moment it changes
+
+No hit points, no meter — and a player still needs to know, in real
+time, how their body is doing. Three surfaces, all words:
+
+- **The shelf's `BODY` row** — `bodyState` on the `self` card
+  (`Creature.subscribableFields`): breath (`fresh` · `tired` ·
+  `winded` · `spent`, on the `exertion.freshPct` / `paceFloorPct` /
+  `exhaustionFloorPct` lines), hunger (`full` · `fed` · `hungry` ·
+  `starving`, on metabolism's own surplus/deficit lines), thirst
+  (`fine` · `thirsty` · `parched`, on the recovery throttle), and the
+  build phrase. The client shows the breath word and adds hunger and
+  thirst only when they say something (*fresh*, not *fresh · fed ·
+  fine*). Default-pinned — it joined the default the day it started
+  answering.
+- **The poke** — `ExertingMixin.noteBodyState()` runs after every
+  `exert` and after every metabolism reconcile (`Metabolic.
+  onMetabolismReconciled`, a `@hook` terminal the mixin overrides) and
+  `notifyDurableSubject`s the self card **only when a band has turned
+  over** — never every slice. The row changes when the word changes.
+- **The cue** — on a breath crossing, one line on `self.body` in the
+  register that topic already speaks (*"You're sweating."*): going down,
+  *"You're winded."* / *"You're spent."*; coming back, one line for the
+  whole climb — *"You've got your breath back."* — and nothing for
+  spent → winded (still short of breath). The first read of a session
+  is silent. Crossings only: *the deviation is the story*.
+
+⚠ What is deliberately NOT here: a bar, a percentage, a ticking figure.
+The design that makes the run *break* only works if the player is
+reading the body and not the meter — with a meter you stop at 51 % and
+never learn what winded feels like.
+
 ## Reach — the reads
 
 | read | where it is asked | what it does |

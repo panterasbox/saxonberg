@@ -128,6 +128,13 @@ settings:
   - key: exertion.paceFloorPct
     value: "50"
 
+  # Endurance % at or above which the breath band reads `fresh`: the
+  # ladder is fresh · tired · winded (under the pace floor) · spent (at
+  # the exhaustion floor) — the words the shelf's BODY row shows and the
+  # `self.body` cue says on a crossing. Never a number.
+  - key: exertion.freshPct
+    value: "70"
+
   # Endurance % a projected step may not leave the body under — the
   # double-shift refusal ("You're too tired for that.").
   - key: exertion.exhaustionFloorPct

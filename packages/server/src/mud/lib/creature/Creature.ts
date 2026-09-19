@@ -63,6 +63,7 @@ import { PostmortemMixin } from '../mortality/Postmortem';
 import { Quantity } from '../quantity';
 import { AppApi } from '../../api/app';
 import { AppSettingKeys } from '../config/AppSettings';
+import type { SubscribableFieldDescriptor } from '../../api/mql-subscription';
 
 // Body stack (inner → outer):
 //   Container + Containable + Disguisable + Visible + Respiration +
@@ -321,6 +322,23 @@ function dial(key: string, fallback: number): number {
  * `Creature` does not re-register.
  */
 export class Creature extends CreatureBase {
+  /**
+   * ⭐ The shelf's BODY row — the reserve bands as words, with the build
+   * phrase beside them. A live field on the `self` card, re-resolved
+   * when `ExertingMixin.noteBodyState` pokes the durable subject on a
+   * band crossing (never every slice). Words only: *winded*, *hungry*,
+   * *in good flesh, hard* — the mirror, never a gauge.
+   */
+  static subscribableFields: SubscribableFieldDescriptor[] = [
+    {
+      name: 'bodyState',
+      read: (stuff) => {
+        const c = stuff as Creature;
+        return { ...c.bodyState(), build: c.bodyBuildPhrase() };
+      },
+    },
+  ];
+
   constructor() {
     super();
     // Every living body starts with its biological reserves (endurance /

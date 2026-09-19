@@ -694,6 +694,18 @@ export function MetabolicMixin<TBase extends MixinConstructor>(Base: TBase) {
       } finally {
         this._reconciling = false;
       }
+      this.onMetabolismReconciled();
+    }
+
+    /**
+     * @hook The reserves have just been integrated over a real gap — the
+     * moment a body's BANDS may have turned over by nothing but time
+     * (breath coming back, hunger arriving). A no-op terminal; a mixin
+     * composed outer of this one (`ExertingMixin`) overrides it to note
+     * the body's state to the player. Compose via `super`.
+     */
+    protected onMetabolismReconciled(): void {
+      // no-op terminal — overriders compose via super
     }
 
     /**

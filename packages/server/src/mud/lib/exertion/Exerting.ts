@@ -57,6 +57,7 @@ import { AppSettingKeys } from '../config/AppSettings';
 import { MixinApi } from '../../api/mixin';
 import { MessageApi } from '../../api/message';
 import { Mml } from '../../api/mml';
+import { MqlSubscriptionApi } from '../../api/mql-subscription';
 import { LOAD_BEARING_DEFAULTS } from '../encumbrance/LoadBearing';
 import {
   COMPETENCE_BANDS,
@@ -113,6 +114,52 @@ export interface Exerting {
    * less.
    */
   wattsForFeltCost(debitPct: number, durationS: number): number;
+  /**
+   * ⭐ How the body is breathing, as a BAND — `fresh` · `tired` ·
+   * `winded` (the run has broken) · `spent` (the step verbs refuse).
+   * The word the shelf shows and the cue announces; never a number.
+   */
+  breathBand(): BreathBand;
+  /**
+   * The three bands the reserves answer for — breath, hunger, thirst —
+   * as words. What the shelf's BODY row renders (the build phrase joins
+   * it on `Creature`). Never a number.
+   */
+  bodyState(): BodyState;
+  /**
+   * Note the body's state to the player: pokes the live self card when
+   * any band has turned over, and says the breath cue on a crossing.
+   * Called after every exertion and after every metabolism reconcile.
+   */
+  noteBodyState(): void;
+}
+
+/** The breath bands, fresh to spent — a closed, ordinal vocabulary. */
+export const BREATH_BANDS = ['fresh', 'tired', 'winded', 'spent'] as const;
+export type BreathBand = (typeof BREATH_BANDS)[number];
+
+/**
+ * ⭐ The cue on a breath crossing, in the register `self.body` already
+ * speaks (*"You're sweating."*). Crossings only — narrating every slice
+ * is a nag; the deviation is the story. Recovery gets one line for the
+ * whole climb back.
+ */
+const BREATH_CUE: Readonly<Partial<Record<BreathBand, string>>> = {
+  winded: "You're winded.",
+  spent: "You're spent.",
+};
+const BREATH_BACK = "You've got your breath back.";
+
+export const HUNGER_BANDS = ['full', 'fed', 'hungry', 'starving'] as const;
+export type HungerBand = (typeof HUNGER_BANDS)[number];
+export const THIRST_BANDS = ['fine', 'thirsty', 'parched'] as const;
+export type ThirstBand = (typeof THIRST_BANDS)[number];
+
+/** The reserve bands as words — the shelf's BODY row. */
+export interface BodyState {
+  breath: BreathBand;
+  hunger: HungerBand;
+  thirst: ThirstBand;
 }
 
 /**
@@ -227,6 +274,7 @@ export function ExertingMixin<TBase extends MixinConstructor>(Base: TBase) {
       if (this.conditioningBand('wind') !== windBefore) {
         this.onConditioningBandCrossed('wind');
       }
+      this.noteBodyState();
     }
 
     public canExert(powerW: number, durationS: number): boolean {
@@ -277,6 +325,88 @@ export function ExertingMixin<TBase extends MixinConstructor>(Base: TBase) {
         ? self.getMass().rawValue() || REFERENCE_MASS_KG
         : REFERENCE_MASS_KG;
       return mass * dial(AppSettingKeys.bodyPeakWPerKg, 12) * this.leanMargin();
+    }
+
+    /** The last bands noted — runtime only, so the first note is silent. */
+    private _notedBreath: BreathBand | null = null;
+    private _notedBodyState: string | null = null;
+
+    public breathBand(): BreathBand {
+      const self = this as unknown as ExertingHost;
+      const endurance = self.getReserve('endurance');
+      if (!endurance) return 'fresh';
+      const cap = endurance.capacity.rawValue();
+      const pct = cap > 0 ? (endurance.current.rawValue() / cap) * 100 : 0;
+      if (pct <= dial(AppSettingKeys.exertionExhaustionFloorPct, 10)) return 'spent';
+      if (pct < dial(AppSettingKeys.exertionPaceFloorPct, 50)) return 'winded';
+      if (pct < dial(AppSettingKeys.exertionFreshPct, 70)) return 'tired';
+      return 'fresh';
+    }
+
+    public bodyState(): BodyState {
+      const self = this as unknown as ExertingHost;
+      const pct = (key: string): number | null => {
+        const r = self.getReserve(key);
+        if (!r) return null;
+        const cap = r.capacity.rawValue();
+        return cap > 0 ? (r.current.rawValue() / cap) * 100 : 0;
+      };
+      // The satiation lines are metabolism's own: surplus above 70 banks
+      // flesh, deficit at 25 draws on it; hydration throttles recovery
+      // under 30. The words sit on those lines rather than inventing new ones.
+      const sat = pct('satiation');
+      const hunger: HungerBand =
+        sat === null || sat >= 70 ? 'full' : sat >= 25 ? 'fed' : sat > 0 ? 'hungry' : 'starving';
+      const hyd = pct('hydration');
+      const thirst: ThirstBand =
+        hyd === null || hyd >= 30 ? 'fine' : hyd > 0 ? 'thirsty' : 'parched';
+      return { breath: this.breathBand(), hunger, thirst };
+    }
+
+    public noteBodyState(): void {
+      const self = this as unknown as Stuff;
+      if (self.isDestroyed()) return;
+      const breath = this.breathBand();
+      const state = JSON.stringify(this.bodyState());
+      // The first read of a session seeds silently; only a CHANGE speaks.
+      if (this._notedBreath !== null && breath !== this._notedBreath) {
+        const was = BREATH_BANDS.indexOf(this._notedBreath);
+        const now = BREATH_BANDS.indexOf(breath);
+        const winded = BREATH_BANDS.indexOf('winded');
+        // Going DOWN names the band you have reached; coming back up says
+        // so once, when you are no longer short of breath. Spent → winded
+        // is still short of breath and says nothing.
+        const line =
+          now > was
+            ? (BREATH_CUE[breath] ?? null)
+            : was >= winded && now < winded
+              ? BREATH_BACK
+              : null;
+        if (line) {
+          try {
+            MessageApi.scene(self)
+              .topic('self.body')
+              .toSelf(Mml.compose`${line}`)
+              .send();
+          } catch {
+            // a bare body (no Sensor) has no cue surface; the state still notes
+          }
+        }
+      }
+      if (this._notedBodyState !== null && state !== this._notedBodyState) {
+        const subject = self.getIdentityPath();
+        if (subject) MqlSubscriptionApi.notifyDurableSubject(subject);
+      }
+      this._notedBreath = breath;
+      this._notedBodyState = state;
+    }
+
+    /** Metabolism has integrated a gap — breath may have come back. */
+    protected onMetabolismReconciled(): void {
+      const parent = (Base.prototype as { onMetabolismReconciled?: () => void })
+        .onMetabolismReconciled;
+      if (typeof parent === 'function') parent.call(this);
+      this.noteBodyState();
     }
 
     public wattsForFeltCost(debitPct: number, durationS: number): number {

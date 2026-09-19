@@ -1063,6 +1063,7 @@ export type ShelfRowId =
   | "play"
   | "renown"
   | "skill"
+  | "body"
   | "make"
   | "coin"
   | "status"
@@ -1075,6 +1076,7 @@ export const SHELF_ROW_IDS: readonly ShelfRowId[] = [
   "play",
   "renown",
   "skill",
+  "body",
   "make",
   "coin",
   "status",
@@ -1107,6 +1109,10 @@ export const DEFAULT_SHELF: readonly ShelfRowId[] = [
   "play",
   "renown",
   "skill",
+  // ⭐ Joined the default the day it started answering (nutrition-and-
+  // fitness W8): the body is the most immediate figure a person has,
+  // and it is words — winded · hungry · in good flesh — never a gauge.
+  "body",
 ];
 
 export interface MqlSubscribeMessage {
@@ -1742,6 +1748,14 @@ export interface SelfFigureRecord {
    * practised.
    */
   practisingCompetence?: { discipline: string; band: string } | null;
+  /**
+   * ⭐ The body, as WORDS — breath (`fresh`·`tired`·`winded`·`spent`),
+   * hunger, thirst, and the build phrase the mirror prints. Re-resolved
+   * when a band turns over, never every slice. No number ever rides
+   * here: a meter would let a player stop at 51 % and never learn what
+   * winded feels like.
+   */
+  bodyState?: { breath: string; hunger: string; thirst: string; build: string };
 }
 
 /**

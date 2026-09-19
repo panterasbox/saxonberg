@@ -1849,6 +1849,10 @@ export const AppSettingKeys = {
   /** Exertion — endurance `%` under which a body cannot hold a pace
    * faster than a walk: the run breaks. */
   exertionPaceFloorPct: "exertion.paceFloorPct",
+  /** Exertion — endurance `%` at or above which the breath band reads
+   * `fresh`; under it `tired`, under the pace floor `winded`, at the
+   * exhaustion floor `spent`. The words the shelf and the cue use. */
+  exertionFreshPct: "exertion.freshPct",
   /** Exertion — endurance `%` a projected step may not leave the body
    * under; the double-shift refusal. */
   exertionExhaustionFloorPct: "exertion.exhaustionFloorPct",

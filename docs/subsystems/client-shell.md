@@ -596,7 +596,7 @@ the top bar, and **the first consumer of the honest-state primitives**.
 A shelf showing nine confident numbers would be lying about six of them,
 so the six say what they are instead.
 
-⭐ **But the default shelf pins only the three that are wired.** An
+⭐ **But the default shelf pins only the rows that are wired** (three, then four when `BODY` started answering). An
 earlier cut defaulted to all nine, reasoning that the shelf being mostly
 hatched *is* the convention working and should be visible on first
 login. That mistook a principle for a product: a new player's first
@@ -617,6 +617,7 @@ answering.
 | `PLAY` | **live** | ✅ | `playStanding` |
 | `RENOWN` | **live** | ✅ | `renown` |
 | `SKILL` | **live** | ✅ | `practisingCompetence` |
+| `BODY` | **live** | ✅ | `bodyState` — breath · hunger · thirst as WORDS, the build beside them; poked on a band crossing (nutrition-and-fitness). See [exertion.md](./exertion.md) § Feedback |
 | `MAKE` | **live** | — | `makeStanding` |
 | `COIN` | hatched | — | `unexposed` |
 | `STATUS` | hatched | — | `unexposed` |
