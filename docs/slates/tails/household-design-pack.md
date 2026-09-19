@@ -7,11 +7,15 @@
 > resolved, blocker 2 closed) → [holding.md](../../subsystems/holding.md),
 > derive-on-read domicile → [civics.md](../../subsystems/civics.md).
 > **Left:** `ParcelApi.householdOf(extent)` — the domicile ∩ extent read ·
-> the gate made COLLECTIVE plus the leave-and-ascend-alone exit ·
-> household contract clauses over the derived condition read ·
-> co-ownership as a managed group `ParcelOwner` · the marriage bundle +
-> registry record · Q2 (does an expired grant drop you from the
-> household?)
+> the gate made COLLECTIVE plus the leave-and-ascend-alone exit · the
+> act-deposited condition producer with `(actor, target, extent)`
+> attribution (room-condition-design-pack — the shipped axis is the shell
+> clock only) · household contract clauses over the derived condition read
+> (a condition-band template in contract's closed vocabulary) ·
+> co-ownership as a managed group `ParcelOwner` (the owner kind ships; the
+> household flow over it is undriven) · the marriage bundle + registry
+> record · primary-home designation across two holdings · Q2 (does an
+> expired grant drop you from the household?)
 > **Size:** a wave
 
 > **Status: design, planner-ready, captured 2026-08-06. Not requirements.**
@@ -20,7 +24,7 @@
 > designs the multi-occupant case — roommates, spouses, a commune — and finds
 > that it needs **no new primitive**. Same per-object format as the
 > [room-condition](../builds/room-condition-design-pack.md),
-> [spoilage](./spoilage-design-pack.md) and
+> [spoilage](../../subsystems/spoilage.md) and
 > [residence-ladder](./residence-ladder-design-pack.md) packs.
 
 See also: [stewardship-doctrine](../../stewardship-doctrine.md) (the pillar) ·
@@ -99,23 +103,10 @@ chain."* Tenure rides `ParcelApi` on the coverage walk `ownerOf` already does.
 The household read is a new **surface** on `ParcelApi` (`householdOf(extent)`),
 never a new Api — concepts ride existing facades.
 
-### The tenure substrate is built, and the doc says otherwise
-
-Verified in code, 2026-08-06:
-
-- `ParcelRecord.grants: UseGrant[]` is a **live** array —
-  `{kind, holder, grantedAt, expiresAt}`, holder-keyed, one grant per holder,
-  replace-on-regrant.
-- `ParcelRegistry.grantUse` / `revokeUse` / `hasUseGrant` are **built, gated
-  (`ParcelApiCallers`), sandbox-guarded, and persisted**. Expiry is honored
-  (`ParcelRecord.hasActiveGrant(record, holder, now)`).
-- `revokeUse` already **reaps a revoked occupant from the extent's sandbox
-  circle** — eviction has an implemented consequence path.
-- `heldUnitOf(holder)` is the reverse index (⚠ with a v1 assumption — Part 7).
-
-> ⚠ **`parcel.md` still calls `grants[]` an "INERT 0a seam."** That is stale —
-> 0b landed. A doc fix for whoever is next in that file; the design below
-> assumes the built behavior.
+*The tenure substrate — live `grants[]`, `grantUse` / `revokeUse` /
+`hasUseGrant` (expiry-honoring), the sandbox reap on revoke, `heldUnitsOf` —
+is stated in [parcel.md § `grants[]`](../../subsystems/parcel.md), whose
+"inert" claim was corrected 2026-08-06.*
 
 ### The two shapes of household are the two shapes of tenure
 
