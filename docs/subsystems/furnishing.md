@@ -374,7 +374,7 @@ Four archetypes ship, and they are four *different kinds of answer*:
 |---|---|---|
 | **bedroom** | **function** | sleep is the logout state; the bed is the substrate's first real rest surface |
 | **kitchen** | **bundle** | cooking is conferred by heat + pot; the room collapses an errand |
-| **bathroom** | **presence** | a residence without one reads broken; what it is *for* is not modelled |
+| **bathroom** | **presence** | a residence without one reads broken; what it is *for* is not modelled — **and no waste, as a standing decision**: characters do not excrete; omitting it costs nothing, simulating it costs dignity (the uncanny is asymmetric); the door is closed but labelled — if pedagogy ever wants the excretory system, metabolism already teaches intake honestly (graduated from the bathroom slate, 2026-09) |
 | **living** | **audience** | the room you bring a visitor into — and it ships **empty**, because filling it is the point |
 
 They add **zero new classes, mixins or verbs** — a test enumerates the six

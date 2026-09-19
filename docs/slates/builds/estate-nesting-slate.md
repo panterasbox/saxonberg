@@ -54,16 +54,11 @@ number a game like this is *designed* to make go up.
 
 ## ⭐ What the pets build already proved
 
-`EstateEntry.key` (D12) made a **self-persisting** good ride as a
-reference rather than a copy:
-
-```ts
-{ chattelId, templatePath, key, state: {}, place }
-```
-
-The good's own record is authoritative; the owner's estate says only
-*you have title to this, and here is how to find it*. A named animal is
-the first entry that does not bloat its owner's record.
+Shipped and documented: a self-persisting good rides in the estate as a
+reference (`EstateEntry.key`, `state: {}`) —
+[furnishing.md § Owner-based persistence](../../subsystems/furnishing.md)
+(*a good that persists itself is a REFERENCE in the estate*),
+[persistence.md § Keyed nested hosts](../../subsystems/persistence.md).
 
 ⭐⭐ **That is the shape the rest of the estate probably wants**, and the
 question this slate exists to answer is why it should not be the default:
