@@ -2,9 +2,15 @@
 
 > **Status: UNBUILT** — no altar, no rite, no sacrifice; only the
 > substrates it rides (chronicle, belief, renown, contract) are shipped
+> (re-verified 2026-09-19: no `AltarMixin`, no patron name in any pack, no
+> `swear` / `offer` / `consecrate` / `dedicate` view; `renown.md` keys
+> standing on persons, not objects)
 > **Left:** `AltarMixin` · `swear` / `offer` / `consecrate` / `dedicate` ·
-> accreted weight as renown-of-the-object · the patron taxonomy + taint ·
-> the prophet's wilderness altar · sacrifice tuning
+> accreted weight as renown-of-the-object · the butcher-or-offer fork +
+> the recognition-never-reward guardrail · the patron taxonomy + taint ·
+> consecration / desecration / cleansing · non-kill offerings · the
+> prophet's wilderness altar (+ his valence) · sacrifice tuning · the
+> reformed "altar" as the honest count
 > **Size:** a build
 
 > **Status: design captured, not built.** The altar as an **object + a system**,
