@@ -85,7 +85,8 @@ has TWO sources*.
 
 ## The covering stack — one walk, on the wearer
 
-`SlottedMixin` answers about its own slots. ⚠ **There is no
+`AttiredMixin` (the covering half split off `Slotted` —
+[slot.md](./slot.md)) answers about its own slots. ⚠ **There is no
 covering-stack Api and there must not be**: a covering read is one host
 answering about its own slots, which is none of the four mandates
 `check-object-verbs` allows.
@@ -222,6 +223,20 @@ filter.** The metal ion is part of the chromophore, so alum-madder (a
 clear red lake) and iron-madder (a purple-brown one) are different
 pigments. "Iron saddens everything" would be tidier and false.
 
+⭐⭐ **Dyeing is TWO chemistries, and the fibre is the third axis.**
+Madder and weld are *mordant* dyes — the metal decides the colour family
+and the bath **exhausts** dip by dip; woad is a *vat* dye — no mordant
+(alum offered to it is wasted), and the bath **builds**. What ships is
+two mordant dyes × four mordants (alum · iron · tannin · none) plus woad
+as the deliberate exception — eight outcomes plus one, not the false
+twelve a uniform grid would teach, and `two-chemistries.test.ts` pins
+it. The fibre participates through a load-bearing `cellulose` tag:
+cellulose will not hold a metal ion on its own, so linen wants a tannin
+bath first and a metal mordant laid straight on it comes up thin — which
+is why linen was worn undyed and wool was the coloured cloth. Wool
+(protein) takes alum directly and arrives with ranching. The full
+account is `packages/content/trade-dyeing/README.md`.
+
 ⚠ **The base is neutral white today.** The honest base is the fibre's
 own colour — unbleached linen is fawn, wool cream to brown — which is
 what makes *"linen was worn undyed and wool was the coloured cloth"*
@@ -312,7 +327,7 @@ is just a worse card.
   not tell a pale blue from a deep red at the same dip. The folded mix
   can, so a shallow vat is quiet and a madder red is not — the third
   claim the colour model turned from prose into behaviour.
-- **The impression line** is a `markupAugmenter` on `SlottedMixin`: a
+- **The impression line** is a `markupAugmenter` on `AttiredMixin`: a
   one-sentence gestalt that **names no individual garment**, folded over
   whatever facts resolve, with phrasing **seeded rather than drawn**.
 - **The authored half stays authored** — bearing, manner, the scar live
@@ -368,6 +383,14 @@ is just a worse card.
   it feeds an existing seam.
 - **A laundry vocation.** Water is a precondition, not a consumable, so
   the care loop is not an errand per wash.
+- **An adults-only seam.** Signal-only garments — lingerie: next to the
+  skin, ~zero on every protective channel — are a real point in the
+  purpose space, and the model needs them to be complete: not everything
+  you wear is *for* something physical. What would be adults-only is
+  **depiction**, not the point's existence. A pack is already a unit of
+  review, opt-in via `SAXONBERG_PACKS`, so the base chain authors the
+  full spectrum of purpose, authors nothing that needs gating, and adds
+  no seam that already exists.
 
 ---
 
@@ -390,6 +413,23 @@ saved-set stanza, both **stanzas on shipped views**, so the chain itself
 adds those eight and no more. (`equip` / `unequip` shipped on the same
 branch and are not the chain's: they are the dressing surface, and the
 slate for them is equip-slate.md *(slate retired 2026-09-06 — fully absorbed)*.)
+
+⭐ **A verb exists where a decision exists.** The real process has
+eleven-ish steps and eleven verbs would be a mill simulator. Break,
+scutch and hackle are three motions with one decision between them —
+*remove more woody matter, lose some staple length* — so they fold into
+`scutch`; retting and bleaching each have a decision (when to pull it)
+that a clock already carries, so they spend no verb at all. The test
+for a new verb in this chain is a new decision, never a new motion.
+
+⭐ **Grade is staple length, and there is no staple field.** The band
+the harvest stamped off the plant's worst stretch rides `Crafted`
+through line → yarn → bolt by the shipped weakest-link rule, and that
+band *is* the staple length — a second number saying the same thing
+would drift from the first (`trade-textiles/src/thing/TextileStock.ts`).
+`scutch` trades purity against it, and no amount of skill lengthens a
+staple. `yarnCount` is the one number only yarn carries, because the
+count is `spin`'s whole decision.
 
 ⚠ The fitting stanza is `measure figure`, and it shipped for a day as
 `measure customer`. Every other stanza on that view names the CHANNEL
@@ -562,6 +602,19 @@ what a siting decision is.
 
 All three trades land on one shape, which is the sign the doctrine is
 doing work rather than being recited.
+
+⭐⭐ **Textiles is the trade where magic is LEAST useful, and that is
+the lesson.** The bottleneck is spinning (the bench above), and spinning
+is neither an energy problem nor a chemistry problem — it is fine
+repetitive motor work over hours, and there is no grid cell for *twist
+fibre consistently all afternoon*. So the one step where a mage would be
+worth most is the one step magic cannot touch: **magic does not
+shortcut the bottleneck; capital does** — the wheel, then the jenny.
+Kell's Partition puts a mage in a mill in the same category as the
+spinning wheel — a labour-saving device with a running bill, used on the
+*once* steps (bring the vat up) and never the *held* ones (a furnace
+wins). A design that let a mage spin would delete the
+industrial-revolution lesson the ratio teaches.
 
 - **Textiles**: `create·light` over a bleaching green is the obvious
   shortcut, and the refusal is physical rather than fiat — *bleaching is
