@@ -20,22 +20,19 @@
  * **Authorization is at `execute()`, not the validator** — the real boundary,
  * because a dialogue `dispatch` (Katie doing her job) `forceCommand`s this
  * verb, and `forced` bypasses the `requiresWizard` YAML validator. Allowed
- * iff the actor `isWizard` (operator) OR is an **agent of the dorms-parcel
- * owner** (a member of the `duncan-hall` group — the landlord's staff, which
- * is how Katie is authorized). The agency check does NOT use `AccessApi.can`
- * (it fails closed for NPCs, which have no `playerId`); it resolves the owner
- * group ref and checks membership by the actor's `playerId ?? templatePath`.
- * `requiresWizard` stays on the YAML affordance so only operators *see* the
- * raw verb.
+ * iff the actor holds a position at the college (`duncan-hall/idea/college`
+ * — Katie's `hall-manager` job, read off the authored roster) OR sits on
+ * the committee over the hall (the owner acting for itself). ⭐ Never
+ * "a member of the landlord group": an NPC is never on a committee
+ * (economic bootstrap D8). `requiresWizard` stays on the YAML affordance
+ * so only operators *see* the raw verb.
  */
 
-import { CommandController } from '@saxonberg/server/mud/lib/command/CommandController';
+import { HallController } from '../../../lib/HallController';
 import type { CommandContext, CommandModel } from '@saxonberg/server/mud/api/command';
 import type { MqlOneResult } from '@saxonberg/server/mud/api/mql';
 import { MessageApi } from '@saxonberg/server/mud/api/message';
 import { Mml } from '@saxonberg/server/mud/api/mml';
-import { AccessApi } from '@saxonberg/server/mud/api/access';
-import { GroupApi } from '@saxonberg/server/mud/api/group';
 import { ParcelApi } from '@saxonberg/server/mud/api/parcel';
 import { Lock } from '@saxonberg/server/mud/lib/lock/Lock';
 import { type ParcelOwner } from '@saxonberg/server/mud/lib/parcel/ParcelRecord';
@@ -54,7 +51,7 @@ interface ProvisionModel extends CommandModel {
   theme?: string;
 }
 
-export default class ProvisionController extends CommandController<ProvisionModel> {
+export default class ProvisionController extends HallController<ProvisionModel> {
   async execute(model: ProvisionModel, context: CommandContext): Promise<void> {
     const actor = context.commandGiver as Stuff;
 
@@ -71,7 +68,7 @@ export default class ProvisionController extends CommandController<ProvisionMode
 
     // The real authorization boundary (execute-level, so a forced dispatch
     // can't skip it): a wizard, or an agent of the dorms owner (Katie).
-    if (!(await AccessApi.isAgentOf(actor, owner))) {
+    if (!(await ProvisionController.mayProvision(actor))) {
       return this.fail(
         context,
         "You're not authorized to lease out Duncan Hall's dorms.",

@@ -25,13 +25,13 @@ description: >-
   content lands here and the exit repoints.
 requires:
   groups:
-    # The landlord's staff — Katie's membership is CONFERRED here by the
-    # owner (never self-enrolled); her row sits under the pack's own
-    # /world/terminus/eternal/duncan-hall claim, which the NPC-only fence requires.
+    # The landlord — the group that HOLDS Duncan Hall. Players only
+    # (economic bootstrap D8): Katie used to be enrolled here, and an NPC
+    # on a committee is doctrine 2 broken. She is staff of the
+    # `duncan-hall/idea/college` Organization now; this group is empty at
+    # boot and falls to the founder until the Compact seats it.
     - name: duncan-hall
-      purpose: the landlord's staff
-      members:
-        - { id: /world/terminus/eternal/duncan-hall/agent/katie, role: member }
+      purpose: the landlord of Duncan Hall
   title:
     # Duncan Hall: the landlord holds the building (so Katie's row is under
     # the pack's own claim) and the dorms wing the leased units subdivide under.
@@ -46,3 +46,4 @@ requires:
     - { extent: /world/terminus/eternal/campus-field, parentParcel: /world/terminus, holder: { group: duncan-hall }, landUse: agricultural }
 boot:
   - { template: /world/terminus/eternal/duncan-hall/idea/dorm-warren, role: producer, reason: installs the lobby stair and rebuilds the floor cache at postRegister }
+  - { template: /world/terminus/eternal/duncan-hall/idea/college, role: producer, reason: "Duncan Hall's staff — provision/unprovision ask whether the actor holds a position here, read off the authored roster" }

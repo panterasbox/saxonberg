@@ -1317,6 +1317,22 @@ city staff never did.
 - `docs/lint-family.md` gains both entries.
 - Commit: `build(economic-bootstrap W3): lint:committees-are-players (0) and lint:no-authored-faucet (census 12)`.
 
+**W3 — DONE.** `lint:committees-are-players` ceiling 0 — and the census
+before the gate was **2, not 1**: Katie sat on `duncan-hall` exactly as
+Walter sat on `mayfield-holdings`, so the D8 shape was applied to Duncan
+Hall too (`duncan-hall/idea/college`, Katie on its authored roster as
+`hall-manager`; `provision`/`unprovision` gate on the pack-`lib/`
+`HallController.mayProvision`; the landlord group emptied). The gate
+excludes a PLAYER's `/platform/agent/Avatar/…` key, which carries the
+same `/agent/` segment. `lint:no-authored-faucet` census **10** (the plan
+guessed 12: `ensureCorpoTreasuryImpl` rides `ensureVenueAccountImpl`, so
+it is one site not two) — three settings keys + seven code sites
+(`openAccountImpl`'s float seed, `ensureVenueAccountImpl`,
+`seedFloatImpl`, `float`, `ReserveController#mint`/`#issue`,
+`EmbodyController#commit`); the allowlist is declared now for the two
+rules, the override and the three harness seams. Both fixture tests live
+under `/test/**` (lint:test-content). The roster is 48.
+
 ### W4 — The ledger, the floor, the treasury, the reserve (D2, D3, D4, D9 minus the standing facility, D13)
 
 - `LedgerEntry.ts`: kinds + categories; `Transaction.ts` cases;

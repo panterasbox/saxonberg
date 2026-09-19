@@ -10,11 +10,13 @@
  * intake dialogue tree in her seed). Her authority is content too, and — the
  * point — **owner-conferred, never self-claimed**:
  *
- *   - She is an *agent of the dorms owner* (so `provision`/`unprovision`
- *     authorize her) because the landlord's `duncan-hall` group lists her
- *     `templatePath` as a member — authored in the eternal-university pack's
- *     `requires.groups`, applied by the content installer. She does NOT embody herself; a member writing its own name
- *     into the ledger is circular and no real authority.
+ *   - She holds the `hall-manager` POSITION at the college
+ *     (`duncan-hall/idea/college`, an Organization whose appointing
+ *     authority is the hall's committee) — authored on its roster, so
+ *     `provision`/`unprovision` authorize her as staff. She is NOT a member
+ *     of the `duncan-hall` group that holds the title: a committee is
+ *     players only, and an NPC on one is doctrine 2 broken (economic
+ *     bootstrap D8). A job, never a seat; conferred, never self-claimed.
  *   - Her master ring (legitimate master access to every pin-tumbler dorm
  *     lock) is a physical `Key` `props:`-seeded into her inventory from
  *     `npc/master-ring.yaml` — an owner-authored spawn loadout, not a

@@ -45,6 +45,7 @@ import {
 } from '@saxonberg/server/mud/lib/security/__tests__/test-setup';
 import { installV1QuantityMarshallers } from '@saxonberg/server/mud/lib/persistence/__tests__/quantity-marshaller-test-helpers';
 import { AccessApi } from '@saxonberg/server/mud/api/access';
+import { CompactApi } from '@saxonberg/server/mud/api/compact';
 
 interface Doc extends Record<string, unknown> {
   _id?: string;
@@ -225,11 +226,10 @@ function reset(): void {
    */
   vi.spyOn(AccessApi, 'can').mockResolvedValue(true);
   vi.spyOn(AccessApi, 'isWizard').mockResolvedValue(true);
-  // ⭐ The dorms-staff check is `AccessApi.isAgentOf` since the statics
-  // sweep (it was `ProvisionController.isDormsAgent`, duplicated
-  // verbatim in terminus). Stub the question being asked, not the
-  // wizard short-circuit inside it.
-  vi.spyOn(AccessApi, 'isAgentOf').mockResolvedValue(true);
+  // ⭐ The dorms-staff check is `HallController.mayProvision` (economic
+  // bootstrap D8): staff of the college, or the hall's committee. Stub
+  // the committee arm — the question being asked, not a wizard bit.
+  vi.spyOn(CompactApi, 'isCommitteeMember').mockResolvedValue(true);
 }
 
 const snapshots = () => col('holder_snapshots');
