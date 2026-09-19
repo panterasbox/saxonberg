@@ -275,8 +275,8 @@ competence:                  # → transcript claims
 history:                     # → condition / body claims
   - { condition: healed-fracture, part: left-wrist, era: "long ago" }
 circumstance:                # → pointers, per cast-archetype Change 2
-  holdings: [ /world/rejection/parcel/bar ]
-  bonds:    [ { to: /world/rejection/agent/mara, kind: employs } ]
+  holdings: [ /world/terminus/rejection/parcel/bar ]
+  bonds:    [ { to: /world/terminus/rejection/agent/mara, kind: employs } ]
 renown:                      # → seeded events + a fold (Grade 2)
   - { scope: rejection, asserting: known }
 # ⚠ no participation, ever — that zero is what keeps an NPC out of the
@@ -425,7 +425,7 @@ Neither mechanism is new:
   `Material`, `Clade`, `LocomotionMode`, `CombatFormation` — and by **no
   agent class**. Pointing it at NPCs is the whole of `Cast`.
 - **`asIdentityPath`** is the shipped mint-time identity channel, used by
-  `EnrollController`, the guest `Login` path, `PlayerLogic`, minted
+  `EmbodyController`, the guest `Login` path, `PlayerLogic`, minted
   `CartesianLocation`s, and `OuterWarren` (whose nodes derive
   `${parentExtent}/${nodeId}`). ⭐ **That is "many bodies from one row,
   each its own person", already working.**
@@ -792,7 +792,7 @@ consumes, failing closed and silent.
    as derived as a person's, and *"never half-grown"* argues for one
    substrate. Probably yes; deliberately out of the first build.
 5. ⚠ **STILL OPEN**, and unchanged by the build — the dossier seeder and
-   `EnrollController` both call `seedChronicleClaims` and neither knows
+   `EmbodyController` both call `seedChronicleClaims` and neither knows
    about the other.
 
    **Where does char-gen land?** It already seeds chronicle claims from

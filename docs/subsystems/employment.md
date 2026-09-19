@@ -380,7 +380,7 @@ stays hot-swappable:
   `MixinApi.isOffstage`) and the clonable `platform/location/Offstage`
   (singleton per template path, Visible/Detailed for the operator who
   teleports in) that every venue's `offstage` row names —
-  `/world/lounge/location/offstage`, `/world/hearthworks/location/offstage`.
+  `/world/lounge/location/offstage`, `/world/terminus/hearthworks/location/offstage`.
   The world conserves identity: an off-duty NPC is relocated, never
   destroyed and respawned, so each venue with a scheduled cast needs
   somewhere for that cast to *be*. Materialized on demand by `shifts`

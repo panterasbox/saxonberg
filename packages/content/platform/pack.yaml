@@ -36,6 +36,10 @@ requires:
     - { extent: /studio }          # the sandbox's group-cell namespace
     - { extent: /home }            # the personal workspaces' root (each /home/<key> is its player's, rung 2)
     - { extent: /world }          # the world's root; every locality claims its own extent under it
+    # /world/saxonberg — the second city, a parcel TO BE SEATED BY THE
+    # COMPACT (economic bootstrap D5). Declared, held by the executive by
+    # default like every other unheld claim, and empty until then.
+    - { extent: /world/saxonberg }
     - { extent: /wiki, holder: { group: wiki-editors } }   # kept — the same holder as before
 
 # Eager at boot — the union of every applied pack's list is what

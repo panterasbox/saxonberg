@@ -254,7 +254,7 @@ query rewrite.
 ⚠ **The other four do not qualify**, and the reason is structural rather
 than an oversight: `PlatBook` and `HoldingWarren` rows are declared **per
 locality** (`/world/terminus/hinkley-hills/idea/plat-book`,
-`/world/eternal/duncan-hall/idea/dorm-programme`,
+`/world/terminus/eternal/duncan-hall/idea/dorm-programme`,
 `/world/terminus/mayfield-row/seznick-house/unit-programme`), so there is
 no prefix to glob. Check the rung before assuming the rung below.
 

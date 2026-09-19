@@ -26,7 +26,7 @@
 # `/trade/distilling/location`. A class row must be at
 # `<root>/<branch>/<leaf>` — `lint:instanceable`'s invariant 7 — so a row
 # AT the branch directory is illegal, and the industry root is where a
-# zone covering the whole trade belongs anyway. `/world/rejection.yaml`
+# zone covering the whole trade belongs anyway. `/world/terminus/rejection.yaml`
 # is the same shape: the region zone one level above its rooms.
 class: /platform/idea/location/CartesianZone
 hydratorClass: /platform/idea/persistence/PersistentHydrator

@@ -553,8 +553,8 @@ the thing this section refuses to do.
 
 The title tree *is* the situs tree: the bootstrap's escheat walks it,
 which is why the world packs that sit beside Terminus today
-(`/world/rejection`, `/world/hearts-delight`, `/world/hearthworks`,
-`/world/eternal`) re-root under it. Pack root renames; the DB drops.
+(`/world/terminus/rejection`, `/world/terminus/hearts-delight`, `/world/terminus/hearthworks`,
+`/world/terminus/eternal`) re-root under it. Pack root renames; the DB drops.
 
 ### The trades and the commons are physics, and get an officer
 

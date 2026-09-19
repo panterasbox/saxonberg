@@ -1,0 +1,63 @@
+# The Ferrow warren — ⭐ the MUTATION half of the mine, and the row that
+# supplies its policy.
+#
+# ⭐⭐ `typeRows` is the falsifiable test made concrete: the machinery
+# never names a room row, so a second mining town gives it four rows of
+# its own and the trade code does not change. Everything below is a fact
+# about THIS place.
+#
+# ⚠ `claimBlocks` is the declared cell↔claim mapping, authored rather
+# than derived from geometry. Parcels are titled over PATHS and a claim is
+# a region of coordinate space; *do not invent coordinate-extent parcels*
+# is the constraint, and a property-substrate build can replace this scan
+# later without touching a single title.
+#
+# ⭐ A STATIC mine does not need `claimBlocks` at all — authored rooms
+# have real paths and `ParcelApi`'s longest-prefix resolution answers
+# *whose claim is this* directly. The mapping is the workaround for keyed
+# members not having distinct paths, and it is honest to say so.
+class: /trade/mining/idea/MineWarren
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: Ferrow diggings
+  register: definite
+  typeRows:
+    face: /world/terminus/rejection/ferrow/face
+    junction: /world/terminus/rejection/ferrow/junction
+    stope: /world/terminus/rejection/ferrow/stope
+    fall: /world/terminus/rejection/ferrow/fall
+  zonePath: /world/terminus/rejection/ferrow
+  aditPath: /world/terminus/rejection/location/adit
+  mineExtent: /world/terminus/rejection/ferrow
+  # Two blocks are recorded from the start: the co-op's ground off the
+  # Timbered Drift, and the independent's block out on the iron fringe.
+  # The rest of the diggings is unclaimed, which is what makes `stake` a
+  # thing to do rather than a thing to read about.
+  #
+  # ⚠ Neither has a parcel record behind it — the pack's `requires.title`
+  # claims the town and the road, not these — so `ownerOf` reads null and
+  # `stake` refuses them as *"already in the register"* rather than
+  # naming a holder. Title for an NPC's outfit is tracked; the refusal is
+  # correct either way, because first come is the whole rule.
+  claimBlocks:
+    - parcelExtent: /world/terminus/rejection/ferrow/claims/1
+      from: [-4, -4, -3]
+      to: [0, 0, -1]
+    # ⭐ The independent's ground, centred on the fringe claim at (5,7,0)
+    # — three cells each way, one up and one down, which is exactly what
+    # `stake` writes. He walked out here when nobody else thought it was
+    # worth the boots, and a player who wants iron of their own walks on
+    # to the far fringe and stakes (10,14,0).
+    #
+    # ⚠⚠ Two blocks clear each other only when they are disjoint on SOME
+    # axis — seven cells of separation on that one, not four. This block
+    # is y 4..10; the far fringe's is y 11..17, so they miss by one cell
+    # on y and it does not matter that they overlap on x and z. The room
+    # sat at (9,11,0) until `stake` learned to test the whole prospective
+    # block (`MineWarren.overlappingClaim`) — that block was y 8..14 and
+    # x 6..12, overlapping this one on all three axes, and both claims
+    # were being registered. An author who now places a room too close
+    # gets a refusal instead.
+    - parcelExtent: /world/terminus/rejection/ferrow/claims/2
+      from: [2, 4, -1]
+      to: [8, 10, 1]

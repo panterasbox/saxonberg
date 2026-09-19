@@ -453,7 +453,7 @@ arcana's — *a capability pack holds what other packs' content names*:
 `world-seed` kept the four remaining localities and the commons.
 
 ⚠ **A locality is not a path prefix.** The first cut homed University
-Avenue in `eternal-university` because it shared the `/world/eternal`
+Avenue in `eternal-university` because it shared the `/world/terminus/eternal`
 path root with Duncan Hall — a fact about the filesystem, not about the
 world. The avenue is a **Terminus** street: it runs from the terminal
 mouth past the campus wall down to the Counting-Houses, its own prose is

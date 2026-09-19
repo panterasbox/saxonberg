@@ -380,7 +380,7 @@ first. The keyed-member locator composes it with the `key` / `address`
 atoms:
 
 ```
-/world/eternal/duncan-hall/idea/dorm-warren:members:[key = '/world/eternal/duncan-hall/dorms/f1-r3']
+/world/terminus/eternal/duncan-hall/idea/dorm-warren:members:[key = '/world/terminus/eternal/duncan-hall/dorms/f1-r3']
 /world/terminus/hinkley-hills/**[address = 'terminus/hinkley-hills/lot-1']
 ```
 

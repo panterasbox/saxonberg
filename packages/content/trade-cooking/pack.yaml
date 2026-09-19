@@ -6,7 +6,7 @@ description: >-
   recipes (toasted-ration, root-mash, fine-roast, hearty-stew, simple-
   syrup). Its stock (cuts, roots, rations) is commons under
   /stuff/thing/items (A16.3), and the Hearthworks cookhouse
-  (/world/hearthworks/location/cookhouse) is the venue that hosts it.
+  (/world/terminus/hearthworks/location/cookhouse) is the venue that hosts it.
   Libations adds the PANTRY: sugar, salt and coffee as materials, the sack
   preset, three floor sacks at target in the pantry stock, the outfit that
   consigns them onto the cash-and-carry, and the syrup. Content packs wave

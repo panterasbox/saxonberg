@@ -835,7 +835,7 @@ knowledge, traceable only to a commit message describing the result.
 #### ⭐ **WAVE 2 IS CLOSED.** What it settled, beyond its own screens
 
 - ⭐⭐ **The char-gen payload is generic**, projected from
-  `EnrollController`'s `FIELDS` table. A new intake concept is **one
+  `EmbodyController`'s `FIELDS` table. A new intake concept is **one
   table entry**. This is the change [char-gen.md](../../subsystems/char-gen.md)
   argued for, taken at the moment it was cheapest, and it makes the
   lineage model mostly a server change.
@@ -843,7 +843,7 @@ knowledge, traceable only to a commit message describing the result.
   makes "additive" true rather than merely claimed: a field the client's
   screen config does not name **still renders**, and a field whose
   `kind` it cannot draw **renders hatched**. Without them a
-  server-added field would be invisible while still gating `enroll
+  server-added field would be invisible while still gating `embody
   confirm` through `missing` — a dead Continue button with nothing
   explaining it. *The honest-state rule turned on the intake's own
   extensibility.*

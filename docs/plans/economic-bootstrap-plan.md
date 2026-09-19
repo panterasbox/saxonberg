@@ -251,8 +251,8 @@ NOT do.
   `/world/terminus` itself and not `wharfside`, `goods-yards`,
   `infirmary`, `necropolis`** (they resolve to the platform's `/world`
   → `/compact/executive`); the four world packs root beside it
-  (`/world/rejection`, `/world/eternal`, `/world/hearthworks`,
-  `/world/hearts-delight`); each trade pack claims `/trade/<x>` for a
+  (`/world/terminus/rejection`, `/world/terminus/eternal`, `/world/terminus/hearthworks`,
+  `/world/terminus/hearts-delight`); each trade pack claims `/trade/<x>` for a
   PM-owned group `<x>`; each corpo pack claims `/corpo/<x>` for its own
   organization, whose `appointingAuthority` is `{office:
   prime-minister}`
@@ -482,9 +482,9 @@ The terminus manifest claims `/world/terminus` itself for `terminus`
 holder — the sparse hierarchy derives the parent; `parentParcel:
 /world/terminus` is added to each so `childParcelsOf` and the escheat
 walk are O(1)). The four world packs re-root **as children**:
-`/world/rejection` → `/world/terminus/rejection`, `/world/eternal` →
-`/world/terminus/eternal`, `/world/hearthworks` →
-`/world/terminus/hearthworks`, `/world/hearts-delight` →
+`/world/terminus/rejection` → `/world/terminus/rejection`, `/world/terminus/eternal` →
+`/world/terminus/eternal`, `/world/terminus/hearthworks` →
+`/world/terminus/hearthworks`, `/world/terminus/hearts-delight` →
 `/world/terminus/hearts-delight` — `root:` in each `pack.yaml`, every
 row path, every cross-reference (280 / 312 / 88 / 28 refs at plan
 time; re-census at build with `grep -rn '/world/<x>' packages docs
@@ -1168,6 +1168,27 @@ migration).
   names `rejection`; at `/world/terminus/wharfside` names — nothing yet
   (W1). Wire `platform-smoke` + `world-scan` green.
 - Commit: `build(economic-bootstrap W0): /world/terminus is the realm root; four world packs re-root under it; enroll is embody`.
+
+**W0 — DONE.** Census 224/142/70/30 refs → 0, one scripted rewrite over
+`world/(rejection|eternal|hearthworks|hearts-delight)` (slash-less forms
+included: `join()` fragments and one regex-escaped `\/world\/hearthworks`
+were the three misses the packs' suites caught). What surprised: **the
+hearthworks pack's `SealedCellar` lived in the KERNEL** at
+`mud/world/hearthworks/SealedCellar.ts` (class path `/world/hearthworks/…`,
+resolved from the kernel tree because the pack shipped no `src/`); under
+`/world/terminus/hearthworks/…` that path resolves into the terminus
+pack's `src/` and fails, so the class moved into the hearthworks pack as
+`src/location/SealedCellar.ts` (the pack is now a capability pack with
+its own vitest; the kernel integration test composes the same shape
+locally). `/world/saxonberg` is a holder-less title line (the `/world`
+precedent; a manifest holder is optional, a registry holder is not — the
+executive fills it). Hinkley gained `parentParcel: /world/terminus` too.
+`enroll` → `embody` landed in 26 code files + 28 docs; the University's
+real enrollment (Katie, the Circle, `enrollCircle`, "enrolled at the
+University" as an aspiration) is untouched by construction. Boot on a
+dropped DB: every pack `applied`, 0 conflicts; platform-smoke, world-scan
+and forestry wires green (forestry 15/15 alone after a prose-timing miss
+in the three-file run).
 
 ### W1 — The trade premises into the world; the orphans (D6)
 

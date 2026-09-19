@@ -1,0 +1,47 @@
+# The oak clearing — the big tree the prose is about, and a panel of
+# hazel under it. A STAND (`/trade/forestry/location/Wood`); see the
+# ride's header for the rules. The prose never states a number the
+# stand holds, and it does not change when the clearing is felled out.
+class: /trade/forestry/location/Wood
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: oak clearing
+  keywords: [clearing, "oak clearing", oaks, wood, "hanging wood"]
+  register: definite
+  woodName: the Hanging Wood
+  areaM2: 100
+  _biomePath: /stuff/idea/biome/outdoor/woodland
+  # Lit — a clearing, the canopy open over it. 3500 lm over 100 m² is 35 lux.
+  ambientIntensity: 3500
+  ambientColorTemperature: 5800
+  longDescription: |
+    The ride opens out into a clearing where the canopy has been let go, and the light comes all the way down. The oaks here are the old ones — grey-barked, wide-crowned, the biggest of them with a girth that would take three men to link hands round, and a spread that shades half the clearing by itself. Somebody set out a panel of hazel under it once, in rows, and it has been cut and has come back more times than anybody has counted.
+
+    You could stand here for an hour and not hear the yard.
+  coords: { x: 0, y: 2, z: 0 }
+  mix:
+    - speciesPath: /stuff/idea/species/plantae/tracheophyta/magnoliopsida/fagales/fagaceae/quercus/robur
+      name: oak
+      woodMaterialPath: /stuff/idea/material/wood/oak
+      seedPath: /trade/forestry/thing/seed/acorn
+      standing: 12
+      capacity: 14
+      incrementPerYear: 1
+    - speciesPath: /stuff/idea/species/plantae/tracheophyta/magnoliopsida/lamiales/oleaceae/fraxinus/excelsior
+      name: ash
+      woodMaterialPath: /stuff/idea/material/wood/ash
+      seedPath: /trade/forestry/thing/seed/ash-key
+      standing: 4
+      capacity: 6
+      incrementPerYear: 1
+  exits:
+    south:
+      destination: /world/terminus/rejection/hanging-wood/ride
+      edgeMinutes: 3
+  props:
+    - /world/terminus/rejection/hanging-wood/thing/panel-north
+  details:
+    oak:
+      keywords: [oak, "big oak", "old oak", tree, girth, crown]
+      description: |
+        The biggest tree in the wood, and probably the oldest thing in Rejection that is alive. Three men could not link hands round it.

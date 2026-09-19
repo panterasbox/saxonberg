@@ -1,6 +1,6 @@
 # Onboarding slate (working doc)
 
-> **Status: PARTIAL** — `enroll`, the lounge, the built campus route and
+> **Status: PARTIAL** — `embody`, the lounge, the built campus route and
 > Katie's dorm handover shipped →
 > [char-gen.md](../../subsystems/char-gen.md)
 > **Left:** the `onboarded` flag + lounge-exit routing · Dr. Limen (seat,

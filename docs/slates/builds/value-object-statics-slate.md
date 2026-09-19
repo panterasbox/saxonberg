@@ -472,7 +472,7 @@ this build (`new Freshness(slot).load()`, `new Lock(kw, tech).issueKeyTo(holder)
 |---|---|---|
 | async persistence lookups — `NameBank.byKey`/`resolve`, `CreditRouting.resolve`, `OuterWarren.conditionOf`/`admitFor`, `HoldingWarren.entryRowOf`, `LaneCatalogue.exitBetween`, `Census.takeCensus` | 7 | are these record finders by another name (→ approved, stay) or Api surface? **They are not `Document` subclasses**, which is the only reason they are not already settled |
 | singleton accessors — `DormWarren.resolve()`, `WikiRegistry.instance()`, `Realtor.offers()` | 3 | `X.resolve(): Promise<X>` is a singleton getter. `StuffApi.singletonSync` is the sanctioned path — do these route through it? |
-| controller statics — `EnrollController.loadConfig`, `LeaseController.ascentRefusal`, `Login.generateGuestName` | 3 | controller-internal helpers; `private` or `@internal` unless a sibling calls them |
+| controller statics — `EmbodyController.loadConfig`, `LeaseController.ascentRefusal`, `Login.generateGuestName` | 3 | controller-internal helpers; `private` or `@internal` unless a sibling calls them |
 | settings/idiom reads — `Currency.compact`, `ConcealmentLevels.hiddenDefault` (`AppApi`), `Account.newId` (`SecurityApi.uuid`), `Light.bandFor` (`QuantityApi`) | 4 | ⭐ `Account.newId` is the same shape as `Lock.mintKeyway`, which **stayed**. Is reading a dial "the world"? |
 | genuinely world-reading — `Freshness.nowSeconds`, `Appearance.currentGeneration` (clock), `Contamination.behaviorOf`, `BankingControllerBase.businessNamed` (registry) | 4 | these read the live world from a "pure" signature |
 
@@ -567,7 +567,7 @@ nearly went that way).
 | `Contamination.hostTemperatureK` | 1 | ButcherController.ts |
 | `CreditRouting.resolve` | 1 | ProducerLogic.ts |
 | `EmoteGrammarRunner.render` | 1 | Soul.ts |
-| `EnrollController.loadConfig` | 1 | Login.ts |
+| `EmbodyController.loadConfig` | 1 | Login.ts |
 | `Expression.evaluate` | 1 | Interpreter.ts |
 | `Freshness.waterActivityOf` | 1 | Contaminable.ts |
 | `Freshness.advance` | 1 | ButcherController.ts |
@@ -675,7 +675,7 @@ to *how a pack exposes anything*: a singleton declared with
 
 | row | disposition |
 |---|---|
-| `DormThemes.applyTo` (+ `ids`, `labelOf`) | ✅ instance methods on a singleton `Idea` at `/world/eternal/duncan-hall/idea/dorm-themes` |
+| `DormThemes.applyTo` (+ `ids`, `labelOf`) | ✅ instance methods on a singleton `Idea` at `/world/terminus/eternal/duncan-hall/idea/dorm-themes` |
 | `DormWarren.resolve` / `peek` | ✅ **deleted**, not converted — a singleton accessor cannot be an instance method, and both forwarded verbatim to `StuffApi.singleton` / `findByTemplatePath`. 8 call sites say it directly. |
 | `GroundCharacter.forZone` | ⏸ **on the table, undecided** — a finder returning its own class. Same shape as the approved record finders, but not a `Document` subclass, which is the only reason it is not already settled (§2 above). |
 | `GroundCharacter.resolve` | ⏸ **on the table, undecided** — takes a **null model** as its ordinary case, which is *why* it is static. Wants a conversation, not a guess. |

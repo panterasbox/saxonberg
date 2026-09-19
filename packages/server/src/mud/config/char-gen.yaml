@@ -1,5 +1,5 @@
-# Char-gen rosters — the closed-choice content the `enroll` flow
-# presents. Loaded (cached) by EnrollController. CONTENT, not code:
+# Char-gen rosters — the closed-choice content the `embody` flow
+# presents. Loaded (cached) by EmbodyController. CONTENT, not code:
 # add a species / aspiration / pronoun by editing this file, no code
 # change. See docs/plans/char-gen-plan.md (Phase B/C).
 #
@@ -59,12 +59,12 @@ species:
 
 # Pronouns are NOT listed here — the closed-choice pronoun options
 # derive from the `Pronouns` enum in @saxonberg/types (single source of
-# truth), with display labels in EnrollController. Pronouns are free and
+# truth), with display labels in EmbodyController. Pronouns are free and
 # independent of sex; free-text is deferred (grammar-engine cost).
 
 # Aspirations — what you want to *become*. Each seeds a starter bio +
 # selects a themed starting outfit + a short prologue (`claimSeeds`):
-# author-trusted `claim` entries the chronicle mints at enroll, distinct
+# author-trusted `claim` entries the chronicle mints at embody, distinct
 # from `bioSeed` (both read the same aspiration, neither touches the
 # other). `order` places each prologue line. (Breadcrumb-seeding is
 # deferred.)

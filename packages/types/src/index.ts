@@ -3428,11 +3428,11 @@ export type CharGenFieldKind = 'choose-one' | 'text';
  * this list is projected from.
  *
  * The client must therefore render a field it does not recognize rather
- * than dropping it — an unrendered field can still gate `enroll confirm`
+ * than dropping it — an unrendered field can still gate `embody confirm`
  * through `missing`, which is a dead end the player cannot diagnose.
  */
 export interface CharGenFieldState {
-  /** The token the client sends as `enroll <field> <value>`. */
+  /** The token the client sends as `embody <field> <value>`. */
   field: string;
   /** Which renderer to dispatch to. */
   kind: CharGenFieldKind;
@@ -3457,7 +3457,7 @@ export interface CharGenFieldState {
 
 /** One closed-choice option for the current char-gen step. */
 export interface CharGenOption {
-  /** The token the client sends as `enroll <field> <value>`. */
+  /** The token the client sends as `embody <field> <value>`. */
   value: string;
   /** Human-facing label. */
   label: string;
@@ -3525,7 +3525,7 @@ export interface SpeciesDossier {
 
 /**
  * `system.charactergen.state` payload — the complete live draft state.
- * The server re-emits the whole thing after every `enroll <field>
+ * The server re-emits the whole thing after every `embody <field>
  * <value>`; the client renders whatever layout it wants from it. No
  * notion of a "current step" — flow/layout is entirely client-side.
  *
@@ -3545,7 +3545,7 @@ export interface CharGenStatePayload {
    */
   fields: CharGenFieldState[];
   /**
-   * Required fields still unset — gates `enroll confirm` and lets the
+   * Required fields still unset — gates `embody confirm` and lets the
    * client show what's left. A `sex` entry appears only when applicable.
    *
    * ⚠ The client must gate on THIS and never on a field list of its

@@ -1,7 +1,7 @@
 # Character Generation (Intake)
 
 How a brand-new player gets a body and a name. Covers the post-login
-branch (roster vs. char-gen), the `enroll` verb as a draft state
+branch (roster vs. char-gen), the `embody` verb as a draft state
 machine, `Login` as the accumulator, the commit/spawn handoff, the
 species/name-bank substrate, and the cockpit's char-gen phase.
 
@@ -12,7 +12,7 @@ without overlap:
   → `Login` plumbing this rides on, and the disconnect/logout path.
   The Cast table (`User`/`Avatar`/`Interactive`/`Login`) lives there.
 - [command-routing.md](./command-routing.md) — the MVC dispatch pipeline
-  `enroll` is a verb on. char-gen adds no new dispatch mechanism.
+  `embody` is a verb on. char-gen adds no new dispatch mechanism.
 - [race.md](./race.md) — `Species`/`BodyPlan`/`Material` substrate the
   species picks resolve against; char-gen consumes it, doesn't define it.
 - [state-model.md](./state-model.md) — why there is no `Player` class,
@@ -22,14 +22,14 @@ without overlap:
 
 **Char-gen rides the real command pipeline.** It is not a bespoke
 wizard, not the prompt stack, not a special parser. `Login` is a
-`CommandGiver`; `enroll` is an ordinary MVC verb dispatched through
-`executeCommand`. Every pick is a real command (`enroll species human`)
+`CommandGiver`; `embody` is an ordinary MVC verb dispatched through
+`executeCommand`. Every pick is a real command (`embody species human`)
 that echoes in the command bar and is equally typeable from a bare text
 client. The dedicated cockpit layout is a *skin* over that command
 stream, not a parallel path.
 
 **The server owns the draft; the client owns the layout.** The server
-holds an unordered `EnrollmentDraft` and reports which fields are still
+holds an unordered `CharacterDraft` and reports which fields are still
 `missing` — it has no notion of a "current step" or cursor. The client
 decides how to chunk the fields into screens. This split is deliberate:
 a single-page variant of char-gen (for A/B testing) is a pure client
@@ -41,14 +41,14 @@ When a connection authenticates, `Login` takes the `Interactive` and
 branches on the user's character count (`Login.enter`,
 `Login.ts:116`):
 
-- **0 characters** → char-gen. `Login` runs the `enroll` flow itself
+- **0 characters** → char-gen. `Login` runs the `embody` flow itself
   (it's a real `CommandGiver`), accumulating picks in an
-  `EnrollmentDraft` until `enroll confirm` commits a fresh `Avatar`.
+  `CharacterDraft` until `embody confirm` commits a fresh `Avatar`.
   `Login` then destructs.
 - **≥1 character** → the character-select roster. `Login` emits a
   `session.identity.roster` frame and stays alive, awaiting a
   `play <playerId>` (handled by `PlayController` → `Login.playCharacter`)
-  or an `enroll` to mint an additional character. Multichar is on:
+  or an `embody` to mint an additional character. Multichar is on:
   signup creates **zero** avatars, so char-gen is the only path to a
   first character, and the roster is the hub thereafter.
 
@@ -66,7 +66,7 @@ const LoginBase = CommandGiverMixin(SensorMixin(HasInteractiveMixin(Idea)));
 `Login` (`Login.ts:80`) is three things at once:
 
 - A **`CommandGiver`** with a tight verb allowlist —
-  `self: ['charactergen/enroll.yaml', 'charactergen/play.yaml']`
+  `self: ['charactergen/embody.yaml', 'charactergen/play.yaml']`
   (`Login.ts:90`). No world verbs leak into char-gen.
 - A **`Sensor`**, so engine/narrative frames (welcome prose, enrollment
   narration, the char-gen state payload) reach the bodiless `Login` and
@@ -74,9 +74,9 @@ const LoginBase = CommandGiverMixin(SensorMixin(HasInteractiveMixin(Idea)));
   reach it — `Login` has no body, so smell/sound/sight channels have no
   receiver. This is what lets the same `MessageApi.scene(...).toSelf(...)`
   machinery serve a player who isn't yet embodied.
-- The **home for the in-progress `EnrollmentDraft`** — a transient,
+- The **home for the in-progress `CharacterDraft`** — a transient,
   never-persisted scratch object (`Login.ts:97`,
-  `getEnrollmentDraft`/`setEnrollmentDraft`).
+  `getCharacterDraft`/`setCharacterDraft`).
 
 A locationless giver **dispatches** rather than being silently dropped:
 the dispatch location guard was relaxed game-wide so `Login` (which is
@@ -84,7 +84,7 @@ intentionally placeless) can run verbs. Verbs that read location degrade
 to an empty result rather than being gated; the embodied-avatar path is
 unchanged. See [command-routing.md](./command-routing.md).
 
-### `EnrollmentDraft`
+### `CharacterDraft`
 
 The accumulator (`Login.ts:52`) carries the picks plus presentation
 scratch: `speciesKey`/`speciesPath`/`speciesCommonName`, `sex`, `name`,
@@ -93,11 +93,11 @@ caller's `realName`/`accountName` (from `resolveNames` — the OAuth/Twitch
 display name, surfaced so the client can show "signed in as …"). It is
 pure data; all validation and mutation lives in the controller.
 
-## The `enroll` verb: a draft state machine
+## The `embody` verb: a draft state machine
 
-`EnrollController` (`platform/idea/cmd/charactergen/EnrollController.ts`) is a
+`EmbodyController` (`platform/idea/cmd/charactergen/EmbodyController.ts`) is a
 **field-keyed draft state machine**. The core is a `FIELDS` table
-(`EnrollController.ts:136`) — one `FieldHandler` per settable field:
+(`EmbodyController.ts:136`) — one `FieldHandler` per settable field:
 
 ```
 const FIELDS: Record<CharGenField, FieldHandler> = {
@@ -115,7 +115,7 @@ only a field's *behaviour* while the emitter separately hand-assembled
 its *description*, so a new concept was a table entry plus a payload
 edit plus a client edit — and the client grew an `optionsFor(field)`
 switch to adapt the mismatch. **A new field is now one entry here and
-nothing else**, which `EnrollController.test.ts` asserts by adding one
+nothing else**, which `EmbodyController.test.ts` asserts by adding one
 and finding it on the wire.
 
 `CharGenField` is `'species' | 'sex' | 'name' | 'pronouns' |
@@ -126,14 +126,14 @@ the current draft (sex only applies to a sexed species), report whether
 it `isSet`, produce its option list and current `display` value, offer
 an optional `hint`, `validate` a value, and `apply` it to the draft.
 
-`execute` (`EnrollController.ts:479`) dispatches on the rest-of-line:
+`execute` (`EmbodyController.ts:479`) dispatches on the rest-of-line:
 
-- **bare `enroll`** → re-emit the full draft state (no mutation).
-- **`enroll <field> <value>`** → `FIELDS[field].validate` then `apply`,
+- **bare `embody`** → re-emit the full draft state (no mutation).
+- **`embody <field> <value>`** → `FIELDS[field].validate` then `apply`,
   then re-emit the full state. This is **live-fire**: each field-set is
   its own command, applied and reflected immediately.
-- **`enroll confirm`** → gate on `computeMissing(draft, cfg)`
-  (`EnrollController.ts:272` — the `FIELD_ORDER` fields that are
+- **`embody confirm`** → gate on `computeMissing(draft, cfg)`
+  (`EmbodyController.ts:272` — the `FIELD_ORDER` fields that are
   applicable but not yet set). If anything is missing, emit a
   field-scoped error; otherwise `commit`.
 
@@ -149,8 +149,8 @@ Because field-sets are commands and commands from one giver can arrive
 back-to-back, the substrate is order-free and idempotent. The pipeline
 also depends on **per-socket inbound serialization** (`Backend.ts`): a
 single client's messages process in arrival order, never interleaved.
-Without it, two concurrent `enroll` commands would each clone the one
-`EnrollController` template and the second would trip
+Without it, two concurrent `embody` commands would each clone the one
+`EmbodyController` template and the second would trip
 `StuffApi.clone`'s in-flight cycle guard. See
 [connection.md](./connection.md).
 
@@ -203,9 +203,9 @@ for species, a `SpeciesDossier` (below).
 > - `CharGenStatePayload` carries **`fields: CharGenFieldState[]`** with
 >   a renderer `kind`. The four `<field>Options` arrays and `picks` are
 >   gone; `missing` is `string[]`; `error.field` is a string.
-> - The payload is **projected from `EnrollController`'s `FIELDS`
+> - The payload is **projected from `EmbodyController`'s `FIELDS`
 >   table** by one function, so a new field is one table entry and
->   nothing else. `EnrollController.test.ts` asserts exactly that by
+>   nothing else. `EmbodyController.test.ts` asserts exactly that by
 >   adding a field and finding it on the wire.
 > - `CharGenField` is **server-internal** — it left the wire.
 > - `DossierSection.rows` carries **`spoiler?`**, and the client
@@ -228,7 +228,7 @@ for species, a `SpeciesDossier` (below).
 >    naming the reason and pointing at the command line.
 >
 > Without those, a server-added field would be **invisible while still
-> gating `enroll confirm` through `missing`** — a dead confirm button
+> gating `embody confirm` through `missing`** — a dead confirm button
 > with nothing on screen explaining it. The honest-state rule, applied
 > to the intake's own extensibility.
 >
@@ -240,7 +240,7 @@ for species, a `SpeciesDossier` (below).
 > Still **not** built, and still the right call — see *the three
 > interaction kinds* below: the gallery grid, filters/query, budget
 > allocation, and a generic reroll action. Reroll stays the
-> name-specific `enroll name reroll` because the only second variant
+> name-specific `embody name reroll` because the only second variant
 > anyone has described is lineage's, and lineage does not exist; a
 > generic action list with one real consumer is speculative, and it
 > costs the same to add later as now.
@@ -262,7 +262,7 @@ This section is the answer. It is written for the client-build agent.
 The architecture is **server-authoritative and layout-agnostic**, and
 that is precisely why lineage can be mostly a server change:
 
-- every pick is a real command (`enroll <field> <value>`), dispatched
+- every pick is a real command (`embody <field> <value>`), dispatched
   through `executeCommand` like any other verb — **no bespoke char-gen
   protocol**;
 - the server re-emits the **whole state** after every change;
@@ -361,7 +361,7 @@ lifespan, circadian band, vision, scent, reproduction, sentience"* —
 is almost exactly the dossier's **Biology** section.
 
 **Built: no.** `SpeciesApi.buildDossier` has exactly **one caller**,
-`EnrollController`. No verb reads it, nothing bridges it to the wiki, and
+`EmbodyController`. No verb reads it, nothing bridges it to the wiki, and
 the seeded wiki content is lore / snippet / guide / main — **no species
 pages**. The wiki is community-maintained, so today the in-world path
 exists as a schema and is empty of content.
@@ -429,7 +429,7 @@ inconsistency and nothing more.
 
 ## Commit + spawn
 
-`commit` (`EnrollController.ts:620`) is the only step that persists. The
+`commit` (`EmbodyController.ts:620`) is the only step that persists. The
 sequence, in order:
 
 1. **Build the per-character overlay** (the picks over the shared seed
@@ -460,7 +460,7 @@ sequence, in order:
 "Welcome, *name*." for a just-created character vs. "Welcome back,
 *name*!" for a returning login (`Avatar.ts`). On the client, entering
 the world from char-gen (or the roster) clears the terminal buffer so
-the `enroll …` echoes don't bleed into the world; a reconnect keeps its
+the `embody …` echoes don't bleed into the world; a reconnect keeps its
 scrollback (`store/index.ts` `setConnected`).
 
 ## Species substrate consumed by char-gen
@@ -487,7 +487,7 @@ the kind's portrait). char-gen reads:
 **The dossier and the illustration are presentation, not controller
 logic.** The dossier is built by `SpeciesApi.buildDossier(species, path)`
 (`api/species.ts`) — a readout of the species model, not picker code;
-`EnrollController` only pre-warms a per-species card (`{ dossier,
+`EmbodyController` only pre-warms a per-species card (`{ dossier,
 illustration }`) and surfaces it, staying about draft state (read the
 choices, write the picks).
 
@@ -506,9 +506,9 @@ for the species' `nameBankKeys`. Banks are installed from the
 
 The suggester runs on `Species`: `suggestName(realName)` biases the
 pick by the player's real/account name (e.g. same initial), and
-`rerollName()` produces a fresh draw. `EnrollController.refreshSuggestion`
+`rerollName()` produces a fresh draw. `EmbodyController.refreshSuggestion`
 regenerates the suggestion onto the draft on species-change and on
-`enroll name reroll`. Names support keep / re-roll / type-your-own and
+`embody name reroll`. Names support keep / re-roll / type-your-own and
 reject values failing the validation rules (length, Unicode letters,
 single internal hyphen/apostrophe, no digits/spaces).
 
@@ -539,11 +539,11 @@ carrying an avatar) is the unconditional in-world flip.
 
 `CharGenStage.tsx` owns the layout: **one page, every field, filled in
 any order**, in three columns — the form, the species plate, and a slim
-narration log. Chip clicks live-fire `enroll <field> <value>`; a `text`
-field flushes `enroll <field> <a> <b>` on blur or its keep button
+narration log. Chip clicks live-fire `embody <field> <value>`; a `text`
+field flushes `embody <field> <a> <b>` on blur or its keep button
 (deduped, and the button reports back that the value landed); the
 footer carries the server's `still missing:` list verbatim and the
-`enroll confirm` action, both visible throughout.
+`embody confirm` action, both visible throughout.
 
 ⭐⭐ **There is no client-side screen config, and that is the point.**
 The client holds no list of which fields exist, no cursor, no order of
@@ -555,7 +555,7 @@ Two rules keep the generic payload safe:
 2. a field whose `kind` the client cannot draw renders **hatched**,
    naming the reason and pointing at the command line.
 
-Both exist because an omitted field would still gate `enroll confirm`
+Both exist because an omitted field would still gate `embody confirm`
 through `missing` — leaving the player on a confirm button that never
 enables with nothing on screen explaining why. Both are tested
 (`charGenFields.test.tsx`).

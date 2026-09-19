@@ -376,7 +376,7 @@ it with a string-less dispatch path.
   helper, not a client inbound).
 - **The CLI** uses the raw-string path → tokenizer → the *same* controllers;
   the GUI builds the same strings (+ body payload). Char-gen's
-  `enroll species elf` string-building is the **intended** pattern, not a hack —
+  `embody species elf` string-building is the **intended** pattern, not a hack —
   only its free-text fields would ever use the side-channel.
 
 ### Reads — a forum document-change observer, fed by a dedicated event *log*

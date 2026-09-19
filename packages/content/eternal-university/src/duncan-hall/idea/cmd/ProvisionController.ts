@@ -1,7 +1,7 @@
 /**
  * ProvisionController — the `provision <player>` / `lease <player>` verb
  * (a Duncan Hall *content* verb — it lives in the content namespace
- * `world/eternal/duncan-hall/`, NOT a core command category, because it
+ * `world/terminus/eternal/duncan-hall/`, NOT a core command category, because it
  * hardcodes one content instance's `DormWarren`). The landlord act that grows
  * the elastic dorm
  * building: mint a unit parcel at the lowest-free slot, lease it to the

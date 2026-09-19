@@ -568,7 +568,7 @@ onboarding → dorm + authoring), each thin-engine / content-heavy:
 - [docs/subsystems/char-gen.md](subsystems/char-gen.md) — light
   closed-choice intake. **Wave 1 SHIPPED** (MR !49): the intake engine
   is live on the real command pipeline — `Login`-as-`CommandGiver`,
-  `enroll`/`play` MVC verbs, `EnrollmentDraft` accumulator, `PersonaMixin`,
+  `embody`/`play` MVC verbs, `CharacterDraft` accumulator, `PersonaMixin`,
   `NameBank` suggester, 7-species roster, the cockpit char-gen phase. See
   [docs/subsystems/char-gen.md](./subsystems/char-gen.md). Deferred to
   later waves: the `records` verb (bio *editing* — its *view* role shipped

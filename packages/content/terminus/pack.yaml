@@ -13,7 +13,7 @@ description: >-
   University Avenue is the city street the university gate opens onto —
   it runs from the terminal mouth past the campus wall down to the
   Counting-Houses, and every room on it is somewhere a traveller passes
-  through. It first shipped under /world/eternal because it shared a path
+  through. It first shipped under /world/terminus/eternal because it shared a path
   root with the campus; the path is now what the world already said.
   Behind the gate is Eternal University's, and it is a different pack.
 requires:
@@ -28,24 +28,32 @@ requires:
       members:
         - { id: /world/terminus/mayfield-row/agent/walter, role: member }
   title:
+    # ⭐ The REALM root (economic bootstrap D5): Terminus the realm holds
+    # every piece of 1.0 content — the city's districts below, and the
+    # localities that re-rooted under it (rejection, eternal, hearthworks,
+    # hearts-delight, hinkley-hills). The title tree IS the situs tree:
+    # a player's estate escheats UP it, so every district names this as
+    # its parent. The realm committee and the city committee are one
+    # group until the Compact subdivides — deliberately.
+    - { extent: /world/terminus, holder: { group: terminus }, landUse: civic }
     # The Terminus municipality's ground.
-    - { extent: /world/terminus/terminal,        holder: { group: terminus }, landUse: civic }
-    - { extent: /world/terminus/counting-houses, holder: { group: terminus }, landUse: commercial }
-    - { extent: /world/terminus/general-store,   holder: { group: terminus }, landUse: commercial }
+    - { extent: /world/terminus/terminal,        parentParcel: /world/terminus, holder: { group: terminus }, landUse: civic }
+    - { extent: /world/terminus/counting-houses, parentParcel: /world/terminus, holder: { group: terminus }, landUse: commercial }
+    - { extent: /world/terminus/general-store,   parentParcel: /world/terminus, holder: { group: terminus }, landUse: commercial }
     # The farmers market — the produce square off the counting-houses.
-    - { extent: /world/terminus/market,          holder: { group: terminus }, landUse: commercial }
-    - { extent: /world/terminus/registry,        holder: { group: terminus }, landUse: civic }
+    - { extent: /world/terminus/market,          parentParcel: /world/terminus, holder: { group: terminus }, landUse: commercial }
+    - { extent: /world/terminus/registry,        parentParcel: /world/terminus, holder: { group: terminus }, landUse: civic }
     # University Avenue — the city street the campus gate fronts. Civic
     # like every other public street the municipality keeps.
-    - { extent: /world/terminus/university-avenue, holder: { group: terminus }, landUse: civic }
+    - { extent: /world/terminus/university-avenue, parentParcel: /world/terminus, holder: { group: terminus }, landUse: civic }
     # Mayfield Row (residences D9): the municipality holds the street;
     # the private landlord holds the building the units subdivide under.
-    - { extent: /world/terminus/mayfield-row, holder: { group: terminus }, landUse: residential }
+    - { extent: /world/terminus/mayfield-row, parentParcel: /world/terminus, holder: { group: terminus }, landUse: residential }
     - { extent: /world/terminus/mayfield-row/seznick-house, parentParcel: /world/terminus/mayfield-row, holder: { group: mayfield-holdings }, landUse: residential }
     # The land agents' shopfront (residences D14). Commercial, and the
     # municipality's like the rest of the built city — the office SELLS
     # ground, it does not own the ground it sells.
-    - { extent: /world/terminus/realty, holder: { group: terminus }, landUse: commercial }
+    - { extent: /world/terminus/realty, parentParcel: /world/terminus, holder: { group: terminus }, landUse: commercial }
     # ⭐ The two corridors (logistics D18/D20): a road corridor is
     # SUBDIVIDED AS ITS OWN PARCEL, so the road across somebody's flats
     # is the road's ground and not theirs — which is what makes
@@ -56,13 +64,13 @@ requires:
     # `civic` — "offices, parks and THE COMMONS" — is the public highway.
     # The estuary towpath is the city's own working waterfront and is
     # kept by the municipality like any other street.
-    - { extent: /world/terminus/estuary, holder: { group: terminus }, landUse: civic }
+    - { extent: /world/terminus/estuary, parentParcel: /world/terminus, holder: { group: terminus }, landUse: civic }
     # ⚠ `wild` — "unserviced ground: PASSAGE and gathering only" — is the
     # Delight road, which crosses ground nobody's municipality maintains.
     # The civic/wild split IS the toll-versus-obstruction distinction
     # already: a gate on ground you hold is legitimate, a barricade on
     # the commons is not. No mechanic, no new entry, decided.
-    - { extent: /world/terminus/delight-road, holder: { group: terminus }, landUse: wild }
+    - { extent: /world/terminus/delight-road, parentParcel: /world/terminus, holder: { group: terminus }, landUse: wild }
 boot:
   - { template: /world/terminus/mayfield-row/seznick-house/building, role: producer, reason: warms the unit caches from the durable slot set and installs the lobby stair at postRegister }
   # ⚠ Moved here with the room from `trade-distilling`: a showroom on the

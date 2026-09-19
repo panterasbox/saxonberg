@@ -79,22 +79,22 @@ describe('⭐⭐ a second mining town needs zero pack code', () => {
           cls.startsWith('/trade/forestry/'),
       ).toBe(true);
     }
-    // ⭐ And it names NONE of its own — there is no `/world/rejection/...`
+    // ⭐ And it names NONE of its own — there is no `/world/terminus/rejection/...`
     // class anywhere, because there is no code to name.
     expect([...classes].filter((c) => c.startsWith('/world/'))).toEqual([]);
   });
 
   it('⭐⭐ the four procedural type rows are the VENUE’s, and the warren takes them as POLICY', () => {
-    const warren = row('content/world/rejection/idea/ferrow-warren.yaml');
+    const warren = row('content/world/terminus/rejection/idea/ferrow-warren.yaml');
     expect(warren.class).toBe('/trade/mining/idea/MineWarren');
     const rows = warren.data!.typeRows as Record<string, string>;
     expect(Object.keys(rows).sort()).toEqual(['face', 'fall', 'junction', 'stope']);
     for (const path of Object.values(rows)) {
-      // Every one is a `/world/rejection/...` row, so a second mine
+      // Every one is a `/world/terminus/rejection/...` row, so a second mine
       // supplies sandstone galleries or ice caves and the machinery does
       // not care. If these were `/trade/mining/...` every mine's workings
       // in the world would read identically.
-      expect(path.startsWith('/world/rejection/')).toBe(true);
+      expect(path.startsWith('/world/terminus/rejection/')).toBe(true);
       const rel = `content${path}.yaml`;
       expect(existsSync(join(REJECTION, rel))).toBe(true);
       expect(row(rel).class).toBe('/trade/mining/location/MineRoom');
@@ -103,7 +103,7 @@ describe('⭐⭐ a second mining town needs zero pack code', () => {
 
   it('⭐ every type row carries its OWN prose banks — the voice is the locality’s', () => {
     for (const kind of ['face', 'junction', 'stope', 'fall']) {
-      const data = row(`content/world/rejection/ferrow/${kind}.yaml`).data!;
+      const data = row(`content/world/terminus/rejection/ferrow/${kind}.yaml`).data!;
       for (const bank of ['backPhrases', 'seamPhrases', 'airPhrases', 'groundPhrases']) {
         expect(Array.isArray(data[bank])).toBe(true);
         expect((data[bank] as string[]).length).toBeGreaterThanOrEqual(3);
@@ -117,7 +117,7 @@ describe('⭐⭐ a second mining town needs zero pack code', () => {
     // and malachite. The IDEA transfers from arcana; the document kind
     // does not.
     expect(existsSync(join(REJECTION, 'content/descriptor-banks'))).toBe(false);
-    const face = readFileSync(join(REJECTION, 'content/world/rejection/ferrow/face.yaml'), 'utf8');
+    const face = readFileSync(join(REJECTION, 'content/world/terminus/rejection/ferrow/face.yaml'), 'utf8');
     expect(face).toMatch(/Green runs across the face/);
   });
 
@@ -135,7 +135,7 @@ describe('⭐⭐ a second mining town needs zero pack code', () => {
     // mine has to. `bulkSource: lamp-oil` would have bound the oil and
     // refused this; `tool: lamp` would have made a bed of mushrooms a
     // tool, which it is not.
-    const fixture = row('content/world/rejection/thing/glowcap-fixture.yaml');
+    const fixture = row('content/world/terminus/rejection/thing/glowcap-fixture.yaml');
     expect(fixture.class).toBe('/platform/thing/equipment/PortableLight');
     expect((fixture.data!.emittedIntensity as number)).toBeGreaterThan(0);
     const species = row(
@@ -145,7 +145,7 @@ describe('⭐⭐ a second mining town needs zero pack code', () => {
   });
 
   it('⭐ the deposit is the VENUE’s — the trade ships the class and no ore', () => {
-    const deposit = row('content/world/rejection/idea/deposit/ferrow.yaml');
+    const deposit = row('content/world/terminus/rejection/idea/deposit/ferrow.yaml');
     expect(deposit.class).toBe('/trade/mining/idea/Deposit');
     // …and there is NO deposit row anywhere in the trade pack.
     const tradeRows = files(PACK, (f) => f.endsWith('.yaml'));
@@ -154,7 +154,7 @@ describe('⭐⭐ a second mining town needs zero pack code', () => {
   });
 
   it('⚠ the deposit carries NO SEED — rename the mine and its ore moves', () => {
-    const data = row('content/world/rejection/idea/deposit/ferrow.yaml').data!;
+    const data = row('content/world/terminus/rejection/idea/deposit/ferrow.yaml').data!;
     expect(data).not.toHaveProperty('seed');
     expect(data).not.toHaveProperty('randomSeed');
     // The seed is derived from the covering Locality's claimed address at
@@ -207,7 +207,7 @@ describe('the venue itself', () => {
     for (const n of [
       'pithead-yard', 'claims-office', 'assay-shed', 'provisioning', 'the-dry', 'adit',
     ]) {
-      expect(row(`content/world/rejection/location/${n}.yaml`).class).toBe(
+      expect(row(`content/world/terminus/rejection/location/${n}.yaml`).class).toBe(
         '/platform/location/SingletonCartesianLocation',
       );
     }
@@ -219,7 +219,7 @@ describe('the venue itself', () => {
     // working. ⭐ `AuthoredWorking` is also the class that makes *a
     // bespoke mine works with no warren* a thing an author can DO.
     for (const n of ['cage-bottom', 'timbered-drift', 'winze-head', 'hush-mouth']) {
-      expect(row(`content/world/rejection/ferrow/${n}.yaml`).class).toBe(
+      expect(row(`content/world/terminus/rejection/ferrow/${n}.yaml`).class).toBe(
         '/trade/mining/location/AuthoredWorking',
       );
     }
@@ -245,27 +245,27 @@ describe('the venue itself', () => {
     const seams: string[] = [];
     for (const rel of files(REJECTION, (f) => f.endsWith('.yaml'))) {
       const text = readFileSync(join(REJECTION, rel), 'utf8');
-      if (/destination: \/world\/(?!rejection)/.test(text)) seams.push(rel);
+      if (/destination: \/world\/(?!terminus\/rejection)/.test(text)) seams.push(rel);
     }
     expect(seams.sort()).toEqual([
-      'content/world/rejection/kestrel-road/lower-climb.yaml',
-      'content/world/rejection/kestrel-road/yard-gate.yaml',
+      'content/world/terminus/rejection/kestrel-road/lower-climb.yaml',
+      'content/world/terminus/rejection/kestrel-road/yard-gate.yaml',
     ]);
     // Down the valley: the crossroads on the Delight road, whose far half
     // Terminus authors for itself.
-    const climb = row('content/world/rejection/kestrel-road/lower-climb.yaml');
+    const climb = row('content/world/terminus/rejection/kestrel-road/lower-climb.yaml');
     const climbExits = climb.data!.exits as Record<string, { destination: string }>;
     expect(climbExits['east']!.destination).toBe('/world/terminus/delight-road/crossroads');
     // ⭐ Past the diggings, the road runs on into uncounted country — the
     // newbie wilds, whose far half that pack authors for itself.
-    const gate = row('content/world/rejection/kestrel-road/yard-gate.yaml');
+    const gate = row('content/world/terminus/rejection/kestrel-road/yard-gate.yaml');
     const gateExits = gate.data!.exits as Record<string, { destination: string }>;
     expect(gateExits['north']!.destination).toBe('/world/newbie-wilds/crossroads/hub');
   });
 
   it('⭐ the region zone carries the deposit, so the SURFACE can be surveyed', () => {
-    const region = row('content/world/rejection.yaml');
-    expect(region.data!.deposit).toBe('/world/rejection/idea/deposit/ferrow');
+    const region = row('content/world/terminus/rejection.yaml');
+    expect(region.data!.deposit).toBe('/world/terminus/rejection/idea/deposit/ferrow');
     /*
      * ⭐⭐ …on a PLAIN `CartesianZone`, because **a town is not a mine.**
      *
@@ -289,37 +289,37 @@ describe('the venue itself', () => {
     // outward, so the pithead inherits it and `measure strike` works
     // standing in the yard. A deposit declared only on the mine zone
     // would leave a prospector on the outcrop with nothing to measure.
-    const pithead = row('content/world/rejection/location.yaml');
+    const pithead = row('content/world/terminus/rejection/location.yaml');
     expect(pithead.data).not.toHaveProperty('deposit');
-    const mine = row('content/world/rejection/ferrow.yaml');
+    const mine = row('content/world/terminus/rejection/ferrow.yaml');
     expect(mine.data).not.toHaveProperty('deposit');
   });
 
   it('⭐ the chamber seam is EXPLICIT ON BOTH SIDES, and the pin agrees with the room', () => {
-    const mouth = row('content/world/rejection/ferrow/hush-mouth.yaml');
-    const chamber = row('content/world/rejection/hush/gallery.yaml');
+    const mouth = row('content/world/terminus/rejection/ferrow/hush-mouth.yaml');
+    const chamber = row('content/world/terminus/rejection/hush/gallery.yaml');
     expect((mouth.data!.exits as Record<string, { destination: string }>)['in']!.destination).toBe(
-      '/world/rejection/hush/gallery',
+      '/world/terminus/rejection/hush/gallery',
     );
     expect((chamber.data!.exits as Record<string, { destination: string }>)['out']!.destination).toBe(
-      '/world/rejection/ferrow/hush-mouth',
+      '/world/terminus/rejection/ferrow/hush-mouth',
     );
     // ⭐ Cartesian workings, spherical cavern: the grid represents what
     // labour cut, and a cavern was not cut.
-    expect(row('content/world/rejection/hush.yaml').class).toBe(
+    expect(row('content/world/terminus/rejection/hush.yaml').class).toBe(
       '/platform/idea/location/SphericalZone',
     );
-    expect(row('content/world/rejection/ferrow.yaml').class).toBe(
+    expect(row('content/world/terminus/rejection/ferrow.yaml').class).toBe(
       '/platform/idea/location/CartesianZone',
     );
     // ⚠ And the deposit's authored pin must sit at the mouth's own cell,
     // in metres. A pin the rooms do not match is a feature nobody can
     // ever reach.
     const coords = mouth.data!.coords as { x: number; y: number; z: number };
-    const cellSize = (row('content/world/rejection/ferrow.yaml').data!.cellSize as number);
+    const cellSize = (row('content/world/terminus/rejection/ferrow.yaml').data!.cellSize as number);
     const key = `${coords.x * cellSize},${coords.y * cellSize},${coords.z * cellSize}`;
     const pins = (
-      (row('content/world/rejection/idea/deposit/ferrow.yaml').data!.features as {
+      (row('content/world/terminus/rejection/idea/deposit/ferrow.yaml').data!.features as {
         pins: Record<string, { feature: string }>;
       })
     ).pins;
@@ -353,18 +353,18 @@ describe('the venue itself', () => {
      * from. Still authored ground, still no minted zone.
      */
     expect(zones.sort()).toEqual([
-      'content/world/rejection.yaml',
-      'content/world/rejection/ferrow.yaml',
-      'content/world/rejection/hanging-wood.yaml',
-      'content/world/rejection/hush.yaml',
-      'content/world/rejection/kestrel-road.yaml',
-      'content/world/rejection/location.yaml',
+      'content/world/terminus/rejection.yaml',
+      'content/world/terminus/rejection/ferrow.yaml',
+      'content/world/terminus/rejection/hanging-wood.yaml',
+      'content/world/terminus/rejection/hush.yaml',
+      'content/world/terminus/rejection/kestrel-road.yaml',
+      'content/world/terminus/rejection/location.yaml',
     ]);
   });
 
   it('⭐ FOUR businesses, and the smelter buys out of REVENUE — no new money anywhere', () => {
     const businesses = files(
-      join(REJECTION, 'content/world/rejection/idea'),
+      join(REJECTION, 'content/world/terminus/rejection/idea'),
       (f) => f.endsWith('-business.yaml'),
     );
     expect(businesses.length).toBe(4);
@@ -380,7 +380,7 @@ describe('the venue itself', () => {
   });
 
   it('the ore row authors NO grade — `hew` stamps the ground’s own figure', () => {
-    const ore = row('content/world/rejection/thing/copper-ore.yaml');
+    const ore = row('content/world/terminus/rejection/thing/copper-ore.yaml');
     expect(ore.class).toBe('/trade/mining/thing/Ore');
     // A row that authored a grade would be a second source of truth for a
     // number the deposit already knows.

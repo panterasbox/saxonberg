@@ -8,7 +8,7 @@ help: |
   their session in the world.
 
   You can only `play` a character you own — an unknown or unowned id
-  is refused, and you stay at the selection screen. Use `enroll`
+  is refused, and you stay at the selection screen. Use `embody`
   instead when you want to create a brand-new character.
 args:
   - name: playerId

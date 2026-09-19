@@ -199,7 +199,7 @@ only to tell its heat scope that its lit state changed — from
 
 ## Content
 
-The **Hearthworks** (`domain/hearthworks/`, `world-seed/content/world/hearthworks*`) — a
+The **Hearthworks** (`domain/hearthworks/`, `world-seed/content/world/terminus/hearthworks*`) — a
 self-contained fire zone (teleport-reachable, the substation precedent) with a
 **woodshed** (spread + wet-resist), a **sealed cellar** (`SealedCellar` — the
 CO/ventilation lesson), and a **smithy** (a bellows-fed `Forge` melting an

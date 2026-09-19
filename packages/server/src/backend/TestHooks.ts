@@ -218,7 +218,7 @@ export class TestHooks {
    * Mint a default character on the IDENTITY AXIS (residences D17 — the
    * legacy per-player-row fallback is gone): clone the SHARED seed with
    * the overlay riding `dataOverlay` and the identity minted via
-   * `asIdentityPath` — exactly the enroll path — and leave the avatar
+   * `asIdentityPath` — exactly the embody path — and leave the avatar
    * RESIDENT. `Avatar.postRegister` installs the loadout and captures
    * the first snapshot; the `play` that follows multiplexes onto the
    * live instance, so nothing is torn down and nothing can re-capture a

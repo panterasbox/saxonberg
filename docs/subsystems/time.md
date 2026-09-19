@@ -432,7 +432,7 @@ A *mechanical* timepiece drifts because nobody ever sets it right and its
 mainspring runs down. That physics lives in
 **`MechanicalMovementMixin`** in `lib/time/`, beside `Timekeeping`
 (content packs wave 4b graduated it out of
-`world/eternal/university-avenue/` — the A23 verdict: a mixin is
+`world/terminus/eternal/university-avenue/` — the A23 verdict: a mixin is
 substrate wherever it happens to live, and any pack's clockwork may
 compose it). The concrete timepieces (`Watch`) stay locality content;
 the only realistic mechanical timepiece is still that antique. The mixin folds

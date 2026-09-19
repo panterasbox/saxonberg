@@ -141,7 +141,7 @@ Two things at once:
 the **arrival/intake beat itself** — breezed through as char-gen-adjacent setup,
 then re-encountered as the thesis. The mundane form you filled to get *in* is
 revealed to be the personhood machine. (Flag the hook to onboarding/char-gen's
-`enroll` draft state machine — itself a field-keyed intake form — but don't weld
+`embody` draft state machine — itself a field-keyed intake form — but don't weld
 them yet.)
 
 ## The fraud-hook — witnessing the uncountable (§15.2)

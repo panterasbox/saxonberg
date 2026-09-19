@@ -9,7 +9,7 @@
  * ## ⭐⭐ Who composes it — and it is never a base class
  *
  * `CastMixin` (the *somebody* identity rung), `Avatar` (a player body,
- * whose name enroll writes), and **any class that mints a proper name of
+ * whose name embody writes), and **any class that mints a proper name of
  * its own** — a pet, a named artefact, a named vessel. That is the whole
  * list, and adding to it is a deliberate act on one class.
  *

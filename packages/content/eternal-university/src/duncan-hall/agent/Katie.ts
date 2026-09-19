@@ -13,7 +13,7 @@
  *   - She is an *agent of the dorms owner* (so `provision`/`unprovision`
  *     authorize her) because the landlord's `duncan-hall` group lists her
  *     `templatePath` as a member — authored in the eternal-university pack's
- *     `requires.groups`, applied by the content installer. She does NOT enroll herself; a member writing its own name
+ *     `requires.groups`, applied by the content installer. She does NOT embody herself; a member writing its own name
  *     into the ledger is circular and no real authority.
  *   - Her master ring (legitimate master access to every pin-tumbler dorm
  *     lock) is a physical `Key` `props:`-seeded into her inventory from
@@ -46,8 +46,8 @@ export default class Katie extends CastMixin(PopulatesMixin(NPC)) {
   static commandContributions: CommandContributions = {
     self: [],
     peers: [
-      'world/eternal/duncan-hall/cmd/provision.yaml',
-      'world/eternal/duncan-hall/cmd/unprovision.yaml',
+      'world/terminus/eternal/duncan-hall/cmd/provision.yaml',
+      'world/terminus/eternal/duncan-hall/cmd/unprovision.yaml',
     ],
     environment: [],
   };

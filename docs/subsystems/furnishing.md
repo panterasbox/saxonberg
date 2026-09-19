@@ -514,7 +514,7 @@ adding one. On a world seeded before this build it keeps the old,
 un-lieable row until it is dropped:
 
 ```js
-db.domain.deleteOne({ path: '/world/eternal/duncan-hall/dorm-fixtures/bed' })
+db.domain.deleteOne({ path: '/world/terminus/eternal/duncan-hall/dorm-fixtures/bed' })
 // then restart; SeederManager re-inserts it with the lie:1 slot + restQuality
 ```
 
@@ -522,7 +522,7 @@ Verify by querying rather than trusting the file — the boot log's
 `0 new templates inserted` is not evidence either way:
 
 ```js
-db.domain.findOne({ path: '/world/eternal/duncan-hall/dorm-fixtures/bed' })
+db.domain.findOne({ path: '/world/terminus/eternal/duncan-hall/dorm-fixtures/bed' })
   .data.staticSlots   // non-null = the retrofit is live
 ```
 

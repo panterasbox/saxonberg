@@ -35,7 +35,7 @@ provisioning, and the theme overlay.
 
 Homed in the **`eternal-university`** pack
 (`packages/content/eternal-university/`) — content under
-`content/world/eternal/duncan-hall/`, classes under
+`content/world/terminus/eternal/duncan-hall/`, classes under
 `src/duncan-hall/`. That pack is the CAMPUS: University Avenue, the
 street the campus gate opens onto, is a Terminus street and ships in the
 `terminus` pack (`/world/terminus/university-avenue`).
@@ -291,7 +291,7 @@ pick.)
 
 - **The core — `DormThemes` (`src/duncan-hall/idea/DormThemes.ts`)**, a
   ⭐ **singleton `Idea`** since the 2026-09 statics sweep — declared with
-  `SingletonMixin`, seeded at `/world/eternal/duncan-hall/idea/dorm-themes`
+  `SingletonMixin`, seeded at `/world/terminus/eternal/duncan-hall/idea/dorm-themes`
   and reached with `StuffApi.singleton`. It was a class of public statics,
   which a content pack has no better option for and which the author
   surface drops on the floor; the singleton is the answer to *how a pack

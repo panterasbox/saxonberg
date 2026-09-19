@@ -1526,13 +1526,13 @@ owns — breaks one-stamp-per-row) and **scheduled uninstall**
 
 | What | Where today | Count |
 |---|---|---|
-| domain seeds | `seeds/world/hearthworks/` | 23 (4 rooms + floor, stock props, 2 NPCs, Business, 2 menus) |
-| **TS classes** | `src/mud/world/hearthworks/` | **3** — `SmithyMenu`, `KitchenMenu`, `SealedCellar` |
+| domain seeds | `seeds/world/terminus/hearthworks/` | 23 (4 rooms + floor, stock props, 2 NPCs, Business, 2 menus) |
+| **TS classes** | `src/mud/world/terminus/hearthworks/` | **3** — `SmithyMenu`, `KitchenMenu`, `SealedCellar` |
 | recipes | `config/recipes.yaml` | ~7 (fire-poker, cook-pot, smiths-hammer, belt-knife, leather-jerkin, toasted-ration, root-mash) |
 | tests | `seeds/__tests__/business-authority.test.ts` | 1 → becomes a pack test |
 
 **Zero inbound coupling** — no engine code references
-`/world/hearthworks`; the only inbound mentions are comments. The
+`/world/terminus/hearthworks`; the only inbound mentions are comments. The
 cleanest pack candidate in the tree.
 
 **The dependency graph it declares:**
@@ -1563,7 +1563,7 @@ kind is the answer *if* the current standup path is found and folded in.
 
 **Requires (structure):** ⚠ **hearthworks is UNPARCELLED today** — no
 title row, so its extent falls to the `'core'` owner. The pack's
-`requires.title: /world/hearthworks` is not paperwork; it is the first
+`requires.title: /world/terminus/hearthworks` is not paperwork; it is the first
 real exercise of claim → gated subdivide → stamped install.
 
 **Tier: systemic, and mechanically detectable.** `wageRate: 5`/`4` on a
@@ -1595,12 +1595,12 @@ The hard case on purpose — everything hearthworks dodges, this hits.
 
 | What | Where today | Count |
 |---|---|---|
-| domain seeds | `seeds/world/eternal/` | 35 (duncan-hall 17 + university-avenue 18, incl. 7 controller seed rows) |
-| **TS files** | `src/mud/world/eternal/` | **21** — 7 domain-local controllers (provision/unprovision/remodel + blow/tally/wind/adjust), `Katie.ts`, the DormWarren machinery (9), the crossing kit (4) |
-| misfiled class | `obj/Gus.ts` | 1 — kernel `obj/` class hardcoding `/world/eternal/university-avenue` paths; ⭐ refile to `domain/eternal/university-avenue/` |
+| domain seeds | `seeds/world/terminus/eternal/` | 35 (duncan-hall 17 + university-avenue 18, incl. 7 controller seed rows) |
+| **TS files** | `src/mud/world/terminus/eternal/` | **21** — 7 domain-local controllers (provision/unprovision/remodel + blow/tally/wind/adjust), `Katie.ts`, the DormWarren machinery (9), the crossing kit (4) |
+| misfiled class | `obj/Gus.ts` | 1 — kernel `obj/` class hardcoding `/world/terminus/eternal/university-avenue` paths; ⭐ refile to `domain/eternal/university-avenue/` |
 | civics rows | `seeds/stuff/idea/Locality/eternal-campus.yaml`, `seeds/stuff/idea/Government/eternal-university.yaml` | 2 — the three-deep jurisdiction proof |
 | group | `config/groups.yaml` `duncan-hall` | member: **the NPC katie** (agent authority) |
-| parcel | `config/parcels.yaml` `/world/eternal/duncan-hall/dorms` | owner: group `duncan-hall` |
+| parcel | `config/parcels.yaml` `/world/terminus/eternal/duncan-hall/dorms` | owner: group `duncan-hall` |
 | boot-instance | `bootstrap.ts` | `dorm-warren` |
 | tests reaching in | 13 files | ⚠⚠ **four live in KERNEL trees** — `lib/behavior/crossing-ritual`, `obj/crossing-objects.smoke`, `api/command-migration`, `seeds/room-archetypes` — the inverted arrow (Part 5), live |
 
@@ -1615,7 +1615,7 @@ exits rather than leave it convention.
 **Kinds and requires it exercises beyond hearthworks:**
 
 - `requires.groups: duncan-hall` + `requires.title:
-  /world/eternal/duncan-hall/dorms` — the structure half, straight
+  /world/terminus/eternal/duncan-hall/dorms` — the structure half, straight
   from the slate.
 - ⭐⭐ **Agent membership as a PROVISION item.** Katie's membership in
   `duncan-hall` is authority, so the pack cannot ship it — but the pack
@@ -2003,7 +2003,7 @@ plus three decisions it forced.
 |---|---|
 | **`/trade/smithing/`** | recipes fire-poker · smiths-hammer · belt-knife · cook-pot · leather-jerkin; station templates anvil · whetstone (→ `/trade/smithing/thing/…`); stock iron-ingot · spare-ingot; the *smith* position def; archetype *smithy = heat ≥ forge-temp · striking surface · work surface · fuel store* |
 | **`/trade/cooking/`** | recipes toasted-ration · root-mash; stock prime-cut · stew-meat · ration-stock · root-vegetables *(interim — see A16.3)*; the *cook* position def; archetype *kitchen = heat · pot · pantry* |
-| **`/world/hearthworks/`** (venue) | rooms (smithy · cookhouse · cellar · woodshed · forge-floor); the Business (roster, **wage rates**, `banksAt: goodkin`); the two NPCs (the CAST — the position is industry, *this* smith is venue); menu **contents**; `populates:` compositions; `requires.title`; ⚠ **the inbound exit it has never had** |
+| **`/world/terminus/hearthworks/`** (venue) | rooms (smithy · cookhouse · cellar · woodshed · forge-floor); the Business (roster, **wage rates**, `banksAt: goodkin`); the two NPCs (the CAST — the position is industry, *this* smith is venue); menu **contents**; `populates:` compositions; `requires.title`; ⚠ **the inbound exit it has never had** |
 
 **What the cut revealed:**
 
@@ -2017,11 +2017,11 @@ plus three decisions it forced.
 2. **Menu genericization is mostly done** — SmithyMenu/KitchenMenu are
    already thin CommerceMenu subclasses; the residue (verb-surface
    lighting?) is the actual work, and it is small.
-3. ⚠ **The migration is a PATH RENAME** (`/world/hearthworks/anvil` →
+3. ⚠ **The migration is a PATH RENAME** (`/world/terminus/hearthworks/anvil` →
    `/trade/smithing/thing/anvil`), and now is the cheapest it will ever
    be — hearthworks is goto-only, blast radius ≈ one populates list +
    recipe station refs. ⚠⚠ The re-cut must **DELETE the orphaned
-   unstamped `/world/hearthworks/*` rows** the new packs don't adopt
+   unstamped `/world/terminus/hearthworks/*` rows** the new packs don't adopt
    (the seeder-is-insert-only trap's farewell appearance).
 4. Open: does the venue keep the proper name "Hearthworks" while the
    industries take generic names? (Lean yes — proper noun for the
@@ -2556,7 +2556,7 @@ is — the governing observation:
 > ⭐⭐ **The ownership meaning of "domain" already moved out of the path
 > root and into the PARCEL system**, which covers every root uniformly
 > (`/trade/smithing` is exactly as much somebody's domain as
-> `/world/eternal`). Since `/trade/` landed, the root's actual
+> `/world/terminus/eternal`). Since `/trade/` landed, the root's actual
 > referent is just geography — a stale name.
 
 1. **The collection: `domain` → `content`.** It holds every template
@@ -3102,7 +3102,7 @@ packages/content/eternal-university/
 together as a single versioned artifact — they cannot skew.** No
 separate "is the code in package.json" step exists. Class resolution:
 a **namespace → package table** built at discovery
-(`/world/eternal/… → @saxonberg/content-eternal-university/src`,
+(`/world/terminus/eternal/… → @saxonberg/content-eternal-university/src`,
 via Node resolution); `loadClassByPath` consults it before the kernel
 tree.
 

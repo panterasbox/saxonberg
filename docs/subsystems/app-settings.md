@@ -139,7 +139,7 @@ succeeded; it is **not** a `controller-rejected` envelope note).
 
 | Key | Seeded value | Read by |
 |---|---|---|
-| `defaultStartLocation` | `/world/lounge/idea/warren` | The three avatar-mint sites stamp it into a new avatar's `startLocation` at clone time: `EnrollController.commit`, `Application.createDefaultAvatarTemplate`, `Login.mintRandomGuestAvatar`. |
+| `defaultStartLocation` | `/world/lounge/idea/warren` | The three avatar-mint sites stamp it into a new avatar's `startLocation` at clone time: `EmbodyController.commit`, `Application.createDefaultAvatarTemplate`, `Login.mintRandomGuestAvatar`. |
 | `evacuationFallback` | `/world/void` | `Container.cleanupOnDestruct` — where an orphaned `HasInteractive` evacuates when its container destructs with no outer. |
 
 `defaultStartLocation` supplies only the *initial* value of each avatar's
@@ -176,7 +176,7 @@ regard bump is a flagged-replaceable demo, so it stays put).
 | Key | Seeded value | Read by |
 |---|---|---|
 | `chat.historyCap` | `200` | `ChannelCatalogue.recordHistory` — per-channel in-memory history ring cap. |
-| `chargen.nameMinLength` / `chargen.nameMaxLength` | `2` / `24` | `EnrollController.validateNameToken` — inclusive name-length bounds. |
+| `chargen.nameMinLength` / `chargen.nameMaxLength` | `2` / `24` | `EmbodyController.validateNameToken` — inclusive name-length bounds. |
 | `status.maxLength` | `100` | `StatusMixin` `sanitizeStatus` — max rendered status one-liner length. |
 
 Each consumer reads through a local try/catch helper that falls back to the

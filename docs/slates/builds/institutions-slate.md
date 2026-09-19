@@ -36,7 +36,7 @@ See also:
 
 - [economic-bootstrap-requirements](../../requirements/economic-bootstrap-requirements.md)
   — the money layer this sits on: the reserve's two lanes, the credit
-  ladder, the Enrollment Note, the player life-cycle and situs.
+  ladder, the Arrival Note, the player life-cycle and situs.
 - [credit-slate](./credit-slate.md) — the fiscal apparatus; its Part 6
   (local underwriting) lands at Goodkin here.
 - [corpos-slate](./corpos-slate.md) — the marks and the faction axis;
@@ -145,7 +145,7 @@ mutual's table is its membership roll, one vote each.
   partner; Dave bringing Mara in is the succession the cast already
   implies. ⚠ Requirements must state it next to the 13th module: an
   interest issued for labor is a *grant against work done*, never an
-  obligation to work — non-recourse, exactly as the Enrollment Note.
+  obligation to work — non-recourse, exactly as the Arrival Note.
 - **A company is filed** at a **registry** — a chartered institution,
   NPC-run, one for the Compact to start (localities competing on
   incorporation law is a real lever, not at dozens of players). ⭐⭐

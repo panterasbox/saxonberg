@@ -173,14 +173,14 @@ const AvatarBase = PersistableMixin(
                 WardrobeMixin(
                   PartyMemberMixin(
                     SubjectSubscriberMixin(
-                      // ⭐ A player body has a name because ENROLL WRITES
+                      // ⭐ A player body has a name because EMBODY WRITES
                       // ONE, and it is the one piece of identity a player
                       // typed themselves. Composed here rather than
                       // inherited from the creature base: a body is not a
                       // somebody, and an Avatar is.
                       //
                       // ⚠ The fails-closed check on this is the ROUND
-                      // TRIP — enroll → `holder_snapshots` → reconnect. A
+                      // TRIP — embody → `holder_snapshots` → reconnect. A
                       // missing field hydrates as empty and the banner
                       // reads "Welcome, ." with nothing thrown.
                       NamedMixin(ShelledCharacter),
@@ -831,7 +831,7 @@ export default class Avatar extends AvatarBase {
         `Avatar.enter: ${this.getFullName()} has no container. ` +
           `The avatar seed must declare a spawn via 'data.startLocation' ` +
           `(a room or a Warren) or 'data.container'; the seed at ` +
-          `'${Avatar.SEED_TEMPLATE_PATH}' sets the default the enroll/guest ` +
+          `'${Avatar.SEED_TEMPLATE_PATH}' sets the default the embody/guest ` +
           `overlay clones from (no per-player template row exists).`,
       );
     }

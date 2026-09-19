@@ -63,7 +63,7 @@ Surveyed, not assumed:
 
 | | |
 |---|---|
-| **The entire mint surface** | ⭐ **three call sites.** `EnrollController` (the onboarding stipend), `reserve mint` (Governor-gated subsidy), `reserve issue` (cash into the Governor's hands) |
+| **The entire mint surface** | ⭐ **three call sites.** `EmbodyController` (the onboarding stipend), `reserve mint` (Governor-gated subsidy), `reserve issue` (cash into the Governor's hands) |
 | **Lending** | none. No application, no rule, no rate, no term, no repayment |
 | **The seat** | `central-bank-governor` — ⭐ the **only** one of the five offices marked `founder-established` rather than `constituted`. Authored as the disposable one |
 | **The Treasury** | ⚠ **not built.** Art. VIII §4 specifies *tax → budget → appropriate → disburse*; the corpus has `remitDemoTax` and a city-budget account taking TPA fares. Fragments, no cycle |
@@ -76,7 +76,7 @@ things changed and one of them is a gift.
 
 | | |
 |---|---|
-| **The three mint call sites** | ✅ **unchanged** — `EnrollController`, `reserve mint`, `reserve issue` |
+| **The three mint call sites** | ✅ **unchanged** — `EmbodyController`, `reserve mint`, `reserve issue` |
 | **`reserve mint` still fuses issuance + appropriation** | ✅ unchanged — Part 0's headline finding stands |
 | ⭐⭐ **`credit` was RETIRED as the money noun** | the currency is the **ZORKMID** |
 | **Conservation is now per-currency** | `LedgerEntry.currency`; **a leg may never cross currencies** |

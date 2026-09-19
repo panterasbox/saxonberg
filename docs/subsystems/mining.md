@@ -10,7 +10,7 @@ Four packs:
 | `trade-mining` | yes | `/trade/mining` | how a mine WORKS |
 | `trade-fuel` | yes | `/trade/fuel` | the coppice, the burn, the charcoal |
 | `trade-smelting` | yes | `/trade/smelting` | ground into metal |
-| `rejection` | **no** | `/world/rejection` | what THIS mine is like |
+| `rejection` | **no** | `/world/terminus/rejection` | what THIS mine is like |
 
 ---
 

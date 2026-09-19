@@ -99,7 +99,7 @@ in S3 — never in git (`tools/imagegen/samples/` is gitignored).
 The race picker shows a species portrait + a structured **dossier**. Both
 are *presentation derived from the species model*, so they live in
 `SpeciesApi.buildDossier(species, path)` (`api/species.ts`), not the
-controller. `EnrollController` pre-warms a per-species card (`{ dossier,
+controller. `EmbodyController` pre-warms a per-species card (`{ dossier,
 illustration }`) — the dossier from `SpeciesApi`, the illustration from
 `species.getIllustration()` — and surfaces it on `CharGenOption`. See
 [char-gen.md](./char-gen.md).

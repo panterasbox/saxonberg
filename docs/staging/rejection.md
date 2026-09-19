@@ -1,6 +1,6 @@
 # Rejection — the locality (design, staging)
 
-> **Target seeds:** `packages/content/rejection/content/world/rejection/**`
+> **Target seeds:** `packages/content/rejection/content/world/terminus/rejection/**`
 > (new: the spoil bank, the Row, the Rest, the Tallow, the sharpening
 > shop, the infirmary, the Institute, the print shop, + cast) ·
 > `world-seed/content/stuff/idea/Locality/rejection.yaml` (amend

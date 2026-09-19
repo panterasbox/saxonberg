@@ -54,7 +54,7 @@ interface DormWarrenView {
 
 export default class DormRoom extends DormRoomBase {
   /** The shared clone-namespace path — the D1 record `scope`. */
-  static readonly SCOPE = '/world/eternal/duncan-hall/location/dormroom';
+  static readonly SCOPE = '/world/terminus/eternal/duncan-hall/location/dormroom';
 
   /**
    * The dorm's address in the addressing namespace — content knows its

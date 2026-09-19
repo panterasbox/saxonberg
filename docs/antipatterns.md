@@ -4580,7 +4580,7 @@ baskets were the realm's entire fuel economy as a result.
 the starter pot's shipped shape):
 
 ```yaml
-# GOOD — /world/rejection/thing/fuel-yard-panel, a forestry Panel with eight slots
+# GOOD — /world/terminus/rejection/thing/fuel-yard-panel, a forestry Panel with eight slots
 props:
   - /trade/forestry/thing/hazel-stool
   - /trade/forestry/thing/hazel-stool

@@ -338,7 +338,7 @@ synthetic fixtures under `/test/**` ("ugly on purpose"); the four
 eternal-tree kernel tests were shrunk that way (`crossing-ritual` over
 duck-typed synthetic gear; the Whistle smoke, the dorm-bed archetype
 cases and the domain-local `provision` case moved beside their content
-under `src/mud/world/eternal/**/__tests__/`).
+under `src/mud/world/terminus/eternal/**/__tests__/`).
 
 ### `lint:untitled` — every shipped path is under a claim
 

@@ -1076,7 +1076,7 @@ kit: whetstone, iron ingots, sewing kit.
 **The Business wiring is load-bearing, not decoration** (learned in
 this build): `order` resolves its maker through the augment-gated
 `MakerMixin`, so a venue with no rostered on-shift position has **no
-active maker** — `hearthworks/content/world/hearthworks/idea/business.yaml` rosters the
+active maker** — `hearthworks/content/world/terminus/hearthworks/idea/business.yaml` rosters the
 smith + cook 24/7 with `confers: [MakerMixin]` (the Dave's-Bar pattern
 verbatim; see [employment.md](./employment.md)). New graded-stock
 form: `/platform/thing/Provision` (`GradedMixin(DetailedMixin(Thing))`) — the

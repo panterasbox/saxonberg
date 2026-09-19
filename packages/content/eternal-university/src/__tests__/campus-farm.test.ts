@@ -35,8 +35,8 @@ function walk(dir: string): string[] {
 }
 
 const FARM_DIRS = [
-  `${PACK}content/world/eternal/campus-farm`,
-  `${PACK}content/world/eternal/campus-field`,
+  `${PACK}content/world/terminus/eternal/campus-farm`,
+  `${PACK}content/world/terminus/eternal/campus-field`,
 ];
 
 describe('the campus farm', () => {
@@ -121,19 +121,19 @@ describe('the college ground', () => {
     parse(readFileSync(p, 'utf8')) as Record<string, unknown>;
 
   it('⭐ the field\'s zone cites a ground model, and the model is shipped', () => {
-    const zone = read(`${PACK}content/world/eternal/campus-field.yaml`);
+    const zone = read(`${PACK}content/world/terminus/eternal/campus-field.yaml`);
     const cited = (zone.data as Record<string, unknown>).groundCharacter;
-    expect(cited).toBe('/world/eternal/campus-field/idea/ground');
+    expect(cited).toBe('/world/terminus/eternal/campus-field/idea/ground');
 
-    const row = read(`${PACK}content/world/eternal/campus-field/idea/ground.yaml`);
+    const row = read(`${PACK}content/world/terminus/eternal/campus-field/idea/ground.yaml`);
     expect(row.class).toBe('/trade/farming/idea/GroundCharacter');
   });
 
   it('⭐⭐ and it teaches infield/outfield — a pin near, a lean far', () => {
-    const data = read(`${PACK}content/world/eternal/campus-field/idea/ground.yaml`)
+    const data = read(`${PACK}content/world/terminus/eternal/campus-field/idea/ground.yaml`)
       .data as { pins: Record<string, Record<string, unknown>>; bands: unknown[] };
     const field = read(
-      `${PACK}content/world/eternal/campus-field/location/home-field.yaml`,
+      `${PACK}content/world/terminus/eternal/campus-field/location/home-field.yaml`,
     ).data as { groundSpotX: number; groundSpotY: number };
 
     // The pin sits on the home field's OWN spot: the ground nearest the

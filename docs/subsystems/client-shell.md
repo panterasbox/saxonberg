@@ -1151,7 +1151,7 @@ ephemeral**. Two orthogonal axes, deliberately not conflated:
 - **Guest-ness (character axis)** — `Avatar.isGuest`. `Login.enter` is
   the **one** place the policy "anonymous session → mint a guest avatar"
   lives; the build itself is `Login.mintRandomGuestAvatar` (private),
-  which reads the char-gen rosters + sex-set rule from `EnrollController`
+  which reads the char-gen rosters + sex-set rule from `EmbodyController`
   (`loadConfig` / `validSexSet`) so the guest and char-gen paths agree.
   Every pick is **randomized** — a random species, a random
   **non-intersex** sex, a random aspiration (→ bio + themed outfit) —
@@ -1175,8 +1175,8 @@ Guest lifecycle:
   `NameBank` (an unseeded bank degrades to a bare "Guest", never a
   fabricated surname) — so guest-ness rides every attributed line
   (speech/emote/look), where a UI badge can't reach. The reserved word is
-  on the char-gen `enroll` name denylist
-  (`EnrollController.isReservedName`, which imports it from `Login`) so a
+  on the char-gen `embody` name denylist
+  (`EmbodyController.isReservedName`, which imports it from `Login`) so a
   real player can't impersonate a guest. Exact-word only; fuzzy/homoglyph
   is out of scope.
 - **Persists nothing.** `Avatar.save()` short-circuits for guests (the
@@ -1392,10 +1392,10 @@ that a primitive with no consumer can drift. Build B closed it.)
 ## History
 
 - **Guest build homed on `Login`** (MR !54 review): the randomized
-  guest-avatar build started life as `EnrollController.mintRandomGuestAvatar`
+  guest-avatar build started life as `EmbodyController.mintRandomGuestAvatar`
   (next to the char-gen `commit` it mirrors) but moved onto `Login` — the
   guest-mint site — reading the rosters + `validSexSet` back from
-  `EnrollController` via a lazy import. In the same pass the
+  `EmbodyController` via a lazy import. In the same pass the
   `GUEST_RESERVED_WORD` + guest-name generation moved from `Avatar` to
   `Login`, the hardcoded guest-surname fallback list was deleted (real
   `common` NameBank only), and `PRONOUN_LABELS` was colocated with the

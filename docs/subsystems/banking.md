@@ -214,7 +214,7 @@ re-links the held account onto the fresh credential instead of refusing. One `Ba
 extends `BankingControllerBase` (`resolveBank` — the affording counter, else
 the room scan; the crafting "agent performs, venue owns state" resolution).
 The branch is authored as **city content**:
-`world-seed/content/world/eternal/university-avenue/{bank,bank-counter,npc/teller}.yaml`,
+`world-seed/content/world/terminus/eternal/university-avenue/{bank,bank-counter,npc/teller}.yaml`,
 one cell north of the arrival plaza (reachable from the born-with University
 Avenue fast-travel node), affiliated to **Goodkin** (the retail bank).
 
@@ -519,7 +519,7 @@ The plan flagged 6 open implementation choices; settled as reached:
    (no more banking `open` shadowing the boundary `open`). A pure view-layer
    regroup — the Api/Logic substrate is untouched. (Phase 2 surface,
    restructured post-MR review.)
-6. **Branch/teller homing** — city content under `world-seed/content/world/eternal/`
+6. **Branch/teller homing** — city content under `world-seed/content/world/terminus/eternal/`
    (resolved by the plan). Sub-choice settled: **`BankMixin` on a
    teller-counter `Thing` fixture**, NOT on the branch Location — a
    Location's own `commandContributions` don't reach its occupants, so the
@@ -656,7 +656,7 @@ Goodkin bank runs.
   stops meaning anything is *money supply*. An account allowed to go negative
   is a second mint the Governor does not control — reported, never blocked,
   because running a venue red is the design.
-- **Goodkin re-homed.** From the placeholder `/world/eternal/university-avenue/bank`
+- **Goodkin re-homed.** From the placeholder `/world/terminus/eternal/university-avenue/bank`
   into the Terminus **Counting-Houses** (`domain/terminus/counting-houses/`): a
   Locality + zone + a public avenue block (the four rival frontages as prose) +
   the banking hall (counter + Wenna) + the Circle parlor (Halloran). A complete
@@ -830,7 +830,7 @@ shipped branch-book property, so Goodkin's cash physics are unchanged.
   circulating read and the complete `fullReconcile`.
 
   ⚠ Three defects in that build were found **only by driving the client**,
-  not by the suite — enroll was broken by the new gate (the tests call
+  not by the suite — embody was broken by the new gate (the tests call
   `issueCash` from a root execution context and stub `clone`, so they never
   exercised the real caller or the hydration path), a coin stack rendered
   as *"4 a 5-zorkmid pieces"*, and the new vault term double-counted the

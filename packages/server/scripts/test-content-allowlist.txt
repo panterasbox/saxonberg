@@ -77,8 +77,8 @@ packages/server/src/mud/platform/idea/api/__tests__/comp-bases.integration.test.
 packages/server/src/mud/platform/idea/api/__tests__/employment.ensureOperator.test.ts
 packages/server/src/mud/platform/idea/cmd/banking/__tests__/BankingControllers.test.ts
 packages/server/src/mud/platform/idea/cmd/banking/__tests__/DrawController.test.ts
-packages/server/src/mud/platform/idea/cmd/charactergen/__tests__/EnrollController.chronicle.test.ts
-packages/server/src/mud/platform/idea/cmd/charactergen/__tests__/EnrollController.commit.test.ts
+packages/server/src/mud/platform/idea/cmd/charactergen/__tests__/EmbodyController.chronicle.test.ts
+packages/server/src/mud/platform/idea/cmd/charactergen/__tests__/EmbodyController.commit.test.ts
 packages/server/src/mud/platform/idea/cmd/civics/__tests__/GovernmentController.test.ts
 packages/server/src/mud/platform/idea/cmd/device/__tests__/ArmController.test.ts
 packages/server/src/mud/platform/idea/cmd/employment/__tests__/tips.test.ts

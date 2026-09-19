@@ -1,7 +1,7 @@
 /**
  * UnprovisionController — the `unprovision <player>` / `unlease <player>` verb
  * (a Duncan Hall *content* verb — content namespace
- * `world/eternal/duncan-hall/`, not a core command category). Ends a
+ * `world/terminus/eternal/duncan-hall/`, not a core command category). Ends a
  * tenant's dorm lease and reclaims the unit:
  * revoke the lease, revert the live room (no recapture races the delete),
  * clear the personalized D1 record, and retire the parcel so its slot frees

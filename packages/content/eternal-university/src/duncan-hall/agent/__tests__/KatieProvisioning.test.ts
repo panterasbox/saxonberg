@@ -52,7 +52,7 @@ async function conferDormsStaff(): Promise<void> {
   ) as unknown as {
     ensureMember(ref: unknown, id: string, role: string): Promise<unknown>;
   };
-  await logic.ensureMember(ref, '/world/eternal/duncan-hall/agent/katie', 'member');
+  await logic.ensureMember(ref, '/world/terminus/eternal/duncan-hall/agent/katie', 'member');
 }
 import { Document } from '@saxonberg/server/mud/lib/persistence/Document';
 import { makeStuffAtPath } from '@saxonberg/server/mud/lib/security/__tests__/test-setup';
@@ -122,8 +122,8 @@ function installStore(): void {
 function seedDormsParcel(): void {
   col('parcels').push({
     _id: `seed-${++idCounter}`,
-    extent: '/world/eternal/duncan-hall/dorms',
-    zonePath: '/world/eternal/duncan-hall/dorms',
+    extent: '/world/terminus/eternal/duncan-hall/dorms',
+    zonePath: '/world/terminus/eternal/duncan-hall/dorms',
     owner: DORMS_OWNER,
     parentParcel: null,
     grants: [],
@@ -172,7 +172,7 @@ describe('Katie — the dorms-agent authorization boundary', () => {
     const ref = await ParcelApi.resolveOwnerRef(DORMS_OWNER);
     expect(ref).not.toBeNull();
     expect(
-      await GroupApi.isMember('/world/eternal/duncan-hall/agent/katie', ref!),
+      await GroupApi.isMember('/world/terminus/eternal/duncan-hall/agent/katie', ref!),
     ).toBe(true);
   });
 
@@ -183,7 +183,7 @@ describe('Katie — the dorms-agent authorization boundary', () => {
     // working pin-tumbler master in lib/lock/__tests__/Lock.test.ts).
     const katie = makeStuffAtPath(
       () => new Katie(),
-      '/world/eternal/duncan-hall/agent/katie',
+      '/world/terminus/eternal/duncan-hall/agent/katie',
     );
     expect(MixinApi.hasMixin(katie, Mixins.Populates)).toBe(true);
   });
@@ -194,8 +194,8 @@ describe('Katie — the dorms-agent authorization boundary', () => {
     // their `world/`-prefixed view key, and those keys resolve to real
     // definitions (the domain-local `getCommand` branch).
     const env = Katie.commandContributions.peers ?? [];
-    expect(env).toContain('world/eternal/duncan-hall/cmd/provision.yaml');
-    expect(env).toContain('world/eternal/duncan-hall/cmd/unprovision.yaml');
+    expect(env).toContain('world/terminus/eternal/duncan-hall/cmd/provision.yaml');
+    expect(env).toContain('world/terminus/eternal/duncan-hall/cmd/unprovision.yaml');
     // Nothing preloaded views from a store here, so the keys resolve to
     // the pack's own view files (offline = the pack files).
     CommandApi.clearCache();
@@ -210,7 +210,7 @@ describe('Katie — the dorms-agent authorization boundary', () => {
 
     const katie = makeStuffAtPath(
       () => new Katie(),
-      '/world/eternal/duncan-hall/agent/katie',
+      '/world/terminus/eternal/duncan-hall/agent/katie',
     );
     // Membership is conferred by the owner's authored group data (the
     // pack's requires), not by Katie enrolling herself.
