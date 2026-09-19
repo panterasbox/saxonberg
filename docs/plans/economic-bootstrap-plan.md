@@ -6,7 +6,7 @@ the cash-and-carry + the general store, Dave's Bar, Duncan Hall's
 intake), including its `## Retrofit — districting the 1.0 content`
 section. What is built: the reserve's two lanes and one officer; a
 treasury that spends; the four-rung credit ladder gated on the ledger;
-the Enrollment Note; the wage overdraft retired into a loan or a
+the Arrival Note; the wage overdraft retired into a loan or a
 refusal; the three estate states derived from absence, with escheat up
 the title tree; the retrofit that makes the title tree the situs tree
 (the realm root, the trade premises in the world, three seats, corpo
@@ -78,7 +78,7 @@ NOT do.
   2. `seedFloatImpl` (:593-611): `issueCashImpl(bank, amount, "float")`
      + a `deposit` leg into the branch account; lazily from
      `openAccountImpl` (:276-282); `banking.openingFloat` = `"500"`.
-  3. `EnrollController.ts:774-786` — `BankingApi.issueCash(avatar,
+  3. `CreateController.ts:774-786` — `BankingApi.issueCash(avatar,
      Money.of(stipend), "onboarding")` with `banking.onboardingStipend`
      = `"20"`; coin in hand, no account opened.
   4. The `reserve` verb (`packages/content/platform/content/platform/cmd/banking/reserve.yaml`,
@@ -421,7 +421,7 @@ inflow taken for a creditor is a rider split inside the `settle`
 transaction: kind `payment`, category `repayment`; interest inside a
 repayment is a second leg of the same transaction, category
 `interest`. New categories: `window perpetual advance repayment
-interest terms appropriation escheat unclaimed recovery enrollment
+interest terms appropriation escheat unclaimed recovery arrival
 opening`.
 
 ### D3 — The floor is structural
@@ -459,7 +459,7 @@ tune; a `treasury set` is a seam, not a wave).
 | `reserve.repaymentShareMin` / `Max` | `"0.10"` / `"0.50"` | bounds a bank's posted share |
 | `reserve.defaultHorizonGameDays` | `"30"` | default revealed on read |
 | `reserve.indexBasket` | the two NPC counters, comma-separated | the index (D20) |
-| `treasury.enrollmentPrincipal` | `"20"` | the Note's principal |
+| `treasury.arrivalPrincipal` | `"20"` | the Note's principal |
 | `treasury.noteDischargeGameDays` | `"30"` | discharge without a wage |
 | `treasury.openingAdvance` | `"20000"` | the standing facility (D9) |
 | `estate.dormantAfterDays` | `"30"` (real) | D16 |
@@ -634,7 +634,7 @@ unchanged. The `isAgentOf` wizard short-circuit is not this build's
   `withdraw` leg from a real account to `CASH_BRIDGE` plus the coin
   clone that `issueCashImpl` does today — supply-neutral, floor-checked.
   Its two consumers: the Note's principal (treasury → the new player's
-  hands, category `enrollment`) and the bank's **till float** — a bank
+  hands, category `arrival`) and the bank's **till float** — a bank
   converts `min(banking.tillFloat, its own balance)` of its operating
   balance into vault coin on the first `openAccount` at a branch
   (`seedFloatImpl` becomes this; a bank with no balance has an empty
@@ -642,20 +642,20 @@ unchanged. The `isAgentOf` wizard short-circuit is not this build's
   `issueCash` survives only for the banking test harness and is on the
   faucet lint's allowlist by file.
 
-### D10 — The Enrollment Note
+### D10 — The Arrival Note
 
-At `EnrollController.commit` step 5c, instead of `issueCash`:
+At `CreateController.commit` (the renamed `enroll confirm`, W0) step 5c, instead of `issueCash`:
 `ContractApi.issueNote(avatar)` → a `note` row (issuer = the player,
 holder = `/compact/treasury`, `principalMinor =
-treasury.enrollmentPrincipal`, rate 0, share 0,
+treasury.arrivalPrincipal`, rate 0, share 0,
 `dischargeOnFirstWage: true`, `dischargeAfterGameDays =
 treasury.noteDischargeGameDays`, security `{kind: account}`), then
-`BankingApi.disburse(treasury, avatar, principal, 'enrollment')`, then
+`BankingApi.disburse(treasury, avatar, principal, 'arrival')`, then
 the paper is **filed, not carried**: a new closed document kind
 **`instrument`** (`lib/document/DocumentKinds.ts` — a platform edit, on
 the `water-right` pattern: path-keyed, `contentDir: 'papers'`, `ext:
 'yaml'`, `onVanish: 'keep'`) written by `ContractApi` through
-`DocumentApi` as the system at `/home/<identity key>/papers/enrollment-note`
+`DocumentApi` as the system at `/home/<identity key>/papers/arrival-note`
 — the terms in words, the contract id, the date, and an appended
 `discharged`/`recovered` line when that happens. Every loan files the
 same way under the borrower's branch and the lender's (`house book` /
@@ -668,7 +668,7 @@ which discharges any open note of that issuer, appends `discharged` to
 the row and the paper, and tells the player if resident) or lazily from
 `dischargeAfterGameDays` on any touch. Bare `wallet` gains a line per open instrument the wallet's
 owner issues or holds (`ContractApi.instrumentsOf(owner)`): *"You hold
-an Enrollment Note for twenty zorkmids, at no interest, to the
+an Arrival Note for twenty zorkmids, at no interest, to the
 treasury."* The chronicle records the signing once
 (`recordChronicleOnce('economy:note:signed', …)`) and `finance` is
 credited (D21). **Katie is untouched** — the Note is a meta instrument
@@ -986,7 +986,7 @@ settings keys `banking.openingCapital`, `banking.onboardingStipend`,
 `.float(` outside an allowlist by file+function (the perpetual rule,
 the window rule, `reserve override`, the banking test harness) — today: `ensureVenueAccountImpl`,
 `ensureCorpoTreasuryImpl`, `seedFloatImpl`, `issueCashImpl` callers
-(`EnrollController`, `ReserveController` ×2), `float`, `mint` = **9**.
+(`CreateController`, `ReserveController` ×2), `float`, `mint` = **9**.
 Ceiling = the census at W3; W6 drives it to 0; the gate then holds 0.
 Both follow `check-lib-statics.ts` (a `CEILING` that may fall, a test
 asserting *at or below, and fires on a fixture*).
@@ -1001,7 +1001,7 @@ the snapshot, exactly as the committee arm of `holdsAuthority` does.
 ### D24 — The drive is a dirty wire file
 
 `packages/wire/tests/economic-bootstrap.dirty.wire.test.ts`
-(`DIRTY_REASON`: it enrolls characters, spends the general store's
+(`DIRTY_REASON`: it creates characters, spends the general store's
 supplied line, moves the Governor's rows, and escheats an estate). It
 opens one `wizard: true` session for `config` and one founder-shaped
 session for `reserve`/`treasury` (the founder holds every seat by
@@ -1150,12 +1150,23 @@ migration).
   Top claims gain `parentParcel: /world/terminus`.
 - `packages/content/platform/pack.yaml`: `{extent: /world/saxonberg}`
   (no holder), one comment line.
+- **The `enroll` → `create` rename** (the word was the char-gen build's,
+  and the University has a real enrollment at Duncan Hall): the view
+  `cmd/charactergen/enroll.yaml` → `create.yaml` (`verbs: [create]`,
+  help rewritten: *create a character*), `EnrollController` →
+  `CreateController`, `EnrollmentDraft` → `CharacterDraft`, `EnrollModel`
+  → `CreateModel`, every test, the wire harness's character-creation
+  path, the client's char-gen phase strings, `docs/subsystems/char-gen.md`
+  and every doc that names the verb (census: 40 code files, 64 docs at
+  plan time; `grep -rniw 'enroll\|enrollment\|enrolls' packages docs` →
+  only `enrollCircle` and the Circle's prose remain — a real
+  enrollment). No compat alias.
 - Acceptance: `lint:untitled` 0; `pnpm -C packages/content/<each> test`
   green; boot on a dropped DB shows every re-rooted pack `applied` with
   no `title conflict`; `committee` at `/world/terminus/rejection/…`
   names `rejection`; at `/world/terminus/wharfside` names — nothing yet
   (W1). Wire `platform-smoke` + `world-scan` green.
-- Commit: `build(economic-bootstrap W0): /world/terminus is the realm root; four world packs re-root under it`.
+- Commit: `build(economic-bootstrap W0): /world/terminus is the realm root; four world packs re-root under it; enroll is create`.
 
 ### W1 — The trade premises into the world; the orphans (D6)
 
@@ -1270,7 +1281,7 @@ migration).
 - Acceptance: `reserve` as the founder prints the dashboard; `reserve
   mint 5` → `unknown-subcommand`; `treasury appropriate 100 to <bar>`
   moves 100 and `reserve supply` is unchanged; `lint:no-authored-faucet`
-  falls to 3 (the settings keys + `EnrollController`'s `issueCash`).
+  falls to 3 (the settings keys + `CreateController`'s `issueCash`).
 - Commit: `build(economic-bootstrap W4): four leg kinds, the floor, the treasury's account, the two rules, the reserve reshaped`.
 
 ### W5 — Credit: loans, the window, accrual, the share, default (D1, D12, D19)
@@ -1302,11 +1313,11 @@ migration).
 
 ### W6 — The Note, the standing facility, the wage refusal; the faucets to zero (D9, D10, D18, D22)
 
-- `EnrollController.ts:774-786` → `issueNote` + `disburse` + the paper
+- `CreateController.ts:774-786` → `issueNote` + `disburse` + the paper
   (the `instrument` kind in `lib/document/DocumentKinds.ts`; written
-  through `DocumentApi` at `/home/<key>/papers/enrollment-note`; the
+  through `DocumentApi` at `/home/<key>/papers/arrival-note`; the
   commit frame names where it is filed);
-  `banking.onboardingStipend` → `treasury.enrollmentPrincipal`;
+  `banking.onboardingStipend` → `treasury.arrivalPrincipal`;
   `wallet` lists instruments; `ContractApi.onWageLanded` from
   `payWageImpl`; the discharge scene; `recordChronicleOnce`.
 - `operatingAccountOfImpl` → `openingAdvance` on a history-less
@@ -1315,7 +1326,7 @@ migration).
 - `settleShiftWageImpl` + `HouseController.payroll` → D18;
   `Business.payrollArrears`; `house pnl` prints arrears.
 - `lint:no-authored-faucet` ceiling → 0 (the ratchet flips).
-- Tests: enroll → a note row + a paper at `/home/<key>/papers/enrollment-note`
+- Tests: `create confirm` → a note row + a paper at `/home/<key>/papers/arrival-note`
   + coin in hand; a wage → discharged on the row and the paper + prose; a business's first account → an
   `advance` from the treasury and a 0% loan row; a short business with
   no line → arrears + refusal note; with M repaid loans → a draw and the
@@ -1323,7 +1334,7 @@ migration).
 - Acceptance: `lint:no-authored-faucet` = 0; a fresh boot pays Mara's
   first shift from Dave's Bar's opening advance; `reserve` shows the
   perpetual outstanding ≥ the advances made.
-- Commit: `build(economic-bootstrap W6): the Enrollment Note; opening capital is the treasury's advance; a wage is a loan or a refusal; no authored faucet`.
+- Commit: `build(economic-bootstrap W6): the Arrival Note; opening capital is the treasury's advance; a wage is a loan or a refusal; no authored faucet`.
 
 ### W7 — Rung 0 and the stocking rule (D11, D14)
 
@@ -1452,8 +1463,8 @@ to check first at the drive.
 
 | requirement (acceptance criterion) | wave |
 |---|---|
-| a player who enrolls holds a readable note; it discharges visibly on the first wage | W6 (+W11 step 1, 3) |
-| enrolls, banks, never returns → no balance, no note; treasury holds the principal; nothing to a beneficiary | W9 (unit) + W11 step 11 (a third newbie) |
+| a player who creates a character holds a readable note; it discharges visibly on the first wage | W6 (+W11 step 1, 3) |
+| creates a character, banks, never returns → no balance, no note; treasury holds the principal; nothing to a beneficiary | W9 (unit) + W11 step 11 (a third newbie) |
 | no account negative without a loan naming it | W4 (floor) + W6 (arrears) |
 | the reserve cannot mint into a venue; the treasury can appropriate; supply unchanged | W4 |
 | a shop sells at its own ask; the supplier's title readable; an unpaid crate can be taken back | W7 |
@@ -1491,9 +1502,9 @@ the rung-1 "no repossession" clause (D11) and pets at escheat (D17).
 - **The drive** — `economic-bootstrap.dirty.wire.test.ts`, one
   `describe`, the steps in order, each an `it` with an assertion that
   can fail:
-  1. Enroll `A` (`Session.open(uniqueHandle('note'))` runs the
+  1. Create `A` (`Session.open(uniqueHandle('note'))` runs the
      char-gen flow the `identity.dirty` file already drives); assert
-     `wallet` prose contains "Enrollment Note" (residue) AND
+     `wallet` prose contains "Arrival Note" (residue) AND
      `query('inventory')` lists a `Note` (state); `look note` prose has
      no digit (`/\d/` absent).
   2. Walk to the cash-and-carry; `look crate` prose names the farm
@@ -1536,7 +1547,7 @@ the rung-1 "no repossession" clause (D11) and pets at escheat (D17).
       not possible (not A's) — the dorm sleeping is already asserted by
       the residence suite; log B back in → `bank` shows the balance
       unchanged.
-  11. Enroll `C`, bank the principal at Goodkin, `wallet beneficiary A`,
+  11. Create `C`, bank the principal at Goodkin, `wallet beneficiary A`,
       log out; past the escheat threshold, A `pay C 1` (a landing, the
       touch); then founder `treasury` shows unclaimed property held and
       A's `bank statement` shows nothing from C; log C in → prose "the
@@ -1669,7 +1680,7 @@ Read first, in this order:
 8. `platform/agent/Avatar.ts` :267-300, :1403-1422;
    `platform/idea/api/PlayerLogic.ts` :184-238;
    `lib/persistence/PersistedRecord.ts`; `docs/subsystems/persistence.md`
-9. `platform/idea/cmd/charactergen/EnrollController.ts` :620-800;
+9. `platform/idea/cmd/charactergen/CreateController.ts` :620-800;
    `lib/credential/{Credential,CredentialWallet}.ts`;
    `platform/idea/cmd/banking/{Reserve,House,Bank,Wallet}Controller.ts`
    and their views under `packages/content/platform/content/platform/cmd/banking/`

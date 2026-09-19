@@ -53,6 +53,8 @@ code cannot** (§9). So:
 | staff | **positions**; *clerks* | a job, never governance |
 | the founding role | **the Founder** | Art. XI; holds every Office by default until handed off |
 | the levers | **the Schedule** (of Parameters) | the rows the rules read |
+| making a character | **create** (`create <field> <value>`, `create confirm`); the moment is **arrival** | never *enroll* — enrolling is what you do at the University; the two happen minutes apart and are not the same act |
+| the newcomer's note | **the Arrival Note** | a member's note to the Treasury, written by the machine at `create confirm`, filed in their papers |
 
 **Governor is a fine word wherever a seat steers a mechanism** — the
 Reserve is the first; it is not reserved to it.

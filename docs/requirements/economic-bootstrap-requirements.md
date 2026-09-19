@@ -6,7 +6,7 @@ consumers: the Terminus **Counting-Houses** (Goodkin, the one chartered
 bank), the **cash-and-carry and the general store** (the first shops that
 own their stock), **Dave's Bar** (the first business that borrows for
 wages instead of running red), and **Duncan Hall's intake** (where every
-player signs the Enrollment Note).
+player signs the Arrival Note).
 
 The supply chains are nearly complete. Farming, ranching, the metal chain,
 textiles, cooking, distilling, brewing and hospitality all produce, and
@@ -46,7 +46,7 @@ Surveyed against master at `63651542f`.
 | **a treasury** | ⚠ does not exist. A placeholder account accumulates a demo sales tax with no way to spend it |
 | **chartered banks** | one — Goodkin, at the Counting-Houses, a complete business with tellers, an officer who enrolls you, a fee schedule, a withdrawal quota and a vault |
 | **accounts and payment** | ship — open, deposit, withdraw, pay, wages, tips, the proprietor's draw, escrow for gigs |
-| **credit** | ⚠ **none by name — three by accident.** The enroll stipend (a gift, banked on day one). Opening capital (a gift to every business on its first account). ⭐ **The wage overdraft** — a venue may pay wages it does not have, its account goes negative, and nobody holds the claim. Dave's Bar has sat at −349 with a world money supply of zero. The reserve's own dashboard reports it as an "overdraft line" it cannot control |
+| **credit** | ⚠ **none by name — three by accident.** The arrival stipend (a gift, banked on day one). Opening capital (a gift to every business on its first account). ⭐ **The wage overdraft** — a venue may pay wages it does not have, its account goes negative, and nobody holds the claim. Dave's Bar has sat at −349 with a world money supply of zero. The reserve's own dashboard reports it as an "overdraft line" it cannot control |
 | **consignment** | ships — `consign`, `buy`, `reclaim`; the farm hand walks produce to the cash-and-carry and consigns it as the outfit; the general store's counter is a shelf of other people's goods at their asks |
 | **the shops** | exist as venues; none owns its stock; none sets a price on anything but its own recipes |
 | **spoilage, wear, consumption** | ship — the sinks that make goods finite |
@@ -161,7 +161,7 @@ platform's banking rather than forming a pack of their own.
 **Vocabulary** (product-level; the plan names the machinery): *the
 reserve* · *the window* · *the perpetual* · *the treasury* · *a chartered
 bank* · *supplier terms* · *inventory finance* · *working capital* · *the
-Enrollment Note* · *active / dormant / escheated* · *unclaimed property*
+Arrival Note* · *active / dormant / escheated* · *unclaimed property*
 · *situs*.
 
 ## Collisions
@@ -182,7 +182,7 @@ Who already lives where this build goes:
   grant. It becomes the first borrower for wages: a working-capital line
   from Goodkin, or a refused wage with a reason. Its par sheet and
   `house` verbs read the same book.
-- **Duncan Hall** — the stipend paid at enrollment. It becomes the
+- **Duncan Hall** — the stipend paid at character creation. It becomes the
   Note, written by the machine at the same moment; Katie's intake is
   untouched.
 - **The `reserve` verb and the Governor seat** — `reserve mint` at a
@@ -250,7 +250,7 @@ proceeds land in the treasury's account. That is the injection, and it
 is permanent because a perpetual never comes due.
 
 **Everything fiscal is spent from that account, by the treasury** — the
-Enrollment Note's principal, any opening capital, any subsidy, public
+Arrival Note's principal, any opening capital, any subsidy, public
 works, the floor. Nothing mints at a venue ever again. `reserve mint`
 stops fusing *create money* with *give it to whoever I am standing next
 to*; the Minister of Finance's act is *appropriate*, and it names its destination.
@@ -349,7 +349,7 @@ derived from its shelf is the market-maker a thin market needs. An NPC
 following a pricing rule is still a party posting a price — an offer,
 never an oracle.
 
-### The Enrollment Note
+### The Arrival Note
 
 At intake the player **issues a note to the treasury** and receives the
 principal. The player is the issuer; the treasury holds the note. The
@@ -358,7 +358,7 @@ teaches the model:
 
 - **Principal** — the stipend. Money entered the world against this
   promise.
-- **Rate** — 0%, *the Compact's rate for enrollees*.
+- **Rate** — 0%, *the Compact's rate for newcomers*.
 - **Discharge** — forgiven when the player **earns their first wage**, or
   after a Schedule-row number of game-days active, whichever comes first.
   *You earn it into being yours.*
@@ -369,7 +369,7 @@ teaches the model:
   this line. Walk away and the worst case is the unspent balance goes
   home. **No labor is ever owed.**
 
-It is written **by the machine at enrollment** — the Note is between a
+It is written **by the machine at character creation** — the Note is between a
 member and the Compact's Treasury, a meta instrument, and no character
 in the fiction hands it over (Katie is a hired hand at a college and has
 nothing to do with it). It is **not a thing you carry**: it is filed as a
@@ -714,7 +714,7 @@ Run against the live game before the MR opens, with the Schedule's
 thresholds set low enough to reach dormancy and escheat inside the
 session.
 
-1. **A new player enrolls.** At commit a frame tells them the Treasury
+1. **A new player creates a character.** At `create confirm` a frame tells them the Treasury
    has advanced them twenty zorkmids against their note and where it is
    filed. Their wallet shows the balance **and the note**; reading the
    note in their own records gives every term in words — principal, 0%,
@@ -767,9 +767,9 @@ session.
 
 Observable from outside the code.
 
-- A player who enrolls holds a note they can read, and it discharges
+- A player who creates a character holds a note they can read, and it discharges
   visibly on their first wage.
-- A player who enrolls, banks the stipend and never returns has, past the
+- A player who creates a character, banks the stipend and never returns has, past the
   escheat threshold, **no balance and no note**; the treasury holds the
   principal; nothing passed to any beneficiary.
 - No account in the world is negative without a loan on somebody's book
