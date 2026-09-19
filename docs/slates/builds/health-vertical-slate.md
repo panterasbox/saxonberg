@@ -3,7 +3,8 @@
 > **Status: PARTIAL** — `assess`, `treat`/`bind`/`dress`, stabilization
 > and reveal-gated conditions shipped
 > → [harm.md](../../subsystems/harm.md)
-> **Left:** the diagnosis surface (record and be scored on a hypothesis) ·
+> **Left:** ⚠ the diagnosis surface is **no longer this slate's** — see
+> [medic-judgment](./medic-judgment-slate.md), which answered it (2026-09-15) ·
 > a `resolution.by` dispatcher · medicine materials + the apothecary ·
 > outbreak and contagion content · the public-health department + the
 > College of Physic · the aid post · the veterinary track
@@ -274,8 +275,18 @@ Stated honestly, because the medic vertical reads richer than it is:
   arrests bleeding lacerations/punctures/avulsions. Contusion, fracture and burn
   have no-op resolves. **It structurally cannot see an affliction.**
 - **There is no diagnosis surface.** `assess` reads; nothing lets a player
-  *record*, *commit to*, or *be evaluated on* a hypothesis. The diagnose half of
-  the loop is the largest single gap.
+  be evaluated on their reading of a patient. The diagnose half of the loop
+  is the largest single gap.
+  ⚠⚠ **But not in the shape this slate first proposed, and the answer lives
+  elsewhere.** [medic-judgment](./medic-judgment-slate.md) resolves it, and
+  rules *out* recording a hypothesis: *"Judgment is gated by **action on the
+  patient**, not by stating the diagnosis. No NLP, no naming the condition
+  for credit."* You recognise the cue, prioritise, and intervene; the honest
+  body confirms or refutes. **The deed is the decision; the body is the
+  grade.** Naming a condition for credit is a memorisation test — it asks
+  whether the player knows the engine's own condition vocabulary, which
+  fails the pedagogy lens exactly the way a lookup table dressed as
+  chemistry does.
 - **`resolution.by` has no dispatcher.** Every Condition authors it
   (`antitoxin`, `rest`, `food`, `air`, `warmth`) and **nothing reads it**. It is
   dead prose — and therefore a free, well-shaped hook for "what cures this."
@@ -309,9 +320,13 @@ Stated honestly, because the medic vertical reads richer than it is:
 
 ## Open questions
 
-- **What the diagnose surface actually is.** A verb that commits to a
-  hypothesis? A chart/record object? Something the `medicine` Discipline scores
-  against outcome? *(This is the vertical's defining design problem.)*
+- ✅ **ANSWERED, and moved out (2026-09-15).** *What the diagnose surface
+  actually is — a verb that commits to a hypothesis? a chart object?* →
+  **none of those.** [medic-judgment](./medic-judgment-slate.md) owns this
+  and closed it: cues without names, the player *acts*, and the sim grades
+  the decision. This slate stops designing the diagnosis surface and keeps
+  the world it is practised in — institutions, outbreaks, prevention, the
+  veterinary track.
 - **Does `resolution.by` become the cure dispatcher**, and is that this build's
   job or the deferred medicine branch's?
 - **How much epidemiology surfaces to a player** — R₀ and prevalence as

@@ -1,8 +1,17 @@
 # Grey wolf — the combat-demonstrator beast. A quadruped carnivore of
 # kingdom Animalia; a non-sentient natural killer (the cull path — lethal
 # is the natural resolution, no consent, no blame). Smaller blood volume
-# than a human, so a decisive blow ends it. Its natural weapon (fangs) is
-# a `point` channel, set on the NPC that wears this species.
+# than a human, so a decisive blow ends it.
+#
+# ⭐ **Two natural attacks, and they are different weapons.** A wolf does
+# not have one mouth-shaped attack: it *bites* (fangs closing — a `point`
+# puncture) and it *worries* (a caught limb shaken side to side, the
+# carnivore's killing action — an `edge` tear). The engine rotates them by
+# session beat, so a wolf fight alternates between a deep narrow wound and
+# a gaping one, and a bad worry is what can take a hand off. Before this
+# the wolf wore a single legacy `naturalAttackChannel` on its NPC row,
+# which is the wrong home — what a wolf's mouth does is a fact about
+# wolves, not about this particular animal in this particular wood.
 class: /platform/idea/species/Species
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
@@ -19,6 +28,17 @@ data:
     bloodPressureDiastolic: { baseline: 85, survivableMin: 40, survivableMax: 140 }
     spo2: { baseline: 97, survivableMin: 68, survivableMax: 100 }
     bloodVolume: { baseline: 3, survivableMin: 2, survivableMax: 3 }
+  naturalAttacks:
+    # Fangs closing — a deep narrow puncture.
+    - key: bite
+      channel: point
+      massScaled: true
+    # ⭐ The worry — a caught limb shaken until it tears. `edge`, so it
+    # climbs the laceration → avulsion ladder, and a wolf that gets hold of
+    # a finished opponent can take the limb.
+    - key: worry
+      channel: edge
+      massScaled: true
   lifecycleStates: ["alive", "dead"]
   sexDeterminationSystem: xy
   reproductiveMode: sexual

@@ -9,7 +9,7 @@ driver, condition content, instruments, treatment verbs). Bodies that
 yet.
 
 Source: `lib/vitals/Vitals.ts` (the `VitalsMixin`),
-`lib/vitals/Condition.ts` (the condition type system),
+`platform/idea/Condition.ts` (the condition type system),
 `lib/reserve.ts` (the reserve substrate — see [reserve.md](./reserve.md)),
 plus `Species.vitalProfile` and `BodyPlan.bodyParts`.
 
@@ -77,8 +77,16 @@ interface Vitals {
   // Anatomy — resolves instance-delta → BodyPlan structure
   getParts(): ResolvedBodyPart[];
   getPart(key: string): ResolvedBodyPart | null;
-  getInjuredParts(): ResolvedBodyPart[];
+  getMissingParts(): ResolvedBodyPart[];         // was getInjuredParts
+  severPart(key: string): void;                  // the one writer of `missing`
   isSlotDisabledByAnatomy(slot: string): boolean;
+
+  // ⭐⭐ The function axis — what a wound COSTS (see harm.md)
+  functionAt(key: string): FunctionBand;         // min along the supply path
+  capacity(k: BodyCapacity): FunctionBand;       // governs=min · serves=mean
+  canGrip(slot: string): boolean;
+  canBearWeight(): boolean;
+  slotRefusalReason(slot: string): string | null;
 
   // Conditions — both kinds, one collection
   getConditions(): readonly ActiveCondition[];
@@ -130,14 +138,37 @@ capability-magic-slate) — so it is modeled in full.
 
 - **`BodyPlan.bodyParts: BodyPart[]`** — typed part descriptors declared
   ONCE on the shared `biped`/`quadruped` body-plan flyweight, parallel to
-  `slots`. Each `BodyPart` carries `{ key, parent, tissues, governsVital?,
-  severable?, innervatedBy?, suppliedBy? }`. v1 roster:
-  head / torso / limbs (+hands/feet) + heart / lungs.
+  `slots`. Each `BodyPart` carries `{ key, parent, tissues, governs?,
+  serves?, severable?, innervatedBy?, suppliedBy? }`. Roster since the
+  injury build: head / torso / limbs (+hands/feet) + **brain · spine
+  upper/lower · heart · lungs · liver** — sixteen parts on a biped.
+  - ⭐⭐ **`governs` vs `serves`, and they are not interchangeable.**
+    `governs` means *this organ RUNS the thing* (combines by **min** — one
+    brain) and makes the part **interior**. `serves` means *this limb is
+    FOR the thing* (combines by **mean** — two legs) and does **not**:
+    a hand that `governs`ed manipulation would be an internal organ,
+    silently dropped from every covering walk. Both are validated against
+    `VITAL_SIGNS ∪ BODY_CAPACITIES` at registration — a typo throws
+    instead of producing an organ that runs nothing.
+  - ⭐ **`BodyPlan.isInterior(key)`** is the one predicate (it replaced
+    five inline copies of `part.governs?.length`): a part is inside you if
+    it governs something **or** if some other part's `innervatedBy` /
+    `suppliedBy` names it. That second clause is what lets the **spine** —
+    which governs nothing and conducts everything — be interior without a
+    field nobody else would read.
+  - **`innervatedBy` / `suppliedBy` are authored only where the supply
+    path DIVERGES from the tree.** For a limb the parent chain already is
+    it; the function walk recurses, so naming the spine once at the arm
+    carries to the hand.
 - **Tissue composition** — each part carries named tissues with masses
   (`{ tissuePath, mass }`), not a single material. Tissues are authored
   Materials under `/stuff/idea/material/tissue/` (`flesh`, `muscle`, `bone`).
   The mass-per-tissue is the substrate a future strength reading
-  aggregates.
+  aggregates — and, since the injury build, a LIVE input:
+  `BodyPlan.partArea(key)` is Meeh's `mass^(2/3)`, which both the
+  surface-fraction walk and the **depth ladder's ordering** read. An
+  author tunes which organ a deep wound reaches first by authoring its
+  mass, which is a physical fact they would author anyway.
 - **Instance-delta resolution** — the instance carries only deltas
   (`VitalsMixin.bodyPartDeltas: Record<key, { missing? }>`); structure
   lives on the shared `BodyPlan`. `getParts()` walks
@@ -149,19 +180,24 @@ capability-magic-slate) — so it is modeled in full.
   consult in `SlottedMixin.canOccupy` (`MixinApi.isVitals` narrows the
   host; no-op unless the part is gone). `SlotSpec.covers` is the coverage
   edge (one slot → many parts, for future armor / hit-location — declared
-  seam). `BodyPlan` validates both references (referential integrity) and
-  exposes the reverse query `getSlotsAt` / `getSlotsCovering`. Parts stay
-  pure anatomy — no slot knowledge. The organ→vital coupling stays on the
-  part (`governsVital`, heart → `heartRate`). Non-anatomical affordances
+  edge — four live readers via `getSlotsCovering`, and the outside-in
+  covering fold walks it). `BodyPlan` validates both references
+  (referential integrity) and exposes the reverse query `getSlotsAt` /
+  `getSlotsCovering`. Parts stay pure anatomy — no slot knowledge. The
+  organ→vital coupling stays on the part (`governs`, heart →
+  `[heartRate, circulation]`). Non-anatomical affordances
   (a saddle surface, a cranial implant bay) carry neither edge — slots
   remain a distinct axis, not something anatomy owns.
 - **Stable `body.*` keys** are the identity anchor everything downstream
   points at — trauma `site`, the couplings, and the deferred graph /
   part-promotion. Locked now.
 
-**Deferred-with-seam:** the innervation/vascular graph (`innervatedBy` /
-`suppliedBy` declared, no reader); part-as-Stuff promotion (severed
-limbs, transplants); MQL anatomy queries.
+**Live since the injury build:** the innervation/vascular graph
+(`innervatedBy` / `suppliedBy` — read by `BodyPlan.isInterior` and by the
+function walk) and the **sever** (`severPart`, the one writer of
+`missing`). **Still deferred-with-seam:** part-as-Stuff promotion (a
+severed limb is an absence, not yet an object; transplants, prosthetics);
+MQL anatomy queries.
 
 ## Conditions — the three-kind type system
 
@@ -170,7 +206,7 @@ behind one `ActiveCondition` collection (`getConditions` / `afflict` /
 `relieve`); they differ only in where *behavior* lives. (Kind C —
 `SustainedShock` — was added by the [electricity](./electricity.md) build.)
 
-- **Kind A — afflictions** (`Condition` in `lib/vitals/Condition.ts`):
+- **Kind A — afflictions** (`Condition` in `platform/idea/Condition.ts`):
   identity-bearing authored content as `Condition extends Idea` templates, resolved
   by `findByTemplatePath` like Materials/Species. The instance record is
   `{ kind: 'affliction', templatePath, stage, elapsed }`; behavior lives
@@ -194,10 +230,12 @@ behind one `ActiveCondition` collection (`getConditions` / `afflict` /
   > end-to-end pass read one back through the client. The consequence is
   > that **authored `Condition` behavior is inert**: signs, names,
   > progression and `toxinBehavior` are all read off an object that isn't
-  > there. Instantiating the catalogue at boot is its own small build —
-  > and until it lands, treat "the Idea resolves" as an assumption to
-  > verify, not a given.
-- **Kind B — trauma** (the `Trauma` value in `lib/vitals/Condition.ts`):
+  > there. ✅ **`ConditionCatalogue` closed it** — a self-warming
+  > `postRegister` stands every authored row up as a live singleton, so
+  > the sync resolve-on-read seams hit from the first frame. ⭐ The
+  > durable lesson is the one the banner keeps: the reads all
+  > `?.`-chained past a null, **so CI was green over a dead subsystem**.
+- **Kind B — trauma** (the `Trauma` value in `platform/idea/Condition.ts`):
   a parameterized value `{ kind: 'trauma', type, site, severity, bleeding?, dressed? }`
   with a closed `TraumaType` union (`laceration | fracture | contusion |
   avulsion | burn`) and the `TRAUMA_BEHAVIOR` strategy table

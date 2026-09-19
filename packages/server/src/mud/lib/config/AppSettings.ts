@@ -657,6 +657,45 @@ export const AppSettingKeys = {
   /** Response — residual energy at/above which a blunt blow to a boned part
    * fractures (vs contuses). */
   responseBluntFractureThreshold: "response.blunt.fractureThreshold",
+  /**
+   * The edge ladder's upper rung — residual at or above this tears rather
+   * than cuts. The sibling of the blunt channel's fracture threshold, and
+   * the reason `avulsion` is reachable from a weapon at all.
+   */
+  responseEdgeAvulsionThreshold: "response.edge.avulsionThreshold",
+  /**
+   * ⭐ The depth ladder — how deep a blow has to go before it reaches what
+   * is under the site, how much of it each organ absorbs, and how hard a
+   * blunt blow must be inside you before it tears rather than bruises.
+   */
+  responseDepthReachThreshold: "response.depth.reachThreshold",
+  responseDepthStepPerOrgan: "response.depth.stepPerOrgan",
+  responseBluntRuptureThreshold: "response.blunt.ruptureThreshold",
+  /**
+   * Cold's residual→severity tail. ⚠ Its own key and NOT its own
+   * insulation dials: `response.heat.*` describes the COVERING, not the
+   * direction of flow, so heat and cold share the fold and differ only
+   * here.
+   */
+  responseColdSeverityPerResidual: "response.cold.severityPerResidual",
+  /**
+   * The corrosion ladder — a layer the agent attacks is CONSUMED (passes
+   * everything, and wears for it); one it does not attack either WICKS
+   * (absorbent) or SHEDS. No hardness, no thickness.
+   */
+  responseCorrosionWearPerContact: "response.corrosion.wearPerContact",
+  responseCorrosionShedAbsorptionMax: "response.corrosion.shedAbsorptionMax",
+  responseCorrosionWickAttenuation: "response.corrosion.wickAttenuation",
+  responseCorrosionShedAttenuation: "response.corrosion.shedAttenuation",
+  /** The reference agent the legibility preview shows a corrosion column for. */
+  responseCorrosionPreviewCorrosiveTo:
+    "response.corrosion.previewCorrosiveTo",
+  /**
+   * ⭐ The pressure (J/m²) an ordinary blow arrives at — what a
+   * `penetration` of 1 means. A firearm round is several times it, which
+   * is why mail that turns a thrust fails against one.
+   */
+  responsePenetrationReferenceJPerM2: "response.penetration.referenceJPerM2",
   /** Response — residual energy below which no meaningful wound lands
    * (deflected). */
   responseNoWoundThreshold: "response.noWoundThreshold",
@@ -670,18 +709,24 @@ export const AppSettingKeys = {
    * biteMax → bites; ≥ → bites-deep). */
   responseBandGrazeMax: "response.band.grazeMax",
   responseBandBiteMax: "response.band.biteMax",
-  /** Response (heat channel) — the fraction a single fully-insulating layer
-   * blocks; scaled by material insulation height + layer depth. A conductive
-   * layer (metal) blocks near-zero, an insulator (leather/padding) near this. */
-  responseHeatBaseAttenuation: "response.heat.baseAttenuation",
-  /** Response (heat channel) — the reference thermal conductivity (W/(m·K))
-   * where a material is half-insulating; below it insulates hard, above it
-   * conducts. Insulation height = ref / (ref + conductivity). */
-  responseHeatInsulationRefConductivity:
-    "response.heat.insulationRefConductivity",
-  /** Response (heat channel) — extra insulation per outside-in layer depth
-   * (padded 0 … plate 3); the covering stack's depth amplifies the block. */
-  responseHeatDepthFactor: "response.heat.depthFactor",
+  /**
+   * ⭐ The thermal fold reads a covering's REAL insulation (`getClo()` —
+   * thickness over conductivity). A layer with no derived clo — a held
+   * shield, a preview from material alone — is scored as a slab of its
+   * material at this thickness (m). The one dial the thermal fold has
+   * left: the three that shaped the old conductivity heuristic
+   * (`baseAttenuation`, `insulationRefConductivity`, `depthFactor`) are
+   * retired with it.
+   */
+  responseHeatReferenceThicknessM: "response.heat.referenceThicknessM",
+  /**
+   * ⭐ The clo at which a layer stops `1 − 1/e` ≈ 63 % of a thermal blow.
+   * A pulse, not steady-state loss: `1 − exp(−clo / ref)`, so a thin layer
+   * stops a flash disproportionately (why firefighters wear layers). 0.1
+   * clo — a t-shirt — is the reference, and a hide jerkin at ~0.23 stops
+   * nine-tenths.
+   */
+  responseHeatReferenceClo: "response.heat.referenceClo",
 
   /* ────────────────────────── electricity ────────────────────────── */
   /**
@@ -1465,6 +1510,13 @@ export const AppSettingKeys = {
    * is what lets a cooling wand crack and makes a spark wand safer than
    * the equivalent cast. *Calibrate at launch.* */
   magicWasteHeatFraction: "magic.wasteHeatFraction",
+  /**
+   * ⭐ How close a caster's heat pump gets to the Carnot bound. A real
+   * device manages ~40 % of it; the science's worked examples assume the
+   * same, which is what makes cooling *cheap near ambient and divergent
+   * at depth* rather than free.
+   */
+  magicHeatPumpCarnotFraction: "magic.heatPump.carnotFraction",
   /** Magic — a charged item's idle self-discharge, per GAME second. The
    * `d` in `S* = inflow/d`: with no decay, stock grows without bound at
    * any inflow throttle and no dial can save it. HALF the answer — the

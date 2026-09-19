@@ -1,0 +1,35 @@
+# ⭐⭐ A flintlock musket — the far end of the tech curve, and the row
+# that makes armour answer pressure instead of effort.
+#
+# Everything about it is a trade against the bow, and every number is the
+# trade made legible:
+#   - **1.5 kJ** against a bow's ~50 J. The energy stopped being a fact
+#     about the wielder — it comes out of the charge — which is the whole
+#     of what `energySource: chemical` means.
+#   - **twelve seconds** to be ready again, against the bow's three. In a
+#     fight that is an eternity, and it is the honest reason anybody kept
+#     carrying a bow.
+#   - a **16 mm** ball, so penetration ≈ 3.7 and plate's `resist` falls
+#     toward `fail`. The same plate turns a sword thrust all day.
+class: /platform/thing/equipment/Launcher
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: flintlock musket
+  keywords: [musket, flintlock, gun, firearm]
+  register: indefinite
+  longDescription: >
+    A long-barrelled piece with a walnut stock and a brass-furnished
+    lock, the frizzen scarred bright where the flint has bitten it. Heavy
+    across the shoulders, and slow to bring back to the ready.
+  _materialPath: /stuff/idea/material/wood/oak
+  # ⚠ `hafted` for the same reason as the bow — a musket-butt is a club,
+  # which is both true and historically what they were used as.
+  constructionForm: hafted
+  gradeBand: fair
+  mass: 4.5
+  energySource: chemical
+  muzzleSpeed: 316
+  projectileTemplate: /stuff/thing/arms/musket-ball
+  readySeconds: 12
+  slotClaims:
+    "/stuff/idea/species/BodyPlan/biped": ["hand:left", "hand:right"]

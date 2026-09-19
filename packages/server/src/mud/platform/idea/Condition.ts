@@ -106,7 +106,31 @@ export type TraumaType =
   | 'fracture'
   | 'contusion'
   | 'avulsion'
-  | 'burn';
+  | 'burn'
+  /**
+   * ⭐ An **interior** bleed — a torn organ. Bleeds exactly as a
+   * laceration does, and cannot be dressed, because the wound is in a
+   * cavity you cannot reach. `resolution: 'surgery'`, which nothing in
+   * the game offers yet: the honest answer is that you are bleeding into
+   * yourself and there is nothing to hand that will stop it.
+   */
+  | 'rupture'
+  /**
+   * ⭐ **Frostbite** — the cold channel's wound. Not a burn: it NUMBS the
+   * part (a numb hand cannot grip) and what it wants is warmth, not
+   * fluid. It heals slowly on its own, which is the honest difference —
+   * a burn weeps and gets worse, a freeze is done happening the moment
+   * you are warm again.
+   */
+  | 'frostbite'
+  /**
+   * ⭐⭐ **Caustic** — the corrosion channel's wound, and the only one in
+   * the game that **keeps working after the blow**. The agent is still on
+   * you: severity GROWS while it is active, and the only thing that stops
+   * it is washing it off. Every other wound in this table is a record of
+   * something that already finished happening.
+   */
+  | 'caustic';
 
 // The mechanism vocabulary is unified into the materials-response
 // **channel** set (edge / point / blunt) — the single interface a weapon's
@@ -158,6 +182,23 @@ export interface Trauma {
    * tag serves detect + attribution only.
    */
   magicOrigin?: MagicProvenance;
+  /**
+   * ⭐⭐ **The agent is still on you** — set by `CAUSTIC_BEHAVIOR.onset`
+   * and cleared by a rinse. While it is true the wound GROWS instead of
+   * healing, which is what makes a caustic different in kind from
+   * everything else in this table rather than merely in flavour.
+   *
+   * ⚠ A runtime process flag on the value, exactly like `bleeding` — not
+   * a second condition and not a stored timer. What stops it is an act.
+   */
+  agentActive?: boolean;
+  /**
+   * ⭐ Whether this wound may take the part off — copied from the
+   * insult's `maim` (undefined → true; combat sets false for a non-lethal
+   * fight). Read by `AVULSION_BEHAVIOR.onset`. Absent on the overwhelming
+   * majority of wounds, which are not avulsions and never consult it.
+   */
+  maimAllowed?: boolean;
   /**
    * The game-time (seconds) this trauma was last integrated — the
    * reconcile-on-read anchor. Stamped at `inflict` and advanced on every
@@ -220,10 +261,116 @@ export const HARM_DEFAULTS = {
   FRACTURE_IMPAIR_SEVERITY: 0.5,
   /** Avulsion severity floor — "a severe laceration". */
   AVULSION_SEVERITY_FLOOR: 2,
+  /**
+   * ⭐⭐ **The sever threshold** — an avulsion at or above this severity,
+   * on a part the body plan marks `severable`, takes the part off.
+   *
+   * Deliberately above the `open`-band blow (4.5 × the weapon's delivery
+   * scale): losing a hand wants a real blade against a foe who is already
+   * finished, not an unlucky exchange. It is the AVULSION severity that is
+   * read, so `AVULSION_SEVERITY_FLOOR` is the floor and this is the gate —
+   * a wound has to be much worse than "severe" to be terminal for the part.
+   */
+  SEVER_SEVERITY: 4.0,
+  /**
+   * ⭐ **What a total loss of locomotion costs a traverse**, in units of
+   * `LIMP_DRAIN_PER_SEVERITY`. The limp is now a shortfall in the
+   * `locomotion` capacity (`1 − scalar`) rather than a sum of wound
+   * severities, and the scalar is bounded by 1 where a severity sum was
+   * not — so this restores the magnitude the old sum reached.
+   *
+   * Two legs and one of them gone is a shortfall of 0.5, which at
+   * `4 × 2 × 0.5` costs 4 % endurance a traverse: a real hobble that does
+   * not strand you. (Was `LIMP_MISSING_SEVERITY: 2`, the W-A0 interim.)
+   */
+  LIMP_SHORTFALL_SCALE: 2,
   /** Below this severity a wound has healed and is cleared from the body. */
   CLEARED_SEVERITY: 0.01,
   /** Limp: endurance %-drained per traverse per unit locomotor-wound severity. */
   LIMP_DRAIN_PER_SEVERITY: 4,
+  /**
+   * ⭐⭐ **What each kind of wound costs the part it sits on**, per unit of
+   * severity. `1 − Σ(severity × weight)` is the part's own function.
+   *
+   * The ordering is the claim, and it is a physiological one: a **fracture**
+   * is the worst thing short of losing the part (1.2, so the shipped 0.5
+   * impair threshold still lands exactly on `impaired` — byte-parity with
+   * the boolean rule it replaced), an **avulsion** takes tissue away (1.0),
+   * a **burn** or a freeze or a caustic destroys tissue in place but does
+   * not break the structure (0.6), a **rupture** is interior and grave but
+   * costs the ORGAN not the limb (0.3), and a cut is mostly a bleed — a
+   * **laceration** (0.2) or a **puncture** (0.25) hurts and leaks and does
+   * not stop the hand closing. A **contusion** is 0.1: a bruise is a fee,
+   * not an injury.
+   *
+   * ⚠ Keyed by `TraumaType`, declared here rather than authored, because
+   * the trauma vocabulary IS closed — a burn is a burn everywhere.
+   */
+  FUNCTION_LOSS_PER_SEVERITY: {
+    fracture: 1.2,
+    avulsion: 1.0,
+    burn: 0.6,
+    rupture: 0.3,
+    puncture: 0.25,
+    laceration: 0.2,
+    contusion: 0.1,
+    // A freeze and a chemical burn both destroy tissue in place without
+    // breaking the structure — the same claim as a thermal burn, and the
+    // same weight.
+    frostbite: 0.6,
+    caustic: 0.6,
+  } as Record<string, number>,
+  /**
+   * ⭐ **A conduit tolerates a scratch.** How badly a part something else's
+   * control or supply runs THROUGH must be hurt before it starts costing
+   * that other part anything, and over what range it goes to nothing.
+   *
+   * A graze on the spine does not paralyse the arm; a severe spine wound
+   * does. Without the tolerance every torso scratch would dim every limb,
+   * which is both wrong and miserable.
+   */
+  CONDUIT_TOLERANCE: 1.0,
+  CONDUIT_RANGE: 2.0,
+  /** Function at or above this reads `full`. */
+  FUNCTION_BAND_FULL: 0.75,
+  /** Function at or above this (and below full) reads `impaired`. */
+  FUNCTION_BAND_IMPAIRED: 0.4,
+  /** Frostbite's own decay — slower than a burn; cold damage lingers. */
+  FROSTBITE_HEAL_PER_SEC: 0.004,
+  /** Caustic severity gained per game-second while the agent is active. */
+  CAUSTIC_GROWTH_PER_SEC: 0.01,
+  /**
+   * …and the ceiling it grows to. ⚠ A cap is what keeps "wash it off" a
+   * real decision rather than a formality: unbounded growth would make an
+   * unrinsed caustic lethal on a clock nobody can read, which is the
+   * punishment-without-information shape this game avoids.
+   */
+  CAUSTIC_MAX_SEVERITY: 4,
+
+  /* ── circulation: what losing blood does to the pressure ─────────────
+   * ⭐⭐ **The compensated plateau is the single most important fact about
+   * haemorrhage, and it is modelled on purpose.** A patient can be
+   * seriously bled and still have a normal blood pressure, right up until
+   * they are not — ATLS class II holds, class III drops. A model where
+   * pressure slides smoothly down with blood lost would teach the
+   * opposite, and the opposite is what gets people killed.
+   */
+  /** Fraction of blood volume lost before systolic pressure moves at all. */
+  SHOCK_COMPENSATED_LOSS: 0.15,
+  /** Pressure lost per unit of loss PAST the compensated plateau. */
+  SHOCK_BP_SLOPE: 1.5,
+  /**
+   * ⭐ **The narrowing pulse pressure.** Through the compensated phase the
+   * diastolic RISES while the systolic holds — vasoconstriction — so the
+   * gap between them closes. That narrowing is the EARLIEST sign and the
+   * first thing a clinician reads; dropping both on one slope would teach
+   * a simpler, false thing.
+   */
+  SHOCK_DIASTOLIC_RISE: 0.08,
+  /** Loss fraction at which hypovolemic shock spawns. */
+  SHOCK_LOSS_FRACTION: 0.3,
+  /** …and below which it is relieved (the hysteresis margin). */
+  SHOCK_RELIEF_FRACTION: 0.25,
 
   /* ── dying windows (game-seconds) ────────────────────────────────────
    * How long the body has once a lethal threshold is crossed. Each driver
@@ -239,6 +386,15 @@ export const HARM_DEFAULTS = {
   EXSANGUINATION_DYING_WINDOW_SEC: 120,
   /** Cardiac arrest from a fibrillating current — faster still. */
   ELECTROCUTION_DYING_WINDOW_SEC: 90,
+  /**
+   * ⭐⭐ **A vital organ is GONE** — a missing part that governs
+   * consciousness, circulation or respiration (a severed head; a future
+   * mangle that takes the chest). Fast: there is nothing to compress and
+   * no volume to top up, so the window is short — but non-zero, because
+   * the whole dying-clock discipline is that death is a clock a bystander
+   * can still act against, even when the only act left is a decision.
+   */
+  VITAL_ORGAN_LOSS_DYING_WINDOW_SEC: 30,
 } as const;
 
 /**
@@ -425,14 +581,25 @@ export type VitalEffect =
     }
   | {
       /**
-       * A derived slot impairment — READ, never integrated. The fracture
-       * rule, generalized: a condition at a body part can take the
-       * affordances that part carries.
+       * ⭐⭐ **What this wound costs the PART it sits on** — READ, never
+       * integrated. The number is how much function one unit of severity
+       * takes away, so a part's own function is
+       * `1 − Σ(severity × lossPerSeverity)` over the wounds on it.
+       *
+       * ⚠ This **replaced** `{kind:'capability', disables:'slots-at-site',
+       * aboveSeverity}`, which was a boolean cliff: below the threshold a
+       * fracture cost nothing at all, above it the slot vanished, and
+       * there was no third thing a wound could take. Two wounds that each
+       * sat just under the line were free. A rate composes — two
+       * half-wounds add up, a big wound on a limb reaches past it to
+       * whatever the limb carries, and the slot gate falls out of the
+       * function read instead of being its own rule.
+       *
+       * Weights live in `HARM_DEFAULTS.FUNCTION_LOSS_PER_SEVERITY`.
        */
-      kind: 'capability';
-      disables: 'slots-at-site';
-      /** Only bites above this intensity impair. */
-      aboveSeverity: number;
+      kind: 'function';
+      /** Function lost per unit of severity, at the wound's own site. */
+      lossPerSeverity: number;
     }
   | {
       /**
@@ -585,6 +752,15 @@ export const LACERATION_BEHAVIOR: TraumaBehavior = {
   },
   // The bleed family: what arrests it is a dressing.
   resolution: 'dressing',
+  // ⭐ A cut is mostly a BLEED. It costs the part a little — deep enough
+  // and a gashed hand does start to lose its grip — but the thing that
+  // kills you is the blood, not the loss of function. Low on purpose.
+  signature: [
+    {
+      kind: 'function',
+      lossPerSeverity: HARM_DEFAULTS.FUNCTION_LOSS_PER_SEVERITY.laceration!,
+    },
+  ],
 };
 
 /**
@@ -626,6 +802,13 @@ export const CONTUSION_BEHAVIOR: TraumaBehavior = {
       reserve: 'endurance',
       pctPerHour: -HARM_DEFAULTS.CONTUSION_STIFFNESS_PCT_PER_HOUR,
     },
+    // A bruise is a fee, not an injury — but a badly bruised hand IS a
+    // little clumsier, and at 0.1 it takes a severity of 2.5 to reach
+    // `impaired`, which is a beating rather than a knock.
+    {
+      kind: 'function',
+      lossPerSeverity: HARM_DEFAULTS.FUNCTION_LOSS_PER_SEVERITY.contusion!,
+    },
   ],
 };
 
@@ -646,16 +829,19 @@ export const FRACTURE_BEHAVIOR: TraumaBehavior = {
   // instrument this build does not ship, and pretending a bandage does it
   // would be worse than saying so. → physiology-slate.
   resolution: 'rest',
-  // ⭐⭐ **The impairment, DECLARED.** A broken hand cannot hold a shield,
-  // and `Vitals.isSlotImpairedByCondition` used to know that by naming
-  // `fracture` in code. It is now a term on the table beside the decay
-  // law, which is what makes the rule available to every wound type
-  // instead of hard-coded for one.
+  // ⭐⭐ **The impairment, DECLARED — and now a RATE.** A broken hand
+  // cannot hold a shield, and `Vitals.isSlotImpairedByCondition` used to
+  // know that by naming `fracture` in code, then by a boolean threshold
+  // on this table. It is now what the wound costs the part per unit of
+  // severity, and the slot gate falls out of the function read.
+  //
+  // ⚠ 1.2 is chosen so the shipped `FRACTURE_IMPAIR_SEVERITY` (0.5) lands
+  // exactly on the `impaired` band edge (1 − 0.5 × 1.2 = 0.4) — the
+  // boolean rule this replaced, preserved at its own threshold.
   signature: [
     {
-      kind: 'capability',
-      disables: 'slots-at-site',
-      aboveSeverity: HARM_DEFAULTS.FRACTURE_IMPAIR_SEVERITY,
+      kind: 'function',
+      lossPerSeverity: HARM_DEFAULTS.FUNCTION_LOSS_PER_SEVERITY.fracture!,
     },
   ],
 };
@@ -684,7 +870,10 @@ export const BURN_BEHAVIOR: TraumaBehavior = {
   // the burn itself owns. ⚠ A bloodless clade absorbs this silently
   // (D22) — a construct that takes a fire blow has a burn, and no weep.
   signature: [
-    { kind: 'capability', disables: 'slots-at-site', aboveSeverity: 1 },
+    {
+      kind: 'function',
+      lossPerSeverity: HARM_DEFAULTS.FUNCTION_LOSS_PER_SEVERITY.burn!,
+    },
     {
       kind: 'vital',
       sign: 'bloodVolume',
@@ -695,15 +884,39 @@ export const BURN_BEHAVIOR: TraumaBehavior = {
 
 /**
  * avulsion — behaves as a **severe laceration** (floors severity, bleeds,
- * shares the clot gate). The deferred **limb-sever / part-promotion**
- * (mark the `BodyPart` missing, cascade slot-disable + presentation) lands
- * HERE — at `onset` — when the sever build arrives; v1 stops at the severe
- * bleed. See harm.md § deferred seams.
+ * shares the clot gate) and, past {@link HARM_DEFAULTS.SEVER_SEVERITY},
+ * **takes the part off**.
+ *
+ * ⭐⭐ The sever is the documented seam finally landed: `onset` is where it
+ * belongs because severing is what the insult DID, not something that
+ * develops afterwards. Two gates, both honest:
+ *
+ * - the wound must be at or past `SEVER_SEVERITY` (a floor of 2 makes an
+ *   avulsion "severe"; 4 makes it terminal for the part);
+ * - the body plan must mark the part `severable` — authored on every limb
+ *   and the head, absent on organs. **This is that field's first
+ *   production reader.** A torso avulsion is a terrible wound and stays a
+ *   wound; you cannot lop off somebody's chest.
+ *
+ * ⚠ Ordering matters and is load-bearing (D1): `onset` now runs AFTER
+ * `Vitals.afflict` has accepted the wound, so a conferred immunity that
+ * vetoes the trauma also prevents the sever. A sever that happened to a
+ * wound the body refused would be the worst kind of ghost.
  */
 export const AVULSION_BEHAVIOR: TraumaBehavior = {
   onset(host: Vitals, t: Trauma): void {
     t.severity = Math.max(t.severity, HARM_DEFAULTS.AVULSION_SEVERITY_FLOOR);
     LACERATION_BEHAVIOR.onset(host, t);
+    if (t.severity < HARM_DEFAULTS.SEVER_SEVERITY) return;
+    if (!host.getPart(t.site)?.severable) return;
+    // ⭐⭐ **A maiming respects the fight's terms.** `maimAllowed` is set
+    // false only by combat between sentients under non-lethal or
+    // unconsented terms; everything environmental leaves it undefined
+    // (→ allowed), because nature does not ask consent. So a wolf's cull
+    // and a fall onto spikes still take the part; a sparring bout does
+    // not. The severe avulsion stays — grievously wounded, not maimed.
+    if (t.maimAllowed === false) return;
+    host.severPart(t.site);
   },
   tick: LACERATION_BEHAVIOR.tick,
   resolve: LACERATION_BEHAVIOR.resolve,
@@ -715,6 +928,15 @@ export const AVULSION_BEHAVIOR: TraumaBehavior = {
   },
   // The bleed family: what arrests it is a dressing.
   resolution: 'dressing',
+  // ⭐ Tissue is GONE, not merely opened — at the sever threshold the
+  // part's function is zero twice over (the weight takes it there, and
+  // `missing` floors it anyway).
+  signature: [
+    {
+      kind: 'function',
+      lossPerSeverity: HARM_DEFAULTS.FUNCTION_LOSS_PER_SEVERITY.avulsion!,
+    },
+  ],
 };
 
 /**
@@ -738,6 +960,14 @@ export const PUNCTURE_BEHAVIOR: TraumaBehavior = {
   },
   // The bleed family: what arrests it is a dressing.
   resolution: 'dressing',
+  // A narrow deep wound — slightly worse for the part than a cut of the
+  // same severity, because it goes further in.
+  signature: [
+    {
+      kind: 'function',
+      lossPerSeverity: HARM_DEFAULTS.FUNCTION_LOSS_PER_SEVERITY.puncture!,
+    },
+  ],
 };
 
 /**
@@ -745,6 +975,137 @@ export const PUNCTURE_BEHAVIOR: TraumaBehavior = {
  * behavior (the NOOP exemplar remains the fallback shape). `avulsion` and
  * `puncture` delegate to the laceration bleed family.
  */
+/**
+ * rupture — a **torn organ**, and the first wound in the game you cannot
+ * treat.
+ *
+ * It is the laceration bleed family, with one thing removed and one thing
+ * changed:
+ *
+ * - `resolve` is a **no-op**. Dressing is pressure on a wound you can
+ *   reach, and this one is inside a cavity. `TreatController` refuses it
+ *   before it ever gets here, but the behaviour has to be honest on its
+ *   own — a no-op `resolve` means nothing can accidentally arrest it.
+ * - `resolution: 'surgery'`, a token **nothing offers**. That is
+ *   deliberate and it is the charter for the treatment build:
+ *   `mismatchLine` already renders an unknown token as *"It wants
+ *   surgery."*, so the game says exactly what is wrong and exactly why
+ *   your bandage is no use.
+ *
+ * ⚠ The blood drains from `bloodVolume` like any other bleed. The cavity
+ * is the floor you cannot see, not a different accounting.
+ */
+export const RUPTURE_BEHAVIOR: TraumaBehavior = {
+  onset: LACERATION_BEHAVIOR.onset,
+  tick: LACERATION_BEHAVIOR.tick,
+  // ⭐ NOT laceration's. You cannot put pressure on a liver.
+  resolve: noop,
+  reopen: noop,
+  describe(t: Trauma): string {
+    return `a rupture of ${t.site}`;
+  },
+  resolution: 'surgery',
+  signature: [
+    {
+      kind: 'function',
+      lossPerSeverity: HARM_DEFAULTS.FUNCTION_LOSS_PER_SEVERITY.rupture!,
+    },
+  ],
+};
+
+/**
+ * ⭐ **frostbite — the cold channel's wound, and it is NOT a burn.**
+ *
+ * Three differences, each of them a real fact about cold injury and each
+ * of them something a player can act on:
+ *
+ * - **It numbs.** A frozen hand cannot grip — the same function cost a
+ *   burn carries, for a different reason.
+ * - **It wants WARMTH, not fluid.** `resolution: 'warmth'` is already in
+ *   `mismatchLine`'s word table, so `treat` says *"It wants warmth."* with
+ *   no code at all. Pouring water on frostbite is exactly as useless as
+ *   bandaging a burn, and the game now says so.
+ * - **It does not weep.** A burn loses plasma through the wound and
+ *   slides toward the exsanguination window on its own clock; a freeze
+ *   does not. It is done happening the moment you are warm again.
+ */
+export const FROSTBITE_BEHAVIOR: TraumaBehavior = {
+  ...decayingBehavior(
+    HARM_DEFAULTS.FROSTBITE_HEAL_PER_SEC,
+    (t) => `frostbite of ${t.site}`
+  ),
+  resolution: 'warmth',
+  signature: [
+    {
+      kind: 'function',
+      lossPerSeverity: HARM_DEFAULTS.FUNCTION_LOSS_PER_SEVERITY.frostbite!,
+    },
+  ],
+};
+
+/**
+ * ⭐⭐ **caustic — the wound that is still happening.**
+ *
+ * Everything else in this table is a record of something that already
+ * finished: a cut was cut, a bone broke, a burn burned. A caustic is the
+ * agent sitting on your skin *right now*, and while it is there the wound
+ * GROWS — `CAUSTIC_GROWTH_PER_SEC` per game-second, to a cap.
+ *
+ * ⚠ That makes `resolve` mean something different here than anywhere
+ * else. A dressing ARRESTS a bleed; a rinse **removes the cause**, after
+ * which the wound decays like any other burn. `resolution: 'wash'` — and
+ * the verb that does it is `wash`, which the world already affords from
+ * any water source.
+ *
+ * ⭐ The cap is what keeps the rinse a decision rather than a formality:
+ * unbounded growth would make an unrinsed caustic lethal on a clock
+ * nobody can read.
+ */
+export const CAUSTIC_BEHAVIOR: TraumaBehavior = {
+  onset(_host: Vitals, t: Trauma): void {
+    t.agentActive = true;
+  },
+  tick(host: Vitals, t: Trauma, elapsedSec: number): void {
+    const D = HARM_DEFAULTS;
+    if (t.agentActive) {
+      t.severity = Math.min(
+        D.CAUSTIC_MAX_SEVERITY,
+        t.severity + D.CAUSTIC_GROWTH_PER_SEC * elapsedSec,
+      );
+      return;
+    }
+    // Rinsed — now it is an ordinary chemical burn, healing at burn's
+    // own rate.
+    t.severity = Math.max(0, t.severity - D.BURN_HEAL_PER_SEC * elapsedSec);
+  },
+  resolve(_host: Vitals, t: Trauma): void {
+    t.agentActive = false;
+  },
+  reopen: noop,
+  describe(t: Trauma): string {
+    return t.agentActive
+      ? `a caustic burn of ${t.site}, still eating`
+      : `a caustic burn of ${t.site}`;
+  },
+  // ⚠ `rinsing`, not `wash`. The token is rendered raw by `treat`'s
+  // mismatch line ("It wants ___"), and *"It wants wash"* is not a
+  // sentence. The VERB is `rinse`; this is what the wound asks for.
+  resolution: 'rinsing',
+  signature: [
+    {
+      kind: 'function',
+      lossPerSeverity: HARM_DEFAULTS.FUNCTION_LOSS_PER_SEVERITY.caustic!,
+    },
+    // ⭐ A chemical burn weeps like a thermal one — the tissue is
+    // destroyed the same way, whatever destroyed it.
+    {
+      kind: 'vital',
+      sign: 'bloodVolume',
+      perHour: -HARM_DEFAULTS.BURN_WEEP_L_PER_HOUR_PER_SEVERITY,
+    },
+  ],
+};
+
 export const TRAUMA_BEHAVIOR: Record<TraumaType, TraumaBehavior> = {
   laceration: LACERATION_BEHAVIOR,
   puncture: PUNCTURE_BEHAVIOR,
@@ -752,6 +1113,9 @@ export const TRAUMA_BEHAVIOR: Record<TraumaType, TraumaBehavior> = {
   contusion: CONTUSION_BEHAVIOR,
   avulsion: AVULSION_BEHAVIOR,
   burn: BURN_BEHAVIOR,
+  rupture: RUPTURE_BEHAVIOR,
+  frostbite: FROSTBITE_BEHAVIOR,
+  caustic: CAUSTIC_BEHAVIOR,
 };
 
 // ---------- Kind-A: the Condition Idea template ----------

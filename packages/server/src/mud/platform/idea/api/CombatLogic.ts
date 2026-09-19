@@ -90,6 +90,7 @@ import type { RangeState } from "../../../lib/combat/CombatGraph";
 import type { CombatGraph } from "../../../lib/combat/CombatGraph";
 import { RangeBand, RANGE_BANDS } from "../../../lib/combat/RangeBand";
 import { DeliveryProfile } from "../../../lib/combat/DeliveryProfile";
+import type { EnergySourceKind } from "../../../lib/combat/EnergySource";
 import { AimResolution, type Placement } from "../../../lib/combat/AimResolution";
 import type { RangeBandConfig } from "../../../lib/combat/RangeBand";
 import Location from "../../../lib/stuff/Location";
@@ -276,6 +277,16 @@ export class CombatLogic extends ApiLogic {
     splash: readonly Stuff[],
   ): ThrownDelivery {
     return resolveThrownImpl(thrower, target, contents, splash);
+  }
+
+  /** See {@link resolveShotImpl}. */
+  @CallSecurity(CombatantCallers)
+  public resolveShot(
+    shooter: Stuff,
+    target: Stuff,
+    shot: Parameters<typeof resolveShotImpl>[2],
+  ): ReturnType<typeof resolveShotImpl> {
+    return resolveShotImpl(shooter, target, shot);
   }
 
   @CallSecurity(CombatantCallers)
@@ -2473,19 +2484,49 @@ function commitInflict(
       shieldFacing,
     );
   }
+  // ⚠ And a corrosive primary lands nothing — a corrosive insult carries
+  // the AGENT'S chemistry (`CorrosionInflictSpec.corrosiveTo`), which a
+  // blow's energy-and-site cannot supply. No shipped weapon or natural
+  // attack authors the channel; a spitting beast would need its species
+  // to say what it spits, which is content this build does not ship. It
+  // returns a truthful DEFLECTED report rather than being coerced into a
+  // mechanical spec, so nothing pretends a wound landed.
+  if (channel === "corrosion") {
+    return {
+      attacker: actorState.combatant,
+      target: targetState.combatant,
+      channel,
+      site,
+      band: "turned",
+      deflected: true,
+    };
+  }
 
   const energy =
     energyFor(bandForEnergy) *
     (energyScale > 0 ? energyScale : 1) *
     instrumentDeliveryScale(weapon, channel) *
     naturalMassScale(attacker, innateSpec);
+  // ⭐⭐ **A maiming needs the fight's authority.** An exchange blow may
+  // take a limb only under terms that authorize lethal harm; a non-lethal
+  // or unconsented bout leaves a severe avulsion, never a severed part —
+  // the same consent structure the two-stage defeat/coup enforces for
+  // killing. A cull (a beast) IS lethal by nature and passes this. ⚠ An
+  // environmental source sets no `maim`, so it defaults to true; only
+  // this producer, which has terms to read, ever suppresses it.
+  const terms = session.getTerms();
+  const mayMaim = terms.lethality === "lethal";
   let spec: EnergyInflictSpec = {
-    mechanism: channel,
+    // ⚠ `channel` is narrowed above: `shock` takes its own path and
+    // `corrosion` is refused, because neither can be described by an
+    // energy and a site alone.
+    mechanism: channel as EnergyInflictSpec['mechanism'],
     site,
     energy,
     // The target's wielded shield fronts a faced attacker; a flanking blow
     // under focus-fire bypasses it (directional coverage).
     shieldFacing,
+    maim: mayMaim,
   };
   let augmentCtx: CombatHookContext | null = null;
   if (carrier) {
@@ -4503,6 +4544,62 @@ export interface ThrownDelivery {
  * on one at all. That is why there is no splash-magnitude rule here to
  * invent or to get wrong.
  */
+/**
+ * ⭐⭐ Resolve a SHOT's arrival — the launcher's twin of
+ * {@link resolveThrownImpl}.
+ *
+ * The two are deliberately separate rather than one generalized
+ * "ballistic arrival", because what they read is genuinely different: a
+ * throw derives its speed from a dial (an arm is an arm), while a shot
+ * reads the **launcher's** muzzle speed and energy source and the
+ * **projectile's** mass, channel and calibre. Merging them would produce
+ * one function with two disjoint halves and a flag.
+ *
+ * ⚠ **No splash and no shares.** A bullet carries no contents; the
+ * carrier-and-payload machinery is `throw`'s, and the whole of a shot's
+ * arrival is a wound.
+ */
+function resolveShotImpl(
+  shooter: Stuff,
+  target: Stuff,
+  shot: {
+    energySource: EnergySourceKind;
+    speedMs: number;
+    massKg: number;
+    channel: Channel;
+    calibreM?: number;
+    toughness?: number;
+    hardness?: number;
+  },
+): { placement: Placement; profile: DeliveryProfile } {
+  const band = bandBetweenImpl(shooter, target) ?? "close";
+  // ⭐ A launcher's envelope is the ARENA's — what the room affords. That
+  // is what makes the long meadow worth walking to: the same bow reaches
+  // further there than in a corridor, because the corridor is short, not
+  // because the bow changed.
+  const envelope = arenaMaxBandFor(shooter);
+  const profile = DeliveryProfile.derive({
+    energySource: shot.energySource,
+    massKg: shot.massKg,
+    speedMs: shot.speedMs,
+    channel: shot.channel,
+    band,
+    envelope,
+    toughness: shot.toughness,
+    hardness: shot.hardness,
+    calibreM: shot.calibreM,
+    // ⭐ Ammunition is purpose-made to fly — that is the difference
+    // between an arrow and a thrown chair leg, and it is why a shot
+    // places better than a throw at the same range.
+    balancedForFlight: true,
+  });
+  const placement = AimResolution.resolve("snap", "stand", {
+    poorStability: profile.stabilityIsPoor(),
+    beyondEffective: profile.beyondEnvelope,
+  });
+  return { placement, profile };
+}
+
 function resolveThrownImpl(
   thrower: Stuff,
   target: Stuff,
@@ -5251,6 +5348,11 @@ function partingShot(
   // drain (DECISION K), not an energy spec, and the fleer is breaking
   // contact. A parting shock is a deferred seam.
   if (channel === "shock") return;
+  // ⚠ Nor a parting corrosive one, for a different reason: a corrosive
+  // insult carries the agent's chemistry, and no shipped weapon or
+  // natural attack authors any. A corrosive bite is a real thing to want
+  // (a spitter) and it needs the species to say what it spits.
+  if (channel === "corrosion") return;
   const site = siteFor(fleerState.combatant, false);
   ConditionApi.inflict(fleerState.combatant, {
     mechanism: channel,

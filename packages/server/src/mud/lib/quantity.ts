@@ -262,6 +262,18 @@ export type ScaleName = string;
 export const DEFAULT_SCALE: ScaleName = 'default';
 
 /**
+ * ⭐ One clo, in m²·K/W — the unit's definition, not a dial.
+ *
+ * Lived as a module-private literal in `lib/slot/Wearable.ts` until the
+ * injury build gave the covering fold a second reader (a thermal blow now
+ * attenuates by a layer's REAL R-value, the same number thermoregulation
+ * reads). Two readers of one definition, and `Wearable` composes four Apis
+ * so cannot be imported by a Logic module without a load-order cycle —
+ * so the definition moved beside the unit it defines.
+ */
+export const M2K_PER_W_PER_CLO = 0.155;
+
+/**
  * Optional markup facts a *reading* carries that a bare value does
  * not. All four are omitted from the emitted tag when absent, so a
  * quantity with no instrument behind it never claims to have one.

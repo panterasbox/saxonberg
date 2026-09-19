@@ -54,10 +54,30 @@ export type SpellTargeting = (typeof SPELL_TARGETINGS)[number];
  * distance*, so the authored floor prices the survey and the physics
  * prices the lift. Downhill is free and never a refund.
  */
-export type SpellCostModel = { readonly kind: 'potential' };
+export type SpellCostModel = {
+  readonly kind: (typeof SPELL_COST_MODELS)[number];
+};
 
 /** Validation vocabulary companion to {@link SpellCostModel}. */
-export const SPELL_COST_MODELS = ['potential'] as const;
+export const SPELL_COST_MODELS = [
+  'potential',
+  /**
+   * ⭐⭐ **A heat pump — the price is a LIFT, not a flat number.**
+   *
+   * `arcane-science.md` rule 4: cooling has no fixed price. Moving heat
+   * out of something is a Carnot problem — cheap near ambient (COP ≈ 7
+   * at a small lift, so 100 kJ moved costs ≈ 14 kJ of work) and
+   * divergent as the target approaches absolute zero. A cold spell with
+   * a flat cost is a physics error, and `lint:spell-cost` now refuses
+   * one.
+   *
+   * ⚠ The caster absorbs **Q + W** — everything the pump moved plus the
+   * work to move it — because they are always an endpoint (the one
+   * postulate). That is why Destroy·Fire is limited by thermoregulation
+   * rather than by mana: the reserve is not the danger meter.
+   */
+  'heat-pump',
+] as const;
 
 export interface SpellDescriptor {
   /**

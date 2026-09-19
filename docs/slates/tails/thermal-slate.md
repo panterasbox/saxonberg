@@ -657,6 +657,36 @@ standard first-order model); the **parameters are tuned**:
    from core hypothermia) and reuses the body-plan regions / surface fractions;
    lean body-wide v1, per-region a fidelity tier.
 
+7. ⭐⭐ **Two insulation models, and they do not talk — RESOLVED** *(raised
+   and closed by the injury build, 2026-09-18)*. The fold now reads
+   `Wearable.getClo()`; the reconciliation is the INPUT, each reader
+   keeps its own physics (steady-state loss vs a pulse), and a layer with
+   no derived clo falls back to a slab of its material. The remaining
+   *leans* below are what the fix did; kept for the record. A garment answers **cold weather** through
+   thermoregulation — `bodyInsulation()` in `clo`, derived from fabric
+   loft and coverage, widening the comfort band and (since the injury
+   build) damping how fast an internal heat load sheds. The same garment
+   answers a **cold blow** — a frost spell, a splash of liquid nitrogen —
+   through the covering fold: `heatAttenuationFraction`, which reads the
+   material's `thermalConductivity` inverted × layer depth. Two numbers
+   for one physical fact, computed from different inputs, and nothing
+   asserts they agree. This predates the injury build (heat had exactly
+   the split); that build extended it to `cold` without reconciling,
+   deliberately, because reconciling is its own design:
+   - *Leans:* the fold is per-blow and per-site and should stay so
+     (armour is layered and local); `clo` is body-wide and steady-state.
+     The honest join is that **both derive from the same fabric
+     properties** — loft, density, conductivity — so a wool coat that is
+     warm to stand in is also warm against a frost bolt, *by
+     construction*. Today `clo` reads loft and the fold reads
+     conductivity, and a fabric could be authored to satisfy one and not
+     the other.
+   - A test that walks every shipped covering material and asserts the
+     two readings are monotonic in each other would make the drift
+     visible without forcing a merge.
+   - → textiles-slate owns the fabric properties; this slate owns the
+     two readers.
+
 ---
 
 ## Build order

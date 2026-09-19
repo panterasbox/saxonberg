@@ -15,4 +15,10 @@ data:
     z: 0
   props:
     - /world/practicum/practice-dummy
+    # ⭐ The thing that actually catches. The dummy demonstrates HITTING a
+    # target; the tinder demonstrates SETTING IT ALIGHT, and after the
+    # spell-cost correction those are honestly different acts — 22 kJ
+    # lights forty grams of tinder and 831 kJ would be needed to light a
+    # 1.5 kg dummy. See the row's own arithmetic.
+    - /world/practicum/tinder-bundle
     - /world/practicum/basin

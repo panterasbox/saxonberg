@@ -1,0 +1,25 @@
+# A wand of acid-splash — a flung gout of vitriol, wielded by a non-caster. Carries the SHIPPED
+# `acid-splash` working; `zap` spends the maker's stored labour, not competence.
+class: /system/arcana/thing/Wand
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: thick brass-stoppered glass rod
+  keywords: [wand, rod, acid-splash]
+  register: indefinite
+  longDescription: >
+    A thick glass rod stoppered in brass, half-full of an oily liquid
+    that fumes faintly against the walls of its own wand.
+  carriedSpellPath: /stuff/idea/magic/Spell/acid-splash
+  makerId: /obj/npc/practicum/artificer
+  deliveryEfficiency: 1.4
+  capacityTau: 900
+  alwaysOn: false
+  censusKey: wand
+  materialTags: [brass, wood]
+  regionTarget: 2
+  descriptorClass: wand
+  identifiedName: a wand of acid-splash
+  selfIdentifying: true
+  slotClaims:
+    "/stuff/idea/species/BodyPlan/biped": ["hand:right"]
+  blessingOdds: { cursed: 3, uncursed: 95, blessed: 2 }

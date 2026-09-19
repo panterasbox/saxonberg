@@ -803,3 +803,44 @@ a decision: fill it, or delete it and let the caller read competence
 directly. A hook one wave ahead of its consumer is good sequencing; one
 several builds ahead is a claim nobody is honouring.
 
+
+---
+
+## ⭐ Hand-off from the magic-expression pass (MR!260, 2026-09-18)
+
+The injury MR's magic-expression scope closed the four channels magic
+never reached (blunt/point/edge via `create·earth`/`create·air`;
+corrosion via `create·water` + the substance-contact seam). What it
+proved directly (tests + drive) it kept; what it named as future
+synergies it leaves here, because they are the *guild* groundwork and
+each wants its own exercise:
+
+- ⭐⭐ **Freezing a pool of water, end to end.** frost's object arm already
+  does `depositHeat(−J)` + `reconcilePhase()`, and `reconcileBulkPhase`
+  already freezes a `Bulkable & Thermal` floor pool
+  (`Thermal.ts:756-802`). What is NOT proven is the *consequence chain*: a
+  frozen pool should become walkable, block flow (`watershed`), and stop
+  conducting (`ElectricityApi`). The interop test to write: *frost a
+  flooded cell, assert the shock path opens/closes.* Prerequisite check —
+  does the target Floor carry `ThermalMixin`? (Not all do.)
+- ⭐⭐ **Chaining shock through a conjured pool.** spark imposes a potential
+  and lets `conduct()` walk the conduction graph; conjure-water pools a
+  real conductor. The synergy — spark into a conjured/rain pool bridges
+  everyone standing in it — should fall out of the SAME walk a live wire
+  uses. The test: *conjure a pool, spark it, assert the conduction set.*
+- **Standing in a caustic pool (re-contact).** `Material.corrodeOnContact`
+  fires on a contact EVENT (a splash, a pour). A body *standing in* a
+  pooled caustic wants a `Floor.onEntered` re-contact hook, mirroring
+  `FloodedCell`'s shock-on-entry. Deferred — the two active-delivery
+  events (throw, conjure) shipped; the ambient pool did not.
+- **A second cold expression** (a frost field / chilling touch). frost
+  covers `cold` and drives the freezing-pool synergy, so a second cold
+  spell was dropped from the pass as roster polish, not seam-proving.
+
+⭐ These are *"the more content exercises the channels, the more we prove
+they interoperate"* — the standing rule holds: every deliverer routes
+through the ONE door (`ConditionApi.inflict`) and the ONE fold, so interop
+is by construction; the risk is a new spell inventing a side path. Guilds
+(a fire guild, an earth guild, an acid/alchemy guild) teach and gate a
+*family* of these workings — which is why the roster breadth is the raw
+material for the next social/economic layer, not polish.

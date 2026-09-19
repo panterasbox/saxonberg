@@ -37,7 +37,7 @@ import YAML from "yaml";
 
 const EXIT_ON_FINDINGS = true; // CI-gating
 const CONDITION_CLASS = "/platform/idea/Condition";
-const EFFECT_KINDS = ["vital", "reserve", "capability", "expression"];
+const EFFECT_KINDS = ["vital", "reserve", "function", "expression"];
 
 const CONTENT_DIR = fileURLToPath(new URL("../../content", import.meta.url));
 const SRC = fileURLToPath(new URL("../src", import.meta.url));

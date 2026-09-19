@@ -1803,6 +1803,19 @@ out to be a teaching laboratory that was only ever missing its theory.
 These are binding on anyone authoring magic content. They are the
 price of the hard rule at the top of this document.
 
+⭐⭐ **Rules 1, 4 and 6 are now ENFORCED, by `lint:spell-cost`**
+(`packages/server/scripts/check-spell-cost.ts`, in the lint family). They
+were binding and unread for as long as they existed, and the flagship
+spell broke 1 and 6 by a factor of forty-five — firebolt committed 20 kJ
+and delivered 900 kJ. The gate walks every `Spell` row in every pack and
+holds the violation count at **zero**.
+
+⚠ It is channel-aware, because a flat `η ≤ 1` would make rule 4 illegal:
+a heat pump's COP is *above* 1 by definition. So a **delivering** effect
+is checked against the price list's η, and a **cooling** one is instead
+required to declare `costModel: {kind: heat-pump}` — the machine-readable
+form of *"cooling has no fixed price"*.
+
 1. **Spell cost is energy committed, in kilojoules.** Authored costs
    must be derivable from the price list and the intended delivery.
    A cost that cannot be justified this way is a defect.

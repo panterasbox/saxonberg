@@ -1,0 +1,27 @@
+# A wand of stonefist — a non-caster's fist of stone. Carries the SHIPPED
+# `stonefist` working (an item is a new trigger, never a new mechanism);
+# `zap` spends the maker's stored labour, so it delivers a blunt blow a
+# person who never trained could not throw.
+class: /system/arcana/thing/Wand
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: squat granite-capped rod
+  keywords: [wand, rod, granite, stonefist]
+  register: indefinite
+  longDescription: >
+    A short, heavy rod capped with a knuckle of grey granite. It sits in
+    the hand like a thing that wants to be swung.
+  carriedSpellPath: /stuff/idea/magic/Spell/stonefist
+  makerId: /obj/npc/practicum/artificer
+  deliveryEfficiency: 1.4
+  capacityTau: 900
+  alwaysOn: false
+  censusKey: wand
+  materialTags: [stone, wood]
+  regionTarget: 2
+  descriptorClass: wand
+  identifiedName: a wand of stonefist
+  selfIdentifying: true
+  slotClaims:
+    "/stuff/idea/species/BodyPlan/biped": ["hand:right"]
+  blessingOdds: { cursed: 3, uncursed: 95, blessed: 2 }

@@ -90,6 +90,12 @@ const STUBS: Doc[] = [
   // cascade light); the registry office's registrar rides `cast:`, which
   // the loader strips.
   { path: "/world/terminus/terminal/agent/clerk", class: "/platform/thing/Thing", hydratorClass: PH, data: { shortDescription: "the clerk" } },
+  // The crossroads props a `water-butt` (the injury build's first water in
+  // the wilds). This suite is about how a destination is NAMED, not the
+  // butt — a bare-`Thing` stub keeps the cascade light rather than
+  // dragging the real fixture's bulk + its quantity marshallers in behind
+  // it, exactly as the clerk above is stubbed.
+  { path: "/stuff/thing/fixture/water-butt", class: "/platform/thing/Thing", hydratorClass: PH, data: { shortDescription: "a water butt" } },
   // ⭐⭐ The two ends of the Kestrel road (logistics W4). Terminus's
   // Delight road and the wilds crossroads both wire an exit into the
   // rejection pack now — the realm is one connected place — and

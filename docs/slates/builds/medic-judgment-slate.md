@@ -91,6 +91,26 @@ questions walking that exact cycle,
 §②) is the exemplar. That cycle is the loop below; Study's case structure
 is its content scaffold.
 
+## ⭐ This slate owns the diagnosis surface (settled 2026-09-15)
+
+> **Merged on contact.** [health-vertical](./health-vertical-slate.md)
+> carried *"what the diagnose surface actually is"* as its **defining
+> design problem** and offered a hypothesis-recording verb or a chart
+> object. This slate had already answered it in the opposite direction —
+> and the two documents sat beside each other for six weeks without
+> either noticing.
+>
+> ⭐ **The answer is this slate's, and the reasoning is the pedagogy
+> lens.** Naming a condition for credit tests whether the player has
+> memorised the engine's condition vocabulary. Acting correctly on a
+> *novel* presentation tests whether they can read a body. Only the
+> second is derivable from principles, and only the second survives a
+> wiki.
+>
+> health-vertical now keeps the world medicine is practised in —
+> institutions, outbreaks, prevention, the veterinary track — and points
+> here for the graded act. **Two slates, one subject each.**
+
 ## The clinical-judgment loop
 
 The **answer key is the sim** — the honest body (harm/mortality/metabolism).

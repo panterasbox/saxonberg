@@ -58,6 +58,77 @@ settings:
   - key: response.blunt.fractureThreshold
     value: "1.5"
 
+  # The edge ladder's upper rung — past this the cut tears the part away.
+  # Well above the fracture threshold: an avulsion is the worst thing an
+  # edge does, and past SEVER_SEVERITY (4) it takes the part off.
+  - key: response.edge.avulsionThreshold
+    value: "3"
+
+  # ── the depth ladder ────────────────────────────────────────────────
+  # How deep a blow has to be before it reaches past the site into what
+  # the site contains. Below this, a torso wound is a torso wound.
+  - key: response.depth.reachThreshold
+    value: "2"
+
+  # What each organ takes out of what is left. The first organ under the
+  # site gets the whole excess, the second gets one step less, and so on
+  # until there is nothing past the no-wound floor — so a deeper blow
+  # reaches MORE organs, not just a worse first one.
+  - key: response.depth.stepPerOrgan
+    value: "1"
+
+  # Inside you, a blunt blow past this tears the organ; below it, it
+  # bruises. (A concussion and a bruised liver are the same wound as a
+  # ruptured spleen, one band down.)
+  - key: response.blunt.ruptureThreshold
+    value: "1"
+
+  # ── cold ─────────────────────────────────────────────────────────────
+  # ⚠ Cold has ONE key of its own. The insulation fold is `response.heat.*`
+  # for both directions, because those dials describe the COVERING — what
+  # a garment does is resist a temperature difference, and giving cold a
+  # second copy of them would be two numbers for one fact.
+  - key: response.cold.severityPerResidual
+    value: "1"
+
+  # ── corrosion ────────────────────────────────────────────────────────
+  # ⭐ The one channel where thickness is irrelevant. A layer the agent
+  # attacks is CONSUMED (passes everything, and wears for having taken
+  # it); a layer it does not attack either WICKS it through (absorbent) or
+  # SHEDS it. A steel breastplate sheds lye and is eaten by acid.
+  - key: response.corrosion.wearPerContact
+    value: "0.2"
+
+  # Above this water-absorption capacity (%) a layer wicks rather than
+  # sheds. Wool and linen are well above it; waxed hide and plate are not.
+  - key: response.corrosion.shedAbsorptionMax
+    value: "5"
+
+  - key: response.corrosion.wickAttenuation
+    value: "0.3"
+
+  - key: response.corrosion.shedAttenuation
+    value: "0.95"
+
+  # The reference agent the `analyze` preview shows a corrosion column
+  # against — a preview has to assume SOMETHING, and "attacks organic
+  # matter" is the commonest caustic in the world.
+  - key: response.corrosion.previewCorrosiveTo
+    value: "organic"
+
+  # ── penetration ──────────────────────────────────────────────────────
+  # ⭐⭐ The pressure (J/m²) an ordinary blow arrives at. `penetration` is
+  # `energy / cross-section` against this, and it DIVIDES the covering's
+  # mechanical attenuation — which is the whole of what makes a firearm
+  # different from a sword here.
+  #
+  # Worked: a sword thrust is ~200 J over a broad tip — well under this,
+  # so penetration 1 and armour answers exactly as it always has. A
+  # 16 mm musket ball at ~1.5 kJ is 1500 / (π·0.008²) ≈ 7.5 MJ/m², so
+  # penetration ≈ 3.7 and plate's `resist` falls toward `fail`.
+  - key: response.penetration.referenceJPerM2
+    value: "2000000"
+
   - key: response.noWoundThreshold
     value: "0.25"
 
@@ -77,14 +148,27 @@ settings:
   - key: response.band.biteMax
     value: "1.5"
 
-  # Heat channel (fire) — a covering attenuates heat by insulation:
-  # leather/padding turns a burn, plate conducts it. See docs/subsystems/
-  # materials-response.md + fire.md.
-  - key: response.heat.baseAttenuation
-    value: "0.9"
+  # ⭐⭐ Thermal channels (heat AND cold) — a covering blocks by its REAL
+  # insulation: the garment's own `clo` (thickness over conductivity,
+  # loft and wetness included), in series with the body's own resistance.
+  # The same number thermoregulation uses to widen the comfort band and
+  # damp shedding — one insulation model, not two. Leather/padding turns
+  # a burn or a freeze; plate conducts either; a SOAKED cloak barely
+  # helps. See docs/subsystems/materials-response.md + thermal.md.
+  #
+  # The one dial left: a layer with no derived clo (a held shield, a
+  # preview from material alone) is scored as a slab of its material at
+  # this thickness. 5 mm — a plank, a thick hide. The old heuristic's
+  # three dials (`baseAttenuation`, `insulationRefConductivity`,
+  # `depthFactor`) are retired.
+  - key: response.heat.referenceThicknessM
+    value: "0.005"
 
-  - key: response.heat.insulationRefConductivity
-    value: "2.0"
-
-  - key: response.heat.depthFactor
+  # The clo at which a layer stops 1 − 1/e ≈ 63 % of a thermal blow. A
+  # blow is a PULSE, and a thin layer stops a flash disproportionately —
+  # `1 − exp(−clo / ref)`. 0.1 clo is a t-shirt; a hide jerkin (~0.23)
+  # stops nine-tenths, a wool coat everything, plate almost nothing, and a
+  # soaked wool coat about half — wetness needs no special case, it is in
+  # the clo already.
+  - key: response.heat.referenceClo
     value: "0.1"

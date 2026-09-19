@@ -2,9 +2,8 @@
 # all DEAD OR ALIVE" bounties named on the crossroads board. A generic
 # creature (no proper name — Visible.shortDescription per the NamedMixin
 # rule), brain-driven in combat by the session's default combat brain (no
-# Interactive → auto brain-driven); its `naturalAttackChannel` (fangs, a
-# `point` channel) lets it strike back unarmed. A lethal cull: no consent,
-# no blame. Idles with a low growl until something gives it a reason.
+# Interactive → auto brain-driven); the species' natural attacks (bite and
+# worry) let it strike back unarmed. A lethal cull: no consent, no blame. Idles with a low growl until something gives it a reason.
 class: /platform/agent/Extra
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
@@ -17,9 +16,10 @@ data:
     A rangy grey wolf, all wire and hunger, hackles up and head low. Its
     eyes track you with a flat, patient interest. Somewhere behind the
     ribs a growl idles like a held breath.
-  # Fangs — the innate attack that lets it fight back unarmed (a puncture
-  # channel). Set on the CombatantMixin field via the hydrator.
-  naturalAttackChannel: point
+  # ⚠ The legacy `naturalAttackChannel: point` is GONE — the wolf's
+  # attacks (bite / worry) are authored on the SPECIES row, which is where
+  # a fact about wolves belongs. This row was the last content user of the
+  # legacy field.
   behaviors:
     - brain: /lib/behavior/idles
       trigger: cadence:14s

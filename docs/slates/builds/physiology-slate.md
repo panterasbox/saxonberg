@@ -1,20 +1,28 @@
 # Physiology slate — the body's second half: function, time, intervention
 
-> **Status: PARTIAL** — only wave 1 shipped: the condition catalogue is
-> live (`ConditionCatalogue`, self-warming) and `ConditionApi.inflict` is
-> the single seam → [harm.md](../../subsystems/harm.md). The function
-> half is untouched — `governsVital` has not become `governs`, and there
-> is still no pain, no perfusion or innervation reader.
-> **Left:** the capacity vocabulary + the `governs` rename (waves 2–3
-> block the rest) · the organ roster (brain · spine · liver) · the
+> **Status: PARTIAL** — wave 1 shipped (the condition catalogue is live
+> and self-warming; `ConditionApi.inflict` is the single seam), and ⭐ **the
+> `governs` rename shipped too** — verified 2026-09-16: zero occurrences
+> of `governsVital` remain in any `.ts` or `.yaml`, the field is
+> `governs?: string[]` on `BodyPart`, and all three animate body plans
+> author it. → [harm.md](../../subsystems/harm.md).
+> ⚠ **What is still untouched is the part that matters**: every one of
+> the five readers of `governs` is an *organ-exclusion filter* — nothing
+> reads the value. And `innervatedBy` / `suppliedBy` are declared on
+> `BodyPart` with **zero authored rows and zero readers**, so there is no
+> perfusion or innervation reader, and no pain.
+> **Left:** the capacity vocabulary (waves 2–3 block the rest) · the organ roster (brain · spine · liver) · the
 > function axis (trauma × tissue × perfusion × innervation) · the alarm
 > clock off `reconcileConditions` · pain as a derived reader · substances
 > (the topical route, inhalation, the liver multiplier) · chems and meds
 > as content · infection · permanence and prosthetics · sleep and beds ·
-> blood, transfusion and consent · the care economy · animal body plans ·
+> the care economy · animal body plans ·
 > `treat <target> <part> with <item>` and `draw` · medicine/surgery
 > disciplines + malpractice · tolerance and withdrawal · the six-spell
 > `control·body` roster
+> ⭐ **Blood, transfusion and consent moved OUT (2026-09-15)** →
+> [blood-slate](./blood-slate.md). This slate keeps the blood-loss
+> *axis* (`bloodVolume` is a vital sign); blood owns the substance.
 > **Size:** a build
 
 **Captured 2026-08-02**, out of a chems/meds conversation that turned into
@@ -1183,149 +1191,20 @@ healed* pattern showing up in a shipped vital sign, for free.
 restore oxygen carriage — is more accurate still. **Over-modelling for
 v1**; noted as a refinement.)*
 
-### ⭐⭐⭐⭐ Transfusion's ingredient is a PERSON
+### ⭐ The rest of this Part moved to blood-slate (2026-09-15)
 
-> **Transfusion is the only treatment whose ingredient is another
-> person's body.**
-
-Not a purchased item — someone **present, willing, and paying a real
-cost** (the donor loses volume too). Properties nothing else in the kit
-has: **a gift with a price**, it **requires consent**, and it leaves a
-debt both parties remember.
-
-#### ⭐⭐⭐ The blood bank is an unusual business
-
-> **Its inventory is DONATED, not bought.**
-
-A genuine **civic object** rather than a shop — a public good with a
-**free-rider problem**, where the interesting question is *who gives, and
-why.* A real collective-action problem sitting in a medical building.
-
-### ⚠ Blood types: REVERSED 2026-08-02 — DO
-
-An earlier pass here said **don't**, on two grounds. **Both were wrong, or
-too quick.** *(User: "that's cool science and it's very accessible,
-everyone knows about them… we would need some kind of blood economy and
-people to give blood. that might be fun though for a social game like
-this.")*
-
-**Objection 1 — "it's a matching puzzle."** It assumed the player performs
-the matching. They do not: typing is **a one-time fact about your
-character that a physician reads for you.**
-
-> **Your blood type is not a puzzle to solve. It is a FACT ABOUT YOU that
-> becomes relevant to OTHER PEOPLE.** — the same shape as a scar being
-> identity (§ Part 7c), which this slate already argued *for*.
-
-#### ⭐⭐⭐⭐ The real payoff is a SUMMONS, not a match
-
-> **"Is anyone here B-negative?"**
-
-Mechanically **a broadcast to a room** — exactly the event shape this game
-is built for. Typing does not create matching work; it creates
-**occasions where a SPECIFIC STRANGER becomes necessary**, which almost
-nothing else in the design does. It rides comms, it is urgent, and only
-one kind of person can answer.
-
-It also produces something rare: ⭐ **an UNEARNED distinction.** Everything
-else about you is earned — competence, renown, standing. Your type is just
-*true*, and it can make you the most important person in the room.
-**Universal donors quietly become community assets.**
-
-#### ⭐⭐⭐⭐⭐ Objection 2 — "it reads as blood purity" — INVERTS
-
-The whole thing turns on whether type correlates with **species**. If it
-does, it is blood purity. If it does not:
-
-> **A dwarf and an elf can share blood. Two elves might not.**
-
-Not a mitigation — **the strongest available REFUTATION**: a mechanic
-demonstrating that the meaningful biological category cuts **across** the
-social one. Exactly the note the anti-essentialist species layer wants,
-and **true of real human blood types.**
-
-> ⭐ **RULE: blood type is independent of species.** The hazard was real;
-> the direction was backwards. **Orthogonality turns the same mechanic
-> from the bad note into the good one.**
-
-⚠ **Refined 2026-08-02 →** [species-slate](./species-slate.md). Independent
--of-species is the **default**, not an absolute: a single authored species
-whose blood is incompatible with the common pool is **more FRAGILE, not
-purer** — a minority medical burden whose answer is **its own donor
-drive**. The governing rule is **difference that COSTS is character;
-difference that RANKS is essentialism.**
-
-### The blood economy
-
-Donation costs: volume down, weak for a while, and **per the recovery
-ratchet it must pay nothing.** So why donate? The same reason people do in
-life — **someone asked**, it is a recorded deed, and the person it saves
-knows your name.
-
-> ⭐⭐⭐ **Blood donation is the cleanest possible TEST OF THE SOFT-SKILLS
-> THESIS** — a costly act, no reward, a public record, a beneficiary who
-> knows who you are. If the chronicle and reception-from-others make that
-> feel worth doing, **those systems work**; if not, we have learned
-> something important cheaply.
-
-#### ⭐⭐ Shelf life makes it a LIVE problem
-
-Blood keeps ~6 weeks, so a bank **cannot hoard** — it needs continuous
-donation, forever.
-
-> **Shelf life turns the free-rider problem from SOLVED into ONGOING.**
-
-A stockpile is a puzzle you beat once; a perishable stock is a **standing
-civic obligation** — and it reuses the spoilage machinery already decided
-for meds (§ Part 7b).
-
-#### ⭐⭐⭐ "Should you be allowed to SELL blood" is a real legislative question
-
-With a real empirical answer: **paid donation historically produced worse
-safety outcomes**, because payment gives donors a reason to conceal things
-about themselves.
-
-A superb legislature object — **a policy debate where the intuitive answer
-(markets clear shortages) loses to evidence** — and **our own
-record-keeping could surface that evidence in-world** rather than
-asserting it. A locality that pays and one that does not become **a
-natural experiment somebody can go read.**
-
-⚠ **Guard: rarity must not become a TAX ON THE RARE.** An uncommon type
-must not mean a donation treadmill — **the ask stays an EVENT, not a
-subscription.** Carry into requirements as a real risk.
-
-### ⭐⭐⭐ Where CONSENT finally lands
-
-Transfusion forces it, but it generalises — **treatment is something done
-TO a body.** Real medicine already has the elegant rule:
-
-> **IMPLIED CONSENT IN AN EMERGENCY.** A dying body may be treated by
-> anyone. A conscious body must agree.
-
-**One predicate on `getConsciousness`**, medically correct, and it
-resolves the awkward case (you cannot ask permission from someone bleeding
-out) **without inventing anything.**
-
-The dark half comes free: **a substance administered without consent is
-harm** — the accountability ledger's existing business, a **producer-side
-append at the administration site**, no chokepoint. **That IS the
-poisoner's vocation, mechanically.**
-
-> ⭐⭐ **The ledger showing who treated whom is simultaneously a
-> malpractice trail and a credential** — same record; which one it is
-> depends entirely on outcomes.
-
-### ⭐⭐⭐ The sequencing insight
-
-Exsanguination's window is **120 s**; real transfusion takes longer. So
-transfusion is **not** the emergency intervention — `treat` already is,
-and mortality is explicit that it leaves you **"rescued, not healed."**
-
-> **The field medic stops you dying. The clinic makes you useful again.**
-
-Two moments, two skill sets, **two businesses** — so the clinic is not a
-slower version of the medic.
+> **Merged on contact.** Transfusion-as-a-person, the blood bank, blood
+> types (the *DO* reversal), the summons, the blood-purity inversion, the
+> economy, shelf life, the sell-blood legislative question, consent, and
+> the field-medic/clinic sequencing all now live in
+> [blood-slate](./blood-slate.md) § *Absorbed from physiology-slate
+> § Part 7e*.
+>
+> ⭐ **The split is principled, not arbitrary:** `bloodVolume` is a vital
+> sign and the blood-loss *axis* is this slate's (above). The *substance*,
+> its compatibility graph, and the economy around donating it are a
+> subject of their own, and that subject already had a slate with the
+> mechanism worked out in more detail than this one carried.
 
 ## Part 7f — The care economy (2026-08-02)
 
@@ -2182,3 +2061,141 @@ Three attach points the build left clean rather than filled.
   [instrumentation-slate](./instrumentation-slate.md) owns the general
   shape (⚠ check it first — it is the *"check before any
   measure/analyze/instrument design"* slate).
+
+## Part 7g — ⭐⭐ Frostbite from WEATHER (2026-09-18)
+
+*Handed over by the injury build, which shipped the wound and only one of
+its two causes — and whose `thermal.md` edit overclaimed the other.*
+
+The injury build added `frostbite` as a trauma type and the `cold`
+channel that produces it — but **only a delivered cold blow makes one**.
+A frost spell, a splash of something cryogenic, a hazard authored as
+`channel: cold`: those reach the covering fold at a `body.*` site and
+land frostbite there. **Cold weather does not.** The weather path drives
+`coreTemperature` down and spawns `hypothermia` — a whole-body
+affliction — and never touches a part.
+
+That is backwards from the physiology, and legibly so: on a real cold day
+**your fingers and toes go before your core does.** Frostbite of the
+extremities is the *first* cold injury, hypothermia the last; a body can
+lose a finger to the cold and never have been hypothermic at all. The
+engine currently teaches the opposite.
+
+**What the model wants**, and why it is this slate's:
+
+- **Per-region cold exposure**, read from what thermoregulation already
+  computes. The effective ambient, the wind chill, and — crucially — the
+  **per-part insulation** (`insulationAt(part)`, which already exists for
+  the surface-fraction walk) together say which parts are exposed. Bare
+  hands in a wind at −20 °C are the whole story, and every input is
+  already on the body.
+- **A per-part cold "dose"** that becomes a `frostbite` trauma at that
+  part through `ConditionApi.inflict` on the `cold` channel — the same
+  door a frost spell uses, so the fold and the function axis (a numb
+  hand cannot grip) apply for free. No new trauma, no new behaviour: a
+  new **producer** of an existing wound.
+- **The extremity order falls out of the anatomy**: hands and feet have
+  the smallest mass and therefore the least thermal inertia and the
+  highest surface-to-volume, and they are what a plan covers last. An
+  author who wants a species that loses its ears first authors small,
+  poorly-covered ears.
+- ⚠ **Not before hypothermia is honest.** Today hypothermia spawns at
+  `survivableMin` on the core — the same wrong-temperature problem the
+  injury build fixed for hyperthermia (D16). Mild hypothermia is a core
+  below ~35 °C; `survivableMin` is well past that. Do the onset and the
+  frostbite producer together, so that a cold day teaches the true
+  sequence: extremities → shivering → the row → the dwell.
+
+**Why it is physiology's and not thermal's:** the thermal slate owns how
+heat moves; this is what the *body* does about it, region by region, and
+it is the cold-side twin of Part 4b's exposure ladder. The wound, the
+channel and the door all exist; what is missing is one producer and one
+honest onset.
+
+## Part 7h — ⭐⭐ Dismemberment as GAMEPLAY (2026-09-18)
+
+*The injury build shipped severing as substrate. This is the design it
+never had — raised when the user asked "under what conditions does that
+happen, and how do we come back from it."*
+
+### What shipped, and its one honest reachable outcome
+
+An avulsion at or past `SEVER_SEVERITY` (4.0), on a `severable` part, when
+the blow is authorized to maim (lethal combat, or any environmental
+source), takes the part off — the subtree with it, what it held dropped,
+the function axis reading `lost`, persisted across login and into the
+corpse. A missing vital governor (the head) is lethal through the dying
+clock; death restores the body whole.
+
+⚠⚠ **But combat's `siteFor` returns torso/head only.** Torso is not
+severable. So the *only* sever a fight can reach today is **decapitation**
+— and every hazard targets feet or torso. The "lose a hand, keep playing,
+still do most things" arc (the requirements' AC 5) is **not reachable in
+the shipped world**: the unit tests prove `severPart`, but no producer can
+target a hand. This slate exists because that gap is a design hole, not a
+tuning one.
+
+### The three pieces, in dependency order
+
+**1. Reachability — the called shot.** Limb-severing needs a way to aim
+below torso/head, and it must be **deterministic**, not a weighted roll (a
+roll deciding what your action *did* is banned by `uncertainty.md`; the
+injury plan's Risk 2 established this). The honest form is an
+attacker-chosen called shot priced in poise/tempo — you *commit* to the
+arm, paying for the opening it costs you. This is a **combat build**
+(`combat-slate`), and severing gameplay is gated on it. Until it lands,
+limb loss is hazard-and-cull only and decapitation is the whole story.
+
+**2. The living way back — `restorePart`.** Mirrors `reembody` exactly:
+one content-facing engine call (`restorePart(body, key)`), no route
+registry, no terms vocabulary. A temple, a clinic, a prosthetist, a quest
+calls it when *its* terms are met; the caller decides the cost (banking
+charge, a rare reagent, a Discipline gate) and who can. ⭐ Rare by
+construction — somebody has to author a place that does it. ⚠ NOT death:
+death already restores the body (resurrection is whole-body), and "die to
+regrow a hand" must not be the only path, because for a *non-lethal* loss
+(a hand) it would force self-destruction.
+
+The **prosthetic** is the other half: `augmentation-slate` already has
+"augment re-enables a slot," and a wooden hand that sets a part's function
+above `lost` (rather than clearing `missing`) is that shape — a limb you
+work *around*, not a limb restored.
+
+**3. What a stump MEANS — the reason any of this matters.** A mechanic
+nobody feels is decoration. The economy of a one-handed character (which
+verbs refuse, what a maimed labourer earns), the visible mark
+(`describeFor` already appends "missing the left hand"; does it change how
+you are *regarded*), whether an NPC is ever authored already-maimed (a
+one-eyed mercenary, a beggar with no legs) as a piece of the world's
+history you can read. This is where the pedagogy lands: injury has
+**consequences that persist and cost**, and a world where the wounded are
+visible is a truer one than a world of pristine bodies.
+
+### Players vs NPCs — the accidental asymmetry to decide
+
+There is **no code distinction** — a wolf and a player both lose limbs by
+the same door. But most NPCs re-clone fresh each standup, so a maimed wolf
+is whole tomorrow while a player carries it forever. That asymmetry is
+accidental, not designed. Decide deliberately: is a maimed NPC a
+persistent fact (the mercenary who lost an arm to you *stays* one-armed,
+which is a strong memory mechanic), or does re-cloning wash it? Leans:
+persistence for **named** NPCs (Cast rung), re-clone for **Extras** — the
+same line identity already draws.
+
+### Lenses
+
+- **1 (pedagogy):** consequence and permanence — a wound that costs you
+  something you keep. Strong.
+- **2 (expression):** the content-facing restore is the second-instance
+  win — a second clinic is a row and a call, zero engine.
+- **4 (values):** a maiming is grave; gating it behind lethal consent (the
+  shipped fix) is the same "ending someone is a chosen act" value the coup
+  carries. The restore's cost is where a polity can express mercy.
+
+### Prerequisite
+
+⭐ **The called shot (`combat-slate`) is a hard prerequisite for the
+gameplay.** Without it, this slate can build `restorePart` and the
+prosthetic and the stump-economy, but the *loss* stays decapitation-and-
+hazard only — half a system. Sequence: combat's called shot first, then
+this.

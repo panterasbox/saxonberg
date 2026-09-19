@@ -85,7 +85,7 @@ describe('check-conditions — must NOT fire', () => {
         signature: [
           { kind: 'vital', sign: 'bloodVolume', perHour: -0.2 },
           { kind: 'reserve', reserve: 'endurance', pctPerHour: -1.5 },
-          { kind: 'capability', disables: 'slots-at-site', aboveSeverity: 0.4 },
+          { kind: 'function', lossPerSeverity: 0.6 },
           { kind: 'expression', bands: 2 },
         ],
       }),
