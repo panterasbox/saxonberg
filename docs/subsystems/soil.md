@@ -330,6 +330,16 @@ difference is whether the mouth was here, and that difference is where
 the nitrogen goes — so **fertility follows the mouths** is a sentence a
 player derives rather than a rule they are told.
 
+⚠ **The *crop* row has no producer yet** (verified 2026-09-19). `plant`/`sow`
+require a `CultivableMixin` target and `Field` composes none — its own
+header says *a field's crop is not four `Slottable`s in a bed* — and
+`Improvable.isPlantable` (D54, *newly plotted ground is not plantable*)
+has no caller. So a field today grows **sward** — hay and grazing — and
+arable crops grow in pots and beds. The row describes the nutrient flow an
+arable field WILL have (exported); the aggregate density that fills it is
+[farming-slate § The land model](../slates/tails/farming-slate.md)'s open
+item, not shipped behaviour.
+
 ⚠⚠ The key is **`sward`, not `forage`**. What a *person* gathers off
 rough ground is forage; the standing grass a *cow* eats is the sward.
 Forage is **not in this build** — see below — and the distinction is
@@ -368,6 +378,19 @@ cold-limited.
 ⚠ **D12 holds: winter stops the FIELD and does not touch the MOUTHS.** A
 grazed paddock in January still goes down, which is why the feed budget
 exists and why husbandry does not stop when farming does.
+
+⭐ **Winter stays HARD, and the reason is not difficulty tuning** (the
+farming slate's decision, graduated here). Without a season in which
+outdoor production stops, everyone eats fresh forever and salt, smoke,
+drying and the cellar have no reason to exist — softening winter would
+quietly gut the preservation chain ([spoilage.md](./spoilage.md)) and the
+greenhouse's only argument. And because the season is global (one
+`CAMPUS_LATITUDE` — [weather.md](./weather.md)), winter is a **shared
+world event**: production halts everywhere at once, stored goods spike,
+and that is demand arriving on a schedule — once every real month (a
+season is 7.5 real days under the 12× clock) — independent of how many
+players are online. The counterweight is the one the mechanism already
+gives: somewhere warm and lit in February is a fuel bill, never an unlock.
 
 ---
 
