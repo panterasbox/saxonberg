@@ -168,16 +168,38 @@ function withConditioning(owner: Stuff, rows: DisciplineBand[]): DisciplineBand[
   const out = new Map<string, DisciplineBand>(rows.map((r) => [r.discipline, r]));
   for (const { key, stock } of cat.allDisciplines()) {
     if (!stock || !owner.hasReserve(stock)) continue;
-    out.set(key, { discipline: key, band: owner.conditioningBand(stock) });
+    const band = owner.conditioningBand(stock);
+    // ⭐ The floor is implicit, as it is for the transcript fold: a stock
+    // at `untrained` is not listed. The browser drive's `competence` on a
+    // fresh character opened with *alcohol-tolerance — untrained*, which
+    // is a zero wearing a costume.
+    if (band === 'untrained') {
+      out.delete(key);
+      continue;
+    }
+    out.set(key, { discipline: key, band });
   }
   return [...out.values()].sort((a, b) => a.discipline.localeCompare(b.discipline));
 }
 
-/** Group an owner's evidence by Discipline and derive each band. */
-async function bandsForImpl(owner: Stuff): Promise<DisciplineBand[]> {
-  if (!transcriptActive()) return withConditioning(owner, []);
+/**
+ * Group an owner's evidence by Discipline and derive each band — the
+ * transcript fold, with the conditioning stocks overlaid unless the
+ * caller asks for the fold alone. ⚠ `practisingCache` asks for the fold
+ * alone: *the competence you are practising* is a thing you DO, and a
+ * body stock is not practised — the browser drive found a fresh
+ * character's shelf reading `SKILL alcohol-tolerance · untrained`
+ * because the overlay's first row sorted ahead of nothing.
+ */
+async function bandsForImpl(
+  owner: Stuff,
+  opts: { stocks: boolean } = { stocks: true },
+): Promise<DisciplineBand[]> {
+  const overlay = (rows: DisciplineBand[]): DisciplineBand[] =>
+    opts.stocks ? withConditioning(owner, rows) : rows;
+  if (!transcriptActive()) return overlay([]);
   const ownerId = ownerKeyOf(owner);
-  if (!ownerId) return withConditioning(owner, []);
+  if (!ownerId) return overlay([]);
   const entries = await TranscriptEntry.find({ owner: ownerId });
   const byDiscipline = new Map<string, TranscriptEntry[]>();
   for (const e of entries) {
@@ -191,7 +213,7 @@ async function bandsForImpl(owner: Stuff): Promise<DisciplineBand[]> {
       discipline,
       band: Competence.bandOf(rows),
     }));
-  return withConditioning(owner, folded);
+  return overlay(folded);
 }
 
 /**
@@ -223,7 +245,8 @@ const practisingCache = new DerivedStandingCache<DisciplineBand | null>(
   async (subject) => {
     const owner = StuffApi.findByTemplatePath(subject);
     if (!owner) return null;
-    const bands = await bandsForImpl(owner);
+    // The fold alone — what is PRACTISED. A stock's band is not practice.
+    const bands = await bandsForImpl(owner, { stocks: false });
     return bands[0] ?? null;
   },
   (subject) => MqlSubscriptionApi.notifyDurableSubject(subject)

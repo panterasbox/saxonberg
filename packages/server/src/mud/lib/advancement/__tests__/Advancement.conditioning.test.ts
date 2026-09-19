@@ -106,10 +106,10 @@ describe("conditioning — the band is a threshold over a body stock", () => {
     expect(bands.find((b) => b.discipline === "wind")?.band).toBe("novice");
   });
 
-  it("a fresh body lists wind as untrained rather than absent — the stock exists", async () => {
+  it("a fresh body lists nothing — the floor is implicit, for a stock as for the fold", async () => {
     const p = person();
-    const bands = await p.competenceBands();
-    expect(bands).toEqual([{ discipline: "wind", band: "untrained" }]);
+    expect(await p.competenceBands()).toEqual([]);
+    expect(await p.competenceBandFor("wind")).toBe("untrained");
   });
 
   it("a transcript row for the same key is replaced by the body read", async () => {
@@ -118,8 +118,20 @@ describe("conditioning — the band is a threshold over a body stock", () => {
       await p.creditDeed({ discipline: "wind", difficulty: "hard", outcome: "success" });
     }
     const bands = await p.competenceBands();
-    expect(bands.filter((b) => b.discipline === "wind")).toHaveLength(1);
-    expect(bands[0]?.band).toBe("untrained");
+    // Twenty hard successes in the Transcript, and the body says untrained:
+    // the stock wins, and untrained is not listed.
+    expect(bands.filter((b) => b.discipline === "wind")).toHaveLength(0);
+    expect(await p.competenceBandFor("wind")).toBe("untrained");
+  });
+
+  it("⭐ a stock is not PRACTISED — the practising figure ignores it (the browser drive's first frame)", async () => {
+    const p = person();
+    wind(p, 45);
+    expect(await p.competenceBands()).toContainEqual({ discipline: "wind", band: "competent" });
+    // The sync practising read folds through the cache; drain it and read.
+    await p.creditDeed({ discipline: "blades", difficulty: "hard", outcome: "success" });
+    await new Promise((r) => setTimeout(r, 50)); // the fold cache lands
+    expect(p.practisingCompetenceCached()?.discipline).toBe("blades");
   });
 
   it("suppression applies to the stock band as it does to every other", async () => {
