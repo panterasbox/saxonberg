@@ -4,9 +4,12 @@
 > subscriptions, forum subscriptions and `Bulletin` are each explicitly
 > not this, and [wiki.md](../../subsystems/wiki.md) names the gap and
 > points back here.
-> **Left:** the subject-keyed event · the durable subscription ·
-> derive-on-read delivery · coalescing + digest · the both-ends spoiler
-> gate · the first producers (wiki watchlists, forums)
+> **Left:** the subject-keyed event · the substrate-owned prose templates
+> (not a second bus) · the durable subscription (`PathTrie` routing) ·
+> derive-on-read delivery + the cursor/dismissal read state · coalescing +
+> digest · the both-ends spoiler gate · the `NotifyPolicy` boundary (shared
+> preference vocabulary, separate stores) · the first producers (wiki
+> watchlists, forums) · open questions 1–6
 > **Size:** a build
 
 > **Status: design proposed, nothing built.** The one substrate that
