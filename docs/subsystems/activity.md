@@ -490,8 +490,9 @@ The completion handler is the transaction boundary:
 3. **Otherwise** → execute mutations synchronously.
 4. **Emit wire frames** — completion prose `MessageFrame`s for
    actor + peers; `activity-update` envelope with
-   `EngagementCompletedNote`; mutations produce state-sync deltas
-   through the standard channel.
+   `EngagementCompletedNote`; mutations reach the client as **live MQL
+   subscription** re-projections ([mql-subscription.md](./mql-subscription.md))
+   — there is no separate state-sync channel.
 
 No `await` anywhere in the body. The atomicity is "no other JS code
 interleaves while `onComplete` runs" — *not* "throws roll back side
@@ -540,9 +541,11 @@ server only sends *event-shaped* mid-activity messages
 (interruptions, detection, scheduled emissions with perceivable
 side effects). No `engagement-progress` note kind exists.
 
-**Completion mutations flow through state-sync, not the envelope.**
+**Completion mutations flow through live subscriptions, not the envelope.**
 When `onComplete` commits (location change, item produced, property
-mutation), those world-deltas ride on the **state-sync channel**,
+mutation), those world-deltas reach the client as **MQL subscription
+re-projections** ([mql-subscription.md](./mql-subscription.md) — the
+"state-sync channel" this doc once named shipped as that),
 not as additional envelope notes. The `engagement-completed` note
 is a pure lifecycle signal — "this engagement reached its terminal
 state successfully" — with no payload describing *what* changed.
