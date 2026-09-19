@@ -318,6 +318,10 @@ body reads on return (its surface if re-seated, else the floor) â no
 synthetic "away rate". The treated-rate dials (`*_TREATED_HEAL_PER_SEC`)
 and the natural rates both go through `mend`.
 
+⭐ **Sleep-as-logout, made explicit.** The offline mend IS the shipped *sleep-as-logout* mechanism, not a new one: recovery adds no rest state and no `sleep` verb (circadian is deferred, `Species.ts:412`). A body lying on a rest surface while logged off mends as it already restores stamina — giving beds and bedrooms a new **convalescence** purpose (home bed `k = 2.0`, clinic cot `3.0`, floor `1.0`). ⚠ It depends on the body re-occupying its rest surface on restore (§ Risks, item 3); if it does not, sleeping-in-your-bed silently degrades to floor rate.
+
+**D3a — Convalescence requires *safety*, identical online and offline (the intent-agnostic answer to combat-logging).** `convalescenceFactor()` returns **0** (overriding `CONVALESCENCE_FLOOR`) whenever the body is in a live `CombatSession` **or** was harmed within `HARM_DEFAULTS.CONVALESCENCE_SAFE_DELAY` — a new transient `Vitals._lastHarmedAt`, stamped wherever `applyInflict`/`afflict` land harm. ⭐ This is **not** an anti-combat-log rule: intent is undetectable (an escaper force-quits and reads as a bad connection), so we never adjudicate it. A body mends only when *actually safe*, and the rule is the **same** whether the player is present, linkdead, or logged off — so a body dropped mid-fight heals nothing (recently harmed) exactly as an online body would, a body safe in a bed heals, and the bad-connection player and the escaper are treated identically, the *situation* deciding the outcome. The feature survives: the gate only delays the *start* of mending by `CONVALESCENCE_SAFE_DELAY`, invisible across an hours-long logout. The fuller conduct of the absent body — an autonomic-defense stance — is **out of scope**; see Deferred seams / the [absent-body slate](../slates/tails/absent-body-slate.md). Wires into W-A1 (the `k` read) and W-A5-adjacent `lastHarmedAt` stamp; no new wave.
+
 **D4 â `Trauma.dressed` generalizes to "its treatment is on it".** No
 rename (persisted key; `describe` reads it). `resolve` becomes live for
 every treatable type: fracture (set â `dressed`), rupture (surgery â
@@ -507,13 +511,13 @@ from a new infirmary `Stock` counter row (`thing/fitting-shelf.yaml`,
 `/platform/thing/Stock`) beside the tariff. `assess` reads *"a peg leg
 stands in for the left leg"*.
 
-**D17 â Staging and MR shape: two MRs.** Stage A (W-A0â¦W-A7) is *"the
+**D17 â Staging and MR shape: ONE MR (user-decided 2026-09-19).** Stage A (W-A0â¦W-A7) is *"the
 clinic works"* and satisfies acceptance lines 1â5 alone; Stage B (W-B1â¦
 W-B5) is the identity/economic layer and touches a different reviewer
 surface (`Exerting`, `Slotted`/`Wearable`, `Tariff`). Land Stage A as one
 MR, then Stage B on a fresh branch off master â the farming precedent
 (Stage A â MR !213, Stage B off fresh master). If the user prefers one
-MR, nothing in the waves changes.
+MR, nothing in the waves changes. ⭐ DECIDED 2026-09-19: **one MR.** The Stage A/B split is retained only as wave ordering and review structure on a single branch; the two-MR recommendation above is superseded — the merge is one MR.
 
 **D18 â The drive's wound sources are content, not a wizard.** Fracture:
 the spike-pit `drop` (blunt on landing) â W-A0 verifies it actually
@@ -945,6 +949,7 @@ decision with a named fallback.
 ## Deferred seams
 
 Clean attach points, each leaving as the slate that owns it.
+- **The absent body's conduct** (an autonomic-defense stance for a linkdead/unpiloted body; the combat-log-vs-bad-connection dilemma, where intent is undetectable) → [absent-body-slate](../slates/tails/absent-body-slate.md). Recovery ships only the intent-agnostic *convalescence-requires-safety* gate (D3a); the body's conduct under threat is combat + connection's.
 
 - **Part-as-Stuff promotion** (a severed limb as an object; transplants) â
   `physiology-slate` Â§ 7h. Seam: `severPart` and the derived
