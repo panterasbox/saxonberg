@@ -127,6 +127,20 @@ export class BankingApi {
   }
 
   /**
+   * A creditor funds a borrower — one `advance` leg, real→real, floor-
+   * checked. A bank's loan, the treasury's opening advance, a working-
+   * capital draw. Returns the transaction id.
+   */
+  public static async advance(
+    fromAccountId: string,
+    toAccountId: string,
+    amount: Money,
+    memo: string,
+  ): Promise<string> {
+    return logic().advance(fromAccountId, toAccountId, amount, memo);
+  }
+
+  /**
    * The treasury's account id — the ONE state account, `/compact/treasury`'s,
    * custodied at the Central Bank; opened on first touch (economic
    * bootstrap D9).

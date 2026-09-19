@@ -1436,6 +1436,31 @@ now `findAllByTemplatePath`. Faucet census 10 → **2** (the stipend dial +
   and, after full repayment, its release.
 - Commit: `build(economic-bootstrap W5): loans are contracts; the window funds inventory paper; repayment is a share of inflow; default is revealed`.
 
+**W5 — DONE.** As planned, plus: (1) the **`instrument` document kind
+and its transport landed here** (loans paper too): `DocumentApi.saveInstrument(partyKey,
+path, data)` — the fourth ownership bypass, gated to `ContractLogic`, owner
+derived from the party (a member's `/home/<key>`, a business's own path),
+path pinned under `papers/`, kind pinned. (2) `ContractApi.openingAdvance`
+takes the business's PATH, not the object — `lint:object-verbs` refused
+the object-first signature, and the compliant path was a key (the
+alternative, a `drawOpeningAdvance()` on the Business forwarding into the
+contract logic, needed a fresh `eslint-disable no-restricted-imports`).
+(3) `ConsignmentListing.basis` + `allListings()` landed as DATA now so
+`house book` can sum terms payable; `consign`/`buy` behaviour stays W7.
+(4) `BankingApi.advance` (real→real, floor-checked) is the leg every
+creditor posts. (5) `settle` returns the `txId` on its receipt so the
+`repaid` event links its transaction. (6) The rate board's authored prose
+quotes the loan in words with the real-month equivalent (nothing
+rendered `Terms.describe()` live — the board is a `Detail`). The
+banking→contract import direction (`BankingLogic` imports `ContractApi`)
+booted clean. Seven unit tests (`credit.test.ts`): the gate names the
+number, rung 1 advance + window + supply delta, unchartered/no-rate
+refusals, the share split conserving + window repaid pro rata + settle at
+zero, accrual at ½/1/2 game-years, default revealed at the horizon and
+never before with repossession of only the borrower's goods and the rate
+reading it, rung 2's gate/cap/own-balance. Drive: steps 4, 5, 7 (the gate
+from the counter names "you have zero") green on a fresh world.
+
 ### W6 — The Note, the standing facility, the wage refusal; the faucets to zero (D9, D10, D18, D22)
 
 - `EmbodyController.ts:774-786` → `issueNote` + `disburse` + the paper

@@ -145,6 +145,24 @@ export const DOCUMENT_KINDS = {
    */
   'warehouse-receipt': { kind: 'warehouse-receipt', naturalKey: null, contentDir: 'warehouse-receipts', ext: 'yaml', onVanish: 'keep' },
   /**
+   * An **instrument** — the readable paper behind a claim on the
+   * `contracts` collection: the Arrival Note, a loan, an unclaimed-
+   * property claim (economic bootstrap D10). Its terms in words, the
+   * contract id, the date, and an appended line when it discharges, is
+   * repaid, defaults or is recovered.
+   *
+   * ⚠ Runtime-written on the `water-right` pattern — a record of
+   * something that happened, so `onVanish: 'keep'`. Path-keyed under EACH
+   * PARTY'S OWN BRANCH: a member's note at `/home/<key>/papers/…` (the
+   * player's own record store — never a Thing carried in inventory, never
+   * handed over by anyone in the fiction), a business's loan at
+   * `<business>/papers/…`, the Treasury's copy at `/compact/treasury/papers/…`.
+   * Written only by the contract logic, as the machine, through
+   * `DocumentApi.saveInstrument`. The contract row is the live claim; the
+   * paper is what a person reads.
+   */
+  instrument: { kind: 'instrument', naturalKey: null, contentDir: 'papers', ext: 'yaml', onVanish: 'keep' },
+  /**
    * A **rate card** — a carrier's published charges by route, weight and
    * commodity.
    *

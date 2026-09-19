@@ -58,6 +58,17 @@ export abstract class BankingControllerBase<
     return null;
   }
 
+  /**
+   * Credit the `finance` Discipline for an act that exercises it —
+   * borrowing (granted or refused: the refusal is the lesson), reading a
+   * book, naming a beneficiary (economic bootstrap D21). On the giver,
+   * narrowed by `isAdvancing`; the row is `Discipline/finance`.
+   */
+  protected creditFinance(giver: Stuff): void {
+    if (!MixinApi.isAdvancing(giver)) return;
+    void giver.creditDeed({ discipline: "finance", difficulty: "easy", outcome: "success" });
+  }
+
   protected resolveBank(context: CommandContext): (Stuff & Bank) | null {
     const source = context.commandSource as Stuff | undefined;
     if (source && MixinApi.isBank(source)) return source;

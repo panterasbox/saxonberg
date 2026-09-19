@@ -22,6 +22,15 @@ import { StuffApi } from "./stuff";
 import type { Stuff } from '../lib/stuff/Stuff';
 import { HotReloadApi } from "./hot-reload";
 import { ContractLogic } from "../platform/idea/api/ContractLogic";
+import type {
+  IssueLoanSpec,
+  IssueLoanResult,
+  LoanRefusal,
+  WindowDefaultRate,
+  TreasuryPaper,
+  InstrumentLine,
+} from "../platform/idea/api/ContractLogic";
+import type { RemittanceSplit } from "../lib/banking/Charge";
 import type { ConditionData } from "../lib/employment/Condition";
 import type {
   ContractRecord,
@@ -30,6 +39,15 @@ import type {
 import type { ContractEvent } from "../lib/employment/ContractEvent";
 import { fileURLToPath } from "url";
 import { SecurityApi } from "./security";
+
+export type {
+  IssueLoanSpec,
+  IssueLoanResult,
+  LoanRefusal,
+  WindowDefaultRate,
+  TreasuryPaper,
+  InstrumentLine,
+};
 
 const LOGIC_PATH = "/platform/idea/api/contract";
 const LOGIC_CLASS_FILE = fileURLToPath(
@@ -192,6 +210,68 @@ export class ContractApi {
   /** One gig's append-only event chain, oldest-first. */
   public static async eventsFor(contractId: string): Promise<ContractEvent[]> {
     return logic().eventsFor(contractId);
+  }
+
+  /* ── the credit face (economic bootstrap D1/D12) ── */
+
+  /**
+   * ⭐ Issue a loan at a chartered bank's counter — rung 1 (inventory
+   * finance, funded at the window) or rung 2 (working capital, from the
+   * bank's own balance). Every gate is a read of the borrower's own
+   * ledger, and a refusal names the number.
+   */
+  public static async issueLoan(spec: IssueLoanSpec): Promise<IssueLoanResult> {
+    return logic().issueLoan(spec);
+  }
+
+  /**
+   * The standing facility: a business's opening advance — a 0% loan from
+   * the Treasury on its first account, secured by that account. Keyed on
+   * the business's durable path (it must be resident). Refused (a value)
+   * when already advanced or when the treasury cannot cover it.
+   */
+  public static async openingAdvance(businessKey: string): Promise<IssueLoanResult> {
+    return logic().openingAdvance(businessKey);
+  }
+
+  /**
+   * The rider splits a `settle` appends: the payee's open loans take their
+   * posted share of this inflow, oldest first, interest before principal.
+   */
+  public static async repaymentSplitsFor(
+    payeeAccountId: string,
+    amountMinor: number,
+  ): Promise<Array<RemittanceSplit & { contractId: string }>> {
+    return logic().repaymentSplitsFor(payeeAccountId, amountMinor);
+  }
+
+  /** Record a repayment that landed on `contractId` (reduces what is owed; repays the window; settles at zero). */
+  public static async recordRepayment(contractId: string, amountMinor: number, txId: string): Promise<void> {
+    return logic().recordRepayment(contractId, amountMinor, txId);
+  }
+
+  /**
+   * Reveal default: every open loan (of `borrowerKey`, or all) whose
+   * borrower has had no inflows for the Schedule's horizon is marked
+   * defaulted and its security acted on. Returns how many defaulted.
+   */
+  public static async reconcileLoans(borrowerKey: string | null = null): Promise<number> {
+    return logic().reconcileLoans(borrowerKey);
+  }
+
+  /** The reserve's inflation dial: defaulted window advances over all window advances. */
+  public static async windowDefaultRate(currency: string): Promise<WindowDefaultRate> {
+    return logic().windowDefaultRate(currency);
+  }
+
+  /** The Treasury's paper: opening advances and notes owed to it, unclaimed property it holds. */
+  public static async treasuryPaper(currency: string): Promise<TreasuryPaper> {
+    return logic().treasuryPaper(currency);
+  }
+
+  /** Every open instrument `ownerKey` issues or holds, as readable lines (`wallet`, `house book`, `bank book`). */
+  public static async instrumentsOf(ownerKey: string): Promise<InstrumentLine[]> {
+    return logic().instrumentsOf(ownerKey);
   }
 }
 

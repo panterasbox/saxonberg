@@ -1,11 +1,14 @@
 verbs: [house]
 controller: /platform/idea/cmd/banking/HouseController
-description: "The house app — pnl / payroll / par / stock / freight / traffic"
+description: "The house app — book / pnl / payroll / par / stock / freight / traffic"
 opens_card: stock
 help: |
   The house app, for whoever keeps the house: a position held there or
-  the proprietorship. `house pnl` reads the venue's profit-and-loss
-  (categorized flows + a running balance). `house payroll <worker>
+  the proprietorship. `house book` reads what the house owes and to whom
+  — every loan with its creditor and balance, supplier terms payable, and
+  any wage it could not meet (the worker is the creditor by name; it is
+  paid first at the next settlement). `house pnl` reads the venue's
+  profit-and-loss (categorized flows + a running balance). `house payroll <worker>
   <amount>` pays a wage from the house account. `house par <category>
   <level>` sets what the house keeps on hand — `house par gin 6L`,
   `house par lime 24`, `house par ice 10kg`; `--from <business>` names
@@ -23,6 +26,8 @@ help: |
 validators:
   - /lib/command/validators/requiresAnimate
 subcommands:
+  book:
+    description: "The house's book: what it owes and to whom — loans, supplier terms, wages in arrears"
   pnl:
     description: "Read the house's profit-and-loss"
   payroll:

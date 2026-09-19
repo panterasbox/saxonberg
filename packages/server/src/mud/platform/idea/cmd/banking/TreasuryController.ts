@@ -17,6 +17,7 @@
 import { BankingControllerBase } from "./BankingControllerBase";
 import type { CommandContext, CommandModel } from "../../../../api/command";
 import { Currency, BankingApi, Money } from "../../../../api/banking";
+import { ContractApi } from "../../../../api/contract";
 import { MessageApi } from "../../../../api/message";
 import { Mml } from "../../../../api/mml";
 
@@ -51,11 +52,15 @@ export default class TreasuryController extends BankingControllerBase<TreasuryMo
     for (const record of Currency.all()) {
       const c = record.key;
       const d = await BankingApi.reserveDashboard(c);
+      const paper = await ContractApi.treasuryPaper(c);
       const amount = (minor: number): string => Money.of(minor, c).render();
       blocks.push(
         `The Treasury (${record.plural})\n` +
           `  holds:                        ${amount(d.treasuryBalance)}\n` +
-          `  the perpetual, issued:        ${amount(d.perpetualOutstanding)}`,
+          `  the perpetual, issued:        ${amount(d.perpetualOutstanding)}\n` +
+          `  opening advances outstanding: ${amount(paper.openingAdvancesOwed)}\n` +
+          `  arrival notes outstanding:    ${amount(paper.notesOwed)}\n` +
+          `  unclaimed property held:      ${amount(paper.unclaimedHeld)}`,
       );
     }
     MessageApi.scene(context.commandGiver)

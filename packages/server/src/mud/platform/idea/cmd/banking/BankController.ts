@@ -15,6 +15,8 @@ import type { MqlOneResult } from "../../../../api/mql";
 import { Currency, BankingApi, Money } from "../../../../api/banking";
 import { CorpoApi } from "../../../../api/corpo";
 import { MessageApi } from "../../../../api/message";
+import { ContractApi } from "../../../../api/contract";
+import { EmploymentApi } from "../../../../api/employment";
 import { MixinApi } from "../../../../api/mixin";
 import { Mml } from "../../../../api/mml";
 import type { Stuff } from "../../../../lib/stuff/Stuff";
@@ -31,6 +33,7 @@ interface BankModel extends CommandModel {
   amount?: string;
   recipient?: MqlOneResult;
   count?: string;
+  for?: string;
 }
 
 export default class BankController extends BankingControllerBase<BankModel> {
@@ -56,6 +59,10 @@ export default class BankController extends BankingControllerBase<BankModel> {
         return this.transfer(bank, model, context);
       case "statement":
         return this.statement(bank, model, context);
+      case "borrow":
+        return this.borrow(bank, model, context);
+      case "book":
+        return this.book(bank, context);
       // bare `bank` and `bank balance` both read the balance
       case undefined:
       case "balance":
@@ -67,6 +74,106 @@ export default class BankController extends BankingControllerBase<BankModel> {
           .send();
         context.note({ kind: "controller-rejected", reason: "unknown-subcommand", detail: model.subcommand });
     }
+  }
+
+  /**
+   * `bank borrow <amount> [--for stock|wages]` — the ladder's rungs 1 and 2
+   * (economic bootstrap D12). The borrower is the house the giver keeps;
+   * the lender is this counter's bank. Every gate is a read of the house's
+   * own ledger, and a refusal names the number. `finance` is credited
+   * either way: the refusal is the lesson.
+   */
+  private async borrow(bank: Stuff & Bank, model: BankModel, context: CommandContext): Promise<void> {
+    const giver = context.commandGiver;
+    const minor = Number(model.amount);
+    if (!Number.isInteger(minor) || minor <= 0) {
+      MessageApi.scene(giver).topic(TOPIC).toSelf(Mml.compose`Borrow how much?`).send();
+      context.note({ kind: "controller-rejected", reason: "bad-amount", detail: model.amount ?? "" });
+      return;
+    }
+    const purpose = (model.for ?? "stock").toLowerCase();
+    if (purpose !== "stock" && purpose !== "wages") {
+      MessageApi.scene(giver).topic(TOPIC).toSelf(Mml.compose`A loan is for \`stock\` or for \`wages\`.`).send();
+      context.note({ kind: "controller-rejected", reason: "bad-purpose", detail: purpose });
+      return;
+    }
+    const house = await this.resolveHouse(context);
+    if (!house) {
+      MessageApi.scene(giver).topic(TOPIC).toSelf(Mml.compose`You keep no house to borrow for.`).send();
+      context.note({ kind: "controller-rejected", reason: "not-staff", detail: "borrow" });
+      return;
+    }
+    const result = await ContractApi.issueLoan({
+      borrower: house,
+      counter: bank,
+      principalMinor: minor,
+      rung: purpose === "wages" ? 2 : 1,
+    });
+    this.creditFinance(giver);
+    if (!result.ok) {
+      const why =
+        result.reason === "ladder-gate"
+          ? `${bank.getBank()} refuses: ${result.detail}.`
+          : result.reason === "no-lending-terms"
+            ? `${bank.getBank()} posts no loan rate — it does not lend.`
+            : result.reason === "not-chartered"
+              ? `${bank.getBank()} holds no bank charter — it may not lend.`
+              : result.reason === "lender-short"
+                ? `${bank.getBank()} cannot fund it: ${result.detail}.`
+                : result.reason === "no-security"
+                  ? `Nothing to pledge — ${result.detail}.`
+                  : `The bank refuses (${result.reason}).`;
+      MessageApi.scene(giver).topic(TOPIC).toSelf(Mml.compose`${why}`).send();
+      context.note({ kind: "controller-rejected", reason: result.reason, detail: result.detail });
+      return;
+    }
+    const money = Money.of(result.advanced, BankingApi.compactCurrency());
+    const terms = bank.getTerms();
+    MessageApi.scene(giver)
+      .topic(TOPIC)
+      .toSelf(
+        purpose === "wages"
+          ? Mml.compose`${bank.getBank()} advances ${money.render()} of working capital to the house at ${terms.describeLoanRate()}, repaid as ${terms.describeRepaymentShare() || "the reserve's minimum share"}. The paper is filed in the house's papers.`
+          : Mml.compose`${bank.getBank()} advances ${money.render()} against the goods on your counter at ${terms.describeLoanRate()}, repaid as ${terms.describeRepaymentShare() || "the reserve's minimum share"} until it clears — no due date. The lien stands until then; the paper is filed in the house's papers.`,
+      )
+      .send();
+  }
+
+  /**
+   * `bank book` — the paper at this counter: what the giver's house owes
+   * here, and, for the bank's own people, every loan the bank holds
+   * (the lien standing or released). Default is revealed on the read.
+   */
+  private async book(bank: Stuff & Bank, context: CommandContext): Promise<void> {
+    const giver = context.commandGiver;
+    const counterPath = bank.getTemplatePath() ?? "";
+    const lender = counterPath ? await EmploymentApi.ensureOperatorAt(counterPath) : null;
+    const lines: string[] = [];
+    const house = await this.resolveHouse(context);
+    if (house) {
+      await ContractApi.reconcileLoans(house.getAccountPath());
+      const mine = (await ContractApi.instrumentsOf(house.getAccountPath())).filter((l) => l.role === "owes");
+      if (mine.length) {
+        lines.push(`${EmploymentApi.organizationLabel(house)} owes:`);
+        for (const l of mine) lines.push(`  ${l.words}`);
+      }
+    }
+    if (lender && (lender.employs(giver) || (await lender.hasProprietor(giver)))) {
+      await ContractApi.reconcileLoans(null);
+      const held = (await ContractApi.instrumentsOf(lender.getTemplatePath() ?? "")).filter((l) => l.role === "holds");
+      lines.push(`${EmploymentApi.organizationLabel(lender)} holds:`);
+      if (held.length === 0) lines.push("  no paper");
+      for (const l of held) lines.push(`  ${l.words}`);
+    }
+    if (lines.length === 0) {
+      MessageApi.scene(giver)
+        .topic(TOPIC)
+        .toSelf(Mml.compose`There is no paper here with your name on it.`)
+        .send();
+    } else {
+      MessageApi.scene(giver).topic(TOPIC).toSelf(Mml.compose`${lines.join("\n")}`).send();
+    }
+    this.creditFinance(giver);
   }
 
   private async open(bank: Stuff & Bank, context: CommandContext): Promise<void> {

@@ -49,6 +49,7 @@ import { MixinApi } from "../../../api/mixin";
 import { MqlApi } from "../../../api/mql";
 import { StuffApi } from "../../../api/stuff";
 import { PlayerApi } from "../../../api/player";
+import { ContractApi } from "../../../api/contract";
 import { TemplatePaths } from "../../../lib/paths";
 import { Property } from "../../../lib/stuff/Propertied";
 import type { Stuff } from "../../../lib/stuff/Stuff";
@@ -845,6 +846,62 @@ function priceIndexImpl(): PriceIndex {
   return { counters, percent, lines };
 }
 
+/**
+ * A creditor funds a borrower — one `advance` leg, real→real, floor-
+ * checked (economic bootstrap D2/D12): a bank's loan, the treasury's
+ * opening advance, a working-capital draw. Returns the transaction id
+ * for the contract event that records it.
+ */
+async function advanceImpl(
+  fromAccountId: string,
+  toAccountId: string,
+  amount: Money,
+  memo: string,
+): Promise<string> {
+  if (amount.minor <= 0) {
+    throw new Error("BankingLogic.advance: amount must be positive");
+  }
+  if (balanceMinor(fromAccountId) < amount.minor) {
+    throw new Error(
+      `BankingLogic.advance: ${fromAccountId} holds less than ${amount.render()}`,
+    );
+  }
+  return postTransaction("advance", [
+    {
+      currency: amount.currency,
+      from: fromAccountId,
+      to: toAccountId,
+      amount: amount.minor,
+      memo,
+      category: "advance",
+    },
+  ]);
+}
+
+/**
+ * ⭐ The share of an inflow taken for the payee's creditors (economic
+ * bootstrap D12) — asked of the contract face at every `settle`, and
+ * appended to the charge's splits so the ONE transaction conserves. After
+ * it posts, each split is recorded on its loan.
+ */
+async function withRepaymentSplits(
+  charge: Charge,
+): Promise<{ charge: Charge; repayments: Array<{ contractId: string; amount: number }> }> {
+  if (!charge.payeeAccountId || charge.amount.minor <= 0) return { charge, repayments: [] };
+  const existing = charge.splits ?? [];
+  const existingTotal = existing.reduce((s, x) => s + x.amount.minor, 0);
+  const net = charge.amount.minor - existingTotal;
+  if (net <= 0) return { charge, repayments: [] };
+  const splits = await ContractApi.repaymentSplitsFor(charge.payeeAccountId, net);
+  if (splits.length === 0) return { charge, repayments: [] };
+  const repayments = new Map<string, number>();
+  for (const sp of splits) repayments.set(sp.contractId, (repayments.get(sp.contractId) ?? 0) + sp.amount.minor);
+  return {
+    charge: { ...charge, splits: [...existing, ...splits.map(({ contractId: _c, ...rest }) => rest)] },
+    repayments: [...repayments].map(([contractId, amount]) => ({ contractId, amount })),
+  };
+}
+
 export interface ReserveDashboard {
   currency: string;
   activeMembers: number;
@@ -1056,11 +1113,26 @@ function autoLinkToWallet(actor: Stuff | null, accountId: string): void {
  * Returns a receipt the scene reads to name what was tapped.
  */
 async function settleImpl(
-  charge: Charge,
+  original: Charge,
   method: SettlementMethod,
 ): Promise<SettlementReceipt> {
   const payer = actingPrincipal();
   if (!payer) throw new Error("BankingLogic.settle: no acting payer");
+  // ⭐ The payee's creditors take their share of this inflow as rider
+  // splits inside the same transaction (economic bootstrap D12).
+  const { charge, repayments } = await withRepaymentSplits(original);
+  const receipt = await settleLegs(payer, charge, method);
+  for (const r of repayments) {
+    await ContractApi.recordRepayment(r.contractId, r.amount, receipt.txId ?? "");
+  }
+  return receipt;
+}
+
+async function settleLegs(
+  payer: Stuff,
+  charge: Charge,
+  method: SettlementMethod,
+): Promise<SettlementReceipt> {
 
   if (method.kind === "cash") {
     if (!MixinApi.isContainer(payer)) {
@@ -1128,8 +1200,8 @@ async function settleImpl(
         memo: charge.reason,
       });
     }
-    await postTransaction("deposit", bridgeLegs);
-    return { method: "cash", accountId: charge.payeeAccountId };
+    const txId = await postTransaction("deposit", bridgeLegs);
+    return { method: "cash", accountId: charge.payeeAccountId, txId };
   }
 
   // credential method
@@ -1187,9 +1259,9 @@ async function settleImpl(
       memo: charge.reason,
     });
   }
-  await postTransaction("payment", legs);
+  const txId = await postTransaction("payment", legs);
   const corpoKey = (await accountByIdImpl(routingAccount))?.corpoKey ?? "";
-  return { method: "credential", accountId: routingAccount, corpoKey };
+  return { method: "credential", accountId: routingAccount, corpoKey, txId };
 }
 
 /**
@@ -2130,6 +2202,17 @@ export class BankingLogic extends ApiLogic {
         memo,
       },
     ]);
+  }
+
+  /** See {@link BankingApi.advance}. */
+  @CallSecurity(BankingApiCallers)
+  public async advance(
+    fromAccountId: string,
+    toAccountId: string,
+    amount: Money,
+    memo: string,
+  ): Promise<string> {
+    return advanceImpl(fromAccountId, toAccountId, amount, memo);
   }
 
   /** See {@link BankingApi.treasuryAccountId}. */

@@ -73,6 +73,15 @@ const RELEASE_TRANSPORT_CALLERS = SecurityPolicies.FromModule(
  * refuses any branch the register does not itself live under. See
  * {@link Registrar}.
  */
+/**
+ * The instrument transport's one caller: the contract logic — the one
+ * writer of `contracts`, and so the only thing that knows a claim exists
+ * to paper (economic bootstrap D10).
+ */
+const INSTRUMENT_TRANSPORT_CALLERS = SecurityPolicies.FromModule(
+  "/platform/idea/api/ContractLogic#ContractLogic",
+);
+
 const REGISTER_TRANSPORT_CALLERS = SecurityPolicies.FromMixin(
   Mixins.Registrar,
   { where: (caller, _target, _method, args) => caller === args[0] },
@@ -199,6 +208,25 @@ export class DocumentApi {
     data: Record<string, unknown>,
   ): Promise<void> {
     return logic().saveAsBusiness(business, path, kind, data);
+  }
+
+  /**
+   * ⚠⚠ **The instrument transport — the fourth ownership bypass** (economic
+   * bootstrap D10). Files the readable paper behind a claim on `contracts`
+   * under a PARTY'S own branch, owned by that party, written by the
+   * machine: a member's at `/home/<key>/papers/…`, a business's or the
+   * Treasury's at `<path>/papers/…`. No caller-supplied owner, the path
+   * must lie under that party's `papers/`, the `kind` is pinned to
+   * `instrument`, and it is gated to the contract logic — the one writer
+   * of `contracts`.
+   */
+  @CallSecurity(INSTRUMENT_TRANSPORT_CALLERS)
+  static saveInstrument(
+    partyKey: string,
+    path: string,
+    data: Record<string, unknown>,
+  ): Promise<void> {
+    return logic().saveInstrument(partyKey, path, data);
   }
 
   /**

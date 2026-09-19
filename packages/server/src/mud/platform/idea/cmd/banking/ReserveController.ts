@@ -23,6 +23,7 @@ import type { CommandContext, CommandModel } from "../../../../api/command";
 import { Currency, BankingApi, Money } from "../../../../api/banking";
 import { AppApi } from "../../../../api/app";
 import { AppSettingKeys } from "../../../../lib/config/AppSettings";
+import { ContractApi } from "../../../../api/contract";
 import { GrammarApi } from "../../../../api/grammar";
 import { MessageApi } from "../../../../api/message";
 import { Mml } from "../../../../api/mml";
@@ -76,6 +77,8 @@ export default class ReserveController extends BankingControllerBase<ReserveMode
     for (const record of Currency.all()) {
       const c = record.key;
       const d = await BankingApi.reserveDashboard(c);
+      await ContractApi.reconcileLoans(null);
+      const defaults = await ContractApi.windowDefaultRate(c);
       const index = BankingApi.priceIndex();
       const amount = (minor: number): string => Money.of(minor, c).render();
       const perMember = Number(AppApi.setting(AppSettingKeys.reserveMoneyPerActiveMember) || 0);
@@ -87,6 +90,7 @@ export default class ReserveController extends BankingControllerBase<ReserveMode
           `  money per active member:   ${amount(d.moneyPerActiveMember)} (the rule buys up to ${amount(perMember)} each)\n` +
           `  the perpetual, held:       ${amount(d.perpetualOutstanding)}\n` +
           `  window advances outstanding: ${amount(d.windowOutstanding)} at ${ReserveController.percentInWords(windowRate)} per cent a game-year (a real month), haircut ${ReserveController.percentInWords(haircut)} per cent\n` +
+          `  default rate on window paper: ${ReserveController.percentInWords(defaults.rate)} per cent (${amount(defaults.defaulted)} of ${amount(defaults.advanced)} advanced)\n` +
           `  price index:               ${GrammarApi.inWords(index.percent)} against a base of one hundred\n` +
           `  overrides on the record:   ${amount(d.overridesOutstanding)}\n` +
           `  the treasury holds:        ${amount(d.treasuryBalance)}`,

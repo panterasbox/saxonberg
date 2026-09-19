@@ -11,6 +11,7 @@ import {
   expectOk,
   expectNote,
   expectRefused,
+  detailOf,
 } from '../src/harness';
 
 export const DIRTY_REASON =
@@ -71,5 +72,22 @@ describe('5. the treasury', () => {
     const book1 = await founder.prose('treasury');
     const held = (s: string) => Number(s.match(/holds:\s*(\d+)/)?.[1] ?? NaN);
     expect(held(book0) - held(book1)).toBe(100);
+  });
+});
+
+describe('7. the ladder, from the counter', () => {
+  it('`bank borrow` at Goodkin is refused with the NUMBER not met; `bank book` reads the paper', async () => {
+    // The founder buys for a house (the founder-default seats), so the
+    // LADDER GATE itself answers: three completed terms are required, and
+    // the refusal names the number the house has.
+    const refused = await founder.cmd('bank borrow 50');
+    expectNote(refused, 'controller-rejected', { reason: 'ladder-gate' });
+    const note = refused.notes.find((n) => n.kind === 'controller-rejected');
+    expect(detailOf(note!)).toMatch(/completed supplier terms are required; you have (zero|one|two)/);
+    const book = await founder.prose('bank book');
+    expect(book).toMatch(/no paper here with your name|holds:/);
+    // The rate board quotes per game-year with the real-month equivalent.
+    const board = await founder.prose('look board');
+    expect(board).toMatch(/FIVE PER CENT A GAME-YEAR \(A REAL MONTH\)/);
   });
 });

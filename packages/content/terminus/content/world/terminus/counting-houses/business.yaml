@@ -58,5 +58,9 @@ data:
   # custodied at Goodkin (the legitimate self-custody: the custodian IS
   # a bank).
   banksAt: goodkin
+  # ⭐ CHARTERED (economic bootstrap D19): Goodkin may lend, take deposits
+  # and present secured paper at the reserve's window. The one member of
+  # the closed vocabulary; the only chartered bank at launch.
+  charter: [bank]
   operatingLocations:
     - /world/terminus/counting-houses/bank-counter

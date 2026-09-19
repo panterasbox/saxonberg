@@ -50,6 +50,22 @@ import type { ContractRecord } from '../../lib/employment/ContractRecord';
  * `banksAt` fields are public so the Hydrator can reflect into them, but
  * they are NOT the contract surface.
  */
+/**
+ * The charters a Business may hold (economic bootstrap D19) — closed;
+ * validated at the setter with `includes`. `bank`: may lend and present
+ * paper at the reserve's window.
+ */
+export const CHARTERS = ['bank'] as const;
+export type Charter = (typeof CHARTERS)[number];
+
+/** A wage the house owed and could not pay (economic bootstrap D18). */
+export interface PayrollArrear {
+  workerKey: string;
+  amountMinor: number;
+  /** Game-time seconds it was refused. */
+  at: number;
+}
+
 export interface BusinessTrade {
   /** The locations this Business operates in (templatePaths). */
   getOperatingLocations(): readonly string[];
@@ -57,6 +73,16 @@ export interface BusinessTrade {
   getAccountPath(): string;
   /** The bank branch custodying the operating account ('' = unauthored). */
   getBanksAt(): string;
+  /** The charters this business holds (`bank` — it may lend and present paper at the window). */
+  getCharters(): readonly Charter[];
+  /** Does it hold `charter`? */
+  isChartered(charter: Charter): boolean;
+  /** The wages it owes and could not pay (economic bootstrap D18), oldest first. */
+  getPayrollArrears(): readonly PayrollArrear[];
+  /** Record a wage it could not pay. */
+  addPayrollArrear(arrear: PayrollArrear): void;
+  /** Strike arrears that have since been paid (by worker, up to `amountMinor`). */
+  settlePayrollArrears(workerKey: string, amountMinor: number): number;
   /** The par manifest — what the house keeps on hand, and from whom. */
   getParLines(): readonly ParLine[];
   /** Set (or replace, by category) one par line. */
@@ -133,7 +159,74 @@ export function BusinessMixin<
       },
       banksAt: { persistent: true, authorable: true, authorPicker: 'Template' },
       parLines: { persistent: true, authorable: true },
+      charter: { persistent: true, authorable: true },
+      payrollArrears: { persistent: true },
     };
+
+    /**
+     * ⭐ The charters this business holds (economic bootstrap D19) — a
+     * closed vocabulary, `bank` the only member: it may lend, take
+     * deposits and present secured paper at the reserve's window. Only a
+     * chartered lender's loans are recognised; an unlicensed in-world bank
+     * that took deposits and promised returns would be a Ponzi by default
+     * (the Ginko lesson). Every Business may be chartered; empty claims
+     * nothing.
+     */
+    public charter: Charter[] = [];
+
+    /** The Hydrator's Phase-1 setter: an unknown charter is refused loudly, never read as `wild`. */
+    public setCharter(value: unknown): void {
+      const list = Array.isArray(value) ? value : [];
+      for (const c of list) {
+        if (!(CHARTERS as readonly unknown[]).includes(c)) {
+          throw new Error(
+            `Business.charter: '${String(c)}' is not a charter (expected one of ${CHARTERS.join(', ')})`,
+          );
+        }
+      }
+      this.charter = list as Charter[];
+    }
+
+    public getCharters(): readonly Charter[] {
+      return [...this.charter];
+    }
+
+    public isChartered(charter: Charter): boolean {
+      return this.charter.includes(charter);
+    }
+
+    /**
+     * The wages this house owes and could not pay (economic bootstrap
+     * D18): the worker is the creditor BY NAME — no account goes negative
+     * without one. Paid first at the next settlement, any path.
+     */
+    public payrollArrears: PayrollArrear[] = [];
+
+    public getPayrollArrears(): readonly PayrollArrear[] {
+      return [...this.payrollArrears];
+    }
+
+    public addPayrollArrear(arrear: PayrollArrear): void {
+      this.payrollArrears = [...this.payrollArrears, { ...arrear }];
+    }
+
+    public settlePayrollArrears(workerKey: string, amountMinor: number): number {
+      let left = amountMinor;
+      const keep: PayrollArrear[] = [];
+      let paid = 0;
+      for (const a of this.payrollArrears) {
+        if (a.workerKey !== workerKey || left <= 0) {
+          keep.push(a);
+          continue;
+        }
+        const take = Math.min(a.amountMinor, left);
+        left -= take;
+        paid += take;
+        if (take < a.amountMinor) keep.push({ ...a, amountMinor: a.amountMinor - take });
+      }
+      this.payrollArrears = keep;
+      return paid;
+    }
 
     /**
      * Locations this Business operates in (templatePaths).
