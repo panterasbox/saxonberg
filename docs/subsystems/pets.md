@@ -277,3 +277,25 @@ digest, home range, pet combat staging, breeding. Findings offered:
 nothing on Hinkley Lane yields food a stray would take (the producer gap,
 recorded green in the wire file); a plain room's `cast:` re-mints its
 stray on every load once the first is named.
+
+**Findings from the fishing drive (2026-09-18), for the pets/furnishing
+tail:**
+
+- **A kept animal in a vessel does not travel with the vessel.** Its
+  placement is captured at naming (the bowl, on the square's floor, by
+  `via`); carry the bowl away and the next boot's pin roll stands the
+  animal up at the last captured placement — loose in the room, since
+  the anchor is gone — while the bowl restores into the owner's
+  `inventory`. Two boots, reproduced twice. The vessel's move should
+  recapture (or re-place) what is keyed inside it.
+- **A dropped chattel on a public floor restores into the owner's
+  inventory**, not where it was dropped (the same two boots).
+- **`PersistableMixin.cleanupOnDestruct` on a destructed unkeyed
+  animal** logs `host.getDeepContents is not a function` — every
+  released fish; the capture backstop runs on an inert proxy.
+- `find … mine` and the `inventory` scope do not reach into a carried
+  open container: a carp in a bowl in your hand cannot be named by MQL.
+- The kernel change this build made: `peers` affordances now reach one
+  level into an open container standing in the room, both ways
+  (`CommandLogic.applyContainmentDeltaImpl`), as the `peers` scope
+  already did.

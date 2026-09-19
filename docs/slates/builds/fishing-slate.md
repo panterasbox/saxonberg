@@ -327,3 +327,21 @@ trout this month*. The tank build touches none of it.
 
 Deferred with the seams named: the geology → hardness join and the
 soil-leaching → nitrate join land in the RGO unification pass, not here.
+
+## 13. Findings from the v1 drive (2026-09-18)
+
+- **The room's `look` carries no prop's prose.** The water read lives on
+  `look <shore keyword>` (`edge`, `tarn`); a room-level contribution hook
+  for a prop — the floor puddle has a bespoke one — is the seam a
+  riverbank wants.
+- `water` / `mere` prompt at the two shipped shores because a room detail
+  shares the keyword; a Shore's own keyword should be reserved to it, or
+  the room's `river` detail folded into the Shore.
+- A one-kilometre reach at the shipped abundances holds ~160 fish at the
+  confluence; a 30-fish net empties it in five lifts. The requirements'
+  *afternoon* wanted this scale, not the plan's 3 km.
+- Winter: with the water floored at 274 K the confluence still holds
+  crab, eel and a few carp; the mullet and the sturgeon are out of
+  season. Never empty — but thin.
+- `butcher` is the cookhouse's block; a fish is butchered at Hearthworks,
+  not on the bank. A gutting knife the angler carries is the noun wave's.
