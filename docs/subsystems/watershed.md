@@ -987,10 +987,10 @@ on worse terms** — the Owens Valley story. Capital becomes a move in the
 game rather than an exit from it, and Rejection, Heart's Delight and
 Hinkley are all still drinking the Kestrel.
 
-⚠ **This wave authors no towns.** Rejection and Heart's Delight do not
-exist as content and belong to their own locality builds; what lands
-here is the water they will sit on, and the model asks them for one
-declared field.
+⚠ **This wave authored no towns** — Rejection and Heart's Delight have
+since shipped as their own packs (`rejection`, `hearts-delight`); what
+landed here is the water they sit on, and the model asks each for one
+declared field. *(State line corrected 2026-09 by the slate-compaction pass.)*
 
 ### Wild catchment, and why a node declares one
 

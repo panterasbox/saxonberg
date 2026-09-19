@@ -27,6 +27,19 @@ time and cannot go stale.
 
 ---
 
+### Why the wiki is out-of-fiction, and why it is ours
+
+(Graduated from the delivery slate, 2026-09.) There are two animals:
+**comms** — chat, DM, forums — are *agents communicating*, diegetic, and
+ride the aether implant; the **wiki** and `help` are a *reference reading
+surface*, deliberately out-of-fiction, not aether, not comms. *You talk
+in-world; you look things up out-of-world.* And canonical is always ours:
+an external service attaches only as an optional mirror (the relay
+pattern), never as a front-end or source of truth — diegesis, bus primacy
+(everything flows through the command bus so systems can react) and the
+in-client integration (live MML transclusion, spoiler tiers, the cockpit)
+none of which survive on an external host.
+
 ## Where the code lives
 
 | Concern | Home |

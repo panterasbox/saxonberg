@@ -133,7 +133,7 @@ tax base, pointed away from something:
 |---|---|---|---|
 | **Rejection** | ✅ | resource town | ⚠ **depletion** — it dies when the seam runs out |
 | **Hinkley Hills** | ✅ | suburb (nuisance-exit) | isolation |
-| **Heart's Delight** | ✗ | node town + a village | being bypassed |
+| **Heart's Delight** | ✅ (the `hearts-delight` pack, 2026-09) | node town + a village | being bypassed |
 | **the necropolis** | ✗ | LULU town | it is somebody else's prohibition |
 | **Terminus** | ✅ | the city | congestion |
 
