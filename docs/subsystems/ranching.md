@@ -7,6 +7,19 @@ the boundary acts, handling, the taps, and what happens at the end.
 
 ---
 
+## Where it is proved — the campus farm
+
+`packages/content/eternal-university/content/world/eternal/campus-farm.yaml`
+(D103) is **small, real, and working**: modelled on Davis and Cal Poly,
+which teach agriculture with an actual production unit on campus — small
+enough to walk, real enough to sell; students do the work; the unit is a
+teaching facility and a business at once. ⭐ It is the mechanism/expression
+cut's own falsifiable test (AC 62): the farm is authored against the farm
+and byre archetypes with **zero pack code** — every file under
+`campus-farm/` is YAML, and the classes it names are `trade-farming`'s and
+`trade-ranching`'s. The campus field site teaches the loop; the world
+charges for it. (Graduated from the campus-grounds slate, 2026-09.)
+
 ## ⭐ The individual is the base case (D19)
 
 The ranching slate's stance — *"a rancher does not win over a cow"*,
