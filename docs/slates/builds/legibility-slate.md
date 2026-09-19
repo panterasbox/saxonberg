@@ -5,14 +5,16 @@
 > `props:` entries carry neither count nor key; the four contents
 > renders disagree; the `sense` verb is `look` minus four features.
 > **Left:** `extends:` on template rows (runtime-resolved, single
-> parent, an ordinary row) · the `props:` entry shape (`count` + `as`) ·
+> parent, an ordinary row, folded into access.md's transitive set — and
+> the `cp`/`mv` D5 relaxation it delivers) · the `props:` entry shape
+> (`count` + `as`) ·
 > the instruction-field merge rule · contents **grouping** beside
 > `looseContents`, consumed by the same three call sites · the card's
 > dead `+N more` · cut `sense`, point arrival at `look` · untagged prose
 > becomes vision-channel prose
 > **Size:** a build
 
-> **Status: sketch / pre-requirements.** Written 2026-09-16 out of a
+> Written 2026-09-16 out of a
 > design conversation that started as "we need template inheritance" and
 > turned out to be one problem wearing four hats.
 >

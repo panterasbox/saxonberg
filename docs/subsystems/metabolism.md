@@ -48,6 +48,19 @@ so the coupled flows stay honest; the per-slice order is fixed:
 
 After the slices, `reconcileCascade()` runs once over the final state.
 
+### Drinking restores plasma volume, not red cells
+
+A body that has lost a lot of blood and taken on water has its volume
+back and its oxygen-carrying capacity still gone — dilutional anaemia. So
+hydration's plasma restore (`Metabolic.restorePlasma`,
+`PLASMA_RESTORE_HYDRATION_PCT` / `PLASMA_RESTORE_L_PER_HOUR`) climbs only
+to a **fraction** of the species baseline, never baseline. ⚠ That the
+ceiling sits below 1.0 is a **shape** decision, not tuning: at baseline
+the world could replace blood by drinking and waiting, which deletes the
+premise of the blood build (transfusion as the only route back to whole).
+Raising it is arguing that. (Consequence build D21; graduated from the
+blood slate, 2026-09.)
+
 ## The digestion buffer
 
 `Creature.ingest(material, amount, phase)` is real (the no-op base seam

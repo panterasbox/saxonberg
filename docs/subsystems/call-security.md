@@ -507,6 +507,13 @@ and wraps each one via `_wrapStaticDescriptor`. The wrapper:
    methodName, undefined, () => original.apply(this, args))`.
 4. On deny, throws `SecurityError`.
 
+⭐ **The frame is attributed from the class's defining module, captured
+at decoration time — never from the access path.** The class stays the
+unit of security. ⚠ Never route a `lib/` → `api/` back-call through a
+barrel: it makes a value-import cycle. (Graduated from the
+api-normalization slate, 2026-09; this fact had only ever been written in
+`api/identity.ts`'s commentary, a file scheduled for deletion.)
+
 Decoration is a **module-scope tail** — each `api/*.ts` facade ends with
 `SecurityApi.decorateApiClass(FooApi)`. This is one of the two sanctioned
 exceptions to the no-module-scope-statements rule (see

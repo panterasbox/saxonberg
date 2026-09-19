@@ -533,6 +533,13 @@ list. Composition rides the resolver, cached per `stuff-id`.
 
 ### Affordance attribution — source, not category
 
+> **`analyze` is what you can work out. `measure` is what an instrument
+> tells you.** `Avatar.commandContributions` affords `analyze` on `self`
+> and not `measure`; `measure` is afforded solely by the instruments in
+> `platform/thing/instrument/`. A new instrument affords `measure`;
+> nothing should ever put `measure` on a body (graduated from the
+> instrumentation slate, 2026-09).
+
 Every binding records the **source Stuff** that afforded it
 (`RecencyEntry.source`). When a verb can be granted by more than one
 kind of source — a wielded instrument, a learned skill object, a worn
