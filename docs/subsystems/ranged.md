@@ -173,8 +173,25 @@ band), **never stored**:
 | `payload` | an effect envelope, if any |
 
 **Nothing stores "damage."** What the energy *does* is the response
-grid's business. `penetration` is deliberately absent until armor gives
-it a consumer.
+grid's business.
+
+⭐⭐ **`penetration` has SHIPPED** (the injury build), and the wait was
+right: it was held back *"until armor gives it a consumer"*, and the
+consumer arrived when armour became buyable. It is
+`energyJ / (π·(calibreM/2)²)` against
+`response.penetration.referenceJPerM2`, and it **divides the mechanical
+attenuation** — armour answers *pressure*, not energy.
+
+- ⭐ **Derived, never authored.** An author writes a `calibre`, which is a
+  fact about the projectile they would write anyway. There is no
+  "armour-piercing" number to keep honest by hand, and no second resist
+  table.
+- ⚠ **An arrow reads barely penetrative, and that is the honest answer.**
+  ~50 J over a broad head is nowhere near a round's pressure: an arrow
+  beats mail by being a **point** — the channel — not by arriving at
+  firearm pressure. Conflating the two would have made every bow a gun.
+- ⚠ Absent means `1`, which is byte-identical to the shipped fold, so
+  every thrown object and every melee blow is untouched.
 
 ## Readiness — one field, four families
 
@@ -409,10 +426,33 @@ meant to die with the `core` group.
 
 | Wave | Covers |
 |---|---|
-| **W2 — cover & armor** | authored cover (directional, destructible, capacity-leased) · overturnable furnishings · armor on the response grid, point→blunt conversion · suppression / held aim · formation band preference · the readout ladder + cross-reading split · the lingering residue hazard · the `vapour` route · `DeliveryProfile.penetration` |
-| **W3 — bows, crossbows, less-lethal, acoustics** | graded archery fit · readiness as committed actions + the bow's hold window and dry-fire · `elasticity` as a material property · the incapacitation rung + the less-lethal family · per-metre sound attenuation · the four NPC doctrines + morale + NPC ammunition |
-| **W4 — guns** | the field model · reliability-vs-output degradation · the generalized fast-wear axis · components · pattern keys · grade buys reliability · catastrophic failure on the readable-state rail · registration as the chattel ledger · the negligent-discharge leg |
+| **W2 — cover & armor** | authored cover (directional, destructible, capacity-leased) · overturnable furnishings · armor on the response grid, point→blunt conversion · suppression / held aim · formation band preference · the readout ladder + cross-reading split · the lingering residue hazard · the `vapour` route · ~~`DeliveryProfile.penetration`~~ **SHIPPED** (injury build) |
+| **W3 — bows, crossbows, less-lethal, acoustics** | graded archery fit · ~~readiness~~ **one number shipped** (see below) · the bow's hold window and dry-fire · `elasticity` as a material property · the incapacitation rung + the less-lethal family · per-metre sound attenuation · the four NPC doctrines + morale + NPC ammunition |
+| **W4 — guns** | ~~the field model~~ **one musket shipped** (see below) · reliability-vs-output degradation · the generalized fast-wear axis · components · pattern keys · grade buys reliability · catastrophic failure on the readable-state rail · registration as the chattel ledger · the negligent-discharge leg |
 | **Content** | the Practicum range · the armory · guard patrol density · the accessory catalogue · the installed launch regime |
+
+### ⭐⭐ What the injury build took off this roadmap, and what it did NOT
+
+**Shipped:** `LauncherMixin` on `platform/thing/equipment/Launcher`
+(⚠ never on `Weapon` — a knife does not launch), `Projectile` as a
+stackable, the `shoot` verb, a hunting bow and a flintlock musket with
+their ammunition, and `penetration`.
+
+⭐ **Readiness shipped as ONE number and no more**, deliberately. A bow
+is three seconds, a crossbow nine, a musket twelve — which is the whole
+tactical identity of the families, and the entire reason anybody kept
+carrying a bow for two centuries after firearms arrived. It is a **clock
+read** (`readyAtS` stamped on the launcher, compared against the world
+clock), not an engagement: reconcile-on-read like every other clock here,
+so a body that logs out mid-reload comes back ready because time passed.
+
+**Still W3/W4, and each is a real design rather than a missing feature:**
+readiness as *committed actions*, the bow's hold window, dry-fire,
+reliability and its degradation curve, pattern keys, catastrophic
+failure, registration, NPC archers and their ammunition. A launcher today
+has a muzzle speed and a reload and nothing else — which is enough to
+make the choice between two families a real one, and not enough to
+pretend the field model exists.
 
 ## Cross-references
 

@@ -199,20 +199,38 @@ export default class ThrowController extends CommandController<ThrowModel> {
 
       for (const share of plan.shares) {
         if (share.litres <= 0) continue;
-        if (material === null || !MixinApi.isPotable(material)) continue;
-        // ORIGIN is the victim: a contact payload acts at the point of
-        // impact, not from the hand that threw it. Without this the
-        // effect would measure its reach from the thrower and refuse
-        // across the gap it just crossed.
-        const reports = await material.dischargeInto(
-          share.victim,
-          share.litres,
-          { origin: share.victim },
-        );
-        for (const line of reports) {
+        if (material === null) continue;
+        if (MixinApi.isPotable(material)) {
+          // ORIGIN is the victim: a contact payload acts at the point of
+          // impact, not from the hand that threw it. Without this the
+          // effect would measure its reach from the thrower and refuse
+          // across the gap it just crossed.
+          const reports = await material.dischargeInto(
+            share.victim,
+            share.litres,
+            { origin: share.victim },
+          );
+          for (const line of reports) {
+            MessageApi.scene(giver)
+              .topic(TOPIC)
+              .toSelf(Mml.fromMarkup(Mml.escape(line)))
+              .send();
+          }
+          continue;
+        }
+        // ⭐ A caustic vial that shatters on a body burns it — the
+        // substance-contact corrosion seam, the same `caustic` wound the
+        // lime-seep leaves, delivered through the one injury door. A
+        // mundane splash (water, ale) answers `false` and nothing fires.
+        const burned = material.corrodeOnContact(share.victim, {
+          energy: Math.min(4, 1 + share.litres),
+        });
+        if (burned) {
           MessageApi.scene(giver)
             .topic(TOPIC)
-            .toSelf(Mml.fromMarkup(Mml.escape(line)))
+            .toSelf(
+              Mml.compose`The ${material.getName()} spatters across ${Mml.actor(share.victim)} and begins to eat.`,
+            )
             .send();
         }
       }

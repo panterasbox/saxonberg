@@ -22,7 +22,7 @@ import type {
   Construction,
   ResistToken,
 } from '../../../lib/material/Construction';
-import { Quantity } from '../../../lib/quantity';
+import { Quantity, M2K_PER_W_PER_CLO } from '../../../lib/quantity';
 import type { Grade } from '../../../lib/craft/Grade';
 import type { TraumaType } from '../Condition';
 import {
@@ -118,6 +118,9 @@ export class MaterialLogic extends ApiLogic {
     construction: Construction,
     grade?: Grade,
     condition?: number,
+    agent?: readonly string[],
+    penetration?: number,
+    layerClo?: number | null,
   ): AttenuationResult {
     return attenuateImpl(
       channel,
@@ -126,6 +129,9 @@ export class MaterialLogic extends ApiLogic {
       construction,
       grade,
       condition,
+      agent ?? [],
+      penetration ?? 1,
+      layerClo ?? null,
     );
   }
 
@@ -148,6 +154,7 @@ export class MaterialLogic extends ApiLogic {
     construction: Construction,
     grade?: Grade,
     condition?: number,
+    layerClo?: number | null,
   ): OutcomeBand {
     return previewBandImpl(channel, material, construction, grade, condition);
   }
@@ -279,6 +286,22 @@ function dial(key: string, fallback: number): number {
   }
 }
 
+/**
+ * `dial`'s sibling for a setting whose value is a WORD rather than a
+ * number — today only `response.corrosion.previewCorrosiveTo`, a material
+ * tag. Same shape and the same swallow-and-default behaviour; kept
+ * separate rather than making `dial` generic, because a numeric dial
+ * returning a string silently would be the worse failure.
+ */
+function textDial(key: string, fallback: string): string {
+  try {
+    const raw = AppApi.setting(key);
+    return raw === '' || raw == null ? fallback : String(raw);
+  } catch {
+    return fallback;
+  }
+}
+
 /** Per-token base attenuation fraction (the magnitude the qualitative shape
  * token resolves to). */
 function baseAttenuationFor(token: ResistToken): number {
@@ -389,38 +412,95 @@ function gradeConditionScale(grade?: Grade, condition?: number): number {
 }
 
 /**
- * The heat *insulation* one covering layer contributes — the fraction of
- * incident heat it blocks. Reads the layer material's `thermalConductivity`
- * (inverted: a low-conductivity insulator like leather/wool blocks hard, a
- * high-conductivity conductor like steel/iron barely blocks) and the
- * construction's outside-in layer depth (a deeper stack blocks more). This is
- * the heat sibling of the mechanical `baseAttenuationFor × materialScale`
- * fold — same shape (base × material × depth × quality), thermal-property
- * driven. The armor inversion is emergent: no `isThermal` special case, just
- * conductivity. Returns a 0..1 blocked fraction.
+ * ⭐⭐ **The thermal block one covering layer contributes — read off the
+ * layer's REAL insulation, not a heuristic about its material.**
+ *
+ * A garment's `getClo()` is already the honest number: `thickness / k_eff`
+ * over the actual mass, density, covered area, loft and wetness — an
+ * R-value, which is what "clo" means. This used to ignore all of that and
+ * score a layer by `refCond / (refCond + conductivity)` times an ordinal
+ * "layer depth", so leather scored the same whether it was a glove or a
+ * coat and a soaked cloak insulated exactly like a dry one. Two insulation
+ * models for one physical fact, computed from different inputs, and
+ * nothing asserted they agreed (thermal-slate § Open questions 7).
+ *
+ * ⭐ **The reconciliation is the INPUT, not the formula.** Thermoregulation
+ * and this fold now read the same `clo` per garment — so a parka that
+ * halves how fast you shed work-heat is, by that same number, a parka that
+ * stops most of a frost bolt. What each does with it is its own physics:
+ * shedding is steady-state loss, a resistance in series with the body's
+ * own (`SHED_BODY_CLO`); a blow is a **pulse** hitting a layer, and a thin
+ * layer stops a flash disproportionately — which is why firefighters wear
+ * layers. That is `1 − exp(−clo / ref)`: a t-shirt (0.1 clo) stops about
+ * two-thirds of a firebolt, a hide jerkin nine-tenths, a wool coat all of
+ * it, plate almost none — and a **soaked** wool coat, its loft flooded
+ * with water at 23× the conductivity of air, back to about half. Nothing
+ * here is a special case for wetness; it fell out of reading the real
+ * number.
+ *
+ * ⚠ `layerClo` is `null` for a layer that has no derived clo — a held
+ * shield (Wieldable, not Wearable) or a preview from material alone — and
+ * `0` for a Wearable a term was missing from (no mass, no density). Both
+ * fall back to a **slab estimate**: a sheet of the material at
+ * `response.heat.referenceThicknessM`, `R = t / k`. Honest rather than a
+ * guess — "we do not know how thick, assume a typical slab" — and it keeps
+ * a wooden shield opaque to fire and a steel one transparent, the ordering
+ * everything downstream relies on.
+ *
+ * Grade and condition scale the block exactly as they scale the mechanical
+ * fold: a worn-through coat insulates less.
  */
-function heatAttenuationFraction(
+function thermalBlockFraction(
+  layerClo: number | null,
   material: Material | null,
-  construction: Construction,
   grade?: Grade,
   condition?: number,
 ): number {
-  const base = dial(AppSettingKeys.responseHeatBaseAttenuation, 0.9);
-  const refCond = dial(
-    AppSettingKeys.responseHeatInsulationRefConductivity,
-    2.0,
-  );
-  // A materialless / unknown covering conducts freely (no insulation).
-  const cond = material
-    ? material.getThermalConductivity().rawValue()
-    : Number.POSITIVE_INFINITY;
-  // the insulation scale: ref / (ref + conductivity) — 1 at zero conductivity,
-  // →0 for a good conductor. leather (~0.14) → ~0.78, iron (~80) → ~0.006.
-  const insulation = refCond / (refCond + Math.max(0, cond));
-  const depth = construction.getLayerDepth();
-  const depthBonus = 1 + depth * dial(AppSettingKeys.responseHeatDepthFactor, 0.1);
-  const scale = gradeConditionScale(grade, condition);
-  return clamp01(base * insulation * depthBonus * scale);
+  const clo =
+    layerClo !== null && layerClo > 0 ? layerClo : slabClo(material);
+  if (!(clo > 0)) return 0;
+  const ref = dial(AppSettingKeys.responseHeatReferenceClo, 0.1);
+  const block = 1 - Math.exp(-clo / Math.max(1e-6, ref));
+  return clamp01(block * gradeConditionScale(grade, condition));
+}
+
+/**
+ * A layer's insulation when nothing derived it: a slab of its material at
+ * the reference thickness. `0` for no material — an unmodelled covering
+ * insulates nothing, which is honest rather than a guess.
+ */
+function slabClo(material: Material | null): number {
+  if (!material) return 0;
+  const k = material.getThermalConductivity().rawValue();
+  if (!(k > 0)) return 0;
+  const t = dial(AppSettingKeys.responseHeatReferenceThicknessM, 0.005);
+  return t / k / M2K_PER_W_PER_CLO;
+}
+
+/**
+ * The fraction of a corrosive contact one covering layer blocks. See the
+ * three-outcome ladder in {@link attenuateImpl}. `agent` is the attacking
+ * material's `corrosiveTo` list; an empty one attacks nothing, so every
+ * layer sheds.
+ */
+function corrosionAttenuationFraction(
+  material: Material | null,
+  agent: readonly string[],
+): number {
+  // A materialless covering has nothing to be eaten and nothing to wick.
+  if (!material) return dial(AppSettingKeys.responseCorrosionShedAttenuation, 0.95);
+  const tags = material.getTags();
+  if (agent.some((t) => tags.includes(t))) {
+    // Consumed — it is being eaten, so it stops nothing.
+    return 0;
+  }
+  const absorption = material.getWaterAbsorptionCapacity().rawValue();
+  const shedMax = dial(AppSettingKeys.responseCorrosionShedAbsorptionMax, 5);
+  if (absorption > shedMax) {
+    // Wicks it through — worse than a shed, better than being eaten.
+    return dial(AppSettingKeys.responseCorrosionWickAttenuation, 0.3);
+  }
+  return dial(AppSettingKeys.responseCorrosionShedAttenuation, 0.95);
 }
 
 function attenuateImpl(
@@ -430,6 +510,9 @@ function attenuateImpl(
   construction: Construction,
   grade?: Grade,
   condition?: number,
+  agent: readonly string[] = [],
+  penetration = 1,
+  layerClo: number | null = null,
 ): AttenuationResult {
   const e = Math.max(0, energy);
   // A non-armor (weapon) construction attenuates nothing — energy passes.
@@ -439,13 +522,31 @@ function attenuateImpl(
   // The thermal channel (heat) folds through the covering stack by
   // *insulation*, not the hardness/toughness mechanical fold.
   if (Channels.isThermalChannel(channel)) {
-    const blocked = heatAttenuationFraction(
-      material,
-      construction,
-      grade,
-      condition,
-    );
+    const blocked = thermalBlockFraction(layerClo, material, grade, condition);
     return { residualEnergy: e * (1 - blocked), channel };
+  }
+  // ⭐⭐ **Corrosion — the fold where THICKNESS is irrelevant and the
+  // right material is everything.** Three outcomes, decided by two reads
+  // of the layer and nothing else:
+  //
+  //   - **consumed** — the layer's tags intersect the agent's
+  //     `corrosiveTo`. It is being eaten, so it stops nothing: the full
+  //     energy passes, and the layer WEARS for having taken it.
+  //   - **wicks** — the layer is not attacked but is absorbent, so it
+  //     carries the agent through to the skin. A linen shirt is worse
+  //     than nothing.
+  //   - **sheds** — not attacked, not absorbent. It runs off.
+  //
+  // ⚠ No hardness anywhere, and that is the claim: a steel breastplate
+  // sheds lye and is EATEN by an acid whose row says `corrosiveTo:
+  // [metal]`, and no amount of steel changes either answer. The one
+  // channel where the armour question is *what is it made of* rather
+  // than *how much of it is there*.
+  if (channel === 'corrosion') {
+    return {
+      residualEnergy: e * (1 - corrosionAttenuationFraction(material, agent)),
+      channel,
+    };
   }
   // A remaining non-mechanical channel (shock) doesn't fold through the
   // covering stack — it resolves by circuit upstream. Passes through untouched.
@@ -454,9 +555,17 @@ function attenuateImpl(
   }
   const token = construction.responseFor(channel);
   const base = baseAttenuationFor(token);
-  const fromMaterial = materialScale(material, channel);
-  const fromQuality = gradeConditionScale(grade, condition);
-  const atten = clamp01(base * fromMaterial * fromQuality);
+  const height = materialScale(material, channel);
+  const scale = gradeConditionScale(grade, condition);
+  // ⭐⭐ **Penetration divides the attenuation**, and that one line is the
+  // whole of what makes a firearm different from a sword in this engine.
+  //
+  // Armour answers PRESSURE, not energy: the same joules arriving over a
+  // tenth the area go through. So mail that turns a thrust fails against
+  // a round, and plate that turns a round fails against a bigger one —
+  // with no "armour-piercing" flag anywhere, and with a sword's
+  // penetration of 1 leaving every shipped blow byte-identical.
+  const atten = clamp01((base * height * scale) / Math.max(1, penetration));
   return { residualEnergy: e * (1 - atten), channel };
 }
 
@@ -473,8 +582,24 @@ function resolveTraumaImpl(
   // no-wound floor the heat was fully insulated → no burn.
   if (Channels.isThermalChannel(channel)) {
     if (e < dial(AppSettingKeys.responseNoWoundThreshold, 0.25)) return null;
+    // ⭐ One fold, two wounds. The insulation arithmetic above is
+    // identical for heat and cold — what a garment does is resist a
+    // temperature DIFFERENCE — and the direction of flow is read exactly
+    // once, here, to name the wound.
     return {
-      type: 'burn',
+      type: channel === 'cold' ? 'frostbite' : 'burn',
+      severity:
+        e *
+        (channel === 'cold'
+          ? dial(AppSettingKeys.responseColdSeverityPerResidual, 1)
+          : dial(AppSettingKeys.responseSeverityPerResidual, 1)),
+    };
+  }
+  // Corrosion that survived the covering reaches skin still active.
+  if (channel === 'corrosion') {
+    if (e < dial(AppSettingKeys.responseNoWoundThreshold, 0.25)) return null;
+    return {
+      type: 'caustic',
       severity: e * dial(AppSettingKeys.responseSeverityPerResidual, 1),
     };
   }
@@ -487,9 +612,23 @@ function resolveTraumaImpl(
   const severity = e * dial(AppSettingKeys.responseSeverityPerResidual, 1);
   let type: TraumaType;
   switch (channel) {
-    case 'edge':
-      type = 'laceration';
+    case 'edge': {
+      // ⭐⭐ **The edge ladder** — the blunt channel's fracture rung, given
+      // to the edge channel. A cut that keeps going stops being a cut: past
+      // the threshold the tissue tears away rather than parting, which is
+      // an `avulsion`. Before this, `avulsion` was reachable only from the
+      // `'tearing'` passthrough, which nothing in the game produced — a
+      // trauma type with no deliverer.
+      //
+      // ⚠ No bone gate, unlike the blunt rung: what stops a blade taking
+      // your hand off is armour and the arm behind it, both of which the
+      // fold has already priced into this residual. Bone resists a break;
+      // it does not resist being cut through by 3× the energy that opened
+      // the skin.
+      const avulsion = dial(AppSettingKeys.responseEdgeAvulsionThreshold, 3);
+      type = e >= avulsion ? 'avulsion' : 'laceration';
       break;
+    }
     case 'point':
       type = 'puncture';
       break;
@@ -515,9 +654,26 @@ function previewBandImpl(
   construction: Construction,
   grade?: Grade,
   condition?: number,
+  layerClo: number | null = null,
 ): OutcomeBand {
   const refEnergy = dial(AppSettingKeys.responsePreviewReferenceEnergy, 2);
   if (construction.isCovering()) {
+    // ⭐ **A corrosion preview has to assume an AGENT.** Corrosion is the
+    // one channel whose answer is not a property of the covering alone —
+    // the same plate sheds lye and is eaten by acid — so "how does this
+    // garment do against corrosion" is not a well-formed question without
+    // saying against WHAT. The preview names a reference agent
+    // (`response.corrosion.previewCorrosiveTo`, seeded `organic`, the
+    // commonest caustic there is) and says so in the readout's own words.
+    const agent =
+      channel === 'corrosion'
+        ? [
+            textDial(
+              AppSettingKeys.responseCorrosionPreviewCorrosiveTo,
+              'organic',
+            ),
+          ]
+        : [];
     const { residualEnergy } = attenuateImpl(
       channel,
       refEnergy,
@@ -525,11 +681,18 @@ function previewBandImpl(
       construction,
       grade,
       condition,
+      agent,
+      1,
+      layerClo,
     );
     const trauma = resolveTraumaImpl(channel, residualEnergy, null, false);
     return severityToBand(trauma ? trauma.severity : null);
   }
-  // weapon-delivery: the blow it delivers on this channel.
+  // ⚠ Weapon-delivery is the MECHANICAL shape table and `deliveryFor`
+  // throws on anything else. A sword has no thermal or corrosive delivery
+  // profile — it is not cold and it does not dissolve you — so a
+  // non-mechanical channel on a weapon is honestly `turned`.
+  if (!Channels.isMechanicalChannel(channel)) return 'turned';
   const token = construction.deliveryFor(channel);
   if (token === 'none') return 'turned';
   const factor =

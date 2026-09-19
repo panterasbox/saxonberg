@@ -58,9 +58,11 @@ import { Quantity } from '../quantity';
 import { QuantityMarshaller } from '../../platform/idea/persistence/QuantityMarshaller';
 import type { ToxinTag } from '../metabolism/Metabolic';
 import type { VetoResult } from '../errors';
-import type { EvictionContext } from '../stuff/Stuff';
+import type { EvictionContext, Stuff } from '../stuff/Stuff';
 import type { FieldMeta } from '../mixin';
 import { StuffApi } from '../../api/stuff';
+import { ConditionApi } from '../../api/condition';
+import { MixinApi } from '../../api/mixin';
 import type { MaterialComposition } from '../../api/material';
 // eslint-disable-next-line no-restricted-imports -- the F4 material face: a material's composition()/containsElement() forward into the material logic singleton exactly as the api/material facade does (the Combustible/Energized precedent)
 import { MaterialLogic } from '../../platform/idea/api/MaterialLogic';
@@ -133,6 +135,13 @@ export interface BiologicalSource {
 export default class Material extends SingletonMixin(
   PerceptibleMixin(PropertiedMixin(Idea)),
 ) {
+  /**
+   * The body site a substance-contact corrosion lands at when the caller
+   * names none — a splash or a spill reaches the exposed front. A caller
+   * that knows better (a hazard's siteSelector) passes its own.
+   */
+  private static readonly CONTACT_SITE = 'body.torso';
+
   /**
    * Residency veto — a Material is reference data resolved by SYNC
    * reads (`Tangible.getMaterial`, bulk slots, autoignition); the only
@@ -604,6 +613,12 @@ export default class Material extends SingletonMixin(
   protected tags: string[] = [];
 
   /**
+   * The material tags this material corrodes — see {@link getCorrosiveTo}.
+   * Empty on every shipped row: a material that names nothing is inert.
+   */
+  protected corrosiveTo: string[] = [];
+
+  /**
    * Constituent breakdown for mixtures / alloys / composite materials.
    * Pure elements have an empty list. Each entry's `materialPath`
    * resolves lazily through `StuffApi.findByTemplatePath` at query
@@ -706,6 +721,22 @@ export default class Material extends SingletonMixin(
     name: { persistent: true },
     appearance: { persistent: true },
     tags: { persistent: true },
+    // ⭐⭐ **Spoiler 1, with the NAME visible** — the enumerating wiki
+    // audit (`wiki-spoiler-fields.snapshot`) asked the question it exists
+    // to ask, and the answer is yes.
+    //
+    // It looked like `tags` (level 0, a classification), and it is not:
+    // it is a RESPONSE property, the same kind of fact as `hardness` and
+    // `autoignitionTemperature` beside it — something you find out by
+    // testing. More sharply, it is the list of *what this defeats*, which
+    // is the audit's own example of a spoiler ("a creature's weakness
+    // is"). The corrosion channel's whole teaching is that you must learn
+    // which agent eats which material; handing that out free on the wiki
+    // would delete the discovery.
+    //
+    // `spoilerName: 0` so the FIELD still shows: you can see that
+    // quicklime has a corrosive list without being told what is on it.
+    corrosiveTo: { persistent: true, spoiler: 1, spoilerName: 0 },
     tastes: { persistent: true, spoiler: 1, spoilerName: 0 },
     composition: { persistent: true },
     symbol: { persistent: true },
@@ -1045,6 +1076,66 @@ export default class Material extends SingletonMixin(
   }
 
   public getTags(): readonly string[] { return this.tags; }
+
+  /**
+   * ⭐⭐ **What this material ATTACKS** — the material tags it eats
+   * through, as the corrosion channel's agent side.
+   *
+   * Absent (every shipped row) means inert, which is the right default:
+   * a material that says nothing about what it corrodes corrodes nothing.
+   * A caustic row is content — quicklime says
+   * `corrosiveTo: [organic, tissue, leather, textile]`, an acid says
+   * `[metal]` — and the whole of the corrosion fold is *does this layer's
+   * tag set intersect the agent's list*.
+   *
+   * ⚠ It reads the **closed tag vocabulary already authored on every
+   * row** (`metal`, `organic`, `leather`, `textile`, `tissue`…) rather
+   * than a second classification of its own. The alternative — a
+   * per-material hardness-against-acid number — would be a new axis
+   * nobody could author honestly, and it would make thickness matter,
+   * which for corrosion it does not.
+   */
+  public getCorrosiveTo(): readonly string[] { return this.corrosiveTo; }
+
+  /**
+   * ⭐⭐ **A caustic substance in contact with a body burns it** — the
+   * general substance-contact corrosion seam.
+   *
+   * The corrosion channel was reachable by exactly one thing before this:
+   * the lime-seep hazard on traversal. A spilled vial, a thrown flask, a
+   * conjured acid — none delivered, because contact with a caustic
+   * material had no path to `ConditionApi.inflict`. This is that path, and
+   * it lives on the material because `corrosiveTo` does: a caustic is the
+   * one that knows what it eats.
+   *
+   * The whole gate is `corrosiveTo` non-empty — a material nobody
+   * authored as caustic answers `false` and nothing happens, which is
+   * every shipped material but the two caustics. It mirrors
+   * `Potable.dischargeInto(victim, …)` (a material delivering to a
+   * victim), routes through the ONE injury door, and the wound it leaves
+   * is an ordinary `caustic` trauma that grows on its own clock and
+   * `rinse` resolves — no second code path.
+   *
+   * @returns true iff this material is caustic (a corrosion attempt was
+   *   made); false for any inert material, so the call is safe to make
+   *   unconditionally at a contact site.
+   */
+  public corrodeOnContact(
+    victim: Stuff,
+    opts?: { readonly energy?: number; readonly site?: string; readonly shieldFacing?: boolean },
+  ): boolean {
+    if (this.corrosiveTo.length === 0) return false;
+    if (!MixinApi.isOrganism(victim)) return false;
+    ConditionApi.inflict(victim, {
+      mechanism: 'corrosion',
+      site: opts?.site ?? Material.CONTACT_SITE,
+      energy: opts?.energy ?? 1,
+      corrosiveTo: this.getCorrosiveTo(),
+      shieldFacing: opts?.shieldFacing,
+    });
+    return true;
+  }
+
   public setTags(value: string[]): void { this.tags = value; }
   public hasTag(tag: string): boolean { return this.tags.includes(tag); }
 

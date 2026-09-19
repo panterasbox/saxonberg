@@ -31,6 +31,22 @@ import { Idea } from '../../../lib/stuff/Idea';
 import { SingletonMixin } from '../../../lib/stuff/Singleton';
 import { PropertiedMixin } from '../../../lib/stuff/Propertied';
 import type { SlotSpec } from '../../../lib/slot/Slotted';
+// ⚠ VALUE imports of two `as const` tuples — no class, no cycle. `BodyPlan`
+// stays free of `lib/vitals` CLASS imports (the `governs` comment's rule);
+// validating a key against a closed vocabulary needs the vocabulary.
+import { VITAL_SIGNS } from '../../../lib/vitals/Vitals';
+import { BODY_CAPACITIES } from '../../../lib/vitals/BodyCapacity';
+
+/**
+ * What a part may legitimately claim to `governs`. A lung runs a RATE
+ * (`respiratoryRate`) and a CAPACITY (`respiration`), and both are honest,
+ * so the vocabulary is the union. A module-scope `const` over two frozen
+ * tuples — a declaration, not initialization.
+ */
+const GOVERNABLE: ReadonlySet<string> = new Set<string>([
+  ...VITAL_SIGNS,
+  ...BODY_CAPACITIES,
+]);
 import type { SenseChannel } from '../../../lib/description/Perceiver';
 import type { FieldMeta } from '../../../lib/mixin';
 
@@ -102,11 +118,47 @@ export interface BodyPart {
    * non-empty `governs` is internal.
    */
   governs?: string[];
-  /** Can detach — future part-promotion seam. */
+  /**
+   * ⭐⭐ **What this part is FOR** — the exterior twin of `governs`.
+   *
+   * `governs` says *this organ RUNS the thing* (one brain, and
+   * consciousness goes with it). `serves` says *this limb is FOR the
+   * thing* (two legs, and losing one is a hobble rather than a halt). The
+   * distinction is not cosmetic: `governs` combines by **min** and
+   * `serves` by **mean**, which is the whole difference between an organ
+   * and a limb.
+   *
+   * ⚠⚠ **And it is the reason both fields exist.** Interiority is
+   * `governs`-derived — a part that runs something is inside you — so
+   * saying a leg `governs: [locomotion]` would make the leg an internal
+   * organ, silently excluded from every covering, insulation and
+   * concealment walk. A hand has to be able to be *for* manipulation
+   * without being *inside* you.
+   *
+   * Values are validated against `BODY_CAPACITIES` at registration.
+   */
+  serves?: string[];
+  /**
+   * Can detach. ⭐ Read by `AVULSION_BEHAVIOR.onset` — an avulsion past
+   * `HARM_DEFAULTS.SEVER_SEVERITY` on a severable part takes it off. A
+   * torso avulsion is a terrible wound and stays a wound.
+   */
   severable?: boolean;
-  // Deferred-with-seam (declared, no reader this build): the
-  // innervation / vascular graph, orthogonal to the containment tree.
+  /**
+   * ⭐ **The nerve supply** — which part(s) this one's control runs
+   * through. Orthogonal to the containment tree: an arm hangs off the
+   * torso structurally but is innervated by the upper spine, and cutting
+   * the spine takes the arm without touching it.
+   *
+   * Authored **only where it diverges from the tree** — for limbs the
+   * parent chain already IS the supply path, so an unauthored part simply
+   * inherits the honest default. Naming a part here also makes that part
+   * INTERIOR (a conduit is inside you), which is how the spine — which
+   * governs nothing and conducts everything — earns its interiority
+   * without a field nobody else needs.
+   */
   innervatedBy?: string[];
+  /** The blood supply — the same relation, the other conduit. */
   suppliedBy?: string[];
 }
 
@@ -126,6 +178,13 @@ export default class BodyPlan extends SingletonMixin(PropertiedMixin(Idea)) {
    * `packages/server/scripts/migrate-bodyplan-slots.ts`.
    */
   public slots: SlotSpec[] = [];
+
+  /**
+   * Derived, transient — the parts something else's `innervatedBy` /
+   * `suppliedBy` names. Rebuilt by `setBodyParts`; never persisted (it is
+   * a projection of the part list, and a second copy would drift).
+   */
+  private conduitKeys: Set<string> = new Set();
 
   /**
    * Locomotion modes the body plan supports: `['walk']`,
@@ -388,6 +447,28 @@ export default class BodyPlan extends SingletonMixin(PropertiedMixin(Idea)) {
           `BodyPlan.setBodyParts: part '${part.key}' missing 'tissues' array`,
         );
       }
+      // ⭐⭐ **A typo in `governs` is a throw at registration, not an inert
+      // organ.** Before this, `governs: [hartRate]` produced a part that
+      // ran nothing, looked authored, and failed silently forever — the
+      // closed-and-silent class this repo keeps paying for. The vocabulary
+      // is `VITAL_SIGNS ∪ BODY_CAPACITIES`: a lung governs a rate AND a
+      // capacity, and both are legitimate.
+      for (const key of part.governs ?? []) {
+        if (!GOVERNABLE.has(key)) {
+          throw new Error(
+            `BodyPlan.setBodyParts: part '${part.key}' governs unknown ` +
+              `key '${key}' — expected a vital sign or a body capacity`,
+          );
+        }
+      }
+      for (const key of part.serves ?? []) {
+        if (!(BODY_CAPACITIES as readonly string[]).includes(key)) {
+          throw new Error(
+            `BodyPlan.setBodyParts: part '${part.key}' serves unknown ` +
+              `capacity '${key}'`,
+          );
+        }
+      }
     }
     // Parent edges must reference a known key (or null/undefined for a root).
     for (const part of value) {
@@ -406,6 +487,46 @@ export default class BodyPlan extends SingletonMixin(PropertiedMixin(Idea)) {
     // other half of the order-independent integrity check in setSlots).
     this.validateSlotPartRefs(this.slots, value);
     this.bodyParts = value;
+    this.rebuildConduits(value);
+  }
+
+  /**
+   * The set of parts some other part's control or supply runs THROUGH —
+   * recomputed whenever the part list changes (a lifecycle, never module
+   * scope). Half of the interiority predicate; see {@link isInterior}.
+   */
+  private rebuildConduits(parts: readonly BodyPart[]): void {
+    const conduits = new Set<string>();
+    for (const part of parts) {
+      for (const key of part.innervatedBy ?? []) conduits.add(key);
+      for (const key of part.suppliedBy ?? []) conduits.add(key);
+    }
+    this.conduitKeys = conduits;
+  }
+
+  /**
+   * ⭐⭐ **Is this part INSIDE the body?** — the one predicate, replacing
+   * five copies of `if (part.governs?.length) continue;`.
+   *
+   * Two ways to be interior, and the second is why this is a method:
+   *
+   * 1. **It governs something.** An organ runs a sign or a capacity, and
+   *    organs are inside you. This is the shipped rule, unchanged.
+   * 2. ⭐ **Something's control or supply runs through it.** A conduit is
+   *    inside you. This is what lets the **spine** — which governs nothing
+   *    and conducts everything — be interior without inventing a field
+   *    nobody else would ever read. Without it the spine would be an
+   *    exterior part: counted in the surface-fraction walk, expected to be
+   *    covered by a garment, and colder for having no sleeve.
+   *
+   * Interior parts are excluded from every covering / insulation /
+   * concealment walk, which is exactly right: you cannot put a coat on a
+   * liver.
+   */
+  public isInterior(partKey: string): boolean {
+    if (this.conduitKeys.has(partKey)) return true;
+    const part = this.bodyParts.find((p) => p.key === partKey);
+    return (part?.governs?.length ?? 0) > 0;
   }
 
   /**
@@ -474,16 +595,58 @@ export default class BodyPlan extends SingletonMixin(PropertiedMixin(Idea)) {
     let total = 0;
     let own = 0;
     for (const part of this.bodyParts) {
-      if (part.governs?.length) continue;
-      let mass = 0;
-      for (const t of part.tissues ?? []) mass += t.mass;
-      if (!(mass > 0)) continue;
-      const area = Math.pow(mass, 2 / 3);
+      // Exterior parts only — you cannot put a coat on a liver. (Was an
+      // inline `governs?.length`; the predicate is now one method, and it
+      // knows about conduits too.)
+      if (this.isInterior(part.key)) continue;
+      const area = this.partArea(part.key);
+      if (!(area > 0)) continue;
       total += area;
       if (part.key === partKey) own = area;
     }
     if (!(total > 0)) return 0;
     return own / total;
+  }
+
+  /**
+   * ⭐⭐ **A part's cross-sectional area**, by Meeh's law — `mass^(2/3)`
+   * over its authored tissue masses. `0` for an unknown or massless part.
+   *
+   * Two readers, and they want the same number for different reasons:
+   * {@link getPartSurfaceFraction} normalises it across the exterior to
+   * answer *"how much of the skin is this"*, and the depth ladder orders
+   * organs by it to answer *"what does a blow through here meet first"* —
+   * a bigger organ presents more cross-section to whatever is coming
+   * through, which is **why** it is reached first.
+   *
+   * ⚠⚠ **An organ must call THIS, never `getPartSurfaceFraction`.** That
+   * walk skips interior parts by construction (it is exterior-only on
+   * purpose), so it returns 0 for every organ — a caller reaching for the
+   * fraction would get a silently empty ladder.
+   *
+   * ⚠ There is no authored `area` field and there is not going to be one:
+   * it would be a second copy of a fact the tissue masses already carry,
+   * and the two would drift.
+   */
+  public partArea(partKey: string): number {
+    const part = this.bodyParts.find((p) => p.key === partKey);
+    if (!part) return 0;
+    let mass = 0;
+    for (const t of part.tissues ?? []) mass += t.mass;
+    if (!(mass > 0)) return 0;
+    return Math.pow(mass, 2 / 3);
+  }
+
+  /**
+   * The interior parts sitting immediately under `partKey` — what a blow
+   * through that site can reach. Ordered **largest cross-section first**,
+   * which is the depth ladder's order.
+   */
+  public interiorChildrenOf(partKey: string): readonly BodyPart[] {
+    return this.bodyParts
+      .filter((p) => p.parent === partKey && this.isInterior(p.key))
+      .slice()
+      .sort((a, b) => this.partArea(b.key) - this.partArea(a.key));
   }
 
   /**

@@ -54,7 +54,7 @@ through `Condition.toxinBehavior`) · [stewardship](./stewardship-slate.md)
 A shipped seed, `seeds/lib/metabolism/conditions/ptomaine.yaml`:
 
 ```yaml
-class: /lib/vitals/Condition
+class: /platform/idea/Condition
 data:
   name: food-poisoning
   resolution: { by: antitoxin }

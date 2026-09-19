@@ -72,6 +72,7 @@ import { BiomeApi } from '../../../api/biome';
 import { WorldClockApi } from '../../../api/worldclock';
 import { AppApi } from '../../../api/app';
 import { AppSettingKeys } from '../../../lib/config/AppSettings';
+import { THERMAL_DEFAULTS } from '../../../lib/thermal/Thermal';
 import { Quantity } from '../../../lib/quantity';
 import { TemplatePaths } from '../../../lib/paths';
 import { Postures } from '../../../lib/slot/Postured';
@@ -597,10 +598,81 @@ async function costOf(
   target?: Stuff,
 ): Promise<number> {
   const flat = spell.cost || dial(AppSettingKeys.magicCostDefault, 15);
+  // ⭐⭐ **A heat pump's price is a LIFT, not a number** (arcane-science
+  // rule 4). Moving heat out of something costs `W ≥ Q · ΔT / T_cold`,
+  // which is cheap near ambient and divergent at depth — so a cold spell
+  // costs almost nothing to chill a warm room and a fortune to push a
+  // target toward absolute zero. That curve IS the third law, arrived at
+  // as a cost rather than asserted as a rule.
+  if (spell.costModel?.kind === 'heat-pump') {
+    return flat + heatPumpWorkTau(spell, target);
+  }
   if (spell.costModel?.kind !== 'potential') return flat;
   const to = await relocationDestination(spell, target);
   if (!to) return flat;
   return flat + (await relocationCostImpl({ traveller, to }));
+}
+
+/**
+ * ⭐ The joules a COOLING working moves — what the caster has to absorb
+ * over and above the ordinary waste. Zero for anything that is not a
+ * heat pump, so every other spell is byte-identical.
+ */
+function heatMovedByCoolingJ(spell: SpellDescriptor): number {
+  if (spell.costModel?.kind !== 'heat-pump') return 0;
+  let joules = 0;
+  for (const e of spell.effects ?? []) {
+    if (e.kind !== 'inject-channel') continue;
+    const j: unknown = (e as { joules?: unknown }).joules;
+    if (typeof j === 'number') joules = Math.max(joules, j);
+    else if (Array.isArray(j)) {
+      for (const v of j) if (typeof v === 'number') joules = Math.max(joules, v);
+    }
+  }
+  return joules;
+}
+
+/**
+ * The work (τ) a cooling working must commit, over its authored floor.
+ *
+ * `Q` is the effect's authored `joules` at its strongest band; `T_hot` is
+ * the caster's own core (they are the hot reservoir — the one postulate
+ * says the caster is always an endpoint); `T_cold` is where the target
+ * ends up, i.e. its current temperature **minus** what removing `Q` will
+ * take out of it.
+ *
+ * ⚠ `T_cold` is floored at 1 K rather than 0: the arithmetic diverges at
+ * absolute zero, which is correct physics and a crash. The floor makes
+ * the divergence expensive instead of fatal.
+ *
+ * ⭐ Pumping DOWNHILL — into something hotter than the caster — costs the
+ * floor and nothing more. That is not a special case; it falls out of
+ * `max(0, T_hot − T_cold)`.
+ */
+function heatPumpWorkTau(spell: SpellDescriptor, target?: Stuff): number {
+  let joules = 0;
+  for (const e of spell.effects ?? []) {
+    if (e.kind !== 'inject-channel') continue;
+    const j: unknown = (e as { joules?: unknown }).joules;
+    if (typeof j === 'number') joules = Math.max(joules, j);
+    else if (Array.isArray(j)) {
+      for (const v of j) if (typeof v === 'number') joules = Math.max(joules, v);
+    }
+  }
+  if (joules <= 0) return 0;
+
+  const hot: number = THERMAL_DEFAULTS.SETPOINT_K;
+  let cold: number = hot;
+  if (target && MixinApi.isThermal(target)) {
+    const capacity = target.thermalCapacityJPerK();
+    const now = target.getTemperature().rawValue();
+    cold = capacity > 0 ? now - joules / capacity : now;
+  }
+  cold = Math.max(1, cold);
+  const carnot = dial(AppSettingKeys.magicHeatPumpCarnotFraction, 0.4);
+  const lift = Math.max(0, hot - cold);
+  const workJ = (joules * lift) / cold / (carnot > 0 ? carnot : 0.4);
+  return workJ / 1000;
 }
 
 /**
@@ -691,6 +763,20 @@ async function resolveCastImpl(
     const report = await executeEffect(ctx, target, spell, effect);
     if (report) reports.push(report);
   }
+
+  // ⭐⭐ **The caster pays in HEAT** — and this call is the whole of what
+  // was missing. `absorbWasteHeat` shipped, and `resolveCastImpl` never
+  // called it, so the η < 1 losses the science puts in the caster went
+  // nowhere at all.
+  //
+  // For an ordinary working that is the 10 % waste: a firebolt warms its
+  // caster by ≈ 0.02 K, which is invisible and correct. For a heat pump
+  // it is the waste PLUS everything the pump moved, because the caster
+  // is an endpoint — and that is what makes the mana bar stop being the
+  // danger meter. ⭐ A mid-depth pool of frost cooks you long before it
+  // empties.
+  absorbWasteHeat(ctx, cost, heatMovedByCoolingJ(spell));
+
   if (overchanneled) {
     reports.push(
       'The working takes more than you had — the world greys at the edges.',
@@ -900,12 +986,38 @@ async function dischargeImpl(
  * rather than a rule magic invented. That is the governing invariant
  * doing its job: magic is a new trigger, never a new mechanism.
  */
-function absorbWasteHeat(ctx: EffectContext, committedTau: number): void {
+function absorbWasteHeat(
+  ctx: EffectContext,
+  committedTau: number,
+  movedJ = 0,
+): void {
   const endpoint = ctx.origin;
-  if (!MixinApi.isCharged(endpoint)) return;
   const committedJ = committedTau * 1000;
   const wasteJ =
     committedJ * dial(AppSettingKeys.magicWasteHeatFraction, 0.1);
+
+  // ⭐⭐ **A BODY endpoint — the seam that never ran.**
+  //
+  // This function early-returned unless the endpoint was `Charged`, and
+  // its only caller was the item-discharge path — so `η < 1`'s losses,
+  // which `arcane-science.md` puts squarely IN THE CASTER, had nowhere
+  // to land and never landed anywhere. The published science says
+  // *"Destroy·Fire is limited by thermoregulation, not by mana"*, and
+  // nothing in the engine could make that true.
+  //
+  // A regulating body absorbs the waste **plus everything a heat pump
+  // moved** (`Q + W`): the caster is always an endpoint (the one
+  // postulate), so heat taken out of a target has to arrive somewhere,
+  // and that somewhere is them. An ordinary firebolt warms its caster by
+  // its 10 % waste — about 0.02 K, invisible and honest. A frost cast
+  // hands them the whole load.
+  if (MixinApi.isThermalRegulation(endpoint)) {
+    const load = wasteJ + Math.max(0, movedJ);
+    if (load > 0) endpoint.absorbHeatLoad(load);
+    return;
+  }
+
+  if (!MixinApi.isCharged(endpoint)) return;
   if (wasteJ <= 0) return;
   try {
     if (MixinApi.isThermal(endpoint)) endpoint.depositHeat(wasteJ);
@@ -1365,7 +1477,15 @@ function execInjectChannel(
   if (MixinApi.isOrganism(target)) {
     return deliverAt(ctx, target, () => {
       const outcome = ConditionApi.inflict(target, {
-        mechanism: e.channel as Exclude<typeof e.channel, 'shock'>,
+        // ⚠ Narrowed past `shock` (handled above) AND `corrosion`: a
+        // corrosive insult carries the agent's chemistry, and a spell has
+        // no material to source it from. A corrosive spell is a real
+        // thing to want and would be a `conjure`-shaped effect that puts
+        // a caustic SUBSTANCE on someone, not an `inject-channel`.
+        mechanism: e.channel as Exclude<
+          typeof e.channel,
+          'shock' | 'corrosion'
+        >,
         site: e.site ?? MAGIC_DEFAULTS.DEFAULT_SITE,
         energy: (e.energy ?? 1) * potency,
       });
@@ -1388,12 +1508,38 @@ function execInjectChannel(
       };
     });
   }
-  if (MixinApi.isThermal(target)) target.depositHeat((e.joules ?? 0) * potency);
-  const lit = MixinApi.isCombustible(target) && target.tryAutoignite();
-  if (MixinApi.isThermal(target)) target.reconcilePhase();
-  return lit
-    ? 'It catches — real flame, and it will spread as real flame does.'
-    : 'It heats under the working.';
+  // ⭐⭐ **The object arm, finally INSIDE `deliverAt`.**
+  //
+  // It sat outside, which meant heating a thing with a spell needed no
+  // reachability check, no band gate and left no provenance — you could
+  // set fire to something you could not touch, see or legally act on,
+  // and nothing recorded that magic had done it. The body arm above had
+  // always been wrapped; this was simply missed.
+  return deliverAt(ctx, target, () => {
+    const joules = (e.joules ?? 0) * potency;
+    // ⭐ Cooling is the same call with the sign reversed — `depositHeat`
+    // has always accepted negative joules. Nothing in the fire substrate
+    // needed a second path for "make it colder", which is the mechanism
+    // holding across a direction it was not written for.
+    const signed = e.channel === 'cold' ? -joules : joules;
+    if (MixinApi.isThermal(target)) target.depositHeat(signed);
+    const lit =
+      e.channel !== 'cold' &&
+      MixinApi.isCombustible(target) &&
+      target.tryAutoignite();
+    // ⭐ And the phase reconcile is what makes *ice is dear* real: pull
+    // enough heat out of water and it freezes, by the same latent-heat
+    // arithmetic that boils it.
+    if (MixinApi.isThermal(target)) target.reconcilePhase();
+    return {
+      report: lit
+        ? 'It catches — real flame, and it will spread as real flame does.'
+        : e.channel === 'cold'
+          ? 'Frost crawls across it, and the cold is real cold.'
+          : 'It heats under the working.',
+      harmed: false,
+    };
+  });
 }
 
 async function execAfflict(
@@ -1580,11 +1726,24 @@ async function execConjure(
     const litres =
       (e.litres ?? dial(AppSettingKeys.magicConjureWaterLitres, 1)) *
       ctx.potency;
+    // ⭐⭐ **The acid working.** A conjured caustic AT a body burns it on
+    // contact — the substance-contact corrosion seam, honest per the
+    // arcane-science: the working COLLECTS an existing caustic (it does
+    // not manufacture "acid damage"), and the substance's own
+    // `corrosiveTo` does the corroding through the normal fold. The
+    // runoff still pools below; the wound lands here. A conjured water
+    // (or any non-caustic) answers `false` and this is a no-op.
+    const burned =
+      target !== undefined &&
+      material.corrodeOnContact(target, { energy: Math.min(4, 1 + litres) });
     const result = BulkableApi.transfer(from, to, {
       kind: 'measure',
       litres,
       mode: 'lenient',
     });
+    if (burned) {
+      return `${material.getName()} sheets over them and begins to eat; the rest spatters down.`;
+    }
     return result.status === 'declined'
       ? 'It will not pour there.'
       : target && MixinApi.isBulkable(target)

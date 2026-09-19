@@ -34,11 +34,16 @@ unauthored material never ignites and never melts): `autoignitionTemperature`
 `heat` joins the `Channel` vocabulary as the **second non-mechanical channel**
 (after `shock`) — its own `THERMAL_CHANNELS` subtype. It does **not** fold
 through the hardness/toughness mechanical response; it resolves by
-**insulation**: `MaterialLogic.attenuateImpl`'s heat branch reads each covering
-layer's `thermalConductivity` (inverted: `refCond / (refCond + conductivity)`)
-× the construction's layer depth × grade/condition, so leather/padding turns a
-burn and plate conducts it — **the armor inversion, emergent from conductivity**
-(a metal gauntlet is WORSE against heat than none), no `isThermal` special case.
+**insulation**: `MaterialLogic.attenuateImpl`'s thermal branch reads each
+covering layer's **real `clo`** (`Wearable.getClo()` — thickness over
+effective conductivity, loft and wetness included; the same number
+thermoregulation reads) and blocks `1 − exp(−clo / ref)` × grade/condition,
+so leather/padding turns a burn and plate conducts it — **the armor
+inversion, emergent from the R-value** (a metal gauntlet is WORSE against
+heat than none), no `isThermal` special case. ⚠ It used to read
+`thermalConductivity` through a heuristic of its own; the injury build
+made it read the garment's derived clo — see
+materials-response.md § One insulation number.
 `resolveTraumaImpl`'s heat branch maps surviving heat straight to a `burn`. The
 `heat` channel **retired the old magnitude-only `'thermal'` passthrough**
 (`InsultKind = Channel | 'tearing'`); the shipped touch-burn producers
@@ -46,7 +51,7 @@ burn and plate conducts it — **the armor inversion, emergent from conductivity
 `ConditionApi.inflict({mechanism:'heat', energy, site})` (via
 `Touch.contactBurnEnergy`), so a glove on the hand insulates before the residual
 burns tissue. **No parallel fire-damage path** — heat-to-body is one channel.
-Dials: `response.heat.*`.
+Dials: `response.heat.referenceClo` (the pulse reference) and `response.heat.referenceThicknessM` (the slab fallback for a layer with no derived clo).
 
 ### 3. The combustion driver (`lib/fire/`)
 

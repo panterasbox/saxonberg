@@ -26,7 +26,7 @@ import { MixinApi } from '../../api/mixin';
 import { StuffApi } from '../../api/stuff';
 import { AppApi } from '../../api/app';
 import { AppSettingKeys } from '../config/AppSettings';
-import { Quantity } from '../quantity';
+import { Quantity, M2K_PER_W_PER_CLO } from '../quantity';
 import type { CommandContributions } from '../../api/command';
 
 export interface Wearable extends Slottable {
@@ -163,8 +163,8 @@ const UNMEASURABLE: FitReading = Object.freeze({
 const K_AIR = 0.026;
 /** Thermal conductivity of water, W/(m·K) — ~23× air's. */
 const K_WATER = 0.6;
-/** One clo, in m²·K/W. The unit's definition, not a dial. */
-const R_CLO = 0.155;
+/** One clo, in m²·K/W — the unit's definition, beside the unit. */
+const R_CLO = M2K_PER_W_PER_CLO;
 
 /** Clo dials, with seeded-literal fallbacks (pre-warm / test safe). */
 const CLO_DEFAULTS = {

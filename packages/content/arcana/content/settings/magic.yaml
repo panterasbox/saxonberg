@@ -83,3 +83,18 @@ settings:
   # whatever, and changes no efficiency cap.
   - key: magic.attention.floor
     value: "0.4"
+
+  # ⭐⭐ **How close a caster's heat pump gets to the Carnot bound.**
+  #
+  # `arcane-science.md`'s cooling section: the ideal work to move heat Q
+  # across a lift is `W ≥ Q · (T_hot − T_cold) / T_cold`, and a realistic
+  # device manages about 40 % of that ideal. This is the number that makes
+  # cooling *cheap near ambient and divergent at depth* — COP ≈ 7 for a
+  # small lift, so 100 kJ moved costs ≈ 14 τ, and the price climbs without
+  # bound as the target approaches absolute zero.
+  #
+  # ⚠ Lowering it does not merely make frost expensive: it makes the
+  # caster HOTTER per unit moved, because the work has to go somewhere and
+  # the caster is always an endpoint.
+  - key: magic.heatPump.carnotFraction
+    value: "0.4"

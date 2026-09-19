@@ -1,0 +1,25 @@
+# ⭐ Stone Lance — create·earth, the same school shaped to a POINT. Where
+# Stonefist crushes, a lance of conjured stone is driven to a spike and
+# punches through — the `point` channel, and the pair proves the Earth
+# school is a FAMILY, not a one-off: one gathering, two very different
+# wounds, decided by the shape the working gives the matter it collects.
+class: /platform/idea/magic/Spell
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  spellId: stone-lance
+  name: Stone Lance
+  verb: create
+  noun: earth
+  cost: 14
+  castingProfile:
+    requiredBand: novice
+    castSeconds: 3
+  targeting: creature
+  effects:
+    - kind: inject-channel
+      channel: point
+      energy: [1, 2, 4]
+  description: >-
+    A slender spike of stone leaps from the ground and drives itself at the
+    mark. It does not crush — it pierces, and a mail shirt turns it far
+    better than a plate would turn the fist.

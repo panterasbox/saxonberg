@@ -112,6 +112,55 @@ export const THERMAL_DEFAULTS = {
   COLD_SPEND_PER_DEGREE: 0.05,
   /** Hot-side water spend (hydration %-points per game-min per K of gap). */
   HEAT_SPEND_PER_DEGREE: 0.06,
+  /**
+   * ⭐⭐ **How fast a body can shed an internal heat load**, in watts.
+   *
+   * A working human dumps roughly this much through sweat and radiation
+   * at a sustainable rate. It is what makes over-casting a **pace**
+   * problem rather than a total one: a caster who spaces their frost
+   * spells sheds between them and never warms; one who chains them
+   * accumulates faster than 400 W can carry away, and the core climbs.
+   *
+   * ⚠ Zero past the wet-bulb ceiling, and zero with no hydration —
+   * shedding is sweating, and sweating into saturated air does nothing.
+   * That is the honest failure: you cannot cool yourself in a sauna.
+   */
+  HEAT_SHED_W: 400,
+  /**
+   * ⭐⭐ **Clothing slows shedding.** The body's own resistance to heat
+   * loss — tissue plus the boundary layer of air on bare skin — in clo,
+   * so that worn insulation scales the shed rate as
+   * `HEAT_SHED_W · REF / (REF + clo)`: a business suit (1 clo) halves it,
+   * arctic kit (3 clo) quarters it.
+   *
+   * Without this a caster in a parka shed heat exactly like a naked one,
+   * which is backwards twice over — insulation impedes heat loss in
+   * BOTH directions, and the parka that keeps you warm standing still is
+   * precisely what cooks you when you work hard in it. One resistance in
+   * series with another; the arithmetic is nothing more than that.
+   *
+   * ⚠ Steady-state LOSS only. The covering fold reads the same garment
+   * `clo` but scores a thermal BLOW as a pulse (`1 − exp(−clo/ref)`, its
+   * own `response.heat.referenceClo`) — one insulation number per
+   * garment, two formulas each honest to its own physics.
+   */
+  SHED_BODY_CLO: 1.0,
+  /**
+   * ⭐⭐ **Where hyperthermia actually starts** — above the setpoint, not
+   * at `survivableMax`.
+   *
+   * The row used to spawn at `survivableMax` (315 K, +5 K), and 315 K is
+   * **heat STROKE**. Clinical hyperthermia is a core above ~38.3 °C, so
+   * the shipped constant named the condition at the wrong temperature —
+   * a player who knows physiology would have been surprised *wrongly*.
+   *
+   * ⭐ Keying it to the setpoint also separates two facts an author
+   * should be able to write independently: "when does this species get
+   * sick" and "when does it die". Keyed to `survivableMax`, tuning
+   * survivability silently moved a different condition's onset.
+   * The lethal dwell still reads `survivableMax`.
+   */
+  HYPERTHERMIA_ONSET_K: 2.5,
   /** Each worn `clo` warms effective ambient this many K toward setpoint. */
   CLO_TO_KELVIN: 2.5,
   /** Wet-bulb temperature (K) above which sweat can't shed heat (~35 °C). */
@@ -168,6 +217,17 @@ export interface Thermal {
 
   /** The lazy temperature read (SYNC) — reconcile-on-read against game-time. */
   getTemperature(): Quantity<"K">;
+  /**
+   * ⭐ Heat capacity `C = m·c` (J/K) — how much energy this thing takes to
+   * move one kelvin. The public read of the protected
+   * `thermalCapacity()`, added so a caller that needs to know *"what will
+   * removing Q joules do to this?"* can ask rather than guess.
+   *
+   * First consumer: the heat-pump cost model, which prices a cooling
+   * working by the temperature LIFT it works across — and cannot know
+   * the lift without knowing where the target ends up.
+   */
+  thermalCapacityJPerK(): number;
   /** Exterior temperature — ≈ ambient for an insulated object, ≈ core for a bare one. */
   getSurfaceTemperature(): Quantity<"K">;
   /** Held-fluid temperature (vessels) — the object's own temperature in v1. */
@@ -294,6 +354,10 @@ export function ThermalMixin<TBase extends MixinConstructor>(Base: TBase) {
      * one). Falls back to the host's own mass × material when empty / not
      * a vessel.
      */
+    public thermalCapacityJPerK(): number {
+      return this.thermalCapacity();
+    }
+
     protected thermalCapacity(): number {
       // `isBulkable` narrows the host in place for the contents path.
       const self = this.thermalHost;

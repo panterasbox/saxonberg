@@ -1,0 +1,28 @@
+# ⭐⭐ Quicklime — the first caustic, and the corrosion channel's first
+# real agent.
+#
+# Calcium oxide: what a limekiln makes, what mortar is slaked from, and
+# what will take the skin off your hands if you work it dry. It is a
+# thoroughly ordinary industrial material, which is the point — the
+# corrosion channel needed a first agent that a medieval world would
+# actually have lying about, not an alchemist's vial.
+#
+# ⭐ **`corrosiveTo` is the whole of its chemistry**, and it reads the
+# closed tag vocabulary every material already carries. Lime attacks
+# ORGANIC things — skin, leather, cloth, rope — and does nothing at all
+# to metal or stone. That single list is why a hide jerkin is no armour
+# against it and a steel breastplate sheds it entirely, which is the
+# exact inversion of every other channel in the game and the reason
+# corrosion exists as its own fold.
+class: /platform/idea/material/Material
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  name: quicklime
+  description: >-
+    A white, thirsty powder that cakes where it touches damp. It takes the
+    water out of whatever it lands on, and skin is mostly water.
+  tags: [mineral, caustic, alkali]
+  corrosiveTo: [organic, tissue, leather, textile]
+  density: 3340
+  thermalConductivity: 0.5
+  specificHeat: 750

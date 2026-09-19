@@ -1,0 +1,44 @@
+# ⭐ Stonefist — create·earth, the flagship FORCE working: a fist of
+# conjured stone drives a crushing blow. It proves magic reaches the
+# MECHANICAL channels — the `blunt` seam no spell touched before — through
+# the exact same covering fold and function axis a mace does.
+#
+# Honest per the arcane-science: conjuration is COLLECTION (the stone is
+# gathered, not manufactured), and the blow is real kinetic delivery —
+# which means Newton's third law is not suspended. A braced caster carries
+# the recoil into the ground; a cursed working does not, and the mass
+# comes back the wrong way (the self-arm backfire below). The band ladder
+# is magnitude on the covering-fold token, as every channel spell carries.
+class: /platform/idea/magic/Spell
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  spellId: stonefist
+  name: Stonefist
+  verb: create
+  noun: earth
+  cost: 16
+  castingProfile:
+    requiredBand: novice
+    castSeconds: 3
+  targeting: creature
+  effects:
+    # [cursed · uncursed · blessed] — the abstract covering-fold token; a
+    # steel breastplate answers a magic blunt blow exactly as it answers a
+    # mace, which is the whole point of routing through the one fold.
+    - kind: inject-channel
+      channel: blunt
+      energy: [1, 2, 4]
+    # ── Stonefist's cursed answer: the recoil it did not brace against ──
+    # Every push shoves both ways (arcane-science). A cursed working fails
+    # to plant, and the mass it drove out comes back into the casting arm.
+    - kind: inject-channel
+      bands: [cursed]
+      self: true
+      channel: blunt
+      energy: 2
+      site: body.arm.right.hand
+  description: >-
+    A fist of gathered stone slams into the mark. Nothing is made from
+    nothing — the rock is called from the ground and hurled — and what it
+    delivers is an honest crushing blow: bone answers it, and so does
+    armour, the same way both answer a mace.

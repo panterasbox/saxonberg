@@ -81,7 +81,10 @@ export const UNBOUNDED_CAPACITY: number = Number.MAX_SAFE_INTEGER;
  * - `covers` — anatomical parts an occupant of this slot *covers*
  *   (`body.*` keys). The coverage relation — for armor mitigation,
  *   hit-location, "the wound is hidden under the coat". One slot may
- *   cover many parts. Declared seam; no consumer this build.
+ *   cover many parts. ⚠ The "declared seam; no consumer" note this
+ *   carried was already false when it was written — `covers` has four
+ *   live readers through `BodyPlan.getSlotsCovering`, and it is what the
+ *   covering-stack fold walks to decide what a blow goes through.
  */
 export interface SlotSpec {
   name: string;

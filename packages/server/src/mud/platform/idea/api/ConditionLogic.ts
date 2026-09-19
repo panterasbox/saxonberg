@@ -41,6 +41,7 @@ import type {
 import type {
   InflictSpec,
   InflictOutcome,
+  CorrosionInflictSpec,
   EnergyInflictSpec,
   ShockInflictSpec,
 } from '../../../api/condition';
@@ -70,6 +71,13 @@ function channelDefaultType(channel: Channel): TraumaType {
     case 'heat':
       // Heat that survives the insulation stack burns the tissue.
       return 'burn';
+    case 'cold':
+      // The same insulation stack, run the other way.
+      return 'frostbite';
+    case 'corrosion':
+      // What got past the covering is still chemically active when it
+      // reaches skin — that is what makes it different from a burn.
+      return 'caustic';
   }
 }
 
@@ -228,7 +236,18 @@ export class ConditionLogic extends ApiLogic {
     if (spec.mechanism === 'shock') {
       return inflictShock(target, spec, inflicter);
     }
-    // `spec` is now the energy-carrying variant (shock excluded).
+    // `spec` is now the energy-carrying variant (shock excluded). A
+    // corrosive one carries the agent's chemistry; everything else has
+    // none, and an empty list attacks nothing.
+    if (spec.mechanism === 'corrosion') {
+      return inflictThroughStack(
+        target,
+        spec,
+        'corrosion',
+        inflicter,
+        spec.corrosiveTo,
+      );
+    }
     return Channels.isChannel(spec.mechanism)
       ? inflictThroughStack(target, spec, spec.mechanism, inflicter)
       : inflictPassthrough(target, spec, inflicter);
@@ -454,6 +473,11 @@ async function divideBody(avatar: PlayerBody, cause: string): Promise<void> {
 
   // (d) — a clean, living baseline. NOT dead.
   body.resetVitalsToSpeciesBaseline();
+  // ⭐⭐ …and a WHOLE body. A severed limb is cleared here with everything
+  // else, so a reembodied player is not headless-and-re-dying on arrival
+  // (the anatomy death floor would otherwise brick them). Resurrection
+  // restores the body; a living limb-restore is the slated content path.
+  body.resetAnatomyToSpeciesBaseline();
   for (const condition of [...body.getConditions()]) body.relieve(condition);
   body.setCauseOfDeath(null);
 
@@ -889,9 +913,10 @@ function environmentalRow(host: Stuff): AccountabilityFields {
  */
 function inflictThroughStack(
   target: Stuff,
-  spec: EnergyInflictSpec,
+  spec: EnergyInflictSpec | CorrosionInflictSpec,
   channel: Channel,
   inflicter: string | undefined,
+  agent: readonly string[] = [],
 ): InflictOutcome {
   const isBody = MixinApi.isVitals(target);
   let residual = Math.max(0, spec.energy);
@@ -912,10 +937,31 @@ function inflictThroughStack(
         layer.construction,
         layer.grade,
         layer.condition,
+        agent,
+        'penetration' in spec ? (spec.penetration ?? 1) : 1,
+        // ⭐ The layer's REAL insulation for the thermal channels — the
+        // same clo that widens its wearer's comfort band. A held shield
+        // is Wieldable, not Wearable, and derives none; the fold scores
+        // it as a slab instead.
+        MixinApi.isWearable(layer.occ) ? layer.occ.getClo().rawValue() : null,
       ).residualEnergy;
       // Wear-on-use (Law 2): a covering layer that attenuated a
       // mechanical blow wears — armor degrades by taking hits, never by
       // the clock. Heat/shock leave no structural wear here.
+      // ⭐ **A layer that was EATEN wears for it.** Corrosion's wear is
+      // the inverse of the mechanical rule: a mechanical layer wears
+      // because it stopped something, and a corroded one wears precisely
+      // because it did NOT — the agent went through, and took some of the
+      // layer with it. `residual === incident` is the tell.
+      if (
+        channel === 'corrosion' &&
+        residual >= incident &&
+        MixinApi.isDurable(layer.occ)
+      ) {
+        layer.occ.wear(
+          dial(AppSettingKeys.responseCorrosionWearPerContact, 0.2),
+        );
+      }
       if (
         Channels.isMechanicalChannel(channel) &&
         residual < incident &&
@@ -956,6 +1002,12 @@ function inflictThroughStack(
     mechanism: channel,
   };
   if (inflicter !== undefined) trauma.inflictedBy = inflicter;
+  // Whether this blow may maim — only a mechanical/tearing avulsion ever
+  // reads it, but stamp it here for every wound so provenance is uniform.
+  // `spec` here is `EnergyInflictSpec | CorrosionInflictSpec`; a corrosion
+  // spec carries no `maim` (`in` guards it) and its wound is never an
+  // avulsion regardless.
+  if ('maim' in spec && spec.maim === false) trauma.maimAllowed = false;
 
   // Non-body target, or the stack turned the blow → nothing afflicted, but
   // the outcome carries the (severity-0 / deflected) record.
@@ -965,13 +1017,116 @@ function inflictThroughStack(
 
   const nowS = conditionNowSeconds();
   if (nowS !== null) trauma.tickedAt = nowS;
-  TRAUMA_BEHAVIOR[trauma.type].onset(target, trauma);
-  // The veto layer (magic-items D14) sits HERE — after the covering-stack
-  // fold, before the write. Armor still attenuates; a conferred immunity
-  // simply refuses what is left, and the outcome says so honestly rather
-  // than reporting a hit that never landed.
+  // ⭐⭐ **Veto first, then onset** (D1). The veto layer (magic-items D14)
+  // sits HERE — after the covering-stack fold, before anything happens.
+  // Armor still attenuates; a conferred immunity simply refuses what is
+  // left, and the outcome says so honestly rather than reporting a hit that
+  // never landed.
+  //
+  // ⚠ The order was onset-then-afflict, which was harmless only while every
+  // `onset` mutated the trauma VALUE and nothing else. It stopped being
+  // harmless the moment an onset could act on the BODY: an avulsion's onset
+  // now severs a limb, and a wound the body refused must not take an arm
+  // with it. The pushed record is the same object either way, so a landed
+  // wound is byte-identical to before.
   const landed = target.afflict(trauma);
-  return { trauma, afflicted: landed };
+  if (landed) TRAUMA_BEHAVIOR[trauma.type].onset(target, trauma);
+  if (!landed) return { trauma, afflicted: false };
+
+  const reached = reachInterior(target, channel, trauma, inflicter, nowS);
+  return reached.length > 0
+    ? { trauma, afflicted: true, reached }
+    : { trauma, afflicted: true };
+}
+
+/**
+ * ⭐⭐ **The depth ladder** — what a blow that got through the skin meets
+ * underneath it.
+ *
+ * A wound past `response.depth.reachThreshold` has excess left over, and
+ * the excess reaches the interior parts sitting under the site **largest
+ * cross-section first** — a bigger organ presents more of itself to
+ * whatever is coming through. Each organ takes `stepPerOrgan` out of what
+ * remains, so a deeper blow reaches **more** organs rather than merely
+ * hurting the first one worse. It stops when there is not enough left to
+ * make a wound.
+ *
+ * ⚠⚠ **No roll anywhere.** The biggest organ under a site is hit first,
+ * every time; a deeper wound reaches further, every time. A student can
+ * derive both from `assess`, which is the whole difference between a model
+ * and a slot machine — and a weighted site pick would be a roll deciding
+ * what your action DID, which `docs/uncertainty.md` bans outright.
+ *
+ * Each interior trauma lands through the same `afflict` door as the
+ * exterior wound, so a conferred immunity refuses it too.
+ */
+function reachInterior(
+  target: Stuff & Vitals,
+  channel: Channel,
+  exterior: Trauma,
+  inflicter: string | undefined,
+  nowS: number | null,
+): Trauma[] {
+  if (!MixinApi.isOrganism(target)) return [];
+  const plan = target.getSpecies()?.getBodyPlan();
+  if (!plan) return [];
+  const organs = plan.interiorChildrenOf(exterior.site);
+  if (organs.length === 0) return [];
+
+  const threshold = dial(AppSettingKeys.responseDepthReachThreshold, 2);
+  const excess = exterior.severity - threshold;
+  if (!(excess > 0)) return [];
+
+  const step = dial(AppSettingKeys.responseDepthStepPerOrgan, 1);
+  const floor = dial(AppSettingKeys.responseNoWoundThreshold, 0.25);
+  const ruptureAt = dial(AppSettingKeys.responseBluntRuptureThreshold, 1);
+
+  const reached: Trauma[] = [];
+  for (let k = 0; k < organs.length; k++) {
+    const severity = excess - k * step;
+    if (!(severity > floor)) break;
+    const organ = organs[k]!;
+    const inner: Trauma = {
+      kind: 'trauma',
+      type: interiorTypeFor(channel, severity, ruptureAt),
+      site: organ.key,
+      severity,
+      mechanism: channel,
+    };
+    if (inflicter !== undefined) inner.inflictedBy = inflicter;
+    if (exterior.magicOrigin !== undefined) {
+      inner.magicOrigin = exterior.magicOrigin;
+    }
+    if (nowS !== null) inner.tickedAt = nowS;
+    if (target.afflict(inner)) {
+      TRAUMA_BEHAVIOR[inner.type].onset(target, inner);
+      reached.push(inner);
+    }
+  }
+  return reached;
+}
+
+/**
+ * What the channel does to an organ. A point punctures it and an edge
+ * lacerates it exactly as they would skin; a blunt blow is the interesting
+ * one — hard enough and the organ **tears** (`rupture`), otherwise it is
+ * bruised (`contusion`: a concussion, a bruised liver).
+ *
+ * ⚠ Non-mechanical channels never reach here: heat and cold are stopped by
+ * the insulation fold at the surface, and shock does not resolve through
+ * the stack at all.
+ */
+function interiorTypeFor(
+  channel: Channel,
+  severity: number,
+  ruptureAt: number,
+): TraumaType {
+  if (channel === 'point') return 'puncture';
+  if (channel === 'edge') return 'laceration';
+  if (channel === 'blunt') {
+    return severity >= ruptureAt ? 'rupture' : 'contusion';
+  }
+  return channelDefaultType(channel);
 }
 
 /**
@@ -996,16 +1151,21 @@ function inflictPassthrough(
     mechanism: spec.mechanism,
   };
   if (inflicter !== undefined) trauma.inflictedBy = inflicter;
+  // The `'tearing'` passthrough is the OTHER avulsion producer; it honours
+  // the same maim gate. (No shipped combat producer uses it, but a future
+  // deliverer would inherit the consent rule for free.)
+  if (spec.maim === false) trauma.maimAllowed = false;
 
   if (!MixinApi.isVitals(target)) {
     return { trauma, afflicted: false };
   }
   const nowS = conditionNowSeconds();
   if (nowS !== null) trauma.tickedAt = nowS;
-  TRAUMA_BEHAVIOR[type].onset(target, trauma);
   // Same veto seam as the stack path — a passthrough insult is no less
-  // refusable by a conferred immunity.
+  // refusable by a conferred immunity — and the same veto-then-onset order
+  // (D1), so a refused avulsion severs nothing.
   const landed = target.afflict(trauma);
+  if (landed) TRAUMA_BEHAVIOR[type].onset(target, trauma);
   return { trauma, afflicted: landed };
 }
 
@@ -1043,12 +1203,11 @@ function inflictShock(
   }
   const nowS = conditionNowSeconds();
   if (nowS !== null) trauma.tickedAt = nowS;
-  TRAUMA_BEHAVIOR[trauma.type].onset(target, trauma);
-  // The veto layer (magic-items D14) sits HERE — after the covering-stack
-  // fold, before the write. Armor still attenuates; a conferred immunity
-  // simply refuses what is left, and the outcome says so honestly rather
-  // than reporting a hit that never landed.
+  // The veto layer (magic-items D14), and the same veto-then-onset order
+  // as the other two terminal paths (D1) — a conferred immunity refuses
+  // what the circuit delivered, and nothing develops from a refused wound.
   const landed = target.afflict(trauma);
+  if (landed) TRAUMA_BEHAVIOR[trauma.type].onset(target, trauma);
   return { trauma, afflicted: landed };
 }
 

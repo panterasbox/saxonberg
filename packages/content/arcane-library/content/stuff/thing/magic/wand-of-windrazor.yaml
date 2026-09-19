@@ -1,0 +1,25 @@
+# A wand of windrazor — a shearing edge of air, wielded by a non-caster. Carries the SHIPPED
+# `windrazor` working; `zap` spends the maker's stored labour, not competence.
+class: /system/arcana/thing/Wand
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: pale glass-edged rod
+  keywords: [wand, rod, windrazor]
+  register: indefinite
+  longDescription: >
+    A pale rod edged along one side with a thin ribbon of glass, cold to
+    the touch and faintly singing when it cuts the air.
+  carriedSpellPath: /stuff/idea/magic/Spell/windrazor
+  makerId: /obj/npc/practicum/artificer
+  deliveryEfficiency: 1.4
+  capacityTau: 900
+  alwaysOn: false
+  censusKey: wand
+  materialTags: [glass, wood]
+  regionTarget: 2
+  descriptorClass: wand
+  identifiedName: a wand of windrazor
+  selfIdentifying: true
+  slotClaims:
+    "/stuff/idea/species/BodyPlan/biped": ["hand:right"]
+  blessingOdds: { cursed: 3, uncursed: 95, blessed: 2 }
