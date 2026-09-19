@@ -695,6 +695,13 @@ The land draw still rides the productive object; what is new is that a
 field draws against the parcel's declared yard, and that newly plotted
 ground is **not plantable** until it has been cleared.
 
+⚠ *Plantable* here is `Improvable.isPlantable` — a gate with no caller
+yet. `plant`/`sow` require a `CultivableMixin` target and a `Field`
+composes none, so a cleared field grows sward (hay, grazing) and arable
+crops still grow in beds and pots. The arable field crop is the
+[farming slate](../slates/tails/farming-slate.md)'s open item (verified
+2026-09).
+
 See [soil.md](./soil.md) for the field, the ledger, ground character and
 the survey ladder, and [ranching.md](./ranching.md) for what eats it.
 
