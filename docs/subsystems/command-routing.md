@@ -500,6 +500,37 @@ layer. The push order is the dispatch order, so the concrete class's
 override of a mixin verb wins. This is the same composition order
 `MixinApi.queryMixins` uses for predicate dispatch.
 
+### Why there is no `static affords`, and why MML carries no verb list
+
+(Graduated from the client slate § 4.2, 2026-09.) The client spec once
+proposed a `static affords` beside `fieldMeta` on every verb-conferring
+mixin. **Not built**: `static commandContributions` is already
+directional and recursive (`self` · `inventory` · `environment` ·
+`peers`), authored across the whole tree and introspectable, and it
+carries reach semantics `affords` would not. A second taxonomy describing
+what the first already knows is the exact error the spec itself rejected
+in its earlier `kind` registry.
+
+**MML must not carry the verb list**, for three reasons that each
+suffice: *bloat* (twenty tagged nouns × a dozen verbs dwarfs the prose),
+*staleness* (a frame sits in scrollback forever; a door tagged `unlock`
+ten minutes ago is now a lie), and *viewer-dependence* (the true menu is
+a function of `(id, viewer, now)`, and MML is a snapshot of *then*). The
+radial therefore opens on a stable skeleton and resolves the volatile
+half live — unavailable verbs dim with their reason, new ones fill in —
+and the category slots never reflow (perception north, manipulation
+east, social west, movement south), so muscle memory survives a menu
+whose verbs you have never seen.
+
+**The `mx` composition digest was cut for the same three reasons.**
+Composition is not stable either — `getActiveMixins` unions in augments,
+implants, species innates and on-shift conferral — so a digest in
+scrollback goes stale exactly as a verb list would; it is redundant with
+the `stuff-id` beside it; and hand-authored `<thing mx="…">` is reachable
+through the `item` Liquid filter and `Mml.fromMarkup`, so it could drift
+irreconcilably. A bitvector over 149 mixins was longer than the sparse
+list. Composition rides the resolver, cached per `stuff-id`.
+
 ### Affordance attribution — source, not category
 
 Every binding records the **source Stuff** that afforded it

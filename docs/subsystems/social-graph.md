@@ -441,6 +441,39 @@ the [connection-origin slate](../slates/tails/connection-origin-slate.md):
 City/region, the developer-gated IP read, and any persisted "last-seen
 country" remain deferred to the slate.
 
+## The inspection surface — three kinds of fact, and the disclosure model
+
+(Graduated from the social-inspection slate, 2026-09 — the design behind
+`who`, `profile`, `score`/`me` and `privacy.showStatus`.)
+
+There are **three different kinds of fact about a person**, with three
+owners and three privacy semantics — which is why there is no one fat
+`score` verb:
+
+| layer | examples | owner | privacy |
+|---|---|---|---|
+| **identity facts** | name-as-presented, species-as-presented, country, account age, online/idle | the person | the disclosure dial below; country exempt — always public |
+| **measured standing** | renown, influence (play/make/fund), competence, traits | the world, derived | outward measures public; internal measures self-only |
+| **private opinion** | your regard for them, your contacts label | *the observer* | always the observer's; never on the subject's card |
+
+**The disclosure model** is not a set of hide-flags:
+
+1. **Presence is a public fact.** Online means on the `who` list, always;
+   there is no "appear offline." Hiding your *existence* is a
+   privileged, conditional capability (concealment), never a setting.
+2. **Fidelity is per (observer, observed) pair.** What a viewer sees is a
+   function of the relationship — introduced, in contacts, shared group
+   — over a baseline: a stranger sees *a tall stranger — from Brazil*; the
+   introduced see *Duncan — from Brazil*. The recognition lens, applied to
+   the roster and the card.
+3. **Privacy is what you offer without friction.** A setting is the
+   *floor* of disclosure — never "nobody," never a per-field boolean — a
+   per-attribute threshold naming the tier that unlocks it (`anyone` /
+   `introduced+` / `contacts+`). Raising one person above the floor is an
+   *act*, which is what `introduce` already is: the model in miniature.
+4. **Country is exempt** — pinned at maximum, non-overridable, because
+   the game's political premise makes it load-bearing.
+
 ## A flagged deferral
 
 1. **Message-restyle live wiring (Phase 3b).**
