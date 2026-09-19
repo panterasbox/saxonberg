@@ -237,6 +237,10 @@ is why linen was worn undyed and wool was the coloured cloth. Wool
 (protein) takes alum directly and arrives with ranching. The full
 account is `packages/content/trade-dyeing/README.md`.
 
+**`jute`** is in the fibre vocabulary (`base-library/…/material/textile/jute.yaml`)
+— hessian is jute, and the sack rows in `trade-cooking` and `trade-bottling`
+name it (graduated from the bulkable slate, 2026-09).
+
 ⚠ **The base is neutral white today.** The honest base is the fibre's
 own colour — unbleached linen is fawn, wool cream to brown — which is
 what makes *"linen was worn undyed and wool was the coloured cloth"*
