@@ -21,6 +21,7 @@ import { PathPatternApi } from '../../../../api/path-pattern';
 import { SourceTreeApi, SourceTreeSandboxError } from '../../../../api/source-tree';
 import { AccessApi } from '../../../../api/access';
 import { Template } from '../../../../lib/stuff/Template';
+import { DocumentApi } from '../../../../api/document';
 
 interface LsModel extends CommandModel {
   path?: string;
@@ -145,6 +146,21 @@ export default class LsController extends CommandController<LsModel> {
       const isImmediate = tplSegments === baseSegments + 1;
       if (recursive || isImmediate) {
         lines.push(tpl.path);
+      }
+    }
+    // ⭐ The third path-addressed tree beside the templates: the DOCUMENTS
+    // under the path — a member's papers, filed records. Listed the same
+    // way (immediate children unless recursive), with the branch segments
+    // between the base and a deeper document shown once each.
+    if (basePath === '/') return; // the root's children are the namespace zones — templates all
+    const docs = await DocumentApi.list(basePath);
+    const seen = new Set<string>(lines);
+    for (const doc of docs.sort((a, b) => a.path.localeCompare(b.path))) {
+      const segs = doc.path.split('/');
+      const shown = recursive ? doc.path : segs.slice(0, baseSegments + 1).join('/');
+      if (shown && shown !== basePath && !seen.has(shown)) {
+        seen.add(shown);
+        lines.push(shown);
       }
     }
   }

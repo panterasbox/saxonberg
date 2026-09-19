@@ -15,9 +15,14 @@ settings:
   # Lane two — the perpetual: money per active member (minor units). The
   # reserve buys the state's perpetual up to this × the active member
   # count, into the treasury's account, and never redeems. The one
-  # denominator that scales with the player base.
+  # denominator that scales with the player base. ⚠ Sized against the
+  # standing facility: at launch every NPC house opens on the treasury's
+  # advance (`treasury.openingAdvance`), so with a handful of members this
+  # row is what decides how many houses can open at all — the treasury
+  # refuses an advance it cannot cover, and a house then opens on nothing
+  # until the membership grows. The Governor's to tune.
   - key: reserve.moneyPerActiveMember
-    value: "2000"
+    value: "10000"
 
   # Lane one — the window rate per game-year (a fraction). The bank rate
   # plus three: a penalty, so the window is used in need, not for profit.

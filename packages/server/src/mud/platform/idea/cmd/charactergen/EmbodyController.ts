@@ -25,11 +25,12 @@ import { MessageApi } from "../../../../api/message";
 import { Mml } from "../../../../api/mml";
 import { StuffApi } from "../../../../api/stuff";
 import { AppApi } from "../../../../api/app";
-import { AppSettingKeys } from "../../../../lib/config/AppSettings";
 import { Currency, BankingApi, Money } from "../../../../api/banking";
 import { ConnectionApi } from "../../../../api/connection";
 import { ContainmentApi } from "../../../../api/containment";
 import { MixinApi } from "../../../../api/mixin";
+import { ContractApi } from "../../../../api/contract";
+import { AppSettingKeys } from "../../../../lib/config/AppSettings";
 import { Template } from "../../../../lib/stuff/Template";
 import Avatar from "../../../agent/Avatar";
 import Login from "../../Login";
@@ -771,23 +772,40 @@ export default class EmbodyController extends CommandController<EmbodyModel> {
       tags: ["founding", "embody"],
     });
 
-    // 5c. Onboarding coin (D11): a committed non-guest gets a small hard-coin
-    //     grant — physical `Coin` minted via `issueCash` (the CB cash faucet,
-    //     the only conserved way money enters, logged). Drink-sized + anti-farm;
-    //     NO account is opened (that's a later onboarding beat). Guests are
-    //     minted via `Login.mintRandomGuestAvatar` and never reach char-gen
-    //     commit — the `!isGuest` guard makes that explicit. `0` disables it.
+    // 5c. ⭐ The Arrival Note (economic bootstrap D10). A committed
+    //     non-guest ISSUES a note to the Treasury and receives the
+    //     principal as coin in hand — a withdrawal from the treasury's
+    //     account, never a mint: money entered the world against a
+    //     promise. Written by the machine, filed in the member's own
+    //     papers; no character in the fiction hands it over. Guests are
+    //     minted via `Login.mintRandomGuestAvatar` and never reach commit.
+    //     The frame that tells them rides `enter` (below).
+    let note: { principal: number; paperPath: string } | null = null;
     if (!avatar.getIsGuest()) {
-      const stipend =
-        Number(AppApi.setting(AppSettingKeys.bankingOnboardingStipend)) || 0;
-      if (stipend > 0) {
-        await BankingApi.issueCash(avatar, Money.of(stipend, BankingApi.compactCurrency()), "onboarding");
+      const issued = await ContractApi.issueNote(avatar.getIdentityPath() ?? "");
+      if (issued.ok) {
+        note = { principal: issued.principal, paperPath: issued.paperPath };
+        await avatar.recordChronicleOnce("economy:note:signed", {
+          template: "Signed the Arrival Note: {{ principal }} from the Treasury, against a promise.",
+          vars: { principal: Money.of(issued.principal, BankingApi.compactCurrency()).render() },
+        });
+        if (MixinApi.isAdvancing(avatar)) {
+          void avatar.creditDeed({ discipline: "finance", difficulty: "easy", outcome: "success" });
+        }
       }
     }
 
     // 6. Hand off to the avatar's session, then destruct Login.
     interactive.transferTo(avatar);
     await avatar.enter(interactive, { firstArrival: true });
+    if (note) {
+      MessageApi.scene(avatar)
+        .topic("act.deed")
+        .toSelf(
+          Mml.compose`The Treasury has advanced you ${Money.of(note.principal, BankingApi.compactCurrency()).render()} against your Arrival Note — at no interest, forgiven on your first wage, secured by nothing but the balance itself. It is filed in your papers at ${note.paperPath}; \`wallet\` lists it.`,
+        )
+        .send();
+    }
     StuffApi.destruct(login);
   }
 

@@ -20,5 +20,6 @@ settings:
   # 0% loan from the treasury on its first account, secured by that
   # account, repaid as a share of inflows like any loan. A loan precisely
   # so the state never owns the residual of every business in the world.
+  # Sized to the perpetual: a member's worth funds a few houses, not one.
   - key: treasury.openingAdvance
-    value: "20000"
+    value: "2000"

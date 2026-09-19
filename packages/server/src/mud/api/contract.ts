@@ -25,6 +25,7 @@ import { ContractLogic } from "../platform/idea/api/ContractLogic";
 import type {
   IssueLoanSpec,
   IssueLoanResult,
+  IssueNoteResult,
   LoanRefusal,
   WindowDefaultRate,
   TreasuryPaper,
@@ -43,6 +44,7 @@ import { SecurityApi } from "./security";
 export type {
   IssueLoanSpec,
   IssueLoanResult,
+  IssueNoteResult,
   LoanRefusal,
   WindowDefaultRate,
   TreasuryPaper,
@@ -232,6 +234,27 @@ export class ContractApi {
    */
   public static async openingAdvance(businessKey: string): Promise<IssueLoanResult> {
     return logic().openingAdvance(businessKey);
+  }
+
+  /**
+   * ⭐ The Arrival Note: the member issues a note to the Treasury and
+   * receives the principal as coin in hand; the paper is filed in their
+   * own papers. Keyed on the member's identity path (they must be
+   * resident). Idempotent per member; refused (a value) when the treasury
+   * cannot cover it.
+   */
+  public static async issueNote(memberKey: string): Promise<IssueNoteResult> {
+    return logic().issueNote(memberKey);
+  }
+
+  /** A wage landed for `workerKey`: every open note they issued is discharged. Returns the ids. */
+  public static async onWageLanded(workerKey: string): Promise<string[]> {
+    return logic().onWageLanded(workerKey);
+  }
+
+  /** The lazy discharge: a note past its game-days active is forgiven on any touch. Returns the ids. */
+  public static async reconcileNotes(issuerKey: string): Promise<string[]> {
+    return logic().reconcileNotes(issuerKey);
   }
 
   /**

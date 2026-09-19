@@ -1486,6 +1486,40 @@ from the counter names "you have zero") green on a fresh world.
   perpetual outstanding ≥ the advances made.
 - Commit: `build(economic-bootstrap W6): the Arrival Note; opening capital is the treasury's advance; a wage is a loan or a refusal; no authored faucet`.
 
+**W6 — DONE.** `ContractApi.issueNote(memberKey)` (keyed on the identity
+path — `lint:object-verbs` again; the member must be resident) →
+`note` row + `disburse` from the treasury into hand + the paper at
+`/home/<key>/papers/arrival-note`; `onWageLanded` / the lazy
+`reconcileNotes`; `EmbodyController.commit` issues it, records
+`economy:note:signed` once, credits `finance`, and the frame after
+`enter` says where it is filed. **`EmploymentApi.payHouseWage` is the one
+way a house pays** — the roster tick and `house payroll` both ride it:
+arrears first, a rung-2 draw at the house's bank where earned, else the
+arrear on the book with the worker as creditor and the proprietor told;
+a landed wage discharges the worker's note and tells them.
+`operatingAccountOf` asks `openingAdvance` on a history-less account
+(⚠ the first run recursed the heap out: `openingAdvanceImpl` called
+`operatingAccountOf` back — it reads the primary account now). `wallet`
+lists every open instrument; `house pnl` prints arrears. The stipend
+dial is gone; `lint:no-authored-faucet` holds **0**. Three decisions:
+(1) **the Schedule's launch numbers were inconsistent** — `openingAdvance
+20000` against `moneyPerActiveMember 2000` meant the treasury could not
+fund ONE house at two members; now `10000` / `2000`, so a member's worth
+opens a few houses and a house the treasury cannot cover opens on
+nothing (a diagnostic, never a throw) until the membership grows. (2) The
+paper's face and the wallet's line render amounts in WORDS (*twenty
+zorkmids*) — the no-gauge rule; balances stay digits. (3) **`cat`/`ls`
+read the document tree** where no template answers — the third
+path-addressed tree had no in-game reader, and "reading the note in your
+own records" needed one; `ls /home/<key>/papers` lists it, `cat …/arrival-note`
+prints the face and its history. Also: Goodkin's business is a `boot:`
+entry now (a lazily stood-up chart cannot be appointed to), and the wire
+harness gained **`Session.embody(handle, picks)`** — login with no
+character and walk `embody species/sex/name/pronouns/aspiration/confirm`
+for real, probing arrival with `look` as `play` does. The drive's step 3
+needed the belief layer's `introduce` before the founder could name the
+newcomer. Drive steps 1, 3, 4, 5, 7 green on a fresh world.
+
 ### W7 — Rung 0 and the stocking rule (D11, D14)
 
 - `Consignment.ts` `basis`; `Stock.purchasing`, `StockLine.supplier/pricing`,

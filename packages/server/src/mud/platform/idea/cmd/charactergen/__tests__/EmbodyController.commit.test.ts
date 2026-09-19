@@ -25,6 +25,7 @@ import { Template } from '../../../../../lib/stuff/Template';
 import { ContainmentApi } from '../../../../../api/containment';
 import { MessageApi } from '../../../../../api/message';
 import { BankingApi, Money } from '../../../../../api/banking';
+import { ContractApi } from '../../../../../api/contract';
 import { makeStuff } from '../../../../../lib/security/__tests__/test-setup';
 import type { CommandContext, CommandModel } from '../../../../../api/command';
 
@@ -46,6 +47,7 @@ describe('EmbodyController.commit', () => {
     setSex: ReturnType<typeof vi.fn>;
     enter: ReturnType<typeof vi.fn>;
     getIsGuest: ReturnType<typeof vi.fn>;
+    getIdentityPath: ReturnType<typeof vi.fn>;
       seedChronicleClaims: ReturnType<typeof vi.fn>;
     recordDeed: ReturnType<typeof vi.fn>;
     recordChronicleOnce: ReturnType<typeof vi.fn>;
@@ -61,14 +63,20 @@ describe('EmbodyController.commit', () => {
 
     // The mint path now sources the new avatar's startLocation from app
     // config; mock the cached read (no AppSettings boot warm in this unit).
-    // Key-aware: the onboarding stipend needs a number, everything else the
-    // spawn home.
+    // Key-aware: the compact currency needs a currency key, everything else
+    // the spawn home.
     vi.spyOn(AppApi, 'setting').mockImplementation((k: string) =>
-      k === 'banking.onboardingStipend' ? '20' : '/world/lounge/idea/warren',
+      k === 'banking.compactCurrency' ? 'zorkmid' : '/world/lounge/idea/warren',
     );
-    // Onboarding coin is minted through the CB faucet — spy it (no banking
-    // harness in this unit); the dedicated tests assert the call shape.
-    vi.spyOn(BankingApi, 'issueCash').mockResolvedValue(undefined as never);
+    // ⭐ The Arrival Note (economic bootstrap D10) is the contract face's —
+    // spy it (no banking harness in this unit); `credit.note.test.ts`
+    // proves the row, the coin and the paper.
+    vi.spyOn(ContractApi, 'issueNote').mockResolvedValue({
+      ok: true,
+      contractId: 'note-1',
+      principal: 20,
+      paperPath: '/home/p-1/papers/arrival-note',
+    });
 
     user = { _id: 'u1', playerIds: [], save: vi.fn().mockResolvedValue(undefined) };
     const interactive = makeStuff(
@@ -117,6 +125,7 @@ describe('EmbodyController.commit', () => {
       setSex: vi.fn(),
       enter: vi.fn().mockResolvedValue(undefined),
       getIsGuest: vi.fn().mockReturnValue(false),
+      getIdentityPath: vi.fn().mockReturnValue('/platform/agent/Avatar/p-1'),
       // The chronicle owner face (the OO sweep): commit seeds claims and
       // mints the founding deed ON the avatar.
       seedChronicleClaims: vi.fn().mockResolvedValue(undefined),
@@ -215,27 +224,20 @@ describe('EmbodyController.commit', () => {
     expect(destruct).toHaveBeenCalledWith(login);
   });
 
-  it('grants the onboarding coin to a committed non-guest (one issueCash mint)', async () => {
+  it('⭐ a committed non-guest ISSUES the Arrival Note (one issueNote — no mint, no stipend)', async () => {
     await confirm();
-    expect(BankingApi.issueCash).toHaveBeenCalledTimes(1);
-    const [into, amount] = (BankingApi.issueCash as unknown as {
-      mock: { calls: unknown[][] };
-    }).mock.calls[0]!;
-    expect(into).toBe(avatar);
-    expect((amount as Money).minor).toBe(20);
+    expect(ContractApi.issueNote).toHaveBeenCalledTimes(1);
+    const [key] = (ContractApi.issueNote as unknown as { mock: { calls: unknown[][] } }).mock.calls[0]!;
+    expect(String(key)).toMatch(/^\/platform\/agent\/Avatar\//);
+    expect(avatar.recordChronicleOnce).toHaveBeenCalledWith(
+      'economy:note:signed',
+      expect.objectContaining({ template: expect.stringMatching(/Arrival Note/) }),
+    );
   });
 
-  it('grants a guest no onboarding coin', async () => {
+  it('a guest issues no note', async () => {
     avatar.getIsGuest.mockReturnValue(true);
     await confirm();
-    expect(BankingApi.issueCash).not.toHaveBeenCalled();
-  });
-
-  it('grants nothing when the stipend is 0', async () => {
-    (AppApi.setting as unknown as { mockImplementation: (f: (k: string) => string) => void }).mockImplementation(
-      (k: string) => (k === 'banking.onboardingStipend' ? '0' : '/world/lounge/idea/warren'),
-    );
-    await confirm();
-    expect(BankingApi.issueCash).not.toHaveBeenCalled();
+    expect(ContractApi.issueNote).not.toHaveBeenCalled();
   });
 });

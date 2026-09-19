@@ -19,8 +19,11 @@ import { GovernmentApi } from '../../../api/government';
 import { PlayerApi } from '../../../api/player';
 import { PerceptionApi } from '../../../api/perception';
 import { BankingApi, Money } from '../../../api/banking';
-import type { RemittanceSplit } from '../../../api/banking';
+import type { RemittanceSplit, PnlCategory as PnlCategoryArg } from '../../../api/banking';
 import { WorldClockApi } from '../../../api/worldclock';
+import { ContractApi } from '../../../api/contract';
+import { MessageApi } from '../../../api/message';
+import { Mml } from '../../../api/mml';
 import type { ClockHandle } from '../../../api/worldclock';
 import { Quantity } from '../../../lib/quantity';
 import { DefaultCalendar } from '../../../lib/time/DefaultCalendar';
@@ -717,15 +720,128 @@ async function operatingAccountOfImpl(
     );
   }
   // ⭐ A business opens on NOTHING (economic bootstrap D9). Its capital is
-  // the treasury's standing advance — a 0% loan the contract face funds on
-  // a history-less account (W6's `ContractApi.openingAdvance`), never an
+  // the TREASURY'S STANDING ADVANCE — a 0% loan the contract face funds on
+  // a history-less account, secured by that account, repaid as a share of
+  // inflows like any loan, filed under the business's papers. Uniform for
+  // NPC and player businesses; the ledger says who got what. Never an
   // authored number minted here.
-  return BankingApi.ensureVenueAccount(
+  const account = await BankingApi.ensureVenueAccount(
     business.getAccountPath(),
     banksAt,
     '',
     BankingApi.compactCurrency(),
   );
+  if ((await BankingApi.entriesFor(account)).length === 0) {
+    const advanced = await ContractApi.openingAdvance(business.getAccountPath());
+    if (!advanced.ok && advanced.reason !== 'already-advanced' && advanced.reason !== 'no-facility') {
+      console.warn(
+        `EmploymentLogic: ${business.getTemplatePath()} opened with no advance — ` +
+          `${advanced.reason} ${advanced.detail}`,
+      );
+    }
+  }
+  return account;
+}
+
+export type WagePayment =
+  | { ok: true; paidMinor: number; drewMinor: number; discharged: string[] }
+  | { ok: false; reason: 'insufficient-funds' | 'no-account'; detail: string };
+
+/**
+ * ⭐ **The one way a house pays a wage** (economic bootstrap D18) — the
+ * roster tick and `house payroll` both come here. Arrears first: what the
+ * house already owes this worker is added to the wage. If the house is
+ * short, it draws on a WORKING-CAPITAL line at its own bank — rung 2 of
+ * the ladder, granted only where the house's ledger has earned it — and
+ * then pays. If no line, the wage is NOT posted: the house records the
+ * arrear (the worker is the creditor BY NAME), the proprietor is told why
+ * if resident, and the next settlement pays it first. No account goes
+ * negative without a creditor. When a wage lands, the worker's open
+ * Arrival Note discharges, and they are told if resident.
+ */
+async function payHouseWageImpl(
+  business: BusinessStuff,
+  workerKey: string,
+  amountMinor: number,
+  category: PnlCategoryArg = 'wages',
+  memo = 'wage',
+): Promise<WagePayment> {
+  const account = await operatingAccountOfImpl(business);
+  if (!(await ensurePayableWorker(workerKey, business))) {
+    return { ok: false, reason: 'no-account', detail: workerKey };
+  }
+  const arrearsOwed = business
+    .getPayrollArrears()
+    .filter((a) => a.workerKey === workerKey)
+    .reduce((n, a) => n + a.amountMinor, 0);
+  const due = amountMinor + arrearsOwed;
+  const currency = BankingApi.compactCurrency();
+  let drewMinor = 0;
+  let held = BankingApi.balanceOf(account).minor;
+  if (held < due) {
+    const shortfall = due - held;
+    const counter = BankingApi.branchOf(business.getBanksAt());
+    if (counter) {
+      const drawn = await ContractApi.issueLoan({
+        borrower: business,
+        counter,
+        principalMinor: shortfall,
+        rung: 2,
+      });
+      if (drawn.ok) {
+        drewMinor = drawn.advanced;
+        held = BankingApi.balanceOf(account).minor;
+      } else {
+        await refuseWage(business, workerKey, amountMinor, held, due, drawn.detail);
+        return { ok: false, reason: 'insufficient-funds', detail: drawn.detail };
+      }
+    }
+    if (held < due) {
+      await refuseWage(business, workerKey, amountMinor, held, due, 'no bank to draw on');
+      return { ok: false, reason: 'insufficient-funds', detail: 'no bank to draw on' };
+    }
+  }
+  await BankingApi.payWage(account, workerKey, Money.of(due, currency), category, memo);
+  if (arrearsOwed > 0) business.settlePayrollArrears(workerKey, arrearsOwed);
+  const discharged = await ContractApi.onWageLanded(workerKey);
+  if (discharged.length > 0) {
+    const worker = StuffApi.findByTemplatePath(workerKey);
+    if (worker && PlayerApi.isAvatarStuff(worker)) {
+      MessageApi.scene(worker)
+        .topic('act.deed')
+        .toSelf(
+          Mml.compose`Your first wage has landed — ${Money.of(due, currency).render()} — and with it your Arrival Note is discharged. The balance is yours; nothing is owed.`,
+        )
+        .send();
+    }
+  }
+  return { ok: true, paidMinor: due, drewMinor, discharged };
+}
+
+/** Record an unpaid wage as an arrear and tell the proprietor, if resident. */
+async function refuseWage(
+  business: BusinessStuff,
+  workerKey: string,
+  amountMinor: number,
+  heldMinor: number,
+  dueMinor: number,
+  why: string,
+): Promise<void> {
+  // The arrear is the NEW wage only — what was already owed stays owed.
+  business.addPayrollArrear({ workerKey, amountMinor, at: WorldClockApi.getNow().rawValue() });
+  const currency = BankingApi.compactCurrency();
+  const worker = StuffApi.findByTemplatePath(workerKey);
+  const who = worker?.getPresentation() ?? workerKey;
+  const proprietorKey = business.getProprietor();
+  const proprietor = proprietorKey ? StuffApi.findByTemplatePath(proprietorKey) : undefined;
+  if (proprietor && PlayerApi.isAvatarStuff(proprietor)) {
+    MessageApi.scene(proprietor)
+      .topic('act.deed')
+      .toSelf(
+        Mml.compose`Payroll refused: the house holds ${Money.of(heldMinor, currency).render()} and owes ${who} ${Money.of(dueMinor, currency).render()}; no working-capital line — ${why}. The wage stands on the book until the house can pay it.`,
+      )
+      .send();
+  }
 }
 
 /**
@@ -794,18 +910,18 @@ async function settleShiftWageImpl(
   const amount = Math.round(position.wageRate * gameHours);
   if (amount <= 0) return;
 
-  const account = await operatingAccountOfImpl(business);
   // Payer-derived payability: an NPC worker (the terminal clerk, the bar
   // cast) gets an account opened at the employer's own bank; a player who
   // hasn't opened one forfeits until they do (never silently signed up).
-  if (!(await ensurePayableWorker(employeeKey, business))) {
+  // The one way a house pays (D18): arrears first, a working-capital draw
+  // where earned, else a refusal on the book.
+  const paid = await payHouseWageImpl(business, employeeKey, amount);
+  if (!paid.ok && paid.reason === 'no-account') {
     console.warn(
       `EmploymentLogic: ${employeeKey} has no account to be paid into ` +
         `(players open their own at a branch) — shift wage skipped`,
     );
-    return;
   }
-  await BankingApi.payWage(account, employeeKey, Money.of(amount, BankingApi.compactCurrency()));
 }
 
 /**
@@ -1423,6 +1539,18 @@ export class EmploymentLogic extends ApiLogic {
     amountMinor: number,
   ): Promise<RemittanceSplit[]> {
     return flowSplitsForImpl(business, amountMinor);
+  }
+
+  /** See {@link EmploymentApi.payHouseWage}. */
+  @CallSecurity(EmploymentApiCallers)
+  public payHouseWage(
+    business: BusinessStuff,
+    workerKey: string,
+    amountMinor: number,
+    category?: PnlCategoryArg,
+    memo?: string,
+  ): Promise<WagePayment> {
+    return payHouseWageImpl(business, workerKey, amountMinor, category, memo);
   }
 
   /** See {@link EmploymentApi.settleShiftWage}. */

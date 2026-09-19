@@ -88,6 +88,11 @@ boot:
   # avenue is a PLACE, so the locality holds it. Everything IN it is
   # still the distilling trade's — the racking, the counter, the clerk.
   - { template: /world/terminus/counting-houses/cash-and-carry, role: producer, reason: "the distributor's counter must be resident for the trades' hands to consign onto it and for the boot spawn sweep to have a census" }
+  # ⭐ The one chartered bank (economic bootstrap D19): the window presents
+  # its paper, `bank borrow` resolves it as the lender, and `appoint … at`
+  # its chart needs it resident — a business stood up lazily is a business
+  # nobody can be appointed to until somebody trades at it.
+  - { template: /world/terminus/counting-houses/business, role: producer, reason: "Goodkin's chartered business — the lender every `bank borrow` at the hall resolves, and the chart the Registrar's committee appoints to" }
   # ⭐ The trade premises' producers (economic bootstrap D6): a floor's
   # Stock is the home container its trade's rows spawn into, and an
   # outfit's hand runs its brain over a live Business. Moved here WITH the

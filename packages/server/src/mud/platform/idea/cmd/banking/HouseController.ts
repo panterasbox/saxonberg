@@ -145,9 +145,11 @@ export default class HouseController extends BankingControllerBase<HouseModel> {
     const lines = Object.entries(pnl.lines)
       .map(([cat, net]) => `  ${cat}: ${Money.of(net as number, BankingApi.compactCurrency()).render()}`)
       .join("\n");
+    const arrears = house.getPayrollArrears().reduce((n, a) => n + a.amountMinor, 0);
     const body =
       `P&L:\n${lines || "  (no activity)"}\n` +
-      `  running balance: ${Money.of(pnl.balance, BankingApi.compactCurrency()).render()}`;
+      `  running balance: ${Money.of(pnl.balance, BankingApi.compactCurrency()).render()}` +
+      (arrears > 0 ? `\n  wages in arrears: ${Money.of(arrears, BankingApi.compactCurrency()).render()} (see \`house book\`)` : "");
     MessageApi.scene(giver).topic(TOPIC).toSelf(Mml.compose`${body}`).send();
   }
 
@@ -171,25 +173,29 @@ export default class HouseController extends BankingControllerBase<HouseModel> {
     }
     const house = await this.house(context);
     if (!house) return;
-    const employerAccount = await BankingApi.primaryAccountIdOf(house.getAccountPath());
-    if (!employerAccount) {
-      MessageApi.scene(giver).topic(TOPIC).toSelf(Mml.compose`There's no house account here to pay wages from.`).send();
-      context.note({ kind: "controller-rejected", reason: "no-venue-account", detail: "payroll" });
-      return;
-    }
-    try {
-      await BankingApi.payWage(employerAccount, workerKey, Money.of(minor, BankingApi.compactCurrency()));
-    } catch (err) {
+    // ⭐ The one way a house pays (economic bootstrap D18): arrears first,
+    // a working-capital draw where the house's ledger has earned one, else
+    // a refusal on the book with the reason.
+    const paid = await EmploymentApi.payHouseWage(house, workerKey, minor);
+    if (!paid.ok) {
+      const currency = BankingApi.compactCurrency();
+      const account = await BankingApi.primaryAccountIdOf(house.getAccountPath());
+      const held = account ? BankingApi.balanceOf(account).minor : 0;
       MessageApi.scene(giver)
         .topic(TOPIC)
-        .toSelf(Mml.compose`${String(err instanceof Error ? err.message : err)}`)
+        .toSelf(
+          paid.reason === "no-account"
+            ? Mml.compose`${Mml.actor(worker!)} has no account to be paid into.`
+            : Mml.compose`Payroll refused: the house holds ${Money.of(held, currency).render()} and owes ${Mml.actor(worker!)} ${Money.of(minor, currency).render()}; no working-capital line — ${paid.detail}. The wage stands on the book.`,
+        )
         .send();
-      context.note({ kind: "controller-rejected", reason: "wage-failed", detail: model.amount ?? "" });
+      context.note({ kind: "controller-rejected", reason: paid.reason, detail: paid.detail });
       return;
     }
+    const drew = paid.drewMinor > 0 ? ` (the house drew ${Money.of(paid.drewMinor, BankingApi.compactCurrency()).render()} of working capital to meet it)` : "";
     MessageApi.scene(giver)
       .topic(TOPIC)
-      .toSelf(Mml.compose`You pay ${Mml.actor(worker!)} a wage of ${Money.of(minor, BankingApi.compactCurrency()).render()}.`)
+      .toSelf(Mml.compose`You pay ${Mml.actor(worker!)} a wage of ${Money.of(paid.paidMinor, BankingApi.compactCurrency()).render()}${drew}.`)
       .send();
   }
 

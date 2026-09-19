@@ -31,6 +31,8 @@ import type { Organization } from '../lib/employment/Organization';
 import { StuffApi } from './stuff';
 import { HotReloadApi } from './hot-reload';
 import { EmploymentLogic } from '../platform/idea/api/EmploymentLogic';
+import type { WagePayment } from '../platform/idea/api/EmploymentLogic';
+import type { PnlCategory } from '../lib/banking/LedgerEntry';
 import { fileURLToPath } from 'url';
 
 export type {
@@ -42,6 +44,7 @@ export type {
   CommitteePrincipalRef,
 } from '../lib/employment/Authority';
 export { Authority, PRINCIPAL_REF_KINDS } from '../lib/employment/Authority';
+export type { WagePayment };
 export type { Position, PositionData } from '../lib/employment/Position';
 export type {
   Employment,
@@ -256,6 +259,23 @@ export class EmploymentApi {
    * Called by the roster tick on shift-end; exposed for tests / manual fire
    * (settles to the current game-clock instant).
    */
+  /**
+   * ⭐ The one way a house pays a wage (economic bootstrap D18): arrears
+   * first; a working-capital draw at the house's bank where its ledger has
+   * earned one; else the wage is refused, recorded as an arrear with the
+   * worker as creditor by name, and the proprietor is told why. A landed
+   * wage discharges the worker's Arrival Note.
+   */
+  public static payHouseWage(
+    business: BusinessStuff,
+    workerKey: string,
+    amountMinor: number,
+    category?: PnlCategory,
+    memo?: string,
+  ): Promise<WagePayment> {
+    return logic().payHouseWage(business, workerKey, amountMinor, category, memo);
+  }
+
   public static settleShiftWage(
     business: BusinessStuff,
     employeeKey: string,

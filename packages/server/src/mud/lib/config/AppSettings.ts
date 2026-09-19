@@ -253,13 +253,6 @@ export const AppSettingKeys = {
    */
   bankingSalesTaxRate: "banking.salesTaxRate",
   /**
-   * Banking — the **demo** onboarding coin (minor units) a committed
-   * non-guest char-gen player is granted via `issueCash` (the CB cash
-   * faucet) at commit. Drink-sized + anti-farm; guests get nothing;
-   * `0` disables the grant. See docs/subsystems/banking.md.
-   */
-  bankingOnboardingStipend: "banking.onboardingStipend",
-  /**
    * Banking — the per-account **cash-withdrawal cap per game-day** (minor
    * units), the common-pool till guard: over the cap → refuse + push onto the
    * ledger (card/transfer). Derive-on-read over the ledger (no counter, no

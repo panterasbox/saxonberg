@@ -19,12 +19,9 @@ settings:
   - key: banking.salesTaxRate
     value: "0.08"
 
-  # Banking — the DEMO onboarding coin (minor units) a committed non-guest
-  # char-gen player is granted via issueCash (the CB cash faucet) at commit.
-  # Drink-sized (~a drink + change, or the newbie-wilds fare); anti-farm;
-  # guests get nothing; 0 disables the grant.
-  - key: banking.onboardingStipend
-    value: "20"
+  # ⭐ No onboarding stipend (economic bootstrap D10): a newcomer ARRIVES
+  # on their Arrival Note — `treasury.arrivalPrincipal`, advanced from the
+  # treasury's account against a promise, not minted as a grant.
 
   # Banking — the per-account cash-withdrawal cap per game-day (minor units),
   # the common-pool till guard. Derive-on-read over the ledger (no counter);

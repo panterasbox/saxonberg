@@ -1043,6 +1043,13 @@ function paperPathFor(p: ContractParty, contractId: string, leaf?: string): stri
   return `${branch}/${PAPERS_DIR}/${leaf ?? contractId}`;
 }
 
+/** An amount in WORDS with its unit — *twenty zorkmids* — the no-gauge rule for a paper a person reads. */
+function moneyInWords(minor: number): string {
+  const record = Currency.of(BankingApi.compactCurrency());
+  const unit = minor === 1 ? record.unit : record.plural;
+  return `${GrammarApi.inWords(minor)} ${unit}`;
+}
+
 function percentInWords(fraction: number): string {
   const pct = fraction * 100;
   const whole = Math.round(pct);
@@ -1053,7 +1060,7 @@ function percentInWords(fraction: number): string {
 function faceOf(record: ContractRecord): string {
   const t = record.terms;
   if (!t) return "";
-  const money = (m: number) => Money.of(m, BankingApi.compactCurrency()).render();
+  const money = moneyInWords;
   const lines: string[] = [];
   if (record.kind === "note") {
     lines.push(
@@ -1338,7 +1345,11 @@ async function openingAdvanceImpl(businessKey: string): Promise<IssueLoanResult>
   const currency = BankingApi.compactCurrency();
   await BankingApi.reconcilePerpetual(currency);
   const treasury = await BankingApi.treasuryAccountId(currency);
-  const borrowerAccount = await EmploymentApi.operatingAccountOf(business);
+  // ⚠ The PRIMARY account read, not `operatingAccountOf` — that seam is
+  // what asked for this advance, and asking it back would recurse until
+  // the heap went (found the first time it ran).
+  const borrowerAccount = await BankingApi.primaryAccountIdOf(borrowerKey);
+  if (!borrowerAccount) return { ok: false, reason: "no-account", detail: borrowerKey };
   if (BankingApi.balanceOf(treasury).minor < principalMinor) {
     return { ok: false, reason: "treasury-short", detail: Money.of(principalMinor, currency).render() };
   }
@@ -1362,6 +1373,102 @@ async function openingAdvanceImpl(businessKey: string): Promise<IssueLoanResult>
   await appendEvent(record.contractId, "advanced", { counterparty: borrowerKey, txId, memo: "opening advance" });
   await fileInstrument(record);
   return { ok: true, contractId: record.contractId, advanced: principalMinor };
+}
+
+export type IssueNoteResult = { ok: true; contractId: string; principal: number; paperPath: string } | LoanRefusal;
+
+/**
+ * ⭐ **The Arrival Note** (economic bootstrap D10). At `embody confirm`
+ * the member ISSUES a note to the Treasury and receives the principal as
+ * coin in hand — money entered the world against this promise. Rate 0
+ * (the Compact's rate for newcomers); discharged by the first wage or by
+ * the Schedule's game-days, whichever first; secured by the balance it
+ * funded and nothing else; NO RECOURSE beyond it. Written by the machine,
+ * filed in the member's own papers at `/home/<key>/papers/arrival-note`.
+ * No character in the fiction hands it over. Idempotent per member.
+ */
+async function issueNoteImpl(key: string): Promise<IssueNoteResult> {
+  if (!active()) return { ok: false, reason: "offline", detail: "" };
+  if (!key) return { ok: false, reason: "no-identity", detail: "" };
+  // The member, resident: an Avatar by its player id, else whatever is
+  // registered at the key (a fixture).
+  const playerId = key.startsWith("/platform/agent/Avatar/") ? key.split("/").filter(Boolean).pop() ?? "" : "";
+  const live = (playerId ? PlayerApi.findAvatarByPlayerId(playerId) : undefined) ?? StuffApi.findByTemplatePath(key);
+  if (!live || !MixinApi.isContainer(live)) return { ok: false, reason: "no-hands", detail: key };
+  const avatar = live as Stuff & Container;
+  const already = await ContractRecord.findOpenByIssuer(key, "note");
+  if (already.length > 0) return { ok: false, reason: "already-issued", detail: key };
+  const principal = Math.floor(dial(AppSettingKeys.treasuryArrivalPrincipal, 0));
+  if (principal <= 0) return { ok: false, reason: "no-facility", detail: "" };
+  const currency = BankingApi.compactCurrency();
+  await BankingApi.reconcilePerpetual(currency);
+  const treasury = await BankingApi.treasuryAccountId(currency);
+  if (BankingApi.balanceOf(treasury).minor < principal) {
+    return { ok: false, reason: "treasury-short", detail: Money.of(principal, currency).render() };
+  }
+  const record = newInstrument(
+    "note",
+    party("player", key),
+    party("organization", TREASURY_PATH),
+    {
+      rung: "note",
+      ratePerGameYear: 0,
+      share: 0,
+      security: { kind: "account", accountId: "" },
+      principalMinor: principal,
+      windowAdvanceMinor: 0,
+      dischargeOnFirstWage: true,
+      dischargeAfterGameDays: Math.floor(dial(AppSettingKeys.treasuryNoteDischargeGameDays, 0)),
+    },
+  );
+  await saveRecord(record);
+  await BankingApi.disburse(treasury, avatar, Money.of(principal, currency), "arrival");
+  await appendEvent(record.contractId, "advanced", { counterparty: key, memo: "the Arrival Note's principal, in hand" });
+  await fileInstrument(record);
+  return { ok: true, contractId: record.contractId, principal, paperPath: paperPathFor(record.issuer, record.contractId, "arrival-note") };
+}
+
+/** Discharge a note: forgiven, the row settled, the paper appended. */
+async function dischargeNote(record: ContractRecord, why: string): Promise<void> {
+  record.state = "settled";
+  record.owedMinor = 0;
+  record.closedAt = worldSeconds();
+  await saveRecord(record);
+  await appendEvent(record.contractId, "discharged", { memo: why });
+  await appendToPapers(record, `Discharged: ${why}. The balance is yours.`);
+}
+
+/**
+ * ⭐ A wage landed for `workerKey` — the Note's discharge (economic
+ * bootstrap D10): every open note the worker issued is forgiven. Returns
+ * the discharged note ids so the payroll can tell them, if resident.
+ */
+async function onWageLandedImpl(workerKey: string): Promise<string[]> {
+  if (!active() || !workerKey) return [];
+  const notes = await ContractRecord.findOpenByIssuer(workerKey, "note");
+  const out: string[] = [];
+  for (const note of notes) {
+    if (!note.terms?.dischargeOnFirstWage) continue;
+    await dischargeNote(note, "the first wage was earned");
+    out.push(note.contractId);
+  }
+  return out;
+}
+
+/** The lazy discharge: a note past its game-days active is forgiven on any touch. */
+async function reconcileNotesImpl(issuerKey: string): Promise<string[]> {
+  if (!active() || !issuerKey) return [];
+  const notes = await ContractRecord.findOpenByIssuer(issuerKey, "note");
+  const out: string[] = [];
+  const now = worldSeconds();
+  for (const note of notes) {
+    const days = note.terms?.dischargeAfterGameDays ?? 0;
+    if (days <= 0) continue;
+    if (now - note.postedAt < days * 86_400) continue;
+    await dischargeNote(note, `${GrammarApi.inWords(days)} game-days active`);
+    out.push(note.contractId);
+  }
+  return out;
 }
 
 /**
@@ -1548,8 +1655,9 @@ async function treasuryPaperImpl(currency: string): Promise<TreasuryPaper> {
 /** Every open instrument `ownerKey` issues or holds, as readable lines. */
 async function instrumentsOfImpl(ownerKey: string): Promise<InstrumentLine[]> {
   if (!active() || !ownerKey) return [];
+  await reconcileNotesImpl(ownerKey);
   const out: InstrumentLine[] = [];
-  const money = (m: number) => Money.of(m, BankingApi.compactCurrency()).render();
+  const money = moneyInWords;
   for (const kind of ["note", "loan", "unclaimed"] as const) {
     for (const r of await ContractRecord.findOpenByIssuer(ownerKey, kind)) {
       accrue(r);
@@ -1679,6 +1787,24 @@ export class ContractLogic extends ApiLogic {
   @CallSecurity(ContractApiCallers)
   public async openingAdvance(businessKey: string): Promise<IssueLoanResult> {
     return openingAdvanceImpl(businessKey);
+  }
+
+  /** See {@link ContractApi.issueNote}. */
+  @CallSecurity(ContractApiCallers)
+  public async issueNote(memberKey: string): Promise<IssueNoteResult> {
+    return issueNoteImpl(memberKey);
+  }
+
+  /** See {@link ContractApi.onWageLanded}. */
+  @CallSecurity(ContractApiCallers)
+  public async onWageLanded(workerKey: string): Promise<string[]> {
+    return onWageLandedImpl(workerKey);
+  }
+
+  /** See {@link ContractApi.reconcileNotes}. */
+  @CallSecurity(ContractApiCallers)
+  public async reconcileNotes(issuerKey: string): Promise<string[]> {
+    return reconcileNotesImpl(issuerKey);
   }
 
   /** See {@link ContractApi.repaymentSplitsFor}. */
