@@ -174,6 +174,19 @@ recover it from git if the call was wrong.
   5 items to 11 because six open designs were in the body and
   unrepresented. That is the pass working, not a regression.
 
+- **Answered open questions are cut with a pointer.** An *Open
+  questions* entry marked resolved, whose resolution is in code and in
+  the doc, is SHIPPED·DOCUMENTED like any other section: cut it, leave
+  one line — *Q3 resolved: <doc § section>*. Only still-open questions
+  are spine. (Wave 1 split on this; decided.)
+- **Doctrine sections are kept and labelled.** A section that is neither
+  shipped nor a backlog item — a thesis, a philosophy of the subsystem,
+  an argument about what the design is *for* — is kept verbatim and
+  listed in the ledger under a *Doctrine* heading (not *Uncertain*), so
+  the coordinator can decide its home (a subsystem doc's *Why*,
+  `docs/design-philosophy.md`, or the slate) in one pass rather than
+  per batch. Do not add doctrine to `Left`.
+
 ## Judgment calls, decided
 
 - **"It's good writing."** Not a reason to keep it. If it describes a
