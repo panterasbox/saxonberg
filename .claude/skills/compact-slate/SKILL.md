@@ -137,6 +137,13 @@ The ledger is the audit trail. A reviewer must be able to read it and
 know, for every line that left the slate, where it went and why — and
 recover it from git if the call was wrong.
 
+⚠ **Write the ledger incrementally — per slate, as each slate's cuts
+land, never as one write at the end.** A wave-2 rate limit killed six
+agents mid-run; two of them had already cut 660 and 1,072 lines with no
+ledger written, so the whole batch was reverted and redone. An agent
+that dies with a ledger dies with recoverable work; one that dies without
+it dies with a patch nobody can review.
+
 ### 7. Verify before you stop
 
 - `git diff --stat` on your files: the slate shrank, the subsystem docs
