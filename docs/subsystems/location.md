@@ -426,6 +426,24 @@ built to fail safe (flatten-to-one-room is `N` high + `M` 0) and tune
 cheap (defaults are code constants headed for app settings (`AppApi`)). The
 base never imports the lounge.
 
+### Where the terminal stands, and why
+
+The TPA terminal seats itself into the live host (`seatIn:
+/world/lounge/idea/warren` on `FixtureMixin`; its `getArrivalRoom()` is
+`getContainer()`), so *where arrivals land* is the Warren's own
+load-balancing decision made physical — no relocation bookkeeping, and a
+returning traveller gets the same seating a login does. Two placement
+decisions are deliberate (lounge-slate, 2026-08-01). The terminal is a
+**visible object in the commons**, never in the bar: arrivals are then
+witnessed, and a departure is an invitation — someone stepping up to the
+terminal is the natural moment for *"mind if I come?"*, the one lever on
+the lounge-lizard problem (they leave for a person, not for content).
+And **Dave's Bar is a destination off the commons, never a passage** —
+routing traffic through it would make it a corridor and promote the
+sidekick by accident. The lounge's map stays knowable at a glance — the
+commons, the elastic rooms, one door north — and anything that needs a
+place of its own goes to the bar or the city, not here.
+
 ## Landing: the `startLocation` spawn instruction
 
 `container` only ever names an actual container. A Warren isn't one, so

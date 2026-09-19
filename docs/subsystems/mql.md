@@ -951,6 +951,27 @@ Documented decisions worth not re-litigating:
 - **English-only natural-language layer.** Article stripping and
   ordinal-prefix work on English forms only.
 
+### What MQL can and cannot see — the three storage shapes
+
+Three storage shapes, three answers, and the middle row surprises
+people (graduated from the pets slate, 2026-09):
+
+| storage shape | examples | MQL |
+|---|---|---|
+| Stuff + keyed snapshot | cultivated plants, a holding's rooms, pets | ✔ visible; `mixin.X` + `[key=…]` |
+| **Document** | herds, water rights, bills of lading, rate cards | ✘ **not queryable at all** — MQL is over Stuff |
+| **Seeded, unmeasured** | heads before `draft`, deposit samples, ground character | ✘ **invisible by construction** — not in the registry |
+
+⚠ **The herdbook is not MQL-able.** Herds are filed records read through
+their register; no query reaches them. Know this before designing a verb
+that assumes otherwise.
+
+⚠ **Do not infer state from key presence.** `has` is a documented no-op
+outside `prop.K`, so key-presence is not cleanly testable in the grammar
+— and inferring state from storage is the same dishonesty the city-watch
+decision rejects. A state like *tamed* is a mixin or a property, so the
+query language can see it and the abstraction carries it.
+
 ## Cross-references
 
 - [../mql-grammar.md](../mql-grammar.md) — user-facing grammar
