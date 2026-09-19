@@ -636,6 +636,16 @@ Species, with biological state." The mixin carries:
 nowhere. There is no counter and no reconcile, and that is not a
 micro-optimisation:
 
+**Why lifespan describes the world and never the player** (graduated
+from the lineage slate, 2026-09): if aging were real *and* terminal,
+lifespan would be the most rankable stat in the game — an elf gets 750
+years of play, a human 120, single scale, strictly ordered, and no
+countervailing cost can exist, because "more playtime" cannot be made
+incomparable with "less." It would be the cleanest violation of the
+species doctrine anywhere in the design. So lifespan is for NPC
+generations, family trees, and *elves remember the founding*; never a
+clock on a player character.
+
 - ⚠ **There is nothing to farm.** An accumulating counter rewards leaving
   a character logged in, or logged out, or simply existing — which is why
   the first cut needed an absence guard and an argument about whose clock
