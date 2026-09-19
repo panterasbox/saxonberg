@@ -110,6 +110,29 @@ Then, if the `wind` band crossed a threshold either way,
 the `wind` row (none ship; the swim is the first) needs no Transcript
 append.
 
+## ⭐⭐ Soft limits — what a spent body can still do
+
+Every limit this subsystem imposes is a **read that narrows what you
+can do next, never a wall**. The run breaks to a walk (you still move);
+the climb narrates a rest (you still climb); a load is refused (pick a
+lighter one); a step verb refuses at the spent line (`canExert`, *"You're
+too tired for that."*) — and walking, talking, looking, buying and
+resting all go on, because a walk is free and nothing but WORK asks the
+body first. Standing recovery clears a refused step in seconds of wall
+time.
+
+The one wall in the game is `collapse` — endurance at 0, the faint that
+`requiresConscious` reads on fifty-odd verbs, walking and eating
+included. **Work is not allowed to be the thing that puts a person
+there.** `exert` clamps every debit at the spent line
+(`exertion.exhaustionFloorPct`, 10 %): a ladder, a set or a long fight
+leaves you spent, never collapsed, and a body already under the line
+(the limp) is left where it is. Collapse stays the acute conditions'
+(starvation, dehydration, blood loss) and the wound's. The step verbs
+refuse at the same line, so a spent body cannot start what it could not
+finish; a spent body in a fight keeps exchanging at zero further cost
+with its poise and tempo already reading its endurance.
+
 ## Reach — the reads
 
 | read | where it is asked | what it does |

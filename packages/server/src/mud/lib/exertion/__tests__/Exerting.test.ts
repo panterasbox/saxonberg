@@ -116,6 +116,24 @@ describe('ExertingMixin — one exertion event', () => {
     expect(c.getLean().current.rawValue()).toBe(80);
   });
 
+  it('⭐⭐ SOFT LIMIT: an exertion spends you to the spent line and never past it — work never collapses a body', () => {
+    const c = body();
+    set(c, 'endurance', 14);
+    // A ladder at 600 W would cost 12; the body has 4 above the line.
+    c.exert({ durationS: 60, powerW: 600 });
+    expect(endurance(c)).toBe(10);
+    // Already spent: a hundred exchanges cost nothing more, and the body
+    // is never at 0 — `collapse` (the faint that blocks even walking) is
+    // not something work does to you.
+    for (let i = 0; i < 100; i++) c.exertExchange();
+    expect(endurance(c)).toBe(10);
+    // A body the LIMP took under the line is left where it is — the
+    // clamp never drains, and never restores.
+    set(c, 'endurance', 4);
+    c.exert({ durationS: 60, powerW: 600 });
+    expect(endurance(c)).toBe(4);
+  });
+
   it('canExert refuses a step that would leave the body under the floor', () => {
     const c = body();
     set(c, 'endurance', 15);

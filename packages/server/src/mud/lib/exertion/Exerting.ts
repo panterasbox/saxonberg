@@ -154,11 +154,26 @@ export function ExertingMixin<TBase extends MixinConstructor>(Base: TBase) {
 
       // 1. Endurance — the excess only. Effort under the aerobic threshold
       //    costs nothing; that is what keeps a walk free.
+      //
+      //    ⭐⭐ SOFT LIMIT: an exertion spends you down to the spent line
+      //    (`exertion.exhaustionFloorPct`) and never past it. A ladder, a
+      //    set or an exchange leaves you SPENT — every step verb refuses
+      //    at the same line (`canExert`), the run has long since broken to
+      //    a walk, and walking, talking, buying and resting all go on.
+      //    It never leaves you COLLAPSED: `collapse` (endurance 0) is the
+      //    faint that `requiresConscious` reads on fifty-odd verbs,
+      //    walking included, and work is not allowed to be the thing
+      //    that puts a person there. Collapse stays the acute conditions'
+      //    (starvation, dehydration, blood) and the wound's (the limp).
       const excessJ = Math.max(0, powerW - sustain) * durationS;
-      if (excessJ > 0 && self.hasReserve('endurance')) {
+      const endurance = self.getReserve('endurance');
+      if (excessJ > 0 && endurance) {
         const perPct = dial(AppSettingKeys.exertionJoulesPerEndurancePct, 1500);
         if (perPct > 0) {
-          self.adjustReserve('endurance', Quantity.of(-excessJ / perPct, '%'));
+          const floor = dial(AppSettingKeys.exertionExhaustionFloorPct, 10);
+          const room = Math.max(0, endurance.current.rawValue() - floor);
+          const debit = Math.min(excessJ / perPct, room);
+          if (debit > 0) self.adjustReserve('endurance', Quantity.of(-debit, '%'));
         }
       }
 
