@@ -76,6 +76,36 @@ with a diegetic reason, not a flag flip.
   by encumbrance, not by flag) and forge are not, so camp-stew is
   possible in the wilds and a blade is venue-bound, diegetically.
 
+⭐ **Grade is the only quality axis, and there are no rarity tiers** —
+rejecting them is load-bearing (the crafting slate's decision, kept by
+every build since). A Diablo-style *common / rare / epic / legendary*
+stamp fuses four things this model keeps apart: **quality** is the Grade
+verdict (earned, rendered as a band-word, never a number); **uniqueness**
+is provenance (a named, attributed masterwork IS the "legendary item" —
+earned, not dropped); **power** is horizontal and diegetic (better, never
+bigger); **scarcity** is emergent economics (few exist, hard to make, a
+famous maker) — never a stamped tier. Everything rarity buys — legible
+specialness, the chase, named items — falls out of Grade + provenance +
+the economy, without the loot-faucet treadmill that generates rarity in
+the first place. For a consumable (a drink) rarity is a non-concept: it
+is drunk and gone; only its Grade and who made it matter.
+
+⭐ **A new capability KIND must pass the unitasker test** (the cooking
+build): *does some recipe genuinely need a gate no existing kind
+provides?* Every kind a recipe names is a thing every venue of that trade
+on the server must stock — that is a kind's real cost. The `strainer`
+passed (broth cannot clarify without it); a garlic press does not (it is
+a `knife` application). The ROW axis is where variety goes, unbounded and
+cheap: entries are parameterized (`{ kind, rate, control, technique }`),
+so ten knives are one kind — a carbon-steel chef's knife with high
+`control`, a rusty paring knife with low, a mezzaluna with a `technique`
+stamp — and no kernel or recipe notices. Which is why *"one good chef's
+knife is all you need"* is mechanically true here: `control` lives in
+the capital and floors the outcome grade, so one fine knife carries the
+roster and the gadget drawer adds nothing to any resolve — honest vanity
+demand for the smith, the potter and the carver; sold and displayed,
+never required.
+
 ## Mixins (`lib/craft/`)
 
 All are registered in `lib/mixin.ts` (`Mixins.Graded`/`Tool`/
@@ -124,6 +154,12 @@ the Hydrator; per-field invariants ride accessor pairs.
   recorded **command sources** (`recordCommand`/`getCommandSources`) the
   demonstration capture transcribes (see [scripting.md](./scripting.md)).
   No persistent fields — a build is transient.
+
+> ⭐ **The ingot is not the only faucet; every finished good is one too.**
+> A production chain that stops at the ingot *moves* the faucet without
+> closing it — the recipe layer is not a follow-on, it is the half that
+> makes a chain economic rather than scenic (graduated from the metal
+> chain slate, 2026-09).
 
 ## Recipe = a `Document` (the Emote pattern)
 
@@ -931,8 +967,8 @@ homed by what they *are*:
 - **Singleton** → `obj/`: `RecipeCatalogue`.
 - **Recipes** live where the trade that introduces them lives (content
   packs wave 4a/4b): `trade-smithing` ships the smithing five at
-  `/trade/smithing/recipes/<id>`, `trade-cooking` its four
-  (toasted-ration, root-mash, fine-roast, hearty-stew),
+  `/trade/smithing/recipes/<id>`, `trade-cooking` its roster (nineteen
+  since the cooking + food-safety builds — § *The roster* below),
   `trade-hospitality` the bar's 21 cocktails + coffee and the four
   presses, each stub trade its serving recipe (`pint`, `glass-of-{red,
   white,sparkling}`, `soft-drink`, `simple-syrup`) — the 24-line menu of the
@@ -1133,6 +1169,31 @@ kill read (see [spoilage.md](./spoilage.md)).
 AND deposits the dose its inputs' spoilage had already earned as a formed
 toxin. Cooking rotten meat gives you a dish that keeps and poisons you —
 never a free lunch.
+
+### The roster — one ingredient, four outcomes
+
+`trade-cooking/content/recipes/` fills the method × difficulty grid the
+medium rule implies, and every rung teaches one thing. **Wet** —
+`boiled-roots` (trivial: you cannot ruin it, and it never browns),
+`root-mash` · `stewed-orchard-fruit` · `simple-syrup` (easy),
+`hearty-stew` and `clear-broth` (standard — the broth wants the
+`strainer` kind; clarity is the grade made visible). **Dry** —
+`toasted-ration` (trivial), `roasted-roots` (standard — ⭐ the Maillard
+pair to the boiled ones: the same root at 430 K > 415 K, browner and
+better), `hearth-roast` (standard, fair meat) under `fine-roast` (hard,
+fine meat). **Fat** — `render-tallow` (easy — ⭐ the bootstrap: the fat
+method's enabling material is itself a recipe, stew meat in, tallow
+out), `press-olive-oil` (standard, no heat, the `juicer` kind — plant
+fat vs animal fat is two smoke points, the cap mechanic taught by
+comparison), `pan-fried-roots` (standard — fat carries heat past water's
+373 K), `crisp-fried-cutlet` (hard — ~455 K against olive oil's smoke
+point vs tallow's: your fat choice is the difficulty). The food-safety
+build added `seared-cut`, `warmed-through` and the three cures. Two fat
+Materials (`tallow`, `olive-oil`, each with `smokePoint`), **zero new
+instruments** (the pot carries all three media; oil rides the press), a
+tallow crock and an oil bottle as the only new output rows. The
+formidable row — braise, doneness-as-skill, confit — is the tending
+wave's.
 
 ### Dinnerware is a POOL, not a mint
 

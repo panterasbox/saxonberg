@@ -4,19 +4,17 @@
 > `order`, the supply chain, the bar fight) →
 > [employment.md](../../subsystems/employment.md) ·
 > [crafting.md](../../subsystems/crafting.md)
-> **Left:** the succession arc · tabs + customer records (regular / 86'd)
-> · corpo faction-approval standing · the Scene composer's crowd
-> aggregation for a full room · appraisal-as-skill + the congener /
-> hangover tuning · the player distillery that retires the faucet
+> **Left:** the succession arc (Augie recognizes the heir; the house
+> tablet is the clipboard) · tabs (`TabMixin` was RETIRED — zero credit
+> until designed for real) + customer records (regular; 86'd exists only
+> for the armed-patron rule) · the NPC task repertoire + the shift-change
+> ritual (till · receipts · reconcile · hand off · deposit) · the cast's
+> off-shift presence + the trait compatibility→regard mechanism · corpo
+> faction-approval standing · the Scene composer's crowd aggregation for
+> a full room · the congener / hangover tuning (appraisal shipped as the
+> palate) · glass theft remembered + the glassware leak · the dartboard
+> · the player distillery that retires Veshko's floor · numeric tuning
 > **Size:** a build
-
-> **Status: experience design, pre-requirements.** Dave's Bar is the
-> **minimal complete vertical** — the smallest single place that exercises
-> nearly the whole physics stack at once: matter, place, crafting, skills,
-> engaged activity, employment, the first money transaction, metabolism,
-> and reputation. It's the integrating exemplar the contributing slates
-> point at; this doc is the **end-to-end experience** we're agreeing on
-> *before* sequencing (build-phasing is deliberately deferred — see *Open*).
 
 Contributing slates (Dave's Bar is where they meet):
 [crafting](./crafting-slate.md) (the venue, recipes, tools, craft-resolve) ·
@@ -36,24 +34,6 @@ venue), [time](../../subsystems/time.md) (the shift clock),
 [reserve](../../subsystems/reserve.md).
 
 ---
-
-## Near-term scope vs. vision
-
-Most of this doc is **vision.** The **near-term player scope is deliberately
-small: work the bar and earn a wage.** Concretely a player can **get hired**
-(simple — pick up an open shift, no recognition gate), **tend a shift** (an
-engaged activity), **mix drinks from the menu** (crafting v1, faithful
-execution — no chef's-choice), and earn a **flat/hourly wage** (employment +
-reserve-funded payroll — flat-not-commission, so it works on a dead shift and
-doesn't hinge on thin early population; drink *sales* are separate revenue).
-
-Near-term touches four things — **crafting v1, [Activity](../../subsystems/activity.md),
-employment, and the economy (wage + reserve payroll)** — and needs *none* of
-the deferred vision below: the recognition ladder, crew, the inventory
-clipboard, the off-bar life, succession. Even skill **progression** on mixing
-is optional near-term (fixed control suffices); wiring competence to the craft
-seam is the natural *next* increment, not a precondition. Everything past
-"work + get paid" in this doc is **captured as vision, not scope.**
 
 ## Why Dave's Bar — the integrating vehicle
 
@@ -110,74 +90,22 @@ by showing up and carrying weight*, never granted.
 
 ## The room — the anti-lounge
 
-**One room, fixed.** A cozy **neighborhood bar** (regulars, not tourists):
-warm, dim, lived-in. And it is the **anti-lounge** — where the spawn lounge is
-an **elastic Warren** (buds rooms to *spread* crowds out), the bar is a plain
-**fixed `Location` that does *not* grow.** That fixedness is the whole value
-engine: **concentration → buzz → prestige.** An elastic bar that spread people
-out would be a *dead* bar; the scarcity *is* the product. Start with **one
-room** (the main bar); subordinate nooks (a games alcove, a booth area) are
-addable later *only* if a genuine spatial/social purpose appears — never to
-manage prose, never as equal alternatives that dilute the one center. (Plus
-**Dave's office** north — inaccessible to players, non-obvious exit, the
-earned inner sanctum.)
+> Shipped: the fixed singleton `Bar` one exit north of the lounge host — the anti-lounge ([location.md](../../subsystems/location.md)); Dave's office one cell north behind a concealed exit that `search` discovers ([concealment.md](../../subsystems/concealment.md)).
 
 How the room is modeled (all shipped substrate):
 
-- **The bar counter** — `Surfaced` (set drinks on it) + `Postured` host, with
-  ~**10 rail stools** as **seating slots** (`Slotted`/`Postured`). Seating is a
-  *real, scarce capacity* — you can't seat more bodies than slots — so the
-  **rail is coveted**: regulars have their stools, location becomes social
-  capital ("your stool" means something). A few **booths/tables** (`Surfaced` +
-  `Postured`) in the same room; the **well + back-bar** is the bartender's
-  domain (the bottles → § *Ingredients*).
-- **Corpo décor** — neon signs, the back-bar mirror, tap handles are
-  **`Adornment`s** carrying **corpo marks** (brand → corpo); the neon ones are
-  **`LightSource`s**, so *the corpos literally light the room* — the amber haze
-  is corporate glow. The walls are a corpo legibility surface (Dave's sign
-  choices = his corpo politics) and pre-wire the deferred **sponsorship**
-  mechanic (corpos bidding for wall space).
 - **Amusements** — a dartboard in the corner (kept *in* the main bar so its
   energy stays in the buzz), a jukebox, a TV (the broadcast tie-in) — interactive
   `Stuff` affording an **activity**; v1 flavor, interactivity deferred.
-- **Lived-in history** — a photo wall, a retired regular's mug, signed bills:
-  `Visible`/`Detailed` flavor carrying **provenance** (whose) — the accumulated,
-  attributed history a tourist bar can't fake (and that Augie can narrate).
-
-**Layered description (so one rich room isn't a wall of text).** Three layers,
-only the first on entry: (1) the room `look` is a **concise scene-setter** that
-*names* the notable features without unpacking them (not an inventory dump);
-(2) richness is **examine-on-demand** (`Detailed`/`Visible` — `look at the
-back-bar` / `the signs` / `the photo wall`), latent until pulled; (3)
-people/activity are **dynamic** (the Scene composer, separate from the static
-desc). The room thus **rewards looking closely** — the barfly mechanic applied
-to the place itself (the tourist gets the scene; the regular finds the stories).
 
 ## The cast & the social physics
 
-**Dave — the endgame made flesh.** Owner, master-emeritus, mixology through
-the roof, but he doesn't pour anymore. He works back-of-house from an office
-*north of the bar* behind a non-obvious exit (inaccessible until you're a
-regular; impassable until you've earned his regard — the inner sanctum,
-aspiration you can see the edge of). Dave *is* what mastery becomes: you
-stop pouring and become the institution (the advancement slate's
-learn → master → run lifecycle, in one NPC). An homage to an EotL NPC
-(specifics are the author's to bring).
+> *Superseded by content:* `agent/dave.yaml` authors Dave (proprietor, a `Crafter`, the `enforces` brain); the office is a hidden exit `search` reveals, not a regard-gated door — the earned-regard sanctum is unbuilt.
 
 **The three behind the bar — three souls by time of day.** 8-hour shifts on
 the game clock mean *which bartender you meet depends on when you live in
 the game*; the night-owl and the lunch-breaker drink in different bars.
 Distinct personalities, one warm family (names are placeholders):
-
-- **Mara — the Anchor (day).** *Diligent, Patient, Reserved, Temperate* —
-  doesn't drink anymore. Knows your order, says little, means a lot. The
-  spine. **She does inventory** (see leadership).
-- **Remy — the Connector (swing).** *Gregarious, Gossip, Ambitious,
-  Charming.* The buzz, the rumor-mill, the introducer, a harmless schemer
-  everyone rolls their eyes at — because he's *theirs*. The information node.
-- **Sloane — the Confessor (night).** *Brooding, Perceptive, Secretive.*
-  Says little, sees everything, notices when you're off. Closest to Dave,
-  keeper of the after-hours.
 
 **Augie — the Veteran (weekend cover; the 4th).** Semi-retired; covers
 **weekends**, so weekends *taste* different (slower, storied, the old
@@ -232,45 +160,12 @@ event.
 
 ## The two loops & inventory
 
-**Conservation makes inventory mandatory.** A cocktail *consumes* its gin
-(honest matter), so the bar drains every pour and *someone* must restock or
-it runs dry. The fiction (Mara does inventory) and the physics (conservation
-depletes stock) are the **same fact** — the leadership structure *emerges
-from the matter-flow*, the "physics not content" bet paying off.
-
-Two loops, with Dave's policy over both:
-
-- **Front loop** (the shift bartenders): serve customers → *consume* stock.
-- **Back loop** (Mara): inventory + replenish → *restore* stock.
-
-How it's modeled (almost all shipped substrate):
-
-- **Stock is real matter, not a number** — bulk spirits in real bottles,
-  glob garnishes, `Tangible` items. "Doing inventory" is a
-  *perception/measurement* act over the real contents (you *see* what's
-  low), never reading a stat.
-- **Dave's "what to stock" = the par manifest** — an owner-set policy on the
-  venue: `{input, par level, supplier}` (restaurant "par"). The one genuinely
-  new piece, and small.
-- **Mara's "doing inventory" = an engaged activity** (Activity's debut): a
-  timed walk of the stock, measuring actual-vs-par → a *shortfall list*. It's
-  itself a **skill** through the crafting control seam — a sharp keeper
-  *anticipates* the Friday run-out; a novice counts what's already empty.
-- **"Keeping it running" = replenishment** — order the shortfall → supplier
-  delivers → restock. The economy's **circulation** stage from the demand
-  side, and the bar's tie into the wider world (the supplier is the
-  interlock seam — abstracted at first, see economics).
+> *Superseded by the libations + logistics builds:* the par sheet is `house par` / `house stock` on the Business, restock is Mara's `restocks` brain ORDERING against it (logistics D11), stock is bought at the distributor by consignment → [employment.md § The house account in the wallet, and the par manifest](../../subsystems/employment.md), [retail.md § The distributor](../../subsystems/retail.md). Inventory-as-a-skill waits on the skill seam.
 
 ### Glassware & venue durables — the cycling pool
 
-A glass isn't a consumable (the *booze* is — conservation); it's the bar's
-**durable property in a fixed cycling pool**: clean → served → drunk → **bussed**
-→ washed → reused. So glasses don't proliferate — serving **claims** one from the
-pool (never mints a new object), bussing returns it, and the object count is
-bounded by the pool, not the drink-count.
+> Shipped: the cycling pool → [crafting.md § The glass pool](../../subsystems/crafting.md). Two beats remain:
 
-- **Reaping = bussing**, not a despawn — a normal task in the NPC repertoire
-  (and a player-bartender's): collect empties → wash → return to the clean pool.
 - **Theft is priced, not walled** (the conduct→reputation philosophy): you *can*
   pocket a glass, but the **inventory reconciliation** catches the shortfall
   (like a short till), glasses are **worthless** to steal, and theft is
@@ -280,9 +175,6 @@ bounded by the pool, not the drink-count.
   [crafting-slate](./crafting-slate.md) § *Tools*); a shattered glass is a real
   matter sink (conservation). The restock *cost* lands in the ledger; the live
   *count* is **transient** (persistence track 4 above).
-
-Generalizes to **all venue durables** (plates, tools, fixtures): cycle, bus,
-restock-on-leak; live count transient, costs + reputation persisted.
 
 ## NPC business & the shift-change ritual
 
@@ -322,78 +214,15 @@ office.
 
 The crafting inputs, modeled as honest matter:
 
-- **Individual working bottles, aggregate backstock.** A working bottle is a
-  `Tangible` container holding a **bulk** spirit (a 750ml bottle, draining on
-  every pour — conservation); the **backstock** is aggregate (sealed bottles as
-  `glob` stacks / cases). Inventory counts both; "par" is how many to keep.
-- **On surfaces, not in a vessel.** Working bottles rest on the **back-bar
-  shelf** and the **well/speed-rail** (`Surfaced`); backstock sits in containers
-  in the store.
-- **Real categories, fictional brands.** A "gin" is honestly juniper-flavored
-  ethanol-water at a real ABV — *real substance* (the chemistry-teaching bet) —
-  but the **brand is invented** (no trademark risk). Categories: **hard
-  spirits** (gin/vodka/whiskey/rum/tequila), **liqueurs** (vermouth/triple-sec/
-  amaro/bitters), **mixers** (tonic/soda/juice/syrup — zero ABV). Recipes
-  constrain by *category* ("2 measures of any gin"); the **brand choice
-  substitutes through** to the result.
-- **ABV is a count; quality is a verdict.** The clean line (economy Law 1 / "no
-  quantity without a referent"): **ABV** is a measured quantity *with a
-  referent* — real, displayable, feeds metabolism → BAC, and is what mixing
-  *manages* (strength via dilution/ratio — real chemistry). **Quality** is never
-  a number — known by **brand/provenance**, by **appraisal** (a skill, deferred),
-  rendered **DF-style: an ordinal band-word headline + descriptive prose**
-  (*"a fine martini — crisp, ice-cold, balanced"* vs *"a poor martini — cloudy,
-  lukewarm, harsh"*), never a score. An ordinal material **grade** sits
-  underneath; the player reads the label + the description. **No Diablo-style
-  rarity tiers** — for a consumable it's a non-concept (drunk and gone); only
-  quality + who-made-it matter. (Full model:
-  [crafting-slate](./crafting-slate.md) § *Quality — the verdict, rendered*.)
 - **Low quality → worse hangover (honest chemistry).** Cheaper spirits carry
   more **congeners** (fusel oils / distillation byproducts), which really cause
   worse hangovers. Congeners are an honest measure (like ABV) driving the
   metabolism **toxin-burden / hangover** consumer (lighting up another dormant
   metabolism feature) + the harsher taste verdict.
-- **Price ≠ quality.** Price tracks **brand positioning**, not the verdict — the
-  overpriced dud and the cheap value-gem both exist, and the gap is where
-  **appraisal / value-hunting** lives. Two producer tiers carry it:
-  **large-corporate** (mass-market, cheap, "fine") vs **microdistiller**
-  (small-batch, premium-*positioned*, "understood to be better"). The tiers map
-  onto the economy's **NPC-floor (large/corpo, the magic faucet's product) vs
-  player-apex (micro/independent, the future player-distiller niche)**.
 
 ## Verbs & the recipe-learning loop
 
-The v1 verb surface (faithful execution from the menu — all "mix + wage" needs):
-
-- `menu` — the venue's known cocktails.
-- `serve <customer> a <cocktail> [with <brand>]` — the bartender's core verb:
-  make-and-deliver in one; the `with <brand>` modifier is where the
-  corpo/quality/price choice lives. Resolves recipe + venue inputs + tools +
-  control → a stamped drink, consumes the matter, hands it over.
-- `mix <cocktail> [with <brand>]` — make one without a recipient.
-- `order <cocktail>` — the customer side (order from the menu).
-- (shipped) `drink` / `sip` → metabolism.
-
-Two registers, one deferred: the **recipe shorthand** above (fast, v1) over a
-**manual build** (`pour … into shaker` · `shake`/`stir` · `strain` · `garnish` —
-the process-sim depth, for experimentation/invention; deferred). No vending
-machine (the shorthand consumes real matter + stamps provenance), no twitch
-(character control, not player reflexes), no tedium (the rote collapses to one
-verb).
-
-**The recipe-learning loop — Dave's Bar as the scripting language's first home.**
-The mechanic: **make a drink once for real → the command sequence banks as the
-recipe → shorthand replays it after.** Reading a recipe is a `claim`; *making*
-it is the `deed` that banks it (knowing→doing). The banked recipe **is a
-script** — a linear sequence of gated verbs + one brand parameter — the
-**gentlest rung of the slated [scripting language](../tails/scripting-slate.md)**
-(needs none of its hard forks: blocks/coroutines/conditions/director). Replay is
-**pre-bound** (skip re-parse; still resolve+validate+execute on the bus — real
-commands without the tedium). **Decision: build the v1 shorthand *script-shaped*
-from the start**, so the bar is the scripting language's first, gentlest
-consumer (alongside Activity and metabolism) and nothing's rebuilt. *(v1 still
-ships venue-known recipes; the make-to-know **learning** loop is the next
-increment, on the same script-shaped foundation.)*
+> Shipped → [crafting.md § Verbs](../../subsystems/crafting.md), [§ The manual build](../../subsystems/crafting.md), [§ The knowledge ladder](../../subsystems/crafting.md) (the recipe-learning loop is `ScriptApi.captureManualBuild` — the first faithful hand build mints the deed and transcribes the script).
 
 ## Corpos — the mark and the fault line
 
@@ -401,25 +230,8 @@ increment, on the same script-shaped foundation.)*
 > authored five-corpo roster. The bar is its first consumer; this section is
 > the bar-facing summary.
 
-The world frame (developing `vision.md`'s tentative "Organizational Affiliation
-/ Corporations" and the advancement slate's **corp = cross-cutting third social
-axis**): **a handful of megacorps own most of the private sector; independents
-are the exception.** Entirely fictional. ~**5** corpos plus the **independents**,
-each corpo distinguished by **sector-of-origin + culture/ethos + aesthetic** —
-*not* crude Good/Evil (clashes with "physics, not RPG"); all are self-interested,
-distinguished by *how they operate and what they value*, so each ethos appeals to
-a different player temperament. The independents are a faction *by refusal* (the
-microdistillers).
-
 Two pieces, modeled cleanly (**not** GroupApi — that's for player groups):
 
-- **A corpo is a *mark*** — a brand stamp on things, riding the
-  **provenance/maker's-mark** layer (provenance at corporate scale: "a product of
-  [Corpo]"). A corpo is a **reference-identity** (`Idea` singleton, same shape as
-  `Material`/`Species`/a brand); **brand → corpo** is a stamp resolving to one
-  authored corpo. The mark is a **queryable property on every product, business,
-  and venue** a corpo touches — *the real thing on every Stuff instance*.
-  (Independents carry no corpo mark.)
 - **Player ↔ corpo is a multipolar faction-approval vector** — *not* membership.
   A **signed standing with each corpo independently** (beloved by one,
   blacklisted by another); the **pattern across all corpos *is* your factional
@@ -437,58 +249,9 @@ spanning every discipline (corp is *cross-cutting* — you align on
 loyalty/economics, not craft); corpo-vs-corpo rivalry plus corpo-vs-independent
 tension is PvP/PvE structure emergent from *economics*, not red-vs-blue.
 
-**Scope:** the **marks** are near-term-needed (to stamp the bar's brands honestly
-we must author the corpo roster + assign ownership *now*); the **approval-vector
-gameplay** + competition/sponsorship are the deferred cross-cutting-axis build.
-Corpos are **foundational world-content beyond the bar** — the bar forces the
-first authored slice.
-
 ## The economics — the ledger & two governed faucets
 
-**The supply abstraction: a magic distributor.** Modeling player
-distilleries is deferred (a lot); the bar buys from an NPC **distributor —
-the economy's extraction faucet, abstracted into an NPC.** It obeys two
-rules: **deliberately mediocre** (acceptable-but-not-great price, so a future
-player-distiller can undercut it and the bar would *prefer* the real
-supplier — NPCs recede as players fill in) and **accounted** (every drop is
-on the books). A bounded, logged faucet is a governed policy choice; an
-unlogged one is the loot-faucet the economy forbids. Magic, but *on the
-record.*
-
-**The bootstrap P&L.** The bar *pays* the distributor for booze (real cost),
-pays **wages** to the bartenders (real cost — NPC or player on shift), wears
-its tools (minor sink), and earns from **drink sales** (revenue). At genesis,
-few real customers → revenue < costs → **the bar runs red.** The red is
-covered by the **reserve** (the cooperative's central bank, which exists to
-float NPC vendors and seed genesis liquidity). So **two governed faucets**:
-the distributor mints *booze*, the reserve mints the *coin* that covers the
-loss. The negative balance sheet **is the honest record of the subsidy.**
-
-**The deficit is the design target.** Instrument every flow now — booze in,
-coin in, wages out, sales in — and let it sit red. Then "building the
-economy" gets a *measurable definition*: **drive the balance sheet from red
-toward black by replacing magic faucets with real production.** A
-player-distiller arrives → the booze faucet's draw shrinks. Real regulars →
-sales rise. Players working shifts → the NPC wage line becomes real labor.
-Red→black is the scoreboard of economic health — and because it rides the
-reserve's "only mint, fully governed and auditable" property, the subsidy is
-always *visible and accountable* (the central-bank-as-governance thesis,
-dogfooded on a bar tab).
-
-**"Recovering the losses" = seed capital, not clawback.** The subsidy is
-recovered the way deficit spending is: the economy it bootstrapped becomes
-net-productive and throws off more value than it cost. Red→black *is* the
-recovery. (An optional later lever: a profitable bar "graduates" off subsidy
-and pays back into the reserve — a legislative choice, not a requirement.)
-
-**Build the ledger early.** It's cheap, it rides the reserve's accounting,
-and it's the *instrument* that makes the whole economy legible and tunable.
-Dave's Bar's P&L is the first real test of "the economy is a governed,
-auditable thing, not devs patching numbers" — the entire economy thesis,
-proven on one bar's books. The **structure** is settled (two accounted
-faucets, a real P&L, the reserve covering genesis red, the balance sheet as
-the thing the build is trying to balance); the **numbers** (floor price,
-subsidy size, wage) defer to a running game.
+> *Superseded by libations:* the distributor is a real cash-and-carry the bar buys from, stocked by consignment; the sanctioned floor is Veshko's yard standing at target → [retail.md § The distributor](../../subsystems/retail.md). The P&L, the reserve subsidy and cost of goods shipped → [banking.md § Tabs, wages, demo tax, the P&L](../../subsystems/banking.md).
 
 ## Payments — pay-as-you-go, tabs, and the implant
 
@@ -523,47 +286,10 @@ payment method.
 
 ## How it's modeled — objects, persistence, presentation
 
-The reference for *what implements what*. **The discipline: Dave's Bar is
-*content* — authored templates composing general substrate. There are no
-bar-specific classes** (no `DavesBarRoom`, no `MaraNPC`). Genuinely-new substrate
-(banking, tabs, the corpo-mark, recipe-scripts) is built **general and reusable**,
-once; the bar is the *first consumer* that motivates it, never a special case
-(the CLAUDE.md "fold into substrate, don't invent module categories" rule).
-"Building Dave's Bar" = build the substrate it needs, then author the bar over it.
+> *Superseded:* the bar has exactly one class of its own, `world/lounge/location/Bar` (a `SingletonMixin` room the Warren wires); everything else is content over general substrate → [crafting.md § Dave's Bar content](../../subsystems/crafting.md).
 
-**The five-category spine** (all `Stuff` except `Document`):
 
-- **`Idea`** (incorporeal) — corpos, brands, recipes, Subjects (reference-
-  identities in Catalogues).
-- **`Thing`** (corporeal object) — the bar counter, stools, tables, bottles,
-  signs, the till, coins.
-- **`Character`** (`Agent → Creature → Character`) — the NPCs and Avatars.
-- **`Location`** — the room.
-- **`Document`** (NOT `Stuff` — persisted data) — beliefs, chronicles, **accounts /
-  ledger / tabs**, customer records. *Where the memory lives.*
-
-Capabilities are **mixins** on the spine (bar counter = `Thing` +
-Surfaced+Postured+Slotted; Mara = `Character` + BeliefStore+Soul+Persona+traits).
-
-**Three persistence tracks:**
-
-1. **Templates** (the `domain` collection) — the authored static **content** (the
-   room, furniture, décor, NPC *definitions*, recipes, menu, corpos): cloned into
-   runtime, **not saved back** (the template is the source).
-2. **Save-back to template** — the **Avatar exception only** (a player's evolving
-   state → their template). The bar's NPCs/furniture do *not* save back.
-3. **Document collections** — the evolving **memory/state** (beliefs, accounts +
-   ledger + tabs, customer records, chronicles).
-4. **Transient runtime state — persisted *nowhere*** (reset or derived on
-   restart): operational churn — the live glass count, who's-on-which-stool, the
-   in-flight scene, which NPC is mid-task. Inherits the **presence-freeze**
-   pattern (no churn while the venue's empty/offline; reset to par on restart).
-
-→ **Persist *consequences and policy* (money, relationships, records, par
-levels); let *operational churn* be transient.** Authored content = templates;
-durable memory = Documents; the heartbeat = transient runtime. **Not all evolving
-state is "memory"** — the live glass count is the cleanest example (constantly
-changing, persists nothing, correctly).
+> *Superseded by the persistence spine:* nothing saves back to a template; the venue's rows are templates, records are Documents, crafted drinks are transient → [persistence.md](../../subsystems/persistence.md), [crafting.md § Persistence story](../../subsystems/crafting.md).
 
 **Who remembers what (the relationship-vs-record split):**
 
@@ -582,17 +308,6 @@ records, has earned no one's recognition.)
 
 **Presentation — the room `look` is never a flat contents list:**
 
-- **Partition by role** (the Scene composer): **people** (a roster), **fixtures**
-  (woven into the prose scene, not listed), **loose items** (a short "here" list).
-  Never one bucket, never a recency-ordered dump.
-- **Thing-vs-Detail by interactivity, with presentation as a budget:** **flavor →
-  `Detail`** (examinable text, not an object, not in contents — the photo wall,
-  faded posters; *the default*); **interactive → `Thing` flagged a *fixture***
-  (presented as scene, not loose — the counter/stools/dartboard). *Be a Detail
-  unless you need to **do** something to it and it earns its presentation weight.*
-- **Nest contained things** — bottles live *in* the back-bar, cash *in* the till;
-  nested, so they never appear loose in the room (drill in via `look at the
-  back-bar`).
 - **Crowds are recognition-filtered + aggregated** — a 30-person bar reads as the
   faces *you know* **named** (belief / `RecognitionApi`) + "a couple dozen
   others"; *which* names depends on who you are (presence-buys-legibility, in the
@@ -606,12 +321,6 @@ aggregation; partly the smart-presentation work the bar forces).
 
 ## Open / deferred
 
-- **Sequencing & build-phasing** — deliberately not decided yet (agree the
-  experience first).
-- **The crafting verb surface** — how you actually `mix`/`shake`/`serve`
-  (open in the crafting slate).
-- **The quality-verdict rendering** — how a drink's quality reads as prose,
-  never a number (the crafting slate's central honesty problem).
 - **The trait system** — the roster (~15 opposed pairs, CK3-personality-adapted
   + Curious/Incurious) is banked at
   [npc-behavior-slate](./npc-behavior-slate.md) § *Traits*; open: the stress

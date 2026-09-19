@@ -286,17 +286,15 @@ reissue).
 
 ## Tabs, wages, demo tax, the P&L (Phase 4)
 
-- **Tabs** — `TabMixin` on the **venue `Location`** (the Bar): per-patron
-  accrued unsettled charges, owned by the house so the tab outlives shift
-  changes (the bartender acts on the venue's behalf). **Recognition-gated**
-  via `recognizes(recognizer, patron)` (a new boolean read on
-  the recognition surface) — a tab is a privilege of being *known*.
-  **Skipping** is priced, not prevented: `skipTab` applies a `BeliefStoreMixin (the regard face)`
-  regard hit from the creditor and revokes the privilege; the unpaid balance
-  stays on the books. State on the mixin (decision 3: session-durable). The
-  `tab` verb (bare → show; `tab settle` / `tab skip`) is afforded by the
-  bar's Menu (the affordance carrier in the room) and records against the
-  venue's `TabMixin`.
+- **Tabs** — ⚠ **retired** (the Attendant + Goodkin cycle, below: *"the
+  tab is gone — zero credit anywhere until credit is designed for real"*).
+  The Phase-4 `TabMixin` / `tab` verb described here no longer exist
+  (`world/lounge/location/Bar.ts` records the retirement; no `tab.yaml`,
+  no controller). Soft credit at a venue is the credit ladder's rung 2 in
+  [economic-bootstrap-requirements](../requirements/economic-bootstrap-requirements.md);
+  the original tab design survives in the crafting slate. *(Corrected
+  2026-09 by the slate-compaction pass — the code proved the bullet
+  false.)*
 - **Wages** — `BankingApi.payWage(employerAccount, workerKey, amount)` moves
   coin to the worker's primary account as a `wage`/`wages` line — the payment
   primitive only. *Who* is employed + *when they're paid* is now the
