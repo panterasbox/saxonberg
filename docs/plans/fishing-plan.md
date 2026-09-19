@@ -1817,3 +1817,9 @@ dropped chattel restoring to inventory (pets/furnishing); `find` and the
 unkeyed animal (`host.getDeepContents is not a function`, logged on
 every released fish — pets); a Cast's keywords becoming its name once
 known (`talk fisher` fails after the introduction — presentation).
+
+**The full suite, once, before the MR** (2026-09-18): `pnpm test` green
+— 29 packages, 13,150 tests passed (server 10,966 · client 999 ·
+trade-fishing 58 · water 150), `EXIT 0`. The first attempt was killed by
+the OS for memory beside two sibling worktrees' runs; the rerun is the
+one cited. `lint:family` green at every wave.
