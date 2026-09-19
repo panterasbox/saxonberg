@@ -696,6 +696,12 @@ only `__tests__/test-helpers.ts` remains under `lib/perception/modalities/`.
   `<sense>` is for physical senses only. The slate's "messaging =
   sensing" unification is deferred. Existing comms (`VocalMixin.say`,
   `AetherMixin.tell`) ship unchanged.
+  Concretely: speech (`say` / `whisper` / `shout`) still rides
+  `Scene.toPeers` — the room — and stamps an `acousticDb` that no reach
+  walk reads; only `Audible.emit` rides `toAudible` / `AudienceGather`.
+  A shout does not leave the room. Wiring speech onto the walk is the
+  first item on the comms slate's `Left`
+  ([comms.md § Acoustic](./comms.md)).
 - **Smell trails / temporal persistence.** Slate Wave 3.
 - **Light / vision convergence onto the new substrate.** `VisionModality`,
   `canSee`, `visionProfile` ship unchanged. `LookController` doesn't

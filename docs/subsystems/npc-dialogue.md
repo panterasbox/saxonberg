@@ -303,7 +303,10 @@ follow-on relocation, not done here.
 
 - **Scripted `intent-dialogue` responder** + the `addressed` /
   `handleMessage` trigger + the implant `tell` (remote) entry — slate
-  Wave 2. The `open` seam accommodates it with no contract change.
+  Wave 2. The `open` seam accommodates it with no contract change. ⚠ The
+  remote entry additionally needs a per-NPC `AetherImplant`: only Avatars
+  carry one today (no NPC row ships it —
+  [comms.md § Two transports](./comms.md)).
 - **LLM responder** — slate Wave 3.
 - **Persistent per-relationship state** — the social-graph build (regard
   already carries cross-conversation warmth).
