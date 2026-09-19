@@ -340,6 +340,15 @@ arable field WILL have (exported); the aggregate density that fills it is
 [farming-slate § The land model](../slates/tails/farming-slate.md)'s open
 item, not shipped behaviour.
 
+⚠ **The *graze* row has no mouth yet either** (verified 2026-09-19).
+`Field.swardGrazingDemandPerGameDay()` sums `grazingDemandPerGameDay()`
+over the field's occupants, and no class in the tree declares that method
+— `Livestock` included; `Sward.test.ts` overrides the field hook with a
+constant. So in play the sward is drawn down by `mow` alone,
+`cycleGrazedNitrogen` never runs, and *fertility follows the mouths* is
+true of the code and not yet of the game. The grazer is
+[ranching-slate](../slates/builds/ranching-slate.md)'s first `Left` item.
+
 ⚠⚠ The key is **`sward`, not `forage`**. What a *person* gathers off
 rough ground is forage; the standing grass a *cow* eats is the sward.
 Forage is **not in this build** — see below — and the distinction is
@@ -377,7 +386,8 @@ cold-limited.
 
 ⚠ **D12 holds: winter stops the FIELD and does not touch the MOUTHS.** A
 grazed paddock in January still goes down, which is why the feed budget
-exists and why husbandry does not stop when farming does.
+exists in the design (⚠ none does yet — no head has an intake path; see
+the graze note above) and why husbandry does not stop when farming does.
 
 ⭐ **Winter stays HARD, and the reason is not difficulty tuning** (the
 farming slate's decision, graduated here). Without a season in which

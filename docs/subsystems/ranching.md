@@ -197,6 +197,29 @@ it would gain nothing across any absence longer than lunch, and the
 winter-feed budget would never bite. Read through the chattel stamp,
 synchronously, on the reconcile path.
 
+⭐ **Why a cascade, and not farming's limiting factor.** Farming's lesson is
+Liebig's minimum — independent inputs, yield set by the scarcest — and a
+ranching that copied it would be farming with legs. Ranching's is one shared
+budget spent in a fixed priority order, so the consequences a designer would
+otherwise write in fall out of the ordering: underfeed and production dies
+first, then growth, then condition, then the animal; a cold snap raises
+maintenance (`ThermalRegulation` spends satiation to hold the setpoint), so
+milk drops at constant feed and shelter is load-bearing rather than
+decorative. Two optimisation idioms on one reconcile engine — a player who
+learns both has learned two real things, not one thing twice. (Graduated
+from the ranching slate, 2026-09-19.)
+
+⚠ **The cascade has no INPUT yet** (verified 2026-09-19). Nothing grazes:
+`Field.swardGrazingDemandPerGameDay()` sums `grazingDemandPerGameDay()` over
+the field's occupants and **no class declares that method** — `Livestock`
+included. Nothing feeds a head: the platform `feed` verb requires a
+`CultivableMixin` target (compost into a bed), and `Livestock` composes no
+`BehavedMixin`, so the `feeds` / `eats` brains never run on it. The
+partition leg therefore runs on whatever satiation a drafted head carries,
+the winter-feed budget above cannot yet bite, and *"a herd eats whether or
+not it produces"* is not yet true of this game. The feed loop is
+[ranching-slate](../slates/builds/ranching-slate.md)'s first `Left` item.
+
 ---
 
 ## Ownership, and the two one-liners (D22, D98)
@@ -368,6 +391,11 @@ What makes the roles separable is that **the verbs live on capabilities**:
 
 So `WorkingAnimal` adds nothing but a name and an **absence**, and the
 absence is the point.
+
+⚠ Since the pets build (MR !257) the collie is `HandledMixin(KeptAnimal)` —
+it gained the bond, a name, a home and `BehavedMixin` (its `herds` brain had
+never run before that) — see [pets.md](./pets.md). The absence that remains
+is the taps and the carcass.
 
 ### ⚠⚠ What the carcass opens onto — two silent failures, both found live
 
