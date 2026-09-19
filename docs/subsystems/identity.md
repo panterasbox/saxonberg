@@ -108,6 +108,22 @@ There is no runtime transition to build. Identity is a stamp and
 `setTemplatePath` re-keys the registry index, so promoting an extra means
 **authoring a `Cast` row**.
 
+### Why `Extra` and not "prop" — and why the difference is ONE thing
+
+`props:` and `cast:` already mean something precise one level down: a
+**declared designation** on a location row, with a `Behaved` gate in both
+directions (the food-safety build paid for it — a corpse under `cast:`
+refused to hydrate and took the login with it). A role-filling NPC *is*
+`Behaved` and goes under `cast:`, so "prop NPC" would make one word mean
+two things one level apart. Theatre owns the right word: an **extra** is
+exactly *a guard, a fisherman*.
+
+⭐ And resist making `Cast` rich. The difference between the rungs is
+**entitlement to an individual ledger** — `SingletonMixin` is the whole
+enforcement — and everything else (a name, a prologue, a transcript, a
+dossier) is a *consequence*, because every ledger already keys on
+identity. Nothing needs adding to the rung one feature at a time.
+
 ---
 
 ## The dossier — evidence, never values
