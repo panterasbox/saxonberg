@@ -996,6 +996,59 @@ below the outfall*) is run **at the bank** — the confluence reach is the
 outfall's reach (Grounding) — and its raw meal is the raw **fillet**
 after `butcher`, because a whole fish is a body, not food.
 
+### D23 — decisions the build made (recorded for the review)
+
+Each decided by the order the build skill names — requirements, plan,
+lenses, conventions, the nearest pattern — and none stopped for.
+
+1. **`fitIn(state, season?)`** — the season is an argument, not read
+   inside the species, so the species stays pure over its inputs;
+   `limiting` widened to include `'season'`.
+2. **`homeKeyOf(container)`** — a stamped chattel is a home by its
+   chattel id (`placeIdOf` answers a Thing with its template path, so
+   every fish bowl was one home); rooms unchanged.
+3. **Immersion is exempt from the unknown-medium exemption** — a liquid
+   a body sits in is a liquid whether or not the biome table names it.
+4. **The epoch is forestry's closed vocabulary** — three files taken
+   byte-identical from `origin/build/forestry` at `b1177185d`.
+5. **"Turned" = past `fresh`** — the shipped band vocabulary has no
+   `turned`; `Bonded.wouldEat`'s rule, so an animal and a shelf agree.
+6. **Hydraulic geometry** for an unauthored channel width or depth; the
+   `water.reach.meanDepthM` dial is gone.
+7. **One-kilometre reaches** (`reachLengthKm` 1, not 3) and a sixty-fish
+   net — the requirements' *afternoon* was unreachable at 800 fish.
+8. **`lay`, not `set`** — `set` is a scripting builtin; the collision
+   gate now knows the builtins.
+9. **`peers` affordances reach one level into an open container**, both
+   ways — the kernel walk matches the `peers` scope (nearest pattern:
+   `scope-walk.ts` already did this).
+10. **The wait ends at a landing**; **the species draw is weighted by
+    level** (how many), the pressure by fullness (how full).
+11. **The band words read `level / full`** (the capacity at a perfect
+    fit), so *a few carp* beside *too much salt for carp*.
+12. **The read is on `look <shore keyword>`**, not the room's `look` — a
+    prop contributes nothing to its room's prose; a hook is a sweep
+    finding. `water` and `mere` are room details too (a prompt).
+13. **The intake and the outfall are `on: true`** — the Kestrel below
+    Terminus had never been fouled (a shipped defect the AC depends on).
+14. **`witness:arrival` → `arrival`** on five rows, three of them shipped
+    with an `introduces` that never fired (two in `hearts-delight`, a
+    pack this build otherwise leaves alone — a one-word trigger fix is
+    not fishing content).
+15. **The carp's handling ceiling is 0.75** (was 0.6): naming wants a
+    bond of 0.6 and the bond is regard × handling.
+16. **Contest dials** retuned from a simulation; **`lineWords()`** on
+    reel/slack so the lesson is learnable.
+17. **The species `name`** on a standing is the row's first common name.
+18. **The drive skips game time on the OBJECT that carries the clock**
+    (a net's set stamp, a fish's death stamp, a carp's fed days) and turns
+    two dials for the reads (`water.fishery.recoveryHalfLifeDays`,
+    `freshness.band.taintedAt`), never the world clock; the wizard biases
+    the draw by `setHabitat` on the species singleton through `eval`.
+19. **Each worktree owns a `WIRE_PORT`** (build-2 = 2013): two owned
+    boots on 2012 attach to each other's world and kill each other's
+    server.
+
 ---
 
 ### D22 — the reach reports every parameter a tank will ever hold (water pack)
@@ -1273,6 +1326,69 @@ the MR.
 - **Commit** `build(fishing A5): butcher carries a carcass's own contamination onto its cuts`.
 
 ### Stage B — the record, the trade, the content, the drive
+
+✅ **B1–B6 landed** (`1d3327eaf` · `b27029110` · `dfbab252d` ·
+`349b50fa8` · `920348813` · `315edddbf`); B7 (the drive) in progress.
+Build notes:
+
+- **B1.** An unauthored channel width or depth is derived from the flow
+  by **hydraulic geometry** (`w = 5√Q`, `d = 0.4·Q^0.4`, Leopold &
+  Maddock) rather than the plan's 1 m dial — a headwater with no width
+  read 8 m/s. `meanDepthM` stays authorable; no shipped row authors it.
+  The reach's temperature floors at 274 K (water under ice). The mullet
+  and crab salinity margin is **4**, not 5: at 5 a fresh reach still
+  read 6 % mullet. `SpeciesStanding.name` is the row's first common name
+  (a test path leaf read *trout 3s*), and `SpeciesStanding.full` (the
+  capacity at a perfect fit) is what the band words read against — at
+  capacity, a species the water barely suits read *plenty of carp*
+  beside *too much salt for carp*. `fitIn` resolves a tie between two
+  total limiters to the first parameter in the vocabulary (the trout at
+  the confluence reads *too slow* when current and salt are both 0).
+- **B2.** The pack must be added to the **root `package.json`** (the
+  deployment manifest) or `PackLogic` never discovers it — the boot died
+  on the store's `rod` line. Six species; `FisheryRead.ts` is the shape
+  the trade meets the water pack over (types only, `lib/`).
+- **B3.** `Rod.presentation` renamed `showing` (`getPresentation` is
+  Stuff's). The contest's dials retuned from a simulation (reelGain
+  0.25, reelStrain 0.4, slackRelief 0.4, slackRun 0.08, tire 0.35): two
+  reels inside a tick snap a full fighter, a strain-feedback policy
+  lands every fighter in 5–8 ticks. *Thrown* is counted BEFORE the fish
+  pulls (after, it was unreachable). The controllers print
+  `lineWords()` — *the line is singing / the rod is bent hard / it is
+  resting* — because *give when it runs, gain when it rests* is only
+  learnable if you can feel which. ⭐ **The wait ends at a landing**
+  (drive finding: the next `fish` said *already fishing*).
+  `Respiration.onMoved` swallows a failed fire-and-forget re-check.
+- **B4.** `Soil.drawOrganicMatter()` (the twin of `drawNutrient`) is the
+  kernel seam `dig` costs the ground through. ⚠ **`set` is a SCRIPTING
+  BUILTIN** (`lib/script/builtins.ts`: `set x y` binds a shell variable)
+  and the interpreter takes the line before dispatch — `set pot` answered
+  with silence; the verb is **`lay`**, and `lint:verb-collisions` now
+  counts the builtins as claims (a gate gap the drive found).
+- **B5.** `reads-water` exposes `treeFor`/`lineFor` as statics on the
+  brain class-expression (the `open` contract's shape), so the tree is
+  testable without a conversation.
+- **B6.** ⚠ `witness:arrival` is not a trigger the grammar knows
+  (`arrival` is) — the baker, the miller and the farmer had shipped
+  `introduces` that never fired; fixed on all five rows. ⚠ **The city's
+  intake and outfall were OFF**: `Switchable` defaults off and a conduit
+  that is off discharges nothing, so the Kestrel below Terminus had never
+  been fouled — `on: true` on both rows. The store's `pot` is the farming
+  clay pot; the crab pot answers to `crab-pot`.
+- **Affordance (kernel, drive finding).** `peers` contributions now reach
+  **one level into an open container standing in the room, both ways**
+  (`CommandLogic.applyContainmentDeltaImpl`), matching what the `peers`
+  SCOPE already offered: a carp in a bowl on the floor could be bound by
+  `name carp` and afforded nothing to name it with.
+- **Contributions.** `environment` = whoever HOLDS it; `peers` = whoever
+  stands where it lies. The rod, the trowel and the fish afford through
+  `environment`; the trap through both (the controllers narrow on state).
+- **The room's `look` does not carry the water read** — a prop
+  contributes nothing to its room's prose (only the floor puddle has a
+  kernel hook). The read is on `look edge` / `look tarn` (the Shore's
+  own keywords; `water` and `mere` are ambiguous with room details and a
+  disambiguation prompt hangs a wire session). A room-level contribution
+  hook is a finding for the sweep.
 
 #### B1 — the fishery record in the water pack
 - **Implements** D1, D3.
@@ -1663,8 +1779,41 @@ Read first, in this order.
 
 ## Drive record
 
-*(appended at build time, not at plan time — the output of running
-`packages/wire/tests/fishing.dirty.wire.test.ts` plus the two manual
-steps (the restart, the millsite session), step by step, with the
-count and what each failure was. Precedent: `farming-plan.md § Checkpoint
-A`.)*
+**`packages/wire/tests/fishing.dirty.wire.test.ts` — 17/17 on the
+fifteenth run** (2026-09-18, an owned world on `WIRE_PORT=2013`,
+`WIRE_FRAME_TIMEOUT=60000`, a fresh `saxonberg_build2` each run). The
+requirements' steps, what each proved, and what the run before it found:
+
+| step | proved live | what driving found on the way |
+|---|---|---|
+| 1 the store | rod · worm · crab-pot · net · bowl · fish-food · trowel bought and in hand; `look rod` names no number | the pack was not in the root `package.json` — the first boot died on the store's rod line; `pot` at the counter is the farming clay pot |
+| 2 the water read | `look edge`: *This is the Kestrel, a broad river. The water is slow, brackish, cool and hard. An outfall discharges into this water.* — nothing of what it holds at the floor | the room's `look` carries no prop's prose (a sweep finding); `look water` prompts (the room's `river` detail); **the city's intake and outfall were OFF** — no contamination line until `on: true` |
+| 3 the wait | `fish with worm` → engagement; `say` works; `reel` mid-wait: *Nothing is on it* | `reel` was unknown — `peers` ≠ held; the rod affords through `environment` |
+| 4 a fish lands itself | a fish in hand ~55 s; `look`: *It is a foot long*, no number, nothing of the water | `look eel` prompted: the crab pot's `creel` keyword; the wait did not end at a landing (*already fishing*) |
+| 5 the snap | four fast reels on a fighter: *The line parts…the water is as it was*; the rod stays; `reel` after refuses | the contest needed feedback — `lineWords()` |
+| 6 the landing | slack/reel by feel lands the next fighter in ~60 s | dials retuned from a simulation |
+| 7 release | gone from hand; `look edge` byte-identical | releasing a drowning fish mid-drain was an **unhandled rejection that killed the server** (`Respiration.reassess` on an inert proxy) |
+| 8 the pot | `lay crab-pot` → in the water; a wizard sets the stamp back; `lift`: a crab or nothing, no word about luck | **`set` is a scripting builtin** and never reached dispatch — `lay`; the lint gate now knows the builtins; the wire world's clock starts at 0 |
+| 9 the net | five lifts thin the confluence to nothing; `talk fisher` (then `talk tull`): *Nothing in it. Nothing. Somebody has had the lot* — no name; the half-life dial turned, the next lift fills again and he reads *Eels run on the ebb…* | a 3 km reach held 800 fish and never emptied → 1 km and a 30-fish net; a 60-fish lift blew the 30 s frame budget; a known Cast's keywords are his NAME |
+| 10 below the outfall | the landed fish's `e-coli` load > 0 (wizard read); `look` says nothing | evals reach only inside the wizard's parcel (the square) |
+| 11 the stall | `consign X on slab --ask 4`; a second character with a banked purse `buy X from slab`; the consignor's balance (read at the hall) moves | the consign default shelf is the produce stalls; `stall` is both counters' keyword; a purse cannot buy a consignment (the split needs an account); a second founder drop in the hall lands in the till |
+| 12 turned | a wizard kills and back-dates the fish; `consign` → `controller-rejected: turned` | `butcher` is afforded by the cookhouse's block (trade-cooking), not a clasp knife — the carcass-load transfer stays A5's unit test; `smoke` likewise (the `meat` tag proves the recipe match) |
+| 13 the heath | `look tarn`: *This is the Holloway… fast, fresh, cold and soft* — no mullet, no crab, no eel | `mere` is also the floor's pool detail |
+| 13b the millsite | `fish` from the millsite (rod in hand) → engagement — the Delight's flats through the Locality, no row, no code | `fish` is unknown without a rod: the instrument affords it |
+| 14 the kept carp | a wizard-biased carp landed; the bowl on the floor, filled; `put carp in bowl` → no drain; `name carp Barnaby` → *not chosen*; three fed days credited by eval → `name` ok; `find carp mine` → *Barnaby* | `put` targets peers (the bowl must be down); **`peers` affordances did not reach into the bowl** (kernel fix); the draw was weighted by fullness, not count; the carp's handling ceiling 0.6 could not reach the naming bond |
+| 15 the restart (by hand) | with the bowl on the square's floor: Barnaby is stood up **in the square, loose**, and the bowl restores **into the owner's inventory** — *not in his bowl*. With the bowl carried away after naming: Barnaby stood up but nowhere findable | ⚠ **Risk 7 materialized** — a pets/furnishing finding, not fixed here: a keyed animal's placement is captured at naming and not when its vessel moves, and a dropped chattel restores to `inventory`. ⚠ And **a bought good vanished at restart** (the rod, the fish food) — `buy` stamped the buyer but never `followCustody()`; fixed in `BuyController` (every other custody verb does) |
+| 16 the sturgeon | `talk`: *And a royal fish — a sturgeon — lies in the deep water*; wizard-biased, landed by feel; `chronicle`: *Landed a sturgeon at kestrel:confluence.* | — |
+
+**Also found and fixed:** `witness:arrival` on five rows (three shipped:
+the baker, the miller, the farmer — their `introduces` had never fired);
+`Respiration.onMoved` swallowing a failed re-check; the `eval` sandbox's
+`--on` is reachable scope (run it where the thing is).
+
+**Findings left for the sweep / slates:** the room-level prose hook for a
+prop (fishing-slate); a keyed animal inside a moved vessel, and a
+dropped chattel restoring to inventory (pets/furnishing); `find` and the
+`inventory` scope not reaching into a carried container; the
+`PersistableMixin.cleanupOnDestruct` capture error on a destructed
+unkeyed animal (`host.getDeepContents is not a function`, logged on
+every released fish — pets); a Cast's keywords becoming its name once
+known (`talk fisher` fails after the introduction — presentation).

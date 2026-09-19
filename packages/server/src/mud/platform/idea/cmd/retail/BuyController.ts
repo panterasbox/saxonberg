@@ -148,7 +148,16 @@ export default class BuyController extends CommandController<BuyModel> {
     }
     this.handOver(item, giver);
     const owner = await this.buyerOf(giver, paid.receipt);
-    if (MixinApi.isChattel(item)) await item.stampChattel(owner);
+    if (MixinApi.isChattel(item)) {
+      await item.stampChattel(owner);
+      // ⚠ And WHERE it is — the placement record every other custody
+      // verb writes (`get`/`drop`/`put`/`hang`). A bought good stamped but
+      // never placed was in nobody's estate: it vanished at the next
+      // restart unless it had been dropped and picked up once. Found by
+      // the fishing drive's restart step (a rod and a twist of fish food,
+      // bought and carried, were gone; a bowl once set down survived).
+      await item.followCustody();
+    }
     this.announce(giver, item, paid.tail, owner);
   }
 
@@ -236,7 +245,10 @@ export default class BuyController extends CommandController<BuyModel> {
       await item.transferChattel(buyer); // stamp → buyer (or their house)
     }
     this.handOver(item, giver); // custody → buyer
-    if (MixinApi.isChattel(item)) shelf.removeListing(item.getChattelId());
+    if (MixinApi.isChattel(item)) {
+      shelf.removeListing(item.getChattelId());
+      await item.followCustody(); // placed in the buyer's estate, as above
+    }
     this.announce(giver, item, paid.tail, buyer);
   }
 
