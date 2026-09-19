@@ -1,10 +1,15 @@
 # Sanitation slate — litter, impound, and salvage
 
-> **Status: UNBUILT** — the residency sweep and `consign`/`reclaim` it
-> reuses exist; nothing the slate proposes does.
+> **Status: PARTIAL** — the lossy salvage teardown shipped inside the
+> crafting build (`CraftingApi.salvage`, `crafting.salvageRate`, the
+> chattel id dies with the form → crafting.md); the residency sweep and
+> `consign`/`reclaim` it reuses exist; nothing else the slate proposes does.
 > **Left:** `collect` + the impound yard · the abandonment rule and the
-> two legal regimes a locality picks · the salvage yard (assay, the three
-> exits, the lossy loop) · the second-hand market + pawn
+> two legal regimes a locality picks · animal control (the yard with
+> creatures in it, the shelter as its output) · the scavenger vocation and
+> its rungs · narrated eviction (the cart came by) · the salvage yard
+> (assay, the three exits, the yard's book) · the second-hand market +
+> repair-and-resell + pawn
 > **Size:** a build
 >
 > ⭐⭐⭐ **And it grew a second customer 2026-09-08:** the impound yard
@@ -16,9 +21,6 @@
 would ever claim, left standing for immersion. The residency sweep
 already self-evicts the cold tail, but silently; and there is no
 player-facing way to tidy the world.
-
-> **Status: direction set, nothing built.** A small system that reuses
-> the depot design almost wholesale.
 
 Related: [freight-slate](./freight-slate.md) (**the impound yard is a
 depot**), [zoning-slate](./zoning-slate.md) (the dump as a LULU),
@@ -253,14 +255,8 @@ one."* A real economic tier, a genuine newbie affordance, and it makes
 
 ### ⭐ Salvage is a lossy loop, and the loss is the POINT
 
-Teardown must return **less** than went in. If it returned everything,
-materials would never leave circulation and crafting would have **no
-standing demand for raw extraction.**
-
-> **The loss is what keeps mining and farming necessary.**
-
-The § *pipeline* above seen from the economy's side — and it makes the
-**yield rate a real balance lever on the whole primary sector.**
+*Shipped as `CraftingApi.salvage` — lossy by `crafting.salvageRate`,
+conservation asserted; see [crafting.md § The lifecycle](../../subsystems/crafting.md).*
 
 ### ⭐⭐⭐ The salvage yard is the legitimate face of the fence
 
@@ -450,10 +446,9 @@ Which teaches the flip side of everything the other three taught:
 4. **Yard capacity pressure** — what happens when the impound yard is
    full? (Shorten the hold? Refuse intake? Both are real, and both are
    political.)
-5. **Salvage yield** — does breaking down a Crafted object return its
-   materials at a loss, and is that loss a **Grade**/skill read? (The
-   crafting substrate should answer this; do not invent a second
-   teardown model.)
+5. *Q5 resolved:* teardown returns each material at a flat
+   `crafting.salvageRate` ([crafting.md § The lifecycle](../../subsystems/crafting.md));
+   a Grade/skill-scaled yield is on crafting.md's deferred list.
 6. ⚠ **The interaction with the residency sweep** — sanitation must
    *narrate* eviction, never **replace** it. The sweep is a safety net
    that must keep working where no service covers.

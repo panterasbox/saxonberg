@@ -1098,6 +1098,13 @@ on breach); provenance, grade, and the chattel id die with the form
 iron than the ingot that made it — lossless would break conservation;
 losing the value-add makes it self-limiting.
 
+**And the loss is the point** (graduated from the sanitation slate,
+2026-09): teardown must return *less* than went in. If it returned
+everything, materials would never leave circulation and crafting would
+have no standing demand for raw extraction — **the loss is what keeps
+mining and farming necessary**, which makes `crafting.salvageRate` a real
+balance lever on the whole primary sector.
+
 ## The venues (content over existing patterns, wholesale)
 
 The Hearthworks smithy grew into a working venue (anvil + smith's

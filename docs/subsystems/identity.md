@@ -18,6 +18,25 @@ standing and history are all still **derived on read** from evidence —
 what this subsystem adds is the ability for an author to *state* a
 history and have the world believe it exactly as if it had happened.
 
+## A name is not an identifier
+
+An invariant already true throughout the engine, written down because
+everything else leans on it (graduated from the naming slate, 2026-09):
+belief (recognition · identification · regard · discovery) keys on
+`getIdentityPath()`; the chronicle on the owner's identity path; contacts
+on `playerId`; renown · participation · producer · authoring ·
+accountability · contracts · parcels · chattel · bank accounts · offices all
+on identity; MQL targeting on per-viewer `perceivedKeywords`, never the
+true name.
+
+> ⚠ **Nothing may ever key on a name string, and names may never be made
+> unique.** A rename is display text and nothing else; every consequence
+> follows you.
+
+This is also the exoneration mechanism: because every trace keys on
+identity, an impostor's deeds land on the impostor's ledger and never on
+the ledger of the person whose name he wore.
+
 ## The problem it solves
 
 An authored character has done nothing, so the world reads them as having
