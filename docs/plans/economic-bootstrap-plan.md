@@ -445,7 +445,7 @@ Every row below is a `settings/<prefix>.yaml` entry + an
 (`requiresGovernor`; refuses a key outside the `reserve.` prefix) — the
 independence clause in code: the treasury seat cannot reach them and
 `config` stays the operator's code-trust act. The other prefixes stay
-on `config` this build (the treasurer *appropriates*, it does not
+on `config` this build (the Minister of Finance *appropriates*, it does not
 tune; a `treasury set` is a seam, not a wave).
 
 | row | value | read by |
@@ -527,7 +527,7 @@ alone). The orphans are claimed: `wharfside`, `goods-yards`,
 eternal-university manifest (`/world/terminus/eternal/campus-farm` for
 `duncan-hall` — the University's one group today; a `campus` group is
 a rename the Compact can make). Each `/trade/<x>` claim's holder becomes
-`{organization: /compact/board-of-trade}` and the `<x>` groups are
+`{organization: /compact/minister-of-trade}` and the `<x>` groups are
 deleted from the manifests (their only purpose was the title; the
 maintainers group `<id>-maintainers` remains for diagnostics).
 `/stuff/*` claims (`generic-objects`, the platform's `/stuff`) also move
@@ -541,19 +541,19 @@ instance in the world.
 
 ### D7 — Three seats, two organizations, five committees
 
-`OFFICE_APPARATUS` gains `treasurer` ("Treasurer", executive,
-founder-established), `board-of-trade` ("Board of Trade", executive,
-founder-established) and `registrar-of-corporations` ("Registrar of
-Corporations", executive, founder-established) — the kebab-case key
-style of `central-bank-governor`; the display names are the
-requirements' words. Because a title holder is `group | organization`
+`OFFICE_APPARATUS` gains `minister-of-finance` ("Minister of Finance",
+executive, founder-established), `minister-of-trade` ("Minister of
+Trade", executive, founder-established) and `registrar-of-corporations`
+("Registrar of Corporations", executive, founder-established) — the
+kebab-case key style of `central-bank-governor`; the display names are
+`docs/governance/glossary.md`'s. Because a title holder is `group | organization`
 and a seat holds ground only through an organization (governance.md §
 Seat-held title), the platform pack ships two Organization rows beside
 `/compact/executive`: **`/compact/treasury`** (`appointingAuthority:
-{office: treasurer}`, one position `clerk` unfilled; it is the Note's
+{office: minister-of-finance}`, one position `clerk` unfilled; it is the Note's
 counterparty, the escheat's recipient and the owner of the treasury
-account) and **`/compact/board-of-trade`** (`appointingAuthority:
-{office: board-of-trade}`; holds `/trade/*` and `/stuff/*`). Both are
+account) and **`/compact/trade`** (`appointingAuthority:
+{office: minister-of-trade}`; holds `/trade/*` and `/stuff/*`). Both are
 `boot:` entries (an organization-held title admits nobody until the
 org is resident). The corpo packs each declare `requires.groups:
 [{name: <key>-committee, purpose: "…", owner: {office:
@@ -561,7 +561,7 @@ registrar-of-corporations}}]`, claim `/corpo/<key>` for that group, and
 set the corpo org's `appointingAuthority: {kind: committee, parcel:
 /corpo/<key>}`. "Seated through the Registrar's seat" is exactly the
 `soul` precedent: the seat owns the group and adds members with the
-`group` verb; no code. Seat validators: **`requiresTreasurer`** is
+`group` verb; no code. Seat validators: **`requiresFinanceMinister`** is
 added as a sibling of `requiresGovernor` (the validator shape takes no
 parameter — governance.md's "generic requires-office validator" wants a
 schema change and is left as the deferred seam it already is). The
@@ -606,7 +606,7 @@ unchanged. The `isAgentOf` wizard short-circuit is not this build's
   memo)`: `appropriation` leg treasury → the payee's primary account,
   actor from context; the **`treasury` verb**
   (`platform/cmd/banking/treasury.yaml`, validators `requiresAnimate` +
-  `requiresTreasurer`, afforded beside `reserve` in
+  `requiresFinanceMinister`, afforded beside `reserve` in
   `lib/shell/Author.ts:117`): bare → the treasury's account, the
   perpetual outstanding, unclaimed property held, opening advances
   outstanding; `treasury appropriate <amount> to <business|player>`.
@@ -1030,10 +1030,10 @@ step-by-step and what only the browser can prove.
 | `writtenAt` | `PersistedRecord` | every snapshot records when it was written; only the estate read interprets it as presence, and only for the avatar scope. |
 | `onUseGrantRevoked` `@hook` | `Zone` (the parcel's backing zone) | a no-op terminal like `onDestruct`; the dorm class overrides. |
 | offices ×3 | `OFFICE_APPARATUS` | code constant; the roster test updates. |
-| `/compact/treasury`, `/compact/board-of-trade` | platform Organization rows | `/platform/idea/Organization` — no class. |
+| `/compact/treasury`, `/compact/trade` | platform Organization rows | `/platform/idea/Organization` — no class. |
 | `agency`, `gazette` orgs, editor NPC, `MarketStalls` class, `StallController` | terminus pack (`content/…`, `src/market/…`) | pack content + one pack class + one pack controller; the pack already ships `src/`. |
 | `stocks`, `prints` brains | `lib/behavior/` (kernel) | kernel-generic: any keeper, any paper. |
-| `requiresTreasurer` | `lib/command/validators/` | a sibling of `requiresGovernor`. |
+| `requiresFinanceMinister` | `lib/command/validators/` | a sibling of `requiresGovernor`. |
 | `treasury` verb, `bank borrow/book`, `house book/price/roster`, `reserve set`, `wallet beneficiary`, `stall` | views in `platform/cmd/banking/` (+ `market/cmd/stall.yaml`) | subcommands on existing dispatch verbs wherever one exists; `treasury` and `stall` are the two new verbs (`lint:verb-collisions` checked: none). |
 
 **No new mixin is introduced.** That is deliberate: every capability
@@ -1085,12 +1085,12 @@ Checked at plan time against the tree, not recalled:
   account and estate key; `Business.getAccountPath()` moves to
   `getIdentityPath()` for exactly this reason (D15). `lint:person-keys`.
 - **No new `isWizard`** — the seats are `requiresGovernor`,
-  `requiresTreasurer`, title and positions; `isAgentOf` is untouched.
+  `requiresFinanceMinister`, title and positions; `isAgentOf` is untouched.
 - **`Api.boot()` is an operator act** — the perpetual rule and the
   loan reconcile are derive-on-touch; the Gazette editor and the
   keepers are boot-pinned rows; nothing warms from an Api.
 - **A reference row is inert unless warmed** — `/compact/treasury`
-  and `/compact/board-of-trade` are `boot:` entries; `Discipline/finance`
+  and `/compact/trade` are `boot:` entries; `Discipline/finance`
   is read by the catalogue the way the other 30 are.
 - **A verb affordance is a static on a class** — `stall` rides
   `MarketStalls`; `treasury` rides `AuthorMixin` beside `reserve`; the
@@ -1173,7 +1173,7 @@ migration).
   exits re-point; every `parLines[].supplier`, `consigns.config.{stock,shelf}`,
   `businessPath`, `operatingLocations`, `container:` re-point.
 - Each trade pack's `pack.yaml`: title holder → `{organization:
-  /compact/board-of-trade}` **only after W2** — so in W1 the holder
+  /compact/minister-of-trade}` **only after W2** — so in W1 the holder
   stays the trade group and W2 flips it (W1 is landable alone).
 - Acceptance: the coverage gate passes for terminus and every trade
   pack; `lint:untitled` 0; each trade pack's own vitest green
@@ -1189,14 +1189,14 @@ migration).
 
 - `Office.ts:140-171` + three; `OfficeRegistry.test.ts:170-178`;
   `office.yaml:6` prose.
-- `lib/command/validators/requiresTreasurer.ts` (+ test, the
+- `lib/command/validators/requiresFinanceMinister.ts` (+ test, the
   `requiresGovernor` shape).
-- Platform rows `content/compact/treasury.yaml`, `content/compact/board-of-trade.yaml`
+- Platform rows `content/compact/treasury.yaml`, `content/compact/minister-of-trade.yaml`
   (class `/platform/idea/Organization`); both in the platform `boot:`
   list.
 - Every `/trade/<x>` claim (21 packs) and every `/stuff/*` claim
   (platform, generic-objects) → `holder: {organization:
-  /compact/board-of-trade}`; the `<x>` groups removed.
+  /compact/minister-of-trade}`; the `<x>` groups removed.
 - corpo-{aevex,goodkin,hollis,veshko,vionne}: `requires.groups` +
   `<key>-committee` (owner `{office: registrar-of-corporations}`); the
   claim's holder → that group; the org row's `appointingAuthority` →
@@ -1213,7 +1213,7 @@ migration).
   (a unit test over `isCommitteeMember`); Walter's `lease $player`
   still works via the position; the NPC-only fence passes; a wire step
   in `pets-offer` (bank open) still green.
-- Commit: `build(economic-bootstrap W2): treasurer, Board of Trade, Registrar; corpo committees; Walter is staff`.
+- Commit: `build(economic-bootstrap W2): the Ministers of Finance and Trade, the Registrar; corpo committees; Walter is staff`.
 
 ### W3 — The two lints (D22)
 
@@ -1255,7 +1255,7 @@ migration).
   dashboard (two lanes, three numbers, per currency, never a total;
   rates in words); `supply` kept; `set <row> <value>` (prefix-checked);
   `override <amount> to <target> "<reason>"` (the recorded mint).
-  `treasury.yaml` + `TreasuryController` (`requiresTreasurer`);
+  `treasury.yaml` + `TreasuryController` (`requiresFinanceMinister`);
   `Author.ts:117` affords it.
 - Tests: conservation with the four kinds (the pinned exhaustiveness
   test grows); the floor (a leg that would go negative throws, the
@@ -1432,7 +1432,7 @@ For each new capability: **verb · affordance · data · boot · arg gate**.
 | the Gazette edition | the `prints` brain running `press post --as` | n/a | gazette org + editor rows; `press.indexEditionGameHours` | **the editor's `boot:` entry** | `requiresPublisher` passes for the editor's position |
 | `finance` | (credited by acts) | — | `Discipline/finance.yaml` | the catalogue warms rows | — |
 | escheat / reclaim / vacancy / closure | (no verb — derived on touch) | — | `estate.*`, `employment.absenceVacatesAfterDays` | — | — |
-| the three seats | `office assign <player> treasurer` etc. | `Persona.ts:151` | `OFFICE_APPARATUS` | — | existing |
+| the three seats | `office assign <player> minister-of-finance` etc. | `Persona.ts:151` | `OFFICE_APPARATUS` | — | existing |
 | corpo committees | `group add …` by the Registrar | existing | manifests | — | existing |
 
 Each row's "boot" column is the link that has cost this repo a
@@ -1462,7 +1462,7 @@ to check first at the drive.
 | every business's premises under `/world/terminus`, `/world/lounge` or `/world/newbie-wilds` with a player-group committee; no trade group or corpo org holds ground | W0 + W1 + W2 |
 | `committee` at a corpo extent names `<key>-committee`; a new teller is not on it | W2 |
 | no title-holding group has an NPC member; no authored row's number becomes money | W3 (+W2, W6) |
-| the roster shows the treasurer, the Board and the Registrar beside the Governor, founder-held | W2 |
+| the roster shows the Ministers of Finance and Trade and the Registrar beside the Governor, founder-held | W2 |
 
 Unmapped: none. Two readings the build records in the MR description:
 the rung-1 "no repossession" clause (D11) and pets at escheat (D17).
@@ -1621,12 +1621,18 @@ Each leaves as a slate line, never a plan section:
   here).
 - **Bank charters as documents with terms and renewal; the wall;
   deposits gated on the charter** → institutions-slate Stage B.
+- **The Ministry of Works as a seat** (Art. V §6 — the people who
+  program the machine; today the wizard axis) → the wizard-axis-cleanup
+  slate; named in `docs/governance/glossary.md`, not built here.
 
 ---
 
 ## Critical files
 
 Read first, in this order:
+
+- `docs/governance/glossary.md` — the Compact's names; every title,
+  display name and message in this build uses them.
 
 1. `docs/requirements/economic-bootstrap-requirements.md`
 2. `docs/subsystems/banking.md` — the whole thing; then

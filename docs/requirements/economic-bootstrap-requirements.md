@@ -213,7 +213,7 @@ discretion left to lean on — and the seat protects what is left.
 Governor into a treasurer on the argument that a rule makes the seat
 obsolete. The rule is kept; the seat is kept too, because the polity
 should be able to *see* who is answerable for the money, and a
-**treasurer** is chartered beside it. At bootstrap one person may hold
+**Minister of Finance** is chartered beside it. At bootstrap one person may hold
 both. The levers are separate so that one can be handed off without the
 other.
 
@@ -252,7 +252,7 @@ is permanent because a perpetual never comes due.
 Enrollment Note's principal, any opening capital, any subsidy, public
 works, the floor. Nothing mints at a venue ever again. `reserve mint`
 stops fusing *create money* with *give it to whoever I am standing next
-to*; the treasurer's act is *appropriate*, and it names its destination.
+to*; the Minister of Finance's act is *appropriate*, and it names its destination.
 
 No debt ceiling (decided in the slate). The consequence is stated: the
 money supply is whatever the rule says, and the treasury's budget
@@ -567,11 +567,11 @@ default, through the seat); the committee holds `/corpo/<key>`; the
 corpo's organization is the show. A hired clerk is staff; the showrunner
 may also play the CEO.
 
-Three executive seats, then, beside the Governor: **the treasurer** (the
-issuance design above), **the Board of Trade** over `/trade` + `/stuff`,
-and **the Registrar of Corporations** over `/corpo`. Founder-established,
-founder-default, like the Governor; names are the plan's to confirm
-against the vocabulary.
+Three executive seats, then, beside the Governor: **the Minister of
+Finance** (the issuance design above), **the Minister of Trade** over
+`/trade` + `/stuff`, and **the Registrar of Corporations** over `/corpo`.
+Founder-established, founder-default, like the Governor. Names per
+[the glossary](../governance/glossary.md).
 
 ### The three claims on a business
 
@@ -642,8 +642,8 @@ Content and two gates, in the order they unblock each other:
    classes, recipes, materials and instrument rows.
 3. **Claim the orphans** — the infirmary, the necropolis, Wharfside and
    the goods yards under the city; the campus farm under the University.
-4. **The three seats** — treasurer, Board of Trade, Registrar of
-   Corporations.
+4. **The three seats** — the Minister of Finance, the Minister of Trade,
+   the Registrar of Corporations.
 5. **The corpo committees** — five `<key>-committee` groups minted and
    seated through the Registrar's seat; `/corpo/<key>` moves to them;
    each org's appointing authority becomes its committee. The bank
@@ -724,7 +724,7 @@ session.
    lanes — the perpetual held and window advances outstanding — and the
    three numbers. `reserve mint` at a venue is **refused**: issuance no
    longer names a destination.
-5. **As the treasurer, appropriate** from the treasury's account to
+5. **As the Minister of Finance, appropriate** from the treasury's account to
    Dave's Bar. The bar's account rises; the treasury's falls; the world
    supply is unchanged.
 6. **Watch an NPC shop borrow.** The general store's stock falls below
@@ -795,8 +795,8 @@ Observable from outside the code.
   a newly hired teller is not on it.
 - No group that holds title has an NPC member; no authored row carries a
   number that becomes money.
-- The roster shows the treasurer, the Board of Trade and the Registrar
-  of Corporations beside the Governor, founder-held.
+- The roster shows the Minister of Finance, the Minister of Trade and the
+  Registrar of Corporations beside the Governor, founder-held.
 
 ## Cross-references
 
@@ -810,8 +810,10 @@ Observable from outside the code.
   the ledger, the custodial bank, terms, the opening float, the
   overdraft this build retires.
 - [governance.md](../subsystems/governance.md) — the Office substrate
-  the reserve's officer, the treasurer, the Board of Trade and the
+  the reserve's officer, the Ministers of Finance and Trade and the
   Registrar sit in.
+- [glossary.md](../governance/glossary.md) — the Compact's names, applied
+  here.
 - [institutions-slate](../slates/builds/institutions-slate.md) — the
   committee/show separation, title escheats up, the cap table, the
   no-authored-faucet rule; the retrofit section applies its Stage A.
