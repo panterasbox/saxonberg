@@ -84,7 +84,7 @@ archetype list are the same list.
 | **work** | tools | smithy | `trade-smithing` |
 | | repair & sharpening | ⭐ *the same smithy, a different act* | verbs ship |
 | | storage & exchange | depot · market | ✅ ships |
-| | transport | carrier · rig | ⚠ freight designed |
+| | transport | carrier · rig | ✅ freight ships ([logistics.md](./subsystems/logistics.md)) |
 | **hold together** | housing | lodging · lease · lot | `residence` |
 | | drink & assembly | public house | `trade-hospitality` |
 | | education | school · institute · library | ⚠ nothing outside campus |
@@ -349,8 +349,8 @@ where every story lives**:
 | **banking** | a star — all → goodkin | ✅ ships |
 | the **aether** | ⭐ a **complete graph** — reaches everywhere | ✅ ships |
 | the **press** | broadcast, one → many | ✅ ships |
-| **roads** | a graph, walkable, costly | ⚠ three rooms |
-| **freight** | — | designed |
+| **roads** | a graph, walkable, costly | ✅ ships — the Delight road, the Kestrel road, the estuary towpath ([logistics.md](./subsystems/logistics.md) § The corridors) |
+| **freight** | lanes over the road graph | ✅ ships — `Lane` / `Route` / the Journey, the haulage trade ([logistics.md](./subsystems/logistics.md)) |
 
 > ⭐⭐⭐ **Information is a complete graph. Goods are a star.
 > Perfect information, imperfect delivery.**

@@ -1,22 +1,28 @@
 # Freight & transport slate — moving goods as an industry
 
 > **Status: PARTIAL** — the lane / route / journey substrate, vehicles,
-> the haulage labor market and the paper shipped →
-> [logistics.md](../../subsystems/logistics.md)
-> **Left:** the barricade · the tollgate + turnpike trust · warehousing as
-> a business · the wainwright · rail + timetables · navigation as a
-> discipline · customs and tariffs
+> the depot, the haulage labor market, `teamstering` and the paper shipped
+> → [logistics.md](../../subsystems/logistics.md); the teleport ripple
+> ships as a SEVER, not a refusal ([conveyance.md](../../subsystems/conveyance.md)).
+> **Left:** the barricade (exits vs lane edges · the clearing verb · erect
+> via crafting?) · the tollgate + the turnpike trust (the toll schedule as a
+> `parameter` clause · the road inspector · the sunset · toll or tax) · the
+> depot's antitrust arc (the duty to serve · the strike · the forwarder ·
+> the cold store · the impound yard · warehousing rungs — the design is
+> logistics-slate § 11.5) · live cargo and drovers + the refrigerated wagon
+> · highway robbery, escort, police vehicles, pursuit · navigation as a
+> discipline (knowledge-gated routing · cartography · the competence-
+> tightened ETA) · the wainwright · the teamsters' guild vs the freight corpo
+> · driver-external vehicles + multi-actor crews · the runaway team +
+> `team-exhausted` (declared, never fired) · the linkdead driver · internal
+> tariffs / the free-movement module (customs proper is logistics-slate's) ·
+> scheduler churn on very long routes · shrinkage · NPC haulier density
 > **Size:** a build
 
 **Captured 2026-07-31**, out of the build-2 stewardship/farming thread.
 As husbandry, farming and the other production systems scale, goods
 have to *get somewhere*: a rancher's steer to the slaughterhouse, then
 refrigerated to butchers and markets. Same for every producer.
-
-> **Status: direction set, nothing built.** Much of the substrate
-> already ships; this slate names the industry, resolves the
-> vehicle-in-a-room and TPA questions, and records the two live
-> defects the conversation surfaced.
 
 **Sibling, not overlap:** [delivery-slate](./delivery-slate.md) owns
 **small addressed items to fixed addresses** (mail, parcels, utilities,
@@ -95,30 +101,7 @@ and jobs moving, not as an announcement.
 
 ## The vehicle-in-a-room question
 
-### Pedestrians stay synchronous; vehicles become durative
-
-> **Pedestrian movement stays synchronous. Vehicular movement becomes a
-> durable activity.**
-
-This is **the home the locomotion-as-activity slate has been waiting
-for.** It was deferred because *"game responsiveness is a selling
-point"* and nothing pulled hard enough — but the trigger it names for
-itself is *"long-corridor traversal with mid-traversal
-observability,"* which is a freight journey exactly. **Walking one room
-is a step; driving a wagon to the next town is a journey.**
-
-So they **do not share a cadence**, which dissolves the tension:
-
-- the **command bus** issues the *order* — `drive to
-  Terminus/Market/Butcher's Row`;
-- the **scheduler** advances the journey **room by room**, at a rate set
-  by mode speed + exit cost + load;
-- the driver stays **interactive** throughout — the engagement occupies
-  a *slot*, not the player.
-
-And it buys **observability**: the wagon is physically present in each
-room as it passes, so a busy trade road is *visibly* busy — which is
-what makes interception possible **without an interception system**.
+> Shipped as designed → [logistics.md § The Journey: a sustained engagement whose beat is one leg](../../subsystems/logistics.md) — the order is a command, the advance is the scheduler, the vehicle is really in every room it passes.
 
 #### ⭐⭐⭐⭐ The invariant this actually protects: no economic rate may be wall-clock
 
@@ -194,29 +177,12 @@ cross-cuts, so it lives with connection rather than here.
 
 ## ⭐ The road network is emergent, not authored
 
-**You do not author roads.** You author **which exits admit `wheeled`
-traffic**, and the road network is the induced subgraph. `passageMode`
-already exists on the haulage side and exits already mode-gate.
-
-Routes therefore exist because **not every exit takes a wagon** — which
-is exactly how freight works in life (bridge weights, low clearances,
-truck routes). **Costs nothing new.**
-
-### The one real dependency
-
-**Per-location extent override.** A 3 m default cell cannot hold an 8 m
-truck *and* pedestrians. This is the **same dependency the
-[ranged slate](./ranged-slate.md) already named** for its distance
-bands — and [zoning-slate](./zoning-slate.md) needs it a third time for
-**outdoor parcel acreage** (one room *is* a field of N acres).
-
-> ⭐ **Three unrelated threads converging on one small field is as
-> strong a build signal as exists.** Size and build it **once, early.**
+> Shipped → [logistics.md § The lane: an edge set, induced](../../subsystems/logistics.md) (`allowsMode` + `wheelPassable`; the pass stops the wheeled lane by itself). The per-location `extent` override shipped with the ranged build → [ranged.md](../../subsystems/ranged.md).
 
 ## Navigation
 
-- **Pathfinding must be mode-parameterized** — the graph is
-  per-vehicle-class, which falls out of the emergent road network above.
+- ~~Pathfinding must be mode-parameterized~~ — shipped: one BFS per lane over
+  the induced graph → [logistics.md § Routing](../../subsystems/logistics.md).
 - **Routing is knowledge-gated**, per the
   [instrumentation slate](./instrumentation-slate.md)'s thesis (*you are
   as good as your toolkit*): **routing to somewhere you know or that is
@@ -315,12 +281,7 @@ not a road**: smaller, cheaper to build, and the more honest villain.
 
 ### The recommendation
 
-> **Build point-to-point over the road graph, and let depots emerge as
-> businesses.**
-
-Consolidation is a decision a hauler makes **because it pays**, not a
-topology the engine imposes — and a depot is already expressible as
-**an attendant queue + a warehouse + a Business**, all shipped shapes.
+> Shipped as designed → [logistics.md § The depot](../../subsystems/logistics.md): point-to-point per lane, and the depot is an attendant queue + a shipment desk + a `Business`, standing where two lanes meet.
 
 ## The depot as a business
 
@@ -329,37 +290,11 @@ matter.
 
 ### It sells two different things
 
-**Handling** is a *transaction* service (consolidation — the value is
-transport saved). **Storage** is a *time* service (holding goods until
-wanted). Historically two trades sharing a building: **the forwarder**
-and **the warehouseman.** Worth keeping separate, because **only the
-second carries a legal duty.**
+> Shipped → [logistics.md § The depot](../../subsystems/logistics.md): handling is the one priced product; storage is the receipt and the bailee's duty, never a scarce good.
 
 ### ⭐⭐ The warehouse receipt — where it stops being a building
 
-A warehouseman is a **bailee**: holds your goods, owes a **duty of
-care**, and **issues a receipt.** A warehouse receipt is a **document of
-title** — it *represents* the goods, so you transfer the receipt instead
-of moving anything.
-
-> **The goods sit still while ownership moves at the speed of paper.**
-
-That is the origin of **commodity exchanges**, and — more importantly —
-the origin of **collateral**: you can **borrow against a warehouse
-receipt**, the classic secured loan. The turnpike's debt story one level
-up. And it is *why* **Munn** was about elevators: they were a physical
-chokepoint **and** the issuers of the paper the whole grain trade ran
-on.
-
-**Mechanically already expressible** — a **Document** naming a chattel
-or a bulk quantity, using **the bearer/registered split the credential
-design already made**
-([credential.md](../../subsystems/credential.md),
-[fasttravel.md](../../subsystems/fasttravel.md) § *the card is an
-instrument, not a passport*):
-
-> **A bearer receipt is a Thing you can steal; a registered receipt is a
-> record you cannot.**
+> Superseded by the code: the receipt shipped as a RECORD and the bearer `Thing` was cut before merge as proof of nothing; it returns with `withdraw` → [logistics.md § The warehouse receipt](../../subsystems/logistics.md).
 
 ### ⭐⭐ The monopoly is a different KIND
 
@@ -406,10 +341,6 @@ and rail yards were the historic union strongholds. It gives the
 - **Two capacities, not one** — **storage** and **handling** fail
   independently (full but staffed; empty and understaffed). The
   attendant queue covers the second.
-- **Siting: a depot exists where transport MODES CHANGE** — port to
-  road, valley road to city street. So **the Gate is already a depot
-  site**: TPA terminal + port + city gate, where everything changes
-  mode.
 - ⭐ **The quality signal is TRUST, not measurement.** A turnpike's
   quality is a number you read off the road; a depot's is *"will my
   goods actually be there?"* — which makes **renown genuinely
@@ -437,51 +368,13 @@ class.**
 > junk?"* — an unanswerable question — into *"has anyone claimed it?"*,
 > a **waiting** problem.
 
-## What is already free (check before building)
-
-| Want | Probably already is |
-|---|---|
-| a haulage job | **a gig with a custody clause** — [contract.md](../../subsystems/contract.md) has clauses over verifiable conditions, escrow, a board, and **the custodian rule** |
-| custody of cargo in transit | **chattel chain-of-title**; loss or theft becomes a real dispute, adjudicable by the courts |
-| background freight when nobody is playing a teamster | **a `hauls` brain**, on the `delivers` precedent — which keeps the **core economy DAU-independent**, a standing commitment |
-
 ## The TPA question — RESOLVED
 
-> *"Does freight ride the TPA network, or is that passenger service
-> only? They're both `Mobile`, right?"*
-
-**Both are `Mobile` — but `Mobile` is the capability to move, not the
-authorization to use a network.** Two independent gates already exclude
-vehicles, and **neither was written for this purpose**:
-
-1. **`teleport` is verb-gated `requiresAnimate`.** A wagon cannot invoke
-   it.
-2. **Clearance lives in the aether-hosted wallet**, never a carried
-   card — deliberately, so authorization is a property of *identity*. A
-   wagon has no attunement, therefore **no credential holder, therefore
-   it can never be cleared.** The identity-bound design answers the
-   question **structurally**.
+> Superseded by [logistics-slate](./logistics-slate.md) D4 and the code: the TPA is one of two incumbent networks, not a special case, and there is no `tpa` lane → [logistics.md § There is no `tpa` lane](../../subsystems/logistics.md). The two gates stand: `requiresAnimate` on `teleport.yaml`, and clearance in the aether-hosted wallet → [fasttravel.md](../../subsystems/fasttravel.md).
 
 ### ⚠ Two live defects this surfaced
 
-**The conveyance ripple and the haulage tow live in `Mobile.traverse`
-only.** `Mobile.teleport` is a bare `ContainmentApi.move` plus
-narration. So today:
-
-- **teleport while mounted → the horse stays behind**;
-- **teleport while hitched → the cart stays behind**, silently.
-
-**That is an oversight, not a policy.** Recorded in
-[conveyance.md](../../subsystems/conveyance.md). The rule to write:
-
-> **Teleport ripples what is *on* you and refuses what you are
-> *attached to* — and says why.**
-
-Worn gear and pack come along (otherwise teleport strips you). Being
-**mounted or hitched refuses the ride** with an honest message, per the
-[enforcement slate](./enforcement-slate.md)'s **wall-mode-honesty**
-rail: *"the turnstile will not admit a hitched cart."* **Silent failure
-is the thing to kill.**
+> Fixed, in a different shape: a teleport SEVERS a coupling and says so, rather than refusing → [conveyance.md § `teleport` ripples what is on you](../../subsystems/conveyance.md), [logistics.md § The teleport defect, fixed](../../subsystems/logistics.md).
 
 ### The line is capacity, not goods
 
@@ -522,15 +415,7 @@ fight about. **Costs nothing to leave open.**
 
 ### ⭐ The coverage walk already answers "who polices the road"
 
-Jurisdiction resolves by **longest-prefix coverage walk**, so a road
-between two localities may resolve to **no locality**, or to a **higher
-tier**.
-
-> **Banditry lives in jurisdictional gaps** — which is why highway
-> robbery was historically a *special* crime against the King's peace
-> rather than an ordinary one.
-
-A real constitutional question with an **already-mechanized answer**.
+> Shipped and derivable today → [logistics.md § Addresses, and the jurisdictional gap](../../subsystems/logistics.md): the Delight road is under no `Locality`; the Kestrel road is Rejection's.
 
 - **Highway robbery is the industry's native crime**, and it makes
   **escort an economically motivated job** — the oldest RPG vocation,
@@ -611,65 +496,9 @@ cover* — **both are squarely in freight's path**:
 - **multi-actor coordination** — driver + guard + loader; "activity-slate
   territory."
 
-Plus, from this pass: the **teleport ripple defect** (above), and the
-**per-location extent override** (shared with ranged).
-
 ## The Journey — the durable activity, designed
 
-Designed against the shipped
-[activity framework](../../subsystems/activity.md). Almost all of it
-lands on existing pieces; **one slot choice carries the whole feel.**
-
-### Shape: a `SustainedEngagement`, not a `DurativeActivity`
-
-[Respiration](../../subsystems/respiration.md) is the shipped exemplar —
-a sustained engagement with a **recurring `ScheduledEmission`
-delegating back to the host.** A `DurativeActivity` needs a completion
-timer known **up front**, and a journey's duration is *not* trustworthy
-in advance: gates close, bridges wash out, routes change. **A fixed
-timer would be lying to the player.**
-
-So **each leg is the beat**, and:
-
-> **Arrival is a completion, not an abort.**
-
-That distinction matters — the framework fires aborts **before** any
-state change **by design**, and arrival is emphatically *after*.
-
-⚠ **The one possible framework touch:** a sustained engagement that
-**ends cleanly on its own terms**. Small, but name it rather than
-discover it mid-build.
-
-### ⭐ The journey never moves anything itself
-
-> **Every beat issues the same `traverse` a player would.**
-
-The shipped path then does the rest — mode gates, `canTraverse`, the
-conveyance ripple, the haulage tow. Which makes the journey **a thin
-scheduler over existing movement**: cheap, and — more importantly —
-structurally unable to **silently bypass a gate** or **drift into a
-second movement path.**
-
-### ⭐ Slot: `hands` — and this is the choice that makes it work
-
-| Slot | State | Consequence |
-|---|---|---|
-| `body` | **free** | shift posture, be attacked, defend yourself |
-| `attention` | **free** | look around, talk, watch the treeline — **a journey must not blind you** |
-| `hands` | **engaged** | wielding needs hands, so **a driver cannot shoot back** |
-
-> **You cannot drive and fight. Ambushed on the road, you choose
-> between the reins and the weapon.**
-
-And a **passenger holds no engagement at all** — they are a slot
-occupant being rippled, so they fight freely. Therefore:
-
-> **The escort job becomes mechanically necessary, not merely
-> sensible.** Caravans hire guards because the driver genuinely cannot
-> defend the load.
-
-Falls straight out of the existing four-slot vocabulary. **Nothing new
-invented.**
+> Shipped as designed → [logistics.md § The Journey](../../subsystems/logistics.md): a sustained engagement whose beat is one leg, every beat the same `traverse`, the `hands` slot only, arrival a completion (`SchedulerApi.complete`), no auto-replan, the `hauls` brain on the same object. What follows is only what the build did NOT settle.
 
 ### Ownership, cadence, and the transaction boundary
 
@@ -678,15 +507,6 @@ invented.**
   ⚠ A draft team that *bolts* when the reins drop is the classic
   **runaway**; deferred explicitly rather than pretended away by the
   halt.
-- **Beat interval comes from shipped data** — exit `speed` /
-  `defaultDurationMs`, modulated by **mode** and **load**, so a heavy
-  wagon is genuinely slower.
-- **On game-time**, like respiration's emissions — a long haul is
-  minutes of real time, not hours.
-- **The transaction boundary applies per leg**: re-validate before each
-  step (exit still passable? vehicle still exists? driver still
-  driving?). Failure is **`preconditions-changed`**, which the framework
-  already owns.
 
 ### Abort reasons
 
@@ -695,19 +515,6 @@ established pattern: **`route-blocked`**, **`vehicle-disabled`**,
 **`team-exhausted`** (the draft animal's
 [reserve](../../subsystems/reserve.md)). **Reuse `combat`** rather than
 minting an ambush reason.
-
-### ⭐ Combat is NOT in `interruptibleBy`
-
-> **Being shot at does not stop your wagon. Running the ambush is a
-> playable decision** — stopping is the driver's own `cancel`.
-
-Which forces the good consequence:
-
-> **Bandits have to physically block the road.**
-
-A barricade is a placeable object in the authored-obstacle family the
-[ranged slate](./ranged-slate.md) already discusses for cover — and it
-is exactly how highway robbery worked: **block first, demand second.**
 
 ### Observability
 
@@ -720,20 +527,11 @@ the remaining plan. And per the standing rule:
 Same readout ladder as the gun and `analyze`, applied to a number
 instead of a description.
 
-### No auto-replan in v1
-
-A blocked route **aborts with `route-blocked` and reports**; the driver
-re-issues. **Auto-routing around obstacles hides the geography** this
-whole slate exists to make real — **blocked should mean blocked.**
-
 ### Two smaller calls
 
 - **A linkdead driver halts the journey where it stands**, leaving the
   cargo on the road as genuine jeopardy. (Open to argument — but it is
   the version with stakes.)
-- **The NPC `hauls` brain uses the same Journey object.** Behavior
-  brains already ride the scheduler, so there is **no second
-  implementation** for background freight.
 
 ## The barricade
 
@@ -782,15 +580,7 @@ thematically exact.
 
 ### ⭐ Lawfulness is already answered
 
-`ParcelApi.ownerOf` + `AccessApi.can` + the jurisdiction coverage walk:
-
-- **a gate on your own land** — legitimate;
-- **a barricade on the public highway** — **obstruction**, a
-  prosecutable crime;
-- **in a jurisdictional gap** — nobody to prosecute.
-
-> **Which is precisely why banditry lives there** — closing the loop
-> with § *Crime, police, and jurisdiction* above.
+> Shipped → [logistics.md § Land use: no seventh entry](../../subsystems/logistics.md) (`civic`/`wild` IS the toll-versus-obstruction distinction) and § Addresses, and the jurisdictional gap.
 
 ### ⭐ A barricade is evidence
 
@@ -1074,10 +864,9 @@ line, with a rung for each.
 - **Congestion pricing has a natural home** (raise the toll to manage
   demand at capacity) — but leave it a lever a legislature *can* reach
   rather than modelling it up front.
-- ⚠ **Check whether a road corridor fits the closed land-use vocabulary
-  on `ParcelRecord`**, or whether roads want an additional entry.
-  **Cheap now, annoying later** — resolve before the parcel work
-  hardens.
+- ~~Check whether a road corridor fits the closed land-use vocabulary~~ —
+  answered: no seventh entry; a corridor is its own parcel under `civic` /
+  `wild` → [logistics.md § Land use](../../subsystems/logistics.md).
 
 ## Open questions (for requirements)
 
@@ -1090,15 +879,14 @@ line, with a rung for each.
    stays a decision. What remains is **scheduler churn on very long
    routes** — measure before optimizing, and if it bites, batch beats
    through rooms with no observers rather than coarsening the model.
-3. **Load model** — does cargo ride as `Container` contents, `Bulkable`
-   slots, or both? (Both, probably: crates vs. grain.)
+3. Q3 resolved: both, on one rig — `HaulageRig` is `Bulkable(Haulable(Vessel))`
+   → [logistics.md § The vehicles](../../subsystems/logistics.md).
 4. **Shrinkage and the live-cargo regime** — is weight loss a metabolism
    read, or a simpler droving term?
 5. **Does the wagon itself spoil-shield?** i.e. is the refrigerated
    wagon a `ThermalMixin` host whose contents inherit, and what powers
    it (ice, a cell, a spell)?
-6. **Rates** — is freight priced per weight×distance, per journey, or
-   negotiated per contract? (The antitrust arc wants rates to be
-   *visible* and *settable*, whatever the form.)
+6. Q6 resolved: a published, superseding rate card on a board, and the gig
+   board beside it → [logistics.md § The rate card](../../subsystems/logistics.md).
 7. **NPC haulier density** — how much background freight, and does it
    respond to real price signals or run fixed circuits?
