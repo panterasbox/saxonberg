@@ -97,8 +97,13 @@ Inside `exert`, in order:
    you have outgrown trains nothing** — the quern (620 W) overloads a
    fresh body and stops a few points of lean later; the bar is where a
    person chooses a heavier one.
-4. **Heat** — `depositWorkHeat(powerW × durationS × (1 − η))`, a
-   no-op seam until build-4's `absorbHeatLoad` lands.
+4. **Heat** — `depositWorkHeat(powerW × durationS × (1 − η))` →
+   `ThermalRegulation.absorbHeatLoad`: the thermal slice sheds it by
+   sweating, costing hydration, damped by what the body wears (a coat
+   halves the shedding), stopped past the wet-bulb ceiling. A shift at
+   the anvil in a coat is a wetter, thirstier shift with no wiring of
+   its own — and cold air does not stop it (the load sheds through the
+   cold branch too; you sweat shovelling snow).
 
 Then, if the `wind` band crossed a threshold either way,
 `refreshConferrals()` re-derives the verb set — so a band-gated verb on
@@ -110,7 +115,7 @@ append.
 | read | where it is asked | what it does |
 |---|---|---|
 | `canExert(powerW, durationS)` | `engageStep`, both pack `engageAct`s, the smelt | the double shift: refuses a step that would leave endurance under `exertion.exhaustionFloorPct`, with the mixin's one line (*"You're too tired for that."*, `too-tired`) |
-| `canSustainPace(mode)` | `LocomotionControllerBase.execute`, for any mode with `speed > 1`, before the gates | the run that breaks: power within `sustainableW`, or endurance ≥ `exertion.paceFloorPct`; otherwise the mode drops to `walk` with a `pace-broken {from, to}` note (auto-escalates to `partial`) and the winded line |
+| `canSustainPace(mode)` | `LocomotionControllerBase.execute`, for any mode with `speed > 1`, before the gates | the run that breaks: `capacity('locomotion') === 'full'` (reach ANDs with function — a wounded leg holds no run however conditioned) AND (power within `sustainableW`, or endurance ≥ `exertion.paceFloorPct`); otherwise the mode drops to `walk` with a `pace-broken {from, to}` note (auto-escalates to `partial`) and the winded line |
 | `exertTraverse` for `climb` | inside the emit | the rest line when the climb's power exceeds `sustainableW` — a conditioned body pays nothing and says nothing |
 | `leanMargin()` | `LoadBearing.getCarryCapacity` | the strength read the tape, the water and `lift` share; 1.0 at the seed |
 | `conditioningBand(stock)` | `AdvancementMixin` | untrained < 20 % ≤ novice < 40 % ≤ competent < 60 % ≤ proficient < 80 % ≤ expert |

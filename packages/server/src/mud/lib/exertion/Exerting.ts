@@ -231,6 +231,12 @@ export function ExertingMixin<TBase extends MixinConstructor>(Base: TBase) {
 
     public canSustainPace(mode: LocomotionMode): boolean {
       const self = this as unknown as ExertingHost;
+      // ⭐ Reach ANDs with function (W6): a body whose locomotion is
+      // impaired by a wound cannot hold a pace above a walk however
+      // conditioned it is — fitness is not a bandage.
+      if (MixinApi.isVitals(self) && self.capacity('locomotion') !== 'full') {
+        return false;
+      }
       if (this.traversePowerW(mode) <= this.sustainableW()) return true;
       const endurance = self.getReserve('endurance');
       if (!endurance) return true;
@@ -334,13 +340,20 @@ export function ExertingMixin<TBase extends MixinConstructor>(Base: TBase) {
     }
 
     /**
-     * The heat seam. `1 − η` of every exertion lands here as joules the
-     * body must shed. ⚠ A no-op until build-4's `absorbHeatLoad` is on
-     * the merged tree (plan W6) — and the place an exertion will deposit
-     * sweat on a `Soilable` body the day room-condition ships one.
+     * ⭐ **Exertion is heat.** `1 − η` of every exertion lands on the
+     * body's internal heat load (`ThermalRegulation.absorbHeatLoad`),
+     * which the thermal slice sheds by sweating — costing hydration,
+     * damped by what the body wears (a coat halves the shedding), and
+     * stopped past the wet-bulb ceiling. So a shift at the anvil in a
+     * coat is a wetter, thirstier shift, with no wiring of its own: the
+     * heat build already prices all of that. Also the place an exertion
+     * will deposit sweat on a `Soilable` body the day room-condition
+     * ships one.
      */
-    protected depositWorkHeat(_joules: number): void {
-      // no-op seam (W6 forwards to ThermalRegulation.absorbHeatLoad)
+    protected depositWorkHeat(joules: number): void {
+      if (joules <= 0) return;
+      const self = this as unknown as Stuff;
+      if (MixinApi.isThermalRegulation(self)) self.absorbHeatLoad(joules);
     }
 
     /**
