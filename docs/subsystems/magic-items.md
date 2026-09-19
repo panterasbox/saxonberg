@@ -636,6 +636,22 @@ the same cure and its value is **certainty**: you cannot read a scroll's
 band before reading it, so blessed is the one you know will not turn on
 you. The real high end stays named for when multi-target lands.
 
+> ✅ **Multi-target landed the same day** (`c3d624536`), and the
+> paragraph above is now history. `adjust-blessing` and `sense` carry an
+> optional **`scope`** — an MQL query naming the SET the effect acts on
+> instead of the aimed target, band-varying like any field, resolved
+> against the **actor** so `inventory` means the reader's own pack
+> (`lib/magic/Effect.ts`, `MagicLogic`'s scoped branch). Both shipped
+> scrolls use it at the blessed band: `remove-curse.yaml` `scope: [null,
+> null, inventory]` — blessed sweeps everything you carry, which is the
+> *more of the same act* the slate asked for — and `identify.yaml`
+> `sense: [misidentify, identify-item, identify-item]` + the same scope,
+> so identify's own axis runs **plant a false identification · name one
+> thing · name everything you carry**. The query names the set and the
+> EFFECT filters it (`mixin.` filters are author-gated in MQL, and a
+> content-authored scope must not need author powers), so a blessed
+> remove-curse over a pack of spoons touches nothing.
+
 A cursed scroll of remove curse **lays** a curse. Not a weaker cure —
 the opposite act, because that is the low end of *remove-curse's own*
 axis.
