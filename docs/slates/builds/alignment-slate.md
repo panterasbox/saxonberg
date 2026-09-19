@@ -9,19 +9,13 @@
 > conviction record · `DevotionMixin` + the char-gen worship pick + the
 > Chapel re-declaration · the resonance/dissonance read · the mirror
 > (self-view · ambient tilt via the register cascade · focal omens),
-> reflection-only · `Corpo` → `Faction` with role-weighted gravity and
+> reflection-only · NPC gravity seeded as claim-evidence + the legibility ×
+> honesty grid · `Corpo` → `Faction` with role-weighted gravity and
 > dot-product reception · per-faction standing over renown
 > **Size:** a build
 
-> **Status: design spine SETTLED, pre-requirements.** Supersedes the
-> preliminary [alignment-religion-slate](./alignment-religion-slate.md)
-> (RPG-layer, deferred) — that doc's D&D-grid + worship-is-chosen intuitions
-> survive here, now fully reconciled with [story-bible.md](../../story-bible.md)
-> §Alignment/§Gods and grounded in the shipped derive-on-read substrates
-> ([chronicle](../../subsystems/chronicle.md), [trait](../../subsystems/trait.md),
-> [belief](../../subsystems/belief.md), [renown](../../subsystems/renown.md),
-> [corpo](../../subsystems/corpo.md)). The **model** is complete; **content**
-> (the demigod roster, the favor/access mechanics) stays deferred.
+*(Supersedes the preliminary
+[alignment-religion-slate](./alignment-religion-slate.md).)*
 
 Alignment is the world's read on *what a soul serves*. It is a **derive-on-read
 consumer**, never a stored stat — the [chronicle](../../subsystems/chronicle.md)
@@ -315,8 +309,6 @@ conviction verbs; the mirror ships reflection-only.
   rides measured direction at first.
 - **Richer estimators** — cross-component propagation, explicit drift-inertia
   (inherited from trait's deferred list).
-- **Content-collection rename** (`domain` → `content`) — a standalone
-  migration-shaped task, *not* inlined into this build.
 - Whether **Aletheia** is pickable at creation or Chapel-only — a char-gen content
   detail.
 

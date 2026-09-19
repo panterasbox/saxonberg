@@ -57,7 +57,7 @@ implementing the same `open` shape, no contract change.
 
 A tree is the **`config` blob** of the NPC's `tree-dialogue`
 `BehaviorSpec` — pure declarative data persisted inside the NPC template's
-`data.behaviors[].config` in the existing **`domain`** collection
+`data.behaviors[].config` in the existing **`content`** collection
 (hydrated by the normal `PersistentHydrator`). **No `dialogue`
 collection, no `DialogueTree` Stuff/Document** — the interfaces describe
 the blob's shape; nothing is ever instantiated. Because `config` is

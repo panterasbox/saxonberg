@@ -8,20 +8,16 @@
 > personality layer → [trait.md](../../subsystems/trait.md).
 > **Left:** the upper rungs of the ladder — intent-match, the code-tier
 > `scripted-behavior` brain, the LLM brain · the `addressed` and `given`
-> triggers · stress as the divergence signal (the `traits-stress`
-> follow-on) · the schedule model (a schedule is a claim about
-> POPULATION; the shift roster IS the schedule) · the ambient crowd as
-> prose, not objects · the CMS behavior-composition tooling + its
-> drafts→publish gate
+> triggers · the `guards` brain + the block-substrate seam · reactive
+> scenery (`Behaved` on a `Thing`/`Location` host) · archetype behavior
+> presets (the combo catalog) · per-slot capacity for multi-limbed bodies ·
+> stress as the divergence signal (the `traits-stress` follow-on) · the
+> schedule model (derive the crowd, simulate the cast — schedule as
+> preference, diegetic failure, the observability boundary, the night
+> pulse + staggered hours) · the ambient crowd as prose, not objects · the
+> CMS behavior-composition tooling (the spec-list editor, the brain
+> palette by tree-walk, the dialogue-tree widget) + its drafts→publish gate
 > **Size:** a build
-
-> **Status: model set — declarative behavior over path-resolved brains.**
-> Almost everything an NPC does — what it says, how it moves, how it reacts,
-> how it defends — is **automation**, and it all reduces to one shape:
-> **uniform emission + a swappable "brain," composed as data, riding
-> substrate we already have.** Generalizes npc-dialogue's "one output,
-> swappable brains" from speech to *all* behavior. Scripting and LLM aren't
-> a separate paradigm — they're brain-types the same model accommodates.
 
 Working slate for **NPC behavior** — the automation layer behind
 non-player (and AI-driven) `Character`s. It's the activity framework's first
@@ -37,28 +33,10 @@ The load-bearing decisions:
    **canned → tree → intent-match → scripted → LLM.** (npc-dialogue's
    swappable-responder pattern, generalized to speak/move/react/defend.)
 
-2. **Behaviors are declarative data-specs, not composed mixins.** A host
-   carries a **branch-agnostic `Behaved`** mixin that runs a **`behaviors:`
-   data list**; each entry is `{ brain, trigger, config }`. Content authors
-   compose behavior as **data** (add specs, pick brains, fill config) — no
-   code. `Character` is the rich consumer (NPCs); a `Thing`/`Location` is the
-   thin consumer (**reactive scenery** — same loop, simpler brains), so
-   "reactive content" is not a separate subsystem. (Same shape the codebase
-   uses for vitals' trauma strategy-table and locomotion modes.)
-
-3. **Brains are path-resolved, lazy-loaded code modules — NOT a registry.**
-   A brain is a code module at a path (in a scope/sandbox); a spec
-   references it **by path**; `Behaved` **re-resolves + lazy-loads** it. Add
-   your own = drop a marked module at a path in your scope — **no central
-   list to edit.** (See [access-slate.md] / the registry-aversion principle:
-   path-resolution + lazy-load, not central registration.)
-
-4. **Path-resolution gives extensibility *and* HMR together.** Because
-   brains are **re-resolved by path per invocation** (the controller
-   `clone-per-execution` pattern), editing a brain hot-reloads and the live
-   NPC's *next action* runs it — no re-spawn. The same mechanism that lets
-   you drop in your own brain makes it hot-reloadable. So `Behaved` must
-   **wire by path-reference + re-resolve, never capture the brain at spawn.**
+*(Decisions 2–4 — the `behaviors:` data-spec list on a branch-agnostic
+`Behaved`, path-resolved brains with no registry, re-resolve-per-invocation
+HMR — shipped → [behavior.md](../../subsystems/behavior.md) § The model,
+§ Brains are a module category, § Path resolution + HMR.)*
 
 5. **The ladder = the data/code tiers.** canned/tree/intent brains are
    **data-config** (content-tier, safe); the **scripted** brain's config
@@ -78,9 +56,6 @@ See also:
   `SustainedEngagement` + the **engagement slots** (`body`/`hands`/
   `attention`/`voice`) that **arbitrate concurrent-behavior contention**.
   NPC behavior is its first real consumer (shipped inert in Wave 1).
-- [docs/subsystems/hot-reload.md](../../subsystems/hot-reload.md) — the
-  `clone-per-execution` / re-resolve pattern that makes path-resolved brains
-  hot-reloadable; the proxy as the method-dispatch re-resolution seam.
 - [docs/slates/access-slate.md](../tails/access-slate.md) — brains live in
   lease-scoped sandboxes; a scripted brain is untrusted code (the isolation
   concern); path-resolution (not a central registry) is the access-aligned
@@ -122,75 +97,12 @@ See also:
 
 ### How it maps to the hierarchy (the concrete plumbing)
 
-- **The NPC** is an `Agent → Character` **instance**, cloned from a
-  **template** that names a `class` and holds fields incl. a **`behaviors:`
-  list**. Normal Stuff — no new branch.
-- **`Behaved`** is a **branch-agnostic mixin** — composed wherever authored
-  behavior lives, not Character-bound. `Character` is its **rich consumer**
-  (NPCs); a **Thing or Location** is its **thin consumer** (reactive scenery —
-  "the door murmurs when opened," "the fountain bubbles every 5s," "the room
-  dims at night"). The loop is identical on every host — read `behaviors:`,
-  wire triggers, re-resolve brains, emit — so "reactive content" is **not a
-  separate subsystem**, it's `Behaved` on a non-Character host running simpler
-  brains. This stays a **focused mixin** (composed only where behavior exists,
-  never a flag on every Stuff). At spawn it reads the `behaviors:` data and
-  **wires each spec to its substrate** (re-resolving brains by path). The one
-  Character-specific concern — **engagement-slot contention** — is a
-  coordination layer the substrate defers to *only when the host has it* (a
-  door runs one trivial brain with no contention).
-- **A behavior-spec is DATA** — `{ brain, trigger, config }` in the
-  template's `behaviors:` field. **Not an Idea, not its own template.**
-- **A brain (behavior-type) is a path-resolved code module** — a strategy
-  that, given trigger + config, decides + emits (npc-dialogue's "responder
-  strategy class," generalized). **Code, at a path, lazy-loaded,
-  marker-discovered — not a registry entry, not an Idea-per-brain.**
-- **Config is data**, and it has **four homes**, picked by what the artifact
-  *is*: **(1) inline** inside the owning template (the default — a dialogue
-  tree *unique* to one NPC is just nested data in that NPC's template);
-  **(2) its own `Document` + own collection** (e.g. `DialogueTree`,
-  `collectionName='dialogue_trees'`), CRUD'd directly and **loaded on
-  demand**, for an independent/*shared* `tree:` — this is the "your own
-  collection for your own document needs" track (`User` lives here too); **(3)
-  a `domain` Template**, *only* if the artifact is a game-world object that
-  gets **cloned into the world** (a dialogue tree isn't — it's read, not
-  cloned, so it's #2, not #3); **(4) the filesystem**, only if it's *code* (a
-  brain). `domain` is **Template documents that clone into Stuff** —
-  independent documents go in their *own* collection, never domain. (A
-  `Document` is plain persisted JSON with no Stuff overhead — see the
-  [persistence-architecture rethink](./persistence-architecture-slate.md);
-  it supersedes `Persistable`. So a `tree:` reference is to a `Document` in
-  its own collection.) The graduate-or-inline axis is **artifact identity,
-  not size**: a field
-  becomes a path-reference when it's an *independent content artifact* —
-  signalled by **reuse across hosts**, **needs its own editor**, **deserves
-  its own lifecycle/audit**, or **is itself world content other systems
-  consume**. A dialogue tree hits all four; chatter lines hit none.
-  Mechanically this is **nothing new** — it's the template system's existing
-  **identity path-ref vs inline-field** choice, and **the brain's descriptor
-  declares per-field** which is which (a ref field resolves via the same lazy
-  path-resolution as everything). Trap: *"contains refs" ≠ "is a ref"* — a
-  patrol `route` is inline data whose *elements* are room path-refs; the
-  route's own identity is still inline. **Default inline; graduate to a
-  referenced template when a signal fires** (cheap — same mechanism; the
-  no-premature-artifacts instinct).
-
-Example Guard template:
-
-```yaml
-class: Character          # or a thin "Guard" archetype class (a combo)
-species: /stuff/idea/species/human
-behaviors:
-  - { brain: /lib/behavior/patrols,      trigger: cadence:10s, config: { route: [...] } }
-  - { brain: /lib/behavior/tree-dialogue, trigger: addressed,  config: { tree: /content/dialogue/guard-challenge } }
-  - { brain: /lib/behavior/greets,        trigger: arrival,    config: { lines: [...] } }
-```
-
-**Spawn flow:** clone `Character` (composes `Behaved` + species/body/senses)
-→ Hydrator fills fields incl. `behaviors` → `Behaved` reads each spec,
-**path-resolves + lazy-loads the brain**, and wires it: patrols → a
-scheduled activity; tree-dialogue → a dialogue responder loaded with the
-referenced tree; greets → an arrival-event subscription. **Brains (code)
-decide + emit; specs (data) configure them.**
+*Shipped → [behavior.md](../../subsystems/behavior.md) § The model
+(`BehaviorSpec`, `BehavedMixin` wiring at `postRegister`, brains as
+path-resolved modules). The config "four homes" paragraph is superseded by
+the code: a dialogue tree is the `tree-dialogue` spec's inline `config`
+blob — no `DialogueTree` Document, no `dialogue_trees` collection →
+[npc-dialogue.md](../../subsystems/npc-dialogue.md) § The tree format.*
 
 ### The automation ladder (brains by rung and tier)
 
@@ -241,52 +153,15 @@ path-resolution governs only *how it's found.*
   friendly aliases (`arrival` / `departure` / `addressed` / `given`) for the
   common ones. The extensibility surface is the **event system** (fire a new
   event class → a brain subscribes to its kind), not a trigger registry.
-- **Emission (what channel):** speak → dialogue/Scene; move → locomotion;
-  act → activity. Uniform.
-- **Coordination of concurrent behaviors:** the **engagement slots**
-  (`body`/`hands`/`attention`/`voice`) the activity framework ships — and
-  they're an **agent concept** (`EngagedMixin` is on `Character`), so the
-  reactive-scenery hosts (a door, a fountain) have *no* slots and run their
-  one brain with zero contention. For agents the four slots are **abstract
-  capacity axes, not anatomy** — same four for every agent: "hands" =
-  manipulation capacity (a telekinetic engages it handless), "voice" =
-  communicative output (an intercom engages it mouthless), "body" =
-  locomotion/posture, "attention" = cognitive focus. An agent that *lacks* an
-  affordance still has the slot — it's just **permanently unfillable, hence
-  trivially free** (a wall-turret's `body` slot is never claimable), so
-  contention logic stays uniform and variation lives in *which brains a host
-  can run*, not in the slot set. (Anatomical variety lives in the **physical**
-  slot subsystem — body-plan-derived wield/wear/posture sockets — a different
-  system entirely.) **v1 limit:** a single coarse `hands` slot can't model a
-  four-armed creature doing two manipulations at once; per-slot capacity is a
-  future refinement.
-- **Per-brain slot declaration (claims + requiresFree).** Each brain declares
-  **two** sets in its descriptor: the slots it **claims** and the slots it
-  **requires free**. Direct contention is on `claims` (two `body`-claimers
-  can't coexist); cross-slot dependencies ride **`requiresFree`** + the
-  framework's `preconditions-changed` abort. This is what makes "stop
-  wandering when addressed" honest: `patrols` claims `body`, **requires
-  `attention` free**; `tree-dialogue` claims `attention` + `voice`. Being
-  addressed grabs `attention` → patrol's precondition breaks → it pauses
-  ("my attention is engaged" — *not* pretending talking claims your legs) →
-  resumes when `attention` frees. **Default contention policy, no priority
-  numbers in v1: event-triggered behaviors preempt cadence-triggered ones**
-  (addressed beats patrolling). Explicit priorities only when something real
-  needs them. Crucially, `claims`/`requiresFree` are **brain-declared
-  defaults** (in the descriptor object), *not* author-set — the author just
-  picks a brain and the contention wiring comes along, so the spec stays
-  `{ brain, trigger, config }`.
+
+*(Emission channels, slots as abstract capacity axes, brain-declared
+`claims`/`requiresFree`, witness-preempts-cadence — shipped →
+[behavior.md](../../subsystems/behavior.md) § Slot contention.)*
 
 ### HMR (falls out of path-resolution)
 
-Re-resolving by path each use picks up **both** newly-dropped modules
-(extensibility) **and** reloaded code (HMR). So edit a brain in your sandbox
-→ it hot-reloads → the live NPC's **next action** runs it → no re-spawn.
-**Constraint:** `Behaved` wires by **path-reference + re-resolve**, never a
-captured brain reference (else HMR can't propagate). Behavior-spec *data*
-reloads via template re-read / `reload` verb (new clones reflect it; existing
-NPCs re-hydrate). The same grain gives distributed extensibility + HMR + the
-tight edit→holodeck→live dev loop.
+*Shipped → [behavior.md](../../subsystems/behavior.md) § Path resolution + HMR,
+§ Dev workflow & isolation.*
 
 ### Subclassing happens only for code
 
@@ -345,32 +220,8 @@ palette-discoverable.
 > (job 3, the `traits-stress` follow-on); its open questions below are that
 > build's surface.
 
-CK3-style **personality traits** — opposed-pair dispositions — are the
-**personality input the brains read** and a **baseline input to `regard`.**
-Decided: **adopt CK3's *personality* traits (universal human dispositions); use
-Saxonberg's own systems for everything CK3 handled via its *other* trait
-categories** (education → the advancement Catalog; congenital → race/body; health
-→ vitals; faith/court/government → not our environment / deferred; childhood → no
-dynasty arc). Importing those would duplicate or fight systems we already have.
-
-**The roster (opposed pairs):**
-
-- **Direct keepers:** Calm/Wrathful · Content/Ambitious · Diligent/Lazy ·
-  Generous/Greedy · Gregarious/Shy · Honest/Deceitful · Humble/Arrogant ·
-  Patient/Impatient · Temperate/Gluttonous · Trusting/Paranoid ·
-  Compassionate/Callous · Forgiving/Vengeful · Fickle/Stubborn.
-- **Reframed for our world:** **Brave/Craven** → *risk-taking* (social/economic
-  nerve, not the battlefield); **Just/Arbitrary** → *fairness in dealings* (not a
-  ruler's justice); **Cynical/Zealous** → *worldview* (cynical/idealistic, no
-  faith hook).
-- **Dropped:** Chaste/Lustful (load-bearing in CK3 only via marriage/dynasty;
-  low fit).
-- **Native addition:** **Curious/Incurious** (love of learning) — central in a
-  *learning* game (only a throwaway childhood trait in CK3); shapes
-  propensity-to-practice → feeds the advancement loop.
-
-~15 pairs — CK3's personality core, three reframed, one dropped, one added; a
-tight characterful roster, not a reinvention.
+*The roster shipped — as **19** axes, not ~15 (`candor` and `warmth` added
+2026-09-04) → [trait.md](../../subsystems/trait.md) § The roster.*
 
 **What traits do — three jobs:**
 
@@ -386,29 +237,9 @@ tight characterful roster, not a reinvention.
 
 ### Traits are *competence for dispositions* (the architecture)
 
-The model is the **same as the advancement Transcript**, applied to dispositions
-instead of skills. A skill is a derived aggregate over a ledger of *deeds*; a
-**trait is a derived aggregate over a ledger of *disposition-valenced acts.***
-Each act carries a **disposition-valence** (a lie is +Deceitful/−Honest; a
-generous tip +Generous/−Greedy; overdrinking +Gluttonous/−Temperate) — riding
-the **same act-signature** that carries the skill-Subjects, so you **instrument
-once** and both fall out (and only the *dispositionally significant* acts need a
-valence — the neutral majority carries none). So **traits are derive-don't-track,
-never assigned** — the project's derive-from-behavior thesis applied to
-*character itself*. Consequences:
-
-- **A position on every axis, not 3 slots.** You sit *somewhere* on each
-  opposed-pair (Generous↔Greedy: a signed **magnitude**, not a binary) — most
-  near neutral, a few pronounced. Your **pronounced axes are your *defining*
-  traits** (the labels people call you by). No cap.
-- **Form-then-entrench lifecycle** (and this is why no-death is *fine*, not a
-  problem). A new character starts near-neutral (unformed); behavior accumulates
-  → pronounced axes emerge (**defined**); the aggregate gets **heavy** → it
-  **resists drift** (**entrenched** — old characters are literally "set in their
-  ways," young ones change easily). Character crystallizes over a lifetime, and
-  CK's "rare trait change" falls out free (a strong event can *shock* an
-  entrenched trait; inertia holds it otherwise). **Drift + inertia replaces CK's
-  lock-at-maturity** — better for long-lived characters.
+*Shipped → [trait.md](../../subsystems/trait.md) § The model — derive-don't-track,
+§ The estimator (position on every axis, `TraitBand` unformed → defined →
+entrenched, the clamp as inertia).*
 
 ### Stress — the divergence signal (one mechanism, two thresholds)
 
@@ -444,44 +275,13 @@ chosen.) **Prototyped on the bar cast** (Mara/Remy/Sloane/Augie/Dave —
 
 ## Open questions
 
-1. **The trigger vocabulary** — *resolved: two sources (cadence | event); no
-   condition DSL.* State is a guard, not a source; guards live in brain code
-   parameterized by config. Triggers are a thin selector over the event bus
-   (`cadence:Ns` | event-kind, with friendly aliases), not their own
-   registry. Remaining sub-question: the exact v1 alias set + their event-kind
-   mappings (`arrival` → which containment event, etc.).
-2. **Brain self-marking convention** — *resolved: an exported descriptor
-   object* (`export const brain = { name, configSchema, claimsSlots, … }`)
-   — it both marks the module as a brain *and* carries the metadata the CMS
-   palette + intelligence layer need (display name, config-form schema, which
-   engagement slots it claims), so the marker pays for itself rather than
-   being a dead flag. **The framework boundary is the load-bearing half:** the
-   game runtime does *one* thing — **path-resolution** (follow a spec's brain
-   path, lazy-load, re-resolve). It never *enumerates* and never consults a
-   catalog/index — only follows references it was handed. References are
-   validated at **resolution time** (the path loads or errors) and at the
-   **save-gate**, never via a global walk. **Enumeration is exclusively a
-   CMS/authoring concern** — the brain catalog (its tree-walk / lazy index /
-   maintenance) lives in
-   [authoring-intelligence-slate.md](../builds/authoring-intelligence-slate.md) and
-   the runtime has zero dependency on it; a stale catalog is at worst a
-   palette omission, never a broken NPC.
-3. **Config-inline vs content-template-reference** — *resolved.* Axis is
-   **artifact identity, not size**: a field is a path-ref when it's an
-   independent content artifact (reuse / own-editor / own-lifecycle /
-   is-world-content), else inline. It's the template system's existing
-   **identity ref vs inline-field** choice, declared **per-field in the
-   brain descriptor**; *"contains refs" ≠ "is a ref"*; default inline,
-   graduate on signal. (CMS: ref → reference-picker + open-in-editor; inline
-   → config-form input.) Four homes: **inline-in-owner / own-`Document`-
-   collection (CRUD, load-on-demand) / domain-Template-if-cloned-into-world /
-   filesystem-if-code**. A shared `tree:` is home #2 (its own collection like
-   `User` — *not* `domain`). `Document` = plain persisted JSON, no Stuff
-   overhead (see the
-   [persistence-architecture rethink](./persistence-architecture-slate.md),
-   which supersedes `Persistable`). *Build-time Q:* does the CMS
-   authoring/audit/drafts pipeline serve any `Document` collection or only the
-   domain/Template track?
+*(Q1–Q3 resolved and shipped: the trigger alias table →
+[behavior.md](../../subsystems/behavior.md) § Triggers; the brain marker
+shipped as a named class-expression with statics, not a descriptor object →
+§ Brains are a module category; Q3's shared-tree `Document` collection was
+superseded by the inline `config` blob →
+[npc-dialogue.md](../../subsystems/npc-dialogue.md) § The tree format.)*
+
 4. **The `scripted-behavior` brain** — its shape + the isolation dependency
    (the scripting tail; deferred with host isolation).
 5. **Engagement-slot mapping per brain** — *resolved.* Slots are **abstract
@@ -543,44 +343,6 @@ hollow `'blocked'` gate); combat/defend brains (RPG-deferred).
 
 ---
 
-## Once shaped into formal requirements
-
-This slate boils down to:
-
-- **Uniform emission + swappable brain** on the canned→tree→intent→scripted
-  →LLM ladder (npc-dialogue generalized to all behavior).
-- **Branch-agnostic `Behaved` mixin** running a **`behaviors:` data-spec
-  list** (`{brain, trigger, config}`); behavior composed as **data**, not
-  mixins. Character = rich consumer (NPCs); Thing/Location = thin consumer
-  (reactive scenery) — one substrate, not two subsystems.
-- **Triggers = two sources** (cadence | event), no condition DSL — state is a
-  guard living in brain code parameterized by config; triggers are a thin
-  selector over the event bus (the real extensibility surface), not a
-  registry.
-- **Brains = path-resolved, lazy-loaded, marker-discovered code modules**
-  (no registry); **re-resolved per invocation** → HMR; referenced by path;
-  the ladder maps to data-config vs script tiers.
-- **Riding existing substrate** — triggers (cadence / events), emission
-  (dialogue / locomotion / activity), coordination (engagement slots as
-  **abstract capacity axes**, agent-only; brains declare `claims` +
-  `requiresFree`; cross-slot yielding via `preconditions-changed`;
-  event-triggered preempts cadence-triggered by default).
-- **Subclassing only for code** (new brain module, scripted brain, custom
-  class); ordinary NPCs = `Character`/archetype + behavior data.
-- **Tooling** — the spec-list editor + brain path-picker + dialogue-tree
-  widget, reusing the content-editor framework; archetypes (combos)
-  pre-spec behaviors.
-- Tests: a content author builds a guard from data (no code); editing a
-  brain hot-reloads into a live NPC without re-spawn; concurrent behaviors
-  contend via engagement slots (wander stops when addressed); a new brain
-  dropped at a path is usable + discoverable with no central edit; a
-  scripted brain is gated to the trusted/isolation tier.
-
-The scripting tail, the LLM brain, combat/defend, and state-triggers wait
-for their own waves.
-
----
-
 ## NPC schedules — derive the crowd, simulate the cast (2026-07-31)
 
 **Captured out of the innkeeper pass**
@@ -605,20 +367,9 @@ cannot afford everyone and you do not need to.
 
 ### ⭐⭐⭐⭐ And the schedule already exists: it is the SHIFT ROSTER
 
-[employment.md](../../subsystems/employment.md) ships **positions,
-rosters, shifts, and on-shift capability conferral.** Therefore:
-
-> **A shop is closed at night because nobody is rostered — not because
-> of a new scheduling system.**
-
-**NPC schedules are employment shifts respecting the clock.** No new
-substrate.
-
-**⭐⭐ And it makes OPENING HOURS A BUSINESS STRATEGY.** A player-owned
-shop chooses its hours and pays for them — night trade against night
-wages — so the 24-hour city is **something you build**, not a default.
-The inn's *"we are the one place open"* becomes **literally a rostering
-choice**, not a carve-out.
+*Shipped → [behavior.md](../../subsystems/behavior.md) § The canned brains
+(`shifts`: presence is a consequence of roster state, not a clock read;
+opening hours are a rostering choice).*
 
 ### ⭐⭐⭐ The ambient crowd is PROSE, not objects
 

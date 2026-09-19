@@ -4,7 +4,9 @@
 > `TraitPosition` shipped → [trait.md](../../subsystems/trait.md)
 > **Left:** the scoped disclosure grant · the therapist's file object ·
 > the psychology vocation + its Discipline · privilege and the conflict
-> class · whether `traits`/`score` keep self-reporting
+> class · the NPC clinic as the cheap institutional tier after the player
+> practitioner · reading from witnessed behaviour without a grant · whether
+> `traits`/`score` keep self-reporting
 > **Size:** a build
 
 **Captured 2026-08-04.** It started as a *rights* question — the
@@ -24,8 +26,6 @@ And then the mechanic that makes it more than flavour:
 > mechanically to trait discovery that's even better. **You only discover
 > what you choose to reveal.** There's more than pedagogy — there's legal,
 > political and economic tie-ins as well (it started political even)."**
-
-> **Status: design conversation, captured. Not requirements.**
 
 Related: [trait.md](../../subsystems/trait.md) (**the shipped substrate —
 17 opposed pairs, `disposition_events`, derive-on-read `TraitPosition`;
