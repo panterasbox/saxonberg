@@ -663,10 +663,14 @@ sibling slates:
   `TraverseActivity` for walk / climb / swim / fly / ride /
   sneak / crawl. Adds the `traverseSync` sibling to
   `Mobile.traverse`, a cached-destination getter on `Exit`, and
-  migrates `Mobile.engagedMode` storage onto `EngagedMixin`. The
-  physics-honest locomotion substrate (`speed` in m/s,
-  `defaultDurationMs`, optional `Exit.durationOverrideMs`) lands
-  with this wave. Deferred per current direction on game
+  migrates `Mobile.engagedMode` storage onto `EngagedMixin`. ⚠ The
+  duration model this once named (`speed` in m/s, `defaultDurationMs`,
+  `Exit.durationOverrideMs`) **shipped in a different shape and
+  elsewhere**: `Exit.edgeMinutes` (game minutes, per edge — nothing in
+  the kernel reads it; `go north` stays instantaneous) × the mode's
+  `speed` as a *multiplier*, in the transport pack's Journey
+  ([locomotion.md § Duration lives in the Journey](./locomotion.md),
+  [logistics.md](./logistics.md)). None of the three fields exist. Deferred per current direction on game
   responsiveness — walking stays synchronous until durative
   content earns the slot.
 - **Host-slot + non-locomotion activities** — see
