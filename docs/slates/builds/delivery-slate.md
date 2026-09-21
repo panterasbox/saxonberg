@@ -52,7 +52,7 @@ See also:
   subject-tree borrows its `FolderZone` + `AccessApi` namespace pattern.
 - [reactions-slate.md](../tails/reactions-slate.md) — **threading** + the gutter
   message-id the forum thread-tree rides.
-- [external-chat-relay-slate.md](../tails/external-chat-relay-slate.md) — the
+- [docs/subsystems/streaming.md](../../subsystems/streaming.md) — the
   **binding pattern** (an in-game model mirrored from external reality) the
   gamification seam generalizes.
 - [docs/subsystems/location.md](../../subsystems/location.md) — the **exit
@@ -400,8 +400,8 @@ Layer 2 over it.)
 ### The vertical seam (gamification — validation lens, not a build)
 
 "Model your real home, put a game over it" is the **binding pattern** the
-[external-chat-relay](../tails/external-chat-relay-slate.md) already proved one
-layer up (a `Channel` mirrored from Twitch). A service point with an
+[stream relay](../../subsystems/streaming.md) already proved one
+layer up (an external channel mirrored into the game). A service point with an
 `externalBinding` to a real smart meter mirrors real consumption as in-game
 state; the game layer (penalty for lights left on) sits on the mirror. It
 demands exactly what the diegetic design already wants — a **first-class,

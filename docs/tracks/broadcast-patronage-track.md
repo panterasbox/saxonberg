@@ -89,7 +89,7 @@ plumbing. Three phases.
 - **Requirements:** [auth-providers-requirements.md](../requirements/auth-providers-requirements.md) ✎
 
 #### Phase 2 — Twitch chat relay, inbound *(the engagement payoff)*
-- **Slate:** [external-chat-relay-slate.md](../slates/tails/external-chat-relay-slate.md) (Wave 1)
+- **Slate:** [docs/subsystems/twitch-relay.md](../subsystems/twitch-relay.md) (Wave 1, shipped)
 - **Extends:** [chat.md](../subsystems/chat.md)
 - **Depends on:** Phase 1.
 - **Build:** `externalBinding` facet on `Channel` (service / broadcasterId
@@ -145,7 +145,7 @@ first push by choice.
 - **Depends on:** Phase 1 (identity binding), Phase 4 (intake events).
 
 #### Phase 6 — Twitch chat relay, outbound
-- **Slate:** [external-chat-relay-slate.md](../slates/tails/external-chat-relay-slate.md) (Wave 2)
+- **Slate:** [docs/subsystems/twitch-relay.md](../subsystems/twitch-relay.md) (Wave 2, shipped)
 - **Build:** on `chat <relay-ch> <msg>`, fork on `externalBinding`,
   resolve the player's linked `TwitchProfile`, Helix **Send Chat
   Message** as the player (incremental-scope reject-and-point on first
@@ -201,6 +201,6 @@ first push by choice.
   [delivery-slate.md](../slates/builds/delivery-slate.md)
 - Streaming + Twitch: [livestream.md](../subsystems/livestream.md),
   [auth-providers-slate.md](../slates/tails/auth-providers-slate.md),
-  [external-chat-relay-slate.md](../slates/tails/external-chat-relay-slate.md)
+  [twitch-relay.md](../subsystems/twitch-relay.md)
 - Process: [workflow.md](../workflow.md) — each phase becomes a normal
   slate → requirements → plan → build cycle.

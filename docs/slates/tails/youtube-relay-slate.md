@@ -7,10 +7,11 @@
 > `GoogleProfile` token extension + `google-reauth`
 > **Size:** a wave
 
-**Lineage:** Wave 3+ of
-[external-chat-relay-slate.md](./external-chat-relay-slate.md); sequel
-to the shipped Twitch relay (MR !101, `feature/twitch-relay-build`) and
-the unified stream-tuning build.
+**Lineage:** Wave 3+ of the retired external-chat-relay-slate (absorbed
+here — see
+[cluster-relays.md](../../plans/slate-compaction/cluster-relays.md));
+sequel to the shipped Twitch relay (MR !101, `feature/twitch-relay-build`)
+and the unified stream-tuning build.
 **Sits on:** the Google OAuth spine (primary login) +
 [livestream.md](../../subsystems/livestream.md) +
 [streaming.md](../../subsystems/streaming.md) +

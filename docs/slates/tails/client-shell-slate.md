@@ -33,7 +33,7 @@ See also:
 - [auth-providers-slate.md](./auth-providers-slate.md) — sign-in gates
   every surface except the public read-only one. Google + Twitch
   co-equal; the keystone under streamer use-cases.
-- [external-chat-relay-slate.md](./external-chat-relay-slate.md) —
+- [docs/subsystems/twitch-relay.md](../../subsystems/twitch-relay.md) —
   Twitch chat ↔ game channel. The *chat* half of streaming; this
   slate's public surface is the *gamestate-rendering* half (overlays).
 - [mql-subscription-slate.md](./mql-subscription-slate.md) *(supersedes

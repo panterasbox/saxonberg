@@ -23,9 +23,11 @@
 > reconciliation, and `kick.com/video/…` URL forms.
 
 **Lineage:** sibling of
-[youtube-relay-slate.md](./youtube-relay-slate.md) (and Wave N of
-[external-chat-relay-slate.md](./external-chat-relay-slate.md)); the
-first platform added *after* the unification, so unlike the YouTube
+[youtube-relay-slate.md](./youtube-relay-slate.md) (and Wave N of the
+retired external-chat-relay-slate, absorbed into youtube-relay-slate.md —
+see
+[cluster-relays.md](../../plans/slate-compaction/cluster-relays.md));
+the first platform added *after* the unification, so unlike the YouTube
 build it inherits the shared surface instead of mirroring a parallel
 one.
 **Sits on:** [streaming.md](../../subsystems/streaming.md) +
