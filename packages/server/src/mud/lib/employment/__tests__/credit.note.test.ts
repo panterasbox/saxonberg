@@ -121,7 +121,7 @@ describe("the Arrival Note and the standing facility", () => {
     installBankingHarness();
     gameNow = 100_000;
     vi.spyOn(WorldClockApi, "getNow").mockImplementation(() => Quantity.of(gameNow, "s"));
-    vi.spyOn(PlayerApi, "activeMemberCount").mockReturnValue(2);
+    vi.spyOn(PlayerApi, "activeMemberCount").mockResolvedValue(2);
     vi.spyOn(StuffApi, "clone").mockImplementation((async (path: string) =>
       makeStuffAtPath(() => {
         const coin = new Coin();

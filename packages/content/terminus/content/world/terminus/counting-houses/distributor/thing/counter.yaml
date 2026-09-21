@@ -29,6 +29,13 @@ data:
   # distributor's `terms` leg to the outfit — the leg the ladder's rung-1
   # gate counts.
   purchasing: terms
+  # ⭐ A WHOLESALE shelf: six producers' floors, ten families of produce
+  # apiece, and every crate a listing. Under the global per-consignor cap
+  # (twenty-four) the farm's hand stopped carrying with the limes still on
+  # the floor — the cap counted the crates nobody had bought yet — and the
+  # general store's supplied line went unfilled. The produce stalls'
+  # precedent: an authored, per-venue fact, never a global raise.
+  listingCapOverride: 120
   stockLines:
     - { itemTemplatePath: /trade/distribution/thing/malt-sack, par: 6 }
     # ⭐⭐ Grist beside the malt, at a MARKUP — the retrofit's whole

@@ -126,7 +126,11 @@ export const brain = class {
     const outfits = await (hand as unknown as Stuff & Employed).buysFor();
     const outfit = outfits[0];
     if (!outfit) return;
-    const cap = listingCap();
+    // The shelf's own cap where it authors one (the cash-and-carry, the
+    // produce stalls), else the global dial — the same rule `consign`
+    // itself applies, or the hand stops carrying under a ceiling the
+    // counter does not have.
+    const cap = shelf.getListingCapOverride() ?? listingCap();
     const headroom =
       cap > 0
         ? Math.max(0, cap - shelf.activeListingCount(outfit.getTemplatePath() ?? ''))

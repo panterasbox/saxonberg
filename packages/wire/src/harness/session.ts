@@ -62,6 +62,14 @@ const WS_URL = (): string => SERVER_URL().replace(/^http/, 'ws');
 
 /** How long any single frame may take to arrive before we call it lost. */
 const FRAME_TIMEOUT_MS = Number(process.env.WIRE_FRAME_TIMEOUT ?? 30_000);
+/**
+ * How long a prose read waits for the socket to fall quiet, and the cap on
+ * that wait. A world under load (a boot-heavy heap, a GC pause between a
+ * command's envelope and its scene) can land a command's prose seconds
+ * after its envelope; a run that expects that raises these.
+ */
+const SETTLE_QUIET_MS = Number(process.env.WIRE_SETTLE_QUIET ?? 200);
+const SETTLE_CAP_MS = Number(process.env.WIRE_SETTLE_CAP ?? 4_000);
 
 /** Whichever answer a `subscribe()` got first. */
 export type SubscribeOutcome =
@@ -563,7 +571,7 @@ export class Session {
       said: async () => {
         countProseRead();
         if (snapshot === null) {
-          await this.settle(200, 4_000);
+          await this.settle(SETTLE_QUIET_MS, SETTLE_CAP_MS);
           capture();
         }
         return plain((snapshot ?? []).join('\n'));
@@ -758,7 +766,7 @@ export class Session {
    * this is only needed before a PROSE read.
    */
   async drainProse(): Promise<void> {
-    await this.settle(200, 4_000);
+    await this.settle(SETTLE_QUIET_MS, SETTLE_CAP_MS);
     this.captureLast?.();
     this.captureLast = null;
     this.proseFrames.length = 0;

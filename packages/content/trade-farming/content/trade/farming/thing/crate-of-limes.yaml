@@ -10,7 +10,11 @@ data:
   register: indefinite
   longDescription: A slatted wooden crate of limes, the grower's stencil on the side.
   censusKey: produce:lime
-  regionTarget: 4
+  # ⭐ Six, not four (economic bootstrap W7): the lime is the one crate a
+  # SECOND shop stocks — the general store keeps three on its counter,
+  # bought through the cash-and-carry — so the floor stands deeper than
+  # the bar's crate alone would need. Limes are the market-maker's line.
+  regionTarget: 6
   materialTags: [produce, lime]
   container: /world/terminus/goods-yards/farm/thing/stock
   props:
