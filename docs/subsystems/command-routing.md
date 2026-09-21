@@ -1264,6 +1264,19 @@ or cancel/abort uses engagement, not `async`). The reserved
 placeholder; v1 threads the async decision directly, not through a phase
 effect.
 
+**The concurrency guardrail is the author's, not the framework's.**
+Detaching means two commands from the same actor can be in flight at
+once — a slow async one plus a fast one typed right after — which
+crosses the implicit "one command at a time" assumption a lot of
+controller code leans on (the focus stack, engagement slots, actor-state
+mutation). This is not a new hazard: a detached script coroutine already
+dispatches commands "as" the actor while the player keeps typing, so
+async extends an already-tolerated interleave to the front of the
+command rather than inventing one. `async: true` is the author's claim
+that the command is interleave-safe (read-mostly, or self-contained side
+effects); a command needing exclusive actor access uses engagement
+(slots), not async.
+
 The **`script` verb** is an ordinary command that runs its greedy `body`
 via `ScriptApi.run` through `_executeOne`, so it inherits `--async` /
 `--sync` with no special-casing. It is the *flaggable* sibling of the

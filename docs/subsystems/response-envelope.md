@@ -579,9 +579,11 @@ v1 emits the controller's Scene frames during `execute()`, then the
 dispatch-response envelope at the end of `_executeOne`. Same
 WebSocket send order per-Interactive.
 
-If a future async controller sends Scenes after returning (via
-`ScheduleApi`), the envelope may arrive **before** some peer Scene
-frames on other clients. But on the **actor's** connection, the
+If a controller sends Scenes after returning (via `ScheduleApi` — the
+aftermath case; distinct from `async: true` dispatch, which detaches the
+whole controller body and is [command-routing.md § Async
+dispatch](./command-routing.md)'s), the envelope may arrive **before**
+some peer Scene frames on other clients. But on the **actor's** connection, the
 actor's Scene frames fire before the envelope is built — ordering
 is intact on the dispatch's own Interactive.
 
