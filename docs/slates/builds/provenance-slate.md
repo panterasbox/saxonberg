@@ -1,30 +1,20 @@
 # Provenance, ownership & git-in-runtime — the authorship substrate
 
-> **Status: PARTIAL** — the authoring ledger, the in-runtime VCS,
-> parcel-title ownership and the producer stock all shipped →
+> **Status: PARTIAL** — the authoring ledger (Layer B, single-author v1),
+> the released-content gate, the in-runtime VCS (Layer D, source-only),
+> and parcel-title ownership all shipped →
 > [provenance.md](../../subsystems/provenance.md) ·
-> [git-workflow.md](../../subsystems/git-workflow.md)
-> **Left:** the dependency DAG (infrastructure earning from what rides
-> it) · the contributor-set / team split behind `authorOf`'s derivation
-> seam · versioned law (an amendment as branch/edit/merge)
-> **Size:** a build
-
-> **Status: exploratory — the structural gap between Build 5 (authoring)
-> and Build 9 (producer influence).** Build 5 (`cms-slate`,
-> `scoped-authoring-slate`, `authoring-intelligence-slate`) designs how
-> content and code are *authored*; Build 9 (`cooperative-slate`,
-> `draft-constitution`) needs to know *who made what*, so it can route
-> **producer influence** — earned by the engagement authored content
-> draws — to its creators. Nothing today carries that: there is
-> **zone-level ownership and nothing else** — no authorship attribution,
-> no ownership on leaf templates or code, no versioning, no dependency
-> graph. This slate is the missing **provenance substrate**: a
-> first-class, hierarchical, individual-or-group **ownership** model over
-> *both* the content and code namespaces; **authorship** attributed to
-> people; a **dependency-DAG** so infrastructure earns from what's built
-> on it; and an **in-runtime VCS** (the git workflow, elevated from
-> `cms-slate`'s external-editor overlay to the authoring spine) that
-> delivers all of it and doubles as the machine that versions **law**.
+> [git-workflow.md](../../subsystems/git-workflow.md) ·
+> [parcel.md](../../subsystems/parcel.md)
+> **Left:** the generalized path-ownership resolver over both namespaces
+> (Layer A — leaf templates + code modules, declared splits — not the
+> same thing as parcel/zone ownership, which stops at land) · the
+> dependency DAG (Layer C) · the contributor-set / team split behind
+> `authorOf`'s derivation seam (+ the richer explicit `release` action) ·
+> versioned law (an amendment as branch/edit/merge) · whether content
+> ever unifies with code under one VCS or stays bridged
+> **Size:** a build — likely several requirements cycles; Layer A is the
+> next, highest-leverage slice
 
 This slate is **driven by** producer influence but is **broader** than
 it: the same substrate serves content management, the released-content
@@ -38,10 +28,11 @@ the first and most demanding consumer, not the only one.
   duplicate.** Designs the three authoring surfaces (in-game light, web
   CMS, external-editor-via-git), the `GitApi` source-tree harness (a
   *thin VC overlay* on the source repo), `domain_history` op-log
-  versioning for content, and the draft/publish changeset model. This
-  slate **elevates** that GitApi from an external-editor overlay into the
-  in-runtime authoring spine, and adds the two things cms-slate doesn't:
-  **ownership-as-attribution** and the **dependency graph**.
+  versioning for content, and the draft/publish changeset model. That
+  elevation has since shipped, source-only — see
+  [git-workflow.md](../../subsystems/git-workflow.md). This slate still
+  owes the two things cms-slate doesn't: **ownership-as-attribution**
+  (Layer A, unbuilt) and the **dependency graph** (Layer C, unbuilt).
 - [scoped-authoring-slate.md](../tails/scoped-authoring-slate.md) — establishes
   `/home/<playerId>/` homedirs, the dorm-as-homedir, and the
   ownership-scoped permission ladder (player → builder → wizard). The
@@ -137,15 +128,13 @@ opportunity and the size of the build.
    otherwise falls entirely to human merit-pay) — *without* pretending to
    measure the *quality* judgment, which still goes to merit-pay.
 
-5. **Git-in-runtime is the authoring spine.** Authoring — code **and**
-   content — happens through an in-runtime VCS: **sandbox/branch**
-   (a homedir or team sandbox) → review → **merge/release** (into the
-   general domain). One machine delivers diff-attribution (P3), the
-   **released-content gate** the producer faucet needs (unreleased earns
-   nothing), history/rollback, and — the convergence — **versioned law**
-   (Art. X amendment = branch/edit/merge; the argument-map's
-   version-controlled proposals). This *elevates* `cms-slate`'s GitApi
-   from an external-editor overlay to the in-runtime workflow.
+5. Superseded by the code: the **sandbox/branch-per-author** VCS model
+   this principle proposed was rejected. The working tree *is* the live
+   server, so per-author branches can't provide isolation — the shipped
+   model is **snapshot-and-push** on one long-lived branch instead (see
+   [git-workflow.md § The governing constraint](../../subsystems/git-workflow.md)).
+   The released-content gate did ship (below); versioned law and
+   content-authoring-via-VCS remain unbuilt.
 
 6. **The polity stays flat — credit resolves to individuals.** A team /
    zone is a **routing label**, never a political organ. Shared content's
@@ -254,14 +243,21 @@ overlay.
    leaf-template and module ownership; nearest-match. *Smallest, highest-
    leverage, reuses the house pattern; directly upgrades the producer
    routing resolver past single-owner.*
-2. **Authorship attribution** (Layer B) — `createdBy` / diff-attribution
-   feeding the routing resolver. Minimal first cut even before the full
-   VCS.
-3. **Sandbox → release** — generalize `scoped-authoring`'s homedirs +
-   `cms-slate`'s draft/publish into the released-content gate the producer
-   faucet consumes.
-4. **The in-runtime VCS** (Layer D) — the big one; resolves unify-vs-bridge;
-   subsumes `GitApi`.
+2. Shipped: **authorship attribution** (Layer B) — `AuthoringEvent` +
+   `ProvenanceApi.authorOf`, context-derived, feeding `CreditRouting` —
+   see [provenance.md](../../subsystems/provenance.md). A minimal single-
+   author cut, as this item forecast, landed *before* the full VCS.
+3. Shipped: **sandbox → release**, as a v1 path-prefix gate —
+   `CreditRouting.isReleased` (only `/home/…` is unreleased) — see
+   [provenance.md § CreditRouting](../../subsystems/provenance.md). The
+   richer version (explicit `release` action, team sandbox) is still open;
+   folded into the contributor-set/team-split item below.
+4. Shipped, source-only: **the in-runtime VCS** (Layer D) —
+   [git-workflow.md](../../subsystems/git-workflow.md). It did **not**
+   resolve unify-vs-bridge for content: source got a real git spine;
+   content stays in Mongo pending the Mongo→file export bridge
+   (`git-workflow.md § Deferrals`). The full architecture question is
+   still open (see *Open questions*).
 5. **Dependency-DAG credit flow** (Layer C) — the producer-attribution
    enrichment; needs the runtime dep graph + anti-gaming.
 6. **Versioned-law convergence** — Art. X amendment + argument-map
@@ -283,8 +279,12 @@ overlay.
 
 This is a large surface — likely **several** requirements cycles, not
 one. The natural first slice (and the one the influence build most wants)
-is **Layer A + B**: first-class hierarchical ownership over both
+was **Layer A + B**: first-class hierarchical ownership over both
 namespaces plus people-level authorship attribution — enough to take the
 producer routing resolver from single-owner to the real owner graph,
-*without* yet building the full in-runtime VCS or the dependency DAG.
-Start there; the VCS spine and the credit DAG are their own builds.
+*without* yet building the full in-runtime VCS or the dependency DAG. As
+forecast, the VCS spine (Layer D) shipped as its own, separate build
+([git-workflow.md](../../subsystems/git-workflow.md)) and Layer B shipped
+as a minimal single-author cut ([provenance.md](../../subsystems/provenance.md)).
+**Layer A — the generalized ownership resolver — is what's left of the
+original "start here" slice.**

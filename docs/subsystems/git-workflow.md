@@ -62,6 +62,14 @@ hot-reloadable `GitLogic` singleton at `/platform/idea/api/git` (reached via
 ops: `status` / `diff` / `log` (reads) and `publish` / `revert` (writes).
 Neither surface reimplements the mechanism or the gate.
 
+`status` also carries a non-blocking **divergence warning** —
+ahead/behind counts, or no upstream tracking at all — so the "a second
+snapshot queues before the first MR merges" edge is visible rather than
+silently absorbed; it never blocks the read. And because `publish` pushes
+a real branch, the existing `.gitlab-ci.yml` **validate** pipeline
+(lint/test/build) fires on it exactly as it would on a hand-written MR —
+runtime-authored code gets the same CI gate for free, no extra wiring.
+
 ## The three path-spaces
 
 `GitLogic` translates between three ways of naming a file — the load-bearing
