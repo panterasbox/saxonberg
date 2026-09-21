@@ -5,10 +5,14 @@
 > (`banking.md` § Reporting consumers: *"all per currency… never sum
 > across"*) — the standalone "per-currency statement views" item is
 > therefore already satisfied and dropped from Left. Half B (FX) is
-> refused, not deferred → [banking.md](../../subsystems/banking.md)
-> **Left:** a second issuer and the corpo scrip that motivates one (with
-> its coinage) · the money-changer as a merchant · the pegged issuer's
-> redemption window
+> refused, not deferred → [banking.md](../../subsystems/banking.md).
+> **Cluster-merged 2026-09-21**: the Half B verdict table + mechanics and
+> the "who issues a second currency" question moved to
+> [builds/currency-slate.md](../builds/currency-slate.md), the file that
+> names itself the decision layer over this one — read that slate first.
+> **Left:** whether a second currency needs its own cash/coinage · a
+> combined cross-currency account statement · the changer's spread/fee
+> home
 > **Size:** a tail
 
 > ✅ **HALF A IS BUILT AND MERGED** (the currency build, 2026-08-05 —
@@ -87,89 +91,28 @@ See also:
 
 ## Half B — currency markets (FX) — ⛔ SUPERSEDED 2026-08-04
 
-> ⛔ **`builds/currency-slate.md` decided against building an exchange
-> at all.** Currencies are *goods*: coins are already `Stuff` with mass,
-> so you buy one currency's coins with another's in the market that
-> already exists, and the rate is whatever people pay. No oracle, no
-> world rate, no FX engine. ⭐ Currency crises become **emergent** rather
-> than simulated — ⭐⭐ *which is exactly why a **pegged issuer** belongs
-> and a world rate does not: a peg that breaks when its reserves drain IS
-> the emergent currency crisis.*
->
-> **The resolution, component by component:**
->
-> | Half B component | Verdict |
-> |---|---|
-> | The **money-changer** (bounded both-currency reserves, two same-currency transfers, keeps a spread, can run out) | ✅ **Survives** — it is a *merchant who deals in coins*, not an FX engine. Mints no new conservation rule. |
-> | A **world oracle rate** — a number the world agrees on that trades settle at | ⛔ **Refused.** It makes the rate authoritative, breaking economy-slate Law 1. Nothing reads a global rate. |
-> | ⭐ A **peg as the issuer's REDEMPTION PROMISE** (reserves + a published rate at its own window) | ✅ **Survives.** ⚠ *Corrected 2026-08-04* — an earlier revision refused "peg" as a category and cut this with it. It is one party's standing offer, it settles as two same-currency transfers, and **it breaks when the reserves run out** — the canonical emergent currency crisis. |
-> | The **`convert` verb** | ⚠ Probably unnecessary — `buy`/`sell` at the changer with the shipped retail verbs. A dedicated verb is what makes exchange feel like a system rather than a shop. |
-> | **Rejecting a currency-crossing leg** at `postTransaction` | ✅ **Keep — PERMANENTLY.** Below it is called an "inert seam Half B fills." **It should never be filled.** The never-cross-currencies rule is the invariant, not a placeholder. |
->
-> ⭐⭐ **The changer survives; the rate does not.** A person who will
-> trade you zorkmids for scrip at a price they choose is content. A
-> number the world agrees on is an FX engine wearing a hat.
-
-The original Half B design is retained below **as the record of what was
-considered**, not as a build plan. ⚠ Its peg-vs-float decision (item 1)
-and its framing of `convert` as a deferred seam are the two parts
-superseded above.
-
-The actual *exchange* is its own build, and it needs a design decision
-that can't be skipped. Named here so Half A leaves the right seam:
-
-1. **Rate source.**
-   - **Fixed peg** (config / governed rate) — a day's work; the CB or an
-     author declares "1 scrip = 4 credits"; educational for pegs, currency
-     boards, devaluation-as-a-policy-event.
-   - **Live market** (order book, price discovery, market makers) — a
-     whole build; educational for spreads, floats, arbitrage, speculation.
-     This is the capital-markets-adjacent apex and shares its "build the
-     underlying first" caution (economy-slate § *Capital markets*).
-
-2. **A conservation-correct conversion.** The honest model is **not** a
-   currency-crossing mint. It is a **bureau-de-change / money-changer**
-   (an NPC or CB window) that **holds reserves of both currencies** and
-   does **two same-currency transfers**: it debits your `credit` account
-   to its own `credit` reserve, and credits your `scrip` account from its
-   own `scrip` reserve, at the day's rate (keeping the spread). Each leg is
-   same-currency, so per-currency conservation holds untouched — the
-   changer's *inventory* of each currency is the thing that moves, exactly
-   like a bounded merchant's coin float. The **spread is the changer's
-   margin** (a fee, an ordinary transfer), and a changer can **run out** of
-   a currency (bounded, like every other participant). This reuses the
-   attendant + bounded-participant patterns already shipped; it mints no
-   new conservation rule.
-
-3. **The `convert` verb + seam.** Half A lays an inert `convert` path at
-   the conservation chokepoint that **throws "cross-currency conversion
-   not yet supported."** Half B replaces the throw with the two-transfer
-   changer settlement above.
-
-Educational payoff (why it's worth eventually): pegs vs. floats, the bid/
-ask spread, why you lose money round-tripping, reserves and convertibility,
-devaluation as a governed event. All of it rides the conserved,
-auditable ledger — no printed FX faucet.
+> **Cut 2026-09-21, cluster-merge pass — DUPLICATE.** This section's
+> verdict table repeated
+> [builds/currency-slate.md](../builds/currency-slate.md) §§ *Reconciling
+> this with the tail's Half B* and *The peg is a promise, and the promise
+> can break* verbatim. The mechanics detail unique to this section (the
+> rate-source options, the bureau-de-change walkthrough, the
+> `convert`-verb seam, the educational payoff) moved verbatim to that
+> slate's *Absorbed from multi-currency-slate — Half B mechanics*
+> section. Read the canonical.
 
 ---
 
 ## Build order
 
-### Half B — FX (⛔ superseded; retained as the record of what was considered)
-
-1. ⭐ Decide **peg vs. market** (governance/macro call). — **PARTLY
-   SURVIVES.** ⛔ A *world oracle* rate is refused. ✅ A **peg as the
-   issuer's redemption promise** (reserves + a published rate at its own
-   window, breakable when the reserves drain) is the good version and is
-   retained for the scrip build. ⚠ *This item was marked wholly refused
-   on 2026-08-04; that was too broad a cut and is corrected here.*
-2. ✅ The **money-changer** (bounded both-currency reserve holder; two
-   same-currency transfers + spread; attendant + bounded-participant
-   reuse). — **Survives**, as a merchant who deals in coins.
-3. ⛔ Light up `convert` at the chokepoint (replace the Half-A throw). —
-   **The throw is permanent.** Trade at the changer with `buy`/`sell`.
-4. A second live currency as **content** (its issuer decided with
-   governance; a corpo scrip is the natural first).
+> **Cut 2026-09-21, cluster-merge pass — DUPLICATE.** This recapped the
+> same Half B verdict table as a checklist; item 4 (a second currency as
+> content, a corpo scrip the natural first) is already carried by
+> [builds/currency-slate.md](../builds/currency-slate.md) § *The use case
+> worth building toward is SCRIP, not municipal money*. See that slate's
+> §§ *Reconciling this with the tail's Half B* / *The peg is a promise,
+> and the promise can break* / *Absorbed from multi-currency-slate — Half
+> B mechanics*.
 
 ---
 
@@ -182,13 +125,13 @@ cut — already marked resolved in this doc, and the underlying doctrine
 (no world rate, ever; a peg is an issuer's standing offer) now ships in
 `banking.md` § Currency, word for word.
 
-2. **Who issues a second currency?** One CB mints all currencies, or each
-   currency has its own issuer (a corpo for a scrip)? Governance call
-   (governance.md); doesn't block Half A. ⚠ **`builds/currency-slate`
-   adds a constraint**: authorizing an issuer is a *mint*, so by
-   [balance-slate](../builds/balance-slate.md) it is a **reserved
-   matter** — Compact-level, not a locality's own call. *A locality may
-   run its own currency only with the Compact's leave.*
+Q2 (who issues a second currency) cut 2026-09-21, cluster-merge pass —
+DUPLICATE, merged into
+[builds/currency-slate.md](../builds/currency-slate.md) § *Open
+questions* Q2, which already carried the reserved-matter constraint; the
+one-CB-vs-per-currency-issuer angle is now the *Absorbed from
+multi-currency-slate — Q2 (issuer structure)* note there.
+
 3. **Does the 2nd currency have cash?** If account-only, Half A step 5
    (Coinage) is deferrable. Lean: whatever the first real 2nd currency
    wants — probably a corpo scrip that *is* physical (a company token).
