@@ -6,8 +6,9 @@
 > this slate's wallet-only ruling, see below) all shipped →
 > [credential.md](../../subsystems/credential.md)
 > **Left:** forums leaving the default loadout · the payment credential
-> required at hire · the conferral certificate · Dr. Limen · the
-> journey-v2 route
+> required at hire · the conferral certificate · the journey-v2 route
+> *(Dr. Limen's build is [onboarding-slate](./onboarding-slate.md)'s; this
+> slate keeps its rulings on it — cluster pass 2026-09-21)*
 > **Size:** a build
 
 **Captured 2026-07-28** from a deep-drill session inside the
@@ -161,7 +162,15 @@ Limen goes quiet.
   concern is fully resolved by the shipped MQL `person`-pool scan or
   still needs a look; intersects demo-content unit 13 — noted
   there).
-- The Limen build (brain, seat, the reply contract).
+- ~~The Limen build (brain, seat, the reply contract).~~ →
+  [onboarding-slate § Dr. Limen — the Orientation
+  guide](./onboarding-slate.md) owns the build (seat, model-backed brain,
+  the reply contract, the progress flags). The rulings above (first contact
+  post-Gus at campus entry; replying to Limen's DM must work) and § journey
+  v2's *"Onboarding dissolves; Limen goes quiet"* are this slate's
+  requirements ON that build — ⚠ they sit in tension with onboarding's
+  proactive, `onboarded`-flag-keyed two-mode model; unresolved, requirements
+  reconciles.
 - Onboarding-slate reconciliation beyond the dated note (route
   rewrite rides the onboarding build).
 

@@ -5,11 +5,15 @@
 > holding ladder → [residence.md](../../subsystems/residence.md) +
 > [holding.md](../../subsystems/holding.md); the campus farm/field landed
 > with the farmstead build; the surround is Terminus, and the locked campus
-> gate on University Avenue is its boundary.
+> gate on University Avenue is its boundary. *(Cluster pass 2026-09-21:
+> the first-login route is
+> [acquisition-slate](./acquisition-slate.md)'s and the academic hall is
+> [campus-grounds-slate](./campus-grounds-slate.md)'s — both dropped from
+> `Left` here.)*
 > **Left:** the arrival gate · the Quad + the walkway spine (the EC road
 > names) · Student Services (registrar + housing office) · the Health
-> Center clinic · the Campus Store · the academic hall · the first-login
-> journey · the closed-choice campus-services pattern as campus content ·
+> Center clinic · the Campus Store · the closed-choice campus-services
+> pattern as campus content ·
 > the campus terminals (arrival + the lobby) · Duncan Hall's amenities, the
 > elevator, the vacancy purge + roommate pairing · the campus-grounds biome
 > leaf · the prose discipline over the EC mood-board
@@ -282,9 +286,11 @@ No central funnel (the lounge owns "everyone passes through"); no kill-zone.
   body-shop.
 - **Campus Store / Outfitter** — **appearance presets**, gear. A
   bookstore-ish shop.
-- **An academic hall** — a recognizable lecture building, present as campus
-  *texture* and a **future hook** where education-vertical content plugs
-  in. v1 ships **no lessons inside it** (that's the vertical's job).
+- **An academic hall** — *the academic buildings are
+  [campus-grounds-slate](./campus-grounds-slate.md)'s (Part 8 derives the
+  lecture hall + seminar room from Magic 101's chapter list; this bullet's
+  "texture + future hook, no lessons in v1" scoping is moved there verbatim,
+  and whether lessons ship first is its Open Q 13).*
 - **Duncan Hall** — the **freshman dorm**, itself a roster-persistent
   Warren (full treatment below): lobby terminal, rooms a walk away. The
   housing payoff + the **themed-customization** on-ramp.
@@ -383,18 +389,15 @@ polished prose.)
 
 ## Worked scenario — first login onto campus
 
-The lounge TPA deposits a first-time student at **Arrival**. The first room
-reads instantly as a campus — and just as instantly as *nowhere real* (the
-ground, the sky). A **greeter NPC** welcomes them; **signs** point inward
-(following them teaches movement). The walk down the main path is the
-campus revealing itself — recognizable buildings with an unplaceable
-finish. A stop at the **Health Center** installs the **demo augment** (the
-implant lesson). The path ends at **Duncan Hall**; they walk from the lobby
-to their room and hit the **scoped-authoring** customization (authoring
-their own space — the climax). Later, wanting to change their name, they
-walk to **Student Services** and visit the registrar. Nothing teleported
-them anywhere except the two anchor hops; the campus was *walked*, and that
-walk was the onboarding.
+*Duplicate of the route's owner — cut. The current route is
+[acquisition-slate § The first-login journey v2](./acquisition-slate.md)
+(the crossing → the gate north → Eternal Way → the Quad → Limbo Lane →
+Duncan; Gus absorbs the greeter role; the Health Center leaves the journey
+and the demo augment is retired; Silver Street is visible and bypassed);
+the walk's mechanics that are not the route — the wayfinding signs, Dr.
+Limen, the scoped-authoring climax — are
+[onboarding-slate](./onboarding-slate.md)'s. The place the walk crosses
+stays this slate's (§ Topology, § The v1 roster).*
 
 ---
 
@@ -415,8 +418,8 @@ walk was the onboarding.
 6. **Elevate the genre stance to `design-philosophy.md`?** The un-genred /
    obvious-fabrication / "strangeness is a finish" claims are world-wide,
    not campus-only. *Recommended: yes, a short principle.*
-7. **Education-vertical content surface** (lessons inside the academic
-   hall) — deferred to the education vertical; the hall is the hook.
+7. *Moved to [campus-grounds-slate](./campus-grounds-slate.md) Part 8
+   (the teaching rooms + Open Q 13) — the academic hall is that slate's.*
 8. **Tiered housing mapping** — v1 is the **freshman** tier (Duncan Hall);
    the upperclass homedir-as-room tier is later Eternal University housing
    content.
