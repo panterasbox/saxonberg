@@ -30,57 +30,13 @@ platform first.
 
 ---
 
-## Thesis 1 — The three-layer self
+## Thesis 1 — The three-layer self — shipped
 
-A "player" is three layers, and the platform already half-models them:
+**Shipped as designed** — the Participant/Vessel/Shade split is exactly what mortality.md's shade is. See mortality.md § The shade and connection.md / state-model.md for the `Login`↔`Interactive`↔`Avatar` handoff it names.
 
-- **The Participant / Citizen** — the enduring platform identity: the
-  account, the voter, the chat voice, the audience member, the forum
-  poster, the property owner, the office-holder. Never injured, strangled,
-  unconscious, or dead. This is the `User` / `Login` / `Interactive` /
-  connection layer and the **shared-not-wrapped client frame**
-  (`ConnectionIndicator` / `AccountMenu`) that persists no matter what is on
-  the world card.
-- **The Vessel / Body** — the mortal embodied avatar in the physical sim:
-  vitals, trauma, poise, location, loadout. Disposable, re-mintable. What
-  combat acts on. The `Avatar` / `Character` / vitals layer.
-- **The Shade** — the interstitial self *between* vessels: a Participant
-  with no body. The Hades layer; the answer to "what and where are you
-  while the corpse is processed."
+## Thesis 2 — Function over form — shipped
 
-The split is not new architecture — it is the existing
-`Login`↔`Interactive`↔`Avatar` handoff ([connection.md], [state-model.md])
-named and made load-bearing.
-
----
-
-## Thesis 2 — Function over form (the platform rule)
-
-**Platform functions attach to the Participant and are never severed by
-physical-layer state.** The diegetic simulation is a layer you are
-*embodied into*, not the ground of participation. The honest line:
-
-- **Embodied acts** (require a working vessel): say/shout/whisper across a
-  room, emote, fight, work, carry, move, hold your body's belongings.
-  Strangling you *does* stop these — the fiction working.
-- **Platform acts** (ride the Participant, always available): chat with the
-  livestreamer, vote, post/read forums, DM, watch the stream, be present as
-  audience, hold property and office.
-
-So being strangled means you can't shout across the tavern — but you are
-still fully in the livestream chat and can still vote. Not immersion-
-breaking once **legible**: you are the *audience/citizen* in that moment,
-not the fighter, and the client already models it — the **world card goes
-dark/spectator, the platform frame stays lit**. Losing your vessel dims one
-view; it never logs you out.
-
-This puts the stakes of death in the right place: death costs you your
-**embodied agency** — physical presence, in-world productivity, your body's
-belongings, and the price of rebirth. Heavy. It never costs you your **seat
-as a person.** Death is real without being disenfranchising. (This is where
-*function must win over form* — we lean into platform strengths.)
-
----
+**Shipped as designed** — `requiresEmbodied` is the mechanical form of this rule; a dead player still talks, walks the commons, reads the forums and shows up in `who`. See mortality.md § Function over form, made mechanical.
 
 ## Thesis 3 — Governance integrity *and* law enforcement (two jobs)
 
@@ -146,42 +102,12 @@ prison are two skins on it.**
 
 ---
 
-## Thesis 6 — The death arc
+## Thesis 6 — The death arc — shipped
 
-The three orthogonal axes (from combat-experience): the **arc** is
-invariant (same dramatic shape regardless of stakes); the **stakes = the
-recovery cost** (you do not set abstract stakes, you set how costly the
-recovery is — a bruise recovers in minutes, a maiming in weeks, death is
-the longest arc); the **recovery is its own dramatic arc** (the falling
-action the climax seeds — defeat *starts* a story). Death is simply the
-**longest recovery arc**: not permadeath (kills engagement), not free-
-respawn (no stakes) — severe, costly, diegetic, recoverable.
-
-Answering the two questions:
-
-- **What/where are you while the corpse is processed?** You revert to the
-  **Shade** — a pure Participant, bodiless, in the **interstitial**
-  (underworld/between). *Not offline*: still in chat, still a voter, still a
-  citizen — but you cannot *act* in the physical world (no fighting,
-  earning, producing, owning-new, room presence). That diminishment is
-  deliberate: the interstitial should be a place you want to *leave*, so
-  there is a pull back to embodiment (nobody should prefer to live as a
-  shade). Two clocks run in parallel — the **world** processes your corpse
-  (the coroner economy, decay, the reset sweep) while **you** experience the
-  interstitial; rebirth rejoins them.
-- **When the body comes, what narrative shape?** The **escape-from-Hades**
-  template, *dialable* (see Thesis 7). Its beats: **the passage** (from a
-  trivial "you surface at the temple" up to a full Orpheus quest); **the
-  mint** (a **patron/altar/church grants the new vessel** — the existing
-  altar/sacrifice/patron lore is the diegetic engine; the *terms* of the
-  mint are the recovery cost: a debt, a favor, a mark, a diminished
-  vessel); **the re-embodiment shape** (restored-at-the-temple → a fresh
-  unmarked vessel → a scarred vessel far away carrying a debt). *Which power
-  you are under* shapes it — a harsh patron, a brutal rebirth; a gentle one,
-  a soft landing.
-
-Shape: **death → Shade in the interstitial (Participant intact) → the
-passage → re-embodiment (patron mint, terms = recovery cost).**
+**Shipped as designed** — death → shade in the interstitial (Participant
+intact) → the passage → re-embodiment. See mortality.md § The shade, §
+Coming back. The "coroner economy" clock this thesis names moved to
+[end-of-life-slate.md](../builds/end-of-life-slate.md).
 
 ---
 
@@ -212,8 +138,8 @@ makes it playable content instead of a punishment timer. Depth is a
 
 ## Thesis 8 — PC vs NPC recovery are different animals
 
-- **PC** — an open-ended, player-driven recovery arc through this substrate
-  (Shade → opt-in passage → patron mint). The player *lives* the arc.
+- **PC** — **shipped**: an open-ended, player-driven recovery arc through
+  the shade → passage → new-body substrate. See mortality.md.
 - **NPC** — cycles at the **narrative level, predictably**, not through the
   shade/rebirth path. A named NPC's death can be *permanent within its
   story* (the villain falls at the climax — that *is* the story) while the
@@ -235,7 +161,9 @@ makes it playable content instead of a punishment timer. Depth is a
   routes through the altar/sacrifice/patron lore. Its own design.
 - **The coroner / scrapper / animal-control labor economy** — the world-side
   corpse/scrap processing (aftermath cycling as *jobs*, the employment
-  engine + material economy); combat-experience owns the framing.
+  engine + material economy); combat-experience owns the framing. Moved
+  2026-09-10 to [end-of-life-slate.md](../builds/end-of-life-slate.md) as a
+  trade question, not a metaphysics one.
 - **The interstitial content** — what the Shade actually experiences; the
   escape-from-Hades set-pieces.
 - **Permadeath** — the opt-in extreme end of the recovery-cost dial.

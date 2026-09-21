@@ -541,6 +541,17 @@ command category plus `assess` in `perception`.
   wound reads "bleeding controlled" and **hides precise severity behind the
   dressing** — an expert can judge through it, else `undress` and look.
   This is the loop that answers "how do I know I'm healed."
+  ⭐ **`analyze patient`** is the trade's diagnostic surface above
+  `assess`, shipped by the `trade-medicine` pack (the stanza is on the
+  platform's `analyze` view, the controller is the pack's — the
+  instrumentation split). Its line: **competence buys what you can SEE,
+  never what you can DO** — an untrained eye knows something is wrong; a
+  novice reads the signs; a competent medic knows which conditions could
+  produce them, *plural and unranked* (that ambiguity is what makes the
+  choice a choice); proficient knows what would treat it and how it
+  spreads; expert reads how far it has gone. Nothing on the ladder makes a
+  treatment work better. The forensic twin, `analyze postmortem`, is
+  [mortality.md](./mortality.md).
   It also carries an **affliction readout** — what is wrong with someone
   that isn't a wound. Trauma was the only thing it could describe, so
   anything *carried* rather than *cut* (a poison, a disease, the mortality
