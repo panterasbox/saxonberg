@@ -141,6 +141,20 @@ export class BankingApi {
   }
 
   /**
+   * A shop pays its supplier for a terms good that sold: one `payment` leg,
+   * shop → supplier, category `terms` (the rung-1 gate counts it). No
+   * ownership check — the verb pays as the house; the floor applies.
+   */
+  public static async payTerms(
+    shopAccountId: string,
+    supplierAccountId: string,
+    amount: Money,
+    memo: string,
+  ): Promise<string> {
+    return logic().payTerms(shopAccountId, supplierAccountId, amount, memo);
+  }
+
+  /**
    * The treasury's account id — the ONE state account, `/compact/treasury`'s,
    * custodied at the Central Bank; opened on first touch (economic
    * bootstrap D9).

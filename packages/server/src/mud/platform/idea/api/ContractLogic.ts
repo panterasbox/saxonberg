@@ -1172,10 +1172,39 @@ function newInstrument(
 
 /* ── the gates: reads of the borrower's own ledger ── */
 
-/** Completed supplier terms: `payment` legs of category `terms` OUT of the borrower's account. */
+/**
+ * Completed supplier terms — the borrower's PURCHASE HISTORY (the
+ * requirements' rung-1 borrower is *"a shop with a clean purchase
+ * history"*): `payment` legs OUT of the borrower's account that paid a
+ * supplier for goods. Two shapes, one event: a `terms` leg (the shop
+ * paying a consignor at sale — rung 0 completed) and a `sales` leg to
+ * another HOUSE's account (the keeper paying at a supplier's counter —
+ * the same term, settled on the spot). ⭐ Build decision (W7): the plan's
+ * gate read only the `terms` leg, under which a shop that buys for cash
+ * at the cash-and-carry — every keeper's `stocks` beat — could never
+ * climb, and the NPC borrower the drive watches would have been dead.
+ */
 async function completedTermsOf(borrowerAccountId: string): Promise<number> {
   const rows = await BankingApi.entriesFor(borrowerAccountId);
-  return rows.filter((r) => r.fromAccount === borrowerAccountId && r.kind === "payment" && r.category === "terms").length;
+  const houses = new Map<string, boolean>();
+  let n = 0;
+  for (const r of rows) {
+    if (r.fromAccount !== borrowerAccountId || r.kind !== "payment") continue;
+    if (r.category === "terms") {
+      n += 1;
+      continue;
+    }
+    if (r.category !== "sales" || !r.toAccount) continue;
+    let isHouse = houses.get(r.toAccount);
+    if (isHouse === undefined) {
+      const owner = await BankingApi.ownerKeyOf(r.toAccount);
+      const live = owner ? StuffApi.findByTemplatePath(owner) : null;
+      isHouse = live !== undefined && live !== null && MixinApi.isBusiness(live);
+      houses.set(r.toAccount, isHouse);
+    }
+    if (isHouse) n += 1;
+  }
+  return n;
 }
 
 /** Loans of `rung` the borrower has fully repaid. */

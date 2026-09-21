@@ -902,6 +902,40 @@ async function withRepaymentSplits(
   };
 }
 
+/**
+ * A shop pays its supplier for a terms good that sold (economic
+ * bootstrap D11): one `payment` leg, the shop's account → the supplier's,
+ * category `terms` — the shop's P&L reads it as cogs, the supplier's as
+ * sales, and the ladder's rung-1 gate counts it as a completed term. No
+ * ownership check: the buyer's own transaction already cleared and the
+ * verb pays AS the house; the floor still applies.
+ */
+async function payTermsImpl(
+  shopAccountId: string,
+  supplierAccountId: string,
+  amount: Money,
+  memo: string,
+): Promise<string> {
+  if (amount.minor <= 0) {
+    throw new Error("BankingLogic.payTerms: amount must be positive");
+  }
+  if (balanceMinor(shopAccountId) < amount.minor) {
+    throw new Error(
+      `BankingLogic.payTerms: the shop holds less than ${amount.render()}`,
+    );
+  }
+  return postTransaction("payment", [
+    {
+      currency: amount.currency,
+      from: shopAccountId,
+      to: supplierAccountId,
+      amount: amount.minor,
+      memo,
+      category: "terms",
+    },
+  ]);
+}
+
 export interface ReserveDashboard {
   currency: string;
   activeMembers: number;
@@ -2213,6 +2247,17 @@ export class BankingLogic extends ApiLogic {
     memo: string,
   ): Promise<string> {
     return advanceImpl(fromAccountId, toAccountId, amount, memo);
+  }
+
+  /** See {@link BankingApi.payTerms}. */
+  @CallSecurity(BankingApiCallers)
+  public async payTerms(
+    shopAccountId: string,
+    supplierAccountId: string,
+    amount: Money,
+    memo: string,
+  ): Promise<string> {
+    return payTermsImpl(shopAccountId, supplierAccountId, amount, memo);
   }
 
   /** See {@link BankingApi.treasuryAccountId}. */

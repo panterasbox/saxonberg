@@ -46,6 +46,11 @@ data:
         # loose goods, because a walk to the counter and back is the same
         # walk whatever the hand is carrying.
         batch: 12
+        # ⭐ At the cash-and-carry these are the outfit's PRICES, not its
+        # asks (economic bootstrap D11): the counter says `purchasing:
+        # terms`, so each crate is left on the distributor's terms — owed
+        # at sale, priced by the shop — and the basis is the counter's
+        # policy, never this config's.
         ask:
           produce:lime: 6
           produce:lemon: 6

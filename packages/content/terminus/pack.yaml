@@ -121,3 +121,10 @@ boot:
   - { template: /world/terminus/mayfield-row/tailor/location/shop, role: producer, reason: "the shop floor — its counter is the appointment point, and the measurement book lives on it" }
   - { template: /world/terminus/mayfield-row/tailor/idea/outfit, role: producer, reason: "the tailor's position is materialized over a live business" }
   - { template: /world/terminus/counting-houses/distributor/idea/business, role: producer, reason: "the distributor's Business must be live so its clerk is rostered before the first buy" }
+  # ⭐ The general store as a PRODUCER (economic bootstrap D14): its keeper
+  # runs the `stocks` beat — buying the supplied lines at the cash-and-carry
+  # on terms, borrowing at the window when short, shelving what she carries
+  # home — with nobody online. A brain on an unspawned NPC never fires, and
+  # a business stood up lazily deals no house card until somebody trades.
+  - { template: /world/terminus/general-store/shop-floor, role: producer, reason: "the general store's floor — its keeper runs the stocks beat over the counter, and the counter is where the supplied lines land" }
+  - { template: /world/terminus/general-store/business, role: producer, reason: "the keeper's `purchases` seat is materialized over a live business; the stocks beat trades as it" }

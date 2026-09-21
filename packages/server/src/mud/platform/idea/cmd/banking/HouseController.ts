@@ -28,6 +28,7 @@ import type { Display } from "../../../../lib/display/Display";
 import type { Stuff } from "../../../../lib/stuff/Stuff";
 import { StuffApi } from "../../../../api/stuff";
 import { MixinApi } from "../../../../api/mixin";
+import Stock from "../../../thing/Stock";
 
 const TOPIC = "act.deed";
 
@@ -38,6 +39,8 @@ interface HouseModel extends CommandModel {
   level?: string;
   grade?: string;
   from?: string;
+  thing?: MqlOneResult;
+  ask?: string;
 }
 
 export default class HouseController extends BankingControllerBase<HouseModel> {
@@ -51,12 +54,14 @@ export default class HouseController extends BankingControllerBase<HouseModel> {
         return this.payroll(model, context);
       case "par":
         return this.par(model, context);
+      case "price":
+        return this.price(model, context);
       case "stock":
         return this.stock(context);
       default:
         MessageApi.scene(context.commandGiver)
           .topic(TOPIC)
-          .toSelf(Mml.compose`Usage: \`house book\`, \`house pnl\`, \`house payroll <worker> <amount>\`, \`house par <category> <level>\` or \`house stock\`.`)
+          .toSelf(Mml.compose`Usage: \`house book\`, \`house pnl\`, \`house payroll <worker> <amount>\`, \`house par <category> <level>\`, \`house price <thing> <ask>\` or \`house stock\`.`)
           .send();
         context.note({ kind: "controller-rejected", reason: "unknown-subcommand", detail: model.subcommand ?? "" });
     }
@@ -241,6 +246,51 @@ export default class HouseController extends BankingControllerBase<HouseModel> {
     MessageApi.scene(giver)
       .topic(TOPIC)
       .toSelf(Mml.compose`Par for ${category} at ${house.getPresentation()}: ${String(parsed.level)} ${parsed.unit}${model.from ? ` from ${model.from}` : ""}.`)
+      .send();
+  }
+
+  /**
+   * `house price <thing> <ask>` — the shop's own ask for a good's kind
+   * (economic bootstrap D14): sets the base price on the counter the
+   * house operates that holds the thing (else its first counter), keyed
+   * by the good's template. A `stocking` line derives from this base; a
+   * terms good the house never priced asked the supplier's price plus
+   * the Schedule's margin until now. ⚠ The seat's, never the screen's —
+   * a price is the house's money policy.
+   */
+  private async price(model: HouseModel, context: CommandContext): Promise<void> {
+    const giver = context.commandGiver;
+    const house = await this.house(context);
+    if (!house) return;
+    const thing = model.thing?.stuff ?? null;
+    const ask = Number.parseInt((model.ask ?? "").trim(), 10);
+    if (!thing || !Number.isFinite(ask) || ask <= 0) {
+      MessageApi.scene(giver)
+        .topic(TOPIC)
+        .toSelf(Mml.compose`Usage: \`house price <thing> <ask>\` — the ask in whole ${Currency.of(BankingApi.compactCurrency()).plural}.`)
+        .send();
+      context.note({ kind: "controller-rejected", reason: "bad-price", detail: model.ask ?? "" });
+      return;
+    }
+    const key = thing.getTemplatePath() ?? "";
+    const counters = house
+      .getOperatingLocations()
+      .map((p) => StuffApi.findByTemplatePath(p))
+      .filter((c): c is Stock => c instanceof Stock);
+    const holding = MixinApi.isContainable(thing) ? thing.getContainer() : null;
+    const counter = counters.find((c) => c === holding) ?? counters[0] ?? null;
+    if (!counter || !key) {
+      MessageApi.scene(giver)
+        .topic(TOPIC)
+        .toSelf(Mml.compose`${house.getPresentation()} keeps no counter to price ${Mml.thing(thing)} on.`)
+        .send();
+      context.note({ kind: "controller-rejected", reason: "no-counter", detail: key });
+      return;
+    }
+    counter.setPrice(key, ask);
+    MessageApi.scene(giver)
+      .topic(TOPIC)
+      .toSelf(Mml.compose`${house.getPresentation()} now asks ${Money.of(ask, BankingApi.compactCurrency()).render()} for ${Mml.thing(thing)} and its kind${counter.lineFor(key)?.pricing === "stocking" ? " — at par; the shelf moves it" : ""}.`)
       .send();
   }
 

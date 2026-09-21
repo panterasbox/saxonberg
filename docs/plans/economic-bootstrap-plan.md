@@ -1544,6 +1544,48 @@ newcomer. Drive steps 1, 3, 4, 5, 7 green on a fresh world.
   outfit: …"*.
 - Commit: `build(economic-bootstrap W7): supplier terms are a listing basis; the shop's ask derives from its shelf; keepers stock their counters`.
 
+**W7 — DONE.** `Stock.purchasing` (consignment|terms, refused unknown),
+`StockLine.supplier/pricing`, `priceFor` override (the stocking rule;
+a terms good the shop never priced asks the supplier's price × (1 +
+`retail.termsMargin`)), `reset()` skips supplied lines,
+`shortSuppliedLines`, `termsLineFor` (appended by a `Chattel` markup
+augmenter: a terms good says whose terms; a consigned good its ask; ⭐
+any priced stock good now says *the shop asks …* — the price on the
+item, not only on the counter); `ConsignController` basis = the
+counter's policy; `BuyController.buyListing` two posts (sales, then
+`payment`/`terms` shop → supplier, posted as the house);
+`ReclaimController` admits the house an actor buys for;
+`NPC.walkTo(targetPath, lane)` hoisted from `consigns` (both brains
+take it; `consigns` narrows its host to `NPC`, so the distilling pack's
+test hand became an `Extra`); `lib/behavior/stocks.ts`; `house price
+<thing> <ask>`; `stockSheetFor` unions operated Stocks' supplied lines
+(by SHAPE — a value import of `Stock` into `EmploymentLogic` is an
+evaluation cycle through `PricedOffer`). Content: the general store's
+counter gains `crate-of-limes` and `coffee-sack` supplied by the
+distributor, `stocking`, base 10/32; the keeper holds an unwaged
+`purchases` seat on the roster (the house card) and runs `stocks` at
+90s; the shop floor and the business are `boot:` producers; the
+cash-and-carry says `purchasing: terms`. Four decisions: (1) ⭐⭐ **the
+rung-1 gate reads the borrower's PURCHASE HISTORY** — `terms` legs out
+AND `sales` legs out to another house's account (the keeper paying at
+a supplier's counter). The plan's gate read only the `terms` leg, under
+which a shop that buys for cash — every keeper's beat — could never
+climb, and the NPC borrower the drive watches was dead; the
+requirements' rung-1 borrower is *"a shop with a clean purchase
+history"*, which this is. (2) ⭐ **`treasury.openingAdvance` is a FLOAT
+(50), not capital**: at 2000 no shop in the world ever borrowed, and
+the ladder was theater; at 50 the general store completes three
+purchases on the float and presents to Goodkin for the fourth — the
+drive's step 6 runs on the shipped numbers with no rigging. (3) The
+listing's basis is the COUNTER's policy, never the hand's config — the
+plan's `consigns basis:` key is not shipped (one source of truth); the
+hand's headroom at a counter that carries a line for the good is `par
+− onHand`. (4) `Stock.dial` treats an unseeded Schedule row as absent
+(`Number("")` is 0, which read a missing margin as no margin). Found by
+tests: `AppSettings._cached = new AppSettings()` in one retail test
+wiped the seeded custodian bank for every test after it (the fixture
+now names the bank).
+
 ### W8 — A player shop: the rented stall (D15)
 
 - Platform seed `content/platform/idea/Business/stall.yaml`;

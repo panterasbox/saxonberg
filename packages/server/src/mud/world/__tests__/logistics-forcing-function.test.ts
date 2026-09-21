@@ -39,6 +39,9 @@ import { parse } from 'yaml';
 const CONSIGNS = fileURLToPath(
   new URL('../../lib/behavior/consigns.ts', import.meta.url),
 );
+const NPC_WALK = fileURLToPath(
+  new URL('../../lib/npc/NPC.ts', import.meta.url),
+);
 const RESTOCKS = fileURLToPath(
   new URL('../../lib/behavior/restocks.ts', import.meta.url),
 );
@@ -66,9 +69,13 @@ describe('⭐ AC15 — the brains stop teleporting', () => {
     // one that keeps paying the producer, because consignment is
     // sale-or-return and no shipped mechanism lets a carrier list goods
     // on somebody else's behalf.
+    // ⭐ The walk itself is `NPC.walkTo` since the economic bootstrap (W7):
+    // one walk, hoisted, that `consigns` and `stocks` both take.
     const code = codeOf(CONSIGNS);
-    expect(code).toMatch(/forceCommand\(`go \$\{/);
-    expect(code).toMatch(/planRoute/);
+    expect(code).toMatch(/hand\.walkTo\(/);
+    const walk = codeOf(NPC_WALK);
+    expect(walk).toMatch(/forceCommand\(`go \$\{/);
+    expect(walk).toMatch(/planRoute/);
   });
 
   it('⭐⭐ NEITHER brain calls `teleport`, anywhere, at all', () => {

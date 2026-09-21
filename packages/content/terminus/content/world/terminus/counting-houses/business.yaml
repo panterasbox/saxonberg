@@ -15,6 +15,10 @@
 class: /platform/idea/Business
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
+  # What the branch calls itself on paper — the lender's name on every loan
+  # it holds (`bank book`: *Goodkin holds: …*). Unnamed, a Business
+  # presents as "something", and so did the bank.
+  name: "Goodkin"
   # ⭐ GOODKIN's board hires Goodkin's tellers — not the city.
   #
   # The city owns the district this counter stands in

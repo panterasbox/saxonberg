@@ -36,6 +36,13 @@ const DIST_DIR = fileURLToPath(
 const PRODUCE_DIR = fileURLToPath(
   new URL("../../../trade-farming/content/trade/farming/", import.meta.url),
 );
+// The supplied lines (economic bootstrap D14): the coffee sack is the
+// cooking trade's row, bought at the cash-and-carry on terms and shelved
+// by the keeper — stocked cross-pack like everything else that is not the
+// store's own.
+const COOKING_DIR = fileURLToPath(
+  new URL("../../../trade-cooking/content/trade/cooking/", import.meta.url),
+);
 // The upkeep kit is the residence pack's (residences D18) — the store
 // stocks it cross-pack, the same way it stocks the farming pots.
 const RESIDENCE_DIR = fileURLToPath(
@@ -66,6 +73,7 @@ const TRANSPORT_DIR = fileURLToPath(
 const GOOD_HOMES: { prefix: string; dir: () => string }[] = [
   { prefix: "/world/terminus/general-store/", dir: () => STORE_DIR },
   { prefix: "/trade/farming/", dir: () => PRODUCE_DIR },
+  { prefix: "/trade/cooking/", dir: () => COOKING_DIR },
   { prefix: "/system/residence/", dir: () => RESIDENCE_DIR },
   { prefix: "/trade/winemaking/", dir: () => WINE_DIR },
   { prefix: "/trade/brewing/", dir: () => BREW_DIR },
@@ -208,6 +216,14 @@ describe("general-store content integrity", () => {
     // pack, because the verb it confers is a static on a class and a
     // row cannot carry one.
     "/system/residence/thing/HouseholdersKit",
+    // ⭐ The SUPPLIED lines (economic bootstrap D14) — the first goods on
+    // this counter that come from somewhere: a crate of the farm's limes
+    // and a sack of the pantry's coffee, bought at the cash-and-carry on
+    // terms by the keeper's `stocks` beat, never cloned by the reset
+    // sweep. A `Crate` is a discrete container of produce; the coffee
+    // sack is a `Bottle` (a bulk vessel — the cooking trade's sack shape).
+    "/platform/thing/Crate",
+    "/platform/thing/Bottle",
   ]);
 
   // ⭐ Ammunition is the ONE stackable good the store sells, and rightly:
@@ -217,6 +233,48 @@ describe("general-store content integrity", () => {
   // on the shelf. Every OTHER good stays discrete; this is the exception,
   // named so a second stackable staple can't sneak in unnoticed.
   const AMMUNITION_CLASSES = new Set(["/platform/thing/equipment/Projectile"]);
+
+  /**
+   * ⭐ The supplied lines (economic bootstrap D11/D14): each names the
+   * distributor's business as its supplier, is priced `stocking` off an
+   * authored base, and the keeper who buys them holds the `purchases`
+   * seat with the `stocks` beat over this counter. The cash-and-carry it
+   * buys at takes goods on terms. Five links, one test — a line with no
+   * supplier is cloned from nothing, a keeper with no seat has no card,
+   * a counter that says consignment owes nobody.
+   */
+  it("the supplied lines are bought on terms by a seated keeper, never cloned", () => {
+    const counter = load(STORE_DIR, "counter.yaml");
+    const lines = counter.data?.stockLines as { itemTemplatePath: string; par: number; supplier?: string; pricing?: string }[];
+    const prices = counter.data?.prices as Record<string, number>;
+    const supplied = lines.filter((l) => l.supplier);
+    expect(supplied.length).toBeGreaterThanOrEqual(2);
+    const DISTRIBUTOR = "/world/terminus/counting-houses/distributor/idea/business";
+    for (const line of supplied) {
+      expect(line.supplier).toBe(DISTRIBUTOR);
+      expect(line.pricing).toBe("stocking");
+      expect(prices[line.itemTemplatePath], `${line.itemTemplatePath} has no base`).toBeGreaterThan(0);
+    }
+    // The supplier's counter takes goods on terms (rung 0).
+    const cashAndCarry = load(
+      fileURLToPath(new URL("../../content/world/terminus/counting-houses/distributor/thing/", import.meta.url)),
+      "counter.yaml",
+    );
+    expect(cashAndCarry.data?.purchasing).toBe("terms");
+    // The keeper: a `purchases` seat on the roster, and the beat over THIS counter.
+    const business = load(STORE_DIR, "business.yaml");
+    const positions = business.data?.positions as { key: string; purchases?: boolean }[];
+    expect(positions.find((p) => p.key === "keeper")?.purchases).toBe(true);
+    const slots = business.data?.rosterSlots as { positionKey: string; assignee: string }[];
+    expect(slots.find((r) => r.positionKey === "keeper")?.assignee).toBe(
+      "/world/terminus/general-store/agent/keeper",
+    );
+    const keeper = load(STORE_DIR, "agent/keeper.yaml");
+    const beat = (keeper.data?.behaviors as { brain: string; config?: { counter?: string } }[]).find(
+      (b) => b.brain === "/lib/behavior/stocks",
+    );
+    expect(beat?.config?.counter).toBe("/world/terminus/general-store/counter");
+  });
 
   it("every priced/stocked good is a real item — discrete, or stackable ammo", () => {
     const counter = load(STORE_DIR, "counter.yaml");

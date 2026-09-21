@@ -58,6 +58,12 @@
  * materialized on demand), `ask` minor units by census key, `defaultAsk`
  * for a good whose key the table lacks (default 10), `batch` goods per
  * beat (default 6).
+ *
+ * ⭐ The listing's BASIS is the counter's policy, not this config's
+ * (economic bootstrap D11): at a `purchasing: terms` counter the `--ask`
+ * is the supplier's price — what the outfit is owed at sale — and the
+ * shop prices the good itself; at a consignment counter it is the ask.
+ * A counter that carries a stock LINE for the good takes only to par.
  */
 
 import { MixinApi } from '../../api/mixin';
@@ -73,11 +79,13 @@ import type { Container } from '../spatial/Container';
 import type { Containable } from '../spatial/Containable';
 import type { BrainContext, BrainStatics } from './brain';
 import type { Employed } from '../employment/Employed';
+import NPC from '../npc/NPC';
+import Stock from '../../platform/thing/Stock';
 
 const DEFAULT_BATCH = 6;
 const DEFAULT_ASK = 10;
 
-type Hand = Stuff & Mobile & Containable & Container & CommandGiver;
+type Hand = NPC & Stuff & Mobile & Containable & Container & CommandGiver;
 
 export const brain = class {
   static label = 'consigns';
@@ -89,6 +97,7 @@ export const brain = class {
   static async act(ctx: BrainContext): Promise<void> {
     const host = ctx.host;
     if (
+      !(host instanceof NPC) ||
       !MixinApi.isMobile(host) ||
       !MixinApi.isContainer(host) ||
       !MixinApi.isCommandGiver(host)
@@ -124,8 +133,13 @@ export const brain = class {
         : Number.POSITIVE_INFINITY;
     if (headroom <= 0) return;
     const batch = Math.min(positiveInt(ctx.config.batch, DEFAULT_BATCH), headroom);
+    // ⭐ A shelf that carries a LINE for the good (economic bootstrap
+    // D11/D14: a `terms` counter with a par) takes only up to par — the
+    // supplier fills the shortfall, never the shop's back room. A good
+    // with no line on the shelf is a brokerage listing as before.
+    const room = shelfHeadroom(shelf);
     const goods = (stock.getContents() as Stuff[])
-      .filter((g) => MixinApi.isChattel(g) && MixinApi.isPerceptible(g))
+      .filter((g) => MixinApi.isChattel(g) && MixinApi.isPerceptible(g) && room.take(g))
       .slice(0, batch);
     if (goods.length === 0) return;
     const counterRoom = shelf.getContainer();
@@ -175,8 +189,9 @@ export const brain = class {
     // goods in hand; they are still the outfit's, and the next beat
     // carries them to the board rather than stranding them.
     void before;
+    const room2 = shelfHeadroom(shelf);
     const carried = (hand.getContents() as Stuff[])
-      .filter((c) => MixinApi.isChattel(c) && !MixinApi.isCredentialWallet(c)) // the house card is chattel too — not for sale
+      .filter((c) => MixinApi.isChattel(c) && !MixinApi.isCredentialWallet(c) && room2.take(c)) // the house card is chattel too — not for sale
       .slice(0, Number.isFinite(headroom) ? headroom : undefined);
     if (carried.length === 0) return;
 
@@ -210,7 +225,7 @@ export const brain = class {
     const homePath = home.getTemplatePath() ?? '';
     if (counterPath === '' || homePath === '') return;
 
-    await walkTo(hand, counterPath);
+    await hand.walkTo(counterPath);
     if (hand.getContainer() !== counterRoom) {
       // ⚠ Blocked means blocked. The goods stay in hand and the next
       // beat tries again; nothing teleports around the problem, which is
@@ -232,16 +247,45 @@ export const brain = class {
       // Home again, on its own feet. ⚠ In a `finally` for the reason the
       // teleport was: a beat that dies at the counter must not leave the
       // hand standing in somebody else's shop forever.
-      await walkTo(hand, homePath);
+      await hand.walkTo(homePath);
     }
   }
 } satisfies BrainStatics;
 
+/**
+ * A keyword the good ANSWERS TO. ⚠ The primary keyword is not always one:
+ * a `Bottle`'s constructor names itself `bottle` and a row that authors
+ * `keywords: [coffee, sack, beans]` leaves that primary standing outside
+ * its own list — so `get 1 bottle` found nothing, the beat stopped at its
+ * first good, and the pantry never delivered a sack. Found by the
+ * economic bootstrap's drive.
+ */
 function keywordOf(good: Stuff): string | null {
   if (!MixinApi.isPerceptible(good)) return null;
   const primary = good.getPrimaryKeyword();
-  if (primary) return primary;
-  return good.getKeywords()[0] ?? null;
+  if (primary && good.hasKeyword(primary)) return primary;
+  return good.getKeywords()[0] ?? primary ?? null;
+}
+
+/**
+ * The shelf's per-line headroom (`par − onHand`) for goods the shelf
+ * carries a stock line for, counted down as goods are taken; a good with
+ * no line is unbounded here (the per-consignor cap still applies).
+ */
+function shelfHeadroom(shelf: Stuff): { take: (good: Stuff) => boolean } {
+  const left = new Map<string, number>();
+  return {
+    take: (good: Stuff): boolean => {
+      if (!(shelf instanceof Stock)) return true;
+      const path = good.getTemplatePath() ?? '';
+      const line = shelf.lineFor(path);
+      if (!line) return true;
+      const n = left.get(path) ?? Math.max(0, line.par - shelf.onHand(path));
+      if (n <= 0) return false;
+      left.set(path, n - 1);
+      return true;
+    },
+  };
 }
 
 /** The ask for a good: its census key in the table, else the default. */
@@ -270,57 +314,3 @@ function positiveInt(v: unknown, fallback: number): number {
   return typeof v === 'number' && Number.isFinite(v) && v > 0 ? Math.floor(v) : fallback;
 }
 
-/**
- * Walk to a room, one `go <direction>` at a time.
- *
- * ⚠ **`go`, not `journey`.** `journey` is afforded by a VEHICLE — content
- * affords content — and a floor hand pushing goods by hand has none. So
- * the hand walks the way a person without a cart walks, which is also
- * the way a player would.
- *
- * ⭐ The route comes from the transport pack's `LaneCatalogue`, reached
- * **by shape** and never by import (the `TravelNode` /
- * `AnalyzeWaterController` idiom — the mudlib does not import packs). An
- * install with no roads has a hand that simply does not travel, which is
- * the honest degradation: without the pack there is nowhere to walk.
- *
- * ⚠ Bounded, and it stops on the first refused step. **Blocked means
- * blocked**: the goods stay in hand and the next beat tries again.
- * Nothing here routes around anything, because auto-routing would hide
- * the geography the road was built to make real.
- */
-async function walkTo(hand: Hand, targetPath: string): Promise<void> {
-  const here = hand.getContainer()?.getTemplatePath() ?? '';
-  if (here === '' || here === targetPath) return;
-
-  const catalogue = await StuffApi.singleton<Stuff>(
-    '/system/transport/idea/LaneCatalogue',
-  ).catch(() => null);
-  const planner = catalogue as unknown as {
-    planRoute?: (
-      from: string,
-      to: string,
-      lane: string,
-    ) => Promise<{ nodes: readonly string[] } | null>;
-  } | null;
-  if (!planner || typeof planner.planRoute !== 'function') return;
-
-  const route = await planner.planRoute(here, targetPath, 'city');
-  if (!route) return;
-
-  for (let i = 0; i + 1 < route.nodes.length; i += 1) {
-    const room = hand.getContainer();
-    if (!room || !MixinApi.isExitable(room)) return;
-    const next = route.nodes[i + 1]!;
-    let direction = '';
-    for (const [dir, exit] of room.getExits().entries()) {
-      if (exit.getDestinationTemplatePath() === next) {
-        direction = dir;
-        break;
-      }
-    }
-    if (direction === '') return;
-    await hand.forceCommand(`go ${direction}`);
-    if (hand.getContainer()?.getTemplatePath() !== next) return;
-  }
-}

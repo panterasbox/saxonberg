@@ -1,6 +1,6 @@
 verbs: [house]
 controller: /platform/idea/cmd/banking/HouseController
-description: "The house app — book / pnl / payroll / par / stock / freight / traffic"
+description: "The house app — book / pnl / payroll / par / price / stock / freight / traffic"
 opens_card: stock
 help: |
   The house app, for whoever keeps the house: a position held there or
@@ -16,7 +16,10 @@ help: |
   `0` strikes the line. `house stock` shows the live sheet: the rail
   against par, counted over what you can see from where you stand.
   Restocking is not a verb — read the sheet, `wallet use house`, `buy`,
-  and `put` it on the rail.
+  and `put` it on the rail. `house price <thing> <ask>` sets the shop's
+  own ask for that good's kind on the counter it stands on — a
+  `stocking` line moves off it with the shelf; a supplier's good the
+  house never priced asks the supplier's price plus the Schedule's margin.
 
   The app runs on a SCREEN: the house tablet in your hand, a screen in
   sight you may drive, or — with an active attunement — one anywhere
@@ -109,5 +112,16 @@ subcommands:
       since:
         type: string
         description: "`season` — only the last quarter."
+  price:
+    description: "Set the house's ask for a good and its kind on the counter it operates"
+    args:
+      - name: thing
+        type: object
+        required: true
+        scope: ["reachable"]
+        requires: any
+      - name: ask
+        type: string
+        required: true
   stock:
     description: "The live stock sheet — the rail against par"

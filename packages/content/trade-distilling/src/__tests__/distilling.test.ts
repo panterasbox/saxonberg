@@ -70,17 +70,11 @@ function fillLikeAClone(bottle: { setBulkMaterial: (a: string, m: never) => void
   bottle.setBulkAmount('interior', Quantity.of(litres, 'L'));
 }
 import { CommandDefinition } from '@saxonberg/server/mud/lib/command/CommandDefinition';
-import { CommandGiverMixin } from '@saxonberg/server/mud/lib/command/CommandGiver';
-import { EmployedMixin } from '@saxonberg/server/mud/lib/employment/Employed';
-import { SensorMixin } from '@saxonberg/server/mud/lib/message/Sensor';
-import { ContainerMixin } from '@saxonberg/server/mud/lib/spatial/Container';
-import { ContainableMixin } from '@saxonberg/server/mud/lib/spatial/Containable';
-import { MobileMixin } from '@saxonberg/server/mud/lib/spatial/Mobile';
-import { NamedMixin } from '@saxonberg/server/mud/lib/description/Named';
 import { Idea } from '@saxonberg/server/mud/lib/stuff/Idea';
 import Location from '@saxonberg/server/mud/lib/stuff/Location';
 import { ExitableMixin } from '@saxonberg/server/mud/lib/boundary/Exitable';
 import { brain as consigns } from '@saxonberg/server/mud/lib/behavior/consigns';
+import Extra from '@saxonberg/server/mud/platform/agent/Extra';
 import type { BrainContext } from '@saxonberg/server/mud/lib/behavior/brain';
 import type { Stuff } from '@saxonberg/server/mud/lib/stuff/Stuff';
 import Stock from '@saxonberg/server/mud/platform/thing/Stock';
@@ -159,11 +153,13 @@ class TestLaneCatalogue extends Idea {
   }
 }
 
-class TestHand extends EmployedMixin(
-  MobileMixin(
-    SensorMixin(CommandGiverMixin(ContainerMixin(ContainableMixin(NamedMixin(Idea))))),
-  ),
-) {
+/**
+ * ⚠ A real NPC rung, not a synthetic host: `consigns` narrows its host to
+ * `NPC` because the walk is `NPC.walkTo` (economic bootstrap W7 hoisted it
+ * out of the brain so `stocks` could take the same road). An `Extra` is
+ * the thinnest thing that IS one.
+ */
+class TestHand extends Extra {
   static _mixinName = 'TestHand';
 }
 
@@ -474,7 +470,6 @@ describe('trade-distilling — the outfit consigns as itself, and the house card
 
   function makeHand(): TestHand {
     const hand = makeStuffAtPath(() => new TestHand(), `/stuff/test/distilling/hand-${seq++}`);
-    hand.setName('Orrin');
     ContainmentApi.move(hand as never, floorRoom as never);
     return hand;
   }
@@ -695,7 +690,6 @@ describe('trade-distilling — the outfit consigns as itself, and the house card
 
     // A funded buyer at the counter: the ask splits to the outfit's account.
     const buyer = makeStuffAtPath(() => new TestHand(), '/platform/agent/Avatar/pat');
-    buyer.setName('Pat');
     ContainmentApi.move(buyer as never, counterRoom as never);
     const card = makeStuff(() => new PaymentCard());
     ContainmentApi.move(card as never, buyer as never);

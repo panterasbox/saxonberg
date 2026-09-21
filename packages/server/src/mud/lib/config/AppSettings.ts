@@ -320,6 +320,17 @@ export const AppSettingKeys = {
    * comma-separated) whose stocking asks the price index is read over.
    */
   reserveIndexBasket: "reserve.indexBasket",
+  /**
+   * Retail — the stocking rule's elasticity (economic bootstrap D14): a
+   * `stocking` line asks `base × (1 + e × (1 − onHand/par))` — an empty
+   * shelf asks base × (1 + e), a shelf at par asks base.
+   */
+  retailStockingElasticity: "retail.stockingElasticity",
+  /**
+   * Retail — the margin a shop asks over a supplier's price on a terms
+   * good it has not priced itself (a fraction).
+   */
+  retailTermsMargin: "retail.termsMargin",
   /** Treasury — the Arrival Note's principal (minor units): what a newcomer is advanced against their note. */
   treasuryArrivalPrincipal: "treasury.arrivalPrincipal",
   /** Treasury — the Note's discharge without a wage, in game-days active. */

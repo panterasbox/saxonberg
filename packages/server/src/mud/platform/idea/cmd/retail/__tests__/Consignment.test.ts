@@ -16,6 +16,7 @@ import BuyController from "../BuyController";
 import ConsignController from "../ConsignController";
 import ReclaimController from "../ReclaimController";
 import ConsignmentShelf from "../../../../thing/ConsignmentShelf";
+import Stock from "../../../../thing/Stock";
 import Thing from "../../../../../lib/stuff/Thing";
 import { StackableMixin } from "../../../../../lib/stuff/Stackable";
 import BankCounter from "../../../../thing/BankCounter";
@@ -493,5 +494,76 @@ describe("Consignment — sell loop over real ownership", () => {
     expect(bale.getQuantity()).toBe(4);
     expect(bale.getContainer()).toBe(broke);
     expect(shelf.activeListingCount("/platform/agent/Avatar/broke")).toBe(0);
+  });
+
+  /**
+   * ⭐ Rung 0 — supplier terms (economic bootstrap D11). At a
+   * `purchasing: terms` counter the consignor's `--ask` is the PRICE the
+   * shop owes at sale; the shop prices the good (the supplier's price plus
+   * the Schedule's margin until `house price` says otherwise) and keeps
+   * the margin. A sale posts TWICE: the buyer pays the shop's ask, then the
+   * shop pays its supplier — a `terms` leg the ladder's rung-1 gate counts.
+   */
+  it("terms: the buyer pays the shop's ask, the shop pays its supplier, title transfers, conserved", async () => {
+    const STOCK = "/test/consignment/thing/terms-counter";
+    const loc = makeStuff(() => new Location());
+    const counter = makeStuffAtPath(() => {
+      const s = new Stock();
+      s.stockLines = [];
+      s.prices = {};
+      s.discipline = "scrum";
+      s.attendDurationMs = 0;
+      s.staffingPolicy = "self-service";
+      s.serverPositionKeys = [];
+      s.setPurchasing("terms");
+      return s;
+    }, STOCK);
+    ContainmentApi.move(counter as never, loc as never);
+    const biz = makeStuffAtPath(() => new BusinessEntity(), "/test/consignment/idea/shop");
+    biz.proprietorPath = "";
+    biz.positions = [];
+    biz.operatingLocations = [STOCK];
+    // ⚠ Literal, not `defaultCustodianBank()`: the cap test above replaces
+    // the cached AppSettings and the seeded default goes with it.
+    biz.banksAt = "goodkin";
+    const storeAcct = await EmploymentApi.operatingAccountOf(biz);
+
+    const alice = await fundedAvatar("/platform/agent/Avatar/alice", 0);
+    ContainmentApi.move(alice as never, loc as never);
+    const aliceAcct = (await BankingApi.primaryAccountIdOf("/platform/agent/Avatar/alice"))!;
+    const torch = ownedTorch(alice);
+    await asOwner(alice, () => torch.stampChattel(alice));
+
+    // Alice leaves the torch on the shop's terms at 8 — her PRICE.
+    const consignCtx = ctx(alice, loc, counter as never, "consign");
+    await asOwner(alice, () =>
+      makeStuff(() => new ConsignController()).execute(
+        { thing: { stuff: torch as never, raw: "torch" }, ask: "8", shelf: { stuff: counter as never, raw: "counter" } },
+        consignCtx,
+      ),
+    );
+    expect(torch.getContainer()).toBe(counter);
+    expect(counter.listingFor(torch.getChattelId())?.basis).toBe("terms");
+    // The SHOP's ask: 8 × (1 + 0.25) = 10.
+    expect(counter.priceFor(TORCH)).toBe(10);
+    expect(counter.termsLineFor(torch)).toMatch(/Held on .* terms until sold/);
+
+    const bob = await fundedAvatar("/platform/agent/Avatar/bob", 100);
+    ContainmentApi.move(bob as never, loc as never);
+    const bobAcct = (await BankingApi.primaryAccountIdOf("/platform/agent/Avatar/bob"))!;
+    await asOwner(bob, () =>
+      makeStuff(() => new BuyController()).execute(
+        { thing: "torch", counter: { stuff: counter as never, raw: "counter" } },
+        ctx(bob, loc, counter as never, "buy"),
+      ),
+    );
+
+    expect(torch.getContainer()).toBe(bob);
+    expect(await torch.chattelOwner()).toEqual({ kind: "player", templatePath: "/platform/agent/Avatar/bob" });
+    expect(BankingApi.balanceOf(bobAcct).minor).toBe(90); // the shop's ask
+    expect(BankingApi.balanceOf(aliceAcct).minor).toBe(8); // her price, paid by the shop
+    expect(BankingApi.balanceOf(storeAcct).minor).toBe(2); // the margin
+    expect(counter.listingFor(torch.getChattelId())).toBeNull();
+    expect(BankingApi.reconcile(BankingApi.compactCurrency()).balanced).toBe(true);
   });
 });

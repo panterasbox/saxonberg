@@ -1,8 +1,8 @@
 # The cash-and-carry counter — the distributor's Stock fixture with ONE
 # stocked line (the malt sack — the imported-input faucet, topped to par
 # on the reset sweep; fermentation D10) atop the consignment shelf it
-# composes (one counter is both). Everything else on it was CONSIGNED — by a producer's floor hand trading as its outfit (the
-# `consigns` brain), by a corpo's, by a player. A venue's keeper buys here
+# composes (one counter is both). Everything else on it came in ON TERMS — from a producer's floor hand trading as its outfit (the
+# `consigns` brain), from a corpo's, from a player. A venue's keeper buys here
 # (`wallet use house`, `buy gin`), and each sale splits to the consignor's
 # operating account. Self-service and instant, like the general store's.
 class: /platform/thing/Stock
@@ -18,6 +18,17 @@ data:
   staffingPolicy: self-service
   serverPositionKeys: [clerk]
   businessPath: /world/terminus/counting-houses/distributor/idea/business
+  # ⭐⭐ Rung 0 of the credit ladder (economic bootstrap D11): this counter
+  # takes goods on SUPPLIER TERMS, not consignment. A hand's `consign …
+  # --ask 6` here is the outfit's PRICE — what it is owed when the crate
+  # sells — and the distributor sets its own ask on the shelf (the
+  # supplier's price plus the Schedule's `retail.termsMargin` until
+  # `house price` says otherwise) and keeps the margin. Title stays the
+  # outfit's until sale; an unpaid crate can be `reclaim`ed by its hand.
+  # Each sale posts twice: the buyer's payment to the distributor, then the
+  # distributor's `terms` leg to the outfit — the leg the ladder's rung-1
+  # gate counts.
+  purchasing: terms
   stockLines:
     - { itemTemplatePath: /trade/distribution/thing/malt-sack, par: 6 }
     # ⭐⭐ Grist beside the malt, at a MARKUP — the retrofit's whole

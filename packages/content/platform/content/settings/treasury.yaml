@@ -20,6 +20,13 @@ settings:
   # 0% loan from the treasury on its first account, secured by that
   # account, repaid as a share of inflows like any loan. A loan precisely
   # so the state never owns the residual of every business in the world.
-  # Sized to the perpetual: a member's worth funds a few houses, not one.
+  #
+  # ⭐ A FLOAT, not capital (economic bootstrap W7): enough to complete a
+  # house's first supplier terms — the purchase history rung 1 reads —
+  # and deliberately LESS than one restocking beat, so inventory is
+  # financed where the design puts it: at a chartered bank, at the
+  # window, against the goods. At two thousand no shop ever borrowed and
+  # the ladder was theater; at fifty the general store's keeper completes
+  # three purchases on the float and presents to Goodkin for the fourth.
   - key: treasury.openingAdvance
-    value: "2000"
+    value: "50"
