@@ -145,6 +145,30 @@ export class BankingApi {
    * shop → supplier, category `terms` (the rung-1 gate counts it). No
    * ownership check — the verb pays as the house; the floor applies.
    */
+  /**
+   * ⭐ Escheat (economic bootstrap D17): `amount` from a real account to the
+   * treasury — category `escheat` (an estate passing) or `recovery` (an
+   * open note recovered from the balance that secured it). Conserving.
+   */
+  public static async escheat(
+    fromAccountId: string,
+    amount: Money,
+    category: "escheat" | "recovery",
+    memo: string,
+  ): Promise<string> {
+    return logic().escheat(fromAccountId, amount, category, memo);
+  }
+
+  /**
+   * ⭐ Reclaim (D17): unclaimed property paid by the treasury to a returning
+   * member (or passed to a beneficiary) — kind `repayment`, category
+   * `unclaimed`. The perpetual rule reconciles first; the treasury cannot
+   * refuse a claim.
+   */
+  public static async reclaim(toAccountId: string, amount: Money, memo: string): Promise<string> {
+    return logic().reclaim(toAccountId, amount, memo);
+  }
+
   public static async payTerms(
     shopAccountId: string,
     supplierAccountId: string,

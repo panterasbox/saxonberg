@@ -152,7 +152,7 @@ describe("the perpetual rule (D9)", () => {
 
   it("buys up to money-per-active-member × active members into the treasury, and never redeems", async () => {
     withRows({ [AppSettingKeys.reserveMoneyPerActiveMember]: "2000" });
-    vi.spyOn(PlayerApi, "activeMemberCount").mockReturnValue(3);
+    vi.spyOn(PlayerApi, "activeMemberCount").mockResolvedValue(3);
     const first = await BankingApi.reconcilePerpetual(BankingApi.compactCurrency());
     expect(first.target).toBe(6000);
     expect(first.minted).toBe(6000);
@@ -162,12 +162,12 @@ describe("the perpetual rule (D9)", () => {
     const again = await BankingApi.reconcilePerpetual(BankingApi.compactCurrency());
     expect(again.minted).toBe(0);
     // Fewer members: NEVER redeems.
-    vi.spyOn(PlayerApi, "activeMemberCount").mockReturnValue(1);
+    vi.spyOn(PlayerApi, "activeMemberCount").mockResolvedValue(1);
     const fewer = await BankingApi.reconcilePerpetual(BankingApi.compactCurrency());
     expect(fewer.minted).toBe(0);
     expect(fewer.outstanding).toBe(6000);
     // More members: buys the difference only.
-    vi.spyOn(PlayerApi, "activeMemberCount").mockReturnValue(4);
+    vi.spyOn(PlayerApi, "activeMemberCount").mockResolvedValue(4);
     const more = await BankingApi.reconcilePerpetual(BankingApi.compactCurrency());
     expect(more.minted).toBe(2000);
     expect(BankingApi.moneySupply(BankingApi.compactCurrency()).minor).toBe(8000);
@@ -184,7 +184,7 @@ describe("appropriate (D9)", () => {
 
   it("moves treasury → the payee's primary without moving supply; refuses below the floor", async () => {
     withRows({ [AppSettingKeys.reserveMoneyPerActiveMember]: "1000" });
-    vi.spyOn(PlayerApi, "activeMemberCount").mockReturnValue(1);
+    vi.spyOn(PlayerApi, "activeMemberCount").mockResolvedValue(1);
     const bar = await asActor(BAR, () =>
       BankingApi.ensureVenueAccount(BAR, BankingApi.defaultCustodianBank(), "", BankingApi.compactCurrency()),
     );

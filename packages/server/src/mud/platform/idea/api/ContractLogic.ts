@@ -17,6 +17,7 @@ import { ApiLogic } from "../../../lib/stuff/ApiLogic";
 import { CallSecurity, Unshadowable } from "../../../lib/security/decorators";
 import { SecurityPolicies } from "../../../lib/security/SecurityPolicies";
 import { StuffApi } from "../../../api/stuff";
+import LedgerEntry from "../../../lib/banking/LedgerEntry";
 import { Template } from "../../../lib/stuff/Template";
 import { MixinApi } from "../../../api/mixin";
 import { Currency, BankingApi, Money, Account } from "../../../api/banking";
@@ -1484,6 +1485,102 @@ async function onWageLandedImpl(workerKey: string): Promise<string[]> {
   return out;
 }
 
+/**
+ * ⭐ RECOVER an open Arrival Note from the balance that secured it
+ * (economic bootstrap D17, step 2): `min(balance, owed)` moves primary →
+ * treasury as a `recovery` leg, the row settles, the paper is appended.
+ * Non-recourse means exactly this — nothing beyond the security is
+ * touched, and a balance short of the principal ends the matter. Returns
+ * the amount recovered (0 when there is no note, no account, no balance).
+ */
+async function recoverNoteImpl(memberKey: string): Promise<number> {
+  if (!active() || !memberKey) return 0;
+  const notes = await ContractRecord.findOpenByIssuer(memberKey, "note");
+  if (notes.length === 0) return 0;
+  const primary = await BankingApi.primaryAccountIdOf(memberKey);
+  let recovered = 0;
+  for (const note of notes) {
+    const owed = Math.max(0, note.owedMinor);
+    const held = primary ? BankingApi.balanceOf(primary).minor : 0;
+    const take = Math.min(owed, held);
+    let txId = "";
+    if (take > 0 && primary) {
+      txId = await BankingApi.escheat(
+        primary,
+        Money.of(take, BankingApi.compactCurrency()),
+        "recovery",
+        `recovered: the Arrival Note, from the balance that secured it`,
+      );
+      recovered += take;
+    }
+    note.state = "settled";
+    note.owedMinor = 0;
+    note.closedAt = worldSeconds();
+    await saveRecord(note);
+    await appendEvent(note.contractId, "recovered", { txId, memo: take > 0 ? `${moneyInWords(take)} recovered from the balance` : "nothing to recover" });
+    await appendToPapers(note, `Recovered: the estate passed; ${take > 0 ? `${moneyInWords(take)} taken from the balance that secured it` : "the balance held nothing"}. No recourse beyond the security — the matter ends here.`);
+  }
+  return recovered;
+}
+
+/**
+ * ⭐ UNCLAIMED PROPERTY (D17, step 6): a row the treasury issues and the
+ * member holds — `owedMinor` is what the state holds for them, at no
+ * rate, reclaimable on return, whenever that is. The paper is filed in
+ * their own records so the claim is readable from the first login back.
+ */
+async function writeUnclaimedImpl(memberKey: string, amountMinor: number): Promise<string | null> {
+  if (!active() || !memberKey || amountMinor <= 0) return null;
+  const record = newInstrument(
+    "unclaimed",
+    party("organization", TREASURY_PATH),
+    party("player", memberKey),
+    {
+      rung: "note",
+      ratePerGameYear: 0,
+      share: 0,
+      security: { kind: "none" },
+      principalMinor: amountMinor,
+      windowAdvanceMinor: 0,
+      dischargeOnFirstWage: false,
+      dischargeAfterGameDays: 0,
+    },
+  );
+  await saveRecord(record);
+  await appendEvent(record.contractId, "escheated", { counterparty: memberKey, memo: `${moneyInWords(amountMinor)} held unclaimed` });
+  await fileInstrument(record);
+  return record.contractId;
+}
+
+/**
+ * ⭐ RECLAIM (D17): every open `unclaimed` row `memberKey` holds is paid by
+ * the treasury to their primary account — the treasury cannot refuse —
+ * the rows settle, the papers say so. Returns the total paid.
+ */
+async function reclaimUnclaimedImpl(memberKey: string): Promise<number> {
+  if (!active() || !memberKey) return 0;
+  const rows = await ContractRecord.findOpenByHolder(memberKey, "unclaimed");
+  if (rows.length === 0) return 0;
+  const primary = await BankingApi.primaryAccountIdOf(memberKey);
+  if (!primary) return 0;
+  let paid = 0;
+  for (const row of rows) {
+    const owed = Math.max(0, row.owedMinor);
+    let txId = "";
+    if (owed > 0) {
+      txId = await BankingApi.reclaim(primary, Money.of(owed, BankingApi.compactCurrency()), "reclaimed: unclaimed property, on return");
+      paid += owed;
+    }
+    row.state = "settled";
+    row.owedMinor = 0;
+    row.closedAt = worldSeconds();
+    await saveRecord(row);
+    await appendEvent(row.contractId, "reclaimed", { txId, counterparty: memberKey, memo: `${moneyInWords(owed)} reclaimed` });
+    await appendToPapers(row, `Reclaimed: the Treasury paid ${moneyInWords(owed)} on your return.`);
+  }
+  return paid;
+}
+
 /** The lazy discharge: a note past its game-days active is forgiven on any touch. */
 async function reconcileNotesImpl(issuerKey: string): Promise<string[]> {
   if (!active() || !issuerKey) return [];
@@ -1576,10 +1673,13 @@ async function recordRepaymentImpl(contractId: string, amountMinor: number, txId
 
 /** The newest inflow (a credit) to `accountId`, in game-seconds, or 0. */
 async function lastInflowAt(accountId: string): Promise<number> {
-  const rows = await BankingApi.entriesFor(accountId);
-  let newest = 0;
-  for (const r of rows) if (r.toAccount === accountId && r.at > newest) newest = r.at;
-  return newest;
+  // The newest credit only — one indexed, sorted, limited read, not every
+  // row the account ever touched (a busy house has hundreds).
+  const [newest] = await LedgerEntry.find<LedgerEntry>(
+    { toAccount: accountId },
+    { sort: { at: -1 }, limit: 1 },
+  );
+  return newest?.at ?? 0;
 }
 
 /**
@@ -1834,6 +1934,24 @@ export class ContractLogic extends ApiLogic {
   @CallSecurity(ContractApiCallers)
   public async reconcileNotes(issuerKey: string): Promise<string[]> {
     return reconcileNotesImpl(issuerKey);
+  }
+
+  /** See {@link ContractApi.recoverNote}. */
+  @CallSecurity(ContractApiCallers)
+  public async recoverNote(memberKey: string): Promise<number> {
+    return recoverNoteImpl(memberKey);
+  }
+
+  /** See {@link ContractApi.writeUnclaimed}. */
+  @CallSecurity(ContractApiCallers)
+  public async writeUnclaimed(memberKey: string, amountMinor: number): Promise<string | null> {
+    return writeUnclaimedImpl(memberKey, amountMinor);
+  }
+
+  /** See {@link ContractApi.reclaimUnclaimed}. */
+  @CallSecurity(ContractApiCallers)
+  public async reclaimUnclaimed(memberKey: string): Promise<number> {
+    return reclaimUnclaimedImpl(memberKey);
   }
 
   /** See {@link ContractApi.repaymentSplitsFor}. */

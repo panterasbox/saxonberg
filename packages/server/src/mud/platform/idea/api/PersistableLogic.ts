@@ -908,6 +908,10 @@ async function captureImpl(host: Stuff, key?: string): Promise<void> {
   // last sync block before the save), so concurrent triggers each write a
   // valid full snapshot (last-write-wins).
   await preloadTreeMarshallers(host);
+  // The destruct backstop fires-and-forgets; a destruct that finished
+  // during the awaits above has evacuated the host, and a snapshot of an
+  // inert shell would overwrite the last good record with nothing.
+  if (host.isDestroyed()) return;
   skippedOwnedGoods.clear();
   const state = captureState(host);
   const place = capturePlacement(host);
@@ -924,6 +928,7 @@ async function captureImpl(host: Stuff, key?: string): Promise<void> {
   rec.owner = owner;
   rec.state = state;
   rec.place = place;
+  rec.writtenAt = Date.now();
   await rec.save();
 }
 

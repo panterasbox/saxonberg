@@ -56,12 +56,14 @@ export default class HouseController extends BankingControllerBase<HouseModel> {
         return this.par(model, context);
       case "price":
         return this.price(model, context);
+      case "roster":
+        return this.roster(context);
       case "stock":
         return this.stock(context);
       default:
         MessageApi.scene(context.commandGiver)
           .topic(TOPIC)
-          .toSelf(Mml.compose`Usage: \`house book\`, \`house pnl\`, \`house payroll <worker> <amount>\`, \`house par <category> <level>\`, \`house price <thing> <ask>\` or \`house stock\`.`)
+          .toSelf(Mml.compose`Usage: \`house book\`, \`house pnl\`, \`house payroll <worker> <amount>\`, \`house par <category> <level>\`, \`house price <thing> <ask>\`, \`house roster\` or \`house stock\`.`)
           .send();
         context.note({ kind: "controller-rejected", reason: "unknown-subcommand", detail: model.subcommand ?? "" });
     }
@@ -247,6 +249,36 @@ export default class HouseController extends BankingControllerBase<HouseModel> {
       .topic(TOPIC)
       .toSelf(Mml.compose`Par for ${category} at ${house.getPresentation()}: ${String(parsed.level)} ${parsed.unit}${model.from ? ` from ${model.from}` : ""}.`)
       .send();
+  }
+
+  /**
+   * `house roster` — the chart (economic bootstrap D16): every authored
+   * position, who holds it (by name where the holder is resident, by key
+   * otherwise), on shift or off — or `vacant`. A house that is CLOSED
+   * says so first: its keeper is away past the short clock and nobody
+   * else is on a position.
+   */
+  private async roster(context: CommandContext): Promise<void> {
+    const giver = context.commandGiver;
+    const house = await this.house(context);
+    if (!house) return;
+    // The chart is read CURRENT: absent holders vacated, the sign written.
+    await EmploymentApi.bringCurrent(house);
+    const lines: string[] = [`The chart at ${EmploymentApi.organizationLabel(house)}${house.isClosed() ? " — CLOSED: its keeper is away" : ""}:`];
+    for (const position of house.getPositions()) {
+      const holders = house.holdersOf(position.key);
+      if (holders.length === 0) {
+        lines.push(`  ${position.key}: vacant`);
+        continue;
+      }
+      for (const key of holders) {
+        const live = StuffApi.findByTemplatePath(key);
+        const who = live?.getPresentation() ?? key;
+        const shift = live && MixinApi.isEmployed(live) ? (live.isOnShift() ? "on shift" : "off shift") : "away";
+        lines.push(`  ${position.key}: ${who} (${shift})`);
+      }
+    }
+    MessageApi.scene(giver).topic(TOPIC).toSelf(Mml.compose`${lines.join("\n")}`).send();
   }
 
   /**

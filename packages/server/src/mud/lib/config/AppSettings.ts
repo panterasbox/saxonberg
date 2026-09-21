@@ -337,6 +337,14 @@ export const AppSettingKeys = {
   treasuryNoteDischargeGameDays: "treasury.noteDischargeGameDays",
   /** Treasury — the standing facility: a business's opening advance (minor units), a 0% loan from the treasury. */
   treasuryOpeningAdvance: "treasury.openingAdvance",
+  /** Press — game hours between two printings of the price index (the Gazette's edition window). */
+  pressIndexEditionGameHours: "press.indexEditionGameHours",
+  /** Estate — real days of absence after which a member is dormant (frozen, vacant, closed, asleep). */
+  estateDormantAfterDays: "estate.dormantAfterDays",
+  /** Estate — real days of absence after which a member's estate escheats on the next touch. */
+  estateEscheatAfterDays: "estate.escheatAfterDays",
+  /** Employment — real days of absence after which a member's seat is vacated. */
+  employmentAbsenceVacatesAfterDays: "employment.absenceVacatesAfterDays",
 
   /**
    * Contracts — how long an exclusive claim holds before it lapses back to

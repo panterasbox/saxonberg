@@ -171,6 +171,23 @@ export abstract class Zone extends Idea {
    * Per zone-architecture-slate § Inheritance walk for zone-carried
    * fields.
    */
+  /**
+   * ⭐ A use-grant on a parcel inside this zone was REVOKED by the estate
+   * (economic bootstrap D17): the holder's tenancy ended without their
+   * `unprovision` — an escheat took it. A landlord zone overrides this to
+   * do what its own end-of-lease verb does (evict the furnishings, free
+   * the slot); the base does nothing, because a zone with no tenancy
+   * model has nothing to tidy.
+   *
+   * @hook Invoked by the estate's escheat after `ParcelApi.revokeUse`,
+   *   once per revoked grant. Override and chain `super` if your zone
+   *   composes another zone's tenancy.
+   */
+  public async onUseGrantRevoked(extent: string, holder: string): Promise<void> {
+    void extent;
+    void holder;
+  }
+
   public async lookupField<T>(fieldName: string): Promise<T | null> {
     const own = readField<T>(this, fieldName);
     if (own != null) return own;

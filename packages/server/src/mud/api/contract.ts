@@ -258,6 +258,32 @@ export class ContractApi {
   }
 
   /**
+   * ⭐ Recover an open Arrival Note from the balance that secured it
+   * (economic bootstrap D17): `min(balance, owed)` primary → treasury as a
+   * `recovery` leg; the row settles whatever was there — non-recourse.
+   * Returns the amount recovered.
+   */
+  public static async recoverNote(memberKey: string): Promise<number> {
+    return logic().recoverNote(memberKey);
+  }
+
+  /**
+   * ⭐ Write an UNCLAIMED PROPERTY row (D17): the treasury holds `amountMinor`
+   * for `memberKey`, at no rate, reclaimable on return. Returns the row id.
+   */
+  public static async writeUnclaimed(memberKey: string, amountMinor: number): Promise<string | null> {
+    return logic().writeUnclaimed(memberKey, amountMinor);
+  }
+
+  /**
+   * ⭐ Reclaim every unclaimed row `memberKey` holds — the treasury pays
+   * their primary account (it cannot refuse). Returns the total paid.
+   */
+  public static async reclaimUnclaimed(memberKey: string): Promise<number> {
+    return logic().reclaimUnclaimed(memberKey);
+  }
+
+  /**
    * The rider splits a `settle` appends: the payee's open loans take their
    * posted share of this inflow, oldest first, interest before principal.
    */

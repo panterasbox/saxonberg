@@ -276,6 +276,28 @@ export class EmploymentApi {
     return logic().payHouseWage(business, workerKey, amountMinor, category, memo);
   }
 
+  /**
+   * ⭐ Vacate every seat `actor` holds (economic bootstrap D16) — the
+   * absence exit: each record flips to `vacated` (terminal, never
+   * resurrected by the roster) and the house account leaves the wallet.
+   * Run by the estate touch when a member returns from past the short
+   * clock. Returns the organizations vacated.
+   */
+  public static vacate(actor: Stuff): Promise<string[]> {
+    return logic().vacate(actor);
+  }
+
+  /**
+   * ⭐ Bring one house's ESTATE reads current (D16): vacate member holders
+   * away past the short clock, and write the closed sign if every
+   * principal who could run it is away and no NPC holds a position. The
+   * roster tick runs it for every house; a customer's approach and the
+   * chart run it for one. Returns whether the house is closed.
+   */
+  public static bringCurrent(business: BusinessStuff): Promise<boolean> {
+    return logic().bringCurrent(business);
+  }
+
   public static settleShiftWage(
     business: BusinessStuff,
     employeeKey: string,

@@ -196,12 +196,24 @@ export class BankTransaction {
   public static supplyDelta(
     kind: LedgerKind,
     legs: LedgerLeg[]
-  ): { currency: string; minted: number; drained: number } {
+  ): { currency: string; minted: number; drained: number; lanes: Record<string, { minted: number; drained: number }> } {
     // Safe after assertConserving: every leg shares one currency.
     const currency = legs[0]?.currency ?? "";
     const total = legs.reduce((sum, leg) => sum + leg.amount, 0);
-    if (kind === "mint") return { currency, minted: total, drained: 0 };
-    if (kind === "drain") return { currency, minted: 0, drained: total };
-    return { currency, minted: 0, drained: 0 };
+    // Per lane — by the leg's category — so a lane's outstanding is a
+    // running sum and never a scan (economic bootstrap W9).
+    const lanes: Record<string, { minted: number; drained: number }> = {};
+    if (kind === "mint" || kind === "drain") {
+      for (const leg of legs) {
+        const category = leg.category ?? "other";
+        const cur = lanes[category] ?? { minted: 0, drained: 0 };
+        if (kind === "mint") cur.minted += leg.amount;
+        else cur.drained += leg.amount;
+        lanes[category] = cur;
+      }
+    }
+    if (kind === "mint") return { currency, minted: total, drained: 0, lanes };
+    if (kind === "drain") return { currency, minted: 0, drained: total, lanes };
+    return { currency, minted: 0, drained: 0, lanes };
   }
 }

@@ -19,6 +19,12 @@ subcommands:
       - name: corpo
         type: string
         required: true
+  beneficiary:
+    description: "Name who your estate passes to if you are gone past the long clock — or `none`"
+    args:
+      - name: player
+        type: string
+        required: true
   freeze:
     description: "Report a card lost (freeze + reissue)"
     args:

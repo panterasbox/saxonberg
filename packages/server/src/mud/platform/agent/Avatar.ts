@@ -265,8 +265,42 @@ export default class Avatar extends AvatarBase {
   static fieldMeta: FieldMeta = {
     mortalArc: { persistent: true },
     lastSeen: { persistent: true },
+    escheatedAt: { persistent: true },
+    beneficiary: { ref: 'identity', persistent: true },
     startLocation: { instruction: true },
   };
+
+  /**
+   * ⭐ Epoch ms the estate PASSED (economic bootstrap D17), or 0. Set by
+   * the escheat, cleared by the reclaim a return runs; the one flag that
+   * tells a login "the treasury holds something of yours". Public for
+   * the Hydrator; others read `getEscheatedAt`.
+   */
+  public escheatedAt: number = 0;
+
+  public getEscheatedAt(): number {
+    return this.escheatedAt;
+  }
+
+  public setEscheatedAt(at: number): void {
+    this.escheatedAt = Math.max(0, Math.floor(at));
+  }
+
+  /**
+   * The member's named BENEFICIARY (D17): an identity path the estate
+   * passes to instead of the treasury — unless they are themselves
+   * dormant, in which case the chain runs onward. '' = none. Set by
+   * `wallet beneficiary <player>`.
+   */
+  public beneficiary: string = '';
+
+  public getBeneficiary(): string {
+    return this.beneficiary;
+  }
+
+  public setBeneficiary(identityPath: string): void {
+    this.beneficiary = identityPath.trim();
+  }
 
   /**
    * Epoch ms of this character's last logout, or 0 for never-played.
@@ -1046,6 +1080,19 @@ export default class Avatar extends AvatarBase {
         userId: interactive.getUserId() ?? "",
       },
     );
+    // ⭐ The estate touch on a RETURN (economic bootstrap D16/D17): unclaimed
+    // property reclaimed, or seats held past the short clock vacated.
+    // Fire-and-forget — a login never waits on the ledger. A reconnect to
+    // a body that lingered counts too: the clock ran while nobody was on
+    // the socket, and the touch is idempotent.
+    if (!this.isGuest) {
+      const key = this.getIdentityPath();
+      if (key) {
+        void PlayerApi.touchEstate(key, { returning: true }).catch((err) =>
+          console.warn(`Avatar.enter: the estate touch failed for ${key}: ${String(err)}`),
+        );
+      }
+    }
   }
 
   /**

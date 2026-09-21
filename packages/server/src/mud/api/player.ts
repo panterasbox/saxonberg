@@ -16,11 +16,13 @@
  */
 
 import type Avatar from '../platform/agent/Avatar';
+import type { EstateState } from '../lib/character/Estate';
 import type { User } from '../lib/identity/User';
 import { StuffApi } from './stuff';
 import { HotReloadApi } from './hot-reload';
 import type { Stuff } from '../lib/stuff/Stuff';
 import { PlayerLogic } from '../platform/idea/api/PlayerLogic';
+import type { EstateTouch } from '../platform/idea/api/PlayerLogic';
 import { fileURLToPath } from 'url';
 import { SecurityApi } from './security';
 
@@ -44,6 +46,10 @@ function logic(): PlayerLogic {
 /**
  * Static API for Player/Avatar management.
  */
+export type { EstateState } from '../lib/character/Estate';
+export { ESTATE_STATES } from '../lib/character/Estate';
+export type { EstateTouch } from '../platform/idea/api/PlayerLogic';
+
 export class PlayerApi {
   /**
    * Type-guard: is this Stuff an Avatar?
@@ -133,8 +139,59 @@ export class PlayerApi {
    * estate read lands with the three states (W9) and widens it to the
    * snapshot scan.
    */
-  public static activeMemberCount(): number {
+  public static activeMemberCount(): Promise<number> {
     return logic().activeMemberCount();
+  }
+
+  /**
+   * Real days `identityPath`'s member has been absent — 0 while connected,
+   * 0 for a never-played character, and 0 for anything that is not a player
+   * Avatar (an NPC is never absent, D23). The short clock every vacancy /
+   * closure read compares against.
+   */
+  /** Is `identityPath` a player Avatar's — the one kind an estate read applies to (D23)? */
+  public static isAvatarIdentityPath(identityPath: string | null | undefined): boolean {
+    return logic().isAvatarIdentityPath(identityPath);
+  }
+
+  public static absentForDays(identityPath: string): Promise<number> {
+    return logic().absentForDays(identityPath);
+  }
+
+  /**
+   * ⭐ The estate state (economic bootstrap D16): `active` (connected, or
+   * seen inside `estate.dormantAfterDays`), `dormant` (absent past it — the
+   * account frozen, seats vacant, shops closed, the house asleep),
+   * `escheated` (absent past `estate.escheatAfterDays` — the estate passes
+   * on the next touch). Derived from the snapshot's `writtenAt`; a
+   * connected avatar is active whatever its row says.
+   */
+  public static estateStateOf(identityPath: string): Promise<EstateState> {
+    return logic().estateStateOf(identityPath);
+  }
+
+  /**
+   * ⭐ The ESTATE TOUCH (economic bootstrap D16/D17) — run at login
+   * (`returning: true`: the reclaim of unclaimed property, or the vacancy
+   * of seats held past the short clock), at every credit landing on a
+   * member's primary account and at the roster pass (the escheat, when the
+   * long clock has run and the estate has not yet passed). Fire-and-forget
+   * safe: it never throws for a member it cannot read.
+   */
+  public static touchEstate(
+    identityPath: string,
+    opts: { returning?: boolean } = {},
+  ): Promise<EstateTouch> {
+    return logic().touchEstate(identityPath, opts);
+  }
+
+  /**
+   * ⭐ ESCHEAT `identityPath`'s estate now (D17) — debts first, then situs
+   * up the title tree; the balance held unclaimed, or passed to a named,
+   * active beneficiary. Idempotent. Returns the balance that passed.
+   */
+  public static escheat(identityPath: string): Promise<number> {
+    return logic().escheat(identityPath);
   }
 
   /**

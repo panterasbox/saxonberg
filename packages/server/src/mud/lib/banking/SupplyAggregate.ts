@@ -25,6 +25,7 @@ export default class SupplyAggregate extends Document {
     currency: { persistent: true },
     minted: { persistent: true },
     drained: { persistent: true },
+    lanes: { persistent: true },
   };
 
   /**
@@ -41,6 +42,16 @@ export default class SupplyAggregate extends Document {
   /** Cumulative drained minor units (sink). */
   drained = 0;
 
+  /**
+   * ⭐ The same two sums PER LANE — by the leg's category (`window`,
+   * `perpetual`, `override` …), so *what the window has outstanding* is a
+   * warmed read and not a scan of the ledger. The ledger stays the truth;
+   * this is its running total, kept in step by the same post that keeps
+   * `minted`/`drained`. Found by the drive: with every keeper's beat on the
+   * ledger, the reserve's dashboard took seven seconds to sum it.
+   */
+  lanes: Record<string, { minted: number; drained: number }> = {};
+
   /** Warmed mirror, keyed by currency — keeps the supply read sync. */
   /**
    * The warmed read index: `currency → {minted, drained}`.
@@ -49,6 +60,8 @@ export default class SupplyAggregate extends Document {
    * the SUM it performs is the invariant that matters (see it).
    */
   static #index = new WarmedIndex<{ minted: number; drained: number }>();
+  /** The warmed per-lane mirror: `currency → category → {minted, drained}`. */
+  static #lanes = new WarmedIndex<Record<string, { minted: number; drained: number }>>();
 
   /**
    * Load every row into the warmed mirror. Called at boot + rebuild.
@@ -83,6 +96,32 @@ export default class SupplyAggregate extends Document {
       });
     }
     SupplyAggregate.#index.replaceWith(next);
+    const lanes = new Map<string, Record<string, { minted: number; drained: number }>>();
+    for (const row of rows) {
+      const acc = lanes.get(row.currency) ?? {};
+      for (const [category, sums] of Object.entries(row.lanes ?? {})) {
+        const cur = acc[category] ?? { minted: 0, drained: 0 };
+        acc[category] = { minted: cur.minted + (sums?.minted ?? 0), drained: cur.drained + (sums?.drained ?? 0) };
+      }
+      lanes.set(row.currency, acc);
+    }
+    SupplyAggregate.#lanes.replaceWith(lanes);
+  }
+
+  /**
+   * Sync read of one lane's net (minted − drained) for a currency — the
+   * window's advances outstanding, the perpetual held.
+   *
+   * @internal the callable door is `BankingApi`'s lane read. Not author surface.
+   */
+  static cachedLane(currency: string, category: string): number {
+    const lane = SupplyAggregate.#lanes.get(currency)?.[category];
+    return lane ? lane.minted - lane.drained : 0;
+  }
+
+  /** Keep the per-lane mirror in step after a posting. @internal */
+  static putCachedLanes(currency: string, lanes: Record<string, { minted: number; drained: number }>): void {
+    SupplyAggregate.#lanes.put(currency, { ...lanes });
   }
 
   /**
@@ -122,5 +161,6 @@ export default class SupplyAggregate extends Document {
   static _resetForTesting(): void {
     SecurityApi.assertTestOnly("SupplyAggregate._resetForTesting");
     SupplyAggregate.#index.clear();
+    SupplyAggregate.#lanes.clear();
   }
 }

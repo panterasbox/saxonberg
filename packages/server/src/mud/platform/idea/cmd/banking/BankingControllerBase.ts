@@ -12,6 +12,7 @@ import type { CommandContext, CommandModel } from "../../../../api/command";
 import { MqlApi } from "../../../../api/mql";
 import { MixinApi } from "../../../../api/mixin";
 import { StuffApi } from "../../../../api/stuff";
+import { BankingApi } from "../../../../api/banking";
 import { EmploymentApi } from "../../../../api/employment";
 import { PlayerApi } from "../../../../api/player";
 import type { Business } from "../../../../api/employment";
@@ -93,14 +94,36 @@ export abstract class BankingControllerBase<
     context: CommandContext,
   ): Promise<(Stuff & Business) | null> {
     const giver = context.commandGiver;
+    // ⭐ The wallet's choice first: `wallet use house` linked a house's
+    // operating account into the giver's credential, and that is the house
+    // they act for now — a teller who also keeps a stall borrows for the
+    // stall at the bank counter she works. Then the house operating here.
+    const active = BankingApi.activeCredential()?.getActiveAccount() ?? null;
+    if (active) {
+      const ownerKey = await BankingApi.ownerKeyOf(active);
+      const live = ownerKey && ownerKey !== giver.getIdentityPath() ? StuffApi.findByTemplatePath(ownerKey) : null;
+      if (live && MixinApi.isBusiness(live) && (live.employs(giver) || (await live.hasProprietor(giver)))) {
+        return live;
+      }
+    }
     const herePath = context.location?.getTemplatePath() ?? "";
-    const here = herePath ? EmploymentApi.businessAt(herePath) : null;
-    if (
-      here &&
-      (here.employs(giver) ||
-        (await here.hasProprietor(giver)))
-    ) {
-      return here;
+    // The house operating HERE — the room, or a fixture standing in it
+    // (attribution keys on the fixture: a bank's business operates its
+    // counter, not the hall the counter stands in).
+    const candidates: string[] = [];
+    if (herePath) candidates.push(herePath);
+    const room = context.location;
+    if (room && MixinApi.isContainer(room)) {
+      for (const fixture of room.getContents()) {
+        const path = fixture.getIdentityPath();
+        if (path && !MixinApi.isHasInteractive(fixture)) candidates.push(path);
+      }
+    }
+    for (const path of candidates) {
+      const here = EmploymentApi.businessAt(path);
+      if (here && (here.employs(giver) || (await here.hasProprietor(giver)))) {
+        return here;
+      }
     }
     const mine = MixinApi.isEmployed(giver) ? await giver.buysFor() : [];
     return mine[0] ?? null;

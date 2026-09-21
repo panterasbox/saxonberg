@@ -17,6 +17,8 @@ import { EmploymentApi } from '../../../api/employment';
 import { CompactApi } from '../../../api/compact';
 import { GovernmentApi } from '../../../api/government';
 import { PlayerApi } from '../../../api/player';
+import { AppApi } from '../../../api/app';
+import { AppSettingKeys } from '../../../lib/config/AppSettings';
 import { PerceptionApi } from '../../../api/perception';
 import { BankingApi, Money } from '../../../api/banking';
 import type { RemittanceSplit, PnlCategory as PnlCategoryArg } from '../../../api/banking';
@@ -32,9 +34,11 @@ import type { Business } from '../Business';
 import type { Organization } from '../../../lib/employment/Organization';
 import type { PrincipalRef } from '../../../lib/employment/Authority';
 import type { Employed } from '../../../lib/employment/Employed';
-import type { ParLine } from '../../../lib/employment/ParLine';
+import { ParLine } from '../../../lib/employment/ParLine';
+import type Stock from '../../thing/Stock';
 import {
   Employment,
+  EXITED_STATUSES,
   type EmploymentStatus,
 } from '../../../lib/employment/Employment';
 import { Currency } from "../../../lib/banking/Currency";
@@ -44,7 +48,7 @@ import { UNCAPPED } from '../../../lib/credential/Credential';
 const ONE_GAME_HOUR_S = 3_600;
 
 /** Statuses the roster no longer governs (explicit exit — not resurrected). */
-const TERMINAL: readonly EmploymentStatus[] = ['quit', 'fired'];
+const TERMINAL: readonly EmploymentStatus[] = EXITED_STATUSES;
 
 const EmploymentApiCallers = SecurityPolicies.FromModule(
   '/api/employment#EmploymentApi',
@@ -183,7 +187,7 @@ function holdersByPositionImpl(
   organization: OrganizationStuff,
 ): Map<string, Set<string>> {
   const out = new Map<string, Set<string>>();
-  const organizationPath = organization.getTemplatePath() ?? '';
+  const organizationPath = organization.getOrganizationPath();
   if (!organizationPath) return out;
   const add = (positionKey: string, who: string): void => {
     const bucket = out.get(positionKey);
@@ -285,7 +289,7 @@ function organizationChainOfImpl(
   organization: OrganizationStuff,
 ): OrganizationStuff[] {
   const out: OrganizationStuff[] = [];
-  const seen = new Set<string>([organization.getTemplatePath() ?? '']);
+  const seen = new Set<string>([organization.getOrganizationPath()]);
   let current: OrganizationStuff = organization;
   for (;;) {
     const parentPath = current.getParentOrganizationPath();
@@ -383,7 +387,7 @@ function findOrganizationImpl(asked: string): Stuff | null {
   let loose: Stuff | null = null;
   for (const org of candidates) {
     const label = needleOf(organizationLabelImpl(org));
-    const path = (org.getTemplatePath() ?? '').toLowerCase();
+    const path = (org.getIdentityPath() ?? '').toLowerCase();
     if (namesItself(label, needle)) return org;
     if (
       loose === null &&
@@ -497,7 +501,7 @@ const UNCAPPED_HOUSE_CARD = UNCAPPED;
 async function endEmploymentImpl(
   actor: Stuff,
   organizationPath: string,
-  status: 'fired' | 'quit',
+  status: 'fired' | 'quit' | 'vacated',
 ): Promise<void> {
   if (!MixinApi.isEmployed(actor)) return;
   const organization = StuffApi.findByTemplatePath(organizationPath);
@@ -523,6 +527,109 @@ async function endEmploymentImpl(
 }
 
 /**
+ * ⭐ The CLOSED sign (economic bootstrap D16): a house is closed when every
+ * principal who could run it — the entity authority if a member, every
+ * member holding a position — is absent past the short clock, and no NPC
+ * holds a position. An NPC-run house never closes (D23); a house nobody
+ * runs at all (no entity member, no holders) is not "closed", it is
+ * unstaffed, which the roster already says. Written onto the business so
+ * the counters' sync `closed` and the account's freeze can read it.
+ */
+async function closedSignImpl(business: BusinessStuff): Promise<boolean> {
+  // First the VACANCIES (D16): a member holding a position here who has
+  // been away past the short clock is vacated — the one holder read the
+  // roster tick, the chart and a customer's approach all come through.
+  await vacateAbsentHoldersImpl(business);
+  const members = new Set<string>();
+  let npcRuns = false;
+  const authority = business.getAppointingAuthority();
+  if (authority?.kind === 'entity' && authority.path) {
+    if (PlayerApi.isAvatarIdentityPath(authority.path)) members.add(authority.path);
+    else npcRuns = true;
+  }
+  for (const holders of holdersByPositionImpl(business).values()) {
+    for (const who of holders) {
+      if (PlayerApi.isAvatarIdentityPath(who)) members.add(who);
+      else npcRuns = true;
+    }
+  }
+  let closed = false;
+  if (!npcRuns && members.size > 0) {
+    const clock = daysDial(AppSettingKeys.estateDormantAfterDays, 30);
+    closed = true;
+    for (const who of members) {
+      if ((await PlayerApi.absentForDays(who)) < clock) {
+        closed = false;
+        break;
+      }
+    }
+  }
+  if (business.isClosed() !== closed) business.setClosed(closed);
+  // The roster pass is one of the estate's touches (D16): every member
+  // who runs this house has their clock read here, and past the long one
+  // the estate passes. Fire-and-forget; the sign is already written.
+  for (const who of members) {
+    void PlayerApi.touchEstate(who).catch((err) =>
+      console.warn(`EmploymentLogic: the estate touch failed for ${who}: ${String(err)}`),
+    );
+  }
+  return closed;
+}
+
+/**
+ * ⭐ Vacate every member holder of `business` who is away past
+ * `employment.absenceVacatesAfterDays` (D16). A holder whose avatar is
+ * not resident holds nothing the roster can see anyway (the record lives
+ * on the avatar); a lingering one — linkdead, its clock running — is the
+ * case this reads. NPC holders are never absent (D23). Returns the keys
+ * vacated.
+ */
+async function vacateAbsentHoldersImpl(business: BusinessStuff): Promise<string[]> {
+  const clock = daysDial(AppSettingKeys.employmentAbsenceVacatesAfterDays, 14);
+  const out: string[] = [];
+  for (const holders of holdersByPositionImpl(business).values()) {
+    for (const who of holders) {
+      if (!PlayerApi.isAvatarIdentityPath(who) || out.includes(who)) continue;
+      if ((await PlayerApi.absentForDays(who)) < clock) continue;
+      const live = StuffApi.findByTemplatePath(who);
+      if (!live) continue;
+      const vacated = await vacateImpl(live);
+      if (vacated.length > 0) out.push(who);
+    }
+  }
+  return out;
+}
+
+/** A numeric Schedule row in days, or the floor when unwarmed / unseeded. */
+function daysDial(key: string, floor: number): number {
+  try {
+    const raw = AppApi.setting(key);
+    if (!raw) return floor;
+    const n = Number(raw);
+    return Number.isFinite(n) && n > 0 ? n : floor;
+  } catch {
+    return floor;
+  }
+}
+
+/**
+ * ⭐ Vacate every seat `actor` holds (economic bootstrap D16): each
+ * non-exited record → `vacated`, a terminal exit the roster never
+ * resurrects, and the house account out of the wallet — the same path a
+ * quit takes, with nobody choosing it. Returns the organizations vacated.
+ */
+async function vacateImpl(actor: Stuff): Promise<string[]> {
+  if (!MixinApi.isEmployed(actor)) return [];
+  const out: string[] = [];
+  for (const record of (actor as EmployedActor).getEmployments()) {
+    if (TERMINAL.includes(record.status)) continue;
+    await endEmploymentImpl(actor, record.organizationPath, 'vacated');
+    out.push(record.organizationPath);
+  }
+  return out;
+}
+
+/**
  * ⭐ Every Business `actor` **buys for**: each one where the actor holds a
  * non-exited position authored `purchases: true`, plus the one whose
  * proprietor the actor is (the proprietor buys for their own house by
@@ -545,7 +652,7 @@ async function buysForImpl(
   const out: BusinessStuff[] = [];
   const employed = MixinApi.isEmployed(actor) ? (actor as EmployedActor) : null;
   for (const business of businesses) {
-    const path = business.getTemplatePath() ?? '';
+    const path = business.getOrganizationPath();
     const record = employed?.getEmployment(path);
     const exited = record ? TERMINAL.includes(record.status) : false;
     const keys = new Set<string>();
@@ -648,7 +755,7 @@ function stockSheetForImpl(
   business: BusinessStuff,
 ): StockSheetLine[] {
   const goods = perceivedGoods(viewer);
-  return business.getParLines().map((line) => {
+  const sheet: StockSheetLine[] = business.getParLines().map((line) => {
     let onHand = 0;
     for (const item of goods) {
       onHand += CategoryMeasure.contribution(item, line.category, line.unit);
@@ -656,6 +763,31 @@ function stockSheetForImpl(
     onHand = Math.round(onHand * 1000) / 1000;
     return { line, onHand, shortfall: Math.max(0, line.level - onHand) };
   });
+  // ⭐ Plus the SUPPLIED lines of every counter the house operates
+  // (economic bootstrap D14): a `stockLines` entry with a `supplier` is a
+  // par line the shelf carries itself — its category the good's template,
+  // its level the par, counted over the counter rather than the viewer's
+  // eye. One sheet, whichever place the policy was authored.
+  const seen = new Set(sheet.map((s) => s.line.category));
+  for (const path of business.getOperatingLocations()) {
+    // ⚠ By SHAPE, not `instanceof`: `Stock` composes `PricedOffer`, which
+    // reaches this logic — a value import here is an evaluation cycle.
+    const live = StuffApi.findByTemplatePath(path) as (Stuff & Partial<Stock>) | null;
+    if (!live || typeof live.getStockLines !== 'function' || typeof live.onHand !== 'function') continue;
+    for (const line of live.getStockLines()) {
+      if (!line.supplier || seen.has(line.itemTemplatePath)) continue;
+      seen.add(line.itemTemplatePath);
+      const par = ParLine.fromData({
+        category: line.itemTemplatePath,
+        level: line.par,
+        unit: 'count',
+        supplier: line.supplier,
+      });
+      const onHand = live.onHand(line.itemTemplatePath);
+      sheet.push({ line: par, onHand, shortfall: Math.max(0, line.par - onHand) });
+    }
+  }
+  return sheet;
 }
 
 /**
@@ -940,7 +1072,7 @@ async function settlePieceworkImpl(
   if (!Number.isInteger(units) || units <= 0) {
     throw new Error('EmploymentLogic.settlePiecework: units must be positive');
   }
-  const businessPath = business.getTemplatePath() ?? '';
+  const businessPath = business.getOrganizationPath();
   const actor = StuffApi.findByTemplatePath(employeeKey);
   if (!actor || !MixinApi.isEmployed(actor)) {
     throw new Error('EmploymentLogic.settlePiecework: no such employee');
@@ -992,7 +1124,7 @@ async function flowSplitsForImpl(
   amountMinor: number,
 ): Promise<RemittanceSplit[]> {
   if (amountMinor <= 0) return [];
-  const businessPath = business.getTemplatePath() ?? '';
+  const businessPath = business.getOrganizationPath();
   const holders = employeesOfImpl(businessPath);
   const splits: RemittanceSplit[] = [];
   let total = 0;
@@ -1193,6 +1325,11 @@ export class EmploymentLogic extends ApiLogic {
     const nowRaw = now.rawValue();
     for (const business of this.allBusinesses()) {
       this.tickBusiness(business, date, nowRaw);
+      // The closed sign — an async read of the snapshot clocks, written
+      // back onto the house for the sync reads (counters, the book).
+      void closedSignImpl(business).catch((err) =>
+        console.error('EmploymentLogic: the closed-sign pass failed', err),
+      );
     }
   }
 
@@ -1220,8 +1357,11 @@ export class EmploymentLogic extends ApiLogic {
     date: ReturnType<InstanceType<typeof DefaultCalendar>['decompose']>,
     nowRaw: number,
   ): void {
-    const businessPath = business.getTemplatePath() ?? '';
+    const businessPath = business.getOrganizationPath();
     if (!businessPath) return;
+    // A closed house runs no shifts (D16): the sign is a state, not an
+    // absence — the roster stands, nobody is put on it.
+    if (business.isClosed()) return;
     const roster = business.getRoster();
     for (const assignment of roster.getAssignments()) {
       const actor = StuffApi.findByTemplatePath(assignment.assignee);
@@ -1359,7 +1499,7 @@ export class EmploymentLogic extends ApiLogic {
   public fire(organization: OrganizationStuff, actor: Stuff): Promise<void> {
     return endEmploymentImpl(
       actor,
-      organization.getTemplatePath() ?? '',
+      organization.getOrganizationPath(),
       'fired',
     );
   }
@@ -1467,6 +1607,7 @@ export class EmploymentLogic extends ApiLogic {
       // and the house-card issue are no-ops after the first, and
       // begin/endShift only fire on a transition.
       const now = WorldClockApi.getNow();
+      await closedSignImpl(live);
       this.tickBusiness(
         live,
         DefaultCalendar.singleton().decompose(now),
@@ -1496,7 +1637,9 @@ export class EmploymentLogic extends ApiLogic {
   /** See {@link EmploymentApi.businessOfProprietor}. */
   @CallSecurity(EmploymentApiCallers)
   public businessOfProprietor(subject: Stuff): BusinessStuff | null {
-    const path = subject.getTemplatePath();
+    // The IDENTITY path: every player shares one templatePath, and a
+    // player's own stall names them by identity (D15).
+    const path = subject.getIdentityPath();
     if (!path) return null;
     return this.businessByKey('proprietor', path);
   }
@@ -1551,6 +1694,18 @@ export class EmploymentLogic extends ApiLogic {
     memo?: string,
   ): Promise<WagePayment> {
     return payHouseWageImpl(business, workerKey, amountMinor, category, memo);
+  }
+
+  /** See {@link EmploymentApi.vacate}. */
+  @CallSecurity(EmploymentApiCallers)
+  public vacate(actor: Stuff): Promise<string[]> {
+    return vacateImpl(actor);
+  }
+
+  /** See {@link EmploymentApi.bringCurrent}. */
+  @CallSecurity(EmploymentApiCallers)
+  public async bringCurrent(business: BusinessStuff): Promise<boolean> {
+    return closedSignImpl(business);
   }
 
   /** See {@link EmploymentApi.settleShiftWage}. */
