@@ -18,15 +18,6 @@
 > expired grant drop you from the household?)
 > **Size:** a wave
 
-> **Status: design, planner-ready, captured 2026-08-06. Not requirements.**
-> The stewardship pillar's unit of analysis is **the household**, and every
-> household in the family so far has exactly one person in it. This pack
-> designs the multi-occupant case — roommates, spouses, a commune — and finds
-> that it needs **no new primitive**. Same per-object format as the
-> [room-condition](../builds/room-condition-design-pack.md),
-> [spoilage](../../subsystems/spoilage.md) and
-> [residence-ladder](./residence-ladder-design-pack.md) packs.
-
 See also: [stewardship-doctrine](../../stewardship-doctrine.md) (the pillar) ·
 [residence-ladder](./residence-ladder-design-pack.md) (**the direct parent** —
 the ascent gate this pack makes multi-occupant) ·

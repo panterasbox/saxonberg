@@ -13,14 +13,6 @@
 > reformed "altar" as the honest count
 > **Size:** a build
 
-> **Status: design captured, not built.** The altar as an **object + a system**,
-> and **sacrifice** as a mechanic — the concrete instrument of the worship/
-> alignment cluster. Grew out of "start from a concrete place with a history"
-> (the wilderness altar of a John-the-Baptist forerunner). The *theology* (the
-> blood → presence → Feed arc; sentient-sacrifice as the evil-definition) is
-> banked in [story-bible](../../story-bible.md) *§ Sacrifice*; **this slate holds
-> the mechanics.**
-
 See also: [story-bible](../../story-bible.md) (*Sacrifice*, *the gods and
 demigods*, *Worship in practice*, *Evil*, *the Ordinance*) ·
 [alignment-slate](./alignment-slate.md) (the derived alignment the god-you-feed

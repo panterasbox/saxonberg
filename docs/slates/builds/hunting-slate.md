@@ -7,22 +7,6 @@
 > seasons · poaching enforcement · taming as the other outcome
 > **Size:** a build
 
-> **Status: design surface, unbuilt, no phase gate passed.** Spun out of the
-> farmstead *(retired artifact)* design pass
-> (2026-09-03), whose D60 put deer, rabbits and boar on a farm as **ongoing
-> pest pressure** and then had nowhere to send them. Hunting is where they go —
-> and it turns out to carry the hardest property question in the game.
->
-> ⚠ **Foraging is NOT here.** [discovery-slate](./discovery-slate.md) owns
-> gathering in full and this slate does not restate it. What hunting adds is
-> the one thing forage does not have: **the resource moves.**
->
-> **Owner: the Wardens.** The [guild slate](./guild-slate.md) already assigns
-> survival, tracking, awareness/stealth, hazard-craft and taming to them, with
-> a demand anchor of *"hazard abatement for landholders — parcel owners pay to
-> clear traps/beasts"* plus the pet supply chain. Hunting is their core, not
-> the Grange's.
-
 See also: [discovery-slate](./discovery-slate.md) (**foraging — the sibling,
 and the pattern this borrows**) · [guild-slate](./guild-slate.md) (the Wardens)
 · [pets-slate](./pets-slate.md) (taming is the same encounter, other outcome) ·

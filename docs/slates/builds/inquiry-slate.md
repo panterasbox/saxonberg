@@ -9,20 +9,6 @@
 > a renown consumer, the published refutation, misinformation-as-crime
 > **Size:** a build
 
-> **Status: sketch / pre-requirements.** A design pass, not a spec. Spun
-> out of [capability-magic-slate.md](./capability-magic-slate.md)
-> Part IV on 2026-07-15, when the "how a student discovers a magical law"
-> thread grew into something that isn't magic-specific at all: a
-> **platform substrate for how *sim-native knowledge* is discovered,
-> verified, trusted, and corrupted.** Magic is the vivid *showcase*, not
-> the owner — the same loop serves physics, medicine, crafting, farming,
-> any honest-sim discipline.
->
-> **Why it's its own thing:** it realizes the gamification-mirror thesis's
-> deepest claim — teach not just *what is true* but ***how to know***. The
-> scientific method (and its failure modes) is the most transferable
-> real-world skill there is, and here it's learned by *doing*, not lecture.
-
 See also:
 
 - [capability-magic-slate.md](./capability-magic-slate.md) —

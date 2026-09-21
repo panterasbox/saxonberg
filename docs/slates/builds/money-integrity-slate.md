@@ -23,12 +23,6 @@
 > here we need to thread through the entire economy and make sure money
 > doesn't leak in or out anywhere."**
 
-> **Status: findings + audit surface. Not requirements.** Two findings
-> held up; **the third did not** (see below — it was correct behaviour
-> misread as a bug, and driving the currency build caught it). The rest of
-> the surface is enumerated but **unswept**. The gates and the instrument
-> fix shipped with the currency build; the full sweep is its own cycle.
-
 Related: [banking.md](../../subsystems/banking.md) (the conservation
 chokepoint), [persistence.md](../../subsystems/persistence.md) (the
 self-persistence spine), [stacks.md](../../subsystems/stacks.md) (fungible

@@ -13,22 +13,6 @@
 > gallery that consumes it
 > **Size:** a wave
 
-> **Status: content design, buildable.** The closed vocabulary the
-> [lineage](../builds/lineage-slate.md) gallery generates households from. Written
-> 2026-08-11 to unblock building the gallery, which needs real data before
-> it needs more design.
->
-> **The join rule that makes the grid generatable:**
->
-> > ⭐ **Trade is not free text. Each trade names its Disciplines,
-> > its plausible localities, its `Means` type and its hook shapes.**
->
-> Without it the generator produces ward nurses who know smithing. With
-> it, `Knows` falls out of `Trade`, and **the Discipline gaps fall out
-> too** — they are exactly the Disciplines some trade needs and nothing
-> provides (§ the gap report, which is the most actionable part of this
-> doc).
-
 See also: [lineage-slate](../builds/lineage-slate.md) (the gallery, the card
 schema, the incomparability doctrine) · [vocations.md](../../vocations.md)
 (the demand test — *a vocation exists iff there is unmet demand*; this

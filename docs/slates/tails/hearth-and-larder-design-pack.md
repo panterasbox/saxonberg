@@ -10,18 +10,6 @@
 > victualler vocation + the machine-devalues-the-craft story (Part 2)
 > **Size:** a wave
 
-> **Status: design, planner-ready, captured 2026-08-11. Not requirements.**
-> The domestic integrating vertical — Dave's Bar for the home. Three halves
-> that make each other matter: you **preserve** food, a cold store **buys
-> time**, what spoils anyway goes to **compost**, and the room you do it in
-> has a **fire**. Follows the [fridge pack](../builds/fridge-design-pack.md)'s
-> template deliberately (a passive tier that ships first · a shared substrate
-> · a vocation woken · an existing clock given a counter).
->
-> ⭐ **The compost half is the cheapest thing in the stewardship family**, and
-> for a specific reason: **its consumer already ships and its producer does
-> not** (Part 3).
-
 See also: [stewardship-doctrine](../../stewardship-doctrine.md) (the pillar) ·
 [spoilage](../../subsystems/spoilage.md) (**the keystone clock all three answer
 to — and it owns the preserving MECHANISM**) ·

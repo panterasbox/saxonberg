@@ -12,12 +12,6 @@
 > watchlists, forums) · open questions 1–6
 > **Size:** a build
 
-> **Status: design proposed, nothing built.** The one substrate that
-> answers *"what happened to the things I care about while I was away."*
-> Surfaced by the [wiki](../tails/wiki-slate.md), which needs watchlists and
-> must not grow an inbox of its own — but the wiki is far from the only
-> claimant, and building it per-subsystem would give us five inboxes.
-
 ---
 
 ## The gap

@@ -8,11 +8,6 @@
 > path, which is the point of it
 > **Size:** a tail
 
-> **Status (2026-09-01): design conversation, captured. Not
-> requirements.** The fourth transport, and the first that is a
-> **community** rather than a platform. Two-way is the point of it — a
-> read-only dgg relay would miss the use case that motivates it.
-
 **Lineage:** sibling of
 [kick-relay-slate.md](./kick-relay-slate.md) and
 [youtube-relay-slate.md](./youtube-relay-slate.md) (Wave N of

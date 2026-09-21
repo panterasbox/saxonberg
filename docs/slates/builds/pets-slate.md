@@ -857,11 +857,6 @@ punchline:
 
 ### Structural gaps (design-worthy, broadly reusable)
 
-> **Status update 2026-07-30 (verified against the code): two of the three are
-> now closed or nearly so.** Chattel shipped and answers possession; the
-> persistence spine grew multi-instance keyed hosts. Only the **fear/threat
-> axis** remains a genuine structural gap. Rows updated in place.
-
 | Gap | What's actually missing | Forced by | Who else wants it |
 |---|---|---|---|
 | ~~**Possession / property**~~ **CLOSED** | Chattel shipped 2026-07-23 (`chattel` / `chattel_events`, `ownerOf = stamp ?? authorOf`, chain-of-title). Remaining work is **one composition line** — `ChattelMixin` onto the Creature stack. See the custody section above. | — | — |

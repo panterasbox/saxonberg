@@ -21,8 +21,6 @@ The finding is the same shape as the physiology audit:
 > ⭐⭐⭐ **The species layer is HALF-READ too. There are eight
 > differentiating axes already shipped and we have used ONE.**
 
-> **Status: landscape survey + governing rules. Not a definitive design.**
-
 Related: [race.md](../../subsystems/race.md),
 [vitals.md](../../subsystems/vitals.md),
 [respiration.md](../../subsystems/respiration.md),

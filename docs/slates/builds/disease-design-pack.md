@@ -9,13 +9,6 @@
 > vertical / `resolution.by` dispatcher (open Q1)
 > **Size:** a build
 
-> **Status: design, planner-ready, captured 2026-08-06. Not requirements.**
-> The **capstone** of the stewardship pillar — the system where every producer
-> connects. [disease-slate](./disease-slate.md) owns the rationale; this pack is
-> the planner-ready spec, built on the [spoilage pack](../../subsystems/spoilage.md)
-> (which proves the growth term) and the [room-condition pack](./room-condition-design-pack.md)
-> (the hygiene half of immunity). Same per-object format as the rest of the pillar.
-
 See also: [disease-slate](./disease-slate.md) (rationale, the substrate audit) ·
 [spoilage.md](../../subsystems/spoilage.md) (**the growth term this
 inherits**) · [room-condition](./room-condition-design-pack.md) + husbandry

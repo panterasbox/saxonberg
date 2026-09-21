@@ -13,16 +13,6 @@
 > adjudicator) · the on-site governance surface · the old prospector
 > **Size:** a build
 
-> **Status: merged design, pre-requirements. Placement DECIDED
-> 2026-08-29 — this is a venue on the OUTSKIRTS OF TERMINUS**, the main
-> locality, not a separate sphere. **One venue**: a mining camp, the mine
-> below it, and the staked claim field around it.
-> **Ferrow's mechanics + Rejection's cast** (decided 2026-08-29). It carries
-> three jobs at once — the **materials faucet** (ends the metal-import era),
-> the **property teacher** (staked private claims), and the **content
-> exemplar for LLM-driven NPCs**.
->
-
 Mechanics: [mining-slate](./mining-slate.md) — the four play layers, the
 dangers, the deep ecology, and § *The mine's machinery* (the 3D zone,
 three-state persistence, vein-vs-heading, seal-and-reap, the ten-direction

@@ -10,15 +10,6 @@
 > guards · assessment integrity (flagged, owned elsewhere)
 > **Size:** a wave
 
-> **Status: deliberately light — best-effort, not a security boundary.**
-> Keeping players from being spoiled (a puzzle solution, a hidden room's
-> contents, a quest twist, an NPC's secret) — by **imposition** (the game
-> withholds it to preserve the experience) or by **choice** (the player
-> opts out of seeing it). The game is open source, so a determined person
-> can always self-spoil from the repo; we make a *reasonable effort* for
-> normal play, and don't over-build a hardened thing. Assessment
-> integrity is a *separate, deeper* problem (below) — not solved here.
-
 Working slate for **spoiler / secret protection** — the perception-side
 sibling of content authoring. Both are facets of one shape (*what can a
 subject do/see/author, under what circumstances* — see the access

@@ -618,10 +618,6 @@ and neither decision was made with the other in mind.**
 which is warehousing… what is a warehouse. It's just a really really big
 container. But that bigness gives it certain properties and needs."*
 
-> **Status: design captured, deliberately DEFERRED.** The logistics build
-> ships the receipt and the bailee's duty and nothing else of this. → the
-> **warehouse build**.
-
 ## ⭐⭐ A small container is a thing; a big one is a PLACE
 
 Bigness is not a container property. It is **the point at which you stop

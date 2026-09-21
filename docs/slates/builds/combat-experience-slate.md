@@ -13,16 +13,6 @@
 > expressive authoring (the hook grammar exists; nothing speaks it)
 > **Size:** a build
 
-> **Status: design-phase companion to [combat-slate.md](./combat-slate.md).**
-> That slate owns the *mechanism* — the session, poise, tempo, the hook
-> catalog, resolution & exits. This one owns the *felt experience*: the
-> dramatic arc, what randomness is and isn't, what "luck" means, how the
-> loadout works as a chemistry-set input surface, how genres combine over
-> one physics, and how a determinism-first system gets balanced. It is the
-> product of a design interrogation and exists so that thinking doesn't
-> evaporate in a chat log. Most of it feeds *later* combat cycles; a few
-> pieces are cycle-1 constraints (flagged inline).
-
 The one-sentence thesis: **the moment-to-moment loop is a commodity; the
 experience is everything that seeds it and everything it produces.** We
 farm engagement in *agency*, and agency lives in arrangement and

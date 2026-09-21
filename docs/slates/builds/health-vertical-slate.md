@@ -12,23 +12,6 @@
 > (`ConditionCatalogue.warm` selects by template-path prefix, not class)
 > **Size:** a build
 
-> **Status: design captured 2026-07-31, not built.** The **vertical** that sits
-> on top of [disease](./disease-slate.md) and [harm](../../subsystems/harm.md) —
-> clinical assessment, diagnosis, treatment, prevention, and public health,
-> across **people and animals both**. Its own doc because it spans four layers
-> that no single existing slate owns: the **engine** (disease/harm), the
-> **institutions** (a government department + the College of Physic), the **demo
-> set** (the aid post, the health-cohort cut), and the **teaching seam** (the
-> external-mastery credential).
->
-> **The one-line differentiator:** in every prior game the healer's question is
-> *"how much healing do I apply?"* — **ours is "what is wrong with them?"**
->
-> This is a commercially load-bearing vertical (health is a large academic
-> field, and its graduates go into far more than bedside nursing), so
-> **accuracy here is doubly load-bearing.** Nothing in this doc should overclaim
-> what the game teaches or what a credential means.
-
 See also — the engine: [disease-slate](./disease-slate.md) (**read first** — the
 burden-that-grows model, `ContagionSpec`, host range, husbandry-as-immunity) ·
 [harm.md](../../subsystems/harm.md) (`ConditionApi`, the five trauma behaviors,

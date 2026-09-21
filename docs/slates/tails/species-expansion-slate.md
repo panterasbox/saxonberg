@@ -14,25 +14,6 @@
 > still playable, unretired)
 > **Size:** a wave
 
-> **Status: sketch / pre-requirements.** A **later, separate build** — this doc
-> captures the *design philosophy* and a *casting palette* to build from, not a
-> spec. Authored 2026-06-27 in a design pass while carving the EU murder arc's
-> cast (the medical examiner). The substrate (`lib/species`, the Linnaean
-> `Clade` tree, `BodyPlan`, `Species`, `NameBank`) is **already built** — see
-> [race.md](../../subsystems/race.md); this is about *content* (more species)
-> and the principle for choosing them.
->
-> **Scope:** roster expansion, **NPC-first** (player-playability per species is
-> a separate, later question). Influence: **NetHack** (its race/monster personas,
-> D&D/Tolkien-derived) + the casting principle below.
->
-> The first roster pass (troll/ghoul NPC casts, gnome/half-elf/orc playable,
-> ogre/kobold/satyr NPC) is summarized in the canonical status block above and
-> in [race.md](../../subsystems/race.md)'s Species roster table — not repeated
-> here. The deeper *personhood* casts (flesh-golem, doppelganger, zombie,
-> synth — they want mechanics) and the rest of the palette below stay deferred
-> (JIT, carve-by-carve).
-
 ---
 
 ## The principle: cast species by persona

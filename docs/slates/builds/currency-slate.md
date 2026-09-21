@@ -30,12 +30,6 @@ A deliberate reversal of a recorded decision:
 > own money and trying to keep it balanced, they're welcome to try.
 > Players adopt it at their own risk."**
 
-> **Status: design + scope recommendation. Not requirements.** The
-> recommendation is to **ship the generalization with exactly one
-> currency, no second issuer, and no exchange** — the same
-> present-but-inert pattern property 0a used for `grants[]` and
-> `allowance`.
-
 > ⭐ **This slate is the DECISION layer. The implementation spec already
 > exists** — [tails/multi-currency-slate.md](../tails/multi-currency-slate.md)
 > carries the schema table, the ~12 `postTransaction` call sites, the

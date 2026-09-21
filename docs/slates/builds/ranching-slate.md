@@ -23,14 +23,6 @@
 > contracts, a market day, joint capital, profits à prendre)
 > **Size:** a build
 
-> **Status: conventions + the core loop DECIDED (2026-07-30/31 design sessions);
-> disease DESIGNED; ⭐ breeding BRIEFED (§ Breeding — everything we know,
-> 2026-09-05, after the farmstead build shipped it and it was cut back to
-> honesty); herd UX still open.** Ranching is the
-> **economic** half of owned animals: raising livestock (managed as herds, not
-> befriended as individuals) for renewable products — milk, eggs, wool, meat,
-> hide, draft labor, breeding stock.
-
 > *Seam note (2026-09-03) discharged: the carcass comes apart into named
 > materials — tallow, hide, bone, meat — scaled by condition, and culling is
 > a decision because a carcass is worth something

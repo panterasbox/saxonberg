@@ -10,16 +10,6 @@
 > surface (Part 6, bracketed)
 > **Size:** a build
 
-> **Status: design, planner-ready, captured 2026-08-06. Not requirements.**
-> Two jobs: (1) the **fridge** designed outright to a reusable per-object
-> format, with every mixin it needs — **new or updated** — named; (2) the
-> **real-world telemetry layer** its seams open, built on
-> [mirror-slate](./mirror-slate.md), with the **kitchen as the mirror's
-> second dense domain**.
->
-> It does not choose the build boundaries — it exposes the **fault lines**
-> (Part 7) so builds can be carved along them.
-
 See also — substrate: [thermal](../../subsystems/thermal.md) (`ThermalMixin`,
 `FurnaceMixin`, `AtmosphericMixin`, phase change) ·
 [preservation-slate](../tails/preservation-slate.md) (**spoilage — the reason a

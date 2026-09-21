@@ -15,14 +15,6 @@
 > the teacher radiates
 > **Size:** a build
 
-> **Status: design conversation, captured. Not requirements.** Written
-> 2026-08-06. Synthesises a conversation on the one gap the education
-> slates leave open: **how the vertical funds itself and plugs into the
-> greater game.** Not the academic apparatus (college-slate), not the
-> campus as a place (eternal-university-slate) — the **seams** between
-> education and the rest of the world: money, leaving campus, and the
-> party.
-
 > Scope, in the three questions the conversation actually asked:
 > 1. **Who pays** — for a student to engage, for a teacher to earn?
 > 2. **Leaving campus** — how does education integrate *outward* into the
