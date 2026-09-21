@@ -1,50 +1,30 @@
 # Livelihood & consequence (working slate)
 
-> **Status: PARTIAL** — §5's standing slice and §6's arrangement
-> generalization shipped → [employment.md](../../subsystems/employment.md)
-> + [contract.md](../../subsystems/contract.md) +
+> **Status: PARTIAL** — the gig kernel, the compensation-basis
+> generalization, and the employment data model shipped →
+> [employment.md](../../subsystems/employment.md) +
+> [contract.md](../../subsystems/contract.md) +
 > [banking.md](../../subsystems/banking.md); §1's death arc shipped
-> separately → [mortality.md](../../subsystems/mortality.md).
-> **Left:** §4's macro (the author budget-account model + the Circulation
-> Reserve) · §8's public-works floor + match · piece-rate and
-> share-of-flow comp bases · entity forms · §7's four constituency walks
-> · §9 seasonality · §2's adjudication stack · §3's systemic
-> need-generator + NPC claiming · death's mechanical cost · old age and
-> succession
+> separately → [mortality.md](../../subsystems/mortality.md); the
+> author-budget macro (§4) is superseded by
+> [economic-bootstrap-requirements](../../requirements/economic-bootstrap-requirements.md).
+> **Left:** §1's death salience-by-place + the lethal-cost debt, and old
+> age/succession · §2's whole adjudication stack (target standing ×
+> authorization legitimacy, institutions, liability-laundering, frontier
+> law) + illicit arrangements · §3's systemic need-generator + NPC
+> claiming, and the board's pricing + gating · §4's CB allocation +
+> insolvency backstop for business credit, and a capital market · §5.4's
+> capability-grant trust ramp, the AFK wage gate, firing-for-cause,
+> diegetic discovery + first-shift teaching, and cozy downtime (the
+> biggest undiscovered requirement) · §6.2's entity forms · §6.3's
+> schedule shapes beyond the shipped NPC roster · §6.4's perks · §6.5's
+> liability (respondeat superior scope) · §7's remaining constituency
+> walks (the mine co-op, the state's appropriation primitive + civic
+> wages/procurement/bounties, the corpo franchise spectrum) · §8's
+> public-works floor + match (the Circulation Reserve), its
+> commissioning surface and review gate · §9 seasonality (the seasonal
+> posting generator + widening `ShiftEntry`)
 > **Size:** a build
-
-> **Status:** foundational design, conversational first pass (2026-06-30).
-> A *model*, not a build. Captures one connected chain of reasoning that
-> ran from "how do we model death?" and landed on an economic spine:
-> **violence has no payday; livelihood comes from work; the world's money
-> is conserved with authors running their own budgets; and consequence is
-> recorded, not mechanized.** Spans the platform↔game-design line on
-> purpose — the **death / violence / contract** half is deferred RPG
-> game-design (sibling to
-> [combat-tactics](../tails/combat-tactics-slate.md)); the
-> **labor-market / economy / employment** half is economy-build substrate,
-> and its near-term **buildable payload is the employment model** (§5).
-> **Second pass (2026-07-23): employment in the abstract.** The shipped
-> employment engine ([employment.md](../../subsystems/employment.md))
-> built §5's standing slice; this pass generalizes it — the arrangement
-> schema (§6), the four constituency walks (§7), and the macro + the
-> two-tier public-works program (§8).
-> **Built (2026-07-25, the work-contracts build):** the §5 gig kernel +
-> the §6 arrangement generalization SHIPPED →
-> [contract.md](../../subsystems/contract.md) (clause/condition
-> templates, the five-state gig over conserved escrow, the two-beat
-> turn-in, the job board + `work` verbs),
-> [banking.md](../../subsystems/banking.md) (the closed leg-kind
-> vocabulary incl. escrow + `draw`; the custodian rule — custody is a
-> relationship; institution-keyed accounts), and
-> [employment.md](../../subsystems/employment.md) (compensation bases on
-> `Position`, `banksAt`, the draw verb). Remaining design surface: §1
-> (death), §2's adjudication stack, §3's systemic generator + NPC
-> claiming, §4's macro, §6.3–§6.5 (schedule/perks/liability), §7 (the
-> constituency walks), §8 (the Circulation Reserve + public works).
-> **Retire when:** the remaining halves fold into their consuming builds
-> (death → the deferred-rpg combat line; macro/public-works → the
-> cooperative/economy build) or split to their own slates.
 
 Markers used below: **[DECIDED]** locked in the conversation ·
 **[LEAN]** a recommendation the user delegated or tentatively accepted ·
@@ -114,9 +94,10 @@ See also:
 
 ## 1. Death & violence
 
-- **[DECIDED] Defeat ≠ death.** Combat resolves at *defeat*
-  (unconscious / yield), the common outcome. Death is a further, usually
-  preventable threshold on the same axis.
+> Defeat ≠ death, and death as a single transition rather than an HP bar,
+> shipped → [combat.md](../../subsystems/combat.md) § the
+> incapacitation/lethal split, [mortality.md](../../subsystems/mortality.md).
+
 - **[DECIDED] Two routes to death, and salience is set by context.**
   *Intent* (someone chooses to kill — the bar murder) and *context* (you
   entered a place where death is the ambient stakes — the lion's den).
@@ -132,12 +113,14 @@ See also:
   it's personally worth eating (revenge / RP).
 - **[DECIDED] The engine's only jobs re: death** — make it **true**
   (irreversible enough to be a fact worth remembering), **legible**, and
-  **attributable**. "Make it matter" is the players'.
-- **[OPEN] Recovery / consequence *cost* of death** — un-pricable until
-  advancement has real producers (can't price recovery without knowing
-  how gains are made). The *social* consequence is answerable now; the
-  *mechanical* one is deferred. These are independent — stop treating them
-  as one question.
+  **attributable**. "Make it matter" is the players'. Realized by the
+  harm-consent ledger and the deed chronicle →
+  [accountability.md](../../subsystems/accountability.md),
+  [chronicle.md](../../subsystems/chronicle.md).
+- *Recovery / consequence cost of death — resolved:*
+  [mortality.md](../../subsystems/mortality.md) *§ Diminishment (the floor
+  route drains the biological reserves and leaves `recovering`; content
+  may price a better return).*
 - **[OPEN] Old age / lifecycle / succession** — parked; non-violent,
   doesn't touch the kill economy. CK3-style succession collides with the
   banked "renown is per-character, no cross-character transfer" rule.
@@ -193,8 +176,9 @@ See also:
   supplies most work *and* services so a solo player has a real loop; as
   population grows players take over both sides and NPCs recede to the
   monetary boundary.
-- **[DECIDED] A new player earns off an NPC job board** = the discovery
-  layer over NPC-issued Contracts.
+- *A new player earns off an NPC job board — shipped:*
+  [contract.md](../../subsystems/contract.md) *§ The board (the physical
+  job board; NPC-issued postings via* `restocks.ts`*).*
 - **[DECIDED] Procgen + bespoke, by division of labor:** **procgen
   carries the economy** (renewable, fungible, **metered coin**, lives on
   the board, generated from real world needs — depth tracks the sim's
@@ -204,11 +188,10 @@ See also:
   **author-the-generator vs author-the-instance**. Same Contract/board
   substrate. Heuristic: *"would two of these on the board at once feel
   wrong?"* → bespoke.
-- **[DECIDED] Two labor forms, one primitive:** **gig** (a discrete
-  *achieve* clause that settles and closes) vs **employment** (a standing
-  *maintain* clause, paid by time). "Haul these crates" = gig; "tend
-  Dave's bar" / "keep out the riffraff" = employment. Both are clauses on
-  one model — see §5.
+- *Two labor forms, one primitive — shipped:*
+  [contract.md](../../subsystems/contract.md) *§ The clause primitive,*
+  [employment.md](../../subsystems/employment.md) *(gig = achieve;
+  employment = maintain, paid by time; one* `lib/employment/` *namespace).*
 - **[OPEN] Discoverability surface** — physical board per locality vs a
   queryable panel (user: "dunno yet"). **[OPEN] Pricing** — flat
   difficulty-band vs demand-driven. **[OPEN] Gating** — employer-specific
@@ -216,39 +199,40 @@ See also:
 
 ## 4. The conserved economy (the big model)
 
-- **[DECIDED] No NPC faucet.** Corrects the earlier "NPCs mint money"
-  framing. The **central bank is the only mint**; authors, NPCs, players
-  all run on conserved balances.
-- **[DECIDED] Each author runs a budget account** ("whoever builds Narnia
-  has a Narnia account"). NPCs draw wages / bounties *from* it; player
-  spending + taxes flow *back into* it. Account granularity is the
-  author's choice (one account vs per-business).
-- **[DECIDED] Faucet and sink are the same account read two directions**
-  → the balancing problem is **distributed to every author**, who must
-  balance his own books. Not a global tuning problem.
-- **[DECIDED] Authorship becomes an economic game.** A wizard must build a
-  *solvent* zone, not just a pretty one; content that only pays out and
-  earns nothing drains its account and can't pay its NPCs → **content that
-  doesn't sustain itself withers** (natural selection on content — a
-  feature; every author is a small-business operator; raises the
-  authorship floor).
-- **[DECIDED] NPC and player contracts are economically identical** —
-  both are "an account funds the escrow" (author budget vs player
-  balance). The only diffs left are verification + authorization (§2).
-- **[LEAN] The real monetary lever relocates to CB allocation policy** —
-  when the CB mints, and how a new author gets a starting budget (grant vs
-  loan; fixed pool vs inflate). That's the inflation dial now, and it's a
-  **monetary-policy / governance decision** → belongs to the cooperative,
-  not a hardcode. Note: a **Central-Bank-Governor** seat is already in the
-  government-offices design (monetary policy = executive).
+- *No NPC faucet; the central bank is the only mint — shipped:*
+  [banking.md](../../subsystems/banking.md) *(conservation as a hard
+  invariant; the single governed-but-logged central-bank mint).*
+- *Each author runs a personal "Narnia account" — superseded by*
+  [economic-bootstrap-requirements](../../requirements/economic-bootstrap-requirements.md)
+  *§ Surface decisions: money reaches content through a **Business**
+  account funded by treasury-issued credit (the Enrollment Note's
+  business-side twin — opening capital as a treasury advance secured by
+  the business's own account), not a per-author budget. The faucet/sink
+  balancing this bullet and the next describe is likewise superseded —
+  balancing is now the reserve's two published lanes + the credit ladder,
+  not a distributed per-author bookkeeping problem.*
+- *Authorship becomes an economic game; content that doesn't sustain
+  itself withers — superseded in shape by the same requirements doc: a
+  business that cannot repay its credit or meet payroll is refused a wage
+  or closes (§ Surface decisions, "Dormant" — a player-owned business
+  closes on its own short clock). The natural-selection thesis survives;
+  the mechanism is a business's own borrowing history, not a wizard's
+  personal account.*
+- *NPC and player contracts are economically identical — shipped:*
+  [contract.md](../../subsystems/contract.md) *(*`ContractParty`*: player
+  | business, either funds escrow the same way).*
+- *The real monetary lever relocates to CB allocation policy — resolved
+  by* [economic-bootstrap-requirements](../../requirements/economic-bootstrap-requirements.md)
+  *§ Surface decisions ("The reserve has one officer and two rules, and is
+  independent"): the Governor sets the rows the two published lanes read
+  and holds a recorded emergency override; `reserve mint` at a venue is
+  retired in favor of the treasury's `appropriate`.*
 - **[OPEN] The two ends of an author budget** — initial CB allocation, and
   insolvency (does the CB backstop a failing zone / author deposit
   insurance, or does Narnia's economy simply fail and strand its
   players?). Both governance calls. **[OPEN] Wizard capital market**
   (authors borrow / trade budget, same mechanism as player trade) — falls
   out naturally; deferred.
-- **[DECIDED] Player contracts self-fund via escrow from the player's own
-  balance.**
 
 ## 5. The work model — gigs & employment
 
@@ -260,50 +244,29 @@ first settling §4's monetary policy.
 
 ### 5.1 The clause primitive
 
-- **[DECIDED] A unit of work is a clause: `{shape, condition, observer}`.**
-  - **shape** = **achieve** (make a condition *eventually* true — deliver
-    the box, kill the lion, name the thief) or **maintain** (keep a
-    condition true / keep one from becoming true over an *open interval* —
-    no riffraff, the bar stays tended).
-  - **condition** = a predicate over modeled world-state (§5.2).
-  - **observer** = what evaluates it — and per §5.2 that is the engine.
+> The `{shape, condition}` clause primitive, the achieve/maintain split,
+> and why a maintain clause is paid by time rather than settled — shipped
+> → [contract.md](../../subsystems/contract.md) § The clause primitive.
+
 - **[DECIDED] A Role/Contract is a *set* of clauses** (real jobs are
   conjunctions — a bouncer = *maintain*(peace) + reactive *achieve*(break
   up the fight)). **A gig** = (dominantly) one **achieve** clause that
   settles and closes. **Employment** = a standing **maintain** clause,
-  usually spawning a stream of **achieve** micro-tasks.
-- **[DECIDED] Why employment never "completes":** a maintain clause is
-  defined over an open interval — structurally never *done* — so it's paid
-  by **time**, not settled by completion. This is the deep reason
-  durative/prevention work ("guard the shop a week") *is* employment, not
-  a gig.
+  usually spawning a stream of **achieve** micro-tasks. A single Position
+  carrying *both* a maintain clause and a reactive achieve stream is
+  still unbuilt — today's Positions carry one comp basis and (at most)
+  the presence-only `watch` template.
 
 ### 5.2 The verification model (the anti-magic / anti-exploit keystone)
 
 The load-bearing rule that closes the "no-witness" exploit without
 resorting to "the agent just magically knows."
 
-- **[DECIDED] The engine is the observer, not the agent.** Verification
-  reads *modeled world-state*; the engine cannot be fooled about state it
-  computed. That is ground truth, **not magic** — magic would be knowing
-  something un-simulated. (The whole project already rests on a
-  high-fidelity sim, so the engine is a legitimate ground-truth oracle —
-  the same fidelity that makes the sim the *pathfinder* makes it the
-  *verifier*.)
-- **[DECIDED] Judgment lives at specification-time, not
-  verification-time.** The agent's subjectivity goes into *defining* the
-  condition (who counts as "riffraff" → a banned list; what counts as
-  "delivered"). Once defined it's a query over modeled state the engine
-  checks objectively. The agent judges the *policy*; the engine enforces
-  it. My earlier "the observer is almost always an agent" was wrong — it
-  conflated *judgment* (spec-time) with *verification* (engine).
-- **[DECIDED — HARD RULE] Only contract on what you simulate.**
-  System-backed contracts (escrow + the §2 invariants) are offered *only*
-  for conditions expressible as a query over modeled state. Anything
-  fuzzier ("muscle him into compliance" with no modeled correlate) does
-  **not** get escrow — it falls back to the §2 informal/illicit
-  arrangement the system doesn't underwrite. **Not a hole:** the system
-  never wrote a check it can't cash, so there's nothing to exploit.
+> The engine-as-observer rule and the hard "only contract on what you
+> simulate" boundary are shipped as `Condition.validate`'s closed
+> `CONDITION_TEMPLATES` vocabulary → [contract.md](../../subsystems/contract.md)
+> § The clause primitive ("the contract boundary").
+
 - **[DECIDED] Keep verification diegetically grounded (authoring
   discipline).** Structure conditions so verification is *locally
   observable* (the box is literally inside Dave's bar), *proof-carrying*
@@ -316,11 +279,6 @@ resorting to "the agent just magically knows."
   significance"), *never* witness. A badly-specified condition (deliver an
   empty box that satisfies the letter) is the agent's risk to eat and
   learn from.
-- Both clause shapes ride the **shipped detection seam**: an *achieve*
-  clause fires on *satisfied* (state-test becomes true / event matches); a
-  *maintain* clause fires on *violated* (same machinery, opposite
-  polarity). Only the agent-as-reactor half is new, and that's mostly an
-  NPC brain doing its job.
 
 ### 5.3 The gig (an achieve clause that settles)
 
@@ -330,37 +288,9 @@ resorting to "the agent just magically knows."
 > breach-with-regard-nudge, and the terminal-hall job board. See
 > [contract.md](../../subsystems/contract.md). The systemic generator
 > ("Dave's stock is genuinely low → a gig posts itself") and NPC
-> claiming remain open here.
-
-**[DECIDED] Task-agnostic five-state lifecycle.** Modeled on **delivery**
-(buildable today; crisp engine-verifiable completion) — "cull the lion" is
-the identical machine once combat exists; the task only fills the "work"
-slot.
-
-1. **open** — a Contract record in the pool: issuer + task + reward + the
-   achieve-condition (a query over modeled state). Posted *systemically*
-   (Dave's stock is genuinely low) or offered by an NPC. Discovery: the
-   board, or an NPC offer.
-2. **claimed / escrowed** — acceptance commits the reward into **escrow**
-   (a real held balance out of the issuer's account, owned by the
-   contract). *[REQ: escrow must be legible — the stakes are real because
-   the money is locked and visible.]*
-3. *(work)* — the contract waits; the world does the work
-   (haulage/movement/…). It names a **goal, not a path** — the sim is the
-   pathfinder.
-4. **settled** — the achieve-condition holds (engine reads modeled state
-   via the detection seam); escrow releases issuer→contractor, attribution
-   recorded, contract closes. *[REQ: completion is acknowledged in-world —
-   the world *noticing* is the emotional payoff; the coin is the
-   receipt.]*
-5. **breached** — abandon / timeout → escrow reverts, small standing /
-   regard ding. *[REQ: failure must cost something felt, or there's no
-   stake.]*
-
-Forks: **[OPEN]** exclusive-claim vs open-bounty (delivery wants
-exclusive; "cull the lion" may want open) · **[OPEN]** expiry · v1 gigs
-**must** carry an engine-verifiable condition (§5.2) — completion crispness
-is a content constraint, not a fork.
+> claiming remain open here. The exclusive-claim/open-bounty fork and
+> expiry are resolved → [contract.md](../../subsystems/contract.md)
+> § Claim modes, § Expiry is lazy.
 
 ### 5.4 Employment (a standing maintain clause)
 
@@ -373,13 +303,9 @@ you keep showing up, nothing re-settles, the wage accrues, trust ramps.
   regulars like you; firing = you don't belong here anymore; the
   capability grant = you've got the keys, you're staff; being recognized
   (boss + regulars know your face) *is* the belonging.
-- **[DECIDED] Three objects.** **Position** — the job definition on the
-  workplace (the maintain clause + the achieve micro-tasks it spawns + the
-  wage rate + the duties it authorizes; the *seat*). **Employment** — a
-  character filling the seat: a standing record (employer-account ↔
-  employee; status: employed / on-duty / off / quit / fired); persists
-  instead of settling. **Shift** — the bounded on-duty interval; dormant
-  until clock-in.
+> Position / Employment / Shift as three objects — shipped →
+> [employment.md](../../subsystems/employment.md) § Data model.
+
 - **[DECIDED] Backbone: employment is a time-and-role-boxed capability
   grant.** On-shift confers the position's authorizations (work the taps,
   reach the till); off-shift / terminated revokes them. Makes "fired/quit"
@@ -387,26 +313,15 @@ you keep showing up, nothing re-settles, the wage accrues, trust ramps.
   till → skimming possible; depth deferred). **The grant ramps with the
   relationship** — the stranger gets the grunt slice and *earns* the till;
   low-trust onboarding is a feature, not a limitation.
-- **[DECIDED] The compensation model falls straight out of the clause
-  primitive** (it's not four bolted-on mechanisms — it's the two shapes):
-  1. **Flat time-wage for the *maintain* clause** — you're paid for
-     *holding the maintenance* (presence / availability), because a
-     maintain clause is unsettleable. The **employer bears demand risk**
-     (lulls still pay — that's what makes it employment, not a bounty).
-  2. **AFK gate the engine owns** — wage pauses / auto-clock-out on
-     genuine checked-out idle (the shipped anti-AFK predicate). Honest
-     players never see it; only exploiters hit it.
-  3. **Tips / credit reward the *achieve* micro-tasks** — discrete,
-     settleable, social; off payroll; a gift not a meter; can't be faked
-     to mint wage.
-  4. **Firing for cause** — whether you're holding the maintain clause
-     *well* is the boss's judgment (an agent *reacting* to the engine's
-     facts), never a productivity meter (a meter is grind; §1's "don't
-     mechanize significance").
-- **[DECIDED] The bartender is the right first slice** — the work beneath
-  it is already built (the by-hand pour/stir/shake/strain/garnish loop);
-  employment wraps *purpose + wage + authorization* around an activity
-  that's already fun.
+> Flat time-wage for the maintain clause, and tips off-payroll rewarding
+> the achieve micro-tasks — shipped →
+> [employment.md](../../subsystems/employment.md) § Wage settlement at
+> shift-end, § Tips. The bartender-first-slice choice is realized as
+> Dave's Bar throughout that doc. Firing-for-cause stays a boss's
+> judgment call, never a productivity meter — by omission (no meter
+> exists); the AFK gate today is coarse (wage accrual freezes only on a
+> *paused world*, not on a per-player idle check) — a genuine per-player
+> anti-AFK wage gate remains unbuilt.
 
 **Experiential requirements the first-day walk surfaced** (experience →
 the model it demands):
@@ -458,51 +373,15 @@ the model it demands):
 > and [banking.md](../../subsystems/banking.md) § The leg-kind
 > vocabulary (the wage-vs-draw tax wedge).
 
-- **[DECIDED] Every compensation model is a mix of four bases** —
-  the first two fall straight out of the clause shapes, and the
-  third is already shipped twice without the name:
-  1. **Time** — pay for *holding a maintain clause* (wage / salary /
-     retainer). Structurally unsettleable → paid by interval; the
-     **employer bears demand risk** (lulls still pay).
-  2. **Per-settlement** — pay per *achieve* settlement (piece-rate,
-     bounty, per-unit). The **worker bears demand risk** in exchange
-     for freedom — the miner's natural basis.
-  3. **Share-of-flow** — a conserved split leg taken at the moment a
-     flow moves (commission, royalty). Shipped as the consignment
-     sale split and the bank-fee corpo royalty
-     (`ensureCorpoTreasury`); commission and royalty are the same
-     primitive.
-  4. **Residual** — the P&L remainder. **Not a clause at all**: this
-     is *ownership*, a claim on the account, the reward for bearing
-     risk. Variable, sometimes zero, sometimes negative — and that
-     riskiness is pedagogically load-bearing (profit is not a wage).
-- Dave's Bar is the canonical two-layer case, not a complication:
-  time-wage for availability (the maintain clause) + tips on the
-  order-driven achieve bursts riding on top.
-
 ### 6.2 Ownership vs the seat (and the tax hook)
 
-- **[DECIDED] Seat-occupancy is orthogonal to ownership.** A
-  Position is the capability vehicle (on-shift confers the mixin —
-  shipped); the owner *may* hold a seat, with or without a wage term
-  — Dave's unpaid `beginCover` is the shipped exemplar. A pure
-  absentee owner holds only the residual. The uniformity instinct
-  ("just make the owner an employee") is satisfied at the *seat*
-  level; the money side stays honest.
-- **[DECIDED] The owner's take-home is a *draw/distribution*, never
-  silently a wage.** The tax argument cuts this way, not the other:
-  if the owner's take-home were a wage, "what the business earns vs
-  what the owner takes home" collapses into payroll and there is
-  nothing left for a differential tax policy to see. The
-  wage/profit distinction the tax wants to price only exists if the
-  model keeps the two movements distinct.
-- **[DECIDED] Ledger-leg-kind discipline — the load-bearing
-  commitment *now*.** Every economically distinct money movement is
-  a distinct, named ledger leg kind: wage, draw, sale, fee, royalty,
-  tip, escrow settlement, match, appropriation draw. The ledger
-  already tags legs by `kind`, so this is a discipline, not a build.
-  Tax policy later = a governance-set rate table over leg kinds —
-  no rework regardless of how entity forms evolve.
+> Seat-occupancy orthogonal to ownership (Dave's unpaid `beginCover`),
+> the owner's take-home as a `draw` never silently a wage, and the
+> ledger's named leg-kind discipline (wage/draw/sale/fee/royalty/tip/
+> escrow/match) — shipped → [employment.md](../../subsystems/employment.md)
+> § Compensation bases, [banking.md](../../subsystems/banking.md) § The
+> leg-kind vocabulary.
+
 - **[DECIDED] Entity form becomes a term on the Business — later.**
   Whether the owner must be an employee is a property of the *form*,
   and the real world's answer is the lesson: a sole proprietor is
@@ -572,12 +451,8 @@ multiply forever but only vary clause *content*; constituencies vary
 residual goes, who is liable. Four kinds; the schema survived all
 four walks with no special case.
 
-### 7.1 Proprietor — Dave's Bar (shipped baseline)
-
-Time-wage + achieve bursts (§6.1); owner works via the unpaid cover
-seat; employer bears demand risk. The shipped engine
-([employment.md](../../subsystems/employment.md)) is this walk's
-implementation.
+> **7.1 Proprietor — Dave's Bar** is shipped whole →
+> [employment.md](../../subsystems/employment.md).
 
 ### 7.2 Co-op — the mine (designed, unbuilt)
 
@@ -593,10 +468,14 @@ now.
 
 ### 7.3 The state (public sector)
 
-- **[DECIDED] The state is a business with no owner.** The
-  residual-claim slot is empty: surplus rolls to the treasury,
-  deficits are covered by tax or the CB. Everything else fits the
-  schema — the public sector is the degenerate case, not a new one.
+> "The state is a business with no owner" is shipped as the Terminus
+> city-budget `Business` (proprietor-absent, surplus/deficit rolling to
+> the treasury) → [employment.md](../../subsystems/employment.md) §
+> Wage settlement at shift-end ("Second employment consumer — the
+> Terminus city budget"). "Office ≈ Position" is shipped as the same
+> doc's § The governing split (the seat/staff rhyme, `OFFICE_APPARATUS`
+> vs a position nobody points at).
+
 - **[DECIDED] The new primitive is the appropriation.** Collectives
   can't sign; they act through votes that produce authorizations.
   The legislature votes an **appropriation** — `{purpose, cap,
@@ -605,11 +484,6 @@ now.
   Legislature appropriates; the executive contracts. It's the small
   missing joint between three shipped layers: the Office substrate,
   the conviction/quorum machinery, and the treasury.
-- **[DECIDED] Office ≈ Position** — the same seat-confers-capability
-  shape (`requiresGovernor` ↔ on-shift `MakerMixin`). Don't merge
-  the code (offices carry constitutional weight); the design names
-  the rhyme. A civil-service job is a Position whose Business is the
-  polity.
 - **[DECIDED] Public money is glass.** Players directing public
   money to players (procurement) is the corruption surface — a
   surface to make **legible**, not a hole to plug. The engine chains
