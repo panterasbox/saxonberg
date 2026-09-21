@@ -24,7 +24,7 @@
  *   - **`Character.onExchangeResolved`** — one combat exchange, via
  *     {@link Exerting.exertExchange}.
  *
- * And four things read it, in order, inside `exert` (plan D6):
+ * And four things read it, in order, inside `exert`:
  *
  *   1. **Endurance** (now) — only the EXCESS over what the body can
  *      sustain debits. That is the aerobic threshold: a walk is free,
@@ -35,7 +35,7 @@
  *   3. **Lean** (over months) — overload against the body's own ceiling,
  *      paid for in protein. A load you have outgrown trains nothing.
  *   4. **Heat** — `1 − η` of the work, deposited on the thermal seam
- *      ({@link depositWorkHeat}; a no-op until build-4's heat load lands).
+ *      ({@link depositWorkHeat} → `ThermalRegulation.absorbHeatLoad`).
  *
  * ⭐ **Reach is a body read, not a number.** {@link Exerting.canSustainPace}
  * is what breaks a fresh body's run to a walk; {@link Exerting.canExert}
@@ -44,7 +44,7 @@
  *
  * Every rate is a per-read dial (`body.*` / `exertion.*`, shipped in
  * `platform/content/settings/body.yaml`), so `config` turns a season up
- * inside one session. See docs/plans/nutrition-and-fitness-plan.md.
+ * inside one session. See docs/subsystems/exertion.md.
  */
 
 import type { MixinConstructor } from '../mixin';
@@ -294,7 +294,7 @@ export function ExertingMixin<TBase extends MixinConstructor>(Base: TBase) {
 
     public canSustainPace(mode: LocomotionMode): boolean {
       const self = this as unknown as ExertingHost;
-      // ⭐ Reach ANDs with function (W6): a body whose locomotion is
+      // ⭐ Reach ANDs with function: a body whose locomotion is
       // impaired by a wound cannot hold a pace above a walk however
       // conditioned it is — fitness is not a bandage.
       if (MixinApi.isVitals(self) && self.capacity('locomotion') !== 'full') {

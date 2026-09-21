@@ -236,7 +236,10 @@ remains in the near-term Track A queue:
 >   seam, [metabolism.md](./subsystems/metabolism.md)), and **respiration**
 >   (the air-exchange driver that finally drives `spo2` to an anoxia death
 >   seam on drowning / vacuum, plus the carried-air scuba loop,
->   [respiration.md](./subsystems/respiration.md)), and **harm** (the
+>   [respiration.md](./subsystems/respiration.md)), **exertion** (the
+>   producer side — ONE `exert({durationS, powerW})` event from every
+>   working verb, the five slow stocks, reach as a body read, the mirror,
+>   the gym, [exertion.md](./subsystems/exertion.md)), and **harm** (the
 >   first *injury* driver — the `inflict` producer, live trauma
 >   progression reconcile-on-read, bleed → `exsanguination`, and the
 >   non-combat medic vertical `assess`/`treat`/`dress`/`undress` +

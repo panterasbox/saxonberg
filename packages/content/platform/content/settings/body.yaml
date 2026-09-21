@@ -9,7 +9,7 @@
 # turns a season up inside one session and `config` turns it back. The
 # rates are playtest; the felt-cost figures (what a hew, a plough and a
 # smelt cost) are pinned by test against `exertion.*` and must hold.
-# See docs/plans/nutrition-and-fitness-plan.md (D6, D7, D8).
+# See docs/subsystems/exertion.md.
 settings:
   # ── the stocks ──
 

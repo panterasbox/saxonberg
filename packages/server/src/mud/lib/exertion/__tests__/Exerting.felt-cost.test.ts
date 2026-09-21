@@ -1,5 +1,5 @@
 /**
- * ⭐⭐ The felt-cost pins (plan D7). The five `%`-point debits that used
+ * ⭐⭐ The felt-cost pins. The five `%`-point debits that used
  * to live in mining, farming, the smelt and the loaded traverse now ride
  * one exertion event — and at each act's reference duration on a FRESH
  * body the debit is what it was, exactly. These numbers must hold; the

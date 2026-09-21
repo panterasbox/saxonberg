@@ -255,9 +255,15 @@ own slate at 14.
 
 ## History
 
-Built as the nutrition-and-fitness build (2026-09-18, `design/
-nutrition-fitness`) from `docs/slates/builds/nutrition-and-fitness-
-slate.md`. Decisions the build made that the plan did not: the Vitals
+Built as the nutrition-and-fitness build (2026-09-18/19, `design/
+nutrition-fitness`, MR !269, `f4a7528d3..HEAD`) from
+`docs/slates/tails/nutrition-and-fitness-slate.md` (the plan and
+requirements retired at the sweep; the slate's *tail* section carries
+what the plan's deferred seams named). Review added the soft-limit
+clamp (work never collapses a body) and the feedback surfaces (the
+`BODY` shelf row, the `self.body` cue); the browser walk removed
+conditioning stocks from the *practising* figure and from the
+`competence` listing when untrained. Decisions the build made that the plan did not: the Vitals
 floor guard (D22), farming's felt cost converted through the body
 (D23), `char` declares no effort and the mill is 620 W (D24), the
 orange on the general store and the barbell on the smithy's slate

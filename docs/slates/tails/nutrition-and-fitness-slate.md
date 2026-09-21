@@ -1,23 +1,22 @@
 # Nutrition & fitness slate — what a life writes on a body, and the reach it buys
 
-> **Status: UNBUILT** — the acute clock (satiation · hydration ·
-> endurance) and the fat stock (`flesh`) shipped with metabolism; nothing
-> here has.
-> **Left:** the mirror for PEOPLE (`look` says what a body is) · one
-> muscle figure + the derived BMI / body-density reads · the one
-> `exertion` event as THE endurance producer (unifying three packs' flat
-> debits) · the `wind` conditioning Discipline + the active-play
-> conditioning fold (decay) · micronutrient kinds carried through
-> composition + scurvy as the consumer of the fruit already on the shelf ·
-> the rates as operator dials
-> **Size:** a build · requirements: [nutrition-and-fitness-requirements](../../requirements/nutrition-and-fitness-requirements.md)
+> **Status: PARTIAL** — the build shipped 2026-09-19 (MR !269 —
+> the five slow stocks, the one `exertion` event, reach as a body read,
+> the mirror, the `gym` archetype + the smith's barbell, the fruit's
+> vitamin and scurvy, the `BODY` shelf row) →
+> [exertion.md](../../subsystems/exertion.md).
+> **Left:** the `pace` device (the sustained-work exemplar; the gym's
+> second slot) · the real-world bridge (Part 5 — a seam only) · the menu
+> as a choice (Part 7) · a `{{ body }}` prompt word · the `wind` row's
+> first conferral (the swim)
+> **Size:** a tail
 
 > ⚠ **Amended 2026-09-18 after the requirements survey.** Three things
-> below were re-homed, not re-decided: **stature is [lineage's](./lineage-slate.md)**
+> below were re-homed, not re-decided: **stature is [lineage's](../builds/lineage-slate.md)**
 > (an endowment dealt at char-gen; `race.md` sealed species-level stature
 > and BMI needs only the mass that already varies) — Part 2's stature
 > section is superseded; **the real-world bridge is the
-> [mirror slate's](./mirror-slate.md)** (density-not-verification,
+> [mirror slate's](../builds/mirror-slate.md)** (density-not-verification,
 > *recognition not advantage*, never the raw feed) — Part 5 is a seam and
 > the advantage question is left THERE, explicitly; and **muscle already
 > exists per body part** (`vitals.md` tissue masses) — `lean` is one
@@ -43,7 +42,7 @@ nutrition design; its micronutrient punt is **superseded** by Part 6
 here, the rest of its tail stands) ·
 [metabolism.md](../../subsystems/metabolism.md) (the acute clock, the
 `flesh` partition, the four macro tags) ·
-[physiology-slate](./physiology-slate.md) (⭐FAST-TRACK; *"what can you do
+[physiology-slate](../builds/physiology-slate.md) (⭐FAST-TRACK; *"what can you do
 and why not"* — this slate's stocks are tier-1 state and its reads are
 tier-2, by that slate's rules) · [vitals.md](../../subsystems/vitals.md) ·
 [harm.md](../../subsystems/harm.md) + [thermal.md](../../subsystems/thermal.md)
@@ -60,8 +59,8 @@ changes stops fitting its clothes) ·
 [presentation.md](../../subsystems/presentation.md) (the `presence` form
 — the portrait is how the mirror shows you) ·
 [measurement.md](../../measurement.md) (no gauges; *the mirror shows you*)
-· [cooking-slate](./cooking-slate.md) (the kitchen family; slices) ·
-[fishing-underwater design](./fishing-slate.md) (buoyancy is body
+· [cooking-slate](../builds/cooking-slate.md) (the kitchen family; slices) ·
+[fishing-underwater design](../builds/fishing-slate.md) (buoyancy is body
 density's first mechanical consumer) · the gamification-mirror thesis
 (the real-world bridge is REWARD-ONLY; build the loop against in-game
 input and keep the seam).
@@ -142,7 +141,7 @@ predates them (or is not alive) is a no-op, the shipped `flesh` rule.
 *(As captured: stature becomes a per-person field set at char-gen.)*
 The survey found `race.md`/textiles sealed stature at species level
 (*"individual variance arrives through `getMass()` alone"*) and
-[lineage-slate](./lineage-slate.md) owns it as an endowment axis. BMI is
+[lineage-slate](../builds/lineage-slate.md) owns it as an endowment axis. BMI is
 mass / stature² and mass already varies per person; buoyancy reads
 fat/lean; the tailor's girth already moves with mass. Stature buys only
 *"a tall man"* — lineage's. **Dropped here**; BMI reads the species
@@ -486,11 +485,55 @@ makes it not premature: the producers exist and are running.
 
 ### Open questions
 
-None load-bearing — reach closed the fork. Two for the requirements
-conversation: **the exact `wind` conferral ladder** (which verbs, which
-bands — content, but the first three should be chosen with the drive in
-mind), and **whether `lean` reads protein from the existing inert pool or
-the pool is retired into it** (engineering; the plan's).
+None load-bearing — reach closed the fork. The two the requirements
+conversation carried were closed by the build: the `wind` row ships
+`conferrals: []` (every rung of the first ladder is a verb a fresh body
+already has, read through the body at the verb layer; the swim is the
+first real conferral, when there is water), and `lean` spends the
+`protein` reserve the routing table now fills (the inert pool retired
+into it).
+
+## The tail — what the build left (2026-09-19)
+
+The build's own record, salvaged from the retired plan. Everything
+below is a clean attach point, not a stub.
+
+- **The `pace` device** — a `pace` row (treadmill · rower · wheel) plus
+  a `pace <device> [for <minutes>]` verb over the same `engageStep`
+  with `effortW` from the row. The gym archetype's second slot
+  (`{ key: pace, needs: { tool: pace } }`) is one line, held back
+  because `lint:capabilities` refuses a requirement nothing offers.
+  Until it lands, the run on the lane is the sustained work.
+- **The real-world bridge** (Part 5) — `exert({durationS, powerW})` is
+  the one shape a device session converts into; the `Journey` binding
+  is logistics'. → [mirror-slate](../builds/mirror-slate.md).
+- **The menu as a choice** (Part 7) — food as a choice needs the
+  hunger *sensation* the shelf's `BODY` row now shows (`hungry`) and a
+  reason to pick one thing over another; the deficiency roster is what
+  gives kinds a reason. → this slate; the metabolism tail owns the
+  roster.
+- **A `{{ body }}` word in `prompt.format`** — `winded>` at the input
+  line for players who want it; a template variable, opt-in.
+- **Conferrals on the `wind` row** — the swim, when there is water; the
+  `refreshConferrals`-on-crossing hook is already wired. →
+  fishing/underwater design.
+- **Casting effort as a dial** — `CastActivity` carries a const 300 W;
+  arcana's `settings/magic.yaml` is where it moves.
+- **A per-part muscle read** — a derived share of `lean` over the
+  plan's `muscle` tissue masses. → capability-magic.
+- **Protein → healing** — harm's healing rate reading the `protein`
+  reserve. → the disease/healing slate.
+- **Sweat as body soiling** — `depositWorkHeat` is where an exertion
+  deposits on a `Soilable` body. → [rendering-slate § 8](../builds/rendering-slate.md).
+- **The beauty canon** — the `Character` body augmenter is the attach
+  point. → [cosmetics-slate § Beauty](../builds/cosmetics-slate.md).
+
+**Findings the drive filed for other trades:** `draw <amount>` is refused
+by its own `mustBeNumber` (a positional `type: number` reaches
+validators as a string — banking); almost no room has a floor with a
+`lie` slot (residences/furnishing); `wear gambeson` → `remove` answers
+`not-worn` after an ok dressing step (equipment); the forced auto-`sense`
+echoes as `here> sense` on every arrival (client shell); `SmeltController.test.ts`'s *taps a bar* waits for the async tap with eight `setTimeout(0)` ticks and lost the race once under the full parallel suite (3/3 green alone, green on three other full runs) — a load-sensitive wait, not a smelt defect (trade-smelting).
 
 ---
 

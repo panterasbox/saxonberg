@@ -3,8 +3,11 @@
 > **Status: PARTIAL** — both build waves shipped 2026-06 (digestion
 > buffer, lazy reconcile, toxins, `eat`/`vomit`) →
 > [metabolism.md](../../subsystems/metabolism.md)
-> **Left:** wired nutrient deficiencies (scurvy) · hangover ·
-> chronic-toxin leaching content · magic ingestion (potions) ·
+> **Left:** the wider deficiency roster (iron, the B group, calcium —
+> scurvy shipped with nutrition-and-fitness as the pattern: a reserve
+> key + a route + a condition row) · `alcohol-tolerance` as a CONSUMER
+> (the `bac` bands widened by the stock; the stock itself ships) ·
+> hangover · chronic-toxin leaching content · magic ingestion (potions) ·
 > fuller-stomach absorption · bulk-source eating · per-individual rates
 > **Size:** a tail
 

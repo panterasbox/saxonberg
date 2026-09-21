@@ -17,7 +17,7 @@ product vision see [docs/vision.md](./docs/vision.md).
 The `docs/` tree is the source of truth for architecture and subsystem
 behavior. Read the relevant doc before editing in its area.
 
-- ⭐⭐⭐ [docs/design-lenses.md](./docs/design-lenses.md) — **THE FIVE
+- ⭐⭐⭐ [docs/design-lenses.md](./docs/design-lenses.md) — **THE SIX
   LENSES every high-level design is interrogated with**, and the
   standing rule for any fork: 1 **pedagogy** (what Discipline does it
   exercise; is the world derivable) · 2 **creative expression** (the
@@ -27,7 +27,8 @@ behavior. Read the relevant doc before editing in its area.
   (values, not knowledge: what choice does it force, and who confers
   standing) · 5 **technology & magic** (the mechanism holds from ancient
   Rome to New York; only the dynamics change — magic and future tech are
-  one axis). A **scorecard, not a gate**: 1 and 2 decide forks, and
+  one axis) · 6 **economy** (produces · consumes · who pays · was the
+  demand there first). A **scorecard, not a gate**: 1 and 2 decide forks, and
   ⭐ **when they decide one, don't ask — pick it and say which limb
   chose.** Run the pass at the slate and at requirements. ⚠ NOT
   [docs/lenses/](./docs/lenses/README.md), which is the borrowed Schell
@@ -217,6 +218,7 @@ behavior. Read the relevant doc before editing in its area.
   - [party.md](./docs/subsystems/party.md) — the Party Idea + PartyRecord mirror, the fourth GroupProvider, the `sideOf`/`areAllied` combat seam, the `party` verb
   - [reserve.md](./docs/subsystems/reserve.md) — the generalized Reserve capacity axis, ReservedMixin, biological reserves
   - [encumbrance.md](./docs/subsystems/encumbrance.md) — the carry-weight gauge: LoadBearing derived burden, the consequence ladder, the haulage draft term
+  - [exertion.md](./docs/subsystems/exertion.md) — what working does to a body: ONE `exert({durationS, powerW})` event from the scheduler / the traverse / the exchange; the five slow stocks (`lean` · `protein` · `wind` · `vitamin-c` · `alcohol-tolerance`); ⭐ reach as a body read, never a number (the run that breaks, the climb's rest, `lift`); every limit SOFT — work never collapses a body; the mirror (`look`'s body line); the `BODY` shelf row + the `self.body` cue; the `gym` archetype + `LoadDevice`
   - [metabolism.md](./docs/subsystems/metabolism.md) — the intake/chemistry driver: digestion buffer, reconcile-on-read, condition cascades, meal chemistry, toxins
   - [husbandry.md](./docs/subsystems/husbandry.md) — the growth model: GrowingMixin reconcile-on-read (no far-past guard), min-of-four limiting factor, the pot-as-N=1-bed object shape, the houseplant
   - [smallholding.md](./docs/subsystems/smallholding.md) — ground you own: CultivableMixin (a pot is a bed with one slot), soil's own checkpoint, land use's closed six, weakest-link harvest grade, `title`, PlatBook/PlatWarren/LotGateExit, Hinkley Hills
