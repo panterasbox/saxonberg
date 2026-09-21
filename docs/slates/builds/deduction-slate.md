@@ -181,6 +181,10 @@ multiplayer crux.**
 
 - **Competence-gated `analyze`** → [advancement.md](../../subsystems/advancement.md)
   (forensic Disciplines gate which derivations you can attempt; bands-only).
+  The gate's SHAPE — route-gated `analyze` (a modality or an instrument
+  answers), the readout ladder, honest refusals — is
+  [instrumentation-slate](./instrumentation-slate.md)'s; this slate
+  consumes it and designs none of it.
 - **Findings as knowledge** → [belief.md](../../subsystems/belief.md) /
   [chronicle.md](../../subsystems/chronicle.md) (the casebook is owned knowledge
   state; deeds vs claims provenance reused).
