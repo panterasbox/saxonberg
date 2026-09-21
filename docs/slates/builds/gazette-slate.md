@@ -1,14 +1,17 @@
 # Gazette slate — the state's publishing arm, and the road to a press
 
-> **Status: PARTIAL** — Wave 0 shipped as the anonymous press room
-> (`GET /api/press/releases`), and Wave 1 was struck by the
-> organizations build (publisher = organization, authority = position)
-> → [press.md](../../subsystems/press.md)
+> **Status: PARTIAL** — Wave 0 shipped in full (anonymous press room,
+> `GET /api/press/releases`, the nightly-wipe exemption, the start-
+> screen pre-login surface), and Wave 1 was struck by the organizations
+> build (publisher = organization, authority = position) →
+> [press.md](../../subsystems/press.md)
 > **Left:** the docket — unedited, chronological, complete · the
 > events-not-significance rule enforced structurally · locality-scoped
 > gazettes as shipped content · Wave 2, the press industry (worked in
 > press-slate, not here)
-> **Size:** a build
+> **Size:** a build (Wave 0 and Wave 1's shippable substrate are both
+> done; the docket alone — a cross-jurisdictional, append-only event
+> index — is not a tail, and Wave 2 is press-slate's own build)
 
 **Captured 2026-08-02**, in preparation for the video series and the
 rebuilt homepage. The user's framing, and it is the load-bearing one:
@@ -18,9 +21,6 @@ rebuilt homepage. The user's framing, and it is the load-bearing one:
 Which means the shipped bulletin feed is not a staff tool that happens to
 look like news — it is **publisher #1**, and building it as such is what
 stops the small thing from foreclosing the large one.
-
-> **Status: sequencing plan. Wave 0 is launch-critical and independently
-> shippable; Waves 1–2 wait on build-1's refactor.**
 
 Related: [press.md](../../subsystems/press.md) (**shipped — what
 exists today**), [press-slate](./press-slate.md) (**the industry design;
@@ -34,33 +34,19 @@ two-way deliberation lives), [legal-code-slate](./legal-code-slate.md)
 
 ---
 
-## ⚠ The launch problem, stated precisely
+## ⚠ The launch problem — RESOLVED
 
-**Nothing published today is visible to anyone arriving from the video.**
-Four independent gates, all verified against the source:
-
-| | |
-|---|---|
-| the live fan | `BulletinLogic.fanFeedImpl` → `PlayerApi.getAllAvatars()` — **requires an Avatar** |
-| the initial window | rides `ConnectionEstablishedPayload.bulletinWindow` — **post-auth** |
-| the archive | `GET /api/bulletins/archive` is **`requireAuth`** |
-| the card | `NewsTickerCard`, a right-column tab in `WorldLayout` — **the post-login cockpit** |
-
-**You cannot see the news without logging in.** That is the whole of the
-launch gap, and it is small.
-
-## ⭐⭐⭐ The seams are already cut
-
-The bulletin build anticipated this. From its own non-goals:
-
-- **`BulletinRealm` is `ooc | world`** — the OOC/diegetic split exists as a
-  field today;
-- *"No divergent render per realm — a **diegetic in-world gazette can ride
-  later as a consumer**";*
-- *"No new authorization axis — a grantable **herald** community-manager
-  axis is deferred."*
-
-So the gazette and its publishing seat were both left as named holes.
+> **SHIPPED · DOCUMENTED.** The gap this section diagnosed (nothing
+> published was visible without logging in) is closed: `GET
+> /api/press/releases` is an anonymous route and `PressRoom.tsx` reads
+> it from the client start screen. See
+> [press.md](../../subsystems/press.md) § *The anonymous press room* and
+> § *The client*. `world`-realm content still requires auth, unaffected.
+> The seams the old bulletin build left for this (`BulletinRealm`
+> `ooc | world`, the deferred herald axis) are also both resolved — see
+> § *A press office is not a newsroom* (the herald seat, struck rather
+> than built) and § *`PublisherMixin`* (`realm` derives from the
+> publisher now, not typed per-release).
 
 ## ⭐⭐⭐⭐ And press-slate already protects the vocation
 
@@ -105,68 +91,33 @@ all.
 
 ---
 
-# Wave 0 — make it visible. Launch-critical.
+# ~~Wave 0~~ · SHIPPED
 
-**Days, not weeks. Independently shippable; does not wait on the refactor.**
-
-- **A public, unauthenticated read of the `ooc` realm only.** Either a new
-  route or a realm-scoped variant of the archive.
-- ⚠ **Keep `world` behind auth.** Once it is diegetic it may want per-viewer
-  lensing, and exposing it now forecloses that. **The OOC realm is already
-  documented as "identical for every viewer, no per-viewer lensing"** — that
-  is exactly what makes it safe to serve publicly, and the reason not to
-  extend the same treatment to `world`.
-- **CORS for the Pages origin** if the homepage is a consumer.
-- **A pre-login surface** — see the open question below.
-- ⚠ **Graceful degradation is mandatory.** The demo box is underpowered with
-  known leaks; the surface must look deliberate when the feed is **empty or
-  unreachable**, not broken. An empty feed on the marketing site is worse
-  than no feed.
-- ⚠ **Bulletins must survive the nightly wipe.** *(User: "if we need to
-  protect bulletins we can.")* A public feed that empties every night is a
-  liability rather than a signal — so **the `bulletins` collection is
-  exempted from the reset** as part of this wave.
-
-**Non-goals for Wave 0:** no publisher model, no offices, no lensing, no
-docket. It is a read path and a surface.
+> **SHIPPED · DOCUMENTED**, in full. The anonymous `GET
+> /api/press/releases` route, the auth-gated `world` realm, "no CORS
+> change needed" (single-origin + `credentials: true` already covers
+> it), the start-screen `PressRoom.tsx` pre-login surface, its three-
+> terminal-state graceful degradation, and the `documents` collection's
+> reset exemption for `kind: 'release'` (`packages/server/src/schema/
+> documents.yaml` § *reset*) are all shipped and documented — see
+> [press.md](../../subsystems/press.md) §§ *The anonymous press room*,
+> *The client*, and *No CORS change is needed*.
 
 ---
 
-# ~~Wave 1 — the gazette~~ · **STRUCK, and partly built**
+# Wave 1 — still open
 
-> **Struck by the organizations build (2026-08).** What Wave 1 asked for
-> was *a publisher that is a held, handed-over, visible seat rather than
-> `AccessApi.isAuthor`*. That is now built — but **not as an Office**, and
-> the correction is worth more than the wave was.
-
-**What shipped instead** ([press.md](../../subsystems/press.md),
-[employment.md](../../subsystems/employment.md)):
-
-- ⭐ **The publisher is an ORGANIZATION, and the publisher's authority is
-  a POSITION on it** — not an Office. The seat/staff line turns out to be
-  whether *a constitutional document points at the position*: a
-  Communications Director serves at pleasure and is prescribed by nothing,
-  so minting an Office for one would have been a category error. An
-  earlier draft of that cycle proposed exactly that, and catching it is
-  what produced the whole organization substrate.
-- ⭐ **Appointment and exercise are different powers.** Holding a
-  publisher's appointing authority lets you *fill* the position, never
-  exercise it. Wave 1's instinct — *authority to publish is held and
-  handed over* — was right; what it missed is that the holding and the
-  handing-over are two different rights.
-- **Scoped by ORGANIZATION rather than by locality.** A locality's press
-  office is an organization whose appointing authority is
-  `{kind: 'seat', …}`; that branch is built and unit-tested, and the first
-  municipal one authors itself as content. *"The Saxonberg gazette"* is
-  still a scope, not a label — the scope is just the publisher rather than
-  the place.
-- **Attribution moved off the author string** in the direction Wave 1
-  named: the *document* is owned by the publishing organization; the
-  person is recorded in the payload and **never shown** on the anonymous
-  surface. The organization is the speaker.
-- **`/feed/<publisher>/` in the document tree landed early**, from Wave 2's
-  list rather than this one — the storage sort rule made it the right
-  place regardless of which wave paid for it.
+> **SHIPPED · DOCUMENTED, otherwise.** Wave 1 asked for *a publisher
+> that is a held, handed-over, visible seat rather than
+> `AccessApi.isAuthor`*, and it shipped — struck by the organizations
+> build, and **not as an Office**. The full account (publisher = ORG,
+> authority = a POSITION on it and not an Office; appointment vs
+> exercise as different powers; scoped by organization not locality;
+> attribution off the author string; `/feed/<publisher>/` landed early)
+> is in [press.md](../../subsystems/press.md) §§ *The three decisions*
+> and *A press office is not a newsroom* — do not re-derive it here.
+> The OOC-realm-stays-as-is guarantee also shipped (`realm` now derives
+> from the publisher).
 
 **What Wave 1 asked for and is still NOT built**, deliberately:
 
@@ -178,21 +129,16 @@ docket. It is a read path and a surface.
   necessary rather than decorative.
 - Locality-scoped gazettes as shipped content.
 
-⚠ **The OOC realm stays exactly as it is** — operator announcements are
-genuinely out-of-character and must not be dragged into the fiction. This
-held: `realm` is still a field, it just derives from the publisher now
-rather than being typed per release, so **nobody can claim to speak
-in-fiction on an operator's feed**.
-
 ---
 
 # Wave 2 — the press
 
 **Already designed in [press-slate](./press-slate.md). Do not re-derive it
-here.** The shape it needs from this slate:
+here.** The shape it needs from this slate (the `/feed/<publisher>/`
+part of this list already shipped — see
+[press.md](../../subsystems/press.md) § *A release lives in the
+document tree*):
 
-- `/feed/<publisher>/` in the document tree — **the Compact runs the default
-  publisher; players run others**;
 - subscription, so a ticker is *a thing you subscribe to* rather than a board
   you read;
 - the inline **stance** action a publisher's ticker may carry;
@@ -205,21 +151,24 @@ momentum.**
 
 ## Open questions
 
-1. ⭐ **Where does Wave 0 land — the client start screen, the homepage, or
-   both?** They are different jobs: the start screen needs a pre-auth
-   payload; the homepage needs CORS and a fetch, and gives video traffic a
-   much stronger *"this is alive"* signal. *Leans **both**, homepage first,
-   because that is where the launch traffic lands.*
-2. **Does the public read reuse the archive route with a forced
-   `realm=ooc`, or get its own endpoint?** *Leans its own* — a route whose
-   entire contract is "public, OOC only" is harder to widen by accident.
-3. **Does the gazette publish automatically from governance events, or does
-   a seat-holder press publish?** ⚠ Automatic is the **omniscient-feed
-   trap** press-slate warns about. *Leans: the docket is automatic and
-   complete; the gazette is published by a person holding a seat.*
-4. **Is the docket a new surface or a projection of existing ledgers?**
+1. Resolved (for now): landed on the client start screen only
+   (`PressRoom.tsx`). Homepage/panterasbox.com is an explicit non-goal
+   today — [press.md](../../subsystems/press.md) § *Non-goals* ("no
+   panterasbox.com consumer — the surface is the start screen"). Reopen
+   if the homepage integration becomes wanted.
+2. Resolved: its own endpoint (`GET /api/press/releases`), not a flag on
+   the archive — [press.md](../../subsystems/press.md) § *The anonymous
+   press room*.
+3. **Is the docket a new surface or a projection of existing ledgers?**
    *Leans projection* — the record already exists; the docket is a
-   chronological read of it with no editorial layer.
-5. **What does a locality without a seated herald publish?** Probably
-   nothing, and that absence should be visible — *a locality with no gazette
-   is a fact about that locality.*
+   chronological read of it with no editorial layer. Still open — the
+   docket itself is unbuilt.
+4. Resolved: a seat-holder (position-holder) publishes; there is no
+   automatic-publish path — `mayPublishAs`/`holdsPublishingPosition` in
+   [press.md](../../subsystems/press.md) § *The entitlement*. The
+   docket-is-automatic half of this question is unaffected and remains
+   tracked under Wave 1's "still NOT built" list above.
+5. Resolved: an organization with no comms director publishes nothing,
+   and that absence is the intended, visible behavior —
+   [press.md](../../subsystems/press.md) § *The appointing authority
+   appoints. The position publishes.*
