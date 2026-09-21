@@ -4,8 +4,7 @@
 > (the `argument` organizer) all shipped across two cycles
 > → [forums.md](../../subsystems/forums.md)
 > **Left:** the ephemeral bill lifecycle + archive cascade + the governance
-> trigger · chat `logged` retention + `chat_log` · the rules-of-order
-> (`procedure: 'ordered'`) chat discipline · notifications over aether
+> trigger · notifications over aether
 > (`world.forum.*` frames + the offline digest) · the latent
 > collection-watch abstraction · the subscription query/pagination model ·
 > root-entry shape (thread flag vs. distinct type; link-vs-text submission)
@@ -118,16 +117,12 @@ discard their content — it absorbs it as organizer modes):
   externally* (a bill's proposal Document tells the Subject when it's on the
   floor / passed); the forum substrate just exposes mint / light-up / archive
   for the governance layer to call.
-- **Chat surface** — the existing `Channel`, extended to carry a `subject`
-  ref, a **`retention`** policy (`'ring'` default, the ephemeral 200-buffer of
-  today; `'logged'` — every frame persisted to a `chat_log` collection), and a
-  **`procedure`** mode (`'free'` default; `'rules-of-order'` — a recognized-
-  speaker / motion-and-second discipline for digital deliberation). Ephemeral
-  subjects default chat to `logged` (so the synchronous floor debate is
-  captured complete and sealed into the archive) and may opt into
-  `rules-of-order`; standing high-volume chat stays `ring` / `free`. (Chat-
-  subsystem extensions, not new machinery; `procedure` is a parked surface
-  policy — design deferred.)
+- *Chat surface (`retention: 'logged'` + `chat_log`; the `procedure`
+  discipline) → moved verbatim to chat-slate § The channel config block ›
+  "Absorbed from forums-slate" (cluster pass; the channel config is
+  chat's). `Channel.subject` and the `procedure` flag shipped — chat.md
+  § Since forums cycle-1, forums.md § The four surfaces.*
+
 ### Subjects, surfaces & lifecycle
 
 The relationship between chat and forums **is** the Subject: a subject lights
@@ -225,16 +220,15 @@ live notifications, the CLI as inline lines.
   paged windows? (The argument-map's scale problems — dedup, summarization —
   bear on this.)
 
-- **Procedure mode (`rules-of-order`)** — the digital deliberation discipline
-  (recognized speaker, motion/second/amend). Parked: vocabulary + enforcement
-  TBD; default `free`.
+- *Procedure mode (`rules-of-order`) → moved to chat-slate § Open
+  questions Q7 (cluster pass).*
 - **Lifecycle trigger / governance seam** — the substrate exposes mint /
   light-up / archive; *who calls it.* Standing subjects lit manually (a verb);
   ephemeral subjects (bills) lit + archived by the legislative lifecycle (the
   cooperative build). Defining that API is in scope; wiring the governance
   caller is deferred.
-- **Chat-log bounds** — does a `logged` chat have any cap / pruning; can a
-  standing subject opt into `logged`; archived-log storage/retention.
+- *Chat-log bounds → moved to chat-slate § Open questions Q8 (cluster
+  pass).*
 - Subject addressing resolved: forums.md § The Subject layer (`title`
   flat-global for venues, `board/thread` for topics).
 - Vote shape resolved: `castVote` toggle; `ForumsLogic.castVote` refuses on
