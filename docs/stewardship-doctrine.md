@@ -117,7 +117,7 @@ It is not. Ask the archetype question of a dirty room and a spoiling fish:
 - Food spoils **because you caught/cooked it** — an act starts a *continuous*
   microbial process that integrates over world-time, slowed by cold/salt.
   **Archetype 2** (husbandry's clock, a new host). Designed:
-  [spoilage-design-pack](./slates/tails/spoilage-design-pack.md).
+  [spoilage.md](./subsystems/spoilage.md) (the design pack was absorbed into it).
 - A room gets dirty **because you live in it** — you cook and it greases, you
   track mud, you drop crumbs. That is **act-deposited**: it accrues from acts and
   **freezes in absence**, cleared by an act of care. **Archetype-1-shaped** (the
@@ -428,7 +428,7 @@ five packs.)**
 > nothing.**
 
 At least four packs in this family add **fields to existing Material seeds** —
-the spoilage-rate constant ([spoilage](./slates/tails/spoilage-design-pack.md)),
+the spoilage-rate constant ([spoilage](./subsystems/spoilage.md)),
 `takesPatina` ([patina](./slates/tails/patina-design-pack.md)), and mana
 density + conductivity ([mana economy](./slates/builds/mana-economy-design-pack.md)).
 On any world that has already booted, **those edits are silent no-ops.** The

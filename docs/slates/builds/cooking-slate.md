@@ -28,9 +28,9 @@
 > [spoilage.md § doneness / § staling](../../subsystems/spoilage.md)
 > **Size:** a build
 
-See also: [spoilage-design-pack](../tails/spoilage-design-pack.md) (⭐ **wave 0 of
+See also: [spoilage.md](../../subsystems/spoilage.md) (⭐ **wave 0 of
 this build** — the mixin, the honest microbiology, the interop, all settled
-there) · [preservation-slate](../tails/preservation-slate.md) (⚠ **the victualler's
+there; the design pack was absorbed into that doc) · [preservation-slate](../tails/preservation-slate.md) (⚠ **the victualler's
 territory — this build does not annex it**; its § *terms, not methods*
 is the completeness doctrine for the whole family: preservation methods
 DERIVE from the growth law's terms, the same move as Part 2 here) ·

@@ -32,7 +32,7 @@ about the drift, because nobody touched it. This collapses the hard
 "passivate stateful clones" problem entirely: there is no state to
 preserve, because we only cull what's already abandoned.
 
-See the seeding [residency-slate.md](../slates/tails/residency-slate.md).
+The seeding slate (`residency-slate.md`) was absorbed into this doc on 2026-09-20; this doc is the reference.
 (The requirements doc was retired at the pre-merge sweep; this doc is the
 record of what shipped.)
 
