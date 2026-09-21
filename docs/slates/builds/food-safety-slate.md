@@ -3,10 +3,10 @@
 > **Status: PARTIAL** — shipped 2026-09-04 (MR !244), living-world phase
 > 3 with it → [spoilage.md](../../subsystems/spoilage.md)
 > **Left:** molds (Part 10) — the second population's visible surface ·
-> rancidity's own small law (Part 10) · `f_pH` + the `Vat` collision it
-> inherits (Part 10) · the attach points nobody uses yet (hands on
-> `Creature` · irrigation contamination · the `trade-butchery` spin-out ·
-> a durative `cook`)
+> rancidity's own small law (Part 10) · the attach points nobody uses yet
+> (irrigation contamination · the `trade-butchery` spin-out · a durative
+> `cook`). *(`f_pH` + its `Vat` collision → preservation-slate; hands on
+> `Creature` → room-condition-design-pack — moved 2026-09-21.)*
 > **Size:** a build
 
 See also — the parents: [preservation-slate](../tails/preservation-slate.md)
@@ -78,10 +78,10 @@ rancid) is **not a microbial story** and the gauge says nothing about it."*
 Olive oil and rendered tallow now ship, so a consumer exists; it wants its
 own small law, not a term in this one.
 
-**Acidity (`f_pH`) is OUT** — the fourth lever, still absent, still a
-`FermentProfile` row plus a read when someone wants pickling. Naming it here
-so the term set stays visibly *closed*: after `f_pH`, any method a player
-names is checkable against the equation rather than needing design work.
+*(Acidity `f_pH` — OUT here, and owned by
+[preservation-slate](../tails/preservation-slate.md) § Terms, not methods:
+the fourth lever as a `MaturationProfile` row + one read, and the *term set
+stays closed* argument; its `Vat`-collision note moved there 2026-09-21.)*
 
 ---
 
@@ -100,13 +100,10 @@ each is a seam that now exists and has nobody using it yet.
 - **`ContagionSpec`** — deliberately untouched. Person-to-person is
   [disease-slate](../builds/disease-slate.md)'s, and Part 4's boundary is
   what keeps this build from drifting into it.
-- **Hands.** D3 names one and this build ships no host for it. The attach
-  point is `Creature`; the consumer is the disease build, which needs a
-  body-side carrier for transmission anyway. Composing it here would have
-  bought a *worse* game (every meal a hygiene chore) for no new mechanism.
-- **`f_pH`** — the fourth hurdle beside temperature, water activity and time.
-  A `FermentProfile` row plus one read. ⚠ Inherits the unresolved `Vat`
-  name collision.
+- **Hands** → [room-condition-design-pack](./room-condition-design-pack.md)
+  § Part 1 (`Soilable` on bodies; *Absorbed from food-safety-slate — Hands*).
+- **`f_pH`** → [preservation-slate](../tails/preservation-slate.md) § Terms,
+  not methods (*Absorbed from food-safety-slate — the `f_pH` attach point*).
 - **Irrigation contamination** — `ContaminableMixin` composes onto
   `WateringCan` the day somebody wants the field→gut path that real food
   safety spends most of its effort on.
