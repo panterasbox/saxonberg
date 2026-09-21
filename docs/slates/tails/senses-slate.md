@@ -11,7 +11,7 @@
 > local-field walk · the natural-empathy ESP organ on `BodyPlan`
 > (sentience-implies-telepathy — contradicted by what shipped, see the
 > ledger) + implant tiers / innate variation / independent jamming + the
-> deferred ESP channels · the verbal channel's language gate · per-species
+> deferred ESP channels · per-species
 > `hearingProfile` / `tactileProfile` / `gustatoryProfile` · organ-condition
 > modulation (vitals) · touch texture/hardness off Material + the
 > sub-modality fork · taste's consumables tie · the gestalt output now
@@ -329,7 +329,9 @@ in:**
 Shipped (`smell` / `listen` / `feel` / `taste`; `examine` is a `look`
 alias) → [senses.md](../../subsystems/senses.md) § Single-sense verbs, § Bare-verb upgrades. Aliases
 `sniff` / `lick` and `--peek` still land per content demand (§ What's NOT
-in this build).
+in this build); the `--peek` / `look <exit>` design is
+[distance-perception-slate § The four patterns](../tails/distance-perception-slate.md)
+(pattern 2, the bounded one-hop peek), not repeated here.
 
 ---
 
@@ -465,7 +467,11 @@ sense-appropriate verb) is a v2 polish; v1 keeps click = look.
     owns its render idiom; the gestalt composer dispatches per channel.*
 11. Q11 resolved: a family — `VerbalESPModality` + `EmotiveESPModality`
     — senses.md § Hybrid ESP framing (the language gate on the verbal
-    channel is still unbuilt — comms.md § Deferred).
+    channel is still unbuilt — comms.md § Deferred; its open design is
+    not this slate's: the implant half is
+    [comms-slate § Implant family](../tails/comms-slate.md) (*Language
+    still applies*, lean (ii)), comprehension itself is
+    [language-slate § Layer 5](../tails/language-slate.md)).
 12. **Emotes: telepathic-only or also physical?** *Resolved: telepathic-
     only.* The animal-doesn't-perceive-the-wave tension dissolves by
     universalizing the ESP organ across sentient creatures — animals,
