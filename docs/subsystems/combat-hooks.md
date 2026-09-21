@@ -341,6 +341,15 @@ The authorable `Species` face of the same grammar (see
   neutral reference mass at 150 kg, so the balance factors don't step;
   only the reach rank does). An ogre punches at ogre reach; a future
   body seeded past 150 kg changes combat feel *by design*.
+- **The contest band is derived from the body too** —
+  `NaturalAttack.difficultyFor(profile)` reads the difficulty of fighting
+  an animal off mass, reach and the natural-attack profile rather than an
+  authored tag, and that is the right default: a new animal is one row
+  with no tuning. What it cannot express is a species harder or easier
+  than its body implies (a thing that is *cunning*, a thing that is
+  *docile*) — an authored band the derivation would yield to, unbuilt.
+  ⚠ If it is built it must not become the ordinary path; the whole point
+  of deriving is the zero-tuning row.
 - **The non-mechanical delivery split** — `resolveInstrument`'s innate
   branch returns any `Channel`; `commitInflict` splits on it exactly as
   the weapon doctrine states: mechanical → today's `EnergyInflictSpec`

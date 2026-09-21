@@ -764,6 +764,23 @@ with it.
 needs the succession answer first. The mechanism is ready — `ageCurve` +
 `lifeStageAt` is general and extending it is authoring, not engineering.
 
+### ⚠ Two more authored-but-unconsumed `Species` fields
+
+Found by the consequence build's `lint:unconsumed-seams` census (MR!254,
+2026-09-10), alongside `lifespanMin`/`Max` above: `_parentCladePath` and
+`lifecycleStates` (plural) are both authored on every species row and
+both have live getters, but nothing outside `Species.ts` itself calls
+either. `SpeciesApi.getKingdom` derives an organism's kingdom by walking
+the *template path* instead of reading `getParentClade()`, which makes
+the field a fully redundant cross-reference today; `lifecycleStates`
+declares the valid-state set per species, but nothing validates
+`OrganismMixin.setLifecycleState()` against it — any string is accepted
+regardless of what a species' `lifecycleStates` says is legal. Neither
+is broken; both are declared and inert, same as the lifespan pair. Leave
+them — they are a seam for a later species-differentiation build to wire
+(validating transitions, or retiring the field if the path-walk stays
+the only source of truth), not something to quietly finish now.
+
 `OrganismMixin` is composed:
 
 - Via `Creature` — every Avatar is an Organism. ⚠ It used to sit between
