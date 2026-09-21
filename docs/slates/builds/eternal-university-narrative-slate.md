@@ -861,7 +861,7 @@ Only Fork 5 (names) stays open.
   share-or-hoard / accuse-or-wait / shield-or-expose choices generate
   deeds worth recording, but the *readout* is deferred
   ([chronicle.md](../../subsystems/chronicle.md),
-  [../deferred-rpg/alignment-religion-slate.md](./alignment-religion-slate.md)).
+  [alignment-slate.md](./alignment-slate.md)).
   Do **not** model rewards/advancement here — narrative, plot, setting,
   character only. However the player is rewarded, it must be justified by
   story + mechanics, and those mechanics aren't settled.

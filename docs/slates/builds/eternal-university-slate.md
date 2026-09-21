@@ -193,7 +193,7 @@ implant-update on the onboarding journey — see
 [onboarding-slate.md](../builds/onboarding-slate.md)); and the **Chapel** is
 the **Mission clergy's residue** — keepers of the old worship faded to
 echoes (religion model: the bible + the
-[alignment-religion slate](./alignment-religion-slate.md)).
+[alignment slate](./alignment-slate.md)).
 
 ---
 
