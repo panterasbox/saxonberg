@@ -41,12 +41,16 @@ NPC carries it). Pure CRUD; all per-realm intelligence lives in consumers.
 - Storage: `Map<string, BeliefRecord>` keyed `` `${realm}:${referent}` ``.
 - Realms are string conventions, not a registry: `RECOGNITION`,
   `IDENTIFICATION`, `REGARD`, `DISCOVERY` exported consts.
-- **Keyed on `referent.getTemplatePath()`**, never `stuffId` — `stuffId`
-  is reboot-ephemeral and would imply the viewer "knows which runtime
-  Stuff"; `templatePath` is durable and the engine always has it. The
-  instance/type split falls out for free: a unique `templatePath`
-  (avatars, singleton NPCs) is a recognition referent; a shared one
-  (generic clones) is a type referent.
+- **Keyed on `referent.getIdentityPath()`**, never `stuffId` or a bare
+  `templatePath` — `stuffId` is reboot-ephemeral and would imply the
+  viewer "knows which runtime Stuff"; every player `Avatar` shares one
+  `templatePath` (D17 stamps lineage and identity separately), so keying
+  recognition on it would collapse every player into one shared record.
+  `getIdentityPath()` is durable and falls back to the template path for
+  anything with no minted identity, so the instance/type split still
+  falls out for free: a minted identity (avatars, singleton NPCs) is a
+  recognition referent; a shared template path (generic clones) is a
+  type referent.
 - Surface: `know(realm, referent, update?)` (coalescing upsert — only ever
   *raises* a name, never downgrades to null), `recall(realm, referent)`
   (O(1) point-get), `recallRealm(realm)`, `forget`, `forgetField`,
@@ -417,8 +421,10 @@ holds; sequential single-viewer commands keep the race benign).
 - **Place-memory** — the *feature-discovery* cut shipped as the `DISCOVERY`
   realm (above); *room-familiarity* place-memory is still a future realm,
   alongside the shipped recognition / identification / regard / discovery
-  set. Social-graph crowd verbosity,
-  player-set **nicknames**, memory **decay**, voice/scent recognition, MQL
+  set. (Crowd verbosity — density-aware, similarity-grouped occupant
+  collapsing — shipped instead as `composeOccupants` +
+  [social-graph.md § Display lensing](./social-graph.md#display-lensing--the-per-viewer-occupant-block).)
+  Player-set **nicknames**, memory **decay**, voice/scent recognition, MQL
   compound feature-handles (`talk to tall-stranger`).
 
 > **Stale doc to correct (perception.md):** the `RecognitionShadow`
