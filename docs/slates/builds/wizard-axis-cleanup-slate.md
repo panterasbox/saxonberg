@@ -1,12 +1,19 @@
 # The wizard-axis cleanup — one credential, one meaning (slate)
 
 > **Status: UNBUILT** — the leaks named on 2026-09-03 are all still in
-> the tree (`LeaseController.ts:151`, `ProvisionController.ts:208`,
-> `MagicLogic` execScript); no `lint:wizard-axis` in the lint family.
-> **Left:** W0 `lint:wizard-axis` allowlist · W1 the four lease/provision
-> `isWizard` bypasses + the `execScript` verdict · W2 the code-door folds
+> the tree; no `lint:wizard-axis` in the lint family; no tier tag on any
+> setting key. Re-verified 2026-09-19: the two controllers' `isWizard`
+> bypasses were deleted (`34cd4be5d`) and re-homed as the leading
+> short-circuit in `AccessLogic.isAgentOf` (`AccessLogic.ts:147`, whose
+> comment defers to this slate); the four lease/provision views still
+> carry `requiresWizard`; `MagicLogic.execScript` (`:2090`) and
+> `practice.yaml` still ship.
+> **Left:** W0 `lint:wizard-axis` allowlist · W1 the `isAgentOf` wizard
+> short-circuit + the four lease/provision views' `requiresWizard` + the
+> `execScript` verdict + the `practice` verdict · W2 the code-door folds
 > (reload/git/cms/studio/Template/Document) · W3 `AppSettingKeys` B/C
-> tier tags + Tier C routed to an office · W4 the reads/reveals
+> tier tags + Tier C routed to an office + the tier-totality check · W4
+> the reads/reveals
 > **Size:** a build
 
 > Written 2026-09-03, out of MR !231 (cooking), where a live drive

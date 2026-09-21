@@ -42,11 +42,27 @@ so the coupled flows stay honest; the per-slice order is fixed:
    `thermalMultiplier()` (now lit by the thermal build: `Q10 ^ ((core −
    reference)/10)` off the driven `coreTemperature` — ≈1 for an endotherm
    pinned at setpoint, swings for an ectotherm whose core floats; dials in
-   `METABOLIC_DEFAULTS`). See [thermal.md](./thermal.md).
+   `METABOLIC_DEFAULTS`). See [thermal.md](./thermal.md). Mass-scaling
+   is **flat** (`mass / referenceMass`, linear) — not Kleiber's
+   `mass^0.75` — the defensible-default shape picked over the exact
+   allometric exponent until play shows otherwise.
 3. **Coupled recovery** — spend both tanks to rebuild endurance (at rest).
 4. **Burden clearance** — toxin burdens fall at their clearance rate.
 
 After the slices, `reconcileCascade()` runs once over the final state.
+
+### Drinking restores plasma volume, not red cells
+
+A body that has lost a lot of blood and taken on water has its volume
+back and its oxygen-carrying capacity still gone — dilutional anaemia. So
+hydration's plasma restore (`Metabolic.restorePlasma`,
+`PLASMA_RESTORE_HYDRATION_PCT` / `PLASMA_RESTORE_L_PER_HOUR`) climbs only
+to a **fraction** of the species baseline, never baseline. ⚠ That the
+ceiling sits below 1.0 is a **shape** decision, not tuning: at baseline
+the world could replace blood by drinking and waiting, which deletes the
+premise of the blood build (transfusion as the only route back to whole).
+Raising it is arguing that. (Consequence build D21; graduated from the
+blood slate, 2026-09.)
 
 ## The digestion buffer
 
@@ -102,6 +118,18 @@ recovery as it falls. This is *why* recovery lives in metabolism, not
 encumbrance: encumbrance spikes are discrete event-drains; metabolism is
 the continuous basal + recovery layer. **They layer on the one `endurance`
 reserve — the encumbrance build is unchanged.**
+
+⭐ **Generalized from one consumer to N** — `coupledConsumers()` is a
+`@hook` other systems `super`-append to, not a fixed formula.
+Magic-items made `mana` the **second** consumer (D10), closing a live
+first-law hole (mana used to refill from nothing). Fuel is drawn in
+**list order — body before gift**, never pro-rata, so a caster never
+recovers endurance *slower* than a non-caster for having a gift nobody
+asked for. With nothing appended, the single-consumer (`endurance`-only)
+behavior is preserved exactly. This is also why **magic ingestion needs
+no separate pathway**: a mana draught is ordinary carbohydrate + water
+that feeds this same keystone. See
+[magic-items.md § Mana recovery spends satiation and hydration](./magic-items.md).
 
 `restQuality` is a field on **`PosturedMixin`** (the posture-bearing host),
 default 1.0 — a bedroll authors ~1.3×, a four-poster ~2.5×. It is **not on
@@ -352,6 +380,15 @@ condition clears on the next reconcile. It is the minimal consumer of the
 vitals `ResolutionSpec` treatment seam (the toxin conditions author
 `resolution.by`); no treatment verb is required by this build.
 
+## Deliberately not modeled
+
+**Waste** (defecation/urination as a tracked reserve) is not a mechanic
+and will not become one — it is the purest survival-tedium trap and
+nothing in the engine reads it. Food mass is consumed *into the
+abstraction*: it becomes satiation/hydration and leaves the model; it
+never tracks as body mass. Privies are diegetic **content** (a place, a
+prop), never a system.
+
 ## Units
 
 `lib/quantity.ts` gained `mg` (sub-gram mass; `mg ↔ g` converter — toxin /
@@ -359,6 +396,25 @@ nutrient amounts + absorbed-dose math) and `g/dL` (blood-alcohol
 concentration), which carries the `'bac'` drunk-ladder scale (registered
 in-file after the class). Energy reserves stay `%`; `kcal` is deferred.
 See [quantities.md](./quantities.md).
+
+## The slow stocks (nutrition-and-fitness W0)
+
+Five more biological reserves ride the slice, steps 6–9 after
+`partitionFlesh`: `lean` (muscle — exact-exponential relaxation toward
+its seed over `body.leanDetrainDays`, catabolised while satiation sits at
+the deficit line; the GAIN is `ExertingMixin`'s), `wind` and
+`alcohol-tolerance` (half-life decay, `body.windHalfLifeDays` /
+`body.toleranceHalfLifeDays`; tolerance is fed in `absorbToxin` for
+alcohol), `vitamin-c` (linear drain, full to empty over
+`body.vitaminCDrainDays`; floor effect `scurvy` off the shipped cascade)
+and `protein` (now a real reserve the `protein` tag fills — the route
+table's `reserve` is an open string — with a basal turnover). Each step
+is a no-op on a host lacking its reserve, and each rides THIS clock, so
+the linkdead freeze and the far-past guard make *never tax absence* true
+for all of them for free. Every rate is a per-read `dial()` under
+`body.*` (`platform/content/settings/body.yaml`); `METABOLIC_DEFAULTS`
+is untouched. ⚠ `Vitals.getConditionBand` counts a floored reserve only
+when it HAS a `floorEffect` — `wind` and tolerance are seeded empty.
 
 ## Inert seams (wired, no driver here)
 

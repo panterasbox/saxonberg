@@ -19,3 +19,12 @@ data:
   banksAt: goodkin
   operatingLocations:
     - /world/terminus/market/bakery
+    # ⚠⚠ The COUNTER, too. A sale settles against the business that
+    # operates the STOCK's own path (`BuyController.settleSale` →
+    # `ensureOperatorAt(stock.getTemplatePath())`) — the general store
+    # and the market stalls both list their counter here — and with only
+    # the room listed, every `buy loaf` at this bakery answered
+    # "insufficient-funds" whatever the buyer held. Nobody had ever bought
+    # a loaf: the grain-chain drive accepted "it sells OR it says why".
+    # Found by the nutrition-and-fitness drive.
+    - /world/terminus/market/thing/bread-counter

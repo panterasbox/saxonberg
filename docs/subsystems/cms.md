@@ -17,9 +17,10 @@ boundary* below.
 
 ## Shape at a glance
 
-- **Surface** — a route of the existing client SPA (`?surface=cms`), opened
-  in its **own browser tab** sharing the one express-session. It is
-  **REST-only**: the CMS tab opens **no WebSocket**.
+- **Surface** — three CARDS (`cms` · `git` · `studio`) in the play
+  client's one feed, each opened by its verb in `build` mode (see *§ The
+  CMS is a CARD*; the `?surface=cms` second tab is gone). CMS data is
+  **REST-only**: no CMS WebSocket message exists.
 - **Transport** — REST for CMS data (reusing express-session); every
   request pays the **session→`runRoot` attribution bridge** so the op is
   attributed to the acting player. No GraphQL.
@@ -113,7 +114,7 @@ escapes stay the existing `SourceTreeSandboxError`.
 
 ## REST data API + the WS split
 
-Five routes, mounted by `CmsRoutes.setup(app)` in `Server.setupRoutes()`
+Six routes, mounted by `CmsRoutes.setup(app)` in `Server.setupRoutes()`
 after the session/passport middleware and before the SPA catch-all:
 
 ```
@@ -122,6 +123,7 @@ GET  /api/cms/read?backend=&path=   → CmsApi.read
 GET  /api/cms/stat?backend=&path=   → CmsApi.stat
 POST /api/cms/write                 → CmsApi.write   (CSRF-protected)
 GET  /api/cms/csrf                  → mint a double-submit token
+GET  /api/cms/diagnostics           → DiagnosticApi.list  (diagnostics.md § Reader B)
 ```
 
 Each route binds **1:1 to a gated `CmsApi` op through the bridge**. **No
@@ -220,12 +222,12 @@ path*:
 
 ## Client surface
 
-The CMS opens as its own tab (`?surface=cms`), a full-screen takeover
-bypassing the cockpit and the connection-phase switch, opening **no
-WebSocket**. A launcher in the account menu (visible only when
-`auth.isWizard`) opens it.
+The CMS opens as the `cms` card in the `build` cockpit mode (see *§ The
+CMS is a CARD*; the `?surface=cms` full-screen tab is gone). The account
+menu's launcher (visible only when `auth.isWizard`) sends `cockpit mode
+build` over the game socket — command-bus primacy, not a takeover tab.
 
-- **Explorer** (`CmsExplorer` + `CmsTreeNode`) — two fixed roots; folders
+- **Explorer** (`CmsExplorer` + `CmsTreeNode`) — three fixed roots; folders
   lazy-expand via `listTree` (children cached per node); leaves open via
   `read`. Themed via `tokens`.
 - **Editor** (`CmsEditor` + `MonacoLazy` → `MonacoInner`) — Monaco wrapped
@@ -245,24 +247,30 @@ WebSocket**. A launcher in the account menu (visible only when
 
 What this build does **not** do, and where it lands:
 
-- **Lease-scoped trees, group-managed content, the holodeck, op-log
+- **Lease-scoped trees, group-managed content, op-log
   (`domain_history`) template versioning** → the access slate
-  ([access-slate.md](../slates/tails/access-slate.md)). This build gates on
-  the current `AccessApi` (dev-tier) and writes HEAD directly — **no
+  ([access-slate.md](../slates/tails/access-slate.md)). Since then the
+  per-path parcel-title gate + the pruned listing shipped (*§ Gating*) and
+  the holodeck shipped as the sandbox door (*§ "Test in holodeck"*,
+  [sandbox.md](./sandbox.md)); the CMS still writes HEAD directly — **no
   history**. The eventual group-managed exemplar is the lounge / EU.
 - **Engine-typed IntelliSense, the LSP, the VS Code extension** → the
   authoring-intelligence slate
   ([authoring-intelligence-slate.md](../slates/builds/authoring-intelligence-slate.md)).
   Monaco ships with stock language support only.
 - **Content editors** (schema-driven room/zone forms) → Wave 3 of the slate.
+  The *generic* schema-driven form, the widget registry and the
+  reference-picker shipped as the Studio ([studio.md](./studio.md)); the
+  per-type room / zone editors and the zone map remain.
 - **The law==code / forums-review publish gate** — change-centric review
   riding the forums argument-map ([forums.md](forums.md); see the slate's
   *The review gate* section) → a later wave; it gates *publish*, which
   presupposes a changeset model not built here.
 - **Drafts / staging / changeset overlay + atomic publish** → later (depends
   on the versioning/changeset model).
-- **Git** → deferred entirely; GitLab becomes a future *runtime* integration,
-  not the authoring workflow (the source-agnostic review model is the VCS
+- **Git** → shipped as the in-runtime VCS ([git-workflow.md](./git-workflow.md)):
+  snapshot-and-push from the box's own working tree, never
+  clone→edit→push (the source-agnostic review model remains the VCS
   spine).
 - **Anon read-only** → deferred, and now harder than a flag flip: reads are
   author-gated on the context-derived actor, so an anon reader has no actor

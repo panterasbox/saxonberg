@@ -4941,7 +4941,111 @@ delete"* from their caller counts, **5 actually were**. The bodies
 overruled the dispositions almost every time, and the remainder resolved
 into categories rather than into one rule — record finders on `Document`
 subclasses, pure value arithmetic, type predicates over a closed
-same-file string union, and factories. See the slate for the ladder.
+same-file string union, and factories. The ladder (graduated from the
+value-object-statics slate, 2026-09):
+
+### The ladder, first match wins
+
+| # | test | disposition | count |
+|---|---|---|---|
+| 0 | **Reached reflectively by the framework?** | stays; not surface, not movable — the mixin-side `@hook` | 1 counted (fixed) |
+| 1 | **Type-level?** — construction, a guard over its own closed vocabulary, a lookup of it | **stays on the value class**, visible as `value-static` | ~165 |
+| 2 | world-level, **0 callers at all** | `private static` | **27** ✅ |
+| 2b | world-level, **test-only callers** | `@internal` — *only where that claim is true* | **4** ✅ |
+| 3/4 | has a production caller | move onto it, or to the owning system's Api | **464** |
+
+⚠⚠ **Those counts are the CORRECTED ones. The first pass said 153 / 285 /
+126 and every figure was wrong in the unsafe direction**, for one reason:
+
+> ⭐⭐⭐ **Statics are INHERITED, so call sites use the SUBCLASS name.**
+> `Document.findById` is called as `User.findById(…)` — a grep for
+> `Document.findById(` finds nothing and concludes it is dead. `tsc`
+> caught it after 60 statics had already been privatised.
+
+Recount by matching `.<method>(` on **any** receiver — which over-counts
+callers, and therefore errs toward leaving things public.
+
+⚠ **Rung 0 is not optional and nearly bit.** `Warren.cleanupOnDestruct`
+looked like a dead static with no callers. It is found by `StuffApi` with
+`hasOwnProperty.call(mixinCtor, 'cleanupOnDestruct')` — making it private
+would have silently broken destruct cleanup. **Before anything is made
+private, grep for its name as a string.** The full reflective set is
+`fieldMeta · subscribableFields · markupAugmenters · cleanupOnDestruct ·
+captureSlice · restoreSlice · settings`.
+
+### ⚠ What the ladder actually yielded
+
+> ⭐⭐ **"Only tests call it" is not "internal".** Most of the 61 test-only
+> statics are constructors and vocabulary guards — `Quantity.fromTag`,
+> `Blessing.uncursed`, `Resists.isAxis`. `@internal` is a **claim that
+> nobody should call this**; making it about a type's own constructor
+> because today's callers happen to be tests asserts something false and
+> hides real surface behind a tag nobody will re-question. Zero production
+> callers is a fact about today, not about what the type offers.
+
+And ⭐ **an unused factory is not an unwanted one** — six statics were
+privatised and then reverted because rung 1 (is it type-level?) was
+applied *after* rung 2 instead of before. Run the ladder in order.
+
+### ⭐⭐⭐ Therefore: not one of the 18 "homeless" subsystems needs an Api
+
+⭐ *A doc naming an Api is not evidence the Api is needed* — four of those
+five would have been minted on that evidence alone.
+
+*Held, and executed — no new Api was minted by the sweep; `trait.md` no longer names a `TraitApi` (the Api OO sweep retired it, `trait.md:12`). The one exception it predicted (`Lock` → `BoundaryApi`) shipped as `BoundaryApi.mintKeyway`.*
+
+# ⭐⭐⭐ Rung 4, and what the sweep turned out to be measuring
+
+Rung 4 was sized at 136 statics needing an Api. **It is 79.** Getting
+there found three shapes that **cannot** move, and each was found by
+almost breaking something.
+
+### The three irreducible shapes
+
+| shape | why it cannot move | found by |
+|---|---|---|
+| **type-predicate narrowing** — `MixinApi.isX(o): o is Stuff & X` | a TS type predicate must NAME its type, so the narrowing that makes it worth having is exactly what forbids a generic. 156 of them. | reading `MixinApi`'s 175 |
+| **framework-reflective contract** — `cleanupOnDestruct`, `fieldMeta`, `captureSlice` | reached by `hasOwnProperty`, never imported. Looks dead to every grep. | `Warren.cleanupOnDestruct` nearly made `private` |
+| ⭐ **polymorphic `this`** — `Document.find<T>(this: DocumentConstructor & {new(): T})` | `User.find()` returns `User[]` because `this` carries the subclass. An Api static cannot know the subclass without being handed the constructor — which `this` is already doing. | `tsc`, after 60 statics were wrongly privatised |
+
+### ⭐⭐ And a fourth: a record class's finders belong to the record class
+
+**71 of the remaining 464 statics are ActiveRecord finders on `Document`
+subclasses** — `Template`, `StoredDocument`, `ChattelRecord`,
+`ParcelRecord`, `AccountBalance`, `SupplyAggregate`, `RenownStanding`,
+`DescriptorBank` — covering **523 caller files**.
+
+They are not the antipattern. `TemplateApi`'s own docstring already
+records the split as deliberate: *"Templates themselves are modelled as
+`Template extends Document` — the standard CRUD surface lives there,
+alongside the `findByPath` and `findDescendants` helpers. This Api class
+layers on…"*. And `Template.findByPath` exists **precisely because**
+`Document.find`'s polymorphic `this` cannot serve an abstract base — it is
+the documented workaround for the irreducible shape above.
+
+⭐ Under the governing test — *would a reader look for it here?* — you look
+for **how do I find a Template** on `Template`. Moving these would scatter
+record materialization away from the record, contradict a documented
+decision, and rewrite ~500 call sites for nothing an author can see.
+
+⭐ **`Mml`'s 41 statics were invisible** because `isApiClass` keyed on the
+class *name* ending in `Api`; `Mml` is decorated like every other face and
+is among the most-called author surface in the tree, but is not spelled
+`MmlApi`. The rule is now *where the class is declared* (a top-level
+`api/<feature>.ts`), with the sealed subdirs excluded. *A convention
+enforced by spelling is a convention with a hole in it.*
+
+⭐ **The three rules that emerged, and they are not optional:** (1)
+`private` requires ZERO callers outside the declaring file — one external
+caller means `@internal`; (2) a "0-caller" row is a `private`/`@internal`
+decision, never a deletion; (3) inlining that *exports* a private helper
+fails the rule — it trades one static for a wider surface. **The pattern
+that resolved most bodies: the Api gets the DOOR, the body stays with its
+privates** — the `lib/` static becomes `@internal` *because* there is now
+somewhere visible to call. And not every invisible callable wants a door:
+`Construction.registerFabric` stays `@internal` with none, because its two
+callers are the textile subsystem populating its own vocabulary at boot,
+and a door would advertise a boot seam as author surface.
 
 ⚠ Two traps when fixing one:
 

@@ -1,11 +1,20 @@
 # Land-use covenant slate — what the land allows to be done ON it
 
-> **Status: UNBUILT** — nothing exists; `ParcelRecord.landUse` (the
-> closed six) is the nearest shipped thing and it restricts *what a
-> parcel is for*, not *by what means*.
-> **Left:** the covenant row on the title · the `epoch` stamp on
-> instrument rows · the one breach producer at the binder · the
-> designation tier (polity-imposed, via legal-code) · the vehicle/act
+> **Status: PARTIAL** — the covenant, its predicate and the breach
+> producer do not exist (verified 2026-09-19: no `covenant` field or
+> row; `AccountabilityKind` is still the four); `ParcelRecord.landUse`
+> (the closed six) restricts *what a parcel is for*, not *by what means*.
+> The cheap half's substrate shipped with forestry: `Epoch` is a closed
+> ordinal vocabulary (`lib/craft/Epoch.ts`), `ToolMixin.epoch` is an
+> authorable stamp ([forestry.md](../../subsystems/forestry.md) § What
+> this build does not do), the axe and billhook say `medieval` and
+> nothing reads it yet; `lint:instrument-args` is merged and at zero
+> ([lint-family.md](../../lint-family.md)). Only forestry's two rows are
+> stamped — mining and the grain chain still owe theirs.
+> **Left:** the covenant row on the title · the `epoch` stamp on every
+> other trade's instrument rows + the act's declared `kind` · the one
+> breach producer at the binder (a fifth `AccountabilityKind`) · the
+> designation tier (polity-imposed, via legal-code) · the vehicle/act/time
 > forms of the same predicate · the suppression twin, kept separate
 > **Size:** a build — ⭐ **the seam the RGO-unification build hangs on**
 

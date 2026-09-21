@@ -1,12 +1,18 @@
 # Cosmetics slate — giving appearance an input, so its scarcity is grown rather than declared
 
-> **Status: PARTIAL** — the dye chain (dyestuff × mordant, fastness,
-> overdyeing as arithmetic) shipped with textiles →
-> [textiles.md](../../subsystems/textiles.md)
-> **Left:** the appearance-mark carrier on a body (the `Looks` cell) ·
-> the personal-services vocation + graded cuts · tattoos · the dye-plant
-> crop rows
-> **Size:** a build
+> **Status: PARTIAL** — the dye chain (dyestuff × mordant × fibre,
+> fastness, overdyeing as arithmetic, the dye-plant crops) shipped with
+> textiles → [textiles.md](../../subsystems/textiles.md); cosmetics is
+> now the second customer it was designed to be
+> **Left:** the appearance-mark carrier on a body (the `Looks` cell — a
+> cut, a dye job and a tattoo share it) · the personal-services vocation
+> + graded cuts · hair dye as the dye chain's second customer · tattoos
+> · what is changeable and what is not (eye colour never) · ⭐ **beauty**
+> (§ below, 2026-09-18): the canon document, the body-impression
+> augmenter (nutrition-and-fitness's `Character` body line is the attach
+> point), the viewer-side regard delta — *no face, consequences yes*
+> **Size:** a wave — rides lineage phase 1's appearance substrate; the
+> chain it needed has shipped
 
 **Captured 2026-08-25**, out of the [lineage](./lineage-slate.md)
 phase-1 card discussion. Char-gen settled that **appearance is inherited
@@ -25,8 +31,6 @@ And the framing that this slate exists to serve:
 > into the hundreds of billions of dollars; of course someone will see
 > cosmetics in Saxonberg and see dollar signs. **The platform has no
 > opinion on this.**"**
-
-> **Status: design conversation, captured. Not requirements.**
 
 Related: [lineage-slate](./lineage-slate.md) (the char-gen decision this
 serves), [trade-roster-slate](../tails/trade-roster-slate.md) (the `textiles` /
@@ -88,60 +92,19 @@ demand.
 grow  →  extract  →  mordant  →  apply
 ```
 
-| step | Discipline | status |
-|---|---|---|
-| **grow** the dye plant | `horticulture` / `agriculture` | ✅ both ship |
-| **extract** the pigment | `apothecary` *(or a dedicated `dyeing`)* | ⭐ gap — already on the roster's list |
-| **mordant** — decide what colour it becomes | knowledge, same Discipline | ⭐ gap |
-| **apply** to hair / skin | `personal-services` | ✅ ships |
-| **apply** to cloth / leather | `textiles` / `leatherwork` | ⭐ gaps — already on the roster's list |
-
-**Every gap here is a Discipline the roster already demanded**, which is
-the test that says this is a real chain and not an invented one.
-
-## Substrate it rides, all shipped
-
-- **Pigment is a liquid** ⇒ `Material` + `Bulkable`
-  ([bulk.md](../../subsystems/bulk.md)). The `obj/material/bulk/*`
-  namespace already holds `water`, `coffee`, `salt-water`, `compost`;
-  a dye bath is the same shape.
-- **Dye plants are crops** ⇒ `GrowingMixin` / `CultivableMixin`
-  ([husbandry.md](../../subsystems/husbandry.md),
-  [smallholding.md](../../subsystems/smallholding.md)). ⚠ The crop
-  roster is currently **one row** (`carrot`), so these are new content —
-  but new content on finished machinery.
-- **The dyeing act is a craft** ⇒ Recipe docs + craft-resolve
-  ([crafting.md](../../subsystems/crafting.md)).
-- **Selling it** ⇒ `PricedOffer` / Stock / consignment
-  ([retail.md](../../subsystems/retail.md)).
+*The cloth half shipped → [textiles.md § The chain, as it
+ships](../../subsystems/textiles.md): `dyeing` is its own Discipline
+(not `apothecary`), the dye plants are `trade-farming` crops, the bath
+is a `DyeVat` / `WoadVat`, `mordant` then `dye` are the verbs. The
+**apply to hair / skin** step is the carrier below.*
 
 ---
 
 # ⭐⭐⭐ The mordant — why this is a trade and not a vending machine
 
-The detail that carries the whole design:
-
-> **The same plant yields different colours depending on what you mordant
-> with.** Alum, iron, tannin — one dyestuff, several outcomes.
-
-That is real, it is teachable, and it means:
-
-- **The colour space is DERIVED, not authored.** You do not pick from a
-  palette; you get `f(dyestuff, mordant, fibre)`. Exactly the move
-  [materials](../../subsystems/materials-response.md) already makes —
-  *materials are a closed set; blends derive* — and the same shape as
-  `response = f(mechanism, material, construction)`.
-- **There is knowledge to have**, so the practitioner is not a kiosk.
-  Knowing that iron saddens a colour and alum brightens it is a fact
-  about the world you can learn, be taught, or get wrong.
-- ⭐ **Scarcity becomes structural.** A colour is rare because its
-  dyestuff is hard to grow or its mordant is hard to get — not because a
-  designer priced it high. That is the whole point of the slate.
-
-⭐ It is also the invented-but-honest register
-[arcane-science.md](../../arcane-science.md) sets for magic, applied to
-something entirely mundane: **one small set of real rules, consistently
-applied, generating a large outcome space.**
+*Shipped — the colour is `f(dyestuff, mordant, fibre)` and never a
+palette; four independent entries per dye because the metal ion is part
+of the chromophore → textiles.md § Dye, wash and fade.*
 
 ---
 
@@ -272,23 +235,19 @@ the one appearance axis that could be *acted on*. It must still never be
 
 # Open questions
 
-1. **Is `apothecary` the extraction Discipline, or does dyeing get its
-   own?** `apothecary` is already a demanded gap and the chemistry
-   overlaps; a dedicated `dyeing` is cleaner but adds a row nobody else
-   needs. *Leans `apothecary` with a `specializes` link, the pattern
-   `midwifery: specializes medicine` already uses.*
-2. **How many dyestuffs and mordants?** The outcome space is
-   multiplicative, so a handful of each is a large palette. ⚠ The risk
-   is the opposite of scarcity — three dyestuffs × four mordants is
-   twelve colours before anyone plants anything unusual.
-3. **Does fibre participate?** Real dyeing behaves differently on wool
-   vs linen, which would make `f(dyestuff, mordant, fibre)` genuinely
-   three-dimensional — and make hair a *fibre*, which is either elegant
-   or a joke that wears out.
-4. **Does a colour fade?** A dye job with a duration is a repeat
-   customer and a real reason for the trade to persist; a permanent one
-   is a single sale. ⚠ It also decides whether `Looks` drifts back
-   toward the inherited value, which touches the lineage card.
+1. *Resolved — `dyeing` got its own Discipline
+   (`trade-dyeing/content/trade/dyeing/idea/Discipline/dyeing.yaml`);
+   there is no `apothecary` Discipline.*
+2. *Resolved for cloth — two mordant dyes × four mordants plus woad as
+   the vat-dye exception → textiles.md § Dye, wash and fade. Hair rides
+   the same dyestuffs.*
+3. *Resolved — yes: cellulose needs a tannin pre-mordant, protein takes
+   alum directly → textiles.md § Dye, wash and fade. Hair is keratin,
+   i.e. wool's chemistry; whether the carrier models it as a fibre is
+   its call.*
+4. *Resolved for cloth — colour fades per wash in proportion to
+   `1 − fastness` → textiles.md § Dye, wash and fade. Whether `Looks`
+   drifts back toward the inherited value is the carrier's (see 7).*
 5. **Tattoos: same chain or a different one?** Ink is pigment, but
    permanence, skill and the social meaning are all different. Possibly
    its own thing riding the same pigment supply.
@@ -309,8 +268,168 @@ the one appearance axis that could be *acted on*. It must still never be
    case, and mirrors are a real constraint. *Leans: same derive, with
    the self-application as a penalty input rather than a hard cap —
    nothing here should be a rule where a modifier will do.*
-9. **Where does the first content land?** Terminus has a `tailor`
-   rostered and 52 built rooms; the dye plants want
-   [smallholding](../../subsystems/smallholding.md) ground, which is
-   Hinkley Hills. That is a two-locality chain, which is the honest
-   shape but not the cheapest first pack.
+9. *Resolved for the dye chain — the mill and dyehouse at Wharfside, the
+   dye plants at Hinkley Hills, the tailor off Mayfield Row → textiles.md
+   § Siting. Where the first personal-services content lands is open.*
+
+---
+
+## ⭐⭐ Beauty — the anti-gauge on the body, and one honest answer to charisma (2026-09-18)
+
+Came out of the nutrition & fitness planning: *"surprised we've come all
+this way and never really talked about beauty as an abstractable
+concept."* The reason is in [lineage](./lineage-slate.md): **appearance
+is not modelled anywhere** — there was nothing to be beautiful. This
+section decides the abstraction before the `Looks` cell lands, so the
+cell is built for it. Two forks were put to the user and both are
+closed: **consequences, yes; a face, no.**
+
+### The doctrine already decides the shape
+
+Three rules, none written about beauty, converge on one architecture:
+
+- [measurement.md](../../measurement.md): *the engine measures · the
+  subject values · the polity imposes.* "Beautiful" is a valuation. It
+  is **never a field on a body.**
+- [belief.md](../../subsystems/belief.md) § Regard: a per-viewer,
+  per-subject attitude scalar living **on the viewer**, sealed — and its
+  own doc says regard is *"the per-viewer leg D&D charisma unbundles
+  into (regard + renown + susceptibility)."* Attired already renders an
+  *impression* of a worn stack, seeded per (host, viewer).
+- The species-allegory rule ([species-expansion](../tails/species-expansion-slate.md)):
+  *model a group prejudice as viewer-side bias, never a species stat;
+  the stereotype lives as projection, false-as-a-law.* A beauty standard
+  is exactly that shape.
+
+So beauty is three things, and none is new in kind:
+
+> **FACTS on the body · a CANON in the culture · an IMPRESSION and a
+> REGARD on the viewer.**
+
+### What the body honestly has — and what it does not
+
+The facts a canon may read are all measured things, and most of them
+are shipping or slated: species and age stage · the **`Looks` cell**
+(eye · hair · skin — inherited, and eye colour the one thing nobody can
+dye) · the **build line** (flesh × lean — the mirror the nutrition
+build holds up) · **condition** (emaciation, the harm model's scars, a
+caustic burn) · **cleanliness** (soap) · **attire and its fit** (two
+numbers and a stamp: a coat cut to a body you no longer have *reads*) ·
+**grooming** (the barber; this slate's graded cuts).
+
+⭐⭐ **There is no face.** No feature geometry, no symmetry, no
+`comely:` on a species row, no `features` fact in the `Looks` cell.
+Decided by measurement honesty: what the world calls attractiveness is
+overwhelmingly health signals, grooming, dress, bearing and culture; the
+residue — the face itself — is the part no honest engine can rank, and
+a number for it would be a lie with a decimal point. **"Handsome" can
+only ever be asserted by a viewer.** That makes beauty *contestable*,
+which is the best property it could have: nobody can prove you
+beautiful; they can only regard you. ⚠ The `Looks` cell stays three
+inherited facts. A future ask for a fourth is this section's veto.
+
+### The canon — content, and where the lesson lives
+
+A **canon** is a document: *this culture reads these facts this way* —
+a weighting of body facts into a described vocabulary in the culture's
+register. Authored per culture, locality or species; **never a
+universal table.** The same body is *"well-fed and fair"* in a famine
+valley and *"soft"* in a mining camp; `lean: hard` is *"hard"* to the
+stevedores and *"coarse"* to the counting-house. Rubens and the runway
+are one mechanism with different weights — lens 5: the dynamics change,
+the mechanism does not — and that is the teachable thing: **beauty
+standards are local and historical, and the game can show two side by
+side.**
+
+The canon is also where an **allegory** lives without reproducing the
+bigotry: a species' "ugliness" is a *canon's* verdict — projected,
+false-as-a-law, refuted by whoever looks through a different one. The
+essentialism trap is closed by construction, because there is no
+species fact for it to be true of.
+
+The **impression** is the anti-gauge, the same move as taste in the
+cooking slate: a *described* reading in the canon's register, never a
+score — a body-impression augmenter beside Attired's, in `look`, seeded
+per (host, viewer). Mechanism: one `MarkupAugmenter` and a document
+kind that already has siblings (a canon is content in the same sense
+an archetype or a name bank is).
+
+### ⭐⭐ Consequences — yes, and this is one honest answer to charisma
+
+> **User:** *"charisma's always been the hardest thing to actually do
+> right which is why a lot of games don't even try. I don't ever want to
+> be cute about it — but where we do have actual measurable indicators
+> that teach good choices, why not use them to increase immersion,
+> roleplay and interactivity."*
+
+A sim that describes beauty and pretends it moves nobody is a lie; the
+GTA property wants regard to *follow* from looking. So the canon seeds a
+**viewer-side regard delta on first impression** — a brain's, or a
+player's default — and that is *pretty privilege* modelled as what it is:
+a bias, on the viewer, visible in the mirror, contestable, never
+confirmed as a law. The delta is one input to a regard that a hundred
+other things also move; it is not a stat and it is not destiny.
+
+⭐ **Why this is not cute:** every input to the impression is a
+*measurable indicator that teaches a good choice* — the months clock,
+soap, a coat that fits, a healed wound, a cut from a practitioner —
+and the charisma games could never do right is exactly the sum of those
+inputs read through a culture. D&D's number was a stand-in for a
+mechanism it could not afford; the mechanism is: **facts the player
+chose, a canon the world authored, a regard the viewer holds.** That is
+charisma with the stat removed and the choices left in. The other legs
+belief.md names — renown (what the polity has seen you do) and
+susceptibility — stay their own subsystems; beauty is one leg.
+
+**What it must never touch:**
+
+- **Standing.** Regard is attitude; standing is the polity's mint, and
+  the line *money cannot reach the mint* applies to looks by the same
+  reasoning. Nothing in a canon is an input to renown, influence or any
+  standing derivation. `lint`-shaped: a canon document has no path to
+  the standing subsystems, by construction.
+- **The body itself.** A canon reads facts; it writes nothing.
+- **Self-image.** The mind slate's line stands — *body image stays
+  deliberately unexpressed*; the mirror shows you to *others*, and what
+  you feel about it is yours.
+
+**What the polity may do about it** is the polity's: whether hiring, a
+shop counter or a court may be moved by regard is a
+[legal-code](./legal-code-slate.md) question, and a law against it is
+content — which is exactly where that argument belongs, and the values
+lens's answer to "who says so."
+
+### Who sells into it
+
+Beauty is the *market* this slate's vocations already exist for: the
+dye chain, the tailor's cut and fit, the barber's graded cut, scented
+soap and glycerin ([rendering § 8](./rendering-slate.md)), and — the
+part the nutrition build adds — the body itself, which now has an input
+(work, food, the gym) and a visible output. A canon is what makes those
+purchases *mean* something to a viewer, and two canons are what make
+the meaning local.
+
+### Sequencing
+
+1. The **`Looks` cell** (lineage, this slate) — the three facts.
+2. The **body-impression augmenter** — can ship with or right after the
+   nutrition & fitness build's mirror line (it reads the same bands).
+3. The **canon document kind** + one authored canon per shipped culture
+   (Terminus, Rejection, Heart's Delight read bodies differently
+   already, in prose; the canon makes it mechanism).
+4. The **regard delta** — the consequence — once brains have a first-
+   impression hook (the `eats` brain and the attendant lease are the
+   first two customers: a shopkeeper who is a little warmer to you).
+
+### Open
+
+- **Grooming as a fact vs. a grade.** Question 7 above (does a cut
+  decay) is now also a beauty question: a grown-out cut is a fact the
+  canon reads.
+- **Does a canon read attire's *signal* channel** (station — the white
+  coat) or only its fit and condition? Leans: yes, because dress is
+  most of what beauty ever was, and textiles already computes the
+  impression.
+- **The pageant** — a judged contest is a *sport* (a match with rules
+  and a winner, standing conferred by peers) and belongs to that build;
+  noted so nobody builds "a beauty score" to run one.

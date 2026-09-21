@@ -3,54 +3,17 @@
 > **Status: PARTIAL** — Stage A shipped 2026-09-01 (the metal chain:
 > the `Deposit` field, `MineWarren`, the five acts, air/support/grade,
 > the survey channels, Rejection) → [mining.md](../../subsystems/mining.md)
-> **Left:** everything below the water table — shaft/hoist/pump · the
-> drainage commons + hoist toll · sulfides and roasting · collapse
-> entrapment + the rescue clock · the deep ecology, apex and Hush cast ·
-> tribute pitches + the setting-day auction · high-grading as an offence
+> **Left:** everything below the water table — shaft/hoist/pump (`LiftMixin`,
+> the called cage) · the drainage commons + hoist toll · sulfides and roasting ·
+> collapse entrapment + the rescue clock + the timberman + sounding/convergence ·
+> the deep ecology, apex and Hush cast · tribute pitches + the setting-day
+> auction · high-grading as an offence · the costean/test-pit rung · the
+> town-below, the deep folk and the deep-law · the sensorium underground
+> (knocking, taste, the lamp-as-tool) · the byproduct stream · the
+> Ordinance / Delving 9 temporal mirror · archaeology · the automation
+> yield-cap · the Resource Governor office + tuning
 > **Size:** a build
 
-> **Status: design captured, not built.** Mining is an **integrating
-> vertical** (the [Dave's Bar](./daves-bar-slate.md) / [farming](../tails/farming-slate.md)
-> precedent) — ~90% *composition* of shipped substrate (the activity/
-> engagement framework, reserves, respiration, thermal, encumbrance,
-> crafting/Grade/tools, advancement, scripting, employment) plus **two
-> genuinely-new primitives: a prospecting / seam-deduction layer and a
-> seeded procedural Warren budder**. It is the
-> **crafting economy's upstream** (raw-material extraction is where the make-
-> chain starts) and the **first vertical to exercise the whole vitals stack**
-> — where the bar integrates the social/economic systems, the mine integrates
-> the *body/risk* ones. It also carries the **paired-mine content exemplar**
-> (the Ferrow Delving / Delving 9) that teaches the good/evil mirror grammar.
->
-> ---
->
-> ## ⭐ STAGE A SHIPPED (metal chain, 2026-09-01) — read [mining](../../subsystems/mining.md) first
->
-> **What landed**, and it is the whole upper half: the `Deposit` field and
-> its one resolved read; `WorkingMixin`/`MineWarren` (⭐⭐ **the warren
-> creates rooms, it does not interpret them** — every read derives from
-> the room and its zone, so a hand-authored static mine behaves
-> identically); the five acts; ground support as a placed `Durable` with
-> refusal, the free telegraph and face-only falls; air as topology, the
-> canary and the pit pony; ore, grade and pooling; the three survey
-> channels, the instruments, the `geology` Discipline and the survey card;
-> the mine archetype and twelve recipes; the `delves` producer beat; and
-> `rejection` — the first mining town, shipping **no TypeScript at all**.
->
-> **What this slate still holds that Stage A did not reach**: everything
-> below the water table. No shaft, hoist, pump, drainage commons, hoist
-> toll or district; no sulfides and therefore no roasting; no collapse
-> entrapment, rescue clock or cascade; no deep ecology, no apex, no Hush
-> cast; no tribute pitches or setting-day auction; no high-grading as an
-> OFFENCE (the pooling and the honest assay shipped; detection and
-> sanction want an adjudicator).
->
-> ⚠ **Where this slate and the shipped code disagree, the code wins.**
-> Four corrections worth naming: `MineWarren` extends the KERNEL
-> `InnerWarren` (not a bespoke base); the deposit speaks METRES, not grid
-> cells; the four procedural room type rows are LOCALITY content, taken as
-> policy; and per-face depletion rides the ROOM, not the warren's ledger —
-> which is the only way a static mine has it.
 
 See also: [daves-bar](./daves-bar-slate.md) · [farming](../tails/farming-slate.md) ·
 [livelihood](./livelihood-slate.md) (the labor-market spine mining plugs into —
@@ -86,16 +49,6 @@ fun, because it can't be.
 This principle is also the resolution of the evil-mine paradox (below): the
 sources of fun and the sources of *friction* are the same thing.
 
-## The core act — an engaged activity, not a minigame **[DECIDED]**
-
-**Not** a twitch-minigame (wrong for a text MUD; repetition kills it), **not** a
-single discrete "you mined 1 ore" click (no texture). Mining is a **durative
-engaged activity** on the `EngagedMixin`/`SustainedEngagement` substrate — the
-same one the manual-craft verbs (`pour`/`stir`) already use — riding game-time
-via `WorldClock`/`ScheduleApi`. You engage the seam; it advances a haul over
-time and **drains endurance** (`ReservedMixin`). Semi-attended,
-social-compatible, the OSRS register. Engaged-alone would be idle grind; the
-play is the four layers bolted on top, **each already a system we own**.
 
 ## Where the play lives — four layers **[DECIDED]**
 
@@ -129,37 +82,10 @@ play is the four layers bolted on top, **each already a system we own**.
 
 ## The mine as space — a shared procedural Warren **[DECIDED]**
 
-The mine is a **shared** elastic-graph **Warren** (`MultiLocation`: bud/merge,
-live-ref hub exits — the lounge substrate), grown procedurally. What makes an
-ever-deepening dungeon *safe* is already ours: **residency.** Abandoned rooms
-cull and re-clone, so the mine **grows as you dig and collapses when you leave** —
-which reconciles it with both conserved scarcities: **no land is minted** (the
-mine is *one parcel* — the mineral claim; interior tunnels are interior space,
-not new titled land, like the inside of a building), and **compute is the bound**
-(only rooms near active miners stay live; the rest go dormant and evict).
-
-**Two actions, cleanly split** (the "carve vs. boundary" question):
-
-- **Extraction** — mining a *vein within a room* (the `Grade` face). **No new
-  room;** the bulk of the engaged loop.
-- **Advancement** — mining a *boundary* to breach into the next gallery. **This
-  lazily buds a new room** — a deliberate, riskier act (a breach may hit bad air,
-  water, or a dead-zone). So you *do* carve new instances — **on breach, not
-  per-swing**, which is what stops the explosion.
-
-**Seeded, lazy, deterministic, self-cleaning.** Generation is deterministic from
-a per-mine seed + depth + branch-coordinate → **the same tunnel regenerates the
-same way** (Minecraft's seeded-world model, not a roguelike shuffle — stable,
-revisitable). Rooms **materialize on breach, evict when abandoned, regenerate
-identically** — so the *live* footprint is bounded, the *seeded* whole is vast,
-and the mine **breathes** (old workings collapse and re-form), which doubles as
-the diegetic cover for the instancing (the deep is never quite the same twice).
-The generator obeys the slate's own doctrine — **a room that exercises nothing is
-boring, so it may only emit rooms that *do something*:** a vein, a junction, a
-hazard, or a seeded *find* (a gem pocket, a flooded gallery, a dead-zone, an
-abandoned Ferrow-era working with a name scratched in the wall). **Rooms are
-galleries / junctions / faces, never five-foot corridor-segments** — coarse and
-feature-dense.
+*(The shared Warren, the two acts and the seeded generator SHIPPED →
+[mining.md](../../subsystems/mining.md) § *The governing split*, § *Three-tier
+room identity*. The breathe/regenerate model is SUPERSEDED: the ore body is
+finite → mining.md § *The body is finite*.)*
 
 **Navigable without being a maze.** Expansive-but-legible comes from a spine, not
 a labyrinth:
@@ -188,13 +114,6 @@ steel is **found and reworked, never smelted** — a finite conserved salvage ti
 not a farmable faucet — so the push-your-luck ceiling is archaeological, not a
 grind.
 
-**Shared commons.** Everyone in the Delving shares one graph (co-op roles hold
-the shaft together); mined-out veins collapse and **regenerate on the breathe
-cycle**, making the mine a *renewable shared resource* — neither strip-mined-once
-nor an infinite faucet. **Guided-spine agency:** branches are seeded (you choose
-*which* to open); a skilled miner may `sink` a few genuinely-arbitrary shafts
-(earned agency, at navigation risk). *(Deep-branch per-team instancing rejected —
-it fights the shared world.)*
 
 ## The mine as a place — the branch, the folk, the bottom **[DECIDED]**
 
@@ -557,15 +476,6 @@ sudden silence means everyone stopped.
 
 #### ⭐⭐⭐ Smell — and it is what makes the canary earn its place
 
-> **Some bad air smells. The air that kills quietly does not.**
-
-Sour, sulfurous air announces itself — the content bible already gives the
-sulfide zone *"sour air & water."* **Blackdamp and carbon monoxide are
-odourless**, which is the real historical reason canaries existed.
-
-So **your nose and the bird are complementary, not redundant**: the nose
-covers the air that warns, the bird covers the air that does not. The
-canary stops being a mascot.
 
 ⭐ Smell is also a **prospecting route** — the oxide→sulfide transition
 smells. Which is the **third job for the water table**: the mineral-zone
@@ -627,24 +537,8 @@ rather than cut out (Stage C, with the Hush). Same rule, more interesting.
 The roster above says *what lives there*. This says **what each kind of
 creature IS mechanically**, and how much of it ships first.
 
-#### The friendly ones are instruments that can die
-
-- **The pit pony is nearly free.** `HaulingCreature` is **shipped**
-  ([conveyance.md](../../subsystems/conveyance.md): *"Draft beasts use
-  `HaulingCreature`"*), with `hitch`/`unhitch`, `draftFactor` and the
-  encumbrance draft term already working. It costs a Species row and a
-  brain over a mechanic that runs.
-- ⭐⭐ **The canary is an instrument for `measure atmosphere` whose readout
-  is an animal's behaviour** — it goes quiet as the air turns. No new
-  mechanism: instrument-gated channels are the sextant pattern § *Surveying*
-  already adopts. And it carries what a tool cannot:
-
-> ⭐ **A lamp is a tool. A canary is a tool that dies of the thing it is
-> protecting you from.**
-
-Which is why *Delving 9's canary never dies* is the sharpest line in the
-mirror: there the instrument has been made comfortable, and **the reading
-is a lie**.
+*(The pit pony and the canary SHIPPED → mining.md § *Air*, § *The trade/locality*
+*line*, § *The producer beat*.)*
 
 #### The hostile ones are CONCEALMENT content, not combat content
 
@@ -760,19 +654,10 @@ steel, extract a refugee, sabotage the optimization. The good mine is where you
 
 ## Specialization — judgment, not damage **[DECIDED]**
 
-No "class" — **competence in mining Disciplines** (say *Prospecting* / *Hewing* /
-*Deep-delving*), fed by a Transcript of `ActSignature{discipline, difficulty:
-seam-hardness, outcome}`, difficulty-modulated so the *subtle seam teaches more*
-(ZPD). Specialization runs on **three axes, none of them "damage":**
-
-- **Read better** — find the Grade others miss.
-- **Survive deeper** — push the risk envelope (the vitals gauntlet).
-- **Cut cleaner** — preserve Grade (a clumsy hew degrades the weakest-link
-  output).
-
-High competence **confers verbs** (the knowing→doing seam): `assay`, `sink` a
-new shaft, `shore` against collapse. Employment layers on top — "miner" is a
-`Position` at the mine's `Business` (the wage, the on-shift capability).
+*(SUPERSEDED by the code: competence buys resolution and the availability of an
+inference, never outcome, and no act is competence- or deed-gated → mining.md
+§ *Surveying*, § *The acts are labour*. The Disciplines shipped as `geology` and
+`mining`.)*
 
 ## The automation tail — the machine does the swing, not the sense **[LEAN]**
 
@@ -844,32 +729,8 @@ across the good/evil line. (Names provisional.)
 
 ### The Ferrow Delving *(Terminus realm)*
 
-An iron mine up where the **Marrow** rises, in the outer-valley lesser-house
-hills. **Baselines: crafting/materials** — ore comes out here, goes to the forge,
-becomes tools and gear.
-
-- **Tier 1 (prose & detail, the bulk):** a timber-shored adit; the cool damp,
-  the drip, the far knock of picks; a spoil-heap and cart-track. *Detailed:* the
-  worn **blazon of House Ferrow** over the lintel (an iron-money house that
-  walked away at the Widening — *the mine kept working because ore is ore and
-  people eat*; a light seed for a future named-house carve), the shoring (some
-  rotten), a chalked tally-board, and a **boarded deep gallery under a Warden's
-  cordon-mark.**
-- **Tier 2 (realized Stuff, few, each system-justified):** the **ore face/vein**
-  (crafting + `Grade` + bulk + encumbrance); a **miner's pick** (`ToolMixin` wear
-  + `ToolCapability`); a **lantern & the dark** (`LightSource`/`VisionModality`);
-  the **tally-board** (employment + banking → wage); the **sealed deep gallery**
-  (the near-siege seam — past the cordon the field is dead; the canary hangs
-  still and the sump-well never seeps, and here that stillness reads as *danger*
-  — the dry-well-as-detector).
-- **Tier 3 (NPC, one, as a seam not a full carve):** **the foreman** — the human
-  anchor and lore-voice (House Ferrow, the lapse, why the gallery is sealed); a
-  dialogue-tree host and the quest-giver toward the dead-zone. Fully carving them
-  is its own session.
-- **Deltas a player leaves with:** *material* (ore/wage), *knowledge* (the lapse;
-  the sealed gallery = first hint of the Ordinance), *access* (miner's standing →
-  deeper galleries), and — licensed past the cordon with a Warden — the
-  *field-dead pocket*, the seam into Phase-1 near-siege content.
+*(SUPERSEDED by the shipped venue — the `rejection` pack's rows; see
+[rejection-slate](./rejection-slate.md).)*
 
 ### Delving 9 *(the Ordinance)* — **the mine's possible future, not a second build**
 
@@ -903,17 +764,6 @@ The materials layer and its monetary tie. Governing principle first:
   (gold/silver), the **essential staple** (salt), **gems** (the gnome lapidaries),
   **Eternal steel** (the apex, found-never-made).
 
-**Money is fiat, not commodity-backed [DECIDED].** Coin is CB-issued,
-conservation-controlled, *never a worth on a good* — deliberately **not**
-gold-backed, because commodity-backing means *mining gold = minting money* = the
-gold-faucet we forbade. So **gold is a commodity / store-of-value — Mammon's hoard
-— not the currency;** you *sell* mined gold for circulated coin like any good.
-
-**Deflation protection = active CB monetary policy [DECIDED].** Conservation = *no
-unauthorized faucet*, **not a fixed supply.** As mining/crafting grow real goods,
-the **CB mints to match real output** (target stable prices — modern central
-banking); deflation is prevented by policy, a **governance lever** (the
-CB-governor office; see *§ Economics*).
 
 **Extraction is a family of techniques [DECIDED]** — *how a material occurs*
 dictates *how you get it*, *where*, and *how risky*, mapped onto the geography
@@ -953,19 +803,6 @@ cycle. The intersection, and the levers (ties to
 [economy](./economy-slate.md) / [banking](../../subsystems/banking.md) /
 [employment](../../subsystems/employment.md)):
 
-- **Production, not minting.** Money stays conserved (the CB is the only mint);
-  mining creates new *matter* (ore), never new *money* — sold ore is paid in
-  **circulated** coin a buyer already held. So mining is a **labor-market income
-  source**, never a faucet. What it grows is **real wealth** (goods) — the thing
-  conserved money finally circulates *against*.
-- **It closes the loop.** Dave's Bar is a **consumption** node (subsidized);
-  mining is the **upstream production** node: *mine → forge → market → consumers.*
-  Money now circulates against real output instead of only subsidizing
-  consumption.
-- **No NPC vendor faucet [load-bearing].** There is **no infinite NPC that buys
-  ore with minted money** (the classic gold-printer). Ore is worth *only what real
-  demand pays* (smiths/venues/builders, circulated money); no demand → worthless.
-  Income is **demand-gated**; the CB seeds *demand*, never buys the ore.
 - **Two matter-cycles under conserved money.** (1) **Matter:** the ground is the
   one faucet for raw material; crafting **transforms/conserves** it; wear/loss
   **drains** it — *mine (source) → craft (transform) → use/wear/lose (sink)*. The
@@ -1022,324 +859,20 @@ cycle. The intersection, and the levers (ties to
 
 ## The mine's machinery — graduated from the content bible **[DECIDED 2026-07-13]**
 
-> **Graduated 2026-08-31** out of `docs/staging/ferrow-delving.md` §§2, 6, 7,
-> 9 (now deleted, per the staging tree's own lifecycle). These are resolved
-> decisions, not proposals. The venue content — the authored spine, the
-> cast, the arcs — went to [rejection-slate](./rejection-slate.md); the
-> supply chain and its chemistry went to
-> [metal-chain-slate](./metal-chain-slate.md).
-
-### ⭐⭐ Coordinate architecture — ONE 3D `CartesianZone`
-
-**The mine is a single 3D `CartesianZone`, coords `(x,y,z)`, z negative
-going down** — *not* per-level zones. The zone enforces all three axes, so
-"dig down" is the native `z−1` neighbour and there is no cross-level
-registration to hand-maintain.
-
-- **Atmosphere is a function of depth** — light, air and heat worsen
-  continuously as `z` drops (biome/thermal keyed on elevation), not stepped
-  per level. The physically honest gradient *is* the charter's danger curve.
-- **Ore bodies are 3D** — a dipping seam plunges from one working depth to
-  the next at the same footprint; read it up top, sink a winze to catch it
-  below.
-- **"Levels" survive as an organizational convention** — the `z`-planes
-  crews drive horizontally from — not a technical boundary.
-
-Elastic membership (Warren bud/reap) rides *over* the coordinate zone: the
-Warren machinery is the **mutation** layer, the `CartesianZone` is the
-**space**.
-
-⚠ **This supersedes a `SphericalZone` proposal** made in the 2026-08-31
-metal-chain session, which argued that a grid stair-steps a dipping vein
-"into a lie." That was wrong, and §2g says why: **real mines chase a
-dipping seam with drift-and-winze stair-steps**, because you drive level
-drifts (for haulage and drainage) and sink vertical winzes — workings are
-orthogonal even when the orebody is not. The honest split is a
-**continuous geology field** (the truth) under **discrete orthogonal
-workings** (what labor can actually build), and *approximating the one
-with the other is the craft*. See [metal-chain-slate](./metal-chain-slate.md)
-§ *The mine's geometry* for the full retraction.
-
-### Persistence — three states, player-controlled
-
-| State | Meaning |
-|---|---|
-| **Spine** | authored, permanent — the Upper Galleries, the main shaft and winzes. Never reaped; the skeleton you can always navigate back along. |
-| **Held** | persistent *while invested* — a room a player has **shored and claimed**; a keyed, snapshot-persisted member (the DormWarren keyed-member precedent). Survives logout and redeploy. |
-| **Provisional** | soft, culls when cold — freshly-carved rooms and procedural galleries nobody has invested in. *The rock only loans them to you.* |
-
-Lifecycle: **carve** buds Provisional → **shore + claim** promotes to Held
-(shoring *is* this mine's provisioning act) → **neglect / lapse** demotes
-back (the peerage-reversion motif) → the seal sweep reaps cold
-Provisional. Held ground never auto-reaps. Who owns Held is set by the
-mine's model: the co-op holds it here, the staker holds it on the claim
-field — **the machinery is identical either way.**
-
-### Two acts — mine a vein vs carve a heading
-
-- **Mine a vein** (`hew`/`mine`) — extract ore from a face *in the room
-  you are in*. The room stays; the vein depletes. The everyday loop.
-- **Carve a heading** (`drive` horizontal · `sink` a winze down · `raise`
-  up) — excavate a *new* room; the mint act. Slower, costlier, wants
-  shoring.
-
-⭐ **Carving cost = rock hardness at the target, and ore is softer than
-barren rock.** So following a seam is cheap carving that pays as it goes,
-while driving speculatively toward a read feature is expensive and yields
-only the room. **Safe vein-chasing vs speculative prospecting is a real
-risk/reward axis, priced by geology.**
 
 ### Seal-and-reap — the long-term-richness engine
 
-A depleted section sits through a grace period; then the **seal sweep** (a
-section-wise sibling of the residency eviction sweep) finds a dead
-subgraph hanging off the live mine by a single drift — an **articulation
-point** — checks it empty and cold, forms a **wall Boundary at the mouth**,
-and reaps everything behind it as one unit. Sealing at the one-edge
-chokepoint means the reap cannot orphan a player or dangle an exit. Only
-**Provisional commons** is ever sealed, never a Held claim.
+*(SUPERSEDED by the code: the warren culls the cold Provisional tail per cell
+and forgets it; no subgraph seal, no wall, no re-driving into refreshed ore →
+mining.md § *Three-tier room identity*, § *The body is finite*.)*
 
-⭐ **An old seal can later be re-driven into freshly-seeded ground**, so the
-same tunnels yield new ore years on: the commons cycles, and the mine stays
-rich long-term without the seam ever refilling.
-
-### The geology field, and what is behind the wall
-
-The underground rides an invisible **authored geology field**: each cell
-carries **rock hardness, ore grade, and occasionally a feature seed**.
-Default carving mints a blank strata-seeded heading — but breaking into a
-feature cell reveals *something already there*: a **natural chamber**
-(cavern, flooded stope, gas pocket) or an **authored set-piece** (an old
-sealed working, a fossil bed, a pre-Fallow wired vault, an arc beat).
-
-⭐ **Authored content discovered by digging, not placed on a fixed map.**
-And reading the signs — a draft means a void ahead, damp means water, a
-change in the rock means a seam — lets a geologist *predict* what is behind
-the wall before spending the labor. That is the discipline's
-derive-from-principles teeth.
 
 ### The `Deposit` Idea — the geology field, concretely
 
-The field's authored half is **one row**, and it is **venue content, not
-trade content** — a deposit is a *place*, not a trade, and
-`content-pack-units.md:94` assigns the seed field to the venue. The
-`Deposit` **class** is kernel; the mining pack ships no orebody of its own.
-For the prototype mine, the whole thing:
+*(SUPERSEDED by the shipped row shape — `/trade/mining/idea/Deposit`, the
+venue's `idea/deposit/ferrow.yaml` → mining.md § *The geology field*. The three
+gaps closed: `rock/slate` and `granite.hardness` ship; grade is `Ore.grade`.)*
 
-```yaml
-# /world/terminus/rejection/idea/Deposit/ferrow.yaml   ← VENUE content, not trade
-class: /platform/idea/Deposit
-hydratorClass: /platform/idea/persistence/PersistentHydrator
-data:
-  key: ferrow
-  displayName: the Ferrow lode
-
-  # Country rock — killas over a granite cupola (Cornwall's arrangement)
-  stratigraphy:
-    - { fromZ:    0, material: /stuff/idea/material/rock/slate }
-    - { fromZ: -220, material: /stuff/idea/material/rock/granite }
-
-  waterTable: -45        # ⭐ one number, two systems
-
-  lode:                  # the lode is a PLANE with extent
-    through:      [0, 0, -20]
-    strike:       40            # bearing, degrees
-    dip:          55            # from horizontal
-    thickness:    2.5           # metres
-    strikeExtent: 400
-    dipExtent:    300
-
-  zones:                 # supergene above the water table, primary below,
-    - toZ: -45           # magmatic tin against the granite
-      mineral: /stuff/idea/material/mineral/malachite
-      grade:   { mean: 0.06, spread: 0.03 }
-    - toZ: -220
-      mineral: /stuff/idea/material/mineral/chalcopyrite
-      grade:   { mean: 0.14, spread: 0.06 }
-      accessory: { mineral: /stuff/idea/material/mineral/argentite, mean: 0.004 }
-    - toZ: -400
-      mineral: /stuff/idea/material/mineral/cassiterite
-      grade:   { mean: 0.09, spread: 0.05 }
-
-  depletion:
-    - { aboveZ: -45, factor: 0.15 }   # what House Ferrow already took
-
-  features:
-    pins:
-      - { at: [3, -1, -12],   kind: old-working }   # the house's stope
-      - { at: [-8, 14, -352], kind: hush }          # the capstone
-    seeded:
-      - { kind: natural-chamber, perCells: 400 }
-      - { kind: water-pocket,    perCells: 250, belowZ: -60 }
-```
-
-**The read, per cell, storing nothing:**
-
-1. **host** — the stratigraphy band containing `z` → a `Material`.
-2. **inLode** — is the cell within `thickness/2` of the plane, and inside
-   the strike/dip extent?
-3. **mineral + grade** — the zone band containing `z`;
-   `grade = mean + spread × roll01(seed ^ hash(cell))`, times any depletion
-   factor. Outside the lode → barren country rock.
-4. **feature** — `pins[cell]`, else a seeded roll.
-
-Four steps of arithmetic over authored numbers plus one deterministic
-roll. ⭐ `waterTable` earns its keep twice exactly as
-[field-substrate-slate](../tails/field-substrate-slate.md) predicted: it is the
-**oxide/sulfide boundary** *and* the depth below which **drainage becomes
-somebody's problem**.
-
-⚠ **Three gaps this exercise found:**
-
-- **`rock/granite` has no `hardness`.** Iron and steel carry
-  `hardness`/`toughness`; rock materials do not. **Carve-cost = hardness**,
-  so the field cannot price a `drive` until rock gets the field metals
-  already have.
-- **`rock/slate` does not exist** — `base-library` ships exactly one rock.
-  Slate plus four minerals (malachite, chalcopyrite, cassiterite,
-  argentite) are the first content the build needs.
-- **Per-lump grade is a field on the LUMP, not a composition.**
-  `Material` is **singleton-by-templatePath**, so you cannot mint a
-  material per grade. `Material.composition` fixes what a *kind* of ore is
-  (chalcopyrite is CuFeS₂); the lump's actual grade varies and lives on the
-  lump as a number. Not `GradedMixin` either — that is the quality band
-  `poor…masterful`, and ore grade is a fraction. See
-  [metal-chain-slate](./metal-chain-slate.md) § *Ore is already modelled*,
-  which this corrects.
-
-### ⭐⭐⭐ Surveying — zero new verbs
-
-The platform already ships the two acts, **and the instrument-gated
-channel is already a shipped pattern:**
-
-> **`measure`** — *"Read a single value off the world… one clean number
-> for a physical channel where you stand."* Channels: light · temperature ·
-> pressure · humidity · gravity · atmosphere · altitude · shadow.
-> ⭐ *"Some of the sky readings (altitude, shadow) **need an instrument**
-> such as a sextant or sundial."*
->
-> **`analyze`** — *"breaks a channel down and shows you the working — which
-> sources contribute what, where a value comes from, the full provenance."*
-
-A miner's dial for `measure dip` is the sextant pattern exactly. **So
-mining contributes channels, not verbs.**
-
-#### One instrument per parameter of the plane
-
-The deposit spec's fields and the surveyor's kit line up one-to-one, which
-is the test that the model is honest:
-
-| Parameter | Instrument | Command |
-|---|---|---|
-| **strike** | the compass | `measure strike` |
-| **dip** | the **miner's dial** (Agricola's instrument) | `measure dip` |
-| **mineral identity** | hammer + hand lens — *break it; the weathered face lies* | `analyze chemistry <sample>` |
-| **grade** | the assay scale | `analyze chemistry` with the assay kit |
-| **the whole reading** | — | `analyze ground` |
-
-#### What it reads like
-
-```
-> look                          a green stain runs through the quartz here
-> measure strike                the lode runs 040 ± 15°        [dial]
-                                … walk the outcrop, measure at two more points
-> analyze ground
-    HOST      slate, hard
-    LODE      strike 041 ± 3°   (three points, solved)
-              dip    unknown — no subsurface observation
-    MINERAL   malachite — a copper carbonate, weathered
-    INFERENCE an oxide cap. Sulfides below the water table, if it holds.
-> analyze chemistry the sample   copper, 6% ± 3                 [assay scale]
-```
-
-> ⭐⭐ **You never find ore by rolling. You find it by measuring the same
-> plane three times.**
-
-**Strike falls out of three surface points** — the real **three-point
-problem**, which is what every field geologist actually does. **Dip does
-not**: it is not observable from the surface at all. You buy it with a
-costean, infer it from where float stops, or sink on a guess and find out
-what the guess cost. ⭐ **The push-your-luck decision arrives as a missing
-parameter rather than a dice roll.**
-
-The outcrop itself is **derived, never authored** — where the lode plane
-meets `z ≈ 0` is a *line*, so surface staining appears along it and
-following it is real work.
-
-#### ⭐⭐⭐ Where competence meets knowing where to dig
-
-The shipped rule is already named — ***"competence buys information, not
-outcomes"*** — and `assess` is the working template:
-
-> *"what you can tell depends on how skilled you are at medicine — a novice
-> reads only the gist ('bleeding badly'), while a practised eye reads the
-> site and severity."*
-
-Three mechanisms, each constrained by doctrine already shipped:
-
-1. **Competence sets the RESOLUTION, never the truth.** `040 ± 15°` for a
-   novice, `041 ± 3°` for a practised eye — the same rock, the same lode.
-   ⭐ **The error bar is the competence.** (Also Rhonda's design in
-   [rejection-slate](./rejection-slate.md): *"you give a reading and its
-   error, not a verdict."*)
-2. **Competence makes an INFERENCE available at all.** A novice records
-   three green rocks; a geologist records three *points on a plane* and
-   solves it. That is `known-of → can-make` applied to **methods** rather
-   than recipes — the trades' conferral ladder, pointed at technique.
-3. **Competence never touches the ground.** The grade is what the field
-   says. Farming already ruled that a check here *"would violate three
-   doctrines at once — uncertainty.md's resolutional ban; nothing gates on
-   a band; competence never multiplies yield."* **A better prospector does
-   not get more ore from the same rock. He knows where to point.**
-
-Credit runs the other way, per *advance by exercised disciplines*:
-**surveying is what earns `geology`**, at world-derived difficulty, never
-competence-derived.
-
-⭐ And because what you know is a **per-viewer belief** (the DISCOVERY
-realm), **a survey record is an asset you can sell** — which makes
-*"negative knowledge still sells"* literal, and is why Rhonda's instrument
-rows are private and load-bearing rather than flavour.
-
-#### What is actually new to build
-
-| | |
-|---|---|
-| **New controllers (5)** | the mining acts, in the pack: `hew` · `drive` · `sink` · `raise` · `shore` |
-| **New subcommands (3)** | `measure strike` · `measure dip` · `analyze ground`. Each subcommand names its own controller in the view YAML, so these slot into **existing** verbs — no new category, no new affordance surface, no new help tree |
-| **New content** | the instruments (dial, lens, hammer, assay kit) · the `Deposit` row · the missing `Material` rows · a `geology` Discipline |
-| **Reused untouched** | `look` · `search` · `analyze chemistry` · the belief store's DISCOVERY realm |
-
-### ⭐⭐ Faces & dig-sites — the ten-direction model
-
-Not one dig site per room: **up to ten**, one per direction (eight compass
-points plus up and down; the grid is 8-connected horizontally plus
-vertical). Each direction is a **face** — the boundary to the neighbour
-cell — in one of four states:
-
-| Face state | Neighbour is | Affordance |
-|---|---|---|
-| **Exit** | carved | walk through |
-| **Seam** | ore | `hew` → ore |
-| **Carve-face** | barren rock | `drive` through (cost = hardness) to mint that room |
-| **Dead / sealed** | nothing | — |
-
-**Faces are computed, not authored** — the NE face of `(x,y,z)` reflects
-the geology of `(x+1,y+1,z)`. Only a *worked* face needs state (ore
-remaining): a sparse per-`(cell, direction)` record; the rest is
-derive-on-read.
-
-⭐ **No sub-room geometry.** Faces are addressed by direction or descriptor
-(`hew the green seam` = `hew east`), the way exits already are, and you
-**engage** a face (the activity substrate) rather than *occupy* a
-sub-position — so many crews work many faces of one room, co-located, with
-zero contention. Engine-wise a face is the **Boundary** substrate with a
-mining aspect.
-
-The diagonals earn their keep from the geology: a seam's **strike** is a
-compass bearing, so you follow the lode with `drive NE` instead of
-zig-zagging, and **dip** is a stair-step of `drive SE` + `sink` — which is
-drift-and-winze, exactly how real mines chase a dipping seam.
 
 ### Cave-ins — two tracks, neither fatal **[from the content bible]**
 
@@ -1357,82 +890,9 @@ builds is prevention. The rules above stand for whenever it lands.
 
 ### ⭐⭐⭐ Ground support — prevention ships; collapse waits for people **[DECIDED 2026-08-31]**
 
-**The user's ruling:** *"I don't really want to design any actual cave-ins
-until we have enough players to handle it, because that seems like a
-collective-action sort of thing. However we do need to design cave-in
-PREVENTION and wire that up to our mine so there's a reason no one's
-getting buried."*
-
-So v1 ships **the maintenance system, not the disaster** — and the
-maintenance system is complete on its own.
-
-#### The thing that spans rooms is the SUPPORT, not the failure
-
-The granularity objection is right: a real roof fall is *sub-room* (a slab
-off one part of the back) or *supra-room* (a district subsides), and
-neither is "one room." The resolution is to stop modelling the failure
-geometry and model the **support**, which is naturally multi-room and
-entirely representable.
-
-> ⭐⭐ **Shoring is a placed, durable, maintained OBJECT — not a flag.**
-
-A timber set is a `Thing` with a `Durable` condition: timber takes load,
-deforms, and rots in wet ground. The safety of a working is therefore **an
-inventory of objects in known condition**, and keeping it good runs on the
-**shipped repair economy** — `analyze` the set, `repair` or replace it.
-**No hazard machinery at all.**
-
-This is what gives the workflow its crafting and market halves:
-
-- **Crafting** — props, caps and lagging are made from timber: a recipe,
-  like the five smithing ones.
-- ⭐ **Market** — **shoring timber is to mining what charcoal is to
-  smelting**: a bulk consumable off the same coppice. That is the wood
-  contest this slate kept asserting, now with two concrete consumers
-  pulling on one supply (§ *Fuel is the trade* in
-  [metal-chain-slate](./metal-chain-slate.md)).
-- ⭐⭐ **The cheapest support is the ore you don't take.** A pillar is free
-  and permanent; timber costs money. Every working therefore carries a
-  standing economic choice — *buy timber, or leave the good stuff
-  standing* — and it is the same span function either way.
-
-#### Sub-room geometry already exists: it is the face model
-
-The ten-direction model gives exactly enough resolution — **a face is a
-sub-room location**, addressed by direction, engaged not occupied.
-
-> ⭐⭐⭐ **Falls happen at FACES, not rooms.**
-
-A face goes bad, sheds rock, and is **blocked** — rubble cleared by an
-engagement. The room stays traversable, nobody is buried, nothing
-cascades. Small, local, frequent, and it is the *creep* a room-scale model
-cannot express, because faces degrade individually and one bad face does
-not infect its neighbours.
-
-**No cascade in v1, on principle rather than caution:** cascading requires
-modelling load **redistribution**, and redistribution is precisely what
-makes real collapses catastrophic — the part that needs a player
-population to be survivable. **Keeping failures local is what makes the
-system shippable alone.**
-
-#### The consequence of neglect, with nobody buried
-
-**1 · Refusal.** Bad ground **stops work**: you cannot drive a heading from
-a room whose back is working, and the engagement refuses *and says why*.
-Honest rather than punitive — a real miner will not work under bad ground,
-and the deep-law already says ***"sap not the props."*** ⭐ Neglect costs
-you **access to your own ore**, which in a trade whose income is production
-is a serious penalty with no bodies.
-
-**2 · Loose falling.** A face sheds rock: a blocked face, a broken lamp, a
-bruise through the shipped harm system. Annoying, never fatal.
-
-**And it is structurally easy to avoid**, which is the requirement: the
-telegraph is **free and coarse** (creaking timber, dust, drummy rock, in
-the room description), sets are cheap against ore value, and refusal is a
-**hard stop rather than a gamble**. ⭐ **An attentive player cannot be hurt
-in v1.** The risk belongs entirely to whoever skips dead work, and even
-then the worst case is a blocked face.
+*(Prevention SHIPPED → mining.md § *The face model, and support*. What remains
+below: the sounding/convergence instruments, the timberman, and the deferred
+collapse.)*
 
 #### Reading the ground rides the surveying machinery
 
@@ -1447,17 +907,6 @@ resolution and never outcome:
 - **Instrumented** — a plumb or convergence marker on a prop reads the
   roof coming down slowly (`measure convergence`).
 
-Stability itself is **derive-on-read over facts already stored** —
-`f(span, ground, support, water)`, where span comes from the carved set,
-ground from the host `Material`, support from the sets present and their
-condition, water from the wetness substrate. ⭐ It is the **derived** kind
-of [field](../tails/field-substrate-slate.md), consuming the **seeded** geology
-field's ground quality: the two compose exactly as that slate predicted.
-
-⚠ **And it is a threshold, never a roll** — `uncertainty.md` forbids
-rolling to decide what your action did. The number moves deterministically
-as you widen span or let sets decay; what the player experiences as risk is
-**epistemic** (they cannot see it), which is the legal provenance.
 
 #### The timberman — maintenance is a job, funded like the pump
 
@@ -1526,116 +975,6 @@ Reckoning plus search catches patterns, and being caught costs regard,
 recognition, employment, access and notoriety. **Temptation scales with
 value** — deep silver is where high-grading bites.
 
-### The cell size, and why there is no per-heading cap **[DECIDED]**
-
-Farming caps a field at ~4 ha so one room stays honest. **Mining needs no
-equivalent, because `drive` mints exactly one cell** — there is no distance
-parameter to cap. The open dissolves into two smaller questions.
-
-**What is `cellSize`?** A mine cell is *a length of drift*. The constraint
-is this slate's own rule — *the generator may only emit rooms that DO
-something; no filler corridors, coarse galleries not 5-ft segments* — and
-the **ten-direction face model satisfies it by construction**: every cell
-carries up to ten faces, each a seam to hew or a face to drive, so no cell
-is filler. What is left to set the size is the only thing that makes cells
-*differ*: **the distance over which the geology meaningfully changes**,
-which for ore shoots and grade variation is metres to tens of metres.
-**Lean ~10 m** (Terminus is 3.0, Hinkley 6.0 for open ground). One cell is
-then several shifts of work, which makes `drive` a substantial engagement
-rather than a step.
-
-**What limits how much you can drive?** Nothing arbitrary, and nothing
-should:
-
-> ⭐ **The cap is your body, your clock and your lamp.** Carve cost is
-> hardness × cell, paid as an engagement in game time against reserve — so
-> the limit is the vitals stack, which is the whole thesis.
-
-And the **durable** limit — the one that bounds room count rather than
-session length — is the timber market:
-
-> ⭐⭐ **You can only hold as much mine as you can timber.** Provisional
-> rooms cost nothing and cull; **Held** rooms require shoring, and shoring
-> is timber off the same coppice that makes charcoal (§ *Ground support*).
-
-So the cap is **priced by a market rather than set by a dial** — which is
-the better answer, and it is the third consumer pulling on the wood supply.
-
-### ⭐⭐⭐ Room identity — nothing mints a room template
-
-**Decided 2026-08-31**, against residences **D17**: *every `templatePath`
-resolves to a row in the content collection* (lint-gated), and its own
-clause for this exact case — ***"places (rooms per lot/unit) = keyed
-instances of real rows."*** A mine that minted a template row per carved
-cell would be the per-instance-row anti-pattern at industrial scale.
-
-Three tiers, and they do not overlap:
-
-| Tier | Identity | Persists |
-|---|---|---|
-| **Spine** — the 5 surface rooms + 3 Upper Galleries | **static singletons**: real rows, one instance each, hand-authored | always; never buds, never reaps |
-| **Workings** — every carved room | **keyed member**: `(scope = one of the four type rows` — `Face`/`Junction`/`Stope`/`Fall`*, key = the cell coordinate)* | **only when Held** |
-| **The geology** — hardness, grade, feature seeds | **no identity at all** — a seeded deterministic function of `(mine seed, x, y, z)` | nothing |
-
-> ⭐ **The key is the coordinate.** Unique by construction, stable,
-> derivable, never invented — and it is the *same string* § *Exit naming*
-> produces. **You number what you find** turns out to do double duty: the
-> player-facing address and the persistence key are one fact.
-
-So the three concerns stay separate and each is already shipped:
-**`CartesianZone` is the space · Warren bud/reap is the mutation layer ·
-`(scope, key)` is the identity** (`PersistableApi.restoreOrSeed`, one
-invariant: *no two live instances share a `(scope, key)`*).
-
-### What actually persists — three sparse things
-
-- **The carved set** — which cells are rooms, each one's tier, and who
-  holds the Held ones. This is farming's **field ledger** with a different
-  key: theirs is `{leaf, name, areaM2, focus, radius}` on the holding
-  programme; the mine's is `{cell, tier, holder}` on its own.
-- **Worked faces** — a sparse per-`(cell, direction)` record of ore
-  remaining, written only for faces somebody actually hewed. Everything
-  else is derive-on-read off the geology field.
-- **Held room contents** — snapshot-persisted through the keyed-member
-  spine. **Provisional rooms persist nothing**, which is exactly what makes
-  them cullable, and why walking away and returning regenerates the same
-  tunnel from the seed rather than restoring it from a record.
-
-⭐⭐ Which makes *"shoring is this mine's provisioning act"* literal:
-**shoring is what writes the record.** The persistence tier is not
-bookkeeping behind the fiction — it **is** the gameplay act, the same way
-an apartment's provisioning is.
-
-⭐ And it reveals what seal-and-reap is really for. Not only the map
-healing: **it is the ledger's garbage collector.** Sealing a dead subgraph
-deletes its entries, which is what keeps the carved set bounded in a mine
-worked for years. The per-heading cap bounds the *rate*; seal-and-reap
-bounds the *total*.
-
-### Addressing a working — build-2 already shipped the locator
-
-Warren members have no unique template path *by construction*, which is
-why residences grew the **keyed-member locator** (W2, `build/residences`):
-the `:members` chain element flat-maps any Warren to its **live** members,
-and two filter atoms complete it —
-
-| Atom | Is | For a working |
-|---|---|---|
-| `key` | the explicit **persistence key** (`getPersistenceKey()`) | the cell coordinate |
-| `address` | the declared **Locality address** — *"the human per-place identity"* (D17) | the **survey address**: `…/ferrow/400-level/north-drift` |
-
-Both read `undefined` off an unkeyed or unaddressed object, so a
-comparison never false-matches.
-
-```
-ferrow:members:[key = '-3,7,-12']
-world:[mixin.PersistableMixin][address = 'terminus/rejection/ferrow/400-north']
-```
-
-⭐ **So the survey address IS the Locality address**, and the exit-naming
-ruling, the persistence key and the query surface are three faces of one
-decision. **Mining needs no MQL work of its own** — build-2 built it for
-dorm rooms and lot yards, and a drift is the same shape.
 
 ### The solo rungs never touch the Warren
 
@@ -1662,10 +1001,6 @@ world's room count.
   not a Ferrow one-off; `ShaftCage` is the concrete class. Refined
   **cargo-agnostic** so one headframe hoists both the cage (people) and the
   **skip** (ore, `LiftMixin` + `Bulkable`).
-- **`JobBoard`** (`lib/employment/`) — the first player-facing hiring
-  interface; a **stateless live projection** of a Business's hiring state
-  plus a sign-on affordance, **no roster stored**. `CrewBoard` is the
-  co-op's. Posting and management deferred.
 
 ⚠ Both are **platform work a mining build may not be sizing.**
 
@@ -1706,10 +1041,8 @@ decipherment engine is deferred and v1 is a taste.
   **deferred until the population can support a collective rescue** (user's
   call). It needs no new hazard system either way; stability is
   derive-on-read over span/ground/support/water. See § *Ground support*.
-- **Seam model [OPEN, LEAN finite]** — finite veins you *deplete and must
-  re-prospect* (drives the deduction/exploration layer), or replenishing nodes
-  (steadier, OSRS-style)? Lean finite-and-prospect — it makes the one new
-  primitive matter.
+- ~~**Seam model [OPEN, LEAN finite]**~~ — **CLOSED, finite** (metal-chain
+  2026-08-31; mining.md § *The body is finite*).
 - **Relationship to combat/newbie-wilds** — mining is the **non-combat** risk
   vertical (danger is the environment, not a mob); it should stand as the
   peaceful-but-tense counterpart to the wilds' combat, sharing the vitals socket.
@@ -1731,13 +1064,6 @@ decipherment engine is deferred and v1 is a taste.
   holder shape for an organization — the same question
   [holding.md](../../subsystems/holding.md) asks about tenure, and it
   should be answered once for both.
-- ⭐ **A first-come register compares EXTENTS** — `stake` tested the
-  centre cell against recorded claims, so blocks four cells apart
-  overlapped by three and both registered. Fixed by
-  `MineWarren.overlappingClaim(from, to)` (an AABB test of the whole
-  prospective block). The general shape is worth carrying to any other
-  register this slate grows: *a check that compares a point to an extent
-  is the same bug wearing the right words.*
 
 *(Retire when: the mechanic promotes to formal requirements, or folds into a
 crafting/livelihood build that adopts extraction.)*

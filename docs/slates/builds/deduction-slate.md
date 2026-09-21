@@ -2,17 +2,25 @@
 
 > **Status: UNBUILT** — no quest spine and no deduction surface exist;
 > the substrates it names (advancement, belief, chronicle, MQL
-> subscriptions, card-surface, prose) all shipped.
+> subscriptions, card-surface, prose) all shipped. Authored 2026-06-27
+> for the EU murder arc's resolution (the Quad). Re-verified 2026-09-19:
+> no `casebook` / `board` / `theory` / `link` / `post` / `present` /
+> `reconstruct` view under `packages/content/*/content/*/cmd/`, no quest
+> class or mixin under `packages/server/src/mud` or `packages/content/*/src`;
+> the one forensic derivation that exists is `analyze postmortem`
+> (`platform/cmd/perception/analyze.yaml:134`, the medicine trade's
+> controller — competence-banded, and it lands nowhere).
 > **Left:** the thin generic quest spine (milestones · branches ·
-> completion) · the casebook word-bank · the party-scoped board ·
-> `analyze`-derived findings · `post`/`link`/`theory`/`present` ·
-> cluster locking · `reconstruct` prose playback · the §11 empty node
+> completion) · the casebook word-bank · the party-scoped board (+ the
+> regenerating-stream public wall the arc only gestures at) ·
+> `analyze`-derived findings landing in the casebook ·
+> `post`/`link`/`theory`/`present` · cluster locking (Q1: edge vocabulary
+> + the cohere rule) · `reconstruct` prose playback (Q5: templated vs
+> generic) · the §11 empty node · the corkboard render of the board card
+> (one command language, two surfaces) · wrong convergence as a
+> recoverable outcome (Q3) · the civic-aftermath handoff (Q4, deferred)
 > **Size:** a build
 
-> **Status: sketch / pre-requirements.** A design pass, not a spec. Authored
-> 2026-06-27 designing the EU murder arc's resolution (the Quad). Captures a
-> **quest-type mechanic** + a deduction-system synthesis from prior art.
->
 > **Scope discipline:** do **not** build one grand quest engine. Build a **thin
 > generic quest spine** and let quest *types* bring their own mechanics. This
 > slate designs **one type — forensic investigation.** Other types (fetch,

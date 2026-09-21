@@ -7,17 +7,11 @@
 > "author your own space" as
 > [furnishing.md](../../subsystems/furnishing.md) over the dorm.
 > **Left:** ⭐ the `describe` verb (the prose rung — no such verb exists;
-> blocked on a moderation validator) · the vetted-catalog membership
-> validator behind `make` · authoring quotas · the client authoring GUI
+> blocked on a moderation validator) · the per-field (access policy,
+> value validator) gate on `write`, default-deny · the vetted-catalog
+> membership validator behind `make` · authoring quotas · co-owned spaces
+> · the client authoring GUI
 > **Size:** a wave
-
-> **Status: model set, GUI is the bulk (and a client concern).** The
-> democratized, *safe*, ownership-scoped slice of content authoring —
-> every player authors their own space (their dorm). The server stays
-> thin (`write`/`cat` + a validation gate); the complexity is the client
-> GUI + the permissions/validation model. The validation core is a
-> **(access-policy, value-validator) pair per field, default-deny** — not
-> a boolean flag.
 
 > **⚠ AUDIT 2026-08-08 — most of this slate's goal shipped, by a route it
 > did not predict.** Checked against the tree when GitLab #22 was closed
@@ -82,10 +76,9 @@ The load-bearing decisions:
    mobile). So the server surface is thin (`write`/`cat` + validation),
    and the **complexity lives in the client GUI + the permissions**.
 
-3. **One authoring ladder, access-gated.** Scoped-personal (everyone,
-   own space, default-deny per field) → granted (assigned areas) →
-   wizard (full power, code, the existing shells). Scoped personal
-   authoring is the bottom rung.
+3. ~~**One authoring ladder, access-gated.**~~ superseded — there is no
+   author tier; what you may write is title over the resource, within
+   your extent ([access.md § The two account axes](../../subsystems/access.md)).
 
 4. **The validation core is a (policy, validator) pair, default-deny —
    not a flag.** A boolean conflates two questions and under-powers both;
@@ -133,7 +126,7 @@ See also:
 1. **Democratized + structurally safe** (abuse unexpressible).
 2. **GUI-first, thin-command** (the command-bus exception).
 3. **Default-deny**; per-field **(access policy, value validator)**.
-4. **One access-gated ladder** (personal → granted → wizard).
+4. ~~**One access-gated ladder**~~ — superseded (title, not tier).
 5. **Functional content via vetted catalog**, never free declaration.
 
 ---
@@ -214,12 +207,11 @@ fails at (a).
 
 ## The permissions structure (the access half)
 
-The **ladder**, expressed as a write-permission policy scoped by
-ownership: scoped-personal writes to *your owned content* (dorm /
-homedir); granted rungs to assigned areas; wizard to anything (+ code).
-**Space ownership** is the scoping anchor — you own your dorm (control-
-over, via access); **co-owned spaces / roommates** = a shared-ownership
-group (grouping facade) — deferred.
+> superseded — shipped as **title within your extent**:
+> `can(giver, 'write', target)` over `ParcelApi.ownerOf`, `heldExtents` as
+> the scope listing, a group-held title for a shared space
+> ([access.md](../../subsystems/access.md), [parcel.md](../../subsystems/parcel.md)). No granted rung,
+> no ladder.
 
 ---
 
@@ -247,10 +239,10 @@ cockpit concern**, with its own client design. This slate owns the
 
 ## Persistence
 
-A player's customized dorm is **persisted per-character** (the dorm is
-their homedir-as-room); ties to persistence + the snapshot/restore
-surface (`TemplateApi.snapshotToTemplate`/`restoreFromTemplate`) applied
-to the owned space.
+> ✅ shipped in a different shape — owned goods persist with their OWNER,
+> carrying a `place`, and a titled room persists itself through the
+> `(scope, key)` spine ([furnishing.md](../../subsystems/furnishing.md),
+> [persistence.md](../../subsystems/persistence.md)); `snapshotToTemplate` is retired.
 
 ---
 

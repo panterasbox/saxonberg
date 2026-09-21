@@ -49,6 +49,14 @@ data:
     # is the first time in this game that owning capital has had a
     # number attached to it.
     - { itemTemplatePath: /trade/milling/thing/grist-sack, par: 6 }
+    # ⚠ No orange par line here, deliberately (nutrition-and-fitness
+    # D25). The farm's hand already CONSIGNS its crates of citrus onto
+    # this counter — the real supply chain — and the distributor is the
+    # hub every producing trade points at, which must not point back
+    # (a `trade-farming` dependency here is a pack cycle). The par line a
+    # person can count on is the general store's. (The same is true of
+    # the smith's barbell: smithing reaches this pack through cooking,
+    # so the bar is priced on the smithy's own slate at Hearthworks.)
   prices:
     # Against the shipped ladder (stipend 20; soil-sack 2, small pot 3):
     # a brew day's grain, reachable on the stipend with change left for

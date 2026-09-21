@@ -19,6 +19,15 @@ area (both organizers); read it before editing. The argument organizer
 has its own section below ([The argument organizer](#the-argument-organizer-cycle-2));
 the cooperative slate's *Deliberation* section is its governance framing.
 
+> **Why diegetic, and why ours.** A forum is *agents communicating*, so it
+> rides the aether implant like every comms surface (the wiki, by contrast,
+> is out-of-fiction reference — [wiki.md](./wiki.md)). And it is never an
+> external front-end: canonical is ours; an off-platform service is a
+> parallel channel the game is blind to, which breaks bus primacy — every
+> post flows through the command bus so NPCs and systems can react.
+> Reddit fails both tests the Twitch relay passed: no diegetic fit, no
+> adjacent use-case pull (graduated from the delivery slate, 2026-09).
+
 ## The Subject layer — the linking spine
 
 A `Subject` (`lib/forum/Subject.ts`, Document, `forum_subjects`) sits

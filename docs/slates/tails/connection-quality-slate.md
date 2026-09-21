@@ -1,7 +1,9 @@
 # Connection-quality slate — latency as a fact about the player, never the character
 
-> **Status: UNBUILT** — the client-side ping probe predates the slate;
-> none of the design below is built.
+> **Status: UNBUILT** — the client-side ping probe predates the slate
+> (re-verified 2026-09-19: `ping.ts` echoes both clocks, nothing
+> server-side reads the stamp, the chip shows raw `roundTripMs`);
+> none of the design below is built — no band, no jitter, no publish.
 > **Left:** the three-band jitter state (fine / laggy / unstable) · the
 > opt-in party publish as an `AFK`-style status rather than a number ·
 > the operator's aggregate distribution read + the per-player
@@ -15,10 +17,6 @@ next question was whether latency should be measured at all.
 > **User: "do we want to try and measure ping though? We can do that, right?
 > I'm not sure how we'd want to use it, but it might be something players
 > would want to publish about themselves — at least to their party."**
-
-> **Status: design conversation, captured. Not requirements.** ⭐ The
-> *measurement* already ships; what is undesigned is **what may cross to the
-> server, and in what form.**
 
 Related: ⭐⭐ [connection-origin-slate](./connection-origin-slate.md) (**the
 doctrine precedent — same problem, already solved once**),
@@ -36,20 +34,9 @@ discipline).
 
 # Part 0 — ⭐⭐ It already ships, and the posture is already right
 
-`packages/server/src/backend/inbound/ping.ts`:
-
-> *"Ping handler — app-level latency probe. The browser's WebSocket
-> ping/pong is opaque from JS, so **the cockpit needs its own ping to
-> measure RTT.** Server replies with a `pong` carrying a server-side
-> timestamp; **client subtracts to derive latency.**"*
-
-Which means the correct posture exists **by construction, not by policy**:
-
-| | |
-|---|---|
-| the server | echoes a timestamp — **stateless** |
-| the client | **derives** the number |
-| storage | ⭐ **none.** Nothing persisted, nothing server-side, nothing queryable |
+*Shipped and documented — the probe, the both-clocks echo (*the stamp is
+echoed, never trusted: nothing server-side reads it*), `roundTripMs` on
+the connection chip → client-shell.md § the connection chip.*
 
 > ⭐⭐⭐ **So the design question is not "should we measure it." It is
 > "what may CROSS BACK, and in what form" — because sharing it with a party

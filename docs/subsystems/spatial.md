@@ -359,6 +359,21 @@ tabletop` on a Surfaced host and `put apple on tabletop`
 resolves "tabletop" to the host via the Detailed-keyword path.
 Pure MQL plumbing; surfaces don't gain Slotted semantics.
 
+### Affordances live on Stuffs, not Details
+
+`DetailedMixin` gives a Stuff addressable sub-parts for *description
+only* — `look at door's handle` resolves and reads, but a Detail is
+never itself an object a verb can target. **A sub-part that needs a
+verb that DOES something — accepts things, holds things, can be picked
+up — earns its own Stuff.** `userFacingDetail` (above) is the one
+sanctioned bridge: it lets MQL resolve a keyword against the affording
+host's real mixin (`Surfaced`, and `Slotted`'s own field of the same
+name); the Detail never gains the capability itself. A bookshelf with
+several genuine shelves is several `Surfaced` Stuffs, one per shelf —
+not one Detail-with-its-own-Surfaced — keeping the substrate honest
+about which sub-parts are actually interactive (graduated from the
+affordance-verb slate, 2026-09).
+
 ### `Surfaced.canRest(item)`
 
 Per-host veto. Defaults to `true`; authors override for shape-

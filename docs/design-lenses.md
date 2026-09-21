@@ -1,6 +1,6 @@
-# The five design lenses
+# The six design lenses
 
-**The rubric every high-level design is interrogated with.** Five
+**The rubric every high-level design is interrogated with.** Six
 questions, asked in order, of any feature, slate, subsystem, or fork.
 They are the project's own — not borrowed, not a checklist someone
 should have to be handed at the start of each session.
@@ -9,14 +9,14 @@ should have to be handed at the start of each session.
 > that directory is Jesse Schell's lens deck (fantasy, curiosity,
 > cheatability…), a borrowed *analysis toolkit* used mostly for the
 > education-video track. This doc is the *decision rubric*. Where a
-> Schell lens sharpens one of the five, it is named as an instrument
+> Schell lens sharpens one of the six, it is named as an instrument
 > below.
 
 ---
 
-## How the five are used
+## How the six are used
 
-**A scorecard, not a gate.** Score a design against all five; lenses 1
+**A scorecard, not a gate.** Score a design against all six; lenses 1
 and 2 pick the winner.
 
 > ⭐⭐ **The standing rule, stated as permanent:** *"What solution is
@@ -24,10 +24,13 @@ and 2 pick the winner.
 > affords the most expressiveness and creative control by our content
 > authors?"*
 
-Lenses 3–5 are axes a design **must not badly fail**, but they do not
+Lenses 3–6 are axes a design **must not badly fail**, but they do not
 decide forks. Lens 5 is the lesser one — it never vetoes on its own; a
 mechanism that only works in one epoch is a flag that the physics is
 probably modelled at the wrong altitude, not an automatic rejection.
+Lens 6 (added 2026-09-18) is the one that was being run informally in
+[vocations.md](./vocations.md) all along — the demand test — and never
+asked of a feature that was not a vocation.
 
 **When the pass is run:** at the **slate** (before a design is
 considered ready) and at **requirements** (over the agreed scope).
@@ -236,9 +239,64 @@ different machine.
 
 ---
 
+## 6 · Economy — what does it produce, consume, and who pays?
+
+*What does this feature put into the economy, what does it take out,
+who pays for it, and did the demand exist before the feature did?*
+
+Every feature is a producer or a consumer or both, whether or not it
+was designed as one. A gym consumes an hour a person could have sold; a
+fitter body sells a longer shift; a body that trains eats differently,
+and the butcher notices. The lens asks for those flows to be **named**,
+so a feature never quietly creates a sink with no source, a source with
+no sink, or a need that had to be invented for the market to exist.
+
+The four questions, each with its doctrine already written:
+
+- **What does it produce, and for whom?** Goods, capacity, information,
+  standing. ⭐ *A vocation exists iff there is unmet demand*
+  ([vocations.md](./vocations.md) — the demand test).
+- **What does it consume?** Time, goods, money, reserves. ⭐ *An
+  abstraction is legitimate while it still costs somebody the activity*
+  ([uncertainty.md](./uncertainty.md) — the abstraction law). Time is
+  the currency every other one is priced in.
+- **Who pays, and with what?** Time or money, and whether they are
+  substitutes here (delegation is first-class, and itself a lesson).
+  ⚠ *Money may buy goods and services; it may never buy standing*
+  ([measurement.md](./measurement.md)) — a feature where money reaches
+  the standing mint has failed this lens whatever else it does.
+- **Did the demand exist first?** ⭐⭐ *Never invent a need to create a
+  market* ([vocations.md](./vocations.md)) — if the feature requires a
+  new player obligation in order to be wanted, the demand was
+  fabricated. The honest justification is always a want that was
+  already there, or a producer that is already producing into nothing
+  (the wire suite's dirty reasons are a list of those).
+
+> **The test.** Name the flows: what goes in, what comes out, who pays,
+> and was anyone asking before we built it?
+
+**Failing looks like:** a manufactured need (an inn justified by a sleep
+*requirement*); a sink with no source (a fee nobody's income can meet);
+a source with no sink (a byre producing milk nothing takes); a vocation
+nobody would pay; standing that money can reach; a reward for time
+rather than for judgment wearing an economic costume (a wage for
+existing).
+
+⭐ **Worked example — the gym.** Work produces goods *and* a body; a gym
+produces only the body. So the gym's price is the wage foregone, the
+miner never needs one, and the clerk buys with time what the miner gets
+as a byproduct — fitness as production vs fitness as consumption, and
+the game tells that story with no narration. The demand exists wherever
+sedentary vocations do; a gym-keeper passes the test there and fails it
+in a mining camp. And the trained body eats differently, which is where
+a flat food basket becomes demand for the butcher — a source the dairy
+and the butcher were waiting on.
+
+---
+
 ## Running the pass
 
-A lens pass is short. Five headings, a couple of sentences each, in the
+A lens pass is short. Six headings, a couple of sentences each, in the
 slate and again in the requirements doc:
 
 ```
@@ -248,6 +306,7 @@ slate and again in the requirements doc:
 3. Immersion — <what the sim affords without scripting>
 4. Values — <the choice forced; who confers standing>
 5. Epochs — <what changes across the five; what must not>
+6. Economy — <what it produces and consumes; who pays; was the demand there>
 ```
 
 If a heading is hard to fill, that is the finding — write the gap down
@@ -264,7 +323,9 @@ gets **one level more real** in the place the pass was thin.
 - [uncertainty.md](./uncertainty.md) — where randomness may enter
   (lens 1's sharpest instrument).
 - [measurement.md](./measurement.md) — what may be counted, who says
-  what it is worth (lenses 3 and 4).
+  what it is worth (lenses 3, 4 and 6).
+- [vocations.md](./vocations.md) — the demand test and the
+  never-invent-a-need rule (lens 6's instruments).
 - [arcane-science.md](./arcane-science.md) — one postulate, real
   thermodynamics (lens 5).
 - [subsystems/advancement.md](./subsystems/advancement.md) — Discipline,

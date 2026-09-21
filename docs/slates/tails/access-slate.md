@@ -3,21 +3,16 @@
 > **Status: PARTIAL** — the `can()` core shipped as `AccessApi` over
 > parcel title → [access.md](../../subsystems/access.md) +
 > [parcel.md](../../subsystems/parcel.md); the content-write class
-> allowlist shipped in `CmsLogic`. ⚠ The lease model lost both its stated
+> allowlist shipped in `CmsLogic`; the deferred caller policies were
+> RETIRED, not built. ⚠ The lease model lost both its stated
 > consumers (the CMS and the holodeck each shipped without one).
-> **Left:** the structured audit sink (call-security Pillar 5 —
-> `MudlogApi` is unwired) · the deferred caller policies (`Admin`,
-> `ByCommandGiver`, `ByActingAvatar`, `ByResponsibleAvatar` +
-> `getActingAvatar`/`getResponsibleAvatar`) · the lease-vs-quota design
-> question, which should not ride the audit sink's cycle
+> **Left:** the structured audit sink (call-security Pillar 5 — denies +
+> `forceX` uses → `MudlogApi`, which is unwired) · action-level `can()`
+> for non-staff verbs (chat gag-as-deny, channel post/moderate roles,
+> guild kick, field masks) + deny-wins composition · the location/context
+> source · the lease-vs-quota design question, which should not ride the
+> audit sink's cycle
 > **Size:** a tail
-
-> **Status: architecture set, forks leaned.** The in-world permission
-> layer — "can this *actor* do this *action* on this *resource*?" — that
-> `call-security` explicitly reserved a seam for. Capability-based,
-> diegetic-first, one `can()` core, two enforcement surfaces. Consumes
-> the grouping facade (group-role is one capability source) and fills
-> call-security's stubbed/deferred policy slots.
 
 > **⚠ AUDIT 2026-08-08 — this slate should be SPLIT; half of it is a
 > design question, not a build.** Checked against the tree when GitLab #13
@@ -60,20 +55,12 @@ verbs, the `forceX` admin bypass) unified into one model. Distinct from
 "capability" in [capability-magic-slate.md](../builds/capability-magic-slate.md)
 (abilities/power) — here **capability = access authority**.
 
-The unlock: **this is not a parallel system to bolt on.** `call-security`
-already reserved the slots:
-
-- `AdminOnly` is an explicit **always-deny stub**, documented as
-  "replaced by a real permissions-aware policy *when the permission
-  framework lands*."
-- `Admin`, `ByCommandGiver`, `ByActingAvatar`, `ByResponsibleAvatar` are
-  **deferred policies** — specified, unbuilt ("no consumer needs them
-  yet").
-- `getActingAvatar` / `getResponsibleAvatar` (stack-walkers to find the
-  *in-world actor* behind a call) are deferred for the same reason.
-- `forceX` + `AdminOnly` is the standardized admin-override shape.
-
-We're filling those reserved slots, not inventing.
+> superseded — the reserved slots were RETIRED, not filled: `AdminOnly` is
+> gone, `Admin` / `ByCommandGiver` / `ByActingAvatar` / `ByResponsibleAvatar`
+> and the stack-walkers are *"not on the roadmap"*
+> ([call-security.md](../../subsystems/call-security.md) § caller-identity policies);
+> privileged mutations ship as the narrow-entry pattern
+> ([access.md](../../subsystems/access.md)).
 
 See also:
 
@@ -105,110 +92,42 @@ See also:
 
 ## Principle
 
-1. **Fills call-security's reserved permission seam** — realizes
-   `AdminOnly`→`Admin`, the deferred actor-aware policies, and the
-   stack-walk subject helpers.
-2. **Call-security ≠ authorization.** Call-security asks "may this
-   *caller* (a Stuff/null) invoke this *method*?" (code-trust,
-   invariants, go-through-the-Api). Authorization asks "may this *actor*
-   (player/NPC) do this *action* on this *resource*?" (in-world rights).
-3. **Capability-based, diegetic-first.** Access is mostly *emergent from
-   the world* — keys, ownership, ranks, location — not abstract ACLs.
-   `can()` reads the world.
-4. **One core, two surfaces.** A single `can(subject, action, resource)`;
-   enforced at privileged method chokepoints (call-security policies) and
-   at the action layer (command validators + controller checks).
-
----
-
-## The layers
-
-```
-ACTION-LEVEL ENFORCEMENT          METHOD-LEVEL ENFORCEMENT
-command validators +              call-security policies
-controller can() checks           (Admin / ByActingAvatar → can())
-(open this door, post here)       (forceX, destroy, manager mutations)
-        └──────────────┬──────────────────┘
-                       ▼
-            can(subject, action, resource)          ← THE CORE
-                       │  effective capabilities from pluggable sources
-   ┌───────────┬───────┼─────────────┬──────────────┐
-   ▼           ▼       ▼             ▼              ▼
-POSSESSION  OWNERSHIP  GROUP-ROLE   LOCATION/      TIER
-(key/badge) (your      (GroupApi)   CONTEXT        (player/builder/
-            stuff)                  (in zone)       wizard/owner)
-                       │
-            (subject from the frame stack: getActingAvatar / getResponsibleAvatar)
-                       │
-   built on ──▶  CALL-SECURITY MECHANISM (proxy, policies, frames, force-bypass)
-```
+> superseded by what shipped — capability is **title over a resource
+> within your extent, never a tier**
+> ([access.md § The two account axes](../../subsystems/access.md)); one `can()`,
+> enforced by validators + controller checks
+> ([access.md § Where the gate lives](../../subsystems/access.md)).
 
 ---
 
 ## The capability core — `can(subject, action, resource)`
 
-A thin uniform check. The subject's **effective capabilities** come from
-pluggable, **diegetic-first** sources; the action/resource declares a
-**requirement**; `can()` tests one against the other. Predicate-shaped —
-**not** a giant static capability enum (avoids the premature-vocabulary
-trap; fork #4).
-
-| Source | Diegetic? | Example |
-|---|---|---|
-| **possession** | fully | hold a key/keycard/badge → open this lock |
-| **ownership** | yes | your avatar, inventory, home-room, created group/channel |
-| **group-role** (`GroupApi`) | yes | guild officer → kick; channel mod → moderate; member → post |
-| **location / context** | yes | you're in the zone / adjacent |
-| **tier** | meta (liberally wrappable) | player / builder / wizard / owner |
-
-Same facade pattern as `GroupApi` (and group-membership is literally one
-of its sources). Likely a thin `AccessApi.can(...)` — the sanctioned
-cross-cutting-Api case (no host), or a set of call-security policies that
-call a shared core. Build it **incrementally** (fork #1): wire the real
-`Admin` policy + the tier + the group-role source against today's actual
-consumers (`forceX`, chat, doors); grow sources as real needs appear.
-Don't speculate a policy DSL.
-
-**The subject** is the in-world actor behind the call, resolved by
-walking the frame stack — the deferred `getActingAvatar` /
-`getResponsibleAvatar` helpers. *Lean (fork #2): the responsible/acting
-avatar* (the actor ultimately behind the call), which the deferred
-`ByActingAvatar`/`ByResponsibleAvatar` policies will key on.
+> superseded — `AccessApi.can(subject, action, resource)` shipped as a
+> **title dispatch** (group membership / player identity / organization
+> staff-or-authority over `ParcelApi.ownerOf`), with the subject the current
+> `CommandGiver`, never a stack walk; there are no pluggable capability
+> sources and no tier ([access.md § The two account axes](../../subsystems/access.md),
+> § Subject = current command giver).
 
 ---
 
 ## Two enforcement surfaces, one core
 
-- **Method-level** (call-security policies — *the reserved seam
-  realized*). For **privileged / must-never-bypass operations** gated at
-  the chokepoint no matter how reached: `forceX`, `Stuff.destroy()`,
-  manager mutations. `AdminOnly`-stub → a real `Admin` policy backed by
-  the tier; `ByActingAvatar` calls `can()` with the stack-walked actor.
-  Coarse-ish (tier/critical-capability gates on specific methods).
-  **Don't** push *all* rich authorization here — the interceptor runs on
-  every method call; reserve it for chokepoints.
-- **Action-level** (command validators + controller checks). For
-  **rich, content-configurable, per-resource** player-facing decisions
-  where the verb + resource are clear: open *this* door, post to *this*
-  channel, kick from *this* guild. Verb-level requirements ride a
-  validator (`requires: tier` / `requires: capability`); resource-level
-  checks call `can(actor, action, resource)` in the controller.
-
-Both call the **same `can()`**. The split is *chokepoint integrity*
-(method) vs *player rights* (action).
+> ✅ shipped in a different shape — method-level is the **narrow-entry
+> pattern** (`FromController` on the mutation + `can()` in the one
+> controller), not an `Admin` policy; action-level is the typed-preload
+> validators + controller-body checks ([access.md § The narrow-entry pattern](../../subsystems/access.md),
+> § Where the gate lives).
 
 ---
 
 ## Diegetic-first (the project flavor)
 
-Most access is **emergent from the world**, not an ACL list: a door is
-locked because you don't hold the key; a hall is yours because you own
-it; the guild bank obeys your rank; the lab is reachable because you're
-in the building. `can()` reads possessions, ownership, relationships, and
-location — so "access control" is mostly *content + world state*, not a
-permissions table. Only the **meta-tier** (wizard/staff) is non-diegetic,
-and per liberal diegesis it wraps fine ("the Architects"). This is what
-makes it *our* access system rather than generic RBAC.
+> superseded — `can()` reads title only. A locked door does not consult
+> `can()`: the lock asks what you carry, never who you are
+> ([credential.md](../../subsystems/credential.md), [boundary.md](../../subsystems/boundary.md)).
+> The location/context source never shipped
+> ([access.md § What's NOT in this build](../../subsystems/access.md)).
 
 ---
 
@@ -266,10 +185,10 @@ model.
 
 ## Force-bypass & deny composition
 
-- **`forceX`** is the standardized, audited admin override (call-security
-  already ships the shape on `forceDestruct`/`forceMove`). Verb
-  controllers "try the polished path; on veto, fall back to `forceX` when
-  `-f` and the tier allow." `AdminOnly` → real `Admin` policy is the swap.
+- ✅ **`forceX`** shipped as narrow-entry: `forceDestruct` / `forceMove`
+  gated `FromController`, the controller running `can(giver, 'force-…',
+  target)` ([access.md § The narrow-entry pattern](../../subsystems/access.md)). No
+  `Admin` policy, no tier.
 - **Deny-wins** (fork #3, *leaned yes*): when a grant and a deny collide
   (a gagged guild-officer), the deny wins — reusing the grouping
   **override-layer** pattern (effective = grants − denies). Gags, bans,

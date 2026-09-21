@@ -21,6 +21,19 @@ See:
 - `docs/slates/tails/mql-subscription-slate.md` — the closed-scope slate
   that drove this implementation.
 
+## Why this shape
+
+The predecessor design (`state-sync-slate`, retired) pushed a **fixed
+taxonomy of delta types**. That grows a wire-schema entry per consumer
+widget — quadratic as the client matures — and every new surface is a
+server change. Under a subscription the widget's needs live in its
+*query + field set*, so the wire stays at a handful of message types
+and growth is linear: one mechanism, many uses. Two corollaries hold:
+**MQL is the one language** (players type it, authors gate on it, the
+client subscribes with it), and the channel is **read-only** — mutation
+stays on the command bus, so the verb / validator stack is never
+re-implemented on a second channel.
+
 ## File layout
 
 | File | Role |
@@ -205,7 +218,7 @@ alias or an explicit list. Three cards ship:
 |---|---|---|---|
 | `inspect` | `$focus` | `many` | `'detail'` |
 | `location` | `here` | `one` | `'ref'` |
-| `self` | `me` | `one` | `['playStanding','renown','practisingCompetence']` |
+| `self` | `me` | `one` | `['playStanding','makeStanding','renown','practisingCompetence','bodyState']` |
 
 `self` is the **widget shelf's** one subscription
 ([client-shell.md § The widget shelf](./client-shell.md)) — the shelf's
@@ -387,8 +400,8 @@ nothing to the merge. Subscriptions with `cardinality: 'many'` AND a
 | DetailedMixin | `details` (alias-grouped) | `{ ids, description, hasChildren }` | default `dependsOnFields: ['details']`; ShadowChangedEvent |
 | TangibleMixin | `bulkMaterial`, `mass` | `{ material }` (prefix-walk at focus key) | defaults for `bulkMaterial` / `mass`; **explicit** `dependsOnFields: ['detailMaterials']` for `detailMaterial` because the descriptor name doesn't match the setter's field discriminator. ShadowChangedEvent on the shadow-aware ones. |
 | StackableMixin | `quantity` | — | default `dependsOnFields: ['quantity']` |
-| ContainerMixin | `contents` | — | explicit `dependsOnFields: ['contents']`; fired inline from `addContainable` / `removeContainable`. ⚠ Subtracts anything currently occupying a slot on the host — see `SlottedMixin` below |
-| SlottedMixin | `worn` | — | explicit `dependsOnFields: ['worn']`; fired inline from `occupy` / `vacate` / `vacateSole` |
+| ContainerMixin | `contents` | — | explicit `dependsOnFields: ['contents']`; fired inline from `addContainable` / `removeContainable`. ⚠ Subtracts anything currently occupying a slot on the host — see `AttiredMixin` below |
+| AttiredMixin | `worn` | — | explicit `dependsOnFields: ['occupants']`; `SlottedMixin` fires it inline from `occupy` / `vacate` / `vacateSole` (the projected field is still `worn`) |
 
 ⭐ **`contents` and `worn` are a PARTITION of one set.** A worn garment
 never leaves the wearer's contents (the `wear` verb only claims slots),
@@ -673,6 +686,23 @@ dirty set in insertion order, re-resolves each query via
 emits a single `MqlSubscriptionDeltaEnvelope` per subscription whose
 diff is non-empty. Subscriptions cancelled between dirty mark and
 drain are dropped silently.
+
+⭐ **The dependency set is re-derived on every re-resolve.** After the
+diff, `reresolveAndEmit` tears down the subscription's index entries
+(releasing listener refcounts) and runs `deriveAndInstallDependencies`
+against the NEW result set — so a subscription's interest follows its
+answer: a Stuff that enters the result contributes its own entries
+from the next tick, and one that leaves stops. `by: 'target'` entries
+(`ShadowChangedEvent`) are therefore a per-result reverse index keyed
+on live `stuffId`s, not a static set derived from the query text; the
+slate's "adaptive" strategy shipped as the default rather than as a
+later tier. Two properties ride on the same drain: the bus dispatches
+listeners in a microtask and the re-resolve runs after `setImmediate`,
+so it always reads post-mutation state; and each re-resolve runs as its
+own guarded root (`runRootGuarded(…, 'swallow')`) under the CURRENT
+holder's circle scope, so one bad subscription cannot escape the batch
+and a socket that follows its player into a sandbox re-resolves
+in-circle.
 
 ## Diff algorithm
 

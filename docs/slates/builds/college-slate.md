@@ -13,14 +13,13 @@
 > the seed, evaluator contract, misconception-bank distractors and the
 > discrimination invariant) · enrollment as contract + Transcript wiring ·
 > the lecture and exam halls + the watch-embed lesson card · practical
-> assessment on inquiry's `predict` gate · teaching as employment (TA
-> positions, sections, the mixed roster) · deferred: player-authored
-> courses · ⚠ blocked on study.com only for the OUTPUT format
+> assessment on inquiry's `predict` gate · the viva · teaching as
+> employment (TA positions, sections, the mixed roster) · the
+> course-cites-never-restates syllabus + contribution as coursework · Poli
+> Sci 200 (unauthored) · deferred: player-authored courses · ⚠ blocked on
+> study.com only for the OUTPUT format
 > **Size:** a build
 
-> **Status: sketch / pre-requirements.** A design pass, not a spec.
-> Written 2026-08-02.
->
 > Scope: the **academic apparatus** — what a course is, how assessment
 > works, how enrollment and teaching are modelled, and what a classroom
 > is as a place. It is deliberately *not* the campus (that's the
@@ -285,6 +284,22 @@ perturbation. Two reasons:
 And the pipeline is already built: both course documents carry a
 **misconceptions bank**, so *authoring a misconception is authoring a
 distractor.* Keep them in sync and the item bank deepens for free.
+
+**A second course's items, already keyed.** The spoilage law is the
+other subject the generator can run on today, because every key is a
+reading of a shipped equation (the microbial load, Arrhenius `f_T`, the
+`a_w` floor — [spoilage.md](../../subsystems/spoilage.md)), and each hook
+carries its characteristic error (salvaged from the retired
+spoilage-design-pack, 2026-09):
+
+- *"Fish at 20 °C, `a_w` 0.99, `Ea` = X — hours to the hazard band?"*
+- *"You salt it to `a_w` 0.75 — now how long?"* (`f_aw` → 0:
+  **shelf-stable** — the distractor is "a bit longer," the misconception
+  being that salt *slows* rather than *stops*).
+- *"It's frozen for a month, then left out at 25 °C — how long until
+  unsafe?"* (freezing paused the load at its pre-freeze level; the clock
+  resumes from there, not from fresh — a characteristic error worth a
+  distractor).
 
 ### The discrimination invariant
 

@@ -122,9 +122,10 @@ describe('CockpitShelfController', () => {
    */
   it('⭐ starts with only the wired rows pinned', () => {
     expect(shelf()).toEqual([...DEFAULT_SHELF]);
-    expect(shelf()).toEqual(['play', 'renown', 'skill']);
-    // The catalogue is still nine; the DEFAULT is three.
-    expect(SHELF_ROW_IDS).toHaveLength(9);
+    // `body` joined the default when it started answering (nutrition-
+    // and-fitness): the four WIRED rows, never the whole catalogue.
+    expect(shelf()).toEqual(['play', 'renown', 'skill', 'body']);
+    expect(SHELF_ROW_IDS).toHaveLength(10);
   });
 
   /*
@@ -196,10 +197,10 @@ describe('CockpitShelfController', () => {
    */
   describe('first', () => {
     it('moves a pinned row to the front, keeping the rest in order', async () => {
-      // `skill` is default-pinned LAST of the three.
-      expect(shelf()).toEqual(['play', 'renown', 'skill']);
+      // `skill` is default-pinned third of the four.
+      expect(shelf()).toEqual(['play', 'renown', 'skill', 'body']);
       const ctx = await run({ action: 'first', row: 'skill' });
-      expect(shelf()).toEqual(['skill', 'play', 'renown']);
+      expect(shelf()).toEqual(['skill', 'play', 'renown', 'body']);
       expect(pushSpy).toHaveBeenCalledWith(SHELF_KEY, expect.any(Array));
       expect(ctx.getStatus()).toBe('ok');
     });
@@ -213,7 +214,7 @@ describe('CockpitShelfController', () => {
       expect(shelf()).not.toContain('coin');
       await run({ action: 'first', row: 'coin' });
       expect(shelf()[0]).toBe('coin');
-      expect(shelf()).toEqual(['coin', 'play', 'renown', 'skill']);
+      expect(shelf()).toEqual(['coin', 'play', 'renown', 'skill', 'body']);
     });
 
     it('on a row already first is a no-op that does not duplicate it', async () => {
@@ -305,7 +306,7 @@ describe('CockpitShelfController', () => {
      * row the verb never mentioned, so the unpinned ones have to appear
      * — marked as absent rather than omitted.
      */
-    it('prints all nine rows with their pinned-ness', async () => {
+    it('prints all ten rows with their pinned-ness', async () => {
       actor.received.length = 0;
       const ctx = await run({ action: 'list' });
 
@@ -313,10 +314,10 @@ describe('CockpitShelfController', () => {
       for (const row of SHELF_ROW_IDS) {
         expect(body, `${row} missing from the catalogue`).toContain(row);
       }
-      // ⚠ Three of nine by default — `list` is how a player DISCOVERS
+      // ⚠ Four of ten by default — `list` is how a player DISCOVERS
       // the six that are not on their bar, which matters more now that
       // they no longer start there.
-      expect(body).toContain('3 of 9 pinned');
+      expect(body).toContain(`${DEFAULT_SHELF.length} of ${SHELF_ROW_IDS.length} pinned`);
       expect(ctx.getStatus()).toBe('ok');
     });
 

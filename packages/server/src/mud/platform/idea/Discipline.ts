@@ -71,6 +71,8 @@ export interface DisciplineDescriptor {
   specializes: string[];
   synergizes: string[];
   conferrals: ConferralRule[];
+  /** The body stock a `conditioning` Discipline's band reads; `''` for the rest. */
+  stock: string;
 }
 
 export default class Discipline extends Idea {
@@ -106,6 +108,16 @@ export default class Discipline extends Idea {
   public synergizes: string[] = [];
   /** Band-gated verb conferrals (the knowing→doing seam). */
   public conferrals: ConferralRule[] = [];
+  /**
+   * ⭐ A `conditioning` Discipline names the BODY STOCK its band is a
+   * threshold over (`wind`, `alcohol-tolerance`) — a biological reserve
+   * on the metabolism clock, never a Transcript fold. VO₂max is a state
+   * of the body, not a memory of your evidence: it fades while you play
+   * and not while you are away, and no gauge shows it. `''` for a skill
+   * or knowledge Discipline. Read by `AdvancementMixin.bandsFor` /
+   * `competenceBandFor`.
+   */
+  public stock: string = "";
 
   static fieldMeta: FieldMeta = {
     key: { persistent: true },
@@ -117,6 +129,7 @@ export default class Discipline extends Idea {
     specializes: { persistent: true },
     synergizes: { persistent: true },
     conferrals: { persistent: true },
+    stock: { persistent: true },
   };
 
   public getKey(): string {
@@ -176,5 +189,14 @@ export default class Discipline extends Idea {
   }
   public getConferrals(): ConferralRule[] {
     return this.conferrals.map((c) => ({ band: c.band, verbs: [...c.verbs] }));
+  }
+  public getStock(): string {
+    return this.stock;
+  }
+  public setStock(value: string): void {
+    if (typeof value !== "string") {
+      throw new TypeError("Discipline.stock must be a string");
+    }
+    this.stock = value.trim();
   }
 }

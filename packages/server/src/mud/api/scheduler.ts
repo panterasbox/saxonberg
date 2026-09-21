@@ -75,6 +75,14 @@ export interface Engagement {
 export interface DurativeActivity extends Engagement {
   readonly duration: number;
   readonly replaceableBy: readonly string[];
+  /**
+   * ⭐ Metabolic watts this activity costs its actor for its duration.
+   * Absent = not work (a search, a dressing, an offer): the registry
+   * emits `actor.exert({durationS, powerW})` at completion (pro-rata at
+   * a cancel) only for an activity that declares one. Exclusion by
+   * construction, never by a type test.
+   */
+  readonly effortW?: number;
   onComplete(): void;
 }
 

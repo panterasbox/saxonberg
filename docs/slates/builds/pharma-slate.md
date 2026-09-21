@@ -1,9 +1,12 @@
 # Pharma slate — the game's first credence good
 
 > **Status: UNBUILT** — direction set 2026-08-02; nothing built.
-> **Left:** the actives/pharmacopoeia content · extraction as a process ·
-> glass vessels · the assay instrument · the apothecary + assayer
-> vocations · the illicit branch · disposal · the batch/recall record
+> **Left:** the actives/pharmacopoeia content · `neutralizedBy` + `rinse
+> [with <substance>]` (the first row of the pharmacopoeia) · extraction as
+> a process · glass vessels · the assay instrument · the apothecary +
+> assayer vocations · the wild→cultivated quota (the first commons) · the
+> illicit branch · disposal · the batch/recall record · the manufactory
+> variant · in-world statistics over the record (Q5)
 > **Size:** a build
 
 **Captured 2026-08-02**, out of the physiology slate's care economy. The
@@ -13,10 +16,6 @@ unusual direction.
 
 > ⭐⭐⭐⭐⭐ **Every industry so far sells something you can EVALUATE. This
 > one doesn't.**
-
-> **Status: direction set, nothing built.** Depends on
-> [physiology-slate](./physiology-slate.md) (the substance model) and
-> [discovery-slate](./discovery-slate.md) (the wild input).
 
 Related: [physiology-slate](./physiology-slate.md) (**substances, the
 therapeutic window, the care economy**),
@@ -334,6 +333,42 @@ this build — every entry in the table is an active with a mechanism
 (`spoiler: 1` on `corrosiveTo`, decided by the injury build's audit)
 applies to `neutralizedBy` identically. Ship it as the first row of the
 pharmacopoeia, not as a verb fix.
+
+## ⭐ A modern substance the model can already say: GLP-1 (noted 2026-09-18, deliberately WAITING)
+
+The nutrition & fitness planning asked whether the GLP-1 agonists — a
+genuine game-changer in the real world, and very new — belong in the
+world now. The answer is *the model can express them and should not
+yet*, and both halves are worth recording.
+
+**The mechanism maps onto hooks that exist.** One substance system, the
+band decides help or harm: GLP-1's pharmacology is slowed gastric
+emptying and raised satiety per intake — in metabolism's terms a
+substance whose active band scales `absorbPerMin` **down** and
+satiation's yield **up**, so you are full longer and eat less. No new
+machinery; a `Condition` seed with a `toxinBehavior`, like every active.
+
+**What emerges without a special case** — and this is the pedagogy
+worth waiting for: the nutrition build's two body stocks make weight
+loss *without exertion* draw down **both** fat and lean — which is the
+lean-mass loss the real-world data shows — and stopping the drug
+returns absorption to baseline while the appetite it never modelled
+returns with it, so the **rebound** falls out of the months clock. The
+model would say the true things unprompted.
+
+**What it cannot say** is the thing the drug is most discussed for:
+*appetite* — "food noise." The nutrition requirements deliberately
+cannot express appetite, mood or the psychology of eating, and a GLP-1
+whose headline effect is faked is worse than none.
+
+**So: wait.** Three reasons, in order of weight — the real-world picture
+(lean loss, rebound, the cardiovascular and long-term data) is still
+moving and this world should not canonise a 2020s drug's outcomes before
+they are known; the epoch lens (trades ship medieval and advance by
+discipline — a peptide agonist arrives with the discipline that makes
+it, not before); and the appetite gap. Author it into the pharmacopoeia
+as a substance when it is wanted, with the hook mapping above so nobody
+thinks it needs machinery.
 
 ## Open questions (for requirements)
 

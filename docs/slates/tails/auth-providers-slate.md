@@ -1,35 +1,22 @@
 # Auth providers & account linking slate (working doc)
 
-> **Status: PARTIAL** — Waves 1+2 shipped; Google, Twitch and Kick are
-> co-equal login providers → [connection.md](../../subsystems/connection.md)
-> **Left:** account merge · provider-side token revocation · incremental
-> chat scopes (`user:write:chat`) · YouTube as a linkable provider (a
-> `@`-seed still rejects `character-youtube`) · LLM name-refraction
+> **Status: PARTIAL** — Waves 1+2 shipped and grown beyond the original
+> proposal: Google, Twitch **and Kick** are co-equal login providers
+> (three FK fields, not the two this slate designed for), token
+> encryption, link/unlink with collision-refusal, and — beyond this
+> slate's own scope — incremental chat-scope reauth all shipped →
+> [connection.md](../../subsystems/connection.md) § The Cast, § Phase 1
+> **Left:** account merge · provider-side token revocation · YouTube as
+> a linkable/login provider (a `@`-seed still rejects
+> `character-youtube`) · LLM name-refraction
 > **Size:** a tail
 
-> **Status: Waves 1+2 shipped (2026-06) → [connection.md](../../subsystems/connection.md).**
-> The multi-provider spine, Twitch login, account link/unlink, and
-> token-at-rest encryption shipped (Phase 1 of the
-> [broadcast-patronage track](../../tracks/broadcast-patronage-track.md)).
-> Deferred design surface holding here: incremental chat scopes
-> (`user:write:chat` / `user:read:chat`, the relay's), account merge,
-> provider-side token revocation, LLM name-refraction, and YouTube. The
-> original proposal follows.
->
-> Generalize the Google-only
-> auth spine into a multi-provider one (Google + Twitch as **co-equal
-> login providers**), add a `TwitchProfile` Document that holds provider
-> identity **plus** chat tokens, let an authenticated user **link** the
-> other provider, and resolve a returning login through *any* linked
-> provider back to the same `User`. This is the foundation both the
-> **Twitch chat relay** and the future **LLM name-refraction** sit on.
-> **Does not block char-gen-wave1** — see *No char-gen coupling* below.
-
-The front door is currently Google-only, and the Google assumption is
-hardwired through the whole auth spine — not just the `User` model. This
-slate makes the spine **provider-parameterized** without inventing a
-generic identity registry: the *procedure* takes a `provider`, the *data*
-stays two explicit fields.
+The original proposal generalized the Google-only auth spine into a
+multi-provider one and added `TwitchProfile`. That work, and more than
+it anticipated (Kick as a full third provider, incremental chat-scope
+reauth), has shipped — see
+[connection.md](../../subsystems/connection.md) for the current shape.
+What remains below is the genuinely open residue.
 
 See also:
 
@@ -51,156 +38,43 @@ See also:
 
 ---
 
-## Principle
+## What shipped
 
-1. **Co-equal providers.** Twitch is a *login* provider, not a secondary
-   link. You can sign in with Google **or** Twitch; you can link the
-   other; logging in via any linked provider lands you on the same `User`.
-2. **Explicit data, parameterized procedure.** Two FK fields on `User`,
-   not a generic `identities[]` map — login providers are exactly two, and
-   YouTube-later is itself Google OAuth (it grows `GoogleProfile`, it does
-   not add a third field). Only the *spine procedure* takes a `provider`.
-3. **Identity vs credentials.** `GoogleProfile` stores **no tokens**
-   (Google is login-only — Passport gets the profile, mints a session,
-   discards the token). `TwitchProfile` **persists tokens**, because we
-   call Twitch's API *as the user* for the lifetime of the link.
-4. **Credentials are encrypted at rest.** The token fields are bearer
-   credentials → encrypted with an app key. This is the one genuinely new
-   bit of substrate.
-5. **Login consent ≠ feature consent.** Login requests minimal identity
-   scope; chat-send scope is requested **incrementally** when the chat
-   feature is first used.
-6. **No char-gen coupling, no account merge.** char-gen-wave1 is
-   untouched; pre-existing duplicate accounts are refused at link time,
-   not merged.
+The Principle, data model, spine generalization, token storage &
+encryption, scopes, linking & collisions, and no-char-gen-coupling
+designs this slate proposed all shipped essentially as designed (Kick
+later joined as a third co-equal provider, not anticipated here) — see
+[connection.md](../../subsystems/connection.md) § The Cast and § Phase 1
+for the current shape, including the account-merge refusal ("refuse,
+don't merge," unchanged from this slate's call) and the
+`EncryptedStringMarshaller` that resolved the open
+CryptoApi-vs-field-marshaller call in favor of the marshaller. The
+**Twitch chat relay** named below as downstream also shipped —
+incremental `user:write:chat` reauth via `/auth/twitch/reauth`, see
+[streaming.md](../../subsystems/streaming.md).
 
----
+## Left
 
-## The data model
-
-Three `Document`s (all plain persisted JSON, not Stuff — see the
-persistence slate). `GoogleProfile` is unchanged.
-
-```
-User                                  // users
-  googleProfileId?: string            // WAS required; now optional
-  twitchProfileId?: string            // NEW, optional
-  playerIds: string[]
-  // invariant: at least one *ProfileId set
-
-GoogleProfile                         // google_profiles (unchanged)
-  googleId, email, displayName, givenName, familyName, photoUrl, rawProfile
-  // identity only — no tokens
-
-TwitchProfile                         // twitch_profiles (NEW)
-  twitchUserId: string                // identity (the GoogleProfile-analog)
-  login: string                       // lowercase @handle
-  displayName: string                 // cased handle
-  email?: string
-  rawProfile: Record<string, unknown>
-  // --- credentials (NOT present on GoogleProfile) ---
-  accessToken: string                 // encrypted at rest
-  refreshToken: string                // encrypted at rest
-  expiresAt: number
-  scopes: string[]                    // grows when chat scope is added later
-```
-
-**Why two fields, not a map:** computed-key access (`User.find({
-[`${provider}ProfileId`]: id })`) handles the parameterized spine fine,
-and the data stays greppable and indexable. A generic `identities[]`
-would be the premature abstraction the codebase resists at N=2.
-
-## The spine generalization (engine)
-
-Today the Google assumption lives at six layers. Each gets
-provider-parameterized — a mechanical change, not a redesign:
-
-| Layer | Today | Change |
-|---|---|---|
-| `services/auth/PassportConfig.ts` | one `GoogleStrategy`, skipped under `AUTH_MODE=test` | add a Twitch OAuth2 strategy alongside it, gated the same way |
-| `services/auth/AuthRoutes.ts` | `/auth/google` + `/auth/google/callback` | add `/auth/twitch` + callback (login) and `/auth/twitch/link` + callback (authenticated link) |
-| `backend/Backend.ts` `handleAuthenticationSuccess(profile, done)` | hardcodes the Google path | carry a `provider` arg (or `handleProviderAuth(provider, profile, done)`); the test seam passes `provider: 'google'` so E2E is unchanged |
-| `backend/Application.ts` `findOrCreateUserFromGoogle` | `findOrCreateGoogleProfile` + `findOrCreateUser(googleProfileId)` | `findOrCreateUserFromProvider(provider, profile)` → `findOrCreateProfile(provider, profile)` + `findOrCreateUser(provider, profileId, profile)`; resolve `User.find({ [`${provider}ProfileId`]: id })` |
-| default avatar name seed (`Application.ts`, `createDefaultAvatarTemplate(profile.name?.givenName ?? 'Unnamed', …)`) | reads Google's name shape | read a **provider-agnostic accessor** so a Twitch-origin user doesn't fall to `'Unnamed'` (Google: `givenName ?? displayName`; Twitch: `displayName ?? login`). This is the *only* char-gen-adjacent touch, and it's just the throwaway default the char-gen flow overwrites. |
-| `backend/PersistenceManager.ts` | `Collections.GoogleProfiles`; index `users.googleProfileId`, `google_profiles.email` | add `Collections.TwitchProfiles = 'twitch_profiles'`; index `twitch_profiles.twitchUserId`, `users.twitchProfileId` |
-
-**Session:** carry `authProvider` (`'google' | 'twitch'`) — which provider
-*this session* logged in through. Unused by char-gen-wave1; reserved for
-the future name-refraction input. Lives beside the existing
-`passport.user` (`{ id }`) serialization in `PassportConfig`.
-
-## Token storage & encryption
-
-- **Where:** the `accessToken` / `refreshToken` fields on `TwitchProfile`.
-- **Encryption:** AES-GCM with an app key (`TOKEN_ENC_KEY`) from
-  SSM/`.env`, alongside the existing secrets. **Open call** on the seam:
-  a tiny `CryptoApi` (genuine cross-cutting security infra, defensible
-  despite the no-new-Apis default) **or** an encrypting *field marshaller*
-  on the two token fields (keeps it data-shaped, no new Api). Lean
-  marshaller if the `fieldMarshallers` hook reaches `Document` cleanly;
-  otherwise the minimal `CryptoApi`.
-- **Refresh write-back:** the Twurple `RefreshingAuthProvider.onRefresh`
-  hook re-`save()`s the rotated token onto the `TwitchProfile` (encrypted).
-  `GoogleProfile` never does this; it's unique to the credential-bearing
-  profile.
-
-## Scopes
-
-- **Login (this slate):** minimal identity only — enough to read
-  `twitchUserId` / `login` / `displayName`.
-- **Chat (deferred to the relay slate):** `user:write:chat` (send) and
-  `user:read:chat` (EventSub read) requested **incrementally** via Twitch
-  re-consent the first time a player uses the chat feature; the new scope
-  set is appended to `TwitchProfile.scopes` and the broadened token
-  re-stored. Keeps signup consent light and separates "log in" from "let
-  the game post as me."
-
-## Linking & collisions
-
-- **Link flow:** an already-authenticated session hits `/auth/twitch/link`
-  → Twitch OAuth → attach the resulting `twitchProfileId` to the *current*
-  `User`. (Symmetric for a Twitch-origin user linking Google.)
-- **Collision:** if the second provider's profile is already owned by a
-  *different* `User` (the human signed in via each provider separately on
-  different days), **refuse** with a clear message ("that Twitch account
-  is already linked to another login"). The rejection doubles as the
-  explanation. **Account merge is explicitly out of scope** — reconciling
-  two `playerIds` sets is its own project.
-
-## No char-gen coupling
-
-char-gen-wave1 reads no provider data: `given` is free-text (sanitized),
-`surname` is roster-defaulted, `nickname` is optional. The only
-provider-name touchpoint in the codebase is the throwaway default avatar
-name at account creation, addressed by the provider-agnostic accessor
-above. **This slate and char-gen-wave1 can land in either order.**
-
-## Out of scope (named downstream)
-
-- **Twitch chat relay** — separate slate (extends `chat.md`'s `Channel`):
-  stateless Helix *Send Chat Message* per linked token (no persistent
-  per-user connection — the thing that sank the panterasbot attempt), one
-  shared anon-IRC/EventSub reader fanned out internally. Depends on this
-  keystone's `TwitchProfile` token + the incremental chat scope.
-- **LLM name-refraction** — *deferred* ("real name → race-styled name",
-  e.g. *Bobby Schaetzle → Bobalu Smallberries*). Needs `session.authProvider`
-  + the provider name exposed as a char-gen input + the platform's first
-  LLM seam. Out of scope here; this slate only *reserves* `authProvider`.
-- **YouTube** — later, and Google-OAuth: it most likely **grows
-  `GoogleProfile`** with token fields + YouTube scopes rather than minting
-  a third profile. No third `User` field anticipated.
-
-## Build waves
-
-- **Wave 1 — provider-generalized spine + Twitch login.** `TwitchProfile`
-  Document + `Collections.TwitchProfiles` + indexes; token encryption
-  seam; `findOrCreateUserFromProvider`; `User` two-field + at-least-one
-  invariant; `/auth/twitch` login route + Twitch strategy; session
-  `authProvider`. **Outcome:** you can sign in with Twitch and get a
-  `User` with an encrypted token stored. Google path unchanged; E2E
-  test-auth seam unchanged (passes `provider: 'google'`).
-- **Wave 2 — account linking.** Authenticated `/auth/.../link` flows
-  (Twitch↔Google), collision-refusal, login-via-any-linked-provider →
-  same `User`. **Outcome:** one human, one `User`, two ways in.
-- **Wave 3+ — downstream slates.** Chat relay; LLM name-refraction;
-  YouTube. Each its own slate on this foundation.
+- **Account merge.** Still explicitly refused, not built — two
+  `playerIds` sets are never reconciled. This is a "won't build without
+  a real reason" call the code embodies (`Application.linkProvider`
+  refuses a collision outright), not a scheduled piece of work; revisit
+  only if a real player collision makes it one.
+- **Provider-side token revocation.** `unlinkProvider` deletes the local
+  `*Profile` Document (and its encrypted tokens) but never calls the
+  provider's own revoke endpoint — the token stays valid at Twitch/Kick
+  until it expires or the player revokes it themselves from their
+  provider account settings.
+- **YouTube as a linkable/login provider.** Still unbuilt: no
+  `YouTubeProfile`, no OAuth login/link route. `YoutubeClient` /
+  `YoutubeRelayReader` exist only for the **streaming** side (reading a
+  channel's live chat via API key), not account login — a `@`-seed
+  still rejects `character-youtube`
+  (`packages/server/src/mud/lib/streaming/StreamerTarget.ts`). Whether
+  it eventually grows `GoogleProfile` (this slate's original guess) or
+  needs its own profile Document the way Kick did is still open.
+- **LLM name-refraction.** Still only reserved: `session.authProvider`
+  exists and is threaded through, but nothing reads it as a char-gen
+  input yet, and the platform has no LLM seam to feed. Needs
+  `authProvider` exposed to char-gen + the platform's first LLM
+  integration.

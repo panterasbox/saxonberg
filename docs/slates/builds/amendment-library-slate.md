@@ -3,13 +3,18 @@
 > **Status: UNBUILT** — `docs/governance/draft-constitution.md` exists as
 > a design document only; civics.md rules the statute engine out by
 > doctrine, so nothing here has a runtime.
-> **Left:** the module registry + an adoption path over Art. X · the
-> presets (distros) · drafting the named gaps — executive veto, the roll,
-> elections, free movement of goods, statutory right-of-way, full faith
-> and credit
+> **Left:** the catalog Document + module registry + the adoption path
+> over Art. X · the v1 standard-library modules as amendment documents
+> (due process · free expression · term limits · the economy module) ·
+> the presets (distros) · the six drafted modules as amendment documents
+> (executive veto with its two flavors · the roll · elections · free
+> movement of goods + the common-carrier duty · statutory right-of-way ·
+> full faith and credit) · the undrafted gaps from the US-amendment walk
+> (speedy trial · succession & incapacity · incorporation first) · the
+> deferred-to-scale problems (compose-check · curation · versioning ·
+> portability · capture-resistance)
 > **Size:** a build
 
-> **Status: the concept is settled; the *catalog* is the open, growing work.**
 > The [draft constitution](../../governance/draft-constitution.md) ships as a **bare-bones
 > kernel** — the firewall, the machine, and the provided tools, identical for
 > every community on the platform. This slate specs the layer *on top*: a

@@ -3,16 +3,15 @@
 > **Status: PARTIAL** — Stage A shipped 2026-09-01 (the `Deposit` field,
 > `MineWarren`, the five acts, the survey channels, Rejection) →
 > [mining.md](../../subsystems/mining.md)
-> **Left:** Stage B, below the water table — shaft/hoist/pump · the
-> drainage commons + the hoist toll · sulfides and roasting · collapse,
-> entrapment, rescue · the deep ecology + the Hush cast · tribute pitches
-> and setting-day · high-grading as an offence
+> **Left:** Stage B, below the water table — shaft/hoist/pump · the drainage
+> commons, the district as an Organization + the hoist toll · sulfides, roasting
+> and flux · beneficiation (the dressing floor + tailings) · the survey address
+> for a working · tutwork/tribute pitches and setting-day · the tin rung + the
+> alloy regime (Stage C) · coal → coke (the arc payload) · placer + the Weeping
+> Moor stream-tin district · domestic + building metal (locks, lamps, nails) ·
+> stock forms · the `chars` producer brain · who owns the shaft (the buyout arc)
 > **Size:** a build
 
-> **Captured 2026-08-31**, design session in `build-1` while farming
-> (`build/farming`) and residences (`build/residences`) were building.
-> **Status: decided design, pre-requirements.**
->
 > This slate owns **the supply chain**: extraction, fuel, and smelting as
 > three trades, and the chemistry that makes them real.
 > [mining-slate](./mining-slate.md) owns mining-as-play (the four play
@@ -20,36 +19,6 @@
 > [rejection-slate](./rejection-slate.md) owns the venue and the cast.
 > Read all three; they do not overlap, and where this one **supersedes**
 > the mining slate it says so explicitly (§ *What this supersedes*).
->
-> ---
->
-> ## ⭐ STAGE A SHIPPED (metal chain, 2026-09-01) — read [mining](../../subsystems/mining.md) first
->
-> **What landed**, and it is the whole upper half: the `Deposit` field and
-> its one resolved read; `WorkingMixin`/`MineWarren` (⭐⭐ **the warren
-> creates rooms, it does not interpret them** — every read derives from
-> the room and its zone, so a hand-authored static mine behaves
-> identically); the five acts; ground support as a placed `Durable` with
-> refusal, the free telegraph and face-only falls; air as topology, the
-> canary and the pit pony; ore, grade and pooling; the three survey
-> channels, the instruments, the `geology` Discipline and the survey card;
-> the mine archetype and twelve recipes; the `delves` producer beat; and
-> `rejection` — the first mining town, shipping **no TypeScript at all**.
->
-> **What this slate still holds that Stage A did not reach**: everything
-> below the water table. No shaft, hoist, pump, drainage commons, hoist
-> toll or district; no sulfides and therefore no roasting; no collapse
-> entrapment, rescue clock or cascade; no deep ecology, no apex, no Hush
-> cast; no tribute pitches or setting-day auction; no high-grading as an
-> OFFENCE (the pooling and the honest assay shipped; detection and
-> sanction want an adjudicator).
->
-> ⚠ **Where this slate and the shipped code disagree, the code wins.**
-> Four corrections worth naming: `MineWarren` extends the KERNEL
-> `InnerWarren` (not a bespoke base); the deposit speaks METRES, not grid
-> cells; the four procedural room type rows are LOCALITY content, taken as
-> policy; and per-face depletion rides the ROOM, not the warren's ledger —
-> which is the only way a static mine has it.
 
 Substrate: [crafting](../../subsystems/crafting.md) ·
 [fire](../../subsystems/fire.md) ·
@@ -78,85 +47,9 @@ in v1 vs. what is staged) were the user's.
 
 ---
 
-## Where the chain breaks today **[SHIPPED STATE]**
-
-```
-[ the ground ] → ??? → [ ore ] → ??? → [ ingot ] → forge/hammer → [ gear ]
-                                          ↑
-                        world-seed: terminus/general-store/counter.yaml
-                        stocks iron ingots from nowhere
-```
-
-That shop shelf **is** the metal-import era. `trade-smithing` ships and
-works (`forge`/`hammer`/`quench`/`sharpen`, five recipes, a knowledge
-ladder); everything upstream of the ingot is missing. Exactly two links.
-
-`docs/vocations.md` had already flagged both by the demand test, before
-anyone proposed building them: line 257 — **charcoal burner / collier —
-GAP — "fuel for everything above"**; line 125 — **smelter — GAP —
-premises (industrial zoning)**.
-
----
-
-## The shape: three packs, not one **[DECIDED]**
-
-| Pack | Input | Act | Venue | Sells to |
-|---|---|---|---|---|
-| **`trade-mining`** | the ground | prospect · drive · stope · haul | the diggings — a claim, dangerous | the smelter |
-| **`trade-fuel`** | wood (coal later) | coppice · burn · draw | a fuel yard + its coppice | everyone who burns |
-| **`trade-smelting`** | ore + fuel + flux | roast · charge · blow · tap | a furnace yard, capital-heavy, fixed | the smith (`trade-smithing`, shipped) |
-
-**The seam between packs is a market.** This follows the shipped
-precedent exactly: `trade-distilling` makes the spirits,
-`trade-hospitality` serves them, and the transaction between them is the
-economy working. Three businesses in a row, each with a real P&L, each a
-place you can be employed, each arguing with the other two about price.
-
-Folding smelting into mining saves a pack and costs the market. Folding
-it into `trade-smithing` makes the smith self-sufficient and kills the
-seam entirely. Neither is worth it.
-
----
-
 ## ⭐⭐ Fuel is the trade; charcoal is a product **[DECIDED]**
 
-The first cut of this design called the trade "collier." That named a
-product where the engine had already named the commodity:
-
-- **`CombustibleMixin`** is a `'fuel'` **Reserve** on matter, with
-  ignition point and fuel value **derived from the material**.
-- **`FurnaceMixin`** is "a Combustible-fuelled appliance holding a
-  `burnTemperatureK × bellows` temperature."
-- Shipped classes: `Firewood` (which already carries
-  `charMaterialPath` — *what it becomes when it burns out*), `Kiln`,
-  `Forge`, `Campfire`, `Candle`.
-- [fire.md](../../subsystems/fire.md) states the target outright:
-  **"smelting heat (iron's 1811 K) reachable only with the bellows."**
-
-Fuel is already a quantity the world drains, and **every hearth, forge,
-kiln, cookfire and lamp in the game is a customer** — no other trade in
-the roster has that demand surface.
-
-### ⭐ The reason fuel is structural, not merely upstream
-
-**Charcoal is not just hotter. It is the reducing agent.** Iron ore is
-not iron; it is iron bonded to oxygen, and no temperature alone frees it.
-Carbon strips the oxygen off. So the fuel trade is a **physical input to
-the metal**, not a utility bill — and no amount of furnace engineering
-routes around it. That is the structural position a real trade wants.
-
-### The one craft: pyrolysis **[DECIDED]**
-
-Burn matter in starved air; the volatiles leave, the carbon stays. One
-skill, not a product list — wood in, charcoal out; coal in, coke out.
-The judgment is airflow: too much air and the charge burns to ash and you
-have nothing; too little and it never carbonises and you get half-burnt
-brands. It runs for days and must be watched (read the smoke, choke the
-vents), which is `EngagedMixin` + the scheduler + fire/thermal, all
-shipped.
-
-⭐ It gives the trade a **real failure mode**, which most crafting lacks:
-you can lose a whole burn.
+*(SHIPPED → mining.md § *Fuel — pyrolysis, and the clamp*.)*
 
 ### ⚠ What the metallurgy build left here (2026-09-16)
 
@@ -182,22 +75,12 @@ trade owes, both found by driving rather than by testing:
   The realm's charcoal rate IS its iron ceiling, and that chain —
   rotation → panel density → baskets per burn → smelts — is one piece of
   arithmetic somebody gets to set deliberately.
-- **The clamp is a furnace and declines for its own reason.** A charcoal
-  clamp composes `FurnaceMixin` + `ContainerMixin`, so `smelt` now
-  reaches it from the fuel yard and refuses with a sentence about what a
-  clamp is — a heap kept deliberately starving of air. That is correct
-  and is worth keeping when pyrolysis grows: **the refusal is the
-  teaching**, not an error path.
 
 ### The coppice is the fuel trade's own capital **[DECIDED]**
 
-A managed stand on a parcel, cut on a rotation, regrowing on a clock —
-land + a crop + a clock, which is farming's shipped substrate
-([smallholding](../../subsystems/smallholding.md)). **Forestry is not a
-fourth pack**; it is what the fuel yard does with its land. It splits out
-later if timber demand (mine props, construction) is ever exercised
-enough to want a specialist — per
-`docs/vocations.md`'s demand test.
+*(SUPERSEDED by the code: forestry IS a fourth pack, `trade-forestry`, and the
+fuel yard's coppice is its `Panel` → [forestry.md](../../subsystems/forestry.md)
+§ *The panel*.)*
 
 ### Coal is parked as the arc payload **[SCOPE — user's call]**
 
@@ -211,103 +94,12 @@ on day one.
 
 ---
 
-## ⭐⭐ Ore is already modelled — the grade is a shipped field **[DECIDED]**
-
-`Material` ships **`composition: CompositionEntry[]`** —
-`{materialPath, fraction}`, weight fractions, persistent, with
-`getComposition`/`setComposition`. Steel uses it today (iron 0.998 /
-carbon 0.002). Materials also carry `formula` and `molarMass` for
-compounds. And `granite.yaml` carries this comment, unprompted:
-
-> *"v1 leaves `composition` empty pending mineral templates — content
-> extends by adding `/stuff/idea/material/mineral/quartz`, … and
-> populating composition entries here."*
-
-So:
-
-```yaml
-mineral/hematite    formula: Fe2O3      # iron is 69.9% of it by mass — chemistry, not a dial
-rock/iron-ore       composition: [ hematite 0.55, quartz 0.45 ]   # ← the 0.55 IS the grade
-```
-
-**Ore grade is not a new primitive. It is a fraction the engine already
-stores.** A 10 kg lump at 0.55 hematite holds 10 × 0.55 × 0.699 = 3.8 kg
-of iron, and everything downstream is arithmetic on shipped data.
-`analyze X with Y` — real Material chemistry with *partial
-identification* — is the assay verb, also already there.
-
-⭐ **The trade's product is not "an iron ore" the item.** It is a lump
-with a composition, and every lump is different. That is what makes
-assaying real work, pricing real, and the deep-law's *"true weight, true
-grade"* a claim somebody can lie about.
-
-### ⚠ Correction — "no new primitive" was half right
-
-`Material` is **singleton-by-templatePath** (*"every
-`/stuff/idea/material/<…>` template resolves to the same instance"*), so
-**you cannot mint a material per grade.** The split:
-
-- **`Material.composition`** fixes what a *kind* of ore is — chalcopyrite
-  is CuFeS₂, and that chemistry never varies. This is the part that was
-  already shipped, and the yield arithmetic still runs off it.
-- **The lump's actual grade** varies per lump and must live **on the lump**
-  as a number — one small new field on the ore object.
-
-It is not `GradedMixin` either: that is the quality band
-`poor…masterful`, and ore grade is a fraction. See
-[mining-slate § *The `Deposit` Idea*](./mining-slate.md), where the field
-that emits it is specified.
-
-### ⚠ A live inaccuracy this closes
-
-```yaml
-# base-library .../alloy/bronze.yaml
-tags: ["alloy", "metal", "copper", "tin"]
-composition:
-  - { materialPath: .../element/copper, fraction: 0.88 }   # ← and nothing else
-```
-
-**Bronze is authored as 88% copper and 12% nothing.** There is no `tin`
-material; the tag claims tin, the composition cannot. Minting tin and
-making bronze sum to 1.0 is the smallest possible proof of the whole
-model and fixes a shipped lie. (Copper is correct —
-`meltingPoint: 1358` K is 1085 °C.)
-
----
-
 ## ⭐⭐ The smelt is physics, not a recipe **[DECIDED]**
 
-A recipe is a fixed input→output spec; a smelt's output depends on the
-particular lump's composition. If the smelt flattens grade, then
-prospecting — the one genuinely new primitive the mining slate commits
-to, the reason the trade is interesting — **is theatre**: a deduction
-game whose answer doesn't matter.
-
-**The shape: hybrid.** `smelt` stays a craft with a maker, tools and
-inputs, so it rides the shipped crafting spine and the employment/shift
-machinery — but the **yield derives from composition** rather than being
-authored. The delta is the reduction math and nothing else; melting and
-`Casting` are already shipped (heat a Meltable past its point, freeze it
-into a stamped object, bidirectionally).
-
-⭐ Grade then stays load-bearing all the way to the blade:
-[materials-response](../../subsystems/materials-response.md) reads
-material properties into combat, so **lean ore honestly makes a worse
-sword**. The chain pays off end to end — read the ground badly and eight
-steps later the edge folds.
+*(SHIPPED → mining.md § *Ore, grade and the smelt*; crafting.md § consolidation
+and quench. Flux remains, below.)*
 
 ### ⭐⭐ Carbon is the one number
-
-Iron, steel and cast iron are the same element at three carbon contents,
-and that number decides everything. It is also the number the **fuel
-trade supplies**. The chain, with nothing added, *is* the iron–carbon
-system:
-
-| Furnace | Real behaviour | Product | Carbon |
-|---|---|---|---|
-| **Bloomery** | ~1200 °C, below iron's 1538 °C melting point — reduces in the **solid state**, never melts | a **bloom**: spongy iron with slag trapped in it | ~0.05% |
-| **Blast furnace** | taller, stronger blast, more charcoal — the iron absorbs carbon, which **drops its melting point to ~1150 °C**, so it runs liquid | **cast iron** — hard, brittle, castable, **unforgeable** | 3–4% |
-| the band between | historically the hardest thing to make on purpose | **steel** | 0.2–2% |
 
 Two consequences:
 
@@ -322,11 +114,6 @@ Two consequences:
   the melting point of the gangue — the quartz half of the ore — so it
   runs off as slag. Which makes grade matter twice: lean ore is less
   metal *and* more slag to flux away.
-
-For authors the whole metal economy becomes **composition in, composition
-out** — the same `CompositionEntry` mechanism at both ends. A new ore is
-a composition; a new furnace is three dials (temperature, blast, charge
-ratio) and the chemistry decides what comes out. **No class per metal.**
 
 ---
 
@@ -370,27 +157,8 @@ iron ended the palace economies and armed everyone.
 
 ## Prospecting: real geology over a fixed truth **[DECIDED]**
 
-[uncertainty.md](../../uncertainty.md) bans resolutional randomness —
-*roll to decide what the world IS, never what your action DID*. So:
-
-> **The deposit is seeded once and deterministic. It is either there or
-> it isn't. Everything the player does is a knowledge game over a fixed
-> truth** — which is what prospecting actually is.
-
-The inference chain is real technique, and it ladders — each rung is a
-different sense of the word *look*:
-
-- **Staining** — green on the rock. Copper, findable by eye. Rung one
-  needs no tools, which is what makes the trade enterable.
-- **Float** — ore fragments shed downhill from an outcrop. Find one and
-  walk **up**; where the float stops is below the source. A real method,
-  and already a movement game.
-- **Gossan** — the rust-coloured weathered cap over a sulphide body. The
-  surface is evidence about what is underneath: the epistemics of the
-  whole trade in one rock.
-- **Assay** — `analyze X with Y`, shipped, with partial identification.
-  Where a guess becomes a number, and where *"true weight, true grade"*
-  becomes checkable on a person.
+*(Staining · float · gossan · assay SHIPPED → mining.md § *Surveying*. Placer,
+below, remains parked.)*
 
 **Placer / panning is parked** (scope, user's call). It is real physics
 (density separation; water sorts heavy minerals into stream beds) and it
@@ -400,94 +168,20 @@ already the build.
 
 ---
 
-## ⭐⭐ The ore body is finite **[DECIDED — closes a mining-slate OPEN]**
-
-No regeneration. A deposit is a fixed quantity of matter emplaced by a
-geological event that is not happening again, and **a seam that refills
-teaches the opposite of the one thing mining has to teach.** The compute
-argument for "regenerates on breathe" was about culling cold *rooms* —
-a separate concern; rooms can cull while the ore ledger stands.
-
-⭐ What it buys is the sharpest lesson in the venue, sitting next to its
-own control: **the coppice regrows and the vein does not.** One trade
-tends a renewable faucet on a rotation; the trade across the road is
-spending a finite one. Same town, same furnace, opposite clocks.
-
-And when the ore runs out **the town dies** — which is what mining towns
-do, and is the arc Rejection is named for.
-
-What keeps it a trade rather than a tutorial: the *deposit* is finite,
-the *world* is not. Exhaustion sends prospectors out to find the next
-one, permanently.
-
-*(This closes mining-slate § Open — "Seam model [OPEN, LEAN finite]".)*
-
----
-
 ## ⭐⭐⭐ The mine's geometry — a 3D grid, and the vein is a field beneath it
 
-### ⚠⚠ RETRACTED: this section proposed a `SphericalZone`
-
-The first pass argued that strike and dip *are* theta and phi, that a mine
-survey is a traverse of (bearing, inclination, distance) triples, and
-therefore that **"a Cartesian grid cannot express a vein dipping at 40°
-without stair-stepping it into a lie."**
-
-That last clause is the error, and `ferrow-delving.md` §2g had already
-answered it:
-
-> *"**dip** is a stair-step of `drive SE` + `sink` down the plunge —
-> **drift-and-winze, as real mines chase a dipping seam.**"*
-
-**The vein dips. The workings do not.** Real underground workings are
-overwhelmingly orthogonal — you drive *level* drifts (for haulage and
-drainage) and sink *vertical* winzes — because that is what labor,
-water and ore carts require. Stair-stepping is not a grid artifact
-apologising for itself; **it is the actual geometry of mining.**
-
-### The model the bible resolved, and which stands
-
-> **A continuous geology field (the truth) under discrete orthogonal
-> workings (what labor can build) — and approximating the one with the
-> other is the craft.**
-
-**One 3D `CartesianZone`, coords `(x,y,z)`, z negative going down.** The
-full machinery — three-state persistence, the ten-direction face model,
-carve-cost from hardness, seal-and-reap at articulation points, feature
-seeds — is graduated into
-[mining-slate § *The mine's machinery*](./mining-slate.md).
-
-⭐ It is also **better epistemics than the spherical version**, which is
-what decides it on this slate's governing rule. The orebody is continuous
-and hidden; your workings are discrete and yours; the gap between them is
-exactly the thing a prospector is paid to close. A room that could follow
-the vein *smoothly* would quietly hand the player the answer the whole
-deduction layer exists to make them earn.
+*(The retraction and the grid model SHIPPED → mining.md § *The geology field*,
+§ *The governing split*.)*
 
 ### What survives the retraction, unchanged
 
-- **Ore grade is a `composition` fraction** — now per *cell* in the
-  geology field rather than per sphere. Cleaner, not weaker.
 - **The geometry is the mass accounting** — carve a cell and you moved
   that cell's rock; whether it was ore or spoil is what the geology field
   says. **The spoil is the loose ground** dirt dragons need: *the mine
   manufactures its own threat.*
-- **The exit-naming ruling** (§ *Exit naming*) — *you name what you make,
-  you number what you find*. It was argued from bearings-are-measurements,
-  and it holds on a grid whose cells are real 3D space at real spacing:
-  `drive NE` is a compass bearing, levels are `z`-planes, and the mine
-  still addresses itself. **The ruling relayed to build-3 is unaffected.**
 
-### And the difference from farming is principled, not a compromise
-
-Build-3's fields stay spherical (tangent packing, `radius = √(areaM2/π)`,
-a ledger on the titled programme, one zone per district). Mining goes on a
-grid. That is not two answers to one question:
-
-> **A field is a bounded area whose size you choose. A working is a cell
-> you cut through rock.** Fields pack on a plane by area; workings are
-> orthogonal excavations at fixed spacing. Different acts, different
-> geometry, one shared conclusion about how their exits are named.
+*(The farming contrast is stale — fields shipped as `plot [<name>]` on a grid,
+[soil.md](../../subsystems/soil.md).)*
 
 ---
 
@@ -570,33 +264,8 @@ mines are on slopes. A **shaft** needs hoisting and pumping forever.
 
 ## ⭐⭐ Exit naming in a spherical zone **[DECIDED]**
 
-The problem, as first posed: **spherical rooms have no cardinal grid**,
-and **relative directions are rejected** — `forward` demands a facing on
-every actor and every object, and the moment one lacks it the scheme
-lies.
-
-*(The mine has since gone back to a 3D grid — see § *The mine's
-geometry*. The ruling below was argued from bearings-are-measurements and
-survives on either substrate; it is also the ruling build-3's spherical
-fields adopt, so both halves still need it.)*
-
-The engine's position is compatible either way: `Exit.direction` is typed
-"cardinal long-form, **semantic label**, or …";
-[boundary.md](../../subsystems/boundary.md) says *"Non-cardinal exits are
-a ZONE boundary, not a naming choice"*; `SphericalZone` is documented as
-**explicit named exits only**.
-
-### The distinction that gives cardinals back
-
-> **A bearing is a measurement. A grid cardinal is a topology label.**
-
-In a Cartesian zone "north" means *the cell at y+1* — a pointer wearing a
-direction's clothes. In a spherical zone theta is a stored angle, so
-"north" means **this tunnel actually runs at 000°**. Miners say "the
-north drift" because it runs north. The player typing `northeast` is
-doing the trade's own navigation, and the geometry they reasoned about
-(*the vein dips northeast, so drive northeast*) is the geometry they
-walk.
+*(The spherical framing is SUPERSEDED — the mine is a grid; the ruling below
+stands on either substrate.)*
 
 ### ⭐⭐ You name what you make; you number what you find
 
@@ -649,10 +318,6 @@ support.
 One mechanism — a semantic label plus keywords — with the label sourced
 differently per trade. **Build-3's naming act stands unchanged.**
 
-⚠ **Coordination note:** build-3 has *not* built Stage B yet (it is gated
-behind residences), and their plan leaves exit naming open — "touching
-spheres get a lateral exit," with no naming scheme. The fields half of
-the table above is a ruling they will otherwise make alone.
 
 ---
 
@@ -895,30 +560,8 @@ as a specific legislative act with a specific artifact at stake.
 
 ## ⭐⭐⭐ Who owns what — the three layers and the throat **[DECIDED — closes Opens 1 + 10]**
 
-### Open 1 was not a contradiction — "commons" was doing two jobs
-
-- `ferrow-delving.md` §9: ***"Ferrow is a company mine, not ownerless
-  commons.** The developed mine is owned by the **Ferrow co-op** (a
-  `Business`); you work it under contract — tutwork or tribute."*
-- `content-pack-units.md:94`: *"Ferrow Delving (commons/deep-law) vs
-  Delving 9 (corporate wage) — opposite economic forms."*
-
-**These agree.** Pack-units uses "commons" for the **not-corporate
-pole** — a co-operative against a corporation. The bible denies a
-different reading: that the mine is **ownerless open-access ground**.
-Both say a workers' co-operative owns the developed mine. And §1 already
-states the chain as canon:
-
-> **house → abandoned at the Widening → reclaimed by the commons (co-op)
-> → Veshko now wants it corporate** — *"the ownership chain is the
-> world's whole economic history in one hole."*
-
-**The real conflict was elsewhere, and it is this slate's:** the bible
-says *"private staked claims are a **different** (frontier) mine,"* while
-the 2026-08-29 merge put the co-op mine and the claim field in **one**
-venue. The merge postdates the bible and wins; the reconciliation is the
-historically normal one — **a company operation with independents working
-the margins**, which is Cornwall and Derbyshire both.
+*(The reconciliation SHIPPED: the co-op holds the developed mine, independents
+the claim field, and tutwork keeps the ore → mining.md § *Whose ore it is*.)*
 
 ### The three layers
 
@@ -983,22 +626,8 @@ doom:
 locality: the deposit already has a vertical structure, and this adds one
 axis beneath it.
 
-### ⚠ Correction — this section originally put iron at the top
-
-An earlier pass proposed *iron shallow → copper → tin at the granite*.
-That is **magmatic zoning** (temperature, distance from the intrusion),
-and it wrote across a decision the content bible had already resolved:
-
-> `ferrow-delving.md` §9 — *"slate country rock + quartz **oxide-copper**
-> lode shallow (soft, lean, green/rust) → hard **sulfides** deep (rich,
-> **+silver**, sour air & water)"*; §1 — the house **worked the oxide
-> zone out**, and the co-op is *"chasing silver down-dip."*
-
-That is **supergene zoning** — weathering, controlled by the water table.
-The two are real and **orthogonal**: supergene is a near-surface
-overprint on whatever primary structure lies beneath. So tin-at-depth
-stacks underneath the bible's sequence unharmed. **Iron-shallow does
-not**, and is retracted.
+*(The iron-shallow correction — the shipped shape is mining.md § *Zonation has*
+*TWO axes*.)*
 
 ### The corrected stack
 
@@ -1008,15 +637,6 @@ not**, and is retracted.
 | **primary sulfide** — hard, rich, **+silver**, sour air and water | chalcopyrite and its silver | **the co-op**, now, chasing silver down-dip |
 | **against the granite** — deepest, hottest | **tin** (cassiterite) | **nobody yet** — the revelation |
 
-The country rock is authored: `rock/granite` ships already, with a
-comment inviting exactly the mineral templates this needs, and the
-bible's slate-and-quartz killas sits above it — which is Cornwall's own
-arrangement, lodes cutting both.
-
-⭐ **Iron, if it wants a home, is the distal fringe** — lean ground out at
-the lateral edges, which is magmatic zoning's own answer and conveniently
-explains why independents on the claim field scratch while the co-op does
-not.
 
 ### ⭐⭐ The technology gate is a PROCESS, not a temperature
 
@@ -1076,56 +696,12 @@ mechanic.
 
 ## ⭐⭐⭐ The demand side — what the metal is FOR **[DECIDED]**
 
-Audited 2026-08-31 against shipped content. The finding reframes the
-build:
-
-**Arms and armor content already ships — 17 templates** in
-`generic-objects`: steel sword · dagger · mace · flail · spear ·
-warhammer · shield · whip · oak waster; and a full **layered** armor set
-— padded gambeson · mail hauberk · steel breastplate · **bronze
-breastplate** · hide jerkin · leather boots. That is the layered stack
-[materials-response](../../subsystems/materials-response.md) was built to
-read, already authored.
-
-**Recipes across every pack — 39 total, and 34 are drinks or food.** The
-complete list of durable-goods recipes in the game:
-
-```
-trade-smithing: belt-knife · cook-pot · fire-poker · leather-jerkin · smiths-hammer
-```
-
-> ⚠⚠ **Of 17 arms and armor items, roughly three are craftable. The rest
-> enter the world by being authored into a room. A player cannot make a
-> sword** — not because swords do not exist, but because no recipe does.
-
-*(Wear is fine: `DurableMixin` is composed on the `Weapon` and `Armor`
-classes themselves, so condition and repeat demand are structural, not
-per-item authoring anyone forgot.)*
-
-### ⭐⭐ The structural point
-
-> **The ingot is not the only faucet. Every finished good is one too.** A
-> metal-chain build that stops at the ingot **moves** the faucet without
-> closing it. The recipe layer is not a follow-on — it is the half that
-> makes this build economic rather than scenic.
+*(The 2026-08-31 audit is stale and classes A and B SHIPPED — 10 mining tools,
+2 forestry, 1 fuel, 5 smelting, 14 smithing recipes; crafting.md. Class C
+remains.)*
 
 ### Three demand classes, in build order **[SCOPE — user's call: A then B]**
 
-**A. Tools — the keystone, and not one ships.** No pick, sledge, axe,
-billhook, tongs, hoe, sickle, spade or pruning knife exists. Every
-trade's instruments are today either big placed fixtures (anvil,
-workbench, still) or absent. Author them and **every shipped trade
-becomes a daily customer of the metal chain** — farmer, collier, cook,
-bartender, miner. ⭐ It is the loop that connects the whole graph, it is
-why every village had a smith, and **it is the demand that does not
-depend on a player choosing to fight.**
-
-**B. Arms and armor — the showcase, and the cheapest unlock.** The
-templates are done; what is missing is transform specs, which are data
-files, not design. This is where the chain visibly pays off — the sword's
-material and grade descend from the ore somebody dug, and `analyze
-weapon` reads it back. ⭐ **`bronze-breastplate` already exists**: the
-copper rung has its payoff item authored and waiting.
 
 **C. Domestic and building metal — the cross-build demand.** Locks and
 keys (the [credential](../../subsystems/credential.md) substrate ships
@@ -1135,96 +711,14 @@ stock. Residences is landing homes with nothing to fit out and
 the most demanded metal object in any settlement and is currently
 unmakeable.** Rides along wherever it touches residences.
 
-On the governing rule: recipes are the single most **expressive** thing
-for content authors — the whole known-of → can-make ladder rides them,
-and a recipe is a data file — and pedagogically **the chain only teaches
-anything if the last link is a thing a player wanted.**
 
 ---
 
 ### ⭐⭐⭐ Recipe scope — the ladder is the constraint, not the count **[DECIDED — closes Open 9]**
 
-#### The gating half was already decided, and not the way this slate first reached
-
-A first pass proposed *common knowledge vs. taught trade secrets*. The
-shipped design deliberately rejects that —
-[crafting.md](../../subsystems/crafting.md) § *The knowledge ladder,
-generalized (**open canon, earned shorthand**)*:
-
-> *"Recipes are **open information — readable in-world, wiki-equivalent by
-> design.**"*
->
-> - **Claim (known-of)** — minted by *reading* a recipe source, **or by
->   watching a maker perform**.
-> - **Deed (can-make)** — *"only your own first faithful **by-hand**
->   performance… The book isn't enough — **the hands learn**."*
-> - The gate: `forge`/`cook`/`make` decline without the deed — *"work it by
->   hand first"*; `order` is never gated.
-> - ⭐⭐ *"A spoiler wiki yields exactly what an in-world recipe card
->   yields — **information buys optimization, never competence**"* —
->   enforced by `knowledge-ladder.test.ts`.
-
-**Nothing is secret; nothing is taught-gated.** The only gate is having
-done it by hand once, and the by-hand route is always open — so cold start
-is a non-issue and there is no knowledge to hoard. Consistent with
-*everyone is an author*, and a better answer than trade secrets.
-
-#### So the question is not "how many" — it is "does the set form a ladder"
-
-crafting.md states the obligation:
-
-> *"The seeded rosters span a deliberate difficulty ladder per branch —
-> **the ZPD obligation: the recipe tiers ARE the ladder a learner
-> climbs.**"*
-
-**Count is cheap; a flat set is the failure.** Hence the rule:
-
-> ⭐ **A recipe ships iff (a) an act this build introduces demands the
-> object, and (b) it sits at a difficulty rung the branch does not already
-> have.**
-
-⚠ Clause (a) retires the "tools for every trade" framing from § *The
-demand side*. **Farming's acts — plant, water, feed, pick, break ground —
-require no tool today.** Minting a hoe would be *authoring tech ahead of
-demand*, which the trades doctrine forbids. The tool list is what **this
-build's own acts** require, and nothing else.
-
-#### Wave A — ≈18 recipes, each on a rung
-
-**Mining (9)** — *trivial:* timber set · pick haft. *easy:* shovel ·
-pinch-bar · billhook. *standard:* pick head · sledge · felling axe ·
-tongs.
-
-**Instruments (2, hard)** — the miner's dial and the assay kit. ⭐ The top
-rung of the branch, and rightly: **the things that make surveying possible
-are the hardest things to make.**
-
-**Fuel (1, standard)** — charcoal. It is the judgment craft with a real
-failure mode (§ *Fuel is the trade*), so it cannot be trivial. Coke stays
-parked with coal.
-
-**Smelting (6)** — where the recipe ladder and the metal ladder become the
-same object:
-
-| Rung | Recipe | Because |
-|---|---|---|
-| easy | smelt oxide copper | direct reduction — what the great house could do |
-| standard | roast sulfide → smelt | **the process gate that beat the house** |
-| standard | alloy bronze | needs tin: a supply problem, not a skill one |
-| hard | bloomery iron | 1811 K — the fuel-technology rung |
-| hard | steel, by carburizing | **the knowledge rung** |
-| hard | cast a bar | pouring is its own skill |
-
-⭐ The four-rung tech ladder (§ *The ladder: start at copper*) and the
-crafting difficulty ladder are **the same structure seen twice** — which is
-the check that neither was invented.
-
-#### Wave B — 14 recipes, and it is the cheap one
-
-The uncrafted arms and armor whose **templates already ship** in
-`generic-objects`. No design, no new content, just transform specs, and
-they slot onto the smithing branch's existing rungs (a dagger is not a mail
-hauberk).
+*(Gating and waves A/B SHIPPED — the deed gate is the only gate, crafting.md
+§ *The knowledge ladder*; 18 recipes across mining/forestry/fuel/smelting and 14
+in `trade-smithing`.)*
 
 #### Two things ruled OUT of v1
 
@@ -1232,123 +726,19 @@ hauberk).
   intermediates that would let recipes compose, but under *every recipe is
   a rung* they multiply the count **without adding rungs**. Defer until
   something needs sheet specifically.
-- **Any new gating.** The deed gate is the only one, it is shipped, and
-  `requireDeed` is already the single shared gate on `forge`/`cook`/`make`.
-  ⚠ **Mining's `hew`/`drive` must not acquire one** — those are **labour,
-  not craft**, and gating labour on a deed is the band-gate doctrine
-  violation wearing a different hat.
 
 ---
 
 ## ⭐⭐⭐ The build's shape — what must ship together **[DECIDED]**
 
-The scope statement this design implies, stated plainly because it is
-easy to under-size:
-
-> **A mine without a smelter is a pile of rock. A smelter without recipes
-> is a pile of ingots.**
-
-For the economy to change at all, **four things ship together**:
-
-1. **`trade-mining`** — prospect, claim, drive, stope, dress.
-2. **`trade-fuel`** — coppice, pyrolysis, charcoal.
-3. **`trade-smelting`** — roast, charge, blow, tap.
-4. **Tool recipes** (demand class A) — so the ingot becomes something
-   somebody wanted.
-
-Plus one thing that is easy to forget and fatal to omit:
-
-- ⭐ **An NPC crew that works whether or not players log in.** Supply
-  cannot be zero on a quiet night, or the smith's inputs are a function
-  of concurrency. Build-3 shipped exactly this shape as **the farms
-  producer brain** (`feat(behavior): the farms producer brain`, farming
-  A7) — a mine producer brain is the same pattern over
-  [behavior](../../subsystems/behavior.md).
-
-⚠ **Anything less is scenery.** A mine alone moves the metal-import
-faucet from the general store's shelf to the mine's mouth without closing
-it; it does not make metal an economy. This is the same point as § *The
-demand side*'s "every finished good is a faucet too," applied to build
-scope rather than to content.
-
----
-
-## What this supersedes
-
-- **mining-slate § *Materials, metallurgy & money***: "metallurgy is a
-  craft supply-chain … each a crafting node (transform-only, `Grade`
-  weakest-link)." **Superseded** — the smelt is composition physics, not
-  a recipe node with a weakest-link grade. The *supply-chain* claim and
-  everything about money, salt and gold stands.
-- **mining-slate § *Open* — "Seam model [OPEN, LEAN finite]"**:
-  **CLOSED, finite.**
-- ⚠⚠ **`docs/staging/ferrow-delving.md` — GRADUATED AND DELETED
-  2026-08-31.** An earlier draft of this slate claimed to supersede its
-  "3D `CartesianZone` with negative z" in favour of a `SphericalZone`;
-  **that claim is retracted** — the bible was right and the grid stands
-  (§ *The mine's geometry*). Its machinery went to
-  [mining-slate § *The mine's machinery*](./mining-slate.md), its venue
-  content to [rejection-slate § *The venue*](./rejection-slate.md), and
-  its ownership/labour model is folded into § *Who owns what* here.
-- **`ferrow-delving.md` §7's "v1 abstraction seam = smelting"** — *"Veshko
-  turns ore→metal off-screen, conserving."* **Superseded**: this slate
-  builds `trade-smelting`, so the seam closes. What stands from §7 is the
-  conservation discipline itself — **a buyer is just another `Business`**,
-  seeded by CB *lending*, never a money faucet; the CB alone mints and
-  drains; the mine is the matter source and wear is the matter sink.
+*(SHIPPED, including the NPC crew — the `delves` producer brain → mining.md
+§ *The producer beat*.)*
 
 ---
 
 ## Open
 
-1. ~~Ownership model~~ — **CLOSED, and it was never a contradiction**:
-   "commons" meant *not-corporate* in one document and *ownerless* in the
-   other. The co-op owns the developed mine; independents hold the claim
-   field; the merge's one-venue ruling beats the bible's two-venue split.
-   See § *Who owns what*.
-2. ~~How the commons is funded~~ — **CLOSED**: toll the hoist (excludable)
-   to fund the pump (not). See § *The commons*.
-3. ~~The per-heading cap~~ — **CLOSED: it dissolves.** `drive` mints
-   exactly one cell, so there is no distance to cap; `cellSize` leans ~10 m
-   (the distance over which geology meaningfully changes). The session cap
-   is the vitals stack; the **durable** cap is the timber market — *you can
-   only hold as much mine as you can timber.* See
-   [mining-slate § *The cell size*](./mining-slate.md).
-4. ~~Cave-in~~ — **CLOSED, split in two**: *prevention* ships (shoring as
-   maintained `Durable` objects, falls at **faces** not rooms, neglect
-   punished by **refusal**, the timberman funded off the hoist toll);
-   *collapse and rescue* are **deferred until the population can support a
-   collective rescue**. See [mining-slate § *Ground support*](./mining-slate.md).
-5. ~~Where the vein geometry lives~~ — **CLOSED**: the **model** is a
-   pure-data `Deposit` `Idea`; the **instantiation** is the mine zone's row
-   (the seed derives from its address, never authored); the **carved set**
-   is one ledger on the mine's holder, because a *shared* space needs one
-   where farming's disjoint fields do not. Title stays in `parcels`, never
-   the zone. See [mining-slate § *The `Deposit` Idea*](./mining-slate.md)
-   and [field-substrate-slate](../tails/field-substrate-slate.md).
-   *(rejection-slate Open 1b — whether the Hinkley/Rejection pairing is a
-   deliberate yes — is answered YES by § The commons: the surface was
-   granted, the minerals were claimed.)*
-6. ~~Tin's home~~ — **CLOSED: the bottom of the Ferrow**, by zoned
-   mineralization (Sn inner/deep → Cu → Fe distal). See § *The deposit is
-   zoned*. The Weeping Moor is banked as the later stream-tin district
-   that breaks the monopoly, and is the natural home for parked placer.
-7. ~~Beneficiation~~ — **CLOSED**: mechanical dressing is mining, roasting
-   is smelting, the line is the furnace. See § *Beneficiation*.
-8. ~~District formed or forming~~ — **CLOSED: formed.** Forming is a
-   one-shot that gates the whole chain on a collective-action problem in a
-   thin population; the lesson is recovered better as a recurring
-   maintenance burden. See § *Formed, not forming*.
-9. ~~Recipe scope~~ — **CLOSED**: ≈18 in wave A (each demanded by an act
-   this build introduces AND filling a difficulty rung), 14 in wave B (the
-   arms/armor templates that already ship). Gating was already decided by
-   crafting.md's **open canon, earned shorthand** — nothing secret, the
-   only gate is having built it by hand once. See § *Recipe scope*.
-10. ~~Who owns the shaft~~ — **CLOSED: the co-op.** It is simultaneously
-   the pump's funding instrument and its power over independents, so a
-   buyout captures both at once — *Veshko need only buy the throat.*
-   Counters: sink your own, join, or **common carrier**. See § *Who owns
-   what*.
+*(All ten closed 2026-08-31; the record is in git.)*
 
 *(Retire when: this promotes to formal requirements for a metal-chain
 build, or folds into the Rejection venue build that adopts it.)*

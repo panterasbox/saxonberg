@@ -342,6 +342,18 @@ flagged for the polity to revisit.
   rather than designed away — and they are **required reachable states**
   (standing-mint-slate.md Part 7), not caveats. The mitigations are
   legibility and the audit vocation, never suppression.
+- **The five tests** (the numbering the trigger below cites; from
+  standing-mint-slate.md Part 1). A conduct score is defensible to the
+  degree it has: **1 Exit** — you can leave, or fork (AGPL + self-host);
+  **2 Published weights** — the first screen is the syllabus; conditioning
+  requires opacity, publishing is what makes it teaching; **3
+  Amendability, and by whom** — Tier C legitimate, Tier B most
+  conservative, Tier A almost nothing behavioural; **4 Plurality** — many
+  raters with different weights is a *reputation*, one rater with
+  universal reach is a *score*; **5 No coupling to unrelated goods** — if
+  standing gates travel or housing it is social credit; if it is what
+  people think of you and whether they will deal with you, that is
+  society. Lose any — particularly 4 — and it is not defensible.
 - **Revisitation trigger.** A dominant rater achieves de-facto monopoly
   (test 4 fails in practice); or a rater's score begins gating goods
   unrelated to the conduct it measures (test 5); or the polity revisits.

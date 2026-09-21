@@ -89,7 +89,6 @@ captured so they're not lost; each lives in its lens entry)
 ## Held decisions this list waits on
 
 - The resonance feel-test (four theme candidates — user).
-- Contracts merge (MR !149) for the storm-contract/ford cohort
-  cuts.
+- ~~Contracts merge (MR !149)~~ — merged; [contract.md](../../subsystems/contract.md).
 - Guild-slate reconciliation (parallel session) — the guild build
   set may overlap the demo world's content needs (halls, porters).

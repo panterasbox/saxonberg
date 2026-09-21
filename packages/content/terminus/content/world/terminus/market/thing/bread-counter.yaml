@@ -32,6 +32,10 @@ data:
   stockLines:
     - { itemTemplatePath: /trade/baking/thing/lean-loaf, par: 4 }
     - { itemTemplatePath: /trade/baking/thing/white-loaf, par: 4 }
+    # The wholemeal — same wheat, more of it kept, cheaper than white
+    # because nothing was thrown away to make it.
+    - { itemTemplatePath: /trade/baking/thing/wholemeal-loaf, par: 4 }
   prices:
     /trade/baking/thing/lean-loaf: 2
     /trade/baking/thing/white-loaf: 4
+    /trade/baking/thing/wholemeal-loaf: 3

@@ -521,6 +521,12 @@ Tips are **physical cash**, two routes, never the bar's P&L:
 
 ## The Business stands up lazily (derived, no hook)
 
+⭐ **An unvisited venue mints nothing.** Wage settlement runs only for
+stood-up businesses, so a ghost venue causes no wage inflation. Lazy
+standup is economically load-bearing, not a performance nicety — and it
+is residency's symmetric partner: fault in on demand, evict the cold
+tail (graduated from the content-packs slate, 2026-09).
+
 A Business is **not** stood up by a `postRegister` hook (the old
 `Bar.postRegister` / `TicketClerk` clones are gone) nor a manifest entry. It
 stands up **lazily**, derived from its own `operatingLocations`, on the first

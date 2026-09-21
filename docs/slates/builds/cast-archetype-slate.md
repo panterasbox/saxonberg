@@ -4,9 +4,14 @@
 > Cast/Extra rungs, the dossier, the `archetype:` STAMP and `lint:dossiers`
 > → [identity.md](../../subsystems/identity.md)
 > **Left:** the archetype rows themselves (closed `role` + `temperament`
-> kinds, open entries) · the lens-vs-seed dual compilation · the `requires`
-> config gate + its lint · standing as pointers · role suppression · the
-> expander extracted out of `EmbodyController.commit`
+> kinds, open entries; the ten temperaments + `counter`/`venue-staff`) ·
+> the lens-vs-seed dual compilation · the `requires` config gate + its
+> lint (with `temperament: opaque` and the ungateable role) · standing as
+> pointers (Change 2) · deviations — the declared delta subsuming role
+> suppression, and the drift readout · elsewhere / seasonal / borrowed
+> roles (the calendar axis) · the expander extracted out of
+> `EmbodyController.commit` + `Login` (kit for NPCs; the three selectors)
+> · `role`/`temperament` as char-gen fields · the lineage re-reading
 > **Size:** a build
 
 **Captured 2026-09-01.** It started from the mixin analogy and turned into
@@ -25,17 +30,6 @@ be the anchor, not an adjacency), and the deviation model —
 > archetypes, but then also like deviations from that archetype. so
 > everything can participate in the archetype game but then deviations
 > get modelled explicitly on top of that."**
-
-> **Status: design conversation, captured. Not requirements.**
->
-> ⭐⭐⭐ **REVISED 2026-09-03 after a 41-character stress test.** The whole
-> known cast — 19 Rejection · 6 Hinkley Hills · 8 Heart's Delight · 8
-> Terminus — was written out as sheets and run through `role × temperament`
-> to find where it breaks *before* the design is closed. See
-> [§ The 41-character stress test](#-the-41-character-stress-test-2026-09-03).
-> The model survives and needs five changes; the exercise also turned up a
-> **shipped defect** (§ the disposition-key defect) that is independent of
-> all of it.
 
 Related: [behavior.md](../../subsystems/behavior.md) (**the shipped
 substrate — read it first**: `behaviors:`, brains, `_seedDispositions`),
@@ -94,35 +88,11 @@ where it is far more expensive.**
 
 # The measured gradient (verified 2026-09-01)
 
-25 agent rows ship; **22 carry dispositions**, 3 carry none.
-
-| tier | count | dispositions | brains | lines |
-|---|---|---|---|---|
-| **wilds** (duelist, sentry, wolf) | 3 | **none** | `arms`/`wary` + `idles` | 29–46 |
-| **the hand** (Dez, Tamsin, Wren, Bram, Petra, Wen, Rufus, Ilse) | 8 | `diligence: 60–80`, occasionally one more | `consigns` + `idles` | 32–42 |
-| **counter staff** (Halloran, Wenna, Pemby, Odell, Odile) | 5 | 2–3 axes | `introduces greets idles` | 30–130 |
-| **lounge cast** (Mara, Sloane, Remy, Augie, Dave) | 5 | 3–5 axes, **named in comments** | 5–8 brains | 120–161 |
-| **bespoke classes** (Gus, Katie) | 2 | 6 for Katie | — | own `.ts` |
-
-⭐ **Temperament richness tracks cast-ness exactly, and nobody planned
-it.** The wilds have a role and literally zero personality; the hands have
-a role and one token disposition; the lounge cast has both, fully. The
-prop→cast→evidence chain below is already visible in the shipped data as
-an unplanned gradient.
+*Census cut 2026-09-18 — superseded by [§ The 41-character stress test](#-the-41-character-stress-test-2026-09-03), the later and larger count; the class column is also stale (`/platform/agent/NPC` retired → `Cast`/`Extra`, identity.md).*
 
 ## ⚠ Class is a third axis, and it is NOT the same as role
 
-Class distribution is *not* a detail ladder: 17 rows are
-`/platform/agent/NPC`, **7 are `/platform/agent/Crafter`** (the whole
-lounge cast plus smith and cook), 1 `Mercenary`, plus Gus and Katie.
-
-`Crafter` is a **capability** class — it confers making. That is a
-legitimate class-level distinction and this slate does not touch it. The
-lounge cast's *role* (venue staff) is still carried in `behaviors:`.
-
-So a shipped NPC differs on three axes today — **class** (capability),
-**behaviors** (role), **dispositions** (temperament) — and only the last
-two are data. This slate absorbs those two. The class axis stays as it is.
+*The three census paragraphs cut 2026-09-18 — class now carries the identity rung too (`Cast`/`Extra` × the capability mixins) → [identity.md § It is a MIXIN, and that is forced](../../subsystems/identity.md). The rule below stands:*
 
 > ⭐⭐⭐ **REVISED 2026-09-03 — class has a sharper rule than "capability".**
 > Half of Terminus's cast carries a bespoke class, and the pattern is
@@ -142,11 +112,7 @@ two are data. This slate absorbs those two. The class axis stays as it is.
 
 # ⭐⭐ It reduces to identity: props cannot own a profile
 
-`Stuff.getIdentityPath()` returns `getTemplatePath()`, and the trait
-ledger keys on exactly that (`ownerKey(owner) → owner.getIdentityPath()`).
-So **every instance cloned from one template row shares one ledger.**
-
-Which settles the design without a preference being expressed:
+*The identity finding shipped as the `Cast`/`Extra` rungs → [identity.md § The two rungs](../../subsystems/identity.md). Kept: the lens half, which is still open.*
 
 | | identity | can own evidence | profile is |
 |---|---|---|---|
@@ -156,21 +122,9 @@ Which settles the design without a preference being expressed:
 A prop gets a lens because it *cannot* have a seed — there is no key to
 hang one on. This is a consequence of the identity model, not a choice.
 
-⭐ **The prop/cast split being built in build-3 is therefore the same line
-as the profile split.** Both reduce to: *does this thing have durable
-individual identity?* Persistence write-back and profile depth are two
-readings of one answer, and the archetype system should key off the flag
-that build already produces.
-
 ## Promotion falls out
 
-Promoting a prop to cast = **minting it a distinct identity path** and
-re-running its declared archetypes in seed mode. No migration, no
-backfill. And the "what does its chronicle say about the months before
-anyone cared?" problem dissolves honestly: before that moment the world
-genuinely could not distinguish it from its siblings, so there is nothing
-to say. *The world started remembering you when it started telling you
-apart.*
+*Superseded — promotion is an AUTHORING act (author a `Cast` row), not a re-mint → [identity.md § Promotion is an authoring act](../../subsystems/identity.md).*
 
 ---
 
@@ -547,36 +501,11 @@ than a station, or `requires:` needs to admit an empty set **deliberately**
 
 ## ⚠ A category the model does not name: the FUNCTIONARY
 
-Rejection's shipped seven are **named by function, not by name** — "the
-collier", "the onsetter", "the registrar". Long-lived and individuated, but
-referred to by office. Very true to a workplace, and it sits *between* prop
-and cast rather than on the line. Worth deciding whether that is a third
-tier or simply a cast member whose `name` is absent.
+*Resolved 2026-09 — it is a nameless `Cast`: it carries the name FIELD and leaves it empty, and `register: definite` is what makes it *the* collier → [identity.md § The two rungs](../../subsystems/identity.md).*
 
 ## ⚠⚠ The disposition-key defect (independent, and shippable alone)
 
-The corpus turned up **five uses of four disposition keys that do not
-exist** in the closed 17-axis `DISPOSITION_AXES`:
-
-| in shipped content | the actual axis |
-|---|---|
-| `greed: 30` (Halloran, Goodkin officer) | `generosity: -30` |
-| `gregariousness: 60` (Pemby) | `sociability: 60` |
-| `candor` ×2 (Walter −30, Ricky +40) | ⚠ no clean equivalent |
-| `warmth: 60` (Ricky) | ⚠ no clean equivalent |
-
-`DISPOSITION_KEYS` is exported but nothing on the seeding path appears to
-validate against it, so **five authored personality traits are almost
-certainly being dropped silently** — the recurring failure mode.
-
-⭐ **Fix: `pnpm lint:dispositions`** — every `disposition:` key in shipped
-content resolves to `DISPOSITION_KEYS`. Twenty lines, the `lint:topics`
-shape (which found 45 of 105 emitted topics had no authored descriptor).
-
-⚠ That two of the four (`candor`, `warmth`) have **no clean mapping** reads
-two ways: the authors were not checking the list, or the 17 axes are
-missing something real. Decide which before the lint lands, because the
-answer changes whether the fix is a rename or an addition.
+*Shipped — `pnpm lint:dispositions`; `candor` and `warmth` were real gaps and were ADDED (19 axes), `greed` → `generosity`, `gregariousness` → `sociability` → [trait.md](../../subsystems/trait.md), `scripts/check-dispositions.ts`.*
 
 ---
 
@@ -608,22 +537,7 @@ enough.
 
 # ⚠⚠ The deed-row hazard (a prerequisite, not a footnote)
 
-`Behaved._seedDispositions` is already idempotent — it skips if any
-`claim` row exists for the host, explicitly guarded across re-clone and
-reboot. Authored dispositions do **not** compound when a prop re-mints.
-
-**`deed` rows are not guarded, and cannot be.** The moment anything
-records a disposition-valenced deed for an NPC, it lands in the shared
-template-keyed ledger, is read by every sibling instance, and survives
-every re-mint of all of them. Two pantry hands would share one
-personality, and it would outlive both.
-
-Not a bug today: `TraitApi` has exactly **one** non-test consumer
-(`TraitsController`, a char-gen readout), so nothing writes NPC deeds yet.
-It becomes one the day a brain or act signature starts recording them —
-which is precisely what this system would enable. **Props need either no
-deed recording or a distinct key, decided before anything starts
-writing.**
+*Decided and shipped — an `Extra`'s acts never reach its own row (harm attributes to the institution only; a role's personality never changes), and nothing writes trait deeds (`imprintDeed` has no production call site) → [identity.md § The two rungs](../../subsystems/identity.md), [trait.md](../../subsystems/trait.md).*
 
 ---
 
@@ -825,20 +739,7 @@ Per rung:
 
 ## ⚠⚠ The requirement this creates, cheap now and impossible later
 
-To compute *deviation from archetype*, a seeded row must record **which
-archetype minted it**. `DispositionEntry` today carries
-`kind: 'claim' | 'deed'` — enough to separate authored from earned, **not
-enough to separate archetype-claim from deviation-claim.**
-
-⭐ This is the same lesson as
-[company-and-capital.md](../../company-and-capital.md) § forward
-compatibility: *the only un-retrofittable property is provenance
-separability*. Seed archetype and deviation rows without distinguishing
-their source and the delta can never be recovered — you would be
-unwinding a sum with no seams.
-
-**Stamp the minting archetype on the row. It costs one field now and is
-unrecoverable later.**
+*Shipped — the `archetype` stamp rides `ChronicleEntry`, `TranscriptEntry` and `DispositionEntry`, and `lint:dossiers` refuses a dossier without one → [identity.md § The archetype stamp](../../subsystems/identity.md).*
 
 # Settled in conversation (kept so they are not re-proposed)
 
@@ -912,8 +813,7 @@ unrecoverable later.**
   owns the "nothing writes a player's traits" hole. This slate *depends*
   on that staying true for props (see the deed-row hazard) and *wants* it
   fixed for cast.
-- **The prop/cast mechanism.** Being built in build-3; this slate consumes
-  the flag, does not define it.
+- ~~The prop/cast mechanism~~ — shipped as `Cast`/`Extra` → [identity.md](../../subsystems/identity.md).
 - **Parentage / lineage.** See [lineage-slate](./lineage-slate.md). This
   slate re-reads it — a household is an archetype bundle and the gallery
   is an archetype picker — but does not design it.

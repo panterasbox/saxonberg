@@ -76,8 +76,8 @@ describe('Shelf', () => {
      */
     it('⭐ defaults to the WIRED rows only', () => {
       render(<Shelf />);
-      expect(groups()).toHaveLength(3);
-      for (const label of ['PLAY', 'RENOWN', 'SKILL']) {
+      expect(groups()).toHaveLength(DEFAULT_SHELF.length);
+      for (const label of ['PLAY', 'RENOWN', 'SKILL', 'BODY']) {
         expect(groupFor(label)).toBeTruthy();
       }
       for (const label of ['MAKE', 'COIN', 'STATUS', 'TIME', 'ONLINE', 'DOCKET']) {
@@ -88,10 +88,10 @@ describe('Shelf', () => {
       }
     });
 
-    it('renders all nine once they are pinned', () => {
+    it('renders all ten once they are pinned', () => {
       pinAll();
       render(<Shelf />);
-      expect(groups()).toHaveLength(9);
+      expect(groups()).toHaveLength(SHELF_CATALOGUE.length);
     });
 
     /*
@@ -120,7 +120,7 @@ describe('Shelf', () => {
       useStore.setState({ shelfFigures: LIVE_FIGURES });
       render(<Shelf />);
       const shelf = screen.getByTestId('shelf');
-      expect(groups()).toHaveLength(9);
+      expect(groups()).toHaveLength(SHELF_CATALOGUE.length);
 
       // The structural form of "no shelf row prints a value outside
       // `Figure`": strip every figure group's text from the shelf's
@@ -226,6 +226,40 @@ describe('Shelf', () => {
     });
   });
 
+  describe('⭐ the BODY row — words, never a gauge', () => {
+    it('renders the breath word alone when hunger and thirst say nothing', () => {
+      useStore.setState({
+        shelfFigures: {
+          stuffId: 'me',
+          bodyState: { breath: 'fresh', hunger: 'fed', thirst: 'fine', build: 'in good flesh' },
+        },
+      });
+      render(<Shelf />);
+      const body = groupFor('BODY');
+      expect(body.getAttribute('data-figure-state')).toBe('live');
+      expect(body.getAttribute('aria-label')).toBe('BODY: fresh');
+    });
+
+    it('adds hunger and thirst only when they are saying something, and never a digit', () => {
+      useStore.setState({
+        shelfFigures: {
+          stuffId: 'me',
+          bodyState: { breath: 'winded', hunger: 'hungry', thirst: 'parched', build: 'wiry' },
+        },
+      });
+      render(<Shelf />);
+      const body = groupFor('BODY');
+      expect(body.getAttribute('aria-label')).toBe('BODY: winded · hungry · parched');
+      expect(body.textContent ?? '').not.toMatch(/\d/);
+    });
+
+    it('is empty, not unwired, before the body has been read', () => {
+      useStore.setState({ shelfFigures: { stuffId: 'me' } });
+      render(<Shelf />);
+      expect(groupFor('BODY').getAttribute('data-figure-state')).toBe('empty');
+    });
+  });
+
   describe('the five hatched rows', () => {
     it('render unwired, with NO digit anywhere in them', () => {
       pinAll();
@@ -304,6 +338,7 @@ describe('Shelf', () => {
       ['play', 'live'],
       ['renown', 'live'],
       ['skill', 'live'],
+      ['body', 'live'],
     ])('classifies %s as %s', (id, source) => {
       const row = SHELF_CATALOGUE.find((r) => r.id === id);
       expect(row?.source).toBe(source);

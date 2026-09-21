@@ -3,10 +3,27 @@
 > **Status: UNBUILT** — the three-base capability model and the sensory
 > physics it rides both exist, but nothing this slate proposes is built;
 > `analyze` is still ungated and the metal chain had to work around it.
+> Re-verified 2026-09-19: no `MeasuringMixin`, no `readings` verb;
+> `Sextant.commandContributions` still names the whole `measure.yaml`;
+> `MeasureAltitudeController` still checks `instanceof Altimeter` /
+> `Sextant`; the `strike`/`dip` stanzas still sit in the platform view
+> naming `trade-mining` controllers (`measure.yaml` l.127–143). ⚠ The
+> addendum's counts have drifted — eleven instruments in
+> `platform/thing/instrument/`, eighteen kernel `Measure*`/`Analyze*`
+> controllers, and the three mining survey controllers DO band by
+> `geology` — the retrofit's step 1 inventory re-takes them.
 > **Left:** the `analyze`/`measure` channel → capability + competence
-> table · the instrument-declared dial (so a pack contributes a
-> subcommand) · the readout ladder · honest refusals · the author/test
-> bypass, decided before the gates land · the implant rung (Wave 2+)
+> table (the step-1 inventory) · `MeasuringMixin` on a Thing (`channels`
+> + `read`) with one `measure` verb over a string positional, no
+> subcommands · the instrument-declared dial (so a pack contributes a
+> channel, and the `strike`/`dip` platform-view stanzas retire) · the
+> `readings` companion verb · eyeballing as the body's coarse instrument
+> · route-gated `analyze` (each analysis declares which modalities
+> answer; the output names its route) · the readout ladder · honest
+> refusals · the calibration / certification gate · the author/test
+> bypass, decided before the gates land · the implant rung (Wave 2+ —
+> carried upgradeable, mounted frozen at install) · wheel speed on
+> `look` at a working mill (presentation)
 > **Size:** a build
 
 **Captured 2026-07-31**, out of the press session's recording

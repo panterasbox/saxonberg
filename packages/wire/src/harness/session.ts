@@ -408,6 +408,15 @@ export class Session {
     for (const frame of splitFrames(raw)) {
       const type = typeof frame.type === 'string' ? frame.type : null;
       if (type === 'dispatch-response') {
+        // ⚠ A FORCED command's envelope is not the answer to anything
+        // this harness sent. The auto-`sense` on arrival fires its own
+        // dispatch-response INSIDE `run`'s, before `run`'s own — so
+        // correlating by order alone read the sense's `[]` as the run's
+        // outcome and handed `run`'s real envelope (with its
+        // `pace-broken` note) to the NEXT command. Found by the
+        // nutrition-and-fitness drive; the server stamps `forced: true`
+        // on those envelopes and this skips them.
+        if ((frame as { forced?: boolean }).forced === true) continue;
         const p = this.pendingDispatch;
         this.pendingDispatch = null;
         if (p) {

@@ -126,6 +126,14 @@ three-case `RelaySpeaker` identity bridge (in-game egress mirror /
 external-unlinked / external-linked persona-on-hover), echo-suppress, and the
 token-bucket throttle all live here (the Twitch relay's grandfathered dials).
 
+⭐ Outbound is a **stateless** call — one Helix *Send Chat Message* POST
+under the player's own linked token (`sender_id` = their Twitch user id;
+no moderator or bot scope needed) — and receive is **one** shared reader.
+That "many out, one in" shape is why the relay is tractable at all: the
+earlier panterasbot attempt held one persistent authenticated IRC
+`ChatClient` per user and never stabilized. Never reintroduce a per-user
+socket.
+
 **YouTube (read-only)** — no multiplexed session; each `liveChatId` is its
 own long-lived read. `YoutubeClient` (`backend/`) owns:
 

@@ -1,6 +1,6 @@
 # Slates — the design backlog, sorted by what is left
 
-228 slates. Every one carries a **status block** under its title:
+229 slates. Every one carries a **status block** under its title:
 
 ```
 > **Status: PARTIAL** — what shipped → [subsystem.md](…)
@@ -243,9 +243,10 @@ Not a cycle of its own. Pull one in when its host build is in flight.
 | [weather](./tails/weather-slate.md) | fog → visibility · snow depth · vector wind · moving fronts · a weather-pin write Api (it blocks the `storm` Discipline) … |
 | [youtube-relay](./tails/youtube-relay-slate.md) | outbound `liveChatMessages.insert` · the quota accountant + coalescing and drop policy · per-player `youtube.force-ssl` OAuth … |
 
-## Tails — small and opportunistic (37)
+## Tails — small and opportunistic (38)
 
 | slate | left to build |
+| [nutrition-and-fitness](./tails/nutrition-and-fitness-slate.md) | the `pace` device (the gym's second slot, held back by `lint:capabilities`) · the real-world bridge as a seam · the menu as a choice · a `{{ body }}` prompt word · the `wind` row's first conferral (the swim) … |
 |---|---|
 | [access](./tails/access-slate.md) | the structured audit sink (call-security Pillar 5 — `MudlogApi` is unwired) … |
 | [explicit-targeting](./tails/explicit-targeting-slate.md) | ⭐ SHIPPED `onFiltered: take/warn/error` — the kind axis of ambiguity is declarable · LEFT: the reserved `--strict`/`--loose` per-invocation override · turning `warn` on anywhere (a content question wanting a live drive) … |

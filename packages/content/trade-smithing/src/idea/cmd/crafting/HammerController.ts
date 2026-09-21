@@ -134,6 +134,7 @@ export default class HammerController extends ManualBuildController<HammerModel>
       // The anvil paces the forming work (the conferring kind's rate);
       // the striking hammer is a requirement, never a pacer.
       durationMs: this.paceMs(HAMMER_MS, anvil, ['anvil']),
+      effortW: 600,
       beginSelf: Mml.compose`You set ${Mml.thing(target)} on the anvil and begin to hammer.`,
       beginPeers: Mml.compose`${Mml.actor(giver)} hammers at ${Mml.thing(target)}, ringing the anvil.`,
       onComplete: () => {

@@ -175,21 +175,26 @@ describe('the recipes', () => {
 
 describe('the rows', () => {
   it('every loaf row is a `Loaf`, so every loaf can stale', () => {
-    for (const l of ['lean-loaf', 'white-loaf', 'flatbread']) {
+    for (const l of ['lean-loaf', 'white-loaf', 'wholemeal-loaf', 'flatbread']) {
       expect(row(join(BAKING, 'thing', `${l}.yaml`)).__class, l).toBe(
         '/trade/baking/thing/Loaf',
       );
     }
   });
 
-  it('⭐⭐ ONLY the white loaf authors a composition, and it is a BAKER’S LINE', () => {
+  it('⭐⭐ ONLY the counter loaves author a composition, and it is a BAKER’S LINE', () => {
     // An NPC counter must be able to stock two loaves priced apart on
-    // day one, before any player has milled anything. That is what this
-    // row is for.
+    // day one, before any player has milled anything. That is what these
+    // rows are for — the white and (nutrition-and-fitness W4) the
+    // wholemeal, the same two materials in different shares.
     const white = row(join(BAKING, 'thing', 'white-loaf.yaml'));
     const parts = white.composition as Array<Record<string, unknown>>;
     expect(Array.isArray(parts)).toBe(true);
     expect(parts.length).toBe(2);
+    const wholemeal = row(join(BAKING, 'thing', 'wholemeal-loaf.yaml'));
+    const wparts = wholemeal.composition as Array<Record<string, unknown>>;
+    expect(wparts.map((p) => p.materialPath)).toEqual(parts.map((p) => p.materialPath));
+    expect(wparts).not.toEqual(parts);
 
     // ⚠ And the lean loaf authors NONE. A player's loaf comes out of the
     // chain carrying whatever the miller decided; this row does not
@@ -207,6 +212,34 @@ describe('the rows', () => {
     expect(row(join(BAKING, 'thing', 'lean-loaf.yaml'))._materialPath).toBe(
       white._materialPath,
     );
+  });
+
+  it('⭐ two loaves from one wheat show DIFFERENT amounts, and neither row authored one', () => {
+    // The label derives from the parts: mg per kg × servings over the
+    // composition (`BlendLabel.amountsOf`). Same arithmetic here, over
+    // the milling pack's two material rows, so the claim is checked
+    // against the shipped numbers and not a stub.
+    const MILL = join(PACK, '..', 'trade-milling', 'content', 'stuff', 'idea', 'material', 'food');
+    const mats: Record<string, Record<string, number>> = {
+      '/stuff/idea/material/food/wheat-flour': row(join(MILL, 'wheat-flour.yaml')).nutrientAmounts as Record<string, number>,
+      '/stuff/idea/material/food/bran': row(join(MILL, 'bran.yaml')).nutrientAmounts as Record<string, number>,
+    };
+    const label = (name: string): Record<string, number> => {
+      const r = row(join(BAKING, 'thing', `${name}.yaml`));
+      expect(r.nutrientAmounts).toBeUndefined();
+      const out: Record<string, number> = {};
+      for (const part of r.composition as Array<{ materialPath: string; servings: number }>) {
+        for (const [tag, mg] of Object.entries(mats[part.materialPath] ?? {})) {
+          out[tag] = (out[tag] ?? 0) + mg * part.servings;
+        }
+      }
+      return out;
+    };
+    const white = label('white-loaf');
+    const wholemeal = label('wholemeal-loaf');
+    expect(wholemeal.fibre).toBeGreaterThan(white.fibre ?? 0);
+    expect(wholemeal.protein).toBeGreaterThan(white.protein ?? 0);
+    expect(white.carb).toBeGreaterThan(wholemeal.carb ?? 0);
   });
 
   it('the trough is a build vessel AND a ferment vessel', () => {

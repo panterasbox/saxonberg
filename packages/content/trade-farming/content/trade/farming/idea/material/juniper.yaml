@@ -22,7 +22,9 @@ data:
   # them by the sack and thinks nothing of it.
   spoilActivationEnergy: 50000
   waterActivity: 0.45
+  # A juniper berry is not a fruit you eat for its own sake (mg per kg).
   nutrients: ["water"]
+  nutrientAmounts: {water: 500000, fibre: 100000}
   toxicity:
     []
   tags: ["solid", "food", "produce", "juniper", "berry", "berries"]

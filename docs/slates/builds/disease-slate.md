@@ -3,28 +3,12 @@
 > **Status: PARTIAL** — the logistic growth term and the two-population
 > split shipped as spoilage (`FreshnessMixin` / `ContaminableMixin`) →
 > [spoilage.md](../../subsystems/spoilage.md)
-> **Left:** `ContagionSpec` (routes · host range · reservoir) —
-> `Condition.contagion` is still `null` with no consumer · the
-> husbandry-is-immunity coupling · quarantine · the outbreak investigation
-> · the crops-first v1 slice
+> **Left:** `ContagionSpec` (routes · host range over `Clade` · reservoir)
+> — `Condition.contagion` is still `null` with no consumer · the
+> between-room push tick + the per-room contaminant map · the
+> husbandry-is-immunity coupling · quarantine (promote `openNeighboursOf`)
+> · the outbreak investigation · the crops-first v1 slice
 > **Size:** a build
-
-> **Status: design captured 2026-07-31, not built.** Disease is the one mechanic
-> that touches **every living thing in the game** — crops, herds, companions,
-> fish, NPCs, and the player's own body — so it gets its own doc rather than a
-> section inside any one consumer.
->
-> The headline from the substrate audit: **the seam is already cut.** Every
-> shipped `Condition` seed carries `contagion: null`, and `toxinBehavior` is a
-> complete within-host burden engine. The delta for a whole disease system is
-> **two things** — one new number (a growth term) and one filled-in spec
-> (`ContagionSpec`).
->
-> The design connection worth leading with: **good husbandry *is* immunity.**
-> The resist substrate's susceptibility factor reads **live off host state**, so
-> the condition score the husbandry family already computes becomes the
-> resistance term. Disease stops being a dice roll and becomes the consequence
-> of care.
 
 See also — **the vertical this engine serves**:
 [health-vertical-slate](./health-vertical-slate.md) (clinical practice, public
@@ -84,32 +68,12 @@ in:
 
 ## The core model — a burden that grows **[DECIDED]**
 
-The shipped burden is monotone-decreasing: it enters by dose and clears at
-`clearanceRate`. A pathogen **replicates**. That is the entire difference.
-
-```
-toxin:     dLoad/dt = −clearance
-pathogen:  dLoad/dt = growth · load · (1 − load/K) · f(resistance) − clearance
-```
-
-**One positive term**, and `ToxinBehavior` becomes a strict subset of a
-`PathogenBehavior`. Everything downstream is already shipped and needs no
-change: bands → severity, severity → `AfflictionRecord.stage`, `observableSigns`
-→ the `assess` read, the burden map → sparse per-key storage, the vomit-purge
-window, the antidote crash.
-
-And the real shapes fall out for free rather than being authored:
-
-| Phase | What it is in the model |
-|---|---|
-| **Incubation** | load below the lowest band — present, growing, **invisible** |
-| **Acute** | load high, bands cleared, signs visible |
-| **Recovery** | clearance beats growth, load falls back through the bands |
-| **Death** | load unbounded, or a vital driven past its floor |
-
-> **Nothing about the progression is authored except the constants.** That is
-> the same honesty the family's other models run on — real relationships, tuned
-> numbers.
+*(Shipped, in a different shape: the growing load is `pathogenLoad` on
+the `AfflictionRecord`, advanced under a declared `progression.law:
+logistic` by `VitalsMixin.reconcileConditions` — a sibling of a wound, not
+an extension of `ToxinBehavior` → [spoilage.md](../../subsystems/spoilage.md)
+§ In the body, [vitals.md](../../subsystems/vitals.md). Incubation is the
+load below the lowest band, exactly as this section predicted.)*
 
 ---
 
@@ -324,39 +288,15 @@ source you can find.** Patient zero is discoverable — which makes an epidemic 
 
 ## Substrate audit (verified 2026-07-31)
 
-| Area | State |
-|---|---|
-| **`Condition` / `AfflictionRecord`** | **EXISTS** — authored `Idea` templates + a six-field runtime record (`kind`, `templatePath`, `stage`, `elapsed`, `magicOrigin?`, `tickedAt?`) |
-| **`ContagionSpec`** | **RESERVED** — `{vector: string}`, `null` in all 11 seeds, **zero consumers** |
-| **Toxin burden engine** | **EXISTS** — per-toxin sparse keyed burdens; three dose doors (`ingest` / `addToxinBurden` inhaled / `introduceToxin` injected); bands → `stage` |
-| **Growth term** | ⚠ **ABSENT — the one structural gap.** Burden is strictly monotone-decreasing; a positive term in `clearBurdens` is the whole change |
-| **Contagion / spread** | **ABSENT** — zero code. Shapes to copy: `FireLogic`'s one-hop attenuated neighbour walk; `ElectricityLogic`'s per-event room graph |
-| **Airborne loop** | **EXISTS end-to-end** for smoke/CO; blocked only by `_atmosphere` being a single tag |
-| **Foodborne** | **EXISTS** — arbitrary `tox.type` routes to any authored seed; **works today** |
-| **Waterborne** | **PARTIAL** — `BulkPayload.toxicity[]` is an open solute list; water *quality* is designed in fishing-slate, unbuilt; no mixing arithmetic (transfer rejects rather than blends) |
-| **Immunity** | **PARTIAL** — `Resists.fold`/`stageFor(…, factor)` is the right shape, `'toxin'` already an axis; **nothing per-host, no host range** |
-| **Vertical transmission** | **ABSENT** — `SpawnerMixin._spawned` is transient and carries no state |
-| **Medic vertical** | ⚠ **PARTIAL, thinner than it looks** — `treat` filters to `kind === 'trauma'` and only arrests bleeds; it **structurally cannot see an affliction**. `applyAntidote` is the sole clearance primitive. **`resolution.by` has no dispatcher** — dead prose on every seed |
-| **Reconcile-on-read hosts** | **EXISTS** — 8 hosts on one documented idiom; a disease load is a natural 9th |
-
-**Doc bug found:** `harm.md` claims `ConditionApi` "forwards the plain condition
-mutators — `afflict` / `relieve` / `conditionsOf`." It does **not**:
-`api/condition.ts` exposes exactly one public static, `inflict`, and it is
-**trauma-only**. An affliction cannot be inflicted through the Api at all — the
-four existing drivers call `host.afflict()` directly from their own mixins. A
-disease driver either follows that precedent or adds a gated
-`ConditionApi.afflict`.
+*(Superseded by the code: the growth term shipped; `treat` now sees
+afflictions (`TreatController.ts`); harm.md itself records the
+`ConditionApi` correction this audit filed. Still true today:
+`ContagionSpec` has zero consumers, `openNeighboursOf` is module-private
+in `FireLogic.ts`, and nothing carries host range.)*
 
 ---
 
 ## Where to prove it — crops first
-
-> **Amended 2026-07-31: the *growth term* should be proven earlier, in
-> [preservation](../tails/preservation-slate.md).** Food spoilage is **this same
-> equation minus transmission** — no `ContagionSpec`, no host range, no
-> immunity, no push tick. Build the growth term there, prove it on a fish, and
-> disease inherits it working. Crops remain the right first proof of *disease*;
-> they are no longer the first proof of the *machinery*.
 
 **Not cattle, and definitely not pets.** Plants are the right first host:
 

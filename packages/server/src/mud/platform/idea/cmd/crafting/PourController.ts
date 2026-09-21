@@ -105,6 +105,7 @@ export default class PourController extends ManualBuildController<PourModel> {
 
     this.engageStep(context, {
       durationMs: this.paceMs(POUR_MS, vessel, ["shaker", "mixing-glass", "pot"]),
+      effortW: 150,
       beginSelf: Mml.compose`You start pouring ${Mml.thing(bottle)} into ${Mml.thing(vessel)}.`,
       beginPeers: Mml.compose`${Mml.actor(giver)} starts pouring ${Mml.thing(bottle)} into ${Mml.thing(vessel)}.`,
       onComplete: () => {
@@ -170,6 +171,7 @@ export default class PourController extends ManualBuildController<PourModel> {
     const commandText = context.commandText;
     this.engageStep(context, {
       durationMs: this.paceMs(POUR_MS, vessel, ["shaker", "mixing-glass", "pot"]),
+      effortW: 150,
       beginSelf: Mml.compose`You start adding ${Mml.thing(ingredient)} to ${Mml.thing(vessel)}.`,
       beginPeers: Mml.compose`${Mml.actor(giver)} adds ${Mml.thing(ingredient)} to ${Mml.thing(vessel)}.`,
       onComplete: () => {

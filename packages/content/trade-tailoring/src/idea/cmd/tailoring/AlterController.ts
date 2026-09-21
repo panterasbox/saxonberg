@@ -102,6 +102,7 @@ export default class AlterController extends ManualBuildController<AlterModel> {
 
     this.engageStep(context, {
       durationMs,
+      effortW: 250,
       beginSelf: lettingOut
         ? Mml.compose`You unpick the seams of ${Mml.thing(garment)} and start letting it out.`
         : Mml.compose`You pin ${Mml.thing(garment)} in and start taking it up.`,

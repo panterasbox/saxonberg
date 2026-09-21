@@ -81,6 +81,7 @@ export default class SewController extends ManualBuildController<SewModel> {
 
     this.engageStep(context, {
       durationMs,
+      effortW: 250,
       beginSelf: Mml.compose`You thread a needle and begin putting ${Mml.thing(pieces)} together.`,
       beginPeers: Mml.compose`${Mml.actor(giver)} settles down to sew.`,
       onComplete: () => {

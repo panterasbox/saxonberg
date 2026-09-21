@@ -68,6 +68,14 @@ const TOPIC = 'act.deed';
 
 /** Tags a mill will take as input. */
 const GRINDABLE = ['grain', 'malt'];
+/**
+ * Metabolic watts of turning a quern. ⭐ Above what a FRESH body can
+ * put out at its overload threshold (0.7 × 840 W) and below what a body
+ * a few points of lean later can — so the sack trains a new miller and
+ * stops training one who has outgrown it. The load you CHOOSE (the
+ * bar) is what moves the figure after that.
+ */
+const GRIND_EFFORT_W = 620;
 
 interface MillModel extends CommandModel {
   grain?: MqlOneResult;
@@ -190,6 +198,9 @@ export default class MillController extends CommandController<MillModel> {
       actor: giver,
       slots: ['hands'],
       durationMs: grindMs,
+      // ⭐ The quern is WORK — heavy, steady, and a body that outgrows
+      // the sack stops getting stronger from it (the overload rule).
+      effortW: GRIND_EFFORT_W,
       onComplete: () => {
         void finishGrind(mill, source, charge, plan, makerPath);
       },

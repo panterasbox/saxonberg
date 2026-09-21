@@ -57,7 +57,7 @@ implementing the same `open` shape, no contract change.
 
 A tree is the **`config` blob** of the NPC's `tree-dialogue`
 `BehaviorSpec` — pure declarative data persisted inside the NPC template's
-`data.behaviors[].config` in the existing **`domain`** collection
+`data.behaviors[].config` in the existing **`content`** collection
 (hydrated by the normal `PersistentHydrator`). **No `dialogue`
 collection, no `DialogueTree` Stuff/Document** — the interfaces describe
 the blob's shape; nothing is ever instantiated. Because `config` is
@@ -303,7 +303,10 @@ follow-on relocation, not done here.
 
 - **Scripted `intent-dialogue` responder** + the `addressed` /
   `handleMessage` trigger + the implant `tell` (remote) entry — slate
-  Wave 2. The `open` seam accommodates it with no contract change.
+  Wave 2. The `open` seam accommodates it with no contract change. ⚠ The
+  remote entry additionally needs a per-NPC `AetherImplant`: only Avatars
+  carry one today (no NPC row ships it —
+  [comms.md § Two transports](./comms.md)).
 - **LLM responder** — slate Wave 3.
 - **Persistent per-relationship state** — the social-graph build (regard
   already carries cross-conversation warmth).

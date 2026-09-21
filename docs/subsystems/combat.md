@@ -53,6 +53,20 @@ every *rule* (exchange resolution, poise mutation, narration, resolution)
 to the gated `CombatApi`/`CombatLogic` pair. `tick()` is the only per-beat
 entry; it calls `CombatApi.advance(this)`.
 
+**Why a coroutine, never a worker thread — settled, not reopened.** JS
+can't share the mutable Stuff graph a fight touches (Characters, vitals,
+loadout, live-ref threat edges, the Location); threading combat would mean
+an isolate-with-a-copy, serialize-in/merge-out. Combat's boundary is also
+intrinsically fluid — it merges (a third party joins), splits (a chase
+fragments the party), and leaks into the world every beat — so it needs a
+*stable* boundary to lock around, and combat has the least stable one in
+the game: the worst threading candidate, not the best. And there is no CPU
+pressure to relieve (a beat is microseconds of arithmetic + a scene
+compose, every few seconds; the bottleneck is I/O). The single game
+thread's cooperative interleaving already gives non-blocking concurrency
+with zero race surface; the only discipline this needs is **bounded
+beats** (no single tick does unbounded work).
+
 ## Poise — the one new subsystem
 
 `lib/combat/Poise.ts` — a fast, **session-scoped, banded** tactical gauge,
@@ -68,6 +82,40 @@ one per combatant, that evaporates at session end and **never touches the
 - Defensive/reactive play (a **defend** beat) **restores** poise, capped by
   the `endurance` reserve ([metabolism](./metabolism.md) / `lib/reserve.ts`)
   — a gassed fighter can't buy it back.
+
+⭐⭐ **Poise stays combat-scoped — rejected, not merely undone.** The
+consequence build's design conversation proposed generalizing `Poise`
+into a universal contest metric — running negotiations, trials, crises
+and performances on the same `steady → pressed → reeling → broken →
+open` machine, since the class is already a pure state machine with no
+combat in it. Rejected, for three reasons worth keeping on file so the
+idea isn't re-proposed: (1) it's the hitpoint error one level up — the
+case against HP is that it's a contest model wearing a health costume,
+and putting the contest costume on *everything* is the same flattening
+in better clothes; (2) adversarial is a special case, not the general
+one — the weather isn't trying to beat you, rot isn't an opponent, and
+modelling an indifferent world as an antagonist is a lie; (3) it
+smuggles back a unidimensional counter — one universal contest metric
+*is* that counter, and bands instead of numbers only hide it better.
+Every branch keeps its own **incommensurable** metric instead (combat
+measures poise, brewing and smelting measure grade, farming measures
+yield, an office measures standing) — they meet at goods, money and
+standing, never at a shared gauge. What *does* generalize is narrower:
+the **terms** primitive (`lethality`/`stopCondition`/`consent`) is a
+legal concept combat is only the first consumer of, not a combat
+mechanic — lifting it to sit beside the contract/governance substrate is
+still open (no such lift has happened).
+
+⭐ **The three clocks, and why no abstract health metagame is needed.**
+Poise (one fight, recovers in seconds by conceding tempo) answers *am I
+dictating terms*; the endurance reserve (one day, recovers with rest and
+food — [metabolism](./metabolism.md)) answers *can I keep fighting*;
+wounds (days–weeks, recover with treatment and time — [harm](./harm.md))
+answer *what happened to me*. Advancement buys only the first clock,
+never the second: a veteran doesn't survive a knife to the neck by
+having more health to lose — he doesn't lose the poise contest, so the
+knife never lands, and when he does lose it (ambushed, outnumbered,
+gassed) it kills him exactly as fast as it kills anybody.
 
 **Bands, not numbers** across the whole surface: the raw scalar is private;
 the only readout is `band()` (`steady | pressed | reeling | broken | open`)

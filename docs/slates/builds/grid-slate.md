@@ -1,12 +1,25 @@
 # Grid slate — service, streets, and how a parcel answers for its power
 
-> **Status: UNBUILT** — the topology this slate selects among (parcels,
-> exits, `PlatBook` subdivision) ships, but no service model, no street
-> object, and no lint exist.
+> **Status: PARTIAL** — the network is unbuilt (verified 2026-09-19:
+> `ParcelRecord` has no service field — `extent · zonePath · owner ·
+> parentParcel · grants · allowance · landUse · area · storeys · reach`;
+> exits carry no service attribute; no `Street.ts`; no lint). The two
+> ENDS shipped: generation — `ControlStructure.generationW` computes real
+> watts and `analyze power` reads it, a `GristMill` draws
+> `availablePowerW` from the reach it stands on
+> ([watershed.md](../../subsystems/watershed.md)); and the frontier tier
+> — the τ charge economy ([magic-items.md](../../subsystems/magic-items.md))
+> with TPA terminals drawing off `ManaPowered`
+> ([fasttravel.md](../../subsystems/fasttravel.md)). Between them,
+> nothing: power reaches a consumer by standing on the water, never by a
+> wire.
 > **Left:** the service declaration on `ParcelRecord` (default connected,
-> author disconnection) · connection-not-consumption metering · street
-> dedication + municipal title acceptance · the every-declared-consumer-
-> resolves-to-a-source lint · underground as an access point
+> author disconnection; a band, not a number) · service as an exit
+> attribute + the three-edge walk (generation → street → connected) ·
+> transmission from the falls to the city · connection-not-consumption
+> metering · street dedication + municipal title acceptance · the
+> every-declared-consumer-resolves-to-a-source lint · underground as an
+> access point · the newbie wilds' declared posture
 > **Size:** a build
 
 **Captured 2026-08-04/05**, out of the mana-economy thread, when *"we've
@@ -19,10 +32,6 @@ a topology question, a land-development question, and a review question.
 > zoning and land development and how it's all authored, organized and
 > managed. This is an area where I'd hope a lot of the processes are
 > emergent and we just provide the tools."**
-
-> **Status: design conversation, captured. Not requirements.** ⭐ Most of
-> the topology was **already designed** — this slate mostly records which
-> existing answer wins and settles four open calls.
 
 Related: [delivery-slate](./delivery-slate.md) (⭐⭐ **the topology — read §
 Distribution first**), [power-utility-slate](./power-utility-slate.md) (the
@@ -159,18 +168,10 @@ mineral rights live, and it is real law.)*
 
 # Part 3 — Where Terminus gets its power: the story bible already answered
 
-> **User: "how does Terminus get its power? Hydro? Wind? Solar?
-> Non-renewables?… I don't want to just say 'magic' because it's easy."**
-
-[story-bible.md](../../story-bible.md):
-
-> *"The known world is **one watershed** — a single river basin… **two
-> rivers become one** and meet the sea… **Terminus** is the port-city on the
-> ruins at that [confluence]… **watershed highlands** that thin into
-> frontier wild."*
-
-> ⭐⭐⭐⭐ **Hydro is not a proposal. It is reading the map that already
-> exists.**
+*Hydro — decided and shipped:* the water pack's `ControlStructure`
+answers `generationW` (`ρ·g·Δh·Q·η`, real watts), `analyze power` reads
+it, and the Wharfside aqueduct house generates — see
+[watershed.md](../../subsystems/watershed.md).
 
 And the geography does the design work:
 
@@ -189,8 +190,10 @@ And the geography does the design work:
   which is what eventually *creates* the demand for coal. **The transition
   builds itself.**
 
-⭐ It also merges the two utilities into one: **one river, water and power,
-one set of rights, one political fight.**
+*One river, water and power, one set of rights* — shipped:
+`watershed.md § rights` (`WaterRightRegistry`, prior appropriation records
+· riparian derives) sits on the same `Watercourse` the generator draws
+from.
 
 ## ⭐⭐⭐ And this is what magic is FOR — the frontier tier
 
@@ -205,13 +208,9 @@ one set of rights, one political fight.**
 | **cells + nodes** | ⭐ **anywhere, day one** | expensive | nothing |
 | **the grid** | only where built | cheap | capital, rights-of-way, politics |
 
-> ⭐⭐ **Refreshed 2026-08-05 — the magic-items build makes the "expensive"
-> column MECHANICAL.** Item charge is caster-sourced and capped by
-> metabolism (*"what money buys is caster-labour, which is capped"*), and no
-> effect can add charge without a coupling. ⇒ **frontier power is literally
-> hand-made**, while a grid is mechanised — so *magic is expensive* stops
-> being a balance dial and becomes a consequence. See
-> [mana-economy-slate § Part 2b](./mana-economy-slate.md).
+*The "expensive" column is mechanical* — shipped:
+[magic-items.md](../../subsystems/magic-items.md) § the charge economy
+(`S* = inflow/d`, denominated in τ; caster-sourced, metabolism-capped).
 
 > ⭐⭐⭐⭐ **A community's development arc IS the replacement of magic by
 > infrastructure.** Portable-and-expensive → networked-and-cheap. It is what

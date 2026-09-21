@@ -77,6 +77,7 @@ export default class QuenchController extends ManualBuildController<QuenchModel>
     const anvil = this.bestInstrument(anvilBound, 'anvil');
     this.engageStep(context, {
       durationMs: this.paceMs(QUENCH_MS, anvil, ['anvil']),
+      effortW: 600,
       beginSelf: Mml.compose`You bring ${Mml.thing(piece)} up to colour and hold it over the slack tub.`,
       beginPeers: Mml.compose`${Mml.actor(giver)} holds ${Mml.thing(piece)} over the slack tub.`,
       onComplete: () => {
@@ -147,6 +148,7 @@ export default class QuenchController extends ManualBuildController<QuenchModel>
     const anvil = this.bestInstrument(model.anvil, 'anvil');
     this.engageStep(context, {
       durationMs: this.paceMs(QUENCH_MS, anvil, ['anvil']),
+      effortW: 600,
       beginSelf: Mml.compose`You plunge ${Mml.thing(workpiece)} into the slack tub with a hiss of steam.`,
       beginPeers: Mml.compose`${Mml.actor(giver)} quenches ${Mml.thing(workpiece)} in a burst of steam.`,
       onComplete: () => {

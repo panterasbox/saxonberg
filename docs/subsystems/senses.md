@@ -433,6 +433,17 @@ discipline:
 This split means content authors don't write the same thing five
 times; the substrate's filter does the per-viewer per-verb work.
 
+**Events leave persistent affordances.** The two halves meet at the
+thing an event leaves behind. Lighting a candle is ONE event — a single
+hearing-channel frame for the match. The *lit candle* is then state with
+multi-sense affordances (vision: the `LightSource`; touch: the `Thermal`
+surface band; smell: a `SmellSource`), and anyone who walks in afterward
+looks / smells / feels and reads those per-sense. The substrate never
+fans one event across all senses; the event is one channel, and the
+affordance it leaves is queryable per-sense for as long as it persists —
+which is how reality works, and why authors never write a thing five
+times. (Graduated from the senses slate, 2026-09-19.)
+
 ## The physics substrate (2026-06 perception build)
 
 ### `Modality` singletons + `PerceptionApi`
@@ -502,6 +513,14 @@ requirements doc.
   Door + Window participate via `SoundConduit`. Ambient floor seeds
   from the universe-root biome's `_defaultAmbientSoundLevel` (full
   async biome-chain integration deferred).
+
+*Walls are silent.* Sound (and smell) propagate only through Conduits
+(`BoundaryAnchor` fixtures) and doorless exits; two scopes separated by a
+bare wall with no boundary between them are isolated. Cross-wall leak is
+authored as a low-transmissivity boundary, never derived from geometric
+adjacency — a known fidelity loss (real walls leak at low levels) whose
+full fix needs adjacency from the spatial subsystem; revisit if content
+cases pile up. (Graduated from the senses slate, 2026-09-19.)
 
 ### Touch (contact modality)
 
@@ -621,6 +640,13 @@ resolved at the viewer's scope. For smell: ambient comes from the
 room's own smell signal (non-target sources). Per-frequency-band
 masking and per-odor-class masking are out of scope.
 
+⚠ **Not in the code as of 2026-09-19.** No masking gate exists:
+`ListenController` gates on `Sound.DEFAULT_HEARING_THRESHOLD_DB` alone and
+`SmellController` on the acuity threshold alone (`grep -rn mask` over
+`lib/perception` + `platform/idea/modalities` finds nothing). This section
+is the intended rule; the deep acoustic spec in the senses slate carries
+the masking design as UNBUILT.
+
 ### File layout (physics half)
 
 ```
@@ -649,6 +675,12 @@ lib/boundary/SoundConduit.ts       Conduit interface
 seeds/lib/perception/modalities/   Seven seed YAMLs
 ```
 
+⚠ The layout above predates the `platform/<branch>/` rule: the seven
+concrete modalities are instanceable and now live at
+`platform/idea/modalities/<Name>Modality.ts`, their rows at
+`packages/content/platform/content/platform/idea/modalities/<name>.yaml`;
+only `__tests__/test-helpers.ts` remains under `lib/perception/modalities/`.
+
 ## What's NOT in this build (Wave 2+)
 
 - **`PerceptionChannel` substrate abstraction.** No general
@@ -664,6 +696,12 @@ seeds/lib/perception/modalities/   Seven seed YAMLs
   `<sense>` is for physical senses only. The slate's "messaging =
   sensing" unification is deferred. Existing comms (`VocalMixin.say`,
   `AetherMixin.tell`) ship unchanged.
+  Concretely: speech (`say` / `whisper` / `shout`) still rides
+  `Scene.toPeers` — the room — and stamps an `acousticDb` that no reach
+  walk reads; only `Audible.emit` rides `toAudible` / `AudienceGather`.
+  A shout does not leave the room. Wiring speech onto the walk is the
+  first item on the comms slate's `Left`
+  ([comms.md § Acoustic](./comms.md)).
 - **Smell trails / temporal persistence.** Slate Wave 3.
 - **Light / vision convergence onto the new substrate.** `VisionModality`,
   `canSee`, `visionProfile` ship unchanged. `LookController` doesn't

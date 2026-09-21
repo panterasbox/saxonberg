@@ -1,0 +1,35 @@
+# Scurvy — the floor effect of the `vitamin-c` reserve, and ⭐ the first
+# deficiency on the YEARS clock.
+#
+# `satiation` is hours, `flesh` is months, and this is the third clock:
+# a body on bread alone for a month of active play runs its store down to
+# nothing, and what that leaves behind is not hunger — the body is full —
+# but the old sailor's disease: gums that bleed, bruises that do not
+# fade, wounds long healed reopening, and a listlessness nobody can
+# explain. ⭐ It is the metabolism slate's answer to provisioning: a diet
+# that is only ever ONE thing is what an expedition, a siege or a pantry
+# hand on staff bread actually eats, and the world should be able to say
+# so.
+#
+# ⚠ Not lethal — no entry in metabolism's `LETHAL_SEC`. What it does is
+# degrade the body the way every floored biological reserve does
+# (`VitalsMixin`'s condition band) and give the physician an early sign.
+# Resolution is `food`, and unlike emaciation it takes an orange rather
+# than a season: one portion of citrus restores the store past the
+# cascade's clearing line.
+#
+# Spawned and cleared by the shipped cascade off the reserve's floor —
+# no new arm, no new spawn path. Progression is weekly: the signs
+# accumulate slowly.
+class: /platform/idea/Condition
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  name: scurvy
+  signature: []
+  progression:
+    law: stage
+    intervalMs: 604800000
+  resolution:
+    by: food
+  observableSigns: [bleeding-gums, bruising, listless, old-wounds-opening]
+  contagion: null

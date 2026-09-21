@@ -4,4 +4,8 @@ data:
   key: alcohol-tolerance
   channel: conditioning
   label: Alcohol Tolerance
+  # ⭐ The band is a threshold over the `alcohol-tolerance` body stock,
+  # fed where alcohol is absorbed and fading by half-life on the active
+  # clock — never a Transcript fold. See wind.yaml.
+  stock: alcohol-tolerance
   description: The body adapts to drink — bounded and bidirectional. The cleanest example of why conditioning is a distinct channel from skill, because you lay off and it fades.

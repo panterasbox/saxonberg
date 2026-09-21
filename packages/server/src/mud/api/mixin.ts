@@ -85,6 +85,7 @@ import type { Incorporeal } from '../lib/mortality/Incorporeal';
 import type { Reserved } from '../lib/reserve';
 import type { LoadBearing } from '../lib/encumbrance/LoadBearing';
 import type { Metabolic } from '../lib/metabolism/Metabolic';
+import type { Exerting } from '../lib/exertion/Exerting';
 import type { Thermal } from '../lib/thermal/Thermal';
 import type { Launcher } from '../lib/combat/Launcher';
 import type { ThermalRegulation } from '../lib/thermal/ThermalRegulation';
@@ -1236,6 +1237,11 @@ export class MixinApi {
 
   public static isThermal(obj: Stuff): obj is Stuff & Thermal {
     return this.hasMixin(obj, Mixins.Thermal);
+  }
+
+  /** A body that works and tires by working — every `Creature`. */
+  public static isExerting(obj: Stuff): obj is Stuff & Exerting {
+    return this.hasMixin(obj, Mixins.Exerting);
   }
 
   /**

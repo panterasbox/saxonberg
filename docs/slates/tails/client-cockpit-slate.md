@@ -2,14 +2,21 @@
 
 > **Status: PARTIAL** — the tracks shipped: MQL subscriptions, MML
 > semantic tags + the click model, the widget shelf, the inspection card,
-> the prompt stack, envelope rendering, char-gen, and the one `cockpit`
+> the prompt stack, char-gen, and the one `cockpit`
 > verb with its mode × arrangement axes →
 > [cockpit.md](../../subsystems/cockpit.md) +
 > [card-surface.md](../../subsystems/card-surface.md)
-> **Left:** the `study` and `classroom` modes · the content surface
-> (video + transcript payloads, diegetic triggers, completion events) ·
-> the live-tutor / classroom shape · the `<mql>` / `mudq:` sleeper, still
-> inert by design
+> **Left:** the `study` and `classroom` modes + their diegetic
+> `mode-changed` trigger (⚠ contradicts cockpit.md's no-auto-switch rule)
+> · the content surface (video + transcript payloads, diegetic triggers,
+> completion events) · the live-tutor / classroom shape · the `<mql>` /
+> `mudq:` sleeper, still inert by design · the navigation panels (sketch
+> map · compass) · tell history · the notification chip (overlap:
+> client-slate's tray) · tutorial overlays · the author/admin panel set
+> (uncertain against cms.md / diagnostics.md) · the post-intake identity
+> verbs (`rename` / pronouns / appearance — contradicted by client-shell.md
+> § Character select) · envelope status / note rendering (uncertain) ·
+> the self-state panels not on a card (status effects · skills · quest log)
 > **Size:** a wave
 
 Working slate for the **reference web client** — the affordance-first
@@ -18,18 +25,6 @@ turns the server's structured world model into a UI that's intuitive
 for new players and powerful for power users, while staying honest
 about what this app actually is: a CLI-in-a-browser whose primary
 audience is investors getting demoed the engine.
-
-**Status.** Design surface staked out. Implementation broken into
-independent tracks that can be built in parallel — several have since
-shipped. The client today is no longer a bare four-component shell:
-the MQL-subscription substrate, the inspection card, the PromptApi
-client surface, and the console-foundations tabbed/gutter terminal
-(tab strip, filter drawer, per-topic gutter — see
-[subsystems/topics.md](../../subsystems/topics.md)) are all built and
-consuming the response-envelope channel. The inspection-card and
-prompt-stack sections of this slate are accordingly absorbed /
-superseded (each self-marked below); the rest of this slate remains
-the spec for the tracks still to build.
 
 **Audience.** The reference app's primary demo audience is potential
 investors. The secondary audience is a generic education vertical
@@ -75,69 +70,13 @@ protocol because they watch their clicks materialize as text they
 could have typed. Power users skip the click and type directly.
 The two populations use the same surface; the surface teaches.
 
-Three corollaries fall out of this principle:
-
-1. **No special-case UI primitives.** The character-creation modal,
-   the wardrobe, the lesson player — none of them are exempt from
-   showing the command they send. They're just sequences of
-   prepared clickable affordances.
-2. **No server-side "transaction" or multi-command primitive.** A
-   workflow that needs multiple commands batches them client-side
-   ("just a really fast typist"). Each command executes
-   independently on the server. True server-side scripting is
-   deferred to a future scripting-language pass.
-3. **Mobile is the same wire.** When the mobile client ships, it'll
-   be a different layout (stream + button bar instead of cockpit)
-   but the same wire model: tap = preview + send. The cockpit's
-   architectural decisions assume mobile inherits.
+The three corollaries are settled: no special-case UI primitives ([cockpit.md](../../subsystems/cockpit.md) — *the client owns zero command semantics*); client-side batching is superseded by real server-side scripting ([scripting.md](../../subsystems/scripting.md)); mobile is the same wire ([client-shell.md § The command sheet](../../subsystems/client-shell.md)).
 
 ---
 
-## Archetype
+## The click model — shipped in a different shape
 
-**Affordance-first cockpit**, not pure terminal. The choice was
-between:
-
-- **(A) Polished telnet** — single prose card, single input, status
-  header. Honest about the MUD-shaped server. Cheap. Doesn't show
-  off what the engine knows.
-- **(B) Affordance-first cockpit** — prose card in the middle, right
-  sidebar with subscription-driven widgets (slots, engagement,
-  lighting, atmosphere, who's-here, exits, inventory), every clickable
-  element in either card routes through the command bus.
-
-Picked **(B)** because the engine's depth needs visible surface for
-the investor audience, and because the affordances are the educational
-on-ramp from clicker → typist.
-
----
-
-## The click model
-
-Three behaviors on every clickable element (prose-card MML tags,
-sidebar widget items, modal affordances, future map elements):
-
-| Gesture | Behavior |
-|---|---|
-| **Hover** | Input previews the command that would send. Hover-off restores prior contents. |
-| **Click** | Sends the previewed command. Input flashes briefly with the sent text, then clears. |
-| **Shift-click** | Populates the command in the input without sending. Cursor at end. User edits, presses Enter. |
-| **Right-click** | Context menu of alternative commands. Each menu entry obeys hover / click / shift-click. |
-
-Educational design notes:
-
-- The input is the **single source of truth** for "what is about to
-  happen." Never an exception. The character-creation modal obeys.
-  The wardrobe obeys. The future map obeys.
-- Hover previews are reversible — moving off the element restores
-  what was in the input. If the user was mid-typing when they
-  hovered, their text is not lost.
-- Right-click menus also teach: each menu entry shows the command
-  it would send (e.g., `examine sword`, `take sword`, `wield sword`
-  on the same `<item>`).
-- On mobile, the equivalent is **tap = preview + send** (one
-  gesture, both effects, no hover). Long-press substitutes for
-  shift-click.
+→ [cockpit.md § The preview surface + click model](../../subsystems/cockpit.md) and [client-shell.md § The command sheet](../../subsystems/client-shell.md): hover previews in the **status bar**, click sends un-moded, **shift-click / right-click copy**, right-click / long-press on a named thing opens the **affordance radial**; on a phone a tap opens the **command sheet** naming the verbatim command before it sends.
 
 ---
 
@@ -175,60 +114,15 @@ its own. This means:
 - A `cancel` or `dismiss` from the player flips back to world mode
   on the server first, then the client follows.
 
-### Admin `mode` verb (override)
-
-Permission-gated direct override. Parallel to how `teleport` exists
-alongside diegetic movement verbs:
-
-```
-mode study
-mode world
-mode classroom
-```
-
-For authors testing flows, demos that need to jump into a mode
-without staging the diegetic trigger, and the cases where the
-diegetic path is half-built. Regular players never need it.
+### Admin `mode` verb — superseded by `cockpit mode <name>` ([cockpit.md § One verb](../../subsystems/cockpit.md)), an ordinary ungated command: *a mode is a view, never a gate*.
 
 ---
 
 ## Cockpit layout
 
-### Always-on minimum
+### Always-on minimum — shipped in a different shape: the `Frame` bar (seal · connection chip · identity · widget shelf · Views · Settings), a command bar, and the status bar → [client-shell.md § The top bar](../../subsystems/client-shell.md). The notification chip is **cut, not deferred** (§ The top bar: *no notification bell*).
 
-The smallest set of UI that's present in every mode, because the
-player needs them to issue *any* next command:
-
-1. **Status header** — avatar name, current location name, time,
-   lighting band, mode indicator. Driven by subscriptions on
-   `me.{ name, location, ... }`, `world.time`, `here.lighting`,
-   and the mode-channel push.
-2. **Prompt line** — composable format (see [Prompt line](#prompt-line));
-   shows vitals + engagement at minimum.
-3. **Input** — the always-focused command entry.
-4. **Notification chip** — quiet indicator for world events that
-   matter even in non-world modes (called by name, attacked,
-   addressed in `tell`). Click to peek; expanded click → world mode
-   and scroll to the relevant frame.
-
-Everything else is mode-dependent.
-
-### World mode
-
-```
-┌───────────────────────────────────────────────────────────────┐
-│ Status header: avatar · location · clock · lighting · 🔔 chip │
-├──────────────────────────────────────────┬────────────────────┤
-│                                          │  Exits             │
-│   Terminal (prose + envelope notes)      │  Here              │
-│                                          │  Inventory         │
-│                                          │  Slots             │
-│                                          │  Focus / Engagement│
-│                                          │  Atmosphere        │
-├──────────────────────────────────────────┴────────────────────┤
-│ Prompt:  [HP MV Posture Loc] >  _____________________________ │
-└───────────────────────────────────────────────────────────────┘
-```
+### World mode — shipped as `play` with the card FEED in the right column → [cockpit.md § The two axes](../../subsystems/cockpit.md), [card-surface.md](../../subsystems/card-surface.md).
 
 ### Study mode
 
@@ -262,13 +156,7 @@ Everything else is mode-dependent.
 └───────────────────────────────────────────────────────────────┘
 ```
 
-### Mobile (out of scope for v1, architecturally accommodated)
-
-Mobile cockpit will be a stream + button bar, not a multi-card
-cockpit. Same wire model (tap = preview + send), different
-layout. Cockpit slate does not specify the mobile shape; the
-slate flags that decisions in this doc must not assume desktop
-real estate (e.g., no "always show 4 sidebar columns").
+### Mobile — shipped, and not as a stream + button bar: cards inline in the feed, named views on the strip, the two-row bar + pull-down, the command sheet → [client-shell.md § The mobile bar](../../subsystems/client-shell.md), § The phone's play surface.
 
 ---
 
@@ -290,38 +178,6 @@ mode-bound panels are tracked separately below.
 | Status effects | Active modifiers | later |
 | Skills / mastery | Long-term progression | later |
 | Quest log | Current quests + gate state | later |
-
-### Room-state (about the location)
-
-**Folded into the inspection card.** See
-[docs/subsystems/card-surface.md](../../subsystems/card-surface.md)
-— the room-state widgets below render inside the card body when
-focus is `'here'` (the default fragment). Status-header items
-(Room name, Time) remain part of the always-on minimum.
-
-| Panel | Notes | v1? |
-|---|---|---|
-| Room name + brief | Location title; in status header | v1 (header) |
-| Exits | Clickable; `<direction>`-tagged | v1 (in card body) |
-| Things here | Objects in room; clickable | v1 (in card body via `contents` projection) |
-| People here | NPCs + players; clickable | v1 (in card body via `contents` projection) |
-| Lighting | Band + source attribution | v1 (in card body) |
-| Atmosphere | Temperature, gas mix, pressure, gravity | v1 (in card body) |
-| Sound | Ambient + sources | later (with sound subsystem) |
-| Time | Local clock | v1 (in header; world clock shipped — see time.md) |
-
-### Inspection card
-
-**Built.** See
-[docs/subsystems/card-surface.md](../../subsystems/card-surface.md)
-— the inspection-card subsystem absorbs the Room-state widgets
-(Exits, Things-here, People-here, Lighting, Atmosphere) AND the
-Focus panel into a single unified right-column card. Header
-tracks live focus (matches the prompt's focus token, sourced from
-the `'me.focus'` canonical subscription); body shows the most
-recent `look` output against that focus. Focus-without-look
-clears the body to a placeholder; Refresh button + breadcrumb
-history handle navigation.
 
 ### Navigation
 
@@ -421,24 +277,7 @@ once the substrate ships.
 
 ## MML semantic tags (Track 1)
 
-The single highest-leverage decision in this slate. Today the
-prose card renders MML as literal text. With semantic tags + a
-renderer, every noun in every description becomes a clickable
-affordance teaching its own command.
-
-### Tag taxonomy
-
-| Tag | Click preview | Right-click menu |
-|---|---|---|
-| `<command verb="X">` | `X` | run / copy |
-| `<direction dir="X">` | `X` (e.g. `north`) | move / examine exit |
-| `<exit id="…" dir="…">` | `look <dir>` | go / examine |
-| `<item id="…">` | `examine <name>` | examine / take / drop / put / give |
-| `<npc id="…">` | `examine <name>` | examine / talk / follow / attack |
-| `<player id="…">` | `examine <name>` | examine / tell / follow / friend |
-| `<quantity unit="…" value="…">` | (no click) | copy formatted value |
-| `<mql query="…">` | `<query>` | run / copy |
-| `<lesson id="…">` | `study <name>` | study / preview |
+### Tag taxonomy — superseded by the shipped `KNOWN_TAGS` (`api/mml/tags.ts`: `player` · `npc` · `thing` · `location` · `exit` · `direction` · `quantity` …; `item`/`object`/`name` collapsed, `actor` is an authoring face) → [messaging.md § The identity tags](../../subsystems/messaging.md). `<mql>` and `<lesson>` are not in the vocabulary.
 
 ### The `<mql>` sleeper
 
@@ -449,134 +288,13 @@ modifies and adapts. This is how MQL provides utility to both new
 players (they use it without knowing) and power users (they see
 the queries and copy them).
 
-### Renderer contract
+---
 
-- The server emits MML strings; the client parses them into a
-  small AST (text spans + tag nodes).
-- The renderer maps each tag to a React component that registers
-  hover / click / shift-click / right-click handlers per the
-  click model.
-- Unknown tags render as their text content (forward-compat) — this
-  is the failsafe/flatten principle.
-- **Color is NOT a tag.** *(Superseded: an earlier version kept
-  `<color>`/`<size>` as core presentational tags.)* Per the
-  [message-rendering slate](../tails/message-rendering-slate.md), the core MML
-  is **semantic only** — color/weight come from the client **theme/
-  stylesheet** keyed on semantics (topic / channel / element /
-  `stuff-id` → social-graph bucket). Manual color exists only as a
-  **channel-scoped opt-in palette**, never core. `<link>` stays
-  (semantic-ish). The full rendering model — tagged-complete-string →
-  flatten/reflow, the three tag categories, the layout library, and
-  Markdown↔MML — lives in that slate; this renderer is its client
-  realization.
-- The renderer is theme-aware: color tokens, not literal hex.
+## MQL-subscription consumer (Track 2) — superseded by [card-surface.md § One birth path](../../subsystems/card-surface.md): widgets do NOT issue MQL; the client's one self-opened subscription is `chrome: 'self'` (the shelf), every card is server-pushed by a command, and reconnect replays only that one subscription (§ Reconnect behavior).
 
 ---
 
-## MQL-subscription consumer (Track 2)
-
-The [mql-subscription-slate](../tails/mql-subscription-slate.md) is the
-source of truth for the wire shape. This slate covers only the
-**client-side consumption** pattern:
-
-- Each sidebar widget opens one or more MQL subscriptions
-  (e.g. `me.inventory`, `here.contents`, `me.slots`,
-  `$focus`-shaped detail queries) at mount time and unsubscribes
-  on unmount. The previous "pre-canned subscription kinds"
-  framing has been dropped — widgets issue raw MQL specs through
-  `subscribeMql` directly, the inspection card is the worked
-  example.
-- Subscription results and deltas update the store; widgets
-  re-render on store changes.
-- The store also drives the prompt format and the always-on
-  status header (so they update without re-`look`-ing).
-- A widget never re-queries the server to refresh — if a
-  subscription isn't telling it something, the widget shows
-  the most recent state and waits. Authors who want explicit
-  refresh ship a `look` button (which goes through the command
-  bus, not the subscription channel).
-
-The widgets are small (~50–150 LoC each). Build them in priority
-order rather than as one block.
-
-### Initial-state hydration
-
-Subscriptions return their initial result synchronously after
-the `mql-subscribe` resolves. On client mount (or reconnect),
-each widget subscribes; the result arrives as a normal
-`mql-subscription-result` envelope; the widget renders. No
-separate "snapshot" protocol — subscription's first result IS
-the snapshot.
-
----
-
-## Character creation (Track 3)
-
-### Hybrid path
-
-Two surfaces, but the modal isn't special — it's a guided sequence
-of clickable affordances that each emit real commands.
-
-**(1) Modal wizard.** Three pages, ~30 seconds:
-
-- **Page 1: Identity.** Name (input pre-loads `rename <name>`),
-  pronouns (chip pre-loads `set pronouns <choice>`). Each commits
-  as its own command on click. Default values from Google profile.
-- **Page 2: Look / archetype.** N preset archetypes shown as chips;
-  each pre-loads `apply archetype <preset>` (or whatever the
-  server-side verb shape becomes). One click = one command =
-  starting body plan + outfit + kit applied to the avatar.
-- **Page 3: Confirm + enter.** Shows the first-person description
-  the engine generates for the avatar after the prior commands.
-  "Enter" button pre-loads the server-side ritual command (e.g.,
-  `begin` or `look`) — also a real command, no UI exception.
-
-**(2) Diegetic refinement.** After the modal completes, the avatar
-lands at the server-configured starting location (today: a freshman
-dorm room; later: the campus lounge — entirely a server decision
-about where new avatars spawn). From here, every change to the
-avatar uses normal in-world verbs.
-
-### Client-side batching when needed
-
-A modal page may need multiple commands (e.g., name + pronouns on
-Page 1). The client batches these sequentially: clicking "Continue"
-emits the queued commands one at a time, each visible in the input
-as it sends. The server treats each as an independent command.
-**No server-side multi-command primitive.** This is "just a really
-fast typist."
-
-True server-side scripting / batched-execution is deferred to a
-future scripting-language pass and explicitly out of scope here.
-
-### Archetypes are content
-
-The slate names the *shape* only:
-
-```
-Archetype: {
-  name: string,
-  bodyPlan: BodyPlanRef,
-  outfit: StuffRef[],
-  startingKit: StuffRef[],
-  description: MmlString,
-}
-```
-
-Authors fill in the actual presets. The reference app expects
-4–5 archetypes spanning the audience's verticals (a degree-track
-undergrad, a professional / pro-track, a returning/older student,
-a newcomer / language-learning-friendly archetype, and a wildcard
-/ custom-later). Specific archetype names and contents are
-content-team work; the client doesn't know or care.
-
-### Starting location is server-configured
-
-The cockpit makes no assumption about where new avatars spawn. A
-server-side configuration (probably a setting on the Application
-or a designated template path) names the starting location. Today
-the dorm; later the lounge; the client renders whatever the
-server delivers.
+## Character creation (Track 3) — superseded by [char-gen.md](../../subsystems/char-gen.md): the `enroll` draft machine + `enroll confirm` commit/spawn, the species dossier + NameBank, `startLocation` ([location.md](../../subsystems/location.md)); the archetype is a stamp ([identity.md](../../subsystems/identity.md)).
 
 ### Re-entry and post-modal changes
 
@@ -590,64 +308,13 @@ it directly or interacting with the campus registrar's clerk; the
 clerk just runs the same verb on your behalf after taking your
 gold.
 
-### "Enter the world" is a command (open question)
+---
 
-Pinned for awareness, not closed: the "Enter" button on Page 3 of
-the modal needs to map to *some* command on the server side. The
-options are:
-
-- A new `begin` / `enter` ritual verb that the server treats as
-  the end-of-creation handshake.
-- A standard `look` (the first observation of the world).
-- The existing `Avatar.enter` server-side flow surfaced as a
-  client-emitted command.
-
-Decision deferred to requirements / planning. The principle that
-*some* command represents this is fixed by the slate.
+## Prompt line — shipped as `prompt.format`, a **Liquid** template (default `{{ focus }}>`), rendered by `PromptStrip` → [prompt.md](../../subsystems/prompt.md), [shell-environment.md](../../subsystems/shell-environment.md). Further context variables (posture · location · time) land additively in the prompt-context builder; the `%token` grammar above did not ship.
 
 ---
 
-## Prompt line
-
-Always-on. Format is a player-themeable string driven off
-`EnvironmentMixin` settings (probably `prompt.format` or similar
-keyspace). State-sync feeds the values:
-
-```
-[HP:42/50 MV:88/100 Library, sitting on chair (focused: thermometer)] >
-```
-
-Format tokens (proposed; concrete vocabulary lands in requirements):
-
-- `%hp` / `%maxhp` / `%mv` / `%maxmv`
-- `%location` (current room name)
-- `%posture` (standing / sitting / etc.)
-- `%engagement` (walking, climbing, watching, idle)
-- `%focus` (currently focused thing)
-- `%mode` (world / study / classroom / tutor)
-- `%time` (local clock)
-
-Default format ships with a sensible subset. Power users theme
-freely via the `settings` verb. Same wire principle: changing the
-prompt is a real command (`set prompt.format "%hp/%mv %location >"`).
-
----
-
-## Interactive prompt stack (Polish A)
-
-**Superseded** by the dedicated
-[prompt-stack-slate.md](../tails/prompt-stack-slate.md), which promotes
-the prompt stack from "polish" to a central cockpit element. The
-prompt component sits sibling-to-input in the CommandBar row,
-manages a typed stack of prompts (base / choice / confirm / text /
-mql-object), single-input mode-switches (command vs response),
-and renders prompts **both** inline-in-terminal (for history) AND
-in the dedicated component (for interaction). FIFO snapshot-on-
-send pairs each echo with the prompt that was active when issued.
-
-Load-bearing first use case: MQL multi-match disambiguation.
-Server-side substrate (`PromptApi`) is Framework 11; the client
-stack manager can ship first against a stub.
+## Interactive prompt stack (Polish A) — shipped → [prompt.md](../../subsystems/prompt.md); the prompt card opens PINNED and auto-releases when answered ([card-surface.md § What the five holds became](../../subsystems/card-surface.md)).
 
 ---
 
@@ -679,18 +346,6 @@ deferred:
 
 - **3D rendered map** — own project. Renders spatial subsystem to
   a Three.js scene or similar. Demoable but separable.
-- **AI-generated location illustrations** — own project. Calls an
-  image-gen API on `look`, caches per-location-state, renders in
-  a new card. Demoable but separable.
-- **Dedicated content CMS** — content authors use the player
-  client + in-game shell (`pwd` / `ls` / `cat` / `clone` /
-  `reload` / `eval`) until shell strain justifies a dedicated CMS.
-- **Server-side multi-command transactions / scripting language** —
-  deferred to a future scripting pass. Cockpit batches client-side
-  ("fast typist") in the meantime.
-- **Mobile cockpit** — different layout (stream + button bar), same
-  wire model. Architecturally accommodated by command-bus primacy;
-  layout work is its own slate when it lands.
 - **Voice / audio output** — text + visual only in v1.
 - **Persistent player profile UI** — character sheets, achievements,
   leaderboards. Later.
@@ -721,60 +376,6 @@ Pinned for resolution at requirements time.
    First result envelopes hydrate widgets. Mid-reconnect message
    loss is invisible because each subscription's initial-result
    is authoritative. Pin freshness contract at requirements.
-
----
-
-## Suggested build order
-
-The three tracks are largely independent. Track 1 + Track 2 can
-be built in parallel by different agents. Track 3 depends on
-neither but produces visible product value, so worth slotting
-early for demo readiness.
-
-1. **Track 2 substrate first**: MQL-subscription wire shape lands
-   on the server (its own slate's build); cockpit's store layer
-   registers subscription handles and the always-on header +
-   prompt line consume the first results. No widgets yet.
-2. **Track 1 — MML semantic tags**: server emits the new tags in
-   existing prose paths; client renderer turns them into clickable
-   affordances. Click model implemented here.
-3. **Track 2 — widget catalogue**: build the v1 widgets in priority
-   order (Exits, Here, Inventory, Slots, Focus, Engagement,
-   Atmosphere, Lighting). Each is small and independent.
-4. **Polish A — prompt line**: format tokens + setting +
-   subscriptions on the token-referenced fields. Already partly
-   enabled by Track 2 substrate.
-5. **Polish B — envelope rendering**: color signals + note chips +
-   input flash.
-6. **Track 3 — character creation**: modal wizard + archetype
-   chips + Page-3 "Enter" verb decision. By this point the
-   click-to-send loop is fully built; the modal is just more
-   buttons.
-7. **Content surface**: payload type `video`, transcript renderer,
-   completion event. The `study` mode shipped end-to-end.
-8. **Interactive prompt stack rendering**: depends on Framework 11
-   server-side punch-list landing first.
-
----
-
-## Out-of-scope reminders for future selves
-
-Things that are tempting to add but should be resisted in v1:
-
-- **Don't invent new free-floating client modules**. Client follows
-  React + Zustand + styled-components conventions already in tree.
-  Add new components under `packages/client/src/components/`;
-  add stores under `src/store/`; services under `src/services/`.
-- **Don't bake content into the client.** Archetypes, starting
-  location, mode triggers, lesson catalog — all server-driven.
-  The client renders whatever the server sends.
-- **Don't add client-only state machines.** Mode is server-driven.
-  Engagement is server-driven. Anything the server has authority
-  over, the client doesn't shadow.
-- **Don't bypass the command bus.** Every mouse interaction emits
-  a command. No exceptions for "convenience."
-- **Don't pre-empt the mobile slate.** Cockpit is desktop. Mobile
-  is its own slate when it lands.
 
 ---
 

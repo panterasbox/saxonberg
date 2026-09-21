@@ -209,8 +209,9 @@ Meltable metal bar), `obj/Casting` (the re-meltable frozen-pool cast),
 
 ## Deferred
 
-The crafting recipes (cooking / smelting / smithing / glassmaking — the
-downstream consumer of this substrate); fire as a combat weapon /
+Glassmaking recipes (cooking / smelting / smithing all shipped in their own
+capability packs, reading `requiresHeatK` — see [crafting.md](./crafting.md)
+— glassmaking has no pack yet); fire as a combat weapon /
 burning-DoT; map-scale wildfire / arson-as-crime / a fire brigade;
 vision-obscuring smoke (the fog→visibility seam); cross-room smoke drift;
 flammability limits (LEL/UEL); the magic Fire school (actuates this channel);

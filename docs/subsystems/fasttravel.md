@@ -8,6 +8,19 @@ mana it has to buy**. Distinct from [locomotion](./locomotion.md)
 exits: fast travel is discontinuous hops across an authored network, not
 stepping through a door.
 
+### Why teleport, and not a train
+
+*Teleport, not conveyance* is load-bearing, not flavour: the network
+connects places that are not physically connectable. A tube or a train
+reaches only what shares its continuous ground, and this world is
+deliberately un-genred (see [design-philosophy.md](../design-philosophy.md))
+— a fantasy campus, a pocket-universe lounge and a frontier crossroads
+share no ground to lay track on. Only a discontinuous hop can stitch them
+into one transit map, which is why the network rides a spell rather than a
+vehicle, and why the departures board is *allowed* to list places that have
+no business on the same map. That incongruity is the un-genre promise in
+walkable form — the network's reach is the thesis made navigable.
+
 ## ⭐ What the TPA reform changed, and why
 
 Teleportation used to be free, distance-priced by an author's intuition,

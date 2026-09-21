@@ -1,17 +1,22 @@
 # Emotes slate (working doc)
 
-> **Status: PARTIAL** — the emote substrate shipped 2026-06 →
-> [emotes.md](../../subsystems/emotes.md)
-> **Left:** the moderation control plane — moderator verbs, per-scope
-> expression levels + duration, the sanitizer implementation and shared
-> denylist, audit logging and appeals, entity-name moderation
-> **Size:** a wave
-
-> **Status: SHIPPED 2026-06 — substrate graduated to
-> [docs/subsystems/emotes.md](../../subsystems/emotes.md).** `SoulMixin` on
-> every `Character`, the `Emote` Document catalog, the `SoulCatalogue`
-> singleton, and the `SoulApi` facade are live. This slate stays as the
-> register of design space not yet built.
+> **Status: PARTIAL** — the emote substrate shipped 2026-06 (`SoulMixin`,
+> the `Emote` row + grammar runner, `SoulCatalogue` + `SoulApi`, the
+> `expression` pack, the three dispatch paths) →
+> [emotes.md](../../subsystems/emotes.md); reactions shipped →
+> [reactions.md](../../subsystems/reactions.md)
+> **Left:** the Layer-2 client render toggle (`social.emote.render`
+> honoured, per channel and per source) · Layer 3 honorary / entitlement
+> gating (the `requires` predicate seam) · channel / remote-audience
+> emotes (routing over comms) · echo (the `social.emote.echo` setting +
+> the routing) · the provenance label on remote emotes · the typed-slot
+> taxonomy for moderation (`literal` / `enum`) · the moderation primitives
+> (the shared `resolveExpressionPolicy` gate, the `free` / `strict`
+> levels, the strict-mode structural guarantee, sanitizer call sites) ·
+> the moderation control plane (moderator verbs, per-scope levels +
+> duration, the sanitizer implementation + shared denylist, audit +
+> appeals, entity-name moderation)
+> **Size:** a build
 
 Working slate for **emotes** — diegetic, non-verbal expression between
 beings in the world. A player (or an NPC) `smile`s, `wave`s, `bogleg`s,
@@ -123,50 +128,7 @@ Three claims:
    never forces a glyph onto the reader, and a reader can keep emoji
    from players while suppressing them from NPCs.
 
-The substrate decision: **emoting is a capability on the being
-(`SoulMixin`, parallel to `VocalMixin`), driven by a content-authored
-emote catalog and the existing `ProseApi` grammar.** ("Soul" is the
-arcane MUD term of art for the emote/feelings feature — an LPMud
-lineage. We use it for the capability/subsystem; individual catalog
-records are `Emote`.) The catalog *access* surface is `SoulApi`
-(sanctioned — a persistence-backed catalog with no natural Stuff host);
-beyond it, default to the mixin method and
-direct calls. The emote *catalog* is content, not code: one controller +
-one capability method + N authored definitions, never one
-controller/YAML per emote.
-
----
-
-## What's already solved (don't relitigate)
-
-The source essay agonizes over machinery Saxonberg has since shipped.
-Consciously out of scope to redesign:
-
-- **Message buffer + topic classification.** Today: `MessageFrame`
-  carries `body` (the failsafe prose) + `topic` + `payload` +
-  `meta`; the client subscribes per-topic. The essay's "every event
-  needs a human-readable string + a topic + optional metadata" *is*
-  the shipped frame.
-- **The hierarchy agony** (`public.politics.emote` — political emotes,
-  or emotes on the politics channel?) is **dissolved.** Saxonberg split
-  the one overloaded string into two orthogonal axes: `topic` (subject)
-  + `tags` (facets like `audience:witness`). The essay's grudgingly-
-  considered "tags / meta-topics" alternative is what got built.
-- **Actor / audience / target view split.** `Scene.toSelf()` /
-  `.toPeers()` / `.toTarget()` / `.toContents()`, each auto-stamping an
-  `audience:` tag. The four-message social grammar is the composer's
-  native shape.
-- **Pronoun / possessive grammar.** `ProseApi` + the `pronoun` /
-  `possessive` / `cap` / `article` filters, driven by `Gendered`.
-- **Anti-spoofing.** The essay requires free-form emotes to begin with
-  the actor's name "so players can't spoof game-generated messages."
-  **Moot** — frames carry `<name stuff-id>` attribution and `audience:`
-  tags; a player literally cannot emit a frame impersonating an NPC
-  arrival. That constraint is dropped.
-
-The live question is narrowly *emotes*: the capability, the catalog, the
-grammar shape, the dynamic-verb seam, and the three presentation/social
-layers on top.
+*The substrate decision — `SoulMixin` on `Character`, the `Emote` record, `SoulCatalogue` + `SoulApi` — shipped → [emotes.md](../../subsystems/emotes.md).*
 
 ---
 
@@ -198,177 +160,15 @@ plane is its own subsystem. See *Moderation* below.
 
 ### The capability: `SoulMixin`, parallel to `VocalMixin`
 
-Emoting is a being's act, so it's a mixin method on the being, exactly
-mirroring `VocalMixin.say`. The name `SoulMixin` is the MUD term of art
-— on LPMud-lineage muds the emote/feelings subsystem is "the soul." The
-interface is `Soul` (matching the `VocalMixin`→`Vocal` convention: a
-being with a `Soul` can express). Individual catalog records are `Emote`
-(below) — *not* `Soul`, to avoid colliding with this capability
-interface. Composes onto `Character` (every Avatar + NPC) and any
-animate being that should express. The method takes a resolved `Emote`
-plus optional target and customization:
-
-```ts
-export interface Soul {
-  emote(emote: Emote, opts?: EmoteOptions): void;
-}
-
-interface EmoteOptions {
-  target?: Stuff & Sensor;   // directed: a resolved ref, not free text
-  fills?: Record<string, SlotValue>;  // user-supplied slot values (typed; see Typed slots)
-}
-```
-
-(`fills` generalizes the single "adverb" customization: an emote's
-grammar declares named, *typed* slots, and the user supplies values for
-them. The typing is what makes moderation tractable — see below.)
-
-`emote()` composes a `Scene` the same way `say()` does — `toSelf` for
-the actor, `toPeers`/`toContents` for witnesses (the same
-Containable-wins scope rule), `toTarget` for a directed recipient —
-then `.payload({...}).send()`. Scene auto-stamps command attribution.
-The *only* difference from `say()` is that the prose comes from the
-catalog entry's grammar rather than a fixed `"You say, …"` template, and
-the topic differs (below).
-
-**Why a mixin, not an Api, not per-emote controllers:** emoting is new
-per-being behavior that composes uniformly onto every being kind —
-exactly a mixin's job. The catalog is *data*, so it needs no code per
-entry. This honors the standing rules: no Api-for-content, no
-per-content controllers, no premature registry.
-
-> **Naming/placement decision:** `lib/social/` as a new subsystem
-> folder (emotes, and later reactions, cluster as "social expression,"
-> distinct enough from raw `lib/message/` plumbing). Alternative: fold
-> `SoulMixin` into `lib/message/` beside `Vocal`. *Lean: new
-> `lib/social/`* — it gives reactions and any future social mechanics a
-> home — but this is a propose-a-new-subsystem call and wants explicit
-> sign-off (per the module-taxonomy rule). Mixin name `SoulMixin` is the
-> MUD term of art (LPMud "the soul"); the marker is `_mixinName =
-> 'SoulMixin'`. Terminology split: **`Soul`** = the capability/subsystem
-> (`SoulMixin` / `interface Soul` / `SoulApi`); **`Emote`** = an
-> individual catalog record and the act (`class Emote`, the `emote()`
-> method, the `emote` verb).
+*Shipped → [emotes.md § `SoulMixin`](../../subsystems/emotes.md) (`lib/social/Soul.ts`, composed on every `Character`; `emote(emote, { target, fills })` + `emoteFree`; the render/route split).*
 
 ### The catalog is content — its own Mongo collection
 
-The vocabulary is large and open (the `bogleg` story is the whole
-point: emotes accrete from the community). So this is **one
-`EmoteController` + one `emote()` method + N data records** — never one
-YAML/controller per emote, and **never a cloned `Idea` per emote.** An
-`Emote` record is *pure declarative data*: a verb, its grammar, an
-optional glyph, an optional gate, optional aggregation tags. Crucially,
-**emotes carry
-no behavior** — unlike a Vitals affliction (progression/resolution code)
-or a trauma (a behavior table). That "data, no behavior" property is the
-decisive fact for catalog home: there's no code to attach and no
-world-object to instantiate, so the heavy Template→Stuff clone/Hydrator
-pipeline (the `domain` collection, folder/leaf invariants, per-instance
-registration) is pure overkill.
-
-**Decision: the catalog is its own MongoDB collection (`emotes`),** on
-the lightweight **`Document` track** ([persistence.md](../../subsystems/persistence.md))
-— the same record track as `users` / `google_profiles` / `Template`, not
-the world-object track. `Emote` records are catalogue documents, queried
-by verb/alias, *not* instantiated as live world Stuff.
-
-Two payoffs this buys over a flat data file (the alternative we
-considered and dropped):
-
-- **Runtime authoring.** A wizard mints a new `Emote` in-game and it's
-  immediately usable — no redeploy. This is *exactly* the `bogleg`
-  accretion story made mechanical: the community grows the lexicon
-  live. (A flat file needs an edit + deploy for every new emote.)
-- **Indexed lookup on the hot path.** The dynamic-verb resolver
-  (below) hits the catalog on potentially every command; a collection
-  with an index on verb/aliases (cached in memory — see *access
-  pattern*) is the natural fit.
-
-An `Emote` record, shape-sketch (mirroring the `User extends Document`
-pattern in persistence.md):
-
-```ts
-class Emote extends Document {
-  static collectionName = 'emotes';
-  static persistentFields = [
-    'verb', 'aliases', 'grammar', 'echo', 'emoji', 'requires', 'tags',
-  ];
-
-  verb: string = '';        // canonical: 'smile'  (indexed)
-  aliases: string[] = [];   // 'bog', 'boglegged' → 'bogleg'  (indexed)
-  grammar: EmoteGrammar = {}; // the prose templates (below)
-  echo: boolean = false;    // default: does this also echo to the actor's room? (see Echo)
-  emoji?: string;           // Layer 2 — optional glyph
-  requires?: string;        // Layer 3 — entitlement predicate key
-  tags: string[] = [];      // Layer 4 — aggregation grouping ('affirmative')
-}
-```
-
-`EmoteGrammar` is the four-permutation grammar matrix (below) plus each
-dynamic slot's declared content-kind (`literal` / `entity` / `enum` /
-`free`, see *Typed grammar slots*) — the only non-scalar field; persisted
-as a sub-document. Whether an emote has *any* `free` slot is derivable
-from the grammar (and worth denormalizing onto the record for fast
-"allowed in strict mode?" filtering).
-
-Records ride the **`Document` base** (`Emote extends
-Document`, `static collectionName = 'emotes'`) — they get
-`find`/`findById`/`save`/`delete` for free and `PersistenceManager`
-stays generic (no catalog-specific bloat in it). The grammar/glyph/gate
-fields are `persistentFields`.
-
-**Access pattern.** Reads dominate (every emote command resolves a
-verb); writes are rare (an author minting an `Emote`). So a
-**`SoulCatalogue` singleton Stuff** (`/platform/idea/SoulCatalogue`, sibling to
-`TopicCatalogue`) owns the **verb→`Emote` index loaded at bootstrap
-(`Emote.find({})`) and refreshed write-through** on mint/edit — Mongo is
-the system of record, the catalogue's in-memory cache is the hot path.
-**`SoulApi`** is the thin caller-facing facade over that singleton:
-`SoulApi.resolve(verb)` for the dispatcher, `SoulApi.mint(...)` /
-`SoulApi.all()` for authoring and help, each a 1:1 delegate to the
-catalogue. The Api holds no state of its own; the catalogue Stuff is the
-live state (mirroring `TopicCatalogue` + the topic Api exactly). It's a
-*justified* registry (the standing "no premature registries" rule wants a
-present-day need; the every-command lookup + runtime authoring + the
-several-thousand-record scale supply it). `SoulApi` ends with
-`SecurityApi.decorateApiClass(SoulApi)` per convention.
+*Superseded by the code: the catalog is a `documents` row of `kind: 'emote'` (content-packs wave 2), not its own collection; `SoulCatalogue` + `SoulApi` + the `soul` suite shipped → [emotes.md](../../subsystems/emotes.md) § The `Emote` value shape, § `SoulCatalogue` + `SoulApi`, § The `soul` authoring suite.*
 
 ### The grammar reduction (author less than the essay implies)
 
-The essay names four permutations — non-directed, directed, custom
-non-directed, custom directed — each with actor/audience/target views.
-Naively that's ~10–12 strings per emote, brutal at catalog scale. It
-collapses hard, because **the actor token renders differently per
-audience for free**: the self frame renders the actor as "you," the
-peer/target frames render it as the name. That's exactly how
-`VocalMixin` already produces "You say, …" vs "Bobalu says, …" from one
-intent. So an author supplies at most **four** templates (the
-directed × custom matrix), each written once with an `{{ actor }}`
-token, and the self/peer/target renderings fall out of the Scene split:
-
-```yaml
-# the 'smile' entry's grammar
-plain:           "{{ actor }} smile{{ s }}."                 # smile
-directed:        "{{ actor }} smile{{ s }} at {{ target }}." # smile iffy
-custom:          "{{ actor }} smile{{ s }} {{ adverb }}."    # smile happily
-customDirected:  "{{ actor }} smile{{ s }} {{ adverb }} at {{ target }}."
-```
-
-Rendered for the self frame, `{{ actor }}`→"You", `{{ s }}`→"" →
-*"You smile happily at Iffy."* For peers, `{{ actor }}`→`<name>Bobalu</name>`,
-`{{ s }}`→"s" → *"Bobalu smiles happily at Iffy."* The verb-agreement
-token (`{{ s }}`/conjugation) is the one English wrinkle; a small
-`ProseApi` filter or a `verbForm` helper handles the you-vs-third-person
-conjugation so authors don't write both. Pronoun/possessive filters
-already exist for grammar that reaches into the target (`{{ target |
-possessive }} hand`).
-
-> Open sub-decision: how much to auto-derive. A fully-defaulting scheme
-> (author gives only the bare verb + its third-person form; the four
-> templates synthesize) makes mass authoring cheap but limits oddball
-> grammar; an all-explicit scheme is verbose but unconstrained. *Lean:
-> sensible defaults with per-entry override* — most emotes take the
-> default shape, weird ones (`bogleg at the concept`) override.
+*Superseded by the code: one Liquid template per emote with `{% if %}` for slot presence — no four-permutation matrix; conjugation via pre-bound `s`/`es`/`ies` + an optional `verbForm` override → [emotes.md § The grammar substrate](../../subsystems/emotes.md).*
 
 ### Typed grammar slots (the moderation foundation)
 
@@ -401,38 +201,11 @@ trusting a denylist.
 
 ### The dynamic-verb seam (the one new engine bit)
 
-`smile iffy happily` arrives with `smile` as the verb — which is **not**
-a registered YAML command. Everything else in the trunk is content +
-existing composer; *this* is the genuinely new plumbing, and it lives in
-command-routing. Two approaches:
-
-- **(A) Fallback resolver.** On an otherwise-unknown verb, the
-  dispatcher calls `SoulApi.resolve(verb)` before emitting "huh?"; a hit
-  dispatches to `EmoteController` with the matched `Emote` + parsed
-  target/adverb. Clean, scales to thousands (no schema flood), but
-  emotes don't appear in client autocomplete unless separately
-  surfaced.
-- **(B) Bulk schema registration.** Every emote registers a synthetic
-  command schema via `system.commands.added`, flowing through the
-  normal dispatch + autocomplete path. Uniform, but floods schema
-  delivery with hundreds-to-thousands of verbs.
-
-*Lean: (A) as the dispatch path, with an optional curated-common-subset
-surfaced as schemas (B) for autocomplete/help.* The free-form `emote`
-verb (below) *is* a normal YAML command and needs no fallback.
+*Shipped as (A), inline in `CommandGiver._runChain` — no controller, no synthesized schema → [emotes.md § Dispatch paths](../../subsystems/emotes.md) (a). The autocomplete-subset question was answered by a fetched catalogue, not schemas → § The client read face (`GET /api/emotes`).*
 
 ### Free-form `emote` (the "emote" emote)
 
-The degenerate catalog entry: a single emote whose grammar is just
-"actor + custom string." `emote shuffles a deck of cards.` →
-*"Bobalu shuffles a deck of cards."* This is the canonical LP-lineage
-free-form emote. It's a normal YAML verb (`emote.yaml` + a thin
-controller, or `EmoteController` with a free-form flag), structurally
-identical to `SayController`, on the expression topic. Verb: **`emote`**
-(the term of art for the free-form case; `pose` is the MUSH-side word
-and a poorer fit for a soul-lineage design), with `:` as the idiomatic
-single-char prefix alias. The essay's "must start with the actor's name
-to prevent spoofing" constraint is dropped — attribution is structural.
+*Shipped: `emote.yaml` → `EmoteController`; `:` / `;` prefixes via `detectEmotePrefix` in `msh`, falling back to free-form on a catalog miss → [emotes.md § Dispatch paths](../../subsystems/emotes.md) (b), (c).*
 
 ### NPCs emote — and the immersion gate
 
@@ -447,28 +220,11 @@ emoji and suppress NPC emoji without the engine special-casing anything
 
 ### Topic
 
-Emotes are *expression*, distinct from `world.speech.*` (dialogue) and
-from `world.narration.action` (whose `message.ts` TODO scopes it to
-state-change narration like open/close). *Lean: a dedicated
-`world.expression.emote`* (or `world.social.emote`), so Layer 4
-reactions and per-channel filters have a clean handle. Adding a topic
-constant is trivial; picking the namespace now avoids a retrofit. The
-client adds it to `renderTopics`.
+*Superseded: the leaf is `act.emote` (one leaf for catalog and free-form; the payload distinguishes), authored as a Topic row → [emotes.md § Topic and modality](../../subsystems/emotes.md).*
 
 ### Reach: emotes ride the ESP channel (don't overthink it)
 
-"Smile at Iffy across the world" just works. Emotes are perceived over a
-universal **ESP channel** — an empathic sense every being has — so an
-emote reaches its audience whether they're in the room or remote, with
-**no per-sense or per-medium gating**. A smile in a pitch-dark room is
-still felt; a wave to a friend a continent away lands. No modality, no
-"can you see it," no device required. They're emotes — they're meant to
-be fun. (Worldbuilding: that "ESP channel" is the baseline **implant**'s
-neural layer — cybernetic in mechanism, ESP in feel — the same substrate
-that carries DM/chat. See [comms-slate.md](../tails/comms-slate.md) /
-[augmentation-slate.md](../tails/augmentation-slate.md). It stays ungated and always-on
-for emotes by design; the implant is the *explanation* for the magic,
-never a constraint on it.)
+*Paragraph superseded by the code: reach is gated by the `emotive-esp` modality in the recipient's sensorium (the baseline `AetherImplant` confers it to every player), not ungated; a directed target resolves at `scope: 'online'` and crosses rooms → [emotes.md](../../subsystems/emotes.md) § Topic and modality, § Universal ESP target delivery. The audience question below is still open for the channel case.*
 
 So reach reduces to one question: **who's the audience?** — and that's
 just routing. The **canonical audience** (the ESP transmission) is the
@@ -551,35 +307,7 @@ treatment is a client/cockpit concern, not the emote engine's prose.
 
 ### Bootstrap & the starter roster
 
-Emotes are flat data, so bootstrap is flat too — *not* the
-template/Hydrator/clone path. **One seed file** (`seeds/social/emotes.yaml`,
-a list of records), and a small boot step (`SoulApi.seed()`, after
-`PersistenceManager.connect`) that **idempotently upserts by `verb`**
-(insert-if-missing, never clobbering community-minted entries), then
-`SoulApi.load()` builds the index. Add `emotes` indexes (unique `verb`,
-plus `aliases`) to `PersistenceManager.createIndexes()`. This is the
-**first seeded `Document` catalog** (`users`/`google_profiles` are
-runtime-only) — a small new pattern, deliberately lighter than the
-`domain` template machinery; no hook needed in v1.
-
-**Starter roster** — ~40 general-purpose social emotes; content teams +
-runtime minting grow it from there:
-
-- greetings/courtesy: wave, bow, curtsy, salute, greet, beckon
-- affirm/deny: nod, shake, shrug
-- joy/warmth: smile, grin, laugh, chuckle, giggle, beam, cheer, clap
-- affection: hug, kiss, pat, cuddle, wink
-- displeasure/sadness: frown, scowl, glare, sigh, groan, pout, cry
-- surprise/confusion: gasp, blink, gape, facepalm, ponder
-- playful: smirk, snicker, poke, tease, dance, highfive
-- abstraction: `bogleg` (+ aliases `bog` / `boglegged` / `almightybogleg`)
-- free-form: `emote` / `:`
-
-A handful double as **living tests** of the grammar: `smile`
-(directed + custom), `bow` (`entity` slot), `dance` (`enum` manner slot),
-`emote` (`free` slot + the moderation gate), `bogleg` (abstraction +
-aliases). Excludes posture verbs (sit/stand/kneel/lie — state changes,
-not emotes) and anything that's really `say`.
+*Superseded: the roster is the `expression` content pack (34 rows at `/expression/emotes/<verb>`, installed by `PackApi.install`, three-way reconciled); no seed file, no `SoulApi.seed()` → [emotes.md § Starter roster](../../subsystems/emotes.md). New emotes are `soul make`d under the soul committee's title.*
 
 ---
 
@@ -647,38 +375,7 @@ entitlement **source*** (what grants an entitlement) — model only the
 
 ## Layer 4 — Reactions / aggregation (recommend its own slate)
 
-`react 113 ;agree` attaches an emote to message `113` (a numeric id in
-the buffer gutter); the client aggregates reactions into per-emote
-counters with collapse/expand, optionally grouping by a tag
-(`affirmative` folds `agree`/`ok`/`nod` into one 👍). Keyboard-first:
-a `react` command, not a mouse-only button (consistent with
-"all actions resolve to single command lines").
-
-**Scoping recommendation: reactions is its own feature cycle.** It is a
-*generic message affordance* — you'd want to react to a `say`, a combat
-hit, or a system event, not only an emote. It *depends on* the emote
-vocabulary (the thing you react *with*) but its plumbing is independent
-and heavier:
-
-- **message-id surfacing** — every buffer-rendered frame needs a
-  stable, addressable id (`Interactive.nextFrameId` is the ordering
-  primitive to build on); the gutter id is new client + wire surface.
-- **a `react` verb** — `react <id> ;<emote>`, resolving the emote
-  through the same catalog.
-- **client aggregation UI** — counters, expand/collapse, the
-  rate-limited "expanded reactions" throttle the essay describes.
-- **per-user aggregation settings** — when to auto-collapse, whether
-  to always aggregate (Discord-style), which dimensions to group on
-  (emote / tag / actor), tag→group maps.
-
-The essay is itself uncertain here ("any implementation is only as good
-as adoption"), and the design space (what loss is acceptable in
-aggregation) is large and subjective. Carve it out: this slate
-*specifies the hook* (emotes carry aggregation `tags`; the topic is
-filterable), and the **[reactions slate](../tails/reactions-slate.md)** owns the
-rest (the scale-first design: a reaction is an emote-at-a-message +
-batched aggregate-delta broadcast). Including it in "everything" means it
-ships — just not in the same cycle as the trunk.
+*Shipped → [reactions.md](../../subsystems/reactions.md): `react [--to <person>] [--msg <#>] <emote>`, the gutter number → `commandId`, act-scoped tallies, chips grouped by `tags[0]`, per-user controls, the fetched emote picker.*
 
 ---
 
@@ -775,20 +472,7 @@ so the guarantee holds the moment the control plane can set the level.
 
 ## What emotes are NOT
 
-- **Not state changes.** Emotes mutate zero world state — they are
-  pure expression. This is the clean line against the **posture**
-  subsystem (`sit` / `stand` / `kneel` / `lie`), which *does* change
-  state (occupancy, `Posed`). "Bow" the expression is an emote even
-  though it rhymes with a posture; a posture verb that happens to emit
-  narration is still not an emote. If an action changes the world, it's
-  not an emote.
-- **Not dialogue.** `say` / `tell` carry words (`world.speech.*`);
-  emotes carry acts (`world.expression.*`). Free-form `emote` blurs the
-  line intentionally but stays on the expression topic.
-- **Not a client chat decoration.** The expression originates in the
-  world (a being's `emote()` call), not as client-side markup on a chat
-  line. The client *renders* it (and may enrich with a glyph); it does
-  not author it.
+*Graduated → [emotes.md § What emotes are vs. what they aren't](../../subsystems/emotes.md) (the not-a-state-change / posture line inserted; not-speech and not-a-client-decoration were already there).*
 
 ---
 
@@ -796,21 +480,11 @@ so the guarantee holds the moment the control plane can set the level.
 
 ### Scenario A — catalog emote, directed + custom
 
-- `smile iffy happily`. Verb `smile` misses the YAML registry → emote
-  fallback resolver → `EmoteController` with the `smile` entry, target
-  Iffy, adverb "happily."
-- `emote()` composes a Scene on `world.expression.emote`:
-  - self: *"You smile happily at Iffy."*
-  - peers: *"Bobalu smiles happily at Iffy."*
-  - target (Iffy): *"Bobalu smiles happily at you."*
-- All three fall out of one `customDirected` template via the actor/
-  target token rendering per audience.
+*Shipped (the adverb binds as a `free` slot; three frames from one template) → [emotes.md § The grammar substrate](../../subsystems/emotes.md).*
 
 ### Scenario B — free-form emote
 
-- `emote shuffles a deck of cards.` (or `:shuffles a deck of cards.`). Normal YAML verb →
-  free-form controller → *"Bobalu shuffles a deck of cards."* to self
-  and peers. No catalog lookup; attribution structural.
+*Shipped → [emotes.md § Dispatch paths](../../subsystems/emotes.md) (b), (c).*
 
 ### Scenario C — NPC emote, immersion preserved
 
@@ -836,9 +510,7 @@ so the guarantee holds the moment the control plane can set the level.
 
 ### Scenario F — reaction (future reactions slate)
 
-- `react 113 ;agree` attaches `agree` to message 113; the client folds
-  it (and any `ok`/`nod`, via the `affirmative` tag) into an aggregated
-  👍 counter on that line.
+*Shipped → [reactions.md § The `react` verb](../../subsystems/reactions.md).*
 
 ### Scenario G — emote-only mode, abuse attempts blocked
 
@@ -862,39 +534,19 @@ so the guarantee holds the moment the control plane can set the level.
 
 ### Messaging
 
-- A new `Scene` producer (`SoulMixin.emote`) and a new topic
-  (`world.expression.emote`). No change to the composer or delivery
-  chokepoint. Add the topic constant to `MessageApi.Topics` and the
-  client `renderTopics`. `toTarget` (already present) gets first real
-  heavy use for the directed-target view.
+*Shipped; the topic is `act.emote` → [emotes.md § Topic and modality](../../subsystems/emotes.md).*
 
 ### Prose
 
-- Emote grammar *is* `ProseApi`. Needs one small addition: an
-  English **verb-agreement** helper/filter (you-form vs third-person:
-  "smile" / "smiles") so an author writes one template per permutation,
-  not two. Pronoun/possessive filters already cover target grammar.
+*Shipped as pre-bound `s`/`es`/`ies` variables + `verbForm` → [emotes.md § The grammar substrate](../../subsystems/emotes.md).*
 
 ### Command routing / parsing
 
-- The **dynamic-verb fallback** (unknown verb → emote catalog) is the
-  one new dispatch seam. Parsing must bind the emote's declared slots
-  from the input (`verb <entity> <slot-values…>`), validating each
-  against its kind (an `enum` slot accepts only its vocabulary; a `free`
-  slot is the sanitized/gateable text). Decide how emotes interact with
-  the scope try-list and `system.commands.*` schema delivery (the
-  curated-subset question).
+*Shipped: the inline `_runChain` fallback + `EmoteGrammarRunner.bind` → [emotes.md § Dispatch paths](../../subsystems/emotes.md).*
 
 ### Persistence / MongoDB
 
-- A new **`emotes` collection** via `Emote extends Document`
-  (alongside `users` / `google_profiles` / `domain`) — add it to the
-  `Collections` enum; CLAUDE.md's "MongoDB Collections" list gains an
-  entry at graduation. **No changes to `PersistenceManager`** — `Emote`
-  uses the inherited `Document` CRUD. The `SoulCatalogue` singleton
-  (new, in `obj/`) loads the verb→`Emote` index at bootstrap and
-  refreshes it write-through on mint/edit; `SoulApi` (new, in `api/`)
-  thin-wraps it. No touch to the Template→Stuff clone pipeline.
+*Superseded: a `documents` row of `kind: 'emote'`, no `emotes` collection → [emotes.md § The `Emote` value shape](../../subsystems/emotes.md).*
 
 ### Shell / environment
 
@@ -939,48 +591,22 @@ so the guarantee holds the moment the control plane can set the level.
 
 ## Open questions
 
-1. **Catalog home.** *Resolved.* Its own MongoDB `emotes` collection on
-   the lightweight `Document` track — not the Template→Stuff clone
-   pipeline (overkill for behaviorless data), not a flat file (a live
-   collection enables runtime emote-minting, the `bogleg` accretion
-   story). `Emote extends Document` (`collectionName = 'emotes'`),
-   keeping `PersistenceManager` generic. A **`SoulCatalogue` singleton
-   Stuff** owns the load/lookup/mint surface + a bootstrap-loaded,
-   write-through verb→`Emote` index; **`SoulApi`** is the thin facade
-   over it. Open only at the detail level for the build:
-   exact `SoulApi` method names and the index-refresh hook on mint/edit.
-2. **Mixin placement / new subsystem.** `lib/social/` (new) vs folding
-   into `lib/message/`. *Lean: `lib/social/`* (gives reactions a home),
-   pending the propose-a-subsystem sign-off.
-3. **Free-form verb.** *Resolved: `emote` as the word (LP term of art;
-   `pose` is the MUSH word and a poorer fit) + `:` as the idiomatic
-   single-char prefix alias.*
-4. **Grammar auto-derivation depth.** Fully-defaulting (author gives
-   only verb forms) vs all-explicit templates. *Lean: defaults with
-   per-entry override.*
-5. **Dynamic-verb dispatch: fallback resolver vs bulk schema
-   registration.** *Lean: fallback resolver + curated-subset schemas
-   for autocomplete.*
-6. **Emote topic name.** `world.expression.emote` vs `world.social.*`
-   vs reuse `world.narration.action`. *Lean: dedicated
-   `world.expression.emote`.*
+1. **Catalog home.** *Resolved → emotes.md § The `Emote` value shape: a `documents` row of `kind: 'emote'` (content-packs wave 2), not its own collection.*
+2. **Mixin placement / new subsystem.** *Resolved: `lib/social/` (`Soul.ts`, `Emote.ts`, `EmoteGrammar.ts`).*
+3. **Free-form verb.** *Resolved: `emote`, with `:` and `;` as prefixes → emotes.md § Dispatch paths.*
+4. **Grammar auto-derivation depth.** *Resolved by the code: one explicit Liquid template per emote with `{% if %}` conditionals → emotes.md § The grammar substrate.*
+5. **Dynamic-verb dispatch.** *Resolved: the fallback resolver, inline in `_runChain`; the palette is fetched (`GET /api/emotes`), not registered as schemas → emotes.md § Dispatch paths, § The client read face.*
+6. **Emote topic name.** *Resolved: `act.emote` → emotes.md § Topic and modality.*
 7. **Customization model.** *Resolved: typed, named slots* (`literal` /
    `entity` / `enum` / `free`) rather than one free-text blob — the
    moderation foundation. Open at the detail level: the exact slot-kind
    taxonomy (is `enum` enough, or do we want pattern/length-bounded
    `free` sub-kinds?) and the input syntax for binding multiple slots.
-8. **Verb-agreement mechanism.** A `ProseApi` filter, a `verbForm`
-   field per entry, or a tiny conjugation helper. *Lean: a filter +
-   an optional explicit-irregular override field.*
+8. **Verb-agreement mechanism.** *Resolved: pre-bound `s`/`es`/`ies` variables + an optional `verbForm` override → emotes.md § The grammar substrate.*
 9. **Honorary entitlement model.** Predicate-on-entry vs access-tree
    (couples to Q1). *Lean: predicate seam now, source deferred.*
-10. **Reactions: same cycle or own slate?** *Lean: own slate* — generic
-    message affordance, heavier client work, depends on but is separate
-    from the emote trunk. This slate specifies only the hook
-    (aggregation `tags` + a filterable topic).
-11. **Combat/scheduled NPC emote authoring.** How do scripts pick
-    emotes (by verb string vs a typed handle)? *Lean: resolve by verb
-    string through the same catalog the player path uses — one door.*
+10. **Reactions: same cycle or own slate?** *Resolved: own cycle, shipped → reactions.md.*
+11. **Combat/scheduled NPC emote authoring.** *Resolved as leaned: a brain calls `ctx.emote(verb)`, which resolves through `SoulApi.resolve` — one door → behavior.md (the brain context helpers).*
 12. **Emote-of-emotes / chaining** (`nice ;highfive ;dead`). The essay
     notes each emote is a distinct verb, so chaining doesn't fit the
     model; it leans on emote-language fluency + Unicode-in-customization
@@ -1008,10 +634,7 @@ so the guarantee holds the moment the control plane can set the level.
     leak. *Lean: flag as a hard dependency on the naming surface; the
     mechanism is moderation-subsystem territory, but emotes must not
     claim the strict guarantee until naming is also gated.*
-17. **Reach.** *Resolved: emotes ride a universal ESP channel —
-    perceived near or far, no medium/sense gating.* Remote/channel reach
-    is just an audience-routing question owned by the comms subsystem;
-    emote v1 ships in-room (`toPeers`). No modality, by design.
+17. **Reach.** *Resolved, in a different shape: reach is gated by the `emotive-esp` modality (universal for players via the baseline implant); a directed target crosses rooms at `scope: 'online'`; the channel audience is still unbuilt (see *Reach* above) → emotes.md § Topic and modality, § Universal ESP target delivery.*
 
 ---
 
@@ -1022,37 +645,13 @@ Indicative waves; final cut decided at requirements. Reactions (Layer
 
 **Wave 1 — the trunk (the whole feature in text).**
 
-- `SoulMixin.emote()` on `Character`, parallel to `VocalMixin`.
-- `Emote extends Document` (`emotes` collection) + the `SoulCatalogue`
-  singleton (the bootstrap-loaded, write-through verb→`Emote` index) +
-  `SoulApi` (the thin facade: `resolve`/`mint`/`all`) + the
-  `EmoteGrammar` record shape.
-- **Bootstrap**: `seeds/social/emotes.yaml` + `SoulApi.seed()` (idempotent
-  upsert by `verb`) + `SoulApi.load()`; `emotes` indexes in
-  `PersistenceManager.createIndexes()`. Seed the ~40-emote starter roster
-  (see *Bootstrap & the starter roster*).
-- The verb-agreement `ProseApi` helper; the four-template grammar with
-  per-audience actor/target rendering; **typed slots** (`literal` /
-  `entity` / `enum` / `free`) declared in `EmoteGrammar` + per-kind
-  input validation.
-- Emotes ride the **ESP channel** — perceived regardless of distance, no
-  medium gating. v1 delivers the co-present audience (`toPeers`); remote/
-  channel audiences come from the comms subsystem later (routing only).
-- Reserve the **echo** model: the catalog `echo` field + the
-  `social.emote.echo` setting (echo reuses the normal grammar — no
-  special template). The echo *routing* (performance-to-local-room when
-  an emote is remote) lands with comms; in-room v1 has performance =
-  transmission, so nothing to echo yet.
-- The dynamic-verb fallback resolver in command routing + typed-slot
-  binding from input.
-- `emote` / `:` free-form emote (normal YAML verb).
+- *Shipped → [emotes.md](../../subsystems/emotes.md): `SoulMixin.emote()`, the catalogue + `SoulApi`, the `expression` pack, the grammar runner + typed-slot binding (`stuff` / `free` only), ESP target delivery, the `_runChain` fallback, `emote` / `:` / `;`. Not shipped from this wave: the `social.emote.echo` setting and the moderation primitives below.*
 - **Moderation primitives** (tightness is load-bearing, so it's Wave 1):
   the shared `resolveExpressionPolicy(actor, channel)` gate consulted by
   `say` / `tell` / the emote path; the `free` / `strict` levels; the
   strict-mode structural rule (no `free` slot, no free-form `emote`); a
   sanitizer call site on `free` paths (stub denylist acceptable). The
   control plane is out (deferred to the moderation subsystem).
-- `world.expression.emote` topic + client subscription (text rendering).
 - `EmoteController` + tests: directed/non-directed × plain/custom render
   correctly to self/peers/target; NPC emote routes identically;
   unknown-non-emote verb still errors; **strict emote-only mode blocks
@@ -1061,7 +660,6 @@ Indicative waves; final cut decided at requirements. Reactions (Layer
 
 **Wave 2 — emoji / hybrid (Principle 3).**
 
-- Optional `emoji` field + payload delivery.
 - `social.emote.render` setting (text/emoji/both, per channel, player-
   vs-NPC source distinction).
 - Client glyph rendering per setting.
@@ -1074,14 +672,7 @@ Indicative waves; final cut decided at requirements. Reactions (Layer
 
 **Adjacent / future (own slate):**
 
-- **Reactions / aggregation** — message-id surfacing, the `react` verb,
-  client aggregation UI, per-user aggregation settings, tag→group maps.
-  This slate ships the hook (`tags` + filterable topic); the reactions
-  slate ships the machine.
-- **Comms subsystem** (its own slate, [comms-slate.md](../tails/comms-slate.md)):
-  conversations/channels/DMs — the *routing* that says who's in a remote
-  emote's audience. Emotes ride the ESP channel and always come through;
-  comms just supplies the membership.
+- *Reactions and the comms substrate shipped → [reactions.md](../../subsystems/reactions.md), comms.md, chat.md.*
 - Entitlement *sources* (achievements / roster / enrollment that grant
   honorary emotes).
 - Emote chaining / scripting, if a real need surfaces.
@@ -1094,8 +685,6 @@ Indicative waves; final cut decided at requirements. Reactions (Layer
 
 ## What this slate does NOT cover
 
-- **Reactions/aggregation machinery** — its own slate (the hook lives
-  here; the engine does not). See Layer 4 / Q10.
 - **The moderation control plane** — moderator tooling to *assign*
   emote-only mode (scope, duration, audit, appeals), the shared
   sanitizer *implementation* + denylist, and **entity-name moderation**.
@@ -1115,10 +704,6 @@ Indicative waves; final cut decided at requirements. Reactions (Layer
   `kneel`/`lie` are the posture subsystem; emotes mutate no state.
 - **Dialogue** — `say`/`tell` (`world.speech.*`) are speech, not
   emotes.
-- **The comms substrate** — conversations/channels/DMs and remote
-  audience-routing → [comms-slate.md](../tails/comms-slate.md). Emotes ride the
-  ESP channel (no medium physics); comms only answers "who's in the
-  conversation."
 - **Client buffer/threading architecture beyond the gutter id** the
   reactions hook implies — general buffer redesign is out of scope.
 - **A general per-message metadata/aggregation framework** beyond the
@@ -1131,30 +716,11 @@ Indicative waves; final cut decided at requirements. Reactions (Layer
 
 This slate boils down to:
 
-- `SoulMixin` (interface + composition targets), parallel to
-  `VocalMixin`; the `emote()` Scene composition (self/peers/target on
-  `world.expression.emote`).
-- The `Emote` record shape + `EmoteGrammar` (incl. **typed slots**:
-  `literal` / `entity` / `enum` / `free`); the four-permutation grammar
-  with per-audience actor/target token rendering; the verb-agreement
-  helper.
-- Reach: emotes ride the **ESP channel** (perceived near or far, no
-  gating); v1 delivers the co-present audience, remote/channel routing
-  deferred to comms.
 - The **echo** model: canonical ESP audience (self/target/peers) +
   optional local-room echo controlled per-end via layered defaults
   (catalog `echo` field + `social.emote.echo` setting + a rare sender
   override); echo reuses the normal grammar (no special view). Routing
   deferred to comms; the record/setting hooks are reserved in v1.
-- `Emote extends Document` (`emotes` collection + `Collections` enum
-  entry, no `PersistenceManager` changes), the `SoulCatalogue` singleton
-  (the bootstrap-loaded write-through verb→`Emote` index), and `SoulApi`
-  (the thin facade: `resolve`/`mint`/`all`).
-- The dynamic-verb resolution seam in command routing (+ the
-  autocomplete-subset question) and typed-slot binding from input.
-- The free-form `emote` / `:` verb.
-- Bootstrap: the `seeds/social/emotes.yaml` seed + `SoulApi.seed()`
-  (idempotent upsert) + index creation; the ~40-emote starter roster.
 - **Moderation primitives:** the shared `resolveExpressionPolicy(actor,
   channel)` gate (consumed by `say`/`tell`/emote), the `free`/`strict`
   levels, the strict-mode structural guarantee, and the sanitizer call
@@ -1164,8 +730,6 @@ This slate boils down to:
   setting (per-channel, player-vs-NPC) + client rendering.
 - Layer 3: the entitlement-predicate seam + dispatch gate + badge
   guarantee (source deferred).
-- The Layer-4 hook only: aggregation `tags` on entries + a filterable
-  topic (reactions machinery → its own slate).
 - Tests gating: every render permutation; NPC parity; gated-emote
   decline; per-setting emoji serialization; unknown-non-emote verbs
   still error; **strict emote-only mode admits only literal+entity+enum

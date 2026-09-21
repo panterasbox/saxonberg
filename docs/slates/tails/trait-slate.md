@@ -4,16 +4,11 @@
 > changes did → [trait.md](../../subsystems/trait.md)
 > **Left:** the equilibrium / expressed split · the deviation narrator ·
 > the self-view showing acts not positions · the valence-scale
-> denominator · seeded upbringing claims before full-surface wiring
+> denominator · species/culture personality by seeding tier (emergent from
+> affordances · the upbringing · a distribution never a value; the
+> non-sapient carve-out) before full-surface wiring
 > **Size:** a wave
 
-> **Status: design proposed, nothing built.** A change to a **shipped**
-> subsystem ([trait.md](../../subsystems/trait.md)): split the derived
-> trait position into **equilibrium** and **expressed**, make the
-> *writes* legible without making the *values* readable, and settle the
-> valence-scale question **before** disposition-writing is wired across
-> the command surface.
->
 > Also settles how species and culture may express personality — the
 > question the [species slate](../builds/species-slate.md) left as an
 > antipattern row.

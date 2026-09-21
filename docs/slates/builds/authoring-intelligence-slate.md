@@ -1,22 +1,20 @@
 # Authoring intelligence slate (working doc)
 
-> **Status: UNBUILT** — Monaco ships with stock language support only,
-> and cms.md lists this as explicitly not covered
+> **Status: PARTIAL** — Monaco ships with stock language support only
+> (`cms.md § What this build does not do`, `studio.md § Deferred`), and no
+> language server, VS Code extension or `.d.ts` pipeline exists (verified
+> 2026-09-19). The **two catalogs** shipped in the Studio build in a
+> different shape — `StudioApi.listMixins` / `describeMixin` /
+> `describeClass` over `@authorable` TSDoc, and named **blueprints** with
+> the use-existing / name-it prompt ([studio.md](../../subsystems/studio.md));
+> composition-rule metadata (`@requires` / `@conflicts`) is still not
+> authored.
 > **Left:** the platform-semantic model (template-path completion,
-> reference validation, mixin-composition rules, lease scope) · the LSP
-> server · the VS Code extension · the engine `.d.ts` pipeline · the
-> shared core with the save-gate
+> reference validation, mixin-composition rules + their declared source,
+> scope awareness over the titled extent) · the LSP server · the VS Code
+> extension · the engine `.d.ts` pipeline · the shared core with the
+> save-gate
 > **Size:** a build
-
-> **Status: architecture set; it's a brain, not a feature.** The
-> content-semantics intelligence — the layer that *understands the engine's
-> content model* and answers "what's valid / what completes / what's wrong"
-> for authored content. **One semantic model, surfaced three ways:** live in
-> the **web code editor**, live in **external editors** (via LSP), and
-> **authoritatively** at the server **save-gate** (the access layer's
-> validation). LSP is just the delivery mechanism to editors; the
-> *intelligence* is the substance, and it's the same brain as the access
-> layer's content-validation.
 
 Working slate for **authoring intelligence** — the brains behind authoring:
 the completions, diagnostics, hovers, navigation, and validation that
@@ -151,14 +149,9 @@ with** — two levels, the Standard Model's particles and compounds:
   composition; **any editor** uses it to render the right fields for a
   class's **effective mixin set** (so `Weapon` ≡ `Weaponable(Thing)` to the
   editor).
-- **The combo catalog (named compounds).** A hierarchy of named
-  compositions (`Weapon` = a thin composition-class). It **grows from
-  authoring** — composing in the code tooling triggers a **use-existing /
-  name-it** prompt (dedup + capture) — and feeds the content editor's
-  **archetype picker** (discovery + reuse) and the composition tooling
-  (familiarization). Behavior stays in the mixins; combos are thin
-  composition. (Full authoring flow: [cms-slate.md](../builds/cms-slate.md) §
-  *Composition & the combo catalog*.)
+- **The combo catalog** — *superseded by the Studio build*: shipped as
+  named **blueprints** (`BlueprintCatalogue`, the use-existing / name-it
+  prompt) — see [studio.md](../../subsystems/studio.md).
 
 **The catalog family is open-ended — and decoupled from the runtime.** Mixins
 and combos are the first two members; **brains** (NPC behavior modules — see

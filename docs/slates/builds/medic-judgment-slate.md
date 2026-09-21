@@ -3,38 +3,17 @@
 > **Status: PARTIAL** — the honest body shipped →
 > [harm.md](../../subsystems/harm.md),
 > [mortality.md](../../subsystems/mortality.md),
-> [advancement.md](../../subsystems/advancement.md); the reasoning layer
-> did not — `treat` still auto-picks the worst bleeding wound
-> (harm.md:196) and grades outcome, not decision.
+> [advancement.md](../../subsystems/advancement.md); `Tariff` + `order
+> treatment` shipped (MR!254); the reasoning layer did not — `treat` still
+> auto-picks the worst bleeding wound (harm.md § the medic vertical) and
+> grades outcome, not decision.
 > **Left:** stop auto-selecting (player picks target + modality) · cues
 > without names on `assess`/`analyze` · triage under the deterioration
 > clocks · decision-graded `ActSignature` sub-checks · the
 > clinical-judgment competence (channel vs own Discipline) · the
-> unfolding NGN-timeline patient · the SBAR handoff · the study.com
-> claim-feed
+> unfolding NGN-timeline patient · the SBAR handoff · the NPC medic brain
+> behind `order treatment` · the study.com claim-feed
 > **Size:** a build
-
-> **Status: sketch / pre-requirements.** A design pass, not a spec. Spun
-> out of the study.com **vertical fidelity audit**
-> ([../../study-com-vertical-fidelity-audit.md](../../study-com/vertical-fidelity-audit.md)
-> §2), which found the `medic` vocation ships an **honest physiology
-> mechanism + a skill check** but **no clinical-reasoning loop**: `treat`
-> auto-selects "a body's worst bleeding wound" (harm.md:198) — the
-> **triage/decision step is deleted by the sim** — and the graded deed
-> grades the **outcome** (`dressingQuality × medicine band × difficulty`,
-> harm.md:201-203), not the judgment. This slate adds the missing layer:
-> **make the clinical *decision* the graded thing, adjudicated by the
-> honest body.**
->
-> **Why it's the same shape as inquiry.** The science↔academic audit found
-> the [inquiry-slate](./inquiry-slate.md) is the **reference
-> implementation** of this exact fix — it grades *reasoning* by asking you
-> to **predict a novel case** and checking against the real evaluator,
-> "ungameable by memorization" (inquiry-slate.md:80-88). The medic is the
-> same idea in a different register: inquiry discovers a **general law** by
-> experiment; the medic reasons about a **specific patient** by decision.
-> Both grade the reasoning by **demonstration against the sim**, never by a
-> stated answer or a roll.
 
 See also:
 

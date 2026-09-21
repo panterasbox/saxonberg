@@ -77,6 +77,10 @@ const GARDEN_LINES = [
   "/trade/farming/thing/seed/cranberry",
   "/trade/farming/thing/seed/grape",
   "/trade/farming/thing/seed/juniper",
+  // ⭐ An orange you can EAT (nutrition-and-fitness D25) — the years
+  // clock needs something a person can buy that is not bread, and the
+  // distributor gets the farm's citrus by consignment, not by par.
+  "/trade/farming/thing/orange",
   // ⭐ The fibre and dye packets (textiles B1) — the chain's left edge
   // on the same counter as the pots and the soil, because the
   // suburban-garden path already starts here.
