@@ -1601,6 +1601,41 @@ now names the bank).
   on terms and its keeper prices with `house price`.
 - Commit: `build(economic-bootstrap W8): a player rents a market stall and owns what is on it`.
 
+**W8 — DONE.** `Business.getAccountPath()` and
+`Organization.getOrganizationPath()` read the IDENTITY path (a content
+row's is its template path; a minted business carries its own), and the
+employment-record write contract keys on it too (the `where` compared
+the caller's template path with the record's key, so a minted house was
+denied its own `appoint`). Terminus ships `src/market/thing/MarketStalls`
+(the produce stalls re-classed: `rentMinor: 5`, the `stall` verb in the
+`peers` bucket — `environment` grants OUTWARD to the room, not the
+people in it), `src/market/idea/cmd/StallController` (+ its Idea row),
+`content/world/terminus/market/cmd/stall.yaml`, the per-renter counter
+seed `market/thing/stall.yaml` (`purchasing: terms`) and the platform's
+`content/platform/idea/Business/stall.yaml`. Decisions: (1) ⭐ the
+counter is minted from its seed with `asIdentityPath` and persisted by
+`restoreOrSeed`/`capture` under the renter's key — NOT `standUpKeyed`,
+which clones the scope path and would give every renter one identity
+(one account); the HOUSE is not persisted at all — every field derives
+from the renter (authority, bank, counter), so it is re-minted on the
+next `stall` (one record fewer to drift), and `ensureOperatorAt` is
+asked once so the employment memo re-sees it. (2) The first rent is a
+`transfer` renter → the market's business; opening the stall again is
+free; a record already held (a restart) is not a new let. (3) `give-up`
+hands the renter everything on the counter (custody only — a supplier's
+crate is still the supplier's), captures the counter empty and takes it
+down; the house stays with nothing to operate (its account is theirs).
+(4) ⚠ Nothing pins a rented counter at boot: the stall stands from the
+keeper's next `stall` — W9's vacancy states are where an absent
+keeper's stall gets its closed sign. Drive step 7 (rent → refused with
+the number → three terms via the founder's crates on the stall → lent;
+the paper on both books). (5) Found by the drive (step 10): the rented
+counter's `businessPath` was empty, so the Attendant's closed-sign check
+(`if (this.businessPath) …`) never ran for a stall and a customer got
+`not-on-shelf` instead of `unattended` — `AttendantMixin.setBusinessPath`
+added (the inter-Stuff contract is methods) and `stall rent` binds the
+counter to the renter's house the moment it is minted.
+
 ### W9 — The three states: freeze, vacancy, closure, escheat, reclaim, beneficiary (D16, D17, D23)
 
 - `PersistedRecord.writtenAt` (+ `schema/holder_snapshots.yaml`);
@@ -1626,6 +1661,62 @@ now names the bank).
   player-held child).
 - Commit: `build(economic-bootstrap W9): active, dormant, escheated — derived from absence; escheat walks the title tree; unclaimed property is a claim`.
 
+**W9 — DONE.** `PersistedRecord.writtenAt` (stamped on every capture;
+indexed); `lib/character/Estate.ts` (the tuple, the type, the avatar
+prefix); `PlayerApi.estateStateOf / absentForDays / activeMemberCount`
+(now async — the connected set ∪ every avatar row inside the short
+clock, one regex + range query) / `isAvatarIdentityPath` /
+`touchEstate(key, {returning?})` / `escheat(key)`; the Schedule rows
+`estate.dormantAfterDays` (30), `estate.escheatAfterDays` (180),
+`employment.absenceVacatesAfterDays` (14) in `settings/treasury.yaml`;
+`EMPLOYMENT_STATUSES += vacated` (+ `EXITED_STATUSES`);
+`EmploymentApi.vacate(actor)` and `bringCurrent(business)` (vacate the
+member holders away past the short clock, write the closed sign — run
+by the roster tick for every house, by `ensureOperatorAt` and `house
+roster` for one); `Business.isClosed()/setClosed()` (runtime; the
+counter's `requestAttention` answers `closed`, `buy` brings the operator
+current before it asks); the FREEZE (`frozenReasonOf` in withdraw /
+transfer / draw / a settled charge's payer — never the chokepoint, so an
+escheat leg still moves); `BankingApi.escheat` (real → treasury,
+`escheat` | `recovery`) and `reclaim` (treasury → real, `repayment` /
+`unclaimed`, the perpetual reconciled first); `ContractApi.recoverNote`
+/ `writeUnclaimed` / `reclaimUnclaimed`; `Avatar.escheatedAt` +
+`beneficiary` with `wallet beneficiary <player>|none`; `house roster`;
+`Zone.onUseGrantRevoked` (`@hook`, no-op terminal); the touch at login
+(`Avatar.enter`), at every credit landing (wage, a settled charge's
+payee + splits, escrow release, appropriation) and at the roster pass;
+`businessOfProprietor` keyed on identity. Decisions: (1) ⭐ vacancy is
+applied where it can be READ — the estate pass (`bringCurrent`) vacates
+a lingering linkdead holder; an unloaded avatar's record is invisible to
+the roster anyway, and the return touch vacates on login when the row's
+clock says so — no sync "absent" read was invented for the
+holder-resolution path. (2) The escheat STANDS THE AVATAR UP (the login
+clone without a connection) to read its beneficiary and stamp
+`escheatedAt`, and destructs it after; `escheatedAt` is the idempotence
+marker. (3) A non-active beneficiary is skipped (the state holds it) —
+the chain-onward is a later refinement. (4) The dorm's landlord
+override of `onUseGrantRevoked` is NOT shipped: `DormWarren` is a
+Warren, not a Zone, and the grant's revocation alone ends the tenancy
+(the door refuses the key) — the room reverts at Katie's `unprovision`;
+recorded as a deferred seam. (5) ⭐ Found by the drive and fixed: the
+reserve's dashboard and every treasury touch SCANNED the ledger to sum
+a lane (`bank book` 5.7s, `reserve` 7.5s after fifteen minutes of
+keeper beats) — `SupplyAggregate.lanes` now carries the per-category
+running sums the same post keeps, `laneOutstanding` is a warmed read,
+and `lastInflowAt` is one sorted, limited query. Drive steps 10 and 11
+(the clocks shortened to seconds by `config`, restored after). (6) Found
+by the drive (step 11): `PersistableMixin.cleanupOnDestruct` is a
+fire-and-forget capture with two awaits before its synchronous snapshot,
+so a destruct that finishes during them snapshots an evacuated shell —
+`getContents()` on an inert Stuff is `undefined`, `captureState` threw
+`Cannot read properties of undefined (reading 'filter')`, and had it not
+thrown it would have overwritten the last good record with nothing.
+Pre-existing (any persistable destructed outside a sweep); fixed at the
+one place with `if (host.isDestroyed()) return` after the awaits. The
+escheat's step 5 now captures a retired counter empty before it destructs
+it (the `give-up` shape), so a return does not materialize a shelf the
+estate already passed.
+
 ### W10 — The index, the Gazette, the `finance` Discipline (D20, D21)
 
 - `Discipline/finance.yaml`; the credit sites; terminus `gazette.yaml`
@@ -1635,6 +1726,36 @@ now names the bank).
   publishes once per edition window and as the editor; `finance`
   appears on a transcript after `bank borrow` (granted and refused).
 - Commit: `build(economic-bootstrap W10): the price index; the Gazette prints it; finance is a Discipline`.
+
+**W10 — DONE.** `Discipline/finance.yaml` (ISCED-F 0412 under
+`business-admin-law`; the credit seam `creditFinance` landed at W5 and
+now has its row — `bank borrow`, `bank book`, `house book`, the Note's
+signing, `wallet beneficiary`); `settings/press.yaml`
+`press.indexEditionGameHours` (6) and the Gazette on `press.frontPage`
+(an install without terminus skips it with the boot line the setting
+already documents); terminus `content/world/terminus/gazette.yaml` (a
+public `Organization` publisher, `editor` seat, `publishingPositions:
+[editor]`, the committee over `/world/terminus` appoints), the editor
+Hesper Quill on the avenue block's `cast:` with `prints` at `cadence:2m`;
+`boot:` entries for the avenue block and the paper;
+`lib/behavior/prints.ts` (the edition window is GAME time remembered on
+the host's scratch state; the headline in words; the literal `press post
+… --as <publisher> --kind notice`). Drive step 12. Decisions: (1) the
+paper lives at `/world/terminus/gazette` (a leaf beside its `gazette/`
+folder, the general-store shape), not in a `gazette/gazette` row; (2) the
+editor is placed by the room's `cast:` (the declared designation), never
+a `container:` on the agent row. (3) Found by the drive (step 12): the
+editor's `press post` was refused `no acting author in the execution
+context` — every brain dispatches `forceCommand`, and a FORCED frame is
+unattributable BY DESIGN (the stamp keeps a driven act off a player's
+name), while a release derives its author from the frame. The print is
+the editor's own act, so `prints` is the first brain to dispatch
+non-forced (`executeCommand`); the release carries Hesper Quill as its
+author, which is the truth. (4) The `press` verb collided with the
+crafting `press` for the editor (a `Cast` with the platform bundle), so
+the editor is a terminus class (`src/gazette/agent/Editor.ts`) affording
+`platform/cmd/system/press.yaml` on self — the instrument-affords rule,
+the press room being the paper's chart, not a machine.
 
 ### W11 — The drive, the docs, the record (D24)
 
@@ -1921,6 +2042,101 @@ Read first, in this order:
 
 ## Drive record
 
-*(appended at build time, not at plan time — the output of running
-`packages/wire/tests/economic-bootstrap.dirty.wire.test.ts` against
-the running game, the count, and what each failure was.)*
+Run 2026-09-21 against a fresh `saxonberg_build1` (server on 2012,
+`AUTH_MODE=test`, the drive attached with `WIRE_SETTLE_QUIET=800
+WIRE_SETTLE_CAP=20000 WIRE_FRAME_TIMEOUT=90000`):
+
+```
+ ✓ 1. a new player creates a character › at `embody confirm` the Treasury has advanced twenty against the Note; `wallet` lists it; the paper reads in words   6.3s
+ ✓ 2. the cash-and-carry › the crates carry the SHOP's ask; `look` says whose terms; a buy credits the shop, whose book shows what it still owes the farm   20.9s
+ ✓ 3. the first wage discharges the Note › a message, no note in the wallet, the balance theirs   5.2s
+ ✓ 4. the reserve › the dashboard shows the two lanes and the three numbers; `reserve mint` is refused   1.6s
+ ✓ 4. the reserve › the Governor writes a reserve row and no other   1.3s
+ ✓ 5. the treasury › appropriates to Dave's Bar; the bar rises, the treasury falls, the supply does not move   5.6s
+ ✓ 6. an NPC shop borrows › the general store, short of stock and of cash, completes its first terms on the float, then presents to Goodkin; the advance lands, the goods are shelved, the paper stands on the book   177.1s
+ ✓ 7. the ladder, from the counter › `bank borrow` at Goodkin is refused with the NUMBER not met; `bank book` reads the paper   5.2s
+ ✓ 7. the ladder, from the counter › a player opens a stall, is refused at Goodkin with the number, completes the Schedule's terms, and is lent   59.8s
+ ✓ 10. a player goes dormant › logged out past the short clock: the seat is vacant, the stall shows the closed sign; a login lifts the freeze and the seat stays vacated   15.8s
+ ✓ 11. a player escheats › past the long clock, on the next touch: the stall is retired, the balance sits in the treasury unclaimed; logging back in, the treasury pays   21.4s
+ ✓ 12. the Gazette prints the index › the editor prints the basket in words; buy out a shelf and the next edition's number moves   11.2s
+      Tests  12 passed (12)   Duration ~5.5 min
+```
+
+Steps 8 and 9 were missing from the file's first green run (twelve
+checkpoints, numbered 1–7 and 10–12 — the wage refusal and the default
+had been left to the unit tests). Both were added and driven:
+
+```
+ ✓ 8. a house cannot meet payroll › the wage is not paid into the red: refused with the reason, and it stands on the book in arrears   4.0s
+ ✓ 9. a borrower stops trading › past the default horizon with a balance outstanding, Goodkin repossesses the pledged stock and the reserve's default rate ticks   21.6s
+      Tests  14 passed (14)   Duration ~6 min
+```
+
+Two adaptations, recorded: step 8's employer is the Counting-Houses (the
+house that paid the first wage at step 3), not Dave's Bar — the refusal
+is `EmploymentApi.payHouseWage`'s and every house's; step 9's borrower
+is the newcomer's stall (the loan of step 7), pledged stock bought on
+the advance and put on the stall, the horizon collapsed by `config` for
+one `house book` and restored BEFORE the officer's `reserve` — the
+dashboard's read reconciles every open loan, and at zero it defaulted
+the general store's too (step 12 then had no limes to buy out).
+
+**What the drive found, in the order it found it** (each fixed and
+re-driven; none was visible to the suite):
+
+1. The lane compiled EMPTY at boot — `LaneCatalogue` induced before the
+   walk mode was live (W7).
+2. The farm's producers refused to consign what the Ministry of Trade
+   had stamped as owner — unstamped goods are consignable by whoever
+   holds them (W7).
+3. The pantry hand's `get 1 bottle` bound the Bottle's primary keyword to
+   the wrong thing; the keeper bought grapes for limes — `keywordOf`
+   picks a keyword the good answers to, `keywordOfTemplate` resolves by
+   shelf (W7).
+4. The farm's listing cap (24) starved the store of limes — the
+   cash-and-carry's `listingCapOverride: 120`, `consigns` honours the
+   shelf cap, limes' `regionTarget` 6 (W7).
+5. The treasury's delta read 150 against an expected 100 — the opening
+   advances the boot dealt were the difference; the step accounts for
+   them (W6/W7).
+6. `reserve` 7.5s and `bank book` 5.7s after fifteen minutes of keeper
+   beats — the ledger was scanned per lane on every read;
+   `SupplyAggregate.lanes` + the limited `lastInflowAt` query (W9).
+7. `bank borrow` presented at Goodkin for the WRONG house — the
+   controller resolved a house from the room's fixtures before the
+   wallet's active credential (W9, `BankingControllerBase.resolveHouse`).
+8. The `stall` verb was unreachable four separate ways — the `peers`
+   bucket, the controller's Idea row, the venue by identity path, the
+   employment write contract on identity (W8).
+9. The rented stall never showed the closed sign (`businessPath` empty)
+   (W8, note 5).
+10. The destruct-capture backstop snapshots an evacuated shell — a
+    pre-existing kernel defect on every persistable destructed outside a
+    sweep (W9, note 6).
+11. The editor could not publish: a forced frame has no author (W10,
+    note 3); and `press` collided with the crafting verb for a Cast with
+    the platform bundle (W10, note 4).
+12. The drive's own step 11 asserted the stall's retirement with a
+    literal `${stem}` inside a regex literal — it passed vacuously; a
+    drive checkpoint must be able to fail.
+13. `put oranges in stall` on the square binds the PRODUCE STALLS
+    fixture (keyword `stall`) before the renter's own — the renter's
+    stall answers to their name's stem, which is what the customers use
+    too. Content, not a defect: the fixture is the long stall.
+
+**Standing finding for the MR (not fixed here):** over a twenty-minute
+drive the server's heap climbs to ~3.3 GB and periodic multi-second
+stalls appear (GC 2.2%, so not collection); the log shows `[inert]
+getGradeBand on destroyed Stuff` from `ThermalDose` and `[inert]
+onEnvelope on destroyed Stuff` — strong refs outliving destruct. Not
+this build's substrate; it belongs with the residency/ref-lifetime work.
+
+The five reachability links for each new capability were walked in the
+drive itself: `stall` (verb · the fixture's `peers` affordance · the
+seed rows · the terminus boot entry · no arg gate), `bank borrow`/`book`
+(the wallet's active credential), `house price`/`roster`, `wallet
+beneficiary`, `treasury`, `reserve`, the editor's `press post` (the
+Editor class's self affordance · the paper's `publishingPositions` · the
+avenue block + gazette boot entries), and the `prints`/`stocks` beats
+fired through the governed `eval --on` (the brains' own cadence was
+watched for the keeper in step 6).

@@ -579,6 +579,20 @@ for objects and the parser, but a character is not an it.
 mechanism — a `parts` array would be the same duplication the projected
 payload removed.
 
+## The Arrival Note (economic bootstrap, 2026-09)
+
+`embody` (the verb was `enroll` until this build; `enrollCircle` and the
+University's enrollment are untouched) no longer mints a stipend. At
+`embody confirm`, step 5c, `ContractApi.issueNote(avatar.getIdentityPath())`
+writes a `note` row — the Treasury advances `treasury.arrivalPrincipal`
+against it at no rate, forgiven on the first wage or after
+`treasury.noteDischargeGameDays`, secured by the balance it funded and
+nothing else — disburses the principal into the newcomer's hands as coin
+(`BankingApi.disburse`: a withdrawal from the treasury, never a mint),
+files the paper at `/home/<key>/papers/arrival-note`, credits `finance`,
+and the arrival frame says so and where it is filed. Katie's intake is
+unchanged. See [credit.md](./credit.md).
+
 ## History
 
 The intake substrate shipped in the char-gen Wave 1 build

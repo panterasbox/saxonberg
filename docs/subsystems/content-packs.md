@@ -1337,6 +1337,29 @@ a manifest declares which, so the script still says).
   default lazily resolves the pack copy (test-only fallback; production
   always passes the path).
 
+## The realm root and the trade premises (economic bootstrap, 2026-09)
+
+- **`/world/terminus` is the realm root**: the terminus pack claims it
+  (civic, the `terminus` group) and every locality pack roots under it
+  with `parentParcel: /world/terminus` (rejection, the Eternal University,
+  Hearthworks, Heart's Delight, Hinkley Hills). The platform pack's extent
+  is `/world/saxonberg`. `/trade/<x>` and `/stuff*` are the Ministry of
+  Trade's (`holder: { organization: /compact/trade }`); each corpo's
+  business is appointed by its `<key>-committee` group, owned by the
+  Registrar's office.
+- ⭐ **The trade premises rule**: a trade's VENUE rows — the floor, the
+  outfit, the hand, the stock, the counter — live with the LOCALITY
+  (`terminus/content/world/terminus/<district>/<venue>/…`), and their
+  `boot:` entries with them; the trade pack ships the mechanism (classes,
+  goods, verbs) and never a room. Forty-seven venue rows and twenty-four
+  boot entries moved into terminus; the trade packs no longer depend on
+  it. A second venue for a trade is rows in another locality and zero
+  pack code.
+- A pack's `src/lib/` base for a family of controllers (terminus's
+  `LettingController`, the University's `HallController`) carries its
+  shared authority read as a **protected** static — `lint:lib-statics` is
+  a ratchet.
+
 ## History
 
 Built on `feature/content-packs-build` (the content-packs v1 slice).

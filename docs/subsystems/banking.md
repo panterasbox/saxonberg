@@ -818,6 +818,42 @@ shipped branch-book property, so Goodkin's cash physics are unchanged.
 > hydration carrier the boot restamp migrates and clears — remove with
 > the terminus-banking build.
 
+## The economic bootstrap (2026-09) — how money enters, and the floor
+
+> Full treatment: [credit.md](./credit.md). This section is the
+> banking-side summary.
+
+- **Four real → real leg kinds** — `advance`, `repayment`, `appropriation`,
+  `escheat` — and the categories `window · perpetual · override · advance ·
+  repayment · interest · terms · appropriation · escheat · unclaimed ·
+  recovery · arrival · opening`. A `mint` is now ONLY the two rules'
+  (`reconcilePerpetual`, `windowAdvance`), the recorded `override`, and the
+  coinage bridge; `lint:no-authored-faucet` holds every other site at zero.
+- ⭐ **THE FLOOR**: `postTransaction` projects each real account's net
+  against its cached balance before it writes — no leg drives an account
+  negative, anywhere. `payWage` refuses a wage the employer cannot cover;
+  the employment seam decides what happens instead (a draw or a refusal).
+- **The treasury** is `/compact/treasury`'s account at the Central Bank;
+  `treasuryAccountId`, `appropriate` (Minister of Finance → a payee's
+  primary), `disburse` (balance → coin in hand: a withdrawal, not a mint —
+  cash genesis for the Arrival Note), `advance` / `payTerms` (the ladder's
+  legs), `escheat` / `reclaim` (the estate's).
+- **Vault coin is not in the audit identity**: deposited coin is backed by
+  balances; the till fills from deposits. The old till float is gone.
+- ⭐ **A lane's outstanding is a warmed read**: `SupplyAggregate.lanes`
+  carries the per-category minted/drained sums the same post keeps;
+  `laneOutstanding` never scans the ledger. `recomputeSupply` rebuilds them.
+- **The freeze** (`frozenReasonOf`): withdraw / transfer / draw / a settled
+  charge's payer refuse when the account's owner is dormant or its house
+  closed — never at the chokepoint, so an estate's own legs still move.
+- The **reserve** verb: `reserve` (the dashboard — two lanes, the three
+  numbers, the default rate, the index), `reserve supply`, `reserve set
+  <reserve.*>`, `reserve override <n> to <who> "<why>"`. `reserve mint` no
+  longer exists. The **treasury** verb: `treasury` (the book), `treasury
+  appropriate <n> to <house>`.
+- `Terms.loanRatePerGameYear` + `Terms.repaymentShare`: a bank that lends
+  posts its rate beside its fees; `BankCounter.lends()`.
+
 ## History
 
 - **The currency build** (2026-08-05, `c1b9b711…52f65257`) — the money

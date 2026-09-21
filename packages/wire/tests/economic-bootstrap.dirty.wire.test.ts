@@ -123,6 +123,11 @@ beforeAll(async () => {
 
 afterAll(async () => {
   if (startLocationBefore) await wizard.cmd(`config defaultStartLocation ${startLocationBefore}`);
+  // The estate clocks and the edition window, back to the shipped Schedule.
+  await wizard.cmd('config press.indexEditionGameHours 6');
+  await wizard.cmd('config estate.dormantAfterDays 30');
+  await wizard.cmd('config estate.escheatAfterDays 180');
+  await wizard.cmd('config employment.absenceVacatesAfterDays 14');
   a?.close();
   wizard?.close();
   founder?.close();
@@ -258,15 +263,23 @@ describe('5. the treasury', () => {
     expect(supply1).toBe(supply0);
     const book1 = await founder.prose('treasury');
     const held = (s: string) => Number(s.match(/holds:\s*(\d+)/)?.[1] ?? NaN);
-    expect(held(book0) - held(book1)).toBe(100);
+    const advanced = (s: string) => Number(s.match(/opening advances outstanding:\s*(\d+)/)?.[1] ?? NaN);
+    // The treasury falls by the appropriation — and by any opening float
+    // it advanced a house that stood up between the two reads (the
+    // standing facility runs on its own clock, and the book says so).
+    expect(held(book0) - held(book1)).toBe(100 + (advanced(book1) - advanced(book0)));
   });
 });
 
 describe('6. an NPC shop borrows', () => {
   it('⭐ the general store, short of stock and of cash, completes its first terms on the float, then presents to Goodkin; the advance lands, the goods are shelved, the paper stands on the book', async () => {
     // Goods at the cash-and-carry for the keeper to buy: both hands' beats.
-    expect(await fireUntil(FARM_YARD, 'hand', '/lib/behavior/consigns', async () => (await onHand(CASH_AND_CARRY_COUNTER, LIMES)) >= 3)).toBe(true);
-    expect(await fireUntil(PANTRY_FLOOR, 'hand', '/lib/behavior/consigns', async () => (await onHand(CASH_AND_CARRY_COUNTER, COFFEE)) >= 2)).toBe(true);
+    // Counted at BOTH counters — the keeper's own clock is already
+    // buying what the hands bring, crate by crate.
+    const inTrade = async (kw: string): Promise<number> =>
+      (await onHand(CASH_AND_CARRY_COUNTER, kw)) + (await onHand(STORE_COUNTER, kw));
+    expect(await fireUntil(FARM_YARD, 'hand', '/lib/behavior/consigns', async () => (await inTrade(LIMES)) >= 3)).toBe(true);
+    expect(await fireUntil(PANTRY_FLOOR, 'hand', '/lib/behavior/consigns', async () => (await inTrade(COFFEE)) >= 2)).toBe(true);
     // ⭐ WATCH — the keeper's own clock does the rest (a beat every
     // ninety seconds), and the drive only reads. Beat one: the store
     // opened on the treasury's float (fifty) — less than a restocking beat
@@ -331,6 +344,7 @@ describe('7. the ladder, from the counter', () => {
     // stall's account — the ladder's own count.
     expectOk(await founder.cmd('bank open'));
     expectOk(await founder.cmd('reserve override 100 to founder "drive: the grower\'s float"'));
+    expectOk(await wizard.cmd(`goto ${HALL}`));
     expectOk(await wizard.cmd('bank open'));
     expectOk(await founder.cmd(`reserve override 100 to ${wizard.handle} "drive: the customer\'s float"`));
     // Oranges, not limes: the farm grows four crates of each and the
@@ -344,7 +358,9 @@ describe('7. the ladder, from the counter', () => {
       expect(left).toMatch(/on the shop's terms/);
       await walk(founder, 'northeast', 'west');
       expectOk(await wizard.cmd(`goto /world/terminus/market/square`));
-      expect(await wizard.prose(`look oranges:[1]`)).toMatch(/Held on .*terms until sold; the shop asks 8 zorkmids/);
+      // The stall holds it (the terms line itself was read at step 2; the
+      // customer's own crates from the last round come first in reach).
+      expect(await wizard.prose(`look ${stem}`)).toMatch(/crate of oranges/);
       expect(await wizard.prose(`buy oranges from ${stem}`)).toMatch(/You buy/);
     }
     // Lent, now: the advance lands and the paper stands on both books.
@@ -354,4 +370,135 @@ describe('7. the ladder, from the counter', () => {
     expect(mine).toMatch(/owes:/);
     expect(await founder.prose('bank book')).toMatch(new RegExp(`${aName}'s stall`, 'i'));
   }, 600_000);
+});
+
+describe('8. a house cannot meet payroll', () => {
+  it('⭐ the wage is not paid into the red: refused with the reason, and it stands on the book in arrears', async () => {
+    // The Counting-Houses paid the first wage at step 3 (the drive's
+    // employer; the mechanism is every house's). Asked for more than it
+    // holds, with no repayment history to earn a working-capital line, the
+    // house refuses — and the wage is owed, not forgotten.
+    // The founder is in the hall (step 7 walked them back).
+    expect(await founder.prose('look')).toMatch(/banking hall/i);
+    const refused = await founder.cmd(`house payroll ${aName} 100000`);
+    expect(refused.status).not.toBe('ok');
+    const said = await founder.prose(`house payroll ${aName} 100000`);
+    expect(said).toMatch(/Payroll refused: the house holds .* no working-capital line/);
+    const book = await founder.prose('house book');
+    expect(book).toMatch(new RegExp(`Wages in arrears:\\s*\\n\\s*${aName}: 100000 zorkmids`));
+  }, 120_000);
+});
+
+describe('9. a borrower stops trading', () => {
+  it('⭐ past the default horizon with a balance outstanding, Goodkin repossesses the pledged stock and the reserve\'s default rate ticks', async () => {
+    const stem = aName.toLowerCase();
+    // The stall stocks on the advance: a crate bought as the house at the
+    // cash-and-carry and put on the counter — the security the loan named.
+    expect(await fireUntil(FARM_YARD, 'hand', '/lib/behavior/consigns', async () => (await onHand(CASH_AND_CARRY_COUNTER, 'oranges')) > 0)).toBe(true);
+    await walk(a, 'east', 'south');
+    expect(await a.prose('buy oranges')).toMatch(/You buy/);
+    await walk(a, 'north', 'southwest');
+    // On THEIR stall — `stall` alone binds the produce stalls first.
+    expect(await a.prose(`put oranges in ${stem}`)).not.toMatch(/can't|cannot|don't/i);
+    expect(await wizard.prose(`look ${stem}`)).toMatch(/crate of oranges/);
+    // The horizon collapsed to now; the next read of the book reveals it.
+    expectOk(await wizard.cmd('config reserve.defaultHorizonGameDays 0'));
+    await a.prose('house book');
+    expect(await until(async () => !/crate of oranges/.test(await wizard.prose(`look ${stem}`)), 30_000)).toBe(true);
+    // The horizon back FIRST: the dashboard's read reconciles every open
+    // loan, and at zero it would default the general store's too.
+    expectOk(await wizard.cmd('config reserve.defaultHorizonGameDays 30'));
+    // The officer's dashboard: the rate is no longer zero.
+    const board = await founder.prose('reserve');
+    expect(board).toMatch(/default rate on window paper: (?!zero)/);
+    // Back to the hall for the estate steps.
+    await walk(a, 'northeast', 'west');
+  }, 300_000);
+});
+
+/** A few seconds, in days — the estate clocks are real days. */
+const SECONDS_IN_DAYS = (n: number): string => String(n / 86_400);
+const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
+
+describe('10. a player goes dormant', () => {
+  it('⭐ logged out past the short clock: the seat is vacant, the stall shows the closed sign; a login lifts the freeze and the seat stays vacated', async () => {
+    // The seat at the Counting-Houses they hold — on the chart while they
+    // are here, beside the authored teller.
+    expectOk(await wizard.cmd('goto /world/terminus/market/square'));
+    expect(await founder.prose('house roster')).toMatch(new RegExp(`teller: ${aName}`));
+    const before = await a.prose('bank');
+    // The clocks, shortened to seconds; the newcomer logs out — the
+    // capture on the way out is the row the clocks read.
+    expectOk(await wizard.cmd(`config estate.dormantAfterDays ${SECONDS_IN_DAYS(3)}`));
+    expectOk(await wizard.cmd(`config employment.absenceVacatesAfterDays ${SECONDS_IN_DAYS(3)}`));
+    a.close();
+    await sleep(8_000);
+    // The stall: the operator brought current on a customer's approach
+    // reads the keeper's clock and hangs the sign — nobody is served.
+    const stem = aName.toLowerCase();
+    const refused = await wizard.cmd(`buy oranges from ${stem}`);
+    expectNote(refused, 'controller-rejected', { reason: 'unattended' });
+    // Back: the balance whole, the freeze lifted by presence — and the
+    // seat VACATED: the chart could not wait, and a return does not
+    // restore what absence took.
+    a = await Session.open(aHandle, { startLocation: HALL });
+    await sleep(3_000);
+    expect(await a.prose('bank')).toBe(before);
+    expect(await founder.prose('house roster')).not.toMatch(new RegExp(`teller: ${aName}`));
+    expectOk(await wizard.cmd(`config employment.absenceVacatesAfterDays 14`));
+  }, 120_000);
+});
+
+describe('11. a player escheats', () => {
+  it('⭐ past the long clock, on the next touch: the stall is retired, the balance sits in the treasury unclaimed; logging back in, the treasury pays', async () => {
+    const stem = aName.toLowerCase();
+    const heldBefore = Number((await a.prose('bank')).match(/balance is (\d+)/)?.[1] ?? NaN);
+    expect(heldBefore).toBeGreaterThan(0);
+    const book0 = await founder.prose('treasury');
+    const unclaimed = (s: string) => Number(s.match(/unclaimed[^\d]*(\d+)/i)?.[1] ?? NaN);
+    expectOk(await wizard.cmd(`config estate.escheatAfterDays ${SECONDS_IN_DAYS(3)}`));
+    a.close();
+    await sleep(8_000);
+    // The next touch: a customer approaches the stall — the operator is
+    // brought current, its keeper's clock read, and the estate passes.
+    expectOk(await wizard.cmd('goto /world/terminus/market/square'));
+    await wizard.cmd(`buy oranges from ${stem}`);
+    const stall = new RegExp(`${stem}'s stall`, 'i');
+    expect(await until(async () => !stall.test(await wizard.prose('look')), 60_000)).toBe(true);
+    // The unclaimed row is the last act of the passing; wait for it.
+    expect(await until(async () => unclaimed(await founder.prose('treasury')) >= unclaimed(book0) + heldBefore, 60_000)).toBe(true);
+    // The return: the treasury pays what it held; the balance is theirs again.
+    expectOk(await wizard.cmd(`config estate.escheatAfterDays 180`));
+    expectOk(await wizard.cmd(`config estate.dormantAfterDays 30`));
+    a = await Session.open(aHandle, { startLocation: HALL });
+    expect(await until(async () => Number((await a.prose('bank')).match(/balance is (\d+)/)?.[1] ?? 0) >= heldBefore, 30_000)).toBe(true);
+    expect(await a.prose('wallet')).not.toMatch(/unclaimed/);
+  }, 180_000);
+});
+
+describe('12. the Gazette prints the index', () => {
+  it('⭐ the editor prints the basket in words; buy out a shelf and the next edition\'s number moves', async () => {
+    const AVENUE = '/world/terminus/counting-houses/avenue-block';
+    // The edition window shortened so a second edition may follow the first.
+    expectOk(await wizard.cmd('config press.indexEditionGameHours 0.001'));
+    await fire(AVENUE, 'hesper', '/lib/behavior/prints');
+    expect(await until(async () => /Prices: the basket stands at/.test(await wizard.prose('press')), 30_000)).toBe(true);
+    const first = (await wizard.prose('press')).match(/Prices: the basket stands at [^\n]+/)?.[0] ?? '';
+    // A shelf bought out: the general store's limes, three of them — the
+    // stocking rule's ask climbs as the counter empties, and the index with it.
+    expectOk(await wizard.cmd(`goto ${SHOP_FLOOR}`));
+    for (let i = 0; i < 3; i += 1) {
+      const bought = await wizard.cmd('buy limes');
+      if (bought.status !== 'ok') break;
+    }
+    expect(await onHand(STORE_COUNTER, LIMES)).toBe(0);
+    await fire(AVENUE, 'hesper', '/lib/behavior/prints');
+    expect(
+      await until(async () => {
+        const page = await wizard.prose('press');
+        const editions = page.match(/Prices: the basket stands at [^\n]+/g) ?? [];
+        return editions.length >= 2 && editions.some((e) => e !== first);
+      }, 30_000),
+    ).toBe(true);
+  }, 180_000);
 });

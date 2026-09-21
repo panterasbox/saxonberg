@@ -206,6 +206,24 @@ the real work.
   SSM Parameter Store ([deployment.md](../deployment.md)).
 - **Module-internal code constants** → colocated in their owning module.
 
+## The Schedule of Parameters (economic bootstrap, 2026-09)
+
+The economic bootstrap reads its numbers from the settings singleton and
+calls that set **the Schedule**: `reserve.*` (`moneyPerActiveMember`,
+`windowRatePerYear`, `haircut`, `ladder.termsRequired`,
+`ladder.loansRequired`, `ladder.workingCapitalCap`,
+`repaymentShareMin/Max`, `defaultHorizonGameDays`, `indexBasket`) in
+`settings/reserve.yaml` — the Governor's, through `reserve set`, which
+refuses any other row; `treasury.*` (`arrivalPrincipal`,
+`noteDischargeGameDays`, `openingAdvance`) and the estate clocks
+(`estate.dormantAfterDays`, `estate.escheatAfterDays`,
+`employment.absenceVacatesAfterDays`) in `settings/treasury.yaml`;
+`retail.stockingElasticity`, `retail.termsMargin` in `settings/retail.yaml`;
+`press.indexEditionGameHours` in `settings/press.yaml`. Every read carries
+a code floor equal to the shipped value; an unseeded row reads as absent
+(`Number("")` is 0, which is a value, not an absence — the dial helpers
+check the text first). See [credit.md](./credit.md).
+
 ## Deferred
 
 A richer typed schema (per-setting value types, validation, migration — à

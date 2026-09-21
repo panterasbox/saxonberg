@@ -475,6 +475,17 @@ collier is unambiguously the charcoal-burner. A new Discipline should
 meet that standard — the code named, its meaning written beside it —
 rather than assuming the existing rows are loose.
 
+## `finance` (economic bootstrap, 2026-09)
+
+A knowledge-channel Discipline, ISCED-F 0412 under `business-admin-law`
+(`Discipline/finance.yaml`), credited on the giver — never conferred —
+at every act that puts their name on paper: signing the Arrival Note,
+`bank borrow` (granted or refused; the refusal is the lesson), reading a
+book (`bank book`, `house book`), `wallet beneficiary`. The credit seam is
+`BankingControllerBase.creditFinance` (`creditDeed`, `difficulty: easy`,
+narrowed by `isAdvancing`); the NPC path credits nobody. See
+[credit.md](./credit.md).
+
 ## Deferred (seams left open)
 
 The loadout (capacity-not-decay, savings warm-up); guilds (venue / mentors

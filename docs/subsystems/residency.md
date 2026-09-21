@@ -543,3 +543,15 @@ Worth cross-referencing for two reasons:
   card sweep wraps itself in `ExecutionContextApi.runRoot` with its
   logic singleton as principal; the eviction sweep reaches only
   ungated surfaces and does not need to.
+
+## Keepers that run with nobody online (economic bootstrap, 2026-09)
+
+A brain on an unspawned NPC never fires, so the beats the economy runs
+on are pinned by `boot:` entries of their packs (`role: producer`, the
+cash-and-carry precedent): the general store's shop floor and business
+(the keeper's `stocks` beat — buying, borrowing, shelving), every
+producer floor and outfit (the hands' `consigns` beats), the avenue
+block and the Gazette (the editor's `prints` beat). `Stock.reset()` now
+skips a line with a `supplier` — the sweep is the faucet for IMPORTS
+only (goods nobody produces), never for a line somebody sells. See
+[credit.md](./credit.md).

@@ -248,6 +248,37 @@ wieldable, delivers an edge), and a **ration pack** (a `Thing` of an edible
 coinage-clean ladder (2..10) against the 20-credit stipend. **Independent**
 (no corpo — franchising is retail S4).
 
+## Supplier terms, the stocking rule, and the rented stall (economic bootstrap, 2026-09)
+
+> Full treatment: [credit.md](./credit.md).
+
+- **A listing has a BASIS** — `ConsignmentListing.basis: consignment |
+  terms` — decided by the counter's authored **`Stock.purchasing`**
+  policy, never by the consignor. At a `terms` counter the `--ask` is the
+  supplier's PRICE (owed at sale), the shop sets its own ask and keeps the
+  margin, and a `buy` posts twice (the sale, then the shop's `terms` leg to
+  its supplier). The cash-and-carry says `purchasing: terms`; so does every
+  rented stall. `reclaim` admits the house an actor buys for, so a
+  supplier's hand takes an unpaid crate back.
+- **`StockLine.supplier` / `pricing`**: a line with a supplier is bought
+  by the keeper's `stocks` beat and never cloned by `reset()`; a line
+  without one is an import. `pricing: stocking` derives the ask from the
+  shelf against par (`retail.stockingElasticity`); `Stock.priceFor` is
+  the override, `basePriceFor` the authored number, `house price <thing>
+  <ask>` the keeper's hand on it. A good the shop never priced asks the
+  supplier's price × (1 + `retail.termsMargin`).
+- **`look` at a counter good says the ask** — `Stock.termsLineFor`,
+  appended by a `Chattel` markup augmenter: *held on the farm outfit's
+  terms until sold; the shop asks eight zorkmids* / *on consignment for
+  Alice at four zorkmids* / *the shop asks two zorkmids*.
+- **The per-shelf cap**: `listingCapOverride` on a wholesale shelf (the
+  cash-and-carry authors 120; the produce stalls 200) — and the
+  `consigns` brain honors the shelf's own cap, as `consign` does.
+- **A player shop is a rented stall** — `stall rent` / `stall give-up`
+  on the market square (`MarketStalls`, the terminus pack): a counter
+  minted with the renter's identity, a house re-minted from them, an
+  account of their own. `Business.getAccountPath()` is the identity path.
+
 ## Deferred
 
 The NPC buying goods for its own coin (the vendor-trash faucet, behind the

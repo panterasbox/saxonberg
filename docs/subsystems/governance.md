@@ -338,6 +338,17 @@ design intends and is marked INTERIM at `e2e/tests/helpers.ts`; the
 intended shape (seat one ordinary character in one office) returns as
 soon as this is fixed.
 
+## Three more seats (economic bootstrap, 2026-09)
+
+`Office` gains `minister-of-finance` (appropriates from the treasury —
+`treasury appropriate`; `requiresFinanceMinister`), `minister-of-trade`
+(the organization `/compact/trade` holds every `/trade/<x>` and `/stuff*`
+extent — the trade groups are gone) and `registrar-of-corporations` (owns
+each corpo's `<key>-committee` group; the committee appoints the corpo's
+business). The Governor of the Reserve reads and sets `reserve.*` only.
+Committees are title holders, players only — `lint:committees-are-players`
+holds the count at zero. See [credit.md](./credit.md).
+
 ## History
 
 - The build first enforced the founder gate on `assign`/`vacate`

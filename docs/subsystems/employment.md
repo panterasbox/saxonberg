@@ -678,6 +678,43 @@ roster tick enumerates `mixin.BusinessMixin` and nothing else, so a plain
 why a role fielded by a body that does not trade (a watch) states its
 `institution:` outright, and why `lint:identity` credits only the former.
 
+## A wage is a loan or a refusal; vacancy and closure (economic bootstrap, 2026-09)
+
+> Full treatment: [credit.md](./credit.md).
+
+- **`EmploymentApi.payHouseWage(business, workerKey, amount, category?,
+  memo?)`** is the one seam a house pays a wage through (the roster tick,
+  `house payroll`): arrears first; a rung-2 working-capital draw where the
+  house's ledger has earned one; else the wage is REFUSED, recorded on
+  `Business.payrollArrears` with the worker as creditor by name, and the
+  proprietor told. A landed wage discharges the worker's Arrival Note.
+  `Business.charter: [bank]` marks the one chartered lender.
+- **The opening advance**: `operatingAccountOf` asks
+  `ContractApi.openingAdvance(businessPath)` on a history-less account — a
+  0% loan of `treasury.openingAdvance` (a FLOAT, fifty) from the treasury.
+- **`Business.getAccountPath()` and `Organization.getOrganizationPath()`
+  read the IDENTITY path** (a content row's template path; a minted
+  business's own — the rented stall), and the employment-record write
+  contract keys on it too.
+- **`vacated`** joins the statuses (`EXITED_STATUSES`): a member holder
+  away past `employment.absenceVacatesAfterDays` is vacated by
+  `EmploymentApi.vacate(actor)` — run by `bringCurrent(business)` (the
+  roster tick for every house; `ensureOperatorAt` and `house roster` for
+  one) for a lingering holder, and by the estate touch at a return. A
+  terminal exit the roster never resurrects; the house card leaves the
+  wallet.
+- **The closed sign** — `Business.isClosed()` / `setClosed()`, written by
+  `bringCurrent`: every principal who could run the house (the entity
+  member, every member holder) away past `estate.dormantAfterDays`, and no
+  NPC on a position. The counter's `requestAttention` answers `closed`,
+  `tickBusiness` runs no shifts, the account refuses outflows. An NPC-run
+  house never closes.
+- **`house`** grew `book` (loans, terms payable, arrears), `price <thing>
+  <ask>`, `roster` (the chart: holders, on/off shift, `vacant`, the closed
+  sign), and `stockSheetFor` unions the operated counters' supplied lines.
+  `resolveHouse` matches a business operating a FIXTURE in the room (the
+  bank's counter in the hall), not only the room.
+
 ## History
 
 Built phase-by-phase (Jul 2026, `3785a763..4f24c15a`) from a since-retired
