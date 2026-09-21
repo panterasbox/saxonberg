@@ -108,7 +108,7 @@ still feels another:
 
 | Incentive | Kind | Mechanism |
 |---|---|---|
-| **You live there** | **immediate comfort** | filthy rooms cost `restQuality`; a dirty home is lower immunity ([disease](../builds/disease-design-pack.md)) |
+| **You live there** | **immediate comfort** | filthy rooms cost `restQuality`; a dirty home is lower immunity ([disease](../builds/disease-slate.md)) |
 | ⭐ **The reference** | **delayed progression** | the ladder gate reads the condition of the place you held — **neglecting a rental blocks your ascent** |
 | **The deposit** | **contractual money** | escrow at risk (Part 4) |
 
