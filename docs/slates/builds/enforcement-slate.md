@@ -26,7 +26,8 @@ Related: [civics.md](../../subsystems/civics.md),
 [trait.md](../../subsystems/trait.md),
 [accountability.md](../../subsystems/accountability.md),
 [concealment.md](../../subsystems/concealment.md), the courts/venire
-primitive, the trusted-recording seed.
+primitive — now [courts-slate](./courts-slate.md) (2026-09-18), the
+trusted-recording seed.
 
 **Institutional sibling:** [policing-slate](./policing-slate.md) —
 crime (organized vs. ordinary, corpos, the alignment orthogonality)
