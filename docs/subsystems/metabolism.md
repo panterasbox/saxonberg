@@ -42,7 +42,10 @@ so the coupled flows stay honest; the per-slice order is fixed:
    `thermalMultiplier()` (now lit by the thermal build: `Q10 ^ ((core −
    reference)/10)` off the driven `coreTemperature` — ≈1 for an endotherm
    pinned at setpoint, swings for an ectotherm whose core floats; dials in
-   `METABOLIC_DEFAULTS`). See [thermal.md](./thermal.md).
+   `METABOLIC_DEFAULTS`). See [thermal.md](./thermal.md). Mass-scaling
+   is **flat** (`mass / referenceMass`, linear) — not Kleiber's
+   `mass^0.75` — the defensible-default shape picked over the exact
+   allometric exponent until play shows otherwise.
 3. **Coupled recovery** — spend both tanks to rebuild endurance (at rest).
 4. **Burden clearance** — toxin burdens fall at their clearance rate.
 
@@ -115,6 +118,18 @@ recovery as it falls. This is *why* recovery lives in metabolism, not
 encumbrance: encumbrance spikes are discrete event-drains; metabolism is
 the continuous basal + recovery layer. **They layer on the one `endurance`
 reserve — the encumbrance build is unchanged.**
+
+⭐ **Generalized from one consumer to N** — `coupledConsumers()` is a
+`@hook` other systems `super`-append to, not a fixed formula.
+Magic-items made `mana` the **second** consumer (D10), closing a live
+first-law hole (mana used to refill from nothing). Fuel is drawn in
+**list order — body before gift**, never pro-rata, so a caster never
+recovers endurance *slower* than a non-caster for having a gift nobody
+asked for. With nothing appended, the single-consumer (`endurance`-only)
+behavior is preserved exactly. This is also why **magic ingestion needs
+no separate pathway**: a mana draught is ordinary carbohydrate + water
+that feeds this same keystone. See
+[magic-items.md § Mana recovery spends satiation and hydration](./magic-items.md).
 
 `restQuality` is a field on **`PosturedMixin`** (the posture-bearing host),
 default 1.0 — a bedroll authors ~1.3×, a four-poster ~2.5×. It is **not on
@@ -364,6 +379,15 @@ the burden in one shot (far faster than natural clearance), so the banded
 condition clears on the next reconcile. It is the minimal consumer of the
 vitals `ResolutionSpec` treatment seam (the toxin conditions author
 `resolution.by`); no treatment verb is required by this build.
+
+## Deliberately not modeled
+
+**Waste** (defecation/urination as a tracked reserve) is not a mechanic
+and will not become one — it is the purest survival-tedium trap and
+nothing in the engine reads it. Food mass is consumed *into the
+abstraction*: it becomes satiation/hydration and leaves the model; it
+never tracks as body mass. Privies are diegetic **content** (a place, a
+prop), never a system.
 
 ## Units
 
