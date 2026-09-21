@@ -5,8 +5,9 @@
 > [message-rendering.md](../../subsystems/message-rendering.md)
 > **Left:** the ~6–10 author display tokens (typewriter · handwriting ·
 > script · inscription · blackletter · poster) · the token→face map ·
-> the authoring attribute (MML region or content field) · per-use lazy
-> woff2 + a per-scene face ceiling · plain-mode collapse
+> the authoring attribute (MML region or content field) · which rich
+> surface adopts it first · per-use lazy woff2 + a per-scene face
+> ceiling · plain-mode collapse
 > **Size:** a tail
 
 > **Status: shape proposed, unbuilt; downstream of rich surfaces.** The
