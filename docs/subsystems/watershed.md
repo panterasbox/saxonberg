@@ -156,6 +156,16 @@ because a houseplant is furniture rather than production — so it is
 watered by hand, exactly as it ships. Ground that *is* production is
 ground the sky can find.
 
+⭐ **Why this edge is worth having, pedagogically.** Before it, `satWater`
+was dead code as a *limiting factor* — nothing could ever make it bind,
+so `min(satWater, satLight, satRoot, satNutrient)` (Liebig's law,
+[husbandry](./husbandry.md)) never showed a grower which term loses. A
+dry spell now makes the constraint visible instead of asserted. It is
+also the first half of a rule this build repeats: infrastructure that
+never fails teaches nothing — a tap that is always on is invisible, and
+a tap that can read `dry`/`frozen`/`fouled` (below) is what teaches a
+player what plumbing *is*.
+
 Snow does not water the soil. The pack releases later, and elsewhere —
 that is the watershed's integral, not the bed's.
 
@@ -841,6 +851,17 @@ is clean; the same intake a reach down is not; and moving it is free,
 which is historically the first real answer anybody found. Shutting a
 sewer's gate cleans the river below it with no rule saying so — the
 outfall simply stops answering the discharge scan.
+
+### ⭐ Contamination carries no sensory tell, on purpose
+
+Fouled water keeps the plain `water` identity tag and announces itself
+to no sense — `fouled-water.yaml`'s own comment is explicit: "nothing
+about fouled water announces itself." That is the epidemiological
+lesson, not an oversight: cholera's whole history is that it could not
+be smelled or tasted, and the only way to find its source was to compare
+where the sick had drunk from. The counterplay ladder below is the
+actionable answer once the cause is known — move the intake, boil, or
+pay for treatment — discoverable, never sensed.
 
 ### The counterplay ladder
 

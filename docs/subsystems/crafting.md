@@ -553,6 +553,13 @@ the present on-shift maker.
   water row carried no `water` tag; see
   [antipatterns.md](../antipatterns.md) § *Keywords Where You Mean
   Identity*.
+  ⭐ Water here is a **precondition, not a consumable**: the controller
+  checks that a water holder is in reach and moves nothing out of it —
+  washing does not draw the basin down. That is the precedent for any
+  act that *needs* water without *using* it; an act that consumes water
+  (filling, drinking, a recipe's `water` input) goes through
+  [bulk.md](./bulk.md)'s transfer and, where the source is supplied,
+  [watershed.md](./watershed.md)'s `SupplyState`.
 
   ⚠⚠ **And it is no longer a glassware verb.** It was
   `instanceof CraftVessel`, so a **knife** could not be washed at all —
