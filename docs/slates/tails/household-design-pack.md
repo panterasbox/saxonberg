@@ -7,15 +7,17 @@
 > resolved, blocker 2 closed) → [holding.md](../../subsystems/holding.md),
 > derive-on-read domicile → [civics.md](../../subsystems/civics.md).
 > **Left:** `ParcelApi.householdOf(extent)` — the domicile ∩ extent read ·
-> the gate made COLLECTIVE plus the leave-and-ascend-alone exit · the
-> act-deposited condition producer with `(actor, target, extent)`
-> attribution (room-condition-design-pack — the shipped axis is the shell
-> clock only) · household contract clauses over the derived condition read
+> the gate made COLLECTIVE plus the leave-and-ascend-alone exit ·
+> household contract clauses over the derived condition read
 > (a condition-band template in contract's closed vocabulary) ·
 > co-ownership as a managed group `ParcelOwner` (the owner kind ships; the
 > household flow over it is undriven) · the marriage bundle + registry
 > record · primary-home designation across two holdings · Q2 (does an
-> expired grant drop you from the household?)
+> expired grant drop you from the household?). ⚠ Hard dependency, owned
+> elsewhere: the act-deposited condition producer with `(actor, target,
+> extent)` attribution is
+> [room-condition-design-pack](../builds/room-condition-design-pack.md)'s
+> `Left` (the shipped axis is the shell clock only) — Part 9 points there.
 > **Size:** a wave
 
 See also: [stewardship-doctrine](../../stewardship-doctrine.md) (the pillar) ·
@@ -304,26 +306,15 @@ household read must not become two notification streams.
 
 ## Part 9 — ⭐⭐⭐ The one hard constraint on the room-condition build
 
-Room condition is designed and **unbuilt**. When it lands:
-
-> **Deposits and clears must both ATTRIBUTE to the actor, not merely mutate a
-> band** — `(actor, target, extent)` in both directions.
-
-Everything in this pack rests on it — the individual transcript (Part 2), the
-aggregate read (Part 3), and any contract clause over who kept the premises
-(Part 4) are all unreachable without actor attribution. It is nearly free to
-include at build time and expensive to retrofit onto a producer that only
-mutates state.
-
-⚠ **Attributing only the clears is the trap**, and it is the easy mistake: it
-yields a record that knows who cleaned but not who made the mess — half a
-commons, and the half that flatters whoever tidies last.
-
-✅ **Landed 2026-08-06** in the [room-condition
-pack](../builds/room-condition-design-pack.md) Part 1, together with the guard that
-keeps it from becoming a blame ledger — [accountability](../../subsystems/accountability.md)'s
-shape, reused: events carry their actor, **blame derives on read and is never
-stamped.**
+*Carried, in full, by the pack that builds it: `(actor, target, extent)` on
+every deposit AND every clear (the only-the-clears trap included), nearly
+free now and expensive later, with the accountability guard — blame
+derives on read and is never stamped →
+[room-condition § Every deposit and every clear carries an ACTOR](../builds/room-condition-design-pack.md#-every-deposit-and-every-clear-carries-an-actor)
++ [§ And it must NOT become a blame ledger](../builds/room-condition-design-pack.md#-and-it-must-not-become-a-blame-ledger--the-accountability-shape-reused).
+Still unbuilt there (its `Left` names the attributed events); everything in
+this pack — Parts 2, 3 and 4 — waits on it. Cut to this pointer by the
+2026-09-21 cluster pass.*
 
 ---
 

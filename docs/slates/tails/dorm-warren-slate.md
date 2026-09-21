@@ -6,8 +6,10 @@
 > **Left:** the bounded mixin-field editor + the dorm tier filter · the
 > CMS-inspectable lesson rung · the roommate NPC half (the two
 > expression-slots, the soul/roots field sources, its trait tracking) ·
-> hand-authored custom prose · the sealed/frozen room · community-authored
-> themes · the private tier's room-level customization (the biome bloom)
+> hand-authored custom prose (+ the absorbed prose-on-owned-items seam: a
+> `PROSE_FIELDS` allowlist over the spine, on a good) · the sealed/frozen
+> room · community-authored themes · the private tier's room-level
+> customization (the biome bloom)
 > **Size:** a wave
 
 ---
@@ -177,6 +179,24 @@ End to end: **the object's mixins define the surface, the theme is a field-bundl
 your doc is a field-diff, the tier is the filter** — and the CMS shows all of it
 (`from: theme` grayed, yours highlighted), the same editor you'll get unfiltered
 in your sandbox.
+
+## Absorbed from residence-ladder-design-pack — Deferred seams: prose-on-owned-items personalization
+
+*Moved here verbatim by the 2026-09-21 cluster pass from the ladder pack's
+"⭐ Deferred seams, salvaged from the retired apartment plan" list. It is
+the owned-goods half of the custom-prose item this slate's `Left` already
+names ("hand-authored custom prose") — the same deferral
+[residence.md § Deferred](../../subsystems/residence.md) records as *"the
+owned-goods personalization (prose at craft/buy) is the chattel path."*
+Chattel has since shipped ([chattel.md](../../subsystems/chattel.md)), so
+its last sentence's precondition is met; the `PROSE_FIELDS` allowlist it
+names is the shipped `PROSE_SETTERS` allowlist's shape, applied to a good
+rather than a room's fixtures.*
+
+- **Prose-on-owned-items personalization** (DECISION D5 in requirements) — the
+  whole-document write on an item's expressive prose fields; attaches at a
+  `PROSE_FIELDS` allowlist + the spine (instance state, carried free). Needs
+  chattel (this build) first.
 
 ## The thematic payoff (keep it in view)
 
