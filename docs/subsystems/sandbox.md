@@ -13,6 +13,26 @@ inspection** — circle scope is ambient state minted only at execution
 roots; purity holds by induction (one O(1) check per proxy dispatch,
 one policy lookup per PM write).
 
+## Doctrine — two channels, two gates
+
+Every durable mutation is either governed (the published field — real,
+lawful, accountable, with receipts) or discarded (the wire — real while
+inside, void at the boundary). Cheating on the governed channel is
+possible but criminal: it happens in a jurisdiction that can see it,
+prove it, and prosecute it. Cheating on the sandbox channel is
+**structurally impossible, not administratively forbidden** — safety
+never depends on trusting the actor, so it holds for wizards, guests,
+and by accident alike.
+
+The sandbox opens exactly one of the platform's two orthogonal gates:
+the release/balance gate (unreleased content genuinely *works* inside;
+rollback contains the leak) — never the code-trust gate (TS stays
+wizard-gated everywhere, sandbox included; `isolated-vm` is the
+deferred floor under a deliberately evasive wizard, roadmap Framework
+13). Mutation-prohibition was rejected as the safety mechanism: a dead
+sandbox proves nothing, so safety comes from restore-to-baseline (the
+room layer, below), not from refusing to let things happen.
+
 ## The scope taint
 
 - **Scope value** = the circle's parcel path (`/home/<playerId>` /
@@ -476,6 +496,15 @@ would quietly restore the hole.
   scratch) is `ApiOnly`-gated, and `EvalController` is a controller —
   it was calling the setter directly, so **every** `eval <code>` died
   on the gate, in the field as well as in a circle.
+- **One honest edge**: the circle contains new content at new paths —
+  it does not contain edits to *published* source. Saving a change to a
+  published brain/class changes the live engine's code globally (the
+  working tree *is* the live server —
+  [git-workflow.md](./git-workflow.md)'s snapshot-and-push finding); the
+  holodeck lets you *exercise* the edit safely, but the edit itself is a
+  field act on the governed channel, contained by receipts and review,
+  not by the circle. Draft overlays are the containment story for
+  content; for code it's git + the wizard axis.
 - **The CMS button rides the command bus** — it has no endpoint of its
   own. "Test in holodeck" sends `go wardrobe` over the game tab's
   existing socket, the same way the forum cards' buttons dispatch
@@ -651,6 +680,20 @@ circle received their own message twice, once as "You" and once as a
 stranger. The channel fan-out excludes by `getIdentityPath()`. Expect
 this class of bug anywhere a comparison means *person* rather than
 *object*.
+
+## Shared circles — guests and the group cell
+
+No home-to-home trust extension exists, by decision: two private
+universes with a trust protocol between them is heavy machinery for
+what "stand in one circle together" gets free. **Guests** enter *your*
+circle — symmetric rollback (the boundary binds host and guest alike),
+access-controlled by your parcel's grant surface (`revokeUse` exits a
+guest mid-visit, above). **The group cell** is a circle whose parcel is
+group-titled under `/studio/<groupId>` — provisioned by a governance
+act (`subdivide` + `transfer --group` over the group-owned `/studio`
+parcel), never self-serve: personal space is a right (character
+creation is the grant), group space is a grant. This is where
+committee/team content stages before publication.
 
 ## What the live pass turned up outside the sandbox
 
