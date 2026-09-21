@@ -2,12 +2,13 @@
 
 > **Status: PARTIAL** — the installer, the reconcile strategies, the
 > closed `DocumentKinds` vocabulary, `requires` groups/title, the boot
-> manifest, wiki CAS and the seeder retirement all shipped across waves
-> 0–5 → [content-packs.md](../../subsystems/content-packs.md)
+> manifest, wiki CAS, the capability rung and the seeder retirement all
+> shipped → [content-packs.md](../../subsystems/content-packs.md)
 > **Left:** the media-asset unit (byte sync + receipt pairing) · the
 > position-def unit (A19) · the contract-form unit · `requires.kinds:` ·
-> `requires.office` · manifest version + `dependsOn` validation · runtime
-> install/uninstall + marketplace · the repo split
+> `requires.office` · the manifest tier claim + its check · manifest
+> version + `dependsOn` validation · runtime install/uninstall +
+> marketplace · the repo split
 > **Size:** a wave
 
 **Started 2026-08-21**, out of the pack-installer design session
@@ -76,32 +77,7 @@ Status: ✅ shipped · 🔨 designed this session · ⚠ OPEN (format/mechanics 
 
 # Part B — Per-pack table of contents (tier 1, ~20 packs)
 
-Counts are from the 2026-08-21 audits; ⚠ marks packs not yet drilled.
-
-| Pack | Units it ships |
-|---|---|
-| **pack zero** (platform) | templates: ~216 controller templates · 32 marshallers · 11 LocomotionModes · 7 modalities · Avatar · void/home · 37 Topics + 41 Disciplines (amendment-tier) — command-views: ~200 — subjects: Help/Global/Chat — settings defaults — boot-instances: ~37 registries/catalogues — requires: 4 tag groups + core parcels — NO code (its code IS the kernel: pure data pack) |
-| **base-library** ✅ | materials · biomes (templates) · quantity tables |
-| **species-and-names** ✅ | species/clade templates · name-banks |
-| **arcane-descriptors** ✅ | descriptor-banks |
-| ~~conditions-and-afflictions~~ | KILLED (A27) — baseline conditions → pack zero (+ sync-read boot entry); extensions ride carriers (disease, pharma) |
-| ~~body-plans~~ | KILLED (A27) — folded into species-and-names with the 4 straggler species rows |
-| **generic-objects** ⚠ | ~70 goods/props templates + room archetypes + orphan recipes; the SHRINKING commons |
-| **expression** ✅drilled | 35 starter emotes → ~35 document files post-collapse; the flat-key exemplar; nothing special — the simplest pack works |
-| **arcane-library** ✅drilled | the Spell dir + GlowlightOrb/SparkSource (~14 rows); the magic commons + shrink guard; boring in the good way |
-| ~~compact~~ | PLATFORM (A27, user) — /compact templates, PressBoard, realm/city civics rows all → pack zero; state-swapping = forking (AGPL), never a pack |
-| **corpo** ✅confirmed | 5 corpos + brands + their boot entries; a content pack (A27, user); lounge (neon, goodkin) and hearthworks (banksAt) depend on it |
-| **wiki-starter** ⚠ | 4 wiki pages (CAS exemplar) |
-| **smithing** 🔨 | 5 recipes · anvil/whetstone/ingot templates · smith position def ⚠ · smithy archetype |
-| **cooking** 🔨 | 2 recipes · food stock (interim) · cook position def ⚠ · kitchen archetype |
-| **hearthworks (venue)** 🔨 | 4 room templates + adornment · Business template · 2 NPC templates · menu contents · requires.title · ⚠ the inbound exit |
-| **saxonberg-lounge** 🔨 | the venue AFTER two cuts: pack zero takes the landing shell + startLocation default (socket/furniture razor); /trade/hospitality takes the bar kit. Keeps: rooms/warren, cast (5 NPCs), Business+prices, neon/corpo ties, pizza, TVs, terminal (→ lazify), offstage/wire-alcove; 14-class graduation audit (audited A29: Menu dies, 4 compositions genericize, Offstage → employment, TipJar → hospitality, 6 local + terminal boot entry) |
-| **hospitality** (trade) 🔨 | the first SERVICE trade: bar-counter Attendant station, glassware kit, cocktail recipes+scripts (adopted from venue-local), bartender position, bar archetype, tip-jar template. Two venues compose it day one (Dave's Bar + hearthworks cookhouse). Serving vs cooking = counter vs kitchen |
-| **eternal-university** ✅audited | 35 templates · 7 controllers + 14 TS audited (A29): 1 residue, 4 pure-composition → generic-objects, MechanicalMovement → lib, DormThemes holds for 2nd consumer, 7 local (the warren machinery + Katie), Gus refiles (deletes if spawn-equipment goes authorable). Katie's membership = content (the pack fence) |
-| **terminus** ⚠ | 52 templates · counting-houses/general-store/Hinkley; drill: retail+banking seams |
-| **newbie-wilds** ⚠ | 21 templates; drill: onboarding deps |
-| **practicum / moor / substation** ⚠ | 7 / 4 / 4 templates; drill: small-pack format floor |
-| **mining** (tier 2) 🔨 | KERNEL FIRST (seam model, warren generator, extraction verbs, hazard wiring — litmus PASSED); pack = materials (ores/coal/flux/gold/gems/salt⚠) · beneficiation+alloy recipes · tools/stations · mine archetype; venue = rooms + warren root + SEED field, parcel = the mineral claim; positions ~none (emergent roles; wage variant only); zero eager. Venues: Ferrow Delving (commons/deep-law) vs Delving 9 (corporate wage) — opposite economic forms, one pack. ⚠ Eternal steel = census-gated WORLD content, never a pack row |
+> *Cut 2026-09-18 (slate compaction) — history: every tier-1 pack listed here shipped or was killed as recorded; the live roster (47 packs) is [content-packs.md](../../subsystems/content-packs.md) § The shipped packs.*
 
 ---
 
@@ -116,32 +92,13 @@ granularity only; the write command is the enforcer.
 
 # Part C — The strategy interface (what every unit type must answer)
 
-The per-kind dispatch in the installer IS a strategy; these are its
-slots. **A unit type with an unanswered slot is not shippable:**
-
-1. **TARGET** — which collection / RAM table / bucket / procedure?
-2. **APPLY** — reconcile-replace · merge-missing · CAS-submit ·
-   ensure-structure · load · byte-sync?
-3. **KEY + COLLISION CLASS** — path-carved (title arbitrates) ·
-   flat-key (install-time uniqueness check) · n/a?
-4. **DELETE DIRECTION** — delete · archive-never-reap ·
-   pin-respecting · never (the firewall)?
-5. **GO-LIVE** — lazy fault-in · re-hydrate · cache-invalidate ·
-   reboot-only?
-6. **GATES** — requires-kernel · code-naming fields · tier detectors ·
-   flat-key checks · none?
+> *Cut 2026-09-18 (slate compaction) — shipped as the module-private `KindStrategy<F>` — target, record key, db-key query, rendered row, hash preimage, go-live side effect, `flatKeyOf` — one `computeKindPlan` + one `applyKindPlan` → [content-packs.md](../../subsystems/content-packs.md) § The installer.*
 
 ---
 
 # The wave ordering (A30, 2026-08-25)
 
-0 rename (`content`) → 1 substrate + ops verbs + **newbie-wilds pack**
-→ 2a plain kinds + 6 seeder retirements + DocumentLogic repoint →
-2b command-view + wiki CAS → 3 **pack zero** (boot manifest, requires,
-SeederManager deleted — the criterion goes testable) → 4 path surgery
-(/world/, /trade/, hearthworks re-cut) + first trades + A23 verdicts →
-5 long tail (retail/terminus, eternal, media, source consult, mining).
-Parallel: the authorable-composition bridge (before wave 4).
+> *Cut 2026-09-18 (slate compaction) — history: waves 0–4b shipped as ordered, wave 5 in progress → [content-packs.md](../../subsystems/content-packs.md) § History.*
 
 # The drilling agenda (the ⚠ cells, gathered)
 

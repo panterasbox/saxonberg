@@ -136,6 +136,17 @@ reload of `api/address.ts`; a reload of the Registry re-clones and
   `<root>/idea/Locality/` so the index is complete even for never-accessed
   Localities. `PathTrie.insert` is idempotent, so the eager insert and a
   Locality's self-registration converge.
+- ⚠ **Only the two roster prefixes are walked** — `TemplatePathRosters.locality`
+  is `/platform/idea/Locality/` + `/stuff/idea/Locality/` (`lib/paths.ts`),
+  and nothing else registers a Locality. A row placed in a locality pack's
+  own tree (`/world/<town>/idea/Locality/…`) is **silently absent**: never
+  indexed, `resolveLocalityFor` answers `null` for every room in it, and
+  everything keyed on the covering locality (the ground seed, the reach,
+  the weather pin) quietly reads from nothing. So a Locality row lives in
+  `world-seed`, whatever pack authors the town — a locality is the
+  realm's, the same split as `Government` and `Watercourse` (the class is a
+  system's, the instance is somebody's world). Found by the farmstead
+  build; the `hearts-delight` row's own comment records it.
 - **v1 simplification (flagged for the delivery build):** the eager
   clone-at-boot is trivial for the demonstrative roster; a future
   delivery build with hundreds of Localities may want a lazy/incremental
@@ -214,6 +225,31 @@ It carries its own `_governmentKey`, so the two are separate jurisdictions
 a short walk apart — which is what makes *leaving* a real option long
 before there is a law worth leaving over. See
 [civics.md](./civics.md) and [smallholding.md](./smallholding.md).
+
+### The realm's scheme, as shipped
+
+The scheme is **content** over a neutral substrate, and the shipped one
+has three rules. **One root, `terminus`**, with the city at
+`terminus/city` and its institutions inside it (`terminus/city/campus`,
+`terminus/city/counting-houses`, `terminus/city/university-avenue`);
+**every other town is a sibling of the city, not a district in it**
+(`terminus/hinkley-hills`, `terminus/rejection`, `terminus/hearts-delight`)
+— the suburb rule above, generalized; and ground outside the realm's
+polity holds a root of its own (`last-counted-mile`, `moor`, `lounge` —
+none declares a `_governmentKey`). Fourteen
+Localities claim prefixes today. A node is **any kind of place, at any
+depth** — a road segment (`terminus/rejection/road/the-pass`), a hall
+(`terminus/city/campus/duncan-hall`) — never a street-address model.
+
+**One address per place, shared by every service.** Per-substance
+identifiers (a power id, a postal id) were rejected: shared is simpler, and
+one-building-one-address is how people think. Whatever a person is
+*called* on a channel is a separate namespace, never an address.
+
+A corridor may be **deliberately unclaimed**: `terminus/delight-valley/…`
+sits under no Locality, so `coverageChainOf` is empty there and *banditry
+lives in jurisdictional gaps* is authored rather than asserted
+([logistics.md § Addresses, and the jurisdictional gap](./logistics.md)).
 
 ## Verb
 

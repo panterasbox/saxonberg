@@ -2,77 +2,25 @@
 
 > **Status: PARTIAL** — the growth model + smallholding (2026-08-01),
 > Stage A's perennials/market (2026-09-01) and the farmstead build's
-> field, winter and pasture →
+> field, winter and pasture (sward only — nothing sows a field yet) →
 > [husbandry.md](../../subsystems/husbandry.md) ·
-> [soil.md](../../subsystems/soil.md)
-> **Left:** plant genetics — cultivars and fixed-vs-segregating lines
-> (husbandry.md still says "no genetics") · the controlled-environment
-> tier past the free greenhouse (hydroponics)
-> **Size:** a wave
-
-> **⭐⭐ STAGE A SHIPPED (2026-09-01, the farming build)** — the
-> perennial/orchard tap is real: the **fruit cycle** (polycarpy rides the
-> flowering latch → [husbandry.md § The fruit
-> cycle](../../subsystems/husbandry.md)), `pick` off the living plant,
-> matter-not-mark produce, the **ten grown families**, the **farmers
-> market** (per-shelf consignment caps), and the first **production
-> brain** (`/trade/farming/behavior/farms`, shipped in the pack).
-> Strike *perennials/orchards* from the unbuilt list below. Stage B —
-> Heart's Delight, the field-room, the grower's own ground at scale —
-> waits on the residences-grounded re-plan
-> (farming-plan.md *(retired artifact)* § Stage B).
->
-> **⭐ PARTLY SHIPPED (2026-08-01) — do not re-plan the first two phases.**
-> Living-world phases 1 and 2 took the on-ramp and the first real ground
-> out of this slate and built them:
->
-> - **the growth model** (reconcile-on-read over game-time, the
->   limiting-factor expression, the checkpoint) →
->   [husbandry.md](../../subsystems/husbandry.md);
-> - **the N-slot bed on ground you own, shared soil, the harvest and its
->   weakest-link grade, soil nitrogen, and land use** →
->   [smallholding.md](../../subsystems/smallholding.md).
->
-> Two of this slate's own claims were **overtaken by the build** and the
-> subsystem docs are right where they disagree: soil reserves landed as
-> **two** (moisture + nitrogen) rather than six, and water is held by the
-> **ground**, not the plant. What remains here is genuinely unbuilt and
-> is why the slate stays: **winter**, the
-> **field-room** and grazing, the **environment-control axis**
-> (greenhouse → hydroponics), **genetics**, sun→ambient light, and the
-> spoilage dependency.
-
-> **Revised 2026-07-31 (the husbandry-family sessions).** Farming was re-read
-> against [ranching](../builds/ranching-slate.md) and [pets](../builds/pets-slate.md), and
-> against the **actual clock and substrate**. Four changes, in descending
-> importance:
->
-> 1. **The 12× clock invalidates this slate's tending-cadence lean.** A daily
->    player skips **12 game days** between logins, so "frequent-but-forgiving,
->    the Stardew arc" is not a high-touch loop — it is an un-tendable one. See
->    *The clock*; open question 1 is now **resolved**.
-> 2. **A second axis is added — environment control** (open field → greenhouse →
->    hydroponics), orthogonal to the density axis this slate already had, plus a
->    **time-horizon** axis (annual crop → perennial orchard). See *The three
->    axes*. **Houseplants** fall out as farming's on-ramp.
-> 3. **Winter is 7.5 real days and globally synchronized**, which is both this
->    slate's biggest UX risk and the entire reason preservation exists. See
->    *Winter*. It has a hard dependency on spoilage — which **now has a home**:
->    [preservation-slate](./preservation-slate.md).
-> 4. **The substrate mapping was optimistic about light.** Thermal is real;
->    **sun→ambient light is not wired at all** and is net-new work farming owns.
->
-> **Status: design captured, not built.** Farming is an **integrating
-> vertical** (the [Dave's Bar](../builds/daves-bar-slate.md) precedent) — it is
-> ~90% *composition* of shipped substrate (metabolism, thermal, weather,
-> reserves, crafting, the Warren, slots, bulk, advancement, chronicle,
-> augmentation) plus two genuinely-new primitives: a **plant/soil
-> biology** engine and a **genetics** layer. Its magic vector —
-> biosynthesized compounds resolved as pharmacology — is the biology-
-> grounded realization of the [capability-magic
-> slate](../builds/capability-magic-slate.md)'s "magic is honest
-> science" claim: *magic is what sufficiently interesting biochemistry
-> looks like.*
+> [soil.md](../../subsystems/soil.md) · compacted 2026-09-19
+> (ledger: `docs/plans/slate-compaction/husbandry.md`)
+> **Left:** the arable field crop — the aggregate density (`sow`/`water`/
+> `harvest field`; no verb sows a `Field`) · plant genetics — `Genome`,
+> `express` reaction norms, `pollinate`, cultivars and fixed-vs-segregating
+> seed lots, the husbandry-wide breeding substrate · the environment-control
+> tier (greenhouse glass + hydroponics) · the sun→ambient light driver ·
+> per-stage stress sensitivities + yield scaling + the composition output ·
+> the automation ladder (a hireable hand on YOUR ground, the irrigation
+> rung, metered compute) · weeds/pests as an adversarial reserve, thorns as
+> hazards, hedges as a grown boundary · the compound effect layer (*magic
+> as pharmacology* — contradicted by `magic.md`, to reconcile) · the
+> computed-chemistry brewing layer · the University teaching seam (the
+> teaching unit, the external-mastery adapter) · a farming district at
+> scale (Stage B1's hectare-band plat) · per-locality season (weather's
+> seam)
+> **Size:** a build
 
 Working slate for **farming** — how a player grows crops, breeds
 cultivars, and turns a harvest into food, materials, and (with the right
@@ -217,70 +165,32 @@ Every decision below is bound by these:
 
 ## The clock — what the player actually experiences **[DECIDED 2026-07-31]**
 
-Verified: `DEFAULT_SCALE` is **12×**, `DefaultCalendar` is 360 days
-(12 months × 30) with four **90-day seasons**.
-
-| Game | Real |
-|---|---|
-| 1 day | **2 hours** |
-| 1 season | **7.5 days** |
-| 1 year | **30 days** |
-
-> **The consequence that governs every cadence decision: a player who logs in
-> once a day skips 12 game days.** A two-hour session covers *one* of the twelve
-> game days that elapsed.
-
-**This retires open question 1's lean.** "Frequent-but-forgiving early — the
-Stardew arc" assumes Stardew's premise: you are present for every game day.
-Here you are absent for eleven of twelve. Any mechanic on a sub-12-game-day
-cadence is not *high-touch*; it is **un-tendable by hand**, and it silently
-promotes automation into the role the core loop was supposed to hold.
-
-### The rule: design cadence around the login, not the game-day
-
-**One visit = one meaningful tend decision.** Reserves (moisture, N/P/K) buffer
-over **one to two game weeks**, so a returning player finds a field that has
-drifted but not died, makes one decision, and the checkpoint reconciles forward.
-This is also agronomically honest — real irrigation intervals are weekly, not
-daily. The machinery this slate already specified (checkpoint + lazy sub-step)
-supports it exactly; only the *lean* was wrong.
+> *Compacted 2026-09-19.* The 12× clock (1 game day = 2 h, a season 7.5 real days, a year 30) →
+> [time.md](../../subsystems/time.md); *a daily player skips 12 game days*
+> and what it did to the cadence lean → [husbandry.md § Calibration](../../subsystems/husbandry.md).
+> *The rule: design cadence around the login* shipped as the calibration
+> itself → same section (*every threshold is calibrated against the login,
+> not the game-day; the reserve is sized against the login*).
 
 Corollaries worth holding:
 
-- **Growth runs on world time, not play time** (the family clock — owned things
-  never freeze). So a crop advances 12 game days per real day whether or not you
-  played. **You don't grind, you return.** A 60–90-game-day crop matures in
-  5–7.5 real days: plant Monday, harvest the following Monday, ~7 check-ins.
 - **A multi-season breeding program is a real-month commitment** (a game year is
   30 real days). Fine for crops; see ranching for the animal-side tension, where
   generation interval is the whole pedagogical point *and* the whole cost.
-- **Ranching inherits a correction from this.** Real management-intensive
-  grazing moves stock every 1–3 days — impossible here. See
-  [ranching § Paddock granularity](../builds/ranching-slate.md).
+- *Ranching's correction landed as the residual: a stock move is a READ*
+  *(move at residual, return at recovery), not a 1–3-day timer →*
+  *[soil.md § Residual and recovery](../../subsystems/soil.md).*
 
 ### Implementation note — read weather, don't trust the room
 
-`WeatherLogic.runBoundaryFanout` walks **live Interactives → their rooms** and
-restamps only sky-exposed ones, so **room temperature is only maintained where
-someone is standing.** A crop must never rely on its room's temperature having
-been restamped.
-
-> ⚠ **Corrected 2026-07-31 — and it opens a real gap.** An earlier draft said a
-> crop should call `WeatherApi.weatherAt(t, locality)` **directly**. That
-> violates weather.md's governing invariant — *"nobody calls `weatherAt` /
-> `deviationFor` directly except the resolver and the biome field-fold"* — and a
-> crop that did would **silently ignore authored weather pins**, so a
-> storyteller's storm would not touch the harvest.
->
-> But the correct call does not exist. `resolveWeatherFor(scope)` is
-> **now-only** (no time parameter) and async; `forecastFor` looks **forward**;
-> only the procgen-only `weatherAt` accepts an arbitrary past time. **Nothing
-> can answer "what was the *resolved* weather over the elapsed window"** — which
-> is exactly what the ∫weather integral is. Shared with ranching's pasture
-> growth and preservation's spoilage rate. **Resolved 2026-07-31 — and it is
-> ~2 lines**, because every internal weather function already takes a time; only
-> the public entry reads the clock. See
-> [weather-slate § The resolution](../tails/weather-slate.md).
+> *Compacted 2026-09-19 — superseded by the code.* The elapsed-window
+> read exists: `WeatherApi.precipitationBetween(t0, t1, locality)` is a
+> **sum over segments**, integrated by the soil on its next read
+> ([weather.md § `precipitationBetween`](../../subsystems/weather.md),
+> [soil.md § Two checkpoints, and the tri-state](../../subsystems/soil.md)); temperature
+> reaches the ground and the plant through `BiomeApi.resolveTemperatureFor`
+> restamped on the host, never the room's stamp
+> ([husbandry.md § A fifth limiting factor: `cold`](../../subsystems/husbandry.md)).
 
 ---
 
@@ -330,66 +240,36 @@ implementing `LightConduit`) is the right seam for glass, but it propagates flux
 
 ### Orchards — the perennial, and the tenure hook
 
-An orchard is the **standing tap** (ranching's yield shape: a recurring yield
-off a living organism, the same shape as milk, wool, and a deployed fish trap),
-where an annual crop is a **terminal harvest**. That makes it a *multi-year
-capital investment* rather than a seasonal choice — plant, wait years, then
-yield for decades.
+> *Compacted 2026-09-19.* The perennial shipped: monocarp vs polycarp, a crop as a pulse, the
+> verdict window re-seeded at the set → [husbandry.md § The fruit cycle](../../subsystems/husbandry.md).
 
 > **The orchard is the mechanic that makes land tenure emotionally real.** You
 > only plant trees on ground you are confident you will still hold in five
 > years. Nothing else in the design ties a player to a specific parcel that way
 > — which makes it [property](../builds/property-slate.md)'s best gameplay argument.
 
-**Substrate:** [residency.md](../../subsystems/residency.md) already names
-**"resource nodes" as a deferred consumer of the same game-time reset sweep**
-whose only wired user today is retail's `Stock.reset()`. The standing tap is not
-merely *similar* to `Stock` — the residency design anticipated exactly this
-consumer.
+> *Compacted 2026-09-19.* The standing tap shipped on the **flowering latch**, not the residency
+> reset sweep → [husbandry.md § The fruit cycle](../../subsystems/husbandry.md).
 
 ### Houseplants — farming's on-ramp **[DECIDED]**
 
-A houseplant is to farming as a pet is to ranching — *with one correction*. The
-parallel holds on identity, personal care, non-economic stakes, and loss through
-neglect. It **breaks on the spine**: a plant cannot hold an opinion of you, so
-there is **no bond, no regard edge, nothing to win over.** Under the family rule
-(*automation maintains your assets; it cannot maintain your relationships*) a
-houseplant is an **asset** — delegable to a neighbor or a self-watering pot, and
-killable. State the asymmetry plainly:
-
-> **A neglected pet leaves you. A neglected plant dies.**
-
-**The real prize is that it is the cheapest possible entry to the growth
-model.** One pot, one plant, in the dorm room every player already has — no
-land, no parcel title, no weather, no soil economics, no `Warren`. Just light
-and water on the same reconcile engine. **Farming v1 can ship a houseplant
-before it ships a field**, and teach the model at zero scale.
-
-**Verified buildable now:** the dorm room is a keyed persistable host; `Bed` and
-`Desk` are `Surfaced` (free placement, not slots); and
-`ContainerMixin.captureSlice` records **which surface an item rests on**, so a
-plant on the desk round-trips through the reap/restore cycle exactly where you
-left it. The only missing piece is the growth/water state driver itself.
+> *Compacted 2026-09-19.* Shipped as phase 1 → [husbandry.md](../../subsystems/husbandry.md)
+> (the pot as the density dial at N = 1; the starter pot on every dorm
+> desk; *no bond, no regard — a plant cannot hold an opinion of you*, § Deferred seams).
 
 ---
 
 ## Winter **[DECIDED 2026-07-31]**
 
-**7.5 real days, and globally synchronized** — season is computed from a single
-`CAMPUS_LATITUDE`; per-locality climate bias is an explicitly *reserved*
-`Locality` tier-field for a later wave. **There is no "farm somewhere warmer"
-today.**
+> *Compacted 2026-09-19.* Season is global (one `CAMPUS_LATITUDE`) → [weather.md § Season](../../subsystems/weather.md);
+> the per-locality climate bias shipped as `Locality._climateLean` (weather
+> distribution only — [weather.md § The coexistence resolve](../../subsystems/weather.md)).
 
 ### Keep it hard — winter is why preservation exists
 
-> Without a season where production stops, you eat fresh forever, and salt,
-> smoke, and cold storage have no reason to exist.
-
-Softening winter would quietly gut a crafting branch, the salt-cod interlock
-with [mining](../builds/mining-slate.md) and [fishing](../builds/fishing-slate.md), and a chunk
-of the Grange's economics. A **global** winter also makes it a *shared world
-event*: production halts everywhere at once, stored goods spike, and that is
-**DAU-independent demand arriving on a schedule** — once every real month.
+> *Compacted 2026-09-19.* Graduated → [soil.md § Winter](../../subsystems/soil.md) (the
+> mechanism: cold + short days at a place, the greenhouse falls out free;
+> and now the *why hard*: preservation, the shared world event).
 
 ### What a player actually does, in ascending cost
 
@@ -402,12 +282,8 @@ event*: production halts everywhere at once, stored goods spike, and that is
 
 ### Two honest problems
 
-- **Spoilage is the hard dependency.** It is currently deferred to the
-  [metabolism tail](../tails/metabolism-slate.md), which already frames it
-  correctly ("it rots whether you're logged in or not; preservation — salt /
-  smoke / cold storage — is the counterplay, and the economic payoff").
-  **Until spoilage exists, winter is a pause rather than an economy**, because
-  nothing rewards having stored well.
+- ~~**Spoilage is the hard dependency.**~~ Shipped → [spoilage.md](../../subsystems/spoilage.md)
+  (the microbial load, curing, the kill curve); winter is an economy now.
 - **7.5 real days of no outdoor growth could bounce a farming-only player.** The
   mitigation is that mining, fishing, and crafting are live enough to absorb
   them — which makes this a **sequencing dependency**, not something the farming
@@ -417,13 +293,9 @@ event*: production halts everywhere at once, stored goods spike, and that is
 
 ## The land model — farmland without sub-room geometry
 
-> **Ownership is [property](../builds/property-slate.md)'s, not this slate's.** The
-> titled parcel, the author↔owner un-fusing, transfer/rent, and the
-> per-parcel **compute allowance** are the property substrate. Here we own
-> only the *spatial subdivision + the biology that runs on it*. A field-room
-> is a **parcel** — which is exactly why the upkeep drain (below) has
-> something real to be priced against: a farm is persistent simulation you
-> chose to keep alive.
+> *Compacted 2026-09-19.* Title, the land draw and the holding are documented → [parcel.md](../../subsystems/parcel.md),
+> [smallholding.md](../../subsystems/smallholding.md), [holding.md](../../subsystems/holding.md);
+> the compute allowance stays inert (`property-slate`).
 
 The room model has no intra-room coordinates, and the two constraints are
 "more than one plant per room" *and* "more than one room per farm." The
@@ -455,44 +327,17 @@ biology**:
 Both densities run the identical `PlantMixin` growth model — the aggregate
 instances it once per field, the bed once per slot.
 
-**Substrate note:** an N-slot planting bed is pure YAML today —
-`seeds/stuff/thing/Campfire.yaml`'s `staticSlots` pattern verbatim (`log:1`, `accepts:
-SlottableMixin`, `capacity: 4`, plus a matching `details` entry) is the
-template. One caveat: the slotted capture slice records occupancy **by index
-into the container slice**, and non-content occupants resolve to −1 and are
-skipped — so bed-held plants must live in the host's *contents* **and** its
-slots (the wear/equip pattern).
+> *Compacted 2026-09-19.* The N-slot bed shipped (`GardenBed`, `CultivableMixin` over the shared
+> soil) and the contents-AND-slot caveat is documented →
+> [husbandry.md § A slotted plant lives in the pot's contents *and* its slot](../../subsystems/husbandry.md),
+> [smallholding.md](../../subsystems/smallholding.md).
 
 ### A field-room is a land-use choice — and grazing is one of them
 
-> **Pasture is not a separate system. Pasture *is* a field whose standing crop
-> is harvested by mouth instead of by hand** — the animal is the harvester. Full
-> model in [ranching § Land use](../builds/ranching-slate.md); farming owns the plot,
-> the soil, and the biology it runs on.
-
-~~Each field-room is committed each season to one of four uses~~ — **CORRECTED
-by the farmstead build (D7): these are four DESCRIPTIONS, not four settings.**
-Nothing is committed and nothing is declared; **there is no `use` field on a
-field.** All four fall out of **two facts** — *was there a mouth standing on
-it*, and *did anything get carried off* — and the table below is what those two
-facts look like in the four combinations that have names. They still differ in
-nutrient flow rather than yield, which was the table's real point:
-
-| Use | Harvested by | Nutrient flow | Effect on the field |
-|---|---|---|---|
-| **Crop** | you, at maturity | **exported** | depleting |
-| **Hay** | you cut; animals eat elsewhere | **exported** | depleting |
-| **Graze** | the animal, continuously | returned **in place** | ~neutral; with rotation, building |
-| **Orchard** | the tree, annually (perennial) | mixed; multi-year commitment | occupies the room for years |
-
-So a field cropped or hayed hard watches its reserves sag, and the fix — **put
-the herd on the tired field for a season** — is something a player *derives*
-rather than looks up. ⭐ Grazing and mowing are the **same draw on the same
-sward**; the only difference is where the animal was, and that difference is
-where the nitrogen goes, so *fertility follows the mouths* is derived from
-watching rather than told. Real mixed farms rotate land through pasture for exactly
-this reason, and here it falls out of the soil accounting being correct rather
-than from an authored "+N grazing" bonus.
+> *Compacted 2026-09-19.* Shipped → [soil.md § The sward, and the land uses
+> nobody declares (D7)](../../subsystems/soil.md) — the four-row table, *fertility follows
+> the mouths*, `mow` and grazing as one draw on one reserve. ⚠ The *crop*
+> row has no producer yet: nothing sows a `Field` (see *The land model*).
 
 ---
 
@@ -500,56 +345,34 @@ than from an authored "+N grazing" bonus.
 
 ### The checkpoint
 
-A cultivated plot (aggregate field *or* one bed-slot — same code) carries:
-
-```
-species      (crop-catalog Idea)
-genome       (Genome value-object — see Genetics)
-plantedAt    (game-time)
-lastSeenAt   (game-time — the reconcile cursor)
-stage        germination | vegetative | flowering | filling | ripe | senescing
-gddAccum     (accumulated heat units)
-soil:        { moisture, N, P, K, pH, tilth, organicMatter }   ← Reserves
-stress:      { waterDeficitDays, heatDays, ... }               ← quality erosion
-pressure:    { weeds, pests }                                   ← adversarial reserves
-```
+> *Compacted 2026-09-19 — superseded by the shipped state.* The plant
+> carries `growthClockStamp`, stage, vigor, `_worstLimiting`, `_fruitFill`
+> and the light/ambient samples ([husbandry.md § The reconcile contract](../../subsystems/husbandry.md));
+> the **ground** carries its own checkpoint and reserves
+> ([soil.md § Two checkpoints](../../subsystems/soil.md)). No `genome` (see *Genetics*),
+> no `stress`/`pressure` slots.
 
 ### `reconcile(plot, now)` — the keystone
 
-On **any read or action**, walk game-time from `lastSeenAt → now` in
-sub-steps (the metabolism lazy-sub-step; ⚠ **not** its bodies-only far-past
-guard). Per sub-step:
-
-1. The **resolved** weather for that sub-step (⚠ *not* `weatherAt` — see *The
-   clock*; needs the time-parameterised resolve) — rain tops up `moisture`;
-   temperature feeds `gddAccum` and drives evapotranspiration.
-2. **Reserves:** `moisture += rain − ET(temp,humidity,stage) −
-   uptake(stage)`; `N,P,K −= uptake(stage)`; weeds/pests grow if pressure
-   is high, stealing from the same reserves.
-3. **Growth rate = `base(stage) × limitingFactor`**, where
-   `limitingFactor = min` over the normalized satisfactions of {moisture,
-   N, P, K, temp-in-band, light}. That `min` is **Liebig's Law of the
-   Minimum = the weakest-link `Grade`** the crafting slate already uses.
-4. Accumulate maturity; accumulate `stress` when a factor is critically
-   starved (erodes quality — never an instant kill; **forgiveness** is the
-   cozy contract).
-5. Cross a `gddAccum` threshold → advance `stage`.
-6. Checkpoint: write back reserves/gdd/stage, `lastSeenAt = now`.
-
-**Path-dependence is solved by checkpointing, not an event log.** A
-player intervention (water, feed) mutates the checkpoint at the moment it
-happens, then reconciles forward. Between actions only weather drives it,
-and weather is free and procedural.
+> *Compacted 2026-09-19.* Shipped → [husbandry.md § The reconcile contract](../../subsystems/husbandry.md)
+> (sync, read-triggered, idempotent; step cap never time cap; the minimum
+> over water · light · root · nutrient · **cold**), [§ Durability](../../subsystems/husbandry.md)
+> (checkpointing, not an event log; a mutating act captures its host).
+> ⚠ Not as written: there is **no `gddAccum`** — maturity accrues by
+> *good time* above `husbandry.goodAt` and temperature enters as the
+> `cold` factor — and weeds/pests are absent (see *Pests* below). The
+> elapsed-window weather read is `precipitationBetween` (*The clock*).
 
 ### Soil — six reserves, six lessons
 
-| Reserve | Leash | In / Out | Real concept taught |
-|---|---|---|---|
-| **moisture** | daily | rain + watering / ET + uptake | evapotranspiration (hot dry days drink fast) |
-| **N / P / K** | seasonal | fertilizer/compost/legume / growth uptake | heavy vs light feeders; **crop rotation** (a legume writes N back — emergent) |
-| **pH** | slow | amendments | gates nutrient *availability*, not supply ("well-fertilized plot still failing, *why?*") |
-| **tilth** | per-till | tilling / rain compaction | soil structure, infiltration (keeps tilling in the loop) |
-| **organic matter** | multi-season | compost, cover crops | the long game — buffers moisture, slow-releases N; why a master's plot out-yields a novice's on identical weather (**permanence as world-distribution**) |
+> *Compacted 2026-09-19 — superseded by the code.* Soil shipped as **four**
+> reserves — moisture · nitrogen · organic matter · structure — with
+> legume fixation in and leaching out → [soil.md § The four reserves](../../subsystems/soil.md).
+> **pH is not a reserve**: it is the seeded `GroundCharacter.nativePh`,
+> offset by `lime`/marl, and it prices *improvement*, never availability
+> → [§ Ground character](../../subsystems/soil.md), [§ D55](../../subsystems/soil.md). P · K · tilth did not
+> ship (bone meal's row says phosphorus is *"the second thing a field runs
+> out of"* — a stated seam, no reserve behind it).
 
 ### Stages teach *when*, not just *whether*
 
@@ -572,8 +395,9 @@ same drought at filling costs fruit *size*. Timing dominates.
   stressed for medicine (small, potent) → different products. "Different
   farms, same biology," down to the molecule.
 
-Harvest mints matter stamped with a `CraftedMixin` maker's-mark (grew on
-*this* plot, by *this* hand) → an input to the crafting stack.
+> *Compacted 2026-09-19.* Harvest mints a `Crop` — a `Provision` carrying the maker's mark, a
+> `Grade` off the worst limiting stretch and the spoilage gauge →
+> [husbandry.md § Content](../../subsystems/husbandry.md), [§ The fruit cycle](../../subsystems/husbandry.md).
 
 ---
 
@@ -582,13 +406,8 @@ Harvest mints matter stamped with a `CraftedMixin` maker's-mark (grew on
 The loop is **earn → automate → but the automation costs**, so idle income
 is structurally impossible. Each rung just changes *who pays*, never *whether*:
 
-> **~~Upkeep is a real-time drain (wall-clock, not game-time).~~ STRUCK
-> 2026-07-31 — upkeep is game-time like everything else.** That divergence
-> existed because game-time *froze* when you logged off; under the family clock
-> nothing freezes for owned assets, so game-time and real-time are now the same
-> clock at a fixed ratio. Worse, `time.md` confirms **pausing the world clock
-> pauses in-flight activities** — a real-time drain would be the only thing
-> still ticking through an admin pause. **One clock.**
+> *Compacted 2026-09-19.* The struck real-time-upkeep note is history: owned things run on ONE
+> clock, world time → [husbandry.md § The clock rule](../../subsystems/husbandry.md).
 
 | Rung | Who shows up | The cost |
 |---|---|---|
@@ -616,16 +435,14 @@ line, where farm/ranch renewal is **private** while mining and fishing are
 system** — upstream and downstream, a shared draw, a real fight between the
 Grange and the Landwrights. Excellent polity-paper material.
 
-**Cost check (2026-07-31):** this is *not* cheap. `UnboundedSourceMixin`
-(`lib/bulk/UnboundedSource.ts` — a well, a spring, a tap) ships and makes
-irrigation-from-a-source work today, but an **infinite source has no commons
-problem** — you cannot over-draw a tap that never runs dry. The whole game needs
-the **finite-but-regenerating** source, which that file's own docstring names as
-explicitly deferred ("this is NOT a regenerating well… that richer model is
-deferred"). So the water commons rides a named deferral, not shipped substrate.
-*(Nearest live cousin: `WeatherLogic.maintainPuddle` fills a room `Floor`'s
-surface bulk from rain and evaporates it — a real rain-fed body, presence-gated
-and uncapped.)*
+> *Compacted 2026-09-19.* The finite-source premise is overtaken: the water pack shipped flow as
+> a **takeable volume**, `StorageNode` levels, and rights as *volume per
+> window + priority date* (prior appropriation records · riparian derives)
+> → [watershed.md § Flow is a TAKEABLE volume](../../subsystems/watershed.md),
+> [§ Storage and control](../../subsystems/watershed.md), [§ Rights](../../subsystems/watershed.md).
+> The household tap stays deliberately unlimited (*"rivalry lives at
+> agricultural and industrial scale"*); `UnboundedSource`'s docstring still
+> names the regenerating well as deferred.
 
 ### Pests, thorns, and navigability
 
@@ -982,37 +799,15 @@ the platform's reason for being, and farming is a clean first vehicle.
 
 ## Buildable-now — the staple loop (v1)
 
-Enough is settled to ship a cozy first slice with **no genetics and no
-magic**:
-
-> **Sequencing note (2026-07-31): consider a pre-v1 — the houseplant.** One pot
-> in the dorm room, on the same reconcile engine, with no land, no parcel, no
-> weather, and no soil economics. It teaches the growth model at zero scale, is
-> **buildable on shipped substrate today**, and de-risks the engine before any
-> of the land model exists. See *Houseplants*.
->
-> **Hard prerequisite for the field tier either way:** the **sun→ambient light
-> driver** (see *Substrate mapping*) — crops need light and nothing derives it.
-
-- **A farm = a one-node Warren** under a `Locality`; **field = a room**,
-  soil as `Reserve` instances on its `Floor`; the **aggregate** density
-  only.
-- **The tend loop:** `till` (hoe-afforded engaged activity → unlocks
-  `plant` via per-instance affordance), `sow`, `water` (`BulkableApi`
-  transfer from a can), `feed`, `harvest`.
-- **Reconcile-on-read growth** (no tick, no presence freeze): GDD + the
-  Liebig weakest-link over the six soil reserves + the ∫weather integral;
-  stage progression; **forgiveness** (starvation lowers quality, never an
-  instant kill).
-- **Harvest mints matter** stamped with a maker's-mark + a `Grade` band,
-  feeding the **existing crafting + metabolism loop** (grow → cook/mix →
-  eat/drink — a complete cycle with zero new consumer needed).
-- **One authored crop** (a staple, e.g. a grain or tomato) as the
-  crop-catalog seed; **band-only surface** by default, one cheap
-  instrument (a soil probe) as the first progressive-disclosure step.
-
-What v1 deliberately does **not** ship: genetics, the brewing/synthesis
-branch, the magic effect layer, and the University teaching seam.
+> *Compacted 2026-09-19 — shipped, in three stages and a different shape.*
+> The houseplant pre-v1 → [husbandry.md](../../subsystems/husbandry.md); the bed on ground you
+> own, `feed`, the weakest-link harvest → [smallholding.md](../../subsystems/smallholding.md); the
+> field, `plot`/`grub`/`ditch`/`lime`/`plough`/`mow`, four soil reserves,
+> the survey ladder → [soil.md](../../subsystems/soil.md). `till` did not ship (clearing is
+> `grub`/`plough`); `sow` is an alias of `plant`; the "hard prerequisite"
+> sun→ambient light driver was NOT needed — rooms author `ambientIntensity`
+> and the field reads photoperiod for its sward — and it is still open
+> (see *Substrate mapping*).
 
 ---
 
@@ -1048,9 +843,7 @@ branch, the magic effect layer, and the University teaching seam.
 
 ## Open problems & deferred
 
-- **Tending cadence tuning** — moisture-drain vs rainfall frequency, and
-  how early automation unlocks (high-touch/cozy/small-scale vs low-touch/
-  scaling). *An open question below.*
+- ~~**Tending cadence tuning**~~ → resolved (Q1 below; `husbandry.md § Calibration`).
 - **Effect-resolution detail** — exactly how a compound's profile fires
   across vitals/augmentation/perception when consumed (the "what the potion
   does to you" end). Sketched; not specified.
@@ -1061,39 +854,27 @@ branch, the magic effect layer, and the University teaching seam.
   partnership; the *seam* is designed here, the concrete adapter is a swap.
 - **Genome linkage / chromosomes (v2)** — the position structure behind
   linkage drag.
-- **Spoilage / perishability** — the harvest decaying post-pick; rides the
-  [metabolism tail](../tails/metabolism-slate.md).
-- **Numeric calibration** — every rate, threshold, and curve constant.
-  Deferred to a running game to tune against.
-- **A full farming design doc** — this slate is the surface; surviving
-  design graduates to `docs/subsystems/` once a slice ships.
+- ~~**Spoilage / perishability**~~ → shipped, [spoilage.md](../../subsystems/spoilage.md).
+- ~~**Numeric calibration**~~ → every rate is an `AppSetting` dial, declared
+  placeholders for a running game → [husbandry.md § Calibration](../../subsystems/husbandry.md).
+- ~~**A full farming design doc**~~ → `husbandry.md` · `soil.md` · `smallholding.md`.
 
 ---
 
 ## Open questions
 
-1. ~~**Tending cadence**~~ **RESOLVED 2026-07-31 by the 12× clock.** The old
-   lean (*frequent-but-forgiving, the Stardew arc*) assumed Stardew's premise —
-   that you are present for every game day. At 12× a daily player skips **12
-   game days**, so a frequent ritual isn't high-touch, it's un-tendable.
-   **Answer: sparse-and-buffered — one login = one meaningful tend decision**,
-   with reserves buffering over 1–2 game weeks. See *The clock*.
-2. **How far do numbers surface** — do high-competence instruments cross
-   from bands into real quantities for the deep player? *Lean: yes — world
-   quantities are numeric with error bars; only the self-estimate (θ)
-   stays a band.*
+1. *Q1 resolved 2026-07-31: sparse-and-buffered, one login = one tend*
+   *decision → [husbandry.md § Calibration](../../subsystems/husbandry.md) (every threshold*
+   *is calibrated against the login, not the game-day).*
+2. *Q2 resolved by the code: yes — a survey reading is a number with an*
+   *error band the eye earns, recomputed at read time (`pH 6.2 ± 0.15`),*
+   *while the self-estimate stays a band → [soil.md § The survey ladder](../../subsystems/soil.md),*
+   *[§ D5 — the survey is per-viewer](../../subsystems/soil.md).*
 3. **First teaching unit** — course / mentor / treatise. *Lean: course
    (mints a known-of claim) as the diegetic study.com analogue.*
-4. ~~**Crop catalog as `Species`-family or its own tier**~~ **RESOLVED
-   2026-07-30 — reuse the existing tree.** The `Species`/`Clade` taxonomy
-   already spans `animalia` *and* `plantae` (a sessile peace-lily row is
-   the proof token), so crops, livestock, and pets are **one catalog
-   shape** — which is what makes the husbandry-wide genome coherent. This
-   overturns the earlier lean toward a sibling catalog. *Corrected
-   2026-07-31: the peace-lily row is NOT documentation-only — it ships in
-   the `species-and-names` pack, and the houseplant build added a snake
-   plant (`Dracaena trifasciata`) beside it. The `plantae` shelf is
-   populated; farming extends it rather than opening it.*
+4. *Q4 resolved (2026-07-30): one catalog shape — the `Species`/`Clade` tree*
+   *spans `plantae`; `trade-farming` ships 25 plant species rows under*
+   *`content/stuff/idea/species/plantae/` → [race.md](../../subsystems/race.md).*
 
 ---
 
@@ -1106,11 +887,7 @@ it. Verbatim below.*
 
 ## Stage B (after residences Waves 0–5 land; B0 gates the rest)
 
-### Wave B0 — Re-ground + rebase (mandatory checkpoint)
-
-Per P6. Deliverable: a short delta note appended to this plan (what
-moved, any interface surprises), surfaced to the user before B1 when
-material.
+> *Compacted 2026-09-19.* B0 (re-ground + rebase) was a plan checkpoint and is history.
 
 ### Wave B1 — The `hearts-delight` pack + the district
 
@@ -1124,102 +901,39 @@ crossroads/TPA end — the cash-and-carry both-sides-explicit pattern;
 exact host edge per B0's landed map). **Tests:** pack annex tests —
 claims, plan shape, rows resolve; fresh-DB boot installs.
 
-### Wave B2 — Break ground + spherical fields
+### Waves B2–B5
 
-Per P7: the field row (authored template — composition per B0:
-`SphericalLocation` + Container + the cultivable-ground surface),
-the programme-member budding, the ledger, the act + engagement, anchor
-projection + ring-packing + the no-overlap assertion, radius →
-size-scale wiring if absent. **Tests:** ledger arithmetic (area budget,
-homestead reserve); bud → keyed member in the fields zone with honest
-focus/radius; no-overlap refusal; the gate wires; restore re-buds from
-the ledger; land use resolves via the key; a second holding's anchor
-never collides.
-
-### Wave B3 — The exemplar farm
-
-Per P8 + P5: the pre-sold holding (fields seeded in data, established
-+ ripe under model-consistency, asserted by test); the farmer NPC
-(proprietor + purchases position; the brain config; a basket, can,
-sacks via `props:`); the farm Business. **Drive (checkpoint B1):**
-spawn at the farm — the farmer's beat waters/picks/sells at the
-market; buy a raw lot (Governor-funded, the hinkley e2e pattern),
-break ground, plant, water.
-
-### Wave B4 — The switchover (atomic)
-
-Per P0: lounge produce par lines → the market business; crate rows
-`regionTarget: 0` + `props`/`container` removed; the old
-trade-farming island retires (floor, stock, Wen, her config; the
-libations-annexes spawn-shape expectations re-cut for farming's
-departure — the carve verified in the discarded branch). **Tests:**
-no produce spawn candidate remains; the keeper's sheet resolves the
-market; the annex suites re-cut.
-
-### Wave B5 — Drives, docs, finalize runway
-
-Full drives: the farm loop (fresh boot → farmer supplies the market →
-keeper buys → a lime daiquiri with a grown, graded, marked lime); the
-player loop (buy raw land → break → plant → pick → sell); the
-Hinkley-yard leg re-run; restart persistence (the cast fix proven
-live). Docs: husbandry.md final; a hearts-delight README; retail.md
-market note; slates annotated. The finalize runway: source-change
-check, ONE full suite, lints, push — stop for the user's MR review
-(the /finalize sweep is its own phase).
+> *Compacted 2026-09-19 — superseded by the farmstead build, in a
+> different shape.* **B2** (spherical fields, ring-packing) → `plot`
+> breaks a keyed `Field` out of a holding's yard, ground key stamped from
+> where the plotter stood ([soil.md § `Field`](../../subsystems/soil.md), [§ `plot`](../../subsystems/soil.md),
+> [smallholding.md § The field arrived](../../subsystems/smallholding.md)). **B3** → the
+> `hearts-delight` pack shipped as a **static authored farm** (its README:
+> content-only, a source node not a faucet) and the campus farm
+> (`eternal-university/…/campus-farm`) is the managed exemplar; the farmer
+> row runs `introduces`/`idles`, not the `farms` brain. **B4** did NOT
+> happen and is superseded by that ruling — the trade-farming packing
+> floor + Wen still stand at target through the distribution sweep, and
+> the counter is a faucet that *admits to being one*. **B5** → the drives
+> ran (`farmstead.dirty.wire.test.ts`), the docs are `husbandry.md` /
+> `soil.md` / `ranching.md`.
 
 ---
 
-## Acceptance-criteria coverage
+## Acceptance-criteria coverage · Risks & opens
 
-| Criterion (requirements) | Waves |
-|---|---|
-| Polycarp two-cycle grade + death | A2, A3 |
-| Annual/phase-1/2 suites untouched | A2–A4 (pins) |
-| Graded + marked produce; healed gather; tool never gathers | A3, A4 |
-| Faucet closed; no unpicked produce | B4 |
-| Nitrogen export/feed loop | A3 (+shipped) |
-| The market path to the bar + the drink | B3–B5 |
-| Player picks + sells at the market | A6 (garden), B3 (farm) |
-| Hinkley-yard leg, farm-free | A6 |
-| Break ground, honest placement data | B2 |
-| Authored ≡ player ground (equivalence) | B2/B3 tests + B5 drive |
-| Docs | A7, B5 (sweep items at finalize) |
-
-## Risks & opens
-
-**OPEN for the user — RESOLVED 2026-08-31: defaults accepted on all four.**
-1. **Market square placement + name** — off the counting-houses block
-   is the plan's default (demand-side, von Thünen); name is content.
-   Say the word if you want it elsewhere (or named now).
-2. **The stall cap** as an authored per-shelf override (P4) — confirm;
-   the alternative (raising the global cap) leaks to every shelf.
-3. **The farmer's name/character** — yours when B3 nears.
-4. **P0's sequencing** (faucet closes at B4, not Stage A) — flagged
-   because the requirements say "closed" without a stage; this is the
-   no-half-state reading.
-
-**Risks (managed):** Stage B is planned against residences' plan, not
-landed code — B0 exists to catch drift, and the break-ground interface
-note is already on their table. The counter.yaml touch (A5) can
-conflict with residences Wave 7 — mechanical rebase. The spherical
-size-scale wiring is unverified until B0/B2. The market cap override
-touches `ConsignController` — the consignment suite is the pin.
+> *Compacted 2026-09-19.* Plan artifacts of a retired plan: the A-waves
+> shipped (`husbandry.md § The fruit cycle`, `§ Content`), the four opens
+> were resolved by default on 2026-08-31, and the B rows are superseded
+> per *Stage B* above.
 
 ---
 
 ## Checkpoint A — the drive record (appended at build time, 2026-08-31)
 
-Stage A built as planned (A1–A7, one commit per wave on `build/farming`).
-The checkpoint-A drive ran as `e2e/tests/drive-farming.spec.ts` over 26
-live iterations at a compressed clock (world_state scale 6000×; above
-~10000× the schedulers starve the event loop). **Grow→pick proved live
-end to end** — fund → bank → the store kit → title-buy a fresh lot →
-pour the soil → plant → the watering season → the ripe pick off the
-living plant. The market legs (consign/buy at the stalls) were cut down
-by harness artifacts (finally: a broken founder fixture on the dev DB —
-its `look` never answers) and stand on the unit/fixture suites plus the
-same consign controller running nightly in Wen's live loop; re-run the
-spec on a fresh DB to close them live.
+> *Compacted 2026-09-19.* Stage A's drive record (grow→pick live end to end; the two dispatch
+> crashes; the unbuyable pot) is history — `e2e/tests/drive-farming.spec.ts`.
+> The drive-found seams below are kept for the slates they belong to.
 
 Drive-found defects fixed in this build: two unguarded
 `getInteractives().size` reads that crashed command dispatch (one rode
@@ -1231,9 +945,6 @@ ships capacity but no soil (the pour-the-soil flow is the true first
 act — its prose should stop claiming otherwise); and dev-preflight's
 kill-by-kind reaches across worktrees.
 
-**Post-checkpoint ruling (2026-09-01):** the producer brain does NOT
-stay kernel — it ships in the pack, at
-`packages/content/trade-farming/src/behavior/farms.ts`, addressed
-`/trade/farming/behavior/farms` (the first shipped pack brain on the
-capability rung; P5's kernel placement is superseded). Stage B's farmer
-rows must name that path, never `/lib/behavior/farms`.
+> *Compacted 2026-09-19.* The post-checkpoint brain ruling is documented → `behavior.md` l.197,
+> `content-packs.md § trade-farming` (the brain ships at
+> `/trade/farming/behavior/farms`). ⚠ No row names it yet — see the ledger.

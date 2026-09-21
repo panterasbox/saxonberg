@@ -240,6 +240,25 @@ or **torpor** (ectotherm — alive but immobile, read by
 10)` (dials in `METABOLIC_DEFAULTS`). An endotherm pinned at setpoint ≈ 1;
 an ectotherm whose core floats cold burns far less fuel.
 
+### The warming slot — outdoor proximity without geometry
+
+The engine has no positions within a room, so a naïve campfire would
+warm the whole room uniformly — wrong outdoors, right indoors. The
+split rides `SkyExposedMixin`: **indoors**, trapped convection would
+warm the room's ambient (**still a follow-on** — not wired); **outdoors**,
+the fire is radiant-only and warms nobody who isn't *at* it, and "at" is
+**slot occupancy, not coordinates**. `Campfire` composes `Postured`
+log-seats carrying a `warmth` attribute (alongside `restQuality` — the
+same seat that lets you rest also keeps you warm), read by
+`ThermalRegulationMixin.effectiveAmbient()` when occupied. **Capacity is
+the huddle limit**: the number of seats caps how many bodies the fire
+warms, for free — no distance math, no collision geometry, just how many
+logs there are. This is the shipped instance of a general pattern
+(microclimates as *occupiable* features, not *located* ones); a generic
+"any hot `Thermal` object radiates to nearby bodies" read (a hot rock,
+not just an authored fixture) remains open — see
+[thermal-slate](../slates/tails/thermal-slate.md).
+
 ## ⭐⭐ The internal heat load — heat that is not the weather's
 
 **The regulation model was ambient-only, and that was a hole.** A body
@@ -294,12 +313,23 @@ wet-bulb ceiling, wind-chill, torpor band, lethal dwell — except the Q10
 coefficient + reference, which live in `METABOLIC_DEFAULTS` (its consumer
 is `basalDrain`). **Rates are playtest-tuned, not plan decisions.**
 
+## Honest scope (the abstraction)
+
+The skeleton is real physics — lumped-capacitance Newton's cooling,
+`τ = R·C`, the standard first-order model — not a tuned curve. What's
+approximated: **one temperature per object** (no internal gradients — a
+log's core and its crust read the same); **tabulated effective `R`** (no
+thickness/area geometry — vessel-type and garment constants fit to
+realistic hold-times, not derived from wall thickness); and a **single
+barrier + single wall** per object (a two-wall flask lumps to one term).
+Honest engineering numbers, game-tuned — not CFD.
+
 ## Non-goals (deliberate)
 
 Object-to-object conduction (a hot pot doesn't warm the table),
 ventilation (no inter-room air mixing — weather-adjacent), installed
 thermal gear (augment cooling), temperature-blending glob merge, heated
-vehicle cabins, phase change / latent heat, sauna
+vehicle cabins, sauna
 rooms (the heat-index/wet-bulb *model* is in; rooms are not), campfire
 fidelity tiers (smoke/cooking/spread), behavioral AI, fever content
 (the movable `setpoint` is the structure only). Each rides an existing

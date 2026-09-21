@@ -1,11 +1,19 @@
 # Wizard duty slate — law suggested by the technology itself
 
-> **Status: UNBUILT** — no duty, no break-glass, no `su`; `provision`,
-> `unprovision`, `config` and `practice` still carry `requiresWizard`
-> **Left:** re-gating those four off the code-trust axis · break-glass
-> declared-purpose logging for reads and impersonation · `su` as an
-> agency consumer · the duty text + safe harbour in the wizard grant ·
-> subject notification on record access
+> **Status: UNBUILT** — no duty, no break-glass, no `su`, no agency
+> substrate (verified 2026-09-19). `requiresWizard` sits on 12 views:
+> `provision` / `unprovision` (duncan-hall), `lease` / `unlease`
+> (mayfield-row), `config`, `practice`, `cms`, `studio`, and the three
+> real code-doors `eval` / `reload` / `git`. Since the table below:
+> `house` is seat-gated (`banking.md`, libations) and `pack` rides
+> `requiresPackInstaller`.
+> **Left:** re-gating the non-code-trust sites off the wizard axis
+> (`provision` / `unprovision` / `lease` / `unlease` → agency or title;
+> `config` → an office; `practice` → a harness gate) · live-driving the
+> Katie `dispatch provision` path · break-glass declared-purpose logging
+> for reads and impersonation · `su` as an agency consumer · the duty
+> text + safe harbour in the wizard grant · subject notification on
+> record access · the "people who can see everything" appendix
 > **Size:** a build
 
 **Captured 2026-08-04**, as the last dimension of the law-source hunt:
@@ -22,10 +30,6 @@
 the corner the player never sees** — it makes the other three possible
 and is invisible until it fails. **The law it suggests has the same
 property: nobody notices it until it is violated.**
-
-> **Status: design conversation, captured. Not requirements.** The
-> honest version, deliberately — the reassuring version would be worse
-> than useless here.
 
 Related: [call-security.md](../../subsystems/call-security.md),
 [access.md](../../subsystems/access.md) (the code-trust lockdown; the six

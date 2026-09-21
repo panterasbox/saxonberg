@@ -4,20 +4,13 @@
 > `introduce` and disguise shipped 2026-06 →
 > [belief.md](../../subsystems/belief.md)
 > **Left:** player-set nicknames (`name X as Y`) · memory decay ·
-> voice/scent recognition · MQL compound feature-handles · the aether
-> id-aug ambient trigger
+> voice/scent recognition · algorithmic salient-feature generation
+> (author-tunable per-species templates) · MQL compound feature-handles
+> · richer disguise content (heavy cloak / full illusion) · faking
+> identity + a suspicion mechanic (v1 has no way to give a false name at
+> all) · cross-character recognition sharing · the aether id-aug ambient
+> trigger
 > **Size:** a wave
-
-> **Status (2026-06):** the **build has shipped** — the per-viewer belief
-> store (`BeliefStoreMixin`), the `RecognitionApi.describe` viewer-aware
-> naming step, the `introduce` + repeat-perception triggers, creature
-> disguise (`Disguisable` + the hood), the viewer-relative targeting
-> name-leak gate, and `StatusMixin` graduated to
-> [belief.md](../../subsystems/belief.md). What remains here is the
-> deferred surface: player-set nicknames (`name X as Y`), memory decay,
-> voice/scent recognition, MQL compound feature-handles
-> (`talk to tall-stranger`), and the aether id-aug ambient trigger (axes
-> unresolved + the augmentation substrate is being retooled).
 
 Working slate for the per-viewer perception of identity — who
 the viewer recognizes, who's a stranger, who's disguised, and
@@ -52,245 +45,6 @@ See also:
   object — not a category enum — decides how the read renders.
 - [docs/adjoining-systems.md](../../adjoining-systems.md) — this
   slate graduates entry #5.
-
----
-
-## Principle
-
-Recognition is **per-viewer state about other actors**. The
-target Stuff isn't different across viewers; how each viewer
-perceives it is. Three concerns interlock:
-
-1. **Recognition** — has the viewer met the target? Do they
-   know the name?
-2. **Disguise** — is the target actively obscuring identity?
-3. **Salient features** — what's noticeable about the target
-   to a viewer who doesn't recognize them?
-
-These compose into the **DescribeApi v2 pipeline**, which is
-the framework's answer to "what does viewer V see when
-perceiving target T?"
-
----
-
-## The DescribeApi v2 pipeline
-
-> **Naming / home (refinement below):** this pipeline is homed on
-> `PerceptionApi.describe(viewer, target)`; the name "DescribeApi" **retires**,
-> its self-presentation half becoming the `Stuff.getPresentation()` instance
-> method. See *Self-presentation vs. viewer-perception* below for the A/B
-> split and where each pipeline step lands.
-
-Every perception-rendering call routes through this pipeline:
-
-```
-1. Visibility gate — is T perceivable to V?
-   • LightApi (light propagation)
-   • concealment / Stealthing
-   • containment-scope reachability
-   → if no: return null
-
-2. Resolve T's presented identity
-   • collect active disguise effects on T
-   • compute: T's true features minus disguise-covered ones
-   • if disguise overrides face: identity is masked behind
-     disguise's appearsAs
-
-3. Recognition lookup
-   • V.knownPeople.get(T)
-   • If T is in store AND not disguised beyond recognition:
-       use stored knownAs
-   • Else: generate salient-feature description from
-     uncovered features
-
-4. Bucket-keyed verbosity (attention-management)
-   • V.socialGraph determines T's bucket(s)
-   • Bucket's display policy shapes the rendering:
-       full name, feature-string, count-only, etc.
-
-5. Decoration
-   • state tags: wielded, sleeping, sitting, mounted
-   • status flags: poisoned, glowing, on fire
-   • posture
-
-6. Combine: identity + bucket-policy + decoration → MML
-```
-
-Step 4 is where social-graph integration happens; the bucket
-substrate is detailed in [social-graph-slate.md](../tails/social-graph-slate.md).
-
-**Stackable contributes to the identity side**, not decoration.
-When the target carries the `Stackable` mixin, the count enters the
-noun phrase produced by step 2/3 ("30 coins" vs "a coin"), and step
-5's decorations wrap that identity intact ("30 burning coins", not
-"burning 30 coins"). The mixin exposes `getQuantity()` + the host's
-singular `getDisplayName()` and optional `getPluralForm()`;
-pluralization runs through `GrammarApi`. Stackable doesn't know
-about viewer state — DescribeApi v2 negotiates recognition,
-perception, and bucket-verbosity, then asks Stackable for the
-data it needs to build the count-bearing identity. See
-[subsystems/stacks.md § Display rendering](../../subsystems/stacks.md#display-rendering--describeapiformatname).
-
----
-
-## Self-presentation vs. viewer-perception — `getPresentation()` and the DescribeApi split
-
-"DescribeApi" conflated **two concerns**. Splitting them homes each correctly
-("polymorphic step on the class, orchestration on the Api" — cf.
-`Zone.lookupField` vs `ZoneApi`):
-
-- **(A) Self-presentation** — *"what's this object's display string?"* Its
-  name (`Named`) **or** `shortDescription`, + **status** (if it's a
-  `StatusMixin` agent), + **viewer-independent** affixes (wielded, count,
-  posture). The object describing *itself*; polymorphic over its mixins; the
-  contract surface other Stuff wants — and what most of the ~76 legacy
-  `getDisplayName` callers actually need (a label for a message, not a
-  perception negotiation). → **an instance method on `Stuff`:
-  `getPresentation()`** (renamed from `getDisplayName` — "Name" wrongly
-  implied `Named`, but the string is name-*or*-shortDescription + status +
-  affixes). **No `viewer` param** — viewer-relativity lives wholly in (B).
-
-- **(B) Viewer-perception** — *"what does viewer V see perceiving target
-  T?"* Recognition lookup, disguise resolution, bucket verbosity — a stateful
-  negotiation between two parties. → **the Api**, entry point
-  **`PerceptionApi.describe(viewer, target)`** (the pipeline above). It calls
-  `target.getPresentation()` as its baseline, then layers the viewer-relative
-  steps.
-
-So **the name "DescribeApi" retires**: self-presentation → `getPresentation()`
-on Stuff; the viewer pipeline → `PerceptionApi.describe`.
-
-**How the pipeline steps split across A/B:**
-
-| Pipeline step | Home |
-|---|---|
-| 2. presented identity (disguise-applied) | `getPresentation()` baseline; disguise **shadows it** (target state — viewer-independent) |
-| 3. recognition lookup (known vs salient) | **(B)** PerceptionApi — viewer-relative |
-| 4. bucket verbosity | **(B)** PerceptionApi — viewer-relative |
-| 5. decoration | **splits** — viewer-independent tags (wielded, count, posture, status) ride `getPresentation()`; viewer-relative collapsing (bucket counts) is (B) |
-
-**Affix mechanism.** The viewer-independent decorations compose via the
-**`MarkupAugmenter` pattern** — a `static`-on-mixin contributor collected by a
-`MixinApi` walker (mirroring `getAllMarkupAugmenters`), each nullable and
-ordered (prefix count, postfix state). `Stackable`'s count is one such
-contributor on the **identity side** (decorations wrap it intact — "30 burning
-coins"), so the old `DescribeApi.formatName` **folds into `getPresentation()`**
-as a Stackable affix rather than a standalone method.
-
-### `StatusMixin` — the settable activity-status (new)
-
-The one genuinely new piece. An **agent** mixin holding a **settable
-activity-status** string — the second half of the simple public surface
-**`{{name}} {{status}}`** (e.g. "Gus, **the crossing guard, watching the empty
-road**"). It feeds the decoration slice of `getPresentation()`.
-
-- **Settable three ways:** a player **`status`** command; an NPC's **behavior
-  brains** at runtime (the `idles` / `greets` brains set it as a side effect —
-  idle → "watching the empty road," greeting → "seeing a newcomer across");
-  or a **static default** for the many NPCs whose status never changes.
-- **Distinct from the slate's "status flags"** (step 5: poisoned / glowing /
-  on fire), which are **derived** from effects/conditions. StatusMixin's
-  status is **authored/set**. Both land in decoration, different sources —
-  don't merge them into one field.
-- **The value may grow structured** (a Liquid template against behavior
-  context) without changing the dumb **Name + Status** public API. The seam
-  stays simple; the implementation needn't.
-
-This is a near-term, buildable refactor (the `getPresentation()` rename + the
-affix walk + `StatusMixin`) that the larger viewer-perception pipeline (B)
-then sits on top of.
-
----
-
-## The recognition store — viewer-side
-
-```ts
-interface RecognitionRecord {
-  knownAs: string;          // 'Bob' or 'the tall stranger I saw yesterday'
-  firstSeen: Timestamp;
-  lastSeen: Timestamp;
-  bucket?: string;          // social-graph integration
-  trustTier?: number;       // comms-slate moderation integration
-  notes?: string;           // optional richer context
-}
-
-viewer.knownPeople: Map<Stuff, RecognitionRecord>
-```
-
-Crucial nuance: **strangers are tracked too.** First sight of an
-unknown actor creates a record with `knownAs` derived from
-salient features. Repeat encounters update the existing record
-(`lastSeen` advances; `notes` may enrich). When introduction
-finally happens, the existing record's `knownAs` upgrades from
-`'the tall stranger I saw yesterday'` to `'Bob'`.
-
-This means **same-Stuff = same record**, regardless of how many
-times encountered. The viewer always recognizes "the same
-person I saw before" even before learning their name.
-
-### What populates the store
-
-| Trigger | Effect |
-|---|---|
-| First perception of unknown target | New record; `knownAs` from salient features |
-| Repeat perception | Existing record's `lastSeen` updated |
-| Introduction (sender says "I'm Bob") | `knownAs` upgraded to introduced name |
-| Third-party identification (v2) | Trusted source's identification propagates |
-| Voice/scent recognition (v2) | Different sensory channel triggers update |
-
-For v1: explicit introduction + repeat-perception. Defer
-third-party and multi-modal.
-
-### Persistence
-
-This store grows large for long-term players. Persistence
-considerations:
-
-- Per-record write granularity (not whole-store fsync).
-- Lazy hydration — load records on first reference per session.
-- LRU in-memory caching with write-through to disk.
-- Optional pruning policy for years-old untouched records.
-
-The current Document/Stuff split persists recognition records on
-the `Document` track (CRUD via `PersistenceManager`), which is
-whole-document; recognition needs finer access patterns. This
-is flagged for the persistence-layer follow-on.
-
----
-
-## Disguise — Wearable with a perceptual shadow
-
-A Disguise capability composes onto Wearables:
-
-```ts
-interface DisguiseEffect {
-  appearsAs: string;             // 'a hooded figure'
-  disguiseStrength: number;      // 0..1; thoroughness
-  appliesToFeatures: string[];   // 'face' | 'body' | 'voice' | 'all'
-}
-```
-
-Examples:
-
-| Item | appearsAs | Covers |
-|---|---|---|
-| Hood | "a hooded figure" | face |
-| Heavy cloak | "a cloaked figure" | face, body |
-| Magic illusion | "a tall human in fine robes" | all |
-| Guard uniform | "a guard" | (overlay, not full disguise) |
-
-While worn, the Disguise Wearable shadows the wearer's
-`getPresentedIdentity()` — the method DescribeApi v2 calls in
-step 2. The shadow framework runs through the call-security
-pipeline already shipped.
-
-Multiple disguise items compose: hood + cloak stacks
-feature-coverage masks (face from hood; body from cloak; voice
-from neither, so still recognizable by speech).
-
-Recognition gating: if face is covered, viewers who recognize
-by face cannot fire recognition. (V2 voice/scent recognition
-bypasses face disguise — see open questions.)
 
 ---
 
@@ -353,102 +107,7 @@ supports this; verb / UX deferred.
 
 ---
 
-## Worked scenarios
-
-### Scenario A — first meeting, then introductions
-
-```
-> look
-You see:
-  Sarah is at the bar.
-  A tall human in a black cloak, carrying a longsword, is by
-  the door.
-  A short dwarf with a red beard is sitting at the table.
-
-> say "Hello, I'm Mara."
-[IntroductionEvent fires; listeners update knownPeople: Mara → 'Mara']
-
-> [Sarah says "I'm Sarah."] [Mara records: Sarah → 'Sarah']
-> [the tall human says "I'm Bob."] [Mara records: Bob → 'Bob']
-
-> look
-You see:
-  Sarah is at the bar.
-  Bob is by the door.
-  A short dwarf with a red beard is sitting at the table.
-```
-
-Bob and Sarah recognized. Dwarf still rendered by salient
-features.
-
-### Scenario B — Bob puts on a hood
-
-```
-> [Bob wears the hood; DisguiseEffect activates, covers 'face']
-
-> look
-You see:
-  Sarah is at the bar.
-  A hooded figure is by the door.
-  A short dwarf with a red beard is sitting at the table.
-```
-
-Bob's recognition record persists; the disguise prevents the
-lookup from connecting "this presented appearance" to "Bob."
-When Bob removes the hood, recognition fires again.
-
-### Scenario C — busy room with social buckets
-
-```
-> [Mara has bucket-rules: friends=highlight, classmates=show,
->  others=count]
-
-> look
-You see your friend Bob and your classmate Sarah by the door.
-The dwarf with the red beard is at a corner table.
-(13 other students are here, plus 47 others.)
-```
-
-Bucket-keyed verbosity (DescribeApi step 4) collapses unknown
-actors into counts. The 13/47 are MQL-queryable. See
-[social-graph-slate.md](../tails/social-graph-slate.md) for the
-bucket mechanism.
-
----
-
 ## What this stresses for existing slates
-
-### DescribeApi v2 (roadmap)
-
-This slate **IS** the design for DescribeApi v2's recognition /
-disguise composition. Roadmap entry can reference here as the
-target.
-
-### Perception subsystem
-
-`PerceptionApi.describe(viewer, target)` is the entry point.
-Composes through the pipeline; consults recognition store,
-disguise shadows, salient-features. Already aligned with the
-viewer-aware-query pattern.
-
-### Embodiment slate
-
-Disguise as Wearable adds one mixin (`Disguise`) and the
-shadow-on-`getPresentedIdentity` mechanism. Small extension to
-the affordance-mixin set.
-
-### Social graph (sibling slate)
-
-Step 4 of the pipeline reads bucket data. Recognition stores
-bucket assignments on the record (or viewer's social-graph
-component holds the assignment). Either works; lean storing
-on recognition record for locality.
-
-### Persistence framework
-
-Long-term recognition state at scale stresses the current
-whole-document `Document`-track shape. Flagged for
-persistence-layer follow-on.
 
 ### MQL
 
@@ -460,13 +119,11 @@ works with existing grammar; confirm in requirements.
 
 ## Open questions
 
-1. **Recognition triggers v1** — explicit introduction +
-   repeat-perception, both on. Voice/scent triggers defer.
-2. **Strangers tracked across encounters** — yes (lean).
-   Same-Stuff means same record.
 3. **Memory decay** — defer; v1 persistent.
 4. **Disguise sophistication** — feature-by-feature coverage
-   (face/body/voice as separate). v1 ships hood + heavy cloak.
+   (face/body/voice as separate) shipped (`Disguisable`/`getDisguise`,
+   belief.md § Disguise). Only a **hood** ships as content; a heavy
+   cloak / full illusion do not.
 5. **Voice/scent recognition** — defer to v2.
 6. **Salient-feature generation** — algorithmic with author-
    tunable templates per species/Wearable.
@@ -474,15 +131,21 @@ works with existing grammar; confirm in requirements.
    verb defer to v2.
 8. **MQL feature-references** — confirm during requirements;
    flag if grammar needs extension.
-9. **NPC recognition** of players — symmetric. NPCs have the
-   same `knownPeople` shape; behavior layer reads it for
-   greetings, gates, gossip.
-10. **Pets / animals** with recognition — opt-in per species
-    (dogs and horses do; insects don't).
-11. **Multi-viewer perception of an introduction** — yes,
-    propagates to all listeners in earshot.
-12. **Faking identity** ("I'm Carl") — recorded as Carl in v1;
-    suspicion mechanic v2.
+- NPC recognition of players resolved: symmetric, shipped —
+  `keepsPersonalRegard()` / `Cast.postRegister` hydration (belief.md §
+  Persistence, the `viewerKey` four-viewer table).
+- Pets / animals with recognition resolved: shipped, opt-in per
+  species — see [pets.md § Belief, recognition,
+  age](../../subsystems/pets.md#belief-recognition-age).
+- Multi-viewer perception of an introduction resolved: yes, shipped —
+  `IntroduceController` writes every recipient in the scene's sensor
+  set (belief.md § Recognition triggers).
+12. **Faking identity** ("I'm Carl") — ⚠ contradicted by what shipped:
+    `IntroduceController` resolves self-introduction from
+    `actor.getName()` (your own true proper name) with no way to
+    supply a different one, so v1 doesn't record a fake name at all —
+    it's not "recorded as Carl," it's not possible. The suspicion
+    mechanic and any faking mechanism are still fully open.
 13. **Recognition by description match** — guard told to look
     for "tall human with a scar" later sees one. Behavior-layer
     territory; not framework substrate.
@@ -490,44 +153,6 @@ works with existing grammar; confirm in requirements.
     if a player has multiple avatars, do their recognition
     stores share? Lean per-avatar; player-level recognition is
     a separate concept (account-level).
-
----
-
-## Build order
-
-**Wave 1** — substrate.
-
-- `RecognitionRecord` + `viewer.knownPeople: Map` shape.
-- `RecognitionApi` (`recognizes`, `knownAs`, `record`,
-  `introduce`).
-- `IntroductionEvent` fired by `say` controller; listeners
-  record.
-- DescribeApi v2 pipeline (5 steps, no bucket-verbosity yet).
-
-**Wave 2** — disguise.
-
-- `Disguise` mixin on Wearable.
-- `DisguiseEffect` shadow on `getPresentedIdentity`.
-- First content: hood, heavy cloak.
-
-**Wave 3** — salient features + MQL integration.
-
-- `describeSalientFeatures` algorithm.
-- Author-tunable per-species templates.
-- `distinctiveFeatures` field on character creation.
-- MQL feature-keyed handles for unknown actors.
-
-**Wave 4** — bucket-keyed verbosity (post social-graph slate).
-
-- DescribeApi v2 step 4: bucket rendering policy.
-- Counts / aggregation for unbucketed strangers.
-
-**Adjacent / future**:
-
-- Voice/scent recognition (cross-cuts sound slate).
-- Player nicknames.
-- Memory decay.
-- Recognition-by-description-match (NPC behavior layer).
 
 ---
 
@@ -540,5 +165,6 @@ works with existing grammar; confirm in requirements.
 - **NPC behavior** that consumes recognition state (gates,
   gossip, greeting). Behavior-layer territory.
 - **Multi-account / multi-character recognition** sharing.
-- **Persistence-layer redesign** for fine-grained record
-  access. Flagged but not designed here.
+- Fine-grained per-record persistence resolved: shipped as the
+  `beliefs` collection, one Document per `{viewerId, realm, referent}`
+  (belief.md § Persistence) — no longer whole-document.

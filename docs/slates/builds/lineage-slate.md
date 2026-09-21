@@ -1,25 +1,23 @@
 # Lineage slate (working doc)
 
-> **Status: UNBUILT** — char-gen still collects five declared fields;
-> char-gen.md states plainly that lineage does not exist.
+> **Status: PARTIAL** — char-gen still collects five declared fields and
+> char-gen.md states plainly that lineage does not exist. The one piece
+> of this slate that shipped is the age DATE (`OrganismMixin.bornAt`,
+> stamped at `enroll confirm`; a played body's age confers nothing —
+> [race.md](../../subsystems/race.md) § *Age is a DATE*), which closed
+> the aging section's first two subsections. *(Compacted 2026-09-19;
+> ledger: `docs/plans/slate-compaction/unlinked-1.md`.)*
 > **Left:** person + household records · a `kind: 'gallery'` field + row
-> payload · the gallery UI (grid/detail/reroll/lock) · endowed appearance
-> that actually renders · surname inheritance · the adopt/commit path ·
-> phase 2's real procgen
+> payload · the gallery UI (grid / detail / pin / reroll) · the typed hook
+> vocabulary + the balance weights · the pin-cost curve + the reroll
+> priced against the allotment · the one budget's three sinks (body
+> composition · faculty · counter-cyclical capital) · adoption (the
+> per-slot role flags) · the seeding surface (`AdvancementApi.seedClaims`
+> band synthesizer + the `when`-by-kind fix) · unlisting the two hybrid
+> rows · endowed appearance that actually renders · surname inheritance ·
+> the adopt/commit path as a seeder list · the birthday occasion · phase
+> 2's generator (pair plausibility, the locality→trade join)
 > **Size:** a build
-
-> **Status: design proposed, nothing built.** A restructure of char-gen
-> around a single idea: **you choose a family, not a stat sheet.**
-> Everything else — species, aspiration, starting capital, body
-> configuration — becomes either a *filter* over that choice or an
-> optional refinement behind it.
->
-> **Decided in this pass:** no hybrid species (option A below); the
-> gallery offers same-species parents; the point budget is spendable on
-> body/faculty, banked as starting capital, or spent on rerolls.
->
-> Companion: [blood-slate](./blood-slate.md), which consumes the
-> endowment category this doc defines.
 
 ---
 
@@ -1139,15 +1137,7 @@ raises the question of what happens to it.
 
 ### The slot exists and is inert
 
-`OrganismMixin` already carries `age: number`. `Species` already carries
-`lifespanMin` / `lifespanMax` (human 120, half-elf 180, dwarf 400, elf
-750). `vitals.md` says the vital profile *"reserves room for a later
-age-curve."*
-
-Nothing writes any of it — char-gen's fields are species, sex, name,
-pronouns, aspiration. **Age is a declared field that nothing sets and
-nothing reads.** Setting an entry age is mostly a matter of finally using
-what is there.
+*Superseded by the code — age is a DATE now, not an inert counter: `OrganismMixin.bornAt`, `getAgeDays()` derived on read, and char-gen stamps `bornAt` at commit (`EnrollController.ts:709`). See [race.md](../../subsystems/race.md) § *Age is a DATE, and what it confers is the whole design*.*
 
 ### The birthday
 
@@ -1164,21 +1154,7 @@ anything on the date.
 
 ### ⚠⚠ Do not let lifespan bound the player
 
-The trap, and it arrives through a field that already exists and looks
-harmless:
-
-> **If aging is real *and* terminal, lifespan becomes the most rankable
-> stat in the game.**
-
-An elf gets 750 years of play; a human gets 120. Single scale, strictly
-ordered, and **no countervailing cost can exist** — you cannot make "more
-playtime" incomparable with "less playtime." It would be the cleanest
-violation of the [species slate](./species-slate.md)'s doctrine anywhere
-in the design.
-
-**So lifespan describes the world, not the player.** Keep it for NPC
-generations, family trees, and *elves remember the founding*. Never put a
-clock on a player character.
+*Shipped — `getLifeStage()` is `null` for a played body, always; a player's age is seniority and confers nothing, ever. See [race.md](../../subsystems/race.md) § *Age is a DATE* (the player / NPC / livestock table). The rankability argument is in the compaction ledger's handoff for that section.*
 
 ### ⭐⭐ Healthspan, not lifespan
 

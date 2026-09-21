@@ -33,6 +33,14 @@ makes the gating transparent — callers see a single
 `MixinApi.is<MixinName>` predicate that answers the active question
 uniformly across both kinds.
 
+Later builds reused the same `_augmentGated` flag for conferral sources
+that never touch a slot at all: `CasterMixin` (magic faculty,
+`lib/magic/Caster.ts` — conferred by `Species.innateMixins` or an
+augment) and `MakerMixin` (the order-fulfiller role,
+`lib/craft/Maker.ts` — conferred by an on-shift employment `Position`,
+see the third conferral leg below) are both `_augmentGated` and route
+through `isActive` today, not hypothetical future rows.
+
 ## Substrate
 
 ### `AugmentMixin.confers()`
@@ -89,6 +97,16 @@ active when composed AND (a slot augment confers it **OR** the actor's
 species confers it intrinsically — see *Species intrinsic conferral*
 below). This mirrors what the sensorium already does for bodyplan senses
 and `defaultModeFor` does for the bodyplan locomotion tier.
+
+**A third leg joined later: employment conferral.** An on-shift
+`Position`'s `confers` mixins surface through `EmployedMixin.
+getConferredMixinNames`, read by `collectAugmentConferralNames`
+(`api/mixin.ts`) via the same structural soft-lookup as the slot and
+species legs — no import of the employment layer. The role marker
+`MakerMixin` (`lib/craft/Maker.ts`) is `_augmentGated`, so a bartender's
+`isMaker()` reads active only while on shift; off-shift the same
+Crafter is composed-but-inactive. See
+[employment.md](./employment.md).
 
 For un-gated mixins the behavior is identical to today's
 `hasMixin`. For gated ones the predicate reflects the

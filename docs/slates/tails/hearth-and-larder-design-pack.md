@@ -4,24 +4,14 @@
 > (salt/dry/smoke/butcher over `Cured` + `Freshness`) →
 > [spoilage.md](../../subsystems/spoilage.md)
 > **Left:** the indoor room-ambient bump (a hearth that warms its room,
-> named a follow-on in [thermal.md](../../subsystems/thermal.md)) · the
-> compost heap + its nitrogen loop into smallholding
+> named a follow-on in [thermal.md](../../subsystems/thermal.md)) ·
+> `restQuality` gains room temperature · the compost heap
+> (`CompostingMixin`, `turn`) + its nitrogen loop into smallholding · the
+> victualler vocation + the machine-devalues-the-craft story (Part 2)
 > **Size:** a wave
 
-> **Status: design, planner-ready, captured 2026-08-11. Not requirements.**
-> The domestic integrating vertical — Dave's Bar for the home. Three halves
-> that make each other matter: you **preserve** food, a cold store **buys
-> time**, what spoils anyway goes to **compost**, and the room you do it in
-> has a **fire**. Follows the [fridge pack](../builds/fridge-design-pack.md)'s
-> template deliberately (a passive tier that ships first · a shared substrate
-> · a vocation woken · an existing clock given a counter).
->
-> ⭐ **The compost half is the cheapest thing in the stewardship family**, and
-> for a specific reason: **its consumer already ships and its producer does
-> not** (Part 3).
-
 See also: [stewardship-doctrine](../../stewardship-doctrine.md) (the pillar) ·
-[spoilage](./spoilage-design-pack.md) (**the keystone clock all three answer
+[spoilage](../../subsystems/spoilage.md) (**the keystone clock all three answer
 to — and it owns the preserving MECHANISM**) ·
 [preservation-slate](./preservation-slate.md) (⭐ **owns the endeavor, salt,
 and the agricultural year — read before touching Part 2**) ·
@@ -112,22 +102,10 @@ machinery — and `restQuality` gains a second input beside bedding cleanliness.
 
 ## Part 2 — The larder: what this pack adds, and what it must NOT re-design
 
-> ⚠⚠ **Corrected by the reconciliation pass, 2026-08-11.** This part
-> originally re-designed preservation from scratch and attributed it to
-> `fire.md`'s deferred recipe list. **That was wrong on ownership and
-> duplicative on mechanism.** Two documents already own it:
->
-> - ⭐ **[preservation-slate](./preservation-slate.md) owns the ENDEAVOR** —
->   it is titled *"spoilage, the counterplay, and the agricultural year,"*
->   and carries salt, the trade geography, and the seasonal argument.
-> - ⭐ **[spoilage](./spoilage-design-pack.md) Part 4 owns the MECHANISM** —
->   curing/smoking/salting are **rate-reducer recipes** on
->   `outputApplication: 'tangible'` (the fresh→cured material swap), and
->   drying/salting work by pushing **water activity `a_w`** down, *read
->   straight off the shipped `WetMixin` gauge*. That is more precise than
->   what this pack had, and it points at something already built.
->
-> **Defer to both.** What follows is only what this pack genuinely adds.
+*(The preserving mechanism shipped — `cure`/`dry`/`smoke` over
+`CuredMixin`'s `moisture`/`solute`, NOT the `WetMixin` gauge the
+reconciliation note once pointed at → [spoilage.md](../../subsystems/spoilage.md)
+§ The water state. This pack adds only the room and the economic story.)*
 
 **What the larder adds: the room, and the economic story.**
 
@@ -143,12 +121,6 @@ build rather than standing alone.
 > better teacher of technological unemployment than any lecture. Neither
 > preservation-slate nor the spoilage pack makes that argument; it needs the
 > cold-store tier standing next to the craft to be visible at all.
-
-> ⭐⭐ **And the economic story is real history: the machine devalues the
-> craft.** When the icebox arrives, the pickler's skill becomes a hobby. A
-> world where that happens *on-screen*, to a vocation players can hold, is
-> the industrial revolution rendered in one kitchen — and it is a far better
-> teacher of technological unemployment than any lecture.
 
 ⭐ **The vocation** is the **victualler** ([guild-slate](../builds/guild-slate.md)
 already names one), and the register's [slaughterer/butcher](../../vocations.md)
@@ -283,7 +255,7 @@ fish); refrigeration is **expensive, fast, and preserves the thing as it is.**
 
 ## Interop map
 
-- **[Spoilage](./spoilage-design-pack.md)** — the clock all three answer to;
+- **[Spoilage](../../subsystems/spoilage.md)** — the clock all three answer to;
   the hard prerequisite for two.
 - **[Fridge](../builds/fridge-design-pack.md)** — the machine half of Part 2's craft/
   machine pair; same template.

@@ -62,6 +62,14 @@ hot-reloadable `GitLogic` singleton at `/platform/idea/api/git` (reached via
 ops: `status` / `diff` / `log` (reads) and `publish` / `revert` (writes).
 Neither surface reimplements the mechanism or the gate.
 
+`status` also carries a non-blocking **divergence warning** —
+ahead/behind counts, or no upstream tracking at all — so the "a second
+snapshot queues before the first MR merges" edge is visible rather than
+silently absorbed; it never blocks the read. And because `publish` pushes
+a real branch, the existing `.gitlab-ci.yml` **validate** pipeline
+(lint/test/build) fires on it exactly as it would on a hand-written MR —
+runtime-authored code gets the same CI gate for free, no extra wiring.
+
 ## The three path-spaces
 
 `GitLogic` translates between three ways of naming a file — the load-bearing
@@ -148,7 +156,8 @@ context and hold no authz beyond their entry gate.
   `POST /api/git/{publish,revert}`, each binding 1:1 through the
   `CmsSession.runAsSessionPlayer` attribution bridge — **no authz in the
   route layer**, writes reuse the shared CMS double-submit CSRF token. The
-  client `CmsGitPanel` is a fourth tab in `CmsSurface` (REST-poll, no WS),
+  client `CmsGitPanel` is the `git` card in the one feed (`CmsSurface`'s
+  tabs are gone — the CMS, git and studio are cards; corrected 2026-09) (REST-poll, no WS),
   a dumb server-authoritative renderer over `gitClient`.
 
 ## Redeploy durability

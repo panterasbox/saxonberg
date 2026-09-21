@@ -2,15 +2,22 @@
 
 > **Status: UNBUILT** — three hydration paths exist and none of them
 > knows about the others; the census below is measured at `868c35b46`.
-> **Left:** ⭐⭐ the census + ratchet on **63 `postRegister` implementations
-> that load state** · ⭐ let a `PersistenceContributor` name its own
-> SOURCE (so a layer can restore from a collection that is not
-> `holder_snapshots`) · decide whether `Hydrator` becomes mixin-composed,
-> which reverses a stated design decision · the `Cast` belief load as the
-> first consumer
+> Re-run 2026-09-19 on `design/slate-compaction`: **67 of 123** (the
+> same script, packs' `src/` included); still one `Hydrator` implementer
+> (`PersistentHydrator`, 1,339 rows); `Cast.postRegister` still calls
+> `hydrateBeliefs()` (`lib/npc/Cast.ts:173`); no gate in `package.json`.
+> **Left:** ⭐⭐ the census + ratchet on the `postRegister` implementations
+> that load state (63 → 67, ungated) · the finishing-hydration vs
+> warming-a-roster ruling the census feeds · ⭐ let a
+> `PersistenceContributor` name its own SOURCE (so a layer can restore
+> from a collection that is not `holder_snapshots`) · pre- vs
+> post-register for a source-naming contributor (Q1) · unreachable-source
+> as a declared property (Q2) · the per-clone cost (Q3) · decide whether
+> `Hydrator` becomes mixin-composed, which reverses a stated design
+> decision (Q4) · the `Cast` belief load as the first consumer
 > **Size:** **a build** — it touches the clone pipeline, the persistence
-> spine and 63 call sites; the narrow version (a contributor naming its
-> source) is a wave inside it
+> spine and 60-odd call sites; the narrow version (a contributor naming
+> its source) is a wave inside it
 
 **Captured 2026-09-16**, in review of the pets MR (!257), when the user
 asked why `CastMixin.postRegister` was calling `hydrateBeliefs()`.

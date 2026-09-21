@@ -320,6 +320,34 @@ transfer/subdivide bookkeeping (derivable from the trie, but cheap to keep).
 So `/world/lounge/location/bar/stool` resolves to the `/world/lounge` parcel, and a
 carve-out at `/world/lounge/east-wing` shadows it for paths beneath.
 
+### What is a parcel, and what is not
+
+**The longest-prefix walk is the federalism.** `ownerOf('/world/terminus/law/ordinance-3')`
+walks the coverage trie, finds `/world/terminus` by longest prefix, and
+returns the locality's committee — nobody declared "law belongs to the
+locality"; it falls out of there being no carve-out beneath it. Which
+makes a constitutional move a *parcel operation*: ⭐ **an independent
+judiciary is `subdivide /world/terminus/law` + `transfer` to the court.**
+Not modelled, declared or special-cased — two calls that already exist,
+and every downstream gate follows because they all read the same trie
+(graduated from the content-packs slate, 2026-09).
+
+Real property **bottoms out at the zone**. Every interior is already its
+own zone (a non-cardinal `enter` is a zone break), so the things a player
+holds as real property — a house, a shop in a district, an apartment, a
+dorm room, a lot — are zones, and a parcel is a zone with a title.
+*Coarser* than one zone is a parcel whose extent covers several. *Finer*
+than a zone is **never a parcel**: a movable or placeable object (a sword,
+a market stall, a supplier's counter standing in your shop) is **chattel**
+— owned per instance by a stamp, not titled, carrying no allowance
+([chattel.md](./chattel.md)); the internal structure of a zone you already
+hold (farm beds, workbenches) is **slots** of the host parcel, not separate
+ownership. "Rent a stall" is placing your own stall-fixture in the hall's
+zone — chattel, no sub-zone. The one case the rule cannot express is
+seamless coordinate-region ownership inside a host grid (a prairie in
+plots); that is the deferred, additive region-parcel resolver, not a
+reason to title anything finer than a zone.
+
 ## Chain of title (`parcel_events`)
 
 The registry is **log-backed** (the `bank_ledger→bank_accounts` /

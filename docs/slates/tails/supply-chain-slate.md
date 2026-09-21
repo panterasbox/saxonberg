@@ -1,12 +1,22 @@
 # Supply-chain slate — the missing middle, and how goods actually move
 
-> **Status: PARTIAL** — the durative transform, the distilling trade,
-> the crops and the spot market shipped →
-> [maturation.md](../../subsystems/maturation.md)
-> **Left:** fungible consignment (bulk on the store counter) · a
-> business account that can buy (`BuyController`'s payer) · rung 2,
-> direct farmer→distiller purchase · rung 4, the firm
-> **Size:** a wave
+> **Status:** PARTIAL — the whole chain this slate asked for shipped: the
+> magic-bottle deletion, the durative transform, fungible consignment (in
+> a simpler shape than designed here), the distilling/winemaking/brewing
+> trades with the Crowsfoot/Vionne/Hollis competitive cast, and a business
+> account that can buy → see [maturation.md](../../subsystems/maturation.md),
+> [chattel.md](../../subsystems/chattel.md),
+> [employment.md](../../subsystems/employment.md),
+> [corpo.md](../../subsystems/corpo.md),
+> [content-packs.md](../../subsystems/content-packs.md).
+> **Left:** the offer layer has no currency (`PricedOffer.prices` is bare
+> minor units, Part 2) · rung 2 — a direct farmer→distiller purchase
+> (bypassing the store) has no authored example (Part 4) · rung 3 — a
+> forward contract on a crop has no authored example (Part 4) · rung 4 —
+> vertical integration (one owner across farm/distillery/bar) has no
+> authored example (Part 4) · what stops the store being the only market
+> forever (Open question 6, doctrine)
+> **Size:** a tail
 
 **Captured 2026-08-04**, out of *"Dave's Bar is going to be one of the first
 full verticals to ship."*
@@ -16,19 +26,8 @@ full verticals to ship."*
 > but everything in between we haven't really designed, and if we don't want
 > a magic economy I think we need it to go live."**
 
-> **Status: design conversation, captured. Not requirements.** ⚠ Contains
-> **one proposed change to shipped code** (fungible consignment, Part 2) —
-> flagged as such, not yet a defect report.
->
-> **⭐ Overtaken by farming Stage A (2026-09-01):** "the content is one
-> crop — carrot" is no longer true (ten grown families ship, with the
-> fruit cycle behind them), and Part 4's **rung 1 — the spot market — is
-> real** at the farmers market (consignment stalls off the
-> counting-houses, per-shelf caps). Rungs 2–4 (direct purchase,
-> contracts, the firm) and the fungible middle stay unbuilt.
-
 Related: [crafting.md](../../subsystems/crafting.md),
-[retail.md](../../subsystems/retail.md) (⭐ the correction in Part 2),
+[retail.md](../../subsystems/retail.md),
 [chattel.md](../../subsystems/chattel.md) (discrete-goods-only),
 [stacks.md](../../subsystems/stacks.md),
 [husbandry.md](../../subsystems/husbandry.md) (⭐ the shape the new mixin
@@ -45,199 +44,39 @@ backwards from sinks*), [freight-slate](../builds/freight-slate.md),
 
 # Part 0 — ⭐⭐⭐⭐ The magic is four lines, and the fix is a deletion
 
-`seeds/world/lounge/bar.yaml`:
-
-```yaml
-populates:
-  - { template: /world/lounge/gin-bottle,      onto: /world/lounge/back-bar }
-  - { template: /world/lounge/vermouth-bottle, onto: /world/lounge/back-bar }
-  - { template: /world/lounge/rum-bottle,      onto: /world/lounge/back-bar }
-  - { template: /world/lounge/lime-bottle,     onto: /world/lounge/back-bar }
-```
-
-**The bottles re-clone fresh every boot.** Bulk drains as drinks are poured;
-the reboot refills them. That is the whole magic economy.
-
-> **The single highest-leverage change in the vertical is a DELETION.**
-> Remove those lines and Dave must **buy** gin — which creates the first real
-> demand in the world and pulls the rest of the chain into existence.
-
-⭐ This is the content-pack slate's own rule (*seed the economy backwards
-from sinks that already ship*) applied literally: **the sink is built; it is
-being supplied by magic.**
-
-⭐⭐ **And it makes the bar's P&L honest.** Today Dave's only cost is wages,
-so the deficit the central bank subsidises is an artifact. Once inputs are
-bought, the bar is a real business and the `match_rate` taper in
-[credit-slate](../builds/credit-slate.md) has something true to measure.
-
-## The target is precise
-
-`config/recipes.yaml` names exactly what the bar consumes — Material
-categories at **`minGrade: fair`**:
-
-| martini | daiquiri |
-|---|---|
-| gin 0.06 L + vermouth 0.01 L | rum 0.06 L + lime 0.02 L |
-
-⭐ **Grade is load-bearing**: a distiller making `poor` spirit *cannot supply
-this bar.* The quality ladder is already the gate.
-
-## What already ships (more than expected)
-
-| | |
-|---|---|
-| ✅ **Bulk-output recipes** | `outputApplication: 'bulk' \| 'tangible' \| 'edible'` |
-| ✅ **Heat-gated transforms** | `requiresHeatK` against the hottest reachable lit furnace — **a still is a furnace recipe**, proven by the smithing branch |
-| ✅ **Grade, maker's mark, discipline** | on every crafted output |
-| ✅ **Retail, consignment, banking, employment, contracts** | |
-| ⚠ **Farming** | the *substrate* ships; the *content* is **one crop — carrot** |
+✅ **SHIPPED.** Dave's Bar carries no `populates:` bottles: the rail is
+stocked by the keeper buying against the par sheet, and what she bought
+persists as chattel of the business across a reboot
+(`world/lounge/location/bar.yaml`; the `restocks` brain,
+[employment.md § the keeper reads the par sheet and buys](../../subsystems/employment.md)).
 
 ---
 
 # Part 1 — ⭐⭐⭐ The one genuinely missing mechanic: a durative transform
 
-> ✅ **OVERTAKEN — the fermentation build shipped this (2026-09-01,
-> MR !215):** `MaturingMixin` (lib/maturation/) is the durative
-> transform — its own mixin, not a mode on Growing; profile-driven
-> (`MaturationProfile` rows), temperature+time, reconcile-on-read, no
-> far-past guard; overshoot IS where the stakes live (an open finished
-> batch turns to vinegar over `turnDays`). Part 6's kernel bill and the
-> grade seam landed with it. See docs/subsystems/maturation.md.
-
-**Crafting is instantaneous** — inputs in, output out, one act. Fermentation
-and aging happen **over game-time, under conditions.**
-
-> **The missing middle is not a subsystem. It is a durative transform, and
-> the corpus already has its shape twice** — `GrowingMixin` (reconcile-on-read,
-> stages via `daysToStage`, a limiting factor, its own checkpoint) and
-> metabolism's digestion buffer.
-
-## ⭐⭐ Its own mixin, not a mode on `GrowingMixin`
-
-> **User: "probably its own mixin, fermentation is a different chemical
-> process."**
-
-Right, and there is a mechanical reason:
-
-> ⭐⭐⭐ **Growth ACCRETES. Fermentation CONVERTS.**
-
-A plant pulls mass in from soil, water and light — `GrowingMixin`'s
-min-of-four limiting factor is about *supply of inputs*. A vat's mass is
-already present; what changes is **what it is**. Different equation,
-different drivers.
-
-| | Growing | Fermenting |
-|---|---|---|
-| **driver** | min-of-four (water / soil / light / nutrient) | ⭐ **temperature** (`ThermalMixin` ships) + time |
-| **neglect** | grades poorly; recovers | ⭐⭐ **overshoots — irreversibly** |
-| **shape** | reconcile-on-read, staged, own checkpoint | *identical* |
-
-## ⭐⭐⭐ Overshoot is where the stakes live
-
-A neglected crop grades badly. **A neglected wash turns to vinegar.** That
-is the mechanic that makes the vocation *playable* rather than an idle
-timer — **you have to be there to catch the batch.**
-
-⭐ And nothing is wasted: **vinegar is a real product the cook wants.** The
-failure mode still feeds someone downstream — the value drops, it does not
-vanish (*everything is a business*).
-
-⭐ **Independently confirmed 2026-08-05:** the magic-items build reached the
-same call for charge decay — *"an item must decay while nobody is looking,
-because that is the entire basis of the equilibrium. **Follow husbandry, not
-metabolism.**"* Two subsystems, same choice, arrived at separately.
-
-⚠ **The tension, and its diegetic answer.** Husbandry deliberately has **no
-far-past guard**, so a fortnight away means a spoiled batch — harsher than a
-sickly carrot. The mitigation should be a *place*, not a rule: **a cold
-cellar slows everything down**, so **storage is the skill**, and a distiller
-who builds a good cellar can take a week off. Gives thermal a second
-consumer.
+✅ **SHIPPED** — the fermentation build (2026-09-01, MR !215) and the
+maturation rename that followed it. `MaturingMixin`, the growth-accretes/
+maturation-converts distinction, the overshoot-to-vinegar stakes, and the
+cold cellar as the diegetic mitigation for the no-far-past-guard tension
+are all in [maturation.md](../../subsystems/maturation.md). The
+independently-confirmed *"follow husbandry, not metabolism"* parallel with
+magic-item charge decay is in
+[magic-items.md § an item must decay while nobody is looking](../../subsystems/magic-items.md).
 
 ---
 
 # Part 2 — ⚠ Proposed change to shipped code: fungible consignment
 
-> **User: "wait, why can't things be stackable? that sounds like something
-> that can be fixed easily."**
-
-**Correct.** The refusal is **one guard** in `ConsignController`:
-
-```ts
-// Discrete-goods only — a fungible stack is owned-by-possession.
-if (MixinApi.isStackable(item)) { … reject … }
-```
-
-The reason chain: `consign` proves ownership via `ChattelApi.ownerOf` →
-`ownerOf` refuses stacks → therefore stacks cannot be consigned.
-
-> ⭐⭐⭐ **The blocker is not consignment. It is using CHATTEL as the proof
-> of ownership.**
-
-## chattel.md already supplies the alternative
-
-> *"a stack's `_chattelId` stays empty, and fungible stacks are
-> **owned-by-possession** (whoever holds them)."*
-
-So for a stack, *"is this yours to sell?"* has a trivially correct answer —
-**you are holding it** — which `resolveHeld(giver, model.thing)` established
-two lines earlier. **The chattel check is redundant on the stack path.**
-
-⭐ The doc's structural objection is real but aimed elsewhere: *"a split of a
-stack of five has no answer for which unit keeps the id."* True — **and it
-evaporates when nothing is ever stamped.**
-
-## The change
-
-| | |
-|---|---|
-| **consign** | you hold it ⇒ you may list it. The listing carries `{consignor, quantity, askPerUnit}` |
-| **buy** | split N units off, hand over — **no stamp** (possession transfers with the goods) — settle `N × ask`, split to the consignor |
-| **reclaim** | split the remainder back |
-| ⚠ **the one hazard** | two consignors' stacks **merging** on the shelf. Fix: **each listing holds its own lot**, segregated — no `stackIdentityFields` change |
-
-## ⭐⭐ Refreshed 2026-08-05 — the currency build merged, and it ARGUES FOR THIS
-
-The currency build (MR !169) had this exact fight and settled it in this
-slate's favour. Its plan called for gating `setQuantity` on
-`StackableMixin` so future value-bearing stacks would inherit conservation.
-**55 failing tests said no**, and the recorded conclusion was:
-
-> ⭐⭐⭐ ***"A pile of ore is not money."*** The gate belongs on **`Coin`**,
-> the value-bearing class — not on every stack in the world.
-
-⇒ **Ordinary commodity stacks are deliberately, and now testedly, NOT
-conservation-gated.** Splitting and merging grain freely is a position the
-codebase has already defended, so fungible consignment is not asking for an
-exception — it is using the substrate as decided.
-
-⭐ `Coin.setQuantity` is now `@CallSecurity`-gated with the caller set
-*"the stack mechanics (split/merge) and the cash faucet"* — so **split and
-merge remain the sanctioned mutators even for money.** Commodity lots need
-nothing beyond them.
-
-### ⚠⚠ CORRECTION to the merge hazard above
-
-Coin now carries **`stackIdentityFields = ['currency', 'denomination']`** —
-the currency build's fix for the two-issuers-merge mint. That establishes
-the house pattern for *"these stacks must not fuse"*, and the obvious
-question is whether consignment should add the **consignor** the same way.
-
-> **No — and the reason sharpens the design.**
->
-> ⭐⭐⭐ **`stackIdentityFields` is for what the matter IS, never for who
-> holds it.**
-
-Two things break otherwise: `stackIdentityFields ⊂ persistentFields`, so a
-consignor field would put **per-instance ownership back onto fungibles** —
-exactly what [chattel.md](../../subsystems/chattel.md) refuses — and
-identity-by-holder would **fragment a stack on every transfer**, since two
-sacks of the same grain would stop merging the moment they changed hands.
-
-⇒ **Segregated lots stand** (each listing holds its own), now with a better
-justification than convenience: *currency is intrinsic to a coin; a
-consignor is not intrinsic to grain.*
+✅ **SHIPPED, in a simpler shape than designed here.** The slate proposed
+segregated per-consignor lots (a `stackIdentityFields` consignor tag, a
+warehouse-receipt document of title). What actually shipped needs neither:
+`consign` takes **one unit** off a stack and titles it — a lot of one
+cannot merge, so there is nothing to segregate. See
+[chattel.md § a stack cannot bear title; a lot of one can](../../subsystems/chattel.md)
+(the same textile-chain story this slate anticipated) and
+`ConsignController`. The credit-slate collateral hope rode a bearer
+warehouse receipt that was cut before merge — the logistics batch's
+ledger (`docs/plans/slate-compaction/logistics.md`) has that call.
 
 ### ⚠ A gap this surfaces: the offer layer has no currency
 
@@ -253,91 +92,23 @@ settling site.
 layer down (*"the currency tag is dropped the moment money becomes
 durable"*), surviving in the **offer** rather than the ledger. Worth fixing
 when the supply chain gives multiple venues real pricing power, not before.
-
-## ⭐⭐ Why this is a prerequisite, not a nicety
-
-- **Partial purchase.** *"Buy 40 kg of grain"* rather than forty
-  grain-objects. **Commodity trade is quantity-denominated by nature**, and
-  discrete-only would have made the whole middle of the chain feel fake.
-- ⭐⭐ **It has a name, a precedent, AND an existing design:
-  [freight-slate § The warehouse receipt](../builds/freight-slate.md).** That slate
-  already reached the same primitive from the other direction — *"a
-  **Document** naming a chattel **or a bulk quantity**,"* on the
-  bearer/registered split (*"a bearer receipt is a Thing you can steal; a
-  registered receipt is a record you cannot"*). **Fungible ownership by
-  document is already the designed answer; this is its first consumer.**
-  The discrete/fungible split maps to law's own **specific vs. fungible
-  goods** distinction.
-
-> ⭐⭐⭐ **And it solves [credit-slate](../builds/credit-slate.md)'s collateral
-> problem.** That slate concluded most lending would be **unsecured**,
-> because a stripped parcel is worthless and seized content is worth less to
-> the creditor than the author. **A warehouse receipt is neither** — it is
-> fungible, market-valued, and transferable without the creditor wanting the
-> goods. freight-slate says it outright: *"the origin of **collateral**: you
-> can borrow against a warehouse receipt, the classic secured loan."*
-> **Inventory financing is the classic small-business loan, and it is
-> exactly what a distiller with aging casks needs.**
-
-> ⭐⭐ **What the lint got wrong: it conflated "sellable" with
-> "chattel-stampable."** Chattel models *specific* goods — this sword,
-> forged by Bob, with a chain of title. **Owning a carrot is absurd;
-> possessing it is not.** The store's own stock has the same issue from the
-> other side (`buy` stamps the buyer), so one branch — *discrete → stamp,
-> stack → split* — fixes both paths.
+Verified still true: `packages/server/src/mud/lib/commerce/PricedOffer.ts`
+carries no currency field today.
 
 ---
 
 # Part 3 — How the chain connects: the store is the hinge
 
-> **User: "is everything just consignment from farm to table?"**
-
-**No.** The rule from Part 2 has a hard edge:
-
-> ⭐⭐⭐ **Consignment settles on RESALE, so it only spans links where the
-> good SURVIVES. A link where the input is CONSUMED by a transform cannot be
-> consignment** — there is no resale event to settle against, and tracing
-> value through a transform is exactly what the ledger refuses to do (*a
-> price is an event between two parties*).
-
-So the chain **alternates**:
-
-> **Consignment is how you SELL. Purchase is how you BUY. The store is the
-> hinge — and nobody ever consigns to a consumer.**
-
-| Step | Mechanism |
-|---|---|
-| Farmer **consigns** grain / limes to the store | ✅ consignment (with Part 2) |
-| Distiller **buys** them off the shelf | ✅ purchase |
-| Distiller **consigns** bottled spirit back | ✅ consignment |
-| Bar **buys** the spirit | ⚠ see the gap below |
-| Patron buys a drink | ✅ ships |
-
-⭐ **No direct B2B relationship anywhere, and no new commerce mechanism** —
-which is also how farmers actually sold for most of history. Contracts came
-with scale, not before it.
-
-## ⚠ The one gap: a business cannot buy
-
-`BuyController`'s payer is the command giver settling from their own
-credential — fine for a player, nothing for a bar. ⭐ **v1 workaround costs
-zero code: the bar's owner buys the bottles personally and carries them
-in.** Crude, entirely diegetic, and it defers *"a purchase paid from a
-business account"* to the first quality-of-life pass — the same **who pays**
-seam [credit-slate](../builds/credit-slate.md) circles.
-
-## The chain is exactly as long as there are playable JOBS
-
-Not as long as reality — real gin is grain → malt → wash → distil →
-botanicals, four steps for *one* ingredient. A link earns its place if
-someone could make a living at it ([vocations.md](../../vocations.md): *a
-vocation exists iff there is unmet demand*).
-
-> **Farmer → Distiller → Publican.** Both ends ship. **The middle is ONE
-> trade pack.**
-
-Malting, bottling and blending fold into the distiller's recipe ladder
-rather than becoming their own vocations.
+✅ **SHIPPED**, exactly as designed: consignment is how you sell, purchase
+is how you buy, and the store is the hinge — verified end to end in the
+shipped chain (a farmer's crop consigns, the distiller buys and consigns
+spirit, the bar buys via `wallet use house`). The *"a business cannot buy"*
+gap is closed: `wallet use house` makes the wallet's active account the
+buying principal, documented in
+[employment.md § wallet use house](../../subsystems/employment.md). *"The
+middle is ONE trade pack"* is exactly what shipped — `trade-distilling`,
+documented in
+[content-packs.md](../../subsystems/content-packs.md).
 
 ---
 
@@ -367,41 +138,30 @@ the game supplies free: **harvests are lumpy** (crops mature on a clock)
 while a distillery wants steady input. A forward contract is the answer, and
 `contract.md` already does clauses over verifiable conditions.
 
+⚠ **Verified 2026-09-20: stage 1 shipped** (the farmers-market spot
+market — consignment stalls off the counting-houses, per-shelf caps) **and
+stages 2–4 have no authored example.** Nothing new needs building for any
+of them — `buy` already works at any `Stock`/shelf, `contract.md`'s
+clauses already do forward escrow, employment + parcel title already do
+vertical integration — but nobody has authored a farmer selling direct to
+a distiller's own counter, a forward contract on a harvest, or a business
+that owns both a farm and a still. That is genuinely open content, not
+open design.
+
 ---
 
 # Part 5 — Logistics, and who pays
 
-> **User: "what about logistics? who pays for that?"**
-
-## ⭐⭐ It already has a price, and it is already paid
-
-Goods move because somebody **carries** them, and **encumbrance ships** —
-`LoadBearing`, per-coin and per-item mass, the consequence ladder. Hauling
-40 kg of grain is *already* costly in carrying capacity and time. **No new
-mechanism is needed for logistics to have a cost.**
-
-## ⭐⭐⭐ Who pays falls out of WHERE the sale happens
-
-| Sale venue | Who hauls |
-|---|---|
-| the farmer consigns **at the store** | the **farmer** bore the carriage |
-| the distiller buys **at the farm** | the **distiller** hauls |
-
-> **The venue of the sale IS the delivery term.** That is **Incoterms** —
-> FOB vs. delivered — and it needs no modelling, because the engine already
-> makes place the settlement fact (`ensureOperatorAt(venuePath)`; *the money
-> goes to the business because of WHERE the sale happened*).
-
-⭐ So *who pays for logistics* is not a new question. **It is a consequence
-of where two people chose to meet** — which is a negotiation, in the world,
-with no schema.
-
-## Haulage as a service already exists
-
-*"Move 40 kg from Hinkley Hills to Terminus for 15 zorkmids"* is a **gig** —
-`contract.md` has the board, the escrow and the verifiable condition.
-⭐ **A courier vocation exists the moment somebody posts one**, with no
-build.
+✅ **SHIPPED and documented.** *"It already has a price, and it is already
+paid"* (encumbrance) and *"who pays falls out of where the sale
+happens"* (the Incoterms point — `ensureOperatorAt` routes revenue to
+whoever operates where the sale happened) are both in
+[employment.md](../../subsystems/employment.md) and
+[encumbrance.md](../../subsystems/encumbrance.md). *"Haulage as a service
+already exists"* — the gig board's `delivery`/`supply` conditions — is in
+[logistics.md § the condition vocabulary is closed](../../subsystems/logistics.md)
+(the separate logistics-batch compaction pass covered this in full;
+see `docs/plans/slate-compaction/logistics.md`).
 
 ## Freight is the OPTIMIZATION, not the prerequisite
 
@@ -418,132 +178,40 @@ so time is the cost.
 
 # Part 6 — ⭐⭐ The martini, end to end
 
-> **User: "let's do the martini end to end."**
-
-## The cast already exists in the seeds
-
-The bar's bottles carry brands, and the brands carry a **competitive
-structure nobody has to invent**:
-
-| Brand | Owner | Role |
-|---|---|---|
-| ⭐ **Crowsfoot Gin** | `owner: ""` — *"a small-batch gin out of a little place across town — independent, carried by no corpo"* | **the player-ownable distillery** |
-| **Vionne Rouge** (vermouth) | Vionne | corpo competitor |
-| **Hollis Cane** (rum) | Hollis | corpo competitor |
-
-> ⭐⭐ **A player distiller competes with two corpo brands for Dave's rail** —
-> and the bar's own room description already says *"read the wall and you can
-> read the whole avenue's quarrels."* The industry's politics is seeded.
-
-## Lane A — gin (the independent)
-
-| # | Step | Mechanism | Status |
-|---|---|---|---|
-| 1 | grow **grain** | `CultivableMixin` bed → `GrowingMixin` → harvest, grade from the worst stretch | ✅ substrate · ⚠ new crop |
-| 2 | sell / buy | consign at the store → distiller buys | ⚠ needs **Part 2** if grain is fungible |
-| 3 | **mash** grain + water | heat-gated transform; `/stuff/idea/material/bulk/water` ships, and the Hinkley standpipe is an `UnboundedReceptacle` source | ✅ **recipe shape ships** |
-| 4 | ⭐ **ferment** → wash | **the durative transform** (Part 1). Temperature-driven, overshoots to **vinegar** | ❌ **the one new mechanic** |
-| 5 | **distil** → neutral spirit | `requiresHeatK` + a `still` tool capability — *the smithing shape exactly* | ✅ **ships**, needs the tool + recipe |
-| 6 | **compound** spirit + juniper → **gin** | redistil (heat) or macerate (durative) | ✅/❌ per choice |
-| 7 | **bottle** | fill a `GradedReceptacle` (`interiorMaterial` + `interiorAmount`) | ⚠ **see the grade seam** |
-| 8 | **brand** it | `_brandKey: crowsfoot-gin`, `BrandedMixin` resolve-on-read | ✅ ships |
-| 9 | sell to the bar | consign bottles → the owner buys and carries them in | ✅ (Part 3 workaround) |
-
-## Lane B — vermouth, and the convergence that makes it interesting
-
-grapes → **ferment** → wine → **fortify with neutral spirit + infuse
-botanicals** → vermouth.
-
-> ⭐⭐⭐ **Vermouth needs Lane A's own output.** Fortified wine takes spirit,
-> so the vermouth maker must **buy from the distiller** — a real B2B
-> relationship that falls out of the chemistry rather than being authored,
-> and it puts the distiller at the centre of the trade.
-
-## The bar end is untouched
-
-`order martini` → the shipped recipe (gin 0.06 L + vermouth 0.01 L, both
-`minGrade: fair`, `mixing-glass`) → settle a presented Charge → the bar's
-P&L. ⭐ **Nothing changes here. That is the point** — the sink is finished,
-and the whole build is upstream of it.
-
-## ⚠ The grade seam to verify first
-
-`gradeBand: fine` sits on the **receptacle** (`GradedReceptacle`), not on
-the material — a *bottle* is graded, not the gin in the abstract. So
-**filling a bottle from a vat must carry the batch's grade onto the
-bottle.** If it does not, every distilled spirit arrives ungraded and
-`minGrade: fair` rejects it. **Check this before building anything else** —
-it is small, and it is load-bearing for the entire chain.
-
-⭐ **Grade should come from the process, symmetric with husbandry**: a crop's
-band comes off the plant's *worst stretch*; **a batch's band should come off
-its worst temperature stretch.** Same rule, second consumer, no new concept.
-
-## ⭐ Sequencing — the martini is the superset
-
-| | ferment | distil | malt/mash | compound | convergent |
-|---|---|---|---|---|---|
-| **daiquiri** — rum + lime | ✔ | ✔ | — | — | — |
-| **martini** — gin + vermouth | ✔ | ✔ | ✔ | ✔ | ⭐ ✔ |
-
-**Cane ferments directly (no malting) and lime is pressed, not distilled** —
-so the daiquiri is the strictly smaller loop, and the martini chain
-**contains it**. Building the martini gets the daiquiri for **two crops and
-one recipe, with no new mechanics.**
-
-> ⚠ **But the martini also contains the hardest single ingredient** —
-> vermouth, which cannot be made until the gin lane runs. **If one working
-> loop is wanted before anything else, the daiquiri is it; if one push to
-> unlock both is wanted, the martini is right.** The user's instinct is
-> defensible either way — this is a staging call, not a design one.
-
-## What is genuinely new, all in
-
-**Code:** the durative-transform mixin · fungible consignment (Part 2) ·
-grade carry-across on bulk fill (verify — may already work).
-
-**Content:** crops (grain, grapes, juniper) · materials (grain, wash, wine,
-neutral spirit, **vinegar**, juniper) · fixtures (mash tun, fermenting vat,
-still, **a cold cellar**) · recipes (mash, distil, compound, fortify) · a
-`distilling` Discipline · the premises — *"a little place across town."*
-
-⭐ **Everything else in the chain is already shipped substrate.**
+✅ **SHIPPED**, essentially as designed. The competitive cast (Crowsfoot
+Gin the independent, Vionne Rouge, Hollis Cane) ships and is documented in
+[corpo.md](../../subsystems/corpo.md) and
+[content-packs.md](../../subsystems/content-packs.md); the vermouth
+lane's dependency on the distiller's spirit (the B2B leg) is documented
+in content-packs.md's `trade-winemaking` entry; the grade-carry-across
+seam (a bottle inherits its batch's grade) is
+[maturation.md § the transfer seam carries the batch's identity](../../subsystems/maturation.md);
+the glass pool, rail rule and recipe resolution are
+[crafting.md § the glass pool, the technique, ice, garnish](../../subsystems/crafting.md).
+The martini-contains-the-daiquiri sequencing call was moot in practice —
+both recipes ship (`trade-hospitality/content/recipes/martini.yaml`,
+`daiquiri.yaml`).
 
 ---
 
 # Build order
 
-| # | | Why here |
-|---|---|---|
-| 1 | ⭐ **Delete the four `populates:` bottle lines** | creates the demand that pulls everything else |
-| 2 | **Fungible consignment** (Part 2) | prerequisite — every middle link trades in bulk |
-| 3 | **Crops**: grain, cane, grapes, limes, juniper | content on a shipped pattern |
-| 4 | ⭐ **The durative-transform mixin** + a cellar | the only new mechanic |
-| 5 | **The distilling trade pack** — recipe ladder, still, vat, cask | the middle, as one trade |
-| 6 | **A business can buy** | promotes the carry-it-in workaround |
-| 7 | Forward contracts · haulage gigs · freight | the progression, as volume demands |
+✅ All seven steps shipped — see Parts 0–6 above.
 
 ---
 
 # Open questions
 
-1. ⚠ **Does the durative mixin belong to a new `lib/` subsystem, or under
-   crafting?** It is transformation (crafting) measured in time (husbandry)
-   and sits between. *Leans its own folder* — the mixin-placement rule says
-   propose a subsystem rather than force a fit.
-2. ⭐ **How many crops before the chain feels real?** Four ingredients ×
-   their sources is the floor. *Leans: ship the martini's chain complete
-   before starting the daiquiri's* — one working loop beats two half ones.
-3. **Does the distiller's output consign as bulk, or as sealed bottles?**
-   Bulk is truer and needs Part 2; bottles are discrete and work today. ⚠ The
-   bar draws in litres either way.
-4. ⚠ **Is a per-draw settlement ("sale or return") ever wanted** — the bar
-   pays the distiller per 0.06 L poured? Mechanically possible, since the
-   draw is an event. *Leans no for v1* — it makes the bar's cost of goods
-   invisible, which is the opposite of what deleting the bottles achieves.
-5. **Should the store take commission on commodities at all?** It is the
-   transaction cost that motivates Stage 2 — so *leans yes*, and the rate is
-   the dial that decides when direct trade begins.
+1. ✅ Resolved — its own subsystem: [maturation.md](../../subsystems/maturation.md)
+   (`lib/maturation/`).
+2. ✅ Resolved — ten grown families ship (`trade-farming`), including the
+   martini chain's own crops (barley, juniper, grapes, limes).
+3. ✅ Resolved — bottles, as `GradedReceptacle`, carrying grade from the
+   batch. [maturation.md](../../subsystems/maturation.md).
+4. ✅ Resolved as leaned — no per-draw settlement; the bar buys bottles,
+   not pours.
+5. ✅ Resolved — yes, the store takes commission on every consignment sale
+   (`BuyController`).
 6. ⚠ **What stops the store being the only market forever?** Nothing, if the
    commission stays low. That is fine — **the progression should be pulled
    by volume, not pushed by design.**

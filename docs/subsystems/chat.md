@@ -165,6 +165,24 @@ cascade-deletes the backing Group. Standalones leave the Subject's
 `groupRef` empty — they have no membership concept at all; audience is
 computed from per-player subscriptions, not a group.
 
+### Bound channels — the group-projected shape that shipped
+
+`ChatApi.createBoundChannel(owner, name, groupRef)` mints a
+`player-created` Channel whose Subject is bound to an **existing**
+`GroupRef` — no managed Group is created, and `audienceFor` reads
+`GroupApi.membersOf(groupRef)` live on every post. Two callers:
+`PartyLogic` mints one on party formation, named for the party
+(best-effort — a name clash never blocks the party), and disbands it
+with the party; `CompactLogic` mints a committee's channel on first
+ask. A member is in the audience without `chat join` because a subject
+subscription defaults to `followed: true`, and can `chat mute` it. That
+is the chat slate's *group-projected* kind — derived membership, the
+group's lifetime — in the shape v1 could ship: a projection with **no
+override layer** (a mute is the subscriber's, never the channel's on a
+person) and **no cached derived set** (`GroupApi.onMembershipChange`
+has no consumer here). See [party.md](./party.md), [access.md](./access.md)
+(`ensureCommitteeChannel`).
+
 The chat substrate **owns** the backing Groups it mints. The Group
 model knows nothing about chat — that's the right ownership
 direction, and the user-facing `group list` view filters out
@@ -491,13 +509,15 @@ in the design space that v1 deliberately defers:
 - **Pinned messages / announcement mode** — out.
 - **Notification fine-tuning** beyond mute / unmute — no
   `all / ambient / mentions-only` axis yet.
-- **Group-projected channels** — guild chat, party chat, zone
-  chat. The grouping substrate exists, but the source systems
-  (guilds, parties, zones-as-social) do not yet, so there is
-  nothing to project from.
+- **Group-projected channels** — guild chat and zone chat. Party chat
+  and the committee channel shipped as **bound channels** (§ Bound
+  channels); guilds and zones-as-social still have no source, and the
+  moderation **override layer** (mute/ban on the channel without touching
+  the group) and the **cached derived set** are unbuilt.
 - **Directory / search** beyond `chat list`.
 - **Cross-posting / channel bridging.**
-- **Anonymity / pseudonymity** on channels.
+- **Anonymity / pseudonymity** — shipped (§ `anonymity`); the two seams
+  the presentation build left are in the slate.
 - **Player-channel succession** beyond "owner leaves → auto-disband
   if no transfer." No mod-promotion, no abandonment GC timer.
 - **`chat add <handle> <target>`** for ad-hoc cohort growth —

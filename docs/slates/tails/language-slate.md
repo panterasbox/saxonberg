@@ -2,16 +2,15 @@
 
 > **Status: PARTIAL** — the written half shipped 2026-08 as `MarkedMixin`
 > + `read` + `markScript` (no owning subsystem doc)
-> **Left:** the `Language` Idea + catalogue · `Character.languages`
-> proficiency · the `decode` literacy gate · `Vocal.speechLanguage` + the
-> speech garble render-gate · the spellbook comprehension floor
+> **Left:** the `Language` Idea + catalogue (today `MARK_SCRIPTS` is a
+> bare vocabulary; ⚠ the slate's `/lib/language/<name>` rows must move —
+> nothing instances `/lib/`) · `BodyPlan.nativeLanguages` defaults ·
+> `Character.languages` proficiency (binary in v1) · the `decode` literacy
+> gate · `Vocal.speechLanguage` + the
+> speech garble render-gate (+ the `{ language }` rider on `.toSelf`) ·
+> the spellbook comprehension floor · proof-of-content rows (a Khazadic
+> sign, a Khazadic-speaking merchant, a Spanish menu)
 > **Size:** a wave
-
-> **Status: design captured, deferred — unbuilt.** v1 shape is proposed
-> (language tags gating `read`, NPC fantasy-language rendering, proficiency-
-> mediated comprehension); leans on the shipped `Perceiver` + `Character`
-> surfaces but is not yet queued. Several richer extensions explicitly
-> marked future/deferred in-body.
 
 > **⚠ AUDIT 2026-08-08 — the written half shipped, and the seam for the
 > rest is already carved.** Checked against the tree when GitLab #7 was
@@ -192,12 +191,7 @@ addition.
 
 ## Layer 3 — Readable tag
 
-`Readable.language: LanguagePath` — what language a written
-text is in. Defaults to `common`.
-
-(Readable's full surface and the `read` verb live in this slate
-because they're primarily a language-system consumer. See
-§ The `read` verb below.)
+*Shipped in a different shape: `Readable.language` is `MarkedMixin.markScript` over the `MARK_SCRIPTS` vocabulary with a `COMMON_SCRIPT` default (`lib/description/Marked.ts`); `form` and `script` are independent axes. What remains is turning `MARK_SCRIPTS` into the `Language` catalogue (§ Layer 1).*
 
 ---
 
@@ -302,69 +296,7 @@ author annotation. Out of scope for this slate.
 
 ## The `read` verb
 
-The verb that consumes Readable + the language gate.
-
-### Shape
-
-```
-read <item>
-```
-
-Instant — no duration in v1. The durative version (page-by-page
-with bookmark on abort) lives in
-[host-slot-activities-slate.md](../tails/host-slot-activities-slate.md).
-
-### Actor-side
-
-`Perceiver` (already shipped — has sight) + `Character.languages`
-(this slate).
-
-### Target-side — `Readable` (new)
-
-```ts
-interface Readable {
-  getReadText(): string;       // or Mml later
-  getLanguage(): LanguagePath; // defaults to 'common'
-}
-```
-
-Text storage is via `PropertiedMixin` keys. v1 ships plain
-string; Mml-aware variant when content authors want inline
-formatting.
-
-### Verb controller sketch
-
-```ts
-class ReadController extends CommandController<ReadModel> {
-  execute(model, ctx): void {
-    const actor = ctx.commandGiver;
-    const target = model.target;
-
-    if (!MixinApi.isReadable(target)) {
-      ctx.note({ kind: 'controller-rejected', reason: 'not-readable' });
-      // Scene.send "There's nothing to read on <target>."
-      return;
-    }
-    // Light gate — too dark to read.
-    if (LightApi.lightAt(actor) < MIN_READ_LUX) {
-      // Scene.send "It's too dark to make out the writing."
-      return;
-    }
-    // Language gate — handled by the scene composer when
-    // delivering the read-emission. Controller just emits.
-    MessageApi.scene(actor)
-      .topic(MessageApi.Topics.world.narration.action)
-      .toSelf(target.getReadText(), { language: target.getLanguage() })
-      .toPeers(Mml.compose`${Mml.actor(actor)} reads ${Mml.actor(target)}.`)
-      .send();
-  }
-}
-```
-
-The `{ language: ... }` rider on `.toSelf` is the seam that
-triggers the render gate. If the actor knows the language, the
-authored text passes through; otherwise the composer substitutes
-the wrapper.
+*Superseded by the code. The verb shipped as `cmd/perception/read.yaml` + `platform/idea/cmd/perception/ReadController.ts` over `MarkedMixin` (`lib/description/Marked.ts`: `getMarkText` · `getMarkForm` · `getMarkModalities` · `requiresLightToRead` · `getMarkScript`), as **read = perceive(the marks) + decode(the script)** — the light gate rides the form (inked vs embossed), decode is a no-op in v1 and is the seam this slate's language gate slots into. The durative page-by-page `read` stays with [host-slot-activities-slate.md](../tails/host-slot-activities-slate.md). The `{ language }` rider on `.toSelf` that triggers the render gate is still this slate's (§ Layer 5).*
 
 ---
 
@@ -383,11 +315,7 @@ English players just see English and never notice the tagging.
 
 ### Register-tagged English content
 
-`/lib/language/common` is everyday English. `/lib/language/english-academic`
-is TOEFL-register. Students working on academic English encounter
-academic-register Readables (university bulletin boards, journal
-articles, formal correspondence) as opt-in study surfaces. Native
-speakers see them as in-character formal prose without friction.
+*Superseded — TOEFL was cut as a vertical on 2026-08-07 (the audit block above, and `docs/study-com/cx-and-the-aspiring-teacher.md` §1); the register-tagged English surface went with it.*
 
 ### Translation tools as content
 
@@ -413,9 +341,8 @@ whether to use language tags pedagogically or just for flavor.
   with binary Proficiency in v1.
 - `Vocal.speechLanguage: LanguagePath | null` field on NPC Vocal
   hosts (null = common).
-- `Readable` mixin (`getReadText`, `getLanguage`) — paired with
-  the `read` verb.
-- `read` verb — YAML + controller.
+- *(the `Readable` mixin and the `read` verb shipped — as `MarkedMixin` +
+  `cmd/perception/read.yaml` / `ReadController`; see the audit above)*
 - Scene composer / prose pipeline render gate: speech and read
   emissions check listener's `languages` map; substitute wrapper
   on miss.
@@ -490,10 +417,7 @@ when deciding what language to respond in.
 
 ### Q6. Light gate for `read`
 
-Already noted in the affordance-verb slate's earlier draft:
-hardcoded minimum-read-illuminance vs. per-Readable difficulty.
-Lean hardcoded constant for v1; `Readable.minReadLux` field if
-content earns it later.
+*Q6 superseded by the code: `read` = perceive + decode, and the light requirement follows the mark FORM (inked needs light; embossed reads by touch in the dark — `MarkedMixin.requiresLightToRead()`, `ReadController`), not a lux constant. See the audit block at the top.*
 
 ### Q7. Non-text Readables
 
@@ -528,7 +452,7 @@ This slate boils down to:
   Character creation.
 - `Character.languages` Property (binary Proficiency v1).
 - `Vocal.speechLanguage` field on NPCs.
-- `Readable` mixin + `read` verb + light gate.
+- *(the `Readable` mixin + `read` verb + light gate shipped as `MarkedMixin` + `read` — see the audit above)*
 - Scene-composer render gate for speech + read emissions.
 - A handful of authored content Stuffs exercising the gate.
 - Tests covering common-default, language-mismatch wrapper,

@@ -2,13 +2,17 @@
 
 > **Status: UNBUILT** — no guild exists; the substrate it maps onto
 > (advancement, contract, employment, credential, parcel) ships.
-> **Left:** the `Guild` Idea + charter schema · the `guild:`
-> GroupProvider + ranks · focus-tagged `TranscriptEntry` +
-> charter-weighted `Competence` · contract claim gates · the hall and the
-> job board · the 10 day-one institutions + 8 standing charters
+> **Left:** the `Guild` Idea + charter schema (+ the charter validation
+> pass) · the `guild:` GroupProvider + ranks · the three membership tiers
+> + the witnessed rank exam · focus-tagged `TranscriptEntry` +
+> charter-weighted `Competence` · the advancement gym · contract claim
+> gates · the hall (group-titled parcel + keyway tiers) and the job board
+> · lifecycle (founding paths · schism · dormancy · merger · standing
+> charters) · the Marshalcy credential + writ-contract stream + the calls
+> mechanism · the Worldwrights on-ramp · the 10 day-one institutions + 8
+> standing charters
 > **Size:** a build
 
-> **Status: design settled in conversation (2026-07-28), pre-requirements.**
 > This slate is the institution-level guild design. It **supersedes and
 > extends** [advancement-slate § Guilds + § Declared focus](./advancement-slate.md)
 > — the focus-tagged-Transcript *mechanic* designed there stands as the

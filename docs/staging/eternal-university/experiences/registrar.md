@@ -126,7 +126,7 @@ The cast-free door, worked out in full so it builds straight:
   implant's credential-holder app — the wallet substrate is now **shipped** (see
   [credential.md](../../../subsystems/credential.md)); **deputization** itself is
   its deferred tenant (the issuer-authorization ledger + single `CredentialCard`,
-  in [tails/credential-wallet-slate.md](../../../slates/tails/credential-wallet-slate.md)).
+  now tracked in [credential.md § Deferred](../../../subsystems/credential.md); the wallet slate was absorbed 2026-09-20).
   The §8 physical card is the cross-jurisdiction *presentation*, not the source
   of truth.
 - **Motive = incompetent, not evil.** The proctors are campus lost-and-found +

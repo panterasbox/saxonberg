@@ -564,6 +564,16 @@ Related: a guard that scans source can pass by **matching nothing**.
 Assert what it found (`expect(inspected).toBe(N)`), or a rename
 silently reduces it to `expect([]).toEqual([])`.
 
+> ⚠ **Read a design mock by rendering it, never by extracting its text.**
+> The `docs/design_handoff/*.dc.html` mocks were once audited by stripped
+> text, which preserves *what words appear* and destroys *how they are
+> arranged* — a one-page form was built as a five-screen wizard, a banded
+> hero as a two-column rail, a three-column workspace as a single centred
+> column, and all three were caught only when the built screens were
+> looked at. Render the mock and compare by eye; pin a phase flag in a
+> scratch copy to reach panels behind a step. Reading the source is a
+> supplement, never the audit (graduated from the client slate, 2026-09).
+
 ## ⭐⭐ Two tiers: WIRE and RENDER
 
 Testing splits in two, and the split is about what a test is entitled to

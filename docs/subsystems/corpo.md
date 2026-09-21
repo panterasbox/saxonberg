@@ -20,6 +20,29 @@ leaf `Idea` templates, keyed on a durable `key`, queried by a thin gated
 Api, referenced cross-Stuff by a key string resolved on read (the
 `Material` / `Species` reference-identity pattern).
 
+### Why three axes — trade, brand, capital
+
+(Graduated from the libations slate, 2026-09.) Everyday language collapses
+three things into one word, and the model once inherited the collapse —
+*"does Goodkin make whiskey?"* seemed to need a mixin on a bottle. Kirkland
+vodka: the **brand** is Costco's, the **maker** is an Ohio distillery that
+also makes other people's, the **capital** is Costco's.
+
+| axis | what it is | in the model |
+|---|---|---|
+| **a trade** | a **process** — grow, ferment, distil, cook, bottle | a pack (*pack = a trade*) |
+| **a brand** | a **mark** — a label with an `owner` | a `Brand` row; content-only; anyone's |
+| **a corpo** | **capital** — it owns businesses | an organization; a corpo distillery is a `Business` with `parentOrganization` |
+
+Once separated, **corpos private-label generics** is real economics, not
+style: Volk is the well rail, made in volume, everywhere; premium is
+independent *by count*; and a corpo *buying* an independent brand — the
+label stays, the capital changes — falls out of the split as a future
+mechanic for free. **No per-corpo mixins**: a mixin that only sets a key is
+what a template row does (`_brandKey:`); ethos behaviour belongs on the
+corpo's business (pricing, the approval vector) or on the material, never
+on the bottle. The corpo packs stay data packs.
+
 ## The mark is diegetic, not the provenance ledger
 
 The corpo mark is **in-fiction brand-ownership** — "this bottle is a product

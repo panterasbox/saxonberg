@@ -9,6 +9,15 @@
 > Seeded by [client-shell-slate.md](../slates/tails/client-shell-slate.md);
 > built per `docs/requirements/client-shell-frame-requirements.md`.
 
+**Where client code lives.** No free-floating client modules: components
+under `packages/client/src/components/`, Zustand slices under `src/store/`,
+services under `src/services/`, the layout registry under `src/layouts/`,
+style + templates under `src/lib/` — React + Zustand + styled-components,
+the conventions already in the tree. Nothing content-specific is baked in
+(archetypes, the starting location, the card and shelf catalogues, the
+emote palette are all server-sent), and the client shadows no state
+machine the server owns.
+
 ## The top bar
 
 `components/frame/Frame.tsx`. One row, rendered once above the layout
@@ -252,6 +261,12 @@ which is what [`cockpit shelf first`](./cockpit.md) exists for.
 `GLANCE_ROWS = 3` is a client constant and has to be — the server does
 not know how wide a bar is. A shorter shelf simply shows what it has; an
 empty one says *nothing pinned* rather than leaving an unexplained gap.
+
+⚠ **Tap targets never drop below 44px**, held by `min-height` so that
+weight is controlled by padding, never by shrinking the box
+(`MobileFrame.tsx`, `CommandSheet.tsx`, `DroppedRow.tsx`). Safe areas are
+`env(safe-area-inset-*)` under `viewport-fit=cover` (above), never fixed
+top/bottom constants — a constant would be right on one device.
 
 ⚠ The glance-line **scrolls** where the desktop shelf **wraps**, and
 that is the one place the two disclosures legitimately differ: wrapping
@@ -1330,6 +1345,16 @@ the one place the game is supposed to be a world; if a thing cannot be
 described yet, it is not in the room yet. And *commands refuse honestly*
 in the machine voice (`cockpit style theme default` naming the three it
 does know), not through a hatched widget.
+
+⭐ **Derive every figure from the data that produces it.** A count beside
+a list is computed from that list; a caption beside a chart reads the
+chart's own array — the reference handoff recorded violating this five
+times in one session, every instance invisible until checked. The same
+rule one level up: **controls branch on the state their copy describes.**
+If a panel says a character cannot be taken out, its Enter control cannot
+be live; if intake's `missing` gates `enroll confirm`, the field it names
+must render — which is why a field the client cannot draw renders
+**hatched** rather than vanishing ([char-gen.md](./char-gen.md)).
 
 ### The `variant` axis
 

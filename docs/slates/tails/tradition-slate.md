@@ -1,10 +1,17 @@
 # Tradition slate — schools of thought as research programmes
 
 > **Status: UNBUILT** — it rides inquiry, and inquiry has not shipped
-> either; no `Law` or `Tradition` row exists.
-> **Left:** the `Law` catalog · the Law/Tenet split · `Tradition` as an
-> Idea carrying an attention order · null laws · the notebook · what
-> lands in the Transcript · atheism as a first-class Tradition
+> either (inquiry-slate is PARTIAL on the instrument seam alone); no
+> `Law`, `Tradition`, notebook document kind or `predict` gate exists in
+> code. *(Compacted 2026-09-19 — nothing to cut; ledger:
+> `docs/plans/slate-compaction/unlinked-1.md`.)*
+> **Left:** the `Law` catalog (inquiry's) · the Law/Tenet split ·
+> `Tradition` as a data Idea carrying tenets + an attention order, and
+> its `TraditionCatalogue` · null laws · the notebook (`StoredDocument`
+> kind + the `notebook` verb + `analyze --log`) · what lands in the
+> Transcript (a refutation graded `success`) · how a `Law` row points at
+> its evaluator (needs sign-off) · atheism as a first-class Tradition ·
+> the three Tradition rows + three Law rows as seeds
 > **Size:** a wave
 
 > **Status: sketch / pre-requirements.** A **Tradition** is an inherited

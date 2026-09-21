@@ -245,6 +245,16 @@ emotes at 04:00. `wiki` is deliberately absent (a page is not a
 document: it has a revision log and a CAS edit path); `settings` and
 `subject` are contribution kinds with their own targets.
 
+**Storage is the document store; search is a catalogue over it.** A
+kind earns no collection of its own by being *searchable* —
+`SoulCatalogue`, `RecipeCatalogue`, `BlueprintCatalogue`,
+`ArchetypeCatalogue` are derived, in-memory, rebuildable projections
+shaped for their own queries, and the store underneath stays path-keyed
+with one unique partial index per flat-key kind. The honest limit is
+cardinality, not principle: hundreds of emotes in memory are free, a
+prose corpus is not, and find-by-content over the wiki and the law is the
+day a real document search is owed.
+
 The **document strategy** is one factory (`documentStrategy(spec, root)`)
 per kind: `dbKeyQuery` — `{kind, path}`, or `{kind, 'data.<naturalKey>'}`
 for a flat-key kind (its identity IS its natural key: a row with that key
@@ -550,6 +560,16 @@ tpa's terminal do — tpa depends on arcana anyway, it is magic — so
 *without* depending on arcana is the signal to promote it, and that is a
 review question, not a lint.
 
+**The YAML author's verb is clone-and-compose, never inherit.**
+Behaviour reaches a venue row by NAMING classes — clone the trade's
+station, hire the trade's position — and the acceptance test for an
+industry pack is that a second venue is *copy the shipped floor, rename,
+adjust fields: a working venue in an afternoon and zero TypeScript*.
+Subclassing is the capability tier's tool; a venue author reaching for
+`extends` means the industry pack missed a station or an authorable
+field, and that is the pack's defect to fix, not the venue's to work
+around.
+
 ### ⭐⭐ How a pack EXPOSES something — the singleton, and the federated mixin
 
 A pack holds no Api, no logic singleton and no free exported function, so
@@ -843,6 +863,17 @@ see below):
   re-compares on the next reconcile and may immediately surface the
   conflict the pin was hiding, which is correct.
 
+**There is no companion installer app, by decision (slate A10.10).**
+The authority model — office, title, staffing — lives inside the game, so
+an adjacent web app either re-implements it (two authority models, drift
+guaranteed) or phones the running server to ask, at which point it is a
+UI on the game. It would also be a second owner of the server lifecycle
+beside the deploy machinery. So the verb runs in-world, gated where the
+machinery lives; a pack panel, if one comes, is a CMS view over `pack
+status`. The separate-app instinct becomes right only at a scale this
+deployment does not have (multi-node, or operators who must not hold
+game logins), and nothing here forecloses it.
+
 This is the iteration loop: edit a pack file → `pack sync` → live, no
 restart. It is tractable for base-library because materials/biomes are
 **singletons by path** (one instance per path; `Tangible.getMaterial()`
@@ -1096,6 +1127,27 @@ One more CI gate keeps the wave's invariant: **`pnpm lint:untitled`**
 (every path the packs ship under a title root has a claim as a prefix —
 the installer's walk mirrored in a script; zero is green).
 
+**The platform ships the SOCKET; content ships the FURNITURE** (slate
+A26.1). Casting is platform, the spellbook content; the landing slot is
+platform (`/platform/location/void`, the code fallback), the lounge that
+first-login lands in is content (the `defaultStartLocation` the lounge
+pack's settings contribute — merge-missing, so an operator's override
+wins forever after); the teleport verb is platform, the network's works a
+pack. The recurring *is X platform?* argument has that razor, and the
+platform-only boot is its literal test: a login lands in an honestly
+empty shell.
+
+**Substrate vocabularies do not get a pack of their own** (slate A27):
+the baseline of a vocabulary — conditions, body plans, the casting
+disciplines — rides pack zero or the substrate's own pack, and
+extensions ride their CARRIERS (disease ships its infections, pharma its
+toxins, medicine its healing spell). A standalone vocabulary pack
+installs and nothing observable exists, which is the horizontal-pack
+failure again. And **the Compact is platform, corpos are content**: the
+Compact is the constitution, and swapping the state is forking the
+platform (the AGPL is the check), never a pack install — a pack that
+defined who reviews packs would review itself.
+
 ## The shipped packs
 
 | Pack | `dependsOn` | Maintainers | Claims (`requires.title`) | Groups | `boot` |
@@ -1108,11 +1160,12 @@ the installer's walk mirrored in a script; zero is green).
 | **generic-objects** | platform | default | twelve `/stuff/<branch>/<cluster>` branches (the magic items left for the arcane library): `items`, `arms`, `armor`, `clothes`, `gear`, `vessel`, `fixture`, `instrument`, `traps`, `surface`, `exits`, `room` (wave 4a: the hearthworks commons — cuts, roots, rations, hide, logs — moved into `/stuff/thing/items`; wave 4b: it ships **no recipes** — every recipe is a trade's) | — | — |
 | **trade-smithing** (CAPABILITY — libations) | platform, generic-objects, trade-cooking (the cook-pot recipe's output row) | default | `/trade/smithing` → group `smithing` (PM-owned); `src/idea/cmd/crafting/` ships `forge`/`hammer`/`quench`/`sharpen` (views under `content/trade/smithing/cmd/crafting/`); the anvil and whetstone rows author the verbs they confer | `smithing` | — |
 | **trade-cooking** (CAPABILITY + the pantry, libations; the cooking build) | platform, generic-objects, base-library, distribution, trade-farming (the roster presses olives and stews orchard fruit) | default | `/trade/cooking` → group `cooking` (PM-owned); `src/idea/cmd/crafting/` ships `cook`/`plate`; the `cook-pot` row (over `CookPot extends CraftVessel` — the pot is a member of the dish pool, which is what makes pot-as-last-resort a claim) and the `kitchen` bundle; **fourteen recipes** across the method grid — wet (boiled-roots · root-mash · hearty-stew · stewed-orchard-fruit · clear-broth · simple-syrup), dry (toasted-ration · roasted-roots · hearth-roast · fine-roast) and the fat chain (render-tallow · press-olive-oil · pan-fried-roots · crisp-fried-cutlet); the two fats (`tallow` 478 K · `olive-oil` 463 K) with their crock and bottle; the kitchen sieve and fruit press; the pantry: `sugar`/`salt`/`coffee`/`simple-syrup` materials, the `sack` preset, sacks + a `syrup` floor row, the `syrup-bottle`, the pantry outfit (`pantry-outfit` + `pantry-floor` + a consigning hand) | `cooking` | the pantry floor + outfit (producer) |
+| **trade-medicine** (CAPABILITY — the medical trade: how a body is READ) | platform | default | `/trade/medicine` → group `medicine` (PM-owned); `src/idea/cmd/perception/` ships the controllers for the `analyze patient` and `analyze postmortem` stanzas of the platform's `analyze` view (the instrumentation split — the view is the kernel's, the reading is the trade's); ⭐ competence buys what you can SEE, never what you can DO; ships **no venue** — a clinic is rows in whatever locality wants one; ships no condition rows (`ConditionCatalogue.warm()` cannot see a pack's) | `medicine` | — |
 | **trade-distilling** (CAPABILITY — libations) | platform, base-library, generic-objects, corpo-veshko, corpo-hollis, distribution | default | `/trade/distilling` → group `distilling` (PM-owned): `src/` ships `SpiritBottle` (a `Bottle` preset in code) and `Still` (the furnace-family station, capability `still` — the distil/compound/brandy/grappa recipes run it daily since fermentation W6); ten spirit materials tagged by category; ten generic floor bottles at target + Crowsfoot (`gradeBand: fine`, the independent Brand row at `/stuff/idea/corpo/Brand/crowsfoot-gin`); two floor outfits with `consigns` hands (→ the **distribution** counter — the cash-and-carry moved out, fermentation D10); the **two corpo-owned yards** as the `location/veshko-yard` locality (the zone that authors `stocks:` — vodka 24, whiskey/rum/gin 12; Volk + the unbranded liquid) and the flat `hollis-*` rows (the bottling floor: `old-hollis` / `hollis-cane` over Veshko's material), each an outfit whose `parentOrganization` points up at its corpo pack — a corpo pack is capital + the mark, never products; the `warehouse` bundle; the `distilling` Discipline; the working still-house (tun, standpipe, wash vats, the still book) + the small still (the homebrew kit's) | `distilling` | the four rooms + the four Businesses (producer — the cash-and-carry's pair moved to `distribution`) |
 | **distribution** (fermentation D10 — the decoupler) | platform, base-library | default | `/trade/distribution` → group `distribution` (PM-owned): the cash-and-carry (hall, racking, counter, Tam Ferrier, the independent Business) moved out of trade-distilling — a distributor is distribution infrastructure, so every producing trade and venue points HERE and the sibling trades share no edges; plus the **malt line** — malt the material is base-library's (the commons — a shared input whose owning trade does not exist yet), the sack row + its par on the counter the honestly-labelled imported-input faucet | `distribution` | the hall + the Business (producer) |
 | **trade-winemaking** · **trade-brewing** (DE-STUBBED — fermentation W4/W5/W8) | platform, base-library, distribution | default | `/trade/<x>` → group `<x>` (PM-owned): the WORKING venues over the kernel ferment — winemaking: the 285 K winery (press, vats, conditioning bottles, the cellar book), crush recipes + pomace, wine/must/vinegar/lees materials, the red/white/sparkling-conditioning/wine-culture profiles, the vermouth fortifications (bought spirit — the B2B); brewing: the 288 K brewhouse + the 279 K cold store (the lager line), mash recipes + spent grain, the ale/lager/cask-conditioning + culture profiles, the cask as a Vat-family conditioning vessel (real ale). Floor faucets RETIRED (the switchover): vessel faucets (`wine-bottle`, `keg`) supply empties and the `cellars` beats make every drop; serving recipes stay. | `<x>` | the floor(s) + outfit (producer) |
 | **trade-bottling** (STUB trade — libations) | platform, base-library, distribution | default | `/trade/bottling` → group `bottling` (PM-owned): everything downstream of production and nothing of production — the sodas' materials (`carbonated`; `ice` = frozen water with `density`/`meltingPoint`/`latentHeatOfFusion`), vessel presets (`can`, `mixer-bottle`, `ice-bag`), the floor product at target, the outfit trio on `consigns` → the distribution counter, `soft-drink`. Forced carbonation is its future de-stub (D11). | `bottling` | the floor + outfit (producer) |
-| **trade-farming** (libations) | platform, base-library, distribution | default | `/trade/farming` → group `farming` (PM-owned). ⭐ **A trade is a PROCESS, and produce is one of farming's OUTPUTS** — so this pack owns BOTH halves, as trade-distilling owns the still and the bottle, and it is **not** a stub. **Production:** the growing apparatus the husbandry/smallholding substrate drives — `thing/{pot,bed,seed,plant,crop}/` (drained from generic-objects; a pot is horticulture's vessel the way a keg is brewing's, and a dorm owning one no more makes pots household content than the bar owning a keg makes kegs hospitality's). **Output:** ten food materials tagged by category (the eight bar fruit + grape and juniper, farming A5), each a graded `Provision`, the `crate`/`basket` presets over `/platform/thing/Crate` (the fruit are `Provision` rows the crate props), a crate of each at target in `farm-stock`, and the `farm-outfit` + `farm-hand` on the pack's **own `farms` brain** (`src/behavior/farms.ts` → `/trade/farming/behavior/farms`, the first shipped pack brain — tends, picks, consigns → the distribution counter). The **domesticated species rows ship here too** (the trade ships what it domesticates — eleven plantae rows under `content/stuff/idea/species/`). Horticulture is farming too: the ornamentals (peace lily, snake plant) are grown here rather than filed under food. No serving recipe — produce is an input (`press` is hospitality's) | `farming` | the farm + outfit (producer) |
+| **trade-farming** (libations) | platform, base-library, distribution | default | `/trade/farming` → group `farming` (PM-owned). ⭐ **A trade is a PROCESS, and produce is one of farming's OUTPUTS** — so this pack owns BOTH halves, as trade-distilling owns the still and the bottle, and it is **not** a stub. **Production:** the growing apparatus the husbandry/smallholding substrate drives — `thing/{pot,bed,seed,plant,crop}/` (drained from generic-objects; a pot is horticulture's vessel the way a keg is brewing's, and a dorm owning one no more makes pots household content than the bar owning a keg makes kegs hospitality's). **Output:** ten food materials tagged by category (the eight bar fruit + grape and juniper, farming A5), each a graded `Provision`, the `crate`/`basket` presets over `/platform/thing/Crate` (the fruit are `Provision` rows the crate props), a crate of each at target in `farm-stock`, and the `farm-outfit` + `farm-hand` — ⚠ running the kernel's `consigns` brain, NOT the pack's own `farms` brain: `src/behavior/farms.ts` (`/trade/farming/behavior/farms`, the first pack brain — tends, picks, consigns) exists and is tested, but **no content row names it** (verified 2026-09 by the slate-compaction pass; the automation ladder is unwired, not unbuilt). The **domesticated species rows ship here too** (the trade ships what it domesticates — eleven plantae rows under `content/stuff/idea/species/`). Horticulture is farming too: the ornamentals (peace lily, snake plant) are grown here rather than filed under food. No serving recipe — produce is an input (`press` is hospitality's) | `farming` | the farm + outfit (producer) |
 | **trade-hospitality** (CAPABILITY — libations) | platform, base-library, generic-objects, the five stubs, cooking | default | `/trade/hospitality` → group `hospitality` (PM-owned): `src/` ships `IceBin` (an insulated Thermos of ice) and `Tap` (a Surfaced fixture that is a `tap` tool); the bar tools (muddler, bar-spoon, strainer, juicer), the stations (tap, ice-bin, water-tap, basin, glass-rack, well, house-tablet), the nine pool glasses over `CraftVessel` (coupe = cocktail-glass renamed) + the juice bottle, the four house-made juices; 21 cocktails + coffee + four presses; the `bar` and `cellar` bundles; `archetypes/hospitality.yaml`; `src/idea/cmd/crafting/` ships the bar's own steps `muddle`/`strain`/`garnish`/`mix`/`serve` (the shaker/mixing-glass/muddler rows author the verbs they confer); `menu.test.ts` materializes a venue from the archetype and orders all 24 lines | `hospitality` | — |
 | **expression** | platform | group `soul` | `/expression` → group `soul` | — | — |
 | **wiki-starter** | platform | default | — (rides `/wiki`) | — | — |
@@ -1173,6 +1226,17 @@ file-same / DB-changed cell *keeps* the owner's edit (a renamed bar, a
 refit room) with the baseline untouched, while a file change against an
 unedited row still lands. `PackLogic.venue-ownership.test.ts` asserts
 that cell in the venue framing; no mechanism was added for it.
+
+**A trade pack ships its own people.** *Ambient life is not a
+category*: the baker at five, the smell of the oven, the cart in the lane
+are the observable output of an industry running, not dressing sprinkled
+on a place. So every trade pack ships the outfit that works it — the
+floor, the hand and the brain that tends, picks and consigns
+(`trade-farming`'s `farms`, `trade-tailoring`'s `tailors`, the
+distributor's Tam Ferrier) — and a locality only *promotes* a generic
+occupant to a named Cast member when it has a reason to. Atmosphere is
+what an economy looks like from outside; authoring it separately would be
+authoring a second, unfunded copy of the economy.
 
 ## Reconcile policy
 

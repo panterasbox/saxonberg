@@ -67,6 +67,10 @@ the mixin returns early before `scene.send()` when suppressing.
 **sticky** — the threshold-crossing reaction suppresses its own line
 (no flicker), and once a phenomenon it stays in counter mode.
 
+The threshold itself is an `AppSettings` knob
+(`AppSettingKeys.reactionsThreshold`, key `reactions.threshold`, default
+**10**) — tunable, but unlike the flush cadence it carries **no clamp**.
+
 ## The aggregation contract — server numbers, client drama
 
 `ReactionRegistry.flush()` runs on a **fixed-cadence timer**
@@ -85,6 +89,8 @@ On each tick, for each recipient sink the registry packs every act that
 **tag-grouped absolute counts** (the bounded backbone) **plus a small
 capped familiar-biased attributed sample** selected *per-recipient* via
 contacts/recognition. The full reactor-set is **pull-only on expand**.
+The cap is the same `AppSettings` surface (`AppSettingKeys.reactionsSampleCap`,
+key `reactions.sampleCap`, default **5**).
 
 Counts are **absolute, not deltas**. The client *replaces* its bucket
 counts on receipt and synthesizes animation from the change; it never

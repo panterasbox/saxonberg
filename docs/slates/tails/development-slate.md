@@ -1,22 +1,19 @@
 # Development slate — land, structure, and what a parcel can carry
 
 > **Status: PARTIAL** — the land draw (only productive things draw)
-> shipped with farming →
-> [smallholding.md](../../subsystems/smallholding.md)
-> **Left:** coverage / FAR / efficiency as derived ratios · the
-> `subdivide` ceiling correction (only productive children draw) · a
-> consequence for over-draw (inert today) · the CMS proposing the
+> shipped with farming → [smallholding.md](../../subsystems/smallholding.md);
+> the hermit test and coverage/an area-based efficiency also shipped →
+> smallholding.md + [furnishing.md](../../subsystems/furnishing.md)
+> (`ParcelApi.spaceOf`)
+> **Left:** FAR + a cell-counted efficiency ratio (`lettable cells ÷
+> built cells`, not the area-based one that shipped) · the `subdivide`
+> ceiling correction (only productive children draw — still unbuilt,
+> `childAreaTotal` sums every child) · the hard extent cap on over-draw
+> (density stays soft; contradicts today's shipped/tested "over-draw is
+> inert" behavior — unresolved, see the compaction ledger) · unused
+> capacity as a land-banking/legislative dial · the CMS proposing the
 > numbers · entitlement vs built
 > **Size:** a wave
-
-> **Status: design captured 2026-08-01, not built.** Grew out of a review
-> question on the furnishing build's acreage model (D17): *"land area ×
-> storeys is crude — that's the maximum; buildings don't use the whole lot,
-> so actual usable area is smaller. Is that expressed anywhere?"*
->
-> It wasn't. Chasing it turned up that the corridor problem and the
-> **farmland** problem are the same problem, and that the answer is not a
-> spatial model at all.
 
 See also: [property-slate](../builds/property-slate.md) (the two conserved
 scarcities this adds a leg to) · [zoning-slate](../builds/zoning-slate.md)
@@ -86,42 +83,10 @@ Nothing ever needs to know *where* anything is — only *how much*.
 
 ## Land's job is to make production scarce
 
-Today it doesn't. An author can drop 500 field-cells on a tiny parcel and
-the economy will not object, because output is capped by cell count and
-cells are free to author. **`parcel.area` is currently decorative** wherever
-it matters most.
-
-The fix:
-
-```
-draw       = Σ over productive objects (beds, fields) of their land requirement
-available  = parcel.area − draw                 (derive on read, never stored)
-```
-
-**Only productive uses draw.** Paths, corridors, lobbies, farmhouses,
-yards, decoration: free. That is *why* filler never needed pricing, and why
-the farmland remainder does — the distinction was never spatial, it was
-**does this use produce?**
-
-It slots into property-slate's standing doctrine — *two conserved
-scarcities, never collapsed, coupled only at the parcel* — as the missing
-leg: **land prices production, compute prices liveness.**
-
-### The draw rides the productive object
-
-Not the zone, and not a free-text declaration. Both fail:
-
-- **cell-count** fails *expressiveness* — the only lever is how many cells,
-  and a barn inside the field zone would draw against farming;
-- **a declared per-zone number** fails *honesty* — an author could say a
-  thousand-cell estate draws 1 m² and no player could tell.
-
-So the draw is a **land requirement on the bed / field / plot** — the shape
-husbandry already has (the pot-as-N=1-bed). Authors compose beds of
-whatever size; a greenhouse can draw differently from open ground; a barn
-draws nothing because it is not a bed. And the number is backed by things
-the player can **count**: *"40 plants in beds totalling 400 m²; your parcel
-supports 1000."* A ledger, not a stamp.
+> The fix shipped: `draw = Σ` over productive objects' land requirement,
+> `available = parcel.area − draw`, authored on the bed/field/plot (not
+> the zone, not a per-parcel declaration), only productive uses draw —
+> see `smallholding.md § The land draw`. What's still open is below.
 
 ### Density is soft. Extent is hard. They are not the same thing.
 
@@ -171,31 +136,11 @@ it in this game.
 
 ## The hermit test — no burden on authors who don't care
 
-> *A hermit in a forest. A small shack, maybe a garden. None of it
-> parcelled. Does this still work?*
-
-**Yes, and without a single number.** Three things make that true, and none
-of them is a special case:
-
-1. **`ParcelApi.ownerOf` is total.** Unparcelled land already resolves — it
-   falls back to the state. Nothing breaks by having no parcel.
-2. **Unmeasured land is not policed.** A parcel with no declared `area`
-   imposes no cap; this is already how the shipped acreage check degrades
-   (`if (area > 0 …)`), so the rule is consistent rather than bolted on.
-3. **Husbandry never needed parcels.** The shipped houseplant grows in a
-   dorm room with no parcel anywhere near it.
-
-The deeper reason the burden lands correctly:
-
-> **The cap constrains player expansion, not authored content.** An author
-> writing a hermit's garden places N beds and that is the end of it —
-> nobody can add more. A player holding a farm parcel *can* add beds, and
-> that is exactly where scarcity has to bind.
-
-So an author who wants a shack and a garden that reminds them of a film
-writes a shack and a garden. They opt into the property system only when
-they want a player to **own, extend, or be taxed on** it — at which point
-they are asking for the machinery deliberately.
+> The hermit test itself — a shack and a garden in an unparcelled forest,
+> working with zero numbers — shipped and is documented twice already:
+> `smallholding.md § Unparcelled ground is NOT policed` and
+> `furnishing.md`'s "Unmeasured land is not policed" line. What's still
+> open is the tooling half, below.
 
 ### The CMS should propose the numbers, not demand them
 
@@ -232,14 +177,13 @@ real lesson, arriving as a consequence rather than a feature.
 
 ## Open questions
 
-- **Minted identity may already unblock per-room extent.** Build-2 found
-  that `StuffApi.clone(source, { asTemplatePath })` mints a clone at a
-  scheme-derived identity path, so a per-instance room **can** be a
-  `CartesianLocation` — which a Warren-cloned room cannot, and which is why
-  `DormRoom` is non-coordinate. If rooms can be cartesian, they have
-  `cellSize²` area, and **measured efficiency (lettable cells ÷ built
-  cells) becomes computable without any new field.** Worth testing before
-  designing anything else here.
+- ~~Minted identity may already unblock per-room extent~~ — **answered,
+  the other way.** The `asTemplatePath` channel this leaned on is
+  retired; a holding's rooms are now keyed instances of a real
+  `FurnishableRoom` row — deliberately **not** `CartesianLocation`,
+  because a room minted per lot cannot safely be a grid member. See
+  `smallholding.md § A lot's room is NOT on the street's grid`. Cartesian
+  per-room area is not how per-room extent will be reached.
 - **Zone extent.** A zone declares `cellSize` but has **no bounds** — so
   *"floor plate you are permitted to build on but haven't"* is not
   expressible. Vertical potential is (entitlement vs built); horizontal is
@@ -271,12 +215,15 @@ real lesson, arriving as a consequence rather than a feature.
 ## Corrections this slate makes to shipped code
 
 The furnishing build (MR !159) shipped `parcel.area`, `storeys` and
-`workableAreaOf`. Two things want revisiting:
+`workableAreaOf`. One correction still wants making:
 
 1. **`subdivide`'s ceiling makes *every* child draw against the parent.**
    Wrong for the corridor reason — a circulation sub-parcel would consume
    lettable capacity it does not produce from. **Only productive children
-   should draw.**
-2. **The ceiling is documented as usable area; it is a maximum.**
-   `area × storeys` is *gross*. `furnishing.md` should say so plainly until
-   efficiency is measured.
+   should draw.** Still true: `ParcelRegistry.childAreaTotal` sums every
+   child unconditionally, with no `landUse`/productive filter, even
+   though `landUse` itself has since landed on `ParcelRecord`.
+
+(The second correction — documenting `area × storeys` as a maximum, not a
+usable figure — is done: `furnishing.md § The space account` says so
+plainly.)

@@ -1,5 +1,12 @@
 # Identity — who a character IS, and who answers for them
 
+> **The trade ships the CROWD. The locality carves the CAST.** The trade
+> supplies a generic occupant who bakes, keeps hours and behaves like a
+> baker; a locality may *promote* that to Marchetti — named, with
+> dialogue, history, a grudge. *NPCs are expensive carves, just-in-time*;
+> *derive the crowd, simulate the cast* (graduated from the content-packs
+> slate, 2026-09).
+
 Every ledger in this game derives what it knows from an append-only
 record, and every record has to attribute its rows to **something**. This
 doc owns the question *what*: which key a row lands on, whether the thing
@@ -10,6 +17,25 @@ them.
 standing and history are all still **derived on read** from evidence —
 what this subsystem adds is the ability for an author to *state* a
 history and have the world believe it exactly as if it had happened.
+
+## A name is not an identifier
+
+An invariant already true throughout the engine, written down because
+everything else leans on it (graduated from the naming slate, 2026-09):
+belief (recognition · identification · regard · discovery) keys on
+`getIdentityPath()`; the chronicle on the owner's identity path; contacts
+on `playerId`; renown · participation · producer · authoring ·
+accountability · contracts · parcels · chattel · bank accounts · offices all
+on identity; MQL targeting on per-viewer `perceivedKeywords`, never the
+true name.
+
+> ⚠ **Nothing may ever key on a name string, and names may never be made
+> unique.** A rename is display text and nothing else; every consequence
+> follows you.
+
+This is also the exoneration mechanism: because every trace keys on
+identity, an impostor's deeds land on the impostor's ledger and never on
+the ledger of the person whose name he wore.
 
 ## The problem it solves
 
@@ -100,6 +126,22 @@ accident into the type system.
 There is no runtime transition to build. Identity is a stamp and
 `setTemplatePath` re-keys the registry index, so promoting an extra means
 **authoring a `Cast` row**.
+
+### Why `Extra` and not "prop" — and why the difference is ONE thing
+
+`props:` and `cast:` already mean something precise one level down: a
+**declared designation** on a location row, with a `Behaved` gate in both
+directions (the food-safety build paid for it — a corpse under `cast:`
+refused to hydrate and took the login with it). A role-filling NPC *is*
+`Behaved` and goes under `cast:`, so "prop NPC" would make one word mean
+two things one level apart. Theatre owns the right word: an **extra** is
+exactly *a guard, a fisherman*.
+
+⭐ And resist making `Cast` rich. The difference between the rungs is
+**entitlement to an individual ledger** — `SingletonMixin` is the whole
+enforcement — and everything else (a name, a prologue, a transcript, a
+dossier) is a *consequence*, because every ledger already keys on
+identity. Nothing needs adding to the rung one feature at a time.
 
 ---
 

@@ -2,20 +2,15 @@
 
 > **Status: UNBUILT** — doctrine set and backlog inventoried 2026-08-30;
 > no control wired.
-> **Left:** Tier 1 code-trust auditing (eval payloads, source-tree writes)
-> · the Api tier's default-open · per-call time budgets · input reaching
-> dangerous constructs · daylight/`@Audited` · load-boundary static
-> analysis · the process-layer lockdown
+> **Left:** Tier 1 code-trust auditing (eval payloads, source-tree writes,
+> the hot-reload ledger) · the Api tier's default-open (`HotReloadApi`,
+> `SourceTreeApi`; the four `gateSourceWrite` copies) · per-call time
+> budgets (`RenderBudget` generalized; the `eval` timeout) · input
+> reaching dangerous constructs (+ the object quota) · daylight/`@Audited`
+> + the operator signal · load-boundary static analysis (the
+> `check-mud-imports` move; evasion detection; LLM review as advisory) ·
+> the process-layer lockdown · retiring the three `isolated-vm` comments
 > **Size:** a build
-
-> **Status: doctrine set, backlog assembled, nothing built.** The stance
-> in one line: **TypeScript access is root, so prevent what we can,
-> contain what we can't prevent, and make what we can't contain
-> impossible to do quietly.** This is the security-posture companion to
-> [access.md](../../subsystems/access.md) (who may do what) and
-> [call-security.md](../../subsystems/call-security.md) (how a call is
-> gated). Graduates to `docs/resilience.md` when the posture is real
-> rather than aspirational.
 
 Inventory taken 2026-08-30 against the live tree; every claim below cites
 a file. **"Enforced" and "intended" are marked differently on purpose** —
@@ -128,33 +123,15 @@ statically.
 
 ## 4. What is already right
 
-Worth stating, because the backlog below is long and the base is better
-than it reads:
-
-- **The import boundary** (`lint:imports`) — nothing under `src/mud/`
-  imports outside the tree except the Api tier, Node built-ins included.
-  A build-time capability boundary; the single strongest control we have.
-- **Module scope declares; lifecycles initialize** (`lint:module-scope`) —
-  importing a mudlib module cannot execute arbitrary code.
-- **A9 — content-write never grants code execution**, enforced by
-  `enforceCodeFieldGate` over the closed `CodeNamingFields` vocabulary.
-- **The scripting `Interpreter`** — `ResourceLimits` (`sliceSteps`,
-  `maxSteps`, dispatch and depth ceilings), preemption every K steps *"so
-  a no-yield loop can't freeze the single-threaded event loop"*,
-  `ResourceLimitError` → graceful `resource-limit` abort. **This is the
-  execution surface untrusted people should get.** The answer to "how do
-  I let players write code" is *give them our language, not TypeScript* —
-  and it is already shipped.
-- **Prose/Liquid runs `ownPropertyOnly: true`** (`ProseLogic.ts:125`) — a
-  genuine prototype-chain defense.
-- **The sandbox escape suite** — 12 test files over circle-vs-field scope,
-  cross-scope shadow denial, deferred callbacks under birth scope.
-- **Bounded rings as a pattern** — `ConsoleTap` (1000 lines);
-  `RecordLogic` is explicit that it is *"a **window**, not a quota."*
-- Nine depth guards on recursive walks (`LoadBearing` 16, `Haulable` 16,
-  `PersistableLogic` 32, `Condition` 12, …).
-- **`GitLogic` commits as a synthetic author** hard-derived from the
-  acting avatar — git history is a real, out-of-band ledger.
+*Shipped baseline, documented elsewhere: the import boundary + module
+scope ([lint-family.md](../../lint-family.md)); A9 + the code-field
+gate ([access.md](../../subsystems/access.md), measurement.md); the
+interpreter's `ResourceLimits` as the everyone-surface
+([scripting.md](../../subsystems/scripting.md)); Liquid
+`ownPropertyOnly` ([prose.md](../../subsystems/prose.md)); the sandbox
+suite ([sandbox.md](../../subsystems/sandbox.md)); the record window
+([record-layer.md](../../subsystems/record-layer.md)); the synthetic
+commit author ([git-workflow.md](../../subsystems/git-workflow.md)).*
 
 ---
 
@@ -191,12 +168,9 @@ than it reads:
    the loader hook (§6) converts a lint into a boundary. The analyzer is
    already written; this is a move, not a build.
 
-3. **Two lint checks documented as CI-gating are not in CI.**
-   `.gitlab-ci.yml` runs 17; `lint:gates` and `lint:boundary` are absent,
-   though CLAUDE.md calls both CI-gating. `lint:gates` is what keeps every
-   `FromModule`/`FromController` string resolving to a real module and
-   export — the check that stops call-security policies silently pointing
-   at nothing after a rename.
+3. *Resolved 2026-09-03:* the roster is DERIVED — `lint:family` runs
+   every `lint:*` script and CI runs `lint:family` as one job
+   (`.gitlab-ci.yml`, [lint-family.md](../../lint-family.md)).
 4. **The hot-reload audit ledger doesn't exist.** `api/hot-reload.ts`
    emits `Events.ModuleReloaded/RolledBack/Unloaded/ReloadFailed` and its
    header says *"an audit ledger that wants longer history subscribes to

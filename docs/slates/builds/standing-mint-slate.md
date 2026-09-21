@@ -59,73 +59,14 @@ things."
 Hold those five and the project is defensible in public without
 flinching. Lose any of them — particularly 4 — and it is not.
 
-## Part 2 — ⭐⭐⭐⭐⭐ The scalar is produced by the DECISION, not the ledger
-
-The strongest argument in the session, and it overturned the position it
-was aimed at.
-
-Every binary choice — hire? lend? deal? admit? — collapses whatever
-information exists into **one bit**. A scalar is just that collapse,
-pre-computed. Therefore:
-
-- **Refusing to aggregate does not prevent aggregation.** It relocates
-  it to the moment of decision, where it happens anyway.
-- Players will math it. A public deed ledger plus a spreadsheet is a
-  rating agency. FICO was in nobody's constitution.
-- And the relocated version is **worse on our own stated grounds**: a
-  player-built score has *private* weights, which is precisely the
-  property (test 2) that we said made scoring intolerable.
-
-**The retraction, recorded.** An earlier formulation in this session was
-*"the engine measures; the engine never values."* That is too clean to
-survive contact. An engine that emits nothing aggregable does not
-prevent valuation — it outsources it to whoever has the best scraper.
-The corrected rule is Part 3.
-
-## Part 3 — ⭐⭐⭐⭐⭐ Plurality, not abstention
-
-> **The engine measures and may publish. It must never be the only
-> rater.**
-
-The real world's answer to *"credit scores will exist"* was never "the
-state issues one." It was, eventually and imperfectly, the FCRA
-settlement: **you may build a score; the subject may see it and dispute
-it; there are several bureaus.** Pluralism + disclosure + dispute rights
-is the civilising structure. The absence of scores never was.
-
-Which makes **rating agencies a player institution**, and that is far
-better content than either extreme:
-
-- Competing raters with **published weights** — the weights are the
-  product, and disagreement between raters is a live political fight.
-- **Rater capture is discoverable** through the provenance ledger. *Who
-  funds the rater* is the same investigation as *who funded the Crying
-  Indian* (can slate § 0).
-- A polity may **regulate disclosure** — our FCRA, passed in-world.
-- A bad rating from a rater nobody trusts lands nowhere, because **trust
-  in the rater is itself renown.** The recursion is the point.
-- **You can found one.**
-
-## Part 4 — ⭐⭐⭐⭐ Where a scalar belongs, and where minting one is a lie
-
-Scalars are not universal; they emerge under a specific condition —
-**strangers transacting at volume with low per-transaction stakes.**
-That is the market. It is why *consumer* standing gets scalarised
-everywhere in the real world (eBay feedback, seller ratings, credit) and
-*"is this person a good friend"* never does: friendship's decisions are
-rich, repeated, and directly informed.
-
-So the rule is not "scalar bad." It is:
-
-> **Ship the scalar where the market condition holds. Do not manufacture
-> one where it does not.**
-
-And note what this does to the can: **a deposit converts a civic act
-into a commercial one**, and that conversion is exactly the moment a
-scalar becomes appropriate. The mechanism is self-consistent — the
-polity, by pricing the externality, also decides that this conduct is
-now the kind of thing that gets counted. Nobody had to rule on it from
-outside.
+*Parts 2–4 (the scalar-is-produced-by-the-decision argument, plurality-
+not-abstention, and the market-condition rule for where a scalar
+belongs) are decided and recorded near-verbatim in
+[polity-decision-register.md](../../polity-decision-register.md) **D9**
+— including the FCRA analogy, the retracted "engine never values"
+formulation, and "ship a scalar only where the market condition holds."
+The can-deposit worked example lives in
+[aluminium-can-slate.md](../tails/aluminium-can-slate.md).*
 
 ## Part 5 — ⭐⭐⭐⭐⭐ Two layers of argument, and only one of them is settleable
 
@@ -197,7 +138,7 @@ same failure as an abstraction that costs nobody the activity
   cross-border deposit arb (can slate § 2).
 - **Auditing**, which becomes a real vocation *only because* the score
   exists — the second vocation the can mints, after the collector.
-- **Rater capture** (Part 3).
+- **Rater capture** ([polity-decision-register.md](../../polity-decision-register.md) D9).
 - **Crowding-out, as a ratchet.** Titmuss, *The Gift Relationship*
   (1970); Gneezy & Rustichini, *A Fine is a Price* (2000) — the daycare
   fines made lateness worse and stayed worse **after** the fine was
@@ -248,17 +189,18 @@ So the wiki stocks the **arsenal on both sides**, fairly stated — which
 is *model the mechanism, never the verdict* applied to discourse instead
 of to mechanics. This session's transcript is a worked example of the
 shape: mechanical objection → political rejoinder → synthesis, with a
-recorded retraction (Part 2) because retractions are what make an
-argument trustworthy.
+recorded retraction (see the [polity-decision-register.md](../../polity-decision-register.md)
+D9 rationale) because retractions are what make an argument trustworthy.
 
 This is also the polity-decision-register's own commitment: *the
 eventual polity inherits arguments, not just settings.*
 
 ## Part 10 — What ships, what defers, what is never ours
 
-**Ships (small, now-ish):** deeds to the chronicle; per-scope derive as
-it already works; the vocabulary of measurables kept **small and
-physical**; nothing in this slate needs new kernel.
+*The "ships" leg landed: deeds to the chronicle
+([chronicle.md](../../subsystems/chronicle.md)) and per-scope derive
+([renown.md](../../subsystems/renown.md) § Scope) both already work,
+using existing substrate — confirming this slate needed no new kernel.*
 
 **Defers (real builds, in dependency order):** published weights as
 readable content · the distributional impact statement · rater agencies

@@ -6,7 +6,11 @@
 > window · chronicle deed) · Defense A, `learnIdentity` refusing a
 > conflicting name · Defense B, taking a load-bearing name is gated ·
 > Defense C, the name-holder is told · the cooldown dial ·
-> ⭐ **minimal-distinguishing rendering** (below)
+> ⭐ **minimal-distinguishing rendering** (below) · the presentation
+> tails (the dead `alternateNames:` blocks → `keywords:` · the agent
+> `keywords:` union + which keywords are public · the two name-bearing
+> stems, a content fix · `formal`'s first consumer · `wornFeatureOf` →
+> `mostNotableWorn`)
 > **Size:** a wave
 
 ## ⭐⭐ This slate owns MINIMAL-DISTINGUISHING RENDERING
@@ -56,11 +60,6 @@ disambiguation, but nothing enforces one.
 That choice is right and stays. This slate is the bill it comes with,
 and how it gets paid.
 
-> **Status: design conversation, captured. Not requirements.** The
-> substrate it rides — belief, chronicle, renown, accountability — is all
-> shipped; nothing here needs new architecture. What it needs is one gate
-> at one sink and one notification.
-
 Related: [belief.md](../../subsystems/belief.md) (**read first — it
 already does most of this**), [chronicle.md](../../subsystems/chronicle.md)
 (the identity ledger; deeds), [contacts.md](../../subsystems/contacts.md)
@@ -106,25 +105,10 @@ Three consequences, all load-bearing:
 
 # Part 1 — A name is not an identifier
 
-Already true throughout the engine, and it must be written down as an
-invariant because everything else leans on it:
-
-| Subsystem | Keys on |
-|---|---|
-| belief — recognition / identification / regard / discovery | `templatePath` (`/platform/agent/Avatar/<playerId>`) |
-| chronicle | `owner` templatePath |
-| contacts | `playerId` — *the doc already says "stable across name changes"* |
-| renown · participation · producer · authoring | identity |
-| accountability · contracts · parcels · chattel · bank accounts · offices | identity |
-| MQL targeting | per-viewer `perceivedKeywords`, not the true name |
-
-> ⚠ **Nothing may ever key on a name string, and names may never be made
-> unique.** A rename is display text and nothing else; every consequence
-> follows you.
-
-**This is also the exoneration mechanism** (Part 4). Because every trace
-keys on identity, an impostor's deeds land on the impostor's ledger and
-never on the ledger of the person whose name he wore.
+*Shipped invariant — every ledger keys on identity, never on the name*
+*string; graduated to identity.md via the compaction ledger*
+*(`docs/plans/slate-compaction/unlinked-3.md` § Handoff). It is also*
+*the exoneration mechanism Part 4 relies on.*
 
 ---
 
@@ -347,10 +331,6 @@ one room. Nothing here is about fraud.
   distinguishing features for the stranger case. Extend the same
   machinery to the *collision* case — "Ash in the red coat" — so the
   engine never pretends two people are distinguishable when they aren't.
-- **Names are references, not text.** Identity tags already reach the
-  wire carrying `stuff-id`, so every rendered name is clickable and the
-  client can ask who that is. ⚠ `stuffId` is reboot-ephemeral — a session
-  handle, fine for clicking, never for storage.
 
 ---
 
@@ -404,7 +384,6 @@ And the honest limit on renaming generally:
   surname is a lighter act than a full identity change and should
   probably cost less. Needs the lineage substrate
   ([blood-slate](../builds/blood-slate.md)) first.
-</content>
 
 ---
 

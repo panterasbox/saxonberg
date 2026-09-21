@@ -3,16 +3,11 @@
 > **Status: PARTIAL** — the substrate shipped: the `GroupApi` facade over
 > four providers (managed · MQL · contacts · party) →
 > [grouping.md](../../subsystems/grouping.md)
-> **Left:** House as a provider plus its char-gen touch (the near-term
-> axis) · Guild as the class system · Corp as the competition overlay —
-> the last two deferred game design
-> **Size:** a build
-
-> **Status: preliminary.** The *structured affiliation axes* of the world —
-> how people organize beyond ad-hoc grouping. Surfaced from the char-gen /
-> social-fabric discussion. **House** is near-term (it's the only axis that
-> touches onboarding); **guild** and **corp** are deferred game-design
-> (the class system + the competition layer). All tentative.
+> **Left:** House as a provider plus its char-gen touch (the near-term,
+> campus-tier axis — the only design still owned by this slate); Guild
+> and Corp have no remaining design of their own here — each is now a
+> pointer to the slate that owns it (guild-slate.md; corpos-slate.md)
+> **Size:** a wave
 
 ## The frame — one substrate, several axes
 
@@ -105,21 +100,6 @@ live. (Houses may persist as alumni networks, but their home is the campus.)
 > The **form / join / earn** wall: you *form* a party, *join* a guild, *earn*
 > standing with a corp.
 
-- **Two structures**, both authorable hierarchies like our species/biome
-  trees:
-  1. **A class taxonomy** (tree): broad class (Fighter) → specializations;
-     whole branches like **schools of magic** under a magic root. *What you
-     are.* (Taxonomy contents = game-design content, TBD.)
-  2. **An advancement ladder** within a guild (apprentice → master). *How far
-     you've risen.*
-- **Earned**, not chosen — capability-magic made concrete (you join, you
-  practice, you rise). The through-line: **aspiration (dream) → major (study)
-  → guild (practice/mastery).**
-- **Recruits on campus** — guild halls + recruiter NPCs courting students and
-  graduates (the university is a *feeder*; guilds employ/advance). Good
-  content; "Authority for everything" energy.
-- Deferred with [capability-magic](./capability-magic-slate.md).
-
 ## Corp — the competition overlay (deferred)
 
 > **Settled since this sketch:** corp is a **conduct-driven multipolar
@@ -133,24 +113,6 @@ live. (Houses may persist as alumni networks, but their home is the campus.)
 > competition over **market + prestige** (not territory — that's the polity);
 > venues marked by ownership, **people by standing** (not a brand-stamp);
 > prosocial-by-construction; player-founded corps deferred.
-
-- An **orthogonal allegiance axis** (the EVE model): the *same* org exists as
-  multiple **corp-branded branches**, and your corp affiliation sets which
-  branch you're in and who you compete against. Applies to **anything** —
-  guild branches, store chains, church denominations. Its job is
-  **competition at scale.**
-- The orthogonality is the point: **what you do** (guild/class) is
-  independent of **who you're allied with** (corp). You're a **[class] of
-  [corp]**.
-- **Caveat — take EVE's structure, not its culture.** EVE's toxicity
-  (scams/betrayal/predation) is the opposite of the DRG/welcoming/prosocial
-  thesis ([alignment-religion-slate](./alignment-religion-slate.md)). Use
-  **sanctioned, structured rivalry** (house-cup / team-sports energy:
-  in-group cooperation + out-group consensual rivalry). Done right, corp
-  rivalry is a *prosocial engine*; done wrong, a toxicity vector. This is the
-  thing to nail.
-- *Open:* player-founded corps vs. authored top-level brands; what the
-  competition is *over* (prestige / territory / market / members).
 
 ## Substrate / connections
 

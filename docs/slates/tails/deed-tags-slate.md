@@ -7,11 +7,6 @@
 > of layer 1 · the faith-relevant tags that do not exist yet
 > **Size:** a wave
 
-> **Status: decided 2026-08-12, nothing built.** The vocabulary every
-> readout over the chronicle points at — faith precepts, criminality,
-> alignment, achievements, any future consumer of the *"dumb store, smart
-> consumers"* ledger.
->
 > **It unblocks two documents that both stalled on it:**
 > [faith-slate](../builds/faith-slate.md) (precepts need a *closed* vocabulary and
 > `chronicle.tags` is open and inert) and

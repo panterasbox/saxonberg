@@ -1,9 +1,12 @@
 # Pharma slate — the game's first credence good
 
 > **Status: UNBUILT** — direction set 2026-08-02; nothing built.
-> **Left:** the actives/pharmacopoeia content · extraction as a process ·
-> glass vessels · the assay instrument · the apothecary + assayer
-> vocations · the illicit branch · disposal · the batch/recall record
+> **Left:** the actives/pharmacopoeia content · `neutralizedBy` + `rinse
+> [with <substance>]` (the first row of the pharmacopoeia) · extraction as
+> a process · glass vessels · the assay instrument · the apothecary +
+> assayer vocations · the wild→cultivated quota (the first commons) · the
+> illicit branch · disposal · the batch/recall record · the manufactory
+> variant · in-world statistics over the record (Q5)
 > **Size:** a build
 
 **Captured 2026-08-02**, out of the physiology slate's care economy. The
@@ -13,10 +16,6 @@ unusual direction.
 
 > ⭐⭐⭐⭐⭐ **Every industry so far sells something you can EVALUATE. This
 > one doesn't.**
-
-> **Status: direction set, nothing built.** Depends on
-> [physiology-slate](./physiology-slate.md) (the substance model) and
-> [discovery-slate](./discovery-slate.md) (the wild input).
 
 Related: [physiology-slate](./physiology-slate.md) (**substances, the
 therapeutic window, the care economy**),

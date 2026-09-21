@@ -1,28 +1,16 @@
 # Combat tactics & engagement model (working slate)
 
 > **Status: PARTIAL** — `CombatGraph`, the formation presets and ranged
-> Wave 1's band ladder shipped → [ranged.md](../../subsystems/ranged.md)
-> **Left:** cover-as-status (ranged W2) · the `physical` conduit channel
-> for cross-room shots · the Skirmish / Kite preset · the magic-interplay
-> questions at `MagicLogic.deliverAt`
-> **Size:** a wave
-
-> **Status: both theses SHIPPED; the ranged surface is what remains.**
-> Thesis 1 (combat as an engagement graph, not geometry) shipped as the
-> multi-party combat build's `CombatGraph`; Thesis 2 (party-level
-> presets) shipped as the **combat-formations build** — renamed
-> *formations* ("tactics" is DA:O's word for the per-character gambit
-> scripting this design rejects), with the preset roster minus Skirmish,
-> Master-Apprentice's reward knobs **superseded by the emergent
-> economy** (no credit transfer, no scaling — see
-> [combat-formations.md](../../subsystems/combat-formations.md), which is
-> now the source of truth for everything party-strategy). What this slate
-> still uniquely holds is **Thesis 1's ranged-as-relationship model**
-> (kite / close / artillery over engaged-status, the `physical` conduit
-> transmissivity channel, cover-as-status) — the design surface the
-> deferred ranged-engagement build consumes. §"Thesis 2", the preset
-> table, and the integration sketch below are historical; read them as
-> the design record, not the current shape.
+> Wave 1's band ladder shipped → [ranged.md](../../subsystems/ranged.md),
+> [combat-formations.md](../../subsystems/combat-formations.md);
+> cover-as-status and the Skirmish preset are now
+> [ranged-slate.md](../builds/ranged-slate.md)'s (§ Cover, § Formations)
+> **Left:** the `physical` conduit channel for cross-room shots (⚠
+> contradicted by ranged.md's cross-room ruling — see the compaction
+> ledger) · the magic-interplay questions at `MagicLogic.deliverAt`
+> (bolt vs cover · interpose · attenuation · counterspell vs cover) · a
+> per-character gambit layer, only if players demand it
+> **Size:** a tail
 
 Working slate for **combat tactics**: the party-as-a-whole meta-strategy
 layer, the abstract engagement model it rides, and why this — not
@@ -48,17 +36,6 @@ reframe is the point of this slate.
 
 See also:
 
-- [docs/subsystems/activity.md](../../subsystems/activity.md) — the shipped
-  engagement framework (engagement slots `body`/`hands`/`attention`/
-  `voice`, `SchedulerApi`, `SustainedEngagement`, abort reasons). A
-  melee-lock *is* an engagement; a tactic is a sustained party-level
-  engagement that allocates the individual ones. Read this first.
-- [grouping subsystem](../../subsystems/grouping.md) — the party is a
-  self-managed group (model B); a tactic is a property of the party.
-  Combat/instance participants are an activity-bound group.
-- [docs/slates/locomotion-as-activity-slate.md](../tails/locomotion-as-activity-slate.md)
-  — the sibling "promote a synchronous system onto the activity
-  framework" slate; combat would follow the same shape.
 - [docs/design-philosophy.md](../../design-philosophy.md) — the "How this
   lands for ranged actions" and "hiding/cover as status, not position"
   sections are the spatial groundwork this slate builds on. Cover and
@@ -66,9 +43,6 @@ See also:
 - [docs/interaction-philosophy.md](../../interaction-philosophy.md) — text is
   serial, not parallel; the keystone that the human interface *is* the AI
   interface. Both are load-bearing for why party tactics suit this medium.
-- [docs/standard-model.md](../../standard-model.md) — tactics want to be
-  authored `Idea` singletons (one per preset), parallel to
-  `LocomotionMode`. Not a registry.
 
 ---
 
@@ -93,126 +67,33 @@ See also:
 
 ## Thesis 1 — Combat as engaged relationships (the spatial answer)
 
-The provoking belief was "ranged combat needs sub-room geometry, which is
-a different model — we might as well switch to Unity." Two claims hide in
-that, and only one is true:
+Superseded by the ranged build: the binary *locked-in-melee* status became
+the four-band ladder per edge (`close · reach · near · far`), kite/close
+became `fight withdraw`/`advance`, the room-size skill modifier became the
+arena cap derived from real extent, and *artillery from the next room* is
+ruled out of scope as load-bearing → ranged.md § Bands are relationships ·
+§ The arena caps the ladder · § Opening the gap · § Deliberately out of
+scope; the session is a plain N-container, not a `SustainedEngagement`
+(combat.md § Cycle 2). Cover-as-status is superseded by ranged-slate.md
+§ Cover — the shield's static cousin (an authored, directional,
+destructible, leased object; the `cover` answer steps the placement
+ladder, no hit chance). Still uniquely held here:
 
-- **Geometric/ballistic ranged combat** (real coordinates, line-of-sight
-  tracing, cover angles, distance-as-calculation) *is* a different model
-  and a Unity-tier rabbit hole. Refuse it.
-- **Ranged combat as a feeling** (archers plink from afar, skirmishers
-  kite, melee must close, mages are artillery) does **not** need
-  geometry. Tabletop has shipped it gridless for decades. It's an
-  abstraction problem.
-
-The reframe that makes it cheap: ranged isn't a *spatial* problem, it's a
-*relationship* problem. One status does almost all the work — **"locked
-in melee with X."**
-
-- A **ranged** weapon can target anyone in the room (or through an open
-  conduit). It imposes no lock.
-- A **melee** weapon requires you be *engaged* with your target. Engaging
-  is an action; an archer can't be hit until someone closes on them.
-- **Kiting** = break engagement, move, fire. **Closing** = spend an
-  action to engage. **Artillery** = fire from an adjacent room through a
-  doorway you can't be meleed through.
-
-That delivers the whole archer/skirmisher/mage fantasy with *zero*
-geometry — just a binary engaged-status between actors. The machinery
-already exists:
-
-- **Engagement framework** (`activity.md`) — the `body` slot is exactly
-  the shape a melee-lock wants; a combat round is a sustained engagement.
-- **Room size** — `Location` already carries a size; "harder to hit
-  across a big room" is a skill-check modifier, not a distance
-  calculation.
 - **Conduit transmissivity** — already channel-keyed for light and sound;
   `physical` is one more channel for "do arrows pass through this
   doorway / window / portcullis." (See design-philosophy "How this lands
   for ranged actions.")
-- **Cover & flanking as status** — the two things that *seem* to demand
-  geometry are already solved elsewhere as status, not position: hiding is
-  a `Stealthing` perception-shadow; cover is the same trick — a
-  `Covering` status that lowers hit chance — not "I'm behind the pillar at
-  (4,7)."
-
-It layers the way the rest of the engine does: engaged-vs-ranged within a
-room (nearly free) → cross-room shots via conduit `physical` passability
-(uses the room graph as the spatial model) → opt-in range bands for the
-rare room that wants real tactical depth (the philosophy's "tagged
-regions" tier, authored per-location, never global).
-
-**Worth deleting the false belief, not just the feature.** The thing to
-purge from the docs isn't "ranged combat" — it's the implied "...which
-would force sub-room geometry," because that's the lie that makes the
-only options look like "no ranged" or "rewrite in Unity."
 
 ---
 
 ## Thesis 2 — Party tactics (the marquee feature)
 
-If combat is a graph of engaged relationships, then **a party tactic is a
-policy over that graph** — rules about who's allowed to hold an
-engagement, who intercepts when, who stays free. That's Dragon Age:
-Origins' gambit system lifted from per-character scripting up to one
-party-level choice.
-
-### Lineage
-
-- **Dragon Age: Origins** — real-time-with-pause plus per-character
-  gambit AI ("IF enemy targets mage THEN taunt"). The keeper idea is
-  *set policy, then watch it execute.* The discard is per-character
-  scripting — a menu wall.
-- **Ara: History Untold** — units adopt one of several configurations,
-  each strong in different situations. The keeper idea is *a preset is a
-  bundle with situational tradeoffs.*
-
-Saxonberg's synthesis: **set-policy-then-watch, simplified from
-per-character gambits to one party-level preset.** This is the crucial
-move for *text*: DA:O's gambits are a wall of IF/THEN rows; a named
-formation is one legible line — *"the party adopts Master-Apprentice"* —
-and you read the consequences unfold. Text is bad at moment-to-moment
-twitch and great at set-policy-then-watch; the "pause" is just the
-natural cadence of prose.
-
-### The standout preset — Master-Apprentice (codified power-leveling)
-
-The behavior you can't stop: a veteran drags a newbie through content to
-farm XP. The move from Principle 2: don't fight it — codify it. And in an
-*educational* world, master-apprentice is **literally a teaching
-relationship**, so the thing you'd normally nerf is the exact social
-dynamic the product wants to manufacture. The exploit and the product
-goal become the same act.
-
-The mechanic:
-
-- The **apprentice** (lower level) holds the primary engagement and takes
-  the credit / killing blow → gets the XP.
-- The **master** intercepts high-threat engagements ("defends from big
-  stuff") → keeps the apprentice alive. (Interception = a
-  status-reassignment trigger: when a high-threat enemy would engage the
-  apprentice, the master auto-takes that engagement.)
-- Because it's codified, you attach **rules and tradeoffs**: reward curve
-  scaled so it reads as *teaching, not farming* (the master earns reduced
-  rewards; maybe the apprentice earns a learning bonus — pedagogy again);
-  a level-gap cap beyond which the tactic degrades or content scales.
-  "Your rules" is the whole value: you get to set the knobs.
-
-### The preset table (illustrative, not final)
-
-A real design space, not one trick:
-
-| Preset | Policy over the engaged-graph | Shines when |
-|---|---|---|
-| **Master-Apprentice** | junior holds engagement + credit; senior intercepts threats; rewards scaled | mentorship; mixed-level parties |
-| **Focus Fire** | whole party piles engagement on one target | bursting priority threats |
-| **Phalanx** | everyone covers everyone; low damage, high survivability | retreats; bad odds |
-| **Skirmish / Kite** | ranged-led; refuse engagements; whittle | when Thesis 1's ranged model drives it |
-| **Vanguard** | front line eats all engagements; back line free to nuke | glass-cannon alpha |
-| *(none)* | no coordination; each-for-themselves | the default |
-
-A preset is a named bundle: role assignments + interception rules +
-reward/tradeoff knobs. Few and legible — resist a config-screen wall.
+Shipped as the **combat-formations build** — renamed *formation* (the
+DA:O lineage and its rejection are stated there), four presets (`default`
+· `focus-fire` · `vanguard` · `master-apprentice`; Skirmish/Kite and
+Phalanx deferred), Master-Apprentice's reward knobs **superseded by the
+emergent economy** → combat-formations.md (intro, § The `CombatFormation`
+Idea, § The `command` Discipline, § Deferred, § History).
 
 ### Why this is text/social/AI-native
 
@@ -234,48 +115,36 @@ philosophy docs, it should be this, not arrows.
 
 ## Shape of the integration (sketch, not a build)
 
-- **`CombatTactic`** as an authored `Idea` singleton, one template per
-  preset (parallel to `LocomotionMode`). Carries the policy: role slots,
-  interception predicate, reward modifiers. Not a registry.
-- **The party** (a self-managed group, grouping subsystem model B) holds the
-  active tactic and the role→member assignment.
-- **A combat round** is a `SustainedEngagement` on the activity
-  framework; the tactic is the policy the round consults when allocating
-  individual engagements and resolving interceptions.
-- **Engaged-status** is the atomic relationship (Thesis 1) the tactic
-  operates on.
-- **Cover / Stealthing** statuses supply flanking/cover without geometry.
+Superseded by the build → combat-formations.md: `CombatFormation` (not
+`CombatTactic`) at `/platform/idea/CombatFormation/<name>`; the Party holds
+the formation as a path string + `roleAssignments`; the session is a
+plain N-container, not a `SustainedEngagement` (combat.md § Cycle 2);
+cover is ranged-slate.md § Cover.
 
 ---
 
 ## Open questions
 
-1. **Combat exists first.** This whole slate presumes a combat system
-   that isn't designed. The engagement model (Thesis 1) could be
-   prototyped ahead of full combat; tactics (Thesis 2) cannot.
-2. **Reward balance.** Codifying power-leveling means the master-apprentice
-   reward curve must not be strictly better than playing straight.
-   Requires actual numbers, i.e. requires combat to exist.
-3. **Preset count.** How many presets before it's a menu wall? Lean few;
-   add only when content asks.
-4. **Interception resolution order.** When multiple party members could
-   intercept, who wins? Probably a role-priority field on the tactic.
-5. **Solo play.** Tactics are party-level; what does a solo actor get?
-   Probably the `(none)` default plus self-targeted statuses.
-6. **NPC / enemy tactics.** Do enemy groups adopt tactics too (symmetry),
-   or is it player-only in v1? Symmetry is cleaner but doubles the design.
+1. Resolved: combat shipped (combat.md).
+2. Resolved — superseded: Master-Apprentice has **no reward knobs**; the
+   economy is emergent (combat-formations.md § The `command` Discipline,
+   § History).
+3. Resolved: four presets seeded; a fifth *when content asks*
+   (combat-formations.md § Deferred).
+4. Resolved: interceptor roles in priority order, holders in roster
+   order (combat-formations.md § The three hooks).
+5. Resolved: *"solo" is not a concept* — the total resolution chain
+   (combat-formations.md § The total resolution chain).
+6. Resolved: NPC≈PC — the `combatant` brain is formation-aware through
+   the same read (combat-formations.md § Surface).
 
 ---
 
 ## What this slate does NOT cover
 
-- **The combat system itself** — stats, damage, initiative, turn cadence,
-  resolution math. All game-design-phase, not yet designed (combat ships;
-  these specifics aren't pinned down).
-- **Geometric/ballistic ranged combat** — explicitly refused (Unity
-  territory).
-- **The activity framework** — already shipped (`activity.md`).
-- **The party/grouping subsystem** — its own slate.
+- Geometric/ballistic ranged combat — refused, and shipped that way
+  (ranged.md § Deliberately out of scope). The combat system itself,
+  the activity framework and the party subsystem all shipped.
 - **Per-character behavior scripting** (DA:O-style gambits) — deliberately
   *not* the model; party-level presets replace it. A gambit layer could
   return later if players demand per-character control, but it's not the
@@ -285,25 +154,10 @@ philosophy docs, it should be this, not arrows.
 
 ## Once shaped into formal requirements
 
-When combat reaches the design phase, this slate boils down to:
-
-- An **engaged-status** primitive between actors (melee-lock), ranged
-  weapons that impose none, and the kite/close/artillery consequences —
-  riding the `body` engagement slot.
-- A **`physical` conduit transmissivity** channel for cross-room shots
-  (one dimension alongside light/sound).
-- **Cover** as a `Covering` status (sibling to `Stealthing`), supplying
-  flanking without geometry.
-- **`CombatTactic`** `Idea` singletons (one per preset) carrying policy;
-  the party holding an active tactic + role assignment.
-- The **preset set** (Master-Apprentice, Focus Fire, Phalanx, Skirmish,
-  Vanguard, none) with their interception rules and reward knobs.
-- **Master-apprentice reward scaling** + level-gap cap as the worked
-  codify-don't-fight case.
-- Tests: engaged-status gates melee but not ranged; an archer is
-  untargetable by melee until engaged; a tactic reassigns an engagement
-  on interception; master-apprentice routes credit to the apprentice with
-  scaled rewards.
+Superseded by the combat, combat-formations and ranged builds — every
+item shipped or was replaced (combat.md § Cycle 2, combat-formations.md,
+ranged.md) except the `physical` conduit (Thesis 1, above) and cover, now
+ranged-slate.md § Cover.
 
 ### Magic interplay questions (banked 2026-07-23, from the magic build)
 
@@ -334,5 +188,5 @@ questions come due:
   read) and physical cover should stay *distinct* answers to a ranged
   cast, not collapse into one dodge stat.
 
-Geometric fidelity, per-character gambits, and enemy-side tactics wait
-for their own waves — if they're ever asked for at all.
+Enemy-side formations landed (the `combatant` brain resolves through the
+same chain a player does — combat-formations.md § Surface).

@@ -4,22 +4,14 @@
 > dossier, but as a stated BAND (`competence: asserting: expert`), not this
 > slate's decided stated-EFFORT prior →
 > [identity.md](../../subsystems/identity.md)
-> **Left:** the `background:` effort→prior function (kind × years × at) ·
-> the zero-write crowd prior · authored acquaintance (Gap 1) · all of
-> Phase B — the foreign-evidence adapter, the three buckets, the published
-> acceptance policy, revocation
+> **Left:** the `background:` effort→prior function (kind × years × at) +
+> the Phase A open questions (decay · Catalog edges · `conditioning` ·
+> in-world readability) · the zero-write crowd prior · char-gen
+> aspirations compiling to a background · authored acquaintance (Gap 1,
+> the cohort declaration) · all of Phase B — the foreign-evidence adapter,
+> the three buckets, the acceptance cap, identity/consent/revocation, the
+> published acceptance policy, the three variants
 > **Size:** a build
-
-> **Status: design proposed, nothing built.** Two questions that turn out
-> to be one: *how does an NPC arrive good at something without an authored
-> biography of deeds*, and *how does a player carry competence between
-> instances running the same content*. Both are **evidence that did not
-> happen here** — one fictional, one foreign — and both are made tractable
-> by the same property of [advancement](../../subsystems/advancement.md):
-> Competence is derived on read and never stored.
->
-> Phase A is a tail of advancement. Phase B is new substrate spanning many
-> subsystems. Build-grouping left to the sweep.
 
 ---
 
@@ -51,40 +43,9 @@ that seam, not a new mechanism.
 
 ## The gap
 
-An author needs to say *Dave is expert at bartending*. Today there is no
-way to, short of fabricating hundreds of `TranscriptEntry` rows.
+*Cut 2026-09-18 — shipped: a competence claim is SEEDED EVIDENCE, never a declared floor (the three objections to a fiat band are the doc's own) → [advancement.md § Seeding a band — `Competence.seedRunFor`](../../subsystems/advancement.md), [identity.md § The dossier — evidence, never values](../../subsystems/identity.md).*
 
-The obvious shortcut — let a template declare `competence: {mixology:
-expert}` and have `bandFor` short-circuit — should be **rejected**:
-
-- There are now **two answers** to "how good is X at Y," and every
-  consumer (combat, craft-resolve, dialogue gates, appraisal, teaching)
-  has to branch on which kind of character it is holding.
-- **Dave can never learn.** A fiat band is a constant; the mentorship
-  loop, the `command` Discipline's teaching payoff, and any "the NPC got
-  better at this" story are foreclosed.
-- It breaks the honesty firewall by making the band an *input you set*
-  rather than an *output you observe* — the exact inversion
-  [advancement](../../subsystems/advancement.md) and
-  [renown](../../subsystems/renown.md) exist to prevent.
-
-## ⭐ The house already answered this twice
-
-Competence is the **odd one out**, not the trailblazer. Two shipped
-subsystems solve the identical problem by **seeding `claim`-kind
-evidence**:
-
-- **[trait.md](../../subsystems/trait.md)** — `BehavedMixin` carries a
-  declarative `dispositions: ClaimSeed[]`; `postRegister` seeds them via
-  `TraitApi.seedClaims`, idempotently across re-clone and CMS go-live. In
-  the doc's own words, *"personality that came from a seeded history, not
-  a slider."*
-- **[chronicle.md](../../subsystems/chronicle.md)** — `seedClaims` mints
-  the authored prologue at char-gen from the chosen aspiration.
-
-So the **principle** is settled and this slate should not re-argue it.
-What is open is only the *representation*, and there is a real reason
-competence cannot simply copy the trait recipe — see the next section.
+*§ The house already answered this twice — the claim-evidence principle shipped as the dossier's founding move → [identity.md § The dossier — evidence, never values](../../subsystems/identity.md).*
 
 ## ⚠ Why competence can't just seed claim rows
 
@@ -267,26 +228,7 @@ knows Dave"* without touching Dave.
 
 ### ⚠⚠ Gap 2 — renown, and the materialized-standing trap
 
-Renown is the one social ledger that genuinely wants NPC authoring: a
-neighborhood fixture whom nobody has heard of is the immersion break the
-whole slate is about.
-
-But it **cannot be seeded the way competence and traits can.** Competence
-and traits derive on read, so appending evidence is sufficient. Renown,
-participation, and producer are **materialized** — and all three
-subsystem docs carry the same warning, in the same words:
-
-> ⚠ *Seeding the log does not move the figure.*
-
-This is a shipped, already-paid-for bug: a correctly-seeded character
-still read as a nobody, because a restart re-warms the standings map from
-a collection the seeding never wrote. So an authored NPC renown must
-write the **standing**, or force a recompute — not merely append.
-
-⚠ The trap is nastier here than usual precisely *because* the sibling
-ledgers teach the opposite habit. An author who has successfully seeded
-traits and competence will reasonably expect renown to work the same way,
-and it silently will not.
+*Shipped — `renown:` in the dossier; `RenownApi.seedTo` appends reception evidence to the asserted band and schedules the fold, debounced → [identity.md § The Compact stays players-only by ARITHMETIC](../../subsystems/identity.md), [renown.md § Seeding an authored reputation](../../subsystems/renown.md). The trap's participation/influence share is dossier-slate Q2.*
 
 ### Scope
 

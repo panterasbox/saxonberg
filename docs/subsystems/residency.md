@@ -32,7 +32,7 @@ about the drift, because nobody touched it. This collapses the hard
 "passivate stateful clones" problem entirely: there is no state to
 preserve, because we only cull what's already abandoned.
 
-See the seeding [residency-slate.md](../slates/tails/residency-slate.md).
+The seeding slate (`residency-slate.md`) was absorbed into this doc on 2026-09-20; this doc is the reference.
 (The requirements doc was retired at the pre-merge sweep; this doc is the
 record of what shipped.)
 
@@ -301,6 +301,13 @@ wired.
   retained size needs a heap walk we can't afford per-sweep.
 - **Ordered LRU / incremental sweeping** — escalations if observe-mode
   data ever shows the O(n) scan spiking.
+- **Reset scope stays restock-only.** `Resettable.reset()` is a bare
+  contract — nothing ships a template-baseline diff, so a resettable
+  object can top itself back up (the shop's `Stock`) but cannot yet
+  *revert drifted fields* to their authored baseline (a door someone
+  repainted, a sign someone re-carved). Field-revert needs that diff
+  machinery and is still open (salvaged from the retired
+  `residency-slate.md`).
 
 ## ⚠⚠ Walk RAW all the way up, not just the first hop
 
@@ -419,11 +426,14 @@ it one:
   the authored floor, ~360 items across the trades' stocks, most in the
   zone-less region `''`, must fit under it or a fresh boot stands short;
   the code default is 64).
-- **A boot run, in `enforce`.** `AppBootstrap` calls
-  `ResidencyApi.spawnNow()` once after `ResidencyApi.boot()` (after
-  `PackApi.install()`), and the platform's `settings/residency.yaml`
-  ships `residency.spawn.mode: enforce` — the "stands at target on a
-  fresh boot" criterion. `rollBlessing` is untouched.
+- **A recurring game-time sweep, in `enforce`.** `ResidencyWarden.warm()`
+  arms `installSpawnSweep()` alongside eviction and reset
+  (`WorldClockApi.every`, cadence `residency.spawn.intervalS`) — not a
+  single boot-time call — so a region that falls short of target keeps
+  drawing on every tick, not just at startup. The platform's
+  `settings/residency.yaml` ships `residency.spawn.mode: enforce` — the
+  "stands at target on a fresh boot, and stays there" criterion.
+  `rollBlessing` is untouched.
 
 ⚠ **Cost**: `ContainmentApi.move` is O(room contents), so the boot sweep
 placing ~180 bottles and ~32 crates × 12 items takes tens of seconds on a
