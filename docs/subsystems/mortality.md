@@ -639,7 +639,8 @@ grew the dying clock, the material fork slices and `adoptMaterialState`.
   was the real cost of the cut feature.
 - **The re-embodiment service** — decided as lore, unbuilt: contested
   metaphysics, two competing vendors (temple and clinic), coverage as the
-  hook. See [mortality-slate](../slates/builds/mortality-slate.md). The
+  hook. See [mortal-vessel-slate § Absorbed from mortality-slate — The
+  re-embodiment service](../slates/builds/mortal-vessel-slate.md). The
   seam it needs is already open: `reembody` returns the body, so a service
   applies its own terms to it.
 - ⚠ **The recuperation model — RESOLVED, not deferred.** This bullet used
@@ -654,7 +655,9 @@ grew the dying clock, the material fork slices and `adoptMaterialState`.
 - **The in-circle death arc** — a circle death ejects, so the full arc
   cannot be rehearsed in a holodeck.
 - **Corpse custody** (a titled body), **remains** after terminal decay, and
-  the coroner economy.
+  the coroner economy —
+  [end-of-life-slate](../slates/builds/end-of-life-slate.md) owns all
+  three (since 2026-09-10).
 - **Declarative reference lifetimes** —
   [reference-lifetime-slate](../slates/tails/reference-lifetime-slate.md),
   surfaced by this build. `MortalArc` holds **no handle to the corpse**:
