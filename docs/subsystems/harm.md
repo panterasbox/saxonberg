@@ -77,6 +77,15 @@ original producer; see [materials-response.md](./materials-response.md) §
   else `undefined`) — **never a caller-supplied parameter** (the gated-Api
   actor-from-context rule). Recorded on `Trauma.inflictedBy` for combat's
   future blame ledger; harm records attribution without owning blame.
+  ⭐ The affliction twin: **`AfflictionRecord.inflictedBy`** (the
+  consequence build, W7) is stamped from the same
+  `getActingAuthor()` at the `VitalsMixin.afflict()` door, never
+  overwriting a stamp a producer set deliberately. The gap it closed: a
+  wound had always known who dealt it; an affliction never did — so
+  poisoning, the one kind of harm that is deliberate, premeditated and
+  quiet, was the one kind the world couldn't attribute. An unattributed
+  affliction stays unattributed on purpose (most harm has no author;
+  inventing one would sweep the weather into the crime ledger).
 - **Severity AND type from the response function.** As of the
   materials-response build, `mechanism` is an `InsultKind` — a
   materials-response **`Channel`** (`edge`/`point`/`blunt`) or a legacy

@@ -1,25 +1,17 @@
 # Combat — the experience layer (working slate)
 
-> **Status: PARTIAL** — Theses 3, 4, 9, 10, part of 2, and (since this
-> slate's own header was written) **14 weapon playstyle** all shipped
-> → [combat.md](../../subsystems/combat.md)
-> **Left:** T5 composure/luck (`traits-stress`; `g(composure)` is inert) ·
-> T7/T8 loadout-as-chemistry · T11 aftermath · T12 de-escalation ·
-> T13 morale & surrender · T15 the non-humanoid bestiary ·
-> T16 expressive authoring
+> **Status: PARTIAL** — Theses 2 (partial), 3, 4, 6 (via 14), 9, 10, 12
+> (closed → [intervention-slate.md](./intervention-slate.md)), 13
+> (individual-morale half), 14, and 17 shipped →
+> [combat.md](../../subsystems/combat.md)
+> **Left:** T1 doctrine (kept for the deferred aftermath work it still
+> frames) · T5 composure/luck (`traits-stress`; `g(composure)` is inert)
+> · T7's composition rules + T8 loadout-as-chemistry (no combos built) ·
+> T11 aftermath (minus the body pipeline, covered by
+> [mortality.md](../../subsystems/mortality.md)) · T13's group-morale
+> (rout/rally/berserk/waver) · T15 the non-humanoid bestiary · T16
+> expressive authoring (the hook grammar exists; nothing speaks it)
 > **Size:** a build
-
-> **Partially realized (`feature/combat-experience`).** The first
-> experience-pass build shipped Theses **3** (poker/feint/fog), **4**
-> (crit = the earned opening + called shot), **9** (the combat gym +
-> band-tolerance balancing), **10** (NPC ≈ PC, asserted in the gym), and a
-> slice of **2** (beat-intensity → crowd-roar). Thesis **5** (luck /
-> composure) landed only as the inert `Sharpness.g(composure)` seam — the
-> bidirectional stress↔inspiration axis is deferred to `traits-stress`.
-> The rest (loadout-as-chemistry 7/8, weapon playstyle 14, de-escalation
-> 12, morale 13, aftermath 11, bestiary 15, expressive authoring 16) remain
-> design surface for later cycles. See
-> [../../subsystems/combat.md § The experience pass](../../subsystems/combat.md).
 
 > **Status: design-phase companion to [combat-slate.md](./combat-slate.md).**
 > That slate owns the *mechanism* — the session, poise, tempo, the hook
@@ -64,102 +56,33 @@ plan itself.
 
 ## Thesis 2 — The dramatic arc is emergent punctuation, not a script
 
-An arc needs *punctuation* — beats where the flow stops or swells. Uniform
-ticking is the enemy; but in a real-time multi-agent world beats can't be
-scripted. They **emerge from thresholds crossed**, and the engine's real
-job is to *detect and amplify* them:
-
-- **First blood** — the first trauma.
-- **The break** — poise shatters → the opening. The rising-action climax.
-- **The down** — defeat. The physical climax.
-- **The turn** — the two-stage-death window: the *moral* climax, slow and
-  witnessed. You've won; now the room holds its breath while you choose
-  mercy or the coup. **This is combat's emotional core**, and it is the one
-  place we deliberately decelerate. Lean into it.
-- **The close** — yield / flight / the guards pour in.
-
-Mechanism: the engine emits a **beat-intensity signal** with every tick,
-and narration + pacing + reaction-fanning scale to it. A `pressed` tick is
-a murmur (silent/narration-only); a break is a roar — *literally*, the
-reactions substrate volume-gates the crowd, so "the crowd roars" **is** the
-audience telling the player it mattered. Resolve finely, **narrate coarsely
-and unevenly** — the swell at beats is the arc. The crowd is the engagement
-feedback loop.
-
-**Planning in real time** = pre-commit the plan as a *policy* (tactic +
-loadout + terrain prep); real-time play is *exception-handling at
-punctuation points*. Directed-autocombat means you don't micro ticks (the
-twitch trap we reject) — you set a standing tactic and intervene at beats.
-Your attention budget buys the 3–4 decisions that matter, not the 30 ticks
-between them. That is also what lets the world keep moving around a fight.
+Shipped and documented: the beat-intensity signal (silent/murmur/roar)
+volume-gating the crowd, the escalating narration arc, two-stage death as
+the moral-climax "turn", and directed autocombat as "planning in real
+time" — see
+[combat.md § The dramatic arc](../../subsystems/combat.md#the-experience-pass--poker-not-slots-the-feint-the-fog-the-gym),
+§ Two-stage death, § Narration, and § "The enemy — a combat brain,
+invoked directly". "The close" (yield/flight/guards pour in) is real for
+yield and flight; no `guards` brain exists yet (tracked on
+combat-slate.md's `Left`).
 
 ---
 
 ## Thesis 3 — Randomness: poker, not slots (epistemic, not aleatory)
 
-Combat's uncertainty is **epistemic** (you can't *see* everything), never
-**aleatory** (a die decides). This is the whole feel of the game.
-
-- **Slot-machine uncertainty** — random *given full information*. You
-  played perfectly; the RNG killed you. Steals agency; and it is the same
-  un-derivable flat-number lie the codebase already rejects everywhere
-  (derive-don't-track, bands-not-numbers, competence-as-exchange-rate, the
-  retired HP scalar and attacks-per-round scalar). A die roll is
-  un-derivable *by definition*.
-- **Poker uncertainty** — outcome *determined* by inputs, but you can't see
-  all the inputs: the enemy's true poise, their intent, whether an opening
-  is real or a **feint**. You lose because you *misread*, not because a
-  number spiked. Suspense, comebacks, and variety survive; agency survives.
-
-And it is nearly free, because the machinery already exists:
-**perception-gating + belief + the feint.** Enemy poise is banded and
-hedged by *your* competence; a feint is a real gambit that presents as an
-opening; the novice sees noise, the master sees signal. **The fog is the
-dice, and skill is the thing that shrinks the fog.**
-
-Concretely (all cycle-relevant constraints):
-
-- **No random damage rolls.** Severity is deterministic — channel ×
-  coverage × site × poise-state × energy (the materials-response function).
-  An edge into a bare throat is catastrophic *every time* — terrifying and
-  legible.
-- **No to-hit dice.** Landing is decided by the poise/tempo/read contest.
-  A "miss" is "you overextended" or "they parried" — a *caused* event.
-- **No crit dice** (Thesis 4).
-- **The uncertainty budget is spent on:** hidden enemy state, intent/feints
-  (another mind's real choice), other players/NPCs (a multi-agent world is
-  unpredictable because it is full of minds), and rare **environmental
-  chaos** (a beam falls, a crowd surges, a third party walks in — a modeled
-  cause with a stochastic *trigger*, dramatic and rare, never per-swing).
-
-**The bright line, carved in stone:** *randomness may add texture and rare
-chaos; it may never be the reason a skilled plan failed.* "I misread the
-feint" / "I didn't account for the fire" is the game working. The
-underdog's puncher's chance comes from **fog and terrain** (you can always
-be outplayed or ambushed), not from dice.
-
-This is *doubling down on the good half of Larian and cutting the mediocre
-half*: its chemistry is deterministic (oil always burns — where the joy
-is); its to-hit dice are its least interesting part.
-
----
-
 ## Thesis 4 — Critical hits: earned, never rolled
 
-Keep the *dramatic payload* of a crit (the decisive, disproportionate
-blow), change its provenance from rolled to earned:
-
-- **The opening IS the crit.** Break a guard → the timed window is exactly
-  when a committed gambit lands hard / inflicts real trauma. Earned by
-  reading the poise state and committing into the break.
-- **The called shot is the crit's targeting layer.** During an opening the
-  exposed body-parts light up (hit-location); the gap in the armor is
-  catastrophic *because you maneuvered to it*, not because you rolled a 20.
-- **Materials-response makes severity "critical" deterministically** — an
-  edge into a bare throat is lethal; the same edge into plate deflects.
-  Catastrophe is a function of channel × coverage × site.
-
-"Critical hit" means: *you earned the window and aimed at the gap.*
+Both shipped and documented in full: zero aleatory randomness (no
+damage rolls, no to-hit dice, no crit dice — severity is the
+deterministic materials-response function), the epistemic fog fed by
+competence (`CombatFog`), and the crit re-founded as the earned opening
++ called shot. See
+[combat.md § The experience pass](../../subsystems/combat.md#the-experience-pass--poker-not-slots-the-feint-the-fog-the-gym)
+("Zero new aleatory randomness", "The fog is the only dice") and
+§ The exchange (site/called-shot). The one named-but-unbuilt residual is
+rare stochastic **environmental chaos** (a beam falls, a crowd surges) —
+no such mechanic exists; folds into T7/T8's still-open composition work
+below.
 
 ---
 
@@ -218,34 +141,14 @@ later).
 
 ## Thesis 6 — Profiles are vectors; the strategy layer is Paradox/Civ
 
-There is no "attack rating." Weapon × species × skill compose into a
-*profile vector*:
-
-- **Weapon = your unit type** (the Civ/Amplitude read). Rapier = point +
-  tempo-fast + cheap commits + riposte/disarm gambits; maul = blunt +
-  slow + committal + guard-breaker. The loadout *is* the archetype.
-- **Species = chassis + stat floor.** Innate instruments (claw=edge,
-  horn=point, mass=leverage), reach, vital-band resilience, tissue
-  toughness (materials-response at the tissue layer), limb→slot count,
-  locomotion modes. Dual: affordance source *and* stat substrate.
-- **Skill = the multiplier on all of it.** Competence is the *exchange
-  rate* — how economically you spend poise, how little you erode, how fast
-  you recover, how small a commit breaks a guard — plus band-gated unlocks
-  plus how well you *read* (perception-gating).
-
-The payoff: **no global "who's stronger" — only matchup × terrain.** The
-duelist dismantles the troll in the open and dies grappled in a doorway.
-Rock-paper-scissors depth emerges from the axes; it is not authored.
-
-**The Paradox analogy is right about the structure, wrong about the dice.**
-A strategic *arrangement* layer (the modifier stack you set beforehand —
-loadout, terrain, skill, prep) feeds a tactical *resolution* layer (the
-poise churn). Two deliberate departures: (1) **individuals, not armies** —
-you are *in* the exchange, spending one intervention per beat, not a
-spectator to the aggregate; (2) **the churn is caused, not rolled** — the
-poise bands slide because of deterministic contest resolution, so every
-swing has a cause you could have influenced. It *looks* like Paradox
-churn; it *is* poker.
+Realized by the weapon-playstyle build (T14, below): weapon × species ×
+skill compose into a profile vector with no "attack rating" — `WeaponProfile`
+(balance/reach/guard/handedness/delivery from form × material × mass ×
+length), the species-derived natural profile, and competence as the
+Sharpness exchange rate. See
+[combat.md § Weapon playstyle & the hand-slot economy](../../subsystems/combat.md#weapon-playstyle--the-hand-slot-economy).
+The "no global who's-stronger, only matchup × terrain" payoff is the gym's
+own no-loadout-strictly-dominates assertion.
 
 ---
 
@@ -255,34 +158,14 @@ The surprising finding: **the reagent shelf is almost entirely built.**
 Combat's richness is combat *reading* substrates that already ship as
 drivers; the work is **coupling, not new physics.**
 
-### The reagent shelf (status · what it hands combat)
-
-- **Materials-response** ✅ — the consequence engine (channel × construction
-  × material × site → deterministic trauma); `DurableMixin` → weapons wear
-  mid-fight. *Cycle-1 core.*
-- **Perception / belief / senses** ✅ — the poker engine (banded reads,
-  feints, disguise, recognition). *Cycle-1 core; most load-bearing.*
-- **Light / darkness** ✅ — the direct dial on the fog. Douse lights,
-  ambush from shadow, torch = light + thermal. *Highest-leverage cheap add.*
-- **Thermal** ✅ — fire/brazier/campfire hazard+weapon; the burn trauma
-  behavior already exists; freezing environment as attrition.
-- **Bulk / liquids** ✅ — oil/water pooling on the Floor surface-bulk →
-  slick footing; throw a drink; drown in a barrel.
-- **Respiration / air** ✅ — drowning in water/vacuum via a
-  `SustainedEngagement` drain; medium-as-death-channel. (Hand-strangulation
-  channel *deferred*.)
-- **Encumbrance / locomotion** ✅ — the tempo & chase substrate; heavy armor
-  = slow + can't sustain a chase; mode-gated pursuit. *Tempo coupling is
-  cycle-1; chase is cycle-2.*
-- **Geometry / spatial / boundary** ✅ — reach, chokepoints, cover,
-  surfaces, doors, the room graph (melee edge is location-local).
-- **Metabolism / reserves / toxins** ✅ — endurance caps poise recovery;
-  fighting drunk (BAC → worse reads); poison-on-a-blade (toxin payload on a
-  wound); exhaustion decelerates a long fight.
-- **Posture** ✅ — `prone` is a posture; kneeling in surrender; standing
-  over a downed foe (the coup posture).
-- **Biome / weather** ✅ (W1) — rain → wet floor + dimmer reads; cold snap →
-  drain; mist → fog. Ambient pressure you didn't choose.
+The reagent-shelf survey (materials-response, perception/belief, light,
+thermal, bulk, respiration, encumbrance, geometry, metabolism, posture,
+biome) each cited its own already-shipped subsystem and is cut here —
+those docs (materials-response.md, belief.md, light.md, thermal.md,
+bulk.md, respiration.md, encumbrance.md, spatial.md, metabolism.md,
+posture.md, biome.md) are the source of truth for what each hands
+combat, not this slate. What never shipped is the *coupling* — the
+combos below.
 
 ### The composition rules (the multiplicative pairs — enumerate axes, not outcomes)
 
@@ -364,68 +247,23 @@ slow, or light and underprepared. The budget balances itself.
 
 ## Thesis 9 — Balancing a determinism-first system
 
-**HP is easy because it is arbitrary** — tune one number, the fight lasts
-longer. We gave that up on purpose, so we owe an answer.
-
-- **Grounding prunes absurdity for free.** With damage = channel × material
-  × construction × site and materials carrying real hardness/toughness
-  (MPa / MJ·m⁻³), a butter knife *cannot* beat a sword — the physics forbid
-  it. The sim is a *constraint* that keeps the space sane; you are not
-  hand-tuning every number.
-- **The real problem is degenerate *compositions*, not unit stats** —
-  drown-in-a-puddle, infinite-smoke-stall, shove-off-every-ledge.
-  Fun-broken in single-player is grief-broken in multiplayer. Four
-  sim-native levers handle most of it:
-  1. **Cost is physical, not assigned** — a shove-into-fire needs
-     positioning + poise + a leverage capability + *the fire being there*.
-     The preconditions are the nerf; the strongest moves demand the most
-     arrangement (self-limiting).
-  2. **Consumability + conservation** — depleting reagents (oil gone once
-     thrown, smoke spent, blade dulls) make power depletable; the
-     conservation laws you already have (banking mint-only, bulk transfer)
-     extend to combat.
-  3. **Symmetry** — same rules for everyone → a dominant strategy is
-     *universal* and therefore *counterable* (rock-paper-scissors closes).
-  4. **Bands are a tolerance buffer** — outcomes are banded, so you tune to
-     the right tier, not the decimal.
-- **The combat gym (the big lever).** Because combat is
-  *deterministic-given-information* and a *single-thread coroutine*, you can
-  run it **headless at scale** — instantiate two Characters, a loadout, a
-  terrain; run the session to resolution in-process; do it 10,000 times
-  across skill × loadout × terrain matchups; read the outcome distribution.
-  Degeneracies (plate always wins, smoke stalls, one gambit dominates)
-  surface *before players find them*. **The determinism we chose for honesty
-  is the same property that makes automated balance-testing possible.** This
-  is a concrete buildable tool and it directly de-risks the load-bearing
-  open question (`combat-slate` OQ1, the competence→exchange-rate curve —
-  "structure sound, numbers are the risk"); the gym is how you find the
-  numbers.
-- **The honest limit:** you balance an emergent system *empirically* (gym +
-  playtest) and *contain* the rest with the consequence web. Murder-via-smoke
-  is not balanced away — it is made *expensive* by blame. The immsim answer
-  to "overpowered" is often "yes, and the world reacts to you using it."
-  **Balance = numbers + consequences.**
-
----
+Shipped: the combat gym (`scripts/combat-gym.ts`), running the
+deterministic single-thread session headless at scale to find the
+competence→exchange-rate numbers before players do. See
+[combat.md § The combat gym](../../subsystems/combat.md#the-experience-pass--poker-not-slots-the-feint-the-fog-the-gym).
+The four sim-native balancing levers (physical cost, consumability,
+symmetry, banded tolerance) are general doctrine already documented
+project-wide (CLAUDE.md's derive-don't-track / bands-not-numbers rules)
+and not combat-specific decisions to graduate. The "honest limit" —
+balance empirically, contain the rest with the consequence web — is
+argued concretely in this slate's own **Thesis 11** aftermath section
+and in [consequence-slate.md](./consequence-slate.md).
 
 ## Thesis 10 — NPCs ≈ PCs (the same combat model)
 
-Keep NPCs and PCs on one combat model:
-
-- **The balancing surface halves** — one system to tune, no
-  monster-stats-vs-player-stats divergence.
-- **It is honest** — an NPC is beatable by exactly the means a PC is; no
-  hidden monster rules.
-- **It makes "NPCs are expensive carves" coherent** — a dangerous enemy is
-  a *Character with a combat brain and a loadout*; authoring one is
-  authoring a *person*, not a stat block.
-- **It enables mixed crews** — a hired-mercenary NPC and a player mercenary
-  are interchangeable in a contract (the staffing model depends on it).
-
-The **one** clean divergence — the only one you want — is *who is steering*:
-a **brain (policy)** for the NPC, a **player (intervention)** for the PC.
-Same poise, same channels, same reagents, same consequences; different hand
-on the tiller.
+Shipped and documented: the one clean divergence is who is steering (a
+brain for the NPC, a player for the PC) over the identical model — see
+[combat.md § "The enemy — a combat brain, invoked directly"](../../subsystems/combat.md#the-enemy--a-combat-brain-invoked-directly).
 
 ---
 
@@ -468,17 +306,13 @@ chronicle/presence-relay), economic (contract completion, stakes transfer,
 sunk gear), emotional (the composure/stress axis moves). Most of it is
 shipped or seamed.
 
-### The body pipeline
-
-**alive → (defeat) → unconscious (recoverable) → (coup / vitals-death) →
-dead Creature = the corpse → (reset sweep / labor) → reaped.** Death does
-**not** destruct the Creature — it flips lifecycle and the body persists
-*as* the corpse: it **cools** (thermal, built), is **lootable/movable**
-(containment/haulage), and is **evidence** (cause-of-death via the blame
-ledger — a body in the street is a crime scene). The PC-death *consequence*
-is a separate subsystem (see
-[mortal-vessel-slate.md](./mortal-vessel-slate.md)); combat produces the
-event, the vessel is unmade, everything downstream is selfhood.
+**Cut — the body pipeline.** The alive → defeat → unconscious → coup/
+vitals-death → corpse → reset-sweep pipeline this subsection proposed is
+shipped and documented in
+[mortality.md](../../subsystems/mortality.md) (the dying arc, the corpse
+as a forensic Creature, the shade) and
+[residency.md](../../subsystems/residency.md) § "The corpse joins the
+veto roster" (the reset sweep) — both outside my doc list, pointer only.
 
 ### Ending well regardless of outcome
 
@@ -519,208 +353,64 @@ line is *narrative-level* cycling (named) vs. *ecology-level* cycling
 
 ---
 
-## Thesis 12 — De-escalation: real roleplay against modeled stakes (NOT a social minigame)
+## Thesis 12 — De-escalation: real roleplay against modeled stakes (NOT a social minigame) — CLOSED
 
-De-escalation is a first-class, advanceable, rewarded resolution path — the
-immsim multi-pathway (the bouncer who *talks the drunk down* and the one who
-*subdues him* complete the same contract; "de-escalation is a combat skill").
-But the mechanization is a trap. **A symmetric social-combat minigame — a
-"resolve" gauge you attack with instrument-vs-disposition "armor" — is the
-Deus Ex: HR contrivance and must be avoided.**
+**Superseded — by the code, and by this thesis's own later finding.**
+The proposed design (a mechanized "renegotiate the terms down to
+no-fight" verb) was tried exactly as designed — `fight parley` — and
+**cut in its own MR review** (MR!254, 2026-09-10): the engine cannot
+read what a player actually says, so the verb was a persuasion check
+with the check hidden. What replaced it — third parties breaking up a
+fight via `Morale`'s onlooker count — is documented in
+[combat.md § "Why there is no verb for talking a fight down"](../../subsystems/combat.md#-why-there-is-no-verb-for-talking-a-fight-down)
+and § Onlookers. The open, buildable half (a third party who intervenes
+and eats the cost) has its own slate:
+[intervention-slate.md](./intervention-slate.md).
 
-**Why the minigame is contrived:** physical combat abstracts *because the
-real act is impossible in text* (you can't swordfight through a keyboard, so
-poise is an accepted stand-in). Social conflict feels fake as a minigame
-*because the real act — talking — is native to text.* A resolve-gauge
-competes with the genuine article ("why deplete a bar when I can just *say*
-something?") and loses. The error is forcing a symmetry between physical and
-social conflict that isn't real.
-
-**The honest version:** de-escalation is *real* social interaction (actual
-words / threats / offers / mercy / reputation) whose **stakes and
-consequences the engine models, but whose content it does not.** The engine
-holds the space, models the world's response, and provides the
-terms-renegotiation hook (`terms.yieldOffered`/parley); the persuading is
-roleplay, witnessed. No gauge, no instrument-puzzle — this is the
-"fair-boring core + creators clothe it" doctrine the minigame version
-violated. Mechanically, de-escalation = **renegotiating the terms *down to
-no-fight*.**
-
-> ⚠⚠ **Tried, shipped, and cut — read this before proposing it again.**
-> The consequence build implemented exactly the above as `fight parley`
-> (a verb that read the foe's `Morale` and dissolved their threat edge),
-> and it was **removed in its own MR review** (MR!254, 2026-09-10).
->
-> The objection: *"the persuading is roleplay, witnessed"* means the
-> engine never reads the words — so the verb consulted a number and
-> whatever the player actually said was decorative. It is a persuasion
-> check with the check hidden, and this platform has none anywhere.
->
-> ⭐ What replaced it is the thing this section was reaching for and
-> missed: **third parties break up fights.** `Morale` now counts live
-> sentients in the room who are not in the fight, and being watched
-> pushes both ends toward wanting out — the winner included, since harm
-> in front of witnesses is harm on somebody's account. No language is
-> measured, only bodies in a room. It also makes *where* you fight a
-> decision, which is a better game than a talk-down button.
->
-> So: a de-escalation design that arrives here again needs to answer
-> **"what does the engine honestly measure?"** first. If the answer is
-> "the player's words," it is not buildable.
->
-> ⭐ **The open and buildable half now has its own slate** — intervention
-> as an *act*: a third party who gets between two fighters and eats what
-> that costs. → [intervention-slate.md](./intervention-slate.md). T12 is
-> closed; that is where the design surface went.
-
-**The PC/NPC will-asymmetry (interchangeability holds for *bodies*, not
-*wills*):**
-- **NPC de-escalation** — the target's will is *modeled*: brain + traits +
-  emotional state + regard + belief evaluate your *real acts* and respond.
-  Legit; no real psychology to offend.
-- **PC de-escalation** — you *cannot* model a human's resolve. Pure roleplay
-  + **incentive**: present a case, the real human decides, weighing the
-  stakes. You don't *break* a player — **you give them a reason** (make peace
-  mechanically attractive: avoid the injury / blame / recovery-cost /
-  reputation-hit).
-
-**Stress/inspiration** modulates *capacity and posture* (read, composure,
-credibility) for both — but the *decision* is modeled for NPCs, real for
-PCs. State colors the board; will stays with whoever owns it.
-
-**The needs split the design work:** NPC needs are *authored* → de-escalation
-is a *reading* problem → build brains with readable needs. PC needs are
-*real/emergent* → an *incentive* problem → make the peaceful path serve their
-goals.
-
-**Advancement stays honest:** competence = *capacity* (NPCs weight a skilled
-orator's acts more; you *read* the target's needs/state better; you *unlock*
-deal-framing options) — **never a coercion stat, never forces a player.**
-Still a full face/diplomat career, still no-blame-rewarded, sentience-gated
-(a mindless beast has no will to reach → the cull stays pure physical).
-
-**Physical and social conflict are both resolution paths that resolve by
-*different means*** — one a mechanical contest (bodies), one real interaction
-against modeled stakes (minds, one of them human) — **and that asymmetry is
-the honest design, not a flaw to paper over.** The generalization
-(negotiation / persuasion / intimidation / interrogation) reuses the
-*pattern* (situation + modeled stakes + NPC-brain-response + PC-incentive),
-**not** a shared minigame engine.
+**Still open — the will-asymmetry as reusable doctrine.** One insight
+outlives the closed design: physical and social conflict resolve by
+*different means* (a mechanical contest vs. real interaction against
+modeled stakes, one party human) — NPC de-escalation can be *modeled*
+(brain + traits + regard), PC de-escalation can only be *incentivized*
+(present a case, let the human decide). No diplomacy Discipline exists
+yet to carry this (confirmed — nothing in the tree measures language),
+so any future negotiation/persuasion/intimidation design should reuse
+this pattern rather than a shared minigame engine. See also this
+slate's own hand-off note below.
 
 ## Thesis 13 — Morale & surrender (the modeled will; what makes non-lethal the default)
 
-Morale is a **derived assessment, not a gauge** (we rejected the resolve-
-gauge in Thesis 12 — don't smuggle it back). Each beat an NPC brain re-judges
-"should I still be fighting?" from state that already exists — a derive-on-
-read readout like a condition-band, never stored morale points.
+**Shipped and documented — the individual half.** Morale as a derived
+(never stored) assessment, the convergence-point inputs (poise, threat
+graph, traits, terms, onlookers), yield-surrender as a bidirectional
+social act, surrender+coup+blame, and "morale is the mechanism that
+makes the default resolution non-lethal" all shipped exactly as
+designed — see combat.md's "Morale — whether a fighter still wants to
+be in this fight" section in full, and its "A beast does not take a
+yield" subsection for the sentience gate.
 
-**It is the convergence point of every substrate:** the body (poise / vitals
-/ reserves), the situation (the threat graph — focus-fired? outnumbered?
-leader down?), the emotional weather (stress/composure), the disposition
-(traits — brave / craven / loyal / zealous / wrathful, which change the
-morale *function*, not just a threshold), the stakes (a mercenary yields, a
-zealot dies), and belief/reputation (facing a known killer tanks morale).
-
-**Decision space** (disposition-shaped): fight on / **yield-surrender** (a
-bidirectional social act — offered + accepted-or-refused) / **flee-rout** (→
-the chase) / **berserk / last stand** (morale break as *fury* not flight —
-the cornered rat, the fanatic) / **waver** (pre-break effectiveness decay —
-the *tell* a skilled fighter reads).
-
-**Group morale = rout & rally** (multi-party): one break pressures the others
-(leader-down shock + ally-fleeing contagion) → a side *routs*; the counter is
-*rally* (command discipline / a heroic stand / the `inspired` flag). The home
-of the command/leadership lane.
-
-**PC/NPC asymmetry** (the will-line, from Thesis 12): NPCs *decide* (modeled);
-PCs *choose* — morale degrades a PC's *capacity* (a `shaken` status, worse
-reads/commits) and shifts the *incentive*, but never seizes the decision.
-**Compulsion on PCs is a hazard** — fear makes fighting harder and fleeing
-smarter, never automatic (a hard mind-control effect is an opt-in extreme,
-not baseline).
-
-**Surrender + coup + blame:** surrender is the social off-ramp; a surrendered
-foe is at your mercy (a *voluntary* down-state) → the victor chooses
-mercy-or-execute (the moral climax). Executing a yielded sentient is *the
-crime* (blame). It is a trust transaction priced by reputation (do you
-surrender to a known killer?).
-
-**The payoff:** without morale, fights run to the death seam; **with morale,
-combatants break — yield / flee / rout — long before death**, making death
-the *exception* (the cornered, the fanatic, the executed) and realizing the
-vitals thesis. **Morale is the mechanism that makes the default resolution
-non-lethal.** Mostly reuse (the inputs exist); new = the assessment logic (a
-brain capability), the surrender/rout mechanics, the `shaken`/`wavering`
-status. Cycle-1: individual NPC yield-when-losing (the consented-duel demo
-needs it); rout / rally / berserk are multi-party, later.
+**Still open — group morale (rout & rally).** Multi-party contagion (a
+break pressuring allies, leader-down shock, ally-fleeing contagion), a
+side routing, and the counter — rally via command discipline or the
+`inspired` flag — never shipped: grepped `lib/combat/` and the
+`combatant` brain for `rally`/`rout`/`waver`/`berserk`, zero hits beyond
+substring collisions with "routing". This is the command/leadership
+lane's home and stays open.
 
 ## Thesis 14 — Weapon playstyle & the hand-slot economy (derivation, not stat blocks) ✅ SHIPPED
 
 **Realized** by the weapon-playstyle build (MR !140) — `WeaponProfile` +
 the reach tier + shield-as-armor + the switch/sidearm/dual-wield hand-slot
 economy + weapon-shaped gambits (`bash`/`sweep`/`entangle`) + the `whip`/
-`flail` guardless forms + the gym weapon matrix. See
-[combat.md § Weapon playstyle & the hand-slot economy](../../subsystems/combat.md#weapon-playstyle--the-hand-slot-economy).
-Deferred from Thesis 14: ranged/thrown (the sixth archetype), the deep
-grapple/clinch control game, and spatial formation/geometry.
-
-A weapon is a **derived playstyle bundle**, not a stat block: you author a
-*shape* (long, balanced, double-edged steel) and the playstyle **computes**
-from form × material × dimensions — legible + previewable (the `analyze`
-surface). Each axis is an *input to a system we already built*:
-
-- **Reach** → the threat graph: a discrete *control-until-closed* tier (the
-  spear owns the approach — strike before they form an edge; the dagger owns
-  the clinch — reach becomes a liability closed). Composes with geometry
-  (no pike in a doorway) + formation (the spear wall).
-- **Balance** → the poise economy + tempo: heavy/committal = **guard-breaker**
-  (high poise-dmg, slow, high overextend — *create* openings); light/quick =
-  **exploiter** (fast, precise, punishes overextend — *cash* openings). The
-  `balanceFactor` tempo input. Complementary in a party (breaker+exploiter =
-  tank+striker).
-- **Guard** → the parry/riposte (defense-is-generative): crossguard parries;
-  flail/whip bypasses guards but can't self-guard. An offense↔defense axis
-  orthogonal to balance.
-- **Shield** = **wielded armor-construction** (pure materials-response reuse):
-  *directional* coverage (face one edge → strong 1v1, weak focus-fired), high
-  guard, costs a hand, sunderable (durability), shield-bash = blunt/leverage.
-- **Unarmed/grapple** = the **bypass floor** (always available → disarmed ≠
-  helpless, fight in prison) + the **anti-reach clinch** (bypasses spear/
-  sword, sets `grappled`, the control game, the drown/choke delivery).
-- **Ranged/thrown** = **freedom from the melee edge** (vulnerability =
-  being-closed-on; the kite; thrown = one-shot loadout-reagent; ammo =
-  consumability lever; cover-as-status; poker hit-resolution, no coordinates;
-  the protect-the-archer VIP tactic).
-
-**The unifier — the hand-slot economy** (embodiment/Wieldable/slots): you
-have two hands, and every armament is an *allocation* — 2H / 1H+shield /
-dual-wield / 1H+free-hand / 1H+sheathed-sidearm — each a tradeoff, none
-dominant.
-
-- **Switching = dynamic reallocation** — a **vulnerable durative beat**
-  (spends tempo, guard down; a *read*, not a menu-swap). Driver = the **range
-  transition** (spear→dagger closed, blade→bow kiting): switching keeps you
-  optimally armed as the fight flows through ranges → reach is *dynamic*. A
-  sheathed **sidearm** draws fast (the disarm answer → disarm is a tempo
-  setback, not a fight-ender); a dropped weapon is a slow, geometry-contested
-  pickup.
-- **Dual-wield = the doubled case** — trades defense/versatility for tempo/
-  pressure. Two styles: aggressive (two offense) or **sword-and-dagger**
-  (off-hand parries = a tiny shield). **Attention-split → band-gated mastery
-  playstyle** (novice worse; grow into it). Clever build: sword+dagger =
-  *carry both ranges* = the **anti-switching** build.
-- **The free hand is chemistry-set access** — grapple / throw the reagent /
-  grab the torch / quaff / snatch an **improvised weapon** (chair/bottle,
-  playstyle *derives* from materials-response). So dual-wield/2H **costs you
-  the chemistry set** (both hands full); 1H+free-hand keeps it (less output,
-  more agency). Another un-authored tradeoff.
-
-Net: combat is a **range × hand-allocation dance** riding on top of the poise
-contest — all built substrate (hand slots, `hands`/`attention` engagement
-slots, tempo, reach, durative acts, encumbrance for carrying backups,
-geometry for pickups), all costed, no new mechanic. **Deferred** with weapon-
-playstyle (cycle-2/3); cycle-1 = single Wieldable delivery-form + the
-`balanceFactor` seam; leave the hand-slot-allocation + durative-switch seam.
+`flail` guardless forms + the gym weapon matrix — matching this thesis's
+design (reach/balance/guard/shield/unarmed axes, the hand-slot allocation,
+switching, dual-wield, the free-hand chemistry-set access) point for
+point. See
+[combat.md § Weapon playstyle & the hand-slot economy](../../subsystems/combat.md#weapon-playstyle--the-hand-slot-economy)
+for the shipped shape. Deferred from Thesis 14 at the time this slate was
+written: ranged/thrown (the sixth archetype) has since shipped its own
+subsystem, [ranged.md](../../subsystems/ranged.md); the deep grapple/
+clinch control game and spatial formation/geometry remain unbuilt.
 
 ## Thesis 15 — Non-humanoid / monster combat (the bestiary is data, not code)
 
@@ -779,10 +469,8 @@ extension call the brain/script/contributor answers); creators clothe it
 through surfaces they already use. **No combat-VFX system, no combat-specific
 authoring tool.**
 
-- **The default is complete, not placeholder:** with zero authoring, combat
-  narrates per-viewer / perception-gated / register-styled (scene composer +
-  MML + markupAugmenters + RecognitionApi + ProseApi). Authoring is
-  *enrichment on a working default*, never filling a void.
+- **The default is complete, not placeholder** — shipped and documented
+  in [combat.md § Narration](../../subsystems/combat.md#narration--the-fight-as-an-arc).
 - **The authoring layers (each a reuse):** signature moves (ProseApi Liquid
   bound to `{actor/weapon/species, gambit, hook}` via `InstanceContributor`) ·
   NPC combat personality (brain + traits → *fights like a character*) ·
@@ -816,62 +504,17 @@ the baseline (Phase 5 routing + witness reactions); rich authoring is
 
 ## Thesis 17 — Combat narration & the assessment interface (the terminal experience)
 
-**Combat prose is a new *consumer* of the messaging stack, not its own
-system.** A combat message is a **Scene** (`MessageApi.scene`), fanned
-per-viewer + perception-gated, exactly like speech/emotes: `RecognitionApi.
-describe` names subjects per-viewer (name vs. description); perception-gating
-decides which variables populate for whom (the "opening" flag, the trauma
-severity — server-authoritative, no hidden data reaches the client); **ProseApi
-Liquid** templates carry the content (the `social.presenceFormat` precedent);
-**MML** carries styling/register; **`noteReactableAct`** (the Vocal/Soul seam)
-makes each dramatic beat reactable for free. Naming/pronoun conjugation reuses
-the emote grammar; content reuses ProseApi. The same moment reads differently
-to every viewer (recognition + perception + side + competence).
-
-**Loadout affects messaging via condition-keyed authored fragments** (an
-algorithmic frame + bespoke decoration — the answer to "generated vs.
-authored": *both, layered*). The engine always generates a complete honest
-frame; content devs attach **flavor fragments keyed to the mechanical
-condition** they describe. A **material** carries a table indexed by
-`{channel × outcome}` (`mail·edge·deflected` → "the rings catch the blade and
-shrug it away"; `mail·point·punctures` → "the point threads the gap");
-**species** carry body-flavor (troll hide skids, construct sparks); **gear**
-carries delivery-flavor (rapier darts / cleaver hews); **biome** carries
-ambient flavor; **characters** carry signature-move Liquid. **The same
-`channel × material × construction` that computes the outcome selects the
-fragment**, so flavor is always mechanically-true and composes correctly.
-Layered by generality (engine default → material/channel [**base-library
-content pack** — author-once, flavors ALL combat] → species [content pack] →
-gear [type/instance] → character signature); each decorates the one below;
-nothing required. **Prose = legible physics** (the log teaches *why* your edge
-bounced off mail → next time bring a point) — the Andy-Weir "derive from
-principles" thread in the combat log. **Only new code = the narration
-adapter** (resolve exchange → gather participants' condition-keyed fragments →
-weave into the frame via Liquid → fan per-viewer); everything it pulls is
-authored data on objects, everything it renders through is the existing stack.
-
-**The assessment interface** (the at-a-glance snapshot — a *query*, distinct
-from the event-feed spam), competence-layered:
-- **`look <target>`** — the glance, layered by YOUR competence: general
-  perception → visible condition band + posture + wielded/worn gear +
-  **obvious** carried items (concealed needs `search`/`frisk`); medical
-  competence → the wound read / is-he-dying; combat competence → the tactical
-  layer (poise band, "guard cracking", openings). One verb; the fog lifts with
-  skill (layman: "bloodied & still swinging"; veteran: "guard about to go —
-  there's your opening").
-- **`assess <target>`** — the deliberate DEEP read: a **costed engaged act**
-  (spends a beat, vulnerable — a tactical choice), competence-graded (mints an
-  ActSignature).
-- **`status`** (own) — **full fidelity** (you know your own body: condition/
-  poise bands, flags, endurance, wounds). Own-state precise; **enemy state
-  banded/hedged/server-authoritative** (no raw numbers on others — you *earn*
-  the read; the honest fog).
-- **No net-new combat verb** — combat *contextualizes* look/assess (the
-  tactical layer appears because you're a combat-competent viewer in a fight);
-  a `size up` bar-alias via `InstanceContributor` is the same machinery. The
-  multi-party room/graph glance (`sitrep`) defers with multi-party.
-
-**[Verified against `origin/master` — three corrections to the mechanism above]** (1) Per-viewer *content* is not one Scene: a Scene fans by audience *bucket* (all peers get the same body), so only per-viewer *naming* is automatic (late-bound `Mml` refs → `RecognitionApi`). Per-viewer content (hide the severity band from some witnesses) needs the adapter to **loop over witnesses in perception tiers and emit N Scenes** (the `social.presenceFormat` relay pattern). (2) `noteReactableAct` is **not** automatic on `Scene.send` — combat calls it itself at the producer site. (3) Flavor can't live as fields on `Material` (closed `persistentFields`) — it lives in a **flavor lookup keyed by `{aspect, key, channel, outcome}`** (content-pack data) that `CombatNarration` consults; `Material` untouched, and one lookup serves material/species/gear/biome. See `docs/plans/combat-core-plan.md` §1.5.
+Shipped and documented in full, down to this thesis's own verified
+corrections: the Scene-based per-viewer narration, the condition-keyed
+flavor lookup (`{aspect, key, channel, outcome}`, layered by generality
+— material/species/gear/biome/character), and the competence-layered
+`look`/`assess`/`status` assessment interface (own state full-fidelity,
+enemy state banded/fogged). See
+[combat.md § Narration](../../subsystems/combat.md#narration--the-fight-as-an-arc)
+and § "The exchange" for the flavor table; the fog/assess split lives in
+[combat.md § The experience pass](../../subsystems/combat.md#the-experience-pass--poker-not-slots-the-feint-the-fog-the-gym).
+The multi-party room/graph glance (`sitrep`) remains undeferred-to,
+i.e. still unbuilt.
 
 ## Interrogated → spun out into sibling slates
 
@@ -898,54 +541,24 @@ from the event-feed spam), competence-layered:
 
 ## Open threads (still not interrogated)
 
-- **The combat gym** — as a buildable tuning/CI tool (headless
-  matchup-sweep over the deterministic coroutine).
 - **The ecology** — renewable fightable content as a managed commons (its
   own slate, sibling of farming/ranching).
-- **Weapon-playstyle depth** — reach / guard / balance / shield / unarmed /
-  grapple / ranged (deferred in materials-response).
 - **Non-humanoid / monster combat** — bodyplan × combat as a *system*
-  (swarms, oozes, constructs), not an enumerated bestiary.
+  (swarms, oozes, constructs), not an enumerated bestiary. See Thesis 15.
 - **Expressive authoring** — how signature moves / trait-driven personality /
-  per-viewer narration actually get authored (the creator experience).
+  per-viewer narration actually get authored (the creator experience). See
+  Thesis 16 and the hand-off note below (nothing speaks the hook grammar
+  yet). The combat gym and weapon-playstyle depth (both listed here at
+  slate-writing time) have since shipped — see Theses 9 and 14.
 
 ---
 
-## Corpus & build order (the combat design index)
-
-**Artifacts on disk:**
-- `docs/subsystems/combat.md` — the cycle-1 build-1 subsystem doc (the shipped 1v1 core; the requirements doc retired at sweep)
-- `docs/plans/combat-core-plan.md` — the two-build plan (kept for its Build 2 section)
-- `combat-slate.md` — the **mechanism** (session / poise / tempo / hook
-  catalog / resolution & exits / 16 settled decisions)
-- `combat-experience-slate.md` — **this**, the **experience** (16 theses)
-- `mortal-vessel-slate.md` — selfhood / death / recovery / moderation
-  (downstream of combat)
-- `concealment-detection-slate.md` — stealth + searching + secrets (sibling)
-- **named but unwritten** deferred siblings: **deployables** (traps/
-  barricades), **wayfaring** (travel-as-activity + the chase), **ecology**
-  (renewable fightable content)
-
-**Cycle-1 (in scope — the 1v1 vertical slice):** the session (DialogueConversation
-twin) · poise + one exchange through `inflict` · emergent tempo · gambits-as-
-affordances (minimal) + reactive dispatch · the expressive baseline + a
-brain-driven NPC · severity three-case + blame ledger + two-stage death ·
-advancement disciplines + the summoned panel + the cull & consented-duel demos.
-
-**Deferred → owning thesis/slate:** multi-party / threat-graph / focus-fire /
-party / Master-Apprentice → combat-slate + party-slate + combat-tactics-slate ·
-the chase → wayfaring · weapon-playstyle + hand-slots → Thesis 14 · group
-morale (rout/rally/berserk) → Thesis 13 · de-escalation → Thesis 12 · stealth/
-searching → concealment-detection · non-humanoid bestiary → Thesis 15 ·
-aftermath cycling + coroner economy → Thesis 11 + ecology · death/recovery/
-moderation → mortal-vessel · the combat gym → Thesis 9 · rich expressive
-authoring → Thesis 16 · numbers/tuning → always deferred (the gym finds them).
-
-**Rough build order after cycle-1:** threat-graph / multi-party (unlocks
-party, focus-fire, Master-Apprentice) → weapon-playstyle + hand-slots →
-full morale + de-escalation → stealth / concealment → wayfaring / the chase →
-non-humanoid bestiary → death / recovery + moderation. The combat gym rides
-alongside as the tuning tool throughout.
+**Cut — "Corpus & build order".** This section's cycle-1 scope list and
+deferred-work map described the state before cycles 2+, the experience
+pass, weapon-playstyle, combat-hooks and combat-formations shipped; all
+of it is now superseded by [combat.md](../../subsystems/combat.md)'s own
+`## History` section, which is the current record of what shipped and
+when.
 
 ## Cross-references
 
@@ -1002,10 +615,11 @@ plan doc retires and these would go with it.
   [combat-hooks.md](../../subsystems/combat-hooks.md) calls this *"the
   wizard-facing combat extension grammar"*; it is documented, invoked
   each beat, and **implemented by nothing that ships** — not in the
-  kernel and not in any of the 43 packs. `lint:unconsumed-seams` now
-  holds the number (measured 21 total, 17 of them combat), so the next
-  build has it in front of it rather than having to notice. T15's
-  non-humanoid bestiary is the obvious first consumer.
+  kernel and not in any of the 43+ packs. `lint:unconsumed-seams` holds
+  the number (re-measured at compaction time: 18 total, ceiling 19 —
+  down from 21, still mostly combat's), so the next build has it in
+  front of it rather than having to notice. T15's non-humanoid bestiary
+  is the obvious first consumer.
 - **A diplomacy Discipline** — T12's *"face/diplomat career"* wants its
   own field of study. ⚠ Nothing in the tree measures language, which is
   why `fight parley` was cut; a Discipline here has to answer *what does
