@@ -9,12 +9,20 @@
 > authority, committee-as-title-holder, pack title claims, maintainers —
 > shipped with the civics, organization and content-pack builds.
 > **Left:** the entity-form ladder over a cap table (sole trader ·
-> partnership · company · mutual · chartered corporation) · the charter as
-> a document with grants, duties and a term · committee/show separation
+> partnership · company · mutual · chartered corporation) · the
+> partnership deed + sweat equity · the registry + the
+> general-incorporation act · the managing-position trading rule · equity
+> minimally (primary/secondary · dividends ≤ retained earnings · escheated
+> interests do not vote) · the charter as
+> a document with grants, ledger-checkable duties and a term · renewal ·
+> the wall module · committee/show separation
 > for corpo-held titles · title escheat-up + the vacancy board + intake
 > · the publish covenant (attribution / license / continuity / title /
-> appointment / return) · the no-authored-faucet rule · the five corpos
+> appointment / return) over the attestation slate's admit act · the
+> no-authored-faucet rule (a lint) · NPC-floor / player-apex locality
+> seats + municipal paper · the five corpos
 > re-authored as forms, with Veshko's bank as Goodkin's real competitor
+> and the four disposition brains
 > **Size:** a build (cuts in two — forms + committees first, charters +
 > covenant second; the lore rewrite rides whichever lands last)
 

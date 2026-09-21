@@ -2,12 +2,17 @@
 
 > **Status: PARTIAL** — the mechanism shipped, the policy did not: the pin (`pinsResidency`
 > → the `chattel` row → one roll at boot, the owner's login as the other
-> ask) landed in the pets build (MR !257, D22). It admits **every** pin.
-> **Left:** ⭐⭐ the **two tiers of account** and the may/may-not table ·
+> ask) landed in the pets build (MR !257, D22). It admits **every** pin
+> (re-verified 2026-09-19: `ResidencyLogic.pinNow` reads no tier and no
+> allowance; `Bonded.canEvict` still vetoes any stamped, living animal
+> outright; `ParcelRecord.allowance` is an inert seam).
+> **Left:** ⭐⭐ the **two tiers of account** and the may/may-not table +
+> the recency-consumer ceiling ·
 > the **three-party admission** (object · owner · parcel) over the property
-> slate's allowance · the **degradation order** under pressure · the pin
+> slate's allowance + the commons budget line · the **degradation order**
+> under pressure · the pin
 > **lapsing** (the veto learning to let go) · the keyless good in a public
-> room · the never-fault doctrine written into a gate
+> room (a / b / c) · the never-fault doctrine written into a gate
 > **Size:** **a build** — it touches residency, chattel, the estate, the
 > parcel allowance (inert today), civics, and the mirror
 
@@ -54,14 +59,8 @@ fiction, subdivided by parcels; never themed.
 
 ## 1. The question, and the answer that decides the rest
 
-*What loads X* has one honest answer in this game: **whatever needs to
-observe X.** Nearly everything reconciles on read, so an unloaded thing
-still *ages*. What it cannot do is **emit** — wander, come to a door, be
-fed by a neighbour, die in front of somebody instead of retroactively.
-The care hole is therefore exactly *the set of objects with a brain
-whose events must happen while nobody is looking*. A chair is never in
-it. A cask is not (maturation reconciles). A hearth is not, until
-somebody wants to *see* it burn down. A named animal is.
+*The answer (whatever needs to observe X; the emit set) shipped and is
+stated in `residency.md § The load half — the residency pin`.*
 
 That set is the opt-in, and it is not "eager with the estate": it is
 **the load half of residency**, the mirror of `canEvict`. The pets build
@@ -70,14 +69,9 @@ mechanism deliberately does not decide.
 
 ## 2. ⭐ Honest about what it is: pinning, not swap
 
-A pager has three parts. The design has one and a half, and the honest
-version names which:
-
-| pager part | what ships | the dragon, and why it stays asleep |
-|---|---|---|
-| **page-in** | at **boot** (the roll) and at **login** (the estate's keyed entries) — a process start or a human act, **never an access** | none: nothing in the game can trigger a load by touching a good; an unloaded good does not exist to be touched |
-| **page-out** | the existing cold-tail sweep, once the pin **lapses** (§ 6) | evicting a thing somebody is looking at — residency already refuses to cull anything warm (`lastTouched`), so a lapsed pin only makes a good *eligible*, never *taken* |
-| **pressure policy** | **none** — no memory-pressure trigger, no LRU, no reload-on-fault | this is where thrash lives, and `residency.md § Deferred` keeps it unbuilt |
+*The pager table (page-in at boot + login, page-out the cold-tail sweep,
+no pressure policy) shipped as stated — `residency.md § The load half`
+→ "Pinning, not swap", and `§ Deferred` (memory pressure).*
 
 ⚠⚠ **The never-fault rule.** The pets build tried "a room, on load, asks
 the index who stands in it" (D21) and reversed it the next day: 439

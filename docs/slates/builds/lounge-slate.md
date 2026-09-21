@@ -2,19 +2,17 @@
 
 > **Status: PARTIAL** — the MultiLocation Warren, the elastic lounge and
 > Dave's Bar shipped → [location.md](../../subsystems/location.md)
-> **Left:** the pizza-as-consensus toy · the TV/remote standing signal +
-> the derived channel lineup · the jukebox · the social minigames ·
-> emergent-personality Dave
+> **Left:** the flavor tag-set + `route` matchmaking + `seedMember` (the
+> pizza-as-consensus toy: the served pie, the ordered slice, the standing
+> order, the robot last mile + the pass + the pizza line, the published
+> menu) · start-a-table growth · the departure ceremony · the lounge
+> furniture (the contested screen + the remote as a standing signal, the
+> info screen, the derived channel lineup + broadcasting as a business,
+> the notice board, the window, the lost-and-found + the bin, unbuckling)
+> · the jukebox in the bar + the aether update · the parlor games (the
+> unrefereed deck, the board + rules-as-brain) · the soft-skills evidence
+> framing (evidence in, no rewards out) · emergent-personality Dave
 > **Size:** a build
-
-> **Status: design set; v1 is the social-elastic lounge + Dave's Bar
-> shell.** The universal login landing — a **social-elastic
-> MultiLocation** that buds rooms as people arrive and merges them as
-> people leave, **seating** newcomers by play-style "flavor," with **Dave's
-> Bar** as the fixed anti-lounge counterpoint to the north. The lounge is
-> the v1 consumer of the [MultiLocation substrate](./multilocation-slate.md);
-> almost everything else it needs it *consumes* from already-slated
-> systems.
 
 Working slate for the **lounge** — where every player materializes on
 login, and the game's social lubricant. It's a `LoungeWarren` (a
@@ -130,12 +128,6 @@ overrides exactly two seams:
 - **`seedMember(room)`** — synthesize the room's "order" from its
   occupants' toppings (below).
 
-The **commons** carries the stable fixtures: the **TPA terminal** (the
-lounge-exit, fast-travel) and the **north exit to Dave's Bar**. It's a
-normal eligible room in the router — when the lounge is quiet you're seated
-there — so it needs the **same capacity cap N** as any satellite, or it
-becomes the sticky megaroom by virtue of being where everyone looks first.
-
 ### The flavor system — toppings *are* the model
 
 No hidden axes. A **topping is a play-style tag**; your flavor is a small
@@ -144,18 +136,7 @@ toppings. This makes `seedMember` almost free (union/weight the tags) and
 matchmaking legible ("you're seated at the mushroom-and-olives table —
 explorers and roleplayers").
 
-A starter palette (each topping = a social/play disposition; final roster
-content, not engine):
-
-| Topping | Stands for |
-|---|---|
-| Pepperoni | competitive / PvP-leaning |
-| Mushrooms | explorer / wander-and-discover |
-| Extra cheese | cozy / low-stakes / chill |
-| Olives | roleplay / story-first |
-| Pineapple | chaos-gremlin / contrarian |
-| Peppers | builder / tinkerer / optimizer |
-| Anchovies | lone-wolf / leave-me-alone |
+*The starter palette that stood here is superseded by § The palette and § The menu, below.*
 
 Shape leans: **pick ~3** toppings (dense, legible clusters — a long list
 makes everyone unique and rooms mushy); **flat tags v1** (had/don't, not
@@ -235,50 +216,6 @@ remaster** — we honor EotL's Dave's Bar (Dave, the counter, the welcome),
 not its dry-soda menu or coin prices; the old *Moonlighting* reference gets
 tucked somewhere as an **easter egg**.
 
-**Drinks are [vitals](../tails/vitals-slate.md) consumables.** The bar authors
-the **menu** (each drink a Thing you hold/sip, carrying an effect payload +
-`NutritionFacts`); **vitals owns the effects**:
-
-- **Alcohol → drunk** = a pharmacological payload applying an **intoxication
-  condition** (vitals Layer 4) that onsets, progresses, and self-resolves
-  on the cadence.
-- **Any drink → hydration** = the hydration **reserve** (vitals Layer 8).
-
-Sequencing note: those effects ride vitals' *later* waves (hydration is
-vitals Wave 1, the intoxication condition Wave 2, the eat/drink effect-list
-delivery a later vitals wave). So the honest decoupling is **Dave's Bar can
-ship as soon as drinks-as-Things exist** (menu, ordering, holding,
-sipping), with the **effects lighting up additively when vitals provides
-them** — drinks start as social props and *become* effectful. Whether the
-lounge build waits for effectful drinks is a requirements-time call; the
-architecture doesn't force it.
-
-**Cocktails — decided-but-deferred.** The future supply side: players work
-the bar and *make* drinks. Because a making-loop needs a **measurable
-target** (mix ingredients to hit a profile; distance = quality), cocktails
-use a **continuous taste-profile** representation — the opposite of pizza's
-discrete tags, and forced by the fact that cocktails have a craft loop and
-pizza doesn't. With employment deferred, **Dave makes all the drinks** and
-cocktails "organize" people the **emergent/human** way (shared taste →
-conversation through Dave and the counter), never via a router. The
-employment loop itself (hiring, working a shift, the skill mini-game) is
-the **first real consumer of the activity substrate** (tending bar = a
-`SustainedEngagement`, making a drink = a `DurativeActivity`) — deferred
-with the service-robot fallback labor.
-
-### Wiring (mostly consumed)
-
-- **Login landing** — everyone materializes in the lounge; the connection
-  flow delivers them to the commons host, and the `LoungeWarren` **admits**
-  (seats) them. Quiet/unflavored → the commons.
-- **Onward routing** — first-time vs returning is the **TPA terminal's**
-  state-routing ([fast-travel](../tails/fast-travel-slate.md)): onboarded flag →
-  campus entry (first login) or home/dorm-lobby (returning). The lounge
-  doesn't own this; it hosts the terminal that does.
-- **Recall** — a player who quit *in the lounge* resumes via the **host**
-  (re-admitted), per the substrate's start-location seam — never into a
-  dead satellite.
-
 ---
 
 ## Worked scenarios
@@ -293,16 +230,6 @@ by its synthesized order. Later the crowd thins; a satellite drops below
 **M**, stops receiving, drains its stragglers toward the commons, and
 collapses. You leave through the TPA terminal on the commons — first login
 routes you to campus, otherwise home.
-
-### B — at the bar
-
-You take the north exit to Dave's. You `sit` at the counter and order. Dave
-(blank-slate, warm) makes it and slides it over; you hold the drink (a
-Thing). When vitals' consumable wave is live, the beer carries you toward
-tipsy and nudges hydration; until then it's a prop you sip. You and the
-player two stools down both ordered something bitter and bracing — Dave
-ribs you about it, and a conversation starts. No algorithm seated you; the
-bar did it the human way.
 
 ### C — flavoring up
 
@@ -351,10 +278,6 @@ north exit wired (consuming fast-travel + the start-location recall seam);
 **Dave's Bar** singleton + minimal **Dave** + a **drink menu** as Things
 (sip/hold; `sit` at the bar). Effects deferred to vitals.
 
-**Wave 2 — effectful drinks + a richer Dave.** Drink effect payloads via
-vitals (intoxication condition + hydration reserve) as those vitals waves
-land; scripted-conversation Dave (npc-dialogue Wave 2).
-
 **Wave 3+ — the supply side.** Player **employment** at the bar (the first
 activity-substrate consumer: `SustainedEngagement` / `DurativeActivity`) +
 the **cocktail mixing** skill loop (continuous taste-profile) + **service
@@ -386,44 +309,6 @@ Wave 3). Richer flavor mechanics (weighted toppings; weighted aggregation).
   v1 has no money.
 - **Other MultiLocation consumers** (the procedural dungeon, the expanding
   desert) → their own slates.
-
----
-
-## Once shaped into formal requirements
-
-This slate boils down to:
-
-- **`LoungeWarren`** (a [MultiLocation](./multilocation-slate.md)
-  consumer) overriding `route` (dual-objective matchmaking) + `seedMember`
-  (order synthesis), rooted at the persistent **commons** host (TPA
-  terminal + north exit + capacity cap N).
-- The **flavor tag-set**: toppings-as-model (tags in, overlap match,
-  aggregate out), ~3 flat semi-legible play-style tags, stored as a
-  **per-character setting** with swappable seeding front-ends (char-gen,
-  the commons order console, `settings`/`var`, later inference) and a
-  graceful **unflavored** default.
-- The **routing feel**: active placement (load-balancing), the
-  "seated-by-the-lounge" framing, group co-location, re-seat-on-request,
-  doors as correction.
-- **Dave's Bar** as an external-singleton anti-lounge: the **menu** of
-  drinks-as-Things; **vitals** owning the effects (intoxication condition +
-  hydration reserve, decoupled by wave); `sit`-at-the-bar + counter
-  surface; **blank-slate Dave** (minimal v1, npc-dialogue for depth,
-  Moonlighting easter egg, homage-not-remaster).
-- The **cocktail/employment** direction recorded as decided-but-deferred
-  (continuous taste-profile; the first activity-substrate consumer).
-- **Wiring**: login lands in the lounge (Warren admits); the TPA terminal's
-  state-routing carries onward; recall resolves member → host.
-- Tests: login seats you (commons when quiet, a compatible satellite when
-  busy); your group seats together; an unflavored player gets least-full
-  overflow; setting toppings via the console and via `settings` produce the
-  same routing; a room's synthesized order reflects its occupants' toppings;
-  Dave's Bar is reachable but never reaped by lounge population; you `sit`
-  at the bar and order a drink Thing; quitting in the lounge resumes you via
-  the host.
-
-Effectful drinks, the scripted/emergent Dave, cocktail mixing, employment,
-service robots, and the economy wait for their own waves.
 
 ---
 
@@ -606,66 +491,7 @@ with features is an airport.*
 
 ## Terminals, arrival, and the no-geography rule (2026-08-01)
 
-### ⭐⭐⭐⭐ The rule: "a mud in a mud"
-
-**(User.)** The lounge must stay **deliberate and precise, in the
-simplest terms possible.**
-
-> **If the lobby has to be learned, it has failed.**
-
-Its geography is **knowable at a glance**: the **commons**, the
-**elastic rooms**, **one door north.** That is the whole map.
-
-**⚠ The durable consequence — record it, because every future idea will
-push against it:**
-
-> **The lounge can never grow a feature that needs a PLACE.** Anything
-> wanting its own room goes to **the bar** or **the city**.
-
-*(An earlier proposal for a separate "terminal room" is withdrawn on
-this rule: it was geography pretending to be meaning.)*
-
-### ⭐⭐⭐ Arrival: a MOBILE terminal, and the seam already exists
-
-`FastTravelMixin` already carries **directionality**
-(`arrival` / `departure` / `both`, rendered by `TpaTerminal` as a
-**coloured status light**) plus **`getArrivalRoom()`** — which is a
-**method**, not a field.
-
-So the `LoungeWarren` simply answers *"where do arrivals land"* with its
-**current load-balancing decision** — no relocation bookkeeping, no new
-machinery, and it **reuses the `route` matchmaking that already seats
-logins.**
-
-> **The terminal's location IS the Warren's load-balancing decision,
-> made physical.** The machinery becomes furniture.
-
-**⭐⭐ Keep it a VISIBLE OBJECT.** Arrivals then get **witnessed** —
-people see someone come through, which is social. Players materialising
-anywhere is spooky and produces **no moment**; a terminal is also a
-landmark and a thing to stand near.
-
-⭐ **And run `route` on arrival, not only on login** — returning players
-get the social sorting too.
-
-### ⭐⭐⭐⭐ Departure: in the COMMONS — and the reason is social, not visibility
-
-**(User's lean, and the argument is stronger than "people should see the
-door.")**
-
-> **A visible departure is an INVITATION.**
-
-Someone stepping up to the terminal is **the single most natural moment
-for *"mind if I come?"*** — and that is the lever on the lounge-lizard
-problem, since **they leave for a PERSON, not for content.**
-
-Put the terminal **in the bar** and departures become **invisible**:
-nobody is in the room to ask, and the moment never happens. Put it in
-the **commons** and **every departure is a recruitment opportunity.**
-
-⭐ **It pairs with the departures board**: the **board** says *where
-people are going*; the **terminal** is *where they go from.* Both
-visible, both conversation scaffolding, both in the hero room.
+*Shipped: the terminal seats itself into the live host so arrivals land where the Warren seats them; departures are in the commons; the bar is a destination off it, never a passage; the map is the commons, the elastic rooms, one door north; and a lounge arrival is a choice, because you log in at your bed → [location.md § Where the terminal stands](../../subsystems/location.md#where-the-terminal-stands-and-why).*
 
 ### ⭐⭐⭐ The threshold is PSYCHOLOGICAL, not architectural
 
@@ -681,32 +507,6 @@ departure weight **without a single new exit.**
 **The notary finding again: formality as friction, and it never needed a
 building.** The hesitation an anxious player feels is at **the act**, not
 at a doorway — so **put the ceremony on the act.**
-
-### ⚠ And the bar is a destination, never a passage
-
-> **A tease you are forced through is a TOLL. A tease you choose is an
-> INVITATION.**
-
-Routing traffic through the bar would make it a **corridor** — the same
-dead-space failure, pointed at the sidekick — and would **promote the
-sidekick by accident.** *The bar is a destination off the commons.*
-
-⭐ **Corrected reasoning worth keeping:** an earlier draft argued for
-putting the departure terminal behind the bar so departures would be
-"teased." **That fails, because the lizard never walks that way.**
-
-> **Architecture teases the COMMITTED. People tease the UNDECIDED.**
-
-The tease that actually reaches a lounge lizard is **someone arriving
-back with a story**, **someone saying "come with us"**, and **the board
-showing where people went.**
-
-### Settles open question 6
-
-> **Arriving at the lounge means you MEANT to.**
-
-No auto-routing home — most players log in at their bed, so a lounge
-arrival is a choice.
 
 ## The pizza — the flavor system made touchable (2026-08-01)
 

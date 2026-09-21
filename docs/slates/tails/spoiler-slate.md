@@ -3,20 +3,12 @@
 > **Status: PARTIAL** — the two-axis reveal model (capability deletes /
 > appetite tags, `SpoilerLevels`, `FieldMetaEntry.spoiler`) ships for
 > the encyclopedia → [wiki.md](../../subsystems/wiki.md)
-> **Left:** progress / integrity reveal conditions on percepts ·
-> server-side fact-gating in the Scene/percept projection ·
-> role-conditioned reveals · the player opt-in choice-guard outside the
-> wiki · assessment integrity (flagged, owned elsewhere)
+> **Left:** the secret tag + reveal-condition content model (Q2) ·
+> progress / integrity reveal conditions on percepts · server-side
+> fact-gating in the Scene/percept projection · role-conditioned reveals
+> (Q4) · the player opt-in choice-guard outside the wiki + per-category
+> guards · assessment integrity (flagged, owned elsewhere)
 > **Size:** a wave
-
-> **Status: deliberately light — best-effort, not a security boundary.**
-> Keeping players from being spoiled (a puzzle solution, a hidden room's
-> contents, a quest twist, an NPC's secret) — by **imposition** (the game
-> withholds it to preserve the experience) or by **choice** (the player
-> opts out of seeing it). The game is open source, so a determined person
-> can always self-spoil from the repo; we make a *reasonable effort* for
-> normal play, and don't over-build a hardened thing. Assessment
-> integrity is a *separate, deeper* problem (below) — not solved here.
 
 Working slate for **spoiler / secret protection** — the perception-side
 sibling of content authoring. Both are facets of one shape (*what can a
@@ -162,9 +154,12 @@ circumstance shape), **quest/progress** state (the earned condition).
    expresses conditions (progress flag, quest stage, role). *Lean: a
    reveal-condition that plugs into the percept revelation-condition
    family.*
-3. **Choice-guard granularity** — one global "no spoilers," or per-
-   category (endings / solutions / contents)? *Lean: start global, add
-   categories if wanted.*
+3. *Resolved by the wiki build: neither global nor per-category but a
+   **graduated 0–3 appetite scalar** — `wiki.spoilerAppetite`, a setting on
+   the Avatar, overridable per reading with `wiki … --spoiler` →
+   [wiki.md](../../subsystems/wiki.md) § The reveal model — two axes, one
+   gate, § Why an ordinary player sits at 1. Per-category guards remain
+   Wave 2 below.*
 4. **Admin/author handling** — they can inspect internals (power), so
    imposed gates may not bind them; they can opt into the guard.
    Integrity gates are **role-conditioned** (students gated, teachers

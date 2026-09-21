@@ -1,11 +1,17 @@
 # Zoning slate — industrial land use & the settlement family
 
 > **Status: PARTIAL** — the closed-six land use shipped →
-> [smallholding.md](../../subsystems/smallholding.md); the type taxonomy
-> is doctrine in [settlement-model.md](../../settlement-model.md)
-> **Left:** the emission/nuisance model over `signalAt` · the cap at the
-> boundary · the LULU host problem · nonconforming use · derived
-> settlement type · industrial premises + the stockyard fight
+> [smallholding.md](../../subsystems/smallholding.md); the type taxonomy,
+> the site-driven/exit-driven split, and the density/Tiebout argument are
+> now doctrine in [settlement-model.md](../../settlement-model.md); the
+> directional water relation the emission model needs shipped →
+> [watershed.md](../../subsystems/watershed.md)
+> **Left:** the emission/nuisance model over `signalAt` (minus the water
+> relation) · the cap at the boundary · the LULU host problem ·
+> nonconforming use · derived settlement type (incl. use-profile
+> caching) · industrial premises + the stockyard fight · the necropolis
+> as a cumulative-ceiling land use, mechanically · path-dependence as a
+> zoning-history mechanic · commuter voice / company-town franchise
 > **Size:** a build
 
 **Captured 2026-07-31.** Two live builds (a parcel with a farm on it;
@@ -15,14 +21,6 @@ vocabulary names but has never designed: **industrial.** Ranching and
 farming are rural, their output is not direct-to-consumer, and the
 processing has to go *somewhere*.
 
-> ⚠ **`stewardship-slate.md` lives on another branch** (commit
-> `c130fa37`) and is not on master. This slate is its **sibling**,
-> written against the recorded summary of it — the closed six-entry use
-> vocabulary (**residential / agricultural / commercial / industrial /
-> civic / wild**), each declaring **capability + ceiling**, as a field
-> on `ParcelRecord` read through `ParcelApi`'s longest-prefix walk. Read
-> that slate first when the branches meet; nothing here contradicts it.
-
 Related: [freight-slate](./freight-slate.md) (the stockyard fight, the
 turnpike, the depot-as-town-generator),
 [parcel.md](../../subsystems/parcel.md),
@@ -31,7 +29,6 @@ turnpike, the depot-as-town-generator),
 [legal-code-slate](./legal-code-slate.md),
 [instrumentation-slate](./instrumentation-slate.md),
 [prison-slate](./prison-slate.md),
-[ranged-slate](./ranged-slate.md) (the shared extent dependency),
 `docs/staging/terminus-city.md` (the map this sites against).
 
 ## ⭐⭐ What makes industrial categorically different
@@ -84,34 +81,6 @@ Two consequences:
 > **Instrumentation, courts, zoning and industry converge on one
 > sentence: you must measure to prove.**
 
-## Acreage — and the dependency two live sessions share
-
-**`ParcelRecord.extent` is a path, not an area.** There is no acreage in
-the substrate today.
-
-**Derive it, don't store it.** The zone already carries honest geometry,
-so area should be a computation over *the space that actually exists* —
-otherwise a parcel claims a hundred acres and contains three rooms, and
-subdivision needs bookkeeping instead of re-derivation.
-
-But the interior/exterior instinct is right, and it is the whole
-difficulty:
-
-> **Interior area is enumerable (rooms and cells). Exterior area is
-> declarative — one room *is* a field of N acres.**
-
-### ⭐⭐ Which makes the per-location extent a three-consumer dependency
-
-| Consumer | Why it needs it |
-|---|---|
-| [ranged](./ranged-slate.md) | distance bands from real room dimensions |
-| [freight](./freight-slate.md) | an 8 m wagon does not fit a 3 m cell |
-| **this slate** | outdoor parcel acreage |
-
-**Three unrelated threads converging on one small field is as strong a
-build signal as exists.** Size and build it **once, early** — before
-either live session hardens around a workaround.
-
 ## Where industry goes — the map already decides
 
 Terminus is *"a patchwork of privately-carved quarters, not a planned
@@ -150,80 +119,16 @@ freight and legal builds all pay off in a single argument.
 The residential suburb is **one member of a family**, and the family
 splits cleanly.
 
-### ⭐⭐ Exit-driven — and the symmetry
+> The site-driven/exit-driven taxonomy, incl. the suburb/industry-town
+> exit symmetry and the burial-ban third motive (Colma, the Union Stock
+> Yards' Town of Lake), is doctrine now — see
+> [settlement-model.md § 2](../../settlement-model.md).
 
-> **Both are exit. The residential suburb exits to escape *nuisance*;
-> the industry town exits to escape *regulation*.**
-
-Same mechanism — a separate **locality**, with its own government,
-zoning and tax base — pointed in opposite directions. One leaves to get
-away from the smoke; the other leaves to be allowed to make it.
-
-A **third motive** covers the odd ones: **exit to escape a
-prohibition.** Cities did not zone burial to the margins, they **banned
-it** — Roman law forbade burial inside the walls, and **San Francisco
-evicted its cemeteries in 1900**, which is why **Colma** exists and
-calls itself the City of the Silent, the dead outnumbering the living
-about a thousand to one. Same category: the tannery, the powder
-magazine, the lazaretto, the rendering works, the gallows.
-
-> **The historical anchor is almost too on-the-nose:** Chicago's **Union
-> Stock Yards sat in the Town of Lake, a separate municipality**, not
-> annexed until 1889 — and the reason was jurisdictional: **outside the
-> city's ordinances, its taxes, and its nuisance suits.**
-
-### ⭐⭐⭐ And the reason underneath all of it is DENSITY
-
-> **Zoning exists because of density, not because of order. At 3 m cells
-> everyone smells your forge. At 200 m nobody does.**
-
-Which is the shipped stewardship test — *does this activity consume shared
-capacity, or **spill** onto people who did not consent?* — applied at
-density. Saxonberg can **demonstrate** it rather than assert it, because it
-has settlements at four cell sizes (city 3 m · suburb 6 m · pithead 10 m ·
-valley 200 m).
-
-**The worked case: may you keep a workshop in your own yard?** (Manor
-Lords' **burgage plot** — a house *plus its backyard*, where the backyard
-takes an extension: garden, animals, or a **workshop**. The residential
-parcel is the production unit, which is how pre-industrial artisans
-actually worked.)
-
-| | home workshop? | why |
-|---|---|---|
-| **Rejection** | ⭐ no zoning at all — work anywhere | frontier; nobody has authority to say otherwise |
-| **the village / valley** | **yes** — the burgage plot | density too low for anyone to be bothered |
-| **Terminus** | **no** — trade goes to the workshop district | your forge is everyone's forge |
-
-⭐⭐ **A real player decision with a real trade-off**: be a smith in the
-city and pay for industrial premises, or be a smith in the valley and work
-from your yard. Neither is the right answer, and **that is the Tiebout
-axis** — you feel it by moving.
-
-⚠ And the boundary case is **home occupation**, which real zoning solves:
-*you may work from home, but not with employees, signage, customer traffic
-or noise.* **The nuisance is regulated, not the work.** (It also resolves
-Hinkley's death-man tension — Prentice is actionable not because he
-produces but because customers come to the house.)
-
-⭐ **What land use needs is not a seventh use — it is INTENSITY**, which is
-the **allowance cascade**: designed, documented, and currently inert. It is
-the dial that lets `residential` mean *a bed and a workbench* in one polity
-and *a bed only* in another, **with the locality setting it.**
-
-Full model: [../../settlement-model.md](../../settlement-model.md).
-
-### Site-driven — the other half
-
-Not exit at all, and worth keeping distinct because the politics
-differ:
-
-- **resource towns** — the mine, the quarry, the mill at the falls. The
-  thing is *there*; you go to it. **They die when the seam runs out.**
-- **node towns** — the junction, the crossroads inn, the port-adjacent
-  depot. **The transport network creates these**, which makes the
-  freight build a **town generator**: site a depot and a settlement
-  wants to exist around it.
+> The density/Tiebout argument (the burgage-plot workshop table, home
+> occupation, and the allowance cascade as the "not a seventh use, it's
+> INTENSITY" answer) is doctrine now — see
+> [settlement-model.md § 4](../../settlement-model.md), which also
+> restates the site-driven resource-town/node-town half (§ 2).
 
 ### ⭐⭐ "Few permanent residents" is the defining political fact
 
@@ -384,17 +289,12 @@ attenuation **needs the extent field**:
 That is the **third and fourth** thing hanging off extent. **It really
 is the first thing to build.**
 
-#### ⭐ Water is the one directional channel
-
-Sound and light **radiate**; effluent **flows.** So water is the only
-channel needing a genuinely new relation — **"downstream of"** — and it
-is cheap (an edge on locations, or derived from elevation).
-
-Worth it, because *"the tannery upstream of the town"* is one of the
-great nuisance stories — and it **explains the siting analysis above**:
-**industry goes downstream because the water channel is directional**,
-which the Terminus map already encodes with its rivers running south to
-the sea.
+> The directional water relation this needs (**"downstream of"**) has
+> shipped — `Watercourse`'s topology is authored, direction is derived —
+> see [watershed.md § Watercourse](../../subsystems/watershed.md). The
+> siting implication (industry sites downstream, effluent flows away
+> from the city) is still this slate's to make; only the underlying
+> relation was the open dependency.
 
 ### ⭐⭐ Odour is the nuisance you can only prove by testimony
 

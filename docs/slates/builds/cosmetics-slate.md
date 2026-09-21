@@ -1,16 +1,18 @@
 # Cosmetics slate — giving appearance an input, so its scarcity is grown rather than declared
 
-> **Status: PARTIAL** — the dye chain (dyestuff × mordant, fastness,
-> overdyeing as arithmetic) shipped with textiles →
-> [textiles.md](../../subsystems/textiles.md)
-> **Left:** the appearance-mark carrier on a body (the `Looks` cell) ·
-> **glycerin + scented soap** (the chandler's byproduct —
-> [rendering-slate § 8](./rendering-slate.md)) ·
-> the personal-services vocation + graded cuts · tattoos · the dye-plant
-> crop rows · ⭐ **beauty** (§ below, 2026-09-18): the canon document,
-> the body-impression augmenter, the viewer-side regard delta — *no
-> face, consequences yes*
-> **Size:** a build
+> **Status: PARTIAL** — the dye chain (dyestuff × mordant × fibre,
+> fastness, overdyeing as arithmetic, the dye-plant crops) shipped with
+> textiles → [textiles.md](../../subsystems/textiles.md); cosmetics is
+> now the second customer it was designed to be
+> **Left:** the appearance-mark carrier on a body (the `Looks` cell — a
+> cut, a dye job and a tattoo share it) · the personal-services vocation
+> + graded cuts · hair dye as the dye chain's second customer · tattoos
+> · what is changeable and what is not (eye colour never) · ⭐ **beauty**
+> (§ below, 2026-09-18): the canon document, the body-impression
+> augmenter (nutrition-and-fitness's `Character` body line is the attach
+> point), the viewer-side regard delta — *no face, consequences yes*
+> **Size:** a wave — rides lineage phase 1's appearance substrate; the
+> chain it needed has shipped
 
 **Captured 2026-08-25**, out of the [lineage](./lineage-slate.md)
 phase-1 card discussion. Char-gen settled that **appearance is inherited
@@ -29,8 +31,6 @@ And the framing that this slate exists to serve:
 > into the hundreds of billions of dollars; of course someone will see
 > cosmetics in Saxonberg and see dollar signs. **The platform has no
 > opinion on this.**"**
-
-> **Status: design conversation, captured. Not requirements.**
 
 Related: [lineage-slate](./lineage-slate.md) (the char-gen decision this
 serves), [trade-roster-slate](../tails/trade-roster-slate.md) (the `textiles` /
@@ -92,60 +92,19 @@ demand.
 grow  →  extract  →  mordant  →  apply
 ```
 
-| step | Discipline | status |
-|---|---|---|
-| **grow** the dye plant | `horticulture` / `agriculture` | ✅ both ship |
-| **extract** the pigment | `apothecary` *(or a dedicated `dyeing`)* | ⭐ gap — already on the roster's list |
-| **mordant** — decide what colour it becomes | knowledge, same Discipline | ⭐ gap |
-| **apply** to hair / skin | `personal-services` | ✅ ships |
-| **apply** to cloth / leather | `textiles` / `leatherwork` | ⭐ gaps — already on the roster's list |
-
-**Every gap here is a Discipline the roster already demanded**, which is
-the test that says this is a real chain and not an invented one.
-
-## Substrate it rides, all shipped
-
-- **Pigment is a liquid** ⇒ `Material` + `Bulkable`
-  ([bulk.md](../../subsystems/bulk.md)). The `obj/material/bulk/*`
-  namespace already holds `water`, `coffee`, `salt-water`, `compost`;
-  a dye bath is the same shape.
-- **Dye plants are crops** ⇒ `GrowingMixin` / `CultivableMixin`
-  ([husbandry.md](../../subsystems/husbandry.md),
-  [smallholding.md](../../subsystems/smallholding.md)). ⚠ The crop
-  roster is currently **one row** (`carrot`), so these are new content —
-  but new content on finished machinery.
-- **The dyeing act is a craft** ⇒ Recipe docs + craft-resolve
-  ([crafting.md](../../subsystems/crafting.md)).
-- **Selling it** ⇒ `PricedOffer` / Stock / consignment
-  ([retail.md](../../subsystems/retail.md)).
+*The cloth half shipped → [textiles.md § The chain, as it
+ships](../../subsystems/textiles.md): `dyeing` is its own Discipline
+(not `apothecary`), the dye plants are `trade-farming` crops, the bath
+is a `DyeVat` / `WoadVat`, `mordant` then `dye` are the verbs. The
+**apply to hair / skin** step is the carrier below.*
 
 ---
 
 # ⭐⭐⭐ The mordant — why this is a trade and not a vending machine
 
-The detail that carries the whole design:
-
-> **The same plant yields different colours depending on what you mordant
-> with.** Alum, iron, tannin — one dyestuff, several outcomes.
-
-That is real, it is teachable, and it means:
-
-- **The colour space is DERIVED, not authored.** You do not pick from a
-  palette; you get `f(dyestuff, mordant, fibre)`. Exactly the move
-  [materials](../../subsystems/materials-response.md) already makes —
-  *materials are a closed set; blends derive* — and the same shape as
-  `response = f(mechanism, material, construction)`.
-- **There is knowledge to have**, so the practitioner is not a kiosk.
-  Knowing that iron saddens a colour and alum brightens it is a fact
-  about the world you can learn, be taught, or get wrong.
-- ⭐ **Scarcity becomes structural.** A colour is rare because its
-  dyestuff is hard to grow or its mordant is hard to get — not because a
-  designer priced it high. That is the whole point of the slate.
-
-⭐ It is also the invented-but-honest register
-[arcane-science.md](../../arcane-science.md) sets for magic, applied to
-something entirely mundane: **one small set of real rules, consistently
-applied, generating a large outcome space.**
+*Shipped — the colour is `f(dyestuff, mordant, fibre)` and never a
+palette; four independent entries per dye because the metal ion is part
+of the chromophore → textiles.md § Dye, wash and fade.*
 
 ---
 
@@ -276,23 +235,19 @@ the one appearance axis that could be *acted on*. It must still never be
 
 # Open questions
 
-1. **Is `apothecary` the extraction Discipline, or does dyeing get its
-   own?** `apothecary` is already a demanded gap and the chemistry
-   overlaps; a dedicated `dyeing` is cleaner but adds a row nobody else
-   needs. *Leans `apothecary` with a `specializes` link, the pattern
-   `midwifery: specializes medicine` already uses.*
-2. **How many dyestuffs and mordants?** The outcome space is
-   multiplicative, so a handful of each is a large palette. ⚠ The risk
-   is the opposite of scarcity — three dyestuffs × four mordants is
-   twelve colours before anyone plants anything unusual.
-3. **Does fibre participate?** Real dyeing behaves differently on wool
-   vs linen, which would make `f(dyestuff, mordant, fibre)` genuinely
-   three-dimensional — and make hair a *fibre*, which is either elegant
-   or a joke that wears out.
-4. **Does a colour fade?** A dye job with a duration is a repeat
-   customer and a real reason for the trade to persist; a permanent one
-   is a single sale. ⚠ It also decides whether `Looks` drifts back
-   toward the inherited value, which touches the lineage card.
+1. *Resolved — `dyeing` got its own Discipline
+   (`trade-dyeing/content/trade/dyeing/idea/Discipline/dyeing.yaml`);
+   there is no `apothecary` Discipline.*
+2. *Resolved for cloth — two mordant dyes × four mordants plus woad as
+   the vat-dye exception → textiles.md § Dye, wash and fade. Hair rides
+   the same dyestuffs.*
+3. *Resolved — yes: cellulose needs a tannin pre-mordant, protein takes
+   alum directly → textiles.md § Dye, wash and fade. Hair is keratin,
+   i.e. wool's chemistry; whether the carrier models it as a fibre is
+   its call.*
+4. *Resolved for cloth — colour fades per wash in proportion to
+   `1 − fastness` → textiles.md § Dye, wash and fade. Whether `Looks`
+   drifts back toward the inherited value is the carrier's (see 7).*
 5. **Tattoos: same chain or a different one?** Ink is pigment, but
    permanence, skill and the social meaning are all different. Possibly
    its own thing riding the same pigment supply.
@@ -313,11 +268,9 @@ the one appearance axis that could be *acted on*. It must still never be
    case, and mirrors are a real constraint. *Leans: same derive, with
    the self-application as a penalty input rather than a hard cap —
    nothing here should be a rule where a modifier will do.*
-9. **Where does the first content land?** Terminus has a `tailor`
-   rostered and 52 built rooms; the dye plants want
-   [smallholding](../../subsystems/smallholding.md) ground, which is
-   Hinkley Hills. That is a two-locality chain, which is the honest
-   shape but not the cheapest first pack.
+9. *Resolved for the dye chain — the mill and dyehouse at Wharfside, the
+   dye plants at Hinkley Hills, the tailor off Mayfield Row → textiles.md
+   § Siting. Where the first personal-services content lands is open.*
 
 ---
 

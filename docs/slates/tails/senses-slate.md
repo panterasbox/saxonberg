@@ -1,33 +1,30 @@
 # Senses slate (working doc)
 
 > **Status: PARTIAL** — Wave 1 shipped 2026-06, both halves (authoring +
-> the physics/`Modality` layer)
-> → [senses.md](../../subsystems/senses.md)
-> **Left:** smell trails / temporal persistence · echolocation (the
-> active-sense pattern) · the full ESP local-field walk · per-species
-> `hearingProfile`/`tactileProfile`/`gustatoryProfile` · scalding
-> burn-damage · RT60 reverberation · NPC scent-tracking ·
-> sensorium-relative stealth · the alien channels
-> **Size:** a wave
+> the physics/`Modality` layer) → [senses.md](../../subsystems/senses.md);
+> the `sense` verb is being CUT and `look` made the take-it-all-in verb by
+> [legibility-slate § Part D](../builds/legibility-slate.md) (2026-09-18).
+> **Left:** smell trails / temporal persistence + NPC scent-tracking · the
+> active-sense pattern (echolocation) + the alien channels
+> (magneto-/electroreception, pit-sensing) · differential per-channel
+> rendering · sensorium-relative stealth / NPC detection · the full ESP
+> local-field walk · the natural-empathy ESP organ on `BodyPlan`
+> (sentience-implies-telepathy — contradicted by what shipped, see the
+> ledger) + implant tiers / innate variation / independent jamming + the
+> deferred ESP channels · the verbal channel's language gate · per-species
+> `hearingProfile` / `tactileProfile` / `gustatoryProfile` · organ-condition
+> modulation (vitals) · touch texture/hardness off Material + the
+> sub-modality fork · taste's consumables tie · the gestalt output now
+> owed by `look` (salience threshold · dark-playable · the sectioned
+> pedagogical mode) · the sense-aware click · skills afford perception
+> verbs · chemesthesis · the deep acoustic spec (partial-transmissivity
+> conduits + material-derived transmissivity · frequency + masking gates ·
+> `listen` localization · RT60 · Doppler · noise dose · `analyze sound` +
+> the acoustic instrument roster · the biome-chain ambient resolver)
+> **Size:** a build (several waves riding different builds: hearing
+> polish · smell trails + tracking · alien/active channels · ESP field
+> physics)
 
-> **Status: Wave 1 SHIPPED 2026-06 — authoring half + physics half
-> both landed.** Authoring (2026-06 senses build): per-sense
-> `Detail` slot map, `<sense channel="X">` MML wrapper,
-> `senseStripAugmenter`, the four single-sense verbs, gestalt
-> `sense` verb, auto-on-entry switch, hierarchical perception topic
-> vocabulary, `BodyPlan.getModalities()`, `Species.olfactoryProfile`.
-> Physics (2026-06 perception build): `Modality` base class + seven
-> singletons + `PerceptionApi`; field propagation walks for vision
-> (relocated from retired `LightApi`), smell (ppm + identity +
-> conduit), sound (dB + logarithmic merge + linear-amplitude
-> accumulation); touch ambient + per-detail temperature via biome
-> chain; ESP via augment-conferred AetherMixin; per-frame modality
-> attribution at `Scene.modality` + `SensorMixin.filterMessage`;
-> `SpeciesApi.deriveSensorium` retired in favor of
-> `PerceptionApi.sensorium`. See
-> [docs/subsystems/senses.md](../../subsystems/senses.md) for the
-> shipped substrate.
->
 > Still ahead (Wave 2/3 open work below): smell trails / temporal
 > persistence, active-sense pattern (echolocation), full ESP local-
 > field walk (eavesdropping in range, encryption stripping for
@@ -36,14 +33,6 @@
 > / reverberation acoustic modeling, NPC scent-tracking AI,
 > sensorium-relative stealth, alien channels (electroreception /
 > magnetoreception / pit-sensing), chemesthesis as its own modality.
->
-> Refinement (2026-06, pre-ship): ESP organ universalized across
-> sentient beings (open Q #12 resolved → emotes stay telepathic-only;
-> the dog perceives the wave via its empathic organ, no double-event
-> needed); authoring discipline settled as **events single-channel
-> per frame, state multi-sense via MML `<sense>` tags + per-sense
-> Detail slot maps** so content authors never write the same thing
-> five times.
 
 Working slate for **the senses** — how a being perceives the world
 across vision, hearing, smell, touch, and taste. Light (vision) is
@@ -52,46 +41,14 @@ which proves the abstraction. This slate extracts that shared substrate
 and hangs all five senses off it, plus the gestalt verb so a player
 perceives a new room without typing five commands.
 
-The load-bearing decisions:
-
-1. **A sense is a `PerceptionChannel`.** One substrate; each sense is an
-   instance with the same five parts (emission / propagation+medium /
-   attenuation+masking / per-species sensitivity / pedagogical
-   rendering). The physics differs per channel; the *design decisions*
-   are shared. (This is the `PhysicsChannel` generalization the sound
-   slate anticipated; `LightApi` and `SoundApi` already instantiate it
-   informally.)
-
-2. **Three physics families.** *Ambient/field* senses propagate and are
-   perceived passively (vision, hearing, smell, ambient-temperature) —
-   they share the source→medium→attenuation→Conduit→detection walk.
-   *Contact/active* senses require an act + contact (touch-texture,
-   taste) — "reaches you" = "you touched it." *Network* senses (ESP, via
-   the implant) have no propagation/medium/falloff — uniform delivery to
-   an addressed/tuned audience, routed by membership.
-
-3. **A gestalt verb + auto-on-entry.** Perceiving a space is *one*
-   action across all your senses, fired automatically on room entry —
-   players type zero commands, not five. Single-sense verbs exist for
-   deliberate focus.
-
-4. **Perception is viewer-relative and capability-gated** (the percept
-   model): a sense reveals facts gated by *(have the sense) + (signal
-   reaches you / you made contact) + (skill/instrument)*. Two beings in
-   the same room perceive different things. The senses substrate is the
-   physics under the inspection-card percept.
-
-5. **Messaging *is* sensing — and ESP is a sense.** Anything that
-   receives a frame is a `Sensor`; `SensorMixin.onMessage` *is* "a signal
-   landed." So **every `MessageFrame` arrives on a channel, and the
-   channel *is* the sense** that perceives it (speech → hearing, a wave →
-   vision/ESP, a DM → ESP). Senses aren't a layer beside messaging —
-   they're its **perceptual layer**. It follows that **ESP is a sense**
-   (not a separate "comms" thing): the **implant is an artificial
-   sense-organ** that adds ESP channels to your sensorium, the way eyes
-   add vision. ("Senses are just brainwaves; an organ converts a signal
-   to neural activity, an implant injects it directly — no principled
-   difference.") ESP is a **channel *family*** — see below.
+The five load-bearing decisions shipped 2026-06 → [senses.md](../../subsystems/senses.md): 1 as
+`Modality` singletons + `PerceptionApi` (per-modality walks, not a
+generic `PerceptionChannel`); 2 as the `family` data field (ESP tagged
+`field` — § Hybrid ESP framing; `network` reserved); 3's `sense` verb
+shipped and is being CUT by [legibility-slate § Part D](../builds/legibility-slate.md#part-d--the-perception-verbs--decided) — `look` is the
+arrival verb and the take-it-all-in verb; 4 → § `senseStripAugmenter` +
+perception.md; 5 → § Per-frame modality attribution + § Organ-gates-
+modality widened with augments.
 
 See also:
 
@@ -132,18 +89,6 @@ See also:
 
 ---
 
-## Principle
-
-1. **One substrate, five instances** — `PerceptionChannel`; physics
-   differs, design is shared.
-2. **Field vs contact** — propagate-and-perceive-passively vs
-   act-and-touch.
-3. **Perceive everything in one action** — the gestalt, auto on entry.
-4. **Viewer-relative + capability-gated** — the percept model; the
-   pedagogical seam renders it.
-
----
-
 ## The `PerceptionChannel` substrate (what's shared)
 
 Each sense instantiates five parts; only the physics in each differs:
@@ -162,18 +107,10 @@ sense plugs its physics in.
 
 ## The three physics families
 
-- **Ambient/field** (vision, hearing, smell, ambient-temp): propagate;
-  perceived passively; share the **source→medium→attenuation→Conduit→
-  per-viewer-threshold** walk (the `LightApi`/`SoundApi` shape).
-- **Contact/active** (touch-texture, taste): no propagation; require an
-  act + contact. "Signal reaches you" collapses to "you touched it."
-  (Ambient *temperature* is the one touch facet that's also a field —
-  it lives in both, via biome.)
-- **Network** (ESP, via the implant — see *ESP channels*): no
-  propagation/medium/falloff; uniform delivery to an addressed/tuned
-  audience, routed by membership not proximity. The implant is the organ.
-
-One perception/detection *layer* over three propagation *models*.
+Shipped as the `family` data field on `Modality` (`'field' | 'contact' |
+'network'`) → [senses.md](../../subsystems/senses.md) § `Modality` singletons + `PerceptionApi`. ESP
+shipped as `field` (the local aether IS a field — § Hybrid ESP framing);
+`network` is reserved for future routed-only modalities.
 
 ---
 
@@ -181,9 +118,8 @@ One perception/detection *layer* over three propagation *models*.
 
 ### Vision (light) — shipped exemplar
 
-`LightApi` + `canSee` + `visionProfile`. The substrate aligns to its
-shape; converge it onto `PerceptionChannel` gradually (don't break
-working vision).
+Shipped: `VisionModality` (relocated from the retired `LightApi`) →
+[light.md](../../subsystems/light.md) § Propagation, [senses.md](../../subsystems/senses.md) § Propagation walks.
 
 ### Hearing (sound) — absorbs the sound slate
 
@@ -220,12 +156,9 @@ detection, flavor (sweet/bitter/…). `gustatoryProfile`.
 
 ## ESP — a channel family (the implant sensorium)
 
-ESP isn't one sense and it isn't "comms-not-a-sense" — it's a **family of
-`PerceptionChannel`s** carried by the **implant (an artificial
-sense-organ)**, parallel to how the physical senses are a family. It's a
-*third physics family* alongside field and contact: **network** — no
-propagation/medium/falloff, uniform delivery to the addressed/tuned
-audience, routed by membership (conversations/channels), not proximity.
+Shipped as two `Modality` singletons (`verbal-esp`, `emotive-esp`) tagged
+`family: field`, not a third *network* family → [senses.md](../../subsystems/senses.md) § Hybrid ESP
+framing.
 
 Two channels ship (the split is **earned**, not arbitrary — it's exactly
 the verbal/emotive line the language decision already drew):
@@ -235,16 +168,10 @@ the verbal/emotive line the language decision already drew):
 | **verbal / propositional** | words (DM, chat) | **language-gated** (the comms (ii) lean lives *here*) | comms buffer (text) |
 | **emotive / expressive** | affect/intent (emotes) | **language-free** (a smile is universal) | the emote rendering |
 
-(DM vs chat is *routing* within the verbal channel — conversations/
-membership — not a separate sense.)
-
 **Organ = ESP-sensitive organ; multiple diegetic shapes; ungated *by design*.**
 A channel exists iff you have the organ. The setting's diegetic
 inventory of ESP-sensitive organs is broad:
 
-- **Implants** — the citizen-default. The baseline implant is
-  **universal among citizens + hardened**, so every citizen has
-  verbal + emotive ESP.
 - **Natural empathy** — the biological / magical-creature path.
   Animals, familiars, magical beings, sentient plants — whatever the
   setting wants — declare an empathic organ on their `BodyPlan`. A
@@ -279,8 +206,6 @@ blob):
 - **Innate variation** — a natural empath could have the emotive channel
   with no implant; a construct/AI might be verbal-only.
 - **Independent jam/augment** — a dampener hits emotive but not verbal.
-- **Distinct render** per channel (verbal → buffer, emotive → emote
-  rendering).
 
 **Deferred ESP channels (substrate open, like alien physical senses):**
 imagery / sensory-share ("send me what you're seeing"), presence-
@@ -377,17 +302,12 @@ determines the experienced world.**
 
 ## The gestalt verb — perceive everything in one action
 
-The convenience: a being entering a space takes it in across *all* its
-ambient senses at once. So:
-
-- **Auto-fires on room entry** — the player perceives a new room's
-  gestalt for free, typing nothing. (This is the "don't make me type
-  five commands" answer — they type *zero*.)
-- **An explicit verb re-triggers it.** *Lean name: `sense`* (alternatives:
-  `perceive`; the bare-`look` form stays *ambient vision* for
-  consistency with the single-sense verbs, so the all-senses gestalt
-  wants its own word). The name is the least-settled part; the
-  auto-on-entry + the output shape matter more.
+Superseded by [legibility-slate § Part D](../builds/legibility-slate.md#part-d--the-perception-verbs--decided) (2026-09-18): `sense` shipped
+2026-06 ([senses.md](../../subsystems/senses.md) § Gestalt verb, § Auto-on-entry) and is being CUT —
+`look` already renders every channel (`LookController` passes no sense
+filter), so `look` is the arrival verb and the take-it-all-in verb, and
+the four single-sense verbs narrow. The output items below are what
+remains of the gestalt design, now owed by `look`.
 
 **The output — sight-led prose with salient cross-sensory percepts woven
 in:**
@@ -396,9 +316,6 @@ in:**
   threshold) — never "Smell: nothing. Sound: nothing." A neutral room
   reads mostly visual; a room with a strong smell / odd sound / biting
   cold surfaces those.
-- **Viewer-relative** — shaped by your sensory profile + capabilities
-  (a tracker notices the scent trail in the gestalt; a dog's gestalt is
-  smell-dominant).
 - **Darkness becomes playable** — in the dark, vision drops out and the
   gestalt naturally leads with sound/smell/touch: *"You can't see, but
   you hear water dripping, smell damp stone, and the air is cold."* The
@@ -407,133 +324,60 @@ in:**
 - **Pedagogical-seam mode** — a sectioned/measured variant (Sight /
   Sound / Smell with real units) for student/instrument use, same engine.
 
-The gestalt feeds the **inspection-card** room focus as the multi-sense
-percept; drill into a single sense for depth.
-
 ## Single-sense verbs (deliberate focus)
 
-`look`/`examine`, `listen`, `smell`/`sniff`, `feel`/`touch`,
-`taste`/`lick`. Bare form = that sense applied to the surroundings
-(ambient); targeted form (`smell <thing>`) = that sense on a thing,
-deeper. These are how you focus one channel when the gestalt flagged
-something worth investigating — or when a contact sense needs an
-explicit act.
+Shipped (`smell` / `listen` / `feel` / `taste`; `examine` is a `look`
+alias) → [senses.md](../../subsystems/senses.md) § Single-sense verbs, § Bare-verb upgrades. Aliases
+`sniff` / `lick` and `--peek` still land per content demand (§ What's NOT
+in this build).
 
 ---
 
 ## The percept connection (the physics under the card)
 
-A sense reveals facts gated by **(have the sense) + (signal reaches you /
-contact) + (skill/instrument/capability)**; the revealed facts feed the
-percept that renders in the inspection card (per the percept model).
-`look` adds visual facts, `smell` adds odor facts, a thermometer adds the
-measured temp, `appraise` (a skill) adds quality. Internal state never
-appears unless a perception reveals it; the raw dump stays admin-gated.
-The senses substrate is what makes that model real.
+Shipped → [perception.md](../../subsystems/perception.md) § The three
+layers; [card-surface.md](../../subsystems/card-surface.md) (the subject
+resolves behind the perception gate, re-checked on every re-resolve); the
+instrument rung is the `measure` / `analyze` verb family.
 
 ---
 
 ## Authoring surface — events vs. state
 
-Where the multi-sense complexity lives matters for keeping content
-authorable. The substrate's discipline is **events are single-channel;
-state is multi-sense via tags**. Authors never write the same content
-five times.
+Shipped → [senses.md](../../subsystems/senses.md) § Authoring discipline.
 
 ### Events stay single-channel per frame
 
-A `Scene.send` rides ONE channel. A say rides the hearing channel; an
-emote rides the emotive ESP channel; a footstep rides hearing; the
-snick of a match igniting rides hearing. The substrate handles
-per-recipient detection on that channel — whoever's sensorium has it,
-and is in range, perceives the frame.
-
-Multi-modal events (a door slamming makes a sound AND is visible) are
-authored as separate Scenes when both channels matter; in practice
-authors typically pick the *salient* channel (the slam is acoustic;
-the door changing from open to closed is a state change anyone
-looking after will notice).
-
-This is the rule that resolves the "Bobalu's wave needs five sensory
-versions" nightmare. It doesn't. One emote on the emotive ESP channel,
-delivered to every sentient organ in the room.
+Shipped → [senses.md](../../subsystems/senses.md) § Per-frame modality attribution (`Scene.modality`,
+`SensorMixin.filterMessage`; a multi-modality event is separate sends).
 
 ### Events that leave persistent affordances
 
-A wax candle being lit is one event — a single hearing-channel frame
-for the snick-and-fizz of the match. The *lit candle* is then
-persistent state in the room with multi-sense affordances (vision:
-flickering light; touch: heat; smell: the smoke). Anyone in the room
-at the moment hears the lighting; anyone who walks in afterward looks
-/ sniffs / feels and queries the affordances per the state-authoring
-rules below.
-
-The substrate never tries to fan one event across all senses. The
-event is one channel; the affordance it leaves behind is queryable
-per-sense for as long as the affordance persists. This mirrors how
-reality works — events are single sensory hits, things afford across
-senses.
+Graduated → [senses.md](../../subsystems/senses.md) § Authoring discipline (*events leave persistent
+multi-sense affordances*).
 
 ### State goes multi-sense via MML `<sense>` tags
 
-Room and Stuff long-descriptions are authored once with per-sense
-inline regions:
-
-```mml
-The kitchen is warm.
-<sense channel="smell">Garlic and roasting bread.</sense>
-<sense channel="hearing">The steady sizzle of bacon, a kettle hissing.</sense>
-<sense channel="touch">Gritty flour dusts the countertop.</sense>
-A <detail key="bookcase">tall walnut bookcase</detail> stands against the north wall.
-```
-
-A `senseStripAugmenter` sits in the existing `markupAugmenters`
-pipeline. At compose-time it reads the viewer's sensorium and strips
-any `<sense channel="X">…</sense>` whose channel isn't in the viewer's
-set. **Untagged text is the default — perceivable to anyone — so
-existing prose doesn't need to be retrofitted.**
-
-Same room serves every sensorium. A blind viewer's prose drops the
-visual regions; a bat's prose surfaces echolocation regions where
-authored.
+Shipped → [senses.md](../../subsystems/senses.md) § `<sense channel="X">` MML wrapper,
+§ `senseStripAugmenter`. ⚠ The *untagged text is perceivable to anyone*
+rule shipped and is being REVERSED by [legibility-slate § Part D](../builds/legibility-slate.md#part-d--the-perception-verbs--decided) (untagged
+prose becomes vision-channel prose); zero content rows use a `<sense>`
+region as of 2026-09-18.
 
 ### Detail entries are multi-sense, shared keyword
 
-A `Detail` keyword refers to the *thing*, not to a particular sensory
-rendering of it. So one keyword (`bookcase`) carries per-sense
-entries:
-
-```yaml
-details:
-  bookcase:
-    aliases: [shelves]
-    vision: "Hand-tooled leather spines, dust along the top edge..."
-    touch: "Smooth walnut, grain runs vertical; one spine is gilt and
-            cool to the fingertip..."
-    echolocation: "A solid broad mass against the wall, motionless;
-                   small variations in the returns suggest..."
-```
-
-Lookup becomes sense-aware: `host.getDetail('bookcase', 'vision')`.
-Single-sense verbs pass their sense; missing entries (no `smell` for
-a non-smelly object) fall through to a polite "you don't perceive
-anything notable about the bookcase that way" — same shape as today's
-lookup-miss path.
-
-Aliases stay at the keyword level (aliases describe the thing, not a
-sense's view of it).
-
-A `<detail key="X">` wrap with no explicit `sense=` attribute defaults
-to vision — backwards-compatible with all existing detail authoring.
-The explicit `sense="X"` form is for non-default-sense entries.
+Shipped → [senses.md](../../subsystems/senses.md) § Per-sense `Detail` slot map (the key is
+`keywords:`, not `aliases:`; the slots are the five `SenseChannel`s — no
+`echolocation` slot), § `<sense channel>` wrapper (`<detail sense=>`
+defaults to vision). Zero content rows use a non-vision slot as of
+2026-09-18.
 
 ### Augmenter behavior under the gestalt
 
-The `<detail>` augmenter wraps a keyword in click-targetable MML for
-any sense the viewer has at least one entry for. So a `bookcase`
-whose only entry is `touch` will be wrapped for a viewer with touch
-(so they can `feel bookcase` and drill into it), and won't be wrapped
-for a viewer without touch.
+Superseded by the code: `wrapDetailKeysAugmenter`
+(`lib/description/Detailed.ts`) wraps every canonical detail key
+regardless of the viewer's senses — the strip pass has already removed
+the regions the viewer cannot perceive.
 
 The click defaults to `look <kw>` — the dominant verb stays dominant.
 If the click lands on something with no vision detail, the same
@@ -553,10 +397,11 @@ sense-appropriate verb) is a v2 polish; v1 keeps click = look.
 - **Dog tracks a scent:** the fugitive left an odor trail; it decays over
   time (smell's persistence); the dog (huge `olfactoryProfile`) follows
   the fading gradient room to room via Conduits.
-- **Hot stove:** `feel stove` → contact thermoreception → "searing hot"
-  (and a vitals burn if you hold it); a thermometer reads the real °C.
-- **Taste-test:** `taste stew` → gustation → "off, faintly bitter" →
-  a poison/spoilage cue (consumables tie).
+- *Hot stove* — shipped → [senses.md](../../subsystems/senses.md) § Touch (contact modality),
+  [thermal.md](../../subsystems/thermal.md).
+- *Taste-test* — superseded by [spoilage.md](../../subsystems/spoilage.md)
+  § What a player sees: the freshness band rides `look` / `smell`, `taste`
+  gets the palate line, and contamination is reported by NO sense.
 - **Student mode:** `sense` in pedagogical mode → sectioned readout with
   lux / dB / ppm / °C from the instruments the student carries.
 
@@ -564,37 +409,18 @@ sense-appropriate verb) is a v2 polish; v1 keeps click = look.
 
 ## What this stresses
 
-- **light / sound** — converge onto `PerceptionChannel` (gradually for
-  shipped light; sound's detail becomes the hearing instance).
-- **biome** — the atmosphere medium (smell diffusion, ambient temp); the
-  instrument roster covers most channels already.
+(Shipped touchpoints removed → [senses.md](../../subsystems/senses.md); what remains is open.)
+
 - **Material** — texture/hardness/material-temp feed touch.
-- **quantities** — a `Quantity<U>` per channel + tags + instruments.
 - **race / `BodyPlan`** — **organ-gates-channel** (a sense exists iff the
   BodyPlan declares its organ); `Species` carries the three new
   sensitivity profiles; alien organs (echolocation, pit-sensing) enable
   new channels.
 - **vitals** — organ *condition* modulates channel quality (a damaged
   eye/ear); body/ambient temperature; consumables for taste.
-- **perception.md** — the viewer-aware substrate this layers on.
-- **inspection-card / message-rendering** — the percept render + the
-  pedagogical seam.
 - **access / command affordances** — skills gate revelation + afford
   perception verbs (a skill is a source object that contributes the
   verb; see command-routing § Affordance attribution).
-- **messaging / `SensorMixin`** — the unification: `onMessage` reception
-  *is* sensing; a frame's channel = the sense. The senses substrate
-  becomes the perceptual layer of messaging.
-- **DetailedMixin + MarkupAugmenter** — Detail entries gain a per-sense
-  slot map (`{vision, hearing, smell, touch, taste, echolocation, …}`,
-  shared keyword, aliases at the keyword level); `getDetail(key, sense)`
-  lookup. A new `senseStripAugmenter` in the existing `markupAugmenters`
-  pipeline reads the viewer's sensorium and strips
-  `<sense channel="X">…</sense>` regions inaccessible to the viewer;
-  the `<detail>` augmenter wraps any keyword the viewer has at least
-  one sense's entry for. Untagged prose and `<detail>` without `sense=`
-  default to vision / perceivable-by-anyone, so existing content
-  doesn't need retrofitting.
 - **comms / implant / emotes** — ESP is a sense-channel family here;
   the organ is authored per-creature on the `BodyPlan` (citizens get
   implants, animals get natural empathy, magical beings get magical
@@ -607,24 +433,20 @@ sense-appropriate verb) is a v2 polish; v1 keeps click = look.
 
 ## Open questions / forks
 
-1. **Generalize vs align light/sound.** *Lean: extract the abstraction
-   they already share; build new senses on it; converge vision/hearing
-   gradually — no big-bang refactor of shipped light.*
+1. Q1 resolved: per-modality walks on a shared `Modality` base;
+   `VisionModality` relocated from `LightApi` — senses.md § Propagation
+   walks.
 2. **Smell's time dimension (trails/decay/tracking).** The one truly-new
    mechanic; gameplay-rich but stateful. *Lean: design the persistence
    seam now, build trails/tracking as its own wave.*
-3. **Field vs contact vs network: one detection model?** *Lean: one
-   perception layer over the three propagation families.*
-4. **Gestalt verb name** — `sense` / `perceive` / other. *Lean `sense`;
-   genuinely open, low-stakes.* The output shape (salient weave,
-   viewer-relative, dark-playable) is the load-bearing part.
-5. **Gestalt: accumulate vs fresh.** Does re-`sense`ing accumulate with
-   prior single-sense percepts in the card, or refresh? (Ties to the
-   inspection-card accumulate-vs-latest question.) *Lean accumulate-per-
-   focus.*
-6. **Wave cut.** Substrate + field senses (smell, ambient-temp) + the
-   gestalt first; contact senses (touch-texture, taste) + smell-trails
-   later? *Lean yes; capture all five in the design (done here).*
+3. Q3 resolved: one `PerceptionApi` over the `family` field — senses.md
+   § `Modality` singletons + `PerceptionApi`.
+4. Q4 resolved then overtaken: `sense` shipped and is cut by
+   [legibility-slate § Part D](../builds/legibility-slate.md#part-d--the-perception-verbs--decided) — `look` is the verb.
+5. Q5 resolved: latest-only, accumulate-per-focus parked — card-surface.md
+   § Accumulate vs. latest.
+6. Q6 resolved by history: Wave 1 and the contact verbs shipped 2026-06;
+   smell trails still wait — senses.md.
 7. **Touch sub-modalities** — temperature / texture / pressure / pain
    as one `tactileProfile` or split? *Lean one coarse tactile channel
    v1, split if content demands.*
@@ -641,11 +463,9 @@ sense-appropriate verb) is a v2 polish; v1 keeps click = look.
     (echolocation → spatial/motion, no color; smell → identity/history),
     so a non-human sensorium isn't reskinned vision. *Lean: each channel
     owns its render idiom; the gestalt composer dispatches per channel.*
-11. **ESP: single sense or family?** *Resolved: a family* — verbal
-    (language-gated) + emotive (language-free) baseline channels, further
-    channels (imagery/presence/empathic-sense) deferred. The split is
-    earned by the verbal/emotive language distinction; multiplicity buys
-    implant-tiers/innate-variation/independent-jamming.
+11. Q11 resolved: a family — `VerbalESPModality` + `EmotiveESPModality`
+    — senses.md § Hybrid ESP framing (the language gate on the verbal
+    channel is still unbuilt — comms.md § Deferred).
 12. **Emotes: telepathic-only or also physical?** *Resolved: telepathic-
     only.* The animal-doesn't-perceive-the-wave tension dissolves by
     universalizing the ESP organ across sentient creatures — animals,
@@ -654,9 +474,8 @@ sense-appropriate verb) is a v2 polish; v1 keeps click = look.
     magical bond; the substrate sees one channel-slot, present). See
     **ESP — a channel family** above. One emote, one channel, every
     sentient being in the room perceives it; no double-event needed.
-13. **Do ESP channels join the room gestalt?** *Lean no* — chat/DM aren't
-    "in the room"; they render to the comms buffer, not the look-gestalt.
-    Network channels paint a different surface than field/contact ones.
+13. Q13 resolved: ESP is not in the `SenseChannel` union; it rides
+    frame-level `meta.modality` — senses.md § `SenseChannel` vocabulary.
 
 ---
 
@@ -664,18 +483,9 @@ sense-appropriate verb) is a v2 polish; v1 keeps click = look.
 
 Indicative; large subsystem, builds in waves (designed whole here).
 
-**Wave 1 — substrate + field senses + gestalt.** Extract
-`PerceptionChannel`; the **organ-gates-channel** link on `BodyPlan` (a
-channel exists iff its organ does) + the field-family propagation walk
-(reusing light/sound); **smell** (diffusion through biome atmosphere, no
-trails yet) + ambient-temperature; the **gestalt** verb + auto-on-entry +
-salient-weave output + dark-playable behavior + **per-channel
-differential rendering**; `olfactoryProfile`. Hook the percept into the
-card. Also: **register the ESP channels** (verbal + emotive) as
-`PerceptionChannel`s with the implant as organ + network physics — mostly
-recognizing what comms/emotes already deliver, now as senses (the
-`SensorMixin` reception = sensing unification); they render to the comms
-buffer, not the gestalt.
+**Wave 1** shipped 2026-06 as `Modality` singletons (not
+`PerceptionChannel`) → [senses.md](../../subsystems/senses.md); its *per-channel differential rendering*
+and *dark-playable* items did not land and keep their own sections above.
 
 **Wave 2 — contact senses + instruments.** **Touch** (contact
 thermoreception off Material/thermal; texture/hardness) + **taste**
@@ -750,37 +560,17 @@ efficient. v1: an explicit helper
 implicit derivation with override. An acoustic-engineering / materials
 student can verify the model against a textbook.
 
-**Walls are silent in v1.** Sound only propagates through Conduits; two
-rooms separated by a bare wall (no Conduit) are sonically isolated.
-Authors place a "thin wall" Adornment with low-transmissivity Conduit
-for cross-wall leak. This is a known fidelity loss (real walls leak at
-low levels); the full fix needs geometric adjacency from the spatial
-subsystem — revisit if content cases pile up.
+*Walls are silent in v1* — shipped as designed; graduated → [senses.md](../../subsystems/senses.md)
+§ Propagation walks.
 
 ### SoundApi propagation and detection
 
-The deferred surface mirrors `LightApi` almost line-for-line:
-
-```ts
-class SoundApi {
-  static soundAt(loc: Stuff & Container): Sound;          // aggregate
-  static loudestSourceAt(loc): SoundSource | null;
-  static perceivedSound(viewer: Stuff & Sensor): Sound;
-  static canHear(viewer: Stuff & Sensor, source: SoundSource): boolean;
-  static loudnessThreshold(viewer: Stuff & Sensor): Quantity<dB>;
-  static directionOf(viewer: Stuff & Sensor, source): Direction | null;
-  static reverbTimeAt(loc: Stuff & Container): Quantity<seconds>;  // RT60
-}
-```
-
-**Aggregate at a location.** Recursive walk through containment +
-Conduits, attenuating each source by `∏(conduit transmissivities)` and
-summing **logarithmically** across sources, depth-bounded like
-`LightApi.lightAt`. Per-source attenuation is `attenuated =
-source_amplitude × ∏(transmissivities)`; multiplying by 0.5
-transmissivity is ~6 dB. The walk runs in linear-amplitude space
-internally and reports dB at the boundary (physically correct for
-incoherent sources).
+Superseded by the code: there is no `SoundApi`. `SoundModality.soundAt`
+is the aggregate, `PerceptionApi.canPerceive` +
+`Sound.DEFAULT_HEARING_THRESHOLD_DB` the detection, `AudienceGather` the
+push-side direction ([perception.md](../../subsystems/perception.md)
+§ Discrete-event sound push). `loudestSourceAt` / `perceivedSound` /
+`reverbTimeAt` remain unbuilt (RT60 is Seam 4 below).
 
 **Per-viewer detection** runs three gates:
 
@@ -947,10 +737,6 @@ dominant band + per-band contribution), `Stethoscope`
 
 This slate boils down to:
 
-- The **`PerceptionChannel`** substrate (the shared parts) + the
-  **field/contact/network** family split + the uniform detection check;
-  the **messaging = sensing** unification (`SensorMixin` reception is
-  sensing; a frame's channel *is* the sense).
 - The **five physical senses** as instances (vision/hearing
   shipped/absorbed; smell/touch/taste new) with their physics + ties
   (biome/Material/vitals/consumables).
@@ -970,24 +756,6 @@ This slate boils down to:
   (emit-and-perceive-the-return) sub-pattern; **differential rendering**
   (per-channel render idioms); the sensorium-relative stealth/NPC-detection
   payoff.
-- The **authoring discipline** that keeps it buildable: **events are
-  single-channel per `Scene.send`**; **state (room / Stuff descriptions
-  + Detail entries) is multi-sense** via `<sense channel="X">…</sense>`
-  MML wrappers and per-sense slot maps on Detail entries (shared
-  keyword, aliases at the keyword level). A `senseStripAugmenter`
-  filters the prose to the viewer's sensorium at compose-time;
-  default-untagged regions are perceivable to everyone, preserving
-  backwards compatibility with all existing detail authoring
-  (`<detail key="X">` without `sense=` defaults to vision). Click
-  defaults to `look <kw>`; sense-specific drill is typed. Events that
-  leave persistent affordances (lighting a candle → light + heat +
-  smell affordances in the room) are one-channel events plus
-  multi-sense state.
-- The **gestalt verb** (`sense`) + auto-on-entry + the salient-weave,
-  viewer-relative, dark-playable output + the pedagogical-seam mode; the
-  single-sense verbs.
-- The **percept tie** (senses reveal facts → the inspection-card percept;
-  capability-gated; raw state admin-only).
 - **Smell persistence/trails** as a designed-for seam (built later).
 - Tests: a being perceives only what its profile + the reaching signal
   allow; a dark room's gestalt leads non-visually; a dog follows a

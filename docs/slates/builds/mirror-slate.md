@@ -3,25 +3,21 @@
 > **Status: UNBUILT** — captured 2026-07-31; deliberately further out
 > than anything else in `builds/`. The real units it mirrors (money,
 > labor, standing, competence, property, condition) all ship; the
-> inbound channel does not exist.
-> **Left:** the inbound assertion channel · the density threshold ·
+> inbound channel does not exist (re-verified 2026-09-19: no inbound
+> assertion / sensor / parity seam anywhere under `packages/server/src`;
+> the one seam it asked for — a room's own declared fields — shipped as
+> `furnishing.md`'s `postedAs`). The thesis in one line: **instrument
+> your real bedroom, and your game bedroom keeps parity with it** — the
+> gamification mirror thesis taken literally, real-unit models with the
+> loop closed at both ends.
+> **Left:** the inbound assertion channel · what is admissible (the
+> INTRINSIC/SOCIAL firewall — condition, never character) · claim,
+> corroboration and decay · the density threshold ·
 > the never-see-the-raw-feed privacy invariant · sensor-silence as
-> neutral · calibration/trust tiers · diegetic-or-marked framing
+> neutral · opt-in without a two-tier world (recognition, not advantage) ·
+> calibration/trust tiers · diegetic-or-marked framing
 > **Size:** a build
 
-> **Status: design captured 2026-07-31, not built. Deliberately further out
-> than anything else in `builds/`.** The thesis: a player's in-game state can
-> be held in **parity with their real state**, so that acting in the world
-> earns in the game. The exemplar is the room everybody already has —
-> **instrument your real bedroom, and your game bedroom keeps parity with
-> it.** Make the bed, and the bed is made.
->
-> This is the [gamification mirror thesis](../../vision.md) taken literally:
-> not a game *about* a life, but **real-unit models of real life** with the
-> loop closed at both ends. The platform already models the real units —
-> money, labor, standing, competence, property, condition. What it does not
-> yet have is an **inbound** channel from the world it models.
->
 > **Why it is not absurd, and why it is not now.** It would not work today:
 > the home is not instrumented densely enough, and a thin signal is a signal
 > worth faking. It becomes tractable as automation penetrates the home,
@@ -45,24 +41,14 @@ competence) · [chronicle.md](../../subsystems/chronicle.md) (deed vs claim) ·
 [accountability.md](../../subsystems/accountability.md) ·
 [residence.md](../../subsystems/residence.md).
 
-**Unwritten siblings — a real gap.** Four designs this slate leans on exist
-only in session memory and have **no file in the corpus**:
+*Superseded (2026-09-19) — three of the four "unwritten siblings" this
+slate leaned on have since been written:
+[instrumentation-slate](./instrumentation-slate.md) ·
+[enforcement-slate](./enforcement-slate.md) ·
+[bathroom-slate](./bathroom-slate.md). Still unwritten:*
 
-- **Instrumentation** — sensing rides **instruments**, never the aether
-  (aether = modem, not sense organ; textbook vs. lab); three gates of
-  capability / competence / calibration; mounts sited by anatomy. This is the
-  in-fiction half of the mirror's mechanism and the most load-bearing of the
-  four; it should be captured before either is built.
-- **Enforcement** — the evidence firewall (kernel omniscience is never
-  diegetic evidence), testimony as *claims* not queries, and the
-  INTRINSIC/SOCIAL split. The nearest prior art for admitting untrusted
-  assertions, cited twice below.
 - **Practicum** — applied hours; the model-as-syllabus education thesis the
   mirror most directly serves.
-- **Bathroom** — the toilet paradox (presence, not function), the LOD ladder,
-  washing as enabling. Relevant to any second instrumented room.
-
-Cited by name rather than by link throughout, so nothing here dangles.
 
 ## The thesis
 

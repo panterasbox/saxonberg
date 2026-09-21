@@ -1,11 +1,24 @@
 # Agency slate — acting on behalf of another
 
 > **Status: UNBUILT** — `AccessApi.can` and `getActingAuthor` are the two
-> halves it joins; nothing joins them.
+> halves it joins; nothing joins them (re-verified 2026-09-19:
+> `ExecutionContextApi.getActingAuthor` still resolves ONE principal from
+> the frame stack — `api/execution-context.ts:500-525` — with no
+> principal/agent pair; no agency grant anywhere; `UseGrant` is still
+> `ParcelRecord.grants[]`. Two narrow hand-rolled agencies exist, not
+> one: `EmploymentApi.businessOfProprietor` (below) and
+> `AccessApi.isAgentOf` — *a member of the group the parcel owner resolves
+> to*, the landlord's staff — `AccessLogic.ts:146`). Small primitive, wide
+> reach — the value is that it unblocks things rather than that it does
+> anything itself.
 > **Left:** the agency grant (UseGrant-shaped · scoped · revocable) · the
 > principal/agent split in the execution context · the closed
-> capability-kind vocabulary · the fiduciary / self-dealing guard · the
-> code-trust non-flow rule
+> capability-kind vocabulary (Q1) · the fiduciary / self-dealing guard · the
+> code-trust non-flow rule · subsuming the two hand-rolled agencies (a
+> manager who is not the proprietor) · the record shape — one event
+> carrying both identities (Q2) · no sub-agents (Q3) · ratification (Q4) ·
+> agency as the humane alternative to receivership when the principal is
+> absent (Q5)
 > **Size:** a build
 
 **Captured 2026-08-04**, out of the gap hunt across law sources. Several
@@ -13,10 +26,6 @@ separate designs had each been reaching for the same missing primitive
 privately.
 
 > **User: "we can do agency."**
-
-> **Status: design conversation, captured. Not requirements.** Small
-> primitive, wide reach — the value is that it unblocks things rather
-> than that it does anything itself.
 
 Related: [call-security.md](../../subsystems/call-security.md) (**the
 constraint that shapes the whole design — read it first**),

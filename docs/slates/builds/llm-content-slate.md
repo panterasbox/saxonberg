@@ -2,20 +2,15 @@
 
 > **Status: UNBUILT** — the model is set (one stateless director on the
 > command bus, authoring scripts); nothing is built.
-> **Left:** the director agent + its locality prompt · the forced-cast
-> command-bus seam · the ambient narrator · script emission · sponsorship
-> funding · the first experiment (the one mine)
+> **Left:** the director agent + its locality prompt · the salience gate +
+> the active-cast set · the forced-cast command-bus seam (no `force`
+> exists) · the ambient narrator · the four-axis context block (a
+> perception query, never a state dump) · the isolated per-character call
+> when knowledge asymmetry is load-bearing · script emission · sponsorship
+> funding + the parity floor (the complete tree) · the cost levers
+> (witness gating · model tiering · prefix caching · Batch offline) · the
+> first experiment (one Dave's Bar NPC, one number)
 > **Size:** a build
-
-> **Status: model set — one director, riding the bus, authoring scripts.**
-> How LLMs drive *content* at runtime — NPC behavior and ambient atmosphere
-> alike. Fills [npc-behavior-slate](./npc-behavior-slate.md)'s open Q7 (the
-> deferred "LLM brain") with an actual architecture: a **single director
-> agent** that **forces the cast** through the normal command bus, is
-> **stateless** (all locality lives in the prompt), and expresses
-> multi-stage behavior by **authoring scripts** in the language the
-> [scripting slate](../tails/scripting-slate.md) defines. The director and the
-> ambient narrator are the **same agent**.
 
 Working slate for **LLM-driven content** — the runtime use of a language
 model to perform NPCs and narrate ambient scenes. It is *not* about

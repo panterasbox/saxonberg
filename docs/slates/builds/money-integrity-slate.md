@@ -9,7 +9,8 @@
 > persist/restore · sandbox cash crossing · destroy) · pass 2 the gates ·
 > pass 3 the object-layer conservation property test — the actual
 > deliverable · the `/stuff/thing/Coin` uncloneable question · the
-> value-bearing marker question
+> value-bearing marker question · the unbalanced-reconcile response ·
+> whether this needs to survive a hostile wizard or only a mistake
 > **Size:** a build
 
 **Captured 2026-08-04**, out of the currency build's requirements phase.
@@ -21,12 +22,6 @@
 > the economy is really sensitive. 'follow the money' isn't just a cliche
 > here we need to thread through the entire economy and make sure money
 > doesn't leak in or out anywhere."**
-
-> **Status: findings + audit surface. Not requirements.** Two findings
-> held up; **the third did not** (see below — it was correct behaviour
-> misread as a bug, and driving the currency build caught it). The rest of
-> the surface is enumerated but **unswept**. The gates and the instrument
-> fix shipped with the currency build; the full sweep is its own cycle.
 
 Related: [banking.md](../../subsystems/banking.md) (the conservation
 chokepoint), [persistence.md](../../subsystems/persistence.md) (the
@@ -59,37 +54,16 @@ total supply**, not a cosmetic one.
 
 # ⚠⚠ Confirmed findings (verified against the code)
 
-## 1. `setQuantity` is ungated — the direct mint
-
-`Coin` composes `StackableMixin`. `StackableMixin.setQuantity(n)` carries
-**no `@CallSecurity`, no `@Final`, no `@Unshadowable`** — only a
-positive-integer check:
-
-```ts
-public setQuantity(n: number): void {
-  if (!Number.isInteger(n) || n < 1) throw new Error(…);
-  this.quantity = MqlSubscriptionApi.fireFieldChange(this, 'quantity', …);
-}
-```
-
-Any code holding a coin reference can call `setQuantity(1_000_000)` and
-**mint money with zero ledger involvement.**
-
-⚠ Today's callers are all legitimate (`StackableLogic` split/merge,
-`BankingLogic.issueCash`, `CraftingLogic` consumption). **That is
-convention holding the line, not enforcement.** Compare `Stuff.destroy()`
-— `ApiOnly` + `@Final` + `@Unshadowable`. The discipline exists; it was
-never pointed at the money.
-
-## 2. `reconcile()` cannot see snapshotted coin
-
-`reconcileImpl` walks `StuffApi.findAllByTemplatePath(COIN_PATH)`, which
-reads the **in-memory `byTemplatePath` index** — live instances only.
-
-> ⚠⚠ **Coins that exist only inside a `holder_snapshots` blob are
-> invisible to the conservation audit** — which is precisely the
-> persist-and-restore surface the user flagged. The audit has a blind
-> spot exactly where value durably lives.
+> **Findings 1 and 2 cut 2026-09-20 — SHIPPED · DOCUMENTED.** Finding 1
+> (`setQuantity` ungated): `Coin.setQuantity` now carries
+> `@CallSecurity(CoinQuantityMutators) @Final @Unshadowable`
+> (`platform/thing/Coin.ts`), tested in
+> `lib/banking/__tests__/money-integrity.test.ts`. Finding 2
+> (`reconcile()` blind to snapshotted coin): `fullReconcile(currency)`
+> now counts non-resident snapshot coin — `banking.md` § Reporting
+> consumers. Both are also summarized just below under *What the
+> currency build already fixes*, which is the section this slate's own
+> status block points at.
 
 ## ~~3. `reconcile()` skips vault cash~~ — ⛔ **THIS FINDING WAS WRONG**
 
@@ -113,24 +87,6 @@ anything to a conservation identity, ask what else already represents it.
 Finding 2's snapshot term has the same hazard in a different costume — a
 snapshot is a **copy** of state that may also be live, so it counts only
 for holders that are not currently resident.
-
-## ⚠⚠ Why finding 2 matters more than it looks
-
-`balanced === (supply === accountTotal + circulatingCoin)` is **the**
-follow-the-money instrument — the operator's one honest read. With
-snapshotted coin invisible to it, it is not trustworthy enough to audit
-*against*: that is where a logged-out player's cash lives, and nothing on
-the ledger corresponds to it.
-
-> ⭐ **Fix the instrument before running the audit.** An audit conducted
-> with a leaky gauge is theater.
-
-⚠ It also lands on the currency build directly: that build's migration
-rehearsal uses `reserve supply → balanced: true` as a **verification
-gate**, so the gate inherits the blind spots. Hence the instrument fix
-rides that build (below), not this cycle.
-
----
 
 # ⭐⭐ The reframe: the threat is an unreviewed call site, not an attacker
 
@@ -276,9 +232,13 @@ imagine.
    ⭐ It generalizes to scrip, to bearer credentials, and to anything else
    that later carries value. ⚠ Risks being a new taxonomy; check it
    against the fixed Module Categories before adopting.
-3. **Does the supply figure need to count vault cash?** I.e. should there
-   be *two* reads — circulating vs. total-in-existence — rather than one
-   `balanced` that quietly means "circulating"?
+
+   Q3 (should the supply figure have two reads — circulating vs.
+   total-in-existence) is cut 2026-09-20 — shipped exactly as proposed:
+   `reconcile(currency)` is the sync circulating-only read,
+   `fullReconcile(currency)` is the async complete identity including
+   snapshot coin, with vault float reported but not added (`banking.md`
+   § Reporting consumers).
 4. **What is the response when reconcile goes unbalanced?** Today it is a
    number an operator reads. Should it alarm? Halt minting? ⚠ It cannot
    halt *transacting* — that would take the economy down over a reporting

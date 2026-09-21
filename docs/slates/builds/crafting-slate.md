@@ -4,23 +4,14 @@
 > grade/quality bands, the knowledge ladder, and the repair/salvage
 > lifecycle all shipped across three branches
 > → [crafting.md](../../subsystems/crafting.md)
-> **Left:** skill-as-control (the declared next crafting wave) · defects
+> **Left:** skill-as-control (the declared next crafting wave — the seam's
+> three levers; tool `control` shipped only as a grade FLOOR) · defects
 > & failure as diegetic events · recipe-spread beyond watching
-> (taught / discovered / tradeable recipe-items) · the per-domain
-> quality property bundles · supply-chain depth tuning · the
-> authoring-credits economy
+> (taught / discovered / tradeable recipe-items; authoring as the fourth
+> vector) · assembly recipes + disassembly · the per-domain
+> quality property bundles · the tool tech-tree · supply-chain depth
+> tuning · the authoring-credits economy
 > **Size:** a build
-
-> **Status: the *venue model* is settled enough to seed a slice; the core
-> mechanics (recipes, skill, quality) are open design space, much of it
-> advancement-adjacent and deferred.** Crafting is the **transformation**
-> stage of the economy — where raw inputs become valued goods, i.e. where
-> value is actually minted. The economy slate worked out the *physics and
-> the philosophy* (value lives in transformation; quality is a verdict;
-> skill = control; provenance carries worth) and explicitly deferred the
-> *mechanics*. This slate is the home for those mechanics. The
-> crystallizing exemplar — **Dave's Bar** — is concrete enough to build a
-> first slice against; the recipe/skill/quality systems behind it are not.
 
 Working slate for **crafting** — how raw inputs become finished goods, at
 venues, by labor and skill. The governing claim, inherited from the
@@ -95,56 +86,7 @@ These come from the economy slate and bound every decision here:
 
 ## Inputs, outputs & the standard-model situation
 
-Crafting situates cleanly on the [standard model](../../standard-model.md),
-and the situation answers "can we solve this abstractly?" — **yes, because
-the standard model is already theme-agnostic.** The spine is sorted by
-*containment*, not theme: "weapon," "armor," "furniture" are **not kinds.**
-A sword is a `Thing` + `Tangible` (made of `Material`) + `Wieldable` +
-`Visible`; what makes it a *weapon* — combat performance — is **Part II**
-(the gamification/meaning layer), deferred. There is nothing
-weapon-specific for crafting to know.
-
-So the Part-I / Part-II split runs right through crafting:
-
-- **Part I (shippable): crafting is a *force* that mints *particles*.** An
-  Api transforms input `Tangible` Things into an output `Tangible` Thing
-  via the **template/clone pipeline** ([templates.md](../../subsystems/templates.md)),
-  stamping material composition (from the inputs), a quality **grade**, and
-  **provenance** (the maker). Honest `Quantity` substrate throughout (mass =
-  density × volume; `Material` singletons; ordinal grades). **Solvable now,
-  no RPG.**
-- **Part II (deferred): what a crafted thing *means*.** Weapon
-  performance, the skill system, combat — the chemistry that *reads* the
-  particle's properties. Slots in later as readers; mints no new crafting
-  machinery.
-
-**Inputs / outputs.**
-
-- **In** — `Tangible` Things made of `Material`: raws (ore, wood,
-  water-via-`bulk`) + intermediates (ingots, planks), *consumed*
-  (conservation); the venue's **tools** (`Tangible`, wear-with-use, not
-  consumed); a **recipe** (knowledge → an output template); the maker's
-  **skill** (the seam).
-- **Out** — a new `Tangible` Thing, cloned from its output template,
-  stamped with material composition + grade + provenance.
-
-**The range, sorted by Part-II dependence** — which *is* the buildability
-order:
-
-- **Buildable now (Part I only):**
-  - **Consumables** (cocktails, food, drink) — *the best first slice*,
-    because the consumer partly **ships**: drinking → `metabolism`, alcohol
-    → `getBAC`. Gather → craft at Dave's Bar → drink → metabolism reads it:
-    **a complete economic loop with zero RPG.**
-  - **Materials / intermediates** (graded `Tangible` Things) — fully
-    generic.
-  - **Decor / authored objects** (dorm furniture — `Visible` + `Tangible`,
-    pure-play value).
-  - **Tools** (`Tangible` + the tool-quality → control seam).
-- **Gated on Part II (the RPG): gear.** You can craft the *sword* now
-  (`Thing` + `Tangible` steel-grade-B + `Wieldable`, real mass +
-  provenance, wieldable); what waits is what it *does* in combat. **Make
-  the object now; its meaning arrives later** — no re-tooling.
+> Shipped: crafting is a force that mints particles — `craftImpl` flows the inputs' Material + mass onto a cloned output template and stamps grade + provenance; combat, `analyze` and the covering stack read the result → [crafting.md § Craft-resolve](../../subsystems/crafting.md), [§ The lifecycle](../../subsystems/crafting.md). One paragraph survives because it is the skill seam's:
 
 **Procedural vs CMS.** Both feed the *template* the clone pipeline
 instantiates. CMS authors **output templates** (handcrafted forms).
@@ -154,48 +96,11 @@ content tool — and (b) **instance variation**, which falls out of the
 within a template's envelope; a master lands on spec. "Procedural gear"
 isn't bolted onto crafting — it's skill-scatter over templates.
 
-**The payoff for the economy.** Solving crafting abstractly makes the
-**transformation stage concrete and *partially shippable*** — the
-consumables loop is a closed cycle (extraction → transformation →
-circulation → entropy) that runs without the RPG. The economy can be
-proven end-to-end on cocktails before a weapon exists; the RPG doesn't
-*complete* the economy, it enriches the transformation once Part II ships.
-
 ---
 
 ## The venue model (settled — the buildable spine)
 
-The one part worked out far enough to build against, from the cooperative
-slate's Dave's Bar.
-
-**A crafting venue aggregates the four things a substantial craft needs —
-inputs, tools, recipes, and (optional) skilled labor — so the output is
-feasible *there* and infeasible *at home*.** Dave's Bar = spirits + mixers
-(**inputs**) · shaker + glassware (**tools**) · cocktail recipes
-(**knowledge**) · bartenders (**labor**). Generalize the four-tuple per
-domain — smithy, kitchen, alchemy lab, loom — and it's the spine of the
-whole subsystem.
-
-- **Crafting is place-based, scaled by complexity.** Trivial crafts happen
-  anywhere; substantial crafts need the venue's aggregated inputs/tools.
-  The venue requirement *is* the complexity gate — which makes the **world**
-  the economy's substrate (venues are destinations, content, employment
-  hubs), not a backpack menu.
-- **The venue is the employer's value-add.** "Why buy a cocktail instead of
-  making one at home" and "why does Dave employing a bartender beat
-  self-employment" have the *same* answer: the venue aggregates
-  inputs/tools/skill you can't economically replicate at home. (See
-  cooperative-slate § employment-viability.)
-- **Two paths at every venue: buy the output, or rent the means and DIY.**
-  Order the cocktail (the bartender makes it — pay for product + service) or
-  mix it yourself from the bar's stock (pay for access + ingredients). The
-  employ-vs-self-employ sort, made concrete.
-- **NPC floor, player apex.** NPC Dave is the bootstrap floor (the bar
-  exists, stocked and staffed, at genesis); player-owned venues are the
-  apex that grows on top.
-- **Inputs** are stocked by the venue (`bulk` liquids + `glob` stacks +
-  `Material`-bearing items), consumed on craft (conservation). **Tools** are
-  venue-provided and **wear with use, not the clock** (economy slate Law 2).
+> *Superseded by the code:* there is no venue concept — `CraftingApi` resolves on **reachable** tools, inputs and heat, so "Dave's Bar" is emergent from a `Menu`, an on-shift maker and the matter in one room, and camp-stew works at any campfire. The served / DIY split and the NPC floor shipped as content → [crafting.md § The model: crafting is location-agnostic](../../subsystems/crafting.md), [§ The venues](../../subsystems/crafting.md).
 
 ---
 
@@ -204,43 +109,9 @@ whole subsystem.
 "Recipes" is four questions wearing one word; separating them shows most is
 buildable now, with only the advancement-flavored parts deferred.
 
-### 1. Representation (buildable)
+> Shipped, as a `Document` rather than an `Idea`: constrained input slots (bulk + `kind: item`), tools by capability, an output template, `Recipe ≠ template`; the flow-through of the chosen input's Material → [crafting.md § Recipe = a `Document`](../../subsystems/crafting.md). **Assembly** recipes (properties emerging from components) stay deferred → [§ Deferred](../../subsystems/crafting.md).
 
-A recipe is an authored **`Idea`** (knowledge — incorporeal, a reference
-singleton like `Material` / `Species`) specifying a transformation:
-
-- **input slots by *constraint*, not by item** — "a metal ingot, grade ≥
-  C," "2 measures of any spirit," "a fruit." Each slot accepts a *range*,
-  and *the choice flows through to the output* (steel vs iron blade; gin vs
-  vodka martini) — where substitution and optimization live (the SWG move).
-- **required tools** (venue-provided);
-- **an output `Template`** (the form to clone);
-- **property-derivation rules** — how the chosen inputs' material/grade map
-  onto the output bundle (output material = the input metal; grade =
-  f(input grade, skill); mass = density × volume).
-
-Two decisions:
-
-- **Recipe ≠ template.** A *form* (longsword) can have *several* recipes
-  (forged, cast, an alternate path); a recipe produces *one* form. Keep them
-  decoupled — multiple paths to the same thing (the EVE / real-life
-  pattern).
-- **Two shapes, by tier.** *Transform* recipes (ore → ingot): fixed output
-  template, material flows through. *Assembly* recipes (blade + hilt + guard
-  → sword): the output's properties **emerge from its components** — the
-  standard model's composition-over-inheritance applied to objects. Lower
-  tiers transform; upper tiers assemble.
-
-### 2. Knowledge — who *knows* it (layered)
-
-- **v1: venue-known.** The venue carries its recipe book — Dave's Bar knows
-  cocktails, the smithy knows blades. You craft what's supported *where you
-  are*; NPC venues ship with their recipes (bootstrap). All the buildable
-  slice needs.
-- **later: crafter-known** — personal recipe knowledge (you *know* how to
-  make X), the start of a real knowledge economy. Deferred.
-- **the trade vector: recipe-items** — knowledge embodied as a tradeable
-  scroll/book. Deferred.
+> *Superseded by the knowledge ladder:* recipes are open canon (readable anywhere, `order` never gated); what is earned is the **deed** — your own first faithful hand build — so "venue-known" and "crafter-known" both shipped in a different shape → [crafting.md § The knowledge ladder](../../subsystems/crafting.md). Recipe-items remain (§ 3).
 
 ### 3. Spread — how it propagates
 
@@ -297,45 +168,7 @@ than in your kitchen), a good personal tool is **personal capital** (better
 control across venues), and tools share the **skill = control seam** — two
 inputs, capital and labor, to one lookup.
 
-### Standard-model situation — a role + a capability, not a kind
-
-Like "weapon," **"tool" is not a kind** — it's a *role an object plays in a
-transformation.* A hammer is a `Thing` that is `Tangible`; it's a "tool"
-only because a recipe asks for it. So:
-
-- **recipes require tools by *capability*, not by item** — "a heat source ≥
-  X," "a striking surface," "a cutting edge" — the same constrained-slot
-  idea as inputs (a forge *or* a campfire satisfies "heat source").
-- a tool carries **quality** (`Material` + grade → its control contribution)
-  and **condition** (the `condition` entropy field → wear). "Tool" is a
-  composition — `Tangible` + a tool-capability + `condition` — not a new
-  branch. The only real addition is **tool-capabilities** so recipes can
-  require by kind.
-
-### The economic identity — the durable-good sink
-
-The part that makes tools matter economically: **consumables are a one-shot
-sink; tools are a recurring one.** They wear with **use, not the clock**
-(Law 2 — you dull the knife by cutting, never by time on the wall),
-driving:
-
-- **repair** — an opt-in service/consumable sink (a whetstone, a smith) once
-  worn enough. Never scheduled, never an upkeep treadmill: *use consumes,
-  neglect costs nothing.*
-- **replacement** — eventually it wears out and you craft/buy a new one
-  (recurring craft demand).
-
-That wear→repair→replace loop is what keeps an economy *circulating* over
-the long run — durable goods with honest wear are the steady demand
-one-shot consumables can't provide. Tools may be the most important *sink*
-in the whole model.
-
-The same durable-good shape covers **venue service-ware** — glasses, plates,
-fixtures: a **fixed cycling pool** (serve → use → **bus** → wash → reuse, the
-object count bounded by the pool, not the use-count), with a small
-**breakage/walk-off leak** the venue **restocks** (the recurring sink), and the
-live count **transient** (persisted nowhere). See
-[daves-bar-slate](../builds/daves-bar-slate.md) § *Glassware & venue durables*.
+> Shipped: `DurableMixin.condition` wears on use, `repair` is deficit-priced and ceiling-free, `salvage` is the lossy sink, serviceware is a claimed pool → [crafting.md § The lifecycle](../../subsystems/crafting.md), [§ The glass pool](../../subsystems/crafting.md).
 
 ### Tools are craftables → a parallel tech tree
 
@@ -345,16 +178,6 @@ Tools are `Tangible` outputs too — smithing makes hammers — so there's a
 first tools** (the floor); players craft better ones and trade them. Tools
 gate and improve *all other* crafting, and are a market in their own right.
 
-### Fixed vs portable
-
-- **Venue fixtures** (forge, anvil, the bar's tap) — large, immobile, the
-  venue's **means of production** (used by being *there* — the employment
-  value-add).
-- **Personal / portable** (hammer, knife, whetstone) — carried
-  (`Wieldable`), yours, tradeable; **personal capital** you bring to the
-  venue or use anywhere for simple crafts.
-
-A real craft often needs both — the venue's forge *and* your hammer.
 
 ---
 
@@ -422,75 +245,16 @@ execution/balance · ingredient grade/congeners · strength/ABV ·
 temperature/freshness); **quality is the *fit* of that bundle to the thing's
 purpose**, rendered as a verdict by an observer.
 
-- **Render Dwarf-Fortress style: an ordinal band-word + descriptive prose,
-  never a number.** A band-word headline (*poor / fair / fine / exceptional /
-  masterful*) over the descriptive *why* (*"crisp, ice-cold, perfectly
-  balanced"* vs *"cloudy, lukewarm, harsh"*). The Visible/Mml/Recognition stack
-  already turns property bundles into prose; this points it at the output. The
-  band-word is the legible headline (and the seam for any at-a-glance treatment
-  — a masterwork reads boldly); the prose is the justification.
 - **Effects are diegetic events, not stat math.** A bad drink is *"you grimace
   as the rough spirit burns"* + a worse hangover (the congener consumer), never
   "−5 quality."
-- **Anticipate via provenance, experience via the verdict — and they diverge.**
-  You *expect* quality from the **brand / maker's-mark** (the social signal);
-  you *learn* it from the **description** on use. The gap is the **price≠quality**
-  honesty (the overpriced-premium, the value-gem).
-- **Quality is the *whole*, not the cost.** Execution × appropriate-ingredients
-  × proportions × freshness — a cheap-but-well-made thing reads decent, an
-  expensive-but-botched one reads bad. (A vodka martini isn't *low quality* —
-  it's a *different drink*; low quality is poor *fit*, never a different purpose.)
-- **Viewer-relative richness is the appraisal skill — deferred.** A connoisseur
-  tastes nuance a novice misses; v1 renders uniform prose.
-
-**No Diablo-style rarity tiers — and rejecting them is load-bearing.** Diablo
-"rarity" (common/rare/epic/legendary) **fuses** three things this model keeps
-**separate**, generated by the **loot-faucet + random magical affixes** — the
-exact stat-inflation treadmill the economy + advancement slates ban. We
-**decompose** it honestly: **quality** = the DF verdict (earned); **uniqueness /
-legend** = **provenance** (a named, attributed masterwork — *"☼…☼, by [maker]"* —
-*is* the "legendary item," earned not dropped); **power** = horizontal + diegetic
-(better, never bigger); **scarcity / value** = emergent economics (few exist /
-hard to make / famous maker — never a stamped tier). Every good thing rarity
-gives — legible specialness, the chase, named items — falls out of DF-quality +
-provenance + the economy, without the treadmill. For **consumables** (a drink)
-rarity is a non-concept: it's drunk and gone — only its **quality** and **who
-made it** matter.
 
 ---
 
 ## Deconstruction
 
-The reverse of crafting — recovering lower-order materials from
-higher-order craftables. Buildable and economically load-bearing, under one
-sharp rule: **deconstruction is lossy, and the loss *is* the entropy
-sink.**
+> Shipped as **`salvage`** — the generic lossy melt-down over `Tangible` composition, provenance/grade/form destroyed, conservation asserted → [crafting.md § The lifecycle](../../subsystems/crafting.md). What remains:
 
-- **Lossless would break the economy.** Craft F from A+B+C and recover *all*
-  of A+B+C from F, and matter never leaves the world — it cycles (craft →
-  deconstruct → craft) while the extraction faucet keeps adding, and
-  materials inflate. Real recycling loses to slag/process; that loss is the
-  honest *and* necessary sink (an opted-into entropy event — Law 2-clean,
-  since you *chose* to break it).
-- **You recover raw material, stepped down — never the value-add.** Melt a
-  masterwork sword → *some steel scrap*, not a masterwork's worth of
-  anything: **provenance, the quality verdict, and the crafted form are
-  destroyed** (you can't un-bake the cake). This makes deconstruction
-  **self-limiting** — losing the value-add, you'd only break down things
-  worth *less as an object than as their recoverable material* (junk, failed
-  crafts, surplus). Nobody melts a masterwork. So it sorts itself to junk
-  *and can't be a money pump* — both failure modes killed by the same
-  lossiness.
-
-**Standard-model-native — no reverse-recipe needed.** `Tangible` already
-means "made of material(s)," so a thing knows what it's made of;
-deconstruction is a **generic operation on that composition** — return a
-lossy fraction of the constituent `Material`s as raw stacks, strip
-provenance/quality. *Anything* `Tangible` can be salvaged. That yields a
-two-tier model mirroring the recipe split:
-
-- **Melt-down (generic, buildable now)** — a lossy fraction of raw
-  materials, stepped all the way to low tier; reads composition, no recipe.
 - **Disassembly (authored, deferred)** — the reverse of *assembly* recipes:
   carefully take a composed thing apart to recover its **components intact**
   (gears, a blade-blank) rather than raw material. Less lossy; needs an
@@ -652,10 +416,6 @@ sketched:
   rendered* above; DF band-word + prose, effects-as-events, no Diablo rarity).**
   Still open: how the per-domain property bundle is *modeled* and how the skill
   lookup scatters/tightens it (with the skill system).
-- **Crafting actions / verbs — first surface settled at Dave's Bar** (see
-  [daves-bar-slate](../builds/daves-bar-slate.md) § *Verbs & the recipe-learning loop*:
-  the recipe shorthand over the manual build; served vs DIY; recipes as
-  command-scripts). The general per-domain verb vocabulary remains.
 - **Defects & failure.** Novice scatter and brittle outputs as **diegetic
   events** (chip, shatter, curdle), not durability subtraction. The honest
   rendering of "skill = control."
@@ -664,37 +424,12 @@ sketched:
   + opt-in repair (the first *durable* sink). Deferred: tool-quality
   *scaling* the control lookup (with the skill system), and the rich tool
   tech-tree.
-- **Materials & grades.** Lean on the `Material` substrate (race.md); material
-  grade is the first quality band (carries provenance + sets the achievable
-  envelope). Richer properties (edge, freshness) accrete only as the systems
-  that *read* them ship — *props real or cut.*
 
 ---
 
 ## Buildable now — the Dave's Bar slice (v1)
 
-Enough is settled to ship a first venue without the deferred systems:
-
-- **A venue** (a locality) holding a **stock of inputs** (bulk + globs +
-  material items) and **tools**.
-- **Flat, known recipes** — a fixed map of inputs (+ tools) → a stamped
-  output. No skill system yet (recipes resolve at a fixed control level;
-  defects/extremes wait for skill).
-- **Both paths** — *served* (an NPC or player worker makes it) and, if it
-  earns its keep, *DIY* (the crafter uses the venue's stock + tools).
-- **Output stamped** with **provenance** (the maker) + **material grade**
-  (the first quality band). Inputs consumed (conservation).
-- **Generic melt-down deconstruction** — break any `Tangible` into a lossy
-  fraction of its constituent materials (the first real entropy *sink*),
-  provenance/quality stripped, at a fixed recovery rate.
-- **Tools required by capability + wear-on-use + opt-in repair** — the first
-  *durable* sink (wear→repair→replace); tools contribute control at a fixed
-  level for now.
-
-What v1 deliberately does **not** ship: the skill system, recipe
-knowledge/spread, rich quality mechanics beyond material grade, and
-defects/extremes (all of which wait on the skill seam's far side and the
-advancement layer).
+> Shipped, and grown to three branches → [crafting.md](../../subsystems/crafting.md).
 
 ---
 
@@ -717,6 +452,3 @@ advancement layer).
   piece spanning this slate, [scoped-authoring](../tails/scoped-authoring-slate.md),
   and the cooperative slate's reserve/governance. Distinct from crafting's
   material cost.
-- **A full crafting design doc.** This slate is the design surface; once a
-  slice ships, the surviving design graduates to a `docs/subsystems/`
-  crafting doc.

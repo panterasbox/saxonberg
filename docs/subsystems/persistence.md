@@ -258,7 +258,7 @@ template pattern (`StuffApi.clone()`) at boot, and registered against PM
 slots via a YAML manifest:
 
 ```yaml
-# obj/hooks/hooks.yaml
+# platform/idea/hooks/hooks.yaml
 hooks:
   - collection: domain
     operation: save
@@ -277,7 +277,7 @@ Multiple hooks may register against the same slot — they execute in
 registration order, each receiving `next` to invoke the rest of the
 chain (terminating in the actual MongoDB write).
 
-The canonical hook today is `DomainHook` (`obj/hooks/DomainHook.ts`),
+The canonical hook today is `DomainHook` (`platform/idea/hooks/DomainHook.ts`),
 which composes both around-save and around-delete and enforces the
 folder/leaf invariant on the `domain` collection. See
 [templates.md § TemplateApi & the Folder/Leaf Invariant](./templates.md#templateapi--the-folderleaf-invariant)
@@ -285,6 +285,17 @@ for the rule it enforces. `DomainHook.aroundSave` also calls
 `TemplateApi.validateSingletonContainerTarget` — the singleton-target
 check for the `data.container` declarative-content field shipped with
 the spawn substrate.
+
+⚠ **A consequence for the pack installer: its content writes cannot
+simply be parallelized.** The around-save hook validates the folder/leaf
+invariant by walking the row's ancestors, and
+`validateSingletonContainerTarget` requires the row named by
+`data.container` to *already exist* — both read rows an earlier save in
+the same install wrote. The installer's writes are order-dependent
+*through the hook chain*, not by accident. Batching them would mean
+validating serially (cheap — those walks are the resident cache's best
+customer) and bulk-writing after, which is a change to the hook contract
+rather than a loop rewrite.
 
 ### Avatar persist-back rides the self-persistence spine
 

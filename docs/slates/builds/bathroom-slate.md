@@ -1,11 +1,18 @@
 # Bathroom slate — presence without function
 
-> **Status: UNBUILT** — the substrates it rides (bulk, Sealable/Lockable,
-> thermal, belief/recognition, furnishing) all shipped; no bathroom
-> content, state or fixture exists.
+> **Status: PARTIAL** — the bathroom ROOM shipped as one of furnishing's
+> four archetypes (`/stuff/location/room/bathroom` + the `bathroom`
+> capability archetype: toilet prose · basin real water · tub a real
+> affordance — [furnishing.md § The LOD
+> ladder](../../subsystems/furnishing.md)); the substrates it rides
+> (bulk, Sealable/Lockable, thermal, belief/recognition) all shipped.
+> Nothing else here has.
 > **Left:** the washing/cleanliness state · the mirror self-recognition
-> read · the closed restroom archetype set · the bathhouse venue ·
-> water-as-utility metering · the legacy segregation conventions
+> read · the interior lock as a consequence · the closed restroom
+> archetype set + district skins · the Detail / Fixture / Venue rungs ·
+> the bathhouse venue · water-as-utility metering (⚠ watershed made
+> domestic metering a non-goal) · the frontier water gradient (pump ·
+> well · bucket) · the legacy segregation conventions
 > **Size:** a build
 
 **Captured 2026-08-01** from a design conversation. The governing
@@ -18,13 +25,9 @@ simulates bladders is the one that feels like a tamagotchi).
 
 ## Doctrine
 
-- **No waste. Standing decision, reaffirmed.** Characters do not
-  defecate or urinate; omitting waste costs nothing, simulating it
-  costs dignity (the uncanny is asymmetric). The revisit door is
-  **closed but labeled**: if pedagogy ever demands the excretory
-  system, [metabolism](../../subsystems/metabolism.md) already
-  teaches intake honestly — that is where the curriculum value
-  lives.
+- **No waste** — shipped as decided: the toilet is prose-LOD and
+  composes no capability mixin
+  ([furnishing.md § The LOD ladder](../../subsystems/furnishing.md)).
 - **Bathrooms exist anyway**, because they earn their rooms four
   ways, each hooked to a shipped system (below).
 

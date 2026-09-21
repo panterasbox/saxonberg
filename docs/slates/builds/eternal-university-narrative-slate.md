@@ -649,31 +649,14 @@ remember them alive?, the §10 exhaust method). Body says X, record says Y,
 people say Z; **the disagreements are the case.** It's Dunny's discovery
 (§10) made walkable.
 
-**Forensics is a learnable discipline — it reads the mortality model
-backwards.** The autopsy isn't new substrate; it's the survival/simulation
-systems read post-mortem. What the model supports (design to it):
-
-- **Time of death** — algor mortis, the cooling curve (`Thermal` on
-  `Creature`): ambient + mass + cooling → hours since death.
-- **Toxicology** — the metabolism toxin-burden system, BAC, per-toxin
-  conditions.
-- **Last meal / timeline** — the digestion buffer (solid/liquid pools).
-- **Physiological state** — reserves (satiation/hydration/endurance),
-  nutritional condition: starved? cared-for?
-- **Manner by condition** — asphyxiation, exposure, starvation, poisoning
-  are modeled banded conditions a body can carry.
-
-Honestly **thin** today (don't hang a load-bearing clue on it): detailed
-**trauma/wound pathology** — vitals is "models only, drivers deferred," so
-antemortem-vs-postmortem wounding and lividity aren't there yet. Design
-around time / tox / metabolic-state / cause-by-condition; treat
-wound-reading as later enrichment. Forensics is a natural concrete **skill**
-for the advancement build (gradient-not-gate, world-grounded difficulty —
-reading a cooling curve genuinely *is* a skill; see
-[advancement-slate](./advancement-slate.md)). Play loop: examine → read the
-signs → hypothesize *time / manner / identity* → cross-check records and
-testimony → **the discrepancies are the clues.** You *earn* "killed at
-9pm," and get better at earning it.
+**Forensics is a learnable discipline — the autopsy reads the mortality
+model.** *Shipped since this section was drafted:* `analyze postmortem`
+(the `trade-medicine` pack) — readability-gated cause inference from
+wounds, competence-tiered detail, a graded `forensics` Discipline. See
+[mortality.md § Forensic examination](../../subsystems/mortality.md#-forensic-examination--analyze-postmortem).
+What remains this slate's to design is the *arc's* use of the discipline
+below — the triangulation, the morgue-as-seam, the corpse-laundering —
+not the underlying forensic mechanism.
 
 **The morgue is the seam where flesh becomes a filed record — so it's where
 the laundering happens.** A death's journey is clinic → morgue → registrar

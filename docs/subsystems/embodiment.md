@@ -42,7 +42,7 @@ own `slotClaims` (so a garment states its clo with no wearer). See
 
 ### ⭐ The covering stack — one walk, on the wearer
 
-`SlottedMixin` answers about its own slots:
+`AttiredMixin` answers about the wearer's covering (the Attired split — `lib/slot/Attired.ts`):
 
 | method | answers |
 |---|---|

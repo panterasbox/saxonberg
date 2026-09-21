@@ -27,6 +27,21 @@ deferred — see [Deferred](#deferred-seams-left-open).
 - **Competence** — derived on read over (Discipline × Transcript), **never
   stored**. Surfaced strictly as **bands** — the honesty firewall.
 
+### Why there is no experience currency
+
+There is no fungible XP to earn and spend. Each failure of the classic
+MUD/D&D model is a lever this substrate flips: XP is **fungible** where
+competence is domain-locked (so Competence is per-Discipline and
+non-transferable); **instant** where learning resists cramming (so it
+accrues one Transcript row per real act); **frictionless** where learning
+lives at the edge of failure (so the BKT rewards near-edge evidence and
+ignores trivial checks); and **decontextualized** where skill is situated
+(so a deed is minted by the loop that resolved the act, never by a
+training screen). Honesty and fun point the same way here — every
+realism-fix is also a better mechanic. The one XP failure left standing,
+*monotonic* growth with no upkeep, is answered by the deferred loadout
+(capacity, never clock-decay), not by the estimator.
+
 ## Catalog — `Discipline` in a `DisciplineCatalogue`
 
 A `Discipline` (`lib/advancement/Discipline.ts`) is a **pure-data leaf
@@ -482,6 +497,26 @@ suspected of meaning coal-mining) turned out to be right: this world's
 collier is unambiguously the charcoal-burner. A new Discipline should
 meet that standard — the code named, its meaning written beside it —
 rather than assuming the existing rows are loose.
+
+## Disciplines the trade packs seeded
+
+The [trade-roster](../slates/tails/trade-roster-slate.md) gap report
+named 22 Disciplines the lineage gallery would need; the trade packs have
+since seeded eight of them, each as pure data beside its own pack, and four
+landed under a different name than the roster proposed — the pack's word
+for the practice, not the roster's word for the field: **`stockmanship`**
+(0811, `trade-ranching`; the roster's *animal-husbandry*), **`mining`**
+(0724, `trade-mining`; *extraction*), **`colliery`** (0722, `trade-fuel`;
+*fuelcraft*), **`teamstering`** (1041, `trade-haulage`; *haulage*). Under
+their own names: `textiles` (0723, with `dyeing` 0711 and `tailoring` 0723
+beside it), `baking` (0721, `specializes: cooking`, `synergizes: [milling,
+fermenting]`), `brewing` (0721) and `butchery` — ⚠ anchored at **0811**,
+livestock production, not the roster's 0721. The packs also seeded rows
+the roster never asked for: `smelting` (0715), `geology` (0532),
+`silviculture` (0821), `soil-science` (0811), `milling` (0721),
+`winemaking` / `distilling` / `fermenting` (0721). ⚠ The roster's
+**`metallurgy`** was a *knowledge* row (the know-what under smithing) at
+the same 0715; `smelting` is a skill and does not close it.
 
 ## Deferred (seams left open)
 

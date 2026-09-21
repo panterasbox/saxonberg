@@ -1,13 +1,21 @@
 # Balance slate — what the legislature actually governs, what a law looks like, and who enforces it
 
 > **Status: PARTIAL** — the substrate ships: parcel title + `ownerOf`,
-> `AccessApi.can`, banking's conservation chokepoint, and the
-> `producer_events` jurisdiction stamp (audited 2026-08-06)
-> → [parcel.md](../../subsystems/parcel.md)
-> **Left:** the jurisdiction stamp on the 4 unstamped ledgers (#0a-0c) ·
-> the cross-jurisdiction enumeration · the void-at-write validity
-> predicate · the `bound` instrument · class-per-matter on
-> `ParcelRecord` · quarantine · the two divergence dockets
+> `AccessApi.can`, banking's conservation chokepoint, the
+> `producer_events` jurisdiction stamp (audited 2026-08-06) and the
+> Prime Minister backstop on the code-trust chain
+> → [parcel.md](../../subsystems/parcel.md) · [access.md](../../subsystems/access.md)
+> **Left:** the jurisdiction stamp (#0a plant the parcel extent at the
+> command root · #0b `actingParcelKey()` + delete `opts.locality` · #0c
+> title/jurisdiction congruence) · the cross-jurisdiction enumeration ·
+> the void-at-write validity predicate · the `bound` instrument ·
+> class-per-matter + the prediction half on `ParcelRecord` ·
+> undeclared-mints-nothing · breach entries in the docket sweep ·
+> quarantine · conform-on-`saveTemplate` · lapse-on-amendment · the
+> cross-parcel attribution rule · the provisioning↔measurement firewall ·
+> the census damper generalized · the two divergence dockets · the ops
+> seat + the supervisor seat (removal by crossing) · the fund-standing
+> trend gauge · the notification default chain
 > **Size:** a build
 
 **Captured 2026-08-02.** The question that opened it:
@@ -26,10 +34,6 @@ And the correction that reframed the whole thing, one turn in:
 > legislature's main job establishing balance. It's interstate commerce
 > but for every resource and economy in the game, of which there are
 > many."**
-
-> **Status: design conversation, captured. Not requirements. The
-> mechanisms it needs are mostly shipped or already slated — the net-new
-> artifacts are a list, a predicate, and one field.**
 
 ---
 
@@ -947,25 +951,10 @@ But "regulatory agency" carries the hazard to design against:
 
 ## ⭐⭐ The PM heads the executive, period
 
-⚠⚠ **CORRECTED 2026-08-04.** This section previously argued *"two hats,
-never one office"* — that the diegetic PM must be kept apart from the
-code-trust chain or the executive would inherit code-trust by succession.
-**That was the same backwards guarantee as Part 1's, and it is rejected
-for the same reason.** The user's call:
-
-> **User: "the PM. And the PM seats the ops office. The PM heads the
-> executive period."**
-
-So the seat access.md defers *above* `archwizards` is now specified, and
-it is one office:
-
-> **PM → archwizards → wizards**, with the PM seated by the polity.
-
-⭐⭐ **This makes code-trust politically accountable for the first
-time.** Archwizard membership is env-seeded and operator-managed today —
-entirely outside the fiction. An elected seat above it means the whole
-chain answers to somebody, and the *"community governs its world"* claim
-stops being partial.
+> ✅ SHIPPED as the derived backstop — whoever holds `prime-minister` is a
+> wizard and an archwizard on every check, never stored
+> ([access.md § The Prime Minister backstop](../../subsystems/access.md)).
+> The PM *seating an ops office* is still unbuilt (below).
 
 ⚠ The obvious risk — **a captured PM revoking every wizard** — is exactly
 what Part 1's inalienable-content floor absorbs. They can take the keys
@@ -1028,16 +1017,10 @@ Their decomposition, which is the one to keep:
 
 ### ⭐⭐ The third case is a trade pack, not platform architecture
 
-Broadcasting is an industry like any other — tools, a workspace, roles,
-output, consumers. So it ships in a pack
-([content-packs-slate](./content-packs-slate.md)) and gets staffed like
-any organization. Which dissolves most of what an earlier draft was
-building:
-
-> ⭐⭐⭐ **There is no "the" editorial office.** There are **many
-> publishers**, each governed by whoever holds it — a council channel by
-> its committee, a corpo affiliate by its owner. The front page is not a
-> seat of power; it is whichever publisher the client shows first.
+> ✅ shipped — as kernel substrate rather than a pack: a publisher is an
+> organization, governed by whoever holds it, and the front page reads an
+> enumerated list of publishers; there is no "the" editorial office
+> ([press.md](../../subsystems/press.md) § 1–2).
 
 Same for ranking. It is not one legislated formula for the world, it is
 **a publisher's editorial policy**, and how it is authored depends on who

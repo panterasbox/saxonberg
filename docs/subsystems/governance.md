@@ -1,5 +1,17 @@
 # Governance — the Office substrate
 
+> ⭐⭐⭐ **Law points at OFFICES → offices own COMMITTEES → committees hold
+> permissions → members are appointed by whoever holds the owning seat.**
+> Offices are heads — one accountable holder the law can name,
+> founder-default. Committees are hands — managed groups doing work,
+> holding operational permissions. The law never points at a committee;
+> permissions never accumulate on an office (a permission-holding office
+> is a bottleneck *and* a prize). The bridge: **a managed group's owner
+> can be an office**, resolved through `holdsOffice` on read (absence =
+> founder default) — never a stamped player id. A seat changes hands and
+> every committee follows, with no re-parenting (graduated from the
+> content-packs slate, 2026-09).
+
 The first substrate of the polity's structure: the **seats of
 government**. An office is a *named seat with a single holder* —
 apparatus-defined, authored in code, and the founder's by default until

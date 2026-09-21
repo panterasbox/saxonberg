@@ -75,6 +75,14 @@ both stores is counted once. The walk reads only the method surface
 (`getMass` / `getContents` / `getAllOccupants` / `getSlotSpec` /
 `getTransmissionFactor`), never fields.
 
+> ⚠ **Footgun.** Borne burden and true mass share the *same*
+> `Quantity<'kg'>` type — burden is a **load-equivalent** ("what mass,
+> borne ideally, would tax me the same"), not a physical weight, but
+> nothing in the type stops a call site from adding a real mass to a
+> burden. They're the same dimension but semantically distinct: mass is
+> what a scale reads, burden is what the gauge accumulates. A discipline
+> note, not worth a branded type.
+
 #### The v1 loose-carry model
 
 `get` does **not** claim a hand slot (building a hand-slot mechanic was out
@@ -88,6 +96,17 @@ loose: the contents drop from the held surcharge to the worn floor, and
 the hands stay free.
 
 ### Carry capacity — physiology-derived
+
+There is **no general strength stat**, and none is coming — the vitals
+build deliberately omitted scalar STR/CON. Carry capacity is **derived,
+encumbrance-specific**, from physical properties of the body (and, when
+an augment-capacity term lands, its augmentations), and this is
+deliberate: it reads physiology directly for one purpose and does **not**
+wait on the deferred general stat system
+([capability-magic-slate](../slates/builds/capability-magic-slate.md)).
+One consequence: capacity barely moves over a character's lifespan — the
+fun has to come from the interaction library (coupling, placement,
+haulage), not from growing the number.
 
 ```
 capacity = bodyMass × CAPACITY_FRACTION × conditionBandMargin × enduranceMargin
@@ -237,6 +256,12 @@ and retunable in one record at the top of `LoadBearing.ts`:
 `ENDURANCE_FLOOR`, the `CONDITION_BAND_MARGIN` table, and `MAX_DEPTH`. They
 live in the capability's own module; **GameConfig is the eventual home**
 when it lands.
+The textiles build added **`TIGHT_FIT_SURCHARGE`** (0.5, overridable by
+the `textilesFitTightnessBurden` app setting): extra placement coupling
+per unit of a worn garment's `tightness` — clothes cut for a smaller body
+bind, and binding is a real load on a body that has to move in them; a
+garment cut for you, or cut generous, adds nothing
+([textiles.md](./textiles.md) — fit as two numbers and a stamp).
 
 ## Demo content
 

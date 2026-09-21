@@ -48,6 +48,16 @@ emotes. The baseline AetherImplant is universal and always-on for
 players (see [augmentation.md](./augmentation.md)), which is why
 `dm` / chat are zero-friction.
 
+⚠ **"Universal" means every Avatar, not every character.** The baseline
+`AetherImplant` is granted only by `Avatar`'s default loadout; no NPC row
+ships one and `NPC`/`Character` compose no Aether. So an NPC without an
+authored implant neither receives nor sends implant comms — `tell` cannot
+reach a remote NPC, and remote emotes pass it by (see
+[emotes.md](./emotes.md)). The comms slate's *universal always-on*
+commitment and its remote-NPC scenarios are unbuilt on that side; the
+per-NPC implant is content the `npc-dialogue` `addressed`/`tell` entry
+will need.
+
 ### Comms is a hosted update; `AetherMixin` is the host
 
 Transmission is no longer carried by `AetherMixin`. **Attunement**
@@ -118,12 +128,23 @@ prose and the dB + topic come from the calling method.
 
 - **`say`** — normal volume (60 dB), room reach, undirected by
   default. Topic `speech.vocal`.
-- **`whisper`** — quiet (30 dB), short reach. Topic
+- **`whisper`** — quiet (30 dB), short reach *as stamped* (see below). Topic
   `speech.quiet`. `whisper.yaml` makes `target` a **required**
   positional arg — whisper is implicitly directed (you whisper *to*
   someone).
-- **`shout`** — loud (90 dB), multi-room reach. Topic
+- **`shout`** — loud (90 dB), multi-room reach *as stamped* (see below). Topic
   `speech.vocal`.
+
+⚠ **The dB is a stamp; the reach is the room.** `vocalEmit` fans the
+peers frame through `Scene.toPeers` — the speaker's one room — for all
+three verbs, and nothing downstream reads `acousticDb` for speech
+(`Scene.toAudible` + `AudienceGather` exist, but only `Audible.emit` —
+whistles, bells — rides them; `senses.md § Deferred`: *existing comms
+ship unchanged*). So a whisper reaches every peer in the room **with
+the words** (*"X whispers to Y, <the words>"*, never a redacted
+*"whispers something"*), and a shout does not leave the room. The comms
+slate designed both the redaction and the cross-room shout; neither
+shipped.
 
 All three stamp `meta.modality: 'hearing'` for sensorium gating, and
 emit to peers via the Containable-wins rule (a Containable speaker
@@ -197,8 +218,8 @@ Directedness is an **option, not a default** — `say` is undirected
 room chat ~95% of the time, so addressing opts in via `--to` rather
 than guessing whether the first word is a name or the message.
 `say.yaml` and `shout.yaml` carry a `to` option (`short: t`, `type:
-object`, `scope: online`, `field: target`) with a `mustBeAgent`
-validator. `whisper` is always-directed, so it takes `target`
+object`, `scope: online`, `field: target`) with `requires: class:Agent`
+(+ `onExcess: prompt`). `whisper` is always-directed, so it takes `target`
 positionally instead.
 
 The general rule comms follows: **free-prose-tail verbs direct via

@@ -207,6 +207,23 @@ Errors from `action` propagate; the `finally` clause still clears
 engagement for transient modes, so a failed traversal doesn't leave
 a stale `engagedMode` behind.
 
+## Duration lives in the Journey, not the traverse
+
+A traverse has no duration in the kernel. `go north` is instantaneous
+and must stay so — a duration on ordinary movement would put a real-time
+toll on every step in the game. Where movement *does* take time (a wagon
+to the next town) the time belongs to the transport pack's Journey
+([logistics.md § The Journey](./logistics.md)): a sustained engagement on
+the driver whose every beat issues the same `traverse` a player's `go`
+does, spending `Exit.edgeMinutes × 1/LocomotionMode.speed × loadFactor`
+game minutes per leg. `Exit.edgeMinutes` is authored per EDGE — an event
+budget, not a metric: no `Exit.length`, nothing derived from `coords` —
+and nothing in the kernel reads it. `speed` is the relative multiplier
+vs walk (walk 1.0 · run 2.0 · sneak 0.5), not m/s, and the Journey is its
+one duration consumer. The `defaultDurationMs` / `durationOverrideMs`
+fields the locomotion-as-activity slate designed were never built;
+pedestrian durative movement stays open there.
+
 ## Verb dispatch
 
 `go <target>` dispatches under `LocomotionApi.defaultModeFor(actor)`

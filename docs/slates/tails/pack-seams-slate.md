@@ -1,11 +1,12 @@
 # Pack seams slate — how content packs connect
 
 > **Status: PARTIAL** — the dependency direction shipped (`requires`,
-> reconcile-by-stamp, path-as-namespace) →
+> reconcile-by-stamp, path-as-namespace, add-only by single-writer rows) →
 > [content-packs.md](../../subsystems/content-packs.md)
-> **Left:** named boundary sockets + graft points · the `fills:` manifest
-> key · one-filler-per-socket refusal at reconcile · the provides/needs
-> capability vocabulary · add-only enforcement
+> **Left:** named boundary sockets + graft points (`fills:`, one filler
+> per socket, socket paths as API) · the provides/needs capability
+> vocabulary + per-capability cardinality · reconcile symmetry on
+> uninstall (closed states revert) · the worked Terminus ⊃ EU seam
 > **Size:** a wave
 
 **Captured 2026-08-01**, out of the Saxonberg session's shipping
@@ -20,18 +21,7 @@ namespace) and [boundary.md](../../subsystems/boundary.md)'s
 
 ## The directional rule (the whole design in one sentence)
 
-**The annex knows the host; the host never knows the annex.** EU
-declares a dependency on Terminus in its manifest; Terminus contains
-zero references to EU. Knowledge direction = dependency direction,
-and a pack may reference template paths only in packs it depends on.
-Consequences:
-
-- **The host is complete without any annex** — never-half-grown
-  holds because absence is an authored state, not a hole.
-- **"How does the host connect to the annex?" dissolves** — it
-  doesn't; the annex does all the knowing.
-- Install order and presence guarantees come free from ordinary
-  dependency resolution at reconcile time.
+> *Cut 2026-09-18 (slate compaction) — shipped: `dependsOn` is derived from `package.json` (one graph: code imports, install order, hosts), and a pack's paths must lie under its own or a HOST's claim → [content-packs.md](../../subsystems/content-packs.md) § The manifest, § The requires phase (coverage). ⚠ Not shipped: a check that a row references template paths only in packs it depends on — cross-pack reference validation is deferred there.*
 
 ## Sockets — the host's named attachment points
 
@@ -128,11 +118,7 @@ Rules:
 
 ## Add-only — annexes never modify host content
 
-Grafts **place new objects into declared graft points; they never
-edit host rows.** Overlay/patch semantics is where package
-ecosystems go to die. If an annex needs host prose to acknowledge it
-(the plaza mentioning the university), that is a host-side socket
-(an authored detail slot) or it doesn't happen.
+> *Cut 2026-09-18 (slate compaction) — shipped: a file at a key whose row another pack stamped FAILS the pack (single-writer rows) → [content-packs.md](../../subsystems/content-packs.md) § The three-way reconcile.*
 
 ## Reconcile symmetry
 
@@ -144,11 +130,7 @@ condition.
 
 ## The shipping tiers (decided at capture)
 
-| Tier | Contents | Rationale |
-|---|---|---|
-| **Platform** (not a pack, not a slot) | **the City of Saxonberg** (+ its premises) | philosophically platform-level — it represents the Compact; not swappable within the platform (a fork may do as it pleases) |
-| **Kernel slot + shipped default** | **the Lounge** (Dave's Bar presumptively ships alongside; placement open) | every game needs one; the mixin is kernel, the instance is replaceable |
-| **Content packs** | **Terminus** (the dogfood host), **Eternal University** (the dogfood annex) | the migration that proves the machinery: the first real sockets, the first real fills |
+> *Cut 2026-09-18 (slate compaction) — superseded: `terminus`, `eternal-university` and `saxonberg-lounge` all ship as packs; the lounge's slot is the `defaultStartLocation` setting the lounge pack contributes over pack zero's `void` shell → [content-packs.md](../../subsystems/content-packs.md) § Pack zero. A platform-level City of Saxonberg is the saxonberg-city slate's.*
 
 ## The worked example — Terminus ⊂ hosts ⊃ EU
 

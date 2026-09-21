@@ -2,32 +2,15 @@
 
 > **Status: PARTIAL** — Wave 1 shipped 2026-06 (HelpTopic schema, the
 > catalogue harvester, command/api/collection projectors, HelpApi, the REST
-> API, the `help` verb) → [help.md](../../subsystems/help.md)
-> **Left:** Wave 2 — taxonomy/unit and mechanics projectors, co-located
-> `help:` prose, the standalone `help` Document collection, the Docs search
-> group, `{{help:…}}` transclusion, the inspection↔help bridge · Wave 3's
-> pre-auth public face · L3 source surfacing
+> API, the `help` verb, the help card), plus authored `HelpConcept` rows +
+> the concept projector and co-located `help:` prose on command views →
+> [help.md](../../subsystems/help.md)
+> **Left:** Wave 2 — taxonomy/unit and mechanics projectors, `help` fields
+> on immutable definitions, the Docs group in the shell's grouped search +
+> the client typeahead slice, `{{help:…}}` transclusion, the inspection↔help
+> bridge · Wave 3's pre-auth public face + the standalone `api-model` docs
+> render · L3 source surfacing
 > **Size:** a build
-
-> **Status: Wave 1 shipped (2026-06) — see
-> [docs/subsystems/help.md](../../subsystems/help.md); Waves 2–3 shape
-> proposed.** The **systems** half of the reading
-> substrate — the in-game **rulebook**: how the world *works* (commands,
-> immutable-at-runtime types/taxonomies, mechanics, formulas + numbers,
-> the engine/API surface). **Developer-maintained** (unlike the
-> community wiki), so help metadata co-locates honestly with the thing it
-> documents. Governing pillar: **transparent by default, hidden only by
-> an explicit spoiler gate with a reason** — the education mandate, and
-> the deliberate inverse of old-MUD obfuscation. Content from **three
-> sources** (projected structured values · co-located prose · standalone
-> docs in a `help` collection), all harvested into **one uniform
-> `HelpTopic` schema** by a **projector per subdivision** → **one index**
-> → search / typeahead / grouped results. One `help` verb (subcommand
-> args). The Topic is also the **transclusion unit** (`{{help:…}}`).
-> Served **two faces over one index**: authed in-client (full dialed
-> range) and **public pre-auth** (anonymous-floor) on the public
-> read-only surface. `api-model` is **both** a topic-kind and a
-> standalone public artifact.
 
 This slate exists because help has outgrown its current scaffold (the
 `HelpController` + the TypeDoc `api-model.json` it consumes). The game is
@@ -64,8 +47,6 @@ See also:
 - [docs/subsystems/messaging.md](../../subsystems/messaging.md) +
   [message-rendering.md](../../subsystems/message-rendering.md) — the MML the
   topic body renders in; the shared renderer + click model.
-- [persistence-architecture-slate.md](./persistence-architecture-slate.md)
-  — standalone help topics are plain `Document`s (a `help` collection).
 - [docs/deployment.md](../../deployment.md) — the pre-auth web view the
   public help face is part of.
 
@@ -90,85 +71,35 @@ See also:
 
 ---
 
-## The line: help vs wiki vs inspection (runtime mutability)
-
-Everything is an instanced Stuff with state, so the discriminator is
-**does it change at runtime?**
-
-| | Scope | Surface | Maintainer |
-|---|---|---|---|
-| **Immutable-at-runtime definitions** (Species, Clade, units, types) + systems + commands + API + concepts | system / type | **Help** | developer |
-| **Mutable instances'** narrative (this NPC, this area) | instance | **Wiki** | community |
-| **Mutable instances'** current truth | instance, viewer-relative | **Inspection** (`look`/`analyze`/`identify`) | the game |
-
-"The goblin as a species" is help; "this goblin bleeding in the corner"
-is inspection; "the legend of the goblin king" is wiki. Mutability
-decides.
-
----
-
 ## Content model — three sources, all developer-maintained
 
-1. **Projected structured values** — command specs (command YAML +
-   controllers), immutable-def / taxonomy / unit values, mechanic
-   formulas + their constants, the API surface (TSDoc → `api-model`).
-   Auto-derived from the authoritative source. This is the **transparency
-   layer**: the numbers are projected, not retyped, so they can't drift
-   or be quietly hidden.
+1. *Shipped* — the command, api/mixin/type and collection projectors →
+   [help.md § The boot-warmed index](../../subsystems/help.md).
 2. **Co-located prose** — developer annotation next to the thing: a
    `help:`/`description:` block on a command YAML, a doc-comment (TSDoc)
    on a class, a help field on an immutable definition. Projected
    alongside the values. (TSDoc is already exactly this pattern — a
    precedent, not a new idea.)
-3. **Standalone conceptual topics** — overviews, "getting started," "how
-   combat works" — things that span many artifacts or none. Plain
-   `Document`s in a **`help` collection** (paralleling the `wiki`
-   collection), developer-authored.
+3. *Superseded by the code* — standalone concept topics shipped as
+   authored `HelpConcept` rows (`/platform/idea/HelpConcept/<key>`, a
+   data Idea like `Discipline`) harvested by a concept projector, not a
+   `help` Document collection → help.md § The concept projector.
 
 "Help text goes where it goes" — co-located when there's a natural home,
 standalone in the collection when there isn't. The design work isn't
 *where it's stored*; it's **what gets included** and **the uniform topic
 shape**.
 
-The index **harvests** all three (pull); content never **registers
-itself** (push) — aligned with the substrate-no-content-hooks rule.
-
 ---
 
 ## The interface: one uniform Topic, many projectors
 
-The structure that spans the subdivisions: the index, search, typeahead,
-and viewer know **only** the uniform Topic — never a subdivision-specific
-shape.
-
-```
-HelpTopic {
-  id:        string     // stable address: command/go · taxonomy/clade/elf
-  kind:      string     //                · mechanic/damage · concept/combat · api/StuffApi
-  title:     string
-  summary:   string     // one-liner for typeahead + result rows
-  keywords:  string[]   // "movement" → go ; aliases for matching
-  body:      MmlString  // projected values + co-located prose, rendered
-  relations: TopicRef[] // see-also, cross-subdivision
-  spoiler:   {…}        // level + capability (the shared gate)
-  source:    string     // where it was projected from (dev traceability)
-}
-```
-
-**N projectors → 1 Topic → 1 index → 1 search/typeahead/viewer.** A
-projector per subdivision (commands, taxonomies, mechanics, concepts,
-api) reads its source and emits Topics; adding a subdivision = adding a
-projector, the interface never changes. The index is built by harvesting
-projectors at boot / on reload (HMR reprojects a changed command's
-topic); standalone docs are harvested from the `help` collection.
-
-> Validate under real load — the uniform shape is the bet; revisit if a
-> subdivision strains it.
-
-**The `help` verb.** One verb, argument shape (subcommand-fallthrough,
-the `chat`/`wiki` pattern — no two-word verbs): `help` (the index/
-landing), `help go`, `help clade elf`, `help combat`, `help api
-StuffApi`. `HelpController` resolves args against the index.
+> *Shipped* — the uniform `HelpTopic` (the real schema is in
+> [help.md § The uniform HelpTopic](../../subsystems/help.md)), the
+> boot-harvested index with one projector per subdivision, and the
+> `help` verb with its bare fallthrough (verb → concept → collection →
+> api). What remains of this section is the shell-side search and the
+> transclusion unit.
 
 **Search + typeahead** run over the uniform fields — typeahead:
 prefix/fuzzy on `title`+`keywords`+`kind`; search: full-text over
@@ -229,19 +160,6 @@ HTML.
 ---
 
 ## Build order / waves
-
-**Wave 1 — unify what exists. BUILT — see
-[docs/subsystems/help.md](../../subsystems/help.md).** The `HelpTopic`
-schema (in `@saxonberg/types`) + the `/platform/idea/HelpCatalogue` index harvester;
-projectors for **commands** (YAML + controllers, `getHelpText()` verbatim)
-and the **api-model** (the enriched `author-surface.json` + the complete
-`Mixins` roster, first-class graded `api`/`mixin`/`type` topics with typed
-relations); the `HelpApi` read chokepoint + a no-op-at-floor capability
-filter; a **REST help data API**; the `help` verb + `HelpController`
-querying the index (bare-fallthrough `help <verb>`, legacy `help verb`
-preserved); search + typeahead across both subdivisions; graceful degrade
-when the artifact is absent. Outcome: command help + API reference live
-under one searchable index + verb + REST contract.
 
 **Wave 2 — widen the projectors + author surface.** Projectors for
 **immutable defs / taxonomies / units** (Species, Clade, body plans,

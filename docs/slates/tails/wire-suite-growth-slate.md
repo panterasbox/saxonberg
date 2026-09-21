@@ -1,5 +1,19 @@
 # Wire-suite growth — the tail
 
+> **Status: UNBUILT** — the tier itself shipped (MR!251;
+> [testing.md § The two tiers](../../testing.md)) and has grown to
+> twenty flow files under `packages/wire/tests/` without building any
+> seam below: `declareFile({ packs })` still boots one world, the prose
+> census is still a measurement, farming's growth arc is still a manual
+> drive, and nothing purges wire litter.
+> **Left:** boot groups · the compressed-clock group (farming's arc as
+> its first customer) · farming's yard legs (the one-actor problem) ·
+> metal-chain's provisioning leg · the crafting cookhouse scene moved to
+> `cooking.dirty` · the prose-census ratchet · a Mongo snapshot/restore
+> reset path · a wire-litter purge · the content-findings handoff table
+> (each row owned elsewhere)
+> **Size:** a tail
+
 The wire tier shipped (MR for `design/wire-tests`, 2026-09-08): a
 `packages/wire` harness, eleven flow files, its own command and CI job.
 This is what it deliberately did NOT build, and the findings it handed

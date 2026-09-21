@@ -120,6 +120,22 @@ The **authored** climate-bias field (Narnia is polar) is the reserved
 `Locality` tier-field home for a later wave; Wave 1 needs only
 *variation*, which the address prefix supplies.
 
+**Why the address tree, not the zone hierarchy.** Weather is a **macro**
+phenomenon — a closet is one room; its weather is whatever's happening
+*outside*, at a larger locality — so it cannot bind to `SpatialZone`
+(the geometric ground-truth: coords, pathfinding), and the zone
+*hierarchy* is taxonomic/field-inheritance nesting, not spatial
+containment. The addressing tree already models locality divorced from
+geometry, resolved by an upward prefix-walk — exactly the shape weather
+needs: siblings under one address node share weather for free, and
+different Region roots diverge structurally. Weather therefore invents
+no spatial model of its own; it is a consumer of the addressing
+Locality tier. ⚠ This is **not** the planetary/geometric version —
+fronts physically moving across real latitude/longitude needs a
+per-region coordinate that doesn't exist (celestial uses one global
+`CAMPUS_LATITUDE`); that rides celestial's deferred planetary anchor,
+never a weather-specific frame.
+
 ## The biome-deviation seam (D2)
 
 Weather is **felt through biome's existing reads**. In `BiomeLogic`,
@@ -263,6 +279,13 @@ so in `coveredS`, which is never silently zero — an inverted or empty
 window reports `0` covered beside zero quantities, and that is a
 different statement from *"it did not rain"*.
 
+⚠ **A scope-tier pin does not reach the integral.** The walk is keyed by
+`Locality`, so it sees a Locality-tier `WeatherPin` (every segment forced
+to the pinned type) but is blind to a per-scope pin (one room overriding
+within an otherwise-modelled Locality) — a deliberate boundary, not an
+oversight, because a per-scope pin would need a per-scope walk. See
+[watershed.md](./watershed.md).
+
 `segmentsBetween` is the same walk without the summing, for a consumer
 that needs more than millimetres: the watershed builds its **snowpack**
 on it, because whether snow accumulates or melts depends on the segment's
@@ -282,6 +305,20 @@ The three-tier shape mirrors biome/address: `WeatherApi` (thin) →
 `AnyOf(FromModule('/api/weather#WeatherApi'), SelfOnly)`). There is no
 registry tier — weather is stateless, so the singleton itself is the
 whole backend.
+
+## Why procedural, not simulated
+
+Weather is **chaotic** — a real atmospheric sim (a) is enormously
+expensive and (b), the deeper reason, **buys nothing observable**: a
+chaotic system's true trajectory is unknowable in advance (the butterfly
+effect), so a perfect sim's output is, to any player, indistinguishable
+from a tuned noise field. Infinite cost for an answer no more "correct"
+than the deterministic field above. So the procedural grammar is the
+*right* answer, not a compromise — honest abstraction delivers the
+*experience* of weather (a believable arc: a front approaches, clouds,
+rains, clears), never a derivation of one. This is also what makes
+forecasting free: computed-from-time means tomorrow is computable today,
+which a sim could never offer.
 
 ## Determinism + no-stored-state
 
@@ -395,6 +432,15 @@ A materialless object reads `wetness.absorptionCapacityDefaultPct`.
 
 ## Wave-2 consequences
 
+⭐ **Deviations are pull and always correct; consequences below are push
+and presence-gated.** The biome field-fold (`resolveQuantityFor`) is a
+pure pull, so an instrument or NPC reading temperature in an empty room
+still gets the correct weathered value. But every consequence here rides
+`runBoundaryFanout` / `runStormFanout`, which walk **live Interactives →
+their rooms** only — an unoccupied scope gets none of them. Two of the
+five have no lazy catch-up at all (flagged inline); design consequence
+for any new consumer: prefer the pull side, as wetness does.
+
 - **Electricity.** `ElectricityLogic.isWet` reads the **gauge**
   (`band ≥ wet`) — source-indifferent (rain wets via the gauge). The
   retired `isRainWet` stopgap + its raw global-procgen read are **gone**.
@@ -412,23 +458,33 @@ A materialless object reads `wetness.absorptionCapacityDefaultPct`.
   faster). A fresh rain pool (`/stuff/idea/material/bulk/water`, ~0.01 S/m) is
   weakly conductive, so a live wire / a strike in it shocks a bridged
   body through `conduct` with **no new glue** — the
-  weather→bulk→electricity loop (see [bulk.md](./bulk.md)).
+  weather→bulk→electricity loop (see [bulk.md](./bulk.md)). ⚠ **The
+  sharpest hole in the family: there is no reconcile-on-read for surface
+  bulk at all.** A full puddle left in a downpour is exactly as full a
+  game-week later in blazing sun — nothing anywhere drains or evaporates
+  it outside this fan-out.
 - **Storm lightning.** A `weather:strike` WorldClock system schedule
   fires a presence-gated fan-out: an occupied SkyExposed `storm` scope
   rolls `storm.strikeRate` and, on a hit, mints a transient
   `LightningStrike` (`EnergizedMixin`+`AudibleMixin`, engine-event
   content) routed through the shipped `conduct` (never a
   bespoke shock path), biases a direct hit onto the most-conductive
-  attractor via `shockContact`, cracks a thunderclap, and is reaped. An
-  empty scope is a harmless-but-heard flash. **No weather state stored** —
-  the scheduler owns the handle; the callback recomputes from `getNow()`.
-  This is the **mundane proof of the magic `Create·Lightning` bolt**.
+  attractor via `shockContact`, cracks a thunderclap, and is reaped.
+  **No weather state stored** — the scheduler owns the handle; the
+  callback recomputes from `getNow()`. This is the **mundane proof of
+  the magic `Create·Lightning` bolt**. ⚠ **An empty scope gets no strike
+  at all, not a harmless-but-heard one** — `runStormFanout`, like the
+  boundary fan-out, is seeded from live Interactives, so an unvisited
+  scope is never iterated and no `LightningStrike` is ever minted there.
 - **Light.** `AmbientLit` carries a transient cached **weather dim
   factor** (the `lastAmbientK` cache-invalidation precedent); the boundary
   fan-out stamps `1 - cloudDimFactor·cloud` onto SkyExposed AmbientLit
   scopes, and `VisionModality.walkFluxAt` reads it *synchronously* —
   overcast / storm reads dimmer with no async weather call on the
-  perception hot path. Default `1` = byte-identical.
+  perception hot path. Default `1` = byte-identical. ⚠ Same gap as
+  puddles, latent rather than sharp: a room dimmed and then abandoned
+  keeps its stale dim stamp indefinitely — nothing re-reads it until a
+  live occupant returns at a later boundary.
 
 ## Cloud forms — a derived read + an honest forecast tell
 
@@ -472,14 +528,34 @@ inbound exit — the treeline / substation content-standup precedent).
   `Quantity<'m/s'>` (D5); direction feeds sailing / scent / fire spread.
 - **a bulk-weight tie for wet garments** — cheap and optional; the
   electricity + thermal reads are the load-bearing consumers.
-- **wet firewood / the fire coupling** — needs the Fire noun; the gauge
-  ships the `wet` read, not the fire consumer.
 - **a dedicated `look up` sky-prose surface** (above).
 - **per-region latitude/longitude + moving fronts** — rides celestial's
   deferred planetary anchor, not weather (season is global).
 - **magic `Create·Lightning`** — the frontier noun; this build ships the
   mundane strike on the reserved seam
   ([capability-magic](../slates/builds/capability-magic-slate.md)).
+- **a weather-pin write Api** — `storm` has a Discipline leaf but no v1
+  spell; nothing lets a caster (or a scripted effect) write a
+  `WeatherPin` at cast-time (`Locality.setWeatherPin` /
+  `Atmospheric.setWeatherPin` are authoring-time writes, not a gated
+  player-facing Api). This is what blocks the `storm` magic Discipline's
+  first spell.
+
+> ✅ **No longer deferred:** wet firewood / the fire coupling shipped as
+> `Combustible.wetPenaltyK()` (`lib/fire/Combustible.ts`) — a soaked
+> log's ignition threshold rises with its wetness-gauge saturation and
+> its material's water-absorption capacity, mass-independent.
+
+### Known quirks
+
+- **`measure altitude` is skewed by storms** — it back-computes altitude
+  from pressure, and a storm reads −2500 Pa, so an altimeter under a
+  storm misreads elevation. Arguably a lovely emergent truth (real
+  altimeters do this too) rather than a bug, but nobody has decided
+  which it is.
+- **`storm.attractorBias`** (`AppSettings`) is a declared dial nothing
+  reads — `pickAttractor` (the lightning-rod bias above) does not
+  consult it.
 
 ## Cross-references
 

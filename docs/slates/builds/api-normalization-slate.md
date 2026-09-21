@@ -1,8 +1,13 @@
 # Api normalization slate — a measured baseline for the layer
 
 > **Status: UNBUILT** — two measured baselines (`053c891a2`, and HEAD
-> 2026-09-13 in Part 6); no refactor made (`identity.ts`, `array.ts`,
-> `path-pattern.ts` all still present).
+> 2026-09-13 in Part 6); no refactor made. Re-verified 2026-09-19 at the
+> compaction pass: still 93 `api/*.ts`; `identity.ts` is still
+> `Object.freeze({})`; `array.ts` / `path-pattern.ts` present;
+> `SchedulerApi` unrenamed; `AttendantApi`'s surface is still exactly
+> `sweepNowForTesting` + `disconnectForTesting`; the five standing Apis
+> still sit over one `lib/standing/`; `api/mql-subscription.ts` (395 l.)
+> still outweighs `MqlSubscriptionLogic.ts` (186 l.).
 > **Left:** ⭐⭐ **Part 7 first** — the facade:logic ratio finds work in
 > the tier that cannot hot-reload (`mql-subscription` 170%, `parcel`,
 > `worldclock`) plus 19 Apis with no singleton at all; mechanical, no
@@ -10,8 +15,11 @@
 > surface is two test hooks · answer *where a system-less utility lives*
 > before deleting `array`/`path-pattern` · ⭐ **merge** the influence
 > cluster (five Apis, one `lib/standing/`) into one `InfluenceApi`,
-> sized on its merits · delete `api/identity.ts` (⛔ the barrel pattern
-> is retired — 6.5) · split `command` + `banking`
+> sized on its merits · the layer-wide shared-`lib/`-directory cluster
+> check (6.2) · delete `api/identity.ts` (⛔ the barrel pattern
+> is retired — 6.5) · split `command` + `banking` on cohesion +
+> uniformity, and record why `combat`/`pack` stay whole · the
+> broad-thin member-list read (open Q1)
 > **Size:** ⚠ **a build, not a tail** — Part 6 found a five-Api merge and
 > a metric correction; this is no longer opportunistic
 
@@ -19,11 +27,6 @@
 (waves A–G). A preliminary two-axis pass over every `api/*.ts` to find
 which Apis are not carrying their weight, ahead of an eventual
 normalization refactor.
-
-> **Status: measured baseline + analysis, captured. Not requirements.**
-> The numbers are a snapshot at `053c891a2` and **will drift** — the
-> measurement script is reproducible (Part 1), so re-run it rather than
-> trusting these figures later.
 
 **Provenance:**
 
@@ -39,9 +42,7 @@ normalization refactor.
 (`decorateApiClass` — why the class stays the security unit),
 CLAUDE.md § *Go Through the API Layer* + § *Module Categories*.
 
-⚠ **Related work in flight:** `design/api-oo-sweep` (build-1) carries
-`oo-calling-conventions-slate` and `api-boot-retirement-slate`. This
-slate measures the *result* of that sweep and does not restate it.
+*(The related work that was in flight when this was captured — the Api OO sweep on `design/api-oo-sweep`, with `oo-calling-conventions-slate` and `api-boot-retirement-slate` — has landed; both slates were retired at `d2e44e803`. This slate measures that sweep's result.)*
 
 ---
 

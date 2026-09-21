@@ -3,144 +3,18 @@
 > **Status: PARTIAL** — waves 1 + 2 shipped (the field, storms, wetness,
 > the forecast) → [weather.md](../../subsystems/weather.md)
 > **Left:** fog → visibility · snow depth · vector wind · moving fronts ·
-> a weather-pin write Api (it blocks the `storm` Discipline) · the
-> economic family coupling (correlated risk, seasonal labour)
+> a weather-pin write Api (it blocks the `storm` magic Discipline — all
+> four tracked in weather.md's own Still-deferred seams) · the
+> legibility gap (no front-arrival event / scene message / `look up`
+> surface — weather is "very nearly imperceptible") · forecasting's
+> missing stakes (nothing consumes a forecast; no skill differentiation;
+> no inferential bridge) · the economic family coupling (correlated
+> risk + its hedges, seasonal labour)
 > **Size:** a wave
-
-> **Header corrected 2026-07-31.** This slate said "Wave 2 teeth deferred."
-> **Wave 2 shipped** (MR !141, storms-and-wetness) — weather.md is titled
-> *"Weather substrate (Wave 2)"* and lands the coexistence resolve, the
-> cross-cutting **wetness** substrate, thermal wet-collapse, Floor puddles,
-> storm lightning, cloud light-dimming, and derived cloud forms. What is
-> genuinely still deferred is thinner than this doc claims: **fog→visibility,
-> snow depth, vector wind, moving fronts** — plus the whole *economic* coupling
-> below, which nobody had written down.
-
-**Status: Wave 1 SHIPPED 2026-06** → [weather.md](../../subsystems/weather.md).
-The procedural field (the grammar + segment model + per-locality seed), the
-biome-deviation seam (SkyExposed-gated, zero-when-absent), the thermal coupling
-(presence-gated segment-boundary restamp), and the `analyze weather` read
-surface are live. The four open design questions below are **resolved for Wave
-1** (see annotations). What remains here is the deferred **Wave 2 "teeth"** +
-far-economy surface — this slate is now a tail holding that.
-
-Surfaced while folding wind + humidity into the thermal pass: those atmospheric
-properties only matter if something makes them *vary*, and that "something" is
-weather. This is a **full build** (new substrate, no shipped subsystem) but a
-deferred one — it earns its keep as atmosphere and as thermal's dynamic source,
-and the honest plan is to build only the felt layer if/when thermal wants a
-dynamic input.
-
-> Already anticipated by the substrate: **`biome.md` plans a `getWeather()`
-> method** and has **`SkyExposedMixin`** (the outdoor / indoor weather gate);
-> [time.md](../../subsystems/time.md) lists weather as deferred. The seam is
-> pre-cut.
 
 ---
 
-## The split: atmospheric STATE (biome) vs atmospheric DYNAMICS (weather)
-
-- **Biome / atmosphere (exists)** — the *resolved atmospheric state* at a
-  location: temperature, humidity, pressure, medium, light, and (to add) wind.
-  The outward-walking resolver gives any room its readings. Static / authored
-  per-location today (a jungle authored humid, a peak authored windy).
-- **Weather (does not exist)** — the *driver that makes that state dynamic over
-  time, coherent across a locality*: storms, fronts, rain / snow, gusts. Weather
-  doesn't store the state; it **modulates biome's `getWeather()` reads** over
-  time.
-
-Same pattern as the rest of the survival work: **biome is the state, weather is
-the driver** — as vitals is the state and metabolism / thermal the drivers, and
-biome-medium is the state respiration drives.
-
-## How weather is produced — procedural, NEVER simulated
-
-The foundational decision (settled): weather is a **deterministic procedural
-field computed lazily on read from `(game-time, locality, seed)`, layered on the
-celestial baseline, with authored overrides** — the store-and-compute pattern of
-the watch / vitals / thermal cooling / celestial. **Not a simulation.**
-
-Why never a simulation: weather is **chaotic**. A real atmospheric sim (a)
-consumes enormous compute and (b) — the deeper reason — **buys nothing
-observable.** A chaotic system's true trajectory diverges (butterfly effect) and
-is unknowable in advance, so a perfect sim's output is, to any player,
-indistinguishable from a tuned noise field. Infinite cost for an answer no more
-"correct" than the fake. So procedural is the *right* answer, not a compromise —
-honest abstraction: deliver the *experience* of weather, not a derivation.
-
-Two consequences:
-
-- **Forecasting is free** — computed-from-time means you can compute *tomorrow*:
-  barometers, weather-sense, "storm's coming" NPCs all work (a sim couldn't).
-- **The craft is coherence** — the one thing procedural must earn that a sim
-  gives free: a believable *arc* (a front approaches, clouds, rains, clears). So
-  the model is a small **weather-type library** (clear / overcast / rain / storm
-  / fog / snow), each a coherent bundle of (temp / humidity / wind / precip /
-  cloud), evolving through **plausible transitions** biased by season +
-  locality. A weather *grammar*, not a sim.
-
-## Locality — the addressing namespace, NOT zones
-
-The hard structural question — *what scale does weather attach to?* — and the
-answer is **not the zone hierarchy.** Weather is a **macro phenomenon**: a
-closet is one room; its weather is whatever's happening *outside*, at a larger
-locality. So weather can't localize to a `SpatialZone` (geometric ground-truth —
-coords, pathfinding), and the zone *hierarchy* is **taxonomic +
-field-inheritance, not spatial containment** ("east wing under castle" is a
-template nesting, not "east wing is spatially inside castle"). Wrong tree.
-
-The right structure already exists in design: the **delivery / addressing
-substrate** (the post-office / utilities work). Its whole thesis is *model
-locality, divorced from geometry, as a named nesting tree* — its own rooted path
-namespace (`narnia/castle/east-wing/closet`), **diverging from zones**, resolved
-by an **upward prefix-walk**, with proposed tiers **Region / Locality / Block /
-Spot** and a **field topology** (broadcast over a range). That is exactly
-weather:
-
-- **Weather is a field over the addressing locality tree.** A closet (a Spot)
-  walks *up* the address tree to the nearest weather-bearing Locality / Region
-  and reads its weather; `SkyExposedMixin` then gates indoor (sheltered).
-- **Siblings share or differ by their locality node.** East + west wings (same
-  castle Locality) → same weather, for free. narnia vs middle_earth (different
-  Region roots) → different weather — and "why they differ" is structural: they
-  are different roots in the locality tree (different climate sources — planets,
-  dimensions, or just authored difference; the tree doesn't care).
-- **Weather forgets geometry**, exactly like delivery (a logical overlay,
-  sibling of permissions), touching the geometric zone world only via the
-  locality it covers. Geometry = the zone; **locality = the address; weather = a
-  field over the address, `SkyExposed`-gated.**
-
-So weather invents **no new spatial model of its own** — it's a deferred
-consumer of the addressing substrate's Locality tier. **This is the load-bearing
-dependency.**
-
-> **NOT the planetary / geometric version.** Geographic variation across
-> *distance* (fronts physically moving across lat/long, a globe field) is a
-> *separate*, more-ambitious concern needing per-zone latitude/longitude — which
-> doesn't exist (celestial uses a single global `CAMPUS_LATITUDE = 42`;
-> per-region lat/long is its own deferred feature). The locality question
-> doesn't need geometry and shouldn't wait on it; if geographic fronts are ever
-> wanted, they ride celestial's deferred planetary anchor, not a
-> weather-specific frame.
->
-> *(Model notes corrected here: `SpatialZone` IS the geometric frame; intra-zone
-> exits must be cardinal while inter-zone exits may be cardinal **or** semantic
-> — so directional adjacency can cross a zone boundary but isn't guaranteed;
-> neither gives an inter-zone geographic embedding.)*
-
-Until the addressing substrate exists, the world is geographically a single
-point (global sun), so **weather is honestly just global** — one state, season-
-modulated. When addressing lands, weather upgrades to per-Locality by walking
-the same tree, no weather-specific structure added.
-
 ## What's on the menu
-
-**Felt directly (rides designed substrate):** temperature swings (cold snaps /
-heat spells → thermoregulation, the headline); wind → wind chill + fire-fanning;
-humidity → heat index / wet-bulb (a muggy day = an outdoor steam room); cloud →
-dimmer light; rain / snow → **wetness** (wets clothing = the thermal
-wet-collapse loop, wets firewood = can't light a fire in the rain, fills rain
-barrels).
 
 **Weather with teeth (new consumers):** fog → reduced visibility (senses); snow
 depth; hazards (lightning / flood / blizzard / heat wave); **forecasting**
@@ -165,16 +39,6 @@ pass — the conveyance / path-constraint family).
    Coherence rides the addressing locality tree (logical), never zone geometry.
 5. *(Softer)* **game-time, not the in-session clock** (it rains whether you're
    logged in); **ambient, not a chore.**
-
-## Consumers (why it'll get built)
-
-- **Thermal / thermoregulation** — the first forcing consumer (wind chill, heat
-  index + wet-bulb read wind + humidity). ✅ **shipped.**
-- **Precipitation → wetness** — rain wets clothing → the thermal wet-collapse
-  loop. ✅ **shipped Wave 2**, along with puddles, lightning and light-dimming.
-- **Spoilage / perishability** → now designed in
-  [preservation-slate](./preservation-slate.md) · **farming**,
-  **ranching**, **fishing** → designed, unbuilt. See below.
 
 ---
 
@@ -225,19 +89,13 @@ diversification** — no unaffected region to import from. The hedges are:
   it: *"**Underground = not `SkyExposed`** — no weather; the surface adit is the
   boundary where weather ends."* **The mine is the counter-cyclical industry.**
 
-> ⚠ **Correction to a common assumption (including an earlier draft of this
-> section): the per-locality climate bias is BUILT, not deferred.**
-> `ClimateLean` ships, `Locality._climateLean` is a persisted field with
-> accessors, and it is wired through `leanOf` → `pickWeighted`. **What is
-> missing is the *authoring*** — no seed sets a lean, so the `climate-leaned`
-> provenance is unreachable in shipped content and that branch is dead in
-> practice.
->
-> But note what a lean *is*: a **weather-type distribution bias only.** It
-> cannot shift temperature and **does not affect season.** So authoring leans
-> buys flavour (a rainy moor, a foggy coast) — it does **not** buy the
-> geographic hedge above. Real geographic diversification needs per-region
-> latitude, which is parked on celestial's deferred planetary anchor.
+> The per-locality climate bias (`ClimateLean` / `Locality._climateLean` /
+> `leanOf` → `pickWeighted`) is BUILT, not deferred — see weather.md's
+> Wave-2 precedence section. What remains missing is the *authoring* (no
+> seed sets a lean) — and note a lean is a weather-**type** distribution
+> bias only: it does not shift temperature or season, so it buys flavour
+> (a rainy moor) but not the geographic hedge below, which needs
+> per-region latitude (celestial's deferred planetary anchor).
 
 ### Seasonal labour — the untouched loop
 
@@ -249,180 +107,19 @@ least-explored consequence of having built weather at all.
 
 ---
 
-## The push/pull fault line **[the architectural finding]**
-
-The most useful thing to know before adding any consumer:
-
-> **Deviations are PULL and always correct. Consequences are PUSH and
-> presence-gated.**
-
-The biome field-fold (`resolveQuantityFor`) is a pure pull, so **an instrument
-or NPC reading temperature in an empty room still gets the correct weathered
-value.** Deviations are right everywhere, always.
-
-But every *consequence* rides `runBoundaryFanout`, which walks **live
-Interactives → their rooms**, deduped. In an unoccupied room, per the code:
-
-| Effect | What happens with nobody there |
-|---|---|
-| **Puddles** | ⚠ **nothing at all — and there is no reconcile-on-read for bulk.** A full puddle left in a downpour is *exactly as full* a game-week later in blazing sun. **The sharpest hole:** the one weather consequence with no lazy catch-up |
-| **Cloud dim** | ⚠ a **stale stamp persists** — a room dimmed to `0.4` and abandoned stays dim forever until someone returns at a segment boundary |
-| **Wetness** | correct by construction — the gauge's *drain* is reconcile-on-read, so an absent object dries but never soaks (and "being logged out in a hurricane dries you off") |
-| **Thermal restamp** | latency only — it re-resolves on the next thermal read |
-| **Lightning** | never fires |
-
-> ⚠ **Doc/code mismatch found 2026-07-31.** weather.md says an empty scope gets
-> "a harmless-but-heard flash." **It does not** — `runStormFanout` is seeded
-> from live Interactives, so an unoccupied scope is never iterated and **no
-> strike is ever minted there.** The "heard regardless" property only covers
-> others *in an occupied room*.
-
-**Design consequence for the family:** any new consumer should prefer the
-**pull** side. Wetness is the model to copy; puddles are the cautionary tale.
-
----
-
 ## ⚠ The blocking gap — no time-parameterised resolve
 
-The single finding that most affects the husbandry family. weather.md's
-governing invariant:
-
-> every consumer reads the ONE resolved state (`WeatherApi.resolveWeatherFor`),
-> **never the procgen field directly**
-
-But the three available reads are:
-
-| Call | Time | Authored pins? |
-|---|---|---|
-| `weatherAt(timeS, locality)` | **any time** | ❌ procgen only |
-| `resolveWeatherFor(scope)` | **now only** | ✅ resolved |
-| `forecastFor(scope, segments)` | **forward** | ✅ resolved (types only) |
-
-> **Nothing answers "what was the *resolved* weather over the past N days."**
-
-That is exactly what **farming's ∫weather integral**, **ranching's pasture
-growth**, and **preservation's spoilage rate** each require — every
-reconcile-on-read consumer integrating across a window nobody was present for.
-Today such a consumer must either call `weatherAt` (**silently ignoring authored
-pins** — a storyteller's storm would not touch the harvest) or accept
-present-tense weather only.
-
-**The likely answer is `resolveWeatherFor(scope, atTime)`.** Authored pins are
-themselves time-bounded, so the concept is well-defined and only the
-implementation is missing. **Settle it before the first husbandry consumer
-builds** — all three want it, and each would otherwise invent its own
-workaround.
-
-### The resolution — ~2 lines, not a subsystem **[DESIGNED 2026-07-31]**
-
-**Every internal function is already time-parameterised.** Verified in
-`WeatherLogic`:
-
-- `weatherAt(timeS, locality)` → `computeSample(nowS, locality)` — pure, any
-  time.
-- `pinnedSample(pin, locality, **nowS**)` — segment, season, and deviation all
-  derived from the passed time (`aliveScale(nowS, locality)` for `alive` pins,
-  the profile verbatim for `frozen`).
-- `deviatedFieldFor` → `pin !== null ? pinnedDeviation(pin, locality, nowS) :
-  computeSample(nowS, locality).deviation`.
-
-The **only** thing that makes the resolve now-only is the public entry:
-
-```ts
-public async resolveWeatherFor(scope) {
-  const nowS = nowSecondsOrNull();   // ← the entire limitation
-  …
-}
-```
-
-> **So the fix is to accept an optional time instead of reading the clock:**
-> `resolveWeatherFor(scope, atTimeS?)`, defaulting to now. Same one-line change
-> on `deviatedFieldFor`. **Nothing below either entry point changes at all.**
-
-**Why it is safe:** authored pins are `WeatherPin { type, mode }` — *"this scope
-is **always** this weather."* **Standing, not scheduled**: no start, no end, no
-validity window. So a pinned scope's resolved weather is well-defined at any
-time without inventing pin history.
-
-### The second half — one async resolve, many sync samples
-
-The naive fix is still wrong for an integral: 336 calls each re-walking
-`AddressApi.resolveLocalityFor` plus the pin chain is the async-in-a-reconcile
-trap thermal's cached ambient exists to avoid.
-
-**Resolve the chain once; sample it many times.**
-
-```
-WeatherApi.samplesBetween(scope, fromS, toS): Promise<ResolvedSegment[]>
-```
-
-One async locality+pin resolve, then a pure segment walk. `ResolvedSegment`
-carries `{ startsAt, endsAt, sample, precipitationHere }` — enough for every
-known consumer; provenance and `cloudForm` are presentation and can stay out.
-
-*(If more consumers appear, the generalisation is a captured **resolver value
-object** — `resolverFor(scope)` async once, `.at(t)` sync thereafter. Start with
-the array; it is simpler and matches how this codebase returns values.)*
-
-### Step by segment — the integral is exact *and* cheap
-
-Weather is **piecewise-constant per 6-game-hour segment**
-(`segmentIndex = floor(t / 21600)`), so the natural sub-step is not an arbitrary
-tick — **it is the segment**:
-
-- **Exact** for `type`, `cloud`, and `precipitation` — they do not vary within a
-  segment.
-- **Bounded and cheap** — 4 segments a game-day, so a **week of real absence
-  (84 game-days) is 336 samples.** A whole game-year is 1,460.
-- ⚠ **One caveat:** *deviation* is **not** perfectly piecewise-constant — it
-  lerps from the previous segment's targets across the first `INTERP_BAND =
-  0.15` of each segment (~54 game-minutes). Segment-stepping is therefore a very
-  good approximation for temperature/humidity, and can be made **exact** with a
-  trapezoid across the ramp if any consumer ever needs it. For GDD over a 90-day
-  season the difference is noise.
-
-### The semantics question, and why the answer is forced
-
-Replaying a past window uses **today's** authored pins — a pin added this
-morning "applies" to last week's integral.
-
-That is correct, and not a compromise: **recording pin history would mean stored
-weather state, which Dealbreaker 1 forbids** (*"No simulation, no tick, no
-stored state… the lazy-compute discipline IS the guardrail"*). It also matches
-`weatherAt`'s existing semantics — a pure function of the *current* seed and the
-*current* authored field. **The reconcile replays against present authorship, by
-design.**
-
-### Two smaller calls
-
-- **No far-past limit.** [preservation](./preservation-slate.md)
-  explicitly needs the *full* gap (food rots while you are logged out), so this
-  read must not inherit the bodies-only `MAX_REASONABLE_GAP_SEC`. Guard with a
-  **sample-count cap** instead of a time cap.
-- **It is a pull API, so it is exempt from the presence gate** — which is
-  exactly the "prefer the pull side" guidance above. An unoccupied field
-  integrates correctly.
-
-### Why settle it now
-
-Three consumers want the identical read —
-[farming](./farming-slate.md)'s ∫weather,
-[ranching](../builds/ranching-slate.md)'s pasture growth, and
-[preservation](./preservation-slate.md)'s spoilage rate. Whichever
-builds first will otherwise invent a workaround, and the two most likely
-workarounds are both bad: calling `weatherAt` directly (violates the one-resolve
-invariant and silently drops authored pins) or accepting present-tense weather
-(silently wrong integrals). **Two lines now prevents three divergent workarounds
-later.**
+**Resolved (shipped).** `WeatherApi.precipitationBetween(t0, t1, locality)` /
+`segmentsBetween(...)` are exactly this design: one async locality+pin
+resolve by the caller, then a pure, exact, cap-bounded segment walk —
+see [weather.md § the precipitation integral](../../subsystems/weather.md).
 
 ---
 
 ## Forecasting — shipped further than expected, and still inert
 
-`analyze weather` **already forecasts**: current sample plus the next four
-segments (24 game-hours), *types only*. `WeatherApi.forecastFor(scope,
-segments)` backs it. And the **Barometer** already reads weather-deviated
-pressure, so a storm genuinely reads −2500 Pa.
+`analyze weather` and the Barometer already forecast / read weather
+(shipped — see [weather.md § Read surface](../../subsystems/weather.md)).
 
 So anticipation is not missing — **its stakes are.** Three things are absent:
 
@@ -465,23 +162,13 @@ crafting / combat (**genuinely zero coupling today** — confirmed by grep, and
 
 ---
 
-## Smaller findings worth keeping
-
-- **`measure altitude` is silently skewed by storms** — it back-computes
-  altitude from pressure, and a storm is −2500 Pa. Arguably a lovely emergent
-  truth (altimeters really do this) rather than a bug, but it should be a
-  *decision*.
-- **Lightning already picks a conductive attractor** — `pickAttractor` takes the
-  highest-conductivity object in the room, so **a drawn steel sword is a
-  lightning rod.** The closest thing to a weather/combat interaction, and it is
-  emergent from material conductivity rather than authored.
-- **`storm.attractorBias` is a dead dial** — declared in AppSettings, read by
-  nothing.
-- **"Wet firewood / the fire coupling" is stale in this slate's deferred list**
-  — it shipped as `Combustible.wetPenaltyK`.
-- **No weather write Api exists**, which is what blocks the `storm` magic
-  Discipline (it has a Grid leaf but no v1 spell, pending "a weather-pin write
-  Api").
+*(The "smaller findings" formerly kept here — the altitude/storm skew,
+the dead `storm.attractorBias` dial, the conductive lightning attractor,
+the shipped wet-firewood coupling, and the missing weather-pin write
+Api — now all live in [weather.md](../../subsystems/weather.md), under
+*Known quirks*, *Wave-2 consequences*, and *Still-deferred seams*
+respectively; the write Api is also carried in this slate's header
+`Left`.)*
 
 ---
 

@@ -6,20 +6,20 @@
 > a moment the animal decides, the ask, naming as the promotion, the
 > residency pin. The substrate under it landed with ranching →
 > [ranching.md](../../subsystems/ranching.md).
-> **Left (Wave 2):** the accept/refuse hook for the OTHER verbs (the
-> appraisal feeding `pet` / `call` / `stay`, not only `offer`) · the
-> off-screen resolution + digest · home range · pet combat staging ·
-> breeding (gestation; ranching writes *served* only) · the producer gap
-> (nothing on Hinkley Lane yields food a stray would take) · a plain
-> room's `cast:` re-minting its stray once the first is named
+> **Left:** the fear/threat axis + the wild taming encounter (Wave 2) ·
+> the pet shop (a `Stock` over animal rows + the mint at purchase) · the
+> accept/refuse appraisal for `pet` / `call` / `stay` (today only `offer`
+> reads temperament × state × regard) · fetch / BUC-sniff / guard brains +
+> training as the animal's own Discipline transcript · the off-screen
+> resolution + digest + `Species.homeRange` · pet combat (the `sideOf` /
+> `formationPathOf` owner rungs; staging + blame by ownership) · the
+> companion ceiling + welfare law · breeding (gestation; ranching writes
+> *served* only) · the residence gate (does the dorm admit a companion) ·
+> the institution-held opinion for Extras · wild population / spawning +
+> magic taming (Wave 3) · the producer gap (nothing on Hinkley Lane yields
+> food a stray would take) · a plain room's `cast:` re-minting its stray
+> once the first is named
 > **Size:** a build
->
-> ⭐⭐ **Read [§ Reconciliation
-> 2026-09-08](#reconciliation--the-farmstead-build-and-where-a-pet-is-stored-2026-09-08)
-> before requirements** — it settles where the bond composes, what a pet
-> IS as a stored object (**a keyed clone, not a minted singleton**), and
-> how you query for one. It supersedes the *Character-tier* decision and
-> retires two stale verifications.
 
 > **Reconciled 2026-07-31** against the husbandry sessions (pets · ranching ·
 > farming · stewardship). Contradicted text is struck in place; the full ledger
@@ -29,13 +29,6 @@
 > The shared convention set is owned by [ranching-slate § The five shared
 > conventions](./ranching-slate.md).
 
-> **Status: design explored deep; not yet requirements.** Player pets, taken
-> through the NetHack lens and stress-tested against the live subsystems.
-> **Taming is the spine** — a pet is a creature you *won over*, not a unit you
-> bought. The design is experience-first (built around the *moments* players
-> will tell stories about) and almost entirely composition of shipped
-> substrates. Entry point to the slate → `/requirements` → plan → build loop.
->
 > The original stress-test surfaced three structural gaps (possession, a
 > fear/threat axis, dependent-presence + instance persistence). **Two closed
 > during the 2026-07-30/31 husbandry sessions** — only the **fear/threat axis**
@@ -173,38 +166,8 @@ Shops don't *bypass* taming — they sell the **back half** of it.
   accrues regard toward whoever it repeatedly encounters, and at a threshold it
   simply **starts following them**. You did not ask, and you were not trying.
 
-  > **This is the purest statement of the spine, not a softer one.** The shop is
-  > a transaction and the taming encounter is a *performance* — you execute the
-  > right moves and the animal responds to your technique. Adoption is
-  > the only path where the animal's judgment of you is **uncontaminated by you
-  > performing for it.** The most honest version of *won over* is the one where
-  > you weren't trying.
-
-  - **Proximity buys opportunity; who you are decides the outcome.** Trait
-    compatibility, reputation, and how you actually behaved around it — so two
-    regulars in the same tavern get different results from the same animal.
-  - **The cat can pick the wrong person** — possibly the one who never fed it
-    over the one who did. Keep this. It is true to life, it is funny, it
-    generates real social friction, and it enforces that **regard is not
-    purchasable**.
-  - **You cannot refuse the adoption — only the custody.** It decides you are
-    its person; *you* decide whether to make it official (name it, take it home,
-    chattel-stamp it). Until then you have **a stray that has adopted you and
-    that you have not yet admitted is yours** — the custody⊥bond orthogonality
-    producing something charming on its own.
   - **An adopted stray is no longer available** to adopt anyone else. Personal
     and scarce, not a dispenser.
-  - **Anti-grind:** never show progress (the opacity rule — you cannot farm what
-    you cannot see); make **elapsed days** matter rather than repetitions; make
-    compatibility decisive so repetition alone can't get there for the wrong
-    person; and let the animal **visibly warm** first, so the moment reads as
-    earned-but-unasked rather than random.
-  - **Cost:** one `strays` brain (the `greets`/`introduces` witness-on-arrival
-    shape) + the `follow` brain Wave 1 needs anyway. **Cheaper than the shop.**
-  - **Content:** one carved stray in a high-traffic venue — the Duncan lobby,
-    the tavern, the quad — **serves every new player who passes through**, which
-    is the "NPCs are expensive carves" rule paying off unusually well. Sits
-    naturally beside Katie's move-in beat.
 
 - **Buy (the choice).** A pet-shop [`Business`](../../subsystems/employment.md)
   sells creatures that are **domesticated but *unbonded*** — fear-baseline ~zero
@@ -248,14 +211,6 @@ Shops don't *bypass* taming — they sell the **back half** of it.
 The pet experience as the stories players will tell, mapped to what our world
 already does. *Design the rules; harvest the emergence.*
 
-**Free or nearly free (the world already does this):**
-- *"My cat follows me into every room."* — the core relationship. A `follow`
-  brain on the arrival/departure witness triggers we already have.
-- *"I named her Mittens."* — yours, named, remembered from minute one. The
-  emotional bond is mostly *this*.
-- *"Feed it or it drifts."* — the bond **is** regard; feeding **is** metabolism.
-  Care is *light* (see below).
-
 **A small brain each (delightful emergent utility):**
 - *"My dog dropped a dagger at my feet."* — apport/fetch. A `Creature` is
   already a `Container`; add a fetch brain + carry-to-owner.
@@ -282,43 +237,7 @@ already does. *Design the rules; harvest the emergence.*
 
 ## Care & loss — light, on purpose
 
-**We respect players' time.** Care is *feed it occasionally*, not a Tamagotchi
-grind and **not a money sink** (the earlier boarding-fee economy is
-**retracted** — upkeep as a standing financial commitment fails the time-respect
-test).
-
-- **Neglect cools the bond.** Ignore the animal and its regard drifts down;
-  extreme neglect → it goes feral and **leaves you**. **Loss is a *relationship*
-  failure — not starvation-death, not a billing failure.** (Rhymes with NetHack:
-  tameness decays, hits zero → wild.)
-- ~~**Offline = freeze.**~~ **[SUPERSEDED 2026-07-30 — see [ranching-slate § The
-  clock](./ranching-slate.md)]** The family now runs **one uniform clock**:
-  *things you own reconcile against world time; the body you inhabit reconciles
-  against played time.* A pet does **not** freeze when you log off. The
-  time-respect goal this line was protecting survives untouched, because it was
-  never about the clock — it was about the **shape of the consequence**:
-  - The pet's **bond** drifts while you're gone, and at the floor it goes feral
-    and leaves — a recoverable, story-generating loss.
-  - ~~The pet's condition curve is **asymptotic toward "miserable but alive."**
-    It never starves to death.~~ **CORRECTED by the farmstead build (D29):
-    there is ONE mortality rule for every kept animal, and a pet is not
-    exempt from it.**
-
-    > What protects a pet is the **automation ladder**, not a carve-out. A
-    > hired hand, a kennel, a neighbour — the material floor is cheap and
-    > delegable, and that is the mitigation. An exemption would have said
-    > *this animal's biology is different because you like it*, which is
-    > the one thing the design cannot afford to say while a cow two rooms
-    > away starves on the same clock.
-
-    ⭐ The time-respect goal survives intact, and better: the consequence
-    is still shaped rather than punitive, but it is shaped by something
-    the player can *act on* rather than by an engine exception.
-  - **Automation maintains your assets; it cannot maintain your
-    relationships.** A hired hand or kennel keeps the animal fed and healthy —
-    the material floor is cheap and delegable. **Bond is only earned in
-    person.** This is what the retracted boarding-fee economy was groping for,
-    without the standing financial commitment.
+*Superseded by what shipped: regard never decays and handling decays to a species floor, so a neglected animal becomes **difficult, not feral**; and D29 puts a pet under the one mortality rule → [pets.md § The bond](../../subsystems/pets.md#the-bond--not-a-new-number).*
 
 ## Bonding + needs — the care loop **[DECIDED 2026-07-31]**
 
@@ -334,23 +253,6 @@ actually loved for**, which is not what it is usually copied for:
 The governing rule that falls out:
 
 > ### Needs create occasions. Acts create bond. A need must never be a chore.
-
-### Four needs — and only one is yours alone
-
-| Need | Substrate | Delegable? |
-|---|---|---|
-| **Food / water** | metabolism (shipped) | **yes** |
-| **Warmth / shelter** | thermal (shipped) | **yes** |
-| **Safety** | hazard / concealment (shipped) | **yes** |
-| **Attention** | `regard` | **no** |
-
-Three material needs, all on shipped substrate, all auto-satisfied at home by a
-bowl and a warm room — they bite only on expedition or through real neglect.
-Then one nobody can cover for you.
-
-**That table *is* the "automation maintains your assets; it cannot maintain your
-relationships" rule, expressed as a needs model.** The kennel handles rows one
-to three. Row four is why you come back.
 
 ### The acts
 
@@ -906,32 +808,7 @@ small companion; a **house** supports a pet properly.
 > Either the dorm admits a small companion, or Wave 1's acquisition path has to
 > wait on the apartment rung. **Decide this before requirements.**
 
-### Newly constrained — the 12× tending cadence
-
-The care model says *"feed it occasionally."* That was never checked against the
-clock, and [farming § The clock](../tails/farming-slate.md) makes it precise: at 12×,
-**a daily player skips 12 game days between logins.** "Occasionally" cannot mean
-a cadence shorter than that or the pet is un-tendable by hand and care silently
-becomes the kennel's job — which is exactly the thing that must not happen,
-because **the kennel cannot build bond.**
-
-**So the same rule applies here: one login = one meaningful interaction.** The
-pet's hunger and bond drift must buffer over **one to two game weeks**, and the
-condition curve stays asymptotic (miserable, never dead). This is a *tighter*
-constraint for pets than for a field, because a field can be delegated and a
-relationship cannot.
-
-### ~~The hole the clock change opened~~ — **CLOSED 2026-07-31**
-
-Killing the freeze removed the old answer (*"stowed somewhere safe, clock
-frozen"*) and nothing replaced it — pets being the one owned thing that **can
-leave the property**, this was load-bearing in a way farming and ranching never
-have to face. **Now designed: see [§ The off-screen
-life](#the-off-screen-life-decided-2026-07-31)** — a seeded deterministic
-`petLifeBetween` reconcile, a six-outcome ladder, the species-banded home range
-resolved against land use, and a narrative digest on login. The reframe that
-unlocked it: at 12× a daily player's pet lives **11 game days** alone between
-sessions, so the question is what it *did*, not where it was parked.
+*The 12× tending cadence shipped as the bond's own clock (regard never decays; handling decays ~a game month per band) → [pets.md § The bond](../../subsystems/pets.md#the-bond--not-a-new-number). The off-screen hole it opened is § The off-screen life, above — still open.*
 
 ### Cheap inheritances
 
@@ -950,88 +827,9 @@ sessions, so the question is what it *did*, not where it was parked.
 
 ## Reconciliation — the farmstead build, and where a pet is STORED **[2026-09-08]**
 
-The farmstead build (MR !245, merged 2026-09-06) shipped ranching, and paid
-for more of this slate than the 07-31 pass could know. This session then
-settled the three questions that were actually blocking requirements:
-**where the bond composes**, **what a pet IS as a stored object**, and
-**how you query for one**.
-
-### What farmstead already paid for
-
-| slate claim | now |
-|---|---|
-| *"`ChattelMixin` onto the Creature stack — one composition line"* | ⭐ **SHIPPED** — `Creature.ts`, composed outermost. Every animal is a titled movable with a chain of title. |
-| *"`setAge` has zero callers anywhere; `ageCurve` is a reserved comment"* | ⭐ **STALE** — `ageCurve`, `lifeStageAt` and `massAt(ageDays)` all ship and are read. Maturation arrived exactly as predicted: forced by ranching, inherited free. |
-| *"domesticability is a dial on the fear axis"* | ⭐⭐ **the dial is installed and unlabelled.** `HandlingMixin` lives in the KERNEL — *"Pets will want it, and pets is not ranching: its composers share no pack ancestor"* — and ships bands wild→quiet with a **per-species floor and ceiling authored nowhere yet.** That empty slot is domesticability. |
-| *"a pet is an owned NPC"* | superseded — see the roles split below. |
-
-Ranching also drew the line this slate assumed: **livestock / working animal
-/ pet are three ROLES, not three classes**, with the pet's axis named as *the
-bond*, and `WorkingAnimal` shipped as a deliberate absence whose header says
-the skill axis *"should land beside pets, not inside ranching."*
-
-### ⭐⭐ DECIDED — the bond composes per CLASS, not by hierarchy
-
-The session opened on a proposal to move `BeliefStoreMixin` down from
-`Character` to `Creature`, on the grounds that an author's tameable newt
-would otherwise fail closed and silent. **That was wrong, and it was wrong
-twice.**
-
-1. **The silent-failure argument doesn't hold.** The studio is thoroughly
-   mixin-aware — `describeClass` returns the effective mixin set,
-   `describeMixin` renders a mixin's full concept comment, `listMixins` is a
-   pickable palette, `scaffoldClass` composes a base. An author is not
-   working blind at the moment they would make the mistake.
-2. **Universal composition makes the capability unfalsifiable.** If every
-   `Creature` composes it, no row can be *wrong* about it, and there is
-   nothing for a gate to check. That is the identity-tag lesson exactly —
-   *a tag that asserts nothing cannot be caught wrong.*
-
-> ⭐ **Three states, and the middle one is content.**
-> **true** — composes it, species says winnable · **false** — composes it,
-> species says no (the dragon; W3's magic-taming path is defined as *"for
-> zero-domesticability species"*) · **null** — doesn't compose it; the
-> question does not apply.
->
-> Universal composition collapses `false` into `true`-with-a-zero and
-> destroys `null` outright, which costs the dragon its whole reason to be
-> interesting.
-
-**So:** `BeliefStoreMixin` composes **where the concept is true**, on the
-codebase's own idiom — `Livestock` composes `ProducingMixin` because it has
-taps, `WorkingAnimal` composes `HandlingMixin` because it has a temper. This
-also fixes what was wrong with the `Character` answer without inventing a
-tier to escape it: `Character` drags in `CasterMixin`, `VocalMixin` and
-`EmployedMixin`, i.e. a sheepdog that can cast spells, speak and hold a job.
-
-⚠ **Supersedes § *Not a gap — a design decision* (tameable fauna must be
-Character-tier).** They are ordinary `Creature`s that compose the capability.
-
-⚠ **And a correction to the premise, recorded because it cuts the other
-way:** the *player* card deliberately does **not** show mixin composition —
-`card-surface.md` is explicit (*"no slot maps, mixin lists, raw fields, or
-property bags surface here"*) and files template path / stuff id / mixin
-composition under a **future admin surface** that does not exist. Author-side
-visibility is shipped; player-side is a design intention the card currently
-refuses. The author half is the half that carries the argument.
-
-**The gate that makes three states safe** is `check-perishable` with the
-nouns swapped: *a species authored with a domesticability value, on a class
-that cannot hold regard, fails CI.* Same failure shape (enabling data that
-silently does nothing), same fix, and this time the assertion is falsifiable
-so the gate has something to bite.
+*Shipped 2026-09-17 (MR !257): the bond composes per class (`KeptAnimal`), a pet is a keyed clone and naming is the promotion, `key`/`[mine]` are the query axes → [pets.md § The shape of it](../../subsystems/pets.md#the-shape-of-it) · [§ Persistence](../../subsystems/pets.md#persistence--the-containable-remembers-the-room-does-nothing). What remains of this section is the one undecided half below.*
 
 ### ⭐⭐ DECIDED — Extras hold no beliefs; the INSTITUTION holds the opinion
-
-Non-singletons do not get personal memory. This is not a new position —
-`Extra.ts` already says it:
-
-> ⚠ **A role-filler still has a personality**, and it reads the same as
-> anyone's — `dispositions:` stays on `BehavedMixin`, which both rungs
-> carry. **It simply never changes: a role is a mask, not a life.**
-
-An Extra's disposition is authored and static, and `Extra.ts` files animals
-at that rung by name (*"A rangy grey wolf"*).
 
 The city-watch case — *to affect one is to affect all* — is real and wanted,
 but it must **come through in the abstraction** rather than emerge from a key
@@ -1040,117 +838,6 @@ already the answer to *"who answers for you"* and already how an Extra's
 harms are attributed, precisely because an Extra has no person to attribute
 to. Making it carry the *opinion* as well is symmetric: **the Watch's regard
 for you, held by the Watch, read by any watchman** — legible as a sentence.
-
-⚠ **Status: latent, not live.** Four `Extra` rows exist tree-wide (a sentry,
-a wolf, a hewer, a canary) and none runs regard-writing dialogue; the two
-rows that do (Katie, Remy) are both `Cast`, hence singletons with durable
-identity. Pets is what would have walked into this.
-
-### ⭐⭐⭐ DECIDED — a pet is a KEYED CLONE, not a minted singleton
-
-The question: where does the state that makes an animal *yours* live?
-
-**Do not generalize from `Avatar`.** Its `templatePath`-as-identity predates
-`identityPath` and was generalized afterwards, and `Persistable.ts` carries
-three Avatar carve-outs (its own logout capture seam, an explicit *no* to the
-shutdown sweep so it does not race itself, `isGuest` opt-out). It is the
-worst thing in the tree to pattern-match on, and is itself a candidate for
-conforming to a general pattern later.
-
-⚠ **Identity and durability must arrive together, or neither.** A unique
-`asIdentityPath` on a non-durable clone is worse than nothing: the belief
-write-through keys on `getIdentityPath()`, so the animal would begin writing
-durable belief documents while the animal itself evaporates at reboot —
-accumulating orphan records keyed to dogs that no longer exist, with nothing
-to reap them.
-
-**The shape chosen is the one already shipped twice.** `setPersistenceKey`
-documents both instances in a sentence: an explicit key means *"this host is
-one of many,"* and the examples are **a leased dorm room's unit parcel** and
-**a cultivated plant's uuid**. `isPersistenceKeyExplicit()` exists to tell
-multi-instance from singleton; the nested capture already emits `{ref, key}`
-against a bare `{ref}` off it. **A pet is the third instance of that.**
-
-**And the coordinator exists too.** For movables it is not a warren, it is
-the **estate** — furnishing's owner-based persistence, where a good persists
-with its *owner* and is re-cloned *as* its owner. A pet is chattel already,
-so it is an owned good and needs no coordinator invented for it.
-
-**Rejected: seed + sparse overlay** (`HeadSeed`'s model — *"identity is
-earned by being measured"*). It is the right model for a herd and the wrong
-one here, for two reasons:
-
-- **Overlay size.** A head's overlay is small (it sickened, it was drafted).
-  A pet's overlay is *most of what the animal is* — name, bond, transcript,
-  who it remembers. Pushed far enough the overlay **is** the animal, and it
-  is a keyed snapshot with an extra indirection.
-- **MQL invisibility** (below). A herd can afford it because the *herd* is a
-  present object with heads inside it. A stray dog in a square has no
-  container coordinator, so seed-only means it is not in the room at all —
-  nobody can `look` at it, let alone query it.
-
-> ⭐ **The rule: a stray is an ordinary UNKEYED clone. Taming adds the key.**
-> Cheap, fully visible, no persistence, no mint, no singleton, no row. The
-> promotion is *clone → keyed clone*, not *clone → singleton* and not
-> *seed → snapshot*.
-
-This is also why the **dub verb is the promotion**, not a cosmetic: naming is
-the act that makes the animal one-of-many-that-is-specifically-yours, and
-therefore the act that earns it a record.
-
-⭐ **Consequence for the bond:** the pet's regard *for you* is the pet's own
-state and belongs in its capture. The belief store's per-viewer keyed bag is
-for **identity memory**, which is the other direction (you→it) and may not be
-needed at all — a dubbed pet's name is public on `NamedMixin`, not a
-per-viewer `knownAs`. Requirements should settle whether the pet needs a
-keyed map (it knows its owner, the family, the stranger who kicked it) or a
-scalar; *"reuse the bond, don't mint a stat"* survives either way.
-
-### ⭐⭐ The MQL contract — queryability does NOT depend on identity path
-
-Identity path is not a narrowing axis at all. The closest is *lineage*.
-
-| atom | narrows on |
-|---|---|
-| `template.X` | cloned from template path X — **glob-aware** |
-| `mixin.X` | composes mixin X |
-| `class.X` | instanceof |
-| `keyword.X` | has keyword |
-| `prop.K` | property value |
-| **`key`** | **the object's explicit persistence key** |
-| `address` | declared Locality address |
-
-⭐ **`key` is the keyed-instance axis, and it was built for exactly this
-case** — the grammar defines it as *"the object's explicit persistence key —
-the keyed-instance axis a holding's rooms are recorded under; `undefined` for
-an unkeyed object, so `[key = …]` never false-matches."* Implemented in both
-parser and resolver, not doc-only. So **a non-singleton is fully queryable**:
-
-```
-world:[mixin.Companion]            every pet in the world
-peers:[mixin.Companion]            pets in this room
-world:[key = 'abc-123']            this specific animal
-/trade/ranching/agent/farm-dog/*   every collie, by lineage
-```
-
-**How the rest of the family interoperates** — three storage shapes, three
-answers, and the middle row surprises people:
-
-| storage shape | examples | MQL |
-|---|---|---|
-| Stuff + keyed snapshot | cultivated plants, a holding's rooms, **pets** | ✔ visible; `mixin.X` + `[key=…]` |
-| **Document** | herds, water rights, bills of lading, rate cards | ✘ **not queryable at all** — MQL is over Stuff |
-| **Seeded, unmeasured** | heads before `draft`, deposit samples, ground character | ✘ **invisible by construction** — not in the registry |
-
-⚠ **The herdbook is not MQL-able.** Herds are filed records read through
-their register; no query reaches them. Know this before designing a verb that
-assumes otherwise.
-
-⚠ **Do not infer "is it tamed" from key presence.** `has` is a documented
-no-op outside `prop.K`, so key-presence is not cleanly testable in the
-grammar — and inferring state from storage is the same dishonesty the
-city-watch decision rejects. Tamed is a mixin or a property, so the query
-language can see it and the abstraction carries it.
 
 ---
 
@@ -1170,11 +857,6 @@ punchline:
 
 ### Structural gaps (design-worthy, broadly reusable)
 
-> **Status update 2026-07-30 (verified against the code): two of the three are
-> now closed or nearly so.** Chattel shipped and answers possession; the
-> persistence spine grew multi-instance keyed hosts. Only the **fear/threat
-> axis** remains a genuine structural gap. Rows updated in place.
-
 | Gap | What's actually missing | Forced by | Who else wants it |
 |---|---|---|---|
 | ~~**Possession / property**~~ **CLOSED** | Chattel shipped 2026-07-23 (`chattel` / `chattel_events`, `ownerOf = stamp ?? authorOf`, chain-of-title). Remaining work is **one composition line** — `ChattelMixin` onto the Creature stack. See the custody section above. | — | — |
@@ -1193,11 +875,6 @@ punchline:
 
 ### Lighter tier (self-contained, or just wiring)
 
-- ~~**Maturation** (kitten→cat): GAP.~~ **CLOSED 2026-09-06 by farmstead**,
-  exactly as predicted — forced by ranching (calf→cow), inherited free.
-  `ageCurve` is a real authorable field, `lifeStageAt` and `massAt(ageDays)`
-  ship and are read. ⚠ The 07-30 verification (*"`setAge` has zero callers
-  anywhere; `ageCurve` is a reserved comment"*) is **stale — do not cite it.**
 - **Spawning / population**: GAP — hand-placed seeds only; `PopulatesMixin` is
   "future." Wild taming needs supply. Already on the radar (spawn-distribution).
 - **Wiring, seams present**: a `follow` brain (+ the arrival/departure witness
@@ -1213,118 +890,13 @@ punchline:
 
 ### Not a gap — a design decision
 
-⚠⚠ **SUPERSEDED 2026-09-08** — see § *the bond composes per CLASS*. Retained
-because the observation was right and only the conclusion was wrong.
-
-~~**Tameable fauna must be `Character`-tier.**~~ It remains true that a bare
-`Creature` cannot hold an attitude toward anyone, and that everything a
-tameable animal needs is *bundled* at `Character`. What does not follow is
-that a pet should therefore BE a `Character`: that stack also drags in
-`CasterMixin`, `VocalMixin` and `EmployedMixin` — a sheepdog that can cast
-spells, speak, and hold a job.
-
-The capability composes **per class, where the concept is true**, on the same
-idiom as `Livestock`+`ProducingMixin` and `WorkingAnimal`+`HandlingMixin`.
-Tameable animals are ordinary `Creature`s that compose what they need;
-ambient critters compose nothing and are `null` on the question, not `false`.
-
-## The custody edge — **RESOLVED 2026-07-30: it's chattel**
-
-> **The sketch below (`CompanionMixin` + `ownerPath`) is RETIRED.** Chattel
-> shipped 2026-07-23 and is the possession answer. Verified in code:
-> `ChattelMixin` is composed in exactly one place (`lib/stuff/Thing.ts`), and
-> `Creature` descends from `Agent`, not `Thing` — so no animal can be owned
-> today; `ChattelApi.stamp` would refuse a pet. But the chattel gate is
-> **structural** (`MixinApi.isChattel`), not tier-based, so:
->
-> **Adding `ChattelMixin` to the Creature stack gives pets, livestock, and
-> aquaculture per-instance ownership with chain-of-title, from shipped code.**
->
-> A bespoke `CompanionMixin` would be exactly the pet-shaped custody edge this
-> slate's own guardrail warns a hundred cattle can't reuse — and the property
-> slate already classes a pet as chattel ("real property bottoms out at the
-> zone; everything finer is chattel or slots"). See
-> [chattel.md](../../subsystems/chattel.md) + [ranching-slate §
-> Custody](./ranching-slate.md).
-
-What survives from the original sketch is the *semantics*, which chattel already
-honors: custody (a claim) stays orthogonal to bond (a feeling) — a stray can
-adore you without being yours; a neglected pet is legally yours until the bond
-floors out and it runs feral. The owner's roster stays **derived on read** (MQL
-over the registry), not a live-ref list. A `homePath` is still pet-local and
-still wanted; that's a field, not a possession primitive.
+*Superseded — tameable fauna are NOT Character-tier; a `KeptAnimal` is a `Creature` that composes the bond → [pets.md § The shape of it](../../subsystems/pets.md#the-shape-of-it).*
 
 ## Sibling consumer — livestock & ranching
 
-> **Family placement (2026-07-30).** Pets and ranching share *substrate* (an
-> owned, individually-identified animal) but **not experience**, and the [guild
-> roster](./guild-slate.md) already drew that line: **the Grange** holds
-> "cultivation, soil, husbandry + breeding, genetics" — farming *and* ranching
-> as one vocation — while **taming** belongs to **the Wardens**, whose demand
-> anchor is "the pet supply chain." Ranching's real design family is
-> farming/fishing/mining (the production family). The goal is **one shared
-> substrate under two distinct experiences**: where pets and ranching touch
-> (custody, the clock, maturation, persistence, the genome) they must be
-> *identical*; where they part (bond vs yield) they part completely. The full
-> convention set lives in [ranching-slate § The five shared
-> conventions](./ranching-slate.md).
-
-Pets are not the only consumer of "owned animals." **Livestock/ranching is the
-sibling** (see [ranching-slate](./ranching-slate.md)), and the two diverge along
-lines the engine already draws:
-
-| Axis | **Pet** | **Livestock** |
-|---|---|---|
-| Engine tier | `Character` (rich) | `Creature` (thin) |
-| Content stance | individual **carve** | systemic **herd** |
-| Relationship | **bond** (regard) — *won over* | **yield** — *managed resource* |
-| Domesticability | mid — needs the encounter | max — born owned, no encounter |
-
-The Creature/Character split **is** the livestock/pet split (resource vs
-relationship), and **domesticability is the single axis spanning wild → pet →
-livestock.** They share a husbandry base — **custody/possession, vitals +
-metabolism, domesticability + maturation, husbandry-grade persistence, and the
-`Business`/labor wrapper** — and diverge only at the top: pets add bond +
-taming; livestock add yield/breeding/butchering.
-
-**Design consequence for this slate:** the shared bits must be built **reusable
-by a herd, not pet-specific** — don't build a custody edge a hundred cattle
-can't reuse. As of 2026-07-30 each has a named shared answer:
-
-| Shared bit | The answer (not pet-specific) |
-|---|---|
-| custody | `ChattelMixin` on the Creature stack ([chattel.md](../../subsystems/chattel.md)) |
-| individual persistence | a keyed `PersistableMixin` host — `(scope, key)` shipped with the dorm room |
-| the clock | one uniform model: owned things run on world time, the avatar on played time |
-| domesticability | a `Species` data field (one axis: wild → pet → livestock) |
-| maturation | the `age`/`lifecycleState` driver — a real gap, forced by ranching (calf→cow) |
-| genetics | the husbandry-wide `Genome` layer farming owns; four consumers |
+*Superseded by what shipped: livestock / working animal / pet are three ROLES on one substrate, not a Character/Creature tier split → [ranching.md § Three ROLES, not three kinds of object](../../subsystems/ranching.md).*
 
 ## Build waves (re-sequenced)
-
-**Wave 0 — Clear the ground. [ADDED 2026-09-08]**
-
-Three defects found by *reading* during the design session, none of them
-pet features, all of them on this build's critical path. Each is the
-house failure mode — **a producer that produces into a void, with no
-error** — and each is small.
-
-| | the defect | the evidence | why it blocks pets |
-|---|---|---|---|
-| **D1** | ⭐⭐ **NPC regard is write-only.** The write path is already viewer-agnostic (`viewerKey()` is `getIdentityPath()`, any Stuff persists) — but `hydrateBeliefs()` has **exactly one caller in the tree**, `Avatar.ts`. | every `npc.adjustRegard(player, …)` in `DialogueConversation` is written to Mongo and never read back; each NPC's opinion of you is reconstructed as **zero** on every reboot | the bond IS regard. A bond that resets on reboot is not a bond. **Fixes every NPC in the game, not just pets.** |
-| **D2** | ⭐⭐ **`[mine]` is a hard-coded `return false`.** A registered MQL predicate that answers *no* unconditionally. | `isMine()` in `api/mql/predicates.ts`; the grammar doc still says *"owner-tracking is stub today"* — but chattel shipped 2026-07-23 with `ownerOf` + chain-of-title, and furnishing added the parcel rung | `my pets` is **the** query for this feature. Today `world:[mine]` returns nothing, silently. Fix is `ChattelApi.ownerOf` against the giver. |
-| **D3** | **Extra regard aliasing.** `getIdentityPath()` falls back to `getTemplatePath()`, so every clone of a row shares one belief record — *"affect one, affect all"* by key collision rather than by design. | latent, not live: 4 `Extra` rows tree-wide, none writes regard; Katie + Remy are `Cast` | pets is what walks into it. Close it deliberately per § *Extras hold no beliefs* — either no memory, or the institution holds it. |
-
-> ⚠ **D1 and D2 are both "the enabling data has been there for months and
-> nothing reads it."** Same class as `eat` shipping with no affordance,
-> `feel`/`taste` never having run, and `check-perishable` passing
-> everything for the three days between it shipping and anyone driving it. The lesson keeps arriving: **missing wiring
-> fails closed and silent**, so the only defence is a reader that
-> actually runs.
-
-→ *ships nothing player-visible on its own, and leaves the tree
-measurably more honest than it found it.*
-
 
 **Wave 1 — The companion. Both on-ramps, plus what the clock now forces.**
 *(Restructured 2026-07-31.)*
@@ -1352,13 +924,6 @@ too) and they land different emotional registers.
 **Still dodges** the fear axis (domesticated animals and strays have no fear
 baseline to manage) and manner-of-approach — Wave 2's job, and now the *only*
 heavy substrate this wave avoids.
-
-*(2026-07-30 — the two "cheap answers" this wave originally planned are replaced
-by the shared ones at comparable cost: custody is `ChattelMixin`, not a
-`documents` owner field; persistence is a keyed `PersistableMixin` host, not a
-new `documents` kind; and there is no owner-proxy freeze. The shared route costs
-about the same and is the difference between a herd being able to reuse this and
-not.)*
 
 → *proves companion + care + the bond-gates-obedience spine — and proves it
 **harder** than the shop alone would, because adoption makes bonding **precede**
@@ -1428,5 +993,4 @@ economy vein (shop-theft, once possession lands); multiplayer interaction
 - **Reuse the bond, don't mint a stat.** The bond is `regard`. Resist a parallel
   "loyalty" field — care, recognition, and the reputation substrate already
   model it.
-- **Tameable fauna are Character-tier carves.** Don't try to make thin
-  `Creature`s tameable; that fights the design of the Creature/Character split.
+- ~~**Tameable fauna are Character-tier carves.**~~ *Superseded — see [pets.md § The shape of it](../../subsystems/pets.md#the-shape-of-it).*

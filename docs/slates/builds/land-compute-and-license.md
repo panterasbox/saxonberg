@@ -1,35 +1,25 @@
 # Land, Compute & License (design doc)
 
-> **Status: PARTIAL** — the land half (parcel title, the three
-> path-addressed trees, path-scoped access) ships →
+> **Status: PARTIAL** — the land half (parcel title, the path-addressed
+> trees + `/studio`, path-scoped access) ships →
 > [parcel.md](../../subsystems/parcel.md)
 > **Left:** compute metering and the entitlement function (quality vs
 > demand weights) · the per-citizen or per-parcel compute floor · the
-> license regime (author's-choice licensing + the visibility floor) ·
-> the takings / eminent-domain path private→public
+> capacity door + the admission taxonomy (instanced / ticketed) ·
+> subsidiarity (delegated sub-allocation below the top-level seam) ·
+> Level 2 sharding · the license regime (author's-choice licensing + the
+> visibility floor; the AGPL §7 composition exception — `LICENSE` is
+> plain AGPL-3 today) · the takings / eminent-domain path private→public
 > **Size:** a build
 
-> **Status: design capture, not built.** Records the 2026-07-16 design session on
-> the property/federalism/compute/licensing model. Deepens and connects several prior
-> threads — see [cooperative-slate.md § The money membrane](./cooperative-slate.md)
-> (economy), [§ How territory is held](./cooperative-slate.md) (tenure floor), and the
-> memory notes `property-substrate`, `tenure-federalism-resolution`,
-> `residential-realestate-progression`, `content-packs-slate`. Nothing here changes
-> shipped code; it's the conceptual + mechanism design behind the compute economy and
-> the license regime. **The video treatment is manifesto `rerecord-appendix-b.md`
-> ("The Land")** — a *descriptive/anthropological* appendix, downstream of
-> `rerecord-appendix-a.md` ("Ratification & the Dials"), since most of what's here is a
-> dial a community sets at ratification.
->
 > **The spine:** *the same public/private structure appears three times — in the land,
 > in the compute, and in the license — because they're one system seen three ways.*
 
 ## Movement 1 — The land is the code
 
-- **The land = the code/data namespace** — the three trees (source / templates /
-  documents), carved into **parcels** (the shipped parcel-title substrate:
-  `subdivide` / `parentParcel` / `PathTrie` longest-prefix). A parcel is a titled
-  patch of the namespace.
+- ✅ **The land = the code/data namespace, carved into titled parcels** —
+  shipped: [parcel.md](../../subsystems/parcel.md); the namespace kinds in
+  [document-store.md](../../subsystems/document-store.md).
 - **A parcel carries three independent things:**
   - **title** — who owns it: personal / group / commons.
   - **compute** — its meter, from birth (see Movement 2). *Compute rides on the
@@ -60,9 +50,9 @@
   ownership question, not a new kind of land); (b) Lockean homestead = a
   *compute-allocation regime* (a module — see Movement 2), because the namespace isn't a
   fixed pie (it's infinite); the scarce thing is the compute, not the land.
-- **Group-WIP organization** (a dedicated `/studio/<id>/` branch vs. the general tree +
-  an owner tag + search) is an **implementation detail** — deferred, doesn't change the
-  model. `/home/` is always personal.
+- ✅ **Group-WIP** shipped as `/studio/<group>` — the multiseat `/home`
+  ([document-store.md § The four namespace kinds](../../subsystems/document-store.md));
+  `/home/` stays personal.
 
 ## Movement 2 — The scarcity is compute
 

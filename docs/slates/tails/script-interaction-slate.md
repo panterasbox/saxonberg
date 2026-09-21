@@ -3,10 +3,16 @@
 > **Status: UNBUILT** — the inbound-sequencing half is fixed and shipped
 > (`ConnectionApi.sequenceInbound`); this half is untouched, so a
 > script's prompting command still silently takes the fallback branch.
+> Code-verified 2026-09-19: `PromptApi` still takes `interactive` as a
+> required parameter with no refusal path; 20 `context.interactive`
+> branches remain in controllers (`WikiController.ts:886` among them);
+> the only no-Interactive policy that exists is the accept-time
+> cardinality degrade (`prompt.md`, *degrades to an ambiguity error*).
 > **Left:** the fail-closed guard when a controller would prompt with no
-> `interactive` · the sweep of existing fallbacks, one commit per
-> subsystem · scripts declaring their inputs up front (and pre-resolving
-> an MQL disambiguation) · the NPC variant, routed to `DiagnosticApi`
+> `interactive`, naming the missing input · the sweep of existing
+> fallbacks, one commit per subsystem · scripts declaring their inputs up
+> front (and pre-resolving an MQL disambiguation — a language change) ·
+> the NPC variant, routed to `DiagnosticApi`
 > **Size:** a wave
 
 **Captured 2026-08-04**, out of the wiki build's inbound-sequencing
@@ -73,19 +79,10 @@ The two do share a premise, and it is the useful one:
 
 ## The interaction with `--async` / `--sync`
 
-Recorded because it is non-obvious and cost an afternoon.
-
-The async detach happens at `_executeOne`, **after** everything
-accept-time. So a prompt raised in a controller *body* under
-`async: true` was never in the socket's lane and always worked, while a
-prompt raised at **accept time** (the `confirm-prompt` phase, MQL
-disambiguation) sat inside the lane and deadlocked **regardless of
-mode**.
-
-**`--async` was therefore an accidental workaround for half the bug.**
-If a verb in the tree carries `async: true` with a comment about
-prompts hanging, that flag is cargo-culted around a bug that no longer
-exists and should be re-examined on its own merits.
+SHIPPED · DOCUMENTED — `connection.md` § *Two inbound lanes per socket* carries the
+finding (the detach at `_executeOne` is after accept-time; `--async` was
+an accidental workaround for half the bug; re-examine any `async: true`
+that cites hanging prompts).
 
 ---
 

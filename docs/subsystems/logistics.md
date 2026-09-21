@@ -65,6 +65,21 @@ highway; a path or `GroupRef` is a corpo-run or authority-run lane. Rail
 and the TPA are incumbent networks in this design, and nothing in the
 lane or `Route` shape may assume a player.
 
+⭐⭐ **Why an incumbent, and why no tech ladder.** The realm is
+anachronistic on purpose — a barrow and a locomotive in one room — and
+there is no era gating and no "primitive tech" flag because the modes
+never compete on one axis: **capacity and reach move in opposite
+directions**, so a back reaches everywhere and carries nothing, rail
+carries everything and reaches only the line, and no rung dominates
+another or goes extinct (the railroad does not go to your door). The
+player-operable ladder is the low one — back · cart · wagon · barge —
+**permanently**; rail and the TPA are infrastructure you buy passage on
+and never operate. That sharpens *trades ship medieval* rather than
+contradicting it: the doctrine is about a practitioner's KIT, never the
+world's — you can ride a train without being able to build one. ⚠ The
+one guard: **every anachronism must be economically motivated**; a cart
+beside a railroad doing the same job on the same route is set dressing.
+
 ### Three lanes ship
 
 | key | mode | note |
@@ -183,6 +198,16 @@ because **length here is an event budget, not a metric**: a lonely
 stretch is few rooms and long edges, and coordinates are grid membership
 rather than a distance.
 
+⭐ **Why the number is what it is.** A journey takes time so that there
+is a **window in which the cargo is on the road** and can be taken,
+taxed, inspected or lost — duration is priced in *vulnerability*, never
+in a player's patience. That makes the budget derivable rather than a
+taste call: transit must be long enough that somebody who learns a
+shipment is moving can reach the corridor and act on it. A service never
+has to beat walking for a person; it competes with walking for a person
+carrying forty crates, where walking is impossible — so riding is a
+purchase of comfort and safety, not of time.
+
 **Arrival is a completion**, through `SchedulerApi.complete` — added by
 this build, because `cancel` used to be a sustained engagement's only
 exit and *arriving* and *being stopped* were therefore the same event in
@@ -299,8 +324,39 @@ made `transport` depend on the pack that depends on it.
 sledge ask nothing of anybody, and the handcart is stocked at Terminus
 inside a starting stipend. A labor market whose smallest job needs
 capital is not an entry rung.
+capital is not an entry rung.
+
+⭐ **`teamstering` buys two things, and the split is the standing rule** —
+*competence buys information, not outcomes*. **Information**: `measure
+passage` (*will my rig make that turn*) and `analyze load` (*is what I
+put in it going to ride*) are stanzas on the platform's shipped verbs
+with the trade's controllers behind them, built to the geology error-bar
+ladder — the answer is the same at every band, the confidence is not.
+**Capability**: bigger rigs, through `requiredBand` above — a different
+ACT, never the same act done better; the suite asserts that no conferral
+makes a wagon faster on the same road with the same load. ⚠ Draft animals
+ride this discipline, not husbandry: no shipped Discipline covers animal
+handling.
 
 ---
+
+## The depot: three known things standing where two lanes meet
+
+A depot is not a new kind of thing. `DepotCounter` is an **attendant
+queue** over the trade's **shipment desk** with a `Business` behind it
+holding the positions and the account, and it affords `ship` to whoever
+stands at it — so a second depot in a second town is a row and no pack
+code. `Warehouse` beside it is the **bailee**: `deposit` takes goods into
+store and issues the receipt, and the business named by `baileePath` owes
+the duty of care. ⭐ It sells **one** product — handling, the
+consolidation and break-bulk that has real work to do because the pass
+refuses wheels; storage is the receipt and the DUTY and never a priced
+scarce good (below). ⭐ **It is sited where modes change, not at a hub
+somebody drew**: the Terminus depot stands on the quay where the water
+lane and the wheeled road both reach, and the crossroads is a depot SITE
+with no depot on it. Routing is point-to-point over the graph, and
+consolidation is a decision a hauler makes because it pays, never a
+topology the engine imposes.
 
 ## The paper
 
@@ -417,6 +473,12 @@ depot.
 point the wrong way: *"job"* sounds like employment and *"appoint"*
 sounds ceremonial. It is the reverse — `appoint` fills a seat, `job`
 posts piecework.
+
+⭐ **There is no ghost logistics: every service is a payroll.** The
+carter and the dispatcher are positions with wages on `CarrierBusiness`,
+the warehouseman on the depot's, and the `hauls` brain drives the
+literal verb from a seat. Freight is therefore a *job*, wages are a real
+cost line, and a strike against a carrier actually stops something.
 
 ### The condition vocabulary is CLOSED, and that is the wall
 
@@ -617,6 +679,16 @@ Two shipped, plus the one that was already there.
 ⭐⭐ The two-corridor contrast is D18 made checkable: **length is an event
 budget, not a distance.** *If a corridor has five rooms, five things have
 to be true there.*
+
+End to end the mainland is one walk: newbie-wilds' crossroads hub → the
+yard gate at the Rejection pithead → the tips, **the pass**, the two
+climbs → the valley crossroads → the flats, the drove, the milestone, the
+ford → Wharfside; the estuary towpath runs on below the city to the
+mouth, Hinkley Hills sits up the valley road off Terminus, and Heart's
+Delight's valley gate opens off the crossroads. The Lounge and Saxonberg
+are TPA-only **by design** — Saxonberg is the diegetic seat of the
+Compact, content meant to be built by decree of the pact itself — and
+never join the road.
 
 ### The ford — a road that changes with the season
 

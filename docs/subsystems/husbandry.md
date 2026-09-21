@@ -667,6 +667,14 @@ and the shipped `competence` verb reports its band.
   [pets](../slates/builds/pets-slate.md)' whole divergence.
 - **No automation ladder.** No hired hand, no self-watering pot. Needs the
   employment engine and a production brain (phase 8).
+  ⚠ *Status 2026-09-19:* both prerequisites now exist — the employment
+  engine ([employment.md](./employment.md)) and a production brain
+  (`/trade/farming/behavior/farms`, tested: tends, picks, consigns) — but
+  **no row names the brain** (`farm-hand.yaml` runs `consigns`; the
+  hearts-delight farmer runs `introduces`/`idles`) and nothing lets a
+  player hire a hand for *their* ground. The ladder is unwired, not
+  unbuilt; the design is [farming-slate § Maintenance & the automation
+  ladder](../slates/tails/farming-slate.md).
 
 ---
 

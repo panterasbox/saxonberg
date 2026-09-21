@@ -1,19 +1,15 @@
 # Presence-vs-hollowing slate (working doc) — is anyone home?
 
 > **Status: UNBUILT** — named, not designed; nothing in the tree carries a
-> presence or hollowing state.
+> presence or hollowing state. (Shape (b)'s *death-as-departure* shipped
+> in a different shape — the shade is an `Avatar` subclass between
+> bodies, not a reified inhabitant↔vessel relation:
+> [mortality.md § The shade](../../subsystems/mortality.md).)
 > **Left:** presence-vs-hollow as a physical state on an agent · who
 > perceives it (ESP · the attuned reader dial · sacred instruments) ·
 > binary or degree · the present→hollow transition · the reified
 > inhabitant↔vessel model
 > **Size:** a build
-
-> **Status (2026-07): named, not designed — spun out of the magic-items walk.**
-> A candidate new substrate: **experiential presence vs. hollowness as a physical
-> state of an agent** — *is there an experience here, or is this animate-but-no-one?*
-> It is the **literal physical shadow of the cosmology** (Good = serves
-> experience; Evil = the hollowing). Two independent item consumers converged on
-> it from opposite ends, which is why it's worth a slate rather than a footnote.
 
 See also:
 [story-bible.md](../../story-bible.md) §Evil — the hollowing / §Alignment

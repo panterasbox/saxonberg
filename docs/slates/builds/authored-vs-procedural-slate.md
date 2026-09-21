@@ -1,11 +1,21 @@
 # Authored vs procedural slate — what a hand-placed thing IS
 
 > **Status: UNBUILT** — captured 2026-09-02, not yet designed; named by
-> the user as the major dependency.
-> **Left:** the design pass itself · a `forage`/`gather` verb (none
-> exists) · *cultivated* as a category · a census gate tying a species row
-> to a way to occur · declared (not inferred) spawn suppression in
-> furnished rooms · the fungiculture pack + `LightSourceMixin(Plant)`
+> the user as the major dependency. Code-verified 2026-09-19: the Ferrow
+> `stocks:` table is still inert (`rejection/…/ferrow.yaml:41`, no
+> creature rows carry its keys); the glowcap is still a `PortableLight`
+> fixture with no species link; no fungiculture pack; no
+> `LightSourceMixin(Plant)`. ⚠ A `gather` verb now exists — but it is
+> `trade-ranching`'s egg collection (`cmd/ranching/gather.yaml`), not the
+> wild act; the wild half still has no verb.
+> **Left:** the design pass itself · what a hand-placed ecology member IS
+> (the glowcap: table member or furniture) · a `forage` verb, and whether
+> it differs from `harvest` (`gather` is taken by ranching) · *cultivated*
+> as a category (husbandry.md uses the word only for the durability rule)
+> · a census gate tying a species row to a way to occur (`lint:census`
+> checks path-valued fields only) · declared (not inferred) spawn
+> suppression in furnished rooms · the fungiculture pack +
+> `LightSourceMixin(Plant)`
 > **Size:** a build
 
 > **Status: captured 2026-09-02, not designed.** Forced by the metal
@@ -65,9 +75,8 @@ the honesty rule, and both hold:
 > **A distribution table that is not visible in the prose is a LIE ABOUT
 > THE ROOM.**
 
-The substrate is shipped too — `Biome`'s outward-walking chain, Zone
-field inheritance, `SpatialZone.stocks` / `favours` / `blessingOdds`, and
-`SpawnTable.draw` with its region + affinity weighting.
+(The substrate is shipped and documented: `biome.md`, `zone.md § Declared
+spawn fields`, `residency.md § The sweep is a faucet`.)
 
 ## What it does NOT cover — the actual gap
 

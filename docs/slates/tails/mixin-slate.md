@@ -1,17 +1,22 @@
 # Mixin Slate (working doc)
 
 > **Status: PARTIAL** — most of the register shipped (material, light,
-> locomotion modes, slots, vehicles, glob, surfaces, senses) →
+> locomotion modes, slots, vehicles, glob, surfaces, senses, organism/
+> species, ownership) →
 > [mixins.md](../../subsystems/mixins.md)
-> **Left:** `Invisible` as a perception override · `Sleeping`/`Resting`
-> (sensory cutoff + command gating) · `Writable` · `Mixable` /
-> `Combinable` · smell trails and temporal persistence
-> **Size:** a tail
-
-> **Status: living checklist — ongoing, partially shipped.** Tracks the
-> standing standard-model mixin buildout; many entries are already in the
-> tree (marked `(have)` / "Shipped" with subsystem links). Not a single
-> build — the register of what to commit to next as content pulls it.
+> **Left:** `Invisible` (perception override) · `Sleeping`/`Resting`
+> (sensory cutoff, command-gating, species circadian variance) ·
+> `Writable` · `Pushable`/`Pullable`/`Liftable` · `Steerable`/`Navigable`
+> (vehicles) · smell trails and temporal persistence · the silent-discard
+> gate (authored `data:` key census) · organism tissue-composition (the
+> `material` property) + species host-ranges for state-effect conditions
+> · the § Out for now backlog (combat/wear mixins, NPC automation,
+> university-content mixins, quest, ownership nuances (`Tradeable`/
+> `Bound`), authoring metadata, RPG-stat mixins, need-state mixins beyond
+> Hungry/Thirsty, other status effects, surface decay & phase)
+> **Size:** a tail (the concrete register above) plus a standing backlog
+> (§ Out for now — revisited per-cluster as content demands, not
+> scheduled)
 
 Working slate for the standard-model buildout, post first paring
 pass. Tracks mixins to commit to, properties to expose on `Thing`,
@@ -34,37 +39,19 @@ affordance / state-effect / vehicle layers stay as mixins.
 
 ## Properties on Thing
 
-Pure data — descriptors other mixins query. Available; not all need
-to ship at once.
-
-### Matter & shape
-
-- `mass`, `volume`, `density` (density derivable)
-- `hardness`, `brittleness`, `flexibility`
-- `sharpness` (sharp vs blunt)
-- `material` — `'wood' | 'metal' | 'cloth' | 'glass' | 'stone' |
-  'leather' | 'bone' | 'paper' | 'organic' | …`
-- `color`
-- `magnetic`, `conductive` (thermal / electrical)
-
-### State of matter & surface
-
-- `phase` — `solid | liquid | gaseous`
-- `wet`, `stained`, `soiled`
-- `frozen`, `molten`
-- `temperature` (`hot` / `cold` are bands)
-- `charged` (electrical store as a number)
-- `aged` — accumulated time
-
-### Atmospheric emission
-
-The physics half of perception. The agent-side `Sensor` *(have)* /
-`Vocal` *(have)* read these.
-
-- `audible` — sound emitted (background hum, music)
-- `smelly` — scent
-- `tasty` — flavor when tasted
-- `tactile` — texture distinct from material
+Superseded — shipped, but as richer per-domain substrate rather than
+flat property tags on `Thing`: `material` → the full `Material`
+substrate (density/hardness/toughness/conductivities/heats — see
+[race.md](../../subsystems/race.md)); hardness/sharpness →
+[materials-response.md](../../subsystems/materials-response.md)'s
+`Channel`/`Construction` response function; wet/stained/soiled →
+[textiles.md](../../subsystems/textiles.md)'s soiling seam;
+frozen/molten → [fire.md](../../subsystems/fire.md)'s phase change;
+charged/conductive → [electricity.md](../../subsystems/electricity.md)'s
+Ohm's-law conduction; temperature → [thermal.md](../../subsystems/thermal.md);
+the atmospheric-emission axis → [senses.md](../../subsystems/senses.md)
+(smell trails / temporal persistence are the one piece still open — see
+status block).
 
 ---
 
@@ -73,163 +60,69 @@ The physics half of perception. The agent-side `Sensor` *(have)* /
 ### Affordance / use
 
 The bulk of the standard model — each unlocks a verb / controller.
+Shipped or superseded-by-shipped-substrate: `Wieldable`/`Wearable`
+(embodiment.md + slot.md), `Equippable` (generic slot binding →
+`Slotted`/`Slottable`, slot.md), `Sittable`/`Lieable`/`Standable-on`
+(→ Postured/Posed, posture.md), `Readable` (→ `MarkedMixin`,
+magic-items.md/perceiver.md), `Switchable`/`Toggleable` (→ Switchable,
+boundary.md), `Pourable`/`Mixable`/`Combinable` (→ the bulk fill/pour
+grammar and crafting's discrete-ingredient branch, bulk.md/crafting.md),
+`Stackable` (stacks.md), `Lightable` (→ Combustible's ignition
+threshold, fire.md), `Lockable`/`Keyed` (boundary.md/credential.md),
+`Capacity-bound` (→ derived from mass vs. bearer capacity, never a type
+flag — spatial.md/encumbrance.md), `Surfaced` (spatial.md), `Searchable`/
+`Concealing`/`Hideable` (→ Concealable/Hiding, concealment.md/stealth.md),
+`Portable` (→ the `get`-gates-nothing design; encumbrance is a post-hoc
+consequence, not a pre-gate — encumbrance.md), `Throwable` (→ mass-gated,
+not mixin-gated — ranged.md `throw`), `Tieable` (→ `HaulerMixin`
+hitch/unhitch, conveyance.md), `Hangable` (→ `place`/`hang`,
+furnishing.md).
 
-- `Wieldable` *(have)* — held in a hand slot (weapons, tools).
-  Shipped, slot taxonomy resolved — see
-  [embodiment.md](../../subsystems/embodiment.md) +
-  [slot.md](../../subsystems/slot.md).
-- `Equippable` — generic equipment-slot binding
-- `Wearable` *(have)* — worn in a body slot (head, torso, feet,
-  finger…). Shipped, slot taxonomy resolved — see
-  [embodiment.md](../../subsystems/embodiment.md) +
-  [slot.md](../../subsystems/slot.md). (The hand-slot refinement is now
-  its own separate slate.)
-- `Sittable` / `Lieable` / `Standable-on` — *superseded* by the
-  shipped Postured / Posed posture substrate — see
-  [posture.md](../../subsystems/posture.md).
-- `Readable` — has text content; `read X`
-- `Writable` — can be inscribed
-- `Switchable` / `Toggleable` — on/off (lamp button, radio)
-- `Pourable` — moves liquid into a target
-- `Mixable` — combines with other Mixable contents
-- `Stackable` / `Stackable` *(have)* — fungible, quantity-syntax.
-  Shipped — see [stacks.md](../../subsystems/stacks.md).
-- `Combinable` — recipe input (composes into Crafted)
-- `Lightable` — accepts a flame; transitions to `Burning` /
-  `Lit-source`
-- `Lockable` — extends `Sealable` *(have)*; works with `Keyed`
-- `Keyed` — is a key; matches one or more locks
-- `Capacity-bound` — extends `Container` *(have)* with volume /
-  weight limits
-- `Surfaced` *(have)* — distinguishes "on" from "in" (`put X on
-  table` vs `put X in chest`). Shipped (`lib/spatial/Surfaced.ts`) —
-  see [spatial.md](../../subsystems/spatial.md).
-- `Searchable` — `search` reveals concealed contents
-- `Concealing` — hides contents from `look`
-- `Hideable` — can serve as a hiding spot for an avatar
-- `Portable` — small enough to carry (gates `get`)
-- `Pushable` / `Pullable` / `Liftable`
-- `Throwable` — can be hurled at a target (consumes `mass`)
-- `Tieable` — accepts ropes / leashes
-- `Hangable` — can hang from a hook / from another thing
+Still open:
+
+- `Writable` — can be inscribed. No shipped equivalent.
+- `Pushable` / `Pullable` / `Liftable` — no shipped equivalent.
 
 ### Light family
 
-Real state machines, separate mixins:
-
-- `LightSource` *(have)* — emits light. Composes with anything; the
-  emitted Light value is configured per-instance at template time.
-  Persistent: `emittedIntensity` + `emittedColor` scalars (per the
-  scalar-default rule). See [docs/subsystems/light.md](../../subsystems/light.md).
-- `AmbientLit` *(have)* — inherent ambient light a Container exposes
-  regardless of contents. Composed onto outdoor / luminous-moss
-  rooms. Same scalar shape.
-- `Combustible` — will accept ignition; carries fuel rating
-- `Lightable` — accepts a flame
-- `Burning` — currently on fire; ticks, burns down, can spread
-
-Cross-room channels (windows, doors that block light) are handled
-by the Boundary substrate (`Adornable` *(have)* + `Adornment` *(have)*
-+ `Boundary` + `BoundaryAnchor` + `Conduit` interfaces). `Window`
-and the retrofitted `Door` are the v1 Boundary users. See
-[docs/subsystems/light.md § Boundary Substrate](../../subsystems/light.md#boundary-substrate).
+Shipped as a unit — `LightSource`/`AmbientLit` plus `Combustible`/
+`Burning` (fire.md) and the cross-room Boundary channels (`Adornable`/
+`Adornment`/`Boundary`/`BoundaryAnchor`/`Conduit`, `Window`/`Door`) —
+see [light.md](../../subsystems/light.md) and
+[light.md § Boundary Substrate](../../subsystems/light.md#boundary-substrate).
+`Lightable` did not ship as a separate mixin — ignition is
+`Combustible`'s own threshold (`autoignitionTemperature`), and a
+switchable light source (`PortableLight`) composes `LightSource` +
+`Switchable` instead.
 
 ### Vehicles
 
 Compose with existing `Vessel` *(have)* / `ExitableVessel` *(have)*.
+`Mountable` / `Drivable` shipped — see
+[conveyance.md](../../subsystems/conveyance.md).
 
-- `Mountable` *(have)* — composes with `Vessel` for a ridable
-  creature / vehicle. Shipped — see
-  [conveyance.md](../../subsystems/conveyance.md).
-- `Drivable` *(have)* — accepts a driver who steers it. Shipped — see
-  [conveyance.md](../../subsystems/conveyance.md).
 - `Steerable` — can be aimed by a driver
 - `Navigable` — long-distance / route-planning capable
 
 ### Status effects *(on Shadow infra)*
 
 The non-game-y subset — these don't presuppose stats / health /
-combat.
+combat. `Poisoned`/`Diseased` shipped as the generic
+`ConditionApi`/Condition substrate (harm.md), richer than a per-effect
+mixin; `Cursed`/`Blessed`/`Uncursed` shipped as `Blessable`'s BUC axis
+(magic-items.md); `Hidden`/`Stealthing` shipped as `Concealable`/
+`Hiding` (concealment.md/stealth.md).
 
-- `Poisoned` — accumulating effect; ticks
-- `Diseased` — persistent affliction
-- `Cursed` / `Blessed` / `Uncursed` — three-way state on items or
-  avatars
 - `Invisible` — perception override
-- `Hidden` / `Stealthing` — concealment vs active stealth
 - `Sleeping` / `Resting` — sensory cutoff and command-gating
 
 ---
 
-## Open design threads
-
-### Material — shipped as a substrate
-
-Shipped — `Material` landed as a full substrate (not the tiny
-property-table envisioned here); see [race.md](../../subsystems/race.md).
-The original design sketch follows for the record.
-
-Property on `Thing`, not a mixin — `material: 'wood' | 'metal' |
-…`. The behavioral consequences ("wood burns, metal conducts, glass
-breaks") are *defaults* that other mixins lift from `material`
-unless overridden:
-
-- `Combustible` defaults `combustibility = true` for wood / paper /
-  cloth / organic, `false` for metal / stone / glass.
-- `Conductive` (if it ever comes up) defaults from material.
-- `Breakable` (if / when) defaults shatter behavior from material.
-
-Implementation: a tiny `MaterialApi` returning the default tables.
-A typed accessor surface `Materialed` mixin only if we find we need
-methods rather than a property read — currently I don't see one.
-
-Material doesn't change at runtime in any case I can think of; "wet
-wood" is still wood with `wet: true`.
-
-### Light — landed; documented in [docs/subsystems/light.md](../../subsystems/light.md)
-
-The Light & Boundary subsystem shipped. Summary of what exists:
-
-| Concern | Form | Status |
-|---|---|---|
-| `LightSource` | mixin | *(have)* — emits light. Strict
-runtime API takes a `Light`; persists scalars `emittedIntensity` +
-`emittedColor`. |
-| `AmbientLit` | mixin | *(have)* — inherent ambient on Containers.
-Same scalar shape. |
-| `LightApi.lightAt(loc)` / `bandAt(loc)` | API query | *(have)* —
-depth-bounded recursive walk, fully lazy. |
-| `LightApi.perceivedBand(viewer, loc)` / `canSee` | viewer-aware | *(have)* — Shadow seam for per-viewer overrides. |
-| Boundary substrate (`Adornable`, `Adornment`, `Boundary`, `BoundaryAnchor`, conduits) | mixins + classes | *(have)* — windows / doors block channels. |
-| `Combustible` / `Lightable` / `Burning` | mixins | deferred — fire mechanics not in v1. |
-
-### Climbable & locomotion modes — shipped
-
-Shipped: `Climbable` / `Swimmable` / `Flyable` landed with **Path 2
-(locomotion-mode pluralism)** chosen — see
-[locomotion.md](../../subsystems/locomotion.md). The design discussion
-below is kept for the record.
-
-Not punted — but it's the test case for a small design pass first.
-
-Today, `Mobile.traverse(exit, mode)` is the locomotion entrypoint;
-`mode` resolves from the `movement.defaultMode` setting. A
-`Climbable` thing introduces *non-exit traversal* — `climb tree`
-moves you to a different containment scope without going through an
-`Exit`. Two paths:
-
-1. **Synthetic exits**. A `Climbable` exposes itself as an
-   `Exit`-shaped surface to the locomotion system. Cleanest, reuses
-   existing dispatch.
-2. **Locomotion-mode pluralism**. Traversal targets either an
-   `Exit` or a `Climbable` (or `Swimmable`, `Crawlable`, `Flyable`,
-   `Squeezable`); `mode` selects the gate. More invasive but gets
-   swim / crawl / fly for free.
-
-Path 2 is more interesting for the world we're building. Worth a
-proper design conversation before any mixin lands. Climbable is
-the forcing function but the design covers the whole locomotion
-axis.
+Open design threads (Material, Light, Climbable-and-locomotion-modes)
+all shipped — see [race.md](../../subsystems/race.md) (Material
+substrate), [light.md](../../subsystems/light.md) (Light + Boundary),
+[locomotion.md](../../subsystems/locomotion.md) (mode-aware movement,
+the locomotion-mode-pluralism design chosen over synthetic exits).
 
 ---
 
@@ -246,19 +139,12 @@ built **neutral** to its eventual shape — no global slot enums, no
 "all agents are organic" assumptions, no single-material body
 composition baked into properties.
 
-**Item / behavior mixins whose actor side is species-gated:**
-
-- `Wearable` / `Equippable` — slot taxonomy comes from species
-  body plan. Don't ship a global slot enum; defer slot-set design
-  until body plans land.
-- `Wieldable` — needs prehensile appendages; species-gated on the
-  wielder.
-- `Mountable` — only organic species with saddleable body plans;
-  inorganic mounts go through `Vessel` *(have)*.
-- `Edible` — what counts as edible depends on the eater's diet
-  (carnivore / herbivore / omnivore) and species-specific
-  toxicity. Pedagogically high-value.
-- `Drinkable` — same diet / biology gating; salinity etc.
+Item/behavior species-gating (Wearable/Equippable slot taxonomy from
+body plan, Wieldable's prehensile-appendage gate, Mountable's
+saddleable body plans, Edible/Drinkable diet gating) all shipped —
+`BodyPlanSlotsMixin` derives the slot universe from species → body
+plan (slot.md/embodiment.md); `DietApi`/`mustBeEdible` gate `eat`/
+`drink` (metabolism.md/bulk.md).
 
 **State-effect mixins that only apply to organisms:**
 
@@ -268,12 +154,11 @@ composition baked into properties.
   (diurnal / nocturnal / crepuscular). Constructs have a parallel
   `Powered` / `Recharging` story, not this one.
 
-**Currently-deferred mixins also organism-shaped:**
-
-- `Hungry` / `Thirsty` — organism needs; constructs consume power
-  instead.
-- `Aged-in-game-time` — life stages, species lifespans.
-- `Mortal` — biological vs. structural failure modes.
+`Hungry`/`Thirsty`, `Aged-in-game-time` (life stages, species
+lifespans) and `Mortal` all shipped — see
+[metabolism.md](../../subsystems/metabolism.md) (hunger/satiety),
+[race.md](../../subsystems/race.md) (`bornAt` + species `ageCurve`),
+[mortality.md](../../subsystems/mortality.md) (the dying arc).
 
 **Property that gets richer for organisms:**
 
@@ -281,15 +166,6 @@ composition baked into properties.
   the property grows a tissue-composition shape, or `Organism`
   overrides material handling with a body-composition map. Decide
   alongside the body-plan design.
-
-**Mixins explicitly neutral to `Organism`:**
-
-- `Container` / `Capacity-bound`, the light family,
-  `Cursed` / `Blessed` / `Uncursed`, `Invisible`,
-  `Hidden` / `Stealthing`, `Lockable`, `Keyed`, `Readable`,
-  `Writable`, `Searchable`, `Surfaced`, `Sittable` /
-  `Lieable` / `Standable-on`, `Pourable`, `Stackable` /
-  `Stackable`. None care whether the actor is organic.
 
 ---
 
@@ -341,97 +217,27 @@ revisit we know what changed.
 
 ---
 
-## Sample compositions
-
-Concrete inhabitants of the sample area, expressed as their mixin
-stack + relevant property tags:
-
-- **Apple** — `Thing` + `Named` + `Visible` + `Edible` +
-  `Portable`; properties: `material: 'organic'`, `mass`, `volume`
-- **Candle (lit)** — `Thing` + `Named` + `Visible` + `Portable` +
-  `Combustible` + `Lightable` + `Burning` + `Lit-source`;
-  properties: `material: 'wax'`, `mass`
-- **Dorm-room key** — `Thing` + `Named` + `Visible` + `Portable` +
-  `Keyed`; properties: `material: 'metal'`, `mass`
-- **Locked footlocker** — `Container` + `Capacity-bound` +
-  `Sealable` *(have)* + `Lockable` + `Surfaced`; properties:
-  `material: 'wood'`, `mass`
-- **Sword on the wall** — `Thing` + `Named` + `Visible` +
-  `Detailed` + `Wieldable` + `Hangable`; properties: `material:
-  'metal'`, `sharpness: 'sharp'`, `mass`
-- **Library book** — `Thing` + `Named` + `Visible` + `Readable` +
-  `Portable`; properties: `material: 'paper'`, `mass`
-- **Brewed tea (in a cup)** — `Thing` + `Named` + `Visible` +
-  `Drinkable` + `Pourable`; properties: `phase: 'liquid'`,
-  `temperature: 'hot'`, `volume`
-- **NPC tutor (Dr. Halley)** — `Agent` + `Character` *(have)* +
-  `Gendered` *(have)* + `Vocal` *(have)* + `Sensor` *(have)* +
-  `Mobile` *(have)*. No automation yet — scripted inline by the
-  area until the behavior layer comes back.
-- **First-floor commons** — `Location` + `Visible` + `Detailed` +
-  `Exitable` *(have)*; ambient light derived via `LightApi`.
-- **Ridable bicycle** — `Vessel` *(have)* + `ExitableVessel`
-  *(have)* + `Mountable` + `Drivable`; properties: `material:
-  'metal'`, `mass`. (Steerable / Navigable not needed for a
-  bicycle.)
-
----
-
 ## Build order — sample-area must-haves
 
 The smallest set that lets the sample area's authored objects feel
-real. Ordered by what unblocks the most authoring at once.
-
-**First wave**
-
-- `Wieldable`, `Wearable` — equipment slots; one of the bigger
-  design choices below them (slot taxonomy)
-- `Edible`, `Drinkable` (with `phase` property)
-- `Portable` — gates `get`
-- `Surfaced` — `on` vs `in` distinction
-- `Sittable` — at least one piece of furniture
-- `Readable` — books, signs, notes
-- `Capacity-bound` (extending `Container`)
-
-**Second wave**
-
-- `Combustible` + `Lightable` + `Burning` + `Lit-source` +
-  `LightApi` ambient query — landed as a unit; designed together
-- `Lockable` + `Keyed` — first lock / first key
-- `Searchable` + `Concealing` + `Hideable` — hidey-holes and
-  searchable furniture
+real. Ordered by what unblocks the most authoring at once. First and
+second wave both fully shipped or superseded (see § Mixins above) and
+are cut here; the design-pass items (Climbable/locomotion pluralism,
+slot taxonomy, vehicles) shipped too — see
+[locomotion.md](../../subsystems/locomotion.md),
+[slot.md](../../subsystems/slot.md) +
+[embodiment.md](../../subsystems/embodiment.md),
+[conveyance.md](../../subsystems/conveyance.md).
 
 **Third wave (handle when content asks)**
 
-- `Hangable`, `Tieable`, `Throwable`, `Pushable` /
-  `Pullable` / `Liftable`
-- `Switchable` / `Toggleable`, `Pourable`, `Mixable`,
-  `Stackable` / `Stackable`, `Combinable`
+- `Pushable` / `Pullable` / `Liftable`
 - `Writable`
 
 **Status effects (when first content needs them)**
 
-- `Cursed` / `Blessed` / `Uncursed` — naturally lands first if you
-  want enchanted items
-- `Invisible`, `Hidden` / `Stealthing` — together
-- `Poisoned`, `Diseased`, `Sleeping` / `Resting` — these all need
-  a tick / scheduling story; consider together
-
-**Design pass before building** — *the three below have all since
-shipped:*
-
-- `Climbable` + locomotion-mode pluralism (the `Climbable` /
-  `Swimmable` / `Crawlable` / `Flyable` axis) — *shipped, Path 2
-  chosen* — see [locomotion.md](../../subsystems/locomotion.md).
-- Equipment slot taxonomy (head, torso, feet, hands, finger,
-  wrist, neck, …) — *shipped, taxonomy resolved* — see
-  [slot.md](../../subsystems/slot.md) +
-  [embodiment.md](../../subsystems/embodiment.md); the hand-slot
-  refinement is now its own separate slate.
-- Vehicles — `Mountable`, `Drivable`, `Steerable`, `Navigable`;
-  the bicycle is a forcing function but the design covers
-  multi-passenger vessels too — *`Mountable` / `Drivable` shipped* —
-  see [conveyance.md](../../subsystems/conveyance.md).
+- `Invisible`
+- `Sleeping` / `Resting` — needs a tick / scheduling story
 
 ---
 
@@ -440,15 +246,9 @@ shipped:*
 Two seams the presentation plan was holding, moved here because both are
 questions about *what a composed class declares*, not about prose.
 
-### A `mass` register
-
-`NounPhrase`'s register vocabulary is closed at three — `proper`,
-`definite`, `indefinite`. Two authored rows are mass nouns (`sodden peat
-ground`, `wet flagstones`) and the sweep marked them `proper` because
-that is the register that emits no article. That is the right rendering
-for the wrong reason. **The vocabulary stays at three until a third row
-wants *"some flagstones"*** — a fourth register is a content-visible
-change and one row does not buy it.
+Resolved — the register vocabulary stayed closed at three; now gated by
+`lint:presentation`'s clause (b) (`docs/subsystems/presentation.md`,
+`check-presentation.ts`).
 
 ### ⭐⭐ The general silent-discard gate — it now has a census
 

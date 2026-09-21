@@ -216,9 +216,14 @@ is dead metal until a new lease re-issues one. The lease is *authority* (the
 right to a key); the **key is access** (bearer possession) — lend it, lose it,
 it just works.
 
-**Authorization** is at `execute()` (the real boundary — a dialogue
-`dispatch` `forceCommand`s the verb, and `forced` bypasses the `requiresWizard`
-validator): allowed iff the actor `isWizard` (operator) **or is an agent of
+**Authorization** is at `execute()`. ⚠ It was placed there on the belief
+that a dialogue `dispatch`'s `forceCommand` bypasses the verb-level
+`requiresWizard` validator — **it does not**: `forced` runs the same
+validators ([npc-dialogue.md § The `dispatch` effect](./npc-dialogue.md),
+proven by experiment 2026-08-04). So Katie's `provision` dispatch is gated
+by a wizard check she cannot pass; the re-gate to the agency axis belongs to
+[wizard-duty-slate § Axis hygiene](../slates/builds/wizard-duty-slate.md).
+The `execute()` rule as written: allowed iff the actor `isWizard` (operator) **or is an agent of
 the dorms owner** — a member of the `duncan-hall` group. The agency check does
 NOT use `AccessApi.can` (it fails closed for NPCs, which have no `playerId`);
 it resolves the owner group ref and checks membership by the actor's `playerId

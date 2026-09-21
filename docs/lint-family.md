@@ -138,13 +138,20 @@ POSITIVE — a violation is found — not merely that a clean tree is clean.
   World-level logic (`Freshness.growthRate`, `CombatNarration.narrate`)
   belongs on a `platform/idea/api/<X>Logic.ts` logic singleton with the
   subsystem's Api forwarding — the split `CLAUDE.md` already calls
-  mandatory. Census-then-ratchet, **ceiling 564** across the kernel's
+  mandatory. Census-then-ratchet, **ceiling 337** (opened at 563; the 2026-09 sweep drove it down — `LIB_STATICS_CEILING`) across the kernel's
   `lib/` and `platform/` plus every pack's `src/`: the population may not
   grow while the sweep moves the world-level half out. ⚠ Statics inside a
   mixin factory's returned class expression are out of scope by
   definition — they are reached through the composed host, which is a
   different question. See
   [value-object-statics-slate](./slates/builds/value-object-statics-slate.md).
+
+**So the ~50 world-level statics in Api-less subsystems stay where they
+are**, and the ratchet stops at ≈50 + the type-level population instead
+of at 0. That is a floor with a name and a reason, not a shortfall:
+`lint:lib-statics` records it, and the number falls to 0 when the
+normalization pass gives those systems faces (from the lib-statics
+dossier, 2026-09).
 
 ## Content, templates & vocabulary
 

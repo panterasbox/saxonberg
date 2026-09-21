@@ -2,44 +2,13 @@
 
 > **Status: PARTIAL** — Track A (frame, start screen, guest, reconnect)
 > shipped → [client-shell.md](../../subsystems/client-shell.md)
-> **Left:** search as a frame primitive (Q3) · the public read-only
-> surface (metrics · overlays · public docs) · the declarative mode model
-> · mode determination (Q1) · the device-local pre-auth tier (Q9)
+> **Left:** search as a frame primitive (Q3 — the CLI half shipped as
+> `recall`; help is not yet a scope) · the public read-only surface
+> (metrics · overlays · public docs) + a read-only session · the
+> declarative mode model (extract at mode #3 — `play` and `build` exist) ·
+> mode determination (Q1) · the device-local pre-auth tier (Q9) +
+> merge-on-login (Q8) · the educational mode row
 > **Size:** a wave
-
-> **Status: Track A lead SHIPPED** (frame replacement + plain-UI start
-> screen + anonymous guest + connection-loss + portrait), built per
-> `docs/requirements/client-shell-frame-requirements.md` /
-> `docs/plans/client-shell-frame-plan.md`; the engine reference is
-> [client-shell.md](../../subsystems/client-shell.md). Resolved & built:
-> the `ConnectionStatus` block is gone; `ConnectionIndicator` +
-> `AccountMenu` (dropdown, distinct exits — Q4) compose the in-world
-> frame; the start screen carries the shared primitives (Q6 → shared
-> primitives, not a shared `Frame`); guest is anonymous + session-only +
-> reserved-word-named; the linkdead client UX is a designed state
-> machine. **Deferred with no v1 content:** the pre-auth / device-local
-> tier (Q9 + the pre-auth section) — the session cookie + server state
-> cover this build; the tier waits for genuinely device-pinned content
-> (per-device perf toggles, a pre-auth theme cache). Still open: search
-> (Q3), mode determination (Q1), the public read-only surface, the
-> declarative mode model. Below remains the full shape.
->
-> **Status: shape proposed.** The architectural layer *above* the
-> cockpit. The client is one core (the command/message bus +
-> subscriptions + design system) wrapped by **surfaces** — distinct
-> front-ends over that bus — and within an interactive surface the
-> chrome decomposes into a thin **frame** (constant, cross-mode) plus a
-> **mode body** (the composed regions for what you're doing). The frame
-> is a small set of **shared primitives composed, not subclassed**:
-> connection indicator, account menu, mode indicator, **search**. Three
-> surfaces: the **game client** (the cockpit + its modes), the **CMS**
-> (sibling authoring shell), and a new **public read-only gamestate
-> surface** (unauthenticated, for OBS overlays + degraded-server
-> metrics). Everything signed-in flows through a **plain-UI start
-> screen** (no diegetic metaphor — the lounge is the first room, always;
-> anything before it is nowhere). The concrete trigger: the live
-> deployment at `mud.panterasbox.com` needs a presentable front instead
-> of the debug `ConnectionStatus` block.
 
 This slate is about how the client *shell* is organized so that many
 functional use-cases — playing, studying, authoring, viewing a stream,
@@ -132,103 +101,21 @@ layout. The game disappears into the world; the CMS is a workbench;
 the public surface is output-only. Forcing one chrome over all three
 compromises all three.
 
-The game and CMS are "separate shells coupled at the authoring seam,"
-not isolated apps — see [cms-slate.md](../builds/cms-slate.md) for the dev-loop
-coupling (one session, two tabs, cross-tab state awareness, gated
-`write` ops). This slate only notes that the **game surface needs an
-author mode** that surfaces authoring/test status (HMR, eval output,
-entity-under-test) and on-the-spot "edit/reload this" affordances —
-the in-game half of that loop. Author chrome is a *reserved seam* in
-the frame, not built first.
-
----
-
-## The frame / body decomposition
-
-Within an interactive surface the chrome is two layers:
-
-- **Frame** — the thin, always-true chrome. Carries only what's
-  constant across every mode of that surface: identity/account,
-  connection awareness, current-mode indicator, search. Small.
-- **Body** — the mode-specific composition of regions (terminal,
-  command bar, inspection card, content/lesson surface, dashboard
-  widgets, stream embed, …) drawn from a shared region library.
-
-This generalizes the cockpit slate's **"always-on minimum"** (status
-header + prompt + input + notification chip): that's the *game
-surface's frame*, scoped to in-world. The shell frame is the same idea
-lifted across the pre-world ↔ in-world boundary and across surfaces —
-and it adds three primitives the always-on-minimum never needed because
-it assumed you were already embodied: an **account menu**, a quiet
-**connection indicator**, and **search**.
-
-The redesign that started this slate is exactly: **replace the
-`ConnectionStatus` block with the frame.** Most of that block is debug
-instrumentation (auth label, WS state, socket id) and just gets
-deleted; the keep-worthy bits (identity, logout, connection-when-
-degraded) become frame primitives.
+The CMS is no longer a separate surface: it is the `build` **mode** of the game surface, its standalone `?surface=cms` takeover retired and its editor, git panel and Studio three cards in one feed → [cockpit.md § Builder = the CMS re-homed](../../subsystems/cockpit.md), [cms.md § The CMS is a CARD now](../../subsystems/cms.md). The author-mode seam this paragraph reserved shipped as that mode.
 
 ---
 
 ## Shared primitives (composition, not inheritance)
 
-Common look-and-feel comes from a small library of **shared primitive
-components** + the design tokens — not from a base layout class that
-modes subclass. Modes *drop in* the primitives they want and arrange
-them. (Inheritance would couple every mode to a base layout's
-assumptions; the OBS overlay needs to take `ConnectionIndicator` and
-nothing else.)
+`ConnectionIndicator` (composed into `ConnectionChip`), `AccountMenu` (a state-polymorphic dropdown with the two exits distinct) and the mode switcher (`ViewsMenu`, current mode marked) shipped as **shared primitives composed, not subclassed** → [client-shell.md § The top bar](../../subsystems/client-shell.md), [cockpit.md § Client registry](../../subsystems/cockpit.md). Still open:
 
-Frame primitives (initial set):
-
-- `ConnectionIndicator` — quiet dot; speaks up only on reconnecting/
-  dropped. The one genuinely **unified** status (it's about the bus,
-  which every authed surface literally shares).
-- `AccountMenu` — identity + account actions. **A dropdown/popover off
-  the identity label from day one** (not inline buttons): the state-
-  polymorphism below shows up immediately once the start screen + guest
-  exist, so the menu container earns its place rather than being N=1
-  speculation. Reserve a **drawer** as the growth path when contents
-  accrete past what a dropdown holds comfortably. Contents vary by
-  state: logged-out → the provider buttons (Google now, Twitch later) +
-  guest; guest → "sign in to save" + leave-world; signed-in → roster /
-  switch-character / settings / leave-world / sign-out. Note two
-  distinct actions worth not conflating: **leave world / switch
-  character** vs **sign out of the account**.
-- `ModeIndicator` — current mode; a switcher only when there are modes
-  to switch (don't build a switcher before there are ≥2 live modes for
-  a user).
 - `SearchInput` — see [Search](#search-as-a-frame-primitive).
-
-**Decouple concern from placement.** "Connection/identity/mode/search
-awareness" is the shared *concern*. Whether it sits in a top bar is a
-per-surface layout decision: the game puts it top; the public overlay
-puts it nowhere; a streamer dashboard might put it in a sidebar. So
-"is it always a top nav?" — no. The primitives are common; their
-arrangement is the mode's call.
-
-**Layered status.** Connection/session = one shared primitive,
-identical everywhere. Mode status (game vitals, HMR/eval state, on-air
-state) = each mode's own region, composed next to the shared one. Not
-"unified vs each-their-own" — both, layered.
 
 ---
 
 ## Modes generalize the cockpit's mode axis
 
-The cockpit slate's modes (World/Study/Classroom/Tutor) are *in-game,
-server-driven, cognitive-load layout reshapes*. This slate keeps that
-mechanism and **widens the catalogue** to the full use-case matrix.
-"Mode" = a *functional capability-set* (not cosmetic — avoid "skin"),
-expressed as a body composition + its own status + its own chrome:
-
-| Mode | Foregrounds | Status it cares about | Source |
-|---|---|---|---|
-| **RPG play** (= cockpit World) | terminal + command bar + inspection card | game/character | base game |
-| **Educational** (≈ Study/Classroom) | cockpit + lesson/content surface | progress, current lesson | education vertical |
-| **Author** | live-edit affordances over the player client | HMR, eval, entity-under-test | builders (cross-cutting) |
-| **Viewer** | stream embed + companion game, lean-back | what's live | livestream vertical |
-| **Streamer** | control dashboard; *drives* the public overlay | what's on-air, what I'm pushing | livestream vertical |
+The mode catalogue shipped as `COCKPIT_MODES` = `chat` · `play` · `watch` · `build` · `govern` → [cockpit.md § The mode axis](../../subsystems/cockpit.md): *RPG play* is `play`, *Author* is `build`, *Viewer* and *Streamer* are the two **arrangements** of `watch` (which is why the axes are two), and *Educational* has no mode yet (the cockpit slate's `study`/`classroom`). ⚠ *A mode is a view, never a gate* — role-gating a mode is the wrong layer.
 
 Held as a map of the design space, not a build list. The point is the
 *shell* must host this matrix without each mode being a bespoke layout
@@ -298,40 +185,7 @@ never copies — usable from either surface.
 
 ---
 
-## Pre-world is plain UI (start screen, guest, no metaphors)
-
-**The line:** everything before the lounge is plain UI — envless,
-non-diegetic, no spatial names. The **lounge is the first room of the
-game, always**; anything before it is diegetically nowhere; Login has
-no env. No "foyer" or other room-metaphor for a login/select screen —
-metaphors only confuse someone who's never seen the real thing.
-
-So the pre-world screens (sign-in, character select, char-gen) are
-literally *the app's UI* — a start screen, not a place. What survives
-from the design without the metaphor:
-
-- **Connected ≠ present.** The start screen is "connected, not yet in
-  the world." Land → plain start screen → *Enter / Play as guest* →
-  arrive in the lounge. **Logout → back to the start screen**, never a
-  dead page.
-- **Sign-in gates everything** (the one exception is the public
-  read-only surface — OBS can't authenticate). Google sign-in is the
-  gate; see [auth-providers-slate.md](./auth-providers-slate.md).
-- **Guest = post-sign-in quick-play.** A session-only, unsaveable
-  throwaway character for a signed-in user who wants in immediately —
-  *not* an anonymous path. To persist, you pick/create a real
-  character.
-- **Mint the guest avatar on Enter, not on page-load.** The start
-  screen has no env, so there's no body to instantiate there; the
-  avatar comes into being at the moment of crossing into the lounge.
-  This respects the don't-over-mint-Stuff rule and keeps churn-bodies
-  out of the lounge — only people who *chose* to enter appear.
-
-The start screen is the highest-leverage piece for "presentable now
-that it's deployed" — it's the front door at `mud.panterasbox.com`.
-(Char-gen itself stays its own full-screen flow per char-gen-wave1; the
-start screen is the container that offers sign-in / guest / character-
-select and hands off to it.)
+## Pre-world is plain UI — shipped → [client-shell.md § The front door](../../subsystems/client-shell.md) (no metaphor; the lounge is the first room; logout returns to the start screen; the provider list is data-shaped) and § Anonymous guest (anonymous, minted on Enter, persists nothing, reaped on disconnect).
 
 ---
 
@@ -390,36 +244,7 @@ guest branch on the client*:
    then-gone for guests (see below). The client path is identical
    either way.
 
-### Guest = anonymous, zero identity persistence
-
-Decisions settled in design:
-
-- **Anonymous guest.** "Play as guest" is a co-equal button **on the
-  logged-out screen**, not a post-sign-in path. It mints an anonymous
-  *session principal* the WebSocket upgrade accepts (today the upgrade
-  only validates `passport.user.id`; anonymous guest widens that to
-  accept a guest principal). The avatar is minted **on Enter**, not on
-  page-load (per the start-screen rules above — also the anti-churn
-  defense).
-- **Zero identity persistence.** A guest persists *nothing* tied to
-  their identity: no saved avatar, and their in-world `clientState`
-  rides the bus exactly like a real user's but the server **holds it in
-  session memory and never flushes**. Guest-ness is therefore a
-  purely server-side "don't-flush" policy — the client never special-
-  cases a guest, and there is no third "guest tier."
-- **Device chrome persists; identity doesn't.** The two are
-  orthogonal. A guest who bumps the font size and returns tomorrow —
-  as a different guest, or signed in — is the same person at the same
-  machine; that pref lives in the device-local tier and survives. "No
-  persistence" governs the *guest identity*, never the *browser*.
-
-> **Abuse seam.** Anonymous-vs-authed guest is a **single policy gate**:
-> *may this connection mint a guest avatar?* Today → yes (anonymous).
-> If abused → require an authed session and the guest button relocates
-> to character-select; a config flip, not a rearchitecture. The real
-> abuse levers (rate-limit, one-guest-per-IP, captcha-before-mint) all
-> hang off that same gate and none need building now — just leave the
-> seam.
+### Guest = anonymous, zero identity persistence — shipped → [client-shell.md § Anonymous guest](../../subsystems/client-shell.md): `POST /auth/guest` mints `anon:<nanoid>`, `GuestAuthRoutes.mayMintGuest` is the single abuse gate, `Avatar.save()` short-circuits for guests (the don't-flush seam), device chrome is orthogonal.
 
 ### Merge on login
 

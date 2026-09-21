@@ -1,11 +1,17 @@
 # Enforcement slate — modes, evidence, testimony, and the two layers
 
 > **Status: UNBUILT** — accountability, belief, concealment and civics
-> are the substrate it names; none of the enforcement layer exists.
+> are the substrate it names; none of the enforcement layer exists
+> (re-verified 2026-09-19: `Government` carries no mode field, nothing
+> writes the `honesty` axis from a lie, no report / testimony verb, no
+> barricade; `civics.md` still says *no legal machinery*).
 > **Left:** the enforcement-mode vocabulary (wall · camera · witness ·
-> norm) as a committee-picked field · the evidence firewall · testimony
-> as claims never queries, and the lie discriminator · the intrinsic vs
-> social two-layer split
+> norm) as a committee-picked field · posted law on the land (the border
+> notice) · the barricade as `wall`'s physical form (owned by
+> freight-slate) · the evidence firewall · testimony
+> as claims never queries, and the lie discriminator · credibility
+> derived from the claims record + false accusation as an offence · the
+> intrinsic vs social two-layer split (the unadjudicated `honesty` write)
 > **Size:** a build
 
 **Captured 2026-07-31**, out of the ranged/gun design session: the

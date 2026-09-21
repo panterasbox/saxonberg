@@ -13,12 +13,6 @@
 > content
 > **Size:** a build
 
-> **Status: sketch / pre-requirements.** [tradition-slate](../tails/tradition-slate.md)
-> covers the *inherited account* half of religion and explicitly demotes
-> faith to one consumer among craft, medicine and guild. Scored against
-> what players actually reach for from religion, that serves **one want of
-> eight.** This slate is the other seven.
->
 > **It re-solves nothing.** The inherited account, the attention order,
 > the null-law error model — all Tradition's. What is here is what a
 > *faith* has that a craft school does not: **a standard you are held to,

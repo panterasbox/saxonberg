@@ -203,6 +203,12 @@ adding.
   the forbidden `types.ts` / `constants.ts` reflex — see
   "One concept per module" below.
 
+⚠⚠ **The index cannot live on the `XLogic` singleton** — the obvious-looking
+home. A logic singleton is *stateless by construction* so a hot reload can
+replace it and the next `singletonSync` builds a fresh one; a warmed index
+there would be **silently dropped on every hot reload**. That is why
+`WarmedIndex` exists (graduated from the value-object-statics slate, 2026-09).
+
 `api/` holds:
 - **Pure utilities** — no Manager, just functions
   (`NavigationApi.parseDirection`, `MmlApi.escape`,

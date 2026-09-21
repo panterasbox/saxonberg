@@ -4,25 +4,16 @@
 > populations plus curing → [spoilage.md](../../subsystems/spoilage.md)
 > **Left:** the cold-container substrate (`CoolboxMixin` + atmosphere on
 > `Container`) · the icebox · `ClimateControl` + `Powered` over the
-> power-utility ref (the appliance/energy build) · the fridge/freezer
-> rows · the mirror inbound channel
+> power-utility ref (the appliance/energy build) · the COP fork · the
+> fridge/freezer rows · the mirror inbound channel (Part 4) · the civic
+> "better resident" extension (Part 5 — needs its own pass) · the partner
+> surface (Part 6, bracketed)
 > **Size:** a build
-
-> **Status: design, planner-ready, captured 2026-08-06. Not requirements.**
-> Two jobs: (1) the **fridge** designed outright to a reusable per-object
-> format, with every mixin it needs — **new or updated** — named; (2) the
-> **real-world telemetry layer** its seams open, built on
-> [mirror-slate](./mirror-slate.md), with the **kitchen as the mirror's
-> second dense domain**.
->
-> It does not choose the build boundaries — it exposes the **fault lines**
-> (Part 7) so builds can be carved along them.
 
 See also — substrate: [thermal](../../subsystems/thermal.md) (`ThermalMixin`,
 `FurnaceMixin`, `AtmosphericMixin`, phase change) ·
 [preservation-slate](../tails/preservation-slate.md) (**spoilage — the reason a
-fridge exists**) · [spoilage-design-pack](../tails/spoilage-design-pack.md) (the
-planner-ready spoilage spec) · [furnishing](../../subsystems/furnishing.md) (the
+fridge exists**) · [furnishing](../../subsystems/furnishing.md) (the
 fridge is owned chattel placed in a room) · [boundary](../../subsystems/boundary.md)
 (`Sealable`/`Switchable` — the door, the dial) ·
 [power-utility-slate](./power-utility-slate.md) (the supply-ref the powered
@@ -148,9 +139,6 @@ by containment. Nothing exotic — the persistence spine already carries all of 
 
 ### 6. Seams & dependencies
 
-- ⛔ **Requires `Freshness` on food to have a point.** With no spoilage, the
-  fridge preserves nothing and is a decorative box. **The fridge is downstream
-  of the preservation build** (Part 2) — do not schedule it before spoilage.
 - Requires **update #1** (atmospheric container) — shared with icebox/jar/cellar.
 - The **powered** fridge requires **#2 + #3 + the power-utility supply-ref**
   (designed, not built).
@@ -164,15 +152,10 @@ an **active** half (waits on power-utility). See Part 7.
 
 ## Part 2 — The spoilage co-dependency (why the fridge needs it)
 
-The fridge is the *counterplay* to a decay system; without the decay system it
-does nothing. That system is **archetype 2** from the stewardship doctrine, and
-[preservation-slate](../tails/preservation-slate.md) + the [spoilage pack](../tails/spoilage-design-pack.md)
-design it: a **~120-line `FreshnessMixin`** (copying `Wet.ts`'s reconcile) on
-perishables, **`ThermalMixin` composed on perishables** so food has a
-temperature, a rate = `temperature × water-activity × a tabulated material
-constant`, and a **freshness → `ptomaine` override rung** on the ingest path
-(which already shadows the `Material` for bulk). Runs over absence (drop the
-far-past guard — *"food is not a body"*), never deletes, banded not numeric.
+*(The spoilage design this section summarised shipped, in a different
+shape — `FreshnessMixin` on `Provision` with `ThermalMixin` beside it, the
+`ptomaine` dose folded at the read rather than an override rung, and a
+per-instance water state on `CuredMixin` → [spoilage.md](../../subsystems/spoilage.md).)*
 
 **The fridge consumes exactly one output of that build: the food's temperature.**
 Cold interior → cold food → slow `Freshness`. So the two are co-designed but
@@ -444,9 +427,7 @@ with their dependency edges:
 [6] The mirror inbound channel   (waits on the instrumentation slate; mirror-slate)
 ```
 
-- **[1] Spoilage core** — the keystone; independent of every object here. Build
-  first (it's the archetype-2 producer the whole pillar needs). See the
-  [spoilage pack](../tails/spoilage-design-pack.md).
+- **[1] Spoilage core** — ✅ shipped (MRs !231 + !244) → [spoilage.md](../../subsystems/spoilage.md).
 - **[2] Cold-container substrate** — update #1 + `CoolboxMixin`. Unblocks jar,
   cellar, **icebox**. No power. The cheapest cold-storage win.
 - **[3] Icebox** — content over [1]+[2]. **The recommended first shippable

@@ -1,16 +1,19 @@
 # Hand-slot redesign slate (working doc)
 
-> **Status: UNBUILT** — the v1 shape is unchanged; `hands` is still a
-> pair-slot beside singular `hand:left` / `hand:right`
+> **Status: UNBUILT** — the v1 shape is unchanged (verified 2026-09-19:
+> `hands` is still a `WearableMixin` pair-slot beside singular
+> `WieldableMixin` `hand:left` / `hand:right` in
+> `packages/content/species-and-names/content/stuff/idea/species/BodyPlan/biped.yaml`;
+> `SlotSpec.accepts` is still a single `string`, `lib/slot/Slotted.ts:91`).
+> Since this slate: the covering slots carry `capacity: 4` + `covers`, the
+> wield slots a `bodyPart`, and a `sidearm` slot + combat's hand-slot
+> economy (`combat.md § Weapon playstyle & the hand-slot economy`) now
+> sit on the same vocabulary — any redesign touches them.
 > **Left:** picking Option A vs B (layered `:worn` / `:held` slots) ·
-> wrist slots · single-hand wearables · `SlotSpec.accepts` as an array if
-> A · the body-plan + `slotClaims` content migration
+> wrist slots · single-hand wearables · the cross-layer constraint
+> (tension 4) · `SlotSpec.accepts` as an array if A · the body-plan +
+> `slotClaims` content migration
 > **Size:** a wave
-
-> **Status: deferred — design exploration, unbuilt.** The current v1
-> hand-slot shape works but carries conceptual tension; flagged during
-> locomotion-plan review and explicitly parked for a future embodiment
-> MR. Catalogs the problem and sketches candidate redesigns.
 
 Working slate for revisiting the biped body-plan's hand-slot
 design. The current shape works for v1 content but has conceptual

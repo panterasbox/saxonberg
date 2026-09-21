@@ -239,6 +239,36 @@ All `electricity.*` AppSettings with real-world-grounded seeded literals —
 `electricity.sustain.burnSeverityPerAmpSec`,
 `electricity.heartRate.arrestDrivePerSec`.
 
+## Why honest pays off — the emergent experiences
+
+*(The design slate's §5, homed here when the slate was retired; nothing
+in it is a backlog item — it is the argument for the mechanism above.)*
+
+The v1 target is *dynamic runtime + emergent strategy*, and the emergence
+comes from electricity's **honest couplings** to systems we already have —
+the Larian move, but physics-deep and learnable instead of tag-shallow.
+What falls out with zero scripted interactions:
+
+- **Chain lightning is just conduction** — a spell/hazard injects current at
+  a point; the graph spreads it. Single-target and chain are the *same*
+  effect; the *situation* decides. Nobody authors "it arcs to the next guy."
+- **The caster obeys their own physics** — cast into a pool you're standing
+  in and *you* fry. Magic-reflects-real-science means no self-immunity;
+  positioning is a real skill (the honesty flagship).
+- **Conduction is faction-blind** — the current doesn't know your allies.
+  Lightning into a melee hits friends in the same water → coordination
+  ("get out of the water!"), and in a public space it's the consent/blame
+  vector (electrify a tavern floor, a bystander drops — the combat
+  blame-ledger / crime seam).
+- **Electricity is the anti-armor tool** — the plate knight who shrugs off
+  your blade is the *most* vulnerable; real rock-paper-scissors, with real
+  defender counterplay (insulate, stay dry, break the ground path).
+- **Residuals = the impulse/modifier split** — a *bolt* is impulse
+  (fires, done); a *lingering electrified field* is a modifier (sustained,
+  drains mana, drops under anti-magic suppression). ⚠ The sustained field
+  is unbuilt — it is the magic `Create·Lightning` seam below, and this is
+  the shape it should take.
+
 ## Deferred seams (named, not built)
 
 - **Magic `Create·Lightning`** — a spell is another `Energized` source into

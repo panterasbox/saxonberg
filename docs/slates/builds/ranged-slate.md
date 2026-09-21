@@ -1,11 +1,23 @@
 # Ranged slate — one engagement mode, from thrown knife to statute book
 
 > **Status: PARTIAL** — Wave 1 shipped (the band ladder, the arena cap,
-> the delivery contract, the consent gate, the thrown flask) →
-> [ranged.md](../../subsystems/ranged.md)
-> **Left:** W2 cover + armor · W3 bows/crossbows/less-lethal/acoustics ·
-> W4 guns (the field model, reliability, registration) · the range,
-> armory and accessory content
+> the delivery contract, the consent gate, the thrown flask) and the injury
+> build took `LauncherMixin`, `Projectile`, `shoot`, one-number readiness
+> and `penetration` → [ranged.md](../../subsystems/ranged.md)
+> **Left:** W2 — authored cover (directional · destructible · leased) +
+> overturnable furniture · armor on the response grid (point→blunt, proof
+> marks) · suppression / held aim + aim decay · placement→wound zones ·
+> burst · the readout ladder + cross-reading · authored vistas · the
+> formation band preference + `skirmish`/`firing-line` · W3 — graded
+> archery fit + `elasticity` · per-metre sound attenuation · the
+> less-lethal family + the incapacitation rung · the four NPC doctrines +
+> NPC ammunition + reload commitment · shooting into a melee + its consent
+> check · W4 — the gun field model (launcher · projectile · cartridge ·
+> magazine) + the GunCode conversions · the political architecture + the
+> launch regime · negligent discharge + the ignorance-not-dice rail ·
+> fouling as the fast axis, the assembly, pattern keys, grade-buys-
+> reliability, catastrophic failure, the ammunition craft chain · the
+> gun-policy layer table · the range, armory and accessory content
 > **Size:** a build
 
 **Captured 2026-07-31** from a design session. Scope: the "later
@@ -20,83 +32,17 @@ audience believed.
 
 ## Foundations (already decided, already shipped)
 
-- **Relationship, not coordinates.** The combat slate refused
-  geometric/ballistic ranged outright (combat-tactics Thesis 1);
-  range is a per-edge property of the combat graph.
-  `ThreatEdge.range` is **shipped**: geometry-free bands per
-  directed edge pair, reach classes, out-of-range whiffs, the
-  clinch reversal. Ranged extends this machinery; it does not
-  replace it.
-- **The room caps the bands — from real metric dimensions
-  (verified 2026-07-31).** Every `Location` answers the dimension
-  interface — `getVolume()`, `getCeilingHeight()`, `getSizeScale()`:
-  - **`CartesianLocation`** derives from its zone's `cellSize`
-    (**default 3.0 m** — "a typical room"; author larger for
-    outdoor cells): volume `c³`, ceiling `c`, sizeScale `c²`.
-  - **`SphericalLocation`** carries a **per-room persisted
-    `radius`**.
-  - **Two physical systems already consume this**: light uses
-    `getSizeScale()` as the receiving-surface divisor (bigger rooms
-    read dimmer) and atmosphere runs `n = PV/RT` against
-    `getVolume()`. Dimensions-drive-physics is shipped precedent,
-    not a proposal.
-
-  So the arena cap is a **derivation from an honest number**, not an
-  enum: a 3 m cell affords `close`/`short` (bar fights stay knife
-  fights, by physics); a hall affords `medium`; an authored 20 m+
-  outdoor cell affords `far`. The frontier arms itself
-  automatically — outdoor cells are already authored larger, so
-  bands reach further *and* sound carries *and* the light math
-  already knew.
-
-  **The one real gap — cartesian dimensions are per-ZONE, not
-  per-room.** Every room in a cartesian zone shares `cellSize`, so
-  a cramped shop and an open hall in the same zone cannot differ
-  today (spherical rooms vary freely). **The single named
-  dependency of this whole design: an optional per-location extent
-  override**, following the accessors' existing null-fallback shape
-  — `this._extent ?? this.getZone()?.getCellSize()`. Three lines,
-  and nothing else new is required.
-
-  *(Research note: an earlier pass in this session wrongly concluded
-  rooms carried no size, by grepping for a stored field — the
-  codebase's own store-causes/derive-effects doctrine hides the
-  cause on the zone and exposes the effect as accessors on the
-  location. Corrected; the numbers above are verified from source.)*
-- **Band extension: one new band (`far`)**, closed-vocabulary
-  discipline; `extreme` waits until content proves it. Band-change
-  verbs (advance/withdraw) are gambits costing poise and tempo —
-  **the range-control duel is the poker game**: the archer holds
-  `far`, the closer buys distance under fire, every advance is a
-  called bluff.
-- **Consent inherits, hard.** Ranged initiation rides exactly the
-  ambush/consent gates melee has. No new hole where distance
-  launders a non-consensual attack. **Cross-room shooting through
-  exits is out of scope** for this design — parked with its
-  consent and perception problems named.
+Shipped in full → ranged.md § Bands are relationships, not positions ·
+§ The arena caps the ladder (the per-location `extent` override shipped) ·
+§ Opening the gap, and closing it · § One initiation handshake ·
+§ Deliberately out of scope (cross-room fire). The band vocabulary shipped
+in a different shape — `close · reach · near · far`, `short` deliberately
+not a band.
 
 ## The unifying abstraction — delivery at range
 
-Every ranged act is one shape: **a launcher imparts energy to a
-projectile that crosses a band gap and applies a payload on
-arrival.**
-
-| Piece | Examples | Substrate |
-|---|---|---|
-| **Launcher** | arm, sling, bow, crossbow, gun | instrument; energy source (muscle → stave → charge) |
-| **Projectile** | knife, stone, arrow, bullet, flask | chattel/glob; mass + material |
-| **Payload** | kinetic (point/blunt channel) · **effect envelope** (the thrown potion) · hybrid (fire arrow) | materials-response · the item-effect envelope (closed effect union) |
-
-**Thrown effect-carriers are ranged magic delivery.** A potion is a
-consumable carrying declarative effects (the item-effect envelope —
-already the extensibility audit's #1 bridge, already V4's build
-consumer); *throwing* it is this mode delivering that envelope at a
-band gap. On impact: the vessel is a real container breaking (bulk
-spills — the contents puddle, burn, freeze *on the room's real
-surfaces*), and the effects fire through the same closed union as
-every spell. Firebolt spell, fire arrow, thrown fire flask: three
-carriers, one honest heat effect. Nothing in the magic system is
-duplicated; ranged just adds carriers.
+Shipped → ranged.md § The one abstraction · § Splash · § The two adopted
+seams · § `throw` (a potion only acts if its `route` is `contact`).
 
 **Arrows and knives are the simple cases and prove the uniformity:**
 arrows as Stackable stacks, spent projectiles persisting in the room
@@ -234,12 +180,8 @@ on anything.
 
 ### Launcher
 
-The deepest field: **`energySource`** (closed) — `muscle` (thrown) ·
-`stored-elastic` (bow: stored at draw; crossbow: stored at *span*,
-held) · `chemical` (gun: the cartridge owns the energy; the launcher
-contributes containment and direction) · `electrical` (parked). This
-one enum explains why bows care about the archer, why crossbows
-trade tempo for held readiness, and why the round owns the damage.
+`energySource` shipped → ranged.md § Readiness — one field, four families
+(`lib/combat/EnergySource.ts`; `electrical` parked).
 
 - **Bow**: `limbLength`, `limbThickness`, stave material → derived
   draw weight (via the new `elasticity` material property), stored
@@ -308,21 +250,9 @@ one schema, and it is true.
 
 ## The Delivery Profile — one contract, every projectile
 
-Family fields are causes; **combat consumes a single derived
-tuple**, computed per (projectile × launcher × band), never stored:
-
-| Field | What it is | Consumer |
-|---|---|---|
-| `energy` | joules arriving at this band | the response function |
-| `channel` | `point`/`edge`/`blunt` (existing vocabulary) | the response function |
-| `penetration` | sectional behavior — deep vs. wide | wound geometry |
-| `stability` | flight quality — steps the placement table | resolution |
-| `payload` | effect envelope, if any | the effect union |
-| `integrity` | deform/break/recover post-hit | the room |
-
-Combat, placement, and the wound model cannot tell an arrow from a
-bullet. The same move as materials-response and the melee playstyle
-deriver: many honest inputs, one consumer contract.
+Shipped → ranged.md § The Delivery Profile (`lib/combat/DeliveryProfile.ts`;
+`penetration` shipped in the injury build as pressure — energy over the
+calibre's cross-section, dividing the mechanical attenuation).
 
 **The fit asymmetry (designed on purpose):** guns have **hard fit**
 (chambering is binary — `accepts`/`fitsSlot`, refusal on mismatch);
@@ -333,25 +263,14 @@ weapons, and quietly part of the proliferation lesson.
 
 ## Resolution — placement, not to-hit
 
-Bullets don't consult probability; placement does the deciding. A
-shot resolves **deterministically from two commitments** (the
-gambit-matrix shape; no dice anywhere):
+Placement, not to-hit — shipped → ranged.md § Resolution.
 
 - **The shooter's aim ladder** (public state): `snap` (this beat) →
   `held` (one beat, visible) → `settled` (two beats, visible,
   target telegraphed). Aim decays on movement or band change.
-- **The target's answer** (spent in the reactive window): `stand`
-  (call the bluff) · `move` (band change under fire) · `cover`
-  (when the room offers it; quality from the concealment bands) ·
-  `drop` · `counter` (return fire — both resolve on current aim
-  states; standoffs become timing games).
-- **Base matrix** (aim × answer) → placement class (`miss` /
-  `graze` / `hit` / `precise`), then **modifiers move steps on
-  that ladder**: stability −1 if poor; beyond effective band −1;
-  cover quality −1/−2; the existing motion-degrade rules.
-- **Competence buys tempo, never steps** (competence sharpens
-  instruments): a marksman *settles faster* and holds aim through
-  minor movement — never a flat accuracy bonus.
+- The target's five answers, the base matrix + its step modifiers, and
+  *competence buys tempo, never steps* — shipped → ranged.md § Resolution
+  (`cover` resolves as `stand` until authored cover lands).
 - **Suppression is a held aim** — overwatch on a zone or exit:
   whoever crosses eats the committed shot at its current aim
   state. The cost is the poker: a holding shooter has spent their
@@ -362,12 +281,10 @@ gambit-matrix shape; no dice anywhere):
 - **Burst** = consecutive snap-tier placements with recoil
   stepping each subsequent round down — a visible bet of ammo and
   fouling against tempo.
-- **Area arrival = the hazard substrate** (resolves the flask):
-  a ground arrival breaks the vessel (real bulk spill on real
-  surfaces) and the payload becomes a **placed hazard** —
-  HazardMixin is shipped and self-resolving. Area denial becomes a
-  loadout choice: you're not shooting a person, you're shooting
-  the floor they need.
+- *Area arrival* shipped in a different shape — relational splash over
+  the target's `close` set, volume-conserving, the remainder pooling via
+  `pour` (ranged.md § Splash, and the gate over it); the lingering
+  residue hazard is W2.
 
 ## Mitigation — armor, and the less-lethal family
 
@@ -493,9 +410,8 @@ does to enrollment.
 
 ### LOS — nothing to build inside a room; vistas are authored
 
-- **Intra-room LOS does not exist and should not.** There is no
-  interior geometry, so "can I see you in here" is **concealment**
-  — shipped, honest, and already the cover mechanic. Nothing new.
+- Intra-room LOS is concealment — shipped → ranged.md § Deliberately out
+  of scope.
 - **Cross-room sight is authored, never derived.** An optical walk
   *could* mirror the acoustic one (same exit graph, different tau —
   doors block light as they block sound), but universal
@@ -504,12 +420,8 @@ does to enrollment.
   the market, the gate tower over the road: rare, dramatic,
   considered at authoring time. House pattern: declared, like
   sockets and graft points.
-- **The rule that protects the design: sight may cross; combat may
-  not.** Watch a fight from the tower, see the guard coming, hear
-  the shot — but to *engage* you enter the arena and the band
-  system takes over. Cross-map sniping would break the per-edge
-  band model and every consent gate at once, to replace an
-  experience you can have by walking downstairs.
+- *Sight may cross; combat may not* — shipped as the rule → ranged.md
+  § Deliberately out of scope.
 
 ### Acoustics — make sound match light
 
@@ -540,14 +452,9 @@ threshold rather than a movie trope.
 
 ### Poise by energy source — the honest balance lever
 
-**Does shooting cost poise? It depends on `energySource`, and the
-truth is the lever:** holding a bow at full draw is genuinely
-exhausting (muscle-powered ranged is poise-expensive — which is why
-real archers loose quickly), while firing a gun costs essentially
-nothing physically. **The gun's real advantage is that it does not
-tire you.** That is true, it is *why* firearms won historically, and
-it is the cleanest balance knob in the design — no invented
-drawback required.
+Shipped → ranged.md § Readiness — one field, four families
+(`lib/combat/EnergySource.ts`: a bow holds readiness in the body, a gun
+and a crossbow hold it free; the bow's hold window itself is W3).
 
 ## Cover — the shield's static cousin
 
@@ -698,12 +605,9 @@ policy expressed as a brain**, so a locality's rules about when a
 guard may draw and fire are legible on the street, and every rung
 lands on the accountability ledger.
 
-**Morale is brain doctrine, and it serves the balance goal.** An
-archer whose screen is dead breaks off; a lone wounded NPC does not
-fight to the death. Honest behavior *and* the thing that keeps
-**death uncommon while PvP stays energizing** — most fights ending
-in someone leaving rather than someone dying is what protects
-advancement-at-the-margins.
+*Morale* shipped in a different shape — an engine-derived read the brain
+consumes, never brain doctrine → combat.md § Morale (`lib/combat/Morale.ts`;
+the ammo-dry trigger is still open, below).
 
 **The formation seam.** The brain consults
 `PartyApi.formationPathOf` for its role's **band preference**
@@ -727,17 +631,8 @@ mid-action.
 
 ## Multi-party — per-edge, and aim points one way
 
-**Bands do not compose, and that is the model working.** Per-edge
-ranges can be "geometrically impossible" — A at `far` from the
-archer while B is at `close` to the archer and A and B are `close`
-to each other — because the combat slate refused coordinates on
-purpose: *"ranged is a relationship problem, not a coordinate
-one."* A band means **how engaged are these two with each other**,
-not how many meters apart. Test it as prose: *"you're keeping the
-swordsman at bowshot while his partner is already on top of you."*
-It reads perfectly. So: **no composition, no triangle inequality,
-no derived position** — each edge is its own relationship, and 2v1
-mixed ranges are already shipped and working.
+*Bands do not compose* — shipped → ranged.md § Bands are relationships,
+not positions.
 
 **The real rule: aim is a single-target commitment.** You can only
 point the weapon one way — a held aim on A does not cover B, and B
@@ -755,11 +650,8 @@ advances free. That one rule is load-bearing everywhere:
 1. **Closing helps your ally, emergently.** If the archer swaps aim
    to whoever is rushing them, the other advances free — bounding
    overwatch from the attacker's side, unscripted.
-2. **Withdrawal is per-edge, so leaving a crowd costs more than
-   leaving a duel.** You disengage from a *specific* threat;
-   opening distance on three people is three actions.
-   **"Being surrounded is bad" falls out with no surround
-   mechanic** — the cost scales with edge count automatically.
+2. Shipped: withdrawal is per-edge — ranged.md § Opening the gap, and
+   closing it.
 3. **Shooting into a melee is a real decision.** In a crowded arena
    a `miss` has somewhere to go; the risk is **readable before
    committing** (the crowd is visible); and a round that lands on
@@ -930,11 +822,8 @@ bottleneck rather than an arbitrary rule.
 
 ## Magic parity
 
-Spells speak the band vocabulary (spark/firebolt at range are
-comparable currency, not separate physics); the resist seam already
-meets combat at one field. Thrown effect-carriers (above) complete
-the triangle: spell, enchanted projectile, thrown vessel — one
-effect union, three deliveries.
+Shipped → ranged.md § The two adopted seams (`MagicLogic.deliverAt` gates
+on the band; `magic.spellEnvelope` seeded `far`) and § The one abstraction.
 
 ## Open questions (for requirements)
 
@@ -945,13 +834,11 @@ effect union, three deliveries.
    springs — the second consumer is probably gun mechanisms).
 3. **Cross-room fire** — parked entirely; revisit only with a
    consent design.
-4. **The placement matrix values** — the aim×answer base table and
-   step modifiers are designed above; the exact cell values and
-   beat costs are tuning work for requirements (the gym is the
-   test bench).
-5. **Area arrival scope details** — hazard-creation is the
-   mechanism (designed above); splash radius semantics inside a
-   single room (whole-room vs. band-adjacent) needs one decision.
+4. Resolved: the 3×5 matrix and its step modifiers ship in
+   `lib/combat/AimResolution.ts` — ranged.md § Resolution (the engine
+   wires the `snap` row; `held`/`settled` beats ride W2's held aim).
+5. Resolved: area arrival is relational — the target plus whoever is
+   `close` to them, dose-conserving, no radius — ranged.md § Splash.
 6. **Guard content** — the use-of-force behavior spec, the wary
    brain's armed variant, the armory as a venue.
 7. **The Practicum range** — where safety education lives
@@ -986,12 +873,10 @@ effect union, three deliveries.
     doctrine: legible enough to read, not so rigid they are
     trivially exploited (the feint-parity precedent is the
     calibration model).
-18. **Morale triggers** — what actually breaks an NPC off (screen
-    down, wound band, outnumbered, ammo dry) and whether morale is
-    brain-local or a shared combat read.
-19. **New-arrival edge band** — what band a newly arriving
-    combatant's edges open at (instinct: the arena's max — you
-    notice someone entering at distance — but it needs a rule).
+18. Resolved: morale is a shared derived combat read, never brain-local
+    — combat.md § Morale; the ammo-dry trigger rides Q13.
+19. Resolved: every edge opens at the arena's maximum band, an ambush at
+    `close` — ranged.md § Opening the gap, and closing it.
 20. **N² edge bookkeeping at scale** — melee already carries it,
     but `far` bands mean more participants are meaningfully
     engaged at once; a large-fight profile is worth taking before

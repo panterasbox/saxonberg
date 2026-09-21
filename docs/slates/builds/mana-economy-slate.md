@@ -11,7 +11,11 @@
 > trade · distribution as a tree and the grid edge as an economic
 > boundary · node title, rent and the first natural monopoly · whether
 > nodes deplete · demurrage on flow vs storage · the magic vehicle (a
-> charged `Drivable` priced against feed)
+> charged `Drivable` priced against feed) · the reserve-that-is-not-a-body
+> call (Part 2b — matter now holds mana by canon, so whether the polity
+> governs a node's `inflow` by quota/rent must be decided deliberately) ·
+> the offer layer's currency (`PricedOffer.prices` is bare minor units —
+> owned by supply-chain-slate)
 > **Size:** a build
 
 **Captured 2026-08-04**, out of the Dave's-Bar supply-chain thread, when
@@ -29,10 +33,6 @@ conservation of energy.**
 > as weak as pushing a hand cart. **But that doesn't mean it doesn't need to
 > be economical, or everyone will optimize for mana and you have
 > deflation.**"**
-
-> **Status: design conversation, captured. Not requirements.** ⚠ Contains
-> **one proposed change to the arcane science** (Part 6) — the only thing
-> here that is not built on top of what already ships.
 
 Related: [arcane-science.md](../../arcane-science.md) (**the postulate, the
 budget, the price list — read it first**),
@@ -58,59 +58,26 @@ machine's capacity.
 
 # Part 0 — ⚠ The correction that opened it
 
-An earlier pass in this conversation priced magic off **the caster's own
-metabolic budget** (~120 kJ, *"about a quarter of a banana"*) and concluded
-a mage is a worse prime mover than their own legs — therefore magic could
-never matter economically.
-
-**That is true of a caster and false of magic**, and
-[magic-items-slate](./magic-items-slate.md) already draws the line:
-
-| | supplies | ceiling |
-|---|---|---|
-| ⭐ **Charged** — wand, orb, ring | energy **+** specification | **energy density** |
-| **Consumable** — potion, scroll | one packaged act | one use |
-
-⚠ **`Focus` was CUT before merge** (magic-items build) — it duplicated an
-existing decision and shipped with no verb to fire it. **The argument here
-survives and simplifies**: `Charged` is now the *only* powered class, and it
-is bounded by energy density, full stop. The *"mages should have gear"*
-intuition moved to [implements-slate](./implements-slate.md) — an item that
-**modifies what happens when you cast**, not one that casts on your mana.
-
-> **A magic car is a charged item. Its limit is what the tank holds, not
-> what a body can channel.**
-
-⭐ The general failure: *the physiology chapter is not the physics chapter.*
-The caster's budget bounds **what a person can do unaided** — it says
-nothing about what a built device can do, exactly as a human's 100 W says
-nothing about a locomotive.
+*Superseded by the 2026-08-11 science change* — the correction's mechanism
+(*storage obeys ordinary energy density*) went with the identity `τ = kJ`:
+mana is a separate conserved quantity that matter holds by **mana density**,
+and a device's ceiling is *what you can source, refine and carry*, not a body
+→ [arcane-science.md](../../arcane-science.md) § The second quantity, § The
+caster's budget. The `Focus` cut and *Charged as the only powered class* →
+[magic-items.md](../../subsystems/magic-items.md) § The mana potion is
+metabolic (the ⚠ box), § The three item classes.
 
 ---
 
 # Part 1 — ⭐⭐⭐⭐ The governing principle
 
-> **The postulate buys non-local DELIVERY. It never buys free energy.**
-
-`magic-items-slate` states it for items and it generalizes to everything:
-
-> *"A charged item is a battery. A maker moved energy into it; it holds
-> that energy **by ordinary means**; using it releases it."*
-
-So **storage obeys ordinary energy density**, and therefore:
-
-> ⭐⭐⭐ **Mana IS energy. It costs whatever energy costs.** You cannot
-> optimize for mana, because mana is the energy you already had to produce.
-
-That single sentence is the whole anti-deflation architecture, and it is
-what lets magic be *"as powerful as nuclear"* without breaking anything:
-**make it as powerful as you like, and it still has to be generated.** The
-fiction gets its ceiling raised; the economy does not get a money printer.
-
-⭐ It also settles the narrative requirement cheaply. *Where does mana come
-from?* **Wherever energy comes from** — falling water, a furnace bank, a
-geothermal vent, sunlight. The magic is not in the making; it is in the
-**sending.**
+*Superseded* — **mana is NOT energy.** It is a second conserved quantity,
+one-way coupled at `k = 1 kJ/τ`, **never made from fuel** (*there is no such
+thing as a mana generator*), found and never manufactured →
+[arcane-science.md](../../arcane-science.md) § The second quantity, § The
+power level (*you cannot build a mana plant; you can only own a mana
+deposit*). The anti-deflation conclusion survives on the new footing —
+rent-bearing, not manufacturable — which is Guard 2 below.
 
 ---
 
@@ -118,20 +85,9 @@ geothermal vent, sunlight. The magic is not in the making; it is in the
 
 ## ⭐⭐ Guard 1 — demurrage: charge self-discharges
 
-`magic-items-slate`: **3%/month**, *"69% after a year, 2.6% after a
-decade… **the ruins are full of dead wands.**"*
-
-> ⭐⭐⭐ **Mana cannot be a store of value. Money does not rot; mana does.**
-
-That is **demurrage** — Gesell's stamped scrip — and it structurally
-forecloses a mana standard: anyone hoarding it holds a melting asset.
-⚠ **This is the guard that most directly answers the user's deflation
-worry**, and it costs nothing because it already ships.
-
-⭐ It also guarantees the charging trade **recurring revenue**: *"you find
-shells; you buy charge"* — the **shell is the durable (stock), the charge
-is the consumable (flow)**, which is exactly the survival test every trade
-has to pass ([supply-chain-slate](../tails/supply-chain-slate.md) § flow vs stock).
+Shipped → [magic-items.md](../../subsystems/magic-items.md) § The charge
+economy (*decay is load-bearing*; `S* = inflow / d`; *you find shells and buy
+charge*; recharging is a service).
 
 ## ⭐⭐ Guard 2 — rent: nodes are Ricardian land
 
@@ -155,38 +111,16 @@ inflow; a depletable one does not.**
 
 ## ⭐⭐⭐⭐ Guard 3 (2026-08-05, from the merged currency build) — mana CANNOT become money
 
-The strongest guard was not available when this slate was written. The
-currency build made currencies a **code registry**, not a collection:
-
-> **banking.md: "currency records are *code*, and code is not a collection.
-> **Adding a currency is a code edit at the wizard tier** — the
-> reserved-matter constraint in its crudest honest form (a mint is
-> Compact-level, never a locality's own call)."**
-
-> ⭐⭐⭐⭐ **So "everyone optimizes for mana until it becomes the numéraire"
-> is blocked at the registry.** Mana would have to be *registered as a
-> currency* to be money, and that is a reviewed code change at the wizard
-> tier — not something an economy can drift into.
-
-⭐⭐ And the never-cross-currencies rule fixes mana's category for good:
-every ledger leg is same-currency, so **you buy charge WITH zorkmids**
-rather than trading one money for another.
-
-> **Mana is a commodity priced in money — exactly like grain.** That is the
-> correct relationship, and it is now enforced by the ledger's shape rather
-> than argued for here.
+Shipped → [banking.md](../../subsystems/banking.md): currency records are
+*code* (*adding a currency is a code edit at the wizard tier*), and ⚠⚠ *a
+ledger leg may never cross currencies* — so mana is a commodity priced in
+money, enforced by the ledger's shape.
 
 ## ⭐⭐ And Guard 1 is now citable rather than asserted
 
-This slate claimed *"money doesn't rot; mana does."* Both halves are now
-documented rules pointing opposite ways:
-
-| | rule |
-|---|---|
-| **money** | banking.md **Law 2** — *"banking installs **no** scheduled recompute touching balances/coin, so **nothing decays** — an idle balance/stack is unchanged over a game-clock advance."* |
-| **charge** | magic-items-slate — **3%/month self-discharge**, *"the ruins are full of dead wands."* |
-
-⇒ **the asymmetry is structural, not a hope.**
+Both halves are documented rules: money — banking.md § Law 2 (*nothing
+decays*); charge — magic-items.md § The charge economy (the standby draw,
+`S* = inflow/d`). The asymmetry is structural.
 
 ⚠ **One gap inherited from the same survey:** `PricedOffer.prices` is bare
 minor units while `Charge` carries a currency — so a charger's price is
@@ -196,54 +130,21 @@ layer has no currency*.
 
 # Part 2b — ⚠⚠ REFRESHED 2026-08-05: the magic-items build shipped the charge economy
 
-Written against the slate; **the subsystem doc**
-([magic-items.md](../../subsystems/magic-items.md)) **now supersedes it**,
-and it is both stronger than assumed and in one place **in tension with this
-slate.**
+## The equilibrium is an equation — shipped
 
-## ⭐⭐⭐ The equilibrium is now an equation, not a hand-wave
+→ [magic-items.md](../../subsystems/magic-items.md) § The charge economy
+(`dS/dt = inflow − d·S ⟹ S* = inflow / d`; *magic perishes, matter doesn't*;
+⚠ *charge decay has NO far-past absence guard — follow husbandry, not
+metabolism*).
 
-This slate argued demurrage from a self-discharge rate. The build derives
-it properly:
+## The fourth guard — shipped
 
-```
-  dS/dt = inflow − d·S      ⟹      S* = inflow / d
-```
-
-> *"**Two dials whose ratio is the answer**, and a system that settles
-> instead of inflating… Throttling inflow alone cannot work — stock grows
-> without bound at any throttle, because nothing ever leaves."*
-
-⭐ And the canon line is better than mine: **"magic perishes, matter
-doesn't"** — the ruins hold perfect blades and faded rings.
-
-⚠ Note the build's own warning, which **matches the call
-[supply-chain-slate](../tails/supply-chain-slate.md) made independently for
-fermentation**: charge decay has **no far-past absence guard** — *"an item
-must decay while nobody is looking, because that is the entire basis of the
-equilibrium. Follow **husbandry**, not metabolism."*
-
-## ⭐⭐⭐⭐ A FOURTH guard, and it is the strongest one
-
-> *"**You find shells and buy charge.** Wealth cannot corner the found
-> channel, because **what money buys is caster-labour, which is capped.**"*
-
-Because charge cannot enter an item any other way:
-
-> ⚠ *"`adjust-reserve` now routes **any** positive delta on a `charge`
-> reserve through the one implementation (`MagicApi.transferCharge`), so
-> **no effect can add charge without a coupling**."*
-
-And a coupling needs three things — **your reserve**, the `transfer` working,
-and a **conduit** — with `delivered = committed × coupling × competence`
-(crude 0.6 · field 0.85 · bench 0.98), and ⭐ **efficiency that can never
-reach 1 by construction**, because *"1 τ ≡ 1 kJ against a conservation law,
-so a lossless pump is a perpetual-motion machine."*
-
-⭐⭐ **That is the conversion table Part 1 proposed, shipped** — along with
-`lib/magic/PriceList.ts`, which prices `transform` three orders of magnitude
-above every other verb so rarity falls out of **arithmetic rather than a
-rule somebody has to remember.**
+→ [magic-items.md](../../subsystems/magic-items.md) § Recharging: three
+things, and a coupling that loses some (`adjust-reserve` on `charge` routes
+through `MagicApi.transferCharge`; `delivered = committed × coupling ×
+competence`, crude 0.6 · field 0.85 · bench 0.98; a lossless pump is a
+perpetual-motion machine); `lib/magic/PriceList.ts` prices `transform` three
+orders of magnitude above every other verb.
 
 ## ⚠⚠⚠ The tension: a city-scale node breaks `S* = inflow / d`
 
@@ -338,93 +239,31 @@ rather than merely regulating it.
 
 # Part 5 — ⭐⭐⭐ The TPA on mana
 
-> **User: "I think the TPA terminals should be mana powered, getting their
-> power from a power grid or a battery or some other kind of mana node.
-> Right now they have no in-game physics — they just work."**
-
-Four things this buys, none of which need new substrate:
-
-1. ⭐ **The fare stops being an arbitrary number and becomes cost-plus** —
-   energy + capital. The accounts already exist (`fasttravel.tpaAccount`,
-   the network fee, the remittance split) and are **currency-tagged end to
-   end** since the 2026-08-05 merge — `Charge` carries a currency, so a fare
-   is a zorkmid fare and cannot quietly become anything else.
-2. **A failure mode, and therefore a politics.** A dark terminal is
-   somebody's fault, somebody's budget line, and somebody's election issue.
-3. ⭐⭐ **Grid coverage = network coverage.** The mana grid decides *where
-   the world is close together* — arguably the most consequential thing a
-   locality can build, and a genuine rival to road-building.
-4. **Off-grid terminals run on cells**, at the premium — so a remote
-   terminal is expensive to keep lit, which is *why* the frontier feels far.
-
-⭐ And it puts teleport into the transport stack **priced**, rather than as
-a free exception to it:
-
-| mode | cost | speed | infrastructure |
-|---|---|---|---|
-| carry it | your time + encumbrance | slow | none |
-| cart / wagon | cheap per tonne-km | slow | roads |
-| ⭐ **TPA** | **expensive per kg** | instant | grid + terminals |
-
-> **Carts do bulk; TPA does urgent.** Shipping vs. air freight — and
-> neither eats the other because the arithmetic says so, not because a rule
-> forbids it.
+Shipped → [fasttravel.md](../../subsystems/fasttravel.md) § ⭐ What the TPA
+reform changed, § The gate runs on mana (the three supplies — a cell in the
+bay, a `ManaMain` the row names, a person in contact), § The arming floor
+(`dry`/`overdrawn`; a gate with no traffic drains), § The mana charge (the
+rate is DERIVED from the supply — line `0.002`, cells `0.01`, BYO `0` — so a
+frontier post on cells quotes a dearer ride than a city gate on the line).
+The transport-stack pricing (carts do bulk, TPA does urgent) rides `m·g·Δh`
+with the traveller's borne burden in the mass term
+(`MagicLogic.relocationCostImpl`).
 
 ---
 
 # Part 6 — ⚠⚠ The one thing that changes the science: the endpoint clause
 
-The postulate's **"the caster is always one endpoint"** is load-bearing.
-`arcane-science.md` says it is *why* the faculty is anatomical, why cold
-magic cooks the caster, and why a mage in a conductive pool is part of
-their own circuit.
-
-> ⚠⚠ **A terminal-to-terminal network has no caster at either end.**
-
-Two ways out, and this slate does **not** default one:
-
-## ⭐⭐⭐ RESOLVED 2026-08-04 — the traveler IS the caster
-
-The problem dissolved on a clarification:
-
-> **User: "by 'operator' I meant the teleporter — the person using the
-> terminal to teleport themselves. There's only one person at the
-> terminal."**
-
-> ⭐⭐⭐⭐ **The traveler is the caster. Their own body is one endpoint; the
-> destination is the chosen point.** The postulate is satisfied
-> **verbatim** — no bound device, no stated exception, no second impossible
-> thing. The terminal is a **charged item supplying the energy**; the
-> traveler supplies the **endpoint**.
-
-⭐⭐ **And it settles the TPA-vs-freight question structurally rather than by
-pricing.** Goods have no body to be an endpoint, so **the TPA moves
-people.** Your pack rides because you are carrying it; a wagonload does
-not.
-
-> **Encumbrance is the boundary** — which is exactly what
-> [freight-slate](./freight-slate.md) already resolved: *"the line is
-> capacity, not goods."*
-
-⭐ So matter-teleport needs no amendment to `arcane-science.md` after all:
-what moves is **a person and what they carry**, and a person is a caster.
-The Part 6 amendment above is **withdrawn as unnecessary** — kept only as a
-record of why the endpoint clause matters.
-
-## On teleporting matter at all
-
-> **User: "I do think magic should teleport — we have scrolls of
-> teleport."**
-
-⭐ Widening the postulate from *energy* to *energy or matter* is arguably
-**the same impossible thing** — relocation without a path — rather than a
-second one. That is the cheap widening, and it keeps the discipline.
-
-⚠ **But `arcane-science.md` explicitly says "the postulate moves energy; it
-does not manufacture mass,"** so this is a real amendment to a shipped
-document, not an interpretation. **It should be made deliberately, with the
-price of moving mass as the design lever** — expensive but finite, so the
-TPA is a business rather than a miracle.
+Resolved and shipped — **the traveller is the caster**: `relocate` always
+lands on `ctx.actor` (the `teleport` spell row, AC5 — *you cannot send a third
+party*), the ride quotes `MagicApi.relocationCost` on the traveller's own
+mass, and the postulate is satisfied verbatim. The matter question is
+settled the other way round: the exemption is **LOCALITY**, not *energy*,
+so teleportation is the same impossible thing and no amendment was needed
+beyond restating it → [arcane-science.md](../../arcane-science.md) § The
+Postulate (revised 2026-08-11), § Control·Body and the terminal network;
+[fasttravel.md](../../subsystems/fasttravel.md) § 2 · The TPA ride, § 3 · The
+anchored spell. Encumbrance is the freight boundary: the pack rides in the
+mass term.
 
 ---
 
@@ -501,21 +340,14 @@ genuine engineering problem whose right answer varies by site.
 
 ## Capacitors as a storytelling primitive
 
-> **User: "I think we're going to need capacitors right away even if we're
-> still pre-industrial, just as a narrative tool. It's like how cell phones
-> changed screenwriting — batteries change what stories people can tell in
-> an open world (see TPA again)."**
-
-⭐ The analogy is exact. A battery **decouples power from place**, which is
-what lets an author put a powered thing on the frontier *without lying about
-it* — and the cost is a clock, which is the story. It also mints the
-**dead battery**: a failure that is nobody's fault and is recoverable.
-
-> ⭐⭐ **Cheapest possible implementation: a capacitor is a CHARGED ITEM with
-> no spell attached.** [magic-items-slate](./magic-items-slate.md) already
-> ships charge, self-discharge and *"you find shells; you buy charge."* A
-> mana cell is that object with its specification set to *hold and release*.
-> **Nothing new is required.**
+Shipped — a **`ManaCell`** is `Slottable + Charged` and no new mixin, sold at
+the general store, swapped into a device's `battery` bay →
+[magic-items.md](../../subsystems/magic-items.md) § `ChargedMixin`'s second
+consumer; [fasttravel.md](../../subsystems/fasttravel.md) § The gate runs on
+mana. The narrative-tool rationale (*a battery decouples power from place;
+the cost is a clock, which is the story; the dead battery is a recoverable
+failure that is nobody's fault*) is in the compaction ledger's Handoff for
+magic-items.md.
 
 # Part 7 — What this does to the wood question
 
@@ -544,13 +376,12 @@ unchanged, but now with an upper storey:
 
 # Open questions
 
-1. ⚠⚠ **The endpoint clause (Part 6)** — bound endpoint vs. stated
-   exception. **The only decision here that changes the science**, and it
-   gates the TPA fiction.
-2. **Is charge one fungible quantity, or typed by form?** The price list
-   already makes form matter (heat 0.85, etc.). *Leans one quantity + a
-   conversion price* — otherwise every device needs its own fuel and the
-   grid stops being a grid.
+1. ~~The endpoint clause~~ — resolved: the traveller is the caster, and the
+   exemption is locality (Part 6 note; arcane-science.md § The Postulate).
+2. ~~Is charge one fungible quantity, or typed by form?~~ — resolved: one
+   quantity. A shell's tank and a caster's pool are the same denominator
+   (τ, `Unit` `'pt'`), and form is priced by `PriceList` at the effect
+   (magic-items.md § The denominator is τ).
 3. ⭐ **Do nodes deplete?** A renewable node has an inflow; a depletable one
    does not. **Both should exist** — it is the same wood/coal choice, and
    having both is what makes siting a real decision.

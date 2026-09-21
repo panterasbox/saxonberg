@@ -1,13 +1,18 @@
 # Slate — modality-scoped resolution & feasibility validation
 
 > **Status: PARTIAL** — the scope try-list, the `reachable` seed and the
-> `Modality` singletons ship → [mql.md](../../subsystems/mql.md)
+> `Modality` singletons ship → [mql.md](../../subsystems/mql.md); the ONE
+> definition of reach (`PerceptionApi.canReach`, one level into an open
+> container) and its `canReach` validator ship →
+> [perception.md](../../subsystems/perception.md); compacted 2026-09-19
+> (ledger: `docs/plans/slate-compaction/mql.md`)
 > **Left:** modality as a per-verb scope axis · per-modality container
-> permeability · transparent containers (sight-through walls) ·
-> feasibility validators that assume nothing about resolution
+> permeability (⚠ today ONE `isOpenContainer` rule serves reach AND
+> sight) · transparent containers (sight-through walls) · the
+> modality-general feasibility validator + its adoption (`eat`, the
+> slate's own case, carries no reach validator)
 > **Size:** a wave
 
-> **Status:** slate (design captured, build deferred-until-pulled).
 > **Surfaced by:** the timepiece + crossing-log work at the EU bus stop
 > (`docs/staging/eternal-university/objects/{pocket-watch,crossing-log}.md`).
 > A `tally` verb that reads a timepiece, and an `eat` that has to cope with
@@ -80,38 +85,13 @@ Same walk; once to enumerate candidates, once to gate the chosen one.
 
 ## Principle 2 — resolution ≠ feasibility (you can't assume anything)
 
-- **Resolution (MQL)** answers *"what does this reference point to?"* and is
-  deliberately **wide** — permission tiers, cross-scope reach, online
-  providers. You can name a cake in outer space from Narnia and MQL will
-  resolve it. Resolving means *valid reference*, not *valid action*.
-- **Feasibility (the verb)** answers *"can THIS actor do THIS to THAT, from
-  here, now?"* — reach, sight, sealed boundaries, distance, is-it-even-food.
-  MQL does **not** do this and must not be assumed to have.
-
-**The scope try-list is a convenience default for unqualified input — not a
-guarantee.** Explicit MQL bypasses it and can point anywhere permission
-allows. So the **per-verb feasibility validator is the contract.** Without
-it, `eat <explicit-mql-pointing-at-the-moon>` sails through.
-
-Validators **return a reason, not a boolean** — because the **prose lives
-there.** "It's sealed in the bag" / "you can't reach that" / "that's not
-food" are different reasons → different diegetic lines, emitted via the
-response-envelope `ctx.note({ kind, reason, detail }) + Scene.send` path.
-The controller has to *know why* it's infeasible to say the right thing.
-
-### The corrected pipeline
-
-```
-MQL resolves a reference (could be anywhere, subject to permission)
-  → verb's feasibility validator gates it against the actor's
-    MODALITY scope + per-container permeability, assuming nothing
-    → on failure: a reasoned, located, diegetic Note (prose)
-    → on success: controller acts (containment-agnostic; optional
-      "take it out of the bag first" is action-side flavor, not required)
-```
-
-The grammar gives you reach *and the ability to overreach*; the validator
-makes overreach fail gracefully instead of letting you eat the moon.
+*Shipped for reach, and stated — `scope:` is a search hint, the per-verb
+validator is the contract, a validator returns a reason string:
+[mql.md § Resolving is not permission](../../subsystems/mql.md) (*Nor is
+resolving feasibility*), [perception.md § `canReach`](../../subsystems/perception.md)
+(the ONE definition of reach), `lib/command/validators/canReach.ts` (22 views
+carry it). ⚠ The modality-general half of the pipeline is Principle 1 and
+the fourth *needs built* bullet below, both open.*
 
 ---
 
@@ -170,9 +150,9 @@ graduate to requirements → plan. It doesn't have to ship as one big change:
 - **Sight modality + transparent containers** rides naturally with the
   **timepiece work** (`tally` reading a visible watch / wall clock / clear
   case). The clear-case is the forcing function for transparent containers.
-- **The resolution-vs-feasibility discipline** is cross-cutting and worth
-  landing as a stated rule the moment *any* verb starts accepting explicit
-  MQL targets, so overreach is handled from day one.
+- *The resolution-vs-feasibility discipline — shipped: the `canReach` validator
+  over `PerceptionApi.canReach`; stated at [mql.md § Resolving is not
+  permission](../../subsystems/mql.md) (*Nor is resolving feasibility*).*
 
 Trigger to graduate: the first verb whose correctness genuinely depends on
 modality-scoped resolution. Today that's `tally` (sight) and a real `eat`

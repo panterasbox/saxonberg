@@ -70,6 +70,22 @@ scoping IN the key so part of `claimFor` is derivable.
 a residence pack. Conceptually the mine IS a holding — *a parcel being
 put to a use*, with `landUse: industrial` naming the purpose.
 
+### Reap is per cell, and Held ground sleeps
+
+There is no seal sweep and no wall: `MineWarren.reconcile` culls the
+**cold Provisional tail one cell at a time** (`abandon`), and the rules
+are the tiers' own. A Provisional cell is torn down and **forgotten** —
+its ledger entry goes with it, so re-driving the same cell regenerates
+the identical tunnel from the seed. A **Held** cell is torn down but
+**keeps its record** (`PersistableApi.capture` on the way out): *dormancy
+is not lapse* — held workings sleep and wake whole. An **occupied**
+working is never culled, whatever its tier, and Held ground is never
+culled at all, because shoring is what bought it. The articulation-point
+seal, the wall Boundary and the reap-as-one-unit that the design slates
+carried were not needed: with no subgraph ever sealed, nothing can orphan
+a player or dangle an exit, and air simply re-derives around the hole
+(`refreshAirAround`).
+
 ---
 
 ## The geology field
@@ -152,6 +168,27 @@ so the lode's plane continued upward forever and a surface working's `up`
 face read as ore: you could have hewn a seam out of the sky. The ground
 stops at the collar.
 
+### Features, and the chamber seam
+
+The feature layer is the one place the field carries **authored content
+discovered by digging rather than placed on a map**. `features.pins` is a
+flat `Record<cell, FeaturePin>` (a coordinate IS the key, so no
+containment walk); `features.seeded` is a table of pocket rules (`vug`,
+`seep`) drawn by `roll01(seed, cell)` — the pocket was always there, and
+nothing rolls to decide what your pick did. Barren ground is the default
+and the common case.
+
+⭐⭐ **A pin can name a PLACE, and the place gets its own zone.** The
+Ferrow's `hush-mouth` pin lands you in the Hush, a `SphericalZone`,
+because *the grid represents what labour cut and a cavern was not cut* —
+the zone boundary sits exactly where the authorship of the space
+changes. Both sides of the seam are explicit (the counting-houses
+precedent): the mouth is an authored `AuthoredWorking` singleton, not a
+carved member, so the gallery can exit back to a stable path. ⚠
+**Authored chambers only** — a zone is a template row, and a zone minted
+per procedurally-discovered chamber would be the rowless mint D17
+forbids; unauthored pockets stay grid cells with their own prose.
+
 ### Surveying — three layers, not one
 
 | | Verb | What it is |
@@ -182,6 +219,14 @@ handle. Two characters on one outcrop hold different books, and a survey
 record is a tradeable asset. The reading is stored and the error band is
 not: a prospector who improves re-reads their own old notes at their new
 resolution.
+
+⭐ **Why the assay shed is a surface room.** Vision's
+`REQUIRED_BAND_FOR_DETAIL` (`lib/perception/Light.ts`) puts `fine` at
+`bright`, and a hand lamp is not bright — so underground you get the
+coarse read (*green staining, a seam*) and never the fine one. Judging
+grade by eye wants daylight or an instrument, which is why miners carried
+samples up and why the scale sits at the pithead. Nothing in the mine
+states this; it falls out of a shipped table.
 
 ---
 
@@ -216,6 +261,25 @@ and a bruise through the shipped harm channel. The last cut off an
 undercut face in unquiet ground is the one that runs — so the free
 telegraph (which rides the **same number** as the refusal) has already
 fired, and an attentive player is never hurt.
+
+### The acts are labour
+
+The five acts are **engagements over game time**, paced by the face's
+hardness (`paceForGround`) and costing endurance — the cap on a shift is
+the body, the clock and the lamp, not a dial. `hew` takes ore from a face
+of the room you stand in; `drive` · `sink` · `raise` mint **exactly one
+cell** (10 m at Rejection — a length of drift, several shifts of work),
+which is why there is no per-heading cap to set: the durable limit on how
+much mine you can hold is the timber market, because Held needs shoring.
+Ore is softer than barren rock, so following a seam is cheap carving that
+pays as it goes, and driving speculatively toward a read feature is
+expensive and yields only the room. A winze is **climbed, not walked** —
+`WinzeController` hands the vertical medium to the completion as a
+VALUE, since the controller is destructed before the heading breaks
+through. ⚠ **None of the acts carries a deed gate, and that is a
+decision**: they are labour, not craft, and gating labour on a can-make
+deed is the band-gate violation wearing a different hat; a test reads
+the views and asserts no `requires`-a-deed appears.
 
 ---
 
@@ -278,6 +342,42 @@ and the heat decide whether a ferrous charge comes out a bloom, a steel
 or a cast pig, and the grade arrives one hop further down as the
 `slagFraction` a bloom loses at the anvil.
 
+### The body is finite
+
+**Nothing regenerates ore.** A deposit is a fixed quantity of matter
+emplaced by a geological event that is not happening again, and a seam
+that refills teaches the opposite of the one thing mining has to teach.
+The earlier "regenerates on the breathe cycle" was a compute argument
+about culling cold *rooms*, which is a separate concern: rooms cull
+while the taking stands. What it buys is the venue's sharpest lesson,
+sitting beside its own control — **the coppice regrows and the vein does
+not**; one trade tends a renewable faucet on a rotation while the trade
+across the road spends a finite one. The *deposit* is finite, the
+*world* is not: exhaustion sends prospectors out to find the next one,
+which is the arc a mining town is named for. ⭐ A sample split off a
+pooled lot **assays as the lot** (`Ore.onSplit` carries the grade), so
+you can take a sample to the scale and the answer means something.
+
+## Fuel — pyrolysis, and the clamp
+
+`trade-fuel` is **one craft, not a product list**: burn matter in starved
+air, the volatiles leave, the carbon stays — wood in, charcoal out (coal
+in, coke out, later). The judgment is the draught: too much air and the
+charge burns through to **ash**, too little and it never carbonises and
+you open the clamp on half-burnt **brands**; the band between chars. It
+runs for a game-day and is read at the end (`CharController`), which
+gives the trade what most crafting lacks — **you can lose a whole burn**.
+⭐ Charcoal is not merely hotter: it is the **reducing agent**, the
+carbon that strips oxygen off the ore, so the fuel trade is a physical
+input to the metal and no furnace engineering routes around it. The
+clamp (`CharcoalPit`) composes `FurnaceMixin`, so `smelt` legitimately
+finds it from the fuel yard — and **declines with a sentence about what
+a clamp is**, a heap kept deliberately starving of air. That refusal is
+the teaching, not an error path. The yard's coppice is forestry's
+`Panel` ([forestry.md](./forestry.md)); the realm's charcoal rate is its
+iron ceiling, and rotation → panel density → baskets per burn → smelts
+is one piece of arithmetic somebody sets deliberately.
+
 ---
 
 ## Title
@@ -322,6 +422,21 @@ the mine are different zones, therefore different paths, and parcel
 ownership resolves by longest prefix. No parcel at the mine's path ⇒ the
 surface holder owns what is beneath (an unsevered estate); severance is
 `subdivide`.
+
+### Whose ore it is
+
+The venue runs **a company operation with independents on the margins**
+(Cornwall and Derbyshire both): the **co-op**, a `Business`, holds the
+developed mine and pays wages; the **claim field** around it is held by
+independents by parcel title, with all the upside and all the risk. The
+two meet in one rule on `hew` — ⭐ **on the roster, the business keeps
+the ore** (that is what *tutwork* means: paid by the fathom, for progress
+through rock); **on your own ground, you do**. The fringe outfit is the
+second shape authored — `wageRate: 0`, `purchases: true` — an outfit
+that owns its take and buys its own timber. What does NOT ship is the
+shaft, which is why nobody yet owns the mine's throat and no toll is
+levied at it: with an adit, a claim-holder walks their own ore out and
+owes the co-op nothing.
 
 ---
 
@@ -438,6 +553,22 @@ at all — which is why the vertical pair passes a VALUE (`edgeMedium()`,
 read at dispatch) rather than overriding a hook.
 
 ---
+
+## The producer beat
+
+⭐ **Supply must not be a function of concurrency.** A smelter whose
+input dries up on a quiet night is a demo that only works while somebody
+is watching, so the mine ships an NPC crew: the `delves` brain
+(`trade-mining/src/behavior/delves.ts`) works a face, carries the take to
+the assay shed and consigns it — shore if the ground says so, hew the
+best reachable face, `wallet use house`, `consign` each lot bounded by
+the shelf's headroom. ⭐⭐ **Nothing the brain does is unavailable to a
+player**: every act is a forced literal verb, so the hand is subject to
+exactly the rules a person is — bad ground refuses it, a worked-out face
+refuses it, foul air will kill it. Its sibling `reads-air` is the canary:
+an **instrument whose readout is an animal's behaviour** — it sings in
+good air, goes quiet as it thins, stops before a person feels anything,
+and dies through the ordinary respiration driver, never a script.
 
 ## What Stage A does NOT cover, and what the next stage inherits
 

@@ -21,8 +21,6 @@ The finding is the same shape as the physiology audit:
 > ⭐⭐⭐ **The species layer is HALF-READ too. There are eight
 > differentiating axes already shipped and we have used ONE.**
 
-> **Status: landscape survey + governing rules. Not a definitive design.**
-
 Related: [race.md](../../subsystems/race.md),
 [vitals.md](../../subsystems/vitals.md),
 [respiration.md](../../subsystems/respiration.md),
@@ -236,25 +234,10 @@ gap is so wide **nobody else bothers.**
 
 ---
 
-## ⭐ Hand-off from the consequence build (MR!254, 2026-09-10)
-
-Two seams, salvaged out of the retiring plan doc.
-
-- ⭐⭐ **A `Species` contest band for beasts.** The build needed a
-  difficulty for fighting an animal and derived it from the **body** —
-  mass, reach, natural-attack profile — rather than authoring a tag
-  (`NaturalAttack.difficultyFor`). That is the right default and it
-  should stay the default. What it cannot express is a species that is
-  harder or easier than its body implies (a thing that is *cunning*, a
-  thing that is *docile*), which is an authored band the derivation
-  yields to. ⚠ It must not become the ordinary path: the whole point of
-  deriving is that a new animal is one row with no tuning.
-- ⚠ **Three authored `Species` fields nothing reads** — found by the
-  build's own `lint:unconsumed-seams` census, not by inspection:
-  `_parentCladePath`, `lifecycleStates`, `lifespanMin`. They are the
-  **maturation / lifespan axis**, declared and inert.
-  ⭐⭐⭐ And `lifespanMin`/`Max` are inert **on purpose** —
-  [race.md](../../subsystems/race.md) decided that nothing dies of old
-  age until succession is solved (*"does the innkeeper die, and who
-  replaces her?"*), and warns in as many words that a later build must
-  not quietly finish it. So this is a seam to **document**, not to wire.
+*(The consequence build's two salvaged seams (MR!254) are resolved: the
+`Species` contest-band-for-beasts design note belongs to combat, not
+race, and is handed off in the compaction ledger rather than kept here;
+the unconsumed-`Species`-fields census is folded into
+[race.md](../../subsystems/race.md) — `lifespanMin`/`Max`'s
+inert-on-purpose status was already documented there, and
+`_parentCladePath`/`lifecycleStates` are now documented alongside it.)*

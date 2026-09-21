@@ -5,36 +5,14 @@
 > 2026-06-29: troll + ghoul NPC casts, gnome/half-elf/orc playable,
 > ogre/kobold/satyr NPC, new name banks, the species-and-names pack.
 > **Left:** the personhood casts (flesh golem · doppelganger · zombie ·
-> synth · mind flayer) · the real attuned lineage replacing the
-> `sensitivus` stub (still used by shipped NPCs) · first sapients for the
-> empty `fungi`/`plantae`/non-mammal `animalia` clades · retiring the two
-> hybrid rows (`semieldarinus`/`semiorcus`, DECIDED 2026-08-11)
+> synth · mind flayer) · the rest of the casting palette (guardians ·
+> schemers · scholars · tricksters · the dead · the uncanny · the bar) ·
+> the real attuned lineage replacing the `sensitivus` stub (still used by
+> shipped NPCs, still unreplaced) · first sapients for the empty
+> `fungi`/`plantae`/non-mammal `animalia` clades · retiring the two hybrid
+> rows (`semieldarinus`/`semiorcus`, DECIDED 2026-08-11 — still shipped,
+> still playable, unretired)
 > **Size:** a wave
-
-> **Status: sketch / pre-requirements.** A **later, separate build** — this doc
-> captures the *design philosophy* and a *casting palette* to build from, not a
-> spec. Authored 2026-06-27 in a design pass while carving the EU murder arc's
-> cast (the medical examiner). The substrate (`lib/species`, the Linnaean
-> `Clade` tree, `BodyPlan`, `Species`, `NameBank`) is **already built** — see
-> [race.md](../../subsystems/race.md); this is about *content* (more species)
-> and the principle for choosing them.
->
-> **Scope:** roster expansion, **NPC-first** (player-playability per species is
-> a separate, later question). Influence: **NetHack** (its race/monster personas,
-> D&D/Tolkien-derived) + the casting principle below.
->
-> **First pass BUILT (2026-06-29, `feature/species-and-names-pack`).** Per
-> Open-Q6 (EU corner first), the two casting calls — **troll** (`homo/trollius`,
-> Katie) and **ghoul** (`homo/ghulius`, Dr. Vance) — landed as NPC-first
-> `Species` seeds. Then a cheap, data-only roster expansion: **gnome / half-elf
-> / orc** added **playable** (in the char-gen roster), plus NPC-first **ogre /
-> kobold / satyr**. All mundane living-people (the "brute"/"undead" framings are
-> slander, not biology). New `gnomish` + `sylvan` name banks; the rest reuse
-> existing pools. Shipped alongside the migration of the whole `Species`/`Clade`
-> tree + the name banks out of the kernel seed tree into the
-> `@saxonberg/content-species-and-names` content pack. The deeper *personhood*
-> casts (flesh-golem, doppelganger, zombie, synth — they want mechanics) and the
-> rest of the palette below stay deferred (JIT, carve-by-carve).
 
 ---
 
@@ -131,23 +109,10 @@ NetHack/D&D-recognizable):
 - **Clone** † / **uplift** † / **synth-android** † — the copy, the lifted, the
   made.
 
-## What we have now (the gap)
-
-A **D&D roster reskinned as Homo subspecies** + token non-humanoids:
-
-- **`homo/`** — `sapiens` (human), `eldarinus` (elf), `khazadicus` (dwarf),
-  `periannath` (halfling), `semiorcus` (half-orc), `draconicus` (draconic),
-  `infernalis` (tiefling), `sensitivus` (**attuned — a throwaway STUB**, flagged
-  in-seed for replacement by a real attuned-lineage pass).
-- **Non-homo tokens** proving the taxonomy works — `animalia/…/catesbeianus`
-  (bullfrog), `plantae/…/wallisii` (peace lily, sessile), `constructa/…/tutor-bot`
-  (robot).
-- **Clades** stand ready and near-empty: `animalia` (non-mammal), `plantae`,
-  `fungi`, `constructa`.
-
-The roster is ~all humanoid-fantasy. The expansion fills the personas the D&D
-core misses and lights up the empty clades — *cast by persona, gated by
-recognizability.*
+*(The pre-expansion roster this section once audited is stale; the current,
+accurate picture is [race.md](../../subsystems/race.md)'s Species roster
+table — the `sensitivus` stub and the empty/near-empty clades it describes
+are both still true today, just no longer novel.)*
 
 ## The casting palette (by bucket)
 
@@ -197,36 +162,14 @@ where it's a mainstreamed-global or spice.
   body) · **Flesh golem** † · **Doppelganger** † · **Clone** † · **Uplift** †
   · **Cyborg** (between flesh and machine)
 
-## Casting calls so far
-
-- **Katie (dorm property manager) → Troll.** Apt: the threshold-guardian
-  archetype *is* her function. See
-  [property-manager.md](../../staging/eternal-university/npcs/property-manager.md).
-- **The medical examiner → Ghoul.** The morgue is the ghoul's native habitat;
-  the persona and the setting rhyme. See
-  [medical-examiner.md](../../staging/eternal-university/npcs/medical-examiner.md).
-
-These feed the **`Species` field of the character-sheet format** directly — the
-field is a *casting slot*, filled by persona.
-
-## How a species expresses mechanically (the substrate is ready)
-
-A `Species` seed already speaks through real hooks, so a cast carries weight, not
-just a name (see a seed like `homo/sensitivus.yaml`, `tutor-bot/mk-iv.yaml`):
-
-- **`_bodyPlanPath`** — biped / quadruped / sessile / … (a sessile sapient, a
-  swarm) · **`_defaultMaterialPath`** — flesh / alloy / … (a golem of stone, a
-  synth of cultured tissue) · **`innateMixins`** — e.g. `AetherMixin` for
-  born-attuned (the djinn/attuned lineage), or its absence for the *aether-blind*
-  (a mind no comm can reach — outside the Sybil channel by nature) ·
-  **`vitalProfile`** — the ecto- vs endotherm split is live in
-  [thermal.md](../../subsystems/thermal.md) (a saurian/cold-blood genuinely
-  *plays* differently: torpor, the regulation system) · **`lifecycleStates`** —
-  `alive/dead/undead` vs `powered/unpowered/destroyed` (a construct's "death" is
-  decommissioning — no certificate; the §7 uncounted made mechanical) ·
-  **`reproductiveMode`** — `sexual` vs `manufactured` · **`circadianBand`** —
-  diurnal / nocturnal / aperiodic · **`diet`**, **`visionProfile`**,
-  **`nameBankKeys`** (a `NameBank` per culture/species).
+*(The casting calls that motivated this — Katie → Troll, the ME → Ghoul —
+shipped and are documented in [race.md](../../subsystems/race.md)'s roster
+table, which names both as "Katie's cast" / "Dr. Vance's cast". The species
+seed fields a cast draws on — `_bodyPlanPath`, `_defaultMaterialPath`,
+`innateMixins`, `vitalProfile`, `lifecycleStates`, `reproductiveMode`,
+`circadianBand`, `diet`, `visionProfile`, `nameBankKeys` — are all documented
+on the `Species` template in [race.md](../../subsystems/race.md) § Species —
+capability.)*
 
 ## Open questions / dials (for the build)
 
@@ -242,9 +185,8 @@ just a name (see a seed like `homo/sensitivus.yaml`, `tutor-bot/mk-iv.yaml`):
    spice.
 5. **The spice budget** — how many obscure-folklore casts the world can carry
    before recognizability erodes (lean: few, each character-carried).
-6. **EU corner first** — scope the first pass to the species the EU murder arc
-   actually needs (troll, ghoul, + whoever the next carves demand), JIT, rather
-   than building the whole palette up front.
+6. *(resolved — the first pass scoped to troll/ghoul, the EU arc's own needs;
+   see the canonical status block above.)*
 
 ---
 

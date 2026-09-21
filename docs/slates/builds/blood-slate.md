@@ -2,15 +2,23 @@
 
 > **Status: UNBUILT** — no blood type, no donation, no transfusion door
 > anywhere in the shipped vitals/harm/metabolism stack.
-> **Left:** the genotype/phenotype endowment · the compatibility cost curve
-> · the donation loop + the bag · screening · the trait payoff · the
+> **Left:** the genotype/phenotype endowment (`untested` until tested,
+> per-`Species` allele frequencies + the provenance stamp) · the
+> compatibility cost curve (non-hierarchical across species · graded
+> failure · the volume-expander floor) · draw / store / transfuse over
+> `Bulkable` + the `introduceToxin` seam · donation cost on the biological
+> `Reserve` · the summons + the clinic as demand (named shortages · the
+> recipient→donor loop) · screening · the gift-only credits (chronicle
+> deed · disposition credit · the renown move) · the trait payoff · the
+> consent predicate (implied consent in an emergency) · a `test` for your
+> own type · the
 > Titmuss paid-market lever (designed-for, explicitly not v1). ⭐ Q6 is
 > answered and Q1 has a reader — see the consequence note below.
 > **Size:** a build
 > ⭐ **Sole home for the transfusion design since 2026-09-15** — absorbed
 > physiology-slate § Part 7e (see the section of that name below).
 
-> **Status: design proposed, nothing built.** The transfusion economy —
+> The transfusion economy —
 > blood types, donation, and the supply that the shipped
 > [harm](../../subsystems/harm.md) vertical creates demand for but
 > nothing answers.
@@ -510,13 +518,7 @@ disease transmission, and any cross-instance concern.
 5. **Do NPCs donate on their own?** The trait-driven answer says yes and
    gives the supply an emergent baseline; it also means NPC transcripts
    and standings start moving without a player involved.
-6. ✅ **Species with no blood — ANSWERED** by the consequence build's
-   **D22**: an effect naming a vital sign a species does not have is a
-   **deliberate no-op with a test**, never an error and never a
-   zero-fill. A construct takes an edge blow, has a wound, and does not
-   bleed. (The test is load-bearing: *"does nothing because nobody wrote
-   the branch"* and *"does nothing because the author said so"* read
-   identically.)
+6. ✅ *Q6 (species with no blood) resolved: [harm.md](../../subsystems/harm.md) — a `vital` effect naming a sign the body does not have is a deliberate silent no-op (`Vitals.hasVitalSign`), with a test; the consequence build's D22.*
 
 ---
 

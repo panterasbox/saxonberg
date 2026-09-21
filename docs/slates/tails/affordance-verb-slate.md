@@ -1,20 +1,18 @@
 # Affordance verbs (working slate)
 
 > **Status: PARTIAL** — `put` / `give` / `Surfaced` / `restingOn` /
-> `placeOn` shipped → [spatial.md](../../subsystems/spatial.md), and
-> affordance attribution + `getAffordances()` shipped →
-> [command-routing.md](../../subsystems/command-routing.md)
+> `placeOn` shipped → [spatial.md](../../subsystems/spatial.md);
+> affordance attribution, `getAffordances()`, and the verb-provenance
+> `affordances` help verb all shipped →
+> [command-routing.md](../../subsystems/command-routing.md); the
+> global-verb-vs-object-carried-command question resolved and is
+> documented at [command-spec.md](../../subsystems/command-spec.md) §
+> *Domain-local commands* (the Watch worked example shipped in that
+> shape, not the `Timepiece` mixin this slate sketched).
 > **Left:** source-scoped invocation (`watch::set`, sigil unsettled) and
-> its parse wiring · the verb-provenance help listing (which object and
-> mixin affords each verb) · the pocket-watch worked example · the
-> `Receiving` mixin (NPC consent for `give`) · extra `put` prepositions
+> its parse wiring (Q3–Q5) · extra `put` prepositions (Q2) · the
+> `Receiving` mixin (NPC consent for `give`)
 > **Size:** a tail
-
-> **Status:** `put` / `give` / `Surfaced` shipped (see
-> [docs/subsystems/spatial.md](../../subsystems/spatial.md) for the
-> built surface). Source-scoping (`::`), command-provenance/help,
-> and the watch worked-example are the live remaining design — that
-> half of the slate is why it stays open.
 
 Working slate for two sandbox-foundational verbs that exercise
 target-side mixin affordances: **`put`** and **`give`**. Each
@@ -59,75 +57,6 @@ weight lives in the **target-side mixins**.
 
 ---
 
-## Verbs `put` / `give` + `Surfaced` — SHIPPED
-
-This half of the slate is built. The `Surfaced` mixin (sibling to
-`Container`, with its own resting collection), the `restingOn`
-placement model, `canRest`, and the `placeOn` primitive live in
-[docs/subsystems/spatial.md](../../subsystems/spatial.md); the verbs
-ship as `lib/spatial/Surfaced.ts` plus the `PutController` /
-`GiveController` pairs. The on-vs-in ontology question resolved to
-the sibling-mixin shape. (`give` lands items in the receiver's
-general inventory via `ContainmentApi.move`; no `Receiving` mixin
-in v1 — NPC consent is still deferred.)
-
----
-
-## Detail interactions — affordances live on Stuffs, not Details
-
-DetailedMixin gives a Stuff lightweight addressable sub-parts
-(`look at door's handle`) — descriptive, MQL-resolvable, but not
-themselves objects. The line this slate defends:
-
-> **Affordances are mixins on Stuffs. Details are pure
-> description. If a sub-part deserves a verb that DOES
-> something — accept things on it, hold things in it, be picked
-> up — it earns its own Stuff.**
-
-The corollary: verbs don't target Details. A sword's inscription
-is text inside the Detail's description — `look at inscription`
-shows it — but no separate verb attaches to the Detail itself.
-The same applies to any future sensory verb against a Detail:
-the descriptive text covers it.
-
-The one exception, established by the slot subsystem, is the
-**Detail-keyword bridge**: a slot's `userFacingDetail` lets MQL
-resolve "mount back" against a Stuff that exposes "back" as
-both a Slotted slot and a Detail keyword. The Detail isn't
-gaining slot semantics — the slot is *claiming* the keyword
-for MQL resolution. This slate's `Surfaced` follows the same
-pattern with `getUserFacingDetail()` so `put apple on tabletop`
-resolves "tabletop" against the host's single `Surfaced`
-collection. Cheap, consistent, no new pattern.
-
-Per-verb summary:
-
-- **`give`** — whole-Stuff transfer to a whole-Stuff receiver.
-  No Detail interaction. (`give X to <hand-keyword>` falls out
-  of the existing slot-Detail bridge if the receiver's hand
-  slot already has a `userFacingDetail`.)
-- **`put X in/on Y`** — `Y` must compose `Container` or
-  `Surfaced` on the host. Detail keywords resolve via the
-  bridge field above.
-
-If a sandbox needs multiple genuine surfaces on one piece of
-furniture (bookshelf with shelves AND a top), each shelf is its
-own Stuff — not a Detail-with-its-own-Surfaced. The "one mixin
-per Stuff" stance keeps the substrate honest about which
-sub-parts are interactive.
-
----
-
-## What shipped in this slate
-
-SHIPPED — see [docs/subsystems/spatial.md](../../subsystems/spatial.md)
-(`Surfaced`, `restingOn`, `placeOn`) plus the `put` / `give`
-controllers. The acceptance roster (put-in-Container, put-on-Surfaced,
-non-Surfaced rejection, no-prep disambiguation, give-to-Agent,
-give-to-non-Agent rejection) landed with the build.
-
----
-
 ## Verb collision, source-scoping, and command provenance
 
 > Surfaced by the humblest possible object — a pocket watch that affords
@@ -136,11 +65,9 @@ give-to-non-Agent rejection) landed with the build.
 > disambiguation + discovery layer the affordance-verb family needs at
 > scale. Long wanted; the watch is the first concrete forcing case.
 
-**Default — shape resolution (already shipped).** The rich parser +
-dispatch chain (shape-vs-bind, `pass: true`, scope try-list, per-giver
-recency) resolves the common case by target + argument shape:
-`set <watch> 4:00` finds the watch's `set` affordance because the watch is
-in scope and the args fit. Most invocations never need more, and this
+**Default — shape resolution.** Already shipped: see
+[command-routing.md § Stage 3 — Matching](../../subsystems/command-routing.md)
+and § *Recency stack*. Most invocations never need more, and this
 stays the ergonomic default — you rarely type anything special.
 
 **Explicit — source-scoped invocation.** For genuine ambiguity,
@@ -174,62 +101,24 @@ ambiguity model** — it reuses `CommandApi.applyCardinalityPolicy` (the
   cardinality many → apply to each; fed by MQL's existing `all X` / `:{*}`.
 - **zero**: not-found error.
 
-**Command provenance (help).** Affordance verbs are invisible unless you
-can ask **"what can I do, and where does each verb come from?"** A help
-surface listing available verbs and their **source** (which object + which
-mixin affords each) — extending the YAML-generated help that already
-produces usage/help pages. It's also how anyone discovers that a
-`source::` target exists at all. Without it, affordance verbs can't be
-found.
+**Command provenance (help) — shipped.** The `affordances` verb
+(`AffordancesController`) lists a giver's available commands annotated
+by affording source, and the underlying attribution record is
+documented at
+[command-routing.md § Affordance attribution](../../subsystems/command-routing.md#affordance-attribution--source-not-category).
+This is the discovery layer this slate wanted; it predates and does not
+depend on source-scoping (`::`) below.
 
-### How a verb reaches an object (it isn't always a mixin)
-
-Two grounded patterns — neither is "the mixin *is* the verb":
-
-- **Global verb, capability-gated.** The verb is a global command
-  (`open`/`close`, `put`/`give`); its controller acts on any in-scope
-  target, gated by a capability mixin that supplies the state + methods
-  (`Sealable` → `isOpen()`/`open()`; `Container` → holds). The mixin
-  provides *capability*; the verb stays global.
-- **Object-carried command.** An object-specific command lives on the
-  object — the `Thermometer` carries `measure`; its controller reads from
-  an Api. No mixin involved.
-
-So `put`/`give` ride mixins *because `Container`/`Surfaced` are shared
-traits*, not because verbs must come from mixins. A one-off verb is just a
-command the object carries; promote it to a global-verb + capability-mixin
-(like `open` + `Sealable`) only when a second host shares the trait. (This
-qualifies the "affordances are mixins on Stuffs" line above — that section's
-real point is *Stuff vs Detail*, not *mixin vs command*.)
-
-### Worked example — the watch
-
-- `open` / `close` are **global verbs** gated by the `Sealable` capability
-  (the watch composes `Sealable`; the global controllers act on it).
-  `wind` / `set` are **carried by the watch** (object-specific commands,
-  like `Thermometer` carries `measure`) — **no `Timepiece` mixin.** It's a
-  thin `Watch` class (the instruments are thin classes too) with clockwork
-  fields (`setTo` / `setAt` / `drift` / `wound`) that **overrides its
-  long-description getter** to build the string — static prose + its **own
-  kept time** (`reading = setTo + (WorldClockApi.now() − setAt) × rate`;
-  the world-clock is only an elapsed-time *ruler*, never displayed — the
-  watch shows its own drifted value, which is why Gus's, never `set`, reads
-  slow) + lid state (`Sealable`). `getMarkupLong`
-  calls the getter fresh on every `look`, so **`look watch` shows the
-  time** with no extra machinery. (No augmenter, no read-verb:
-  `markupAugmenters` are a *different* tool — multi-mixin cross-cutting
-  transforms like detail-wrapping / spoiler gating, not an object computing
-  its own description.)
-- **Gus** (a command-giver like anyone) issues `wind watch` — his MQL
-  `watch` resolves to his single carried watch (cardinality one, no
-  prompt) — and never issues `set` (which is why it drifts).
-- **Player, one watch:** `set watch 4:00` resolves by shape; no scoping
-  needed.
-- **Player, two watches:** `set watch 4:00` hits cardinality-excess → a
-  disambiguation prompt, or scope explicitly: `brass-watch::set 4:00`.
-- **Batch:** `all watches::wind`.
-- **Help** reports `set` / `wind` as coming from the watch's `Timepiece`
-  affordance.
+**How a verb reaches an object — resolved, documented elsewhere.** The
+global-verb-vs-object-carried-command question (a capability mixin
+gating a global verb, vs. a one-off command an object carries itself)
+is settled by the "reusability" test at
+[command-spec.md § Domain-local commands](../../subsystems/command-spec.md)
+— including this slate's own watch case, which shipped as the worked
+example there (and at [time.md](../../subsystems/time.md)) in a
+different shape than sketched below: `wind`/`adjust` as domain-local
+carried commands gated on a `MechanicalMovementMixin`, not a
+`Timepiece` mixin, and no `set` verb.
 
 ---
 
@@ -257,14 +146,8 @@ real point is *Stuff vs Detail*, not *mixin vs command*.)
 
 ### Q1. `Surfaced` vs. `Container` ontology
 
-**Resolved: sibling; shipped as `lib/spatial/Surfaced.ts`.**
-Sibling, variant, or extension? Shipped as the sibling (Option A).
-Real decision rode on whether downstream code wants to treat all
-"contained things" uniformly or wants to branch on the
-relationship type. If perception code wants `getAllContents() ⊕
-getAllResting()`, the duplication is annoying — but if perception
-asks "what's visible on the table?" vs. "what's in the chest?"
-the distinction is load-bearing.
+Resolved: sibling. Shipped as `lib/spatial/Surfaced.ts`; see
+[spatial.md § Surfaced and surface placement](../../subsystems/spatial.md#surfaced-and-surface-placement).
 
 ### Q2. `put` preposition vocabulary expansion
 
@@ -297,15 +180,12 @@ path in `applyCardinalityPolicy`.
 
 ## Once shaped into formal requirements
 
-The first half (`Surfaced` mixin + `put` / `give` controllers +
-content + tests) has shipped — see the SHIPPED section above. What
-remains for requirements is the disambiguation + discovery layer:
+What remains for requirements is the disambiguation layer:
 
 - Source-scoping syntax (`source::verb`) — sigil settled (Q3),
   parse wiring against the MQL tokenizer.
-- Command provenance / help surface listing available verbs and
-  their source object + mixin (Q4/Q5 cardinality behavior).
-- The watch worked-example as the first forcing content.
+- `put` preposition vocabulary expansion (Q2) and the `Receiving`
+  mixin (NPC consent for `give`), if either earns a forcing case.
 
 The slate sets the design space for the affordance-verb family;
 follow-on slates (`Pourable`, `Switchable`, `Lockable`, etc.)

@@ -18,9 +18,6 @@ will want to auction things. **Consignment already ships**
 price on someone else's shelf*, and an auction is a different animal:
 it exists where **the price is not known.**
 
-> **Status: direction set, nothing built.** The substrate answer is the
-> load-bearing part; most of the rest already exists.
-
 Related: [contract.md](../../subsystems/contract.md) (**the substrate
 this rides**), [retail.md](../../subsystems/retail.md),
 [activity.md](../../subsystems/activity.md),

@@ -1,23 +1,24 @@
 # Rendering slate — the knacker, the tanner, the chandler
 
 > **Status: UNBUILT** — leather ships as a sink with no source; no soap
-> or candle exists. **Shipped since capture:** `tallow` (ranching's row +
-> cooking's `render-tallow`), `ash` (trade-fuel's material), the caustic
-> harm channel + `rinse` (build-4, unmerged) — the chandler's inputs and
-> his occupational injury now exist; only his products do not.
-> **Left:** the knacker · the tanner · the chandler · `soap` / `candle` ·
-> the lye chain off ash · the carcass → named-materials seam in ranching
-> · the one-pack-or-three cut · ⚠ soap's CONSUMER (`Soilable`, the
-> room-condition pack) — the producer waits on it
+> or candle exists. Code-verified 2026-09-19: no rendering / tanning /
+> chandling pack; no `soap` or `candle` row anywhere (candle survives
+> only as a lumen threshold in `light.md`); nothing tans a hide. ⚠ The
+> ranching build shipped the seam this slate asked it to leave open —
+> `butcher` yields tallow (a pail of fat), a green hide and bone, and
+> `tallow` is now a material (`trade-cooking`'s `render-tallow` recipe +
+> `material/tallow.yaml`, *the medieval kitchen's cooking fat and its
+> candle stock*) — so the chain's front end exists for slaughtered stock;
+> the knacker's dead-stock half, the tanner and the chandler do not.
+> **Left:** the knacker (dead stock — a `Corpse` yields nothing) · the
+> tanner (tannin is the dyeing trade's) · the chandler · `soap` /
+> `candle` · bone → glue · buttons · the one-pack-or-three cut · where
+> soap goes · leather: this pack makes it, textiles' venues sell it (and
+> `leather-jerkin` currently takes a raw hide) · does the knacker collect
 > **Size:** a build
 
 > **Captured 2026-09-03**, out of the settlement-model pass, in answer to
 > *"are there new trades to be chartered here?"*
->
-> **Status: a proposed pack charter. Nothing built.**
-> ⚠⚠ **Gated on [ranching](./ranching-slate.md)** — no livestock, no
-> carcasses. Ranching is building now, so the seam wants leaving open
-> (§ 5).
 >
 > ⭐ **This is the only genuinely NEW trade the settlement pass produced.**
 > Everything else it implied was already in
@@ -46,9 +47,7 @@ and this fires it exactly:
 - **Nothing makes leather.**
 - `tissue/bone`, `tissue/flesh`, `tissue/muscle` all ship — so a carcass
   already decomposes materially.
-- ⚠ There is **no `soap`, no `candle`.** *(`tallow` ships since the
-  farmstead build — ranching's row and cooking's `render-tallow` — so the
-  chandler's input is now real and unconsumed.)*
+- ⚠ There is **no `tallow`, no `soap`, no `candle`.**
 
 And the candle gap is worse than a missing item: **Rejection's entire
 culture section is built on it** — *"a two-candle job"*, *"he's short of
@@ -106,18 +105,12 @@ demand was fabricated.*
 
 ## 5. ⚠⚠ The ranching seam — leave it open, do not build it
 
-Ranching is building now. It does not need this pack, but it will produce
-its input, so:
-
-- **A dead animal should decompose into named materials** (`hide`,
-  `tallow`-precursor fat, `tissue/bone`, `tissue/muscle`) rather than into
-  a generic corpse or nothing. `tissue/*` already ships; **fat/tallow does
-  not.**
-- ⭐ **A carcass is worth something to somebody**, which is what makes
-  culling a decision rather than a loss — and that is a ranching-side
-  economics question the moment stock can die.
-- ⚠ Do **not** author a knacker, a tannery or a chandler inside the
-  ranching pack. Cut at process, per the metal chain.
+SHIPPED · DOCUMENTED, as asked: `butcher` takes the whole animal apart
+into meat · offal · tallow · hide · bone (`trade-ranching`'s
+`ButcherController.YIELDS`), the green hide is authored as *a SEAM rather
+than a product* with no `leather` row minted, and no knacker / tannery /
+chandler was authored inside the ranching pack — `ranching.md` (*slaughter
+is sober and complete*; *the hide is a stated seam*).
 
 ## 6. ⚠ The cut: one pack or three?
 
@@ -150,8 +143,24 @@ grade of the leather). Chandling probably does not.
 | **cooper** | **GAP** | barrels — fermentation, brewing and distilling all need vessels |
 | **monument mason** | **GAP** | the necropolis — ⚠ **too small to charter**; ride the necropolis locality pack |
 
+## 8. Open
 
-## 8. Soap — the chandler's second product (captured 2026-09-18)
+- **The cut** (§ 6).
+- **Where does soap go?** It is a rendering output and a hygiene input —
+  which touches [disease](./disease-slate.md) and the *care* need, and
+  could easily become fabricated demand if hygiene is made an obligation
+  rather than an advantage.
+- **Is leather textiles' business or this pack's?** ⚠ Leather is **not**
+  fibre — different process, different substrate — but a player will
+  expect one place to buy both. Probably: this pack makes it, textiles'
+  venues sell it.
+- **Does the knacker collect, or do you bring it?** Collection is a
+  service (a round, a cart, freight); delivery is a chore. The first is a
+  vocation, the second is fabricated demand.
+
+---
+
+## 9. Soap — the chandler's second product (captured 2026-09-18)
 
 Came out of the nutrition & fitness planning: *"an adjacent system we
 should have talked about — hygiene."* Soap is where four designed-but-
@@ -296,18 +305,3 @@ room-condition's `Soilable`. Build the consumer first or together —
 the scurvy precedent: the metabolism slate designed the deficiency in
 June and it sat unshipped for three months because the consumer never
 appeared. Candles do not wait; soap does.
-
-## 9. Open
-
-- **The cut** (§ 6).
-- ~~**Where does soap go?**~~ **Answered, § 8 (2026-09-18):** a
-  rendering output, a hygiene *consumable* — never an obligation. The
-  bathroom slate already decided washing is *enabling, never a decay
-  meter*; soap is what makes `wash` do what water cannot.
-- **Is leather textiles' business or this pack's?** ⚠ Leather is **not**
-  fibre — different process, different substrate — but a player will
-  expect one place to buy both. Probably: this pack makes it, textiles'
-  venues sell it.
-- **Does the knacker collect, or do you bring it?** Collection is a
-  service (a round, a cart, freight); delivery is a chore. The first is a
-  vocation, the second is fabricated demand.
