@@ -41,7 +41,7 @@ builds on [contacts.md](./contacts.md),
 | Hot-reloadable logic singleton | `platform/idea/api/SocialLogic.ts` (`/platform/idea/api/social`) |
 | The `notify` verb | `cmd/social/notify.yaml` + `platform/idea/cmd/social/NotifyController.ts` |
 | Presence events | `Avatar.enter` / `Avatar.onLinkdead` (+ `setLeaveIntent`), `lib/events.ts` (`PlayerLoggedIn`/`PlayerLoggedOut`/`PlayerReconnected`/`PlayerDisconnected`) |
-| Country of origin | `api/connection.ts` (`ConnectionApi.originOf`/`recordOrigin`, `geoip-lite`), captured at the WS handshake |
+| Country of origin | `api/connection.ts` (`ConnectionApi.originOf`, the read side); capture writes `Interactive.recordOrigin` directly from `backend/Application.ts` (the backend layer, not the mudlib, owns the `geoip-lite` import and the raw request) |
 | Client settings panel | `components/settings/SocialNotificationsPanel.tsx` (presence frames render inline — no bespoke client component) |
 
 No new module category: `SocialApi`/`SocialLogic` mirror the
@@ -492,6 +492,13 @@ owners and three privacy semantics — which is why there is no one fat
 
 ## Non-goals (this build)
 
+- **Contacts/notify-rule membership is a private attention lens, never
+  a reputation input.** A bucket or a `notify` rule is unilateral
+  self-declaration and carries no objective signal about anyone but its
+  owner — it shapes how *you* see the world (verbosity, notifications),
+  never another player's standing. Renown aggregates only over
+  objective `Group`s (`GroupApi`); `RenownLogic` never reads contacts or
+  `ContactsGroupProvider`.
 - **Message filtering / moderation** — a `foes` policy governs display
   de-emphasis + notification suppression only; dropping speech from a
   feed is a comms concern (comms-slate).
