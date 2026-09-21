@@ -517,6 +517,17 @@ export interface MixinMissingNote {
   mixin: string;
 }
 
+/**
+ * The body could not hold the pace it was asked for and dropped to a
+ * slower mode — a fresh body's `run` breaking to a walk. The traverse
+ * still happens, under `to`. Nutrition-and-fitness W2.
+ */
+export interface PaceBrokenNote {
+  kind: 'pace-broken';
+  from: string;
+  to: string;
+}
+
 export interface LocomotionGateFailedNote {
   kind: 'locomotion-gate-failed';
   gate:
@@ -863,6 +874,7 @@ export type Note =
   | ControllerRejectedNote
   | MixinMissingNote
   | LocomotionGateFailedNote
+  | PaceBrokenNote
   | SlotOccupiedNote
   | CommandRejectedNote
   | MqlErrorNote
@@ -896,6 +908,16 @@ export interface DispatchResponseEnvelope {
   frameId: number;
   dispatchId: string;
   outcome: DispatchOutcome;
+  /**
+   * ⭐ Set when the command was FORCED on the giver by the runtime (the
+   * auto-`sense` on arrival, a brain, a dialogue effect) rather than
+   * typed. Every command fires exactly one envelope, and a forced one
+   * fires INSIDE the typed command that caused it — so on the wire the
+   * auto-sense's envelope lands before `run`'s own, and a correlator
+   * that takes "the next dispatch-response" reads the wrong outcome.
+   * Absent (never `false`) for player-typed input.
+   */
+  forced?: true;
 }
 
 export interface ActivityUpdateEnvelope {
@@ -1041,6 +1063,7 @@ export type ShelfRowId =
   | "play"
   | "renown"
   | "skill"
+  | "body"
   | "make"
   | "coin"
   | "status"
@@ -1053,6 +1076,7 @@ export const SHELF_ROW_IDS: readonly ShelfRowId[] = [
   "play",
   "renown",
   "skill",
+  "body",
   "make",
   "coin",
   "status",
@@ -1085,6 +1109,10 @@ export const DEFAULT_SHELF: readonly ShelfRowId[] = [
   "play",
   "renown",
   "skill",
+  // ⭐ Joined the default the day it started answering (nutrition-and-
+  // fitness W8): the body is the most immediate figure a person has,
+  // and it is words — winded · hungry · in good flesh — never a gauge.
+  "body",
 ];
 
 export interface MqlSubscribeMessage {
@@ -1720,6 +1748,14 @@ export interface SelfFigureRecord {
    * practised.
    */
   practisingCompetence?: { discipline: string; band: string } | null;
+  /**
+   * ⭐ The body, as WORDS — breath (`fresh`·`tired`·`winded`·`spent`),
+   * hunger, thirst, and the build phrase the mirror prints. Re-resolved
+   * when a band turns over, never every slice. No number ever rides
+   * here: a meter would let a player stop at 51 % and never learn what
+   * winded feels like.
+   */
+  bodyState?: { breath: string; hunger: string; thirst: string; build: string };
 }
 
 /**

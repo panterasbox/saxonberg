@@ -554,3 +554,47 @@ under attention; **Transform is not forbidden, it is unaffordable**) ·
 classes, the `S* = inflow/d` charge economy, BUC; `ring-of-veil` is the
 worn exemplar) · [concealment.md](../../subsystems/concealment.md) +
 [belief.md](../../subsystems/belief.md) (the veil's observer side).
+
+---
+
+## ⭐ Footwear — the one channel a garment does not intercept yet (2026-09-18)
+
+Came out of the nutrition & fitness planning: *"workout clothes, the
+wide world of shoes, fitness as fashion."* Run through the governing
+idea — a garment's purpose is which channel it intercepts — it splits
+cleanly into a part that is already true and a part that is new.
+
+**Athletic wear needs nothing; it emerges, the way the lab coat does.**
+Nobody authors "gym clothes." The nutrition build makes exertion heat
+(build-4's shedding is damped by worn `clo` — the coat that stops
+work-heat getting out), sweat is wetness (`waterAbsorptionCapacity` on
+every material already says wicking vs soaking), sweat is soiling (the
+sacrificial outer layer — the apron's job is the singlet's job), and
+the *signal* channel — the lab coat's second channel — is what
+fitness-as-fashion is: athletic wear worn *away* from the gym says
+something, and the impression augmenter already reads the worn stack.
+Four channels, four existing mechanisms, zero new code. A row that is
+light, low-clo, high-absorbency and outermost **is** a workout garment.
+
+**The ground is the channel nothing intercepts.** Locomotion has a
+`terrain` gate and it reads nothing from the feet; weather makes
+puddles; the winze is rock; a bare foot pays on gravel and nothing
+charges it. Footwear is a `Garment` on the two foot slots (embodiment
+has them; `leather-boots` ships as a row) with a **ground channel**:
+traction on dry vs wet vs rock, wet-through from a puddle, the sole's
+wear. A running shoe is light and grips dry ground; a boot survives wet
+and rock; the wide world of shoes is **materials × construction × fit**,
+exactly as every garment already is — the variety is rows, the channel
+is the one kernel addition. Its first consumers: the sustained `run`
+(the nutrition build's reach rung), the climb, the haul over wet ground.
+
+**The cordwainer** is leather's biggest customer — the *fourth* trade
+downstream of the knacker after tanner, chandler and glue
+([rendering-slate](./rendering-slate.md)), and the reason *"leather is a
+sink with no source"* matters: shoes are where most of a hide goes.
+Same blocker as leatherwork above; same pack question (rendering's
+§ 6, one pack or three — now one or four).
+
+⚠ Deliberately not here: a shoe as a *stat* (speed bonus, stealth
+bonus). Traction and wet-through are material facts the ground channel
+reads; anything a shoe "gives" derives from them or does not exist.

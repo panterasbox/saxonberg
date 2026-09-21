@@ -46,11 +46,12 @@ import { PerceptibleMixin } from '../description/Perceptible';
 import { ContainableMixin } from '../spatial/Containable';
 import { ContainerMixin } from '../spatial/Container';
 import { VitalsMixin } from '../vitals/Vitals';
-import { ReservedMixin, type Reserve } from '../reserve';
+import { ReservedMixin, Reserve } from '../reserve';
 import { LoadBearingMixin } from '../encumbrance/LoadBearing';
 import { MetabolicMixin } from '../metabolism/Metabolic';
 import { ThermalMixin } from '../thermal/Thermal';
 import { ThermalRegulationMixin } from '../thermal/ThermalRegulation';
+import { ExertingMixin } from '../exertion/Exerting';
 import { RespirationMixin } from '../respiration/Respiration';
 import { DisguisableMixin } from '../disguise/Disguisable';
 import { ConcealableMixin } from '../concealment/Concealable';
@@ -60,6 +61,9 @@ import { ChattelMixin } from '../chattel/Chattel';
 import { BrandedMixin } from '../corpo/Branded';
 import { PostmortemMixin } from '../mortality/Postmortem';
 import { Quantity } from '../quantity';
+import { AppApi } from '../../api/app';
+import { AppSettingKeys } from '../config/AppSettings';
+import type { SubscribableFieldDescriptor } from '../../api/mql-subscription';
 
 // Body stack (inner → outer):
 //   Container + Containable + Disguisable + Visible + Respiration +
@@ -155,6 +159,12 @@ const CreatureBase = ChattelMixin(
         // answer was never "these two animals" — it was "a body".
         PerceptibleMixin(
         VisibleMixin(
+        // ⭐ Every body can work and tires by working. Outer of the
+        // thermal pair (it deposits heat on ThermalRegulation) and of
+        // Metabolic (its reserve reads go through the reconciling
+        // override, so a debit lands on a fresh value); inner of
+        // LoadBearing (which reads its lean margin).
+        ExertingMixin(
           ThermalRegulationMixin(
             ThermalMixin(
               RespirationMixin(
@@ -192,6 +202,7 @@ const CreatureBase = ChattelMixin(
               )
             )
           )
+        )
         )
         )
       )
@@ -236,11 +247,98 @@ const BODY_CONDITION_PHRASE: Readonly<Record<BodyConditionBand, string>> = {
 };
 
 /**
+ * The lean (muscle) bands, slight to powerful — the second axis of the
+ * build phrase. ⭐ Fat is what you ate; lean is what you did.
+ */
+export const LEAN_BANDS = ['slight', 'ordinary', 'hard', 'powerful'] as const;
+export type LeanBand = (typeof LEAN_BANDS)[number];
+
+/**
+ * ⭐⭐ **The build phrase — the mirror.** Flesh band × lean band, person
+ * register, describing a body and naming nobody. This is what `look`
+ * prints about a person and what two bodies of one species that spent a
+ * season differently read as. The reviewer's test, as for the stockman's
+ * table: every adjacent cell must read DIFFERENTLY, and no cell is a
+ * number in words.
+ *
+ * ⚠ This is one culture's vocabulary. The cosmetics slate's *Beauty*
+ * section names this table as the attach point a per-culture canon
+ * replaces; the shape (facts in, a described line out) does not change.
+ */
+const BODY_BUILD_PHRASE: Readonly<
+  Record<BodyConditionBand, Readonly<Record<LeanBand, string>>>
+> = {
+  emaciated: {
+    slight: 'gaunt — skin over bone',
+    ordinary: 'gaunt',
+    hard: 'gaunt and stringy',
+    powerful: 'gaunt and stringy',
+  },
+  thin: {
+    slight: 'slight, with no flesh to spare',
+    ordinary: 'lean',
+    hard: 'wiry',
+    powerful: 'rangy and hard',
+  },
+  good: {
+    slight: 'soft, in good flesh',
+    ordinary: 'in good flesh',
+    hard: 'in good flesh, hard',
+    powerful: 'broad and hard',
+  },
+  fleshy: {
+    slight: 'heavyset and soft',
+    ordinary: 'heavyset',
+    hard: 'heavyset, thick through the shoulders',
+    powerful: 'burly',
+  },
+  fat: {
+    slight: 'fat, and carrying it badly',
+    ordinary: 'running to fat',
+    hard: 'running to fat, but strong under it',
+    powerful: 'massive',
+  },
+};
+
+/** The body-mass-index bands — the physician's word for a weight. */
+export const BMI_BANDS = ['underweight', 'healthy', 'overweight', 'obese'] as const;
+export type BmiBand = (typeof BMI_BANDS)[number];
+
+/** Numeric AppSetting read, falling back to the seeded literal. */
+function dial(key: string, fallback: number): number {
+  try {
+    const raw = AppApi.setting(key);
+    if (raw === '' || raw == null) return fallback;
+    const n = Number.parseFloat(raw);
+    return Number.isFinite(n) ? n : fallback;
+  } catch {
+    return fallback;
+  }
+}
+
+/**
  * Creature concrete class — a living body. `Character` extends this
  * and adds agency. `Agent` already registers the top-level branch;
  * `Creature` does not re-register.
  */
 export class Creature extends CreatureBase {
+  /**
+   * ⭐ The shelf's BODY row — the reserve bands as words, with the build
+   * phrase beside them. A live field on the `self` card, re-resolved
+   * when `ExertingMixin.noteBodyState` pokes the durable subject on a
+   * band crossing (never every slice). Words only: *winded*, *hungry*,
+   * *in good flesh, hard* — the mirror, never a gauge.
+   */
+  static subscribableFields: SubscribableFieldDescriptor[] = [
+    {
+      name: 'bodyState',
+      read: (stuff) => {
+        const c = stuff as Creature;
+        return { ...c.bodyState(), build: c.bodyBuildPhrase() };
+      },
+    },
+  ];
+
   constructor() {
     super();
     // Every living body starts with its biological reserves (endurance /
@@ -292,6 +390,37 @@ export class Creature extends CreatureBase {
   }
 
   /**
+   * ⭐⭐ **The lean reserve — muscle, the second stock.** Fat is what you
+   * ate; lean is what you did. Moved up by overload (`ExertingMixin`),
+   * relaxed back by idleness (`Metabolic.partitionLean`), frozen by
+   * absence. Read it as a band inside {@link bodyBuildPhrase}; the raw
+   * number is for the body's own economy.
+   */
+  public getLean(): Reserve {
+    return this.getReserve('lean')!;
+  }
+
+  /** The amino pool — filled by the `protein` tag, spent by muscle gain. */
+  public getProtein(): Reserve {
+    return this.getReserve('protein')!;
+  }
+
+  /**
+   * Conditioning — the stock the `wind` Discipline's band is a threshold
+   * over. Seeded empty; earned by duration at a sustainable pace; fades
+   * while you play and never while you are away.
+   */
+  public getWind(): Reserve {
+    return this.getReserve('wind')!;
+  }
+
+  /** The years clock — full to empty over a dialled month of active play
+   * on a diet with no citrus in it; its floor is scurvy. */
+  public getVitaminC(): Reserve {
+    return this.getReserve('vitamin-c')!;
+  }
+
+  /**
    * ⭐ **The band, which is what a reader actually gets** (D24).
    *
    * The reserve is stored and the band is derived — the same relationship
@@ -328,6 +457,65 @@ export class Creature extends CreatureBase {
     return BODY_CONDITION_PHRASE[this.bodyConditionBand()];
   }
 
+  /** The lean band — the second axis of the build phrase. */
+  public leanBand(): LeanBand {
+    const lean = this.getReserve('lean');
+    if (!lean) return 'ordinary';
+    const capacity = lean.capacity.rawValue();
+    const fraction = capacity > 0 ? lean.current.rawValue() / capacity : 0;
+    if (fraction < 0.25) return 'slight';
+    if (fraction < 0.6) return 'ordinary';
+    if (fraction < 0.85) return 'hard';
+    return 'powerful';
+  }
+
+  /**
+   * ⭐⭐ **The mirror** — what a body looks like, flesh × lean, in the
+   * person register. A percept, never a number in words: *wiry*, *in
+   * good flesh*, *running to fat*. What `look <person>` prints, and what
+   * two bodies that spent a season differently read as. Names nobody.
+   */
+  public bodyBuildPhrase(): string {
+    return BODY_BUILD_PHRASE[this.bodyConditionBand()][this.leanBand()];
+  }
+
+  /**
+   * Body mass index — mass over the species' stature squared, or `null`
+   * for a body with no stature to read. ⚠ A derived number for the
+   * physician's band ({@link bodyMassIndexBand}); nothing renders it.
+   */
+  public bodyMassIndex(): number | null {
+    const stature = this.getSpecies()?.getStature() ?? 0;
+    if (stature <= 0) return null;
+    const mass = this.getMass().rawValue();
+    if (mass <= 0) return null;
+    return mass / (stature * stature);
+  }
+
+  /** The BMI band in the physician's words; `healthy` when unreadable. */
+  public bodyMassIndexBand(): BmiBand {
+    const bmi = this.bodyMassIndex();
+    if (bmi === null) return 'healthy';
+    if (bmi < 18.5) return 'underweight';
+    if (bmi < 25) return 'healthy';
+    if (bmi < 30) return 'overweight';
+    return 'obese';
+  }
+
+  /**
+   * Whole-body density from the fat fraction — fat at 900 kg/m³, lean
+   * tissue at 1100. `F = 0.08 + 0.32 × flesh/100`: an emaciated body is
+   * 8 % fat, an obese one 40 %. ⭐ Fat floats: the consumer is the water.
+   */
+  public getBodyDensity(): Quantity<'kg/m³'> {
+    const flesh = this.getReserve('flesh');
+    const fraction = flesh
+      ? flesh.current.rawValue() / Math.max(1, flesh.capacity.rawValue())
+      : 0.55;
+    const fat = 0.08 + 0.32 * fraction;
+    return Quantity.of(1 / (fat / 900 + (1 - fat) / 1100), 'kg/m³');
+  }
+
   /**
    * Mass override that lazy-seeds the body-grounded default. When the
    * instance authored no mass of its own (still `0`), resolve
@@ -346,8 +534,45 @@ export class Creature extends CreatureBase {
    */
   override getMass(): Quantity<'kg'> {
     const current = super.getMass();
-    if (current.rawValue() !== 0) return current;
-    return this.seedMassFromBodyPlan() ?? current;
+    const frame =
+      current.rawValue() !== 0
+        ? current
+        : (this.seedMassFromBodyPlan() ?? current);
+    return this.withBodyComposition(frame);
+  }
+
+  /**
+   * ⭐ **The stocks reach mass, so the tape notices.** The frame (the
+   * species figure, or an authored mass) plus what the body has put on
+   * or taken off: `massPerFleshPct × (flesh − seed) + massPerLeanPct ×
+   * (lean − seed)`. One read, and every mass consumer — carry capacity,
+   * the basal drain, thermal mass, the fist, the tailor's girth —
+   * inherits it. A fresh body masses exactly its frame; a body lacking
+   * the reserves (anything that is not a living body) adds nothing.
+   *
+   * ⚠ Reads the stored reserve values RAW (no reconcile): mass is read
+   * on hot paths (`wouldExceedCeiling`), and the reconcile itself reads
+   * mass for the basal drain. The stocks move on the metabolism clock,
+   * which every other read already turns.
+   */
+  protected withBodyComposition(frame: Quantity<'kg'>): Quantity<'kg'> {
+    if (frame.rawValue() <= 0) return frame;
+    const seeds = Reserve.defaultBiological();
+    const flesh = this.reserves['flesh'];
+    const lean = this.reserves['lean'];
+    let delta = 0;
+    if (flesh && seeds.flesh) {
+      delta +=
+        dial(AppSettingKeys.bodyMassPerFleshPct, 0.3) *
+        (flesh.currentValue - seeds.flesh.currentValue);
+    }
+    if (lean && seeds.lean) {
+      delta +=
+        dial(AppSettingKeys.bodyMassPerLeanPct, 0.25) *
+        (lean.currentValue - seeds.lean.currentValue);
+    }
+    if (delta === 0) return frame;
+    return Quantity.of(Math.max(0, frame.rawValue() + delta), 'kg');
   }
 
   /**

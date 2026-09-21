@@ -83,8 +83,8 @@ const PRODUCTS = '/trade/smelting/thing';
  * a player sits through is not the same fact.
  */
 const SMELT_MS = 120_000;
-/** Endurance a run costs, in percentage points. */
-const SMELT_COST = 10;
+/** Metabolic watts of holding a furnace at heat: (425 − 300) × 120 s / 1500 = the old 10 %. */
+const SMELT_EFFORT_W = 425;
 /**
  * The MINIMUM charcoal a run wants. ⚠ More than the ore by mass, which
  * is why the smelter sits next to the fuel yard rather than next to the
@@ -329,8 +329,12 @@ export default class SmeltController extends CommandController<SmeltModel> {
 
   private engage(context: CommandContext, onDone: () => void): void {
     const giver = context.commandGiver;
-    if (MixinApi.isReserved(giver) && giver.hasReserve('endurance')) {
-      giver.adjustReserve('endurance', Quantity.of(-SMELT_COST, '%'));
+    if (
+      MixinApi.isExerting(giver) &&
+      !giver.canExert(SMELT_EFFORT_W, SMELT_MS / 1000)
+    ) {
+      this.decline(context, Mml.fromMarkup(giver.exhaustionRefusal()), 'too-tired');
+      return;
     }
     if (!MixinApi.isEngaged(giver)) {
       onDone();
@@ -340,6 +344,7 @@ export default class SmeltController extends CommandController<SmeltModel> {
       actor: giver,
       slots: ['attention'],
       durationMs: SMELT_MS,
+      effortW: SMELT_EFFORT_W,
       onComplete: onDone,
     });
     const result = SchedulerApi.start(step);

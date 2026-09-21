@@ -1,0 +1,151 @@
+# body — application settings shipped by the platform pack (the `settings`
+# kind: merge-missing — a key the app_settings singleton lacks is merged
+# in; a value the operator changed via `config` is never touched).
+#
+# ⭐ The body's slow stocks and the rates they move at. `satiation` is
+# hours and `flesh` is months; these are the SECOND month-clock (muscle),
+# the session clock (wind) and the years clock (vitamin C), plus what one
+# exertion costs. Every key is read per use, so `config body.windHalfLifeDays 1`
+# turns a season up inside one session and `config` turns it back. The
+# rates are playtest; the felt-cost figures (what a hew, a plough and a
+# smelt cost) are pinned by test against `exertion.*` and must hold.
+# See docs/subsystems/exertion.md.
+settings:
+  # ── the stocks ──
+
+  # Muscle gained (%-points) per hour of work AT the overload ceiling.
+  # Two an hour at the ceiling means a season of real overload — an hour
+  # a day for a month — moves a body a full band, which is what makes
+  # the mirror worth looking in. Work under the ceiling scales it down.
+  - key: body.leanGainPerHour
+    value: "2"
+
+  # The time constant (active game-days) muscle relaxes back toward its
+  # seed when nothing overloads it. Six weeks: idleness detrains, and
+  # absence never does (the metabolism clock freezes on logout).
+  - key: body.leanDetrainDays
+    value: "45"
+
+  # Muscle burned (%-points per active game-day) while satiation sits at
+  # or below the flesh-deficit line. A starving body eats its own lean.
+  - key: body.leanCatabolismPerDay
+    value: "1"
+
+  # Protein (%-points) spent per %-point of muscle gained. No protein in
+  # the diet, no muscle from the work — the pool is the cap.
+  - key: body.proteinPerLeanPct
+    value: "1.5"
+
+  # The amino pool's basal turnover (%-points per active game-day): what
+  # a body that eats no protein runs down at.
+  - key: body.proteinTurnoverPerDay
+    value: "8"
+
+  # ⭐ The fraction of the body's peak power an act must reach to train
+  # muscle. Below it the work tires you and builds nothing — the mill
+  # stops making you stronger once you have outgrown the sack, and the
+  # load you CHOOSE is what moves the figure again.
+  - key: body.overloadFraction
+    value: "0.7"
+
+  # Peak metabolic power (W per kg) of a body of ordinary muscle; the
+  # lean margin scales it (0.6× at lean 0, 1.4× at lean 100). 12 W/kg on
+  # a 70 kg body is 840 W — a hard lift, a sprint.
+  - key: body.peakWPerKg
+    value: "12"
+
+  # Wind gained (%-points) per hour of work at a pace the body can hold.
+  # A week of daily shifts takes a fresh body from untrained to competent.
+  - key: body.windGainPerHour
+    value: "6"
+
+  # Wind's half-life (active game-days). A month of idling loses half;
+  # a month away loses nothing.
+  - key: body.windHalfLifeDays
+    value: "30"
+
+  # How much a full wind raises the sustainable power: 1.5 means a body
+  # at wind 100 sustains 2.5× the base — enough to hold a run.
+  - key: body.windSustainGain
+    value: "1.5"
+
+  # The fraction of sustainable power an act must reach to count toward
+  # wind at all. Half: a stroll under load is training, a stroll is not.
+  - key: body.windFloorFraction
+    value: "0.5"
+
+  # Active game-days for a full vitamin C store to empty on a diet with
+  # none in it. The expedition timescale: bread alone for a month, and
+  # the physician can see it.
+  - key: body.vitaminCDrainDays
+    value: "30"
+
+  # Tolerance gained (%-points) per gram of alcohol absorbed.
+  - key: body.toleranceGainPerGram
+    value: "0.5"
+
+  # Alcohol tolerance's half-life (active game-days).
+  - key: body.toleranceHalfLifeDays
+    value: "20"
+
+  # ⭐ The stocks reach mass. kg of body mass per %-point of flesh above
+  # or below its seed (55), and per %-point of lean above or below its
+  # seed (50). Emaciated to fat spans ~27 kg on a 70 kg frame; one read,
+  # and every mass consumer — the tape, the carry, the fist — sees it.
+  - key: body.massPerFleshPct
+    value: "0.3"
+  - key: body.massPerLeanPct
+    value: "0.25"
+
+  # ── exertion ──
+
+  # Metabolic watts a fresh body (wind 0) sustains indefinitely. A walk
+  # sits exactly here and costs nothing; a run is double and debits.
+  - key: exertion.baseSustainableW
+    value: "300"
+
+  # ⚠ Joules of EXCESS work per %-point of endurance — the felt cost of
+  # every step verb. Pinned: (967 − 300) W × 9 s / 1500 = 4 %, the hew.
+  - key: exertion.joulesPerEndurancePct
+    value: "1500"
+
+  # Nominal duration (game-seconds) of one traverse, for the locomotion emit.
+  - key: exertion.traverseNominalS
+    value: "60"
+
+  # Metabolic watts of a walk; a mode's costMultiplier scales it (run 2.0).
+  - key: exertion.walkW
+    value: "300"
+
+  # Extra power per unit of load ratio above the light-load floor, as a
+  # fraction of the walk. 1/6 reproduces the old 2.0 × (ratio − 0.25)
+  # traversal drain exactly for a fresh body over the nominal traverse.
+  - key: exertion.loadPowerPerRatio
+    value: "0.1667"
+
+  # Endurance % under which a body cannot hold a pace faster than a
+  # walk: the run breaks.
+  - key: exertion.paceFloorPct
+    value: "50"
+
+  # Endurance % at or above which the breath band reads `fresh`: the
+  # ladder is fresh · tired · winded (under the pace floor) · spent (at
+  # the exhaustion floor) — the words the shelf's BODY row shows and the
+  # `self.body` cue says on a crossing. Never a number.
+  - key: exertion.freshPct
+    value: "70"
+
+  # Endurance % a projected step may not leave the body under — the
+  # double-shift refusal ("You're too tired for that.").
+  - key: exertion.exhaustionFloorPct
+    value: "10"
+
+  # Mechanical efficiency; 1 − η of the work is heat the body must shed.
+  - key: exertion.efficiency
+    value: "0.25"
+
+  # One combat exchange: metabolic watts, and the game-seconds it lasts.
+  - key: exertion.combatExchangeW
+    value: "700"
+  - key: exertion.combatExchangeS
+    value: "6"

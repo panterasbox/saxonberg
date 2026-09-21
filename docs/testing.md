@@ -608,6 +608,16 @@ typing. They paid the full Playwright cost for none of the benefit.
    `expectNote(r, 'controller-rejected', { reason })`. **Never assert a
    refusal by its prose**: prose changes with a copy edit, and the
    render tier checks wording once, in one place.
+   ⚠ **A FORCED command's envelope is not the answer to yours.** The
+   runtime fires commands on the giver's behalf (the auto-`sense` on
+   arrival, a brain, a dialogue effect), each with its own envelope,
+   and a forced one fires *inside* the typed command that caused it —
+   so the sense's `[]` arrived before `run`'s own and the harness,
+   correlating by order, read it as `run`'s outcome and handed `run`'s
+   real envelope to the NEXT command. The nutrition-and-fitness drive
+   saw a `pace-broken` note one command late for this reason. The
+   server stamps `forced: true` on those envelopes and `Session.receive`
+   skips them (2026-09-18).
 2. **`mql-query` — STATE.** A one-shot MQL read over the same socket,
    projected over the same `subscribableFields` the card surface
    renders, resolved AS THE PLAYER — so perception, concealment and

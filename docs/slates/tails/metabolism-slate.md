@@ -4,7 +4,10 @@
 > buffer, lazy reconcile, toxins, `eat`/`vomit`), plus the coupled-recovery
 > keystone's later generalization to N consumers (magic-items D10) →
 > [metabolism.md](../../subsystems/metabolism.md)
-> **Left:** wired nutrient deficiencies (scurvy) · nutrient-ledger storage
+> **Left:** the wider deficiency roster (iron, the B group, calcium — scurvy
+> SHIPPED with nutrition-and-fitness as the pattern: a reserve key + a
+> route + a condition row) · `alcohol-tolerance` as a CONSUMER (the `bac`
+> bands widened by the stock; the stock ships) · nutrient-ledger storage
 > shape · real-nutrition-data pipeline · hangover · chronic-toxin leaching
 > content (lead) · forageable identification content · fuller-stomach
 > absorption coupling · bulk-source/communal eating · per-individual
@@ -356,3 +359,20 @@ exists — see the § *Presence, sleep* note above.)
 - [race.md](../../subsystems/race.md) — `Material.nutrients`/`toxicity`/
   `edibility`, the authored tags Phase 2 reads (the deferred `DietApi`'s
   real home).
+
+---
+
+## Diets — no mechanism, on purpose (noted 2026-09-18)
+
+A diet is a *pattern of choices*, and the nutrition & fitness build's
+months clock renders patterns onto bodies; the engine is honest, so a
+fad diet does exactly what it does in reality. Two things are content,
+neither is machinery: **a healthy diet is derivable** — it is *variety*,
+covering the micronutrient kinds (the towns slate's *"a monotonous diet
+sickens"* finally has its mechanism); **a fad diet is a claim** — a
+knowledge product (the dietician beside the trainer) or a *belief* (the
+belief substrate handles misinformation natively), whose label is
+honest and whose marketing is not — the supplement lesson. ⚠ The macro
+model is thin (fat = slow satiation, carb = fast, protein → lean); a
+keto pattern and a high-carb one differ mostly in the lean stock. More
+macro physiology waits for a lesson that needs it.

@@ -45,6 +45,11 @@ simulates bladders is the one that feels like a tamagotchi).
    hands" being real; *nurses will like that*), scent/trace and the
    stealth systems (rinsing the gallery-flood shift off), food
    service.
+   ⭐ *(2026-09-18)* **Soap** is the consumable that makes this state
+   reachable — the chandler's second product,
+   [rendering-slate § 8](./rendering-slate.md); the **bathhouse** rides
+   hospitality as a venue archetype, next door to the gym archetype the
+   nutrition & fitness build ships.
 3. **The mirror** — "how do others see me right now" is a real
    query the belief/recognition substrate can answer, pointed at
    yourself. Checking a disguise in a mirror is honest mechanics in

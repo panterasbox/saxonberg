@@ -90,6 +90,12 @@ export const TemplatePaths = {
    * through the acute conditions it makes more likely.
    */
   metabolismEmaciation: "/platform/idea/Condition/metabolism/emaciation",
+  /**
+   * The floor effect of `vitamin-c` — the years clock's one shipped
+   * deficiency. Not lethal; resolved by food, like emaciation, and it
+   * takes an orange rather than a season.
+   */
+  metabolismScurvy: "/platform/idea/Condition/metabolism/scurvy",
   /** The body a player's death leaves behind (mortality.md). */
   mortalityCorpse: "/stuff/agent/Corpse",
   /** What coming back the cheap way costs you (mortality.md). */

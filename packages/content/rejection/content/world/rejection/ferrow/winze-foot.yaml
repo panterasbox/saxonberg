@@ -1,0 +1,34 @@
+# U3b · The Winze Foot — what the push-your-luck decision at the head
+# was about. Deeper ore, worse air, and the only way back is the ladder
+# you came down.
+#
+# ⭐ The room exists because the climb had to land somewhere: before the
+# nutrition-and-fitness build the winze head had a ladder in its prose
+# and no `down` — nobody had ever climbed anything in this game. The
+# foot is the same class as the head (an authored working), one level
+# lower, and it says the air is worse without saying it in a number.
+class: /trade/mining/location/AuthoredWorking
+hydratorClass: /platform/idea/persistence/PersistentHydrator
+data:
+  shortDescription: winze foot
+  keywords: [winze, foot, "winze foot", sump, bottom]
+  register: definite
+  oreRow: /world/rejection/thing/copper-ore
+
+  longDescription: |
+    The ladder ends on a shelf of broken rock at the bottom of the winze, and the working goes on from here into the dark — a low heading, half the height of the drift above, following the seam down at an angle. There is water standing at the low end of it, black and still.
+
+    The air is thick. Your lamp burns small and yellow and does not like it here, and neither do you. The ladder goes back up into the last of the light from above.
+  coords: { x: -2, y: -1, z: -2 }
+  exits:
+    up:
+      destination: /world/rejection/ferrow/winze-head
+      media: [vertical]
+  props:
+    - /world/rejection/thing/glowcap-fixture
+    - /world/rejection/thing/winze-ladder
+  details:
+    water:
+      keywords: [water, sump, pool]
+      description: |
+        Black, still, and deeper than it looks. The seam runs under it. Nobody has pumped this level in a long time.

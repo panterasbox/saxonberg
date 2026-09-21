@@ -40,6 +40,7 @@ import { CommandDefinition } from '@saxonberg/server/mud/lib/command/CommandDefi
 import { StuffApi } from '@saxonberg/server/mud/api/stuff';
 import { ContainmentApi } from '@saxonberg/server/mud/api/containment';
 import { Quantity } from '@saxonberg/server/mud/lib/quantity';
+import { ExertingMixin } from '@saxonberg/server/mud/lib/exertion/Exerting';
 import { Reserve, ReservedMixin } from '@saxonberg/server/mud/lib/reserve';
 import { makeStuff, makeStuffAtPath, stampTemplatePathForTest } from '@saxonberg/server/mud/lib/security/__tests__/test-setup';
 import { installV1QuantityMarshallers } from '@saxonberg/server/mud/lib/persistence/__tests__/quantity-marshaller-test-helpers';
@@ -77,8 +78,9 @@ const VIEWS = fileURLToPath(
 
 const SEED = Deposit.seedFor('');
 
-/** The harness actor plus the reserve labour is paid out of. */
-class Miner extends ReservedMixin(TestActor) {}
+/** The harness actor plus the reserve labour is paid out of — and the
+ * exertion that pays it (the body's, not the verb's). */
+class Miner extends ExertingMixin(ReservedMixin(TestActor)) {}
 
 let zone: CartesianZone;
 let deposit: Deposit;
@@ -193,12 +195,15 @@ describe('the mine’s four labour acts', () => {
     expect(lump!.getGrade()).toBe(deposit.sampleAt([10, 0, -10], SEED).grade);
   });
 
-  it('hew spends endurance, and the work happens over game time', async () => {
+  it('hew spends endurance AT COMPLETION, and the work happens over game time', async () => {
     const here = room([0, 0, -1]);
     ContainmentApi.move(actor as unknown as Stuff & Containable, here as unknown as Stuff & Container);
     const before = actor.getReserve('endurance')!.current.rawValue();
     await run(HewController as never, { face: 'east' }, here as unknown as Stuff, 'hew east');
-    expect(actor.getReserve('endurance')!.current.rawValue()).toBeLessThan(before);
+    // ⭐ The body pays for the work when the work is done (the
+    // scheduler's exertion emit; a barge-in pays pro-rata) — not up
+    // front, as the old `spend()` did.
+    expect(actor.getReserve('endurance')!.current.rawValue()).toBe(before);
     // Nothing exists until the step completes — a barge-in leaves the
     // rock standing rather than half a lump.
     expect(
@@ -208,6 +213,16 @@ describe('the mine’s four labour acts', () => {
     expect(
       (here as unknown as Stuff & Container).getContents().some((c) => c instanceof Ore),
     ).toBe(true);
+    expect(actor.getReserve('endurance')!.current.rawValue()).toBeLessThan(before);
+  });
+
+  it('a body too tired to finish a hew does not start it', async () => {
+    const here = room([0, 0, -1]);
+    ContainmentApi.move(actor as unknown as Stuff & Containable, here as unknown as Stuff & Container);
+    const current = actor.getReserve('endurance')!.current.rawValue();
+    actor.adjustReserve('endurance', Quantity.of(8 - current, '%'));
+    const ctx = await run(HewController as never, { face: 'east' }, here as unknown as Stuff, 'hew east');
+    expect(rejected(ctx)).toBe('too-tired');
   });
 
   it('hewing barren country rock declines, and says it is barren', async () => {

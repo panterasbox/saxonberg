@@ -380,6 +380,15 @@ Four archetypes ship, and they are four *different kinds of answer*:
 They add **zero new classes, mixins or verbs** — a test enumerates the six
 shipped classes every fixture uses.
 
+A fifth, **gym** (`generic-objects/archetypes/gym.yaml`, nutrition-and-
+fitness), is a **function** archetype like the bedroom: a room is a gym
+exactly when something in it is a `load` you can lift or a surface you
+can work on — a barbell dropped on a dorm floor makes the corner a gym
+with no code and no second archetype, and `survey` reports it in any
+room. Its `load` slot is met by `platform/thing/LoadDevice` (the smith's
+barbell); its `pace` slot waits for the first treadmill. See
+[exertion.md](./exertion.md).
+
 **Three trade bundles** joined them in libations, each a `FurnishableRoom`
 row with a `props:` of the trade's own fixtures: hospitality's
 **`bar`** (`/trade/hospitality/location/bar` — back-bar, well, the tools,

@@ -200,9 +200,18 @@ function emitDispatchResponse(ctx: CommandContext): void {
     ...ctx.getNotes(),
     PromptApi.renderPromptRefresh(giverAsStuff),
   ];
+  // ⭐ Mark a FORCED command's envelope. The auto-`sense` on arrival
+  // fires its own dispatch-response inside `run`'s, and a correlator
+  // that takes "the next dispatch-response" reads the sense's `[]`
+  // as the run's outcome (the nutrition-and-fitness drive read a
+  // `pace-broken` note one command late for exactly this reason). The
+  // innermost Command frame at emit time is this command's.
+  const stack = ExecutionContextApi.getCommandStack();
+  const forced = stack[stack.length - 1]?.forced === true;
   const envelopeTemplate: EnvelopeTemplate = {
     type: 'dispatch-response',
     dispatchId: ctx.commandId,
+    ...(forced ? { forced: true as const } : {}),
     outcome: {
       status: ctx.getStatus(),
       notes,

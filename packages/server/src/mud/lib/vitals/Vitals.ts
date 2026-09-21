@@ -897,9 +897,19 @@ export function VitalsMixin<TBase extends MixinConstructor>(Base: TBase) {
       // A floored biological reserve (exhaustion / starvation /
       // dehydration) degrades the body. `isReserved` narrows the host so
       // the reserve surface is type-checked (no duck-typing cast).
+      //
+      // ⚠ Only a reserve that HAS a floor effect has a floor. `wind` and
+      // `alcohol-tolerance` are seeded empty — an untrained body is the
+      // honest baseline, not a degraded one — and `lean` at 0 is gaunt
+      // in the mirror, not sick. A reserve whose `floorEffect` is null
+      // declares that hitting zero means nothing acute.
       if (MixinApi.isReserved(self)) {
         for (const r of self.getReserves().values()) {
-          if (r.theme === 'biological' && r.current.rawValue() <= 0) {
+          if (
+            r.theme === 'biological' &&
+            r.floorEffect !== null &&
+            r.current.rawValue() <= 0
+          ) {
             severity += 1;
           }
         }

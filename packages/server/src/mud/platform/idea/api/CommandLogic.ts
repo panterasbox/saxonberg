@@ -209,6 +209,10 @@ function autoEscalationFor(kind: Note['kind']): Status | undefined {
       return 'partial';
     case 'target-declined':
       return 'partial';
+    // The run broke to a walk: the traverse happened, under a slower
+    // mode than asked — partial, like a clamped quantity.
+    case 'pace-broken':
+      return 'partial';
     case 'quantity-clamped-rejected':
       return 'declined';
     case 'empty-result':

@@ -1,0 +1,19 @@
+# ⭐ A barbell — the smith's answer to a body that has outgrown the
+# world's load. Two bars of stock: the bar and the plates. Not an arm,
+# though it would do as one.
+#
+# ⚠ The stock slot asks for `forgeable` — see any anvil recipe. And it
+# authors NO `outputMaterial`: made of the metal you made, so a bar
+# forged from wrought iron is iron, and one from steel is steel.
+recipeId: barbell
+name: Barbell
+keywords: [barbell, bar, weights]
+inputSlots:
+  - { slot: stock, category: forgeable, minGrade: poor, kind: item, count: 2 }
+toolCapabilities: [striking, anvil]
+outputTemplate: /trade/smithing/thing/barbell
+outputMaterial: ''
+outputApplication: tangible
+requiresHeatK: 700
+difficulty: standard
+discipline: smithing

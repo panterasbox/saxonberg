@@ -44,6 +44,7 @@ export default class GarnishController extends ManualBuildController<GarnishMode
 
     this.engageStep(context, {
       durationMs: GARNISH_MS,
+      effortW: 150,
       beginSelf: Mml.compose`You reach for ${Mml.thing(garnish)} to finish ${Mml.thing(glass)}.`,
       onComplete: () => {
         if (MixinApi.isContainer(glass) && MixinApi.isContainable(garnish)) {

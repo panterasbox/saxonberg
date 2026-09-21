@@ -218,7 +218,7 @@ alias or an explicit list. Three cards ship:
 |---|---|---|---|
 | `inspect` | `$focus` | `many` | `'detail'` |
 | `location` | `here` | `one` | `'ref'` |
-| `self` | `me` | `one` | `['playStanding','renown','practisingCompetence']` |
+| `self` | `me` | `one` | `['playStanding','makeStanding','renown','practisingCompetence','bodyState']` |
 
 `self` is the **widget shelf's** one subscription
 ([client-shell.md § The widget shelf](./client-shell.md)) — the shelf's

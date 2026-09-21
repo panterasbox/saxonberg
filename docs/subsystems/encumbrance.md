@@ -35,7 +35,14 @@ surface directly:
 | `getStrainCeiling(): Quantity<'kg'>` | the absolute lift cap (`capacity × OVERLOAD_FACTOR`) |
 | `getLoadRatio(): number` | `burden / capacity` (dimensionless) |
 | `wouldExceedCeiling(candidate): boolean` | the lift-gate predicate |
-| `drainForTraversal(): void` | the loaded-traversal endurance drain |
+
+⚠ `drainForTraversal()` is gone (nutrition-and-fitness W1): the loaded
+traverse is one **exertion** now — `ExertingMixin.exertTraverse(mode)`
+raises the walk's power by `1 + loadPowerPerRatio × (ratio −
+LIGHT_LOAD_FLOOR)`, and the body debits the excess. Same felt cost at the
+seed, one producer. And `getCarryCapacity` gains a **lean margin** (`×
+0.6 + 0.8 × lean/100`, 1.0 at the seed) — the strength read the tape, the
+water and the lift gate all share. See `lib/exertion/Exerting.ts`.
 
 ### Borne burden — the weighted tree-walk
 
@@ -205,7 +212,9 @@ that own the actor experience:
   could relocate to `ExitableMixin` / the boundary; the predicate moves
   unchanged.
 - **Traversal drain** → `LocomotionApi.engageAround`, after a *successful*
-  self-powered traverse. `engageAround` is the universal self-powered
+  self-powered traverse — now as `actor.exertTraverse(mode)` on
+  `ExertingMixin` (the load raises the traverse's power; the body debits
+  the excess). `engageAround` is the universal self-powered
   chokepoint, so a loaded body tires whatever initiated the step (player
   command, NPC brain, follow/lead automation). Conveyance riders
   (repositioned by the vehicle's ripple) and raw / dev / `forceMove`

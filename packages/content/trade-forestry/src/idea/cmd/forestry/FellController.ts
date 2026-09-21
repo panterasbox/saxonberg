@@ -179,6 +179,7 @@ export default class FellController extends ManualBuildController<FellModel> {
     const room2: Stuff & Container = stand;
     this.engageStep(context, {
       durationMs: FELL_MS,
+      effortW: 700,
       beginSelf: Mml.compose`You set your feet, sight the ${sp.name}, and swing.`,
       beginPeers: Mml.compose`${Mml.actor(giver)} sets to an ${sp.name} with an axe.`,
       onComplete: () => {
@@ -197,6 +198,7 @@ export default class FellController extends ManualBuildController<FellModel> {
     this.spend(giver, CROSSCUT_COST);
     this.engageStep(context, {
       durationMs: CROSSCUT_MS,
+      effortW: 500,
       beginSelf: Mml.compose`You start cross-cutting ${Mml.thing(bole)}.`,
       beginPeers: Mml.compose`${Mml.actor(giver)} starts cross-cutting ${Mml.thing(bole)}.`,
       onComplete: () => {
@@ -234,6 +236,7 @@ export default class FellController extends ManualBuildController<FellModel> {
     this.spend(giver, stage === 'mature' ? FELL_COST : CROSSCUT_COST);
     this.engageStep(context, {
       durationMs: stage === 'mature' ? FELL_MS : CROSSCUT_MS,
+      effortW: 400,
       beginSelf: Mml.compose`You set to ${Mml.thing(plant)} with the axe.`,
       beginPeers: Mml.compose`${Mml.actor(giver)} sets to ${Mml.thing(plant)} with an axe.`,
       onComplete: () => {
