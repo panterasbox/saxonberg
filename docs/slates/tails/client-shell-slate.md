@@ -7,7 +7,7 @@
 > (metrics · overlays · public docs) + a read-only session · the
 > declarative mode model (extract at mode #3 — `play` and `build` exist) ·
 > mode determination (Q1) · the device-local pre-auth tier (Q9) +
-> merge-on-login (Q8) · the educational mode row
+> merge-on-login (Q8)
 > **Size:** a wave
 
 This slate is about how the client *shell* is organized so that many
@@ -115,7 +115,7 @@ The CMS is no longer a separate surface: it is the `build` **mode** of the game 
 
 ## Modes generalize the cockpit's mode axis
 
-The mode catalogue shipped as `COCKPIT_MODES` = `chat` · `play` · `watch` · `build` · `govern` → [cockpit.md § The mode axis](../../subsystems/cockpit.md): *RPG play* is `play`, *Author* is `build`, *Viewer* and *Streamer* are the two **arrangements** of `watch` (which is why the axes are two), and *Educational* has no mode yet (the cockpit slate's `study`/`classroom`). ⚠ *A mode is a view, never a gate* — role-gating a mode is the wrong layer.
+The mode catalogue shipped as `COCKPIT_MODES` = `chat` · `play` · `watch` · `build` · `govern` → [cockpit.md § The mode axis](../../subsystems/cockpit.md): *RPG play* is `play`, *Author* is `build`, *Viewer* and *Streamer* are the two **arrangements** of `watch` (which is why the axes are two), and *Educational* has no mode yet — its design (`study` · `classroom` · tutor, the content surface, the diegetic trigger) is [client-cockpit-slate § Modes + § Content surface](./client-cockpit-slate.md) and is tracked only there since the cluster pass. ⚠ *A mode is a view, never a gate* — role-gating a mode is the wrong layer.
 
 Held as a map of the design space, not a build list. The point is the
 *shell* must host this matrix without each mode being a bespoke layout
