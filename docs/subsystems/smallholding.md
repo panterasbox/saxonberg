@@ -227,6 +227,12 @@ furniture.
 > limiting-factor minimum and nowhere else. Do not reimplement it as a
 > yield multiplier; there is a test asserting the draw is inert to growth.
 
+The draw is the missing leg of a wider doctrine, not a bespoke rule: land
+prices *production*, compute (residency/liveness) prices *presence*, and
+the two conserved scarcities are never collapsed — they couple only at
+the parcel. See
+[property-slate](../slates/builds/property-slate.md).
+
 ### The gate applies to GROUND, not to furniture
 
 `Cultivable.fixedGround` (authored data, not a class check) decides.
