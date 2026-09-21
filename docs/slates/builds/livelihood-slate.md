@@ -905,14 +905,7 @@ the schedule — `EmploymentApi.boot()` is the arming precedent.
 ships; no authored Position carries the basis. The miner's whole arrangement —
 piece-rate + self-directed — is *already waiting* for a venue.
 
-> #### ⚠ Correction 1 — "can't make payroll in winter" does not exist
-> `payWageImpl` has **no employer-solvency check**, deliberately and with a
-> comment: *"a venue runs its P&L red by design (the deficit-as-target), with
-> the CB subsidy covering it. The wage is owed regardless."* So the §6.1
-> demand-risk story — *the employer bears the lull* — is true in **principle**
-> and currently absorbed by the CB in **practice**. Contrast `payDraw` and
-> `escrowHold`, which **are** solvency-checked. If winter payroll is meant to
-> bite, that constraint has to be built; it is not there today.
+> *Correction 1 (`payWage` has no employer-solvency check) — superseded by [economic-bootstrap-requirements](../../requirements/economic-bootstrap-requirements.md) § Goals / § Collisions: no account goes negative without a named creditor; Dave's Bar becomes the first borrower for wages, or a refused wage with a reason.*
 
 > #### ⚠ Correction 2 — §8's floor is counter-cyclical against a *different*
 > cycle §8.2 is explicitly counter-cyclical against the **business cycle** —
@@ -924,15 +917,7 @@ piece-rate + self-directed — is *already waiting* for a venue.
 > demonstration*, not its *originating rationale*. Do not conflate the two
 > economics.
 
-> #### ⚠ Correction 3 — no NPC produces anything, so guard rail 2 is not yet
-> true "NPC hands are always hireable" is a sound **design rule** and currently
-> **false in fact**. The full brain roster contains nothing that makes anything
-> — **NPC labor is a pure cost on every P&L except when a player orders.** You
-> can hire an NPC today; it will draw wages and harvest nothing. There is also
-> **no hire/fire driver or command surface** — the Api exists and nothing calls
-> it. Guard rail 2 therefore depends on a **production brain** that does not
-> exist, and counter-cyclical migration to the mine has no NPC-side production
-> to migrate either.
+> *Correction 3 ("no NPC produces anything; no hire/fire surface") — superseded by the code: the trade packs ship production brains (`farms`, `delves`, `weaves`, `tailors`, `herds`, `hauls` — [behavior.md](../../subsystems/behavior.md)) and `appoint` shipped ([employment.md](../../subsystems/employment.md) § Appointment). Guard rail 2 itself stays open above.*
 
 **Refinement to the pricing lean above.** [mining-slate](./mining-slate.md)
 explicitly rejects authored wage differentials — *"Professions self-correct… the
@@ -952,40 +937,11 @@ the first genuine *economic* consumer of the forecast surface
 
 ---
 
-## Current build state [NOW]
-
-*(Refreshed 2026-07-23.)*
-
-- **§5's standing slice is built** — the employment engine
-  ([employment.md](../../subsystems/employment.md)): Business-as-Idea
-  with a real account, Position / Employment / Roster, roster-driven
-  shifts, the wage settled at the on→off boundary **from the Business
-  account** (§4's graduation happened for Dave's: payroll draws the
-  house account, drink revenue flows back in — the P&L is real), tips,
-  the capability grant (on-shift confers `MakerMixin`), the unpaid
-  owner cover-seat. Around it: banking's Terms/fees/royalty + coinage
-  + withdrawal quota, the Attendant queue/lease substrate, and chattel
-  + the general store — whose **consignment is a live share-of-flow
-  arrangement** (§6.1) already in production.
-- **⚠ Stale as written — corrected 2026-07-31.** The **work-contracts
-  build shipped** (MR !149 → [contract.md](../../subsystems/contract.md)):
-  the clause primitive with engine verification, the gig lifecycle over
-  conserved escrow, the **physical job board**, and the two-beat turn-in.
-  Strike those four from this list.
-- **Genuinely not built:** comp bases beyond time-wage as *authorable
-  terms* (**piece-rate** — which §9 makes load-bearing), share-of-flow
-  employment, the draw as a named leg kind, entity forms, the
-  appropriation, and the **public-works floor + match (§8)** — the last
-  of which §9 depends on for its winter half.
-- The CB deficit subsidy + red-by-design P&L still backstop the
-  system; the deficit log remains the seam the full §4 author-budget
-  model plugs into.
-
 ## Open questions / forks (consolidated)
 
 1. **Cozy downtime** (§5.4) — the biggest *undiscovered* requirement; the
    lull must be presence the player wants, and it has no mechanics yet.
-2. **Death's mechanical cost** (§1) — blocked on advancement producers.
+2. *Death's mechanical cost (§1) — resolved: [mortality.md](../../subsystems/mortality.md) § Diminishment (the floor route drains the biological reserves and leaves `recovering`; content may price a better return).*
 3. **Discoverability / pricing / gating** of the job board (§3); gig
    **exclusive-claim vs open-bounty** and **expiry** (§5.3).
 4. **The two ends of an author budget** — CB allocation + insolvency
@@ -1021,52 +977,3 @@ the first genuine *economic* consumer of the forecast surface
   (conservation + the hard-capped two-tier program), not the *numbers*.
 - **Advancement / how gains are made** — the dependency that unblocks
   death's recovery cost; [advancement.md](../../subsystems/advancement.md).
-
-## Once shaped into formal requirements
-
-*(2026-07-23: the Position / Employment / capability-grant / wage /
-tips bullets below shipped as the employment engine — see
-[employment.md](../../subsystems/employment.md). The remaining kernel =
-the clause + verification core, the gig lifecycle, and §6's
-generalization: comp bases as authorable terms, the ledger-leg-kind
-discipline, the draw as a named movement. §7.3's appropriation and
-§8's floor + match are their own later builds, gated on the
-Circulation Reserve.)*
-
-The buildable kernel is the **work model** (§5) — the clause primitive +
-its verification, with employment as the first standing instance:
-
-- **The clause + verification core** — a `{shape: achieve|maintain,
-  condition, observer}` unit, where `condition` is a query over modeled
-  state on the shipped detection seam and the observer is the engine.
-  Enforce the hard rule at the contract boundary: **a clause may only be
-  escrowed if its condition is engine-verifiable**; fuzzier intents are
-  rejected from the system-backed path (informal/no-escrow).
-- **The gig** — the five-state Contract lifecycle (open → claimed/escrowed
-  → settled | breached), funded by escrow from the issuer's account,
-  resolved by an *achieve* clause; modeled end-to-end on a **delivery**
-  gig (crisp completion). Legible escrow; in-world completion
-  acknowledgement; a felt breach cost.
-- **Position** authored on a workplace (the *maintain* clause + spawned
-  *achieve* micro-tasks + wage rate + afforded duties).
-- **Employment** standing record (employer-account ↔ employee; status
-  machine: hire / clock-in / clock-out / quit / fire).
-- **The capability grant** — on-duty confers the position's
-  authorizations; off-duty/terminated revokes them; the grant **ramps**
-  with relationship standing (grunt slice → the till).
-- **Compensation** — `payWage` on a timer for the *maintain* clause
-  (drawn from the employer account, the CB-deficit placeholder until the
-  account is real), gated by the anti-AFK predicate; **tips** rewarding
-  the *achieve* micro-tasks as a voluntary off-payroll transfer; **firing**
-  as a termination (the boss's judgment on the maintain clause).
-- Tests: a clause with a non-engine-verifiable condition is rejected from
-  escrow; a delivery gig settles when the box-state holds and reverts on
-  abandon; on-duty confers the bar affordances and off-duty denies them; a
-  clocked-in-but-AFK employee stops accruing wage; a tip moves coin
-  customer→employee off payroll; firing revokes the affordances and ends
-  accrual; the wage draws from the employer account (deficit-logged in v1).
-
-Everything above this kernel — the full contract/adjudication stack, the
-job board, the author-budget economy, the death model — waits on its own
-builds (and, for the death/contract half, on combat reaching its design
-phase).
