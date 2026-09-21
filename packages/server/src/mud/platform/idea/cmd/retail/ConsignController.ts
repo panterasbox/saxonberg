@@ -160,7 +160,7 @@ export default class ConsignController extends CommandController<ConsignModel> {
     // house's to put up.
     const chain = house
       ? (house as Stuff & Organization).organizationChain().map(
-          (o) => o.getTemplatePath(),
+          (o) => o.getOrganizationPath(),
         )
       : [];
     // ⭐ And UNSTAMPED means nobody's, whatever the parcel derives: since

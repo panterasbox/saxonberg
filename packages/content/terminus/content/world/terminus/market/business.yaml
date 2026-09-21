@@ -11,6 +11,7 @@
 class: /platform/idea/Business
 hydratorClass: /platform/idea/persistence/PersistentHydrator
 data:
+  name: "the farmers market"
   # City-run: the committee over the ground it operates on (the market
   # square is the `terminus` group's).
   appointingAuthority:

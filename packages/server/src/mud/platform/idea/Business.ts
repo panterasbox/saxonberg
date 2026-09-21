@@ -70,6 +70,18 @@ export interface BusinessTrade {
   /** The locations this Business operates in (templatePaths). */
   getOperatingLocations(): readonly string[];
   /** The account key for this Business — its own durable path. */
+  setOperatingLocations(paths: readonly string[]): void;
+  /**
+   * ⭐ Is the house CLOSED (economic bootstrap D16)? Every principal who
+   * could run it — the entity authority if a member, every member holder
+   * — absent past the short clock, and no NPC on a position. Set by the
+   * roster tick's estate pass; read by the counters (`closed`), the
+   * account (outflows refused) and the roster. An NPC-run house never
+   * closes (D23).
+   */
+  isClosed(): boolean;
+  /** The roster tick's write of the closed sign — runtime state, never authored. */
+  setClosed(value: boolean): void;
   getAccountPath(): string;
   /** The bank branch custodying the operating account ('' = unauthored). */
   getBanksAt(): string;
@@ -279,8 +291,29 @@ export function BusinessMixin<
       return [...this.operatingLocations];
     }
 
+    /** The closed sign (runtime; the roster tick's estate pass writes it). */
+    private closed = false;
+
+    public isClosed(): boolean {
+      return this.closed;
+    }
+
+    public setClosed(value: boolean): void {
+      this.closed = value;
+    }
+
+    /** Point the house at what it operates — a minted stall's counter at rent, nothing at give-up. */
+    public setOperatingLocations(paths: readonly string[]): void {
+      this.operatingLocations = [...paths];
+    }
+
     public getAccountPath(): string {
-      return (this as unknown as Stuff).getTemplatePath() ?? '';
+      // ⭐ The IDENTITY path (economic bootstrap D15): a content row's is
+      // its template path; a minted business — a player's rented stall,
+      // cloned from one seed with `asIdentityPath` — carries its own, so
+      // two players' stalls never share an account (the shared-account
+      // regression, the other way round).
+      return (this as unknown as Stuff).getIdentityPath() ?? '';
     }
   }
   return BusinessMixin;

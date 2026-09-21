@@ -62,6 +62,11 @@ const businesses = PACK_DIRS.flatMap((pack) => {
 })
   .map((e) => ({ ...e, seed: parse(readFileSync(e.path, 'utf8')) as Seed }))
   .filter((e) => e.seed?.class === '/platform/idea/Business')
+  // ⭐ A SEED a verb mints from is not a shipped business: the rented
+  // stall's row (economic bootstrap D15) authors no authority, no bank
+  // and no premises because every one is the renter's, overlaid at
+  // `stall rent`. It is never stood up as itself.
+  .filter((e) => !e.rel.endsWith('/idea/Business/stall.yaml'))
   .map((e) => ({ rel: e.rel, data: e.seed.data ?? {} }));
 
 /** Every pack's claims as `{extent, owner: {name}}` rows — the shape the seeder's file had. */

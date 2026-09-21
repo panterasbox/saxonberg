@@ -1,0 +1,4 @@
+# The stall verb's controller template — a content-domain Idea row (the
+# mayfield-row LeaseController pattern).
+class: /world/terminus/market/idea/cmd/StallController
+data: {}

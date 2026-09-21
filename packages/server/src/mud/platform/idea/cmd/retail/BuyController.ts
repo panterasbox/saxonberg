@@ -73,8 +73,12 @@ export default class BuyController extends CommandController<BuyModel> {
       return;
     }
 
-    // Attendant: a store with a counter refuses when it's closed.
+    // Attendant: a store with a counter refuses when it's closed. The
+    // operator is brought current FIRST — its roster, and its closed sign
+    // (economic bootstrap D16) — so a cold venue's first customer meets
+    // the house as it stands, not as the last tick left it.
     if (stock) {
+      await EmploymentApi.ensureOperatorAt(stock.getIdentityPath() ?? "");
       const key = giver.getIdentityPath();
       if (key && stock.requestAttention(key).status === "closed") {
         this.reject(
@@ -136,7 +140,7 @@ export default class BuyController extends CommandController<BuyModel> {
       return;
     }
     const paid = await this.settleSale(
-      stock.getTemplatePath(),
+      stock.getIdentityPath(),
       price,
       [],
       price, // the whole price is the store's taxable revenue
@@ -206,7 +210,9 @@ export default class BuyController extends CommandController<BuyModel> {
       );
       return;
     }
-    const venuePath = stock?.getTemplatePath() ?? shelf.getTemplatePath();
+    // ⭐ The counter's IDENTITY path — a rented stall is minted from one
+    // seed row and its house operates the minted counter, not the seed.
+    const venuePath = stock?.getIdentityPath() ?? shelf.getIdentityPath();
     let paid: { tail: string; receipt: SettlementReceipt } | null;
     if (listing.basis === "terms" && stock) {
       // ⭐ Rung 0 — supplier terms (economic bootstrap D11): the buyer pays

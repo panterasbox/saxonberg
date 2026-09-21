@@ -65,7 +65,7 @@ import { CallSecurity, Final, Unshadowable } from '../security/decorators';
 import { SecurityPolicies } from '../security/SecurityPolicies';
 import { StuffApi } from '../../api/stuff';
 import { MixinApi } from '../../api/mixin';
-import { Employment, type EmploymentData, type EmploymentStatus } from './Employment';
+import { EXITED_STATUSES, Employment, type EmploymentData, type EmploymentStatus } from './Employment';
 import type { OrganizationStuff, BusinessStuff } from '../../api/employment';
 // eslint-disable-next-line no-restricted-imports -- the F4 actor face: an employee's quitJob()/buysFor()/cover verbs forward into the employment logic singleton exactly as the api/employment facade does (the Combustible/Energized precedent)
 import { EmploymentLogic } from '../../platform/idea/api/EmploymentLogic';
@@ -97,7 +97,10 @@ function recordKey(record: StoredEmployment): string {
 const ByEmployingOrganization = SecurityPolicies.AnyOf(
   SecurityPolicies.FromMixin(Mixins.Organization, {
     where: (caller, _target, method, args) => {
-      const path = (caller as Stuff).getTemplatePath() ?? '';
+      // The IDENTITY path — the record key a minted organization (a
+      // player's stall, D15) writes under; the template path for every
+      // content row, since identity falls back to it.
+      const path = (caller as Stuff).getIdentityPath() ?? '';
       if (!path) return false;
       const keyed =
         method === '_upsertEmployment'
@@ -216,7 +219,7 @@ export interface Employed {
 }
 
 /** The terminal (no-longer-working) statuses. */
-const INACTIVE: readonly EmploymentStatus[] = ['quit', 'fired'];
+const INACTIVE: readonly EmploymentStatus[] = EXITED_STATUSES;
 
 export function EmployedMixin<TBase extends MixinConstructor>(Base: TBase) {
   class EmployedMixin extends Base implements Employed {
