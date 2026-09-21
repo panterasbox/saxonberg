@@ -385,6 +385,15 @@ templates, populated by reference). See [crafting.md](./crafting.md).
 
 ## Core model
 
+- **Orthogonal to `Zone`, not owned by it.** `Zone` is a spatial scope —
+  a coordinate frame, a class-agnostic bag of connected rooms. "These N
+  rooms are one elastic group that grows and merges together" is a
+  **membership** fact, not a spatial one, so `Zone` owns none of a
+  Warren's coordination: one zone can hold several independent Warrens
+  plus ordinary singletons, and a future spatial consumer's Warren could
+  thread across zones. Coordination keys on Warren identity, never on
+  zone. `Warren` sits beside `Zone` in the `Idea` branch — both
+  incorporeal, both own sets of `Location`s, on different axes.
 - **Coordinator, not a containment tier.** Member `Location`s stay
   ordinary roots (`getContainer()` → null); the Warren tracks membership
   in its own Pattern-B set and consults it for routing/landing. It is
@@ -395,6 +404,14 @@ templates, populated by reference). See [crafting.md](./crafting.md).
   template. The Warren designates exactly one live instance as **host**
   (`getHost()` / `isCurrentHost`), migrating the role on forced host
   destruction. No `Commons` class, no host flag.
+- **The membership discriminator — does the room's existence and
+  placement depend on the Warren's policy?** Yes → a member (the Warren
+  places it, spawns it, can reap it). No → an external neighbor, reached
+  by a plain exit from the host and left alone. Dave's Bar is the
+  worked case: it persists on its own, runs its own NPC and life, and
+  never enters `LoungeWarren`'s member set — a future consumer (a
+  dungeon's boss room, its entrance) applies the same test rather than
+  absorbing every reachable room into the graph.
 - **Lazy + runtime-only.** `LoungeWarren` composes `SingletonMixin`;
   `StuffApi.singleton('/world/lounge/idea/warren')` creates the one instance
   on first landing. Every room instance is a runtime clone, gone on
@@ -517,6 +534,11 @@ the specific live room directly.
   second concurrent caller trips `clone()`'s cycle guard.
 - `Warren.getHost` coalesces concurrent landings (`_hostInFlight`) → one
   host.
+- `Warren.notifyPopulationChange` debounces the reconcile trigger itself:
+  a `_reconcilePending` flag plus `queueMicrotask` coalesce a burst of
+  population events (several arrivals/departures in one tick) onto one
+  `reconcile()` call, so the loop that decides bud/merge never runs more
+  than once per tick no matter how many members changed.
 - `Warren.createMemberSerialized` serializes member clones per Warren so
   two concurrent buds never clone the same template path at once.
 

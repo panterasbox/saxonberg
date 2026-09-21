@@ -43,6 +43,19 @@ applied **at completion**, a barge-in `cancel` aborts mid-step leaving
 partial matter standing). See [crafting.md](./crafting.md) and the paced
 replay it enables in [scripting.md](./scripting.md).
 
+Two more consumers occupy the `attention`/`voice` slots specifically —
+the exact slots the still-unbuilt host-slot-activities wave
+([docs/slates/tails/host-slot-activities-slate.md](../slates/tails/host-slot-activities-slate.md))
+would also need: [attendant](./attendant.md)'s `AttendanceEngagement` is
+a `SustainedEngagement` that IS the lease on a service point's
+`attention` slot (one customer held at a time falls out of the slot,
+not a queue flag), and [NPC dialogue](./npc-dialogue.md)'s
+`DialogueConversation` / `DialoguePartnerHold` hold `voice` + `attention`
+for the duration of a `talk` tree. Both predate and validate the
+host-slot design's `attention`-slot proof of concept
+(`ReadActivity` + `TraverseActivity` sharing slots) without it having
+been built.
+
 Three claims drive the design:
 
 1. **Verbs that have duration become activities.** A controller's

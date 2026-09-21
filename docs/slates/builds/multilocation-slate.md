@@ -2,17 +2,18 @@
 
 > **Status: PARTIAL** — the Warren substrate, the two tiers and the
 > lounge shipped → [location.md](../../subsystems/location.md)
-> **Left:** the procedural-spatial consumers (the dungeon, the desert)
-> · the summoned-graph host · the lounge's preference-vector
-> matchmaking math
+> **Left:** the procedural-spatial Warren family (the dungeon, the
+> desert) — including the generic multi-role/cardinality catalog a
+> heterogeneous graph needs (today's base ships one elastic role + a
+> host, not a data-driven catalog), spatial `attachmentFor`,
+> generation-driven routing, per-run host teardown · the summoned-graph
+> host (v1 only handles the persistent-room case) · the lounge's
+> preference-vector matchmaking (`admitArrival` ships least-full only;
+> no `seedMember` flavor hook exists yet) — owned by `lounge-slate.md` ·
+> an active drain for a room pending merge (today's `reconcile` is a
+> passive occupancy-watch + timed reap; a new arrival can still land in
+> a room whose reap timer is already running)
 > **Size:** a build
-
-> **Status: substrate architecture set; build the social-elastic case
-> (the lounge); procedural/spatial consumers deferred.** Elastic location
-> instancing with coalescing: one room template, many ephemeral live
-> instances forming a connected graph that **buds** as population rises
-> and **merges** as it falls. The owner of each graph is a **Warren** (an
-> incorporeal `Idea`, sibling to `Zone`), seated by a persistent **host**.
 
 Working slate for **MultiLocation** — the substrate for rooms that aren't
 singletons. A MultiLocation is one room *template* with many *live
@@ -29,26 +30,11 @@ is elastic, not sharded.
 
 The load-bearing decisions (settled over the design conversation):
 
-1. **The instance-graph and the spatial scope are orthogonal axes.**
-   `Zone` is *where rooms physically are* (a coordinate frame, a bag of
-   connected rooms, class-agnostic). "These N rooms are one elastic group
-   that grows and merges together" is a **membership** fact with nothing
-   to do with spatial scope. So `Zone` owns none of this — one zone can
-   hold several elastic graphs plus ordinary singletons, and one elastic
-   graph can thread across zones (the dungeon).
-
-2. **Each graph is owned by a per-graph coordinator — the `Warren` — not
-   the zone and not an arbitrary room.** A `Warren` is an incorporeal
-   `Idea` (identity + state, no physical presence), sitting **right next
-   to `Zone`** in the Idea branch. `Zone` owns a *fixed* set of
-   `Location`s; a `Warren` owns an *elastic* one. It is **multi-instance**
-   (not `SingletonMixin`): multiple lounges → multiple Warrens.
-
-3. **host → Warren → members.** A **persistent host** seats the Warren
-   (owns its lifecycle, holds the live-ref, recreates it on reload). The
-   **Warren** (runtime-only) owns the **members** (ephemeral satellite
-   rooms it spawns and reaps). The host is **never a member** — which is
-   what gives it its permanence, and what makes the lifecycles clean.
+*(Decisions 1–3 — Zone/Warren orthogonality, the Warren as a
+multi-instance incorporeal `Idea`, the host→Warren→members ownership
+chain — shipped and are documented at
+[location.md § Core model](../../subsystems/location.md#core-model),
+[§ The pieces](../../subsystems/location.md#the-pieces).)*
 
 4. **A Warren coordinates a heterogeneous composition via *roles*, each
    with a *cardinality policy* — not "one class."** A singleton is just a
@@ -57,16 +43,29 @@ The load-bearing decisions (settled over the design conversation):
    boss + one entrance) forces this; the lounge uses a modest version of
    it.
 
-5. **The Warren base is a working generic overflow-instancer; consumers
-   are thin subclasses.** Least-full routing, star-to-host attachment,
-   threshold-driven bud/merge come for free in the base. `LoungeWarren`
-   overrides only `route` (matchmaking) and `seedMember` (flavor).
+*(Decision 5 — "the base is a working generic overflow-instancer;
+consumers are thin subclasses" — shipped, and more thoroughly than
+envisioned: the base (`Warren`/`InnerWarren`/`OuterWarren`) is reused by
+`LoungeWarren`, `DormWarren`, `BuildingWarren`, `PlatWarren` and
+`MineWarren` — see [location.md § The pieces](../../subsystems/location.md#the-pieces),
+[holding.md](../../subsystems/holding.md). Its specific claim about
+`LoungeWarren` is superseded by what shipped: there is no `route()` or
+`seedMember()` override. `LoungeWarren.admitArrival` is least-full only
+— no matchmaking — and rooms clone bare, with no per-member flavor
+seeding hook. See [location.md § Base mechanism vs lounge
+policy](../../subsystems/location.md#base-mechanism-vs-lounge-policy).)*
 
-6. **Merging drains, it does not slam.** A room marked for merge stops
-   *receiving* arrivals and lets its stragglers drift out naturally; it
-   collapses only once nearly empty. Nobody is teleported mid-
-   conversation. Hard-merge / never-merge are policy overrides for other
-   consumers.
+*(Decision 6 — "merging drains, it does not slam" — shipped simpler than
+designed. `LoungeWarren.reconcile()` is a passive occupancy-watch: a
+satellite under the merge watermark gets a delayed reap timer, re-checked
+at fire time, but nothing stops new arrivals from being routed into it
+while the timer runs — least-full routing can in fact prefer it, since
+low occupancy is exactly what least-full seeks. There is no "stops
+receiving arrivals" admission block and no active rerouting of
+stragglers. See `LoungeWarren.reconcile`/`admitArrival`
+(`packages/server/src/mud/world/lounge/idea/LoungeWarren.ts`). Not
+documented as more than it is — `location.md` doesn't claim active
+draining either — so this is a build gap, not a doc gap.)*
 
 See also:
 
@@ -91,9 +90,10 @@ See also:
 - [docs/architecture.md](../../architecture.md) — the seven top-level
   branches (`Idea` is one); "orchestration lives one layer up from raw
   steps" (the Warren orchestrates existing Apis).
-- [docs/slates/lounge-slate.md](../builds/lounge-slate.md) *(forthcoming)* — the
+- [docs/slates/builds/lounge-slate.md](../builds/lounge-slate.md) — the
   v1 consumer: the social-elastic lounge, the preference-vector
-  matchmaking, Dave's Bar. It *consumes* this substrate.
+  matchmaking, Dave's Bar. It *consumes* this substrate. (Written since
+  this slate was drafted — no longer "forthcoming.")
 - [docs/slates/fast-travel-slate.md](../tails/fast-travel-slate.md) — the
   lounge's TPA terminal lives on the **host** (the stable commons), which
   is exactly why the host must be the permanent, never-reaped root.
@@ -119,39 +119,16 @@ See also:
 
 ## The model
 
-### Zone is orthogonal — and stays out
+*(The "Zone is orthogonal" and "host → Warren → members" design shipped
+as-is and is documented at
+[location.md § Core model](../../subsystems/location.md#core-model),
+[§ The pieces](../../subsystems/location.md#the-pieces). The host is
+structurally un-reapable because it owns the Warren rather than being
+owned by it — no never-reap flag needed. What's still open below is
+which kind of host: v1 only ships the persistent-room case.)*
 
-A `Zone` is a spatial scope: a coordinate frame and a class-agnostic bag
-of connected rooms. "These rooms are one elastic group" is a membership
-fact, not a spatial one. The moment `Zone` owns coordination you've welded
-two axes that must slide independently:
-
-- One zone can hold **several independent Warrens** plus ordinary
-  singleton rooms.
-- One Warren can **span zones** (a procedural dungeon threading through
-  five of them).
-
-So coordination is keyed on **Warren identity**, never on zone.
-
-### host → Warren → members
-
-The runtime `Warren` is an `Idea` — so something must (a) create it,
-(b) hold a live-ref so it's reachable, and (c) recreate it after a
-restart. That "something" is the **host**, and recognizing that is what
-dissolves the earlier "anchor" idea: the permanent root isn't a special
-*member*, it's the *seat*.
-
-| Role | Branch | Lifetime | Responsibility |
-|---|---|---|---|
-| **host** | `Location` (+ host mixin) | **persistent** | Seats the Warren: creates it, holds the live-ref, recreates on reload, decides *when* it exists. Never a member. Carries stable fixtures (e.g. the lounge's TPA terminal + the exit to Dave's). |
-| **Warren** | `Idea` (multi-instance) | **runtime-only** | Owns the member set; the reconcile loop; spawn/reap; exit-wiring; `admit()` / `teardown()`. |
-| **member** | `Location` (+ member mixin) | **runtime-only** | An ephemeral satellite the Warren spawned. Reaped on collapse. |
-
-The host is structurally **un-reapable by the graph's own logic** because
-it *owns* the Warren rather than being owned by it. The "permanent anchor"
-property falls out of the ownership direction — no never-reap flag needed.
-
-**The host owns *when* the Warren exists, too:**
+**The host owns *when* the Warren exists, too — the room-host case ships,
+the run-context case doesn't:**
 
 - **Lounge host** spins the Warren up at boot, never tears it down — the
   graph is perpetual.
@@ -162,21 +139,10 @@ property falls out of the ownership direction — no never-reap flag needed.
 So "host seats the Warren" subsumes both *who keeps it alive* and *when it
 exists*.
 
-### Lifecycle, persistence, refs
-
-Only the **host persists.** The Warren and all members are runtime-only.
-
-- **Restart is trivial:** host reloads from persistence → host mixin
-  recreates the Warren → Warren starts with **zero members** → first
-  arrival lands in the host (commons) or buds the first satellite. No
-  "re-adopt the persistent member" special case, because the host was
-  never a member.
-- **All graph refs are Pattern-B live refs**, none persisted:
-  host↔Warren (mutual, rebuilt on host reload) and Warren↔member (mutual;
-  R2.x cleanup reaps members when the Warren dies and drops a member from
-  the set when it is individually reaped). The host's `warren` field is a
-  *transient* slot, not a persisted field — the correct "don't persist
-  live refs" behavior anyway.
+*(Lifecycle/persistence/refs shipped and is documented at
+[location.md § Core model](../../subsystems/location.md#core-model)
+("Lazy + runtime-only"), [§ Concurrency](../../subsystems/location.md#concurrency);
+the Pattern-B ref discipline is [ref-shapes.md](../../ref-shapes.md).)*
 
 *(The honest general definition is "host = whatever owns the Warren's
 lifecycle" — usually a persistent threshold `Location`, occasionally a
@@ -196,15 +162,10 @@ is `(template × cardinality policy × attachment)`:
 "Singleton vs MultiLocation" collapses into one knob — the same vocabulary
 as slot capacity and the command-layer cardinality policy.
 
-**Membership discriminator** — *does the room's existence and placement
-depend on the Warren's policy?*
-
-- **Yes → member.** The dungeon boss exists because the run brain placed
-  exactly one and wired it in. A singleton, but coordinated.
-- **No → external.** Dave's Bar persists on its own, has its own NPC and
-  life, and doesn't care about lounge population. It's a **neighbor**
-  reached by a plain exit from the host, **not** a member. Don't absorb
-  rooms that don't need coordinating.
+*(The membership discriminator — coordinator-placed → member,
+independently-alive → external neighbor — shipped, proven by Dave's Bar,
+and is now documented at
+[location.md § Core model](../../subsystems/location.md#core-model).)*
 
 So the lounge Warren owns `{ host-commons (the seat), satellites:
 elastic-role }`. Dave's is outside. A dungeon Warren owns `{ entrance:
@@ -234,21 +195,13 @@ interface** the host talks to; it never knows the concrete subclass.
 | topology / attachment | **override** `attachmentFor(member)`, default star-to-host |
 | per-member seeding (flavor / contents) | **override hook** `seedMember(member)`, default no-op |
 
-The base defaults — least-full `route`, star-to-host `attachmentFor`,
-no-op `seedMember`, threshold-driven bud/merge — add up to a complete
-**generic overflow-instancer** (host + one elastic role, bud at capacity,
-merge below the floor). So:
-
-```
-Warren                  (concrete: generic least-full overflow)
-  └── LoungeWarren        overrides route()      = preference-vector matchmaking
-                          overrides seedMember() = synthesize the room's "flavor order"
-```
-
-`LoungeWarren` touches exactly two seams. A dungeon Warren would override
-more (`route` = generation, `attachmentFor` = spatial adjacency,
-`seedMember` = contents, plus a multi-role catalog) — the right signal
-that a dungeon is *further* from generic overflow than the lounge is.
+*(This paragraph's specific diagram — `LoungeWarren` overriding `route()`
+for matchmaking and `seedMember()` for flavor — is superseded; see the
+note under decision 5 above. What shipped is thinner: `admitArrival`
+least-full only, no flavor. A dungeon Warren would still need to override
+more — spatial `attachmentFor`, generation-driven routing, per-member
+contents, plus a multi-role catalog — which remains the signal that a
+dungeon is further from generic overflow than the lounge is.)*
 
 **The hierarchy stays shallow on purpose.** Today the only concrete
 subclass is `LoungeWarren`. The two families you can see coming —
@@ -257,24 +210,14 @@ subclass is `LoungeWarren`. The two families you can see coming —
 `SocialWarren` / `ProceduralWarren` mid-tier until a *second* consumer in
 a family actually shares specialization.
 
-### Bud / merge mechanics
-
-The work the reconcile loop executes. The central enemy is **thrash**.
-
-- **Hysteresis (two watermarks + time).** **Bud** when a member exceeds
-  **N**; **merge** two members when their combined load fits under **M**,
-  with **M comfortably below N** (the count gap that stops oscillation).
-  Plus **time hysteresis** — an emptied member waits out a short reap
-  grace, so stepping out and back doesn't collapse a room under you.
-- **Budding (easy, diegetic).** "A new doorway opens." New satellite
-  attaches **star-to-host** for the lounge (every satellite keeps an exit
-  back to the commons); `attachmentFor` override for spatial consumers.
-- **Merging = drain-then-collapse (the hard UX).** A member flagged for
-  merge stops *receiving* arrivals and routes stragglers toward the target
-  as they'd naturally move; it collapses only once nearly empty, with the
-  fiction carrying it ("the room quiets and you drift toward the
-  commons"). Never yank someone mid-chat. Hard-merge / never-merge remain
-  `shouldMerge`-policy overrides (a dungeon may prefer them).
+*(Hysteresis + budding shipped and are documented at
+[location.md § Base mechanism vs lounge
+policy](../../subsystems/location.md#base-mechanism-vs-lounge-policy).
+The "merging = drain-then-collapse" design here is superseded by what
+shipped — see the note under decision 6 above: `reconcile()` is a
+passive occupancy-watch + timed reap, with no admission block on a
+pending-merge room and no active straggler rerouting. Hard/never-merge
+policy overrides remain undesigned beyond this mention.)*
 
 ---
 
@@ -302,41 +245,37 @@ The work the reconcile loop executes. The central enemy is **thrash**.
 
 ---
 
-## Module taxonomy fit
-
-Nothing new is invented:
-
-- **`Warren`** — an `Idea` subclass (a Stuff class — allowed category).
-  Multi-instance, runtime-only.
-- **host mixin** + **member mixin** — Mixins (allowed). Open whether
-  these are one role-flagged mixin or two.
-- **No Api, no registry, no global singleton.** Per-graph instances rooted
-  by a host. The Warren *orchestrates* existing Apis (`StuffApi`,
-  boundary) — the composition lives on the Warren, the raw steps go
-  through the Api layer.
+*(Module taxonomy fit shipped as envisioned, with one resolution:
+there is no separate host mixin — the host is a runtime role any
+`WarrenMemberMixin`-composing room can be designated, not a distinct
+composed capability. See
+[location.md § The pieces](../../subsystems/location.md#the-pieces).)*
 
 ---
 
 ## Open questions / forks
 
-1. **Base concrete-with-defaults vs abstract + an `OverflowWarren` default
-   subclass.** *Lean concrete-with-defaults* (so "lounge is thin" is
-   literally true); a plan-time taste call.
-2. **One mixin or two on the room side** (host vs member). The host has
-   the lifecycle-rooting job; members are lighter. *Lean: probably two.*
-3. **Exit kind between members and host, and the cardinal-only-intra-zone
-   invariant.** [zone.md](../../subsystems/zone.md) rejects *semantic-label*
-   exits between rooms in the **same** zone (they're allowed only
-   cross-zone). Star-to-host doorways are semantic, not cardinal — so if
-   lounge members share one Cartesian zone this invariant bites. *Likely
-   resolution: the lounge isn't on a Cartesian coordinate frame at all
-   (it's a social pocket, no real geography)* — but confirm the zone type
-   for members at plan time.
-4. **Reconcile trigger + debounce.** Which population events fire the loop,
-   and how it's batched (the `setImmediate`-style batching the
-   subscription substrate already uses is a candidate).
-5. **Watermark values (N, M) + reap-grace duration.** Content/config
-   tuning, not engine constants.
+*(Q1–Q5 are resolved. Q1: shipped differently than the lean — not a
+concrete-with-defaults base, but an abstract `Warren` with an abstract
+`InnerWarren`/`OuterWarren` tier split (see
+[holding.md § Every warren is inner or outer](../../subsystems/holding.md#every-warren-is-inner-or-outer-and-the-compiler-asks)),
+a generalization axis nobody in this slate predicted. Q2: shipped
+differently than the lean — zero host mixins, one `WarrenMemberMixin`
+(see the Module taxonomy note above). Q3: resolved, and not the way this
+slate guessed — the lounge **is** on a `CartesianZone`
+(`/world/lounge`), not a geography-less social pocket; the invariant
+never bites because the star-to-host doorways are ordinary **cardinal**
+exits, never semantic labels (see
+[zone.md § Cardinal-only-intra-zone exit invariant](../../subsystems/zone.md#cardinal-only-intra-zone-exit-invariant)
+and the "every location plots" doctrine at
+`packages/content/saxonberg-lounge/content/world/lounge.yaml`). Q4:
+shipped (`queueMicrotask` coalescing on `notifyPopulationChange`) and
+documented at
+[location.md § Concurrency](../../subsystems/location.md#concurrency).
+Q5: shipped as tunable code constants, not yet promoted to `AppApi` —
+documented at [location.md § Base mechanism vs lounge
+policy](../../subsystems/location.md#base-mechanism-vs-lounge-policy).)*
+
 6. **The summoned-graph host** (no persistent room → a runtime run-context
    seats the Warren). Deferred; v1 is the room-host case only.
 7. **Does the host/commons participate in flavor/matchmaking, or stay a
@@ -347,12 +286,9 @@ Nothing new is invented:
 
 ## Build order
 
-**Wave 1 — the substrate (social-elastic).** The `Warren` base (working
-generic overflow) + the host mixin + the member mixin + the role/cardinality
-model + budding (star-to-host, capacity N) + merging (drain-then-collapse,
-hysteresis M + reap grace) + the lifecycle/persistence/ref shapes +
-`admit` / `reconcile` / `teardown`. Proven by `LoungeWarren` (the lounge
-slate's consumer) — or a trivial overflow test consumer first.
+*(Wave 1 — the substrate — shipped; proven by `LoungeWarren` and reused
+since by `DormWarren`/`BuildingWarren`/`PlatWarren`/`MineWarren`. See
+[location.md § The pieces](../../subsystems/location.md#the-pieces).)*
 
 **Wave 2+ — procedural-spatial family (deferred).** The dungeon's
 multi-role catalog + spatial `attachmentFor` + generation `route` +
@@ -379,35 +315,9 @@ seams admit it.
 
 ---
 
-## Once shaped into formal requirements
-
-This slate boils down to:
-
-- The **`Warren`** — a multi-instance, runtime-only `Idea` (sibling to
-  `Zone`) that owns an **elastic graph of member `Location`s**, orthogonal
-  to spatial scope.
-- The **host → Warren → members** ownership chain: a persistent host seats
-  a runtime Warren that owns ephemeral members; the host is never a
-  member; it owns *whether and when* the Warren exists. Restart rebuilds
-  from the host. All graph refs are non-persisted Pattern-B live refs.
-- The **role + cardinality** model (singleton = min/max 1; elastic = 1..N
-  + capacity/hysteresis), with the membership discriminator
-  (coordinator-placed → member; independently-alive → external neighbor).
-- The **concrete base Warren** (generic least-full overflow: `route` /
-  `attachmentFor` / `seedMember` defaults + threshold-driven bud/merge) +
-  **`LoungeWarren`** overriding `route` + `seedMember`; thresholds and the
-  role catalog as **data**, not subclassing.
-- **Bud** (star-to-host, capacity N, diegetic doorway) and **merge**
-  (**drain-then-collapse**, watermark M < N, reap grace) mechanics, with
-  hard/never-merge as policy overrides.
-- The common interface: `admit(actor) → Location`, `teardown()`,
-  `getMembers()`, self-driven `reconcile()`.
-- Tests: a graph buds past capacity and the new room has a doorway home; a
-  thinning room **drains** before collapse (no one is moved mid-stay); the
-  host survives a restart with zero members and the graph re-grows; two
-  Warrens coexist in one zone independently; an external neighbor (Dave's)
-  is reachable but never reaped by the Warren; live refs clean up on
-  member reap and on Warren teardown.
-
-The procedural-spatial family (dungeon, desert), the summoned-graph host,
-and the lounge's matchmaking math wait for their own work.
+*(This slate was shaped into
+`docs/requirements/multilocation-lounge-requirements.md` and
+`docs/plans/multilocation-lounge-plan.md`, built, and both ephemeral
+docs have since been retired per the workflow's retirement rules — see
+[location.md § MultiLocation](../../subsystems/location.md#multilocation--the-warren-elastic-graph-substrate--the-lounge).
+What that build did not cover is exactly this slate's `Left`, above.)*
