@@ -242,9 +242,11 @@ Per cluster:
    - **KEEP** — the item is the secondary's own (not the canonical's
      subject). Stays.
 4. **Retire the secondary** if nothing KEEP remains: salvage its open
-   questions into the canonical, delete the file, re-point every link to
-   it outside `docs/slates/README.md` / `roadmap.md` (those are the
-   sweep's). Else re-stamp its status block to the KEEP body.
+   questions into the canonical, delete the file (**plain `rm`, never
+   `git rm`** — a staged deletion rides into whichever sibling commit
+   the coordinator makes next; the coordinator stages), re-point every
+   link to it outside `docs/slates/README.md` / `roadmap.md` (those are
+   the sweep's). Else re-stamp its status block to the KEEP body.
 5. **Re-stamp the canonical** — `Left` gains the moved items; `Size`
    re-derived.
 6. **The conservation table** in the ledger: one row per secondary
