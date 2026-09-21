@@ -226,6 +226,26 @@ A publisher's ticker **may** carry an inline stance action. That is
 what real media does, it is visible, and pretending otherwise would be
 the dishonest option.
 
+### Absorbed from gazette-slate — And the docket being PULL is by design, not a concession
+
+**(Revised 2026-08-02, after decomposing the Substack form — see the
+*real evolution is PULL → PUSH* section above.)**
+
+An earlier pass framed the state's output as a **wire service** feeding
+the press, on a newspaper analogy. **The analogy was wrong** — Substack has
+no issues and the unit is a post. The distinction that survives is
+simpler, and it is about **direction**:
+
+> **The state publishes to a PLACE. A publisher pushes to PEOPLE.**
+
+A state that pushes to everyone is either propaganda or noise. So the
+gazette being a surface you **go to** is **correct**, not a limitation —
+and the press is **what comes to you about it.**
+
+⭐ **This is also why system news is genuinely the smallest part**: it is
+the only one of the three layers that needs no delivery machinery at
+all.
+
 ## Press freedom — and the emergent that teaches it
 
 A committee owns its parcel, so it genuinely **can** bar a
@@ -446,6 +466,10 @@ context; an instrument cannot lie but has no idea what it missed).
    trace a disclosure (the concealment substrate governs), and
    whether that balance leaves whistleblowing viable.
 7. **The pedagogy pass** — how the vocation teaches; see below.
+8. **Is the docket a new surface or a projection of existing ledgers?**
+   (Moved from gazette-slate.) *Leans projection* — the record already
+   exists; the docket is a chronological read of it with no editorial
+   layer. Still open — the docket itself is unbuilt.
 
 ## The pedagogy pass — deliberately deferred
 
