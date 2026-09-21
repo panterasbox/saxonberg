@@ -38,6 +38,13 @@ in the object graph — whose state is **encapsulated on the object**:
 | `durable` | ad-hoc (Idea-only) vs durable (mirrored to a record) |
 | `channelRef` | the party chat channel's name, or `''` |
 
+**Succession is FIFO, not elected.** `Party.release` (called by `leave`/
+`kick`) repoints `captainId` to `memberIds[0]` whenever the departing
+member was captain — no election, no vote. There is no leaderless mode:
+`form` always sets the founder as captain, and a non-empty party always
+has one. Only `settleAfterDeparture`'s empty-party terminus clears
+`captainId` (durable: dormant; ad-hoc: `StuffApi.destruct`ed).
+
 Being an Idea (rather than a bare `Document`) buys three things: the
 state lives on the object (no external store holding it); the party is
 **MQL-visible** — `subscribableFields` project `name`/`memberIds`/
