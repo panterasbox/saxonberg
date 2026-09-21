@@ -128,3 +128,9 @@ boot:
   # a business stood up lazily deals no house card until somebody trades.
   - { template: /world/terminus/general-store/shop-floor, role: producer, reason: "the general store's floor — its keeper runs the stocks beat over the counter, and the counter is where the supplied lines land" }
   - { template: /world/terminus/general-store/business, role: producer, reason: "the keeper's `purchases` seat is materialized over a live business; the stocks beat trades as it" }
+  # ⭐ The Gazette (economic bootstrap D20): its editor stands on the avenue
+  # block and prints the price index once an edition window, as the
+  # paper, with nobody online — the room carries her, the organization
+  # carries her seat.
+  - { template: /world/terminus/counting-houses/avenue-block, role: producer, reason: "the avenue block — the Gazette's editor stands here and runs the prints beat" }
+  - { template: /world/terminus/gazette, role: producer, reason: "the Gazette's roster puts its editor in the seat that may publish as it" }

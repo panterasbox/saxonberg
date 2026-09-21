@@ -82,3 +82,9 @@ data:
       keywords: [goodkin, sunrise, warm, mascot, doors]
       description: |
         One frontage breaks the grey: warm sunrise stone, doors propped generously open, a smiling mascot in the window over a hand-lettered sign — GOODKIN. COME IN, YOU'RE ONE OF OURS. It is the only bank on the row that looks like it wants the newcomer, and the warmth is real. Whether it stays warmth is the thing you learn later. The doors stand open to the west.
+  # The Gazette's editor works the row — reading the chalkboards, printing
+  # the index (economic bootstrap D20). A declared designation: the troupe
+  # rides `cast:`, and the room is a `boot:` producer so she prints with
+  # nobody reading.
+  cast:
+    - /world/terminus/gazette/agent/editor
