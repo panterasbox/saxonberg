@@ -102,6 +102,20 @@ export default class BuyController extends CommandController<BuyModel> {
         ? null
         : shelf?.resolveConsigned(model.thing) ?? null;
     if (!stockItem && !listItem) {
+      // ⭐ Sold out is not the same as not sold. The counter's own
+      // description lists every line it carries, so refusing a bare
+      // shelf with "isn't for sale here" contradicts what the player
+      // just read (the fishing drive, live, run 2 — every new tackle
+      // line is `par: 1`).
+      if (stock?.carriesLine(model.thing)) {
+        this.reject(
+          giver,
+          context,
+          Mml.compose`The shelf is bare of "${model.thing}". It is sold here — there is just none of it today.`,
+          { kind: "controller-rejected", reason: "sold-out", detail: model.thing },
+        );
+        return;
+      }
       this.reject(
         giver,
         context,
