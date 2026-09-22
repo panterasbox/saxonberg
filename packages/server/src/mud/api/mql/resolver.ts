@@ -1294,9 +1294,15 @@ function filterByKeywords(
       }
     }
     if (matched) {
+      // ⭐ The keyword's own score, not `max(prior, keyword)`: a scope
+      // seed (`reachable`, `inventory`, `peers`) stamps every candidate
+      // 100, so the max was ALWAYS 100 and every `scope:word` query tied
+      // — the `top` policy fell to pool order (inventory before the
+      // room), and `haul net` with a keepnet in hand hauled the keepnet
+      // however the scorer ranked them. The fishing drive found it.
       const next: MqlMatch = {
         stuff: m.stuff,
-        score: Math.max(m.score, bestRaw),
+        score: bestRaw,
       };
       if (bestVia) next.via = bestVia;
       out.push(next);

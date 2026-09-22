@@ -35,3 +35,41 @@ describe('scoreCandidate — whole words beat substrings', () => {
     expect(new Set(rods).size).toBe(1);
   });
 });
+
+/* ── in situ: a keepnet in hand and a net on the floor ── */
+
+import { MqlApi } from '../../mql';
+import { ContainmentApi } from '../../containment';
+import { PerceptionMixin } from '../../../lib/perception/Perception';
+import { SensorMixin } from '../../../lib/message/Sensor';
+import { VisibleMixin } from '../../../lib/description/Visible';
+import { PerceptibleMixin } from '../../../lib/description/Perceptible';
+import { ContainableMixin } from '../../../lib/spatial/Containable';
+import { ContainerMixin } from '../../../lib/spatial/Container';
+import { Idea } from '../../../lib/stuff/Idea';
+import Location from '../../../lib/stuff/Location';
+import { makeStuff } from '../../../lib/security/__tests__/test-setup';
+
+class Angler extends PerceptionMixin(SensorMixin(ContainerMixin(ContainableMixin(Idea)))) {}
+class Gear extends VisibleMixin(PerceptibleMixin(ContainableMixin(Idea))) {}
+
+describe('reachable:net — the whole-word tier in situ (fishing B8)', () => {
+  it('⭐ resolves to the net on the floor, not the keepnet in hand, under the top policy', () => {
+    const room = makeStuff(() => new Location());
+    const angler = makeStuff(() => new Angler());
+    const net = makeStuff(() => new Gear());
+    net.setShortDescription('net');
+    net.setKeywords(['net', 'seine', 'trap']);
+    const keepnet = makeStuff(() => new Gear());
+    keepnet.setShortDescription('keepnet');
+    keepnet.setKeywords(['keepnet', 'keep-net', 'net-bag']);
+    ContainmentApi.move(angler, room);
+    ContainmentApi.move(keepnet, angler);
+    ContainmentApi.move(net, room);
+    const ctx = { commandGiver: angler as never, scope: 'reachable' as const };
+    const many = MqlApi.resolveMany('reachable:net', ctx);
+    console.log('ORDER', many.stuff.map((s) => `${s.getPresentation()}`).join(' | '));
+    expect(many.stuff.map((s) => s.stuffId)).toContain(net.stuffId);
+    expect(MqlApi.resolveOne('reachable:net', ctx).stuff?.stuffId).toBe(net.stuffId);
+  });
+});
