@@ -1914,6 +1914,18 @@ unkeyed animal (`host.getDeepContents is not a function`, logged on
 every released fish — pets); a Cast's keywords becoming its name once
 known (`talk fisher` fails after the introduction — presentation).
 
+**Review round, B8 (2026-09-21) — what driving the rig found.** Runs
+17–19 of the drive, on the merged tree with step 17 added:
+
+| found | where | what was done |
+|---|---|---|
+| three rods in hand: `look rod` and a bare `fish` PROMPT, and a prompt is not a dispatch-response — the session jammed at step 1 | the drive | the drive names the rod (`using cane`), as a player with three would |
+| `fish with worm using cane` → `shape-fall-through`: the binder fills positionals in order and a preposition skips FORWARD, never back; the rod was declared before the bait | `fish.yaml` | bait first, then rod, then shore |
+| `look edge` prompted between the river's edge and the **ledger** rod: `"a ledger rod".includes("edge")` | the matcher | the row is *leger* (the angler's spelling), and — |
+| `haul net` with a keepnet in hand hauled the **keepnet**: `"a net"` and `"a keepnet"` both scored 50 by substring and the tie fell to pool order (inventory before the room). Third instance in one build: creel/eel, ledger/edge, keepnet/net | `scoreCandidate` (kernel MQL) | ⭐ a new tier — every query word a WHOLE word of the name → 60, above substring's 50; three rods still tie on `rod`, which is the prompt, and correct (`scope-walk.score.test.ts`) |
+| ⚠⚠ **the angler COLLAPSED at the seventh game hour** — `drop` refused by `requiresConscious` — and the server log showed every unfed Cast in the world going the same way: *Sefa Roke, Wren Ashby, the hewers — "not conscious enough" → "not currently animate (dead)"* | the world (master) | a probe on a fresh body at the square, one reading a game-quarter-hour: **satiation falls 24 %/h, linear, from 100 to 0 at hour 4.5; `starvation` lands; the core starts to drift.** The consumer is `ThermalRegulation`'s cold branch: `COLD_SPEND_PER_DEGREE 0.05 %/min/K` below a comfort floor of `310 − 8 − 2.5·clo` K — a body in nothing at 294 K (21 °C) has an 8 K gap and burns 24 %/h; in the student outfit (~0.6 clo, 1.5 K of band) ~19 %/h. Out of fuel, the branch drifts the core toward ambient — death by exposure at room temperature. ⚠ **Not fishing's; the thermal/injury owner's.** Two dials look an order of magnitude off physiology: 1 clo is *defined* as comfort at 21 °C sitting, so the band should move ~7 K per clo, not 2.5; and shivering peaks near 5× basal, so the spend at a 10 K gap should be ~+6 %/h, i.e. `~0.01 %/min/K`, not 0.05. And **no Cast row wears anything.** What IS this build's: wire test characters were minted naked (`enroll` dresses a real one) — `TestHooks` now dresses them in the first aspiration's outfit; and the drive's angler buys rations and eats one at each afternoon's start, which is what a person fishing all day does |
+| the probe's own two false starts | — | the eval sandbox exposes no `WorldClockApi`; `eval --on me` is parcel-bound (the square, not the bank) |
+
 **The full suite, once, before the MR** (2026-09-18): `pnpm test` green
 — 29 packages, 13,150 tests passed (server 10,966 · client 999 ·
 trade-fishing 58 · water 150), `EXIT 0`. The first attempt was killed by
