@@ -66,17 +66,7 @@ See also:
 
 ## Principle
 
-**The server prints everything; the client decides what to show.**
-Filtering is cheap because it lives on the client — no server
-round-trip, no policy negotiation, instant feedback. The server's
-job is to emit cleanly-categorized frames with stable topics; the
-client's job is to give the player tools to slice that stream
-however suits them.
-
-Always-print on the server, always-categorize on the wire, always-
-filterable on the client. The same prose is available to anyone
-who wants it (audit trails, replay, log capture); the player's
-session view is just a filter on the firehose.
+*Graduated to [topics.md](../../subsystems/topics.md) § *Why the filter lives on the client* — the server prints everything, categorizes on the wire, and the client filters; the shipped named-predicate views are retroactive because the server never withholds a frame.*
 
 ---
 
