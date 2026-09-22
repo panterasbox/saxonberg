@@ -12,7 +12,7 @@
 > reads for speech; a shout does not leave the room) · dynamic-reach shout
 > (the voice-projection attribute + the vitals tie) · whisper's redacted
 > overhear form · language gating on acoustic + encoded-cognition
-> implant · regional channels · the first-class conversation primitive ·
+> implant · the first-class conversation primitive ·
 > implant security (spoofing / interception) + the hardened-baseline
 > guarantee · the implant dependency as written (universal — but only
 > Avatars carry one; the per-NPC implant + remote-NPC `tell` + the
@@ -224,9 +224,9 @@ a sanitized substitute for speech.
   loud source; projection attribute sets dB; sound slate computes who, in
   which rooms, hears it (faint at the edges).
 - *DM a friend (implant) — shipped: comms.md § Implant — dm / tell.*
-- **Guild chat (implant channel):** post to `[Guild]` → all tuned
-  members receive it as an attributed thought; renders with the channel
-  chip.
+- *Guild chat — chat-slate § Worked scenarios ("Guild chat,
+  group-projected"); the attributed-thought delivery and the channel chip
+  shipped (chat.md § Posting, message-rendering.md).*
 - **Remote NPC (implant):** `tell dispatcher status?` → reaches the
   dispatcher's responder over the implant.
 
@@ -240,8 +240,8 @@ a sanitized substitute for speech.
 2. *Resolved: open (standalone) · roster (a managed group) · bound (a
    party's or committee's `GroupRef`) — chat.md § Three channel kinds,
    § Bound channels.*
-3. **Regional channels.** A channel scoped to a zone (a bridge between
-   acoustic locality and implant networks)? Worth considering.
+3. *Regional channels → moved verbatim to chat-slate § Open questions Q6
+   (cluster pass; chat owns the place-binding axis).*
 4. **Language × implant: (i) vs (ii).** *Lean (ii) — encoded cognition,
    translation-implant stays meaningful.*
 5. **Persistence/history.** Channel logs / DM history as an implant

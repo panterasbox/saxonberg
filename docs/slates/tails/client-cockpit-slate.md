@@ -7,12 +7,15 @@
 > [cockpit.md](../../subsystems/cockpit.md) +
 > [card-surface.md](../../subsystems/card-surface.md)
 > **Left:** the `study` and `classroom` modes + their diegetic
-> `mode-changed` trigger (⚠ contradicts cockpit.md's no-auto-switch rule)
+> `mode-changed` trigger (⚠ contradicts cockpit.md's no-auto-switch rule;
+> this is the *Educational* row of client-shell-slate's use-case matrix,
+> tracked only here since the cluster pass)
 > · the content surface (video + transcript payloads, diegetic triggers,
 > completion events) · the live-tutor / classroom shape · the `<mql>` /
 > `mudq:` sleeper, still inert by design · the navigation panels (sketch
-> map · compass) · tell history · the notification chip (overlap:
-> client-slate's tray) · tutorial overlays · the author/admin panel set
+> map · compass) · tell history · the notification chip / tray (client-slate's
+> tray rule absorbed here; the substrate is notification-slate) ·
+> tutorial overlays · the author/admin panel set
 > (uncertain against cms.md / diagnostics.md) · the post-intake identity
 > verbs (`rename` / pronouns / appearance — contradicted by client-shell.md
 > § Character select) · envelope status / note rendering (uncertain) ·
@@ -201,6 +204,18 @@ mode-bound panels are tracked separately below.
 | Panel | Notes | v1? |
 |---|---|---|
 | Notification chip | Counts + last few items; click expands; click expanded → mode switch + scroll | v1 |
+
+#### Absorbed from client-slate — § 7.2 (the notification tray)
+
+> Deferred, designed but not scheduled: […] notifications — designed only
+> as a stub, and `NotifyPolicy` / `NotifyRule` should be read before the
+> UI is designed, because what belongs in that tray is *whatever the
+> receiver said they wanted*, not everything that happened.
+
+(The tray's absent-tense substrate is
+[notification-slate](../builds/notification-slate.md);
+[client-shell.md § The top bar](../../subsystems/client-shell.md) records
+why no bell is even placeholdered.)
 
 ### Help / education
 

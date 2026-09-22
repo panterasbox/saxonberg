@@ -166,6 +166,10 @@ chain summary, commandId/causingCommandId, timestamp}` into an
   deliberately with the user; the alternative (document tree) is wrong
   here because audit rows are cross-parcel, queryable, and reaped by
   age.
+- Sibling: [access-slate § Audit (a free win)](../tails/access-slate.md)
+  is the DENY side of the same Pillar 5 gap — authorization denies +
+  every `forceX` use → `MudlogApi`. This rail is the PERMIT side. One
+  audit build should carry both (cluster pass 2026-09-21).
 
 ## Future gate primitives to design (not yet built)
 

@@ -428,6 +428,10 @@ undramatic. Here it would be an office with a name and a record.
    a hard requirement per the enforcement slate).
 3. **Prosecutorial discretion's home** — is charging an office, and
    who holds it?
+   *(Pointer, cluster pass 2026-09-21: [courts-slate](./courts-slate.md)
+   Part 3 answers differently — no prosecutor; a complainant with standing
+   files, a clerk executes, a drawn panel judges. Two unbuilt answers to
+   one question; requirements reconcile.)*
 4. **Gang content shape** — territory representation, the fence's
    mechanics, the recruiting pipeline, and how a gang's "business"
    is expressed without becoming a quest-giver.

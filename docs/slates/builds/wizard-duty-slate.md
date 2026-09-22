@@ -1,19 +1,23 @@
 # Wizard duty slate — law suggested by the technology itself
 
 > **Status: UNBUILT** — no duty, no break-glass, no `su`, no agency
-> substrate (verified 2026-09-19). `requiresWizard` sits on 12 views:
-> `provision` / `unprovision` (duncan-hall), `lease` / `unlease`
-> (mayfield-row), `config`, `practice`, `cms`, `studio`, and the three
-> real code-doors `eval` / `reload` / `git`. Since the table below:
-> `house` is seat-gated (`banking.md`, libations) and `pack` rides
-> `requiresPackInstaller`.
-> **Left:** re-gating the non-code-trust sites off the wizard axis
-> (`provision` / `unprovision` / `lease` / `unlease` → agency or title;
-> `config` → an office; `practice` → a harness gate) · live-driving the
-> Katie `dispatch provision` path · break-glass declared-purpose logging
-> for reads and impersonation · `su` as an agency consumer · the duty
-> text + safe harbour in the wizard grant · subject notification on
-> record access · the "people who can see everything" appendix
+> substrate (verified 2026-09-19). `requiresWizard` sits on 11 views
+> (re-counted 2026-09-21): `provision` / `unprovision` (duncan-hall),
+> `lease` / `unlease` (mayfield-row), `config`, `practice`, `cms`,
+> `studio`, and the three real code-doors `eval` / `reload` / `git`.
+> Since the 2026-08-04 classification (now in
+> wizard-axis-cleanup-slate): `house` is seat-gated (`banking.md`,
+> libations) and `pack` rides `requiresPackInstaller`.
+> **Left:** break-glass declared-purpose logging for reads and
+> impersonation (the conspicuous record — `wizard-bar-slate` leans on it
+> from here) · `su` as an agency consumer · the duty text in the wizard
+> grant (the safe harbour's TEXT is
+> [wizard-bar-slate](./wizard-bar-slate.md)'s) · subject notification on
+> record access · the "people who can see everything" appendix. ⚠ The
+> axis re-gating (`provision` / `unprovision` / `lease` / `unlease` /
+> `config` / `practice`) and the Katie `dispatch provision` live drive
+> are [wizard-axis-cleanup-slate](./wizard-axis-cleanup-slate.md)'s
+> since the 2026-09-21 cluster pass, not this slate's.
 > **Size:** a build
 
 **Captured 2026-08-04**, as the last dimension of the law-source hunt:
@@ -263,26 +267,14 @@ persuade in a way descriptions cannot.
 **Captured 2026-08-04**, found while designing
 [credit-slate](./credit-slate.md).
 
-> **User: "none of this shit should be using `requiresWizard` anyway,
-> that's for exactly one thing — writing TypeScript code."**
-
-⭐ **The correction already has a precedent in the codebase.** banking.md:
-*"`reserve` is now Governor-gated… no longer `requiresWizard`: minting money
-is a **monetary-authority act, not a code-trust one**."* That re-gating is
-the template; it was simply never generalized.
-
-**Every `requiresWizard` call site, classified:**
-
-| Verb | Really code-trust? |
-|---|---|
-| `author/eval` — run a code snippet | ✅ **yes** — the axis exists for this |
-| `author/reload` — hot-reload a template/instance | ✅ yes |
-| `system/git` — engine source VCS | ✅ yes |
-| `author/pack` — reconcile a content pack | ◐ borderline — packs may name `class:`, which *is* code-trust |
-| `author/practice` — record an advancement deed | ⚠ **no** — a dev/debug harness |
-| `system/config` — app settings | ⚠ **no** — an *administrative* axis (PM / ops) |
-| `banking/house` — venue P&L + payroll | ⚠ **no** — **ownership.** Should ride `AccessApi.can` / parcel title. banking.md consciously parked it: *"(`house` stays operator-gated.)"* |
-| `provision` / `unprovision` — dorm leasing | ⚠⚠ **no** — pure property + agency |
+> **Merged 2026-09-21 (cluster pass):** the rule as the user stated it,
+> the `reserve` precedent, the per-site classification table and the
+> *probable live defect* (Katie's `dispatch provision`) now live in
+> [wizard-axis-cleanup-slate](./wizard-axis-cleanup-slate.md) — § *The
+> rule, as stated by the user* · § *The inventory* (the two *Absorbed
+> from wizard-duty-slate* subsections) · § *Sequencing* W1. The census
+> and its re-gating are that slate's; what stays here is why the duty
+> depends on it.
 
 > ⭐⭐ **The tell: four of the eight are standing in for an axis that
 > exists.** `house` wants title, `provision` wants agency, `config` wants an
@@ -292,25 +284,6 @@ the template; it was simply never generalized.
 > prevent, and exactly what the wizard-duty argument above depends on
 > staying clean. **A duty attaches to a capability; it cannot if the
 > capability means four different things.**
-
-## ⚠⚠⚠ And one of them is a probable live defect
-
-`provision` carries verb-level `requiresWizard`; **Katie is deliberately not
-a wizard** (`KatieProvisioning.test` asserts `isWizard(katie) === false`);
-her intake dialogue `dispatch`es `provision $player`. The authorization was
-moved to `execute()` (`isDormsAgent` — *wizard OR agent of the dorms owner*,
-the **correct** predicate) on the belief that a forced dispatch skips YAML
-validators. **It does not** — proven by experiment 2026-08-04, see
-[npc-dialogue.md § dispatch](../../subsystems/npc-dialogue.md).
-
-⚠ **The fix is the re-gate, NOT deleting the validator.** An earlier
-suggestion to "just drop `requiresWizard` from the verb" was the wrong
-shape: it leaves the verb ungated at the YAML layer and keeps treating the
-axis as noise. **`provision` should carry a dorms-agent/ownership validator
-that says what it means** — the same move `reserve` already made.
-
-⭐ Needs **live-driving**, not another green test: the existing test calls
-`isDormsAgent` directly and never dispatches through the chain.
 
 # Open questions
 
@@ -323,7 +296,9 @@ that says what it means** — the same move `reserve` already made.
    later has to be unpicked.
 2. ⚠ **What is the safe harbour?** Without a business-judgment equivalent
    the role is unfillable — a wizard who breaks something in good faith
-   must not be treated as one who snooped.
+   must not be treated as one who snooped. → the harbour is
+   [wizard-bar-slate](./wizard-bar-slate.md)'s *product* (§ *What the bar
+   does*); its text is that slate's Q2.
 3. **Is the duty written into the constitution, or into the wizard grant
    itself?** *Leans the grant* — you accept it when you take the
    capability, which makes it a condition rather than an external rule.

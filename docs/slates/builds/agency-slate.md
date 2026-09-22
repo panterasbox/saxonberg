@@ -121,6 +121,12 @@ vocabulary closed rather than open is the design work.
 - **brokers** — acting in a market for someone else
 - **the custodian / receiver** — currently a bespoke role in
   [contract.md](../../subsystems/contract.md); agency generalizes it
+- **`su`** — [wizard-duty-slate § `su` should be AGENCY, not identity
+  substitution](./wizard-duty-slate.md): the wizard acts as the player's
+  *agent*, so the record reads *"Alice's account, acted by wizard Bob"*;
+  wizard-duty Q0 asks whether it lands before or after this build
+  (pointer appended by the 2026-09-21 cluster pass — the design stays
+  there)
 
 ## ⚠ Checked: employment is NOT agency — and the real mechanism is better
 

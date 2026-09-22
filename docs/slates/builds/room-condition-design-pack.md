@@ -11,9 +11,12 @@
 > the method this build calls for a body's stain, and spoilage
 > ([spoilage.md](../../subsystems/spoilage.md)) is the first step of the
 > build order, done.
-> **Left:** `SoilableMixin` · the room debris field · `sweep` / `wipe` /
-> `tidy` / `dispose` / `bathe` (the water precondition) · the `restQuality`
-> aggregation · tidiness from placement · the pest threshold · the
+> **Left:** `SoilableMixin` (items · surfaces · bodies — hands on
+> `Creature`, the attach point absorbed from food-safety 2026-09-21) · the
+> room debris field · `sweep` / `wipe` / `tidy` / `dispose` / `bathe` (the
+> water precondition) · the `restQuality` aggregation (bedding `Soilable` +
+> room condition, and room temperature — absorbed from hearth-and-larder
+> 2026-09-21) · tidiness from placement · the pest threshold · the
 > attributed `(actor, target, extent)` deposit/clear events (a ledger
 > record, never an `EventApi` emit — textiles.md) · the `Resists.factor`
 > immunity wire (after disease)
@@ -73,6 +76,19 @@ food above a threshold → pests *appear* (on presence/return) as a disease vect
 and spoilage accelerant. There is deliberately **no field** (furnishing's call)
 and no "your house is overrun while you were away" — that would be exactly the
 tax-on-absence Part 2 forbids.
+
+### Absorbed from food-safety-slate — Hands
+
+*(Moved here at the 2026-09-21 cluster pass: the body-side `Soilable` —
+*"dirty hands"* in the table above, *"a body's own `Soilable` is a
+fomite"* in Part 5 — is this pack's. The food-safety build (MR !244)
+recorded why it shipped no host for it; that record is the constraint on
+this pack's hands rung. "D3" is that build's plan decision.)*
+
+- **Hands.** D3 names one and this build ships no host for it. The attach
+  point is `Creature`; the consumer is the disease build, which needs a
+  body-side carrier for transmission anyway. Composing it here would have
+  bought a *worse* game (every meal a hygiene chore) for no new mechanism.
 
 ### ⭐⭐⭐ Every deposit and every clear carries an ACTOR
 
@@ -160,6 +176,18 @@ not the domain*) dated 2026-08-06, with a pointer back here.
 | ✳ **Pest threshold** | a derived check on (debris + exposed food) → a pest consequence; no field | **new (derived)** |
 | ✳ **Disease resistance read** | occupant disease susceptibility reads home condition (Part 6) | **wire into `Resists.factor`** |
 | ⭐ **Actor-attributed deposit/clear events** | `(actor, target, extent)` emitted both directions; blame derives on read, never stamped (Part 1) | **new — required at build time, not retrofittable** |
+
+### Absorbed from hearth-and-larder-design-pack — `restQuality` gains room temperature
+
+*(Moved here at the 2026-09-21 cluster pass: the `restQuality` aggregation
+is this pack's row above, and the hearth pack's second input belongs
+beside it. The mechanism — a hearth warms its room, `ThermalRegulationMixin`
+cascades body temperature into conditions — is
+[hearth-and-larder § Part 1](../tails/hearth-and-larder-design-pack.md).)*
+
+| | Work | State |
+|---|---|---|
+| ✳ **`restQuality` gains room temperature** | a second input beside bedding | **update** |
 
 **4. Verbs & affordances (the stewardship gameplay).** `wash` / `wipe` /
 `bathe` / `sweep` / `clean` / `tidy` / `dispose` — **acts of care, "fought not

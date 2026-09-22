@@ -261,6 +261,8 @@ only `employment.md` (positions). The cheaper answer is positions.
   produces the events; adjudicating them is → `legal-code-slate.md`.
   ⚠ There is no courts/judiciary slate in the tree, and this build will
   hand one a reason to exist.
+  *(Cluster pass 2026-09-21: there is now — [courts-slate](./courts-slate.md),
+  2026-09-18; the offence is still legal-code's, the hearing is courts'.)*
 - **Crowd behaviour as a simulation** — a room that riots, a mob. Nothing
   here models the onlookers as agents; they are a count. → nowhere,
   deliberately.

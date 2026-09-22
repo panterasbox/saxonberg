@@ -6,8 +6,7 @@
 > [cockpit.md](../../subsystems/cockpit.md) +
 > [card-surface.md](../../subsystems/card-surface.md) +
 > [record-layer.md](../../subsystems/record-layer.md)
-> **Left:** the notification tray (read `NotifyPolicy`/`NotifyRule`
-> first) · output logging / clips / attestation (owned by
+> **Left:** output logging / clips / attestation (owned by
 > attestation-slate) · the lounge's content half (owned by lounge-slate) ·
 > the open MML vocabulary questions (what `msg` is for · `communicative`
 > on the wire · one measurement-channel list) · engagement patterns beyond
@@ -159,10 +158,11 @@ lounge-revisit slate.
 
 Deferred, designed but not scheduled: output logging / clips /
 attestation (§ 4.3); engagement patterns beyond the practice record;
-notifications — designed only as a stub, and `NotifyPolicy` /
-`NotifyRule` should be read before the UI is designed, because what
-belongs in that tray is *whatever the receiver said they wanted*, not
-everything that happened.
+notifications — moved to [client-cockpit-slate § Panel inventory →
+Notifications](../tails/client-cockpit-slate.md) (*Absorbed from
+client-slate — § 7.2*), which owns the tray/chip design; the rule that
+`NotifyPolicy` / `NotifyRule` are read first is also
+[client-shell.md § The top bar](../../subsystems/client-shell.md)'s.
 
 ### ✅ 7.18 Wave 7 — the card surface — SHIPPED (`build/card-surface`)
 

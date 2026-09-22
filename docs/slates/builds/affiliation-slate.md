@@ -27,7 +27,7 @@ clubs are dropped; the real axes are the *structured* ones below.
 | **House** | abstract belonging bucket | vertical-fed (sorted) | belonging | **yes** (greeter suggests; opt-in) |
 | **Guild** | trade/craft/art class | earned | deep (the class system) | no (deferred) |
 | **Corp** | allegiance/competition overlay | world-given / joined | deep (competition) | no (deferred) |
-| **Religion** | faith/deity → [alignment-religion](./alignment-religion-slate.md) | chosen | deep (deity drama) | the deity pick |
+| **Religion** | faith/deity → [alignment](./alignment-slate.md) | chosen | deep (deity drama) | the deity pick |
 
 **None are pre-lounge char-gen picks.** House is the only one touching
 onboarding; the rest are earned/taken in-world.
@@ -119,7 +119,7 @@ live. (Houses may persist as alumni networks, but their home is the campus.)
 [grouping subsystem](../../subsystems/grouping.md) (the facade; houses/guilds/corps are
 providers) · [social-graph-slate](../tails/social-graph-slate.md) (ties) ·
 [chat-slate](../tails/chat-slate.md) (clubs = channels) ·
-[alignment-religion-slate](./alignment-religion-slate.md) (religion;
+[alignment-slate](./alignment-slate.md) (religion;
 corp-competition's prosocial caveat) · [char-gen](../../subsystems/char-gen.md)
 (house is the onboarding touch; aspiration→major→guild) ·
 [capability-magic](./capability-magic-slate.md) (guild = the class system) ·

@@ -5,9 +5,13 @@
 > [spoilage.md](../../subsystems/spoilage.md)
 > **Left:** `ContagionSpec` (routes · host range over `Clade` · reservoir)
 > — `Condition.contagion` is still `null` with no consumer · the
-> between-room push tick + the per-room contaminant map · the
-> husbandry-is-immunity coupling · quarantine (promote `openNeighboursOf`)
-> · the outbreak investigation · the crops-first v1 slice
+> between-room push tick + the per-room contaminant map · care-is-immunity
+> across every host (the husbandry coupling, and the room-condition /
+> hygiene half, both unbuilt) · quarantine (promote `openNeighboursOf`) ·
+> the outbreak investigation · the four un-misery rules · the per-object
+> work table (absorbed Part 1) · the epidemiology pedagogy + wrong-about
+> hooks (absorbed Part 5) · the thin medic vertical / `resolution.by`
+> dispatcher (open Q3) · the crops-first v1 slice
 > **Size:** a build
 
 See also — **the vertical this engine serves**:
@@ -30,6 +34,9 @@ through `Condition.toxinBehavior`) · [stewardship](./stewardship-slate.md)
 [advancement.md](../../subsystems/advancement.md). Prior design:
 [vitals-slate](../tails/vitals-slate.md) (the Kind A/Kind B split, and where
 `ContagionSpec` was first reserved).
+*Absorbed from disease-design-pack's See-also:*
+[room-condition](./room-condition-design-pack.md) + husbandry (**"care is
+immunity"** across hosts).
 
 ---
 
@@ -63,6 +70,19 @@ in:
 - **Kind B — trauma**: parameterized damage, closed vocabulary, sited.
 
 **Disease is Kind A, and Kind A is content.** A new disease is a data row.
+
+## Absorbed from disease-design-pack — Part 0 — What it is, and why it's the capstone
+
+**A within-host microbial load that *grows* (like spoilage) and *spreads*
+(between hosts), gated by the host's care-derived resistance; past a threshold
+it drives afflictions and death.** It is the pillar's capstone because it is
+where the producers **connect**: spoilage's growth curve, room-condition's
+hygiene, husbandry's care-score, and the family's density dials all feed it.
+
+> ⭐ **The seam is already cut** (disease-slate): `ContagionSpec` is declared,
+> `null` in all 11 condition seeds, **zero consumers**; `toxinBehavior` is a
+> *complete* within-host burden engine. A whole disease system is **two deltas**:
+> **one growth term** (spoilage builds it) + **one filled-in `ContagionSpec`**.
 
 ---
 
@@ -123,6 +143,8 @@ ContagionSpec {
 | **vector** | a mobile carrier — falls out of contact + mobility | free |
 | **fomite** | an object carrying a load — chattel + containment | cheap |
 | **vertical** | `SpawnerMixin`'s parent→child edge (the only one in the engine) | a hook site; the set is transient |
+
+*Absorbed from disease-design-pack § Part 2 (the fomite route):* **a dirty hand from room-condition is a fomite**.
 
 > **Airborne is the surprise.** The whole path from "this room is contaminated"
 > to "a banded condition on the body that breathed it" is **shipped and
@@ -189,6 +211,17 @@ This is the keystone of the whole design, because it means:
 
 Cheap, too: `'toxin'` is already a declared `RESIST_AXIS`, so the axis list
 barely moves.
+
+### Absorbed from disease-design-pack — Part 3 — 1. Care is immunity, pointed at every host
+
+**1. Care is immunity — pointed at *every* host.** disease-slate's keystone:
+`Resists.factor` reads **live off host state**, so the care-derived condition
+score *is* the resistance term — disease is the **consequence of care, not a
+dice roll**. We have now built that condition score for **four hosts**: the
+**herd** (husbandry), the **crop** (soil), the **body** (hygiene — room
+condition's `Soilable`), and the **home** (room condition). **One resistance
+model, every host** — a well-fed animal, a rotated field, clean hands, a tidy
+home are the *same* immunity seam. Good stewardship *is* not getting sick.
 
 ---
 
@@ -322,6 +355,108 @@ on one species · reconcile-on-read load with the growth term ·
 
 ---
 
+## Absorbed from disease-design-pack — Part 1 — Designed to the per-object format
+
+**1. What it is.** Above — a `Kind A` affliction (authored `Condition` Idea)
+carrying a `PathogenBehavior` (a growing `toxinBehavior`) + a `ContagionSpec`.
+
+**2. Composition.** No new host mixin — it rides the **shipped** vitals
+`Condition`/`AfflictionRecord` + toxin-burden engine on any living host
+(`Creature`/plant/herd). A disease is **content** (a data row), not a class.
+
+**3. New / updated mixins & surfaces.**
+
+| | Work | State |
+|---|---|---|
+| ✳ **Growth term on `ToxinBehavior`** | add `growth`/`K` fields → `dLoad/dt = growth·load·(1−load/K)·f(resist) − clearance`; toxin becomes a strict subset | **extend (shared with spoilage)** |
+| ⭐ **`ContagionSpec` filled in** | routes, infectivity, infectiousWindow, hostRange, reservoir (Part 3) | **new data + one consumer** |
+| ⭐ **Between-host spread driver** | a **push-tick over rooms** copying `FireLogic`'s one-hop attenuated neighbour walk (reconcile-on-read can't carry spread) | **new (promote `openNeighboursOf`)** |
+| ✳ **`Resists.factor` ← host condition** | the care-derived condition score becomes the live susceptibility term (Part 4) | **wire (shape ships)** |
+| ✳ **Per-room contaminant map** | `_atmosphere` is a single tag today; airborne disease needs a parallel `_contaminants: Record<string,number>` (the `airReserveOf` precedent) | **new (room-scoped state)** |
+
+*(The pack's "two idioms, not one" paragraph stood here — a duplicate of
+[§ Two idioms, not one](#two-idioms-not-one-decided) and
+[§ The clock does something lovely here](#the-clock-does-something-lovely-here).)*
+
+**4. Verbs & affordances.** `assess` (read `observableSigns` — noticing is the
+skill, gated by the `medicine` Discipline); quarantine is **free** (a closed
+door is already a firebreak → a contagion barrier, `openNeighboursOf`); the
+medic's `treat`/cure is the thin vertical (Part 7). No new core verb.
+
+**5. Persisted fields.** The load scalar + clock stamp on the `AfflictionRecord`
+(shipped shape); the room contaminant map. Bands/stage derive.
+
+**6. Seams & dependencies.** **Requires the growth term (spoilage) + Condition
+substrate live** (doctrine Part 6). Then incubation → acute → recovery → death
+fall out of the load crossing bands, **all shipped**.
+
+**7. Fault line.** Build **after** spoilage (inherits its growth term) and
+room-condition (the hygiene route). The *within-host* half is near-term once
+spoilage lands; the *spread* half is the genuinely new driver.
+
+---
+
+## Absorbed from disease-design-pack — Part 5 — Pedagogy: the public-health capstone
+
+Spoilage taught the growth curve; room-condition taught the chain of infection;
+**disease puts them together into epidemiology** — the real science, honestly:
+
+- **The SIR/logistic dynamics** — the same growth curve, now with **transmission**
+  and an **R₀** (per-exposure transfer × contacts); **herd immunity** falls out
+  of the resistance distribution across a population.
+- **The density–transmission law** — *why* concentration is risky, rendered as
+  mechanism rather than asserted.
+- **Contact tracing** — an outbreak with routes is a solvable case (patient zero).
+- **Prevention as practice** — quarantine, rotation, sanitation, culling as the
+  levers, each with a real historical reason.
+
+**Wrong-about / hooks** (keys computed by the sim): *"Herd of N at stocking rate
+S, care-score C — outbreak or not?"* (density × immunity); *"A sealed door between
+rooms — does it spread?"* (the firebreak); *"Given these contacts and windows,
+who is patient zero?"* (tracing). Real epidemiology problems with computed keys —
+and the clinical layer is the [health-vertical](./health-vertical-slate.md).
+
+---
+
+## Absorbed from disease-design-pack — Part 6 — Interop (the connective tissue)
+
+- **Spoilage** — literally the same growth term; build there first, disease
+  inherits the within-host engine working. (Spoilage = disease minus transmission.)
+- **Room condition / hygiene** — the foodborne/contact/fomite routes (dirty
+  hands, dirty surfaces) + the home-immunity term. The two packs interlock at
+  the chain of infection.
+- **Husbandry / soil / ranching / farming** — the care→immunity term for herds
+  and crops; disease is the density dials' counterweight (stocking rate,
+  monoculture, rotation's *true* reason).
+- **Metabolism / vitals** — the shipped burden engine, bands→stage, the
+  vomit/antidote loop; the `heartRate`/death seams. Gated on **Condition-live**.
+- **Biome / respiration** — the airborne env→body loop (shipped for smoke),
+  needing the per-room contaminant map.
+- **Fire** — the propagation *shape* to copy (and `openNeighboursOf` to promote).
+- **Belief / chronicle** — an outbreak's investigation records; a survivor's
+  immunity as identity memory.
+
+---
+
+## Absorbed from disease-design-pack — Part 7 — Forks settled
+
+1. ~~Growth term → extend `ToxinBehavior`~~ — **superseded by the code**: the
+   load is `pathogenLoad` on the `AfflictionRecord` under a declared
+   `progression.law: logistic`, not on `ToxinBehavior` →
+   [spoilage.md](../../subsystems/spoilage.md) § In the body.
+2. **Spread → a push-tick over rooms** (Fire's one-hop attenuated walk); promote
+   `openNeighboursOf` rather than copying it a third time.
+3. **Airborne → a per-room contaminant map** (`_contaminants`), the `airReserveOf`
+   precedent — because `_atmosphere` is a single tag.
+4. **Host range → the `Clade` tree**; default containment, authored crossing.
+5. **Immunity → `Resists.factor` ← the live host condition score** (four hosts,
+   one seam). Never a flat authored constant.
+6. **First proof → crops** (simplest host, lowest stakes — losing a season, not a
+   friend), *after* the machinery is proven on a **fish** in spoilage. Then
+   ranching (prevalence, quarantine), then pets/players (the zoonotic tier) last.
+
+---
+
 ## Open questions
 
 - **Where the growth term lives** — extend `ToxinBehavior` with optional growth
@@ -329,6 +464,7 @@ on one species · reconcile-on-read load with the growth term ·
   strict subset and every existing seed stays valid.)*
 - **The room contaminant slot** — a parallel `_contaminants: Record<string,
   number>` on `Atmospheric`, or a room-scoped burden like `airReserveOf`?
+  *(The design pack settled this as the map — absorbed Part 7, fork 3.)*
 - **Does `resolution.by` finally get a dispatcher**, and is that this build's
   job or the medicine branch's?
 - **Herd-scale representation** — prevalence as an aggregate scalar (matching

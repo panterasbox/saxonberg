@@ -210,3 +210,50 @@ it dies with a patch nobody can review.
   is the next pass, not this one.
 - **When in doubt, keep.** An over-long slate costs nothing. A lost
   design costs a conversation nobody remembers having.
+
+## The cluster-merge pass (after compaction)
+
+Compaction leaves **the same open design in two files** — a slate and
+its design pack, a parent and the stub the two-slates rule left, two
+siblings that grew the same section. The cluster pass merges those, and
+it is the one place this skill MOVES text instead of only cutting it, so
+it carries a conservation rule.
+
+**Scope: duplicated OPEN design only.** Thematic neighbours are not a
+cluster. If two slates merely cite each other, touch nothing and say so
+in the ledger.
+
+Per cluster:
+
+1. **Read every file whole.** List each file's headings.
+2. **Pick the canonical owner** — the file the others name as their
+   authority, else the one carrying the larger remaining design. Never
+   the stub.
+3. **For every section in a secondary file, one of three outcomes:**
+   - **DUPLICATE** — the canonical already carries the same open item.
+     Cut it from the secondary; leave a one-line pointer to the
+     canonical's section. If the two versions differ in a detail, the
+     detail is MOVED (below), not dropped.
+   - **MOVE** — the item is open and the canonical lacks it. Cut it from
+     the secondary and INSERT it **verbatim** into the canonical under a
+     heading `## Absorbed from <secondary> — <original heading>` (or
+     into the matching existing section, as a labelled subsection).
+     Never paraphrase a moved section.
+   - **KEEP** — the item is the secondary's own (not the canonical's
+     subject). Stays.
+4. **Retire the secondary** if nothing KEEP remains: salvage its open
+   questions into the canonical, delete the file (**plain `rm`, never
+   `git rm`** — a staged deletion rides into whichever sibling commit
+   the coordinator makes next; the coordinator stages), re-point every
+   link to it outside `docs/slates/README.md` / `roadmap.md` (those are
+   the sweep's). Else re-stamp its status block to the KEEP body.
+5. **Re-stamp the canonical** — `Left` gains the moved items; `Size`
+   re-derived.
+6. **The conservation table** in the ledger: one row per secondary
+   heading — `DUPLICATE → <canonical §>` · `MOVED → <canonical §>` ·
+   `KEPT`. Every heading of every secondary file must appear. A
+   reviewer diffs the table against `git show` of the old file.
+
+⚠ Do not merge a design pack into a slate that a build is currently
+running from (check `git worktree list` branches) — hand it to that
+build's sweep.

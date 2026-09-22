@@ -202,6 +202,14 @@ events aren't wired to `MudlogApi`. Route **authorization denies + every
 moderation control plane's audit need: one stream for "who was denied /
 who force-bypassed / who was gagged."
 
+> Sibling, not the same instrument:
+> [call-security-pass-slate § The audit rail](../builds/call-security-pass-slate.md)
+> designs the PERMIT side — `@Audited`, a sampled record of allowed
+> sensitive calls with their runtime args into `audit_events`. This
+> section is the DENY side (denies + `forceX` uses). One audit build
+> should carry both; neither slate restates the other (cluster pass
+> 2026-09-21).
+
 ---
 
 ## Worked scenarios

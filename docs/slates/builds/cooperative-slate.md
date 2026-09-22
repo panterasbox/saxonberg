@@ -74,7 +74,7 @@ See also:
   Google-only auth spine to Twitch-co-equal + account linking is what
   lets a Twitch sub/dono attach to a Saxonberg identity. The stake
   ledger cannot exist before this.
-- [docs/slates/tails/external-chat-relay-slate.md](../tails/external-chat-relay-slate.md)
+- [docs/subsystems/twitch-relay.md](../../subsystems/twitch-relay.md)
   — the Twitch binding (inbound reader); the same integration surface
   the dono webhook lands on.
 - [docs/slates/deferred-rpg/affiliation-slate.md](./affiliation-slate.md)

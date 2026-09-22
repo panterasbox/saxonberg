@@ -5,13 +5,14 @@
 > screen pre-login surface), and Wave 1 was struck by the organizations
 > build (publisher = organization, authority = position) →
 > [press.md](../../subsystems/press.md)
-> **Left:** the docket — unedited, chronological, complete · the
-> events-not-significance rule enforced structurally · locality-scoped
-> gazettes as shipped content · Wave 2, the press industry (worked in
-> press-slate, not here)
-> **Size:** a build (Wave 0 and Wave 1's shippable substrate are both
-> done; the docket alone — a cross-jurisdictional, append-only event
-> index — is not a tail, and Wave 2 is press-slate's own build)
+> **Left:** locality-scoped gazettes as shipped content (Wave 2, the
+> press industry, is worked in press-slate, not here; the docket and
+> the events-not-significance rule are tracked solely there too —
+> see [press-slate](./press-slate.md) § *The structural threat*)
+> **Size:** a tail, riding press-slate's build (Wave 0 and Wave 1's
+> shippable substrate are both done; the only remaining item of
+> gazette's own is a small content-seeding task on substrate press-slate
+> already designs)
 
 **Captured 2026-08-02**, in preparation for the video series and the
 rebuilt homepage. The user's framing, and it is the load-bearing one:
@@ -50,44 +51,13 @@ two-way deliberation lives), [legal-code-slate](./legal-code-slate.md)
 
 ## ⭐⭐⭐⭐ And press-slate already protects the vocation
 
-The rule that makes building system news *well* safe rather than
-cannibalising:
-
-> **The default feed reports EVENTS, never SIGNIFICANCE.** *"Bill X crossed
-> threshold in the Play chamber"* — never *"Landmark arms bill advances."*
-> **The machine can report facts; only a person can say why it matters —
-> and that sentence is the job description.**
-
-Plus the three-layer split this slate inherits:
-
-| Layer | Character | State |
-|---|---|---|
-| **the record** | queryable, complete, **never pushed** | largely shipped (ledgers, MQL) |
-| **the docket** | *unedited* chronological events; public, boring, complete | ⚠ **missing — the gap** |
-| **the ticker** | **a publication, therefore it has a publisher** | shipped as one hard-coded publisher |
-
-> **Nobody reads the Federal Register — that is the point, and precisely why
-> journalism exists.**
-
-### ⭐⭐⭐ And the docket being PULL is by design, not a concession
-
-**(Revised 2026-08-02, after decomposing the Substack form — see
-[press-slate § What a publication is](./press-slate.md).)**
-
-An earlier pass framed the state's output as a **wire service** feeding
-the press, on a newspaper analogy. **The analogy was wrong** — Substack has
-no issues and the unit is a post. The distinction that survives is
-simpler, and it is about **direction**:
-
-> **The state publishes to a PLACE. A publisher pushes to PEOPLE.**
-
-A state that pushes to everyone is either propaganda or noise. So the
-gazette being a surface you **go to** is **correct**, not a limitation —
-and the press is **what comes to you about it.**
-
-⭐ **This is also why system news is genuinely the smallest part**: it is
-the only one of the three layers that needs no delivery machinery at
-all.
+The events-not-significance rule, the three-layer record/docket/ticker
+split, and the "the state publishes to a PLACE, a publisher pushes to
+PEOPLE" argument that follows from it all now live in one place —
+[press-slate](./press-slate.md) § *The structural threat: an
+auto-generated ticker* (including the subsection absorbed from this
+slate during the cluster-merge pass). Nothing left to say here that
+isn't said there.
 
 ---
 
@@ -121,31 +91,22 @@ all.
 
 **What Wave 1 asked for and is still NOT built**, deliberately:
 
-- ⭐ **The events-not-significance rule enforced structurally.** Nothing
-  today makes a state feed *incapable* of editorialising. This is the
-  single most valuable unbuilt thing on this slate and it survives intact.
-- ⭐ **The docket** — unedited, chronological, complete, deliberately
-  boring. Still the missing middle layer, still what makes journalism
-  necessary rather than decorative.
-- Locality-scoped gazettes as shipped content.
+- The events-not-significance rule and the docket are tracked in
+  [press-slate](./press-slate.md) § *The structural threat* now, not
+  here (moved during the cluster-merge pass — both were the same open
+  item this slate was carrying redundantly).
+- Locality-scoped gazettes as shipped content. This one is gazette's
+  own — press-slate designs the vocation generally, not per-locality
+  state press.
 
 ---
 
 # Wave 2 — the press
 
-**Already designed in [press-slate](./press-slate.md). Do not re-derive it
-here.** The shape it needs from this slate (the `/feed/<publisher>/`
-part of this list already shipped — see
-[press.md](../../subsystems/press.md) § *A release lives in the
-document tree*):
-
-- subscription, so a ticker is *a thing you subscribe to* rather than a board
-  you read;
-- the inline **stance** action a publisher's ticker may carry;
-- the three source paths and the recording instrument, per that slate.
-
-⚠ **This is a genuinely large build and must not be sized off Wave 1's
-momentum.**
+Already designed in full in [press-slate](./press-slate.md) — subscription,
+the inline stance action, the three source paths, and the recording
+instrument all live there; nothing to re-derive here. ⚠ **It is a
+genuinely large build and must not be sized off Wave 1's momentum.**
 
 ---
 
@@ -159,10 +120,9 @@ momentum.**
 2. Resolved: its own endpoint (`GET /api/press/releases`), not a flag on
    the archive — [press.md](../../subsystems/press.md) § *The anonymous
    press room*.
-3. **Is the docket a new surface or a projection of existing ledgers?**
-   *Leans projection* — the record already exists; the docket is a
-   chronological read of it with no editorial layer. Still open — the
-   docket itself is unbuilt.
+3. Moved to [press-slate](./press-slate.md) § *Open questions*, item 8
+   (the docket-new-surface-vs-projection question) during the
+   cluster-merge pass.
 4. Resolved: a seat-holder (position-holder) publishes; there is no
    automatic-publish path — `mayPublishAs`/`holdsPublishingPosition` in
    [press.md](../../subsystems/press.md) § *The entitlement*. The

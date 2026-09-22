@@ -4,11 +4,14 @@
 > the shell-condition clock and the landlord REFERENCE (a let unit's
 > condition gates the buy) shipped
 > → [holding.md](../../subsystems/holding.md)
-> **Left:** room-condition attribution `(actor, target, extent)` · the
-> check-in condition snapshot at `grantedAt` · the deposit as a contract
+> **Left:** the term-bounded attribution query over
+> [room-condition](../builds/room-condition-design-pack.md)'s attributed
+> `(actor, target, extent)` events (the constraint itself is that pack's) ·
+> the check-in condition snapshot at `grantedAt` · the deposit as a contract
 > escrow leg · the habitability claim · the eviction act (+ the shelter
 > floor) · common parts as the landlord's obligation · rent as a recurring
-> money leg
+> money leg + the absorbed rent economics (schedules · sublease markets · the
+> proprietor-as-Business P&L) · co-lease / sublet (Q5 + the absorbed seam)
 > **Size:** a wave
 
 See also: [residence-ladder](./residence-ladder-design-pack.md) (**the rented
@@ -31,11 +34,7 @@ shelter** — the floor under eviction).
 
 The ladder's gate is *"the condition of what you already hold."* Its rungs:
 
-| Rung | Tenure | Gate to next |
-|---|---|---|
-| **Dorm** | granted lease | none — the tutorial |
-| **Apartment** | **rented** | money |
-| **Townhome** | owned | money **+ condition of the last** |
+*→ the rungs table is [residence-ladder Part 2](./residence-ladder-design-pack.md#part-2--the-ladder-and-the-two-part-gate); "that third row" below is its Townhome / house row (owned — money **+ condition of the last**).*
 
 ⭐ Read that third row carefully: **"the condition of the last" means the
 condition of the apartment you RENTED.** The ladder already gates ascent on
@@ -108,7 +107,7 @@ still feels another:
 
 | Incentive | Kind | Mechanism |
 |---|---|---|
-| **You live there** | **immediate comfort** | filthy rooms cost `restQuality`; a dirty home is lower immunity ([disease](../builds/disease-design-pack.md)) |
+| **You live there** | **immediate comfort** | filthy rooms cost `restQuality`; a dirty home is lower immunity ([disease](../builds/disease-slate.md)) |
 | ⭐ **The reference** | **delayed progression** | the ladder gate reads the condition of the place you held — **neglecting a rental blocks your ascent** |
 | **The deposit** | **contractual money** | escrow at risk (Part 4) |
 
@@ -259,6 +258,25 @@ keep it on the right side.
   run *both* ways is the half most tenancy fiction omits.
 - ⭐ **Why owning differs from renting**, felt rather than told: same room,
   same acts, different security.
+
+---
+
+## Absorbed from residence-ladder-design-pack — Deferred seams: rent economics · co-lease / roommate
+
+*Moved here verbatim by the 2026-09-21 cluster pass from the ladder pack's
+"⭐ Deferred seams, salvaged from the retired apartment plan" list (itself
+extracted 2026-09-06 when `apartment-plan.md` was retired). Both bullets are
+tenure design: the first is the money leg this pack's `Left` already named,
+the second is open question 5 below in its earlier form (the roommate SHAPE
+— one owner + N grants — is [household](./household-design-pack.md) Part 1;
+the "v1 is single-leaseholder" fact is shipped: `ProvisionController`
+refuses a double provision and `UseGrant` is single-holder).*
+
+- **Rent economics** — payment schedules, metered sub-allowance, sublease
+  markets, the proprietor-as-Business P&L. The lease *relationship* ships; the
+  *economics* attach at `settle` + the Business account.
+- **Co-lease / roommate** — a use-grant of a use-grant (property §K sublet);
+  v1 is single-leaseholder.
 
 ---
 

@@ -3,11 +3,17 @@
 > **Status: UNBUILT** — `isWizard` / `isArchwizard` exist as the
 > code-trust axis ([access.md](../../subsystems/access.md)); no bar, no
 > roster, no complaint process, no break-glass record.
-> **Left:** ⭐ the conspicuous record of wizard reads/impersonations (the
-> one non-retrofittable piece) · the safe-harbour standard text · admit
-> (exam + archwizard flip) · the public roster · the hearing process ·
-> advisory disbarment
-> **Size:** a build
+> **Left:** the safe-harbour standard text (⭐ the product) · admit (exam
+> + archwizard flip) · the public roster · the hearing process · advisory
+> disbarment. ⭐ The conspicuous record of wizard reads/impersonations —
+> the one non-retrofittable piece, which the bar is worthless without —
+> is the parent's break-glass extension and is counted in
+> [wizard-duty-slate](./wizard-duty-slate.md)'s `Left`, not here
+> (2026-09-21 cluster pass).
+> **Size:** a wave — the record is the engine work and it is the
+> parent's; what remains is authored text (the standard), a roster read
+> over the wizards group, a hearing process that rides the courts /
+> institutions, and a recommendation to a revocation that already ships
 
 **Captured 2026-08-12**, out of a conversation that started on code
 hosting and turned into what a wizard *is*:
@@ -188,11 +194,14 @@ parts that must be right before there is a second wizard:
 
 # ⚠ What the bar does not fix
 
-Inherited from the parent, restated so this slate cannot be read as
-solving it:
+Inherited from the parent, so this slate cannot be read as solving it.
+Two of the three limits are stated once, in
+[wizard-duty-slate](./wizard-duty-slate.md) — *an operator defeats any
+in-system control* (§ *The mechanisms, ranked*) and *it is a good-faith
+instrument* (§ *The honest limit, and why it is acceptable*); the
+restatements were cut here 2026-09-21 (cluster pass). What the bar adds
+is the third:
 
-- **An operator defeats any in-system control.** Only external anchors,
-  external witnesses and consequence remain.
 - **The recursion still bottoms out in exit.** *Who disbars the
   revoker?* — institutionally, remove them politically and the successor
   disbars them; **at launch the founder is the only archwizard and owns
@@ -201,9 +210,6 @@ solving it:
   being *the founder's discretion* the moment there is a second
   archwizard to hold the process — which is an argument for authoring it
   **before** it is needed, not after.
-- ⭐ **It is a good-faith instrument.** It makes a good-faith wizard
-  legible, which makes a hostile one conspicuous by contrast. Say that
-  rather than overselling it.
 
 ---
 

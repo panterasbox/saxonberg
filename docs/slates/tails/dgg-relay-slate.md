@@ -10,9 +10,11 @@
 
 **Lineage:** sibling of
 [kick-relay-slate.md](./kick-relay-slate.md) and
-[youtube-relay-slate.md](./youtube-relay-slate.md) (Wave N of
-[external-chat-relay-slate.md](./external-chat-relay-slate.md)). Like
-Kick it arrives *after* the unification, so it inherits the shared
+[youtube-relay-slate.md](./youtube-relay-slate.md) (Wave N of the
+retired external-chat-relay-slate, absorbed into youtube-relay-slate.md —
+see
+[cluster-relays.md](../../plans/slate-compaction/cluster-relays.md)).
+Like Kick it arrives *after* the unification, so it inherits the shared
 surface rather than mirroring a parallel one.
 **Sits on:** [streaming.md](../../subsystems/streaming.md) (the shipped
 substrate — read it first) +

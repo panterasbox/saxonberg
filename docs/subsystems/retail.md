@@ -60,7 +60,8 @@ was the obvious third service and it is unbuildable as an `order`:
 *"Death costs embodied agency and the price of coming back; it never
 costs a seat as a person."* A shade cannot purchase anything. The two
 routes out — a third-party payer, or an option on `passage` — are both
-real design, and neither is decided in passing. → mortality-slate.
+real design, and neither is decided in passing. → mortal-vessel-slate
+(§ *Absorbed from mortality-slate — The re-embodiment service*).
 
 ## The shared price-list (`PricedOfferMixin`)
 
