@@ -16,7 +16,7 @@ animal), [ranching.md](./ranching.md) (the record-not-object precedent:
 *a herd MOVES; a stand does not* — and fish move), [spoilage.md](./spoilage.md)
 (a landed fish dies, turns, and carries what the water carried),
 [retail.md](./retail.md) (the stall is consignment, no new verb). The
-design: `docs/slates/builds/fishing-slate.md` (§ 12 is the home tank).
+design: `docs/slates/tails/fishing-slate.md` (§ 12 is the home tank).
 
 ---
 
@@ -270,11 +270,38 @@ take a fillet unchanged.
 
 ## What the drive found
 
-`packages/wire/tests/fishing.dirty.wire.test.ts` — the record is in the
-plan. Pre-existing content it caught: the city's intake and outfall were
-**off** (`Switchable` defaults off; the Kestrel below Terminus had never
-been fouled), and the baker's, miller's and farmer's `introduces` had an
-unknown trigger (`witness:arrival`) and never fired.
+`packages/wire/tests/fishing.dirty.wire.test.ts` — 21 steps, green on
+the merged tree (run 24, 2026-09-22; the run-by-run record lived on the
+plan and is summarised on MR !268). Pre-existing content it caught: the
+city's intake and outfall were **off** (`Switchable` defaults off; the
+Kestrel below Terminus had never been fouled), and the baker's, miller's
+and farmer's `introduces` had an unknown trigger (`witness:arrival`) and
+never fired.
+
+**Kernel defects the drive surfaced, fixed on the branch** — each in its
+own doc: `set` is a scripting builtin and a verb named after one never
+dispatches (`lint:verb-collisions` counts the builtins now); `buy` never
+`followCustody()`'d, so a bought good vanished at restart
+([retail.md](./retail.md)); `peers` affordances did not reach into an open
+container on the floor ([command-routing.md](./command-routing.md));
+releasing a fish mid-drain was an unhandled rejection that took the server
+down ([respiration.md](./respiration.md)); ⭐⭐ the MQL keyword scorer was
+INERT behind every scope seed — a bare word resolved by pool order
+([mql.md](./mql.md)); ⭐⭐ the dying clock froze when unobserved
+([mortality.md](./mortality.md)); wire test characters were minted naked
+([testing.md](../testing.md)). **Recorded, not fixed here:** every unfed
+Cast in the world starves at room temperature — the thermal dials
+([thermal-slate](../slates/tails/thermal-slate.md)); a keyed pet inside a
+moved vessel restores loose, and a dropped chattel restores to inventory
+([pets.md](./pets.md), Risk 7 — so *the carp is in its bowl after a
+restart* is the one acceptance line not met).
+
+**Acceptance observed live, and not.** Eleven of the requirements'
+thirteen lines were observed by the drive. Not observed live: the carp's
+bowl after a restart (above); *eaten raw it sickens* and *a fillet keeps
+when smoked* — `butcher` is afforded only by the cookhouse block, so the
+carcass-load transfer is a unit test; the fishmonger's replacement through
+`appoint` and the sturgeon's *release* deed are unit-tested, not driven.
 
 ## Deferred
 

@@ -27,7 +27,7 @@ its level) · [location.md](../../subsystems/location.md) + `SphericalLocation`
 (`Swimmable`) · [encumbrance.md](../../subsystems/encumbrance.md)
 (`LoadBearing`) · [materials-response.md](../../subsystems/materials-response.md)
 (`Material.density`, `getMass()`) · [mortality.md](../../subsystems/mortality.md)
-(the corpse) · [fishing-slate](./fishing-slate.md) § 6 (layers; the reach
+(the corpse) · [fishing-slate](../tails/fishing-slate.md) § 6 (layers; the reach
 as the bus) · [hunting-slate](./hunting-slate.md) (the act) ·
 [physiology-slate](./physiology-slate.md) (BMI / body density).
 

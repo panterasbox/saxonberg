@@ -161,6 +161,14 @@ the Hydrator; per-field invariants ride accessor pairs.
 > makes a chain economic rather than scenic (graduated from the metal
 > chain slate, 2026-09).
 
+### `epoch` on a tool (fishing A3, 2026-09)
+
+`ToolMixin.epoch` + `lib/craft/Epoch.ts` — the closed epoch vocabulary the
+forestry build wrote (three files byte-identical to `build/forestry`). A
+row stamps `epoch: medieval`; the land-use covenant is the reader. The
+tackle ladder (hand · rod-and-line · pot · net medieval; reel, fly, trawl
+later) is the first content that authors it beside forestry's.
+
 ## Recipe = a `Document` (the Emote pattern)
 
 A recipe is **data** — no mutable state, no lifecycle, no per-instance

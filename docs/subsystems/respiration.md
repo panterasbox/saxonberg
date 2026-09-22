@@ -78,6 +78,26 @@ grant marker, swapping the engine's one read site. **Gills are cut from
 this build** (no consumer); the species inversion ships, so a real
 water-breathing creature is demonstrated without gear.
 
+### ⭐ Immersion — the liquid you are inside (fishing A3, 2026-09)
+
+Between the engaged mode's medium and the atmosphere walk sits a third
+read: **the nearest ancestor on the containment chain that holds a
+non-empty bulk `interior`** answers with its material's name
+(`resolveCurrentMedium → {medium, immersed}`). A carp in a bowl of water
+breathes `water`; a man in a vat of ale breathes nothing. An immersion is
+**exempt from the known-medium exemption** — a liquid a body sits in is a
+liquid whether or not the biome table names it — and it lives here, not in
+the atmosphere walk, because only respiration asks what a body is immersed
+in (put in `syncChainWalk`, a bowl's water would take the room's air
+temperature). `onMoved` is a fourth reassess trigger: every containment
+move re-checks the medium, so a landed fish starts drowning in the hand and
+stops in the bowl. `reassess` guards a proxy destructed mid-drain (a
+released fish — the unguarded read was an unhandled rejection that took
+the server down). ⚠ The in-place trigger (a room whose medium changes
+under a standing body — fire's smoke today) is still missing: see
+`docs/slates/tails/respiration-slate.md`. Detail:
+[fishing.md](./fishing.md).
+
 ## The crisis engine — one engagement, lifecycle-parameterized
 
 The central entry is the async **`RespirationMixin.reassess()`**: resolve

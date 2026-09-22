@@ -53,7 +53,7 @@ remaining problem is not a shortage of effects. It is sharper than that:
 > is raining are to type `analyze weather` or to notice a barometer. A world
 > whose sky is a *query* is not a world with weather in it yet.
 
-[fishing-slate](../builds/fishing-slate.md) claims the title of *"the first real
+[fishing-slate](../tails/fishing-slate.md) claims the title of *"the first real
 gameplay consumer of weather-as-a-system"*, and it is right to — everything
 downstream today is physical (temperature, wetness, puddles, light, shock
 conductivity), never a decision.
@@ -155,7 +155,7 @@ consume weather:
 **Status of the designed consumers: all designed, none built.**
 [farming](./farming-slate.md) (∫weather, GDD) ·
 [ranching](../builds/ranching-slate.md) (pasture, thermoregulation, winter feed)
-· [fishing](../builds/fishing-slate.md) (the catch distribution — claims first)
+· [fishing](../tails/fishing-slate.md) (the catch distribution — claims first)
 · [preservation](./preservation-slate.md) (the spoilage rate) · travel /
 crafting / combat (**genuinely zero coupling today** — confirmed by grep, and
 `LocomotionMode.costMultiplier` has no production reader at all).

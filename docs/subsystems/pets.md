@@ -335,3 +335,13 @@ tail:**
   level into an open container standing in the room, both ways
   (`CommandLogic.applyContainmentDeltaImpl`), as the `peers` scope
   already did.
+
+**From the fishing review round (2026-09-22):** `KeptAnimal` gained a
+second naming gate — `Bonded.hasChosen()` = bond + followed **or** an
+earned home (`homeEarnedDay`: three distinct fed days in one vessel move
+`home` there) and there now; `homeKeyOf(container)` keys a stamped chattel
+by its chattel id (every fish bowl was one home by template path);
+`takesFromHand` is what the `'surface'` feeding rung means for a carp. The
+fish is the first kept animal that is also `Contaminable`. ⚠ Risk 7 stands:
+a keyed animal inside a moved vessel restores loose, and a dropped chattel
+restores to inventory (the drive's restart step).

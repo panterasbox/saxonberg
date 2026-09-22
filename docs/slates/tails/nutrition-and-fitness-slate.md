@@ -60,7 +60,7 @@ changes stops fitting its clothes) ·
 — the portrait is how the mirror shows you) ·
 [measurement.md](../../measurement.md) (no gauges; *the mirror shows you*)
 · [cooking-slate](../builds/cooking-slate.md) (the kitchen family; slices) ·
-[fishing-underwater design](../builds/fishing-slate.md) (buoyancy is body
+[fishing-underwater design](../tails/fishing-slate.md) (buoyancy is body
 density's first mechanical consumer) · the gamification-mirror thesis
 (the real-world bridge is REWARD-ONLY; build the loop against in-game
 input and keep the seam).

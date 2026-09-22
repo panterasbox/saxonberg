@@ -119,6 +119,12 @@ over unless payment clears. The store account is the **Business** account
 (income + wages on one P&L), ensured lazily off `operatingLocations` via
 `EmploymentApi.ensureOperatorAt` (the `OrderController.charge` shape).
 
+⭐ **`buy` calls `item.followCustody()` after the stamp** (fishing B7,
+2026-09) — every other custody verb did; `buy` never had, and a bought rod
+vanished at the next restart. Both branches (a stock buy and a consignment
+buy). The fish stall (`market/thing/fish-stall.yaml`) is a second
+consignment counter with no lines of its own — self-service, capacity 40.
+
 ## Consignment — custody-vs-ownership (`consign` / `reclaim`)
 
 The store's brokerage layer over real ownership. With the stamp,

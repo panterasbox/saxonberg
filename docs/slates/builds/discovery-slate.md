@@ -47,7 +47,7 @@ gathering vertical was never written.
 
 *(Sits above [spawn-distribution-slate](./spawn-distribution-slate.md) and beside [magic-items-slate](./magic-items-slate.md), [identification-slate](./identification-slate.md), [pharma-slate](./pharma-slate.md).)*
 
-Related: [fishing-slate](./fishing-slate.md) (**the sibling — and the
+Related: [fishing-slate](../tails/fishing-slate.md) (**the sibling — and the
 contrast**), [mining-slate](./mining-slate.md),
 [pharma-slate](./pharma-slate.md) (**the demanding consumer**),
 [farming-slate](../tails/farming-slate.md) (where foraging goes when demand

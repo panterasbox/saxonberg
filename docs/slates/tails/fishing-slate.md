@@ -1,21 +1,24 @@
 # Fishing slate — the stock on a reach, and what you do about it
 
-> **Status: UNBUILT** — no fishing act, no aquatic species row, no
-> fishery record exists. ⭐ **Rewritten 2026-09-18** after the pets build
-> and a lens pass: three of the first draft's "genuinely new" primitives
-> shipped under other names (the water composition → the water pack's
-> `Watercourse`; the catch-distribution field → ranching's *record that is
-> not an object*; the individual → `KeptAnimal`), and the underwater half
-> became its own slate.
-> **Left:** the fishery record on a reach (derived from habitat ×
-> composition) · the aquatic species rows + habitat declarations · the
-> acts (`fish` — ⚠ `cast` is arcana's — / the wait / the bite as the
-> fish's decision / the landing contest / `set` + `lift` for traps and
-> nets) · the catch's four fates · the method ladder as tools with
-> epochs · the fishery right + the covenant rows · the shore feature that
-> cites a reach · the `fishing` Discipline (the roster's reserved name,
-> ISCED 0831) · the stew pond (aquaculture) as a tail · ⭐ the named apex
-> **Size:** a build — and [underwater](./underwater-slate.md) is a second one
+> **Status: PARTIAL** — v1 shipped 2026-09 (MR !268) → [fishing.md](../../subsystems/fishing.md):
+> the fishery as a derived record on a reach (the water pack's), the
+> reach reporting every parameter a tank will hold, the `Shore` read
+> banded by competence, six species with habitats, the bite as the fish's
+> decision + the pure landing contest, `lay`/`haul` for a pot, a net and
+> a keepnet, ⭐ the rig (present-at × where it feeds, the hook's gape, the
+> worked lure), the fish as a `Contaminable` kept animal, the fisher, the
+> fishmonger, the `fishing` Discipline, the sturgeon as a chronicle deed.
+> `set`→`lay`, `lift`→`haul` (builtin / barbell collisions); `dig`
+> withdrawn to the discovery slate.
+> **Left:** the tank (§ 12 — the reach reports its parameters; the vessel's
+> ledger and the keeper are the build) · ⭐ the named apex as an INDIVIDUAL
+> in the record (the one that got away, older; v1's sturgeon is a count
+> and a deed) · the stew pond (aquaculture) · the boat regime · the fishery
+> right + covenant rows when the covenant lands · noun breadth (mollusks,
+> cephalopods, weed) · a landed fish put back keeps no identity (release
+> is +1 to a count) · the § 13 drive findings for other owners (a prop's
+> prose on the room's `look`; a Cast's keywords becoming his name)
+> **Size:** a build's tail — and [underwater](../builds/underwater-slate.md) is its own build
 
 **Sits on:** [watershed.md](../../subsystems/watershed.md) (the reach —
 topology authored, flow derived, navigability derived, contamination as
@@ -26,9 +29,9 @@ ground* — from which an individual materializes when engaged; three
 ROLES, not three classes) · [pets.md](../../subsystems/pets.md) (the kept
 individual, the bond, the species dials, *the animal decides*) ·
 [spoilage.md](../../subsystems/spoilage.md) (a caught fish is the v1
-perishable) · [authored-vs-procedural](./authored-vs-procedural-slate.md)
+perishable) · [authored-vs-procedural](../builds/authored-vs-procedural-slate.md)
 (*author the biome, override the exception*; a species must ship with a
-way to occur) · [hunting-slate](./hunting-slate.md) (the wild population,
+way to occur) · [hunting-slate](../builds/hunting-slate.md) (the wild population,
 the stalk — and the spear, wet or dry) · the land-use covenant (forestry's;
 tools carry `epoch`) · [design-lenses.md](../../design-lenses.md).
 
@@ -276,8 +279,8 @@ derived from the authored `Watercourse`, never budded); the fishery right
 4. **Numeric tuning** — bite cadence, recovery rates, strain curves —
    against a running game, never in a doc.
 
-*(Retire when: the fishery record and the shore regime ship, and
-fishing's tail is the boat and the stew pond.)*
+*(Retire when: the tank, the named apex and the stew pond ship, or are
+declined; the boat regime is the logistics slate's to claim.)*
 
 ## 12. The tank — the follow-on build, and what v1 owes it
 
